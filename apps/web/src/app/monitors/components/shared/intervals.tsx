@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { TypographyH4 } from "@/components/ui/typography";
 import { useFormContext } from "react-hook-form";
 import { z } from "zod";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const intervalsSchema = z.object({
   interval: z.coerce.number().min(20),
@@ -30,18 +31,19 @@ export const intervalsDefaultValues: IntervalsForm = {
 };
 
 const Intervals = () => {
+  const { t } = useLocalizedTranslation();
   const form = useFormContext();
 
   return (
     <>
-      <TypographyH4>Intervals, Retries, Timeouts</TypographyH4>
+      <TypographyH4>{t("ui.intervals_retries")}</TypographyH4>
 
       <FormField
         control={form.control}
         name="interval"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Heartbeat interval (seconds)</FormLabel>
+            <FormLabel>{t("forms.labels.heartbeat_interval")}</FormLabel>
             <FormControl>
               <Input placeholder="60" {...field} type="number" />
             </FormControl>
@@ -55,7 +57,7 @@ const Intervals = () => {
         name="max_retries"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Retries</FormLabel>
+            <FormLabel>{t("forms.labels.retries")}</FormLabel>
             <FormControl>
               <Input placeholder="60" {...field} type="number" />
             </FormControl>

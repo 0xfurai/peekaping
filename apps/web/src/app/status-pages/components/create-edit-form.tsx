@@ -15,6 +15,7 @@ import SearchableMonitorSelector from "@/components/searchable-monitor-selector"
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const statusPageSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -64,6 +65,7 @@ const CreateEditForm = ({
   isPending?: boolean;
   mode?: "create" | "edit";
 }) => {
+  const { t } = useLocalizedTranslation();
   const form = useForm<StatusPageForm>({
     defaultValues: initialValues || formDefaultValues,
     resolver: zodResolver(statusPageSchema),
@@ -172,7 +174,7 @@ const CreateEditForm = ({
               name="footer_text"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Footer Text</FormLabel>
+                  <FormLabel>{t("forms.labels.footer_text")}</FormLabel>
                   <FormControl>
                     <Input placeholder="Enter footer text" {...field} />
                   </FormControl>
@@ -205,7 +207,7 @@ const CreateEditForm = ({
 
         <Card>
           <CardHeader>
-            <CardTitle>Settings</CardTitle>
+            <CardTitle>{t("common.settings")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <FormField
@@ -215,7 +217,7 @@ const CreateEditForm = ({
                 <FormItem>
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <FormLabel>Published</FormLabel>
+                      <FormLabel>{t("status_pages.published")}</FormLabel>
                       <p className="text-sm text-muted-foreground">
                         Make this status page publicly accessible
                       </p>
