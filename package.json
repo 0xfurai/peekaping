@@ -13,10 +13,5 @@
   "packageManager": "pnpm@9.0.0",
   "engines": {
     "node": ">=18"
-  },
-  "pnpm": {
-    "patchedDependencies": {
-      "@tanstack/query-devtools": "patches/@tanstack__query-devtools.patch"
-    }
   }
 }

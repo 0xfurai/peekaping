@@ -26,10 +26,24 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import EmptyList from "@/components/empty-list";
+import {
+  useMonitorTranslations,
+  useCommonTranslations,
+} from "@/hooks/useTranslation";
 
 const MonitorsPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const monitorTranslations = useMonitorTranslations();
+  const {
+    all,
+    active,
+    inactive,
+    up,
+    down,
+    maintenance,
+    search: searchText,
+  } = useCommonTranslations();
 
   // Add state for search query
   const [search, setSearch] = useState("");
@@ -140,7 +154,7 @@ const MonitorsPage = () => {
 
   return (
     <Layout
-      pageName="Monitors"
+      pageName={monitorTranslations.title}
       onCreate={() => {
         navigate("/monitors/new");
       }}
@@ -148,7 +162,7 @@ const MonitorsPage = () => {
       <div>
         <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:justify-end sm:gap-4">
           <div className="flex flex-col gap-1">
-            <Label htmlFor="active-filter">Active</Label>
+            <Label htmlFor="active-filter">{active}</Label>
             <Select
               value={activeFilter}
               onValueChange={(v) =>
@@ -159,14 +173,16 @@ const MonitorsPage = () => {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="all">{all}</SelectItem>
+                <SelectItem value="active">{active}</SelectItem>
+                <SelectItem value="inactive">{inactive}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="flex flex-col gap-1">
-            <Label htmlFor="status-filter">Monitor Status</Label>
+            <Label htmlFor="status-filter">
+              {monitorTranslations.filters.monitorStatus}
+            </Label>
             <Select
               value={statusFilter}
               onValueChange={(v) =>
@@ -177,18 +193,18 @@ const MonitorsPage = () => {
                 <SelectValue placeholder="Monitor Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="up">Up</SelectItem>
-                <SelectItem value="down">Down</SelectItem>
-                <SelectItem value="maintenance">Maintenance</SelectItem>
+                <SelectItem value="all">{all}</SelectItem>
+                <SelectItem value="up">{up}</SelectItem>
+                <SelectItem value="down">{down}</SelectItem>
+                <SelectItem value="maintenance">{maintenance}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="flex flex-col gap-1 w-full sm:w-auto">
-            <Label htmlFor="search-maintenances">Search</Label>
+            <Label htmlFor="search-maintenances">{searchText}</Label>
             <Input
               id="search-maintenances"
-              placeholder="Search maintenances..."
+              placeholder={monitorTranslations.placeholders.searchMonitors}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full sm:w-[400px]"

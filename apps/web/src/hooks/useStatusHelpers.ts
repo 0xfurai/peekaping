@@ -1,0 +1,46 @@
+import { useStatusTranslations } from "@/hooks/useTranslation";
+
+export const useStatusHelpers = () => {
+  const statusTranslations = useStatusTranslations();
+
+  const getStatusText = (status: number | undefined) => {
+    if (typeof status === 'undefined') return statusTranslations.unknown;
+    return statusTranslations.getStatusText(status);
+  };
+
+  const getStatusClass = (status: number | undefined) => {
+    switch (status) {
+      case 0:
+        return "bg-red-500 border-red-600";
+      case 1:
+        return "bg-green-500 border-green-600";
+      case 2:
+        return "bg-gray-500 border-gray-600";
+      case 3:
+        return "bg-blue-500 border-blue-600";
+      default:
+        return "bg-gray-500 border-gray-600";
+    }
+  };
+
+  const getStatusVariant = (status: number | undefined) => {
+    switch (status) {
+      case 0:
+        return "destructive";
+      case 1:
+        return "default";
+      case 2:
+        return "outline";
+      case 3:
+        return "secondary";
+      default:
+        return "outline";
+    }
+  };
+
+  return {
+    getStatusText,
+    getStatusClass,
+    getStatusVariant,
+  };
+};

@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuthStore } from "@/store/auth";
 import { useNavigate } from "react-router-dom";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export function NavUser({
   user,
@@ -32,6 +33,7 @@ export function NavUser({
   const { isMobile } = useSidebar();
   const clearTokens = useAuthStore((state) => state.clearTokens);
   const navigate = useNavigate();
+  const { t } = useLocalizedTranslation();
 
   const handleLogout = () => {
     clearTokens();
@@ -92,13 +94,13 @@ export function NavUser({
             <DropdownMenuGroup>
               <DropdownMenuItem onClick={() => navigate("/security")}>
                 <ShieldCheckIcon />
-                Security
+                {t("common.security")}
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
               <LogOutIcon />
-              Log out
+              {t("common.logout")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
