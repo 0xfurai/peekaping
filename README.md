@@ -129,6 +129,17 @@ open http://localhost:8383
 - **Web**: [`0xfurai/peekaping-web`](https://hub.docker.com/r/0xfurai/peekaping-web) - React frontend
 - **Migrator** [`0xfurai/peekaping-migration`](https://hub.docker.com/r/0xfurai/peekaping-migration) - SQL db schema migration
 
+# Docker Compose Files
+
+### docker-compose.dev.{db}.yml
+These files are for local testing and build the entire stack locally from Dockerfiles
+
+### docker-compose.prod.{db}.yml
+These files are production-ready configurations that pull pre-built containers from Docker Hub
+
+### docker-compose.{db}.yml
+These files run standalone databases for local development, designed to work with `turbo run dev`
+
 ## 🛠 Development Setup
 
 ### Full Stack Development
