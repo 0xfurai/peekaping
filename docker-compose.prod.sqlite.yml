@@ -1,3 +1,6 @@
+networks:
+  appnet:
+
 services:
   migrate:
     image: 0xfurai/peekaping-migrate:latest

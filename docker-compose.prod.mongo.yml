@@ -27,6 +27,7 @@ services:
     environment:
       DB_HOST: mongodb
       DB_PORT: 27017
+      DB_TYPE: mongo
     networks:
       - appnet
 
