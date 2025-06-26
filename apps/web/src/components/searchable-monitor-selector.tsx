@@ -37,6 +37,7 @@ const SearchableMonitorSelector = ({
       onSelect={onSelect}
       inputValue={searchQuery}
       setInputValue={setSearchQuery}
+      placeholder="Select monitors..."
     />
   );
 };
