@@ -358,6 +358,8 @@ func (mr *MonitorServiceImpl) ResetMonitorData(ctx context.Context, id string) e
 			Type:    events.MonitorUpdated,
 			Payload: updatedMonitor,
 		})
+	} else {
+		mr.logger.Errorw("Failed to find updated monitor", "monitorID", id)
 	}
 
 	return nil
