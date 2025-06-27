@@ -49,6 +49,7 @@ const Http = () => {
       headers: data.httpOptions.headers,
       encoding: data.httpOptions.encoding,
       body: data.httpOptions.body,
+      skipTlsVerify: data.httpOptions.skipTlsVerify,
       authMethod: data.authentication.authMethod,
       ...(data.authentication.authMethod === "basic" && {
         basic_auth_user: data.authentication.basic_auth_user,
@@ -120,6 +121,7 @@ const Http = () => {
         encoding: parsedConfig.encoding || "json",
         headers: parsedConfig.headers || '{ "Content-Type": "application/json" }',
         body: parsedConfig.body || "",
+        skipTlsVerify: parsedConfig.skipTlsVerify || false,
       } as HttpOptionsForm;
 
       // Construct authentication object based on authMethod

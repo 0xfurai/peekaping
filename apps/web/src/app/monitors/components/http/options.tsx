@@ -1,3 +1,4 @@
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   FormControl,
   FormField,
@@ -49,6 +50,7 @@ const bodyPlaceholder = `Example:
 const base = z.object({
   method: z.enum(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]),
   headers: z.string().refine(isJson, { message: "Invalid JSON" }),
+  skipTlsVerify: z.boolean().default(false),
 });
 
 const jsonSchema = base.extend({
@@ -85,6 +87,7 @@ export const httpOptionsDefaultValues: HttpOptionsForm = {
   encoding: "json",
   body: "",
   headers: '{ "Content-Type": "application/json" }',
+  skipTlsVerify: false,
 };
 
 const HttpOptions = () => {
@@ -219,6 +222,25 @@ Any plain text content here...`;
           <FormItem>
             <FormLabel>Headers</FormLabel>
             <Textarea {...field} placeholder={headersPlaceholder} />
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="httpOptions.skipTlsVerify"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Skip TLS Verification</FormLabel>
+            <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onChange={(checked) => {
+                    field.onChange(!!checked);
+                  }}
+                />
+            </FormControl>
             <FormMessage />
           </FormItem>
         )}
