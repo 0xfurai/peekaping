@@ -235,6 +235,7 @@ func TestExecutorRegistry_Execute(t *testing.T) {
 					"method": "GET",
 					"encoding": "json",
 					"accepted_statuscodes": ["2XX"],
+					"skipTlsVerify": true,
 					"authMethod": "none"
 				}`,
 			},
