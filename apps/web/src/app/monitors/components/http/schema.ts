@@ -53,6 +53,8 @@ export interface HttpExecutorConfig {
   headers?: string; // optional, must be valid JSON if present
   encoding: "json" | "form" | "xml" | "text"; // required
 
+  skipTlsVerify: boolean; // defaults to false
+
   body?: string; // optional
 
   accepted_statuscodes: Array<"2XX" | "3XX" | "4XX" | "5XX">; // required, at least one
