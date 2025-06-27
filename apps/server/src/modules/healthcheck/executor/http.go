@@ -118,6 +118,7 @@ type HTTPConfig struct {
 	Body                string   `json:"body" validate:"omitempty"`
 	AcceptedStatusCodes []string `json:"accepted_statuscodes" validate:"required,dive,oneof=2XX 3XX 4XX 5XX"`
 	MaxRedirects        int      `json:"max_redirects" validate:"omitempty,min=0"`
+	TlsVerify           bool     `json:"tlsVerify" validate:"required"`
 
 	// Authentication fields
 	AuthMethod        string `json:"authMethod" validate:"required,oneof=none basic oauth2-cc ntlm mtls"`
@@ -300,7 +301,11 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	// --- PROXY LOGIC ---
 
 	// Default transport with proxy if needed
-	transport := buildProxyTransport(&http.Transport{}, proxyModel)
+	transport := buildProxyTransport(&http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: !cfg.TlsVerify,
+		},
+	}, proxyModel)
 
 	// Set timeout from monitor configuration
 	timeout := time.Duration(m.Timeout) * time.Second
@@ -373,6 +378,7 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 			TLSClientConfig: &tls.Config{
 				Certificates: []tls.Certificate{cert},
 				RootCAs:      caCertPool,
+				InsecureSkipVerify: !cfg.TlsVerify,
 			},
 		}
 		mtlsTransportWithProxy := buildProxyTransport(mtlsTransport, proxyModel)
