@@ -266,13 +266,15 @@ const MonitorPage = () => {
       queryClient.invalidateQueries({
         predicate: (query) =>
           Array.isArray(query.queryKey) &&
-          query.queryKey[0]?._id === 'getMonitorsByIdStatsPoints',
+          query.queryKey[0]?._id === "getMonitorsByIdStatsPoints" &&
+          query.queryKey[0]?.path?.id === id,
       });
 
       queryClient.invalidateQueries({
         predicate: (query) =>
           Array.isArray(query.queryKey) &&
-          query.queryKey[0]?._id === 'getMonitorsByIdHeartbeats',
+          query.queryKey[0]?._id === "getMonitorsByIdHeartbeats" &&
+          query.queryKey[0]?.path?.id === id,
       });
 
       // Clear local heartbeat data
