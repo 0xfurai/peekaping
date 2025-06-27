@@ -378,7 +378,6 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 			TLSClientConfig: &tls.Config{
 				Certificates: []tls.Certificate{cert},
 				RootCAs:      caCertPool,
-				InsecureSkipVerify: cfg.SkipTlsVerify,
 			},
 		}
 		mtlsTransportWithProxy := buildProxyTransport(mtlsTransport, proxyModel)
