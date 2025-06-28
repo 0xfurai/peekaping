@@ -224,7 +224,7 @@ jobs:
     needs: create-manifest
     uses: ./.github/workflows/playwright-reusable.yml
     with:
-      container-tag: 'latest'
+      container-tag: ${{ github.event.inputs.version }}
 
   release:
     runs-on: ubuntu-latest
