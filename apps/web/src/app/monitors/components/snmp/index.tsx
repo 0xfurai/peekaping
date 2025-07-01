@@ -61,7 +61,7 @@ export const snmpSchema = z
     }),
     oid: z.string().min(1, "OID is required"),
     json_path: z.string().optional(),
-    json_path_operator: z.enum(["==", "!=", "<", ">", "<=", ">="]).optional(),
+    json_path_operator: z.enum(["eq", "ne", "lt", "gt", "le", "ge"]).optional(),
     expected_value: z.string().optional(),
   })
   .merge(generalSchema)
@@ -78,7 +78,7 @@ export const snmpDefaultValues: SnmpForm = {
   snmp_version: "v2c",
   oid: "1.3.6.1.2.1.1.1.0",
   json_path: "$",
-  json_path_operator: "==",
+  json_path_operator: "eq",
   expected_value: "",
   ...generalDefaultValues,
   ...intervalsDefaultValues,
@@ -93,7 +93,7 @@ export const deserialize = (data: MonitorMonitorResponseDto): SnmpForm => {
     snmp_version: "v2c",
     oid: "1.3.6.1.2.1.1.1.0",
     json_path: "$",
-    json_path_operator: "==",
+    json_path_operator: "eq",
     expected_value: "",
   };
 
@@ -107,7 +107,7 @@ export const deserialize = (data: MonitorMonitorResponseDto): SnmpForm => {
         snmp_version: parsedConfig.snmp_version || "v2c",
         oid: parsedConfig.oid || "1.3.6.1.2.1.1.1.0",
         json_path: parsedConfig.json_path || "$",
-        json_path_operator: parsedConfig.json_path_operator || "==",
+        json_path_operator: parsedConfig.json_path_operator || "eq",
         expected_value: parsedConfig.expected_value || "",
       };
     } catch (error) {
@@ -125,12 +125,12 @@ export const deserialize = (data: MonitorMonitorResponseDto): SnmpForm => {
     oid: config.oid,
     json_path: config.json_path,
     json_path_operator: config.json_path_operator as
-      | "=="
-      | "!="
-      | "<"
-      | ">"
-      | "<="
-      | ">="
+      | "eq"
+      | "ne"
+      | "lt"
+      | "gt"
+      | "le"
+      | "ge"
       | undefined,
     expected_value: config.expected_value,
     interval: data.interval || 60,
@@ -150,7 +150,7 @@ export const serialize = (formData: SnmpForm): MonitorCreateUpdateDto => {
     snmp_version: formData.snmp_version,
     oid: formData.oid,
     json_path: formData.json_path || "$",
-    json_path_operator: formData.json_path_operator || "==",
+    json_path_operator: formData.json_path_operator || "eq",
     expected_value: formData.expected_value || "",
   };
 
@@ -364,14 +364,14 @@ const SnmpForm = () => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="==">=== (equals)</SelectItem>
-                      <SelectItem value="!=">!== (not equals)</SelectItem>
-                      <SelectItem value="<">&lt; (less than)</SelectItem>
-                      <SelectItem value=">">&gt; (greater than)</SelectItem>
-                      <SelectItem value="<=">
+                      <SelectItem value="eq">== (equals)</SelectItem>
+                      <SelectItem value="ne">!= (not equals)</SelectItem>
+                      <SelectItem value="lt">&lt; (less than)</SelectItem>
+                      <SelectItem value="gt">&gt; (greater than)</SelectItem>
+                      <SelectItem value="le">
                         &le; (less than or equal)
                       </SelectItem>
-                      <SelectItem value=">=">
+                      <SelectItem value="ge">
                         &ge; (greater than or equal)
                       </SelectItem>
                     </SelectContent>

@@ -18,7 +18,7 @@ type SnmpConfig struct {
 	SnmpVersion      string `json:"snmp_version" validate:"required,oneof=v1 v2c v3" example:"v2c"`
 	Oid              string `json:"oid" validate:"required" example:"1.3.6.1.4.1.1.9.6.1.101"`
 	JsonPath         string `json:"json_path" example:"$"`
-	JsonPathOperator string `json:"json_path_operator" validate:"omitempty,oneof== != < > <= >=" example:"=="`
+	JsonPathOperator string `json:"json_path_operator" validate:"omitempty,oneof=eq ne lt gt le ge" example:"eq"`
 	ExpectedValue    string `json:"expected_value" example:""`
 }
 
@@ -208,17 +208,17 @@ func (s *SnmpExecutor) convertSnmpValueToString(value interface{}, valueType gos
 
 func (s *SnmpExecutor) evaluateCondition(actual, operator, expected string) bool {
 	switch operator {
-	case "==":
+	case "eq":
 		return actual == expected
-	case "!=":
+	case "ne":
 		return actual != expected
-	case "<":
+	case "lt":
 		return s.compareNumeric(actual, expected, func(a, b float64) bool { return a < b })
-	case ">":
+	case "gt":
 		return s.compareNumeric(actual, expected, func(a, b float64) bool { return a > b })
-	case "<=":
+	case "le":
 		return s.compareNumeric(actual, expected, func(a, b float64) bool { return a <= b })
-	case ">=":
+	case "ge":
 		return s.compareNumeric(actual, expected, func(a, b float64) bool { return a >= b })
 	default:
 		// Default to equality check

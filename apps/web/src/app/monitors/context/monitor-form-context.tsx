@@ -220,6 +220,15 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
     throw new Error("Monitor ID is required in edit mode");
   }
 
+  // For edit mode, don't render children until monitor data is available
+  if (mode === "edit" && !monitor) {
+    return (
+      <MonitorFormContext.Provider value={value}>
+        <div>Loading...</div>
+      </MonitorFormContext.Provider>
+    );
+  }
+
   return (
     <MonitorFormContext.Provider value={value}>
       {children}
@@ -229,9 +238,10 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
 
 export const useMonitorFormContext = () => {
   const ctx = useContext(MonitorFormContext);
-  if (!ctx)
+  if (!ctx) {
     throw new Error(
       "useMonitorFormContext must be used within a MonitorFormProvider"
     );
+  }
   return ctx;
 };

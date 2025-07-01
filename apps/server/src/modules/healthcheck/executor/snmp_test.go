@@ -103,7 +103,7 @@ func TestSnmpExecutor_Unmarshal(t *testing.T) {
 		"snmp_version": "v2c",
 		"oid": "1.3.6.1.2.1.1.1.0",
 		"json_path": "$",
-		"json_path_operator": "==",
+		"json_path_operator": "eq",
 		"expected_value": "test"
 	}`
 
@@ -131,8 +131,8 @@ func TestSnmpExecutor_Unmarshal(t *testing.T) {
 	if cfg.JsonPath != "$" {
 		t.Errorf("JsonPath = %v, want %v", cfg.JsonPath, "$")
 	}
-	if cfg.JsonPathOperator != "==" {
-		t.Errorf("JsonPathOperator = %v, want %v", cfg.JsonPathOperator, "==")
+	if cfg.JsonPathOperator != "eq" {
+		t.Errorf("JsonPathOperator = %v, want %v", cfg.JsonPathOperator, "eq")
 	}
 	if cfg.ExpectedValue != "test" {
 		t.Errorf("ExpectedValue = %v, want %v", cfg.ExpectedValue, "test")
@@ -174,15 +174,15 @@ func TestSnmpExecutor_evaluateCondition(t *testing.T) {
 		expected string
 		want     bool
 	}{
-		{"equal strings", "test", "==", "test", true},
-		{"not equal strings", "test", "!=", "other", true},
-		{"equal numbers", "5", "==", "5", true},
-		{"less than", "5", "<", "10", true},
-		{"greater than", "10", ">", "5", true},
-		{"less than or equal", "5", "<=", "5", true},
-		{"greater than or equal", "10", ">=", "10", true},
-		{"numeric comparison fail", "10", "<", "5", false},
-		{"string comparison with numbers", "abc", "<", "def", false}, // falls back to string equality
+		{"equal strings", "test", "eq", "test", true},
+		{"not equal strings", "test", "ne", "other", true},
+		{"equal numbers", "5", "eq", "5", true},
+		{"less than", "5", "lt", "10", true},
+		{"greater than", "10", "gt", "5", true},
+		{"less than or equal", "5", "le", "5", true},
+		{"greater than or equal", "10", "ge", "10", true},
+		{"numeric comparison fail", "10", "lt", "5", false},
+		{"string comparison with numbers", "abc", "lt", "def", false}, // falls back to string equality
 	}
 
 	for _, tt := range tests {
