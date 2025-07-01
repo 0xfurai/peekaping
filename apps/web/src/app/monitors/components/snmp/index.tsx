@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 import type { MonitorCreateUpdateDto, MonitorMonitorResponseDto } from "@/api";
+import { useEffect } from "react";
 
 interface SnmpConfig {
   host: string;
@@ -200,6 +201,12 @@ const SnmpForm = () => {
     }
   };
 
+  useEffect(() => {
+    if (mode === "create") {
+      form.reset(snmpDefaultValues);
+    }
+  }, [mode, form]);
+
   return (
     <Form {...form}>
       <form
@@ -284,8 +291,13 @@ const SnmpForm = () => {
                 <FormItem>
                   <FormLabel>SNMP Version</FormLabel>
                   <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    onValueChange={val => {
+                      if (!val) {
+                        return;
+                      }
+                      field.onChange(val);
+                    }}
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -355,8 +367,13 @@ const SnmpForm = () => {
                 <FormItem>
                   <FormLabel>Condition</FormLabel>
                   <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    onValueChange={(val) => {
+                      if (!val) {
+                        return;
+                      }
+                      field.onChange(val);
+                    }}
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>

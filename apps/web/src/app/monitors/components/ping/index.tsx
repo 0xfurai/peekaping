@@ -14,10 +14,6 @@ import Notifications, {
   notificationsDefaultValues,
   notificationsSchema,
 } from "../shared/notifications";
-import Proxies, {
-  proxiesDefaultValues,
-  proxiesSchema,
-} from "../shared/proxies";
 import { useMonitorFormContext } from "../../context/monitor-form-context";
 import {
   Form,
@@ -30,6 +26,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import type { MonitorCreateUpdateDto, MonitorMonitorResponseDto } from "@/api";
+import { useEffect } from "react";
 
 interface PingConfig {
   host: string;
@@ -40,12 +37,15 @@ export const pingSchema = z
   .object({
     type: z.literal("ping"),
     host: z.string().min(1, "Host is required"),
-    packet_size: z.number().min(0, "Data size must be at least 0 bytes").max(65507, "Data size must be at most 65507 bytes").optional(),
+    packet_size: z
+      .number()
+      .min(0, "Data size must be at least 0 bytes")
+      .max(65507, "Data size must be at most 65507 bytes")
+      .optional(),
   })
   .merge(generalSchema)
   .merge(intervalsSchema)
-  .merge(notificationsSchema)
-  .merge(proxiesSchema);
+  .merge(notificationsSchema);
 
 export type PingForm = z.infer<typeof pingSchema>;
 
@@ -56,7 +56,6 @@ export const pingDefaultValues: PingForm = {
   ...generalDefaultValues,
   ...intervalsDefaultValues,
   ...notificationsDefaultValues,
-  ...proxiesDefaultValues,
 };
 
 export const deserialize = (data: MonitorMonitorResponseDto): PingForm => {
@@ -88,7 +87,6 @@ export const deserialize = (data: MonitorMonitorResponseDto): PingForm => {
     retry_interval: data.retry_interval || 60,
     resend_interval: data.resend_interval ?? 10,
     notification_ids: data.notification_ids || [],
-    proxy_id: data.proxy_id || "",
   };
 };
 
@@ -105,7 +103,6 @@ export const serialize = (formData: PingForm): MonitorCreateUpdateDto => {
     max_retries: formData.max_retries,
     retry_interval: formData.retry_interval,
     notification_ids: formData.notification_ids,
-    proxy_id: formData.proxy_id,
     resend_interval: formData.resend_interval,
     timeout: formData.timeout,
     config: JSON.stringify(config),
@@ -116,7 +113,6 @@ const PingForm = () => {
   const {
     form,
     setNotifierSheetOpen,
-    setProxySheetOpen,
     isPending,
     mode,
     createMonitorMutation,
@@ -145,6 +141,12 @@ const PingForm = () => {
       });
     }
   };
+
+  useEffect(() => {
+    if (mode === "create") {
+      form.reset(pingDefaultValues);
+    }
+  }, [mode, form]);
 
   return (
     <Form {...form}>
@@ -188,7 +190,9 @@ const PingForm = () => {
                       min="0"
                       max="65507"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value, 10) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value, 10) || 0)
+                      }
                     />
                   </FormControl>
                   <FormMessage />
@@ -201,12 +205,6 @@ const PingForm = () => {
         <Card>
           <CardContent className="space-y-4">
             <Notifications onNewNotifier={() => setNotifierSheetOpen(true)} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="space-y-4">
-            <Proxies onNewProxy={() => setProxySheetOpen(true)} />
           </CardContent>
         </Card>
 
