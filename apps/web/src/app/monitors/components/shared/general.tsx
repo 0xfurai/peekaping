@@ -42,6 +42,10 @@ const monitorTypes = [
     type: "docker",
     description: "Docker Container",
   },
+  {
+    type: "snmp",
+    description: "SNMP Monitor",
+  },
 ];
 
 export const generalDefaultValues = {
