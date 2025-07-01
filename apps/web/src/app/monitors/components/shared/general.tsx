@@ -42,6 +42,10 @@ const monitorTypes = [
     type: "docker",
     description: "Docker Container",
   },
+  {
+    type: "grpc-keyword",
+    description: "gRPC Keyword Monitor",
+  },
 ];
 
 export const generalDefaultValues = {

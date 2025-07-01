@@ -43,6 +43,7 @@ import { tcpSchema, type TCPForm } from "../components/tcp";
 import { pingSchema, type PingForm } from "../components/ping";
 import { dnsSchema, type DNSForm } from "../components/dns";
 import { dockerSchema, type DockerForm } from "../components/docker";
+import { grpcKeywordSchema, type GRPCKeywordForm } from "../components/grpc-keyword";
 import { z } from "zod";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { deserializeMonitor } from "../components/monitor-registry";
@@ -54,9 +55,10 @@ const formSchema = z.discriminatedUnion("type", [
   dnsSchema,
   pushSchema,
   dockerSchema,
+  grpcKeywordSchema,
 ]);
 
-export type MonitorForm = HttpForm | TCPForm | PingForm | DNSForm | PushForm | DockerForm;
+export type MonitorForm = HttpForm | TCPForm | PingForm | DNSForm | PushForm | DockerForm | GRPCKeywordForm;
 
 export const formDefaultValues: MonitorForm = httpDefaultValues;
 
