@@ -43,6 +43,10 @@ const monitorTypes = [
     description: "Docker Container",
   },
   {
+    type: "grpc-keyword",
+    description: "gRPC Keyword Monitor",
+  },
+  {
     type: "snmp",
     description: "SNMP Monitor",
   },
