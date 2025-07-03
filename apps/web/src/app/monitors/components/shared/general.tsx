@@ -46,6 +46,10 @@ const monitorTypes = [
     type: "grpc-keyword",
     description: "gRPC Keyword Monitor",
   },
+  {
+    type: "snmp",
+    description: "SNMP Monitor",
+  },
 ];
 
 export const generalDefaultValues = {

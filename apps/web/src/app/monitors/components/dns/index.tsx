@@ -14,10 +14,6 @@ import Notifications, {
   notificationsDefaultValues,
   notificationsSchema,
 } from "../shared/notifications";
-import Proxies, {
-  proxiesDefaultValues,
-  proxiesSchema,
-} from "../shared/proxies";
 import { useMonitorFormContext } from "../../context/monitor-form-context";
 import {
   Form,
@@ -37,6 +33,7 @@ import {
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 import type { MonitorCreateUpdateDto, MonitorMonitorResponseDto } from "@/api";
+import { useEffect } from "react";
 
 interface DNSConfig {
   host: string;
@@ -51,12 +48,22 @@ export const dnsSchema = z
     host: z.string().min(1, "Host is required"),
     resolver_server: z.string().ip("Invalid IP address"),
     port: z.number().min(1).max(65535),
-    resolve_type: z.enum(["A", "AAAA", "CAA", "CNAME", "MX", "NS", "PTR", "SOA", "SRV", "TXT"]),
+    resolve_type: z.enum([
+      "A",
+      "AAAA",
+      "CAA",
+      "CNAME",
+      "MX",
+      "NS",
+      "PTR",
+      "SOA",
+      "SRV",
+      "TXT",
+    ]),
   })
   .merge(generalSchema)
   .merge(intervalsSchema)
-  .merge(notificationsSchema)
-  .merge(proxiesSchema);
+  .merge(notificationsSchema);
 
 export type DNSForm = z.infer<typeof dnsSchema>;
 
@@ -69,7 +76,6 @@ export const dnsDefaultValues: DNSForm = {
   ...generalDefaultValues,
   ...intervalsDefaultValues,
   ...notificationsDefaultValues,
-  ...proxiesDefaultValues,
 };
 
 export const deserialize = (data: MonitorMonitorResponseDto): DNSForm => {
@@ -107,7 +113,6 @@ export const deserialize = (data: MonitorMonitorResponseDto): DNSForm => {
     retry_interval: data.retry_interval || 60,
     resend_interval: data.resend_interval ?? 10,
     notification_ids: data.notification_ids || [],
-    proxy_id: data.proxy_id || "",
   };
 };
 
@@ -126,7 +131,6 @@ export const serialize = (formData: DNSForm): MonitorCreateUpdateDto => {
     max_retries: formData.max_retries,
     retry_interval: formData.retry_interval,
     notification_ids: formData.notification_ids,
-    proxy_id: formData.proxy_id,
     resend_interval: formData.resend_interval,
     timeout: formData.timeout,
     config: JSON.stringify(config),
@@ -137,7 +141,6 @@ const DNSForm = () => {
   const {
     form,
     setNotifierSheetOpen,
-    setProxySheetOpen,
     isPending,
     mode,
     createMonitorMutation,
@@ -166,6 +169,12 @@ const DNSForm = () => {
       });
     }
   };
+
+  useEffect(() => {
+    if (mode === "create") {
+      form.reset(dnsDefaultValues);
+    }
+  }, [mode, form]);
 
   return (
     <Form {...form}>
@@ -222,7 +231,9 @@ const DNSForm = () => {
                       type="number"
                       placeholder="53"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value, 10) || 1)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value, 10) || 1)
+                      }
                     />
                   </FormControl>
                   <FormMessage />
@@ -236,7 +247,15 @@ const DNSForm = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Resource Record Type</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select
+                    onValueChange={(val) => {
+                      if (!val) {
+                        return;
+                      }
+                      field.onChange(val);
+                    }}
+                    value={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a record type" />
@@ -265,12 +284,6 @@ const DNSForm = () => {
         <Card>
           <CardContent className="space-y-4">
             <Notifications onNewNotifier={() => setNotifierSheetOpen(true)} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="space-y-4">
-            <Proxies onNewProxy={() => setProxySheetOpen(true)} />
           </CardContent>
         </Card>
 

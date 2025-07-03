@@ -301,3 +301,10 @@ jobs:
             - Migrate: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:latest`
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-demo:
+    needs: release
+    uses: ./.github/workflows/deploy-demo.yml
+    with:
+      version: ${{ github.event.inputs.version }}
+    secrets: inherit

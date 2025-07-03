@@ -59,6 +59,7 @@ func NewExecutorRegistry(logger *zap.SugaredLogger, heartbeatService heartbeat.S
 	registry["dns"] = NewDNSExecutor(logger)
 	registry["docker"] = NewDockerExecutor(logger)
 	registry["grpc-keyword"] = NewGRPCExecutor(logger)
+	registry["snmp"] = NewSnmpExecutor(logger)
 
 	return &ExecutorRegistry{
 		registry: registry,

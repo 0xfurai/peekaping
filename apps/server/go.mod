@@ -13,6 +13,7 @@ require (
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/google/uuid v1.6.0
+	github.com/gosnmp/gosnmp v1.41.0
 	github.com/jinzhu/inflection v1.0.0
 	github.com/miekg/dns v1.1.66
 	github.com/osteele/liquid v1.6.0

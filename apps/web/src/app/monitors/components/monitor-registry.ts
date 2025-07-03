@@ -7,6 +7,7 @@ import { deserialize as dnsDeserialize } from "./dns";
 import { deserialize as pushDeserialize } from "./push";
 import { deserialize as dockerDeserialize } from "./docker";
 import { deserialize as grpcKeywordDeserialize } from "./grpc-keyword";
+import { deserialize as snmpDeserialize } from "./snmp";
 import TCPForm from "./tcp";
 import PingForm from "./ping";
 import DNSForm from "./dns";
@@ -14,6 +15,8 @@ import HttpForm from "./http";
 import PushForm from "./push";
 import DockerForm from "./docker";
 import GRPCKeywordForm from "./grpc-keyword";
+import SnmpForm from "./snmp";
+
 import type { ComponentType } from "react";
 
 type DeserializeFunction = (data: MonitorMonitorResponseDto) => MonitorForm;
@@ -60,6 +63,10 @@ const monitorTypeRegistry: Record<string, MonitorTypeConfig> = {
   "grpc-keyword": {
     deserialize: grpcKeywordDeserialize,
     component: GRPCKeywordForm,
+  },
+  snmp: {
+    deserialize: snmpDeserialize,
+    component: SnmpForm,
   },
 };
 

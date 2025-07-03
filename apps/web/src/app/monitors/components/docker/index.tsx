@@ -14,9 +14,7 @@ import Notifications, {
   notificationsDefaultValues,
   notificationsSchema,
 } from "../shared/notifications";
-import {
-  proxiesSchema,
-} from "../shared/proxies";
+import { proxiesSchema } from "../shared/proxies";
 import { useMonitorFormContext } from "../../context/monitor-form-context";
 import {
   Form,
@@ -36,6 +34,7 @@ import {
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 import type { MonitorCreateUpdateDto, MonitorMonitorResponseDto } from "@/api";
+import { useEffect } from "react";
 
 interface DockerConfig {
   container_id: string;
@@ -159,6 +158,12 @@ const DockerForm = () => {
     }
   };
 
+  useEffect(() => {
+    if (mode === "create") {
+      form.reset(dockerDefaultValues);
+    }
+  }, [mode, form]);
+
   return (
     <Form {...form}>
       <form
@@ -199,7 +204,15 @@ const DockerForm = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Connection Type</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select
+                    onValueChange={(val) => {
+                      if (!val) {
+                        return;
+                      }
+                      field.onChange(val);
+                    }}
+                    value={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select connection type" />
