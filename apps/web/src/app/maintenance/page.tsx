@@ -279,7 +279,7 @@ export default function MaintenancePage() {
         )}
 
         {deleteId && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-background p-6 rounded-lg shadow-lg max-w-md w-full border">
               <h2 className="text-xl font-bold mb-4">Confirm Delete</h2>
               <p className="mb-6">
