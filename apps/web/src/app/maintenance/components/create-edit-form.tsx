@@ -88,9 +88,9 @@ const maintenanceSchema = z.discriminatedUnion("strategy", [
   // Recurring interval
   baseMaintenanceSchema.extend({
     strategy: z.literal("recurring-interval"),
-    intervalDay: z.number().min(1).max(3650).optional(),
-    startTime: z.string().optional(),
-    endTime: z.string().optional(),
+    intervalDay: z.number().min(1).max(3650, "Interval day must be between 1 and 3650"),
+    startTime: z.string().min(1, "Start time is required"),
+    endTime: z.string().min(1, "End time is required"),
     timezone: z.string().optional(),
     startDateTime: z.string().optional(),
     endDateTime: z.string().optional(),
@@ -99,9 +99,9 @@ const maintenanceSchema = z.discriminatedUnion("strategy", [
   // Recurring weekday
   baseMaintenanceSchema.extend({
     strategy: z.literal("recurring-weekday"),
-    weekdays: z.array(z.number()).optional(),
-    startTime: z.string().optional(),
-    endTime: z.string().optional(),
+    weekdays: z.array(z.number()).min(1, "At least one weekday must be selected"),
+    startTime: z.string().min(1, "Start time is required"),
+    endTime: z.string().min(1, "End time is required"),
     timezone: z.string().optional(),
     startDateTime: z.string().optional(),
     endDateTime: z.string().optional(),
@@ -111,8 +111,8 @@ const maintenanceSchema = z.discriminatedUnion("strategy", [
   baseMaintenanceSchema.extend({
     strategy: z.literal("recurring-day-of-month"),
     daysOfMonth: z.array(z.union([z.number(), z.string()])).optional(),
-    startTime: z.string().optional(),
-    endTime: z.string().optional(),
+    startTime: z.string().min(1, "Start time is required"),
+    endTime: z.string().min(1, "End time is required"),
     timezone: z.string().optional(),
     startDateTime: z.string().optional(),
     endDateTime: z.string().optional(),
