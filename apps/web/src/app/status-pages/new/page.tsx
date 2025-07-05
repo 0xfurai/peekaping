@@ -1,5 +1,6 @@
 import Layout from "@/layout";
 import CreateEditForm, { type StatusPageForm } from "../components/create-edit-form";
+import { BackButton } from "@/components/back-button";
 import {
   getStatusPagesInfiniteQueryKey,
   postStatusPagesMutation,
@@ -37,15 +38,18 @@ const NewStatusPageContent = () => {
 
   return (
     <Layout pageName="New Status Page">
-      <div className="flex flex-col gap-4">
-        <p className="text-gray-500">
-          Create a new status page to share your service status with users.
-        </p>
+      <div>
+        <BackButton to="/status-pages" />
+        <div className="flex flex-col gap-4">
+          <p className="text-gray-500">
+            Create a new status page to share your service status with users.
+          </p>
 
-        <CreateEditForm
-          onSubmit={handleSubmit}
-          isPending={createStatusPageMutation.isPending}
-        />
+          <CreateEditForm
+            onSubmit={handleSubmit}
+            isPending={createStatusPageMutation.isPending}
+          />
+        </div>
       </div>
     </Layout>
   );

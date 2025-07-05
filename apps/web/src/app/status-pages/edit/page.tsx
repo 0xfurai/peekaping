@@ -1,6 +1,7 @@
 import Layout from "@/layout";
 import CreateEditForm, { type StatusPageForm } from "../components/create-edit-form";
 import { useNavigate, useParams } from "react-router-dom";
+import { BackButton } from "@/components/back-button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getMonitorsBatchOptions,
@@ -62,39 +63,50 @@ const EditStatusPageContent = () => {
   });
 
   if (statusPageIsLoading || monitorsDataIsLoading) {
-    return <div>Loading...</div>;
+    return (
+      <Layout pageName="Edit Status Page">
+        <div>Loading...</div>
+      </Layout>
+    );
   }
 
   if (!statusPage?.data) {
-    return <div>Status page not found</div>;
+    return (
+      <Layout pageName="Edit Status Page">
+        <div>Status page not found</div>
+      </Layout>
+    );
   }
 
   const statusPageData = statusPage?.data;
 
   return (
-    <Layout pageName="Edit Status Page">
-      <div className="flex flex-col gap-4">
-        <p className="text-gray-500">
-          Update your status page settings and configuration.
-        </p>
+    <Layout pageName={`Edit Status Page: ${statusPageData.title}`}>
+      <div>
+        <BackButton to="/status-pages" />
+        <div className="flex flex-col gap-4">
+          <p className="text-gray-500">
+            Update your status page settings and configuration.
+          </p>
 
-        <CreateEditForm
-          mode="edit"
-          onSubmit={handleSubmit}
-          initialValues={{
-            title: statusPageData.title || "",
-            slug: statusPageData.slug || "",
-            description: statusPageData.description || "",
-            icon: statusPageData.icon || "",
-            footer_text: statusPageData.footer_text || "",
-            auto_refresh_interval: statusPageData?.auto_refresh_interval || 0,
-            published: statusPageData?.published || true,
-            monitors: monitorsData?.data?.map((monitor) => ({
-              label: monitor.name || "",
-              value: monitor.id || "",
-            })),
-          }}
-        />
+          <CreateEditForm
+            mode="edit"
+            onSubmit={handleSubmit}
+            initialValues={{
+              title: statusPageData.title || "",
+              slug: statusPageData.slug || "",
+              description: statusPageData.description || "",
+              icon: statusPageData.icon || "",
+              footer_text: statusPageData.footer_text || "",
+              auto_refresh_interval: statusPageData?.auto_refresh_interval || 0,
+              published: statusPageData?.published || true,
+              monitors: monitorsData?.data?.map((monitor) => ({
+                label: monitor.name || "",
+                value: monitor.id || "",
+              })),
+            }}
+          />
+        </div>
       </div>
     </Layout>
   );

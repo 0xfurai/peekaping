@@ -295,7 +295,7 @@ const MonitorPage = () => {
 
   return (
     <Layout
-      pageName={`Monitors > ${monitor?.name ?? ""}`}
+      pageName={`Monitors: ${monitor?.name ?? ""}`}
       isLoading={isLoading}
       error={error && <div>Error: {error.message}</div>}
     >
