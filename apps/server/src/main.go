@@ -56,7 +56,7 @@ func main() {
 	switch cfg.DBType {
 	case "postgres", "postgresql", "mysql", "sqlite":
 		container.Provide(ProvideSQLDB)
-	case "mongo":
+	case "mongo", "mongodb":
 		container.Provide(ProvideMongoDB)
 	default:
 		panic(fmt.Errorf("unsupported DB_DRIVER %q", cfg.DBType))

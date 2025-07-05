@@ -87,6 +87,7 @@ func ProvideServer(
 
 	// server.Use(LogMiddleware(logger))
 
+	server.GET("/health", healthHandler)
 	router := server.Group("/api/v1")
 	router.GET("/health", healthHandler)
 	router.GET("/version", versionHandler)
