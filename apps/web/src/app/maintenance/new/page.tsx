@@ -2,6 +2,7 @@ import Layout from "@/layout";
 import CreateEditMaintenance, {
   type MaintenanceFormValues,
 } from "../components/create-edit-form";
+import { BackButton } from "@/components/back-button";
 import {
   getMaintenancesQueryKey,
   postMaintenancesMutation,
@@ -82,7 +83,10 @@ const NewMaintenance = () => {
 
   return (
     <Layout pageName="Schedule Maintenance">
-      <CreateEditMaintenance onSubmit={handleSubmit} />
+      <div>
+        <BackButton to="/maintenances" />
+        <CreateEditMaintenance onSubmit={handleSubmit} />
+      </div>
     </Layout>
   );
 };

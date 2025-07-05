@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { BackButton } from "@/components/back-button";
 import {
   getProxiesByIdOptions,
   putProxiesByIdMutation,
@@ -79,11 +80,14 @@ const EditProxy = () => {
 
   return (
     <Layout pageName={`Edit Proxy: ${proxy.host}:${proxy.port}`}>
-      <CreateEditProxy
-        initialValues={initialValues}
-        onSubmit={handleSubmit}
-        mode="edit"
-      />
+      <div>
+        <BackButton to="/proxies" />
+        <CreateEditProxy
+          initialValues={initialValues}
+          onSubmit={handleSubmit}
+          mode="edit"
+        />
+      </div>
     </Layout>
   );
 };
