@@ -1,0 +1,26 @@
+services:
+  peekaping:
+    build:
+      context: .
+      dockerfile: Dockerfile.bundle.mongo
+    restart: unless-stopped
+    ports:
+      - "8383:8383"
+    env_file:
+      - .env
+    environment:
+      - DB_TYPE=mongo
+      - DB_HOST=localhost
+      - DB_PORT=27017
+      - API_URL=http://localhost:8383
+    volumes:
+      # Database data persistence
+      - ./.data/mongodb:/data/db
+      # Application logs persistence
+      - ./.data/logs:/var/log/supervisor
+      # Caddy data persistence (certificates, etc.)
+      - ./.data/caddy-data:/data/caddy
+      - ./.data/caddy-config:/config/caddy
+      # Optional: Custom Caddyfile override
+      # - ./custom-Caddyfile:/etc/caddy/Caddyfile:ro
+    container_name: peekaping-bundle-mongo

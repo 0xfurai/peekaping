@@ -1,0 +1,39 @@
+:8383 {
+    # Handle API routes - proxy to Go server (must be first with explicit handle)
+    handle /api/* {
+        reverse_proxy localhost:8034
+    }
+
+    # Handle WebSocket connections
+    handle /socket.io/* {
+        reverse_proxy localhost:8034
+    }
+
+    # Serve static files from /app/web
+    root * /app/web
+
+    # Handle env.js with no caching
+    handle /env.js {
+        header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
+        file_server
+    }
+
+    # Handle static assets with caching
+    @static path *.js *.css *.mjs *.woff *.woff2 *.svg *.png *.jpg *.jpeg *.gif *.ico
+    handle @static {
+        header Cache-Control "public, max-age=31536000, immutable"
+        file_server
+    }
+
+    # Handle everything else as SPA (single page application)
+    handle {
+        try_files {path} {path}/ /index.html
+        file_server
+    }
+
+    # Enable logging
+    log {
+        output stdout
+        format console
+    }
+}

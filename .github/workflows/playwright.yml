@@ -25,6 +25,7 @@ jobs:
       fail-fast: false
       matrix:
         database: [postgres, mongo, sqlite]
+        config: [dev, bundle]
     steps:
     # Prepare environment and dependencies
     - uses: actions/checkout@v4
@@ -45,7 +46,7 @@ jobs:
         DB_HOST=localhost
         DB_PORT=${{ matrix.database == 'postgres' && '5432' || matrix.database == 'mongo' && '27017' || '3306' }}
         DB_NAME=${{ matrix.database == 'sqlite' && '/app/data/peekaping.db' || 'peekaping' }}
-        DB_USER=${{ matrix.database == 'postgres' && 'postgres' || matrix.database == 'mongo' && 'root' || 'root' }}
+        DB_USER=${{ matrix.database == 'postgres' && 'peekaping' || matrix.database == 'mongo' && 'root' || 'root' }}
         DB_PASS=password
 
         # Server Configuration
@@ -53,42 +54,53 @@ jobs:
         JWT_SECRET=test-secret-key-for-playwright-tests
         ACCESS_TOKEN_EXPIRED_IN=1h
         ACCESS_TOKEN_SECRET_KEY=test-secret-key-for-playwright-tests
-        REFRESH_TOKEN_EXPIRED_IN=1d
+        REFRESH_TOKEN_EXPIRED_IN=60m
         REFRESH_TOKEN_SECRET_KEY=test-secret-key-for-playwright-tests
         BUNDEBUG=2
         EOF
 
-    # Build and start services using docker-compose.dev
-    - name: Start services with docker-compose.dev
-      run: docker compose -f docker-compose.dev.${{ matrix.database }}.yml up -d --build
+    # Create and prepare data directories with proper permissions
+    - name: Prepare data directories
+      run: |
+        mkdir -p .data/postgres .data/mongodb .data/logs .data/caddy-data .data/caddy-config
+        sudo chown -R 999:999 .data/postgres .data/logs  # postgres user is typically uid 999
+        sudo chown -R 999:999 .data/mongodb              # mongodb user is typically uid 999
+        sudo chmod -R 755 .data/logs
+        sudo chmod -R 700 .data/postgres
+        sudo chmod -R 755 .data/mongodb
+        ls -la .data/
+        echo "Directory permissions set successfully"
+
+    # Build and start services using appropriate docker-compose file
+    - name: Start services with docker-compose
+      run: docker compose -f docker-compose.${{ matrix.config }}.${{ matrix.database }}.yml up -d --build
 
     - name: Show container logs
       run: |
         echo "=== Container Status ==="
-        docker compose -f docker-compose.dev.${{ matrix.database }}.yml ps
+        docker compose -f docker-compose.${{ matrix.config }}.${{ matrix.database }}.yml ps
         echo "=== Container Logs ==="
-        docker compose -f docker-compose.dev.${{ matrix.database }}.yml logs
+        docker compose -f docker-compose.${{ matrix.config }}.${{ matrix.database }}.yml logs
 
     - name: Wait for services to be ready
       run: |
         echo "Waiting for services to be healthy..."
+        HEALTH_URL="http://localhost:${{ matrix.config == 'bundle' && '8383' || '8034' }}/api/v1/health"
         timeout 120 bash -c '
           attempt=1
-          until curl -f http://localhost:8034/api/v1/health; do
+          until curl -f '"$HEALTH_URL"'; do
             echo "Attempt $attempt: Health check failed, retrying in 5 seconds..."
-            response=$(curl -s http://localhost:8034/api/v1/health || echo "connection failed")
-            status_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8034/api/v1/health || echo "000")
+            response=$(curl -s '"$HEALTH_URL"' || echo "connection failed")
+            status_code=$(curl -s -o /dev/null -w "%{http_code}" '"$HEALTH_URL"' || echo "000")
             echo "  Status Code: $status_code"
             echo "  Response Body: $response"
             attempt=$((attempt + 1))
             sleep 5
-            if [ $attempt -gt 24 ]; then
+            if [ $attempt -gt 20 ]; then
               echo "=== Container Status ==="
-              docker compose -f docker-compose.dev.${{ matrix.database }}.yml ps
-              echo "=== Server Logs ==="
-              docker compose -f docker-compose.dev.${{ matrix.database }}.yml logs server
-              echo "=== Web Logs ==="
-              docker compose -f docker-compose.dev.${{ matrix.database }}.yml logs web
+              docker compose -f docker-compose.${{ matrix.config }}.${{ matrix.database }}.yml ps
+              echo "===  Logs ==="
+              docker compose -f docker-compose.${{ matrix.config }}.${{ matrix.database }}.yml logs
             fi
           done
         ' || echo "Health check timed out after 120 seconds"
@@ -100,11 +112,11 @@ jobs:
 
     - name: Stop services
       if: always()
-      run: docker compose -f docker-compose.dev.${{ matrix.database }}.yml down
+      run: docker compose -f docker-compose.${{ matrix.config }}.${{ matrix.database }}.yml down
 
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
-        name: playwright-report-${{ matrix.database }}
+        name: playwright-report-${{ matrix.config }}-${{ matrix.database }}
         path: playwright-report/
         retention-days: 30

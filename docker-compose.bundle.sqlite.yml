@@ -1,0 +1,25 @@
+services:
+  peekaping:
+    build:
+      context: .
+      dockerfile: Dockerfile.bundle.sqlite
+    restart: unless-stopped
+    ports:
+      - "8383:8383"
+    env_file:
+      - .env
+    environment:
+      - DB_TYPE=sqlite
+      - DB_NAME=/app/data/peekaping.db
+      - API_URL=http://localhost:8383
+    volumes:
+      # Database data persistence
+      - ./.data/sqlite:/app/data
+      # Application logs persistence
+      - ./.data/logs:/var/log/supervisor
+      # Caddy data persistence (certificates, etc.)
+      - ./.data/caddy-data:/data/caddy
+      - ./.data/caddy-config:/config/caddy
+      # Optional: Custom Caddyfile override
+      # - ./custom-Caddyfile:/etc/caddy/Caddyfile:ro
+    container_name: peekaping-bundle-sqlite
