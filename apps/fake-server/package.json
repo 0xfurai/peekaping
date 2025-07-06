@@ -7,13 +7,18 @@
     "generate-certs": "chmod +x generate-certs.sh && ./generate-certs.sh",
     "show-certs": "chmod +x show-certs.sh && ./show-certs.sh",
     "mtls": "node mtls-server.js",
-    "setup": "npm run generate-certs && echo '\n✅ Setup complete! Run npm run mtls to start the mTLS server'"
+    "grpc": "node grpc-server.js",
+    "grpc-tls": "npm run generate-certs && node grpc-server.js",
+    "setup": "npm run generate-certs && echo '\n✅ Setup complete! Run npm run mtls to start the mTLS server'",
+    "setup-grpc": "npm install && npm run generate-certs && echo '\n✅ gRPC setup complete! Run npm run grpc to start the gRPC server'"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "@grpc/grpc-js": "^1.9.0",
+    "@grpc/proto-loader": "^0.7.8"
   }
 }

@@ -38,6 +38,9 @@ Visit http://localhost:3022/help for redirect testing endpoints.
 | `npm run generate-certs` | Generate CA, server, and client certificates |
 | `npm run show-certs` | Display certificate contents for copying |
 | `npm run mtls` | Start the mTLS server on port 3443 |
+| `npm run grpc` | Start the gRPC server on port 50051 (insecure) |
+| `npm run grpc-tls` | Generate certificates and start gRPC server with TLS on port 50052 |
+| `npm run setup-grpc` | Install dependencies, generate certificates, and prepare for gRPC testing |
 
 ## HTTP Server Endpoints (Port 3022)
 
@@ -254,3 +257,316 @@ apps/fake-server/certs/
 ## Security Note
 
 ⚠️ **These certificates are for testing only!** They are self-signed and should never be used in production.
+
+## gRPC Test Server (Ports 50051/50052)
+
+### Quick Start for gRPC Testing
+
+1. **Setup and start gRPC server:**
+   ```bash
+   cd apps/fake-server
+   npm run setup-grpc
+   npm run grpc
+   ```
+
+2. **Create a gRPC monitor in PeekaPing:**
+   - URL: `localhost:50051`
+   - Service: `Health`
+   - Method: `Check`
+   - Keyword: `SERVING`
+   - Body: `{"service": ""}`
+
+### gRPC Services Available
+
+#### Health Service (grpc.health.v1.Health)
+
+Standard gRPC health check service for testing basic connectivity.
+
+**Methods:**
+- `Check(HealthCheckRequest) returns (HealthCheckResponse)`
+- `Watch(HealthCheckRequest) returns (stream HealthCheckResponse)`
+
+**Proto Definition:**
+```protobuf
+syntax = "proto3";
+
+package grpc.health.v1;
+
+service Health {
+  rpc Check(HealthCheckRequest) returns (HealthCheckResponse);
+  rpc Watch(HealthCheckRequest) returns (stream HealthCheckResponse);
+}
+
+message HealthCheckRequest {
+  string service = 1;
+}
+
+message HealthCheckResponse {
+  enum ServingStatus {
+    UNKNOWN = 0;
+    SERVING = 1;
+    NOT_SERVING = 2;
+    SERVICE_UNKNOWN = 3;
+  }
+  ServingStatus status = 1;
+}
+```
+
+#### Test Service (test.TestService)
+
+Custom service with multiple methods for comprehensive testing.
+
+**Methods:**
+- `Echo(EchoRequest) returns (EchoResponse)`
+- `GetStatus(StatusRequest) returns (StatusResponse)`
+- `ProcessData(DataRequest) returns (DataResponse)`
+
+**Proto Definition:**
+```protobuf
+syntax = "proto3";
+
+package test;
+
+service TestService {
+  rpc Echo(EchoRequest) returns (EchoResponse);
+  rpc GetStatus(StatusRequest) returns (StatusResponse);
+  rpc ProcessData(DataRequest) returns (DataResponse);
+}
+
+message EchoRequest {
+  string message = 1;
+}
+
+message EchoResponse {
+  string response = 1;
+  bool success = 2;
+}
+
+message StatusRequest {
+  string service_name = 1;
+}
+
+message StatusResponse {
+  string status = 1;
+  string message = 2;
+  int32 code = 3;
+}
+
+message DataRequest {
+  string data = 1;
+  int32 count = 2;
+}
+
+message DataResponse {
+  string result = 1;
+  bool processed = 2;
+  string error = 3;
+}
+```
+
+### gRPC Testing Scenarios
+
+#### 1. Basic Health Check Test
+**Monitor Configuration:**
+- URL: `localhost:50051`
+- Service: `Health`
+- Method: `Check`
+- Body: `{"service": ""}`
+- Keyword: `SERVING`
+- Invert: `false`
+
+**Expected:** Monitor shows UP status
+
+#### 2. Health Check with Error Trigger
+**Monitor Configuration:**
+- URL: `localhost:50051`
+- Service: `Health`
+- Method: `Check`
+- Body: `{"service": "error-service"}`
+- Keyword: `NOT_SERVING`
+- Invert: `false`
+
+**Expected:** Monitor shows UP status (finds NOT_SERVING)
+
+#### 3. Echo Service with Success Keywords
+**Monitor Configuration:**
+- URL: `localhost:50051`
+- Service: `TestService`
+- Method: `Echo`
+- Body: `{"message": "test"}`
+- Keyword: `SUCCESS` (or `OK`, `PASSED`, `HEALTHY`)
+- Invert: `false`
+
+**Expected:** Monitor shows UP status (response includes success keywords)
+
+#### 4. Status Service with Error Detection
+**Monitor Configuration:**
+- URL: `localhost:50051`
+- Service: `TestService`
+- Method: `GetStatus`
+- Body: `{"service_name": "error-test"}`
+- Keyword: `ERROR`
+- Invert: `true`
+
+**Expected:** Monitor shows DOWN status (ERROR found but inverted)
+
+#### 5. Data Processing with Failure Simulation
+**Monitor Configuration:**
+- URL: `localhost:50051`
+- Service: `TestService`
+- Method: `ProcessData`
+- Body: `{"data": "fail-test", "count": 5}`
+- Keyword: `FAILED`
+- Invert: `false`
+
+**Expected:** Monitor shows UP status (FAILED keyword found)
+
+#### 6. TLS Connection Test
+**Monitor Configuration:**
+- URL: `localhost:50052`
+- Enable TLS: `true`
+- Service: `Health`
+- Method: `Check`
+- Body: `{"service": ""}`
+- Keyword: `SERVING`
+
+**Expected:** Monitor shows UP status (TLS connection works)
+
+### Special Service Name Triggers
+
+The gRPC server responds differently based on service names in requests:
+
+#### Health Service Triggers
+- Service name contains `"error"` or `"down"` → Returns `NOT_SERVING`
+- Service name contains `"unknown"` → Returns `UNKNOWN`
+- Default → Returns `SERVING`
+
+#### TestService Triggers
+- **GetStatus method:**
+  - Service name contains `"error"` → Returns ERROR status
+  - Service name contains `"maintenance"` → Returns MAINTENANCE status
+  - Service name contains `"slow"` → Delays response by 2 seconds
+  - Default → Returns OK status
+
+- **ProcessData method:**
+  - Data contains `"fail"` → Returns failure with FAILED keyword
+  - Data contains `"error"` → Returns error with ERROR keyword
+  - Count > 100 → Returns rejection with REJECTED keyword
+  - Default → Returns success with random success keyword
+
+### Manual Testing with grpcurl
+
+You can test the gRPC server manually using grpcurl:
+
+```bash
+# Install grpcurl (if not already installed)
+brew install grpcurl  # macOS
+# or go install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
+
+# List available services
+grpcurl -plaintext localhost:50051 list
+
+# Test health check
+grpcurl -plaintext localhost:50051 grpc.health.v1.Health/Check
+
+# Test health check with specific service
+grpcurl -plaintext -d '{"service": "test"}' localhost:50051 grpc.health.v1.Health/Check
+
+# Test echo service
+grpcurl -plaintext -d '{"message": "Hello gRPC"}' localhost:50051 test.TestService/Echo
+
+# Test status service
+grpcurl -plaintext -d '{"service_name": "my-service"}' localhost:50051 test.TestService/GetStatus
+
+# Test data processing
+grpcurl -plaintext -d '{"data": "test-data", "count": 10}' localhost:50051 test.TestService/ProcessData
+```
+
+### Server Logs
+
+The gRPC server provides detailed logging for all requests:
+
+```
+🚀 gRPC server started (insecure) on port 50051
+📡 Available services:
+   - grpc.health.v1.Health
+   - test.TestService
+
+Health check requested for service: ""
+Health check response: {"status":"SERVING"}
+
+Echo request: Hello gRPC
+Echo response: {"response":"Echo: Hello gRPC - Status: SUCCESS","success":true}
+
+Status request for service: my-service
+Status response: {"status":"OK","message":"Service is running normally","code":200}
+```
+
+### gRPC Monitor Examples for PeekaPing
+
+Here are ready-to-use configurations for PeekaPing monitors:
+
+#### Basic Health Monitor
+```json
+{
+  "type": "grpc-keyword",
+  "name": "gRPC Health Check",
+  "grpcUrl": "localhost:50051",
+  "grpcServiceName": "Health",
+  "grpcMethod": "Check",
+  "grpcBody": "{\"service\": \"\"}",
+  "keyword": "SERVING",
+  "invertKeyword": false,
+  "grpcProtobuf": "syntax = \"proto3\"; package grpc.health.v1; service Health { rpc Check(HealthCheckRequest) returns (HealthCheckResponse); } message HealthCheckRequest { string service = 1; } message HealthCheckResponse { enum ServingStatus { UNKNOWN = 0; SERVING = 1; NOT_SERVING = 2; SERVICE_UNKNOWN = 3; } ServingStatus status = 1; }"
+}
+```
+
+#### Echo Service Monitor
+```json
+{
+  "type": "grpc-keyword",
+  "name": "gRPC Echo Test",
+  "grpcUrl": "localhost:50051",
+  "grpcServiceName": "TestService",
+  "grpcMethod": "Echo",
+  "grpcBody": "{\"message\": \"health-check\"}",
+  "keyword": "SUCCESS",
+  "invertKeyword": false,
+  "grpcProtobuf": "syntax = \"proto3\"; package test; service TestService { rpc Echo(EchoRequest) returns (EchoResponse); } message EchoRequest { string message = 1; } message EchoResponse { string response = 1; bool success = 2; }"
+}
+```
+
+#### Error Detection Monitor
+```json
+{
+  "type": "grpc-keyword",
+  "name": "gRPC Error Detection",
+  "grpcUrl": "localhost:50051",
+  "grpcServiceName": "TestService",
+  "grpcMethod": "ProcessData",
+  "grpcBody": "{\"data\": \"normal-data\", \"count\": 5}",
+  "keyword": "ERROR",
+  "invertKeyword": true,
+  "grpcProtobuf": "syntax = \"proto3\"; package test; service TestService { rpc ProcessData(DataRequest) returns (DataResponse); } message DataRequest { string data = 1; int32 count = 2; } message DataResponse { string result = 1; bool processed = 2; string error = 3; }"
+}
+```
+
+### Troubleshooting gRPC Server
+
+#### Common Issues
+
+**"EADDRINUSE" Error:**
+- Another service is using port 50051
+- Change port with: `GRPC_PORT=50052 npm run grpc`
+
+**"Module not found" Error:**
+- Run: `npm install` to install gRPC dependencies
+
+**Connection Refused:**
+- Ensure the gRPC server is running
+- Check firewall settings
+- Verify the correct port
+
+**TLS Certificate Issues:**
+- Run: `npm run generate-certs` to create certificates
+- Check that certs/ directory exists
