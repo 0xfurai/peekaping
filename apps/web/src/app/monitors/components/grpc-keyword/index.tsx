@@ -221,8 +221,6 @@ const GRPCKeywordForm = () => {
 
         <Card>
           <CardContent className="space-y-4">
-            <TypographyH4>General</TypographyH4>
-
             <FormField
               control={form.control}
               name="grpcUrl"
