@@ -82,7 +82,6 @@ const EditStatusPageContent = () => {
 
   return (
     <Layout pageName={`Edit Status Page: ${statusPageData.title}`}>
-      <div>
         <BackButton to="/status-pages" />
         <div className="flex flex-col gap-4">
           <p className="text-gray-500">
@@ -107,7 +106,6 @@ const EditStatusPageContent = () => {
             }}
           />
         </div>
-      </div>
     </Layout>
   );
 };
