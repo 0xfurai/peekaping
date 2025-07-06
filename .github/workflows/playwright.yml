@@ -49,6 +49,7 @@ jobs:
         DB_PASS=password
 
         # Server Configuration
+        CLIENT_URL=http://localhost:8383
         PORT=8034
         JWT_SECRET=test-secret-key-for-playwright-tests
         ACCESS_TOKEN_EXPIRED_IN=1h
