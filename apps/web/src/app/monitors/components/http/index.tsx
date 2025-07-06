@@ -132,6 +132,7 @@ const Http = () => {
         proxy_id: monitor.data.proxy_id,
         accepted_statuscodes: parsedConfig.accepted_statuscodes,
         max_redirects: parsedConfig.max_redirects,
+        ignore_tls_errors: parsedConfig.ignore_tls_errors || false,
         httpOptions,
         authentication,
       });

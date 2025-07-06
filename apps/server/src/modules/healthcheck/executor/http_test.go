@@ -334,6 +334,30 @@ func TestHTTPExecutor_Validate(t *testing.T) {
 			}`,
 			expectedError: false,
 		},
+		{
+			name: "valid config with ignore_tls_errors true",
+			config: `{
+				"url": "https://example.com",
+				"method": "GET",
+				"encoding": "json",
+				"accepted_statuscodes": ["2XX"],
+				"authMethod": "none",
+				"ignore_tls_errors": true
+			}`,
+			expectedError: false,
+		},
+		{
+			name: "valid config with ignore_tls_errors false",
+			config: `{
+				"url": "https://example.com",
+				"method": "GET",
+				"encoding": "json",
+				"accepted_statuscodes": ["2XX"],
+				"authMethod": "none",
+				"ignore_tls_errors": false
+			}`,
+			expectedError: false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -1280,4 +1304,105 @@ func generateTestCerts() (cert, key, ca string, err error) {
 		"-----BEGIN PRIVATE KEY-----\nTEST\n-----END PRIVATE KEY-----",
 		"-----BEGIN CERTIFICATE-----\nTEST\n-----END CERTIFICATE-----",
 		nil
+}
+
+func TestHTTPExecutor_Execute_IgnoreTlsErrors(t *testing.T) {
+	// Setup
+	logger := zap.NewNop().Sugar()
+	executor := NewHTTPExecutor(logger)
+
+	// Create HTTPS test server with self-signed certificate
+	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status": "ok"}`))
+	}))
+	defer server.Close()
+
+	tests := []struct {
+		name            string
+		ignoreTlsErrors bool
+		expectedStatus  shared.MonitorStatus
+		expectsError    bool
+	}{
+		{
+			name:            "TLS errors ignored - should succeed",
+			ignoreTlsErrors: true,
+			expectedStatus:  shared.MonitorStatusUp,
+			expectsError:    false,
+		},
+		{
+			name:            "TLS errors not ignored - should fail",
+			ignoreTlsErrors: false,
+			expectedStatus:  shared.MonitorStatusDown,
+			expectsError:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			monitor := &Monitor{
+				ID:       "monitor1",
+				Type:     "http",
+				Name:     "Test Monitor",
+				Interval: 30,
+				Timeout:  5,
+				Config: fmt.Sprintf(`{
+					"url": "%s",
+					"method": "GET",
+					"encoding": "json",
+					"accepted_statuscodes": ["2XX"],
+					"authMethod": "none",
+					"ignore_tls_errors": %t
+				}`, server.URL, tt.ignoreTlsErrors),
+			}
+
+			result := executor.Execute(context.Background(), monitor, nil)
+			assert.Equal(t, tt.expectedStatus, result.Status)
+
+			if tt.expectsError {
+				// Should contain some SSL/TLS error
+				assert.Contains(t, strings.ToLower(result.Message), "tls")
+			} else {
+				// Should be successful
+				assert.Contains(t, result.Message, "200")
+			}
+		})
+	}
+}
+
+func TestHTTPExecutor_Execute_IgnoreTlsErrors_WithMTLS(t *testing.T) {
+	// Setup
+	logger := zap.NewNop().Sugar()
+	executor := NewHTTPExecutor(logger)
+
+	// Create HTTPS test server with self-signed certificate
+	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status": "ok"}`))
+	}))
+	defer server.Close()
+
+	monitor := &Monitor{
+		ID:       "monitor1",
+		Type:     "http",
+		Name:     "Test Monitor",
+		Interval: 30,
+		Timeout:  5,
+		Config: fmt.Sprintf(`{
+			"url": "%s",
+			"method": "GET",
+			"encoding": "json",
+			"accepted_statuscodes": ["2XX"],
+			"authMethod": "mtls",
+			"tlsCert": "invalid-cert",
+			"tlsKey": "invalid-key",
+			"tlsCa": "invalid-ca",
+			"ignore_tls_errors": true
+		}`, server.URL),
+	}
+
+	result := executor.Execute(context.Background(), monitor, nil)
+	// Should fail because of invalid certificates, but test that the ignore_tls_errors flag is properly applied
+	assert.Equal(t, shared.MonitorStatusDown, result.Status)
+	assert.Contains(t, result.Message, "invalid mTLS cert/key")
 }

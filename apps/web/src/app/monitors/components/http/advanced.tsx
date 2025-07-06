@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/form";
 import { FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { TypographyH4 } from "@/components/ui/typography";
 import { useFormContext } from "react-hook-form";
 import { z } from "zod";
@@ -72,6 +73,29 @@ const Advanced = () => {
               Maximum number of redirects to follow (0-30). Set to 0 to disable redirects.
             </FormDescription>
             <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="ignore_tls_errors"
+        render={({ field }) => (
+          <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+            <FormControl>
+              <Checkbox
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
+            </FormControl>
+            <div className="space-y-1 leading-none">
+              <FormLabel>
+                Ignore TLS/SSL errors for HTTPS websites
+              </FormLabel>
+              <FormDescription>
+                Skip TLS certificate validation. Use with caution - this makes connections less secure.
+              </FormDescription>
+            </div>
           </FormItem>
         )}
       />
