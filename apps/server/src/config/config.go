@@ -8,34 +8,40 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/go-playground/validator/v10"
 )
 
 type Config struct {
-	RedisUri  string `env:"REDIS_URL"`
-	Port      string `env:"PORT"`
-	ClientURL string `env:"CLIENT_URL"`
+	Port      string `env:"PORT" validate:"required,port"`
+	ClientURL string `env:"CLIENT_URL" validate:"required,url"`
 
-	DBHost string `env:"DB_HOST"`
-	DBPort string `env:"DB_PORT"`
-	DBName string `env:"DB_NAME"`
-	DBUser string `env:"DB_USER"`
-	DBPass string `env:"DB_PASS"`
-	DBType string `env:"DB_TYPE"`
+	DBHost string `env:"DB_HOST"`                           // validated in validateCustomRules
+	DBPort string `env:"DB_PORT"`                           // validated in validateCustomRules
+	DBName string `env:"DB_NAME" validate:"required,min=1"` // validated in validateCustomRules
+	DBUser string `env:"DB_USER"`                           // validated in validateCustomRules
+	DBPass string `env:"DB_PASS"`                           // validated in validateCustomRules
+	DBType string `env:"DB_TYPE" validate:"required,db_type"`
 
-	AccessTokenExpiresIn  time.Duration `env:"ACCESS_TOKEN_EXPIRED_IN"`
-	AccessTokenSecretKey  string        `env:"ACCESS_TOKEN_SECRET_KEY"`
-	RefreshTokenExpiresIn time.Duration `env:"REFRESH_TOKEN_EXPIRED_IN"`
-	RefreshTokenSecretKey string        `env:"REFRESH_TOKEN_SECRET_KEY"`
+	AccessTokenExpiresIn  time.Duration `env:"ACCESS_TOKEN_EXPIRED_IN" validate:"required,duration_min=1m" default:"15m"`
+	AccessTokenSecretKey  string        `env:"ACCESS_TOKEN_SECRET_KEY" validate:"required,min=16"`
+	RefreshTokenExpiresIn time.Duration `env:"REFRESH_TOKEN_EXPIRED_IN" validate:"required,duration_min=1m" default:"720h"`
+	RefreshTokenSecretKey string        `env:"REFRESH_TOKEN_SECRET_KEY" validate:"required,min=16"`
 
-	Mode string `env:"MODE" default:"dev"`
+	Mode string `env:"MODE" validate:"required,oneof=dev prod test" default:"dev"`
 
 	// Loki logging
-	LokiURL    string            `env:"LOKI_URL"`
+	LokiURL    string            `env:"LOKI_URL" validate:"omitempty,url"`
 	LokiLabels map[string]string // Set programmatically or extend env parsing for map
-	Timezone   string            `env:"TZ" default:"UTC"`
+	Timezone   string            `env:"TZ" validate:"required" default:"UTC"`
 }
 
+var validate = validator.New()
+
 func LoadConfig(path string) (config Config, err error) {
+	// Register custom validators
+	RegisterCustomValidators()
+
 	// Try to load from .env file first
 	envFile := path + "/.env"
 	envVarsFromFile := make(map[string]string)
@@ -52,6 +58,15 @@ func LoadConfig(path string) (config Config, err error) {
 	// Override with environment variables (takes precedence)
 	envVarsFromEnv := loadFromEnv(&config)
 
+	// Apply default values for fields that weren't set
+	applyDefaults(&config)
+
+	// Validate the configuration
+	err = validateConfig(&config)
+	if err != nil {
+		return config, fmt.Errorf("configuration validation failed: %w", err)
+	}
+
 	// Count total provided environment variables
 	totalProvided := len(envVarsFromFile) + len(envVarsFromEnv)
 	fmt.Printf("Config loaded: %d environment variables provided (%d from .env file, %d from system env)\n",
@@ -64,6 +79,134 @@ func LoadConfig(path string) (config Config, err error) {
 	os.Setenv("TZ", config.Timezone)
 
 	return
+}
+
+func validateConfig(config *Config) error {
+	// Validate using struct tags
+	if err := validate.Struct(config); err != nil {
+		if validationErrors, ok := err.(validator.ValidationErrors); ok {
+			var errorMessages []string
+			for _, fieldError := range validationErrors {
+				errorMessages = append(errorMessages, formatValidationError(fieldError))
+			}
+			return fmt.Errorf("validation errors: %s", strings.Join(errorMessages, "; "))
+		}
+		return err
+	}
+
+	// Custom validation logic
+	return validateCustomRules(config)
+}
+
+func formatValidationError(err validator.FieldError) string {
+	field := err.Field()
+	tag := err.Tag()
+
+	switch tag {
+	case "required":
+		return fmt.Sprintf("%s is required", field)
+	case "url":
+		return fmt.Sprintf("%s must be a valid URL", field)
+	case "numeric":
+		return fmt.Sprintf("%s must be a valid number", field)
+	case "port":
+		return fmt.Sprintf("%s must be a valid port number (1-65535)", field)
+	case "db_type":
+		return fmt.Sprintf("%s must be one of: postgres, postgresql, mysql, sqlite, mongo, mongodb", field)
+	case "duration_min":
+		return fmt.Sprintf("%s must be at least %s", field, err.Param())
+	case "min":
+		return fmt.Sprintf("%s must be at least %s characters", field, err.Param())
+	case "max":
+		return fmt.Sprintf("%s must be at most %s", field, err.Param())
+	case "oneof":
+		return fmt.Sprintf("%s must be one of: %s", field, err.Param())
+	default:
+		return fmt.Sprintf("%s failed validation: %s", field, tag)
+	}
+}
+
+func validateCustomRules(config *Config) error {
+	// Validate database-specific requirements
+	switch config.DBType {
+	case "postgres", "postgresql", "mysql":
+		if config.DBHost == "" {
+			return fmt.Errorf("DB_HOST is required for %s database", config.DBType)
+		}
+		if config.DBPort == "" {
+			return fmt.Errorf("DB_PORT is required for %s database", config.DBType)
+		}
+		if config.DBUser == "" {
+			return fmt.Errorf("DB_USER is required for %s database", config.DBType)
+		}
+		if config.DBPass == "" {
+			return fmt.Errorf("DB_PASS is required for %s database", config.DBType)
+		}
+		// Validate port format for database connection
+		if _, err := strconv.Atoi(config.DBPort); err != nil {
+			return fmt.Errorf("DB_PORT must be a valid number for %s database", config.DBType)
+		}
+	case "mongo", "mongodb":
+		if config.DBHost == "" {
+			return fmt.Errorf("DB_HOST is required for %s database", config.DBType)
+		}
+		if config.DBPort == "" {
+			return fmt.Errorf("DB_PORT is required for %s database", config.DBType)
+		}
+		if config.DBUser == "" {
+			return fmt.Errorf("DB_USER is required for %s database", config.DBType)
+		}
+		if config.DBPass == "" {
+			return fmt.Errorf("DB_PASS is required for %s database", config.DBType)
+		}
+		// Validate port format for database connection
+		if _, err := strconv.Atoi(config.DBPort); err != nil {
+			return fmt.Errorf("DB_PORT must be a valid number for %s database", config.DBType)
+		}
+	case "sqlite":
+		// SQLite only requires a database file path
+		if config.DBName == "" {
+			return fmt.Errorf("DB_NAME (database file path) is required for SQLite database")
+		}
+	}
+
+	// Validate token expiration times
+	if config.AccessTokenExpiresIn >= config.RefreshTokenExpiresIn {
+		return fmt.Errorf("ACCESS_TOKEN_EXPIRED_IN must be less than REFRESH_TOKEN_EXPIRED_IN")
+	}
+
+	// Validate port is not conflicting with common system ports
+	if port, err := strconv.Atoi(config.Port); err == nil {
+		if port < 1024 && port != 80 && port != 443 {
+			fmt.Printf("Warning: Using port %d which is typically reserved for system services\n", port)
+		}
+	}
+
+	return nil
+}
+
+func applyDefaults(config *Config) {
+	configType := reflect.TypeOf(*config)
+	configValue := reflect.ValueOf(config).Elem()
+
+	for i := 0; i < configType.NumField(); i++ {
+		field := configType.Field(i)
+		fieldValue := configValue.Field(i)
+		defaultValue := field.Tag.Get("default")
+
+		if defaultValue != "" && fieldValue.IsZero() {
+			switch fieldValue.Kind() {
+			case reflect.String:
+				fieldValue.SetString(defaultValue)
+			case reflect.Int, reflect.Int64:
+				if intValue, err := strconv.ParseInt(defaultValue, 10, 64); err == nil {
+					fieldValue.SetInt(intValue)
+				}
+			case reflect.Bool:
+				fieldValue.SetBool(defaultValue == "true" || defaultValue == "1")
+			}
+		}
+	}
 }
 
 func loadEnvFile(filePath string, config *Config, envVarsFromFile map[string]string) error {
