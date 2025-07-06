@@ -152,14 +152,12 @@ const EditMaintenance = () => {
 
   return (
     <Layout pageName={`Edit Maintenance: ${maintenance?.title}`}>
-      <div>
-        <BackButton to="/maintenances" />
-        <CreateEditMaintenance
-          initialValues={initialValues}
-          mode="edit"
-          onSubmit={handleSubmit}
-        />
-      </div>
+      <BackButton to="/maintenances" />
+      <CreateEditMaintenance
+        initialValues={initialValues}
+        mode="edit"
+        onSubmit={handleSubmit}
+      />
     </Layout>
   );
 };

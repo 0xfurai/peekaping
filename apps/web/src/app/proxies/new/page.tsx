@@ -8,10 +8,8 @@ const NewProxy = () => {
 
   return (
     <Layout pageName="New Proxy">
-      <div>
-        <BackButton to="/proxies" />
-        <CreateProxy onSuccess={() => navigate("/proxies")} />
-      </div>
+      <BackButton to="/proxies" />
+      <CreateProxy onSuccess={() => navigate("/proxies")} />
     </Layout>
   );
 };

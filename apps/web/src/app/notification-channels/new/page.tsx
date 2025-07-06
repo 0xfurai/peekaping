@@ -8,10 +8,8 @@ const NewNotificationChannel = () => {
 
   return (
     <Layout pageName="New Notification Channel">
-      <div>
-        <BackButton to="/notification-channels" />
-        <CreateNotificationChannel onSuccess={() => navigate("/notification-channels")} />
-      </div>
+      <BackButton to="/notification-channels" />
+      <CreateNotificationChannel onSuccess={() => navigate("/notification-channels")} />
     </Layout>
   );
 };

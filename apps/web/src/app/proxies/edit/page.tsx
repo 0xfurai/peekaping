@@ -80,14 +80,12 @@ const EditProxy = () => {
 
   return (
     <Layout pageName={`Edit Proxy: ${proxy.host}:${proxy.port}`}>
-      <div>
-        <BackButton to="/proxies" />
-        <CreateEditProxy
-          initialValues={initialValues}
-          onSubmit={handleSubmit}
-          mode="edit"
-        />
-      </div>
+      <BackButton to="/proxies" />
+      <CreateEditProxy
+        initialValues={initialValues}
+        onSubmit={handleSubmit}
+        mode="edit"
+      />
     </Layout>
   );
 };

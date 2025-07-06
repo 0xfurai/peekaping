@@ -25,15 +25,13 @@ const NewMonitorContent = () => {
 
   return (
     <Layout pageName="New Monitor">
-      <div>
-        <BackButton to="/monitors" />
-        <div className="flex flex-col gap-4">
-          <p className="text-gray-500">
-            Create a new monitor to start tracking your website's performance.
-          </p>
+      <BackButton to="/monitors" />
+      <div className="flex flex-col gap-4">
+        <p className="text-gray-500">
+          Create a new monitor to start tracking your website's performance.
+        </p>
 
-          <CreateEditForm />
-        </div>
+        <CreateEditForm />
       </div>
 
       <Sheet open={notifierSheetOpen} onOpenChange={setNotifierSheetOpen}>

@@ -82,30 +82,30 @@ const EditStatusPageContent = () => {
 
   return (
     <Layout pageName={`Edit Status Page: ${statusPageData.title}`}>
-        <BackButton to="/status-pages" />
-        <div className="flex flex-col gap-4">
-          <p className="text-gray-500">
-            Update your status page settings and configuration.
-          </p>
+      <BackButton to="/status-pages" />
+      <div className="flex flex-col gap-4">
+        <p className="text-gray-500">
+          Update your status page settings and configuration.
+        </p>
 
-          <CreateEditForm
-            mode="edit"
-            onSubmit={handleSubmit}
-            initialValues={{
-              title: statusPageData.title || "",
-              slug: statusPageData.slug || "",
-              description: statusPageData.description || "",
-              icon: statusPageData.icon || "",
-              footer_text: statusPageData.footer_text || "",
-              auto_refresh_interval: statusPageData?.auto_refresh_interval || 0,
-              published: statusPageData?.published || true,
-              monitors: monitorsData?.data?.map((monitor) => ({
-                label: monitor.name || "",
-                value: monitor.id || "",
-              })),
-            }}
-          />
-        </div>
+        <CreateEditForm
+          mode="edit"
+          onSubmit={handleSubmit}
+          initialValues={{
+            title: statusPageData.title || "",
+            slug: statusPageData.slug || "",
+            description: statusPageData.description || "",
+            icon: statusPageData.icon || "",
+            footer_text: statusPageData.footer_text || "",
+            auto_refresh_interval: statusPageData?.auto_refresh_interval || 0,
+            published: statusPageData?.published || true,
+            monitors: monitorsData?.data?.map((monitor) => ({
+              label: monitor.name || "",
+              value: monitor.id || "",
+            })),
+          }}
+        />
+      </div>
     </Layout>
   );
 };

@@ -83,10 +83,8 @@ const NewMaintenance = () => {
 
   return (
     <Layout pageName="Schedule Maintenance">
-      <div>
-        <BackButton to="/maintenances" />
-        <CreateEditMaintenance onSubmit={handleSubmit} />
-      </div>
+      <BackButton to="/maintenances" />
+      <CreateEditMaintenance onSubmit={handleSubmit} />
     </Layout>
   );
 };

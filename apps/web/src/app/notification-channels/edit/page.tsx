@@ -67,15 +67,13 @@ const EditNotificationChannel = () => {
 
   return (
     <Layout pageName={`Edit Notification Channel: ${notifier.name}`}>
-      <div>
-        <BackButton to="/notification-channels" />
-        <CreateEditNotificationChannel
-          initialValues={initialValues}
-          onSubmit={handleSubmit}
-          isLoading={mutation.isPending}
-          mode="edit"
-        />
-      </div>
+      <BackButton to="/notification-channels" />
+      <CreateEditNotificationChannel
+        initialValues={initialValues}
+        onSubmit={handleSubmit}
+        isLoading={mutation.isPending}
+        mode="edit"
+      />
     </Layout>
   );
 };

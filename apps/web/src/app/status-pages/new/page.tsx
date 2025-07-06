@@ -38,18 +38,16 @@ const NewStatusPageContent = () => {
 
   return (
     <Layout pageName="New Status Page">
-      <div>
-        <BackButton to="/status-pages" />
-        <div className="flex flex-col gap-4">
-          <p className="text-gray-500">
-            Create a new status page to share your service status with users.
-          </p>
+      <BackButton to="/status-pages" />
+      <div className="flex flex-col gap-4">
+        <p className="text-gray-500">
+          Create a new status page to share your service status with users.
+        </p>
 
-          <CreateEditForm
-            onSubmit={handleSubmit}
-            isPending={createStatusPageMutation.isPending}
-          />
-        </div>
+        <CreateEditForm
+          onSubmit={handleSubmit}
+          isPending={createStatusPageMutation.isPending}
+        />
       </div>
     </Layout>
   );

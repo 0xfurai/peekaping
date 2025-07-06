@@ -14,6 +14,7 @@ import CreateEditForm from "../components/create-edit-form";
 import type { NotificationChannelModel, ProxyModel } from "@/api";
 import CreateProxy from "@/app/proxies/components/create-proxy";
 import CreateNotificationChannel from "@/app/notification-channels/components/create-notification-channel";
+import { BackButton } from "@/components/back-button";
 
 const EditMonitorForm = () => {
   const {
@@ -29,7 +30,8 @@ const EditMonitorForm = () => {
   if (!monitor) return null;
 
   return (
-    <Layout pageName={`Edit Monitor | ${monitor?.data?.name}`}>
+    <Layout pageName={`Edit Monitor: ${monitor?.data?.name}`}>
+      <BackButton to={`/monitors/${monitor?.data?.id}`} />
       <div className="flex flex-col gap-4">
         <p className="text-gray-500">
           Create a new monitor to start tracking your website's performance.
