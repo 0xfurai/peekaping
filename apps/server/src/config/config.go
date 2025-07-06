@@ -59,7 +59,7 @@ func LoadConfig(path string) (config Config, err error) {
 	envVarsFromEnv := loadFromEnv(&config)
 
 	// Apply default values for fields that weren't set
-	applyDefaults(&config)
+	defaultsApplied := applyDefaults(&config)
 
 	// Validate the configuration
 	err = validateConfig(&config)
@@ -69,12 +69,14 @@ func LoadConfig(path string) (config Config, err error) {
 
 	// Count total provided environment variables
 	totalProvided := len(envVarsFromFile) + len(envVarsFromEnv)
-	fmt.Printf("Config loaded: %d environment variables provided (%d from .env file, %d from system env)\n",
-		totalProvided, len(envVarsFromFile), len(envVarsFromEnv))
+	totalDefaults := len(defaultsApplied)
+	fmt.Printf("Config loaded: %d environment variables provided (%d from .env file, %d from system env), %d defaults applied\n",
+		totalProvided, len(envVarsFromFile), len(envVarsFromEnv), totalDefaults)
 
 	// Print detailed environment variables
 	printEnvVars("From .env file:", envVarsFromFile)
 	printEnvVars("From system env:", envVarsFromEnv)
+	printEnvVars("Defaults applied:", defaultsApplied)
 
 	os.Setenv("TZ", config.Timezone)
 
@@ -185,28 +187,53 @@ func validateCustomRules(config *Config) error {
 	return nil
 }
 
-func applyDefaults(config *Config) {
+func applyDefaults(config *Config) map[string]string {
 	configType := reflect.TypeOf(*config)
 	configValue := reflect.ValueOf(config).Elem()
+	defaultsApplied := make(map[string]string)
 
 	for i := 0; i < configType.NumField(); i++ {
 		field := configType.Field(i)
 		fieldValue := configValue.Field(i)
 		defaultValue := field.Tag.Get("default")
+		envKey := field.Tag.Get("env")
 
 		if defaultValue != "" && fieldValue.IsZero() {
 			switch fieldValue.Kind() {
 			case reflect.String:
 				fieldValue.SetString(defaultValue)
+				if envKey != "" {
+					defaultsApplied[envKey] = defaultValue
+				}
 			case reflect.Int, reflect.Int64:
-				if intValue, err := strconv.ParseInt(defaultValue, 10, 64); err == nil {
+				var intValue int64
+				var err error
+
+				// Special case for time.Duration
+				if field.Type == reflect.TypeOf(time.Duration(0)) {
+					var duration time.Duration
+					duration, err = time.ParseDuration(defaultValue)
+					intValue = int64(duration)
+				} else {
+					intValue, err = strconv.ParseInt(defaultValue, 10, 64)
+				}
+
+				if err == nil {
 					fieldValue.SetInt(intValue)
+					if envKey != "" {
+						defaultsApplied[envKey] = defaultValue
+					}
 				}
 			case reflect.Bool:
 				fieldValue.SetBool(defaultValue == "true" || defaultValue == "1")
+				if envKey != "" {
+					defaultsApplied[envKey] = defaultValue
+				}
 			}
 		}
 	}
+
+	return defaultsApplied
 }
 
 func loadEnvFile(filePath string, config *Config, envVarsFromFile map[string]string) error {
