@@ -12,7 +12,6 @@ export const httpSchema = z
   .object({
     type: z.literal("http"),
     url: z.string().url({ message: "Invalid URL" }),
-    ignore_tls_errors: z.boolean().default(false),
   })
   .merge(generalSchema)
   .merge(intervalsSchema)
@@ -35,7 +34,6 @@ export type HttpForm = z.infer<typeof httpSchema>;
 export const httpDefaultValues: HttpForm = {
   type: "http",
   url: "https://example.com",
-  ignore_tls_errors: false,
 
   ...generalDefaultValues,
   ...intervalsDefaultValues,

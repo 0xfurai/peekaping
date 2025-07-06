@@ -24,6 +24,7 @@ const acceptedStatusCodesOptions = [
 export const advancedSchema = z.object({
   accepted_statuscodes: z.array(z.string()),
   max_redirects: z.coerce.number().min(0).max(30),
+  ignore_tls_errors: z.boolean(),
 });
 
 export type AdvancedForm = z.infer<typeof advancedSchema>;
@@ -31,6 +32,7 @@ export type AdvancedForm = z.infer<typeof advancedSchema>;
 export const advancedDefaultValues: AdvancedForm = {
   accepted_statuscodes: ["2XX"],
   max_redirects: 10,
+  ignore_tls_errors: false,
 }
 
 const Advanced = () => {
