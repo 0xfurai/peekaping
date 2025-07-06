@@ -1,6 +1,7 @@
 import Layout from "@/layout";
 import CreateEditForm, { type StatusPageForm } from "../components/create-edit-form";
 import { useNavigate, useParams } from "react-router-dom";
+import { BackButton } from "@/components/back-button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getMonitorsBatchOptions,
@@ -62,17 +63,26 @@ const EditStatusPageContent = () => {
   });
 
   if (statusPageIsLoading || monitorsDataIsLoading) {
-    return <div>Loading...</div>;
+    return (
+      <Layout pageName="Edit Status Page">
+        <div>Loading...</div>
+      </Layout>
+    );
   }
 
   if (!statusPage?.data) {
-    return <div>Status page not found</div>;
+    return (
+      <Layout pageName="Edit Status Page">
+        <div>Status page not found</div>
+      </Layout>
+    );
   }
 
   const statusPageData = statusPage?.data;
 
   return (
-    <Layout pageName="Edit Status Page">
+    <Layout pageName={`Edit Status Page: ${statusPageData.title}`}>
+      <BackButton to="/status-pages" />
       <div className="flex flex-col gap-4">
         <p className="text-gray-500">
           Update your status page settings and configuration.

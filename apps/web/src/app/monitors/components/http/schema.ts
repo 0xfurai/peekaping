@@ -114,6 +114,7 @@ export const deserialize = (data: MonitorMonitorResponseDto): HttpForm => {
     url: config.url || "https://example.com",
     accepted_statuscodes: config.accepted_statuscodes || ["2XX"],
     max_redirects: config.max_redirects || 10,
+    ignore_tls_errors: config.ignore_tls_errors || false,
     httpOptions: {
       method: config.method || "GET",
       encoding: config.encoding || "json",
@@ -133,6 +134,7 @@ export const serialize = (formData: HttpForm): MonitorCreateUpdateDto => {
     body: formData.httpOptions.body,
     accepted_statuscodes: formData.accepted_statuscodes as Array<"2XX" | "3XX" | "4XX" | "5XX">,
     max_redirects: formData.max_redirects,
+    ignore_tls_errors: formData.ignore_tls_errors,
     authMethod: formData.authentication.authMethod,
 
     // Include authentication fields based on method
@@ -187,6 +189,7 @@ export interface HttpExecutorConfig {
   accepted_statuscodes: Array<"2XX" | "3XX" | "4XX" | "5XX">; // required, at least one
 
   max_redirects?: number; // optional, must be >= 0 if present
+  ignore_tls_errors: boolean; // defaults to false
 
   // Authentication fields
   authMethod: "none" | "basic" | "oauth2-cc" | "ntlm" | "mtls"; // required

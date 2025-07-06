@@ -4,10 +4,10 @@
 ![Go](https://img.shields.io/badge/go-%23007d9c.svg?style=flat&logo=go&logoColor=white)
 ![React](https://img.shields.io/badge/react-%2320232a.svg?style=flat&logo=react&logoColor=%2361dafb)
 ![TypeScript](https://img.shields.io/badge/typescript-%23007acc.svg?style=flat&logo=typescript&logoColor=white)
-![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=flat&logo=docker&logoColor=white)
 ![MongoDB](https://img.shields.io/badge/mongodb-4ea94b.svg?style=flat&logo=mongodb&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/postgresql-%23336791.svg?style=flat&logo=postgresql&logoColor=white)
 ![SQLite](https://img.shields.io/badge/sqlite-%2307405e.svg?style=flat&logo=sqlite&logoColor=white)
+![Docker Pulls](https://img.shields.io/docker/pulls/0xfurai/peekaping-web)
 
 
 **A modern, self-hosted uptime monitoring solution**
@@ -21,6 +21,12 @@ Want to see Peekaping in action? Try our live demo:
 🔗 **[https://demo.peekaping.com](https://demo.peekaping.com)**
 
 The demo allows you to explore all features instantly in your browser without any setup. Perfect for evaluating Peekaping before deploying your own instance!
+
+## 📚 Documentation
+
+For detailed setup instructions, configuration options, and guides:
+
+🔗 **[Docs](https://docs.peekaping.com)**
 
 ## ⚠️ Beta Status
 
@@ -77,8 +83,7 @@ If you enjoy this project, come say hi &amp; follow along!
 ### 🛠 **Advanced Features**
 - **Maintenance Windows** - Schedule maintenance to prevent false alerts
 - **Proxy Support** - Route monitoring through HTTP proxies
-- **Multi-user Authentication** - Secure login with 2FA support
-- **Real-time Collaboration** - Multiple users can monitor simultaneously
+- **2FA User Authentication** - Secure login with 2FA support
 - **Data Retention** - Automatic cleanup of old heartbeat data
 
 ### 🏗 **Technical Highlights**

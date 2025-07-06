@@ -29,7 +29,6 @@ import { useWebSocket, WebSocketStatus } from "@/context/websocket-context";
 import Layout from "@/layout";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  ArrowLeft,
   Copy,
   Edit,
   Loader2,
@@ -43,6 +42,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { cn, commonMutationErrorHandler } from "@/lib/utils";
 import ImportantNotificationsList from "../components/important-notifications-list";
+import { BackButton } from "@/components/back-button";
 
 const MonitorPage = () => {
   const { id } = useParams();
@@ -295,21 +295,12 @@ const MonitorPage = () => {
 
   return (
     <Layout
-      pageName={`Monitors > ${monitor?.name ?? ""}`}
+      pageName={`Monitors: ${monitor?.name ?? ""}`}
       isLoading={isLoading}
       error={error && <div>Error: {error.message}</div>}
     >
       <div>
-        <div>
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/monitors")}
-            className="mb-4 "
-          >
-            <ArrowLeft />
-            Back
-          </Button>
-        </div>
+        <BackButton to="/monitors" />
         <div className="pl-4">
           <span className="text-sm text-muted-foreground mr-2">
             {monitor?.type} monitor for
