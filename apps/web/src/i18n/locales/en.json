@@ -68,7 +68,9 @@
         "monitor_status": "Monitor Status",
         "filters": {
             "all_monitors": "All Monitors",
-            "status_filter": "Status Filter"
+            "status_filter": "Status Filter",
+            "search_placeholder": "Search monitors by name...",
+            "monitor_status": "Filter by status..."
         },
         "intervals_retries_timeouts": "Intervals, Retries, Timeouts"
     },
