@@ -24,7 +24,6 @@ import { NavSecondary } from "./nav-secondary";
 import { useAuthStore } from "@/store/auth";
 import { VERSION } from "../version";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
-import { LanguageSelector } from "./LanguageSelector";
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const user = useAuthStore((state) => state.user);
@@ -89,9 +88,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
-        <div className="px-4 pt-2">
-          <LanguageSelector />
-        </div>
       </SidebarHeader>
 
       <SidebarContent>

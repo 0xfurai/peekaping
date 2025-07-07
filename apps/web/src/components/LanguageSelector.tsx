@@ -21,7 +21,7 @@ export function LanguageSelector() {
 
   return (
     <Select value={currentLanguage} onValueChange={changeLanguage}>
-      <SelectTrigger className="w-32">
+      <SelectTrigger className="w-full">
         <SelectValue>
           <div className="flex items-center gap-2">
             <span>{currentLang.flag}</span>
@@ -29,6 +29,7 @@ export function LanguageSelector() {
           </div>
         </SelectValue>
       </SelectTrigger>
+
       <SelectContent>
         {languages.map((language) => (
           <SelectItem key={language.code} value={language.code}>

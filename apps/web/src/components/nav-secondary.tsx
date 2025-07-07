@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/sidebar";
 import { ModeToggle } from "./mode-toggle";
 import { Link } from "react-router-dom";
+import { LanguageSelector } from "./LanguageSelector";
 
 export function NavSecondary({
   items,
@@ -28,6 +29,12 @@ export function NavSecondary({
     <SidebarGroup {...props}>
       <SidebarGroupContent>
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <LanguageSelector />
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton asChild>
