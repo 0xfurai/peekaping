@@ -1,11 +1,23 @@
-import { useStatusTranslations } from "@/hooks/useTranslation";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const useStatusHelpers = () => {
-  const statusTranslations = useStatusTranslations();
+  const { t } = useLocalizedTranslation();
 
   const getStatusText = (status: number | undefined) => {
-    if (typeof status === 'undefined') return statusTranslations.unknown;
-    return statusTranslations.getStatusText(status);
+    if (typeof status === 'undefined') return t('common.unknown');
+
+    switch (status) {
+      case 0:
+        return t('common.down');
+      case 1:
+        return t('common.up');
+      case 2:
+        return t('common.unknown');
+      case 3:
+        return t('common.maintenance');
+      default:
+        return t('common.unknown');
+    }
   };
 
   const getStatusClass = (status: number | undefined) => {
