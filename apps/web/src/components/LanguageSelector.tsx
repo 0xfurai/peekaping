@@ -10,6 +10,7 @@ import { useLocalizedTranslation } from "@/hooks/useTranslation";
 const languages = [
   { code: "en", name: "English", flag: "🇺🇸" },
   { code: "fr", name: "Français", flag: "🇫🇷" },
+  { code: "ua", name: "Українська", flag: "🇺🇦" },
 ];
 
 export function LanguageSelector() {
