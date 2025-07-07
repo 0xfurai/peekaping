@@ -239,6 +239,19 @@ func (c *Controller) GetMonitorsBySlug(ctx *gin.Context) {
 			heartbeats = []*heartbeat.Model{} // Empty slice if error
 		}
 
+		// Convert heartbeats to public DTOs
+		publicHeartbeats := make([]*PublicHeartbeatDTO, 0, len(heartbeats))
+		for _, hb := range heartbeats {
+			publicHeartbeat := &PublicHeartbeatDTO{
+				ID:      hb.ID,
+				Status:  hb.Status,
+				Time:    hb.Time,
+				EndTime: hb.EndTime,
+				Ping:    hb.Ping,
+			}
+			publicHeartbeats = append(publicHeartbeats, publicHeartbeat)
+		}
+
 		// Get 24h uptime for this monitor
 		now := time.Now().UTC()
 		periods := map[string]time.Duration{
@@ -247,6 +260,8 @@ func (c *Controller) GetMonitorsBySlug(ctx *gin.Context) {
 		uptimeStats, err := c.heartbeatService.FindUptimeStatsByMonitorID(ctx, msp.MonitorID, periods, now)
 		if err != nil {
 			c.logger.Errorw("Failed to get uptime stats for monitor", "error", err, "monitorID", msp.MonitorID)
+			ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("failed to get uptime stats for monitor"))
+			return
 		}
 
 		uptime24h := 0.0
@@ -256,10 +271,17 @@ func (c *Controller) GetMonitorsBySlug(ctx *gin.Context) {
 			}
 		}
 
+		publicMonitor := &PublicMonitorDTO{
+			ID:     monitorModel.ID,
+			Type:   monitorModel.Type,
+			Name:   monitorModel.Name,
+			Active: monitorModel.Active,
+		}
+
 		monitorWithData := &MonitorWithHeartbeatsAndUptimeDTO{
-			Model:      monitorModel,
-			Heartbeats: heartbeats,
-			Uptime24h:  uptime24h,
+			PublicMonitorDTO: publicMonitor,
+			Heartbeats:       publicHeartbeats,
+			Uptime24h:        uptime24h,
 		}
 
 		monitorModels = append(monitorModels, monitorWithData)

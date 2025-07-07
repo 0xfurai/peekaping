@@ -273,7 +273,7 @@ func (ic *Controller) Test(ctx *gin.Context) {
 		Type: "http",
 	}
 	testHeartbeat := &heartbeat.Model{
-		Status: shared.MonitorStatusUp,
+		Status: shared.MonitorStatusDown,
 		Msg:    testMessage,
 	}
 

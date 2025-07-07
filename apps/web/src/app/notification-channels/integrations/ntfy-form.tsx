@@ -240,7 +240,7 @@ export default function NtfyForm() {
                 }
                 field.onChange(parseInt(val));
               }}
-              value={field.value.toString()}
+              value={field.value?.toString()}
             >
               <FormControl>
                 <SelectTrigger>

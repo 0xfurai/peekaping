@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { BackButton } from "@/components/back-button";
 import {
   getMaintenancesByIdOptions,
   getMaintenancesByIdQueryKey,
@@ -53,7 +54,7 @@ const EditMaintenance = () => {
           },
         }),
       });
-      navigate("/maintenance");
+      navigate("/maintenances");
     },
     onError: commonMutationErrorHandler("Failed to update maintenance")
   });
@@ -151,6 +152,7 @@ const EditMaintenance = () => {
 
   return (
     <Layout pageName={`Edit Maintenance: ${maintenance?.title}`}>
+      <BackButton to="/maintenances" />
       <CreateEditMaintenance
         initialValues={initialValues}
         mode="edit"

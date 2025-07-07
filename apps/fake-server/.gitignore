@@ -1,0 +1,29 @@
+# Generated certificates and keys (contain private data)
+certs/
+*.key
+*.crt
+*.csr
+*.srl
+*.pem
+
+# Node modules
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# Temporary proto files
+temp-protos/

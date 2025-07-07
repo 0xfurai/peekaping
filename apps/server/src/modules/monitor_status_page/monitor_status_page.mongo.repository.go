@@ -13,8 +13,8 @@ import (
 
 type mongoModel struct {
 	ID           primitive.ObjectID `bson:"_id"`
-	StatusPageID string             `bson:"status_page_id"`
-	MonitorID    string             `bson:"monitor_id"`
+	StatusPageID primitive.ObjectID `bson:"status_page_id"`
+	MonitorID    primitive.ObjectID `bson:"monitor_id"`
 	Order        int                `bson:"order"`
 	Active       bool               `bson:"active"`
 	CreatedAt    time.Time          `bson:"created_at"`
@@ -22,18 +22,18 @@ type mongoModel struct {
 }
 
 type mongoUpdateModel struct {
-	StatusPageID *string    `bson:"status_page_id,omitempty"`
-	MonitorID    *string    `bson:"monitor_id,omitempty"`
-	Order        *int       `bson:"order,omitempty"`
-	Active       *bool      `bson:"active,omitempty"`
-	UpdatedAt    *time.Time `bson:"updated_at,omitempty"`
+	StatusPageID *primitive.ObjectID `bson:"status_page_id,omitempty"`
+	MonitorID    *primitive.ObjectID `bson:"monitor_id,omitempty"`
+	Order        *int                `bson:"order,omitempty"`
+	Active       *bool               `bson:"active,omitempty"`
+	UpdatedAt    *time.Time          `bson:"updated_at,omitempty"`
 }
 
 func toDomainModel(mm *mongoModel) *Model {
 	return &Model{
 		ID:           mm.ID.Hex(),
-		StatusPageID: mm.StatusPageID,
-		MonitorID:    mm.MonitorID,
+		StatusPageID: mm.StatusPageID.Hex(),
+		MonitorID:    mm.MonitorID.Hex(),
 		Order:        mm.Order,
 		Active:       mm.Active,
 		CreatedAt:    mm.CreatedAt,
@@ -54,17 +54,26 @@ func NewMongoRepository(client *mongo.Client, cfg *config.Config) Repository {
 }
 
 func (r *MongoRepositoryImpl) Create(ctx context.Context, entity *CreateUpdateDto) (*Model, error) {
+	statusPageObjectID, err := primitive.ObjectIDFromHex(entity.StatusPageID)
+	if err != nil {
+		return nil, err
+	}
+	monitorObjectID, err := primitive.ObjectIDFromHex(entity.MonitorID)
+	if err != nil {
+		return nil, err
+	}
+
 	mm := &mongoModel{
 		ID:           primitive.NewObjectID(),
-		StatusPageID: entity.StatusPageID,
-		MonitorID:    entity.MonitorID,
+		StatusPageID: statusPageObjectID,
+		MonitorID:    monitorObjectID,
 		Order:        entity.Order,
 		Active:       entity.Active,
 		CreatedAt:    time.Now().UTC(),
 		UpdatedAt:    time.Now().UTC(),
 	}
 
-	_, err := r.collection.InsertOne(ctx, mm)
+	_, err = r.collection.InsertOne(ctx, mm)
 	if err != nil {
 		return nil, err
 	}
@@ -138,11 +147,19 @@ func (r *MongoRepositoryImpl) UpdateFull(ctx context.Context, id string, entity 
 	if err != nil {
 		return nil, err
 	}
+	statusPageObjectID, err := primitive.ObjectIDFromHex(entity.StatusPageID)
+	if err != nil {
+		return nil, err
+	}
+	monitorObjectID, err := primitive.ObjectIDFromHex(entity.MonitorID)
+	if err != nil {
+		return nil, err
+	}
 
 	mm := &mongoModel{
 		ID:           objectID,
-		StatusPageID: entity.StatusPageID,
-		MonitorID:    entity.MonitorID,
+		StatusPageID: statusPageObjectID,
+		MonitorID:    monitorObjectID,
 		Order:        entity.Order,
 		Active:       entity.Active,
 		UpdatedAt:    time.Now().UTC(),
@@ -167,11 +184,32 @@ func (r *MongoRepositoryImpl) UpdatePartial(ctx context.Context, id string, enti
 
 	now := time.Now().UTC()
 	update := &mongoUpdateModel{
-		StatusPageID: entity.StatusPageID,
-		MonitorID:    entity.MonitorID,
-		Order:        entity.Order,
-		Active:       entity.Active,
-		UpdatedAt:    &now,
+		UpdatedAt: &now,
+	}
+
+	// Only update fields that are not nil
+	if entity.StatusPageID != nil {
+		statusPageObjectID, err := primitive.ObjectIDFromHex(*entity.StatusPageID)
+		if err != nil {
+			return nil, err
+		}
+		update.StatusPageID = &statusPageObjectID
+	}
+
+	if entity.MonitorID != nil {
+		monitorObjectID, err := primitive.ObjectIDFromHex(*entity.MonitorID)
+		if err != nil {
+			return nil, err
+		}
+		update.MonitorID = &monitorObjectID
+	}
+
+	if entity.Order != nil {
+		update.Order = entity.Order
+	}
+
+	if entity.Active != nil {
+		update.Active = entity.Active
 	}
 
 	filter := bson.M{"_id": objectID}
@@ -218,11 +256,20 @@ func (r *MongoRepositoryImpl) AddMonitorToStatusPage(ctx context.Context, status
 		})
 	}
 
+	statusPageObjectID, err := primitive.ObjectIDFromHex(statusPageID)
+	if err != nil {
+		return nil, err
+	}
+	monitorObjectID, err := primitive.ObjectIDFromHex(monitorID)
+	if err != nil {
+		return nil, err
+	}
+
 	// Create new relationship
 	mm := &mongoModel{
 		ID:           primitive.NewObjectID(),
-		StatusPageID: statusPageID,
-		MonitorID:    monitorID,
+		StatusPageID: statusPageObjectID,
+		MonitorID:    monitorObjectID,
 		Order:        order,
 		Active:       active,
 		CreatedAt:    time.Now().UTC(),
@@ -238,16 +285,30 @@ func (r *MongoRepositoryImpl) AddMonitorToStatusPage(ctx context.Context, status
 }
 
 func (r *MongoRepositoryImpl) RemoveMonitorFromStatusPage(ctx context.Context, statusPageID, monitorID string) error {
-	filter := bson.M{
-		"status_page_id": statusPageID,
-		"monitor_id":     monitorID,
+	statusPageObjectID, err := primitive.ObjectIDFromHex(statusPageID)
+	if err != nil {
+		return err
 	}
-	_, err := r.collection.DeleteOne(ctx, filter)
+	monitorObjectID, err := primitive.ObjectIDFromHex(monitorID)
+	if err != nil {
+		return err
+	}
+
+	filter := bson.M{
+		"status_page_id": statusPageObjectID,
+		"monitor_id":     monitorObjectID,
+	}
+	_, err = r.collection.DeleteOne(ctx, filter)
 	return err
 }
 
 func (r *MongoRepositoryImpl) GetMonitorsForStatusPage(ctx context.Context, statusPageID string) ([]*Model, error) {
-	filter := bson.M{"status_page_id": statusPageID}
+	statusPageObjectID, err := primitive.ObjectIDFromHex(statusPageID)
+	if err != nil {
+		return nil, err
+	}
+
+	filter := bson.M{"status_page_id": statusPageObjectID}
 	options := &options.FindOptions{
 		Sort: bson.D{{Key: "order", Value: 1}},
 	}
@@ -275,7 +336,12 @@ func (r *MongoRepositoryImpl) GetMonitorsForStatusPage(ctx context.Context, stat
 }
 
 func (r *MongoRepositoryImpl) GetStatusPagesForMonitor(ctx context.Context, monitorID string) ([]*Model, error) {
-	filter := bson.M{"monitor_id": monitorID}
+	monitorObjectID, err := primitive.ObjectIDFromHex(monitorID)
+	if err != nil {
+		return nil, err
+	}
+
+	filter := bson.M{"monitor_id": monitorObjectID}
 	options := &options.FindOptions{
 		Sort: bson.D{{Key: "order", Value: 1}},
 	}
@@ -303,12 +369,21 @@ func (r *MongoRepositoryImpl) GetStatusPagesForMonitor(ctx context.Context, moni
 }
 
 func (r *MongoRepositoryImpl) FindByStatusPageAndMonitor(ctx context.Context, statusPageID, monitorID string) (*Model, error) {
+	statusPageObjectID, err := primitive.ObjectIDFromHex(statusPageID)
+	if err != nil {
+		return nil, err
+	}
+	monitorObjectID, err := primitive.ObjectIDFromHex(monitorID)
+	if err != nil {
+		return nil, err
+	}
+
 	filter := bson.M{
-		"status_page_id": statusPageID,
-		"monitor_id":     monitorID,
+		"status_page_id": statusPageObjectID,
+		"monitor_id":     monitorObjectID,
 	}
 	var mm mongoModel
-	err := r.collection.FindOne(ctx, filter).Decode(&mm)
+	err = r.collection.FindOne(ctx, filter).Decode(&mm)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, nil
@@ -319,9 +394,18 @@ func (r *MongoRepositoryImpl) FindByStatusPageAndMonitor(ctx context.Context, st
 }
 
 func (r *MongoRepositoryImpl) UpdateMonitorOrder(ctx context.Context, statusPageID, monitorID string, order int) (*Model, error) {
+	statusPageObjectID, err := primitive.ObjectIDFromHex(statusPageID)
+	if err != nil {
+		return nil, err
+	}
+	monitorObjectID, err := primitive.ObjectIDFromHex(monitorID)
+	if err != nil {
+		return nil, err
+	}
+
 	filter := bson.M{
-		"status_page_id": statusPageID,
-		"monitor_id":     monitorID,
+		"status_page_id": statusPageObjectID,
+		"monitor_id":     monitorObjectID,
 	}
 	update := bson.M{
 		"$set": bson.M{
@@ -330,7 +414,7 @@ func (r *MongoRepositoryImpl) UpdateMonitorOrder(ctx context.Context, statusPage
 		},
 	}
 
-	_, err := r.collection.UpdateOne(ctx, filter, update)
+	_, err = r.collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return nil, err
 	}
@@ -346,9 +430,18 @@ func (r *MongoRepositoryImpl) UpdateMonitorOrder(ctx context.Context, statusPage
 }
 
 func (r *MongoRepositoryImpl) UpdateMonitorActiveStatus(ctx context.Context, statusPageID, monitorID string, active bool) (*Model, error) {
+	statusPageObjectID, err := primitive.ObjectIDFromHex(statusPageID)
+	if err != nil {
+		return nil, err
+	}
+	monitorObjectID, err := primitive.ObjectIDFromHex(monitorID)
+	if err != nil {
+		return nil, err
+	}
+
 	filter := bson.M{
-		"status_page_id": statusPageID,
-		"monitor_id":     monitorID,
+		"status_page_id": statusPageObjectID,
+		"monitor_id":     monitorObjectID,
 	}
 	update := bson.M{
 		"$set": bson.M{
@@ -357,7 +450,7 @@ func (r *MongoRepositoryImpl) UpdateMonitorActiveStatus(ctx context.Context, sta
 		},
 	}
 
-	_, err := r.collection.UpdateOne(ctx, filter, update)
+	_, err = r.collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return nil, err
 	}
@@ -373,7 +466,12 @@ func (r *MongoRepositoryImpl) UpdateMonitorActiveStatus(ctx context.Context, sta
 }
 
 func (r *MongoRepositoryImpl) DeleteAllMonitorsForStatusPage(ctx context.Context, statusPageID string) error {
-	filter := bson.M{"status_page_id": statusPageID}
-	_, err := r.collection.DeleteMany(ctx, filter)
+	statusPageObjectID, err := primitive.ObjectIDFromHex(statusPageID)
+	if err != nil {
+		return err
+	}
+
+	filter := bson.M{"status_page_id": statusPageObjectID}
+	_, err = r.collection.DeleteMany(ctx, filter)
 	return err
 }

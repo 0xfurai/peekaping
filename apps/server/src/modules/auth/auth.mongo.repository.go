@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"peekaping/src/config"
-	"peekaping/src/utils"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -22,6 +21,17 @@ type mongoModel struct {
 	TwoFALastToken string             `bson:"twofa_last_token"`
 	CreatedAt      time.Time          `bson:"createdAt"`
 	UpdatedAt      time.Time          `bson:"updatedAt"`
+}
+
+type mongoUpdateModel struct {
+	Email          *string    `bson:"email,omitempty"`
+	Password       *string    `bson:"password,omitempty"`
+	Active         *bool      `bson:"active,omitempty"`
+	TwoFASecret    *string    `bson:"twofa_secret,omitempty"`
+	TwoFAStatus    *bool      `bson:"twofa_status,omitempty"`
+	TwoFALastToken *string    `bson:"twofa_last_token,omitempty"`
+	CreatedAt      *time.Time `bson:"createdAt,omitempty"`
+	UpdatedAt      *time.Time `bson:"updatedAt,omitempty"`
 }
 
 func toDomainModel(mm *mongoModel) *Model {
@@ -44,7 +54,7 @@ type RepositoryImpl struct {
 	collection *mongo.Collection
 }
 
-func NewRepository(client *mongo.Client, cfg *config.Config) Repository {
+func NewMongoRepository(client *mongo.Client, cfg *config.Config) Repository {
 	db := client.Database(cfg.DBName)
 	collection := db.Collection("users")
 	return &RepositoryImpl{client, db, collection}
@@ -108,30 +118,62 @@ func (r *RepositoryImpl) Update(ctx context.Context, id string, entity *UpdateMo
 		return err
 	}
 
-	set, err := utils.ToBsonSet(entity)
-	if err != nil {
-		return err
+	mu := &mongoUpdateModel{
+		Email:          entity.Email,
+		Password:       entity.Password,
+		Active:         entity.Active,
+		TwoFASecret:    entity.TwoFASecret,
+		TwoFAStatus:    entity.TwoFAStatus,
+		TwoFALastToken: entity.TwoFALastToken,
 	}
+
+	set := buildSetMapFromUpdateModel(mu)
+
+	// Always set updatedAt to current time
+	set["updatedAt"] = time.Now()
 
 	if len(set) == 0 {
 		return errors.New("nothing to update")
 	}
 
-	// Always set updatedAt to current time
-	set["updatedAt"] = time.Now()
-
 	filter := bson.M{"_id": objectID}
 	update := bson.M{"$set": set}
 
 	_, err = r.collection.UpdateOne(ctx, filter, update)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func (r *RepositoryImpl) FindAllCount(ctx context.Context) (int64, error) {
 	count, err := r.collection.CountDocuments(ctx, bson.M{})
 	return count, err
+}
+
+// buildSetMapFromUpdateModel converts mongoUpdateModel to bson.M for MongoDB updates
+func buildSetMapFromUpdateModel(mu *mongoUpdateModel) bson.M {
+	set := bson.M{}
+	if mu.Email != nil {
+		set["email"] = *mu.Email
+	}
+	if mu.Password != nil {
+		set["password"] = *mu.Password
+	}
+	if mu.Active != nil {
+		set["active"] = *mu.Active
+	}
+	if mu.TwoFASecret != nil {
+		set["twofa_secret"] = *mu.TwoFASecret
+	}
+	if mu.TwoFAStatus != nil {
+		set["twofa_status"] = *mu.TwoFAStatus
+	}
+	if mu.TwoFALastToken != nil {
+		set["twofa_last_token"] = *mu.TwoFALastToken
+	}
+	if mu.CreatedAt != nil {
+		set["createdAt"] = *mu.CreatedAt
+	}
+	if mu.UpdatedAt != nil {
+		set["updatedAt"] = *mu.UpdatedAt
+	}
+	return set
 }

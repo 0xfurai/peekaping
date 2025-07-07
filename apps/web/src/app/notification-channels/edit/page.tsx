@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { BackButton } from "@/components/back-button";
 import {
   getNotificationChannelsByIdOptions,
   getNotificationChannelsByIdQueryKey,
@@ -65,7 +66,8 @@ const EditNotificationChannel = () => {
   };
 
   return (
-    <Layout pageName={`Edit Notifier: ${notifier.name}`}>
+    <Layout pageName={`Edit Notification Channel: ${notifier.name}`}>
+      <BackButton to="/notification-channels" />
       <CreateEditNotificationChannel
         initialValues={initialValues}
         onSubmit={handleSubmit}

@@ -1,8 +1,13 @@
 package monitor_notification
 
-import "go.uber.org/dig"
+import (
+	"peekaping/src/config"
+	"peekaping/src/utils"
 
-func RegisterDependencies(container *dig.Container) {
-	container.Provide(NewRepository)
+	"go.uber.org/dig"
+)
+
+func RegisterDependencies(container *dig.Container, cfg *config.Config) {
+	utils.RegisterRepositoryByDBType(container, cfg, NewSQLRepository, NewMongoRepository)
 	container.Provide(NewService)
 }

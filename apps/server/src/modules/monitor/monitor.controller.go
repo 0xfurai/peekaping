@@ -428,28 +428,6 @@ func (ic *MonitorController) FindByMonitorIDPaginated(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", results))
 }
 
-// @Router	/monitors/{id}/stats/uptime-slow [get]
-// @Summary	Get monitor uptime stats (24h, 7d, 30d, 365d)
-// @Tags		Monitors
-// @Produce	json
-// @Security BearerAuth
-// @Param	id	path	string	true	"Monitor ID"
-// @Success	200	{object}	utils.ApiResponse[UptimeStatsDto]
-// @Failure	400	{object}	utils.APIError[any]
-// @Failure	404	{object}	utils.APIError[any]
-// @Failure	500	{object}	utils.APIError[any]
-func (ic *MonitorController) GetUptimeStatsSlow(ctx *gin.Context) {
-	id := ctx.Param("id")
-
-	stats, err := ic.monitorService.GetUptimeStats(ctx, id)
-	if err != nil {
-		ic.logger.Errorw("Failed to get uptime stats", "error", err)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
-	}
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", stats))
-}
-
 // @Router /monitors/{id}/stats/points [get]
 // @Summary Get monitor stat points (ping/up/down) from stats tables
 // @Tags Monitors
@@ -583,4 +561,31 @@ func (ic *MonitorController) FindByIDs(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", monitors))
+}
+
+// @Router /monitors/{id}/reset [post]
+// @Summary Reset monitor data (heartbeats and stats)
+// @Tags Monitors
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Monitor ID"
+// @Success 200 {object} utils.ApiResponse[any]
+// @Failure 400 {object} utils.APIError[any]
+// @Failure 404 {object} utils.APIError[any]
+// @Failure 500 {object} utils.APIError[any]
+func (ic *MonitorController) ResetMonitorData(ctx *gin.Context) {
+	id := ctx.Param("id")
+
+	err := ic.monitorService.ResetMonitorData(ctx, id)
+	if err != nil {
+		if err.Error() == "monitor not found" {
+			ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Monitor not found"))
+			return
+		}
+		ic.logger.Errorw("Failed to reset monitor data", "monitorID", id, "error", err)
+		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.NewSuccessResponse[any]("Monitor data reset successfully", nil))
 }

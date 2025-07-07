@@ -131,10 +131,10 @@ export default function App() {
                     element={<EditNotificationChannel />}
                   />
 
-                  <Route path="/maintenance" element={<MaintenancePage />} />
-                  <Route path="/maintenance/new" element={<NewMaintenance />} />
+                  <Route path="/maintenances" element={<MaintenancePage />} />
+                  <Route path="/maintenances/new" element={<NewMaintenance />} />
                   <Route
-                    path="/maintenance/:id/edit"
+                    path="/maintenances/:id/edit"
                     element={<EditMaintenance />}
                   />
 

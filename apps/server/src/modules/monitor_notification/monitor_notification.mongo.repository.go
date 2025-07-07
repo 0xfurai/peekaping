@@ -4,18 +4,20 @@ import (
 	"context"
 	"errors"
 	"peekaping/src/config"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.uber.org/zap"
 )
 
 type mongoModel struct {
 	ID             primitive.ObjectID `bson:"_id"`
 	MonitorID      primitive.ObjectID `bson:"monitor_id"`
 	NotificationID primitive.ObjectID `bson:"notification_id"`
+	CreatedAt      time.Time          `bson:"created_at"`
+	UpdatedAt      time.Time          `bson:"updated_at"`
 }
 
 func toDomainModel(mm *mongoModel) *Model {
@@ -23,6 +25,8 @@ func toDomainModel(mm *mongoModel) *Model {
 		ID:             mm.ID.Hex(),
 		MonitorID:      mm.MonitorID.Hex(),
 		NotificationID: mm.NotificationID.Hex(),
+		CreatedAt:      mm.CreatedAt,
+		UpdatedAt:      mm.UpdatedAt,
 	}
 }
 
@@ -30,10 +34,9 @@ type RepositoryImpl struct {
 	client     *mongo.Client
 	db         *mongo.Database
 	collection *mongo.Collection
-	logger     *zap.SugaredLogger
 }
 
-func NewRepository(client *mongo.Client, cfg *config.Config, logger *zap.SugaredLogger) Repository {
+func NewMongoRepository(client *mongo.Client, cfg *config.Config) Repository {
 	db := client.Database(cfg.DBName)
 	collection := db.Collection("monitor_notification")
 
@@ -50,7 +53,7 @@ func NewRepository(client *mongo.Client, cfg *config.Config, logger *zap.Sugared
 		panic("Failed to create index for monitor_notification: " + err.Error())
 	}
 
-	return &RepositoryImpl{client, db, collection, logger}
+	return &RepositoryImpl{client, db, collection}
 }
 
 func (r *RepositoryImpl) Create(ctx context.Context, model *Model) (*Model, error) {
@@ -63,12 +66,13 @@ func (r *RepositoryImpl) Create(ctx context.Context, model *Model) (*Model, erro
 	if err != nil {
 		return nil, err
 	}
-	r.logger.Debugf("Creating monitor_notification record for monitor: %s and notification: %s", model.MonitorID, model.NotificationID)
 
 	mm := &mongoModel{
 		ID:             primitive.NewObjectID(),
 		MonitorID:      monitorObjectID,
 		NotificationID: notificationObjectID,
+		CreatedAt:      time.Now().UTC(),
+		UpdatedAt:      time.Now().UTC(),
 	}
 
 	_, err = r.collection.InsertOne(ctx, mm)
@@ -81,8 +85,13 @@ func (r *RepositoryImpl) Create(ctx context.Context, model *Model) (*Model, erro
 
 func (r *RepositoryImpl) FindByID(ctx context.Context, id string) (*Model, error) {
 	var entity mongoModel
-	filter := bson.M{"_id": id}
-	err := r.collection.FindOne(ctx, filter).Decode(&entity)
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+
+	filter := bson.M{"_id": objectID}
+	err = r.collection.FindOne(ctx, filter).Decode(&entity)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil

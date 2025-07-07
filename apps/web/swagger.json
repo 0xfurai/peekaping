@@ -1264,6 +1264,57 @@
                 }
             }
         },
+        "/monitors/{id}/reset": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Monitors"
+                ],
+                "summary": "Reset monitor data (heartbeats and stats)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Monitor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ApiResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    }
+                }
+            }
+        },
         "/monitors/{id}/stats/points": {
             "get": {
                 "security": [
@@ -1362,57 +1413,6 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/utils.ApiResponse-monitor_CustomUptimeStatsDto"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/utils.APIError"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/utils.APIError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/utils.APIError"
-                        }
-                    }
-                }
-            }
-        },
-        "/monitors/{id}/stats/uptime-slow": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Monitors"
-                ],
-                "summary": "Get monitor uptime stats (24h, 7d, 30d, 365d)",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Monitor ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/utils.ApiResponse-monitor_UptimeStatsDto"
                         }
                     },
                     "400": {
@@ -2659,6 +2659,10 @@
     "definitions": {
         "auth.LoginDto": {
             "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
             "properties": {
                 "email": {
                     "type": "string"
@@ -2700,12 +2704,6 @@
                 "id": {
                     "type": "string"
                 },
-                "twofa_last_token": {
-                    "type": "string"
-                },
-                "twofa_secret": {
-                    "type": "string"
-                },
                 "twofa_status": {
                     "type": "boolean"
                 },
@@ -2716,6 +2714,9 @@
         },
         "auth.RefreshTokenDto": {
             "type": "object",
+            "required": [
+                "refreshToken"
+            ],
             "properties": {
                 "refreshToken": {
                     "type": "string"
@@ -2724,6 +2725,10 @@
         },
         "auth.RegisterDto": {
             "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
             "properties": {
                 "email": {
                     "type": "string"
@@ -2736,6 +2741,10 @@
         "auth.TwoFADisableRequestDto": {
             "description": "TwoFADisableRequestDto is used to request 2FA disable",
             "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
             "properties": {
                 "email": {
                     "type": "string"
@@ -2748,6 +2757,10 @@
         "auth.TwoFASetupRequestDto": {
             "description": "TwoFASetupRequestDto is used to request 2FA setup",
             "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
             "properties": {
                 "email": {
                     "type": "string"
@@ -2772,6 +2785,10 @@
         "auth.TwoFAVerifyRequestDto": {
             "description": "TwoFAVerifyRequestDto is used to verify a TOTP code",
             "type": "object",
+            "required": [
+                "code",
+                "email"
+            ],
             "properties": {
                 "code": {
                     "type": "string"
@@ -2795,6 +2812,10 @@
         "auth.UpdatePasswordDto": {
             "description": "UpdatePasswordDto is used for updating user password",
             "type": "object",
+            "required": [
+                "currentPassword",
+                "newPassword"
+            ],
             "properties": {
                 "currentPassword": {
                     "type": "string"
@@ -2916,9 +2937,6 @@
                 "title": {
                     "type": "string"
                 },
-                "user_id": {
-                    "type": "string"
-                },
                 "weekdays": {
                     "type": "array",
                     "items": {
@@ -2987,9 +3005,6 @@
                 "updated_at": {
                     "type": "string"
                 },
-                "user_id": {
-                    "type": "string"
-                },
                 "weekdays": {
                     "type": "array",
                     "items": {
@@ -3052,9 +3067,6 @@
                 "updated_at": {
                     "type": "string"
                 },
-                "user_id": {
-                    "type": "string"
-                },
                 "weekdays": {
                     "type": "array",
                     "items": {
@@ -3113,9 +3125,6 @@
                     "type": "string"
                 },
                 "title": {
-                    "type": "string"
-                },
-                "user_id": {
                     "type": "string"
                 },
                 "weekdays": {
@@ -3467,23 +3476,6 @@
                 }
             }
         },
-        "monitor.UptimeStatsDto": {
-            "type": "object",
-            "properties": {
-                "24h": {
-                    "type": "number"
-                },
-                "30d": {
-                    "type": "number"
-                },
-                "365d": {
-                    "type": "number"
-                },
-                "7d": {
-                    "type": "number"
-                }
-            }
-        },
         "notification_channel.CreateUpdateDto": {
             "type": "object",
             "properties": {
@@ -3513,6 +3505,9 @@
                 "config": {
                     "type": "string"
                 },
+                "created_at": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -3523,6 +3518,9 @@
                     "type": "string"
                 },
                 "type": {
+                    "type": "string"
+                },
+                "updated_at": {
                     "type": "string"
                 }
             }
@@ -4261,21 +4259,6 @@
             "properties": {
                 "data": {
                     "$ref": "#/definitions/monitor.StatPointsSummaryDto"
-                },
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "utils.ApiResponse-monitor_UptimeStatsDto": {
-            "type": "object",
-            "required": [
-                "data",
-                "message"
-            ],
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/monitor.UptimeStatsDto"
                 },
                 "message": {
                     "type": "string"

@@ -51,7 +51,7 @@ func toDomainModel(mm *mongoModel) *Model {
 	}
 }
 
-func NewRepository(client *mongo.Client, cfg *config.Config) Repository {
+func NewMongoRepository(client *mongo.Client, cfg *config.Config) Repository {
 	db := client.Database(cfg.DBName)
 	collection := db.Collection("heartbeat")
 
@@ -149,8 +149,13 @@ func (r *RepositoryImpl) FindAll(ctx context.Context, page int, limit int) ([]*M
 }
 
 func (r *RepositoryImpl) Delete(ctx context.Context, id string) error {
-	filter := bson.M{"_id": id}
-	_, err := r.collection.DeleteOne(ctx, filter)
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	filter := bson.M{"_id": objectID}
+	_, err = r.collection.DeleteOne(ctx, filter)
 	return err
 }
 
@@ -179,182 +184,6 @@ func (r *RepositoryImpl) FindActive(ctx context.Context) ([]*Model, error) {
 		return nil, err
 	}
 	return entities, nil
-}
-
-// FindByMonitorIDAndTimeRange fetches heartbeat data and aggregates it into one-minute intervals
-func (r *RepositoryImpl) FindByMonitorIDAndTimeRange(
-	ctx context.Context,
-	monitorID string,
-	startTime,
-	endTime time.Time,
-) ([]*ChartPoint, error) {
-	objectID, err := primitive.ObjectIDFromHex(monitorID)
-	if err != nil {
-		return nil, err
-	}
-
-	// Round startTime down and endTime up to minute boundaries
-	startTime = startTime.Truncate(time.Minute)
-	endTime = endTime.Truncate(time.Minute).Add(time.Minute)
-
-	// MongoDB aggregation pipeline
-	pipeline := bson.A{
-		// Match documents for the monitor and time range
-		bson.M{
-			"$match": bson.M{
-				"monitor_id": objectID,
-				"time": bson.M{
-					"$gte": startTime,
-					"$lte": endTime,
-				},
-			},
-		},
-		// Group by minute
-		bson.M{
-			"$group": bson.M{
-				"_id": bson.M{
-					// Truncate time to minute
-					"$dateTrunc": bson.M{
-						"date": "$time",
-						"unit": "minute",
-					},
-				},
-				"up": bson.M{
-					"$sum": bson.M{
-						"$cond": bson.M{
-							"if":   bson.M{"$eq": []interface{}{"$status", 1}},
-							"then": 1,
-							"else": 0,
-						},
-					},
-				},
-				"down": bson.M{
-					"$sum": bson.M{
-						"$cond": bson.M{
-							"if":   bson.M{"$eq": []interface{}{"$status", 0}},
-							"then": 1,
-							"else": 0,
-						},
-					},
-				},
-				"avgPing": bson.M{
-					"$avg": "$ping",
-				},
-				"minPing": bson.M{
-					"$min": "$ping",
-				},
-				"maxPing": bson.M{
-					"$max": "$ping",
-				},
-			},
-		},
-		// Sort by timestamp
-		bson.M{
-			"$sort": bson.M{
-				"_id": 1,
-			},
-		},
-	}
-
-	// Execute aggregation
-	cursor, err := r.collection.Aggregate(ctx, pipeline)
-	if err != nil {
-		return nil, err
-	}
-	defer cursor.Close(ctx)
-
-	// Temporary struct to decode aggregation results
-	type aggResult struct {
-		ID      time.Time `bson:"_id"`
-		Up      int       `bson:"up"`
-		Down    int       `bson:"down"`
-		AvgPing float64   `bson:"avgPing"`
-		MinPing int       `bson:"minPing"`
-		MaxPing int       `bson:"maxPing"`
-	}
-
-	var results []aggResult
-	if err := cursor.All(ctx, &results); err != nil {
-		return nil, err
-	}
-
-	// Create a map of timestamps to ChartPoints for quick lookup
-	chartMap := make(map[int64]*ChartPoint)
-	for _, res := range results {
-		timestamp := res.ID.Unix() * 1000 // Convert to epoch milliseconds
-		chartMap[timestamp] = &ChartPoint{
-			Up:        res.Up,
-			Down:      res.Down,
-			AvgPing:   res.AvgPing,
-			MinPing:   res.MinPing,
-			MaxPing:   res.MaxPing,
-			Timestamp: timestamp,
-		}
-	}
-
-	// Generate ChartPoints for every minute in the range
-	var chartPoints []*ChartPoint
-	currentTime := startTime
-	for currentTime.Before(endTime) {
-		timestamp := currentTime.Unix() * 1000
-		if point, exists := chartMap[timestamp]; exists {
-			chartPoints = append(chartPoints, point)
-		} else {
-			// No data for this minute, append empty ChartPoint
-			chartPoints = append(chartPoints, &ChartPoint{
-				Up:        0,
-				Down:      0,
-				AvgPing:   0,
-				MinPing:   0,
-				MaxPing:   0,
-				Timestamp: timestamp,
-			})
-		}
-		currentTime = currentTime.Add(time.Minute)
-	}
-
-	return chartPoints, nil
-}
-
-func (r *RepositoryImpl) FindLastNByMonitorID(ctx context.Context, monitorID string, n int) ([]*Model, error) {
-	objectID, err := primitive.ObjectIDFromHex(monitorID)
-	if err != nil {
-		return nil, err
-	}
-
-	filter := bson.M{"monitor_id": objectID}
-	options := &options.FindOptions{
-		Sort:  bson.M{"time": -1},
-		Limit: int64Ptr(int64(n)),
-	}
-	cursor, err := r.collection.Find(ctx, filter, options)
-	if err != nil {
-		return nil, err
-	}
-	defer cursor.Close(ctx)
-
-	var results []*Model
-	for cursor.Next(ctx) {
-		var hb Model
-		if err := cursor.Decode(&hb); err != nil {
-			return nil, err
-		}
-		results = append(results, &hb)
-	}
-	if err := cursor.Err(); err != nil {
-		return nil, err
-	}
-
-	// Reverse the results before returning
-	for i, j := 0, len(results)-1; i < j; i, j = i+1, j-1 {
-		results[i], results[j] = results[j], results[i]
-	}
-
-	return results, nil
-}
-
-func int64Ptr(i int64) *int64 {
-	return &i
 }
 
 func (r *RepositoryImpl) FindUptimeStatsByMonitorID(ctx context.Context, monitorID string, periods map[string]time.Duration, now time.Time) (map[string]float64, error) {
@@ -425,7 +254,14 @@ func (r *RepositoryImpl) DeleteOlderThan(ctx context.Context, cutoff time.Time) 
 	return result.DeletedCount, nil
 }
 
-func (r *RepositoryImpl) FindByMonitorIDPaginated(ctx context.Context, monitorID string, limit, page int, important *bool, reverse bool) ([]*Model, error) {
+func (r *RepositoryImpl) FindByMonitorIDPaginated(
+	ctx context.Context,
+	monitorID string,
+	limit,
+	page int,
+	important *bool,
+	reverse bool,
+) ([]*Model, error) {
 	objectID, err := primitive.ObjectIDFromHex(monitorID)
 	if err != nil {
 		return nil, err
@@ -473,4 +309,15 @@ func (r *RepositoryImpl) FindByMonitorIDPaginated(ctx context.Context, monitorID
 	}
 
 	return models, nil
+}
+
+func (r *RepositoryImpl) DeleteByMonitorID(ctx context.Context, monitorID string) error {
+	objectID, err := primitive.ObjectIDFromHex(monitorID)
+	if err != nil {
+		return err
+	}
+
+	filter := bson.M{"monitor_id": objectID}
+	_, err = r.collection.DeleteMany(ctx, filter)
+	return err
 }

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"peekaping/src/config"
 	"peekaping/src/utils"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -19,6 +20,8 @@ type mongoModel struct {
 	Active    bool               `bson:"active"`
 	IsDefault bool               `bson:"is_default"`
 	Config    *string            `bson:"config,omitempty"`
+	CreatedAt time.Time          `bson:"created_at"`
+	UpdatedAt time.Time          `bson:"updated_at"`
 }
 
 func toDomainModel(mm *mongoModel) *Model {
@@ -29,6 +32,8 @@ func toDomainModel(mm *mongoModel) *Model {
 		Active:    mm.Active,
 		IsDefault: mm.IsDefault,
 		Config:    mm.Config,
+		CreatedAt: mm.CreatedAt,
+		UpdatedAt: mm.UpdatedAt,
 	}
 }
 
@@ -37,12 +42,13 @@ type RepositoryImpl struct {
 	collection *mongo.Collection
 }
 
-func NewRepository(db *mongo.Client, cfg *config.Config) Repository {
+func NewMongoRepository(db *mongo.Client, cfg *config.Config) Repository {
 	collection := db.Database(cfg.DBName).Collection("notification_channel")
 	return &RepositoryImpl{db, collection}
 }
 
 func (r *RepositoryImpl) Create(ctx context.Context, entity *Model) (*Model, error) {
+	now := time.Now()
 	mm := &mongoModel{
 		ID:        primitive.NewObjectID(),
 		Name:      entity.Name,
@@ -50,6 +56,8 @@ func (r *RepositoryImpl) Create(ctx context.Context, entity *Model) (*Model, err
 		Active:    entity.Active,
 		IsDefault: entity.IsDefault,
 		Config:    entity.Config,
+		CreatedAt: now,
+		UpdatedAt: now,
 	}
 
 	_, err := r.collection.InsertOne(ctx, mm)
@@ -134,6 +142,9 @@ func (r *RepositoryImpl) UpdateFull(ctx context.Context, id string, entity *Mode
 		return err // Return an error if the conversion fails
 	}
 
+	// Set UpdatedAt to current time
+	entity.UpdatedAt = time.Now()
+
 	filter := bson.M{"_id": objectID}
 	update := bson.M{"$set": entity}
 	_, err = r.collection.UpdateOne(ctx, filter, update)
@@ -154,6 +165,9 @@ func (r *RepositoryImpl) UpdatePartial(ctx context.Context, id string, entity *U
 	if len(set) == 0 {
 		return errors.New("Nothing to update")
 	}
+
+	// Always set UpdatedAt to current time
+	set["updated_at"] = time.Now()
 
 	filter := bson.M{"_id": objectID}
 	update := bson.M{"$set": set}

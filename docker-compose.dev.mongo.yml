@@ -1,0 +1,51 @@
+networks:
+  appnet:
+
+services:
+  mongodb:
+    image: mongo:7
+    restart: always
+    ports:
+      - "${DB_PORT}:27017"
+    env_file:
+      - .env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASS}
+      MONGO_INITDB_DATABASE: ${DB_NAME}
+    volumes:
+      - ./.data/mongodb:/data/db
+    networks:
+      - appnet
+
+  server:
+    build:
+      context: ./apps/server
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8034:8034"
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=mongodb
+      - DB_PORT=27017
+      - DB_TYPE=mongo
+    depends_on:
+      - mongodb
+    networks:
+      - appnet
+
+  web:
+    build:
+      context: .
+      dockerfile: ./apps/web/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8383:80"
+    depends_on:
+      - server
+    environment:
+      - API_URL=http://localhost:8034
+    networks:
+      - appnet

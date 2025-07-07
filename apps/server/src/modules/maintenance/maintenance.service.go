@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 
 	"peekaping/src/modules/maintenance/utils"
+	"peekaping/src/modules/monitor_maintenance"
 )
 
 type Service interface {
@@ -24,28 +25,34 @@ type Service interface {
 
 	// Get maintenances by monitor ID
 	GetMaintenancesByMonitorID(ctx context.Context, monitorID string) ([]*Model, error)
+
+	// Get monitors for a maintenance
+	GetMonitors(ctx context.Context, id string) ([]string, error)
 }
 
 type ServiceImpl struct {
-	repository        Repository
-	logger            *zap.SugaredLogger
-	cronGenerator     *utils.CronGenerator
-	timeWindowChecker *utils.TimeWindowChecker
-	timeUtils         *utils.TimeUtils
-	validator         *utils.Validator
+	repository                Repository
+	monitorMaintenanceService monitor_maintenance.Service
+	logger                    *zap.SugaredLogger
+	cronGenerator             *utils.CronGenerator
+	timeWindowChecker         *utils.TimeWindowChecker
+	timeUtils                 *utils.TimeUtils
+	validator                 *utils.Validator
 }
 
 func NewService(
 	repository Repository,
+	monitorMaintenanceService monitor_maintenance.Service,
 	logger *zap.SugaredLogger,
 ) Service {
 	return &ServiceImpl{
-		repository:        repository,
-		logger:            logger.Named("[maintenance-service]"),
-		cronGenerator:     utils.NewCronGenerator(),
-		timeWindowChecker: utils.NewTimeWindowChecker(logger),
-		timeUtils:         utils.NewTimeUtils(),
-		validator:         utils.NewValidator(),
+		repository:                repository,
+		monitorMaintenanceService: monitorMaintenanceService,
+		logger:                    logger.Named("[maintenance-service]"),
+		cronGenerator:             utils.NewCronGenerator(),
+		timeWindowChecker:         utils.NewTimeWindowChecker(logger),
+		timeUtils:                 utils.NewTimeUtils(),
+		validator:                 utils.NewValidator(),
 	}
 }
 
@@ -89,8 +96,8 @@ func (mr *ServiceImpl) Create(ctx context.Context, entity *CreateUpdateDto) (*Mo
 	}
 
 	// Handle monitor IDs if provided
-	if len(entity.MonitorIds) > 0 {
-		err = mr.repository.(*MongoRepositoryImpl).SetMonitors(ctx, created.ID, entity.MonitorIds)
+	if entity.MonitorIds != nil {
+		err = mr.monitorMaintenanceService.SetMonitors(ctx, created.ID, entity.MonitorIds)
 		if err != nil {
 			return nil, err
 		}
@@ -157,8 +164,8 @@ func (mr *ServiceImpl) UpdateFull(ctx context.Context, id string, entity *Create
 	}
 
 	// Handle monitor IDs if provided
-	if len(entity.MonitorIds) > 0 {
-		err = mr.repository.(*MongoRepositoryImpl).SetMonitors(ctx, id, entity.MonitorIds)
+	if entity.MonitorIds != nil {
+		err = mr.monitorMaintenanceService.SetMonitors(ctx, id, entity.MonitorIds)
 		if err != nil {
 			return nil, err
 		}
@@ -260,8 +267,8 @@ func (mr *ServiceImpl) UpdatePartial(ctx context.Context, id string, entity *Par
 	}
 
 	// Handle monitor IDs if provided
-	if len(entity.MonitorIds) > 0 {
-		err = mr.repository.(*MongoRepositoryImpl).SetMonitors(ctx, id, entity.MonitorIds)
+	if entity.MonitorIds != nil {
+		err = mr.monitorMaintenanceService.SetMonitors(ctx, id, entity.MonitorIds)
 		if err != nil {
 			return nil, err
 		}
@@ -377,10 +384,15 @@ func (mr *ServiceImpl) generateCronExpression(dto *CreateUpdateDto) (*string, er
 
 // GetMaintenancesByMonitorID returns all active maintenances for a given monitor_id
 func (mr *ServiceImpl) GetMaintenancesByMonitorID(ctx context.Context, monitorID string) ([]*Model, error) {
-	models, err := mr.repository.(*MongoRepositoryImpl).GetMaintenancesByMonitorID(ctx, monitorID)
+	models, err := mr.repository.GetMaintenancesByMonitorID(ctx, monitorID)
 	if err != nil {
 		return nil, err
 	}
 
 	return models, nil
+}
+
+// GetMonitors returns the list of monitor IDs for a given maintenance
+func (mr *ServiceImpl) GetMonitors(ctx context.Context, id string) ([]string, error) {
+	return mr.monitorMaintenanceService.GetMonitors(ctx, id)
 }

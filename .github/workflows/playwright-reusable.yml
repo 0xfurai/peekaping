@@ -1,0 +1,103 @@
+name: Reusable Playwright Tests
+
+on:
+  workflow_call:
+    inputs:
+      timeout-minutes:
+        description: 'Timeout in minutes for the test job'
+        required: false
+        type: number
+        default: 300
+      container-tag:
+        description: 'Container tag to test (e.g., latest, 1.2.3-rc.1)'
+        required: false
+        type: string
+        default: 'latest'
+
+jobs:
+  playwright-tests:
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        database: [postgres, mongo, sqlite]
+    steps:
+    # prepare environment and dependencies
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: lts/*
+    - name: Install dependencies
+      run: npm install -g pnpm && pnpm install
+    - name: Install Playwright Browsers
+      run: pnpm exec playwright install --with-deps
+
+    # prepare services
+    - name: Create .env file
+      run: cp .env.prod.example .env
+
+    - name: Update docker-compose file with container tag
+      run: |
+        # Create a temporary docker-compose file with the specified container tag
+        cp docker-compose.prod.${{ matrix.database }}.yml docker-compose.test.${{ matrix.database }}.yml
+
+        # Replace container tags with the specified version
+        sed -i 's|0xfurai/peekaping-server:latest|0xfurai/peekaping-server:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
+        sed -i 's|0xfurai/peekaping-web:latest|0xfurai/peekaping-web:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
+        sed -i 's|0xfurai/peekaping-migrate:latest|0xfurai/peekaping-migrate:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
+
+        echo "=== Modified docker-compose file ==="
+        cat docker-compose.test.${{ matrix.database }}.yml
+
+    - name: Start services
+      run: docker compose -f docker-compose.test.${{ matrix.database }}.yml up -d
+
+    - name: Show container logs
+      run: |
+        echo "=== Container Status ==="
+        docker compose -f docker-compose.test.${{ matrix.database }}.yml ps
+        echo "=== Container Logs ==="
+        docker compose -f docker-compose.test.${{ matrix.database }}.yml logs
+
+    - name: Wait for services to be ready
+      run: |
+        echo "Waiting for services to be healthy..."
+        timeout 60 bash -c '
+          attempt=1
+          until curl -f http://localhost:8383/api/v1/health; do
+            echo "Attempt $attempt: Health check failed, retrying in 1 second..."
+            response=$(curl -s http://localhost:8383/api/v1/health || echo "connection failed")
+            status_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8383/api/v1/health || echo "000")
+            echo "  Status Code: $status_code"
+            echo "  Response Body: $response"
+            attempt=$((attempt + 1))
+            sleep 5
+            echo "=== Container Status ==="
+            docker compose -f docker-compose.test.${{ matrix.database }}.yml ps
+            echo "=== Server Logs ==="
+            docker compose -f docker-compose.test.${{ matrix.database }}.yml logs server
+            echo "=== Gateway Logs ==="
+            docker compose -f docker-compose.test.${{ matrix.database }}.yml logs gateway
+
+          done
+        ' || echo "Health check timed out after 60 seconds"
+        echo "Health check succeeded! Waiting additional 5 seconds for stability..."
+        sleep 5
+
+    - name: Run Playwright tests
+      run: pnpm exec playwright test
+
+    - name: Stop services
+      if: always()
+      run: docker compose -f docker-compose.test.${{ matrix.database }}.yml down
+
+    - name: Cleanup temporary docker-compose file
+      if: always()
+      run: rm -f docker-compose.test.${{ matrix.database }}.yml
+
+    - uses: actions/upload-artifact@v4
+      if: ${{ !cancelled() }}
+      with:
+        name: playwright-report-${{ matrix.database }}-${{ inputs.container-tag }}
+        path: playwright-report/
+        retention-days: 30

@@ -20,7 +20,7 @@ import { useMonitorFormContext } from "../../context/monitor-form-context";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import type { HttpExecutorConfig, HttpForm } from "./schema";
-import type { MonitorCreateUpdateDto } from "@/api/types.gen";
+import { serialize } from "./schema";
 import type { HttpOptionsForm } from "./options";
 import type { AuthenticationForm } from "./authentication";
 import { useEffect } from "react";
@@ -39,52 +39,7 @@ const Http = () => {
   } = useMonitorFormContext();
 
   const onSubmit = (data: HttpForm) => {
-    const config: HttpExecutorConfig = {
-      url: data.url,
-      accepted_statuscodes: data.accepted_statuscodes.map(
-        (code) => code as "2XX" | "3XX" | "4XX" | "5XX"
-      ),
-      method: data.httpOptions.method,
-      headers: data.httpOptions.headers,
-      encoding: data.httpOptions.encoding,
-      body: data.httpOptions.body,
-      authMethod: data.authentication.authMethod,
-      ...(data.authentication.authMethod === "basic" && {
-        basic_auth_user: data.authentication.basic_auth_user,
-        basic_auth_pass: data.authentication.basic_auth_pass,
-      }),
-      ...(data.authentication.authMethod === "ntlm" && {
-        basic_auth_user: data.authentication.basic_auth_user,
-        basic_auth_pass: data.authentication.basic_auth_pass,
-        authDomain: data.authentication.authDomain,
-        authWorkstation: data.authentication.authWorkstation,
-      }),
-      ...(data.authentication.authMethod === "oauth2-cc" && {
-        oauth_auth_method: data.authentication.oauth_auth_method,
-        oauth_token_url: data.authentication.oauth_token_url,
-        oauth_client_id: data.authentication.oauth_client_id,
-        oauth_client_secret: data.authentication.oauth_client_secret,
-        oauth_scopes: data.authentication.oauth_scopes,
-      }),
-      ...(data.authentication.authMethod === "mtls" && {
-        tlsCert: data.authentication.tlsCert,
-        tlsKey: data.authentication.tlsKey,
-        tlsCa: data.authentication.tlsCa,
-      }),
-    };
-
-    const payload: MonitorCreateUpdateDto = {
-      type: "http",
-      name: data.name,
-      interval: data.interval,
-      max_retries: data.max_retries,
-      retry_interval: data.retry_interval,
-      notification_ids: data.notification_ids,
-      proxy_id: data.proxy_id,
-      resend_interval: data.resend_interval,
-      timeout: data.timeout,
-      config: JSON.stringify(config),
-    };
+    const payload = serialize(data);
 
     if (mode === "create") {
       createMonitorMutation.mutate({
@@ -176,6 +131,8 @@ const Http = () => {
         notification_ids: monitor.data.notification_ids,
         proxy_id: monitor.data.proxy_id,
         accepted_statuscodes: parsedConfig.accepted_statuscodes,
+        max_redirects: parsedConfig.max_redirects,
+        ignore_tls_errors: parsedConfig.ignore_tls_errors || false,
         httpOptions,
         authentication,
       });

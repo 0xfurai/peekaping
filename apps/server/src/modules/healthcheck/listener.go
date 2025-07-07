@@ -39,7 +39,7 @@ func (l *EventListener) handleMonitorCreated(event events.Event) {
 
 	if monitor.Active {
 		ctx := context.Background()
-		if err := l.supervisor.StartMonitor(ctx, monitor); err != nil {
+		if err := l.supervisor.StartMonitor(ctx, monitor, false); err != nil {
 			fmt.Printf("Failed to start health check for monitor %s: %v\n", monitor.ID, err)
 		}
 	}
@@ -55,7 +55,7 @@ func (l *EventListener) handleMonitorUpdated(event events.Event) {
 
 	if monitor.Active {
 		ctx := context.Background()
-		if err := l.supervisor.StartMonitor(ctx, monitor); err != nil {
+		if err := l.supervisor.StartMonitor(ctx, monitor, false); err != nil {
 			fmt.Printf("Failed to start health check for monitor %s: %v\n", monitor.ID, err)
 		}
 	} else {
@@ -87,7 +87,7 @@ func (l *EventListener) handleProxyUpdated(event events.Event) {
 		return
 	}
 	for _, m := range monitors {
-		if err := l.supervisor.StartMonitor(ctx, m); err != nil {
+		if err := l.supervisor.StartMonitor(ctx, m, false); err != nil {
 			l.supervisor.logger.Errorf("Failed to restart monitor %s for proxy update: %v", m.ID, err)
 		}
 	}
@@ -106,7 +106,7 @@ func (l *EventListener) handleProxyDeleted(event events.Event) {
 		return
 	}
 	for _, m := range monitors {
-		if err := l.supervisor.StartMonitor(ctx, m); err != nil {
+		if err := l.supervisor.StartMonitor(ctx, m, false); err != nil {
 			l.supervisor.logger.Errorf("Failed to restart monitor %s for proxy delete: %v", m.ID, err)
 		}
 	}

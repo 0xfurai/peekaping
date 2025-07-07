@@ -26,7 +26,7 @@ import Proxies, {
 import { useMonitorFormContext } from "../../context/monitor-form-context";
 import { Form } from "@/components/ui/form";
 import { Loader2 } from "lucide-react";
-import type { MonitorCreateUpdateDto } from "@/api";
+import type { MonitorCreateUpdateDto, MonitorMonitorResponseDto } from "@/api";
 
 export const pushSchema = z
   .object({
@@ -51,6 +51,49 @@ export const pushDefaultValues: PushForm = {
 export interface PushConfig {
   pushToken: string;
 }
+
+export const deserialize = (data: MonitorMonitorResponseDto): PushForm => {
+  let config: Partial<PushConfig> = {};
+  try {
+    config = data.config ? JSON.parse(data.config) : {};
+  } catch (error) {
+    console.error("Failed to parse push monitor config:", error);
+    config = {};
+  }
+
+  return {
+    type: "push",
+    name: data.name || "My Monitor",
+    interval: data.interval || 60,
+    timeout: data.timeout || 16,
+    max_retries: data.max_retries ?? 3,
+    retry_interval: data.retry_interval || 60,
+    resend_interval: data.resend_interval ?? 10,
+    notification_ids: data.notification_ids || [],
+    proxy_id: data.proxy_id || "",
+    pushToken: data.push_token || config.pushToken || "", // Get from API or config
+  };
+};
+
+export const serialize = (formData: PushForm): MonitorCreateUpdateDto => {
+  const config: PushConfig = {
+    pushToken: formData.pushToken,
+  };
+
+  return {
+    type: "push",
+    name: formData.name,
+    interval: formData.interval,
+    max_retries: formData.max_retries,
+    retry_interval: formData.retry_interval,
+    notification_ids: formData.notification_ids,
+    proxy_id: formData.proxy_id,
+    resend_interval: formData.resend_interval,
+    timeout: formData.timeout,
+    config: JSON.stringify(config),
+    push_token: formData.pushToken,
+  };
+};
 
 // Generate a random 24-character alphanumeric token
 const generateToken = () =>
@@ -84,33 +127,6 @@ const PushForm = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Reset form with monitor data in edit mode (like HTTP)
-  useEffect(() => {
-    if (
-      mode === "edit" &&
-      monitorId &&
-      form &&
-      typeof form.reset === "function"
-    ) {
-      if (monitor?.data && monitor.data.type === "push") {
-        const { config, push_token } = monitor.data;
-        const parsedConfig: PushConfig = config ? JSON.parse(config) : {};
-
-        form.reset({
-          type: "push",
-          name: monitor.data.name,
-          interval: monitor.data.interval,
-          max_retries: monitor.data.max_retries,
-          retry_interval: monitor.data.retry_interval,
-          timeout: monitor.data.timeout,
-          resend_interval: monitor.data.resend_interval,
-          notification_ids: monitor.data.notification_ids || [],
-          proxy_id: monitor.data.proxy_id,
-          pushToken: push_token || parsedConfig.pushToken || "",
-        });
-      }
-    }
-  }, [mode, monitorId, form, monitor]);
 
   const [copied, setCopied] = useState(false);
   const pushUrl = `${baseUrl}/api/v1/push/${pushToken}?status=up&msg=OK&ping=`;
@@ -128,23 +144,7 @@ const PushForm = ({
   };
 
   const onSubmit = (data: PushForm) => {
-    const config: PushConfig = {
-      pushToken: data.pushToken,
-    };
-
-    const payload: MonitorCreateUpdateDto = {
-      type: "push",
-      name: data.name,
-      interval: data.interval,
-      max_retries: data.max_retries,
-      retry_interval: data.retry_interval,
-      notification_ids: data.notification_ids,
-      proxy_id: data.proxy_id,
-      resend_interval: data.resend_interval,
-      timeout: data.timeout,
-      config: JSON.stringify(config),
-      push_token: data.pushToken,
-    };
+    const payload = serialize(data);
 
     if (mode === "create") {
       createMonitorMutation.mutate({

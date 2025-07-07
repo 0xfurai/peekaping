@@ -1273,6 +1273,57 @@ const docTemplate = `{
                 }
             }
         },
+        "/monitors/{id}/reset": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Monitors"
+                ],
+                "summary": "Reset monitor data (heartbeats and stats)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Monitor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ApiResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    }
+                }
+            }
+        },
         "/monitors/{id}/stats/points": {
             "get": {
                 "security": [
@@ -1371,57 +1422,6 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/utils.ApiResponse-monitor_CustomUptimeStatsDto"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/utils.APIError"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/utils.APIError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/utils.APIError"
-                        }
-                    }
-                }
-            }
-        },
-        "/monitors/{id}/stats/uptime-slow": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Monitors"
-                ],
-                "summary": "Get monitor uptime stats (24h, 7d, 30d, 365d)",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Monitor ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/utils.ApiResponse-monitor_UptimeStatsDto"
                         }
                     },
                     "400": {
@@ -2946,9 +2946,6 @@ const docTemplate = `{
                 "title": {
                     "type": "string"
                 },
-                "user_id": {
-                    "type": "string"
-                },
                 "weekdays": {
                     "type": "array",
                     "items": {
@@ -3017,9 +3014,6 @@ const docTemplate = `{
                 "updated_at": {
                     "type": "string"
                 },
-                "user_id": {
-                    "type": "string"
-                },
                 "weekdays": {
                     "type": "array",
                     "items": {
@@ -3082,9 +3076,6 @@ const docTemplate = `{
                 "updated_at": {
                     "type": "string"
                 },
-                "user_id": {
-                    "type": "string"
-                },
                 "weekdays": {
                     "type": "array",
                     "items": {
@@ -3143,9 +3134,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "title": {
-                    "type": "string"
-                },
-                "user_id": {
                     "type": "string"
                 },
                 "weekdays": {
@@ -3298,11 +3286,8 @@ const docTemplate = `{
                     "example": 16
                 },
                 "type": {
-                    "description": "connection type: http, etc",
+                    "description": "connection type: http, tcp, ping, etc",
                     "type": "string",
-                    "enum": [
-                        "http"
-                    ],
                     "example": "http"
                 },
                 "updated_at": {
@@ -3497,23 +3482,6 @@ const docTemplate = `{
                 }
             }
         },
-        "monitor.UptimeStatsDto": {
-            "type": "object",
-            "properties": {
-                "24h": {
-                    "type": "number"
-                },
-                "30d": {
-                    "type": "number"
-                },
-                "365d": {
-                    "type": "number"
-                },
-                "7d": {
-                    "type": "number"
-                }
-            }
-        },
         "notification_channel.CreateUpdateDto": {
             "type": "object",
             "properties": {
@@ -3543,6 +3511,9 @@ const docTemplate = `{
                 "config": {
                     "type": "string"
                 },
+                "created_at": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -3553,6 +3524,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "type": {
+                    "type": "string"
+                },
+                "updated_at": {
                     "type": "string"
                 }
             }
@@ -3847,73 +3821,45 @@ const docTemplate = `{
                 "active": {
                     "type": "boolean"
                 },
-                "config": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
                 "heartbeats": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/heartbeat.Model"
+                        "$ref": "#/definitions/status_page.PublicHeartbeatDTO"
                     }
                 },
                 "id": {
                     "type": "string"
                 },
-                "interval": {
-                    "description": "monitor interval in seconds to do request to url",
-                    "type": "integer",
-                    "example": 60
-                },
-                "max_retries": {
-                    "description": "Maximum retries before the service is marked as down and a notification is sent",
-                    "type": "integer",
-                    "example": 3
-                },
                 "name": {
-                    "description": "monitor name",
                     "type": "string",
                     "example": "Monitor"
                 },
-                "proxy_id": {
+                "type": {
+                    "type": "string",
+                    "example": "http"
+                },
+                "uptime_24h": {
+                    "type": "number"
+                }
+            }
+        },
+        "status_page.PublicHeartbeatDTO": {
+            "type": "object",
+            "properties": {
+                "end_time": {
                     "type": "string"
                 },
-                "push_token": {
+                "id": {
                     "type": "string"
                 },
-                "resend_interval": {
-                    "description": "Resend Notification if Down X times consecutively",
-                    "type": "integer",
-                    "example": 10
-                },
-                "retry_interval": {
-                    "description": "Retry interval in seconds to do request to url",
-                    "type": "integer",
-                    "example": 60
+                "ping": {
+                    "type": "integer"
                 },
                 "status": {
                     "$ref": "#/definitions/shared.MonitorStatus"
                 },
-                "timeout": {
-                    "description": "monitor timeout in seconds to do request otherwise stop request",
-                    "type": "integer",
-                    "example": 16
-                },
-                "type": {
-                    "description": "connection type: http, etc",
-                    "type": "string",
-                    "enum": [
-                        "http"
-                    ],
-                    "example": "http"
-                },
-                "updated_at": {
+                "time": {
                     "type": "string"
-                },
-                "uptime_24h": {
-                    "type": "number"
                 }
             }
         },
@@ -4291,21 +4237,6 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/monitor.StatPointsSummaryDto"
-                },
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "utils.ApiResponse-monitor_UptimeStatsDto": {
-            "type": "object",
-            "required": [
-                "data",
-                "message"
-            ],
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/monitor.UptimeStatsDto"
                 },
                 "message": {
                     "type": "string"

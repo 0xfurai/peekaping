@@ -15,10 +15,10 @@ type Service interface {
 	FindAll(ctx context.Context, page int, limit int) ([]*Model, error)
 	Delete(ctx context.Context, id string) error
 
-	FindByMonitorIDAndTimeRange(ctx context.Context, monitorID string, startTime, endTime time.Time) ([]*ChartPoint, error)
 	FindUptimeStatsByMonitorID(ctx context.Context, monitorID string, periods map[string]time.Duration, now time.Time) (map[string]float64, error)
 	DeleteOlderThan(ctx context.Context, cutoff time.Time) (int64, error)
 	FindByMonitorIDPaginated(ctx context.Context, monitorID string, limit, page int, important *bool, reverse bool) ([]*Model, error)
+	DeleteByMonitorID(ctx context.Context, monitorID string) error
 }
 
 type ServiceImpl struct {
@@ -91,10 +91,6 @@ func (mr *ServiceImpl) Delete(ctx context.Context, id string) error {
 	return mr.repository.Delete(ctx, id)
 }
 
-func (mr *ServiceImpl) FindByMonitorIDAndTimeRange(ctx context.Context, monitorID string, startTime, endTime time.Time) ([]*ChartPoint, error) {
-	return mr.repository.FindByMonitorIDAndTimeRange(ctx, monitorID, startTime, endTime)
-}
-
 func (mr *ServiceImpl) FindUptimeStatsByMonitorID(ctx context.Context, monitorID string, periods map[string]time.Duration, now time.Time) (map[string]float64, error) {
 	return mr.repository.FindUptimeStatsByMonitorID(ctx, monitorID, periods, now)
 }
@@ -105,4 +101,8 @@ func (mr *ServiceImpl) DeleteOlderThan(ctx context.Context, cutoff time.Time) (i
 
 func (mr *ServiceImpl) FindByMonitorIDPaginated(ctx context.Context, monitorID string, limit, page int, important *bool, reverse bool) ([]*Model, error) {
 	return mr.repository.FindByMonitorIDPaginated(ctx, monitorID, limit, page, important, reverse)
+}
+
+func (mr *ServiceImpl) DeleteByMonitorID(ctx context.Context, monitorID string) error {
+	return mr.repository.DeleteByMonitorID(ctx, monitorID)
 }

@@ -11,8 +11,11 @@ type Service interface {
 	FindByID(ctx context.Context, id string) (*Model, error)
 	Delete(ctx context.Context, id string) error
 	FindByMonitorID(ctx context.Context, monitorID string) ([]*Model, error)
+	FindByMaintenanceID(ctx context.Context, maintenanceID string) ([]*Model, error)
 	DeleteByMonitorID(ctx context.Context, monitorID string) error
 	DeleteByMaintenanceID(ctx context.Context, maintenanceID string) error
+	SetMonitors(ctx context.Context, maintenanceID string, monitorIDs []string) error
+	GetMonitors(ctx context.Context, maintenanceID string) ([]string, error)
 }
 
 type ServiceImpl struct {
@@ -51,10 +54,46 @@ func (mr *ServiceImpl) FindByMonitorID(ctx context.Context, monitorID string) ([
 	return mr.repository.FindByMonitorID(ctx, monitorID)
 }
 
+func (mr *ServiceImpl) FindByMaintenanceID(ctx context.Context, maintenanceID string) ([]*Model, error) {
+	return mr.repository.FindByMaintenanceID(ctx, maintenanceID)
+}
+
 func (mr *ServiceImpl) DeleteByMonitorID(ctx context.Context, monitorID string) error {
 	return mr.repository.DeleteByMonitorID(ctx, monitorID)
 }
 
 func (mr *ServiceImpl) DeleteByMaintenanceID(ctx context.Context, maintenanceID string) error {
 	return mr.repository.DeleteByMaintenanceID(ctx, maintenanceID)
+}
+
+func (mr *ServiceImpl) SetMonitors(ctx context.Context, maintenanceID string, monitorIDs []string) error {
+	// First delete all existing relationships for this maintenance
+	err := mr.DeleteByMaintenanceID(ctx, maintenanceID)
+	if err != nil {
+		return err
+	}
+
+	// Create new relationships for each monitor
+	for _, monitorID := range monitorIDs {
+		_, err := mr.Create(ctx, monitorID, maintenanceID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (mr *ServiceImpl) GetMonitors(ctx context.Context, maintenanceID string) ([]string, error) {
+	relationships, err := mr.FindByMaintenanceID(ctx, maintenanceID)
+	if err != nil {
+		return nil, err
+	}
+
+	monitorIDs := make([]string, len(relationships))
+	for i, relationship := range relationships {
+		monitorIDs[i] = relationship.MonitorID
+	}
+
+	return monitorIDs, nil
 }

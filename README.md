@@ -5,11 +5,28 @@
 ![React](https://img.shields.io/badge/react-%2320232a.svg?style=flat&logo=react&logoColor=%2361dafb)
 ![TypeScript](https://img.shields.io/badge/typescript-%23007acc.svg?style=flat&logo=typescript&logoColor=white)
 ![MongoDB](https://img.shields.io/badge/mongodb-4ea94b.svg?style=flat&logo=mongodb&logoColor=white)
-![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=flat&logo=docker&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/postgresql-%23336791.svg?style=flat&logo=postgresql&logoColor=white)
+![SQLite](https://img.shields.io/badge/sqlite-%2307405e.svg?style=flat&logo=sqlite&logoColor=white)
+![Docker Pulls](https://img.shields.io/docker/pulls/0xfurai/peekaping-web)
+
 
 **A modern, self-hosted uptime monitoring solution**
 
 Peekaping is a powerful, feature-rich uptime monitoring system similar to Uptime Kuma, built with Go and React. Monitor your websites, APIs, and services with real-time notifications, beautiful status pages, and comprehensive analytics.
+
+##  Live Demo
+
+Want to see Peekaping in action? Try our live demo:
+
+🔗 **[https://demo.peekaping.com](https://demo.peekaping.com)**
+
+The demo allows you to explore all features instantly in your browser without any setup. Perfect for evaluating Peekaping before deploying your own instance!
+
+## 📚 Documentation
+
+For detailed setup instructions, configuration options, and guides:
+
+🔗 **[Docs](https://docs.peekaping.com)**
 
 ## ⚠️ Beta Status
 
@@ -40,8 +57,12 @@ If you enjoy this project, come say hi &amp; follow along!
 ## ✨ Features
 
 ### 🔍 **Monitoring Types**
-- **HTTP/HTTPS Monitoring** - Monitor websites, APIs, and web services
-- **Push Monitoring** - Monitor services that push heartbeats to Peekaping
+- **HTTP/HTTPS Monitoring** - Monitor websites, APIs, and web services with comprehensive options
+- **TCP Port Monitoring** - Monitor TCP port connectivity and availability
+- **Ping Monitoring (ICMP)** - Traditional ping monitoring using ICMP packets
+- **DNS Monitoring** - Monitor DNS query responses and resolution times
+- **Push Monitoring** - Monitor services that push heartbeats to a generated URL endpoint
+- **Docker Container Monitoring** - Monitor Docker container status and health
 
 ### 📊 **Real-time Dashboard**
 - Live status updates with WebSocket connections
@@ -62,8 +83,7 @@ If you enjoy this project, come say hi &amp; follow along!
 ### 🛠 **Advanced Features**
 - **Maintenance Windows** - Schedule maintenance to prevent false alerts
 - **Proxy Support** - Route monitoring through HTTP proxies
-- **Multi-user Authentication** - Secure login with 2FA support
-- **Real-time Collaboration** - Multiple users can monitor simultaneously
+- **2FA User Authentication** - Secure login with 2FA support
 - **Data Retention** - Automatic cleanup of old heartbeat data
 
 ### 🏗 **Technical Highlights**
@@ -77,14 +97,15 @@ If you enjoy this project, come say hi &amp; follow along!
 
 ### Prerequisites
 - Docker and Docker Compose
-- Node.js 18+ and pnpm (for development)
-- Go 1.24+ (for development)
+<!-- - Node.js 18+ and pnpm (for development)
+- Go 1.24+ (for development) -->
 
+#### Mongodb
 ```bash
 # 1. Grab defaults
-curl -L https://raw.githubusercontent.com/0xfurai/peekaping/main/.env.example         -o .env
-curl -L https://raw.githubusercontent.com/0xfurai/peekaping/main/docker-compose.prod.yml -o docker-compose.yml
-curl -L https://raw.githubusercontent.com/0xfurai/peekaping/main/nginx.conf           -o nginx.conf
+curl -L https://raw.githubusercontent.com/0xfurai/peekaping/main/.env.prod.example -o .env
+curl -L https://raw.githubusercontent.com/0xfurai/peekaping/main/nginx.conf -o nginx.conf
+curl -L https://raw.githubusercontent.com/0xfurai/peekaping/main/docker-compose.prod.mongo.yml -o docker-compose.yml
 
 # 2. Fire it up
 docker compose up -d
@@ -93,23 +114,51 @@ docker compose up -d
 open http://localhost:8383
 ```
 
+#### Postgres
+```bash
+# 1. Grab defaults
+curl -L https://raw.githubusercontent.com/0xfurai/peekaping/main/.env.prod.example -o .env
+curl -L https://raw.githubusercontent.com/0xfurai/peekaping/main/nginx.conf -o nginx.conf
+curl -L https://raw.githubusercontent.com/0xfurai/peekaping/main/docker-compose.prod.postgres.yml -o docker-compose.yml
+
+# 2. Fire it up
+docker compose up -d
+
+# 3. Visit the UI
+open http://localhost:8383
+```
+
+#### SQLite
+```bash
+# 1. Grab defaults
+curl -L https://raw.githubusercontent.com/0xfurai/peekaping/main/.env.prod.example -o .env
+curl -L https://raw.githubusercontent.com/0xfurai/peekaping/main/nginx.conf -o nginx.conf
+curl -L https://raw.githubusercontent.com/0xfurai/peekaping/main/docker-compose.prod.sqlite.yml -o docker-compose.yml
+
+# 2. Fire it up
+docker compose up -d
+
+# 3. Visit the UI
+open http://localhost:8383
+```
 
 ## 🐳 Docker
 
 ### Official Images
 - **Server**: [`0xfurai/peekaping-server`](https://hub.docker.com/r/0xfurai/peekaping-server) - Go backend API
 - **Web**: [`0xfurai/peekaping-web`](https://hub.docker.com/r/0xfurai/peekaping-web) - React frontend
+- **Migrator** [`0xfurai/peekaping-migration`](https://hub.docker.com/r/0xfurai/peekaping-migration) - SQL db schema migration
 
-### Quick Start with Docker
-**Create environment file in root:**
-```bash
-cp .env.example .env
-# Edit .env with your configuration
+# Docker Compose Files
 
-# Run docker compose
-docker-compose -f docker-compose.prod.yml up -d
-```
-open http://localhost:8383
+### docker-compose.dev.{db}.yml
+These files are for local testing and build the entire stack locally from Dockerfiles
+
+### docker-compose.prod.{db}.yml
+These files are production-ready configurations that pull pre-built containers from Docker Hub
+
+### docker-compose.{db}.yml
+These files run standalone databases for local development, designed to work with `turbo run dev`
 
 ## 🛠 Development Setup
 
@@ -134,9 +183,10 @@ turbo run dev docs:watch
 ```env
 DB_USER=root
 DB_PASSWORD=your-secure-password
-DB_NAME=peekaping
+DB_NAME=peekaping # file path for sqlite like /app/data/peekaping.db)
 DB_HOST=localhost
 DB_PORT=6001
+DB_TYPE=mongo # postges | mysql |sqlite
 
 PORT=8034
 CLIENT_URL="http://localhost:5173"
@@ -157,11 +207,9 @@ TZ="America/New_York"
 
 ### Best Practices
 - Use strong passwords and JWT secrets
-- Enable 2FA for all users
 - Regular security updates
-- Secure your MongoDB instance
+- Secure your db instance
 - Use HTTPS in production
-
 
 ### Reverse Proxy Setup
 

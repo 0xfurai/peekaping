@@ -11,7 +11,10 @@ import { Input } from "@/components/ui/input";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { postAuth2FaSetupMutation, postAuth2FaVerifyMutation } from "@/api/@tanstack/react-query.gen";
+import {
+  postAuth2FaSetupMutation,
+  postAuth2FaVerifyMutation,
+} from "@/api/@tanstack/react-query.gen";
 import { toast } from "sonner";
 import { useMutation } from "@tanstack/react-query";
 import { TypographyH4, TypographyH5 } from "@/components/ui/typography";
@@ -53,14 +56,22 @@ const Enable2FA = () => {
   const setup2FAMutation = useMutation({
     ...postAuth2FaSetupMutation(),
     onSuccess: (data) => {
-      if (typeof data === 'object' && data !== null) {
-        const d = data as { secret?: string; twofa_secret?: string; provisioningUri?: string; qr?: string; qr_code?: string };
+      if (typeof data === "object" && data !== null) {
+        const d = data as {
+          secret?: string;
+          twofa_secret?: string;
+          provisioningUri?: string;
+          qr?: string;
+          qr_code?: string;
+        };
         setSecret(d.secret || d.twofa_secret || null);
         setQr(d.provisioningUri || d.qr || d.qr_code || null);
         setStep("setup");
       }
     },
-    onError: commonMutationErrorHandler("Failed to verify password or start 2FA setup"),
+    onError: commonMutationErrorHandler(
+      "Failed to verify password or start 2FA setup"
+    ),
   });
 
   const verify2FAMutation = useMutation({
@@ -137,16 +148,22 @@ const Enable2FA = () => {
         <div className="flex flex-col gap-4">
           {qr && (
             <div>
-              <TypographyH5>Scan this QR code with your authenticator app</TypographyH5>
-              <div className="my-4 w-40 h-40 bg-white p-2 rounded">
+              <TypographyH5 className="mb-1">
+                Scan this QR code with your authenticator app
+              </TypographyH5>
+              <div className="mb-2 bg-white p-2 rounded inline-block">
                 <QRCode value={qr} size={160} />
               </div>
             </div>
           )}
           {secret && (
             <div>
-              <TypographyH5>Or enter this secret manually</TypographyH5>
-              <div className="bg-muted p-2 rounded font-mono select-all inline-block">{secret}</div>
+              <TypographyH5 className="mb-1">
+                Or enter this secret manually
+              </TypographyH5>
+              <div className="bg-muted p-2 rounded font-mono select-all inline-block">
+                {secret}
+              </div>
             </div>
           )}
           <Form {...setupForm}>

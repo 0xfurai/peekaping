@@ -24,8 +24,8 @@ WORKDIR /app
 # Copy the pre-built binary file from the previous stage
 COPY --from=builder /app/main .
 
-# Expose port 8080 to the outside world (change if your app uses a different port)
-EXPOSE 8033
+# Expose port 8034 to the outside world
+EXPOSE 8034
 
 # Command to run the executable
 CMD ["./main"]

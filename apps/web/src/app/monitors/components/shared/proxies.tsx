@@ -86,8 +86,11 @@ const Proxies = ({ onNewProxy }: { onNewProxy: () => void }) => {
                   <Select
                     value={field.value || "none"}
                     onValueChange={(val) => {
-                      if (!val || val === "none") return;
-                      field.onChange(val, { shouldDirty: true });
+                      if (val === "none") {
+                        field.onChange("", { shouldDirty: true });
+                      } else if (val) {
+                        field.onChange(val, { shouldDirty: true });
+                      }
                     }}
                   >
                     <SelectTrigger className="w-full">
@@ -95,10 +98,8 @@ const Proxies = ({ onNewProxy }: { onNewProxy: () => void }) => {
                     </SelectTrigger>
 
                     <SelectContent>
-                      <SelectItem value="none" disabled>
-                        {(proxies?.data?.length || 0) > 0
-                          ? "Select Proxy"
-                          : "No proxies found, create one first"}
+                      <SelectItem value="none">
+                        {proxy_id ? "Remove Proxy" : "No Proxy"}
                       </SelectItem>
                       {availableProxies.map((p) => (
                         <SelectItem key={p.id} value={p.id || "none"}>

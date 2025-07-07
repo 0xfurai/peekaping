@@ -35,10 +35,8 @@ func (uc *MonitorRoute) ConnectRoute(
 	router.PUT(":id", uc.monitorController.UpdateFull)
 	router.PATCH(":id", uc.monitorController.UpdatePartial)
 	router.DELETE(":id", uc.monitorController.Delete)
+	router.POST(":id/reset", uc.monitorController.ResetMonitorData)
 	router.GET(":id/heartbeats", uc.monitorController.FindByMonitorIDPaginated)
 	router.GET(":id/stats/uptime", uc.monitorController.GetUptimeStats)
 	router.GET(":id/stats/points", uc.monitorController.GetStatPoints)
-
-	// @deprecated
-	router.GET(":id/stats/uptime-slow", uc.monitorController.GetUptimeStatsSlow)
 }

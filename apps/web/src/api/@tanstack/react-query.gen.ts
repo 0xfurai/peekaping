@@ -26,9 +26,9 @@ import {
   patchMonitorsById,
   putMonitorsById,
   getMonitorsByIdHeartbeats,
+  postMonitorsByIdReset,
   getMonitorsByIdStatsPoints,
   getMonitorsByIdStatsUptime,
-  getMonitorsByIdStatsUptimeSlow,
   getNotificationChannels,
   postNotificationChannels,
   postNotificationChannelsTest,
@@ -125,9 +125,11 @@ import type {
   GetMonitorsByIdHeartbeatsData,
   GetMonitorsByIdHeartbeatsError,
   GetMonitorsByIdHeartbeatsResponse,
+  PostMonitorsByIdResetData,
+  PostMonitorsByIdResetError,
+  PostMonitorsByIdResetResponse,
   GetMonitorsByIdStatsPointsData,
   GetMonitorsByIdStatsUptimeData,
-  GetMonitorsByIdStatsUptimeSlowData,
   GetNotificationChannelsData,
   GetNotificationChannelsError,
   GetNotificationChannelsResponse,
@@ -1221,6 +1223,57 @@ export const getMonitorsByIdHeartbeatsInfiniteOptions = (
   );
 };
 
+export const postMonitorsByIdResetQueryKey = (
+  options: Options<PostMonitorsByIdResetData>,
+) => createQueryKey("postMonitorsByIdReset", options);
+
+/**
+ * Reset monitor data (heartbeats and stats)
+ */
+export const postMonitorsByIdResetOptions = (
+  options: Options<PostMonitorsByIdResetData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postMonitorsByIdReset({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postMonitorsByIdResetQueryKey(options),
+  });
+};
+
+/**
+ * Reset monitor data (heartbeats and stats)
+ */
+export const postMonitorsByIdResetMutation = (
+  options?: Partial<Options<PostMonitorsByIdResetData>>,
+): UseMutationOptions<
+  PostMonitorsByIdResetResponse,
+  AxiosError<PostMonitorsByIdResetError>,
+  Options<PostMonitorsByIdResetData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostMonitorsByIdResetResponse,
+    AxiosError<PostMonitorsByIdResetError>,
+    Options<PostMonitorsByIdResetData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postMonitorsByIdReset({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
 export const getMonitorsByIdStatsPointsQueryKey = (
   options: Options<GetMonitorsByIdStatsPointsData>,
 ) => createQueryKey("getMonitorsByIdStatsPoints", options);
@@ -1266,30 +1319,6 @@ export const getMonitorsByIdStatsUptimeOptions = (
       return data;
     },
     queryKey: getMonitorsByIdStatsUptimeQueryKey(options),
-  });
-};
-
-export const getMonitorsByIdStatsUptimeSlowQueryKey = (
-  options: Options<GetMonitorsByIdStatsUptimeSlowData>,
-) => createQueryKey("getMonitorsByIdStatsUptimeSlow", options);
-
-/**
- * Get monitor uptime stats (24h, 7d, 30d, 365d)
- */
-export const getMonitorsByIdStatsUptimeSlowOptions = (
-  options: Options<GetMonitorsByIdStatsUptimeSlowData>,
-) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getMonitorsByIdStatsUptimeSlow({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: getMonitorsByIdStatsUptimeSlowQueryKey(options),
   });
 };
 

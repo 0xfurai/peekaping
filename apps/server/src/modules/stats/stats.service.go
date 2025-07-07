@@ -2,12 +2,10 @@ package stats
 
 import (
 	"context"
-	"fmt"
 	"peekaping/src/modules/events"
 	"peekaping/src/modules/shared"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.uber.org/zap"
 )
 
@@ -23,6 +21,7 @@ type Service interface {
 	RegisterEventHandlers(eventBus *events.EventBus)
 	FindStatsByMonitorIDAndTimeRange(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod) ([]*Stat, error)
 	StatPointsSummary(statsList []*Stat) *Stats
+	DeleteByMonitorID(ctx context.Context, monitorID string) error
 }
 
 type ServiceImpl struct {
@@ -58,12 +57,7 @@ func (s *ServiceImpl) AggregateHeartbeat(ctx context.Context, hb *HeartbeatPaylo
 	for _, p := range periods {
 		bucketTime := time.Unix(hb.Time, 0).Truncate(p.Bucket)
 
-		monitorObjectID, err := primitive.ObjectIDFromHex(hb.MonitorID)
-		if err != nil {
-			return fmt.Errorf("invalid monitorID: %w", err)
-		}
-
-		stat, err := s.repo.GetOrCreateStat(ctx, monitorObjectID, bucketTime, p.Period)
+		stat, err := s.repo.GetOrCreateStat(ctx, hb.MonitorID, bucketTime, p.Period)
 		if err != nil {
 			return err
 		}
@@ -132,11 +126,7 @@ func (s *ServiceImpl) RegisterEventHandlers(eventBus *events.EventBus) {
 }
 
 func (s *ServiceImpl) FindStatsByMonitorIDAndTimeRange(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod) ([]*Stat, error) {
-	objectID, err := primitive.ObjectIDFromHex(monitorID)
-	if err != nil {
-		return nil, fmt.Errorf("invalid monitorID: %w", err)
-	}
-	stats, err := s.repo.FindStatsByMonitorIDAndTimeRange(ctx, objectID, since, until, period)
+	stats, err := s.repo.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, since, until, period)
 	if err != nil {
 		return nil, err
 	}
@@ -169,8 +159,8 @@ func (s *ServiceImpl) FindStatsByMonitorIDAndTimeRange(ctx context.Context, moni
 			result = append(result, stat)
 		} else {
 			result = append(result, &Stat{
-				ID:          primitive.NilObjectID,
-				MonitorID:   objectID,
+				ID:          "", // TODO: check if this brake ui (react key)
+				MonitorID:   monitorID,
 				Timestamp:   t,
 				Ping:        0,
 				PingMin:     0,
@@ -244,4 +234,8 @@ func (s *ServiceImpl) StatPointsSummary(statsList []*Stat) *Stats {
 		Uptime:      uptime,
 		Maintenance: maintenance,
 	}
+}
+
+func (s *ServiceImpl) DeleteByMonitorID(ctx context.Context, monitorID string) error {
+	return s.repo.DeleteByMonitorID(ctx, monitorID)
 }

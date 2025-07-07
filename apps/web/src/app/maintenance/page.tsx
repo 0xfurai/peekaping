@@ -82,7 +82,6 @@ export default function MaintenancePage() {
       .findAll({ queryKey: getMaintenancesQueryKey() });
 
     allQueries.forEach(({ queryKey }) => {
-      console.log(queryKey);
       queryClient.setQueryData(
         queryKey,
         (
@@ -107,14 +106,15 @@ export default function MaintenancePage() {
     ...patchMaintenancesByIdPauseMutation(),
     onSuccess: () => {
       toast.success("Maintenance paused successfully");
-      if (pendingMaintenanceId) {
-        updateMaintenanceState(pendingMaintenanceId, false);
-      }
       setShowConfirmDialog(false);
       setPendingAction(null);
       setPendingMaintenanceId(null);
     },
     onError: (err) => {
+      // Revert optimistic update on error
+      if (pendingMaintenanceId) {
+        updateMaintenanceState(pendingMaintenanceId, true);
+      }
       commonMutationErrorHandler("Failed to pause maintenance")(err);
       setShowConfirmDialog(false);
       setPendingAction(null);
@@ -126,14 +126,15 @@ export default function MaintenancePage() {
     ...patchMaintenancesByIdResumeMutation(),
     onSuccess: () => {
       toast.success("Maintenance resumed successfully");
-      if (pendingMaintenanceId) {
-        updateMaintenanceState(pendingMaintenanceId, true);
-      }
       setShowConfirmDialog(false);
       setPendingAction(null);
       setPendingMaintenanceId(null);
     },
     onError: (err) => {
+      // Revert optimistic update on error
+      if (pendingMaintenanceId) {
+        updateMaintenanceState(pendingMaintenanceId, false);
+      }
       commonMutationErrorHandler("Failed to resume maintenance")(err);
       setShowConfirmDialog(false);
       setPendingAction(null);
@@ -172,6 +173,10 @@ export default function MaintenancePage() {
   const handleConfirmAction = () => {
     if (!pendingMaintenanceId || !pendingAction) return;
 
+    // Optimistic update - update UI immediately
+    const newActiveState = pendingAction === "resume";
+    updateMaintenanceState(pendingMaintenanceId, newActiveState);
+
     if (pendingAction === "pause") {
       pauseMutation.mutate({
         path: { id: pendingMaintenanceId },
@@ -196,11 +201,11 @@ export default function MaintenancePage() {
   };
 
   const handleCreateClick = () => {
-    navigate("/maintenance/new");
+    navigate("/maintenances/new");
   };
 
   const handleEditClick = (id: string) => {
-    navigate(`/maintenance/${id}/edit`);
+    navigate(`/maintenances/${id}/edit`);
   };
 
   const handleObserver = useCallback(
@@ -269,13 +274,13 @@ export default function MaintenancePage() {
             title="No maintenance windows found"
             text="Get started by creating your first maintenance window to prevent scheduled downtimes."
             actionText="Create your first maintenance window"
-            onClick={() => navigate("/maintenance/new")}
+            onClick={() => navigate("/maintenances/new")}
           />
         )}
 
         {deleteId && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-            <div className="bg-background p-6 rounded-lg shadow-lg max-w-md w-full">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-background p-6 rounded-lg shadow-lg max-w-md w-full border">
               <h2 className="text-xl font-bold mb-4">Confirm Delete</h2>
               <p className="mb-6">
                 Are you sure you want to delete this maintenance window? This

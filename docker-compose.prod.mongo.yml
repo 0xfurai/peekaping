@@ -27,12 +27,12 @@ services:
     environment:
       DB_HOST: mongodb
       DB_PORT: 27017
+      DB_TYPE: mongo
     networks:
       - appnet
 
   web:
     image: 0xfurai/peekaping-web:latest
-    expose: ["80"]
     depends_on:
       - server
     networks:

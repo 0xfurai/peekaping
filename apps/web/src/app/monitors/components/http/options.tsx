@@ -89,7 +89,7 @@ export const httpOptionsDefaultValues: HttpOptionsForm = {
 
 const HttpOptions = () => {
   const form = useFormContext();
-  const watchedEncoding = form.watch("http.encoding");
+  const watchedEncoding = form.watch("httpOptions.encoding");
 
   // Dynamic placeholders based on encoding
   const getBodyPlaceholder = (encoding: string) => {
@@ -129,7 +129,7 @@ Any plain text content here...`;
       <TypographyH4>HTTP Options</TypographyH4>
       <FormField
         control={form.control}
-        name="http.method"
+        name="httpOptions.method"
         render={({ field }) => {
           return (
             <FormItem>
@@ -165,11 +165,19 @@ Any plain text content here...`;
 
       <FormField
         control={form.control}
-        name="http.encoding"
+        name="httpOptions.encoding"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Body encoding</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <Select
+              onValueChange={(val) => {
+                if (!val) {
+                  return;
+                }
+                field.onChange(val);
+              }}
+              value={field.value}
+            >
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Select body encoding" />
@@ -191,7 +199,7 @@ Any plain text content here...`;
 
       <FormField
         control={form.control}
-        name="http.body"
+        name="httpOptions.body"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Body</FormLabel>
@@ -206,7 +214,7 @@ Any plain text content here...`;
 
       <FormField
         control={form.control}
-        name="http.headers"
+        name="httpOptions.headers"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Headers</FormLabel>

@@ -11,4 +11,5 @@ type Repository interface {
 	Delete(ctx context.Context, id string) error
 
 	SetActive(ctx context.Context, id string, active bool) (*Model, error)
+	GetMaintenancesByMonitorID(ctx context.Context, monitorID string) ([]*Model, error)
 }

@@ -73,15 +73,15 @@ import type {
   GetMonitorsByIdHeartbeatsData,
   GetMonitorsByIdHeartbeatsResponses,
   GetMonitorsByIdHeartbeatsErrors,
+  PostMonitorsByIdResetData,
+  PostMonitorsByIdResetResponses,
+  PostMonitorsByIdResetErrors,
   GetMonitorsByIdStatsPointsData,
   GetMonitorsByIdStatsPointsResponses,
   GetMonitorsByIdStatsPointsErrors,
   GetMonitorsByIdStatsUptimeData,
   GetMonitorsByIdStatsUptimeResponses,
   GetMonitorsByIdStatsUptimeErrors,
-  GetMonitorsByIdStatsUptimeSlowData,
-  GetMonitorsByIdStatsUptimeSlowResponses,
-  GetMonitorsByIdStatsUptimeSlowErrors,
   GetNotificationChannelsData,
   GetNotificationChannelsResponses,
   GetNotificationChannelsErrors,
@@ -735,6 +735,29 @@ export const getMonitorsByIdHeartbeats = <ThrowOnError extends boolean = false>(
 };
 
 /**
+ * Reset monitor data (heartbeats and stats)
+ */
+export const postMonitorsByIdReset = <ThrowOnError extends boolean = false>(
+  options: Options<PostMonitorsByIdResetData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostMonitorsByIdResetResponses,
+    PostMonitorsByIdResetErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/monitors/{id}/reset",
+    ...options,
+  });
+};
+
+/**
  * Get monitor stat points (ping/up/down) from stats tables
  */
 export const getMonitorsByIdStatsPoints = <
@@ -780,31 +803,6 @@ export const getMonitorsByIdStatsUptime = <
       },
     ],
     url: "/monitors/{id}/stats/uptime",
-    ...options,
-  });
-};
-
-/**
- * Get monitor uptime stats (24h, 7d, 30d, 365d)
- */
-export const getMonitorsByIdStatsUptimeSlow = <
-  ThrowOnError extends boolean = false,
->(
-  options: Options<GetMonitorsByIdStatsUptimeSlowData, ThrowOnError>,
-) => {
-  return (options.client ?? _heyApiClient).get<
-    GetMonitorsByIdStatsUptimeSlowResponses,
-    GetMonitorsByIdStatsUptimeSlowErrors,
-    ThrowOnError
-  >({
-    responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
-    url: "/monitors/{id}/stats/uptime-slow",
     ...options,
   });
 };

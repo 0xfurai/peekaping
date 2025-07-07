@@ -107,7 +107,6 @@ export type MaintenanceCreateUpdateDto = {
   strategy: string;
   timezone?: string;
   title: string;
-  user_id?: string;
   weekdays?: Array<number>;
 };
 
@@ -129,7 +128,6 @@ export type MaintenanceMaintenanceResponseDto = {
   timezone?: string;
   title?: string;
   updated_at?: string;
-  user_id?: string;
   weekdays?: Array<number>;
 };
 
@@ -150,7 +148,6 @@ export type MaintenanceModel = {
   timezone?: string;
   title?: string;
   updated_at?: string;
-  user_id?: string;
   weekdays?: Array<number>;
 };
 
@@ -169,7 +166,6 @@ export type MaintenancePartialUpdateDto = {
   strategy?: string;
   timezone?: string;
   title?: string;
-  user_id?: string;
   weekdays?: Array<number>;
 };
 
@@ -228,9 +224,9 @@ export type MonitorModel = {
    */
   timeout?: number;
   /**
-   * connection type: http, etc
+   * connection type: http, tcp, ping, etc
    */
-  type: "http";
+  type: string;
   updated_at?: string;
 };
 
@@ -290,13 +286,6 @@ export type MonitorStatPointsSummaryDto = {
   uptime?: number;
 };
 
-export type MonitorUptimeStatsDto = {
-  "24h"?: number;
-  "30d"?: number;
-  "365d"?: number;
-  "7d"?: number;
-};
-
 export type NotificationChannelCreateUpdateDto = {
   active?: boolean;
   config?: string;
@@ -308,10 +297,12 @@ export type NotificationChannelCreateUpdateDto = {
 export type NotificationChannelModel = {
   active?: boolean;
   config?: string;
+  created_at?: string;
   id?: string;
   is_default?: boolean;
   name?: string;
   type?: string;
+  updated_at?: string;
 };
 
 export type NotificationChannelPartialUpdateDto = {
@@ -403,43 +394,19 @@ export type StatusPageModel = {
 
 export type StatusPageMonitorWithHeartbeatsAndUptimeDto = {
   active?: boolean;
-  config?: string;
-  created_at?: string;
-  heartbeats?: Array<HeartbeatModel>;
+  heartbeats?: Array<StatusPagePublicHeartbeatDto>;
   id?: string;
-  /**
-   * monitor interval in seconds to do request to url
-   */
-  interval?: number;
-  /**
-   * Maximum retries before the service is marked as down and a notification is sent
-   */
-  max_retries?: number;
-  /**
-   * monitor name
-   */
   name?: string;
-  proxy_id?: string;
-  push_token?: string;
-  /**
-   * Resend Notification if Down X times consecutively
-   */
-  resend_interval?: number;
-  /**
-   * Retry interval in seconds to do request to url
-   */
-  retry_interval?: number;
-  status?: SharedMonitorStatus;
-  /**
-   * monitor timeout in seconds to do request otherwise stop request
-   */
-  timeout?: number;
-  /**
-   * connection type: http, etc
-   */
-  type: "http";
-  updated_at?: string;
+  type: string;
   uptime_24h?: number;
+};
+
+export type StatusPagePublicHeartbeatDto = {
+  end_time?: string;
+  id?: string;
+  ping?: number;
+  status?: SharedMonitorStatus;
+  time?: string;
 };
 
 export type StatusPageStatusPageWithMonitorsResponseDto = {
@@ -560,11 +527,6 @@ export type UtilsApiResponseMonitorMonitorResponseDto = {
 
 export type UtilsApiResponseMonitorStatPointsSummaryDto = {
   data: MonitorStatPointsSummaryDto;
-  message: string;
-};
-
-export type UtilsApiResponseMonitorUptimeStatsDto = {
-  data: MonitorUptimeStatsDto;
   message: string;
 };
 
@@ -1535,6 +1497,46 @@ export type GetMonitorsByIdHeartbeatsResponses = {
 export type GetMonitorsByIdHeartbeatsResponse =
   GetMonitorsByIdHeartbeatsResponses[keyof GetMonitorsByIdHeartbeatsResponses];
 
+export type PostMonitorsByIdResetData = {
+  body?: never;
+  path: {
+    /**
+     * Monitor ID
+     */
+    id: string;
+  };
+  query?: never;
+  url: "/monitors/{id}/reset";
+};
+
+export type PostMonitorsByIdResetErrors = {
+  /**
+   * Bad Request
+   */
+  400: UtilsApiError;
+  /**
+   * Not Found
+   */
+  404: UtilsApiError;
+  /**
+   * Internal Server Error
+   */
+  500: UtilsApiError;
+};
+
+export type PostMonitorsByIdResetError =
+  PostMonitorsByIdResetErrors[keyof PostMonitorsByIdResetErrors];
+
+export type PostMonitorsByIdResetResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseAny;
+};
+
+export type PostMonitorsByIdResetResponse =
+  PostMonitorsByIdResetResponses[keyof PostMonitorsByIdResetResponses];
+
 export type GetMonitorsByIdStatsPointsData = {
   body?: never;
   path: {
@@ -1627,46 +1629,6 @@ export type GetMonitorsByIdStatsUptimeResponses = {
 
 export type GetMonitorsByIdStatsUptimeResponse =
   GetMonitorsByIdStatsUptimeResponses[keyof GetMonitorsByIdStatsUptimeResponses];
-
-export type GetMonitorsByIdStatsUptimeSlowData = {
-  body?: never;
-  path: {
-    /**
-     * Monitor ID
-     */
-    id: string;
-  };
-  query?: never;
-  url: "/monitors/{id}/stats/uptime-slow";
-};
-
-export type GetMonitorsByIdStatsUptimeSlowErrors = {
-  /**
-   * Bad Request
-   */
-  400: UtilsApiError;
-  /**
-   * Not Found
-   */
-  404: UtilsApiError;
-  /**
-   * Internal Server Error
-   */
-  500: UtilsApiError;
-};
-
-export type GetMonitorsByIdStatsUptimeSlowError =
-  GetMonitorsByIdStatsUptimeSlowErrors[keyof GetMonitorsByIdStatsUptimeSlowErrors];
-
-export type GetMonitorsByIdStatsUptimeSlowResponses = {
-  /**
-   * OK
-   */
-  200: UtilsApiResponseMonitorUptimeStatsDto;
-};
-
-export type GetMonitorsByIdStatsUptimeSlowResponse =
-  GetMonitorsByIdStatsUptimeSlowResponses[keyof GetMonitorsByIdStatsUptimeSlowResponses];
 
 export type GetNotificationChannelsData = {
   body?: never;

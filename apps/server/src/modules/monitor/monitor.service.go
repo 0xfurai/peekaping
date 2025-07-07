@@ -33,10 +33,8 @@ type Service interface {
 	GetStatPoints(ctx context.Context, id string, since, until time.Time, granularity string) (*StatPointsSummaryDto, error)
 	GetUptimeStats(ctx context.Context, id string) (*CustomUptimeStatsDto, error)
 
-	// @deprecated
-	GetUptimeStatsSlow(ctx context.Context, id string) (*UptimeStatsDto, error)
-
 	FindOneByPushToken(ctx context.Context, pushToken string) (*Model, error)
+	ResetMonitorData(ctx context.Context, id string) error
 }
 
 type StatPoint struct {
@@ -55,7 +53,6 @@ type MonitorServiceImpl struct {
 	eventBus                   *events.EventBus
 	monitorNotificationService monitor_notification.Service
 	executorRegistry           *executor.ExecutorRegistry
-	uptimeCalculator           *UptimeCalculator
 	statPointsService          stats.Service
 	logger                     *zap.SugaredLogger
 }
@@ -66,7 +63,6 @@ func NewMonitorService(
 	eventBus *events.EventBus,
 	monitorNotificationService monitor_notification.Service,
 	executorRegistry *executor.ExecutorRegistry,
-	uptimeCalculator *UptimeCalculator,
 	statPointsService stats.Service,
 	logger *zap.SugaredLogger,
 ) Service {
@@ -76,7 +72,6 @@ func NewMonitorService(
 		eventBus,
 		monitorNotificationService,
 		executorRegistry,
-		uptimeCalculator,
 		statPointsService,
 		logger.Named("[monitor-service]"),
 	}
@@ -218,31 +213,6 @@ func (mr *MonitorServiceImpl) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-// GetUptimeStats returns uptime percentages for 24h, 7d, 30d, 365d
-func (mr *MonitorServiceImpl) GetUptimeStatsSlow(ctx context.Context, id string) (*UptimeStatsDto, error) {
-	now := time.Now().UTC()
-	periods := map[string]time.Duration{
-		"24h":  24 * time.Hour,
-		"7d":   7 * 24 * time.Hour,
-		"30d":  30 * 24 * time.Hour,
-		"365d": 365 * 24 * time.Hour,
-	}
-
-	statsMap, err := mr.heartbeatService.FindUptimeStatsByMonitorID(ctx, id, periods, now)
-	if err != nil {
-		return nil, err
-	}
-
-	stats := &UptimeStatsDto{
-		Uptime24h:  statsMap["24h"],
-		Uptime7d:   statsMap["7d"],
-		Uptime30d:  statsMap["30d"],
-		Uptime365d: statsMap["365d"],
-	}
-
-	return stats, nil
-}
-
 func (mr *MonitorServiceImpl) ValidateMonitorConfig(
 	monitorType string,
 	configJSON string,
@@ -342,4 +312,55 @@ func (mr *MonitorServiceImpl) GetUptimeStats(ctx context.Context, id string) (*C
 
 func (mr *MonitorServiceImpl) FindOneByPushToken(ctx context.Context, pushToken string) (*Model, error) {
 	return mr.monitorRepository.FindOneByPushToken(ctx, pushToken)
+}
+
+func (mr *MonitorServiceImpl) ResetMonitorData(ctx context.Context, id string) error {
+	// First check if monitor exists
+	monitor, err := mr.monitorRepository.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if monitor == nil {
+		return fmt.Errorf("monitor not found")
+	}
+
+	// Delete all heartbeats for this monitor
+	err = mr.heartbeatService.DeleteByMonitorID(ctx, id)
+	if err != nil {
+		mr.logger.Errorw("Failed to delete heartbeats for monitor", "monitorID", id, "error", err)
+		return fmt.Errorf("failed to delete heartbeats: %w", err)
+	}
+
+	// Delete all stats for this monitor
+	err = mr.statPointsService.DeleteByMonitorID(ctx, id)
+	if err != nil {
+		mr.logger.Errorw("Failed to delete stats for monitor", "monitorID", id, "error", err)
+		return fmt.Errorf("failed to delete stats: %w", err)
+	}
+
+	// Reset monitor status to pending (like a fresh monitor)
+	pendingStatus := shared.MonitorStatusPending
+	err = mr.monitorRepository.UpdatePartial(ctx, id, &UpdateModel{
+		ID:     &id,
+		Status: &pendingStatus,
+	})
+	if err != nil {
+		mr.logger.Errorw("Failed to reset monitor status", "monitorID", id, "error", err)
+		return fmt.Errorf("failed to reset monitor status: %w", err)
+	}
+
+	mr.logger.Infow("Successfully reset monitor data", "monitorID", id)
+
+	// Emit monitor updated event
+	updatedMonitor, _ := mr.FindByID(ctx, id)
+	if updatedMonitor != nil {
+		mr.eventBus.Publish(events.Event{
+			Type:    events.MonitorUpdated,
+			Payload: updatedMonitor,
+		})
+	} else {
+		mr.logger.Errorw("Failed to find updated monitor", "monitorID", id)
+	}
+
+	return nil
 }

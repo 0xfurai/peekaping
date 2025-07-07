@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"peekaping/docs"
+	"peekaping/src/config"
 	"peekaping/src/modules/auth"
 	"peekaping/src/modules/cleanup"
 	"peekaping/src/modules/events"
@@ -11,6 +13,7 @@ import (
 	"peekaping/src/modules/heartbeat"
 	"peekaping/src/modules/maintenance"
 	"peekaping/src/modules/monitor"
+	"peekaping/src/modules/monitor_maintenance"
 	"peekaping/src/modules/monitor_notification"
 	"peekaping/src/modules/monitor_status_page"
 	"peekaping/src/modules/notification_channel"
@@ -35,32 +38,48 @@ func main() {
 
 	utils.RegisterCustomValidators()
 
+	cfg, err := config.LoadConfig("../..")
+
+	if err != nil {
+		panic(err)
+	}
+
 	container := dig.New()
 
 	// Provide dependencies
-	container.Provide(ProvideConfig)
+	container.Provide(func() *config.Config { return &cfg })
 	container.Provide(ProvideLogger)
 	container.Provide(ProvideServer)
-	container.Provide(ProvideMongoDB)
 	container.Provide(websocket.NewServer)
+
+	// database-specific deps
+	switch cfg.DBType {
+	case "postgres", "postgresql", "mysql", "sqlite":
+		container.Provide(ProvideSQLDB)
+	case "mongo", "mongodb":
+		container.Provide(ProvideMongoDB)
+	default:
+		panic(fmt.Errorf("unsupported DB_DRIVER %q", cfg.DBType))
+	}
 
 	// Register dependencies in the correct order to handle circular dependencies
 	events.RegisterDependencies(container)
-	heartbeat.RegisterDependencies(container)
-	monitor.RegisterDependencies(container)
+	heartbeat.RegisterDependencies(container, &cfg)
+	monitor.RegisterDependencies(container, &cfg)
 	healthcheck.RegisterDependencies(container)
-	auth.RegisterDependencies(container)
-	notification_channel.RegisterDependencies(container)
-	monitor_notification.RegisterDependencies(container)
-	proxy.RegisterDependencies(container)
-	setting.RegisterDependencies(container)
-	stats.RegisterDependencies(container)
-	maintenance.RegisterDependencies(container)
-	status_page.RegisterDependencies(container)
-	monitor_status_page.RegisterDependencies(container)
+	auth.RegisterDependencies(container, &cfg)
+	notification_channel.RegisterDependencies(container, &cfg)
+	monitor_notification.RegisterDependencies(container, &cfg)
+	proxy.RegisterDependencies(container, &cfg)
+	setting.RegisterDependencies(container, &cfg)
+	stats.RegisterDependencies(container, &cfg)
+	monitor_maintenance.RegisterDependencies(container, &cfg)
+	maintenance.RegisterDependencies(container, &cfg)
+	status_page.RegisterDependencies(container, &cfg)
+	monitor_status_page.RegisterDependencies(container, &cfg)
 
 	// Start the event healthcheck listener
-	err := container.Invoke(func(listener *healthcheck.EventListener, eventBus *events.EventBus) {
+	err = container.Invoke(func(listener *healthcheck.EventListener, eventBus *events.EventBus) {
 		listener.Start(eventBus)
 	})
 
@@ -99,7 +118,7 @@ func main() {
 
 		port := server.cfg.Port
 		if port == "" {
-			port = "8080"
+			port = "8084"
 		}
 		if port[0] != ':' {
 			port = ":" + port

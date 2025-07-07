@@ -93,7 +93,7 @@ func (s *HealthCheckSupervisor) StartAll(ctx context.Context) error {
 
 	// Start monitoring for each active monitor
 	for _, m := range monitors {
-		if err := s.StartMonitor(ctx, m); err != nil {
+		if err := s.StartMonitor(ctx, m, true); err != nil {
 			log.Printf("Failed to start monitor %s: %v", m.ID, err)
 		}
 	}
@@ -104,6 +104,7 @@ func (s *HealthCheckSupervisor) StartAll(ctx context.Context) error {
 func (s *HealthCheckSupervisor) StartMonitor(
 	ctx context.Context,
 	m *Monitor,
+	withJitter bool,
 ) error {
 	s.logger.Infof("StartMonitor health check module for monitor: %s", m.ID)
 	s.mu.Lock()
@@ -135,7 +136,7 @@ func (s *HealthCheckSupervisor) StartMonitor(
 		interval := time.Duration(m.Interval) * time.Second
 
 		// Add random jitter before starting the loop
-		if s.maxJitterSeconds > 0 {
+		if withJitter && s.maxJitterSeconds > 0 {
 			jitter := time.Duration(rand.Int63n(int64(s.maxJitterSeconds))) * time.Second
 			time.Sleep(jitter)
 		}

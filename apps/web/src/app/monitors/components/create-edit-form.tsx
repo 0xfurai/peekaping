@@ -1,19 +1,11 @@
-import HttpForm from "./http";
-import PushForm from "./push";
 import { useMonitorFormContext } from "../context/monitor-form-context";
-
-const typeSpecificComponentsRegistry = {
-  http: HttpForm,
-  push: PushForm,
-};
+import { getMonitorComponent } from "./monitor-registry";
 
 const CreateEditForm = () => {
   const { form } = useMonitorFormContext();
   const type = form.watch("type");
 
-  const TypeComponent = typeSpecificComponentsRegistry[
-    type as keyof typeof typeSpecificComponentsRegistry
-  ] as React.ComponentType<unknown>;
+  const TypeComponent = getMonitorComponent(type);
 
   if (!TypeComponent) {
     console.log("TypeComponent not found", type);

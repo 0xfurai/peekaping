@@ -1,0 +1,51 @@
+networks:
+  appnet:
+
+services:
+  migrate:
+    image: 0xfurai/peekaping-migrate:latest
+    restart: "no"
+    env_file:
+      - .env
+    environment:
+      - DB_TYPE=sqlite
+      - DB_NAME=/app/data/peekaping.db
+    volumes:
+      - ./.data/sqlite:/app/data
+
+  server:
+    image: 0xfurai/peekaping-server:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - DB_TYPE=sqlite
+      - DB_NAME=/app/data/peekaping.db
+      - MODE=prod
+    volumes:
+      - ./.data/sqlite:/app/data
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      - appnet
+
+  web:
+    image: 0xfurai/peekaping-web:latest
+    depends_on:
+      - server
+    restart: unless-stopped
+    networks:
+      - appnet
+
+  gateway:
+    image: nginx:latest
+    ports:
+      - "8383:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - server
+      - web
+    networks:
+      - appnet

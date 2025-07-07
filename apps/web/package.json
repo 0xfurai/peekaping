@@ -1,7 +1,7 @@
 {
-  "name": "web-client",
+  "name": "web",
   "private": true,
-  "version": "0.0.9",
+  "version": "0.0.23",
   "type": "module",
   "scripts": {
     "dev": "vite",

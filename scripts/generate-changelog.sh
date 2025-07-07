@@ -18,22 +18,22 @@ NC='\033[0m' # No Color
 FROM_TAG=${1:-$(git describe --tags --abbrev=0 2>/dev/null || echo "")}
 TO_REF=${2:-HEAD}
 
-echo -e "${BLUE}🎉 Peekaping Detailed Changelog Generator${NC}"
-echo "=========================================="
-echo ""
+# printf "${BLUE}🎉 Peekaping Detailed Changelog Generator${NC}\n"
+# echo "=========================================="
+# echo ""
 
 if [ -z "$FROM_TAG" ]; then
-    echo -e "${YELLOW}⚠️  No previous release tag found${NC}"
-    echo -e "${CYAN}📝 Showing recent commits instead:${NC}"
+    printf "${YELLOW}⚠️  No previous release tag found${NC}\n"
+    printf "${CYAN}📝 Showing recent commits instead:${NC}\n"
     echo ""
     git log --pretty=format:"- %s (by %an)" --no-merges -20
     echo ""
-    echo -e "${PURPLE}💡 Tip: Create your first release tag to enable proper changelog generation${NC}"
+    printf "${PURPLE}💡 Tip: Create your first release tag to enable proper changelog generation${NC}\n"
     exit 0
 fi
 
-echo -e "${GREEN}📋 Generating detailed changelog from ${FROM_TAG} to ${TO_REF}${NC}"
-echo ""
+# printf "${GREEN}📋 Generating detailed changelog from ${FROM_TAG} to ${TO_REF}${NC}\n"
+# echo ""
 
 # Initialize categories
 NEW_FEATURES=""
@@ -104,69 +104,69 @@ done <<< "$(git rev-list $FROM_TAG..$TO_REF --no-merges)"
 
 # Display categorized changelog
 if [ -n "$NEW_FEATURES" ]; then
-    echo -e "${GREEN}## 🚀 New Features${NC}"
-    echo -e "$NEW_FEATURES" | sed '/^$/d'
+    printf "${GREEN}## 🚀 New Features${NC}\n"
+    printf "$NEW_FEATURES" | sed '/^$/d'
     echo ""
 fi
 
 if [ -n "$IMPROVEMENTS" ]; then
-    echo -e "${BLUE}## ⬆️ Improvements${NC}"
-    echo -e "$IMPROVEMENTS" | sed '/^$/d'
+    printf "${BLUE}## ⬆️ Improvements${NC}\n"
+    printf "$IMPROVEMENTS" | sed '/^$/d'
     echo ""
 fi
 
 if [ -n "$BUG_FIXES" ]; then
-    echo -e "${RED}## 🐛 Bug Fixes${NC}"
-    echo -e "$BUG_FIXES" | sed '/^$/d'
+    printf "${RED}## 🐛 Bug Fixes${NC}\n"
+    printf "$BUG_FIXES" | sed '/^$/d'
     echo ""
 fi
 
 if [ -n "$SECURITY_FIXES" ]; then
-    echo -e "${PURPLE}## 🔒 Security Fixes${NC}"
-    echo -e "$SECURITY_FIXES" | sed '/^$/d'
+    printf "${PURPLE}## 🔒 Security Fixes${NC}\n"
+    printf "$SECURITY_FIXES" | sed '/^$/d'
     echo ""
 fi
 
 if [ -n "$DOCS_UPDATES" ]; then
-    echo -e "${CYAN}## 📚 Documentation${NC}"
-    echo -e "$DOCS_UPDATES" | sed '/^$/d'
+    printf "${CYAN}## 📚 Documentation${NC}\n"
+    printf "$DOCS_UPDATES" | sed '/^$/d'
     echo ""
 fi
 
 if [ -n "$CHORES" ]; then
-    echo -e "${YELLOW}## 🔧 Maintenance${NC}"
-    echo -e "$CHORES" | sed '/^$/d'
+    printf "${YELLOW}## 🔧 Maintenance${NC}\n"
+    printf "$CHORES" | sed '/^$/d'
     echo ""
 fi
 
 if [ -n "$OTHERS" ]; then
-    echo -e "${CYAN}## 📦 Other Changes${NC}"
-    echo -e "$OTHERS" | sed '/^$/d'
+    printf "${CYAN}## 📦 Other Changes${NC}\n"
+    printf "$OTHERS" | sed '/^$/d'
     echo ""
 fi
 
 # Statistics
-COMMIT_COUNT=$(git rev-list --count $FROM_TAG..$TO_REF 2>/dev/null || echo "0")
-CONTRIBUTOR_COUNT=$(git log $FROM_TAG..$TO_REF --pretty=format:"%an" | sort | uniq | wc -l)
+COMMIT_COUNT=$(git rev-list --count $FROM_TAG..$TO_REF 2>/dev/null | xargs || echo "0")
+CONTRIBUTOR_COUNT=$(git log $FROM_TAG..$TO_REF --pretty=format:"%an" | sort | uniq | wc -l | xargs)
 
-echo -e "${CYAN}## 📊 Release Statistics${NC}"
-echo -e "- **$COMMIT_COUNT** commits since $FROM_TAG"
-echo -e "- **$CONTRIBUTOR_COUNT** contributors"
+printf "${CYAN}## 📊 Release Statistics${NC}\n"
+printf -- "- **%s** commits since %s\n" "$COMMIT_COUNT" "$FROM_TAG"
+printf -- "- **%s** contributors\n" "$CONTRIBUTOR_COUNT"
 echo ""
 
 # Contributors
-echo -e "${CYAN}## 👥 Contributors${NC}"
-echo -n "Thanks to: "
+printf "${CYAN}## 👥 Contributors${NC}\n"
+printf "Thanks to: "
 git log $FROM_TAG..$TO_REF --pretty=format:"@%an" | sort | uniq | tr '\n' ' '
-echo ""
-echo ""
+# echo ""
+# echo ""
 
-echo "=========================================="
-echo -e "${GREEN}✅ Detailed changelog generated successfully!${NC}"
-echo ""
-echo -e "${PURPLE}💡 Usage tips:${NC}"
-echo "• Copy the sections above for your GitHub release"
-echo "• Use conventional commit messages (feat:, fix:, docs:, etc.) for better categorization"
-echo "• PR numbers will be automatically detected from merge commits"
-echo ""
-echo -e "${BLUE}🚀 Ready to release? Copy this changelog and use it in the GitHub Actions workflow!${NC}"
+# echo "=========================================="
+# printf "${GREEN}✅ Detailed changelog generated successfully!${NC}\n"
+# echo ""
+# printf "${PURPLE}💡 Usage tips:${NC}\n"
+# echo "• Copy the sections above for your GitHub release"
+# echo "• Use conventional commit messages (feat:, fix:, docs:, etc.) for better categorization"
+# echo "• PR numbers will be automatically detected from merge commits"
+# echo ""
+# printf "${BLUE}🚀 Ready to release? Copy this changelog and use it in the GitHub Actions workflow!${NC}\n"

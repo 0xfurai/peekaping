@@ -19,8 +19,6 @@ func NewController(
 	service Service,
 	logger *zap.SugaredLogger,
 ) *Controller {
-	// Register custom struct-level validation if needed
-	// validate.RegisterStructValidation(CreateUpdateDtoStructLevelValidation, CreateUpdateDto{})
 	return &Controller{
 		service,
 		logger,
@@ -132,7 +130,7 @@ func (ic *Controller) FindByID(ctx *gin.Context) {
 	}
 
 	// Get monitor IDs
-	monitorIds, err := ic.service.(*ServiceImpl).repository.(*MongoRepositoryImpl).GetMonitors(ctx, id)
+	monitorIds, err := ic.service.GetMonitors(ctx, id)
 	if err != nil {
 		ic.logger.Errorw("Failed to fetch monitor IDs", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -143,7 +141,6 @@ func (ic *Controller) FindByID(ctx *gin.Context) {
 		ID:            entity.ID,
 		Title:         entity.Title,
 		Description:   entity.Description,
-		UserID:        entity.UserID,
 		Active:        entity.Active,
 		Strategy:      entity.Strategy,
 		StartDateTime: entity.StartDateTime,

@@ -3,17 +3,18 @@ package status_page
 import "time"
 
 type Model struct {
-	ID                  string    `json:"id" bson:"_id,omitempty"`
-	Slug                string    `json:"slug" bson:"slug"`
-	Title               string    `json:"title" bson:"title"`
-	Description         string    `json:"description" bson:"description"`
-	Icon                string    `json:"icon" bson:"icon"`
-	Theme               string    `json:"theme" bson:"theme"`
-	Published           bool      `json:"published" bson:"published"`
-	CreatedAt           time.Time `json:"created_at" bson:"created_at"`
-	UpdatedAt           time.Time `json:"updated_at" bson:"updated_at"`
-	FooterText          string    `json:"footer_text" bson:"footer_text"`
-	AutoRefreshInterval int       `json:"auto_refresh_interval" bson:"auto_refresh_interval"`
+	ID                  string `json:"id" bson:"_id,omitempty"`
+	Slug                string `json:"slug" bson:"slug"`
+	Title               string `json:"title" bson:"title"`
+	Description         string `json:"description" bson:"description"`
+	Icon                string `json:"icon" bson:"icon"`
+	Theme               string `json:"theme" bson:"theme"`
+	Published           bool   `json:"published" bson:"published"`
+	FooterText          string `json:"footer_text" bson:"footer_text"`
+	AutoRefreshInterval int    `json:"auto_refresh_interval" bson:"auto_refresh_interval"`
+
+	CreatedAt time.Time `json:"created_at" bson:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" bson:"updated_at"`
 }
 
 type UpdateModel struct {

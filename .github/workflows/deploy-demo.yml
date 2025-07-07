@@ -1,0 +1,55 @@
+name: Deploy to Demo Environment
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to deploy (e.g. 1.2.3 or latest)'
+        required: true
+        type: string
+        default: 'latest'
+  workflow_call:
+    inputs:
+      version:
+        description: 'Version to deploy (e.g. 1.2.3 or latest)'
+        required: true
+        type: string
+
+jobs:
+  deploy-demo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Demo Environment
+        continue-on-error: ${{ github.event_name == 'workflow_call' }}
+        id: deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEMO_HOST }}
+          username: ${{ secrets.DEMO_USERNAME }}
+          key: ${{ secrets.DEMO_SSH_KEY }}
+          port: ${{ secrets.DEMO_SSH_PORT || 22 }}
+          script: |
+            echo "🚀 Starting demo deployment for version ${{ inputs.version }}"
+
+            # Navigate to the demo directory
+            cd ${{ secrets.DEMO_DEPLOY_PATH || '/opt/peekaping-demo' }}
+
+            # Update docker compose to use the new version
+            echo "📝 Updating docker compose with new image tags..."
+
+            # Update image tags to the new version
+            sed -i "s|0xfurai/peekaping-web:.*|0xfurai/peekaping-web:${{ inputs.version }}|g" compose-demo.yaml
+            sed -i "s|0xfurai/peekaping-server:.*|0xfurai/peekaping-server:${{ inputs.version }}|g" compose-demo.yaml
+            sed -i "s|0xfurai/peekaping-migrate:.*|0xfurai/peekaping-migrate:${{ inputs.version }}|g" compose-demo.yaml
+
+            echo "📥 Pulling new Docker images..."
+            docker compose -f compose-demo.yaml pull
+
+            # echo "🔄 Recreating services with new images..."
+            # docker compose up -d --force-recreate
+
+            echo "🧹 Cleaning up old images..."
+            docker image prune -f
+
+            echo "✅ Demo deployment completed successfully!"
+            echo "🌐 Demo should be available at the configured endpoint"

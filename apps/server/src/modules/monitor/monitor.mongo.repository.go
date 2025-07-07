@@ -41,11 +41,11 @@ type mongoUpdateModel struct {
 	ResendInterval *int                     `bson:"resend_interval,omitempty"`
 	Active         *bool                    `bson:"active,omitempty"`
 	Status         *heartbeat.MonitorStatus `bson:"status,omitempty"`
-	CreatedAt      *time.Time               `bson:"created_at,omitempty"`
-	UpdatedAt      *time.Time               `bson:"updated_at,omitempty"`
 	Config         *string                  `bson:"config,omitempty"`
 	ProxyId        *primitive.ObjectID      `bson:"proxy_id,omitempty"`
 	PushToken      *string                  `bson:"push_token,omitempty"`
+	CreatedAt      *time.Time               `bson:"created_at,omitempty"`
+	UpdatedAt      *time.Time               `bson:"updated_at,omitempty"`
 }
 
 func toDomainModel(mm *mongoModel) *Model {
@@ -66,11 +66,11 @@ func toDomainModel(mm *mongoModel) *Model {
 		ResendInterval: mm.ResendInterval,
 		Active:         mm.Active,
 		Status:         mm.Status,
-		CreatedAt:      mm.CreatedAt,
-		UpdatedAt:      mm.UpdatedAt,
 		Config:         mm.Config,
 		ProxyId:        proxyId,
 		PushToken:      mm.PushToken,
+		CreatedAt:      mm.CreatedAt,
+		UpdatedAt:      mm.UpdatedAt,
 	}
 }
 
@@ -80,7 +80,7 @@ type MonitorRepositoryImpl struct {
 	collection *mongo.Collection
 }
 
-func NewMonitorRepository(client *mongo.Client, cfg *config.Config) MonitorRepository {
+func NewMongoRepository(client *mongo.Client, cfg *config.Config) MonitorRepository {
 	db := client.Database(cfg.DBName)
 	collection := db.Collection("monitor")
 	ctx := context.Background()
@@ -424,9 +424,14 @@ func (r *MonitorRepositoryImpl) FindActive(ctx context.Context) ([]*Model, error
 
 // RemoveProxyReference sets proxy_id to an empty string for all monitors with the given proxyId.
 func (r *MonitorRepositoryImpl) RemoveProxyReference(ctx context.Context, proxyId string) error {
-	filter := bson.M{"proxy_id": proxyId}
+	objectID, err := primitive.ObjectIDFromHex(proxyId)
+	if err != nil {
+		return err
+	}
+
+	filter := bson.M{"proxy_id": objectID}
 	update := bson.M{"$set": bson.M{"proxy_id": ""}}
-	_, err := r.collection.UpdateMany(ctx, filter, update)
+	_, err = r.collection.UpdateMany(ctx, filter, update)
 	return err
 }
 

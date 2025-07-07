@@ -44,7 +44,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       },
       {
         title: t("navigation.maintenance"),
-        url: "/maintenance",
+        url: "/maintenances",
         icon: SettingsIcon,
       },
       {
@@ -66,7 +66,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     navSecondary: [
       {
         title: "Get Help",
-        url: "https://peekaping.com/docs",
+        url: "https://docs.peekaping.com",
         icon: HelpCircleIcon,
         target: "_blank",
       },

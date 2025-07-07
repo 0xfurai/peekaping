@@ -1,0 +1,46 @@
+# Start from the official Golang image as a build stage
+FROM golang:1.24.3-alpine AS builder
+
+# Install build dependencies
+RUN apk add --no-cache git
+
+# Set the Current Working Directory inside the container
+WORKDIR /app
+
+# Copy go mod and sum files
+COPY go.mod go.sum ./
+
+# Download all dependencies
+RUN go mod download
+
+# Copy the source code into the container
+COPY . .
+
+# Build the bun migration tool
+RUN go build -o bun ./cmd/bun
+
+# Start a new stage from scratch
+FROM alpine:latest
+
+# Install netcat for database connectivity check
+RUN apk add --no-cache netcat-openbsd
+
+WORKDIR /app
+
+# Copy the pre-built bun migration tool from the previous stage
+COPY --from=builder /app/bun .
+
+# Copy migration files
+COPY cmd/bun/migrations ./cmd/bun/migrations
+
+# Copy config files that might be needed
+COPY src/config ./src/config
+
+# Copy the migration script
+COPY scripts/run-migrations.sh .
+
+# Make both the bun tool and script executable
+RUN chmod +x bun run-migrations.sh
+
+# Command to run migrations
+CMD ["./run-migrations.sh"]

@@ -16,7 +16,6 @@ type mongoModel struct {
 	ID            primitive.ObjectID `bson:"_id"`
 	Title         string             `bson:"title"`
 	Description   string             `bson:"description"`
-	UserID        string             `bson:"user_id"`
 	Active        bool               `bson:"active"`
 	Strategy      string             `bson:"strategy"`
 	StartDateTime *string            `bson:"start_date_time,omitempty"`
@@ -29,14 +28,13 @@ type mongoModel struct {
 	Cron          *string            `bson:"cron,omitempty"`
 	Timezone      *string            `bson:"timezone,omitempty"`
 	Duration      *int               `bson:"duration,omitempty"`
-	CreatedAt     string             `bson:"created_at"`
-	UpdatedAt     string             `bson:"updated_at"`
+	CreatedAt     time.Time          `bson:"created_at"`
+	UpdatedAt     time.Time          `bson:"updated_at"`
 }
 
 type mongoUpdateModel struct {
 	Title         *string `bson:"title,omitempty"`
 	Description   *string `bson:"description,omitempty"`
-	UserID        *string `bson:"user_id,omitempty"`
 	Active        *bool   `bson:"active,omitempty"`
 	Strategy      *string `bson:"strategy,omitempty"`
 	StartDateTime *string `bson:"start_date_time,omitempty"`
@@ -57,7 +55,6 @@ func toDomainModel(mm *mongoModel) *Model {
 		ID:            mm.ID.Hex(),
 		Title:         mm.Title,
 		Description:   mm.Description,
-		UserID:        mm.UserID,
 		Active:        mm.Active,
 		Strategy:      mm.Strategy,
 		StartDateTime: mm.StartDateTime,
@@ -92,7 +89,6 @@ func (r *MongoRepositoryImpl) Create(ctx context.Context, entity *CreateUpdateDt
 		ID:            primitive.NewObjectID(),
 		Title:         entity.Title,
 		Description:   entity.Description,
-		UserID:        entity.UserID,
 		Active:        entity.Active,
 		Strategy:      entity.Strategy,
 		StartDateTime: entity.StartDateTime,
@@ -103,8 +99,8 @@ func (r *MongoRepositoryImpl) Create(ctx context.Context, entity *CreateUpdateDt
 		Cron:          entity.Cron,
 		Timezone:      entity.Timezone,
 		Duration:      entity.Duration,
-		CreatedAt:     time.Now().UTC().Format(time.RFC3339),
-		UpdatedAt:     time.Now().UTC().Format(time.RFC3339),
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
 	}
 
 	_, err := r.collection.InsertOne(ctx, mm)
@@ -190,7 +186,6 @@ func (r *MongoRepositoryImpl) UpdateFull(ctx context.Context, id string, entity 
 		ID:            objectID,
 		Title:         entity.Title,
 		Description:   entity.Description,
-		UserID:        entity.UserID,
 		Active:        entity.Active,
 		Strategy:      entity.Strategy,
 		StartDateTime: entity.StartDateTime,
@@ -203,7 +198,7 @@ func (r *MongoRepositoryImpl) UpdateFull(ctx context.Context, id string, entity 
 		Cron:          entity.Cron,
 		Timezone:      entity.Timezone,
 		Duration:      entity.Duration,
-		UpdatedAt:     time.Now().UTC().Format(time.RFC3339),
+		UpdatedAt:     time.Now(),
 	}
 
 	filter := bson.M{"_id": objectID}
@@ -229,7 +224,6 @@ func (r *MongoRepositoryImpl) UpdatePartial(ctx context.Context, id string, enti
 	update := &mongoUpdateModel{
 		Title:         entity.Title,
 		Description:   entity.Description,
-		UserID:        entity.UserID,
 		Active:        entity.Active,
 		Strategy:      entity.Strategy,
 		StartDateTime: entity.StartDateTime,
@@ -289,90 +283,15 @@ func (r *MongoRepositoryImpl) SetActive(ctx context.Context, id string, active b
 	return r.FindByID(ctx, id)
 }
 
-func (r *MongoRepositoryImpl) SetMonitors(ctx context.Context, id string, monitors []string) error {
-	coll := r.db.Collection("monitor_maintenance")
-	_, err := coll.DeleteMany(ctx, bson.M{"maintenance_id": id})
-	if err != nil {
-		return err
-	}
-	var docs []interface{}
-	for _, monitorID := range monitors {
-		docs = append(docs, bson.M{"monitor_id": monitorID, "maintenance_id": id})
-	}
-	if len(docs) > 0 {
-		_, err = coll.InsertMany(ctx, docs)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (r *MongoRepositoryImpl) SetStatusPages(ctx context.Context, id string, statusPages []string) error {
-	coll := r.db.Collection("maintenance_status_page")
-	_, err := coll.DeleteMany(ctx, bson.M{"maintenance_id": id})
-	if err != nil {
-		return err
-	}
-	var docs []interface{}
-	for _, statusPageID := range statusPages {
-		docs = append(docs, bson.M{"status_page_id": statusPageID, "maintenance_id": id})
-	}
-	if len(docs) > 0 {
-		_, err = coll.InsertMany(ctx, docs)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (r *MongoRepositoryImpl) GetMonitors(ctx context.Context, id string) ([]string, error) {
-	coll := r.db.Collection("monitor_maintenance")
-	cursor, err := coll.Find(ctx, bson.M{"maintenance_id": id})
-	if err != nil {
-		return nil, err
-	}
-	defer cursor.Close(ctx)
-	var result []string
-	for cursor.Next(ctx) {
-		var doc struct {
-			MonitorID string `bson:"monitor_id"`
-		}
-		if err := cursor.Decode(&doc); err != nil {
-			return nil, err
-		}
-		result = append(result, doc.MonitorID)
-	}
-	return result, nil
-}
-
-func (r *MongoRepositoryImpl) GetStatusPages(ctx context.Context, id string) ([]map[string]interface{}, error) {
-	coll := r.db.Collection("maintenance_status_page")
-	cursor, err := coll.Find(ctx, bson.M{"maintenance_id": id})
-	if err != nil {
-		return nil, err
-	}
-	defer cursor.Close(ctx)
-	var result []map[string]interface{}
-	for cursor.Next(ctx) {
-		var doc struct {
-			StatusPageID string `bson:"status_page_id"`
-		}
-		if err := cursor.Decode(&doc); err != nil {
-			return nil, err
-		}
-		// TODO: Lookup status page title from status_page collection if needed
-		result = append(result, map[string]interface{}{"id": doc.StatusPageID, "title": ""})
-	}
-	return result, nil
-}
-
 // GetMaintenancesByMonitorID returns all active maintenances for a given monitor_id
 func (r *MongoRepositoryImpl) GetMaintenancesByMonitorID(ctx context.Context, monitorID string) ([]*Model, error) {
+	objectID, err := primitive.ObjectIDFromHex(monitorID)
+	if err != nil {
+		return nil, err
+	}
 	coll := r.db.Collection("monitor_maintenance")
 	// Find all maintenance_ids for this monitor
-	cursor, err := coll.Find(ctx, bson.M{"monitor_id": monitorID})
+	cursor, err := coll.Find(ctx, bson.M{"monitor_id": objectID})
 	if err != nil {
 		return nil, err
 	}

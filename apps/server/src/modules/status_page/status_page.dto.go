@@ -1,8 +1,7 @@
 package status_page
 
 import (
-	"peekaping/src/modules/heartbeat"
-	"peekaping/src/modules/monitor"
+	"peekaping/src/modules/shared"
 	"time"
 )
 
@@ -66,8 +65,23 @@ type StatusPageWithMonitorsResponseDTO struct {
 	MonitorIDs            []string  `json:"monitor_ids"`
 }
 
+type PublicMonitorDTO struct {
+	ID     string `json:"id"`
+	Type   string `json:"type" validate:"required" example:"http"`
+	Name   string `json:"name" example:"Monitor"`
+	Active bool   `json:"active"`
+}
+
+type PublicHeartbeatDTO struct {
+	ID      string               `json:"id"`
+	Status  shared.MonitorStatus `json:"status"`
+	Time    time.Time            `json:"time"`
+	EndTime time.Time            `json:"end_time"`
+	Ping    int                  `json:"ping"`
+}
+
 type MonitorWithHeartbeatsAndUptimeDTO struct {
-	*monitor.Model
-	Heartbeats []*heartbeat.Model `json:"heartbeats"`
-	Uptime24h  float64            `json:"uptime_24h"`
+	*PublicMonitorDTO
+	Heartbeats []*PublicHeartbeatDTO `json:"heartbeats"`
+	Uptime24h  float64               `json:"uptime_24h"`
 }

@@ -118,6 +118,7 @@ type HTTPConfig struct {
 	Body                string   `json:"body" validate:"omitempty"`
 	AcceptedStatusCodes []string `json:"accepted_statuscodes" validate:"required,dive,oneof=2XX 3XX 4XX 5XX"`
 	MaxRedirects        int      `json:"max_redirects" validate:"omitempty,min=0"`
+	IgnoreTlsErrors     bool     `json:"ignore_tls_errors"`
 
 	// Authentication fields
 	AuthMethod        string `json:"authMethod" validate:"required,oneof=none basic oauth2-cc ntlm mtls"`
@@ -159,16 +160,6 @@ func (s *HTTPExecutor) Validate(configJSON string) error {
 		return err
 	}
 	return GenericValidator(cfg.(*HTTPConfig))
-}
-
-// Helper to create a down result
-func downResult(err error, startTime, endTime time.Time) *Result {
-	return &Result{
-		Status:    shared.MonitorStatusDown,
-		Message:   err.Error(),
-		StartTime: startTime,
-		EndTime:   endTime,
-	}
 }
 
 // Helper to check if status code matches accepted patterns
@@ -245,7 +236,7 @@ func buildProxyTransport(base *http.Transport, proxyModel *Proxy) http.RoundTrip
 func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
 	cfgAny, err := h.Unmarshal(m.Config)
 	if err != nil {
-		return downResult(err, time.Now().UTC(), time.Now().UTC())
+		return DownResult(err, time.Now().UTC(), time.Now().UTC())
 	}
 	cfg := cfgAny.(*HTTPConfig)
 
@@ -258,23 +249,30 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 
 	req, err := http.NewRequestWithContext(ctx, cfg.Method, cfg.Url, bodyReader)
 	if err != nil {
-		return downResult(err, time.Now().UTC(), time.Now().UTC())
+		return DownResult(err, time.Now().UTC(), time.Now().UTC())
 	}
 
 	if cfg.Headers != "" {
 		headersMap := make(map[string]string)
 		err := json.Unmarshal([]byte(cfg.Headers), &headersMap)
 		if err != nil {
-			return downResult(fmt.Errorf("invalid headers json: %w", err), time.Now().UTC(), time.Now().UTC())
+			return DownResult(fmt.Errorf("invalid headers json: %w", err), time.Now().UTC(), time.Now().UTC())
 		}
 		for k, v := range headersMap {
 			req.Header.Set(k, v)
 		}
 	}
 
+	// Determine effective max redirects value
+	effectiveMaxRedirects := cfg.MaxRedirects
+
 	checkRedirect := func(req *http.Request, via []*http.Request) error {
-		if len(via) >= cfg.MaxRedirects {
-			return http.ErrUseLastResponse
+		h.logger.Debugf("checkRedirect: %d redirects followed, max allowed: %d", len(via), effectiveMaxRedirects)
+		if effectiveMaxRedirects == 0 {
+			return fmt.Errorf("redirects disabled: max_redirects set to 0")
+		}
+		if len(via) > effectiveMaxRedirects {
+			return fmt.Errorf("too many redirects: followed %d redirects, maximum allowed is %d", len(via), effectiveMaxRedirects)
 		}
 		return nil
 	}
@@ -293,15 +291,20 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	// --- PROXY LOGIC ---
 
 	// Default transport with proxy if needed
-	transport := buildProxyTransport(&http.Transport{}, proxyModel)
+	baseTransport := &http.Transport{}
+
+	// Configure TLS settings if needed
+	if cfg.IgnoreTlsErrors {
+		if baseTransport.TLSClientConfig == nil {
+			baseTransport.TLSClientConfig = &tls.Config{}
+		}
+		baseTransport.TLSClientConfig.InsecureSkipVerify = true
+	}
+
+	transport := buildProxyTransport(baseTransport, proxyModel)
 
 	// Set timeout from monitor configuration
 	timeout := time.Duration(m.Timeout) * time.Second
-
-	maxRedirects := cfg.MaxRedirects
-	if maxRedirects == 0 {
-		maxRedirects = 10
-	}
 
 	// --- AUTHENTICATION LOGIC ---
 	switch cfg.AuthMethod {
@@ -313,8 +316,9 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 			RoundTripper: transport,
 		}
 		h.client = &http.Client{
-			Transport: &ntlmTransport,
-			Timeout:   time.Duration(m.Timeout) * time.Second,
+			Transport:     &ntlmTransport,
+			Timeout:       time.Duration(m.Timeout) * time.Second,
+			CheckRedirect: checkRedirect,
 		}
 
 		if cfg.AuthDomain != "" {
@@ -333,7 +337,7 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 
 		tokenReq, err := http.NewRequestWithContext(ctx, "POST", cfg.OauthTokenUrl, strings.NewReader(form.Encode()))
 		if err != nil {
-			return downResult(fmt.Errorf("failed to create oauth2 token request: %w", err), time.Now().UTC(), time.Now().UTC())
+			return DownResult(fmt.Errorf("failed to create oauth2 token request: %w", err), time.Now().UTC(), time.Now().UTC())
 		}
 		tokenReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		if cfg.OauthAuthMethod == "client_secret_basic" {
@@ -343,39 +347,41 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 
 		tokenResp, err := http.DefaultClient.Do(tokenReq)
 		if err != nil {
-			return downResult(fmt.Errorf("failed to get oauth2 token: %w", err), time.Now().UTC(), time.Now().UTC())
+			return DownResult(fmt.Errorf("failed to get oauth2 token: %w", err), time.Now().UTC(), time.Now().UTC())
 		}
 		defer tokenResp.Body.Close()
 		if tokenResp.StatusCode < 200 || tokenResp.StatusCode >= 300 {
-			return downResult(fmt.Errorf("oauth2 token endpoint returned status: %d", tokenResp.StatusCode), time.Now().UTC(), time.Now().UTC())
+			return DownResult(fmt.Errorf("oauth2 token endpoint returned status: %d", tokenResp.StatusCode), time.Now().UTC(), time.Now().UTC())
 		}
 		var tokenData struct {
 			AccessToken string `json:"access_token"`
 		}
 		err = json.NewDecoder(tokenResp.Body).Decode(&tokenData)
 		if err != nil || tokenData.AccessToken == "" {
-			return downResult(fmt.Errorf("failed to parse oauth2 token response: %w", err), time.Now().UTC(), time.Now().UTC())
+			return DownResult(fmt.Errorf("failed to parse oauth2 token response: %w", err), time.Now().UTC(), time.Now().UTC())
 		}
 		req.Header.Set("Authorization", "Bearer "+tokenData.AccessToken)
 	case "mtls":
 		cert, err := tls.X509KeyPair([]byte(cfg.TlsCert), []byte(cfg.TlsKey))
 		if err != nil {
-			return downResult(fmt.Errorf("invalid mTLS cert/key: %w", err), time.Now().UTC(), time.Now().UTC())
+			return DownResult(fmt.Errorf("invalid mTLS cert/key: %w", err), time.Now().UTC(), time.Now().UTC())
 		}
 		caCertPool := x509.NewCertPool()
 		if ok := caCertPool.AppendCertsFromPEM([]byte(cfg.TlsCa)); !ok {
-			return downResult(fmt.Errorf("invalid mTLS CA cert"), time.Now().UTC(), time.Now().UTC())
+			return DownResult(fmt.Errorf("invalid mTLS CA cert"), time.Now().UTC(), time.Now().UTC())
 		}
 		mtlsTransport := &http.Transport{
 			TLSClientConfig: &tls.Config{
-				Certificates: []tls.Certificate{cert},
-				RootCAs:      caCertPool,
+				Certificates:       []tls.Certificate{cert},
+				RootCAs:            caCertPool,
+				InsecureSkipVerify: cfg.IgnoreTlsErrors,
 			},
 		}
 		mtlsTransportWithProxy := buildProxyTransport(mtlsTransport, proxyModel)
 		h.client = &http.Client{
-			Transport: mtlsTransportWithProxy,
-			Timeout:   time.Duration(m.Timeout) * time.Second,
+			Transport:     mtlsTransportWithProxy,
+			Timeout:       time.Duration(m.Timeout) * time.Second,
+			CheckRedirect: checkRedirect,
 		}
 	}
 
@@ -393,7 +399,7 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 
 	if err != nil {
 		h.logger.Infof("HTTP request failed: %s, %s", m.Name, err.Error())
-		return downResult(err, startTime, endTime)
+		return DownResult(err, startTime, endTime)
 	}
 	defer resp.Body.Close()
 

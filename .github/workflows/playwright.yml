@@ -1,0 +1,111 @@
+name: Playwright Tests
+on:
+  push:
+    branches: [ main, master ]
+    paths-ignore:
+      - 'apps/docs/**'
+      - '*.md'
+      - 'README.md'
+      - 'CHANGELOG.md'
+      - 'LICENSE'
+  pull_request:
+    paths-ignore:
+      - 'apps/docs/**'
+      - '*.md'
+      - 'README.md'
+      - 'CHANGELOG.md'
+      - 'LICENSE'
+    branches: [ main, master ]
+
+jobs:
+  playwright-tests:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        database: [postgres, mongo, sqlite]
+    steps:
+    # Prepare environment and dependencies
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: lts/*
+    - name: Install dependencies
+      run: npm install -g pnpm && pnpm install
+    - name: Install Playwright Browsers
+      run: pnpm exec playwright install --with-deps
+
+    # Prepare environment file
+    - name: Create .env file
+      run: |
+        cat > .env << EOF
+        # Database Configuration
+        DB_TYPE=${{ matrix.database }}
+        DB_HOST=localhost
+        DB_PORT=${{ matrix.database == 'postgres' && '5432' || matrix.database == 'mongo' && '27017' || '3306' }}
+        DB_NAME=${{ matrix.database == 'sqlite' && '/app/data/peekaping.db' || 'peekaping' }}
+        DB_USER=${{ matrix.database == 'postgres' && 'postgres' || matrix.database == 'mongo' && 'root' || 'root' }}
+        DB_PASS=password
+
+        # Server Configuration
+        CLIENT_URL=http://localhost:8383
+        PORT=8034
+        JWT_SECRET=test-secret-key-for-playwright-tests
+        ACCESS_TOKEN_EXPIRED_IN=1h
+        ACCESS_TOKEN_SECRET_KEY=test-secret-key-for-playwright-tests
+        REFRESH_TOKEN_EXPIRED_IN=1d
+        REFRESH_TOKEN_SECRET_KEY=test-secret-key-for-playwright-tests
+        BUNDEBUG=2
+        EOF
+
+    # Build and start services using docker-compose.dev
+    - name: Start services with docker-compose.dev
+      run: docker compose -f docker-compose.dev.${{ matrix.database }}.yml up -d --build
+
+    - name: Show container logs
+      run: |
+        echo "=== Container Status ==="
+        docker compose -f docker-compose.dev.${{ matrix.database }}.yml ps
+        echo "=== Container Logs ==="
+        docker compose -f docker-compose.dev.${{ matrix.database }}.yml logs
+
+    - name: Wait for services to be ready
+      run: |
+        echo "Waiting for services to be healthy..."
+        timeout 120 bash -c '
+          attempt=1
+          until curl -f http://localhost:8034/api/v1/health; do
+            echo "Attempt $attempt: Health check failed, retrying in 5 seconds..."
+            response=$(curl -s http://localhost:8034/api/v1/health || echo "connection failed")
+            status_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8034/api/v1/health || echo "000")
+            echo "  Status Code: $status_code"
+            echo "  Response Body: $response"
+            attempt=$((attempt + 1))
+            sleep 5
+            if [ $attempt -gt 24 ]; then
+              echo "=== Container Status ==="
+              docker compose -f docker-compose.dev.${{ matrix.database }}.yml ps
+              echo "=== Server Logs ==="
+              docker compose -f docker-compose.dev.${{ matrix.database }}.yml logs server
+              echo "=== Web Logs ==="
+              docker compose -f docker-compose.dev.${{ matrix.database }}.yml logs web
+            fi
+          done
+        ' || echo "Health check timed out after 120 seconds"
+        echo "Health check succeeded! Waiting additional 5 seconds for stability..."
+        sleep 5
+
+    - name: Run Playwright tests
+      run: pnpm exec playwright test
+
+    - name: Stop services
+      if: always()
+      run: docker compose -f docker-compose.dev.${{ matrix.database }}.yml down
+
+    - uses: actions/upload-artifact@v4
+      if: ${{ !cancelled() }}
+      with:
+        name: playwright-report-${{ matrix.database }}
+        path: playwright-report/
+        retention-days: 30

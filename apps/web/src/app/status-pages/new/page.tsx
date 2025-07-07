@@ -1,5 +1,6 @@
 import Layout from "@/layout";
 import CreateEditForm, { type StatusPageForm } from "../components/create-edit-form";
+import { BackButton } from "@/components/back-button";
 import {
   getStatusPagesInfiniteQueryKey,
   postStatusPagesMutation,
@@ -37,6 +38,7 @@ const NewStatusPageContent = () => {
 
   return (
     <Layout pageName="New Status Page">
+      <BackButton to="/status-pages" />
       <div className="flex flex-col gap-4">
         <p className="text-gray-500">
           Create a new status page to share your service status with users.

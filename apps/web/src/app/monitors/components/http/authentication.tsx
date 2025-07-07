@@ -64,7 +64,7 @@ const BasicAuth = () => {
     <>
       <FormField
         control={form.control}
-        name="http.basic_auth_user"
+        name="authentication.basic_auth_user"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Username</FormLabel>
@@ -77,7 +77,7 @@ const BasicAuth = () => {
       />
       <FormField
         control={form.control}
-        name="http.basic_auth_pass"
+        name="authentication.basic_auth_pass"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Password</FormLabel>
@@ -99,7 +99,7 @@ const OAuth2 = () => {
     <>
       <FormField
         control={form.control}
-        name="http.oauth_auth_method"
+        name="authentication.oauth_auth_method"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Authentication Method</FormLabel>
@@ -129,7 +129,7 @@ const OAuth2 = () => {
 
       <FormField
         control={form.control}
-        name="http.oauth_token_url"
+        name="authentication.oauth_token_url"
         render={({ field }) => (
           <FormItem>
             <FormLabel>OAuth Token URL</FormLabel>
@@ -143,7 +143,7 @@ const OAuth2 = () => {
 
       <FormField
         control={form.control}
-        name="http.oauth_client_id"
+        name="authentication.oauth_client_id"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Client ID</FormLabel>
@@ -157,7 +157,7 @@ const OAuth2 = () => {
 
       <FormField
         control={form.control}
-        name="http.oauth_client_secret"
+        name="authentication.oauth_client_secret"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Client Secret</FormLabel>
@@ -171,7 +171,7 @@ const OAuth2 = () => {
 
       <FormField
         control={form.control}
-        name="http.oauth_scopes"
+        name="authentication.oauth_scopes"
         render={({ field }) => (
           <FormItem>
             <FormLabel>OAuth Scope</FormLabel>
@@ -196,7 +196,7 @@ const NTLM = () => {
     <>
       <FormField
         control={form.control}
-        name="http.authDomain"
+        name="authentication.authDomain"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Domain</FormLabel>
@@ -210,7 +210,7 @@ const NTLM = () => {
 
       <FormField
         control={form.control}
-        name="http.authWorkstation"
+        name="authentication.authWorkstation"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Workstation</FormLabel>
@@ -232,7 +232,7 @@ const MTLS = () => {
     <>
       <FormField
         control={form.control}
-        name="http.tlsCert"
+        name="authentication.tlsCert"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Certificate</FormLabel>
@@ -246,7 +246,7 @@ const MTLS = () => {
 
       <FormField
         control={form.control}
-        name="http.tlsKey"
+        name="authentication.tlsKey"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Key</FormLabel>
@@ -260,7 +260,7 @@ const MTLS = () => {
 
       <FormField
         control={form.control}
-        name="http.tlsCa"
+        name="authentication.tlsCa"
         render={({ field }) => (
           <FormItem>
             <FormLabel>CA</FormLabel>
@@ -287,7 +287,7 @@ const Authentication = () => {
   const form = useFormContext();
   const authMethod = useWatch({
     control: form.control,
-    name: "http.authMethod",
+    name: "authentication.authMethod",
   });
 
   return (
@@ -296,7 +296,7 @@ const Authentication = () => {
 
       <FormField
         control={form.control}
-        name="http.authMethod"
+        name="authentication.authMethod"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Method</FormLabel>

@@ -14,7 +14,6 @@ import {
   Card,
   CardContent,
   CardFooter,
-  // CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -173,8 +172,8 @@ export function Chart({ id }: { id: string }) {
           ping: null,
           ping_min: null,
           maintenance: el.maintenance,
-        }
-      };
+        };
+      }
 
       return {
         timestamp: el.timestamp,
@@ -184,35 +183,32 @@ export function Chart({ id }: { id: string }) {
         ping: el.up ? el.ping : null,
         ping_min: el.up ? el.ping_min : null,
         maintenance: el.maintenance,
-      }
+      };
     }) || [];
-  // if (!statpointsDataRaw?.data) return null;
 
   const statusRanges = getStatusRanges(chartData as MonitorStatPoint[]);
 
-  // // stats: min, max, avg
-  // const stats = React.useMemo(() => {
-  //   if (!chartData.length) return { min: 0, max: 0, avg: 0 };
-  //   const worthPoints = chartData.filter(
-  //     (e: MonitorStatPoint) => !(e.up === 0 && e.down === 0)
-  //   );
-  //   const max = Math.max(
-  //     ...worthPoints.map((el: MonitorStatPoint) => el.ping_max ?? 0)
-  //   );
-  //   const min = Math.min(
-  //     ...worthPoints.map((el: MonitorStatPoint) => el.ping_min ?? 0)
-  //   );
-  //   const avg = Math.max(
-  //     ...worthPoints.map((el: MonitorStatPoint) => el.ping ?? 0)
-  //   );
-  //   return { min, max, avg };
-  // }, [chartData]);
-
   const statsArray = [
-    { key: "min", label: "Minimum", value: statpointsDataRaw?.data?.minPing || 0 },
-    { key: "max", label: "Maximum", value: statpointsDataRaw?.data?.maxPing || 0 },
-    { key: "avg", label: "Average", value: statpointsDataRaw?.data?.avgPing || 0 },
-    { key: "uptime", label: "Uptime", value: statpointsDataRaw?.data?.uptime || 0 },
+    {
+      key: "min",
+      label: "Minimum",
+      value: statpointsDataRaw?.data?.minPing || 0,
+    },
+    {
+      key: "max",
+      label: "Maximum",
+      value: statpointsDataRaw?.data?.maxPing || 0,
+    },
+    {
+      key: "avg",
+      label: "Average",
+      value: statpointsDataRaw?.data?.avgPing || 0,
+    },
+    {
+      key: "uptime",
+      label: "Uptime",
+      value: statpointsDataRaw?.data?.uptime || 0,
+    },
   ];
 
   return (

@@ -1,0 +1,85 @@
+---
+sidebar_position: 1
+slug: /
+---
+
+# Welcome to Peekaping 🚀
+
+**A modern, self-hosted uptime monitoring solution**
+
+Peekaping is a powerful, feature-rich uptime monitoring system built with Go and React. Monitor your websites, APIs, and services with real-time notifications, beautiful status pages, and comprehensive analytics.
+
+![Peekaping Dashboard](/img/monitor.png)
+
+## ⚠️ Beta Status
+
+**Peekaping is currently in beta and actively being developed.** While we're excited to share this project with the community, please note that:
+
+- The software is still undergoing testing and refinement
+- Some features may be incomplete or subject to change
+- We recommend testing in non-production environments first
+- Please report any issues you encounter - your feedback helps us improve!
+
+We encourage you to try Peekaping and provide feedback, but please use it at your own discretion. Your testing and feedback are invaluable to making Peekaping production-ready! 🚀
+
+## ✨ Key Features
+
+### 🔍 **Monitoring Types**
+- **HTTP/HTTPS Monitoring** - Monitor websites, APIs, and web services with comprehensive options
+- **TCP Port Monitoring** - Monitor TCP port connectivity and availability
+- **Ping Monitoring (ICMP)** - Traditional ping monitoring using ICMP packets
+- **DNS Monitoring** - Monitor DNS query responses and resolution times
+- **Push Monitoring** - Monitor services that push heartbeats to a generated URL endpoint
+- **Docker Container Monitoring** - Monitor Docker container status and health
+
+### 📊 **Real-time Dashboard**
+- Live status updates with WebSocket connections
+- Interactive charts and statistics
+- 24-hour uptime tracking
+- Response time monitoring (ping)
+- Visual heartbeat history
+
+### 🔔 **Smart Notifications**
+- **Multiple Channels**: Email (SMTP), Slack, Telegram, Webhooks, Ntfy, PagerDuty
+- **Intelligent Alerting**: Configurable retry logic before marking as down
+- **Notification Control**: Set resend intervals to avoid spam
+- **Important Events**: Only get notified when status actually changes
+
+### 📄 **Status Pages**
+- **Public Status Pages** - Share service status with your users
+- **Customizable** - Brand your status pages with your own styling
+
+### 🛠 **Advanced Features**
+- **Maintenance Windows** - Schedule maintenance to prevent false alerts
+- **Proxy Support** - Route monitoring through HTTP proxies
+- **2FA User Authentication** - Secure login with 2FA support
+- **Data Retention** - Automatic cleanup of old heartbeat data
+
+## 🏗 Architecture
+
+Peekaping is built with modern technologies:
+
+- **Backend**: Go with strong typing and dependency injection
+- **Frontend**: React with TypeScript
+- **Database**: MongoDB/Postgres/SQLite for data persistence
+- **Real-time**: WebSocket connections for live updates
+- **API**: RESTful API with Swagger documentation
+
+## 💡 Why Peekaping?
+
+Peekaping is designed as a modern alternative to Uptime Kuma, built with a focus on:
+
+- **Strongly Typed Architecture** - Both Go backend and TypeScript frontend
+- **Extensibility** - Modular design for easy feature additions
+- **Performance** - Go's efficiency enables high performance with low resource usage
+- **Developer Experience** - Clean code structure and comprehensive documentation
+
+
+## 🤝 Community
+
+- **GitHub**: [0xfurai/peekaping](https://github.com/0xfurai/peekaping)
+- **Issues**: Report bugs and request features
+- **Discussions**: Join the community discussions
+- **Twitter**: [@0xfurai](https://x.com/0xfurai) for updates and tips
+
+Ready to start monitoring? Try our [**live demo**](https://demo.peekaping.com) to see Peekaping in action

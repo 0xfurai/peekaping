@@ -2,6 +2,7 @@ import Layout from "@/layout";
 import CreateEditMaintenance, {
   type MaintenanceFormValues,
 } from "../components/create-edit-form";
+import { BackButton } from "@/components/back-button";
 import {
   getMaintenancesQueryKey,
   postMaintenancesMutation,
@@ -10,9 +11,11 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { MaintenanceCreateUpdateDto } from "@/api";
 import { commonMutationErrorHandler } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 const NewMaintenance = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const createMaintenanceMutation = useMutation({
     ...postMaintenancesMutation(),
@@ -20,6 +23,8 @@ const NewMaintenance = () => {
       toast.success("Maintenance created successfully");
 
       queryClient.invalidateQueries({ queryKey: getMaintenancesQueryKey() });
+
+      navigate("/maintenances");
     },
     onError: commonMutationErrorHandler("Failed to create maintenance"),
   });
@@ -78,6 +83,7 @@ const NewMaintenance = () => {
 
   return (
     <Layout pageName="Schedule Maintenance">
+      <BackButton to="/maintenances" />
       <CreateEditMaintenance onSubmit={handleSubmit} />
     </Layout>
   );
