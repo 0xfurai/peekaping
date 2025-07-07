@@ -16,7 +16,11 @@ services:
     volumes:
       - ./.data/postgres:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-peekaping}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-peekaping}",
+        ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -63,8 +67,8 @@ services:
 
   web:
     build:
-      context: ./apps/web
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./apps/web/Dockerfile
     restart: unless-stopped
     ports:
       - "8383:80"

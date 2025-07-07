@@ -38,8 +38,8 @@ services:
 
   web:
     build:
-      context: ./apps/web
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./apps/web/Dockerfile
     restart: unless-stopped
     ports:
       - "8383:80"

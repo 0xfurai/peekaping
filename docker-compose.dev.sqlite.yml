@@ -32,8 +32,8 @@ services:
 
   web:
     build:
-      context: ./apps/web
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./apps/web/Dockerfile
     restart: unless-stopped
     ports:
       - "8383:80"
@@ -41,4 +41,3 @@ services:
       - server
     environment:
       - API_URL=http://localhost:8034
-
