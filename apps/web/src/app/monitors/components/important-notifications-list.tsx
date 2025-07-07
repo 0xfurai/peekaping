@@ -99,7 +99,7 @@ const ImportantNotificationsList = ({ monitorId }: { monitorId: string }) => {
               <span>
                 Notified:{" "}
                 <span className="text-foreground">
-                  {hb.notified ? t("common.yes") : "No"}
+                  {hb.notified ? t("common.yes") : t("common.no")}
                 </span>
               </span>
             </div>
