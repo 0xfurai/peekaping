@@ -1,5 +1,5 @@
 {
-  "name": "web-client",
+  "name": "web",
   "private": true,
   "version": "0.0.23",
   "type": "module",
