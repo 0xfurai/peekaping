@@ -67,15 +67,15 @@ const General = () => {
 
   return (
     <>
-      <TypographyH4>General</TypographyH4>
+      <TypographyH4>{t('ui.general')}</TypographyH4>
       <FormField
         control={form.control}
         name="name"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>{t('monitors.friendly_name')}</FormLabel>
+            <FormLabel>{t('forms.labels.monitor_name')}</FormLabel>
             <FormControl>
-              <Input placeholder={t('monitors.placeholders.friendly_name')} {...field} />
+              <Input placeholder={t('forms.placeholders.monitor_name')} {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -87,7 +87,7 @@ const General = () => {
         name="type"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>{t('monitors.monitor_type')}</FormLabel>
+            <FormLabel>{t('forms.labels.monitor_type')}</FormLabel>
             <Select
               onValueChange={(val) => {
                 field.onChange(val);
@@ -96,7 +96,7 @@ const General = () => {
             >
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder={t('monitors.placeholders.monitor_type')} />
+                  <SelectValue placeholder={t('common.select')} />
                 </SelectTrigger>
               </FormControl>
 
