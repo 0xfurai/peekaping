@@ -2,6 +2,7 @@ package stats
 
 import (
 	"context"
+	"fmt"
 	"peekaping/src/modules/events"
 	"peekaping/src/modules/shared"
 	"time"
@@ -195,7 +196,14 @@ func (s *ServiceImpl) groupStatsByInterval(minuteStats []*Stat, since, until tim
 		return []*Stat{}, nil
 	}
 
-	periods := int(until.Sub(since) / interval)
+	// check minuteStats are sorted
+	for i := 1; i < len(minuteStats); i++ {
+		if minuteStats[i].Timestamp.Before(minuteStats[i-1].Timestamp) {
+			return nil, fmt.Errorf("minuteStats are not sorted")
+		}
+	}
+
+	periods := int((until.Sub(since) + interval - 1) / interval)
 	result := make([]*Stat, 0, periods)
 	minuteStatsPointer := 0
 

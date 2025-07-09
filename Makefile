@@ -174,15 +174,20 @@ docker-down-all: ## Stop all Docker Compose services
 	@docker-compose -f $(COMPOSE_MONGO) down 2>/dev/null || true
 
 # Database targets
+.PHONY: migrate-init
+migrate-init: ## Run database migrations init
+	@echo "Running database migrations init..."
+	cd apps/server && go run cmd/bun/main.go db init
+
 .PHONY: migrate-up
 migrate-up: ## Run database migrations up
 	@echo "Running database migrations..."
-	go run apps/server/cmd/bun/main.go db migrate
+	cd apps/server && go run cmd/bun/main.go db migrate
 
 .PHONY: migrate-down
 migrate-down: ## Run database migrations down
 	@echo "Rolling back database migrations..."
-	go run apps/server/cmd/bun/main.go db rollback
+	cd apps/server && go run cmd/bun/main.go db rollback
 
 
 # Quick database environment switchers
