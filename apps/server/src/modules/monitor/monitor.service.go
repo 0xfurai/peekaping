@@ -247,10 +247,22 @@ func (mr *MonitorServiceImpl) GetStatPoints(ctx context.Context, id string, sinc
 	default:
 		return nil, fmt.Errorf("invalid granularity: %s", granularity)
 	}
-	statsList, err := mr.statPointsService.FindStatsByMonitorIDAndTimeRange(ctx, id, since, until, period)
+
+	// Get monitor information to pass interval for minute-level grouping
+	monitor, err := mr.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
+	if monitor == nil {
+		return nil, fmt.Errorf("monitor not found")
+	}
+
+	// Use the new method that accepts monitor interval
+	statsList, err := mr.statPointsService.FindStatsByMonitorIDAndTimeRangeWithInterval(ctx, id, since, until, period, monitor.Interval)
+	if err != nil {
+		return nil, err
+	}
+
 	points := make([]*StatPoint, 0, len(statsList))
 	for _, s := range statsList {
 		points = append(points, &StatPoint{
