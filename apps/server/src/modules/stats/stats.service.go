@@ -219,7 +219,10 @@ func (s *ServiceImpl) groupStatsByInterval(minuteStats []*Stat, since, until tim
 		}
 	}
 
-	lastDataTime = time.Now()
+	// Don't extend beyond the requested until time
+	if lastDataTime.After(until) {
+		lastDataTime = until
+	}
 
 	// If no data found, return empty result
 	if !hasData {
