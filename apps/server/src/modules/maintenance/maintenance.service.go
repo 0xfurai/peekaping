@@ -112,6 +112,34 @@ func (mr *ServiceImpl) FindByID(ctx context.Context, id string) (*Model, error) 
 		return nil, err
 	}
 
+	// Check and update active status for expired maintenance
+	if model != nil && model.Active && model.EndDateTime != nil {
+		// Get timezone using the same logic as IsUnderMaintenance
+		timezone := mr.timeUtils.GetDefaultTimezone()
+		if model.Timezone != nil && *model.Timezone != "" {
+			timezone = *model.Timezone
+		}
+		
+		// Load timezone (handles SAME_AS_SERVER)
+		loc := mr.timeUtils.LoadTimezone(timezone)
+		now := time.Now().In(loc)
+		
+		var endTime time.Time
+		var err error
+		
+		// Try RFC3339 first
+		endTime, err = time.Parse(time.RFC3339, *model.EndDateTime)
+		if err != nil {
+			// Try without seconds - parse in the maintenance's timezone
+			endTime, err = time.ParseInLocation("2006-01-02T15:04", *model.EndDateTime, loc)
+		}
+		
+		if err == nil && now.After(endTime) {
+			// Override active status to false for expired maintenance
+			model.Active = false
+		}
+	}
+
 	return model, nil
 }
 
@@ -119,6 +147,36 @@ func (mr *ServiceImpl) FindAll(ctx context.Context, page int, limit int, q strin
 	models, err := mr.repository.FindAll(ctx, page, limit, q, strategy)
 	if err != nil {
 		return nil, err
+	}
+
+	// Check and update active status for expired maintenances
+	for _, m := range models {
+		if m.Active && m.EndDateTime != nil {
+			// Get timezone using the same logic as IsUnderMaintenance
+			timezone := mr.timeUtils.GetDefaultTimezone()
+			if m.Timezone != nil && *m.Timezone != "" {
+				timezone = *m.Timezone
+			}
+			
+			// Load timezone (handles SAME_AS_SERVER)
+			loc := mr.timeUtils.LoadTimezone(timezone)
+			now := time.Now().In(loc)
+			
+			var endTime time.Time
+			var err error
+			
+			// Try RFC3339 first
+			endTime, err = time.Parse(time.RFC3339, *m.EndDateTime)
+			if err != nil {
+				// Try without seconds - parse in the maintenance's timezone
+				endTime, err = time.ParseInLocation("2006-01-02T15:04", *m.EndDateTime, loc)
+			}
+			
+			if err == nil && now.After(endTime) {
+				// Override active status to false for expired maintenances
+				m.Active = false
+			}
+		}
 	}
 
 	return models, nil
