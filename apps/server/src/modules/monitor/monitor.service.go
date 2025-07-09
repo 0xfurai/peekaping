@@ -236,6 +236,15 @@ func (mr *MonitorServiceImpl) FindByProxyId(ctx context.Context, proxyId string)
 }
 
 func (mr *MonitorServiceImpl) GetStatPoints(ctx context.Context, id string, since, until time.Time, granularity string) (*StatPointsSummaryDto, error) {
+	// Get monitor information to understand its interval
+	monitor, err := mr.monitorRepository.FindByID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get monitor: %w", err)
+	}
+	if monitor == nil {
+		return nil, fmt.Errorf("monitor not found")
+	}
+
 	var period stats.StatPeriod
 	switch granularity {
 	case "minute":
@@ -247,7 +256,7 @@ func (mr *MonitorServiceImpl) GetStatPoints(ctx context.Context, id string, sinc
 	default:
 		return nil, fmt.Errorf("invalid granularity: %s", granularity)
 	}
-	statsList, err := mr.statPointsService.FindStatsByMonitorIDAndTimeRange(ctx, id, since, until, period)
+	statsList, err := mr.statPointsService.FindStatsByMonitorIDAndTimeRangeSmooth(ctx, id, since, until, period, monitor.Interval)
 	if err != nil {
 		return nil, err
 	}

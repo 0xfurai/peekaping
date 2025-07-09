@@ -20,6 +20,7 @@ type Service interface {
 	AggregateHeartbeat(ctx context.Context, hb *HeartbeatPayload) error
 	RegisterEventHandlers(eventBus *events.EventBus)
 	FindStatsByMonitorIDAndTimeRange(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod) ([]*Stat, error)
+	FindStatsByMonitorIDAndTimeRangeSmooth(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod, monitorInterval int) ([]*Stat, error)
 	StatPointsSummary(statsList []*Stat) *Stats
 	DeleteByMonitorID(ctx context.Context, monitorID string) error
 }
@@ -170,6 +171,113 @@ func (s *ServiceImpl) FindStatsByMonitorIDAndTimeRange(ctx context.Context, moni
 				Maintenance: 0,
 			})
 		}
+	}
+
+	return result, nil
+}
+
+func calculateAdaptiveTolerance(monitorInterval time.Duration, recentStats []*Stat) time.Duration {
+	if len(recentStats) < 3 {
+		return monitorInterval * 2 // Default fallback
+	}
+
+	// Calculate recent reliability
+	upCount := 0
+	for _, stat := range recentStats {
+		if stat.Up > 0 {
+			upCount++
+		}
+	}
+	reliability := float64(upCount) / float64(len(recentStats))
+
+	// Higher reliability = more tolerance (service is stable)
+	// Lower reliability = less tolerance (service is flaky)
+	if reliability >= 0.9 {
+		return monitorInterval * 3 // Very reliable service
+	} else if reliability >= 0.7 {
+		return monitorInterval * 2 // Moderately reliable
+	} else {
+		return monitorInterval * 1 // Unreliable service, strict tolerance
+	}
+}
+
+func (s *ServiceImpl) FindStatsByMonitorIDAndTimeRangeSmooth(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod, monitorInterval int) ([]*Stat, error) {
+	stats, err := s.repo.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, since, until, period)
+	if err != nil {
+		return nil, err
+	}
+
+	// Determine bucket size
+	var bucket time.Duration
+	switch period {
+	case StatMinutely:
+		bucket = time.Minute
+	case StatHourly:
+		bucket = time.Hour
+	case StatDaily:
+		bucket = 24 * time.Hour
+	default:
+		bucket = time.Minute
+	}
+
+	// Convert monitor interval to duration for comparison
+	monitorIntervalDuration := time.Duration(monitorInterval) * time.Second
+
+	// Build a map for quick lookup
+	statMap := make(map[int64]*Stat)
+	for _, stat := range stats {
+		statMap[stat.Timestamp.Unix()] = stat
+	}
+
+	// Fill missing intervals with smart gap filling
+	targetBucketLength := int(until.Sub(since)/bucket) + 1
+	result := make([]*Stat, 0, targetBucketLength)
+
+	var lastValidStat *Stat
+	for t := since.Truncate(bucket); !t.After(until); t = t.Add(bucket) {
+		key := t.Unix()
+		if stat, ok := statMap[key]; ok {
+			result = append(result, stat)
+			lastValidStat = stat
+		} else {
+			// Create empty stat for missing interval
+			emptyStat := &Stat{
+				ID:          "", // TODO: check if this brake ui (react key)
+				MonitorID:   monitorID,
+				Timestamp:   t,
+				Ping:        0,
+				PingMin:     0,
+				PingMax:     0,
+				Up:          0,
+				Down:        0,
+				Maintenance: 0,
+			}
+
+			// Smart gap filling logic based on monitor interval
+			if lastValidStat != nil {
+				timeSinceLastStat := t.Sub(lastValidStat.Timestamp)
+
+				// If the gap is smaller than the monitor interval, carry forward the last status
+				// This prevents showing gaps for monitors with intervals longer than the chart granularity
+				tolerance := calculateAdaptiveTolerance(monitorIntervalDuration, stats)
+				if timeSinceLastStat < tolerance { // Allow some tolerance
+					// If the last stat had any up counts, assume continued operation
+					if lastValidStat.Up > 0 {
+						emptyStat.Up = 1
+						emptyStat.Ping = lastValidStat.Ping
+						emptyStat.PingMin = lastValidStat.PingMin
+						emptyStat.PingMax = lastValidStat.PingMax
+					} else if lastValidStat.Maintenance > 0 {
+						// Continue maintenance status
+						emptyStat.Maintenance = 1
+					}
+					// For down status or first run, leave as zeros (actual gaps)
+				}
+			}
+
+			result = append(result, emptyStat)
+		}
+
 	}
 
 	return result, nil
