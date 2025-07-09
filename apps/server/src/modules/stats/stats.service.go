@@ -153,6 +153,8 @@ func (s *ServiceImpl) FindStatsByMonitorIDAndTimeRangeWithInterval(ctx context.C
 	if period == StatMinutely && monitorInterval > 60 {
 		// Monitor interval is greater than 1 minute, group minute stats
 		monitorIntervalDuration := time.Duration(monitorInterval) * time.Second
+		// calculate closest bigger interval that is divisible by minute (60)
+		monitorIntervalDuration = monitorIntervalDuration.Round(time.Minute)
 		return s.groupStatsByInterval(stats, since, until, monitorIntervalDuration, monitorID)
 	}
 
@@ -193,74 +195,37 @@ func (s *ServiceImpl) groupStatsByInterval(minuteStats []*Stat, since, until tim
 		return []*Stat{}, nil
 	}
 
-	// Build a map for quick lookup of minute stats
-	minuteStatsMap := make(map[int64]*Stat)
-	for _, stat := range minuteStats {
-		minuteStatsMap[stat.Timestamp.Unix()] = stat
-	}
+	periods := int(until.Sub(since) / interval)
+	result := make([]*Stat, 0, periods)
+	minuteStatsPointer := 0
 
-	// Find the first and last actual data points to determine the range
-	var firstDataTime, lastDataTime time.Time
-	hasData := false
-	for _, stat := range minuteStats {
-		if stat.Up > 0 || stat.Down > 0 || stat.Maintenance > 0 {
-			if !hasData {
-				firstDataTime = stat.Timestamp
-				lastDataTime = stat.Timestamp
-				hasData = true
-			} else {
-				if stat.Timestamp.Before(firstDataTime) {
-					firstDataTime = stat.Timestamp
-				}
-				if stat.Timestamp.After(lastDataTime) {
-					lastDataTime = stat.Timestamp
-				}
-			}
-		}
-	}
+	for i := 0; i < periods; i++ {
+		bucketStart := since.Add(time.Duration(i) * interval)
+		bucketEnd := bucketStart.Add(interval)
 
-	// Don't extend beyond the requested until time
-	if lastDataTime.After(until) {
-		lastDataTime = until
-	}
-
-	// If no data found, return empty result
-	if !hasData {
-		return []*Stat{}, nil
-	}
-
-	// Start from the first data point, aligned to minute boundary
-	start := firstDataTime.Truncate(time.Minute)
-	end := lastDataTime.Truncate(time.Minute)
-
-	// Group stats by monitor interval
-	var result []*Stat
-	for t := start; !t.After(end); {
 		bucketStats := make([]*Stat, 0)
 
-		// Collect minute stats for this interval bucket
-		bucketEnd := t.Add(interval)
-		hasDataInBucket := false
-
-		for minuteTime := t; minuteTime.Before(bucketEnd) && !minuteTime.After(end); minuteTime = minuteTime.Add(time.Minute) {
-			key := minuteTime.Unix()
-			if stat, ok := minuteStatsMap[key]; ok {
-				bucketStats = append(bucketStats, stat)
-				// Check if this bucket has any actual data
-				if stat.Up > 0 || stat.Down > 0 || stat.Maintenance > 0 {
-					hasDataInBucket = true
-				}
-			}
+		for minuteStatsPointer < len(minuteStats) && minuteStats[minuteStatsPointer].Timestamp.Before(bucketEnd) {
+			bucketStats = append(bucketStats, minuteStats[minuteStatsPointer])
+			minuteStatsPointer++
 		}
 
-		// Only create a bucket if we have actual data in it
-		if hasDataInBucket {
-			aggregated := s.aggregateStats(bucketStats, t, monitorID)
+		if len(bucketStats) > 0 {
+			aggregated := s.aggregateStats(bucketStats, bucketStart, monitorID)
 			result = append(result, aggregated)
+		} else {
+			result = append(result, &Stat{
+				ID:          "",
+				MonitorID:   monitorID,
+				Timestamp:   bucketStart,
+				Ping:        0,
+				PingMin:     0,
+				PingMax:     0,
+				Up:          0,
+				Down:        0,
+				Maintenance: 0,
+			})
 		}
-
-		// Move to next interval bucket
-		t = t.Add(interval)
 	}
 
 	return result, nil
