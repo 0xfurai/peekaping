@@ -127,7 +127,7 @@ func (s *ServiceImpl) RegisterEventHandlers(eventBus *events.EventBus) {
 }
 
 func (s *ServiceImpl) FindStatsByMonitorIDAndTimeRange(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod) ([]*Stat, error) {
-	return s.FindStatsByMonitorIDAndTimeRangeWithInterval(ctx, monitorID, since, until, period, 0)
+	return s.repo.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, since, until, period)
 }
 
 func (s *ServiceImpl) FindStatsByMonitorIDAndTimeRangeWithInterval(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod, monitorInterval int) ([]*Stat, error) {
