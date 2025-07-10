@@ -223,7 +223,10 @@ func runWithDB(fn func(*bun.DB) error) error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	config.ValidateDatabaseCustomRules(&cfg)
+	err = config.ValidateDatabaseCustomRules(&cfg)
+	if err != nil {
+		return fmt.Errorf("failed to validate database custom rules: %w", err)
+	}
 
 	// Connect to database
 	db, err := connectToDatabase(&cfg)

@@ -45,7 +45,10 @@ func main() {
 		panic(err)
 	}
 
-	config.ValidateDatabaseCustomRules(config.ExtractDBConfig(&cfg))
+	err = config.ValidateDatabaseCustomRules(config.ExtractDBConfig(&cfg))
+	if err != nil {
+		panic(err)
+	}
 
 	os.Setenv("TZ", cfg.Timezone)
 
