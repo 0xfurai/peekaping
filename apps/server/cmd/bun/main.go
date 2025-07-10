@@ -218,10 +218,12 @@ func newDBCommand() *cli.Command {
 
 func runWithDB(fn func(*bun.DB) error) error {
 	// Load configuration
-	cfg, err := config.LoadConfig("../..")
+	cfg, err := config.LoadConfig[config.DBConfig]("../..")
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
+
+	config.ValidateDatabaseCustomRules(&cfg)
 
 	// Connect to database
 	db, err := connectToDatabase(&cfg)
@@ -239,7 +241,7 @@ func runWithDB(fn func(*bun.DB) error) error {
 	return fn(db)
 }
 
-func connectToDatabase(cfg *config.Config) (*bun.DB, error) {
+func connectToDatabase(cfg *config.DBConfig) (*bun.DB, error) {
 	var sqldb *sql.DB
 	var db *bun.DB
 	var err error
