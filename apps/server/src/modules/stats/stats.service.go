@@ -213,7 +213,16 @@ func (s *ServiceImpl) groupStatsByInterval(minuteStats []*Stat, since, until tim
 
 		bucketStats := make([]*Stat, 0)
 
-		for minuteStatsPointer < len(minuteStats) && minuteStats[minuteStatsPointer].Timestamp.Before(bucketEnd) {
+		// Skip stats that are before the current bucket start
+		for minuteStatsPointer < len(minuteStats) && minuteStats[minuteStatsPointer].Timestamp.Before(bucketStart) {
+			minuteStatsPointer++
+		}
+
+		// Include stats that are within the current bucket (inclusive of bucketStart, exclusive of bucketEnd)
+		// For the last bucket, also include stats exactly at the until timestamp
+		for minuteStatsPointer < len(minuteStats) &&
+			(minuteStats[minuteStatsPointer].Timestamp.Before(bucketEnd) ||
+				(i == periods-1 && minuteStats[minuteStatsPointer].Timestamp.Equal(until))) {
 			bucketStats = append(bucketStats, minuteStats[minuteStatsPointer])
 			minuteStatsPointer++
 		}
