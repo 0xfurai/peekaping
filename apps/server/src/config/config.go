@@ -13,11 +13,11 @@ import (
 )
 
 type DBConfig struct {
-	DBHost string `env:"DB_HOST" validate:"required"`
-	DBPort string `env:"DB_PORT" validate:"required,port"`
-	DBName string `env:"DB_NAME" validate:"min=1" default:"peekaping"`
-	DBUser string `env:"DB_USER" validate:"required"`
-	DBPass string `env:"DB_PASS" validate:"required"`
+	DBHost string `env:"DB_HOST"`                           // validated in validateCustomRules
+	DBPort string `env:"DB_PORT"`                           // validated in validateCustomRules
+	DBName string `env:"DB_NAME" validate:"required,min=1"` // validated in validateCustomRules
+	DBUser string `env:"DB_USER"`                           // validated in validateCustomRules
+	DBPass string `env:"DB_PASS"`                           // validated in validateCustomRules
 	DBType string `env:"DB_TYPE" validate:"required,db_type"`
 }
 
@@ -25,11 +25,11 @@ type Config struct {
 	Port      string `env:"SERVER_PORT" validate:"required,port" default:"8034"`
 	ClientURL string `env:"CLIENT_URL" validate:"url" default:"http://localhost:3000"`
 
-	DBHost string `env:"DB_HOST" validate:"required"`
-	DBPort string `env:"DB_PORT" validate:"required,port"`
-	DBName string `env:"DB_NAME" validate:"min=1" default:"peekaping"`
-	DBUser string `env:"DB_USER" validate:"required"`
-	DBPass string `env:"DB_PASS" validate:"required"`
+	DBHost string `env:"DB_HOST"`                           // validated in validateCustomRules
+	DBPort string `env:"DB_PORT"`                           // validated in validateCustomRules
+	DBName string `env:"DB_NAME" validate:"required,min=1"` // validated in validateCustomRules
+	DBUser string `env:"DB_USER"`                           // validated in validateCustomRules
+	DBPass string `env:"DB_PASS"`                           // validated in validateCustomRules
 	DBType string `env:"DB_TYPE" validate:"required,db_type"`
 
 	AccessTokenExpiresIn  time.Duration `env:"ACCESS_TOKEN_EXPIRED_IN" validate:"duration_min=1m" default:"15m"`
