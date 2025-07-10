@@ -13,6 +13,7 @@ import (
 	"peekaping/src/modules/setting"
 	"peekaping/src/modules/status_page"
 	"peekaping/src/modules/websocket"
+	"peekaping/src/version"
 
 	_ "peekaping/docs"
 
@@ -31,7 +32,7 @@ import (
 // @Success      200  {object}  map[string]string  "{"version": "1.2.3"}"
 // @Router       /version [get]
 func versionHandler(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, gin.H{"version": Version})
+	ctx.JSON(http.StatusOK, gin.H{"version": version.Version})
 }
 
 // @Summary      Get server health

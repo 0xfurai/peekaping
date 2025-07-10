@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"peekaping/src/modules/heartbeat"
 	"peekaping/src/modules/monitor"
+	"peekaping/src/version"
 
 	liquid "github.com/osteele/liquid"
 	"go.uber.org/zap"
@@ -157,7 +158,7 @@ func (w *WebhookSender) Send(
 	}
 
 	// Set default user agent
-	req.Header.Set("User-Agent", "Peekaping-Webhook/1.0")
+	req.Header.Set("User-Agent", "Peekaping-Webhook/"+version.Version)
 
 	w.logger.Debugf("Sending webhook POST request to: %s", cfg.WebhookURL)
 

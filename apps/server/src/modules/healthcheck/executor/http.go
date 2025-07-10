@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"peekaping/src/modules/shared"
 	"peekaping/src/utils"
+	"peekaping/src/version"
 	"strings"
 	"time"
 
@@ -393,6 +394,10 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		}
 	}
 
+	// Set user agent and accept headers
+	req.Header.Set("User-Agent", "peekaping/"+version.Version)
+	req.Header.Set("Accept", "*/*")
+
 	startTime := time.Now().UTC()
 	resp, err := h.client.Do(req)
 	endTime := time.Now().UTC()
@@ -403,6 +408,7 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	}
 	defer resp.Body.Close()
 
+	h.logger.Debugf("RAW response: %+v", resp)
 	h.logger.Infof("HTTP response status: %s, %d", m.Name, resp.StatusCode)
 
 	if !isStatusAccepted(resp.StatusCode, cfg.AcceptedStatusCodes) {

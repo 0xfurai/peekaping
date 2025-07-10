@@ -24,6 +24,7 @@ import (
 	"peekaping/src/modules/status_page"
 	"peekaping/src/modules/websocket"
 	"peekaping/src/utils"
+	"peekaping/src/version"
 
 	"go.uber.org/dig"
 	"go.uber.org/zap"
@@ -35,7 +36,7 @@ import (
 // @in header
 // @name Authorization
 func main() {
-	docs.SwaggerInfo.Version = Version
+	docs.SwaggerInfo.Version = version.Version
 
 	utils.RegisterCustomValidators()
 

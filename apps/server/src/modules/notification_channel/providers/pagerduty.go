@@ -10,6 +10,7 @@ import (
 	"peekaping/src/modules/heartbeat"
 	"peekaping/src/modules/monitor"
 	"peekaping/src/modules/shared"
+	"peekaping/src/version"
 	"strings"
 
 	"go.uber.org/zap"
@@ -206,7 +207,7 @@ func (p *PagerDutySender) Send(
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "Peekaping-PagerDuty/1.0")
+	req.Header.Set("User-Agent", "Peekaping-PagerDuty/"+version.Version)
 
 	p.logger.Debugf("Sending PagerDuty request: %s", req.URL.String())
 
