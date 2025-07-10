@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "gen": "openapi-ts",
-    "build:docker": "docker build -t peekaping/web:latest ."
+    "build:docker": "docker build -t peekaping/web:latest .",
+    "i18n:parse": "node_modules/.bin/i18next"
   },
   "dependencies": {
     "@hey-api/client-axios": "0.7.0",
@@ -38,8 +39,9 @@
     "cmdk": "1.1.1",
     "cronstrue": "^2.61.0",
     "dayjs": "1.11.13",
-    "i18next": "^25.2.1",
-    "i18next-browser-languagedetector": "^8.2.0",
+    "i18next": "25.2.1",
+    "i18next-browser-languagedetector": "8.2.0",
+    "i18next-parser": "9.3.0",
     "lucide-react": "0.509.0",
     "next-themes": "0.4.6",
     "patch-package": "8.0.0",
@@ -49,7 +51,7 @@
     "react-i18next": "^15.5.3",
     "react-qr-code": "2.0.15",
     "react-router-dom": "6.30.0",
-    "recharts": "2.15.3",
+    "recharts": "3.1.0",
     "socket.io-client": "4.8.1",
     "sonner": "2.0.3",
     "tailwind-merge": "3.2.0",
@@ -71,5 +73,8 @@
     "typescript": "~5.8.3",
     "typescript-eslint": "8.30.1",
     "vite": "6.3.5"
+  },
+  "overrides": {
+    "react-is": "^19.0.0-rc-69d4b800-20241021"
   }
 }

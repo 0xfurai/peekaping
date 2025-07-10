@@ -91,7 +91,11 @@ const BarHistory: React.FC<BarHistoryProps> = ({
                 {value && value.time && tooltip && (
                   <TooltipContent>
                     <p>ID: {value.id}</p>
-                    <p>{formatDateToTimezone(value.time, timezone)}</p>
+                    <p>
+                      {formatDateToTimezone(value.time, timezone, {
+                        second: "2-digit",
+                      })}
+                    </p>
                     <p>Status: {value.status}</p>
                     <p>Ping: {value.ping} ms</p>
                     <p>Important: {value.important?.toString()}</p>
