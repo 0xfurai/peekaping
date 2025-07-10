@@ -63,15 +63,12 @@ func LoadConfig[T any](path string) (config T, err error) {
 		// Clear the error if it's just file not found (we'll use env vars instead)
 		err = nil
 	}
-	fmt.Println(".env file loaded", envVarsFromFile)
 
 	// Override with environment variables (takes precedence)
 	envVarsFromEnv := loadFromEnv(&config)
-	fmt.Println("env vars from env loaded", envVarsFromEnv)
 
 	// Apply default values for fields that weren't set
 	defaultsApplied := applyDefaults(&config)
-	fmt.Println("defaults applied", defaultsApplied)
 
 	// Validate the configuration
 	err = validateConfig(&config)
