@@ -425,7 +425,7 @@ const DockerForm = () => {
                         form.setValue("tls_enabled", false);
                         form.setValue("docker_daemon", "/var/run/docker.sock");
                       } else if (val === "tcp") {
-                        form.setValue("docker_daemon", "tcp://localhost:2376");
+                        form.setValue("docker_daemon", "http://localhost:2375");
                       }
                     }}
                     value={field.value}
