@@ -59,11 +59,11 @@ export const dockerSchema = z
     }),
     docker_daemon: z.string().min(1, "Docker Daemon is required"),
     // TLS fields with proper defaults
-    tls_enabled: z.boolean().default(false),
-    tls_cert: z.string().default(""),
-    tls_key: z.string().default(""),
-    tls_ca: z.string().default(""),
-    tls_verify: z.boolean().default(true),
+    tls_enabled: z.boolean(),
+    tls_cert: z.string(),
+    tls_key: z.string(),
+    tls_ca: z.string(),
+    tls_verify: z.boolean(),
   })
   .merge(generalSchema)
   .merge(intervalsSchema)
@@ -74,7 +74,7 @@ export type DockerForm = z.infer<typeof dockerSchema>;
 
 export const dockerDefaultValues: DockerForm = {
   type: "docker",
-  container_id: "my-container",
+  container_id: "",
   connection_type: "socket",
   docker_daemon: "/var/run/docker.sock",
   tls_enabled: false,
@@ -89,7 +89,7 @@ export const dockerDefaultValues: DockerForm = {
 
 export const deserialize = (data: MonitorMonitorResponseDto): DockerForm => {
   let config: DockerConfig = {
-    container_id: "my-container",
+    container_id: "",
     connection_type: "socket",
     docker_daemon: "/var/run/docker.sock",
     tls_enabled: false,
@@ -103,7 +103,7 @@ export const deserialize = (data: MonitorMonitorResponseDto): DockerForm => {
     try {
       const parsedConfig = JSON.parse(data.config);
       config = {
-        container_id: parsedConfig.container_id || "my-container",
+        container_id: parsedConfig.container_id || "",
         connection_type: parsedConfig.connection_type || "socket",
         docker_daemon: parsedConfig.docker_daemon || "/var/run/docker.sock",
         tls_enabled: parsedConfig.tls_enabled || false,
