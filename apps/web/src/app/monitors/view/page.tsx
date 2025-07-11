@@ -471,7 +471,7 @@ const MonitorPage = () => {
               {monitor?.active && lastImportantHeartbeatDuration > 0 && (
                 <div className="text-sm text-gray-400">{lihText}</div>
               )}
-              {!monitor?.active && (
+              {!monitor?.active && lastHeartbeat?.time && (
                 <div className="text-sm text-gray-400">
                   {formatDuration(
                     dayjs().diff(dayjs(lastHeartbeat?.time), "milliseconds")
