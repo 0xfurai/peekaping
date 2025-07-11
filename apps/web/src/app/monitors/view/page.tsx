@@ -329,10 +329,9 @@ const MonitorPage = () => {
 
   const lastImportantHeartbeat = lastImportantHeartbeatData?.data?.[0];
   const lastImportantHeartbeatTime = lastImportantHeartbeat?.time;
-  const lastImportantHeartbeatDuration = dayjs().diff(
-    dayjs(lastImportantHeartbeatTime),
-    "milliseconds"
-  );
+  const lastImportantHeartbeatDuration = lastImportantHeartbeatTime
+    ? dayjs().diff(dayjs(lastImportantHeartbeatTime), "milliseconds")
+    : 0;
 
   const lihText = formatDuration(lastImportantHeartbeatDuration);
 
