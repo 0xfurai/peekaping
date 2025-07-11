@@ -43,6 +43,23 @@ import { toast } from "sonner";
 import { cn, commonMutationErrorHandler } from "@/lib/utils";
 import ImportantNotificationsList from "../components/important-notifications-list";
 import { BackButton } from "@/components/back-button";
+import dayjs from "dayjs";
+
+function formatDuration(ms: number): string {
+  const d = dayjs.duration(ms);
+
+  const parts: string[] = [];
+
+  if (d.days()) parts.push(`${d.days()}d`);
+  if (d.hours()) parts.push(`${d.hours()}h`);
+  if (d.minutes()) parts.push(`${d.minutes()}m`);
+
+  if (parts.length === 0) {
+    return "";
+  }
+
+  return "for " + parts.join(" ");
+}
 
 const MonitorPage = () => {
   const { id } = useParams();
@@ -146,12 +163,30 @@ const MonitorPage = () => {
     setShowConfirmDelete(true);
   };
 
+  const lastHeartbeat =
+    heartbeatData?.length > 0 ? heartbeatData[heartbeatData.length - 1] : null;
+
   const { data: stats, refetch: refetchUptimeStats } = useQuery({
     ...getMonitorsByIdStatsUptimeOptions({
       path: {
         id: id!,
       },
     }),
+  });
+
+  const {
+    data: lastImportantHeartbeatData,
+    refetch: refetchLastImportantHeartbeat,
+  } = useQuery({
+    ...getMonitorsByIdHeartbeatsOptions({
+      path: { id: id! },
+      query: {
+        limit: 1,
+        important: true,
+        reverse: true,
+      },
+    }),
+    enabled: !!id,
   });
 
   useEffect(() => {
@@ -203,6 +238,7 @@ const MonitorPage = () => {
       }
 
       refetchUptimeStats();
+      refetchLastImportantHeartbeat();
     };
 
     if (socketStatus === WebSocketStatus.CONNECTED) {
@@ -224,10 +260,8 @@ const MonitorPage = () => {
     heartbeatsResponse,
     queryClient,
     refetchUptimeStats,
+    refetchLastImportantHeartbeat,
   ]);
-
-  const lastHeartbeat =
-    heartbeatData?.length > 0 ? heartbeatData[heartbeatData.length - 1] : null;
 
   const dataStats = useMemo(() => {
     if (!stats) return [];
@@ -292,6 +326,15 @@ const MonitorPage = () => {
     },
     onError: commonMutationErrorHandler("Failed to reset monitor data"),
   });
+
+  const lastImportantHeartbeat = lastImportantHeartbeatData?.data?.[0];
+  const lastImportantHeartbeatTime = lastImportantHeartbeat?.time;
+  const lastImportantHeartbeatDuration = dayjs().diff(
+    dayjs(lastImportantHeartbeatTime),
+    "milliseconds"
+  );
+
+  const lihText = formatDuration(lastImportantHeartbeatDuration);
 
   return (
     <Layout
@@ -406,20 +449,35 @@ const MonitorPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-y-4 md:gap-4 mb-4">
             <Card className="p-4 rounded-xl gap-1">
               <div className="font-semibold">Current status</div>
-              <div
-                className={cn(
-                  "font-semibold text-2xl",
-                  lastHeartbeat?.status === 1 && "text-green-400",
-                  lastHeartbeat?.status === 0 && "text-red-400",
-                  lastHeartbeat?.status === 2 && "text-red-400",
-                  lastHeartbeat?.status === 3 && "text-blue-400"
-                )}
-              >
-                {lastHeartbeat?.status === 1 && "Up"}
-                {lastHeartbeat?.status === 0 && "Down"}
-                {lastHeartbeat?.status === 2 && "Down"}
-                {lastHeartbeat?.status === 3 && "Maintenance"}
-              </div>
+              {monitor?.active ? (
+                <div
+                  className={cn(
+                    "font-semibold text-2xl",
+                    lastHeartbeat?.status === 1 && "text-green-400",
+                    lastHeartbeat?.status === 0 && "text-red-400",
+                    lastHeartbeat?.status === 2 && "text-red-400",
+                    lastHeartbeat?.status === 3 && "text-blue-400"
+                  )}
+                >
+                  {lastHeartbeat?.status === 1 && "Up"}
+                  {lastHeartbeat?.status === 0 && "Down"}
+                  {lastHeartbeat?.status === 2 && "Down"}
+                  {lastHeartbeat?.status === 3 && "Maintenance"}
+                </div>
+              ) : (
+                <div className="font-semibold text-2xl">Paused</div>
+              )}
+
+              {monitor?.active && lastImportantHeartbeatDuration > 0 && (
+                <div className="text-sm text-gray-400">{lihText}</div>
+              )}
+              {!monitor?.active && (
+                <div className="text-sm text-gray-400">
+                  {formatDuration(
+                    dayjs().diff(dayjs(lastHeartbeat?.time), "milliseconds")
+                  )}
+                </div>
+              )}
             </Card>
 
             <Card className="p-4 rounded-xl col-span-2 gap-2">

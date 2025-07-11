@@ -35,10 +35,13 @@ import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import relativeTime from "dayjs/plugin/relativeTime";
 import EditStatusPage from "./app/status-pages/edit/page";
+import duration from "dayjs/plugin/duration";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(relativeTime);
+dayjs.extend(duration)
+
 
 export const configureClient = () => {
   const accessToken = useAuthStore.getState().accessToken;
