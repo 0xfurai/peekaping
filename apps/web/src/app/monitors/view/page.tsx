@@ -46,6 +46,11 @@ import { BackButton } from "@/components/back-button";
 import dayjs from "dayjs";
 
 function formatDuration(ms: number): string {
+  // Handle negative durations (clock skew) by returning empty string
+  if (ms <= 0) {
+    return "";
+  }
+
   const d = dayjs.duration(ms);
 
   const parts: string[] = [];
