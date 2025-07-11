@@ -23,6 +23,7 @@ func (r *Route) ConnectRoute(rg *gin.RouterGroup, controller *Controller) {
 	sp := rg.Group("status-pages")
 	sp.GET("/slug/:slug", r.controller.FindBySlug)
 	sp.GET("/slug/:slug/monitors", r.controller.GetMonitorsBySlug)
+	sp.GET("/slug/:slug/monitors/homepage", r.controller.GetMonitorsBySlugForHomepage)
 
 	sp.Use(r.middleware.Auth())
 	{

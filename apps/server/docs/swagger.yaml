@@ -2797,6 +2797,32 @@ paths:
       summary: Get monitors for a status page by slug with heartbeats and uptime
       tags:
       - Status Pages
+  /status-pages/slug/{slug}/monitors/homepage:
+    get:
+      parameters:
+      - description: Status Page Slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.ApiResponse-array_status_page_MonitorWithHeartbeatsAndUptimeDTO'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      summary: Get monitors for a status page by slug for homepage
+      tags:
+      - Status Pages
   /version:
     get:
       description: Returns the current server version

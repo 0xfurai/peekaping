@@ -2492,6 +2492,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/status-pages/slug/{slug}/monitors/homepage": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Status Pages"
+                ],
+                "summary": "Get monitors for a status page by slug for homepage",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Status Page Slug",
+                        "name": "slug",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ApiResponse-array_status_page_MonitorWithHeartbeatsAndUptimeDTO"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    }
+                }
+            }
+        },
         "/status-pages/{id}": {
             "get": {
                 "security": [

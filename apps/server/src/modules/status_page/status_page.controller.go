@@ -289,3 +289,105 @@ func (c *Controller) GetMonitorsBySlug(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", monitorModels))
 }
+
+// @Router    /status-pages/slug/{slug}/monitors/homepage [get]
+// @Summary   Get monitors for a status page by slug for homepage
+// @Tags      Status Pages
+// @Produce   json
+// @Param     slug path      string  true  "Status Page Slug"
+// @Success   200  {object}  utils.ApiResponse[[]MonitorWithHeartbeatsAndUptimeDTO]
+// @Failure   404  {object}  utils.APIError[any]
+// @Failure   500  {object}  utils.APIError[any]
+func (c *Controller) GetMonitorsBySlugForHomepage(ctx *gin.Context) {
+	slug := ctx.Param("slug")
+
+	// First get the status page
+	page, err := c.service.FindBySlug(ctx, slug)
+	if err != nil {
+		c.logger.Errorw("Failed to get status page by slug", "error", err, "slug", slug)
+		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		return
+	}
+	if page == nil {
+		ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Status page not found"))
+		return
+	}
+
+	// Get monitors for the status page
+	monitors, err := c.service.GetMonitorsForStatusPage(ctx, page.ID)
+	if err != nil {
+		c.logger.Errorw("Failed to get monitors for status page", "error", err, "statusPageID", page.ID)
+		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		return
+	}
+
+	// Convert monitor_status_page models to monitor models with heartbeats and uptime
+	monitorModels := make([]*MonitorWithHeartbeatsAndUptimeDTO, 0, len(monitors))
+	for _, msp := range monitors {
+		// Get the actual monitor data
+		monitorModel, err := c.monitorService.FindByID(ctx, msp.MonitorID)
+		if err != nil {
+			c.logger.Errorw("Failed to get monitor by ID", "error", err, "monitorID", msp.MonitorID)
+			continue
+		}
+		if monitorModel == nil {
+			continue
+		}
+
+		// Get 100 heartbeats for this monitor
+		heartbeats, err := c.heartbeatService.FindByMonitorIDPaginated(ctx, msp.MonitorID, 1, 0, nil, true)
+		if err != nil {
+			c.logger.Errorw("Failed to get heartbeats for monitor", "error", err, "monitorID", msp.MonitorID)
+			heartbeats = []*heartbeat.Model{} // Empty slice if error
+		}
+
+		// Convert heartbeats to public DTOs
+		publicHeartbeats := make([]*PublicHeartbeatDTO, 0, len(heartbeats))
+		for _, hb := range heartbeats {
+			publicHeartbeat := &PublicHeartbeatDTO{
+				ID:      hb.ID,
+				Status:  hb.Status,
+				Time:    hb.Time,
+				EndTime: hb.EndTime,
+				Ping:    hb.Ping,
+			}
+			publicHeartbeats = append(publicHeartbeats, publicHeartbeat)
+		}
+
+		// Get 24h uptime for this monitor
+		now := time.Now().UTC()
+		periods := map[string]time.Duration{
+			"24h": 24 * time.Hour,
+		}
+		uptimeStats, err := c.heartbeatService.FindUptimeStatsByMonitorID(ctx, msp.MonitorID, periods, now)
+		if err != nil {
+			c.logger.Errorw("Failed to get uptime stats for monitor", "error", err, "monitorID", msp.MonitorID)
+			ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("failed to get uptime stats for monitor"))
+			return
+		}
+
+		uptime24h := 0.0
+		if uptimeStats != nil {
+			if uptime, exists := uptimeStats["24h"]; exists {
+				uptime24h = uptime
+			}
+		}
+
+		publicMonitor := &PublicMonitorDTO{
+			ID:     monitorModel.ID,
+			Type:   monitorModel.Type,
+			Name:   monitorModel.Name,
+			Active: monitorModel.Active,
+		}
+
+		monitorWithData := &MonitorWithHeartbeatsAndUptimeDTO{
+			PublicMonitorDTO: publicMonitor,
+			Heartbeats:       publicHeartbeats,
+			Uptime24h:        uptime24h,
+		}
+
+		monitorModels = append(monitorModels, monitorWithData)
+	}
+
+	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", monitorModels))
+}
