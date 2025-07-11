@@ -89,24 +89,46 @@ const BarHistory: React.FC<BarHistoryProps> = ({
                 </TooltipTrigger>
 
                 {value && value.time && tooltip && (
-                  <TooltipContent>
-                    <p>ID: {value.id}</p>
-                    <p>{formatDateToTimezone(value.time, timezone)}</p>
-                    <p>Status: {value.status}</p>
-                    <p>Ping: {value.ping} ms</p>
-                    <p>Important: {value.important?.toString()}</p>
-                    <p>Message: {value.msg}</p>
-                    <p>Retries: {value.retries}</p>
-                    <p>Down count: {value.down_count}</p>
-                    <p>Notified: {value.notified?.toString()}</p>
-                    {prev && prev?.time && (
-                      <p>
-                        Interval:{" "}
-                        {new Date(value.time!).getTime() -
-                          new Date(prev.time!).getTime()}{" "}
-                        ms
-                      </p>
-                    )}
+                  <TooltipContent className="max-w-xs">
+                    <div className="grid grid-cols-3 gap-x-3 gap-y-1">
+                      <div className="font-semibold">ID:</div>
+                      <div className="col-span-2">{value.id}</div>
+
+                      <div className="font-semibold">Time:</div>
+                      <div className="col-span-2">{formatDateToTimezone(value.time, timezone)}</div>
+
+                      <div className="font-semibold">Status:</div>
+                      <div className="col-span-2">{value.status}</div>
+
+                      <div className="font-semibold">Ping:</div>
+                      <div className="col-span-2">{value.ping} ms</div>
+
+                      <div className="font-semibold">Important:</div>
+                      <div className="col-span-2">{value.important?.toString()}</div>
+
+                      <div className="font-semibold">Message:</div>
+                      <div className="col-span-2 break-words">{value.msg}</div>
+
+                      <div className="font-semibold">Retries:</div>
+                      <div className="col-span-2">{value.retries}</div>
+
+                      <div className="font-semibold">Down count:</div>
+                      <div className="col-span-2">{value.down_count}</div>
+
+                      <div className="font-semibold">Notified:</div>
+                      <div className="col-span-2">{value.notified?.toString()}</div>
+
+                      {prev && prev?.time && (
+                        <>
+                          <div className="font-semibold">Interval:</div>
+                          <div className="col-span-2">
+                            {new Date(value.time!).getTime() -
+                              new Date(prev.time!).getTime()}{" "}
+                            ms
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </TooltipContent>
                 )}
               </Tooltip>
