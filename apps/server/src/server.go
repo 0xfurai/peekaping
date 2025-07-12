@@ -12,6 +12,7 @@ import (
 	"peekaping/src/modules/proxy"
 	"peekaping/src/modules/setting"
 	"peekaping/src/modules/status_page"
+	"peekaping/src/modules/tag"
 	"peekaping/src/modules/websocket"
 	"peekaping/src/version"
 
@@ -71,6 +72,8 @@ func ProvideServer(
 	maintenanceController *maintenance.Controller,
 	statusPageRoute *status_page.Route,
 	statusPageController *status_page.Controller,
+	tagRoute *tag.Route,
+	tagController *tag.Controller,
 ) *Server {
 	server := gin.Default()
 	// server := gin.New()
@@ -101,6 +104,7 @@ func ProvideServer(
 	settingRoute.ConnectRoute(router, settingController)
 	maintenanceRoute.ConnectRoute(router, maintenanceController)
 	statusPageRoute.ConnectRoute(router, statusPageController)
+	tagRoute.ConnectRoute(router, tagController)
 
 	// Register push endpoint
 	healthcheck.RegisterPushEndpoint(router, monitorService, heartbeatService, healthcheckSupervisor, logger)

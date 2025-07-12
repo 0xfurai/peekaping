@@ -7,6 +7,7 @@ import {
   SettingsIcon,
   Vibrate,
   ListCheckIcon,
+  Tag,
 } from "lucide-react";
 
 import {
@@ -50,6 +51,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         title: t("navigation.status_pages"),
         url: "/status-pages",
         icon: ListCheckIcon,
+      },
+      {
+        title: "Tags",
+        url: "/tags",
+        icon: Tag,
       },
       {
         title: t("navigation.proxies"),

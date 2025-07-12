@@ -3,6 +3,7 @@ import { twMerge } from "tailwind-merge";
 import dayjs from "dayjs";
 import { toast } from "sonner";
 import { isAxiosError } from "axios";
+import type { QueryClient } from "@tanstack/react-query";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -76,3 +77,20 @@ export const commonMutationErrorHandler =
     }
     console.error(error);
   };
+
+
+export const invalidateByPartialQueryKey = (queryClient: QueryClient, part: Record<string, string>) => {
+  queryClient.invalidateQueries({
+    predicate: (query) => {
+      if (!Array.isArray(query.queryKey) || !query.queryKey[0]) {
+        return false;
+      }
+
+      const queryKeyObj = query.queryKey[0] as Record<string, unknown>;
+
+      return Object.entries(part).every(([key, value]) =>
+        queryKeyObj[key] === value
+      );
+    },
+  });
+};

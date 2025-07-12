@@ -36,6 +36,9 @@ import utc from "dayjs/plugin/utc";
 import relativeTime from "dayjs/plugin/relativeTime";
 import EditStatusPage from "./app/status-pages/edit/page";
 import duration from "dayjs/plugin/duration";
+import TagsPage from "./app/tags/page";
+import NewTag from "./app/tags/new/page";
+import EditTag from "./app/tags/edit/page";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -143,6 +146,10 @@ export default function App() {
 
                   <Route path="/settings" element={<SettingsPage />} />
                   <Route path="/security" element={<SecurityPage />} />
+
+                  <Route path="/tags" element={<TagsPage />} />
+                  <Route path="/tags/new" element={<NewTag />} />
+                  <Route path="/tags/:id/edit" element={<EditTag />} />
 
                   <Route
                     path="*"

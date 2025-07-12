@@ -2,6 +2,7 @@ import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getMonitorsByIdHeartbeatsQueryKey,
   getMonitorsInfiniteOptions,
+  getTagsOptions,
 } from "@/api/@tanstack/react-query.gen";
 import Layout from "@/layout";
 import { useNavigate } from "react-router-dom";
@@ -9,6 +10,7 @@ import {
   type HeartbeatModel,
   type MonitorModel,
   type UtilsApiResponseArrayHeartbeatModel,
+  type TagModel,
 } from "@/api";
 import { useWebSocket, WebSocketStatus } from "@/context/websocket-context";
 import { useEffect, useState, useRef, useCallback } from "react";
@@ -27,6 +29,16 @@ import {
 import { Label } from "@/components/ui/label";
 import EmptyList from "@/components/empty-list";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { useQuery } from "@tanstack/react-query";
+import { Badge } from "@/components/ui/badge";
+import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const MonitorsPage = () => {
   const navigate = useNavigate();
@@ -44,6 +56,21 @@ const MonitorsPage = () => {
   const [statusFilter, setStatusFilter] = useState<
     "all" | "up" | "down" | "maintenance"
   >("all");
+
+  // Add state for tag filtering
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const [tagPopoverOpen, setTagPopoverOpen] = useState(false);
+
+  // Load tags for filtering
+  const { data: tagsData } = useQuery({
+    ...getTagsOptions({
+      query: {
+        limit: 100, // Load more tags for filtering
+      },
+    }),
+  });
+
+  const availableTags = (tagsData?.data || []) as TagModel[];
 
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery({
@@ -67,6 +94,7 @@ const MonitorsPage = () => {
               : statusFilter === "maintenance"
               ? 3
               : undefined,
+          tag_ids: selectedTagIds.length > 0 ? selectedTagIds.join(",") : undefined,
         },
       }),
       getNextPageParam: (lastPage, pages) => {
@@ -78,8 +106,11 @@ const MonitorsPage = () => {
       enabled: true,
     });
 
-  const monitors = (data?.pages.flatMap((page) => page.data || []) ||
+  const allMonitors = (data?.pages.flatMap((page) => page.data || []) ||
     []) as MonitorModel[];
+
+  // No more client-side filtering needed since API now supports tag filtering
+  const monitors = allMonitors;
 
   const { socket, status: socketStatus } = useWebSocket();
   const subscribedRef = useRef(false);
@@ -140,6 +171,26 @@ const MonitorsPage = () => {
   const { ref: sentinelRef } =
     useIntersectionObserver<HTMLDivElement>(handleObserver);
 
+  const handleTagToggle = (tagId: string) => {
+    setSelectedTagIds((prev) =>
+      prev.includes(tagId)
+        ? prev.filter((id) => id !== tagId)
+        : [...prev, tagId]
+    );
+  };
+
+  const handleTagRemove = (tagId: string) => {
+    setSelectedTagIds((prev) => prev.filter((id) => id !== tagId));
+  };
+
+  const clearAllTags = () => {
+    setSelectedTagIds([]);
+  };
+
+  const selectedTags = availableTags.filter((tag) =>
+    selectedTagIds.includes(tag.id!)
+  );
+
   return (
     <Layout
       pageName={t('monitors.title')}
@@ -188,6 +239,103 @@ const MonitorsPage = () => {
               </SelectContent>
             </Select>
           </div>
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="tag-filter">Tags</Label>
+            <Popover open={tagPopoverOpen} onOpenChange={setTagPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full sm:w-[200px] justify-start text-left font-normal"
+                >
+                  {selectedTags.length > 0 ? (
+                    <div className="flex flex-wrap gap-1">
+                      {selectedTags.slice(0, 2).map((tag) => (
+                        <Badge
+                          key={tag.id}
+                          variant="secondary"
+                          className="text-xs"
+                          style={{ backgroundColor: tag.color, color: 'white' }}
+                        >
+                          {tag.name}
+                        </Badge>
+                      ))}
+                      {selectedTags.length > 2 && (
+                        <Badge variant="secondary" className="text-xs">
+                          +{selectedTags.length - 2} more
+                        </Badge>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground">Select tags...</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-0">
+                <div className="p-3 border-b">
+                  <h4 className="font-medium text-sm mb-2">Filter by Tags</h4>
+                  {selectedTags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      {selectedTags.map((tag) => (
+                        <Badge
+                          key={tag.id}
+                          variant="secondary"
+                          className="text-xs flex items-center gap-1"
+                          style={{ backgroundColor: tag.color, color: 'white' }}
+                        >
+                          {tag.name}
+                          <X
+                            className="h-3 w-3 cursor-pointer"
+                            onClick={() => handleTagRemove(tag.id!)}
+                          />
+                        </Badge>
+                      ))}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={clearAllTags}
+                        className="h-6 text-xs"
+                      >
+                        Clear all
+                      </Button>
+                    </div>
+                  )}
+                </div>
+                <div className="h-60 overflow-y-auto">
+                  <div className="p-2">
+                    {availableTags.map((tag) => (
+                      <div
+                        key={tag.id}
+                        className="flex items-center space-x-2 p-2 hover:bg-accent hover:text-accent-foreground rounded-sm cursor-pointer"
+                        onClick={() => handleTagToggle(tag.id!)}
+                      >
+                        <Checkbox
+                          checked={selectedTagIds.includes(tag.id!)}
+                          onChange={() => handleTagToggle(tag.id!)}
+                        />
+                        <Badge
+                          variant="secondary"
+                          className="text-xs"
+                          style={{ backgroundColor: tag.color, color: 'white' }}
+                        >
+                          {tag.name}
+                        </Badge>
+                        {tag.description && (
+                          <span className="text-xs text-muted-foreground">
+                            {tag.description}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                    {availableTags.length === 0 && (
+                      <div className="text-center text-muted-foreground text-sm py-4">
+                        No tags available
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
           <div className="flex flex-col gap-1 w-full sm:w-auto">
             <Label htmlFor="search-maintenances">{t('common.search')}</Label>
             <Input
@@ -199,6 +347,37 @@ const MonitorsPage = () => {
             />
           </div>
         </div>
+
+        {/* Show selected tags */}
+        {selectedTags.length > 0 && (
+          <div className="mb-4 flex flex-wrap gap-2">
+            <span className="text-sm text-muted-foreground">
+              Filtering by tags:
+            </span>
+            {selectedTags.map((tag) => (
+              <Badge
+                key={tag.id}
+                variant="secondary"
+                className="flex items-center gap-1"
+                style={{ backgroundColor: tag.color, color: 'white' }}
+              >
+                {tag.name}
+                <X
+                  className="h-3 w-3 cursor-pointer"
+                  onClick={() => handleTagRemove(tag.id!)}
+                />
+              </Badge>
+            ))}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearAllTags}
+              className="h-6 text-xs"
+            >
+              Clear all
+            </Button>
+          </div>
+        )}
 
         {/* Monitors list */}
         {monitors.length === 0 && isLoading && (

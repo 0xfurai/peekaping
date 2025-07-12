@@ -144,8 +144,18 @@ func (r *SQLRepositoryImpl) FindAll(
 	q string,
 	active *bool,
 	status *int,
+	tagIds []string,
 ) ([]*Model, error) {
 	query := r.db.NewSelect().Model((*sqlModel)(nil))
+
+	// If tagIds filtering is requested, use JOIN
+	if len(tagIds) > 0 {
+		// Join with monitor_tags table and filter by tag IDs
+		query = query.
+			Join("INNER JOIN monitor_tags mt ON m.id = mt.monitor_id").
+			Where("mt.tag_id IN (?)", bun.In(tagIds)).
+			Group("m.id") // Group by monitor ID to avoid duplicates when monitor has multiple matching tags
+	}
 
 	if q != "" {
 		// Use LIKE instead of ILIKE for better database compatibility

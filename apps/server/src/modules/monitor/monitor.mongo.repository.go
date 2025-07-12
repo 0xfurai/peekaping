@@ -181,6 +181,7 @@ func (r *MonitorRepositoryImpl) FindAll(
 	q string,
 	active *bool,
 	status *int,
+	tagIds []string,
 ) ([]*Model, error) {
 	var monitors []*Model
 
@@ -188,44 +189,123 @@ func (r *MonitorRepositoryImpl) FindAll(
 	skip := int64(page * limit)
 	limit64 := int64(limit)
 
-	// Define options for pagination
-	options := &options.FindOptions{
-		Skip:  &skip,
-		Limit: &limit64,
-		Sort:  bson.D{{Key: "created_at", Value: -1}},
-	}
-
-	filter := bson.M{}
-	if q != "" {
-		filter["$or"] = bson.A{
-			bson.M{"name": bson.M{"$regex": q, "$options": "i"}},
-			bson.M{"url": bson.M{"$regex": q, "$options": "i"}},
+	// If tagIds filtering is requested, use aggregation pipeline
+	if len(tagIds) > 0 {
+		// Convert tagIds to ObjectIDs
+		var tagObjectIDs []primitive.ObjectID
+		for _, tagId := range tagIds {
+			objectID, err := primitive.ObjectIDFromHex(tagId)
+			if err != nil {
+				return nil, err
+			}
+			tagObjectIDs = append(tagObjectIDs, objectID)
 		}
-	}
-	if active != nil {
-		filter["active"] = *active
-	}
-	if status != nil {
-		filter["status"] = *status
-	}
 
-	cursor, err := r.collection.Find(ctx, filter, options)
-	if err != nil {
-		return nil, err
-	}
-	defer cursor.Close(ctx)
+		// Build aggregation pipeline
+		pipeline := bson.A{
+			// Lookup monitor_tags to get monitors with specified tags
+			bson.M{
+				"$lookup": bson.M{
+					"from":         "monitor_tags",
+					"localField":   "_id",
+					"foreignField": "monitor_id",
+					"as":           "tags",
+				},
+			},
+			// Match monitors that have at least one of the specified tags
+			bson.M{
+				"$match": bson.M{
+					"tags.tag_id": bson.M{"$in": tagObjectIDs},
+				},
+			},
+		}
 
-	for cursor.Next(ctx) {
-		var mm mongoModel
-		if err := cursor.Decode(&mm); err != nil {
+		// Add additional filters
+		matchStage := bson.M{}
+		if q != "" {
+			matchStage["$or"] = bson.A{
+				bson.M{"name": bson.M{"$regex": q, "$options": "i"}},
+				bson.M{"url": bson.M{"$regex": q, "$options": "i"}},
+			}
+		}
+		if active != nil {
+			matchStage["active"] = *active
+		}
+		if status != nil {
+			matchStage["status"] = *status
+		}
+
+		// Add the additional match stage if there are filters
+		if len(matchStage) > 0 {
+			pipeline = append(pipeline, bson.M{"$match": matchStage})
+		}
+
+		// Add sorting, skip, and limit
+		pipeline = append(pipeline,
+			bson.M{"$sort": bson.M{"created_at": -1}},
+			bson.M{"$skip": skip},
+			bson.M{"$limit": limit64},
+		)
+
+		cursor, err := r.collection.Aggregate(ctx, pipeline)
+		if err != nil {
 			return nil, err
 		}
-		monitors = append(monitors, toDomainModel(&mm))
+		defer cursor.Close(ctx)
+
+		for cursor.Next(ctx) {
+			var mm mongoModel
+			if err := cursor.Decode(&mm); err != nil {
+				return nil, err
+			}
+			monitors = append(monitors, toDomainModel(&mm))
+		}
+
+		if err := cursor.Err(); err != nil {
+			return nil, err
+		}
+	} else {
+		// Use regular find when no tag filtering is needed
+		// Define options for pagination
+		options := &options.FindOptions{
+			Skip:  &skip,
+			Limit: &limit64,
+			Sort:  bson.D{{Key: "created_at", Value: -1}},
+		}
+
+		filter := bson.M{}
+		if q != "" {
+			filter["$or"] = bson.A{
+				bson.M{"name": bson.M{"$regex": q, "$options": "i"}},
+				bson.M{"url": bson.M{"$regex": q, "$options": "i"}},
+			}
+		}
+		if active != nil {
+			filter["active"] = *active
+		}
+		if status != nil {
+			filter["status"] = *status
+		}
+
+		cursor, err := r.collection.Find(ctx, filter, options)
+		if err != nil {
+			return nil, err
+		}
+		defer cursor.Close(ctx)
+
+		for cursor.Next(ctx) {
+			var mm mongoModel
+			if err := cursor.Decode(&mm); err != nil {
+				return nil, err
+			}
+			monitors = append(monitors, toDomainModel(&mm))
+		}
+
+		if err := cursor.Err(); err != nil {
+			return nil, err
+		}
 	}
 
-	if err := cursor.Err(); err != nil {
-		return nil, err
-	}
 	return monitors, nil
 }
 

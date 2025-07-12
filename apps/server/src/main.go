@@ -17,11 +17,13 @@ import (
 	"peekaping/src/modules/monitor_maintenance"
 	"peekaping/src/modules/monitor_notification"
 	"peekaping/src/modules/monitor_status_page"
+	"peekaping/src/modules/monitor_tag"
 	"peekaping/src/modules/notification_channel"
 	"peekaping/src/modules/proxy"
 	"peekaping/src/modules/setting"
 	"peekaping/src/modules/stats"
 	"peekaping/src/modules/status_page"
+	"peekaping/src/modules/tag"
 	"peekaping/src/modules/websocket"
 	"peekaping/src/utils"
 	"peekaping/src/version"
@@ -86,6 +88,8 @@ func main() {
 	maintenance.RegisterDependencies(container, &cfg)
 	status_page.RegisterDependencies(container, &cfg)
 	monitor_status_page.RegisterDependencies(container, &cfg)
+	tag.RegisterDependencies(container, &cfg)
+	monitor_tag.RegisterDependencies(container, &cfg)
 
 	// Start the event healthcheck listener
 	err = container.Invoke(func(listener *healthcheck.EventListener, eventBus *events.EventBus) {

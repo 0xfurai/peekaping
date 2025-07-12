@@ -12,6 +12,7 @@ type CreateUpdateDto struct {
 	ResendInterval  int      `json:"resend_interval" validate:"min=0" example:"10"`
 	Active          bool     `json:"active" example:"true"`
 	NotificationIds []string `json:"notification_ids" validate:"required" example:"6830ad485361f19c598d6d90"`
+	TagIds          []string `json:"tag_ids" example:"6830ad485361f19c598d6d90,6830ad485361f19c598d6d91"`
 	ProxyId         string   `json:"proxy_id" example:"6830ad485361f19c598d6d90"`
 	Config          string   `json:"config"`
 	PushToken       string   `json:"push_token"`
@@ -27,6 +28,7 @@ type PartialUpdateDto struct {
 	ResendInterval  *int                     `json:"resend_interval,omitempty" example:"10"`
 	Active          *bool                    `json:"active,omitempty" example:"true"`
 	NotificationIds []string                 `json:"notification_ids,omitempty" example:"6830ad485361f19c598d6d90"`
+	TagIds          []string                 `json:"tag_ids,omitempty" example:"6830ad485361f19c598d6d90,6830ad485361f19c598d6d91"`
 	ProxyId         *string                  `json:"proxy_id,omitempty" example:"6830ad485361f19c598d6d90"`
 	Status          *heartbeat.MonitorStatus `json:"status,omitempty" example:"1"`
 	Config          *string                  `json:"config,omitempty"`
@@ -56,6 +58,7 @@ type MonitorResponseDto struct {
 	CreatedAt       string   `json:"created_at" example:"2024-06-01T12:00:00Z"`
 	UpdatedAt       string   `json:"updated_at" example:"2024-06-01T12:00:00Z"`
 	NotificationIds []string `json:"notification_ids" example:"6830ad485361f19c598d6d90"`
+	TagIds          []string `json:"tag_ids" example:"6830ad485361f19c598d6d90,6830ad485361f19c598d6d91"`
 	ProxyId         string   `json:"proxy_id" example:"6830ad485361f19c598d6d90"`
 	Config          string   `json:"config"`
 	PushToken       string   `json:"push_token"`

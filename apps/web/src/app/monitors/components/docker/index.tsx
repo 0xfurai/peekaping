@@ -15,6 +15,10 @@ import Notifications, {
   notificationsSchema,
 } from "../shared/notifications";
 import { proxiesSchema } from "../shared/proxies";
+import Tags, {
+  tagsDefaultValues,
+  tagsSchema,
+} from "../shared/tags";
 import { useMonitorFormContext } from "../../context/monitor-form-context";
 import {
   Form,
@@ -68,7 +72,8 @@ export const dockerSchema = z
   .merge(generalSchema)
   .merge(intervalsSchema)
   .merge(notificationsSchema)
-  .merge(proxiesSchema);
+  .merge(proxiesSchema)
+  .merge(tagsSchema);
 
 export type DockerForm = z.infer<typeof dockerSchema>;
 
@@ -85,6 +90,7 @@ export const dockerDefaultValues: DockerForm = {
   ...generalDefaultValues,
   ...intervalsDefaultValues,
   ...notificationsDefaultValues,
+  ...tagsDefaultValues,
 };
 
 export const deserialize = (data: MonitorMonitorResponseDto): DockerForm => {
@@ -135,6 +141,7 @@ export const deserialize = (data: MonitorMonitorResponseDto): DockerForm => {
     resend_interval: data.resend_interval ?? 10,
     notification_ids: data.notification_ids || [],
     proxy_id: data.proxy_id || "",
+    tag_ids: data.tag_ids || [],
   };
 };
 
@@ -163,6 +170,7 @@ export const serialize = (formData: DockerForm): MonitorCreateUpdateDto => {
     resend_interval: formData.resend_interval,
     timeout: formData.timeout,
     config: JSON.stringify(config),
+    tag_ids: formData.tag_ids,
   };
 };
 
@@ -473,6 +481,12 @@ const DockerForm = () => {
         </Card>
 
         <TLSSection />
+
+        <Card>
+          <CardContent className="space-y-4">
+            <Tags />
+          </CardContent>
+        </Card>
 
         <Card>
           <CardContent className="space-y-4">

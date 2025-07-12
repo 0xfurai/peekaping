@@ -6,6 +6,7 @@ import { generalDefaultValues, generalSchema } from "../shared/general";
 import { intervalsDefaultValues, intervalsSchema } from "../shared/intervals";
 import { notificationsDefaultValues, notificationsSchema } from "../shared/notifications";
 import { proxiesDefaultValues, proxiesSchema } from "../shared/proxies";
+import { tagsDefaultValues, tagsSchema } from "../shared/tags";
 import type { MonitorMonitorResponseDto, MonitorCreateUpdateDto } from "@/api";
 
 export const httpSchema = z
@@ -17,6 +18,7 @@ export const httpSchema = z
   .merge(intervalsSchema)
   .merge(notificationsSchema)
   .merge(proxiesSchema)
+  .merge(tagsSchema)
   .merge(advancedSchema)
   .merge(
     z.object({
@@ -39,6 +41,7 @@ export const httpDefaultValues: HttpForm = {
   ...intervalsDefaultValues,
   ...notificationsDefaultValues,
   ...proxiesDefaultValues,
+  ...tagsDefaultValues,
   ...advancedDefaultValues,
 
   httpOptions: httpOptionsDefaultValues,
@@ -110,6 +113,7 @@ export const deserialize = (data: MonitorMonitorResponseDto): HttpForm => {
     retry_interval: data.retry_interval || 60,
     resend_interval: data.resend_interval || 10,
     notification_ids: data.notification_ids || [],
+    tag_ids: data.tag_ids || [],
     proxy_id: data.proxy_id || "",
     url: config.url || "https://example.com",
     accepted_statuscodes: config.accepted_statuscodes || ["2XX"],
@@ -169,6 +173,7 @@ export const serialize = (formData: HttpForm): MonitorCreateUpdateDto => {
     max_retries: formData.max_retries,
     retry_interval: formData.retry_interval,
     notification_ids: formData.notification_ids,
+    tag_ids: formData.tag_ids,
     proxy_id: formData.proxy_id,
     resend_interval: formData.resend_interval,
     timeout: formData.timeout,

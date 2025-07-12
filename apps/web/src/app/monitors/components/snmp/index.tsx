@@ -14,6 +14,10 @@ import Notifications, {
   notificationsDefaultValues,
   notificationsSchema,
 } from "../shared/notifications";
+import Tags, {
+  tagsDefaultValues,
+  tagsSchema,
+} from "../shared/tags";
 import { useMonitorFormContext } from "../../context/monitor-form-context";
 import {
   Form,
@@ -67,7 +71,8 @@ export const snmpSchema = z
   })
   .merge(generalSchema)
   .merge(intervalsSchema)
-  .merge(notificationsSchema);
+  .merge(notificationsSchema)
+  .merge(tagsSchema);
 
 export type SnmpForm = z.infer<typeof snmpSchema>;
 
@@ -84,6 +89,7 @@ export const snmpDefaultValues: SnmpForm = {
   ...generalDefaultValues,
   ...intervalsDefaultValues,
   ...notificationsDefaultValues,
+  ...tagsDefaultValues,
 };
 
 export const deserialize = (data: MonitorMonitorResponseDto): SnmpForm => {
@@ -140,6 +146,7 @@ export const deserialize = (data: MonitorMonitorResponseDto): SnmpForm => {
     retry_interval: data.retry_interval || 60,
     resend_interval: data.resend_interval ?? 10,
     notification_ids: data.notification_ids || [],
+    tag_ids: data.tag_ids || [],
   };
 };
 
@@ -165,6 +172,7 @@ export const serialize = (formData: SnmpForm): MonitorCreateUpdateDto => {
     resend_interval: formData.resend_interval,
     timeout: formData.timeout,
     config: JSON.stringify(config),
+    tag_ids: formData.tag_ids,
   };
 };
 
@@ -418,6 +426,12 @@ const SnmpForm = () => {
                 </FormItem>
               )}
             />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="space-y-4">
+            <Tags />
           </CardContent>
         </Card>
 

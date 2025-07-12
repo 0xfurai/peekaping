@@ -358,6 +358,13 @@ definitions:
         example: 60
         minimum: 20
         type: integer
+      tag_ids:
+        example:
+        - 6830ad485361f19c598d6d90
+        - 6830ad485361f19c598d6d91
+        items:
+          type: string
+        type: array
       timeout:
         example: 16
         minimum: 16
@@ -474,6 +481,13 @@ definitions:
       status:
         example: 1
         type: integer
+      tag_ids:
+        example:
+        - 6830ad485361f19c598d6d90
+        - 6830ad485361f19c598d6d91
+        items:
+          type: string
+        type: array
       timeout:
         example: 10
         type: integer
@@ -521,6 +535,13 @@ definitions:
         allOf:
         - $ref: '#/definitions/heartbeat.MonitorStatus'
         example: 1
+      tag_ids:
+        example:
+        - 6830ad485361f19c598d6d90
+        - 6830ad485361f19c598d6d91
+        items:
+          type: string
+        type: array
       timeout:
         example: 16
         type: integer
@@ -901,6 +922,52 @@ definitions:
       title:
         type: string
     type: object
+  tag.CreateUpdateDto:
+    properties:
+      color:
+        example: '#3B82F6'
+        type: string
+      description:
+        example: Production environment monitors
+        type: string
+      name:
+        example: Production
+        maxLength: 100
+        minLength: 1
+        type: string
+    required:
+    - color
+    - name
+    type: object
+  tag.Model:
+    properties:
+      color:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  tag.PartialUpdateDto:
+    properties:
+      color:
+        example: '#3B82F6'
+        type: string
+      description:
+        example: Production environment monitors
+        type: string
+      name:
+        example: Production
+        maxLength: 100
+        minLength: 1
+        type: string
+    type: object
   utils.APIError:
     properties:
       message:
@@ -997,6 +1064,18 @@ definitions:
       data:
         items:
           $ref: '#/definitions/status_page.MonitorWithHeartbeatsAndUptimeDTO'
+        type: array
+      message:
+        type: string
+    required:
+    - data
+    - message
+    type: object
+  utils.ApiResponse-array_tag_Model:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/tag.Model'
         type: array
       message:
         type: string
@@ -1118,6 +1197,16 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/status_page.StatusPageWithMonitorsResponseDTO'
+      message:
+        type: string
+    required:
+    - data
+    - message
+    type: object
+  utils.ApiResponse-tag_Model:
+    properties:
+      data:
+        $ref: '#/definitions/tag.Model'
       message:
         type: string
     required:
@@ -1659,6 +1748,10 @@ paths:
         in: query
         name: status
         type: integer
+      - description: Comma-separated list of tag IDs to filter by
+        in: query
+        name: tag_ids
+        type: string
       produces:
       - application/json
       responses:
@@ -2823,6 +2916,218 @@ paths:
       summary: Get monitors for a status page by slug for homepage
       tags:
       - Status Pages
+  /tags:
+    get:
+      parameters:
+      - description: Search query
+        in: query
+        name: q
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.ApiResponse-array_tag_Model'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      security:
+      - BearerAuth: []
+      summary: Get tags
+      tags:
+      - Tags
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Tag object
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/tag.CreateUpdateDto'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/utils.ApiResponse-tag_Model'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      security:
+      - BearerAuth: []
+      summary: Create tag
+      tags:
+      - Tags
+  /tags/{id}:
+    delete:
+      parameters:
+      - description: Tag ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.ApiResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      security:
+      - BearerAuth: []
+      summary: Delete tag
+      tags:
+      - Tags
+    get:
+      parameters:
+      - description: Tag ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.ApiResponse-tag_Model'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      security:
+      - BearerAuth: []
+      summary: Get tag by ID
+      tags:
+      - Tags
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Tag ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Tag object
+        in: body
+        name: tag
+        required: true
+        schema:
+          $ref: '#/definitions/tag.PartialUpdateDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.ApiResponse-tag_Model'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      security:
+      - BearerAuth: []
+      summary: Update tag
+      tags:
+      - Tags
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Tag ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Tag object
+        in: body
+        name: tag
+        required: true
+        schema:
+          $ref: '#/definitions/tag.CreateUpdateDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.ApiResponse-tag_Model'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      security:
+      - BearerAuth: []
+      summary: Update tag
+      tags:
+      - Tags
   /version:
     get:
       description: Returns the current server version
