@@ -121,6 +121,14 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// Start the monitor event listener
+	err = container.Invoke(func(listener *monitor.MonitorEventListener, eventBus *events.EventBus) {
+		listener.Subscribe(eventBus)
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Start the server
 	err = container.Invoke(func(server *Server) {
 		docs.SwaggerInfo.Host = "localhost:" + server.cfg.Port
