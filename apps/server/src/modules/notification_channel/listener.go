@@ -43,6 +43,7 @@ func NewNotificationEventListener(p NotificationEventListenerParams) *Notificati
 	RegisterNotificationChannelProvider("google_chat", providers.NewGoogleChatSender(p.Logger, p.Config))
 	RegisterNotificationChannelProvider("grafana_oncall", providers.NewGrafanaOncallSender(p.Logger))
 	RegisterNotificationChannelProvider("signal", providers.NewSignalSender(p.Logger))
+	RegisterNotificationChannelProvider("pushover", providers.NewPushoverSender(p.Logger))
 
 	return &NotificationEventListener{
 		service:                    p.Service,
