@@ -28,6 +28,7 @@ import * as WebhookForm from "../integrations/webhook-form";
 import * as SlackForm from "../integrations/slack-form";
 import * as NtfyForm from "../integrations/ntfy-form";
 import * as PagerDutyForm from "../integrations/pagerduty-form";
+import * as GoogleChatForm from "../integrations/google-chat-form";
 import { useEffect } from "react";
 import { commonMutationErrorHandler } from "@/lib/utils";
 
@@ -38,6 +39,7 @@ const typeFormRegistry = {
   slack: SlackForm,
   ntfy: NtfyForm,
   pagerduty: PagerDutyForm,
+  google_chat: GoogleChatForm,
 };
 
 const notificationSchema = z
@@ -54,6 +56,7 @@ const notificationSchema = z
       SlackForm.schema,
       NtfyForm.schema,
       PagerDutyForm.schema,
+      GoogleChatForm.schema,
     ] as const)
   );
 
@@ -155,7 +158,7 @@ export default function CreateEditNotificationChannel({
             <Select
               onValueChange={(val) => {
                 if (!val) return;
-                baseForm.setValue("type", val as "smtp" | "telegram" | "webhook" | "slack" | "ntfy" | "pagerduty");
+                baseForm.setValue("type", val as "smtp" | "telegram" | "webhook" | "slack" | "ntfy" | "pagerduty" | "google_chat");
               }}
               value={type}
             >
