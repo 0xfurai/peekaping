@@ -23,7 +23,7 @@ export type SignalFormValues = z.infer<typeof schema>;
 
 export const defaultValues: SignalFormValues = {
   type: "signal",
-  signal_url: "http://localhost:8080",
+  signal_url: "",
   signal_number: "",
   signal_recipients: "",
   custom_message: "{{ msg }}",
@@ -44,7 +44,7 @@ export default function SignalForm() {
             <FormLabel>Post URL</FormLabel>
             <FormControl>
               <Input
-                placeholder="http://localhost:8080"
+                placeholder="http://localhost:8080/v2/send"
                 type="url"
                 required
                 {...field}
@@ -131,9 +131,9 @@ export default function SignalForm() {
           You can check this URL to view how to set one up:
         </p>
         <p className="text-sm text-amber-800 dark:text-amber-200">
-          <a 
-            href="https://github.com/bbernhard/signal-cli-rest-api" 
-            target="_blank" 
+          <a
+            href="https://github.com/bbernhard/signal-cli-rest-api"
+            target="_blank"
             rel="noopener noreferrer"
             className="underline hover:text-amber-900 dark:hover:text-amber-100"
           >
