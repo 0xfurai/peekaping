@@ -39,7 +39,7 @@ func NewNotificationEventListener(p NotificationEventListenerParams) *Notificati
 	RegisterNotificationChannelProvider("slack", providers.NewSlackSender(p.Logger, p.Config))
 	RegisterNotificationChannelProvider("ntfy", providers.NewNTFYSender(p.Logger))
 	RegisterNotificationChannelProvider("pagerduty", providers.NewPagerDutySender(p.Logger, p.Config))
-	RegisterNotificationChannelProvider("google_chat", providers.NewGoogleChatSender(p.Logger))
+	RegisterNotificationChannelProvider("google_chat", providers.NewGoogleChatSender(p.Logger, p.Config))
 	RegisterNotificationChannelProvider("signal", providers.NewSignalSender(p.Logger))
 
 	return &NotificationEventListener{

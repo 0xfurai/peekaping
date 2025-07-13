@@ -202,3 +202,13 @@ switch-to-mongo: docker-down-all dev-mongo ## Switch to MongoDB development envi
 .PHONY: switch-to-sqlite
 switch-to-sqlite: docker-down-all dev-sqlite ## Switch to SQLite development environment
 	@echo "Switched to SQLite development environment"
+
+.PHONY: test-server
+test-server: ## Test the server
+	@echo "Testing the server..."
+	cd apps/server && go test -v ./src/...
+
+.PHONY: test-web
+test-web: ## Test the web
+	@echo "Testing the web..."
+	cd apps/web && npm run test

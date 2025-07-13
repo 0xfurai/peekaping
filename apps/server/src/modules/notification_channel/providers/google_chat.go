@@ -6,10 +6,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"peekaping/src/config"
 	"peekaping/src/modules/heartbeat"
 	"peekaping/src/modules/monitor"
 	"peekaping/src/modules/shared"
 	"peekaping/src/version"
+	"strings"
 	"time"
 
 	"go.uber.org/zap"
@@ -22,12 +24,14 @@ type GoogleChatConfig struct {
 type GoogleChatSender struct {
 	logger *zap.SugaredLogger
 	client *http.Client
+	config *config.Config
 }
 
 // NewGoogleChatSender creates a GoogleChatSender
-func NewGoogleChatSender(logger *zap.SugaredLogger) *GoogleChatSender {
+func NewGoogleChatSender(logger *zap.SugaredLogger, config *config.Config) *GoogleChatSender {
 	return &GoogleChatSender{
 		logger: logger,
+		config: config,
 		client: &http.Client{
 			Timeout: 30 * time.Second,
 		},
@@ -85,7 +89,7 @@ func (g *GoogleChatSender) Send(
 
 	// Add time if available
 	if hb != nil {
-		// Format timestamp
+		// Format timestamp (Note: In a real implementation, you might want to add timezone support)
 		timeStr := hb.Time.Format("2006-01-02 15:04:05")
 		sectionWidgets = append(sectionWidgets, map[string]any{
 			"textParagraph": map[string]string{
@@ -95,9 +99,9 @@ func (g *GoogleChatSender) Send(
 	}
 
 	// Add button for monitor link if available
-	// Note: In this implementation, we'll use a placeholder URL since we don't have access to the base URL setting here
-	// In a real implementation, you might want to pass the base URL through the config or context
-	if m != nil {
+	if m != nil && g.config.ClientURL != "" {
+		buttonURL := fmt.Sprintf("%s/monitors/%s", strings.TrimRight(g.config.ClientURL, "/"), m.ID)
+
 		sectionWidgets = append(sectionWidgets, map[string]any{
 			"buttonList": map[string][]map[string]any{
 				"buttons": {
@@ -105,7 +109,7 @@ func (g *GoogleChatSender) Send(
 						"text": "Visit Peekaping",
 						"onClick": map[string]any{
 							"openLink": map[string]string{
-								"url": fmt.Sprintf("/monitors/%s", m.ID), // This would need to be a full URL in production
+								"url": buttonURL,
 							},
 						},
 					},
