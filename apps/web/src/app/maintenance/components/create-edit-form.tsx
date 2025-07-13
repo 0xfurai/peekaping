@@ -71,8 +71,8 @@ const maintenanceSchema = z.discriminatedUnion("strategy", [
   baseMaintenanceSchema.extend({
     strategy: z.literal("single"),
     timezone: z.string().optional(),
-    startDateTime: z.string().optional(),
-    endDateTime: z.string().optional(),
+    startDateTime: z.string().min(1, "Start date is required"),
+    endDateTime: z.string().min(1, "End date is required"),
   }),
 
   // Cron expression
@@ -81,43 +81,92 @@ const maintenanceSchema = z.discriminatedUnion("strategy", [
     cron: z.string().optional(),
     duration: z.number().optional(),
     timezone: z.string().optional(),
-    startDateTime: z.string().optional(),
-    endDateTime: z.string().optional(),
+    startDateTime: z.string().min(1, "Start date is required"),
+    endDateTime: z.string().min(1, "End date is required"),
   }),
 
   // Recurring interval
   baseMaintenanceSchema.extend({
     strategy: z.literal("recurring-interval"),
-    intervalDay: z.number().min(1).max(3650).optional(),
-    startTime: z.string().optional(),
-    endTime: z.string().optional(),
+    intervalDay: z.number().min(1).max(3650, "Interval day must be between 1 and 3650"),
+    startTime: z.string().min(1, "Start time is required"),
+    endTime: z.string().min(1, "End time is required"),
     timezone: z.string().optional(),
-    startDateTime: z.string().optional(),
-    endDateTime: z.string().optional(),
+    startDateTime: z.string().min(1, "Start date is required"),
+    endDateTime: z.string().min(1, "End date is required"),
   }),
 
   // Recurring weekday
   baseMaintenanceSchema.extend({
     strategy: z.literal("recurring-weekday"),
-    weekdays: z.array(z.number()).optional(),
-    startTime: z.string().optional(),
-    endTime: z.string().optional(),
+    weekdays: z.array(z.number()).min(1, "At least one weekday must be selected"),
+    startTime: z.string().min(1, "Start time is required"),
+    endTime: z.string().min(1, "End time is required"),
     timezone: z.string().optional(),
-    startDateTime: z.string().optional(),
-    endDateTime: z.string().optional(),
+    startDateTime: z.string().min(1, "Start date is required"),
+    endDateTime: z.string().min(1, "End date is required"),
   }),
 
   // Recurring day of month
   baseMaintenanceSchema.extend({
     strategy: z.literal("recurring-day-of-month"),
-    daysOfMonth: z.array(z.union([z.number(), z.string()])).optional(),
-    startTime: z.string().optional(),
-    endTime: z.string().optional(),
+    daysOfMonth: z.array(z.union([z.number(), z.string()])).min(1, "At least one day must be selected"),
+    startTime: z.string().min(1, "Start time is required"),
+    endTime: z.string().min(1, "End time is required"),
     timezone: z.string().optional(),
-    startDateTime: z.string().optional(),
-    endDateTime: z.string().optional(),
+    startDateTime: z.string().min(1, "Start date is required"),
+    endDateTime: z.string().min(1, "End date is required"),
   }),
-]);
+]).superRefine((data, ctx) => {
+  if (data.strategy === "single" || data.strategy === "cron") {
+    if (data.startDateTime && data.endDateTime) {
+      const startDate = new Date(data.startDateTime);
+      const endDate = new Date(data.endDateTime);
+      if (startDate >= endDate) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Start date must be before end date",
+          path: ["startDateTime"],
+        });
+      }
+    }
+  }
+
+  if (data.strategy === "recurring-interval" || 
+      data.strategy === "recurring-weekday" || 
+      data.strategy === "recurring-day-of-month") {
+    
+    if (data.startTime && data.endTime) {
+      const [startHour, startMin] = data.startTime.split(':').map(Number);
+      const [endHour, endMin] = data.endTime.split(':').map(Number);
+      
+      if (!isNaN(startHour) && !isNaN(startMin) && !isNaN(endHour) && !isNaN(endMin)) {
+        const startMinutes = startHour * 60 + startMin;
+        const endMinutes = endHour * 60 + endMin;
+        
+        if (startMinutes >= endMinutes) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Start time must be before end time",
+            path: ["startTime"],
+          });
+        }
+      }
+    }
+
+    if (data.startDateTime && data.endDateTime) {
+      const startDate = new Date(data.startDateTime);
+      const endDate = new Date(data.endDateTime);
+      if (startDate >= endDate) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Start date must be before end date",
+          path: ["startDateTime"],
+        });
+      }
+    }
+  }
+});
 
 export type MaintenanceFormValues = z.infer<typeof maintenanceSchema>;
 

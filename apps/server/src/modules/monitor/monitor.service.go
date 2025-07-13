@@ -7,6 +7,7 @@ import (
 	"peekaping/src/modules/healthcheck/executor"
 	"peekaping/src/modules/heartbeat"
 	"peekaping/src/modules/monitor_notification"
+	"peekaping/src/modules/monitor_tag"
 	"peekaping/src/modules/shared"
 	"peekaping/src/modules/stats"
 	"time"
@@ -18,10 +19,10 @@ type Service interface {
 	Create(ctx context.Context, monitor *CreateUpdateDto) (*Model, error)
 	FindByID(ctx context.Context, id string) (*Model, error)
 	FindByIDs(ctx context.Context, ids []string) ([]*Model, error)
-	FindAll(ctx context.Context, page int, limit int, q string, active *bool, status *int) ([]*Model, error)
+	FindAll(ctx context.Context, page int, limit int, q string, active *bool, status *int, tagIds []string) ([]*Model, error)
 	FindActive(ctx context.Context) ([]*Model, error)
 	UpdateFull(ctx context.Context, id string, monitor *CreateUpdateDto) (*Model, error)
-	UpdatePartial(ctx context.Context, id string, monitor *PartialUpdateDto) (*Model, error)
+	UpdatePartial(ctx context.Context, id string, monitor *PartialUpdateDto, noPublish bool) (*Model, error)
 	Delete(ctx context.Context, id string) error
 	ValidateMonitorConfig(monitorType string, configJSON string) error
 
@@ -52,6 +53,7 @@ type MonitorServiceImpl struct {
 	heartbeatService           heartbeat.Service
 	eventBus                   *events.EventBus
 	monitorNotificationService monitor_notification.Service
+	monitorTagService          monitor_tag.Service
 	executorRegistry           *executor.ExecutorRegistry
 	statPointsService          stats.Service
 	logger                     *zap.SugaredLogger
@@ -62,6 +64,7 @@ func NewMonitorService(
 	heartbeatService heartbeat.Service,
 	eventBus *events.EventBus,
 	monitorNotificationService monitor_notification.Service,
+	monitorTagService monitor_tag.Service,
 	executorRegistry *executor.ExecutorRegistry,
 	statPointsService stats.Service,
 	logger *zap.SugaredLogger,
@@ -71,6 +74,7 @@ func NewMonitorService(
 		heartbeatService,
 		eventBus,
 		monitorNotificationService,
+		monitorTagService,
 		executorRegistry,
 		statPointsService,
 		logger.Named("[monitor-service]"),
@@ -116,8 +120,8 @@ func (mr *MonitorServiceImpl) FindByIDs(ctx context.Context, ids []string) ([]*M
 	return mr.monitorRepository.FindByIDs(ctx, ids)
 }
 
-func (mr *MonitorServiceImpl) FindAll(ctx context.Context, page int, limit int, q string, active *bool, status *int) ([]*Model, error) {
-	monitors, err := mr.monitorRepository.FindAll(ctx, page, limit, q, active, status)
+func (mr *MonitorServiceImpl) FindAll(ctx context.Context, page int, limit int, q string, active *bool, status *int, tagIds []string) ([]*Model, error) {
+	monitors, err := mr.monitorRepository.FindAll(ctx, page, limit, q, active, status, tagIds)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +165,7 @@ func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, id string, monitor
 	return model, nil
 }
 
-func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, monitor *PartialUpdateDto) (*Model, error) {
+func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, monitor *PartialUpdateDto, noPublish bool) (*Model, error) {
 	model := &UpdateModel{
 		ID:             &id,
 		Type:           monitor.Type,
@@ -187,10 +191,12 @@ func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, moni
 	}
 
 	// Emit monitor updated event
-	mr.eventBus.Publish(events.Event{
-		Type:    events.MonitorUpdated,
-		Payload: updatedMonitor,
-	})
+	if !noPublish {
+		mr.eventBus.Publish(events.Event{
+			Type:    events.MonitorUpdated,
+			Payload: updatedMonitor,
+		})
+	}
 
 	return updatedMonitor, nil
 }
@@ -201,8 +207,10 @@ func (mr *MonitorServiceImpl) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
-	// Cascade delete monitor_notification relations
 	_ = mr.monitorNotificationService.DeleteByMonitorID(ctx, id)
+	_ = mr.monitorTagService.DeleteByMonitorID(ctx, id)
+	_ = mr.heartbeatService.DeleteByMonitorID(ctx, id)
+	_ = mr.statPointsService.DeleteByMonitorID(ctx, id)
 
 	// Emit monitor deleted event
 	mr.eventBus.Publish(events.Event{
@@ -247,10 +255,22 @@ func (mr *MonitorServiceImpl) GetStatPoints(ctx context.Context, id string, sinc
 	default:
 		return nil, fmt.Errorf("invalid granularity: %s", granularity)
 	}
-	statsList, err := mr.statPointsService.FindStatsByMonitorIDAndTimeRange(ctx, id, since, until, period)
+
+	// Get monitor information to pass interval for minute-level grouping
+	monitor, err := mr.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
+	if monitor == nil {
+		return nil, fmt.Errorf("monitor not found")
+	}
+
+	// Use the new method that accepts monitor interval
+	statsList, err := mr.statPointsService.FindStatsByMonitorIDAndTimeRangeWithInterval(ctx, id, since, until, period, monitor.Interval)
+	if err != nil {
+		return nil, err
+	}
+
 	points := make([]*StatPoint, 0, len(statsList))
 	for _, s := range statsList {
 		points = append(points, &StatPoint{

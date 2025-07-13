@@ -51,7 +51,7 @@ jobs:
 
         # Server Configuration
         CLIENT_URL=http://localhost:8383
-        PORT=8034
+        SERVER_PORT=8034
         JWT_SECRET=test-secret-key-for-playwright-tests
         ACCESS_TOKEN_EXPIRED_IN=15m
         ACCESS_TOKEN_SECRET_KEY=test-secret-key-for-playwright-tests

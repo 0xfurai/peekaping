@@ -119,7 +119,7 @@ func (r *RepositoryImpl) FindAll(ctx context.Context, page int, limit int) ([]*M
 	var entities []*Model
 
 	// Calculate the number of documents to skip
-	skip := int64((page) * limit)
+	skip := int64(page * limit)
 	limit64 := int64(limit)
 
 	// Define options for pagination

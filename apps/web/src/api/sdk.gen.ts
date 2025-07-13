@@ -142,6 +142,9 @@ import type {
   GetStatusPagesSlugBySlugMonitorsData,
   GetStatusPagesSlugBySlugMonitorsResponses,
   GetStatusPagesSlugBySlugMonitorsErrors,
+  GetStatusPagesSlugBySlugMonitorsHomepageData,
+  GetStatusPagesSlugBySlugMonitorsHomepageResponses,
+  GetStatusPagesSlugBySlugMonitorsHomepageErrors,
   DeleteStatusPagesByIdData,
   DeleteStatusPagesByIdResponses,
   DeleteStatusPagesByIdErrors,
@@ -151,6 +154,24 @@ import type {
   PatchStatusPagesByIdData,
   PatchStatusPagesByIdResponses,
   PatchStatusPagesByIdErrors,
+  GetTagsData,
+  GetTagsResponses,
+  GetTagsErrors,
+  PostTagsData,
+  PostTagsResponses,
+  PostTagsErrors,
+  DeleteTagsByIdData,
+  DeleteTagsByIdResponses,
+  DeleteTagsByIdErrors,
+  GetTagsByIdData,
+  GetTagsByIdResponses,
+  GetTagsByIdErrors,
+  PatchTagsByIdData,
+  PatchTagsByIdResponses,
+  PatchTagsByIdErrors,
+  PutTagsByIdData,
+  PutTagsByIdResponses,
+  PutTagsByIdErrors,
   GetVersionData,
   GetVersionResponses,
 } from "./types.gen";
@@ -1304,6 +1325,25 @@ export const getStatusPagesSlugBySlugMonitors = <
 };
 
 /**
+ * Get monitors for a status page by slug for homepage
+ */
+export const getStatusPagesSlugBySlugMonitorsHomepage = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<GetStatusPagesSlugBySlugMonitorsHomepageData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetStatusPagesSlugBySlugMonitorsHomepageResponses,
+    GetStatusPagesSlugBySlugMonitorsHomepageErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    url: "/status-pages/slug/{slug}/monitors/homepage",
+    ...options,
+  });
+};
+
+/**
  * Delete a status page
  */
 export const deleteStatusPagesById = <ThrowOnError extends boolean = false>(
@@ -1368,6 +1408,156 @@ export const patchStatusPagesById = <ThrowOnError extends boolean = false>(
       },
     ],
     url: "/status-pages/{id}",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * Get tags
+ */
+export const getTags = <ThrowOnError extends boolean = false>(
+  options?: Options<GetTagsData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetTagsResponses,
+    GetTagsErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/tags",
+    ...options,
+  });
+};
+
+/**
+ * Create tag
+ */
+export const postTags = <ThrowOnError extends boolean = false>(
+  options: Options<PostTagsData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostTagsResponses,
+    PostTagsErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/tags",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * Delete tag
+ */
+export const deleteTagsById = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteTagsByIdData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    DeleteTagsByIdResponses,
+    DeleteTagsByIdErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/tags/{id}",
+    ...options,
+  });
+};
+
+/**
+ * Get tag by ID
+ */
+export const getTagsById = <ThrowOnError extends boolean = false>(
+  options: Options<GetTagsByIdData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetTagsByIdResponses,
+    GetTagsByIdErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/tags/{id}",
+    ...options,
+  });
+};
+
+/**
+ * Update tag
+ */
+export const patchTagsById = <ThrowOnError extends boolean = false>(
+  options: Options<PatchTagsByIdData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).patch<
+    PatchTagsByIdResponses,
+    PatchTagsByIdErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/tags/{id}",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * Update tag
+ */
+export const putTagsById = <ThrowOnError extends boolean = false>(
+  options: Options<PutTagsByIdData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).put<
+    PutTagsByIdResponses,
+    PutTagsByIdErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/tags/{id}",
     ...options,
     headers: {
       "Content-Type": "application/json",

@@ -2,6 +2,7 @@ package stats
 
 import (
 	"context"
+	"fmt"
 	"peekaping/src/modules/events"
 	"peekaping/src/modules/shared"
 	"time"
@@ -20,6 +21,7 @@ type Service interface {
 	AggregateHeartbeat(ctx context.Context, hb *HeartbeatPayload) error
 	RegisterEventHandlers(eventBus *events.EventBus)
 	FindStatsByMonitorIDAndTimeRange(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod) ([]*Stat, error)
+	FindStatsByMonitorIDAndTimeRangeWithInterval(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod, monitorInterval int) ([]*Stat, error)
 	StatPointsSummary(statsList []*Stat) *Stats
 	DeleteByMonitorID(ctx context.Context, monitorID string) error
 }
@@ -126,6 +128,10 @@ func (s *ServiceImpl) RegisterEventHandlers(eventBus *events.EventBus) {
 }
 
 func (s *ServiceImpl) FindStatsByMonitorIDAndTimeRange(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod) ([]*Stat, error) {
+	return s.repo.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, since, until, period)
+}
+
+func (s *ServiceImpl) FindStatsByMonitorIDAndTimeRangeWithInterval(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod, monitorInterval int) ([]*Stat, error) {
 	stats, err := s.repo.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, since, until, period)
 	if err != nil {
 		return nil, err
@@ -142,6 +148,15 @@ func (s *ServiceImpl) FindStatsByMonitorIDAndTimeRange(ctx context.Context, moni
 		bucket = 24 * time.Hour
 	default:
 		bucket = time.Minute
+	}
+
+	// For minute-level stats, check if we need to group by monitor interval
+	if period == StatMinutely && monitorInterval > 60 {
+		// Monitor interval is greater than 1 minute, group minute stats
+		monitorIntervalDuration := time.Duration(monitorInterval) * time.Second
+		// calculate closest bigger interval that is divisible by minute (60)
+		monitorIntervalDuration = monitorIntervalDuration.Round(time.Minute)
+		return s.groupStatsByInterval(stats, since, until, monitorIntervalDuration, monitorID)
 	}
 
 	// Build a map for quick lookup
@@ -173,6 +188,135 @@ func (s *ServiceImpl) FindStatsByMonitorIDAndTimeRange(ctx context.Context, moni
 	}
 
 	return result, nil
+}
+
+// groupStatsByInterval groups minute-level stats into monitor interval buckets
+func (s *ServiceImpl) groupStatsByInterval(minuteStats []*Stat, since, until time.Time, interval time.Duration, monitorID string) ([]*Stat, error) {
+	if len(minuteStats) == 0 {
+		return []*Stat{}, nil
+	}
+
+	// check minuteStats are sorted
+	for i := 1; i < len(minuteStats); i++ {
+		if minuteStats[i].Timestamp.Before(minuteStats[i-1].Timestamp) {
+			return nil, fmt.Errorf("minuteStats are not sorted")
+		}
+	}
+
+	periods := int((until.Sub(since) + interval - 1) / interval)
+	result := make([]*Stat, 0, periods)
+	minuteStatsPointer := 0
+
+	for i := 0; i < periods; i++ {
+		bucketStart := since.Add(time.Duration(i) * interval)
+		bucketEnd := bucketStart.Add(interval)
+
+		bucketStats := make([]*Stat, 0)
+
+		// Skip stats that are before the current bucket start
+		for minuteStatsPointer < len(minuteStats) && minuteStats[minuteStatsPointer].Timestamp.Before(bucketStart) {
+			minuteStatsPointer++
+		}
+
+		// Include stats that are within the current bucket (inclusive of bucketStart, exclusive of bucketEnd)
+		// For the last bucket, also include stats exactly at the until timestamp
+		for minuteStatsPointer < len(minuteStats) &&
+			(minuteStats[minuteStatsPointer].Timestamp.Before(bucketEnd) ||
+				(i == periods-1 && minuteStats[minuteStatsPointer].Timestamp.Equal(until))) {
+			bucketStats = append(bucketStats, minuteStats[minuteStatsPointer])
+			minuteStatsPointer++
+		}
+
+		if len(bucketStats) > 0 {
+			aggregated := s.aggregateStats(bucketStats, bucketStart, monitorID)
+			result = append(result, aggregated)
+		} else {
+			result = append(result, &Stat{
+				ID:          "",
+				MonitorID:   monitorID,
+				Timestamp:   bucketStart,
+				Ping:        0,
+				PingMin:     0,
+				PingMax:     0,
+				Up:          0,
+				Down:        0,
+				Maintenance: 0,
+			})
+		}
+	}
+
+	return result, nil
+}
+
+// aggregateStats calculates the average and aggregated values for a bucket of stats
+func (s *ServiceImpl) aggregateStats(stats []*Stat, timestamp time.Time, monitorID string) *Stat {
+	if len(stats) == 0 {
+		return &Stat{
+			ID:          "",
+			MonitorID:   monitorID,
+			Timestamp:   timestamp,
+			Ping:        0,
+			PingMin:     0,
+			PingMax:     0,
+			Up:          0,
+			Down:        0,
+			Maintenance: 0,
+		}
+	}
+
+	var totalPing, minPing, maxPing float64
+	var totalUp, totalDown, totalMaintenance int
+	var pingCount int
+	var hasValidPing bool
+
+	for _, stat := range stats {
+		totalUp += stat.Up
+		totalDown += stat.Down
+		totalMaintenance += stat.Maintenance
+
+		// Only include stats with valid ping values (> 0) for ping calculations
+		if stat.Up > 0 && stat.Ping > 0 {
+			totalPing += stat.Ping * float64(stat.Up)
+			pingCount += stat.Up
+
+			if !hasValidPing {
+				minPing = stat.PingMin
+				maxPing = stat.PingMax
+				hasValidPing = true
+			} else {
+				if stat.PingMin > 0 && stat.PingMin < minPing {
+					minPing = stat.PingMin
+				}
+				if stat.PingMax > maxPing {
+					maxPing = stat.PingMax
+				}
+			}
+		}
+	}
+
+	// Calculate average ping
+	avgPing := 0.0
+	if pingCount > 0 {
+		avgPing = totalPing / float64(pingCount)
+	}
+
+	// Set min/max ping to 0 if no valid ping data
+	if !hasValidPing {
+		minPing = 0
+		maxPing = 0
+	}
+
+	return &Stat{
+		ID:          "",
+		MonitorID:   monitorID,
+		Timestamp:   timestamp,
+		Ping:        avgPing,
+		PingMin:     minPing,
+		PingMax:     maxPing,
+		Up:          totalUp,
+		Down:        totalDown,
+		Maintenance: totalMaintenance,
+	}
 }
 
 // StatPointsSummary is a local struct for summary in stats package (avoid import cycle)

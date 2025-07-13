@@ -18,15 +18,13 @@ Peekaping is a powerful, feature-rich uptime monitoring system similar to Uptime
 
 Want to see Peekaping in action? Try our live demo:
 
-🔗 **[https://demo.peekaping.com](https://demo.peekaping.com)**
-
-The demo allows you to explore all features instantly in your browser without any setup. Perfect for evaluating Peekaping before deploying your own instance!
+🔗 **[demo.peekaping.com](https://demo.peekaping.com)**
 
 ## 📚 Documentation
 
 For detailed setup instructions, configuration options, and guides:
 
-🔗 **[Docs](https://docs.peekaping.com)**
+🔗 **[docs.peekaping.com](https://docs.peekaping.com)**
 
 ## ⚠️ Beta Status
 
@@ -38,6 +36,20 @@ For detailed setup instructions, configuration options, and guides:
 - Please report any issues you encounter - your feedback helps us improve!
 
 We encourage you to try Peekaping and provide feedback, but please use it at your own discretion. Your testing and feedback are invaluable to making Peekaping production-ready! 🚀
+
+## Quick start (docker + SQLite)
+```bash
+docker run -d --rm --restart=always \
+  -p 8383:8383 \
+  -e DB_NAME=/app/data/peekaping.db \
+  -e ACCESS_TOKEN_SECRET_KEY=test_access_token_secret_key_16_characters_long \
+  -e REFRESH_TOKEN_SECRET_KEY=test_refresh_token_secret_key_16_characters_long \
+  -v $(pwd)/.data/sqlite:/app/data \
+  0xfurai/peekaping-bundle-sqlite:latest
+```
+[Docker + SQLite Setup](https://docs.peekaping.com/self-hosting/docker-with-sqlite)
+
+Peekaping also support [PostgreSQL Setup](https://docs.peekaping.com/self-hosting/docker-with-postgres) and [MongoDB Setup](https://docs.peekaping.com/self-hosting/docker-with-mongo). Read docs for more guidance
 
 ## 💡 Motivation
 
@@ -54,166 +66,6 @@ If you enjoy this project, come say hi &amp; follow along!
 
 [![Follow me on X](https://img.shields.io/twitter/follow/your_handle?label=Follow&style=social)](https://x.com/0xfurai)
 
-## ✨ Features
-
-### 🔍 **Monitoring Types**
-- **HTTP/HTTPS Monitoring** - Monitor websites, APIs, and web services with comprehensive options
-- **TCP Port Monitoring** - Monitor TCP port connectivity and availability
-- **Ping Monitoring (ICMP)** - Traditional ping monitoring using ICMP packets
-- **DNS Monitoring** - Monitor DNS query responses and resolution times
-- **Push Monitoring** - Monitor services that push heartbeats to a generated URL endpoint
-- **Docker Container Monitoring** - Monitor Docker container status and health
-
-### 📊 **Real-time Dashboard**
-- Live status updates with WebSocket connections
-- Interactive charts and statistics
-- 24-hour uptime tracking
-- Response time monitoring (ping)
-- Visual heartbeat history
-
-### 🔔 **Smart Notifications**
-- **Multiple Channels**: Email (SMTP), Slack, Telegram, Webhooks
-- **Intelligent Alerting**: Configurable retry logic before marking as down
-- **Notification Control**: Set resend intervals to avoid spam
-- **Important Events**: Only get notified when status actually changes
-
-### 📄 **Status Pages**
-- **Public Status Pages** - Share service status with your users
-
-### 🛠 **Advanced Features**
-- **Maintenance Windows** - Schedule maintenance to prevent false alerts
-- **Proxy Support** - Route monitoring through HTTP proxies
-- **2FA User Authentication** - Secure login with 2FA support
-- **Data Retention** - Automatic cleanup of old heartbeat data
-
-### 🏗 **Technical Highlights**
-- **Modern Stack**: Go backend, React frontend, MongoDB database
-- **Cloud Native**: Docker support with docker-compose
-- **API First**: Complete REST API with Swagger documentation
-- **Real-time**: WebSocket connections for live updates
-- **Scalable**: Architecture with dependency injection
-
-## 🚀 Quick Start
-
-### Prerequisites
-- Docker and Docker Compose
-<!-- - Node.js 18+ and pnpm (for development)
-- Go 1.24+ (for development) -->
-
-#### Mongodb
-```bash
-# 1. Grab defaults
-curl -L https://raw.githubusercontent.com/0xfurai/peekaping/main/.env.prod.example -o .env
-curl -L https://raw.githubusercontent.com/0xfurai/peekaping/main/nginx.conf -o nginx.conf
-curl -L https://raw.githubusercontent.com/0xfurai/peekaping/main/docker-compose.prod.mongo.yml -o docker-compose.yml
-
-# 2. Fire it up
-docker compose up -d
-
-# 3. Visit the UI
-open http://localhost:8383
-```
-
-#### Postgres
-```bash
-# 1. Grab defaults
-curl -L https://raw.githubusercontent.com/0xfurai/peekaping/main/.env.prod.example -o .env
-curl -L https://raw.githubusercontent.com/0xfurai/peekaping/main/nginx.conf -o nginx.conf
-curl -L https://raw.githubusercontent.com/0xfurai/peekaping/main/docker-compose.prod.postgres.yml -o docker-compose.yml
-
-# 2. Fire it up
-docker compose up -d
-
-# 3. Visit the UI
-open http://localhost:8383
-```
-
-#### SQLite
-```bash
-# 1. Grab defaults
-curl -L https://raw.githubusercontent.com/0xfurai/peekaping/main/.env.prod.example -o .env
-curl -L https://raw.githubusercontent.com/0xfurai/peekaping/main/nginx.conf -o nginx.conf
-curl -L https://raw.githubusercontent.com/0xfurai/peekaping/main/docker-compose.prod.sqlite.yml -o docker-compose.yml
-
-# 2. Fire it up
-docker compose up -d
-
-# 3. Visit the UI
-open http://localhost:8383
-```
-
-## 🐳 Docker
-
-### Official Images
-- **Server**: [`0xfurai/peekaping-server`](https://hub.docker.com/r/0xfurai/peekaping-server) - Go backend API
-- **Web**: [`0xfurai/peekaping-web`](https://hub.docker.com/r/0xfurai/peekaping-web) - React frontend
-- **Migrator** [`0xfurai/peekaping-migration`](https://hub.docker.com/r/0xfurai/peekaping-migration) - SQL db schema migration
-
-# Docker Compose Files
-
-### docker-compose.dev.{db}.yml
-These files are for local testing and build the entire stack locally from Dockerfiles
-
-### docker-compose.prod.{db}.yml
-These files are production-ready configurations that pull pre-built containers from Docker Hub
-
-### docker-compose.{db}.yml
-These files run standalone databases for local development, designed to work with `turbo run dev`
-
-## 🛠 Development Setup
-
-### Full Stack Development
-**Create environment file in root:**
-```bash
-cp .env.example .env
-# Edit .env with your configuration
-
-# Install all dependencies
-pnpm install
-
-# run turbo
-turbo run dev docs:watch
-```
-
-
-## ⚙️ Configuration
-
-### Environment Variables
-
-```env
-DB_USER=root
-DB_PASSWORD=your-secure-password
-DB_NAME=peekaping # file path for sqlite like /app/data/peekaping.db)
-DB_HOST=localhost
-DB_PORT=6001
-DB_TYPE=mongo # postges | mysql |sqlite
-
-PORT=8034
-CLIENT_URL="http://localhost:5173"
-ACCESS_TOKEN_EXPIRED_IN=1m
-ACCESS_TOKEN_SECRET_KEY=secret-key
-REFRESH_TOKEN_EXPIRED_IN=60m
-REFRESH_TOKEN_SECRET_KEY=secret-key
-MODE=prod # logging
-TZ="America/New_York"
-```
-
-## 🔒 Security
-
-### Authentication
-- JWT-based authentication
-- Optional 2FA with TOTP
-- Secure session management
-
-### Best Practices
-- Use strong passwords and JWT secrets
-- Regular security updates
-- Secure your db instance
-- Use HTTPS in production
-
-### Reverse Proxy Setup
-
-Example Nginx configuration included in `nginx.conf`.
 
 ## 🤝 Contributing
 

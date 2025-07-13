@@ -310,7 +310,7 @@ export function Chart({ id }: { id: string }) {
               type="monotone"
               stroke="var(--chart-4)"
               // strokeWidth={2}
-              dot={false}
+              dot={true}
               connectNulls={false}
               isAnimationActive={false}
             />
@@ -319,7 +319,7 @@ export function Chart({ id }: { id: string }) {
               type="monotone"
               stroke="var(--chart-3)"
               // strokeWidth={2}
-              dot={false}
+              dot={true}
               connectNulls={false}
               isAnimationActive={false}
             />
@@ -328,7 +328,7 @@ export function Chart({ id }: { id: string }) {
               type="monotone"
               stroke="var(--chart-2)"
               // strokeWidth={2}
-              dot={false}
+              dot={true}
               connectNulls={false}
               isAnimationActive={false}
             />

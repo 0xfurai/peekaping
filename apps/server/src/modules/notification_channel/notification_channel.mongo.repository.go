@@ -91,7 +91,7 @@ func (r *RepositoryImpl) FindAll(ctx context.Context, page int, limit int, q str
 	var entities []*mongoModel
 
 	// Calculate the number of documents to skip
-	skip := int64((page) * limit)
+	skip := int64(page * limit)
 	limit64 := int64(limit)
 
 	// Build filter

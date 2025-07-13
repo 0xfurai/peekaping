@@ -2,13 +2,35 @@
 sidebar_position: 1
 ---
 
-# Docker + Postgres
+# Docker + PostgreSQL
 
-## Prerequisites
+## Monolithic mode
+
+The simplest mode of operation is the monolithic deployment mode. This mode runs all of Peekaping microservice components (db + api + web + gateway) inside a single process as a single Docker image.
+
+```bash
+docker run -d --rm --restart=always \
+  -p 8383:8383 \
+  -e DB_NAME=peekaping \
+  -e DB_USER=peekaping \
+  -e DB_PASS=secure_test_password_123 \
+  -e ACCESS_TOKEN_SECRET_KEY=test_access_token_secret_key_16_characters_long \
+  -e REFRESH_TOKEN_SECRET_KEY=test_refresh_token_secret_key_16_characters_long \
+  -v $(pwd)/.data/postgres:/var/lib/postgresql/data \
+  0xfurai/peekaping-bundle-postgres:latest
+```
+To add custom caddy file add
+```
+-v ./custom-Caddyfile:/etc/caddy/Caddyfile:ro
+```
+
+If you need more granular control on system components read [Microservice mode section](#microservice-mode)
+
+## Microservice mode
+
+### Prerequisites
 
 - Docker Compose 2.0+
-
-## Quick Start
 
 ### 1. Create Project Structure
 
@@ -37,7 +59,7 @@ DB_PORT=5432
 DB_TYPE=postgres
 
 # Server Configuration
-PORT=8034
+SERVER_PORT=8034
 CLIENT_URL="http://localhost:8383"
 
 # JWT Configuration

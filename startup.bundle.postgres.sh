@@ -75,7 +75,7 @@ export DB_USER=${DB_USER}
 export DB_PASS=${DB_PASS}
 
 # Set server configuration environment variables
-export PORT=${PORT:-8034}
+export SERVER_PORT=${SERVER_PORT:-8034}
 # Security: Use HTTPS by default
 export CLIENT_URL=${CLIENT_URL:-http://localhost:8383}
 export ACCESS_TOKEN_SECRET_KEY=${ACCESS_TOKEN_SECRET_KEY}
@@ -87,7 +87,7 @@ export TZ=${TZ:-UTC}
 
 # Create .env file for the server with secure permissions
 cat > /app/.env << EOF
-PORT=$PORT
+SERVER_PORT=$SERVER_PORT
 CLIENT_URL=$CLIENT_URL
 DB_TYPE=$DB_TYPE
 DB_HOST=$DB_HOST

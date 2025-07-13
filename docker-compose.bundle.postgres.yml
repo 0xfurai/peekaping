@@ -11,16 +11,13 @@ services:
     environment:
       - DB_TYPE=postgres
       - DB_HOST=localhost
+      - DB_PASS=password
       - DB_PORT=5432
-      - API_URL=http://localhost:8383
     volumes:
       # Database data persistence
       - ./.data/postgres:/var/lib/postgresql/data
       # Application logs persistence
       - ./.data/logs:/var/log/supervisor
-      # Caddy data persistence (certificates, etc.)
-      - ./.data/caddy-data:/data/caddy
-      - ./.data/caddy-config:/config/caddy
       # Optional: Custom Caddyfile override
       # - ./custom-Caddyfile:/etc/caddy/Caddyfile:ro
     container_name: peekaping-bundle-postgres

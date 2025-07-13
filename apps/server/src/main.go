@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"peekaping/docs"
 	"peekaping/src/config"
 	"peekaping/src/modules/auth"
@@ -16,13 +17,16 @@ import (
 	"peekaping/src/modules/monitor_maintenance"
 	"peekaping/src/modules/monitor_notification"
 	"peekaping/src/modules/monitor_status_page"
+	"peekaping/src/modules/monitor_tag"
 	"peekaping/src/modules/notification_channel"
 	"peekaping/src/modules/proxy"
 	"peekaping/src/modules/setting"
 	"peekaping/src/modules/stats"
 	"peekaping/src/modules/status_page"
+	"peekaping/src/modules/tag"
 	"peekaping/src/modules/websocket"
 	"peekaping/src/utils"
+	"peekaping/src/version"
 
 	"go.uber.org/dig"
 	"go.uber.org/zap"
@@ -34,15 +38,22 @@ import (
 // @in header
 // @name Authorization
 func main() {
-	docs.SwaggerInfo.Version = Version
+	docs.SwaggerInfo.Version = version.Version
 
 	utils.RegisterCustomValidators()
 
-	cfg, err := config.LoadConfig("../..")
+	cfg, err := config.LoadConfig[config.Config]("../..")
 
 	if err != nil {
 		panic(err)
 	}
+
+	err = config.ValidateDatabaseCustomRules(config.ExtractDBConfig(&cfg))
+	if err != nil {
+		panic(err)
+	}
+
+	os.Setenv("TZ", cfg.Timezone)
 
 	container := dig.New()
 
@@ -77,6 +88,8 @@ func main() {
 	maintenance.RegisterDependencies(container, &cfg)
 	status_page.RegisterDependencies(container, &cfg)
 	monitor_status_page.RegisterDependencies(container, &cfg)
+	tag.RegisterDependencies(container, &cfg)
+	monitor_tag.RegisterDependencies(container, &cfg)
 
 	// Start the event healthcheck listener
 	err = container.Invoke(func(listener *healthcheck.EventListener, eventBus *events.EventBus) {
@@ -106,6 +119,14 @@ func main() {
 	}
 
 	err = container.Invoke(func(listener *notification_channel.NotificationEventListener, eventBus *events.EventBus) {
+		listener.Subscribe(eventBus)
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Start the monitor event listener
+	err = container.Invoke(func(listener *monitor.MonitorEventListener, eventBus *events.EventBus) {
 		listener.Subscribe(eventBus)
 	})
 	if err != nil {

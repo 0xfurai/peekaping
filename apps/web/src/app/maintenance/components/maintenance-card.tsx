@@ -71,7 +71,7 @@ const MaintenanceCard = ({
           <div className="flex items-center gap-4">
             <div className={`flex flex-col min-w-[200px] ${isMaintenanceEnded ? "text-gray-500" : ""}`}>
               <h3 className="font-bold mb-1">{maintenance.title}</h3>
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2">
                 <Badge 
                   variant={isMaintenanceEnded ? "outline" : maintenance.active ? "default" : "secondary"}
                   className={isMaintenanceEnded ? "text-gray-500" : ""}

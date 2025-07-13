@@ -70,7 +70,7 @@
             "all_monitors": "Всі монітори",
             "status_filter": "Фільтр статусу",
             "search_placeholder": "Пошук моніторів за назвою...",
-            "monitor_status": "Фільтрувати за статусом..."
+            "monitor_status": "Cтатус"
         },
         "intervals_retries_timeouts": "Інтервали, повтори, таймаути"
     },

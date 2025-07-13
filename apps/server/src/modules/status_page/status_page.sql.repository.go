@@ -116,7 +116,7 @@ func (r *SQLRepositoryImpl) FindAll(
 
 	query = query.Order("created_at DESC").
 		Limit(limit).
-		Offset((page - 1) * limit)
+		Offset(page * limit)
 
 	var sms []*sqlModel
 	err := query.Scan(ctx, &sms)

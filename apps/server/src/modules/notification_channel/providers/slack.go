@@ -11,6 +11,7 @@ import (
 	"peekaping/src/modules/heartbeat"
 	"peekaping/src/modules/monitor"
 	"peekaping/src/modules/shared"
+	"peekaping/src/version"
 	"strings"
 
 	liquid "github.com/osteele/liquid"
@@ -255,7 +256,7 @@ func (s *SlackSender) Send(
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "Peekaping-Slack/1.0")
+	req.Header.Set("User-Agent", "Peekaping-Slack/"+version.Version)
 
 	s.logger.Debugf("Sending Slack webhook request: %s", req.URL.String())
 

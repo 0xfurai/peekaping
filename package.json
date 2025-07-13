@@ -11,7 +11,8 @@
   "devDependencies": {
     "@playwright/test": "^1.53.1",
     "@types/node": "22.15.17",
-    "turbo": "^2.5.4"
+    "turbo": "^2.5.4",
+    "nodemon": "^3.1.10"
   },
   "packageManager": "pnpm@9.0.0",
   "engines": {

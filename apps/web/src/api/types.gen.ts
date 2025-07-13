@@ -180,6 +180,7 @@ export type MonitorCreateUpdateDto = {
   push_token?: string;
   resend_interval?: number;
   retry_interval?: number;
+  tag_ids?: Array<string>;
   timeout?: number;
   type: string;
 };
@@ -244,6 +245,7 @@ export type MonitorMonitorResponseDto = {
   resend_interval?: number;
   retry_interval?: number;
   status?: number;
+  tag_ids?: Array<string>;
   timeout?: number;
   type?: string;
   updated_at?: string;
@@ -261,6 +263,7 @@ export type MonitorPartialUpdateDto = {
   resend_interval?: number;
   retry_interval?: number;
   status?: HeartbeatMonitorStatus;
+  tag_ids?: Array<string>;
   timeout?: number;
   type?: string;
 };
@@ -450,6 +453,27 @@ export type StatusPageUpdateStatusPageDto = {
   title?: string;
 };
 
+export type TagCreateUpdateDto = {
+  color: string;
+  description?: string;
+  name: string;
+};
+
+export type TagModel = {
+  color?: string;
+  created_at?: string;
+  description?: string;
+  id?: string;
+  name?: string;
+  updated_at?: string;
+};
+
+export type TagPartialUpdateDto = {
+  color?: string;
+  description?: string;
+  name?: string;
+};
+
 export type UtilsApiError = {
   message: string;
   status: string;
@@ -492,6 +516,11 @@ export type UtilsApiResponseArrayStatusPageModel = {
 
 export type UtilsApiResponseArrayStatusPageMonitorWithHeartbeatsAndUptimeDto = {
   data: Array<StatusPageMonitorWithHeartbeatsAndUptimeDto>;
+  message: string;
+};
+
+export type UtilsApiResponseArrayTagModel = {
+  data: Array<TagModel>;
   message: string;
 };
 
@@ -552,6 +581,11 @@ export type UtilsApiResponseStatusPageModel = {
 
 export type UtilsApiResponseStatusPageStatusPageWithMonitorsResponseDto = {
   data: StatusPageStatusPageWithMonitorsResponseDto;
+  message: string;
+};
+
+export type UtilsApiResponseTagModel = {
+  data: TagModel;
   message: string;
 };
 
@@ -1174,6 +1208,10 @@ export type GetMonitorsData = {
      * Status
      */
     status?: number;
+    /**
+     * Comma-separated list of tag IDs to filter by
+     */
+    tag_ids?: string;
   };
   url: "/monitors";
 };
@@ -2418,6 +2456,42 @@ export type GetStatusPagesSlugBySlugMonitorsResponses = {
 export type GetStatusPagesSlugBySlugMonitorsResponse =
   GetStatusPagesSlugBySlugMonitorsResponses[keyof GetStatusPagesSlugBySlugMonitorsResponses];
 
+export type GetStatusPagesSlugBySlugMonitorsHomepageData = {
+  body?: never;
+  path: {
+    /**
+     * Status Page Slug
+     */
+    slug: string;
+  };
+  query?: never;
+  url: "/status-pages/slug/{slug}/monitors/homepage";
+};
+
+export type GetStatusPagesSlugBySlugMonitorsHomepageErrors = {
+  /**
+   * Not Found
+   */
+  404: UtilsApiError;
+  /**
+   * Internal Server Error
+   */
+  500: UtilsApiError;
+};
+
+export type GetStatusPagesSlugBySlugMonitorsHomepageError =
+  GetStatusPagesSlugBySlugMonitorsHomepageErrors[keyof GetStatusPagesSlugBySlugMonitorsHomepageErrors];
+
+export type GetStatusPagesSlugBySlugMonitorsHomepageResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseArrayStatusPageMonitorWithHeartbeatsAndUptimeDto;
+};
+
+export type GetStatusPagesSlugBySlugMonitorsHomepageResponse =
+  GetStatusPagesSlugBySlugMonitorsHomepageResponses[keyof GetStatusPagesSlugBySlugMonitorsHomepageResponses];
+
 export type DeleteStatusPagesByIdData = {
   body?: never;
   path: {
@@ -2532,6 +2606,247 @@ export type PatchStatusPagesByIdResponses = {
 
 export type PatchStatusPagesByIdResponse =
   PatchStatusPagesByIdResponses[keyof PatchStatusPagesByIdResponses];
+
+export type GetTagsData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * Search query
+     */
+    q?: string;
+    /**
+     * Page number
+     */
+    page?: number;
+    /**
+     * Items per page
+     */
+    limit?: number;
+  };
+  url: "/tags";
+};
+
+export type GetTagsErrors = {
+  /**
+   * Bad Request
+   */
+  400: UtilsApiError;
+  /**
+   * Not Found
+   */
+  404: UtilsApiError;
+  /**
+   * Internal Server Error
+   */
+  500: UtilsApiError;
+};
+
+export type GetTagsError = GetTagsErrors[keyof GetTagsErrors];
+
+export type GetTagsResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseArrayTagModel;
+};
+
+export type GetTagsResponse = GetTagsResponses[keyof GetTagsResponses];
+
+export type PostTagsData = {
+  /**
+   * Tag object
+   */
+  body: TagCreateUpdateDto;
+  path?: never;
+  query?: never;
+  url: "/tags";
+};
+
+export type PostTagsErrors = {
+  /**
+   * Bad Request
+   */
+  400: UtilsApiError;
+  /**
+   * Internal Server Error
+   */
+  500: UtilsApiError;
+};
+
+export type PostTagsError = PostTagsErrors[keyof PostTagsErrors];
+
+export type PostTagsResponses = {
+  /**
+   * Created
+   */
+  201: UtilsApiResponseTagModel;
+};
+
+export type PostTagsResponse = PostTagsResponses[keyof PostTagsResponses];
+
+export type DeleteTagsByIdData = {
+  body?: never;
+  path: {
+    /**
+     * Tag ID
+     */
+    id: string;
+  };
+  query?: never;
+  url: "/tags/{id}";
+};
+
+export type DeleteTagsByIdErrors = {
+  /**
+   * Bad Request
+   */
+  400: UtilsApiError;
+  /**
+   * Not Found
+   */
+  404: UtilsApiError;
+  /**
+   * Internal Server Error
+   */
+  500: UtilsApiError;
+};
+
+export type DeleteTagsByIdError =
+  DeleteTagsByIdErrors[keyof DeleteTagsByIdErrors];
+
+export type DeleteTagsByIdResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseAny;
+};
+
+export type DeleteTagsByIdResponse =
+  DeleteTagsByIdResponses[keyof DeleteTagsByIdResponses];
+
+export type GetTagsByIdData = {
+  body?: never;
+  path: {
+    /**
+     * Tag ID
+     */
+    id: string;
+  };
+  query?: never;
+  url: "/tags/{id}";
+};
+
+export type GetTagsByIdErrors = {
+  /**
+   * Bad Request
+   */
+  400: UtilsApiError;
+  /**
+   * Not Found
+   */
+  404: UtilsApiError;
+  /**
+   * Internal Server Error
+   */
+  500: UtilsApiError;
+};
+
+export type GetTagsByIdError = GetTagsByIdErrors[keyof GetTagsByIdErrors];
+
+export type GetTagsByIdResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseTagModel;
+};
+
+export type GetTagsByIdResponse =
+  GetTagsByIdResponses[keyof GetTagsByIdResponses];
+
+export type PatchTagsByIdData = {
+  /**
+   * Tag object
+   */
+  body: TagPartialUpdateDto;
+  path: {
+    /**
+     * Tag ID
+     */
+    id: string;
+  };
+  query?: never;
+  url: "/tags/{id}";
+};
+
+export type PatchTagsByIdErrors = {
+  /**
+   * Bad Request
+   */
+  400: UtilsApiError;
+  /**
+   * Not Found
+   */
+  404: UtilsApiError;
+  /**
+   * Internal Server Error
+   */
+  500: UtilsApiError;
+};
+
+export type PatchTagsByIdError = PatchTagsByIdErrors[keyof PatchTagsByIdErrors];
+
+export type PatchTagsByIdResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseTagModel;
+};
+
+export type PatchTagsByIdResponse =
+  PatchTagsByIdResponses[keyof PatchTagsByIdResponses];
+
+export type PutTagsByIdData = {
+  /**
+   * Tag object
+   */
+  body: TagCreateUpdateDto;
+  path: {
+    /**
+     * Tag ID
+     */
+    id: string;
+  };
+  query?: never;
+  url: "/tags/{id}";
+};
+
+export type PutTagsByIdErrors = {
+  /**
+   * Bad Request
+   */
+  400: UtilsApiError;
+  /**
+   * Not Found
+   */
+  404: UtilsApiError;
+  /**
+   * Internal Server Error
+   */
+  500: UtilsApiError;
+};
+
+export type PutTagsByIdError = PutTagsByIdErrors[keyof PutTagsByIdErrors];
+
+export type PutTagsByIdResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseTagModel;
+};
+
+export type PutTagsByIdResponse =
+  PutTagsByIdResponses[keyof PutTagsByIdResponses];
 
 export type GetVersionData = {
   body?: never;

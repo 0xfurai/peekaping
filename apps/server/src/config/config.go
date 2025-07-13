@@ -12,9 +12,18 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
+type DBConfig struct {
+	DBHost string `env:"DB_HOST"`                           // validated in validateCustomRules
+	DBPort string `env:"DB_PORT"`                           // validated in validateCustomRules
+	DBName string `env:"DB_NAME" validate:"required,min=1"` // validated in validateCustomRules
+	DBUser string `env:"DB_USER"`                           // validated in validateCustomRules
+	DBPass string `env:"DB_PASS"`                           // validated in validateCustomRules
+	DBType string `env:"DB_TYPE" validate:"required,db_type"`
+}
+
 type Config struct {
-	Port      string `env:"PORT" validate:"required,port" default:"8034"`
-	ClientURL string `env:"CLIENT_URL" validate:"required,url"`
+	Port      string `env:"SERVER_PORT" validate:"required,port" default:"8034"`
+	ClientURL string `env:"CLIENT_URL" validate:"url" default:"http://localhost:3000"`
 
 	DBHost string `env:"DB_HOST"`                           // validated in validateCustomRules
 	DBPort string `env:"DB_PORT"`                           // validated in validateCustomRules
@@ -38,7 +47,7 @@ type Config struct {
 
 var validate = validator.New()
 
-func LoadConfig(path string) (config Config, err error) {
+func LoadConfig[T any](path string) (config T, err error) {
 	// Register custom validators
 	RegisterCustomValidators()
 
@@ -78,12 +87,21 @@ func LoadConfig(path string) (config Config, err error) {
 	printEnvVars("From system env:", envVarsFromEnv)
 	printEnvVars("Defaults applied:", defaultsApplied)
 
-	os.Setenv("TZ", config.Timezone)
-
 	return
 }
 
-func validateConfig(config *Config) error {
+func ExtractDBConfig(config *Config) *DBConfig {
+	return &DBConfig{
+		DBHost: config.DBHost,
+		DBPort: config.DBPort,
+		DBName: config.DBName,
+		DBUser: config.DBUser,
+		DBPass: config.DBPass,
+		DBType: config.DBType,
+	}
+}
+
+func validateConfig[T any](config *T) error {
 	// Validate using struct tags
 	if err := validate.Struct(config); err != nil {
 		if validationErrors, ok := err.(validator.ValidationErrors); ok {
@@ -96,8 +114,7 @@ func validateConfig(config *Config) error {
 		return err
 	}
 
-	// Custom validation logic
-	return validateCustomRules(config)
+	return nil
 }
 
 func formatValidationError(err validator.FieldError) string {
@@ -128,7 +145,7 @@ func formatValidationError(err validator.FieldError) string {
 	}
 }
 
-func validateCustomRules(config *Config) error {
+func ValidateDatabaseCustomRules(config *DBConfig) error {
 	// Validate database-specific requirements
 	switch config.DBType {
 	case "postgres", "postgresql", "mysql":
@@ -172,22 +189,10 @@ func validateCustomRules(config *Config) error {
 		}
 	}
 
-	// Validate token expiration times
-	if config.AccessTokenExpiresIn >= config.RefreshTokenExpiresIn {
-		return fmt.Errorf("ACCESS_TOKEN_EXPIRED_IN must be less than REFRESH_TOKEN_EXPIRED_IN")
-	}
-
-	// Validate port is not conflicting with common system ports
-	if port, err := strconv.Atoi(config.Port); err == nil {
-		if port < 1024 && port != 80 && port != 443 {
-			fmt.Printf("Warning: Using port %d which is typically reserved for system services\n", port)
-		}
-	}
-
 	return nil
 }
 
-func applyDefaults(config *Config) map[string]string {
+func applyDefaults[T any](config *T) map[string]string {
 	configType := reflect.TypeOf(*config)
 	configValue := reflect.ValueOf(config).Elem()
 	defaultsApplied := make(map[string]string)
@@ -236,7 +241,7 @@ func applyDefaults(config *Config) map[string]string {
 	return defaultsApplied
 }
 
-func loadEnvFile(filePath string, config *Config, envVarsFromFile map[string]string) error {
+func loadEnvFile[T any](filePath string, config *T, envVarsFromFile map[string]string) error {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return err
@@ -271,7 +276,7 @@ func loadEnvFile(filePath string, config *Config, envVarsFromFile map[string]str
 	return setFieldsFromMap(config, envVarsFromFile)
 }
 
-func loadFromEnv(config *Config) map[string]string {
+func loadFromEnv[T any](config *T) map[string]string {
 	// Get all the relevant environment variables at once
 	envVars := make(map[string]string)
 
@@ -291,7 +296,7 @@ func loadFromEnv(config *Config) map[string]string {
 	return envVars
 }
 
-func setFieldsFromMap(config *Config, values map[string]string) error {
+func setFieldsFromMap[T any](config *T, values map[string]string) error {
 	configType := reflect.TypeOf(*config)
 	configValue := reflect.ValueOf(config).Elem()
 

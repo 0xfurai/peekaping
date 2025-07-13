@@ -4,11 +4,31 @@ sidebar_position: 1
 
 # Docker + SQLite
 
-## Prerequisites
+## Monolithic mode
+
+The simplest mode of operation is the monolithic deployment mode. This mode runs all of Peekaping microservice components (db + api + web + gateway) inside a single process as a single Docker image.
+
+```bash
+docker run -d --rm --restart=always \
+  -p 8383:8383 \
+  -e DB_NAME=/app/data/peekaping.db \
+  -e ACCESS_TOKEN_SECRET_KEY=test_access_token_secret_key_16_characters_long \
+  -e REFRESH_TOKEN_SECRET_KEY=test_refresh_token_secret_key_16_characters_long \
+  -v $(pwd)/.data/sqlite:/app/data \
+  0xfurai/peekaping-bundle-sqlite:latest
+```
+To add custom caddy file add
+```
+-v ./custom-Caddyfile:/etc/caddy/Caddyfile:ro
+```
+
+If you need more granular control on system components read [Microservice mode section](#microservice-mode)
+
+## Microservice mode
+
+### Prerequisites
 
 - Docker Compose 2.0+
-
-## Quick Start
 
 ### 1. Create Project Structure
 
@@ -35,7 +55,7 @@ DB_NAME=/app/data/peekaping.db
 DB_TYPE=sqlite
 
 # Server Configuration
-PORT=8034
+SERVER_PORT=8034
 CLIENT_URL="http://localhost:8383"
 
 # JWT Configuration

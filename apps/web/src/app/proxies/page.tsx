@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import type { ProxyModel } from "@/api/types.gen";
 import {
   getProxiesInfiniteOptions,
@@ -12,6 +12,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import { useSearchParams } from "@/hooks/useSearchParams";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
@@ -31,20 +32,32 @@ import { commonMutationErrorHandler } from "@/lib/utils";
 import ProxyCard from "./components/proxy-card";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import EmptyList from "@/components/empty-list";
+import { useDebounce } from "@/hooks/useDebounce";
+import { useDelayedLoading } from "@/hooks/useDelayedLoading";
 
 const ProxiesPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [search, setSearch] = useState("");
+  const { getParam, updateSearchParams } = useSearchParams();
+
+  // Initialize search state from URL parameter
+  const [search, setSearch] = useState(getParam("search") || "");
+  const debouncedSearch = useDebounce(search, 400);
+
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [proxyToDelete, setProxyToDelete] = useState<ProxyModel | null>(null);
+
+  // Update URL when search changes
+  useEffect(() => {
+    updateSearchParams({ search: debouncedSearch });
+  }, [debouncedSearch, updateSearchParams]);
 
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery({
       ...getProxiesInfiniteOptions({
         query: {
           limit: 20,
-          q: search || undefined,
+          q: debouncedSearch || undefined,
         },
       }),
       getNextPageParam: (lastPage, pages) => {
@@ -55,6 +68,8 @@ const ProxiesPage = () => {
       initialPageParam: 0,
       enabled: true,
     });
+
+  const shouldShowSkeleton = useDelayedLoading(isLoading, 200);
 
   const deleteMutation = useMutation({
     ...deleteProxiesByIdMutation(),
@@ -118,7 +133,7 @@ const ProxiesPage = () => {
           </div>
         </div>
 
-        {proxies.length === 0 && isLoading && (
+        {proxies.length === 0 && shouldShowSkeleton && (
           <div className="flex flex-col space-y-2 mb-2">
             {Array.from({ length: 7 }, (_, id) => (
               <Skeleton className="h-[68px] w-full rounded-xl" key={id} />

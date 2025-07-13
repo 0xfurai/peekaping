@@ -70,7 +70,7 @@
             "all_monitors": "All Monitors",
             "status_filter": "Status Filter",
             "search_placeholder": "Search monitors by name...",
-            "monitor_status": "Filter by status..."
+            "monitor_status": "Status"
         },
         "intervals_retries_timeouts": "Intervals, Retries, Timeouts"
     },

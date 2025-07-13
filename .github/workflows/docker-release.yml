@@ -88,11 +88,11 @@ jobs:
           npm version ${{ github.event.inputs.version }} --no-git-tag-version
         working-directory: ./apps/web
 
-      - name: Update version in main.go (server)
+      - name: Update version in go files (server)
         run: |
-          sed -i.bak -E 's/(Version\s*=\s*")[^"]+(")/\1${{ github.event.inputs.version }}\2/' version.go
+          sed -i.bak -E 's/(Version[[:space:]]*=[[:space:]]*")[^"]+(")/\1${{ github.event.inputs.version }}\2/' version.go
           rm version.go.bak
-        working-directory: ./apps/server/src
+        working-directory: ./apps/server/src/version
 
       - name: Write version.ts for web
         run: |
@@ -156,7 +156,7 @@ jobs:
       - name: Commit and tag version bump (amd64 only)
         if: matrix.arch == 'amd64'
         run: |
-          git add apps/web/package.json apps/web/src/version.ts apps/server/src/version.go
+          git add apps/web/package.json apps/web/src/version.ts apps/server/src/version/version.go
           git commit -m "chore: bump version to ${{ github.event.inputs.version }}"
           git push origin HEAD:${{ github.ref_name }}
         env:

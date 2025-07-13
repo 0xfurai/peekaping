@@ -13,6 +13,7 @@ type MonitorRepository interface {
 		q string,
 		active *bool,
 		status *int,
+		tagIds []string,
 	) ([]*Model, error)
 	FindActive(ctx context.Context) ([]*Model, error)
 	UpdateFull(ctx context.Context, id string, monitor *Model) error

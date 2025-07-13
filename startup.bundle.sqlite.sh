@@ -50,7 +50,7 @@ export DB_TYPE=sqlite
 export DB_NAME=/app/data/peekaping.db
 
 # Set server configuration environment variables
-export PORT=${PORT:-8034}
+export SERVER_PORT=${SERVER_PORT:-8034}
 export CLIENT_URL=${CLIENT_URL:-http://localhost:8383}
 export ACCESS_TOKEN_SECRET_KEY=${ACCESS_TOKEN_SECRET_KEY}
 export REFRESH_TOKEN_SECRET_KEY=${REFRESH_TOKEN_SECRET_KEY}

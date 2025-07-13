@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import type { NotificationChannelModel } from "@/api";
 import {
   getNotificationChannelsInfiniteOptions,
@@ -28,17 +28,33 @@ import {
 } from "@/components/ui/alert-dialog";
 import NotificationChannelCard from "./components/notification-channel-card";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useSearchParams } from "@/hooks/useSearchParams";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import EmptyList from "@/components/empty-list";
+import { Button } from "@/components/ui/button";
 
 const NotifiersPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [search, setSearch] = useState("");
+  const { getParam, updateSearchParams, clearAllParams, hasParams } =
+    useSearchParams();
+
+  // Initialize search from URL params
+  const [search, setSearch] = useState(getParam("q") || "");
   const debouncedSearch = useDebounce(search, 400);
+
+  // Update URL when debounced search changes
+  useEffect(() => {
+    updateSearchParams({ q: debouncedSearch });
+  }, [debouncedSearch, updateSearchParams]);
+
+  const clearAllFilters = () => {
+    setSearch("");
+    clearAllParams();
+  };
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [notifierToDelete, setNotifierToDelete] =
     useState<NotificationChannelModel | null>(null);
@@ -113,16 +129,30 @@ const NotifiersPage = () => {
       onCreate={() => navigate("/notification-channels/new")}
     >
       <div>
-        <div className="mb-4 flex justify-center sm:justify-end gap-4">
-          <div className="flex flex-col gap-1 w-full sm:w-auto">
-            <Label htmlFor="search-notification-channels">Search</Label>
-            <Input
-              id="search-notification-channels"
-              placeholder="Search notification channels by name..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full sm:w-[400px]"
-            />
+        <div className="mb-4 space-y-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:justify-end sm:gap-4 items-end">
+            {hasParams() && (
+              <div className="flex justify-start">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearAllFilters}
+                  className="w-fit h-[36px]"
+                >
+                  Clear all filters
+                </Button>
+              </div>
+            )}
+            <div className="flex flex-col gap-1 w-full sm:w-auto">
+              <Label htmlFor="search-notification-channels">Search</Label>
+              <Input
+                id="search-notification-channels"
+                placeholder="Search notification channels by name..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full sm:w-[400px]"
+              />
+            </div>
           </div>
         </div>
 
