@@ -66,7 +66,7 @@ func (m *MatrixSender) generateRandomString(size int) string {
 		randomString = randomString[:size]
 	}
 
-	return url.QueryEscape(randomString)
+	return randomString
 }
 
 func (m *MatrixSender) Send(
@@ -101,8 +101,8 @@ func (m *MatrixSender) Send(
 	randomString := m.generateRandomString(20)
 	m.logger.Debugf("Matrix Random String: %s", randomString)
 
-	// URL encode the room ID
-	roomID := url.QueryEscape(cfg.InternalRoomID)
+	// URL encode the room ID for path component
+	roomID := url.PathEscape(cfg.InternalRoomID)
 	m.logger.Debugf("Matrix Room ID: %s", roomID)
 
 	// Prepare the Matrix message payload
