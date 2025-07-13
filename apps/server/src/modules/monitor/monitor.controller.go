@@ -353,7 +353,7 @@ func (ic *MonitorController) UpdatePartial(ctx *gin.Context) {
 		}
 	}
 
-	updatedMonitor, err := ic.monitorService.UpdatePartial(ctx, id, &monitor)
+	updatedMonitor, err := ic.monitorService.UpdatePartial(ctx, id, &monitor, false)
 	if err != nil {
 		ic.logger.Errorw("Failed to update monitor", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
