@@ -20,7 +20,7 @@ import (
 type OpsgenieConfig struct {
 	Region   string `json:"region" validate:"required,oneof=us eu"`
 	ApiKey   string `json:"api_key" validate:"required"`
-	Priority string `json:"priority" validate:"omitempty,oneof=1 2 3 4 5"`
+	Priority int    `json:"priority" validate:"omitempty,min=1,max=5"`
 }
 
 // OpsgenieSender handles sending notifications to Opsgenie
@@ -129,7 +129,7 @@ func (o *OpsgenieSender) sendDownAlert(ctx context.Context, cfg *OpsgenieConfig,
 		"alias":       monitorName,
 		"description": message,
 		"source":      "Peekaping",
-		"priority":    o.getPriority(cfg.Priority),
+		"priority":    o.getPriority(fmt.Sprintf("%d", cfg.Priority)),
 	}
 
 	return o.postToOpsgenie(ctx, cfg, baseURL, data)
