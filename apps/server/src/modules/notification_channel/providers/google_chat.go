@@ -86,7 +86,7 @@ func (g *GoogleChatSender) Send(
 	// Add time if available
 	if hb != nil {
 		// Format timestamp
-		timeStr := hb.CreatedAt.Format("2006-01-02 15:04:05")
+		timeStr := hb.Time.Format("2006-01-02 15:04:05")
 		sectionWidgets = append(sectionWidgets, map[string]any{
 			"textParagraph": map[string]string{
 				"text": fmt.Sprintf("<b>Time:</b>\n%s", timeStr),
