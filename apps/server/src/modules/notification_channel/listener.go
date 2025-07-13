@@ -40,6 +40,9 @@ func NewNotificationEventListener(p NotificationEventListenerParams) *Notificati
 	RegisterNotificationChannelProvider("ntfy", providers.NewNTFYSender(p.Logger))
 	RegisterNotificationChannelProvider("pagerduty", providers.NewPagerDutySender(p.Logger, p.Config))
 	RegisterNotificationChannelProvider("opsgenie", providers.NewOpsgenieSender(p.Logger))
+	RegisterNotificationChannelProvider("google_chat", providers.NewGoogleChatSender(p.Logger, p.Config))
+	RegisterNotificationChannelProvider("grafana_oncall", providers.NewGrafanaOncallSender(p.Logger))
+	RegisterNotificationChannelProvider("signal", providers.NewSignalSender(p.Logger))
 
 	return &NotificationEventListener{
 		service:                    p.Service,
