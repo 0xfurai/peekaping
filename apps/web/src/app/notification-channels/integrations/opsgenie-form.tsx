@@ -22,7 +22,7 @@ export const schema = z.object({
   type: z.literal("opsgenie"),
   region: z.enum(["us", "eu"], { message: "Region is required" }),
   api_key: z.string().min(1, { message: "API key is required" }),
-  priority: z.enum(["1", "2", "3", "4", "5"]).optional(),
+  priority: z.number().min(1).max(5).optional(),
 });
 
 export type OpsgenieFormValues = z.infer<typeof schema>;
@@ -31,7 +31,7 @@ export const defaultValues: OpsgenieFormValues = {
   type: "opsgenie",
   region: "us",
   api_key: "",
-  priority: "3",
+  priority: 3,
 };
 
 export const displayName = "Opsgenie";

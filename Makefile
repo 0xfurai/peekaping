@@ -208,7 +208,7 @@ test-server: ## Test the server
 	@echo "Testing the server..."
 	cd apps/server && go test -v ./src/...
 
-.PHONY: test-web
-test-web: ## Test the web
+.PHONY: lint-web
+lint-web: ## Test the web
 	@echo "Testing the web..."
-	cd apps/web && npm run test
+	cd apps/web && pnpm lint
