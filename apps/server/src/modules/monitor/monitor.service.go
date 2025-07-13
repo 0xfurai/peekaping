@@ -22,7 +22,7 @@ type Service interface {
 	FindAll(ctx context.Context, page int, limit int, q string, active *bool, status *int, tagIds []string) ([]*Model, error)
 	FindActive(ctx context.Context) ([]*Model, error)
 	UpdateFull(ctx context.Context, id string, monitor *CreateUpdateDto) (*Model, error)
-	UpdatePartial(ctx context.Context, id string, monitor *PartialUpdateDto) (*Model, error)
+	UpdatePartial(ctx context.Context, id string, monitor *PartialUpdateDto, noPublish bool) (*Model, error)
 	Delete(ctx context.Context, id string) error
 	ValidateMonitorConfig(monitorType string, configJSON string) error
 
@@ -165,7 +165,7 @@ func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, id string, monitor
 	return model, nil
 }
 
-func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, monitor *PartialUpdateDto) (*Model, error) {
+func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, monitor *PartialUpdateDto, noPublish bool) (*Model, error) {
 	model := &UpdateModel{
 		ID:             &id,
 		Type:           monitor.Type,
@@ -191,10 +191,12 @@ func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, moni
 	}
 
 	// Emit monitor updated event
-	mr.eventBus.Publish(events.Event{
-		Type:    events.MonitorUpdated,
-		Payload: updatedMonitor,
-	})
+	if !noPublish {
+		mr.eventBus.Publish(events.Event{
+			Type:    events.MonitorUpdated,
+			Payload: updatedMonitor,
+		})
+	}
 
 	return updatedMonitor, nil
 }

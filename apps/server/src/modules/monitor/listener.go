@@ -70,7 +70,7 @@ func (l *MonitorEventListener) handleMonitorStatusChanged(event events.Event) {
 		Status: &newStatus,
 	}
 
-	_, err = l.monitorService.UpdatePartial(ctx, monitorID, updateModel)
+	_, err = l.monitorService.UpdatePartial(ctx, monitorID, updateModel, true)
 	if err != nil {
 		l.logger.Errorf("Failed to update monitor %s status to %d: %v", monitorID, newStatus, err)
 		return
