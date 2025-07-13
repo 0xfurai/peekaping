@@ -8,6 +8,7 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { z } from "zod";
+import { Textarea } from "@/components/ui/textarea";
 import { useFormContext } from "react-hook-form";
 
 export const schema = z.object({
@@ -15,6 +16,7 @@ export const schema = z.object({
   homeserver_url: z.string().url({ message: "Valid homeserver URL is required" }),
   internal_room_id: z.string().min(1, { message: "Internal Room ID is required" }),
   access_token: z.string().min(1, { message: "Access Token is required" }),
+  custom_message: z.string().optional(),
 });
 
 export const defaultValues = {
@@ -22,6 +24,7 @@ export const defaultValues = {
   homeserver_url: "",
   internal_room_id: "",
   access_token: "",
+  custom_message: "{{ msg }}",
 };
 
 export const displayName = "Matrix";
@@ -103,6 +106,27 @@ export default function MatrixForm() {
               <span className="text-red-500">*</span> Required
               <br />
               Your Matrix access token for authentication
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="custom_message"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Custom Message</FormLabel>
+            <FormControl>
+              <Textarea
+                placeholder="Alert: {{ monitor.name }} is {{ status }}"
+                className="min-h-[100px]"
+                {...field}
+              />
+            </FormControl>
+            <FormDescription>
+              Custom message template. Available variables: {"{{ msg }}"}, {"{{ monitor.name }}"}, {"{{ status }}"}, {"{{ heartbeat.* }}"}
             </FormDescription>
             <FormMessage />
           </FormItem>

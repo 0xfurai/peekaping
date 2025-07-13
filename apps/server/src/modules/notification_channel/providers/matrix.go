@@ -14,13 +14,15 @@ import (
 	"peekaping/src/version"
 	"time"
 
+	liquid "github.com/osteele/liquid"
 	"go.uber.org/zap"
 )
 
 type MatrixConfig struct {
-	HomeserverURL    string `json:"homeserver_url" validate:"required,url"`
-	InternalRoomID   string `json:"internal_room_id" validate:"required"`
-	AccessToken      string `json:"access_token" validate:"required"`
+	HomeserverURL  string `json:"homeserver_url" validate:"required,url"`
+	InternalRoomID string `json:"internal_room_id" validate:"required"`
+	AccessToken    string `json:"access_token" validate:"required"`
+	CustomMessage  string `json:"custom_message"`
 }
 
 type MatrixSender struct {
@@ -58,12 +60,12 @@ func (m *MatrixSender) generateRandomString(size int) string {
 		// Fallback to timestamp-based string
 		return fmt.Sprintf("peekaping_%d", time.Now().UnixNano())
 	}
-	
+
 	randomString := base64.URLEncoding.EncodeToString(bytes)
 	if len(randomString) > size {
 		randomString = randomString[:size]
 	}
-	
+
 	return url.QueryEscape(randomString)
 }
 
@@ -82,6 +84,19 @@ func (m *MatrixSender) Send(
 
 	m.logger.Infof("Sending Matrix message to room: %s", cfg.InternalRoomID)
 
+	// Prepare message content
+	finalMessage := message
+	if cfg.CustomMessage != "" {
+		engine := liquid.NewEngine()
+		bindings := PrepareTemplateBindings(monitor, heartbeat, message)
+
+		if rendered, err := engine.ParseAndRenderString(cfg.CustomMessage, bindings); err == nil {
+			finalMessage = rendered
+		} else {
+			m.logger.Warnf("Failed to render custom message template: %v", err)
+		}
+	}
+
 	// Generate random transaction ID
 	randomString := m.generateRandomString(20)
 	m.logger.Debugf("Matrix Random String: %s", randomString)
@@ -93,7 +108,7 @@ func (m *MatrixSender) Send(
 	// Prepare the Matrix message payload
 	data := map[string]any{
 		"msgtype": "m.text",
-		"body":    message,
+		"body":    finalMessage,
 	}
 
 	// Convert payload to JSON
@@ -103,7 +118,7 @@ func (m *MatrixSender) Send(
 	}
 
 	// Build the Matrix API URL
-	apiURL := fmt.Sprintf("%s/_matrix/client/r0/rooms/%s/send/m.room.message/%s", 
+	apiURL := fmt.Sprintf("%s/_matrix/client/r0/rooms/%s/send/m.room.message/%s",
 		cfg.HomeserverURL, roomID, randomString)
 
 	// Create the HTTP request
