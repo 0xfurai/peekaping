@@ -211,4 +211,4 @@ test-server: ## Test the server
 .PHONY: lint-web
 lint-web: ## Test the web
 	@echo "Testing the web..."
-	cd apps/web && pnpm lint
+	cd apps/web && pnpm lint && pnpm build
