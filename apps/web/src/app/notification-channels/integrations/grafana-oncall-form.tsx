@@ -47,7 +47,7 @@ export default function GrafanaOncallForm() {
               <span className="text-red-500">*</span> Required
               <br />
               <span className="mt-2 block">
-                The webhook URL from your Grafana OnCall integration. You can find this in your Grafana OnCall instance under Integrations → Webhook.
+                The webhook URL from your Grafana OnCall integration. You can find this in your Grafana OnCall instance under Alerts & IRM > IRM > Integrations > Webhook.
               </span>
               <span className="mt-2 block">
                 Learn more about Grafana OnCall webhooks:{" "}
@@ -59,6 +59,7 @@ export default function GrafanaOncallForm() {
                 >
                   https://grafana.com/docs/oncall/latest/integrations/webhook/
                 </a>
+
               </span>
             </FormDescription>
             <FormMessage />
