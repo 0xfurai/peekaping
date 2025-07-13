@@ -62,7 +62,8 @@ export default function OpsgenieForm() {
             <FormDescription>
               <span className="text-red-500">*</span> Required
               <br />
-              Choose your Opsgenie region. This determines which API endpoint will be used.
+              Choose your Opsgenie region. This determines which API endpoint
+              will be used.
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -111,7 +112,15 @@ export default function OpsgenieForm() {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Priority</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
+            <Select
+              onValueChange={(val) => {
+                if (!val) {
+                  return;
+                }
+                field.onChange(parseInt(val));
+              }}
+              value={field.value?.toString()}
+            >
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Select priority" />
