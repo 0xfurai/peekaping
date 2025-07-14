@@ -81,7 +81,7 @@ const Notifications = ({ onNewNotifier }: { onNewNotifier: () => void }) => {
         </>
       )}
 
-      <div className="flex items-center gap-2">
+      <div className="flex gap-2 flex-col sm:flex-row sm:items-center">
         <FormField
           control={form.control}
           name="notification_ids"
@@ -93,7 +93,11 @@ const Notifications = ({ onNewNotifier }: { onNewNotifier: () => void }) => {
 
             return (
               <FormItem className="flex-1">
-                <FormLabel>Add Notifier</FormLabel>
+                <FormLabel className="pb-1">
+                  {notifications?.data?.length || 0
+                    ? "Add Notifier"
+                    : "No notification channels found, create one first"}
+                </FormLabel>
                 <FormControl>
                   <Select
                     value={"none"}
@@ -114,12 +118,17 @@ const Notifications = ({ onNewNotifier }: { onNewNotifier: () => void }) => {
                     <SelectContent>
                       <SelectItem value="none" disabled>
                         {(notifications?.data?.length || 0) > 0
-                          ? "Select Notification channel"
-                          : "No notification channels found, create one first"}
+                          ? "Select channel"
+                          : "No channels available"}
                       </SelectItem>
                       {availableNotifiers.map((n) => (
                         <SelectItem key={n.id} value={n.id || "none"}>
-                          {n.name}
+                          <span
+                            className="truncate max-w-[300px] sm:max-w-full"
+                            title={n.name}
+                          >
+                            {n.name}
+                          </span>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -134,7 +143,7 @@ const Notifications = ({ onNewNotifier }: { onNewNotifier: () => void }) => {
           type="button"
           onClick={onNewNotifier}
           variant="outline"
-          className="self-end"
+          className="self-start sm:self-end"
         >
           + New Notifier
         </Button>

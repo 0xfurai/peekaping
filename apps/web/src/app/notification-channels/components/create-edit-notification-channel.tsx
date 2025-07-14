@@ -36,6 +36,7 @@ import * as GotifyForm from "../integrations/gotify-form";
 import * as PushoverForm from "../integrations/pushover-form";
 import * as MattermostForm from "../integrations/mattermost-form";
 import * as MatrixForm from "../integrations/matrix-form";
+import * as DiscordForm from "../integrations/discord-form";
 import { useEffect } from "react";
 import { commonMutationErrorHandler } from "@/lib/utils";
 
@@ -54,6 +55,7 @@ const typeFormRegistry = {
   pushover: PushoverForm,
   mattermost: MattermostForm,
   matrix: MatrixForm,
+  discord: DiscordForm,
 };
 
 const notificationSchema = z
@@ -78,6 +80,7 @@ const notificationSchema = z
       PushoverForm.schema,
       MattermostForm.schema,
       MatrixForm.schema,
+      DiscordForm.schema,
     ] as const)
   );
 
@@ -197,6 +200,7 @@ export default function CreateEditNotificationChannel({
                     | "pushover"
                     | "mattermost"
                     | "matrix"
+                    | "discord"
                 );
               }}
               value={type}
