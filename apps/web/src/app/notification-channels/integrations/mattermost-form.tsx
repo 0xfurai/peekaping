@@ -7,6 +7,8 @@ import {
   FormMessage,
   FormDescription,
 } from "@/components/ui/form";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { z } from "zod";
 import { useFormContext } from "react-hook-form";
 
@@ -15,7 +17,7 @@ export const schema = z.object({
   webhook_url: z.string().url({ message: "Valid webhook URL is required" }),
   username: z.string().optional(),
   channel: z.string().optional(),
-  icon_url: z.string().url({ message: "Valid icon URL is required" }).optional().or(z.literal("")),
+  icon_url: z.union([z.string().url({ message: "Valid icon URL is required" }), z.literal("")]).optional(),
   icon_emoji: z.string().optional(),
   use_template: z.boolean().optional(),
   template: z.string().optional(),
@@ -36,6 +38,7 @@ export const displayName = "Mattermost";
 
 export default function MattermostForm() {
   const form = useFormContext();
+  const useTemplate = form.watch("use_template");
 
   return (
     <>
@@ -158,6 +161,52 @@ export default function MattermostForm() {
           </FormItem>
         )}
       />
+
+      <FormField
+        control={form.control}
+        name="use_template"
+        render={({ field }) => (
+          <FormItem>
+            <div className="flex items-center gap-2">
+              <FormControl>
+                <Switch
+                  checked={field.value || false}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <FormLabel>Use Message Template</FormLabel>
+            </div>
+            <FormDescription>
+              Enable to use a custom message template and format.
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      {useTemplate && (
+        <FormField
+          control={form.control}
+          name="template"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Message Template</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Enter your custom message template"
+                  className="min-h-[100px]"
+                  {...field}
+                />
+              </FormControl>
+              <FormDescription>
+                Customize the message format. Available variables:{" "}
+                <code>{"{{ msg }}"}</code>, <code>{"{{ monitor.name }}"}</code>, <code>{"{{ status }}"}</code>, <code>{"{{ monitor.* }}"}</code>
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
     </>
   );
 }
