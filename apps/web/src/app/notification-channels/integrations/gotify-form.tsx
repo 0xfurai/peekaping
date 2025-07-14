@@ -111,12 +111,12 @@ export default function GotifyForm() {
             <FormLabel>Custom Title</FormLabel>
             <FormControl>
               <Input
-                placeholder="Peekaping Alert - {{ name }}"
+                placeholder="Peekaping Alert - {{ monitor.name }}"
                 {...field}
               />
             </FormControl>
             <FormDescription>
-              Custom title for the notification. Available variables: {"{{ name }}"}, {"{{ status }}"}, {"{{ msg }}"}.
+              Custom title for the notification. Available variables: {"{{ msg }}"}, {"{{ monitor.name }}"}, {"{{ status }}"}, {"{{ heartbeat.* }}"}.
               Leave empty to use the default "Peekaping" title.
             </FormDescription>
             <FormMessage />
@@ -132,13 +132,13 @@ export default function GotifyForm() {
             <FormLabel>Custom Message</FormLabel>
             <FormControl>
               <Textarea
-                placeholder="Monitor {{ name }} is {{ status }}: {{ msg }}"
+                placeholder="Alert: {{ monitor.name }} is {{ status }} - {{ msg }}"
                 className="min-h-[100px]"
                 {...field}
               />
             </FormControl>
             <FormDescription>
-              Custom message template. Available variables: {"{{ msg }}"}, {"{{ name }}"}, {"{{ status }}"}.
+              Custom message template. Available variables: {"{{ msg }}"}, {"{{ monitor.name }}"}, {"{{ status }}"}, {"{{ heartbeat.* }}"}.
               Leave empty to use the default message.
             </FormDescription>
             <FormMessage />

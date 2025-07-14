@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	liquid "github.com/osteele/liquid"
 	"go.uber.org/zap"
 )
 
@@ -69,32 +70,31 @@ func (g *GotifySender) Send(
 	// Clean up server URL by removing trailing slash
 	serverURL := strings.TrimSuffix(cfg.ServerURL, "/")
 
+	// Prepare template bindings
+	bindings := PrepareTemplateBindings(monitor, heartbeat, message)
+	engine := liquid.NewEngine()
+
 	// Set default title if not provided
 	title := "Peekaping"
 	if cfg.Title != "" {
-		title = cfg.Title
-		// Apply template variable replacement to title
-		title = strings.ReplaceAll(title, "{{ msg }}", message)
-		if monitor != nil {
-			title = strings.ReplaceAll(title, "{{ name }}", monitor.Name)
-		}
-		if heartbeat != nil {
-			status := humanReadableStatus(int(heartbeat.Status))
-			title = strings.ReplaceAll(title, "{{ status }}", status)
+		// Use liquid templating for title
+		if rendered, err := engine.ParseAndRenderString(cfg.Title, bindings); err == nil {
+			title = rendered
+		} else {
+			g.logger.Warnf("Failed to render title template: %v", err)
+			title = cfg.Title // Fallback to original title
 		}
 	}
 
 	// Prepare message content
 	finalMessage := message
 	if cfg.CustomMessage != "" {
-		// Use simple string replacement for template variables
-		finalMessage = strings.ReplaceAll(cfg.CustomMessage, "{{ msg }}", message)
-		if monitor != nil {
-			finalMessage = strings.ReplaceAll(finalMessage, "{{ name }}", monitor.Name)
-		}
-		if heartbeat != nil {
-			status := humanReadableStatus(int(heartbeat.Status))
-			finalMessage = strings.ReplaceAll(finalMessage, "{{ status }}", status)
+		// Use liquid templating for custom message
+		if rendered, err := engine.ParseAndRenderString(cfg.CustomMessage, bindings); err == nil {
+			finalMessage = rendered
+		} else {
+			g.logger.Warnf("Failed to render custom message template: %v", err)
+			finalMessage = cfg.CustomMessage // Fallback to original custom message
 		}
 	}
 
