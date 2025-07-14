@@ -73,6 +73,15 @@ func (g *GotifySender) Send(
 	title := "Peekaping"
 	if cfg.Title != "" {
 		title = cfg.Title
+		// Apply template variable replacement to title
+		title = strings.ReplaceAll(title, "{{ msg }}", message)
+		if monitor != nil {
+			title = strings.ReplaceAll(title, "{{ name }}", monitor.Name)
+		}
+		if heartbeat != nil {
+			status := humanReadableStatus(int(heartbeat.Status))
+			title = strings.ReplaceAll(title, "{{ status }}", status)
+		}
 	}
 
 	// Prepare message content
