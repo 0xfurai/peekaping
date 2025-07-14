@@ -9,21 +9,20 @@ import {
 } from "@/components/ui/form";
 import { z } from "zod";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
 import { useFormContext } from "react-hook-form";
 
 export const schema = z.object({
   type: z.literal("gotify"),
   server_url: z.string().url({ message: "Valid server URL is required" }),
   application_token: z.string().min(1, { message: "Application token is required" }),
-  priority: z.preprocess(
-    (value) => {
-      if (value === "" || value === null || value === undefined) {
-        return undefined;
-      }
-      return value;
-    },
-    z.coerce.number().min(0).max(10).optional()
-  ),
+  priority: z.coerce.number().min(0).max(10).optional(),
   title: z.string().optional(),
   custom_message: z.string().optional(),
 });
@@ -94,15 +93,34 @@ export default function GotifyForm() {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Priority</FormLabel>
-            <FormControl>
-              <Input
-                type="number"
-                min="0"
-                max="10"
-                placeholder="8"
-                {...field}
-              />
-            </FormControl>
+            <Select
+              onValueChange={(val) => {
+                if (!val) {
+                  return;
+                }
+                field.onChange(parseInt(val));
+              }}
+              value={field.value?.toString()}
+            >
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select priority" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="0">0 - Lowest</SelectItem>
+                <SelectItem value="1">1 - Very Low</SelectItem>
+                <SelectItem value="2">2 - Low</SelectItem>
+                <SelectItem value="3">3 - Below Normal</SelectItem>
+                <SelectItem value="4">4 - Normal</SelectItem>
+                <SelectItem value="5">5 - Above Normal</SelectItem>
+                <SelectItem value="6">6 - Moderate</SelectItem>
+                <SelectItem value="7">7 - High</SelectItem>
+                <SelectItem value="8">8 - Very High (Default)</SelectItem>
+                <SelectItem value="9">9 - Emergency</SelectItem>
+                <SelectItem value="10">10 - Highest</SelectItem>
+              </SelectContent>
+            </Select>
             <FormDescription>
               Message priority (0-10). Higher numbers represent higher priority. Default is 8.
             </FormDescription>
