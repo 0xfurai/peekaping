@@ -44,6 +44,7 @@ func NewNotificationEventListener(p NotificationEventListenerParams) *Notificati
 	RegisterNotificationChannelProvider("grafana_oncall", providers.NewGrafanaOncallSender(p.Logger))
 	RegisterNotificationChannelProvider("signal", providers.NewSignalSender(p.Logger))
 	RegisterNotificationChannelProvider("pushover", providers.NewPushoverSender(p.Logger))
+	RegisterNotificationChannelProvider("mattermost", providers.NewMattermostSender(p.Logger))
 	RegisterNotificationChannelProvider("matrix", providers.NewMatrixSender(p.Logger))
 
 	return &NotificationEventListener{
