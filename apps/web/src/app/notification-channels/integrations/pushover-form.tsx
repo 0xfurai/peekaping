@@ -16,7 +16,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useFormContext } from "react-hook-form";
-import * as React from "react";
 
 export const schema = z.object({
   type: z.literal("pushover"),
