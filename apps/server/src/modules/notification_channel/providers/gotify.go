@@ -17,11 +17,11 @@ import (
 
 // GotifyConfig holds the configuration for Gotify notifications
 type GotifyConfig struct {
-	ServerURL           string `json:"server_url" validate:"required,url"`
-	ApplicationToken    string `json:"application_token" validate:"required"`
-	Priority            int    `json:"priority" validate:"min=0,max=10"`
-	Title               string `json:"title"`
-	CustomMessage       string `json:"custom_message"`
+	ServerURL        string `json:"server_url" validate:"required,url"`
+	ApplicationToken string `json:"application_token" validate:"required"`
+	Priority         *int   `json:"priority" validate:"omitempty,min=0,max=10"`
+	Title            string `json:"title"`
+	CustomMessage    string `json:"custom_message"`
 }
 
 // GotifySender handles sending notifications to Gotify
@@ -90,9 +90,9 @@ func (g *GotifySender) Send(
 	}
 
 	// Set default priority if not specified
-	priority := cfg.Priority
-	if priority == 0 {
-		priority = 8 // Default priority
+	priority := 8 // Default priority
+	if cfg.Priority != nil {
+		priority = *cfg.Priority
 	}
 
 	// Prepare request payload
