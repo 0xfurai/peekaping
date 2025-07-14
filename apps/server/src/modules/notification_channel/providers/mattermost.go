@@ -13,17 +13,18 @@ import (
 	"strings"
 	"time"
 
+	liquid "github.com/osteele/liquid"
 	"go.uber.org/zap"
 )
 
 type MattermostConfig struct {
-	WebhookURL    string `json:"webhook_url" validate:"required,url"`
-	Username      string `json:"username"`
-	Channel       string `json:"channel"`
-	IconURL       string `json:"icon_url"`
-	IconEmoji     string `json:"icon_emoji"`
-	UseTemplate   bool   `json:"use_template"`
-	Template      string `json:"template"`
+	WebhookURL  string `json:"webhook_url" validate:"required,url"`
+	Username    string `json:"username"`
+	Channel     string `json:"channel"`
+	IconURL     string `json:"icon_url"`
+	IconEmoji   string `json:"icon_emoji"`
+	UseTemplate bool   `json:"use_template"`
+	Template    string `json:"template"`
 }
 
 type MattermostSender struct {
@@ -71,6 +72,22 @@ func (m *MattermostSender) Send(
 		return m.sendTestMessage(ctx, cfg, message)
 	}
 
+	// Check if template should be used
+	if cfg.UseTemplate && cfg.Template != "" {
+		// Prepare template bindings
+		bindings := PrepareTemplateBindings(monitor, heartbeat, message)
+
+		// Render the template
+		engine := liquid.NewEngine()
+		renderedMessage, err := engine.ParseAndRenderString(cfg.Template, bindings)
+		if err != nil {
+			return fmt.Errorf("failed to render template: %w", err)
+		}
+
+		// Send simple text message with rendered template
+		return m.sendSimpleMessage(ctx, cfg, renderedMessage)
+	}
+
 	// Create the rich message payload
 	payload := m.buildRichMessage(cfg, message, monitor, heartbeat)
 
@@ -79,6 +96,27 @@ func (m *MattermostSender) Send(
 }
 
 func (m *MattermostSender) sendTestMessage(ctx context.Context, cfg *MattermostConfig, message string) error {
+	// Check if template should be used for test messages
+	if cfg.UseTemplate && cfg.Template != "" {
+		// Prepare template bindings for test message (no monitor/heartbeat)
+		bindings := PrepareTemplateBindings(nil, nil, message)
+
+		// Render the template
+		engine := liquid.NewEngine()
+		renderedMessage, err := engine.ParseAndRenderString(cfg.Template, bindings)
+		if err != nil {
+			return fmt.Errorf("failed to render template: %w", err)
+		}
+
+		// Send simple text message with rendered template
+		return m.sendSimpleMessage(ctx, cfg, renderedMessage)
+	}
+
+	// Default test message behavior
+	return m.sendSimpleMessage(ctx, cfg, message)
+}
+
+func (m *MattermostSender) sendSimpleMessage(ctx context.Context, cfg *MattermostConfig, message string) error {
 	username := cfg.Username
 	if username == "" {
 		username = "Peekaping"
@@ -131,7 +169,7 @@ func (m *MattermostSender) buildRichMessage(cfg *MattermostConfig, message strin
 	var statusField map[string]any
 	statusText := "unknown"
 	color := "#000000"
-	
+
 	if heartbeat != nil {
 		switch heartbeat.Status {
 		case shared.MonitorStatusDown:
@@ -186,10 +224,10 @@ func (m *MattermostSender) buildRichMessage(cfg *MattermostConfig, message strin
 		if monitorName == "" {
 			monitorName = "Monitor"
 		}
-		
+
 		attachment["fallback"] = fmt.Sprintf("Your %s service went %s", monitorName, statusText)
 		attachment["title"] = fmt.Sprintf("%s service went %s", monitorName, statusText)
-		
+
 		// Add title_link if we can extract URL from monitor
 		if monitor.Config != "" {
 			var config map[string]any
