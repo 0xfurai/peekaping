@@ -33,6 +33,7 @@ import * as GoogleChatForm from "../integrations/google-chat-form";
 import * as GrafanaOncallForm from "../integrations/grafana-oncall-form";
 import * as SignalForm from "../integrations/signal-form";
 import * as MattermostForm from "../integrations/mattermost-form";
+import * as MatrixForm from "../integrations/matrix-form";
 import { useEffect } from "react";
 import { commonMutationErrorHandler } from "@/lib/utils";
 
@@ -48,6 +49,7 @@ const typeFormRegistry = {
   grafana_oncall: GrafanaOncallForm,
   signal: SignalForm,
   mattermost: MattermostForm,
+  matrix: MatrixForm,
 };
 
 const notificationSchema = z
@@ -69,6 +71,7 @@ const notificationSchema = z
       GrafanaOncallForm.schema,
       SignalForm.schema,
       MattermostForm.schema,
+      MatrixForm.schema,
     ] as const)
   );
 
@@ -185,6 +188,7 @@ export default function CreateEditNotificationChannel({
                     | "grafana_oncall"
                     | "opsgenie"
                     | "mattermost"
+                    | "matrix"
                 );
               }}
               value={type}
