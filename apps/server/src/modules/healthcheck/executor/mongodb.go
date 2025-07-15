@@ -136,8 +136,7 @@ func (m *MongoDBExecutor) Execute(ctx context.Context, monitor *Monitor, proxyMo
 
 	// Check expected value if provided
 	if cfg.ExpectedValue != "" {
-		resultStr := fmt.Sprintf("%v", evaluatedResult)
-		if resultStr == cfg.ExpectedValue {
+		if m.isValueEqual(evaluatedResult, cfg.ExpectedValue) {
 			m.logger.Infof("MongoDB expected value matched: %s", monitor.Name)
 			return &Result{
 				Status:    shared.MonitorStatusUp,
@@ -146,6 +145,7 @@ func (m *MongoDBExecutor) Execute(ctx context.Context, monitor *Monitor, proxyMo
 				EndTime:   endTime,
 			}
 		} else {
+			resultStr := fmt.Sprintf("%v", evaluatedResult)
 			m.logger.Infof("MongoDB expected value mismatch: %s, got %s, expected %s", monitor.Name, resultStr, cfg.ExpectedValue)
 			return &Result{
 				Status:    shared.MonitorStatusDown,
