@@ -44,7 +44,9 @@ func (p *PostgresExecutor) Validate(configJSON string) error {
 		return fmt.Errorf("invalid database connection string: %w", err)
 	}
 
-	if pgCfg.DatabaseQuery != "" && strings.TrimSpace(pgCfg.DatabaseQuery) != "" {
+	// For PostgreSQL, we validate the query if it's provided (even if whitespace-only)
+	// This is different from MySQL which treats whitespace-only queries as valid
+	if pgCfg.DatabaseQuery != "" {
 		if err := p.validateQuery(pgCfg.DatabaseQuery); err != nil {
 			return fmt.Errorf("invalid query: %w", err)
 		}

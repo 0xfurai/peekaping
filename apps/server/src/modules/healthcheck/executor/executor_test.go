@@ -83,6 +83,11 @@ func TestExecutorRegistry_GetExecutor(t *testing.T) {
 			expectedFound: true,
 		},
 		{
+			name:          "get mysql executor",
+			executorType:  "mysql",
+			expectedFound: true,
+		},
+		{
 			name:          "get non-existent executor",
 			executorType:  "invalid",
 			expectedFound: false,
@@ -154,6 +159,15 @@ func TestExecutorRegistry_ValidateConfig(t *testing.T) {
 			expectedError: false,
 		},
 		{
+			name:        "validate mysql config",
+			monitorType: "mysql",
+			config: `{
+				"connection_string": "mysql://user:password@localhost:3306/testdb",
+				"query": "SELECT 1"
+			}`,
+			expectedError: false,
+		},
+		{
 			name:        "validate invalid http config",
 			monitorType: "http",
 			config: `{
@@ -179,6 +193,15 @@ func TestExecutorRegistry_ValidateConfig(t *testing.T) {
 			config: `{
 				"database_connection_string": "",
 				"database_query": "SELECT 1"
+			}`,
+			expectedError: true,
+		},
+		{
+			name:        "validate invalid mysql config",
+			monitorType: "mysql",
+			config: `{
+				"connection_string": "",
+				"query": "SELECT 1"
 			}`,
 			expectedError: true,
 		},
@@ -286,6 +309,20 @@ func TestExecutorRegistry_Execute(t *testing.T) {
 				Config: `{
 					"database_connection_string": "postgres://user:password@localhost:5432/testdb",
 					"database_query": "SELECT 1"
+				}`,
+			},
+			expectedError: false,
+		},
+		{
+			name: "execute mysql monitor",
+			monitor: &Monitor{
+				ID:       "monitor1",
+				Type:     "mysql",
+				Name:     "Test Monitor",
+				Interval: 30,
+				Config: `{
+					"connection_string": "mysql://user:password@localhost:3306/testdb",
+					"query": "SELECT 1"
 				}`,
 			},
 			expectedError: false,
