@@ -100,8 +100,8 @@ func (m *MongoDBExecutor) Execute(ctx context.Context, monitor *Monitor, proxyMo
 		}
 	}
 
-	// If no JSON path or expected value is provided, consider it successful
-	if cfg.JsonPath == "" || cfg.ExpectedValue == "" {
+	// If no JSON path is provided, consider it successful
+	if cfg.JsonPath == "" {
 		m.logger.Infof("MongoDB command successful: %s", monitor.Name)
 		return &Result{
 			Status:    shared.MonitorStatusUp,
