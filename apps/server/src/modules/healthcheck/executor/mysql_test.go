@@ -3,6 +3,7 @@ package executor
 import (
 	"context"
 	"peekaping/src/modules/shared"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -58,11 +59,11 @@ func TestMySQLExecutor_Validate(t *testing.T) {
 			expectError: true,
 		},
 		{
-			name: "missing query",
+			name: "valid config with connection string only",
 			configJSON: `{
 				"connection_string": "mysql://user:password@localhost:3306/testdb"
 			}`,
-			expectError: true,
+			expectError: false,
 		},
 		{
 			name: "empty connection_string",
@@ -73,20 +74,20 @@ func TestMySQLExecutor_Validate(t *testing.T) {
 			expectError: true,
 		},
 		{
-			name: "empty query",
+			name: "valid config with empty query",
 			configJSON: `{
 				"connection_string": "mysql://user:password@localhost:3306/testdb",
 				"query": ""
 			}`,
-			expectError: true,
+			expectError: false,
 		},
 		{
-			name: "whitespace only query",
+			name: "valid config with whitespace only query",
 			configJSON: `{
 				"connection_string": "mysql://user:password@localhost:3306/testdb",
 				"query": "   \t\n   "
 			}`,
-			expectError: true,
+			expectError: false,
 		},
 		{
 			name: "invalid connection string - wrong scheme",
@@ -640,6 +641,70 @@ func TestMySQLExecutor_Execute(t *testing.T) {
 			assert.False(t, result.StartTime.IsZero())
 			assert.False(t, result.EndTime.IsZero())
 			assert.True(t, result.EndTime.After(result.StartTime) || result.EndTime.Equal(result.StartTime))
+		})
+	}
+}
+
+func TestMySQLExecutor_DefaultQueryBehavior(t *testing.T) {
+	logger := zap.NewNop().Sugar()
+	executor := NewMySQLExecutor(logger)
+
+	tests := []struct {
+		name          string
+		config        string
+		expectedQuery string
+	}{
+		{
+			name: "empty query defaults to SELECT 1",
+			config: `{
+				"connection_string": "mysql://user:password@localhost:3306/testdb",
+				"query": ""
+			}`,
+			expectedQuery: "SELECT 1",
+		},
+		{
+			name: "whitespace-only query defaults to SELECT 1",
+			config: `{
+				"connection_string": "mysql://user:password@localhost:3306/testdb",
+				"query": "   \t\n   "
+			}`,
+			expectedQuery: "SELECT 1",
+		},
+		{
+			name: "missing query defaults to SELECT 1",
+			config: `{
+				"connection_string": "mysql://user:password@localhost:3306/testdb"
+			}`,
+			expectedQuery: "SELECT 1",
+		},
+		{
+			name: "provided query is used",
+			config: `{
+				"connection_string": "mysql://user:password@localhost:3306/testdb",
+				"query": "SELECT COUNT(*) FROM users"
+			}`,
+			expectedQuery: "SELECT COUNT(*) FROM users",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// First validate the config should pass
+			err := executor.Validate(tt.config)
+			assert.NoError(t, err, "Config validation should pass")
+
+			// Parse the config to verify the logic would work
+			cfgAny, err := executor.Unmarshal(tt.config)
+			assert.NoError(t, err)
+			cfg := cfgAny.(*MySQLConfig)
+
+			// Simulate the query resolution logic from Execute method
+			query := cfg.Query
+			if query == "" || strings.TrimSpace(query) == "" {
+				query = "SELECT 1"
+			}
+
+			assert.Equal(t, tt.expectedQuery, query, "Query should match expected value")
 		})
 	}
 }

@@ -15,7 +15,7 @@ import (
 
 type MySQLConfig struct {
 	ConnectionString string `json:"connection_string" validate:"required" example:"mysql://user:password@host:3306/dbname"`
-	Query            string `json:"query" validate:"required" example:"SELECT 1"`
+	Query            string `json:"query" validate:"omitempty" example:"SELECT 1"`
 }
 
 type MySQLExecutor struct {
@@ -44,8 +44,10 @@ func (m *MySQLExecutor) Validate(configJSON string) error {
 		return fmt.Errorf("invalid connection string: %w", err)
 	}
 
-	if err := m.validateQuery(mysqlCfg.Query); err != nil {
-		return fmt.Errorf("invalid query: %w", err)
+	if mysqlCfg.Query != "" && strings.TrimSpace(mysqlCfg.Query) != "" {
+		if err := m.validateQuery(mysqlCfg.Query); err != nil {
+			return fmt.Errorf("invalid query: %w", err)
+		}
 	}
 
 	return GenericValidator(mysqlCfg)
@@ -188,11 +190,17 @@ func (m *MySQLExecutor) Execute(ctx context.Context, monitor *Monitor, proxyMode
 		return DownResult(fmt.Errorf("connection string validation failed: %w", err), startTime, time.Now().UTC())
 	}
 
-	if err := m.validateQuery(cfg.Query); err != nil {
-		return DownResult(fmt.Errorf("query validation failed: %w", err), startTime, time.Now().UTC())
+	query := cfg.Query
+	if query == "" || strings.TrimSpace(query) == "" {
+		query = "SELECT 1"
+	} else {
+		// Validate query before execution
+		if err := m.validateQuery(query); err != nil {
+			return DownResult(fmt.Errorf("query validation failed: %w", err), startTime, time.Now().UTC())
+		}
 	}
 
-	message, err := m.mysqlQuery(ctx, cfg.ConnectionString, cfg.Query, time.Duration(monitor.Timeout)*time.Second)
+	message, err := m.mysqlQuery(ctx, cfg.ConnectionString, query, time.Duration(monitor.Timeout)*time.Second)
 	endTime := time.Now().UTC()
 
 	if err != nil {
