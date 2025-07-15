@@ -48,6 +48,7 @@ import { snmpSchema, type SnmpForm } from "../components/snmp";
 import { z } from "zod";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { deserializeMonitor } from "../components/monitor-registry";
+import { postgresSchema, type PostgresForm } from "../components/postgres/schema";
 
 const formSchema = z.discriminatedUnion("type", [
   httpSchema,
@@ -58,9 +59,19 @@ const formSchema = z.discriminatedUnion("type", [
   dockerSchema,
   grpcKeywordSchema,
   snmpSchema,
+  postgresSchema,
 ]);
 
-export type MonitorForm = HttpForm | TCPForm | PingForm | DNSForm | PushForm | DockerForm | SnmpForm | GRPCKeywordForm;
+export type MonitorForm =
+  | HttpForm
+  | TCPForm
+  | PingForm
+  | DNSForm
+  | PushForm
+  | DockerForm
+  | SnmpForm
+  | GRPCKeywordForm
+  | PostgresForm;
 
 export const formDefaultValues: MonitorForm = httpDefaultValues;
 

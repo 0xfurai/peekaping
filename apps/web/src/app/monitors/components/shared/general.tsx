@@ -51,6 +51,10 @@ const monitorTypes = [
     type: "snmp",
     description: "SNMP Monitor",
   },
+  {
+    type: "postgres",
+    description: "PostgreSQL Database Monitor",
+  },
 ];
 
 export const generalDefaultValues = {
