@@ -52,6 +52,10 @@ const monitorTypes = [
     description: "SNMP Monitor",
   },
   {
+    type: "mysql",
+    description: "MySQL/MariaDB Monitor",
+  },
+  {
     type: "postgres",
     description: "PostgreSQL Database Monitor",
   },

@@ -44,6 +44,12 @@ func (p *PostgresExecutor) Validate(configJSON string) error {
 		return fmt.Errorf("invalid database connection string: %w", err)
 	}
 
+	if pgCfg.DatabaseQuery != "" {
+		if err := p.validateQuery(pgCfg.DatabaseQuery); err != nil {
+			return fmt.Errorf("invalid query: %w", err)
+		}
+	}
+
 	return GenericValidator(pgCfg)
 }
 
@@ -76,6 +82,37 @@ func (p *PostgresExecutor) validateConnectionString(connectionString string) err
 	return nil
 }
 
+func (p *PostgresExecutor) validateQuery(query string) error {
+	if query == "" {
+		return fmt.Errorf("query cannot be empty")
+	}
+
+	trimmedQuery := strings.TrimSpace(query)
+	if trimmedQuery == "" {
+		return fmt.Errorf("query cannot be empty or whitespace only")
+	}
+
+	// Basic SQL injection prevention - check for dangerous patterns
+	lowerQuery := strings.ToLower(trimmedQuery)
+
+	// Allow only SELECT, SHOW, DESCRIBE, EXPLAIN statements for safety
+	// PostgreSQL specific: also allow WITH (for CTEs) and VALUES
+	allowedPrefixes := []string{"select", "show", "describe", "explain", "desc", "with", "values"}
+	isAllowed := false
+	for _, prefix := range allowedPrefixes {
+		if strings.HasPrefix(lowerQuery, prefix) {
+			isAllowed = true
+			break
+		}
+	}
+
+	if !isAllowed {
+		return fmt.Errorf("only SELECT, SHOW, DESCRIBE, EXPLAIN, WITH, and VALUES statements are allowed for monitoring queries")
+	}
+
+	return nil
+}
+
 func (p *PostgresExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
 	cfgAny, err := p.Unmarshal(m.Config)
 	if err != nil {
@@ -86,6 +123,11 @@ func (p *PostgresExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *
 	p.logger.Debugf("execute postgres cfg: %+v", cfg)
 
 	startTime := time.Now().UTC()
+
+	// Validate configuration before execution
+	if err := p.validateConnectionString(cfg.DatabaseConnectionString); err != nil {
+		return DownResult(fmt.Errorf("connection string validation failed: %w", err), startTime, time.Now().UTC())
+	}
 
 	config, err := p.parseConnectionString(cfg.DatabaseConnectionString)
 	if err != nil {
@@ -124,6 +166,11 @@ func (p *PostgresExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *
 	query := cfg.DatabaseQuery
 	if query == "" || strings.TrimSpace(query) == "" {
 		query = "SELECT 1"
+	} else {
+		// Validate query before execution
+		if err := p.validateQuery(query); err != nil {
+			return DownResult(fmt.Errorf("query validation failed: %w", err), startTime, time.Now().UTC())
+		}
 	}
 
 	rows, err := db.QueryContext(ctx, query)

@@ -8,6 +8,7 @@ import { deserialize as pushDeserialize } from "./push";
 import { deserialize as dockerDeserialize } from "./docker";
 import { deserialize as grpcKeywordDeserialize } from "./grpc-keyword";
 import { deserialize as snmpDeserialize } from "./snmp";
+import { deserialize as mysqlDeserialize } from "./mysql";
 import { deserialize as postgresDeserialize } from "./postgres/schema";
 import TCPForm from "./tcp";
 import PingForm from "./ping";
@@ -17,6 +18,7 @@ import PushForm from "./push";
 import DockerForm from "./docker";
 import GRPCKeywordForm from "./grpc-keyword";
 import SnmpForm from "./snmp";
+import MySQLForm from "./mysql";
 import PostgresForm from "./postgres";
 
 import type { ComponentType } from "react";
@@ -69,6 +71,10 @@ const monitorTypeRegistry: Record<string, MonitorTypeConfig> = {
   snmp: {
     deserialize: snmpDeserialize,
     component: SnmpForm,
+  },
+  mysql: {
+    deserialize: mysqlDeserialize,
+    component: MySQLForm,
   },
   postgres: {
     deserialize: postgresDeserialize,
