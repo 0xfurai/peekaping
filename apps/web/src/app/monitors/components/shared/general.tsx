@@ -51,6 +51,10 @@ const monitorTypes = [
     type: "snmp",
     description: "SNMP Monitor",
   },
+  {
+    type: "mysql",
+    description: "MySQL/MariaDB Monitor",
+  },
 ];
 
 export const generalDefaultValues = {

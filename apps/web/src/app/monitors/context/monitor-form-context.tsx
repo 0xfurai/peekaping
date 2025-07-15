@@ -45,6 +45,7 @@ import { dnsSchema, type DNSForm } from "../components/dns";
 import { dockerSchema, type DockerForm } from "../components/docker";
 import { grpcKeywordSchema, type GRPCKeywordForm } from "../components/grpc-keyword";
 import { snmpSchema, type SnmpForm } from "../components/snmp";
+import { mysqlSchema, type MySQLForm } from "../components/mysql";
 import { z } from "zod";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { deserializeMonitor } from "../components/monitor-registry";
@@ -58,9 +59,10 @@ const formSchema = z.discriminatedUnion("type", [
   dockerSchema,
   grpcKeywordSchema,
   snmpSchema,
+  mysqlSchema,
 ]);
 
-export type MonitorForm = HttpForm | TCPForm | PingForm | DNSForm | PushForm | DockerForm | SnmpForm | GRPCKeywordForm;
+export type MonitorForm = HttpForm | TCPForm | PingForm | DNSForm | PushForm | DockerForm | SnmpForm | GRPCKeywordForm | MySQLForm;
 
 export const formDefaultValues: MonitorForm = httpDefaultValues;
 
