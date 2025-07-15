@@ -44,7 +44,7 @@ func (p *PostgresExecutor) Validate(configJSON string) error {
 		return fmt.Errorf("invalid database connection string: %w", err)
 	}
 
-	if pgCfg.DatabaseQuery != "" {
+	if pgCfg.DatabaseQuery != "" && strings.TrimSpace(pgCfg.DatabaseQuery) != "" {
 		if err := p.validateQuery(pgCfg.DatabaseQuery); err != nil {
 			return fmt.Errorf("invalid query: %w", err)
 		}
