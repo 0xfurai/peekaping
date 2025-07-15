@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import Notifications from "../shared/notifications";
 import Tags from "../shared/tags";
-import Proxies from "../shared/proxies";
 import Intervals from "../shared/intervals";
 import General from "../shared/general";
 import { useMonitorFormContext } from "../../context/monitor-form-context";
@@ -18,7 +17,6 @@ const PostgresFormComponent = () => {
   const {
     form,
     setNotifierSheetOpen,
-    setProxySheetOpen,
     isPending,
     mode,
     createMonitorMutation,
@@ -106,12 +104,6 @@ const PostgresFormComponent = () => {
         <Card>
           <CardContent className="space-y-4">
             <Tags />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="space-y-4">
-            <Proxies onNewProxy={() => setProxySheetOpen(true)} />
           </CardContent>
         </Card>
 
