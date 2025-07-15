@@ -37,7 +37,89 @@ func (m *MySQLExecutor) Validate(configJSON string) error {
 	if err != nil {
 		return err
 	}
-	return GenericValidator(cfg.(*MySQLConfig))
+
+	mysqlCfg := cfg.(*MySQLConfig)
+
+	if err := m.validateConnectionString(mysqlCfg.ConnectionString); err != nil {
+		return fmt.Errorf("invalid connection string: %w", err)
+	}
+
+	if err := m.validateQuery(mysqlCfg.Query); err != nil {
+		return fmt.Errorf("invalid query: %w", err)
+	}
+
+	return GenericValidator(mysqlCfg)
+}
+
+func (m *MySQLExecutor) validateConnectionString(connectionString string) error {
+	if connectionString == "" {
+		return fmt.Errorf("connection string cannot be empty")
+	}
+
+	parsedURL, err := url.Parse(connectionString)
+	if err != nil {
+		return fmt.Errorf("invalid connection string format: %w", err)
+	}
+
+	if parsedURL.Scheme != "mysql" {
+		return fmt.Errorf("connection string must use mysql:// scheme, got: %s", parsedURL.Scheme)
+	}
+
+	if parsedURL.Host == "" || parsedURL.Hostname() == "" {
+		return fmt.Errorf("connection string must include host")
+	}
+
+	if parsedURL.User == nil {
+		return fmt.Errorf("connection string must include username")
+	}
+
+	if parsedURL.User.Username() == "" {
+		return fmt.Errorf("connection string must include username")
+	}
+
+	if parsedURL.Path == "" || parsedURL.Path == "/" {
+		return fmt.Errorf("connection string must include database name")
+	}
+
+	// Validate port if provided
+	if port := parsedURL.Port(); port != "" {
+		// Port validation is handled by url.Parse, but we can add additional checks if needed
+		if port == "0" {
+			return fmt.Errorf("invalid port: 0")
+		}
+	}
+
+	return nil
+}
+
+func (m *MySQLExecutor) validateQuery(query string) error {
+	if query == "" {
+		return fmt.Errorf("query cannot be empty")
+	}
+
+	trimmedQuery := strings.TrimSpace(query)
+	if trimmedQuery == "" {
+		return fmt.Errorf("query cannot be empty or whitespace only")
+	}
+
+	// Basic SQL injection prevention - check for dangerous patterns
+	lowerQuery := strings.ToLower(trimmedQuery)
+
+	// Allow only SELECT, SHOW, DESCRIBE, EXPLAIN statements for safety
+	allowedPrefixes := []string{"select", "show", "describe", "explain", "desc"}
+	isAllowed := false
+	for _, prefix := range allowedPrefixes {
+		if strings.HasPrefix(lowerQuery, prefix) {
+			isAllowed = true
+			break
+		}
+	}
+
+	if !isAllowed {
+		return fmt.Errorf("only SELECT, SHOW, DESCRIBE, and EXPLAIN statements are allowed for monitoring queries")
+	}
+
+	return nil
 }
 
 // parseMySQLURL parses a mysql:// URL and converts it to a DSN format for the Go MySQL driver
@@ -60,6 +142,10 @@ func (m *MySQLExecutor) parseMySQLURL(connectionString string) (string, error) {
 		if p, ok := u.User.Password(); ok {
 			pass = p
 		}
+	}
+
+	if user == "" {
+		return "", fmt.Errorf("username is required in connection string")
 	}
 
 	// Extract host and port
@@ -97,6 +183,15 @@ func (m *MySQLExecutor) Execute(ctx context.Context, monitor *Monitor, proxyMode
 
 	startTime := time.Now().UTC()
 
+	// Validate configuration before execution
+	if err := m.validateConnectionString(cfg.ConnectionString); err != nil {
+		return DownResult(fmt.Errorf("connection string validation failed: %w", err), startTime, time.Now().UTC())
+	}
+
+	if err := m.validateQuery(cfg.Query); err != nil {
+		return DownResult(fmt.Errorf("query validation failed: %w", err), startTime, time.Now().UTC())
+	}
+
 	message, err := m.mysqlQuery(ctx, cfg.ConnectionString, cfg.Query)
 	endTime := time.Now().UTC()
 
@@ -110,10 +205,11 @@ func (m *MySQLExecutor) Execute(ctx context.Context, monitor *Monitor, proxyMode
 		}
 	}
 
-	m.logger.Infof("MySQL query successful: %s", monitor.Name)
+	ping := endTime.Sub(startTime).Milliseconds()
+	m.logger.Infof("MySQL query successful: %s, ping: %dms", monitor.Name, ping)
 	return &Result{
 		Status:    shared.MonitorStatusUp,
-		Message:   message,
+		Message:   fmt.Sprintf("Query successful, ping: %dms, %s", ping, message),
 		StartTime: startTime,
 		EndTime:   endTime,
 	}
@@ -132,6 +228,10 @@ func (m *MySQLExecutor) mysqlQuery(ctx context.Context, connectionString, query 
 		return "", fmt.Errorf("failed to open MySQL connection: %w", err)
 	}
 	defer db.Close()
+
+	// Set connection timeout
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
 
 	// Test connection
 	if err := db.PingContext(ctx); err != nil {

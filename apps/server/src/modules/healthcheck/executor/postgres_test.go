@@ -34,6 +34,46 @@ func TestPostgresExecutor_Validate(t *testing.T) {
 			expectedError: false,
 		},
 		{
+			name: "valid config with SHOW statement",
+			config: `{
+				"database_connection_string": "postgres://user:password@localhost:5432/testdb",
+				"database_query": "SHOW TABLES"
+			}`,
+			expectedError: false,
+		},
+		{
+			name: "valid config with DESCRIBE statement",
+			config: `{
+				"database_connection_string": "postgres://user:password@localhost:5432/testdb",
+				"database_query": "DESCRIBE users"
+			}`,
+			expectedError: false,
+		},
+		{
+			name: "valid config with EXPLAIN statement",
+			config: `{
+				"database_connection_string": "postgres://user:password@localhost:5432/testdb",
+				"database_query": "EXPLAIN SELECT * FROM users"
+			}`,
+			expectedError: false,
+		},
+		{
+			name: "valid config with WITH statement (CTE)",
+			config: `{
+				"database_connection_string": "postgres://user:password@localhost:5432/testdb",
+				"database_query": "WITH cte AS (SELECT 1) SELECT * FROM cte"
+			}`,
+			expectedError: false,
+		},
+		{
+			name: "valid config with VALUES statement",
+			config: `{
+				"database_connection_string": "postgres://user:password@localhost:5432/testdb",
+				"database_query": "VALUES (1, 'test')"
+			}`,
+			expectedError: false,
+		},
+		{
 			name: "invalid config - empty connection string",
 			config: `{
 				"database_connection_string": "",
@@ -45,6 +85,46 @@ func TestPostgresExecutor_Validate(t *testing.T) {
 			name: "invalid config - missing connection string",
 			config: `{
 				"database_query": "SELECT 1"
+			}`,
+			expectedError: true,
+		},
+		{
+			name: "invalid config - whitespace only query",
+			config: `{
+				"database_connection_string": "postgres://user:password@localhost:5432/testdb",
+				"database_query": "   \t\n   "
+			}`,
+			expectedError: true,
+		},
+		{
+			name: "invalid config - INSERT statement",
+			config: `{
+				"database_connection_string": "postgres://user:password@localhost:5432/testdb",
+				"database_query": "INSERT INTO users VALUES (1, 'test')"
+			}`,
+			expectedError: true,
+		},
+		{
+			name: "invalid config - UPDATE statement",
+			config: `{
+				"database_connection_string": "postgres://user:password@localhost:5432/testdb",
+				"database_query": "UPDATE users SET name = 'test'"
+			}`,
+			expectedError: true,
+		},
+		{
+			name: "invalid config - DELETE statement",
+			config: `{
+				"database_connection_string": "postgres://user:password@localhost:5432/testdb",
+				"database_query": "DELETE FROM users"
+			}`,
+			expectedError: true,
+		},
+		{
+			name: "invalid config - DROP statement",
+			config: `{
+				"database_connection_string": "postgres://user:password@localhost:5432/testdb",
+				"database_query": "DROP TABLE users"
 			}`,
 			expectedError: true,
 		},
@@ -128,7 +208,7 @@ func TestPostgresExecutor_Unmarshal(t *testing.T) {
 			}`,
 			expectedConfig: &PostgresConfig{
 				DatabaseConnectionString: "postgres://user:password@localhost:5432/testdb",
-				DatabaseQuery:           "SELECT 1",
+				DatabaseQuery:            "SELECT 1",
 			},
 			expectedError: false,
 		},
@@ -139,7 +219,7 @@ func TestPostgresExecutor_Unmarshal(t *testing.T) {
 			}`,
 			expectedConfig: &PostgresConfig{
 				DatabaseConnectionString: "postgres://user:password@localhost:5432/testdb",
-				DatabaseQuery:           "",
+				DatabaseQuery:            "",
 			},
 			expectedError: false,
 		},
@@ -230,8 +310,8 @@ func TestPostgresExecutor_parseConnectionString(t *testing.T) {
 			expectedError: false,
 		},
 		{
-			name:          "malformed connection string",
-			connectionStr: "not-a-valid-url",
+			name:           "malformed connection string",
+			connectionStr:  "not-a-valid-url",
 			expectedConfig: nil,
 			expectedError:  true,
 		},
@@ -246,7 +326,7 @@ func TestPostgresExecutor_parseConnectionString(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 				assert.NotNil(t, result)
-				
+
 				// Check all expected keys are present
 				for key, expectedValue := range tt.expectedConfig {
 					actualValue, exists := result[key]
@@ -270,7 +350,7 @@ func TestPostgresExecutor_Execute(t *testing.T) {
 		expectedError  bool
 	}{
 		{
-			name: "invalid config",
+			name: "invalid config - empty connection string",
 			monitor: &Monitor{
 				ID:       "monitor1",
 				Type:     "postgres",
@@ -283,6 +363,38 @@ func TestPostgresExecutor_Execute(t *testing.T) {
 			}`,
 			expectedStatus: shared.MonitorStatusDown,
 			expectedError:  false, // No error in execution, but should return Down status
+		},
+		{
+			name: "invalid config - dangerous query",
+			monitor: &Monitor{
+				ID:       "monitor1",
+				Type:     "postgres",
+				Name:     "Test Monitor",
+				Interval: 30,
+				Timeout:  5,
+			},
+			config: `{
+				"database_connection_string": "postgres://user:password@localhost:5432/testdb",
+				"database_query": "DROP TABLE users"
+			}`,
+			expectedStatus: shared.MonitorStatusDown,
+			expectedError:  false,
+		},
+		{
+			name: "invalid config - whitespace only query",
+			monitor: &Monitor{
+				ID:       "monitor1",
+				Type:     "postgres",
+				Name:     "Test Monitor",
+				Interval: 30,
+				Timeout:  5,
+			},
+			config: `{
+				"database_connection_string": "postgres://user:password@localhost:5432/testdb",
+				"database_query": "   \t\n   "
+			}`,
+			expectedStatus: shared.MonitorStatusDown,
+			expectedError:  false,
 		},
 		{
 			name: "malformed JSON config",
@@ -336,10 +448,10 @@ func TestPostgresExecutor_Execute(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Set monitor config
 			tt.monitor.Config = tt.config
-			
+
 			// Execute the monitor
 			result := executor.Execute(context.Background(), tt.monitor, nil)
-			
+
 			// Verify result
 			assert.NotNil(t, result)
 			assert.Equal(t, tt.expectedStatus, result.Status)
@@ -405,6 +517,129 @@ func TestPostgresExecutor_validateConnectionString(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := executor.validateConnectionString(tt.connectionStr)
+			if tt.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestPostgresExecutor_validateQuery(t *testing.T) {
+	logger := zap.NewNop().Sugar()
+	executor := NewPostgresExecutor(logger)
+
+	tests := []struct {
+		name          string
+		query         string
+		expectedError bool
+	}{
+		{
+			name:          "valid SELECT query",
+			query:         "SELECT 1",
+			expectedError: false,
+		},
+		{
+			name:          "valid SELECT query with FROM",
+			query:         "SELECT * FROM users",
+			expectedError: false,
+		},
+		{
+			name:          "valid SHOW query",
+			query:         "SHOW TABLES",
+			expectedError: false,
+		},
+		{
+			name:          "valid DESCRIBE query",
+			query:         "DESCRIBE users",
+			expectedError: false,
+		},
+		{
+			name:          "valid DESC query",
+			query:         "DESC users",
+			expectedError: false,
+		},
+		{
+			name:          "valid EXPLAIN query",
+			query:         "EXPLAIN SELECT * FROM users",
+			expectedError: false,
+		},
+		{
+			name:          "valid WITH query (CTE)",
+			query:         "WITH cte AS (SELECT 1) SELECT * FROM cte",
+			expectedError: false,
+		},
+		{
+			name:          "valid VALUES query",
+			query:         "VALUES (1, 'test')",
+			expectedError: false,
+		},
+		{
+			name:          "valid query with mixed case",
+			query:         "Select * FROM users",
+			expectedError: false,
+		},
+		{
+			name:          "valid query with leading whitespace",
+			query:         "  SELECT 1  ",
+			expectedError: false,
+		},
+		{
+			name:          "empty query",
+			query:         "",
+			expectedError: true,
+		},
+		{
+			name:          "whitespace only query",
+			query:         "   \t\n   ",
+			expectedError: true,
+		},
+		{
+			name:          "invalid INSERT query",
+			query:         "INSERT INTO users VALUES (1, 'test')",
+			expectedError: true,
+		},
+		{
+			name:          "invalid UPDATE query",
+			query:         "UPDATE users SET name = 'test'",
+			expectedError: true,
+		},
+		{
+			name:          "invalid DELETE query",
+			query:         "DELETE FROM users",
+			expectedError: true,
+		},
+		{
+			name:          "invalid DROP query",
+			query:         "DROP TABLE users",
+			expectedError: true,
+		},
+		{
+			name:          "invalid CREATE query",
+			query:         "CREATE TABLE test (id INT)",
+			expectedError: true,
+		},
+		{
+			name:          "invalid ALTER query",
+			query:         "ALTER TABLE users ADD COLUMN email VARCHAR(255)",
+			expectedError: true,
+		},
+		{
+			name:          "invalid TRUNCATE query",
+			query:         "TRUNCATE TABLE users",
+			expectedError: true,
+		},
+		{
+			name:          "invalid GRANT query",
+			query:         "GRANT SELECT ON users TO user",
+			expectedError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := executor.validateQuery(tt.query)
 			if tt.expectedError {
 				assert.Error(t, err)
 			} else {
