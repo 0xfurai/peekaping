@@ -36,15 +36,25 @@ import { useEffect } from "react";
 interface MySQLConfig {
   connection_string: string;
   query: string;
-  password: string;
 }
+
+// MySQL connection string regex pattern
+// Format: mysql://username:password@host:port/database?params
+const MYSQL_CONNECTION_STRING_REGEX = new RegExp(
+  "^mysql://([^:@]+)(?::([^@]*))?@([^:/]+)(?::(\\d+))?/([^?]+)(?:\\?(.*))?$"
+);
 
 export const mysqlSchema = z
   .object({
     type: z.literal("mysql"),
-    connection_string: z.string().min(1, "Connection string is required"),
+    connection_string: z
+      .string()
+      .min(1, "Connection string is required")
+      .regex(
+        MYSQL_CONNECTION_STRING_REGEX,
+        "Connection string must be in format: mysql://username:password@host:port/database"
+      ),
     query: z.string().min(1, "Query is required"),
-    password: z.string().optional(),
   })
   .merge(generalSchema)
   .merge(intervalsSchema)
@@ -55,9 +65,8 @@ export type MySQLForm = z.infer<typeof mysqlSchema>;
 
 export const mysqlDefaultValues: MySQLForm = {
   type: "mysql",
-  connection_string: "user:password@tcp(host:3306)/dbname",
+  connection_string: "mysql://username:password@host:3306/database",
   query: "SELECT 1",
-  password: "",
   ...generalDefaultValues,
   ...intervalsDefaultValues,
   ...notificationsDefaultValues,
@@ -66,18 +75,16 @@ export const mysqlDefaultValues: MySQLForm = {
 
 export const deserialize = (data: MonitorMonitorResponseDto): MySQLForm => {
   let config: MySQLConfig = {
-    connection_string: "user:password@tcp(host:3306)/dbname",
+    connection_string: "mysql://username:password@host:3306/database",
     query: "SELECT 1",
-    password: "",
   };
 
   if (data.config) {
     try {
       const parsedConfig = JSON.parse(data.config);
       config = {
-        connection_string: parsedConfig.connection_string || "user:password@tcp(host:3306)/dbname",
+        connection_string: parsedConfig.connection_string || "mysql://username:password@host:3306/database",
         query: parsedConfig.query || "SELECT 1",
-        password: parsedConfig.password || "",
       };
     } catch (error) {
       console.error("Failed to parse MySQL monitor config:", error);
@@ -89,7 +96,6 @@ export const deserialize = (data: MonitorMonitorResponseDto): MySQLForm => {
     name: data.name || "My MySQL Monitor",
     connection_string: config.connection_string,
     query: config.query,
-    password: config.password,
     interval: data.interval || 60,
     timeout: data.timeout || 16,
     max_retries: data.max_retries ?? 3,
@@ -104,7 +110,6 @@ export const serialize = (formData: MySQLForm): MonitorCreateUpdateDto => {
   const config: MySQLConfig = {
     connection_string: formData.connection_string,
     query: formData.query,
-    password: formData.password || "",
   };
 
   return {
@@ -182,22 +187,16 @@ const MySQLForm = () => {
                 <FormItem>
                   <FormLabel>Connection String</FormLabel>
                   <FormControl>
-                    <Input placeholder="user:password@tcp(host:3306)/dbname" {...field} />
+                    <Input placeholder="mysql://username:password@host:3306/database" {...field} />
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password (Optional)</FormLabel>
-                  <FormControl>
-                    <Input type="password" placeholder="Database password" {...field} />
-                  </FormControl>
+                  <div className="text-sm text-muted-foreground">
+                    Examples:
+                    <ul className="list-disc list-inside mt-1 space-y-1">
+                      <li><code>mysql://user:pass@localhost:3306/mydb</code></li>
+                      <li><code>mysql://user:pass@host/database</code> (default port 3306)</li>
+                      <li><code>mysql://user:pass@host:3306/db?charset=utf8</code></li>
+                    </ul>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}

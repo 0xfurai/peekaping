@@ -2,9 +2,9 @@ package executor
 
 import (
 	"context"
+	"peekaping/src/modules/shared"
 	"testing"
 	"time"
-	"peekaping/src/modules/shared"
 
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
@@ -22,25 +22,22 @@ func TestMySQLExecutor_Validate(t *testing.T) {
 		{
 			name: "valid config",
 			configJSON: `{
-				"connection_string": "user:password@tcp(localhost:3306)/testdb",
-				"query": "SELECT 1",
-				"password": "secret"
+				"connection_string": "mysql://user:password@localhost:3306/testdb",
+				"query": "SELECT 1"
 			}`,
 			expectError: false,
 		},
 		{
 			name: "missing connection_string",
 			configJSON: `{
-				"query": "SELECT 1",
-				"password": "secret"
+				"query": "SELECT 1"
 			}`,
 			expectError: true,
 		},
 		{
 			name: "missing query",
 			configJSON: `{
-				"connection_string": "user:password@tcp(localhost:3306)/testdb",
-				"password": "secret"
+				"connection_string": "mysql://user:password@localhost:3306/testdb"
 			}`,
 			expectError: true,
 		},
@@ -48,24 +45,22 @@ func TestMySQLExecutor_Validate(t *testing.T) {
 			name: "empty connection_string",
 			configJSON: `{
 				"connection_string": "",
-				"query": "SELECT 1",
-				"password": "secret"
+				"query": "SELECT 1"
 			}`,
 			expectError: true,
 		},
 		{
 			name: "empty query",
 			configJSON: `{
-				"connection_string": "user:password@tcp(localhost:3306)/testdb",
-				"query": "",
-				"password": "secret"
+				"connection_string": "mysql://user:password@localhost:3306/testdb",
+				"query": ""
 			}`,
 			expectError: true,
 		},
 		{
 			name: "invalid json",
 			configJSON: `{
-				"connection_string": "user:password@tcp(localhost:3306)/testdb",
+				"connection_string": "mysql://user:password@localhost:3306/testdb",
 				"query": "SELECT 1"
 			`,
 			expectError: true,
@@ -89,9 +84,8 @@ func TestMySQLExecutor_Unmarshal(t *testing.T) {
 	executor := NewMySQLExecutor(logger)
 
 	configJSON := `{
-		"connection_string": "user:password@tcp(localhost:3306)/testdb",
-		"query": "SELECT 1",
-		"password": "secret"
+		"connection_string": "mysql://user:password@localhost:3306/testdb",
+		"query": "SELECT 1"
 	}`
 
 	result, err := executor.Unmarshal(configJSON)
@@ -99,9 +93,8 @@ func TestMySQLExecutor_Unmarshal(t *testing.T) {
 	assert.NotNil(t, result)
 
 	cfg := result.(*MySQLConfig)
-	assert.Equal(t, "user:password@tcp(localhost:3306)/testdb", cfg.ConnectionString)
+	assert.Equal(t, "mysql://user:password@localhost:3306/testdb", cfg.ConnectionString)
 	assert.Equal(t, "SELECT 1", cfg.Query)
-	assert.Equal(t, "secret", cfg.Password)
 }
 
 func TestMySQLExecutor_Execute(t *testing.T) {
@@ -115,9 +108,8 @@ func TestMySQLExecutor_Execute(t *testing.T) {
 		Interval: 60,
 		Timeout:  30,
 		Config: `{
-			"connection_string": "user:password@tcp(localhost:3306)/testdb",
-			"query": "SELECT 1",
-			"password": "secret"
+			"connection_string": "mysql://user:password@localhost:3306/testdb",
+			"query": "SELECT 1"
 		}`,
 	}
 
@@ -153,4 +145,71 @@ func TestMySQLExecutor_ExecuteWithInvalidConfig(t *testing.T) {
 	assert.NotNil(t, result)
 	assert.Equal(t, shared.MonitorStatusDown, result.Status)
 	assert.Contains(t, result.Message, "failed to parse config")
+}
+
+func TestMySQLExecutor_parseMySQLURL(t *testing.T) {
+	logger := zap.NewNop().Sugar()
+	executor := NewMySQLExecutor(logger)
+
+	tests := []struct {
+		name          string
+		connectionURL string
+		expectedDSN   string
+		expectError   bool
+	}{
+		{
+			name:          "valid URL with password in URL",
+			connectionURL: "mysql://user:password@localhost:3306/testdb",
+			expectedDSN:   "user:password@tcp(localhost:3306)/testdb",
+			expectError:   false,
+		},
+		{
+			name:          "valid URL without password",
+			connectionURL: "mysql://user@localhost:3306/testdb",
+			expectedDSN:   "user:@tcp(localhost:3306)/testdb",
+			expectError:   false,
+		},
+		{
+			name:          "valid URL with query parameters",
+			connectionURL: "mysql://user:password@localhost:3306/testdb?charset=utf8",
+			expectedDSN:   "user:password@tcp(localhost:3306)/testdb?charset=utf8",
+			expectError:   false,
+		},
+		{
+			name:          "valid URL with default port",
+			connectionURL: "mysql://user:password@localhost/testdb",
+			expectedDSN:   "user:password@tcp(localhost:3306)/testdb",
+			expectError:   false,
+		},
+		{
+			name:          "invalid scheme",
+			connectionURL: "postgres://user:password@localhost:5432/testdb",
+			expectedDSN:   "",
+			expectError:   true,
+		},
+		{
+			name:          "missing database",
+			connectionURL: "mysql://user:password@localhost:3306",
+			expectedDSN:   "",
+			expectError:   true,
+		},
+		{
+			name:          "invalid URL format",
+			connectionURL: "not-a-valid-url",
+			expectedDSN:   "",
+			expectError:   true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			dsn, err := executor.parseMySQLURL(tt.connectionURL)
+			if tt.expectError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedDSN, dsn)
+			}
+		})
+	}
 }

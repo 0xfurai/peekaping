@@ -4,17 +4,18 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net/url"
 	"peekaping/src/modules/shared"
+	"strings"
 	"time"
 
-	"go.uber.org/zap"
 	_ "github.com/go-sql-driver/mysql"
+	"go.uber.org/zap"
 )
 
 type MySQLConfig struct {
-	ConnectionString string `json:"connection_string" validate:"required" example:"user:password@tcp(host:3306)/dbname"`
-	Query           string `json:"query" validate:"required" example:"SELECT 1"`
-	Password        string `json:"password" example:"password"`
+	ConnectionString string `json:"connection_string" validate:"required" example:"mysql://user:password@host:3306/dbname"`
+	Query            string `json:"query" validate:"required" example:"SELECT 1"`
 }
 
 type MySQLExecutor struct {
@@ -39,6 +40,52 @@ func (m *MySQLExecutor) Validate(configJSON string) error {
 	return GenericValidator(cfg.(*MySQLConfig))
 }
 
+// parseMySQLURL parses a mysql:// URL and converts it to a DSN format for the Go MySQL driver
+func (m *MySQLExecutor) parseMySQLURL(connectionString string) (string, error) {
+	// Parse the URL
+	u, err := url.Parse(connectionString)
+	if err != nil {
+		return "", fmt.Errorf("invalid connection string format: %w", err)
+	}
+
+	// Check if it's a mysql:// URL
+	if u.Scheme != "mysql" {
+		return "", fmt.Errorf("connection string must use mysql:// scheme, got: %s", u.Scheme)
+	}
+
+	// Extract user and password
+	var user, pass string
+	if u.User != nil {
+		user = u.User.Username()
+		if p, ok := u.User.Password(); ok {
+			pass = p
+		}
+	}
+
+	// Extract host and port
+	host := u.Hostname()
+	port := u.Port()
+	if port == "" {
+		port = "3306" // Default MySQL port
+	}
+
+	// Extract database name
+	database := strings.TrimPrefix(u.Path, "/")
+	if database == "" {
+		return "", fmt.Errorf("database name is required in connection string")
+	}
+
+	// Build DSN in the format: user:password@tcp(host:port)/database
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", user, pass, host, port, database)
+
+	// Add query parameters if present
+	if u.RawQuery != "" {
+		dsn += "?" + u.RawQuery
+	}
+
+	return dsn, nil
+}
+
 func (m *MySQLExecutor) Execute(ctx context.Context, monitor *Monitor, proxyModel *Proxy) *Result {
 	cfgAny, err := m.Unmarshal(monitor.Config)
 	if err != nil {
@@ -50,7 +97,7 @@ func (m *MySQLExecutor) Execute(ctx context.Context, monitor *Monitor, proxyMode
 
 	startTime := time.Now().UTC()
 
-	message, err := m.mysqlQuery(ctx, cfg.ConnectionString, cfg.Query, cfg.Password)
+	message, err := m.mysqlQuery(ctx, cfg.ConnectionString, cfg.Query)
 	endTime := time.Now().UTC()
 
 	if err != nil {
@@ -72,18 +119,15 @@ func (m *MySQLExecutor) Execute(ctx context.Context, monitor *Monitor, proxyMode
 	}
 }
 
-func (m *MySQLExecutor) mysqlQuery(ctx context.Context, connectionString, query, password string) (string, error) {
-	// Create connection configuration
-	connConfig := connectionString
-	if password != "" {
-		// If password is provided separately, we need to parse and rebuild the connection string
-		// For now, we'll assume the password is already in the connection string
-		// In a production environment, you might want to parse the DSN and inject the password
-		connConfig = connectionString
+func (m *MySQLExecutor) mysqlQuery(ctx context.Context, connectionString, query string) (string, error) {
+	// Parse the mysql:// URL format and convert to DSN
+	dsn, err := m.parseMySQLURL(connectionString)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse MySQL connection string: %w", err)
 	}
 
 	// Open connection
-	db, err := sql.Open("mysql", connConfig)
+	db, err := sql.Open("mysql", dsn)
 	if err != nil {
 		return "", fmt.Errorf("failed to open MySQL connection: %w", err)
 	}
