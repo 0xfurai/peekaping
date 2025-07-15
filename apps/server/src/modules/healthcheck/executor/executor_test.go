@@ -78,6 +78,11 @@ func TestExecutorRegistry_GetExecutor(t *testing.T) {
 			expectedFound: true,
 		},
 		{
+			name:          "get postgres executor",
+			executorType:  "postgres",
+			expectedFound: true,
+		},
+		{
 			name:          "get non-existent executor",
 			executorType:  "invalid",
 			expectedFound: false,
@@ -140,6 +145,15 @@ func TestExecutorRegistry_ValidateConfig(t *testing.T) {
 			expectedError: false,
 		},
 		{
+			name:        "validate postgres config",
+			monitorType: "postgres",
+			config: `{
+				"database_connection_string": "postgres://user:password@localhost:5432/testdb",
+				"database_query": "SELECT 1"
+			}`,
+			expectedError: false,
+		},
+		{
 			name:        "validate invalid http config",
 			monitorType: "http",
 			config: `{
@@ -156,6 +170,15 @@ func TestExecutorRegistry_ValidateConfig(t *testing.T) {
 			monitorType: "push",
 			config: `{
 				"pushToken": ""
+			}`,
+			expectedError: true,
+		},
+		{
+			name:        "validate invalid postgres config",
+			monitorType: "postgres",
+			config: `{
+				"database_connection_string": "",
+				"database_query": "SELECT 1"
 			}`,
 			expectedError: true,
 		},
@@ -249,6 +272,20 @@ func TestExecutorRegistry_Execute(t *testing.T) {
 				Interval: 30,
 				Config: `{
 					"pushToken": "valid-token"
+				}`,
+			},
+			expectedError: false,
+		},
+		{
+			name: "execute postgres monitor",
+			monitor: &Monitor{
+				ID:       "monitor1",
+				Type:     "postgres",
+				Name:     "Test Monitor",
+				Interval: 30,
+				Config: `{
+					"database_connection_string": "postgres://user:password@localhost:5432/testdb",
+					"database_query": "SELECT 1"
 				}`,
 			},
 			expectedError: false,
