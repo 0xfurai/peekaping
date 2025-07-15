@@ -20,7 +20,7 @@ type MQTTConfig struct {
 	Topic          string `json:"topic" validate:"required" example:"test/topic"`
 	Username       string `json:"username" example:"user"`
 	Password       string `json:"password" example:"password"`
-	CheckType      string `json:"check_type" validate:"oneof=keyword json-query" example:"keyword"`
+	CheckType      string `json:"check_type" validate:"oneof=keyword json-query none" example:"keyword"`
 	SuccessKeyword string `json:"success_keyword" example:"success"`
 	JsonPath       string `json:"json_path" example:"$.status"`
 	ExpectedValue  string `json:"expected_value" example:"ok"`
@@ -45,7 +45,30 @@ func (s *MQTTExecutor) Validate(configJSON string) error {
 	if err != nil {
 		return err
 	}
-	return GenericValidator(cfg.(*MQTTConfig))
+
+	config := cfg.(*MQTTConfig)
+
+	// Generic validation first
+	if err := GenericValidator(config); err != nil {
+		return err
+	}
+
+	// Custom conditional validation
+	if config.CheckType == "keyword" {
+		if strings.TrimSpace(config.SuccessKeyword) == "" {
+			return fmt.Errorf("success_keyword is required when check_type is 'keyword'")
+		}
+	} else if config.CheckType == "json-query" {
+		if strings.TrimSpace(config.JsonPath) == "" {
+			return fmt.Errorf("json_path is required when check_type is 'json-query'")
+		}
+		if strings.TrimSpace(config.ExpectedValue) == "" {
+			return fmt.Errorf("expected_value is required when check_type is 'json-query'")
+		}
+	}
+	// "none" check type requires no additional validation
+
+	return nil
 }
 
 func (m *MQTTExecutor) Execute(ctx context.Context, monitor *Monitor, proxyModel *Proxy) *Result {
@@ -61,7 +84,7 @@ func (m *MQTTExecutor) Execute(ctx context.Context, monitor *Monitor, proxyModel
 
 	// Set default check type if not specified
 	if cfg.CheckType == "" {
-		cfg.CheckType = "keyword"
+		cfg.CheckType = "none"
 	}
 
 	// Connect to MQTT broker and receive message
@@ -85,7 +108,34 @@ func (m *MQTTExecutor) Execute(ctx context.Context, monitor *Monitor, proxyModel
 	}
 
 	// Perform check based on check type
-	if cfg.CheckType == "keyword" {
+	if cfg.CheckType == "none" {
+		// For "none" check type, any received message is considered success
+		if receivedMessage != "" {
+			return &Result{
+				Status:    shared.MonitorStatusUp,
+				Message:   fmt.Sprintf("Topic: %s; Message received", cfg.Topic),
+				StartTime: startTime,
+				EndTime:   endTime,
+			}
+		} else {
+			return &Result{
+				Status:    shared.MonitorStatusDown,
+				Message:   fmt.Sprintf("Topic: %s; No message received", cfg.Topic),
+				StartTime: startTime,
+				EndTime:   endTime,
+			}
+		}
+	} else if cfg.CheckType == "keyword" {
+		// Additional safety check to prevent false positives with empty keywords
+		if strings.TrimSpace(cfg.SuccessKeyword) == "" {
+			return &Result{
+				Status:    shared.MonitorStatusDown,
+				Message:   "Success keyword is empty or invalid",
+				StartTime: startTime,
+				EndTime:   endTime,
+			}
+		}
+
 		if receivedMessage != "" && strings.Contains(receivedMessage, cfg.SuccessKeyword) {
 			return &Result{
 				Status:    shared.MonitorStatusUp,
@@ -102,6 +152,24 @@ func (m *MQTTExecutor) Execute(ctx context.Context, monitor *Monitor, proxyModel
 			}
 		}
 	} else if cfg.CheckType == "json-query" {
+		// Additional safety checks for json-query
+		if strings.TrimSpace(cfg.JsonPath) == "" {
+			return &Result{
+				Status:    shared.MonitorStatusDown,
+				Message:   "JSON path is empty or invalid",
+				StartTime: startTime,
+				EndTime:   endTime,
+			}
+		}
+
+		if strings.TrimSpace(cfg.ExpectedValue) == "" {
+			return &Result{
+				Status:    shared.MonitorStatusDown,
+				Message:   "Expected value is empty or invalid",
+				StartTime: startTime,
+				EndTime:   endTime,
+			}
+		}
 		var parsedMessage interface{}
 		if err := json.Unmarshal([]byte(receivedMessage), &parsedMessage); err != nil {
 			return &Result{

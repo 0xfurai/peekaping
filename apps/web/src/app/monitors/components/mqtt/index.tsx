@@ -59,7 +59,7 @@ export const mqttSchema = z
     topic: z.string().min(1, "Topic is required"),
     username: z.string().optional(),
     password: z.string().optional(),
-    check_type: z.enum(["keyword", "json-query"]),
+    check_type: z.enum(["keyword", "json-query", "none"]),
     success_keyword: z.string().optional(),
     json_path: z.string().optional(),
     expected_value: z.string().optional(),
@@ -78,8 +78,8 @@ export const mqttDefaultValues: MQTTForm = {
   topic: "test/topic",
   username: "",
   password: "",
-  check_type: "keyword",
-  success_keyword: "success",
+  check_type: "none",
+  success_keyword: "",
   json_path: "",
   expected_value: "",
   ...generalDefaultValues,
@@ -126,7 +126,7 @@ export const deserialize = (data: MonitorMonitorResponseDto): MQTTForm => {
     topic: config.topic || "test/topic",
     username: config.username || "",
     password: config.password || "",
-    check_type: (config.check_type as "keyword" | "json-query") || "keyword",
+    check_type: (config.check_type as "keyword" | "json-query" | "none") || "none",
     success_keyword: config.success_keyword || "",
     json_path: config.json_path || "",
     expected_value: config.expected_value || "",
@@ -155,6 +155,32 @@ const MQTTForm = () => {
   const checkType = form.watch("check_type");
 
   const onSubmit = (data: MQTTForm) => {
+    // Validate conditional required fields at submission time
+    if (data.check_type === "keyword" && (!data.success_keyword || data.success_keyword.trim() === "")) {
+      form.setError("success_keyword", {
+        type: "manual",
+        message: "Success keyword is required when check type is keyword",
+      });
+      return;
+    }
+
+    if (data.check_type === "json-query") {
+      if (!data.json_path || data.json_path.trim() === "") {
+        form.setError("json_path", {
+          type: "manual",
+          message: "JSON path is required when check type is json-query",
+        });
+        return;
+      }
+      if (!data.expected_value || data.expected_value.trim() === "") {
+        form.setError("expected_value", {
+          type: "manual",
+          message: "Expected value is required when check type is json-query",
+        });
+        return;
+      }
+    }
+
     const payload = serialize(data);
 
     if (mode === "create") {
@@ -289,6 +315,7 @@ const MQTTForm = () => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
+                      <SelectItem value="none">None (Any Message)</SelectItem>
                       <SelectItem value="keyword">Keyword</SelectItem>
                       <SelectItem value="json-query">JSON Query</SelectItem>
                     </SelectContent>
