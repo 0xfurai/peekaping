@@ -43,8 +43,9 @@ interface MongoDBConfig {
 
 // MongoDB connection string regex pattern
 // Format: mongodb://username:password@host:port/database or mongodb+srv://username:password@host/database
+// Also supports: mongodb://host:port/database (without authentication)
 const MONGODB_CONNECTION_STRING_REGEX = new RegExp(
-  "^mongodb(\\+srv)?://([^:@/]+)(?::([^@/]*))?@([^:/@]+)(?::(\\d+))?/([^?]+)(?:\\?(.*))?$"
+  "^mongodb(\\+srv)?://(?:([^:@/]+)(?::([^@/]*))?@)?([^:/@]+)(?::(\\d+))?/([^?]+)(?:\\?(.*))?$"
 );
 
 export const mongodbSchema = z
@@ -55,7 +56,7 @@ export const mongodbSchema = z
       .min(1, "Connection string is required")
       .regex(
         MONGODB_CONNECTION_STRING_REGEX,
-        "Connection string must be in format: mongodb://username:password@host:port/database or mongodb+srv://username:password@host/database"
+        "Connection string must be in format: mongodb://[username:password@]host[:port]/database or mongodb+srv://[username:password@]host/database"
       ),
     command: z.string().optional(),
     jsonPath: z.string().optional(),
