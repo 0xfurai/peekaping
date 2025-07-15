@@ -55,6 +55,10 @@ const monitorTypes = [
     type: "mysql",
     description: "MySQL/MariaDB Monitor",
   },
+  {
+    type: "postgres",
+    description: "PostgreSQL Database Monitor",
+  },
 ];
 
 export const generalDefaultValues = {

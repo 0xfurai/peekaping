@@ -47,6 +47,7 @@ func NewNotificationEventListener(p NotificationEventListenerParams) *Notificati
 	RegisterNotificationChannelProvider("pushover", providers.NewPushoverSender(p.Logger))
 	RegisterNotificationChannelProvider("mattermost", providers.NewMattermostSender(p.Logger))
 	RegisterNotificationChannelProvider("matrix", providers.NewMatrixSender(p.Logger))
+	RegisterNotificationChannelProvider("discord", providers.NewDiscordSender(p.Logger))
 
 	return &NotificationEventListener{
 		service:                    p.Service,

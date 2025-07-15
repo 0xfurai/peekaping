@@ -87,7 +87,7 @@ If you enjoy this project, come say hi &amp; follow along!
 - [ ] MongoDB
 
 ### Notification channels
-- [ ] Discord
+- [x] Discord
 - [ ] Microsoft Teams
 - [ ] Twilio
 - [ ] WhatsApp (WAHA)
