@@ -35,7 +35,7 @@ import { useEffect } from "react";
 
 interface MySQLConfig {
   connection_string: string;
-  query: string;
+  query?: string;
 }
 
 // MySQL connection string regex pattern
@@ -54,7 +54,7 @@ export const mysqlSchema = z
         MYSQL_CONNECTION_STRING_REGEX,
         "Connection string must be in format: mysql://username:password@host:port/database"
       ),
-    query: z.string().min(1, "Query is required"),
+    query: z.string().optional(),
   })
   .merge(generalSchema)
   .merge(intervalsSchema)
