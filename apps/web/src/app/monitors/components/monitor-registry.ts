@@ -10,6 +10,7 @@ import { deserialize as grpcKeywordDeserialize } from "./grpc-keyword";
 import { deserialize as snmpDeserialize } from "./snmp";
 import { deserialize as mysqlDeserialize } from "./mysql";
 import { deserialize as postgresDeserialize } from "./postgres/schema";
+import { deserialize as mongodbDeserialize } from "./mongodb";
 import TCPForm from "./tcp";
 import PingForm from "./ping";
 import DNSForm from "./dns";
@@ -20,6 +21,7 @@ import GRPCKeywordForm from "./grpc-keyword";
 import SnmpForm from "./snmp";
 import MySQLForm from "./mysql";
 import PostgresForm from "./postgres";
+import MongoDBForm from "./mongodb";
 
 import type { ComponentType } from "react";
 
@@ -79,6 +81,10 @@ const monitorTypeRegistry: Record<string, MonitorTypeConfig> = {
   postgres: {
     deserialize: postgresDeserialize,
     component: PostgresForm,
+  },
+  mongodb: {
+    deserialize: mongodbDeserialize,
+    component: MongoDBForm,
   },
 };
 

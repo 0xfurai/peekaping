@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"peekaping/src/modules/shared"
 	"strconv"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -166,8 +168,14 @@ func (m *MongoDBExecutor) Execute(ctx context.Context, monitor *Monitor, proxyMo
 
 // runMongoDBCommand connects to MongoDB and executes the given command
 func (m *MongoDBExecutor) runMongoDBCommand(ctx context.Context, connectionString string, command bson.M, timeout time.Duration) (bson.M, error) {
+	// Ensure proper authentication source is set
+	enhancedConnectionString, err := m.enhanceConnectionString(connectionString)
+	if err != nil {
+		return nil, fmt.Errorf("failed to enhance connection string: %w", err)
+	}
+
 	// Set connection timeout
-	clientOptions := options.Client().ApplyURI(connectionString)
+	clientOptions := options.Client().ApplyURI(enhancedConnectionString)
 	clientOptions.SetConnectTimeout(timeout)
 	clientOptions.SetSocketTimeout(timeout)
 
@@ -178,8 +186,14 @@ func (m *MongoDBExecutor) runMongoDBCommand(ctx context.Context, connectionStrin
 	}
 	defer client.Disconnect(ctx)
 
-	// Get the database from the connection string
-	db := client.Database("")
+	// Extract database name from connection string
+	dbName, err := m.extractDatabaseName(connectionString)
+	if err != nil {
+		return nil, fmt.Errorf("failed to extract database name: %w", err)
+	}
+
+	// Get the database
+	db := client.Database(dbName)
 
 	// Execute the command
 	var result bson.M
@@ -189,6 +203,51 @@ func (m *MongoDBExecutor) runMongoDBCommand(ctx context.Context, connectionStrin
 	}
 
 	return result, nil
+}
+
+// enhanceConnectionString adds necessary authentication parameters if missing
+func (m *MongoDBExecutor) enhanceConnectionString(connectionString string) (string, error) {
+	parsedURL, err := url.Parse(connectionString)
+	if err != nil {
+		return "", fmt.Errorf("invalid connection string format: %w", err)
+	}
+
+	// Get existing query parameters
+	queryParams := parsedURL.Query()
+
+	// If user is provided but no authSource is specified, default to admin database
+	if parsedURL.User != nil && parsedURL.User.Username() != "" {
+		if queryParams.Get("authSource") == "" {
+			queryParams.Set("authSource", "admin")
+		}
+	}
+
+	// Update the URL with enhanced query parameters
+	parsedURL.RawQuery = queryParams.Encode()
+
+	return parsedURL.String(), nil
+}
+
+// extractDatabaseName extracts the database name from a MongoDB connection string
+func (m *MongoDBExecutor) extractDatabaseName(connectionString string) (string, error) {
+	parsedURL, err := url.Parse(connectionString)
+	if err != nil {
+		return "", fmt.Errorf("invalid connection string format: %w", err)
+	}
+
+	// Extract database name from path (remove leading slash)
+	dbName := strings.TrimPrefix(parsedURL.Path, "/")
+
+	// Remove any additional path segments and query parameters
+	if idx := strings.Index(dbName, "?"); idx != -1 {
+		dbName = dbName[:idx]
+	}
+
+	if dbName == "" {
+		return "", fmt.Errorf("database name not found in connection string")
+	}
+
+	return dbName, nil
 }
 
 // evaluateJsonPath provides basic JSON path evaluation
