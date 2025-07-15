@@ -151,7 +151,7 @@ func (m *MySQLExecutor) Execute(ctx context.Context, monitor *Monitor, proxyMode
 		return DownResult(fmt.Errorf("query validation failed: %w", err), startTime, time.Now().UTC())
 	}
 
-	message, err := m.mysqlQuery(ctx, cfg.ConnectionString, cfg.Query)
+	message, err := m.mysqlQuery(ctx, cfg.ConnectionString, cfg.Query, time.Duration(monitor.Timeout)*time.Second)
 	endTime := time.Now().UTC()
 
 	if err != nil {
@@ -174,7 +174,7 @@ func (m *MySQLExecutor) Execute(ctx context.Context, monitor *Monitor, proxyMode
 	}
 }
 
-func (m *MySQLExecutor) mysqlQuery(ctx context.Context, connectionString, query string) (string, error) {
+func (m *MySQLExecutor) mysqlQuery(ctx context.Context, connectionString, query string, timeout time.Duration) (string, error) {
 	// Parse the mysql:// URL format and convert to DSN
 	dsn, err := m.parseMySQLURL(connectionString)
 	if err != nil {
@@ -188,8 +188,8 @@ func (m *MySQLExecutor) mysqlQuery(ctx context.Context, connectionString, query 
 	}
 	defer db.Close()
 
-	// Set connection timeout
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	// Set connection timeout using the monitor's configured timeout
+	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
 	// Test connection
