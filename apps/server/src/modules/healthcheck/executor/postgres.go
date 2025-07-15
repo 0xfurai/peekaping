@@ -40,7 +40,7 @@ func (p *PostgresExecutor) Validate(configJSON string) error {
 
 	pgCfg := cfg.(*PostgresConfig)
 
-	if err := p.validateConnectionString(pgCfg.DatabaseConnectionString); err != nil {
+	if err := ValidateConnectionString(pgCfg.DatabaseConnectionString, []string{"postgres", "postgresql"}); err != nil {
 		return fmt.Errorf("invalid database connection string: %w", err)
 	}
 
@@ -51,35 +51,6 @@ func (p *PostgresExecutor) Validate(configJSON string) error {
 	}
 
 	return GenericValidator(pgCfg)
-}
-
-func (p *PostgresExecutor) validateConnectionString(connectionString string) error {
-	if connectionString == "" {
-		return fmt.Errorf("connection string cannot be empty")
-	}
-
-	parsedURL, err := url.Parse(connectionString)
-	if err != nil {
-		return fmt.Errorf("invalid connection string format: %w", err)
-	}
-
-	if parsedURL.Scheme != "postgres" && parsedURL.Scheme != "postgresql" {
-		return fmt.Errorf("connection string must use postgres:// or postgresql:// scheme")
-	}
-
-	if parsedURL.Host == "" || parsedURL.Hostname() == "" {
-		return fmt.Errorf("connection string must include host")
-	}
-
-	if parsedURL.User == nil {
-		return fmt.Errorf("connection string must include username")
-	}
-
-	if parsedURL.Path == "" || parsedURL.Path == "/" {
-		return fmt.Errorf("connection string must include database name")
-	}
-
-	return nil
 }
 
 func (p *PostgresExecutor) validateQuery(query string) error {
@@ -125,7 +96,7 @@ func (p *PostgresExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *
 	startTime := time.Now().UTC()
 
 	// Validate configuration before execution
-	if err := p.validateConnectionString(cfg.DatabaseConnectionString); err != nil {
+	if err := ValidateConnectionString(cfg.DatabaseConnectionString, []string{"postgres", "postgresql"}); err != nil {
 		return DownResult(fmt.Errorf("connection string validation failed: %w", err), startTime, time.Now().UTC())
 	}
 

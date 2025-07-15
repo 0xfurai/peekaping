@@ -40,7 +40,7 @@ func (m *MySQLExecutor) Validate(configJSON string) error {
 
 	mysqlCfg := cfg.(*MySQLConfig)
 
-	if err := m.validateConnectionString(mysqlCfg.ConnectionString); err != nil {
+	if err := ValidateConnectionString(mysqlCfg.ConnectionString, []string{"mysql"}); err != nil {
 		return fmt.Errorf("invalid connection string: %w", err)
 	}
 
@@ -49,47 +49,6 @@ func (m *MySQLExecutor) Validate(configJSON string) error {
 	}
 
 	return GenericValidator(mysqlCfg)
-}
-
-func (m *MySQLExecutor) validateConnectionString(connectionString string) error {
-	if connectionString == "" {
-		return fmt.Errorf("connection string cannot be empty")
-	}
-
-	parsedURL, err := url.Parse(connectionString)
-	if err != nil {
-		return fmt.Errorf("invalid connection string format: %w", err)
-	}
-
-	if parsedURL.Scheme != "mysql" {
-		return fmt.Errorf("connection string must use mysql:// scheme, got: %s", parsedURL.Scheme)
-	}
-
-	if parsedURL.Host == "" || parsedURL.Hostname() == "" {
-		return fmt.Errorf("connection string must include host")
-	}
-
-	if parsedURL.User == nil {
-		return fmt.Errorf("connection string must include username")
-	}
-
-	if parsedURL.User.Username() == "" {
-		return fmt.Errorf("connection string must include username")
-	}
-
-	if parsedURL.Path == "" || parsedURL.Path == "/" {
-		return fmt.Errorf("connection string must include database name")
-	}
-
-	// Validate port if provided
-	if port := parsedURL.Port(); port != "" {
-		// Port validation is handled by url.Parse, but we can add additional checks if needed
-		if port == "0" {
-			return fmt.Errorf("invalid port: 0")
-		}
-	}
-
-	return nil
 }
 
 func (m *MySQLExecutor) validateQuery(query string) error {
@@ -184,7 +143,7 @@ func (m *MySQLExecutor) Execute(ctx context.Context, monitor *Monitor, proxyMode
 	startTime := time.Now().UTC()
 
 	// Validate configuration before execution
-	if err := m.validateConnectionString(cfg.ConnectionString); err != nil {
+	if err := ValidateConnectionString(cfg.ConnectionString, []string{"mysql"}); err != nil {
 		return DownResult(fmt.Errorf("connection string validation failed: %w", err), startTime, time.Now().UTC())
 	}
 

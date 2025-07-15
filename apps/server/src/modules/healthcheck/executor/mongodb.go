@@ -40,7 +40,14 @@ func (m *MongoDBExecutor) Validate(configJSON string) error {
 	if err != nil {
 		return err
 	}
-	return GenericValidator(cfg.(*MongoDBConfig))
+
+	mongoCfg := cfg.(*MongoDBConfig)
+
+	if err := ValidateConnectionStringWithOptions(mongoCfg.ConnectionString, []string{"mongodb", "mongodb+srv"}, true); err != nil {
+		return fmt.Errorf("invalid connection string: %w", err)
+	}
+
+	return GenericValidator(mongoCfg)
 }
 
 func (m *MongoDBExecutor) Execute(ctx context.Context, monitor *Monitor, proxyModel *Proxy) *Result {
@@ -163,7 +170,7 @@ func (m *MongoDBExecutor) runMongoDBCommand(ctx context.Context, connectionStrin
 	clientOptions := options.Client().ApplyURI(connectionString)
 	clientOptions.SetConnectTimeout(timeout)
 	clientOptions.SetSocketTimeout(timeout)
-	
+
 	// Connect to MongoDB
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
@@ -173,7 +180,7 @@ func (m *MongoDBExecutor) runMongoDBCommand(ctx context.Context, connectionStrin
 
 	// Get the database from the connection string
 	db := client.Database("")
-	
+
 	// Execute the command
 	var result bson.M
 	err = db.RunCommand(ctx, command).Decode(&result)
@@ -219,7 +226,7 @@ func (m *MongoDBExecutor) getNestedValue(data interface{}, path string) (interfa
 
 	// Split path by dots
 	keys := splitPath(path)
-	
+
 	current := data
 	for _, key := range keys {
 		switch v := current.(type) {
@@ -239,7 +246,7 @@ func (m *MongoDBExecutor) getNestedValue(data interface{}, path string) (interfa
 			return nil, fmt.Errorf("cannot access field '%s' on non-object type", key)
 		}
 	}
-	
+
 	return current, nil
 }
 
@@ -248,23 +255,23 @@ func splitPath(path string) []string {
 	parts := make([]string, 0)
 	var current string
 	var escaped bool
-	
+
 	if path == "" {
 		return parts // Return empty slice for empty path
 	}
-	
+
 	for _, char := range path {
 		if escaped {
 			current += string(char)
 			escaped = false
 			continue
 		}
-		
+
 		if char == '\\' {
 			escaped = true
 			continue
 		}
-		
+
 		if char == '.' {
 			if current != "" {
 				parts = append(parts, current)
@@ -272,14 +279,14 @@ func splitPath(path string) []string {
 			}
 			continue
 		}
-		
+
 		current += string(char)
 	}
-	
+
 	if current != "" {
 		parts = append(parts, current)
 	}
-	
+
 	return parts
 }
 
@@ -293,7 +300,7 @@ func (m *MongoDBExecutor) isValueEqual(actual interface{}, expected interface{})
 	// Try to convert both to strings and compare
 	actualStr := fmt.Sprintf("%v", actual)
 	expectedStr := fmt.Sprintf("%v", expected)
-	
+
 	if actualStr == expectedStr {
 		return true
 	}
@@ -301,7 +308,7 @@ func (m *MongoDBExecutor) isValueEqual(actual interface{}, expected interface{})
 	// Try numeric comparison
 	actualNum, err1 := strconv.ParseFloat(actualStr, 64)
 	expectedNum, err2 := strconv.ParseFloat(expectedStr, 64)
-	
+
 	if err1 == nil && err2 == nil {
 		return actualNum == expectedNum
 	}

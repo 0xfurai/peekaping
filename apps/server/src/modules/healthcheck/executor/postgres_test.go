@@ -464,9 +464,6 @@ func TestPostgresExecutor_Execute(t *testing.T) {
 }
 
 func TestPostgresExecutor_validateConnectionString(t *testing.T) {
-	logger := zap.NewNop().Sugar()
-	executor := NewPostgresExecutor(logger)
-
 	tests := []struct {
 		name          string
 		connectionStr string
@@ -516,7 +513,7 @@ func TestPostgresExecutor_validateConnectionString(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := executor.validateConnectionString(tt.connectionStr)
+			err := ValidateConnectionString(tt.connectionStr, []string{"postgres", "postgresql"})
 			if tt.expectedError {
 				assert.Error(t, err)
 			} else {

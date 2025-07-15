@@ -87,6 +87,16 @@ func TestMongoDBExecutor_Validate(t *testing.T) {
 			expectError: false,
 		},
 		{
+			name: "valid config with mongodb+srv",
+			configJSON: `{
+				"connectionString": "mongodb+srv://user:pass@cluster.mongodb.net/test",
+				"command": "{\"ping\": 1}",
+				"jsonPath": "$.ok",
+				"expectedValue": "1"
+			}`,
+			expectError: false,
+		},
+		{
 			name: "missing connection string",
 			configJSON: `{
 				"command": "{\"ping\": 1}"
@@ -100,6 +110,38 @@ func TestMongoDBExecutor_Validate(t *testing.T) {
 				"command": "{\"ping\": 1}"
 			}`,
 			expectError: true, // Validate should catch empty required field
+		},
+		{
+			name: "invalid scheme",
+			configJSON: `{
+				"connectionString": "mysql://user:pass@localhost:3306/test",
+				"command": "{\"ping\": 1}"
+			}`,
+			expectError: true, // Should catch invalid scheme
+		},
+		{
+			name: "missing host",
+			configJSON: `{
+				"connectionString": "mongodb://user:pass@:27017/test",
+				"command": "{\"ping\": 1}"
+			}`,
+			expectError: true, // Should catch missing host
+		},
+		{
+			name: "connection string without username (valid for MongoDB)",
+			configJSON: `{
+				"connectionString": "mongodb://localhost:27017/test",
+				"command": "{\"ping\": 1}"
+			}`,
+			expectError: false, // MongoDB allows connections without authentication
+		},
+		{
+			name: "missing database name",
+			configJSON: `{
+				"connectionString": "mongodb://user:pass@localhost:27017/",
+				"command": "{\"ping\": 1}"
+			}`,
+			expectError: true, // Should catch missing database name
 		},
 	}
 
@@ -169,16 +211,16 @@ func TestMongoDBExecutor_EvaluateJsonPath(t *testing.T) {
 			expectError:   false,
 		},
 		{
-			name:        "non-existent field",
-			path:        "$.nonexistent",
+			name:          "non-existent field",
+			path:          "$.nonexistent",
 			expectedValue: nil,
-			expectError: true,
+			expectError:   true,
 		},
 		{
-			name:        "invalid nested access",
-			path:        "$.ok.invalid",
+			name:          "invalid nested access",
+			path:          "$.ok.invalid",
 			expectedValue: nil,
-			expectError: true,
+			expectError:   true,
 		},
 	}
 
@@ -297,10 +339,10 @@ func TestMongoDBExecutor_Execute_ConfigError(t *testing.T) {
 	executor := NewMongoDBExecutor(logger)
 
 	monitor := &Monitor{
-		ID:       "test-monitor",
-		Name:     "Test Monitor",
-		Timeout:  5,
-		Config:   `{"invalid": json}`, // Invalid JSON
+		ID:      "test-monitor",
+		Name:    "Test Monitor",
+		Timeout: 5,
+		Config:  `{"invalid": json}`, // Invalid JSON
 	}
 
 	result := executor.Execute(context.Background(), monitor, nil)
@@ -327,6 +369,91 @@ func TestMongoDBExecutor_Execute_InvalidCommand(t *testing.T) {
 	assert.NotNil(t, result)
 	assert.Equal(t, shared.MonitorStatusDown, result.Status)
 	assert.Contains(t, result.Message, "invalid MongoDB command JSON")
+}
+
+func TestMongoDBExecutor_validateConnectionString(t *testing.T) {
+	tests := []struct {
+		name          string
+		connectionStr string
+		expectedError bool
+	}{
+		{
+			name:          "valid mongodb connection string",
+			connectionStr: "mongodb://user:password@localhost:27017/testdb",
+			expectedError: false,
+		},
+		{
+			name:          "valid mongodb+srv connection string",
+			connectionStr: "mongodb+srv://user:password@cluster.mongodb.net/testdb",
+			expectedError: false,
+		},
+		{
+			name:          "valid connection string without port",
+			connectionStr: "mongodb://user:password@localhost/testdb",
+			expectedError: false,
+		},
+		{
+			name:          "valid connection string with query parameters",
+			connectionStr: "mongodb://user:password@localhost:27017/testdb?retryWrites=true",
+			expectedError: false,
+		},
+		{
+			name:          "empty connection string",
+			connectionStr: "",
+			expectedError: true,
+		},
+		{
+			name:          "invalid scheme",
+			connectionStr: "mysql://user:password@localhost:3306/testdb",
+			expectedError: true,
+		},
+		{
+			name:          "missing host",
+			connectionStr: "mongodb://user:password@:27017/testdb",
+			expectedError: true,
+		},
+		{
+			name:          "connection string without username (valid for MongoDB)",
+			connectionStr: "mongodb://localhost:27017/testdb",
+			expectedError: false,
+		},
+		{
+			name:          "empty username with password (valid for MongoDB)",
+			connectionStr: "mongodb://:password@localhost:27017/testdb",
+			expectedError: false,
+		},
+		{
+			name:          "missing database name",
+			connectionStr: "mongodb://user:password@localhost:27017/",
+			expectedError: true,
+		},
+		{
+			name:          "no database path",
+			connectionStr: "mongodb://user:password@localhost:27017",
+			expectedError: true,
+		},
+		{
+			name:          "port 0",
+			connectionStr: "mongodb://user:password@localhost:0/testdb",
+			expectedError: true,
+		},
+		{
+			name:          "malformed URL",
+			connectionStr: "not-a-valid-url",
+			expectedError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := ValidateConnectionStringWithOptions(tt.connectionStr, []string{"mongodb", "mongodb+srv"}, true)
+			if tt.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
 }
 
 // Note: Integration tests that actually connect to MongoDB would require a running MongoDB instance
