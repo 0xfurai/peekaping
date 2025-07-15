@@ -67,6 +67,10 @@ const monitorTypes = [
     type: "redis",
     description: "Redis Database Monitor",
   },
+  {
+    type: "mqtt",
+    description: "MQTT Broker Monitor",
+  },
 ];
 
 export const generalDefaultValues = {

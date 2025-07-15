@@ -12,6 +12,7 @@ import { deserialize as mysqlDeserialize } from "./mysql";
 import { deserialize as postgresDeserialize } from "./postgres/schema";
 import { deserialize as mongodbDeserialize } from "./mongodb";
 import { deserialize as redisDeserialize } from "./redis";
+import { deserialize as mqttDeserialize } from "./mqtt";
 import TCPForm from "./tcp";
 import PingForm from "./ping";
 import DNSForm from "./dns";
@@ -24,6 +25,7 @@ import MySQLForm from "./mysql";
 import PostgresForm from "./postgres";
 import MongoDBForm from "./mongodb";
 import RedisForm from "./redis";
+import MQTTForm from "./mqtt";
 
 import type { ComponentType } from "react";
 
@@ -92,7 +94,26 @@ const monitorTypeRegistry: Record<string, MonitorTypeConfig> = {
     deserialize: redisDeserialize,
     component: RedisForm,
   },
+  mqtt: {
+    deserialize: mqttDeserialize,
+    component: MQTTForm,
+  },
 };
+
+// validate registry have required fields
+const validateRegistry = () => {
+  const requiredFields = ["deserialize", "component"];
+
+  Object.keys(monitorTypeRegistry).forEach(key => {
+    const config = monitorTypeRegistry[key];
+    requiredFields.forEach(field => {
+      if (!config[field as keyof MonitorTypeConfig]) {
+        throw new Error(`Missing required field ${field} in monitorTypeRegistry for ${key}`);
+      }
+    });
+  });
+};
+validateRegistry()
 
 export const deserializeMonitor = (data: MonitorMonitorResponseDto): MonitorForm => {
   if (!data.type) {

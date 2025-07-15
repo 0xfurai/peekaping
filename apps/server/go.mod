@@ -6,7 +6,9 @@ toolchain go1.24.3
 
 require (
 	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358
+	github.com/blues/jsonata-go v1.5.4
 	github.com/docker/docker v28.3.0+incompatible
+	github.com/eclipse/paho.mqtt.golang v1.5.0
 	github.com/gin-contrib/cors v1.7.5
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-playground/validator/v10 v10.26.0
