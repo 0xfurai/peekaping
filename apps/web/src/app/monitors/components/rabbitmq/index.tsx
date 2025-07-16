@@ -36,7 +36,7 @@ import { useEffect } from "react";
 import { useFieldArray } from "react-hook-form";
 
 interface RabbitMQConfig {
-  nodes: string[];
+  nodes: { url: string }[];
   username: string;
   password: string;
 }
@@ -44,7 +44,9 @@ interface RabbitMQConfig {
 export const rabbitMQSchema = z
   .object({
     type: z.literal("rabbitmq"),
-    nodes: z.array(z.string().url("Must be a valid URL")).min(1, "At least one node is required"),
+    nodes: z.array(z.object({
+      url: z.string().url("Must be a valid URL")
+    })).min(1, "At least one node is required"),
     username: z.string().min(1, "Username is required"),
     password: z.string().min(1, "Password is required"),
   })
@@ -55,7 +57,7 @@ export const rabbitMQSchema = z
 
 export const rabbitMQDefaultValues: RabbitMQForm = {
   type: "rabbitmq",
-  nodes: ["https://localhost:15672"],
+  nodes: [{ url: "https://localhost:15672" }],
   username: "",
   password: "",
   ...generalDefaultValues,
@@ -100,7 +102,7 @@ export const deserialize = (data: MonitorMonitorResponseDto): RabbitMQForm => {
     resend_interval: data.resend_interval || 0,
     notification_ids: data.notification_ids || [],
     tag_ids: data.tag_ids || [],
-    nodes: config.nodes || ["https://localhost:15672"],
+    nodes: config.nodes || [{ url: "https://localhost:15672" }],
     username: config.username || "",
     password: config.password || "",
   };
@@ -151,7 +153,7 @@ const RabbitMQForm = () => {
   }, [mode, form]);
 
   const addNode = () => {
-    append("https://");
+    append({ url: "https://" });
   };
 
   const removeNode = (index: number) => {
@@ -199,7 +201,7 @@ const RabbitMQForm = () => {
                 <div key={field.id} className="flex items-end gap-2">
                   <FormField
                     control={form.control}
-                    name={`nodes.${index}`}
+                    name={`nodes.${index}.url`}
                     render={({ field }) => (
                       <FormItem className="flex-1">
                         <FormLabel className={index > 0 ? "sr-only" : ""}>
