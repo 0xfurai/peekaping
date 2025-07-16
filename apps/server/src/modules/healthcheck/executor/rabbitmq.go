@@ -65,9 +65,27 @@ func (r *RabbitMQExecutor) Execute(ctx context.Context, monitor *Monitor, proxyM
 
 	startTime := time.Now().UTC()
 
+	// Create a context with timeout for the entire operation
+	timeoutCtx, cancel := context.WithTimeout(ctx, time.Duration(monitor.Timeout)*time.Second)
+	defer cancel()
+
 	// Try each node until one succeeds or all fail
 	var lastError error
 	for _, nodeURL := range cfg.Nodes {
+		// Check if context is already cancelled/timed out
+		select {
+		case <-timeoutCtx.Done():
+			endTime := time.Now().UTC()
+			r.logger.Infof("RabbitMQ health check timed out: %s", monitor.Name)
+			return &Result{
+				Status:    shared.MonitorStatusDown,
+				Message:   fmt.Sprintf("Health check timed out after %ds", monitor.Timeout),
+				StartTime: startTime,
+				EndTime:   endTime,
+			}
+		default:
+		}
+
 		// Ensure trailing slash for proper URL joining
 		baseURL := nodeURL
 		if !strings.HasSuffix(baseURL, "/") {
@@ -83,11 +101,10 @@ func (r *RabbitMQExecutor) Execute(ctx context.Context, monitor *Monitor, proxyM
 		}
 
 		success, message, err := r.checkNode(
-			ctx,
+			timeoutCtx, // Use the timeout context instead of original context
 			healthURL,
 			cfg.Username,
 			cfg.Password,
-			time.Duration(monitor.Timeout)*time.Second,
 		)
 
 		if success {
@@ -123,12 +140,8 @@ func (r *RabbitMQExecutor) Execute(ctx context.Context, monitor *Monitor, proxyM
 	}
 }
 
-func (r *RabbitMQExecutor) checkNode(ctx context.Context, healthURL, username, password string, timeout time.Duration) (bool, string, error) {
-	// Create request with timeout context
-	reqCtx, cancel := context.WithTimeout(ctx, timeout)
-	defer cancel()
-
-	req, err := http.NewRequestWithContext(reqCtx, "GET", healthURL, nil)
+func (r *RabbitMQExecutor) checkNode(ctx context.Context, healthURL, username, password string) (bool, string, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", healthURL, nil)
 	if err != nil {
 		return false, "", fmt.Errorf("failed to create request: %w", err)
 	}
