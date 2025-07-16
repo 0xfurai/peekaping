@@ -66,6 +66,7 @@ func NewExecutorRegistry(logger *zap.SugaredLogger, heartbeatService heartbeat.S
 	registry["redis"] = NewRedisExecutor(logger)
 	registry["mqtt"] = NewMQTTExecutor(logger)
 	registry["rabbitmq"] = NewRabbitMQExecutor(logger)
+	registry["kafka-producer"] = NewKafkaProducerExecutor(logger)
 
 	return &ExecutorRegistry{
 		registry: registry,
