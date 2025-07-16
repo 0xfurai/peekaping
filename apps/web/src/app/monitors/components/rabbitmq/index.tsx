@@ -36,7 +36,7 @@ import { useEffect } from "react";
 import { useFieldArray } from "react-hook-form";
 
 interface RabbitMQConfig {
-  nodes: { url: string }[];
+  nodes: string[]; // Server expects array of strings
   username: string;
   password: string;
 }
@@ -70,7 +70,7 @@ export type RabbitMQForm = z.infer<typeof rabbitMQSchema>;
 
 export const serialize = (data: RabbitMQForm): MonitorCreateUpdateDto => {
   const config: RabbitMQConfig = {
-    nodes: data.nodes,
+    nodes: data.nodes.map(node => node.url), // Convert [{ url: "" }] to string[]
     username: data.username,
     password: data.password,
   };
@@ -102,7 +102,7 @@ export const deserialize = (data: MonitorMonitorResponseDto): RabbitMQForm => {
     resend_interval: data.resend_interval || 0,
     notification_ids: data.notification_ids || [],
     tag_ids: data.tag_ids || [],
-    nodes: config.nodes || [{ url: "https://localhost:15672" }],
+    nodes: config.nodes ? config.nodes.map((url: string) => ({ url })) : [{ url: "https://localhost:15672" }], // Convert string[] to [{ url: "" }]
     username: config.username || "",
     password: config.password || "",
   };
