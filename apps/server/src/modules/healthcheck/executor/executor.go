@@ -65,6 +65,7 @@ func NewExecutorRegistry(logger *zap.SugaredLogger, heartbeatService heartbeat.S
 	registry["postgres"] = NewPostgresExecutor(logger)
 	registry["redis"] = NewRedisExecutor(logger)
 	registry["mqtt"] = NewMQTTExecutor(logger)
+	registry["rabbitmq"] = NewRabbitMQExecutor(logger)
 
 	return &ExecutorRegistry{
 		registry: registry,

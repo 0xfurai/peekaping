@@ -206,6 +206,26 @@ func TestExecutorRegistry_ValidateConfig(t *testing.T) {
 			expectedError: true,
 		},
 		{
+			name:        "validate rabbitmq config",
+			monitorType: "rabbitmq",
+			config: `{
+				"nodes": ["https://localhost:15672"],
+				"username": "admin",
+				"password": "password"
+			}`,
+			expectedError: false,
+		},
+		{
+			name:        "validate invalid rabbitmq config",
+			monitorType: "rabbitmq",
+			config: `{
+				"nodes": [],
+				"username": "admin",
+				"password": "password"
+			}`,
+			expectedError: true,
+		},
+		{
 			name:          "validate non-existent executor type",
 			monitorType:   "invalid",
 			config:        `{}`,
@@ -328,6 +348,21 @@ func TestExecutorRegistry_Execute(t *testing.T) {
 			expectedError: false,
 		},
 		{
+			name: "execute rabbitmq monitor",
+			monitor: &Monitor{
+				ID:       "monitor1",
+				Type:     "rabbitmq",
+				Name:     "Test Monitor",
+				Interval: 30,
+				Config: `{
+					"nodes": ["https://localhost:15672"],
+					"username": "admin",
+					"password": "password"
+				}`,
+			},
+			expectedError: false,
+		},
+		{
 			name: "execute invalid monitor type",
 			monitor: &Monitor{
 				ID:       "monitor1",
@@ -388,6 +423,10 @@ func TestNewExecutorRegistry(t *testing.T) {
 	pushExecutor, found := registry.GetExecutor("push")
 	assert.True(t, found)
 	assert.NotNil(t, pushExecutor)
+
+	rabbitmqExecutor, found := registry.GetExecutor("rabbitmq")
+	assert.True(t, found)
+	assert.NotNil(t, rabbitmqExecutor)
 }
 
 // Test common utilities that weren't covered

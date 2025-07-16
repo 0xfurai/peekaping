@@ -71,6 +71,10 @@ const monitorTypes = [
     type: "mqtt",
     description: "MQTT Broker Monitor",
   },
+  {
+    type: "rabbitmq",
+    description: "RabbitMQ Monitor",
+  },
 ];
 
 export const generalDefaultValues = {

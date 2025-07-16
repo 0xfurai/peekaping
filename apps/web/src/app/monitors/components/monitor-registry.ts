@@ -13,6 +13,7 @@ import { deserialize as postgresDeserialize } from "./postgres/schema";
 import { deserialize as mongodbDeserialize } from "./mongodb";
 import { deserialize as redisDeserialize } from "./redis";
 import { deserialize as mqttDeserialize } from "./mqtt";
+import { deserialize as rabbitmqDeserialize } from "./rabbitmq";
 import TCPForm from "./tcp";
 import PingForm from "./ping";
 import DNSForm from "./dns";
@@ -26,6 +27,7 @@ import PostgresForm from "./postgres";
 import MongoDBForm from "./mongodb";
 import RedisForm from "./redis";
 import MQTTForm from "./mqtt";
+import RabbitMQForm from "./rabbitmq";
 
 import type { ComponentType } from "react";
 
@@ -97,6 +99,10 @@ const monitorTypeRegistry: Record<string, MonitorTypeConfig> = {
   mqtt: {
     deserialize: mqttDeserialize,
     component: MQTTForm,
+  },
+  rabbitmq: {
+    deserialize: rabbitmqDeserialize,
+    component: RabbitMQForm,
   },
 };
 

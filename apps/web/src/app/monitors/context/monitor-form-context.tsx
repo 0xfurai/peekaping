@@ -59,6 +59,7 @@ import {
   type PostgresForm,
 } from "../components/postgres/schema";
 import { mqttSchema, type MQTTForm } from "../components/mqtt";
+import { rabbitMQSchema, type RabbitMQForm } from "../components/rabbitmq";
 
 const formSchema = z.discriminatedUnion("type", [
   httpSchema,
@@ -74,6 +75,7 @@ const formSchema = z.discriminatedUnion("type", [
   mongodbSchema,
   redisSchema,
   mqttSchema,
+  rabbitMQSchema,
 ]);
 
 export type MonitorForm =
@@ -89,7 +91,8 @@ export type MonitorForm =
   | MySQLForm
   | MongoDBForm
   | RedisForm
-  | MQTTForm;
+  | MQTTForm
+  | RabbitMQForm;
 
 export const formDefaultValues: MonitorForm = httpDefaultValues;
 
