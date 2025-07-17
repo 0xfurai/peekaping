@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"peekaping/src/config"
 	"strings"
 	"time"
@@ -70,6 +71,6 @@ func parseLogLevel(level string) (zapcore.Level, error) {
 	case "fatal":
 		return zapcore.FatalLevel, nil
 	default:
-		return zapcore.InfoLevel, nil // Default to info level if invalid
+		return zapcore.InfoLevel, fmt.Errorf("invalid log level: %s", level)
 	}
 }
