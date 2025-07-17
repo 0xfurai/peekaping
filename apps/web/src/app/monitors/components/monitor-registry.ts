@@ -10,6 +10,7 @@ import { deserialize as grpcKeywordDeserialize } from "./grpc-keyword";
 import { deserialize as snmpDeserialize } from "./snmp";
 import { deserialize as mysqlDeserialize } from "./mysql";
 import { deserialize as postgresDeserialize } from "./postgres/schema";
+import { deserialize as sqlServerDeserialize } from "./sqlserver/schema";
 import { deserialize as mongodbDeserialize } from "./mongodb";
 import { deserialize as redisDeserialize } from "./redis";
 import { deserialize as mqttDeserialize } from "./mqtt";
@@ -24,6 +25,7 @@ import GRPCKeywordForm from "./grpc-keyword";
 import SnmpForm from "./snmp";
 import MySQLForm from "./mysql";
 import PostgresForm from "./postgres";
+import SQLServerForm from "./sqlserver";
 import MongoDBForm from "./mongodb";
 import RedisForm from "./redis";
 import MQTTForm from "./mqtt";
@@ -87,6 +89,10 @@ const monitorTypeRegistry: Record<string, MonitorTypeConfig> = {
   postgres: {
     deserialize: postgresDeserialize,
     component: PostgresForm,
+  },
+  sqlserver: {
+    deserialize: sqlServerDeserialize,
+    component: SQLServerForm,
   },
   mongodb: {
     deserialize: mongodbDeserialize,

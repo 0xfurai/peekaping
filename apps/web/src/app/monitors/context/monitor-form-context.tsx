@@ -58,6 +58,10 @@ import {
   postgresSchema,
   type PostgresForm,
 } from "../components/postgres/schema";
+import {
+  sqlServerSchema,
+  type SQLServerForm,
+} from "../components/sqlserver/schema";
 import { mqttSchema, type MQTTForm } from "../components/mqtt";
 import { rabbitMQSchema, type RabbitMQForm } from "../components/rabbitmq";
 
@@ -72,6 +76,7 @@ const formSchema = z.discriminatedUnion("type", [
   snmpSchema,
   mysqlSchema,
   postgresSchema,
+  sqlServerSchema,
   mongodbSchema,
   redisSchema,
   mqttSchema,
@@ -88,6 +93,7 @@ export type MonitorForm =
   | SnmpForm
   | GRPCKeywordForm
   | PostgresForm
+  | SQLServerForm
   | MySQLForm
   | MongoDBForm
   | RedisForm

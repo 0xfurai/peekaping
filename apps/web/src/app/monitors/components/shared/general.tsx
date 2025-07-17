@@ -60,6 +60,10 @@ const monitorTypes = [
     description: "PostgreSQL Database Monitor",
   },
   {
+    type: "sqlserver",
+    description: "Microsoft SQL Server Monitor",
+  },
+  {
     type: "mongodb",
     description: "MongoDB Database Monitor",
   },
