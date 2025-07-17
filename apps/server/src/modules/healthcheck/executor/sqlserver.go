@@ -49,7 +49,7 @@ func (s *SQLServerExecutor) validateConnectionString(connectionString string) er
 
 	// Check if it's the legacy URL format (for backward compatibility)
 	if strings.HasPrefix(connectionString, "sqlserver://") || strings.HasPrefix(connectionString, "mssql://") {
-		return ValidateConnectionString(connectionString, []string{"sqlserver", "mssql"})
+		return s.validateLegacyURL(connectionString)
 	}
 
 	return fmt.Errorf("invalid connection string format. Expected: Server=hostname,port;Database=database;User Id=username;Password=password;...")
@@ -126,6 +126,57 @@ func (s *SQLServerExecutor) parseConnectionStringParams(connectionString string)
 	}
 
 	return params
+}
+
+// validateLegacyURL validates SQL Server legacy URL format that uses query parameters for database
+func (s *SQLServerExecutor) validateLegacyURL(connectionString string) error {
+	if connectionString == "" {
+		return fmt.Errorf("connection string cannot be empty")
+	}
+
+	parsedURL, err := url.Parse(connectionString)
+	if err != nil {
+		return fmt.Errorf("invalid connection string format: %w", err)
+	}
+
+	// Check if it's a sqlserver:// or mssql:// URL
+	if parsedURL.Scheme != "sqlserver" && parsedURL.Scheme != "mssql" {
+		return fmt.Errorf("invalid scheme: %s, expected sqlserver:// or mssql://", parsedURL.Scheme)
+	}
+
+	if parsedURL.Host == "" || parsedURL.Hostname() == "" {
+		return fmt.Errorf("connection string must include host")
+	}
+
+	// Username is required for SQL Server
+	if parsedURL.User == nil {
+		return fmt.Errorf("connection string must include username")
+	}
+
+	if parsedURL.User.Username() == "" {
+		return fmt.Errorf("connection string must include username")
+	}
+
+	// For SQL Server legacy URLs, database can be in query parameters
+	queryParams := parsedURL.Query()
+	database := queryParams.Get("database")
+
+	// Check if database is in path or query parameters
+	hasPathDatabase := parsedURL.Path != "" && parsedURL.Path != "/"
+	hasQueryDatabase := database != ""
+
+	if !hasPathDatabase && !hasQueryDatabase {
+		return fmt.Errorf("connection string must include database name (in path or ?database= parameter)")
+	}
+
+	// Validate port if provided
+	if port := parsedURL.Port(); port != "" {
+		if port == "0" {
+			return fmt.Errorf("invalid port: 0")
+		}
+	}
+
+	return nil
 }
 
 // normalizeParameterKey normalizes parameter keys to the expected standard case
