@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { X } from "lucide-react";
+import { X, Loader2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import {
@@ -21,6 +21,9 @@ export function FancyMultiSelect({
   inputValue = "",
   setInputValue = () => {},
   placeholder = "Select...",
+  onLoadMore,
+  isLoading = false,
+  nextPage = false,
 }: {
   options: Option[];
   selected: Option[];
@@ -28,6 +31,9 @@ export function FancyMultiSelect({
   inputValue: string;
   setInputValue: (value: string) => void;
   placeholder?: string;
+  onLoadMore?: () => void;
+  isLoading?: boolean;
+  nextPage?: boolean;
 }) {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [open, setOpen] = React.useState(false);
@@ -109,7 +115,20 @@ export function FancyMultiSelect({
         <CommandList>
           {open && selectables.length > 0 ? (
             <div className="absolute top-0 z-10 w-full rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in">
-              <CommandGroup className="h-full overflow-auto">
+              <CommandGroup 
+                className="overflow-auto"
+                style={{ maxHeight: "calc(2.25rem * 10.5)" }}
+                onScroll={(e) => {
+                  const target = e.currentTarget;
+                  const scrollPercentage =
+                    (target.scrollTop + target.offsetHeight) /
+                    target.scrollHeight;
+                  
+                  if (scrollPercentage > 0.8 && nextPage && !isLoading && onLoadMore) {
+                    onLoadMore();
+                  }
+                }}
+              >
                 {selectables.map((option) => {
                   return (
                     <CommandItem
@@ -129,6 +148,11 @@ export function FancyMultiSelect({
                     </CommandItem>
                   );
                 })}
+                {isLoading && (
+                  <div className="flex items-center justify-center py-2">
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                  </div>
+                )}
               </CommandGroup>
             </div>
           ) : null}
