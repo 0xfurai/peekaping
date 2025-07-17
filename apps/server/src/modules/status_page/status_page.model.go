@@ -12,6 +12,7 @@ type Model struct {
 	Published           bool   `json:"published" bson:"published"`
 	FooterText          string `json:"footer_text" bson:"footer_text"`
 	AutoRefreshInterval int    `json:"auto_refresh_interval" bson:"auto_refresh_interval"`
+	Domain              string `json:"domain" bson:"domain,omitempty"`
 
 	CreatedAt time.Time `json:"created_at" bson:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" bson:"updated_at"`
@@ -26,4 +27,5 @@ type UpdateModel struct {
 	Published           *bool   `json:"published,omitempty" bson:"published,omitempty"`
 	FooterText          *string `json:"footer_text,omitempty" bson:"footer_text,omitempty"`
 	AutoRefreshInterval *int    `json:"auto_refresh_interval,omitempty" bson:"auto_refresh_interval,omitempty"`
+	Domain              *string `json:"domain,omitempty" bson:"domain,omitempty"`
 }

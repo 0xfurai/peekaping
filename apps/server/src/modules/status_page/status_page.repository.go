@@ -6,6 +6,7 @@ type Repository interface {
 	Create(ctx context.Context, statusPage *Model) (*Model, error)
 	FindByID(ctx context.Context, id string) (*Model, error)
 	FindBySlug(ctx context.Context, slug string) (*Model, error)
+	FindByDomain(ctx context.Context, domain string) (*Model, error)
 	FindAll(
 		ctx context.Context,
 		page int,

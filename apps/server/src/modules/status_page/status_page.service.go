@@ -13,6 +13,7 @@ type Service interface {
 	FindByID(ctx context.Context, id string) (*Model, error)
 	FindByIDWithMonitors(ctx context.Context, id string) (*StatusPageWithMonitorsResponseDTO, error)
 	FindBySlug(ctx context.Context, slug string) (*Model, error)
+	FindByDomain(ctx context.Context, domain string) (*Model, error)
 	FindAll(ctx context.Context, page int, limit int, q string) ([]*Model, error)
 	Update(ctx context.Context, id string, dto *UpdateStatusPageDTO) (*Model, error)
 	Delete(ctx context.Context, id string) error
@@ -56,6 +57,7 @@ func (s *ServiceImpl) Create(ctx context.Context, dto *CreateStatusPageDTO) (*Mo
 		Published:           dto.Published,
 		FooterText:          dto.FooterText,
 		AutoRefreshInterval: dto.AutoRefreshInterval,
+		Domain:              dto.Domain,
 	}
 
 	created, err := s.repository.Create(ctx, model)
@@ -127,6 +129,10 @@ func (s *ServiceImpl) FindBySlug(ctx context.Context, slug string) (*Model, erro
 	return s.repository.FindBySlug(ctx, slug)
 }
 
+func (s *ServiceImpl) FindByDomain(ctx context.Context, domain string) (*Model, error) {
+	return s.repository.FindByDomain(ctx, domain)
+}
+
 func (s *ServiceImpl) FindAll(ctx context.Context, page int, limit int, q string) ([]*Model, error) {
 	return s.repository.FindAll(ctx, page, limit, q)
 }
@@ -141,6 +147,7 @@ func (s *ServiceImpl) Update(ctx context.Context, id string, dto *UpdateStatusPa
 		Published:           dto.Published,
 		FooterText:          dto.FooterText,
 		AutoRefreshInterval: dto.AutoRefreshInterval,
+		Domain:              dto.Domain,
 	}
 
 	err := s.repository.Update(ctx, id, updateModel)
@@ -243,6 +250,7 @@ func (s *ServiceImpl) mapModelToStatusPageWithMonitorsDTO(model *Model, monitorI
 		UpdatedAt:           model.UpdatedAt,
 		FooterText:          model.FooterText,
 		AutoRefreshInterval: model.AutoRefreshInterval,
+		Domain:              model.Domain,
 		MonitorIDs:          monitorIDs,
 	}
 }
