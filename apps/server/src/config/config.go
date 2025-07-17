@@ -37,7 +37,8 @@ type Config struct {
 	RefreshTokenExpiresIn time.Duration `env:"REFRESH_TOKEN_EXPIRED_IN" validate:"duration_min=1m" default:"720h"`
 	RefreshTokenSecretKey string        `env:"REFRESH_TOKEN_SECRET_KEY" validate:"required,min=16"`
 
-	Mode string `env:"MODE" validate:"required,oneof=dev prod test" default:"dev"`
+	Mode     string `env:"MODE" validate:"required,oneof=dev prod test" default:"dev"`
+	LogLevel string `env:"LOG_LEVEL" validate:"omitempty,log_level" default:"info"`
 
 	// Loki logging
 	LokiURL    string            `env:"LOKI_URL" validate:"omitempty,url"`
@@ -132,6 +133,8 @@ func formatValidationError(err validator.FieldError) string {
 		return fmt.Sprintf("%s must be a valid port number (1-65535)", field)
 	case "db_type":
 		return fmt.Sprintf("%s must be one of: postgres, postgresql, mysql, sqlite, mongo, mongodb", field)
+	case "log_level":
+		return fmt.Sprintf("%s must be one of: debug, info, warn, warning, error, dpanic, panic, fatal", field)
 	case "duration_min":
 		return fmt.Sprintf("%s must be at least %s", field, err.Param())
 	case "min":
