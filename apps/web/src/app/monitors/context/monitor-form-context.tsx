@@ -199,12 +199,12 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
   // Mutations
   const createMonitorMutation = useMutation({
     ...postMonitorsMutation(),
-    onSuccess: () => {
+    onSuccess: (res) => {
       toast.success("Monitor created successfully");
       queryClient.invalidateQueries({
         queryKey: getMonitorsInfiniteQueryKey(),
       });
-      navigate("/monitors");
+      navigate(`/monitors/${res.data.id}`);
     },
     onError: commonMutationErrorHandler("Failed to create monitor"),
   });
