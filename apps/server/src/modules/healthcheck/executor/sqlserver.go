@@ -35,7 +35,7 @@ func (s *SQLServerExecutor) Unmarshal(configJSON string) (any, error) {
 }
 
 // Regex to validate SQL Server connection string format
-var sqlServerConnectionStringRegex = regexp.MustCompile(`^Server=([^;,]+)(,\d+)?;Database=[^;]+;User Id=[^;]+;Password=[^;]*;?.*$`)
+var sqlServerConnectionStringRegex = regexp.MustCompile(`(?i)^Server=([^;,]+)(,\d+)?;Database=[^;]+;User Id=[^;]+;Password=[^;]*;?.*$`)
 
 func (s *SQLServerExecutor) validateConnectionString(connectionString string) error {
 	if connectionString == "" {
@@ -118,12 +118,44 @@ func (s *SQLServerExecutor) parseConnectionStringParams(connectionString string)
 			if idx := strings.Index(part, "="); idx > 0 {
 				key := strings.TrimSpace(part[:idx])
 				value := strings.TrimSpace(part[idx+1:])
-				params[key] = value
+				// Normalize key to expected case
+				normalizedKey := s.normalizeParameterKey(key)
+				params[normalizedKey] = value
 			}
 		}
 	}
 
 	return params
+}
+
+// normalizeParameterKey normalizes parameter keys to the expected standard case
+func (s *SQLServerExecutor) normalizeParameterKey(key string) string {
+	lowerKey := strings.ToLower(key)
+
+	// Map of lowercase keys to their standard case equivalents
+	keyMap := map[string]string{
+		"server":                 "Server",
+		"database":               "Database",
+		"user id":                "User Id",
+		"password":               "Password",
+		"encrypt":                "Encrypt",
+		"trustservercertificate": "TrustServerCertificate",
+		"connection timeout":     "Connection Timeout",
+		"timeout":                "Connection Timeout", // Alternative name
+		"applicationintent":      "ApplicationIntent",
+		"applicationname":        "ApplicationName",
+		"workstationid":          "WorkstationID",
+		"failoverpartner":        "FailoverPartner",
+		"packetsizeoffset":       "PacketSizeOffset",
+		"readonlyintent":         "ReadOnlyIntent",
+	}
+
+	if normalizedKey, exists := keyMap[lowerKey]; exists {
+		return normalizedKey
+	}
+
+	// If not in our map, return the original key (for unknown parameters)
+	return key
 }
 
 func (s *SQLServerExecutor) Validate(configJSON string) error {

@@ -122,6 +122,22 @@ func TestSQLServerExecutor_Validate(t *testing.T) {
 			expectError: false,
 		},
 		{
+			name: "valid config with case-insensitive parameters",
+			configJSON: `{
+				"database_connection_string": "server=localhost,1433;database=master;user id=sa;password=TestPassword123!;encrypt=false;trustservercertificate=true;connection timeout=30",
+				"database_query": "SELECT 1"
+			}`,
+			expectError: false,
+		},
+		{
+			name: "valid config with mixed case parameters",
+			configJSON: `{
+				"database_connection_string": "Server=localhost,1433;database=master;User Id=sa;PASSWORD=TestPassword123!;Encrypt=false;TrustServerCertificate=true",
+				"database_query": "SELECT 1"
+			}`,
+			expectError: false,
+		},
+		{
 			name: "missing connection string",
 			configJSON: `{
 				"database_query": "SELECT 1"
