@@ -81,7 +81,7 @@ If you enjoy this project, come say hi &amp; follow along!
 - [x] MQTT
 - [x] RabbitMQ
 - [ ] Kafka Producer
-- [ ] Microsoft SQL Server
+- [x] Microsoft SQL Server
 - [x] PostgreSQL
 - [x] MySQL/MariaDB
 - [x] MongoDB
