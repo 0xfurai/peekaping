@@ -380,8 +380,11 @@ func (s *SQLServerExecutor) parseURLConnectionString(connectionString string) (s
 	// Extract host and port
 	host := parsedURL.Hostname()
 	port := parsedURL.Port()
+	// Note: Only set default port for driver connection, not for Server parameter
+	defaultPort := "1433"
 	if port == "" {
-		port = "1433" // Default SQL Server port
+		// Port not specified in URL, driver will use default
+		port = defaultPort
 	}
 
 	// Extract database from query parameters first, then from path if not found
@@ -402,7 +405,8 @@ func (s *SQLServerExecutor) parseURLConnectionString(connectionString string) (s
 	if host != "" {
 		// Combine server and port in the proper format: Server=hostname,port
 		serverValue := host
-		if port != "" && port != "1433" {
+		// Only include port if it was explicitly specified in the original URL
+		if parsedURL.Port() != "" {
 			serverValue = fmt.Sprintf("%s,%s", host, port)
 		}
 		params[s.normalizeParameterKey("server")] = serverValue

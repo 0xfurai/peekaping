@@ -3,6 +3,7 @@ package executor
 import (
 	"context"
 	"peekaping/src/modules/shared"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -353,25 +354,25 @@ func TestSQLServerExecutor_parseConnectionString(t *testing.T) {
 		{
 			name:          "legacy URL format - basic sqlserver",
 			connectionStr: "sqlserver://sa:password@localhost:1433?database=master",
-			expectedDSN:   "server=localhost;port=1433;user id=sa;password=password;database=master",
+			expectedDSN:   "Server=localhost,1433;User Id=sa;Password=password;Database=master",
 			expectError:   false,
 		},
 		{
 			name:          "legacy URL format - mssql scheme",
 			connectionStr: "mssql://user:pass@server:1433?database=testdb",
-			expectedDSN:   "server=server;port=1433;user id=user;password=pass;database=testdb",
+			expectedDSN:   "Server=server,1433;User Id=user;Password=pass;Database=testdb",
 			expectError:   false,
 		},
 		{
 			name:          "legacy URL format - default port",
 			connectionStr: "sqlserver://sa:password@localhost?database=master",
-			expectedDSN:   "server=localhost;port=1433;user id=sa;password=password;database=master",
+			expectedDSN:   "Server=localhost;User Id=sa;Password=password;Database=master",
 			expectError:   false,
 		},
 		{
 			name:          "legacy URL format - with additional parameters",
 			connectionStr: "sqlserver://user:pass@server:1433?database=testdb&encrypt=disable&trustServerCertificate=true",
-			expectedDSN:   "server=server;port=1433;user id=user;password=pass;database=testdb;encrypt=disable;trustServerCertificate=true",
+			expectedDSN:   "Server=server,1433;User Id=user;Password=pass;Database=testdb;Encrypt=disable;TrustServerCertificate=true",
 			expectError:   false,
 		},
 		{
@@ -395,7 +396,38 @@ func TestSQLServerExecutor_parseConnectionString(t *testing.T) {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, tt.expectedDSN, dsn)
+				// For semicolon format, expect exact match since it's a passthrough
+				if strings.HasPrefix(tt.connectionStr, "Server=") {
+					assert.Equal(t, tt.expectedDSN, dsn)
+				} else {
+					// For legacy URL format, check that all expected parameters are present
+					// since Go map iteration order is not guaranteed
+					expectedPairs := strings.Split(tt.expectedDSN, ";")
+					actualPairs := strings.Split(dsn, ";")
+
+					assert.Equal(t, len(expectedPairs), len(actualPairs), "Number of parameters should match")
+
+					// Convert to maps for comparison
+					expectedMap := make(map[string]string)
+					for _, pair := range expectedPairs {
+						if idx := strings.Index(pair, "="); idx > 0 {
+							key := pair[:idx]
+							value := pair[idx+1:]
+							expectedMap[key] = value
+						}
+					}
+
+					actualMap := make(map[string]string)
+					for _, pair := range actualPairs {
+						if idx := strings.Index(pair, "="); idx > 0 {
+							key := pair[:idx]
+							value := pair[idx+1:]
+							actualMap[key] = value
+						}
+					}
+
+					assert.Equal(t, expectedMap, actualMap, "Parameter key-value pairs should match")
+				}
 			}
 		})
 	}
