@@ -384,7 +384,7 @@ func (s *SQLServerExecutor) parseURLConnectionString(connectionString string) (s
 		port = "1433" // Default SQL Server port
 	}
 
-	// Extract database from query parameters
+	// Extract database from query parameters first, then from path if not found
 	queryParams := parsedURL.Query()
 	database := queryParams.Get("database")
 	if database == "" {
@@ -395,29 +395,47 @@ func (s *SQLServerExecutor) parseURLConnectionString(connectionString string) (s
 	}
 
 	// Build connection string in the format expected by go-mssqldb
-	var dsnParts []string
+	// Track which parameters have been set to avoid duplicates
+	params := make(map[string]string)
 
+	// Set core parameters from URL structure
 	if host != "" {
-		dsnParts = append(dsnParts, fmt.Sprintf("server=%s", host))
-	}
-	if port != "" {
-		dsnParts = append(dsnParts, fmt.Sprintf("port=%s", port))
-	}
-	if user != "" {
-		dsnParts = append(dsnParts, fmt.Sprintf("user id=%s", user))
-	}
-	if password != "" {
-		dsnParts = append(dsnParts, fmt.Sprintf("password=%s", password))
-	}
-	if database != "" {
-		dsnParts = append(dsnParts, fmt.Sprintf("database=%s", database))
+		// Combine server and port in the proper format: Server=hostname,port
+		serverValue := host
+		if port != "" && port != "1433" {
+			serverValue = fmt.Sprintf("%s,%s", host, port)
+		}
+		params[s.normalizeParameterKey("server")] = serverValue
 	}
 
-	// Add other query parameters
+	if user != "" {
+		params[s.normalizeParameterKey("user id")] = user
+	}
+
+	if password != "" {
+		params[s.normalizeParameterKey("password")] = password
+	}
+
+	if database != "" {
+		params[s.normalizeParameterKey("database")] = database
+	}
+
+	// Add other query parameters, avoiding duplicates
 	for key, values := range queryParams {
-		if key != "database" && len(values) > 0 {
-			dsnParts = append(dsnParts, fmt.Sprintf("%s=%s", key, values[0]))
+		if len(values) > 0 {
+			normalizedKey := s.normalizeParameterKey(key)
+
+			// Skip if we already have this parameter set from URL structure
+			if _, exists := params[normalizedKey]; !exists {
+				params[normalizedKey] = values[0]
+			}
 		}
+	}
+
+	// Convert map to DSN string
+	var dsnParts []string
+	for key, value := range params {
+		dsnParts = append(dsnParts, fmt.Sprintf("%s=%s", key, value))
 	}
 
 	return strings.Join(dsnParts, ";"), nil
