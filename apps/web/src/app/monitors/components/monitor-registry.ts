@@ -15,6 +15,7 @@ import { deserialize as mongodbDeserialize } from "./mongodb";
 import { deserialize as redisDeserialize } from "./redis";
 import { deserialize as mqttDeserialize } from "./mqtt";
 import { deserialize as rabbitmqDeserialize } from "./rabbitmq";
+import { deserialize as kafkaProducerDeserialize } from "./kafka-producer/schema";
 import TCPForm from "./tcp";
 import PingForm from "./ping";
 import DNSForm from "./dns";
@@ -30,6 +31,7 @@ import MongoDBForm from "./mongodb";
 import RedisForm from "./redis";
 import MQTTForm from "./mqtt";
 import RabbitMQForm from "./rabbitmq";
+import KafkaProducerForm from "./kafka-producer";
 
 import type { ComponentType } from "react";
 
@@ -109,6 +111,10 @@ const monitorTypeRegistry: Record<string, MonitorTypeConfig> = {
   rabbitmq: {
     deserialize: rabbitmqDeserialize,
     component: RabbitMQForm,
+  },
+  "kafka-producer": {
+    deserialize: kafkaProducerDeserialize,
+    component: KafkaProducerForm,
   },
 };
 

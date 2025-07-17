@@ -79,6 +79,10 @@ const monitorTypes = [
     type: "rabbitmq",
     description: "RabbitMQ Monitor",
   },
+  {
+    type: "kafka-producer",
+    description: "Kafka Producer Monitor",
+  },
 ];
 
 export const generalDefaultValues = {
