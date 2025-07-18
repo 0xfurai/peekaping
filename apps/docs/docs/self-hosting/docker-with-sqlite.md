@@ -12,8 +12,6 @@ The simplest mode of operation is the monolithic deployment mode. This mode runs
 docker run -d --rm --restart=always \
   -p 8383:8383 \
   -e DB_NAME=/app/data/peekaping.db \
-  -e ACCESS_TOKEN_SECRET_KEY=test_access_token_secret_key_16_characters_long \
-  -e REFRESH_TOKEN_SECRET_KEY=test_refresh_token_secret_key_16_characters_long \
   -v $(pwd)/.data/sqlite:/app/data \
   0xfurai/peekaping-bundle-sqlite:latest
 ```
@@ -58,16 +56,19 @@ DB_TYPE=sqlite
 SERVER_PORT=8034
 CLIENT_URL="http://localhost:8383"
 
-# JWT Configuration
-ACCESS_TOKEN_EXPIRED_IN=15m
-ACCESS_TOKEN_SECRET_KEY=your-access-token-secret-here
-REFRESH_TOKEN_EXPIRED_IN=60m
-REFRESH_TOKEN_SECRET_KEY=your-refresh-token-secret-here
-
 # Application Settings
 MODE=prod
 TZ="America/New_York"
+
+# JWT settings are automatically managed in the database
+# Default settings are initialized on first startup:
+# - Access token expiration: 15 minutes
+# - Refresh token expiration: 720 hours (30 days)
+# - Secret keys are automatically generated securely
 ```
+:::info JWT Settings
+JWT settings (access/refresh token expiration times and secret keys) are now automatically managed in the database. Default secure settings are initialized on first startup, and secret keys are generated automatically.
+:::
 :::warning Important Security Notes
 - **Change all default passwords and secret keys**
 - Use strong, unique passwords for the database

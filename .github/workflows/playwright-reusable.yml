@@ -181,8 +181,6 @@ jobs:
 
         # Common environment variables for all database types
         COMMON_ENV=(
-          -e ACCESS_TOKEN_SECRET_KEY=test-secret-key-for-playwright-tests
-          -e REFRESH_TOKEN_SECRET_KEY=test-secret-key-for-playwright-tests
           -e CLIENT_URL=http://localhost:8383
         )
 

@@ -1,39 +1,8 @@
 #!/bin/sh
 set -e
 
-validate_env_vars() {
-    local errors=0
 
-    if [ -z "$ACCESS_TOKEN_SECRET_KEY" ]; then
-        echo "ERROR: ACCESS_TOKEN_SECRET_KEY is required and must be set"
-        errors=1
-    fi
 
-    if [ -z "$REFRESH_TOKEN_SECRET_KEY" ]; then
-        echo "ERROR: REFRESH_TOKEN_SECRET_KEY is required and must be set"
-        errors=1
-    fi
-
-    # Validate secret key strength
-    if [ ${#ACCESS_TOKEN_SECRET_KEY} -lt 16 ]; then
-        echo "ERROR: ACCESS_TOKEN_SECRET_KEY must be at least 16 characters long"
-        errors=1
-    fi
-
-    if [ ${#REFRESH_TOKEN_SECRET_KEY} -lt 16 ]; then
-        echo "ERROR: REFRESH_TOKEN_SECRET_KEY must be at least 16 characters long"
-        errors=1
-    fi
-
-    if [ $errors -eq 1 ]; then
-        echo "Environment validation failed. Please fix the above errors."
-        exit 1
-    fi
-
-    echo "Environment validation passed."
-}
-
-validate_env_vars
 
 # Create env.js file for the web app
 cat >/app/web/env.js <<EOF
@@ -52,10 +21,6 @@ export DB_NAME=/app/data/peekaping.db
 # Set server configuration environment variables
 export SERVER_PORT=${SERVER_PORT:-8034}
 export CLIENT_URL=${CLIENT_URL:-http://localhost:8383}
-export ACCESS_TOKEN_SECRET_KEY=${ACCESS_TOKEN_SECRET_KEY}
-export REFRESH_TOKEN_SECRET_KEY=${REFRESH_TOKEN_SECRET_KEY}
-export ACCESS_TOKEN_EXPIRED_IN=${ACCESS_TOKEN_EXPIRED_IN:-15m}
-export REFRESH_TOKEN_EXPIRED_IN=${REFRESH_TOKEN_EXPIRED_IN:-168h}
 export MODE=${MODE:-prod}
 export TZ=${TZ:-UTC}
 

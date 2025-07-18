@@ -42,8 +42,6 @@ We encourage you to try Peekaping and provide feedback, but please use it at you
 docker run -d --rm --restart=always \
   -p 8383:8383 \
   -e DB_NAME=/app/data/peekaping.db \
-  -e ACCESS_TOKEN_SECRET_KEY=test_access_token_secret_key_16_characters_long \
-  -e REFRESH_TOKEN_SECRET_KEY=test_refresh_token_secret_key_16_characters_long \
   -v $(pwd)/.data/sqlite:/app/data \
   0xfurai/peekaping-bundle-sqlite:latest
 ```

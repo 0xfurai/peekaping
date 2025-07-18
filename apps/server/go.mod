@@ -21,7 +21,6 @@ require (
 	github.com/jinzhu/inflection v1.0.0
 	github.com/miekg/dns v1.1.66
 	github.com/osteele/liquid v1.6.0
-	github.com/paul-milne/zap-loki v0.5.0
 	github.com/pquerna/otp v1.5.0
 	github.com/redis/go-redis/v9 v9.11.0
 	github.com/robfig/cron/v3 v3.0.1

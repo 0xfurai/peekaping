@@ -108,6 +108,16 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// Initialize JWT settings
+	err = container.Invoke(func(settingService setting.Service) {
+		if err := settingService.InitializeSettings(context.Background()); err != nil {
+			log.Fatalf("Failed to initialize JWT settings: %v", err)
+		}
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Start the health check supervisor
 	err = container.Invoke(func(supervisor *healthcheck.HealthCheckSupervisor) {
 		if err := supervisor.StartAll(context.Background()); err != nil {

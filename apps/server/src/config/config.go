@@ -32,17 +32,9 @@ type Config struct {
 	DBPass string `env:"DB_PASS"`                           // validated in validateCustomRules
 	DBType string `env:"DB_TYPE" validate:"required,db_type"`
 
-	AccessTokenExpiresIn  time.Duration `env:"ACCESS_TOKEN_EXPIRED_IN" validate:"duration_min=1m" default:"15m"`
-	AccessTokenSecretKey  string        `env:"ACCESS_TOKEN_SECRET_KEY" validate:"required,min=16"`
-	RefreshTokenExpiresIn time.Duration `env:"REFRESH_TOKEN_EXPIRED_IN" validate:"duration_min=1m" default:"720h"`
-	RefreshTokenSecretKey string        `env:"REFRESH_TOKEN_SECRET_KEY" validate:"required,min=16"`
-
 	Mode string `env:"MODE" validate:"required,oneof=dev prod test" default:"dev"`
 
-	// Loki logging
-	LokiURL    string            `env:"LOKI_URL" validate:"omitempty,url"`
-	LokiLabels map[string]string // Set programmatically or extend env parsing for map
-	Timezone   string            `env:"TZ" validate:"required" default:"UTC"`
+	Timezone string `env:"TZ" validate:"required" default:"UTC"`
 }
 
 var validate = validator.New()

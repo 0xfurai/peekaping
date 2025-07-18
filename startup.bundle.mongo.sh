@@ -14,27 +14,6 @@ validate_env_vars() {
         errors=1
     fi
 
-    if [ -z "$ACCESS_TOKEN_SECRET_KEY" ]; then
-        echo "ERROR: ACCESS_TOKEN_SECRET_KEY is required and must be set"
-        errors=1
-    fi
-
-    if [ -z "$REFRESH_TOKEN_SECRET_KEY" ]; then
-        echo "ERROR: REFRESH_TOKEN_SECRET_KEY is required and must be set"
-        errors=1
-    fi
-
-    # Validate secret key strength
-    if [ ${#ACCESS_TOKEN_SECRET_KEY} -lt 16 ]; then
-        echo "ERROR: ACCESS_TOKEN_SECRET_KEY must be at least 16 characters long"
-        errors=1
-    fi
-
-    if [ ${#REFRESH_TOKEN_SECRET_KEY} -lt 16 ]; then
-        echo "ERROR: REFRESH_TOKEN_SECRET_KEY must be at least 16 characters long"
-        errors=1
-    fi
-
     if [ $errors -eq 1 ]; then
         echo "Environment validation failed. Please fix the above errors."
         exit 1
@@ -72,10 +51,6 @@ export DB_ADMIN_PASS=${DB_ADMIN_PASS:-$DB_PASS}
 export SERVER_PORT=${SERVER_PORT:-8034}
 # Security: Use HTTPS by default
 export CLIENT_URL=${CLIENT_URL:-http://localhost:8383}
-export ACCESS_TOKEN_SECRET_KEY=${ACCESS_TOKEN_SECRET_KEY}
-export REFRESH_TOKEN_SECRET_KEY=${REFRESH_TOKEN_SECRET_KEY}
-export ACCESS_TOKEN_EXPIRED_IN=${ACCESS_TOKEN_EXPIRED_IN:-15m}
-export REFRESH_TOKEN_EXPIRED_IN=${REFRESH_TOKEN_EXPIRED_IN:-168h}
 export MODE=${MODE:-prod}
 export TZ=${TZ:-UTC}
 
@@ -89,10 +64,6 @@ DB_PORT=$DB_PORT
 DB_NAME=$DB_NAME
 DB_USER=$DB_USER
 DB_PASS=$DB_PASS
-ACCESS_TOKEN_SECRET_KEY=$ACCESS_TOKEN_SECRET_KEY
-REFRESH_TOKEN_SECRET_KEY=$REFRESH_TOKEN_SECRET_KEY
-ACCESS_TOKEN_EXPIRED_IN=$ACCESS_TOKEN_EXPIRED_IN
-REFRESH_TOKEN_EXPIRED_IN=$REFRESH_TOKEN_EXPIRED_IN
 MODE=$MODE
 TZ=$TZ
 EOF
@@ -262,8 +233,6 @@ fi
 # Security: Clear sensitive variables from memory
 unset DB_PASS
 unset DB_ADMIN_PASS
-unset ACCESS_TOKEN_SECRET_KEY
-unset REFRESH_TOKEN_SECRET_KEY
 
 # Wait for supervisor to continue managing all services
 echo "All services are now running under supervisor management..."
