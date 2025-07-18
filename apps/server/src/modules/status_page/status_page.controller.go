@@ -106,6 +106,29 @@ func (c *Controller) FindBySlug(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", page))
 }
 
+// @Router    /status-pages/domain/{domain} [get]
+// @Summary   Get a status page by domain name
+// @Tags      Status Pages
+// @Produce   json
+// @Param     domain path      string  true  "Domain Name"
+// @Success   200  {object}  utils.ApiResponse[Model]
+// @Failure   404  {object}  utils.APIError[any]
+// @Failure   500  {object}  utils.APIError[any]
+func (c *Controller) FindByDomain(ctx *gin.Context) {
+	domain := ctx.Param("domain")
+	page, err := c.service.FindByDomain(ctx, domain)
+	if err != nil {
+		c.logger.Errorw("Failed to get status page by domain", "error", err, "domain", domain)
+		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		return
+	}
+	if page == nil {
+		ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Status page not found"))
+		return
+	}
+	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", page))
+}
+
 // @Router    /status-pages [get]
 // @Summary   Get all status pages
 // @Tags      Status Pages

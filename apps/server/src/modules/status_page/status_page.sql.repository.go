@@ -22,6 +22,7 @@ type sqlModel struct {
 	UpdatedAt           time.Time `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
 	FooterText          string    `bun:"footer_text"`
 	AutoRefreshInterval int       `bun:"auto_refresh_interval,notnull,default:30"`
+	Domain              string    `bun:"domain"`
 }
 
 func toDomainModelFromSQL(sm *sqlModel) *Model {
@@ -37,6 +38,7 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 		UpdatedAt:           sm.UpdatedAt,
 		FooterText:          sm.FooterText,
 		AutoRefreshInterval: sm.AutoRefreshInterval,
+		Domain:              sm.Domain,
 	}
 }
 
@@ -53,6 +55,7 @@ func toSQLModel(m *Model) *sqlModel {
 		UpdatedAt:           m.UpdatedAt,
 		FooterText:          m.FooterText,
 		AutoRefreshInterval: m.AutoRefreshInterval,
+		Domain:              m.Domain,
 	}
 }
 
@@ -93,6 +96,18 @@ func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, er
 func (r *SQLRepositoryImpl) FindBySlug(ctx context.Context, slug string) (*Model, error) {
 	sm := new(sqlModel)
 	err := r.db.NewSelect().Model(sm).Where("slug = ?", slug).Scan(ctx)
+	if err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return toDomainModelFromSQL(sm), nil
+}
+
+func (r *SQLRepositoryImpl) FindByDomain(ctx context.Context, domain string) (*Model, error) {
+	sm := new(sqlModel)
+	err := r.db.NewSelect().Model(sm).Where("domain = ?", domain).Scan(ctx)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return nil, nil
@@ -166,6 +181,10 @@ func (r *SQLRepositoryImpl) Update(ctx context.Context, id string, statusPage *U
 	}
 	if statusPage.AutoRefreshInterval != nil {
 		query = query.Set("auto_refresh_interval = ?", *statusPage.AutoRefreshInterval)
+		hasUpdates = true
+	}
+	if statusPage.Domain != nil {
+		query = query.Set("domain = ?", *statusPage.Domain)
 		hasUpdates = true
 	}
 

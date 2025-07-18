@@ -749,6 +749,8 @@ definitions:
         type: string
       description:
         type: string
+      domain:
+        type: string
       footer_text:
         type: string
       google_analytics_tag_id:
@@ -790,6 +792,8 @@ definitions:
       created_at:
         type: string
       description:
+        type: string
+      domain:
         type: string
       footer_text:
         type: string
@@ -852,6 +856,8 @@ definitions:
         type: string
       description:
         type: string
+      domain:
+        type: string
       footer_text:
         type: string
       google_analytics_tag_id:
@@ -892,6 +898,8 @@ definitions:
       custom_css:
         type: string
       description:
+        type: string
+      domain:
         type: string
       footer_text:
         type: string
@@ -2836,6 +2844,32 @@ paths:
       security:
       - BearerAuth: []
       summary: Update a status page
+      tags:
+      - Status Pages
+  /status-pages/domain/{domain}:
+    get:
+      parameters:
+      - description: Domain Name
+        in: path
+        name: domain
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.ApiResponse-status_page_Model'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      summary: Get a status page by domain name
       tags:
       - Status Pages
   /status-pages/slug/{slug}:

@@ -16,6 +16,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircleIcon } from "lucide-react";
 
 const statusPageSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -39,6 +41,7 @@ const statusPageSchema = z.object({
       })
     )
     .optional(),
+  domain: z.string().optional(),
 });
 
 export type StatusPageForm = z.infer<typeof statusPageSchema>;
@@ -52,6 +55,7 @@ const formDefaultValues: StatusPageForm = {
   auto_refresh_interval: 300,
   published: true,
   monitors: [],
+  domain: "",
 };
 
 const CreateEditForm = ({
@@ -229,6 +233,25 @@ const CreateEditForm = ({
                       />
                     </FormControl>
                   </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="domain"
+              render={({ field }) => (
+                <FormItem>
+                      <FormLabel>{t("status_pages.domain")}</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter domain" {...field} />
+                    </FormControl>
+                  <Alert className="mt-1">
+                    <AlertCircleIcon className="w-4 h-4" />
+                    <AlertDescription>
+                      Don't forget to add the CNAME record to your DNS.
+                    </AlertDescription>
+                  </Alert>
                   <FormMessage />
                 </FormItem>
               )}

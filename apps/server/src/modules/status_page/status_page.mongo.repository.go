@@ -25,6 +25,7 @@ type mongoModel struct {
 	FooterText           string             `bson:"footer_text"`
 	GoogleAnalyticsTagID string             `bson:"google_analytics_tag_id"`
 	AutoRefreshInterval  int                `bson:"auto_refresh_interval"`
+	Domain               string             `bson:"domain,omitempty"`
 
 	CreatedAt time.Time `bson:"created_at"`
 	UpdatedAt time.Time `bson:"updated_at"`
@@ -41,6 +42,7 @@ func toDomainModel(m *mongoModel) *Model {
 		Published:           m.Published,
 		FooterText:          m.FooterText,
 		AutoRefreshInterval: m.AutoRefreshInterval,
+		Domain:              m.Domain,
 
 		CreatedAt: m.CreatedAt,
 		UpdatedAt: m.UpdatedAt,
@@ -88,6 +90,7 @@ func (r *MongoRepository) Create(ctx context.Context, statusPage *Model) (*Model
 		UpdatedAt:           time.Now().UTC(),
 		FooterText:          statusPage.FooterText,
 		AutoRefreshInterval: statusPage.AutoRefreshInterval,
+		Domain:              statusPage.Domain,
 	}
 
 	_, err := r.collection.InsertOne(ctx, mm)
@@ -118,6 +121,18 @@ func (r *MongoRepository) FindByID(ctx context.Context, id string) (*Model, erro
 func (r *MongoRepository) FindBySlug(ctx context.Context, slug string) (*Model, error) {
 	var mm mongoModel
 	err := r.collection.FindOne(ctx, bson.M{"slug": slug}).Decode(&mm)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, nil // Not found
+		}
+		return nil, err
+	}
+	return toDomainModel(&mm), nil
+}
+
+func (r *MongoRepository) FindByDomain(ctx context.Context, domain string) (*Model, error) {
+	var mm mongoModel
+	err := r.collection.FindOne(ctx, bson.M{"domain": domain}).Decode(&mm)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil // Not found
@@ -192,6 +207,9 @@ func (r *MongoRepository) Update(ctx context.Context, id string, statusPage *Upd
 	}
 	if statusPage.AutoRefreshInterval != nil {
 		updatePayload["auto_refresh_interval"] = *statusPage.AutoRefreshInterval
+	}
+	if statusPage.Domain != nil {
+		updatePayload["domain"] = *statusPage.Domain
 	}
 
 	if len(updatePayload) == 0 {

@@ -115,7 +115,8 @@
         "custom_css": "Custom CSS",
         "custom_js": "Custom JavaScript",
         "announcement": "Announcement",
-        "description": "Description"
+        "description": "Description",
+        "domain": "Domain"
     },
     "heartbeats": {
         "title": "Heartbeats",

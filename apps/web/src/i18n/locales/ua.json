@@ -115,7 +115,8 @@
         "custom_css": "Власний CSS",
         "custom_js": "Власний JavaScript",
         "announcement": "Оголошення",
-        "description": "Опис"
+        "description": "Опис",
+        "domain": "Домен"
     },
     "heartbeats": {
         "title": "Пульс",

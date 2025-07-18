@@ -51,7 +51,9 @@ const StatusPageCard = ({ statusPage, onClick }: StatusPageCardProps) => {
     onError: commonMutationErrorHandler("Failed to delete status page"),
   });
 
-  const handleView = () => {
+  const handleView = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+
     if (statusPage.slug) {
       window.open(`/status/${statusPage.slug}`, "_blank");
     }
