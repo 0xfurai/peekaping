@@ -14,6 +14,7 @@ func RegisterCustomValidators() {
 	validate.RegisterValidation("numeric", validateNumeric)
 	validate.RegisterValidation("port", validatePort)
 	validate.RegisterValidation("db_type", validateDBType)
+	validate.RegisterValidation("log_level", validateLogLevel)
 }
 
 // validateDurationMin validates that a time.Duration is at least the specified minimum
@@ -65,6 +66,20 @@ func validateDBType(fl validator.FieldLevel) bool {
 
 	for _, validType := range validTypes {
 		if dbType == validType {
+			return true
+		}
+	}
+
+	return false
+}
+
+// validateLogLevel validates that the log level is supported by zap
+func validateLogLevel(fl validator.FieldLevel) bool {
+	logLevel := strings.ToLower(fl.Field().String())
+	validLevels := []string{"debug", "info", "warn", "warning", "error", "dpanic", "panic", "fatal"}
+
+	for _, validLevel := range validLevels {
+		if logLevel == validLevel {
 			return true
 		}
 	}
