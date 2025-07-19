@@ -8,6 +8,7 @@ import (
 	"peekaping/docs"
 	"peekaping/src/config"
 	"peekaping/src/modules/auth"
+	"peekaping/src/modules/auth/login_attempt"
 	"peekaping/src/modules/cleanup"
 	"peekaping/src/modules/events"
 	"peekaping/src/modules/healthcheck"
@@ -103,6 +104,16 @@ func main() {
 	// Start cleanup cron job(s)
 	err = container.Invoke(func(heartbeatService heartbeat.Service, settingService setting.Service, logger *zap.SugaredLogger) {
 		cleanup.StartCleanupCron(heartbeatService, settingService, logger)
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Start login attempt cleanup job
+	err = container.Invoke(func(cleanupService *login_attempt.CleanupService, cfg *config.Config, logger *zap.SugaredLogger) {
+		ctx := context.Background()
+		cleanupService.StartCleanupJob(ctx, cfg.BruteforceCleanupInterval)
+		logger.Infow("Started login attempt cleanup job", "interval", cfg.BruteforceCleanupInterval)
 	})
 	if err != nil {
 		log.Fatal(err)

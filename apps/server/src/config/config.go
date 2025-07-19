@@ -35,6 +35,13 @@ type Config struct {
 	Mode     string `env:"MODE" validate:"required,oneof=dev prod test" default:"dev"`
 	LogLevel string `env:"LOG_LEVEL" validate:"omitempty,log_level" default:"info"`
 
+	BruteforceMaxAttempts      int           `env:"BRUTEFORCE_MAX_ATTEMPTS" validate:"min=1" default:"5"`
+	BruteforceWindowMinutes    int           `env:"BRUTEFORCE_WINDOW_MINUTES" validate:"min=1" default:"15"`
+	BruteforceBlockDuration    time.Duration `env:"BRUTEFORCE_BLOCK_DURATION" validate:"duration_min=1m" default:"30m"`
+	BruteforceMaxAttemptsPerIP int           `env:"BRUTEFORCE_MAX_ATTEMPTS_PER_IP" validate:"min=1" default:"20"`
+	BruteforceProgressiveDelay bool          `env:"BRUTEFORCE_PROGRESSIVE_DELAY" default:"true"`
+	BruteforceCleanupInterval  time.Duration `env:"BRUTEFORCE_CLEANUP_INTERVAL" validate:"duration_min=1m" default:"24h"`
+
 	Timezone string `env:"TZ" validate:"required" default:"UTC"`
 }
 

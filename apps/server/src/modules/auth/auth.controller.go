@@ -10,20 +10,24 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
+	"peekaping/src/modules/auth/login_attempt"
 )
 
 type Controller struct {
-	service Service
-	logger  *zap.SugaredLogger
+	service    Service
+	middleware *MiddlewareProvider
+	logger     *zap.SugaredLogger
 }
 
 func NewController(
 	service Service,
+	middleware *MiddlewareProvider,
 	logger *zap.SugaredLogger,
 ) *Controller {
 	return &Controller{
-		service: service,
-		logger:  logger,
+		service:    service,
+		middleware: middleware,
+		logger:     logger,
 	}
 }
 
@@ -103,12 +107,25 @@ func (c *Controller) Register(ctx *gin.Context) {
 // @Failure		500	{object}	utils.APIError[any]
 func (c *Controller) Login(ctx *gin.Context) {
 	var dto LoginDto
-	if err := ctx.ShouldBindJSON(&dto); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		return
+
+	// Check if the DTO was already bound by the middleware
+	if cachedDto, exists := ctx.Get("login_dto"); exists {
+		middlewareDto := cachedDto.(login_attempt.LoginDto)
+		// Convert from middleware DTO to auth DTO
+		dto = LoginDto{
+			Email:    middlewareDto.Email,
+			Password: middlewareDto.Password,
+			Token:    middlewareDto.Token,
+		}
+	} else {
+		if err := ctx.ShouldBindJSON(&dto); err != nil {
+			ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+			return
+		}
 	}
 
 	if err := c.validateWithDetails(dto); err != nil {
+		c.middleware.RecordLoginAttempt(ctx, dto.Email, false)
 		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		return
 	}
@@ -116,10 +133,14 @@ func (c *Controller) Login(ctx *gin.Context) {
 	response, err := c.service.Login(ctx, dto)
 	if err != nil {
 		c.logger.Errorw("Failed to login admin", "error", err)
+		// Record failed login attempt
+		c.middleware.RecordLoginAttempt(ctx, dto.Email, false)
 		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		return
 	}
 
+	// Record successful login attempt
+	c.middleware.RecordLoginAttempt(ctx, dto.Email, true)
 	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("Login successful", response))
 }
 

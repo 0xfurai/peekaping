@@ -21,6 +21,10 @@ func NewRoute(
 
 func (r *Route) ConnectRoute(router *gin.RouterGroup, controller *Controller) {
 	auth := router.Group("/auth")
+
+	// Apply bruteforce protection middleware to all auth routes
+	auth.Use(r.middleware.BruteforceProtection())
+
 	auth.POST("/register", controller.Register)
 	auth.POST("/login", controller.Login)
 	auth.POST("/refresh", controller.RefreshToken)
