@@ -1,12 +1,5 @@
 package setting
 
-type CreateDto struct {
-}
+import "peekaping/src/modules/shared"
 
-type UpdateDto struct {
-}
-
-type CreateUpdateDto struct {
-	Value string `json:"value"`
-	Type  string `json:"type" validate:"required,oneof=string int bool json"`
-}
+type CreateUpdateDto = shared.SettingCreateUpdateDto

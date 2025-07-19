@@ -63,13 +63,25 @@ jobs:
         run: pnpm build
 
       - name: Setup Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: '1.21'
+          go-version: '1.24.3'
 
-      - name: Run server tests
+      - name: Install dependencies
+        working-directory: apps/server
+        run: go mod download
+
+      - name: Run server tests with coverage
         working-directory: apps/server
         run: |
-          go mod download
-          go test -v ./src/...
+          pwd
+          go test -v -coverprofile=coverage.txt ./src/...
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: 0xfurai/peekaping
+          file: apps/server/coverage.txt
+
 

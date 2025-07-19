@@ -8,6 +8,14 @@ import { deserialize as pushDeserialize } from "./push";
 import { deserialize as dockerDeserialize } from "./docker";
 import { deserialize as grpcKeywordDeserialize } from "./grpc-keyword";
 import { deserialize as snmpDeserialize } from "./snmp";
+import { deserialize as mysqlDeserialize } from "./mysql";
+import { deserialize as postgresDeserialize } from "./postgres/schema";
+import { deserialize as sqlServerDeserialize } from "./sqlserver/schema";
+import { deserialize as mongodbDeserialize } from "./mongodb";
+import { deserialize as redisDeserialize } from "./redis";
+import { deserialize as mqttDeserialize } from "./mqtt";
+import { deserialize as rabbitmqDeserialize } from "./rabbitmq";
+import { deserialize as kafkaProducerDeserialize } from "./kafka-producer/schema";
 import TCPForm from "./tcp";
 import PingForm from "./ping";
 import DNSForm from "./dns";
@@ -16,6 +24,14 @@ import PushForm from "./push";
 import DockerForm from "./docker";
 import GRPCKeywordForm from "./grpc-keyword";
 import SnmpForm from "./snmp";
+import MySQLForm from "./mysql";
+import PostgresForm from "./postgres";
+import SQLServerForm from "./sqlserver";
+import MongoDBForm from "./mongodb";
+import RedisForm from "./redis";
+import MQTTForm from "./mqtt";
+import RabbitMQForm from "./rabbitmq";
+import KafkaProducerForm from "./kafka-producer";
 
 import type { ComponentType } from "react";
 
@@ -68,7 +84,54 @@ const monitorTypeRegistry: Record<string, MonitorTypeConfig> = {
     deserialize: snmpDeserialize,
     component: SnmpForm,
   },
+  mysql: {
+    deserialize: mysqlDeserialize,
+    component: MySQLForm,
+  },
+  postgres: {
+    deserialize: postgresDeserialize,
+    component: PostgresForm,
+  },
+  sqlserver: {
+    deserialize: sqlServerDeserialize,
+    component: SQLServerForm,
+  },
+  mongodb: {
+    deserialize: mongodbDeserialize,
+    component: MongoDBForm,
+  },
+  redis: {
+    deserialize: redisDeserialize,
+    component: RedisForm,
+  },
+  mqtt: {
+    deserialize: mqttDeserialize,
+    component: MQTTForm,
+  },
+  rabbitmq: {
+    deserialize: rabbitmqDeserialize,
+    component: RabbitMQForm,
+  },
+  "kafka-producer": {
+    deserialize: kafkaProducerDeserialize,
+    component: KafkaProducerForm,
+  },
 };
+
+// validate registry have required fields
+const validateRegistry = () => {
+  const requiredFields = ["deserialize", "component"];
+
+  Object.keys(monitorTypeRegistry).forEach(key => {
+    const config = monitorTypeRegistry[key];
+    requiredFields.forEach(field => {
+      if (!config[field as keyof MonitorTypeConfig]) {
+        throw new Error(`Missing required field ${field} in monitorTypeRegistry for ${key}`);
+      }
+    });
+  });
+};
+validateRegistry()
 
 export const deserializeMonitor = (data: MonitorMonitorResponseDto): MonitorForm => {
   if (!data.type) {

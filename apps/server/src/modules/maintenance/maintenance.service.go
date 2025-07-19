@@ -34,10 +34,10 @@ type ServiceImpl struct {
 	repository                Repository
 	monitorMaintenanceService monitor_maintenance.Service
 	logger                    *zap.SugaredLogger
-	cronGenerator             *utils.CronGenerator
-	timeWindowChecker         *utils.TimeWindowChecker
-	timeUtils                 *utils.TimeUtils
-	validator                 *utils.Validator
+	cronGenerator             utils.CronGeneratorInterface
+	timeWindowChecker         utils.TimeWindowCheckerInterface
+	timeUtils                 utils.TimeUtilsInterface
+	validator                 utils.ValidatorInterface
 }
 
 func NewService(

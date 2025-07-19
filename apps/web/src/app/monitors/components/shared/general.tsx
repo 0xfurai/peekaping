@@ -51,6 +51,38 @@ const monitorTypes = [
     type: "snmp",
     description: "SNMP Monitor",
   },
+  {
+    type: "mysql",
+    description: "MySQL/MariaDB Monitor",
+  },
+  {
+    type: "postgres",
+    description: "PostgreSQL Database Monitor",
+  },
+  {
+    type: "sqlserver",
+    description: "Microsoft SQL Server Monitor",
+  },
+  {
+    type: "mongodb",
+    description: "MongoDB Database Monitor",
+  },
+  {
+    type: "redis",
+    description: "Redis Database Monitor",
+  },
+  {
+    type: "mqtt",
+    description: "MQTT Broker Monitor",
+  },
+  {
+    type: "rabbitmq",
+    description: "RabbitMQ Monitor",
+  },
+  {
+    type: "kafka-producer",
+    description: "Kafka Producer Monitor",
+  },
 ];
 
 export const generalDefaultValues = {

@@ -43,11 +43,28 @@ import { tcpSchema, type TCPForm } from "../components/tcp";
 import { pingSchema, type PingForm } from "../components/ping";
 import { dnsSchema, type DNSForm } from "../components/dns";
 import { dockerSchema, type DockerForm } from "../components/docker";
-import { grpcKeywordSchema, type GRPCKeywordForm } from "../components/grpc-keyword";
+import {
+  grpcKeywordSchema,
+  type GRPCKeywordForm,
+} from "../components/grpc-keyword";
 import { snmpSchema, type SnmpForm } from "../components/snmp";
+import { mysqlSchema, type MySQLForm } from "../components/mysql";
+import { mongodbSchema, type MongoDBForm } from "../components/mongodb";
+import { redisSchema, type RedisForm } from "../components/redis";
 import { z } from "zod";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { deserializeMonitor } from "../components/monitor-registry";
+import {
+  postgresSchema,
+  type PostgresForm,
+} from "../components/postgres/schema";
+import {
+  sqlServerSchema,
+  type SQLServerForm,
+} from "../components/sqlserver/schema";
+import { mqttSchema, type MQTTForm } from "../components/mqtt";
+import { rabbitMQSchema, type RabbitMQForm } from "../components/rabbitmq";
+import { kafkaProducerSchema, type KafkaProducerForm } from "../components/kafka-producer/schema";
 
 const formSchema = z.discriminatedUnion("type", [
   httpSchema,
@@ -58,9 +75,33 @@ const formSchema = z.discriminatedUnion("type", [
   dockerSchema,
   grpcKeywordSchema,
   snmpSchema,
+  mysqlSchema,
+  postgresSchema,
+  sqlServerSchema,
+  mongodbSchema,
+  redisSchema,
+  mqttSchema,
+  rabbitMQSchema,
+  kafkaProducerSchema,
 ]);
 
-export type MonitorForm = HttpForm | TCPForm | PingForm | DNSForm | PushForm | DockerForm | SnmpForm | GRPCKeywordForm;
+export type MonitorForm =
+  | HttpForm
+  | TCPForm
+  | PingForm
+  | DNSForm
+  | PushForm
+  | DockerForm
+  | SnmpForm
+  | GRPCKeywordForm
+  | PostgresForm
+  | SQLServerForm
+  | MySQLForm
+  | MongoDBForm
+  | RedisForm
+  | MQTTForm
+  | RabbitMQForm
+  | KafkaProducerForm;
 
 export const formDefaultValues: MonitorForm = httpDefaultValues;
 
@@ -158,12 +199,12 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
   // Mutations
   const createMonitorMutation = useMutation({
     ...postMonitorsMutation(),
-    onSuccess: () => {
+    onSuccess: (res) => {
       toast.success("Monitor created successfully");
       queryClient.invalidateQueries({
         queryKey: getMonitorsInfiniteQueryKey(),
       });
-      navigate("/monitors");
+      navigate(`/monitors/${res.data.id}`);
     },
     onError: commonMutationErrorHandler("Failed to create monitor"),
   });

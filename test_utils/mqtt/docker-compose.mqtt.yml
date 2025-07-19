@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # MQTT Broker (Eclipse Mosquitto)
+  mqtt-broker:
+    image: eclipse-mosquitto:2.0.18
+    container_name: mqtt-broker
+    ports:
+      - "1883:1883"  # MQTT default port
+      - "9001:9001"  # WebSocket port
+    volumes:
+      - ./mqtt-config:/mosquitto/config
+      - ./mqtt-data:/mosquitto/data
+      - ./mqtt-logs:/mosquitto/log
+    environment:
+      - TZ=UTC
+    restart: unless-stopped
+    networks:
+      - mqtt-network
+
+  # MQTT Test Publisher (for testing)
+  mqtt-publisher:
+    image: eclipse-mosquitto:2.0.18
+    container_name: mqtt-publisher
+    depends_on:
+      - mqtt-broker
+    volumes:
+      - ./mqtt-test-scripts:/scripts
+    command: >
+      sh -c "
+        echo 'Waiting for MQTT broker to be ready...' &&
+        sleep 10 &&
+        echo 'Publishing test messages...' &&
+        mosquitto_pub -h mqtt-broker -p 1883 -t 'test/topic' -m 'Hello World - success' &&
+        mosquitto_pub -h mqtt-broker -p 1883 -t 'sensor/status' -m '{\"status\": \"healthy\", \"temperature\": 25.5}' &&
+        mosquitto_pub -h mqtt-broker -p 1883 -t 'sensor/error' -m '{\"status\": \"error\", \"code\": 500}' &&
+        echo 'Test messages published successfully!' &&
+        # Keep publishing messages every 30 seconds
+        while true; do
+          sleep 30
+          mosquitto_pub -h mqtt-broker -p 1883 -t 'test/topic' -m 'Hello World - success $(date)'
+          mosquitto_pub -h mqtt-broker -p 1883 -t 'sensor/status' -m '{\"status\": \"healthy\", \"temperature\": $(shuf -i 20-30 -n 1).$(shuf -i 0-9 -n 1)}'
+        done
+      "
+    networks:
+      - mqtt-network
+
+networks:
+  mqtt-network:
+    driver: bridge
+
+volumes:
+  mqtt-data:
+  mqtt-logs:

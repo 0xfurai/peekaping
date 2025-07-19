@@ -1,3 +1,5 @@
+import { useMemo } from "react";
+import { clsx } from "clsx";
 import type { MaintenanceModel } from "@/api/types.gen";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -51,6 +53,28 @@ const MaintenanceCard = ({
     return new Date(dateString).toLocaleString();
   };
 
+  // Check if maintenance has ended based on end_date_time
+  const isMaintenanceEnded = useMemo(() => {
+    if (!maintenance.end_date_time) return false;
+    const endDate = new Date(maintenance.end_date_time);
+    const currentDate = new Date();
+    return currentDate > endDate;
+  }, [maintenance.end_date_time]);
+
+  // Determine badge variant
+  const badgeVariant = useMemo(() => {
+    if (isMaintenanceEnded) return "outline";
+    if (maintenance.active) return "default";
+    return "secondary";
+  }, [isMaintenanceEnded, maintenance.active]);
+
+  // Determine status text
+  const statusText = useMemo(() => {
+    if (isMaintenanceEnded) return "Ended";
+    if (maintenance.active) return "Active";
+    return "Inactive";
+  }, [isMaintenanceEnded, maintenance.active]);
+
   return (
     <Card
       key={maintenance.id}
@@ -60,40 +84,67 @@ const MaintenanceCard = ({
       <CardContent className="px-2">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <div className="flex flex-col min-w-[200px]">
+            <div className={clsx("flex flex-col min-w-[200px]", {
+              "text-gray-500": isMaintenanceEnded
+            })}>
               <h3 className="font-bold mb-1">{maintenance.title}</h3>
               <div className="flex items-center gap-2">
-                <Badge variant={maintenance.active ? "default" : "secondary"}>
-                  {maintenance.active ? "Active" : "Inactive"}
+                <Badge 
+                  variant={badgeVariant}
+                  className={clsx({
+                    "text-gray-500": isMaintenanceEnded
+                  })}
+                >
+                  {statusText}
                 </Badge>
-                <Badge variant="outline">
+                <Badge 
+                  variant="outline"
+                  className={clsx({
+                    "text-gray-500": isMaintenanceEnded
+                  })}
+                >
                   {getStrategyLabel(maintenance.strategy || "")}
                 </Badge>
               </div>
               {maintenance.description && (
-                <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                <p className={clsx("text-sm mb-2 line-clamp-2", {
+                  "text-gray-500": isMaintenanceEnded,
+                  "text-muted-foreground": !isMaintenanceEnded
+                })}>
                   {maintenance.description}
                 </p>
               )}
               <div className="flex items-center gap-4 text-xs text-muted-foreground">
                 {maintenance.start_date_time && (
                   <div className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    <span>
+                    <Calendar className={clsx("h-3 w-3", {
+                      "text-gray-500": isMaintenanceEnded
+                    })} />
+                    <span className={clsx({
+                      "text-gray-500": isMaintenanceEnded
+                    })}>
                       Start: {formatDate(maintenance.start_date_time)}
                     </span>
                   </div>
                 )}
                 {maintenance.end_date_time && (
                   <div className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    <span>End: {formatDate(maintenance.end_date_time)}</span>
+                    <Calendar className={clsx("h-3 w-3", {
+                      "text-gray-500": isMaintenanceEnded
+                    })} />
+                    <span className={clsx({
+                      "text-gray-500": isMaintenanceEnded
+                    })}>End: {formatDate(maintenance.end_date_time)}</span>
                   </div>
                 )}
                 {maintenance.duration && (
                   <div className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    <span>{maintenance.duration} min</span>
+                    <Clock className={clsx("h-3 w-3", {
+                      "text-gray-500": isMaintenanceEnded
+                    })} />
+                    <span className={clsx({
+                      "text-gray-500": isMaintenanceEnded
+                    })}>{maintenance.duration} min</span>
                   </div>
                 )}
               </div>

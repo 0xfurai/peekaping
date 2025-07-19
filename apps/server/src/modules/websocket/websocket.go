@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"peekaping/src/config"
@@ -44,7 +45,9 @@ func NewServer(
 			return
 		}
 
-		claims, err := tokenMaker.VerifyToken(access_token, "access")
+		// Create context for token verification
+		ctx := context.Background()
+		claims, err := tokenMaker.VerifyToken(ctx, access_token, "access")
 		if err != nil {
 			next(socket.NewExtendedError("Unauthorized", nil))
 			return

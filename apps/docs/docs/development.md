@@ -67,12 +67,14 @@ DB_PORT=6001
 DB_TYPE=mongo # or postgres | mysql | sqlite
 SERVER_PORT=8034
 CLIENT_URL="http://localhost:5173"
-ACCESS_TOKEN_EXPIRED_IN=1m
-ACCESS_TOKEN_SECRET_KEY=secret-key
-REFRESH_TOKEN_EXPIRED_IN=60m
-REFRESH_TOKEN_SECRET_KEY=secret-key
 MODE=prod
 TZ="America/New_York"
+
+# JWT settings are now automatically managed in the database.
+# Default settings are initialized on first startup:
+# - Access token expiration: 15 minutes
+# - Refresh token expiration: 720 hours (30 days)
+# - Secret keys are automatically generated securely
 ```
 
 ---

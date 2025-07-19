@@ -32,14 +32,9 @@ type Config struct {
 	DBPass string `env:"DB_PASS"`                           // validated in validateCustomRules
 	DBType string `env:"DB_TYPE" validate:"required,db_type"`
 
-	AccessTokenExpiresIn  time.Duration `env:"ACCESS_TOKEN_EXPIRED_IN" validate:"duration_min=1m" default:"15m"`
-	AccessTokenSecretKey  string        `env:"ACCESS_TOKEN_SECRET_KEY" validate:"required,min=16"`
-	RefreshTokenExpiresIn time.Duration `env:"REFRESH_TOKEN_EXPIRED_IN" validate:"duration_min=1m" default:"720h"`
-	RefreshTokenSecretKey string        `env:"REFRESH_TOKEN_SECRET_KEY" validate:"required,min=16"`
+	Mode     string `env:"MODE" validate:"required,oneof=dev prod test" default:"dev"`
+	LogLevel string `env:"LOG_LEVEL" validate:"omitempty,log_level" default:"info"`
 
-	Mode string `env:"MODE" validate:"required,oneof=dev prod test" default:"dev"`
-
-	// Bruteforce protection settings
 	BruteforceMaxAttempts      int           `env:"BRUTEFORCE_MAX_ATTEMPTS" validate:"min=1" default:"5"`
 	BruteforceWindowMinutes    int           `env:"BRUTEFORCE_WINDOW_MINUTES" validate:"min=1" default:"15"`
 	BruteforceBlockDuration    time.Duration `env:"BRUTEFORCE_BLOCK_DURATION" validate:"duration_min=1m" default:"30m"`
@@ -47,10 +42,7 @@ type Config struct {
 	BruteforceProgressiveDelay bool          `env:"BRUTEFORCE_PROGRESSIVE_DELAY" default:"true"`
 	BruteforceCleanupInterval  time.Duration `env:"BRUTEFORCE_CLEANUP_INTERVAL" validate:"duration_min=1m" default:"24h"`
 
-	// Loki logging
-	LokiURL    string            `env:"LOKI_URL" validate:"omitempty,url"`
-	LokiLabels map[string]string // Set programmatically or extend env parsing for map
-	Timezone   string            `env:"TZ" validate:"required" default:"UTC"`
+	Timezone string `env:"TZ" validate:"required" default:"UTC"`
 }
 
 var validate = validator.New()
@@ -140,6 +132,8 @@ func formatValidationError(err validator.FieldError) string {
 		return fmt.Sprintf("%s must be a valid port number (1-65535)", field)
 	case "db_type":
 		return fmt.Sprintf("%s must be one of: postgres, postgresql, mysql, sqlite, mongo, mongodb", field)
+	case "log_level":
+		return fmt.Sprintf("%s must be one of: debug, info, warn, warning, error, dpanic, panic, fatal", field)
 	case "duration_min":
 		return fmt.Sprintf("%s must be at least %s", field, err.Param())
 	case "min":

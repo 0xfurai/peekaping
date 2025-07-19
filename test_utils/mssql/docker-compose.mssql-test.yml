@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  # Microsoft SQL Server container for testing
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    platform: linux/amd64
+    container_name: peekaping-mssql-test
+    user: "0:0"
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=TestPassword123!
+      - MSSQL_PID=Express
+    volumes:
+      - mssql-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 1433 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    restart: unless-stopped
+
+  # Microsoft SQL Server with custom database
+  mssql-custom-db:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    platform: linux/amd64
+    container_name: peekaping-mssql-custom-db-test
+    user: "0:0"
+    ports:
+      - "1434:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=TestPassword123!
+      - MSSQL_PID=Express
+    volumes:
+      - mssql-custom-data:/var/opt/mssql
+      - ./init-custom-db.sql:/docker-entrypoint-initdb.d/init-custom-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 1433 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    restart: unless-stopped
+
+  # Microsoft SQL Server with custom credentials
+  mssql-custom-creds:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    platform: linux/amd64
+    container_name: peekaping-mssql-custom-creds-test
+    user: "0:0"
+    ports:
+      - "1435:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=CustomPassword456!
+      - MSSQL_PID=Express
+    volumes:
+      - mssql-custom-creds-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 1433 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    restart: unless-stopped
+
+  # Microsoft SQL Server with custom user (non-SA)
+  mssql-custom-user:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    platform: linux/amd64
+    container_name: peekaping-mssql-custom-user-test
+    user: "0:0"
+    ports:
+      - "1436:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=TestPassword123!
+      - MSSQL_PID=Express
+    volumes:
+      - mssql-custom-user-data:/var/opt/mssql
+      - ./init-custom-user.sql:/docker-entrypoint-initdb.d/init-custom-user.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 1433 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    restart: unless-stopped
+
+volumes:
+  mssql-data:
+    driver: local
+  mssql-custom-data:
+    driver: local
+  mssql-custom-creds-data:
+    driver: local
+  mssql-custom-user-data:
+    driver: local
