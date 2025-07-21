@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import { X, Loader2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +14,7 @@ import { Command as CommandPrimitive } from "cmdk";
 
 export type Option = Record<"value" | "label", string>;
 
-export function FancyMultiSelect({
+export function SearchableMultiSelect({
   options,
   selected = [],
   onSelect = () => {},
@@ -35,17 +35,16 @@ export function FancyMultiSelect({
   isLoading?: boolean;
   nextPage?: boolean;
 }) {
-  const inputRef = React.useRef<HTMLInputElement>(null);
-  const [open, setOpen] = React.useState(false);
-  // const [selected, setSelected] = React.useState<Option[]>([]);
-  // const [inputValue, setInputValue] = React.useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
 
-  const handleUnselect = React.useCallback((option: Option) => {
+  const handleUnselect = useCallback((option: Option) => {
     const newSelected = selected.filter((s) => s.value !== option.value);
     onSelect(newSelected);
   }, [selected, onSelect]);
 
-  const handleKeyDown = React.useCallback(
+  const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
       const input = inputRef.current;
       if (input) {
@@ -68,6 +67,26 @@ export function FancyMultiSelect({
   const selectables = options.filter(
     (option) => !selected.some((s) => s.value === option.value)
   );
+
+  // IntersectionObserver for infinite scroll
+  useEffect(() => {
+    if (!sentinelRef.current || !open) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && nextPage && !isLoading && onLoadMore) {
+          onLoadMore();
+        }
+      },
+      { threshold: 1.0 }
+    );
+
+    observer.observe(sentinelRef.current);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [nextPage, isLoading, onLoadMore, open]);
 
   return (
     <Command
@@ -118,16 +137,6 @@ export function FancyMultiSelect({
               <CommandGroup 
                 className="overflow-auto"
                 style={{ maxHeight: "calc(2.25rem * 10.5)" }}
-                onScroll={(e) => {
-                  const target = e.currentTarget;
-                  const scrollPercentage =
-                    (target.scrollTop + target.offsetHeight) /
-                    target.scrollHeight;
-                  
-                  if (scrollPercentage > 0.8 && nextPage && !isLoading && onLoadMore) {
-                    onLoadMore();
-                  }
-                }}
               >
                 {selectables.map((option) => {
                   return (
@@ -148,6 +157,10 @@ export function FancyMultiSelect({
                     </CommandItem>
                   );
                 })}
+                {/* Sentinel element for IntersectionObserver */}
+                {nextPage && !isLoading && (
+                  <div ref={sentinelRef} style={{ height: 1 }} />
+                )}
                 {isLoading && (
                   <div className="flex items-center justify-center py-2">
                     <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
