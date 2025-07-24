@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,6 +30,7 @@ import type { MaintenanceModel } from "@/api/types.gen";
 import Layout from "@/layout";
 import { Label } from "@/components/ui/label";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useSearchParams } from "@/hooks/useSearchParams";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import { commonMutationErrorHandler } from "@/lib/utils";
@@ -38,12 +39,30 @@ import EmptyList from "@/components/empty-list";
 export default function MaintenancePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [search, setSearch] = useState("");
+  const { getParam, updateSearchParams, clearAllParams, hasParams } =
+    useSearchParams();
+
+  // Initialize search from URL params
+  const [search, setSearch] = useState(getParam("q") || "");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [pendingAction, setPendingAction] = useState<"pause" | "resume" | null>(null);
-  const [pendingMaintenanceId, setPendingMaintenanceId] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<"pause" | "resume" | null>(
+    null
+  );
+  const [pendingMaintenanceId, setPendingMaintenanceId] = useState<
+    string | null
+  >(null);
   const debouncedSearch = useDebounce(search, 300);
+
+  // Update URL when debounced search changes
+  useEffect(() => {
+    updateSearchParams({ q: debouncedSearch });
+  }, [debouncedSearch, updateSearchParams]);
+
+  const clearAllFilters = () => {
+    setSearch("");
+    clearAllParams();
+  };
 
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery({
@@ -224,16 +243,30 @@ export default function MaintenancePage() {
   return (
     <Layout pageName="Maintenance Windows" onCreate={handleCreateClick}>
       <div>
-        <div className="mb-4 flex justify-center sm:justify-end gap-4">
-          <div className="flex flex-col gap-1 w-full sm:w-auto">
-            <Label htmlFor="search-maintenances">Search</Label>
-            <Input
-              id="search-maintenances"
-              placeholder="Search maintenances..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full sm:w-[400px]"
-            />
+        <div className="mb-4 space-y-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:justify-end sm:gap-4 items-end">
+            {hasParams() && (
+              <div className="flex justify-start">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearAllFilters}
+                  className="w-fit h-[36px]"
+                >
+                  Clear all filters
+                </Button>
+              </div>
+            )}
+            <div className="flex flex-col gap-1 w-full sm:w-auto">
+              <Label htmlFor="search-maintenances">Search</Label>
+              <Input
+                id="search-maintenances"
+                placeholder="Search maintenances..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full sm:w-[400px]"
+              />
+            </div>
           </div>
         </div>
 

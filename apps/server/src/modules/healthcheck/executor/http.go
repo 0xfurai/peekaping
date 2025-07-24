@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"peekaping/src/modules/shared"
 	"peekaping/src/utils"
+	"peekaping/src/version"
 	"strings"
 	"time"
 
@@ -233,6 +234,11 @@ func buildProxyTransport(base *http.Transport, proxyModel *Proxy) http.RoundTrip
 	}
 }
 
+func setDefaultHeaders(req *http.Request) {
+	req.Header.Set("User-Agent", "peekaping/"+version.Version)
+	req.Header.Set("Accept", "*/*")
+}
+
 func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
 	cfgAny, err := h.Unmarshal(m.Config)
 	if err != nil {
@@ -251,6 +257,7 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	if err != nil {
 		return DownResult(err, time.Now().UTC(), time.Now().UTC())
 	}
+	setDefaultHeaders(req)
 
 	if cfg.Headers != "" {
 		headersMap := make(map[string]string)
@@ -339,6 +346,8 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		if err != nil {
 			return DownResult(fmt.Errorf("failed to create oauth2 token request: %w", err), time.Now().UTC(), time.Now().UTC())
 		}
+		setDefaultHeaders(tokenReq)
+
 		tokenReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		if cfg.OauthAuthMethod == "client_secret_basic" {
 			basic := base64.StdEncoding.EncodeToString([]byte(cfg.OauthClientId + ":" + cfg.OauthClientSecret))
@@ -392,6 +401,8 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 			Transport:     transport,
 		}
 	}
+
+	// Set user agent and accept headers
 
 	startTime := time.Now().UTC()
 	resp, err := h.client.Do(req)

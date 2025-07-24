@@ -77,13 +77,13 @@ func (s *ServiceImpl) Register(ctx context.Context, dto RegisterDto) (*LoginResp
 	}
 
 	// Generate access token
-	accessToken, err := s.tokenMaker.CreateAccessToken(user)
+	accessToken, err := s.tokenMaker.CreateAccessToken(ctx, user)
 	if err != nil {
 		return nil, err
 	}
 
 	// Generate refresh token
-	refreshToken, err := s.tokenMaker.CreateRefreshToken(user)
+	refreshToken, err := s.tokenMaker.CreateRefreshToken(ctx, user)
 	if err != nil {
 		return nil, err
 	}
@@ -122,13 +122,13 @@ func (s *ServiceImpl) Login(ctx context.Context, dto LoginDto) (*LoginResponse, 
 	}
 
 	// Generate access token
-	accessToken, err := s.tokenMaker.CreateAccessToken(user)
+	accessToken, err := s.tokenMaker.CreateAccessToken(ctx, user)
 	if err != nil {
 		return nil, err
 	}
 
 	// Generate refresh token
-	refreshToken, err := s.tokenMaker.CreateRefreshToken(user)
+	refreshToken, err := s.tokenMaker.CreateRefreshToken(ctx, user)
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +142,7 @@ func (s *ServiceImpl) Login(ctx context.Context, dto LoginDto) (*LoginResponse, 
 
 func (s *ServiceImpl) RefreshToken(ctx context.Context, refreshToken string) (*LoginResponse, error) {
 	// Verify refresh token
-	claims, err := s.tokenMaker.VerifyToken(refreshToken, "refresh")
+	claims, err := s.tokenMaker.VerifyToken(ctx, refreshToken, "refresh")
 	if err != nil {
 		return nil, errors.New("invalid refresh token")
 	}
@@ -159,13 +159,13 @@ func (s *ServiceImpl) RefreshToken(ctx context.Context, refreshToken string) (*L
 	}
 
 	// Generate new access token
-	accessToken, err := s.tokenMaker.CreateAccessToken(user)
+	accessToken, err := s.tokenMaker.CreateAccessToken(ctx, user)
 	if err != nil {
 		return nil, err
 	}
 
 	// Generate new refresh token
-	newRefreshToken, err := s.tokenMaker.CreateRefreshToken(user)
+	newRefreshToken, err := s.tokenMaker.CreateRefreshToken(ctx, user)
 	if err != nil {
 		return nil, err
 	}

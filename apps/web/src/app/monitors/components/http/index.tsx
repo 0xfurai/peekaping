@@ -16,6 +16,7 @@ import Notifications from "../shared/notifications";
 import Proxies from "../shared/proxies";
 import Intervals from "../shared/intervals";
 import General from "../shared/general";
+import Tags from "../shared/tags";
 import { useMonitorFormContext } from "../../context/monitor-form-context";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -129,6 +130,7 @@ const Http = () => {
         timeout: monitor.data.timeout,
         resend_interval: monitor.data.resend_interval,
         notification_ids: monitor.data.notification_ids,
+        tag_ids: monitor.data.tag_ids,
         proxy_id: monitor.data.proxy_id,
         accepted_statuscodes: parsedConfig.accepted_statuscodes,
         max_redirects: parsedConfig.max_redirects,
@@ -172,6 +174,12 @@ const Http = () => {
         <Card>
           <CardContent className="space-y-4">
             <Notifications onNewNotifier={() => setNotifierSheetOpen(true)} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="space-y-4">
+            <Tags />
           </CardContent>
         </Card>
 

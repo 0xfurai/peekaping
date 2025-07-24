@@ -774,3 +774,392 @@ func TestDockerExecutor_HealthStatusEdgeCases(t *testing.T) {
 		})
 	}
 }
+
+func TestDockerExecutor_TLS_Unmarshal(t *testing.T) {
+	// Setup
+	logger := zap.NewNop().Sugar()
+	executor := NewDockerExecutor(logger)
+
+	tests := []struct {
+		name               string
+		config             string
+		expectedError      bool
+		expectedTLSEnabled bool
+		expectedTLSVerify  bool
+	}{
+		{
+			name: "tcp config with TLS enabled",
+			config: `{
+				"container_id": "mycontainer",
+				"connection_type": "tcp",
+				"docker_daemon": "tcp://localhost:2376",
+				"tls_enabled": true,
+				"tls_cert": "cert-content",
+				"tls_key": "key-content",
+				"tls_ca": "ca-content",
+				"tls_verify": true
+			}`,
+			expectedError:      false,
+			expectedTLSEnabled: true,
+			expectedTLSVerify:  true,
+		},
+		{
+			name: "tcp config with TLS disabled",
+			config: `{
+				"container_id": "mycontainer",
+				"connection_type": "tcp",
+				"docker_daemon": "tcp://localhost:2375",
+				"tls_enabled": false
+			}`,
+			expectedError:      false,
+			expectedTLSEnabled: false,
+			expectedTLSVerify:  false,
+		},
+		{
+			name: "tcp config with TLS verify disabled",
+			config: `{
+				"container_id": "mycontainer",
+				"connection_type": "tcp",
+				"docker_daemon": "tcp://localhost:2376",
+				"tls_enabled": true,
+				"tls_verify": false
+			}`,
+			expectedError:      false,
+			expectedTLSEnabled: true,
+			expectedTLSVerify:  false,
+		},
+		{
+			name: "socket config with TLS fields (should be ignored)",
+			config: `{
+				"container_id": "mycontainer",
+				"connection_type": "socket",
+				"docker_daemon": "/var/run/docker.sock",
+				"tls_enabled": true,
+				"tls_cert": "cert-content"
+			}`,
+			expectedError:      false,
+			expectedTLSEnabled: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := executor.Unmarshal(tt.config)
+			if tt.expectedError {
+				assert.Error(t, err)
+				assert.Nil(t, result)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, result)
+				cfg := result.(*DockerConfig)
+				assert.Equal(t, tt.expectedTLSEnabled, cfg.TLSEnabled)
+				assert.Equal(t, tt.expectedTLSVerify, cfg.TLSVerify)
+			}
+		})
+	}
+}
+
+func TestDockerExecutor_TLS_CreateTLSConfig(t *testing.T) {
+	// Setup
+	logger := zap.NewNop().Sugar()
+	executor := NewDockerExecutor(logger)
+
+	tests := []struct {
+		name          string
+		config        *DockerConfig
+		expectedError bool
+		description   string
+	}{
+		{
+			name: "TLS disabled",
+			config: &DockerConfig{
+				TLSEnabled: false,
+			},
+			expectedError: false,
+			description:   "TLS disabled should return nil config",
+		},
+		{
+			name: "TLS enabled with verify false",
+			config: &DockerConfig{
+				TLSEnabled: true,
+				TLSVerify:  false,
+			},
+			expectedError: false,
+			description:   "TLS enabled with verification disabled should work",
+		},
+		{
+			name: "TLS enabled without certificates",
+			config: &DockerConfig{
+				TLSEnabled: true,
+				TLSVerify:  true,
+			},
+			expectedError: false,
+			description:   "TLS enabled without certificates should work (server-only TLS)",
+		},
+		{
+			name: "TLS enabled with invalid certificate",
+			config: &DockerConfig{
+				TLSEnabled: true,
+				TLSCert:    "invalid-cert",
+				TLSKey:     "invalid-key",
+			},
+			expectedError: true,
+			description:   "Invalid certificate should return error",
+		},
+		{
+			name: "TLS enabled with invalid CA",
+			config: &DockerConfig{
+				TLSEnabled: true,
+				TLSCA:      "invalid-ca",
+			},
+			expectedError: true,
+			description:   "Invalid CA certificate should return error",
+		},
+		{
+			name: "TLS enabled with cert but no key",
+			config: &DockerConfig{
+				TLSEnabled: true,
+				TLSCert:    "some-cert",
+			},
+			expectedError: true,
+			description:   "Certificate without key should return error",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tlsConfig, err := executor.createTLSConfig(tt.config)
+			if tt.expectedError {
+				assert.Error(t, err, tt.description)
+				assert.Nil(t, tlsConfig)
+			} else {
+				assert.NoError(t, err, tt.description)
+				if tt.config.TLSEnabled {
+					assert.NotNil(t, tlsConfig)
+					assert.Equal(t, !tt.config.TLSVerify, tlsConfig.InsecureSkipVerify)
+				} else {
+					assert.Nil(t, tlsConfig)
+				}
+			}
+		})
+	}
+}
+
+func TestDockerExecutor_TLS_Execute_ConfigErrors(t *testing.T) {
+	// Setup
+	logger := zap.NewNop().Sugar()
+	executor := NewDockerExecutor(logger)
+
+	tests := []struct {
+		name           string
+		monitor        *Monitor
+		expectedStatus shared.MonitorStatus
+		expectMessage  string
+		description    string
+	}{
+		{
+			name: "TCP with TLS enabled but invalid certificate",
+			monitor: &Monitor{
+				ID:       "monitor1",
+				Type:     "docker",
+				Name:     "Test Docker Monitor",
+				Interval: 30,
+				Timeout:  5,
+				Config: `{
+					"container_id": "test_container",
+					"connection_type": "tcp",
+					"docker_daemon": "tcp://localhost:2376",
+					"tls_enabled": true,
+					"tls_cert": "invalid-cert",
+					"tls_key": "invalid-key"
+				}`,
+			},
+			expectedStatus: shared.MonitorStatusDown,
+			expectMessage:  "TLS configuration error",
+			description:    "Invalid TLS certificate should return TLS configuration error",
+		},
+		{
+			name: "TCP with TLS enabled but missing certificates",
+			monitor: &Monitor{
+				ID:       "monitor2",
+				Type:     "docker",
+				Name:     "Test Docker Monitor",
+				Interval: 30,
+				Timeout:  5,
+				Config: `{
+					"container_id": "test_container",
+					"connection_type": "tcp",
+					"docker_daemon": "tcp://localhost:2376",
+					"tls_enabled": true
+				}`,
+			},
+			expectedStatus: shared.MonitorStatusDown,
+			expectMessage:  "container inspect error",
+			description:    "TLS enabled without certificates should still attempt connection",
+		},
+		{
+			name: "TCP with TLS disabled",
+			monitor: &Monitor{
+				ID:       "monitor3",
+				Type:     "docker",
+				Name:     "Test Docker Monitor",
+				Interval: 30,
+				Timeout:  5,
+				Config: `{
+					"container_id": "test_container",
+					"connection_type": "tcp",
+					"docker_daemon": "tcp://localhost:2375",
+					"tls_enabled": false
+				}`,
+			},
+			expectedStatus: shared.MonitorStatusDown,
+			expectMessage:  "container inspect error",
+			description:    "TCP without TLS should work for plain connections",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+			defer cancel()
+
+			result := executor.Execute(ctx, tt.monitor, nil)
+			assert.Equal(t, tt.expectedStatus, result.Status, tt.description)
+			if tt.expectMessage != "" {
+				assert.Contains(t, result.Message, tt.expectMessage, tt.description)
+			}
+			assert.NotZero(t, result.StartTime)
+			assert.NotZero(t, result.EndTime)
+		})
+	}
+}
+
+func TestDockerExecutor_TLS_Validation(t *testing.T) {
+	// Setup
+	logger := zap.NewNop().Sugar()
+	executor := NewDockerExecutor(logger)
+
+	tests := []struct {
+		name          string
+		config        string
+		expectedError bool
+		description   string
+	}{
+		{
+			name: "valid TCP config with TLS",
+			config: `{
+				"container_id": "mycontainer",
+				"connection_type": "tcp",
+				"docker_daemon": "tcp://localhost:2376",
+				"tls_enabled": true,
+				"tls_verify": true
+			}`,
+			expectedError: false,
+			description:   "Valid TCP config with TLS should pass validation",
+		},
+		{
+			name: "valid socket config ignores TLS",
+			config: `{
+				"container_id": "mycontainer",
+				"connection_type": "socket",
+				"docker_daemon": "/var/run/docker.sock",
+				"tls_enabled": true
+			}`,
+			expectedError: false,
+			description:   "Socket config should ignore TLS fields",
+		},
+		{
+			name: "TCP config with TLS fields as strings",
+			config: `{
+				"container_id": "mycontainer",
+				"connection_type": "tcp",
+				"docker_daemon": "tcp://localhost:2376",
+				"tls_enabled": "true",
+				"tls_verify": "false"
+			}`,
+			expectedError: true,
+			description:   "TLS boolean fields as strings should fail validation",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := executor.Validate(tt.config)
+			if tt.expectedError {
+				assert.Error(t, err, tt.description)
+			} else {
+				assert.NoError(t, err, tt.description)
+			}
+		})
+	}
+}
+
+func TestDockerExecutor_TLS_ErrorHandling(t *testing.T) {
+	// Setup
+	logger := zap.NewNop().Sugar()
+	executor := NewDockerExecutor(logger)
+
+	tests := []struct {
+		name           string
+		monitor        *Monitor
+		expectedStatus shared.MonitorStatus
+		expectMessage  string
+		description    string
+	}{
+		{
+			name: "Legacy CN certificate error simulation",
+			monitor: &Monitor{
+				ID:       "monitor1",
+				Type:     "docker",
+				Name:     "Test Docker Monitor",
+				Interval: 30,
+				Timeout:  5,
+				Config: `{
+					"container_id": "test_container",
+					"connection_type": "tcp",
+					"docker_daemon": "tcp://192.168.65.2:2376",
+					"tls_enabled": true,
+					"tls_verify": true
+				}`,
+			},
+			expectedStatus: shared.MonitorStatusDown,
+			expectMessage:  "container inspect error",
+			description:    "Should handle TLS connection errors gracefully",
+		},
+		{
+			name: "TLS with verify disabled should attempt connection",
+			monitor: &Monitor{
+				ID:       "monitor2",
+				Type:     "docker",
+				Name:     "Test Docker Monitor",
+				Interval: 30,
+				Timeout:  5,
+				Config: `{
+					"container_id": "test_container",
+					"connection_type": "tcp",
+					"docker_daemon": "tcp://192.168.65.2:2376",
+					"tls_enabled": true,
+					"tls_verify": false
+				}`,
+			},
+			expectedStatus: shared.MonitorStatusDown,
+			expectMessage:  "container inspect error",
+			description:    "Should attempt connection even with TLS verify disabled",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			defer cancel()
+
+			result := executor.Execute(ctx, tt.monitor, nil)
+			assert.Equal(t, tt.expectedStatus, result.Status, tt.description)
+			if tt.expectMessage != "" {
+				assert.Contains(t, result.Message, tt.expectMessage, tt.description)
+			}
+			assert.NotZero(t, result.StartTime)
+			assert.NotZero(t, result.EndTime)
+		})
+	}
+}

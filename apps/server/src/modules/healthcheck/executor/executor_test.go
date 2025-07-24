@@ -78,6 +78,16 @@ func TestExecutorRegistry_GetExecutor(t *testing.T) {
 			expectedFound: true,
 		},
 		{
+			name:          "get postgres executor",
+			executorType:  "postgres",
+			expectedFound: true,
+		},
+		{
+			name:          "get mysql executor",
+			executorType:  "mysql",
+			expectedFound: true,
+		},
+		{
 			name:          "get non-existent executor",
 			executorType:  "invalid",
 			expectedFound: false,
@@ -140,6 +150,24 @@ func TestExecutorRegistry_ValidateConfig(t *testing.T) {
 			expectedError: false,
 		},
 		{
+			name:        "validate postgres config",
+			monitorType: "postgres",
+			config: `{
+				"database_connection_string": "postgres://user:password@localhost:5432/testdb",
+				"database_query": "SELECT 1"
+			}`,
+			expectedError: false,
+		},
+		{
+			name:        "validate mysql config",
+			monitorType: "mysql",
+			config: `{
+				"connection_string": "mysql://user:password@localhost:3306/testdb",
+				"query": "SELECT 1"
+			}`,
+			expectedError: false,
+		},
+		{
 			name:        "validate invalid http config",
 			monitorType: "http",
 			config: `{
@@ -156,6 +184,44 @@ func TestExecutorRegistry_ValidateConfig(t *testing.T) {
 			monitorType: "push",
 			config: `{
 				"pushToken": ""
+			}`,
+			expectedError: true,
+		},
+		{
+			name:        "validate invalid postgres config",
+			monitorType: "postgres",
+			config: `{
+				"database_connection_string": "",
+				"database_query": "SELECT 1"
+			}`,
+			expectedError: true,
+		},
+		{
+			name:        "validate invalid mysql config",
+			monitorType: "mysql",
+			config: `{
+				"connection_string": "",
+				"query": "SELECT 1"
+			}`,
+			expectedError: true,
+		},
+		{
+			name:        "validate rabbitmq config",
+			monitorType: "rabbitmq",
+			config: `{
+				"nodes": ["https://localhost:15672"],
+				"username": "admin",
+				"password": "password"
+			}`,
+			expectedError: false,
+		},
+		{
+			name:        "validate invalid rabbitmq config",
+			monitorType: "rabbitmq",
+			config: `{
+				"nodes": [],
+				"username": "admin",
+				"password": "password"
 			}`,
 			expectedError: true,
 		},
@@ -254,6 +320,49 @@ func TestExecutorRegistry_Execute(t *testing.T) {
 			expectedError: false,
 		},
 		{
+			name: "execute postgres monitor",
+			monitor: &Monitor{
+				ID:       "monitor1",
+				Type:     "postgres",
+				Name:     "Test Monitor",
+				Interval: 30,
+				Config: `{
+					"database_connection_string": "postgres://user:password@localhost:5432/testdb",
+					"database_query": "SELECT 1"
+				}`,
+			},
+			expectedError: false,
+		},
+		{
+			name: "execute mysql monitor",
+			monitor: &Monitor{
+				ID:       "monitor1",
+				Type:     "mysql",
+				Name:     "Test Monitor",
+				Interval: 30,
+				Config: `{
+					"connection_string": "mysql://user:password@localhost:3306/testdb",
+					"query": "SELECT 1"
+				}`,
+			},
+			expectedError: false,
+		},
+		{
+			name: "execute rabbitmq monitor",
+			monitor: &Monitor{
+				ID:       "monitor1",
+				Type:     "rabbitmq",
+				Name:     "Test Monitor",
+				Interval: 30,
+				Config: `{
+					"nodes": ["https://localhost:15672"],
+					"username": "admin",
+					"password": "password"
+				}`,
+			},
+			expectedError: false,
+		},
+		{
 			name: "execute invalid monitor type",
 			monitor: &Monitor{
 				ID:       "monitor1",
@@ -314,6 +423,10 @@ func TestNewExecutorRegistry(t *testing.T) {
 	pushExecutor, found := registry.GetExecutor("push")
 	assert.True(t, found)
 	assert.NotNil(t, pushExecutor)
+
+	rabbitmqExecutor, found := registry.GetExecutor("rabbitmq")
+	assert.True(t, found)
+	assert.NotNil(t, rabbitmqExecutor)
 }
 
 // Test common utilities that weren't covered

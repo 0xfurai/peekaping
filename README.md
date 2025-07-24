@@ -42,8 +42,6 @@ We encourage you to try Peekaping and provide feedback, but please use it at you
 docker run -d --rm --restart=always \
   -p 8383:8383 \
   -e DB_NAME=/app/data/peekaping.db \
-  -e ACCESS_TOKEN_SECRET_KEY=test_access_token_secret_key_16_characters_long \
-  -e REFRESH_TOKEN_SECRET_KEY=test_refresh_token_secret_key_16_characters_long \
   -v $(pwd)/.data/sqlite:/app/data \
   0xfurai/peekaping-bundle-sqlite:latest
 ```
@@ -66,6 +64,46 @@ If you enjoy this project, come say hi &amp; follow along!
 
 [![Follow me on X](https://img.shields.io/twitter/follow/your_handle?label=Follow&style=social)](https://x.com/0xfurai)
 
+## Development roadmap
+
+### General
+- [ ] Login bruteforce protection
+- [ ] Add ability to set custom domain for status pages
+- [ ] Incidents
+- [ ] Certificate expiration check
+- [ ] Badges
+- [ ] Multi user
+- [ ] Add support for Homepage (in progress)
+
+### Monitors
+- [x] MQTT
+- [x] RabbitMQ
+- [x] Kafka Producer
+- [x] Microsoft SQL Server
+- [x] PostgreSQL
+- [x] MySQL/MariaDB
+- [x] MongoDB
+- [x] Redis
+
+### Notification channels
+- [x] Discord
+- [ ] Microsoft Teams
+- [ ] Twilio
+- [ ] WhatsApp (WAHA)
+- [ ] WhatsApp (Whapi)
+- [ ] WeCom (企业微信群机器人)
+- [ ] CallMeBot (WhatsApp, Telegram Call, Facebook Messanger)
+- [ ] LINE Messenger
+- [ ] LINE Notify
+- [ ] SendGrid
+- [ ] AliyunSMS (阿里云短信服务)
+- [ ] DingDing (钉钉)
+- [ ] Pushbullet
+- [ ] ClickSend SMS
+- [ ] PagerTree
+- [ ] Rocket.Chat
+
+![Alt](https://repobeats.axiom.co/api/embed/747c845fe0118082b51a1ab2fc6f8a4edd73c016.svg "Repobeats analytics image")
 
 ## 🤝 Contributing
 

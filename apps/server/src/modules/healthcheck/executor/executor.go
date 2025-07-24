@@ -60,6 +60,14 @@ func NewExecutorRegistry(logger *zap.SugaredLogger, heartbeatService heartbeat.S
 	registry["docker"] = NewDockerExecutor(logger)
 	registry["grpc-keyword"] = NewGRPCExecutor(logger)
 	registry["snmp"] = NewSnmpExecutor(logger)
+	registry["mongodb"] = NewMongoDBExecutor(logger)
+	registry["mysql"] = NewMySQLExecutor(logger)
+	registry["postgres"] = NewPostgresExecutor(logger)
+	registry["sqlserver"] = NewSQLServerExecutor(logger)
+	registry["redis"] = NewRedisExecutor(logger)
+	registry["mqtt"] = NewMQTTExecutor(logger)
+	registry["rabbitmq"] = NewRabbitMQExecutor(logger)
+	registry["kafka-producer"] = NewKafkaProducerExecutor(logger)
 
 	return &ExecutorRegistry{
 		registry: registry,

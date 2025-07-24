@@ -39,6 +39,15 @@ func NewNotificationEventListener(p NotificationEventListenerParams) *Notificati
 	RegisterNotificationChannelProvider("slack", providers.NewSlackSender(p.Logger, p.Config))
 	RegisterNotificationChannelProvider("ntfy", providers.NewNTFYSender(p.Logger))
 	RegisterNotificationChannelProvider("pagerduty", providers.NewPagerDutySender(p.Logger, p.Config))
+	RegisterNotificationChannelProvider("opsgenie", providers.NewOpsgenieSender(p.Logger))
+	RegisterNotificationChannelProvider("google_chat", providers.NewGoogleChatSender(p.Logger, p.Config))
+	RegisterNotificationChannelProvider("grafana_oncall", providers.NewGrafanaOncallSender(p.Logger))
+	RegisterNotificationChannelProvider("signal", providers.NewSignalSender(p.Logger))
+	RegisterNotificationChannelProvider("gotify", providers.NewGotifySender(p.Logger))
+	RegisterNotificationChannelProvider("pushover", providers.NewPushoverSender(p.Logger))
+	RegisterNotificationChannelProvider("mattermost", providers.NewMattermostSender(p.Logger))
+	RegisterNotificationChannelProvider("matrix", providers.NewMatrixSender(p.Logger))
+	RegisterNotificationChannelProvider("discord", providers.NewDiscordSender(p.Logger))
 
 	return &NotificationEventListener{
 		service:                    p.Service,

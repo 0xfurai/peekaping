@@ -3,6 +3,7 @@ import { twMerge } from "tailwind-merge";
 import dayjs from "dayjs";
 import { toast } from "sonner";
 import { isAxiosError } from "axios";
+import type { QueryClient } from "@tanstack/react-query";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -76,3 +77,36 @@ export const commonMutationErrorHandler =
     }
     console.error(error);
   };
+
+
+export const invalidateByPartialQueryKey = (queryClient: QueryClient, part: Record<string, string>) => {
+  queryClient.invalidateQueries({
+    predicate: (query) => {
+      if (!Array.isArray(query.queryKey) || !query.queryKey[0]) {
+        return false;
+      }
+
+      const queryKeyObj = query.queryKey[0] as Record<string, unknown>;
+
+      return Object.entries(part).every(([key, value]) =>
+        queryKeyObj[key] === value
+      );
+    },
+  });
+};
+
+export function getContrastingTextColor(hex: string) {
+  // Remove the hash if present
+  hex = hex.replace('#', '');
+
+  // Parse r, g, b values
+  const r = parseInt(hex.substr(0, 2), 16);
+  const g = parseInt(hex.substr(2, 2), 16);
+  const b = parseInt(hex.substr(4, 2), 16);
+
+  // Calculate brightness (YIQ formula)
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+
+  // Return black or white depending on brightness
+  return yiq >= 128 ? 'oklch(0.205 0 0)' : 'oklch(0.985 0 0)';
+}

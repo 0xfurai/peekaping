@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  rabbitmq1:
+    image: rabbitmq:3-management
+    container_name: rabbitmq-node1
+    hostname: rabbitmq1
+    ports:
+      - "5672:5672"     # AMQP port
+      - "15672:15672"   # Management UI port
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: password
+      RABBITMQ_ERLANG_COOKIE: rabbitmq-cluster-cookie
+    volumes:
+      - rabbitmq1_data:/var/lib/rabbitmq
+    networks:
+      - rabbitmq-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+  rabbitmq2:
+    image: rabbitmq:3-management
+    container_name: rabbitmq-node2
+    hostname: rabbitmq2
+    ports:
+      - "5673:5672"     # AMQP port
+      - "15673:15672"   # Management UI port
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: password
+      RABBITMQ_ERLANG_COOKIE: rabbitmq-cluster-cookie
+    volumes:
+      - rabbitmq2_data:/var/lib/rabbitmq
+    networks:
+      - rabbitmq-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    depends_on:
+      - rabbitmq1
+
+  rabbitmq3:
+    image: rabbitmq:3-management
+    container_name: rabbitmq-node3
+    hostname: rabbitmq3
+    ports:
+      - "5674:5672"     # AMQP port
+      - "15674:15672"   # Management UI port
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: password
+      RABBITMQ_ERLANG_COOKIE: rabbitmq-cluster-cookie
+    volumes:
+      - rabbitmq3_data:/var/lib/rabbitmq
+    networks:
+      - rabbitmq-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    depends_on:
+      - rabbitmq1
+
+volumes:
+  rabbitmq1_data:
+  rabbitmq2_data:
+  rabbitmq3_data:
+
+networks:
+  rabbitmq-network:
+    driver: bridge

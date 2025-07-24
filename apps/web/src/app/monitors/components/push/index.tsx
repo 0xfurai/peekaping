@@ -23,6 +23,10 @@ import Proxies, {
   proxiesDefaultValues,
   proxiesSchema,
 } from "../shared/proxies";
+import Tags, {
+  tagsDefaultValues,
+  tagsSchema,
+} from "../shared/tags";
 import { useMonitorFormContext } from "../../context/monitor-form-context";
 import { Form } from "@/components/ui/form";
 import { Loader2 } from "lucide-react";
@@ -36,7 +40,8 @@ export const pushSchema = z
   .merge(generalSchema)
   .merge(intervalsSchema)
   .merge(notificationsSchema)
-  .merge(proxiesSchema);
+  .merge(proxiesSchema)
+  .merge(tagsSchema);
 
 export type PushForm = z.infer<typeof pushSchema>;
 export const pushDefaultValues: PushForm = {
@@ -46,6 +51,7 @@ export const pushDefaultValues: PushForm = {
   ...intervalsDefaultValues,
   ...notificationsDefaultValues,
   ...proxiesDefaultValues,
+  ...tagsDefaultValues,
 };
 
 export interface PushConfig {
@@ -72,6 +78,7 @@ export const deserialize = (data: MonitorMonitorResponseDto): PushForm => {
     notification_ids: data.notification_ids || [],
     proxy_id: data.proxy_id || "",
     pushToken: data.push_token || config.pushToken || "", // Get from API or config
+    tag_ids: data.tag_ids || [],
   };
 };
 
@@ -92,6 +99,7 @@ export const serialize = (formData: PushForm): MonitorCreateUpdateDto => {
     timeout: formData.timeout,
     config: JSON.stringify(config),
     push_token: formData.pushToken,
+    tag_ids: formData.tag_ids,
   };
 };
 
@@ -204,6 +212,12 @@ const PushForm = ({
                 Regenerate
               </Button>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="space-y-4">
+            <Tags />
           </CardContent>
         </Card>
 

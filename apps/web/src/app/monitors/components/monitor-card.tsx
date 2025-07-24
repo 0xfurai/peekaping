@@ -30,8 +30,8 @@ const MonitorCard = ({ monitor }: { monitor: MonitorModel }) => {
       onClick={() => navigate(`/monitors/${monitor.id}`)}
     >
       <CardContent className="px-2">
-        <div className="flex justify-between">
-          <div className="flex items-center">
+        <div className="flex justify-between flex-col md:flex-row">
+          <div className="flex items-center mb-4 md:mb-0">
             <div className="text-sm text-gray-500 mr-4 min-w-[60px]">
               {(() => {
                 if (monitor.active === false) {
@@ -66,7 +66,7 @@ const MonitorCard = ({ monitor }: { monitor: MonitorModel }) => {
             </div>
           </div>
 
-          <div className="flex flex-col w-[400px] justify-center">
+          <div className="flex flex-col w-full md:w-[400px] justify-center mb-2 md:mb-0">
             <div className="text-sm text-gray-500 mb-1">
               Check interval: {monitor.interval}s
             </div>

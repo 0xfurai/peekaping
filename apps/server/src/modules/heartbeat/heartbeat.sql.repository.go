@@ -100,7 +100,7 @@ func (r *SQLRepositoryImpl) FindAll(ctx context.Context, page int, limit int) ([
 		Model(&sms).
 		Order("time DESC").
 		Limit(limit).
-		Offset((page - 1) * limit).
+		Offset(page * limit).
 		Scan(ctx)
 	if err != nil {
 		return nil, err
@@ -148,7 +148,7 @@ func (r *SQLRepositoryImpl) FindByMonitorIDPaginated(
 		Model((*sqlModel)(nil)).
 		Where("monitor_id = ?", monitorID).
 		Limit(limit).
-		Offset((page - 1) * limit)
+		Offset(page * limit)
 
 	if important != nil {
 		query = query.Where("important = ?", *important)

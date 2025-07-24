@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"peekaping/src/modules/heartbeat"
 	"peekaping/src/modules/monitor"
+	"peekaping/src/version"
 	"strings"
 	"time"
 
@@ -121,7 +122,7 @@ func (e *NTFYSender) Send(
 
 	// Set headers
 	req.Header.Set("Content-Type", "text/plain")
-	req.Header.Set("User-Agent", "Peekaping/1.0")
+	req.Header.Set("User-Agent", "Peekaping-NTFY/"+version.Version)
 
 	// Set title header if provided
 	if finalTitle != "" {

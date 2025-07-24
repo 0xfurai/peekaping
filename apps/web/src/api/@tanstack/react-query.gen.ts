@@ -49,9 +49,16 @@ import {
   postStatusPages,
   getStatusPagesSlugBySlug,
   getStatusPagesSlugBySlugMonitors,
+  getStatusPagesSlugBySlugMonitorsHomepage,
   deleteStatusPagesById,
   getStatusPagesById,
   patchStatusPagesById,
+  getTags,
+  postTags,
+  deleteTagsById,
+  getTagsById,
+  patchTagsById,
+  putTagsById,
   getVersion,
 } from "../sdk.gen";
 import {
@@ -180,6 +187,7 @@ import type {
   PostStatusPagesResponse,
   GetStatusPagesSlugBySlugData,
   GetStatusPagesSlugBySlugMonitorsData,
+  GetStatusPagesSlugBySlugMonitorsHomepageData,
   DeleteStatusPagesByIdData,
   DeleteStatusPagesByIdError,
   DeleteStatusPagesByIdResponse,
@@ -187,6 +195,22 @@ import type {
   PatchStatusPagesByIdData,
   PatchStatusPagesByIdError,
   PatchStatusPagesByIdResponse,
+  GetTagsData,
+  GetTagsError,
+  GetTagsResponse,
+  PostTagsData,
+  PostTagsError,
+  PostTagsResponse,
+  DeleteTagsByIdData,
+  DeleteTagsByIdError,
+  DeleteTagsByIdResponse,
+  GetTagsByIdData,
+  PatchTagsByIdData,
+  PatchTagsByIdError,
+  PatchTagsByIdResponse,
+  PutTagsByIdData,
+  PutTagsByIdError,
+  PutTagsByIdResponse,
   GetVersionData,
 } from "../types.gen";
 import type { AxiosError } from "axios";
@@ -2077,6 +2101,30 @@ export const getStatusPagesSlugBySlugMonitorsOptions = (
   });
 };
 
+export const getStatusPagesSlugBySlugMonitorsHomepageQueryKey = (
+  options: Options<GetStatusPagesSlugBySlugMonitorsHomepageData>,
+) => createQueryKey("getStatusPagesSlugBySlugMonitorsHomepage", options);
+
+/**
+ * Get monitors for a status page by slug for homepage
+ */
+export const getStatusPagesSlugBySlugMonitorsHomepageOptions = (
+  options: Options<GetStatusPagesSlugBySlugMonitorsHomepageData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getStatusPagesSlugBySlugMonitorsHomepage({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getStatusPagesSlugBySlugMonitorsHomepageQueryKey(options),
+  });
+};
+
 /**
  * Delete a status page
  */
@@ -2145,6 +2193,225 @@ export const patchStatusPagesByIdMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await patchStatusPagesById({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getTagsQueryKey = (options?: Options<GetTagsData>) =>
+  createQueryKey("getTags", options);
+
+/**
+ * Get tags
+ */
+export const getTagsOptions = (options?: Options<GetTagsData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getTags({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getTagsQueryKey(options),
+  });
+};
+
+export const getTagsInfiniteQueryKey = (
+  options?: Options<GetTagsData>,
+): QueryKey<Options<GetTagsData>> => createQueryKey("getTags", options, true);
+
+/**
+ * Get tags
+ */
+export const getTagsInfiniteOptions = (options?: Options<GetTagsData>) => {
+  return infiniteQueryOptions<
+    GetTagsResponse,
+    AxiosError<GetTagsError>,
+    InfiniteData<GetTagsResponse>,
+    QueryKey<Options<GetTagsData>>,
+    | number
+    | Pick<
+        QueryKey<Options<GetTagsData>>[0],
+        "body" | "headers" | "path" | "query"
+      >
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<GetTagsData>>[0],
+          "body" | "headers" | "path" | "query"
+        > =
+          typeof pageParam === "object"
+            ? pageParam
+            : {
+                query: {
+                  page: pageParam,
+                },
+              };
+        const params = createInfiniteParams(queryKey, page);
+        const { data } = await getTags({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        });
+        return data;
+      },
+      queryKey: getTagsInfiniteQueryKey(options),
+    },
+  );
+};
+
+export const postTagsQueryKey = (options: Options<PostTagsData>) =>
+  createQueryKey("postTags", options);
+
+/**
+ * Create tag
+ */
+export const postTagsOptions = (options: Options<PostTagsData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postTags({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postTagsQueryKey(options),
+  });
+};
+
+/**
+ * Create tag
+ */
+export const postTagsMutation = (
+  options?: Partial<Options<PostTagsData>>,
+): UseMutationOptions<
+  PostTagsResponse,
+  AxiosError<PostTagsError>,
+  Options<PostTagsData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostTagsResponse,
+    AxiosError<PostTagsError>,
+    Options<PostTagsData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postTags({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+/**
+ * Delete tag
+ */
+export const deleteTagsByIdMutation = (
+  options?: Partial<Options<DeleteTagsByIdData>>,
+): UseMutationOptions<
+  DeleteTagsByIdResponse,
+  AxiosError<DeleteTagsByIdError>,
+  Options<DeleteTagsByIdData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteTagsByIdResponse,
+    AxiosError<DeleteTagsByIdError>,
+    Options<DeleteTagsByIdData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteTagsById({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getTagsByIdQueryKey = (options: Options<GetTagsByIdData>) =>
+  createQueryKey("getTagsById", options);
+
+/**
+ * Get tag by ID
+ */
+export const getTagsByIdOptions = (options: Options<GetTagsByIdData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getTagsById({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getTagsByIdQueryKey(options),
+  });
+};
+
+/**
+ * Update tag
+ */
+export const patchTagsByIdMutation = (
+  options?: Partial<Options<PatchTagsByIdData>>,
+): UseMutationOptions<
+  PatchTagsByIdResponse,
+  AxiosError<PatchTagsByIdError>,
+  Options<PatchTagsByIdData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PatchTagsByIdResponse,
+    AxiosError<PatchTagsByIdError>,
+    Options<PatchTagsByIdData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await patchTagsById({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+/**
+ * Update tag
+ */
+export const putTagsByIdMutation = (
+  options?: Partial<Options<PutTagsByIdData>>,
+): UseMutationOptions<
+  PutTagsByIdResponse,
+  AxiosError<PutTagsByIdError>,
+  Options<PutTagsByIdData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PutTagsByIdResponse,
+    AxiosError<PutTagsByIdError>,
+    Options<PutTagsByIdData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await putTagsById({
         ...options,
         ...localOptions,
         throwOnError: true,

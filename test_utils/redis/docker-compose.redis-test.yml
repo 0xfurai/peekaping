@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  # Redis container for testing
+  redis:
+    image: redis:7-alpine
+    container_name: peekaping-redis-test
+    ports:
+      - "6388:6379"
+    environment:
+      - REDIS_PASSWORD=testpassword
+    command: redis-server --requirepass testpassword
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # Redis with TLS (for testing TLS connections)
+  redis-tls:
+    image: redis:7-alpine
+    container_name: peekaping-redis-tls-test
+    ports:
+      - "6389:6379"
+    environment:
+      - REDIS_PASSWORD=testpassword
+    command: redis-server --requirepass testpassword --tls-port 6379 --port 0 --tls-cert-file /etc/redis/certs/redis.crt --tls-key-file /etc/redis/certs/redis.key --tls-ca-cert-file /etc/redis/certs/ca.crt --tls-auth-clients no
+    volumes:
+      - ./redis-certs:/etc/redis/certs
+      - redis-tls-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # Redis with TLS and client certificate authentication (for testing mutual TLS)
+  redis-tls-mutual:
+    image: redis:7-alpine
+    container_name: peekaping-redis-tls-mutual-test
+    ports:
+      - "6391:6379"
+    environment:
+      - REDIS_PASSWORD=testpassword
+    command: redis-server --requirepass testpassword --tls-port 6379 --port 0 --tls-cert-file /etc/redis/certs/redis.crt --tls-key-file /etc/redis/certs/redis.key --tls-ca-cert-file /etc/redis/certs/ca.crt --tls-auth-clients yes
+    volumes:
+      - ./redis-certs:/etc/redis/certs
+      - redis-tls-mutual-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # Redis without authentication (for simple testing)
+  redis-simple:
+    image: redis:7-alpine
+    container_name: peekaping-redis-simple-test
+    ports:
+      - "6390:6379"
+    command: redis-server
+    volumes:
+      - redis-simple-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+    driver: local
+  redis-tls-data:
+    driver: local
+  redis-simple-data:
+    driver: local
+  redis-tls-mutual-data:
+    driver: local

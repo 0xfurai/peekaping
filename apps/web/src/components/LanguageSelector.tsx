@@ -26,7 +26,7 @@ export function LanguageSelector() {
         <SelectValue>
           <div className="flex items-center gap-2">
             <span>{currentLang.flag}</span>
-            <span className="hidden sm:inline">{currentLang.name}</span>
+            <span className="">{currentLang.name}</span>
           </div>
         </SelectValue>
       </SelectTrigger>
