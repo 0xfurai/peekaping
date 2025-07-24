@@ -48,6 +48,7 @@ func NewNotificationEventListener(p NotificationEventListenerParams) *Notificati
 	RegisterNotificationChannelProvider("mattermost", providers.NewMattermostSender(p.Logger))
 	RegisterNotificationChannelProvider("matrix", providers.NewMatrixSender(p.Logger))
 	RegisterNotificationChannelProvider("discord", providers.NewDiscordSender(p.Logger))
+	RegisterNotificationChannelProvider("wecom", providers.NewWeComSender(p.Logger))
 
 	return &NotificationEventListener{
 		service:                    p.Service,
@@ -79,7 +80,7 @@ func (l *NotificationEventListener) handleNotifyEvent(event events.Event) {
 	// Get monitor-notification records
 	monitorNotifications, err := l.monitorNotificationService.FindByMonitorID(ctx, monitorID)
 	if err != nil {
-		l.logger.Errorf("Failed to get monitor-notification records: %v", err)
+		l.logger.Errorf("Failed to set monitor-notification records: %v", err)
 		return
 	}
 

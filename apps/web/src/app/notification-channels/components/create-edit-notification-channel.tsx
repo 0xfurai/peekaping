@@ -37,6 +37,7 @@ import * as PushoverForm from "../integrations/pushover-form";
 import * as MattermostForm from "../integrations/mattermost-form";
 import * as MatrixForm from "../integrations/matrix-form";
 import * as DiscordForm from "../integrations/discord-form";
+import * as WecomForm from "../integrations/wecom-form";
 import { useEffect } from "react";
 import { commonMutationErrorHandler } from "@/lib/utils";
 
@@ -56,6 +57,7 @@ const typeFormRegistry = {
   mattermost: MattermostForm,
   matrix: MatrixForm,
   discord: DiscordForm,
+  wecom: WecomForm,
 };
 
 const notificationSchema = z
@@ -81,6 +83,7 @@ const notificationSchema = z
       MattermostForm.schema,
       MatrixForm.schema,
       DiscordForm.schema,
+      WecomForm.schema,
     ] as const)
   );
 
@@ -201,6 +204,7 @@ export default function CreateEditNotificationChannel({
                     | "mattermost"
                     | "matrix"
                     | "discord"
+                    | "wecom"
                 );
               }}
               value={type}
