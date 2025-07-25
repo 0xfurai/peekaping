@@ -115,4 +115,3 @@ The logs will show:
 
 - [WAHA GitHub Repository](https://github.com/devlikeapro/waha)
 - [WAHA Documentation](https://waha.devlike.pro/)
-- [Peekaping Documentation](../README.md)
