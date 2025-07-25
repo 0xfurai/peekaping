@@ -251,17 +251,15 @@ func TestGuard_Middleware(t *testing.T) {
 
 func TestNewGuard(t *testing.T) {
 	// Test the NewGuard function from dig.go
-	params := GuardParams{
-		Service: &MockService{},
-		Logger:  zap.NewNop().Sugar(),
-		cfg: &config.Config{
-			BruteforceMaxAttempts: 10,
-			BruteforceWindow:      2 * time.Minute,
-			BruteforceLockout:     30 * time.Minute,
-		},
+	mockService := &MockService{}
+	logger := zap.NewNop().Sugar()
+	cfg := &config.Config{
+		BruteforceMaxAttempts: 10,
+		BruteforceWindow:      2 * time.Minute,
+		BruteforceLockout:     30 * time.Minute,
 	}
 
-	guard := NewGuard(params)
+	guard := NewGuard(mockService, logger, cfg)
 	assert.NotNil(t, guard)
 	assert.Equal(t, 10, guard.cfg.MaxAttempts)
 	assert.Equal(t, 2*time.Minute, guard.cfg.Window)

@@ -8,6 +8,7 @@ import (
 	"peekaping/src/config"
 
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 )
 
 func TestBruteforceConfigFromEnv(t *testing.T) {
@@ -18,13 +19,10 @@ func TestBruteforceConfigFromEnv(t *testing.T) {
 	cfg.BruteforceWindow = time.Minute
 	cfg.BruteforceLockout = 15 * time.Minute
 
-	params := GuardParams{
-		Service: &MockService{},
-		Logger:  nil, // We don't need logger for this test
-		cfg:     cfg,
-	}
+	mockService := &MockService{}
+	logger := zap.NewNop().Sugar()
 
-	guard := NewGuard(params)
+	guard := NewGuard(mockService, logger, cfg)
 	assert.Equal(t, 5, guard.cfg.MaxAttempts)
 	assert.Equal(t, time.Minute, guard.cfg.Window)
 	assert.Equal(t, 15*time.Minute, guard.cfg.Lockout)
@@ -46,8 +44,7 @@ func TestBruteforceConfigFromEnv(t *testing.T) {
 	testConfig.BruteforceWindow = 2 * time.Minute
 	testConfig.BruteforceLockout = 30 * time.Minute
 
-	params.cfg = testConfig
-	guard = NewGuard(params)
+	guard = NewGuard(mockService, logger, testConfig)
 	assert.Equal(t, 3, guard.cfg.MaxAttempts)
 	assert.Equal(t, 2*time.Minute, guard.cfg.Window)
 	assert.Equal(t, 30*time.Minute, guard.cfg.Lockout)
