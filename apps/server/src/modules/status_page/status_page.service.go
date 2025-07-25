@@ -57,7 +57,7 @@ func (s *ServiceImpl) Create(ctx context.Context, dto *CreateStatusPageDTO) (*Mo
 		Published:           dto.Published,
 		FooterText:          dto.FooterText,
 		AutoRefreshInterval: dto.AutoRefreshInterval,
-		Domain:              dto.Domain,
+		Domains:             dto.Domains,
 	}
 
 	created, err := s.repository.Create(ctx, model)
@@ -147,7 +147,7 @@ func (s *ServiceImpl) Update(ctx context.Context, id string, dto *UpdateStatusPa
 		Published:           dto.Published,
 		FooterText:          dto.FooterText,
 		AutoRefreshInterval: dto.AutoRefreshInterval,
-		Domain:              dto.Domain,
+		Domains:             dto.Domains,
 	}
 
 	err := s.repository.Update(ctx, id, updateModel)
@@ -250,7 +250,7 @@ func (s *ServiceImpl) mapModelToStatusPageWithMonitorsDTO(model *Model, monitorI
 		UpdatedAt:           model.UpdatedAt,
 		FooterText:          model.FooterText,
 		AutoRefreshInterval: model.AutoRefreshInterval,
-		Domain:              model.Domain,
+		Domains:             model.Domains,
 		MonitorIDs:          monitorIDs,
 	}
 }

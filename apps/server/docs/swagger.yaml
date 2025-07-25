@@ -749,8 +749,10 @@ definitions:
         type: string
       description:
         type: string
-      domain:
-        type: string
+      domains:
+        items:
+          type: string
+        type: array
       footer_text:
         type: string
       google_analytics_tag_id:
@@ -793,8 +795,10 @@ definitions:
         type: string
       description:
         type: string
-      domain:
-        type: string
+      domains:
+        items:
+          type: string
+        type: array
       footer_text:
         type: string
       icon:
@@ -856,8 +860,10 @@ definitions:
         type: string
       description:
         type: string
-      domain:
-        type: string
+      domains:
+        items:
+          type: string
+        type: array
       footer_text:
         type: string
       google_analytics_tag_id:
@@ -899,8 +905,10 @@ definitions:
         type: string
       description:
         type: string
-      domain:
-        type: string
+      domains:
+        items:
+          type: string
+        type: array
       footer_text:
         type: string
       google_analytics_tag_id:

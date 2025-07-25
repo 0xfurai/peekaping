@@ -4184,8 +4184,11 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "domain": {
-                    "type": "string"
+                "domains": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "footer_text": {
                     "type": "string"
@@ -4245,8 +4248,11 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "domain": {
-                    "type": "string"
+                "domains": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "footer_text": {
                     "type": "string"
@@ -4340,8 +4346,11 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "domain": {
-                    "type": "string"
+                "domains": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "footer_text": {
                     "type": "string"
@@ -4405,8 +4414,11 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "domain": {
-                    "type": "string"
+                "domains": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "footer_text": {
                     "type": "string"

@@ -366,7 +366,7 @@ export type StatusPageCreateStatusPageDto = {
     auto_refresh_interval?: number;
     custom_css?: string;
     description?: string;
-    domain?: string;
+    domains?: Array<string>;
     footer_text?: string;
     google_analytics_tag_id?: string;
     icon?: string;
@@ -386,7 +386,7 @@ export type StatusPageModel = {
     auto_refresh_interval?: number;
     created_at?: string;
     description?: string;
-    domain?: string;
+    domains?: Array<string>;
     footer_text?: string;
     icon?: string;
     id?: string;
@@ -419,7 +419,7 @@ export type StatusPageStatusPageWithMonitorsResponseDto = {
     created_at?: string;
     custom_css?: string;
     description?: string;
-    domain?: string;
+    domains?: Array<string>;
     footer_text?: string;
     google_analytics_tag_id?: string;
     icon?: string;
@@ -441,7 +441,7 @@ export type StatusPageUpdateStatusPageDto = {
     auto_refresh_interval?: number;
     custom_css?: string;
     description?: string;
-    domain?: string;
+    domains?: Array<string>;
     footer_text?: string;
     google_analytics_tag_id?: string;
     icon?: string;
