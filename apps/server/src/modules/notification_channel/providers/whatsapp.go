@@ -137,7 +137,7 @@ func (w *WhatsAppSender) sendToPhoneNumber(
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("User-Agent", "Peekaping-WhatsApp/"+version.Version)
 	if cfg.APIKey != "" {
-		req.Header.Set("Authorization", "Bearer "+cfg.APIKey)
+		req.Header.Set("x-api-key", cfg.APIKey)
 	}
 
 	// Send the request
@@ -152,7 +152,6 @@ func (w *WhatsAppSender) sendToPhoneNumber(
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		w.logger.Errorf("Failed to read response body: %v", err)
-		return fmt.Errorf("failed to read response body: %w", err)
 	}
 
 	// Check response status
