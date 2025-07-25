@@ -84,7 +84,14 @@ func (g *Guard) Middleware() gin.HandlerFunc {
 			return
 		}
 		if locked {
+			// Fix race condition: recalculate retry time to avoid negative values
 			retryAfter := time.Until(until)
+			if retryAfter <= 0 {
+				// Lock expired between check and now, allow request to proceed
+				g.logger.Debugw("lock expired, allowing request", "key", key)
+				c.Next()
+				return
+			}
 			g.block(c, retryAfter)
 			return
 		}
@@ -97,16 +104,23 @@ func (g *Guard) Middleware() gin.HandlerFunc {
 			now := time.Now()
 			// OnFailure atomically handles counting and locking
 			locked, until, err := g.service.OnFailure(ctx, key, now, g.cfg.Window, g.cfg.MaxAttempts, g.cfg.Lockout)
-			if err == nil && locked {
+			if err != nil {
+				// Log error but don't fail the request - the auth failure should still be returned
+				g.logger.Errorw("failed to record failure", "key", key, "error", err)
+			} else if locked {
 				// If we just got locked, we could optionally notify the client
 				// For now, just let the request complete normally
-				_ = until // silence unused variable
+				g.logger.Infow("account locked due to too many failures", "key", key, "until", until)
 			}
 			return
 		}
 
-		// success -> reset
-		_ = g.service.Reset(ctx, key)
+		// Only reset on explicit success statuses (200-299), not on other statuses like 400, 500
+		if status >= 200 && status < 300 {
+			if err := g.service.Reset(ctx, key); err != nil {
+				g.logger.Errorw("failed to reset bruteforce state", "key", key, "error", err)
+			}
+		}
 	}
 }
 
@@ -124,6 +138,12 @@ func (g *Guard) block(c *gin.Context, retryAfter time.Duration) {
 		g.cfg.OnBlocked(c, retryAfter)
 		return
 	}
+
+	// Ensure retry time is not negative
+	if retryAfter < 0 {
+		retryAfter = 0
+	}
+
 	c.Header("Retry-After", fmt.Sprintf("%.0f", retryAfter.Seconds()))
 	c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{
 		"success":     false,

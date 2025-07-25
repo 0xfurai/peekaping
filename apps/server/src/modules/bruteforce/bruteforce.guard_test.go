@@ -55,6 +55,19 @@ func TestGuard_block_default(t *testing.T) {
 	assert.Equal(t, float64(10), resp["retry_after"])
 }
 
+func TestGuard_block_negative_retry(t *testing.T) {
+	guard := &Guard{cfg: Config{}}
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	guard.block(c, -5*time.Second) // Negative retry time
+	assert.Equal(t, http.StatusTooManyRequests, w.Code)
+	var resp map[string]interface{}
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.Equal(t, false, resp["success"])
+	assert.Contains(t, resp["message"], "too many attempts")
+	assert.Equal(t, float64(0), resp["retry_after"]) // Should be clamped to 0
+}
+
 func TestGuard_block_custom(t *testing.T) {
 	called := false
 	guard := &Guard{cfg: Config{OnBlocked: func(c *gin.Context, retryAfter time.Duration) {
@@ -159,6 +172,34 @@ func TestGuard_Middleware(t *testing.T) {
 	mockSvc.AssertCalled(t, "IsLocked", mock.Anything, key)
 	mockSvc.AssertCalled(t, "Reset", mock.Anything, key)
 
+	// Not locked, non-success status (should NOT call Reset)
+	mockSvc = &MockService{}
+	guard = New(cfg, mockSvc, func(c *gin.Context) (string, error) { return key, nil }, logger)
+	mockSvc.On("IsLocked", mock.Anything, key).Return(false, time.Time{}, nil)
+	// Note: NOT setting up Reset expectation
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+	c.Request = httptest.NewRequest("POST", "/", nil)
+	c.Request = c.Request.WithContext(context.Background())
+	c.Writer.WriteHeader(400) // Non-success status
+	guard.Middleware()(c)
+	mockSvc.AssertCalled(t, "IsLocked", mock.Anything, key)
+	mockSvc.AssertNotCalled(t, "Reset") // Should NOT call Reset
+
+	// Not locked, 500 status (should NOT call Reset)
+	mockSvc = &MockService{}
+	guard = New(cfg, mockSvc, func(c *gin.Context) (string, error) { return key, nil }, logger)
+	mockSvc.On("IsLocked", mock.Anything, key).Return(false, time.Time{}, nil)
+	// Note: NOT setting up Reset expectation
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+	c.Request = httptest.NewRequest("POST", "/", nil)
+	c.Request = c.Request.WithContext(context.Background())
+	c.Writer.WriteHeader(500) // Non-success status
+	guard.Middleware()(c)
+	mockSvc.AssertCalled(t, "IsLocked", mock.Anything, key)
+	mockSvc.AssertNotCalled(t, "Reset") // Should NOT call Reset
+
 	// Locked, should block
 	mockSvc = &MockService{}
 	guard = New(cfg, mockSvc, func(c *gin.Context) (string, error) { return key, nil }, logger)
@@ -169,6 +210,18 @@ func TestGuard_Middleware(t *testing.T) {
 	c.Request = c.Request.WithContext(context.Background())
 	guard.Middleware()(c)
 	assert.Equal(t, http.StatusTooManyRequests, w.Code)
+
+	// Locked but expired (race condition fix), should allow request
+	mockSvc = &MockService{}
+	guard = New(cfg, mockSvc, func(c *gin.Context) (string, error) { return key, nil }, logger)
+	mockSvc.On("IsLocked", mock.Anything, key).Return(true, time.Now().Add(-time.Second), nil) // Expired lock
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+	c.Request = httptest.NewRequest("POST", "/", nil)
+	c.Request = c.Request.WithContext(context.Background())
+	c.Writer.WriteHeader(200)
+	guard.Middleware()(c)
+	assert.Equal(t, 200, w.Code) // Should allow request to proceed
 
 	// IsLocked error, should log and continue
 	mockSvc = &MockService{}
