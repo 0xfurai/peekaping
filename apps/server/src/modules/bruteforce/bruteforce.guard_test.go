@@ -7,6 +7,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"peekaping/src/config"
 	"testing"
 	"time"
 
@@ -148,7 +149,7 @@ func TestNew_defaults(t *testing.T) {
 	guard := New(Config{}, &MockService{}, func(*gin.Context) (string, error) { return "k", nil }, zap.NewNop().Sugar())
 	assert.Equal(t, 5, guard.cfg.MaxAttempts)
 	assert.Equal(t, time.Minute, guard.cfg.Window)
-	assert.Equal(t, 15*time.Minute, guard.cfg.Lockout)
+	assert.Equal(t, 1*time.Minute, guard.cfg.Lockout)
 	assert.Equal(t, []int{401, 403}, guard.cfg.FailureStatuses)
 }
 
@@ -253,11 +254,17 @@ func TestNewGuard(t *testing.T) {
 	params := GuardParams{
 		Service: &MockService{},
 		Logger:  zap.NewNop().Sugar(),
+		cfg: &config.Config{
+			BruteforceMaxAttempts: 10,
+			BruteforceWindow:      2 * time.Minute,
+			BruteforceLockout:     30 * time.Minute,
+		},
 	}
+
 	guard := NewGuard(params)
 	assert.NotNil(t, guard)
-	assert.Equal(t, 5, guard.cfg.MaxAttempts)
-	assert.Equal(t, time.Minute, guard.cfg.Window)
-	assert.Equal(t, 15*time.Minute, guard.cfg.Lockout)
+	assert.Equal(t, 10, guard.cfg.MaxAttempts)
+	assert.Equal(t, 2*time.Minute, guard.cfg.Window)
+	assert.Equal(t, 30*time.Minute, guard.cfg.Lockout)
 	assert.Equal(t, []int{401, 403}, guard.cfg.FailureStatuses)
 }

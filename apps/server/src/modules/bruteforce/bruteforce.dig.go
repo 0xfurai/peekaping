@@ -3,7 +3,6 @@ package bruteforce
 import (
 	"peekaping/src/config"
 	"peekaping/src/utils"
-	"time"
 
 	"go.uber.org/dig"
 	"go.uber.org/zap"
@@ -22,14 +21,15 @@ type GuardParams struct {
 
 	Service Service
 	Logger  *zap.SugaredLogger
+	cfg     *config.Config
 }
 
 // NewGuard creates a new bruteforce Guard with sensible defaults for login protection
 func NewGuard(params GuardParams) *Guard {
 	cfg := Config{
-		MaxAttempts:     5,                // Allow 5 failed attempts
-		Window:          time.Minute,      // Within 1 minute window
-		Lockout:         15 * time.Minute, // Lock for 15 minutes
+		MaxAttempts:     params.cfg.BruteforceMaxAttempts,
+		Window:          params.cfg.BruteforceWindow,
+		Lockout:         params.cfg.BruteforceLockout,
 		FailureStatuses: []int{401, 403},
 	}
 

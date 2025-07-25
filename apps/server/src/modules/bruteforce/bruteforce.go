@@ -53,7 +53,7 @@ func New(cfg Config, service Service, ke KeyExtractor, logger *zap.SugaredLogger
 		cfg.Window = time.Minute
 	}
 	if cfg.Lockout <= 0 {
-		cfg.Lockout = 15 * time.Minute
+		cfg.Lockout = 1 * time.Minute
 	}
 	if cfg.FailureStatuses == nil {
 		cfg.FailureStatuses = []int{401, 403}
