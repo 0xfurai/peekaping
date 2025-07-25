@@ -62,6 +62,7 @@ func New(cfg Config, service Service, ke KeyExtractor, logger *zap.SugaredLogger
 		cfg:          cfg,
 		service:      service,
 		keyExtractor: ke,
+		logger:       logger,
 	}
 }
 
