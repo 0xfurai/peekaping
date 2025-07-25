@@ -186,6 +186,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/utils.APIError"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {

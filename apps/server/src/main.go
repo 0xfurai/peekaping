@@ -8,6 +8,7 @@ import (
 	"peekaping/docs"
 	"peekaping/src/config"
 	"peekaping/src/modules/auth"
+	"peekaping/src/modules/bruteforce"
 	"peekaping/src/modules/cleanup"
 	"peekaping/src/modules/events"
 	"peekaping/src/modules/healthcheck"
@@ -78,6 +79,7 @@ func main() {
 	heartbeat.RegisterDependencies(container, &cfg)
 	monitor.RegisterDependencies(container, &cfg)
 	healthcheck.RegisterDependencies(container)
+	bruteforce.RegisterDependencies(container, &cfg)
 	auth.RegisterDependencies(container, &cfg)
 	notification_channel.RegisterDependencies(container, &cfg)
 	monitor_notification.RegisterDependencies(container, &cfg)
