@@ -28,7 +28,6 @@ func (r *Route) ConnectRoute(router *gin.RouterGroup, controller *Controller) {
 	auth := router.Group("/auth")
 	auth.POST("/register", controller.Register)
 
-	// Apply bruteforce protection specifically to the login endpoint
 	auth.POST("/login", r.bruteforceGuard.Middleware(), controller.Login)
 
 	auth.POST("/refresh", controller.RefreshToken)

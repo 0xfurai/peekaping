@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 // Service interface for bruteforce protection
@@ -40,9 +41,10 @@ type Guard struct {
 	cfg          Config
 	service      Service
 	keyExtractor KeyExtractor
+	logger       *zap.SugaredLogger
 }
 
-func New(cfg Config, service Service, ke KeyExtractor) *Guard {
+func New(cfg Config, service Service, ke KeyExtractor, logger *zap.SugaredLogger) *Guard {
 	// sensible defaults
 	if cfg.MaxAttempts <= 0 {
 		cfg.MaxAttempts = 5
@@ -76,6 +78,7 @@ func (g *Guard) Middleware() gin.HandlerFunc {
 		locked, until, err := g.service.IsLocked(ctx, key)
 		if err != nil {
 			// Fail safe: pass, log/monitor
+			g.logger.Errorw("failed to check if locked", "error", err)
 			c.Next()
 			return
 		}

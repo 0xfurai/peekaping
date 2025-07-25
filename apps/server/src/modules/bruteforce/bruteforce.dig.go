@@ -30,15 +30,13 @@ func NewGuard(params GuardParams) *Guard {
 		MaxAttempts:     5,                // Allow 5 failed attempts
 		Window:          time.Minute,      // Within 1 minute window
 		Lockout:         15 * time.Minute, // Lock for 15 minutes
-		FailureStatuses: []int{400, 401},  // Consider 400 (validation errors) and 401 (invalid credentials) as failures
+		FailureStatuses: []int{401, 403},
 	}
 
 	// Use IP + email for key extraction to track per user per IP
 	keyExtractor := KeyByIPAndBodyField("email")
 
-	guard := New(cfg, params.Service, keyExtractor)
-
-	params.Logger.Info("Bruteforce protection initialized with 5 attempts per minute, 15 minute lockout")
+	guard := New(cfg, params.Service, keyExtractor, params.Logger)
 
 	return guard
 }
