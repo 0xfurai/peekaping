@@ -112,11 +112,6 @@ func (w *WhatsAppSender) sendToPhoneNumber(
 	cleanPhone = strings.ReplaceAll(cleanPhone, ")", "")
 	cleanPhone = strings.ReplaceAll(cleanPhone, "+", "")
 
-	// Ensure phone number starts with country code
-	// if !strings.HasPrefix(cleanPhone, "+") {
-	// 	cleanPhone = "+" + cleanPhone
-	// }
-
 	// Prepare the request payload
 	payload := map[string]interface{}{
 		"session": cfg.Session,
