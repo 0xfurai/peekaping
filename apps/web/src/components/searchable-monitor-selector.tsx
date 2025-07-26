@@ -1,8 +1,10 @@
-import { getMonitorsOptions } from "@/api/@tanstack/react-query.gen";
-import { FancyMultiSelect, type Option } from "./multiselect-3";
-import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { getMonitorsInfiniteOptions } from "@/api/@tanstack/react-query.gen";
+import { SearchableMultiSelect, type Option } from "./searchable-multi-select";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { useState, useMemo } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
+
+const INITIAL_LOAD_SIZE = 20;
 
 const SearchableMonitorSelector = ({
   value,
@@ -14,30 +16,64 @@ const SearchableMonitorSelector = ({
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebounce(searchQuery, 300);
 
-  // Fetch monitors using TanStack Query
-  const { data: monitorsData } = useQuery({
-    ...getMonitorsOptions({
+  // Fetch monitors using TanStack Query Infinite
+  const {
+    data: monitorsData,
+    isLoading,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
+  } = useInfiniteQuery({
+    ...getMonitorsInfiniteOptions({
       query: {
-        limit: 20,
-        q: debouncedSearch,
+        limit: INITIAL_LOAD_SIZE,
+        q: debouncedSearch || undefined,
       },
     }),
+    getNextPageParam: (lastPage, pages) => {
+      const lastLength = lastPage.data?.length || 0;
+      if (lastLength < INITIAL_LOAD_SIZE) return undefined;
+      return pages.length;
+    },
+    initialPageParam: 0,
   });
 
-  const monitorOptions =
-    monitorsData?.data?.map((monitor) => ({
-      label: monitor.name || "Unnamed Monitor",
-      value: monitor.id || "",
-    })) || [];
+  // Transform monitors data into options array
+  const allMonitors = useMemo(
+    () =>
+      monitorsData?.pages
+        ?.flatMap((page) => page.data || [])
+        ?.filter((monitor) => Boolean(monitor.id))
+        ?.map((monitor) => ({
+          label: monitor.name || "Unnamed Monitor",
+          value: monitor.id || "",
+        })) || [],
+    [monitorsData]
+  );
+
+  // Handle selection changes
+  const handleSelect = (newSelection: Option[]) => {
+    onSelect(newSelection);
+  };
+
+  // Handle load more (scroll)
+  const handleLoadMore = () => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  };
 
   return (
-    <FancyMultiSelect
-      options={monitorOptions}
+    <SearchableMultiSelect
+      options={allMonitors}
       selected={value}
-      onSelect={onSelect}
+      onSelect={handleSelect}
       inputValue={searchQuery}
       setInputValue={setSearchQuery}
       placeholder="Select monitors..."
+      onLoadMore={handleLoadMore}
+      isLoading={isLoading || isFetchingNextPage}
+      nextPage={hasNextPage || false}
     />
   );
 };

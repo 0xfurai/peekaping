@@ -38,6 +38,8 @@ import * as MattermostForm from "../integrations/mattermost-form";
 import * as MatrixForm from "../integrations/matrix-form";
 import * as DiscordForm from "../integrations/discord-form";
 import * as WecomForm from "../integrations/wecom-form";
+import * as WhatsAppForm from "../integrations/whatsapp-form";
+
 import { useEffect } from "react";
 import { commonMutationErrorHandler } from "@/lib/utils";
 
@@ -58,6 +60,7 @@ const typeFormRegistry = {
   matrix: MatrixForm,
   discord: DiscordForm,
   wecom: WecomForm,
+  whatsapp: WhatsAppForm,
 };
 
 const notificationSchema = z
@@ -84,6 +87,7 @@ const notificationSchema = z
       MatrixForm.schema,
       DiscordForm.schema,
       WecomForm.schema,
+      WhatsAppForm.schema,
     ] as const)
   );
 
@@ -205,6 +209,7 @@ export default function CreateEditNotificationChannel({
                     | "matrix"
                     | "discord"
                     | "wecom"
+                    | "whatsapp"
                 );
               }}
               value={type}

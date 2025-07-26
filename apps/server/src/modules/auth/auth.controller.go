@@ -100,6 +100,7 @@ func (c *Controller) Register(ctx *gin.Context) {
 // @Param       body body     LoginDto  true  "Login data"
 // @Success		200	{object}	utils.ApiResponse[LoginResponse]
 // @Failure		400	{object}	utils.APIError[any]
+// @Failure		401	{object}	utils.APIError[any]
 // @Failure		500	{object}	utils.APIError[any]
 func (c *Controller) Login(ctx *gin.Context) {
 	var dto LoginDto
@@ -116,7 +117,7 @@ func (c *Controller) Login(ctx *gin.Context) {
 	response, err := c.service.Login(ctx, dto)
 	if err != nil {
 		c.logger.Errorw("Failed to login admin", "error", err)
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+		ctx.JSON(http.StatusUnauthorized, utils.NewFailResponse(err.Error()))
 		return
 	}
 

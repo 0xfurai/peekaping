@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "gen": "openapi-ts",
-    "build:docker": "docker build -t peekaping/web:latest ."
+    "build:docker": "docker build -t peekaping/web:latest .",
+    "i18n:parse": "i18next"
   },
   "dependencies": {
     "@hey-api/client-axios": "0.7.0",
@@ -58,6 +59,7 @@
     "zustand": "5.0.4"
   },
   "devDependencies": {
+    "i18next-parser": "9.3.0",
     "@eslint/js": "9.25.0",
     "@types/node": "22.15.17",
     "@types/react": "19.1.2",
