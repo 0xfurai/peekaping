@@ -369,6 +369,9 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	// Create TLS interceptor to capture certificate information
 	tlsInterceptor := NewTLSInterceptor(transport)
 
+	// Keep track of the active TLS interceptor for error handling
+	var activeTLSInterceptor *TLSInterceptor = tlsInterceptor
+
 	// Set timeout from monitor configuration
 	timeout := time.Duration(m.Timeout) * time.Second
 
@@ -447,6 +450,7 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		}
 		mtlsTransportWithProxy := buildProxyTransport(mtlsTransport, proxyModel)
 		mtlsTLSInterceptor := NewTLSInterceptor(mtlsTransportWithProxy)
+		activeTLSInterceptor = mtlsTLSInterceptor // Update the active interceptor for mTLS
 		h.client = &http.Client{
 			Transport:     mtlsTLSInterceptor,
 			Timeout:       time.Duration(m.Timeout) * time.Second,
@@ -472,8 +476,8 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		h.logger.Infof("HTTP request failed: %s, %s", m.Name, err.Error())
 		result := DownResult(err, startTime, endTime)
 		// Try to get TLS info even on error for HTTPS requests
-		if strings.HasPrefix(cfg.Url, "https://") && tlsInterceptor != nil {
-			result.TLSInfo = tlsInterceptor.GetTLSInfo()
+		if strings.HasPrefix(cfg.Url, "https://") && activeTLSInterceptor != nil {
+			result.TLSInfo = activeTLSInterceptor.GetTLSInfo()
 		}
 		return result
 	}
