@@ -24,6 +24,8 @@ const (
 	ProxyUpdated EventType = "proxy.updated"
 	// ProxyDeleted is emitted when a proxy is deleted
 	ProxyDeleted EventType = "proxy.deleted"
+	// CertificateExpiry is emitted when a certificate is expiring
+	CertificateExpiry EventType = "certificate.expiry"
 )
 
 // Event represents a generic event with a type and payload
