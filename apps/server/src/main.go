@@ -21,6 +21,7 @@ import (
 	"peekaping/src/modules/monitor_status_page"
 	"peekaping/src/modules/monitor_tag"
 	"peekaping/src/modules/notification_channel"
+	"peekaping/src/modules/notification_sent_history"
 	"peekaping/src/modules/proxy"
 	"peekaping/src/modules/setting"
 	"peekaping/src/modules/stats"
@@ -86,6 +87,7 @@ func main() {
 	monitor_notification.RegisterDependencies(container, &cfg)
 	proxy.RegisterDependencies(container, &cfg)
 	setting.RegisterDependencies(container, &cfg)
+	notification_sent_history.RegisterDependencies(container, &cfg)
 	certificate.RegisterDependencies(container)
 	stats.RegisterDependencies(container, &cfg)
 	monitor_maintenance.RegisterDependencies(container, &cfg)
