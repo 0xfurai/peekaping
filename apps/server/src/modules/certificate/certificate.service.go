@@ -203,7 +203,7 @@ func (s *ServiceImpl) GetNotificationDays(ctx context.Context) ([]int, error) {
 		return []int{7, 14, 21}, nil
 	}
 
-	return []int{64}, nil
+	return days, nil
 }
 
 // SetNotificationDays sets the certificate expiry notification days in settings
