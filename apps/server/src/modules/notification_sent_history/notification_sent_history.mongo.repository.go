@@ -66,7 +66,7 @@ func (r *MongoRepositoryImpl) CheckIfSent(ctx context.Context, notificationType 
 	filter := bson.M{
 		"type":       notificationType,
 		"monitor_id": monitorID,
-		"days":       bson.M{"$lte": days},
+		"days":       bson.M{"$gte": days},
 	}
 
 	count, err := r.collection.CountDocuments(ctx, filter)

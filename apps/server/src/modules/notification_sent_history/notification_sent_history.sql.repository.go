@@ -39,7 +39,7 @@ func NewSQLRepository(db *bun.DB) Repository {
 func (r *SQLRepositoryImpl) CheckIfSent(ctx context.Context, notificationType string, monitorID string, days int) (bool, error) {
 	count, err := r.db.NewSelect().
 		Model((*sqlModel)(nil)).
-		Where("type = ? AND monitor_id = ? AND days <= ?", notificationType, monitorID, days).
+		Where("type = ? AND monitor_id = ? AND days >= ?", notificationType, monitorID, days).
 		Count(ctx)
 
 	if err != nil {
