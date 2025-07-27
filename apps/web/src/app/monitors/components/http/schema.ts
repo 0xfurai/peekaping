@@ -126,7 +126,7 @@ export const deserialize = (data: MonitorMonitorResponseDto): HttpForm => {
       body: config.body || "",
     },
     authentication,
-    check_cert_expiry: config.check_cert_expiry || false,
+    check_cert_expiry: config.check_cert_expiry ?? false,
   };
 };
 

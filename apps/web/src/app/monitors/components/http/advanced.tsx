@@ -34,7 +34,7 @@ export const advancedDefaultValues: AdvancedForm = {
   accepted_statuscodes: ["2XX"],
   max_redirects: 10,
   ignore_tls_errors: false,
-  check_cert_expiry: true,
+  check_cert_expiry: false,
 }
 
 const Advanced = () => {
