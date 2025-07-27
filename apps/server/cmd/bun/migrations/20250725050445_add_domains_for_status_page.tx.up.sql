@@ -1,5 +1,3 @@
-SET statement_timeout = 0;
-
 CREATE TABLE IF NOT EXISTS domain_status_page (
     id UUID PRIMARY KEY,
     status_page_id UUID NOT NULL,
