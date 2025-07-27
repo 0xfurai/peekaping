@@ -487,16 +487,8 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 
 	// Extract TLS information if available
 	var tlsInfo *certificate.TLSInfo
-	if strings.HasPrefix(cfg.Url, "https://") {
-		if cfg.AuthMethod == "mtls" {
-			// For mTLS, extract from the response TLS state
-			if resp.TLS != nil && len(resp.TLS.PeerCertificates) > 0 {
-				tlsInfo = certificate.ParseCertificateChain(resp.TLS.PeerCertificates[0], len(resp.TLS.VerifiedChains) > 0)
-			}
-		} else {
-			// For regular HTTPS, get from our interceptor
-			tlsInfo = tlsInterceptor.GetTLSInfo()
-		}
+	if strings.HasPrefix(cfg.Url, "https://") && activeTLSInterceptor != nil {
+		tlsInfo = activeTLSInterceptor.GetTLSInfo()
 	}
 
 	if !isStatusAccepted(resp.StatusCode, cfg.AcceptedStatusCodes) {
