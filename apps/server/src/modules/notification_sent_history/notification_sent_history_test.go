@@ -104,14 +104,14 @@ func TestNotificationSentHistoryService(t *testing.T) {
 		mockRepo.ExpectedCalls = nil // Reset expectations
 		expectedHistory := []*Model{
 			{
-				ID:        1,
+				ID:        "test-id-1",
 				Type:      notificationType,
 				MonitorID: monitorID,
 				Days:      7,
 				CreatedAt: time.Now(),
 			},
 			{
-				ID:        2,
+				ID:        "test-id-2",
 				Type:      notificationType,
 				MonitorID: monitorID,
 				Days:      14,

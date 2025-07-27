@@ -66,7 +66,7 @@ func TestMonitorTLSInfoService(t *testing.T) {
 
 		expectedJSON := `{"valid":true,"cert_info":"test-certificate-info"}`
 		mockRepo.On("Upsert", ctx, monitorID, expectedJSON).Return(&Model{
-			ID:        1,
+			ID:        "test-id-1",
 			MonitorID: monitorID,
 			InfoJSON:  expectedJSON,
 			CreatedAt: time.Now(),
@@ -80,7 +80,7 @@ func TestMonitorTLSInfoService(t *testing.T) {
 		// Get TLS info object
 		mockRepo.ExpectedCalls = nil // Reset expectations
 		mockRepo.On("GetByMonitorID", ctx, monitorID).Return(&Model{
-			ID:        1,
+			ID:        "test-id-1",
 			MonitorID: monitorID,
 			InfoJSON:  expectedJSON,
 			CreatedAt: time.Now(),

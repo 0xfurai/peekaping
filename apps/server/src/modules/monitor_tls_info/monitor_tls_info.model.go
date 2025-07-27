@@ -5,7 +5,7 @@ import (
 )
 
 type Model struct {
-	ID        int       `json:"id"`
+	ID        string    `json:"id"`
 	MonitorID string    `json:"monitor_id"`
 	InfoJSON  string    `json:"info_json"`
 	CreatedAt time.Time `json:"created_at"`

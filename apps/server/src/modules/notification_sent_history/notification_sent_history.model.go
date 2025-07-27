@@ -5,7 +5,7 @@ import (
 )
 
 type Model struct {
-	ID        int       `json:"id"`
+	ID        string    `json:"id"`
 	Type      string    `json:"type"` // "certificate", "monitor", etc.
 	MonitorID string    `json:"monitor_id"`
 	Days      int       `json:"days"` // Threshold days (e.g., 7, 14, 21)

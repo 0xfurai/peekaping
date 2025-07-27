@@ -24,7 +24,7 @@ func toDomainModelFromMongo(mm *mongoModel) *Model {
 		return nil
 	}
 	return &Model{
-		ID:        int(mm.ID.Timestamp().Unix()),
+		ID:        mm.ID.Hex(),
 		MonitorID: mm.MonitorID,
 		InfoJSON:  mm.InfoJSON,
 		CreatedAt: mm.CreatedAt,

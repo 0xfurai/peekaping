@@ -4,13 +4,14 @@ import (
 	"context"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 )
 
 type sqlModel struct {
 	bun.BaseModel `bun:"table:monitor_tls_info,alias:mti"`
 
-	ID        int       `bun:"id,pk,autoincrement"`
+	ID        string    `bun:"id,pk"`
 	MonitorID string    `bun:"monitor_id,notnull,unique"`
 	InfoJSON  string    `bun:"info_json,notnull"`
 	CreatedAt time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp"`
@@ -51,6 +52,7 @@ func (r *SQLRepositoryImpl) GetByMonitorID(ctx context.Context, monitorID string
 
 func (r *SQLRepositoryImpl) Create(ctx context.Context, dto *CreateDto) (*Model, error) {
 	sm := &sqlModel{
+		ID:        uuid.New().String(),
 		MonitorID: dto.MonitorID,
 		InfoJSON:  dto.InfoJSON,
 		CreatedAt: time.Now(),
@@ -90,6 +92,7 @@ func (r *SQLRepositoryImpl) Update(ctx context.Context, monitorID string, dto *U
 
 func (r *SQLRepositoryImpl) Upsert(ctx context.Context, monitorID string, infoJSON string) (*Model, error) {
 	sm := &sqlModel{
+		ID:        uuid.New().String(),
 		MonitorID: monitorID,
 		InfoJSON:  infoJSON,
 		CreatedAt: time.Now(),

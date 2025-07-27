@@ -4,13 +4,14 @@ import (
 	"context"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 )
 
 type sqlModel struct {
 	bun.BaseModel `bun:"table:notification_sent_history,alias:nsh"`
 
-	ID        int       `bun:"id,pk,autoincrement"`
+	ID        string    `bun:"id,pk"`
 	Type      string    `bun:"type,notnull"`
 	MonitorID string    `bun:"monitor_id,notnull"`
 	Days      int       `bun:"days,notnull"`
@@ -50,6 +51,7 @@ func (r *SQLRepositoryImpl) CheckIfSent(ctx context.Context, notificationType st
 
 func (r *SQLRepositoryImpl) RecordSent(ctx context.Context, dto *CreateDto) error {
 	sm := &sqlModel{
+		ID:        uuid.New().String(),
 		Type:      dto.Type,
 		MonitorID: dto.MonitorID,
 		Days:      dto.Days,
