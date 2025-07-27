@@ -2,6 +2,7 @@ package healthcheck
 
 import (
 	"context"
+	"encoding/json"
 	"peekaping/src/modules/events"
 	"peekaping/src/modules/healthcheck/executor"
 	"peekaping/src/modules/heartbeat"
@@ -181,9 +182,27 @@ func (s *HealthCheckSupervisor) postProcessHeartbeat(result *executor.Result, m 
 			s.logger.Errorf("Failed to update TLS info for monitor %s: %v", m.Name, err)
 		}
 
-		// Check certificate expiry and send notifications
-		if err := s.certificateService.CheckCertificateExpiry(ctx, result.TLSInfo, m.ID, m.Name); err != nil {
-			s.logger.Errorf("Failed to check certificate expiry for monitor %s: %v", m.Name, err)
+		// Check if certificate expiry checking is enabled in monitor configuration
+		shouldCheckCertExpiry := false
+		if m.Config != "" {
+			// Parse HTTP configuration to check if certificate expiry checking is enabled
+			var httpConfig struct {
+				CheckCertExpiry bool `json:"check_cert_expiry"`
+			}
+			if err := json.Unmarshal([]byte(m.Config), &httpConfig); err != nil {
+				s.logger.Errorf("Failed to parse HTTP config for monitor %s: %v", m.Name, err)
+			} else {
+				shouldCheckCertExpiry = httpConfig.CheckCertExpiry
+			}
+		}
+
+		// Check certificate expiry and send notifications only if enabled
+		if shouldCheckCertExpiry {
+			if err := s.certificateService.CheckCertificateExpiry(ctx, result.TLSInfo, m.ID, m.Name); err != nil {
+				s.logger.Errorf("Failed to check certificate expiry for monitor %s: %v", m.Name, err)
+			}
+		} else {
+			s.logger.Debugf("Certificate expiry checking disabled for monitor %s", m.Name)
 		}
 	}
 
