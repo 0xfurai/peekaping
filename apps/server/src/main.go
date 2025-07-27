@@ -20,6 +20,7 @@ import (
 	"peekaping/src/modules/monitor_notification"
 	"peekaping/src/modules/monitor_status_page"
 	"peekaping/src/modules/monitor_tag"
+	"peekaping/src/modules/monitor_tls_info"
 	"peekaping/src/modules/notification_channel"
 	"peekaping/src/modules/notification_sent_history"
 	"peekaping/src/modules/proxy"
@@ -88,6 +89,7 @@ func main() {
 	proxy.RegisterDependencies(container, &cfg)
 	setting.RegisterDependencies(container, &cfg)
 	notification_sent_history.RegisterDependencies(container, &cfg)
+	monitor_tls_info.RegisterDependencies(container, &cfg)
 	certificate.RegisterDependencies(container)
 	stats.RegisterDependencies(container, &cfg)
 	monitor_maintenance.RegisterDependencies(container, &cfg)
@@ -107,8 +109,14 @@ func main() {
 	}
 
 	// Start cleanup cron job(s)
-	err = container.Invoke(func(heartbeatService heartbeat.Service, settingService setting.Service, logger *zap.SugaredLogger) {
-		cleanup.StartCleanupCron(heartbeatService, settingService, logger)
+	err = container.Invoke(func(
+		heartbeatService heartbeat.Service,
+		settingService setting.Service,
+		notificationHistoryService notification_sent_history.Service,
+		tlsInfoService monitor_tls_info.Service,
+		logger *zap.SugaredLogger,
+	) {
+		cleanup.StartCleanupCron(heartbeatService, settingService, notificationHistoryService, tlsInfoService, logger)
 	})
 	if err != nil {
 		log.Fatal(err)

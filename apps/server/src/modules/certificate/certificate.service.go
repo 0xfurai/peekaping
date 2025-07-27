@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"peekaping/src/modules/events"
+	"peekaping/src/modules/monitor_tls_info"
+	"peekaping/src/modules/notification_sent_history"
 	"peekaping/src/modules/shared"
 	"strings"
 
@@ -14,14 +16,17 @@ import (
 
 type Service interface {
 	CheckCertificateExpiry(ctx context.Context, tlsInfo *TLSInfo, monitorID string, monitorName string) error
+	UpdateTLSInfo(ctx context.Context, monitorID string, tlsInfo *TLSInfo) error
 	GetNotificationDays(ctx context.Context) ([]int, error)
 	SetNotificationDays(ctx context.Context, days []int) error
 }
 
 type ServiceImpl struct {
-	settingService      shared.SettingService
-	notificationService NotificationService // We'll define this interface
-	logger              *zap.SugaredLogger
+	settingService             shared.SettingService
+	notificationService        NotificationService
+	notificationHistoryService notification_sent_history.Service
+	tlsInfoService             monitor_tls_info.Service
+	logger                     *zap.SugaredLogger
 }
 
 // NotificationService interface for sending certificate expiry notifications
@@ -32,12 +37,16 @@ type NotificationService interface {
 func NewService(
 	settingService shared.SettingService,
 	notificationService NotificationService,
+	notificationHistoryService notification_sent_history.Service,
+	tlsInfoService monitor_tls_info.Service,
 	logger *zap.SugaredLogger,
 ) Service {
 	return &ServiceImpl{
-		settingService:      settingService,
-		notificationService: notificationService,
-		logger:              logger.Named("[certificate-service]"),
+		settingService:             settingService,
+		notificationService:        notificationService,
+		notificationHistoryService: notificationHistoryService,
+		tlsInfoService:             tlsInfoService,
+		logger:                     logger.Named("[certificate-service]"),
 	}
 }
 
@@ -72,7 +81,7 @@ func (s *ServiceImpl) CheckCertificateExpiry(ctx context.Context, tlsInfo *TLSIn
 	return nil
 }
 
-// checkSingleCertificate checks a single certificate for expiry
+// checkSingleCertificate checks a single certificate for expiry with notification deduplication
 func (s *ServiceImpl) checkSingleCertificate(ctx context.Context, certInfo *CertificateInfo, monitorID string, monitorName string, notifyDays []int) error {
 	// Skip root certificates as they're typically managed by the system
 	if IsRootCertificate(certInfo.Fingerprint256) {
@@ -82,21 +91,89 @@ func (s *ServiceImpl) checkSingleCertificate(ctx context.Context, certInfo *Cert
 
 	subjectCN := extractCommonName(certInfo.Subject)
 
-	// Check each notification threshold
+	// Check each notification threshold with deduplication
 	for _, targetDays := range notifyDays {
 		if certInfo.DaysRemaining <= targetDays && certInfo.DaysRemaining >= 0 {
-			s.logger.Infof("Certificate %s expires in %d days (threshold: %d)", subjectCN, certInfo.DaysRemaining, targetDays)
+			// Check if we already sent a notification for this threshold
+			alreadySent, err := s.notificationHistoryService.CheckIfNotificationSent(ctx, "certificate", monitorID, targetDays)
+			if err != nil {
+				s.logger.Errorf("Failed to check notification history: %v", err)
+				continue
+			}
+
+			s.logger.Infof("alreadySent: %v", alreadySent)
+
+			if alreadySent {
+				s.logger.Debugf("Certificate notification already sent for monitor %s, threshold %d days", monitorID, targetDays)
+				continue
+			}
+
+			s.logger.Infof("Sending certificate expiry notification: %s expires in %d days (threshold: %d)", subjectCN, certInfo.DaysRemaining, targetDays)
 
 			// Send notification
 			if err := s.notificationService.SendCertificateExpiryNotification(
 				ctx, monitorID, monitorName, certInfo, certInfo.DaysRemaining, targetDays,
 			); err != nil {
-				return fmt.Errorf("failed to send certificate expiry notification: %w", err)
+				s.logger.Errorf("Failed to send certificate expiry notification: %v", err)
+				continue
 			}
-		} else if certInfo.DaysRemaining > targetDays {
-			s.logger.Debugf("Certificate %s (%d days remaining) doesn't need notification for %d day threshold",
-				subjectCN, certInfo.DaysRemaining, targetDays)
+
+			// Record that we sent the notification
+			if err := s.notificationHistoryService.RecordNotificationSent(ctx, "certificate", monitorID, targetDays); err != nil {
+				s.logger.Errorf("Failed to record notification sent: %v", err)
+			}
 		}
+	}
+
+	return nil
+}
+
+// UpdateTLSInfo updates TLS info and handles certificate changes (clears notification history if cert changed)
+func (s *ServiceImpl) UpdateTLSInfo(ctx context.Context, monitorID string, tlsInfo *TLSInfo) error {
+	// Get previous TLS info from settings to compare certificate fingerprints
+	previousTLSInfo, err := s.getPreviousTLSInfo(ctx, monitorID)
+	if err != nil {
+		s.logger.Errorf("Failed to get previous TLS info: %v", err)
+		// Continue anyway, just don't clear history
+	}
+
+	// Check if certificate has changed (different fingerprint)
+	if previousTLSInfo != nil && previousTLSInfo.CertInfo != nil &&
+		tlsInfo != nil && tlsInfo.CertInfo != nil {
+		if previousTLSInfo.CertInfo.Fingerprint256 != tlsInfo.CertInfo.Fingerprint256 {
+			s.logger.Infof("Certificate changed for monitor %s, clearing notification history", monitorID)
+			// Clear notification history for certificate type
+			if err := s.notificationHistoryService.ClearNotificationHistory(ctx, monitorID, "certificate"); err != nil {
+				s.logger.Errorf("Failed to clear notification history: %v", err)
+			}
+		}
+	}
+
+	// Store the new TLS info
+	return s.storeTLSInfo(ctx, monitorID, tlsInfo)
+}
+
+// getPreviousTLSInfo retrieves previously stored TLS info for a monitor
+func (s *ServiceImpl) getPreviousTLSInfo(ctx context.Context, monitorID string) (*TLSInfo, error) {
+	var tlsInfo TLSInfo
+	err := s.tlsInfoService.GetTLSInfoObject(ctx, monitorID, &tlsInfo)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get TLS info: %w", err)
+	}
+
+	// Check if we got any data (the service returns nil error even if no data found)
+	if tlsInfo.CertInfo == nil {
+		return nil, nil // No previous info
+	}
+
+	return &tlsInfo, nil
+}
+
+// storeTLSInfo stores TLS info for a monitor
+func (s *ServiceImpl) storeTLSInfo(ctx context.Context, monitorID string, tlsInfo *TLSInfo) error {
+	err := s.tlsInfoService.StoreTLSInfoObject(ctx, monitorID, tlsInfo)
+	if err != nil {
+		return fmt.Errorf("failed to store TLS info: %w", err)
 	}
 
 	return nil

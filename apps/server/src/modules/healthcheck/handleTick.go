@@ -174,8 +174,14 @@ func (s *HealthCheckSupervisor) postProcessHeartbeat(result *executor.Result, m 
 		s.logger.Debugf("%s maintenance response %d ms | interval %d seconds | type %s", m.Name, ping, m.Interval, m.Type)
 	}
 
-	// Check certificate expiry for HTTPS monitors
+	// Update TLS info and check certificate expiry for HTTPS monitors
 	if result.TLSInfo != nil && strings.HasPrefix(strings.ToLower(m.Type), "http") {
+		// Update TLS info (this handles certificate change detection and notification history cleanup)
+		if err := s.certificateService.UpdateTLSInfo(ctx, m.ID, result.TLSInfo); err != nil {
+			s.logger.Errorf("Failed to update TLS info for monitor %s: %v", m.Name, err)
+		}
+
+		// Check certificate expiry and send notifications
 		if err := s.certificateService.CheckCertificateExpiry(ctx, result.TLSInfo, m.ID, m.Name); err != nil {
 			s.logger.Errorf("Failed to check certificate expiry for monitor %s: %v", m.Name, err)
 		}
