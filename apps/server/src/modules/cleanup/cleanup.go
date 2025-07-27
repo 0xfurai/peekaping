@@ -73,17 +73,14 @@ func StartCleanupCron(
 ) {
 	c := cron.New()
 
-	// Heartbeat cleanup task - runs every hour
 	c.AddFunc("0 * * * *", func() {
 		cleanupHeartbeats(heartbeatService, settingService, logger)
 	})
 
-	// Notification history cleanup task - runs daily at 2 AM
 	c.AddFunc("0 * * * *", func() {
 		cleanupNotificationHistory(notificationHistoryService, logger)
 	})
 
-	// Monitor TLS info cleanup task - runs daily at 3 AM
 	c.AddFunc("0 * * * *", func() {
 		cleanupMonitorTLSInfo(tlsInfoService, logger)
 	})
