@@ -4248,12 +4248,6 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "domains": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
                 "footer_text": {
                     "type": "string"
                 },

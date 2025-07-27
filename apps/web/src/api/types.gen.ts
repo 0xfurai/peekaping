@@ -386,7 +386,6 @@ export type StatusPageModel = {
     auto_refresh_interval?: number;
     created_at?: string;
     description?: string;
-    domains?: Array<string>;
     footer_text?: string;
     icon?: string;
     id?: string;

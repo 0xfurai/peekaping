@@ -10,6 +10,7 @@ import (
 	"peekaping/src/modules/auth"
 	"peekaping/src/modules/bruteforce"
 	"peekaping/src/modules/cleanup"
+	"peekaping/src/modules/domain_status_page"
 	"peekaping/src/modules/events"
 	"peekaping/src/modules/healthcheck"
 	"peekaping/src/modules/heartbeat"
@@ -90,6 +91,7 @@ func main() {
 	maintenance.RegisterDependencies(container, &cfg)
 	status_page.RegisterDependencies(container, &cfg)
 	monitor_status_page.RegisterDependencies(container, &cfg)
+	domain_status_page.RegisterDependencies(container, &cfg)
 	tag.RegisterDependencies(container, &cfg)
 	monitor_tag.RegisterDependencies(container, &cfg)
 

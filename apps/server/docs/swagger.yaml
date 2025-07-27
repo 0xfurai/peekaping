@@ -795,10 +795,6 @@ definitions:
         type: string
       description:
         type: string
-      domains:
-        items:
-          type: string
-        type: array
       footer_text:
         type: string
       icon:

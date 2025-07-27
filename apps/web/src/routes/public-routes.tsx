@@ -1,4 +1,4 @@
-import { Route } from "react-router-dom";
+import { Navigate, Route } from "react-router-dom";
 import PublicStatusPage from "@/app/status/[slug]/page";
 
 export const publicRoutes = [
@@ -6,5 +6,8 @@ export const publicRoutes = [
 ];
 
 export const createCustomDomainRoute = (slug: string) => (
-  <Route path="/" element={<PublicStatusPage incomingSlug={slug} />} />
+  <>
+    <Route path="/" element={<PublicStatusPage incomingSlug={slug} />} />
+    <Route path="*" element={<Navigate to="/" replace />} />
+  </>
 ); 

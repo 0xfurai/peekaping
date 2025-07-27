@@ -42,7 +42,7 @@ const statusPageSchema = z.object({
       })
     )
     .optional(),
-  domains: z.array(z.string().url("Some domain is not a valid URL")).optional(),
+  domains: z.array(z.string()).optional(),
 });
 
 export type StatusPageForm = z.infer<typeof statusPageSchema>;

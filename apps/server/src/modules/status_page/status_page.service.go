@@ -2,6 +2,7 @@ package status_page
 
 import (
 	"context"
+	"peekaping/src/modules/domain_status_page"
 	"peekaping/src/modules/events"
 	"peekaping/src/modules/monitor_status_page"
 
@@ -24,12 +25,18 @@ type Service interface {
 	GetMonitorsForStatusPage(ctx context.Context, statusPageID string) ([]*monitor_status_page.Model, error)
 	UpdateMonitorOrder(ctx context.Context, statusPageID, monitorID string, order int) (*monitor_status_page.Model, error)
 	UpdateMonitorActiveStatus(ctx context.Context, statusPageID, monitorID string, active bool) (*monitor_status_page.Model, error)
+
+	// Domain relationship methods
+	AddDomain(ctx context.Context, statusPageID, domain string) (*domain_status_page.Model, error)
+	RemoveDomain(ctx context.Context, statusPageID, domain string) error
+	GetDomainsForStatusPage(ctx context.Context, statusPageID string) ([]*domain_status_page.Model, error)
 }
 
 type ServiceImpl struct {
 	repository               Repository
 	eventBus                 *events.EventBus
 	monitorStatusPageService monitor_status_page.Service
+	domainStatusPageService  domain_status_page.Service
 	logger                   *zap.SugaredLogger
 }
 
@@ -37,12 +44,14 @@ func NewService(
 	repository Repository,
 	eventBus *events.EventBus,
 	monitorStatusPageService monitor_status_page.Service,
+	domainStatusPageService domain_status_page.Service,
 	logger *zap.SugaredLogger,
 ) Service {
 	return &ServiceImpl{
 		repository:               repository,
 		eventBus:                 eventBus,
 		monitorStatusPageService: monitorStatusPageService,
+		domainStatusPageService:  domainStatusPageService,
 		logger:                   logger.Named("[status-page-service]"),
 	}
 }
@@ -57,7 +66,6 @@ func (s *ServiceImpl) Create(ctx context.Context, dto *CreateStatusPageDTO) (*Mo
 		Published:           dto.Published,
 		FooterText:          dto.FooterText,
 		AutoRefreshInterval: dto.AutoRefreshInterval,
-		Domains:             dto.Domains,
 	}
 
 	created, err := s.repository.Create(ctx, model)
@@ -114,13 +122,26 @@ func (s *ServiceImpl) FindByIDWithMonitors(
 		monitorIDs[i] = monitor.MonitorID
 	}
 
+	domains, err := s.GetDomainsForStatusPage(ctx, id)
+	if err != nil {
+		s.logger.Errorw("Failed to get domains for status page", "error", err, "statusPageID", id)
+		return nil, err
+	}
+
+	domainsDTO := make([]string, len(domains))
+	for i, domain := range domains {
+		domainsDTO[i] = domain.Domain
+	}
+
 	s.logger.Debugw("Successfully found status page with monitors",
 		"id", id,
 		"monitorCount", len(monitorIDs),
-		"monitorIDs", monitorIDs)
+		"monitorIDs", monitorIDs,
+		"domainCount", len(domainsDTO),
+		"domains", domainsDTO)
 
 	// Map the model to the DTO
-	dto := s.mapModelToStatusPageWithMonitorsDTO(model, monitorIDs)
+	dto := s.mapModelToStatusPageWithMonitorsDTO(model, monitorIDs, domainsDTO)
 
 	return dto, nil
 }
@@ -130,7 +151,17 @@ func (s *ServiceImpl) FindBySlug(ctx context.Context, slug string) (*Model, erro
 }
 
 func (s *ServiceImpl) FindByDomain(ctx context.Context, domain string) (*Model, error) {
-	return s.repository.FindByDomain(ctx, domain)
+	// Find the domain-status page relationship
+	domainStatusPage, err := s.domainStatusPageService.FindByDomain(ctx, domain)
+	if err != nil {
+		return nil, err
+	}
+	if domainStatusPage == nil {
+		return nil, nil
+	}
+
+	// Get the status page
+	return s.repository.FindByID(ctx, domainStatusPage.StatusPageID)
 }
 
 func (s *ServiceImpl) FindAll(ctx context.Context, page int, limit int, q string) ([]*Model, error) {
@@ -147,7 +178,6 @@ func (s *ServiceImpl) Update(ctx context.Context, id string, dto *UpdateStatusPa
 		Published:           dto.Published,
 		FooterText:          dto.FooterText,
 		AutoRefreshInterval: dto.AutoRefreshInterval,
-		Domains:             dto.Domains,
 	}
 
 	err := s.repository.Update(ctx, id, updateModel)
@@ -197,6 +227,46 @@ func (s *ServiceImpl) Update(ctx context.Context, id string, dto *UpdateStatusPa
 		}
 	}
 
+	if dto.Domains != nil {
+		if len(*dto.Domains) > 0 {
+			for _, domain := range *dto.Domains {
+				_, err := s.AddDomain(ctx, id, domain)
+				if err != nil {
+					s.logger.Errorw("Failed to add domain to status page", "error", err)
+					continue
+				}
+			}
+		}
+
+		// Get current monitors
+		currentDomains, err := s.GetDomainsForStatusPage(ctx, id)
+		if err != nil {
+			return nil, err
+		}
+
+		// Remove monitors that are no longer in the list
+		currentDomainIDs := make(map[string]bool)
+		for _, domain := range currentDomains {
+			currentDomainIDs[domain.Domain] = true
+		}
+
+		newDomainIDs := make(map[string]bool)
+		for _, domain := range *dto.Domains {
+			newDomainIDs[domain] = true
+		}
+
+		// Remove monitors that are no longer in the list
+		for domain := range currentDomainIDs {
+			if !newDomainIDs[domain] {
+				err := s.RemoveDomain(ctx, id, domain)
+				if err != nil {
+					// Log the error but don't fail the entire update
+					continue
+				}
+			}
+		}
+	}
+
 	return s.repository.FindByID(ctx, id)
 }
 
@@ -236,8 +306,20 @@ func (s *ServiceImpl) UpdateMonitorActiveStatus(ctx context.Context, statusPageI
 	return s.monitorStatusPageService.UpdateMonitorActiveStatus(ctx, statusPageID, monitorID, active)
 }
 
+func (s *ServiceImpl) AddDomain(ctx context.Context, statusPageID, domain string) (*domain_status_page.Model, error) {
+	return s.domainStatusPageService.AddDomainToStatusPage(ctx, statusPageID, domain)
+}
+
+func (s *ServiceImpl) RemoveDomain(ctx context.Context, statusPageID, domain string) error {
+	return s.domainStatusPageService.RemoveDomainFromStatusPage(ctx, statusPageID, domain)
+}
+
+func (s *ServiceImpl) GetDomainsForStatusPage(ctx context.Context, statusPageID string) ([]*domain_status_page.Model, error) {
+	return s.domainStatusPageService.GetDomainsForStatusPage(ctx, statusPageID)
+}
+
 // mapModelToStatusPageWithMonitorsDTO converts a Model to StatusPageWithMonitorsDTO
-func (s *ServiceImpl) mapModelToStatusPageWithMonitorsDTO(model *Model, monitorIDs []string) *StatusPageWithMonitorsResponseDTO {
+func (s *ServiceImpl) mapModelToStatusPageWithMonitorsDTO(model *Model, monitorIDs []string, domains []string) *StatusPageWithMonitorsResponseDTO {
 	return &StatusPageWithMonitorsResponseDTO{
 		ID:                  model.ID,
 		Slug:                model.Slug,
@@ -250,7 +332,7 @@ func (s *ServiceImpl) mapModelToStatusPageWithMonitorsDTO(model *Model, monitorI
 		UpdatedAt:           model.UpdatedAt,
 		FooterText:          model.FooterText,
 		AutoRefreshInterval: model.AutoRefreshInterval,
-		Domains:             model.Domains,
 		MonitorIDs:          monitorIDs,
+		Domains:             domains,
 	}
 }
