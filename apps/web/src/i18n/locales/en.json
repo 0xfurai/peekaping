@@ -1,4 +1,8 @@
 {
+  "actions": {
+    "cancel": "Cancel",
+    "saving": "Saving..."
+  },
   "common": {
     "active": "Active",
     "all": "All",
@@ -21,12 +25,22 @@
     "labels": {
       "footer_text": "Footer Text",
       "heartbeat_interval": "Heartbeat interval (seconds)",
+      "icon_url": "Icon URL",
       "monitor_name": "Name",
       "monitor_type": "Type",
-      "retries": "Retries"
+      "retries": "Retries",
+      "slug": "Slug",
+      "title": "Title"
     },
     "placeholders": {
-      "monitor_name": "My monitor"
+      "auto_refresh_help": "0 for no auto refresh",
+      "domains": "Enter domain (e.g., status.example.com)",
+      "footer_text": "Enter footer text",
+      "icon_url": "https://example.com/icon.png",
+      "monitor_name": "My monitor",
+      "page_description": "Enter status page description",
+      "page_title": "Enter status page title",
+      "slug": "status-page-slug"
     }
   },
   "messages": {
@@ -52,8 +66,19 @@
     "no_important": "No important notifications found."
   },
   "status_pages": {
+    "affected_monitors": "Affected Monitors",
+    "affected_monitors_info": "Select the monitors that will be affected by this maintenance",
+    "auto_refresh_interval": "Auto Refresh Interval (seconds)",
+    "basic_information": "Basic Information",
+    "create_status_page": "Create Status Page",
+    "customization": "Customization",
+    "description": "Description",
+    "domains": "Domains",
+    "domains_info_warning": "Don't forget to add the CNAME records to your DNS for each domain.",
     "published": "Published",
-    "published_status": "Published"
+    "published_info": "Make this status page publicly accessible",
+    "published_status": "Published",
+    "update_status_page": "Update Status Page"
   },
   "ui": {
     "general": "General",
