@@ -101,8 +101,6 @@ func (s *ServiceImpl) checkSingleCertificate(ctx context.Context, certInfo *Cert
 				continue
 			}
 
-			s.logger.Infof("alreadySent: %v", alreadySent)
-
 			if alreadySent {
 				s.logger.Debugf("Certificate notification already sent for monitor %s, threshold %d days", monitorID, targetDays)
 				continue
