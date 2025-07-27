@@ -19,17 +19,7 @@ type Service interface {
 	Update(ctx context.Context, id string, dto *UpdateStatusPageDTO) (*Model, error)
 	Delete(ctx context.Context, id string) error
 
-	// Monitor relationship methods
-	AddMonitor(ctx context.Context, statusPageID, monitorID string, order int, active bool) (*monitor_status_page.Model, error)
-	RemoveMonitor(ctx context.Context, statusPageID, monitorID string) error
 	GetMonitorsForStatusPage(ctx context.Context, statusPageID string) ([]*monitor_status_page.Model, error)
-	UpdateMonitorOrder(ctx context.Context, statusPageID, monitorID string, order int) (*monitor_status_page.Model, error)
-	UpdateMonitorActiveStatus(ctx context.Context, statusPageID, monitorID string, active bool) (*monitor_status_page.Model, error)
-
-	// Domain relationship methods
-	AddDomain(ctx context.Context, statusPageID, domain string) (*domain_status_page.Model, error)
-	RemoveDomain(ctx context.Context, statusPageID, domain string) error
-	GetDomainsForStatusPage(ctx context.Context, statusPageID string) ([]*domain_status_page.Model, error)
 }
 
 type ServiceImpl struct {
@@ -77,7 +67,7 @@ func (s *ServiceImpl) Create(ctx context.Context, dto *CreateStatusPageDTO) (*Mo
 	s.logger.Debugw("Adding monitors to status page", "statusPageID", created.ID, "monitorIDs", dto.MonitorIDs)
 	if len(dto.MonitorIDs) > 0 {
 		for i, monitorID := range dto.MonitorIDs {
-			_, err := s.AddMonitor(ctx, created.ID, monitorID, i, true)
+			_, err := s.monitorStatusPageService.AddMonitorToStatusPage(ctx, created.ID, monitorID, i, true)
 			if err != nil {
 				s.logger.Errorw("Failed to add monitor to status page", "error", err)
 				continue
@@ -110,7 +100,7 @@ func (s *ServiceImpl) FindByIDWithMonitors(
 	}
 
 	// Get the monitors for this status page
-	monitors, err := s.GetMonitorsForStatusPage(ctx, id)
+	monitors, err := s.monitorStatusPageService.GetMonitorsForStatusPage(ctx, id)
 	if err != nil {
 		s.logger.Errorw("Failed to get monitors for status page", "error", err, "statusPageID", id)
 		return nil, err
@@ -122,7 +112,7 @@ func (s *ServiceImpl) FindByIDWithMonitors(
 		monitorIDs[i] = monitor.MonitorID
 	}
 
-	domains, err := s.GetDomainsForStatusPage(ctx, id)
+	domains, err := s.domainStatusPageService.GetDomainsForStatusPage(ctx, id)
 	if err != nil {
 		s.logger.Errorw("Failed to get domains for status page", "error", err, "statusPageID", id)
 		return nil, err
@@ -133,7 +123,7 @@ func (s *ServiceImpl) FindByIDWithMonitors(
 		domainsDTO[i] = domain.Domain
 	}
 
-	s.logger.Debugw("Successfully found status page with monitors",
+	s.logger.Debugw("Successfully found status page with:",
 		"id", id,
 		"monitorCount", len(monitorIDs),
 		"monitorIDs", monitorIDs,
@@ -188,7 +178,7 @@ func (s *ServiceImpl) Update(ctx context.Context, id string, dto *UpdateStatusPa
 	// Update monitors if provided
 	if dto.MonitorIDs != nil {
 		// Get current monitors
-		currentMonitors, err := s.GetMonitorsForStatusPage(ctx, id)
+		currentMonitors, err := s.monitorStatusPageService.GetMonitorsForStatusPage(ctx, id)
 		if err != nil {
 			return nil, err
 		}
@@ -207,7 +197,7 @@ func (s *ServiceImpl) Update(ctx context.Context, id string, dto *UpdateStatusPa
 		// Remove monitors that are no longer in the list
 		for monitorID := range currentMonitorIDs {
 			if !newMonitorIDs[monitorID] {
-				err := s.RemoveMonitor(ctx, id, monitorID)
+				err := s.monitorStatusPageService.RemoveMonitorFromStatusPage(ctx, id, monitorID)
 				if err != nil {
 					// Log the error but don't fail the entire update
 					continue
@@ -218,7 +208,7 @@ func (s *ServiceImpl) Update(ctx context.Context, id string, dto *UpdateStatusPa
 		// Add new monitors
 		for i, monitorID := range *dto.MonitorIDs {
 			if !currentMonitorIDs[monitorID] {
-				_, err := s.AddMonitor(ctx, id, monitorID, i, true)
+				_, err := s.monitorStatusPageService.AddMonitorToStatusPage(ctx, id, monitorID, i, true)
 				if err != nil {
 					// Log the error but don't fail the entire update
 					continue
@@ -230,7 +220,7 @@ func (s *ServiceImpl) Update(ctx context.Context, id string, dto *UpdateStatusPa
 	if dto.Domains != nil {
 		if len(*dto.Domains) > 0 {
 			for _, domain := range *dto.Domains {
-				_, err := s.AddDomain(ctx, id, domain)
+				_, err := s.domainStatusPageService.AddDomainToStatusPage(ctx, id, domain)
 				if err != nil {
 					s.logger.Errorw("Failed to add domain to status page", "error", err)
 					continue
@@ -239,7 +229,7 @@ func (s *ServiceImpl) Update(ctx context.Context, id string, dto *UpdateStatusPa
 		}
 
 		// Get current monitors
-		currentDomains, err := s.GetDomainsForStatusPage(ctx, id)
+		currentDomains, err := s.domainStatusPageService.GetDomainsForStatusPage(ctx, id)
 		if err != nil {
 			return nil, err
 		}
@@ -258,7 +248,7 @@ func (s *ServiceImpl) Update(ctx context.Context, id string, dto *UpdateStatusPa
 		// Remove monitors that are no longer in the list
 		for domain := range currentDomainIDs {
 			if !newDomainIDs[domain] {
-				err := s.RemoveDomain(ctx, id, domain)
+				err := s.domainStatusPageService.RemoveDomainFromStatusPage(ctx, id, domain)
 				if err != nil {
 					// Log the error but don't fail the entire update
 					continue
@@ -285,37 +275,8 @@ func (s *ServiceImpl) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *ServiceImpl) AddMonitor(ctx context.Context, statusPageID, monitorID string, order int, active bool) (*monitor_status_page.Model, error) {
-	s.logger.Debugw("Adding monitor to status page", "statusPageID", statusPageID, "monitorID", monitorID, "order", order, "active", active)
-	return s.monitorStatusPageService.AddMonitorToStatusPage(ctx, statusPageID, monitorID, order, active)
-}
-
-func (s *ServiceImpl) RemoveMonitor(ctx context.Context, statusPageID, monitorID string) error {
-	return s.monitorStatusPageService.RemoveMonitorFromStatusPage(ctx, statusPageID, monitorID)
-}
-
 func (s *ServiceImpl) GetMonitorsForStatusPage(ctx context.Context, statusPageID string) ([]*monitor_status_page.Model, error) {
 	return s.monitorStatusPageService.GetMonitorsForStatusPage(ctx, statusPageID)
-}
-
-func (s *ServiceImpl) UpdateMonitorOrder(ctx context.Context, statusPageID, monitorID string, order int) (*monitor_status_page.Model, error) {
-	return s.monitorStatusPageService.UpdateMonitorOrder(ctx, statusPageID, monitorID, order)
-}
-
-func (s *ServiceImpl) UpdateMonitorActiveStatus(ctx context.Context, statusPageID, monitorID string, active bool) (*monitor_status_page.Model, error) {
-	return s.monitorStatusPageService.UpdateMonitorActiveStatus(ctx, statusPageID, monitorID, active)
-}
-
-func (s *ServiceImpl) AddDomain(ctx context.Context, statusPageID, domain string) (*domain_status_page.Model, error) {
-	return s.domainStatusPageService.AddDomainToStatusPage(ctx, statusPageID, domain)
-}
-
-func (s *ServiceImpl) RemoveDomain(ctx context.Context, statusPageID, domain string) error {
-	return s.domainStatusPageService.RemoveDomainFromStatusPage(ctx, statusPageID, domain)
-}
-
-func (s *ServiceImpl) GetDomainsForStatusPage(ctx context.Context, statusPageID string) ([]*domain_status_page.Model, error) {
-	return s.domainStatusPageService.GetDomainsForStatusPage(ctx, statusPageID)
 }
 
 // mapModelToStatusPageWithMonitorsDTO converts a Model to StatusPageWithMonitorsDTO
