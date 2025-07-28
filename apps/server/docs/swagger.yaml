@@ -749,6 +749,10 @@ definitions:
         type: string
       description:
         type: string
+      domains:
+        items:
+          type: string
+        type: array
       footer_text:
         type: string
       google_analytics_tag_id:
@@ -852,6 +856,10 @@ definitions:
         type: string
       description:
         type: string
+      domains:
+        items:
+          type: string
+        type: array
       footer_text:
         type: string
       google_analytics_tag_id:
@@ -893,6 +901,10 @@ definitions:
         type: string
       description:
         type: string
+      domains:
+        items:
+          type: string
+        type: array
       footer_text:
         type: string
       google_analytics_tag_id:
@@ -1324,6 +1336,10 @@ paths:
             $ref: '#/definitions/utils.ApiResponse-auth_LoginResponse'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "401":
+          description: Unauthorized
           schema:
             $ref: '#/definitions/utils.APIError'
         "500":
@@ -2104,6 +2120,38 @@ paths:
       summary: Get monitor uptime stats (24h, 30d, 365d)
       tags:
       - Monitors
+  /monitors/{id}/tls:
+    get:
+      parameters:
+      - description: Monitor ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.ApiResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      security:
+      - BearerAuth: []
+      summary: Get monitor TLS certificate information
+      tags:
+      - Monitors
   /monitors/batch:
     get:
       parameters:
@@ -2836,6 +2884,32 @@ paths:
       security:
       - BearerAuth: []
       summary: Update a status page
+      tags:
+      - Status Pages
+  /status-pages/domain/{domain}:
+    get:
+      parameters:
+      - description: Domain Name
+        in: path
+        name: domain
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.ApiResponse-status_page_Model'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      summary: Get a status page by domain name
       tags:
       - Status Pages
   /status-pages/slug/{slug}:

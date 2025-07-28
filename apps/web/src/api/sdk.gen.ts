@@ -82,6 +82,9 @@ import type {
   GetMonitorsByIdStatsUptimeData,
   GetMonitorsByIdStatsUptimeResponses,
   GetMonitorsByIdStatsUptimeErrors,
+  GetMonitorsByIdTlsData,
+  GetMonitorsByIdTlsResponses,
+  GetMonitorsByIdTlsErrors,
   GetNotificationChannelsData,
   GetNotificationChannelsResponses,
   GetNotificationChannelsErrors,
@@ -136,6 +139,9 @@ import type {
   PostStatusPagesData,
   PostStatusPagesResponses,
   PostStatusPagesErrors,
+  GetStatusPagesDomainByDomainData,
+  GetStatusPagesDomainByDomainResponses,
+  GetStatusPagesDomainByDomainErrors,
   GetStatusPagesSlugBySlugData,
   GetStatusPagesSlugBySlugResponses,
   GetStatusPagesSlugBySlugErrors,
@@ -829,6 +835,29 @@ export const getMonitorsByIdStatsUptime = <
 };
 
 /**
+ * Get monitor TLS certificate information
+ */
+export const getMonitorsByIdTls = <ThrowOnError extends boolean = false>(
+  options: Options<GetMonitorsByIdTlsData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetMonitorsByIdTlsResponses,
+    GetMonitorsByIdTlsErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/monitors/{id}/tls",
+    ...options,
+  });
+};
+
+/**
  * Get notification channels
  */
 export const getNotificationChannels = <ThrowOnError extends boolean = false>(
@@ -1285,6 +1314,25 @@ export const postStatusPages = <ThrowOnError extends boolean = false>(
       "Content-Type": "application/json",
       ...options.headers,
     },
+  });
+};
+
+/**
+ * Get a status page by domain name
+ */
+export const getStatusPagesDomainByDomain = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<GetStatusPagesDomainByDomainData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetStatusPagesDomainByDomainResponses,
+    GetStatusPagesDomainByDomainErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    url: "/status-pages/domain/{domain}",
+    ...options,
   });
 };
 

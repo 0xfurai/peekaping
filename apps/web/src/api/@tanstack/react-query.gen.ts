@@ -29,6 +29,7 @@ import {
   postMonitorsByIdReset,
   getMonitorsByIdStatsPoints,
   getMonitorsByIdStatsUptime,
+  getMonitorsByIdTls,
   getNotificationChannels,
   postNotificationChannels,
   postNotificationChannelsTest,
@@ -47,6 +48,7 @@ import {
   putSettingsKeyByKey,
   getStatusPages,
   postStatusPages,
+  getStatusPagesDomainByDomain,
   getStatusPagesSlugBySlug,
   getStatusPagesSlugBySlugMonitors,
   getStatusPagesSlugBySlugMonitorsHomepage,
@@ -137,6 +139,7 @@ import type {
   PostMonitorsByIdResetResponse,
   GetMonitorsByIdStatsPointsData,
   GetMonitorsByIdStatsUptimeData,
+  GetMonitorsByIdTlsData,
   GetNotificationChannelsData,
   GetNotificationChannelsError,
   GetNotificationChannelsResponse,
@@ -185,6 +188,7 @@ import type {
   PostStatusPagesData,
   PostStatusPagesError,
   PostStatusPagesResponse,
+  GetStatusPagesDomainByDomainData,
   GetStatusPagesSlugBySlugData,
   GetStatusPagesSlugBySlugMonitorsData,
   GetStatusPagesSlugBySlugMonitorsHomepageData,
@@ -1346,6 +1350,30 @@ export const getMonitorsByIdStatsUptimeOptions = (
   });
 };
 
+export const getMonitorsByIdTlsQueryKey = (
+  options: Options<GetMonitorsByIdTlsData>,
+) => createQueryKey("getMonitorsByIdTls", options);
+
+/**
+ * Get monitor TLS certificate information
+ */
+export const getMonitorsByIdTlsOptions = (
+  options: Options<GetMonitorsByIdTlsData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getMonitorsByIdTls({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getMonitorsByIdTlsQueryKey(options),
+  });
+};
+
 export const getNotificationChannelsQueryKey = (
   options?: Options<GetNotificationChannelsData>,
 ) => createQueryKey("getNotificationChannels", options);
@@ -2051,6 +2079,30 @@ export const postStatusPagesMutation = (
     },
   };
   return mutationOptions;
+};
+
+export const getStatusPagesDomainByDomainQueryKey = (
+  options: Options<GetStatusPagesDomainByDomainData>,
+) => createQueryKey("getStatusPagesDomainByDomain", options);
+
+/**
+ * Get a status page by domain name
+ */
+export const getStatusPagesDomainByDomainOptions = (
+  options: Options<GetStatusPagesDomainByDomainData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getStatusPagesDomainByDomain({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getStatusPagesDomainByDomainQueryKey(options),
+  });
 };
 
 export const getStatusPagesSlugBySlugQueryKey = (

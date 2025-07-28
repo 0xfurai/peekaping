@@ -1,4 +1,8 @@
 {
+  "actions": {
+    "cancel": "Скасувати",
+    "saving": "Збереження..."
+  },
   "common": {
     "active": "Активний",
     "all": "Всі",
@@ -21,12 +25,22 @@
     "labels": {
       "footer_text": "Текст нижнього колонтитулу",
       "heartbeat_interval": "Інтервал пульсу (секунди)",
+      "icon_url": "URL іконки",
       "monitor_name": "Назва",
       "monitor_type": "Тип",
-      "retries": "Повторні спроби"
+      "retries": "Повторні спроби",
+      "slug": "Slug",
+      "title": "Назва"
     },
     "placeholders": {
-      "monitor_name": "Мій монітор"
+      "auto_refresh_help": "0 для відсутності автооновлення",
+      "domains": "Введіть домен (наприклад, status.example.com)",
+      "footer_text": "Введіть текст підвалу",
+      "icon_url": "https://example.com/icon.png",
+      "monitor_name": "Мій монітор",
+      "page_description": "Введіть опис сторінки статусу",
+      "page_title": "Введіть заголовок сторінки статусу",
+      "slug": "slug-сторінки-статусу"
     }
   },
   "messages": {
@@ -52,8 +66,19 @@
     "no_important": "Важливих сповіщень не знайдено."
   },
   "status_pages": {
+    "affected_monitors": "Впливіні монітори",
+    "affected_monitors_info": "Виберіть монітори, які будуть впливати на цю технічну роботу",
+    "auto_refresh_interval": "Інтервал автооновлення (секунди)",
+    "basic_information": "Основна інформація",
+    "create_status_page": "Створити сторінку статусу",
+    "customization": "Налаштування",
+    "description": "Опис",
+    "domains": "Домени",
+    "domains_info_warning": "Не забудьте додати запис CNAME до вашого DNS для кожного домену.",
     "published": "Опубліковано",
-    "published_status": "Опубліковано"
+    "published_info": "Зробіть цю сторінку статусу доступною публічно",
+    "published_status": "Опубліковано",
+    "update_status_page": "Оновити сторінку статусу"
   },
   "ui": {
     "general": "Загальне",

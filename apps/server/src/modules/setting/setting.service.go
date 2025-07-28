@@ -62,6 +62,11 @@ func (mr *ServiceImpl) InitializeSettings(ctx context.Context) error {
 		return fmt.Errorf("failed to initialize refresh token secret key: %w", err)
 	}
 
+	// Initialize certificate expiry notification days (7, 14, 21 days default)
+	if err := mr.initializeDefaultSetting(ctx, "cert_expiry_notify_days", "[7,14,21]", "json"); err != nil {
+		return fmt.Errorf("failed to initialize certificate expiry notification days: %w", err)
+	}
+
 	mr.logger.Info("Settings initialized successfully")
 	return nil
 }

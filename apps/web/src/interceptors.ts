@@ -37,7 +37,9 @@ export const setupInterceptors = () => {
         | CustomAxiosRequestConfig
         | undefined;
 
-      if (error.response?.status === 401 && !originalRequest?._retry) {
+      const accessToken = useAuthStore.getState().accessToken
+
+      if (error.response?.status === 401 && !originalRequest?._retry && accessToken) {
         if (isRefreshing) {
           return new Promise((resolve, reject) => {
             failedQueue.push({ resolve, reject });

@@ -1,4 +1,4 @@
-name: Build and Push Docker Images Manually
+name: Release
 
 on:
   workflow_dispatch:
@@ -153,11 +153,73 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Update CHANGELOG.md (amd64 only)
+        if: matrix.arch == 'amd64'
+        run: |
+          # Get current date
+          RELEASE_DATE=$(date +"%Y-%m-%d")
+
+          if [ ! -f CHANGELOG.md ]; then
+            echo "❌ CHANGELOG.md not found!"
+            exit 1
+          fi
+
+          echo "Reading existing CHANGELOG.md..."
+
+          # Extract the unreleased content from the current changelog
+          UNRELEASED_CONTENT=$(awk '
+          /^## \[Unreleased\]/{in_unreleased=1; next}
+          /^## \[/{if(in_unreleased) exit}
+          in_unreleased && /^$/{print; next}
+          in_unreleased && /^### /{current_section=$0; print; next}
+          in_unreleased && /^[^#]/{print}
+          ' CHANGELOG.md)
+
+          echo "Moving unreleased content to version ${{ github.event.inputs.version }}"
+
+          # Create a temporary file for the new changelog
+          cat > temp_changelog.md << 'EOF'
+          # Changelog
+
+          All notable changes to this project will be documented in this file.
+
+          The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+          and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+          ## [Unreleased]
+
+          ### Added
+
+          ### Changed
+
+          ### Fixed
+
+          EOF
+
+          # Add the version section header
+          echo "## [${{ github.event.inputs.version }}] - $RELEASE_DATE" >> temp_changelog.md
+
+          # Add the unreleased content to the new version section
+          if [ -n "$UNRELEASED_CONTENT" ]; then
+            echo "$UNRELEASED_CONTENT" >> temp_changelog.md
+          fi
+
+          echo "" >> temp_changelog.md
+
+          # If there's an existing CHANGELOG.md, append the old release content
+          if [ -f CHANGELOG.md ]; then
+            # Extract everything after the first release section from the old changelog
+            sed -n '/^## \[[0-9]/,$p' CHANGELOG.md >> temp_changelog.md
+          fi
+
+          # Replace the old changelog
+          mv temp_changelog.md CHANGELOG.md
+
       - name: Commit and tag version bump (amd64 only)
         if: matrix.arch == 'amd64'
         run: |
-          git add apps/web/package.json apps/web/src/version.ts apps/server/src/version/version.go
-          git commit -m "chore: bump version to ${{ github.event.inputs.version }}"
+          git add apps/web/package.json apps/web/src/version.ts apps/server/src/version/version.go CHANGELOG.md
+          git commit -m "chore: bump version to ${{ github.event.inputs.version }} and update changelog"
           git push origin HEAD:${{ github.ref_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

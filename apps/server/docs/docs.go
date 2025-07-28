@@ -186,6 +186,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/utils.APIError"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -1451,6 +1457,57 @@ const docTemplate = `{
                 }
             }
         },
+        "/monitors/{id}/tls": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Monitors"
+                ],
+                "summary": "Get monitor TLS certificate information",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Monitor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ApiResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    }
+                }
+            }
+        },
         "/notification-channels": {
             "get": {
                 "security": [
@@ -2405,6 +2462,46 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/status-pages/domain/{domain}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Status Pages"
+                ],
+                "summary": "Get a status page by domain name",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Domain Name",
+                        "name": "domain",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ApiResponse-status_page_Model"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/utils.APIError"
                         }
@@ -4138,6 +4235,12 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "domains": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "footer_text": {
                     "type": "string"
                 },
@@ -4288,6 +4391,12 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "domains": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "footer_text": {
                     "type": "string"
                 },
@@ -4349,6 +4458,12 @@ const docTemplate = `{
                 },
                 "description": {
                     "type": "string"
+                },
+                "domains": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "footer_text": {
                     "type": "string"

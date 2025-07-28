@@ -126,6 +126,7 @@ export const deserialize = (data: MonitorMonitorResponseDto): HttpForm => {
       body: config.body || "",
     },
     authentication,
+    check_cert_expiry: config.check_cert_expiry ?? false,
   };
 };
 
@@ -140,6 +141,7 @@ export const serialize = (formData: HttpForm): MonitorCreateUpdateDto => {
     max_redirects: formData.max_redirects,
     ignore_tls_errors: formData.ignore_tls_errors,
     authMethod: formData.authentication.authMethod,
+    check_cert_expiry: formData.check_cert_expiry,
 
     // Include authentication fields based on method
     ...(formData.authentication.authMethod === "basic" && {
@@ -211,4 +213,5 @@ export interface HttpExecutorConfig {
   tlsCert?: string;
   tlsKey?: string;
   tlsCa?: string;
+  check_cert_expiry: boolean;
 }

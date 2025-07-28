@@ -1,4 +1,8 @@
 {
+  "actions": {
+    "cancel": "Annuler",
+    "saving": "Enregistrement..."
+  },
   "common": {
     "active": "Actif",
     "all": "Tous",
@@ -21,12 +25,22 @@
     "labels": {
       "footer_text": "Texte du pied de page",
       "heartbeat_interval": "Intervalle du signal de vie (secondes)",
+      "icon_url": "URL de l'icône",
       "monitor_name": "Nom",
       "monitor_type": "Type",
-      "retries": "Tentatives"
+      "retries": "Tentatives",
+      "slug": "Slug",
+      "title": "Titre"
     },
     "placeholders": {
-      "monitor_name": "Mon moniteur"
+      "auto_refresh_help": "0 pour pas de rafraîchissement automatique",
+      "domains": "Entrez le domaine (ex: status.example.com)",
+      "footer_text": "Entrez le texte du pied de page",
+      "icon_url": "https://example.com/icon.png",
+      "monitor_name": "Mon moniteur",
+      "page_description": "Entrez la description de la page de statut",
+      "page_title": "Entrez le titre de la page de statut",
+      "slug": "slug-de-la-page-de-statut"
     }
   },
   "messages": {
@@ -34,8 +48,8 @@
   },
   "monitors": {
     "filters": {
-      "monitor_status": "",
-      "search_placeholder": ""
+      "monitor_status": "Statut",
+      "search_placeholder": "Rechercher un moniteur par nom..."
     },
     "title": "Moniteurs"
   },
@@ -52,8 +66,19 @@
     "no_important": "Aucune notification importante trouvée."
   },
   "status_pages": {
+    "affected_monitors": "Moniteurs affectés",
+    "affected_monitors_info": "Sélectionnez les moniteurs qui seront affectés par cette maintenance",
+    "auto_refresh_interval": "Intervalle de rafraîchissement automatique (secondes)",
+    "basic_information": "Informations de base",
+    "create_status_page": "Créer une page de statut",
+    "customization": "Personnalisation",
+    "description": "Description",
+    "domains": "Domaines",
+    "domains_info_warning": "N'oubliez pas d'ajouter les enregistrements CNAME à votre DNS pour chaque domaine.",
     "published": "Publié",
-    "published_status": "Publié"
+    "published_info": "Rendre cette page de statut accessible publiquement",
+    "published_status": "Publié",
+    "update_status_page": "Mettre à jour la page de statut"
   },
   "ui": {
     "general": "Général",

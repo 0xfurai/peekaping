@@ -22,6 +22,7 @@ func (r *Route) ConnectRoute(rg *gin.RouterGroup, controller *Controller) {
 	// Public routes
 	sp := rg.Group("status-pages")
 	sp.GET("/slug/:slug", r.controller.FindBySlug)
+	sp.GET("/domain/:domain", r.controller.FindByDomain)
 	sp.GET("/slug/:slug/monitors", r.controller.GetMonitorsBySlug)
 	sp.GET("/slug/:slug/monitors/homepage", r.controller.GetMonitorsBySlugForHomepage)
 

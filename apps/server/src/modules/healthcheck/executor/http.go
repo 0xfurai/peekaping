@@ -11,10 +11,12 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"peekaping/src/modules/certificate"
 	"peekaping/src/modules/shared"
 	"peekaping/src/utils"
 	"peekaping/src/version"
 	"strings"
+	"sync"
 	"time"
 
 	"crypto/tls"
@@ -120,6 +122,7 @@ type HTTPConfig struct {
 	AcceptedStatusCodes []string `json:"accepted_statuscodes" validate:"required,dive,oneof=2XX 3XX 4XX 5XX"`
 	MaxRedirects        int      `json:"max_redirects" validate:"omitempty,min=0"`
 	IgnoreTlsErrors     bool     `json:"ignore_tls_errors"`
+	CheckCertExpiry     bool     `json:"check_cert_expiry"`
 
 	// Authentication fields
 	AuthMethod        string `json:"authMethod" validate:"required,oneof=none basic oauth2-cc ntlm mtls"`
@@ -140,6 +143,59 @@ type HTTPConfig struct {
 type HTTPExecutor struct {
 	client *http.Client
 	logger *zap.SugaredLogger
+}
+
+// TLSInterceptor is a custom RoundTripper that captures TLS certificate information
+type TLSInterceptor struct {
+	transport http.RoundTripper
+	tlsInfo   *certificate.TLSInfo
+	mutex     sync.RWMutex
+}
+
+func NewTLSInterceptor(transport http.RoundTripper) *TLSInterceptor {
+	return &TLSInterceptor{
+		transport: transport,
+	}
+}
+
+func (t *TLSInterceptor) RoundTrip(req *http.Request) (*http.Response, error) {
+	resp, err := t.transport.RoundTrip(req)
+
+	// Try to extract TLS information if this is an HTTPS request
+	if err == nil && resp != nil && resp.TLS != nil {
+		tlsInfo := t.extractTLSInfo(resp.TLS)
+		t.mutex.Lock()
+		t.tlsInfo = tlsInfo
+		t.mutex.Unlock()
+	}
+
+	return resp, err
+}
+
+func (t *TLSInterceptor) extractTLSInfo(tlsState *tls.ConnectionState) *certificate.TLSInfo {
+	if len(tlsState.PeerCertificates) == 0 {
+		return &certificate.TLSInfo{Valid: false}
+	}
+
+	// Get the server certificate (first in the chain)
+	serverCert := tlsState.PeerCertificates[0]
+
+	// Check if the certificate chain is verified
+	verified := len(tlsState.VerifiedChains) > 0
+
+	return certificate.ParseCertificateChain(serverCert, verified)
+}
+
+func (t *TLSInterceptor) GetTLSInfo() *certificate.TLSInfo {
+	t.mutex.RLock()
+	defer t.mutex.RUnlock()
+	return t.tlsInfo
+}
+
+func (t *TLSInterceptor) Reset() {
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
+	t.tlsInfo = nil
 }
 
 func NewHTTPExecutor(logger *zap.SugaredLogger) *HTTPExecutor {
@@ -310,6 +366,12 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 
 	transport := buildProxyTransport(baseTransport, proxyModel)
 
+	// Create TLS interceptor to capture certificate information
+	tlsInterceptor := NewTLSInterceptor(transport)
+
+	// Keep track of the active TLS interceptor for error handling
+	var activeTLSInterceptor *TLSInterceptor = tlsInterceptor
+
 	// Set timeout from monitor configuration
 	timeout := time.Duration(m.Timeout) * time.Second
 
@@ -320,7 +382,7 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	case "ntlm":
 		// NTLM authentication using github.com/Azure/go-ntlmssp
 		ntlmTransport := ntlmssp.Negotiator{
-			RoundTripper: transport,
+			RoundTripper: tlsInterceptor,
 		}
 		h.client = &http.Client{
 			Transport:     &ntlmTransport,
@@ -387,8 +449,10 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 			},
 		}
 		mtlsTransportWithProxy := buildProxyTransport(mtlsTransport, proxyModel)
+		mtlsTLSInterceptor := NewTLSInterceptor(mtlsTransportWithProxy)
+		activeTLSInterceptor = mtlsTLSInterceptor // Update the active interceptor for mTLS
 		h.client = &http.Client{
-			Transport:     mtlsTransportWithProxy,
+			Transport:     mtlsTLSInterceptor,
 			Timeout:       time.Duration(m.Timeout) * time.Second,
 			CheckRedirect: checkRedirect,
 		}
@@ -398,7 +462,7 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		h.client = &http.Client{
 			Timeout:       timeout,
 			CheckRedirect: checkRedirect,
-			Transport:     transport,
+			Transport:     tlsInterceptor,
 		}
 	}
 
@@ -410,11 +474,22 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 
 	if err != nil {
 		h.logger.Infof("HTTP request failed: %s, %s", m.Name, err.Error())
-		return DownResult(err, startTime, endTime)
+		result := DownResult(err, startTime, endTime)
+		// Try to get TLS info even on error for HTTPS requests
+		if strings.HasPrefix(cfg.Url, "https://") && activeTLSInterceptor != nil {
+			result.TLSInfo = activeTLSInterceptor.GetTLSInfo()
+		}
+		return result
 	}
 	defer resp.Body.Close()
 
 	h.logger.Infof("HTTP response status: %s, %d", m.Name, resp.StatusCode)
+
+	// Extract TLS information if available
+	var tlsInfo *certificate.TLSInfo
+	if strings.HasPrefix(cfg.Url, "https://") && activeTLSInterceptor != nil {
+		tlsInfo = activeTLSInterceptor.GetTLSInfo()
+	}
 
 	if !isStatusAccepted(resp.StatusCode, cfg.AcceptedStatusCodes) {
 		return &Result{
@@ -422,6 +497,7 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 			Message:   fmt.Sprintf("HTTP request failed with status: %d", resp.StatusCode),
 			StartTime: startTime,
 			EndTime:   endTime,
+			TLSInfo:   tlsInfo,
 		}
 	}
 
@@ -430,5 +506,6 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		Message:   fmt.Sprintf("%d - %s", resp.StatusCode, resp.Status),
 		StartTime: startTime,
 		EndTime:   endTime,
+		TLSInfo:   tlsInfo,
 	}
 }

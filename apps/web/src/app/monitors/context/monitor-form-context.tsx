@@ -15,6 +15,7 @@ import {
 } from "@tanstack/react-query";
 import {
   getMonitorsInfiniteQueryKey,
+  getMonitorsQueryKey,
   postMonitorsMutation,
   putMonitorsByIdMutation,
   getMonitorsByIdOptions,
@@ -203,6 +204,9 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
       toast.success("Monitor created successfully");
       queryClient.invalidateQueries({
         queryKey: getMonitorsInfiniteQueryKey(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: getMonitorsQueryKey(),
       });
       navigate(`/monitors/${res.data.id}`);
     },
