@@ -7,6 +7,7 @@ import {
   getMonitorsByIdQueryKey,
   getMonitorsByIdStatsUptimeOptions,
   getMonitorsByIdStatsUptimeQueryKey,
+  getMonitorsByIdTlsOptions,
   getMonitorsInfiniteQueryKey,
   patchMonitorsByIdMutation,
   postMonitorsByIdResetMutation,
@@ -36,6 +37,8 @@ import {
   PlayIcon,
   RotateCcw,
   Trash,
+  Shield,
+  AlertTriangle,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -44,13 +47,13 @@ import { cn, commonMutationErrorHandler } from "@/lib/utils";
 import ImportantNotificationsList from "../components/important-notifications-list";
 import { BackButton } from "@/components/back-button";
 import dayjs from "dayjs";
+import clsx from "clsx";
 
 function formatDuration(ms: number): string {
   // Handle negative durations (clock skew) by returning empty string
   if (ms <= 0) {
     return "";
   }
-
 
   const d = dayjs.duration(ms);
 
@@ -65,6 +68,29 @@ function formatDuration(ms: number): string {
   }
 
   return "for " + parts.join(" ");
+}
+
+// TLS response types based on the backend certificate model
+interface CertificateInfo {
+  subject: string;
+  issuer: string;
+  fingerprint: string;
+  fingerprint256: string;
+  serialNumber: string;
+  validFrom: string;
+  validTo: string;
+  daysRemaining: number;
+  certType: string;
+  validFor?: string[];
+  signatureAlgorithm: string;
+  publicKeyAlgorithm: string;
+  keySize?: number;
+  version: number;
+}
+
+interface TLSInfo {
+  valid: boolean;
+  certInfo?: CertificateInfo;
 }
 
 const MonitorPage = () => {
@@ -89,6 +115,52 @@ const MonitorPage = () => {
   });
 
   const monitor = data?.data;
+
+  const hasCertCheckExpire = useMemo(() => {
+    if (!monitor) return false;
+    if (!monitor?.type?.toLowerCase().startsWith("http")) return false;
+
+    try {
+      const config = JSON.parse(monitor?.config ?? "{}");
+      return config?.check_cert_expiry ?? false;
+    } catch (err) {
+      console.error("Failed to parse monitor config:", err);
+      return false;
+    }
+  }, [monitor]);
+
+  // Fetch TLS info for HTTP monitors using React Query
+  const { data: tlsData, isLoading: tlsLoading } = useQuery({
+    ...getMonitorsByIdTlsOptions({
+      path: {
+        id: id!,
+      },
+    }),
+    enabled:
+      !!id && !!monitor && monitor.type?.toLowerCase().startsWith("http"),
+  });
+
+  // Transform TLS data to match the expected format
+  const tlsInfo = useMemo(() => {
+    if (!tlsData?.data) return null;
+
+    // The API returns the TLS info as a generic object, so we need to type it properly
+    const tlsInfoData = tlsData.data as TLSInfo;
+
+    if (!tlsInfoData || typeof tlsInfoData !== "object") return null;
+
+    return {
+      valid: tlsInfoData.valid,
+      certInfo: tlsInfoData.certInfo
+        ? {
+            subject: tlsInfoData.certInfo.subject,
+            issuer: tlsInfoData.certInfo.issuer,
+            validTo: tlsInfoData.certInfo.validTo,
+            daysRemaining: tlsInfoData.certInfo.daysRemaining,
+          }
+        : undefined,
+    };
+  }, [tlsData]);
 
   // Safe JSON parsing with error handling
   const config = useMemo(() => {
@@ -339,7 +411,7 @@ const MonitorPage = () => {
     ? dayjs().diff(dayjs(lastImportantHeartbeatTime), "milliseconds")
     : 0;
 
-  const lihText = formatDuration(lastImportantHeartbeatDuration);
+  const lihText = formatDuration(lastImportantHeartbeatDuration);;
 
   return (
     <Layout
@@ -451,8 +523,13 @@ const MonitorPage = () => {
         </div>
 
         <div className="text-white space-y-6 mt-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-y-4 md:gap-4 mb-4">
-            <Card className="p-4 rounded-xl gap-1">
+          <div className="grid grid-cols-4 gap-4 mb-4">
+            <Card
+              className={clsx(
+                "p-4 rounded-xl gap-1 col-span-4",
+                hasCertCheckExpire ? "lg:col-span-1" : "lg:col-span-1"
+              )}
+            >
               <div className="font-semibold">Current status</div>
               {monitor?.active ? (
                 <div
@@ -485,7 +562,71 @@ const MonitorPage = () => {
               )}
             </Card>
 
-            <Card className="p-4 rounded-xl col-span-2 gap-2">
+            {/* Certificate Information Card - Only show for HTTPS monitors */}
+            {hasCertCheckExpire && (
+              <Card className="p-4 rounded-xl gap-1 col-span-4 lg:col-span-1">
+                <div className="font-semibold flex items-center gap-2">
+                  <Shield className="w-4 h-4" />
+                  Certificate
+                </div>
+                {tlsLoading ? (
+                  <div className="flex items-center gap-2 text-sm text-gray-400">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Loading...
+                  </div>
+                ) : tlsInfo?.certInfo ? (
+                  <div className="space-y-1">
+                    <div
+                      className={cn(
+                        "font-semibold text-lg",
+                        tlsInfo.certInfo.daysRemaining &&
+                          tlsInfo.certInfo.daysRemaining > 30 &&
+                          "text-green-400",
+                        tlsInfo.certInfo.daysRemaining &&
+                          tlsInfo.certInfo.daysRemaining <= 30 &&
+                          tlsInfo.certInfo.daysRemaining > 7 &&
+                          "text-yellow-400",
+                        tlsInfo.certInfo.daysRemaining &&
+                          tlsInfo.certInfo.daysRemaining <= 7 &&
+                          "text-red-400"
+                      )}
+                    >
+                      {tlsInfo.certInfo.daysRemaining
+                        ? `${tlsInfo.certInfo.daysRemaining} days`
+                        : "Unknown"}
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {tlsInfo.certInfo.validTo && (
+                        <>
+                          Expires{" "}
+                          {dayjs(tlsInfo.certInfo.validTo).format(
+                            "MMM D, YYYY"
+                          )}
+                        </>
+                      )}
+                    </div>
+                    {tlsInfo.certInfo.daysRemaining &&
+                      tlsInfo.certInfo.daysRemaining <= 30 && (
+                        <div className="flex items-center gap-1 text-xs text-yellow-400">
+                          <AlertTriangle className="w-3 h-3" />
+                          Expiring soon
+                        </div>
+                      )}
+                  </div>
+                ) : (
+                  <div className="text-sm text-gray-400">
+                    No certificate data
+                  </div>
+                )}
+              </Card>
+            )}
+
+            <Card
+              className={clsx(
+                "p-4 rounded-xl gap-2 col-span-4",
+                hasCertCheckExpire ? "lg:col-span-2" : "lg:col-span-3"
+              )}
+            >
               <div className="text-white font-semibold">Live Status</div>
               <BarHistory data={heartbeatData} />
               <div className="text-sm text-gray-400">

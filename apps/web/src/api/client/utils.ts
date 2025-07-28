@@ -1,15 +1,15 @@
-import { getAuthToken } from '../core/auth';
+import { getAuthToken } from "../core/auth";
 import type {
   QuerySerializer,
   QuerySerializerOptions,
-} from '../core/bodySerializer';
-import type { ArraySeparatorStyle } from '../core/pathSerializer';
+} from "../core/bodySerializer";
+import type { ArraySeparatorStyle } from "../core/pathSerializer";
 import {
   serializeArrayParam,
   serializeObjectParam,
   serializePrimitiveParam,
-} from '../core/pathSerializer';
-import type { Client, ClientOptions, Config, RequestOptions } from './types';
+} from "../core/pathSerializer";
+import type { Client, ClientOptions, Config, RequestOptions } from "./types";
 
 interface PathSerializer {
   path: Record<string, unknown>;
@@ -25,19 +25,19 @@ const defaultPathSerializer = ({ path, url: _url }: PathSerializer) => {
     for (const match of matches) {
       let explode = false;
       let name = match.substring(1, match.length - 1);
-      let style: ArraySeparatorStyle = 'simple';
+      let style: ArraySeparatorStyle = "simple";
 
-      if (name.endsWith('*')) {
+      if (name.endsWith("*")) {
         explode = true;
         name = name.substring(0, name.length - 1);
       }
 
-      if (name.startsWith('.')) {
+      if (name.startsWith(".")) {
         name = name.substring(1);
-        style = 'label';
-      } else if (name.startsWith(';')) {
+        style = "label";
+      } else if (name.startsWith(";")) {
         name = name.substring(1);
-        style = 'matrix';
+        style = "matrix";
       }
 
       const value = path[name];
@@ -54,7 +54,7 @@ const defaultPathSerializer = ({ path, url: _url }: PathSerializer) => {
         continue;
       }
 
-      if (typeof value === 'object') {
+      if (typeof value === "object") {
         url = url.replace(
           match,
           serializeObjectParam({
@@ -68,7 +68,7 @@ const defaultPathSerializer = ({ path, url: _url }: PathSerializer) => {
         continue;
       }
 
-      if (style === 'matrix') {
+      if (style === "matrix") {
         url = url.replace(
           match,
           `;${serializePrimitiveParam({
@@ -80,7 +80,7 @@ const defaultPathSerializer = ({ path, url: _url }: PathSerializer) => {
       }
 
       const replaceValue = encodeURIComponent(
-        style === 'label' ? `.${value as string}` : (value as string),
+        style === "label" ? `.${value as string}` : (value as string),
       );
       url = url.replace(match, replaceValue);
     }
@@ -95,7 +95,7 @@ export const createQuerySerializer = <T = unknown>({
 }: QuerySerializerOptions = {}) => {
   const querySerializer = (queryParams: T) => {
     const search: string[] = [];
-    if (queryParams && typeof queryParams === 'object') {
+    if (queryParams && typeof queryParams === "object") {
       for (const name in queryParams) {
         const value = queryParams[name];
 
@@ -108,17 +108,17 @@ export const createQuerySerializer = <T = unknown>({
             allowReserved,
             explode: true,
             name,
-            style: 'form',
+            style: "form",
             value,
             ...array,
           });
           if (serializedArray) search.push(serializedArray);
-        } else if (typeof value === 'object') {
+        } else if (typeof value === "object") {
           const serializedObject = serializeObjectParam({
             allowReserved,
             explode: true,
             name,
-            style: 'deepObject',
+            style: "deepObject",
             value: value as Record<string, unknown>,
             ...object,
           });
@@ -133,7 +133,7 @@ export const createQuerySerializer = <T = unknown>({
         }
       }
     }
-    return search.join('&');
+    return search.join("&");
   };
   return querySerializer;
 };
@@ -141,8 +141,8 @@ export const createQuerySerializer = <T = unknown>({
 export const setAuthParams = async ({
   security,
   ...options
-}: Pick<Required<RequestOptions>, 'security'> &
-  Pick<RequestOptions, 'auth' | 'query'> & {
+}: Pick<Required<RequestOptions>, "security"> &
+  Pick<RequestOptions, "auth" | "query"> & {
     headers: Record<any, unknown>;
   }) => {
   for (const auth of security) {
@@ -152,25 +152,25 @@ export const setAuthParams = async ({
       continue;
     }
 
-    const name = auth.name ?? 'Authorization';
+    const name = auth.name ?? "Authorization";
 
     switch (auth.in) {
-      case 'query':
+      case "query":
         if (!options.query) {
           options.query = {};
         }
         options.query[name] = token;
         break;
-      case 'cookie': {
+      case "cookie": {
         const value = `${name}=${token}`;
-        if ('Cookie' in options.headers && options.headers['Cookie']) {
-          options.headers['Cookie'] = `${options.headers['Cookie']}; ${value}`;
+        if ("Cookie" in options.headers && options.headers["Cookie"]) {
+          options.headers["Cookie"] = `${options.headers["Cookie"]}; ${value}`;
         } else {
-          options.headers['Cookie'] = value;
+          options.headers["Cookie"] = value;
         }
         break;
       }
-      case 'header':
+      case "header":
       default:
         options.headers[name] = token;
         break;
@@ -180,13 +180,13 @@ export const setAuthParams = async ({
   }
 };
 
-export const buildUrl: Client['buildUrl'] = (options) => {
+export const buildUrl: Client["buildUrl"] = (options) => {
   const url = getUrl({
     path: options.path,
     // let `paramsSerializer()` handle query params if it exists
     query: !options.paramsSerializer ? options.query : undefined,
     querySerializer:
-      typeof options.querySerializer === 'function'
+      typeof options.querySerializer === "function"
         ? options.querySerializer
         : createQuerySerializer(options.querySerializer),
     url: options.url,
@@ -205,13 +205,13 @@ export const getUrl = ({
   querySerializer: QuerySerializer;
   url: string;
 }) => {
-  const pathUrl = _url.startsWith('/') ? _url : `/${_url}`;
+  const pathUrl = _url.startsWith("/") ? _url : `/${_url}`;
   let url = pathUrl;
   if (path) {
     url = defaultPathSerializer({ path, url });
   }
-  let search = query ? querySerializer(query) : '';
-  if (search.startsWith('?')) {
+  let search = query ? querySerializer(query) : "";
+  if (search.startsWith("?")) {
     search = search.substring(1);
   }
   if (search) {
@@ -230,21 +230,21 @@ export const mergeConfigs = (a: Config, b: Config): Config => {
  * Special Axios headers keywords allowing to set headers by request method.
  */
 export const axiosHeadersKeywords = [
-  'common',
-  'delete',
-  'get',
-  'head',
-  'patch',
-  'post',
-  'put',
+  "common",
+  "delete",
+  "get",
+  "head",
+  "patch",
+  "post",
+  "put",
 ] as const;
 
 export const mergeHeaders = (
-  ...headers: Array<Required<Config>['headers'] | undefined>
+  ...headers: Array<Required<Config>["headers"] | undefined>
 ): Record<any, unknown> => {
   const mergedHeaders: Record<any, unknown> = {};
   for (const header of headers) {
-    if (!header || typeof header !== 'object') {
+    if (!header || typeof header !== "object") {
       continue;
     }
 
@@ -255,7 +255,7 @@ export const mergeHeaders = (
         axiosHeadersKeywords.includes(
           key as (typeof axiosHeadersKeywords)[number],
         ) &&
-        typeof value === 'object'
+        typeof value === "object"
       ) {
         mergedHeaders[key] = {
           ...(mergedHeaders[key] as Record<any, unknown>),
@@ -272,7 +272,7 @@ export const mergeHeaders = (
         // assume object headers are meant to be JSON stringified, i.e. their
         // content value in OpenAPI specification is 'application/json'
         mergedHeaders[key] =
-          typeof value === 'object' ? JSON.stringify(value) : (value as string);
+          typeof value === "object" ? JSON.stringify(value) : (value as string);
       }
     }
   }

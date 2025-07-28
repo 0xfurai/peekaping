@@ -1,10 +1,12 @@
 package monitor
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"peekaping/src/modules/monitor_notification"
 	"peekaping/src/modules/monitor_tag"
+	"peekaping/src/modules/monitor_tls_info"
 	"peekaping/src/utils"
 	"strings"
 	"time"
@@ -18,6 +20,7 @@ type MonitorController struct {
 	logger                     *zap.SugaredLogger
 	monitorNotificationService monitor_notification.Service
 	monitorTagService          monitor_tag.Service
+	tlsInfoService             monitor_tls_info.Service
 }
 
 func NewMonitorController(
@@ -25,6 +28,7 @@ func NewMonitorController(
 	logger *zap.SugaredLogger,
 	monitorNotificationService monitor_notification.Service,
 	monitorTagService monitor_tag.Service,
+	tlsInfoService monitor_tls_info.Service,
 ) *MonitorController {
 	utils.Validate.RegisterStructValidation(CreateUpdateDtoStructLevelValidation, CreateUpdateDto{})
 
@@ -33,6 +37,7 @@ func NewMonitorController(
 		logger,
 		monitorNotificationService,
 		monitorTagService,
+		tlsInfoService,
 	}
 }
 
@@ -683,4 +688,54 @@ func (ic *MonitorController) ResetMonitorData(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, utils.NewSuccessResponse[any]("Monitor data reset successfully", nil))
+}
+
+// @Router /monitors/{id}/tls [get]
+// @Summary Get monitor TLS certificate information
+// @Tags Monitors
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Monitor ID"
+// @Success 200 {object} utils.ApiResponse[any]
+// @Failure 400 {object} utils.APIError[any]
+// @Failure 404 {object} utils.APIError[any]
+// @Failure 500 {object} utils.APIError[any]
+func (ic *MonitorController) GetTLSInfo(ctx *gin.Context) {
+	id := ctx.Param("id")
+
+	// First, verify the monitor exists
+	_, err := ic.monitorService.FindByID(ctx, id)
+	if err != nil {
+		if err.Error() == "monitor not found" {
+			ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Monitor not found"))
+			return
+		}
+		ic.logger.Errorw("Failed to fetch monitor", "monitorID", id, "error", err)
+		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		return
+	}
+
+	// Get TLS info for the monitor
+	tlsInfoJSON, err := ic.tlsInfoService.GetTLSInfo(ctx, id)
+	if err != nil {
+		ic.logger.Errorw("Failed to get TLS info", "monitorID", id, "error", err)
+		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		return
+	}
+
+	// If no TLS info found, return null/empty
+	if tlsInfoJSON == "" {
+		ctx.JSON(http.StatusOK, utils.NewSuccessResponse[any]("success", nil))
+		return
+	}
+
+	// Parse the JSON to validate it and return as structured data
+	var tlsInfo map[string]interface{}
+	if err := json.Unmarshal([]byte(tlsInfoJSON), &tlsInfo); err != nil {
+		ic.logger.Errorw("Failed to parse TLS info JSON", "monitorID", id, "error", err)
+		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", tlsInfo))
 }
