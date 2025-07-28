@@ -25,6 +25,8 @@ import { toast } from "sonner";
 import { isAxiosError } from "axios";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, Loader2 } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
+
 import React from "react";
 import { useAuthStore } from "@/store/auth";
 import type { AuthModel } from "@/api/types.gen";
@@ -43,6 +45,8 @@ export function LoginForm({
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
   const [serverError, setServerError] = React.useState<string | null>(null);
+  const [showPassword, setShowPassword] = React.useState(false);
+
   const setTokens = useAuthStore(
     (state: {
       setTokens: (accessToken: string, refreshToken: string) => void;
@@ -157,16 +161,27 @@ export function LoginForm({
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input
-                          type="password"
-                          {...field}
-                          placeholder="********"
-                        />
+                        <div className="relative">
+                          <Input
+                            type={showPassword ? "text" : "password"}
+                            {...field}
+                            placeholder="********"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword((prev) => !prev)}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            tabIndex={-1}
+                          >
+                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                          </button>
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+
 
                 {serverError && (
                   <Alert variant="destructive">
