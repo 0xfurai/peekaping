@@ -9,10 +9,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useFormContext } from "react-hook-form";
 import { z } from "zod";
-<<<<<<< HEAD
 import { PasswordInput } from "@/components/ui/password-input";
-=======
->>>>>>> 670a361dcef65f8912808d2a083c16d3a66e693c
 
 export const schema = z.object({
   type: z.literal("twilio"),
@@ -25,20 +22,12 @@ export const schema = z.object({
   }),
   twilio_from_number: z.string()
     .min(1, { message: "From Number is required" })
-<<<<<<< HEAD
     .regex(/^\+[1-9]\d{1,14}$/, {
-=======
-    .regex(/^\+[1-9]\d{1,14}$/, { 
->>>>>>> 670a361dcef65f8912808d2a083c16d3a66e693c
       message: "Must be a valid E.164 phone number (e.g., +1234567890)"
     }),
   twilio_to_number: z.string()
     .min(1, { message: "To Number is required" })
-<<<<<<< HEAD
     .regex(/^\+[1-9]\d{1,14}$/, {
-=======
-    .regex(/^\+[1-9]\d{1,14}$/, { 
->>>>>>> 670a361dcef65f8912808d2a083c16d3a66e693c
       message: "Must be a valid E.164 phone number (e.g., +1234567890)"
     }),
 });
@@ -109,20 +98,11 @@ export default function TwilioForm() {
           <FormItem>
             <FormLabel>Auth Token / API Key Secret</FormLabel>
             <FormControl>
-<<<<<<< HEAD
               <PasswordInput
-=======
-              <Input
-                type="password"
->>>>>>> 670a361dcef65f8912808d2a083c16d3a66e693c
                 placeholder="Your Auth Token or API Key Secret"
                 {...field}
               />
             </FormControl>
-<<<<<<< HEAD
-
-=======
->>>>>>> 670a361dcef65f8912808d2a083c16d3a66e693c
             <FormDescription>
               Your Twilio Auth Token or API Key Secret
             </FormDescription>
