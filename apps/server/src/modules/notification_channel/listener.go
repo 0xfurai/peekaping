@@ -53,6 +53,7 @@ func NewNotificationEventListener(p NotificationEventListenerParams) *Notificati
 	RegisterNotificationChannelProvider("discord", providers.NewDiscordSender(p.Logger))
 	RegisterNotificationChannelProvider("wecom", providers.NewWeComSender(p.Logger))
 	RegisterNotificationChannelProvider("whatsapp", providers.NewWhatsAppSender(p.Logger))
+        RegisterNotificationChannelProvider("twilio", providers.NewTwilioSender(p.Logger))
 
 	return &NotificationEventListener{
 		service:                    p.Service,

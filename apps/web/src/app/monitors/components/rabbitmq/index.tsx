@@ -2,6 +2,7 @@ import { z } from "zod";
 import { TypographyH4 } from "@/components/ui/typography";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { PasswordInput } from "@/components/ui/password-input";
 import Intervals, {
   intervalsDefaultValues,
   intervalsSchema,
@@ -34,6 +35,7 @@ import { Loader2, Plus, Trash2 } from "lucide-react";
 import type { MonitorCreateUpdateDto, MonitorMonitorResponseDto } from "@/api";
 import { useEffect } from "react";
 import { useFieldArray } from "react-hook-form";
+
 
 interface RabbitMQConfig {
   nodes: string[]; // Server expects array of strings
@@ -256,7 +258,10 @@ const RabbitMQForm = () => {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="password" {...field} />
+                    <PasswordInput
+                      placeholder="password"
+                      {...field}
+                    />
                   </FormControl>
                   <FormDescription>
                     Password for RabbitMQ management interface authentication

@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { PasswordInput } from "@/components/ui/password-input";
 import {
   Card,
   CardContent,
@@ -136,10 +137,11 @@ export function RegisterForm({
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input type="password" {...field} placeholder="********"/>
+                      <PasswordInput {...field} placeholder="********" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
+
                 )}
               />
 
@@ -150,10 +152,11 @@ export function RegisterForm({
                   <FormItem>
                     <FormLabel>Confirm Password</FormLabel>
                     <FormControl>
-                      <Input type="password" {...field} placeholder="********"/>
+                      <PasswordInput {...field} placeholder="********" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
+
                 )}
               />
 

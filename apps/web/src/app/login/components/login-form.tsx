@@ -33,6 +33,8 @@ import type { AuthModel } from "@/api/types.gen";
 import { TwoFADialog } from "./two-fa-dialog";
 import { Link } from "react-router-dom";
 
+import { PasswordInput } from "@/components/ui/password-input";
+
 const formSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(1, "Password is required"),
@@ -45,7 +47,6 @@ export function LoginForm({
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
   const [serverError, setServerError] = React.useState<string | null>(null);
-  const [showPassword, setShowPassword] = React.useState(false);
 
   const setTokens = useAuthStore(
     (state: {
@@ -161,21 +162,7 @@ export function LoginForm({
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <div className="relative">
-                          <Input
-                            type={showPassword ? "text" : "password"}
-                            {...field}
-                            placeholder="********"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowPassword((prev) => !prev)}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                            tabIndex={-1}
-                          >
-                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                          </button>
-                        </div>
+                        <PasswordInput {...field} placeholder="********" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

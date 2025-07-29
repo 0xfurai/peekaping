@@ -1,4 +1,5 @@
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import {
   FormField,
   FormItem,
@@ -51,13 +52,13 @@ export default function PagerDutyForm() {
               Integration Key <span className="text-red-500">*</span>
             </FormLabel>
             <FormControl>
-              <Input
+              <PasswordInput
                 placeholder="Enter your PagerDuty integration key"
-                type="password"
                 required
                 {...field}
               />
             </FormControl>
+
             <FormDescription>
               <span className="text-red-500">*</span> Required
               <br />

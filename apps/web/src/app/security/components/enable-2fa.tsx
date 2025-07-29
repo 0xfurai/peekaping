@@ -22,6 +22,7 @@ import { useState } from "react";
 import { useAuthStore } from "@/store/auth";
 import QRCode from "react-qr-code";
 import { commonMutationErrorHandler } from "@/lib/utils";
+import { PasswordInput } from "@/components/ui/password-input";
 
 const enable2FAPasswordSchema = z.object({
   currentPassword: z.string().min(1, { message: "Old password is required" }),
@@ -127,13 +128,13 @@ const Enable2FA = () => {
                 <FormItem>
                   <FormLabel>Current Password</FormLabel>
                   <FormControl>
-                    <Input
-                      type="password"
+                    <PasswordInput
                       autoComplete="current-password"
                       placeholder="Enter your current password"
                       {...field}
                     />
                   </FormControl>
+
                   <FormMessage />
                 </FormItem>
               )}

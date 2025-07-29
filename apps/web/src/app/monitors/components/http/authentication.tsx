@@ -17,6 +17,7 @@ import {
 import { useFormContext, useWatch } from "react-hook-form";
 import { Textarea } from "@/components/ui/textarea";
 import { z } from "zod";
+import { PasswordInput } from "@/components/ui/password-input";
 
 // Zod schema for authentication options
 export const authenticationSchema = z.discriminatedUnion("authMethod", [
@@ -162,7 +163,7 @@ const OAuth2 = () => {
           <FormItem>
             <FormLabel>Client Secret</FormLabel>
             <FormControl>
-              <Input placeholder="Client Secret" {...field} type="password" />
+              <PasswordInput {...field} placeholder="Client Secret" />
             </FormControl>
             <FormMessage />
           </FormItem>

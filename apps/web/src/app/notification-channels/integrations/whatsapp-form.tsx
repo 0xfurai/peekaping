@@ -1,4 +1,5 @@
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import {
   FormField,
   FormItem,
@@ -75,12 +76,12 @@ export default function WhatsAppForm() {
             <FormItem>
               <FormLabel>API Key</FormLabel>
               <FormControl>
-                <Input
-                  type="password"
+                <PasswordInput
                   placeholder="Your WAHA API key"
                   {...field}
                 />
               </FormControl>
+
               <FormDescription>
                 The API key for your WAHA server instance
               </FormDescription>
