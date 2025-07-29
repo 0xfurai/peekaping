@@ -1,4 +1,5 @@
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import {
   FormField,
   FormItem,
@@ -189,9 +190,8 @@ export default function NtfyForm() {
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input
+                  <PasswordInput
                     placeholder="your-password"
-                    type="password"
                     required
                     {...field}
                   />
@@ -211,9 +211,8 @@ export default function NtfyForm() {
             <FormItem>
               <FormLabel>Access Token</FormLabel>
               <FormControl>
-                <Input
+                <PasswordInput
                   placeholder="tk_AgQdq7mVBoFD37zQVN29RhuMzNIz2"
-                  type="password"
                   required
                   {...field}
                 />

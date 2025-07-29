@@ -187,8 +187,9 @@ export default function CreateEditProxy({
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input placeholder="Password" {...field} type="password" />
+                    <PasswordInput placeholder="Password" {...field} />
                   </FormControl>
+
                   <FormMessage />
                 </FormItem>
               )}

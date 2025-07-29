@@ -1,4 +1,5 @@
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import {
   FormField,
   FormItem,
@@ -72,9 +73,8 @@ export default function GotifyForm() {
           <FormItem>
             <FormLabel>Application Token</FormLabel>
             <FormControl>
-              <Input
+              <PasswordInput
                 placeholder="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-                type="password"
                 required
                 {...field}
               />

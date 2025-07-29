@@ -6,6 +6,7 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { z } from "zod";
@@ -77,13 +78,13 @@ const UpdatePassword = () => {
               <FormItem>
                 <FormLabel>Old Password</FormLabel>
                 <FormControl>
-                  <Input
-                    type="password"
+                  <PasswordInput
                     autoComplete="current-password"
                     placeholder="Enter your current password"
                     {...field}
                   />
                 </FormControl>
+
                 <FormMessage />
               </FormItem>
             )}
@@ -95,13 +96,13 @@ const UpdatePassword = () => {
               <FormItem>
                 <FormLabel>New Password</FormLabel>
                 <FormControl>
-                  <Input
-                    type="password"
+                  <PasswordInput
                     autoComplete="new-password"
                     placeholder="Enter a new password"
                     {...field}
                   />
                 </FormControl>
+
                 <FormMessage />
               </FormItem>
             )}
@@ -113,13 +114,13 @@ const UpdatePassword = () => {
               <FormItem>
                 <FormLabel>Confirm New Password</FormLabel>
                 <FormControl>
-                  <Input
-                    type="password"
+                  <PasswordInput
                     autoComplete="new-password"
                     placeholder="Re-enter new password"
                     {...field}
                   />
                 </FormControl>
+
                 <FormMessage />
               </FormItem>
             )}
