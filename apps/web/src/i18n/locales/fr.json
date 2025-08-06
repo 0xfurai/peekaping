@@ -1152,7 +1152,8 @@
     },
     "description": "Entrez la description de la page de statut",
     "domains": "Domaines",
-    "domains_info_warning": "N'oubliez pas d'ajouter un enregistrement CNAME à votre DNS pour chaque domaine.",
+    "domains_info_warning": "N'oubliez pas d'ajouter les enregistrements CNAME à votre DNS pour chaque domaine.",
+    "domain_host_warning": "Ce domaine est identique à votre URL d'hôte actuelle. Cela peut causer des conflits.",
     "draft_status": "Brouillon",
     "edit_page_name": "Modifier la page de statut",
     "messages": {

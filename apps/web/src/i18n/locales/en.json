@@ -1151,7 +1151,8 @@
     },
     "description": "Enter status page description",
     "domains": "Domains",
-    "domains_info_warning": "Don't forget to add a CNAME record to your DNS for each domain.",
+    "domains_info_warning": "Don't forget to add the CNAME records to your DNS for each domain.",
+    "domain_host_warning": "This domain is the same as your current host URL. This may cause conflicts.",
     "draft_status": "Draft",
     "edit_page_name": "Edit Status Page",
     "messages": {
