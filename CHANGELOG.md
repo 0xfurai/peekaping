@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix custom domain issues
+
 ## [0.0.36] - 2025-07-28
 
 ### Added
