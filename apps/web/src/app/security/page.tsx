@@ -6,7 +6,6 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { postAuth2FaDisableMutation } from "@/api/@tanstack/react-query.gen";
