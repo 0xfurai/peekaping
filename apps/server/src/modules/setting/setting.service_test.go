@@ -287,6 +287,12 @@ func TestServiceImpl_InitializeSettings(t *testing.T) {
 				repo.On("SetByKey", mock.Anything, "REFRESH_TOKEN_SECRET_KEY", mock.MatchedBy(func(dto *CreateUpdateDto) bool {
 					return len(dto.Value) == 64 && dto.Type == "string"
 				})).Return(&Model{Key: "REFRESH_TOKEN_SECRET_KEY", Value: "test_secret", Type: "string"}, nil)
+
+				// cert_expiry_notify_days - not exists
+				repo.On("GetByKey", mock.Anything, "cert_expiry_notify_days").Return(nil, nil)
+				repo.On("SetByKey", mock.Anything, "cert_expiry_notify_days", mock.MatchedBy(func(dto *CreateUpdateDto) bool {
+					return dto.Value == "[7,14,21]" && dto.Type == "json"
+				})).Return(&Model{Key: "cert_expiry_notify_days", Value: "[7,14,21]", Type: "json"}, nil)
 			},
 			expectedError: nil,
 		},
@@ -310,6 +316,12 @@ func TestServiceImpl_InitializeSettings(t *testing.T) {
 
 				// REFRESH_TOKEN_SECRET_KEY - exists
 				repo.On("GetByKey", mock.Anything, "REFRESH_TOKEN_SECRET_KEY").Return(&Model{Key: "REFRESH_TOKEN_SECRET_KEY", Value: "existing_secret"}, nil)
+
+				// cert_expiry_notify_days - not exists
+				repo.On("GetByKey", mock.Anything, "cert_expiry_notify_days").Return(nil, nil)
+				repo.On("SetByKey", mock.Anything, "cert_expiry_notify_days", mock.MatchedBy(func(dto *CreateUpdateDto) bool {
+					return dto.Value == "[7,14,21]" && dto.Type == "json"
+				})).Return(&Model{Key: "cert_expiry_notify_days", Value: "[7,14,21]", Type: "json"}, nil)
 			},
 			expectedError: nil,
 		},

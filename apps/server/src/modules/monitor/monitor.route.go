@@ -39,4 +39,5 @@ func (uc *MonitorRoute) ConnectRoute(
 	router.GET(":id/heartbeats", uc.monitorController.FindByMonitorIDPaginated)
 	router.GET(":id/stats/uptime", uc.monitorController.GetUptimeStats)
 	router.GET(":id/stats/points", uc.monitorController.GetStatPoints)
+	router.GET(":id/tls", uc.monitorController.GetTLSInfo)
 }

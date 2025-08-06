@@ -366,6 +366,7 @@ export type StatusPageCreateStatusPageDto = {
   auto_refresh_interval?: number;
   custom_css?: string;
   description?: string;
+  domains?: Array<string>;
   footer_text?: string;
   google_analytics_tag_id?: string;
   icon?: string;
@@ -417,6 +418,7 @@ export type StatusPageStatusPageWithMonitorsResponseDto = {
   created_at?: string;
   custom_css?: string;
   description?: string;
+  domains?: Array<string>;
   footer_text?: string;
   google_analytics_tag_id?: string;
   icon?: string;
@@ -438,6 +440,7 @@ export type StatusPageUpdateStatusPageDto = {
   auto_refresh_interval?: number;
   custom_css?: string;
   description?: string;
+  domains?: Array<string>;
   footer_text?: string;
   google_analytics_tag_id?: string;
   icon?: string;
@@ -706,6 +709,10 @@ export type PostAuthLoginErrors = {
    * Bad Request
    */
   400: UtilsApiError;
+  /**
+   * Unauthorized
+   */
+  401: UtilsApiError;
   /**
    * Internal Server Error
    */
@@ -1668,6 +1675,46 @@ export type GetMonitorsByIdStatsUptimeResponses = {
 export type GetMonitorsByIdStatsUptimeResponse =
   GetMonitorsByIdStatsUptimeResponses[keyof GetMonitorsByIdStatsUptimeResponses];
 
+export type GetMonitorsByIdTlsData = {
+  body?: never;
+  path: {
+    /**
+     * Monitor ID
+     */
+    id: string;
+  };
+  query?: never;
+  url: "/monitors/{id}/tls";
+};
+
+export type GetMonitorsByIdTlsErrors = {
+  /**
+   * Bad Request
+   */
+  400: UtilsApiError;
+  /**
+   * Not Found
+   */
+  404: UtilsApiError;
+  /**
+   * Internal Server Error
+   */
+  500: UtilsApiError;
+};
+
+export type GetMonitorsByIdTlsError =
+  GetMonitorsByIdTlsErrors[keyof GetMonitorsByIdTlsErrors];
+
+export type GetMonitorsByIdTlsResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseAny;
+};
+
+export type GetMonitorsByIdTlsResponse =
+  GetMonitorsByIdTlsResponses[keyof GetMonitorsByIdTlsResponses];
+
 export type GetNotificationChannelsData = {
   body?: never;
   path?: never;
@@ -2383,6 +2430,42 @@ export type PostStatusPagesResponses = {
 
 export type PostStatusPagesResponse =
   PostStatusPagesResponses[keyof PostStatusPagesResponses];
+
+export type GetStatusPagesDomainByDomainData = {
+  body?: never;
+  path: {
+    /**
+     * Domain Name
+     */
+    domain: string;
+  };
+  query?: never;
+  url: "/status-pages/domain/{domain}";
+};
+
+export type GetStatusPagesDomainByDomainErrors = {
+  /**
+   * Not Found
+   */
+  404: UtilsApiError;
+  /**
+   * Internal Server Error
+   */
+  500: UtilsApiError;
+};
+
+export type GetStatusPagesDomainByDomainError =
+  GetStatusPagesDomainByDomainErrors[keyof GetStatusPagesDomainByDomainErrors];
+
+export type GetStatusPagesDomainByDomainResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseStatusPageModel;
+};
+
+export type GetStatusPagesDomainByDomainResponse =
+  GetStatusPagesDomainByDomainResponses[keyof GetStatusPagesDomainByDomainResponses];
 
 export type GetStatusPagesSlugBySlugData = {
   body?: never;

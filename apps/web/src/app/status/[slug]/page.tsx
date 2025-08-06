@@ -24,8 +24,9 @@ import { last } from "@/lib/utils";
 import { ThemeToggle } from "../../../components/theme-toggle";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
-const PublicStatusPage = () => {
-  const { slug } = useParams<{ slug: string }>();
+const PublicStatusPage = ({ incomingSlug = "" }: { incomingSlug?: string }) => {
+  const params = useParams<{ slug: string }>();
+  const slug = incomingSlug ?? params.slug;
   const { t } = useLocalizedTranslation();
 
   const [refreshInterval, setRefreshInterval] = useState(30);

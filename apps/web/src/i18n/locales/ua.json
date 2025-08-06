@@ -1,4 +1,8 @@
 {
+  "actions": {
+    "cancel": "Скасувати",
+    "saving": "Збереження..."
+  },
   "auth": {
     "login": {
       "description": "Увійдіть за допомогою електронної пошти",
@@ -89,14 +93,24 @@
       "email": "Електронна пошта",
       "footer_text": "Текст нижнього колонтитулу",
       "heartbeat_interval": "Інтервал пульсу (секунди)",
+      "icon_url": "URL іконки",
       "monitor_name": "Назва",
       "monitor_type": "Тип",
       "password": "Пароль",
       "retries": "Повторні спроби",
+      "slug": "Slug",
+      "title": "Назва",
       "username": "Ім'я користувача"
     },
     "placeholders": {
-      "monitor_name": "Мій монітор"
+      "auto_refresh_help": "0 для відсутності автооновлення",
+      "domains": "Введіть домен (наприклад, status.example.com)",
+      "footer_text": "Введіть текст підвалу",
+      "icon_url": "https://example.com/icon.png",
+      "monitor_name": "Мій монітор",
+      "page_description": "Введіть опис сторінки статусу",
+      "page_title": "Введіть заголовок сторінки статусу",
+      "slug": "slug-сторінки-статусу"
     },
     "validation": {
       "email_invalid": "Будь ласка, введіть дійсну адресу електронної пошти",
@@ -948,19 +962,6 @@
         "use_template_description": "Увімкніть для використання користувацького шаблону повідомлення та формату.",
         "use_template_label": "Використовувати шаблон повідомлення"
       },
-      "twilio": {
-        "account_sid_description": "Ваш SID облікового запису Twilio з консолі Twilio",
-        "account_sid_label": "SID облікового запису",
-        "api_key_description": "API ключ є необов'язковим, але рекомендованим. Ви можете надати або SID облікового запису та AuthToken зі сторінки консолі Twilio, або SID облікового запису та пару API ключа та секрету API ключа",
-        "api_key_label": "API ключ (необов'язково)",
-        "auth_token_description": "Ваш токен автентифікації Twilio або секрет API ключа",
-        "auth_token_label": "Токен автентифікації / Секрет API ключа",
-        "from_number_description": "Ваш номер телефону Twilio у форматі E.164 (наприклад, +1234567890)",
-        "from_number_label": "Номер відправника",
-        "more_info_description": "Більше інформації на",
-        "to_number_description": "Номер телефону отримувача у форматі E.164 (наприклад, +1234567890)",
-        "to_number_label": "Номер отримувача"
-      },
       "webhook": {
         "additional_headers_description": "Додайте користувацькі HTTP заголовки до запиту вебхука.",
         "additional_headers_label": "Додаткові заголовки",
@@ -1115,30 +1116,21 @@
     }
   },
   "status_pages": {
+    "affected_monitors": "Впливіні монітори",
+    "affected_monitors_info": "Виберіть монітори, які будуть впливати на цю технічну роботу",
+    "auto_refresh_interval": "Інтервал автооновлення (секунди)",
+    "basic_information": "Основна інформація",
+    "create_status_page": "Створити сторінку статусу",
+    "customization": "Налаштування",
     "delete_dialog": {
       "description": "Ви впевнені, що хочете видалити \"{{title}}\"? Цю дію неможливо скасувати.",
       "title": "Видалити сторінку статусу"
     },
+    "description": "Введіть опис сторінки статусу",
+    "domains": "Домени",
+    "domains_info_warning": "Не забудьте додати запис CNAME до вашого DNS для кожного домену.",
     "draft_status": "Чернетка",
     "edit_page_name": "Редагувати сторінку статусу",
-    "form": {
-      "affected_monitors_description": "Виберіть монітори, на які вплине це технічне обслуговування",
-      "affected_monitors_title": "Задіяні монітори",
-      "auto_refresh_interval_label": "Інтервал автооновлення (секунди)",
-      "auto_refresh_interval_placeholder": "0 для відключення автооновлення",
-      "basic_information_title": "Основна інформація",
-      "create_button": "Створити сторінку статусу",
-      "customization_title": "Налаштування",
-      "description_label": "Опис",
-      "description_placeholder": "Введіть опис сторінки статусу",
-      "footer_text_placeholder": "Введіть текст нижнього колонтитула",
-      "icon_url_label": "URL іконки",
-      "published_description": "Зробити цю сторінку статусу загальнодоступною",
-      "slug_label": "Slug",
-      "title_label": "Назва",
-      "title_placeholder": "Введіть назву сторінки статусу",
-      "update_button": "Оновити сторінку статусу"
-    },
     "messages": {
       "create_description": "Створіть нову сторінку статусу, щоб поділитися статусом вашого сервісу з користувачами.",
       "create_failed": "Не вдалося створити сторінку статусу",
@@ -1156,9 +1148,11 @@
     "new_page_name": "Нова сторінка статусу",
     "page_name": "Сторінки статусу",
     "published": "Опубліковано",
+    "published_info": "Зробіть цю сторінку статусу доступною публічно",
     "published_status": "Опубліковано",
     "search_label": "Пошук",
     "search_placeholder": "Пошук сторінок статусу за назвою...",
+    "update_status_page": "Оновити сторінку статусу",
     "view_page": "Переглянути сторінку"
   },
   "tags": {

@@ -22,6 +22,7 @@ type CreateStatusPageDTO struct {
 	ShowCertificateExpiry bool     `json:"show_certificate_expiry"`
 	AutoRefreshInterval   int      `json:"auto_refresh_interval"`
 	MonitorIDs            []string `json:"monitor_ids,omitempty"`
+	Domains               []string `json:"domains,omitempty"`
 }
 
 type UpdateStatusPageDTO struct {
@@ -41,6 +42,7 @@ type UpdateStatusPageDTO struct {
 	ShowCertificateExpiry *bool     `json:"show_certificate_expiry,omitempty"`
 	AutoRefreshInterval   *int      `json:"auto_refresh_interval,omitempty"`
 	MonitorIDs            *[]string `json:"monitor_ids,omitempty"`
+	Domains               *[]string `json:"domains,omitempty"`
 }
 
 type StatusPageWithMonitorsResponseDTO struct {
@@ -63,6 +65,7 @@ type StatusPageWithMonitorsResponseDTO struct {
 	ShowCertificateExpiry bool      `json:"show_certificate_expiry"`
 	AutoRefreshInterval   int       `json:"auto_refresh_interval"`
 	MonitorIDs            []string  `json:"monitor_ids"`
+	Domains               []string  `json:"domains"`
 }
 
 type PublicMonitorDTO struct {

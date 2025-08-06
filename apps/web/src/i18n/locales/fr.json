@@ -1,4 +1,8 @@
 {
+  "actions": {
+    "cancel": "Annuler",
+    "saving": "Enregistrement..."
+  },
   "auth": {
     "login": {
       "description": "Connectez-vous avec votre email",
@@ -89,14 +93,24 @@
       "email": "Email",
       "footer_text": "Texte du pied de page",
       "heartbeat_interval": "Intervalle du signal de vie (secondes)",
+      "icon_url": "URL de l'icône",
       "monitor_name": "Nom",
       "monitor_type": "Type",
       "password": "Mot de passe",
       "retries": "Tentatives",
+      "slug": "Slug",
+      "title": "Titre",
       "username": "Nom d'utilisateur"
     },
     "placeholders": {
-      "monitor_name": "Mon moniteur"
+      "auto_refresh_help": "0 pour pas de rafraîchissement automatique",
+      "domains": "Entrez le domaine (ex: status.example.com)",
+      "footer_text": "Entrez le texte du pied de page",
+      "icon_url": "https://example.com/icon.png",
+      "monitor_name": "Mon moniteur",
+      "page_description": "Entrez la description de la page de statut",
+      "page_title": "Entrez le titre de la page de statut",
+      "slug": "slug-de-la-page-de-statut"
     },
     "validation": {
       "email_invalid": "Veuillez entrer une adresse email valide",
@@ -949,19 +963,6 @@
         "use_template_description": "Activez pour utiliser un modèle de message personnalisé et son format.",
         "use_template_label": "Utiliser un modèle de message"
       },
-      "twilio": {
-        "account_sid_description": "Votre SID de compte Twilio depuis la Console Twilio",
-        "account_sid_label": "SID du compte",
-        "api_key_description": "La clé API est optionnelle mais recommandée. Vous pouvez fournir soit le SID du compte et le jeton d'authentification depuis la page de la Console Twilio, soit le SID du compte et la paire clé API/secret de clé API",
-        "api_key_label": "Clé API (optionnelle)",
-        "auth_token_description": "Votre jeton d'authentification Twilio ou secret de clé API",
-        "auth_token_label": "Jeton d'authentification / Secret de clé API",
-        "from_number_description": "Votre numéro de téléphone Twilio au format E.164 (ex : +1234567890)",
-        "from_number_label": "Numéro expéditeur",
-        "more_info_description": "Plus d'informations sur",
-        "to_number_description": "Le numéro de téléphone du destinataire au format E.164 (ex : +1234567890)",
-        "to_number_label": "Numéro destinataire"
-      },
       "webhook": {
         "additional_headers_description": "Ajoutez des en-têtes HTTP personnalisés à la requête webhook.",
         "additional_headers_label": "En-têtes supplémentaires",
@@ -1116,30 +1117,21 @@
     }
   },
   "status_pages": {
+    "affected_monitors": "Moniteurs affectés",
+    "affected_monitors_info": "Sélectionnez les moniteurs qui seront affectés par cette maintenance",
+    "auto_refresh_interval": "Intervalle de rafraîchissement automatique (secondes)",
+    "basic_information": "Informations de base",
+    "create_status_page": "Créer une page de statut",
+    "customization": "Personnalisation",
     "delete_dialog": {
       "description": "Êtes-vous sûr de vouloir supprimer \"{{title}}\" ? Cette action ne peut pas être annulée.",
       "title": "Supprimer la page de statut"
     },
+    "description": "Entrez la description de la page de statut",
+    "domains": "Domaines",
+    "domains_info_warning": "N'oubliez pas d'ajouter un enregistrement CNAME à votre DNS pour chaque domaine.",
     "draft_status": "Brouillon",
     "edit_page_name": "Modifier la page de statut",
-    "form": {
-      "affected_monitors_description": "Sélectionnez les moniteurs qui seront affectés par cette maintenance",
-      "affected_monitors_title": "Moniteurs affectés",
-      "auto_refresh_interval_label": "Intervalle d'actualisation automatique (secondes)",
-      "auto_refresh_interval_placeholder": "0 pour désactiver l'actualisation automatique",
-      "basic_information_title": "Informations de base",
-      "create_button": "Créer une page de statut",
-      "customization_title": "Personnalisation",
-      "description_label": "Description",
-      "description_placeholder": "Entrez la description de la page de statut",
-      "footer_text_placeholder": "Entrez le texte du pied de page",
-      "icon_url_label": "URL de l'icône",
-      "published_description": "Rendre cette page de statut accessible publiquement",
-      "slug_label": "Slug",
-      "title_label": "Titre",
-      "title_placeholder": "Entrez le titre de la page de statut",
-      "update_button": "Mettre à jour la page de statut"
-    },
     "messages": {
       "create_description": "Créez une nouvelle page de statut pour partager l'état de votre service avec les utilisateurs.",
       "create_failed": "Échec de la création de la page de statut",
@@ -1157,9 +1149,11 @@
     "new_page_name": "Nouvelle page de statut",
     "page_name": "Pages de statut",
     "published": "Publié",
+    "published_info": "Rendez cette page de statut disponible publiquement",
     "published_status": "Publié",
     "search_label": "Rechercher",
     "search_placeholder": "Rechercher des pages de statut par titre...",
+    "update_status_page": "Mettre à jour la page de statut",
     "view_page": "Voir la page"
   },
   "tags": {

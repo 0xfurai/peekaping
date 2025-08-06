@@ -1,4 +1,8 @@
 {
+  "actions": {
+    "cancel": "Cancel",
+    "saving": "Saving..."
+  },
   "auth": {
     "login": {
       "description": "Login with your Email",
@@ -89,14 +93,24 @@
       "email": "Email",
       "footer_text": "Footer Text",
       "heartbeat_interval": "Heartbeat interval (seconds)",
+      "icon_url": "Icon URL",
       "monitor_name": "Name",
       "monitor_type": "Type",
       "password": "Password",
       "retries": "Retries",
+      "slug": "Slug",
+      "title": "Title",
       "username": "Username"
     },
     "placeholders": {
-      "monitor_name": "My monitor"
+      "auto_refresh_help": "0 for no auto refresh",
+      "domains": "Enter domain (e.g., status.example.com)",
+      "footer_text": "Enter footer text",
+      "icon_url": "https://example.com/icon.png",
+      "monitor_name": "My monitor",
+      "page_description": "Enter status page description",
+      "page_title": "Enter status page title",
+      "slug": "status-page-slug"
     },
     "validation": {
       "email_invalid": "Please enter a valid email address",
@@ -948,19 +962,6 @@
         "use_template_description": "Enable to use a custom message template and format.",
         "use_template_label": "Use Message Template"
       },
-      "twilio": {
-        "account_sid_description": "Your Twilio Account SID from the Twilio Console",
-        "account_sid_label": "Account SID",
-        "api_key_description": "The API key is optional but recommended. You can provide either Account SID and AuthToken from the Twilio Console page or Account SID and the pair of API Key and API Key Secret",
-        "api_key_label": "API Key (optional)",
-        "auth_token_description": "Your Twilio Auth Token or API Key Secret",
-        "auth_token_label": "Auth Token / API Key Secret",
-        "from_number_description": "Your Twilio phone number in E.164 format (e.g., +1234567890)",
-        "from_number_label": "From Number",
-        "more_info_description": "More info on",
-        "to_number_description": "The recipient phone number in E.164 format (e.g., +1234567890)",
-        "to_number_label": "To Number"
-      },
       "webhook": {
         "additional_headers_description": "Add custom HTTP headers to the webhook request.",
         "additional_headers_label": "Additional Headers",
@@ -1115,30 +1116,21 @@
     }
   },
   "status_pages": {
+    "affected_monitors": "Affected Monitors",
+    "affected_monitors_info": "Select monitors that will be affected by this maintenance",
+    "auto_refresh_interval": "Auto Refresh Interval (seconds)",
+    "basic_information": "Basic Information",
+    "create_status_page": "Create Status Page",
+    "customization": "Customization",
     "delete_dialog": {
       "description": "Are you sure you want to delete \"{{title}}\"? This action cannot be undone.",
       "title": "Delete Status Page"
     },
+    "description": "Enter status page description",
+    "domains": "Domains",
+    "domains_info_warning": "Don't forget to add a CNAME record to your DNS for each domain.",
     "draft_status": "Draft",
     "edit_page_name": "Edit Status Page",
-    "form": {
-      "affected_monitors_description": "Select the monitors that will be affected by this maintenance",
-      "affected_monitors_title": "Affected Monitors",
-      "auto_refresh_interval_label": "Auto Refresh Interval (seconds)",
-      "auto_refresh_interval_placeholder": "0 for no auto refresh",
-      "basic_information_title": "Basic Information",
-      "create_button": "Create Status Page",
-      "customization_title": "Customization",
-      "description_label": "Description",
-      "description_placeholder": "Enter status page description",
-      "footer_text_placeholder": "Enter footer text",
-      "icon_url_label": "Icon URL",
-      "published_description": "Make this status page publicly accessible",
-      "slug_label": "Slug",
-      "title_label": "Title",
-      "title_placeholder": "Enter status page title",
-      "update_button": "Update Status Page"
-    },
     "messages": {
       "create_description": "Create a new status page to share your service status with users.",
       "create_failed": "Failed to create status page",
@@ -1156,9 +1148,11 @@
     "new_page_name": "New Status Page",
     "page_name": "Status Pages",
     "published": "Published",
+    "published_info": "Make this status page available publicly",
     "published_status": "Published",
     "search_label": "Search",
     "search_placeholder": "Search status pages by title...",
+    "update_status_page": "Update Status Page",
     "view_page": "View Page"
   },
   "tags": {
