@@ -23,7 +23,7 @@ import BarHistory from "@/components/bars";
 import { last } from "@/lib/utils";
 import { ThemeToggle } from "../../../components/theme-toggle";
 
-const PublicStatusPage = ({ incomingSlug = "" }: { incomingSlug?: string }) => {
+const PublicStatusPage = ({ incomingSlug }: { incomingSlug?: string }) => {
   const params = useParams<{ slug: string }>();
   const slug = incomingSlug ?? params.slug;
 
