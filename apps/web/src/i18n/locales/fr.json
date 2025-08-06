@@ -75,6 +75,7 @@
     "description": "Description",
     "domains": "Domaines",
     "domains_info_warning": "N'oubliez pas d'ajouter les enregistrements CNAME à votre DNS pour chaque domaine.",
+    "domain_host_warning": "Ce domaine est identique à votre URL d'hôte actuelle. Cela peut causer des conflits.",
     "published": "Publié",
     "published_info": "Rendre cette page de statut accessible publiquement",
     "published_status": "Publié",
