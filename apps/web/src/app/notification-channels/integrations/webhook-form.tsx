@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { useFormContext } from "react-hook-form";
 import * as React from "react";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const schema = z.object({
   type: z.literal("webhook"),
@@ -40,6 +41,7 @@ export const displayName = "Webhook";
 export default function WebhookForm() {
   const form = useFormContext();
   const contentType = form.watch("webhook_content_type");
+  const { t } = useLocalizedTranslation();
   const [showAdditionalHeaders, setShowAdditionalHeaders] = React.useState(
     !!form.getValues("webhook_additional_headers")
   );
@@ -71,7 +73,7 @@ export default function WebhookForm() {
         name="webhook_url"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Post URL</FormLabel>
+            <FormLabel>{t("notifications.form.webhook.post_url_label")}</FormLabel>
             <FormControl>
               <Input
                 placeholder="https://example.com/webhook"
@@ -81,7 +83,7 @@ export default function WebhookForm() {
               />
             </FormControl>
             <FormDescription>
-              The webhook endpoint URL where notifications will be sent.
+              {t("notifications.form.webhook.post_url_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -93,11 +95,11 @@ export default function WebhookForm() {
         name="webhook_content_type"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Request Body</FormLabel>
+            <FormLabel>{t("notifications.form.webhook.request_body_label")}</FormLabel>
             <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select content type" />
+                  <SelectValue placeholder={t("notifications.form.webhook.request_body_placeholder")} />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
@@ -108,16 +110,15 @@ export default function WebhookForm() {
             </Select>
             <FormDescription>
               {contentType === "json" && (
-                <>Content will be sent as JSON with "application/json" header.</>
+                <>{t("notifications.form.webhook.request_body_description_json")}</>
               )}
               {contentType === "form-data" && (
                 <>
-                  Content will be sent as multipart/form-data. You can decode it using{" "}
-                  <strong>json_decode($_POST['data'])</strong> in PHP.
+                  {t("notifications.form.webhook.request_body_description_form_data")}
                 </>
               )}
               {contentType === "custom" && (
-                <>Define your own custom request body format below.</>
+                <>{t("notifications.form.webhook.request_body_description_custom")}</>
               )}
             </FormDescription>
             <FormMessage />
@@ -131,7 +132,7 @@ export default function WebhookForm() {
           name="webhook_custom_body"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Custom Body</FormLabel>
+              <FormLabel>{t("notifications.form.webhook.custom_body_label")}</FormLabel>
               <FormControl>
                 <Textarea
                   placeholder={customBodyPlaceholder}
@@ -141,7 +142,7 @@ export default function WebhookForm() {
                 />
               </FormControl>
               <FormDescription>
-                Customize the request body format. Available variables:
+                {t("notifications.form.webhook.custom_body_description")}:
                 <code className="text-pink-500 ml-1">{"{{ msg }}"}</code>,{" "}
                 <code className="text-pink-500">{"{{ monitor.name }}"}</code>,{" "}
                 <code className="text-pink-500">{"{{ status }}"}</code>,{" "}
@@ -163,10 +164,10 @@ export default function WebhookForm() {
                 checked={showAdditionalHeaders}
                 onCheckedChange={setShowAdditionalHeaders}
               />
-              <FormLabel>Additional Headers</FormLabel>
+              <FormLabel>{t("notifications.form.webhook.additional_headers_label")}</FormLabel>
             </div>
             <FormDescription>
-              Add custom HTTP headers to the webhook request.
+              {t("notifications.form.webhook.additional_headers_description")}
             </FormDescription>
             {showAdditionalHeaders && (
               <FormControl>

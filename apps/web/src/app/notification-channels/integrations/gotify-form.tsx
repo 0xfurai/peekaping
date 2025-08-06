@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useFormContext } from "react-hook-form";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const schema = z.object({
   type: z.literal("gotify"),
@@ -40,6 +41,7 @@ export const displayName = "Gotify";
 
 export default function GotifyForm() {
   const form = useFormContext();
+  const { t } = useLocalizedTranslation();
 
   return (
     <>
@@ -48,7 +50,7 @@ export default function GotifyForm() {
         name="server_url"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Server URL</FormLabel>
+            <FormLabel>{t("notifications.form.gotify.server_url_label")}</FormLabel>
             <FormControl>
               <Input
                 placeholder="https://gotify.yourdomain.com"
@@ -58,7 +60,7 @@ export default function GotifyForm() {
               />
             </FormControl>
             <FormDescription>
-              The URL of your Gotify server. Make sure it's accessible from this application.
+              {t("notifications.form.gotify.server_url_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -70,7 +72,7 @@ export default function GotifyForm() {
         name="application_token"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Application Token</FormLabel>
+            <FormLabel>{t("notifications.form.gotify.application_token_label")}</FormLabel>
             <FormControl>
               <Input
                 placeholder="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
@@ -80,7 +82,7 @@ export default function GotifyForm() {
               />
             </FormControl>
             <FormDescription>
-              The application token from your Gotify application. You can find this in your Gotify web interface under Apps.
+              {t("notifications.form.gotify.application_token_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -92,7 +94,7 @@ export default function GotifyForm() {
         name="priority"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Priority</FormLabel>
+            <FormLabel>{t("notifications.form.gotify.priority_label")}</FormLabel>
             <Select
               onValueChange={(val) => {
                 if (!val) {
@@ -104,25 +106,25 @@ export default function GotifyForm() {
             >
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select priority" />
+                  <SelectValue placeholder={t("notifications.form.gotify.priority_placeholder")} />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="0">0 - Lowest</SelectItem>
-                <SelectItem value="1">1 - Very Low</SelectItem>
-                <SelectItem value="2">2 - Low</SelectItem>
-                <SelectItem value="3">3 - Below Normal</SelectItem>
-                <SelectItem value="4">4 - Normal</SelectItem>
-                <SelectItem value="5">5 - Above Normal</SelectItem>
-                <SelectItem value="6">6 - Moderate</SelectItem>
-                <SelectItem value="7">7 - High</SelectItem>
-                <SelectItem value="8">8 - Very High (Default)</SelectItem>
-                <SelectItem value="9">9 - Emergency</SelectItem>
-                <SelectItem value="10">10 - Highest</SelectItem>
+                <SelectItem value="0">0 - {t("notifications.form.gotify.priority_0")}</SelectItem>
+                <SelectItem value="1">1 - {t("notifications.form.gotify.priority_1")}</SelectItem>
+                <SelectItem value="2">2 - {t("notifications.form.gotify.priority_2")}</SelectItem>
+                <SelectItem value="3">3 - {t("notifications.form.gotify.priority_3")}</SelectItem>
+                <SelectItem value="4">4 - {t("notifications.form.gotify.priority_4")}</SelectItem>
+                <SelectItem value="5">5 - {t("notifications.form.gotify.priority_5")}</SelectItem>
+                <SelectItem value="6">6 - {t("notifications.form.gotify.priority_6")}</SelectItem>
+                <SelectItem value="7">7 - {t("notifications.form.gotify.priority_7")}</SelectItem>
+                <SelectItem value="8">8 - {t("notifications.form.gotify.priority_8")}</SelectItem>
+                <SelectItem value="9">9 - {t("notifications.form.gotify.priority_9")}</SelectItem>
+                <SelectItem value="10">10 - {t("notifications.form.gotify.priority_10")}</SelectItem>
               </SelectContent>
             </Select>
             <FormDescription>
-              Message priority (0-10). Higher numbers represent higher priority. Default is 8.
+              {t("notifications.form.gotify.priority_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -134,7 +136,7 @@ export default function GotifyForm() {
         name="title"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Custom Title</FormLabel>
+            <FormLabel>{t("notifications.form.gotify.custom_title_label")}</FormLabel>
             <FormControl>
               <Input
                 placeholder="Peekaping Alert - {{ monitor.name }}"
@@ -142,8 +144,7 @@ export default function GotifyForm() {
               />
             </FormControl>
             <FormDescription>
-              Custom title for the notification. Available variables: {"{{ msg }}"}, {"{{ monitor.name }}"}, {"{{ status }}"}, {"{{ heartbeat.* }}"}.
-              Leave empty to use the default "Peekaping" title.
+              {t("notifications.form.gotify.custom_title_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -155,7 +156,7 @@ export default function GotifyForm() {
         name="custom_message"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Custom Message</FormLabel>
+            <FormLabel>{t("notifications.form.gotify.custom_message_label")}</FormLabel>
             <FormControl>
               <Textarea
                 placeholder="Alert: {{ monitor.name }} is {{ status }} - {{ msg }}"
@@ -164,8 +165,8 @@ export default function GotifyForm() {
               />
             </FormControl>
             <FormDescription>
-              Custom message template. Available variables: {"{{ msg }}"}, {"{{ monitor.name }}"}, {"{{ status }}"}, {"{{ heartbeat.* }}"}.
-              Leave empty to use the default message.
+              {t('notifications.form.gotify.custom_message_description')}: {"{{ msg }}"}, {"{{ monitor.name }}"}, {"{{ status }}"}, {"{{ heartbeat.* }}"}.
+              {t('notifications.form.gotify.custom_message_description_2')}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -174,10 +175,10 @@ export default function GotifyForm() {
 
       <div className="space-y-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
         <p className="text-sm text-blue-800 dark:text-blue-200">
-          <strong>Note:</strong> You need to have a Gotify server running to use this integration.
+          <strong>{t("notifications.form.gotify.note_label")}</strong> {t("notifications.form.gotify.note_description")}
         </p>
         <p className="text-sm text-blue-800 dark:text-blue-200">
-          You can learn more about Gotify and how to set it up at:
+          {t("notifications.form.gotify.learn_more_label")}:
         </p>
         <p className="text-sm text-blue-800 dark:text-blue-200">
           <a

@@ -9,6 +9,7 @@ import {
 import { useTimezone } from "../context/timezone-context";
 import { formatDateToTimezone } from "../lib/formatDateToTimezone";
 import { cn } from "@/lib/utils";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 type BarHistoryProps = {
   data: HeartbeatModel[];
@@ -30,6 +31,7 @@ const BarHistory: React.FC<BarHistoryProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [visibleCount, setVisibleCount] = useState(0);
   const { timezone } = useTimezone();
+  const { t } = useLocalizedTranslation();
 
   useEffect(() => {
     const updateCount = () => {
@@ -94,37 +96,37 @@ const BarHistory: React.FC<BarHistoryProps> = ({
                       <div className="font-semibold">ID:</div>
                       <div className="col-span-2">{value.id}</div>
 
-                      <div className="font-semibold">Time:</div>
+                      <div className="font-semibold">{t("bars.time")}:</div>
                       <div className="col-span-2">{formatDateToTimezone(value.time, timezone)}</div>
 
-                      <div className="font-semibold">Status:</div>
+                      <div className="font-semibold">{t("bars.status")}:</div>
                       <div className="col-span-2">{value.status}</div>
 
-                      <div className="font-semibold">Ping:</div>
+                      <div className="font-semibold">{t("bars.ping")}:</div>
                       <div className="col-span-2">{value.ping} ms</div>
 
-                      <div className="font-semibold">Important:</div>
+                      <div className="font-semibold">{t("bars.important")}:</div>
                       <div className="col-span-2">{value.important?.toString()}</div>
 
-                      <div className="font-semibold">Message:</div>
+                      <div className="font-semibold">{t("bars.message")}:</div>
                       <div className="col-span-2 break-words">{value.msg}</div>
 
-                      <div className="font-semibold">Retries:</div>
+                      <div className="font-semibold">{t("bars.retries")}:</div>
                       <div className="col-span-2">{value.retries}</div>
 
-                      <div className="font-semibold">Down count:</div>
+                      <div className="font-semibold">{t("bars.down_count")}:</div>
                       <div className="col-span-2">{value.down_count}</div>
 
-                      <div className="font-semibold">Notified:</div>
+                      <div className="font-semibold">{t("bars.notified")}:</div>
                       <div className="col-span-2">{value.notified?.toString()}</div>
 
                       {prev && prev?.time && (
                         <>
-                          <div className="font-semibold">Interval:</div>
+                          <div className="font-semibold">{t("bars.interval")}:</div>
                           <div className="col-span-2">
                             {new Date(value.time!).getTime() -
                               new Date(prev.time!).getTime()}{" "}
-                            ms
+                            {t("bars.ms")}
                           </div>
                         </>
                       )}

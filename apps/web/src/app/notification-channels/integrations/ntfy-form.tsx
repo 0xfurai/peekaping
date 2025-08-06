@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { useFormContext } from "react-hook-form";
 import * as React from "react";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const schema = z.object({
   type: z.literal("ntfy"),
@@ -54,6 +55,7 @@ export const displayName = "NTFY";
 export default function NtfyForm() {
   const form = useFormContext();
   const authType = form.watch("authentication_type");
+  const { t } = useLocalizedTranslation();
 
   // Handle conditional validation
   React.useEffect(() => {
@@ -61,23 +63,23 @@ export default function NtfyForm() {
       form.clearErrors(["username", "password"]);
       if (!form.getValues("username")) {
         form.setError("username", {
-          message: "Username is required for basic authentication",
+          message: t("notifications.form.ntfy.username_required"),
         });
       }
       if (!form.getValues("password")) {
         form.setError("password", {
-          message: "Password is required for basic authentication",
+          message: t("notifications.form.ntfy.password_required"),
         });
       }
     } else if (authType === "token") {
       form.clearErrors(["token"]);
       if (!form.getValues("token")) {
         form.setError("token", {
-          message: "Token is required for token authentication",
+          message: t("notifications.form.ntfy.token_required"),
         });
       }
     }
-  }, [authType, form]);
+  }, [authType, form, t]);
 
   return (
     <>
@@ -86,7 +88,7 @@ export default function NtfyForm() {
         name="server_url"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>NTFY Server URL</FormLabel>
+            <FormLabel>{t("notifications.form.ntfy.server_url_label")}</FormLabel>
             <FormControl>
               <Input
                 placeholder="https://ntfy.sh"
@@ -96,8 +98,7 @@ export default function NtfyForm() {
               />
             </FormControl>
             <FormDescription>
-              The URL of your NTFY server. Use https://ntfy.sh for the public
-              instance.
+              {t("notifications.form.ntfy.server_url_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -109,13 +110,12 @@ export default function NtfyForm() {
         name="topic"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Topic</FormLabel>
+            <FormLabel>{t("notifications.form.ntfy.topic_label")}</FormLabel>
             <FormControl>
               <Input placeholder="peekaping" required {...field} />
             </FormControl>
             <FormDescription>
-              The topic name for your notifications. This will be the channel
-              where notifications are sent.
+              {t("notifications.form.ntfy.topic_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -127,7 +127,7 @@ export default function NtfyForm() {
         name="authentication_type"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Authentication Type</FormLabel>
+            <FormLabel>{t("notifications.form.ntfy.authentication_type_label")}</FormLabel>
             <Select
               onValueChange={(val) => {
                 if (!val) {
@@ -139,26 +139,30 @@ export default function NtfyForm() {
             >
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select authentication type" />
+                  <SelectValue placeholder={t("notifications.form.ntfy.authentication_type_placeholder")} />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="none">No Authentication</SelectItem>
-                <SelectItem value="basic">Basic Authentication</SelectItem>
-                <SelectItem value="token">Token Authentication</SelectItem>
+                <SelectItem value="none">{t("notifications.form.ntfy.authentication_type_none")}</SelectItem>
+                <SelectItem value="basic">{t("notifications.form.ntfy.authentication_type_basic")}</SelectItem>
+                <SelectItem value="token">{t("notifications.form.ntfy.authentication_type_token")}</SelectItem>
               </SelectContent>
             </Select>
             <FormDescription>
               {authType === "none" && (
                 <>
-                  No authentication required. Suitable for public NTFY servers.
+                  {t("notifications.form.ntfy.authentication_type_none_description")}
                 </>
               )}
               {authType === "basic" && (
-                <>Use username and password for basic authentication.</>
+                <>
+                  {t("notifications.form.ntfy.authentication_type_basic_description")}
+                </>
               )}
               {authType === "token" && (
-                <>Use an access token for authentication.</>
+                <>
+                  {t("notifications.form.ntfy.authentication_type_token_description")}
+                </>
               )}
             </FormDescription>
             <FormMessage />
@@ -173,7 +177,7 @@ export default function NtfyForm() {
             name="username"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Username</FormLabel>
+                <FormLabel>{t("forms.labels.username")}</FormLabel>
                 <FormControl>
                   <Input placeholder="your-username" required {...field} />
                 </FormControl>
@@ -187,7 +191,7 @@ export default function NtfyForm() {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <FormLabel>{t("forms.labels.password")}</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="your-password"
@@ -209,7 +213,7 @@ export default function NtfyForm() {
           name="token"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Access Token</FormLabel>
+              <FormLabel>{t("notifications.form.ntfy.token_label")}</FormLabel>
               <FormControl>
                 <Input
                   placeholder="tk_AgQdq7mVBoFD37zQVN29RhuMzNIz2"
@@ -219,7 +223,7 @@ export default function NtfyForm() {
                 />
               </FormControl>
               <FormDescription>
-                Your NTFY access token for authentication.
+                {t("notifications.form.ntfy.token_description")}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -232,7 +236,7 @@ export default function NtfyForm() {
         name="priority"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Priority</FormLabel>
+            <FormLabel>{t("notifications.form.ntfy.priority_label")}</FormLabel>
             <Select
               onValueChange={(val) => {
                 if (!val) {
@@ -244,20 +248,19 @@ export default function NtfyForm() {
             >
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select priority" />
+                  <SelectValue placeholder={t("notifications.form.ntfy.priority_placeholder")} />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="1">1 - Min (Lowest)</SelectItem>
-                <SelectItem value="2">2 - Low</SelectItem>
-                <SelectItem value="3">3 - Default</SelectItem>
-                <SelectItem value="4">4 - High</SelectItem>
-                <SelectItem value="5">5 - Urgent (Highest)</SelectItem>
+                <SelectItem value="1">1 - {t("notifications.form.ntfy.priority_1")}</SelectItem>
+                <SelectItem value="2">2 - {t("notifications.form.ntfy.priority_2")}</SelectItem>
+                <SelectItem value="3">3 - {t("notifications.form.ntfy.priority_3")}</SelectItem>
+                <SelectItem value="4">4 - {t("notifications.form.ntfy.priority_4")}</SelectItem>
+                <SelectItem value="5">5 - {t("notifications.form.ntfy.priority_5")}</SelectItem>
               </SelectContent>
             </Select>
             <FormDescription>
-              The priority level of the notification. Higher priorities may
-              trigger different behaviors on the client.
+              {t("notifications.form.ntfy.priority_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -269,13 +272,12 @@ export default function NtfyForm() {
         name="tags"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Tags</FormLabel>
+            <FormLabel>{t("notifications.form.ntfy.tags_label")}</FormLabel>
             <FormControl>
               <Input placeholder="peekaping,monitoring,alert" {...field} />
             </FormControl>
             <FormDescription>
-              Comma-separated tags for categorizing notifications. Available
-              variables: {"{{ name }}"}, {"{{ status }}"}
+              {t("notifications.form.ntfy.tags_description")}: {"{{ name }}"}, {"{{ status }}"}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -287,12 +289,12 @@ export default function NtfyForm() {
         name="title"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Custom Title</FormLabel>
+            <FormLabel>{t("notifications.form.ntfy.title_label")}</FormLabel>
             <FormControl>
               <Input placeholder="Peekaping Alert - {{ name }}" {...field} />
             </FormControl>
             <FormDescription>
-              Custom title for the notification. Available variables:{" "}
+              {t("notifications.form.ntfy.title_description")}:{" "}
               {"{{ name }}"}, {"{{ status }}"}, {"{{ msg }}"}
             </FormDescription>
             <FormMessage />
@@ -305,7 +307,7 @@ export default function NtfyForm() {
         name="custom_message"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Custom Message</FormLabel>
+            <FormLabel>{t("notifications.form.ntfy.custom_message_label")}</FormLabel>
             <FormControl>
               <Textarea
                 placeholder="{{ msg }}"
@@ -314,7 +316,7 @@ export default function NtfyForm() {
               />
             </FormControl>
             <FormDescription>
-              Custom message content. Available variables: {"{{ msg }}"},{" "}
+              {t("notifications.form.ntfy.custom_message_description")}: {"{{ msg }}"},{" "}
               {"{{ name }}"}, {"{{ status }}"}, {"{{ monitor.* }}"}
             </FormDescription>
             <FormMessage />

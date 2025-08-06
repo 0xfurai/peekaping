@@ -18,6 +18,7 @@ import {
 import { useFormContext } from "react-hook-form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { InfoIcon } from "lucide-react";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const schema = z.object({
   type: z.literal("discord"),
@@ -46,6 +47,7 @@ export const displayName = "Discord";
 export default function DiscordForm() {
   const form = useFormContext();
   const messageType = form.watch("message_type");
+  const { t } = useLocalizedTranslation();
 
   return (
     <>
@@ -55,7 +57,7 @@ export default function DiscordForm() {
         render={({ field }) => (
           <FormItem>
             <FormLabel>
-              Discord Webhook URL
+              {t("notifications.form.discord.webhook_url_label")}
             </FormLabel>
             <FormControl>
               <Input
@@ -68,11 +70,11 @@ export default function DiscordForm() {
             <FormDescription>
                 <Alert>
                   <InfoIcon className="mr-2 h-4 w-4"/>
-                  <AlertTitle className="font-bold">Setup Discord Webhook</AlertTitle>
+                  <AlertTitle className="font-bold">{t("notifications.form.discord.setup_webhook_title")}</AlertTitle>
                   <AlertDescription>
                     <ul className="list-inside list-disc text-sm mt-2">
-                      <li>Get your webhook URL from Discord server settings → Integrations → Webhooks.</li>
-                      <li>Create a new webhook and copy the URL. Make sure you selected the correct channel.</li>
+                      <li>{t("notifications.form.discord.setup_webhook_description_1")}</li>
+                      <li>{t("notifications.form.discord.setup_webhook_description_2")}</li>
                     </ul>
                   </AlertDescription>
                 </Alert>
@@ -85,7 +87,7 @@ export default function DiscordForm() {
         name="bot_display_name"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Bot Display Name</FormLabel>
+            <FormLabel>{t("notifications.form.discord.bot_display_name_label")}</FormLabel>
             <FormControl>
               <Input
                 placeholder="Peekaping"
@@ -94,7 +96,7 @@ export default function DiscordForm() {
               />
             </FormControl>
             <FormDescription>
-              The name that will appear as the sender of the Discord messages.
+              {t("notifications.form.discord.bot_display_name_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -106,15 +108,15 @@ export default function DiscordForm() {
         name="custom_message_prefix"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Custom Message Prefix</FormLabel>
+            <FormLabel>{t("notifications.form.discord.custom_message_prefix_label")}</FormLabel>
             <FormControl>
               <Input
-                placeholder="Optional: Add a prefix to your messages"
+                placeholder={t("notifications.form.discord.custom_message_prefix_placeholder")}
                 {...field}
               />
             </FormControl>
             <FormDescription>
-              Optional prefix that will be added to the beginning of all messages.
+              {t("notifications.form.discord.custom_message_prefix_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -126,21 +128,21 @@ export default function DiscordForm() {
         name="message_type"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Sending Message To</FormLabel>
+            <FormLabel>{t("notifications.form.discord.sending_message_to_label")}</FormLabel>
             <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select message type" />
+                  <SelectValue placeholder={t("notifications.form.discord.sending_message_to_placeholder")} />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="send_to_channel">Send to channel</SelectItem>
-                <SelectItem value="send_to_new_forum_post">Send to new forum post</SelectItem>
-                <SelectItem value="send_to_thread">Send to thread</SelectItem>
+                <SelectItem value="send_to_channel">{t("notifications.form.discord.sending_message_to_channel")}</SelectItem>
+                <SelectItem value="send_to_new_forum_post">{t("notifications.form.discord.sending_message_to_new_forum_post")}</SelectItem>
+                <SelectItem value="send_to_thread">{t("notifications.form.discord.sending_message_to_thread")}</SelectItem>
               </SelectContent>
             </Select>
             <FormDescription>
-              Choose where to send Discord messages.
+              {t("notifications.form.discord.sending_message_to_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -153,16 +155,16 @@ export default function DiscordForm() {
           name="thread_name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Forum Post Name</FormLabel>
+              <FormLabel>{t("notifications.form.discord.forum_post_name_label")}</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="Enter forum post name"
+                  placeholder={t("notifications.form.discord.forum_post_name_placeholder")}
                   required
                   {...field}
                 />
               </FormControl>
               <FormDescription>
-                The name of the new forum post that will be created.
+                {t("notifications.form.discord.forum_post_name_description")}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -176,10 +178,10 @@ export default function DiscordForm() {
           name="thread_id"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Thread ID</FormLabel>
+              <FormLabel>{t("notifications.form.discord.thread_id_label")}</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="Enter thread or post ID"
+                  placeholder={t("notifications.form.discord.thread_id_placeholder")}
                   required
                   {...field}
                 />
@@ -187,11 +189,11 @@ export default function DiscordForm() {
               <FormDescription>
                 <Alert>
                   <InfoIcon className="mr-2 h-4 w-4"/>
-                  <AlertTitle className="font-bold">The ID of the thread or forum post where messages will be sent</AlertTitle>
+                  <AlertTitle className="font-bold">{t("notifications.form.discord.thread_id_description_title")}</AlertTitle>
                   <AlertDescription>
                     <ul className="list-inside list-disc text-sm mt-2">
-                      <li>Enable Developer Mode in Discord User Settings → Advanced → Developer Mode</li>
-                      <li>Right-click on the thread or post and select "Copy Thread ID" or "Copy Channel ID"</li>
+                      <li>{t("notifications.form.discord.thread_id_description_1")}</li>
+                      <li>{t("notifications.form.discord.thread_id_description_2")}</li>
                     </ul>
                   </AlertDescription>
                 </Alert>

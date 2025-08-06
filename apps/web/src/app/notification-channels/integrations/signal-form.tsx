@@ -10,6 +10,7 @@ import {
 import { z } from "zod";
 import { Textarea } from "@/components/ui/textarea";
 import { useFormContext } from "react-hook-form";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const schema = z.object({
   type: z.literal("signal"),
@@ -33,6 +34,7 @@ export const displayName = "Signal";
 
 export default function SignalForm() {
   const form = useFormContext();
+  const { t } = useLocalizedTranslation();
 
   return (
     <>
@@ -41,7 +43,7 @@ export default function SignalForm() {
         name="signal_url"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Post URL</FormLabel>
+            <FormLabel>{t("notifications.form.signal.post_url_label")}</FormLabel>
             <FormControl>
               <Input
                 placeholder="http://localhost:8080/v2/send"
@@ -51,7 +53,7 @@ export default function SignalForm() {
               />
             </FormControl>
             <FormDescription>
-              The URL of your Signal CLI REST API server.
+              {t("notifications.form.signal.post_url_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -63,7 +65,7 @@ export default function SignalForm() {
         name="signal_number"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Number</FormLabel>
+            <FormLabel>{t("notifications.form.signal.number_label")}</FormLabel>
             <FormControl>
               <Input
                 placeholder="+1234567890"
@@ -73,7 +75,7 @@ export default function SignalForm() {
               />
             </FormControl>
             <FormDescription>
-              The phone number of your Signal account (sender number).
+              {t("notifications.form.signal.number_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -85,7 +87,7 @@ export default function SignalForm() {
         name="signal_recipients"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Recipients</FormLabel>
+            <FormLabel>{t("notifications.form.signal.recipients_label")}</FormLabel>
             <FormControl>
               <Input
                 placeholder="+1234567890,+0987654321"
@@ -95,7 +97,7 @@ export default function SignalForm() {
               />
             </FormControl>
             <FormDescription>
-              Comma-separated list of phone numbers to send notifications to.
+              {t("notifications.form.signal.recipients_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -107,7 +109,7 @@ export default function SignalForm() {
         name="custom_message"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Custom Message</FormLabel>
+            <FormLabel>{t("notifications.form.signal.custom_message_label")}</FormLabel>
             <FormControl>
               <Textarea
                 placeholder="Alert: {{ name }} is {{ status }}"
@@ -116,7 +118,7 @@ export default function SignalForm() {
               />
             </FormControl>
             <FormDescription>
-              Custom message template. Available variables: {"{{ msg }}"}, {"{{ name }}"}, {"{{ status }}"}, {"{{ monitor.* }}"}
+              {t("notifications.form.signal.custom_message_description")}: {"{{ msg }}"}, {"{{ name }}"}, {"{{ status }}"}, {"{{ monitor.* }}"}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -125,10 +127,10 @@ export default function SignalForm() {
 
       <div className="space-y-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
         <p className="text-sm text-amber-800 dark:text-amber-200">
-          <strong>Note:</strong> You need to have a Signal client with REST API.
+          <strong>{t("notifications.form.signal.note_label")}:</strong> {t("notifications.form.signal.note_description")}
         </p>
         <p className="text-sm text-amber-800 dark:text-amber-200">
-          You can check this URL to view how to set one up:
+          {t("notifications.form.signal.more_info_label")}:
         </p>
         <p className="text-sm text-amber-800 dark:text-amber-200">
           <a
@@ -141,7 +143,7 @@ export default function SignalForm() {
           </a>
         </p>
         <p className="text-sm text-amber-800 dark:text-amber-200">
-          <strong>IMPORTANT:</strong> You cannot mix groups and numbers in recipients!
+          <strong>{t("notifications.form.signal.important_label")}:</strong> {t("notifications.form.signal.important_description")}
         </p>
       </div>
     </>

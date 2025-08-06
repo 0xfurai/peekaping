@@ -44,8 +44,9 @@ import { cn, commonMutationErrorHandler } from "@/lib/utils";
 import ImportantNotificationsList from "../components/important-notifications-list";
 import { BackButton } from "@/components/back-button";
 import dayjs from "dayjs";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
-function formatDuration(ms: number): string {
+function formatDuration(ms: number, t: (key: string) => string): string {
   // Handle negative durations (clock skew) by returning empty string
   if (ms <= 0) {
     return "";
@@ -64,12 +65,13 @@ function formatDuration(ms: number): string {
     return "";
   }
 
-  return "for " + parts.join(" ");
+  return t("monitors.view.for") + " " + parts.join(" ");
 }
 
 const MonitorPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useLocalizedTranslation();
   const queryClient = useQueryClient();
   const { socket, status: socketStatus } = useWebSocket();
 
@@ -108,7 +110,7 @@ const MonitorPage = () => {
     }),
     onSuccess: () => {
       console.log("deleted");
-      toast.success("Monitor deleted");
+      toast.success(t("monitors.toasts.deleted"));
       queryClient.invalidateQueries({
         queryKey: getMonitorsInfiniteQueryKey(),
       });
@@ -120,7 +122,7 @@ const MonitorPage = () => {
   const pauseMutation = useMutation({
     ...patchMonitorsByIdMutation(),
     onSuccess: (res) => {
-      toast.success(!res.data?.active ? "Monitor paused" : "Monitor resumed");
+      toast.success(!res.data?.active ? t("monitors.toasts.paused") : t("monitors.toasts.resumed"));
       setShowConfirmPause(false);
 
       queryClient.setQueryData(
@@ -273,23 +275,23 @@ const MonitorPage = () => {
     if (!stats) return [];
     return [
       {
-        label: "Last 24 hours",
+        label: t("monitors.view.stats.last_24_hours"),
         value: stats.data?.["24h"],
       },
       {
-        label: "Last 7 days",
+        label: t("monitors.view.stats.last_7_days"),
         value: stats.data?.["7d"],
       },
       {
-        label: "Last 30 days",
+        label: t("monitors.view.stats.last_30_days"),
         value: stats.data?.["30d"],
       },
       {
-        label: "Last 365 days",
+        label: t("monitors.view.stats.last_365_days"),
         value: stats.data?.["365d"],
       },
     ];
-  }, [stats]);
+  }, [stats, t]);
 
   const resetMutation = useMutation({
     ...postMonitorsByIdResetMutation({
@@ -298,7 +300,7 @@ const MonitorPage = () => {
       },
     }),
     onSuccess: () => {
-      toast.success("Monitor data reset successfully");
+      toast.success(t("monitors.toasts.reset_success"));
       setShowConfirmReset(false);
 
       queryClient.invalidateQueries({
@@ -339,7 +341,7 @@ const MonitorPage = () => {
     ? dayjs().diff(dayjs(lastImportantHeartbeatTime), "milliseconds")
     : 0;
 
-  const lihText = formatDuration(lastImportantHeartbeatDuration);
+  const lihText = formatDuration(lastImportantHeartbeatDuration, t);
 
   return (
     <Layout
@@ -351,7 +353,7 @@ const MonitorPage = () => {
         <BackButton to="/monitors" />
         <div className="pl-4">
           <span className="text-sm text-muted-foreground mr-2">
-            {monitor?.type} monitor for
+            {monitor?.type} {t("monitors.view.monitor_for")}
           </span>
           <a
             href={config?.url ?? "#"}
@@ -391,7 +393,7 @@ const MonitorPage = () => {
                   ) : (
                     <Pause />
                   )}
-                  Pause
+                  {t("monitors.view.buttons.pause")}
                 </>
               ) : (
                 <>
@@ -400,7 +402,7 @@ const MonitorPage = () => {
                   ) : (
                     <PlayIcon />
                   )}
-                  Resume
+                  {t("monitors.view.buttons.resume")}
                 </>
               )}
             </Button>
@@ -410,7 +412,7 @@ const MonitorPage = () => {
               onClick={() => navigate("/monitors/" + id + "/edit")}
             >
               <Edit />
-              Edit
+              {t("monitors.view.buttons.edit")}
             </Button>
             <Button
               variant="ghost"
@@ -424,7 +426,7 @@ const MonitorPage = () => {
               }}
             >
               <Copy />
-              Clone
+              {t("monitors.view.buttons.clone")}
             </Button>
             <Button
               variant="destructive"
@@ -437,7 +439,7 @@ const MonitorPage = () => {
               ) : (
                 <RotateCcw />
               )}
-              Reset Data
+              {t("monitors.view.buttons.reset_data")}
             </Button>
             <Button
               variant="destructive"
@@ -445,7 +447,7 @@ const MonitorPage = () => {
               onClick={handleDelete}
             >
               <Trash />
-              Delete
+              {t("monitors.view.buttons.delete")}
             </Button>
           </div>
         </div>
@@ -453,7 +455,7 @@ const MonitorPage = () => {
         <div className="text-white space-y-6 mt-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-y-4 md:gap-4 mb-4">
             <Card className="p-4 rounded-xl gap-1">
-              <div className="font-semibold">Current status</div>
+              <div className="font-semibold">{t("monitors.view.current_status")}</div>
               {monitor?.active ? (
                 <div
                   className={cn(
@@ -464,13 +466,13 @@ const MonitorPage = () => {
                     lastHeartbeat?.status === 3 && "text-blue-400"
                   )}
                 >
-                  {lastHeartbeat?.status === 1 && "Up"}
-                  {lastHeartbeat?.status === 0 && "Down"}
-                  {lastHeartbeat?.status === 2 && "Down"}
-                  {lastHeartbeat?.status === 3 && "Maintenance"}
+                  {lastHeartbeat?.status === 1 && t("monitors.view.status.up")}
+                  {lastHeartbeat?.status === 0 && t("monitors.view.status.down")}
+                  {lastHeartbeat?.status === 2 && t("monitors.view.status.down")}
+                  {lastHeartbeat?.status === 3 && t("monitors.view.status.maintenance")}
                 </div>
               ) : (
-                <div className="font-semibold text-2xl">Paused</div>
+                <div className="font-semibold text-2xl">{t("monitors.view.status.paused")}</div>
               )}
 
               {monitor?.active && lastImportantHeartbeatDuration > 0 && (
@@ -479,17 +481,18 @@ const MonitorPage = () => {
               {!monitor?.active && lastHeartbeat?.time && (
                 <div className="text-sm text-gray-400">
                   {formatDuration(
-                    dayjs().diff(dayjs(lastHeartbeat?.time), "milliseconds")
+                    dayjs().diff(dayjs(lastHeartbeat?.time), "milliseconds"),
+                    t
                   )}
                 </div>
               )}
             </Card>
 
             <Card className="p-4 rounded-xl col-span-2 gap-2">
-              <div className="text-white font-semibold">Live Status</div>
+              <div className="text-white font-semibold">{t("monitors.view.live_status")}</div>
               <BarHistory data={heartbeatData} />
               <div className="text-sm text-gray-400">
-                Check every {monitor?.interval} seconds
+                {t("monitors.view.check_every")} {monitor?.interval} {t("monitors.view.seconds")}
               </div>
             </Card>
           </div>
@@ -528,15 +531,14 @@ const MonitorPage = () => {
       <AlertDialog open={showConfirmDelete}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t("monitors.view.dialogs.delete.title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete monitor
-              and all related data.
+              {t("monitors.view.dialogs.delete.description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setShowConfirmDelete(false)}>
-              Cancel
+              {t("common.cancel")}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={() =>
@@ -549,7 +551,7 @@ const MonitorPage = () => {
               disabled={deleteMutation.isPending}
             >
               {deleteMutation.isPending && <Loader2 className="animate-spin" />}
-              Delete
+              {t("monitors.view.buttons.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -558,15 +560,15 @@ const MonitorPage = () => {
       <AlertDialog open={showConfirmPause}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmation</AlertDialogTitle>
+            <AlertDialogTitle>{t("monitors.view.dialogs.pause.title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure want to pause?
+              {t("monitors.view.dialogs.pause.description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
 
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setShowConfirmPause(false)}>
-              Cancel
+              {t("common.cancel")}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={() =>
@@ -582,7 +584,7 @@ const MonitorPage = () => {
               disabled={pauseMutation.isPending}
             >
               {pauseMutation.isPending && <Loader2 className="animate-spin" />}
-              Pause
+              {t("monitors.view.buttons.pause")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -591,17 +593,15 @@ const MonitorPage = () => {
       <AlertDialog open={showConfirmReset}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Reset Monitor Data</AlertDialogTitle>
+            <AlertDialogTitle>{t("monitors.view.dialogs.reset.title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete all heartbeat history and uptime
-              statistics for this monitor. The monitor will appear as if it was
-              just created. This action cannot be undone.
+              {t("monitors.view.dialogs.reset.description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
 
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setShowConfirmReset(false)}>
-              Cancel
+              {t("common.cancel")}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={() =>
@@ -615,7 +615,7 @@ const MonitorPage = () => {
               className="bg-orange-600 hover:bg-orange-700"
             >
               {resetMutation.isPending && <Loader2 className="animate-spin" />}
-              Reset Data
+              {t("monitors.view.buttons.reset_data")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

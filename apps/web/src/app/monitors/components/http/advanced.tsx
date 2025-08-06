@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { TypographyH4 } from "@/components/ui/typography";
 import { useFormContext } from "react-hook-form";
 import { z } from "zod";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const acceptedStatusCodesOptions = [
   { value: "1XX", label: "1XX" },
@@ -36,18 +37,19 @@ export const advancedDefaultValues: AdvancedForm = {
 }
 
 const Advanced = () => {
+  const { t } = useLocalizedTranslation();
   const form = useFormContext();
 
   return (
     <>
-      <TypographyH4>Advanced</TypographyH4>
+      <TypographyH4>{t("monitors.form.http.advanced.title")}</TypographyH4>
 
       <FormField
         control={form.control}
         name="accepted_statuscodes"
         render={({ field }) => {
           return <FormItem>
-          <FormLabel>Accepted Status Codes</FormLabel>
+          <FormLabel>{t("monitors.form.http.advanced.accepted_status_codes")}</FormLabel>
           <FormControl>
             <MultiSelect
               options={acceptedStatusCodesOptions}
@@ -67,12 +69,12 @@ const Advanced = () => {
         name="max_redirects"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Maximum Redirects</FormLabel>
+            <FormLabel>{t("monitors.form.http.advanced.max_redirects")}</FormLabel>
             <FormControl>
               <Input placeholder="10" {...field} type="number" />
             </FormControl>
             <FormDescription>
-              Maximum number of redirects to follow (0-30). Set to 0 to disable redirects.
+              {t("monitors.form.http.advanced.max_redirects_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -92,10 +94,10 @@ const Advanced = () => {
             </FormControl>
             <div className="space-y-1 leading-none">
               <FormLabel>
-                Ignore TLS/SSL errors for HTTPS websites
+                {t("monitors.form.http.advanced.ignore_tls")}
               </FormLabel>
               <FormDescription>
-                Skip TLS certificate validation. Use with caution - this makes connections less secure.
+                {t("monitors.form.http.advanced.ignore_tls_description")}
               </FormDescription>
             </div>
           </FormItem>

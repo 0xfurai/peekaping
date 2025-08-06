@@ -9,21 +9,23 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { commonMutationErrorHandler } from "@/lib/utils";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const NewStatusPageContent = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { t } = useLocalizedTranslation();
 
   const createStatusPageMutation = useMutation({
     ...postStatusPagesMutation(),
     onSuccess: () => {
-      toast.success("Status page created successfully");
+      toast.success(t("status_pages.messages.created_successfully"));
       queryClient.invalidateQueries({
         queryKey: getStatusPagesInfiniteQueryKey(),
       });
       navigate("/status-pages");
     },
-    onError: commonMutationErrorHandler("Failed to create status page"),
+    onError: commonMutationErrorHandler(t("status_pages.messages.create_failed")),
   });
 
   const handleSubmit = (data: StatusPageForm) => {
@@ -37,11 +39,11 @@ const NewStatusPageContent = () => {
   };
 
   return (
-    <Layout pageName="New Status Page">
+    <Layout pageName={t("status_pages.new_page_name")}>
       <BackButton to="/status-pages" />
       <div className="flex flex-col gap-4">
         <p className="text-gray-500">
-          Create a new status page to share your service status with users.
+          {t("status_pages.messages.create_description")}
         </p>
 
         <CreateEditForm

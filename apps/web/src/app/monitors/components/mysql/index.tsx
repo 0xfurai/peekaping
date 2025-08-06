@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { TypographyH4 } from "@/components/ui/typography";
 import { Button } from "@/components/ui/button";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { Card, CardContent } from "@/components/ui/card";
 import Intervals, {
   intervalsDefaultValues,
@@ -127,6 +128,7 @@ export const serialize = (formData: MySQLForm): MonitorCreateUpdateDto => {
 };
 
 const MySQLForm = () => {
+  const { t } = useLocalizedTranslation();
   const {
     form,
     setNotifierSheetOpen,
@@ -179,18 +181,18 @@ const MySQLForm = () => {
 
         <Card>
           <CardContent className="space-y-4">
-            <TypographyH4>MySQL Connection</TypographyH4>
+            <TypographyH4>{t("monitors.form.mysql.connection_title")}</TypographyH4>
             <FormField
               control={form.control}
               name="connection_string"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Connection String</FormLabel>
+                  <FormLabel>{t("monitors.form.mysql.connection_string_label")}</FormLabel>
                   <FormControl>
                     <Input placeholder="mysql://username:password@host:3306/database" {...field} />
                   </FormControl>
                   <div className="text-sm text-muted-foreground">
-                    Examples:
+                    {t("monitors.form.mysql.connection_string_examples")}
                     <ul className="list-disc list-inside mt-1 space-y-1">
                       <li><code>mysql://user:pass@localhost:3306/mydb</code></li>
                       <li><code>mysql://user:pass@host/database</code> (default port 3306)</li>
@@ -207,7 +209,7 @@ const MySQLForm = () => {
               name="query"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Query</FormLabel>
+                  <FormLabel>{t("monitors.form.mysql.query_label")}</FormLabel>
                   <FormControl>
                     <Textarea placeholder="SELECT 1" {...field} />
                   </FormControl>
@@ -238,7 +240,7 @@ const MySQLForm = () => {
 
         <Button type="submit">
           {isPending && <Loader2 className="animate-spin" />}
-          {mode === "create" ? "Create" : "Update"}
+          {mode === "create" ? t("monitors.form.buttons.create") : t("monitors.form.buttons.update")}
         </Button>
       </form>
     </Form>

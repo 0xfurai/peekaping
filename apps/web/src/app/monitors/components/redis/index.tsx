@@ -31,6 +31,7 @@ import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import type { MonitorCreateUpdateDto, MonitorMonitorResponseDto } from "@/api";
 import { useEffect } from "react";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 interface RedisConfig {
   databaseConnectionString: string;
@@ -175,6 +176,7 @@ const RedisForm = () => {
     monitorId,
     monitor,
   } = useMonitorFormContext();
+  const { t } = useLocalizedTranslation();
 
   const onSubmit = (data: RedisForm) => {
     const payload = serialize(data);
@@ -217,14 +219,14 @@ const RedisForm = () => {
 
         <Card>
           <CardContent className="space-y-4">
-            <TypographyH4>Redis Configuration</TypographyH4>
+            <TypographyH4>{t("monitors.form.redis.title")}</TypographyH4>
 
             <FormField
               control={form.control}
               name="databaseConnectionString"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Connection String</FormLabel>
+                  <FormLabel>{t("monitors.form.redis.connection_string_label")}</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="redis://user:password@host:port"
@@ -232,9 +234,10 @@ const RedisForm = () => {
                     />
                   </FormControl>
                   <FormDescription>
-                    Redis connection string format:
-                    redis://[user:password@]host[:port][/db] or
-                    rediss://[user:password@]host[:port][/db] for TLS
+                    {t("monitors.form.redis.connection_string_description", {
+                      redis: "redis://[user:password@]host[:port][/db]",
+                      rediss: "rediss://[user:password@]host[:port][/db]",
+                    })}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -253,10 +256,9 @@ const RedisForm = () => {
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>Ignore TLS/SSL errors</FormLabel>
+                    <FormLabel>{t("monitors.form.redis.ignore_tls_label")}</FormLabel>
                     <FormDescription>
-                      Skip TLS certificate verification (not recommended for
-                      production)
+                      {t("monitors.form.redis.ignore_tls_description")}
                     </FormDescription>
                   </div>
                 </FormItem>
@@ -270,7 +272,7 @@ const RedisForm = () => {
                   name="caCert"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>CA Certificate (Optional)</FormLabel>
+                      <FormLabel>{t("monitors.form.redis.ca_certificate_label")}</FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"
@@ -280,7 +282,7 @@ const RedisForm = () => {
                         />
                       </FormControl>
                       <FormDescription>
-                        Root CA certificate in PEM format. Required for proper TLS verification with self-signed certificates.
+                        {t("monitors.form.redis.ca_certificate_description")}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -292,7 +294,7 @@ const RedisForm = () => {
                   name="clientCert"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Client Certificate (Optional)</FormLabel>
+                      <FormLabel>{t("monitors.form.redis.client_certificate_label")}</FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"
@@ -302,7 +304,7 @@ const RedisForm = () => {
                         />
                       </FormControl>
                       <FormDescription>
-                        Client certificate in PEM format. Required for mutual TLS authentication.
+                        {t("monitors.form.redis.client_certificate_description")}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -314,7 +316,7 @@ const RedisForm = () => {
                   name="clientKey"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Client Private Key (Optional)</FormLabel>
+                      <FormLabel>{t("monitors.form.redis.client_key_label")}</FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="-----BEGIN PRIVATE KEY-----&#10;...&#10;-----END PRIVATE KEY-----"
@@ -324,7 +326,7 @@ const RedisForm = () => {
                         />
                       </FormControl>
                       <FormDescription>
-                        Client private key in PEM format. Must be provided together with client certificate.
+                        {t("monitors.form.redis.client_key_description")}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -355,7 +357,7 @@ const RedisForm = () => {
 
         <Button type="submit" disabled={isPending}>
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {mode === "create" ? "Create Monitor" : "Update Monitor"}
+          {mode === "create" ? t("monitors.form.buttons.create") : t("monitors.form.buttons.update")}
         </Button>
       </form>
     </Form>

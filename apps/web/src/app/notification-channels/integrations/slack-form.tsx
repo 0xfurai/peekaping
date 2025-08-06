@@ -10,6 +10,7 @@ import {
 import { z } from "zod";
 import { Switch } from "@/components/ui/switch";
 import { useFormContext } from "react-hook-form";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const schema = z.object({
   type: z.literal("slack"),
@@ -37,6 +38,7 @@ export const displayName = "Slack";
 
 export default function SlackForm() {
   const form = useFormContext();
+  const { t } = useLocalizedTranslation();
 
   return (
     <>
@@ -46,7 +48,7 @@ export default function SlackForm() {
         render={({ field }) => (
           <FormItem>
             <FormLabel>
-              Webhook URL <span className="text-red-500">*</span>
+              {t("notifications.form.slack.webhook_url_label")} <span className="text-red-500">*</span>
             </FormLabel>
             <FormControl>
               <Input
@@ -57,10 +59,10 @@ export default function SlackForm() {
               />
             </FormControl>
             <FormDescription>
-              <span className="text-red-500">*</span> Required
+              <span className="text-red-500">*</span> {t("common.required")}
               <br />
               <span className="mt-2 block">
-                Learn more about webhooks:{" "}
+                {t("notifications.form.slack.webhook_url_description")}:{" "}
                 <a
                   href="https://api.slack.com/messaging/webhooks"
                   target="_blank"
@@ -81,12 +83,12 @@ export default function SlackForm() {
         name="slack_username"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Username</FormLabel>
+            <FormLabel>{t("forms.labels.username")}</FormLabel>
             <FormControl>
               <Input placeholder="Uptime Monitor" {...field} />
             </FormControl>
             <FormDescription>
-              The username that will appear as the sender of the message. If not specified, the default bot name will be used.
+              {t("notifications.form.slack.username_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -98,15 +100,15 @@ export default function SlackForm() {
         name="slack_icon_emoji"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Icon Emoji</FormLabel>
+            <FormLabel>{t("notifications.form.slack.icon_emoji_label")}</FormLabel>
             <FormControl>
               <Input placeholder=":warning:" {...field} />
             </FormControl>
             <FormDescription>
-              Emoji to use as the icon for this message. Must be in the format :emoji_name:
+              {t("notifications.form.slack.icon_emoji_description")}
               <br />
               <span className="mt-2 block">
-                Emoji cheat sheet:{" "}
+                {t("notifications.form.slack.icon_emoji_cheat_sheet_label")}:{" "}
                 <a
                   href="https://www.webfx.com/tools/emoji-cheat-sheet/"
                   target="_blank"
@@ -127,15 +129,15 @@ export default function SlackForm() {
         name="slack_channel"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Channel Name</FormLabel>
+            <FormLabel>{t("notifications.form.slack.channel_name_label")}</FormLabel>
             <FormControl>
               <Input placeholder="#general" {...field} />
             </FormControl>
             <FormDescription>
-              The channel where the message will be sent. If not specified, the message will be sent to the default channel configured in the webhook.
+              {t("notifications.form.slack.channel_name_description")}
               <br />
               <span className="mt-2 block">
-                You can override the default channel by specifying a channel name (e.g., #alerts) or a user (e.g., @username).
+                {t("notifications.form.slack.channel_name_description_2")}
               </span>
             </FormDescription>
             <FormMessage />
@@ -148,7 +150,7 @@ export default function SlackForm() {
         name="slack_rich_message"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Message Format</FormLabel>
+            <FormLabel>{t("notifications.form.slack.message_format_label")}</FormLabel>
             <div className="flex items-center gap-2 mt-2">
               <FormControl>
                 <Switch
@@ -156,10 +158,10 @@ export default function SlackForm() {
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
-              <FormLabel className="text-sm font-normal">Send rich messages</FormLabel>
+              <FormLabel className="text-sm font-normal">{t("notifications.form.slack.message_format_description")}</FormLabel>
             </div>
             <FormDescription>
-              Enable to send messages with rich formatting, attachments, and better visual presentation.
+              {t("notifications.form.slack.message_format_description_2")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -178,10 +180,10 @@ export default function SlackForm() {
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
-              <FormLabel>Notify Channel</FormLabel>
+              <FormLabel>{t("notifications.form.slack.channel_notify_label")}</FormLabel>
             </div>
             <FormDescription>
-              When enabled, the message will trigger notifications for all channel members. Use with caution to avoid spam.
+              {t("notifications.form.slack.channel_notify_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>

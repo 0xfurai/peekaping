@@ -23,6 +23,7 @@ import {
   serialize,
   type SQLServerForm as SQLServerFormType,
 } from "./schema";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const SQLServerForm = () => {
   const {
@@ -35,6 +36,7 @@ const SQLServerForm = () => {
     monitorId,
     monitor,
   } = useMonitorFormContext();
+  const { t } = useLocalizedTranslation();
 
   const onSubmit = (data: SQLServerFormType) => {
     const payload = serialize(data);
@@ -79,13 +81,13 @@ const SQLServerForm = () => {
 
         <Card>
           <CardContent className="space-y-4">
-            <TypographyH4>Microsoft SQL Server Connection</TypographyH4>
+            <TypographyH4>{t("monitors.form.sqlserver.title")}</TypographyH4>
             <FormField
               control={form.control}
               name="database_connection_string"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Connection String</FormLabel>
+                  <FormLabel>{t("monitors.form.sqlserver.connection_string_label")}</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Server=localhost,1433;Database=mydb;User Id=sa;Password=..."
@@ -110,17 +112,17 @@ const SQLServerForm = () => {
               name="database_query"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Query</FormLabel>
+                  <FormLabel>{t("monitors.form.sqlserver.query_label")}</FormLabel>
                   <FormControl>
                     <Textarea placeholder="SELECT 1" {...field} />
                   </FormControl>
                   <div className="text-sm text-muted-foreground">
                     <p>
-                      Query to execute for health check. Leave empty to use default{" "}
+                      {t("monitors.form.sqlserver.query_description")}
                       <code className="text-xs bg-muted px-1 py-0.5 rounded">SELECT 1</code>.
                     </p>
                     <p className="mt-1">
-                      <span className="font-medium">Allowed statements:</span> SELECT, SHOW, DESCRIBE, EXPLAIN, WITH, and VALUES.
+                      <span className="font-medium">{t("monitors.form.sqlserver.allowed_statements_label")}</span> {t("monitors.form.sqlserver.allowed_statements_description")}
                     </p>
                   </div>
                   <FormMessage />
@@ -150,7 +152,7 @@ const SQLServerForm = () => {
 
         <Button type="submit" disabled={isPending}>
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {mode === "create" ? "Create Monitor" : "Update Monitor"}
+          {mode === "create" ? t("common.create") : t("common.update")}
         </Button>
       </form>
     </Form>

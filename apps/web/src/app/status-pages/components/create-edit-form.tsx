@@ -79,7 +79,7 @@ const CreateEditForm = ({
       >
         <Card>
           <CardHeader>
-            <CardTitle>Basic Information</CardTitle>
+            <CardTitle>{t("status_pages.form.basic_information_title")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
@@ -88,9 +88,9 @@ const CreateEditForm = ({
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Title</FormLabel>
+                    <FormLabel>{t("status_pages.form.title_label")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter status page title" {...field} />
+                      <Input placeholder={t("status_pages.form.title_placeholder")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -102,7 +102,7 @@ const CreateEditForm = ({
                 name="slug"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Slug</FormLabel>
+                    <FormLabel>{t("status_pages.form.slug_label")}</FormLabel>
                     <FormControl>
                       <Input placeholder="status-page-slug" {...field} />
                     </FormControl>
@@ -117,10 +117,10 @@ const CreateEditForm = ({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>{t("status_pages.form.description_label")}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Enter status page description"
+                      placeholder={t("status_pages.form.description_placeholder")}
                       {...field}
                     />
                   </FormControl>
@@ -134,7 +134,7 @@ const CreateEditForm = ({
               name="icon"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Icon URL</FormLabel>
+                  <FormLabel>{t("status_pages.form.icon_url_label")}</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="https://example.com/icon.png"
@@ -147,10 +147,10 @@ const CreateEditForm = ({
             />
 
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold">Affected Monitors</h2>
+              <h2 className="text-lg font-semibold">{t("status_pages.form.affected_monitors_title")}</h2>
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  Select the monitors that will be affected by this maintenance
+                  {t("status_pages.form.affected_monitors_description")}
                 </p>
 
                 <SearchableMonitorSelector
@@ -166,7 +166,7 @@ const CreateEditForm = ({
 
         <Card>
           <CardHeader>
-            <CardTitle>Customization</CardTitle>
+            <CardTitle>{t("status_pages.form.customization_title")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <FormField
@@ -176,7 +176,7 @@ const CreateEditForm = ({
                 <FormItem>
                   <FormLabel>{t("forms.labels.footer_text")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter footer text" {...field} />
+                    <Input placeholder={t("status_pages.form.footer_text_placeholder")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -188,12 +188,12 @@ const CreateEditForm = ({
               name="auto_refresh_interval"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Auto Refresh Interval (seconds)</FormLabel>
+                  <FormLabel>{t("status_pages.form.auto_refresh_interval_label")}</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
                       min="0"
-                      placeholder="0 for no auto refresh"
+                      placeholder={t("status_pages.form.auto_refresh_interval_placeholder")}
                       {...field}
                       onChange={(e) => field.onChange(e.target.valueAsNumber)}
                     />
@@ -219,7 +219,7 @@ const CreateEditForm = ({
                     <div className="space-y-0.5">
                       <FormLabel>{t("status_pages.published")}</FormLabel>
                       <p className="text-sm text-muted-foreground">
-                        Make this status page publicly accessible
+                        {t("status_pages.form.published_description")}
                       </p>
                     </div>
                     <FormControl>
@@ -242,14 +242,14 @@ const CreateEditForm = ({
             variant="outline"
             onClick={() => window.history.back()}
           >
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button type="submit" disabled={isPending}>
             {isPending
-              ? "Saving..."
+              ? t("common.saving")
               : mode === "create"
-              ? "Create Status Page"
-              : "Update Status Page"}
+              ? t("status_pages.form.create_button")
+              : t("status_pages.form.update_button")}
           </Button>
         </div>
       </form>

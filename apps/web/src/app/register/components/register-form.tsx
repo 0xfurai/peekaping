@@ -30,26 +30,28 @@ import { AlertTitle } from "@/components/ui/alert";
 import { useAuthStore } from "@/store/auth";
 import type { AuthModel } from "@/api/types.gen";
 import { Link } from "react-router-dom";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
-const formSchema = z
+const createFormSchema = (t: (key: string) => string) => z
   .object({
-    email: z.string().email("Please enter a valid email address"),
-    password: z.string().min(8, "Password must be at least 8 characters"),
+    email: z.string().email(t("forms.validation.email_invalid")),
+    password: z.string().min(8, t("forms.validation.password_min_length")),
     confirmPassword: z
       .string()
-      .min(8, "Password must be at least 8 characters"),
+      .min(8, t("forms.validation.password_min_length")),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
+    message: t("forms.validation.passwords_mismatch"),
     path: ["confirmPassword"],
   });
 
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = z.infer<ReturnType<typeof createFormSchema>>;
 
 export function RegisterForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
+  const { t } = useLocalizedTranslation();
   const [serverError, setServerError] = React.useState<string | null>(null);
   const setTokens = useAuthStore(
     (state: {
@@ -64,26 +66,28 @@ export function RegisterForm({
       if (response.data?.accessToken && response.data?.refreshToken) {
         setTokens(response.data.accessToken, response.data.refreshToken);
         setUser(response.data.user ?? null);
-        toast.success("Registered successfully");
+        toast.success(t("messages.register_success"));
       } else {
-        toast.error("Registration successful but no tokens received");
+        toast.error(t("messages.register_no_tokens"));
       }
     },
     onError: (error) => {
       if (isAxiosError(error)) {
         const errorMessage =
           error.response?.data.message ||
-          "An error occurred during registration";
+          t("messages.register_error");
         setServerError(errorMessage);
         toast.error(errorMessage);
       } else {
-        const errorMessage = "An unexpected error occurred";
+        const errorMessage = t("messages.unexpected_error");
         setServerError(errorMessage);
         console.error(error);
       }
     },
   });
 
+  const formSchema = React.useMemo(() => createFormSchema(t), [t]);
+  
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -104,8 +108,8 @@ export function RegisterForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader className="text-center">
-          <CardTitle className="text-xl">Hello</CardTitle>
-          <CardDescription>Create your admin account</CardDescription>
+          <CardTitle className="text-xl">{t("auth.register.title")}</CardTitle>
+          <CardDescription>{t("auth.register.description")}</CardDescription>
         </CardHeader>
 
         <CardContent>
@@ -116,7 +120,7 @@ export function RegisterForm({
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>{t("forms.labels.email")}</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="example@example.com"
@@ -134,7 +138,7 @@ export function RegisterForm({
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>{t("forms.labels.password")}</FormLabel>
                     <FormControl>
                       <Input type="password" {...field} placeholder="********"/>
                     </FormControl>
@@ -148,7 +152,7 @@ export function RegisterForm({
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Confirm Password</FormLabel>
+                    <FormLabel>{t("forms.labels.confirm_password")}</FormLabel>
                     <FormControl>
                       <Input type="password" {...field} placeholder="********"/>
                     </FormControl>
@@ -160,22 +164,22 @@ export function RegisterForm({
               {serverError && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>Error</AlertTitle>
+                  <AlertTitle>{t("common.error")}</AlertTitle>
                   <AlertDescription>{serverError}</AlertDescription>
                 </Alert>
               )}
 
               <Button type="submit" className="w-full">
-                Create
+                {t("auth.register.submit")}
               </Button>
 
               <div className="text-center text-sm text-muted-foreground">
-                Already have an account?{" "}
+                {t("auth.register.have_account")}{" "}
                 <Link
                   to="/login"
                   className="font-medium text-primary hover:underline"
                 >
-                  Sign in
+                  {t("auth.register.sign_in")}
                 </Link>
               </div>
             </form>

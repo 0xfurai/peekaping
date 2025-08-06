@@ -39,6 +39,7 @@ import * as MatrixForm from "../integrations/matrix-form";
 import * as DiscordForm from "../integrations/discord-form";
 import { useEffect } from "react";
 import { commonMutationErrorHandler } from "@/lib/utils";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const typeFormRegistry = {
   smtp: SmtpForm,
@@ -110,7 +111,7 @@ const notificationTypes = Object.keys(typeFormRegistry).map((key) => ({
 export default function CreateEditNotificationChannel({
   onSubmit,
   initialValues = {
-    name: "My notification channel",
+    name: "",
     ...SmtpForm.defaultValues,
   },
   isLoading = false,
@@ -121,6 +122,7 @@ export default function CreateEditNotificationChannel({
   isLoading?: boolean;
   mode?: "create" | "edit";
 }) {
+  const { t } = useLocalizedTranslation();
   const baseForm = useForm<NotificationForm>({
     resolver: zodResolver(notificationSchema),
     defaultValues: initialValues,
@@ -146,9 +148,9 @@ export default function CreateEditNotificationChannel({
   const testNotifierMutation = useMutation({
     ...postNotificationChannelsTestMutation(),
     onSuccess: () => {
-      toast.success("Test notification sent successfully");
+      toast.success(t("notifications.messages.test_success"));
     },
-    onError: commonMutationErrorHandler("Failed to send test notification"),
+    onError: commonMutationErrorHandler(t("notifications.messages.test_failed")),
   });
 
   // Handle test notification
@@ -169,7 +171,7 @@ export default function CreateEditNotificationChannel({
   return (
     <div className="flex flex-col gap-6 max-w-[600px]">
       <CardTitle className="text-xl">
-        {mode === "edit" ? "Edit" : "Create"} Notifier
+        {mode === "edit" ? t("notifications.edit_title") : t("notifications.create_title")}
       </CardTitle>
 
       <Form {...baseForm}>
@@ -178,7 +180,7 @@ export default function CreateEditNotificationChannel({
           className="space-y-6 max-w-[600px]"
         >
           <FormItem>
-            <FormLabel>Notifier Type</FormLabel>
+            <FormLabel>{t("notifications.labels.type")}</FormLabel>
             <Select
               onValueChange={(val) => {
                 if (!val) return;
@@ -207,7 +209,7 @@ export default function CreateEditNotificationChannel({
             >
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select notifier type" />
+                  <SelectValue placeholder={t("notifications.placeholders.select_type")} />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
@@ -226,9 +228,9 @@ export default function CreateEditNotificationChannel({
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Friendly name</FormLabel>
+                <FormLabel>{t("notifications.labels.friendly_name")}</FormLabel>
                 <FormControl>
-                  <Input placeholder="Friendly name" {...field} />
+                  <Input placeholder={t("notifications.labels.friendly_name")} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -239,7 +241,7 @@ export default function CreateEditNotificationChannel({
 
           <div className="flex gap-2">
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Saving..." : "Save"}
+              {isLoading ? t("common.saving") : t("common.save")}
             </Button>
             <Button
               type="button"
@@ -247,7 +249,7 @@ export default function CreateEditNotificationChannel({
               onClick={handleTest}
               disabled={isLoading || testNotifierMutation.isPending}
             >
-              {testNotifierMutation.isPending ? "Testing..." : "Test"}
+              {testNotifierMutation.isPending ? t("notifications.actions.testing") : t("notifications.actions.test")}
             </Button>
           </div>
         </form>

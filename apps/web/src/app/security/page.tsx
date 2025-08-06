@@ -12,8 +12,10 @@ import { useMutation } from "@tanstack/react-query";
 import { postAuth2FaDisableMutation } from "@/api/@tanstack/react-query.gen";
 import { toast } from "sonner";
 import { commonMutationErrorHandler } from "@/lib/utils";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const SecurityPage = () => {
+  const { t } = useLocalizedTranslation();
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
   const [showDisable, setShowDisable] = useState(false);
@@ -23,7 +25,7 @@ const SecurityPage = () => {
   const disable2FAMutation = useMutation({
     ...postAuth2FaDisableMutation(),
     onSuccess: () => {
-      toast.success("2FA disabled successfully");
+      toast.success(t("security.enable_2fa.messages.2fa_disabled_successfully"));
       setUser({
         ...user,
         email: user?.email || "",
@@ -33,12 +35,12 @@ const SecurityPage = () => {
       setShowDisable(false);
       setPassword("");
     },
-    onError: commonMutationErrorHandler("Failed to disable 2FA"),
+    onError: commonMutationErrorHandler(t("security.enable_2fa.messages.failed_to_disable_2fa")),
   });
 
   const handleDisable2FA = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user?.email) return toast.error("User email not found");
+    if (!user?.email) return toast.error(t("security.enable_2fa.messages.user_email_not_found"));
     setLoading(true);
     disable2FAMutation.mutate({
       body: { email: user.email, password },
@@ -47,21 +49,21 @@ const SecurityPage = () => {
   };
 
   return (
-    <Layout pageName="Security">
+    <Layout pageName={t("security.page_name")}>
       <UpdatePassword />
 
       {user?.twofa_status ? (
         <Card className="mb-6 mt-6">
           <CardHeader>
-            <CardTitle>Two-Factor Authentication Enabled</CardTitle>
-            <CardDescription>Your account is protected with 2FA.</CardDescription>
+            <CardTitle>{t("security.enable_2fa.messages.two_factor_authentication_enabled")}</CardTitle>
+            <CardDescription>{t("security.enable_2fa.messages.account_is_protected_with_2fa")}</CardDescription>
           </CardHeader>
           <CardContent>
             <Alert variant="default" className="mb-4">
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle>2FA Active</AlertTitle>
+              <AlertTitle>{t("security.enable_2fa.messages.2fa_active")}</AlertTitle>
               <AlertDescription>
-                You have enabled two-factor authentication (2FA) for your account. This adds an extra layer of security.
+                {t("security.enable_2fa.messages.have_enabled_2fa")}
               </AlertDescription>
             </Alert>
 
@@ -69,23 +71,23 @@ const SecurityPage = () => {
               <form onSubmit={handleDisable2FA} className="flex flex-col gap-2 max-w-xs">
                 <Input
                   type="password"
-                  placeholder="Enter your password to disable 2FA"
+                  placeholder={t("security.enable_2fa.messages.enter_password_to_disable_2fa")}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   required
                 />
                 <div className="flex gap-2">
                   <Button type="submit" disabled={loading} variant="destructive">
-                    {loading ? "Disabling..." : "Disable 2FA"}
+                    {loading ? t("common.disabling") : t("security.enable_2fa.messages.disable_2fa")}
                   </Button>
                   <Button type="button" variant="outline" onClick={() => setShowDisable(false)}>
-                    Cancel
+                    {t("common.cancel")}
                   </Button>
                 </div>
               </form>
             ) : (
               <Button variant="destructive" onClick={() => setShowDisable(true)}>
-                Disable 2FA
+                {t("security.enable_2fa.messages.disable_2fa")}
               </Button>
             )}
           </CardContent>

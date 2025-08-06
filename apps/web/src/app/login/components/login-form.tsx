@@ -30,18 +30,20 @@ import { useAuthStore } from "@/store/auth";
 import type { AuthModel } from "@/api/types.gen";
 import { TwoFADialog } from "./two-fa-dialog";
 import { Link } from "react-router-dom";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
-const formSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(1, "Password is required"),
+const createFormSchema = (t: (key: string) => string) => z.object({
+  email: z.string().email(t("forms.validation.email_invalid")),
+  password: z.string().min(1, t("forms.validation.password_required")),
 });
 
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = z.infer<ReturnType<typeof createFormSchema>>;
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
+  const { t } = useLocalizedTranslation();
   const [serverError, setServerError] = React.useState<string | null>(null);
   const setTokens = useAuthStore(
     (state: {
@@ -62,17 +64,17 @@ export function LoginForm({
       if (accessToken && refreshToken) {
         setTokens(accessToken, refreshToken);
         setUser(user ?? null);
-        toast.success("Logged in successfully");
+        toast.success(t("messages.login_success"));
         setShow2FAPrompt(false);
       } else {
-        toast.error("Login successful but no tokens received");
+        toast.error(t("messages.login_no_tokens"));
       }
       setVerifying2FA(false);
     },
     onError: (error) => {
       if (isAxiosError(error)) {
         const errorMessage =
-          error.response?.data.message || "An error occurred during login";
+          error.response?.data.message || t("messages.login_error");
 
         if (errorMessage === "2FA token required") {
           setShow2FAPrompt(true);
@@ -81,7 +83,7 @@ export function LoginForm({
           toast.error(errorMessage);
         }
       } else {
-        const errorMessage = "An unexpected error occurred";
+        const errorMessage = t("messages.unexpected_error");
         setServerError(errorMessage);
         console.error(error);
       }
@@ -89,6 +91,7 @@ export function LoginForm({
     },
   });
 
+  const formSchema = React.useMemo(() => createFormSchema(t), [t]);
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -123,8 +126,8 @@ export function LoginForm({
       ) : (
         <Card>
           <CardHeader className="text-center">
-            <CardTitle className="text-xl">Welcome back</CardTitle>
-            <CardDescription>Login with your Email</CardDescription>
+            <CardTitle className="text-xl">{t("auth.login.title")}</CardTitle>
+            <CardDescription>{t("auth.login.description")}</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -134,7 +137,7 @@ export function LoginForm({
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>{t("forms.labels.email")}</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="example@example.com"
@@ -152,7 +155,7 @@ export function LoginForm({
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel>{t("forms.labels.password")}</FormLabel>
                       <FormControl>
                         <Input
                           type="password"
@@ -168,22 +171,22 @@ export function LoginForm({
                 {serverError && (
                   <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Error</AlertTitle>
+                    <AlertTitle>{t("common.error")}</AlertTitle>
                     <AlertDescription>{serverError}</AlertDescription>
                   </Alert>
                 )}
 
                 <Button type="submit" className="w-full">
-                  Login
+                  {t("auth.login.submit")}
                 </Button>
 
                 <div className="text-center text-sm text-muted-foreground">
-                  Don't have an account?{" "}
+                  {t("auth.login.no_account")}{" "}
                   <Link
                     to="/register"
                     className="font-medium text-primary hover:underline"
                   >
-                    Sign up
+                    {t("auth.login.sign_up")}
                   </Link>
                 </div>
               </form>

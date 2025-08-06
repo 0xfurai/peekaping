@@ -1,3 +1,4 @@
+import React from "react";
 import {
   Card,
   CardContent,
@@ -19,6 +20,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 interface TwoFADialogProps {
   email: string;
@@ -28,11 +30,11 @@ interface TwoFADialogProps {
   loading?: boolean;
 }
 
-const twoFASchema = z.object({
-  code: z.string().min(1, "2FA code is required"),
+const createTwoFASchema = (t: (key: string) => string) => z.object({
+  code: z.string().min(1, t("auth.twofa.validation.code_required")),
 });
 
-type TwoFAFormValues = z.infer<typeof twoFASchema>;
+type TwoFAFormValues = z.infer<ReturnType<typeof createTwoFASchema>>;
 
 export function TwoFADialog({
   email,
@@ -41,6 +43,9 @@ export function TwoFADialog({
   error,
   loading,
 }: TwoFADialogProps) {
+  const { t } = useLocalizedTranslation();
+  const twoFASchema = React.useMemo(() => createTwoFASchema(t), [t]);
+  
   const form = useForm<TwoFAFormValues>({
     resolver: zodResolver(twoFASchema),
     defaultValues: { code: "" },
@@ -54,11 +59,10 @@ export function TwoFADialog({
     <Card>
       <CardHeader className="text-center">
         <CardTitle className="text-xl">
-          Two-Factor Authentication Required
+          {t("auth.twofa.title")}
         </CardTitle>
         <CardDescription>
-          2FA is enabled for your account. Please enter your authentication code
-          to continue.
+          {t("auth.twofa.description")}
         </CardDescription>
       </CardHeader>
 
@@ -69,10 +73,10 @@ export function TwoFADialog({
             className="grid gap-6"
           >
             <FormItem>
-              <FormLabel>2FA Code</FormLabel>
+              <FormLabel>{t("auth.twofa.code_label")}</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="Enter 2FA code"
+                  placeholder={t("auth.twofa.code_placeholder")}
                   {...form.register("code")}
                   autoFocus
                 />
@@ -83,13 +87,13 @@ export function TwoFADialog({
             {error && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Error</AlertTitle>
+                <AlertTitle>{t("common.error")}</AlertTitle>
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Verifying..." : "Verify 2FA"}
+              {loading ? t("auth.twofa.verifying") : t("auth.twofa.verify_button")}
             </Button>
           </form>
         </Form>

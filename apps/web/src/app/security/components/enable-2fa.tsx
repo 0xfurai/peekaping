@@ -22,6 +22,7 @@ import { useState } from "react";
 import { useAuthStore } from "@/store/auth";
 import QRCode from "react-qr-code";
 import { commonMutationErrorHandler } from "@/lib/utils";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const enable2FAPasswordSchema = z.object({
   currentPassword: z.string().min(1, { message: "Old password is required" }),
@@ -40,6 +41,7 @@ const Enable2FA = () => {
   const user = useAuthStore((s) => s.user);
   const email = user?.email || "";
   const setUser = useAuthStore((s) => s.setUser);
+  const { t } = useLocalizedTranslation();
 
   // Step 1: Verify old password
   const passwordForm = useForm<Enable2FAPasswordFormType>({
@@ -70,14 +72,14 @@ const Enable2FA = () => {
       }
     },
     onError: commonMutationErrorHandler(
-      "Failed to verify password or start 2FA setup"
+      t("security.enable_2fa.messages.failed_to_verify_password")
     ),
   });
 
   const verify2FAMutation = useMutation({
     ...postAuth2FaVerifyMutation(),
     onSuccess: () => {
-      toast.success("2FA enabled successfully");
+      toast.success(t("security.enable_2fa.messages.2fa_enabled_successfully"));
       setStep("password");
       setSecret(null);
       setQr(null);
@@ -88,12 +90,12 @@ const Enable2FA = () => {
         twofa_status: true,
       });
     },
-    onError: commonMutationErrorHandler("Failed to verify 2FA code"),
+    onError: commonMutationErrorHandler(t("security.enable_2fa.messages.failed_to_verify_2fa_code")),
   });
 
   const handlePasswordSubmit = (data: Enable2FAPasswordFormType) => {
     if (!email) {
-      toast.error("User email not found");
+      toast.error(t("security.enable_2fa.messages.user_email_not_found"));
       return;
     }
     setup2FAMutation.mutate({
@@ -103,7 +105,7 @@ const Enable2FA = () => {
 
   const handle2FASubmit = (data: Enable2FASetupFormType) => {
     if (!email) {
-      toast.error("User email not found");
+      toast.error(t("security.enable_2fa.messages.user_email_not_found"));
       return;
     }
     verify2FAMutation.mutate({
@@ -125,12 +127,12 @@ const Enable2FA = () => {
               name="currentPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Current Password</FormLabel>
+                  <FormLabel>{t("security.enable_2fa.form.current_password_label")}</FormLabel>
                   <FormControl>
                     <Input
                       type="password"
                       autoComplete="current-password"
-                      placeholder="Enter your current password"
+                      placeholder={t("security.enable_2fa.form.current_password_placeholder")}
                       {...field}
                     />
                   </FormControl>
@@ -139,7 +141,7 @@ const Enable2FA = () => {
               )}
             />
             <Button type="submit" disabled={setup2FAMutation.isPending}>
-              {setup2FAMutation.isPending ? "Verifying..." : "Continue"}
+              {setup2FAMutation.isPending ? t("common.verifying") : t("common.continue")}
             </Button>
           </form>
         </Form>
@@ -149,7 +151,7 @@ const Enable2FA = () => {
           {qr && (
             <div>
               <TypographyH5 className="mb-1">
-                Scan this QR code with your authenticator app
+                {t("security.enable_2fa.messages.scan_qr_code_with_authenticator_app")}
               </TypographyH5>
               <div className="mb-2 bg-white p-2 rounded inline-block">
                 <QRCode value={qr} size={160} />
@@ -159,7 +161,7 @@ const Enable2FA = () => {
           {secret && (
             <div>
               <TypographyH5 className="mb-1">
-                Or enter this secret manually
+                {t("security.enable_2fa.messages.or_enter_secret_manually")}
               </TypographyH5>
               <div className="bg-muted p-2 rounded font-mono select-all inline-block">
                 {secret}
@@ -176,12 +178,12 @@ const Enable2FA = () => {
                 name="code"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Authenticator Code</FormLabel>
+                    <FormLabel>{t("security.enable_2fa.form.authenticator_code_label")}</FormLabel>
                     <FormControl>
                       <Input
                         type="text"
                         autoComplete="one-time-code"
-                        placeholder="Enter the 6-digit code"
+                        placeholder={t("security.enable_2fa.form.authenticator_code_placeholder")}
                         {...field}
                       />
                     </FormControl>
@@ -190,7 +192,7 @@ const Enable2FA = () => {
                 )}
               />
               <Button type="submit" disabled={verify2FAMutation.isPending}>
-                {verify2FAMutation.isPending ? "Enabling..." : "Enable 2FA"}
+                {verify2FAMutation.isPending ? t("common.enabling") : t("security.enable_2fa.form.enable_2fa_button")}
               </Button>
             </form>
           </Form>

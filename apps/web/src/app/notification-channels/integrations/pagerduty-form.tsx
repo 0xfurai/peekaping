@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const schema = z.object({
   type: z.literal("pagerduty"),
@@ -39,6 +40,7 @@ export const displayName = "PagerDuty";
 
 export default function PagerDutyForm() {
   const form = useFormContext();
+  const { t } = useLocalizedTranslation();
 
   return (
     <>
@@ -48,28 +50,28 @@ export default function PagerDutyForm() {
         render={({ field }) => (
           <FormItem>
             <FormLabel>
-              Integration Key <span className="text-red-500">*</span>
+              {t("notifications.form.pagerduty.integration_key_label")} <span className="text-red-500">*</span>
             </FormLabel>
             <FormControl>
               <Input
-                placeholder="Enter your PagerDuty integration key"
+                placeholder={t("notifications.form.pagerduty.integration_key_placeholder")}
                 type="password"
                 required
                 {...field}
               />
             </FormControl>
             <FormDescription>
-              <span className="text-red-500">*</span> Required
+              <span className="text-red-500">*</span> {t("common.required")}
               <br />
               <span className="mt-2 block">
-                Learn how to get your integration key:{" "}
+                {t("notifications.form.pagerduty.integration_key_description")}:{" "}
                 <a
                   href="https://support.pagerduty.com/docs/services-and-integrations"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="underline text-blue-600"
                 >
-                  PagerDuty Documentation
+                  {t("notifications.form.pagerduty.learn_more_label")}
                 </a>
               </span>
             </FormDescription>
@@ -84,7 +86,7 @@ export default function PagerDutyForm() {
         render={({ field }) => (
           <FormItem>
             <FormLabel>
-              Integration URL <span className="text-red-500">*</span>
+              {t("notifications.form.pagerduty.integration_url_label")} <span className="text-red-500">*</span>
             </FormLabel>
             <FormControl>
               <Input
@@ -95,9 +97,9 @@ export default function PagerDutyForm() {
               />
             </FormControl>
             <FormDescription>
-              <span className="text-red-500">*</span> Required
+              <span className="text-red-500">*</span> {t("common.required")}
               <br />
-              The PagerDuty Events API v2 endpoint URL. Defaults to the standard endpoint.
+              {t("notifications.form.pagerduty.integration_url_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -109,22 +111,22 @@ export default function PagerDutyForm() {
         name="pagerduty_priority"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Priority</FormLabel>
+            <FormLabel>{t("notifications.form.pagerduty.priority_label")}</FormLabel>
             <Select onValueChange={field.onChange} defaultValue={field.value}>
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select priority level" />
+                  <SelectValue placeholder={t("notifications.form.pagerduty.priority_placeholder")} />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="info">Info</SelectItem>
-                <SelectItem value="warning">Warning</SelectItem>
-                <SelectItem value="error">Error</SelectItem>
-                <SelectItem value="critical">Critical</SelectItem>
+                <SelectItem value="info">{t("notifications.form.pagerduty.priority_info")}</SelectItem>
+                <SelectItem value="warning">{t("notifications.form.pagerduty.priority_warning")}</SelectItem>
+                <SelectItem value="error">{t("notifications.form.pagerduty.priority_error")}</SelectItem>
+                <SelectItem value="critical">{t("notifications.form.pagerduty.priority_critical")}</SelectItem>
               </SelectContent>
             </Select>
             <FormDescription>
-              The severity level for PagerDuty incidents. Defaults to "warning".
+              {t("notifications.form.pagerduty.priority_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -136,27 +138,27 @@ export default function PagerDutyForm() {
         name="pagerduty_auto_resolve"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Auto Resolve or Acknowledge</FormLabel>
+            <FormLabel>{t("notifications.form.pagerduty.auto_resolve_label")}</FormLabel>
             <Select onValueChange={field.onChange} defaultValue={field.value}>
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select auto-resolve behavior" />
+                  <SelectValue placeholder={t("notifications.form.pagerduty.auto_resolve_placeholder")} />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="0">Do nothing</SelectItem>
-                <SelectItem value="acknowledge">Auto acknowledge</SelectItem>
-                <SelectItem value="resolve">Auto resolve</SelectItem>
+                <SelectItem value="0">{t("notifications.form.pagerduty.auto_resolve_do_nothing")}</SelectItem>
+                <SelectItem value="acknowledge">{t("notifications.form.pagerduty.auto_resolve_acknowledge")}</SelectItem>
+                <SelectItem value="resolve">{t("notifications.form.pagerduty.auto_resolve_resolve")}</SelectItem>
               </SelectContent>
             </Select>
             <FormDescription>
-              Choose what action to take when a monitor comes back up:
+              {t("notifications.form.pagerduty.auto_resolve_description")}
               <br />
-              • <strong>Do nothing:</strong> No action taken on UP status
+              • <strong>{t("notifications.form.pagerduty.auto_resolve_do_nothing")}:</strong> {t("notifications.form.pagerduty.auto_resolve_do_nothing_description")}
               <br />
-              • <strong>Auto acknowledge:</strong> Automatically acknowledge the incident
+              • <strong>{t("notifications.form.pagerduty.auto_resolve_acknowledge")}:</strong> {t("notifications.form.pagerduty.auto_resolve_acknowledge_description")}
               <br />
-              • <strong>Auto resolve:</strong> Automatically resolve the incident
+              • <strong>{t("notifications.form.pagerduty.auto_resolve_resolve")}:</strong> {t("notifications.form.pagerduty.auto_resolve_resolve_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>

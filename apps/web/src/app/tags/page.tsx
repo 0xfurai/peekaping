@@ -86,12 +86,12 @@ const TagsPage = () => {
   const deleteMutation = useMutation({
     ...deleteTagsByIdMutation({ path: { id: selectedTag?.id || "" } }),
     onSuccess: () => {
-      toast.success("Tag deleted successfully");
+      toast.success(t("messages.tag_delete_success"));
       setDeleteDialogOpen(false);
       setSelectedTag(null);
       invalidateByPartialQueryKey(queryClient, { _id: "getTags" });
     },
-    onError: commonMutationErrorHandler("Failed to delete tag"),
+    onError: commonMutationErrorHandler(t("messages.tag_delete_error")),
   });
 
   // Infinite scroll logic
@@ -122,7 +122,7 @@ const TagsPage = () => {
   };
 
   return (
-    <Layout pageName="Tags" onCreate={handleCreate}>
+    <Layout pageName={t("navigation.tags")} onCreate={handleCreate}>
       <div>
         <div className="mb-4 space-y-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:justify-end sm:gap-4 items-end">
@@ -134,7 +134,7 @@ const TagsPage = () => {
                   onClick={clearAllFilters}
                   className="w-fit h-[36px]"
                 >
-                  Clear all filters
+                  {t("common.clear_all_filters")}
                 </Button>
               </div>
             )}
@@ -142,7 +142,7 @@ const TagsPage = () => {
               <Label htmlFor="search-tags">{t("common.search")}</Label>
               <Input
                 id="search-tags"
-                placeholder="Search tags..."
+                placeholder={t("tags.search_placeholder")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full sm:w-[400px]"
@@ -163,9 +163,9 @@ const TagsPage = () => {
         {/* No tags state */}
         {tags.length === 0 && !isLoading && (
           <EmptyList
-            title="No tags found"
-            text="Get started by creating your first tag to organize your monitors."
-            actionText="Create your first tag"
+            title={t("tags.empty_state.title")}
+            text={t("tags.empty_state.description")}
+            actionText={t("tags.empty_state.action")}
             onClick={handleCreate}
           />
         )}
@@ -197,7 +197,7 @@ const TagsPage = () => {
                       )}
                     </div>
                     <div className="text-xs text-muted-foreground mt-1 mr-4 hidden sm:block">
-                      Created: {new Date(tag.created_at!).toLocaleDateString()}
+                      {t("common.created")}: {new Date(tag.created_at!).toLocaleDateString()}
                     </div>
                   </div>
                   <div className="flex gap-2 flex-shrink-0">
@@ -238,14 +238,13 @@ const TagsPage = () => {
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogTitle>{t("common.confirm_delete_title_short")}</AlertDialogTitle>
               <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the
-                tag "{selectedTag?.name}" and remove it from all monitors.
+                {t("tags.confirm_delete_description", { name: selectedTag?.name })}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() =>
                   deleteMutation.mutate({ path: { id: selectedTag?.id || "" } })
@@ -253,7 +252,7 @@ const TagsPage = () => {
                 className="bg-red-500 hover:bg-red-600"
                 disabled={deleteMutation.isPending}
               >
-                Delete
+                {t("common.delete")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

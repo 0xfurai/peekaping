@@ -12,21 +12,23 @@ import { toast } from "sonner";
 import type { MaintenanceCreateUpdateDto } from "@/api";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const NewMaintenance = () => {
+  const { t } = useLocalizedTranslation();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
   const createMaintenanceMutation = useMutation({
     ...postMaintenancesMutation(),
     onSuccess: () => {
-      toast.success("Maintenance created successfully");
+      toast.success(t("maintenance.toasts.created_success"));
 
       queryClient.invalidateQueries({ queryKey: getMaintenancesQueryKey() });
 
       navigate("/maintenances");
     },
-    onError: commonMutationErrorHandler("Failed to create maintenance"),
+    onError: commonMutationErrorHandler(t("maintenance.toasts.create_error")),
   });
 
   const handleSubmit = (data: MaintenanceFormValues) => {
@@ -82,7 +84,7 @@ const NewMaintenance = () => {
   };
 
   return (
-    <Layout pageName="Schedule Maintenance">
+    <Layout pageName={t("maintenance.schedule_title")}>
       <BackButton to="/maintenances" />
       <CreateEditMaintenance onSubmit={handleSubmit} />
     </Layout>

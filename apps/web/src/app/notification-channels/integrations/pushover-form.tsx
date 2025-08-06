@@ -16,6 +16,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useFormContext } from "react-hook-form";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { useMemo } from "react";
 
 export const schema = z.object({
   type: z.literal("pushover"),
@@ -45,42 +47,43 @@ export const defaultValues: PushoverFormValues = {
 
 export const displayName = "Pushover";
 
-const soundOptions = [
-  { value: "pushover", label: "Pushover (default)" },
-  { value: "bike", label: "Bike" },
-  { value: "bugle", label: "Bugle" },
-  { value: "cashregister", label: "Cash Register" },
-  { value: "classical", label: "Classical" },
-  { value: "cosmic", label: "Cosmic" },
-  { value: "falling", label: "Falling" },
-  { value: "gamelan", label: "Gamelan" },
-  { value: "incoming", label: "Incoming" },
-  { value: "intermission", label: "Intermission" },
-  { value: "magic", label: "Magic" },
-  { value: "mechanical", label: "Mechanical" },
-  { value: "pianobar", label: "Piano Bar" },
-  { value: "siren", label: "Siren" },
-  { value: "spacealarm", label: "Space Alarm" },
-  { value: "tugboat", label: "Tugboat" },
-  { value: "alien", label: "Alien" },
-  { value: "climb", label: "Climb" },
-  { value: "persistent", label: "Persistent" },
-  { value: "echo", label: "Echo" },
-  { value: "updown", label: "Up Down" },
-  { value: "vibrate", label: "Vibrate" },
-  { value: "none", label: "None" },
-];
-
-const priorityOptions = [
-  { value: -2, label: "Lowest" },
-  { value: -1, label: "Low" },
-  { value: 0, label: "Normal" },
-  { value: 1, label: "High" },
-  { value: 2, label: "Emergency" },
-];
-
 export default function PushoverForm() {
   const form = useFormContext();
+  const { t } = useLocalizedTranslation();
+
+  const soundOptions = useMemo(() => [
+    { value: "pushover", label: t("notifications.form.pushover.sound_pushover") },
+    { value: "bike", label: t("notifications.form.pushover.sound_bike") },
+    { value: "bugle", label: t("notifications.form.pushover.sound_bugle") },
+    { value: "cashregister", label: t("notifications.form.pushover.sound_cashregister") },
+    { value: "classical", label: t("notifications.form.pushover.sound_classical") },
+    { value: "cosmic", label: t("notifications.form.pushover.sound_cosmic") },
+    { value: "falling", label: t("notifications.form.pushover.sound_falling") },
+    { value: "gamelan", label: t("notifications.form.pushover.sound_gamelan") },
+    { value: "incoming", label: t("notifications.form.pushover.sound_incoming") },
+    { value: "intermission", label: t("notifications.form.pushover.sound_intermission") },
+    { value: "magic", label: t("notifications.form.pushover.sound_magic") },
+    { value: "mechanical", label: t("notifications.form.pushover.sound_mechanical") },
+    { value: "pianobar", label: t("notifications.form.pushover.sound_pianobar") },
+    { value: "siren", label: t("notifications.form.pushover.sound_siren") },
+    { value: "spacealarm", label: t("notifications.form.pushover.sound_spacealarm") },
+    { value: "tugboat", label: t("notifications.form.pushover.sound_tugboat") },
+    { value: "alien", label: t("notifications.form.pushover.sound_alien") },
+    { value: "climb", label: t("notifications.form.pushover.sound_climb") },
+    { value: "persistent", label: t("notifications.form.pushover.sound_persistent") },
+    { value: "echo", label: t("notifications.form.pushover.sound_echo") },
+    { value: "updown", label: t("notifications.form.pushover.sound_updown") },
+    { value: "vibrate", label: t("notifications.form.pushover.sound_vibrate") },
+    { value: "none", label: t("notifications.form.pushover.sound_none") },
+  ], [t]);
+
+  const priorityOptions = useMemo(() => [
+    { value: -2, label: t("notifications.form.pushover.priority_1") },
+    { value: -1, label: t("notifications.form.pushover.priority_2") },
+    { value: 0, label: t("notifications.form.pushover.priority_3") },
+    { value: 1, label: t("notifications.form.pushover.priority_4") },
+    { value: 2, label: t("notifications.form.pushover.priority_5") },
+  ], [t]);
 
   return (
     <>
@@ -90,18 +93,18 @@ export default function PushoverForm() {
         render={({ field }) => (
           <FormItem>
             <FormLabel>
-              User Key <span className="text-red-500">*</span>
+              {t("notifications.form.pushover.user_key_label")} <span className="text-red-500">*</span>
             </FormLabel>
             <FormControl>
               <Input
-                placeholder="Your Pushover user key"
+                placeholder={t("notifications.form.pushover.user_key_placeholder")}
                 type="password"
                 required
                 {...field}
               />
             </FormControl>
             <FormDescription>
-              <span className="text-red-500">*</span> Required
+              <span className="text-red-500">*</span> {t("common.required")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -114,18 +117,18 @@ export default function PushoverForm() {
         render={({ field }) => (
           <FormItem>
             <FormLabel>
-              Application Token <span className="text-red-500">*</span>
+              {t("notifications.form.pushover.application_token_label")} <span className="text-red-500">*</span>
             </FormLabel>
             <FormControl>
               <Input
-                placeholder="Your Pushover application token"
+                placeholder={t("notifications.form.pushover.application_token_placeholder")}
                 type="password"
                 required
                 {...field}
               />
             </FormControl>
             <FormDescription>
-              <span className="text-red-500">*</span> Required
+              <span className="text-red-500">*</span> {t("common.required")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -137,15 +140,15 @@ export default function PushoverForm() {
         name="pushover_device"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Device</FormLabel>
+            <FormLabel>{t("notifications.form.pushover.device_label")}</FormLabel>
             <FormControl>
               <Input
-                placeholder="Device name (optional)"
+                placeholder={t("notifications.form.pushover.device_placeholder")}
                 {...field}
               />
             </FormControl>
             <FormDescription>
-              Leave blank to send to all devices
+              {t("notifications.form.pushover.device_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -157,15 +160,15 @@ export default function PushoverForm() {
         name="pushover_title"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Message Title</FormLabel>
+            <FormLabel>{t("notifications.form.pushover.message_title_label")}</FormLabel>
             <FormControl>
               <Input
-                placeholder="Custom message title (optional)"
+                placeholder={t("notifications.form.pushover.message_title_placeholder")}
                 {...field}
               />
             </FormControl>
             <FormDescription>
-              Leave blank to use default title
+              {t("notifications.form.pushover.message_title_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -177,14 +180,14 @@ export default function PushoverForm() {
         name="pushover_priority"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Priority</FormLabel>
+            <FormLabel>{t("notifications.form.pushover.priority_label")}</FormLabel>
             <Select
               onValueChange={(value) => field.onChange(parseInt(value))}
               value={field.value?.toString()}
             >
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select priority" />
+                  <SelectValue placeholder={t("notifications.form.pushover.priority_placeholder")} />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
@@ -196,7 +199,7 @@ export default function PushoverForm() {
               </SelectContent>
             </Select>
             <FormDescription>
-              Message priority level
+              {t("notifications.form.pushover.priority_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -208,14 +211,14 @@ export default function PushoverForm() {
         name="pushover_sounds"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Notification Sound - Down</FormLabel>
+            <FormLabel>{t("notifications.form.pushover.notification_sound_down_label")}</FormLabel>
             <Select
               onValueChange={field.onChange}
               value={field.value}
             >
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select sound" />
+                  <SelectValue placeholder={t("notifications.form.pushover.notification_sound_down_placeholder")} />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
@@ -227,7 +230,7 @@ export default function PushoverForm() {
               </SelectContent>
             </Select>
             <FormDescription>
-              Sound for when monitor goes down
+              {t("notifications.form.pushover.notification_sound_down_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -239,14 +242,14 @@ export default function PushoverForm() {
         name="pushover_sounds_up"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Notification Sound - Up</FormLabel>
+            <FormLabel>{t("notifications.form.pushover.notification_sound_up_label")}</FormLabel>
             <Select
               onValueChange={field.onChange}
               value={field.value}
             >
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select sound" />
+                  <SelectValue placeholder={t("notifications.form.pushover.notification_sound_up_placeholder")} />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
@@ -258,7 +261,7 @@ export default function PushoverForm() {
               </SelectContent>
             </Select>
             <FormDescription>
-              Sound for when monitor comes back up
+              {t("notifications.form.pushover.notification_sound_up_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -270,7 +273,7 @@ export default function PushoverForm() {
         name="pushover_ttl"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Message TTL</FormLabel>
+            <FormLabel>{t("notifications.form.pushover.message_ttl_label")}</FormLabel>
             <FormControl>
               <Input
                 type="number"
@@ -282,7 +285,7 @@ export default function PushoverForm() {
               />
             </FormControl>
             <FormDescription>
-              Time-to-live in seconds (0 = no expiration)
+              {t("notifications.form.pushover.message_ttl_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -291,10 +294,10 @@ export default function PushoverForm() {
 
       <div className="mt-4 p-4 bg-gray-50 rounded-lg">
         <p className="text-sm text-gray-600">
-          <span className="text-red-500">*</span> Required fields
+          <span className="text-red-500">*</span> {t("common.required")}
         </p>
         <p className="text-sm text-gray-600 mt-2">
-          More info on:{" "}
+          {t("notifications.form.pushover.more_info_label")}:{" "}
           <a
             href="https://pushover.net/api"
             target="_blank"
@@ -305,7 +308,7 @@ export default function PushoverForm() {
           </a>
         </p>
         <p className="text-sm text-gray-600 mt-2">
-          You can create an application and get your API token at{" "}
+          {t("notifications.form.pushover.more_info_label_2")}:{" "}
           <a
             href="https://pushover.net/apps/build"
             target="_blank"
@@ -316,7 +319,7 @@ export default function PushoverForm() {
           </a>
         </p>
         <p className="text-sm text-gray-600 mt-2">
-          Your user key can be found at{" "}
+          {t("notifications.form.pushover.more_info_label_3")}{" "}
           <a
             href="https://pushover.net/"
             target="_blank"

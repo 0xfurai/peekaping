@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { TypographyH4 } from "@/components/ui/typography";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { useMonitorFormContext } from "../../context/monitor-form-context";
 import General from "../shared/general";
 import Intervals from "../shared/intervals";
@@ -34,6 +35,7 @@ import {
 } from "./schema";
 
 const KafkaProducerForm = () => {
+  const { t } = useLocalizedTranslation();
   const {
     form,
     setNotifierSheetOpen,
@@ -116,13 +118,13 @@ const KafkaProducerForm = () => {
 
         <Card>
           <CardContent className="space-y-4">
-            <TypographyH4>Kafka Configuration</TypographyH4>
+            <TypographyH4>{t("monitors.form.kafka.configuration_title")}</TypographyH4>
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <FormLabel>Kafka Brokers</FormLabel>
+                <FormLabel>{t("monitors.form.kafka.brokers_label")}</FormLabel>
                 <FormDescription>
-                  List of Kafka broker addresses (host:port format)
+                  {t("monitors.form.kafka.brokers_description")}
                 </FormDescription>
                 {brokers.map((broker, index) => (
                   <div key={index} className="flex items-center gap-2">
@@ -152,7 +154,7 @@ const KafkaProducerForm = () => {
                   className="mt-2"
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Add Broker
+                  {t("monitors.form.kafka.add_broker")}
                 </Button>
               </div>
             </div>
@@ -167,7 +169,7 @@ const KafkaProducerForm = () => {
                     <Input placeholder="test-topic" {...field} />
                   </FormControl>
                   <FormDescription>
-                    The Kafka topic to produce messages to
+                    {t("monitors.form.kafka.topic_description")}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -179,7 +181,7 @@ const KafkaProducerForm = () => {
               name="message"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Message</FormLabel>
+                  <FormLabel>{t("monitors.form.kafka.message_label")}</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder='{"status": "up", "timestamp": "2024-01-01T00:00:00Z"}'
@@ -189,8 +191,7 @@ const KafkaProducerForm = () => {
                     />
                   </FormControl>
                   <FormDescription>
-                    The message content to send to the topic (JSON format
-                    recommended)
+                    {t("monitors.form.kafka.message_description")}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -209,10 +210,9 @@ const KafkaProducerForm = () => {
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>Allow Auto Topic Creation</FormLabel>
+                    <FormLabel>{t("monitors.form.kafka.auto_topic_creation_label")}</FormLabel>
                     <FormDescription>
-                      Allow the producer to automatically create the topic if it
-                      doesn't exist
+                      {t("monitors.form.kafka.auto_topic_creation_description")}
                     </FormDescription>
                   </div>
                 </FormItem>
@@ -223,7 +223,7 @@ const KafkaProducerForm = () => {
 
         <Card>
           <CardContent className="space-y-4">
-            <TypographyH4>Security</TypographyH4>
+            <TypographyH4>{t("monitors.form.kafka.security_title")}</TypographyH4>
 
             <FormField
               control={form.control}
@@ -237,9 +237,9 @@ const KafkaProducerForm = () => {
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>Enable SSL/TLS</FormLabel>
+                    <FormLabel>{t("monitors.form.kafka.enable_ssl_label")}</FormLabel>
                     <FormDescription>
-                      Use SSL/TLS encryption for the connection
+                      {t("monitors.form.kafka.enable_ssl_description")}
                     </FormDescription>
                   </div>
                 </FormItem>
@@ -251,7 +251,7 @@ const KafkaProducerForm = () => {
               name="sasl_mechanism"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>SASL Mechanism</FormLabel>
+                  <FormLabel>{t("monitors.form.kafka.sasl_mechanism_label")}</FormLabel>
                   <Select
                     onValueChange={(val) => {
                       if (!val) {
@@ -263,7 +263,7 @@ const KafkaProducerForm = () => {
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select SASL mechanism" />
+                        <SelectValue placeholder={t("monitors.form.kafka.sasl_mechanism_placeholder")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -278,7 +278,7 @@ const KafkaProducerForm = () => {
                     </SelectContent>
                   </Select>
                   <FormDescription>
-                    Choose the SASL authentication mechanism
+                    {t("monitors.form.kafka.sasl_mechanism_description")}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -292,12 +292,12 @@ const KafkaProducerForm = () => {
                   name="sasl_username"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>SASL Username</FormLabel>
+                      <FormLabel>{t("monitors.form.kafka.sasl_username_label")}</FormLabel>
                       <FormControl>
                         <Input placeholder="kafka_user" {...field} />
                       </FormControl>
                       <FormDescription>
-                        Username for SASL authentication
+                        {t("monitors.form.kafka.sasl_username_description")}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -309,16 +309,16 @@ const KafkaProducerForm = () => {
                   name="sasl_password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>SASL Password</FormLabel>
+                      <FormLabel>{t("monitors.form.kafka.sasl_password_label")}</FormLabel>
                       <FormControl>
                         <Input
                           type="password"
-                          placeholder="password"
+                          placeholder={t("monitors.form.kafka.sasl_password_placeholder")}
                           {...field}
                         />
                       </FormControl>
                       <FormDescription>
-                        Password for SASL authentication
+                        {t("monitors.form.kafka.sasl_password_description")}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -349,7 +349,7 @@ const KafkaProducerForm = () => {
 
         <Button type="submit" disabled={isPending}>
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {mode === "create" ? "Create Monitor" : "Update Monitor"}
+          {mode === "create" ? t("monitors.form.buttons.create") : t("monitors.form.buttons.update")}
         </Button>
       </form>
     </Form>

@@ -20,6 +20,7 @@ import {
 import { useFormContext } from "react-hook-form";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const schema = z.object({
   type: z.literal("telegram"),
@@ -66,6 +67,7 @@ function telegramGetUpdatesURL(
 
 export default function TelegramForm() {
   const form = useFormContext();
+  const { t } = useLocalizedTranslation();
   const botToken = form.watch("bot_token");
   const serverUrl = form.watch("server_url") || "https://api.telegram.org";
   const useTemplate = form.watch("use_template");
@@ -87,16 +89,16 @@ export default function TelegramForm() {
         } else if (update.message) {
           form.setValue("chat_id", String(update.message.chat.id));
         } else {
-          alert("Chat ID not found in the latest update.");
+          alert(t("notifications.form.telegram.chat_id_not_found"));
         }
       } else {
-        alert("No updates found. Please send a message to your bot first.");
+        alert(t("notifications.form.telegram.no_updates_found"));
       }
     } catch (error: unknown) {
       if (error instanceof Error) {
-        alert(error.message || "Failed to fetch chat ID");
+        alert(error.message || t("notifications.form.telegram.failed_to_fetch_chat_id"));
       } else {
-        alert("Failed to fetch chat ID");
+        alert(t("notifications.form.telegram.failed_to_fetch_chat_id"));
       }
     } finally {
       setLoadingChatId(false);
@@ -110,7 +112,7 @@ export default function TelegramForm() {
         name="bot_token"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Bot Token</FormLabel>
+            <FormLabel>{t("notifications.form.telegram.bot_token_label")}</FormLabel>
             <FormControl>
               <Input
                 placeholder="Enter your Telegram bot token"
@@ -121,7 +123,7 @@ export default function TelegramForm() {
               />
             </FormControl>
             <FormDescription>
-              Get your bot token from{" "}
+              {t("notifications.form.telegram.bot_token_description")}{" "}
               <a
                 href="https://t.me/BotFather"
                 target="_blank"
@@ -142,7 +144,7 @@ export default function TelegramForm() {
         name="chat_id"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Chat ID</FormLabel>
+            <FormLabel>{t("notifications.form.telegram.chat_id_label")}</FormLabel>
             <div className="flex gap-2">
               <FormControl>
                 <Input placeholder="Enter your chat ID" required {...field} />
@@ -154,15 +156,14 @@ export default function TelegramForm() {
                   onClick={autoGetTelegramChatID}
                   disabled={loadingChatId}
                 >
-                  {loadingChatId ? "Loading..." : "Auto Get"}
+                  {loadingChatId ? t("common.loading") : t("notifications.form.telegram.auto_get_label")}
                 </Button>
               )}
             </div>
             <FormDescription>
-              You can get your chat ID by sending a message to your bot and
-              clicking "Auto Get" above, or manually via the Telegram API.
+              {t("notifications.form.telegram.chat_id_description")}
               <br />
-              <span className="block mt-2">To get it manually, visit:</span>
+              <span className="block mt-2">{t("notifications.form.telegram.chat_id_description_2")}:</span>
               <a
                 href={telegramGetUpdatesURL(botToken, serverUrl, "withToken")}
                 target="_blank"
@@ -176,16 +177,16 @@ export default function TelegramForm() {
                 )}
               </a>
               <span className="block mt-2">
-                See{" "}
+                {t("notifications.form.telegram.chat_id_description_3")}{" "}
                 <a
                   href="https://core.org/bots/api#getting-updates"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="underline"
                 >
-                  Telegram docs
+                  {t("notifications.form.telegram.chat_id_description_4")}
                 </a>{" "}
-                for more info.
+                {t("notifications.form.telegram.chat_id_description_5")}
               </span>
             </FormDescription>
             <FormMessage />
@@ -198,13 +199,12 @@ export default function TelegramForm() {
         name="message_thread_id"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Message Thread ID</FormLabel>
+            <FormLabel>{t("notifications.form.telegram.message_thread_id_label")}</FormLabel>
             <FormControl>
               <Input placeholder="Optional: For topics in groups" {...field} />
             </FormControl>
             <FormDescription>
-              Optional. Used for sending messages to a specific thread (topic)
-              in a forum supergroup.
+              {t("notifications.form.telegram.message_thread_id_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -216,12 +216,12 @@ export default function TelegramForm() {
         name="server_url"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Telegram Server URL</FormLabel>
+            <FormLabel>{t("notifications.form.telegram.server_url_label")}</FormLabel>
             <FormControl>
               <Input placeholder="https://api.telegram.org" {...field} />
             </FormControl>
             <FormDescription>
-              The default is{" "}
+              {t("notifications.form.telegram.server_url_description")}{" "}
               <a
                 href="https://api.telegram.org"
                 target="_blank"
@@ -230,16 +230,16 @@ export default function TelegramForm() {
               >
                 https://api.telegram.org
               </a>
-              . You can use a custom server. See{" "}
+              . {t("notifications.form.telegram.server_url_description_2")}{" "}
               <a
                 href="https://core.org/bots/api#using-a-local-bot-api-server"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="underline"
               >
-                here
+                {t("notifications.form.telegram.server_url_description_3")}
               </a>{" "}
-              for details.
+              {t("notifications.form.telegram.server_url_description_4")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -258,10 +258,10 @@ export default function TelegramForm() {
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
-              <FormLabel>Use Message Template</FormLabel>
+              <FormLabel>{t("notifications.form.telegram.use_template_label")}</FormLabel>
             </div>
             <FormDescription>
-              Enable to use a custom message template and format.
+              {t("notifications.form.telegram.use_template_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -275,11 +275,11 @@ export default function TelegramForm() {
             name="template_parse_mode"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Template Parse Mode</FormLabel>
+                <FormLabel>{t("notifications.form.telegram.template_parse_mode_label")}</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select parse mode" />
+                      <SelectValue placeholder={t("notifications.form.telegram.template_parse_mode_placeholder")} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -289,16 +289,16 @@ export default function TelegramForm() {
                   </SelectContent>
                 </Select>
                 <FormDescription>
-                  Choose how the message should be parsed. See{" "}
+                  {t("notifications.form.telegram.template_parse_mode_description")}{" "}
                   <a
                     href="https://core.org/bots/api#formatting-options"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="underline"
                   >
-                    Telegram formatting docs
+                    {t("notifications.form.telegram.template_parse_mode_description_2")}
                   </a>{" "}
-                  for details.
+                  {t("notifications.form.telegram.template_parse_mode_description_3")}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -310,16 +310,16 @@ export default function TelegramForm() {
             name="template"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Message Template</FormLabel>
+                <FormLabel>{t("notifications.form.telegram.template_label")}</FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder="Enter your custom message template"
+                    placeholder={t("notifications.form.telegram.template_placeholder")}
                     className="min-h-[100px]"
                     {...field}
                   />
                 </FormControl>
                 <FormDescription>
-                  Customize the message format. Available variables:{" "}
+                  {t("notifications.form.telegram.template_description")}:{" "}
                   <code>{"{{ msg }}"}</code>, <code>{"{{ monitorJSON }}"}</code>
                 </FormDescription>
                 <FormMessage />
@@ -341,11 +341,10 @@ export default function TelegramForm() {
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
-              <FormLabel>Send Silently</FormLabel>
+              <FormLabel>{t("notifications.form.telegram.send_silently_label")}</FormLabel>
             </div>
             <FormDescription>
-              If enabled, messages will be sent silently (users will receive a
-              notification with no sound).
+              {t("notifications.form.telegram.send_silently_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -364,11 +363,10 @@ export default function TelegramForm() {
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
-              <FormLabel>Protect Content</FormLabel>
+              <FormLabel>{t("notifications.form.telegram.protect_content_label")}</FormLabel>
             </div>
             <FormDescription>
-              If enabled, the message content will be protected from forwarding
-              and saving.
+              {t("notifications.form.telegram.protect_content_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>

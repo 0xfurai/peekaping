@@ -15,8 +15,10 @@ import type { NotificationChannelModel, ProxyModel } from "@/api";
 import CreateProxy from "@/app/proxies/components/create-proxy";
 import CreateNotificationChannel from "@/app/notification-channels/components/create-notification-channel";
 import { BackButton } from "@/components/back-button";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const EditMonitorForm = () => {
+  const { t } = useLocalizedTranslation();
   const {
     form,
     notifierSheetOpen,
@@ -30,11 +32,11 @@ const EditMonitorForm = () => {
   if (!monitor) return null;
 
   return (
-    <Layout pageName={`Edit Monitor: ${monitor?.data?.name}`}>
+    <Layout pageName={`${t("monitors.page.edit_title")} ${monitor?.data?.name}`}>
       <BackButton to={`/monitors/${monitor?.data?.id}`} />
       <div className="flex flex-col gap-4">
         <p className="text-gray-500">
-          Create a new monitor to start tracking your website's performance.
+          {t("monitors.page.description")}
         </p>
 
         <CreateEditForm />
