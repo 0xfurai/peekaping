@@ -55,6 +55,7 @@
     "continue": "Continuer",
     "create": "Créer",
     "created": "Créé",
+    "days": "jours",
     "default": "Par défaut",
     "delete": "Supprimer",
     "disabling": "Désactivation...",
@@ -62,6 +63,7 @@
     "down": "Hors ligne",
     "enabling": "Activation...",
     "error": "Erreur",
+    "expires": "Expire",
     "inactive": "Inactif",
     "loading": "Chargement...",
     "logout": "Se déconnecter",
@@ -600,6 +602,7 @@
         "reset_data": "Réinitialiser les données",
         "resume": "Reprendre"
       },
+      "certificate": "Certificat",
       "check_every": "Vérifier toutes les",
       "current_status": "Statut actuel",
       "dialogs": {
@@ -616,9 +619,11 @@
           "title": "Réinitialiser les données du moniteur"
         }
       },
+      "expiring_soon": "Expire bientôt",
       "for": "pour",
       "live_status": "Statut en direct",
       "monitor_for": "moniteur pour",
+      "no_certificate_data": "Aucune donnée de certificat",
       "seconds": "secondes",
       "stats": {
         "last_24_hours": "Dernières 24 heures",

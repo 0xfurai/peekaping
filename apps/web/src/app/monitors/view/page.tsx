@@ -570,12 +570,12 @@ const MonitorPage = () => {
               <Card className="p-4 rounded-xl gap-1 col-span-4 lg:col-span-1">
                 <div className="font-semibold flex items-center gap-2">
                   <Shield className="w-4 h-4" />
-                  Certificate
+                  {t("monitors.view.certificate")}
                 </div>
                 {tlsLoading ? (
                   <div className="flex items-center gap-2 text-sm text-gray-400">
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Loading...
+                    {t("common.loading")}
                   </div>
                 ) : tlsInfo?.certInfo ? (
                   <div className="space-y-1">
@@ -595,13 +595,13 @@ const MonitorPage = () => {
                       )}
                     >
                       {tlsInfo.certInfo.daysRemaining
-                        ? `${tlsInfo.certInfo.daysRemaining} days`
-                        : "Unknown"}
+                        ? `${tlsInfo.certInfo.daysRemaining} ${t("common.days")}`
+                        : t("common.unknown")}
                     </div>
                     <div className="text-xs text-gray-400">
                       {tlsInfo.certInfo.validTo && (
                         <>
-                          Expires{" "}
+                          {t("common.expires")}{" "}
                           {dayjs(tlsInfo.certInfo.validTo).format(
                             "MMM D, YYYY"
                           )}
@@ -612,13 +612,13 @@ const MonitorPage = () => {
                       tlsInfo.certInfo.daysRemaining <= 30 && (
                         <div className="flex items-center gap-1 text-xs text-yellow-400">
                           <AlertTriangle className="w-3 h-3" />
-                          Expiring soon
+                          {t("monitors.view.expiring_soon")}
                         </div>
                       )}
                   </div>
                 ) : (
                   <div className="text-sm text-gray-400">
-                    No certificate data
+                    {t("monitors.view.no_certificate_data")}
                   </div>
                 )}
               </Card>

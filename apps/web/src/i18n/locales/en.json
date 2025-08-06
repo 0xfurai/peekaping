@@ -55,6 +55,7 @@
     "continue": "Continue",
     "create": "Create",
     "created": "Created",
+    "days": "days",
     "default": "Default",
     "delete": "Delete",
     "disabling": "Disabling...",
@@ -62,6 +63,7 @@
     "down": "Down",
     "enabling": "Enabling...",
     "error": "Error",
+    "expires": "Expires",
     "inactive": "Inactive",
     "loading": "Loading...",
     "logout": "Log out",
@@ -599,6 +601,7 @@
         "reset_data": "Reset Data",
         "resume": "Resume"
       },
+      "certificate": "Certificate",
       "check_every": "Check every",
       "current_status": "Current status",
       "dialogs": {
@@ -615,9 +618,11 @@
           "title": "Reset Monitor Data"
         }
       },
+      "expiring_soon": "Expiring soon",
       "for": "for",
       "live_status": "Live Status",
       "monitor_for": "monitor for",
+      "no_certificate_data": "No certificate data",
       "seconds": "seconds",
       "stats": {
         "last_24_hours": "Last 24 hours",
