@@ -109,11 +109,7 @@ const generateToken = () =>
     ""
   );
 
-const PushForm = ({
-  baseUrl = "http://localhost:8034",
-}: {
-  baseUrl?: string;
-}) => {
+const PushForm = () => {
   const {
     form,
     setNotifierSheetOpen,
@@ -137,7 +133,7 @@ const PushForm = ({
 
 
   const [copied, setCopied] = useState(false);
-  const pushUrl = `${baseUrl}/api/v1/push/${pushToken}?status=up&msg=OK&ping=`;
+  const pushUrl = `${window.location.origin}/api/v1/push/${pushToken}?status=up&msg=OK&ping=`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(pushUrl);

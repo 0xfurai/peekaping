@@ -36,6 +36,21 @@ type Config struct {
 	LogLevel string `env:"LOG_LEVEL" validate:"omitempty,log_level" default:"info"`
 
 	Timezone string `env:"TZ" validate:"required" default:"UTC"`
+
+	// Bruteforce protection settings
+	// Maximum number of failed login attempts allowed within the time window
+	// After exceeding this limit, the account will be temporarily locked
+	BruteforceMaxAttempts int `env:"BRUTEFORCE_MAX_ATTEMPTS" default:"20"`
+
+	// Time window for counting failed login attempts
+	// Only attempts within this window are counted towards the max attempts limit
+	// Examples: "1m", "5m", "1h", "24h"
+	BruteforceWindow time.Duration `env:"BRUTEFORCE_WINDOW" default:"1m"`
+
+	// Duration to lock the account after exceeding the maximum attempts
+	// During this period, all login attempts will be blocked with HTTP 429
+	// Examples: "5m", "30m", "1h", "24h"
+	BruteforceLockout time.Duration `env:"BRUTEFORCE_LOCKOUT" default:"1m"`
 }
 
 var validate = validator.New()

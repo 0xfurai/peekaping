@@ -923,7 +923,10 @@ func TestHTTPExecutor_Execute_Timeout(t *testing.T) {
 
 	result := executor.Execute(context.Background(), monitor, nil)
 	assert.Equal(t, shared.MonitorStatusDown, result.Status)
-	assert.Contains(t, result.Message, "context deadline exceeded")
+	// Accept both context deadline exceeded and client timeout messages
+	timeoutOccurred := strings.Contains(result.Message, "context deadline exceeded") ||
+		strings.Contains(result.Message, "Client.Timeout exceeded")
+	assert.True(t, timeoutOccurred, "Expected timeout error, got: %s", result.Message)
 }
 
 func TestHTTPExecutor_Execute_Proxy(t *testing.T) {

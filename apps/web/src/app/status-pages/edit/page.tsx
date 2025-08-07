@@ -98,7 +98,8 @@ const EditStatusPageContent = () => {
             icon: statusPageData.icon || "",
             footer_text: statusPageData.footer_text || "",
             auto_refresh_interval: statusPageData?.auto_refresh_interval || 0,
-            published: statusPageData?.published || true,
+            published: Boolean(statusPageData?.published),
+            domains: statusPageData.domains || [],
             monitors: monitorsData?.data?.map((monitor) => ({
               label: monitor.name || "",
               value: monitor.id || "",

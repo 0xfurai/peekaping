@@ -16,6 +16,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircleIcon } from "lucide-react";
+import DomainsManager from "./domains-manager";
 
 const statusPageSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -39,6 +42,7 @@ const statusPageSchema = z.object({
       })
     )
     .optional(),
+  domains: z.array(z.string()).optional(),
 });
 
 export type StatusPageForm = z.infer<typeof statusPageSchema>;
@@ -52,7 +56,10 @@ const formDefaultValues: StatusPageForm = {
   auto_refresh_interval: 300,
   published: true,
   monitors: [],
+  domains: [],
 };
+
+
 
 const CreateEditForm = ({
   onSubmit,
@@ -79,7 +86,7 @@ const CreateEditForm = ({
       >
         <Card>
           <CardHeader>
-            <CardTitle>Basic Information</CardTitle>
+            <CardTitle>{t("status_pages.basic_information")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
@@ -88,9 +95,9 @@ const CreateEditForm = ({
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Title</FormLabel>
+                    <FormLabel>{t("forms.labels.title")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter status page title" {...field} />
+                      <Input placeholder={t("forms.placeholders.page_title")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -102,9 +109,9 @@ const CreateEditForm = ({
                 name="slug"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Slug</FormLabel>
+                    <FormLabel>{t("forms.labels.slug")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="status-page-slug" {...field} />
+                      <Input placeholder={t("forms.placeholders.slug")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -117,10 +124,10 @@ const CreateEditForm = ({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>{t("status_pages.description")}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Enter status page description"
+                      placeholder={t("forms.placeholders.page_description")}
                       {...field}
                     />
                   </FormControl>
@@ -134,10 +141,10 @@ const CreateEditForm = ({
               name="icon"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Icon URL</FormLabel>
+                  <FormLabel>{t("forms.labels.icon_url")}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="https://example.com/icon.png"
+                      placeholder={t("forms.placeholders.icon_url")}
                       {...field}
                     />
                   </FormControl>
@@ -147,10 +154,10 @@ const CreateEditForm = ({
             />
 
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold">Affected Monitors</h2>
+              <h2 className="text-lg font-semibold">{t("status_pages.affected_monitors")}</h2>
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  Select the monitors that will be affected by this maintenance
+                  {t("status_pages.affected_monitors_info")}
                 </p>
 
                 <SearchableMonitorSelector
@@ -166,7 +173,7 @@ const CreateEditForm = ({
 
         <Card>
           <CardHeader>
-            <CardTitle>Customization</CardTitle>
+            <CardTitle>{t("status_pages.customization")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <FormField
@@ -176,7 +183,7 @@ const CreateEditForm = ({
                 <FormItem>
                   <FormLabel>{t("forms.labels.footer_text")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter footer text" {...field} />
+                    <Input placeholder={t("forms.placeholders.footer_text")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -188,12 +195,12 @@ const CreateEditForm = ({
               name="auto_refresh_interval"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Auto Refresh Interval (seconds)</FormLabel>
+                  <FormLabel>{t("status_pages.auto_refresh_interval")}</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
                       min="0"
-                      placeholder="0 for no auto refresh"
+                      placeholder={t("forms.placeholders.auto_refresh_help")}
                       {...field}
                       onChange={(e) => field.onChange(e.target.valueAsNumber)}
                     />
@@ -219,7 +226,7 @@ const CreateEditForm = ({
                     <div className="space-y-0.5">
                       <FormLabel>{t("status_pages.published")}</FormLabel>
                       <p className="text-sm text-muted-foreground">
-                        Make this status page publicly accessible
+                        {t("status_pages.published_info")}
                       </p>
                     </div>
                     <FormControl>
@@ -233,6 +240,28 @@ const CreateEditForm = ({
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="domains"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("status_pages.domains")}</FormLabel>
+                  <FormControl>
+                    <DomainsManager
+                      value={field.value || []}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
+                  <Alert className="mt-1">
+                    <AlertCircleIcon className="w-4 h-4" />
+                    <AlertDescription>
+                      {t("status_pages.domains_info_warning")}
+                    </AlertDescription>
+                  </Alert>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </CardContent>
         </Card>
 
@@ -242,14 +271,14 @@ const CreateEditForm = ({
             variant="outline"
             onClick={() => window.history.back()}
           >
-            Cancel
+            {t("actions.cancel")}
           </Button>
           <Button type="submit" disabled={isPending}>
             {isPending
-              ? "Saving..."
+              ? t("actions.saving")
               : mode === "create"
-              ? "Create Status Page"
-              : "Update Status Page"}
+              ? t("status_pages.create_status_page")
+              : t("status_pages.update_status_page")}
           </Button>
         </div>
       </form>

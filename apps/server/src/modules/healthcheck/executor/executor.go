@@ -3,6 +3,7 @@ package executor
 import (
 	"context"
 	"fmt"
+	"peekaping/src/modules/certificate"
 	"peekaping/src/modules/heartbeat"
 	"peekaping/src/modules/shared"
 	"time"
@@ -15,6 +16,7 @@ type Result struct {
 	Message   string
 	StartTime time.Time
 	EndTime   time.Time
+	TLSInfo   *certificate.TLSInfo `json:"tls_info,omitempty"`
 }
 
 type Monitor = shared.Monitor

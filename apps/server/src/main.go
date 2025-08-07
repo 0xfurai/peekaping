@@ -8,7 +8,10 @@ import (
 	"peekaping/docs"
 	"peekaping/src/config"
 	"peekaping/src/modules/auth"
+	"peekaping/src/modules/bruteforce"
+	"peekaping/src/modules/certificate"
 	"peekaping/src/modules/cleanup"
+	"peekaping/src/modules/domain_status_page"
 	"peekaping/src/modules/events"
 	"peekaping/src/modules/healthcheck"
 	"peekaping/src/modules/heartbeat"
@@ -18,7 +21,9 @@ import (
 	"peekaping/src/modules/monitor_notification"
 	"peekaping/src/modules/monitor_status_page"
 	"peekaping/src/modules/monitor_tag"
+	"peekaping/src/modules/monitor_tls_info"
 	"peekaping/src/modules/notification_channel"
+	"peekaping/src/modules/notification_sent_history"
 	"peekaping/src/modules/proxy"
 	"peekaping/src/modules/setting"
 	"peekaping/src/modules/stats"
@@ -78,16 +83,21 @@ func main() {
 	heartbeat.RegisterDependencies(container, &cfg)
 	monitor.RegisterDependencies(container, &cfg)
 	healthcheck.RegisterDependencies(container)
+	bruteforce.RegisterDependencies(container, &cfg)
 	auth.RegisterDependencies(container, &cfg)
 	notification_channel.RegisterDependencies(container, &cfg)
 	monitor_notification.RegisterDependencies(container, &cfg)
 	proxy.RegisterDependencies(container, &cfg)
 	setting.RegisterDependencies(container, &cfg)
+	notification_sent_history.RegisterDependencies(container, &cfg)
+	monitor_tls_info.RegisterDependencies(container, &cfg)
+	certificate.RegisterDependencies(container)
 	stats.RegisterDependencies(container, &cfg)
 	monitor_maintenance.RegisterDependencies(container, &cfg)
 	maintenance.RegisterDependencies(container, &cfg)
 	status_page.RegisterDependencies(container, &cfg)
 	monitor_status_page.RegisterDependencies(container, &cfg)
+	domain_status_page.RegisterDependencies(container, &cfg)
 	tag.RegisterDependencies(container, &cfg)
 	monitor_tag.RegisterDependencies(container, &cfg)
 
@@ -101,8 +111,14 @@ func main() {
 	}
 
 	// Start cleanup cron job(s)
-	err = container.Invoke(func(heartbeatService heartbeat.Service, settingService setting.Service, logger *zap.SugaredLogger) {
-		cleanup.StartCleanupCron(heartbeatService, settingService, logger)
+	err = container.Invoke(func(
+		heartbeatService heartbeat.Service,
+		settingService setting.Service,
+		notificationHistoryService notification_sent_history.Service,
+		tlsInfoService monitor_tls_info.Service,
+		logger *zap.SugaredLogger,
+	) {
+		cleanup.StartCleanupCron(heartbeatService, settingService, notificationHistoryService, tlsInfoService, logger)
 	})
 	if err != nil {
 		log.Fatal(err)

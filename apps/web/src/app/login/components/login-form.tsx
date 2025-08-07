@@ -24,7 +24,7 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { isAxiosError } from "axios";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import React from "react";
 import { useAuthStore } from "@/store/auth";
 import type { AuthModel } from "@/api/types.gen";
@@ -128,7 +128,10 @@ export function LoginForm({
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="grid gap-6"
+              >
                 <FormField
                   control={form.control}
                   name="email"
@@ -174,6 +177,9 @@ export function LoginForm({
                 )}
 
                 <Button type="submit" className="w-full">
+                  {loginMutation.isPending && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
                   Login
                 </Button>
 
