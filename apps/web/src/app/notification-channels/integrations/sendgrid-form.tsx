@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/form";
 import { z } from "zod";
 import { useFormContext } from "react-hook-form";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const schema = z.object({
   type: z.literal("sendgrid"),
@@ -36,6 +37,7 @@ export const displayName = "SendGrid";
 
 export default function SendGridForm() {
   const form = useFormContext();
+  const { t } = useLocalizedTranslation();
 
   return (
     <>
@@ -44,7 +46,7 @@ export default function SendGridForm() {
         name="api_key"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>API Key</FormLabel>
+            <FormLabel>{t("sendgrid.api_key_label")}</FormLabel>
             <FormControl>
               <Input
                 placeholder="SG.xxxxxxxxxxxxxxxxxxxx"
@@ -53,8 +55,7 @@ export default function SendGridForm() {
               />
             </FormControl>
             <FormDescription>
-              Your SendGrid API key. You can create one in your SendGrid account
-              under Settings → API Keys. Make sure it has "Mail Send" permissions.
+              {t("sendgrid.api_key_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -65,13 +66,12 @@ export default function SendGridForm() {
         name="from_email"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>From Email</FormLabel>
+            <FormLabel>{t("sendgrid.from_email_label")}</FormLabel>
             <FormControl>
               <Input placeholder="noreply@example.com" {...field} />
             </FormControl>
             <FormDescription>
-              The sender email address. This must be a verified sender in your
-              SendGrid account.
+              {t("sendgrid.from_email_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -82,13 +82,12 @@ export default function SendGridForm() {
         name="to_email"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>To Email</FormLabel>
+            <FormLabel>{t("sendgrid.to_email_label")}</FormLabel>
             <FormControl>
               <Input placeholder="recipient@example.com" {...field} />
             </FormControl>
             <FormDescription>
-              Primary recipient email address. For multiple recipients, use CC or
-              BCC fields.
+              {t("sendgrid.to_email_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -99,12 +98,12 @@ export default function SendGridForm() {
         name="cc_email"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>CC Email (Optional)</FormLabel>
+            <FormLabel>{t("sendgrid.cc_email_label")}</FormLabel>
             <FormControl>
               <Input placeholder="cc1@example.com, cc2@example.com" {...field} />
             </FormControl>
             <FormDescription>
-              Carbon copy recipients. Separate multiple emails with commas.
+              {t("sendgrid.cc_email_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -115,12 +114,12 @@ export default function SendGridForm() {
         name="bcc_email"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>BCC Email (Optional)</FormLabel>
+            <FormLabel>{t("sendgrid.bcc_email_label")}</FormLabel>
             <FormControl>
               <Input placeholder="bcc1@example.com, bcc2@example.com" {...field} />
             </FormControl>
             <FormDescription>
-              Blind carbon copy recipients. Separate multiple emails with commas.
+              {t("sendgrid.bcc_email_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -131,25 +130,22 @@ export default function SendGridForm() {
         name="subject"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Custom Subject (Optional)</FormLabel>
+            <FormLabel>{t("sendgrid.subject_label")}</FormLabel>
             <FormControl>
               <Input placeholder="{{ name }} - {{ status }}" {...field} />
             </FormControl>
             <FormDescription>
-              Subject line for the email. Supports Liquid templating.
+              {t("sendgrid.subject_description")}
               <br />
-              <b>Available variables:</b>
+              <b>{t("sendgrid.subject_variables_label")}</b>
               <span className="block">
-                <code className="text-pink-500">{"{{ msg }}"}</code>: message of
-                the notification
+                <code className="text-pink-500">{"{{ msg }}"}</code>: {t("sendgrid.subject_variables_msg")}
               </span>
               <span className="block">
-                <code className="text-pink-500">{"{{ name }}"}</code>: service
-                name
+                <code className="text-pink-500">{"{{ name }}"}</code>: {t("sendgrid.subject_variables_name")}
               </span>
               <span className="block">
-                <code className="text-pink-500">{"{{ status }}"}</code>: service
-                status (UP/DOWN)
+                <code className="text-pink-500">{"{{ status }}"}</code>: {t("sendgrid.subject_variables_status")}
               </span>
             </FormDescription>
             <FormMessage />

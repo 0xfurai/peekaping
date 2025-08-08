@@ -65,6 +65,24 @@
     "important_notifications": "Important Notifications",
     "no_important": "No important notifications found."
   },
+  "sendgrid": {
+    "api_key_description": "Your SendGrid API key. You can create one in your SendGrid account under Settings → API Keys. Make sure it has \"Mail Send\" permissions.",
+    "api_key_label": "API Key",
+    "bcc_email_description": "Blind carbon copy recipients. Separate multiple emails with commas.",
+    "bcc_email_label": "BCC Email (Optional)",
+    "cc_email_description": "Carbon copy recipients. Separate multiple emails with commas.",
+    "cc_email_label": "CC Email (Optional)",
+    "from_email_description": "The sender email address. This must be a verified sender in your SendGrid account.",
+    "from_email_label": "From Email",
+    "subject_description": "Subject line for the email. Supports Liquid templating.",
+    "subject_label": "Custom Subject (Optional)",
+    "subject_variables_label": "Available variables:",
+    "subject_variables_msg": "message of the notification",
+    "subject_variables_name": "service name",
+    "subject_variables_status": "service status (UP/DOWN)",
+    "to_email_description": "Primary recipient email address. For multiple recipients, use CC or BCC fields.",
+    "to_email_label": "To Email"
+  },
   "status_pages": {
     "affected_monitors": "Affected Monitors",
     "affected_monitors_info": "Select the monitors that will be affected by this maintenance",

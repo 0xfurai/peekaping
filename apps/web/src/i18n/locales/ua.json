@@ -65,6 +65,24 @@
     "important_notifications": "Важливі сповіщення",
     "no_important": "Важливих сповіщень не знайдено."
   },
+  "sendgrid": {
+    "api_key_description": "Ваш ключ API SendGrid. Ви можете створити його в своєму обліковому записі SendGrid у Налаштування → Ключі API. Переконайтеся, що він має права \"Відправка електронних листів\".",
+    "api_key_label": "Ключ API",
+    "bcc_email_description": "Сховані копії відправлення. Розділяйте адреси електронної пошти комами.",
+    "bcc_email_label": "BCC Email (Опціонально)",
+    "cc_email_description": "Копії відправлення. Розділяйте адреси електронної пошти комами.",
+    "cc_email_label": "CC Email (Опціонально)",
+    "from_email_description": "Адреса електронної пошти відправника. Це повинна бути перевірена адреса відправника в вашому обліковому записі SendGrid.",
+    "from_email_label": "Від Email",
+    "subject_description": "Тема електронного листа. Підтримує шаблони Liquid.",
+    "subject_label": "Власна тема (Опціонально)",
+    "subject_variables_label": "Доступні змінні:",
+    "subject_variables_msg": "повідомлення сповіщення",
+    "subject_variables_name": "назва сервісу",
+    "subject_variables_status": "статус сервісу (UP/DOWN)",
+    "to_email_description": "Основна адреса електронної пошти отримувача. Для кількох отримувачів використовуйте CC або BCC.",
+    "to_email_label": "На Email"
+  },
   "status_pages": {
     "affected_monitors": "Впливіні монітори",
     "affected_monitors_info": "Виберіть монітори, які будуть впливати на цю технічну роботу",
