@@ -75,6 +75,18 @@ func (s *ServiceImpl) Create(ctx context.Context, dto *CreateStatusPageDTO) (*Mo
 		}
 	}
 
+	// Add domains if provided
+	if len(dto.Domains) > 0 {
+		s.logger.Debugw("Adding domains to status page", "statusPageID", created.ID, "domains", dto.Domains)
+		for _, domain := range dto.Domains {
+			_, err := s.domainStatusPageService.AddDomainToStatusPage(ctx, created.ID, domain)
+			if err != nil {
+				s.logger.Errorw("Failed to add domain to status page", "error", err)
+				continue
+			}
+		}
+	}
+
 	return created, nil
 }
 
