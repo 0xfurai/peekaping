@@ -77,7 +77,7 @@ body {
 }
 
 .bg-gradient {
-  background-image: url("/bg-gradient.png");
+  background-image: url("/hero-section-bg.png");
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
