@@ -36,10 +36,10 @@ import faqItems from "../data/faq";
     <Header />
     <main class="">
       <section
-        class="bg-gradient pt-[120px] pb-[500px] m-8 rounded-3xl mb-[200px]"
+        class="bg-gradient relative px-4 sm:px-8 pt-16 sm:pt-24 lg:pt-28 pb-20 sm:pb-40 lg:pb-64 m-4 sm:m-8 rounded-3xl mb-[200px]! pb-[500px]!"
       >
         <h1
-          class="text-5xl font-bold text-center max-w-[1100px] mx-auto leading-[122%] text-zinc-950"
+          class="text-3xl sm:text-5xl font-bold text-center max-w-[1100px] mx-auto leading-[122%] text-zinc-950 px-2"
         >
           Simple <span class="text-gradient"
             >uptime, status pages and alerts</span
@@ -47,28 +47,28 @@ import faqItems from "../data/faq";
           users do
         </h1>
 
-        <p class="text-xl text-center text-zinc-950 max-w-[678px] mx-auto my-6">
+        <p class="text-lg sm:text-xl text-center text-zinc-950 max-w-[678px] mx-auto my-6 px-3">
           Engineer-grade uptime for your stack
         </p>
 
-        <div class="flex justify-center gap-4">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 mt-2">
           <a
             href="https://demo.peekaping.com"
-            class="bg-white text-[#353535] px-4 py-2 rounded-full hover:bg-white/80 font-semibold"
+            class="bg-white text-[#353535] px-4 py-2 rounded-full hover:bg-white/80 font-semibold w-full sm:w-auto text-center"
             target="_blank"
           >
             Try the Demo
           </a>
           <a
             href="https://github.com/0xfurai/peekaping?tab=readme-ov-file#quick-start-docker--sqlite"
-            class="bg-black text-white px-4 py-2 rounded-full hover:bg-gray-800 font-semibold"
+            class="bg-black text-white px-4 py-2 rounded-full hover:bg-gray-800 font-semibold w-full sm:w-auto text-center"
             target="_blank"
           >
             Quickstart
           </a>
           <a
             href="https://github.com/0xfurai/peekaping"
-            class="bg-white text-[#353535] px-4 py-2 rounded-full hover:bg-white/80 font-semibold"
+            class="bg-white text-[#353535] px-4 py-2 rounded-full hover:bg-white/80 font-semibold w-full sm:w-auto text-center"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -78,7 +78,17 @@ import faqItems from "../data/faq";
           </a>
         </div>
 
-        <div class="flex justify-center absolute left-0 right-0">
+        <!-- Mobile image -->
+        <div class="mt-8 md:hidden">
+          <img
+            src="/demo.png"
+            alt="Peekaping"
+            class="w-full max-w-[800px] mx-auto rounded-xl"
+          />
+        </div>
+
+        <!-- Desktop image with mascot -->
+        <div class="hidden md:flex justify-center absolute left-0 right-0">
           <div class="relative">
             <img
               src="/demo.png"
@@ -88,7 +98,7 @@ import faqItems from "../data/faq";
             <img
               src="/meerkat.png"
               alt="Meerkat mascot"
-              class="absolute -bottom-[100px] -right-[180px] w-[400px] z-10"
+              class="absolute -bottom-[100px] -right-[180px] w-[280px] lg:w-[400px] z-10"
             />
           </div>
         </div>

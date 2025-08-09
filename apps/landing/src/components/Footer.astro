@@ -4,9 +4,9 @@ const today = new Date();
 ---
 
 <section>
-  <div class="max-w-screen-lg mx-auto footer-bg p-8 rounded-4xl">
+  <div class="max-w-screen-lg mx-auto footer-bg p-6 sm:p-8 rounded-4xl">
     <div
-      class="text-center text-[40px] font-semibold leading-[135%] mt-[84px] mx-[112px] mb-[28px]"
+      class="text-center text-2xl sm:text-[40px] font-semibold leading-[135%] mt-12 sm:mt-[84px] mx-4 sm:mx-[112px] mb-[28px]"
     >
       Spin it up fast, track checks in real time, publish status pages, and get
       alerts only when it actually matters
@@ -15,10 +15,10 @@ const today = new Date();
       <Button href="https://github.com/0xfurai/peekaping?tab=readme-ov-file#quick-start-docker--sqlite">Get Started</Button>
     </div>
     <div
-      class="flex font-semibold leading-[135%] text-[#373737] justify-between w-full items-end"
+      class="flex flex-col sm:flex-row gap-6 sm:gap-0 font-semibold leading-[135%] text-[#373737] justify-between w-full items-center sm:items-end mt-8"
     >
       <nav>
-        <ul class="flex gap-4">
+        <ul class="flex flex-wrap justify-center gap-4">
           <li>
             <a href="/#monitors">Monitors</a>
           </li>
@@ -34,7 +34,7 @@ const today = new Date();
         </ul>
       </nav>
 
-      <div class="flex items-end gap-4">
+      <div class="flex items-center gap-4">
         <div class="flex justify-center gap-6">
           <a href="https://x.com/0xfurai" target="_blank">
             <span class="sr-only">Follow 0xfurai on X</span>
@@ -78,14 +78,14 @@ const today = new Date();
         <img
           src="/logo-mascot.png"
           alt="Peekaping Logo"
-          class="w-[162px] h-[162px] -mt-[62px] -mb-[12px] -mr-[12px]"
+          class="w-[120px] h-[120px] sm:w-[162px] sm:h-[162px] -mt-[32px] sm:-mt-[62px] -mb-[12px] sm:-mr-[12px]"
         />
       </div>
     </div>
   </div>
 
   <div
-    class="max-w-screen-lg mx-auto p-8 leading-[135%] font-semibold text-[#AFAFAF] flex justify-between"
+    class="max-w-screen-lg mx-auto p-6 sm:p-8 leading-[135%] font-semibold text-[#AFAFAF] flex flex-col sm:flex-row gap-4 sm:gap-0 items-center justify-between"
   >
     <div>
       &copy; {today.getFullYear()} Peekaping. All rights reserved.
