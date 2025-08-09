@@ -2,8 +2,9 @@
 import BaseHead from "../components/BaseHead.astro";
 import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
-import FeatureSection from "../components/FeatureSection.astro";
 import { SITE_DESCRIPTION, SITE_TITLE } from "../consts";
+import Testimonials from "../components/Testimonials.astro";
+import FAQ from "../components/FAQ.astro";
 ---
 
 <!doctype html>
@@ -21,7 +22,7 @@ import { SITE_DESCRIPTION, SITE_TITLE } from "../consts";
           class="text-5xl font-bold text-center max-w-[1056px] mx-auto leading-[122%] text-zinc-950"
         >
           Get Instant Alerts, Beautiful Status Pages, and Real Analytics – All
-          in One <span class="hero-gradient">Self-Hosted</span> Tool You Control
+          in One <span class="text-gradient">Self-Hosted</span> Tool You Control
         </h1>
 
         <p class="text-xl text-center text-zinc-950 max-w-[678px] mx-auto my-6">
@@ -172,6 +173,10 @@ import { SITE_DESCRIPTION, SITE_TITLE } from "../consts";
           </ul>
         </div>
       </section>
+
+      <Testimonials />
+
+      <FAQ />
     </main>
     <Footer />
   </body>

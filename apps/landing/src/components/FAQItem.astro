@@ -1,0 +1,40 @@
+---
+const { question, answer } = Astro.props;
+
+---
+
+<details class="group p-6 bg-[#FFFFFF] border border-[#E8E8E8] rounded-[24px] mb-4 last:mb-0 text-lg leading-[145%]">
+  <summary class="flex items-center gap-3 cursor-pointer list-none">
+    <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#111827]">
+      <svg class="icon-plus" width="21" height="21" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M7 2V12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M2 7H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <svg class="icon-minus" width="21" height="21" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M2 7H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <span class="sr-only">Toggle answer</span>
+    </span>
+    <span class="flex-1  leading-7 font-semibold text-[#111827]">{question}</span>
+  </summary>
+
+  <div class="mt-4 border-t border-[#E8E8E8] pl-10 pr-5 pt-5 text-[#4B5563]  leading-[145%]">
+    {answer}
+  </div>
+</details>
+
+<style>
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  /* Icon toggle without relying on framework variants */
+  .icon-minus {
+    display: none;
+  }
+  details[open] .icon-plus {
+    display: none;
+  }
+  details[open] .icon-minus {
+    display: inline;
+  }
+</style>
