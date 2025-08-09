@@ -1,0 +1,36 @@
+---
+---
+
+<div class="flex items-start gap-4">
+  <div
+    class="w-[26px] h-[26px] list-item-bg rounded-lg flex items-center justify-center flex-shrink-0"
+  >
+    <svg
+      width="14"
+      height="10"
+      viewBox="0 0 16 12"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M1 6L5.66667 11L15 1"
+        stroke="black"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"></path>
+    </svg>
+  </div>
+  <div class="text-[20px] leading-[135%] text-[#565656] font-medium">
+    <slot />
+  </div>
+</div>
+
+<style>
+  .list-item-bg {
+    background: radial-gradient(
+      158.33% 74.72% at 12.5% 87.5%,
+      #b286ff 0%,
+      #e1cfff 100%
+    );
+  }
+</style>

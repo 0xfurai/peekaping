@@ -5,6 +5,9 @@ import Header from "../components/Header.astro";
 import { SITE_DESCRIPTION, SITE_TITLE } from "../consts";
 import Testimonials from "../components/Testimonials.astro";
 import FAQ from "../components/FAQ.astro";
+import Monitors from "../components/Monitors.astro";
+import TechStack from "../components/TechStack.astro";
+import Alerts from "../components/Alerts.astro";
 ---
 
 <!doctype html>
@@ -59,122 +62,10 @@ import FAQ from "../components/FAQ.astro";
         </div>
       </section>
 
-      <section
-        class="grid grid-cols-2 gap-4 w-full max-w-screen-lg mx-auto py-12"
-      >
-        <div>
-          <h2 class="text-4xl font-bold mb-4">Beautiful Status Pages</h2>
-          <ul class="list-disc text-lg leading-8">
-            <li>
-              HTTP/HTTPS Monitoring - Monitor websites, APIs, and web services
-            </li>
-            <li>
-              Push Monitoring - Monitor services that push heartbeats to
-              Peekaping
-            </li>
-          </ul>
-        </div>
-
-        <div></div>
-      </section>
-
-      <section
-        class="grid grid-cols-2 gap-4 w-full max-w-screen-lg mx-auto py-12"
-      >
-        <div></div>
-
-        <div>
-          <h2 class="text-4xl font-bold mb-4">Beautiful Status Pages</h2>
-          <ul class="list-disc text-lg leading-8">
-            <li>
-              HTTP/HTTPS Monitoring - Monitor websites, APIs, and web services
-            </li>
-            <li>
-              Push Monitoring - Monitor services that push heartbeats to
-              Peekaping
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <section
-        class="grid grid-cols-2 gap-4 w-full max-w-screen-lg mx-auto py-12"
-      >
-        <div>
-          <h2 class="text-4xl font-bold mb-4">Beautiful Status Pages</h2>
-          <ul class="list-disc text-lg leading-8">
-            <li>
-              HTTP/HTTPS Monitoring - Monitor websites, APIs, and web services
-            </li>
-            <li>
-              Push Monitoring - Monitor services that push heartbeats to
-              Peekaping
-            </li>
-          </ul>
-        </div>
-
-        <div></div>
-      </section>
-
-      <section
-        class="grid grid-cols-2 gap-4 w-full max-w-screen-lg mx-auto py-12"
-      >
-        <div></div>
-
-        <div>
-          <h2 class="text-4xl font-bold mb-4">Beautiful Status Pages</h2>
-          <ul class="list-disc text-lg leading-8">
-            <li>
-              HTTP/HTTPS Monitoring - Monitor websites, APIs, and web services
-            </li>
-            <li>
-              Push Monitoring - Monitor services that push heartbeats to
-              Peekaping
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <section
-        class="grid grid-cols-2 gap-4 w-full max-w-screen-lg mx-auto py-12"
-      >
-        <div>
-          <h2 class="text-4xl font-bold mb-4">Beautiful Status Pages</h2>
-          <ul class="list-disc text-lg leading-8">
-            <li>
-              HTTP/HTTPS Monitoring - Monitor websites, APIs, and web services
-            </li>
-            <li>
-              Push Monitoring - Monitor services that push heartbeats to
-              Peekaping
-            </li>
-          </ul>
-        </div>
-
-        <div></div>
-      </section>
-
-      <section
-        class="grid grid-cols-2 gap-4 w-full max-w-screen-lg mx-auto py-12"
-      >
-        <div></div>
-
-        <div>
-          <h2 class="text-4xl font-bold mb-4">Beautiful Status Pages</h2>
-          <ul class="list-disc text-lg leading-8">
-            <li>
-              HTTP/HTTPS Monitoring - Monitor websites, APIs, and web services
-            </li>
-            <li>
-              Push Monitoring - Monitor services that push heartbeats to
-              Peekaping
-            </li>
-          </ul>
-        </div>
-      </section>
-
+      <Monitors />
+      <Alerts />
+      <TechStack />
       <Testimonials />
-
       <FAQ />
     </main>
     <Footer />

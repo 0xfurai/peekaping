@@ -132,3 +132,11 @@ body {
   -webkit-backdrop-filter: blur(var(--frost-blur));
   -webkit-filter: url("#glass-distortion");
 }
+
+.card {
+  background-color: #FDFDFD;
+  border-radius: 32px;
+  border: 1px solid #EAEAEA;
+  padding: 16px;
+  gap: 20px;
+}
