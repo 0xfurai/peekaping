@@ -8,13 +8,30 @@ import FAQ from "../components/FAQ.astro";
 import Monitors from "../components/Monitors.astro";
 import TechStack from "../components/TechStack.astro";
 import Alerts from "../components/Alerts.astro";
+import faqItems from "../data/faq";
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
     <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: faqItems.map((item) => ({
+          "@type": "Question",
+          name: item.question,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: item.answer,
+          },
+        })),
+      })}
+    />
   </head>
+
   <body>
     <Header />
     <main class="">
@@ -22,9 +39,12 @@ import Alerts from "../components/Alerts.astro";
         class="bg-gradient pt-[120px] pb-[500px] m-8 rounded-3xl mb-[200px]"
       >
         <h1
-          class="text-5xl font-bold text-center max-w-[1056px] mx-auto leading-[122%] text-zinc-950"
+          class="text-5xl font-bold text-center max-w-[1100px] mx-auto leading-[122%] text-zinc-950"
         >
-          Simple <span class="text-gradient">uptime, status pages and alerts</span> for <span class="text-gradient">small teams</span> to catch outages before users do
+          Simple <span class="text-gradient"
+            >uptime, status pages and alerts</span
+          > for <span class="text-gradient">small teams</span> to catch outages before
+          users do
         </h1>
 
         <p class="text-xl text-center text-zinc-950 max-w-[678px] mx-auto my-6">
@@ -33,16 +53,26 @@ import Alerts from "../components/Alerts.astro";
 
         <div class="flex justify-center gap-4">
           <a
-            href="/"
-            class="bg-white text-[#2E007D] px-6 py-4 rounded-full hover:bg-white/80 text-lg"
+            href="https://demo.peekaping.com"
+            class="bg-white text-[#2E007D] px-4 py-2 rounded-full hover:bg-white/80 text-lg"
+            target="_blank"
           >
-            Watch demo
+            Try the Demo
           </a>
           <a
-            href="/"
-            class="bg-black text-white px-6 py-4 rounded-full hover:bg-gray-800 text-lg"
+            href="https://peekaping.com/docs/quickstart"
+            class="bg-black text-white px-4 py-2 rounded-full hover:bg-gray-800 text-lg"
+            target="_blank"
           >
-            Get started
+            Quickstart
+          </a>
+          <a
+            href="https://github.com/0xfurai/peekaping"
+            class="bg-white text-[#2E007D] px-4 py-2 rounded-full hover:bg-white/80 text-lg"
+            target="_blank"
+          >
+            <span>⭐ Star on GitHub</span>
+            <!-- <span class="opacity-70">{stars}</span> -->
           </a>
         </div>
 
