@@ -29,6 +29,14 @@
   --frost-blur: 6px;
 }
 
+:root { --anchor-offset: 120px; }
+
+/* Any element you can jump to (has an id) gets an offset */
+[id] { scroll-margin-top: var(--anchor-offset); }
+
+/* Optional: smooth scrolling */
+html { scroll-behavior: smooth; }
+
 @font-face {
   font-family: "Geist";
   src: url("/fonts/geist-regular.woff2") format("woff2");
