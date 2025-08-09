@@ -54,25 +54,27 @@ import faqItems from "../data/faq";
         <div class="flex justify-center gap-4">
           <a
             href="https://demo.peekaping.com"
-            class="bg-white text-[#2E007D] px-4 py-2 rounded-full hover:bg-white/80 text-lg"
+            class="bg-white text-[#353535] px-4 py-2 rounded-full hover:bg-white/80 font-semibold"
             target="_blank"
           >
             Try the Demo
           </a>
           <a
             href="https://peekaping.com/docs/quickstart"
-            class="bg-black text-white px-4 py-2 rounded-full hover:bg-gray-800 text-lg"
+            class="bg-black text-white px-4 py-2 rounded-full hover:bg-gray-800 font-semibold"
             target="_blank"
           >
             Quickstart
           </a>
           <a
             href="https://github.com/0xfurai/peekaping"
-            class="bg-white text-[#2E007D] px-4 py-2 rounded-full hover:bg-white/80 text-lg"
+            class="bg-white text-[#353535] px-4 py-2 rounded-full hover:bg-white/80 font-semibold"
             target="_blank"
+            rel="noopener noreferrer"
           >
-            <span>⭐ Star on GitHub</span>
-            <!-- <span class="opacity-70">{stars}</span> -->
+            <span>⭐</span>
+            <span>Star on GitHub</span>
+            <span id="github-stars" class="opacity-70 ml-1"></span>
           </a>
         </div>
 
@@ -99,6 +101,29 @@ import faqItems from "../data/faq";
       <FAQ />
     </main>
     <Footer />
+    <script>
+      (async () => {
+        const el = document.getElementById('github-stars');
+        if (!el) return;
+        try {
+          const res = await fetch('https://green-night-b63d.yojji.workers.dev/?owner=0xfurai&repo=peekaping', {
+            headers: { accept: 'application/json' },
+            cache: 'no-store',
+          });
+          if (!res.ok) return;
+          const data = await res.json();
+
+          const formatted = new Intl.NumberFormat('en', {
+            notation: 'compact',
+            compactDisplay: 'short',
+            maximumFractionDigits: 1,
+          }).format(data?.stars);
+          el.textContent = formatted;
+        } catch (err) {
+          console.log(err)
+        }
+      })();
+    </script>
   </body>
 </html>
 
