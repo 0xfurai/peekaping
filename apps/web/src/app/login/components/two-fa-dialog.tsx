@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Card,
   CardContent,
@@ -30,11 +29,11 @@ interface TwoFADialogProps {
   loading?: boolean;
 }
 
-const createTwoFASchema = (t: (key: string) => string) => z.object({
-  code: z.string().min(1, t("auth.twofa.validation.code_required")),
+const twoFASchema = z.object({
+  code: z.string().min(1, "2FA code is required"),
 });
 
-type TwoFAFormValues = z.infer<ReturnType<typeof createTwoFASchema>>;
+type TwoFAFormValues = z.infer<typeof twoFASchema>;
 
 export function TwoFADialog({
   email,
@@ -44,7 +43,6 @@ export function TwoFADialog({
   loading,
 }: TwoFADialogProps) {
   const { t } = useLocalizedTranslation();
-  const twoFASchema = React.useMemo(() => createTwoFASchema(t), [t]);
   
   const form = useForm<TwoFAFormValues>({
     resolver: zodResolver(twoFASchema),

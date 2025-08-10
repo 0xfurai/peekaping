@@ -32,12 +32,12 @@ import { TwoFADialog } from "./two-fa-dialog";
 import { Link } from "react-router-dom";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
-const createFormSchema = (t: (key: string) => string) => z.object({
-  email: z.string().email(t("forms.validation.email_invalid")),
-  password: z.string().min(1, t("forms.validation.password_required")),
+const formSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(1, "Password is required"),
 });
 
-type FormValues = z.infer<ReturnType<typeof createFormSchema>>;
+type FormValues = z.infer<typeof formSchema>;
 
 export function LoginForm({
   className,
@@ -91,7 +91,6 @@ export function LoginForm({
     },
   });
 
-  const formSchema = React.useMemo(() => createFormSchema(t), [t]);
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {

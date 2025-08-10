@@ -1,4 +1,3 @@
-import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -31,16 +30,16 @@ import {
 import type { TagModel } from "@/api";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
-const createTagSchema = (t: (key: string) => string) => z.object({
+const tagSchema = z.object({
   name: z
     .string()
-    .min(1, t("tags.validation.name_required"))
-    .max(100, t("tags.validation.name_max_length")),
-  color: z.string().regex(/^#[0-9A-F]{6}$/i, t("tags.validation.color_invalid")),
+    .min(1, "Name is required")
+    .max(100, "Name must be less than 100 characters"),
+  color: z.string().regex(/^#[0-9A-F]{6}$/i, "Color must be a valid hex color"),
   description: z.string().optional(),
 });
 
-type TagFormData = z.infer<ReturnType<typeof createTagSchema>>;
+type TagFormData = z.infer<typeof tagSchema>;
 
 interface TagFormProps {
   mode: "create" | "edit";
@@ -51,8 +50,6 @@ const TagForm = ({ mode, tag }: TagFormProps) => {
   const { t } = useLocalizedTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  
-  const tagSchema = React.useMemo(() => createTagSchema(t), [t]);
 
   const form = useForm<TagFormData>({
     resolver: zodResolver(tagSchema),
