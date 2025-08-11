@@ -75,6 +75,7 @@
     "description": "Description",
     "domains": "Domains",
     "domains_info_warning": "Don't forget to add the CNAME records to your DNS for each domain.",
+    "domain_host_warning": "This domain is the same as your current host URL. This may cause conflicts.",
     "published": "Published",
     "published_info": "Make this status page publicly accessible",
     "published_status": "Published",
