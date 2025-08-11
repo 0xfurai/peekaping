@@ -65,6 +65,24 @@
     "important_notifications": "Notifications importantes",
     "no_important": "Aucune notification importante trouvée."
   },
+  "sendgrid": {
+    "api_key_description": "Votre clé API SendGrid. Vous pouvez en créer une dans votre compte SendGrid sous Paramètres → Clés API. Assurez-vous qu'elle a les permissions \"Mail Send\".",
+    "api_key_label": "Clé API",
+    "bcc_email_description": "Destinataires en copie carbone cachée. Séparez plusieurs adresses avec des virgules.",
+    "bcc_email_label": "BCC Email (Optionnel)",
+    "cc_email_description": "Destinataires en copie carbone. Séparez plusieurs adresses avec des virgules.",
+    "cc_email_label": "CC Email (Optionnel)",
+    "from_email_description": "L'adresse email de l'expéditeur. Cette adresse doit être vérifiée dans votre compte SendGrid.",
+    "from_email_label": "Email de l'expéditeur",
+    "subject_description": "Ligne d'objet de l'email. Prend en charge le templating Liquid.",
+    "subject_label": "Objet personnalisé (Optionnel)",
+    "subject_variables_label": "Variables disponibles :",
+    "subject_variables_msg": "message de la notification",
+    "subject_variables_name": "nom du service",
+    "subject_variables_status": "statut du service (UP/DOWN)",
+    "to_email_description": "Adresse email du destinataire principal. Pour plusieurs destinataires, utilisez CC ou BCC.",
+    "to_email_label": "À Email"
+  },
   "status_pages": {
     "affected_monitors": "Moniteurs affectés",
     "affected_monitors_info": "Sélectionnez les moniteurs qui seront affectés par cette maintenance",
