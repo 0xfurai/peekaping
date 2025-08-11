@@ -22,10 +22,12 @@ import type { StatusPageMonitorWithHeartbeatsAndUptimeDto } from "@/api/types.ge
 import BarHistory from "@/components/bars";
 import { last } from "@/lib/utils";
 import { ThemeToggle } from "../../../components/theme-toggle";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const PublicStatusPage = ({ incomingSlug = "" }: { incomingSlug?: string }) => {
   const params = useParams<{ slug: string }>();
   const slug = incomingSlug ?? params.slug;
+  const { t } = useLocalizedTranslation();
 
   const [refreshInterval, setRefreshInterval] = useState(30);
   const [countdown, setCountdown] = useState(refreshInterval);
@@ -143,7 +145,7 @@ const PublicStatusPage = ({ incomingSlug = "" }: { incomingSlug?: string }) => {
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Status page not found or is not published.
+              {t("status.messages.status_page_not_found")}
             </AlertDescription>
           </Alert>
         </div>
@@ -159,7 +161,7 @@ const PublicStatusPage = ({ incomingSlug = "" }: { incomingSlug?: string }) => {
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Status page not found or is not published.
+              {t("status.messages.status_page_not_found")}
             </AlertDescription>
           </Alert>
         </div>
@@ -184,20 +186,20 @@ const PublicStatusPage = ({ incomingSlug = "" }: { incomingSlug?: string }) => {
   const getStatusText = (status: number) => {
     switch (status) {
       case 1:
-        return "Operational";
+        return t("status.messages.operational");
       case 0:
       case 2:
-        return "Down";
+        return t("status.messages.down");
       case 3:
-        return "Maintenance";
+        return t("status.messages.maintenance");
       default:
-        return "Unknown";
+        return t("status.messages.unknown");
     }
   };
 
   const getOverallStatus = () => {
     if (monitors.length === 0)
-      return { status: 1, text: "All Systems Operational" };
+      return { status: 1, text: t("status.messages.all_systems_operational") };
 
     const hasDown = monitors.some(
       (m: StatusPageMonitorWithHeartbeatsAndUptimeDto) => {
@@ -212,9 +214,9 @@ const PublicStatusPage = ({ incomingSlug = "" }: { incomingSlug?: string }) => {
       }
     );
 
-    if (hasDown) return { status: 0, text: "Partial System Outage" };
-    if (hasMaintenance) return { status: 3, text: "Under Maintenance" };
-    return { status: 1, text: "All Systems Operational" };
+    if (hasDown) return { status: 0, text: t("status.messages.partial_system_outage") };
+    if (hasMaintenance) return { status: 3, text: t("status.messages.under_maintenance") };
+    return { status: 1, text: t("status.messages.all_systems_operational") };
   };
 
   const formatUptime = (uptime: number) => {
@@ -273,7 +275,7 @@ const PublicStatusPage = ({ incomingSlug = "" }: { incomingSlug?: string }) => {
               <Card>
                 <CardContent className="p-6 text-center">
                   <p className="text-muted-foreground">
-                    No monitors configured for this status page.
+                    {t("status.messages.no_monitors_configured")}
                   </p>
                 </CardContent>
               </Card>
@@ -358,12 +360,12 @@ const PublicStatusPage = ({ incomingSlug = "" }: { incomingSlug?: string }) => {
           <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground mb-4 mt-4">
             <div className="flex items-center gap-1">
               <RefreshCw className="h-4 w-4" />
-              <span>Last Updated: {formatLastUpdated(lastUpdated)}</span>
+              <span>{t("status.messages.last_updated")}: {formatLastUpdated(lastUpdated)}</span>
             </div>
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4" />
               <span className="w-[150px]">
-                Refresh in: {formatCountdown(countdown)}
+                {t("status.messages.refresh_in")}: {formatCountdown(countdown)}
               </span>
             </div>
             <button
@@ -376,14 +378,14 @@ const PublicStatusPage = ({ incomingSlug = "" }: { incomingSlug?: string }) => {
               className="flex items-center gap-1 text-primary hover:text-primary/80 transition-colors"
             >
               <RefreshCw className="h-4 w-4" />
-              <span>Refresh Now</span>
+              <span>{t("status.messages.refresh_now")}</span>
             </button>
           </div>
         </div>
 
         <div className="text-center">
           <p className="text-xs text-muted-foreground">
-            Powered by{" "}
+            {t("status.messages.powered_by")}{" "}
             <a
               href="https://github.com/0xfurai/peekaping"
               className="underline hover:text-foreground"

@@ -3,34 +3,106 @@
     "cancel": "Скасувати",
     "saving": "Збереження..."
   },
+  "auth": {
+    "login": {
+      "description": "Увійдіть за допомогою електронної пошти",
+      "no_account": "Немає обліковго запису?",
+      "sign_up": "Зареєструватися",
+      "submit": "Увійти",
+      "title": "З поверненням"
+    },
+    "register": {
+      "description": "Створіть ваш обліковий запис адміністратора",
+      "have_account": "Вже маєте обліковий запис?",
+      "sign_in": "Увійти",
+      "submit": "Створити",
+      "title": "Привіт"
+    },
+    "twofa": {
+      "code_label": "2FA код",
+      "code_placeholder": "Введіть 2FA код",
+      "description": "Двофакторна аутентифікація увімкнена для вашого облікового запису. Будь ласка, введіть код аутентифікації для продовження.",
+      "title": "Потрібна двофакторна аутентифікація",
+      "validation": {
+        "code_required": "2FA код є обов'язковим"
+      },
+      "verify_button": "Перевірити 2FA",
+      "verifying": "Перевірка..."
+    }
+  },
+  "bars": {
+    "down_count": "Кількість збоїв",
+    "important": "Важливо",
+    "interval": "Інтервал",
+    "message": "Повідомлення",
+    "ms": "мс",
+    "notified": "Повідомлено",
+    "ping": "Пінг",
+    "retries": "Повтори",
+    "status": "Статус",
+    "time": "Час"
+  },
   "common": {
     "active": "Активний",
     "all": "Всі",
+    "back": "Назад",
+    "cancel": "Скасувати",
+    "clear_all": "Очистити все",
+    "clear_all_filters": "Очистити всі фільтри",
+    "confirm": "Підтвердити",
+    "confirm_delete_title": "Ви абсолютно впевнені?",
+    "confirm_delete_title_short": "Ви впевнені?",
+    "continue": "Продовжити",
+    "create": "Створити",
+    "created": "Створено",
+    "days": "днів",
+    "default": "За замовчуванням",
+    "delete": "Видалити",
+    "disabling": "Вимкнення...",
     "dismiss": "Відхилити",
     "down": "Не працює",
+    "enabling": "Увімкнення...",
+    "error": "Помилка",
+    "expires": "Закінчується",
     "inactive": "Неактивний",
     "loading": "Завантаження...",
     "logout": "Вийти",
     "maintenance": "Технічне обслуговування",
     "no": "Ні",
+    "no_options_found": "Немає доступних опцій",
+    "no_tags_available": "Немає доступних тегів",
+    "please_refresh_page": "Будь ласка, оновіть сторінку.",
+    "required": "Обов'язково",
+    "save": "Зберегти",
+    "saving": "Збереження...",
     "search": "Пошук",
     "security": "Безпека",
     "select": "Вибрати",
+    "select_monitors": "Вибрати монітори...",
+    "select_tags": "Вибрати теги",
     "settings": "Налаштування",
+    "tags": "Теги",
     "unknown": "Невідомо",
+    "unnamed_monitor": "Невідомий монітор",
     "up": "Працює",
+    "update": "Оновити",
+    "verifying": "Перевірка...",
     "yes": "Так"
   },
   "forms": {
     "labels": {
+      "confirm_password": "Підтвердіть пароль",
+      "email": "Електронна пошта",
       "footer_text": "Текст нижнього колонтитулу",
       "heartbeat_interval": "Інтервал пульсу (секунди)",
       "icon_url": "URL іконки",
       "monitor_name": "Назва",
       "monitor_type": "Тип",
+      "password": "Пароль",
       "retries": "Повторні спроби",
       "slug": "Slug",
-      "title": "Назва"
+      "title": "Назва",
+      "username": "Ім'я користувача"
     },
     "placeholders": {
       "auto_refresh_help": "0 для відсутності автооновлення",
@@ -41,29 +113,1012 @@
       "page_description": "Введіть опис сторінки статусу",
       "page_title": "Введіть заголовок сторінки статусу",
       "slug": "slug-сторінки-статусу"
+    },
+    "validation": {
+      "email_invalid": "Будь ласка, введіть дійсну адресу електронної пошти",
+      "password_min_length": "Пароль повинен містити щонайменше 8 символів",
+      "password_required": "Пароль є обов'язковим",
+      "passwords_mismatch": "Паролі не співпадають"
+    }
+  },
+  "maintenance": {
+    "card": {
+      "aria": {
+        "delete": "Видалити {{title}}",
+        "pause": "Призупинити обслуговування",
+        "resume": "Відновити обслуговування"
+      },
+      "labels": {
+        "duration": "{{duration}} хв",
+        "end": "Кінець: {{date}}",
+        "start": "Початок: {{date}}"
+      },
+      "status": {
+        "active": "Активне",
+        "ended": "Завершено",
+        "inactive": "Неактивне"
+      }
+    },
+    "edit_title": "Редагувати обслуговування",
+    "form": {
+      "affected_monitors_description": "Виберіть монітори, які будуть зачеплені цим обслуговуванням",
+      "affected_monitors_title": "Зачеплені монітори",
+      "cron_description": "Введіть дійсний cron вираз",
+      "cron_expression": "Cron вираз",
+      "date_time_title": "Дата та час",
+      "day_of_month": "День місяця",
+      "day_of_week": "День тижня",
+      "description_label": "Опис",
+      "description_placeholder": "Опис обслуговування...",
+      "duration_minutes": "Тривалість (Хвилини)",
+      "effective_date_range": "Ефективний діапазон дат (Необов'язково)",
+      "end_date_time": "Дата і час закінчення",
+      "end_time": "Час закінчення",
+      "interval_label": "Інтервал (Виконувати раз на день)",
+      "last_day": "Останній день",
+      "last_day_of_month": "Останній день місяця",
+      "maintenance_time_window": "Часове вікно обслуговування дня",
+      "markdown_supported": "Markdown підтримується",
+      "same_as_server": "Той же, що й часовий пояс сервера",
+      "start_date_time": "Дата і час початку",
+      "start_time": "Час початку",
+      "strategy_label": "Стратегія",
+      "strategy_placeholder": "Виберіть стратегію",
+      "timezone_label": "Часовий пояс",
+      "timezone_placeholder": "Виберіть часовий пояс",
+      "title_label": "Назва",
+      "title_placeholder": "Назва обслуговування"
+    },
+    "page": {
+      "clear_filters": "Очистити всі фільтри",
+      "dialogs": {
+        "confirm_action": {
+          "pause_description": "Ви впевнені, що хочете призупинити це обслуговування?",
+          "resume_description": "Ви впевнені, що хочете відновити це обслуговування?",
+          "title": "Підтвердити дію"
+        },
+        "confirm_delete": {
+          "description": "Ви впевнені, що хочете видалити це вікно обслуговування? Цю дію неможливо скасувати.",
+          "title": "Підтвердити видалення"
+        }
+      },
+      "edit_maintenance": "Редагувати обслуговування: {{title}}",
+      "empty_state": {
+        "action": "Створіть ваше перше вікно обслуговування",
+        "description": "Почніть зі створення вашого першого вікна обслуговування для запобігання запланованим простоям.",
+        "title": "Вікон обслуговування не знайдено"
+      },
+      "error_loading": "Помилка завантаження обслуговування",
+      "loading": "Завантаження...",
+      "loading_monitors": "Завантаження моніторів...",
+      "search_placeholder": "Пошук обслуговувань..."
+    },
+    "page_title": "Вікна обслуговування",
+    "schedule_title": "Запланувати обслуговування",
+    "strategy": {
+      "cron": "Cron вираз",
+      "manual": "Активний/Неактивний вручну",
+      "recurring_day_of_month": "Повторюваний - День місяця",
+      "recurring_interval": "Повторюваний - Інтервал",
+      "recurring_weekday": "Повторюваний - День тижня",
+      "single": "Одноразове вікно обслуговування"
+    },
+    "toasts": {
+      "create_error": "Не вдалося створити обслуговування",
+      "created_success": "Обслуговування успішно створено",
+      "delete_error": "Не вдалося видалити обслуговування",
+      "deleted_success": "Обслуговування успішно видалено",
+      "pause_error": "Не вдалося призупинити обслуговування",
+      "paused_success": "Обслуговування успішно призупинено",
+      "resume_error": "Не вдалося відновити обслуговування",
+      "resumed_success": "Обслуговування успішно відновлено",
+      "toggle_error": "Неможливо перемкнути статус обслуговування: ID відсутній",
+      "update_error": "Не вдалося оновити обслуговування",
+      "updated_success": "Обслуговування успішно оновлено"
+    },
+    "validation": {
+      "day_of_month_required": "Необхідно вибрати хоча б один день",
+      "end_date_required": "Кінцева дата є обов'язковою",
+      "end_time_required": "Кінцевий час є обов'язковим",
+      "interval_day_range": "Інтервал повинен бути від 1 до 3650 днів",
+      "start_before_end_date": "Початкова дата має бути раніше кінцевої дати",
+      "start_before_end_time": "Початковий час має бути раніше кінцевого часу",
+      "start_date_required": "Початкова дата є обов'язковою",
+      "start_time_required": "Початковий час є обов'язковим",
+      "title_required": "Назва є обов'язковою",
+      "weekday_required": "Необхідно вибрати хоча б один день тижня"
+    },
+    "weekdays": {
+      "fri": "Пт",
+      "mon": "Пн",
+      "sat": "Сб",
+      "sun": "Нд",
+      "thu": "Чт",
+      "tue": "Вт",
+      "wed": "Ср"
     }
   },
   "messages": {
+    "login_error": "Під час входу сталася помилка",
+    "login_no_tokens": "Вхід успішний, але токени не отримано",
+    "login_success": "Успішно увійшли",
+    "notifier_delete_error": "Не вдалося видалити сповіщувач",
+    "notifier_delete_success": "Сповіщувач успішно видалено",
+    "register_error": "Під час реєстрації сталася помилка",
+    "register_no_tokens": "Реєстрація успішна, але токени не отримано",
+    "register_success": "Успішно зареєстровано",
+    "setting_update_error": "Не вдалося оновити налаштування",
+    "setting_update_success": "Налаштування успішно оновлено",
+    "tag_create_error": "Не вдалося створити тег",
+    "tag_create_success": "Тег успішно створено",
+    "tag_delete_error": "Не вдалося видалити тег",
+    "tag_delete_success": "Тег успішно видалено",
+    "tag_update_error": "Не вдалося оновити тег",
+    "tag_update_success": "Тег успішно оновлено",
+    "unexpected_error": "Сталася неочікувана помилка",
     "version_mismatch": "Виявлено невідповідність версії"
   },
   "monitors": {
+    "card": {
+      "check_interval": "Інтервал перевірки:",
+      "loading_more": "Завантаження..."
+    },
+    "empty_state": {
+      "action": "Створіть ваш перший монітор",
+      "description": "Почніть зі створення вашого першого монітора для відстеження стану ваших сервісів.",
+      "title": "Моніторів не знайдено"
+    },
+    "filtering_by_tags": "Фільтрування за тегами",
     "filters": {
       "monitor_status": "Cтатус",
-      "search_placeholder": "Пошук моніторів за назвою..."
+      "monitor_status_placeholder": "Статус монітора",
+      "search_placeholder": "Пошук моніторів за назвою...",
+      "status_placeholder": "Статус"
     },
-    "title": "Моніторинг"
+    "form": {
+      "buttons": {
+        "copied": "Скопійовано",
+        "copy": "Скопіювати",
+        "create": "Створити",
+        "regenerate": "Згенерувати",
+        "update": "Оновити"
+      },
+      "dns": {
+        "hostname": "Ім'я хоста",
+        "port": "Порт",
+        "record_type": "Тип запису ресурсу",
+        "record_type_placeholder": "Виберіть тип запису",
+        "resolver_server": "Сервер резолвера",
+        "title": "Налаштування DNS"
+      },
+      "docker": {
+        "ca_cert_description": "Вставте ваш сертифікат центру сертифікації у форматі PEM.",
+        "ca_certificate": "CA сертифікат (PEM)",
+        "client_cert_description": "Вставте ваш клієнтський сертифікат у форматі PEM. Використовується для взаємної TLS аутентифікації.",
+        "client_certificate": "Клієнтський сертифікат (PEM)",
+        "client_private_key": "Приватний ключ клієнта (PEM)",
+        "common_tls_issues": "Поширені проблеми TLS:",
+        "connection_type": "Тип з'єднання",
+        "container_name_id": "Ім'я/ID контейнера",
+        "disabled": "Вимкнено",
+        "docker_container": "Docker контейнер",
+        "docker_host": "Docker хост",
+        "enable_tls": "Увімкнути TLS",
+        "enabled": "Увімкнено",
+        "examples": "Приклади",
+        "hostname_mismatch": "\"x509: сертифікат дійсний для X, а не Y\":",
+        "hostname_mismatch_solution": "Переконайтеся, що ім'я хоста відповідає SAN сертифіката або вимкніть перевірку (не рекомендується).",
+        "legacy_cert_error": "\"x509: сертифікат покладається на застаріле поле Common Name\":",
+        "legacy_cert_solution": "Додайте ім'я хоста до альтернативних імен суб'єкта (SAN) у вашому сертифікаті.",
+        "mtls_note": "Для взаємного TLS (mTLS) вам потрібно надати як клієнтський сертифікат, так і приватний ключ. CA сертифікат використовується для перевірки сертифіката сервера.",
+        "note": "Примітка:",
+        "private_key_description": "Вставте ваш приватний ключ у форматі PEM. Зберігайте його в безпеці!",
+        "select_connection_type": "Виберіть тип з'єднання",
+        "select_tls_option": "Виберіть опцію TLS",
+        "select_verification_option": "Виберіть опцію перевірки",
+        "skip_verification": "Пропустити перевірку (небезпечно)",
+        "tls_configuration": "Конфігурація TLS",
+        "unknown_authority": "\"x509: сертифікат підписаний невідомим органом\":",
+        "unknown_authority_solution": "Надайте правильний CA сертифікат, який підписав сертифікат сервера.",
+        "verify_certificates": "Перевіряти сертифікати",
+        "verify_tls": "Перевіряти TLS"
+      },
+      "grpc": {
+        "body": "Дані тіла (JSON)",
+        "enable_tls": "Увімкнути TLS",
+        "enable_tls_description": "Використовувати безпечне з'єднання (TLS/SSL)",
+        "invert_keyword": "Інвертувати ключове слово",
+        "invert_keyword_description": "Монітор буде позначений як UP, якщо ключове слово НЕ знайдено",
+        "keyword": "Ключове слово",
+        "keyword_description": "Шукати це ключове слово у відповіді",
+        "keyword_placeholder": "Необов'язкове ключове слово для пошуку",
+        "method_description": "Чутливий до регістру",
+        "method_placeholder": "Перевірка",
+        "options_title": "Параметри gRPC",
+        "proto_content": "Вміст Protobuf",
+        "proto_method": "Метод Protobuf",
+        "proto_service_name": "Ім'я сервісу Protobuf",
+        "service_name_placeholder": "Здоров'я"
+      },
+      "http": {
+        "advanced": {
+          "accepted_status_codes": "Прийнятні коди статусу",
+          "ignore_tls": "Ігнорувати помилки TLS/SSL для HTTPS веб-сайтів",
+          "ignore_tls_description": "Пропустити перевірку сертифіката TLS. Використовуйте обережно - це робить з'єднання менш безпечними.",
+          "max_redirects": "Максимальна кількість перенаправлень",
+          "max_redirects_description": "Максимальна кількість перенаправлень для слідування (0-30). Встановіть 0, щоб вимкнути перенаправлення.",
+          "title": "Розширені"
+        },
+        "authentication": {
+          "auth_header": "Заголовок авторизації",
+          "certificate": "Сертифікат",
+          "certificate_placeholder": "Сертифікат",
+          "client_id": "ID клієнта",
+          "client_id_placeholder": "ID клієнта",
+          "client_secret": "Секрет клієнта",
+          "client_secret_placeholder": "Секрет клієнта",
+          "domain": "Домен",
+          "domain_placeholder": "Домен",
+          "form_data_body": "Тіло даних форми",
+          "key": "Ключ",
+          "key_placeholder": "Ключ",
+          "method_label": "Метод аутентифікації",
+          "method_placeholder": "Виберіть тип аутентифікації",
+          "oauth_scope": "Область OAuth",
+          "oauth_scope_placeholder": "Необов'язково: Список областей, розділених пробілами",
+          "oauth_token_url": "URL токена OAuth",
+          "oauth_token_url_placeholder": "URL токена OAuth",
+          "title": "Аутентифікація",
+          "workstation": "Робоча станція",
+          "workstation_placeholder": "Робоча станція"
+        },
+        "options": {
+          "body": "Тіло",
+          "body_encoding": "Кодування тіла",
+          "body_encoding_placeholder": "Виберіть кодування тіла",
+          "form_example": "Приклад даних форми",
+          "headers": "Заголовки",
+          "json_example": "Приклад JSON",
+          "method": "Метод",
+          "method_placeholder": "Виберіть тип монітора",
+          "select_encoding": "Виберіть кодування тіла",
+          "select_method": "Виберіть метод",
+          "text_example": "Приклад тексту:\nБудь-який текстовий вміст тут...",
+          "title": "Параметри HTTP",
+          "xml_example": "Приклад XML"
+        }
+      },
+      "kafka": {
+        "add_broker": "Додати брокер",
+        "auto_topic_creation_description": "Дозволити продюсеру автоматично створювати топік, якщо він не існує",
+        "auto_topic_creation_label": "Дозволити автоматичне створення топіка",
+        "brokers_description": "Список адрес брокерів Kafka (формат host:port)",
+        "brokers_label": "Брокери Kafka",
+        "configuration_title": "Конфігурація Kafka",
+        "enable_ssl_description": "Використовувати шифрування SSL/TLS для з'єднання",
+        "enable_ssl_label": "Увімкнути SSL/TLS",
+        "message_description": "Вміст повідомлення для відправки в топік (рекомендується формат JSON)",
+        "message_label": "Повідомлення",
+        "sasl_mechanism_description": "Виберіть механізм аутентифікації SASL",
+        "sasl_mechanism_label": "Механізм SASL",
+        "sasl_mechanism_placeholder": "Виберіть механізм SASL",
+        "sasl_password_description": "Пароль для аутентифікації SASL",
+        "sasl_password_label": "Пароль SASL",
+        "sasl_password_placeholder": "пароль",
+        "sasl_username_description": "Ім'я користувача для аутентифікації SASL",
+        "sasl_username_label": "Ім'я користувача SASL",
+        "security_title": "Безпека",
+        "topic_description": "Топік Kafka для відправки повідомлень"
+      },
+      "mongodb": {
+        "command_description": "Команда MongoDB для виконання у форматі JSON. За замовчуванням ping, якщо не вказано.",
+        "command_label": "Команда (Необов'язково)",
+        "configuration_title": "Конфігурація MongoDB",
+        "connection_string_description": "Рядок підключення MongoDB. Підтримує як стандартний (mongodb://), так і DNS seedlist (mongodb+srv://) формати.",
+        "connection_string_label": "Рядок підключення",
+        "expected_value_description": "Очікуване значення для порівняння з результатом JSON шляху.",
+        "expected_value_label": "Очікуване значення (Необов'язково)",
+        "expected_value_placeholder": "Очікуване значення",
+        "json_path_description": "JSON шлях для видобуття значення з відповіді. Використовуйте $ для кореневого рівня.",
+        "json_path_label": "JSON шлях (Необов'язково)"
+      },
+      "mqtt": {
+        "check_type_json_query": "JSON запит",
+        "check_type_keyword": "Ключове слово",
+        "check_type_label": "Тип перевірки MQTT",
+        "check_type_none": "Немає (Будь-яке повідомлення)",
+        "check_type_placeholder": "Виберіть тип перевірки",
+        "configuration_title": "Конфігурація MQTT",
+        "expected_value_label": "Очікуване значення",
+        "hostname_label": "Ім'я хоста",
+        "json_path_label": "JSON шлях",
+        "password_label": "Пароль MQTT",
+        "password_placeholder": "Пароль (необов'язково)",
+        "port_label": "Порт",
+        "success_keyword_label": "Ключове слово успіху MQTT",
+        "success_keyword_placeholder": "Ключове слово, що вказує на успіх",
+        "username_label": "Ім'я користувача MQTT",
+        "username_placeholder": "Ім'я користувача (необов'язково)",
+        "validation": {
+          "expected_value_required": "Очікуване значення є обов'язковим, коли тип перевірки - JSON запит",
+          "json_path_required": "JSON шлях є обов'язковим, коли тип перевірки - JSON запит",
+          "success_keyword_required": "Ключове слово успіху є обов'язковим, коли тип перевірки - ключове слово"
+        }
+      },
+      "mysql": {
+        "connection_string_examples": "Приклади:",
+        "connection_string_label": "Рядок підключення",
+        "connection_title": "Підключення MySQL",
+        "query_label": "Запит"
+      },
+      "ping": {
+        "data_size": "Розмір даних (байти)",
+        "host": "Ім'я хоста / IP",
+        "title": "Налаштування Ping"
+      },
+      "postgres": {
+        "connection_string_label": "Рядок підключення",
+        "connection_title": "Підключення PostgreSQL",
+        "query_label": "Запит"
+      },
+      "push": {
+        "url_description": "Використовуйте цю URL-адресу у вашому сервісі для звітування про стан. Зробіть HTTP-запит (POST/GET) до цієї кінцевої точки, щоб надіслати пульс.",
+        "url_title": "URL-адреса Push-монітора"
+      },
+      "rabbitmq": {
+        "documentation_link": "Документація RabbitMQ",
+        "health_checks_description": "Монітор перевіряє endpoint {{code}} на кожному вузлі та позначає як UP, якщо вузол здоровий.",
+        "management_nodes_description": "Введіть URL-адреси вузлів керування RabbitMQ, включаючи протокол та порт. Наприклад: https://node1.rabbitmq.com:15672",
+        "management_nodes_title": "Вузли керування",
+        "node_url_label": "URL вузла",
+        "password_description": "Пароль для керування RabbitMQ",
+        "setup_information_description": "Для використання монітора RabbitMQ, вам потрібно увімкнути плагін Management у вашому конфігураційному файлі RabbitMQ. Для більш детальної інформації, будь ласка, зверніться до документації RabbitMQ.",
+        "setup_information_title": "Інформація про налаштування",
+        "title": "Налаштування RabbitMQ",
+        "username_description": "Ім'я користувача для керування RabbitMQ"
+      },
+      "redis": {
+        "ca_certificate_description": "Кореневий сертифікат CA в форматі PEM. Потрібен для правильної перевірки TLS з самопідписаними сертифікатами.",
+        "ca_certificate_label": "Кореневий сертифікат CA (Необов'язково)",
+        "client_certificate_description": "Клієнтський сертифікат в форматі PEM. Потрібен для взаємного TLS аутентифікації.",
+        "client_certificate_label": "Клієнтський сертифікат (Необов'язково)",
+        "client_key_description": "Клієнтський приватний ключ в форматі PEM. Повинен бути наданий разом з клієнтським сертифікатом.",
+        "client_key_label": "Клієнтський приватний ключ (Необов'язково)",
+        "connection_string_description": "Формат рядка підключення Redis: {{redis}} або {{rediss}} для TLS",
+        "connection_string_label": "Рядок підключення",
+        "ignore_tls_description": "Пропустити перевірку сертифіката TLS (не рекомендується для виробництва)",
+        "ignore_tls_label": "Ігнорувати помилки TLS/SSL",
+        "title": "Налаштування Redis"
+      },
+      "shared": {
+        "intervals": {
+          "heartbeat_retry": "Інтервал повторної спроби пульсу (Повторити через {{seconds}} секунд)",
+          "max_retries_description": "Максимальна кількість спроб перед тим, як сервіс буде позначений як недоступний і буде надіслано сповіщення",
+          "request_timeout": "Тайм-аут запиту (Тайм-аут через {{seconds}} секунд)",
+          "resend_notification": "Повторно надіслати сповіщення, якщо недоступний X разів поспіль (Повторне надсилання вимкнено)"
+        },
+        "notifications": {
+          "add_notifier": "Додати сповіщувач",
+          "new_notifier": "+ Новий сповіщувач",
+          "no_channels": "Каналів сповіщень не знайдено, спочатку створіть їх",
+          "no_channels_available": "Немає доступних каналів",
+          "select_channel": "Виберіть канал",
+          "select_notifier_placeholder": "Виберіть сповіщувач",
+          "selected_channels": "Вибрані канали сповіщень",
+          "title": "Канали сповіщень"
+        },
+        "proxy": {
+          "add_proxy": "Додати проксі",
+          "new_proxy": "+ Новий проксі",
+          "no_proxy": "Без проксі",
+          "remove_proxy": "Видалити проксі",
+          "select_proxy_placeholder": "Виберіть проксі",
+          "selected_proxy": "Вибраний проксі",
+          "title": "Проксі"
+        },
+        "tags": {
+          "label": "Теги",
+          "no_tags": "Немає доступних тегів",
+          "placeholder": "Виберіть теги"
+        }
+      },
+      "snmp": {
+        "community_description": "Рядок спільноти SNMP для аутентифікації (як пароль)",
+        "community_label": "Рядок спільноти",
+        "expected_value_description": "Значення для порівняння. Залиште поле порожнім, щоб пропустити перевірку.",
+        "expected_value_label": "Очікуване значення",
+        "host_description": "Ім'я хоста або IP-адреса пристрою SNMP",
+        "host_label": "Хост",
+        "json_path_description": "JSONPath вираз для видобутку значення з відповіді. Використовуйте \"$\" для кореневого рівня.",
+        "json_path_label": "JSON шлях",
+        "json_path_operator_description": "Як порівняти видобуте значення з очікуваним значенням",
+        "json_path_operator_eq": "дорівнює",
+        "json_path_operator_ge": "більше або дорівнює",
+        "json_path_operator_gt": "більше ніж",
+        "json_path_operator_label": "Умова",
+        "json_path_operator_le": "менше або дорівнює",
+        "json_path_operator_lt": "менше ніж",
+        "json_path_operator_ne": "не дорівнює",
+        "oid_description": "Ідентифікатор об'єкта SNMP для запиту (наприклад, 1.3.6.1.2.1.1.1.0 для опису системи)",
+        "oid_label": "OID (Ідентифікатор об'єкта)",
+        "port_description": "Порт SNMP (за замовчуванням: 161)",
+        "port_label": "Порт",
+        "snmp_version_description": "Версія протоколу SNMP для використання",
+        "snmp_version_label": "Версія SNMP",
+        "title": "Налаштування SNMP",
+        "value_validation_label": "Перевірка значення (Необов'язково)"
+      },
+      "sqlserver": {
+        "allowed_statements_description": "SELECT, SHOW, DESCRIBE, EXPLAIN, WITH, і VALUES.",
+        "allowed_statements_label": "Дозволені оператори:",
+        "connection_string_label": "Рядок підключення",
+        "query_description": "Запит для виконання для перевірки здоров'я. Залиште поле порожнім, щоб використовувати значення за замовчуванням",
+        "query_label": "Запит",
+        "title": "Підключення Microsoft SQL Server"
+      },
+      "tcp": {
+        "host": "Хост",
+        "port": "Порт",
+        "title": "TCP з'єднання"
+      },
+      "type": {
+        "dns": "DNS Monitor",
+        "docker": "Docker Container",
+        "grpc": "gRPC Keyword Monitor",
+        "http": "HTTP(S) Monitor",
+        "kafka": "Kafka Producer Monitor",
+        "mongodb": "MongoDB Database Monitor",
+        "mqtt": "MQTT Broker Monitor",
+        "mysql": "MySQL/MariaDB Monitor",
+        "ping": "Ping Monitor (ICMP)",
+        "postgres": "PostgreSQL Database Monitor",
+        "push": "Push Monitor (external service calls a generated URL)",
+        "rabbitmq": "RabbitMQ Monitor",
+        "redis": "Redis Database Monitor",
+        "snmp": "SNMP Monitor",
+        "sqlserver": "Microsoft SQL Server Monitor",
+        "tcp": "TCP Port Monitor"
+      }
+    },
+    "page": {
+      "description": "Створіть новий монітор, щоб почати відстежувати продуктивність вашого веб-сайту.",
+      "edit_title": "Редагувати монітор:",
+      "new_title": "Новий монітор"
+    },
+    "title": "Моніторинг",
+    "toasts": {
+      "deleted": "Монітор видалено",
+      "paused": "Монітор призупинено",
+      "reset_success": "Дані монітора успішно скинуто",
+      "resumed": "Монітор відновлено"
+    },
+    "view": {
+      "buttons": {
+        "clone": "Клонувати",
+        "delete": "Видалити",
+        "edit": "Редагувати",
+        "pause": "Призупинити",
+        "reset_data": "Скинути дані",
+        "resume": "Відновити"
+      },
+      "certificate": "Сертифікат",
+      "check_every": "Перевіряти кожні",
+      "current_status": "Поточний статус",
+      "dialogs": {
+        "delete": {
+          "description": "Цю дію неможливо скасувати. Це назавжди видалить монітор та всі пов'язані дані.",
+          "title": "Ви абсолютно впевнені?"
+        },
+        "pause": {
+          "description": "Ви впевнені, що хочете призупинити?",
+          "title": "Підтвердження"
+        },
+        "reset": {
+          "description": "Це назавжди видалить всю історію пульсу та статистику доступності для цього монітора. Монітор з'явиться так, ніби він щойно був створений. Цю дію неможливо скасувати.",
+          "title": "Скинути дані монітора"
+        }
+      },
+      "expiring_soon": "Скоро закінчується термін дії",
+      "for": "для",
+      "live_status": "Статус в реальному часі",
+      "monitor_for": "монітор для",
+      "no_certificate_data": "Немає даних сертифіката",
+      "seconds": "секунд",
+      "stats": {
+        "last_24_hours": "Останні 24 години",
+        "last_30_days": "Останні 30 днів",
+        "last_365_days": "Останні 365 днів",
+        "last_7_days": "Останні 7 днів"
+      },
+      "status": {
+        "down": "Не працює",
+        "maintenance": "Обслуговування",
+        "paused": "Призупинено",
+        "up": "Працює"
+      }
+    }
   },
   "navigation": {
     "maintenance": "Технічне обслуговування",
     "monitors": "Моніторинг",
     "notification_channels": "Канали сповіщень",
     "proxies": "Проксі",
-    "status_pages": "Сторінки статусу"
+    "settings": "Налаштування",
+    "status_pages": "Сторінки статусу",
+    "tags": "Теги"
   },
   "notifications": {
+    "actions": {
+      "test": "Тестувати",
+      "testing": "Тестування..."
+    },
+    "aria": {
+      "delete": "Видалити {{name}}"
+    },
+    "confirm_delete_description": "Цю дію неможливо скасувати. Це назавжди видалить сповіщувач \"{{name}}\" та видалить його з усіх моніторів, які його використовують.",
+    "create_title": "Створити сповіщувач",
+    "edit_channel_title": "Редагувати канал сповіщень",
+    "edit_title": "Редагувати сповіщувач",
+    "empty_state": {
+      "action": "Створіть ваш перший канал сповіщень",
+      "description": "Почніть зі створення вашого першого каналу сповіщень для надсилання сповіщень вашій команді.",
+      "title": "Каналів сповіщень не знайдено"
+    },
+    "form": {
+      "discord": {
+        "bot_display_name_description": "Ім'я, яке буде відображатися як відправник повідомлень Discord.",
+        "bot_display_name_label": "Відображуване ім'я бота",
+        "custom_message_prefix_description": "Необов'язковий префікс, який буде додано на початок усіх повідомлень.",
+        "custom_message_prefix_label": "Користувацький префікс повідомлення",
+        "custom_message_prefix_placeholder": "Необов'язково: Додайте префікс до вашого повідомлення",
+        "forum_post_name_description": "Назва нового форумного допису, який буде створено.",
+        "forum_post_name_label": "Назва форумного допису",
+        "forum_post_name_placeholder": "Введіть назву форумного допису",
+        "sending_message_to_channel": "Надіслати в канал",
+        "sending_message_to_description": "Виберіть, куди надсилати повідомлення Discord.",
+        "sending_message_to_label": "Куди надсилати повідомлення",
+        "sending_message_to_new_forum_post": "Надіслати в новий форумний допис",
+        "sending_message_to_placeholder": "Виберіть тип повідомлення",
+        "sending_message_to_thread": "Надіслати в тред",
+        "setup_webhook_description_1": "Отримайте URL вебхука з налаштувань Discord сервера → Інтеграції → Вебхуки.",
+        "setup_webhook_description_2": "Створіть новий вебхук і скопіюйте URL. Переконайтеся, що ви вибрали правильний канал.",
+        "setup_webhook_title": "Налаштування Discord Webhook",
+        "thread_id_description_1": "Увімкніть режим розробника в налаштуваннях Discord → Розширені → Режим розробника",
+        "thread_id_description_2": "Клацніть правою кнопкою миші на треді або дописі та виберіть \"Копіювати ID треду\" або \"Копіювати ID каналу\"",
+        "thread_id_description_title": "ID треду або форумного допису, куди будуть надсилатися повідомлення",
+        "thread_id_label": "ID треду",
+        "thread_id_placeholder": "Введіть ID треду або допису",
+        "webhook_url_label": "URL Discord Webhook"
+      },
+      "google_chat": {
+        "more_info_about_webhooks": "Більше інформації про Webhooks",
+        "webhook_url_label": "URL Google Chat Webhook"
+      },
+      "gotify": {
+        "application_token_description": "Токен додатку з вашого Gotify додатку. Ви можете знайти його у веб-інтерфейсі Gotify в розділі Додатки.",
+        "application_token_label": "Токен додатку",
+        "custom_message_description": "Користувацький шаблон повідомлення. Доступні змінні",
+        "custom_message_description_2": "Залиште порожнім для використання повідомлення за замовчуванням.",
+        "custom_message_label": "Користувацьке повідомлення",
+        "custom_title_description": "Користувацький заголовок для сповіщення. Доступні змінні",
+        "custom_title_label": "Користувацький заголовок",
+        "learn_more_label": "Дізнайтеся більше про Gotify та як його налаштувати на:",
+        "note_description": "Для використання цієї інтеграції вам потрібно мати запущений сервер Gotify.",
+        "note_label": "Примітка:",
+        "priority_0": "Найнижчий",
+        "priority_1": "Дуже низький",
+        "priority_10": "Найвищий",
+        "priority_2": "Низький",
+        "priority_3": "Нижче нормального",
+        "priority_4": "Нормальний",
+        "priority_5": "Вище нормального",
+        "priority_6": "Помірний",
+        "priority_7": "Високий",
+        "priority_8": "Дуже високий (За замовчуванням)",
+        "priority_9": "Екстрений",
+        "priority_description": "Пріоритет повідомлення (0-10). Вищі числа означають вищий пріоритет. За замовчуванням 8.",
+        "priority_label": "Пріоритет",
+        "priority_placeholder": "Виберіть пріоритет",
+        "server_url_description": "URL вашого сервера Gotify. Переконайтеся, що він доступний з цього додатку.",
+        "server_url_label": "URL сервера"
+      },
+      "grafana_oncall": {
+        "grafana_oncall_url_description": "URL вебхука з вашої інтеграції Grafana OnCall. Ви можете знайти його у вашому екземплярі Grafana OnCall в розділі Alerts & IRM &gt; IRM &gt; Integrations &gt; Webhook.",
+        "grafana_oncall_url_label": "URL Grafana OnCall",
+        "learn_more_label": "Дізнайтеся більше про вебхуки Grafana OnCall"
+      },
+      "matrix": {
+        "access_token_description": "Ваш токен доступу Matrix для автентифікації",
+        "access_token_label": "Токен доступу",
+        "custom_message_description": "Користувацький шаблон повідомлення. Доступні змінні",
+        "custom_message_label": "Користувацьке повідомлення",
+        "homeserver_url_description": "URL вашого домашнього сервера Matrix",
+        "homeserver_url_label": "URL домашнього сервера",
+        "internal_room_id_description": "Внутрішній ID кімнати, куди будуть надсилатися сповіщення. Має починатися з \"!\" і виглядати як: !roomid:matrix.org",
+        "internal_room_id_label": "Внутрішній ID кімнати",
+        "setup_instructions_1": "Створіть обліковий запис Matrix для вашого бота (або використовуйте існуючий)",
+        "setup_instructions_2": "Створіть або приєднайтеся до кімнати, де ви хочете отримувати сповіщення",
+        "setup_instructions_3": "Отримайте ваш токен доступу, зробивши запит на вхід",
+        "setup_instructions_4": "Відповідь буде містити поле access_token - використовуйте його як ваш Токен доступу",
+        "setup_instructions_5": "Знайдіть внутрішній ID вашої кімнати (починається з \"!\") в налаштуваннях кімнати вашого Matrix клієнта",
+        "setup_instructions_label": "Інструкції з налаштування"
+      },
+      "mattermost": {
+        "channel_name_description": "Канал, куди будуть надсилатися сповіщення. Залиште порожнім для використання каналу за замовчуванням, налаштованого у вебхуці.",
+        "channel_name_label": "Назва каналу",
+        "icon_emoji_cheat_sheet_label": "Шпаргалка емодзі",
+        "icon_emoji_description": "Емодзі для використання як іконки. Ви можете вказати два емодзі, розділені пробілом (перший для статусу вгору, другий для статусу вниз).",
+        "icon_emoji_label": "Емодзі іконки",
+        "icon_url_description": "URL зображення для використання як іконки для повідомлення сповіщення.",
+        "icon_url_label": "URL іконки",
+        "learn_more_label": "Дізнайтеся більше про вебхуки",
+        "message_template_description": "Налаштуйте формат повідомлення. Доступні змінні",
+        "message_template_label": "Шаблон повідомлення",
+        "use_message_template_description": "Увімкніть для використання користувацького шаблону повідомлення та формату.",
+        "use_message_template_label": "Використовувати шаблон повідомлення",
+        "username_description": "Ім'я користувача, яке буде відображатися як відправник повідомлення.",
+        "webhook_url_label": "URL Webhook"
+      },
+      "ntfy": {
+        "authentication_type_basic": "Базова автентифікація",
+        "authentication_type_basic_description": "Використовувати ім'я користувача та пароль для базової автентифікації.",
+        "authentication_type_label": "Тип автентифікації",
+        "authentication_type_none": "Без автентифікації",
+        "authentication_type_none_description": "Автентифікація не потрібна. Підходить для публічних серверів NTFY.",
+        "authentication_type_placeholder": "Виберіть тип автентифікації",
+        "authentication_type_token": "Токен автентифікації",
+        "authentication_type_token_description": "Використовувати токен доступу для автентифікації.",
+        "custom_message_description": "Користувацький вміст повідомлення. Доступні змінні",
+        "custom_message_label": "Користувацьке повідомлення",
+        "password_required": "Пароль обов'язковий для базової автентифікації",
+        "priority_1": "Мін (Найнижчий)",
+        "priority_2": "Низький",
+        "priority_3": "За замовчуванням",
+        "priority_4": "Високий",
+        "priority_5": "Терміновий (Найвищий)",
+        "priority_description": "Рівень пріоритету сповіщення. Вищі пріоритети можуть викликати різну поведінку на клієнті.",
+        "priority_label": "Пріоритет",
+        "priority_placeholder": "Виберіть пріоритет",
+        "server_url_description": "URL вашого сервера NTFY. Використовуйте https://ntfy.sh для публічного екземпляра.",
+        "server_url_label": "URL сервера",
+        "tags_description": "Теги для категоризації сповіщень, розділені комами. Доступні змінні",
+        "tags_label": "Теги",
+        "title_description": "Користувацький заголовок для сповіщення. Доступні змінні",
+        "title_label": "Користувацький заголовок",
+        "token_description": "Ваш токен доступу NTFY для автентифікації.",
+        "token_label": "Токен доступу",
+        "token_required": "Токен обов'язковий для токен-автентифікації",
+        "topic_description": "Назва теми для ваших сповіщень. Це буде канал, куди надсилатимуться сповіщення.",
+        "topic_label": "Тема",
+        "username_required": "Ім'я користувача обов'язкове для базової автентифікації"
+      },
+      "opsgenie": {
+        "api_key_label": "API ключ",
+        "more_info_about_api_keys_label": "Більше інформації про API ключі",
+        "priority_1": "Критичний",
+        "priority_2": "Високий",
+        "priority_3": "Помірний",
+        "priority_4": "Низький",
+        "priority_5": "Інформаційний",
+        "priority_description": "Встановіть рівень пріоритету для сповіщень. За замовчуванням P3 (Помірний).",
+        "priority_label": "Пріоритет",
+        "region_description": "Виберіть ваш регіон Opsgenie. Це визначає, яка кінцева точка API буде використовуватися.",
+        "region_label": "Регіон",
+        "region_placeholder": "Виберіть регіон"
+      },
+      "pagerduty": {
+        "auto_resolve_acknowledge": "Автоматичне підтвердження",
+        "auto_resolve_acknowledge_description": "Автоматично підтверджувати інцидент",
+        "auto_resolve_description": "Виберіть дію при відновленні роботи монітора",
+        "auto_resolve_do_nothing": "Нічого не робити",
+        "auto_resolve_do_nothing_description": "Не виконувати дії при статусі UP",
+        "auto_resolve_label": "Автоматичне вирішення або підтвердження",
+        "auto_resolve_placeholder": "Виберіть поведінку автоматичного вирішення",
+        "auto_resolve_resolve": "Автоматичне вирішення",
+        "auto_resolve_resolve_description": "Автоматично вирішувати інцидент",
+        "integration_key_description": "Дізнайтеся, як отримати ваш ключ інтеграції",
+        "integration_key_label": "Ключ інтеграції",
+        "integration_key_placeholder": "Введіть ваш ключ інтеграції PagerDuty",
+        "integration_url_description": "URL кінцевої точки PagerDuty Events API v2. За замовчуванням використовується стандартна кінцева точка.",
+        "integration_url_label": "URL інтеграції",
+        "learn_more_label": "Документація PagerDuty",
+        "priority_critical": "Критичний",
+        "priority_description": "Рівень серйозності для інцидентів PagerDuty. За замовчуванням \"warning\".",
+        "priority_error": "Помилка",
+        "priority_info": "Інформація",
+        "priority_label": "Пріоритет",
+        "priority_placeholder": "Виберіть рівень пріоритету",
+        "priority_warning": "Попередження"
+      },
+      "pushover": {
+        "application_token_label": "Токен додатку",
+        "application_token_placeholder": "Введіть ваш токен додатку Pushover",
+        "device_description": "Залиште порожнім для надсилання на всі пристрої",
+        "device_label": "Пристрій",
+        "device_placeholder": "Назва пристрою (необов'язково)",
+        "message_title_description": "Залиште порожнім для використання заголовку за замовчуванням",
+        "message_title_label": "Заголовок повідомлення",
+        "message_title_placeholder": "Користувацький заголовок повідомлення (необов'язково)",
+        "message_ttl_description": "Час життя в секундах (0 = без терміну дії)",
+        "message_ttl_label": "Час життя повідомлення",
+        "more_info_label": "Більше інформації на:",
+        "more_info_label_2": "Ви можете створити додаток і отримати ваш API токен на",
+        "more_info_label_3": "Ваш ключ користувача можна знайти на",
+        "notification_sound_down_description": "Звук для випадку, коли монітор перестає працювати",
+        "notification_sound_down_label": "Звук сповіщення - Вниз",
+        "notification_sound_down_placeholder": "Виберіть звук",
+        "notification_sound_up_description": "Звук для випадку, коли монітор відновлює роботу",
+        "notification_sound_up_label": "Звук сповіщення - Вгору",
+        "notification_sound_up_placeholder": "Виберіть звук",
+        "priority_1": "Найнижчий",
+        "priority_2": "Низький",
+        "priority_3": "Нормальний",
+        "priority_4": "Високий",
+        "priority_5": "Екстрений",
+        "priority_description": "Рівень пріоритету повідомлення",
+        "priority_label": "Пріоритет",
+        "priority_placeholder": "Виберіть пріоритет",
+        "sound_alien": "Прибулець",
+        "sound_bike": "Велосипед",
+        "sound_bugle": "Горн",
+        "sound_cashregister": "Касовий апарат",
+        "sound_classical": "Класичний",
+        "sound_climb": "Підйом",
+        "sound_cosmic": "Космічний",
+        "sound_echo": "Відлуння",
+        "sound_falling": "Падіння",
+        "sound_gamelan": "Гамелан",
+        "sound_incoming": "Вхідний",
+        "sound_intermission": "Перерва",
+        "sound_magic": "Магія",
+        "sound_mechanical": "Механічний",
+        "sound_none": "Немає",
+        "sound_persistent": "Постійний",
+        "sound_pianobar": "Піано-бар",
+        "sound_pushover": "Pushover (за замовчуванням)",
+        "sound_siren": "Сирена",
+        "sound_spacealarm": "Космічна тривога",
+        "sound_tugboat": "Буксир",
+        "sound_updown": "Вгору-вниз",
+        "sound_vibrate": "Вібрація",
+        "user_key_label": "Ключ користувача",
+        "user_key_placeholder": "Введіть ваш ключ користувача Pushover"
+      },
+      "signal": {
+        "custom_message_description": "Користувацький шаблон повідомлення. Доступні змінні",
+        "custom_message_label": "Користувацьке повідомлення",
+        "important_description": "Ви не можете змішувати групи та номери в отримувачах!",
+        "important_label": "ВАЖЛИВО:",
+        "more_info_label": "Ви можете перевірити цей URL, щоб дізнатися, як налаштувати:",
+        "note_description": "Вам потрібно мати клієнт Signal з REST API.",
+        "note_label": "Примітка:",
+        "number_description": "Номер телефону вашого облікового запису Signal (номер відправника).",
+        "number_label": "Номер",
+        "post_url_description": "URL вашого сервера Signal CLI REST API.",
+        "post_url_label": "URL відправки",
+        "recipients_description": "Список номерів телефонів для надсилання сповіщень, розділених комами.",
+        "recipients_label": "Отримувачі"
+      },
+      "slack": {
+        "channel_name_description": "Канал, куди буде надіслано повідомлення. Якщо не вказано, повідомлення буде надіслано до каналу за замовчуванням, налаштованого у вебхуці.",
+        "channel_name_description_2": "Ви можете перевизначити канал за замовчуванням, вказавши назву каналу (наприклад, #alerts) або користувача (наприклад, @username).",
+        "channel_name_label": "Назва каналу",
+        "channel_notify_description": "Коли увімкнено, повідомлення викликатиме сповіщення для всіх учасників каналу. Використовуйте обережно, щоб уникнути спаму.",
+        "channel_notify_label": "Сповіщати канал",
+        "icon_emoji_cheat_sheet_label": "Шпаргалка емодзі",
+        "icon_emoji_description": "Емодзі для використання як іконки для цього повідомлення. Має бути у форматі :emoji_name:",
+        "icon_emoji_label": "Емодзі іконки",
+        "message_format_description": "Надсилати розширені повідомлення",
+        "message_format_description_2": "Увімкніть для надсилання повідомлень з розширеним форматуванням, вкладеннями та кращим візуальним представленням.",
+        "message_format_label": "Формат повідомлення",
+        "username_description": "Ім'я користувача, яке буде відображатися як відправник повідомлення. Якщо не вказано, буде використано ім'я бота за замовчуванням.",
+        "webhook_url_description": "URL вебхука з вашої інтеграції Slack. Ви можете знайти його у вашому екземплярі Slack в розділі Інтеграції &gt; Вебхуки.",
+        "webhook_url_label": "URL Webhook"
+      },
+      "smtp": {
+        "custom_body_label": "Користувацьке тіло",
+        "custom_description": "Шаблонізація досягається за допомогою мови шаблонів <b>Liquid</b>.",
+        "custom_description_2": "Будь ласка, зверніться до документації для інструкцій з використання.",
+        "custom_description_3": "Доступні змінні:",
+        "custom_description_4": "повідомлення сповіщення",
+        "custom_description_5": "назва сервісу",
+        "custom_description_6": "статус сервісу (UP/DOWN/Сповіщення про закінчення терміну дії сертифіката)",
+        "custom_subject_label": "Користувацька тема",
+        "smtp_from_label": "Від (Email відправника)",
+        "smtp_host_description": "Введіть ім'я хоста сервера, до якого ви хочете підключитися, або localhost, якщо ви маєте намір використовувати локально налаштований агент передачі пошти",
+        "smtp_host_label": "SMTP хост",
+        "smtp_password_placeholder": "SMTP пароль",
+        "smtp_port_label": "Порт",
+        "smtp_to_label": "Кому (Email(и) отримувача)",
+        "smtp_username_placeholder": "SMTP ім'я користувача"
+      },
+      "telegram": {
+        "auto_get_label": "Автоматичне отримання",
+        "bot_token_description": "Отримайте ваш токен бота від",
+        "bot_token_label": "Токен бота",
+        "chat_id_description": "Ви можете отримати ваш ID чату, надіславши повідомлення вашому боту і натиснувши \"Автоматичне отримання\" вище, або вручну через API Telegram.",
+        "chat_id_description_2": "Щоб отримати його вручну, відвідайте",
+        "chat_id_description_3": "Дивіться",
+        "chat_id_description_4": "документацію Telegram",
+        "chat_id_description_5": "для додаткової інформації.",
+        "chat_id_label": "ID чату",
+        "chat_id_not_found": "ID чату не знайдено в останньому оновленні.",
+        "failed_to_fetch_chat_id": "Не вдалося отримати ID чату",
+        "message_thread_id_description": "Необов'язково. Використовується для надсилання повідомлень у конкретний тред (тему) у форум-супергрупі.",
+        "message_thread_id_label": "ID треду повідомлення",
+        "no_updates_found": "Оновлень не знайдено. Спочатку надішліть повідомлення вашому боту.",
+        "protect_content_description": "Якщо увімкнено, вміст повідомлення буде захищено від пересилання та збереження.",
+        "protect_content_label": "Захистити вміст",
+        "send_silently_description": "Якщо увімкнено, повідомлення будуть надсилатися беззвучно (користувачі отримають сповіщення без звуку).",
+        "send_silently_label": "Надсилати беззвучно",
+        "server_url_description": "За замовчуванням",
+        "server_url_description_2": "Ви можете використовувати користувацький сервер. Дивіться",
+        "server_url_description_3": "тут",
+        "server_url_description_4": "для деталей.",
+        "server_url_label": "URL сервера Telegram",
+        "template_description": "Налаштуйте формат повідомлення. Доступні змінні",
+        "template_label": "Шаблон повідомлення",
+        "template_parse_mode_description": "Виберіть, як повідомлення має бути розібрано. Дивіться",
+        "template_parse_mode_description_2": "документацію форматування Telegram",
+        "template_parse_mode_description_3": "для деталей.",
+        "template_parse_mode_label": "Режим розбору шаблону",
+        "template_parse_mode_placeholder": "Виберіть режим розбору",
+        "template_placeholder": "Введіть ваш користувацький шаблон повідомлення",
+        "use_template_description": "Увімкніть для використання користувацького шаблону повідомлення та формату.",
+        "use_template_label": "Використовувати шаблон повідомлення"
+      },
+      "webhook": {
+        "additional_headers_description": "Додайте користувацькі HTTP заголовки до запиту вебхука.",
+        "additional_headers_label": "Додаткові заголовки",
+        "custom_body_description": "Налаштуйте формат тіла запиту. Доступні змінні",
+        "custom_body_label": "Користувацьке тіло",
+        "post_url_description": "URL кінцевої точки вебхука, куди будуть надсилатися сповіщення.",
+        "post_url_label": "URL відправки",
+        "request_body_description_custom": "Визначте ваш власний користувацький формат тіла запиту нижче.",
+        "request_body_description_form_data": "Вміст буде надіслано як multipart/form-data. Ви можете розкодувати його за допомогою <strong>json_decode($_POST['data'])</strong> в PHP.",
+        "request_body_description_json": "Вміст буде надіслано як JSON з заголовком \"application/json\".",
+        "request_body_label": "Тіло запиту",
+        "request_body_placeholder": "Виберіть тип вмісту"
+      }
+    },
     "important": "Важливі сповіщення",
     "important_notifications": "Важливі сповіщення",
-    "no_important": "Важливих сповіщень не знайдено."
+    "labels": {
+      "friendly_name": "Зрозуміла назва",
+      "type": "Тип сповіщувача"
+    },
+    "messages": {
+      "create_failed": "Не вдалося створити сповіщувач",
+      "created_success": "Сповіщувач успішно створено",
+      "error_loading_notifier": "Помилка завантаження сповіщувача",
+      "test_failed": "Не вдалося надіслати тестове сповіщення",
+      "test_success": "Тестове сповіщення успішно надіслано",
+      "update_failed": "Не вдалося оновити сповіщувач",
+      "updated_success": "Сповіщувач успішно оновлено"
+    },
+    "new": {
+      "title": "Новий канал сповіщень"
+    },
+    "no_important": "Важливих сповіщень не знайдено.",
+    "placeholders": {
+      "select_type": "Виберіть тип сповіщувача"
+    },
+    "search_placeholder": "Пошук каналів сповіщень за назвою..."
+  },
+  "proxies": {
+    "delete_dialog": {
+      "description": "Цю дію неможливо скасувати. Це назавжди видалить проксі {{host}}:{{port}}.",
+      "title": "Ви абсолютно впевнені?"
+    },
+    "edit": {
+      "page_name": "Редагувати проксі"
+    },
+    "empty_list": {
+      "action_text": "Створіть ваш перший проксі",
+      "text": "Почніть зі створення вашого першого проксі для використання у ваших моніторах.",
+      "title": "Проксі не знайдено"
+    },
+    "form": {
+      "auth_label": "Проксі-сервер має автентифікацію",
+      "port_placeholder": "Порт",
+      "protocol_label": "Протокол проксі",
+      "protocol_placeholder": "Виберіть протокол проксі",
+      "server_label": "Проксі-сервер",
+      "server_placeholder": "Адреса сервера",
+      "user": "Користувач"
+    },
+    "messages": {
+      "create_failed": "Не вдалося створити проксі",
+      "created_success": "Проксі успішно створено",
+      "error_loading_proxy": "Помилка завантаження проксі",
+      "update_failed": "Не вдалося оновити проксі",
+      "updated_success": "Проксі успішно оновлено"
+    },
+    "new": {
+      "page_name": "Новий проксі"
+    },
+    "page_name": "Проксі",
+    "search_label": "Пошук",
+    "search_placeholder": "Пошук проксі за хостом..."
+  },
+  "security": {
+    "enable_2fa": {
+      "form": {
+        "authenticator_code_label": "Код автентифікатора",
+        "authenticator_code_placeholder": "Введіть 6-значний код",
+        "current_password_label": "Поточний пароль",
+        "current_password_placeholder": "Введіть ваш поточний пароль",
+        "enable_2fa_button": "Увімкнути 2FA"
+      },
+      "messages": {
+        "2fa_active": "2FA активовано",
+        "2fa_disabled_successfully": "2FA успішно вимкнено",
+        "2fa_enabled_successfully": "2FA успішно увімкнено",
+        "account_is_protected_with_2fa": "Ваш обліковий запис захищено за допомогою 2FA.",
+        "disable_2fa": "Вимкнути 2FA",
+        "enter_password_to_disable_2fa": "Введіть ваш пароль, щоб вимкнути 2FA",
+        "failed_to_disable_2fa": "Не вдалося вимкнути 2FA",
+        "failed_to_verify_2fa_code": "Не вдалося перевірити код 2FA",
+        "failed_to_verify_password": "Не вдалося перевірити пароль або розпочати налаштування 2FA",
+        "have_enabled_2fa": "Ви увімкнули двофакторну автентифікацію (2FA) для вашого облікового запису. Це додає додатковий рівень безпеки.",
+        "or_enter_secret_manually": "Або введіть цей секрет вручну",
+        "scan_qr_code_with_authenticator_app": "Відскануйте цей QR-код вашим додатком автентифікації",
+        "two_factor_authentication_enabled": "Двофакторну автентифікацію увімкнено",
+        "user_email_not_found": "Електронну адресу користувача не знайдено"
+      }
+    },
+    "page_name": "Безпека",
+    "update_password": {
+      "form": {
+        "confirm_new_password_label": "Підтвердіть новий пароль",
+        "confirm_new_password_placeholder": "Введіть новий пароль ще раз",
+        "new_password_label": "Новий пароль",
+        "new_password_placeholder": "Введіть новий пароль",
+        "old_password_label": "Старий пароль",
+        "old_password_placeholder": "Введіть ваш поточний пароль",
+        "update_password_button": "Оновити пароль"
+      },
+      "messages": {
+        "failed_to_update_password": "Не вдалося оновити пароль",
+        "password_updated_successfully": "Пароль успішно оновлено"
+      },
+      "title": "Оновити пароль"
+    }
+  },
+  "settings": {
+    "data_retention": {
+      "days_label": "Дні",
+      "description": "Встановіть, скільки днів зберігати дані (KEEP_DATA_PERIOD_DAYS).",
+      "title": "Період зберігання даних"
+    },
+    "timezone": {
+      "description": "Виберіть ваш часовий пояс для відображення всіх часів у додатку.",
+      "label": "Часовий пояс",
+      "no_timezone_found": "Часовий пояс не знайдено.",
+      "search_placeholder": "Пошук часового поясу...",
+      "select_placeholder": "Вибрати часовий пояс...",
+      "title": "Часовий пояс"
+    },
+    "validation": {
+      "min_days": "Має бути щонайменше 1 день"
+    }
+  },
+  "status": {
+    "messages": {
+      "all_systems_operational": "Всі системи працюють",
+      "down": "Не працює",
+      "last_updated": "Останнє оновлення",
+      "maintenance": "Технічне обслуговування",
+      "no_monitors_configured": "Для цієї сторінки статусу не налаштовано моніторів.",
+      "operational": "Працює",
+      "partial_system_outage": "Частковий збій системи",
+      "powered_by": "Працює на",
+      "refresh_in": "Оновлення через",
+      "refresh_now": "Оновити зараз",
+      "status_page_not_found": "Сторінку статусу не знайдено або вона не опублікована.",
+      "under_maintenance": "На технічному обслуговуванні",
+      "unknown": "Невідомо"
+    }
   },
   "status_pages": {
     "affected_monitors": "Впливіні монітори",
@@ -72,13 +1127,90 @@
     "basic_information": "Основна інформація",
     "create_status_page": "Створити сторінку статусу",
     "customization": "Налаштування",
-    "description": "Опис",
+    "delete_dialog": {
+      "description": "Ви впевнені, що хочете видалити \"{{title}}\"? Цю дію неможливо скасувати.",
+      "title": "Видалити сторінку статусу"
+    },
+    "description": "Введіть опис сторінки статусу",
     "domains": "Домени",
     "domains_info_warning": "Не забудьте додати запис CNAME до вашого DNS для кожного домену.",
+    "draft_status": "Чернетка",
+    "edit_page_name": "Редагувати сторінку статусу",
+    "messages": {
+      "create_description": "Створіть нову сторінку статусу, щоб поділитися статусом вашого сервісу з користувачами.",
+      "create_failed": "Не вдалося створити сторінку статусу",
+      "create_your_first_status_page": "Створіть вашу першу сторінку статусу",
+      "created_successfully": "Сторінку статусу успішно створено",
+      "delete_failed": "Не вдалося видалити сторінку статусу",
+      "deleted_successfully": "Сторінку статусу успішно видалено",
+      "get_started_by_creating_your_first_status_page": "Почніть зі створення вашої першої сторінки статусу.",
+      "no_status_pages_found": "Сторінок статусу не знайдено",
+      "not_found": "Сторінку статусу не знайдено",
+      "update_description": "Оновіть налаштування та конфігурацію вашої сторінки статусу.",
+      "update_failed": "Не вдалося оновити сторінку статусу",
+      "updated_successfully": "Сторінку статусу успішно оновлено"
+    },
+    "new_page_name": "Нова сторінка статусу",
+    "page_name": "Сторінки статусу",
     "published": "Опубліковано",
     "published_info": "Зробіть цю сторінку статусу доступною публічно",
     "published_status": "Опубліковано",
-    "update_status_page": "Оновити сторінку статусу"
+    "search_label": "Пошук",
+    "search_placeholder": "Пошук сторінок статусу за назвою...",
+    "update_status_page": "Оновити сторінку статусу",
+    "view_page": "Переглянути сторінку"
+  },
+  "tags": {
+    "confirm_delete_description": "Цю дію неможливо скасувати. Це назавжди видалить тег \"{{name}}\" та видалить його з усіх моніторів.",
+    "edit_page_name": "Редагувати Tег",
+    "empty_state": {
+      "action": "Створіть ваш перший тег",
+      "description": "Почніть зі створення вашого першого тегу для організації ваших моніторів.",
+      "title": "Тегів не знайдено"
+    },
+    "form": {
+      "color_description": "Виберіть колір для вашого тегу",
+      "color_label": "Колір",
+      "create_button": "Створити тег",
+      "description_label": "Опис",
+      "description_placeholder": "Введіть опис тегу (необов'язково)",
+      "name_label": "Назва",
+      "name_placeholder": "Введіть назву тегу",
+      "update_button": "Оновити тег"
+    },
+    "messages": {
+      "create_description": "Створіть новий тег для організації та категорізації ваших моніторів.",
+      "failed_to_load_tag": "Не вдалося завантажити тег. Тег може не існувати або у вас немає дозволу на перегляд.",
+      "tag_id_required": "ID тегу є обов'язковим",
+      "update_description": "Оновіть деталі тегу для кращої організації ваших моніторів."
+    },
+    "new_page_name": "Новий Tег",
+    "search_placeholder": "Пошук тегів...",
+    "validation": {
+      "color_invalid": "Колір має бути валідним hex-кодом",
+      "name_max_length": "Назва має бути менше 100 символів",
+      "name_required": "Назва є обов'язковою"
+    }
+  },
+  "theme": {
+    "dark": "Темна",
+    "light": "Світла",
+    "system": "Системна",
+    "toggle_theme": "Перемкнути тему"
+  },
+  "timezone": {
+    "average": "Середнє",
+    "last_24_hours": "Останні 24 години",
+    "last_3_hours": "Останні 3 години",
+    "last_3_months": "Останні 3 місяці",
+    "last_30_minutes": "Останні 30 хвилин",
+    "last_6_hours": "Останні 6 годин",
+    "last_7_days": "Останні 7 днів",
+    "maximum": "Максимум",
+    "minimum": "Мінімум",
+    "ms": "мс",
+    "response_time": "Час відповіді",
+    "uptime": "Час роботи"
   },
   "ui": {
     "general": "Загальне",

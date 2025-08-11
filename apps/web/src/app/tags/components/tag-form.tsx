@@ -28,6 +28,7 @@ import {
   invalidateByPartialQueryKey,
 } from "@/lib/utils";
 import type { TagModel } from "@/api";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const tagSchema = z.object({
   name: z
@@ -46,6 +47,7 @@ interface TagFormProps {
 }
 
 const TagForm = ({ mode, tag }: TagFormProps) => {
+  const { t } = useLocalizedTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -62,25 +64,25 @@ const TagForm = ({ mode, tag }: TagFormProps) => {
   const createMutation = useMutation({
     ...postTagsMutation(),
     onSuccess: () => {
-      toast.success("Tag created successfully");
+      toast.success(t("messages.tag_create_success"));
       invalidateByPartialQueryKey(queryClient, { _id: "getTags" });
       navigate("/tags");
     },
-    onError: commonMutationErrorHandler("Failed to create tag"),
+    onError: commonMutationErrorHandler(t("messages.tag_create_error")),
   });
 
   // Edit mutation
   const editMutation = useMutation({
     ...putTagsByIdMutation({ path: { id: tag?.id || "" } }),
     onSuccess: () => {
-      toast.success("Tag updated successfully");
+      toast.success(t("messages.tag_update_success"));
       invalidateByPartialQueryKey(queryClient, { _id: "getTags" });
       queryClient.removeQueries({
         queryKey: getTagsByIdQueryKey({ path: { id: tag?.id || "" } }),
       });
       navigate("/tags");
     },
-    onError: commonMutationErrorHandler("Failed to update tag"),
+    onError: commonMutationErrorHandler(t("messages.tag_update_error")),
   });
 
   const onSubmit = (data: TagFormData) => {
@@ -109,9 +111,9 @@ const TagForm = ({ mode, tag }: TagFormProps) => {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>{t("tags.form.name_label")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter tag name" {...field} />
+                    <Input placeholder={t("tags.form.name_placeholder")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -123,7 +125,7 @@ const TagForm = ({ mode, tag }: TagFormProps) => {
               name="color"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Color</FormLabel>
+                  <FormLabel>{t("tags.form.color_label")}</FormLabel>
                   <FormControl>
                     <div className="flex gap-2 items-center">
                       <Input
@@ -138,7 +140,7 @@ const TagForm = ({ mode, tag }: TagFormProps) => {
                       />
                     </div>
                   </FormControl>
-                  <FormDescription>Choose a color for your tag</FormDescription>
+                  <FormDescription>{t("tags.form.color_description")}</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -149,10 +151,10 @@ const TagForm = ({ mode, tag }: TagFormProps) => {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>{t("tags.form.description_label")}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Enter tag description (optional)"
+                      placeholder={t("tags.form.description_placeholder")}
                       {...field}
                     />
                   </FormControl>
@@ -170,11 +172,11 @@ const TagForm = ({ mode, tag }: TagFormProps) => {
             onClick={() => navigate("/tags")}
             disabled={isPending}
           >
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button type="submit" disabled={isPending}>
             {isPending && <Loader2 className="animate-spin mr-2 h-4 w-4" />}
-            {mode === "create" ? "Create Tag" : "Update Tag"}
+            {mode === "create" ? t("tags.form.create_button") : t("tags.form.update_button")}
           </Button>
         </div>
       </form>

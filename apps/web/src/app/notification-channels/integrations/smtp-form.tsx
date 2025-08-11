@@ -11,6 +11,7 @@ import { z } from "zod";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useFormContext } from "react-hook-form";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const schema = z.object({
   type: z.literal("smtp"),
@@ -48,6 +49,7 @@ export const displayName = "Email (SMTP)";
 
 export default function SmtpForm() {
   const form = useFormContext();
+  const { t } = useLocalizedTranslation();
 
   return (
     <>
@@ -56,14 +58,12 @@ export default function SmtpForm() {
         name="smtp_host"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>SMTP Host</FormLabel>
+            <FormLabel>{t("notifications.form.smtp.smtp_host_label")}</FormLabel>
             <FormControl>
               <Input placeholder="example.com" {...field} />
             </FormControl>
             <FormDescription>
-              Either enter the hostname of the server you want to connect to or
-              localhost if you intend to use a locally configured mail transfer
-              agent
+              {t("notifications.form.smtp.smtp_host_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -75,7 +75,7 @@ export default function SmtpForm() {
           name="smtp_port"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Port</FormLabel>
+              <FormLabel>{t("notifications.form.smtp.smtp_port_label")}</FormLabel>
               <FormControl>
                 <Input placeholder="587" type="number" {...field} />
               </FormControl>
@@ -105,9 +105,9 @@ export default function SmtpForm() {
         name="username"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Username</FormLabel>
+            <FormLabel>{t("forms.labels.username")}</FormLabel>
             <FormControl>
-              <Input placeholder="SMTP username" {...field} />
+              <Input placeholder={t("notifications.form.smtp.smtp_username_placeholder")} {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -118,9 +118,9 @@ export default function SmtpForm() {
         name="password"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Password</FormLabel>
+            <FormLabel>{t("forms.labels.password")}</FormLabel>
             <FormControl>
-              <Input placeholder="SMTP password" type="password" {...field} />
+              <Input placeholder={t("notifications.form.smtp.smtp_password_placeholder")} type="password" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -131,7 +131,7 @@ export default function SmtpForm() {
         name="from"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>From (Sender Email)</FormLabel>
+            <FormLabel>{t("notifications.form.smtp.smtp_from_label")}</FormLabel>
             <FormControl>
               <Input placeholder="sender@example.com" {...field} />
             </FormControl>
@@ -144,7 +144,7 @@ export default function SmtpForm() {
         name="to"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>To (Recipient Email(s))</FormLabel>
+            <FormLabel>{t("notifications.form.smtp.smtp_to_label")}</FormLabel>
             <FormControl>
               <Input placeholder="recipient@example.com, ..." {...field} />
             </FormControl>
@@ -183,26 +183,22 @@ export default function SmtpForm() {
         name="custom_subject"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Custom Subject</FormLabel>
+            <FormLabel>{t("notifications.form.smtp.custom_subject_label")}</FormLabel>
 
             <FormDescription>
-              Templatability is achieved via the <b>Liquid</b> templating
-              language.
+              {t("notifications.form.smtp.custom_description")}
               <br />
-              Please refer to the documentation for usage instructions.
+              {t("notifications.form.smtp.custom_description_2")}
               <br />
-              <b>Available variables:</b>
+              <b>{t("notifications.form.smtp.custom_description_3")}</b>
               <span className="block">
-                <code className="text-pink-500">{"{{ msg }}"}</code>: message of
-                the notification
+                <code className="text-pink-500">{"{{ msg }}"}</code>: {t("notifications.form.smtp.custom_description_4")}
               </span>
               <span className="block">
-                <code className="text-pink-500">{"{{ name }}"}</code>: service
-                name
+                <code className="text-pink-500">{"{{ name }}"}</code>: {t("notifications.form.smtp.custom_description_5")}
               </span>
               <span className="block">
-                <code className="text-pink-500">{"{{ status }}"}</code>: service
-                status (UP/DOWN/Certificate expiry notifications)
+                <code className="text-pink-500">{"{{ status }}"}</code>: {t("notifications.form.smtp.custom_description_6")}
               </span>
             </FormDescription>
             <FormControl>
@@ -217,26 +213,22 @@ export default function SmtpForm() {
         name="custom_body"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Custom Body</FormLabel>
+            <FormLabel>{t("notifications.form.smtp.custom_body_label")}</FormLabel>
 
             <FormDescription>
-              Templatability is achieved via the <b>Liquid</b> templating
-              language.
+              {t("notifications.form.smtp.custom_description")}
               <br />
-              Please refer to the documentation for usage instructions.
+              {t("notifications.form.smtp.custom_description_2")}
               <br />
-              <b>Available variables:</b>
+              <b>{t("notifications.form.smtp.custom_description_3")}</b>
               <span className="block">
-                <code className="text-pink-500">{"{{ msg }}"}</code>: message of
-                the notification
+                <code className="text-pink-500">{"{{ msg }}"}</code>: {t("notifications.form.smtp.custom_description_4")}
               </span>
               <span className="block">
-                <code className="text-pink-500">{"{{ name }}"}</code>: service
-                name
+                <code className="text-pink-500">{"{{ name }}"}</code>: {t("notifications.form.smtp.custom_description_5")}
               </span>
               <span className="block">
-                <code className="text-pink-500">{"{{ status }}"}</code>: service
-                status (UP/DOWN/Certificate expiry notifications)
+                <code className="text-pink-500">{"{{ status }}"}</code>: {t("notifications.form.smtp.custom_description_6")}
               </span>
             </FormDescription>
             <FormControl>

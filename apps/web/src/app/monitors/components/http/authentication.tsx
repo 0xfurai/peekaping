@@ -17,6 +17,7 @@ import {
 import { useFormContext, useWatch } from "react-hook-form";
 import { Textarea } from "@/components/ui/textarea";
 import { z } from "zod";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 // Zod schema for authentication options
 export const authenticationSchema = z.discriminatedUnion("authMethod", [
@@ -58,6 +59,7 @@ export const authenticationDefaultValues: AuthenticationForm = {
 };
 
 const BasicAuth = () => {
+  const { t } = useLocalizedTranslation();
   const form = useFormContext();
 
   return (
@@ -67,9 +69,9 @@ const BasicAuth = () => {
         name="authentication.basic_auth_user"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Username</FormLabel>
+            <FormLabel>{t("forms.labels.username")}</FormLabel>
             <FormControl>
-              <Input placeholder="Username" {...field} />
+              <Input placeholder={t("forms.labels.username")} {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -80,9 +82,9 @@ const BasicAuth = () => {
         name="authentication.basic_auth_pass"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Password</FormLabel>
+            <FormLabel>{t("forms.labels.password")}</FormLabel>
             <FormControl>
-              <Input placeholder="Password" {...field} />
+              <Input placeholder={t("forms.labels.password")} {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -93,6 +95,7 @@ const BasicAuth = () => {
 };
 
 const OAuth2 = () => {
+  const { t } = useLocalizedTranslation();
   const form = useFormContext();
 
   return (
@@ -102,11 +105,11 @@ const OAuth2 = () => {
         name="authentication.oauth_auth_method"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Authentication Method</FormLabel>
+            <FormLabel>{t("monitors.form.http.authentication.method_label")}</FormLabel>
             <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select authentication type" />
+                  <SelectValue placeholder={t("monitors.form.http.authentication.method_placeholder")} />
                 </SelectTrigger>
               </FormControl>
 
@@ -115,10 +118,10 @@ const OAuth2 = () => {
                   key="client_secret_basic"
                   value="client_secret_basic"
                 >
-                  Authorization Header
+                  {t("monitors.form.http.authentication.auth_header")}
                 </SelectItem>
                 <SelectItem key="client_secret_post" value="client_secret_post">
-                  Form Data Body
+                  {t("monitors.form.http.authentication.form_data_body")}
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -132,9 +135,9 @@ const OAuth2 = () => {
         name="authentication.oauth_token_url"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>OAuth Token URL</FormLabel>
+            <FormLabel>{t("monitors.form.http.authentication.oauth_token_url")}</FormLabel>
             <FormControl>
-              <Input placeholder="OAuth Token URL" {...field} />
+              <Input placeholder={t("monitors.form.http.authentication.oauth_token_url_placeholder")} {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -146,9 +149,9 @@ const OAuth2 = () => {
         name="authentication.oauth_client_id"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Client ID</FormLabel>
+            <FormLabel>{t("monitors.form.http.authentication.client_id")}</FormLabel>
             <FormControl>
-              <Input placeholder="Client ID" {...field} />
+              <Input placeholder={t("monitors.form.http.authentication.client_id_placeholder")} {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -160,9 +163,9 @@ const OAuth2 = () => {
         name="authentication.oauth_client_secret"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Client Secret</FormLabel>
+            <FormLabel>{t("monitors.form.http.authentication.client_secret")}</FormLabel>
             <FormControl>
-              <Input placeholder="Client Secret" {...field} type="password" />
+              <Input placeholder={t("monitors.form.http.authentication.client_secret_placeholder")} {...field} type="password" />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -174,10 +177,10 @@ const OAuth2 = () => {
         name="authentication.oauth_scopes"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>OAuth Scope</FormLabel>
+            <FormLabel>{t("monitors.form.http.authentication.oauth_scope")}</FormLabel>
             <FormControl>
               <Input
-                placeholder="Optional: Space separated list of scopes"
+                placeholder={t("monitors.form.http.authentication.oauth_scope_placeholder")}
                 {...field}
               />
             </FormControl>
@@ -190,6 +193,7 @@ const OAuth2 = () => {
 };
 
 const NTLM = () => {
+  const { t } = useLocalizedTranslation();
   const form = useFormContext();
 
   return (
@@ -199,9 +203,9 @@ const NTLM = () => {
         name="authentication.authDomain"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Domain</FormLabel>
+            <FormLabel>{t("monitors.form.http.authentication.domain")}</FormLabel>
             <FormControl>
-              <Input placeholder="Domain" {...field} />
+              <Input placeholder={t("monitors.form.http.authentication.domain_placeholder")} {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -213,9 +217,9 @@ const NTLM = () => {
         name="authentication.authWorkstation"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Workstation</FormLabel>
+            <FormLabel>{t("monitors.form.http.authentication.workstation")}</FormLabel>
             <FormControl>
-              <Input placeholder="Workstation" {...field} />
+              <Input placeholder={t("monitors.form.http.authentication.workstation_placeholder")} {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -226,6 +230,7 @@ const NTLM = () => {
 };
 
 const MTLS = () => {
+  const { t } = useLocalizedTranslation();
   const form = useFormContext();
 
   return (
@@ -235,9 +240,9 @@ const MTLS = () => {
         name="authentication.tlsCert"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Certificate</FormLabel>
+            <FormLabel>{t("monitors.form.http.authentication.certificate")}</FormLabel>
             <FormControl>
-              <Textarea placeholder="Certificate" {...field} />
+              <Textarea placeholder={t("monitors.form.http.authentication.certificate_placeholder")} {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -249,9 +254,9 @@ const MTLS = () => {
         name="authentication.tlsKey"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Key</FormLabel>
+            <FormLabel>{t("monitors.form.http.authentication.key")}</FormLabel>
             <FormControl>
-              <Textarea placeholder="Key" {...field} />
+              <Textarea placeholder={t("monitors.form.http.authentication.key_placeholder")} {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -284,6 +289,7 @@ const authenticationTypes = [
 ];
 
 const Authentication = () => {
+  const { t } = useLocalizedTranslation();
   const form = useFormContext();
   const authMethod = useWatch({
     control: form.control,
@@ -292,14 +298,14 @@ const Authentication = () => {
 
   return (
     <>
-      <TypographyH4>Authentication</TypographyH4>
+      <TypographyH4>{t("monitors.form.http.authentication.title")}</TypographyH4>
 
       <FormField
         control={form.control}
         name="authentication.authMethod"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Method</FormLabel>
+            <FormLabel>{t("monitors.form.http.authentication.method_label")}</FormLabel>
             <Select
               onValueChange={(v) => {
                 if (!v) {
@@ -311,7 +317,7 @@ const Authentication = () => {
             >
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select authentication type" />
+                  <SelectValue placeholder={t("monitors.form.http.authentication.method_placeholder")} />
                 </SelectTrigger>
               </FormControl>
 

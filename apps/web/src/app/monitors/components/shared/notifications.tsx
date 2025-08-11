@@ -19,6 +19,7 @@ import { TypographyH4 } from "@/components/ui/typography";
 import { useQuery } from "@tanstack/react-query";
 import { useFormContext } from "react-hook-form";
 import { z } from "zod";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const notificationsSchema = z.object({
   notification_ids: z.array(z.string()),
@@ -29,6 +30,7 @@ export const notificationsDefaultValues = {
 };
 
 const Notifications = ({ onNewNotifier }: { onNewNotifier: () => void }) => {
+  const { t } = useLocalizedTranslation();
   const form = useFormContext();
   const notification_ids = form.watch("notification_ids");
 
@@ -38,11 +40,11 @@ const Notifications = ({ onNewNotifier }: { onNewNotifier: () => void }) => {
 
   return (
     <div className="flex flex-col gap-2">
-      <TypographyH4 className="mb-2">Notification channels</TypographyH4>
+      <TypographyH4 className="mb-2">{t("monitors.form.shared.notifications.title")}</TypographyH4>
 
       {Array.isArray(notification_ids) && notification_ids.length > 0 && (
         <>
-          <Label>Selected Notification channels</Label>
+          <Label>{t("monitors.form.shared.notifications.selected_channels")}</Label>
           <div className="flex flex-col gap-1 mb-2">
             {notification_ids.map((id: string) => {
               const notification = notifications?.data?.find(
@@ -95,8 +97,8 @@ const Notifications = ({ onNewNotifier }: { onNewNotifier: () => void }) => {
               <FormItem className="flex-1">
                 <FormLabel className="pb-1">
                   {notifications?.data?.length || 0
-                    ? "Add Notifier"
-                    : "No notification channels found, create one first"}
+                    ? t("monitors.form.shared.notifications.add_notifier")
+                    : t("monitors.form.shared.notifications.no_channels")}
                 </FormLabel>
                 <FormControl>
                   <Select
@@ -112,14 +114,14 @@ const Notifications = ({ onNewNotifier }: { onNewNotifier: () => void }) => {
                     }}
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select Notifier" />
+                      <SelectValue placeholder={t("monitors.form.shared.notifications.select_notifier_placeholder")} />
                     </SelectTrigger>
 
                     <SelectContent>
                       <SelectItem value="none" disabled>
                         {(notifications?.data?.length || 0) > 0
-                          ? "Select channel"
-                          : "No channels available"}
+                          ? t("monitors.form.shared.notifications.select_channel")
+                          : t("monitors.form.shared.notifications.no_channels_available")}
                       </SelectItem>
                       {availableNotifiers.map((n) => (
                         <SelectItem key={n.id} value={n.id || "none"}>
@@ -142,7 +144,7 @@ const Notifications = ({ onNewNotifier }: { onNewNotifier: () => void }) => {
           variant="outline"
           className="self-start sm:self-end"
         >
-          + New Notifier
+          {t("monitors.form.shared.notifications.new_notifier")}
         </Button>
       </div>
     </div>

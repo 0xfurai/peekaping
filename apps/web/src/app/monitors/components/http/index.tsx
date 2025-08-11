@@ -23,8 +23,10 @@ import { Loader2 } from "lucide-react";
 import type { HttpForm } from "./schema";
 import { deserialize, serialize } from "./schema";
 import { useEffect } from "react";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const Http = () => {
+  const { t } = useLocalizedTranslation();
   const {
     form,
     setNotifierSheetOpen,
@@ -134,7 +136,7 @@ const Http = () => {
 
         <Button type="submit">
           {isPending && <Loader2 className="animate-spin" />}
-          {mode === "create" ? "Create" : "Update"}
+          {mode === "create" ? t("monitors.form.buttons.create") : t("monitors.form.buttons.update")}
         </Button>
       </form>
     </Form>

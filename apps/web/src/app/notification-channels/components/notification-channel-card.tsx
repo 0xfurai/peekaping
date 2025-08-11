@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trash } from "lucide-react";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const NotificationChannelCard = ({
   notifier,
@@ -13,6 +14,7 @@ const NotificationChannelCard = ({
   onClick: () => void;
   onDelete?: () => void;
 }) => {
+  const { t } = useLocalizedTranslation();
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click when clicking delete button
     onDelete?.();
@@ -39,7 +41,7 @@ const NotificationChannelCard = ({
               size="icon"
               onClick={handleDeleteClick}
               className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
-              aria-label={`Delete ${notifier.name}`}
+              aria-label={t("notifications.aria.delete", { name: notifier.name })}
             >
               <Trash className="h-4 w-4" />
             </Button>

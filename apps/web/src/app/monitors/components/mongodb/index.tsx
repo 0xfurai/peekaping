@@ -33,6 +33,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2 } from "lucide-react";
 import type { MonitorCreateUpdateDto, MonitorMonitorResponseDto } from "@/api";
 import { useEffect } from "react";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 interface MongoDBConfig {
   connectionString: string;
@@ -145,6 +146,7 @@ export const serialize = (formData: MongoDBForm): MonitorCreateUpdateDto => {
 };
 
 const MongoDBForm = () => {
+  const { t } = useLocalizedTranslation();
   const {
     form,
     setNotifierSheetOpen,
@@ -200,7 +202,7 @@ const MongoDBForm = () => {
 
         <Card>
           <CardContent className="pt-6">
-            <TypographyH4 className="mb-4">MongoDB Configuration</TypographyH4>
+            <TypographyH4 className="mb-4">{t("monitors.form.mongodb.configuration_title")}</TypographyH4>
 
             <div className="space-y-4">
               <FormField
@@ -208,7 +210,7 @@ const MongoDBForm = () => {
                 name="connectionString"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Connection String</FormLabel>
+                    <FormLabel>{t("monitors.form.mongodb.connection_string_label")}</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="mongodb://username:password@host:27017/database"
@@ -216,8 +218,7 @@ const MongoDBForm = () => {
                       />
                     </FormControl>
                     <FormDescription>
-                      MongoDB connection string. Supports both standard
-                      (mongodb://) and DNS seedlist (mongodb+srv://) formats.
+                      {t("monitors.form.mongodb.connection_string_description")}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -229,13 +230,12 @@ const MongoDBForm = () => {
                 name="command"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Command (Optional)</FormLabel>
+                    <FormLabel>{t("monitors.form.mongodb.command_label")}</FormLabel>
                     <FormControl>
                       <Textarea placeholder='{"ping": 1}' rows={3} {...field} />
                     </FormControl>
                     <FormDescription>
-                      MongoDB command to execute as JSON. Defaults to ping if
-                      not specified.
+                      {t("monitors.form.mongodb.command_description")}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -247,13 +247,12 @@ const MongoDBForm = () => {
                 name="jsonPath"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>JSON Path (Optional)</FormLabel>
+                    <FormLabel>{t("monitors.form.mongodb.json_path_label")}</FormLabel>
                     <FormControl>
                       <Input placeholder="$" {...field} />
                     </FormControl>
                     <FormDescription>
-                      JSON path to extract value from response. Use $ for root
-                      level.
+                      {t("monitors.form.mongodb.json_path_description")}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -265,12 +264,12 @@ const MongoDBForm = () => {
                 name="expectedValue"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Expected Value (Optional)</FormLabel>
+                    <FormLabel>{t("monitors.form.mongodb.expected_value_label")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Expected value" {...field} />
+                      <Input placeholder={t("monitors.form.mongodb.expected_value_placeholder")} {...field} />
                     </FormControl>
                     <FormDescription>
-                      Expected value to compare against the JSON path result.
+                      {t("monitors.form.mongodb.expected_value_description")}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -300,7 +299,7 @@ const MongoDBForm = () => {
 
         <Button type="submit" disabled={isPending}>
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {mode === "create" ? "Create Monitor" : "Update Monitor"}
+          {mode === "create" ? t("monitors.form.buttons.create") : t("monitors.form.buttons.update")}
         </Button>
       </form>
     </Form>

@@ -31,6 +31,7 @@ import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import type { MonitorCreateUpdateDto, MonitorMonitorResponseDto } from "@/api";
 import { useEffect } from "react";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 interface PingConfig {
   host: string;
@@ -118,6 +119,7 @@ export const serialize = (formData: PingForm): MonitorCreateUpdateDto => {
 };
 
 const PingForm = () => {
+  const { t } = useLocalizedTranslation();
   const {
     form,
     setNotifierSheetOpen,
@@ -170,13 +172,13 @@ const PingForm = () => {
 
         <Card>
           <CardContent className="space-y-4">
-            <TypographyH4>Ping Settings</TypographyH4>
+            <TypographyH4>{t("monitors.form.ping.title")}</TypographyH4>
             <FormField
               control={form.control}
               name="host"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Host</FormLabel>
+                  <FormLabel>{t("monitors.form.ping.host")}</FormLabel>
                   <FormControl>
                     <Input placeholder="example.com" {...field} />
                   </FormControl>
@@ -190,7 +192,7 @@ const PingForm = () => {
               name="packet_size"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Data Size (bytes)</FormLabel>
+                  <FormLabel>{t("monitors.form.ping.data_size")}</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -230,7 +232,7 @@ const PingForm = () => {
 
         <Button type="submit">
           {isPending && <Loader2 className="animate-spin" />}
-          {mode === "create" ? "Create" : "Update"}
+          {mode === "create" ? t("monitors.form.buttons.create") : t("monitors.form.buttons.update")}
         </Button>
       </form>
     </Form>

@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 interface BackButtonProps {
   to?: string;
@@ -10,6 +11,7 @@ interface BackButtonProps {
 
 export function BackButton({ to, onClick, className = "mb-4" }: BackButtonProps) {
   const navigate = useNavigate();
+  const { t } = useLocalizedTranslation();
 
   const handleClick = () => {
     if (onClick) {
@@ -28,7 +30,7 @@ export function BackButton({ to, onClick, className = "mb-4" }: BackButtonProps)
       className={className}
     >
       <ArrowLeft />
-      Back
+      {t("common.back")}
     </Button>
   );
 }

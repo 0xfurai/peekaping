@@ -35,6 +35,7 @@ import { getMonitorsByIdStatsPointsOptions } from "@/api/@tanstack/react-query.g
 import type { MonitorStatPoint } from "@/api";
 import { useTimezone } from "../context/timezone-context";
 import { formatDateToTimezone } from "../lib/formatDateToTimezone";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 // import { useMemo } from "react";
 
 function getStatusRanges(data: MonitorStatPoint[]) {
@@ -108,6 +109,7 @@ export function Chart({ id }: { id: string }) {
     "30m" | "3h" | "6h" | "24h" | "1week"
   >("30m");
   const { timezone } = useTimezone();
+  const { t } = useLocalizedTranslation();
 
   // Helper to map timeRange to custom uptime params
   function getCustomUptimeParams(range: typeof timeRange) {
@@ -191,22 +193,22 @@ export function Chart({ id }: { id: string }) {
   const statsArray = [
     {
       key: "min",
-      label: "Minimum",
+      label: t("timezone.minimum"),
       value: statpointsDataRaw?.data?.minPing || 0,
     },
     {
       key: "max",
-      label: "Maximum",
+      label: t("timezone.maximum"),
       value: statpointsDataRaw?.data?.maxPing || 0,
     },
     {
       key: "avg",
-      label: "Average",
+      label: t("timezone.average"),
       value: statpointsDataRaw?.data?.avgPing || 0,
     },
     {
       key: "uptime",
-      label: "Uptime",
+      label: t("timezone.uptime"),
       value: statpointsDataRaw?.data?.uptime || 0,
     },
   ];
@@ -215,7 +217,7 @@ export function Chart({ id }: { id: string }) {
     <Card>
       <CardHeader className="flex items-center gap-2 space-y-0 border-b sm:flex-row">
         <div className="grid flex-1 gap-1 text-center sm:text-left">
-          <CardTitle>Response time</CardTitle>
+          <CardTitle>{t("timezone.response_time")}</CardTitle>
         </div>
         <div className="flex gap-2 items-center">
           <Select
@@ -226,23 +228,23 @@ export function Chart({ id }: { id: string }) {
               className="w-[160px] rounded-lg sm:ml-auto"
               aria-label="Select a value"
             >
-              <SelectValue placeholder="Last 3 months" />
+              <SelectValue placeholder={t("timezone.last_3_months")} />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
               <SelectItem value="30m" className="rounded-lg">
-                Last 30 minutes
+                {t("timezone.last_30_minutes")}
               </SelectItem>
               <SelectItem value="3h" className="rounded-lg">
-                Last 3 hours
+                {t("timezone.last_3_hours")}
               </SelectItem>
               <SelectItem value="6h" className="rounded-lg">
-                Last 6 hours
+                {t("timezone.last_6_hours")}
               </SelectItem>
               <SelectItem value="24h" className="rounded-lg">
-                Last 24 hours
+                {t("timezone.last_24_hours")}
               </SelectItem>
               <SelectItem value="1week" className="rounded-lg">
-                Last 7 days
+                {t("timezone.last_7_days")}
               </SelectItem>
             </SelectContent>
           </Select>
@@ -278,7 +280,7 @@ export function Chart({ id }: { id: string }) {
               tickLine={false}
               axisLine={false}
               label={{
-                value: "Resp. Time (ms)",
+                value: t("timezone.response_time") + " " + t("timezone.ms"),
                 angle: -90,
                 position: "insideLeft",
                 offset: 0,

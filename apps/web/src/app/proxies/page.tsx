@@ -34,11 +34,13 @@ import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import EmptyList from "@/components/empty-list";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useDelayedLoading } from "@/hooks/useDelayedLoading";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const ProxiesPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { getParam, updateSearchParams } = useSearchParams();
+  const { t } = useLocalizedTranslation();
 
   // Initialize search state from URL parameter
   const [search, setSearch] = useState(getParam("search") || "");
@@ -118,14 +120,14 @@ const ProxiesPage = () => {
     useIntersectionObserver<HTMLDivElement>(handleObserver);
 
   return (
-    <Layout pageName="Proxies" onCreate={() => navigate("/proxies/new")}>
+    <Layout pageName={t("proxies.page_name")} onCreate={() => navigate("/proxies/new")}>
       <div>
         <div className="mb-4 flex justify-center sm:justify-end gap-4">
           <div className="flex flex-col gap-1 w-full sm:w-auto">
-            <Label htmlFor="search-proxies">Search</Label>
+            <Label htmlFor="search-proxies">{t("proxies.search_label")}</Label>
             <Input
               id="search-proxies"
-              placeholder="Search proxies by host..."
+              placeholder={t("proxies.search_placeholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full sm:w-[400px]"
@@ -162,9 +164,9 @@ const ProxiesPage = () => {
 
         {proxies.length === 0 && !isLoading && (
           <EmptyList
-            title="No proxies found"
-            text="Get started by creating your first proxy to use in your monitors."
-            actionText="Create your first proxy"
+            title={t("proxies.empty_list.title")}
+            text={t("proxies.empty_list.text")}
+            actionText={t("proxies.empty_list.action_text")}
             onClick={() => navigate("/proxies/new")}
           />
         )}
@@ -173,15 +175,17 @@ const ProxiesPage = () => {
       <AlertDialog open={showConfirmDelete} onOpenChange={setShowConfirmDelete}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t("proxies.delete_dialog.title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the
-              proxy {proxyToDelete?.host}:{proxyToDelete?.port}.
+              {t("proxies.delete_dialog.description", {
+                host: proxyToDelete?.host,
+                port: proxyToDelete?.port,
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setShowConfirmDelete(false)}>
-              Cancel
+              {t("common.cancel")}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
@@ -191,7 +195,7 @@ const ProxiesPage = () => {
               {deleteMutation.isPending && (
                 <Loader2 className="animate-spin mr-2 h-4 w-4" />
               )}
-              Delete
+              {t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

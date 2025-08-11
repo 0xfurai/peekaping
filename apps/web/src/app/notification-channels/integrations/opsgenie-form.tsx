@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const schema = z.object({
   type: z.literal("opsgenie"),
@@ -37,6 +38,7 @@ export const displayName = "Opsgenie";
 
 export default function OpsgenieForm() {
   const form = useFormContext();
+  const { t } = useLocalizedTranslation();
 
   return (
     <>
@@ -46,24 +48,23 @@ export default function OpsgenieForm() {
         render={({ field }) => (
           <FormItem>
             <FormLabel>
-              Region <span className="text-red-500">*</span>
+              {t("notifications.form.opsgenie.region_label")} <span className="text-red-500">*</span>
             </FormLabel>
             <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select region" />
+                  <SelectValue placeholder={t("notifications.form.opsgenie.region_placeholder")} />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="us">US (Default)</SelectItem>
+                <SelectItem value="us">US ({t("common.default")})</SelectItem>
                 <SelectItem value="eu">EU</SelectItem>
               </SelectContent>
             </Select>
             <FormDescription>
-              <span className="text-red-500">*</span> Required
+              <span className="text-red-500">*</span> {t("common.required")}
               <br />
-              Choose your Opsgenie region. This determines which API endpoint
-              will be used.
+              {t("notifications.form.opsgenie.region_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -76,7 +77,7 @@ export default function OpsgenieForm() {
         render={({ field }) => (
           <FormItem>
             <FormLabel>
-              API Key <span className="text-red-500">*</span>
+              {t("notifications.form.opsgenie.api_key_label")} <span className="text-red-500">*</span>
             </FormLabel>
             <FormControl>
               <Input
@@ -87,10 +88,10 @@ export default function OpsgenieForm() {
               />
             </FormControl>
             <FormDescription>
-              <span className="text-red-500">*</span> Required
+              <span className="text-red-500">*</span> {t("common.required")}
               <br />
               <span className="mt-2 block">
-                More info about API keys:{" "}
+                {t("notifications.form.opsgenie.more_info_about_api_keys_label")}:{" "}
                 <a
                   href="https://docs.opsgenie.com/docs/alert-api"
                   target="_blank"
@@ -111,7 +112,7 @@ export default function OpsgenieForm() {
         name="priority"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Priority</FormLabel>
+            <FormLabel>{t("notifications.form.opsgenie.priority_label")}</FormLabel>
             <Select
               onValueChange={(val) => {
                 if (!val) {
@@ -127,15 +128,15 @@ export default function OpsgenieForm() {
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="1">P1 - Critical</SelectItem>
-                <SelectItem value="2">P2 - High</SelectItem>
-                <SelectItem value="3">P3 - Moderate (Default)</SelectItem>
-                <SelectItem value="4">P4 - Low</SelectItem>
-                <SelectItem value="5">P5 - Informational</SelectItem>
+                <SelectItem value="1">P1 - {t("notifications.form.opsgenie.priority_1")}</SelectItem>
+                <SelectItem value="2">P2 - {t("notifications.form.opsgenie.priority_2")}</SelectItem>
+                <SelectItem value="3">P3 - {t("notifications.form.opsgenie.priority_3")} ({t("common.default")})</SelectItem>
+                <SelectItem value="4">P4 - {t("notifications.form.opsgenie.priority_4")}</SelectItem>
+                <SelectItem value="5">P5 - {t("notifications.form.opsgenie.priority_5")}</SelectItem>
               </SelectContent>
             </Select>
             <FormDescription>
-              Set the priority level for alerts. Default is P3 (Moderate).
+              {t("notifications.form.opsgenie.priority_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>

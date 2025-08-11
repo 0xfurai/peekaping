@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import {
   FormControl,
   FormField,
@@ -18,73 +19,6 @@ import { useFormContext } from "react-hook-form";
 import { z } from "zod";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
-const monitorTypes = [
-  {
-    type: "http",
-    description: "HTTP(S) Monitor",
-  },
-  {
-    type: "tcp",
-    description: "TCP Port Monitor",
-  },
-  {
-    type: "ping",
-    description: "Ping Monitor (ICMP)",
-  },
-  {
-    type: "dns",
-    description: "DNS Monitor",
-  },
-  {
-    type: "push",
-    description: "Push Monitor (external service calls a generated URL)",
-  },
-  {
-    type: "docker",
-    description: "Docker Container",
-  },
-  {
-    type: "grpc-keyword",
-    description: "gRPC Keyword Monitor",
-  },
-  {
-    type: "snmp",
-    description: "SNMP Monitor",
-  },
-  {
-    type: "mysql",
-    description: "MySQL/MariaDB Monitor",
-  },
-  {
-    type: "postgres",
-    description: "PostgreSQL Database Monitor",
-  },
-  {
-    type: "sqlserver",
-    description: "Microsoft SQL Server Monitor",
-  },
-  {
-    type: "mongodb",
-    description: "MongoDB Database Monitor",
-  },
-  {
-    type: "redis",
-    description: "Redis Database Monitor",
-  },
-  {
-    type: "mqtt",
-    description: "MQTT Broker Monitor",
-  },
-  {
-    type: "rabbitmq",
-    description: "RabbitMQ Monitor",
-  },
-  {
-    type: "kafka-producer",
-    description: "Kafka Producer Monitor",
-  },
-];
-
 export const generalDefaultValues = {
   name: "My monitor",
 };
@@ -96,6 +30,73 @@ export const generalSchema = z.object({
 const General = () => {
   const form = useFormContext();
   const { t } = useLocalizedTranslation();
+
+  const monitorTypes = useMemo(() => [
+    {
+      type: "http",
+      description: t("monitors.form.type.http"),
+    },
+    {
+      type: "tcp",
+      description: t("monitors.form.type.tcp"),
+    },
+    {
+      type: "ping",
+      description: t("monitors.form.type.ping"),
+    },
+    {
+      type: "dns",
+      description: t("monitors.form.type.dns"),
+    },
+    {
+      type: "push",
+      description: t("monitors.form.type.push"),
+    },
+    {
+      type: "docker",
+      description: t("monitors.form.type.docker"),
+    },
+    {
+      type: "grpc-keyword",
+      description: t("monitors.form.type.grpc"),
+    },
+    {
+      type: "snmp",
+      description: t("monitors.form.type.snmp"),
+    },
+    {
+      type: "mysql",
+      description: t("monitors.form.type.mysql"),
+    },
+    {
+      type: "postgres",
+      description: t("monitors.form.type.postgres"),
+    },
+    {
+      type: "sqlserver",
+      description: t("monitors.form.type.sqlserver"),
+    },
+    {
+      type: "mongodb",
+      description: t("monitors.form.type.mongodb"),
+    },
+    {
+      type: "redis",
+      description: t("monitors.form.type.redis"),
+    },
+    {
+      type: "mqtt",
+      description: t("monitors.form.type.mqtt"),
+    },
+    {
+      type: "rabbitmq",
+      description: t("monitors.form.type.rabbitmq"),
+    },
+    {
+      type: "kafka-producer",
+      description: t("monitors.form.type.kafka"),
+    },
+  ], [t]);
 
   return (
     <>

@@ -35,7 +35,7 @@ export function VersionMismatchAlert() {
     >
       <span>
         {t("messages.version_mismatch")}: client v{VERSION}, server v
-        {serverVersion}. Please refresh the page.
+        {serverVersion}. {t("common.please_refresh_page")}
       </span>
       <button
         onClick={handleClose}

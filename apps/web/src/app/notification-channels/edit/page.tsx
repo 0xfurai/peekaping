@@ -13,10 +13,12 @@ import CreateEditNotificationChannel, {
 import { toast } from "sonner";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import type { NotificationChannelCreateUpdateDto } from "@/api";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const EditNotificationChannel = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useLocalizedTranslation();
   const queryClient = useQueryClient();
 
   const { data, isLoading, error } = useQuery({
@@ -27,18 +29,18 @@ const EditNotificationChannel = () => {
   const mutation = useMutation({
     ...putNotificationChannelsByIdMutation(),
     onSuccess: () => {
-      toast.success("Notifier updated successfully");
+      toast.success(t("notifications.messages.updated_success"));
       queryClient.removeQueries({
         queryKey: getNotificationChannelsByIdQueryKey({ path: { id: id! } }),
       });
       navigate("/notification-channels");
     },
-    onError: commonMutationErrorHandler("Failed to update notifier"),
+    onError: commonMutationErrorHandler(t("notifications.messages.update_failed")),
   });
 
-  if (isLoading) return <Layout pageName="Edit Notifier">Loading...</Layout>;
+  if (isLoading) return <Layout pageName={t("notifications.edit_title")}>{t("common.loading")}</Layout>;
   if (error || !data?.data)
-    return <Layout pageName="Edit Notifier">Error loading notifier</Layout>;
+    return <Layout pageName={t("notifications.edit_title")}>{t("notifications.messages.error_loading_notifier")}</Layout>;
 
   // Prepare initial values for the form
   const notifier = data.data;
@@ -66,7 +68,7 @@ const EditNotificationChannel = () => {
   };
 
   return (
-    <Layout pageName={`Edit Notification Channel: ${notifier.name}`}>
+      <Layout pageName={`${t("notifications.edit_channel_title")}: ${notifier.name}`}>
       <BackButton to="/notification-channels" />
       <CreateEditNotificationChannel
         initialValues={initialValues}

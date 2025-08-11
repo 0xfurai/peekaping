@@ -3,6 +3,7 @@ import { SearchableMultiSelect, type Option } from "./searchable-multi-select";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const INITIAL_LOAD_SIZE = 20;
 
@@ -15,6 +16,7 @@ const SearchableMonitorSelector = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebounce(searchQuery, 300);
+  const { t } = useLocalizedTranslation();
 
   // Fetch monitors using TanStack Query Infinite
   const {
@@ -45,10 +47,10 @@ const SearchableMonitorSelector = ({
         ?.flatMap((page) => page.data || [])
         ?.filter((monitor) => Boolean(monitor.id))
         ?.map((monitor) => ({
-          label: monitor.name || "Unnamed Monitor",
+          label: monitor.name || t("common.unnamed_monitor"),
           value: monitor.id || "",
         })) || [],
-    [monitorsData]
+    [monitorsData, t]
   );
 
   // Handle selection changes
@@ -70,7 +72,7 @@ const SearchableMonitorSelector = ({
       onSelect={handleSelect}
       inputValue={searchQuery}
       setInputValue={setSearchQuery}
-      placeholder="Select monitors..."
+      placeholder={t("common.select_monitors")}
       onLoadMore={handleLoadMore}
       isLoading={isLoading || isFetchingNextPage}
       nextPage={hasNextPage || false}

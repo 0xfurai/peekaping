@@ -18,6 +18,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Input } from "./ui/input";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 /**
  * Variants for the multi-select component to handle different styles.
@@ -150,6 +151,7 @@ export const MultiSelect = React.forwardRef<
     },
     ref
   ) => {
+    const { t } = useLocalizedTranslation();
     const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
     const [isAnimating, setIsAnimating] = React.useState(false);
     // Add state to store selected items with their labels
@@ -360,7 +362,7 @@ export const MultiSelect = React.forwardRef<
             })}
             {filteredOptions.length === 0 && (
               <div className="p-2 text-sm text-muted-foreground text-center">
-                No options found
+                {t("common.no_options_found")}
               </div>
             )}
           </div>

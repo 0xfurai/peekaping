@@ -11,8 +11,10 @@ import Timezone from "./timezone";
 import StartEndDateTime from "./start-end-date-time";
 import { Input } from "@/components/ui/input";
 import { useFormContext } from "react-hook-form";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const RecurringIntervalForm = () => {
+  const { t } = useLocalizedTranslation();
   const form = useFormContext();
 
   return (
@@ -22,7 +24,7 @@ const RecurringIntervalForm = () => {
         name="intervalDay"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Interval (Run once every day)</FormLabel>
+            <FormLabel>{t("maintenance.form.interval_label")}</FormLabel>
             <FormControl>
               <Input
                 type="number"
@@ -36,7 +38,7 @@ const RecurringIntervalForm = () => {
             <FormDescription>
               {field.value &&
                 field.value >= 1 &&
-                `Every ${field.value} day${field.value > 1 ? "s" : ""}`}
+                t(field.value > 1 ? "maintenance.form.interval_description_plural" : "maintenance.form.interval_description", { days: field.value })}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -47,7 +49,7 @@ const RecurringIntervalForm = () => {
       <Timezone />
 
       <div className="space-y-4">
-        <FormLabel>Effective Date Range (Optional)</FormLabel>
+        <FormLabel>{t("maintenance.form.effective_date_range")}</FormLabel>
         <StartEndDateTime />
       </div>
     </>

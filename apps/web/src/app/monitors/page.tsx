@@ -250,7 +250,7 @@ const MonitorsPage = () => {
                   onClick={clearAllFilters}
                   className="w-fit h-[36px]"
                 >
-                  Clear all filters
+                  {t("common.clear_all_filters")}
                 </Button>
               </div>
             )}
@@ -264,7 +264,7 @@ const MonitorsPage = () => {
                 }
               >
                 <SelectTrigger className="w-full sm:w-[140px]">
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder={t("monitors.filters.status_placeholder")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{t("common.all")}</SelectItem>
@@ -287,7 +287,7 @@ const MonitorsPage = () => {
                 }
               >
                 <SelectTrigger className="w-full md:w-[160px]">
-                  <SelectValue placeholder="Monitor Status" />
+                  <SelectValue placeholder={t("monitors.filters.monitor_status_placeholder")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{t("common.all")}</SelectItem>
@@ -301,11 +301,11 @@ const MonitorsPage = () => {
             </div>
 
             <div className="flex flex-col gap-1 w-full sm:w-auto">
-              <Label htmlFor="tag-filter">Tags</Label>
+              <Label htmlFor="tag-filter">{t("common.tags")}</Label>
               <Popover open={tagPopoverOpen} onOpenChange={setTagPopoverOpen}>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="px-3 font-normal">
-                    <span className="text-muted-foreground">Select tags</span>
+                    <span className="text-muted-foreground">{t("common.select_tags")}</span>
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="end">
@@ -335,7 +335,7 @@ const MonitorsPage = () => {
                       ))}
                       {availableTags.length === 0 && (
                         <div className="text-center text-muted-foreground text-sm p-4">
-                          No tags available
+                          {t("common.no_tags_available")}
                         </div>
                       )}
                     </div>
@@ -361,7 +361,7 @@ const MonitorsPage = () => {
         {selectedTags.length > 0 && (
           <div className="mb-4 flex flex-wrap gap-2">
             <span className="text-sm text-muted-foreground">
-              Filtering by tags:
+              {t("monitors.filtering_by_tags")}:
             </span>
             {selectedTags.map((tag) => (
               <Badge
@@ -385,7 +385,7 @@ const MonitorsPage = () => {
               onClick={clearAllTags}
               className="h-6 text-xs cursor-pointer"
             >
-              Clear all
+              {t("common.clear_all")}
             </Button>
           </div>
         )}
@@ -402,9 +402,9 @@ const MonitorsPage = () => {
         {/* No monitors state */}
         {monitors.length === 0 && !isLoading && (
           <EmptyList
-            title="No monitors found"
-            text="Get started by creating your first monitor to track the health of your services."
-            actionText="Create your first monitor"
+            title={t("monitors.empty_state.title")}
+            text={t("monitors.empty_state.description")}
+            actionText={t("monitors.empty_state.action")}
             onClick={() => navigate("/monitors/new")}
           />
         )}

@@ -107,7 +107,7 @@ const ImportantNotificationsList = ({ monitorId }: { monitorId: string }) => {
         </Card>
       ))}
       <div ref={sentinelRef} style={{ height: 1 }} />
-      {isFetchingNextPage && <div>Loading more...</div>}
+      {isFetchingNextPage && <div>{t("monitors.card.loading_more")}</div>}
     </div>
   );
 };

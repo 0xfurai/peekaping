@@ -34,6 +34,7 @@ import { Loader2, Plus, Trash2 } from "lucide-react";
 import type { MonitorCreateUpdateDto, MonitorMonitorResponseDto } from "@/api";
 import { useEffect } from "react";
 import { useFieldArray } from "react-hook-form";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 interface RabbitMQConfig {
   nodes: string[]; // Server expects array of strings
@@ -109,6 +110,7 @@ export const deserialize = (data: MonitorMonitorResponseDto): RabbitMQForm => {
 };
 
 const RabbitMQForm = () => {
+  const { t } = useLocalizedTranslation();
   const {
     form,
     setNotifierSheetOpen,
@@ -176,14 +178,14 @@ const RabbitMQForm = () => {
 
         <Card>
           <CardContent className="space-y-4">
-            <TypographyH4>RabbitMQ Configuration</TypographyH4>
+            <TypographyH4>{t("monitors.form.rabbitmq.title")}</TypographyH4>
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h5 className="text-sm font-medium">Management Nodes</h5>
+                  <h5 className="text-sm font-medium">{t("monitors.form.rabbitmq.management_nodes_title")}</h5>
                   <p className="text-xs text-muted-foreground">
-                    Enter the URL for the RabbitMQ management nodes including protocol and port. Example: https://node1.rabbitmq.com:15672
+                    {t("monitors.form.rabbitmq.management_nodes_description")}
                   </p>
                 </div>
                 <Button
@@ -205,7 +207,7 @@ const RabbitMQForm = () => {
                     render={({ field }) => (
                       <FormItem className="flex-1">
                         <FormLabel className={index > 0 ? "sr-only" : ""}>
-                          Node {index + 1} URL
+                          {t("monitors.form.rabbitmq.node_url_label")} {index + 1}
                         </FormLabel>
                         <FormControl>
                           <Input
@@ -237,12 +239,12 @@ const RabbitMQForm = () => {
               name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Username</FormLabel>
+                  <FormLabel>{t("forms.labels.username")}</FormLabel>
                   <FormControl>
                     <Input placeholder="admin" {...field} />
                   </FormControl>
                   <FormDescription>
-                    Username for RabbitMQ management interface authentication
+                    {t("monitors.form.rabbitmq.username_description")}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -254,12 +256,12 @@ const RabbitMQForm = () => {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>{t("forms.labels.password")}</FormLabel>
                   <FormControl>
                     <Input type="password" placeholder="password" {...field} />
                   </FormControl>
                   <FormDescription>
-                    Password for RabbitMQ management interface authentication
+                    {t("monitors.form.rabbitmq.password_description")}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -267,22 +269,23 @@ const RabbitMQForm = () => {
             />
 
             <div className="bg-muted/50 p-4 rounded-lg">
-              <h6 className="text-sm font-medium mb-2">Setup Information</h6>
+              <h6 className="text-sm font-medium mb-2">{t("monitors.form.rabbitmq.setup_information_title")}</h6>
               <p className="text-xs text-muted-foreground mb-2">
-                To use the RabbitMQ monitor, you need to enable the Management Plugin in your RabbitMQ setup.
-                For more information, please consult the{" "}
+                {t("monitors.form.rabbitmq.setup_information_description")}
                 <a
                   href="https://www.rabbitmq.com/management.html"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-primary underline"
                 >
-                  RabbitMQ documentation
+                    {t("monitors.form.rabbitmq.documentation_link")}
                 </a>
                 .
               </p>
               <p className="text-xs text-muted-foreground">
-                The monitor checks the <code>/api/health/checks/alarms/</code> endpoint on each node and returns UP if any node is healthy.
+                {t("monitors.form.rabbitmq.health_checks_description", {
+                  code: "<code>/api/health/checks/alarms/</code>"
+                })}
               </p>
             </div>
           </CardContent>
@@ -308,7 +311,7 @@ const RabbitMQForm = () => {
 
         <Button type="submit" className="w-full" disabled={isPending}>
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {mode === "create" ? "Create Monitor" : "Update Monitor"}
+          {mode === "create" ? t("monitors.form.buttons.create") : t("monitors.form.buttons.update")}
         </Button>
       </form>
     </Form>

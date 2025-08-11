@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { TypographyH4 } from "@/components/ui/typography";
 import { Button } from "@/components/ui/button";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { Card, CardContent } from "@/components/ui/card";
 import Intervals, {
   intervalsDefaultValues,
@@ -141,6 +142,7 @@ export const deserialize = (data: MonitorMonitorResponseDto): MQTTForm => {
 };
 
 const MQTTForm = () => {
+  const { t } = useLocalizedTranslation();
   const {
     form,
     setNotifierSheetOpen,
@@ -159,7 +161,7 @@ const MQTTForm = () => {
     if (data.check_type === "keyword" && (!data.success_keyword || data.success_keyword.trim() === "")) {
       form.setError("success_keyword", {
         type: "manual",
-        message: "Success keyword is required when check type is keyword",
+        message: t("monitors.form.mqtt.validation.success_keyword_required"),
       });
       return;
     }
@@ -168,14 +170,14 @@ const MQTTForm = () => {
       if (!data.json_path || data.json_path.trim() === "") {
         form.setError("json_path", {
           type: "manual",
-          message: "JSON path is required when check type is json-query",
+          message: t("monitors.form.mqtt.validation.json_path_required"),
         });
         return;
       }
       if (!data.expected_value || data.expected_value.trim() === "") {
         form.setError("expected_value", {
           type: "manual",
-          message: "Expected value is required when check type is json-query",
+          message: t("monitors.form.mqtt.validation.expected_value_required"),
         });
         return;
       }
@@ -221,13 +223,13 @@ const MQTTForm = () => {
 
         <Card>
           <CardContent className="space-y-4">
-            <TypographyH4>MQTT Configuration</TypographyH4>
+            <TypographyH4>{t("monitors.form.mqtt.configuration_title")}</TypographyH4>
             <FormField
               control={form.control}
               name="hostname"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Hostname</FormLabel>
+                  <FormLabel>{t("monitors.form.mqtt.hostname_label")}</FormLabel>
                   <FormControl>
                     <Input placeholder="localhost" {...field} />
                   </FormControl>
@@ -241,7 +243,7 @@ const MQTTForm = () => {
               name="port"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Port</FormLabel>
+                  <FormLabel>{t("monitors.form.mqtt.port_label")}</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -275,9 +277,9 @@ const MQTTForm = () => {
               name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>MQTT Username</FormLabel>
+                  <FormLabel>{t("monitors.form.mqtt.username_label")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Username (optional)" {...field} />
+                    <Input placeholder={t("monitors.form.mqtt.username_placeholder")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -289,11 +291,11 @@ const MQTTForm = () => {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>MQTT Password</FormLabel>
+                  <FormLabel>{t("monitors.form.mqtt.password_label")}</FormLabel>
                   <FormControl>
                     <Input
                       type="password"
-                      placeholder="Password (optional)"
+                      placeholder={t("monitors.form.mqtt.password_placeholder")}
                       {...field}
                     />
                   </FormControl>
@@ -307,17 +309,17 @@ const MQTTForm = () => {
               name="check_type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>MQTT Check Type</FormLabel>
+                  <FormLabel>{t("monitors.form.mqtt.check_type_label")}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select check type" />
+                        <SelectValue placeholder={t("monitors.form.mqtt.check_type_placeholder")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="none">None (Any Message)</SelectItem>
-                      <SelectItem value="keyword">Keyword</SelectItem>
-                      <SelectItem value="json-query">JSON Query</SelectItem>
+                      <SelectItem value="none">{t("monitors.form.mqtt.check_type_none")}</SelectItem>
+                      <SelectItem value="keyword">{t("monitors.form.mqtt.check_type_keyword")}</SelectItem>
+                      <SelectItem value="json-query">{t("monitors.form.mqtt.check_type_json_query")}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -331,10 +333,10 @@ const MQTTForm = () => {
                 name="success_keyword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>MQTT Success Keyword</FormLabel>
+                    <FormLabel>{t("monitors.form.mqtt.success_keyword_label")}</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Keyword that indicates success"
+                        placeholder={t("monitors.form.mqtt.success_keyword_placeholder")}
                         {...field}
                       />
                     </FormControl>
@@ -351,7 +353,7 @@ const MQTTForm = () => {
                   name="json_path"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>JSON Path</FormLabel>
+                      <FormLabel>{t("monitors.form.mqtt.json_path_label")}</FormLabel>
                       <FormControl>
                         <Input placeholder="$.status" {...field} />
                       </FormControl>
@@ -365,7 +367,7 @@ const MQTTForm = () => {
                   name="expected_value"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Expected Value</FormLabel>
+                      <FormLabel>{t("monitors.form.mqtt.expected_value_label")}</FormLabel>
                       <FormControl>
                         <Input placeholder="ok" {...field} />
                       </FormControl>
@@ -402,7 +404,7 @@ const MQTTForm = () => {
           disabled={isPending}
         >
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {mode === "create" ? "Create Monitor" : "Update Monitor"}
+          {mode === "create" ? t("monitors.form.buttons.create") : t("monitors.form.buttons.update")}
         </Button>
       </form>
     </Form>

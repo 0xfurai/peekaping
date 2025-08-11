@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { useMutation } from "@tanstack/react-query";
 import { TypographyH4 } from "@/components/ui/typography";
 import { commonMutationErrorHandler } from "@/lib/utils";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const passwordSchema = z
   .object({
@@ -35,6 +36,7 @@ const passwordSchema = z
 type PasswordFormType = z.infer<typeof passwordSchema>;
 
 const UpdatePassword = () => {
+  const { t } = useLocalizedTranslation();
   const form = useForm<PasswordFormType>({
     defaultValues: {
       currentPassword: "",
@@ -47,10 +49,10 @@ const UpdatePassword = () => {
   const updatePasswordMutation = useMutation({
     ...putAuthPasswordMutation(),
     onSuccess: () => {
-      toast.success("Password updated successfully");
+      toast.success(t("security.update_password.messages.password_updated_successfully"));
       form.reset();
     },
-    onError: commonMutationErrorHandler("Failed to update password"),
+    onError: commonMutationErrorHandler(t("security.update_password.messages.failed_to_update_password")),
   });
 
   const onSubmit = (data: PasswordFormType) => {
@@ -64,7 +66,7 @@ const UpdatePassword = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <TypographyH4>Update password</TypographyH4>
+      <TypographyH4>{t("security.update_password.title")}</TypographyH4>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -75,12 +77,12 @@ const UpdatePassword = () => {
             name="currentPassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Old Password</FormLabel>
+                <FormLabel>{t("security.update_password.form.old_password_label")}</FormLabel>
                 <FormControl>
                   <Input
                     type="password"
                     autoComplete="current-password"
-                    placeholder="Enter your current password"
+                    placeholder={t("security.update_password.form.old_password_placeholder")}
                     {...field}
                   />
                 </FormControl>
@@ -93,12 +95,12 @@ const UpdatePassword = () => {
             name="newPassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>New Password</FormLabel>
+                <FormLabel>{t("security.update_password.form.new_password_label")}</FormLabel>
                 <FormControl>
                   <Input
                     type="password"
                     autoComplete="new-password"
-                    placeholder="Enter a new password"
+                    placeholder={t("security.update_password.form.new_password_placeholder")}
                     {...field}
                   />
                 </FormControl>
@@ -111,12 +113,12 @@ const UpdatePassword = () => {
             name="confirmPassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Confirm New Password</FormLabel>
+                <FormLabel>{t("security.update_password.form.confirm_new_password_label")}</FormLabel>
                 <FormControl>
                   <Input
                     type="password"
                     autoComplete="new-password"
-                    placeholder="Re-enter new password"
+                    placeholder={t("security.update_password.form.confirm_new_password_placeholder")}
                     {...field}
                   />
                 </FormControl>
@@ -124,7 +126,7 @@ const UpdatePassword = () => {
               </FormItem>
             )}
           />
-          <Button type="submit">Update Password</Button>
+          <Button type="submit">{t("security.update_password.form.update_password_button")}</Button>
         </form>
       </Form>
     </div>

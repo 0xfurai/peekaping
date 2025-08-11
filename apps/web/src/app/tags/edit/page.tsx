@@ -6,9 +6,11 @@ import { getTagsByIdOptions } from "@/api/@tanstack/react-query.gen";
 import TagForm from "../components/tag-form";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const EditTag = () => {
   const { id } = useParams();
+  const { t } = useLocalizedTranslation();
 
   const { data: tag, isLoading, error } = useQuery({
     ...getTagsByIdOptions({ path: { id: id! } }),
@@ -17,19 +19,19 @@ const EditTag = () => {
 
   if (!id) {
     return (
-      <Layout pageName="Edit Tag">
+      <Layout pageName={t("tags.edit_page_name")}>
         <BackButton to="/tags" />
-        <div className="text-red-500">Tag ID is required</div>
+        <div className="text-red-500">{t("tags.messages.tag_id_required")}</div>
       </Layout>
     );
   }
 
   if (isLoading) {
     return (
-      <Layout pageName="Edit Tag">
+      <Layout pageName={t("tags.edit_page_name")}>
         <BackButton to="/tags" />
         <div className="flex flex-col gap-4">
-          <p className="text-gray-500">Loading tag...</p>
+          <p className="text-gray-500">{t("common.loading")}</p>
           <Card>
             <CardContent className="space-y-4 pt-6">
               <Skeleton className="h-4 w-1/4" />
@@ -47,21 +49,21 @@ const EditTag = () => {
 
   if (error || !tag?.data) {
     return (
-      <Layout pageName="Edit Tag">
+      <Layout pageName={t("tags.edit_page_name")}>
         <BackButton to="/tags" />
         <div className="text-red-500">
-          Failed to load tag. The tag may not exist or you may not have permission to view it.
+          {t("tags.messages.failed_to_load_tag")}
         </div>
       </Layout>
     );
   }
 
   return (
-    <Layout pageName={`Edit Tag: ${tag.data.name}`}>
+    <Layout pageName={`${t("tags.edit_page_name")}: ${tag.data.name}`}>
       <BackButton to="/tags" />
       <div className="flex flex-col gap-4">
         <p className="text-gray-500">
-          Update the tag details to better organize your monitors.
+          {t("tags.messages.update_description")}
         </p>
 
         <TagForm mode="edit" tag={tag.data} />

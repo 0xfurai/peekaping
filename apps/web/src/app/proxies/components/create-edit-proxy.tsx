@@ -20,6 +20,7 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const formSchema = z.object({
   protocol: z.enum(["http", "https", "socks", "socks5", "socks5h", "socks4"]),
@@ -66,6 +67,7 @@ export default function CreateEditProxy({
   mode = "create",
   isLoading = false,
 }: CreateEditProxyProps) {
+  const { t } = useLocalizedTranslation();
   const form = useForm<ProxyForm>({
     defaultValues: initialValues || defaultValues,
     resolver: zodResolver(formSchema),
@@ -89,11 +91,11 @@ export default function CreateEditProxy({
           name="protocol"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Proxy Protocol</FormLabel>
+              <FormLabel>{t("proxies.form.protocol_label")}</FormLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select proxy protocol" />
+                    <SelectValue placeholder={t("proxies.form.protocol_placeholder")} />
                   </SelectTrigger>
                 </FormControl>
 
@@ -112,14 +114,14 @@ export default function CreateEditProxy({
         />
 
         <FormItem>
-          <FormLabel>Proxy Server</FormLabel>
+          <FormLabel>{t("proxies.form.server_label")}</FormLabel>
           <div className="flex space-x-4">
             <FormField
               control={form.control}
               name="host"
               render={({ field }) => (
                 <>
-                  <Input placeholder="Server address" {...field} />
+                  <Input placeholder={t("proxies.form.server_placeholder")} {...field} />
                   <FormMessage />
                 </>
               )}
@@ -131,7 +133,7 @@ export default function CreateEditProxy({
               render={({ field }) => (
                 <>
                   <Input
-                    placeholder="Port"
+                    placeholder={t("proxies.form.port_placeholder")}
                     {...field}
                     type="number"
                     value={field.value}
@@ -150,7 +152,7 @@ export default function CreateEditProxy({
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
               <div className="space-y-0.5">
-                <FormLabel>Proxy server has authentication</FormLabel>
+                <FormLabel>{t("proxies.form.auth_label")}</FormLabel>
               </div>
 
               <FormControl>
@@ -171,9 +173,9 @@ export default function CreateEditProxy({
               name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>User</FormLabel>
+                  <FormLabel>{t("proxies.form.user")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="User" {...field} />
+                    <Input placeholder={t("proxies.form.user")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -185,9 +187,9 @@ export default function CreateEditProxy({
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>{t("forms.labels.password")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Password" {...field} type="password" />
+                    <Input placeholder={t("forms.labels.password")} {...field} type="password" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -200,7 +202,7 @@ export default function CreateEditProxy({
           {(isSubmitting || isLoading) && (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           )}
-          {isSubmitting || isLoading ? "Saving..." : mode === "create" ? "Save" : "Update"}
+          {isSubmitting || isLoading ? t("common.saving") : mode === "create" ? t("common.save") : t("common.update")}
         </Button>
       </form>
     </Form>

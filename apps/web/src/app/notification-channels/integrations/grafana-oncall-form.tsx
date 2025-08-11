@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/form";
 import { z } from "zod";
 import { useFormContext } from "react-hook-form";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const schema = z.object({
   type: z.literal("grafana_oncall"),
@@ -24,6 +25,7 @@ export const displayName = "Grafana OnCall";
 
 export default function GrafanaOncallForm() {
   const form = useFormContext();
+  const { t } = useLocalizedTranslation();
 
   return (
     <>
@@ -33,7 +35,7 @@ export default function GrafanaOncallForm() {
         render={({ field }) => (
           <FormItem>
             <FormLabel>
-              Grafana OnCall URL <span className="text-red-500">*</span>
+              {t("notifications.form.grafana_oncall.grafana_oncall_url_label")} <span className="text-red-500">*</span>
             </FormLabel>
             <FormControl>
               <Input
@@ -44,13 +46,13 @@ export default function GrafanaOncallForm() {
               />
             </FormControl>
             <FormDescription>
-              <span className="text-red-500">*</span> Required
+              <span className="text-red-500">*</span> {t("common.required")}
               <br />
               <span className="mt-2 block">
-                The webhook URL from your Grafana OnCall integration. You can find this in your Grafana OnCall instance under Alerts & IRM &gt; IRM &gt; Integrations &gt; Webhook.
+                {t("notifications.form.grafana_oncall.grafana_oncall_url_description")}
               </span>
               <span className="mt-2 block">
-                Learn more about Grafana OnCall webhooks:{" "}
+                {t("notifications.form.grafana_oncall.learn_more_label")}:{" "}
                 <a
                   href="https://grafana.com/docs/oncall/latest/integrations/webhook/"
                   target="_blank"

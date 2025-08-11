@@ -1,22 +1,26 @@
+import { useMemo } from "react";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import StartEndTime from "./start-end-time";
 import Timezone from "./timezone";
 import StartEndDateTime from "./start-end-date-time";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useFormContext } from "react-hook-form";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
-const WEEKDAYS = [
-  { id: "0", label: "Sun", value: 0 },
-  { id: "1", label: "Mon", value: 1 },
-  { id: "2", label: "Tue", value: 2 },
-  { id: "3", label: "Wed", value: 3 },
-  { id: "4", label: "Thu", value: 4 },
-  { id: "5", label: "Fri", value: 5 },
-  { id: "6", label: "Sat", value: 6 },
-];
 
 const RecurringWeekdayForm = () => {
+  const { t } = useLocalizedTranslation();
   const form = useFormContext();
+  
+  const WEEKDAYS = useMemo(() => [
+    { id: "0", label: t("maintenance.weekdays.sun"), value: 0 },
+    { id: "1", label: t("maintenance.weekdays.mon"), value: 1 },
+    { id: "2", label: t("maintenance.weekdays.tue"), value: 2 },
+    { id: "3", label: t("maintenance.weekdays.wed"), value: 3 },
+    { id: "4", label: t("maintenance.weekdays.thu"), value: 4 },
+    { id: "5", label: t("maintenance.weekdays.fri"), value: 5 },
+    { id: "6", label: t("maintenance.weekdays.sat"), value: 6 },
+  ], [t]);
 
   return (
     <>
@@ -25,7 +29,7 @@ const RecurringWeekdayForm = () => {
         name="weekdays"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Day of Week</FormLabel>
+            <FormLabel>{t("maintenance.form.day_of_week")}</FormLabel>
             <div className="flex gap-4">
               {WEEKDAYS.map((weekday) => (
                 <FormItem
@@ -60,7 +64,7 @@ const RecurringWeekdayForm = () => {
       <Timezone />
 
       <div className="space-y-4">
-        <FormLabel>Effective Date Range (Optional)</FormLabel>
+        <FormLabel>{t("maintenance.form.effective_date_range")}</FormLabel>
         <StartEndDateTime />
       </div>
     </>

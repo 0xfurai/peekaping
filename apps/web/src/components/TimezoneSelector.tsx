@@ -13,8 +13,10 @@ import {
 } from "./ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { getTimezoneOffsetLabel, sortedTimezones } from "@/lib/timezones";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const TimezoneSelector: React.FC = () => {
+  const { t } = useLocalizedTranslation();
   const { timezone, setTimezone } = useTimezone();
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
@@ -31,12 +33,12 @@ const TimezoneSelector: React.FC = () => {
 
   const selectedLabel = timezone
     ? `${timezone} (${getTimezoneOffsetLabel(timezone)})`
-    : "Select timezone...";
+    : t("settings.timezone.select_placeholder");
 
   return (
     <div className="flex flex-col gap-1">
       <label htmlFor="timezone-combobox" className="text-sm font-medium mb-1">
-        Timezone
+        {t("settings.timezone.label")}
       </label>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
@@ -54,13 +56,13 @@ const TimezoneSelector: React.FC = () => {
         <PopoverContent className="min-w-[260px] p-0">
           <Command>
             <CommandInput
-              placeholder="Search timezone..."
+              placeholder={t("settings.timezone.search_placeholder")}
               value={search}
               onValueChange={setSearch}
               className="h-9"
             />
             <CommandList>
-              <CommandEmpty>No timezone found.</CommandEmpty>
+              <CommandEmpty>{t("settings.timezone.no_timezone_found")}</CommandEmpty>
               <CommandGroup>
                 {filteredTimezones.map((tz) => (
                   <CommandItem

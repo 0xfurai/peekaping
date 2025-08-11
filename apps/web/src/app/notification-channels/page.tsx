@@ -35,10 +35,12 @@ import { commonMutationErrorHandler } from "@/lib/utils";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import EmptyList from "@/components/empty-list";
 import { Button } from "@/components/ui/button";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const NotifiersPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { t } = useLocalizedTranslation();
   const { getParam, updateSearchParams, clearAllParams, hasParams } =
     useSearchParams();
 
@@ -79,7 +81,7 @@ const NotifiersPage = () => {
   const deleteMutation = useMutation({
     ...deleteNotificationChannelsByIdMutation(),
     onSuccess: () => {
-      toast.success("Notifier deleted successfully");
+      toast.success(t("messages.notifier_delete_success"));
       queryClient.invalidateQueries({
         queryKey: getNotificationChannelsInfiniteQueryKey(),
       });
@@ -87,7 +89,7 @@ const NotifiersPage = () => {
       setNotifierToDelete(null);
     },
     onError: (err) => {
-      commonMutationErrorHandler("Failed to delete notifier")(err);
+      commonMutationErrorHandler(t("messages.notifier_delete_error"))(err);
       setShowConfirmDelete(false);
       setNotifierToDelete(null);
     },
@@ -125,7 +127,7 @@ const NotifiersPage = () => {
 
   return (
     <Layout
-      pageName="Notification channels"
+      pageName={t("navigation.notification_channels")}
       onCreate={() => navigate("/notification-channels/new")}
     >
       <div>
@@ -139,15 +141,15 @@ const NotifiersPage = () => {
                   onClick={clearAllFilters}
                   className="w-fit h-[36px]"
                 >
-                  Clear all filters
+                  {t("common.clear_all_filters")}
                 </Button>
               </div>
             )}
             <div className="flex flex-col gap-1 w-full sm:w-auto">
-              <Label htmlFor="search-notification-channels">Search</Label>
+              <Label htmlFor="search-notification-channels">{t("common.search")}</Label>
               <Input
                 id="search-notification-channels"
-                placeholder="Search notification channels by name..."
+                placeholder={t("notifications.search_placeholder")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full sm:w-[400px]"
@@ -186,9 +188,9 @@ const NotifiersPage = () => {
         )}
         {notificationChannels.length === 0 && !isLoading && (
           <EmptyList
-            title="No notification channels found"
-            text="Get started by creating your first notification channel to send alerts to your team."
-            actionText="Create your first notification channel"
+            title={t("notifications.empty_state.title")}
+            text={t("notifications.empty_state.description")}
+            actionText={t("notifications.empty_state.action")}
             onClick={() => navigate("/notification-channels/new")}
           />
         )}
@@ -197,16 +199,14 @@ const NotifiersPage = () => {
       <AlertDialog open={showConfirmDelete} onOpenChange={setShowConfirmDelete}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t("common.confirm_delete_title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the
-              notifier "{notifierToDelete?.name}" and remove it from all
-              monitors that use it.
+              {t("notifications.confirm_delete_description", { name: notifierToDelete?.name })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setShowConfirmDelete(false)}>
-              Cancel
+              {t("common.cancel")}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
@@ -216,7 +216,7 @@ const NotifiersPage = () => {
               {deleteMutation.isPending && (
                 <Loader2 className="animate-spin mr-2 h-4 w-4" />
               )}
-              Delete
+              {t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

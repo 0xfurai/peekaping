@@ -6,9 +6,11 @@ import { CheckCircle, Pause, XCircle } from "lucide-react";
 import BarHistory from "@/components/bars";
 import { useQuery } from "@tanstack/react-query";
 import { getMonitorsByIdHeartbeatsOptions } from "@/api/@tanstack/react-query.gen";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const MonitorCard = ({ monitor }: { monitor: MonitorModel }) => {
   const navigate = useNavigate();
+  const { t } = useLocalizedTranslation();
 
   const { data: heartbeats } = useQuery({
     ...getMonitorsByIdHeartbeatsOptions({
@@ -68,7 +70,7 @@ const MonitorCard = ({ monitor }: { monitor: MonitorModel }) => {
 
           <div className="flex flex-col w-full md:w-[400px] justify-center mb-2 md:mb-0">
             <div className="text-sm text-gray-500 mb-1">
-              Check interval: {monitor.interval}s
+              {t("monitors.card.check_interval")} {monitor.interval}s
             </div>
 
             <BarHistory

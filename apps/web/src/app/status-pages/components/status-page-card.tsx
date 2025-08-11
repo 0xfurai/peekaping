@@ -27,6 +27,7 @@ import {
 import { toast } from "sonner";
 import { useState } from "react";
 import { commonMutationErrorHandler } from "@/lib/utils";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 interface StatusPageCardProps {
   statusPage: StatusPageModel;
@@ -36,19 +37,20 @@ interface StatusPageCardProps {
 const StatusPageCard = ({ statusPage, onClick }: StatusPageCardProps) => {
   const queryClient = useQueryClient();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const { t } = useLocalizedTranslation();
 
   const deleteStatusPageMutation = useMutation({
     ...deleteStatusPagesByIdMutation({
       path: { id: statusPage.id! },
     }),
     onSuccess: () => {
-      toast.success("Status page deleted successfully");
+      toast.success(t("status_pages.messages.deleted_successfully"));
       queryClient.invalidateQueries({
         queryKey: getStatusPagesInfiniteQueryKey(),
       });
       setIsDeleteDialogOpen(false);
     },
-    onError: commonMutationErrorHandler("Failed to delete status page"),
+    onError: commonMutationErrorHandler(t("status_pages.messages.delete_failed")),
   });
 
   const handleView = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -78,7 +80,7 @@ const StatusPageCard = ({ statusPage, onClick }: StatusPageCardProps) => {
             <div className="flex items-center">
               <div className="text-sm text-gray-500 mr-4 min-w-[60px]">
                 <Badge variant={statusPage.published ? "default" : "secondary"}>
-                  {statusPage.published ? "Published" : "Draft"}
+                  {statusPage.published ? t("status_pages.published_status") : t("status_pages.draft_status")}
                 </Badge>
               </div>
 
@@ -100,7 +102,7 @@ const StatusPageCard = ({ statusPage, onClick }: StatusPageCardProps) => {
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={handleView}>
                     <ExternalLink className="mr-2 h-4 w-4" />
-                    View Page
+                    {t("status_pages.view_page")}
                   </DropdownMenuItem>
 
                   <DropdownMenuItem
@@ -110,7 +112,7 @@ const StatusPageCard = ({ statusPage, onClick }: StatusPageCardProps) => {
                     }}
                   >
                     <Trash className="mr-2 h-4 w-4" />
-                    Delete
+                    {t("common.delete")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -125,19 +127,20 @@ const StatusPageCard = ({ statusPage, onClick }: StatusPageCardProps) => {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Status Page</AlertDialogTitle>
+            <AlertDialogTitle>{t("status_pages.delete_dialog.title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{statusPage.title}"? This action
-              cannot be undone.
+              {t("status_pages.delete_dialog.description", {
+                title: statusPage.title,
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-red-600 hover:bg-red-700"
             >
-              Delete
+              {t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

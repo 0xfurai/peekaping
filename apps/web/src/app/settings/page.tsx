@@ -29,13 +29,15 @@ import {
 } from "@/api/@tanstack/react-query.gen";
 import React from "react";
 import { commonMutationErrorHandler } from "@/lib/utils";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const KeepDataPeriodSetting = () => {
+  const { t } = useLocalizedTranslation();
   const keepDataPeriodSchema = z.object({
     value: z.coerce
       .number()
       .int()
-      .min(1, { message: "Must be at least 1 day" }),
+      .min(1, { message: t("settings.validation.min_days") }),
   });
   const KEEP_DATA_KEY = "KEEP_DATA_PERIOD_DAYS";
   const queryClient = useQueryClient();
@@ -58,14 +60,14 @@ const KeepDataPeriodSetting = () => {
   const mutation = useMutation({
     ...putSettingsKeyByKeyMutation(),
     onSuccess: () => {
-      toast.success("Setting updated successfully");
+      toast.success(t("messages.setting_update_success"));
       queryClient.invalidateQueries({
         queryKey: getSettingsKeyByKeyQueryKey({
           path: { key: KEEP_DATA_KEY },
         }),
       });
     },
-    onError: commonMutationErrorHandler("Failed to update setting"),
+    onError: commonMutationErrorHandler(t("messages.setting_update_error")),
   });
   function onSubmit(values: { value: number }) {
     mutation.mutate({
@@ -76,14 +78,14 @@ const KeepDataPeriodSetting = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Data Retention Period</CardTitle>
+        <CardTitle>{t("settings.data_retention.title")}</CardTitle>
         <CardDescription>
-          Set how many days to keep data (KEEP_DATA_PERIOD_DAYS).
+          {t("settings.data_retention.description")}
         </CardDescription>
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="h-10 flex items-center">Loading...</div>
+          <div className="h-10 flex items-center">{t("common.loading")}</div>
         ) : (
           <Form {...form}>
             <form
@@ -95,7 +97,7 @@ const KeepDataPeriodSetting = () => {
                 name="value"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Days</FormLabel>
+                    <FormLabel>{t("settings.data_retention.days_label")}</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -109,7 +111,7 @@ const KeepDataPeriodSetting = () => {
                 )}
               />
               <Button type="submit" disabled={mutation.isPending || isLoading}>
-                {mutation.isPending ? "Saving..." : "Save"}
+                {mutation.isPending ? t("common.saving") : t("common.save")}
               </Button>
             </form>
           </Form>
@@ -120,15 +122,15 @@ const KeepDataPeriodSetting = () => {
 };
 
 const SettingsPage = () => {
+  const { t } = useLocalizedTranslation();
   return (
-    <Layout pageName="Settings">
+    <Layout pageName={t("navigation.settings")}>
       <div className="max-w-xl flex flex-col gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Timezone</CardTitle>
+            <CardTitle>{t("settings.timezone.title")}</CardTitle>
             <CardDescription>
-              Select your preferred timezone for displaying all times in the
-              app.
+              {t("settings.timezone.description")}
             </CardDescription>
           </CardHeader>
           <CardContent>

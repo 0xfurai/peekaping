@@ -14,18 +14,20 @@ import {
 } from "@/components/ui/select";
 import { getTimezoneOffsetLabel, sortedTimezones } from "@/lib/timezones";
 import { useFormContext } from "react-hook-form";
-
-const timezoneOptions = [
-  { value: "SAME_AS_SERVER", label: "Same as Server Timezone" },
-  { value: "UTC", label: "UTC" },
-  ...sortedTimezones.map((el) => ({
-    value: el,
-    label: `${el} (${getTimezoneOffsetLabel(el)})`,
-  })),
-];
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const Timezone = () => {
+  const { t } = useLocalizedTranslation();
   const form = useFormContext();
+  
+  const timezoneOptions = [
+    { value: "SAME_AS_SERVER", label: t("maintenance.form.same_as_server") },
+    { value: "UTC", label: "UTC" },
+    ...sortedTimezones.map((el) => ({
+      value: el,
+      label: `${el} (${getTimezoneOffsetLabel(el)})`,
+    })),
+  ];
 
   return (
     <FormField
@@ -33,11 +35,11 @@ const Timezone = () => {
       name="timezone"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Timezone</FormLabel>
+          <FormLabel>{t("maintenance.form.timezone_label")}</FormLabel>
           <Select onValueChange={field.onChange} value={field.value}>
             <FormControl>
               <SelectTrigger>
-                <SelectValue placeholder="Select timezone" />
+                <SelectValue placeholder={t("maintenance.form.timezone_placeholder")} />
               </SelectTrigger>
             </FormControl>
             <SelectContent>

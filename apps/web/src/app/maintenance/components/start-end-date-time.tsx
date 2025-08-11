@@ -7,8 +7,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useFormContext } from "react-hook-form";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const StartEndDateTime = () => {
+  const { t } = useLocalizedTranslation();
   const form = useFormContext();
 
   return (
@@ -18,7 +20,7 @@ const StartEndDateTime = () => {
         name="startDateTime"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Start Date & Time</FormLabel>
+            <FormLabel>{t("maintenance.form.start_date_time")}</FormLabel>
             <FormControl>
               <Input type="datetime-local" {...field} />
             </FormControl>
@@ -32,7 +34,7 @@ const StartEndDateTime = () => {
         name="endDateTime"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>End Date & Time</FormLabel>
+            <FormLabel>{t("maintenance.form.end_date_time")}</FormLabel>
             <FormControl>
               <Input type="datetime-local" {...field} />
             </FormControl>

@@ -63,8 +63,7 @@ const Intervals = () => {
             </FormControl>
 
             <FormDescription>
-              Maximum retries before the service is marked as down and a
-              notification is sent
+              {t("monitors.form.shared.intervals.max_retries_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -77,7 +76,7 @@ const Intervals = () => {
         render={({ field }) => (
           <FormItem>
             <FormLabel>
-              Heartbeat Retry Interval (Retry every 60 seconds)
+              {t("monitors.form.shared.intervals.heartbeat_retry", { seconds: 60 })}
             </FormLabel>
             <FormControl>
               <Input placeholder="60" {...field} type="number" />
@@ -92,7 +91,7 @@ const Intervals = () => {
         name="timeout"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Request Timeout (Timeout after 48 seconds)</FormLabel>
+            <FormLabel>{t("monitors.form.shared.intervals.request_timeout", { seconds: 48 })}</FormLabel>
             <FormControl>
               <Input placeholder="60" {...field} type="number" />
             </FormControl>
@@ -107,8 +106,7 @@ const Intervals = () => {
         render={({ field }) => (
           <FormItem>
             <FormLabel>
-              Resend Notification if Down X times consecutively (Resend
-              disabled)
+              {t("monitors.form.shared.intervals.resend_notification")}
             </FormLabel>
             <FormControl>
               <Input placeholder="60" {...field} type="number" />

@@ -38,6 +38,7 @@ import {
 import { Loader2 } from "lucide-react";
 import type { MonitorCreateUpdateDto, MonitorMonitorResponseDto } from "@/api";
 import { useEffect } from "react";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 interface DNSConfig {
   host: string;
@@ -146,6 +147,7 @@ export const serialize = (formData: DNSForm): MonitorCreateUpdateDto => {
 };
 
 const DNSForm = () => {
+  const { t } = useLocalizedTranslation();
   const {
     form,
     setNotifierSheetOpen,
@@ -198,14 +200,14 @@ const DNSForm = () => {
 
         <Card>
           <CardContent className="space-y-4">
-            <TypographyH4>DNS Settings</TypographyH4>
+            <TypographyH4>{t("monitors.form.dns.title")}</TypographyH4>
 
             <FormField
               control={form.control}
               name="host"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Hostname</FormLabel>
+                  <FormLabel>{t("monitors.form.dns.hostname")}</FormLabel>
                   <FormControl>
                     <Input placeholder="example.com" {...field} />
                   </FormControl>
@@ -219,7 +221,7 @@ const DNSForm = () => {
               name="resolver_server"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Resolver Server</FormLabel>
+                  <FormLabel>{t("monitors.form.dns.resolver_server")}</FormLabel>
                   <FormControl>
                     <Input placeholder="1.1.1.1" {...field} />
                   </FormControl>
@@ -233,7 +235,7 @@ const DNSForm = () => {
               name="port"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Port</FormLabel>
+                  <FormLabel>{t("monitors.form.dns.port")}</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -254,7 +256,7 @@ const DNSForm = () => {
               name="resolve_type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Resource Record Type</FormLabel>
+                  <FormLabel>{t("monitors.form.dns.record_type")}</FormLabel>
                   <Select
                     onValueChange={(val) => {
                       if (!val) {
@@ -266,7 +268,7 @@ const DNSForm = () => {
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a record type" />
+                        <SelectValue placeholder={t("monitors.form.dns.record_type_placeholder")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -309,7 +311,7 @@ const DNSForm = () => {
 
         <Button type="submit">
           {isPending && <Loader2 className="animate-spin" />}
-          {mode === "create" ? "Create" : "Update"}
+          {mode === "create" ? t("monitors.form.buttons.create") : t("monitors.form.buttons.update")}
         </Button>
       </form>
     </Form>

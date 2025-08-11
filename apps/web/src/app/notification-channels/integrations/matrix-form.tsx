@@ -10,6 +10,7 @@ import {
 import { z } from "zod";
 import { Textarea } from "@/components/ui/textarea";
 import { useFormContext } from "react-hook-form";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const schema = z.object({
   type: z.literal("matrix"),
@@ -31,6 +32,7 @@ export const displayName = "Matrix";
 
 export default function MatrixForm() {
   const form = useFormContext();
+  const { t } = useLocalizedTranslation();
 
   return (
     <>
@@ -40,7 +42,7 @@ export default function MatrixForm() {
         render={({ field }) => (
           <FormItem>
             <FormLabel>
-              Homeserver URL <span className="text-red-500">*</span>
+              {t("notifications.form.matrix.homeserver_url_label")} <span className="text-red-500">*</span>
             </FormLabel>
             <FormControl>
               <Input
@@ -51,9 +53,9 @@ export default function MatrixForm() {
               />
             </FormControl>
             <FormDescription>
-              <span className="text-red-500">*</span> Required
+              <span className="text-red-500">*</span> {t("common.required")}
               <br />
-              The URL of your Matrix homeserver (e.g., https://matrix.org)
+              {t("notifications.form.matrix.homeserver_url_description")} (e.g., https://matrix.org)
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -66,7 +68,7 @@ export default function MatrixForm() {
         render={({ field }) => (
           <FormItem>
             <FormLabel>
-              Internal Room ID <span className="text-red-500">*</span>
+              {t("notifications.form.matrix.internal_room_id_label")} <span className="text-red-500">*</span>
             </FormLabel>
             <FormControl>
               <Input
@@ -77,9 +79,9 @@ export default function MatrixForm() {
               />
             </FormControl>
             <FormDescription>
-              <span className="text-red-500">*</span> Required
+              <span className="text-red-500">*</span> {t("common.required")}
               <br />
-              The internal room ID where notifications will be sent. This should start with "!" and look like: !roomid:matrix.org
+              {t("notifications.form.matrix.internal_room_id_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -92,7 +94,7 @@ export default function MatrixForm() {
         render={({ field }) => (
           <FormItem>
             <FormLabel>
-              Access Token <span className="text-red-500">*</span>
+              {t("notifications.form.matrix.access_token_label")} <span className="text-red-500">*</span>
             </FormLabel>
             <FormControl>
               <Input
@@ -103,9 +105,9 @@ export default function MatrixForm() {
               />
             </FormControl>
             <FormDescription>
-              <span className="text-red-500">*</span> Required
+              <span className="text-red-500">*</span> {t("common.required")}
               <br />
-              Your Matrix access token for authentication
+              {t("notifications.form.matrix.access_token_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -117,7 +119,7 @@ export default function MatrixForm() {
         name="custom_message"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Custom Message</FormLabel>
+            <FormLabel>{t("notifications.form.matrix.custom_message_label")}</FormLabel>
             <FormControl>
               <Textarea
                 placeholder="Alert: {{ monitor.name }} is {{ status }}"
@@ -126,7 +128,7 @@ export default function MatrixForm() {
               />
             </FormControl>
             <FormDescription>
-              Custom message template. Available variables: {"{{ msg }}"}, {"{{ monitor.name }}"}, {"{{ status }}"}, {"{{ heartbeat.* }}"}
+              {t("notifications.form.matrix.custom_message_description")}: {"{{ msg }}"}, {"{{ monitor.name }}"}, {"{{ status }}"}, {"{{ heartbeat.* }}"}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -135,17 +137,17 @@ export default function MatrixForm() {
 
       <div className="space-y-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
         <p className="text-sm text-blue-800 dark:text-blue-200">
-          <strong>Setup Instructions:</strong>
+          <strong>{t("notifications.form.matrix.setup_instructions_label")}</strong>
         </p>
         <div className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
           <p>
-            1. Create a Matrix account for your bot (or use your existing account)
+            1. {t("notifications.form.matrix.setup_instructions_1")}
           </p>
           <p>
-            2. Create or join the room where you want to receive notifications
+            2. {t("notifications.form.matrix.setup_instructions_2")}
           </p>
           <p>
-            3. Get your access token by making a login request:
+            3. {t("notifications.form.matrix.setup_instructions_3")}:
           </p>
           <div className="bg-blue-100 dark:bg-blue-800 p-2 rounded font-mono text-xs overflow-x-auto">
             <code>
@@ -153,10 +155,10 @@ export default function MatrixForm() {
             </code>
           </div>
           <p>
-            4. The response will contain an access_token field - use this as your Access Token
+            4. {t("notifications.form.matrix.setup_instructions_4")}
           </p>
           <p>
-            5. Find your room's internal ID (starts with "!") in your Matrix client room settings
+            5. {t("notifications.form.matrix.setup_instructions_5")}
           </p>
         </div>
       </div>

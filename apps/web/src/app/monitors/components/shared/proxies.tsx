@@ -19,6 +19,7 @@ import { TypographyH4 } from "@/components/ui/typography";
 import { useQuery } from "@tanstack/react-query";
 import { useFormContext } from "react-hook-form";
 import { z } from "zod";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const proxiesSchema = z.object({
   proxy_id: z.string().optional(),
@@ -29,6 +30,7 @@ export const proxiesDefaultValues = {
 };
 
 const Proxies = ({ onNewProxy }: { onNewProxy: () => void }) => {
+  const { t } = useLocalizedTranslation();
   const form = useFormContext();
   const proxy_id = form.watch("proxies.proxy_id");
 
@@ -38,11 +40,11 @@ const Proxies = ({ onNewProxy }: { onNewProxy: () => void }) => {
 
   return (
     <div className="flex flex-col gap-2">
-      <TypographyH4 className="mb-2">Proxy</TypographyH4>
+      <TypographyH4 className="mb-2">{t("monitors.form.shared.proxy.title")}</TypographyH4>
 
       {proxy_id && (
         <>
-          <Label>Selected Proxy</Label>
+          <Label>{t("monitors.form.shared.proxy.selected_proxy")}</Label>
           <div className="flex flex-col gap-1 mb-2">
             {(() => {
               const proxy = proxies?.data?.find((p) => p.id === proxy_id);
@@ -81,7 +83,7 @@ const Proxies = ({ onNewProxy }: { onNewProxy: () => void }) => {
             const availableProxies = proxies?.data || [];
             return (
               <FormItem className="flex-1">
-                <FormLabel>Add Proxy</FormLabel>
+                <FormLabel>{t("monitors.form.shared.proxy.add_proxy")}</FormLabel>
                 <FormControl>
                   <Select
                     value={field.value || "none"}
@@ -94,12 +96,12 @@ const Proxies = ({ onNewProxy }: { onNewProxy: () => void }) => {
                     }}
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select Proxy" />
+                      <SelectValue placeholder={t("monitors.form.shared.proxy.select_proxy_placeholder")} />
                     </SelectTrigger>
 
                     <SelectContent>
                       <SelectItem value="none">
-                        {proxy_id ? "Remove Proxy" : "No Proxy"}
+                        {proxy_id ? t("monitors.form.shared.proxy.remove_proxy") : t("monitors.form.shared.proxy.no_proxy")}
                       </SelectItem>
                       {availableProxies.map((p) => (
                         <SelectItem key={p.id} value={p.id || "none"}>
@@ -120,7 +122,7 @@ const Proxies = ({ onNewProxy }: { onNewProxy: () => void }) => {
           variant="outline"
           className="self-end"
         >
-          + New Proxy
+          {t("monitors.form.shared.proxy.new_proxy")}
         </Button>
       </div>
     </div>

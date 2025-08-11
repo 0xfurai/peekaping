@@ -31,6 +31,7 @@ import { useMonitorFormContext } from "../../context/monitor-form-context";
 import { Form } from "@/components/ui/form";
 import { Loader2 } from "lucide-react";
 import type { MonitorCreateUpdateDto, MonitorMonitorResponseDto } from "@/api";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const pushSchema = z
   .object({
@@ -122,6 +123,7 @@ const PushForm = () => {
     monitor,
   } = useMonitorFormContext();
   const pushToken = form.watch("pushToken");
+  const { t } = useLocalizedTranslation();
 
   useEffect(() => {
     if (!pushToken) {
@@ -182,10 +184,9 @@ const PushForm = () => {
 
         <Card>
           <CardContent className="space-y-4">
-            <TypographyH4>Push Monitor URL</TypographyH4>
+            <TypographyH4>{t("monitors.form.push.url_title")}</TypographyH4>
             <div className="text-muted-foreground mb-2">
-              Use this URL in your service to report status. Make an HTTP
-              request (POST/GET) to this endpoint to send a heartbeat.
+              {t("monitors.form.push.url_description")}
             </div>
             <div className="flex items-center gap-2 bg-muted rounded px-3 py-2">
               <span className="break-all font-mono text-sm">{pushUrl}</span>
@@ -197,7 +198,7 @@ const PushForm = () => {
                 type="button"
                 onClick={handleCopy}
               >
-                {copied ? "Copied!" : "Copy"}
+                {copied ? t("monitors.form.buttons.copied") : t("monitors.form.buttons.copy")}
               </Button>
               <Button
                 size="sm"
@@ -205,7 +206,7 @@ const PushForm = () => {
                 type="button"
                 onClick={handleRegenerate}
               >
-                Regenerate
+                {t("monitors.form.buttons.regenerate")}
               </Button>
             </div>
           </CardContent>
@@ -247,7 +248,7 @@ const PushForm = () => {
 
         <Button type="submit">
           {isPending && <Loader2 className="animate-spin" />}
-          {mode === "create" ? "Create" : "Update"}
+          {mode === "create" ? t("monitors.form.buttons.create") : t("monitors.form.buttons.update")}
         </Button>
       </form>
     </Form>

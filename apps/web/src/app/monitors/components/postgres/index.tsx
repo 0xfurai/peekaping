@@ -1,5 +1,6 @@
 import { TypographyH4 } from "@/components/ui/typography";
 import { Card, CardContent } from "@/components/ui/card";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,6 +15,7 @@ import { postgresDefaultValues, serialize, type PostgresForm } from "./schema";
 import { Button } from "@/components/ui/button";
 
 const PostgresFormComponent = () => {
+  const { t } = useLocalizedTranslation();
   const {
     form,
     setNotifierSheetOpen,
@@ -65,13 +67,13 @@ const PostgresFormComponent = () => {
 
         <Card>
           <CardContent className="space-y-4">
-            <TypographyH4>PostgreSQL Connection</TypographyH4>
+            <TypographyH4>{t("monitors.form.postgres.connection_title")}</TypographyH4>
             <FormField
               control={form.control}
               name="database_connection_string"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Connection String</FormLabel>
+                  <FormLabel>{t("monitors.form.postgres.connection_string_label")}</FormLabel>
                   <FormControl>
                     <Input placeholder="postgres://user:password@host:5432/database" {...field} />
                   </FormControl>
@@ -84,7 +86,7 @@ const PostgresFormComponent = () => {
               name="database_query"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Query</FormLabel>
+                  <FormLabel>{t("monitors.form.postgres.query_label")}</FormLabel>
                   <FormControl>
                     <Textarea placeholder="SELECT 1" {...field} />
                   </FormControl>
@@ -115,7 +117,7 @@ const PostgresFormComponent = () => {
 
         <Button type="submit">
           {isPending && <Loader2 className="animate-spin" />}
-          {mode === "create" ? "Create" : "Update"}
+          {mode === "create" ? t("monitors.form.buttons.create") : t("monitors.form.buttons.update")}
         </Button>
       </form>
     </Form>
