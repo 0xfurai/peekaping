@@ -39,6 +39,8 @@ import { Loader2 } from "lucide-react";
 import type { MonitorCreateUpdateDto, MonitorMonitorResponseDto } from "@/api";
 import { useEffect } from "react";
 
+import { PasswordInput } from "@/components/ui/password-input";
+
 interface MQTTConfig {
   hostname: string;
   port: number;
@@ -291,8 +293,7 @@ const MQTTForm = () => {
                 <FormItem>
                   <FormLabel>MQTT Password</FormLabel>
                   <FormControl>
-                    <Input
-                      type="password"
+                    <PasswordInput
                       placeholder="Password (optional)"
                       {...field}
                     />

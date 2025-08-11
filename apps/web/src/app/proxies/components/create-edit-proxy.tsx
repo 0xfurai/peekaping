@@ -20,6 +20,7 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { PasswordInput } from "@/components/ui/password-input";
 
 const formSchema = z.object({
   protocol: z.enum(["http", "https", "socks", "socks5", "socks5h", "socks4"]),
@@ -187,8 +188,9 @@ export default function CreateEditProxy({
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input placeholder="Password" {...field} type="password" />
+                    <PasswordInput placeholder="Password" {...field} />
                   </FormControl>
+
                   <FormMessage />
                 </FormItem>
               )}

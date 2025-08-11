@@ -33,6 +33,8 @@ import {
   serialize,
 } from "./schema";
 
+import { PasswordInput } from "@/components/ui/password-input";
+
 const KafkaProducerForm = () => {
   const {
     form,
@@ -311,8 +313,7 @@ const KafkaProducerForm = () => {
                     <FormItem>
                       <FormLabel>SASL Password</FormLabel>
                       <FormControl>
-                        <Input
-                          type="password"
+                        <PasswordInput
                           placeholder="password"
                           {...field}
                         />

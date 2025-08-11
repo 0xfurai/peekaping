@@ -6,12 +6,12 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { postAuth2FaDisableMutation } from "@/api/@tanstack/react-query.gen";
 import { toast } from "sonner";
 import { commonMutationErrorHandler } from "@/lib/utils";
+import { PasswordInput } from "@/components/ui/password-input";
 
 const SecurityPage = () => {
   const user = useAuthStore((s) => s.user);
@@ -67,13 +67,14 @@ const SecurityPage = () => {
 
             {showDisable ? (
               <form onSubmit={handleDisable2FA} className="flex flex-col gap-2 max-w-xs">
-                <Input
-                  type="password"
+                <PasswordInput
                   placeholder="Enter your password to disable 2FA"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   required
                 />
+
+
                 <div className="flex gap-2">
                   <Button type="submit" disabled={loading} variant="destructive">
                     {loading ? "Disabling..." : "Disable 2FA"}
