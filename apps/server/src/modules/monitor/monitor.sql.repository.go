@@ -170,7 +170,7 @@ func (r *SQLRepositoryImpl) FindAll(
 		query = query.Where("status = ?", *status)
 	}
 
-	query = query.Order("created_at DESC").
+	query = query.Order("m.created_at DESC").
 		Limit(limit).
 		Offset(page * limit)
 
