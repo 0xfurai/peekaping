@@ -68,9 +68,14 @@ func (p *PushoverSender) Send(
 
 	p.logger.Infof("Sending Pushover notification to user: %s", cfg.UserKey)
 
+	finalMessage := message
+	if monitor != nil && monitor.Name != "" {
+		finalMessage = fmt.Sprintf("<b>%s</b>\n%s", monitor.Name, message)
+	}
+
 	// Prepare the request payload
 	payload := map[string]interface{}{
-		"message":  message,
+		"message":  finalMessage,
 		"user":     cfg.UserKey,
 		"token":    cfg.AppToken,
 		"html":     1,
@@ -108,7 +113,7 @@ func (p *PushoverSender) Send(
 
 	// Add timestamp if heartbeat is available
 	if heartbeat != nil {
-		payload["message"] = fmt.Sprintf("%s\n\n<b>Time:</b> %s", message, heartbeat.Time.Format("2006-01-02 15:04:05"))
+		payload["message"] = fmt.Sprintf("%s\n\n<b>Time:</b> %s", finalMessage, heartbeat.Time.Format("2006-01-02 15:04:05"))
 	}
 
 	// Convert payload to JSON
