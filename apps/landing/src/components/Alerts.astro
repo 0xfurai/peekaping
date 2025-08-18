@@ -1,0 +1,48 @@
+---
+import ListItem from "../components/ListItem.astro";
+---
+
+<section class="pb-12 px-4" id="alerts">
+  <div class="card max-w-screen-lg mx-auto py-10 sm:py-12 px-8">
+    <h2 class="font-bold text-[32px] leading-[125%] mb-6">Alert Channels</h2>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
+      <!-- Email & Webhooks -->
+      <div class="col-span-full mt-2 text-xs font-semibold uppercase tracking-wider opacity-70">
+        Email & Webhooks
+      </div>
+      <ListItem><strong>Email (SMTP)</strong> — Send alerts via your SMTP server</ListItem>
+      <ListItem><strong>Webhook</strong> — POST JSON payloads to any HTTP endpoint</ListItem>
+
+      <!-- Chat & Collaboration -->
+      <div class="col-span-full mt-6 text-xs font-semibold uppercase tracking-wider opacity-70">
+        Chat & Collaboration
+      </div>
+      <ListItem><strong>Telegram</strong> — Bot messages to users/channels</ListItem>
+      <ListItem><strong>Slack</strong> — Incoming webhook to channels</ListItem>
+      <ListItem><strong>Google Chat</strong> — Space webhooks</ListItem>
+      <ListItem><strong>Signal</strong> — Secure messages via bot/integration</ListItem>
+      <ListItem><strong>Mattermost</strong> — Incoming webhook to channels</ListItem>
+      <ListItem><strong>Matrix</strong> — Send to rooms via access token</ListItem>
+      <ListItem><strong>Discord</strong> — Channel webhooks</ListItem>
+      <ListItem><strong>WeCom</strong> — Enterprise messages to groups</ListItem>
+      <ListItem><strong>WhatsApp (WAHA)</strong> — Via WAHA gateway</ListItem>
+
+      <!-- On-Call & Incident -->
+      <div class="col-span-full mt-6 text-xs font-semibold uppercase tracking-wider opacity-70">
+        On-Call & Incident
+      </div>
+      <ListItem><strong>PagerDuty</strong> — Trigger incidents and escalations</ListItem>
+      <ListItem><strong>Opsgenie</strong> — Alerts, routing, and on-call</ListItem>
+      <ListItem><strong>Grafana OnCall</strong> — Integrate with on-call schedules</ListItem>
+
+      <!-- Mobile Push & Self-Hosted -->
+      <div class="col-span-full mt-6 text-xs font-semibold uppercase tracking-wider opacity-70">
+        Mobile Push & Self-Hosted
+      </div>
+      <ListItem><strong>NTFY</strong> — Simple pub/sub push notifications</ListItem>
+      <ListItem><strong>Gotify</strong> — Self-hosted push server</ListItem>
+      <ListItem><strong>Pushover</strong> — Reliable mobile/desktop push</ListItem>
+    </div>
+  </div>
+</section>

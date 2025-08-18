@@ -11,8 +11,10 @@ import { useFormContext } from "react-hook-form";
 import Timezone from "./timezone";
 import StartEndDateTime from "./start-end-date-time";
 import cronstrue from "cronstrue";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const CronExpressionForm = () => {
+  const { t } = useLocalizedTranslation();
   const form = useFormContext();
 
   return (
@@ -22,7 +24,7 @@ const CronExpressionForm = () => {
         name="cron"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Cron Expression</FormLabel>
+            <FormLabel>{t("maintenance.form.cron_expression")}</FormLabel>
             <FormDescription>
               {cronstrue.toString(field.value, {
                 throwExceptionOnParseError: false
@@ -31,7 +33,7 @@ const CronExpressionForm = () => {
             <FormControl>
               <Input placeholder="30 3 * * *" {...field} />
             </FormControl>
-            <FormDescription>Enter a valid cron expression</FormDescription>
+            <FormDescription>{t("maintenance.form.cron_description")}</FormDescription>
             <FormMessage />
           </FormItem>
         )}
@@ -42,7 +44,7 @@ const CronExpressionForm = () => {
         name="duration"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Duration (Minutes)</FormLabel>
+            <FormLabel>{t("maintenance.form.duration_minutes")}</FormLabel>
             <FormControl>
               <Input
                 type="number"
@@ -60,7 +62,7 @@ const CronExpressionForm = () => {
       <Timezone />
 
       <div className="space-y-4">
-        <FormLabel>Effective Date Range (Optional)</FormLabel>
+        <FormLabel>{t("maintenance.form.effective_date_range")}</FormLabel>
         <StartEndDateTime />
       </div>
     </>

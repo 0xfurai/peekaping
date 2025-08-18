@@ -34,6 +34,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import type { MonitorCreateUpdateDto, MonitorMonitorResponseDto } from "@/api";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 interface GRPCConfig {
   grpcUrl: string;
@@ -181,6 +182,7 @@ export const serialize = (
 };
 
 const GRPCKeywordForm = () => {
+  const { t } = useLocalizedTranslation();
   const {
     form,
     setNotifierSheetOpen,
@@ -248,16 +250,15 @@ const GRPCKeywordForm = () => {
               name="keyword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Keyword</FormLabel>
+                  <FormLabel>{t("monitors.form.grpc.keyword")}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter keyword to search for"
+                      placeholder={t("monitors.form.grpc.keyword_placeholder")}
                       {...field}
                     />
                   </FormControl>
                   <FormDescription>
-                    Search keyword in plain HTML or JSON response. The search is
-                    case-sensitive.
+                    {t("monitors.form.grpc.keyword_description")}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -276,9 +277,9 @@ const GRPCKeywordForm = () => {
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>Invert Keyword</FormLabel>
+                    <FormLabel>{t("monitors.form.grpc.invert_keyword")}</FormLabel>
                     <FormDescription>
-                      Look for the keyword to be absent rather than present.
+                      {t("monitors.form.grpc.invert_keyword_description")}
                     </FormDescription>
                   </div>
                 </FormItem>
@@ -289,7 +290,7 @@ const GRPCKeywordForm = () => {
 
         <Card>
           <CardContent className="space-y-4">
-            <TypographyH4>GRPC Options</TypographyH4>
+            <TypographyH4>{t("monitors.form.grpc.options_title")}</TypographyH4>
 
             <FormField
               control={form.control}
@@ -303,9 +304,9 @@ const GRPCKeywordForm = () => {
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>Enable TLS</FormLabel>
+                    <FormLabel>{t("monitors.form.grpc.enable_tls")}</FormLabel>
                     <FormDescription>
-                      Allow to send gRPC request with TLS connection
+                      {t("monitors.form.grpc.enable_tls_description")}
                     </FormDescription>
                   </div>
                 </FormItem>
@@ -317,9 +318,9 @@ const GRPCKeywordForm = () => {
               name="grpcServiceName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Proto Service Name</FormLabel>
+                  <FormLabel>{t("monitors.form.grpc.proto_service_name")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Example: Health" {...field} />
+                    <Input placeholder={t("monitors.form.grpc.service_name_placeholder")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -331,13 +332,12 @@ const GRPCKeywordForm = () => {
               name="grpcMethod"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Proto Method</FormLabel>
+                  <FormLabel>{t("monitors.form.grpc.proto_method")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Example: check" {...field} />
+                    <Input placeholder={t("monitors.form.grpc.method_placeholder")} {...field} />
                   </FormControl>
                   <FormDescription>
-                    Method name is convert to camelCase format such as sayHello,
-                    check, etc.
+                    {t("monitors.form.grpc.method_description")}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -349,7 +349,7 @@ const GRPCKeywordForm = () => {
               name="grpcProtobuf"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Proto Content</FormLabel>
+                  <FormLabel>{t("monitors.form.grpc.proto_content")}</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder={`Example:
@@ -375,7 +375,7 @@ service Health {
               name="grpcBody"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Body</FormLabel>
+                  <FormLabel>{t("monitors.form.grpc.body")}</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder={`Example:
@@ -413,7 +413,7 @@ service Health {
 
         <Button type="submit">
           {isPending && <Loader2 className="animate-spin" />}
-          {mode === "create" ? "Create" : "Update"}
+          {mode === "create" ? t("monitors.form.buttons.create") : t("monitors.form.buttons.update")}
         </Button>
       </form>
     </Form>

@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
@@ -28,20 +29,13 @@ import RecurringWeekdayForm from "./recurring-weekday-form";
 import RecurringDayOfMonthForm from "./recurring-day-of-month-form";
 import { convertToDateTimeLocal } from "@/lib/utils";
 import SearchableMonitorSelector from "@/components/searchable-monitor-selector";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
-// Strategy options
-const STRATEGY_OPTIONS = [
-  { value: "manual", label: "Active/Inactive manually" },
-  { value: "single", label: "Single Maintenance Window" },
-  { value: "cron", label: "Cron Expression" },
-  { value: "recurring-interval", label: "Recurring - Interval" },
-  { value: "recurring-weekday", label: "Recurring - Day of Week" },
-  { value: "recurring-day-of-month", label: "Recurring - Day of Month" },
-];
+// Strategy options - will be populated with translations in component
 
 // Base schema with shared fields
 const baseMaintenanceSchema = z.object({
-  title: z.string().min(1, "Title is required"),
+  title: z.string().min(1, "maintenance.validation.title_required"),
   description: z.string().optional(),
   active: z.boolean(),
   monitors: z.array(
@@ -71,8 +65,8 @@ const maintenanceSchema = z.discriminatedUnion("strategy", [
   baseMaintenanceSchema.extend({
     strategy: z.literal("single"),
     timezone: z.string().optional(),
-    startDateTime: z.string().min(1, "Start date is required"),
-    endDateTime: z.string().min(1, "End date is required"),
+    startDateTime: z.string().min(1, "maintenance.validation.start_date_required"),
+    endDateTime: z.string().min(1, "maintenance.validation.end_date_required"),
   }),
 
   // Cron expression
@@ -81,73 +75,73 @@ const maintenanceSchema = z.discriminatedUnion("strategy", [
     cron: z.string().optional(),
     duration: z.number().optional(),
     timezone: z.string().optional(),
-    startDateTime: z.string().min(1, "Start date is required"),
-    endDateTime: z.string().min(1, "End date is required"),
+    startDateTime: z.string().min(1, "maintenance.validation.start_date_required"),
+    endDateTime: z.string().min(1, "maintenance.validation.end_date_required"),
   }),
 
   // Recurring interval
   baseMaintenanceSchema.extend({
     strategy: z.literal("recurring-interval"),
-    intervalDay: z.number().min(1).max(3650, "Interval day must be between 1 and 3650"),
-    startTime: z.string().min(1, "Start time is required"),
-    endTime: z.string().min(1, "End time is required"),
+    intervalDay: z.number().min(1).max(3650, "maintenance.validation.interval_day_range"),
+    startTime: z.string().min(1, "maintenance.validation.start_time_required"),
+    endTime: z.string().min(1, "maintenance.validation.end_time_required"),
     timezone: z.string().optional(),
-    startDateTime: z.string().min(1, "Start date is required"),
-    endDateTime: z.string().min(1, "End date is required"),
+    startDateTime: z.string().min(1, "maintenance.validation.start_date_required"),
+    endDateTime: z.string().min(1, "maintenance.validation.end_date_required"),
   }),
 
   // Recurring weekday
   baseMaintenanceSchema.extend({
     strategy: z.literal("recurring-weekday"),
-    weekdays: z.array(z.number()).min(1, "At least one weekday must be selected"),
-    startTime: z.string().min(1, "Start time is required"),
-    endTime: z.string().min(1, "End time is required"),
+    weekdays: z.array(z.number()).min(1, "maintenance.validation.weekday_required"),
+    startTime: z.string().min(1, "maintenance.validation.start_time_required"),
+    endTime: z.string().min(1, "maintenance.validation.end_time_required"),
     timezone: z.string().optional(),
-    startDateTime: z.string().min(1, "Start date is required"),
-    endDateTime: z.string().min(1, "End date is required"),
+    startDateTime: z.string().min(1, "maintenance.validation.start_date_required"),
+    endDateTime: z.string().min(1, "maintenance.validation.end_date_required"),
   }),
 
   // Recurring day of month
   baseMaintenanceSchema.extend({
     strategy: z.literal("recurring-day-of-month"),
-    daysOfMonth: z.array(z.union([z.number(), z.string()])).min(1, "At least one day must be selected"),
-    startTime: z.string().min(1, "Start time is required"),
-    endTime: z.string().min(1, "End time is required"),
+    daysOfMonth: z.array(z.union([z.number(), z.string()])).min(1, "maintenance.validation.day_of_month_required"),
+    startTime: z.string().min(1, "maintenance.validation.start_time_required"),
+    endTime: z.string().min(1, "maintenance.validation.end_time_required"),
     timezone: z.string().optional(),
-    startDateTime: z.string().min(1, "Start date is required"),
-    endDateTime: z.string().min(1, "End date is required"),
+    startDateTime: z.string().min(1, "maintenance.validation.start_date_required"),
+    endDateTime: z.string().min(1, "maintenance.validation.end_date_required"),
   }),
 ]).superRefine((data, ctx) => {
-  if (data.strategy === "single" || data.strategy === "cron") {
+    if (data.strategy === "single" || data.strategy === "cron") {
     if (data.startDateTime && data.endDateTime) {
       const startDate = new Date(data.startDateTime);
       const endDate = new Date(data.endDateTime);
       if (startDate >= endDate) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "Start date must be before end date",
+          message: "maintenance.validation.start_before_end_date",
           path: ["startDateTime"],
         });
       }
     }
   }
 
-  if (data.strategy === "recurring-interval" || 
-      data.strategy === "recurring-weekday" || 
+  if (data.strategy === "recurring-interval" ||
+      data.strategy === "recurring-weekday" ||
       data.strategy === "recurring-day-of-month") {
-    
+
     if (data.startTime && data.endTime) {
       const [startHour, startMin] = data.startTime.split(':').map(Number);
       const [endHour, endMin] = data.endTime.split(':').map(Number);
-      
+
       if (!isNaN(startHour) && !isNaN(startMin) && !isNaN(endHour) && !isNaN(endMin)) {
         const startMinutes = startHour * 60 + startMin;
         const endMinutes = endHour * 60 + endMin;
-        
+
         if (startMinutes >= endMinutes) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "Start time must be before end time",
+            message: "maintenance.validation.start_before_end_time",
             path: ["startTime"],
           });
         }
@@ -160,7 +154,7 @@ const maintenanceSchema = z.discriminatedUnion("strategy", [
       if (startDate >= endDate) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "Start date must be before end date",
+          message: "maintenance.validation.start_before_end_date",
           path: ["startDateTime"],
         });
       }
@@ -196,6 +190,17 @@ export default function CreateEditMaintenance({
   mode?: "create" | "edit";
   onSubmit: (data: MaintenanceFormValues) => void;
 }) {
+  const { t } = useLocalizedTranslation();
+
+  const STRATEGY_OPTIONS = useMemo(() => [
+    { value: "manual", label: t("maintenance.strategy.manual") },
+    { value: "single", label: t("maintenance.strategy.single") },
+    { value: "cron", label: t("maintenance.strategy.cron") },
+    { value: "recurring-interval", label: t("maintenance.strategy.recurring_interval") },
+    { value: "recurring-weekday", label: t("maintenance.strategy.recurring_weekday") },
+    { value: "recurring-day-of-month", label: t("maintenance.strategy.recurring_day_of_month") },
+  ], [t]);
+
   const form = useForm<MaintenanceFormValues>({
     resolver: zodResolver(maintenanceSchema),
     defaultValues: initialValues,
@@ -210,7 +215,7 @@ export default function CreateEditMaintenance({
   return (
     <div className="flex flex-col gap-6 max-w-[800px]">
       <CardTitle className="text-xl">
-        {mode === "edit" ? "Edit" : "Schedule"} Maintenance
+        {mode === "edit" ? t("maintenance.edit_title") : t("maintenance.schedule_title")}
       </CardTitle>
 
       <Form {...form}>
@@ -220,9 +225,9 @@ export default function CreateEditMaintenance({
             name="title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Title</FormLabel>
+                <FormLabel>{t("maintenance.form.title_label")}</FormLabel>
                 <FormControl>
-                  <Input placeholder="Maintenance title" {...field} />
+                  <Input placeholder={t("maintenance.form.title_placeholder")} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -235,25 +240,25 @@ export default function CreateEditMaintenance({
             name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Description</FormLabel>
+                <FormLabel>{t("maintenance.form.description_label")}</FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder="Maintenance description..."
+                    placeholder={t("maintenance.form.description_placeholder")}
                     className="min-h-[100px]"
                     {...field}
                   />
                 </FormControl>
-                <FormDescription>Markdown is supported</FormDescription>
+                <FormDescription>{t("maintenance.form.markdown_supported")}</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
 
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold">Affected Monitors</h2>
+            <h2 className="text-lg font-semibold">{t("maintenance.form.affected_monitors_title")}</h2>
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">
-                Select the monitors that will be affected by this maintenance
+                {t("maintenance.form.affected_monitors_description")}
               </p>
 
               <SearchableMonitorSelector
@@ -267,7 +272,7 @@ export default function CreateEditMaintenance({
 
           {/* Date and Time */}
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold">Date and Time</h2>
+            <h2 className="text-lg font-semibold">{t("maintenance.form.date_time_title")}</h2>
 
             {/* Strategy */}
             <FormField
@@ -275,11 +280,11 @@ export default function CreateEditMaintenance({
               name="strategy"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Strategy</FormLabel>
+                  <FormLabel>{t("maintenance.form.strategy_label")}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select strategy" />
+                        <SelectValue placeholder={t("maintenance.form.strategy_placeholder")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -306,7 +311,7 @@ export default function CreateEditMaintenance({
 
           <div className="flex gap-2 pt-4">
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Saving..." : "Save"}
+              {isLoading ? t("common.saving") : t("common.save")}
             </Button>
           </div>
         </form>

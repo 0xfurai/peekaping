@@ -35,8 +35,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import EmptyList from "@/components/empty-list";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export default function MaintenancePage() {
+  const { t } = useLocalizedTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { getParam, updateSearchParams, clearAllParams, hasParams } =
@@ -85,14 +87,14 @@ export default function MaintenancePage() {
   const deleteMutation = useMutation({
     ...deleteMaintenancesByIdMutation(),
     onSuccess: () => {
-      toast.success("Maintenance deleted successfully");
+      toast.success(t("maintenance.toasts.deleted_success"));
       setDeleteId(null);
       // Invalidate and refetch maintenances
       queryClient.invalidateQueries({
         queryKey: getMaintenancesQueryKey(),
       });
     },
-    onError: commonMutationErrorHandler("Failed to delete maintenance"),
+    onError: commonMutationErrorHandler(t("maintenance.toasts.delete_error")),
   });
 
   const updateMaintenanceState = (id: string, active: boolean) => {
@@ -124,7 +126,7 @@ export default function MaintenancePage() {
   const pauseMutation = useMutation({
     ...patchMaintenancesByIdPauseMutation(),
     onSuccess: () => {
-      toast.success("Maintenance paused successfully");
+      toast.success(t("maintenance.toasts.paused_success"));
       setShowConfirmDialog(false);
       setPendingAction(null);
       setPendingMaintenanceId(null);
@@ -134,7 +136,7 @@ export default function MaintenancePage() {
       if (pendingMaintenanceId) {
         updateMaintenanceState(pendingMaintenanceId, true);
       }
-      commonMutationErrorHandler("Failed to pause maintenance")(err);
+      commonMutationErrorHandler(t("maintenance.toasts.pause_error"))(err);
       setShowConfirmDialog(false);
       setPendingAction(null);
       setPendingMaintenanceId(null);
@@ -144,7 +146,7 @@ export default function MaintenancePage() {
   const resumeMutation = useMutation({
     ...patchMaintenancesByIdResumeMutation(),
     onSuccess: () => {
-      toast.success("Maintenance resumed successfully");
+      toast.success(t("maintenance.toasts.resumed_success"));
       setShowConfirmDialog(false);
       setPendingAction(null);
       setPendingMaintenanceId(null);
@@ -154,7 +156,7 @@ export default function MaintenancePage() {
       if (pendingMaintenanceId) {
         updateMaintenanceState(pendingMaintenanceId, false);
       }
-      commonMutationErrorHandler("Failed to resume maintenance")(err);
+      commonMutationErrorHandler(t("maintenance.toasts.resume_error"))(err);
       setShowConfirmDialog(false);
       setPendingAction(null);
       setPendingMaintenanceId(null);
@@ -179,7 +181,7 @@ export default function MaintenancePage() {
 
   const handleToggleActive = (maintenance: MaintenanceModel) => {
     if (!maintenance.id) {
-      toast.error("Cannot toggle maintenance status: ID is missing");
+      toast.error(t("maintenance.toasts.toggle_error"));
       return;
     }
 
@@ -241,7 +243,7 @@ export default function MaintenancePage() {
     useIntersectionObserver<HTMLDivElement>(handleObserver);
 
   return (
-    <Layout pageName="Maintenance Windows" onCreate={handleCreateClick}>
+    <Layout pageName={t("maintenance.page_title")} onCreate={handleCreateClick}>
       <div>
         <div className="mb-4 space-y-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:justify-end sm:gap-4 items-end">
@@ -253,15 +255,15 @@ export default function MaintenancePage() {
                   onClick={clearAllFilters}
                   className="w-fit h-[36px]"
                 >
-                  Clear all filters
+                  {t("maintenance.page.clear_filters")}
                 </Button>
               </div>
             )}
             <div className="flex flex-col gap-1 w-full sm:w-auto">
-              <Label htmlFor="search-maintenances">Search</Label>
+              <Label htmlFor="search-maintenances">{t("common.search")}</Label>
               <Input
                 id="search-maintenances"
-                placeholder="Search maintenances..."
+                placeholder={t("maintenance.page.search_placeholder")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full sm:w-[400px]"
@@ -304,9 +306,9 @@ export default function MaintenancePage() {
           </div>
         ) : (
           <EmptyList
-            title="No maintenance windows found"
-            text="Get started by creating your first maintenance window to prevent scheduled downtimes."
-            actionText="Create your first maintenance window"
+            title={t("maintenance.page.empty_state.title")}
+            text={t("maintenance.page.empty_state.description")}
+            actionText={t("maintenance.page.empty_state.action")}
             onClick={() => navigate("/maintenances/new")}
           />
         )}
@@ -314,17 +316,16 @@ export default function MaintenancePage() {
         {deleteId && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-background p-6 rounded-lg shadow-lg max-w-md w-full border">
-              <h2 className="text-xl font-bold mb-4">Confirm Delete</h2>
+              <h2 className="text-xl font-bold mb-4">{t("maintenance.page.dialogs.confirm_delete.title")}</h2>
               <p className="mb-6">
-                Are you sure you want to delete this maintenance window? This
-                action cannot be undone.
+                {t("maintenance.page.dialogs.confirm_delete.description")}
               </p>
               <div className="flex justify-end gap-4">
                 <Button variant="outline" onClick={handleCancelDelete}>
-                  Cancel
+                  {t("common.cancel")}
                 </Button>
                 <Button variant="destructive" onClick={handleConfirmDelete}>
-                  Delete
+                  {t("common.delete")}
                 </Button>
               </div>
             </div>
@@ -335,19 +336,19 @@ export default function MaintenancePage() {
           <AlertDialog open={showConfirmDialog} onOpenChange={handleOpenChange}>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Confirm Action</AlertDialogTitle>
+                <AlertDialogTitle>{t("maintenance.page.dialogs.confirm_action.title")}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Are you sure you want to{" "}
-                  {pendingAction === "pause" ? "pause" : "resume"} this
-                  maintenance?
+                  {pendingAction === "pause" 
+                    ? t("maintenance.page.dialogs.confirm_action.pause_description")
+                    : t("maintenance.page.dialogs.confirm_action.resume_description")}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel onClick={(e) => e.stopPropagation()}>
-                  Cancel
+                  {t("common.cancel")}
                 </AlertDialogCancel>
                 <AlertDialogAction onClick={handleConfirmAction}>
-                  Confirm
+                  {t("common.confirm")}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

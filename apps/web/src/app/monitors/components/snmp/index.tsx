@@ -39,6 +39,7 @@ import {
 import { Loader2 } from "lucide-react";
 import type { MonitorCreateUpdateDto, MonitorMonitorResponseDto } from "@/api";
 import { useEffect } from "react";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 interface SnmpConfig {
   host: string;
@@ -187,6 +188,7 @@ const SnmpForm = () => {
     monitorId,
     monitor,
   } = useMonitorFormContext();
+  const { t } = useLocalizedTranslation();
 
   const onSubmit = (data: SnmpForm) => {
     const payload = serialize(data);
@@ -229,19 +231,19 @@ const SnmpForm = () => {
 
         <Card>
           <CardContent className="space-y-4">
-            <TypographyH4>SNMP Settings</TypographyH4>
+            <TypographyH4>{t("monitors.form.snmp.title")}</TypographyH4>
 
             <FormField
               control={form.control}
               name="host"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Host</FormLabel>
+                  <FormLabel>{t("monitors.form.snmp.host_label")}</FormLabel>
                   <FormControl>
                     <Input placeholder="127.0.0.1" {...field} />
                   </FormControl>
                   <FormDescription>
-                    The hostname or IP address of the SNMP-enabled device
+                    {t("monitors.form.snmp.host_description")}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -253,7 +255,7 @@ const SnmpForm = () => {
               name="port"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Port</FormLabel>
+                  <FormLabel>{t("monitors.form.snmp.port_label")}</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -267,7 +269,7 @@ const SnmpForm = () => {
                     />
                   </FormControl>
                   <FormDescription>
-                    The SNMP port (default: 161)
+                    {t("monitors.form.snmp.port_description")}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -279,13 +281,12 @@ const SnmpForm = () => {
               name="community"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Community String</FormLabel>
+                  <FormLabel>{t("monitors.form.snmp.community_label")}</FormLabel>
                   <FormControl>
                     <Input placeholder="public" {...field} />
                   </FormControl>
                   <FormDescription>
-                    The SNMP community string for authentication (like a
-                    password)
+                    {t("monitors.form.snmp.community_description")}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -297,7 +298,7 @@ const SnmpForm = () => {
               name="snmp_version"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>SNMP Version</FormLabel>
+                  <FormLabel>{t("monitors.form.snmp.snmp_version_label")}</FormLabel>
                   <Select
                     onValueChange={val => {
                       if (!val) {
@@ -319,7 +320,7 @@ const SnmpForm = () => {
                     </SelectContent>
                   </Select>
                   <FormDescription>
-                    The SNMP protocol version to use
+                    {t("monitors.form.snmp.snmp_version_description")}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -331,13 +332,12 @@ const SnmpForm = () => {
               name="oid"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>OID (Object Identifier)</FormLabel>
+                  <FormLabel>{t("monitors.form.snmp.oid_label")}</FormLabel>
                   <FormControl>
                     <Input placeholder="1.3.6.1.2.1.1.1.0" {...field} />
                   </FormControl>
                   <FormDescription>
-                    The SNMP Object Identifier to query (e.g., 1.3.6.1.2.1.1.1.0
-                    for system description)
+                    {t("monitors.form.snmp.oid_description")}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -348,20 +348,19 @@ const SnmpForm = () => {
 
         <Card>
           <CardContent className="space-y-4">
-            <TypographyH4>Value Validation (Optional)</TypographyH4>
+            <TypographyH4>{t("monitors.form.snmp.value_validation_label")}</TypographyH4>
 
             <FormField
               control={form.control}
               name="json_path"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>JSON Path</FormLabel>
+                  <FormLabel>{t("monitors.form.snmp.json_path_label")}</FormLabel>
                   <FormControl>
                     <Input placeholder="$" {...field} />
                   </FormControl>
                   <FormDescription>
-                    JSONPath expression to extract value from response (use "$"
-                    for raw value)
+                    {t("monitors.form.snmp.json_path_description")}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -373,7 +372,7 @@ const SnmpForm = () => {
               name="json_path_operator"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Condition</FormLabel>
+                  <FormLabel>{t("monitors.form.snmp.json_path_operator_label")}</FormLabel>
                   <Select
                     onValueChange={(val) => {
                       if (!val) {
@@ -389,20 +388,20 @@ const SnmpForm = () => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="eq">== (equals)</SelectItem>
-                      <SelectItem value="ne">!= (not equals)</SelectItem>
-                      <SelectItem value="lt">&lt; (less than)</SelectItem>
-                      <SelectItem value="gt">&gt; (greater than)</SelectItem>
+                      <SelectItem value="eq">== ({t("monitors.form.snmp.json_path_operator_eq")})</SelectItem>
+                      <SelectItem value="ne">!= ({t("monitors.form.snmp.json_path_operator_ne")})</SelectItem>
+                      <SelectItem value="lt">&lt; ({t("monitors.form.snmp.json_path_operator_lt")})</SelectItem>
+                      <SelectItem value="gt">&gt; ({t("monitors.form.snmp.json_path_operator_gt")})</SelectItem>
                       <SelectItem value="le">
-                        &le; (less than or equal)
+                        &le; ({t("monitors.form.snmp.json_path_operator_le")})
                       </SelectItem>
                       <SelectItem value="ge">
-                        &ge; (greater than or equal)
+                        &ge; ({t("monitors.form.snmp.json_path_operator_ge")})
                       </SelectItem>
                     </SelectContent>
                   </Select>
                   <FormDescription>
-                    How to compare the extracted value with the expected value
+                    {t("monitors.form.snmp.json_path_operator_description")}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -414,13 +413,12 @@ const SnmpForm = () => {
               name="expected_value"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Expected Value</FormLabel>
+                  <FormLabel>{t("monitors.form.snmp.expected_value_label")}</FormLabel>
                   <FormControl>
                     <Input placeholder="Expected value" {...field} />
                   </FormControl>
                   <FormDescription>
-                    The value to compare against. Leave empty to skip
-                    validation.
+                    {t("monitors.form.snmp.expected_value_description")}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -449,7 +447,7 @@ const SnmpForm = () => {
 
         <Button type="submit">
           {isPending && <Loader2 className="animate-spin" />}
-          {mode === "create" ? "Create" : "Update"}
+          {mode === "create" ? t("common.create") : t("common.update")}
         </Button>
       </form>
     </Form>

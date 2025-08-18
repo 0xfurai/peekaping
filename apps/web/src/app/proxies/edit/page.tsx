@@ -13,11 +13,13 @@ import CreateEditProxy from "../components/create-edit-proxy";
 import type { ProxyCreateUpdateDto } from "@/api/types.gen";
 import { type ProxyForm } from "../components/create-edit-proxy";
 import { commonMutationErrorHandler } from "@/lib/utils";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const EditProxy = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { t } = useLocalizedTranslation();
 
   const { data, isLoading, error } = useQuery({
     ...getProxiesByIdOptions({ path: { id: id! } }),
@@ -27,7 +29,7 @@ const EditProxy = () => {
   const mutation = useMutation({
     ...putProxiesByIdMutation(),
     onSuccess: () => {
-      toast.success("Proxy updated successfully");
+      toast.success(t("proxies.messages.updated_success"));
 
       queryClient.invalidateQueries({
         queryKey: getProxiesInfiniteQueryKey()
@@ -43,12 +45,12 @@ const EditProxy = () => {
 
       navigate("/proxies");
     },
-    onError: commonMutationErrorHandler("Failed to update proxy"),
+    onError: commonMutationErrorHandler(t("proxies.messages.update_failed")),
   });
 
-  if (isLoading) return <Layout pageName="Edit Proxy">Loading...</Layout>;
+  if (isLoading) return <Layout pageName={t("proxies.edit.page_name")}>{t('common.loading')}</Layout>;
   if (error || !data?.data)
-    return <Layout pageName="Edit Proxy">Error loading proxy</Layout>;
+    return <Layout pageName={t("proxies.edit.page_name")}>{t('proxies.messages.error_loading_proxy')}</Layout>;
 
   // Prepare initial values for the form
   const proxy = data.data;
@@ -79,7 +81,7 @@ const EditProxy = () => {
   };
 
   return (
-    <Layout pageName={`Edit Proxy: ${proxy.host}:${proxy.port}`}>
+    <Layout pageName={`${t("proxies.edit.page_name")}: ${proxy.host}:${proxy.port}`}>
       <BackButton to="/proxies" />
       <CreateEditProxy
         initialValues={initialValues}

@@ -1,0 +1,27 @@
+---
+import ListItem from "../components/ListItem.astro";
+---
+
+<section class="mb-12 px-4">
+  <div class="card max-w-screen-lg mx-auto py-10 sm:py-12 px-8">
+    <h2 class="font-bold text-[32px] leading-[125%] mb-6">Tech Stack</h2>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
+      <!-- Runtime & Services -->
+      <div class="col-span-1 sm:col-span-2 lg:col-span-3 mt-2 text-xs font-semibold uppercase tracking-wider opacity-70">
+
+      </div>
+      <ListItem><strong>Go (Golang)</strong> — High-performance, lightweight concurrency</ListItem>
+      <ListItem><strong>React + TypeScript</strong> — Type-safe admin dashboard and status pages</ListItem>
+      <ListItem><strong>Docker</strong> — Easy to deploy and run</ListItem>
+
+      <!-- Data Storage (Selectable) -->
+      <div class="col-span-1 sm:col-span-2 lg:col-span-3 mt-6 text-xs font-semibold uppercase tracking-wider opacity-70">
+        Data Storage (Selectable)
+      </div>
+      <ListItem><strong>PostgreSQL</strong> — Relational database for structured data</ListItem>
+      <ListItem><strong>MongoDB</strong> — Flexible document store</ListItem>
+      <ListItem><strong>SQLite</strong> — Single-file DB for lightweight/self-hosted setups</ListItem>
+    </div>
+  </div>
+</section>

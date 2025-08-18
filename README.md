@@ -14,7 +14,13 @@
 
 Peekaping is a powerful, feature-rich uptime monitoring system similar to Uptime Kuma, built with Go and React. Monitor your websites, APIs, and services with real-time notifications, beautiful status pages, and comprehensive analytics.
 
-##  Live Demo
+## Website
+
+Visit the official website:
+
+🔗 **[peekaping.com](https://peekaping.com)**
+
+## Live Demo
 
 Want to see Peekaping in action? Try our live demo:
 
@@ -39,7 +45,7 @@ We encourage you to try Peekaping and provide feedback, but please use it at you
 
 ## Quick start (docker + SQLite)
 ```bash
-docker run -d --rm --restart=always \
+docker run -d --restart=always \
   -p 8383:8383 \
   -e DB_NAME=/app/data/peekaping.db \
   -v $(pwd)/.data/sqlite:/app/data \

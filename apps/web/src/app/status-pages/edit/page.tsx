@@ -12,11 +12,13 @@ import {
 } from "@/api/@tanstack/react-query.gen";
 import { toast } from "sonner";
 import { commonMutationErrorHandler } from "@/lib/utils";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const EditStatusPageContent = () => {
   const { id: statusPageId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { t } = useLocalizedTranslation();
 
   const { data: statusPage, isLoading: statusPageIsLoading } = useQuery({
     ...getStatusPagesByIdOptions({ path: { id: statusPageId! } }),
@@ -30,7 +32,7 @@ const EditStatusPageContent = () => {
       },
     }),
     onSuccess: () => {
-      toast.success("Status page updated successfully");
+      toast.success(t("status_pages.messages.updated_successfully"));
       queryClient.invalidateQueries({
         queryKey: getStatusPagesInfiniteQueryKey(),
       });
@@ -39,7 +41,7 @@ const EditStatusPageContent = () => {
       });
       navigate("/status-pages");
     },
-    onError: commonMutationErrorHandler("Failed to update status page"),
+    onError: commonMutationErrorHandler(t("status_pages.messages.update_failed")),
   });
 
   const handleSubmit = (data: StatusPageForm) => {
@@ -64,16 +66,16 @@ const EditStatusPageContent = () => {
 
   if (statusPageIsLoading || monitorsDataIsLoading) {
     return (
-      <Layout pageName="Edit Status Page">
-        <div>Loading...</div>
+      <Layout pageName={t("status_pages.edit_page_name")}>
+        <div>{t("common.loading")}</div>
       </Layout>
     );
   }
 
   if (!statusPage?.data) {
     return (
-      <Layout pageName="Edit Status Page">
-        <div>Status page not found</div>
+      <Layout pageName={t("status_pages.edit_page_name")}>
+        <div>{t("status_pages.messages.not_found")}</div>
       </Layout>
     );
   }
@@ -81,11 +83,11 @@ const EditStatusPageContent = () => {
   const statusPageData = statusPage?.data;
 
   return (
-    <Layout pageName={`Edit Status Page: ${statusPageData.title}`}>
+    <Layout pageName={`${t("status_pages.edit_page_name")}: ${statusPageData.title}`}>
       <BackButton to="/status-pages" />
       <div className="flex flex-col gap-4">
         <p className="text-gray-500">
-          Update your status page settings and configuration.
+          {t("status_pages.messages.update_description")}
         </p>
 
         <CreateEditForm

@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import type { ProxyForm } from "./create-edit-proxy";
 import type { ProxyCreateUpdateDto, ProxyModel } from "@/api";
 import CreateEditProxy from "./create-edit-proxy";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const CreateProxy = ({
   onSuccess,
@@ -15,15 +16,16 @@ const CreateProxy = ({
   onSuccess: (proxy: ProxyModel) => void;
 }) => {
   const queryClient = useQueryClient();
+  const { t } = useLocalizedTranslation();
 
   const createProxyMutation = useMutation({
     ...postProxiesMutation(),
     onSuccess: (response) => {
-      toast.success("Proxy created successfully");
+      toast.success(t("proxies.messages.created_success"));
       queryClient.invalidateQueries({ queryKey: getProxiesInfiniteQueryKey() });
       onSuccess(response.data);
     },
-    onError: commonMutationErrorHandler("Failed to create proxy"),
+    onError: commonMutationErrorHandler(t("proxies.messages.create_failed")),
   });
 
   const handleSubmit = (data: ProxyForm) => {

@@ -15,6 +15,11 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       proxy: {
+        "/socket.io": {
+          target: env.API_URL ?? "http://localhost:8034",
+          ws: true,
+          changeOrigin: true,
+        },
         "/api": {
           target: env.API_URL ?? "http://localhost:8034",
           changeOrigin: true,

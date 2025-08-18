@@ -21,6 +21,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { X } from "lucide-react";
 import { getContrastingTextColor } from "@/lib/utils";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const tagsDefaultValues = {
   tag_ids: [] as string[],
@@ -31,6 +32,7 @@ export const tagsSchema = z.object({
 });
 
 const Tags = () => {
+  const { t } = useLocalizedTranslation();
   const form = useFormContext();
   const [tagPopoverOpen, setTagPopoverOpen] = useState(false);
 
@@ -70,7 +72,7 @@ const Tags = () => {
       name="tag_ids"
       render={() => (
         <FormItem>
-          <FormLabel>Tags</FormLabel>
+          <FormLabel>{t("monitors.form.shared.tags.label")}</FormLabel>
           <FormControl>
             <div className="space-y-3">
               {/* Selected Tags Display */}
@@ -102,7 +104,7 @@ const Tags = () => {
               <Popover open={tagPopoverOpen} onOpenChange={setTagPopoverOpen}>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="px-3 font-normal w-full">
-                    <span className="text-muted-foreground">Select tags</span>
+                    <span className="text-muted-foreground">{t("monitors.form.shared.tags.placeholder")}</span>
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -131,7 +133,7 @@ const Tags = () => {
                       ))}
                       {availableTags.length === 0 && (
                         <div className="text-center text-muted-foreground text-sm p-4">
-                          No tags available
+                          {t("monitors.form.shared.tags.no_tags")}
                         </div>
                       )}
                     </div>

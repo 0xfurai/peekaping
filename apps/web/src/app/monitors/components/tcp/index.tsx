@@ -31,6 +31,7 @@ import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import type { MonitorCreateUpdateDto, MonitorMonitorResponseDto } from "@/api";
 import { useEffect } from "react";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 interface TCPConfig {
   host: string;
@@ -114,6 +115,7 @@ export const serialize = (formData: TCPForm): MonitorCreateUpdateDto => {
 };
 
 const TCPForm = () => {
+  const { t } = useLocalizedTranslation();
   const {
     form,
     setNotifierSheetOpen,
@@ -166,13 +168,13 @@ const TCPForm = () => {
 
         <Card>
           <CardContent className="space-y-4">
-            <TypographyH4>TCP Connection</TypographyH4>
+            <TypographyH4>{t("monitors.form.tcp.title")}</TypographyH4>
             <FormField
               control={form.control}
               name="host"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Host</FormLabel>
+                  <FormLabel>{t("monitors.form.tcp.host")}</FormLabel>
                   <FormControl>
                     <Input placeholder="example.com" {...field} />
                   </FormControl>
@@ -186,7 +188,7 @@ const TCPForm = () => {
               name="port"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Port</FormLabel>
+                  <FormLabel>{t("monitors.form.tcp.port")}</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -222,7 +224,7 @@ const TCPForm = () => {
 
         <Button type="submit">
           {isPending && <Loader2 className="animate-spin" />}
-          {mode === "create" ? "Create" : "Update"}
+          {mode === "create" ? t("monitors.form.buttons.create") : t("monitors.form.buttons.update")}
         </Button>
       </form>
     </Form>

@@ -17,6 +17,7 @@ import { isJson, isValidForm, isValidXml } from "@/lib/utils";
 import { Select } from "@radix-ui/react-select";
 import { useFormContext } from "react-hook-form";
 import { z } from "zod";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 // http methods
 const httpMethods = [
@@ -88,6 +89,7 @@ export const httpOptionsDefaultValues: HttpOptionsForm = {
 };
 
 const HttpOptions = () => {
+  const { t } = useLocalizedTranslation();
   const form = useFormContext();
   const watchedEncoding = form.watch("httpOptions.encoding");
 
@@ -95,20 +97,20 @@ const HttpOptions = () => {
   const getBodyPlaceholder = (encoding: string) => {
     switch (encoding) {
       case "json":
-        return `Example JSON:
+        return `${t("monitors.form.http.options.json_example")}:
 {
   "key": "value",
   "number": 123
 }`;
       case "xml":
-        return `Example XML:
+        return `${t("monitors.form.http.options.xml_example")}:
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
   <key>value</key>
   <number>123</number>
 </root>`;
       case "form":
-        return `Example Form Data:
+        return `${t("monitors.form.http.options.form_example")}:
 key1=value1&key2=value2
   `;
       //   Or JSON format:
@@ -117,8 +119,7 @@ key1=value1&key2=value2
       //   "key2": "value2"
       // }
       case "text":
-        return `Example Text:
-Any plain text content here...`;
+        return t("monitors.form.http.options.text_example");
       default:
         return bodyPlaceholder;
     }
@@ -126,14 +127,14 @@ Any plain text content here...`;
 
   return (
     <>
-      <TypographyH4>HTTP Options</TypographyH4>
+      <TypographyH4>{t("monitors.form.http.options.title")}</TypographyH4>
       <FormField
         control={form.control}
         name="httpOptions.method"
         render={({ field }) => {
           return (
             <FormItem>
-              <FormLabel>Method</FormLabel>
+              <FormLabel>{t("monitors.form.http.options.method")}</FormLabel>
               <Select
                 onValueChange={(e) => {
                   if (!e) {
@@ -145,7 +146,7 @@ Any plain text content here...`;
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select monitor type" />
+                    <SelectValue placeholder={t("monitors.form.http.options.select_method")} />
                   </SelectTrigger>
                 </FormControl>
 
@@ -168,7 +169,7 @@ Any plain text content here...`;
         name="httpOptions.encoding"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Body encoding</FormLabel>
+            <FormLabel>{t("monitors.form.http.options.body_encoding")}</FormLabel>
             <Select
               onValueChange={(val) => {
                 if (!val) {
@@ -180,7 +181,7 @@ Any plain text content here...`;
             >
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select body encoding" />
+                  <SelectValue placeholder={t("monitors.form.http.options.select_encoding")} />
                 </SelectTrigger>
               </FormControl>
 
@@ -202,7 +203,7 @@ Any plain text content here...`;
         name="httpOptions.body"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Body</FormLabel>
+            <FormLabel>{t("monitors.form.http.options.body")}</FormLabel>
             <Textarea
               {...field}
               placeholder={getBodyPlaceholder(watchedEncoding || "json")}
@@ -217,7 +218,7 @@ Any plain text content here...`;
         name="httpOptions.headers"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Headers</FormLabel>
+            <FormLabel>{t("monitors.form.http.options.headers")}</FormLabel>
             <Textarea {...field} placeholder={headersPlaceholder} />
             <FormMessage />
           </FormItem>

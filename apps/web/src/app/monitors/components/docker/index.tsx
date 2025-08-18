@@ -41,6 +41,7 @@ import { Loader2 } from "lucide-react";
 import type { MonitorCreateUpdateDto, MonitorMonitorResponseDto } from "@/api";
 import { useEffect } from "react";
 import { useWatch } from "react-hook-form";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 interface DockerConfig {
   container_id: string;
@@ -175,6 +176,7 @@ export const serialize = (formData: DockerForm): MonitorCreateUpdateDto => {
 };
 
 const TLSSection = () => {
+  const { t } = useLocalizedTranslation();
   const { form } = useMonitorFormContext();
   const connectionType = useWatch({
     control: form.control,
@@ -193,14 +195,14 @@ const TLSSection = () => {
   return (
     <Card>
       <CardContent className="space-y-4">
-        <TypographyH4>TLS Configuration</TypographyH4>
+        <TypographyH4>{t("monitors.form.docker.tls_configuration")}</TypographyH4>
 
         <FormField
           control={form.control}
           name="tls_enabled"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Enable TLS</FormLabel>
+              <FormLabel>{t("monitors.form.docker.enable_tls")}</FormLabel>
               <Select
                 onValueChange={(val) => {
                   field.onChange(val === "true");
@@ -209,12 +211,12 @@ const TLSSection = () => {
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select TLS option" />
+                    <SelectValue placeholder={t("monitors.form.docker.select_tls_option")} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="false">Disabled</SelectItem>
-                  <SelectItem value="true">Enabled</SelectItem>
+                  <SelectItem value="false">{t("monitors.form.docker.disabled")}</SelectItem>
+                  <SelectItem value="true">{t("monitors.form.docker.enabled")}</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -229,7 +231,7 @@ const TLSSection = () => {
               name="tls_verify"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Verify TLS</FormLabel>
+                  <FormLabel>{t("monitors.form.docker.verify_tls")}</FormLabel>
                   <Select
                     onValueChange={(val) => {
                       field.onChange(val === "true");
@@ -238,12 +240,12 @@ const TLSSection = () => {
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select verification option" />
+                        <SelectValue placeholder={t("monitors.form.docker.select_verification_option")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="true">Verify certificates</SelectItem>
-                      <SelectItem value="false">Skip verification</SelectItem>
+                      <SelectItem value="true">{t("monitors.form.docker.verify_certificates")}</SelectItem>
+                      <SelectItem value="false">{t("monitors.form.docker.skip_verification")}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -256,7 +258,7 @@ const TLSSection = () => {
               name="tls_cert"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Client Certificate (Optional)</FormLabel>
+                  <FormLabel>{t("monitors.form.docker.client_certificate")}</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"
@@ -267,7 +269,7 @@ const TLSSection = () => {
                   </FormControl>
                   <FormMessage />
                   <div className="text-sm text-muted-foreground">
-                    PEM-formatted client certificate for mTLS authentication
+                    {t("monitors.form.docker.client_cert_description")}
                   </div>
                 </FormItem>
               )}
@@ -278,7 +280,7 @@ const TLSSection = () => {
               name="tls_key"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Client Private Key (Optional)</FormLabel>
+                  <FormLabel>{t("monitors.form.docker.client_private_key")}</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="-----BEGIN PRIVATE KEY-----&#10;...&#10;-----END PRIVATE KEY-----"
@@ -289,7 +291,7 @@ const TLSSection = () => {
                   </FormControl>
                   <FormMessage />
                   <div className="text-sm text-muted-foreground">
-                    PEM-formatted private key for the client certificate
+                    {t("monitors.form.docker.private_key_description")}
                   </div>
                 </FormItem>
               )}
@@ -300,7 +302,7 @@ const TLSSection = () => {
               name="tls_ca"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>CA Certificate (Optional)</FormLabel>
+                  <FormLabel>{t("monitors.form.docker.ca_certificate")}</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"
@@ -311,7 +313,7 @@ const TLSSection = () => {
                   </FormControl>
                   <FormMessage />
                   <div className="text-sm text-muted-foreground">
-                    PEM-formatted CA certificate to verify the Docker daemon's certificate
+                    {t("monitors.form.docker.ca_cert_description")}
                   </div>
                 </FormItem>
               )}
@@ -319,20 +321,17 @@ const TLSSection = () => {
 
             <div className="bg-amber-50 border border-amber-200 rounded-md p-4">
               <div className="text-sm text-amber-800">
-                <strong>Note:</strong> For mutual TLS (mTLS), provide both client certificate and private key.
-                For server-only TLS, certificates are optional.
+                <strong>{t("monitors.form.docker.note")}</strong> {t("monitors.form.docker.mtls_note")}
               </div>
             </div>
 
             <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
               <div className="text-sm text-blue-800">
-                <strong>Common TLS Issues:</strong>
+                <strong>{t("monitors.form.docker.common_tls_issues")}</strong>
                 <ul className="mt-2 space-y-1 list-disc list-inside">
-                  <li><strong>Legacy Certificate Error:</strong> If you see "certificate relies on legacy Common Name field",
-                  set "Verify TLS" to false or update your Docker daemon with a certificate that includes Subject Alternative Names (SANs).</li>
-                  <li><strong>Unknown Authority:</strong> If you see "certificate signed by unknown authority",
-                  provide the CA certificate above or disable TLS verification for testing.</li>
-                  <li><strong>Hostname Mismatch:</strong> Ensure the Docker daemon URL matches the certificate's Common Name or SAN entries.</li>
+                  <li><strong>{t("monitors.form.docker.legacy_cert_error")}</strong> {t("monitors.form.docker.legacy_cert_solution")}</li>
+                  <li><strong>{t("monitors.form.docker.unknown_authority")}</strong> {t("monitors.form.docker.unknown_authority_solution")}</li>
+                  <li><strong>{t("monitors.form.docker.hostname_mismatch")}</strong> {t("monitors.form.docker.hostname_mismatch_solution")}</li>
                 </ul>
               </div>
             </div>
@@ -344,6 +343,7 @@ const TLSSection = () => {
 };
 
 const DockerForm = () => {
+  const { t } = useLocalizedTranslation();
   const {
     form,
     setNotifierSheetOpen,
@@ -396,13 +396,13 @@ const DockerForm = () => {
 
         <Card>
           <CardContent className="space-y-4">
-            <TypographyH4>Docker Container</TypographyH4>
+            <TypographyH4>{t("monitors.form.docker.docker_container")}</TypographyH4>
             <FormField
               control={form.control}
               name="container_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Container Name / ID</FormLabel>
+                  <FormLabel>{t("monitors.form.docker.container_name_id")}</FormLabel>
                   <FormControl>
                     <Input placeholder="my-container" {...field} />
                   </FormControl>
@@ -415,13 +415,13 @@ const DockerForm = () => {
 
         <Card>
           <CardContent className="space-y-4">
-            <TypographyH4>Docker Host</TypographyH4>
+            <TypographyH4>{t("monitors.form.docker.docker_host")}</TypographyH4>
             <FormField
               control={form.control}
               name="connection_type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Connection Type</FormLabel>
+                  <FormLabel>{t("monitors.form.docker.connection_type")}</FormLabel>
                   <Select
                     onValueChange={(val) => {
                       if (!val) {
@@ -440,7 +440,7 @@ const DockerForm = () => {
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select connection type" />
+                        <SelectValue placeholder={t("monitors.form.docker.select_connection_type")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -467,7 +467,7 @@ const DockerForm = () => {
                   </FormControl>
                   <FormMessage />
                   <div className="text-sm text-muted-foreground">
-                    <p className="font-medium mb-1">Examples:</p>
+                    <p className="font-medium mb-1">{t("monitors.form.docker.examples")}:</p>
                     <ul className="list-disc list-inside space-y-0.5">
                       <li>/var/run/docker.sock</li>
                       <li>http://localhost:2375</li>
@@ -502,7 +502,7 @@ const DockerForm = () => {
 
         <Button type="submit">
           {isPending && <Loader2 className="animate-spin" />}
-          {mode === "create" ? "Create" : "Update"}
+          {mode === "create" ? t("monitors.form.buttons.create") : t("monitors.form.buttons.update")}
         </Button>
       </form>
     </Form>

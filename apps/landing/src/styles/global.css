@@ -1,0 +1,150 @@
+@import "tailwindcss";
+
+:root {
+  /* Inner shadow */
+  --shadow-offset: 0;
+  --shadow-blur: 20px;
+  --shadow-spread: -5px;
+  --shadow-color: rgba(255, 255, 255, 0.7);
+
+  /* Painted glass */
+  --tint-color: 255, 255, 255;
+  --tint-opacity: 0.4;
+
+  /* Background frost */
+  --frost-blur: 1px;
+
+  /* SVG noise/distortion */
+  --noise-frequency: 0.001;
+  --distortion-strength: 1;
+
+  /* Outer shadow blur */
+  --outer-shadow-blur: 24px;
+
+  --shadow-color: #ffffff;
+  --shadow-blur: 12px;
+  --shadow-spread: -9px;
+  --tint-color: 255, 255, 255;
+  --tint-opacity: 0.03;
+  --frost-blur: 6px;
+}
+
+:root { --anchor-offset: 120px; }
+
+/* Any element you can jump to (has an id) gets an offset */
+[id] { scroll-margin-top: var(--anchor-offset); }
+
+/* Optional: smooth scrolling */
+html { scroll-behavior: smooth; }
+
+@font-face {
+  font-family: "Geist";
+  src: url("/fonts/geist-regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Geist";
+  src: url("/fonts/geist-bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Geist";
+  src: url("/fonts/geist-semibold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+body {
+  font-family: "Geist", sans-serif;
+  margin: 0;
+  padding: 0;
+  /* text-align: left; */
+  /* background: linear-gradient(var(--gray-gradient)) no-repeat;
+	background-size: 100% 600px;
+	word-wrap: break-word;
+	overflow-wrap: break-word;
+	color: rgb(var(--gray-dark));
+	font-size: 20px;
+	line-height: 1.7; */
+}
+
+.sr-only {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  position: absolute !important;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+  /* IE6, IE7 - a 0 height clip, off to the bottom right of the visible 1px box */
+  clip: rect(1px 1px 1px 1px);
+  /* maybe deprecated but we need to support legacy browsers */
+  clip: rect(1px, 1px, 1px, 1px);
+  /* modern browsers, clip-path works inwards from each corner */
+  clip-path: inset(50%);
+  /* added line to stop words getting smushed together (as they go onto separate lines and some screen readers do not understand line feeds as a space */
+  white-space: nowrap;
+}
+
+.bg-gradient {
+  background-image: url("/hero-section-bg.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+}
+
+.text-gradient {
+  background: radial-gradient(#5e25bf, #9c6cee);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.glass {
+  /* position: relative; */
+  /* position: absolute;
+  width: 300px;
+  height: 200px;
+  border-radius: 28px;
+  cursor: move;
+  touch-action: none; */
+  /* enable pointer dragging on touch */
+  /* isolation: isolate; */
+  /* box-shadow: 0px 6px var(--outer-shadow-blur) rgba(0, 0, 0, 0.2); */
+}
+
+.glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 28px;
+  box-shadow: inset var(--shadow-offset) var(--shadow-offset) var(--shadow-blur)
+    var(--shadow-spread) var(--shadow-color);
+  background-color: rgba(var(--tint-color), var(--tint-opacity));
+}
+
+.glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 28px;
+  backdrop-filter: blur(var(--frost-blur));
+  filter: url(#glass-distortion);
+  isolation: isolate;
+  -webkit-backdrop-filter: blur(var(--frost-blur));
+  -webkit-filter: url("#glass-distortion");
+}
+
+.card {
+  background-color: #FDFDFD;
+  border-radius: 32px;
+  border: 1px solid #EAEAEA;
+  /* padding: 16px; */
+  gap: 20px;
+}

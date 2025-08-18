@@ -16,8 +16,10 @@ import dayjs from "dayjs";
 import { toast } from "sonner";
 import type { MaintenanceCreateUpdateDto } from "@/api";
 import { commonMutationErrorHandler } from "@/lib/utils";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const EditMaintenance = () => {
+  const { t } = useLocalizedTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -44,7 +46,7 @@ const EditMaintenance = () => {
   const updateMaintenanceMutation = useMutation({
     ...putMaintenancesByIdMutation(),
     onSuccess: () => {
-      toast.success("Maintenance updated successfully");
+      toast.success(t("maintenance.toasts.updated_success"));
 
       queryClient.removeQueries({ queryKey: getMaintenancesQueryKey() });
       queryClient.removeQueries({
@@ -56,7 +58,7 @@ const EditMaintenance = () => {
       });
       navigate("/maintenances");
     },
-    onError: commonMutationErrorHandler("Failed to update maintenance")
+    onError: commonMutationErrorHandler(t("maintenance.toasts.update_error"))
   });
 
   const handleSubmit = (data: MaintenanceFormValues) => {
@@ -112,14 +114,14 @@ const EditMaintenance = () => {
     });
   };
 
-  if (isLoading) return <Layout pageName="Edit Maintenance">Loading...</Layout>;
+  if (isLoading) return <Layout pageName={t("maintenance.edit_title")}>{t("maintenance.page.loading")}</Layout>;
   if (error || !data?.data)
     return (
-      <Layout pageName="Edit Maintenance">Error loading maintenance</Layout>
+      <Layout pageName={t("maintenance.edit_title")}>{t("maintenance.page.error_loading")}</Layout>
     );
 
   if (monitorsDataIsLoading) {
-    return <Layout pageName="Edit Maintenance">Loading monitors...</Layout>;
+    return <Layout pageName={t("maintenance.edit_title")}>{t("maintenance.page.loading_monitors")}</Layout>;
   }
 
   const initialValues: MaintenanceFormValues = {
@@ -151,7 +153,7 @@ const EditMaintenance = () => {
   };
 
   return (
-    <Layout pageName={`Edit Maintenance: ${maintenance?.title}`}>
+    <Layout pageName={t("maintenance.page.edit_maintenance", { title: maintenance?.title })}>
       <BackButton to="/maintenances" />
       <CreateEditMaintenance
         initialValues={initialValues}

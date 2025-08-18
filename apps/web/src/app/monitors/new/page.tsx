@@ -9,12 +9,14 @@ import CreateEditForm from "../components/create-edit-form";
 import CreateNotificationChannel from "@/app/notification-channels/components/create-notification-channel";
 import CreateProxy from "@/app/proxies/components/create-proxy";
 import { useLocation } from "react-router-dom";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 import { cloneMonitor } from "../components/monitor-registry";
 
 import type { MonitorNavigationState } from "../types";
 
 const NewMonitorContent = () => {
+  const { t } = useLocalizedTranslation();
   const {
     form,
     notifierSheetOpen,
@@ -24,11 +26,11 @@ const NewMonitorContent = () => {
   } = useMonitorFormContext();
 
   return (
-    <Layout pageName="New Monitor">
+    <Layout pageName={t("monitors.page.new_title")}>
       <BackButton to="/monitors" />
       <div className="flex flex-col gap-4">
         <p className="text-gray-500">
-          Create a new monitor to start tracking your website's performance.
+          {t("monitors.page.description")}
         </p>
 
         <CreateEditForm />

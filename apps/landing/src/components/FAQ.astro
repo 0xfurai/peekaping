@@ -1,0 +1,21 @@
+---
+import SectionName from "./SectionName.astro";
+import SectionTitle from "./SectionTitle.astro";
+import FAQItem from "./FAQItem.astro";
+import faqItems from "../data/faq";
+---
+
+<section class="">
+  <div class="max-w-screen-lg mx-auto py-12 flex flex-col items-center">
+    <SectionName>FAQ</SectionName>
+    <SectionTitle
+      >Still <span class="text-gradient">Got Questions?</span></SectionTitle
+    >
+
+    <div class="border border-[#F4F4F5] bg-[#FBFBFB] rounded-[32px] p-4 w-full">
+      {faqItems.map((item) => (
+        <FAQItem question={item.question} answer={item.answer} />
+      ))}
+    </div>
+  </div>
+</section>

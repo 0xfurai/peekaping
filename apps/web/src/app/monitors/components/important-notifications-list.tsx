@@ -62,8 +62,8 @@ const ImportantNotificationsList = ({ monitorId }: { monitorId: string }) => {
       )}
 
       {importantHeartbeats.map((hb) => (
-        <Card key={hb.id} className="mb-2 p-2">
-          <CardContent className="p-2 flex flex-col gap-2">
+        <Card key={hb.id} className="mb-2 p-4">
+          <CardContent className="p-0 flex flex-col gap-2">
             <div className="flex items-center gap-2">
               <Badge
                 className={cn("text-white", {
@@ -83,31 +83,11 @@ const ImportantNotificationsList = ({ monitorId }: { monitorId: string }) => {
               </span>
             </div>
             <div className="font-medium text-sm">{hb.msg}</div>
-            <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
-              <span>
-                Ping: <span className="text-foreground">{hb.ping} ms</span>
-              </span>
-              <span>
-                Retries: <span className="text-foreground">{hb.retries}</span>
-              </span>
-              {typeof hb.down_count !== "undefined" && (
-                <span>
-                  Down count:{" "}
-                  <span className="text-foreground">{hb.down_count}</span>
-                </span>
-              )}
-              <span>
-                Notified:{" "}
-                <span className="text-foreground">
-                  {hb.notified ? t("common.yes") : t("common.no")}
-                </span>
-              </span>
-            </div>
           </CardContent>
         </Card>
       ))}
       <div ref={sentinelRef} style={{ height: 1 }} />
-      {isFetchingNextPage && <div>Loading more...</div>}
+      {isFetchingNextPage && <div>{t("monitors.card.loading_more")}</div>}
     </div>
   );
 };

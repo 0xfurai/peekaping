@@ -11,6 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { z } from "zod";
 import { useFormContext } from "react-hook-form";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const schema = z.object({
   type: z.literal("mattermost"),
@@ -39,6 +40,7 @@ export const displayName = "Mattermost";
 export default function MattermostForm() {
   const form = useFormContext();
   const useTemplate = form.watch("use_template");
+  const { t } = useLocalizedTranslation();
 
   return (
     <>
@@ -48,7 +50,7 @@ export default function MattermostForm() {
         render={({ field }) => (
           <FormItem>
             <FormLabel>
-              Webhook URL <span className="text-red-500">*</span>
+              {t("notifications.form.mattermost.webhook_url_label")} <span className="text-red-500">*</span>
             </FormLabel>
             <FormControl>
               <Input
@@ -59,10 +61,10 @@ export default function MattermostForm() {
               />
             </FormControl>
             <FormDescription>
-              <span className="text-red-500">*</span> Required
+              <span className="text-red-500">*</span> {t("common.required")}
               <br />
               <span className="mt-2 block">
-                Learn more about webhooks:{" "}
+                {t("notifications.form.mattermost.learn_more_label")}:{" "}
                 <a
                   href="https://developers.mattermost.com/integrate/webhooks/incoming/"
                   target="_blank"
@@ -83,12 +85,12 @@ export default function MattermostForm() {
         name="username"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Username</FormLabel>
+            <FormLabel>{t("forms.labels.username")}</FormLabel>
             <FormControl>
               <Input placeholder="Peekaping" {...field} />
             </FormControl>
             <FormDescription>
-              The username that will appear as the sender of the message.
+              {t("notifications.form.mattermost.username_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -100,12 +102,12 @@ export default function MattermostForm() {
         name="channel"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Channel Name</FormLabel>
+            <FormLabel>{t("notifications.form.mattermost.channel_name_label")}</FormLabel>
             <FormControl>
               <Input placeholder="general" {...field} />
             </FormControl>
             <FormDescription>
-              The channel where notifications will be sent. Leave empty to use the default channel configured in the webhook.
+              {t("notifications.form.mattermost.channel_name_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -117,7 +119,7 @@ export default function MattermostForm() {
         name="icon_url"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Icon URL</FormLabel>
+            <FormLabel>{t("notifications.form.mattermost.icon_url_label")}</FormLabel>
             <FormControl>
               <Input
                 placeholder="https://example.com/icon.png"
@@ -126,7 +128,7 @@ export default function MattermostForm() {
               />
             </FormControl>
             <FormDescription>
-              URL of an image to use as the icon for the notification message.
+              {t("notifications.form.mattermost.icon_url_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -138,15 +140,15 @@ export default function MattermostForm() {
         name="icon_emoji"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Icon Emoji</FormLabel>
+            <FormLabel>{t("notifications.form.mattermost.icon_emoji_label")}</FormLabel>
             <FormControl>
               <Input placeholder=":white_check_mark: :x:" {...field} />
             </FormControl>
             <FormDescription>
-              Emoji to use as the icon. You can specify two emojis separated by a space (first for up status, second for down status).
+              {t("notifications.form.mattermost.icon_emoji_description")}
               <br />
               <span className="mt-2 block">
-                Emoji cheat sheet:{" "}
+                {t("notifications.form.mattermost.icon_emoji_cheat_sheet_label")}:{" "}
                 <a
                   href="https://www.webfx.com/tools/emoji-cheat-sheet/"
                   target="_blank"
@@ -174,10 +176,10 @@ export default function MattermostForm() {
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
-              <FormLabel>Use Message Template</FormLabel>
+              <FormLabel>{t("notifications.form.mattermost.use_message_template_label")}</FormLabel>
             </div>
             <FormDescription>
-              Enable to use a custom message template and format.
+              {t("notifications.form.mattermost.use_message_template_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -190,7 +192,7 @@ export default function MattermostForm() {
           name="template"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Message Template</FormLabel>
+              <FormLabel>{t("notifications.form.mattermost.message_template_label")}</FormLabel>
               <FormControl>
                 <Textarea
                   placeholder="Enter your custom message template"
@@ -199,7 +201,7 @@ export default function MattermostForm() {
                 />
               </FormControl>
               <FormDescription>
-                Customize the message format. Available variables:{" "}
+                {t("notifications.form.mattermost.message_template_description")}:{" "}
                 <code>{"{{ msg }}"}</code>, <code>{"{{ monitor.name }}"}</code>, <code>{"{{ status }}"}</code>, <code>{"{{ monitor.* }}"}</code>
               </FormDescription>
               <FormMessage />

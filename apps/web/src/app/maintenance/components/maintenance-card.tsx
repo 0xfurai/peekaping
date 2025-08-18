@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trash, Clock, Calendar, Pause, Play } from "lucide-react";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const MaintenanceCard = ({
   maintenance,
@@ -19,6 +20,7 @@ const MaintenanceCard = ({
   onToggleActive: () => void;
   isPending: boolean;
 }) => {
+  const { t } = useLocalizedTranslation();
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click when clicking delete button
     onDelete();
@@ -32,17 +34,17 @@ const MaintenanceCard = ({
   const getStrategyLabel = (strategy: string) => {
     switch (strategy) {
       case "manual":
-        return "Manual";
+        return t("maintenance.strategy.manual");
       case "single":
-        return "Single Window";
+        return t("maintenance.strategy.single");
       case "cron":
-        return "Cron Schedule";
+        return t("maintenance.strategy.cron");
       case "recurring-interval":
-        return "Recurring Interval";
+        return t("maintenance.strategy.recurring_interval");
       case "recurring-weekday":
-        return "Recurring Weekday";
+        return t("maintenance.strategy.recurring_weekday");
       case "recurring-day-of-month":
-        return "Recurring Monthly";
+        return t("maintenance.strategy.recurring_day_of_month");
       default:
         return strategy;
     }
@@ -70,10 +72,10 @@ const MaintenanceCard = ({
 
   // Determine status text
   const statusText = useMemo(() => {
-    if (isMaintenanceEnded) return "Ended";
-    if (maintenance.active) return "Active";
-    return "Inactive";
-  }, [isMaintenanceEnded, maintenance.active]);
+    if (isMaintenanceEnded) return t("maintenance.card.status.ended");
+    if (maintenance.active) return t("maintenance.card.status.active");
+    return t("maintenance.card.status.inactive");
+  }, [isMaintenanceEnded, maintenance.active, t]);
 
   return (
     <Card
@@ -123,7 +125,7 @@ const MaintenanceCard = ({
                     <span className={clsx({
                       "text-gray-500": isMaintenanceEnded
                     })}>
-                      Start: {formatDate(maintenance.start_date_time)}
+                      {t("maintenance.card.labels.start", { date: formatDate(maintenance.start_date_time) })}
                     </span>
                   </div>
                 )}
@@ -134,7 +136,7 @@ const MaintenanceCard = ({
                     })} />
                     <span className={clsx({
                       "text-gray-500": isMaintenanceEnded
-                    })}>End: {formatDate(maintenance.end_date_time)}</span>
+                    })}>{t("maintenance.card.labels.end", { date: formatDate(maintenance.end_date_time) })}</span>
                   </div>
                 )}
                 {maintenance.duration && (
@@ -144,7 +146,7 @@ const MaintenanceCard = ({
                     })} />
                     <span className={clsx({
                       "text-gray-500": isMaintenanceEnded
-                    })}>{maintenance.duration} min</span>
+                    })}>{t("maintenance.card.labels.duration", { duration: maintenance.duration })}</span>
                   </div>
                 )}
               </div>
@@ -158,7 +160,7 @@ const MaintenanceCard = ({
               onClick={handleToggleActive}
               className="text-blue-500 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950"
               aria-label={
-                maintenance.active ? "Pause maintenance" : "Resume maintenance"
+                maintenance.active ? t("maintenance.card.aria.pause") : t("maintenance.card.aria.resume")
               }
               disabled={isPending}
             >
@@ -173,7 +175,7 @@ const MaintenanceCard = ({
               size="icon"
               onClick={handleDeleteClick}
               className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
-              aria-label={`Delete ${maintenance.title}`}
+              aria-label={t("maintenance.card.aria.delete", { title: maintenance.title })}
             >
               <Trash className="h-4 w-4" />
             </Button>

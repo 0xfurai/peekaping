@@ -13,7 +13,16 @@ export const AppRouter = () => {
     isFetched,
   } = useCheckCustomDomain(window.location.hostname);
 
-  const shouldRenderAuthRoutes = !isCustomDomainLoading && isFetched && !customDomain;
+  // Routing rules:
+  // - If the user has an accessToken: render the main app (ignore custom-domain logic).
+  // - If the user has no accessToken and we resolved a custom domain to a status page: render the public status page at root.
+  // - Otherwise: render auth or protected routes as appropriate.
+  //
+  // Why we check accessToken:
+  // Visitors coming via a custom domain won’t have an access token. If someone points the custom domain at the app host,
+  // this guard prevents the dashboard from taking over and ensures unauthenticated users see the public status page instead.
+  const shouldShowCustomDomainRoute = !isCustomDomainLoading && isFetched && customDomain && customDomain.data?.slug && !accessToken;
+  const shouldRenderAuthRoutes = !isCustomDomainLoading && isFetched && (!customDomain || accessToken);
 
   return (
     <Routes>
@@ -21,11 +30,11 @@ export const AppRouter = () => {
       {publicRoutes}
 
       {/* Custom domain route - render PublicStatusPage at root without login */}
-      {customDomain && customDomain.data?.slug && 
+      {shouldShowCustomDomainRoute && customDomain.data?.slug &&
         createCustomDomainRoute(customDomain.data.slug)
       }
 
-      {/* Only render auth-dependent routes if not loading custom domain check */}
+      {/* Auth-dependent routes - prioritize authenticated users over custom domain */}
       {shouldRenderAuthRoutes && (
         !accessToken ? authRoutes : protectedRoutes
       )}

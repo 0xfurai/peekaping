@@ -1,0 +1,20 @@
+{
+  "name": "landing",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev --port 3002",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^4.3.1",
+    "@astrojs/rss": "^4.0.12",
+    "@astrojs/sitemap": "^3.4.2",
+    "@tailwindcss/vite": "4.1.6",
+    "astro": "^5.12.4",
+    "sharp": "^0.34.2",
+    "tailwindcss": "4.1.6"
+  }
+}

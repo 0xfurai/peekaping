@@ -1,0 +1,176 @@
+---
+import BaseHead from "../components/BaseHead.astro";
+import Footer from "../components/Footer.astro";
+import Header from "../components/Header.astro";
+import { SITE_DESCRIPTION, SITE_TITLE } from "../consts";
+import Testimonials from "../components/Testimonials.astro";
+import FAQ from "../components/FAQ.astro";
+import Monitors from "../components/Monitors.astro";
+import TechStack from "../components/TechStack.astro";
+import Alerts from "../components/Alerts.astro";
+import faqItems from "../data/faq";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: faqItems.map((item) => ({
+          "@type": "Question",
+          name: item.question,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: item.answer,
+          },
+        })),
+      })}
+    />
+  </head>
+
+  <body>
+    <Header />
+    <main class="">
+      <section
+        class="relative px-4 sm:px-8 pt-16 sm:pt-24 lg:pt-28 m-4 sm:m-8 rounded-3xl"
+      >
+        <div
+          class="absolute top-0 left-0 bg-gradient w-full h-[600px] md:h-[700px] rounded-3xl -z-10"
+        >
+        </div>
+        <h1
+          class="text-3xl sm:text-5xl font-bold text-center max-w-[1100px] mx-auto leading-[122%] text-zinc-950 px-2"
+        >
+          Simple <span class="text-gradient"
+            >uptime, status pages and alerts</span
+          > for <span class="text-gradient">small teams</span> to catch outages before
+          users do
+        </h1>
+
+        <p
+          class="text-lg sm:text-xl text-center text-zinc-950 max-w-[678px] mx-auto my-6 px-3"
+        >
+          Engineer-grade uptime for your stack
+        </p>
+
+        <div
+          class="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 mt-2"
+        >
+          <a
+            href="https://demo.peekaping.com"
+            class="bg-white text-[#353535] px-4 py-2 rounded-full hover:bg-white/80 font-semibold w-full sm:w-auto text-center"
+            target="_blank"
+          >
+            Try the Demo
+          </a>
+          <a
+            href="https://github.com/0xfurai/peekaping?tab=readme-ov-file#quick-start-docker--sqlite"
+            class="bg-black text-white px-4 py-2 rounded-full hover:bg-gray-800 font-semibold w-full sm:w-auto text-center"
+            target="_blank"
+          >
+            Quickstart
+          </a>
+          <a
+            href="https://github.com/0xfurai/peekaping"
+            class="bg-white text-[#353535] px-4 py-2 rounded-full hover:bg-white/80 font-semibold w-full sm:w-auto text-center"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span>⭐</span>
+            <span>Star on GitHub</span>
+            <span id="github-stars" class="opacity-70 ml-1 text-gradient"
+            ></span>
+          </a>
+        </div>
+
+        <!-- Mobile image -->
+        <div class="mt-8 md:hidden">
+          <img
+            src="/demo.png"
+            alt="Peekaping"
+            class="w-full max-w-[800px] mx-auto rounded-xl"
+          />
+        </div>
+
+        <!-- Desktop image with mascot -->
+        <div class="hidden md:flex justify-center">
+          <div class="relative">
+            <img
+              src="/demo.png"
+              alt="Peekaping"
+              class="w-full max-w-[1056px] mx-auto"
+            />
+            <img
+              src="/meerkat.png"
+              alt="Meerkat mascot"
+              class="absolute -bottom-[100px] -right-[180px] w-[280px] lg:w-[400px] z-10"
+            />
+          </div>
+        </div>
+      </section>
+
+      <Monitors />
+      <Alerts />
+      <TechStack />
+      <Testimonials />
+      <FAQ />
+    </main>
+    <Footer />
+    <script>
+      (async () => {
+        const el = document.getElementById("github-stars");
+        if (!el) return;
+        try {
+          const res = await fetch(
+            "https://green-night-b63d.yojji.workers.dev/?owner=0xfurai&repo=peekaping",
+            {
+              headers: { accept: "application/json" },
+              cache: "no-store",
+            }
+          );
+          if (!res.ok) return;
+          const data = await res.json();
+
+          const formatted = new Intl.NumberFormat("en", {
+            notation: "compact",
+            compactDisplay: "short",
+            maximumFractionDigits: 1,
+          }).format(data?.stars);
+          el.textContent = formatted;
+        } catch (err) {
+          console.log(err);
+        }
+      })();
+    </script>
+  </body>
+</html>
+
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="0"
+  height="0"
+  style="position:absolute; overflow:hidden"
+>
+  <defs>
+    <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%">
+      <feTurbulence
+        type="fractalNoise"
+        baseFrequency="0.008 0.008"
+        numOctaves="2"
+        seed="92"
+        result="noise"></feTurbulence>
+      <feGaussianBlur in="noise" stdDeviation="2" result="blurred"
+      ></feGaussianBlur>
+      <feDisplacementMap
+        in="SourceGraphic"
+        in2="blurred"
+        scale="12"
+        xChannelSelector="R"
+        yChannelSelector="G"></feDisplacementMap>
+    </filter>
+  </defs>
+</svg>

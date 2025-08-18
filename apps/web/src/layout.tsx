@@ -5,6 +5,7 @@ import {
 } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "./components/app-header";
+import { useLocalizedTranslation } from "./hooks/useTranslation";
 
 export default function Layout({
   children,
@@ -18,7 +19,8 @@ export default function Layout({
   onCreate?: () => void;
   error?: React.ReactNode;
   isLoading?: boolean;
-}) {
+  }) {
+  const { t } = useLocalizedTranslation();
 
   return (
     <SidebarProvider>
@@ -26,7 +28,7 @@ export default function Layout({
       <SidebarInset>
         <SiteHeader pageName={pageName} onCreate={onCreate} />
         {isLoading ? (
-          <div className="p-4 w-full">Loading ...</div>
+          <div className="p-4 w-full">{t("common.loading")}</div>
         ) : (
           error || <main className="p-4 w-full">{children}</main>
         )}

@@ -10,15 +10,17 @@ import Timezone from "./timezone";
 import StartEndDateTime from "./start-end-date-time";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useFormContext } from "react-hook-form";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const DAYS_OF_MONTH = Array.from({ length: 31 }, (_, i) => i + 1);
 
-const LAST_DAYS = [
-  { id: "lastDay1", label: "Last Day of Month", value: "lastDay1" },
-];
-
 const RecurringDayOfMonthForm = () => {
+  const { t } = useLocalizedTranslation();
   const form = useFormContext();
+  
+  const LAST_DAYS = [
+    { id: "lastDay1", label: t("maintenance.form.last_day_of_month"), value: "lastDay1" },
+  ];
   return (
     <>
       <FormField
@@ -26,7 +28,7 @@ const RecurringDayOfMonthForm = () => {
         name="daysOfMonth"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Day of Month</FormLabel>
+            <FormLabel>{t("maintenance.form.day_of_month")}</FormLabel>
             <div className="grid grid-cols-8 gap-2">
               {DAYS_OF_MONTH.map((day) => (
                 <FormItem
@@ -52,7 +54,7 @@ const RecurringDayOfMonthForm = () => {
             </div>
 
             <div className="mt-4">
-              <FormLabel className="text-sm">Last Day</FormLabel>
+              <FormLabel className="text-sm">{t("maintenance.form.last_day")}</FormLabel>
               <div className="mt-2">
                 {LAST_DAYS.map((lastDay) => (
                   <FormItem
@@ -88,7 +90,7 @@ const RecurringDayOfMonthForm = () => {
       <Timezone />
 
       <div className="space-y-4">
-        <FormLabel>Effective Date Range (Optional)</FormLabel>
+        <FormLabel>{t("maintenance.form.effective_date_range")}</FormLabel>
         <StartEndDateTime />
       </div>
     </>

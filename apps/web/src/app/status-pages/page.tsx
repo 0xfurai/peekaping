@@ -13,11 +13,13 @@ import { Label } from "@/components/ui/label";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import EmptyList from "@/components/empty-list";
 import { Button } from "@/components/ui/button";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const StatusPagesPage = () => {
   const navigate = useNavigate();
   const { getParam, updateSearchParams, clearAllParams, hasParams } =
     useSearchParams();
+  const { t } = useLocalizedTranslation();
 
   // Initialize search from URL params
   const [search, setSearch] = useState(getParam("q") || "");
@@ -68,7 +70,7 @@ const StatusPagesPage = () => {
 
   return (
     <Layout
-      pageName="Status pages"
+      pageName={t("status_pages.page_name")}
       onCreate={() => {
         navigate("/status-pages/new");
       }}
@@ -84,15 +86,15 @@ const StatusPagesPage = () => {
                   onClick={clearAllFilters}
                   className="w-fit h-[36px]"
                 >
-                  Clear all filters
+                  {t("common.clear_all_filters")}
                 </Button>
               </div>
             )}
             <div className="flex flex-col gap-1 w-full sm:w-auto">
-              <Label htmlFor="search-status-pages">Search</Label>
+              <Label htmlFor="search-status-pages">{t("status_pages.search_label")}</Label>
               <Input
                 id="search-status-pages"
-                placeholder="Search status pages by title..."
+                placeholder={t("status_pages.search_placeholder")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full sm:w-[400px]"
@@ -131,9 +133,9 @@ const StatusPagesPage = () => {
         {/* Empty state */}
         {statusPages.length === 0 && !isLoading && (
           <EmptyList
-            title="No status pages found"
-            text="Get started by creating your first status page."
-            actionText="Create your first status page"
+            title={t("status_pages.messages.no_status_pages_found")}
+            text={t("status_pages.messages.get_started_by_creating_your_first_status_page")}
+            actionText={t("status_pages.messages.create_your_first_status_page")}
             onClick={() => navigate("/status-pages/new")}
           />
         )}

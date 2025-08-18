@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/form";
 import { z } from "zod";
 import { useFormContext } from "react-hook-form";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const schema = z.object({
   type: z.literal("google_chat"),
@@ -26,6 +27,7 @@ export const displayName = "Google Chat";
 
 export default function GoogleChatForm() {
   const form = useFormContext();
+  const { t } = useLocalizedTranslation();
 
   return (
     <>
@@ -35,7 +37,7 @@ export default function GoogleChatForm() {
         render={({ field }) => (
           <FormItem>
             <FormLabel>
-              Webhook URL <span className="text-red-500">*</span>
+              {t("notifications.form.google_chat.webhook_url_label")} <span className="text-red-500">*</span>
             </FormLabel>
             <FormControl>
               <Input
@@ -46,10 +48,10 @@ export default function GoogleChatForm() {
               />
             </FormControl>
             <FormDescription>
-              <span className="text-red-500">*</span> Required
+              <span className="text-red-500">*</span> {t("common.required")}
               <br />
               <span className="mt-2 block">
-                More info about Webhooks:{" "}
+                {t("notifications.form.google_chat.more_info_about_webhooks")}:{" "}
                 <a
                   href="https://developers.google.com/chat/how-tos/webhooks"
                   target="_blank"

@@ -1,0 +1,37 @@
+---
+import ListItem from "./ListItem.astro";
+---
+<section class="mb-12 px-4" id="monitors">
+  <div class="card max-w-screen-lg mx-auto py-10 sm:py-12 px-8">
+    <h2 class="font-bold text-[32px] leading-[125%] mb-6">Available Monitors</h2>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+      <!-- Web & Network -->
+      <div class="col-span-1 sm:col-span-2 mt-2 text-xs font-semibold uppercase tracking-wider opacity-70">Web & Network</div>
+      <ListItem><strong>HTTP/HTTPS</strong> — Monitor websites, APIs, and web services</ListItem>
+      <ListItem><strong>TCP</strong> — Check TCP port connectivity and availability</ListItem>
+      <ListItem><strong>Ping (ICMP)</strong> — Measure reachability and round-trip latency</ListItem>
+      <ListItem><strong>DNS</strong> — Verify query responses and resolution times</ListItem>
+
+      <!-- Application & Infrastructure -->
+      <div class="col-span-1 sm:col-span-2 mt-6 text-xs font-semibold uppercase tracking-wider opacity-70">Application & Infrastructure</div>
+      <ListItem><strong>Push (incoming webhook)</strong> — Accept heartbeats from jobs and services</ListItem>
+      <ListItem><strong>Docker container</strong> — Track container status and health</ListItem>
+      <ListItem><strong>gRPC</strong> — Run gRPC health/service checks and latency</ListItem>
+      <ListItem><strong>SNMP</strong> — Poll device availability and key OIDs</ListItem>
+
+      <!-- Databases & Caches -->
+      <div class="col-span-1 sm:col-span-2 mt-6 text-xs font-semibold uppercase tracking-wider opacity-70">Databases & Caches</div>
+      <ListItem><strong>PostgreSQL</strong> — Connect and run a lightweight query</ListItem>
+      <ListItem><strong>Microsoft SQL Server</strong> — Connect and run a lightweight query</ListItem>
+      <ListItem><strong>MongoDB</strong> — Ping/handshake and simple read</ListItem>
+      <ListItem><strong>Redis</strong> — PING/latency and basic health</ListItem>
+
+      <!-- Messaging & Streaming -->
+      <div class="col-span-1 sm:col-span-2 mt-6 text-xs font-semibold uppercase tracking-wider opacity-70">Messaging & Streaming</div>
+      <ListItem><strong>MQTT Broker</strong> — Connect/subscribe/publish smoke test</ListItem>
+      <ListItem><strong>RabbitMQ</strong> — Connection and queue health</ListItem>
+      <ListItem><strong>Kafka Producer</strong> — Produce a test message to a topic</ListItem>
+    </div>
+  </div>
+</section>

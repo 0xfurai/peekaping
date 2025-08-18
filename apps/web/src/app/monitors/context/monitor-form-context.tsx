@@ -66,6 +66,7 @@ import {
 import { mqttSchema, type MQTTForm } from "../components/mqtt";
 import { rabbitMQSchema, type RabbitMQForm } from "../components/rabbitmq";
 import { kafkaProducerSchema, type KafkaProducerForm } from "../components/kafka-producer/schema";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const formSchema = z.discriminatedUnion("type", [
   httpSchema,
@@ -164,6 +165,7 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
 }) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { t } = useLocalizedTranslation();
   const [notifierSheetOpen, setNotifierSheetOpen] = useState(false);
   const [proxySheetOpen, setProxySheetOpen] = useState(false);
 
@@ -271,7 +273,7 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
   if (mode === "edit" && !monitor) {
     return (
       <MonitorFormContext.Provider value={value}>
-        <div>Loading...</div>
+        <div>{t("common.loading")}</div>
       </MonitorFormContext.Provider>
     );
   }

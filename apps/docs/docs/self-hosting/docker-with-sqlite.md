@@ -9,7 +9,7 @@ sidebar_position: 1
 The simplest mode of operation is the monolithic deployment mode. This mode runs all of Peekaping microservice components (db + api + web + gateway) inside a single process as a single Docker image.
 
 ```bash
-docker run -d --rm --restart=always \
+docker run -d --restart=always \
   -p 8383:8383 \
   -e DB_NAME=/app/data/peekaping.db \
   -v $(pwd)/.data/sqlite:/app/data \
