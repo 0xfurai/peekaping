@@ -41,6 +41,7 @@ import * as WecomForm from "../integrations/wecom-form";
 import * as WhatsAppForm from "../integrations/whatsapp-form";
 import * as TwilioForm from "../integrations/twilio-form";
 import * as SendGridForm from "../integrations/sendgrid-form";
+import * as PushbulletForm from "../integrations/pushbullet-form";
 
 import { useEffect } from "react";
 import { commonMutationErrorHandler } from "@/lib/utils";
@@ -66,6 +67,7 @@ const typeFormRegistry = {
   whatsapp: WhatsAppForm,
   twilio: TwilioForm,
   sendgrid: SendGridForm,
+  pushbullet: PushbulletForm,
 };
 
 const notificationSchema = z
@@ -95,6 +97,7 @@ const notificationSchema = z
       WhatsAppForm.schema,
       TwilioForm.schema,
       SendGridForm.schema,
+      PushbulletForm.schema,
     ] as const)
   );
 
@@ -220,6 +223,7 @@ export default function CreateEditNotificationChannel({
                     | "whatsapp"
                     | "twilio"
                     | "sendgrid"
+                    | "pushbullet"
                 );
               }}
               value={type}

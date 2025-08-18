@@ -23,9 +23,6 @@
       "code_placeholder": "Введіть 2FA код",
       "description": "Двофакторна аутентифікація увімкнена для вашого облікового запису. Будь ласка, введіть код аутентифікації для продовження.",
       "title": "Потрібна двофакторна аутентифікація",
-      "validation": {
-        "code_required": "2FA код є обов'язковим"
-      },
       "verify_button": "Перевірити 2FA",
       "verifying": "Перевірка..."
     }
@@ -68,7 +65,6 @@
     "loading": "Завантаження...",
     "logout": "Вийти",
     "maintenance": "Технічне обслуговування",
-    "no": "Ні",
     "no_options_found": "Немає доступних опцій",
     "no_tags_available": "Немає доступних тегів",
     "please_refresh_page": "Будь ласка, оновіть сторінку.",
@@ -86,8 +82,7 @@
     "unnamed_monitor": "Невідомий монітор",
     "up": "Працює",
     "update": "Оновити",
-    "verifying": "Перевірка...",
-    "yes": "Так"
+    "verifying": "Перевірка..."
   },
   "forms": {
     "labels": {
@@ -117,7 +112,6 @@
     "validation": {
       "email_invalid": "Будь ласка, введіть дійсну адресу електронної пошти",
       "password_min_length": "Пароль повинен містити щонайменше 8 символів",
-      "password_required": "Пароль є обов'язковим",
       "passwords_mismatch": "Паролі не співпадають"
     }
   },
@@ -215,18 +209,6 @@
       "toggle_error": "Неможливо перемкнути статус обслуговування: ID відсутній",
       "update_error": "Не вдалося оновити обслуговування",
       "updated_success": "Обслуговування успішно оновлено"
-    },
-    "validation": {
-      "day_of_month_required": "Необхідно вибрати хоча б один день",
-      "end_date_required": "Кінцева дата є обов'язковою",
-      "end_time_required": "Кінцевий час є обов'язковим",
-      "interval_day_range": "Інтервал повинен бути від 1 до 3650 днів",
-      "start_before_end_date": "Початкова дата має бути раніше кінцевої дати",
-      "start_before_end_time": "Початковий час має бути раніше кінцевого часу",
-      "start_date_required": "Початкова дата є обов'язковою",
-      "start_time_required": "Початковий час є обов'язковим",
-      "title_required": "Назва є обов'язковою",
-      "weekday_required": "Необхідно вибрати хоча б один день тижня"
     },
     "weekdays": {
       "fri": "Пт",
@@ -830,6 +812,30 @@
         "priority_placeholder": "Виберіть рівень пріоритету",
         "priority_warning": "Попередження"
       },
+      "pushbullet": {
+        "access_token": "Токен доступу",
+        "access_token_description": "Ваш токен доступу Pushbullet. Отримайте його на",
+        "access_token_label": "Токен доступу",
+        "access_token_link": "Налаштування Pushbullet",
+        "channel_tag": "Тег каналу (Необов'язково)",
+        "channel_tag_description": "Надсилайте сповіщення на канал Pushbullet замість пристроїв",
+        "channel_tag_label": "Тег каналу (Необов'язково)",
+        "custom_message_template": "Шаблон повідомлення (Необов'язково)",
+        "custom_message_template_description": "Налаштуйте власний шаблон повідомлення за допомогою змінних:",
+        "custom_message_template_heartbeat_ping": "Час відгуку",
+        "custom_message_template_heartbeat_time": "Час",
+        "custom_message_template_label": "Шаблон повідомлення (Необов'язково)",
+        "custom_message_template_monitor_url": "URL сервісу",
+        "custom_message_template_msg": "Повідомлення сповіщення",
+        "custom_message_template_name": "Назва сервісу",
+        "custom_message_template_placeholder": "Сервіс: {{ name }}\nСтатус: {{ status }}\nПовідомлення: {{ msg }}",
+        "custom_message_template_status": "Поточний статус",
+        "device_id": "ID пристрою (Необов'язково)",
+        "device_id_description": "Надсилайте сповіщення на конкретний пристрій. Залиште поле порожнім, щоб надсилати на всі пристрої. Ви можете знайти ID пристроїв за допомогою",
+        "device_id_label": "ID пристрою (Необов'язково)",
+        "device_id_link": "API Pushbullet",
+        "more_info_on": "Більше інформації на:"
+      },
       "pushover": {
         "application_token_label": "Токен додатку",
         "application_token_placeholder": "Введіть ваш токен додатку Pushover",
@@ -1085,6 +1091,24 @@
       "title": "Оновити пароль"
     }
   },
+  "sendgrid": {
+    "api_key_description": "Ваш ключ API SendGrid. Ви можете створити його в своєму обліковому записі SendGrid у Налаштування → Ключі API. Переконайтеся, що він має права \"Відправка електронних листів\".",
+    "api_key_label": "Ключ API",
+    "bcc_email_description": "Сховані копії відправлення. Розділяйте адреси електронної пошти комами.",
+    "bcc_email_label": "BCC Email (Опціонально)",
+    "cc_email_description": "Копії відправлення. Розділяйте адреси електронної пошти комами.",
+    "cc_email_label": "CC Email (Опціонально)",
+    "from_email_description": "Адреса електронної пошти відправника. Це повинна бути перевірена адреса відправника в вашому обліковому записі SendGrid.",
+    "from_email_label": "Від Email",
+    "subject_description": "Тема електронного листа. Підтримує шаблони Liquid.",
+    "subject_label": "Власна тема (Опціонально)",
+    "subject_variables_label": "Доступні змінні:",
+    "subject_variables_msg": "повідомлення сповіщення",
+    "subject_variables_name": "назва сервісу",
+    "subject_variables_status": "статус сервісу (UP/DOWN)",
+    "to_email_description": "Основна адреса електронної пошти отримувача. Для кількох отримувачів використовуйте CC або BCC.",
+    "to_email_label": "На Email"
+  },
   "settings": {
     "data_retention": {
       "days_label": "Дні",
@@ -1120,24 +1144,6 @@
       "unknown": "Невідомо"
     }
   },
-  "sendgrid": {
-    "api_key_description": "Ваш ключ API SendGrid. Ви можете створити його в своєму обліковому записі SendGrid у Налаштування → Ключі API. Переконайтеся, що він має права \"Відправка електронних листів\".",
-    "api_key_label": "Ключ API",
-    "bcc_email_description": "Сховані копії відправлення. Розділяйте адреси електронної пошти комами.",
-    "bcc_email_label": "BCC Email (Опціонально)",
-    "cc_email_description": "Копії відправлення. Розділяйте адреси електронної пошти комами.",
-    "cc_email_label": "CC Email (Опціонально)",
-    "from_email_description": "Адреса електронної пошти відправника. Це повинна бути перевірена адреса відправника в вашому обліковому записі SendGrid.",
-    "from_email_label": "Від Email",
-    "subject_description": "Тема електронного листа. Підтримує шаблони Liquid.",
-    "subject_label": "Власна тема (Опціонально)",
-    "subject_variables_label": "Доступні змінні:",
-    "subject_variables_msg": "повідомлення сповіщення",
-    "subject_variables_name": "назва сервісу",
-    "subject_variables_status": "статус сервісу (UP/DOWN)",
-    "to_email_description": "Основна адреса електронної пошти отримувача. Для кількох отримувачів використовуйте CC або BCC.",
-    "to_email_label": "На Email"
-  },
   "status_pages": {
     "affected_monitors": "Впливіні монітори",
     "affected_monitors_info": "Виберіть монітори, які будуть впливати на цю технічну роботу",
@@ -1150,9 +1156,9 @@
       "title": "Видалити сторінку статусу"
     },
     "description": "Введіть опис сторінки статусу",
+    "domain_host_warning": "Цей домен збігається з вашою поточною URL-адресою хоста. Це може спричинити конфлікти.",
     "domains": "Домени",
     "domains_info_warning": "Не забудьте додати запис CNAME до вашого DNS для кожного домену.",
-    "domain_host_warning": "Цей домен збігається з вашою поточною URL-адресою хоста. Це може спричинити конфлікти.",
     "draft_status": "Чернетка",
     "edit_page_name": "Редагувати сторінку статусу",
     "messages": {
@@ -1171,7 +1177,6 @@
     },
     "new_page_name": "Нова сторінка статусу",
     "page_name": "Сторінки статусу",
-    
     "published": "Опубліковано",
     "published_info": "Зробіть цю сторінку статусу доступною публічно",
     "published_status": "Опубліковано",
@@ -1205,12 +1210,7 @@
       "update_description": "Оновіть деталі тегу для кращої організації ваших моніторів."
     },
     "new_page_name": "Новий Tег",
-    "search_placeholder": "Пошук тегів...",
-    "validation": {
-      "color_invalid": "Колір має бути валідним hex-кодом",
-      "name_max_length": "Назва має бути менше 100 символів",
-      "name_required": "Назва є обов'язковою"
-    }
+    "search_placeholder": "Пошук тегів..."
   },
   "theme": {
     "dark": "Темна",

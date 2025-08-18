@@ -23,9 +23,6 @@
       "code_placeholder": "Entrez le code 2FA",
       "description": "L'authentification à deux facteurs est activée pour votre compte. Veuillez entrer votre code d'authentification pour continuer.",
       "title": "Authentification à deux facteurs requise",
-      "validation": {
-        "code_required": "Le code 2FA est requis"
-      },
       "verify_button": "Vérifier 2FA",
       "verifying": "Vérification..."
     }
@@ -68,7 +65,6 @@
     "loading": "Chargement...",
     "logout": "Se déconnecter",
     "maintenance": "Maintenance",
-    "no": "Non",
     "no_options_found": "Aucune option trouvée",
     "no_tags_available": "Aucun tag disponible",
     "please_refresh_page": "Veuillez actualiser la page.",
@@ -86,8 +82,7 @@
     "unnamed_monitor": "Moniteur sans nom",
     "up": "En ligne",
     "update": "Mettre à jour",
-    "verifying": "Vérification...",
-    "yes": "Oui"
+    "verifying": "Vérification..."
   },
   "forms": {
     "labels": {
@@ -117,7 +112,6 @@
     "validation": {
       "email_invalid": "Veuillez entrer une adresse email valide",
       "password_min_length": "Le mot de passe doit contenir au moins 8 caractères",
-      "password_required": "Le mot de passe est requis",
       "passwords_mismatch": "Les mots de passe ne correspondent pas"
     }
   },
@@ -215,18 +209,6 @@
       "toggle_error": "Impossible de basculer le statut de la maintenance : ID manquant",
       "update_error": "Échec de la mise à jour de la maintenance",
       "updated_success": "Maintenance mise à jour avec succès"
-    },
-    "validation": {
-      "day_of_month_required": "Au moins un jour doit être sélectionné",
-      "end_date_required": "La date de fin est requise",
-      "end_time_required": "L'heure de fin est requise",
-      "interval_day_range": "L'intervalle doit être entre 1 et 3650 jours",
-      "start_before_end_date": "La date de début doit être avant la date de fin",
-      "start_before_end_time": "L'heure de début doit être avant l'heure de fin",
-      "start_date_required": "La date de début est requise",
-      "start_time_required": "L'heure de début est requise",
-      "title_required": "Le titre est requis",
-      "weekday_required": "Au moins un jour de la semaine doit être sélectionné"
     },
     "weekdays": {
       "fri": "Ven",
@@ -831,6 +813,30 @@
         "priority_placeholder": "Sélectionner le niveau de priorité",
         "priority_warning": "Avertissement"
       },
+      "pushbullet": {
+        "access_token": "Jeton d'accès",
+        "access_token_description": "Votre jeton d'accès Pushbullet. Obtenez-le sur",
+        "access_token_label": "Jeton d'accès",
+        "access_token_link": "Paramètres Pushbullet",
+        "channel_tag": "Tag de canal (Optionnel)",
+        "channel_tag_description": "Envoyer une notification à un canal Pushbullet au lieu d'appareils",
+        "channel_tag_label": "Tag de canal (Optionnel)",
+        "custom_message_template": "",
+        "custom_message_template_description": "Personnalisez le corps de la notification en utilisant des variables de modèle :",
+        "custom_message_template_heartbeat_ping": "Temps de réponse",
+        "custom_message_template_heartbeat_time": "Horodatage",
+        "custom_message_template_label": "Modèle de message personnalisé (Optionnel)",
+        "custom_message_template_monitor_url": "URL du moniteur",
+        "custom_message_template_msg": "Message d'alerte",
+        "custom_message_template_name": "Nom du moniteur",
+        "custom_message_template_placeholder": "Moniteur: {{ name }}\nStatut: {{ status }}\nMessage: {{ msg }}",
+        "custom_message_template_status": "Statut actuel",
+        "device_id": "ID de l'appareil (Optionnel)",
+        "device_id_description": "Envoyer une notification à un appareil spécifique. Laissez vide pour envoyer à tous les appareils. Vous pouvez trouver les ID des appareils en utilisant l'API",
+        "device_id_label": "ID de l'appareil (Optionnel)",
+        "device_id_link": "Pushbullet",
+        "more_info_on": "Plus d'informations sur :"
+      },
       "pushover": {
         "application_token_label": "Jeton d'application",
         "application_token_placeholder": "Entrez votre jeton d'application Pushover",
@@ -1086,6 +1092,24 @@
       "title": "Mettre à jour le mot de passe"
     }
   },
+  "sendgrid": {
+    "api_key_description": "Votre clé API SendGrid. Vous pouvez en créer une dans votre compte SendGrid sous Paramètres → Clés API. Assurez-vous qu'elle a les permissions \"Mail Send\".",
+    "api_key_label": "Clé API",
+    "bcc_email_description": "Destinataires en copie carbone cachée. Séparez plusieurs adresses avec des virgules.",
+    "bcc_email_label": "BCC Email (Optionnel)",
+    "cc_email_description": "Destinataires en copie carbone. Séparez plusieurs adresses avec des virgules.",
+    "cc_email_label": "CC Email (Optionnel)",
+    "from_email_description": "L'adresse email de l'expéditeur. Cette adresse doit être vérifiée dans votre compte SendGrid.",
+    "from_email_label": "Email de l'expéditeur",
+    "subject_description": "Ligne d'objet de l'email. Prend en charge le templating Liquid.",
+    "subject_label": "Objet personnalisé (Optionnel)",
+    "subject_variables_label": "Variables disponibles :",
+    "subject_variables_msg": "message de la notification",
+    "subject_variables_name": "nom du service",
+    "subject_variables_status": "statut du service (UP/DOWN)",
+    "to_email_description": "Adresse email du destinataire principal. Pour plusieurs destinataires, utilisez CC ou BCC.",
+    "to_email_label": "À Email"
+  },
   "settings": {
     "data_retention": {
       "days_label": "Jours",
@@ -1121,24 +1145,6 @@
       "unknown": "Inconnu"
     }
   },
-  "sendgrid": {
-    "api_key_description": "Votre clé API SendGrid. Vous pouvez en créer une dans votre compte SendGrid sous Paramètres → Clés API. Assurez-vous qu'elle a les permissions \"Mail Send\".",
-    "api_key_label": "Clé API",
-    "bcc_email_description": "Destinataires en copie carbone cachée. Séparez plusieurs adresses avec des virgules.",
-    "bcc_email_label": "BCC Email (Optionnel)",
-    "cc_email_description": "Destinataires en copie carbone. Séparez plusieurs adresses avec des virgules.",
-    "cc_email_label": "CC Email (Optionnel)",
-    "from_email_description": "L'adresse email de l'expéditeur. Cette adresse doit être vérifiée dans votre compte SendGrid.",
-    "from_email_label": "Email de l'expéditeur",
-    "subject_description": "Ligne d'objet de l'email. Prend en charge le templating Liquid.",
-    "subject_label": "Objet personnalisé (Optionnel)",
-    "subject_variables_label": "Variables disponibles :",
-    "subject_variables_msg": "message de la notification",
-    "subject_variables_name": "nom du service",
-    "subject_variables_status": "statut du service (UP/DOWN)",
-    "to_email_description": "Adresse email du destinataire principal. Pour plusieurs destinataires, utilisez CC ou BCC.",
-    "to_email_label": "À Email"
-  },
   "status_pages": {
     "affected_monitors": "Moniteurs affectés",
     "affected_monitors_info": "Sélectionnez les moniteurs qui seront affectés par cette maintenance",
@@ -1151,9 +1157,9 @@
       "title": "Supprimer la page de statut"
     },
     "description": "Entrez la description de la page de statut",
+    "domain_host_warning": "Ce domaine est identique à votre URL d'hôte actuelle. Cela peut causer des conflits.",
     "domains": "Domaines",
     "domains_info_warning": "N'oubliez pas d'ajouter les enregistrements CNAME à votre DNS pour chaque domaine.",
-    "domain_host_warning": "Ce domaine est identique à votre URL d'hôte actuelle. Cela peut causer des conflits.",
     "draft_status": "Brouillon",
     "edit_page_name": "Modifier la page de statut",
     "messages": {
@@ -1205,12 +1211,7 @@
       "update_description": "Mettez à jour les détails du tag pour mieux organiser vos moniteurs."
     },
     "new_page_name": "Nouveau tag",
-    "search_placeholder": "Rechercher des tags...",
-    "validation": {
-      "color_invalid": "La couleur doit être un code hexadécimal valide",
-      "name_max_length": "Le nom doit contenir moins de 100 caractères",
-      "name_required": "Le nom est requis"
-    }
+    "search_placeholder": "Rechercher des tags..."
   },
   "theme": {
     "dark": "Sombre",
