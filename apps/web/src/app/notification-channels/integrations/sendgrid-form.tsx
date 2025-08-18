@@ -10,6 +10,7 @@ import {
 import { z } from "zod";
 import { useFormContext } from "react-hook-form";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { PasswordInput } from "@/components/ui/password-input";
 
 export const schema = z.object({
   type: z.literal("sendgrid"),
@@ -48,9 +49,8 @@ export default function SendGridForm() {
           <FormItem>
             <FormLabel>{t("sendgrid.api_key_label")}</FormLabel>
             <FormControl>
-              <Input
+              <PasswordInput
                 placeholder="SG.xxxxxxxxxxxxxxxxxxxx"
-                type="password"
                 {...field}
               />
             </FormControl>
