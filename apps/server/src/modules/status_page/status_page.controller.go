@@ -51,6 +51,11 @@ func (c *Controller) Create(ctx *gin.Context) {
 
 	created, err := c.service.Create(ctx, &dto)
 	if err != nil {
+		// Surface domain uniqueness validation errors as 400
+		if domainErr, ok := err.(*DomainAlreadyUsedError); ok {
+			ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(domainErr.Error()))
+			return
+		}
 		c.logger.Errorw("Failed to create status page", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
@@ -184,6 +189,11 @@ func (c *Controller) Update(ctx *gin.Context) {
 
 	updated, err := c.service.Update(ctx, id, &dto)
 	if err != nil {
+		// Surface domain uniqueness validation errors as 400
+		if domainErr, ok := err.(*DomainAlreadyUsedError); ok {
+			ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(domainErr.Error()))
+			return
+		}
 		c.logger.Errorw("Failed to update status page", "error", err, "id", id)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
