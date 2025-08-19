@@ -23,6 +23,9 @@
       "code_placeholder": "Entrez le code 2FA",
       "description": "L'authentification à deux facteurs est activée pour votre compte. Veuillez entrer votre code d'authentification pour continuer.",
       "title": "Authentification à deux facteurs requise",
+      "validation": {
+        "code_required": "Le code 2FA est requis"
+      },
       "verify_button": "Vérifier 2FA",
       "verifying": "Vérification..."
     }
@@ -65,6 +68,7 @@
     "loading": "Chargement...",
     "logout": "Se déconnecter",
     "maintenance": "Maintenance",
+    "no": "Non",
     "no_options_found": "Aucune option trouvée",
     "no_tags_available": "Aucun tag disponible",
     "please_refresh_page": "Veuillez actualiser la page.",
@@ -82,7 +86,8 @@
     "unnamed_monitor": "Moniteur sans nom",
     "up": "En ligne",
     "update": "Mettre à jour",
-    "verifying": "Vérification..."
+    "verifying": "Vérification...",
+    "yes": "Oui"
   },
   "forms": {
     "labels": {
@@ -112,6 +117,7 @@
     "validation": {
       "email_invalid": "Veuillez entrer une adresse email valide",
       "password_min_length": "Le mot de passe doit contenir au moins 8 caractères",
+      "password_required": "Le mot de passe est requis",
       "passwords_mismatch": "Les mots de passe ne correspondent pas"
     }
   },
@@ -209,6 +215,18 @@
       "toggle_error": "Impossible de basculer le statut de la maintenance : ID manquant",
       "update_error": "Échec de la mise à jour de la maintenance",
       "updated_success": "Maintenance mise à jour avec succès"
+    },
+    "validation": {
+      "day_of_month_required": "Au moins un jour doit être sélectionné",
+      "end_date_required": "La date de fin est requise",
+      "end_time_required": "L'heure de fin est requise",
+      "interval_day_range": "L'intervalle doit être entre 1 et 3650 jours",
+      "start_before_end_date": "La date de début doit être avant la date de fin",
+      "start_before_end_time": "L'heure de début doit être avant l'heure de fin",
+      "start_date_required": "La date de début est requise",
+      "start_time_required": "L'heure de début est requise",
+      "title_required": "Le titre est requis",
+      "weekday_required": "Au moins un jour de la semaine doit être sélectionné"
     },
     "weekdays": {
       "fri": "Ven",
@@ -1211,7 +1229,12 @@
       "update_description": "Mettez à jour les détails du tag pour mieux organiser vos moniteurs."
     },
     "new_page_name": "Nouveau tag",
-    "search_placeholder": "Rechercher des tags..."
+    "search_placeholder": "Rechercher des tags...",
+    "validation": {
+      "color_invalid": "La couleur doit être un code hexadécimal valide",
+      "name_max_length": "Le nom doit contenir moins de 100 caractères",
+      "name_required": "Le nom est requis"
+    }
   },
   "theme": {
     "dark": "Sombre",
