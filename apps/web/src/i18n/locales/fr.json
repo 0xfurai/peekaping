@@ -86,7 +86,8 @@
     "unnamed_monitor": "Moniteur sans nom",
     "up": "En ligne",
     "update": "Mettre à jour",
-    "verifying": "Vérification..."
+    "verifying": "Vérification...",
+    "yes": "Oui"
   },
   "forms": {
     "labels": {
