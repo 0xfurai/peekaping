@@ -79,7 +79,7 @@ func (p *PagerTreeSender) Send(ctx context.Context, configJSON, message string, 
 	// Build the payload
 	payload := PagerTreePayload{
 		EventType: eventType,
-		ID:        fmt.Sprintf("monitor-%d-%d", mon.ID, time.Now().Unix()),
+		ID:        fmt.Sprintf("monitor-%s-%d", mon.ID, time.Now().Unix()),
 		Urgency:   cfg.Urgency,
 	}
 
