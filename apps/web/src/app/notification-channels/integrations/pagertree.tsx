@@ -32,11 +32,8 @@ export const pagerTreeSchema = z.object({
       (url) => url.includes("api.pagertree.com/integration/"),
       "URL must be a valid PagerTree integration endpoint"
     ),
-  urgency: z
-    .enum(["silent", "low", "medium", "high", "critical"])
-    .optional()
-    .default("medium"),
-  autoResolve: z.boolean().optional().default(true),
+  urgency: z.enum(["silent", "low", "medium", "high", "critical"]),
+  autoResolve: z.boolean(),
   authToken: z.string().optional(),
 });
 
@@ -71,7 +68,7 @@ const PagerTreeForm = () => {
                 placeholder="https://api.pagertree.com/integration/..."
                 required
                 {...field}
-                autoComplete="off"
+                autoComplete="integration-url"
               />
             </FormControl>
             <FormDescription>
@@ -97,7 +94,7 @@ const PagerTreeForm = () => {
         render={({ field }) => (
           <FormItem>
             <FormLabel>{t("notifications.form.pagertree.urgency_level_label")}</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <Select onValueChange={field.onChange} value={field.value || "medium"}>
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder={t("notifications.form.pagertree.urgency_level_placeholder")} />
@@ -150,7 +147,7 @@ const PagerTreeForm = () => {
               <PasswordInput
                 placeholder={t("notifications.form.pagertree.authentication_token_placeholder")}
                 {...field}
-                autoComplete="off"
+                autoComplete="new-password"
                 value={field.value || ""}
               />
             </FormControl>
