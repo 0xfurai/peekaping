@@ -86,8 +86,7 @@
     "unnamed_monitor": "Moniteur sans nom",
     "up": "En ligne",
     "update": "Mettre à jour",
-    "verifying": "Vérification...",
-    "yes": "Oui"
+    "verifying": "Vérification..."
   },
   "forms": {
     "labels": {
@@ -830,6 +829,24 @@
         "priority_label": "Priorité",
         "priority_placeholder": "Sélectionner le niveau de priorité",
         "priority_warning": "Avertissement"
+      },
+      "pagertree": {
+        "authentication_token_description": "Jeton d'authentification optionnel pour une sécurité renforcée. Il sera envoyé dans l'en-tête pagertree-token.",
+        "authentication_token_label": "Jeton d'authentification (Optionnel)",
+        "authentication_token_placeholder": "Entrez le jeton d'authentification si nécessaire",
+        "auto_resolve_alerts_description": "Résoudre automatiquement les alertes PagerTree lorsque le moniteur revient à la normale",
+        "auto_resolve_alerts_label": "Résolution automatique des alertes",
+        "how_to_get_integration_url_label": "Comment obtenir l'URL d'intégration",
+        "integration_url_description": "Entrez l'URL d'intégration de votre webhook PagerTree.",
+        "integration_url_label": "URL Webhook PagerTree",
+        "urgency_level_critical": "Critique",
+        "urgency_level_description": "Définissez le niveau d'urgence par défaut pour les alertes envoyées à PagerTree",
+        "urgency_level_high": "Haute",
+        "urgency_level_label": "Niveau d'urgence",
+        "urgency_level_low": "Basse",
+        "urgency_level_medium": "Moyenne",
+        "urgency_level_placeholder": "Sélectionner le niveau d'urgence",
+        "urgency_level_silent": "Le plus faible"
       },
       "pushbullet": {
         "access_token": "Jeton d'accès",

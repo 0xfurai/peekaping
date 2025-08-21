@@ -830,6 +830,24 @@
         "priority_placeholder": "Виберіть рівень пріоритету",
         "priority_warning": "Попередження"
       },
+      "pagertree": {
+        "authentication_token_description": "Опціональний токен автентифікації для підвищення безпеки. Він буде надісланий в заголовку pagertree-token.",
+        "authentication_token_label": "Токен автентифікації (Опціонально)",
+        "authentication_token_placeholder": "Введіть токен автентифікації, якщо потрібен",
+        "auto_resolve_alerts_description": "Автоматично вирішувати сповіщення PagerTree, коли монітор відновлює роботу",
+        "auto_resolve_alerts_label": "Автоматичне вирішення сповіщень",
+        "how_to_get_integration_url_label": "Як отримати URL інтеграції",
+        "integration_url_description": "Введіть URL інтеграції вашого вебхука PagerTree.",
+        "integration_url_label": "URL Webhook PagerTree",
+        "urgency_level_critical": "Критичний",
+        "urgency_level_description": "Встановіть рівень пріоритету за замовчуванням для сповіщень, надсилаючихся до PagerTree",
+        "urgency_level_high": "Високий",
+        "urgency_level_label": "Рівень пріоритету",
+        "urgency_level_low": "Низький",
+        "urgency_level_medium": "Середній",
+        "urgency_level_placeholder": "Виберіть рівень пріоритету",
+        "urgency_level_silent": "Найнижчий"
+      },
       "pushbullet": {
         "access_token": "Токен доступу",
         "access_token_description": "Ваш токен доступу Pushbullet. Отримайте його на",

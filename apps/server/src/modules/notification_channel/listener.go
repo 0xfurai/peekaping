@@ -56,6 +56,7 @@ func NewNotificationEventListener(p NotificationEventListenerParams) *Notificati
 	RegisterNotificationChannelProvider("twilio", providers.NewTwilioSender(p.Logger))
 	RegisterNotificationChannelProvider("sendgrid", providers.NewSendGridSender(p.Logger))
 	RegisterNotificationChannelProvider("pushbullet", providers.NewPushbulletSender(p.Logger))
+	RegisterNotificationChannelProvider("pagertree", providers.NewPagerTreeSender(p.Logger))
 
 	return &NotificationEventListener{
 		service:                    p.Service,

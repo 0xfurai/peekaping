@@ -830,6 +830,24 @@
         "priority_placeholder": "Select priority level",
         "priority_warning": "Warning"
       },
+      "pagertree": {
+        "authentication_token_description": "Optional authentication token for enhanced security. This will be sent in the pagertree-token header.",
+        "authentication_token_label": "Authentication Token (Optional)",
+        "authentication_token_placeholder": "Enter auth token if required",
+        "auto_resolve_alerts_description": "Automatically resolve PagerTree alerts when the monitor recovers",
+        "auto_resolve_alerts_label": "Auto-Resolve Alerts",
+        "how_to_get_integration_url_label": "How to get integration URL",
+        "integration_url_description": "Enter your PagerTree webhook integration URL.",
+        "integration_url_label": "PagerTree Webhook URL",
+        "urgency_level_critical": "Critical",
+        "urgency_level_description": "Set the default urgency level for alerts sent to PagerTree",
+        "urgency_level_high": "High",
+        "urgency_level_label": "Urgency Level",
+        "urgency_level_low": "Low",
+        "urgency_level_medium": "Medium",
+        "urgency_level_placeholder": "Select urgency level",
+        "urgency_level_silent": "Silent"
+      },
       "pushbullet": {
         "access_token": "Access Token",
         "access_token_description": "Your Pushbullet Access Token. Get it from",

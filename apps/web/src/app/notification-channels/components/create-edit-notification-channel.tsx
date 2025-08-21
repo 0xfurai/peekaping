@@ -42,6 +42,7 @@ import * as WhatsAppForm from "../integrations/whatsapp-form";
 import * as TwilioForm from "../integrations/twilio-form";
 import * as SendGridForm from "../integrations/sendgrid-form";
 import * as PushbulletForm from "../integrations/pushbullet-form";
+import * as PagerTreeForm from "../integrations/pagertree";
 
 import { useEffect } from "react";
 import { commonMutationErrorHandler } from "@/lib/utils";
@@ -68,6 +69,7 @@ const typeFormRegistry = {
   twilio: TwilioForm,
   sendgrid: SendGridForm,
   pushbullet: PushbulletForm,
+  pagertree: PagerTreeForm,
 };
 
 const notificationSchema = z
@@ -98,6 +100,7 @@ const notificationSchema = z
       TwilioForm.schema,
       SendGridForm.schema,
       PushbulletForm.schema,
+      PagerTreeForm.schema,
     ] as const)
   );
 
@@ -224,6 +227,7 @@ export default function CreateEditNotificationChannel({
                     | "twilio"
                     | "sendgrid"
                     | "pushbullet"
+                    | "pagertree"
                 );
               }}
               value={type}
