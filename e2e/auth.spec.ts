@@ -28,11 +28,13 @@ test('Register new user', async ({ page }) => {
   const confirmPasswordContainer = page.locator('div:has(> label:text("Confirm Password"))').first();
   const confirmPasswordField = confirmPasswordContainer.locator('input[type="password"], input[type="text"]').first();
   await confirmPasswordField.fill('TestPassword1234!');
-  
+
   // Submit the form
   await page.getByRole('button', { name: 'Create' }).click();
 
   // Wait for redirect to monitors page
   await page.waitForURL('**/monitors', { timeout: 10000 });
   await expect(page).toHaveURL(/.*\/monitors$/);
+
+  await page.context().storageState({ path: 'storageState.json' });
 });

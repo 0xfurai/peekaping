@@ -30,6 +30,7 @@ const MonitorCard = ({ monitor }: { monitor: MonitorModel }) => {
       key={monitor.id}
       className="mb-2 p-2 hover:cursor-pointer light:hover:bg-gray-100 dark:hover:bg-zinc-800"
       onClick={() => navigate(`/monitors/${monitor.id}`)}
+      data-testid="monitor-card"
     >
       <CardContent className="px-2">
         <div className="flex justify-between flex-col md:flex-row">

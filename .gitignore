@@ -48,3 +48,5 @@ tmp
 /playwright/.cache/
 
 package-lock.json
+
+storageState.json

@@ -25,7 +25,7 @@ export function SiteHeader({
       </div>
       {onCreate && (
         <div className="px-4">
-          <Button size="sm" onClick={onCreate}>
+          <Button size="sm" onClick={onCreate} data-testid="create-entity">
             <PlusIcon />
             {t("common.create")}
           </Button>
