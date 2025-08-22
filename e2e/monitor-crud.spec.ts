@@ -51,7 +51,7 @@ async function createMonitor(page: any, monitorName: string, monitorType: string
   // Submit the form
   await page.getByRole('button', { name: 'Create' }).click();
   // await page.waitForURL(/.*\/monitors/, { timeout: 10000 });
-  await page.waitForURL(/.*\/monitors\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/, { timeout: 10000 });
+  await page.waitForURL(/.*\/monitors\/[A-Za-z0-9-]+$/, { timeout: 10000 });
 
   // Go back to monitors list if we're on the detail page
   if (!page.url().endsWith('/monitors')) {
@@ -69,14 +69,14 @@ async function verifyMonitorInList(page: any, monitorName: string) {
 async function editMonitor(page: any, monitorName: string, newMonitorName: string) {
   // Click on the monitor to view details
   await page.getByText(monitorName).click();
-  await page.waitForURL(/.*\/monitors\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/, { timeout: 5000 });
+  await page.waitForURL(/.*\/monitors\/[A-Za-z0-9-]+$/, { timeout: 5000 });
 
   // Verify we're on the monitor detail page
   await expect(page.getByText(monitorName)).toBeVisible();
 
   // Edit the monitor
   await page.getByRole('button', { name: /edit/i }).click();
-  await page.waitForURL(/.*\/monitors\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/edit$/, { timeout: 5000 });
+  await page.waitForURL(/.*\/monitors\/[A-Za-z0-9-]+\/edit$/, { timeout: 5000 });
 
   // Update the monitor name
   const nameField = page.locator('input[name="name"]');
@@ -85,7 +85,7 @@ async function editMonitor(page: any, monitorName: string, newMonitorName: strin
 
   // Submit the update
   await page.getByRole('button', { name: 'Update' }).click();
-  await page.waitForURL(/.*\/monitors\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/, { timeout: 10000 });
+  await page.waitForURL(/.*\/monitors\/[A-Za-z0-9-]+$/, { timeout: 10000 });
 
   // Verify the monitor name was updated
   await expect(page.getByText(newMonitorName)).toBeVisible();
