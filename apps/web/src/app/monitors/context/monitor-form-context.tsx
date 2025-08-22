@@ -40,6 +40,8 @@ import {
   httpSchema,
   type HttpForm,
 } from "../components/http/schema";
+import { httpKeywordSchema, type HttpKeywordForm } from "../components/http-keyword/schema";
+import { httpJsonQuerySchema, type HttpJsonQueryForm } from "../components/http-json-query/schema";
 import { tcpSchema, type TCPForm } from "../components/tcp";
 import { pingSchema, type PingForm } from "../components/ping";
 import { dnsSchema, type DNSForm } from "../components/dns";
@@ -70,6 +72,8 @@ import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const formSchema = z.discriminatedUnion("type", [
   httpSchema,
+  httpKeywordSchema,
+  httpJsonQuerySchema,
   tcpSchema,
   pingSchema,
   dnsSchema,
@@ -89,6 +93,8 @@ const formSchema = z.discriminatedUnion("type", [
 
 export type MonitorForm =
   | HttpForm
+  | HttpKeywordForm
+  | HttpJsonQueryForm
   | TCPForm
   | PingForm
   | DNSForm
