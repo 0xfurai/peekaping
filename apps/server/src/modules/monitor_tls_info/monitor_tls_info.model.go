@@ -1,6 +1,7 @@
 package monitor_tls_info
 
 import (
+	"peekaping/src/modules/shared"
 	"time"
 )
 
@@ -20,3 +21,7 @@ type CreateDto struct {
 type UpdateDto struct {
 	InfoJSON string `json:"info_json" validate:"required"`
 }
+
+// Type aliases for shared types
+type CertificateInfo = shared.CertificateInfo
+type TLSInfo = shared.TLSInfo

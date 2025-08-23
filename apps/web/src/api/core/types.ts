@@ -1,9 +1,9 @@
-import type { Auth, AuthToken } from './auth';
+import type { Auth, AuthToken } from "./auth";
 import type {
   BodySerializer,
   QuerySerializer,
   QuerySerializerOptions,
-} from './bodySerializer';
+} from "./bodySerializer";
 
 export interface Client<
   RequestFn = never,
@@ -47,7 +47,7 @@ export interface Config {
    * {@link https://developer.mozilla.org/docs/Web/API/Headers/Headers#init See more}
    */
   headers?:
-    | RequestInit['headers']
+    | RequestInit["headers"]
     | Record<
         string,
         | string
@@ -64,15 +64,15 @@ export interface Config {
    * {@link https://developer.mozilla.org/docs/Web/API/fetch#method See more}
    */
   method?:
-    | 'CONNECT'
-    | 'DELETE'
-    | 'GET'
-    | 'HEAD'
-    | 'OPTIONS'
-    | 'PATCH'
-    | 'POST'
-    | 'PUT'
-    | 'TRACE';
+    | "CONNECT"
+    | "DELETE"
+    | "GET"
+    | "HEAD"
+    | "OPTIONS"
+    | "PATCH"
+    | "POST"
+    | "PUT"
+    | "TRACE";
   /**
    * A function for serializing request query parameters. By default, arrays
    * will be exploded in form style, objects will be exploded in deepObject

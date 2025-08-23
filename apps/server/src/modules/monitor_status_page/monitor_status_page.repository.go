@@ -14,6 +14,7 @@ type Repository interface {
 	AddMonitorToStatusPage(ctx context.Context, statusPageID, monitorID string, order int, active bool) (*Model, error)
 	RemoveMonitorFromStatusPage(ctx context.Context, statusPageID, monitorID string) error
 	GetMonitorsForStatusPage(ctx context.Context, statusPageID string) ([]*Model, error)
+	GetStatusPagesForMonitor(ctx context.Context, monitorID string) ([]*Model, error)
 	FindByStatusPageAndMonitor(ctx context.Context, statusPageID, monitorID string) (*Model, error)
 	UpdateMonitorOrder(ctx context.Context, statusPageID, monitorID string, order int) (*Model, error)
 	UpdateMonitorActiveStatus(ctx context.Context, statusPageID, monitorID string, active bool) (*Model, error)

@@ -18,6 +18,7 @@ type Service interface {
 	AddMonitorToStatusPage(ctx context.Context, statusPageID, monitorID string, order int, active bool) (*Model, error)
 	RemoveMonitorFromStatusPage(ctx context.Context, statusPageID, monitorID string) error
 	GetMonitorsForStatusPage(ctx context.Context, statusPageID string) ([]*Model, error)
+	GetStatusPagesForMonitor(ctx context.Context, monitorID string) ([]*Model, error)
 	FindByStatusPageAndMonitor(ctx context.Context, statusPageID, monitorID string) (*Model, error)
 	UpdateMonitorOrder(ctx context.Context, statusPageID, monitorID string, order int) (*Model, error)
 	UpdateMonitorActiveStatus(ctx context.Context, statusPageID, monitorID string, active bool) (*Model, error)
@@ -74,6 +75,10 @@ func (mr *ServiceImpl) RemoveMonitorFromStatusPage(ctx context.Context, statusPa
 
 func (mr *ServiceImpl) GetMonitorsForStatusPage(ctx context.Context, statusPageID string) ([]*Model, error) {
 	return mr.repository.GetMonitorsForStatusPage(ctx, statusPageID)
+}
+
+func (mr *ServiceImpl) GetStatusPagesForMonitor(ctx context.Context, monitorID string) ([]*Model, error) {
+	return mr.repository.GetStatusPagesForMonitor(ctx, monitorID)
 }
 
 func (mr *ServiceImpl) FindByStatusPageAndMonitor(ctx context.Context, statusPageID, monitorID string) (*Model, error) {
