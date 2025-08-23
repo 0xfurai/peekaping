@@ -348,6 +348,453 @@ const docTemplate = `{
                 }
             }
         },
+        "/badge/{monitorId}/avg-response/{duration}": {
+            "get": {
+                "produces": [
+                    "image/svg+xml"
+                ],
+                "tags": [
+                    "Badges"
+                ],
+                "summary": "Get average response time badge",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Monitor ID",
+                        "name": "monitorId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Duration in hours",
+                        "name": "duration",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Badge style",
+                        "name": "style",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Custom label",
+                        "name": "label",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Value suffix",
+                        "name": "suffix",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Badge color",
+                        "name": "color",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "SVG badge",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/badge/{monitorId}/cert-exp": {
+            "get": {
+                "produces": [
+                    "image/svg+xml"
+                ],
+                "tags": [
+                    "Badges"
+                ],
+                "summary": "Get certificate expiry badge",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Monitor ID",
+                        "name": "monitorId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Badge style",
+                        "name": "style",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Custom label",
+                        "name": "label",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Days before expiry to show warning",
+                        "name": "warnDays",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Days before expiry to show as down",
+                        "name": "downDays",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "SVG badge",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/badge/{monitorId}/ping/{duration}": {
+            "get": {
+                "produces": [
+                    "image/svg+xml"
+                ],
+                "tags": [
+                    "Badges"
+                ],
+                "summary": "Get ping badge",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Monitor ID",
+                        "name": "monitorId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Duration in hours",
+                        "name": "duration",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Badge style",
+                        "name": "style",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Custom label",
+                        "name": "label",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Value suffix",
+                        "name": "suffix",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Badge color",
+                        "name": "color",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "SVG badge",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/badge/{monitorId}/response": {
+            "get": {
+                "produces": [
+                    "image/svg+xml"
+                ],
+                "tags": [
+                    "Badges"
+                ],
+                "summary": "Get response time badge",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Monitor ID",
+                        "name": "monitorId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Badge style",
+                        "name": "style",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Custom label",
+                        "name": "label",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Value suffix",
+                        "name": "suffix",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Badge color",
+                        "name": "color",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "SVG badge",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/badge/{monitorId}/status": {
+            "get": {
+                "produces": [
+                    "image/svg+xml"
+                ],
+                "tags": [
+                    "Badges"
+                ],
+                "summary": "Get status badge",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Monitor ID",
+                        "name": "monitorId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Badge style (flat, flat-square, plastic, for-the-badge, social)",
+                        "name": "style",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Label when monitor is up",
+                        "name": "upLabel",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Label when monitor is down",
+                        "name": "downLabel",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Color when monitor is up",
+                        "name": "upColor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Color when monitor is down",
+                        "name": "downColor",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "SVG badge",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/badge/{monitorId}/uptime/{duration}": {
+            "get": {
+                "produces": [
+                    "image/svg+xml"
+                ],
+                "tags": [
+                    "Badges"
+                ],
+                "summary": "Get uptime badge",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Monitor ID",
+                        "name": "monitorId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Duration in hours (24, 720, 2160)",
+                        "name": "duration",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Badge style",
+                        "name": "style",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Custom label",
+                        "name": "label",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Value suffix",
+                        "name": "suffix",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Badge color",
+                        "name": "color",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "SVG badge",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "description": "Returns the current server health",

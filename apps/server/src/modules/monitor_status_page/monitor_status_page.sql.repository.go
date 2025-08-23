@@ -182,6 +182,24 @@ func (r *SQLRepositoryImpl) GetMonitorsForStatusPage(ctx context.Context, status
 	return models, nil
 }
 
+func (r *SQLRepositoryImpl) GetStatusPagesForMonitor(ctx context.Context, monitorID string) ([]*Model, error) {
+	var sms []*sqlModel
+	err := r.db.NewSelect().
+		Model(&sms).
+		Where("monitor_id = ?", monitorID).
+		Order("created_at DESC").
+		Scan(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var models []*Model
+	for _, sm := range sms {
+		models = append(models, toDomainModelFromSQL(sm))
+	}
+	return models, nil
+}
+
 func (r *SQLRepositoryImpl) FindByStatusPageAndMonitor(ctx context.Context, statusPageID, monitorID string) (*Model, error) {
 	sm := new(sqlModel)
 	err := r.db.NewSelect().

@@ -1444,6 +1444,301 @@ paths:
       summary: Register new admin
       tags:
       - Auth
+  /badge/{monitorId}/avg-response/{duration}:
+    get:
+      parameters:
+      - description: Monitor ID
+        in: path
+        name: monitorId
+        required: true
+        type: string
+      - description: Duration in hours
+        in: path
+        name: duration
+        required: true
+        type: integer
+      - description: Badge style
+        in: query
+        name: style
+        type: string
+      - description: Custom label
+        in: query
+        name: label
+        type: string
+      - description: Value suffix
+        in: query
+        name: suffix
+        type: string
+      - description: Badge color
+        in: query
+        name: color
+        type: string
+      produces:
+      - image/svg+xml
+      responses:
+        "200":
+          description: SVG badge
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      summary: Get average response time badge
+      tags:
+      - Badges
+  /badge/{monitorId}/cert-exp:
+    get:
+      parameters:
+      - description: Monitor ID
+        in: path
+        name: monitorId
+        required: true
+        type: string
+      - description: Badge style
+        in: query
+        name: style
+        type: string
+      - description: Custom label
+        in: query
+        name: label
+        type: string
+      - description: Days before expiry to show warning
+        in: query
+        name: warnDays
+        type: integer
+      - description: Days before expiry to show as down
+        in: query
+        name: downDays
+        type: integer
+      produces:
+      - image/svg+xml
+      responses:
+        "200":
+          description: SVG badge
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      summary: Get certificate expiry badge
+      tags:
+      - Badges
+  /badge/{monitorId}/ping/{duration}:
+    get:
+      parameters:
+      - description: Monitor ID
+        in: path
+        name: monitorId
+        required: true
+        type: string
+      - description: Duration in hours
+        in: path
+        name: duration
+        required: true
+        type: integer
+      - description: Badge style
+        in: query
+        name: style
+        type: string
+      - description: Custom label
+        in: query
+        name: label
+        type: string
+      - description: Value suffix
+        in: query
+        name: suffix
+        type: string
+      - description: Badge color
+        in: query
+        name: color
+        type: string
+      produces:
+      - image/svg+xml
+      responses:
+        "200":
+          description: SVG badge
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      summary: Get ping badge
+      tags:
+      - Badges
+  /badge/{monitorId}/response:
+    get:
+      parameters:
+      - description: Monitor ID
+        in: path
+        name: monitorId
+        required: true
+        type: string
+      - description: Badge style
+        in: query
+        name: style
+        type: string
+      - description: Custom label
+        in: query
+        name: label
+        type: string
+      - description: Value suffix
+        in: query
+        name: suffix
+        type: string
+      - description: Badge color
+        in: query
+        name: color
+        type: string
+      produces:
+      - image/svg+xml
+      responses:
+        "200":
+          description: SVG badge
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      summary: Get response time badge
+      tags:
+      - Badges
+  /badge/{monitorId}/status:
+    get:
+      parameters:
+      - description: Monitor ID
+        in: path
+        name: monitorId
+        required: true
+        type: string
+      - description: Badge style (flat, flat-square, plastic, for-the-badge, social)
+        in: query
+        name: style
+        type: string
+      - description: Label when monitor is up
+        in: query
+        name: upLabel
+        type: string
+      - description: Label when monitor is down
+        in: query
+        name: downLabel
+        type: string
+      - description: Color when monitor is up
+        in: query
+        name: upColor
+        type: string
+      - description: Color when monitor is down
+        in: query
+        name: downColor
+        type: string
+      produces:
+      - image/svg+xml
+      responses:
+        "200":
+          description: SVG badge
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      summary: Get status badge
+      tags:
+      - Badges
+  /badge/{monitorId}/uptime/{duration}:
+    get:
+      parameters:
+      - description: Monitor ID
+        in: path
+        name: monitorId
+        required: true
+        type: string
+      - description: Duration in hours (24, 720, 2160)
+        in: path
+        name: duration
+        required: true
+        type: integer
+      - description: Badge style
+        in: query
+        name: style
+        type: string
+      - description: Custom label
+        in: query
+        name: label
+        type: string
+      - description: Value suffix
+        in: query
+        name: suffix
+        type: string
+      - description: Badge color
+        in: query
+        name: color
+        type: string
+      produces:
+      - image/svg+xml
+      responses:
+        "200":
+          description: SVG badge
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      summary: Get uptime badge
+      tags:
+      - Badges
   /health:
     get:
       description: Returns the current server health

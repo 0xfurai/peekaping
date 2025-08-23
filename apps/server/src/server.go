@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"peekaping/src/config"
 	"peekaping/src/modules/auth"
+	"peekaping/src/modules/badge"
 	"peekaping/src/modules/healthcheck"
 	"peekaping/src/modules/heartbeat"
 	"peekaping/src/modules/maintenance"
@@ -74,6 +75,8 @@ func ProvideServer(
 	statusPageController *status_page.Controller,
 	tagRoute *tag.Route,
 	tagController *tag.Controller,
+	badgeRoute *badge.Route,
+	badgeController *badge.Controller,
 ) *Server {
 	server := gin.Default()
 	// server := gin.New()
@@ -105,6 +108,7 @@ func ProvideServer(
 	maintenanceRoute.ConnectRoute(router, maintenanceController)
 	statusPageRoute.ConnectRoute(router, statusPageController)
 	tagRoute.ConnectRoute(router, tagController)
+	badgeRoute.ConnectRoute(router, badgeController)
 
 	// Register push endpoint
 	healthcheck.RegisterPushEndpoint(router, monitorService, heartbeatService, healthcheckSupervisor, logger)

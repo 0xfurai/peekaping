@@ -10,7 +10,7 @@ import (
 
 type Service interface {
 	// GetTLSInfo retrieves TLS info for a monitor
-	GetTLSInfo(ctx context.Context, monitorID string) (string, error)
+	GetTLSInfo(ctx context.Context, monitorID string) (*TLSInfo, error)
 
 	// StoreTLSInfo stores TLS info for a monitor
 	StoreTLSInfo(ctx context.Context, monitorID string, infoJSON string) error
@@ -40,19 +40,26 @@ func NewService(repository Repository, logger *zap.SugaredLogger) Service {
 	}
 }
 
-func (s *ServiceImpl) GetTLSInfo(ctx context.Context, monitorID string) (string, error) {
+func (s *ServiceImpl) GetTLSInfo(ctx context.Context, monitorID string) (*TLSInfo, error) {
 	s.logger.Debugf("Getting TLS info for monitor: %s", monitorID)
 
 	model, err := s.repository.GetByMonitorID(ctx, monitorID)
 	if err != nil {
-		return "", fmt.Errorf("failed to get TLS info: %w", err)
+		return nil, fmt.Errorf("failed to get TLS info: %w", err)
 	}
 
 	if model == nil {
-		return "", nil // No TLS info found
+		return nil, nil // No TLS info found
 	}
 
-	return model.InfoJSON, nil
+	// Parse the JSON string into TLSInfo struct
+	var tlsInfo TLSInfo
+	if err := json.Unmarshal([]byte(model.InfoJSON), &tlsInfo); err != nil {
+		s.logger.Errorf("Failed to unmarshal TLS info for monitor %s: %v", monitorID, err)
+		return nil, fmt.Errorf("failed to unmarshal TLS info: %w", err)
+	}
+
+	return &tlsInfo, nil
 }
 
 func (s *ServiceImpl) StoreTLSInfo(ctx context.Context, monitorID string, infoJSON string) error {
@@ -82,17 +89,17 @@ func (s *ServiceImpl) StoreTLSInfoObject(ctx context.Context, monitorID string, 
 func (s *ServiceImpl) GetTLSInfoObject(ctx context.Context, monitorID string, obj interface{}) error {
 	s.logger.Debugf("Getting TLS info object for monitor: %s", monitorID)
 
-	infoJSON, err := s.GetTLSInfo(ctx, monitorID)
+	model, err := s.repository.GetByMonitorID(ctx, monitorID)
 	if err != nil {
 		return fmt.Errorf("failed to get TLS info: %w", err)
 	}
 
-	if infoJSON == "" {
+	if model == nil {
 		return nil // No TLS info found
 	}
 
-	// Unmarshal JSON to object
-	if err := json.Unmarshal([]byte(infoJSON), obj); err != nil {
+	// Unmarshal JSON directly to target object
+	if err := json.Unmarshal([]byte(model.InfoJSON), obj); err != nil {
 		s.logger.Errorf("Failed to unmarshal TLS info for monitor %s: %v", monitorID, err)
 		return fmt.Errorf("failed to unmarshal TLS info: %w", err)
 	}

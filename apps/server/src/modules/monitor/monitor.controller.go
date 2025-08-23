@@ -1,7 +1,6 @@
 package monitor
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"peekaping/src/modules/monitor_notification"
@@ -716,7 +715,7 @@ func (ic *MonitorController) GetTLSInfo(ctx *gin.Context) {
 	}
 
 	// Get TLS info for the monitor
-	tlsInfoJSON, err := ic.tlsInfoService.GetTLSInfo(ctx, id)
+	tlsInfo, err := ic.tlsInfoService.GetTLSInfo(ctx, id)
 	if err != nil {
 		ic.logger.Errorw("Failed to get TLS info", "monitorID", id, "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -724,16 +723,8 @@ func (ic *MonitorController) GetTLSInfo(ctx *gin.Context) {
 	}
 
 	// If no TLS info found, return null/empty
-	if tlsInfoJSON == "" {
+	if tlsInfo == nil {
 		ctx.JSON(http.StatusOK, utils.NewSuccessResponse[any]("success", nil))
-		return
-	}
-
-	// Parse the JSON to validate it and return as structured data
-	var tlsInfo map[string]interface{}
-	if err := json.Unmarshal([]byte(tlsInfoJSON), &tlsInfo); err != nil {
-		ic.logger.Errorw("Failed to parse TLS info JSON", "monitorID", id, "error", err)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
 	}
 
