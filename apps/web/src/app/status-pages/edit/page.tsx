@@ -1,59 +1,22 @@
 import Layout from "@/layout";
-import CreateEditForm, { type StatusPageForm } from "../components/create-edit-form";
-import { useNavigate, useParams } from "react-router-dom";
+import CreateEditForm from "../components/create-edit-form";
+import { useParams } from "react-router-dom";
 import { BackButton } from "@/components/back-button";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   getMonitorsBatchOptions,
   getStatusPagesByIdOptions,
-  getStatusPagesByIdQueryKey,
-  getStatusPagesInfiniteQueryKey,
-  patchStatusPagesByIdMutation,
 } from "@/api/@tanstack/react-query.gen";
-import { toast } from "sonner";
-import { commonMutationErrorHandler } from "@/lib/utils";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const EditStatusPageContent = () => {
   const { id: statusPageId } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { t } = useLocalizedTranslation();
 
   const { data: statusPage, isLoading: statusPageIsLoading } = useQuery({
     ...getStatusPagesByIdOptions({ path: { id: statusPageId! } }),
     enabled: !!statusPageId,
   });
-
-  const editStatusPageMutation = useMutation({
-    ...patchStatusPagesByIdMutation({
-      path: {
-        id: statusPageId!,
-      },
-    }),
-    onSuccess: () => {
-      toast.success(t("status_pages.messages.updated_successfully"));
-      queryClient.invalidateQueries({
-        queryKey: getStatusPagesInfiniteQueryKey(),
-      });
-      queryClient.removeQueries({
-        queryKey: getStatusPagesByIdQueryKey({ path: { id: statusPageId! } }),
-      });
-      navigate("/status-pages");
-    },
-    onError: commonMutationErrorHandler(t("status_pages.messages.update_failed")),
-  });
-
-  const handleSubmit = (data: StatusPageForm) => {
-    const { monitors, ...rest } = data;
-    editStatusPageMutation.mutate({
-      body: {
-        ...rest,
-        monitor_ids: monitors?.map((monitor) => monitor.value),
-      },
-      path: { id: statusPageId! },
-    });
-  };
 
   const { data: monitorsData, isLoading: monitorsDataIsLoading } = useQuery({
     ...getMonitorsBatchOptions({
@@ -92,7 +55,7 @@ const EditStatusPageContent = () => {
 
         <CreateEditForm
           mode="edit"
-          onSubmit={handleSubmit}
+          id={statusPageId}
           initialValues={{
             title: statusPageData.title || "",
             slug: statusPageData.slug || "",
