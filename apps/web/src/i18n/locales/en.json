@@ -727,6 +727,21 @@
         "grafana_oncall_url_label": "Grafana OnCall URL",
         "learn_more_label": "Learn more about Grafana OnCall webhooks"
       },
+      "line": {
+        "channel_access_token_label": "Channel Access Token (Long-lived)",
+        "channel_access_token_placeholder": "Enter your LINE channel access token",
+        "channel_access_token_description": "You can get your channel access token from the",
+        "channel_access_token_description_2": "Navigate to your channel settings and look for",
+        "user_id_label": "Your User ID",
+        "user_id_placeholder": "Enter your LINE User ID",
+        "user_id_description": "You can find your User ID in the",
+        "user_id_description_2": "Navigate to your channel settings and look for",
+        "use_template_label": "Use Message Template",
+        "use_template_description": "Enable to use a custom message template for notifications",
+        "template_label": "Message Template",
+        "template_placeholder": "Enter your custom message template",
+        "template_description": "Customize the message format. Available variables"
+      },
       "matrix": {
         "access_token_description": "Your Matrix access token for authentication",
         "access_token_label": "Access Token",

@@ -728,6 +728,21 @@
         "grafana_oncall_url_label": "URL Grafana OnCall",
         "learn_more_label": "En savoir plus sur les webhooks Grafana OnCall"
       },
+      "line": {
+        "channel_access_token_label": "Jeton d'accès au canal (Longue durée)",
+        "channel_access_token_placeholder": "Entrez votre jeton d'accès au canal LINE",
+        "channel_access_token_description": "Vous pouvez obtenir votre jeton d'accès au canal depuis le",
+        "channel_access_token_description_2": "Accédez aux paramètres de votre canal et recherchez",
+        "user_id_label": "Votre ID utilisateur",
+        "user_id_placeholder": "Entrez votre ID utilisateur LINE",
+        "user_id_description": "Vous pouvez trouver votre ID utilisateur dans le",
+        "user_id_description_2": "Accédez aux paramètres de votre canal et recherchez",
+        "use_template_label": "Utiliser un modèle de message",
+        "use_template_description": "Activer pour utiliser un modèle de message personnalisé pour les notifications",
+        "template_label": "Modèle de message",
+        "template_placeholder": "Entrez votre modèle de message personnalisé",
+        "template_description": "Personnaliser le format du message. Variables disponibles"
+      },
       "matrix": {
         "access_token_description": "Votre jeton d'accès Matrix pour l'authentification",
         "access_token_label": "Jeton d'accès",

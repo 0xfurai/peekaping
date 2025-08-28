@@ -727,6 +727,21 @@
         "grafana_oncall_url_label": "URL Grafana OnCall",
         "learn_more_label": "Дізнайтеся більше про вебхуки Grafana OnCall"
       },
+      "line": {
+        "channel_access_token_label": "Токен доступу до каналу (Довгостроковий)",
+        "channel_access_token_placeholder": "Введіть токен доступу до каналу LINE",
+        "channel_access_token_description": "Ви можете отримати токен доступу до каналу з",
+        "channel_access_token_description_2": "Перейдіть до налаштувань каналу та знайдіть",
+        "user_id_label": "Ваш ID користувача",
+        "user_id_placeholder": "Введіть ваш ID користувача LINE",
+        "user_id_description": "Ви можете знайти ваш ID користувача в",
+        "user_id_description_2": "Перейдіть до налаштувань каналу та знайдіть",
+        "use_template_label": "Використовувати шаблон повідомлення",
+        "use_template_description": "Увімкніть для використання власного шаблону повідомлень",
+        "template_label": "Шаблон повідомлення",
+        "template_placeholder": "Введіть ваш власний шаблон повідомлення",
+        "template_description": "Налаштуйте формат повідомлення. Доступні змінні"
+      },
       "matrix": {
         "access_token_description": "Ваш токен доступу Matrix для автентифікації",
         "access_token_label": "Токен доступу",
