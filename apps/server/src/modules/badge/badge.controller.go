@@ -242,59 +242,6 @@ func (c *Controller) GetPingBadge(ctx *gin.Context) {
 	ctx.String(http.StatusOK, svg)
 }
 
-// @Router		/badge/{monitorId}/avg-response/{duration} [get]
-// @Summary		Get average response time badge
-// @Tags			Badges
-// @Produce		image/svg+xml
-// @Param			monitorId	path	string	true	"Monitor ID"
-// @Param			duration	path	int		true	"Duration in hours"
-// @Param			style		query	string	false	"Badge style"
-// @Param			label		query	string	false	"Custom label"
-// @Param			suffix		query	string	false	"Value suffix"
-// @Param			color		query	string	false	"Badge color"
-// @Success		200	{string}	string	"SVG badge"
-// @Failure		400	{object}	utils.APIError[any]
-// @Failure		404	{object}	utils.APIError[any]
-// @Failure		500	{object}	utils.APIError[any]
-func (c *Controller) GetAvgResponseBadge(ctx *gin.Context) {
-	monitorID := ctx.Param("monitorId")
-	if monitorID == "" {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Monitor ID is required"))
-		return
-	}
-
-	durationStr := ctx.Param("duration")
-	duration, err := strconv.Atoi(durationStr)
-	if err != nil || duration <= 0 {
-		duration = 24 // Default to 24 hours
-	}
-
-	// Check if monitor is public
-	isPublic, err := c.service.IsMonitorPublic(ctx, monitorID)
-	if err != nil {
-		c.logger.Errorw("Failed to check if monitor is public", "error", err, "monitorID", monitorID)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
-	}
-	if !isPublic {
-		ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Monitor not found or not public"))
-		return
-	}
-
-	options := c.parseQueryOptions(ctx)
-
-	svg, err := c.service.GenerateAvgResponseBadge(ctx, monitorID, duration, options)
-	if err != nil {
-		c.logger.Errorw("Failed to generate avg-response badge", "error", err, "monitorID", monitorID)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Failed to generate badge"))
-		return
-	}
-
-	ctx.Header("Content-Type", "image/svg+xml")
-	ctx.Header("Cache-Control", "no-cache, no-store, must-revalidate")
-	ctx.String(http.StatusOK, svg)
-}
-
 // @Router		/badge/{monitorId}/cert-exp [get]
 // @Summary		Get certificate expiry badge
 // @Tags			Badges

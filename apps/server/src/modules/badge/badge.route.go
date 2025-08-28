@@ -29,10 +29,6 @@ func (r *Route) ConnectRoute(rg *gin.RouterGroup, controller *Controller) {
 		badge.GET("/:monitorId/ping/:duration", r.controller.GetPingBadge)
 		badge.GET("/:monitorId/ping", r.controller.GetPingBadge) // Default duration
 
-		// Average response badge with duration
-		badge.GET("/:monitorId/avg-response/:duration", r.controller.GetAvgResponseBadge)
-		badge.GET("/:monitorId/avg-response", r.controller.GetAvgResponseBadge) // Default duration
-
 		// Certificate expiry badge
 		badge.GET("/:monitorId/cert-exp", r.controller.GetCertExpBadge)
 

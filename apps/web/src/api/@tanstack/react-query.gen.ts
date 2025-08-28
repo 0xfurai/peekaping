@@ -9,7 +9,6 @@ import {
   putAuthPassword,
   postAuthRefresh,
   postAuthRegister,
-  getBadgeByMonitorIdAvgResponseByDuration,
   getBadgeByMonitorIdCertExp,
   getBadgeByMonitorIdPingByDuration,
   getBadgeByMonitorIdResponse,
@@ -97,7 +96,6 @@ import type {
   PostAuthRegisterData,
   PostAuthRegisterError,
   PostAuthRegisterResponse,
-  GetBadgeByMonitorIdAvgResponseByDurationData,
   GetBadgeByMonitorIdCertExpData,
   GetBadgeByMonitorIdPingByDurationData,
   GetBadgeByMonitorIdResponseData,
@@ -594,30 +592,6 @@ export const postAuthRegisterMutation = (
     },
   };
   return mutationOptions;
-};
-
-export const getBadgeByMonitorIdAvgResponseByDurationQueryKey = (
-  options: Options<GetBadgeByMonitorIdAvgResponseByDurationData>,
-) => createQueryKey("getBadgeByMonitorIdAvgResponseByDuration", options);
-
-/**
- * Get average response time badge
- */
-export const getBadgeByMonitorIdAvgResponseByDurationOptions = (
-  options: Options<GetBadgeByMonitorIdAvgResponseByDurationData>,
-) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getBadgeByMonitorIdAvgResponseByDuration({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: getBadgeByMonitorIdAvgResponseByDurationQueryKey(options),
-  });
 };
 
 export const getBadgeByMonitorIdCertExpQueryKey = (

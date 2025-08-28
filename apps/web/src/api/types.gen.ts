@@ -841,67 +841,6 @@ export type PostAuthRegisterResponses = {
 export type PostAuthRegisterResponse =
   PostAuthRegisterResponses[keyof PostAuthRegisterResponses];
 
-export type GetBadgeByMonitorIdAvgResponseByDurationData = {
-  body?: never;
-  path: {
-    /**
-     * Monitor ID
-     */
-    monitorId: string;
-    /**
-     * Duration in hours
-     */
-    duration: number;
-  };
-  query?: {
-    /**
-     * Badge style
-     */
-    style?: string;
-    /**
-     * Custom label
-     */
-    label?: string;
-    /**
-     * Value suffix
-     */
-    suffix?: string;
-    /**
-     * Badge color
-     */
-    color?: string;
-  };
-  url: "/badge/{monitorId}/avg-response/{duration}";
-};
-
-export type GetBadgeByMonitorIdAvgResponseByDurationErrors = {
-  /**
-   * Bad Request
-   */
-  400: UtilsApiError;
-  /**
-   * Not Found
-   */
-  404: UtilsApiError;
-  /**
-   * Internal Server Error
-   */
-  500: UtilsApiError;
-};
-
-export type GetBadgeByMonitorIdAvgResponseByDurationError =
-  GetBadgeByMonitorIdAvgResponseByDurationErrors[keyof GetBadgeByMonitorIdAvgResponseByDurationErrors];
-
-export type GetBadgeByMonitorIdAvgResponseByDurationResponses = {
-  /**
-   * SVG badge
-   */
-  200: Blob | File;
-};
-
-export type GetBadgeByMonitorIdAvgResponseByDurationResponse =
-  GetBadgeByMonitorIdAvgResponseByDurationResponses[keyof GetBadgeByMonitorIdAvgResponseByDurationResponses];
-
 export type GetBadgeByMonitorIdCertExpData = {
   body?: never;
   path: {

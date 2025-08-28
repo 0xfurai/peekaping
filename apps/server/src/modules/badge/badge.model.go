@@ -10,12 +10,11 @@ import (
 type BadgeType string
 
 const (
-	BadgeTypeStatus      BadgeType = "status"
-	BadgeTypeUptime      BadgeType = "uptime"
-	BadgeTypePing        BadgeType = "ping"
-	BadgeTypeAvgResponse BadgeType = "avg-response"
-	BadgeTypeCertExp     BadgeType = "cert-exp"
-	BadgeTypeResponse    BadgeType = "response"
+	BadgeTypeStatus   BadgeType = "status"
+	BadgeTypeUptime   BadgeType = "uptime"
+	BadgeTypePing     BadgeType = "ping"
+	BadgeTypeCertExp  BadgeType = "cert-exp"
+	BadgeTypeResponse BadgeType = "response"
 )
 
 // BadgeStyle represents the visual style of the badge

@@ -18,7 +18,6 @@ type Service interface {
 	GenerateStatusBadge(ctx context.Context, monitorID string, options *BadgeOptions) (string, error)
 	GenerateUptimeBadge(ctx context.Context, monitorID string, duration int, options *BadgeOptions) (string, error)
 	GeneratePingBadge(ctx context.Context, monitorID string, duration int, options *BadgeOptions) (string, error)
-	GenerateAvgResponseBadge(ctx context.Context, monitorID string, duration int, options *BadgeOptions) (string, error)
 	GenerateCertExpBadge(ctx context.Context, monitorID string, options *BadgeOptions) (string, error)
 	GenerateResponseBadge(ctx context.Context, monitorID string, options *BadgeOptions) (string, error)
 
@@ -416,11 +415,6 @@ func (s *ServiceImpl) GeneratePingBadge(ctx context.Context, monitorID string, d
 	}
 
 	return s.svgGenerator.GenerateBadge(badge), nil
-}
-
-func (s *ServiceImpl) GenerateAvgResponseBadge(ctx context.Context, monitorID string, duration int, options *BadgeOptions) (string, error) {
-	// This is essentially the same as ping badge for most monitor types
-	return s.GeneratePingBadge(ctx, monitorID, duration, options)
 }
 
 func (s *ServiceImpl) GenerateCertExpBadge(ctx context.Context, monitorID string, options *BadgeOptions) (string, error) {

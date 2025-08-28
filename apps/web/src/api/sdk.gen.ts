@@ -23,9 +23,6 @@ import type {
   PostAuthRegisterData,
   PostAuthRegisterResponses,
   PostAuthRegisterErrors,
-  GetBadgeByMonitorIdAvgResponseByDurationData,
-  GetBadgeByMonitorIdAvgResponseByDurationResponses,
-  GetBadgeByMonitorIdAvgResponseByDurationErrors,
   GetBadgeByMonitorIdCertExpData,
   GetBadgeByMonitorIdCertExpResponses,
   GetBadgeByMonitorIdCertExpErrors,
@@ -362,25 +359,6 @@ export const postAuthRegister = <ThrowOnError extends boolean = false>(
       "Content-Type": "application/json",
       ...options.headers,
     },
-  });
-};
-
-/**
- * Get average response time badge
- */
-export const getBadgeByMonitorIdAvgResponseByDuration = <
-  ThrowOnError extends boolean = false,
->(
-  options: Options<GetBadgeByMonitorIdAvgResponseByDurationData, ThrowOnError>,
-) => {
-  return (options.client ?? _heyApiClient).get<
-    GetBadgeByMonitorIdAvgResponseByDurationResponses,
-    GetBadgeByMonitorIdAvgResponseByDurationErrors,
-    ThrowOnError
-  >({
-    responseType: "blob",
-    url: "/badge/{monitorId}/avg-response/{duration}",
-    ...options,
   });
 };
 

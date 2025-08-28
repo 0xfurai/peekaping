@@ -61,16 +61,7 @@ https://your-peekaping-instance.com/api/v1/badge/{monitorId}/ping/{duration}
 
 **Example:** `Ping (30d): 45ms`
 
-### Average Response Badge
 
-Displays average response time (alias for ping badge).
-
-```
-https://your-peekaping-instance.com/api/v1/badge/{monitorId}/avg-response
-https://your-peekaping-instance.com/api/v1/badge/{monitorId}/avg-response/{duration}
-```
-
-**Example:** `Avg Response (90d): 67ms`
 
 ### Certificate Expiry Badge
 
