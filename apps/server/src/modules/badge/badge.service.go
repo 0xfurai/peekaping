@@ -105,24 +105,6 @@ func (s *ServiceImpl) GetMonitorBadgeData(ctx context.Context, monitorID string)
 
 	// Get uptime statistics
 	now := time.Now().UTC()
-	periods := map[string]time.Duration{
-		"24h": 24 * time.Hour,
-		"30d": 30 * 24 * time.Hour,
-		"90d": 90 * 24 * time.Hour,
-	}
-
-	uptimeStats, err := s.heartbeatService.FindUptimeStatsByMonitorID(ctx, monitorID, periods, now)
-	if err == nil && uptimeStats != nil {
-		if uptime24h, exists := uptimeStats["24h"]; exists {
-			data.Uptime24h = &uptime24h
-		}
-		if uptime30d, exists := uptimeStats["30d"]; exists {
-			data.Uptime30d = &uptime30d
-		}
-		if uptime90d, exists := uptimeStats["90d"]; exists {
-			data.Uptime90d = &uptime90d
-		}
-	}
 
 	// Get ping statistics using stats service
 	since24h := now.Add(-24 * time.Hour)
@@ -136,6 +118,9 @@ func (s *ServiceImpl) GetMonitorBadgeData(ctx context.Context, monitorID string)
 		if summary24h.AvgPing != nil {
 			data.AvgPing24h = summary24h.AvgPing
 		}
+		if summary24h.Uptime != nil {
+			data.Uptime24h = summary24h.Uptime
+		}
 	}
 
 	// Get 30d ping stats
@@ -144,6 +129,9 @@ func (s *ServiceImpl) GetMonitorBadgeData(ctx context.Context, monitorID string)
 		summary30d := s.statsService.StatPointsSummary(stats30d)
 		if summary30d.AvgPing != nil {
 			data.AvgPing30d = summary30d.AvgPing
+		}
+		if summary30d.Uptime != nil {
+			data.Uptime30d = summary30d.Uptime
 		}
 	}
 
@@ -154,6 +142,9 @@ func (s *ServiceImpl) GetMonitorBadgeData(ctx context.Context, monitorID string)
 		if summary90d.AvgPing != nil {
 			data.AvgPing90d = summary90d.AvgPing
 		}
+		if summary90d.Uptime != nil {
+			data.Uptime90d = summary90d.Uptime
+		}
 	}
 
 	// Get latest heartbeat for last ping
@@ -163,16 +154,6 @@ func (s *ServiceImpl) GetMonitorBadgeData(ctx context.Context, monitorID string)
 	}
 
 	// Get TLS certificate info
-	// var tlsInfo struct {
-	// 	ExpiryDate *time.Time `json:"expiry_date"`
-	// }
-	// err = s.tlsInfoService.GetTLSInfoObject(ctx, monitorID, &tlsInfo)
-	// fmt.Println("tlsInfo", tlsInfo.ExpiryDate)
-	// if err == nil && tlsInfo.ExpiryDate != nil {
-	// 	data.CertExpiryDate = tlsInfo.ExpiryDate
-	// 	days := int(time.Until(*tlsInfo.ExpiryDate).Hours() / 24)
-	// 	data.CertExpiryDays = &days
-	// }
 	tlsInfo, err := s.tlsInfoService.GetTLSInfo(ctx, monitorID)
 	if err != nil {
 		return nil, err
