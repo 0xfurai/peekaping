@@ -169,8 +169,119 @@ func (s *ServiceImpl) GetMonitorBadgeData(ctx context.Context, monitorID string)
 	return data, nil
 }
 
+// getMonitorBasicInfo gets only basic monitor information (for status badges)
+func (s *ServiceImpl) getMonitorBasicInfo(ctx context.Context, monitorID string) (*MonitorBadgeData, error) {
+	monitorModel, err := s.monitorService.FindByID(ctx, monitorID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get monitor: %w", err)
+	}
+	if monitorModel == nil {
+		return nil, fmt.Errorf("monitor not found")
+	}
+
+	return &MonitorBadgeData{
+		ID:     monitorModel.ID,
+		Name:   monitorModel.Name,
+		Status: int(monitorModel.Status),
+		Active: monitorModel.Active,
+	}, nil
+}
+
+// getMonitorWithStats gets basic info plus stats for the specified duration
+func (s *ServiceImpl) getMonitorWithStats(ctx context.Context, monitorID string, duration int) (*MonitorBadgeData, error) {
+	data, err := s.getMonitorBasicInfo(ctx, monitorID)
+	if err != nil {
+		return nil, err
+	}
+
+	now := time.Now().UTC()
+
+	// Only fetch the specific duration stats needed
+	if duration <= 24 {
+		// Get 24h stats only
+		since24h := now.Add(-24 * time.Hour)
+		stats24h, err := s.statsService.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, since24h, now, stats.StatHourly)
+		if err == nil && len(stats24h) > 0 {
+			summary24h := s.statsService.StatPointsSummary(stats24h)
+			if summary24h.AvgPing != nil {
+				data.AvgPing24h = summary24h.AvgPing
+			}
+			if summary24h.Uptime != nil {
+				data.Uptime24h = summary24h.Uptime
+			}
+		}
+	} else if duration <= 720 { // 30 days
+		// Get 30d stats only
+		since30d := now.Add(-30 * 24 * time.Hour)
+		stats30d, err := s.statsService.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, since30d, now, stats.StatDaily)
+		if err == nil && len(stats30d) > 0 {
+			summary30d := s.statsService.StatPointsSummary(stats30d)
+			if summary30d.AvgPing != nil {
+				data.AvgPing30d = summary30d.AvgPing
+			}
+			if summary30d.Uptime != nil {
+				data.Uptime30d = summary30d.Uptime
+			}
+		}
+	} else {
+		// Get 90d stats only
+		since90d := now.Add(-90 * 24 * time.Hour)
+		stats90d, err := s.statsService.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, since90d, now, stats.StatDaily)
+		if err == nil && len(stats90d) > 0 {
+			summary90d := s.statsService.StatPointsSummary(stats90d)
+			if summary90d.AvgPing != nil {
+				data.AvgPing90d = summary90d.AvgPing
+			}
+			if summary90d.Uptime != nil {
+				data.Uptime90d = summary90d.Uptime
+			}
+		}
+	}
+
+	return data, nil
+}
+
+// getMonitorWithCertInfo gets basic info plus certificate information
+func (s *ServiceImpl) getMonitorWithCertInfo(ctx context.Context, monitorID string) (*MonitorBadgeData, error) {
+	data, err := s.getMonitorBasicInfo(ctx, monitorID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get TLS certificate info
+	tlsInfo, err := s.tlsInfoService.GetTLSInfo(ctx, monitorID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Extract certificate expiry information from TLS info
+	if tlsInfo != nil && tlsInfo.CertInfo != nil {
+		expiryDate := tlsInfo.CertInfo.ValidTo
+		data.CertExpiryDays = &tlsInfo.CertInfo.DaysRemaining
+		data.CertExpiryDate = &expiryDate
+	}
+
+	return data, nil
+}
+
+// getMonitorWithLastPing gets basic info plus the latest heartbeat
+func (s *ServiceImpl) getMonitorWithLastPing(ctx context.Context, monitorID string) (*MonitorBadgeData, error) {
+	data, err := s.getMonitorBasicInfo(ctx, monitorID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get latest heartbeat for last ping
+	heartbeats, err := s.heartbeatService.FindByMonitorIDPaginated(ctx, monitorID, 1, 0, nil, true)
+	if err == nil && len(heartbeats) > 0 {
+		data.LastPing = &heartbeats[0].Ping
+	}
+
+	return data, nil
+}
+
 func (s *ServiceImpl) GenerateStatusBadge(ctx context.Context, monitorID string, options *BadgeOptions) (string, error) {
-	data, err := s.GetMonitorBadgeData(ctx, monitorID)
+	data, err := s.getMonitorBasicInfo(ctx, monitorID)
 	if err != nil {
 		return "", err
 	}
@@ -192,7 +303,7 @@ func (s *ServiceImpl) GenerateStatusBadge(ctx context.Context, monitorID string,
 }
 
 func (s *ServiceImpl) GenerateUptimeBadge(ctx context.Context, monitorID string, duration int, options *BadgeOptions) (string, error) {
-	data, err := s.GetMonitorBadgeData(ctx, monitorID)
+	data, err := s.getMonitorWithStats(ctx, monitorID, duration)
 	if err != nil {
 		return "", err
 	}
@@ -251,7 +362,7 @@ func (s *ServiceImpl) GenerateUptimeBadge(ctx context.Context, monitorID string,
 }
 
 func (s *ServiceImpl) GeneratePingBadge(ctx context.Context, monitorID string, duration int, options *BadgeOptions) (string, error) {
-	data, err := s.GetMonitorBadgeData(ctx, monitorID)
+	data, err := s.getMonitorWithStats(ctx, monitorID, duration)
 	if err != nil {
 		return "", err
 	}
@@ -313,7 +424,7 @@ func (s *ServiceImpl) GenerateAvgResponseBadge(ctx context.Context, monitorID st
 }
 
 func (s *ServiceImpl) GenerateCertExpBadge(ctx context.Context, monitorID string, options *BadgeOptions) (string, error) {
-	data, err := s.GetMonitorBadgeData(ctx, monitorID)
+	data, err := s.getMonitorWithCertInfo(ctx, monitorID)
 	if err != nil {
 		return "", err
 	}
@@ -348,7 +459,7 @@ func (s *ServiceImpl) GenerateCertExpBadge(ctx context.Context, monitorID string
 }
 
 func (s *ServiceImpl) GenerateResponseBadge(ctx context.Context, monitorID string, options *BadgeOptions) (string, error) {
-	data, err := s.GetMonitorBadgeData(ctx, monitorID)
+	data, err := s.getMonitorWithLastPing(ctx, monitorID)
 	if err != nil {
 		return "", err
 	}
