@@ -181,8 +181,7 @@ func (s *ServiceImpl) GetMonitorBadgeData(ctx context.Context, monitorID string)
 	// Extract certificate expiry information from TLS info
 	if tlsInfo != nil && tlsInfo.CertInfo != nil {
 		expiryDate := tlsInfo.CertInfo.ValidTo
-		days := int(time.Until(expiryDate).Hours() / 24)
-		data.CertExpiryDays = &days
+		data.CertExpiryDays = &tlsInfo.CertInfo.DaysRemaining
 		data.CertExpiryDate = &expiryDate
 	}
 
@@ -337,6 +336,7 @@ func (s *ServiceImpl) GenerateCertExpBadge(ctx context.Context, monitorID string
 	if err != nil {
 		return "", err
 	}
+	fmt.Println("data", data.CertExpiryDays)
 
 	var value, color string
 
@@ -345,6 +345,7 @@ func (s *ServiceImpl) GenerateCertExpBadge(ctx context.Context, monitorID string
 		color = "#9f9f9f"
 	} else {
 		value, color = GetCertExpiryStatus(*data.CertExpiryDays, options)
+		fmt.Println("value", value)
 	}
 
 	label := getLabel(options.Label, "cert exp")
