@@ -26,6 +26,8 @@ const (
 	ProxyDeleted EventType = "proxy.deleted"
 	// CertificateExpiry is emitted when a certificate is expiring
 	CertificateExpiry EventType = "certificate.expiry"
+	// ImportantHeartbeat is emitted when a heartbeat is important for notification purposes
+	ImportantHeartbeat EventType = "important.heartbeat"
 )
 
 // Event represents a generic event with a type and payload

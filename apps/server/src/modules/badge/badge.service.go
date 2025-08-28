@@ -56,6 +56,14 @@ func NewService(
 	}
 }
 
+// getLabel returns the provided label or defaultLabel if label is empty
+func getLabel(label, defaultLabel string) string {
+	if label == "" {
+		return defaultLabel
+	}
+	return label
+}
+
 func (s *ServiceImpl) IsMonitorPublic(ctx context.Context, monitorID string) (bool, error) {
 	// Check if monitor exists and is active
 	monitor, err := s.monitorService.FindByID(ctx, monitorID)
@@ -190,7 +198,7 @@ func (s *ServiceImpl) GenerateStatusBadge(ctx context.Context, monitorID string,
 	badge := &Badge{
 		Type:       BadgeTypeStatus,
 		Style:      options.Style,
-		Label:      FormatLabel("status", options.LabelPrefix, options.LabelSuffix),
+		Label:      FormatLabel(getLabel(options.Label, "status"), options.LabelPrefix, options.LabelSuffix),
 		Value:      data.GetStatusText(options),
 		Color:      data.GetStatusColor(options),
 		LabelColor: options.LabelColor,
@@ -238,10 +246,7 @@ func (s *ServiceImpl) GenerateUptimeBadge(ctx context.Context, monitorID string,
 		suffix = "%"
 	}
 
-	label := options.Label
-	if label == "" {
-		label = "uptime"
-	}
+	label := getLabel(options.Label, "uptime")
 
 	// Format label with period in parentheses
 	labelText := FormatLabel(label, options.LabelPrefix, options.LabelSuffix)
@@ -298,10 +303,7 @@ func (s *ServiceImpl) GeneratePingBadge(ctx context.Context, monitorID string, d
 		suffix = "ms"
 	}
 
-	label := options.Label
-	if label == "" {
-		label = "ping"
-	}
+	label := getLabel(options.Label, "ping")
 
 	// Format label with period in parentheses
 	labelText := FormatLabel(label, options.LabelPrefix, options.LabelSuffix)
@@ -345,10 +347,7 @@ func (s *ServiceImpl) GenerateCertExpBadge(ctx context.Context, monitorID string
 		value, color = GetCertExpiryStatus(*data.CertExpiryDays, options)
 	}
 
-	label := options.Label
-	if label == "" {
-		label = "cert exp"
-	}
+	label := getLabel(options.Label, "cert exp")
 
 	badge := &Badge{
 		Type:       BadgeTypeCertExp,
@@ -385,10 +384,7 @@ func (s *ServiceImpl) GenerateResponseBadge(ctx context.Context, monitorID strin
 		suffix = "ms"
 	}
 
-	label := options.Label
-	if label == "" {
-		label = "response"
-	}
+	label := getLabel(options.Label, "response")
 
 	badge := &Badge{
 		Type:       BadgeTypeResponse,

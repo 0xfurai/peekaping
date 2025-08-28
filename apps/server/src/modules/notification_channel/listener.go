@@ -69,7 +69,7 @@ func NewNotificationEventListener(p NotificationEventListenerParams) *Notificati
 
 // Subscribe subscribes to NotifyEvent and sends notifications
 func (l *NotificationEventListener) Subscribe(eventBus *events.EventBus) {
-	eventBus.Subscribe(events.MonitorStatusChanged, l.handleNotifyEvent)
+	eventBus.Subscribe(events.ImportantHeartbeat, l.handleNotifyEvent)
 	eventBus.Subscribe(events.CertificateExpiry, l.handleCertificateExpiryEvent)
 }
 

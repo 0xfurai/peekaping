@@ -212,9 +212,16 @@ func (s *HealthCheckSupervisor) postProcessHeartbeat(result *executor.Result, m 
 		return
 	}
 
-	if shouldNotify {
+	if isFirstBeat || previousBeat.Status != hb.Status {
 		s.eventBus.Publish(events.Event{
 			Type:    events.MonitorStatusChanged,
+			Payload: dbHb,
+		})
+	}
+
+	if shouldNotify {
+		s.eventBus.Publish(events.Event{
+			Type:    events.ImportantHeartbeat,
 			Payload: dbHb,
 		})
 	}
