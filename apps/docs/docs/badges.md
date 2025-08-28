@@ -274,7 +274,3 @@ A reliable service with 99.9% uptime.
 - Use URL encoding for special characters in custom labels
 - Test badge appearance in different contexts (light/dark backgrounds)
 - Consider accessibility with appropriate color contrast
-
-## API Reference
-
-For complete API documentation and additional options, see the [Badge API Reference](/api/v1/badges).
