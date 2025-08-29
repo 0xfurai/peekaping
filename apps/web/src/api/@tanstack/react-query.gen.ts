@@ -15,6 +15,12 @@ import {
   getBadgeByMonitorIdStatus,
   getBadgeByMonitorIdUptimeByDuration,
   getHealth,
+  getIncidents,
+  postIncidents,
+  getIncidentsStatusPageByStatusPageId,
+  deleteIncidentsById,
+  getIncidentsById,
+  patchIncidentsById,
   getMaintenances,
   postMaintenances,
   deleteMaintenancesById,
@@ -102,6 +108,20 @@ import type {
   GetBadgeByMonitorIdStatusData,
   GetBadgeByMonitorIdUptimeByDurationData,
   GetHealthData,
+  GetIncidentsData,
+  GetIncidentsError,
+  GetIncidentsResponse,
+  PostIncidentsData,
+  PostIncidentsError,
+  PostIncidentsResponse,
+  GetIncidentsStatusPageByStatusPageIdData,
+  DeleteIncidentsByIdData,
+  DeleteIncidentsByIdError,
+  DeleteIncidentsByIdResponse,
+  GetIncidentsByIdData,
+  PatchIncidentsByIdData,
+  PatchIncidentsByIdError,
+  PatchIncidentsByIdResponse,
   GetMaintenancesData,
   GetMaintenancesError,
   GetMaintenancesResponse,
@@ -736,19 +756,16 @@ export const getHealthOptions = (options?: Options<GetHealthData>) => {
   });
 };
 
-export const getMaintenancesQueryKey = (
-  options?: Options<GetMaintenancesData>,
-) => createQueryKey("getMaintenances", options);
+export const getIncidentsQueryKey = (options?: Options<GetIncidentsData>) =>
+  createQueryKey("getIncidents", options);
 
 /**
- * Get maintenances
+ * Get all incidents
  */
-export const getMaintenancesOptions = (
-  options?: Options<GetMaintenancesData>,
-) => {
+export const getIncidentsOptions = (options?: Options<GetIncidentsData>) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getMaintenances({
+      const { data } = await getIncidents({
         ...options,
         ...queryKey[0],
         signal,
@@ -756,7 +773,7 @@ export const getMaintenancesOptions = (
       });
       return data;
     },
-    queryKey: getMaintenancesQueryKey(options),
+    queryKey: getIncidentsQueryKey(options),
   });
 };
 
@@ -794,6 +811,231 @@ const createInfiniteParams = <
     };
   }
   return params as unknown as typeof page;
+};
+
+export const getIncidentsInfiniteQueryKey = (
+  options?: Options<GetIncidentsData>,
+): QueryKey<Options<GetIncidentsData>> =>
+  createQueryKey("getIncidents", options, true);
+
+/**
+ * Get all incidents
+ */
+export const getIncidentsInfiniteOptions = (
+  options?: Options<GetIncidentsData>,
+) => {
+  return infiniteQueryOptions<
+    GetIncidentsResponse,
+    AxiosError<GetIncidentsError>,
+    InfiniteData<GetIncidentsResponse>,
+    QueryKey<Options<GetIncidentsData>>,
+    | number
+    | Pick<
+        QueryKey<Options<GetIncidentsData>>[0],
+        "body" | "headers" | "path" | "query"
+      >
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<GetIncidentsData>>[0],
+          "body" | "headers" | "path" | "query"
+        > =
+          typeof pageParam === "object"
+            ? pageParam
+            : {
+                query: {
+                  page: pageParam,
+                },
+              };
+        const params = createInfiniteParams(queryKey, page);
+        const { data } = await getIncidents({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        });
+        return data;
+      },
+      queryKey: getIncidentsInfiniteQueryKey(options),
+    },
+  );
+};
+
+export const postIncidentsQueryKey = (options: Options<PostIncidentsData>) =>
+  createQueryKey("postIncidents", options);
+
+/**
+ * Create a new incident
+ */
+export const postIncidentsOptions = (options: Options<PostIncidentsData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postIncidents({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postIncidentsQueryKey(options),
+  });
+};
+
+/**
+ * Create a new incident
+ */
+export const postIncidentsMutation = (
+  options?: Partial<Options<PostIncidentsData>>,
+): UseMutationOptions<
+  PostIncidentsResponse,
+  AxiosError<PostIncidentsError>,
+  Options<PostIncidentsData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostIncidentsResponse,
+    AxiosError<PostIncidentsError>,
+    Options<PostIncidentsData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postIncidents({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getIncidentsStatusPageByStatusPageIdQueryKey = (
+  options: Options<GetIncidentsStatusPageByStatusPageIdData>,
+) => createQueryKey("getIncidentsStatusPageByStatusPageId", options);
+
+/**
+ * Get incidents by status page ID
+ */
+export const getIncidentsStatusPageByStatusPageIdOptions = (
+  options: Options<GetIncidentsStatusPageByStatusPageIdData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getIncidentsStatusPageByStatusPageId({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getIncidentsStatusPageByStatusPageIdQueryKey(options),
+  });
+};
+
+/**
+ * Delete an incident
+ */
+export const deleteIncidentsByIdMutation = (
+  options?: Partial<Options<DeleteIncidentsByIdData>>,
+): UseMutationOptions<
+  DeleteIncidentsByIdResponse,
+  AxiosError<DeleteIncidentsByIdError>,
+  Options<DeleteIncidentsByIdData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteIncidentsByIdResponse,
+    AxiosError<DeleteIncidentsByIdError>,
+    Options<DeleteIncidentsByIdData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteIncidentsById({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getIncidentsByIdQueryKey = (
+  options: Options<GetIncidentsByIdData>,
+) => createQueryKey("getIncidentsById", options);
+
+/**
+ * Get an incident by ID
+ */
+export const getIncidentsByIdOptions = (
+  options: Options<GetIncidentsByIdData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getIncidentsById({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getIncidentsByIdQueryKey(options),
+  });
+};
+
+/**
+ * Update an incident
+ */
+export const patchIncidentsByIdMutation = (
+  options?: Partial<Options<PatchIncidentsByIdData>>,
+): UseMutationOptions<
+  PatchIncidentsByIdResponse,
+  AxiosError<PatchIncidentsByIdError>,
+  Options<PatchIncidentsByIdData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PatchIncidentsByIdResponse,
+    AxiosError<PatchIncidentsByIdError>,
+    Options<PatchIncidentsByIdData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await patchIncidentsById({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getMaintenancesQueryKey = (
+  options?: Options<GetMaintenancesData>,
+) => createQueryKey("getMaintenances", options);
+
+/**
+ * Get maintenances
+ */
+export const getMaintenancesOptions = (
+  options?: Options<GetMaintenancesData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getMaintenances({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getMaintenancesQueryKey(options),
+  });
 };
 
 export const getMaintenancesInfiniteQueryKey = (

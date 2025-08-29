@@ -16,6 +16,7 @@ import (
 	"peekaping/src/modules/events"
 	"peekaping/src/modules/healthcheck"
 	"peekaping/src/modules/heartbeat"
+	"peekaping/src/modules/incident"
 	"peekaping/src/modules/maintenance"
 	"peekaping/src/modules/monitor"
 	"peekaping/src/modules/monitor_maintenance"
@@ -99,6 +100,7 @@ func main() {
 	status_page.RegisterDependencies(container, &cfg)
 	monitor_status_page.RegisterDependencies(container, &cfg)
 	domain_status_page.RegisterDependencies(container, &cfg)
+	incident.RegisterDependencies(container, &cfg)
 	tag.RegisterDependencies(container, &cfg)
 	monitor_tag.RegisterDependencies(container, &cfg)
 	badge.RegisterDependencies(container, &cfg)
