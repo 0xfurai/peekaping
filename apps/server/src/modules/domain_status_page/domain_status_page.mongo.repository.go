@@ -2,6 +2,7 @@ package domain_status_page
 
 import (
 	"context"
+	"fmt"
 	"peekaping/src/config"
 	"time"
 
@@ -44,6 +45,17 @@ type MongoRepositoryImpl struct {
 func NewMongoRepository(client *mongo.Client, cfg *config.Config) Repository {
 	db := client.Database(cfg.DBName)
 	collection := db.Collection("domain_status_page")
+	// Create indexes
+	go func() {
+		_, err := collection.Indexes().CreateOne(context.Background(), mongo.IndexModel{
+			Keys:    bson.D{{Key: "domain", Value: 1}},
+			Options: options.Index().SetUnique(true),
+		})
+		if err != nil {
+			fmt.Println("Something went wrong with domain index creation.", err)
+		}
+	}()
+
 	return &MongoRepositoryImpl{client, db, collection}
 }
 

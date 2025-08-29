@@ -13,7 +13,7 @@ type sqlModel struct {
 
 	ID           string    `bun:"id,pk"`
 	StatusPageID string    `bun:"status_page_id,notnull"`
-	Domain       string    `bun:"domain,notnull"`
+	Domain       string    `bun:"domain,unique,notnull"`
 	CreatedAt    time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp"`
 	UpdatedAt    time.Time `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
 }

@@ -1235,7 +1235,8 @@
     "search_label": "Rechercher",
     "search_placeholder": "Rechercher des pages de statut par titre...",
     "update_status_page": "Mettre à jour la page de statut",
-    "view_page": "Voir la page"
+    "view_page": "Voir la page",
+    "domain_already_used": "Le domaine {{domain}} est déjà utilisé par une autre page de statut"
   },
   "tags": {
     "confirm_delete_description": "Cette action ne peut pas être annulée. Cela supprimera définitivement le tag \"{{name}}\" et le retirera de tous les moniteurs.",

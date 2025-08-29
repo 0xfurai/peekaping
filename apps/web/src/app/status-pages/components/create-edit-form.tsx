@@ -15,10 +15,22 @@ import SearchableMonitorSelector from "@/components/searchable-monitor-selector"
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
+import { useState } from "react";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircleIcon } from "lucide-react";
 import DomainsManager from "./domains-manager";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  getStatusPagesInfiniteQueryKey,
+  getStatusPagesByIdQueryKey,
+  postStatusPagesMutation,
+  patchStatusPagesByIdMutation,
+} from "@/api/@tanstack/react-query.gen";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
+import { commonMutationErrorHandler } from "@/lib/utils";
+import type { AxiosError } from "axios";
 
 const statusPageSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -47,6 +59,11 @@ const statusPageSchema = z.object({
 
 export type StatusPageForm = z.infer<typeof statusPageSchema>;
 
+type DomainAlreadyUsedError = {
+  code: "DOMAIN_EXISTS";
+  domain: string;
+};
+
 const formDefaultValues: StatusPageForm = {
   title: "",
   slug: "",
@@ -59,29 +76,100 @@ const formDefaultValues: StatusPageForm = {
   domains: [],
 };
 
-
-
 const CreateEditForm = ({
-  onSubmit,
   initialValues,
-  isPending,
   mode = "create",
+  id,
 }: {
-  onSubmit: (data: StatusPageForm) => void;
   initialValues?: StatusPageForm;
-  isPending?: boolean;
   mode?: "create" | "edit";
+  id?: string;
 }) => {
   const { t } = useLocalizedTranslation();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [domainToHighlight, setDomainToHighlight] = useState<string | undefined>(undefined);
+
   const form = useForm<StatusPageForm>({
     defaultValues: initialValues || formDefaultValues,
     resolver: zodResolver(statusPageSchema),
   });
 
+  const handleMutationError = (error: AxiosError<{error: DomainAlreadyUsedError}>) => {
+    // Fallback toast
+    const fallbackMessage = mode === "create" ? "Failed to create status page" : "Failed to update status page";
+    commonMutationErrorHandler(fallbackMessage)(error);
+    
+    // Handle structured error response
+    const errorData = error.response?.data?.error;
+    
+    if (errorData?.code === "DOMAIN_EXISTS") {
+      const domainErrorMessage = t("status_pages.domain_already_used", { domain: errorData.domain });
+        
+      form.setError("domains", { message: domainErrorMessage });
+      
+      if (errorData.domain) {
+        setDomainToHighlight(errorData.domain);
+      }
+    }
+  };
+
+  const createStatusPageMutation = useMutation({
+    mutationFn: postStatusPagesMutation().mutationFn,
+    onSuccess: () => {
+      toast.success(t("status_pages.messages.created_successfully"));
+      queryClient.invalidateQueries({
+        queryKey: getStatusPagesInfiniteQueryKey(),
+      });
+      navigate("/status-pages");
+    },
+    onError: handleMutationError,
+  });
+
+  const editStatusPageMutation = useMutation({
+    mutationFn: patchStatusPagesByIdMutation({
+      path: { id: id! },
+    }).mutationFn,
+    onSuccess: () => {
+      toast.success(t("status_pages.messages.updated_successfully"));
+      queryClient.invalidateQueries({
+        queryKey: getStatusPagesInfiniteQueryKey(),
+      });
+      queryClient.removeQueries({
+        queryKey: getStatusPagesByIdQueryKey({ path: { id: id! } }),
+      });
+      navigate("/status-pages");
+    },
+    onError: handleMutationError,
+  });
+
+  const handleSubmit = (data: StatusPageForm) => {
+    // Clear previous errors
+    form.clearErrors("domains");
+    setDomainToHighlight(undefined);
+    
+    const { monitors, ...rest } = data;
+    const payload = {
+      ...rest,
+      monitor_ids: monitors?.map((monitor) => monitor.value),
+    };
+
+    if (mode === "create") {
+      createStatusPageMutation.mutate({ body: payload });
+    } else {
+      editStatusPageMutation.mutate({
+        body: payload,
+        path: { id: id! },
+      });
+    }
+  };
+
+  const isPending = createStatusPageMutation.isPending || editStatusPageMutation.isPending;
+
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={form.handleSubmit(handleSubmit)}
         className="space-y-6 max-w-[600px]"
       >
         <Card>
@@ -250,6 +338,10 @@ const CreateEditForm = ({
                     <DomainsManager
                       value={field.value || []}
                       onChange={field.onChange}
+                      error={{
+                        message: form.formState.errors.domains?.message,
+                        domain: domainToHighlight,
+                      }}
                     />
                   </FormControl>
                   <Alert className="mt-1">
@@ -258,7 +350,6 @@ const CreateEditForm = ({
                       {t("status_pages.domains_info_warning")}
                     </AlertDescription>
                   </Alert>
-                  <FormMessage />
                 </FormItem>
               )}
             />

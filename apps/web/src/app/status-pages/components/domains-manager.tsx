@@ -8,9 +8,14 @@ import { PlusIcon, XIcon, AlertTriangleIcon } from "lucide-react";
 const DomainsManager = ({
   value = [],
   onChange,
+  error,
 }: {
   value?: string[];
   onChange: (domains: string[]) => void;
+  error?: {
+    message?: string;
+    domain?: string;
+  };
 }) => {
   const { t } = useLocalizedTranslation();
   const [newDomain, setNewDomain] = useState("");
@@ -41,30 +46,49 @@ const DomainsManager = ({
         <div className="space-y-2">
           <p className="text-sm font-medium">{t("forms.placeholders.domains")}</p>
           <div className="space-y-2">
-            {value.map((domain, index) => (
-              <div key={index} className="space-y-1">
-                <div className="flex items-center justify-between bg-muted p-2 rounded-md">
-                  <span className="text-sm">{domain}</span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeDomain(index)}
-                    className="h-6 w-6 p-0"
+            {value.map((domain, index) => {
+              const isCurrentHost = domain === currentHost;
+              const isHighlighted = error?.domain === domain;
+              return (
+                <div key={index} className="space-y-1">
+                  <div
+                    className={
+                      `flex items-center justify-between p-2 rounded-md ` +
+                      (isHighlighted
+                        ? "bg-destructive/10 border border-destructive"
+                        : "bg-muted")
+                    }
                   >
-                    <XIcon className="h-3 w-3" />
-                  </Button>
+                    <span className={`text-sm ${isHighlighted ? "text-destructive" : ""}`}>{domain}</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeDomain(index)}
+                      className="h-6 w-6 p-0"
+                    >
+                      <XIcon className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  {isHighlighted && (
+                    <Alert variant="destructive" className="mt-1">
+                      <AlertTriangleIcon className="h-4 w-4" />
+                      <AlertDescription>
+                        {error?.message}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                  {isCurrentHost && (
+                    <Alert variant="destructive" className="mt-1">
+                      <AlertTriangleIcon className="h-4 w-4" />
+                      <AlertDescription>
+                        {t("status_pages.domain_host_warning")}
+                      </AlertDescription>
+                    </Alert>
+                  )}
                 </div>
-                {domain === currentHost && (
-                  <Alert variant="destructive" className="mt-1">
-                    <AlertTriangleIcon className="h-4 w-4" />
-                    <AlertDescription>
-                      {t("status_pages.domain_host_warning")}
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

@@ -2,6 +2,7 @@ package status_page
 
 import (
 	"context"
+	"fmt"
 	"peekaping/src/modules/domain_status_page"
 	"peekaping/src/modules/events"
 	"peekaping/src/modules/monitor_status_page"
@@ -46,7 +47,48 @@ func NewService(
 	}
 }
 
+// DomainAlreadyUsedError represents a validation error when a domain is already
+// attached to a different status page.
+type DomainAlreadyUsedError struct {
+	Code   string `json:"code"`
+	Domain string `json:"domain"`
+}
+
+func (e *DomainAlreadyUsedError) Error() string {
+	return fmt.Sprintf(`{"code":"%s", "domain":"%s"}`, e.Code, e.Domain)
+}
+
+func domainAlreadyUsedError(domain string) *DomainAlreadyUsedError {
+	return &DomainAlreadyUsedError{
+		Code:   "DOMAIN_EXISTS",
+		Domain: domain,
+	}
+}
+
+// validateDomains ensures that provided domains are not already used
+// by any existing status page.
+func (s *ServiceImpl) validateDomains(ctx context.Context, statusPageID string, domains []string) error {
+	for _, domain := range domains {
+		existing, err := s.domainStatusPageService.FindByDomain(ctx, domain)
+		if err != nil {
+			return err
+		}
+		if existing != nil && existing.StatusPageID != statusPageID {
+			return domainAlreadyUsedError(domain)
+		}
+	}
+	return nil
+}
+
 func (s *ServiceImpl) Create(ctx context.Context, dto *CreateStatusPageDTO) (*Model, error) {
+	// Pre-validate domain uniqueness before creating the status page to avoid
+	// partial creation without domains.
+	if len(dto.Domains) > 0 {
+		if err := s.validateDomains(ctx, "", dto.Domains); err != nil {
+			return nil, err
+		}
+	}
+
 	model := &Model{
 		Slug:                dto.Slug,
 		Title:               dto.Title,
@@ -81,8 +123,8 @@ func (s *ServiceImpl) Create(ctx context.Context, dto *CreateStatusPageDTO) (*Mo
 		for _, domain := range dto.Domains {
 			_, err := s.domainStatusPageService.AddDomainToStatusPage(ctx, created.ID, domain)
 			if err != nil {
-				s.logger.Errorw("Failed to add domain to status page", "error", err)
-				continue
+				// Since we pre-validate, reaching here likely means a race. Surface error.
+				return nil, err
 			}
 		}
 	}
@@ -230,12 +272,16 @@ func (s *ServiceImpl) Update(ctx context.Context, id string, dto *UpdateStatusPa
 	}
 
 	if dto.Domains != nil {
+		// Pre-validate the new domain list for uniqueness against other pages
+		if err := s.validateDomains(ctx, id, *dto.Domains); err != nil {
+			return nil, err
+		}
+
 		if len(*dto.Domains) > 0 {
 			for _, domain := range *dto.Domains {
 				_, err := s.domainStatusPageService.AddDomainToStatusPage(ctx, id, domain)
 				if err != nil {
-					s.logger.Errorw("Failed to add domain to status page", "error", err)
-					continue
+					return nil, err
 				}
 			}
 		}
@@ -257,7 +303,7 @@ func (s *ServiceImpl) Update(ctx context.Context, id string, dto *UpdateStatusPa
 			newDomainIDs[domain] = true
 		}
 
-		// Remove monitors that are no longer in the list
+		// Remove domains that are no longer in the list
 		for domain := range currentDomainIDs {
 			if !newDomainIDs[domain] {
 				err := s.domainStatusPageService.RemoveDomainFromStatusPage(ctx, id, domain)
