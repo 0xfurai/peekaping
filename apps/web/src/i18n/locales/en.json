@@ -1234,7 +1234,8 @@
     "search_label": "Search",
     "search_placeholder": "Search status pages by title...",
     "update_status_page": "Update Status Page",
-    "view_page": "View Page"
+    "view_page": "View Page",
+    "domain_already_used": "Domain {{domain}} is already used by another status page"
   },
   "tags": {
     "confirm_delete_description": "This action cannot be undone. This will permanently delete the tag \"{{name}}\" and remove it from all monitors.",

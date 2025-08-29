@@ -53,7 +53,12 @@ func (c *Controller) Create(ctx *gin.Context) {
 	if err != nil {
 		// Surface domain uniqueness validation errors as 400
 		if domainErr, ok := err.(*DomainAlreadyUsedError); ok {
-			ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(domainErr.Error()))
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"error": gin.H{
+					"code":   domainErr.Code,
+					"domain": domainErr.Domain,
+				},
+			})
 			return
 		}
 		c.logger.Errorw("Failed to create status page", "error", err)
@@ -191,7 +196,12 @@ func (c *Controller) Update(ctx *gin.Context) {
 	if err != nil {
 		// Surface domain uniqueness validation errors as 400
 		if domainErr, ok := err.(*DomainAlreadyUsedError); ok {
-			ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(domainErr.Error()))
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"error": gin.H{
+					"code":   domainErr.Code,
+					"domain": domainErr.Domain,
+				},
+			})
 			return
 		}
 		c.logger.Errorw("Failed to update status page", "error", err, "id", id)

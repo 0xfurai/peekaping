@@ -8,11 +8,14 @@ import { PlusIcon, XIcon, AlertTriangleIcon } from "lucide-react";
 const DomainsManager = ({
   value = [],
   onChange,
-  highlightDomain,
+  error,
 }: {
   value?: string[];
   onChange: (domains: string[]) => void;
-  highlightDomain?: string;
+  error?: {
+    message?: string;
+    domain?: string;
+  };
 }) => {
   const { t } = useLocalizedTranslation();
   const [newDomain, setNewDomain] = useState("");
@@ -45,7 +48,7 @@ const DomainsManager = ({
           <div className="space-y-2">
             {value.map((domain, index) => {
               const isCurrentHost = domain === currentHost;
-              const isHighlighted = highlightDomain === domain;
+              const isHighlighted = error?.domain === domain;
               return (
                 <div key={index} className="space-y-1">
                   <div
@@ -71,7 +74,7 @@ const DomainsManager = ({
                     <Alert variant="destructive" className="mt-1">
                       <AlertTriangleIcon className="h-4 w-4" />
                       <AlertDescription>
-                        {t("This domain is already in use by another status page.")}
+                        {error?.message}
                       </AlertDescription>
                     </Alert>
                   )}

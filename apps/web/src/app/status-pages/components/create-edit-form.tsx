@@ -30,6 +30,7 @@ import {
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { commonMutationErrorHandler } from "@/lib/utils";
+import type { AxiosError } from "axios";
 
 const statusPageSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -58,6 +59,11 @@ const statusPageSchema = z.object({
 
 export type StatusPageForm = z.infer<typeof statusPageSchema>;
 
+type DomainAlreadyUsedError = {
+  code: "DOMAIN_EXISTS";
+  domain: string;
+};
+
 const formDefaultValues: StatusPageForm = {
   title: "",
   slug: "",
@@ -82,34 +88,28 @@ const CreateEditForm = ({
   const { t } = useLocalizedTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [highlightDomain, setHighlightDomain] = useState<string | undefined>(undefined);
+  const [domainToHighlight, setDomainToHighlight] = useState<string | undefined>(undefined);
 
   const form = useForm<StatusPageForm>({
     defaultValues: initialValues || formDefaultValues,
     resolver: zodResolver(statusPageSchema),
   });
 
-  const handleMutationError = (error: unknown) => {
+  const handleMutationError = (error: AxiosError<{error: DomainAlreadyUsedError}>) => {
     // Fallback toast
     const fallbackMessage = mode === "create" ? "Failed to create status page" : "Failed to update status page";
     commonMutationErrorHandler(fallbackMessage)(error);
     
-    let message: string | undefined;
-    const errWithMsg = error as { message?: unknown };
-    if (typeof errWithMsg?.message === "string") {
-      message = errWithMsg.message;
-    }
-    const respDataMsg = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
-    if (respDataMsg) {
-      message = respDataMsg;
-    }
+    // Handle structured error response
+    const errorData = error.response?.data?.error;
     
-    if (message && message.toLowerCase().includes("domain") && message.toLowerCase().includes("already")) {
-      form.setError("domains", { message });
-
-      const match = message.match(/Domain\s+([^\s]+)\s+is already/i);
-      if (match?.[1]) {
-        setHighlightDomain(match[1]);
+    if (errorData?.code === "DOMAIN_EXISTS") {
+      const domainErrorMessage = t("status_pages.domain_already_used", { domain: errorData.domain });
+        
+      form.setError("domains", { message: domainErrorMessage });
+      
+      if (errorData.domain) {
+        setDomainToHighlight(errorData.domain);
       }
     }
   };
@@ -146,7 +146,7 @@ const CreateEditForm = ({
   const handleSubmit = (data: StatusPageForm) => {
     // Clear previous errors
     form.clearErrors("domains");
-    setHighlightDomain(undefined);
+    setDomainToHighlight(undefined);
     
     const { monitors, ...rest } = data;
     const payload = {
@@ -338,7 +338,10 @@ const CreateEditForm = ({
                     <DomainsManager
                       value={field.value || []}
                       onChange={field.onChange}
-                      highlightDomain={highlightDomain}
+                      error={{
+                        message: form.formState.errors.domains?.message,
+                        domain: domainToHighlight,
+                      }}
                     />
                   </FormControl>
                   <Alert className="mt-1">
