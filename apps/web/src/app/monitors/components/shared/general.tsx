@@ -37,6 +37,14 @@ const General = () => {
       description: t("monitors.form.type.http"),
     },
     {
+      type: "http-keyword",
+      description: "HTTP(s) - Keyword",
+    },
+    {
+      type: "http-json-query",
+      description: "HTTP(s) - Json Query",
+    },
+    {
       type: "tcp",
       description: t("monitors.form.type.tcp"),
     },

@@ -1,6 +1,8 @@
 import type { MonitorMonitorResponseDto } from "@/api";
 import type { MonitorForm } from "../context/monitor-form-context";
 import { deserialize as httpDeserialize } from "./http/schema";
+import { deserialize as httpKeywordDeserialize } from "./http-keyword/schema";
+import { deserialize as httpJsonQueryDeserialize } from "./http-json-query/schema";
 import { deserialize as tcpDeserialize } from "./tcp";
 import { deserialize as pingDeserialize } from "./ping";
 import { deserialize as dnsDeserialize } from "./dns";
@@ -20,6 +22,8 @@ import TCPForm from "./tcp";
 import PingForm from "./ping";
 import DNSForm from "./dns";
 import HttpForm from "./http";
+import HttpKeywordForm from "./http-keyword";
+import HttpJsonQueryForm from "./http-json-query";
 import PushForm from "./push";
 import DockerForm from "./docker";
 import GRPCKeywordForm from "./grpc-keyword";
@@ -55,6 +59,14 @@ const monitorTypeRegistry: Record<string, MonitorTypeConfig> = {
   http: {
     deserialize: httpDeserialize,
     component: HttpForm,
+  },
+  "http-keyword": {
+    deserialize: httpKeywordDeserialize,
+    component: HttpKeywordForm,
+  },
+  "http-json-query": {
+    deserialize: httpJsonQueryDeserialize,
+    component: HttpJsonQueryForm,
   },
   tcp: {
     deserialize: tcpDeserialize,
