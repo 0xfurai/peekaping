@@ -2,7 +2,6 @@ package incident
 
 import (
 	"context"
-	"time"
 
 	"go.uber.org/zap"
 )
@@ -93,20 +92,12 @@ func (s *ServiceImpl) FindByStatusPageID(ctx context.Context, statusPageID strin
 
 func (s *ServiceImpl) Update(ctx context.Context, id string, dto *UpdateIncidentDTO) (*Model, error) {
 	updateModel := &UpdateModel{
-		Title:           dto.Title,
-		Content:         dto.Content,
-		Style:           dto.Style,
-		CreatedDate:     dto.CreatedDate,
-		LastUpdatedDate: dto.LastUpdatedDate,
-		Pin:             dto.Pin,
-		Active:          dto.Active,
-		StatusPageID:    dto.StatusPageID,
-	}
-
-	// Set last updated date if not provided
-	if dto.LastUpdatedDate == nil {
-		now := time.Now()
-		updateModel.LastUpdatedDate = &now
+		Title:        dto.Title,
+		Content:      dto.Content,
+		Style:        dto.Style,
+		Pin:          dto.Pin,
+		Active:       dto.Active,
+		StatusPageID: dto.StatusPageID,
 	}
 
 	updated, err := s.repository.Update(ctx, id, updateModel)
