@@ -40,6 +40,24 @@ import type {
   GetBadgeByMonitorIdUptimeByDurationErrors,
   GetHealthData,
   GetHealthResponses,
+  GetIncidentsData,
+  GetIncidentsResponses,
+  GetIncidentsErrors,
+  PostIncidentsData,
+  PostIncidentsResponses,
+  PostIncidentsErrors,
+  GetIncidentsStatusPageByStatusPageIdData,
+  GetIncidentsStatusPageByStatusPageIdResponses,
+  GetIncidentsStatusPageByStatusPageIdErrors,
+  DeleteIncidentsByIdData,
+  DeleteIncidentsByIdResponses,
+  DeleteIncidentsByIdErrors,
+  GetIncidentsByIdData,
+  GetIncidentsByIdResponses,
+  GetIncidentsByIdErrors,
+  PatchIncidentsByIdData,
+  PatchIncidentsByIdResponses,
+  PatchIncidentsByIdErrors,
   GetMaintenancesData,
   GetMaintenancesResponses,
   GetMaintenancesErrors,
@@ -470,6 +488,148 @@ export const getHealth = <ThrowOnError extends boolean = false>(
     responseType: "json",
     url: "/health",
     ...options,
+  });
+};
+
+/**
+ * Get all incidents
+ */
+export const getIncidents = <ThrowOnError extends boolean = false>(
+  options?: Options<GetIncidentsData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetIncidentsResponses,
+    GetIncidentsErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/incidents",
+    ...options,
+  });
+};
+
+/**
+ * Create a new incident
+ */
+export const postIncidents = <ThrowOnError extends boolean = false>(
+  options: Options<PostIncidentsData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostIncidentsResponses,
+    PostIncidentsErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/incidents",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * Get incidents by status page ID
+ */
+export const getIncidentsStatusPageByStatusPageId = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<GetIncidentsStatusPageByStatusPageIdData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetIncidentsStatusPageByStatusPageIdResponses,
+    GetIncidentsStatusPageByStatusPageIdErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    url: "/incidents/status-page/{statusPageId}",
+    ...options,
+  });
+};
+
+/**
+ * Delete an incident
+ */
+export const deleteIncidentsById = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteIncidentsByIdData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    DeleteIncidentsByIdResponses,
+    DeleteIncidentsByIdErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/incidents/{id}",
+    ...options,
+  });
+};
+
+/**
+ * Get an incident by ID
+ */
+export const getIncidentsById = <ThrowOnError extends boolean = false>(
+  options: Options<GetIncidentsByIdData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetIncidentsByIdResponses,
+    GetIncidentsByIdErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/incidents/{id}",
+    ...options,
+  });
+};
+
+/**
+ * Update an incident
+ */
+export const patchIncidentsById = <ThrowOnError extends boolean = false>(
+  options: Options<PatchIncidentsByIdData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).patch<
+    PatchIncidentsByIdResponses,
+    PatchIncidentsByIdErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/incidents/{id}",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
   });
 };
 

@@ -92,6 +92,41 @@ export type HeartbeatModel = {
 
 export type HeartbeatMonitorStatus = 0 | 1 | 2 | 3;
 
+export type IncidentCreateIncidentDto = {
+  active?: boolean;
+  content: string;
+  created_date?: string;
+  pin?: boolean;
+  status_page_id?: string;
+  style: "warning" | "info" | "success" | "error";
+  title: string;
+};
+
+export type IncidentModel = {
+  active?: boolean;
+  content?: string;
+  created_at?: string;
+  created_date?: string;
+  id?: string;
+  last_updated_date?: string;
+  pin?: boolean;
+  status_page_id?: string;
+  style?: string;
+  title?: string;
+  updated_at?: string;
+};
+
+export type IncidentUpdateIncidentDto = {
+  active?: boolean;
+  content?: string;
+  created_date?: string;
+  last_updated_date?: string;
+  pin?: boolean;
+  status_page_id?: string;
+  style?: "warning" | "info" | "success" | "error";
+  title?: string;
+};
+
 export type MaintenanceCreateUpdateDto = {
   active?: boolean;
   cron?: string;
@@ -492,6 +527,11 @@ export type UtilsApiResponseArrayHeartbeatModel = {
   message: string;
 };
 
+export type UtilsApiResponseArrayIncidentModel = {
+  data: Array<IncidentModel>;
+  message: string;
+};
+
 export type UtilsApiResponseArrayMaintenanceModel = {
   data: Array<MaintenanceModel>;
   message: string;
@@ -529,6 +569,11 @@ export type UtilsApiResponseArrayTagModel = {
 
 export type UtilsApiResponseAuthLoginResponse = {
   data: AuthLoginResponse;
+  message: string;
+};
+
+export type UtilsApiResponseIncidentModel = {
+  data: IncidentModel;
   message: string;
 };
 
@@ -1155,6 +1200,241 @@ export type GetHealthResponses = {
 };
 
 export type GetHealthResponse = GetHealthResponses[keyof GetHealthResponses];
+
+export type GetIncidentsData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * Search query
+     */
+    q?: string;
+    /**
+     * Page number
+     */
+    page?: number;
+    /**
+     * Items per page
+     */
+    limit?: number;
+  };
+  url: "/incidents";
+};
+
+export type GetIncidentsErrors = {
+  /**
+   * Bad Request
+   */
+  400: UtilsApiError;
+  /**
+   * Internal Server Error
+   */
+  500: UtilsApiError;
+};
+
+export type GetIncidentsError = GetIncidentsErrors[keyof GetIncidentsErrors];
+
+export type GetIncidentsResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseArrayIncidentModel;
+};
+
+export type GetIncidentsResponse =
+  GetIncidentsResponses[keyof GetIncidentsResponses];
+
+export type PostIncidentsData = {
+  /**
+   * Incident object
+   */
+  body: IncidentCreateIncidentDto;
+  path?: never;
+  query?: never;
+  url: "/incidents";
+};
+
+export type PostIncidentsErrors = {
+  /**
+   * Bad Request
+   */
+  400: UtilsApiError;
+  /**
+   * Internal Server Error
+   */
+  500: UtilsApiError;
+};
+
+export type PostIncidentsError = PostIncidentsErrors[keyof PostIncidentsErrors];
+
+export type PostIncidentsResponses = {
+  /**
+   * Created
+   */
+  201: UtilsApiResponseIncidentModel;
+};
+
+export type PostIncidentsResponse =
+  PostIncidentsResponses[keyof PostIncidentsResponses];
+
+export type GetIncidentsStatusPageByStatusPageIdData = {
+  body?: never;
+  path: {
+    /**
+     * Status Page ID
+     */
+    statusPageId: string;
+  };
+  query?: never;
+  url: "/incidents/status-page/{statusPageId}";
+};
+
+export type GetIncidentsStatusPageByStatusPageIdErrors = {
+  /**
+   * Bad Request
+   */
+  400: UtilsApiError;
+  /**
+   * Internal Server Error
+   */
+  500: UtilsApiError;
+};
+
+export type GetIncidentsStatusPageByStatusPageIdError =
+  GetIncidentsStatusPageByStatusPageIdErrors[keyof GetIncidentsStatusPageByStatusPageIdErrors];
+
+export type GetIncidentsStatusPageByStatusPageIdResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseArrayIncidentModel;
+};
+
+export type GetIncidentsStatusPageByStatusPageIdResponse =
+  GetIncidentsStatusPageByStatusPageIdResponses[keyof GetIncidentsStatusPageByStatusPageIdResponses];
+
+export type DeleteIncidentsByIdData = {
+  body?: never;
+  path: {
+    /**
+     * Incident ID
+     */
+    id: string;
+  };
+  query?: never;
+  url: "/incidents/{id}";
+};
+
+export type DeleteIncidentsByIdErrors = {
+  /**
+   * Bad Request
+   */
+  400: UtilsApiError;
+  /**
+   * Not Found
+   */
+  404: UtilsApiError;
+  /**
+   * Internal Server Error
+   */
+  500: UtilsApiError;
+};
+
+export type DeleteIncidentsByIdError =
+  DeleteIncidentsByIdErrors[keyof DeleteIncidentsByIdErrors];
+
+export type DeleteIncidentsByIdResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseAny;
+};
+
+export type DeleteIncidentsByIdResponse =
+  DeleteIncidentsByIdResponses[keyof DeleteIncidentsByIdResponses];
+
+export type GetIncidentsByIdData = {
+  body?: never;
+  path: {
+    /**
+     * Incident ID
+     */
+    id: string;
+  };
+  query?: never;
+  url: "/incidents/{id}";
+};
+
+export type GetIncidentsByIdErrors = {
+  /**
+   * Bad Request
+   */
+  400: UtilsApiError;
+  /**
+   * Not Found
+   */
+  404: UtilsApiError;
+  /**
+   * Internal Server Error
+   */
+  500: UtilsApiError;
+};
+
+export type GetIncidentsByIdError =
+  GetIncidentsByIdErrors[keyof GetIncidentsByIdErrors];
+
+export type GetIncidentsByIdResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseIncidentModel;
+};
+
+export type GetIncidentsByIdResponse =
+  GetIncidentsByIdResponses[keyof GetIncidentsByIdResponses];
+
+export type PatchIncidentsByIdData = {
+  /**
+   * Incident update object
+   */
+  body: IncidentUpdateIncidentDto;
+  path: {
+    /**
+     * Incident ID
+     */
+    id: string;
+  };
+  query?: never;
+  url: "/incidents/{id}";
+};
+
+export type PatchIncidentsByIdErrors = {
+  /**
+   * Bad Request
+   */
+  400: UtilsApiError;
+  /**
+   * Not Found
+   */
+  404: UtilsApiError;
+  /**
+   * Internal Server Error
+   */
+  500: UtilsApiError;
+};
+
+export type PatchIncidentsByIdError =
+  PatchIncidentsByIdErrors[keyof PatchIncidentsByIdErrors];
+
+export type PatchIncidentsByIdResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseIncidentModel;
+};
+
+export type PatchIncidentsByIdResponse =
+  PatchIncidentsByIdResponses[keyof PatchIncidentsByIdResponses];
 
 export type GetMaintenancesData = {
   body?: never;
