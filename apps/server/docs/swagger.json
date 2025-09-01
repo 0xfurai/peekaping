@@ -4050,9 +4050,6 @@
                     "type": "string",
                     "minLength": 1
                 },
-                "created_date": {
-                    "type": "string"
-                },
                 "pin": {
                     "type": "boolean"
                 },
@@ -4087,13 +4084,7 @@
                 "created_at": {
                     "type": "string"
                 },
-                "created_date": {
-                    "type": "string"
-                },
                 "id": {
-                    "type": "string"
-                },
-                "last_updated_date": {
                     "type": "string"
                 },
                 "pin": {
@@ -4122,12 +4113,6 @@
                 "content": {
                     "type": "string",
                     "minLength": 1
-                },
-                "created_date": {
-                    "type": "string"
-                },
-                "last_updated_date": {
-                    "type": "string"
                 },
                 "pin": {
                     "type": "boolean"

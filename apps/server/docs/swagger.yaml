@@ -158,8 +158,6 @@ definitions:
       content:
         minLength: 1
         type: string
-      created_date:
-        type: string
       pin:
         type: boolean
       status_page_id:
@@ -188,11 +186,7 @@ definitions:
         type: string
       created_at:
         type: string
-      created_date:
-        type: string
       id:
-        type: string
-      last_updated_date:
         type: string
       pin:
         type: boolean
@@ -211,10 +205,6 @@ definitions:
         type: boolean
       content:
         minLength: 1
-        type: string
-      created_date:
-        type: string
-      last_updated_date:
         type: string
       pin:
         type: boolean

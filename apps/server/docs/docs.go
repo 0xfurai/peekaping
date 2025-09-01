@@ -4059,9 +4059,6 @@ const docTemplate = `{
                     "type": "string",
                     "minLength": 1
                 },
-                "created_date": {
-                    "type": "string"
-                },
                 "pin": {
                     "type": "boolean"
                 },
@@ -4096,13 +4093,7 @@ const docTemplate = `{
                 "created_at": {
                     "type": "string"
                 },
-                "created_date": {
-                    "type": "string"
-                },
                 "id": {
-                    "type": "string"
-                },
-                "last_updated_date": {
                     "type": "string"
                 },
                 "pin": {
@@ -4131,12 +4122,6 @@ const docTemplate = `{
                 "content": {
                     "type": "string",
                     "minLength": 1
-                },
-                "created_date": {
-                    "type": "string"
-                },
-                "last_updated_date": {
-                    "type": "string"
                 },
                 "pin": {
                     "type": "boolean"
