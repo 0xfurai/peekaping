@@ -103,14 +103,14 @@ const HttpKeyword = () => {
 
         <Card>
           <CardContent className="space-y-4">
-            <h4 className="text-lg font-semibold">Keyword Validation</h4>
+            <h4 className="text-lg font-semibold">{t("monitors.form.http_keyword.keyword_validation_title")}</h4>
 
             <FormField
               control={form.control}
               name="keyword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Keyword</FormLabel>
+                  <FormLabel>{t("monitors.form.http_keyword.keyword_label")}</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Search keyword in plain HTML or JSON response. The search is case-sensitive."
@@ -128,9 +128,9 @@ const HttpKeyword = () => {
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                   <div className="space-y-0.5">
-                    <FormLabel>Invert Keyword</FormLabel>
+                    <FormLabel>{t("monitors.form.http_keyword.invert_keyword_label")}</FormLabel>
                     <div className="text-sm text-muted-foreground">
-                      Look for the keyword to be absent rather than present.
+                      {t("monitors.form.http_keyword.invert_keyword_description")}
                     </div>
                   </div>
                   <FormControl>

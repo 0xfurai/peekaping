@@ -103,7 +103,7 @@ const HttpJsonQuery = () => {
 
         <Card>
           <CardContent className="space-y-4">
-            <h4 className="text-lg font-semibold">JSON Query Expression</h4>
+            <h4 className="text-lg font-semibold">{t("monitors.form.http_json_query.title")}</h4>
             <div className="text-sm text-muted-foreground mb-4">
               Parse and extract specific data from the server's JSON response using GJSON path syntax.
               <br /><br />
@@ -119,7 +119,7 @@ const HttpJsonQuery = () => {
               name="json_query"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>JSON Query Expression</FormLabel>
+                  <FormLabel>{t("monitors.form.http_json_query.json_query_label")}</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="e.g., user.name or items.0.id (leave empty for full response)"
@@ -137,7 +137,7 @@ const HttpJsonQuery = () => {
                 name="json_condition"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Condition</FormLabel>
+                    <FormLabel>{t("monitors.form.http_json_query.condition_label")}</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -163,7 +163,7 @@ const HttpJsonQuery = () => {
                 name="expected_value"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Expected Value</FormLabel>
+                    <FormLabel>{t("monitors.form.http_json_query.expected_value_label")}</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="Expected value (full JSON if no query specified)"

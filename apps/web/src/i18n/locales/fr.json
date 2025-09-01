@@ -23,9 +23,6 @@
       "code_placeholder": "Entrez le code 2FA",
       "description": "L'authentification à deux facteurs est activée pour votre compte. Veuillez entrer votre code d'authentification pour continuer.",
       "title": "Authentification à deux facteurs requise",
-      "validation": {
-        "code_required": "Le code 2FA est requis"
-      },
       "verify_button": "Vérifier 2FA",
       "verifying": "Vérification..."
     }
@@ -68,7 +65,6 @@
     "loading": "Chargement...",
     "logout": "Se déconnecter",
     "maintenance": "Maintenance",
-    "no": "Non",
     "no_options_found": "Aucune option trouvée",
     "no_tags_available": "Aucun tag disponible",
     "please_refresh_page": "Veuillez actualiser la page.",
@@ -86,8 +82,7 @@
     "unnamed_monitor": "Moniteur sans nom",
     "up": "En ligne",
     "update": "Mettre à jour",
-    "verifying": "Vérification...",
-    "yes": "Oui"
+    "verifying": "Vérification..."
   },
   "forms": {
     "labels": {
@@ -117,7 +112,6 @@
     "validation": {
       "email_invalid": "Veuillez entrer une adresse email valide",
       "password_min_length": "Le mot de passe doit contenir au moins 8 caractères",
-      "password_required": "Le mot de passe est requis",
       "passwords_mismatch": "Les mots de passe ne correspondent pas"
     }
   },
@@ -215,18 +209,6 @@
       "toggle_error": "Impossible de basculer le statut de la maintenance : ID manquant",
       "update_error": "Échec de la mise à jour de la maintenance",
       "updated_success": "Maintenance mise à jour avec succès"
-    },
-    "validation": {
-      "day_of_month_required": "Au moins un jour doit être sélectionné",
-      "end_date_required": "La date de fin est requise",
-      "end_time_required": "L'heure de fin est requise",
-      "interval_day_range": "L'intervalle doit être entre 1 et 3650 jours",
-      "start_before_end_date": "La date de début doit être avant la date de fin",
-      "start_before_end_time": "L'heure de début doit être avant l'heure de fin",
-      "start_date_required": "La date de début est requise",
-      "start_time_required": "L'heure de début est requise",
-      "title_required": "Le titre est requis",
-      "weekday_required": "Au moins un jour de la semaine doit être sélectionné"
     },
     "weekdays": {
       "fri": "Ven",
@@ -388,6 +370,18 @@
           "title": "Options HTTP",
           "xml_example": "Exemple XML"
         }
+      },
+      "http_json_query": {
+        "condition_label": "",
+        "expected_value_label": "",
+        "json_query_label": "",
+        "title": ""
+      },
+      "http_keyword": {
+        "invert_keyword_description": "",
+        "invert_keyword_label": "",
+        "keyword_label": "",
+        "keyword_validation_title": ""
       },
       "kafka": {
         "add_broker": "Ajouter un broker",
@@ -729,19 +723,17 @@
         "learn_more_label": "En savoir plus sur les webhooks Grafana OnCall"
       },
       "line": {
-        "channel_access_token_label": "Jeton d'accès au canal (Longue durée)",
-        "channel_access_token_placeholder": "Entrez votre jeton d'accès au canal LINE",
         "channel_access_token_description": "Vous pouvez obtenir votre jeton d'accès au canal depuis le",
         "channel_access_token_description_2": "Accédez aux paramètres de votre canal et recherchez",
-        "user_id_label": "Votre ID utilisateur",
-        "user_id_placeholder": "Entrez votre ID utilisateur LINE",
-        "user_id_description": "Vous pouvez trouver votre ID utilisateur dans le",
-        "user_id_description_2": "Accédez aux paramètres de votre canal et recherchez",
-        "use_template_label": "Utiliser un modèle de message",
-        "use_template_description": "Activer pour utiliser un modèle de message personnalisé pour les notifications",
+        "channel_access_token_label": "Jeton d'accès au canal (Longue durée)",
+        "channel_access_token_placeholder": "Entrez votre jeton d'accès au canal LINE",
+        "template_description": "Personnaliser le format du message. Variables disponibles",
         "template_label": "Modèle de message",
         "template_placeholder": "Entrez votre modèle de message personnalisé",
-        "template_description": "Personnaliser le format du message. Variables disponibles"
+        "user_id_description": "Vous pouvez trouver votre ID utilisateur dans le",
+        "user_id_description_2": "Accédez aux paramètres de votre canal et recherchez",
+        "user_id_label": "Votre ID utilisateur",
+        "user_id_placeholder": "Entrez votre ID utilisateur LINE"
       },
       "matrix": {
         "access_token_description": "Votre jeton d'accès Matrix pour l'authentification",
@@ -1208,6 +1200,7 @@
       "title": "Supprimer la page de statut"
     },
     "description": "Entrez la description de la page de statut",
+    "domain_already_used": "Le domaine {{domain}} est déjà utilisé par une autre page de statut",
     "domain_host_warning": "Ce domaine est identique à votre URL d'hôte actuelle. Cela peut causer des conflits.",
     "domains": "Domaines",
     "domains_info_warning": "N'oubliez pas d'ajouter les enregistrements CNAME à votre DNS pour chaque domaine.",
@@ -1215,7 +1208,6 @@
     "edit_page_name": "Modifier la page de statut",
     "messages": {
       "create_description": "Créez une nouvelle page de statut pour partager l'état de votre service avec les utilisateurs.",
-      "create_failed": "Échec de la création de la page de statut",
       "create_your_first_status_page": "Créez votre première page de statut",
       "created_successfully": "Page de statut créée avec succès",
       "delete_failed": "Échec de la suppression de la page de statut",
@@ -1224,7 +1216,6 @@
       "no_status_pages_found": "Aucune page de statut trouvée",
       "not_found": "Page de statut introuvable",
       "update_description": "Mettez à jour les paramètres et la configuration de votre page de statut.",
-      "update_failed": "Échec de la mise à jour de la page de statut",
       "updated_successfully": "Page de statut mise à jour avec succès"
     },
     "new_page_name": "Nouvelle page de statut",
@@ -1235,8 +1226,7 @@
     "search_label": "Rechercher",
     "search_placeholder": "Rechercher des pages de statut par titre...",
     "update_status_page": "Mettre à jour la page de statut",
-    "view_page": "Voir la page",
-    "domain_already_used": "Le domaine {{domain}} est déjà utilisé par une autre page de statut"
+    "view_page": "Voir la page"
   },
   "tags": {
     "confirm_delete_description": "Cette action ne peut pas être annulée. Cela supprimera définitivement le tag \"{{name}}\" et le retirera de tous les moniteurs.",
@@ -1263,12 +1253,7 @@
       "update_description": "Mettez à jour les détails du tag pour mieux organiser vos moniteurs."
     },
     "new_page_name": "Nouveau tag",
-    "search_placeholder": "Rechercher des tags...",
-    "validation": {
-      "color_invalid": "La couleur doit être un code hexadécimal valide",
-      "name_max_length": "Le nom doit contenir moins de 100 caractères",
-      "name_required": "Le nom est requis"
-    }
+    "search_placeholder": "Rechercher des tags..."
   },
   "theme": {
     "dark": "Sombre",

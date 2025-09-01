@@ -23,9 +23,6 @@
       "code_placeholder": "Enter 2FA code",
       "description": "2FA is enabled for your account. Please enter your authentication code to continue.",
       "title": "Two-Factor Authentication Required",
-      "validation": {
-        "code_required": "2FA code is required"
-      },
       "verify_button": "Verify 2FA",
       "verifying": "Verifying..."
     }
@@ -68,7 +65,6 @@
     "loading": "Loading...",
     "logout": "Log out",
     "maintenance": "Maintenance",
-    "no": "No",
     "no_options_found": "No options found",
     "no_tags_available": "No tags available",
     "please_refresh_page": "Please refresh the page.",
@@ -86,8 +82,7 @@
     "unnamed_monitor": "Unnamed Monitor",
     "up": "Up",
     "update": "Update",
-    "verifying": "Verifying...",
-    "yes": "Yes"
+    "verifying": "Verifying..."
   },
   "forms": {
     "labels": {
@@ -117,7 +112,6 @@
     "validation": {
       "email_invalid": "Please enter a valid email address",
       "password_min_length": "Password must be at least 8 characters",
-      "password_required": "Password is required",
       "passwords_mismatch": "Passwords don't match"
     }
   },
@@ -215,18 +209,6 @@
       "toggle_error": "Cannot toggle maintenance status: ID is missing",
       "update_error": "Failed to update maintenance",
       "updated_success": "Maintenance updated successfully"
-    },
-    "validation": {
-      "day_of_month_required": "At least one day must be selected",
-      "end_date_required": "End date is required",
-      "end_time_required": "End time is required",
-      "interval_day_range": "Interval day must be between 1 and 3650",
-      "start_before_end_date": "Start date must be before end date",
-      "start_before_end_time": "Start time must be before end time",
-      "start_date_required": "Start date is required",
-      "start_time_required": "Start time is required",
-      "title_required": "Title is required",
-      "weekday_required": "At least one weekday must be selected"
     },
     "weekdays": {
       "fri": "Fri",
@@ -387,6 +369,18 @@
           "title": "HTTP Options",
           "xml_example": "Example XML"
         }
+      },
+      "http_json_query": {
+        "condition_label": "Condition",
+        "expected_value_label": "Expected Value",
+        "json_query_label": "JSON Query Expression",
+        "title": "JSON Query Expression"
+      },
+      "http_keyword": {
+        "invert_keyword_description": "Look for the keyword to be absent rather than present.",
+        "invert_keyword_label": "Invert Keyword",
+        "keyword_label": "Keyword",
+        "keyword_validation_title": "Keyword Validation"
       },
       "kafka": {
         "add_broker": "Add Broker",
@@ -728,19 +722,17 @@
         "learn_more_label": "Learn more about Grafana OnCall webhooks"
       },
       "line": {
-        "channel_access_token_label": "Channel Access Token (Long-lived)",
-        "channel_access_token_placeholder": "Enter your LINE channel access token",
         "channel_access_token_description": "You can get your channel access token from the",
         "channel_access_token_description_2": "Navigate to your channel settings and look for",
-        "user_id_label": "Your User ID",
-        "user_id_placeholder": "Enter your LINE User ID",
-        "user_id_description": "You can find your User ID in the",
-        "user_id_description_2": "Navigate to your channel settings and look for",
-        "use_template_label": "Use Message Template",
-        "use_template_description": "Enable to use a custom message template for notifications",
+        "channel_access_token_label": "Channel Access Token (Long-lived)",
+        "channel_access_token_placeholder": "Enter your LINE channel access token",
+        "template_description": "Customize the message format. Available variables",
         "template_label": "Message Template",
         "template_placeholder": "Enter your custom message template",
-        "template_description": "Customize the message format. Available variables"
+        "user_id_description": "You can find your User ID in the",
+        "user_id_description_2": "Navigate to your channel settings and look for",
+        "user_id_label": "Your User ID",
+        "user_id_placeholder": "Enter your LINE User ID"
       },
       "matrix": {
         "access_token_description": "Your Matrix access token for authentication",
@@ -1207,6 +1199,7 @@
       "title": "Delete Status Page"
     },
     "description": "Enter status page description",
+    "domain_already_used": "Domain {{domain}} is already used by another status page",
     "domain_host_warning": "This domain is the same as your current host URL. This may cause conflicts.",
     "domains": "Domains",
     "domains_info_warning": "Don't forget to add the CNAME records to your DNS for each domain.",
@@ -1214,7 +1207,6 @@
     "edit_page_name": "Edit Status Page",
     "messages": {
       "create_description": "Create a new status page to share your service status with users.",
-      "create_failed": "Failed to create status page",
       "create_your_first_status_page": "Create your first status page",
       "created_successfully": "Status page created successfully",
       "delete_failed": "Failed to delete status page",
@@ -1223,7 +1215,6 @@
       "no_status_pages_found": "No status pages found",
       "not_found": "Status page not found",
       "update_description": "Update your status page settings and configuration.",
-      "update_failed": "Failed to update status page",
       "updated_successfully": "Status page updated successfully"
     },
     "new_page_name": "New Status Page",
@@ -1234,8 +1225,7 @@
     "search_label": "Search",
     "search_placeholder": "Search status pages by title...",
     "update_status_page": "Update Status Page",
-    "view_page": "View Page",
-    "domain_already_used": "Domain {{domain}} is already used by another status page"
+    "view_page": "View Page"
   },
   "tags": {
     "confirm_delete_description": "This action cannot be undone. This will permanently delete the tag \"{{name}}\" and remove it from all monitors.",
@@ -1262,12 +1252,7 @@
       "update_description": "Update the tag details to better organize your monitors."
     },
     "new_page_name": "New Tag",
-    "search_placeholder": "Search tags...",
-    "validation": {
-      "color_invalid": "Color must be a valid hex color",
-      "name_max_length": "Name must be less than 100 characters",
-      "name_required": "Name is required"
-    }
+    "search_placeholder": "Search tags..."
   },
   "theme": {
     "dark": "Dark",
