@@ -273,8 +273,6 @@ func checkJsonQuery(responseBody, jsonQuery, condition, expectedValue string) (b
 	}
 
 	var result gjson.Result
-	println("expectedValue", expectedValue)
-	println("responseBody", responseBody)
 
 	if jsonQuery == "" {
 		// When no query is specified, we want to compare the full response
@@ -284,9 +282,6 @@ func checkJsonQuery(responseBody, jsonQuery, condition, expectedValue string) (b
 			// Try to parse both as JSON first
 			responseIsJson := json.Unmarshal([]byte(responseBody), &responseJson) == nil
 			expectedIsJson := json.Unmarshal([]byte(expectedValue), &expectedJson) == nil
-
-			println("responseIsJson", responseIsJson)
-			println("expectedIsJson", expectedIsJson)
 
 			// If both are valid JSON, do JSON comparison
 			if responseIsJson && expectedIsJson {
