@@ -13,7 +13,6 @@ import Authentication from "../http/authentication";
 import HttpOptions from "../http/options";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
-import { TypographyH4 } from "@/components/typography";
 import Notifications from "../shared/notifications";
 import Proxies from "../shared/proxies";
 import Intervals from "../shared/intervals";
@@ -104,8 +103,8 @@ const HttpKeyword = () => {
 
         <Card>
           <CardContent className="space-y-4">
-            <TypographyH4>Keyword Validation</TypographyH4>
-            
+            <h4 className="text-lg font-semibold">Keyword Validation</h4>
+
             <FormField
               control={form.control}
               name="keyword"
@@ -113,9 +112,9 @@ const HttpKeyword = () => {
                 <FormItem>
                   <FormLabel>Keyword</FormLabel>
                   <FormControl>
-                    <Input 
+                    <Input
                       placeholder="Search keyword in plain HTML or JSON response. The search is case-sensitive."
-                      {...field} 
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />

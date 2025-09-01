@@ -358,6 +358,146 @@ func TestHTTPExecutor_Validate(t *testing.T) {
 			}`,
 			expectedError: false,
 		},
+		{
+			name: "valid json_condition equals",
+			config: `{
+				"url": "http://example.com",
+				"method": "GET",
+				"encoding": "json",
+				"accepted_statuscodes": ["2XX"],
+				"authMethod": "none",
+				"json_query": "",
+				"json_condition": "==",
+				"expected_value": "test"
+			}`,
+			expectedError: false,
+		},
+		{
+			name: "valid json_condition not equals",
+			config: `{
+				"url": "http://example.com",
+				"method": "GET",
+				"encoding": "json",
+				"accepted_statuscodes": ["2XX"],
+				"authMethod": "none",
+				"json_query": "",
+				"json_condition": "!=",
+				"expected_value": "test"
+			}`,
+			expectedError: false,
+		},
+		{
+			name: "valid json_condition greater than",
+			config: `{
+				"url": "http://example.com",
+				"method": "GET",
+				"encoding": "json",
+				"accepted_statuscodes": ["2XX"],
+				"authMethod": "none",
+				"json_query": "value",
+				"json_condition": ">",
+				"expected_value": "10"
+			}`,
+			expectedError: false,
+		},
+		{
+			name: "valid json_condition less than",
+			config: `{
+				"url": "http://example.com",
+				"method": "GET",
+				"encoding": "json",
+				"accepted_statuscodes": ["2XX"],
+				"authMethod": "none",
+				"json_query": "value",
+				"json_condition": "<",
+				"expected_value": "10"
+			}`,
+			expectedError: false,
+		},
+		{
+			name: "valid json_condition greater than or equal",
+			config: `{
+				"url": "http://example.com",
+				"method": "GET",
+				"encoding": "json",
+				"accepted_statuscodes": ["2XX"],
+				"authMethod": "none",
+				"json_query": "value",
+				"json_condition": ">=",
+				"expected_value": "10"
+			}`,
+			expectedError: false,
+		},
+		{
+			name: "valid json_condition less than or equal",
+			config: `{
+				"url": "http://example.com",
+				"method": "GET",
+				"encoding": "json",
+				"accepted_statuscodes": ["2XX"],
+				"authMethod": "none",
+				"json_query": "value",
+				"json_condition": "<=",
+				"expected_value": "10"
+			}`,
+			expectedError: false,
+		},
+		{
+			name: "invalid json_condition",
+			config: `{
+				"url": "http://example.com",
+				"method": "GET",
+				"encoding": "json",
+				"accepted_statuscodes": ["2XX"],
+				"authMethod": "none",
+				"json_query": "value",
+				"json_condition": "invalid",
+				"expected_value": "test"
+			}`,
+			expectedError: true,
+		},
+		{
+			name: "valid json_query gjson path",
+			config: `{
+				"url": "http://example.com",
+				"method": "GET",
+				"encoding": "json",
+				"accepted_statuscodes": ["2XX"],
+				"authMethod": "none",
+				"json_query": "userId",
+				"json_condition": "==",
+				"expected_value": "1"
+			}`,
+			expectedError: false,
+		},
+		{
+			name: "valid json_query nested path",
+			config: `{
+				"url": "http://example.com",
+				"method": "GET",
+				"encoding": "json",
+				"accepted_statuscodes": ["2XX"],
+				"authMethod": "none",
+				"json_query": "user.id",
+				"json_condition": "==",
+				"expected_value": "1"
+			}`,
+			expectedError: false,
+		},
+		{
+			name: "valid json_query empty for full response",
+			config: `{
+				"url": "http://example.com",
+				"method": "GET",
+				"encoding": "json",
+				"accepted_statuscodes": ["2XX"],
+				"authMethod": "none",
+				"json_query": "",
+				"json_condition": "==",
+				"expected_value": "full_response"
+			}`,
+			expectedError: false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -429,6 +569,7 @@ func TestHTTPExecutor_Unmarshal(t *testing.T) {
 				cfg, ok := result.(*HTTPConfig)
 				assert.True(t, ok)
 				assert.NotNil(t, cfg)
+
 			}
 		})
 	}
@@ -1368,6 +1509,251 @@ func TestHTTPExecutor_Execute_IgnoreTlsErrors(t *testing.T) {
 			} else {
 				// Should be successful
 				assert.Contains(t, result.Message, "200")
+			}
+		})
+	}
+}
+
+func TestCheckJsonQuery(t *testing.T) {
+	responseBody := `{
+  "userId": 1,
+  "id": 1,
+  "title": "delectus aut autem",
+  "completed": false,
+  "nested": {
+    "value": "test"
+  }
+}`
+
+	tests := []struct {
+		name          string
+		jsonQuery     string
+		condition     string
+		expectedValue string
+		shouldSucceed bool
+		shouldError   bool
+	}{
+		{
+			name:          "gjson path - userId",
+			jsonQuery:     "userId",
+			condition:     "==",
+			expectedValue: "1",
+			shouldSucceed: true,
+			shouldError:   false,
+		},
+		{
+			name:          "gjson path - title",
+			jsonQuery:     "title",
+			condition:     "==",
+			expectedValue: "delectus aut autem",
+			shouldSucceed: true,
+			shouldError:   false,
+		},
+		{
+			name:          "empty query for full response (string comparison - backward compatibility)",
+			jsonQuery:     "",
+			condition:     "==",
+			expectedValue: responseBody,
+			shouldSucceed: true,
+			shouldError:   false,
+		},
+		{
+			name:          "empty query for full JSON equality - same structure",
+			jsonQuery:     "",
+			condition:     "==",
+			expectedValue: `{"userId":1,"id":1,"title":"delectus aut autem","completed":false,"nested":{"value":"test"}}`,
+			shouldSucceed: true,
+			shouldError:   false,
+		},
+		{
+			name:          "empty query for full JSON equality - different key order",
+			jsonQuery:     "",
+			condition:     "==",
+			expectedValue: `{"completed":false,"nested":{"value":"test"},"userId":1,"title":"delectus aut autem","id":1}`,
+			shouldSucceed: true,
+			shouldError:   false,
+		},
+		{
+			name:          "empty query for full JSON equality - different structure",
+			jsonQuery:     "",
+			condition:     "==",
+			expectedValue: `{"userId":2,"id":1,"title":"different title","completed":true}`,
+			shouldSucceed: false,
+			shouldError:   false,
+		},
+		{
+			name:          "empty query for full JSON inequality",
+			jsonQuery:     "",
+			condition:     "!=",
+			expectedValue: `{"userId":2,"id":1,"title":"different title","completed":true}`,
+			shouldSucceed: true,
+			shouldError:   false,
+		},
+		{
+			name:          "empty query with invalid expected JSON",
+			jsonQuery:     "",
+			condition:     "==",
+			expectedValue: `{"invalid": json}`,
+			shouldSucceed: false,
+			shouldError:   false,
+		},
+
+		{
+			name:          "empty query for full JSON with unsupported condition",
+			jsonQuery:     "",
+			condition:     ">",
+			expectedValue: `{"userId":1}`,
+			shouldSucceed: false,
+			shouldError:   true,
+		},
+		{
+			name:          "non-existent path",
+			jsonQuery:     "nonExistent",
+			condition:     "==",
+			expectedValue: "anything",
+			shouldSucceed: false,
+			shouldError:   true,
+		},
+		{
+			name:          "nested gjson path",
+			jsonQuery:     "nested.value",
+			condition:     "==",
+			expectedValue: "test",
+			shouldSucceed: true,
+			shouldError:   false,
+		},
+		{
+			name:          "boolean comparison",
+			jsonQuery:     "completed",
+			condition:     "==",
+			expectedValue: "false",
+			shouldSucceed: true,
+			shouldError:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := checkJsonQuery(responseBody, tt.jsonQuery, tt.condition, tt.expectedValue)
+
+			if tt.shouldError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.shouldSucceed, result)
+			}
+		})
+	}
+}
+
+func TestCheckJsonQueryNonJsonResponse(t *testing.T) {
+	nonJsonResponse := "This is not a JSON response"
+
+	tests := []struct {
+		name          string
+		responseBody  string
+		jsonQuery     string
+		condition     string
+		expectedValue string
+		shouldSucceed bool
+		shouldError   bool
+	}{
+		{
+			name:          "empty query with non-JSON response body",
+			responseBody:  nonJsonResponse,
+			jsonQuery:     "",
+			condition:     "==",
+			expectedValue: `{"valid": "json"}`,
+			shouldSucceed: false,
+			shouldError:   false,
+		},
+		{
+			name:          "empty query with non-JSON response - string comparison",
+			responseBody:  nonJsonResponse,
+			jsonQuery:     "",
+			condition:     "==",
+			expectedValue: nonJsonResponse,
+			shouldSucceed: true,
+			shouldError:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := checkJsonQuery(tt.responseBody, tt.jsonQuery, tt.condition, tt.expectedValue)
+
+			if tt.shouldError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.shouldSucceed, result)
+			}
+		})
+	}
+}
+
+func TestCheckJsonValidation(t *testing.T) {
+	tests := []struct {
+		name          string
+		responseBody  string
+		expectedValue string
+		shouldSucceed bool
+		shouldError   bool
+	}{
+		{
+			name:          "valid JSON comparison",
+			responseBody:  `{"status": "ok", "code": 200}`,
+			expectedValue: `{"status": "ok", "code": 200}`,
+			shouldSucceed: true,
+			shouldError:   false,
+		},
+		{
+			name:          "invalid JSON response body",
+			responseBody:  `{"status": "ok", "code": 200`,
+			expectedValue: `{"status": "ok", "code": 200}`,
+			shouldSucceed: false,
+			shouldError:   false,
+		},
+		{
+			name:          "invalid JSON expected value",
+			responseBody:  `{"status": "ok", "code": 200}`,
+			expectedValue: `{"status": "ok", "code": 200`,
+			shouldSucceed: false,
+			shouldError:   false,
+		},
+		{
+			name:          "null JSON comparison",
+			responseBody:  `null`,
+			expectedValue: `null`,
+			shouldSucceed: true,
+			shouldError:   false,
+		},
+		{
+			name:          "array JSON comparison",
+			responseBody:  `[{"id": 1}, {"id": 2}]`,
+			expectedValue: `[{"id": 1}, {"id": 2}]`,
+			shouldSucceed: true,
+			shouldError:   false,
+		},
+		{
+			name:          "array JSON different order",
+			responseBody:  `[{"id": 1}, {"id": 2}]`,
+			expectedValue: `[{"id": 2}, {"id": 1}]`,
+			shouldSucceed: false,
+			shouldError:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Test with empty json_query to trigger full JSON comparison
+			result, err := checkJsonQuery(tt.responseBody, "", "==", tt.expectedValue)
+
+			if tt.shouldError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.shouldSucceed, result)
 			}
 		})
 	}

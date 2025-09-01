@@ -13,9 +13,9 @@ export const httpJsonQuerySchema = z
   .object({
     type: z.literal("http-json-query"),
     url: z.string().url({ message: "Invalid URL" }),
-    json_query: z.string().min(1, { message: "JSON query is required" }),
+    json_query: z.string().optional(),
     json_condition: z.enum(["==", "!=", ">", "<", ">=", "<="]).optional(),
-    expected_value: z.string().min(1, { message: "Expected value is required" }),
+    expected_value: z.string().optional(),
   })
   .merge(generalSchema)
   .merge(intervalsSchema)
@@ -39,7 +39,7 @@ export type HttpJsonQueryForm = z.infer<typeof httpJsonQuerySchema>;
 export const httpJsonQueryDefaultValues: HttpJsonQueryForm = {
   type: "http-json-query",
   url: "https://example.com",
-  json_query: "$",
+  json_query: "",
   json_condition: "==",
   expected_value: "",
 
@@ -133,7 +133,7 @@ export const deserialize = (data: MonitorMonitorResponseDto): HttpJsonQueryForm 
     },
     authentication,
     check_cert_expiry: config.check_cert_expiry ?? false,
-    json_query: config.json_query || "$",
+    json_query: config.json_query || "",
     json_condition: (config.json_condition as "==" | "!=" | ">" | "<" | ">=" | "<=") || "==",
     expected_value: config.expected_value || "",
   };
@@ -153,9 +153,9 @@ export const serialize = (formData: HttpJsonQueryForm): MonitorCreateUpdateDto =
     check_cert_expiry: formData.check_cert_expiry,
 
     // JSON query validation fields
-    json_query: formData.json_query,
+    json_query: formData.json_query || "",
     json_condition: formData.json_condition,
-    expected_value: formData.expected_value,
+    expected_value: formData.expected_value || "",
 
     // Include authentication fields based on method
     ...(formData.authentication.authMethod === "basic" && {
@@ -208,9 +208,9 @@ export interface HttpJsonQueryExecutorConfig {
   ignore_tls_errors: boolean;
 
   // JSON query validation fields
-  json_query: string;
+  json_query?: string;
   json_condition?: "==" | "!=" | ">" | "<" | ">=" | "<=";
-  expected_value: string;
+  expected_value?: string;
 
   // Authentication fields
   authMethod: "none" | "basic" | "oauth2-cc" | "ntlm" | "mtls";

@@ -13,7 +13,6 @@ import Authentication from "../http/authentication";
 import HttpOptions from "../http/options";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
-import { TypographyH4 } from "@/components/typography";
 import Notifications from "../shared/notifications";
 import Proxies from "../shared/proxies";
 import Intervals from "../shared/intervals";
@@ -104,11 +103,17 @@ const HttpJsonQuery = () => {
 
         <Card>
           <CardContent className="space-y-4">
-            <TypographyH4>JSON Query Expression</TypographyH4>
+            <h4 className="text-lg font-semibold">JSON Query Expression</h4>
             <div className="text-sm text-muted-foreground mb-4">
-              Parse and extract specific data from the server's JSON response using JSON query or use "$" for the raw response, if not expecting JSON. The result is then compared to the expected value, as strings. See <a href="https://jsonata.org" target="_blank" rel="noopener noreferrer" className="underline">jsonata.org</a> for documentation and use <a href="https://jsonata.org/try" target="_blank" rel="noopener noreferrer" className="underline">playground</a> to experiment with queries.
+              Parse and extract specific data from the server's JSON response using GJSON path syntax.
+              <br /><br />
+              <strong>Leave empty to compare the entire JSON response:</strong> When no query is specified, the system will perform deep JSON equality comparison, ignoring key ordering and whitespace differences. This ensures accurate structural comparison of complete JSON objects.
+              <br /><br />
+              <strong>With query:</strong> Extract specific values and compare as strings using the specified condition.
+              <br /><br />
+              See <a href="https://github.com/tidwall/gjson/blob/master/SYNTAX.md" target="_blank" rel="noopener noreferrer" className="underline">GJSON syntax documentation</a> for path examples and supported features.
             </div>
-            
+
             <FormField
               control={form.control}
               name="json_query"
@@ -116,9 +121,9 @@ const HttpJsonQuery = () => {
                 <FormItem>
                   <FormLabel>JSON Query Expression</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="$"
-                      {...field} 
+                    <Input
+                      placeholder="e.g., user.name or items.0.id (leave empty for full response)"
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -160,9 +165,9 @@ const HttpJsonQuery = () => {
                   <FormItem>
                     <FormLabel>Expected Value</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder="Expected value"
-                        {...field} 
+                      <Input
+                        placeholder="Expected value (full JSON if no query specified)"
+                        {...field}
                       />
                     </FormControl>
                     <FormMessage />

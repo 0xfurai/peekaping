@@ -127,11 +127,11 @@ type HTTPConfig struct {
 	CheckCertExpiry     bool     `json:"check_cert_expiry"`
 
 	// Response validation fields
-	Keyword        string `json:"keyword,omitempty"`
-	InvertKeyword  bool   `json:"invert_keyword,omitempty"`
-	JsonQuery      string `json:"json_query,omitempty"`
-	JsonCondition  string `json:"json_condition,omitempty" validate:"omitempty,oneof== != > < >= <="`
-	ExpectedValue  string `json:"expected_value,omitempty"`
+	Keyword       string `json:"keyword,omitempty"`
+	InvertKeyword bool   `json:"invert_keyword,omitempty"`
+	JsonQuery     string `json:"json_query,omitempty"`
+	JsonCondition string `json:"json_condition,omitempty" validate:"omitempty,oneof='==' '!=' '>' '<' '>=' '<='"`
+	ExpectedValue string `json:"expected_value,omitempty"`
 
 	// Authentication fields
 	AuthMethod        string `json:"authMethod" validate:"required,oneof=none basic oauth2-cc ntlm mtls"`
@@ -258,7 +258,7 @@ func checkKeyword(responseBody, keyword string, invert bool) bool {
 	if keyword == "" {
 		return true // No keyword check needed
 	}
-	
+
 	found := strings.Contains(responseBody, keyword)
 	if invert {
 		return !found
@@ -268,38 +268,95 @@ func checkKeyword(responseBody, keyword string, invert bool) bool {
 
 // Helper to check JSON query and expected value
 func checkJsonQuery(responseBody, jsonQuery, condition, expectedValue string) (bool, error) {
-	if jsonQuery == "" {
+	if jsonQuery == "" && expectedValue == "" && condition == "" {
 		return true, nil // No JSON query check needed
 	}
-	
-	// Use "$" for raw response if no specific query is provided
-	query := jsonQuery
-	if query == "$" {
-		query = ""
-	}
-	
+
 	var result gjson.Result
-	if query == "" {
-		// Return the raw response body for comparison
+	println("expectedValue", expectedValue)
+	println("responseBody", responseBody)
+
+	if jsonQuery == "" {
+		// When no query is specified, we want to compare the full response
+		if expectedValue != "" {
+			var responseJson, expectedJson interface{}
+
+			// Try to parse both as JSON first
+			responseIsJson := json.Unmarshal([]byte(responseBody), &responseJson) == nil
+			expectedIsJson := json.Unmarshal([]byte(expectedValue), &expectedJson) == nil
+
+			println("responseIsJson", responseIsJson)
+			println("expectedIsJson", expectedIsJson)
+
+			// If both are valid JSON, do JSON comparison
+			if responseIsJson && expectedIsJson {
+				// For JSON comparison, we need to marshal both back to normalized JSON strings
+				// This ensures consistent formatting and key ordering
+				responseJsonBytes, err := json.Marshal(responseJson)
+				if err != nil {
+					return false, fmt.Errorf("failed to marshal response JSON: %w", err)
+				}
+
+				expectedJsonBytes, err := json.Marshal(expectedJson)
+				if err != nil {
+					return false, fmt.Errorf("failed to marshal expected JSON: %w", err)
+				}
+
+				// Compare the normalized JSON strings
+				actualValue := string(responseJsonBytes)
+				expectedValueNormalized := string(expectedJsonBytes)
+
+				// Default condition is equality
+				if condition == "" {
+					condition = "=="
+				}
+
+				switch condition {
+				case "==":
+					return actualValue == expectedValueNormalized, nil
+				case "!=":
+					return actualValue != expectedValueNormalized, nil
+				default:
+					return false, fmt.Errorf("unsupported condition '%s' for full JSON comparison: only '==' and '!=' are supported", condition)
+				}
+			}
+
+			// If one or both are not valid JSON, fall back to string comparison
+			// But only allow == and != conditions for non-JSON comparison
+			if condition == "" {
+				condition = "=="
+			}
+
+			switch condition {
+			case "==":
+				return responseBody == expectedValue, nil
+			case "!=":
+				return responseBody != expectedValue, nil
+			default:
+				return false, fmt.Errorf("unsupported condition '%s' for non-JSON comparison: only '==' and '!=' are supported", condition)
+			}
+		}
+
+		// If no expected value, just return the raw response body as string for backward compatibility
 		result = gjson.Result{Type: gjson.String, Str: responseBody}
 	} else {
-		result = gjson.Get(responseBody, query)
+		result = gjson.Get(responseBody, jsonQuery)
 		if !result.Exists() {
 			return false, fmt.Errorf("JSON query path not found: %s", jsonQuery)
 		}
 	}
-	
+
 	if expectedValue == "" && condition == "" {
 		return result.Exists(), nil
 	}
-	
+
 	actualValue := result.String()
-	
+
 	// Default condition is equality
 	if condition == "" {
 		condition = "=="
 	}
-	
+
 	switch condition {
 	case "==":
 		return actualValue == expectedValue, nil
@@ -596,21 +653,18 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	}
 
 	// Read response body for content validation
-	var responseBody string
-	if cfg.Keyword != "" || cfg.JsonQuery != "" {
-		bodyBytes, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return &Result{
-				Status:    shared.MonitorStatusDown,
-				Message:   fmt.Sprintf("Failed to read response body: %v", err),
-				StartTime: startTime,
-				EndTime:   endTime,
-				TLSInfo:   tlsInfo,
-			}
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return &Result{
+			Status:    shared.MonitorStatusDown,
+			Message:   fmt.Sprintf("Failed to read response body: %v", err),
+			StartTime: startTime,
+			EndTime:   endTime,
+			TLSInfo:   tlsInfo,
 		}
-		responseBody = string(bodyBytes)
-		h.logger.Debugf("Response body length: %d", len(responseBody))
 	}
+	var responseBody = string(bodyBytes)
+	h.logger.Debugf("Response body length: %d", len(responseBody))
 
 	// Check keyword if specified
 	if cfg.Keyword != "" {
@@ -632,7 +686,7 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	}
 
 	// Check JSON query if specified
-	if cfg.JsonQuery != "" {
+	if m.Type == "http-json-query" {
 		isValid, err := checkJsonQuery(responseBody, cfg.JsonQuery, cfg.JsonCondition, cfg.ExpectedValue)
 		if err != nil {
 			return &Result{
@@ -648,7 +702,7 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 			if condition == "" {
 				condition = "=="
 			}
-			message := fmt.Sprintf("JSON query validation failed: query '%s' with condition '%s' and expected value '%s'", 
+			message := fmt.Sprintf("JSON query validation failed: query '%s' with condition '%s' and expected value '%s'",
 				cfg.JsonQuery, condition, cfg.ExpectedValue)
 			return &Result{
 				Status:    shared.MonitorStatusDown,
