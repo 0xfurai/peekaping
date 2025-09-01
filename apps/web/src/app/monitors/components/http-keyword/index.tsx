@@ -7,12 +7,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import Advanced from "./advanced";
-import Authentication from "./authentication";
-import HttpOptions from "./options";
-
+import { Switch } from "@/components/ui/switch";
+import Advanced from "../http/advanced";
+import Authentication from "../http/authentication";
+import HttpOptions from "../http/options";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
+import { TypographyH4 } from "@/components/typography";
 import Notifications from "../shared/notifications";
 import Proxies from "../shared/proxies";
 import Intervals from "../shared/intervals";
@@ -21,12 +22,12 @@ import Tags from "../shared/tags";
 import { useMonitorFormContext } from "../../context/monitor-form-context";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import type { HttpForm } from "./schema";
+import type { HttpKeywordForm } from "./schema";
 import { deserialize, serialize } from "./schema";
 import { useEffect } from "react";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
-const Http = () => {
+const HttpKeyword = () => {
   const { t } = useLocalizedTranslation();
   const {
     form,
@@ -40,7 +41,7 @@ const Http = () => {
     monitor,
   } = useMonitorFormContext();
 
-  const onSubmit = (data: HttpForm) => {
+  const onSubmit = (data: HttpKeywordForm) => {
     const payload = serialize(data);
 
     if (mode === "create") {
@@ -74,7 +75,7 @@ const Http = () => {
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit((data) => onSubmit(data as HttpForm))}
+        onSubmit={form.handleSubmit((data) => onSubmit(data as HttpKeywordForm))}
         className="space-y-6 max-w-[600px]"
       >
         <Card>
@@ -95,6 +96,50 @@ const Http = () => {
                     <Input placeholder="https://" {...field} />
                   </FormControl>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="space-y-4">
+            <TypographyH4>Keyword Validation</TypographyH4>
+            
+            <FormField
+              control={form.control}
+              name="keyword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Keyword</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Search keyword in plain HTML or JSON response. The search is case-sensitive."
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="invert_keyword"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                  <div className="space-y-0.5">
+                    <FormLabel>Invert Keyword</FormLabel>
+                    <div className="text-sm text-muted-foreground">
+                      Look for the keyword to be absent rather than present.
+                    </div>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
                 </FormItem>
               )}
             />
@@ -144,4 +189,4 @@ const Http = () => {
   );
 };
 
-export default Http;
+export default HttpKeyword;

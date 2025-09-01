@@ -55,6 +55,8 @@ func NewExecutorRegistry(logger *zap.SugaredLogger, heartbeatService heartbeat.S
 	registry := make(map[string]Executor)
 
 	registry["http"] = NewHTTPExecutor(logger)
+	registry["http-keyword"] = NewHTTPExecutor(logger)
+	registry["http-json-query"] = NewHTTPExecutor(logger)
 	registry["push"] = NewPushExecutor(logger, heartbeatService)
 	registry["tcp"] = NewTCPExecutor(logger)
 	registry["ping"] = NewPingExecutor(logger)
