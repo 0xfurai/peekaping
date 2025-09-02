@@ -621,9 +621,14 @@
       "seconds": "secondes",
       "stats": {
         "last_24_hours": "Dernières 24 heures",
-        "last_30_days": "30 derniers jours",
-        "last_365_days": "365 derniers jours",
-        "last_7_days": "7 derniers jours"
+        "last_30_days": "Derniers 30 jours",
+        "last_365_days": "Derniers 365 jours",
+        "last_7_days": "Derniers 7 jours",
+        "status": {
+          "excellent": "Excellent",
+          "good": "Bon",
+          "needs_attention": "Nécessite une attention"
+        }
       },
       "status": {
         "down": "Hors ligne",

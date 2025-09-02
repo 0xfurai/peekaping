@@ -39,6 +39,10 @@ import {
   Trash,
   Shield,
   AlertTriangle,
+  TrendingUp,
+  TrendingDown,
+  Activity,
+  Clock,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -343,24 +347,50 @@ const MonitorPage = () => {
     refetchLastImportantHeartbeat,
   ]);
 
+  // Verbesserte Statistik-Daten mit Icons und Trend-Indikatoren
   const dataStats = useMemo(() => {
     if (!stats) return [];
+    
+    const getTrendIcon = (value: number) => {
+      if (value >= 99.5) return <TrendingUp className="w-4 h-4 text-green-500" />;
+      if (value >= 95) return <Activity className="w-4 h-4 text-yellow-500" />;
+      return <TrendingDown className="w-4 h-4 text-red-500" />;
+    };
+
+    const getStatusColor = (value: number) => {
+      if (value >= 99.5) return "text-green-500";
+      if (value >= 95) return "text-yellow-500";
+      return "text-red-500";
+    };
+
     return [
       {
         label: t("monitors.view.stats.last_24_hours"),
         value: stats.data?.["24h"],
+        icon: <Clock className="w-5 h-5" />,
+        trend: getTrendIcon(stats.data?.["24h"] || 0),
+        color: getStatusColor(stats.data?.["24h"] || 0),
       },
       {
         label: t("monitors.view.stats.last_7_days"),
         value: stats.data?.["7d"],
+        icon: <Activity className="w-5 h-5" />,
+        trend: getTrendIcon(stats.data?.["7d"] || 0),
+        color: getStatusColor(stats.data?.["7d"] || 0),
       },
       {
         label: t("monitors.view.stats.last_30_days"),
         value: stats.data?.["30d"],
+        icon: <TrendingUp className="w-5 h-5" />,
+        trend: getTrendIcon(stats.data?.["30d"] || 0),
+        color: getStatusColor(stats.data?.["30d"] || 0),
       },
       {
         label: t("monitors.view.stats.last_365_days"),
         value: stats.data?.["365d"],
+        icon: <TrendingUp className="w-5 h-5" />,
+        trend: getTrendIcon(stats.data?.["365d"] || 0),
+        color: getStatusColor(stats.data?.["365d"] || 0),
       },
     ];
   }, [stats, t]);
@@ -640,26 +670,32 @@ const MonitorPage = () => {
         </div>
 
         <Card className="mb-4">
-          <CardContent className="">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-              {dataStats.map((item) => {
-                return (
-                  <div
-                    key={item.label}
-                    className="flex flex-1 flex-col justify-center gap-1 px-4 py-2 text-left md:border-l md:odd:border-l-0 lg:first:border-l-0"
-                  >
-                    <span className="text-xs text-muted-foreground">
-                      {item.label}
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {dataStats.map((item) => (
+                <div
+                  key={item.label}
+                  className="flex flex-col items-center text-center p-4 rounded-lg bg-card/50 border border-border/50 hover:bg-card/80 transition-colors"
+                >
+                  <div className="flex items-center gap-2 mb-2 text-muted-foreground">
+                    {item.icon}
+                    <span className="text-xs font-medium">{item.label}</span>
+                  </div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={cn("text-2xl font-bold", item.color)}>
+                      {item.value?.toFixed(2) || "0.00"}
                     </span>
-                    <span className="text-xl font-bold leading-none sm:text-3xl">
-                      {item.value?.toLocaleString()}{" "}
-                      <span className="text-sm font-normal text-muted-foreground">
-                        %
-                      </span>
+                    <span className="text-sm text-muted-foreground">%</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {item.trend}
+                    <span className="text-xs text-muted-foreground">
+                      {item.value && item.value >= 99.5 ? t("monitors.view.stats.status.excellent") : 
+                       item.value && item.value >= 95 ? t("monitors.view.stats.status.good") : t("monitors.view.stats.status.needs_attention")}
                     </span>
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>

@@ -9,6 +9,7 @@ import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const languages = [
   { code: "en", name: "English", flag: "🇺🇸" },
+  { code: "de", name: "Deutsch", flag: "🇩🇪" },
   { code: "fr", name: "Français", flag: "🇫🇷" },
   { code: "ua", name: "Українська", flag: "🇺🇦" },
 ];
