@@ -347,7 +347,6 @@ const MonitorPage = () => {
     refetchLastImportantHeartbeat,
   ]);
 
-  // Verbesserte Statistik-Daten mit Icons und Trend-Indikatoren
   const dataStats = useMemo(() => {
     if (!stats) return [];
     
