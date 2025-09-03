@@ -76,7 +76,7 @@ const Intervals = () => {
         render={({ field }) => (
           <FormItem>
             <FormLabel>
-              {t("monitors.form.shared.intervals.heartbeat_retry", { seconds: 60 })}
+              {t("monitors.form.shared.intervals.heartbeat_retry", { seconds: field.value || 60 })}
             </FormLabel>
             <FormControl>
               <Input placeholder="60" {...field} type="number" />
@@ -91,7 +91,7 @@ const Intervals = () => {
         name="timeout"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>{t("monitors.form.shared.intervals.request_timeout", { seconds: 48 })}</FormLabel>
+            <FormLabel>{t("monitors.form.shared.intervals.request_timeout", { seconds: field.value || 48 })}</FormLabel>
             <FormControl>
               <Input placeholder="60" {...field} type="number" />
             </FormControl>
