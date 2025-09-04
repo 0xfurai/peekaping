@@ -30,6 +30,8 @@ DEFAULT_PROD_DB = mongo
 # Default target
 .DEFAULT_GOAL := help
 
+MIGRATIONS_DIR = apps/server/cmd/bun/migrations
+
 # Help target - shows available commands
 .PHONY: help
 help: ## Show this help message
@@ -189,6 +191,18 @@ migrate-down: ## Run database migrations down
 	@echo "Rolling back database migrations..."
 	cd apps/server && go run cmd/bun/main.go db rollback
 
+.PHONY: generate-migration
+generate-migration:
+	@name="$(filter-out $@,$(MAKECMDGOALS))"; \
+	slug=$$(echo "$$name" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]\+/_/g;s/^_//;s/_$$//'); \
+	ts=$$(date +%Y%m%d%H%M%S); \
+	up="$(MIGRATIONS_DIR)/$${ts}_$${slug}.tx.up.sql"; \
+	down="$(MIGRATIONS_DIR)/$${ts}_$${slug}.tx.down.sql"; \
+	mkdir -p "$(MIGRATIONS_DIR)"; \
+	touch "$$up" "$$down"; \
+	echo "Created:"; \
+	echo "  $$up"; \
+	echo "  $$down"
 
 # Quick database environment switchers
 .PHONY: switch-to-postgres
