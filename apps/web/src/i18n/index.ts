@@ -10,7 +10,7 @@ export const AVAILABLE_LANGUAGES = [
   "en-US", "ar-SY", "cs-CZ", "zh-HK", "bg-BG", "be-BY", "de-DE", "de-CH",
   "nl-NL", "nb-NO", "es-ES", "eu-ES", "fa-IR", "pt-PT", "pt-BR", "fi-FI",
   "fr-FR", "he-IL", "hu-HU", "hr-HR", "it-IT", "id-ID", "ja-JP", "da-DK",
-  "sr-Cyrl", "sr-Latn", "sl-SI", "sv-SE", "tr-TR", "ko-KR", "lt-LT", "ru-RU",
+  "sr-Cyrl", "sr-Latn", "sl-SI", "sv-SE", "tr-TR", "ko-KR", "lt-LT",
   "zh-CN", "pl-PL", "et-EE", "vi-VN", "zh-TW", "uk-UA", "th-TH", "el-GR",
   "yue", "ro-RO", "ur-PK", "ka-GE", "uz-UZ", "ga-IE"
 ];

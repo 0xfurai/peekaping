@@ -39,7 +39,6 @@ const languages = [
   { code: "tr-TR", name: "Türkçe", flag: "🇹🇷" },
   { code: "ko-KR", name: "한국어", flag: "🇰🇷" },
   { code: "lt-LT", name: "Lietuvių", flag: "🇱🇹" },
-  { code: "ru-RU", name: "Русский", flag: "🇷🇺" },
   { code: "zh-CN", name: "简体中文", flag: "🇨🇳" },
   { code: "pl-PL", name: "Polski", flag: "🇵🇱" },
   { code: "et-EE", name: "Eesti", flag: "🇪🇪" },

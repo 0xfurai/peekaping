@@ -30,7 +30,6 @@ export default {
     "tr-TR",
     "ko-KR",
     "lt-LT",
-    "ru-RU",
     "zh-CN",
     "pl-PL",
     "et-EE",
