@@ -551,7 +551,7 @@
         "title": "Conexión a Microsoft SQL Server"
       },
       "tcp": {
-        "host": "Host",
+        "host": "Servidor",
         "port": "Puerto",
         "title": "Conexión TCP"
       },
@@ -909,7 +909,7 @@
         "priority_placeholder": "Seleccionar prioridad",
         "sound_alien": "Alienígena",
         "sound_bike": "Bicicleta",
-        "sound_bugle": "Bugle",
+        "sound_bugle": "Bugón",
         "sound_cashregister": "Caja registradora",
         "sound_classical": "Clásico",
         "sound_climb": "Escalada",
@@ -923,7 +923,7 @@
         "sound_mechanical": "Mecánico",
         "sound_none": "Ninguno",
         "sound_persistent": "Persistente",
-        "sound_pianobar": "Piano Bar",
+        "sound_pianobar": "Bar de piano",
         "sound_pushover": "Pushover (predeterminado)",
         "sound_siren": "Sirena",
         "sound_spacealarm": "Alarma espacial",

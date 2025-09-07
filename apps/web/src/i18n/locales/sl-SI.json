@@ -20,7 +20,7 @@
     },
     "twofa": {
       "code_label": "2FA Koda",
-      "code_placeholder": "",
+      "code_placeholder": "Vnesite kodo 2FA",
       "description": "2FA je omogočena za vaš račun. Vnesite svojo overitveno kodo, da nadaljujete.",
       "title": "Dvostopenjska avtentikacija je zahtevana",
       "verify_button": "Preveri 2FA",
@@ -89,7 +89,7 @@
       "confirm_password": "Potrdi geslo",
       "email": "E-pošta",
       "footer_text": "Besedilo noge",
-      "heartbeat_interval": "",
+      "heartbeat_interval": "Interval srčnega utripa (sekunde)",
       "icon_url": "URL ikone",
       "monitor_name": "Ime",
       "monitor_type": "Tip",
@@ -199,7 +199,7 @@
     },
     "toasts": {
       "create_error": "Napaka pri ustvarjanju vzdrževanja",
-      "created_success": "",
+      "created_success": "Vzdrževanje je bilo ustvarjeno uspešno.",
       "delete_error": "Neuspešno brisanje vzdrževanja",
       "deleted_success": "Vzdrževanje je bilo uspešno izbrisano",
       "pause_error": "Napaka pri zaustavitvi vzdrževanja",
@@ -233,7 +233,7 @@
     "setting_update_success": "Nastavitev je bila uspešno posodobljena",
     "tag_create_error": "Napaka pri ustvarjanju oznake",
     "tag_create_success": "Oznaka ustvarjena uspešno",
-    "tag_delete_error": "",
+    "tag_delete_error": "Neuspešno brisanje oznake",
     "tag_delete_success": "Oznaka je bila uspešno izbrisana",
     "tag_update_error": "Posodabljanje oznake je spodletelo",
     "tag_update_success": "Oznaka je bila uspešno posodobljena",
@@ -343,7 +343,7 @@
           "domain_placeholder": "Domena",
           "form_data_body": "Telo obrazca",
           "key": "Ključ",
-          "key_placeholder": "",
+          "key_placeholder": "Ključ",
           "method_label": "Metoda avtentikacije",
           "method_placeholder": "Izberi vrsto overjanja",
           "oauth_scope": "OAuth obseg",
@@ -480,7 +480,7 @@
         "client_key_label": "Zasebni ključ odjemalca (neobvezen)",
         "connection_string_description": "Oblika niza povezave Redis: {{redis}} ali {{rediss}} za TLS",
         "connection_string_label": "Povezovalni niz",
-        "ignore_tls_description": "",
+        "ignore_tls_description": "Preskoči preverjanje TLS potrdila (ne priporočeno za proizvodnjo)",
         "ignore_tls_label": "Prezri napake TLS/SSL",
         "title": "Redis konfiguracija"
       },
@@ -508,7 +508,7 @@
           "remove_proxy": "Odstrani proxy",
           "select_proxy_placeholder": "Izberi posredniški strežnik",
           "selected_proxy": "Izbrani posrednik",
-          "title": "Proxy"
+          "title": "Posrednik"
         },
         "tags": {
           "label": "Oznake",
@@ -524,7 +524,7 @@
         "host_description": "Ime gostitelja ali IP naslov naprave z podporo SNMP",
         "host_label": "Gostitelj",
         "json_path_description": "Izraz JSONPath za pridobivanje vrednosti iz odgovora (uporabite \"$\" za surovo vrednost)",
-        "json_path_label": "JSON Path",
+        "json_path_label": "JSON pot",
         "json_path_operator_description": "Kako primerjati izluščen vrednost z pričakovano vrednostjo.",
         "json_path_operator_eq": "enako",
         "json_path_operator_ge": "večje ali enako",
@@ -536,7 +536,7 @@
         "oid_description": "ID objekta SNMP za poizvedbo (npr. 1.3.6.1.2.1.1.1.0 za opis sistema)",
         "oid_label": "OID (Objektni identifikator)",
         "port_description": "SNMP vrata (privzeto: 161)",
-        "port_label": "Port",
+        "port_label": "Vrata",
         "snmp_version_description": "Verzija protokola SNMP, ki se uporablja",
         "snmp_version_label": "Različica SNMP",
         "title": "Nastavitve SNMP",
@@ -718,7 +718,7 @@
       },
       "grafana_oncall": {
         "grafana_oncall_url_description": "URL webhooka iz vaše integracije Grafana OnCall. Ta najdete v vaši Grafana OnCall instanci pod Obvestila & IRM > IRM > Integracije > Webhook.",
-        "grafana_oncall_url_label": "Grafana OnCall URL",
+        "grafana_oncall_url_label": "URL za Grafana OnCall",
         "learn_more_label": "Izvedite več o Grafana OnCall webhookih"
       },
       "line": {
@@ -745,7 +745,7 @@
         "internal_room_id_label": "ID notranje sobe",
         "setup_instructions_1": "Ustvari račun Matrix za svojega bota (ali uporabi obstoječi račun)",
         "setup_instructions_2": "Ustvarite ali se pridružite sobi, kjer želite prejemati obvestila.",
-        "setup_instructions_3": "",
+        "setup_instructions_3": "Pridobite svoj dostopni žeton z oddajo prijavne zahteve",
         "setup_instructions_4": "Odgovor bo vseboval polje access_token – uporabite ga kot svoj Dostopni žeton.",
         "setup_instructions_5": "Najdite notranji ID sobe (začne z \"!\") v nastavitvah sobe v vašem Matrix odjemalcu.",
         "setup_instructions_label": "Navodila za nastavitev"
@@ -832,7 +832,7 @@
         "priority_critical": "Kritično",
         "priority_description": "Stopnja resnosti za incidente PagerDuty. Privzeto je \"warning\".",
         "priority_error": "Napaka",
-        "priority_info": "Info",
+        "priority_info": "Informacija",
         "priority_label": "Prioriteta",
         "priority_placeholder": "Izberi raven prioritete",
         "priority_warning": "Opozorilo"
@@ -845,7 +845,7 @@
         "auto_resolve_alerts_label": "Samodejno razreši opozorila",
         "how_to_get_integration_url_label": "Kako dobiti URL integracije",
         "integration_url_description": "Vnesite svoj PagerTree webhook integracijski URL.",
-        "integration_url_label": "PagerTree Webhook URL",
+        "integration_url_label": "PagerTree URL webhooka",
         "urgency_level_critical": "Kritično",
         "urgency_level_description": "Nastavite privzeto raven nujnosti za obvestila, ki se pošiljajo v PagerTree",
         "urgency_level_high": "Visoka",
@@ -908,7 +908,7 @@
         "priority_label": "Prioriteta",
         "priority_placeholder": "Izberi prioriteto",
         "sound_alien": "Zgoljica",
-        "sound_bike": "Bike",
+        "sound_bike": "Kolo",
         "sound_bugle": "Bugla",
         "sound_cashregister": "Gotovinska blagajna",
         "sound_classical": "Klasični",
@@ -977,7 +977,7 @@
         "smtp_host_description": "Vnesite ime strežnika, s katerim se želite povezati, ali localhost, če nameravate uporabljati lokalno konfiguriran poštni prenosni agent.",
         "smtp_host_label": "SMTP strežnik",
         "smtp_password_placeholder": "SMTP geslo",
-        "smtp_port_label": "Port",
+        "smtp_port_label": "Vrata",
         "smtp_to_label": "Za (prejemnikove e-poštne naslove)",
         "smtp_username_placeholder": "SMTP uporabniško ime"
       },
@@ -1269,7 +1269,7 @@
     "last_6_hours": "Zadnjih 6 ur",
     "last_7_days": "Zadnjih 7 dni",
     "maximum": "Največje",
-    "minimum": "Minimum",
+    "minimum": "Najmanjše",
     "ms": "ms",
     "response_time": "Čas odziva",
     "uptime": "Čas delovanja"

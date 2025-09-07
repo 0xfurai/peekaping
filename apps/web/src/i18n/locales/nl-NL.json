@@ -308,7 +308,7 @@
       "grpc": {
         "body": "Berichtinhoud (JSON)",
         "enable_tls": "TLS inschakelen",
-        "enable_tls_description": "Use secure connection (TLS/SSL)",
+        "enable_tls_description": "Gebruik een beveiligde verbinding (TLS/SSL)",
         "invert_keyword": "Zoekwoord omkeren",
         "invert_keyword_description": "De monitor wordt gemarkeerd als UP als het sleutelwoord NIET wordt gevonden.",
         "keyword": "Zoekwoord",
@@ -547,7 +547,7 @@
         "allowed_statements_label": "Toegestane SQL-instructies:",
         "connection_string_label": "Verbindingsreeks",
         "query_description": "Query die uitgevoerd wordt voor de gezondheidscontrole. Laat leeg om de standaard te gebruiken.",
-        "query_label": "Query",
+        "query_label": "Zoekopdracht",
         "title": "Microsoft SQL Server-verbinding"
       },
       "tcp": {
@@ -559,7 +559,7 @@
         "dns": "DNS-monitor",
         "docker": "Docker-container",
         "grpc": "gRPC Zoekwoordmonitor",
-        "http": "HTTP(S) Monitor",
+        "http": "HTTP(S)-monitor",
         "kafka": "Kafka Producer Monitor",
         "mongodb": "MongoDB-databasemonitor",
         "mqtt": "MQTT-brokermonitor",
@@ -568,9 +568,9 @@
         "postgres": "PostgreSQL-databank-monitor",
         "push": "Push-monitor (externe service roept een gegenereerde URL aan)",
         "rabbitmq": "RabbitMQ-monitor",
-        "redis": "Redis Database Monitor",
+        "redis": "Redis-databasemonitor",
         "snmp": "SNMP-monitor",
-        "sqlserver": "Microsoft SQL Server Monitor",
+        "sqlserver": "Microsoft SQL Server-monitor",
         "tcp": "TCP-poortmonitor"
       }
     },
@@ -708,7 +708,7 @@
         "priority_5": "Boven normaal",
         "priority_6": "Gemiddeld",
         "priority_7": "Hoog",
-        "priority_8": "Very High (Default)",
+        "priority_8": "Zeer Hoog (Standaard)",
         "priority_9": "Noodsituatie",
         "priority_description": "Berichtprioriteit (0-10). Hogere getallen staan voor een hogere prioriteit. Standaardwaarde: 8.",
         "priority_label": "Prioriteit",
@@ -740,7 +740,7 @@
         "custom_message_description": "Aangepast berichtsjabloon. Beschikbare variabelen.",
         "custom_message_label": "Aangepast bericht",
         "homeserver_url_description": "De URL van uw Matrix-homeserver",
-        "homeserver_url_label": "Homeserver URL",
+        "homeserver_url_label": "Homeserver‑URL",
         "internal_room_id_description": "Het interne kamer-ID waar meldingen naartoe worden verzonden. Dit moet beginnen met ! en eruit zien als: !roomid:matrix.org",
         "internal_room_id_label": "Interne kamer-ID",
         "setup_instructions_1": "Maak een Matrix-account aan voor je bot (of gebruik je bestaande account)",
@@ -767,7 +767,7 @@
         "webhook_url_label": "Webhook-URL"
       },
       "ntfy": {
-        "authentication_type_basic": "Basic Authentication",
+        "authentication_type_basic": "Basis authenticatie",
         "authentication_type_basic_description": "Gebruik gebruikersnaam en wachtwoord voor basisauthenticatie.",
         "authentication_type_label": "Authenticatietype",
         "authentication_type_none": "Geen authenticatie",
@@ -907,12 +907,12 @@
         "priority_description": "Berichtprioriteit",
         "priority_label": "Prioriteit",
         "priority_placeholder": "Kies prioriteit",
-        "sound_alien": "Alien",
+        "sound_alien": "Buitenaards",
         "sound_bike": "Fiets",
         "sound_bugle": "Bugel",
         "sound_cashregister": "Kassa",
         "sound_classical": "Klassiek",
-        "sound_climb": "Climb",
+        "sound_climb": "Klim",
         "sound_cosmic": "Kosmisch",
         "sound_echo": "Echo",
         "sound_falling": "Vallend",
@@ -923,11 +923,11 @@
         "sound_mechanical": "Mechanisch",
         "sound_none": "Geen",
         "sound_persistent": "Aanhoudend",
-        "sound_pianobar": "Piano Bar",
+        "sound_pianobar": "Pianobar",
         "sound_pushover": "Pushover (standaard)",
         "sound_siren": "Sirene",
         "sound_spacealarm": "Ruimtealarm",
-        "sound_tugboat": "Tugboat",
+        "sound_tugboat": "Trokker",
         "sound_updown": "Omhoog / Omlaag",
         "sound_vibrate": "Trillen",
         "user_key_label": "Gebruikerssleutel",
@@ -1086,7 +1086,7 @@
     "new": {
       "page_name": "Nieuwe Proxy"
     },
-    "page_name": "Proxies",
+    "page_name": "Proxy's",
     "search_label": "Zoek",
     "search_placeholder": "Zoek proxies op hostnaam..."
   },
@@ -1240,7 +1240,7 @@
       "color_label": "Kleur",
       "create_button": "Tag aanmaken",
       "description_label": "Beschrijving",
-      "description_placeholder": "Enter tag description (optional)",
+      "description_placeholder": "Tagbeschrijving invoeren (optioneel)",
       "name_label": "Naam",
       "name_placeholder": "Voer tagnaam in",
       "update_button": "Tag bijwerken"

@@ -188,7 +188,7 @@
       "search_placeholder": "مینٹیننس تلاش کریں..."
     },
     "page_title": "مینٹیننس ونڈوز",
-    "schedule_title": "",
+    "schedule_title": "مینٹیننس شیڈول کریں",
     "strategy": {
       "cron": "کرون ایکسپریشن",
       "manual": "دستی طور پر فعال/غیر فعال",
@@ -348,7 +348,7 @@
           "method_placeholder": "توثیق کی قسم منتخب کریں",
           "oauth_scope": "آؤتوہ اسکوپ",
           "oauth_scope_placeholder": "اختیاری: خالی جگہ سے جدا کردہ سکوپس کی فہرست",
-          "oauth_token_url": "",
+          "oauth_token_url": "OAuth ٹوکن یو آر ایل",
           "oauth_token_url_placeholder": "OAuth ٹوکن URL",
           "title": "تصدیق",
           "workstation": "ورک اسٹیشن",
@@ -425,7 +425,7 @@
         "configuration_title": "MQTT کنفیگریشن",
         "expected_value_label": "متوقع قدر",
         "hostname_label": "ہوسٹ نام",
-        "json_path_label": "JSON Path",
+        "json_path_label": "JSON راستہ",
         "password_label": "MQTT پاس ورڈ",
         "password_placeholder": "پاس ورڈ (اختیاری)",
         "port_label": "پورٹ",

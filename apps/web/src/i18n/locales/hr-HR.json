@@ -478,7 +478,7 @@
         "client_certificate_label": "Klijentov certifikat (neobavezno)",
         "client_key_description": "Privatni ključ klijenta u PEM formatu. Morate navesti zajedno s klijentskim certifikatom.",
         "client_key_label": "Privatni ključ klijenta (neobavezno)",
-        "connection_string_description": "",
+        "connection_string_description": "Format Redis veze: {{redis}} ili {{rediss}} za TLS",
         "connection_string_label": "String veze",
         "ignore_tls_description": "Preskoči provjeru TLS certifikata (ne preporučuje se za produkciju)",
         "ignore_tls_label": "Ignoriraj TLS/SSL greške",
@@ -571,11 +571,11 @@
         "redis": "Monitor Redis baze podataka",
         "snmp": "SNMP nadzor",
         "sqlserver": "Nadzor Microsoft SQL Servera",
-        "tcp": ""
+        "tcp": "Nadzor TCP porta"
       }
     },
     "page": {
-      "description": "",
+      "description": "Stvori novi monitor kako bi započeo praćenje performansi svoje web stranice.",
       "edit_title": "Uredi monitor:",
       "new_title": "Novi monitor"
     },
@@ -686,7 +686,7 @@
       },
       "google_chat": {
         "more_info_about_webhooks": "Više informacija o Webhook-ovima",
-        "webhook_url_label": "Google Chat Webhook URL"
+        "webhook_url_label": "URL webhooka za Google Chat"
       },
       "gotify": {
         "application_token_description": "Token iz vaše Gotify aplikacije. Možete ga pronaći u web sučelju Gotify pod odjeljkom Aplikacije.",
@@ -741,7 +741,7 @@
         "custom_message_label": "Prilagođena poruka",
         "homeserver_url_description": "URL vašeg Matrix domaćinskog poslužitelja",
         "homeserver_url_label": "URL domaćina",
-        "internal_room_id_description": "",
+        "internal_room_id_description": "Interni ID sobe u koju će se slati obavijesti. Trebao bi početi sa \"!\" i izgledati ovako: !roomid:matrix.org",
         "internal_room_id_label": "Interni ID sobe",
         "setup_instructions_1": "Kreirajte Matrix račun za svog bota (ili koristite svoj postojeći račun)",
         "setup_instructions_2": "Kreirajte ili se pridružite sobi u kojoj želite primati obavijesti",
@@ -764,7 +764,7 @@
         "use_message_template_description": "Omogući korištenje vlastitog predloška poruke i formata.",
         "use_message_template_label": "Koristi predložak poruke",
         "username_description": "Korisničko ime koje će se pojaviti kao pošiljatelj poruke.",
-        "webhook_url_label": "Webhook URL"
+        "webhook_url_label": "URL webhooka"
       },
       "ntfy": {
         "authentication_type_basic": "Osnovna autentifikacija",
@@ -1124,7 +1124,7 @@
         "new_password_label": "Nova lozinka",
         "new_password_placeholder": "Unesite novu lozinku",
         "old_password_label": "Stara lozinka",
-        "old_password_placeholder": "",
+        "old_password_placeholder": "Unesite svoju trenutačnu lozinku",
         "update_password_button": "Ažuriraj lozinku"
       },
       "messages": {

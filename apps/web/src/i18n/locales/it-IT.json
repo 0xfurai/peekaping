@@ -87,7 +87,7 @@
   "forms": {
     "labels": {
       "confirm_password": "Conferma password",
-      "email": "Email",
+      "email": "E‑mail",
       "footer_text": "Testo del piè di pagina",
       "heartbeat_interval": "Intervallo di heartbeat (secondi)",
       "icon_url": "URL dell'icona",
@@ -425,7 +425,7 @@
         "configuration_title": "Configurazione MQTT",
         "expected_value_label": "Valore atteso",
         "hostname_label": "Nome host",
-        "json_path_label": "JSON Path",
+        "json_path_label": "Percorso JSON",
         "password_label": "Password MQTT",
         "password_placeholder": "Password (facoltativa)",
         "port_label": "Porta",
@@ -443,7 +443,7 @@
         "connection_string_examples": "Esempi:",
         "connection_string_label": "Stringa di connessione",
         "connection_title": "Connessione MySQL",
-        "query_label": "Query"
+        "query_label": "Richiesta"
       },
       "ping": {
         "data_size": "Dimensione dati (byte)",
@@ -453,7 +453,7 @@
       "postgres": {
         "connection_string_label": "Stringa di connessione",
         "connection_title": "Connessione PostgreSQL",
-        "query_label": "Query"
+        "query_label": "Richiesta"
       },
       "push": {
         "url_description": "Usa questo URL nel tuo servizio per segnalare lo stato. Effettua una richiesta HTTP (POST/GET) a questo endpoint per inviare un heartbeat.",
@@ -547,7 +547,7 @@
         "allowed_statements_label": "Istruzioni consentite:",
         "connection_string_label": "Stringa di connessione",
         "query_description": "Query da eseguire per il controllo di salute. Lascia vuoto per utilizzare il valore predefinito.",
-        "query_label": "Query",
+        "query_label": "Richiesta",
         "title": "Connessione Microsoft SQL Server"
       },
       "tcp": {
@@ -583,7 +583,7 @@
     "toasts": {
       "deleted": "Monitor eliminato",
       "paused": "Monitor in pausa",
-      "reset_success": "",
+      "reset_success": "Dati del monitor reimpostati con successo",
       "resumed": "Monitor ripreso"
     },
     "view": {
@@ -643,7 +643,7 @@
   },
   "notifications": {
     "actions": {
-      "test": "Test",
+      "test": "Prova",
       "testing": "Test in corso..."
     },
     "aria": {
@@ -852,7 +852,7 @@
         "urgency_level_label": "Livello di urgenza",
         "urgency_level_low": "Basso",
         "urgency_level_medium": "Media",
-        "urgency_level_placeholder": "",
+        "urgency_level_placeholder": "Seleziona livello di urgenza",
         "urgency_level_silent": "Silenzioso"
       },
       "pushbullet": {
@@ -909,12 +909,12 @@
         "priority_placeholder": "Seleziona la priorità",
         "sound_alien": "Alieno",
         "sound_bike": "Bici",
-        "sound_bugle": "Bugle",
+        "sound_bugle": "Bugnolo",
         "sound_cashregister": "Registratore di cassa",
         "sound_classical": "Classica",
         "sound_climb": "Salita",
         "sound_cosmic": "Cosmico",
-        "sound_echo": "Echo",
+        "sound_echo": "Eco",
         "sound_falling": "Caduta",
         "sound_gamelan": "Gamelan",
         "sound_incoming": "In arrivo",
@@ -923,7 +923,7 @@
         "sound_mechanical": "Meccanico",
         "sound_none": "Nessuno",
         "sound_persistent": "Persistente",
-        "sound_pianobar": "Piano Bar",
+        "sound_pianobar": "Bar con piano",
         "sound_pushover": "Pushover (predefinito)",
         "sound_siren": "Sirena",
         "sound_spacealarm": "Allarme spaziale",
@@ -1212,7 +1212,7 @@
       "delete_failed": "Impossibile eliminare la pagina di stato",
       "deleted_successfully": "Pagina di stato eliminata con successo",
       "get_started_by_creating_your_first_status_page": "Inizia creando la tua prima pagina di stato.",
-      "no_status_pages_found": "",
+      "no_status_pages_found": "Nessuna pagina di stato trovata",
       "not_found": "Pagina di stato non trovata",
       "update_description": "Aggiorna le impostazioni e la configurazione della tua pagina di stato.",
       "updated_successfully": "Pagina di stato aggiornata con successo"
@@ -1232,7 +1232,7 @@
     "edit_page_name": "Modifica Tag",
     "empty_state": {
       "action": "Crea il tuo primo tag",
-      "description": "",
+      "description": "Inizia creando il primo tag per organizzare i tuoi monitor.",
       "title": "Nessun tag trovato"
     },
     "form": {

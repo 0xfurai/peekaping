@@ -15,7 +15,7 @@
       "description": "สร้างบัญชีผู้ดูแลระบบของคุณ",
       "have_account": "มีบัญชีอยู่แล้ว?",
       "sign_in": "เข้าสู่ระบบ",
-      "submit": "",
+      "submit": "สร้าง",
       "title": "สวัสดี"
     },
     "twofa": {
@@ -34,7 +34,7 @@
     "message": "ข้อความ",
     "ms": "มลายู",
     "notified": "ได้รับแจ้ง",
-    "ping": "Ping",
+    "ping": "ปิง",
     "retries": "จำนวนครั้งที่ลองใหม่",
     "status": "สถานะ",
     "time": "เวลา"
@@ -124,7 +124,7 @@
       },
       "labels": {
         "duration": "{{duration}} นาที",
-        "end": "",
+        "end": "สิ้นสุด: {{date}}",
         "start": "เริ่มต้น: {{date}}"
       },
       "status": {
@@ -324,7 +324,7 @@
       },
       "http": {
         "advanced": {
-          "accepted_status_codes": "",
+          "accepted_status_codes": "รหัสสถานะที่ยอมรับ",
           "ignore_tls": "ข้ามข้อผิดพลาด TLS/SSL สำหรับเว็บไซต์ HTTPS",
           "ignore_tls_description": "ข้ามการตรวจสอบใบรับรอง TLS. ใช้ด้วยความระมัดระวัง - ทำให้การเชื่อมต่อปลอดภัยน้อยลง",
           "max_redirects": "จำนวนการเปลี่ยนเส้นทางสูงสุด",
@@ -417,7 +417,7 @@
         "json_path_label": "JSON Path (ไม่จำเป็น)"
       },
       "mqtt": {
-        "check_type_json_query": "JSON Query",
+        "check_type_json_query": "JSON คำสืบค้น",
         "check_type_keyword": "คีย์เวิร์ด",
         "check_type_label": "ประเภทการตรวจสอบ MQTT",
         "check_type_none": "ไม่มี (ข้อความใด ๆ)",
@@ -431,7 +431,7 @@
         "port_label": "พอร์ต",
         "success_keyword_label": "MQTT คีย์เวิร์ดสำเร็จ",
         "success_keyword_placeholder": "คีย์เวิร์ดที่บ่งบอกความสำเร็จ",
-        "username_label": "",
+        "username_label": "ชื่อผู้ใช้ MQTT",
         "username_placeholder": "ชื่อผู้ใช้ (ไม่บังคับ)",
         "validation": {
           "expected_value_required": "ค่าที่คาดหวังคือต้องระบุเมื่อชนิดตรวจสอบเป็น json-query",
@@ -689,7 +689,7 @@
         "webhook_url_label": "URL ของ Webhook Google Chat"
       },
       "gotify": {
-        "application_token_description": "",
+        "application_token_description": "โทเค็นแอปพลิเคชันจากแอป Gotify ของคุณ คุณสามารถค้นหาได้ในอินเตอร์เฟสเว็บ Gotify ของคุณใต้เมนู Apps",
         "application_token_label": "โทเค็นแอปพลิเคชัน",
         "custom_message_description": "เทมเพลตข้อความกำหนดเอง. ตัวแปรที่ใช้ได้",
         "custom_message_description_2": "ปล่อยว่างเพื่อใช้ข้อความเริ่มต้น",
@@ -718,7 +718,7 @@
       },
       "grafana_oncall": {
         "grafana_oncall_url_description": "URL ของเว็บฮุกจากการผสาน Grafana OnCall ของคุณ คุณสามารถหาได้ในอินสแตนซ์ Grafana OnCall ของคุณที่เมนู แจ้งเตือน & IRM > IRM > การผสาน > Webhook",
-        "grafana_oncall_url_label": "Grafana OnCall URL",
+        "grafana_oncall_url_label": "URL ของ Grafana OnCall",
         "learn_more_label": "เรียนรู้เพิ่มเติมเกี่ยวกับเว็บฮุกของ Grafana OnCall"
       },
       "line": {
@@ -1037,7 +1037,7 @@
       "type": "ประเภทตัวแจ้ง"
     },
     "messages": {
-      "create_failed": "",
+      "create_failed": "ไม่สามารถสร้างตัวแจ้งเตือนได้",
       "created_success": "สร้างตัวแจ้งเตือนสำเร็จ",
       "error_loading_notifier": "ไม่สามารถโหลดตัวแจ้งเตือน",
       "test_failed": "ไม่สามารถส่งการแจ้งเตือนทดสอบได้",
@@ -1243,7 +1243,7 @@
       "description_placeholder": "ป้อนคำอธิบายแท็ก (ไม่จำเป็น)",
       "name_label": "ชื่อ",
       "name_placeholder": "ป้อนชื่อแท็ก",
-      "update_button": ""
+      "update_button": "อัปเดตแท็ก"
     },
     "messages": {
       "create_description": "สร้างแท็กใหม่เพื่อจัดระเบียบและจัดประเภทมอนิเตอร์ของคุณ",
@@ -1251,7 +1251,7 @@
       "tag_id_required": "ต้องระบุ Tag ID",
       "update_description": "อัปเดตรายละเอียดแท็กเพื่อจัดระเบียบมอนิเตอร์ของคุณให้ดียิ่งขึ้น"
     },
-    "new_page_name": "",
+    "new_page_name": "แท็กใหม่",
     "search_placeholder": "ค้นหาแท็ก..."
   },
   "theme": {

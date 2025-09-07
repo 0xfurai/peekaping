@@ -30,7 +30,7 @@
   "bars": {
     "down_count": "Broj pada",
     "important": "Važno",
-    "interval": "Interval",
+    "interval": "Интервал",
     "message": "Poruka",
     "ms": "ms",
     "notified": "obavešten",
@@ -133,7 +133,7 @@
         "inactive": "Neaktivan"
       }
     },
-    "edit_title": "",
+    "edit_title": "Izmeni održavanje",
     "form": {
       "affected_monitors_description": "Izaberite monitore koji će biti pogođeni ovim održavanjem.",
       "affected_monitors_title": "Pogodjeni monitori",
@@ -255,7 +255,7 @@
       "monitor_status": "Status",
       "monitor_status_placeholder": "Status monitora",
       "search_placeholder": "Pretraži monitore po imenu...",
-      "status_placeholder": "Status"
+      "status_placeholder": "Статус"
     },
     "form": {
       "buttons": {
@@ -411,7 +411,7 @@
         "connection_string_description": "MongoDB konekcioni string. Podržava standardni (mongodb://) i DNS seedlist (mongodb+srv://) formate.",
         "connection_string_label": "String za konekciju",
         "expected_value_description": "Očekivana vrednost za poređenje sa rezultatom JSON putanje.",
-        "expected_value_label": "",
+        "expected_value_label": "Očekivana vrednost (opcionalno)",
         "expected_value_placeholder": "Očekivana vrednost",
         "json_path_description": "JSON putanja za izvlačenje vrednosti iz odgovora. Koristite $ za korenski nivo.",
         "json_path_label": "JSON putanja (opciono)"
@@ -447,7 +447,7 @@
       },
       "ping": {
         "data_size": "Veličina podataka (bajti)",
-        "host": "Hostname / IP",
+        "host": "Ime hosta / IP",
         "title": "Podešavanja pinga"
       },
       "postgres": {
@@ -473,7 +473,7 @@
       },
       "redis": {
         "ca_certificate_description": "Root CA sertifikat u PEM formatu. Obavezan za pravilnu TLS verifikaciju sa samo-potpisanim sertifikatima.",
-        "ca_certificate_label": "",
+        "ca_certificate_label": "CA sertifikat (opciono)",
         "client_certificate_description": "Klijentski sertifikat u PEM formatu. Obavezno za obostranu TLS autentifikaciju.",
         "client_certificate_label": "Klijentski sertifikat (opcionalno)",
         "client_key_description": "Privatni ključ klijenta u PEM formatu. Mora biti dostavljen zajedno sa klijentskim sertifikatom.",
@@ -508,7 +508,7 @@
           "remove_proxy": "Ukloni proxy",
           "select_proxy_placeholder": "Izaberi proxy",
           "selected_proxy": "Izabrani proksi",
-          "title": "Proxy"
+          "title": "Proksi"
         },
         "tags": {
           "label": "Oznake",
@@ -522,7 +522,7 @@
         "expected_value_description": "Vrednost za poređenje. Ostavite prazno da preskočite proveru.",
         "expected_value_label": "Očekivana vrednost",
         "host_description": "Ime hosta ili IP adresa SNMP-om omogućenog uređaja",
-        "host_label": "Host",
+        "host_label": "gost",
         "json_path_description": "JSONPath izraz za izvlačenje vrednosti iz odgovora (koristite \"$\" za sirovu vrednost)",
         "json_path_label": "JSON putanja",
         "json_path_operator_description": "Kako uporediti izvučenu vrednost sa očekivanom vrednošću",
@@ -562,15 +562,15 @@
         "http": "HTTP(S) nadzor",
         "kafka": "Monitor proizvođača Kafka",
         "mongodb": "MongoDB monitor baze podataka",
-        "mqtt": "MQTT Broker Monitor",
-        "mysql": "MySQL/MariaDB Monitor",
+        "mqtt": "Praćenje MQTT brokera",
+        "mysql": "MySQL/MariaDB Nadzor",
         "ping": "Ping nadzor (ICMP)",
         "postgres": "PostgreSQL monitor baze podataka",
         "push": "Push Monitor (vanjski servis poziva generisani URL)",
         "rabbitmq": "RabbitMQ Nadzor",
         "redis": "Redis monitor baze podataka",
         "snmp": "SNMP monitor",
-        "sqlserver": "Microsoft SQL Server Monitor",
+        "sqlserver": "Monitor Microsoft SQL Servera",
         "tcp": "Praćenje TCP portova"
       }
     },
@@ -643,7 +643,7 @@
   },
   "notifications": {
     "actions": {
-      "test": "Test",
+      "test": "Тест",
       "testing": "Testiranje..."
     },
     "aria": {
@@ -668,7 +668,7 @@
         "forum_post_name_description": "Ime nove objave na forumu koja će biti kreirana.",
         "forum_post_name_label": "Naziv posta na forumu",
         "forum_post_name_placeholder": "Unesite naziv forum posta",
-        "sending_message_to_channel": "",
+        "sending_message_to_channel": "Pošalji u kanal",
         "sending_message_to_description": "Izaberite gde slati Discord poruke.",
         "sending_message_to_label": "Slanje poruke na",
         "sending_message_to_new_forum_post": "Pošalji na novi forum post",
@@ -682,7 +682,7 @@
         "thread_id_description_title": "ID niti ili forum posta gde će se slati poruke",
         "thread_id_label": "ID niti",
         "thread_id_placeholder": "Unesite ID niti ili objave",
-        "webhook_url_label": "Discord Webhook URL"
+        "webhook_url_label": "URL Discord webhooka"
       },
       "google_chat": {
         "more_info_about_webhooks": "Više informacija o Webhook-ovima",
@@ -810,7 +810,7 @@
         "priority_description": "Podesite nivo prioriteta za obaveštenja. Podrazumevano je P3 (Srednji).",
         "priority_label": "Prioritet",
         "region_description": "Izaberite vašu Opsgenie regiju. Ovo određuje koju API krajnju tačku će se koristiti.",
-        "region_label": "Region",
+        "region_label": "Regija",
         "region_placeholder": "Izaberi region"
       },
       "pagerduty": {
@@ -830,7 +830,7 @@
         "integration_url_label": "URL integracije",
         "learn_more_label": "PagerDuty dokumentacija",
         "priority_critical": "Kritično",
-        "priority_description": "",
+        "priority_description": "Nivo ozbiljnosti za PagerDuty incidente. Podrazumevano je \"warning\".",
         "priority_error": "Greška",
         "priority_info": "Info",
         "priority_label": "Prioritet",
@@ -901,7 +901,7 @@
         "notification_sound_up_placeholder": "Izaberite zvuk",
         "priority_1": "Najniži",
         "priority_2": "Nizak",
-        "priority_3": "Normal",
+        "priority_3": "Normalno",
         "priority_4": "Visoka",
         "priority_5": "Hitno",
         "priority_description": "Prioritet poruke",
@@ -1143,7 +1143,7 @@
     "cc_email_label": "CC email (opcionalno)",
     "from_email_description": "Adresa e‑pošte pošiljaoca. Ovo mora biti verifikovani pošiljalac u vašem SendGrid nalogu.",
     "from_email_label": "E‑mail adresa pošiljaoca",
-    "subject_description": "",
+    "subject_description": "Linija naslova za e‑mail. Podržava Liquid šablone.",
     "subject_label": "Prilagođeni predmet (opciono)",
     "subject_variables_label": "Dostupne varijable:",
     "subject_variables_msg": "poruka obaveštenja",
@@ -1223,7 +1223,7 @@
     "published_info": "Ovu statusnu stranicu učinite javnom",
     "published_status": "Objavljeno",
     "search_label": "Pretraga",
-    "search_placeholder": "",
+    "search_placeholder": "Pretraži stranice statusa po naslovu...",
     "update_status_page": "Ažuriraj stranicu statusa",
     "view_page": "Pogledaj stranicu"
   },
@@ -1264,7 +1264,7 @@
     "average": "Prosečno",
     "last_24_hours": "Poslednja 24 sata",
     "last_3_hours": "Poslednja 3 sata",
-    "last_3_months": "",
+    "last_3_months": "Poslednja 3 meseca",
     "last_30_minutes": "Zadnjih 30 minuta",
     "last_6_hours": "Poslednjih 6 sati",
     "last_7_days": "Poslednjih 7 dana",

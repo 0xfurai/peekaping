@@ -344,7 +344,7 @@
           "form_data_body": "Vormi andmete keha",
           "key": "Võti",
           "key_placeholder": "Võti",
-          "method_label": "",
+          "method_label": "Autentimismeetod",
           "method_placeholder": "Vali autentimise tüüp",
           "oauth_scope": "OAuth-ulatus",
           "oauth_scope_placeholder": "Valikuline: ruumiga eraldatud ulatuste loend",
@@ -408,7 +408,7 @@
         "command_description": "MongoDB käsk, mis täidetakse JSONina. Kui pole määratud, kasutatakse vaikimisi ping.",
         "command_label": "Käsk (valikuline)",
         "configuration_title": "MongoDB konfiguratsioon",
-        "connection_string_description": "",
+        "connection_string_description": "MongoDB ühenduse string. Toetab nii tavalisi (mongodb://) kui ka DNS seedlisti (mongodb+srv://) formaate.",
         "connection_string_label": "Ühendusstring",
         "expected_value_description": "Oodatav väärtus, millega võrrelda JSON-itee tulemusega.",
         "expected_value_label": "Oodatav väärtus (valikuline)",
@@ -425,7 +425,7 @@
         "configuration_title": "MQTT Konfiguratsioon",
         "expected_value_label": "Oodatav väärtus",
         "hostname_label": "Hostnimi",
-        "json_path_label": "JSON Path",
+        "json_path_label": "JSON tee",
         "password_label": "MQTT parool",
         "password_placeholder": "Parool (valikuline)",
         "port_label": "Port",
@@ -499,7 +499,7 @@
           "select_channel": "Vali kanal",
           "select_notifier_placeholder": "Vali teavitaja",
           "selected_channels": "Valitud teavituskanalid",
-          "title": ""
+          "title": "Teavituskanalid"
         },
         "proxy": {
           "add_proxy": "Lisa proksi",
@@ -600,7 +600,7 @@
       "current_status": "Praegune olek",
       "dialogs": {
         "delete": {
-          "description": "",
+          "description": "See toiming on pöördumatu. See kustutab püsivalt monitori ja kõik sellega seotud andmed.",
           "title": "Oled sa täiesti kindel?"
         },
         "pause": {
@@ -817,7 +817,7 @@
         "auto_resolve_acknowledge": "Automaatselt tunnistamine",
         "auto_resolve_acknowledge_description": "Tunnista automaatselt juhtumit",
         "auto_resolve_description": "Vali toiming, mida teha, kui monitoor taastub",
-        "auto_resolve_do_nothing": "",
+        "auto_resolve_do_nothing": "Ära tee midagi",
         "auto_resolve_do_nothing_description": "UP-olekus ei tehta midagi",
         "auto_resolve_label": "Automaatne lahendamine või tunnistamine",
         "auto_resolve_placeholder": "Vali automaatse lahendamise käitumine",
@@ -849,7 +849,7 @@
         "urgency_level_critical": "Kriitiline",
         "urgency_level_description": "Määra PagerTree-le saadavate teavitusõnude vaikimisi tõsidusaste",
         "urgency_level_high": "Kõrge",
-        "urgency_level_label": "",
+        "urgency_level_label": "Tähtsuse tase",
         "urgency_level_low": "Madal",
         "urgency_level_medium": "Keskmine",
         "urgency_level_placeholder": "Vali kiireusaste",
@@ -1125,7 +1125,7 @@
         "new_password_placeholder": "Sisesta uus parool",
         "old_password_label": "Vana parool",
         "old_password_placeholder": "Sisesta oma praegune salasõna",
-        "update_password_button": ""
+        "update_password_button": "Uuenda parooli"
       },
       "messages": {
         "failed_to_update_password": "Parooli uuendamine ebaõnnestus",

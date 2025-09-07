@@ -139,7 +139,7 @@
       "affected_monitors_title": "დაზიანებული მონიტორები",
       "cron_description": "შეიყვანეთ სწორი cron-გამოხატვა",
       "cron_expression": "Cron‑ის გამოსახულება",
-      "date_time_title": "",
+      "date_time_title": "თარიღი და დრო",
       "day_of_month": "თარიღის დღე",
       "day_of_week": "კვირის დღე",
       "description_label": "აღწერა",
@@ -608,7 +608,7 @@
           "title": "დადასტურება"
         },
         "reset": {
-          "description": "",
+          "description": "ეს სამუდამოდ წაშლის ამ მონიტორის ყველა ჰარტბეიტის ისტორიის და uptime სტატისტიკის. მონიტორი იმოქმედებს, როგორც ახლახანს შექმნილი. ეს ქმედება ვერ მოხსდება.",
           "title": "მონიტორის მონაცემების საწყის მდგომარეობაში დაბრუნება"
         }
       },
@@ -617,7 +617,7 @@
       "live_status": "ცოცხალი სტატუსი",
       "monitor_for": "მონიტორირება",
       "no_certificate_data": "სერტიფიკატის მონაცემები არ არის",
-      "seconds": "",
+      "seconds": "წამები",
       "stats": {
         "last_24_hours": "ბოლო 24 საათი",
         "last_30_days": "ბოლო 30 დღე",
@@ -686,7 +686,7 @@
       },
       "google_chat": {
         "more_info_about_webhooks": "Webhooks‑ის შესახებ მეტი ინფორმაცია",
-        "webhook_url_label": "Google Chat Webhook URL"
+        "webhook_url_label": "Google Chat ვებჰუკის URL"
       },
       "gotify": {
         "application_token_description": "Gotify აპლიკაციის ტოკენი. შეგიძლიათ იპოვოთ ის Gotify ვებ-ინტერფეისში Apps-ი ქვეშ.",
@@ -718,7 +718,7 @@
       },
       "grafana_oncall": {
         "grafana_oncall_url_description": "თქვენს Grafana OnCall ინტეგრაციის ვებჰუკის URL. შეგიძლიათ ეს მოძებნოთ თქვენს Grafana OnCall ინსტანციაში, Alerts & IRM > IRM > Integrations > Webhook განყოფილებაში.",
-        "grafana_oncall_url_label": "Grafana OnCall URL",
+        "grafana_oncall_url_label": "Grafana OnCall ვებ‑მისამართი",
         "learn_more_label": "ვრცლად გაიგეთ Grafana OnCall ვებჰუკების შესახებ"
       },
       "line": {
@@ -785,7 +785,7 @@
         "priority_5": "კრიტიკული (ყველაზე მაღალი)",
         "priority_description": "შეტყობინების პრიორიტეტის დონე. მაღალ პრიორიტეტებს შეიძლება კლიენტში სხვადასხვა ქცევა გამოიწვიოს.",
         "priority_label": "პრიორიტეტი",
-        "priority_placeholder": "",
+        "priority_placeholder": "აირჩიეთ პირიორიტეტი",
         "server_url_description": "NTFY სერვერის URL-ი. გამოიყენეთ https://ntfy.sh საჯარო ასტანისთვის.",
         "server_url_label": "სერვერის URL",
         "tags_description": "შეტყობინებების კატეგორიზაციისთვის<|channel|> <|constrain|>comma-separated tags for categorizing notifications. Available variables",
@@ -845,7 +845,7 @@
         "auto_resolve_alerts_label": "შეტყობინებების ავტომატური გადამუშავება",
         "how_to_get_integration_url_label": "როგორ მიიღოთ ინტეგრაციის URL",
         "integration_url_description": "შეიყვანეთ თქვენი PagerTree ვებჰუკ ინტეგრაციის URL-ი.",
-        "integration_url_label": "PagerTree Webhook URL",
+        "integration_url_label": "PagerTree ვებჰუკის URL",
         "urgency_level_critical": "კრიტიკული",
         "urgency_level_description": "PagerTree‑კენ გადაგზავნილი გაფრთხილების ნაგულისხმევი საჭიროების დონე",
         "urgency_level_high": "მაღალი",
@@ -942,7 +942,7 @@
         "note_label": "შენიშვნა:",
         "number_description": "Signal ანგარიშის ტელეფონის ნომერი (გზაველის ნომერი).",
         "number_label": "რიცხვი",
-        "post_url_description": "",
+        "post_url_description": "URL-ი თქვენი Signal CLI REST API სერვერის",
         "post_url_label": "პოსტის URL",
         "recipients_description": "შეტყობინებების გასაგზავნად,<|channel|>ძიმით გამოყოფილი ტელეფონის ნომრების სია",
         "recipients_label": "მიმღებები"
@@ -952,7 +952,7 @@
         "channel_name_description_2": "შეგიძლიათ გადაფაროთ ნაგულისხმევი არხი, მითითებით არხის სახელი (მაგ. #alerts) ან მომხმარებლის (მაგ. @username).",
         "channel_name_label": "არხის სახელი",
         "channel_notify_description": "თუ ჩართულია, შეტყობინება გამოიწვევს გაფრთხილებებს ყველა არხის წევრისთვის. გამოიყენეთ ფრთხილად, რომ თავიდან აირიდოთ სპამი.",
-        "channel_notify_label": "Notify Channel",
+        "channel_notify_label": "შეტყობინების არხი",
         "icon_emoji_cheat_sheet_label": "ემოჯის cheat sheet",
         "icon_emoji_description": "Emoji გამოიყენება ამ შეტყობინების ხატულად. ფორმატი უნდა იყოს :emoji_name:",
         "icon_emoji_label": "ხატულა ემოჯი",
@@ -961,7 +961,7 @@
         "message_format_label": "შეტყობინების ფორმატი",
         "username_description": "სახელი, რომელიც გამოჩნდება შეტყობინების გამომგზავნად. თუ მითითებული არ იქნება, გამოყენებული იქნება ნაგულისხმევი ბოტის სახელი.",
         "webhook_url_description": "თქვენი Slack ინტეგრაციის webhook URL. შეგიძლიათ მოიძიოთ იგი თქვენს Slack instance‑ში Integrations > Webhooks ქვეშ.",
-        "webhook_url_label": "Webhook URL"
+        "webhook_url_label": "ვებჰუკ URL"
       },
       "smtp": {
         "custom_body_label": "ხელით მითითებული სხეული",
@@ -1148,7 +1148,7 @@
     "subject_variables_msg": "შეტყობინების ტექსტი",
     "subject_variables_name": "სერვისის სახელი",
     "subject_variables_status": "სერვისის სტატუსი (UP/DOWN)",
-    "to_email_description": "",
+    "to_email_description": "ძირითადი მიმღების ელფოსტა. მრავალი მიმღებისთვის, გამოიყენეთ CC ან BCC ველი.",
     "to_email_label": "ელფოსტაზე"
   },
   "settings": {
@@ -1269,7 +1269,7 @@
     "last_7_days": "ბოლო 7 დღე",
     "maximum": "მაქსიმალური",
     "minimum": "მინიმუმ",
-    "ms": "ms",
+    "ms": "მლ",
     "response_time": "პასუხის დრო",
     "uptime": "მოქმედების დრო"
   },

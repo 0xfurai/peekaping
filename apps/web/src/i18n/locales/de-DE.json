@@ -266,7 +266,7 @@
         "update": "Aktualisieren"
       },
       "dns": {
-        "hostname": "Hostname",
+        "hostname": "Rechnername",
         "port": "Port",
         "record_type": "Typ des Ressourceneintrags",
         "record_type_placeholder": "Datensatztyp auswählen",
@@ -365,7 +365,7 @@
           "method_placeholder": "Monitor-Typ auswählen",
           "select_encoding": "Kodierung des Nachrichtenkörpers auswählen",
           "select_method": "Methode auswählen",
-          "text_example": "Example Text:\nAny plain text content here...",
+          "text_example": "Beispieltext:\nHier steht beliebiger Textinhalt…",
           "title": "HTTP-Optionen",
           "xml_example": "Beispiel-XML"
         }
@@ -569,7 +569,7 @@
         "push": "Push-Monitor (externer Dienst ruft eine generierte URL auf)",
         "rabbitmq": "RabbitMQ-Überwachung",
         "redis": "Redis-Datenbanküberwachung",
-        "snmp": "SNMP Monitor",
+        "snmp": "SNMP-Monitor",
         "sqlserver": "Microsoft SQL Server Monitor",
         "tcp": "TCP-Port-Überwachung"
       }
@@ -627,7 +627,7 @@
       "status": {
         "down": "Ausfall",
         "maintenance": "Wartung",
-        "paused": "Paused",
+        "paused": "Pausiert",
         "up": "Online"
       }
     }
@@ -912,8 +912,8 @@
         "sound_bugle": "Signalhorn",
         "sound_cashregister": "Kassenklingel",
         "sound_classical": "Klassisch",
-        "sound_climb": "Climb",
-        "sound_cosmic": "Cosmic",
+        "sound_climb": "Klettern",
+        "sound_cosmic": "Kosmisch",
         "sound_echo": "Echo",
         "sound_falling": "Fallend",
         "sound_gamelan": "Gamelan",
@@ -928,7 +928,7 @@
         "sound_siren": "Sirene",
         "sound_spacealarm": "Weltraum-Alarm",
         "sound_tugboat": "Schlepper",
-        "sound_updown": "Up Down",
+        "sound_updown": "Hoch Runter",
         "sound_vibrate": "Vibrieren",
         "user_key_label": "Benutzer-Schlüssel",
         "user_key_placeholder": "Geben Sie Ihren Pushover-Benutzerschlüssel ein"
@@ -969,7 +969,7 @@
         "custom_description": "Die Template-Funktionalität wird durch die <b>Liquid</b>-Template-Sprache ermöglicht.",
         "custom_description_2": "Bitte lesen Sie die Dokumentation für Anweisungen zur Verwendung.",
         "custom_description_3": "Verfügbare Variablen:",
-        "custom_description_4": "message of the notification",
+        "custom_description_4": "Nachricht der Benachrichtigung",
         "custom_description_5": "Dienstname",
         "custom_description_6": "Dienststatus (UP/DOWN/Benachrichtigungen zum Zertifikatsablauf)",
         "custom_subject_label": "Benutzerdefinierter Betreff",
@@ -1057,7 +1057,7 @@
   "proxies": {
     "delete_dialog": {
       "description": "Diese Aktion kann nicht rückgängig gemacht werden. Dadurch wird der Proxy {{host}}:{{port}} dauerhaft gelöscht.",
-      "title": "Are you absolutely sure?"
+      "title": "Bist du dir absolut sicher?"
     },
     "edit": {
       "page_name": "Proxy bearbeiten"
@@ -1142,10 +1142,10 @@
     "cc_email_description": "CC-Empfänger. Mehrere E-Mail-Adressen durch Kommas trennen.",
     "cc_email_label": "CC-E-Mail (Optional)",
     "from_email_description": "Die Absender-E-Mail-Adresse. Sie muss in Ihrem SendGrid-Konto verifiziert sein.",
-    "from_email_label": "From Email",
+    "from_email_label": "Von E‑Mail",
     "subject_description": "Betreffzeile der E-Mail. Unterstützt Liquid-Templating.",
     "subject_label": "Benutzerdefinierter Betreff (Optional)",
-    "subject_variables_label": "Available variables:",
+    "subject_variables_label": "Verfügbare Variablen:",
     "subject_variables_msg": "Inhalt der Benachrichtigung",
     "subject_variables_name": "Dienstname",
     "subject_variables_status": "Status des Dienstes (UP/DOWN)",

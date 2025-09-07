@@ -299,11 +299,11 @@
         "select_tls_option": "اختر خيار TLS",
         "select_verification_option": "اختر خيار التحقق",
         "skip_verification": "تخطي التحقق (غير آمن)",
-        "tls_configuration": "TLS Configuration",
-        "unknown_authority": "\"x509: certificate signed by unknown authority\":",
-        "unknown_authority_solution": "Provide the correct CA certificate that signed the server certificate.",
-        "verify_certificates": "Verify certificates",
-        "verify_tls": "Verify TLS"
+        "tls_configuration": "إعداد TLS",
+        "unknown_authority": "x509: الشهادة موقعة بواسطة سلطة غير معروفة",
+        "unknown_authority_solution": "أدخل شهادة الجهة المصدّرة الصحيحة التي وقعت شهادة الخادم.",
+        "verify_certificates": "تحقق من الشهادات",
+        "verify_tls": "تحقق من TLS"
       },
       "grpc": {
         "body": "بيانات الجسم (JSON)",
@@ -397,7 +397,7 @@
         "sasl_mechanism_label": "آلية SASL",
         "sasl_mechanism_placeholder": "اختر آلية SASL",
         "sasl_password_description": "كلمة المرور لمصادقة SASL",
-        "sasl_password_label": "SASL Password",
+        "sasl_password_label": "كلمة مرور SASL",
         "sasl_password_placeholder": "كلمة المرور",
         "sasl_username_description": "اسم المستخدم للمصادقة SASL",
         "sasl_username_label": "اسم مستخدم SASL",
@@ -487,7 +487,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "فترة إعادة المحاولة لإشارة النبض (إعادة المحاولة كل {{seconds}} ثانية)",
-          "max_retries_description": "Maximum retries before the service is marked as down and a notification is sent",
+          "max_retries_description": "الحد الأقصى للمحاولات قبل تعيين الخدمة كغير متاحة وإرسال إشعار",
           "request_timeout": "مهلة الطلب (تنتهي بعد {{seconds}} ثوانٍ)",
           "resend_notification": "إعادة إرسال الإشعار إذا حدث الانقطاع X مرات متتالية (إعادة الإرسال معطلة)"
         },
@@ -903,7 +903,7 @@
         "priority_2": "منخفض",
         "priority_3": "عادي",
         "priority_4": "عادي",
-        "priority_5": "Emergency",
+        "priority_5": "طوارئ",
         "priority_description": "مستوى أولوية الرسالة",
         "priority_label": "الأولوية",
         "priority_placeholder": "اختر الأولوية",
@@ -916,7 +916,7 @@
         "sound_cosmic": "كونسميك",
         "sound_echo": "إيكو",
         "sound_falling": "سقوط",
-        "sound_gamelan": "Gamelan",
+        "sound_gamelan": "غاميلان",
         "sound_incoming": "وارد",
         "sound_intermission": "فاصل",
         "sound_magic": "سحر",

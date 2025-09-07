@@ -95,7 +95,7 @@
       "monitor_type": "類型",
       "password": "密碼",
       "retries": "重試次數",
-      "slug": "Slug",
+      "slug": "别名",
       "title": "標題",
       "username": "使用者名稱"
     },
@@ -144,7 +144,7 @@
       "day_of_week": "星期",
       "description_label": "說明",
       "description_placeholder": "維護說明...",
-      "duration_minutes": "",
+      "duration_minutes": "持续时间（分钟）",
       "effective_date_range": "生效日期範圍（可選）",
       "end_date_time": "結束日期與時間",
       "end_time": "結束時間",
@@ -195,7 +195,7 @@
       "recurring_day_of_month": "重複 - 每月日期",
       "recurring_interval": "週期性 - 間隔",
       "recurring_weekday": "重複 - 星期幾",
-      "single": ""
+      "single": "单个维护窗口"
     },
     "toasts": {
       "create_error": "建立維護失敗",
@@ -390,7 +390,7 @@
         "brokers_label": "Kafka 代理伺服器",
         "configuration_title": "Kafka 設定",
         "enable_ssl_description": "使用 SSL/TLS 加密連線",
-        "enable_ssl_label": "",
+        "enable_ssl_label": "启用SSL/TLS",
         "message_description": "要發送到主題的訊息內容（建議使用 JSON 格式）",
         "message_label": "訊息",
         "sasl_mechanism_description": "選擇 SASL 認證機制",
@@ -682,7 +682,7 @@
         "thread_id_description_title": "訊息將被發送到的討論串或論壇貼文 ID",
         "thread_id_label": "討論串 ID",
         "thread_id_placeholder": "輸入討論串或貼文 ID",
-        "webhook_url_label": "Discord Webhook URL"
+        "webhook_url_label": "Discord Webhook 地址"
       },
       "google_chat": {
         "more_info_about_webhooks": "更多關於 Webhooks 的資訊",
@@ -790,9 +790,9 @@
         "server_url_label": "伺服器網址",
         "tags_description": "以逗號分隔的標籤，用於分類通知。可用變數",
         "tags_label": "標籤",
-        "title_description": "",
+        "title_description": "自定义通知标题。可用变量",
         "title_label": "自訂標題",
-        "token_description": "",
+        "token_description": "用于身份验证的 NTFY 访问令牌",
         "token_label": "存取權杖",
         "token_required": "必須提供令牌以進行令牌驗證",
         "topic_description": "通知的主題名稱。此將成為通知傳送的頻道。",
@@ -845,7 +845,7 @@
         "auto_resolve_alerts_label": "自動解除警報",
         "how_to_get_integration_url_label": "如何取得整合網址",
         "integration_url_description": "輸入您的 PagerTree webhook 整合 URL。",
-        "integration_url_label": "PagerTree Webhook URL",
+        "integration_url_label": "PagerTree Webhook 地址",
         "urgency_level_critical": "緊急",
         "urgency_level_description": "設定傳送至 PagerTree 的警報預設緊急程度",
         "urgency_level_high": "高",
@@ -876,7 +876,7 @@
         "device_id": "裝置 ID（可選）",
         "device_id_description": "將通知發送至特定裝置。留空則發送至所有裝置。您可透過以下方式查找裝置 ID",
         "device_id_label": "裝置 ID（可選）",
-        "device_id_link": "Pushbullet API",
+        "device_id_link": "Pushbullet 接口",
         "more_info_on": "更多資訊："
       },
       "pushover": {
@@ -957,12 +957,12 @@
         "icon_emoji_cheat_sheet_label": "表情符號速查表",
         "icon_emoji_description": "用於此訊息圖示的表情符號。必須以 :emoji_name: 的格式。",
         "icon_emoji_label": "圖示表情符號",
-        "message_format_description": "",
+        "message_format_description": "发送富文本消息",
         "message_format_description_2": "允許發送帶有豐富格式、附件和更佳視覺呈現的訊息。",
         "message_format_label": "訊息格式",
         "username_description": "用於訊息發送者的使用者名稱。若未設定，將使用預設機器人名稱。",
         "webhook_url_description": "Slack 整合的 webhook URL。您可以在 Slack 服務的 Integrations > Webhooks 找到。",
-        "webhook_url_label": "Webhook URL"
+        "webhook_url_label": "Webhook 地址"
       },
       "smtp": {
         "custom_body_label": "自訂內容",
@@ -1073,7 +1073,7 @@
       "protocol_label": "代理協議",
       "protocol_placeholder": "選擇代理協定",
       "server_label": "代理伺服器",
-      "server_placeholder": "",
+      "server_placeholder": "服务器地址",
       "user": "使用者"
     },
     "messages": {
@@ -1202,7 +1202,7 @@
     "domain_already_used": "域名 {{domain}} 已被其他狀態頁使用",
     "domain_host_warning": "此域名與您目前的主機網址相同，可能會導致衝突。",
     "domains": "網域",
-    "domains_info_warning": "",
+    "domains_info_warning": "别忘了为每个域名在 DNS 中添加 CNAME 记录。",
     "draft_status": "草稿",
     "edit_page_name": "編輯狀態頁面",
     "messages": {

@@ -188,7 +188,7 @@
       "search_placeholder": "Bakımları ara..."
     },
     "page_title": "Bakım Pencereleri",
-    "schedule_title": "",
+    "schedule_title": "Bakım Planla",
     "strategy": {
       "cron": "Cron İfadesi",
       "manual": "Aktif/Pasif manuel",
@@ -508,7 +508,7 @@
           "remove_proxy": "Proxy'yi Kaldır",
           "select_proxy_placeholder": "Proxy Seçin",
           "selected_proxy": "Seçilen Proxy",
-          "title": "Proxy"
+          "title": "Vekil"
         },
         "tags": {
           "label": "Etiketler",
@@ -559,7 +559,7 @@
         "dns": "DNS İzleyici",
         "docker": "Docker Konteyneri",
         "grpc": "gRPC Anahtar Kelime İzleyici",
-        "http": "",
+        "http": "HTTP(S) İzleyici",
         "kafka": "Kafka Üretici İzleyici",
         "mongodb": "MongoDB Veri Tabanı İzleyici",
         "mqtt": "MQTT Broker İzleyici",
@@ -682,7 +682,7 @@
         "thread_id_description_title": "Mesajların gönderileceği konu veya forum gönderisinin kimliği.",
         "thread_id_label": "İleti Kimliği",
         "thread_id_placeholder": "İş parçacığı veya gönderi kimliğini gir",
-        "webhook_url_label": "Discord Webhook URL"
+        "webhook_url_label": "Discord Webhook URL'si"
       },
       "google_chat": {
         "more_info_about_webhooks": "Webhooks hakkında daha fazla bilgi",
@@ -718,7 +718,7 @@
       },
       "grafana_oncall": {
         "grafana_oncall_url_description": "Grafana OnCall entegrasyonunuzun webhook URL'si. Bu adresi, Grafana OnCall örneğinizde Alerts & IRM > IRM > Integrations > Webhook altında bulabilirsiniz.",
-        "grafana_oncall_url_label": "Grafana OnCall URL",
+        "grafana_oncall_url_label": "Grafana OnCall URL'si",
         "learn_more_label": "Grafana OnCall webhookları hakkında daha fazla bilgi alın"
       },
       "line": {
@@ -751,7 +751,7 @@
         "setup_instructions_label": "Kurulum Talimatları"
       },
       "mattermost": {
-        "channel_name_description": "",
+        "channel_name_description": "Bildirimlerin gönderileceği kanal. Webhook'ta yapılandırılmış varsayılan kanalı kullanmak için boş bırakın.",
         "channel_name_label": "Kanal Adı",
         "icon_emoji_cheat_sheet_label": "Emoji kılavuzu",
         "icon_emoji_description": "Simge olarak kullanılacak emoji. İki emoji, boşlukla ayrılarak (birincisi yükselme durumunda, ikincisi düşme durumunda) belirtebilirsiniz.",
@@ -845,7 +845,7 @@
         "auto_resolve_alerts_label": "Otomatik Çözüm Uyarıları",
         "how_to_get_integration_url_label": "Entegrasyon URL'sini nasıl alırsınız",
         "integration_url_description": "PagerTree webhook entegrasyon URL'sini girin.",
-        "integration_url_label": "PagerTree Webhook URL",
+        "integration_url_label": "PagerTree Webhook URL'si",
         "urgency_level_critical": "Kritik",
         "urgency_level_description": "PagerTree'ye gönderilen uyarılar için varsayılan öncelik seviyesini ayarla",
         "urgency_level_high": "Yüksek",
@@ -984,7 +984,7 @@
       "telegram": {
         "auto_get_label": "Otomatik Al",
         "bot_token_description": "Bot tokenunuzu buradan alın",
-        "bot_token_label": "Bot Token",
+        "bot_token_label": "Bot Jetonu",
         "chat_id_description": "Botunuza bir mesaj gönderip yukarıdaki \"Auto Get\" düğmesine tıklayarak veya Telegram API'si aracılığıyla manuel olarak sohbet kimliğinizi alabilirsiniz.",
         "chat_id_description_2": "Manuel olarak almak için ziyaret edin",
         "chat_id_description_3": "İncele",
@@ -1121,7 +1121,7 @@
       "form": {
         "confirm_new_password_label": "Yeni Şifreyi Onayla",
         "confirm_new_password_placeholder": "Yeni şifreyi yeniden girin",
-        "new_password_label": "",
+        "new_password_label": "Yeni Şifre",
         "new_password_placeholder": "Yeni şifre girin",
         "old_password_label": "Eski Parola",
         "old_password_placeholder": "Geçerli şifrenizi girin",

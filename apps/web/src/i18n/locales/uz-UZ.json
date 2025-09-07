@@ -90,12 +90,12 @@
       "email": "E-pochta",
       "footer_text": "Footer matni",
       "heartbeat_interval": "Yurish intervalli (soniya)",
-      "icon_url": "Icon URL",
+      "icon_url": "Ikonka URL",
       "monitor_name": "Nomi",
       "monitor_type": "Turi",
       "password": "Parol",
       "retries": "Qayta urinishlar",
-      "slug": "Slug",
+      "slug": "slug",
       "title": "Sarlavha",
       "username": "Foydalanuvchi nomi"
     },
@@ -339,7 +339,7 @@
           "client_id_placeholder": "Mijoz ID",
           "client_secret": "Mijoz maxfiy kaliti",
           "client_secret_placeholder": "Mijoz Maxfiy Kaliti",
-          "domain": "Domain",
+          "domain": "Domen",
           "domain_placeholder": "Domen",
           "form_data_body": "Form ma'lumotlari jismi",
           "key": "Kalit",
@@ -349,7 +349,7 @@
           "oauth_scope": "OAuth Scope",
           "oauth_scope_placeholder": "Ixtiyoriy: Bo'sh joy bilan ajratilgan scope'lar ro'yxati",
           "oauth_token_url": "OAuth Token URL",
-          "oauth_token_url_placeholder": "OAuth Token URL",
+          "oauth_token_url_placeholder": "OAuth token URL",
           "title": "Autentifikatsiya",
           "workstation": "Ish stoli",
           "workstation_placeholder": "Ish stansiyasi"
@@ -386,7 +386,7 @@
         "add_broker": "Broker qo'shish",
         "auto_topic_creation_description": "Ilozchi mavzuni mavjud bo'lmasa, avtomatik ravishda yaratishiga ruxsat bering.",
         "auto_topic_creation_label": "Avtomatik mavzu yaratishni ruxsat berish",
-        "brokers_description": "",
+        "brokers_description": "Kafka broker manzillar ro'yxati (host:port formatida)",
         "brokers_label": "Kafka brokerlari",
         "configuration_title": "Kafka konfiguratsiyasi",
         "enable_ssl_description": "Ulanish uchun SSL/TLS shifrlashini ishlating",
@@ -422,7 +422,7 @@
         "check_type_label": "MQTT tekshirish turi",
         "check_type_none": "Hech (Har qanday xabar)",
         "check_type_placeholder": "Tekshiruv turini tanlang",
-        "configuration_title": "",
+        "configuration_title": "MQTT Sozlamalari",
         "expected_value_label": "Kutilgan Qiymat",
         "hostname_label": "Host nomi",
         "json_path_label": "JSON yo'li",
@@ -464,7 +464,7 @@
         "health_checks_description": "Monitor har bir noddagi {{code}} tugunini tekshiradi va har qanday tugun sog'lom bo'lsa UP holatini qaytaradi.",
         "management_nodes_description": "RabbitMQ boshqaruv tugunlari uchun protokol va portni o'z ichiga olgan URLni kiriting. Masalan: https://node1.rabbitmq.com:15672",
         "management_nodes_title": "Boshqaruv tugunlari",
-        "node_url_label": "Node URL",
+        "node_url_label": "Node manzili",
         "password_description": "RabbitMQ boshqaruv interfeysi tasdiqlash paroli",
         "setup_information_description": "RabbitMQ monitorini ishlatish uchun RabbitMQ o‘rnatishingizda Boshqaruv plagini yoqish lozim. Qo‘shimcha ma'lumot uchun, iltimos, RabbitMQ hujjatlarini tekshirib chiqing.",
         "setup_information_title": "O'rnatish ma'lumotlari",
@@ -524,7 +524,7 @@
         "host_description": "SNMP qo‘llab‑quvvatlanadigan qurilmaning hostname yoki IP manzili",
         "host_label": "Xost",
         "json_path_description": "JSONPath ifodasi, javobdan qiymatni chiqarish uchun (xuddi shu qiymat uchun \"$\" dan foydalaning)",
-        "json_path_label": "JSON Path",
+        "json_path_label": "JSON yo'li",
         "json_path_operator_description": "Olingan qiymatni kutilgan qiymat bilan qanday taqqoslash mumkin",
         "json_path_operator_eq": "teng",
         "json_path_operator_ge": "teng yoki undan katta",
@@ -682,11 +682,11 @@
         "thread_id_description_title": "Xabarlar yuboriladigan jild yoki forum posti ID-si",
         "thread_id_label": "Jild ID",
         "thread_id_placeholder": "Jild yoki post ID'sini kiriting",
-        "webhook_url_label": "Discord Webhook URL"
+        "webhook_url_label": "Discord Webhook manzili"
       },
       "google_chat": {
         "more_info_about_webhooks": "Webhooklar haqida qo'shimcha ma'lumot",
-        "webhook_url_label": "Google Chat Webhook URL"
+        "webhook_url_label": "Google Chat Webhook manzili"
       },
       "gotify": {
         "application_token_description": "Gotify ilovangizdan ilova tokeni. Uni Gotify veb interfeysining Ilovalar bo‘limida topishingiz mumkin.",
@@ -704,7 +704,7 @@
         "priority_10": "Eng yuqori",
         "priority_2": "Past",
         "priority_3": "Normaldan past",
-        "priority_4": "Normal",
+        "priority_4": "Oddiy",
         "priority_5": "Normaldan yuqori",
         "priority_6": "O'rtacha",
         "priority_7": "Yuqori",
@@ -787,7 +787,7 @@
         "priority_label": "Prioritet",
         "priority_placeholder": "Prioritetni tanlang",
         "server_url_description": "NTFY serveringiz URL‑suri. Ommaviy versiya uchun https://ntfy.sh‑ni ishlating.",
-        "server_url_label": "Server URL",
+        "server_url_label": "Server manzili",
         "tags_description": "Bildirishnomalarni tasniflash uchun vergul bilan ajratilgan teglar. Mavjud o'zgaruvchilar",
         "tags_label": "Etiketlar",
         "title_description": "Bildirishnoma uchun maxsus sarlavha. Mavjud o'zgaruvchilar.",
@@ -845,7 +845,7 @@
         "auto_resolve_alerts_label": "Ogohlantirishlarni avtomatik ravishda hal qilish",
         "how_to_get_integration_url_label": "Integratsiya URLini olish usuli",
         "integration_url_description": "PagerTree webhook integratsiyasi URLini kiriting.",
-        "integration_url_label": "PagerTree Webhook URL",
+        "integration_url_label": "PagerTree Webhook manzili",
         "urgency_level_critical": "Kritik",
         "urgency_level_description": "PagerTree ga yuboriladigan ogohlantirishlar uchun standart ahamiyat darajasini o'rnating",
         "urgency_level_high": "Yuqori",
@@ -900,7 +900,7 @@
         "notification_sound_up_placeholder": "Tovushni tanlang",
         "priority_1": "Eng past",
         "priority_2": "Past",
-        "priority_3": "Normal",
+        "priority_3": "Oddiy",
         "priority_4": "Yuqori",
         "priority_5": "Favqulodda",
         "priority_description": "Xabar afzallik darajasi",
@@ -908,7 +908,7 @@
         "priority_placeholder": "Prioritetni tanlang",
         "sound_alien": "Xaridor",
         "sound_bike": "Velosiped",
-        "sound_bugle": "Bugle",
+        "sound_bugle": "buglo",
         "sound_cashregister": "Naqd Pul Kassa",
         "sound_classical": "Klassik",
         "sound_climb": "Yuksalish",
@@ -922,7 +922,7 @@
         "sound_mechanical": "Mexanik",
         "sound_none": "Yo'q",
         "sound_persistent": "Doimiy",
-        "sound_pianobar": "Piano Bar",
+        "sound_pianobar": "Piyano bar",
         "sound_pushover": "Pushover (standart)",
         "sound_siren": "Sirene",
         "sound_spacealarm": "Kosmos Alarmi",
@@ -953,7 +953,7 @@
         "channel_name_label": "Kanal nomi",
         "channel_notify_description": "Faollashtirilgan holda, xabar barcha kanal a'zolariga bildirishnomalarni yuboradi. Spamni oldini olish uchun ehtiyotkorlik bilan foydalaning.",
         "channel_notify_label": "Kanalni xabardor qilish",
-        "icon_emoji_cheat_sheet_label": "Emoji cheat sheet",
+        "icon_emoji_cheat_sheet_label": "Emoji qo‘llanmasi",
         "icon_emoji_description": "Bu xabar uchun belgi sifatida ishlatiladigan emoji. Format :emoji_name: bo‘lishi kerak.",
         "icon_emoji_label": "Emoji ikonka",
         "message_format_description": "Boy xabar yuborish",
@@ -994,7 +994,7 @@
         "failed_to_fetch_chat_id": "Chat ID‑ni olishda xatolik",
         "message_thread_id_description": "Ixtiyoriy. Forum superguruhidagi ma'lum bir mavzu ga xabar yuborish uchun ishlatiladi.",
         "message_thread_id_label": "Xabarlar jamoasi ID",
-        "no_updates_found": "",
+        "no_updates_found": "Yangilanishlar topilmadi. Iltimos, avval botingizga xabar yuboring.",
         "protect_content_description": "Agar yoqilgan bo'lsa, xabar mazmuni uzatilish va saqlanishdan himoyalangan bo'ladi.",
         "protect_content_label": "Kontentni himoya qilish",
         "send_silently_description": "Agar yoqilgan bo'lsa, xabarlar sukunat bilan yuboriladi (foydalanuvchilar og'ishsiz bildirishnoma oladi).",
@@ -1003,7 +1003,7 @@
         "server_url_description_2": "Maxsus serverdan foydalanishingiz mumkin. Ko'ring",
         "server_url_description_3": "bu yerda",
         "server_url_description_4": "tafsilotlar uchun.",
-        "server_url_label": "Telegram Server URL",
+        "server_url_label": "Telegram serverining URL",
         "template_description": "Xabar formatini moslashtiring. Mavjud o'zgaruvchilar",
         "template_label": "Xabar shabloni",
         "template_parse_mode_description": "Xabar qanday tahlil qilinishi kerakligini tanlang. Ko'rib chiqing",
@@ -1051,7 +1051,7 @@
     "placeholders": {
       "select_type": "Xabarnoma turi tanlang"
     },
-    "search_placeholder": ""
+    "search_placeholder": "Xabarnoma kanallarini nomi bilan qidirish..."
   },
   "proxies": {
     "delete_dialog": {
@@ -1096,7 +1096,7 @@
         "authenticator_code_placeholder": "6 raqamli kodni kiriting",
         "current_password_label": "Joriy Parol",
         "current_password_placeholder": "Joriy parolingizni kiriting",
-        "enable_2fa_button": ""
+        "enable_2fa_button": "2FA ni yoqish"
       },
       "messages": {
         "2fa_active": "2FA Faol",
@@ -1206,7 +1206,7 @@
     "edit_page_name": "Status sahifasini tahrirlash",
     "messages": {
       "create_description": "Xizmat holatingizni foydalanuvchilar bilan bo‘lishish uchun yangi holat sahifasini yarating.",
-      "create_your_first_status_page": "",
+      "create_your_first_status_page": "Birinchi status sahifangizni yarating",
       "created_successfully": "Status sahifasi muvaffaqiyatli yaratildi",
       "delete_failed": "Status sahifasini o'chirish muvaffaqiyatsiz bo'ldi",
       "deleted_successfully": "Status sahifasi muvaffaqiyatli o'chirildi",

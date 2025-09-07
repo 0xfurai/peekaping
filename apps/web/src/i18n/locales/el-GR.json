@@ -34,7 +34,7 @@
     "message": "Μήνυμα",
     "ms": "ms",
     "notified": "Ειδοποιημένος",
-    "ping": "Ping",
+    "ping": "Πινγκ",
     "retries": "Επαναλήψεις",
     "status": "Κατάσταση",
     "time": "Χρόνος"
@@ -87,7 +87,7 @@
   "forms": {
     "labels": {
       "confirm_password": "Επιβεβαίωση κωδικού πρόσβασης",
-      "email": "Email",
+      "email": "E‑mail",
       "footer_text": "Κείμενο υποσέλιδο",
       "heartbeat_interval": "Διάστημα δρομέα (δευτερόλεπτα)",
       "icon_url": "URL εικονιδίου",
@@ -95,7 +95,7 @@
       "monitor_type": "Τύπος",
       "password": "Κωδικός πρόσβασης",
       "retries": "Επαναπροσπάθειες",
-      "slug": "Slug",
+      "slug": "σλογκ",
       "title": "Τίτλος",
       "username": "Όνομα χρήστη"
     },
@@ -494,7 +494,7 @@
         "notifications": {
           "add_notifier": "Προσθήκη ειδοποιητή",
           "new_notifier": "+ Νέος ειδοποιητής",
-          "no_channels": "",
+          "no_channels": "Δεν βρέθηκαν κανάλια ειδοποίησης, δημιουργήστε πρώτα ένα",
           "no_channels_available": "Δεν υπάρχουν διαθέσιμα κανάλια",
           "select_channel": "Επιλέξτε κανάλι",
           "select_notifier_placeholder": "Επιλέξτε ειδοποιητή",
@@ -524,7 +524,7 @@
         "host_description": "Το όνομα κεντρικού υπολογιστή ή η διεύθυνση IP της συσκευής με ενεργοποιημένο SNMP",
         "host_label": "Κεντρικός υπολογιστής",
         "json_path_description": "Έκφραση JSONPath για εξαγωγή τιμής από την απάντηση (χρησιμοποιήστε \"$\" για ακατέργαστη τιμή)",
-        "json_path_label": "JSON Path",
+        "json_path_label": "Διαδρομή JSON",
         "json_path_operator_description": "Πώς να συγκρίνετε την εξαγόμενη τιμή με την αναμενόμενη τιμή",
         "json_path_operator_eq": "ισούται",
         "json_path_operator_ge": "≥",
@@ -1088,7 +1088,7 @@
     },
     "page_name": "Προξυ",
     "search_label": "Αναζήτηση",
-    "search_placeholder": ""
+    "search_placeholder": "Αναζήτηση μεσολαβητών ανά οικοδεσπότη..."
   },
   "security": {
     "enable_2fa": {

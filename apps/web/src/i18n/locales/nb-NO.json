@@ -103,7 +103,7 @@
       "auto_refresh_help": "0 for ingen automatisk oppdatering",
       "domains": "Oppgi domene (f.eks. status.example.com)",
       "footer_text": "Skriv inn bunntekst",
-      "icon_url": "https://example.com/icon.png",
+      "icon_url": "https://example.com/ikon.png",
       "monitor_name": "Min overvåking",
       "page_description": "Oppgi statussidebeskrivelse",
       "page_title": "Skriv inn tittel på statusside",
@@ -355,7 +355,7 @@
           "workstation_placeholder": "Arbeidsstasjon"
         },
         "options": {
-          "body": "Body",
+          "body": "Innhold",
           "body_encoding": "Body-enkoding",
           "body_encoding_placeholder": "Velg kroppskoding",
           "form_example": "Eksempel på skjemadata",
@@ -524,7 +524,7 @@
         "host_description": "Vertsnavnet eller IP-adressen til en SNMP-aktivert enhet",
         "host_label": "Vert",
         "json_path_description": "JSONPath-uttrykk for å hente ut verdi fra responsen (bruk \"$\" for råverdi)",
-        "json_path_label": "JSON Path",
+        "json_path_label": "JSON‑sti",
         "json_path_operator_description": "Slik sammenligner du den ekstraherte verdien med den forventede verdien",
         "json_path_operator_eq": "er lik",
         "json_path_operator_ge": "større enn eller lik",
@@ -718,7 +718,7 @@
       },
       "grafana_oncall": {
         "grafana_oncall_url_description": "Webhook‑URL‑en fra Grafana OnCall-integrasjonen din. Du finner den i Grafana OnCall‑instansen din under Alerts & IRM > IRM > Integrations > Webhook.",
-        "grafana_oncall_url_label": "Grafana OnCall URL",
+        "grafana_oncall_url_label": "Grafana OnCall‑URL",
         "learn_more_label": "Lær mer om Grafana OnCall-webhooks"
       },
       "line": {
@@ -961,7 +961,7 @@
         "message_format_description_2": "Aktiver muligheten til å sende meldinger med rik formatering, vedlegg og bedre visuell presentasjon.",
         "message_format_label": "Meldingsformat",
         "username_description": "Brukernavnet som vil vises som avsender av meldingen. Hvis ikke oppgitt, brukes standardbotnavnet.",
-        "webhook_url_description": "Webhook‑URL-en fra Slack‑integrasjonen din. Du finner den i Slack‑instansen din under Integrasjoner\u202f>\u202fWebhooks.",
+        "webhook_url_description": "Webhook‑URL-en fra Slack‑integrasjonen din. Du finner den i Slack‑instansen din under Integrasjoner > Webhooks.",
         "webhook_url_label": "Webhook-URL"
       },
       "smtp": {
@@ -1223,7 +1223,7 @@
     "published_info": "Gjør denne status‑siden offentlig tilgjengelig",
     "published_status": "Publisert",
     "search_label": "Søk",
-    "search_placeholder": "Søk status\u00adsider etter tittel…",
+    "search_placeholder": "Søk status­sider etter tittel…",
     "update_status_page": "Oppdater statusside",
     "view_page": "Se side"
   },

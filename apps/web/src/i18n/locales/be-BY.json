@@ -14,7 +14,7 @@
     "register": {
       "description": "Стварыце свой рахунак адміністратара",
       "have_account": "У вас ужо ёсць уліковы запіс?",
-      "sign_in": "Sign in",
+      "sign_in": "Увайсці",
       "submit": "Стварыць",
       "title": "Прывітанне"
     },
@@ -335,7 +335,7 @@
           "auth_header": "Загаловак аўтарызацыі",
           "certificate": "Сертыфікат",
           "certificate_placeholder": "Сертыфікат",
-          "client_id": "Client ID",
+          "client_id": "Ідэнтыфікатар кліента",
           "client_id_placeholder": "Ідэнтыфікатар кліента",
           "client_secret": "Сакрэт кліента",
           "client_secret_placeholder": "Сакрэт кліента",
@@ -410,7 +410,7 @@
         "configuration_title": "Канфігурацыя MongoDB",
         "connection_string_description": "Радок падключэння MongoDB. Падтрымліваюцца як стандартныя (mongodb://), так і фарматы DNS seedlist (mongodb+srv://).",
         "connection_string_label": "радок падключэння",
-        "expected_value_description": "Expected value to compare against the JSON path result.",
+        "expected_value_description": "Чаканае значэнне для параўнання з вынікам JSON‑шляху.",
         "expected_value_label": "Чаканае значэнне (неабавязкова)",
         "expected_value_placeholder": "Чаканае значэнне",
         "json_path_description": "JSON-шлях для выцягвання значэння з адказу. Выкарыстоўвайце $ для ўзроўня кораня.",
@@ -476,7 +476,7 @@
         "ca_certificate_label": "Сертыфікат ЦС (неабавязкова)",
         "client_certificate_description": "Кліентскі сертыфікат у фармаце PEM. Патрабуецца для ўзаемнай TLS-аўтэнтыфікацыі.",
         "client_certificate_label": "Сертыфікат кліента (неабавязковы)",
-        "client_key_description": "Client private key in PEM format. Must be provided together with client certificate.",
+        "client_key_description": "Кліентскі прыватны ключ у фармаце PEM. Павінен падавацца разам з кліентскім сертыфікатам.",
         "client_key_label": "Прыватны ключ кліента (неабавязкова)",
         "connection_string_description": "Фармат радка падключэння Redis: {{redis}} або {{rediss}} для TLS",
         "connection_string_label": "Радок падключэння",
@@ -540,7 +540,7 @@
         "snmp_version_description": "Версія SNMP-пратаколу, якая будзе выкарыстоўвацца",
         "snmp_version_label": "Версія SNMP",
         "title": "Наладкі SNMP",
-        "value_validation_label": "Value Validation (Optional)"
+        "value_validation_label": "Праверка значэння (неабавязкова)"
       },
       "sqlserver": {
         "allowed_statements_description": "SELECT, SHOW, DESCRIBE, EXPLAIN, WITH і VALUES.",
@@ -718,7 +718,7 @@
       },
       "grafana_oncall": {
         "grafana_oncall_url_description": "URL вебхука з вашай інтэграцыі Grafana OnCall. Вы можаце знайсці яго ў вашай інстанцыі Grafana OnCall у раздзеле Alerts & IRM &gt; IRM &gt; Integrations &gt; Webhook.",
-        "grafana_oncall_url_label": "Grafana OnCall URL",
+        "grafana_oncall_url_label": "URL Grafana OnCall",
         "learn_more_label": "Даведайцеся больш пра вэб-хукі Grafana OnCall."
       },
       "line": {
@@ -778,7 +778,7 @@
         "custom_message_description": "Змесціва карыстальніцкага паведамлення. Даступныя зменныя.",
         "custom_message_label": "Карыстацкае паведамленне",
         "password_required": "Пароль неабходны для асноўнай аўтэнтыфікацыі",
-        "priority_1": "Min (Lowest)",
+        "priority_1": "Мін (Найніжэйшы)",
         "priority_2": "Нізкі",
         "priority_3": "Ніжэй за нармальны",
         "priority_4": "Высокі",
@@ -876,7 +876,7 @@
         "device_id": "Ідэнтыфікатар прылады (неабавязкова)",
         "device_id_description": "Адправіць апавяшчэнне на канкрэтную прыладу. Пакіньце пустым, каб адпраўляць усім прыладам. Вы можаце знайсці ID прылад, выкарыстоўваючы ...",
         "device_id_label": "Ідэнтыфікатар прылады (неабавязкова)",
-        "device_id_link": "Pushbullet API",
+        "device_id_link": "Pushbullet АПІ",
         "more_info_on": "Дадатковая інфармацыя пра:"
       },
       "pushover": {
@@ -961,7 +961,7 @@
         "message_format_description_2": "Уключыць адпраўку паведамленняў з багатым фарматаваннем, дадаткамі і лепшым візуальным афармленнем.",
         "message_format_label": "Фармат паведамлення",
         "username_description": "Імя карыстальніка, якое будзе з'яўляцца адпраўнікам паведамлення. Калі не ўказана, будзе выкарыстана стандартнае імя бота.",
-        "webhook_url_description": "The webhook URL from your Slack integration. You can find this in your Slack instance under Integrations &gt; Webhooks.",
+        "webhook_url_description": "URL webhook з вашай інтэграцыі Slack. Вы можаце знайсці яго ў сваім Slack‑сістэме ў раздзеле Інтэграцыі > Webhooks.",
         "webhook_url_label": "URL вэб-хука"
       },
       "smtp": {
@@ -987,7 +987,7 @@
         "bot_token_label": "Токен бота",
         "chat_id_description": "Вы можаце атрымаць ID чата, адпраўляючы паведамленне вашаму боту і націснуўшы зверху «Auto Get», або зрабіць гэта ўручную праз Telegram API.",
         "chat_id_description_2": "Каб атрымаць яго ўручна, наведайце",
-        "chat_id_description_3": "See",
+        "chat_id_description_3": "Паглядзець",
         "chat_id_description_4": "Дакументацыя Telegram",
         "chat_id_description_5": "для дадатковай інфармацыі.",
         "chat_id_label": "ID чата",

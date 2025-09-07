@@ -43,7 +43,7 @@
     "active": "Активен",
     "all": "Всички",
     "back": "Назад",
-    "cancel": "Cancel",
+    "cancel": "Отказ",
     "clear_all": "Изчисти всичко",
     "clear_all_filters": "Изчисти всички филтри",
     "confirm": "Потвърди",
@@ -107,7 +107,7 @@
       "monitor_name": "Моят монитор",
       "page_description": "Въведете описание на страницата за статус",
       "page_title": "Въведете заглавието на страницата за статус.",
-      "slug": "status-page-slug"
+      "slug": "slug за страница за статус"
     },
     "validation": {
       "email_invalid": "Моля, въведете валиден имейл адрес.",
@@ -562,7 +562,7 @@
         "http": "HTTP(S) монитор",
         "kafka": "Монитор за Kafka производител",
         "mongodb": "Монитор за база данни MongoDB",
-        "mqtt": "MQTT Broker Monitor",
+        "mqtt": "MQTT Брокер Монитор",
         "mysql": "Монитор за MySQL/MariaDB",
         "ping": "Ping монитор (ICMP)",
         "postgres": "Монитор за база данни PostgreSQL",
@@ -876,7 +876,7 @@
         "device_id": "Идентификатор на устройството (по избор)",
         "device_id_description": "Изпратете уведомление до конкретно устройство. Оставете празно, за да изпратите до всички устройства. Можете да намерите идентификаторите на устройствата, като използвате…",
         "device_id_label": "Идентификатор на устройството (по избор)",
-        "device_id_link": "Pushbullet API",
+        "device_id_link": "API на Pushbullet",
         "more_info_on": "Повече информация за:"
       },
       "pushover": {
@@ -907,12 +907,12 @@
         "priority_description": "Ниво на приоритет на съобщението",
         "priority_label": "Приоритет",
         "priority_placeholder": "Изберете приоритет",
-        "sound_alien": "Alien",
+        "sound_alien": "Чужденец",
         "sound_bike": "Велосипед",
         "sound_bugle": "Сигнален рог",
         "sound_cashregister": "Касов апарат",
         "sound_classical": "Класика",
-        "sound_climb": "Climb",
+        "sound_climb": "Възкачване",
         "sound_cosmic": "Космически",
         "sound_echo": "Ехо",
         "sound_falling": "Падане",

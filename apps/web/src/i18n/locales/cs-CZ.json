@@ -107,7 +107,7 @@
       "monitor_name": "Můj monitor",
       "page_description": "Zadejte popis stránky stavu",
       "page_title": "Zadejte název stránky stavu",
-      "slug": "status-page-slug"
+      "slug": "slug stránky stavu"
     },
     "validation": {
       "email_invalid": "Zadejte platnou e-mailovou adresu",
@@ -129,7 +129,7 @@
       },
       "status": {
         "active": "Aktivní",
-        "ended": "Ended",
+        "ended": "Ukončeno",
         "inactive": "Neaktivní"
       }
     },
@@ -145,7 +145,7 @@
       "description_label": "Popis",
       "description_placeholder": "Popis údržby...",
       "duration_minutes": "Délka (minut)",
-      "effective_date_range": "Effective Date Range (Optional)",
+      "effective_date_range": "Rozsah účinných dat (volitelné)",
       "end_date_time": "Datum a čas konce",
       "end_time": "Čas ukončení",
       "interval_label": "Interval (spouští se jednou denně)",
@@ -348,7 +348,7 @@
           "method_placeholder": "Vyberte typ autentizace",
           "oauth_scope": "Rozsah OAuth",
           "oauth_scope_placeholder": "Volitelné: Seznam oprávnění oddělených mezerou",
-          "oauth_token_url": "OAuth Token URL",
+          "oauth_token_url": "URL tokenu OAuth",
           "oauth_token_url_placeholder": "URL tokenu OAuth",
           "title": "Autentizace",
           "workstation": "Pracovní stanice",
@@ -442,7 +442,7 @@
       "mysql": {
         "connection_string_examples": "Příklady:",
         "connection_string_label": "Připojovací řetězec",
-        "connection_title": "MySQL Connection",
+        "connection_title": "Připojení MySQL",
         "query_label": "Dotaz"
       },
       "ping": {
@@ -506,7 +506,7 @@
           "new_proxy": "+ Nový proxy",
           "no_proxy": "Žádný proxy",
           "remove_proxy": "Odebrat proxy",
-          "select_proxy_placeholder": "Select Proxy",
+          "select_proxy_placeholder": "Vyberte proxy",
           "selected_proxy": "Vybraný proxy server",
           "title": "Proxy"
         },
@@ -522,7 +522,7 @@
         "expected_value_description": "Hodnota pro porovnání. Nechte prázdnou pro vynechání validace.",
         "expected_value_label": "Očekávaná hodnota",
         "host_description": "Název hostitele nebo IP adresa zařízení s podporou SNMP.",
-        "host_label": "Host",
+        "host_label": "Hostitel",
         "json_path_description": "JSONPath výraz pro získání hodnoty ze odpovědi (použij \"$\" pro surovou hodnotu)",
         "json_path_label": "JSON cesta",
         "json_path_operator_description": "Jak porovnat extrahovanou hodnotu s očekávanou hodnotou",
@@ -569,7 +569,7 @@
         "push": "Push monitor (externí služba volá vygenerovanou URL adresu)",
         "rabbitmq": "Monitor RabbitMQ",
         "redis": "Redis databázový monitor",
-        "snmp": "SNMP Monitor",
+        "snmp": "Monitor SNMP",
         "sqlserver": "Monitor Microsoft SQL Server",
         "tcp": "TCP portový monitor"
       }
@@ -718,7 +718,7 @@
       },
       "grafana_oncall": {
         "grafana_oncall_url_description": "URL webhooku z vaší integrace Grafana OnCall. Tuto adresu najdete ve vaší instanci Grafana OnCall v sekci Upozornění a IRM &gt; IRM &gt; Integrace &gt; Webhook.",
-        "grafana_oncall_url_label": "Grafana OnCall URL",
+        "grafana_oncall_url_label": "URL Grafana OnCall",
         "learn_more_label": "Další informace o webhookech Grafana OnCall"
       },
       "line": {
@@ -884,7 +884,7 @@
         "application_token_placeholder": "Zadejte token aplikace Pushover",
         "device_description": "Nechte prázdné pro odeslání na všechna zařízení",
         "device_label": "Zařízení",
-        "device_placeholder": "Device name (optional)",
+        "device_placeholder": "Název zařízení (nepovinné)",
         "message_title_description": "Nechte prázdné pro použití výchozího názvu",
         "message_title_label": "Název zprávy",
         "message_title_placeholder": "Vlastní nadpis zprávy (volitelný)",
@@ -912,7 +912,7 @@
         "sound_bugle": "Bugle",
         "sound_cashregister": "Pokladna",
         "sound_classical": "Klasický",
-        "sound_climb": "Climb",
+        "sound_climb": "Stoupat",
         "sound_cosmic": "Kosmický",
         "sound_echo": "Ozvěna",
         "sound_falling": "Pád",
@@ -923,7 +923,7 @@
         "sound_mechanical": "Mechanický",
         "sound_none": "Žádný",
         "sound_persistent": "Trvalý",
-        "sound_pianobar": "Piano Bar",
+        "sound_pianobar": "Piano bar",
         "sound_pushover": "Pushover (výchozí)",
         "sound_siren": "Siréna",
         "sound_spacealarm": "Vesmírný poplach",

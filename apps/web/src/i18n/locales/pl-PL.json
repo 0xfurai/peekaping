@@ -169,7 +169,7 @@
         "confirm_action": {
           "pause_description": "Czy na pewno chcesz wstrzymać tę konserwację?",
           "resume_description": "Czy na pewno chcesz wznowić tę konserwację?",
-          "title": ""
+          "title": "Potwierdź akcję"
         },
         "confirm_delete": {
           "description": "Czy na pewno chcesz usunąć to okno konserwacji? Ta akcja nie może zostać cofnięta.",
@@ -522,7 +522,7 @@
         "expected_value_description": "Wartość do porównania. Pozostaw puste, aby pominąć walidację.",
         "expected_value_label": "Oczekiwana wartość",
         "host_description": "Nazwa hosta lub adres IP urządzenia z obsługą SNMP",
-        "host_label": "Host",
+        "host_label": "Nazwa hosta",
         "json_path_description": "Wyrażenie JSONPath do wyodrębniania wartości z odpowiedzi (użyj \"$\" dla surowej wartości)",
         "json_path_label": "Ścieżka JSON",
         "json_path_operator_description": "Jak porównać wyodrębnioną wartość z oczekiwaną wartością",
@@ -625,7 +625,7 @@
         "last_7_days": "Ostatnie 7 dni"
       },
       "status": {
-        "down": "",
+        "down": "W dół",
         "maintenance": "Konserwacja",
         "paused": "Wstrzymany",
         "up": "Działa"
@@ -909,7 +909,7 @@
         "priority_placeholder": "Wybierz priorytet",
         "sound_alien": "Obcy",
         "sound_bike": "rower",
-        "sound_bugle": "Bugle",
+        "sound_bugle": "Trąbka",
         "sound_cashregister": "Kasa fiskalna",
         "sound_classical": "Klasyczny",
         "sound_climb": "Wzniesienie",

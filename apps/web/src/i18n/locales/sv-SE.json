@@ -80,7 +80,7 @@
     "tags": "Etiketter",
     "unknown": "Okänt",
     "unnamed_monitor": "Namnlös Övervakning",
-    "up": "Up",
+    "up": "Upp",
     "update": "Uppdatera",
     "verifying": "Verifierar..."
   },
@@ -105,7 +105,7 @@
       "footer_text": "Ange sidfotstext",
       "icon_url": "https://example.com/icon.png",
       "monitor_name": "Min övervakning",
-      "page_description": "Ange beskrivning av status\u00adsidan",
+      "page_description": "Ange beskrivning av status­sidan",
       "page_title": "Ange statussidans titel",
       "slug": "status-sida-slug"
     },
@@ -277,7 +277,7 @@
         "ca_cert_description": "Klistra in ditt CA-certifikat i PEM-format.",
         "ca_certificate": "CA-certifikat (PEM)",
         "client_cert_description": "Klistra in ditt klientcertifikat i PEM-format. Detta används för ömsesidig TLS-autentisering.",
-        "client_certificate": "",
+        "client_certificate": "Klientcertifikat (PEM)",
         "client_private_key": "Klientens privata nyckel (PEM)",
         "common_tls_issues": "Vanliga TLS-problem:",
         "connection_type": "Anslutningstyp",
@@ -355,11 +355,11 @@
           "workstation_placeholder": "Arbetsstation"
         },
         "options": {
-          "body": "Body",
+          "body": "Kropp",
           "body_encoding": "Kroppskodning",
           "body_encoding_placeholder": "Välj kroppskodning",
           "form_example": "Exempelformulärdata",
-          "headers": "Headers",
+          "headers": "Rubriker",
           "json_example": "Exempel JSON",
           "method": "Metod",
           "method_placeholder": "Välj monitortyp",
@@ -493,7 +493,7 @@
         },
         "notifications": {
           "add_notifier": "Lägg till notifierare",
-          "new_notifier": "",
+          "new_notifier": "+ Ny notifierare",
           "no_channels": "Inga notifikationskanaler hittade, skapa en först",
           "no_channels_available": "Inga kanaler tillgängliga",
           "select_channel": "Välj kanal",
@@ -524,7 +524,7 @@
         "host_description": "Värdnamnet eller IP-adressen till SNMP-aktiverad enhet",
         "host_label": "Värd",
         "json_path_description": "JSONPath-uttryck för att extrahera värde från svaret (använd \"$\" för rått värde)",
-        "json_path_label": "JSON Path",
+        "json_path_label": "JSON‑väg",
         "json_path_operator_description": "Hur du jämför det extraherade värdet med det förväntade värdet",
         "json_path_operator_eq": "är lika med",
         "json_path_operator_ge": "större än eller lika med",
@@ -682,7 +682,7 @@
         "thread_id_description_title": "ID för tråden eller foruminlägget där meddelanden kommer att skickas",
         "thread_id_label": "Tråd-ID",
         "thread_id_placeholder": "Ange tråd- eller inläggs-ID",
-        "webhook_url_label": "Discord Webhook URL"
+        "webhook_url_label": "Discord Webhook-URL"
       },
       "google_chat": {
         "more_info_about_webhooks": "Mer information om Webhooks",
@@ -818,7 +818,7 @@
         "auto_resolve_acknowledge_description": "Bekräfta incidenten automatiskt",
         "auto_resolve_description": "Välj vad som ska göras när en övervakning går tillbaka online",
         "auto_resolve_do_nothing": "Gör ingenting",
-        "auto_resolve_do_nothing_description": "",
+        "auto_resolve_do_nothing_description": "Ingen åtgärd vidtagits för UP-status",
         "auto_resolve_label": "Auto Upplösning eller Bekräfta",
         "auto_resolve_placeholder": "Välj automatisk upplösningsbeteende",
         "auto_resolve_resolve": "Automatisk upplösning",
@@ -918,7 +918,7 @@
         "sound_falling": "Fallande",
         "sound_gamelan": "Gamelan",
         "sound_incoming": "Inkommande",
-        "sound_intermission": "Intermission",
+        "sound_intermission": "Paus",
         "sound_magic": "Magisk",
         "sound_mechanical": "Mekanisk",
         "sound_none": "Ingen",
@@ -1002,7 +1002,7 @@
         "send_silently_label": "Skicka tyst",
         "server_url_description": "Standardvärdet är",
         "server_url_description_2": "Du kan använda en anpassad server. Se",
-        "server_url_description_3": "",
+        "server_url_description_3": "här",
         "server_url_description_4": "för mer information.",
         "server_url_label": "Telegram-server-URL",
         "template_description": "Anpassa meddelandestrukturen. Tillgängliga variabler",
@@ -1192,11 +1192,11 @@
     "affected_monitors_info": "Välj de övervakningar som påverkas av detta underhåll",
     "auto_refresh_interval": "Automatisk uppdateringsintervall (sekunder)",
     "basic_information": "Grundinformation",
-    "create_status_page": "Skapa status\u00adsida",
+    "create_status_page": "Skapa status­sida",
     "customization": "Anpassning",
     "delete_dialog": {
       "description": "Är du säker på att du vill ta bort \"{{title}}\"? Denna åtgärd kan inte ångras.",
-      "title": "Ta bort status\u00adsida"
+      "title": "Ta bort status­sida"
     },
     "description": "Ange statussidans beskrivning",
     "domain_already_used": "Domänen {{domain}} används redan av en annan status-sida",
@@ -1204,12 +1204,12 @@
     "domains": "Domäner",
     "domains_info_warning": "Glöm inte att lägga till CNAME-posterna i din DNS för varje domän.",
     "draft_status": "Utkast",
-    "edit_page_name": "Redigera status\u00adsida",
+    "edit_page_name": "Redigera status­sida",
     "messages": {
-      "create_description": "Skapa en ny status\u00adsida för att dela tjänstens status med användare.",
+      "create_description": "Skapa en ny status­sida för att dela tjänstens status med användare.",
       "create_your_first_status_page": "Skapa din första statussida",
       "created_successfully": "Status-sidan skapades framgångsrikt",
-      "delete_failed": "Det gick inte att ta bort status\u00adsidan",
+      "delete_failed": "Det gick inte att ta bort status­sidan",
       "deleted_successfully": "Status-sidan raderad",
       "get_started_by_creating_your_first_status_page": "Börja med att skapa din första statuspage.",
       "no_status_pages_found": "Inga statussidor hittades",
@@ -1217,14 +1217,14 @@
       "update_description": "Uppdatera dina statussidans inställningar och konfiguration.",
       "updated_successfully": "Status-sidan uppdaterades framgångsrikt"
     },
-    "new_page_name": "Ny status\u00adsida",
+    "new_page_name": "Ny status­sida",
     "page_name": "Status-sidor",
     "published": "Publicerad",
     "published_info": "Gör den här status-sidan offentlig",
     "published_status": "Publicerad",
     "search_label": "Sök",
     "search_placeholder": "Sök status-sidor efter titel...",
-    "update_status_page": "Uppdatera status\u00adsida",
+    "update_status_page": "Uppdatera status­sida",
     "view_page": "Visa sida"
   },
   "tags": {
@@ -1269,7 +1269,7 @@
     "last_6_hours": "Senaste 6 timmarna",
     "last_7_days": "Senaste 7 dagar",
     "maximum": "Maximal",
-    "minimum": "Minimum",
+    "minimum": "Minsta",
     "ms": "ms",
     "response_time": "Svarstid",
     "uptime": "Driftstid"

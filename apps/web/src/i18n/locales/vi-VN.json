@@ -508,7 +508,7 @@
           "remove_proxy": "Xóa Proxy",
           "select_proxy_placeholder": "Chọn Proxy",
           "selected_proxy": "Proxy đã chọn",
-          "title": "Proxy"
+          "title": "Ủy quyền"
         },
         "tags": {
           "label": "Thẻ",
@@ -533,7 +533,7 @@
         "json_path_operator_le": "bằng hoặc nhỏ hơn",
         "json_path_operator_lt": "nhỏ hơn",
         "json_path_operator_ne": "không bằng",
-        "oid_description": "",
+        "oid_description": "Mã đối tượng SNMP để truy vấn (ví dụ, 1.3.6.1.2.1.1.1.0 cho mô tả hệ thống)",
         "oid_label": "OID (Định danh đối tượng)",
         "port_description": "Cổng SNMP (mặc định: 161)",
         "port_label": "Cổng",
@@ -822,7 +822,7 @@
         "auto_resolve_label": "Giải quyết tự động hoặc Xác nhận",
         "auto_resolve_placeholder": "Chọn hành vi tự động giải quyết",
         "auto_resolve_resolve": "Tự động giải quyết",
-        "auto_resolve_resolve_description": "",
+        "auto_resolve_resolve_description": "Tự động giải quyết sự cố",
         "integration_key_description": "Tìm hiểu cách lấy khóa tích hợp của bạn",
         "integration_key_label": "Khóa Tích hợp",
         "integration_key_placeholder": "Nhập khóa tích hợp PagerDuty của bạn",
@@ -920,7 +920,7 @@
         "sound_incoming": "Đang nhận",
         "sound_intermission": "Giai đoạn giữa",
         "sound_magic": "Ma thuật",
-        "sound_mechanical": "",
+        "sound_mechanical": "Cơ khí",
         "sound_none": "Không",
         "sound_persistent": "Liên tục",
         "sound_pianobar": "Quán Piano",
@@ -1097,7 +1097,7 @@
         "authenticator_code_placeholder": "Nhập mã 6 chữ số",
         "current_password_label": "Mật khẩu hiện tại",
         "current_password_placeholder": "Nhập mật khẩu hiện tại của bạn",
-        "enable_2fa_button": ""
+        "enable_2fa_button": "Bật 2FA"
       },
       "messages": {
         "2fa_active": "2FA đang hoạt động",

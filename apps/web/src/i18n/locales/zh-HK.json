@@ -107,7 +107,7 @@
       "monitor_name": "我的監控",
       "page_description": "輸入狀態頁描述",
       "page_title": "輸入狀態頁面標題",
-      "slug": "status-page-slug"
+      "slug": "状态页面别名"
     },
     "validation": {
       "email_invalid": "請輸入有效的電郵地址",
@@ -775,7 +775,7 @@
         "authentication_type_placeholder": "選擇認證類型",
         "authentication_type_token": "令牌認證",
         "authentication_type_token_description": "使用存取權杖進行身分驗證",
-        "custom_message_description": "Custom message content. Available variables",
+        "custom_message_description": "自定义消息内容。可用变量",
         "custom_message_label": "自訂訊息",
         "password_required": "基本認證需要密碼",
         "priority_1": "最低",
@@ -913,7 +913,7 @@
         "sound_cashregister": "收銀機",
         "sound_classical": "古典",
         "sound_climb": "攀升",
-        "sound_cosmic": "Cosmic",
+        "sound_cosmic": "宇宙",
         "sound_echo": "回聲",
         "sound_falling": "跌落",
         "sound_gamelan": "伽美蘭",

@@ -57,7 +57,7 @@
     "delete": "Ištrinti",
     "disabling": "Išjungimas...",
     "dismiss": "Atšaukti",
-    "down": "",
+    "down": "Žemyn",
     "enabling": "Įjungiamas...",
     "error": "Klaida",
     "expires": "Sibaigia",
@@ -110,7 +110,7 @@
       "slug": "statuso puslapio slug"
     },
     "validation": {
-      "email_invalid": "",
+      "email_invalid": "Įveskite galiojantį el. pašto adresą",
       "password_min_length": "Slaptažodis turi būti ne trumpesnis nei 8 simboliai.",
       "passwords_mismatch": "Slaptažodžiai nesutampa"
     }
@@ -308,7 +308,7 @@
       "grpc": {
         "body": "Kūno duomenys (JSON)",
         "enable_tls": "Įjungti TLS",
-        "enable_tls_description": "",
+        "enable_tls_description": "Naudoti saugų ryšį (TLS/SSL)",
         "invert_keyword": "Apversti raktažodį",
         "invert_keyword_description": "Monitorius bus pažymėtas kaip VEIKSMINGAS, jei raktinis žodis nebus rastas.",
         "keyword": "Raktažodis",
@@ -332,7 +332,7 @@
           "title": "Išplėstiniai"
         },
         "authentication": {
-          "auth_header": "",
+          "auth_header": "Autorizacijos antraštė",
           "certificate": "Sertifikatas",
           "certificate_placeholder": "Sertifikatas",
           "client_id": "Kliento ID",
@@ -448,7 +448,7 @@
       "ping": {
         "data_size": "Duomenų dydis (baitai)",
         "host": "Vardas / IP",
-        "title": ""
+        "title": "Ping nustatymai"
       },
       "postgres": {
         "connection_string_label": "Ryšio eilutė",
@@ -540,7 +540,7 @@
         "snmp_version_description": "Naudojama SNMP protokolo versija",
         "snmp_version_label": "SNMP versija",
         "title": "SNMP nustatymai",
-        "value_validation_label": ""
+        "value_validation_label": "Vertės patikrinimas (neprivaloma)"
       },
       "sqlserver": {
         "allowed_statements_description": "SELECT, SHOW, DESCRIBE, EXPLAIN, WITH, ir VALUES.",
@@ -741,7 +741,7 @@
         "custom_message_label": "Pasirinktinė žinutė",
         "homeserver_url_description": "Jūsų Matrix namų serverio URL",
         "homeserver_url_label": "Namų serverio URL",
-        "internal_room_id_description": "",
+        "internal_room_id_description": "Vidinis kambario ID, kuriam bus siunčiami pranešimai. Jis turėtų prasidėti su \"!\" ir atrodyti taip: !roomid:matrix.org",
         "internal_room_id_label": "Vidinis kambario ID",
         "setup_instructions_1": "Sukurkite Matrix sąskaitą savo botui (arba naudokite esamą sąskaitą)",
         "setup_instructions_2": "Sukurkite arba prisijunkite prie kambario, kuriame norite gauti pranešimus",
@@ -1080,7 +1080,7 @@
       "create_failed": "Proxy sukūrimas nepavyko",
       "created_success": "Tarpinis serveris sukurtas sėkmingai",
       "error_loading_proxy": "Klaida įkeliant tarpinį serverį",
-      "update_failed": "",
+      "update_failed": "Nepavyko atnaujinti proksi",
       "updated_success": "Proxy sėkmingai atnaujintas"
     },
     "new": {
@@ -1121,7 +1121,7 @@
       "form": {
         "confirm_new_password_label": "Patvirtinkite naują slaptažodį",
         "confirm_new_password_placeholder": "Įveskite naują slaptažodį dar kartą",
-        "new_password_label": "",
+        "new_password_label": "Naujas slaptažodis",
         "new_password_placeholder": "Įveskite naują slaptažodį",
         "old_password_label": "Senas slaptažodis",
         "old_password_placeholder": "Įveskite savo dabartinį slaptažodį",
@@ -1179,9 +1179,9 @@
       "no_monitors_configured": "Šiam būsenos puslapiui nebuvo sukonfigūruojamų monitorių.",
       "operational": "Veikia",
       "partial_system_outage": "Dalinis sistemos sutrikimas",
-      "powered_by": "Powered by",
+      "powered_by": "Sąskaitą palaiko",
       "refresh_in": "Per",
-      "refresh_now": "",
+      "refresh_now": "Atnaujinti dabar",
       "status_page_not_found": "Statuso puslapis nerastas arba nebuvo paskelbtas.",
       "under_maintenance": "Priežiūroje",
       "unknown": "Nežinoma"

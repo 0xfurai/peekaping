@@ -87,7 +87,7 @@
   "forms": {
     "labels": {
       "confirm_password": "Konfirmasi Kata Sandi",
-      "email": "Email",
+      "email": "Sure",
       "footer_text": "Teks Footer",
       "heartbeat_interval": "Interval detak jantung (detik)",
       "icon_url": "URL Ikon",
@@ -154,7 +154,7 @@
       "maintenance_time_window": "Jendela Waktu Pemeliharaan per Hari",
       "markdown_supported": "Markdown didukung",
       "same_as_server": "Sama dengan Zona Waktu Server",
-      "start_date_time": "",
+      "start_date_time": "Tanggal & Waktu Mulai",
       "start_time": "Waktu Mulai",
       "strategy_label": "Strategi",
       "strategy_placeholder": "Pilih strategi",
@@ -355,7 +355,7 @@
           "workstation_placeholder": "Stasiun Kerja"
         },
         "options": {
-          "body": "Body",
+          "body": "Isi",
           "body_encoding": "Enkoding Body",
           "body_encoding_placeholder": "Pilih enkoding badan",
           "form_example": "Contoh Data Form",
@@ -397,7 +397,7 @@
         "sasl_mechanism_label": "Mekanisme SASL",
         "sasl_mechanism_placeholder": "Pilih mekanisme SASL",
         "sasl_password_description": "Password untuk otentikasi SASL",
-        "sasl_password_label": "SASL Password",
+        "sasl_password_label": "Kata Sandi SASL",
         "sasl_password_placeholder": "kata sandi",
         "sasl_username_description": "Nama pengguna untuk otentikasi SASL",
         "sasl_username_label": "Nama Pengguna SASL",
@@ -551,7 +551,7 @@
         "title": "Koneksi Microsoft SQL Server"
       },
       "tcp": {
-        "host": "Host",
+        "host": "Tuan Rumah",
         "port": "Port",
         "title": "Koneksi TCP"
       },
@@ -592,7 +592,7 @@
         "delete": "Hapus",
         "edit": "Sunting",
         "pause": "Jeda",
-        "reset_data": "Reset Data",
+        "reset_data": "Atur Ulang Data",
         "resume": "Lanjutkan"
       },
       "certificate": "Sertifikat",
@@ -643,7 +643,7 @@
   },
   "notifications": {
     "actions": {
-      "test": "",
+      "test": "Tes",
       "testing": "Menguji..."
     },
     "aria": {
@@ -876,7 +876,7 @@
         "device_id": "ID Perangkat (Opsional)",
         "device_id_description": "Kirim notifikasi ke perangkat tertentu. Kosongkan untuk mengirim ke semua perangkat. Anda dapat menemukan ID perangkat menggunakan ...",
         "device_id_label": "ID Perangkat (Opsional)",
-        "device_id_link": "Pushbullet API",
+        "device_id_link": "API Pushbullet",
         "more_info_on": "Info lebih lanjut tentang:"
       },
       "pushover": {
@@ -923,11 +923,11 @@
         "sound_mechanical": "Mekanik",
         "sound_none": "Tidak ada",
         "sound_persistent": "Tetap",
-        "sound_pianobar": "Piano Bar",
+        "sound_pianobar": "Bar Piano",
         "sound_pushover": "Pushover (baku)",
         "sound_siren": "Sirene",
         "sound_spacealarm": "Alarm Luar Angkasa",
-        "sound_tugboat": "Tugboat",
+        "sound_tugboat": "kapal tunda",
         "sound_updown": "Naik Turun",
         "sound_vibrate": "Getar",
         "user_key_label": "Kunci Pengguna",
@@ -1052,7 +1052,7 @@
     "placeholders": {
       "select_type": "Pilih tipe notifier"
     },
-    "search_placeholder": ""
+    "search_placeholder": "Cari saluran notifikasi berdasarkan nama..."
   },
   "proxies": {
     "delete_dialog": {
@@ -1190,7 +1190,7 @@
   "status_pages": {
     "affected_monitors": "Monitor Terkait",
     "affected_monitors_info": "Pilih monitor yang akan terpengaruh oleh pemeliharaan ini",
-    "auto_refresh_interval": "",
+    "auto_refresh_interval": "Interval Penyegaran Otomatis (detik)",
     "basic_information": "Informasi Dasar",
     "create_status_page": "Buat Halaman Status",
     "customization": "Kustomisasi",

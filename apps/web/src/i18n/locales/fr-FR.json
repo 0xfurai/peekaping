@@ -13,7 +13,7 @@
     },
     "register": {
       "description": "Créez votre compte d'administrateur",
-      "have_account": "Vous avez déjà un compte\u202f?",
+      "have_account": "Vous avez déjà un compte ?",
       "sign_in": "Se connecter",
       "submit": "Créer",
       "title": "Bonjour"
@@ -47,8 +47,8 @@
     "clear_all": "Tout effacer",
     "clear_all_filters": "Effacer tous les filtres",
     "confirm": "Confirmer",
-    "confirm_delete_title": "Êtes‑vous absolument sûr\u202f?",
-    "confirm_delete_title_short": "Êtes‑vous sûr\u202f?",
+    "confirm_delete_title": "Êtes‑vous absolument sûr ?",
+    "confirm_delete_title_short": "Êtes‑vous sûr ?",
     "continue": "Continuer",
     "create": "Créer",
     "created": "Créé",
@@ -125,7 +125,7 @@
       "labels": {
         "duration": "{{duration}} min",
         "end": "Fin: {{date}}",
-        "start": "Début\u202f: {{date}}"
+        "start": "Début : {{date}}"
       },
       "status": {
         "active": "Actif",
@@ -167,12 +167,12 @@
       "clear_filters": "Effacer tous les filtres",
       "dialogs": {
         "confirm_action": {
-          "pause_description": "Êtes‑vous sûr de vouloir mettre en pause cette maintenance\u202f?",
-          "resume_description": "Êtes‑vous sûr de vouloir reprendre cette maintenance\u202f?",
+          "pause_description": "Êtes‑vous sûr de vouloir mettre en pause cette maintenance ?",
+          "resume_description": "Êtes‑vous sûr de vouloir reprendre cette maintenance ?",
           "title": "Confirmer l'action"
         },
         "confirm_delete": {
-          "description": "Êtes‑vous sûr de vouloir supprimer cette fenêtre de maintenance\u202f? Cette action est irréversible.",
+          "description": "Êtes‑vous sûr de vouloir supprimer cette fenêtre de maintenance ? Cette action est irréversible.",
           "title": "Confirmer la suppression"
         }
       },
@@ -347,7 +347,7 @@
           "method_label": "Méthode d'authentification",
           "method_placeholder": "Sélectionner le type d'authentification",
           "oauth_scope": "Portée OAuth",
-          "oauth_scope_placeholder": "Optionnel\u202f: liste de scopes séparés par des espaces",
+          "oauth_scope_placeholder": "Optionnel : liste de scopes séparés par des espaces",
           "oauth_token_url": "URL du jeton OAuth",
           "oauth_token_url_placeholder": "URL du jeton OAuth",
           "title": "Authentification",
@@ -524,7 +524,7 @@
         "host_description": "Le nom d'hôte ou l'adresse IP du dispositif SNMP",
         "host_label": "Hôte",
         "json_path_description": "Expression JSONPath pour extraire la valeur de la réponse (utilisez \"$\" pour la valeur brute)",
-        "json_path_label": "JSON Path",
+        "json_path_label": "Chemin JSON",
         "json_path_operator_description": "Comment comparer la valeur extraite à la valeur attendue",
         "json_path_operator_eq": "égal",
         "json_path_operator_ge": "supérieur ou égal",
@@ -601,10 +601,10 @@
       "dialogs": {
         "delete": {
           "description": "Cette action ne peut pas être annulée. Elle supprimera définitivement le moniteur et toutes les données associées.",
-          "title": "Êtes‑vous absolument sûr(e)\u202f?"
+          "title": "Êtes‑vous absolument sûr(e) ?"
         },
         "pause": {
-          "description": "Êtes‑vous sûr(e) de vouloir mettre en pause\u202f?",
+          "description": "Êtes‑vous sûr(e) de vouloir mettre en pause ?",
           "title": "Confirmation"
         },
         "reset": {
@@ -626,7 +626,7 @@
       },
       "status": {
         "down": "Hors ligne",
-        "maintenance": "Maintenance",
+        "maintenance": "Entretien",
         "paused": "En pause",
         "up": "En ligne"
       }
@@ -664,7 +664,7 @@
         "bot_display_name_label": "Nom d'affichage du bot",
         "custom_message_prefix_description": "Préfixe facultatif qui sera ajouté au début de tous les messages.",
         "custom_message_prefix_label": "Préfixe de message personnalisé",
-        "custom_message_prefix_placeholder": "Optionnel\u00a0: ajoutez un préfixe à votre message",
+        "custom_message_prefix_placeholder": "Optionnel : ajoutez un préfixe à votre message",
         "forum_post_name_description": "Le nom du nouveau sujet de forum qui sera créé.",
         "forum_post_name_label": "Nom du message du forum",
         "forum_post_name_placeholder": "Entrez le nom du sujet du forum",
@@ -754,7 +754,7 @@
         "channel_name_description": "Le canal où les notifications seront envoyées. Laissez vide pour utiliser le canal par défaut configuré dans le webhook.",
         "channel_name_label": "Nom du canal",
         "icon_emoji_cheat_sheet_label": "Fiche d'emojis",
-        "icon_emoji_description": "Émoji à utiliser comme icône. Vous pouvez spécifier deux émojis séparés par un espace (le premier pour le statut «\u202fen ligne\u202f», le second pour le statut «\u202fhors ligne\u202f»).",
+        "icon_emoji_description": "Émoji à utiliser comme icône. Vous pouvez spécifier deux émojis séparés par un espace (le premier pour le statut « en ligne », le second pour le statut « hors ligne »).",
         "icon_emoji_label": "Icône Emoji",
         "icon_url_description": "URL d'une image à utiliser comme icône pour le message de notification.",
         "icon_url_label": "URL de l'icône",
@@ -832,7 +832,7 @@
         "priority_critical": "Critique",
         "priority_description": "Le niveau de gravité pour les incidents PagerDuty. Valeur par défaut : \"warning\".",
         "priority_error": "Erreur",
-        "priority_info": "Info",
+        "priority_info": "Infos",
         "priority_label": "Priorité",
         "priority_placeholder": "Sélectionnez le niveau de priorité",
         "priority_warning": "Avertissement"
@@ -864,7 +864,7 @@
         "channel_tag_description": "Envoyer la notification vers un canal Pushbullet plutôt que vers des appareils",
         "channel_tag_label": "Tag de canal (facultatif)",
         "custom_message_template": "",
-        "custom_message_template_description": "Personnalisez le corps de la notification en utilisant des variables de modèle\u00a0:",
+        "custom_message_template_description": "Personnalisez le corps de la notification en utilisant des variables de modèle :",
         "custom_message_template_heartbeat_ping": "Temps de réponse",
         "custom_message_template_heartbeat_time": "Horodatage",
         "custom_message_template_label": "Modèle de message personnalisé (Optionnel)",
@@ -907,7 +907,7 @@
         "priority_description": "Niveau de priorité du message",
         "priority_label": "Priorité",
         "priority_placeholder": "Sélectionner la priorité",
-        "sound_alien": "Alien",
+        "sound_alien": "Extraterrestre",
         "sound_bike": "Vélo",
         "sound_bugle": "Bugle",
         "sound_cashregister": "Caisse enregistreuse",
@@ -923,7 +923,7 @@
         "sound_mechanical": "Mécanique",
         "sound_none": "Aucun",
         "sound_persistent": "Persistant",
-        "sound_pianobar": "Piano Bar",
+        "sound_pianobar": "Bar à piano",
         "sound_pushover": "Pushover (par défaut)",
         "sound_siren": "Sirène",
         "sound_spacealarm": "Alerte Spatiale",
@@ -936,8 +936,8 @@
       "signal": {
         "custom_message_description": "Modèle de message personnalisé. Variables disponibles.",
         "custom_message_label": "Message personnalisé",
-        "important_description": "Vous ne pouvez pas mélanger des groupes et des numéros dans les destinataires\u00a0!",
-        "important_label": "IMPORTANT\u00a0:",
+        "important_description": "Vous ne pouvez pas mélanger des groupes et des numéros dans les destinataires !",
+        "important_label": "IMPORTANT :",
         "more_info_label": "Vous pouvez consulter cette URL pour voir comment en configurer un :",
         "note_description": "Vous devez disposer d'un client Signal avec API REST.",
         "note_label": "Remarque:",
@@ -950,7 +950,7 @@
       },
       "slack": {
         "channel_name_description": "Le canal où le message sera envoyé. S'il n'est pas spécifié, le message sera envoyé vers le canal par défaut configuré dans le webhook.",
-        "channel_name_description_2": "Vous pouvez remplacer le canal par défaut en précisant un nom de canal (ex\u00a0: #alerts) ou un utilisateur (ex\u00a0: @username).",
+        "channel_name_description_2": "Vous pouvez remplacer le canal par défaut en précisant un nom de canal (ex : #alerts) ou un utilisateur (ex : @username).",
         "channel_name_label": "Nom du canal",
         "channel_notify_description": "Lorsque activé, le message déclenchera des notifications pour tous les membres du canal. Utilisez avec prudence pour éviter le spam.",
         "channel_notify_label": "Canal de notification",
@@ -968,13 +968,13 @@
         "custom_body_label": "Corps personnalisé",
         "custom_description": "La possibilité d'utiliser des modèles est assurée grâce au langage de templating <b>Liquid</b>.",
         "custom_description_2": "Veuillez consulter la documentation pour les instructions d'utilisation.",
-        "custom_description_3": "Variables disponibles\u00a0:",
+        "custom_description_3": "Variables disponibles :",
         "custom_description_4": "message de la notification",
         "custom_description_5": "nom du service",
         "custom_description_6": "statut du service (UP/DOWN/notifications d'expiration de certificat)",
         "custom_subject_label": "Objet personnalisé",
         "smtp_from_label": "De (adresse e‑mail de l’expéditeur)",
-        "smtp_host_description": "Entrez soit le nom d’hôte du serveur auquel vous souhaitez vous connecter, soit «\u00a0localhost\u00a0» si vous envisagez d’utiliser un agent de transfert de courrier configuré localement.",
+        "smtp_host_description": "Entrez soit le nom d’hôte du serveur auquel vous souhaitez vous connecter, soit « localhost » si vous envisagez d’utiliser un agent de transfert de courrier configuré localement.",
         "smtp_host_label": "Hôte SMTP",
         "smtp_password_placeholder": "Mot de passe SMTP",
         "smtp_port_label": "Port",
@@ -1057,7 +1057,7 @@
   "proxies": {
     "delete_dialog": {
       "description": "Cette action ne peut pas être annulée. Cela supprimera définitivement le proxy {{host}}:{{port}}.",
-      "title": "Êtes‑vous absolument sûr(e)\u202f?"
+      "title": "Êtes‑vous absolument sûr(e) ?"
     },
     "edit": {
       "page_name": "Modifier le proxy"
@@ -1086,7 +1086,7 @@
     "new": {
       "page_name": "Nouveau proxy"
     },
-    "page_name": "Proxies",
+    "page_name": "Proxys",
     "search_label": "Rechercher",
     "search_placeholder": "Rechercher des proxys par hôte..."
   },
@@ -1145,7 +1145,7 @@
     "from_email_label": "E-mail de l'expéditeur",
     "subject_description": "Sujet du courriel. Prise en charge du templating Liquid.",
     "subject_label": "Sujet personnalisé (facultatif)",
-    "subject_variables_label": "Variables disponibles\u00a0:",
+    "subject_variables_label": "Variables disponibles :",
     "subject_variables_msg": "message de la notification",
     "subject_variables_name": "Nom du service",
     "subject_variables_status": "statut du service (UP/DOWN)",
@@ -1195,7 +1195,7 @@
     "create_status_page": "Créer une page d'état",
     "customization": "Personnalisation",
     "delete_dialog": {
-      "description": "Êtes‑vous sûr(e) de vouloir supprimer «{{title}}»\u202f? Cette action est irréversible.",
+      "description": "Êtes‑vous sûr(e) de vouloir supprimer «{{title}}» ? Cette action est irréversible.",
       "title": "Supprimer la page de statut"
     },
     "description": "Saisissez la description de la page de statut",

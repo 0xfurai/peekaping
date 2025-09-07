@@ -818,7 +818,7 @@
         "auto_resolve_acknowledge_description": "自動承認事件",
         "auto_resolve_description": "監控恢復時，選擇要執行的動作",
         "auto_resolve_do_nothing": "唔做任何事",
-        "auto_resolve_do_nothing_description": "",
+        "auto_resolve_do_nothing_description": "對 UP 狀態未採取任何行動",
         "auto_resolve_label": "自動解除或確認",
         "auto_resolve_placeholder": "選擇自動解決行為",
         "auto_resolve_resolve": "自動解決",
@@ -876,7 +876,7 @@
         "device_id": "裝置 ID（可選）",
         "device_id_description": "送通知至指定裝置。留空即送至所有裝置。你可以使用以下方式查找裝置 ID：",
         "device_id_label": "裝置 ID (可選)",
-        "device_id_link": "Pushbullet API",
+        "device_id_link": "Pushbullet 應用程式介面",
         "more_info_on": "更多資訊："
       },
       "pushover": {
@@ -962,7 +962,7 @@
         "message_format_label": "訊息格式",
         "username_description": "將顯示為訊息的發送者。如未指定，將使用預設機器人名稱。",
         "webhook_url_description": "Slack 整合嘅 Webhook URL。你可以喺 Slack 服務嘅「Integrations > Webhooks」度搵到佢。",
-        "webhook_url_label": "Webhook URL"
+        "webhook_url_label": "Webhook 網址"
       },
       "smtp": {
         "custom_body_label": "自訂內容",

@@ -169,7 +169,7 @@
         "confirm_action": {
           "pause_description": "Да ли сте сигурни да желите да паузирате ово одржавање?",
           "resume_description": "Da li ste sigurni da želite da nastavite ovo održavanje?",
-          "title": ""
+          "title": "Potvrdi radnju"
         },
         "confirm_delete": {
           "description": "Да ли сте сигурни да желите да обришете овај прозор одржавања? Ова радња се не може опозвати.",
@@ -201,7 +201,7 @@
       "create_error": "Није успело креирање одржавања",
       "created_success": "Одржавање је успешно креирано",
       "delete_error": "Неуспело брисање одржавања",
-      "deleted_success": "",
+      "deleted_success": "Održavanje je uspešno izbrisano",
       "pause_error": "Није успело заустављање одржавања",
       "paused_success": "Одржавање је успешно заустављено",
       "resume_error": "Неуспело настављање одржавања",
@@ -356,7 +356,7 @@
         },
         "options": {
           "body": "Тело",
-          "body_encoding": "",
+          "body_encoding": "Kodiranje tela",
           "body_encoding_placeholder": "Изаберите кодирање тела",
           "form_example": "Primer podataka obrasca",
           "headers": "Заглавља",
@@ -377,7 +377,7 @@
         "title": "JSON упитни израз"
       },
       "http_keyword": {
-        "invert_keyword_description": "",
+        "invert_keyword_description": "Potražite da ključna reč bude odsutna umesto da bude prisutna.",
         "invert_keyword_label": "Обрни кључну реч",
         "keyword_label": "Кључна реч",
         "keyword_validation_title": "Валидација кључне речи"
@@ -473,7 +473,7 @@
       },
       "redis": {
         "ca_certificate_description": "Root CA сертификат у PEM формату. Обавезно за исправну TLS верификацију са самопотписаним сертификатима.",
-        "ca_certificate_label": "",
+        "ca_certificate_label": "CA sertifikat (opciono)",
         "client_certificate_description": "Клијентски сертификат у PEM формату. Потребан за узајамну TLS аутентификацију.",
         "client_certificate_label": "Клијентски сертификат (Опционално)",
         "client_key_description": "Privatni ključ klijenta u PEM formatu. Mora se navesti zajedno sa klijentskim sertifikatom.",
@@ -754,7 +754,7 @@
         "channel_name_description": "Канал на који ће се обавештења слати. Оставите празно да бисте користили подразумевани канал који је подешен у веб‑хук.",
         "channel_name_label": "Назив канала",
         "icon_emoji_cheat_sheet_label": "Шпаргалка емоджи",
-        "icon_emoji_description": "",
+        "icon_emoji_description": "Emotikona koju ćete koristiti kao ikonu. Možete navesti dve emotikone razdvojene razmakom (prva za status „gore“, druga za status „dole“).",
         "icon_emoji_label": "Икона емоџи",
         "icon_url_description": "URL слике која се користи као икона за поруку обавештења.",
         "icon_url_label": "URL иконице",
@@ -764,7 +764,7 @@
         "use_message_template_description": "Омогући коришћење прилагођеног шаблона поруке и формата.",
         "use_message_template_label": "Користи шаблон поруке",
         "username_description": "Корисничко име које ће се појавити као пошиљач поруке.",
-        "webhook_url_label": "Webhook URL"
+        "webhook_url_label": "URL webhooka"
       },
       "ntfy": {
         "authentication_type_basic": "Основна аутентификација",
@@ -841,7 +841,7 @@
         "authentication_token_description": "Опционо: токен за пријаву за повећану безбедност. Ово ће бити послато у заглављу pagertree-token.",
         "authentication_token_label": "Аутентификациони токен (Опционално)",
         "authentication_token_placeholder": "Унесите auth token ако је обавезан",
-        "auto_resolve_alerts_description": "",
+        "auto_resolve_alerts_description": "Automatski reši PagerTree upozorenja kada se monitor oporavi.",
         "auto_resolve_alerts_label": "Аутоматско решавање упозорања",
         "how_to_get_integration_url_label": "Како добити URL интеграције",
         "integration_url_description": "Unesite URL za PagerTree webhook integraciju.",
@@ -864,7 +864,7 @@
         "channel_tag_description": "Шаљи обавештење на Pushbullet канал уместо уређаја",
         "channel_tag_label": "Етикета канала (Опционално)",
         "custom_message_template_description": "Прилагоди тело обавештења користећи шаблонске променљиве:",
-        "custom_message_template_heartbeat_ping": "",
+        "custom_message_template_heartbeat_ping": "Vreme odziva",
         "custom_message_template_heartbeat_time": "Временска ознака",
         "custom_message_template_label": "Прилагођени шаблон поруке (опционо)",
         "custom_message_template_monitor_url": "URL монитора",
@@ -954,7 +954,7 @@
         "channel_notify_description": "Када је омогућено, порука ће изазвати обавештења за све чланове канала. Користите је с пажњом да бисте избегли спам.",
         "channel_notify_label": "Обавести канал",
         "icon_emoji_cheat_sheet_label": "Чет лист емоджи",
-        "icon_emoji_description": "",
+        "icon_emoji_description": "Emotikona koju treba koristiti kao ikonu za ovu poruku. Mora biti u formatu :emoji_name:",
         "icon_emoji_label": "Икона емоджи",
         "message_format_description": "Pošalji bogate poruke",
         "message_format_description_2": "Omogući slanje poruka sa obogaćenim formatiranjem, priloženim fajlovima i boljim vizuelnim prikazom.",
@@ -1003,7 +1003,7 @@
         "server_url_description_2": "Можете користити прилагођени сервер. Погледајте",
         "server_url_description_3": "овде",
         "server_url_description_4": "за детаље.",
-        "server_url_label": "",
+        "server_url_label": "URL Telegram servera",
         "template_description": "Прилагоди формат поруке. Доступне променљиве",
         "template_label": "Шаблон поруке",
         "template_parse_mode_description": "Изаберите начин обраде поруке. Погледај",
@@ -1266,7 +1266,7 @@
     "last_3_months": "Последњих 3 месеца",
     "last_30_minutes": "Последњих 30 минута",
     "last_6_hours": "Последњих 6 сати",
-    "last_7_days": "",
+    "last_7_days": "Poslednjih 7 dana",
     "maximum": "Максимум",
     "minimum": "минимум",
     "ms": "мс",

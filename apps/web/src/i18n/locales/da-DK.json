@@ -48,7 +48,7 @@
     "clear_all_filters": "Ryd alle filtre",
     "confirm": "Bekræft",
     "confirm_delete_title": "Er du helt sikker?",
-    "confirm_delete_title_short": "",
+    "confirm_delete_title_short": "Er du sikker?",
     "continue": "Fortsæt",
     "create": "Opret",
     "created": "Oprettet",
@@ -228,7 +228,7 @@
     "notifier_delete_success": "Notifikator slettet med succes",
     "register_error": "Der opstod en fejl under registreringen",
     "register_no_tokens": "Registrering gennemført, men ingen tokens modtaget",
-    "register_success": "",
+    "register_success": "Registreret med succes",
     "setting_update_error": "Kunne ikke opdatere indstilling",
     "setting_update_success": "Indstilling opdateret med succes",
     "tag_create_error": "Kunne ikke oprette tag",
@@ -291,7 +291,7 @@
         "hostname_mismatch": "x509: certifikatet er gyldigt for X, ikke Y:",
         "hostname_mismatch_solution": "Sørg for, at værtsnavnet matcher certifikatets SAN, eller deaktiver verifikationen (ikke anbefalet).",
         "legacy_cert_error": "x509: certifikatet afhænger af det forældede Common Name-felt",
-        "legacy_cert_solution": "",
+        "legacy_cert_solution": "Tilføj hostnavnet til Subject Alternative Names (SAN) i dit certifikat.",
         "mtls_note": "For gensidig TLS (mTLS) skal du angive både klientcertifikat og privat nøgle. CA-certifikatet bruges til at verificere serverens certifikat.",
         "note": "Bemærk:",
         "private_key_description": "Indsæt din private nøgle i PEM-format. Hold den sikker!",
@@ -306,7 +306,7 @@
         "verify_tls": "Verificér TLS"
       },
       "grpc": {
-        "body": "Body Data (JSON)",
+        "body": "Kropdata (JSON)",
         "enable_tls": "Aktivér TLS",
         "enable_tls_description": "Brug sikker forbindelse (TLS/SSL)",
         "invert_keyword": "Omvend nøgleord",
@@ -355,7 +355,7 @@
           "workstation_placeholder": "arbejdsstation"
         },
         "options": {
-          "body": "Body",
+          "body": "Brødtekst",
           "body_encoding": "Kropkodning",
           "body_encoding_placeholder": "Vælg indholdskodning",
           "form_example": "Eksempel på formulardata",
@@ -425,7 +425,7 @@
         "configuration_title": "MQTT Konfiguration",
         "expected_value_label": "Forventet værdi",
         "hostname_label": "Værtsnavn",
-        "json_path_label": "JSON Path",
+        "json_path_label": "JSON‑sti",
         "password_label": "MQTT-adgangskode",
         "password_placeholder": "Password (valgfri)",
         "port_label": "Port",
@@ -511,7 +511,7 @@
           "title": "Proxy"
         },
         "tags": {
-          "label": "Tags",
+          "label": "Etiketter",
           "no_tags": "Ingen tags tilgængelige",
           "placeholder": "Vælg tags"
         }
@@ -558,7 +558,7 @@
       "type": {
         "dns": "DNS-overvågning",
         "docker": "Docker-beholder",
-        "grpc": "",
+        "grpc": "gRPC Nøgleordovervågning",
         "http": "HTTP(S)-monitor",
         "kafka": "Kafka-producentovervågning",
         "mongodb": "MongoDB-databasemonitor",
@@ -789,7 +789,7 @@
         "server_url_description": "URL'en til din NTFY-server. Brug https://ntfy.sh til den offentlige instans.",
         "server_url_label": "Server-URL",
         "tags_description": "Kommaseparerede tags til kategorisering af notifikationer. Tilgængelige variabler",
-        "tags_label": "Tags",
+        "tags_label": "Mærker",
         "title_description": "Brugertilpasset titel til meddelelsen. Tilgængelige variabler",
         "title_label": "Brugerdefineret titel",
         "token_description": "Dit NTFY-adgangstoken til godkendelse.",
@@ -859,7 +859,7 @@
         "access_token": "Adgangstoken",
         "access_token_description": "Dit Pushbullet-adgangstoken. Få den fra",
         "access_token_label": "Adgangstoken",
-        "access_token_link": "",
+        "access_token_link": "Pushbullet-indstillinger",
         "channel_tag": "Kanal Tag (Valgfrit)",
         "channel_tag_description": "Send notifikation til en Pushbullet-kanal i stedet for enheder",
         "channel_tag_label": "Kanal-tag (Valgfrit)",
@@ -908,7 +908,7 @@
         "priority_label": "Prioritet",
         "priority_placeholder": "Vælg prioritet",
         "sound_alien": "Udenjordsk",
-        "sound_bike": "Bike",
+        "sound_bike": "cykel",
         "sound_bugle": "Bugle",
         "sound_cashregister": "Kasseapparat",
         "sound_classical": "Klassisk",

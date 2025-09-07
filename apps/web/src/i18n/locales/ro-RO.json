@@ -7,7 +7,7 @@
     "login": {
       "description": "Autentifică-te cu e-mailul tău",
       "no_account": "Nu ai un cont?",
-      "sign_up": "",
+      "sign_up": "Înregistrează-te",
       "submit": "Conectare",
       "title": "Bine ai revenit"
     },
@@ -425,7 +425,7 @@
         "configuration_title": "Configurare MQTT",
         "expected_value_label": "Valoare așteptată",
         "hostname_label": "Nume gazdă",
-        "json_path_label": "JSON Path",
+        "json_path_label": "Calea JSON",
         "password_label": "Parola MQTT",
         "password_placeholder": "Parola (opțional)",
         "port_label": "Port",
@@ -464,7 +464,7 @@
         "health_checks_description": "Monitorul verifică endpointul {{code}} pe fiecare nod și returnează UP dacă oricare nod este sănătos.",
         "management_nodes_description": "Introduceți URL-ul pentru nodurile de administrare RabbitMQ, inclusiv protocolul și portul. Exemplu: https://node1.rabbitmq.com:15672",
         "management_nodes_title": "Noduri de management",
-        "node_url_label": "",
+        "node_url_label": "URL nodului",
         "password_description": "Parola pentru autentificarea interfeței de administrare RabbitMQ",
         "setup_information_description": "Pentru a utiliza monitorul RabbitMQ, trebuie să activați Pluginul de Administrare în configurația RabbitMQ. Pentru mai multe informații, vă rugăm să consultați documentația RabbitMQ.",
         "setup_information_title": "Informații de configurare",
@@ -638,7 +638,7 @@
     "notification_channels": "Canale de notificare",
     "proxies": "Proxy-uri",
     "settings": "Setări",
-    "status_pages": "",
+    "status_pages": "Pagini de stare",
     "tags": "Etichete"
   },
   "notifications": {
@@ -1111,7 +1111,7 @@
         "have_enabled_2fa": "Ai activat autentificarea în doi factori (2FA) pentru contul tău. Acest lucru adaugă un strat suplimentar de securitate.",
         "or_enter_secret_manually": "Sau introduceți secretul manual",
         "scan_qr_code_with_authenticator_app": "Scanează acest cod QR cu aplicația ta de autentificare",
-        "two_factor_authentication_enabled": "",
+        "two_factor_authentication_enabled": "Autentificare în doi factori activată",
         "user_email_not_found": "Adresa de e-mail a utilizatorului nu a fost găsită"
       }
     },
@@ -1227,7 +1227,7 @@
     "view_page": "Vezi pagina"
   },
   "tags": {
-    "confirm_delete_description": "",
+    "confirm_delete_description": "Acțiunea nu poate fi anulată. Aceasta va șterge permanent eticheta „{{name}}” și o va elimina de la toate monitoarele.",
     "edit_page_name": "Editează eticheta",
     "empty_state": {
       "action": "Creați primul tag",

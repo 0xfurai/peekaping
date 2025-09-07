@@ -32,7 +32,7 @@
     "important": "Garrantzitsua",
     "interval": "Tartea",
     "message": "Mezua",
-    "ms": "ms",
+    "ms": "sm",
     "notified": "Jakinarazita",
     "ping": "Ping",
     "retries": "Berriz probak",
@@ -95,7 +95,7 @@
       "monitor_type": "Mota",
       "password": "Pasahitza",
       "retries": "Errebairak",
-      "slug": "Slug",
+      "slug": "slug",
       "title": "Izenburua",
       "username": "Erabiltzaile izena"
     },
@@ -508,7 +508,7 @@
           "remove_proxy": "Kendu proksia",
           "select_proxy_placeholder": "Proxya hautatu",
           "selected_proxy": "Hautatutako proxy",
-          "title": "Proxy"
+          "title": "hatziratz"
         },
         "tags": {
           "label": "Etiketak",
@@ -704,7 +704,7 @@
         "priority_10": "Gehiena",
         "priority_2": "Baxua",
         "priority_3": "Baxuagoa",
-        "priority_4": "Normal",
+        "priority_4": "Arrunta",
         "priority_5": "Normal baino gorako",
         "priority_6": "Tartekoa",
         "priority_7": "Altua",
@@ -876,7 +876,7 @@
         "device_id": "Gailuaren IDa (aukerakoa)",
         "device_id_description": "Bidali jakinarazpena gailu jakin batera. Utzi hutsik gailu guztiei bidaltzeko. Gailuen IDak aurkitzeko, erabiliz",
         "device_id_label": "Gailuaren IDa (Aukerakoa)",
-        "device_id_link": "Pushbullet API",
+        "device_id_link": "Pushbullet APIa",
         "more_info_on": "Informazio gehiago:"
       },
       "pushover": {
@@ -909,12 +909,12 @@
         "priority_placeholder": "Hautatu lehentasuna",
         "sound_alien": "Aitena",
         "sound_bike": "Bikieta",
-        "sound_bugle": "Bugle",
+        "sound_bugle": "Bugleta",
         "sound_cashregister": "Txartilua",
         "sound_classical": "Klasikoa",
         "sound_climb": "Igoera",
         "sound_cosmic": "Kosmik",
-        "sound_echo": "Echo",
+        "sound_echo": "irratia",
         "sound_falling": "Jaituta",
         "sound_gamelan": "Gamelan",
         "sound_incoming": "Sartzen",

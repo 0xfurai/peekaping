@@ -95,7 +95,7 @@
       "monitor_type": "Тип",
       "password": "Пароль",
       "retries": "Повторні спроби",
-      "slug": "Slug",
+      "slug": "Слаг",
       "title": "Назва",
       "username": "Ім'я користувача"
     },
@@ -371,16 +371,16 @@
         }
       },
       "http_json_query": {
-        "condition_label": "",
-        "expected_value_label": "",
-        "json_query_label": "",
-        "title": ""
+        "condition_label": "Умова",
+        "expected_value_label": "Очікуване значення",
+        "json_query_label": "JSON-вираз запиту",
+        "title": "JSON Запитовий вираз"
       },
       "http_keyword": {
-        "invert_keyword_description": "",
-        "invert_keyword_label": "",
-        "keyword_label": "",
-        "keyword_validation_title": ""
+        "invert_keyword_description": "Шукайте, щоб ключове слово було відсутнє, а не присутнє.",
+        "invert_keyword_label": "Інвертувати ключове слово",
+        "keyword_label": "Ключове слово",
+        "keyword_validation_title": "Перевірка ключових слів"
       },
       "kafka": {
         "add_broker": "Додати брокер",
@@ -556,22 +556,22 @@
         "title": "TCP з'єднання"
       },
       "type": {
-        "dns": "DNS Monitor",
-        "docker": "Docker Container",
-        "grpc": "gRPC Keyword Monitor",
-        "http": "HTTP(S) Monitor",
-        "kafka": "Kafka Producer Monitor",
-        "mongodb": "MongoDB Database Monitor",
-        "mqtt": "MQTT Broker Monitor",
-        "mysql": "MySQL/MariaDB Monitor",
-        "ping": "Ping Monitor (ICMP)",
-        "postgres": "PostgreSQL Database Monitor",
-        "push": "Push Monitor (external service calls a generated URL)",
-        "rabbitmq": "RabbitMQ Monitor",
-        "redis": "Redis Database Monitor",
-        "snmp": "SNMP Monitor",
-        "sqlserver": "Microsoft SQL Server Monitor",
-        "tcp": "TCP Port Monitor"
+        "dns": "Монітор DNS",
+        "docker": "Контейнер Docker",
+        "grpc": "Монітор ключових слів gRPC",
+        "http": "Монітор HTTP(S)",
+        "kafka": "Монітор Kafka-продусера",
+        "mongodb": "Монітор бази даних MongoDB",
+        "mqtt": "Монітор брокера MQTT",
+        "mysql": "Монітор MySQL/MariaDB",
+        "ping": "Монітор Ping (ICMP)",
+        "postgres": "Монітор бази даних PostgreSQL",
+        "push": "Пуш‑монітор (зовнішня служба викликає згенерований URL)",
+        "rabbitmq": "Монітор RabbitMQ",
+        "redis": "Монітор бази даних Redis",
+        "snmp": "Монітор SNMP",
+        "sqlserver": "Монітор Microsoft SQL Server",
+        "tcp": "Монітор TCP‑портів"
       }
     },
     "page": {

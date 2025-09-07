@@ -47,7 +47,7 @@
     "clear_all": "すべてクリア",
     "clear_all_filters": "すべてのフィルターをクリア",
     "confirm": "確認",
-    "confirm_delete_title": "",
+    "confirm_delete_title": "本当に確信していますか？",
     "confirm_delete_title_short": "本当に削除しますか？",
     "continue": "続ける",
     "create": "作成",
@@ -431,7 +431,7 @@
         "port_label": "ポート",
         "success_keyword_label": "MQTT 成功キーワード",
         "success_keyword_placeholder": "成功を示すキーワード",
-        "username_label": "",
+        "username_label": "MQTT ユーザー名",
         "username_placeholder": "ユーザー名（任意）",
         "validation": {
           "expected_value_required": "チェックタイプが json-query の場合、期待値は必須です",
@@ -474,7 +474,7 @@
       "redis": {
         "ca_certificate_description": "PEM形式のルートCA証明書。自己署名証明書に対する正確なTLS検証には必須です。",
         "ca_certificate_label": "CA証明書（任意）",
-        "client_certificate_description": "",
+        "client_certificate_description": "PEM形式のクライアント証明書。相互TLS認証に必要です。",
         "client_certificate_label": "クライアント証明書（オプション）",
         "client_key_description": "PEM形式のクライアント秘密鍵。クライアント証明書と共に指定する必要があります。",
         "client_key_label": "クライアント秘密鍵（任意）",
@@ -566,7 +566,7 @@
         "mysql": "MySQL/MariaDB 監視",
         "ping": "Pingモニター（ICMP）",
         "postgres": "PostgreSQL データベースモニター",
-        "push": "",
+        "push": "プッシュモニター（外部サービスが生成されたURLを呼び出す）",
         "rabbitmq": "RabbitMQモニター",
         "redis": "Redis データベース監視",
         "snmp": "SNMP監視",
@@ -601,7 +601,7 @@
       "dialogs": {
         "delete": {
           "description": "この操作は元に戻せません。モニターと関連データは完全に削除されます。",
-          "title": ""
+          "title": "本当に合っているのですか？"
         },
         "pause": {
           "description": "本当に一時停止してもよろしいですか？",
@@ -686,7 +686,7 @@
       },
       "google_chat": {
         "more_info_about_webhooks": "Webhooks の詳細情報",
-        "webhook_url_label": "Google Chat Webhook URL"
+        "webhook_url_label": "Google Chat ウェブフック URL"
       },
       "gotify": {
         "application_token_description": "Gotify アプリケーションのアプリケーション・トークンです。Gotify のウェブインターフェースの「Apps」セクションで確認できます。",
@@ -718,7 +718,7 @@
       },
       "grafana_oncall": {
         "grafana_oncall_url_description": "Grafana OnCall 統合から取得した Webhook URL。Grafana OnCall インスタンスの「Alerts & IRM」>「IRM」>「Integrations」>「Webhook」で確認できます。",
-        "grafana_oncall_url_label": "Grafana OnCall URL",
+        "grafana_oncall_url_label": "Grafana オンコール URL",
         "learn_more_label": "Grafana OnCall Webhooks の詳細を確認"
       },
       "line": {
@@ -764,7 +764,7 @@
         "use_message_template_description": "カスタムメッセージテンプレートとフォーマットを有効にする",
         "use_message_template_label": "メッセージテンプレートを使用",
         "username_description": "メッセージ送信者として表示されるユーザー名。",
-        "webhook_url_label": "Webhook URL"
+        "webhook_url_label": "Webhook URL（ウェブフックURL）"
       },
       "ntfy": {
         "authentication_type_basic": "ベーシック認証",
@@ -1179,7 +1179,7 @@
       "no_monitors_configured": "このステータスページにはモニターが設定されていません。",
       "operational": "稼働中",
       "partial_system_outage": "一部システム障害",
-      "powered_by": "Powered by",
+      "powered_by": "提供元",
       "refresh_in": "リフレッシュまで",
       "refresh_now": "今すぐ更新",
       "status_page_not_found": "ステータスページが見つからないか、公開されていません。",
