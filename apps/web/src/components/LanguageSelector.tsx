@@ -48,7 +48,7 @@ const languages = [
   { code: "uk-UA", name: "Українська", flag: "🇺🇦" },
   { code: "th-TH", name: "ไทย", flag: "🇹🇭" },
   { code: "el-GR", name: "Ελληνικά", flag: "🇬🇷" },
-  { code: "yue-Hant-HK", name: "粵語 (廣東話)", flag: "🇭🇰" }, // Cantonese, Hong Kong
+  { code: "yue", name: "粵語 (廣東話)", flag: "🇭🇰" }, // Cantonese, Hong Kong
   { code: "ro-RO", name: "Română", flag: "🇷🇴" },
   { code: "ur-PK", name: "اردو", flag: "🇵🇰" },
   { code: "ka-GE", name: "ქართული", flag: "🇬🇪" },
@@ -62,6 +62,7 @@ export function LanguageSelector() {
 
   const currentLang =
     languages.find((lang) => lang.code === currentLanguage) || languages[0];
+
 
   return (
     <Select value={currentLanguage} onValueChange={changeLanguage}>

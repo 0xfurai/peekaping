@@ -2,103 +2,78 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 
-// Import language files
+// Only import English as the default language
 import enUS from "./locales/en-US.json";
-import frFR from "./locales/fr-FR.json";
-import ukUA from "./locales/uk-UA.json";
-import zhCN from "./locales/zh-CN.json";
-import bgBG from "./locales/bg-BG.json";
-import beBY from "./locales/be-BY.json";
-import deDE from "./locales/de-DE.json";
-import deCH from "./locales/de-CH.json";
-import nlNL from "./locales/nl-NL.json";
-import nbNO from "./locales/nb-NO.json";
-import esES from "./locales/es-ES.json";
-import euES from "./locales/eu-ES.json";
-import faIR from "./locales/fa-IR.json";
-import ptPT from "./locales/pt-PT.json";
-import ptBR from "./locales/pt-BR.json";
-import fiFI from "./locales/fi-FI.json";
-import heIL from "./locales/he-IL.json";
-import huHU from "./locales/hu-HU.json";
-import hrHR from "./locales/hr-HR.json";
-import itIT from "./locales/it-IT.json";
-import idID from "./locales/id-ID.json";
-import jaJP from "./locales/ja-JP.json";
-import daDK from "./locales/da-DK.json";
-import srCyrl from "./locales/sr-Cyrl.json";
-import srLatn from "./locales/sr-Latn.json";
-import slSI from "./locales/sl-SI.json";
-import svSE from "./locales/sv-SE.json";
-import trTR from "./locales/tr-TR.json";
-import koKR from "./locales/ko-KR.json";
-import ltLT from "./locales/lt-LT.json";
-import ruRU from "./locales/ru-RU.json";
-import zhHK from "./locales/zh-HK.json";
-import csCZ from "./locales/cs-CZ.json";
-import arSY from "./locales/ar-SY.json";
-import plPL from "./locales/pl-PL.json";
-import etEE from "./locales/et-EE.json";
-import viVN from "./locales/vi-VN.json";
-import zhTW from "./locales/zh-TW.json";
-import thTH from "./locales/th-TH.json";
-import elGR from "./locales/el-GR.json";
-import yue from "./locales/yue.json";
-import roRO from "./locales/ro-RO.json";
-import urPK from "./locales/ur-PK.json";
-import kaGE from "./locales/ka-GE.json";
-import uzUZ from "./locales/uz-UZ.json";
-import gaIE from "./locales/ga-IE.json";
 
-const resources = {
-  "en-US": { translation: enUS }, // main
-  "ar-SY": { translation: arSY }, // done
-  "cs-CZ": { translation: csCZ }, // done
-  "zh-HK": { translation: zhHK }, // done
-  "bg-BG": { translation: bgBG }, // done
-  "be-BY": { translation: beBY }, // done
-  "de-DE": { translation: deDE }, // done
-  "de-CH": { translation: deCH }, // done
-  "nl-NL": { translation: nlNL }, // done
-  "nb-NO": { translation: nbNO }, // done
-  "es-ES": { translation: esES }, // done
-  "eu-ES": { translation: euES }, // done
-  "fa-IR": { translation: faIR }, // done
-  "pt-PT": { translation: ptPT }, // done
-  "pt-BR": { translation: ptBR }, // done
-  "fi-FI": { translation: fiFI }, // done
-  "fr-FR": { translation: frFR }, // done
-  "he-IL": { translation: heIL }, // done
-  "hu-HU": { translation: huHU }, // done
-  "hr-HR": { translation: hrHR }, // done
-  "it-IT": { translation: itIT }, // done
-  "id-ID": { translation: idID }, // done
-  "ja-JP": { translation: jaJP }, // done
-  "da-DK": { translation: daDK }, // done
-  "sr-Cyrl": { translation: srCyrl },
-  "sr-Latn": { translation: srLatn }, // done
-  "sl-SI": { translation: slSI }, // done
-  "sv-SE": { translation: svSE }, // done
-  "tr-TR": { translation: trTR }, // done
-  "ko-KR": { translation: koKR }, // done
-  "lt-LT": { translation: ltLT }, // done
-  "ru-RU": { translation: ruRU }, // done
-  "zh-CN": { translation: zhCN }, // done
-  "pl-PL": { translation: plPL }, // done
-  "et-EE": { translation: etEE }, // done
-  "vi-VN": { translation: viVN }, // done
-  "zh-TW": { translation: zhTW }, // done
-  "uk-UA": { translation: ukUA }, // done
-  "th-TH": { translation: thTH }, // done
-  "el-GR": { translation: elGR }, // done
-  yue: { translation: yue },
-  "ro-RO": { translation: roRO },
-  "ur-PK": { translation: urPK },
-  "ka-GE": { translation: kaGE },
-  "uz-UZ": { translation: uzUZ },
-  "ga-IE": { translation: gaIE },
+// Available languages configuration
+export const AVAILABLE_LANGUAGES = [
+  "en-US", "ar-SY", "cs-CZ", "zh-HK", "bg-BG", "be-BY", "de-DE", "de-CH",
+  "nl-NL", "nb-NO", "es-ES", "eu-ES", "fa-IR", "pt-PT", "pt-BR", "fi-FI",
+  "fr-FR", "he-IL", "hu-HU", "hr-HR", "it-IT", "id-ID", "ja-JP", "da-DK",
+  "sr-Cyrl", "sr-Latn", "sl-SI", "sv-SE", "tr-TR", "ko-KR", "lt-LT", "ru-RU",
+  "zh-CN", "pl-PL", "et-EE", "vi-VN", "zh-TW", "uk-UA", "th-TH", "el-GR",
+  "yue", "ro-RO", "ur-PK", "ka-GE", "uz-UZ", "ga-IE"
+];
+
+// Cache for loaded translations
+const loadedLanguages = new Set<string>();
+const loadingPromises = new Map<string, Promise<Record<string, unknown>>>();
+
+// Dynamic import function for language files
+export const loadLanguage = async (languageCode: string): Promise<void> => {
+  // If already loaded, return immediately
+  if (loadedLanguages.has(languageCode)) {
+    return;
+  }
+
+  // If currently loading, return the existing promise
+  if (loadingPromises.has(languageCode)) {
+    await loadingPromises.get(languageCode);
+    return;
+  }
+
+  // If not a valid language code, throw error
+  if (!AVAILABLE_LANGUAGES.includes(languageCode)) {
+    throw new Error(`Language ${languageCode} is not supported`);
+  }
+
+  // Create loading promise
+  const loadingPromise = (async () => {
+    try {
+      const translation = await import(`./locales/${languageCode}.json`);
+
+      // Add the resource to i18n
+      i18n.addResourceBundle(languageCode, 'translation', translation.default, true, true);
+
+      // Mark as loaded
+      loadedLanguages.add(languageCode);
+
+      return translation.default;
+    } catch (error) {
+      console.error(`Failed to load language ${languageCode}:`, error);
+      throw error;
+    } finally {
+      // Clean up loading promise
+      loadingPromises.delete(languageCode);
+    }
+  })();
+
+  // Store the promise
+  loadingPromises.set(languageCode, loadingPromise);
+
+  // Wait for loading to complete
+  await loadingPromise;
 };
 
+// Initial resources with only English
+const resources = {
+  "en-US": { translation: enUS }, // main
+};
+
+// Mark English as loaded
+loadedLanguages.add("en-US");
+
+// Initialize i18n with basic configuration
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
@@ -114,5 +89,33 @@ i18n
       caches: ["localStorage"],
     },
   });
+
+// Load the detected language after initialization
+const initializeDetectedLanguage = async () => {
+  const detectedLanguage = i18n.language || "en-US";
+
+  // If the detected language is not English and is supported, load it
+  if (detectedLanguage !== "en-US" && AVAILABLE_LANGUAGES.includes(detectedLanguage)) {
+    try {
+      await loadLanguage(detectedLanguage);
+      // Force i18n to use the loaded language
+      await i18n.changeLanguage(detectedLanguage);
+    } catch (error) {
+      console.error(`Failed to load detected language ${detectedLanguage}:`, error);
+      // Fallback to English
+      await i18n.changeLanguage("en-US");
+    }
+  }
+};
+
+// Initialize detected language when i18n is ready
+i18n.on('initialized', () => {
+  initializeDetectedLanguage();
+});
+
+// If i18n is already initialized, run immediately
+if (i18n.isInitialized) {
+  initializeDetectedLanguage();
+}
 
 export default i18n;
