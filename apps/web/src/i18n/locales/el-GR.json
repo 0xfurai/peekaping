@@ -863,6 +863,7 @@
         "channel_tag": "Ετικέτα καναλιού (Προαιρετικό)",
         "channel_tag_description": "Αποστολή ειδοποίησης σε κανάλι Pushbullet αντί για συσκευές",
         "channel_tag_label": "Ετικέτα καναλιού (Προαιρετικό)",
+        "custom_message_template": "",
         "custom_message_template_description": "Προσαρμόστε το σώμα της ειδοποίησης χρησιμοποιώντας μεταβλητές προτύπου:",
         "custom_message_template_heartbeat_ping": "Χρόνος απόκρισης",
         "custom_message_template_heartbeat_time": "Χρονική ένδειξη",

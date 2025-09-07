@@ -863,6 +863,7 @@
         "channel_tag": "תגית ערוץ (אופציונלי)",
         "channel_tag_description": "שלח התראה לערוץ Pushbullet במקום למכשירים",
         "channel_tag_label": "תגית ערוץ (אופציונלי)",
+        "custom_message_template": "",
         "custom_message_template_description": "התאם את גוף ההתרעה באמצעות משתני תבנית:",
         "custom_message_template_heartbeat_ping": "זמן תגובה",
         "custom_message_template_heartbeat_time": "חותמת זמן",

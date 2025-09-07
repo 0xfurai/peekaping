@@ -863,6 +863,7 @@
         "channel_tag": "Етикет на канал (по избор)",
         "channel_tag_description": "Изпращайте уведомление към канал Pushbullet, вместо към устройства.",
         "channel_tag_label": "Таг на канал (по избор)",
+        "custom_message_template": "",
         "custom_message_template_description": "Персонализирайте съдържанието на уведомлението чрез шаблонни променливи:",
         "custom_message_template_heartbeat_ping": "Време за отговор",
         "custom_message_template_heartbeat_time": "Времева отметка",

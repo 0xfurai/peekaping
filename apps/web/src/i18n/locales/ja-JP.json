@@ -863,6 +863,7 @@
         "channel_tag": "チャンネルタグ（任意）",
         "channel_tag_description": "デバイスの代わりに Pushbullet チャンネルに通知を送信",
         "channel_tag_label": "チャンネルタグ（オプション）",
+        "custom_message_template": "",
         "custom_message_template_description": "テンプレート変数を使用して通知本文をカスタマイズ:",
         "custom_message_template_heartbeat_ping": "応答時間",
         "custom_message_template_heartbeat_time": "タイムスタンプ",

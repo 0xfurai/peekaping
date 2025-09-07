@@ -863,6 +863,7 @@
         "channel_tag": "Тэг канала (неабавязкова)",
         "channel_tag_description": "Адправіце апавяшчэнне ў канал Pushbullet, замест прылад.",
         "channel_tag_label": "Тэг канала (неабавязкова)",
+        "custom_message_template": "",
         "custom_message_template_description": "Наладзьце змест апавяшчэння, выкарыстоўваючы зменныя шаблона:",
         "custom_message_template_heartbeat_ping": "Час адказу",
         "custom_message_template_heartbeat_time": "Метка часу",

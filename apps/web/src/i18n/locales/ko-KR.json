@@ -863,6 +863,7 @@
         "channel_tag": "채널 태그 (선택 사항)",
         "channel_tag_description": "장치 대신 Pushbullet 채널에 알림 전송",
         "channel_tag_label": "채널 태그 (옵션)",
+        "custom_message_template": "",
         "custom_message_template_description": "템플릿 변수를 사용해 알림 본문을 맞춤 설정하세요:",
         "custom_message_template_heartbeat_ping": "응답 시간",
         "custom_message_template_heartbeat_time": "타임스탬프",

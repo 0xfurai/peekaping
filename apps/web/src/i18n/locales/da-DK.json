@@ -863,6 +863,7 @@
         "channel_tag": "Kanal Tag (Valgfrit)",
         "channel_tag_description": "Send notifikation til en Pushbullet-kanal i stedet for enheder",
         "channel_tag_label": "Kanal-tag (Valgfrit)",
+        "custom_message_template": "",
         "custom_message_template_description": "Tilpas meddelelsens indhold ved hjælp af skabelonvariabler:",
         "custom_message_template_heartbeat_ping": "Responstid",
         "custom_message_template_heartbeat_time": "Tidsstempel",

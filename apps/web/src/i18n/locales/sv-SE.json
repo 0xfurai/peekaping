@@ -105,7 +105,7 @@
       "footer_text": "Ange sidfotstext",
       "icon_url": "https://example.com/icon.png",
       "monitor_name": "Min övervakning",
-      "page_description": "Ange beskrivning av status­sidan",
+      "page_description": "Ange beskrivning av status\u00adsidan",
       "page_title": "Ange statussidans titel",
       "slug": "status-sida-slug"
     },
@@ -863,6 +863,7 @@
         "channel_tag": "Kanaletikett (valfri)",
         "channel_tag_description": "Skicka avisering till en Pushbullet-kanal istället för enheter",
         "channel_tag_label": "Kanaltagg (valfri)",
+        "custom_message_template": "",
         "custom_message_template_description": "Anpassa meddelandetexten med mallvariabler:",
         "custom_message_template_heartbeat_ping": "Svarstid",
         "custom_message_template_heartbeat_time": "Tidstämpel",
@@ -1191,11 +1192,11 @@
     "affected_monitors_info": "Välj de övervakningar som påverkas av detta underhåll",
     "auto_refresh_interval": "Automatisk uppdateringsintervall (sekunder)",
     "basic_information": "Grundinformation",
-    "create_status_page": "Skapa status­sida",
+    "create_status_page": "Skapa status\u00adsida",
     "customization": "Anpassning",
     "delete_dialog": {
       "description": "Är du säker på att du vill ta bort \"{{title}}\"? Denna åtgärd kan inte ångras.",
-      "title": "Ta bort status­sida"
+      "title": "Ta bort status\u00adsida"
     },
     "description": "Ange statussidans beskrivning",
     "domain_already_used": "Domänen {{domain}} används redan av en annan status-sida",
@@ -1203,12 +1204,12 @@
     "domains": "Domäner",
     "domains_info_warning": "Glöm inte att lägga till CNAME-posterna i din DNS för varje domän.",
     "draft_status": "Utkast",
-    "edit_page_name": "Redigera status­sida",
+    "edit_page_name": "Redigera status\u00adsida",
     "messages": {
-      "create_description": "Skapa en ny status­sida för att dela tjänstens status med användare.",
+      "create_description": "Skapa en ny status\u00adsida för att dela tjänstens status med användare.",
       "create_your_first_status_page": "Skapa din första statussida",
       "created_successfully": "Status-sidan skapades framgångsrikt",
-      "delete_failed": "Det gick inte att ta bort status­sidan",
+      "delete_failed": "Det gick inte att ta bort status\u00adsidan",
       "deleted_successfully": "Status-sidan raderad",
       "get_started_by_creating_your_first_status_page": "Börja med att skapa din första statuspage.",
       "no_status_pages_found": "Inga statussidor hittades",
@@ -1216,14 +1217,14 @@
       "update_description": "Uppdatera dina statussidans inställningar och konfiguration.",
       "updated_successfully": "Status-sidan uppdaterades framgångsrikt"
     },
-    "new_page_name": "Ny status­sida",
+    "new_page_name": "Ny status\u00adsida",
     "page_name": "Status-sidor",
     "published": "Publicerad",
     "published_info": "Gör den här status-sidan offentlig",
     "published_status": "Publicerad",
     "search_label": "Sök",
     "search_placeholder": "Sök status-sidor efter titel...",
-    "update_status_page": "Uppdatera status­sida",
+    "update_status_page": "Uppdatera status\u00adsida",
     "view_page": "Visa sida"
   },
   "tags": {

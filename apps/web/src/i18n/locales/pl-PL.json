@@ -863,6 +863,7 @@
         "channel_tag": "Tag kanału (opcjonalnie)",
         "channel_tag_description": "Wyślij powiadomienie do kanału Pushbullet zamiast urządzeń",
         "channel_tag_label": "Tag kanału (opcjonalny)",
+        "custom_message_template": "",
         "custom_message_template_description": "Dostosuj treść powiadomienia, używając zmiennych szablonu:",
         "custom_message_template_heartbeat_ping": "Czas odpowiedzi",
         "custom_message_template_heartbeat_time": "Znacznik czasu",

@@ -863,6 +863,7 @@
         "channel_tag": "Štítek kanálu (volitelný)",
         "channel_tag_description": "Odeslat notifikaci do kanálu Pushbullet namísto zařízení",
         "channel_tag_label": "Štítek kanálu (volitelné)",
+        "custom_message_template": "",
         "custom_message_template_description": "Přizpůsobte obsah notifikace pomocí šablonových proměnných:",
         "custom_message_template_heartbeat_ping": "Čas odezvy",
         "custom_message_template_heartbeat_time": "Časové razítko",

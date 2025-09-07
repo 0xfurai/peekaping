@@ -863,6 +863,7 @@
         "channel_tag": "Kanalo žyma (neprivaloma)",
         "channel_tag_description": "Siųsti pranešimą į Pushbullet kanalą vietoj įrenginių",
         "channel_tag_label": "Kanalo žyma (neprivaloma)",
+        "custom_message_template": "",
         "custom_message_template_description": "Pritaikykite pranešimo turinį naudodami šablono kintamuosius:",
         "custom_message_template_heartbeat_ping": "Atsakymo laikas",
         "custom_message_template_heartbeat_time": "Laiko žyma",

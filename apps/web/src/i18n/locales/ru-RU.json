@@ -746,7 +746,7 @@
         "setup_instructions_1": "Создайте учётную запись Matrix для вашего бота (или используйте свою существующую учётную запись)",
         "setup_instructions_2": "Создайте или присоединитесь к комнате, в которой вы хотите получать уведомления",
         "setup_instructions_3": "Получите токен доступа, отправив запрос на вход",
-        "setup_instructions_4": "Ответ будет содержать поле access_token — используйте его в качестве вашего токена доступа",
+        "setup_instructions_4": "Ответ будет содержать поле access_token\u00a0— используйте его в качестве вашего токена доступа",
         "setup_instructions_5": "Найдите внутренний ID комнаты (начинается с \"!\") в настройках комнаты вашего клиента Matrix",
         "setup_instructions_label": "Инструкции по настройке"
       },
@@ -863,6 +863,7 @@
         "channel_tag": "Тег канала (необязательно)",
         "channel_tag_description": "Отправлять уведомления в канал Pushbullet вместо устройств",
         "channel_tag_label": "Тег канала (необязательно)",
+        "custom_message_template": "",
         "custom_message_template_description": "Настройте тело уведомления, используя переменные шаблона:",
         "custom_message_template_heartbeat_ping": "Время отклика",
         "custom_message_template_heartbeat_time": "Время",

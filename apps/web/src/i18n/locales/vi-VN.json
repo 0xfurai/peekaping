@@ -863,6 +863,7 @@
         "channel_tag": "Thẻ kênh (Tùy chọn)",
         "channel_tag_description": "Gửi thông báo tới kênh Pushbullet thay vì thiết bị",
         "channel_tag_label": "Tag kênh (tùy chọn)",
+        "custom_message_template": "",
         "custom_message_template_description": "Tùy chỉnh nội dung thông báo bằng cách sử dụng biến mẫu:",
         "custom_message_template_heartbeat_ping": "Thời gian phản hồi",
         "custom_message_template_heartbeat_time": "Dấu thời gian",

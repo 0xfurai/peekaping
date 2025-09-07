@@ -863,6 +863,7 @@
         "channel_tag": "Tag del canale (Opzionale)",
         "channel_tag_description": "Invia la notifica a un canale Pushbullet invece che ai dispositivi",
         "channel_tag_label": "Tag del canale (Opzionale)",
+        "custom_message_template": "",
         "custom_message_template_description": "Personalizza il corpo della notifica utilizzando le variabili di modello:",
         "custom_message_template_heartbeat_ping": "Tempo di risposta",
         "custom_message_template_heartbeat_time": "Marca temporale",

@@ -863,6 +863,7 @@
         "channel_tag": "Kanal-Tag (Optional)",
         "channel_tag_description": "Benachrichtigung an einen Pushbullet-Kanal senden, statt an Geräte zu senden.",
         "channel_tag_label": "Kanal-Tag (optional)",
+        "custom_message_template": "",
         "custom_message_template_description": "Benachrichtigungstext mithilfe von Template-Variablen anpassen:",
         "custom_message_template_heartbeat_ping": "Antwortzeit",
         "custom_message_template_heartbeat_time": "Zeitstempel",

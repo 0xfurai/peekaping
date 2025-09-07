@@ -863,6 +863,7 @@
         "channel_tag": "Kanaal-tag (optioneel)",
         "channel_tag_description": "Stuur de melding naar een Pushbullet-kanaal in plaats van naar apparaten",
         "channel_tag_label": "Kanaal-tag (optioneel)",
+        "custom_message_template": "",
         "custom_message_template_description": "Pas de notificatie-inhoud aan met sjabloonvariabelen:",
         "custom_message_template_heartbeat_ping": "Reactietijd",
         "custom_message_template_heartbeat_time": "Tijdstempel",

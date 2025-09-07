@@ -863,6 +863,7 @@
         "channel_tag": "Etiqueta do canal (Opcional)",
         "channel_tag_description": "Enviar notificação para um canal do Pushbullet em vez de dispositivos",
         "channel_tag_label": "Etiqueta de canal (Opcional)",
+        "custom_message_template": "",
         "custom_message_template_description": "Personaliza o corpo da notificação usando variáveis de modelo:",
         "custom_message_template_heartbeat_ping": "Tempo de resposta",
         "custom_message_template_heartbeat_time": "Carimbo de data e hora",

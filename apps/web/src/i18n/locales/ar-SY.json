@@ -863,6 +863,7 @@
         "channel_tag": "وسم القناة (اختياري)",
         "channel_tag_description": "إرسال الإخطار إلى قناة Pushbullet بدلاً من الأجهزة",
         "channel_tag_label": "وسم القناة (اختياري)",
+        "custom_message_template": "",
         "custom_message_template_description": "تخصيص محتوى الإشعار باستخدام متغيرات القالب:",
         "custom_message_template_heartbeat_ping": "زمن الاستجابة",
         "custom_message_template_heartbeat_time": "الطابع الزمني",

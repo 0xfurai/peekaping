@@ -863,6 +863,7 @@
         "channel_tag": "Oznaka kanala (opcionalno)",
         "channel_tag_description": "Pošalji obaveštenje u Pushbullet kanal umesto uređaja",
         "channel_tag_label": "Tag kanala (Opcionalno)",
+        "custom_message_template": "",
         "custom_message_template_description": "Prilagodite telo obaveštenja koristeći promenljive šablona:",
         "custom_message_template_heartbeat_ping": "Vreme odgovora",
         "custom_message_template_heartbeat_time": "Vremenska oznaka",

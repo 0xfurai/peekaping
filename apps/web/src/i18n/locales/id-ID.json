@@ -863,6 +863,7 @@
         "channel_tag": "Tag Kanal (Opsional)",
         "channel_tag_description": "Kirim notifikasi ke saluran Pushbullet alih-alih perangkat",
         "channel_tag_label": "Tag Saluran (Opsional)",
+        "custom_message_template": "",
         "custom_message_template_description": "Sesuaikan isi notifikasi menggunakan variabel template:",
         "custom_message_template_heartbeat_ping": "Waktu Respon",
         "custom_message_template_heartbeat_time": "Tanda Waktu",

@@ -863,6 +863,7 @@
         "channel_tag": "แท็กช่อง (ไม่บังคับ)",
         "channel_tag_description": "ส่งการแจ้งเตือนไปยังช่องทาง Pushbullet แทนอุปกรณ์",
         "channel_tag_label": "แท็กช่องทาง (ไม่บังคับ)",
+        "custom_message_template": "",
         "custom_message_template_description": "ปรับแต่งเนื้อหาการแจ้งเตือนโดยใช้ตัวแปรเทมเพลต:",
         "custom_message_template_heartbeat_ping": "เวลาตอบสนอง",
         "custom_message_template_heartbeat_time": "เวลาที่บันทึก",

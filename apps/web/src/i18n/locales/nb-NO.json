@@ -863,6 +863,7 @@
         "channel_tag": "Kanaletikett (Valgfritt)",
         "channel_tag_description": "Send varsling til en Pushbullet-kanal i stedet for enheter",
         "channel_tag_label": "Kanal-tag (Valgfritt)",
+        "custom_message_template": "",
         "custom_message_template_description": "Tilpass meldingskroppen ved å bruke malvariabler:",
         "custom_message_template_heartbeat_ping": "Svartid",
         "custom_message_template_heartbeat_time": "Tidspunkt",
@@ -960,7 +961,7 @@
         "message_format_description_2": "Aktiver muligheten til å sende meldinger med rik formatering, vedlegg og bedre visuell presentasjon.",
         "message_format_label": "Meldingsformat",
         "username_description": "Brukernavnet som vil vises som avsender av meldingen. Hvis ikke oppgitt, brukes standardbotnavnet.",
-        "webhook_url_description": "Webhook‑URL-en fra Slack‑integrasjonen din. Du finner den i Slack‑instansen din under Integrasjoner > Webhooks.",
+        "webhook_url_description": "Webhook‑URL-en fra Slack‑integrasjonen din. Du finner den i Slack‑instansen din under Integrasjoner\u202f>\u202fWebhooks.",
         "webhook_url_label": "Webhook-URL"
       },
       "smtp": {
@@ -1222,7 +1223,7 @@
     "published_info": "Gjør denne status‑siden offentlig tilgjengelig",
     "published_status": "Publisert",
     "search_label": "Søk",
-    "search_placeholder": "Søk status­sider etter tittel…",
+    "search_placeholder": "Søk status\u00adsider etter tittel…",
     "update_status_page": "Oppdater statusside",
     "view_page": "Se side"
   },

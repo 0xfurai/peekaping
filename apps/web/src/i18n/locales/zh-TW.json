@@ -863,6 +863,7 @@
         "channel_tag": "頻道標籤（可選）",
         "channel_tag_description": "將通知傳送到 Pushbullet 頻道，而非裝置",
         "channel_tag_label": "頻道標籤（選填）",
+        "custom_message_template": "",
         "custom_message_template_description": "自訂通知內容，使用範本變數：",
         "custom_message_template_heartbeat_ping": "回應時間",
         "custom_message_template_heartbeat_time": "時間戳",

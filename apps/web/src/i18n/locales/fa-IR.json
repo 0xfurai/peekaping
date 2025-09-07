@@ -32,10 +32,10 @@
     "important": "مهم",
     "interval": "فاصله",
     "message": "پیام",
-    "ms": "میلی‌ثانیه",
+    "ms": "میلی\u200cثانیه",
     "notified": "اطلاع شد",
     "ping": "پینگ",
-    "retries": "تلاش‌های مجدد",
+    "retries": "تلاش\u200cهای مجدد",
     "status": "وضعیت",
     "time": "زمان"
   },
@@ -44,7 +44,7 @@
     "all": "همه",
     "back": "بازگشت",
     "cancel": "لغو",
-    "clear_all": "پاک‌سازی همه",
+    "clear_all": "پاک\u200cسازی همه",
     "clear_all_filters": "حذف تمام فیلترها",
     "confirm": "تایید",
     "confirm_delete_title": "آیا کاملاً مطمئن هستید؟",
@@ -53,35 +53,35 @@
     "create": "ایجاد",
     "created": "ایجاد شد",
     "days": "روزها",
-    "default": "پیش‌فرض",
+    "default": "پیش\u200cفرض",
     "delete": "حذف",
     "disabling": "غیرفعال کردن...",
     "dismiss": "بستن",
     "down": "متوقف",
-    "enabling": "در حال فعال‌سازی...",
+    "enabling": "در حال فعال\u200cسازی...",
     "error": "خطا",
     "expires": "منقضی",
     "inactive": "غیرفعال",
     "loading": "در حال بارگذاری...",
     "logout": "خروج",
     "maintenance": "نگهداری",
-    "no_options_found": "هیچ گزینه‌ای پیدا نشد",
+    "no_options_found": "هیچ گزینه\u200cای پیدا نشد",
     "no_tags_available": "هیچ برچسبی موجود نیست",
     "please_refresh_page": "لطفاً صفحه را تازه کنید.",
     "required": "الزامی",
     "save": "ذخیره",
-    "saving": "در حال ذخیره‌سازی…",
+    "saving": "در حال ذخیره\u200cسازی…",
     "search": "جستجو",
     "security": "امنیت",
     "select": "انتخاب",
     "select_monitors": "انتخاب مانیتورها...",
-    "select_tags": "انتخاب برچسب‌ها",
+    "select_tags": "انتخاب برچسب\u200cها",
     "settings": "تنظیمات",
-    "tags": "برچسب‌ها",
+    "tags": "برچسب\u200cها",
     "unknown": "نامشخص",
     "unnamed_monitor": "مانیتور بدون نام",
     "up": "بالا",
-    "update": "به‌روزرسانی",
+    "update": "به\u200cروزرسانی",
     "verifying": "در حال تأیید…"
   },
   "forms": {
@@ -89,12 +89,12 @@
       "confirm_password": "تایید رمز عبور",
       "email": "ایمیل",
       "footer_text": "متن فوتر",
-      "heartbeat_interval": "فاصله‌ی ضربان قلب (ثانیه)",
+      "heartbeat_interval": "فاصله\u200cی ضربان قلب (ثانیه)",
       "icon_url": "آدرس آیکن",
       "monitor_name": "نام",
       "monitor_type": "نوع",
       "password": "رمز عبور",
-      "retries": "تلاش‌های مجدد",
+      "retries": "تلاش\u200cهای مجدد",
       "slug": "اسلاگ",
       "title": "عنوان",
       "username": "نام کاربری"
@@ -112,7 +112,7 @@
     "validation": {
       "email_invalid": "لطفاً یک آدرس ایمیل معتبر وارد کنید",
       "password_min_length": "رمز عبور باید حداقل 8 کاراکتر باشد",
-      "passwords_mismatch": "گذرواژه‌ها مطابقت ندارند"
+      "passwords_mismatch": "گذرواژه\u200cها مطابقت ندارند"
     }
   },
   "maintenance": {
@@ -135,7 +135,7 @@
     },
     "edit_title": "ویرایش نگهداری",
     "form": {
-      "affected_monitors_description": "انتخاب مانیتورهایی که توسط این نگهداری تحت تأثیر قرار می‌گیرند",
+      "affected_monitors_description": "انتخاب مانیتورهایی که توسط این نگهداری تحت تأثیر قرار می\u200cگیرند",
       "affected_monitors_title": "مانیتورهای متأثر",
       "cron_description": "یک عبارت cron معتبر وارد کنید",
       "cron_expression": "عبارت کرون",
@@ -152,8 +152,8 @@
       "last_day": "آخرین روز",
       "last_day_of_month": "آخرین روز ماه",
       "maintenance_time_window": "پنجره نگهداری روزانه",
-      "markdown_supported": "Markdown پشتیبانی می‌شود",
-      "same_as_server": "همان‌طور که منطقه زمانی سرور",
+      "markdown_supported": "Markdown پشتیبانی می\u200cشود",
+      "same_as_server": "همان\u200cطور که منطقه زمانی سرور",
       "start_date_time": "تاریخ و زمان شروع",
       "start_time": "زمان شروع",
       "strategy_label": "استراتژی",
@@ -167,28 +167,28 @@
       "clear_filters": "پاک کردن تمام فیلترها",
       "dialogs": {
         "confirm_action": {
-          "pause_description": "آیا مطمئن هستید می‌خواهید این نگهداری را متوقف کنید؟",
-          "resume_description": "آیا مطمئن هستید که می‌خواهید این نگهداری را ادامه دهید؟",
+          "pause_description": "آیا مطمئن هستید می\u200cخواهید این نگهداری را متوقف کنید؟",
+          "resume_description": "آیا مطمئن هستید که می\u200cخواهید این نگهداری را ادامه دهید؟",
           "title": "تایید عمل"
         },
         "confirm_delete": {
-          "description": "آیا مطمئن هستید که می‌خواهید این پنجره نگهداری را حذف کنید؟ این عمل قابل بازگشت نیست.",
+          "description": "آیا مطمئن هستید که می\u200cخواهید این پنجره نگهداری را حذف کنید؟ این عمل قابل بازگشت نیست.",
           "title": "تایید حذف"
         }
       },
       "edit_maintenance": "ویرایش نگهداری: {{title}}",
       "empty_state": {
         "action": "ایجاد اولین پنجره نگهداری",
-        "description": "برای شروع، پنجره نگهداری اول خود را ایجاد کنید تا از زمان‌های توقف برنامه‌ریزی‌شده جلوگیری کنید.",
+        "description": "برای شروع، پنجره نگهداری اول خود را ایجاد کنید تا از زمان\u200cهای توقف برنامه\u200cریزی\u200cشده جلوگیری کنید.",
         "title": "هیچ پنجره نگهداری یافت نشد"
       },
       "error_loading": "خطا در بارگذاری نگهداری",
       "loading": "در حال بارگذاری...",
       "loading_monitors": "در حال بارگذاری مانیتورها...",
-      "search_placeholder": "جستجوی نگهداری‌ها..."
+      "search_placeholder": "جستجوی نگهداری\u200cها..."
     },
-    "page_title": "پنجره‌های نگهداری",
-    "schedule_title": "برنامه‌ریزی نگهداری",
+    "page_title": "پنجره\u200cهای نگهداری",
+    "schedule_title": "برنامه\u200cریزی نگهداری",
     "strategy": {
       "cron": "عبارت کرون",
       "manual": "فعال/غیرفعال دستی",
@@ -206,9 +206,9 @@
       "paused_success": "توقف نگهداری با موفقیت انجام شد",
       "resume_error": "خطا در بازگشت به حالت نگهداری",
       "resumed_success": "نگهداری با موفقیت ادامه یافت",
-      "toggle_error": "نمی‌توان وضعیت نگهداری را تغییر داد: شناسه گم شده است",
-      "update_error": "به‌روزرسانی نگهداری انجام نشد",
-      "updated_success": "نگه‌داری با موفقیت به‌روزرسانی شد"
+      "toggle_error": "نمی\u200cتوان وضعیت نگهداری را تغییر داد: شناسه گم شده است",
+      "update_error": "به\u200cروزرسانی نگهداری انجام نشد",
+      "updated_success": "نگه\u200cداری با موفقیت به\u200cروزرسانی شد"
     },
     "weekdays": {
       "fri": "جمعه",
@@ -222,21 +222,21 @@
   },
   "messages": {
     "login_error": "خطایی در ورود رخ داده است",
-    "login_no_tokens": "ورود موفقیت‌آمیز بود، اما هیچ توکن دریافت نشد",
-    "login_success": "ورود موفقیت‌آمیز",
-    "notifier_delete_error": "خطا در حذف اعلان‌کننده",
+    "login_no_tokens": "ورود موفقیت\u200cآمیز بود، اما هیچ توکن دریافت نشد",
+    "login_success": "ورود موفقیت\u200cآمیز",
+    "notifier_delete_error": "خطا در حذف اعلان\u200cکننده",
     "notifier_delete_success": "نوتیفایر با موفقیت حذف شد",
-    "register_error": "خطایی در حین ثبت‌نام رخ داد",
-    "register_no_tokens": "ثبت‌نام موفقیت‌آمیز بود اما هیچ توکن دریافت نشد",
+    "register_error": "خطایی در حین ثبت\u200cنام رخ داد",
+    "register_no_tokens": "ثبت\u200cنام موفقیت\u200cآمیز بود اما هیچ توکن دریافت نشد",
     "register_success": "ثبت نام با موفقیت انجام شد",
-    "setting_update_error": "به‌روزرسانی تنظیمات انجام نشد",
-    "setting_update_success": "تنظیم با موفقیت به‌روز شد",
+    "setting_update_error": "به\u200cروزرسانی تنظیمات انجام نشد",
+    "setting_update_success": "تنظیم با موفقیت به\u200cروز شد",
     "tag_create_error": "ایجاد برچسب انجام نشد",
     "tag_create_success": "برچسب با موفقیت ایجاد شد",
     "tag_delete_error": "حذف برچسب انجام نشد",
     "tag_delete_success": "برچسب با موفقیت حذف شد",
-    "tag_update_error": "به‌روزرسانی برچسب ناموفق بود",
-    "tag_update_success": "برچسب با موفقیت به‌روزرسانی شد",
+    "tag_update_error": "به\u200cروزرسانی برچسب ناموفق بود",
+    "tag_update_success": "برچسب با موفقیت به\u200cروزرسانی شد",
     "unexpected_error": "یک خطای غیرمنتظره رخ داده است",
     "version_mismatch": "عدم تطابق نسخه شناسایی شد"
   },
@@ -247,10 +247,10 @@
     },
     "empty_state": {
       "action": "ایجاد اولین مانیتور",
-      "description": "برای شروع، اولین مانیتور خود را برای رصد سلامت سرویس‌های خود ایجاد کنید.",
+      "description": "برای شروع، اولین مانیتور خود را برای رصد سلامت سرویس\u200cهای خود ایجاد کنید.",
       "title": "هیچ مانیتوری پیدا نشد"
     },
-    "filtering_by_tags": "فیلتر بر اساس برچسب‌ها",
+    "filtering_by_tags": "فیلتر بر اساس برچسب\u200cها",
     "filters": {
       "monitor_status": "وضعیت",
       "monitor_status_placeholder": "وضعیت نظارت",
@@ -263,20 +263,20 @@
         "copy": "کپی",
         "create": "ایجاد",
         "regenerate": "تولید مجدد",
-        "update": "به‌روزرسانی"
+        "update": "به\u200cروزرسانی"
       },
       "dns": {
         "hostname": "نام میزبان",
         "port": "پورت",
         "record_type": "نوع رکورد منبع",
         "record_type_placeholder": "نوع رکورد را انتخاب کنید",
-        "resolver_server": "سرور حل‌کننده",
+        "resolver_server": "سرور حل\u200cکننده",
         "title": "تنظیمات DNS"
       },
       "docker": {
         "ca_cert_description": "گواهی CA خود را در فرمت PEM بچسبانید.",
-        "ca_certificate": "گواهی‌نامه CA (PEM)",
-        "client_cert_description": "گواهی مشتری خود را در قالب PEM بچسبانید. این گواهی برای احراز هویت متقابل TLS استفاده می‌شود.",
+        "ca_certificate": "گواهی\u200cنامه CA (PEM)",
+        "client_cert_description": "گواهی مشتری خود را در قالب PEM بچسبانید. این گواهی برای احراز هویت متقابل TLS استفاده می\u200cشود.",
         "client_certificate": "گواهی کلاینت (PEM)",
         "client_private_key": "کلید خصوصی مشتری (PEM)",
         "common_tls_issues": "مشکلات رایج TLS:",
@@ -287,12 +287,12 @@
         "docker_host": "میزبان داکر",
         "enable_tls": "فعال کردن TLS",
         "enabled": "فعال",
-        "examples": "مثال‌ها",
-        "hostname_mismatch": "\"x509: گواهی‌نامه برای X معتبر است، نه Y\"",
-        "hostname_mismatch_solution": "اطمینان حاصل کنید نام میزبان با SAN گواهی مطابقت دارد یا بررسی صحت را غیرفعال کنید (توصیه نمی‌شود).",
+        "examples": "مثال\u200cها",
+        "hostname_mismatch": "\"x509: گواهی\u200cنامه برای X معتبر است، نه Y\"",
+        "hostname_mismatch_solution": "اطمینان حاصل کنید نام میزبان با SAN گواهی مطابقت دارد یا بررسی صحت را غیرفعال کنید (توصیه نمی\u200cشود).",
         "legacy_cert_error": "x509: گواهی بر فیلد Common Name قدیمی متکی است:",
-        "legacy_cert_solution": "نام میزبان را به نام‌های جایگزین موضوع (SAN) در گواهی‌نامه خود اضافه کنید.",
-        "mtls_note": "برای TLS متقابل (mTLS)، باید هر دو گواهی‌نامه کلاینت و کلید خصوصی را ارائه دهید. گواهی‌نامه CA برای تأیید گواهی‌نامه سرور استفاده می‌شود.",
+        "legacy_cert_solution": "نام میزبان را به نام\u200cهای جایگزین موضوع (SAN) در گواهی\u200cنامه خود اضافه کنید.",
+        "mtls_note": "برای TLS متقابل (mTLS)، باید هر دو گواهی\u200cنامه کلاینت و کلید خصوصی را ارائه دهید. گواهی\u200cنامه CA برای تأیید گواهی\u200cنامه سرور استفاده می\u200cشود.",
         "note": "نکته:",
         "private_key_description": "کلید خصوصی خود را در قالب PEM قرار دهید. این را امن نگه دارید!",
         "select_connection_type": "انتخاب نوع اتصال",
@@ -300,23 +300,23 @@
         "select_verification_option": "گزینه تأیید را انتخاب کنید",
         "skip_verification": "نادیده گرفتن تأیید (نامأمن)",
         "tls_configuration": "پیکربندی TLS",
-        "unknown_authority": "\"x509: گواهی‌نامه توسط مرجع ناشناخته امضا شده است\":",
+        "unknown_authority": "\"x509: گواهی\u200cنامه توسط مرجع ناشناخته امضا شده است\":",
         "unknown_authority_solution": "گواهی CA صحیح که گواهی سرور را امضا کرده است را ارائه دهید.",
-        "verify_certificates": "تایید گواهی‌ها",
+        "verify_certificates": "تایید گواهی\u200cها",
         "verify_tls": "تایید TLS"
       },
       "grpc": {
         "body": "داده بدنه (JSON)",
-        "enable_tls": "فعال‌سازی TLS",
+        "enable_tls": "فعال\u200cسازی TLS",
         "enable_tls_description": "استفاده از اتصال امن (TLS/SSL)",
         "invert_keyword": "معکوس کلیدواژه",
-        "invert_keyword_description": "اگر کلیدواژه پیدا نشود، مانیتور به عنوان UP علامت‌گذاری خواهد شد.",
+        "invert_keyword_description": "اگر کلیدواژه پیدا نشود، مانیتور به عنوان UP علامت\u200cگذاری خواهد شد.",
         "keyword": "کلیدواژه",
         "keyword_description": "جستجو برای این کلیدواژه در پاسخ",
         "keyword_placeholder": "کلید واژه اختیاری برای جستجو",
         "method_description": "حساس به حروف بزرگ/کوچک",
         "method_placeholder": "بررسی",
-        "options_title": "گزینه‌های gRPC",
+        "options_title": "گزینه\u200cهای gRPC",
         "proto_content": "محتوای پروتوبفر",
         "proto_method": "متد پروتوبفر",
         "proto_service_name": "نام سرویس پروتوباف",
@@ -324,11 +324,11 @@
       },
       "http": {
         "advanced": {
-          "accepted_status_codes": "کدهای وضعیت پذیرفته‌شده",
-          "ignore_tls": "خطاهای TLS/SSL را برای وب‌سایت‌های HTTPS نادیده بگیرید",
-          "ignore_tls_description": "نادیده گرفتن اعتبارسنجی گواهی TLS. با احتیاط استفاده کنید – این باعث می‌شود اتصالات کمتر امن شوند.",
+          "accepted_status_codes": "کدهای وضعیت پذیرفته\u200cشده",
+          "ignore_tls": "خطاهای TLS/SSL را برای وب\u200cسایت\u200cهای HTTPS نادیده بگیرید",
+          "ignore_tls_description": "نادیده گرفتن اعتبارسنجی گواهی TLS. با احتیاط استفاده کنید – این باعث می\u200cشود اتصالات کمتر امن شوند.",
           "max_redirects": "حداکثر ریدایرکت",
-          "max_redirects_description": "حداکثر تعداد ریدایرکت‌هایی که باید دنبال شوند (0–30). برای غیرفعال کردن ریدایرکت‌ها، مقدار را روی 0 تنظیم کنید.",
+          "max_redirects_description": "حداکثر تعداد ریدایرکت\u200cهایی که باید دنبال شوند (0–30). برای غیرفعال کردن ریدایرکت\u200cها، مقدار را روی 0 تنظیم کنید.",
           "title": "پیشرفته"
         },
         "authentication": {
@@ -341,13 +341,13 @@
           "client_secret_placeholder": "رمز مخفی کلاینت",
           "domain": "دامنه",
           "domain_placeholder": "دامنه",
-          "form_data_body": "بدن داده‌های فرم",
+          "form_data_body": "بدن داده\u200cهای فرم",
           "key": "کلید",
           "key_placeholder": "کلید",
           "method_label": "روش احراز هویت",
           "method_placeholder": "انتخاب نوع احراز هویت",
           "oauth_scope": "محدوده OAuth",
-          "oauth_scope_placeholder": "اختیاری: فهرست دامنه‌های جدا شده با فاصله",
+          "oauth_scope_placeholder": "اختیاری: فهرست دامنه\u200cهای جدا شده با فاصله",
           "oauth_token_url": "URL توکن OAuth",
           "oauth_token_url_placeholder": "URL توکن OAuth",
           "title": "احراز هویت",
@@ -358,26 +358,26 @@
           "body": "بدنه",
           "body_encoding": "کدگذاری بدنه",
           "body_encoding_placeholder": "کدگذاری بدنه را انتخاب کنید",
-          "form_example": "داده‌های نمونه فرم",
+          "form_example": "داده\u200cهای نمونه فرم",
           "headers": "هدرها",
           "json_example": "مثال JSON",
           "method": "متد",
           "method_placeholder": "نوع مانیتور را انتخاب کنید",
           "select_encoding": "انتخاب کدگذاری بدنه",
           "select_method": "انتخاب متد",
-          "text_example": "متن نمونه:\nمحتوای متن ساده‌ای در اینجا...",
-          "title": "گزینه‌های HTTP",
+          "text_example": "متن نمونه:\nمحتوای متن ساده\u200cای در اینجا...",
+          "title": "گزینه\u200cهای HTTP",
           "xml_example": "نمونه XML"
         }
       },
       "http_json_query": {
         "condition_label": "شرط",
         "expected_value_label": "مقدار مورد انتظار",
-        "json_query_label": "عبارت پرس‌وجو JSON",
+        "json_query_label": "عبارت پرس\u200cوجو JSON",
         "title": "عبارت پرس و جو JSON"
       },
       "http_keyword": {
-        "invert_keyword_description": "به جای حضور، عدم حضور کلمه کلیدی را جست‌وجو کنید.",
+        "invert_keyword_description": "به جای حضور، عدم حضور کلمه کلیدی را جست\u200cوجو کنید.",
         "invert_keyword_label": "معکوس کردن کلیدواژه",
         "keyword_label": "کلیدواژه",
         "keyword_validation_title": "اعتبارسنجی کلمه کلیدی"
@@ -386,12 +386,12 @@
         "add_broker": "افزودن بروکر",
         "auto_topic_creation_description": "به تولیدکننده اجازه دهید در صورت عدم وجود، موضوع را به صورت خودکار ایجاد کند",
         "auto_topic_creation_label": "اجازه ایجاد خودکار موضوع",
-        "brokers_description": "فهرست آدرس‌های بروکر Kafka (فرمت میزبان:پورت)",
+        "brokers_description": "فهرست آدرس\u200cهای بروکر Kafka (فرمت میزبان:پورت)",
         "brokers_label": "سرورهای کافکا",
         "configuration_title": "پیکربندی کافکا",
         "enable_ssl_description": "از رمزنگاری SSL/TLS برای اتصال استفاده کنید",
-        "enable_ssl_label": "فعال‌سازی SSL/TLS",
-        "message_description": "محتوای پیام برای ارسال به موضوع (فرمت JSON توصیه می‌شود)",
+        "enable_ssl_label": "فعال\u200cسازی SSL/TLS",
+        "message_description": "محتوای پیام برای ارسال به موضوع (فرمت JSON توصیه می\u200cشود)",
         "message_label": "پیام",
         "sasl_mechanism_description": "انتخاب مکانیزم احراز هویت SASL",
         "sasl_mechanism_label": "مکانیزم SASL",
@@ -402,13 +402,13 @@
         "sasl_username_description": "نام کاربری برای احراز هویت SASL",
         "sasl_username_label": "نام کاربری SASL",
         "security_title": "امنیت",
-        "topic_description": "موضوع Kafka برای تولید پیام‌ها"
+        "topic_description": "موضوع Kafka برای تولید پیام\u200cها"
       },
       "mongodb": {
-        "command_description": "دستوری MongoDB برای اجرای به صورت JSON. پیش‌فرض ping است، در صورت عدم مشخص کردن.",
+        "command_description": "دستوری MongoDB برای اجرای به صورت JSON. پیش\u200cفرض ping است، در صورت عدم مشخص کردن.",
         "command_label": "دستور (اختیاری)",
         "configuration_title": "پیکربندی MongoDB",
-        "connection_string_description": "رشته اتصال MongoDB. از فرمت‌های استاندارد (mongodb://) و DNS seedlist (mongodb+srv://) پشتیبانی می‌کند.",
+        "connection_string_description": "رشته اتصال MongoDB. از فرمت\u200cهای استاندارد (mongodb://) و DNS seedlist (mongodb+srv://) پشتیبانی می\u200cکند.",
         "connection_string_label": "رشته اتصال",
         "expected_value_description": "مقدار مورد انتظار برای مقایسه با نتیجه مسیر JSON.",
         "expected_value_label": "ارزش مورد انتظار (اختیاری)",
@@ -430,24 +430,24 @@
         "password_placeholder": "رمز عبور (اختیاری)",
         "port_label": "پورت",
         "success_keyword_label": "کلمه کلیدی موفقیت MQTT",
-        "success_keyword_placeholder": "کلمه کلیدی نشان‌دهنده موفقیت",
+        "success_keyword_placeholder": "کلمه کلیدی نشان\u200cدهنده موفقیت",
         "username_label": "نام کاربری MQTT",
         "username_placeholder": "نام کاربری (اختیاری)",
         "validation": {
           "expected_value_required": "مقدار مورد انتظار در هنگام استفاده از نوع بررسی json-query الزامی است.",
           "json_path_required": "مسیر JSON الزامی است زمانی که نوع بررسی json-query باشد",
-          "success_keyword_required": "کلید واژه‌ی موفقیت در صورت انتخاب نوع بررسی کلید واژه الزامی است"
+          "success_keyword_required": "کلید واژه\u200cی موفقیت در صورت انتخاب نوع بررسی کلید واژه الزامی است"
         }
       },
       "mysql": {
-        "connection_string_examples": "مثال‌ها:",
+        "connection_string_examples": "مثال\u200cها:",
         "connection_string_label": "رشته اتصال",
         "connection_title": "اتصال MySQL",
         "query_label": "کوئری"
       },
       "ping": {
         "data_size": "حجم داده (بایت)",
-        "host": "نام میزبان / آی‌پی",
+        "host": "نام میزبان / آی\u200cپی",
         "title": "تنظیمات پینگ"
       },
       "postgres": {
@@ -461,45 +461,45 @@
       },
       "rabbitmq": {
         "documentation_link": "مستندات RabbitMQ",
-        "health_checks_description": "دستگاه مانیتور، نقطه انتهایی {{code}} را در هر نود بررسی می‌کند و اگر هر نودی سالم باشد، وضعیت UP را برمی‌گرداند.",
-        "management_nodes_description": "لطفاً آدرس URL برای گره‌های مدیریت RabbitMQ را وارد کنید، شامل پروتکل و پورت. مثال: https://node1.rabbitmq.com:15672",
-        "management_nodes_title": "گره‌های مدیریتی",
+        "health_checks_description": "دستگاه مانیتور، نقطه انتهایی {{code}} را در هر نود بررسی می\u200cکند و اگر هر نودی سالم باشد، وضعیت UP را برمی\u200cگرداند.",
+        "management_nodes_description": "لطفاً آدرس URL برای گره\u200cهای مدیریت RabbitMQ را وارد کنید، شامل پروتکل و پورت. مثال: https://node1.rabbitmq.com:15672",
+        "management_nodes_title": "گره\u200cهای مدیریتی",
         "node_url_label": "نشانی گره",
         "password_description": "کلمه عبور برای احراز هویت رابط مدیریت RabbitMQ",
         "setup_information_description": "برای استفاده از مانیتور RabbitMQ، باید پلاگین مدیریت را در تنظیمات RabbitMQ خود فعال کنید. برای اطلاعات بیشتر، به مستندات RabbitMQ مراجعه کنید.",
-        "setup_information_title": "اطلاعات راه‌اندازی",
+        "setup_information_title": "اطلاعات راه\u200cاندازی",
         "title": "پیکربندی RabbitMQ",
-        "username_description": "نام‌کاربری برای احراز هویت رابط مدیریت RabbitMQ"
+        "username_description": "نام\u200cکاربری برای احراز هویت رابط مدیریت RabbitMQ"
       },
       "redis": {
-        "ca_certificate_description": "گواهینامه CA ریشه به فرمت PEM. برای تأیید صحیح TLS با گواهینامه‌های خودامضا ضروری است.",
+        "ca_certificate_description": "گواهینامه CA ریشه به فرمت PEM. برای تأیید صحیح TLS با گواهینامه\u200cهای خودامضا ضروری است.",
         "ca_certificate_label": "گواهی CA (اختیاری)",
-        "client_certificate_description": "گواهی‌نامه‌ی مشتری در قالب PEM. برای احراز هویت TLS متقابل ضروری است.",
+        "client_certificate_description": "گواهی\u200cنامه\u200cی مشتری در قالب PEM. برای احراز هویت TLS متقابل ضروری است.",
         "client_certificate_label": "گواهی کلاینت (اختیاری)",
-        "client_key_description": "کلید خصوصی کلاینت در قالب PEM. باید همراه با گواهی‌نامهٔ کلاینت ارائه شود.",
+        "client_key_description": "کلید خصوصی کلاینت در قالب PEM. باید همراه با گواهی\u200cنامهٔ کلاینت ارائه شود.",
         "client_key_label": "کلید خصوصی کلاینت (اختیاری)",
         "connection_string_description": "فرمت رشته اتصال Redis: {{redis}} یا {{rediss}} برای TLS",
         "connection_string_label": "رشته اتصال",
-        "ignore_tls_description": "نادیده گرفتن تأیید گواهی TLS (برای محیط تولید توصیه نمی‌شود)",
+        "ignore_tls_description": "نادیده گرفتن تأیید گواهی TLS (برای محیط تولید توصیه نمی\u200cشود)",
         "ignore_tls_label": "نادیده گرفتن خطاهای TLS/SSL",
         "title": "پیکربندی Redis"
       },
       "shared": {
         "intervals": {
           "heartbeat_retry": "فاصله تکرار تپش قلب (تلاش مجدد هر {{seconds}} ثانیه)",
-          "max_retries_description": "حداکثر تعداد تکرارها قبل از علامت‌گذاری سرویس به‌عنوان خاموش و ارسال اعلان",
+          "max_retries_description": "حداکثر تعداد تکرارها قبل از علامت\u200cگذاری سرویس به\u200cعنوان خاموش و ارسال اعلان",
           "request_timeout": "مهلت درخواست (مهلت پس از {{seconds}} ثانیه)",
           "resend_notification": "ارسال مجدد اعلان اگر X بار متوالی خاموش باشد (ارسال مجدد غیرفعال)"
         },
         "notifications": {
-          "add_notifier": "افزودن اعلان‌دهنده",
+          "add_notifier": "افزودن اعلان\u200cدهنده",
           "new_notifier": "+ اطلاعگر جدید",
           "no_channels": "هیچ کانالی یافت نشد، ابتدا یکی ایجاد کنید.",
           "no_channels_available": "هیچ کانالی در دسترس نیست",
           "select_channel": "انتخاب کانال",
-          "select_notifier_placeholder": "انتخاب اطلاع‌رسان",
-          "selected_channels": "کانال‌های اعلان انتخاب شده",
-          "title": "کانال‌های اعلان"
+          "select_notifier_placeholder": "انتخاب اطلاع\u200cرسان",
+          "selected_channels": "کانال\u200cهای اعلان انتخاب شده",
+          "title": "کانال\u200cهای اعلان"
         },
         "proxy": {
           "add_proxy": "افزودن پراکسی",
@@ -507,25 +507,25 @@
           "no_proxy": "بدون پراکسی",
           "remove_proxy": "حذف پروکسی",
           "select_proxy_placeholder": "انتخاب پراکسی",
-          "selected_proxy": "پروکسی انتخاب‌شده",
+          "selected_proxy": "پروکسی انتخاب\u200cشده",
           "title": "پروکسی"
         },
         "tags": {
-          "label": "برچسب‌ها",
+          "label": "برچسب\u200cها",
           "no_tags": "هیچ برچسبی در دسترس نیست",
-          "placeholder": "انتخاب برچسب‌ها"
+          "placeholder": "انتخاب برچسب\u200cها"
         }
       },
       "snmp": {
-        "community_description": "رشته‌ی جامعه SNMP برای احراز هویت (مانند رمز عبور)",
-        "community_label": "رشته‌ی اجتماع",
-        "expected_value_description": "مقدار مورد مقایسه. اگر خالی بگذارید، اعتبارسنجی انجام نمی‌شود.",
+        "community_description": "رشته\u200cی جامعه SNMP برای احراز هویت (مانند رمز عبور)",
+        "community_label": "رشته\u200cی اجتماع",
+        "expected_value_description": "مقدار مورد مقایسه. اگر خالی بگذارید، اعتبارسنجی انجام نمی\u200cشود.",
         "expected_value_label": "مقدار مورد انتظار",
         "host_description": "نام میزبان یا آدرس IP دستگاه با SNMP فعال",
         "host_label": "میزبان",
         "json_path_description": "عبارت JSONPath برای استخراج مقدار از پاسخ (از \"$\" برای مقدار خام استفاده کنید)",
         "json_path_label": "مسیر JSON",
-        "json_path_operator_description": "چگونه مقدار استخراج‌شده را با مقدار مورد انتظار مقایسه کنید",
+        "json_path_operator_description": "چگونه مقدار استخراج\u200cشده را با مقدار مورد انتظار مقایسه کنید",
         "json_path_operator_eq": "برابر",
         "json_path_operator_ge": "بزرگتر یا مساوی",
         "json_path_operator_gt": "بزرگتر از",
@@ -533,9 +533,9 @@
         "json_path_operator_le": "کمتر یا مساوی",
         "json_path_operator_lt": "کمتر از",
         "json_path_operator_ne": "نابرابر",
-        "oid_description": "شناسه شیء SNMP برای پرس‌وجو (مثلاً ۱.۳.۶.۱.۲.۱.۱.۱.۰ برای توضیح سیستم)",
+        "oid_description": "شناسه شیء SNMP برای پرس\u200cوجو (مثلاً ۱.۳.۶.۱.۲.۱.۱.۱.۰ برای توضیح سیستم)",
         "oid_label": "OID (شناسه شیء)",
-        "port_description": "پورت SNMP (پیش‌فرض: 161)",
+        "port_description": "پورت SNMP (پیش\u200cفرض: 161)",
         "port_label": "پورت",
         "snmp_version_description": "نسخه پروتکل SNMP مورد استفاده",
         "snmp_version_label": "نسخه SNMP",
@@ -544,10 +544,10 @@
       },
       "sqlserver": {
         "allowed_statements_description": "SELECT، SHOW، DESCRIBE، EXPLAIN، WITH، و VALUES.",
-        "allowed_statements_label": "عبارت‌های مجاز:",
+        "allowed_statements_label": "عبارت\u200cهای مجاز:",
         "connection_string_label": "رشته اتصال",
-        "query_description": "پرس و جو برای بررسی سلامت. اگر خالی بگذارید، از پیش‌فرض استفاده شود.",
-        "query_label": "پرس‌وجو",
+        "query_description": "پرس و جو برای بررسی سلامت. اگر خالی بگذارید، از پیش\u200cفرض استفاده شود.",
+        "query_label": "پرس\u200cوجو",
         "title": "اتصال سرور SQL مایکروسافت"
       },
       "tcp": {
@@ -565,17 +565,17 @@
         "mqtt": "نظارت بر کارگزار MQTT",
         "mysql": "مانیتور MySQL/MariaDB",
         "ping": "مانیتور پینگ (ICMP)",
-        "postgres": "نظارت‌کننده پایگاه داده PostgreSQL",
-        "push": "مانیتور پوش (سرویس خارجی URL تولید شده را صدا می‌زند)",
+        "postgres": "نظارت\u200cکننده پایگاه داده PostgreSQL",
+        "push": "مانیتور پوش (سرویس خارجی URL تولید شده را صدا می\u200cزند)",
         "rabbitmq": "مانیتور RabbitMQ",
         "redis": "ناظر پایگاه داده Redis",
         "snmp": "مانیتور SNMP",
-        "sqlserver": "نظارت‌گر سرور SQL مایکروسافت",
+        "sqlserver": "نظارت\u200cگر سرور SQL مایکروسافت",
         "tcp": "مانیتور پورت TCP"
       }
     },
     "page": {
-      "description": "یک مانیتور جدید ایجاد کنید تا ردیابی عملکرد وب‌سایت خود را آغاز کنید.",
+      "description": "یک مانیتور جدید ایجاد کنید تا ردیابی عملکرد وب\u200cسایت خود را آغاز کنید.",
       "edit_title": "ویرایش مانیتور:",
       "new_title": "مانیتور جدید"
     },
@@ -592,7 +592,7 @@
         "delete": "حذف",
         "edit": "ویرایش",
         "pause": "توقف",
-        "reset_data": "بازنشانی داده‌ها",
+        "reset_data": "بازنشانی داده\u200cها",
         "resume": "ادامه"
       },
       "certificate": "گواهی",
@@ -600,16 +600,16 @@
       "current_status": "وضعیت فعلی",
       "dialogs": {
         "delete": {
-          "description": "این عمل قابل بازگشت نیست. این باعث حذف دائمی مانیتور و تمام داده‌های مرتبط خواهد شد.",
+          "description": "این عمل قابل بازگشت نیست. این باعث حذف دائمی مانیتور و تمام داده\u200cهای مرتبط خواهد شد.",
           "title": "آیا کاملاً مطمئن هستید؟"
         },
         "pause": {
-          "description": "آیا مطمئن هستید که می‌خواهید مکث کنید؟",
+          "description": "آیا مطمئن هستید که می\u200cخواهید مکث کنید؟",
           "title": "تأیید"
         },
         "reset": {
-          "description": "این عملیات باعث حذف دائمی تمام تاریخچه‌ی سعی‌ها و آمار زمان آنلاین این مانیتور می‌شود. مانیتور به‌گونه‌ای نمایش داده می‌شود که همانند تازه ایجاد شده باشد. این عمل غیرقابل بازگشت است.",
-          "title": "بازنشانی داده‌های مانیتور"
+          "description": "این عملیات باعث حذف دائمی تمام تاریخچه\u200cی سعی\u200cها و آمار زمان آنلاین این مانیتور می\u200cشود. مانیتور به\u200cگونه\u200cای نمایش داده می\u200cشود که همانند تازه ایجاد شده باشد. این عمل غیرقابل بازگشت است.",
+          "title": "بازنشانی داده\u200cهای مانیتور"
         }
       },
       "expiring_soon": "انقضا نزدیک",
@@ -634,12 +634,12 @@
   },
   "navigation": {
     "maintenance": "نگهداری",
-    "monitors": "نظارت‌ها",
-    "notification_channels": "کانال‌های اعلان",
-    "proxies": "پروکسی‌ها",
+    "monitors": "نظارت\u200cها",
+    "notification_channels": "کانال\u200cهای اعلان",
+    "proxies": "پروکسی\u200cها",
     "settings": "تنظیمات",
     "status_pages": "صفحات وضعیت",
-    "tags": "برچسب‌ها"
+    "tags": "برچسب\u200cها"
   },
   "notifications": {
     "actions": {
@@ -649,7 +649,7 @@
     "aria": {
       "delete": "حذف {{name}}"
     },
-    "confirm_delete_description": "این عمل قابل بازگردانی نیست. این باعث حذف دائمی اعلانگر «{{name}}» و حذف آن از تمام مانیتورهایی که از آن استفاده می‌کنند می‌شود.",
+    "confirm_delete_description": "این عمل قابل بازگردانی نیست. این باعث حذف دائمی اعلانگر «{{name}}» و حذف آن از تمام مانیتورهایی که از آن استفاده می\u200cکنند می\u200cشود.",
     "create_title": "ایجاد اعلان",
     "edit_channel_title": "ویرایش کانال اعلان",
     "edit_title": "ویرایش اعلان",
@@ -660,44 +660,44 @@
     },
     "form": {
       "discord": {
-        "bot_display_name_description": "نامی که به عنوان فرستنده پیام‌های Discord نمایش داده می‌شود.",
+        "bot_display_name_description": "نامی که به عنوان فرستنده پیام\u200cهای Discord نمایش داده می\u200cشود.",
         "bot_display_name_label": "نام نمایشی ربات",
-        "custom_message_prefix_description": "پیشوند اختیاری که در ابتدای تمام پیام‌ها افزوده می‌شود.",
+        "custom_message_prefix_description": "پیشوند اختیاری که در ابتدای تمام پیام\u200cها افزوده می\u200cشود.",
         "custom_message_prefix_label": "پیشوند سفارشی پیام",
         "custom_message_prefix_placeholder": "اختیاری: افزودن پیشوند به پیام خود",
         "forum_post_name_description": "نام پست جدیدی که در فروم ایجاد خواهد شد.",
         "forum_post_name_label": "نام پست انجمن",
         "forum_post_name_placeholder": "نام پست انجمن را وارد کنید",
         "sending_message_to_channel": "ارسال به کانال",
-        "sending_message_to_description": "محل ارسال پیام‌های Discord را انتخاب کنید.",
+        "sending_message_to_description": "محل ارسال پیام\u200cهای Discord را انتخاب کنید.",
         "sending_message_to_label": "ارسال پیام به",
         "sending_message_to_new_forum_post": "ارسال به پست جدید انجمن",
         "sending_message_to_placeholder": "انتخاب نوع پیام",
         "sending_message_to_thread": "ارسال به رشته",
-        "setup_webhook_description_1": "URL وب‌هوک خود را از تنظیمات سرور Discord دریافت کنید → ادغام‌ها → وب‌هوک‌ها.",
-        "setup_webhook_description_2": "یک webhook جدید ایجاد کنید و آدرس URL را کپی کنید. مطمئن شوید کانال صحیح را انتخاب کرده‌اید.",
-        "setup_webhook_title": "راه‌اندازی وب‌هوک Discord",
-        "thread_id_description_1": "فعالسازی حالت توسعه‌دهنده در تنظیمات کاربری Discord → پیشرفته → حالت توسعه‌دهنده",
+        "setup_webhook_description_1": "URL وب\u200cهوک خود را از تنظیمات سرور Discord دریافت کنید → ادغام\u200cها → وب\u200cهوک\u200cها.",
+        "setup_webhook_description_2": "یک webhook جدید ایجاد کنید و آدرس URL را کپی کنید. مطمئن شوید کانال صحیح را انتخاب کرده\u200cاید.",
+        "setup_webhook_title": "راه\u200cاندازی وب\u200cهوک Discord",
+        "thread_id_description_1": "فعالسازی حالت توسعه\u200cدهنده در تنظیمات کاربری Discord → پیشرفته → حالت توسعه\u200cدهنده",
         "thread_id_description_2": "با راست کلیک روی رشته یا پست و انتخاب “کپی شناسه رشته” یا “کپی شناسه کانال”",
-        "thread_id_description_title": "شناسه‌ی رشته یا پست انجمن که پیام‌ها به آن ارسال خواهد شد",
+        "thread_id_description_title": "شناسه\u200cی رشته یا پست انجمن که پیام\u200cها به آن ارسال خواهد شد",
         "thread_id_label": "شناسهٔ رشته",
         "thread_id_placeholder": "شناسه رشته یا پست را وارد کنید",
-        "webhook_url_label": "آدرس وب‌هوک Discord"
+        "webhook_url_label": "آدرس وب\u200cهوک Discord"
       },
       "google_chat": {
-        "more_info_about_webhooks": "اطلاعات بیشتر در مورد وب‌هوک‌ها",
-        "webhook_url_label": "آدرس وب‌هوک Google Chat"
+        "more_info_about_webhooks": "اطلاعات بیشتر در مورد وب\u200cهوک\u200cها",
+        "webhook_url_label": "آدرس وب\u200cهوک Google Chat"
       },
       "gotify": {
-        "application_token_description": "توکن برنامه از اپلیکیشن Gotify شما. می‌توانید این را در رابط وب Gotify خود در بخش برنامه‌ها پیدا کنید.",
+        "application_token_description": "توکن برنامه از اپلیکیشن Gotify شما. می\u200cتوانید این را در رابط وب Gotify خود در بخش برنامه\u200cها پیدا کنید.",
         "application_token_label": "توکن برنامه",
         "custom_message_description": "قالب پیام سفارشی. متغیرهای موجود",
-        "custom_message_description_2": "اگر خالی بگذارید، پیام پیش‌فرض استفاده می‌شود.",
+        "custom_message_description_2": "اگر خالی بگذارید، پیام پیش\u200cفرض استفاده می\u200cشود.",
         "custom_message_label": "پیام سفارشی",
-        "custom_title_description": "عنوان سفارشی برای اعلان. متغیرهای موجود: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. اگر خالی بگذارید، عنوان پیش‌فرض \"Peekaping\" استفاده می‌شود.",
+        "custom_title_description": "عنوان سفارشی برای اعلان. متغیرهای موجود: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. اگر خالی بگذارید، عنوان پیش\u200cفرض \"Peekaping\" استفاده می\u200cشود.",
         "custom_title_label": "عنوان سفارشی",
-        "learn_more_label": "درباره گوتی و نحوه راه‌اندازی آن بیشتر بدانید در:",
-        "note_description": "برای استفاده از این یکپارچه‌سازی، لازم است سرور Gotify در حال اجرا باشد.",
+        "learn_more_label": "درباره گوتی و نحوه راه\u200cاندازی آن بیشتر بدانید در:",
+        "note_description": "برای استفاده از این یکپارچه\u200cسازی، لازم است سرور Gotify در حال اجرا باشد.",
         "note_label": "نکته:",
         "priority_0": "کمترین",
         "priority_1": "خیلی پایین",
@@ -708,28 +708,28 @@
         "priority_5": "بالای معمولی",
         "priority_6": "متوسط",
         "priority_7": "بالا",
-        "priority_8": "بسیار بالا (پیش‌فرض)",
+        "priority_8": "بسیار بالا (پیش\u200cفرض)",
         "priority_9": "فوری",
-        "priority_description": "اولویت پیام (۰-۱۰). اعداد بالاتر نشان‌دهنده اولویت بالاتر هستند. مقدار پیش‌فرض ۸ است.",
+        "priority_description": "اولویت پیام (۰-۱۰). اعداد بالاتر نشان\u200cدهنده اولویت بالاتر هستند. مقدار پیش\u200cفرض ۸ است.",
         "priority_label": "اولویت",
         "priority_placeholder": "انتخاب اولویت",
         "server_url_description": "آدرس URL سرور گوتیفای خودتان. مطمئن شوید که از این برنامه قابل دسترسی است.",
         "server_url_label": "آدرس سرور"
       },
       "grafana_oncall": {
-        "grafana_oncall_url_description": "آدرس وب‌هوک از یکپارچه‌سازی Grafana OnCall خود. می‌توانید این آدرس را در نمونه Grafana OnCall خود در مسیر Alerts & IRM > IRM > Integrations > Webhook پیدا کنید.",
+        "grafana_oncall_url_description": "آدرس وب\u200cهوک از یکپارچه\u200cسازی Grafana OnCall خود. می\u200cتوانید این آدرس را در نمونه Grafana OnCall خود در مسیر Alerts & IRM > IRM > Integrations > Webhook پیدا کنید.",
         "grafana_oncall_url_label": "URL Grafana OnCall",
-        "learn_more_label": "بیشتر در مورد وب‌هوک‌های Grafana OnCall بدانید"
+        "learn_more_label": "بیشتر در مورد وب\u200cهوک\u200cهای Grafana OnCall بدانید"
       },
       "line": {
-        "channel_access_token_description": "توکن دسترسی کانال خود را می‌توانید از ...",
+        "channel_access_token_description": "توکن دسترسی کانال خود را می\u200cتوانید از ...",
         "channel_access_token_description_2": "به تنظیمات کانال خود بروید و به دنبال",
-        "channel_access_token_label": "توکن دسترسی کانال (طولانی‌مدت)",
+        "channel_access_token_label": "توکن دسترسی کانال (طولانی\u200cمدت)",
         "channel_access_token_placeholder": "توکن دسترسی کانال LINE خود را وارد کنید",
         "template_description": "قالب پیام را سفارشی کنید. متغیرهای موجود",
         "template_label": "قالب پیام",
         "template_placeholder": "قالب پیام سفارشی خود را وارد کنید",
-        "user_id_description": "شما می‌توانید شناسهٔ کاربری خود را در ...",
+        "user_id_description": "شما می\u200cتوانید شناسهٔ کاربری خود را در ...",
         "user_id_description_2": "به تنظیمات کانال خود بروید و به دنبال",
         "user_id_label": "شناسه کاربری شما",
         "user_id_placeholder": "شناسه کاربری LINE خود را وارد کنید"
@@ -739,32 +739,32 @@
         "access_token_label": "توکن دسترسی",
         "custom_message_description": "قالب پیام سفارشی. متغیرهای موجود",
         "custom_message_label": "پیام سفارشی",
-        "homeserver_url_description": "آدرس وب‌نشانی سرور خانگی ماتریکس",
+        "homeserver_url_description": "آدرس وب\u200cنشانی سرور خانگی ماتریکس",
         "homeserver_url_label": "آدرس سرور خانگی",
-        "internal_room_id_description": "شناسه داخلی اتاقی که اعلان‌ها به آن ارسال می‌شوند. باید با علامت \"!\" شروع شود و شبیه به این باشد: !roomid:matrix.org",
+        "internal_room_id_description": "شناسه داخلی اتاقی که اعلان\u200cها به آن ارسال می\u200cشوند. باید با علامت \"!\" شروع شود و شبیه به این باشد: !roomid:matrix.org",
         "internal_room_id_label": "شناسه داخلی اتاق",
         "setup_instructions_1": "یک حساب Matrix برای ربات خود ایجاد کنید (یا حساب موجود خود را استفاده کنید)",
-        "setup_instructions_2": "یک اتاق ایجاد کنید یا به اتاقی که می‌خواهید اعلان‌ها را دریافت کنید بپیوندید",
+        "setup_instructions_2": "یک اتاق ایجاد کنید یا به اتاقی که می\u200cخواهید اعلان\u200cها را دریافت کنید بپیوندید",
         "setup_instructions_3": "توکن دسترسی خود را با ارسال درخواست ورود دریافت کنید",
         "setup_instructions_4": "پاسخ حاوی فیلد access_token خواهد بود؛ از آن به عنوان توکن دسترسی خود استفاده کنید.",
-        "setup_instructions_5": "شناسه داخلی اتاق خود را (که با «!» شروع می‌شود) در تنظیمات اتاق کلاینت ماتریکس پیدا کنید",
-        "setup_instructions_label": "دستورالعمل‌های راه‌اندازی"
+        "setup_instructions_5": "شناسه داخلی اتاق خود را (که با «!» شروع می\u200cشود) در تنظیمات اتاق کلاینت ماتریکس پیدا کنید",
+        "setup_instructions_label": "دستورالعمل\u200cهای راه\u200cاندازی"
       },
       "mattermost": {
-        "channel_name_description": "کانالی که در آن اعلان‌ها ارسال می‌شوند. اگر خالی بگذارید، از کانال پیش‌فرض پیکربندی‌شده در وب‌هوک استفاده خواهد شد.",
+        "channel_name_description": "کانالی که در آن اعلان\u200cها ارسال می\u200cشوند. اگر خالی بگذارید، از کانال پیش\u200cفرض پیکربندی\u200cشده در وب\u200cهوک استفاده خواهد شد.",
         "channel_name_label": "نام کانال",
         "icon_emoji_cheat_sheet_label": "برگهٔ راهنما",
-        "icon_emoji_description": "ایموجی‌ای که به عنوان آیکون استفاده می‌شود. می‌توانید دو ایموجی جدا شده با فاصله (اول برای وضعیت بالا، دوم برای وضعیت پایین) را مشخص کنید.",
+        "icon_emoji_description": "ایموجی\u200cای که به عنوان آیکون استفاده می\u200cشود. می\u200cتوانید دو ایموجی جدا شده با فاصله (اول برای وضعیت بالا، دوم برای وضعیت پایین) را مشخص کنید.",
         "icon_emoji_label": "آیکون ایموجی",
         "icon_url_description": "آدرس URL یک تصویر برای استفاده به عنوان آیکون پیام اعلان.",
         "icon_url_label": "آیکون URL",
-        "learn_more_label": "درباره وب‌هوک‌ها بیشتر بدانید",
+        "learn_more_label": "درباره وب\u200cهوک\u200cها بیشتر بدانید",
         "message_template_description": "قالب پیام را سفارشی کنید. متغیرهای موجود",
         "message_template_label": "قالب پیام",
-        "use_message_template_description": "فعال‌سازی استفاده از قالب پیام سفارشی و فرمت.",
+        "use_message_template_description": "فعال\u200cسازی استفاده از قالب پیام سفارشی و فرمت.",
         "use_message_template_label": "استفاده از الگوی پیام",
-        "username_description": "نام کاربری که به عنوان فرستنده پیام ظاهر می‌شود.",
-        "webhook_url_label": "URL وب‌هوک"
+        "username_description": "نام کاربری که به عنوان فرستنده پیام ظاهر می\u200cشود.",
+        "webhook_url_label": "URL وب\u200cهوک"
       },
       "ntfy": {
         "authentication_type_basic": "احراز هویت پایه",
@@ -778,24 +778,24 @@
         "custom_message_description": "محتوای پیام سفارشی. متغیرهای در دسترس",
         "custom_message_label": "پیام سفارشی",
         "password_required": "رمز عبور برای احراز هویت پایه لازم است",
-        "priority_1": "کمینه (پایین‌ترین)",
+        "priority_1": "کمینه (پایین\u200cترین)",
         "priority_2": "کم",
-        "priority_3": "پیش‌فرض",
+        "priority_3": "پیش\u200cفرض",
         "priority_4": "بالا",
         "priority_5": "فوری (بالاترین)",
-        "priority_description": "سطح اولویت اعلان. اولویت‌های بالاتر ممکن است رفتارهای متفاوتی در کلاینت ایجاد کنند.",
+        "priority_description": "سطح اولویت اعلان. اولویت\u200cهای بالاتر ممکن است رفتارهای متفاوتی در کلاینت ایجاد کنند.",
         "priority_label": "اولویت",
         "priority_placeholder": "انتخاب اولویت",
-        "server_url_description": "آدرس URL سرور NTFY شما. از https://ntfy.sh برای نمونه‌ی عمومی استفاده کنید.",
+        "server_url_description": "آدرس URL سرور NTFY شما. از https://ntfy.sh برای نمونه\u200cی عمومی استفاده کنید.",
         "server_url_label": "آدرس سرور",
-        "tags_description": "برچسب‌های جدا‌شده با کاما برای دسته‌بندی اعلان‌ها. متغیرهای موجود",
-        "tags_label": "برچسب‌ها",
+        "tags_description": "برچسب\u200cهای جدا\u200cشده با کاما برای دسته\u200cبندی اعلان\u200cها. متغیرهای موجود",
+        "tags_label": "برچسب\u200cها",
         "title_description": "عنوان سفارشی برای اعلان. متغیرهای موجود",
         "title_label": "عنوان سفارشی",
         "token_description": "توکن دسترسی NTFY برای احراز هویت.",
         "token_label": "توکن دسترسی",
         "token_required": "توکن برای احراز هویت با توکن الزامی است.",
-        "topic_description": "نام موضوع برای اعلان‌های شما. این همان کانالی است که اعلان‌ها در آن ارسال می‌شود.",
+        "topic_description": "نام موضوع برای اعلان\u200cهای شما. این همان کانالی است که اعلان\u200cها در آن ارسال می\u200cشود.",
         "topic_label": "موضوع",
         "username_required": "نام کاربری برای احراز هویت پایه الزامی است"
       },
@@ -807,30 +807,30 @@
         "priority_3": "متوسط",
         "priority_4": "کم",
         "priority_5": "اطلاعی",
-        "priority_description": "سطح اولویت هشدارها را تنظیم کنید. پیش‌فرض P3 (متوسط) است.",
+        "priority_description": "سطح اولویت هشدارها را تنظیم کنید. پیش\u200cفرض P3 (متوسط) است.",
         "priority_label": "اولویت",
-        "region_description": "منطقه Opsgenie خود را انتخاب کنید. این تعیین می‌کند کدام نقطه پایان API استفاده خواهد شد.",
+        "region_description": "منطقه Opsgenie خود را انتخاب کنید. این تعیین می\u200cکند کدام نقطه پایان API استفاده خواهد شد.",
         "region_label": "منطقه",
         "region_placeholder": "انتخاب منطقه"
       },
       "pagerduty": {
         "auto_resolve_acknowledge": "تایید خودکار",
-        "auto_resolve_acknowledge_description": "به‌صورت خودکار حادثه را تأیید کنید",
+        "auto_resolve_acknowledge_description": "به\u200cصورت خودکار حادثه را تأیید کنید",
         "auto_resolve_description": "انتخاب کنید که در زمان بازگشت مانیتور چه عملی انجام شود",
         "auto_resolve_do_nothing": "انجام نده",
-        "auto_resolve_do_nothing_description": "در وضعیت بالا هیچ اقدامی صورت نمی‌گیرد",
+        "auto_resolve_do_nothing_description": "در وضعیت بالا هیچ اقدامی صورت نمی\u200cگیرد",
         "auto_resolve_label": "حل خودکار یا تأیید",
         "auto_resolve_placeholder": "انتخاب رفتار خودکار رفع",
         "auto_resolve_resolve": "رفع خودکار",
         "auto_resolve_resolve_description": "حل خودکار حادثه",
-        "integration_key_description": "بیشتر بدانید چگونه کلید یکپارچه‌سازی خود را دریافت کنید",
+        "integration_key_description": "بیشتر بدانید چگونه کلید یکپارچه\u200cسازی خود را دریافت کنید",
         "integration_key_label": "کلید ادغام",
-        "integration_key_placeholder": "کلید یکپارچه‌سازی PagerDuty خود را وارد کنید",
-        "integration_url_description": "آدرس URL نقطه انتهایی API v2 رویدادهای PagerDuty. پیش‌فرض به نقطه انتهایی استاندارد است.",
+        "integration_key_placeholder": "کلید یکپارچه\u200cسازی PagerDuty خود را وارد کنید",
+        "integration_url_description": "آدرس URL نقطه انتهایی API v2 رویدادهای PagerDuty. پیش\u200cفرض به نقطه انتهایی استاندارد است.",
         "integration_url_label": "URL ادغام",
         "learn_more_label": "مستندات PagerDuty",
         "priority_critical": "بحرانی",
-        "priority_description": "سطح شدت برای حوادث PagerDuty. مقدار پیش‌فرض: «هشدار».",
+        "priority_description": "سطح شدت برای حوادث PagerDuty. مقدار پیش\u200cفرض: «هشدار».",
         "priority_error": "خطا",
         "priority_info": "اطلاعات",
         "priority_label": "اولویت",
@@ -838,16 +838,16 @@
         "priority_warning": "هشدار"
       },
       "pagertree": {
-        "authentication_token_description": "توکن احراز هویت اختیاری برای امنیت تقویت‌شده. این در هدر pagertree-token ارسال می‌شود.",
+        "authentication_token_description": "توکن احراز هویت اختیاری برای امنیت تقویت\u200cشده. این در هدر pagertree-token ارسال می\u200cشود.",
         "authentication_token_label": "توکن احراز هویت (اختیاری)",
         "authentication_token_placeholder": "در صورت لزوم، توکن احراز هویت را وارد کنید",
-        "auto_resolve_alerts_description": "به‌صورت خودکار هشدارهای PagerTree را وقتی مانیتور بهبود یافت، حل کنید",
+        "auto_resolve_alerts_description": "به\u200cصورت خودکار هشدارهای PagerTree را وقتی مانیتور بهبود یافت، حل کنید",
         "auto_resolve_alerts_label": "رفع خودکار هشدارها",
-        "how_to_get_integration_url_label": "چگونه URL یکپارچه‌سازی را دریافت کنیم",
-        "integration_url_description": "آدرس وب‌هوک یکپارچه‌سازی PagerTree خود را وارد کنید.",
-        "integration_url_label": "نشانی اینترنتی وب‌هوک PagerTree",
+        "how_to_get_integration_url_label": "چگونه URL یکپارچه\u200cسازی را دریافت کنیم",
+        "integration_url_description": "آدرس وب\u200cهوک یکپارچه\u200cسازی PagerTree خود را وارد کنید.",
+        "integration_url_label": "نشانی اینترنتی وب\u200cهوک PagerTree",
         "urgency_level_critical": "بحرانی",
-        "urgency_level_description": "تنظیم سطح اضطراب پیش‌فرض برای هشدارهای ارسال‌شده به PagerTree",
+        "urgency_level_description": "تنظیم سطح اضطراب پیش\u200cفرض برای هشدارهای ارسال\u200cشده به PagerTree",
         "urgency_level_high": "بالا",
         "urgency_level_label": "سطح اضطراری",
         "urgency_level_low": "کم",
@@ -861,8 +861,9 @@
         "access_token_label": "توکن دسترسی",
         "access_token_link": "تنظیمات Pushbullet",
         "channel_tag": "برچسب کانال (اختیاری)",
-        "channel_tag_description": "ارسال اعلان به کانال Pushbullet به جای دستگاه‌ها",
+        "channel_tag_description": "ارسال اعلان به کانال Pushbullet به جای دستگاه\u200cها",
         "channel_tag_label": "برچسب کانال (اختیاری)",
+        "custom_message_template": "",
         "custom_message_template_description": "بدنه اعلان را با متغیرهای قالب سفارشی کنید:",
         "custom_message_template_heartbeat_ping": "زمان پاسخ",
         "custom_message_template_heartbeat_time": "زمان",
@@ -870,10 +871,10 @@
         "custom_message_template_monitor_url": "نشانی URL مانیتور",
         "custom_message_template_msg": "پیام هشدار",
         "custom_message_template_name": "نام مانیتور",
-        "custom_message_template_placeholder": "نظارت‌گر: {{ name }}\nوضعیت: {{ status }}\nپیام: {{ msg }}",
+        "custom_message_template_placeholder": "نظارت\u200cگر: {{ name }}\nوضعیت: {{ status }}\nپیام: {{ msg }}",
         "custom_message_template_status": "وضعیت فعلی",
         "device_id": "شناسه دستگاه (اختیاری)",
-        "device_id_description": "ارسال اعلان به یک دستگاه خاص. برای ارسال به تمام دستگاه‌ها، خالی بگذارید. می‌توانید شناسه‌های دستگاه را با استفاده از",
+        "device_id_description": "ارسال اعلان به یک دستگاه خاص. برای ارسال به تمام دستگاه\u200cها، خالی بگذارید. می\u200cتوانید شناسه\u200cهای دستگاه را با استفاده از",
         "device_id_label": "شناسه دستگاه (اختیاری)",
         "device_id_link": "API Pushbullet",
         "more_info_on": "اطلاعات بیشتر در مورد:"
@@ -881,22 +882,22 @@
       "pushover": {
         "application_token_label": "توکن برنامه",
         "application_token_placeholder": "توکن برنامه Pushover خود را وارد کنید",
-        "device_description": "برای ارسال به همه دستگاه‌ها خالی بگذارید",
+        "device_description": "برای ارسال به همه دستگاه\u200cها خالی بگذارید",
         "device_label": "دستگاه",
         "device_placeholder": "نام دستگاه (اختیاری)",
-        "message_title_description": "اگر خالی بگذارید، عنوان پیش‌فرض استفاده می‌شود",
+        "message_title_description": "اگر خالی بگذارید، عنوان پیش\u200cفرض استفاده می\u200cشود",
         "message_title_label": "عنوان پیام",
         "message_title_placeholder": "عنوان پیام سفارشی (اختیاری)",
         "message_ttl_description": "زمان بقاء در ثانیه (0 = بدون انقضا)",
         "message_ttl_label": "TTL پیام",
         "more_info_label": "اطلاعات بیشتر درباره:",
-        "more_info_label_2": "می‌توانید یک برنامه ایجاد کرده و توکن API خود را در اینجا دریافت کنید",
+        "more_info_label_2": "می\u200cتوانید یک برنامه ایجاد کرده و توکن API خود را در اینجا دریافت کنید",
         "more_info_label_3": "کلید کاربری شما در",
         "notification_sound_down_description": "صوت هنگام پایین آمدن مانیتور",
         "notification_sound_down_label": "صدای اعلان - پایین",
         "notification_sound_down_placeholder": "انتخاب صدا",
-        "notification_sound_up_description": "صدای زمانی که مانیتور باز می‌شود",
-        "notification_sound_up_label": "صدای اطلاع‌رسانی – بالا",
+        "notification_sound_up_description": "صدای زمانی که مانیتور باز می\u200cشود",
+        "notification_sound_up_label": "صدای اطلاع\u200cرسانی – بالا",
         "notification_sound_up_placeholder": "انتخاب صدا",
         "priority_1": "کمترین",
         "priority_2": "کم",
@@ -923,7 +924,7 @@
         "sound_none": "بدون",
         "sound_persistent": "مستمر",
         "sound_pianobar": "بار پیانو",
-        "sound_pushover": "Pushover (پیش‌فرض)",
+        "sound_pushover": "Pushover (پیش\u200cفرض)",
         "sound_siren": "سیرن",
         "sound_spacealarm": "هشدار فضا",
         "sound_tugboat": "کشتی جر",
@@ -935,45 +936,45 @@
       "signal": {
         "custom_message_description": "قالب پیام سفارشی. متغیرهای موجود",
         "custom_message_label": "پیام سفارشی",
-        "important_description": "شما نمی‌توانید گروه‌ها و اعداد را در گیرندگان مخلوط کنید!",
+        "important_description": "شما نمی\u200cتوانید گروه\u200cها و اعداد را در گیرندگان مخلوط کنید!",
         "important_label": "مهم:",
-        "more_info_label": "می‌توانید این URL را بررسی کنید تا ببینید چگونه آن را راه‌اندازی کنید:",
+        "more_info_label": "می\u200cتوانید این URL را بررسی کنید تا ببینید چگونه آن را راه\u200cاندازی کنید:",
         "note_description": "شما باید یک کلاینت سیگنال با REST API داشته باشید.",
         "note_label": "نکته:",
         "number_description": "شماره تلفن حساب Signal شما (شماره فرستنده).",
         "number_label": "شماره",
         "post_url_description": "آدرس URL سرور REST API CLI سیگنال شما.",
         "post_url_label": "نشانی URL",
-        "recipients_description": "فهرست شماره‌ تلفن‌ها، جداگانه با کاما، برای ارسال اعلان‌ها.",
+        "recipients_description": "فهرست شماره\u200c تلفن\u200cها، جداگانه با کاما، برای ارسال اعلان\u200cها.",
         "recipients_label": "گیرندگان"
       },
       "slack": {
-        "channel_name_description": "کانالی که پیام در آن ارسال خواهد شد. اگر مشخص نشود، پیام به کانال پیش‌فرض تنظیم‌شده در وب‌هوک ارسال می‌شود.",
-        "channel_name_description_2": "شما می‌توانید کانال پیش‌فرض را با مشخص کردن نام کانال (مثلاً #alerts) یا کاربر (مثلاً @username) بازنویسی کنید.",
+        "channel_name_description": "کانالی که پیام در آن ارسال خواهد شد. اگر مشخص نشود، پیام به کانال پیش\u200cفرض تنظیم\u200cشده در وب\u200cهوک ارسال می\u200cشود.",
+        "channel_name_description_2": "شما می\u200cتوانید کانال پیش\u200cفرض را با مشخص کردن نام کانال (مثلاً #alerts) یا کاربر (مثلاً @username) بازنویسی کنید.",
         "channel_name_label": "نام کانال",
-        "channel_notify_description": "هنگامی که فعال باشد، پیام برای همه اعضای کانال اعلان ارسال می‌کند. برای جلوگیری از اسپم، با احتیاط استفاده کنید.",
-        "channel_notify_label": "اطلاع‌رسانی به کانال",
+        "channel_notify_description": "هنگامی که فعال باشد، پیام برای همه اعضای کانال اعلان ارسال می\u200cکند. برای جلوگیری از اسپم، با احتیاط استفاده کنید.",
+        "channel_notify_label": "اطلاع\u200cرسانی به کانال",
         "icon_emoji_cheat_sheet_label": "برگه راهنمای سریع ایموجی",
         "icon_emoji_description": "ایموجی مورد استفاده به عنوان آیکن این پیام. باید در قالب :emoji_name: باشد.",
         "icon_emoji_label": "آیکون ایموجی",
-        "message_format_description": "ارسال پیام‌های غنی",
-        "message_format_description_2": "فعال‌سازی ارسال پیام‌ها با قالب‌بندی غنی، پیوست‌ها و نمایش بصری بهتر.",
+        "message_format_description": "ارسال پیام\u200cهای غنی",
+        "message_format_description_2": "فعال\u200cسازی ارسال پیام\u200cها با قالب\u200cبندی غنی، پیوست\u200cها و نمایش بصری بهتر.",
         "message_format_label": "فرمت پیام",
-        "username_description": "نام کاربری که به عنوان فرستنده پیام نمایش داده می‌شود. اگر مشخص نشود، از نام پیش‌فرض ربات استفاده خواهد شد.",
-        "webhook_url_description": "آدرس وب‌هوک از یکپارچه‌سازی Slack شما. می‌توانید این آدرس را در نمونه Slack خود در بخش ادغام‌ها > وب‌هوک‌ها پیدا کنید.",
-        "webhook_url_label": "آدرس وب‌هوک"
+        "username_description": "نام کاربری که به عنوان فرستنده پیام نمایش داده می\u200cشود. اگر مشخص نشود، از نام پیش\u200cفرض ربات استفاده خواهد شد.",
+        "webhook_url_description": "آدرس وب\u200cهوک از یکپارچه\u200cسازی Slack شما. می\u200cتوانید این آدرس را در نمونه Slack خود در بخش ادغام\u200cها > وب\u200cهوک\u200cها پیدا کنید.",
+        "webhook_url_label": "آدرس وب\u200cهوک"
       },
       "smtp": {
         "custom_body_label": "بدنه سفارشی",
-        "custom_description": "قابلیت قالب‌بندی از طریق زبان قالب‌بندی <b>Liquid</b> امکان‌پذیر است.",
+        "custom_description": "قابلیت قالب\u200cبندی از طریق زبان قالب\u200cبندی <b>Liquid</b> امکان\u200cپذیر است.",
         "custom_description_2": "لطفاً برای دستورات استفاده به مستندات مراجعه کنید.",
         "custom_description_3": "متغیرهای موجود:",
         "custom_description_4": "پیام اعلان",
         "custom_description_5": "نام سرویس",
-        "custom_description_6": "وضعیت سرویس (UP/DOWN/اطلاعیه‌های انقضای گواهی)",
+        "custom_description_6": "وضعیت سرویس (UP/DOWN/اطلاعیه\u200cهای انقضای گواهی)",
         "custom_subject_label": "موضوع سفارشی",
         "smtp_from_label": "از (ایمیل فرستنده)",
-        "smtp_host_description": "نام میزبان سروری که می‌خواهید وصل شوید را وارد کنید، یا اگر قصد استفاده از یک عامل انتقال نامه محلی دارید، localhost را بنویسید.",
+        "smtp_host_description": "نام میزبان سروری که می\u200cخواهید وصل شوید را وارد کنید، یا اگر قصد استفاده از یک عامل انتقال نامه محلی دارید، localhost را بنویسید.",
         "smtp_host_label": "میزبان SMTP",
         "smtp_password_placeholder": "رمز عبور SMTP",
         "smtp_port_label": "پورت",
@@ -984,7 +985,7 @@
         "auto_get_label": "دریافت خودکار",
         "bot_token_description": "دریافت توکن ربات خود از",
         "bot_token_label": "توکن ربات",
-        "chat_id_description": "شما می‌توانید شناسه چت خود را با ارسال پیام به ربات خود و کلیک بر روی «Auto Get» در بالا، یا به صورت دستی از طریق API تلگرام دریافت کنید.",
+        "chat_id_description": "شما می\u200cتوانید شناسه چت خود را با ارسال پیام به ربات خود و کلیک بر روی «Auto Get» در بالا، یا به صورت دستی از طریق API تلگرام دریافت کنید.",
         "chat_id_description_2": "برای دریافت دستی، به",
         "chat_id_description_3": "مشاهده",
         "chat_id_description_4": "مستندات تلگرام",
@@ -992,70 +993,70 @@
         "chat_id_label": "شناسه چت",
         "chat_id_not_found": "شناسه چت در آخرین بروزرسانی یافت نشد.",
         "failed_to_fetch_chat_id": "خطا در دریافت شناسه چت",
-        "message_thread_id_description": "اختیاری. برای ارسال پیام به یک موضوع خاص در یک سوپرگروه انجمن استفاده می‌شود.",
-        "message_thread_id_label": "شناسه‌ی رشته پیام",
-        "no_updates_found": "هیچ به‌روزرسانی‌ای پیدا نشد. لطفاً ابتدا یک پیام به ربات خود ارسال کنید.",
-        "protect_content_description": "اگر فعال باشد، محتوای پیام از فوروارد و ذخیره شدن محافظت می‌شود.",
+        "message_thread_id_description": "اختیاری. برای ارسال پیام به یک موضوع خاص در یک سوپرگروه انجمن استفاده می\u200cشود.",
+        "message_thread_id_label": "شناسه\u200cی رشته پیام",
+        "no_updates_found": "هیچ به\u200cروزرسانی\u200cای پیدا نشد. لطفاً ابتدا یک پیام به ربات خود ارسال کنید.",
+        "protect_content_description": "اگر فعال باشد، محتوای پیام از فوروارد و ذخیره شدن محافظت می\u200cشود.",
         "protect_content_label": "حفاظت از محتوا",
-        "send_silently_description": "اگر فعال باشد، پیام‌ها به صورت بی‌صدا ارسال می‌شوند (کاربران اعلان بدون صدا دریافت خواهند کرد).",
-        "send_silently_label": "ارسال بی‌صدا",
-        "server_url_description": "پیش‌فرض است",
-        "server_url_description_2": "می‌توانید از سرور سفارشی استفاده کنید. ببینید",
+        "send_silently_description": "اگر فعال باشد، پیام\u200cها به صورت بی\u200cصدا ارسال می\u200cشوند (کاربران اعلان بدون صدا دریافت خواهند کرد).",
+        "send_silently_label": "ارسال بی\u200cصدا",
+        "server_url_description": "پیش\u200cفرض است",
+        "server_url_description_2": "می\u200cتوانید از سرور سفارشی استفاده کنید. ببینید",
         "server_url_description_3": "اینجا",
         "server_url_description_4": "برای جزئیات.",
         "server_url_label": "آدرس سرور تلگرام",
         "template_description": "قالب پیام را سفارشی کنید. متغیرهای موجود",
         "template_label": "قالب پیام",
         "template_parse_mode_description": "انتخاب کنید که پیام چگونه باید تجزیه شود. مشاهده کنید",
-        "template_parse_mode_description_2": "مستندات قالب‌بندی تلگرام",
+        "template_parse_mode_description_2": "مستندات قالب\u200cبندی تلگرام",
         "template_parse_mode_description_3": "برای جزئیات.",
         "template_parse_mode_label": "حالت تجزیه قالب",
         "template_parse_mode_placeholder": "انتخاب حالت تجزیه",
         "template_placeholder": "قالب پیام سفارشی خود را وارد کنید",
-        "use_template_description": "فعال‌سازی استفاده از الگوی پیام سفارشی و قالب‌بندی",
+        "use_template_description": "فعال\u200cسازی استفاده از الگوی پیام سفارشی و قالب\u200cبندی",
         "use_template_label": "استفاده از الگوی پیام"
       },
       "webhook": {
-        "additional_headers_description": "افزودن هدرهای HTTP سفارشی به درخواست وب‌هوک.",
+        "additional_headers_description": "افزودن هدرهای HTTP سفارشی به درخواست وب\u200cهوک.",
         "additional_headers_label": "سرآیندهای اضافی",
         "custom_body_description": "قالب بدنه درخواست را سفارشی کنید. متغیرهای موجود",
         "custom_body_label": "بدنه سفارشی",
-        "post_url_description": "آدرس URL نقطه‌ی انتهایی وب‌هوک که در آن اعلان‌ها ارسال می‌شوند.",
+        "post_url_description": "آدرس URL نقطه\u200cی انتهایی وب\u200cهوک که در آن اعلان\u200cها ارسال می\u200cشوند.",
         "post_url_label": "URL ارسال",
         "request_body_description_custom": "فرمت بدنه درخواست سفارشی خود را در زیر تعریف کنید.",
-        "request_body_description_form_data": "محتوا به صورت multipart/form-data ارسال می‌شود. می‌توانید آن را با استفاده از <strong>json_decode($_POST['data'])</strong> در PHP رمزگشایی کنید.",
+        "request_body_description_form_data": "محتوا به صورت multipart/form-data ارسال می\u200cشود. می\u200cتوانید آن را با استفاده از <strong>json_decode($_POST['data'])</strong> در PHP رمزگشایی کنید.",
         "request_body_description_json": "محتوا به صورت JSON با هدر \"application/json\" ارسال خواهد شد.",
         "request_body_label": "بدنه درخواست",
         "request_body_placeholder": "نوع محتوا را انتخاب کنید"
       }
     },
-    "important": "اطلاعیه‌های مهم",
-    "important_notifications": "اطلاعیه‌های مهم",
+    "important": "اطلاعیه\u200cهای مهم",
+    "important_notifications": "اطلاعیه\u200cهای مهم",
     "labels": {
       "friendly_name": "نام دوستانه",
       "type": "نوع اعلان"
     },
     "messages": {
-      "create_failed": "خطا در ایجاد اعلان‌کننده",
-      "created_success": "اطلاع‌رسانی با موفقیت ایجاد شد",
+      "create_failed": "خطا در ایجاد اعلان\u200cکننده",
+      "created_success": "اطلاع\u200cرسانی با موفقیت ایجاد شد",
       "error_loading_notifier": "خطا در بارگذاری اعلانگر",
       "test_failed": "ارسال اعلان آزمایشی ناموفق بود",
       "test_success": "آزمایش اعلان با موفقیت ارسال شد",
-      "update_failed": "به‌روزرسانی اعلان‌کننده ناموفق بود",
-      "updated_success": "نوتیفایر با موفقیت به‌روزرسانی شد"
+      "update_failed": "به\u200cروزرسانی اعلان\u200cکننده ناموفق بود",
+      "updated_success": "نوتیفایر با موفقیت به\u200cروزرسانی شد"
     },
     "new": {
       "title": "کانال اعلان جدید"
     },
     "no_important": "هیچ اعلان مهمی پیدا نشد.",
     "placeholders": {
-      "select_type": "انتخاب نوع اعلان‌گر"
+      "select_type": "انتخاب نوع اعلان\u200cگر"
     },
-    "search_placeholder": "جستجوی کانال‌های اعلان بر اساس نام..."
+    "search_placeholder": "جستجوی کانال\u200cهای اعلان بر اساس نام..."
   },
   "proxies": {
     "delete_dialog": {
-      "description": "این عمل قابل بازگشت نیست. این عمل باعث حذف دائمی پروکسی {{host}}:{{port}} می‌شود.",
+      "description": "این عمل قابل بازگشت نیست. این عمل باعث حذف دائمی پروکسی {{host}}:{{port}} می\u200cشود.",
       "title": "آیا کاملاً مطمئن هستید؟"
     },
     "edit": {
@@ -1079,15 +1080,15 @@
       "create_failed": "پروکسی ایجاد نشد",
       "created_success": "پروکسی با موفقیت ساخته شد",
       "error_loading_proxy": "خطای بارگذاری پروکسی",
-      "update_failed": "به‌روزرسانی پراکسی ناموفق بود",
-      "updated_success": "پروکسی با موفقیت به‌روزرسانی شد"
+      "update_failed": "به\u200cروزرسانی پراکسی ناموفق بود",
+      "updated_success": "پروکسی با موفقیت به\u200cروزرسانی شد"
     },
     "new": {
       "page_name": "پروکسی جدید"
     },
-    "page_name": "پروکسی‌ها",
+    "page_name": "پروکسی\u200cها",
     "search_label": "جستجو",
-    "search_placeholder": "جستجوی پراکسی‌ها بر اساس میزبان..."
+    "search_placeholder": "جستجوی پراکسی\u200cها بر اساس میزبان..."
   },
   "security": {
     "enable_2fa": {
@@ -1096,20 +1097,20 @@
         "authenticator_code_placeholder": "کد شش رقمی را وارد کنید",
         "current_password_label": "رمز عبور فعلی",
         "current_password_placeholder": "کلمه عبور فعلی خود را وارد کنید",
-        "enable_2fa_button": "فعال‌سازی 2FA"
+        "enable_2fa_button": "فعال\u200cسازی 2FA"
       },
       "messages": {
         "2fa_active": "2FA فعال",
         "2fa_disabled_successfully": "2FA با موفقیت غیرفعال شد",
-        "2fa_enabled_successfully": "فعال‌سازی ۲FA با موفقیت انجام شد",
+        "2fa_enabled_successfully": "فعال\u200cسازی ۲FA با موفقیت انجام شد",
         "account_is_protected_with_2fa": "حساب شما با ۲FA محافظت شده است.",
-        "disable_2fa": "غیرفعال‌سازی ۲FA",
+        "disable_2fa": "غیرفعال\u200cسازی ۲FA",
         "enter_password_to_disable_2fa": "کلمه عبور خود را برای غیرفعال کردن ۲FA وارد کنید",
-        "failed_to_disable_2fa": "غیرفعال‌سازی 2FA ناموفق بود",
+        "failed_to_disable_2fa": "غیرفعال\u200cسازی 2FA ناموفق بود",
         "failed_to_verify_2fa_code": "کد 2FA تأیید نشد",
         "failed_to_verify_password": "عدم تأیید رمز عبور یا شروع تنظیمات 2FA",
-        "have_enabled_2fa": "شما احراز هویت دو مرحله‌ای (2FA) را برای حساب کاربری خود فعال کرده‌اید. این یک لایهٔ امنیتی اضافی اضافه می‌کند.",
-        "or_enter_secret_manually": "یا این رمز را به‌صورت دستی وارد کنید",
+        "have_enabled_2fa": "شما احراز هویت دو مرحله\u200cای (2FA) را برای حساب کاربری خود فعال کرده\u200cاید. این یک لایهٔ امنیتی اضافی اضافه می\u200cکند.",
+        "or_enter_secret_manually": "یا این رمز را به\u200cصورت دستی وارد کنید",
         "scan_qr_code_with_authenticator_app": "این کد QR را با برنامه احراز هویت خود اسکن کنید",
         "two_factor_authentication_enabled": "احراز هویت دو عاملی فعال شد",
         "user_email_not_found": "پست الکترونیک کاربر یافت نشد"
@@ -1124,25 +1125,25 @@
         "new_password_placeholder": "گذرواژه جدید را وارد کنید",
         "old_password_label": "رمز عبور قبلی",
         "old_password_placeholder": "کلمه عبور فعلی خود را وارد کنید",
-        "update_password_button": "به‌روزرسانی گذرواژه"
+        "update_password_button": "به\u200cروزرسانی گذرواژه"
       },
       "messages": {
         "failed_to_update_password": "خطا در بروزرسانی رمز عبور",
-        "password_updated_successfully": "رمز عبور با موفقیت به‌روزرسانی شد"
+        "password_updated_successfully": "رمز عبور با موفقیت به\u200cروزرسانی شد"
       },
       "title": "بروزرسانی گذرواژه"
     }
   },
   "sendgrid": {
-    "api_key_description": "کلید API SendGrid خود. می‌توانید آن را در حساب SendGrid خود در بخش تنظیمات → کلیدهای API ایجاد کنید. مطمئن شوید که مجوزهای \"Mail Send\" را دارد.",
+    "api_key_description": "کلید API SendGrid خود. می\u200cتوانید آن را در حساب SendGrid خود در بخش تنظیمات → کلیدهای API ایجاد کنید. مطمئن شوید که مجوزهای \"Mail Send\" را دارد.",
     "api_key_label": "کلید API",
     "bcc_email_description": "گیرندگان BCC. چند آدرس ایمیل را با کاما جدا کنید.",
     "bcc_email_label": "ایمیل BCC (اختیاری)",
-    "cc_email_description": "گیرندگان کپی همانی. آدرس‌های ایمیل را با کاما جدا کنید.",
+    "cc_email_description": "گیرندگان کپی همانی. آدرس\u200cهای ایمیل را با کاما جدا کنید.",
     "cc_email_label": "ایمیل CC (اختیاری)",
     "from_email_description": "نشانی ایمیل فرستنده. این باید یک فرستنده تأیید شده در حساب SendGrid شما باشد.",
     "from_email_label": "ایمیل فرستنده",
-    "subject_description": "خط موضوع برای ایمیل. از قالب‌بندی Liquid پشتیبانی می‌کند.",
+    "subject_description": "خط موضوع برای ایمیل. از قالب\u200cبندی Liquid پشتیبانی می\u200cکند.",
     "subject_label": "موضوع سفارشی (اختیاری)",
     "subject_variables_label": "متغیرهای موجود:",
     "subject_variables_msg": "پیام اعلان",
@@ -1154,11 +1155,11 @@
   "settings": {
     "data_retention": {
       "days_label": "روز",
-      "description": "تعیین تعداد روزی که داده‌ها نگهداری می‌شوند (KEEP_DATA_PERIOD_DAYS).",
+      "description": "تعیین تعداد روزی که داده\u200cها نگهداری می\u200cشوند (KEEP_DATA_PERIOD_DAYS).",
       "title": "مدت زمان نگهداری داده"
     },
     "timezone": {
-      "description": "منطقه زمانی مورد نظر خود را برای نمایش تمام زمان‌ها در برنامه انتخاب کنید.",
+      "description": "منطقه زمانی مورد نظر خود را برای نمایش تمام زمان\u200cها در برنامه انتخاب کنید.",
       "label": "منطقه زمانی",
       "no_timezone_found": "منطقه زمانی یافت نشد.",
       "search_placeholder": "جستجوی منطقه زمانی...",
@@ -1171,15 +1172,15 @@
   },
   "status": {
     "messages": {
-      "all_systems_operational": "تمام سیستم‌ها در وضعیت عملیاتی",
+      "all_systems_operational": "تمام سیستم\u200cها در وضعیت عملیاتی",
       "down": "متوقف",
-      "last_updated": "آخرین به‌روزرسانی",
+      "last_updated": "آخرین به\u200cروزرسانی",
       "maintenance": "نگهداری",
       "no_monitors_configured": "هیچ مانیتوری برای این صفحه وضعیت تنظیم نشده است.",
       "operational": "عملی",
       "partial_system_outage": "از کار افتادن جزئی سیستم",
       "powered_by": "قدرت گرفته از",
-      "refresh_in": "تازه‌سازی در",
+      "refresh_in": "تازه\u200cسازی در",
       "refresh_now": "تازه کن",
       "status_page_not_found": "صفحه وضعیت پیدا نشد یا منتشر نشده است.",
       "under_maintenance": "در حال تعمیرات",
@@ -1188,21 +1189,21 @@
   },
   "status_pages": {
     "affected_monitors": "مانیتورهای متأثر",
-    "affected_monitors_info": "انتخاب مانیتورهایی که توسط این نگهداری تحت تأثیر قرار می‌گیرند",
-    "auto_refresh_interval": "فاصلهٔ خودکار تازه‌سازی (ثانیه)",
+    "affected_monitors_info": "انتخاب مانیتورهایی که توسط این نگهداری تحت تأثیر قرار می\u200cگیرند",
+    "auto_refresh_interval": "فاصلهٔ خودکار تازه\u200cسازی (ثانیه)",
     "basic_information": "اطلاعات پایه",
     "create_status_page": "ایجاد صفحه وضعیت",
-    "customization": "سفارشی‌سازی",
+    "customization": "سفارشی\u200cسازی",
     "delete_dialog": {
-      "description": "آیا مطمئن هستید که می‌خواهید \"{{title}}\" را حذف کنید؟ این عمل قابل بازگشت نیست.",
+      "description": "آیا مطمئن هستید که می\u200cخواهید \"{{title}}\" را حذف کنید؟ این عمل قابل بازگشت نیست.",
       "title": "حذف صفحه وضعیت"
     },
     "description": "توضیحات صفحه وضعیت را وارد کنید",
     "domain_already_used": "دامین {{domain}} قبلاً توسط صفحه وضعیت دیگری استفاده شده است",
     "domain_host_warning": "این دامنه همان URL میزبان کنونی شما است. ممکن است باعث بروز تعارض شود.",
-    "domains": "دامنه‌ها",
+    "domains": "دامنه\u200cها",
     "domains_info_warning": "فراموش نکنید که رکوردهای CNAME را برای هر دامنه در DNS خود اضافه کنید.",
-    "draft_status": "پیش‌نویس",
+    "draft_status": "پیش\u200cنویس",
     "edit_page_name": "ویرایش صفحه وضعیت",
     "messages": {
       "create_description": "یک صفحه وضعیت جدید ایجاد کنید تا وضعیت سرویس خود را با کاربران به اشتراک بگذارید.",
@@ -1213,21 +1214,21 @@
       "get_started_by_creating_your_first_status_page": "برای شروع، صفحه وضعیت اول خود را ایجاد کنید.",
       "no_status_pages_found": "هیچ صفحه وضعیت یافت نشد",
       "not_found": "صفحه وضعیت یافت نشد",
-      "update_description": "به‌روزرسانی تنظیمات و پیکربندی صفحه وضعیت خود",
-      "updated_successfully": "صفحه وضعیت با موفقیت به‌روزرسانی شد"
+      "update_description": "به\u200cروزرسانی تنظیمات و پیکربندی صفحه وضعیت خود",
+      "updated_successfully": "صفحه وضعیت با موفقیت به\u200cروزرسانی شد"
     },
     "new_page_name": "صفحه وضعیت جدید",
     "page_name": "صفحات وضعیت",
     "published": "منتشر شده",
-    "published_info": "این صفحه وضعیت را به‌صورت عمومی در دسترس قرار دهید",
+    "published_info": "این صفحه وضعیت را به\u200cصورت عمومی در دسترس قرار دهید",
     "published_status": "منتشر شده",
     "search_label": "جستجو",
     "search_placeholder": "جستجوی صفحات وضعیت بر اساس عنوان...",
-    "update_status_page": "به‌روزرسانی صفحه وضعیت",
+    "update_status_page": "به\u200cروزرسانی صفحه وضعیت",
     "view_page": "مشاهده صفحه"
   },
   "tags": {
-    "confirm_delete_description": "این عمل قابل بازگشت نیست. برچسب «{{name}}» به طور دائمی حذف خواهد شد و از تمام مانیتورها پاک می‌شود.",
+    "confirm_delete_description": "این عمل قابل بازگشت نیست. برچسب «{{name}}» به طور دائمی حذف خواهد شد و از تمام مانیتورها پاک می\u200cشود.",
     "edit_page_name": "ویرایش برچسب",
     "empty_state": {
       "action": "برچسب اول خود را ایجاد کنید",
@@ -1242,16 +1243,16 @@
       "description_placeholder": "توضیح برچسب را وارد کنید (اختیاری)",
       "name_label": "نام",
       "name_placeholder": "نام برچسب را وارد کنید",
-      "update_button": "به‌روزرسانی برچسب"
+      "update_button": "به\u200cروزرسانی برچسب"
     },
     "messages": {
-      "create_description": "یک برچسب جدید ایجاد کنید تا مانیتورهای خود را سازماندهی و دسته‌بندی کنید.",
+      "create_description": "یک برچسب جدید ایجاد کنید تا مانیتورهای خود را سازماندهی و دسته\u200cبندی کنید.",
       "failed_to_load_tag": "بارگذاری برچسب انجام نشد. برچسب ممکن است موجود نباشد یا شما اجازه مشاهده آن را نداشته باشید.",
       "tag_id_required": "شناسه برچسب الزامی است",
-      "update_description": "جزئیات برچسب را برای سازماندهی بهتر مانیتورها به‌روزرسانی کنید."
+      "update_description": "جزئیات برچسب را برای سازماندهی بهتر مانیتورها به\u200cروزرسانی کنید."
     },
     "new_page_name": "برچسب جدید",
-    "search_placeholder": "جستجوی برچسب‌ها..."
+    "search_placeholder": "جستجوی برچسب\u200cها..."
   },
   "theme": {
     "dark": "تاریک",
@@ -1269,12 +1270,12 @@
     "last_7_days": "آخرین ۷ روز",
     "maximum": "حداکثر",
     "minimum": "حداقل",
-    "ms": "میلی‌ثانیه",
+    "ms": "میلی\u200cثانیه",
     "response_time": "زمان پاسخ",
     "uptime": "در دسترس"
   },
   "ui": {
     "general": "عمومی",
-    "intervals_retries": "فواصل، تلاش‌ها، تایم‌اوت‌ها"
+    "intervals_retries": "فواصل، تلاش\u200cها، تایم\u200cاوت\u200cها"
   }
 }
