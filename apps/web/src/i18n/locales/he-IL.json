@@ -1,0 +1,1280 @@
+{
+  "actions": {
+    "cancel": "ביטול",
+    "saving": "שמירה..."
+  },
+  "auth": {
+    "login": {
+      "description": "התחבר עם הדוא״ל שלך",
+      "no_account": "אין לך חשבון?",
+      "sign_up": "הירשם",
+      "submit": "התחבר",
+      "title": "ברוך שוב"
+    },
+    "register": {
+      "description": "צור את חשבון המנהל שלך",
+      "have_account": "יש לך כבר חשבון?",
+      "sign_in": "התחבר",
+      "submit": "צור",
+      "title": "שלום"
+    },
+    "twofa": {
+      "code_label": "קוד 2FA",
+      "code_placeholder": "הזן קוד 2FA",
+      "description": "אימות דו‑שלבי (2FA) מופעל בחשבונך. אנא הזן את קוד האימות שלך כדי להמשיך.",
+      "title": "אימות דו‑שלבי נדרש",
+      "verify_button": "אמת 2FA",
+      "verifying": "מתבצע אימות…"
+    }
+  },
+  "bars": {
+    "down_count": "ספירת ירידות",
+    "important": "חשוב",
+    "interval": "מרווח",
+    "message": "הודעה",
+    "ms": "מ''ש",
+    "notified": "נודע",
+    "ping": "פינג",
+    "retries": "החזרות",
+    "status": "מצב",
+    "time": "זמן"
+  },
+  "common": {
+    "active": "פעיל",
+    "all": "הכל",
+    "back": "חזור",
+    "cancel": "ביטול",
+    "clear_all": "נקה הכל",
+    "clear_all_filters": "נקה את כל המסננים",
+    "confirm": "אשר",
+    "confirm_delete_title": "האם אתה בטוח לחלוטין?",
+    "confirm_delete_title_short": "האם אתה בטוח?",
+    "continue": "המשך",
+    "create": "צור",
+    "created": "נוצר",
+    "days": "ימים",
+    "default": "ברירת מחדל",
+    "delete": "מחק",
+    "disabling": "מנטרל...",
+    "dismiss": "סגור",
+    "down": "כבוי",
+    "enabling": "הפעלה...",
+    "error": "שגיאה",
+    "expires": "תפוגה",
+    "inactive": "לא פעיל",
+    "loading": "טוען...",
+    "logout": "התנתק",
+    "maintenance": "תחזוקה",
+    "no_options_found": "לא נמצאו אפשרויות",
+    "no_tags_available": "אין תגיות זמינות",
+    "please_refresh_page": "נא רענן את הדף",
+    "required": "חובה",
+    "save": "שמור",
+    "saving": "שמירה...",
+    "search": "חיפוש",
+    "security": "אבטחה",
+    "select": "בחר",
+    "select_monitors": "בחר מעקבים…",
+    "select_tags": "בחר תגיות",
+    "settings": "הגדרות",
+    "tags": "תגיות",
+    "unknown": "לא ידוע",
+    "unnamed_monitor": "מעקב ללא שם",
+    "up": "מופעל",
+    "update": "עדכן",
+    "verifying": "מאמת..."
+  },
+  "forms": {
+    "labels": {
+      "confirm_password": "אשר סיסמה",
+      "email": "דוא״ל",
+      "footer_text": "טקסט התחתית",
+      "heartbeat_interval": "הפרש לב (שניות)",
+      "icon_url": "URL של סמל",
+      "monitor_name": "שם",
+      "monitor_type": "סוג",
+      "password": "סיסמה",
+      "retries": "חזרות",
+      "slug": "קיצור",
+      "title": "כותרת",
+      "username": "שם משתמש"
+    },
+    "placeholders": {
+      "auto_refresh_help": "0 – ללא רענון אוטומטי",
+      "domains": "הזן דומיין (למשל status.example.com)",
+      "footer_text": "הזן טקסט כותרת התחתית",
+      "icon_url": "https://example.com/icon.png",
+      "monitor_name": "המוניטור שלי",
+      "page_description": "הזן תיאור דף המצב",
+      "page_title": "הזן כותרת דף סטטוס",
+      "slug": "slug דף הסטטוס"
+    },
+    "validation": {
+      "email_invalid": "אנא הזן כתובת דוא\"ל תקפה",
+      "password_min_length": "הסיסמה חייבת להכיל לפחות 8 תווים",
+      "passwords_mismatch": "הסיסמאות לא תואמות"
+    }
+  },
+  "maintenance": {
+    "card": {
+      "aria": {
+        "delete": "מחק {{title}}",
+        "pause": "השהה תחזוקה",
+        "resume": "המשך תחזוקה"
+      },
+      "labels": {
+        "duration": "{{duration}} דק",
+        "end": "סיום: {{date}}",
+        "start": "התחלה: {{date}}"
+      },
+      "status": {
+        "active": "פעיל",
+        "ended": "הסתיים",
+        "inactive": "לא פעיל"
+      }
+    },
+    "edit_title": "ערוך תחזוקה",
+    "form": {
+      "affected_monitors_description": "בחר את המוניטורים שיושפעו מהתחזוקה",
+      "affected_monitors_title": "מפקחים מושפעים",
+      "cron_description": "הזן ביטוי קראון תקין",
+      "cron_expression": "ביטוי קרון",
+      "date_time_title": "תאריך ושעה",
+      "day_of_month": "יום החודש",
+      "day_of_week": "יום בשבוע",
+      "description_label": "תיאור",
+      "description_placeholder": "תיאור התחזוקה…",
+      "duration_minutes": "משך (דקות)",
+      "effective_date_range": "טווח תאריכים תקף (אופציונלי)",
+      "end_date_time": "תאריך סיום ושעה",
+      "end_time": "זמן סיום",
+      "interval_label": "המרווח (ריצה אחת ביום)",
+      "last_day": "יום אחרון",
+      "last_day_of_month": "יום האחרון בחודש",
+      "maintenance_time_window": "חלון זמן תחזוקה ליום",
+      "markdown_supported": "Markdown נתמך",
+      "same_as_server": "זהה לאזור זמן השרת",
+      "start_date_time": "תאריך ושעת התחלה",
+      "start_time": "זמן התחלה",
+      "strategy_label": "אסטרטגיה",
+      "strategy_placeholder": "בחר אסטרטגיה",
+      "timezone_label": "אזור זמן",
+      "timezone_placeholder": "בחר אזור זמן",
+      "title_label": "כותרת",
+      "title_placeholder": "כותרת תחזוקה"
+    },
+    "page": {
+      "clear_filters": "נקה את כל המסננים",
+      "dialogs": {
+        "confirm_action": {
+          "pause_description": "האם אתה בטוח שברצונך להשהות את התחזוקה הזו?",
+          "resume_description": "האם אתה בטוח שברצונך להמשיך את התחזוקה?",
+          "title": "אשר פעולה"
+        },
+        "confirm_delete": {
+          "description": "האם אתה בטוח שברצונך למחוק את חלון התחזוקה הזה? פעולה זו אינה ניתנת לביטול.",
+          "title": "אשר מחיקה"
+        }
+      },
+      "edit_maintenance": "ערוך תחזוקה: {{title}}",
+      "empty_state": {
+        "action": "צור את חלון התחזוקה הראשון שלך",
+        "description": "התחל ביצירת החלון הראשון לתחזוקה כדי למנוע תקלות מתוכננות.",
+        "title": "לא נמצאו חלונות תחזוקה"
+      },
+      "error_loading": "שגיאה בטעינת תחזוקה",
+      "loading": "טוען...",
+      "loading_monitors": "טוען מוניטורים…",
+      "search_placeholder": "חפש תחזוקות..."
+    },
+    "page_title": "חלונות תחזוקה",
+    "schedule_title": "תזמון תחזוקה",
+    "strategy": {
+      "cron": "ביטוי קרון",
+      "manual": "פעיל/לא פעיל ידנית",
+      "recurring_day_of_month": "חוזר - יום החודש",
+      "recurring_interval": "חוזר - מרווח",
+      "recurring_weekday": "חוזר - יום בשבוע",
+      "single": "חלון תחזוקה יחיד"
+    },
+    "toasts": {
+      "create_error": "יצירת תחזוקה נכשלה",
+      "created_success": "תחזוקה נוצרה בהצלחה",
+      "delete_error": "המחיקת תחזוקה נכשלה",
+      "deleted_success": "התחזוקה נמחקה בהצלחה",
+      "pause_error": "הפסקת התחזוקה נכשלה",
+      "paused_success": "התחזוקה הופסקה בהצלחה",
+      "resume_error": "נכשל בהמשך התחזוקה",
+      "resumed_success": "התחזוקה חזרה בהצלחה",
+      "toggle_error": "לא ניתן להחליף את מצב התחזוקה: מזהה חסר",
+      "update_error": "עדכון תחזוקה נכשל",
+      "updated_success": "התחזוקה עודכנה בהצלחה"
+    },
+    "weekdays": {
+      "fri": "ה״ש",
+      "mon": "יום שני",
+      "sat": "שבת",
+      "sun": "ראשון",
+      "thu": "חמישי",
+      "tue": "שלישי",
+      "wed": "רב"
+    }
+  },
+  "messages": {
+    "login_error": "אירעה שגיאה במהלך ההתחברות",
+    "login_no_tokens": "ההתחברות הצליחה אך לא התקבלו אסימונים",
+    "login_success": "התחבר בהצלחה",
+    "notifier_delete_error": "שגיאה במחיקת המודיע",
+    "notifier_delete_success": "התרעה נמחקה בהצלחה",
+    "register_error": "אירעה שגיאה במהלך הרישום",
+    "register_no_tokens": "ההרשמה הצליחה אך לא התקבלו טוקנים",
+    "register_success": "ההרשמה בוצעה בהצלחה",
+    "setting_update_error": "עדכון ההגדרה נכשל",
+    "setting_update_success": "ההגדרה עודכנה בהצלחה",
+    "tag_create_error": "נכשל ביצירת תג",
+    "tag_create_success": "תגית נוצרה בהצלחה",
+    "tag_delete_error": "המחיקת התווית נכשלה",
+    "tag_delete_success": "תג הוסר בהצלחה",
+    "tag_update_error": "נכשל עדכון התג",
+    "tag_update_success": "תגית עודכנה בהצלחה",
+    "unexpected_error": "אירעה שגיאה בלתי צפויה",
+    "version_mismatch": "זיהתה אי התאמה בגרסה"
+  },
+  "monitors": {
+    "card": {
+      "check_interval": "מרווח בדיקה:",
+      "loading_more": "טוען עוד…"
+    },
+    "empty_state": {
+      "action": "צור את המעקב הראשון שלך",
+      "description": "התחל ביצירת המוניטור הראשון שלך כדי לעקוב אחר בריאות השירותים שלך.",
+      "title": "לא נמצאו ניטורים"
+    },
+    "filtering_by_tags": "סינון לפי תגיות",
+    "filters": {
+      "monitor_status": "סטטוס",
+      "monitor_status_placeholder": "מצב המעקב",
+      "search_placeholder": "חפש מניטורים לפי שם...",
+      "status_placeholder": "סטטוס"
+    },
+    "form": {
+      "buttons": {
+        "copied": "הועתק!",
+        "copy": "העתק",
+        "create": "צור",
+        "regenerate": "חדש",
+        "update": "עדכן"
+      },
+      "dns": {
+        "hostname": "שם מארח",
+        "port": "פורט",
+        "record_type": "סוג רשומת משאב",
+        "record_type_placeholder": "בחר סוג רשומה",
+        "resolver_server": "שרת מפענח",
+        "title": "הגדרות DNS"
+      },
+      "docker": {
+        "ca_cert_description": "הדבק את תעודת רשות ההסמכה שלך בפורמט PEM.",
+        "ca_certificate": "תעודת CA (PEM)",
+        "client_cert_description": "הדבק את תעודת הלקוח שלך בפורמט PEM. זה משמש לאימות TLS הדדי.",
+        "client_certificate": "תעודת לקוח (PEM)",
+        "client_private_key": "מפתח פרטי של לקוח (PEM)",
+        "common_tls_issues": "בעיות TLS נפוצות:",
+        "connection_type": "סוג החיבור",
+        "container_name_id": "שם/מזהה המיכל",
+        "disabled": "מושבת",
+        "docker_container": "קונטיינר Docker",
+        "docker_host": "מארח Docker",
+        "enable_tls": "אפשר TLS",
+        "enabled": "מאופשר",
+        "examples": "דוגמאות",
+        "hostname_mismatch": "x509: תעודה תקפה עבור X, לא Y:",
+        "hostname_mismatch_solution": "וודא שהשם המארח תואם ל‑SAN של התעודה או בטל אימות (לא מומלץ).",
+        "legacy_cert_error": "x509: התעודה מסתמכת על שדה Common Name הישן",
+        "legacy_cert_solution": "הוסף את שם המארח ל־Subject Alternative Names (SAN) בתעודתך.",
+        "mtls_note": "ל־TLS הדדי (mTLS), יש לספק הן תעודת לקוח והן מפתח פרטי. תעודת ה-CA משמשת לאימות תעודת השרת.",
+        "note": "הערה:",
+        "private_key_description": "הדבק את המפתח הפרטי שלך בפורמט PEM. שמור אותו בבטחה!",
+        "select_connection_type": "בחר סוג חיבור",
+        "select_tls_option": "בחר אפשרות TLS",
+        "select_verification_option": "בחר אפשרות אימות",
+        "skip_verification": "דלג על אימות (לא מאובטח)",
+        "tls_configuration": "הגדרות TLS",
+        "unknown_authority": "\"x509: תעודה נחתמה על ידי סמכות לא ידועה\":",
+        "unknown_authority_solution": "ספק את תעודת ה‑CA הנכונה שהחתימה על תעודת השרת.",
+        "verify_certificates": "אמת תעודות",
+        "verify_tls": "אמת TLS"
+      },
+      "grpc": {
+        "body": "נתוני גוף (JSON)",
+        "enable_tls": "הפעל TLS",
+        "enable_tls_description": "השתמש בחיבור מאובטח (TLS/SSL)",
+        "invert_keyword": "הפוך מילת מפתח",
+        "invert_keyword_description": "המוניטור יסומן כ־מופעל אם המפתח אינו נמצא",
+        "keyword": "מילת מפתח",
+        "keyword_description": "חפש מילת מפתח בתשובה",
+        "keyword_placeholder": "מילת מפתח (אופציונלי) לחיפוש",
+        "method_description": "רגיש לגודל אותיות",
+        "method_placeholder": "בדוק",
+        "options_title": "אפשרויות gRPC",
+        "proto_content": "תוכן Protobuf",
+        "proto_method": "שיטת פרוטובאפ",
+        "proto_service_name": "שם השירות של Protobuf",
+        "service_name_placeholder": "בריאות"
+      },
+      "http": {
+        "advanced": {
+          "accepted_status_codes": "קודי סטטוס מקובלים",
+          "ignore_tls": "התעלם מאשגי TLS/SSL עבור אתרי HTTPS",
+          "ignore_tls_description": "דלג על אימות תעודת TLS. השתמש בזה בזהירות - כך החיבורים הופכים לפחות מאובטחים.",
+          "max_redirects": "הפניות מרביות",
+          "max_redirects_description": "מספר מקסימלי של הפניות לעקוב אחריהן (0-30). הגדר ל-0 כדי להשבית הפניות.",
+          "title": "מתקדם"
+        },
+        "authentication": {
+          "auth_header": "כותרת אימות",
+          "certificate": "תעודה",
+          "certificate_placeholder": "תעודה",
+          "client_id": "מזהה לקוח",
+          "client_id_placeholder": "מזהה לקוח",
+          "client_secret": "סוד לקוח",
+          "client_secret_placeholder": "סוד לקוח",
+          "domain": "דומיין",
+          "domain_placeholder": "דומיין",
+          "form_data_body": "גוף נתוני טופס",
+          "key": "מפתח",
+          "key_placeholder": "מפתח",
+          "method_label": "שיטת אימות",
+          "method_placeholder": "בחר סוג אימות",
+          "oauth_scope": "טווח OAuth",
+          "oauth_scope_placeholder": "אופציונלי: רשימה של תחומי גישה מופרדת ברווחים",
+          "oauth_token_url": "כתובת URL של אסימון OAuth",
+          "oauth_token_url_placeholder": "כתובת אסימון OAuth",
+          "title": "אימות",
+          "workstation": "מחשב עבודה",
+          "workstation_placeholder": "מחשב קצה"
+        },
+        "options": {
+          "body": "גוף",
+          "body_encoding": "קידוד גוף",
+          "body_encoding_placeholder": "בחר קידוד גוף",
+          "form_example": "נתוני דוגמה לטופס",
+          "headers": "כותרות",
+          "json_example": "JSON דוגמה",
+          "method": "שיטה",
+          "method_placeholder": "בחר סוג ניטור",
+          "select_encoding": "בחר קידוד גוף",
+          "select_method": "בחר שיטה",
+          "text_example": "טקסט לדוגמה: כל תוכן טקסט פשוט כאן…",
+          "title": "אפשרויות HTTP",
+          "xml_example": "דוגמה ל־XML"
+        }
+      },
+      "http_json_query": {
+        "condition_label": "תנאי",
+        "expected_value_label": "ערך נדרש",
+        "json_query_label": "ביטוי שאילתת JSON",
+        "title": "ביטוי שאילתה JSON"
+      },
+      "http_keyword": {
+        "invert_keyword_description": "חפש שהמילת מפתח חסרה ולא נוכחת.",
+        "invert_keyword_label": "הפוך מילת מפתח",
+        "keyword_label": "מילת מפתח",
+        "keyword_validation_title": "אימות מילת מפתח"
+      },
+      "kafka": {
+        "add_broker": "הוסף ברוקר",
+        "auto_topic_creation_description": "אפשר למפיק ליצור את ה‑topic באופן אוטומטי אם אינו קיים",
+        "auto_topic_creation_label": "אפשר יצירת נושאים אוטומטית",
+        "brokers_description": "רשימת כתובות המתווכי Kafka (פורמט מארח:פורט)",
+        "brokers_label": "בורוקרים של Kafka",
+        "configuration_title": "הגדרות Kafka",
+        "enable_ssl_description": "השתמש בהצפנת SSL/TLS לחיבור",
+        "enable_ssl_label": "אפשר SSL/TLS",
+        "message_description": "תוכן ההודעה שיש לשלוח לנושא (מומלץ בפורמט JSON)",
+        "message_label": "הודעה",
+        "sasl_mechanism_description": "בחר את מנגנון אימות SASL",
+        "sasl_mechanism_label": "מנגנון SASL",
+        "sasl_mechanism_placeholder": "בחר מנגנון SASL",
+        "sasl_password_description": "סיסמה לאימות SASL",
+        "sasl_password_label": "סיסמת SASL",
+        "sasl_password_placeholder": "סיסמה",
+        "sasl_username_description": "שם משתמש לאימות SASL",
+        "sasl_username_label": "שם משתמש SASL",
+        "security_title": "אבטחה",
+        "topic_description": "הנושא של Kafka לשליחת הודעות אליו"
+      },
+      "mongodb": {
+        "command_description": "פקודת MongoDB לביצוע כ‑JSON. ברירת המחדל היא ping אם לא צויינה.",
+        "command_label": "פקודה (אופציונלי)",
+        "configuration_title": "הגדרות MongoDB",
+        "connection_string_description": "מחרוזת חיבור MongoDB. תומך בשני הפורמטים: הסטנדרטי (mongodb://) ורשימת DNS (mongodb+srv://).",
+        "connection_string_label": "מחרוזת חיבור",
+        "expected_value_description": "הערך המצופה להשוואה עם תוצאת נתיב JSON.",
+        "expected_value_label": "ערך צפוי (אופציונלי)",
+        "expected_value_placeholder": "ערך צפוי",
+        "json_path_description": "נתיב JSON לחילוץ ערך מהתגובה. השתמש ב-$ עבור השורש.",
+        "json_path_label": "נתיב JSON (אופציונלי)"
+      },
+      "mqtt": {
+        "check_type_json_query": "שאילתת JSON",
+        "check_type_keyword": "מילת מפתח",
+        "check_type_label": "סוג בדיקת MQTT",
+        "check_type_none": "ללא (כל הודעה)",
+        "check_type_placeholder": "בחר סוג בדיקה",
+        "configuration_title": "הגדרות MQTT",
+        "expected_value_label": "ערך צפוי",
+        "hostname_label": "שם מארח",
+        "json_path_label": "נתיב JSON",
+        "password_label": "סיסמת MQTT",
+        "password_placeholder": "סיסמה (אופציונלי)",
+        "port_label": "פורט",
+        "success_keyword_label": "מילת מפתח להצלחה ב‑MQTT",
+        "success_keyword_placeholder": "מילת מפתח המצביעה על הצלחה",
+        "username_label": "שם משתמש MQTT",
+        "username_placeholder": "שם משתמש (אופציונלי)",
+        "validation": {
+          "expected_value_required": "ערך צפוי נדרש כאשר סוג הבדיקה הוא json-query",
+          "json_path_required": "נתיב JSON נדרש כאשר סוג הבדיקה הוא json-query",
+          "success_keyword_required": "מילת מפתח הצלחה נדרשת כאשר סוג הבדיקה הוא מילת מפתח"
+        }
+      },
+      "mysql": {
+        "connection_string_examples": "דוגמאות:",
+        "connection_string_label": "מחרוזת חיבור",
+        "connection_title": "חיבור MySQL",
+        "query_label": "שאילתה"
+      },
+      "ping": {
+        "data_size": "גודל נתונים (בייטים)",
+        "host": "שם מארח / IP",
+        "title": "הגדרות פינג"
+      },
+      "postgres": {
+        "connection_string_label": "מחרוזת חיבור",
+        "connection_title": "חיבור PostgreSQL",
+        "query_label": "שאילתה"
+      },
+      "push": {
+        "url_description": "השתמש בכתובת URL זו בשירות שלך כדי לדווח על סטטוס. בצע בקשת HTTP (POST/GET) לנקודת קצה זו כדי לשלוח heartbeat.",
+        "url_title": "כתובת URL למעקב דחיפה"
+      },
+      "rabbitmq": {
+        "documentation_link": "תיעוד RabbitMQ",
+        "health_checks_description": "המעקב בודק את נקודת הקצה {{code}} בכל צומת ומחזיר UP אם צומת אחד בריא.",
+        "management_nodes_description": "הזן את כתובת ה-URL של צמתים ניהול RabbitMQ כולל פרוטוקול ומספר הפורט. דוגמה: https://node1.rabbitmq.com:15672",
+        "management_nodes_title": "צמתים ניהוליים",
+        "node_url_label": "כתובת הצומת",
+        "password_description": "סיסמה לאימות ממשק הניהול של RabbitMQ",
+        "setup_information_description": "לשימוש במוניטור RabbitMQ, עליך להפעיל את תוסף הניהול במערכת RabbitMQ שלך. לקבלת מידע נוסף, אנא עיין בתיעוד של RabbitMQ.",
+        "setup_information_title": "מידע על ההתקנה",
+        "title": "הגדרות RabbitMQ",
+        "username_description": "שם המשתמש לאימות ממשק ניהול RabbitMQ"
+      },
+      "redis": {
+        "ca_certificate_description": "תעודת CA ראשית בפורמט PEM. נדרשת לאימות TLS תקין עם תעודות חתומות בעצמן.",
+        "ca_certificate_label": "תעודת CA (אופציונלי)",
+        "client_certificate_description": "תעודת לקוח בפורמט PEM. נדרשת לאימות TLS הדדי.",
+        "client_certificate_label": "תעודת לקוח (אופציונלי)",
+        "client_key_description": "מפתח פרטי של הלקוח בפורמט PEM. חייב להינתן יחד עם תעודת הלקוח.",
+        "client_key_label": "מפתח פרטי של הלקוח (אופציונלי)",
+        "connection_string_description": "פורמט מחרוזת חיבור ל-Redis: {{redis}} או {{rediss}} עבור TLS",
+        "connection_string_label": "מחרוזת חיבור",
+        "ignore_tls_description": "דלג על אימות תעודת TLS (לא מומלץ לסביבת ייצור)",
+        "ignore_tls_label": "התעלם משגיאות TLS/SSL",
+        "title": "הגדרות Redis"
+      },
+      "shared": {
+        "intervals": {
+          "heartbeat_retry": "מרווח ניסיון חוזר של Heartbeat (ניסיון חוזר כל {{seconds}} שניות)",
+          "max_retries_description": "מספר הנסיונות המקסימלי לפני שהשירות יוגדר כלא זמין ותישלח התראה",
+          "request_timeout": "פסקת זמן הבקשה (הפסקת זמן אחרי {{seconds}} שניות)",
+          "resend_notification": "שלח התראה מחדש אם כשל X פעמים רצופות (השליחה מחדש מבוטלת)"
+        },
+        "notifications": {
+          "add_notifier": "הוסף מתווך",
+          "new_notifier": "+ מדווח חדש",
+          "no_channels": "לא נמצאו ערוצי התראות, צור אחד תחילה",
+          "no_channels_available": "אין ערוצים זמינים",
+          "select_channel": "בחר ערוץ",
+          "select_notifier_placeholder": "בחר נוטיפייר",
+          "selected_channels": "ערוצי התראות נבחרים",
+          "title": "ערוצי התראות"
+        },
+        "proxy": {
+          "add_proxy": "הוסף פרוקסי",
+          "new_proxy": "+ פרוקסי חדש",
+          "no_proxy": "ללא פרוקסי",
+          "remove_proxy": "הסר פרוקסי",
+          "select_proxy_placeholder": "בחר פרוקסי",
+          "selected_proxy": "פרוקסי נבחר",
+          "title": "פרוקסי"
+        },
+        "tags": {
+          "label": "תגיות",
+          "no_tags": "אין תגיות זמינות",
+          "placeholder": "בחר תגיות"
+        }
+      },
+      "snmp": {
+        "community_description": "מחרוזת קהילה של SNMP לשם אימות (כמו סיסמה)",
+        "community_label": "מחרוזת קהילה",
+        "expected_value_description": "הערך להשוואה. השאר ריק כדי לדלג על אימות.",
+        "expected_value_label": "הערך הצפוי",
+        "host_description": "שם המארח או כתובת ה‑IP של התקן SNMP",
+        "host_label": "מארח",
+        "json_path_description": "ביטוי JSONPath לשליפת ערך מהתגובה (השתמש ב-\"$\" לערך גולמי)",
+        "json_path_label": "נתיב JSON",
+        "json_path_operator_description": "כיצד להשוות את הערך המופק לערך הצפוי",
+        "json_path_operator_eq": "שווה",
+        "json_path_operator_ge": "גדול או שווה",
+        "json_path_operator_gt": "גדול מ",
+        "json_path_operator_label": "תנאי",
+        "json_path_operator_le": "קטן או שווה",
+        "json_path_operator_lt": "פחות מ-",
+        "json_path_operator_ne": "לא שווה",
+        "oid_description": "מזהה עצם SNMP לשאילתה (למשל, 1.3.6.1.2.1.1.1.0 לתיאור המערכת)",
+        "oid_label": "OID (מזהה עצם)",
+        "port_description": "הפורט SNMP (ברירת מחדל: 161)",
+        "port_label": "פורט",
+        "snmp_version_description": "גרסת הפרוטוקול SNMP שיש להשתמש בה",
+        "snmp_version_label": "גרסת SNMP",
+        "title": "הגדרות SNMP",
+        "value_validation_label": "אימות ערך (אופציונלי)"
+      },
+      "sqlserver": {
+        "allowed_statements_description": "SELECT, SHOW, DESCRIBE, EXPLAIN, WITH ו-VALUES.",
+        "allowed_statements_label": "ההצהרות המותרות:",
+        "connection_string_label": "מחרוזת חיבור",
+        "query_description": "שאילתה לביצוע לבדיקה של בריאות. השאר ריק כדי להשתמש ברירת המחדל",
+        "query_label": "שאילתה",
+        "title": "חיבור ל-Microsoft SQL Server"
+      },
+      "tcp": {
+        "host": "מארח",
+        "port": "פורט",
+        "title": "חיבור TCP"
+      },
+      "type": {
+        "dns": "מעקב DNS",
+        "docker": "קונטיינר Docker",
+        "grpc": "מעקב מילות מפתח gRPC",
+        "http": "מעקב HTTP(S)",
+        "kafka": "מעקב מפיק Kafka",
+        "mongodb": "מעקב מסד נתונים MongoDB",
+        "mqtt": "מעקב בורקר MQTT",
+        "mysql": "מעקב MySQL/MariaDB",
+        "ping": "מנטר Ping (ICMP)",
+        "postgres": "מניטור מסד נתונים PostgreSQL",
+        "push": "מנטר דחיפה (שירות חיצוני קורא לכתובת URL שנוצרה)",
+        "rabbitmq": "מוניטור RabbitMQ",
+        "redis": "מעקב מסד נתונים Redis",
+        "snmp": "מוניטור SNMP",
+        "sqlserver": "מעקב Microsoft SQL Server",
+        "tcp": "מעקב פורט TCP"
+      }
+    },
+    "page": {
+      "description": "צור מעקב חדש כדי להתחיל לעקוב אחר ביצועי האתר שלך.",
+      "edit_title": "ערוך ניטור:",
+      "new_title": "מעקב חדש"
+    },
+    "title": "מניטורים",
+    "toasts": {
+      "deleted": "ניטור נמחק",
+      "paused": "המעקב מושהה",
+      "reset_success": "נתוני המעקב נרעננו בהצלחה",
+      "resumed": "המעקב נמשך"
+    },
+    "view": {
+      "buttons": {
+        "clone": "שכפל",
+        "delete": "מחק",
+        "edit": "ערוך",
+        "pause": "השהה",
+        "reset_data": "איפוס נתונים",
+        "resume": "המשך"
+      },
+      "certificate": "תעודה",
+      "check_every": "בדוק כל",
+      "current_status": "המצב הנוכחי",
+      "dialogs": {
+        "delete": {
+          "description": "פעולה זו אינה ניתנת לביטול. פעולה זו תמחק את המעקב ואת כל המידע הקשור אליו לצמיתות.",
+          "title": "האם אתה בטוח לגמרי?"
+        },
+        "pause": {
+          "description": "האם אתה בטוח שברצונך להשהות?",
+          "title": "אישור"
+        },
+        "reset": {
+          "description": "פעולה זו תמחק לצמיתות את כל היסטוריית הדופק ואת סטטיסטיקת זמינות של המוניטור. המוניטור יופיע כאילו נוצר כעת. לא ניתן לבטל פעולה זו.",
+          "title": "איפוס נתוני המוניטור"
+        }
+      },
+      "expiring_soon": "פוג בקרוב",
+      "for": "ל",
+      "live_status": "מצב חי",
+      "monitor_for": "מעקב אחר",
+      "no_certificate_data": "אין נתוני תעודה",
+      "seconds": "שניות",
+      "stats": {
+        "last_24_hours": "24 השעות האחרונות",
+        "last_30_days": "30 הימים האחרונים",
+        "last_365_days": "365 ימים אחרונים",
+        "last_7_days": "7 ימים אחרונים"
+      },
+      "status": {
+        "down": "לא זמין",
+        "maintenance": "תחזוקה",
+        "paused": "השהיה",
+        "up": "מופעל"
+      }
+    }
+  },
+  "navigation": {
+    "maintenance": "תחזוקה",
+    "monitors": "מעקבים",
+    "notification_channels": "ערוצי התראות",
+    "proxies": "פרוקסי",
+    "settings": "הגדרות",
+    "status_pages": "דפי סטטוס",
+    "tags": "תגיות"
+  },
+  "notifications": {
+    "actions": {
+      "test": "בדיקה",
+      "testing": "בבדיקה..."
+    },
+    "aria": {
+      "delete": "מחק {{name}}"
+    },
+    "confirm_delete_description": "פעולה זו אינה ניתנת לביטול. פעולה זו תמחק את המודיע \"{{name}}\" לצמיתות ותסיר אותו מכל המנטרים שמשתמשים בו.",
+    "create_title": "צור מתווך",
+    "edit_channel_title": "ערוך ערוץ התראות",
+    "edit_title": "ערוך משגר התראות",
+    "empty_state": {
+      "action": "צור ערוץ התראות הראשון שלך",
+      "description": "התחילו ביצירת ערוץ התראות הראשון שלכם לשליחת התראות לצוות שלכם.",
+      "title": "לא נמצאו ערוצי התראות"
+    },
+    "form": {
+      "discord": {
+        "bot_display_name_description": "השם שיופיע כשולח הודעות ב‑Discord.",
+        "bot_display_name_label": "שם תצוגה של הבוט",
+        "custom_message_prefix_description": "קידומת אופציונלית שתתווסף בתחילת כל ההודעות.",
+        "custom_message_prefix_label": "קידומת הודעה מותאמת אישית",
+        "custom_message_prefix_placeholder": "אופציונלי: הוסף קידומת להודעתך",
+        "forum_post_name_description": "שם הפוסט החדש שייווצר.",
+        "forum_post_name_label": "שם הפוסט בפורום",
+        "forum_post_name_placeholder": "הזן שם הפוסט",
+        "sending_message_to_channel": "שלח לערוץ",
+        "sending_message_to_description": "בחר היכן לשלוח הודעות Discord.",
+        "sending_message_to_label": "שולח הודעה ל־",
+        "sending_message_to_new_forum_post": "שלח לפוסט חדש בפורום",
+        "sending_message_to_placeholder": "בחר סוג הודעה",
+        "sending_message_to_thread": "שלח לאשכול",
+        "setup_webhook_description_1": "קבל את כתובת ה-Webhook שלך מתוך הגדרות השרת של Discord → אינטגרציות → Webhooks.",
+        "setup_webhook_description_2": "צור webhook חדש והעתק את ה‑URL. וודא שבחרת את הערוץ הנכון.",
+        "setup_webhook_title": "הגדרת Webhook ל-Discord",
+        "thread_id_description_1": "הפעל מצב מפתח ב־Discord: הגדרות משתמש → מתקדם → מצב מפתח",
+        "thread_id_description_2": "הקלק לחיצה ימנית על התור או הפוסט ובחר \"העתק מזהה התור\" או \"העתק מזהה הערוץ\"",
+        "thread_id_description_title": "המזהה של התדר או הפוסט בפורום שאליו יישלחו ההודעות",
+        "thread_id_label": "מזהה שרשור",
+        "thread_id_placeholder": "הזן מזהה סבך או פוסט",
+        "webhook_url_label": "כתובת Webhook של Discord"
+      },
+      "google_chat": {
+        "more_info_about_webhooks": "מידע נוסף על Webhooks",
+        "webhook_url_label": "כתובת Webhook של Google Chat"
+      },
+      "gotify": {
+        "application_token_description": "אסימון היישום שלך ב‑Gotify. תוכל למצוא אותו בממשק הווב של Gotify תחת Apps.",
+        "application_token_label": "טוקן יישום",
+        "custom_message_description": "תבנית הודעה מותאמת אישית. משתנים זמינים",
+        "custom_message_description_2": "השאר ריק כדי להשתמש במסר ברירת המחדל.",
+        "custom_message_label": "הודעה מותאמת",
+        "custom_title_description": "שם מותאם אישית להודעה. משתנים זמינים: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. השאר ריק כדי להשתמש בשם ברירת המחדל \"Peekaping\".",
+        "custom_title_label": "כותרת מותאמת",
+        "learn_more_label": "למידע נוסף על Gotify וכיצד להגדיר אותו ב:",
+        "note_description": "עליך להפעיל שרת Gotify כדי להשתמש באינטגרציה זו.",
+        "note_label": "הערה:",
+        "priority_0": "הכי נמוך",
+        "priority_1": "נמוך מאוד",
+        "priority_10": "הגבוה ביותר",
+        "priority_2": "נמוך",
+        "priority_3": "מתחת לרגיל",
+        "priority_4": "רגיל",
+        "priority_5": "מעל הרגיל",
+        "priority_6": "בינוני",
+        "priority_7": "גבוה",
+        "priority_8": "גבוה מאוד (ברירת מחדל)",
+        "priority_9": "חירום",
+        "priority_description": "עדיפות ההודעה (0-10). מספרים גבוהים יותר מצביעים על עדיפות גבוהה יותר. ברירת המחדל היא 8.",
+        "priority_label": "עדיפות",
+        "priority_placeholder": "בחר עדיפות",
+        "server_url_description": "כתובת ה-URL של שרת Gotify שלך. ודא שהיא ניתנת לגישה מהיישום הזה.",
+        "server_url_label": "כתובת שרת"
+      },
+      "grafana_oncall": {
+        "grafana_oncall_url_description": "כתובת ה־Webhook מהאינטגרציה של Grafana OnCall שלך. תוכל למצוא אותה באינסטנס Grafana OnCall שלך תחת התראות & IRM > IRM > אינטגרציות > Webhook.",
+        "grafana_oncall_url_label": "כתובת Grafana OnCall",
+        "learn_more_label": "למידע נוסף על Webhooks של Grafana OnCall"
+      },
+      "line": {
+        "channel_access_token_description": "ניתן לקבל את אסימון הגישה של הערוץ שלך מה",
+        "channel_access_token_description_2": "עבור אל הגדרות הערוץ שלך וחפש",
+        "channel_access_token_label": "אסימון גישה לערוץ (ארוך טווח)",
+        "channel_access_token_placeholder": "הזן את אסימון הגישה של ערוץ LINE",
+        "template_description": "התאם את תצורת ההודעה. משתנים זמינים",
+        "template_label": "תבנית הודעה",
+        "template_placeholder": "הזן תבנית הודעה מותאמת אישית",
+        "user_id_description": "תוכל למצוא את מזהה המשתמש שלך ב-",
+        "user_id_description_2": "עבור להגדרות הערוץ שלך וחפש",
+        "user_id_label": "מזהה המשתמש שלך",
+        "user_id_placeholder": "הזן את מזהה המשתמש שלך ב‑LINE"
+      },
+      "matrix": {
+        "access_token_description": "אסימון הכניסה של Matrix שלך לאימות",
+        "access_token_label": "אסימון גישה",
+        "custom_message_description": "תבנית הודעה מותאמת אישית. משתנים זמינים",
+        "custom_message_label": "הודעה מותאמת אישית",
+        "homeserver_url_description": "כתובת ה‑URL של שרת הבית Matrix שלך",
+        "homeserver_url_label": "כתובת השרת הבית",
+        "internal_room_id_description": "ה-ID הפנימי של החדר שאליו יישלחו ההתראות. הוא צריך להתחיל ב-\"!\" ולראות כך: !roomid:matrix.org",
+        "internal_room_id_label": "מזהה חדר פנימי",
+        "setup_instructions_1": "צור חשבון Matrix עבור הבוט שלך (או השתמש בחשבונך הקיים)",
+        "setup_instructions_2": "צור או הצטרף לחדר שבו ברצונך לקבל התראות",
+        "setup_instructions_3": "קבל את האסימון שלך על ידי ביצוע בקשת כניסה",
+        "setup_instructions_4": "התגובה תכיל שדה access_token – השתמש בו כ‑Access Token שלך",
+        "setup_instructions_5": "מצא את מזהה הפנימי של החדר שלך (מתחיל ב־!) בהגדרות החדר של לקוח Matrix",
+        "setup_instructions_label": "הוראות הגדרה"
+      },
+      "mattermost": {
+        "channel_name_description": "הערוץ שבו יישלחו ההתראות. השאר ריק כדי להשתמש בערוץ ברירת המחדל שהוגדר ב‑webhook.",
+        "channel_name_label": "שם הערוץ",
+        "icon_emoji_cheat_sheet_label": "גליון עזר לאימוג'ים",
+        "icon_emoji_description": "אימוג'י לשימוש כסמל. ניתן לציין שני אימוג'ים מופרדים במרחב (הראשון למצב זמין, השני למצב לא זמין).",
+        "icon_emoji_label": "איקון אמוג'י",
+        "icon_url_description": "כתובת URL של תמונה לשימוש כאיקון להודעת התראה.",
+        "icon_url_label": "כתובת סמל",
+        "learn_more_label": "למידע נוסף על Webhooks",
+        "message_template_description": "התאם את תבנית ההודעה. משתנים זמינים",
+        "message_template_label": "תבנית הודעה",
+        "use_message_template_description": "אפשר להשתמש בתבנית הודעה מותאמת אישית ופורמט.",
+        "use_message_template_label": "השתמש בתבנית הודעה",
+        "username_description": "השם המשתמש שיופיע כמשתמש השולח של ההודעה.",
+        "webhook_url_label": "כתובת Webhook"
+      },
+      "ntfy": {
+        "authentication_type_basic": "אימות בסיסי",
+        "authentication_type_basic_description": "השתמש בשם משתמש וסיסמה לאימות בסיסי.",
+        "authentication_type_label": "סוג אימות",
+        "authentication_type_none": "ללא אימות",
+        "authentication_type_none_description": "אימות לא נדרש. מתאים לשרתים ציבוריים של NTFY.",
+        "authentication_type_placeholder": "בחר סוג אימות",
+        "authentication_type_token": "אימות אסימון",
+        "authentication_type_token_description": "השתמש בטוקן גישה לאימות.",
+        "custom_message_description": "תוכן הודעה מותאם אישית. משתנים זמינים",
+        "custom_message_label": "הודעה מותאמת אישית",
+        "password_required": "סיסמה נדרשת לאימות בסיסי",
+        "priority_1": "מינימלי (הכי נמוך)",
+        "priority_2": "נמוך",
+        "priority_3": "ברירת מחדל",
+        "priority_4": "גבוה",
+        "priority_5": "חירום (הגבוה ביותר)",
+        "priority_description": "רמת העדיפות של ההתרעה. העדיפויות הגבוהות עשויות להפעיל התנהגויות שונות בצד הלקוח.",
+        "priority_label": "עדיפות",
+        "priority_placeholder": "בחר עדיפות",
+        "server_url_description": "כתובת ה‑URL של השרת NTFY שלך. השתמש ב‑https://ntfy.sh עבור השרת הציבורי.",
+        "server_url_label": "כתובת השרת",
+        "tags_description": "תגיות מופרדות בפסיקים לסיווג הודעות. משתנים זמינים",
+        "tags_label": "תגיות",
+        "title_description": "כותרת מותאמת אישית להודעה. משתנים זמינים",
+        "title_label": "כותרת מותאמת",
+        "token_description": "אסימון הגישה שלך ל־NTFY לאימות.",
+        "token_label": "אסימון גישה",
+        "token_required": "אסימון נדרש לאימות באמצעות אסימון",
+        "topic_description": "שם הנושא עבור התראותיך. זה יהיה הערוץ שבו נשלחות התראות.",
+        "topic_label": "נושא",
+        "username_required": "שם משתמש נדרש לאימות בסיסי"
+      },
+      "opsgenie": {
+        "api_key_label": "מפתח API",
+        "more_info_about_api_keys_label": "מידע נוסף על מפתחות API",
+        "priority_1": "בקריטי",
+        "priority_2": "גבוה",
+        "priority_3": "בינוני",
+        "priority_4": "נמוך",
+        "priority_5": "מידע",
+        "priority_description": "קבע את רמת העדיפות להתרעות. ברירת מחדל היא P3 (בינוני).",
+        "priority_label": "עדיפות",
+        "region_description": "בחר את אזור Opsgenie שלך. זה קובע את נקודת הקצה של ה‑API שישמש.",
+        "region_label": "אזור",
+        "region_placeholder": "בחר אזור"
+      },
+      "pagerduty": {
+        "auto_resolve_acknowledge": "אישור אוטומטי",
+        "auto_resolve_acknowledge_description": "אשר את האירוע באופן אוטומטי",
+        "auto_resolve_description": "בחר איזו פעולה לבצע כאשר המוניטור חוזר לפעילות",
+        "auto_resolve_do_nothing": "אין לעשות כלום",
+        "auto_resolve_do_nothing_description": "אין פעולה בסטטוס UP",
+        "auto_resolve_label": "פתרון אוטומטי או הכרה",
+        "auto_resolve_placeholder": "בחר את ההתנהגות של פתרון אוטומטי",
+        "auto_resolve_resolve": "פתרון אוטומטי",
+        "auto_resolve_resolve_description": "פתור את האירוע אוטומטית",
+        "integration_key_description": "למד כיצד לקבל את מפתח האינטגרציה שלך",
+        "integration_key_label": "מפתח אינטגרציה",
+        "integration_key_placeholder": "הזן את מפתח האינטגרציה של PagerDuty",
+        "integration_url_description": "כתובת הקצה של API האירועים v2 של PagerDuty. ברירת המחדל היא הקצה הסטנדרטי.",
+        "integration_url_label": "כתובת אינטגרציה",
+        "learn_more_label": "תיעוד PagerDuty",
+        "priority_critical": "קריטי",
+        "priority_description": "רמת חומרה לאירועי PagerDuty. ברירת המחדל היא \"warning\".",
+        "priority_error": "שגיאה",
+        "priority_info": "מידע",
+        "priority_label": "עדיפות",
+        "priority_placeholder": "בחר רמת עדיפות",
+        "priority_warning": "אזהרה"
+      },
+      "pagertree": {
+        "authentication_token_description": "אסימון אימות אופציונלי להגברת אבטחה. זה יישלח בכותרת pagertree-token.",
+        "authentication_token_label": "אסימון אימות (אופציונלי)",
+        "authentication_token_placeholder": "הזן אסימון אימות אם נדרש",
+        "auto_resolve_alerts_description": "פתרון אוטומטי של התראות PagerTree כאשר המוניטור מתאושש",
+        "auto_resolve_alerts_label": "פתרון אוטומטי של התראות",
+        "how_to_get_integration_url_label": "כיצד לקבל את כתובת האינטגרציה",
+        "integration_url_description": "הזן את כתובת ה-Webhook של אינטגרציית PagerTree שלך.",
+        "integration_url_label": "כתובת Webhook של PagerTree",
+        "urgency_level_critical": "קריטי",
+        "urgency_level_description": "הגדר את רמת הדחיפות ברירת המחדל עבור התראות שנשלחות ל-PagerTree",
+        "urgency_level_high": "גבוה",
+        "urgency_level_label": "רמת דחיפות",
+        "urgency_level_low": "נמוך",
+        "urgency_level_medium": "בינוני",
+        "urgency_level_placeholder": "בחר רמת דחיפות",
+        "urgency_level_silent": "שקט"
+      },
+      "pushbullet": {
+        "access_token": "אסימון גישה",
+        "access_token_description": "אסימון הגישה שלך ל־Pushbullet. קבל אותו מ־",
+        "access_token_label": "מפתח גישה",
+        "access_token_link": "הגדרות Pushbullet",
+        "channel_tag": "תגית ערוץ (אופציונלי)",
+        "channel_tag_description": "שלח התראה לערוץ Pushbullet במקום למכשירים",
+        "channel_tag_label": "תגית ערוץ (אופציונלי)",
+        "custom_message_template_description": "התאם את גוף ההתרעה באמצעות משתני תבנית:",
+        "custom_message_template_heartbeat_ping": "זמן תגובה",
+        "custom_message_template_heartbeat_time": "חותמת זמן",
+        "custom_message_template_label": "תבנית הודעה מותאמת אישית (אופציונלי)",
+        "custom_message_template_monitor_url": "כתובת המעקב",
+        "custom_message_template_msg": "הודעת התראה",
+        "custom_message_template_name": "שם המוניטור",
+        "custom_message_template_placeholder": "מניטור: {{ name }}\nסטטוס: {{ status }}\nהודעה: {{ msg }}",
+        "custom_message_template_status": "מצב נוכחי",
+        "device_id": "מזהה המכשיר (אופציונלי)",
+        "device_id_description": "שלח התראה למכשיר מסוים. השאירו ריק כדי לשלוח לכל המכשירים. ניתן למצוא מזהי מכשירים באמצעות ה-",
+        "device_id_label": "מזהה מכשיר (אופציונלי)",
+        "device_id_link": "API של Pushbullet",
+        "more_info_on": "מידע נוסף על:"
+      },
+      "pushover": {
+        "application_token_label": "אסימון יישום",
+        "application_token_placeholder": "הזן את אסימון האפליקציה של Pushover",
+        "device_description": "השאר ריק כדי לשלוח לכל המכשירים",
+        "device_label": "התקן",
+        "device_placeholder": "שם מכשיר (אופציונלי)",
+        "message_title_description": "השאר ריק כדי להשתמש בכותרת ברירת המחדל",
+        "message_title_label": "כותרת ההודעה",
+        "message_title_placeholder": "כותרת הודעה מותאמת אישית (אופציונלי)",
+        "message_ttl_description": "זמן חיים בשניות (0 = ללא תפוגה)",
+        "message_ttl_label": "TTL ההודעה",
+        "more_info_label": "עוד מידע על:",
+        "more_info_label_2": "ניתן ליצור יישום ולקבל את אסימון ה‑API שלך ב־",
+        "more_info_label_3": "מפתח המשתמש שלך נמצא ב-",
+        "notification_sound_down_description": "צליל בעת כשל במוניטור",
+        "notification_sound_down_label": "צליל התראה - נופל",
+        "notification_sound_down_placeholder": "בחר צליל",
+        "notification_sound_up_description": "צליל כשמוניטור חוזר לפעילות",
+        "notification_sound_up_label": "צליל התראה - עלייה",
+        "notification_sound_up_placeholder": "בחר צליל",
+        "priority_1": "נמוך",
+        "priority_2": "נמוך",
+        "priority_3": "רגיל",
+        "priority_4": "גבוה",
+        "priority_5": "חירום",
+        "priority_description": "רמת עדיפות הודעה",
+        "priority_label": "עדיפות",
+        "priority_placeholder": "בחר עדיפות",
+        "sound_alien": "חייזר",
+        "sound_bike": "אופניים",
+        "sound_bugle": "בל",
+        "sound_cashregister": "מכונת קופה",
+        "sound_classical": "קלאסי",
+        "sound_climb": "העלאה",
+        "sound_cosmic": "קוסמי",
+        "sound_echo": "השתק",
+        "sound_falling": "נפילה",
+        "sound_gamelan": "גמלאן",
+        "sound_incoming": "הנכנס",
+        "sound_intermission": "הפסקה",
+        "sound_magic": "קסם",
+        "sound_mechanical": "מכני",
+        "sound_none": "ללא",
+        "sound_persistent": "עקשן",
+        "sound_pianobar": "פיאנו בר",
+        "sound_pushover": "Pushover (ברירת מחדל)",
+        "sound_siren": "שירן",
+        "sound_spacealarm": "תרועה בחלל",
+        "sound_tugboat": "מרכוב קוּד",
+        "sound_updown": "מעלה-יורד",
+        "sound_vibrate": "רעיד",
+        "user_key_label": "מפתח משתמש",
+        "user_key_placeholder": "הזן את מפתח המשתמש שלך ל‑Pushover"
+      },
+      "signal": {
+        "custom_message_description": "תבנית הודעה מותאמת אישית. משתנים זמינים",
+        "custom_message_label": "הודעה מותאמת אישית",
+        "important_description": "לא ניתן לערבב קבוצות ומספרים במקבלי התראות!",
+        "important_label": "חשוב:",
+        "more_info_label": "ניתן לבדוק את הקישור הזה כדי לראות כיצד להגדיר אחד:",
+        "note_description": "עליך להשתמש בלקוח Signal עם REST API.",
+        "note_label": "הערה:",
+        "number_description": "מספר הטלפון של חשבון Signal שלך (מספר השולח).",
+        "number_label": "מספר",
+        "post_url_description": "כתובת ה-URL של שרת ה-REST API של Signal CLI שלך.",
+        "post_url_label": "כתובת POST",
+        "recipients_description": "רשימה של מספרי טלפון מופרדת בפסיקים לשליחת התראות אליהם.",
+        "recipients_label": "נמענים"
+      },
+      "slack": {
+        "channel_name_description": "הערוץ שאליו יישלח ההודעה. אם לא צויין, ההודעה תישלח לערוץ ברירת המחדל שהוגדר ב-webhook.",
+        "channel_name_description_2": "ניתן להחליף את הערוץ כבררת מחדל על ידי ציון שם ערוץ (לדוגמה, #alerts) או משתמש (לדוגמה, @username).",
+        "channel_name_label": "שם הערוץ",
+        "channel_notify_description": "כאשר מופעל, ההודעה תגרום להתרעות לכל חברי הערוץ. יש להשתמש בזה בזהירות כדי למנוע ספאם.",
+        "channel_notify_label": "הודע לערוץ",
+        "icon_emoji_cheat_sheet_label": "גליון קיצורי Emoji",
+        "icon_emoji_description": "אימוג'י שישמש כאייקון להודעה הזו. חייב להיות בפורמט :emoji_name:",
+        "icon_emoji_label": "אימוג'י סמל",
+        "message_format_description": "שלח הודעות עשירות",
+        "message_format_description_2": "אפשר לשלוח הודעות עם עיצוב עשיר, קבצים מצורפים והצגה חזותית משופרת.",
+        "message_format_label": "פורמט הודעה",
+        "username_description": "שם המשתמש שיופיע כמשתמש המשלח. אם לא צוין, ישמש שם הבוט כברירת מחדל.",
+        "webhook_url_description": "כתובת ה‑Webhook מהאינטגרציה של Slack שלך. תוכל למצוא זאת ב‑Slack שלך תחת Integrations > Webhooks.",
+        "webhook_url_label": "כתובת Webhook"
+      },
+      "smtp": {
+        "custom_body_label": "גוף מותאם אישית",
+        "custom_description": "יכולת תבנית מושגת באמצעות שפת התבניות <b>Liquid</b>.",
+        "custom_description_2": "אנא עיין בתיעוד לקבלת הוראות שימוש.",
+        "custom_description_3": "משתנים זמינים:",
+        "custom_description_4": "הודעת התראה",
+        "custom_description_5": "שם השירות",
+        "custom_description_6": "סטטוס שירות (מופעל/כבוי/התראות פג תוקף תעודה)",
+        "custom_subject_label": "נושא מותאם",
+        "smtp_from_label": "מאת (דוא״ל של השולח)",
+        "smtp_host_description": "הזן את שם המארח של השרת אליו ברצונך להתחבר, או localhost אם כוונתך להשתמש בסוכן העברת דואר מוגדר מקומית",
+        "smtp_host_label": "שרת SMTP",
+        "smtp_password_placeholder": "סיסמת SMTP",
+        "smtp_port_label": "פורט",
+        "smtp_to_label": "אל (כתובת דוא\"ל של הנמען)",
+        "smtp_username_placeholder": "שם משתמש SMTP"
+      },
+      "telegram": {
+        "auto_get_label": "קבלת אוטומטית",
+        "bot_token_description": "קבל את אסימון הבוט שלך מ־",
+        "bot_token_label": "טוקן בוט",
+        "chat_id_description": "ניתן לקבל את מזהה השיחה שלך על ידי שליחת הודעה לבוט ולחיצה על \"Auto Get\" למעלה, או באופן ידני דרך API של טלגרם.",
+        "chat_id_description_2": "כדי לקבל את זה ידנית, בקר ב-",
+        "chat_id_description_3": "ראה",
+        "chat_id_description_4": "תיעוד טלגרם",
+        "chat_id_description_5": "למידע נוסף.",
+        "chat_id_label": "מזהה צ'אט",
+        "chat_id_not_found": "Chat ID לא נמצא בעדכון האחרון.",
+        "failed_to_fetch_chat_id": "קבלת מזהה הצ'אט נכשלה",
+        "message_thread_id_description": "אופציונלי. משמש לשליחת הודעות לנושא מסוים בתוך קבוצת סופר-פורום.",
+        "message_thread_id_label": "מזהה קטע שיחה",
+        "no_updates_found": "לא נמצאו עדכונים. אנא שלח הודעה לבוט שלך תחילה.",
+        "protect_content_description": "אם מופעל, תוכן ההודעה יהיה מוגן מהעברה ושמירה.",
+        "protect_content_label": "הגן על התוכן",
+        "send_silently_description": "במידה ופעיל, ההודעות ישלחו בשקט (המשתמשים יקבלו התראה ללא קול).",
+        "send_silently_label": "שלח בשקט",
+        "server_url_description": "ברירת המחדל היא",
+        "server_url_description_2": "ניתן להשתמש בשרת מותאם אישית. ראה",
+        "server_url_description_3": "כאן",
+        "server_url_description_4": "למידע נוסף.",
+        "server_url_label": "כתובת שרת טלגרם",
+        "template_description": "התאם את תבנית ההודעה. משתנים זמינים",
+        "template_label": "תבנית הודעה",
+        "template_parse_mode_description": "בחר כיצד ינתח את ההודעה. ראה",
+        "template_parse_mode_description_2": "מסמכי עיצוב Telegram",
+        "template_parse_mode_description_3": "לפרטים נוספים.",
+        "template_parse_mode_label": "מצב פענוח",
+        "template_parse_mode_placeholder": "בחר מצב פענוח",
+        "template_placeholder": "הזן תבנית הודעה מותאמת אישית",
+        "use_template_description": "אפשר להשתמש בתבנית הודעה מותאמת אישית ובפורמט.",
+        "use_template_label": "השתמש בתבנית הודעה"
+      },
+      "webhook": {
+        "additional_headers_description": "הוסף כותרות HTTP מותאמות אישית לבקשת ה‑Webhook",
+        "additional_headers_label": "כותרות נוספות",
+        "custom_body_description": "התאם את פורמט גוף הבקשה. משתנים זמינים",
+        "custom_body_label": "גוף מותאם אישית",
+        "post_url_description": "כתובת ה‑URL של נקודת הקצה של ה‑webhook שאליה יישלחו התראות.",
+        "post_url_label": "כתובת POST",
+        "request_body_description_custom": "הגדר את פורמט גוף הבקשה המותאם אישית שלך למטה.",
+        "request_body_description_form_data": "התוכן יישלח כ-multipart/form-data. ניתן לפענח אותו באמצעות <strong>json_decode($_POST['data'])</strong> ב-PHP.",
+        "request_body_description_json": "התוכן יישלח בפורמט JSON עם כותרת 'application/json'.",
+        "request_body_label": "גוף הבקשה",
+        "request_body_placeholder": "בחר סוג תוכן"
+      }
+    },
+    "important": "התראות חשובות",
+    "important_notifications": "התראות חשובות",
+    "labels": {
+      "friendly_name": "שם ידידותי",
+      "type": "סוג המתריע"
+    },
+    "messages": {
+      "create_failed": "יצירת המודיע נכשלה",
+      "created_success": "ההתרעה נוצרה בהצלחה",
+      "error_loading_notifier": "שגיאה בטעינת המודיע",
+      "test_failed": "שליחת הודעת בדיקה נכשלה",
+      "test_success": "הודעה ניסוי נשלחה בהצלחה",
+      "update_failed": "נכשל לעדכן את המתריע",
+      "updated_success": "המתוור עודכן בהצלחה"
+    },
+    "new": {
+      "title": "ערוץ התראות חדש"
+    },
+    "no_important": "לא נמצאו הודעות חשובות.",
+    "placeholders": {
+      "select_type": "בחר את סוג המתריע"
+    },
+    "search_placeholder": "חפש ערוצי התראות לפי שם..."
+  },
+  "proxies": {
+    "delete_dialog": {
+      "description": "לא ניתן לבטל פעולה זו. הפרוקסי {{host}}:{{port}} ימחק לצמיתות.",
+      "title": "האם אתה בטוח לגמרי?"
+    },
+    "edit": {
+      "page_name": "ערוך פרוקסי"
+    },
+    "empty_list": {
+      "action_text": "צור את הפרוקסי הראשון שלך",
+      "text": "התחל ביצירת הפרוקסי הראשון שלך לשימוש במעקביך.",
+      "title": "לא נמצאו פרוקסי"
+    },
+    "form": {
+      "auth_label": "השרת פרוקסי דורש אימות",
+      "port_placeholder": "פורט",
+      "protocol_label": "פרוטוקול פרוקסי",
+      "protocol_placeholder": "בחר פרוטוקול פרוקסי",
+      "server_label": "שרת פרוקסי",
+      "server_placeholder": "כתובת השרת",
+      "user": "משתמש"
+    },
+    "messages": {
+      "create_failed": "שגיאה ביצירת פרוקסי",
+      "created_success": "פרוקסי נוצר בהצלחה",
+      "error_loading_proxy": "שגיאה בטעינת פרוקסי",
+      "update_failed": "נכשל בעדכון הפרוקסי",
+      "updated_success": "הפרוקסי עודכן בהצלחה"
+    },
+    "new": {
+      "page_name": "פרוקסי חדש"
+    },
+    "page_name": "פרוקסי",
+    "search_label": "חיפוש",
+    "search_placeholder": "חפש פרוקסי לפי שם מארח..."
+  },
+  "security": {
+    "enable_2fa": {
+      "form": {
+        "authenticator_code_label": "קוד אימות",
+        "authenticator_code_placeholder": "הזן את הקוד בן 6 ספרות",
+        "current_password_label": "סיסמה נוכחית",
+        "current_password_placeholder": "הזן את סיסמתך הנוכחית",
+        "enable_2fa_button": "הפעל 2FA"
+      },
+      "messages": {
+        "2fa_active": "2FA פעיל",
+        "2fa_disabled_successfully": "אימות דו‑שלבי הושבת בהצלחה",
+        "2fa_enabled_successfully": "אימות דו‑שלבי הופעל בהצלחה",
+        "account_is_protected_with_2fa": "החשבון שלך מוגן ב-2FA.",
+        "disable_2fa": "השבת אימות דו‑שלבי",
+        "enter_password_to_disable_2fa": "הזן את סיסמתך כדי להשבית את 2FA",
+        "failed_to_disable_2fa": "נכשל בהסרת 2FA",
+        "failed_to_verify_2fa_code": "אימות קוד 2FA נכשל",
+        "failed_to_verify_password": "לא ניתן לאמת את הסיסמה או להתחיל תהליך 2FA",
+        "have_enabled_2fa": "הפעלת אימות דו‑שלבי (2FA) לחשבונך. זה מוסיף שכבה נוספת של אבטחה.",
+        "or_enter_secret_manually": "או הזן את הסוד הזה ידנית",
+        "scan_qr_code_with_authenticator_app": "סרוק את קוד ה-QR הזה עם אפליקציית האימות שלך",
+        "two_factor_authentication_enabled": "האימות דו‑שלבי מופעל",
+        "user_email_not_found": "כתובת הדוא״ל של המשתמש לא נמצאה"
+      }
+    },
+    "page_name": "אבטחה",
+    "update_password": {
+      "form": {
+        "confirm_new_password_label": "אשר סיסמה חדשה",
+        "confirm_new_password_placeholder": "הזינו סיסמה חדשה שוב",
+        "new_password_label": "סיסמה חדשה",
+        "new_password_placeholder": "הזן סיסמה חדשה",
+        "old_password_label": "סיסמה ישנה",
+        "old_password_placeholder": "הזן את סיסמתך הנוכחית",
+        "update_password_button": "עדכן סיסמה"
+      },
+      "messages": {
+        "failed_to_update_password": "עדכון הסיסמה נכשל",
+        "password_updated_successfully": "סיסמה עודכנה בהצלחה"
+      },
+      "title": "עדכון סיסמה"
+    }
+  },
+  "sendgrid": {
+    "api_key_description": "מפתח ה-API של SendGrid שלך. ניתן ליצור אחד בחשבון SendGrid שלך תחת הגדרות → מפתחות API. ודא שיש לו הרשאות \"שליחת דואר\".",
+    "api_key_label": "מפתח API",
+    "bcc_email_description": "נמעני BCC. הפרד כתובות דוא״ל מרובות בפסיקים.",
+    "bcc_email_label": "דוא\"ל ב-CC מוסתר (אופציונלי)",
+    "cc_email_description": "נמעני CC. הפרד בין כתובות דוא״ל מרובות בפסיקים.",
+    "cc_email_label": "דוא\"ל CC (אופציונלי)",
+    "from_email_description": "כתובת הדוא״ל של השולח. זה חייב להיות שולח מאומת בחשבונך ב‑SendGrid.",
+    "from_email_label": "כתובת דוא\"ל של",
+    "subject_description": "שורת הנושא למייל. תומך בתבניות Liquid.",
+    "subject_label": "נושא מותאם אישית (אופציונלי)",
+    "subject_variables_label": "משתנים זמינים:",
+    "subject_variables_msg": "הודעת ההתראה",
+    "subject_variables_name": "שם השירות",
+    "subject_variables_status": "סטטוס השירות (פעיל/לא פעיל)",
+    "to_email_description": "כתובת הדוא\"ל של הנמען הראשי. אם יש מספר נמענים, השתמש בשדות CC או BCC.",
+    "to_email_label": "אל דוא״ל"
+  },
+  "settings": {
+    "data_retention": {
+      "days_label": "ימים",
+      "description": "הגדר את מספר הימים לשמירת נתונים (KEEP_DATA_PERIOD_DAYS).",
+      "title": "תקופת שמירת נתונים"
+    },
+    "timezone": {
+      "description": "בחר את אזור הזמן המועדף עליך להצגת כל הזמנים באפליקציה.",
+      "label": "אזור זמן",
+      "no_timezone_found": "לא נמצא אזור זמן.",
+      "search_placeholder": "חפש אזור זמן…",
+      "select_placeholder": "בחר אזור זמן…",
+      "title": "אזור זמן"
+    },
+    "validation": {
+      "min_days": "חייב להיות לפחות יום אחד"
+    }
+  },
+  "status": {
+    "messages": {
+      "all_systems_operational": "כל המערכות פועלות",
+      "down": "נפסק",
+      "last_updated": "עודכן לאחרונה",
+      "maintenance": "תחזוקה",
+      "no_monitors_configured": "לא הוגדרו מעקבים עבור דף המצב הזה.",
+      "operational": "פעיל",
+      "partial_system_outage": "הפרעה חלקית במערכת",
+      "powered_by": "מופעל על ידי",
+      "refresh_in": "רענון בעוד",
+      "refresh_now": "רענן עכשיו",
+      "status_page_not_found": "דף סטטוס לא נמצא או אינו מפורסם.",
+      "under_maintenance": "במצב תחזוקה",
+      "unknown": "לא ידוע"
+    }
+  },
+  "status_pages": {
+    "affected_monitors": "מוניטורים מושפעים",
+    "affected_monitors_info": "בחר מעקבים שנשפיע עליהם תחזוקה זו",
+    "auto_refresh_interval": "מרווח רענון אוטומטי (שניות)",
+    "basic_information": "מידע בסיסי",
+    "create_status_page": "צור דף מצב",
+    "customization": "התאמה אישית",
+    "delete_dialog": {
+      "description": "האם אתה בטוח שברצונך למחוק את \"{{title}}\"? הפעולה אינה ניתנת לביטול.",
+      "title": "מחק דף סטטוס"
+    },
+    "description": "הזן תיאור דף סטטוס",
+    "domain_already_used": "התחום {{domain}} כבר בשימוש על עמוד סטטוס אחר",
+    "domain_host_warning": "הדומיין זה זהה לכתובת ה-URL של השרת הנוכחי שלך. זה עשוי לגרום לקונפליקטים.",
+    "domains": "דומיינים",
+    "domains_info_warning": "אל תשכח להוסיף את רשומות CNAME ל‑DNS שלך עבור כל דומיין.",
+    "draft_status": "טיוטה",
+    "edit_page_name": "ערוך דף סטטוס",
+    "messages": {
+      "create_description": "צור דף סטטוס חדש לשיתוף מצב השירות שלך עם המשתמשים.",
+      "create_your_first_status_page": "צור את דף הסטטוס הראשון שלך",
+      "created_successfully": "עמוד סטטוס נוצר בהצלחה",
+      "delete_failed": "נכשל במחיקת דף סטטוס",
+      "deleted_successfully": "דף סטטוס נמחק בהצלחה",
+      "get_started_by_creating_your_first_status_page": "התחל ביצירת דף המצב הראשון שלך.",
+      "no_status_pages_found": "לא נמצאו דפי מצב",
+      "not_found": "דף סטטוס לא נמצא",
+      "update_description": "עדכן את הגדרות ותצורת דף המצב שלך.",
+      "updated_successfully": "עמוד המצב עודכן בהצלחה"
+    },
+    "new_page_name": "עמוד סטטוס חדש",
+    "page_name": "דפי סטטוס",
+    "published": "מפורסם",
+    "published_info": "הפוך דף המצב הזה לזמין לציבור",
+    "published_status": "פורסם",
+    "search_label": "חיפוש",
+    "search_placeholder": "חפש דפי סטטוס לפי כותרת...",
+    "update_status_page": "עדכן דף סטטוס",
+    "view_page": "הצג עמוד"
+  },
+  "tags": {
+    "confirm_delete_description": "פעולה זו לא ניתנת לביטול. פעולה זו תמחק לצמיתות את התווית \"{{name}}\" ותסיר אותה מכל המוניטורים.",
+    "edit_page_name": "ערוך תג",
+    "empty_state": {
+      "action": "צור את התג הראשון שלך",
+      "description": "התחל ביצירת התווית הראשונה שלך כדי לארגן את המוניטורים שלך.",
+      "title": "לא נמצאו תגיות"
+    },
+    "form": {
+      "color_description": "בחר/י צבע עבור התווית שלך",
+      "color_label": "צבע",
+      "create_button": "צור תג",
+      "description_label": "תיאור",
+      "description_placeholder": "הזן תיאור תג (אופציונלי)",
+      "name_label": "שם",
+      "name_placeholder": "הזן שם תגית",
+      "update_button": "עדכן תג"
+    },
+    "messages": {
+      "create_description": "צור תג חדש כדי לארגן ולסווג את המנטרים שלך.",
+      "failed_to_load_tag": "טעינת התג נכשלה. ייתכן שהתג לא קיים או שאין לך הרשאה לצפות בו.",
+      "tag_id_required": "מזהה התווית נדרש",
+      "update_description": "עדכן את פרטי התווית כדי לארגן טוב יותר את המנטרים שלך."
+    },
+    "new_page_name": "תג חדש",
+    "search_placeholder": "חפש תגיות..."
+  },
+  "theme": {
+    "dark": "כהה",
+    "light": "בהיר",
+    "system": "מערכת",
+    "toggle_theme": "החלף נושא"
+  },
+  "timezone": {
+    "average": "ממוצע",
+    "last_24_hours": "24 השעות האחרונות",
+    "last_3_hours": "3 השעות האחרונות",
+    "last_3_months": "3 החודשים האחרונים",
+    "last_30_minutes": "30 דקות אחרונות",
+    "last_6_hours": "6 השעות האחרונות",
+    "last_7_days": "7 הימים האחרונים",
+    "maximum": "מקסימום",
+    "minimum": "מינימום",
+    "ms": "מ״ש",
+    "response_time": "זמן תגובה",
+    "uptime": "זמינות"
+  },
+  "ui": {
+    "general": "כללי",
+    "intervals_retries": "מרווחים, חזרות, זמני סיום"
+  }
+}

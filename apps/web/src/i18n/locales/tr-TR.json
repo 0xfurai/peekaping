@@ -1,0 +1,1280 @@
+{
+  "actions": {
+    "cancel": "İptal",
+    "saving": "Kaydediliyor..."
+  },
+  "auth": {
+    "login": {
+      "description": "E-posta ile Giriş Yap",
+      "no_account": "Hesabınız yok mu?",
+      "sign_up": "Kayıt Ol",
+      "submit": "Giriş",
+      "title": "Tekrar hoş geldiniz"
+    },
+    "register": {
+      "description": "Yönetici hesabınızı oluşturun",
+      "have_account": "Zaten bir hesabınız var mı?",
+      "sign_in": "Giriş Yap",
+      "submit": "Oluştur",
+      "title": "Merhaba"
+    },
+    "twofa": {
+      "code_label": "2FA Kodu",
+      "code_placeholder": "2FA kodunu girin",
+      "description": "Hesabınızda 2FA etkin. Devam etmek için kimlik doğrulama kodunuzu girin.",
+      "title": "İki Faktörlü Kimlik Doğrulama Gerekli",
+      "verify_button": "2FA'yı doğrula",
+      "verifying": "Doğrulanıyor..."
+    }
+  },
+  "bars": {
+    "down_count": "Çökme Sayısı",
+    "important": "Önemli",
+    "interval": "Aralık",
+    "message": "Mesaj",
+    "ms": "ms",
+    "notified": "Bildirildi",
+    "ping": "Ping",
+    "retries": "Yeniden denemeler",
+    "status": "Durum",
+    "time": "Zaman"
+  },
+  "common": {
+    "active": "Aktif",
+    "all": "Tüm",
+    "back": "Geri",
+    "cancel": "İptal",
+    "clear_all": "Tümünü Temizle",
+    "clear_all_filters": "Tüm filtreleri temizle",
+    "confirm": "Onayla",
+    "confirm_delete_title": "Emin misiniz?",
+    "confirm_delete_title_short": "Emin misiniz?",
+    "continue": "Devam",
+    "create": "Oluştur",
+    "created": "Oluşturuldu",
+    "days": "gün",
+    "default": "Varsayılan",
+    "delete": "Sil",
+    "disabling": "Devre dışı bırakılıyor...",
+    "dismiss": "Kapat",
+    "down": "Çalışmıyor",
+    "enabling": "Etkinleştiriliyor...",
+    "error": "Hata",
+    "expires": "Doluyor",
+    "inactive": "Devre Dışı",
+    "loading": "Yükleniyor...",
+    "logout": "Çıkış yap",
+    "maintenance": "Bakım",
+    "no_options_found": "Seçenek bulunamadı",
+    "no_tags_available": "Etiket yok",
+    "please_refresh_page": "Lütfen sayfayı yenileyin.",
+    "required": "Gerekli",
+    "save": "Kaydet",
+    "saving": "Kaydediliyor...",
+    "search": "Ara",
+    "security": "Güvenlik",
+    "select": "Seç",
+    "select_monitors": "İzleyicileri seç...",
+    "select_tags": "Etiketleri seç",
+    "settings": "Ayarlar",
+    "tags": "Etiketler",
+    "unknown": "Bilinmeyen",
+    "unnamed_monitor": "İsimsiz İzleyici",
+    "up": "Çalışıyor",
+    "update": "Güncelle",
+    "verifying": "Doğrulanıyor..."
+  },
+  "forms": {
+    "labels": {
+      "confirm_password": "Şifre Onayı",
+      "email": "E-posta",
+      "footer_text": "Altbilgi Metni",
+      "heartbeat_interval": "Kalp atışı aralığı (saniye)",
+      "icon_url": "İkon URL",
+      "monitor_name": "İsim",
+      "monitor_type": "Tip",
+      "password": "Parola",
+      "retries": "Yeniden denemeler",
+      "slug": "Slug",
+      "title": "Başlık",
+      "username": "Kullanıcı adı"
+    },
+    "placeholders": {
+      "auto_refresh_help": "otomatik yenileme yok için 0",
+      "domains": "Alan adı girin (örneğin status.example.com)",
+      "footer_text": "Altbilgi metnini girin",
+      "icon_url": "https://example.com/icon.png",
+      "monitor_name": "Benim izlemem",
+      "page_description": "Durum sayfası açıklamasını girin",
+      "page_title": "Durum sayfası başlığını girin",
+      "slug": "durum-sayfası-slug"
+    },
+    "validation": {
+      "email_invalid": "Lütfen geçerli bir e-posta adresi giriniz",
+      "password_min_length": "Şifre en az 8 karakter olmalıdır",
+      "passwords_mismatch": "Parolalar eşleşmiyor"
+    }
+  },
+  "maintenance": {
+    "card": {
+      "aria": {
+        "delete": "Sil {{title}}",
+        "pause": "Bakımı duraklat",
+        "resume": "Bakımı Devam Ettir"
+      },
+      "labels": {
+        "duration": "{{duration}} dk",
+        "end": "Bitiş: {{date}}",
+        "start": "Başlangıç: {{date}}"
+      },
+      "status": {
+        "active": "Aktif",
+        "ended": "Bitti",
+        "inactive": "Devre Dışı"
+      }
+    },
+    "edit_title": "Bakım Düzenle",
+    "form": {
+      "affected_monitors_description": "Bu bakımdan etkilenecek izleyicileri seçin",
+      "affected_monitors_title": "Etkilenen İzleyiciler",
+      "cron_description": "Geçerli bir cron ifadesi girin",
+      "cron_expression": "Cron İfadesi",
+      "date_time_title": "Tarih ve Saat",
+      "day_of_month": "Ayın Günü",
+      "day_of_week": "Haftanın Günü",
+      "description_label": "Açıklama",
+      "description_placeholder": "Bakım açıklaması...",
+      "duration_minutes": "Süre (Dakika)",
+      "effective_date_range": "Geçerlilik Tarih Aralığı (İsteğe Bağlı)",
+      "end_date_time": "Bitiş Tarihi ve Saati",
+      "end_time": "Bitiş Zamanı",
+      "interval_label": "Aralık (Günde bir kez çalıştır)",
+      "last_day": "Son Gün",
+      "last_day_of_month": "Ayın Son Günü",
+      "maintenance_time_window": "Bir Gün İçin Bakım Süre Aralığı",
+      "markdown_supported": "Markdown destekleniyor",
+      "same_as_server": "Sunucu Zaman Dilimi ile Aynı",
+      "start_date_time": "Başlangıç Tarihi & Saati",
+      "start_time": "Başlangıç Saati",
+      "strategy_label": "Strateji",
+      "strategy_placeholder": "Strateji seç",
+      "timezone_label": "Zaman Dilimi",
+      "timezone_placeholder": "Saat dilimini seçin",
+      "title_label": "Başlık",
+      "title_placeholder": "Bakım başlığı"
+    },
+    "page": {
+      "clear_filters": "Tüm filtreleri temizle",
+      "dialogs": {
+        "confirm_action": {
+          "pause_description": "Bu bakımı duraklatmak istediğinizden emin misiniz?",
+          "resume_description": "Bu bakımın devamını istediğinizden emin misiniz?",
+          "title": "İşlem Onayı"
+        },
+        "confirm_delete": {
+          "description": "Bu bakım penceresini silmek istediğinizden emin misiniz? Bu eylem geri alınamaz.",
+          "title": "Silmeyi Onayla"
+        }
+      },
+      "edit_maintenance": "Bakım Düzenle: {{title}}",
+      "empty_state": {
+        "action": "İlk bakım penceresini oluşturun",
+        "description": "Planlı kesintileri önlemek için ilk bakım penceresi oluşturarak başlayın.",
+        "title": "Bakım pencereleri bulunamadı"
+      },
+      "error_loading": "Bakım sayfası yüklenirken hata",
+      "loading": "Yükleniyor…",
+      "loading_monitors": "İzleyiciler yükleniyor...",
+      "search_placeholder": "Bakımları ara..."
+    },
+    "page_title": "Bakım Pencereleri",
+    "schedule_title": "",
+    "strategy": {
+      "cron": "Cron İfadesi",
+      "manual": "Aktif/Pasif manuel",
+      "recurring_day_of_month": "Tekrarlayan - Ayın Günü",
+      "recurring_interval": "Tekrarlayan - Aralık",
+      "recurring_weekday": "Yinelenen - Hafta Günü",
+      "single": "Tek Bakım Penceresi"
+    },
+    "toasts": {
+      "create_error": "Bakım oluşturulamadı",
+      "created_success": "Bakım başarıyla oluşturuldu",
+      "delete_error": "Bakım silinemedi",
+      "deleted_success": "Bakım başarıyla silindi",
+      "pause_error": "Bakımı durdurma başarısız oldu",
+      "paused_success": "Bakım başarıyla duraklatıldı",
+      "resume_error": "Bakım yeniden başlatılamadı",
+      "resumed_success": "Bakım başarıyla devam ettirildi",
+      "toggle_error": "Bakım durumu değiştirilemiyor: ID eksik",
+      "update_error": "Bakım güncellemesi yapılamadı",
+      "updated_success": "Bakım başarıyla güncellendi"
+    },
+    "weekdays": {
+      "fri": "Cuma",
+      "mon": "Paz",
+      "sat": "Cmt",
+      "sun": "Paz.",
+      "thu": "Per",
+      "tue": "Sal",
+      "wed": "Çar"
+    }
+  },
+  "messages": {
+    "login_error": "Oturum açarken bir hata oluştu.",
+    "login_no_tokens": "Giriş başarılı, ancak token alınmadı",
+    "login_success": "Başarıyla giriş yapıldı",
+    "notifier_delete_error": "Bildirimci silinemedi",
+    "notifier_delete_success": "Notifier başarıyla silindi",
+    "register_error": "Kayıt sırasında bir hata oluştu.",
+    "register_no_tokens": "Kayıt başarılı, ancak token alınamadı",
+    "register_success": "Başarıyla kaydedildi",
+    "setting_update_error": "Ayar güncellenemedi",
+    "setting_update_success": "Ayar başarıyla güncellendi.",
+    "tag_create_error": "Etiket oluşturulamadı",
+    "tag_create_success": "Etiket başarıyla oluşturuldu",
+    "tag_delete_error": "Etiket silinemedi",
+    "tag_delete_success": "Etiket başarıyla silindi",
+    "tag_update_error": "Etiket güncellenemedi",
+    "tag_update_success": "Etiket başarıyla güncellendi",
+    "unexpected_error": "Beklenmeyen bir hata oluştu.",
+    "version_mismatch": "Sürüm uyuşmazlığı tespit edildi."
+  },
+  "monitors": {
+    "card": {
+      "check_interval": "Kontrol aralığı:",
+      "loading_more": "Daha fazla yükleniyor…"
+    },
+    "empty_state": {
+      "action": "İlk izleme oluştur",
+      "description": "İlk izleyicinizi oluşturarak hizmetlerinizin sağlığını izlemeye başlayın.",
+      "title": "İzleyici bulunamadı"
+    },
+    "filtering_by_tags": "Etiketlere göre filtreleme",
+    "filters": {
+      "monitor_status": "Durum",
+      "monitor_status_placeholder": "İzleme Durumu",
+      "search_placeholder": "İsimle izleyicileri ara...",
+      "status_placeholder": "Durum"
+    },
+    "form": {
+      "buttons": {
+        "copied": "Kopyalandı!",
+        "copy": "Kopyala",
+        "create": "Oluştur",
+        "regenerate": "Yeniden Oluştur",
+        "update": "Güncelle"
+      },
+      "dns": {
+        "hostname": "Ana Bilgisayar Adı",
+        "port": "Port",
+        "record_type": "Kaynak Kayıt Türü",
+        "record_type_placeholder": "Kayıt Türünü Seçin",
+        "resolver_server": "Çözümleyici Sunucu",
+        "title": "DNS Ayarları"
+      },
+      "docker": {
+        "ca_cert_description": "Sertifika Yetkilisi (CA) sertifikanızı PEM formatında yapıştırın.",
+        "ca_certificate": "CA Sertifikası (PEM)",
+        "client_cert_description": "İstemci sertifikanızı PEM formatında yapıştırın. Bu, karşılıklı TLS kimlik doğrulaması için kullanılır.",
+        "client_certificate": "İstemci Sertifikası (PEM)",
+        "client_private_key": "İstemci Özel Anahtarı (PEM)",
+        "common_tls_issues": "Sık Karşılaşılan TLS Sorunları:",
+        "connection_type": "Bağlantı Türü",
+        "container_name_id": "Konteyner Adı/ID",
+        "disabled": "Devre Dışı",
+        "docker_container": "Docker Konteyneri",
+        "docker_host": "Docker Ana Bilgisayarı",
+        "enable_tls": "TLS'i Etkinleştir",
+        "enabled": "Etkin",
+        "examples": "Örnekler",
+        "hostname_mismatch": "\"x509: sertifika X için geçerli, Y için değil\":",
+        "hostname_mismatch_solution": "Hostname'un sertifikanın SAN'ına eşleştiğinden emin olun veya doğrulamayı devre dışı bırakın (önerilmez).",
+        "legacy_cert_error": "x509: sertifika eski Common Name alanına dayanmaktadır",
+        "legacy_cert_solution": "Sertifikanızın Subject Alternative Names (SAN) alanına host adını ekleyin.",
+        "mtls_note": "Mutual TLS (mTLS) için hem istemci sertifikası hem de özel anahtarı sağlamanız gerekir. CA sertifikası, sunucunun sertifikasını doğrulamak için kullanılır.",
+        "note": "Not:",
+        "private_key_description": "PEM formatında özel anahtarınızı yapıştırın. Güvende tutun!",
+        "select_connection_type": "Bağlantı türünü seçin",
+        "select_tls_option": "TLS seçeneğini seçin",
+        "select_verification_option": "Doğrulama seçeneğini seçin",
+        "skip_verification": "Doğrulamayı atla (güvensiz)",
+        "tls_configuration": "TLS Yapılandırması",
+        "unknown_authority": "\"x509: bilinmeyen otorite tarafından imzalanmış sertifika\":\"",
+        "unknown_authority_solution": "Sunucu sertifikasını imzalayan doğru CA sertifikasını sağlayın.",
+        "verify_certificates": "Sertifikaları Doğrula",
+        "verify_tls": "TLS'i Doğrula"
+      },
+      "grpc": {
+        "body": "Gönderi Verisi (JSON)",
+        "enable_tls": "TLS'yi etkinleştir",
+        "enable_tls_description": "Güvenli bağlantı kullan (TLS/SSL)",
+        "invert_keyword": "Anahtar Kelimeyi Tersine Çevir",
+        "invert_keyword_description": "Anahtar kelime bulunamazsa, izleyici UP olarak işaretlenecektir.",
+        "keyword": "Anahtar Kelime",
+        "keyword_description": "Yanıt içinde bu anahtar kelimeyi ara",
+        "keyword_placeholder": "Aranacak isteğe bağlı anahtar kelime",
+        "method_description": "Büyük/küçük harfe duyarlı",
+        "method_placeholder": "Kontrol et",
+        "options_title": "gRPC Seçenekleri",
+        "proto_content": "Protobuf İçeriği",
+        "proto_method": "Protobuf Yöntemi",
+        "proto_service_name": "Protobuf Hizmet Adı",
+        "service_name_placeholder": "Sağlık"
+      },
+      "http": {
+        "advanced": {
+          "accepted_status_codes": "Kabul Edilen Durum Kodları",
+          "ignore_tls": "HTTPS siteleri için TLS/SSL hatalarını göz ardı et",
+          "ignore_tls_description": "TLS sertifikası doğrulamasını atla. Dikkatli kullanın - bağlantılar daha az güvenli olur.",
+          "max_redirects": "Maksimum Yönlendirme Sayısı",
+          "max_redirects_description": "Takip edilecek maksimum yönlendirme sayısı (0-30). Yönlendirmeleri devre dışı bırakmak için 0 olarak ayarlayın.",
+          "title": "Gelişmiş"
+        },
+        "authentication": {
+          "auth_header": "Yetkilendirme Başlığı",
+          "certificate": "Sertifika",
+          "certificate_placeholder": "Sertifika",
+          "client_id": "İstemci Kimliği",
+          "client_id_placeholder": "İstemci Kimliği",
+          "client_secret": "İstemci Şifresi",
+          "client_secret_placeholder": "İstemci Gizli Anahtarı",
+          "domain": "Alan adı",
+          "domain_placeholder": "Alan Adı",
+          "form_data_body": "Form Veri Gövdesi",
+          "key": "Anahtar",
+          "key_placeholder": "Anahtar",
+          "method_label": "Kimlik Doğrulama Yöntemi",
+          "method_placeholder": "Kimlik doğrulama türünü seçin",
+          "oauth_scope": "OAuth Kapsamı",
+          "oauth_scope_placeholder": "İsteğe bağlı: Boşlukla ayrılmış kapsam listesi",
+          "oauth_token_url": "OAuth Erişim Belirteci URL'si",
+          "oauth_token_url_placeholder": "OAuth Kimlik Belirteci URL",
+          "title": "Kimlik Doğrulama",
+          "workstation": "Çalışma İstasyonu",
+          "workstation_placeholder": "Çalışma İstasyonu"
+        },
+        "options": {
+          "body": "İçerik",
+          "body_encoding": "Gövde Kodlaması",
+          "body_encoding_placeholder": "İçerik kodlamasını seç",
+          "form_example": "Örnek Form Verileri",
+          "headers": "Başlıklar",
+          "json_example": "Örnek JSON",
+          "method": "Yöntem",
+          "method_placeholder": "İzleme tipini seçin",
+          "select_encoding": "İçerik kodlamasını seç",
+          "select_method": "Yöntemi seç",
+          "text_example": "Örnek Metin:\nBurada herhangi bir düz metin içeriği...",
+          "title": "HTTP Seçenekleri",
+          "xml_example": "Örnek XML"
+        }
+      },
+      "http_json_query": {
+        "condition_label": "Koşul",
+        "expected_value_label": "Beklenen Değer",
+        "json_query_label": "JSON Sorgu İfadesi",
+        "title": "JSON Sorgu İfadesi"
+      },
+      "http_keyword": {
+        "invert_keyword_description": "Anahtar kelimenin bulunmamasını, bulunmasını değil, kontrol edin.",
+        "invert_keyword_label": "Anahtar Kelimeyi Tersine Çevir",
+        "keyword_label": "Anahtar Kelime",
+        "keyword_validation_title": "Anahtar Kelime Doğrulama"
+      },
+      "kafka": {
+        "add_broker": "Broker Ekle",
+        "auto_topic_creation_description": "Üreticinin, topic yoksa otomatik olarak oluşturmasına izin ver",
+        "auto_topic_creation_label": "Otomatik Konu Oluşturmayı Etkinleştir",
+        "brokers_description": "Kafka broker adreslerinin listesi (host:port formatı)",
+        "brokers_label": "Kafka Sunucuları",
+        "configuration_title": "Kafka Yapılandırması",
+        "enable_ssl_description": "Bağlantı için SSL/TLS şifrelemesi kullanın",
+        "enable_ssl_label": "SSL/TLS'yi Etkinleştir",
+        "message_description": "Konuya gönderilecek mesaj içeriği (JSON formatı önerilir)",
+        "message_label": "Mesaj",
+        "sasl_mechanism_description": "SASL kimlik doğrulama mekanizmasını seçin",
+        "sasl_mechanism_label": "SASL Mekanizması",
+        "sasl_mechanism_placeholder": "SASL mekanizmasını seçin",
+        "sasl_password_description": "SASL kimlik doğrulaması için şifre",
+        "sasl_password_label": "SASL Şifresi",
+        "sasl_password_placeholder": "Şifre",
+        "sasl_username_description": "SASL kimlik doğrulaması için kullanıcı adı",
+        "sasl_username_label": "SASL Kullanıcı Adı",
+        "security_title": "Güvenlik",
+        "topic_description": "Mesajların üretileceği Kafka konusu"
+      },
+      "mongodb": {
+        "command_description": "JSON olarak çalıştırılacak MongoDB komutu. Belirtilmezse varsayılan olarak ping.",
+        "command_label": "Komut (İsteğe Bağlı)",
+        "configuration_title": "MongoDB Yapılandırması",
+        "connection_string_description": "MongoDB bağlantı dizesi. Hem standart (mongodb://) hem de DNS seedlist (mongodb+srv://) formatlarını destekler.",
+        "connection_string_label": "Bağlantı Dizisi",
+        "expected_value_description": "JSON yolu sonucuna karşılaştırılacak beklenen değer.",
+        "expected_value_label": "Beklenen Değer (İsteğe Bağlı)",
+        "expected_value_placeholder": "Beklenen Değer",
+        "json_path_description": "Yanıtın değerini çıkarmak için JSON yolu. Kök seviyede $ kullanın.",
+        "json_path_label": "JSON Yolu (İsteğe Bağlı)"
+      },
+      "mqtt": {
+        "check_type_json_query": "JSON Sorgusu",
+        "check_type_keyword": "Anahtar Kelime",
+        "check_type_label": "MQTT Kontrol Türü",
+        "check_type_none": "Hiç (Herhangi bir mesaj)",
+        "check_type_placeholder": "Kontrol türünü seçin",
+        "configuration_title": "MQTT Yapılandırması",
+        "expected_value_label": "Beklenen Değer",
+        "hostname_label": "Sunucu Adı",
+        "json_path_label": "JSON Yolu",
+        "password_label": "MQTT Şifresi",
+        "password_placeholder": "Parola (isteğe bağlı)",
+        "port_label": "Port",
+        "success_keyword_label": "MQTT Başarı Anahtar Kelimesi",
+        "success_keyword_placeholder": "Başarıyı gösteren anahtar kelime",
+        "username_label": "MQTT Kullanıcı Adı",
+        "username_placeholder": "Kullanıcı adı (isteğe bağlı)",
+        "validation": {
+          "expected_value_required": "Kontrol türü json-query ise, beklenen değer zorunludur.",
+          "json_path_required": "JSON yolu, kontrol tipi json-query olduğunda zorunludur.",
+          "success_keyword_required": "Başarı anahtar kelimesi, kontrol tipi ‘anahtar kelime’ olduğunda zorunludur."
+        }
+      },
+      "mysql": {
+        "connection_string_examples": "Örnekler:",
+        "connection_string_label": "Bağlantı Dizesi",
+        "connection_title": "MySQL Bağlantısı",
+        "query_label": "Sorgu"
+      },
+      "ping": {
+        "data_size": "Veri Boyutu (bayt)",
+        "host": "Host Adı / IP",
+        "title": "Ping Ayarları"
+      },
+      "postgres": {
+        "connection_string_label": "Bağlantı Dizesi",
+        "connection_title": "PostgreSQL Bağlantısı",
+        "query_label": "Sorgu"
+      },
+      "push": {
+        "url_description": "Durumu bildirmek için bu URL'i servisinizde kullanın. Kalp atışı göndermek için bu uç noktaya bir HTTP isteği (POST/GET) gönderin.",
+        "url_title": "Push İzleyici URL"
+      },
+      "rabbitmq": {
+        "documentation_link": "RabbitMQ belgelendirmesi",
+        "health_checks_description": "İzleyici, her düğümdeki {{code}} uç noktasını kontrol eder ve herhangi bir düğüm sağlıklıysa UP döndürür.",
+        "management_nodes_description": "RabbitMQ yönetim düğümlerinin protokol ve port dahil URL'sini girin. Örnek: https://node1.rabbitmq.com:15672",
+        "management_nodes_title": "Yönetim Düğümleri",
+        "node_url_label": "Düğüm URL",
+        "password_description": "RabbitMQ yönetim arayüzü kimlik doğrulama şifresi",
+        "setup_information_description": "RabbitMQ izleyicisini kullanmak için RabbitMQ kurulumunuzda Yönetim Eklentisini etkinleştirmeniz gerekir. Daha fazla bilgi için RabbitMQ belgelerine bakın.",
+        "setup_information_title": "Kurulum Bilgileri",
+        "title": "RabbitMQ Yapılandırması",
+        "username_description": "RabbitMQ yönetim arayüzü kimlik doğrulaması için kullanıcı adı"
+      },
+      "redis": {
+        "ca_certificate_description": "Root CA sertifikası PEM formatında. Öz imzalı sertifikalarla doğru TLS doğrulaması için gereklidir.",
+        "ca_certificate_label": "CA Sertifikası (İsteğe Bağlı)",
+        "client_certificate_description": "PEM formatında istemci sertifikası. Ortak TLS kimlik doğrulaması için gerekli.",
+        "client_certificate_label": "İstemci Sertifikası (İsteğe Bağlı)",
+        "client_key_description": "PEM formatında istemci özel anahtarı. İstemci sertifikasıyla birlikte sağlanmalıdır.",
+        "client_key_label": "İstemci Özel Anahtarı (İsteğe Bağlı)",
+        "connection_string_description": "Redis bağlantı dizesi formatı: {{redis}} veya {{rediss}} TLS için",
+        "connection_string_label": "Bağlantı Dizesi",
+        "ignore_tls_description": "TLS sertifikası doğrulamasını atla (üretimde önerilmez)",
+        "ignore_tls_label": "TLS/SSL hatalarını yok say",
+        "title": "Redis Yapılandırması"
+      },
+      "shared": {
+        "intervals": {
+          "heartbeat_retry": "Kalp Atışı Tekrar Aralığı (her {{seconds}} saniyede bir yeniden dene)",
+          "max_retries_description": "Servisin 'down' olarak işaretlenip bildirim gönderilmeden önceki maksimum yeniden deneme sayısı",
+          "request_timeout": "İstek Süresi Doldu ({{seconds}} saniye sonra zaman aşımı)",
+          "resend_notification": "X kez arka arkaya kesildiğinde Bildirimi Yeniden Gönder (Yeniden gönderme devre dışı)"
+        },
+        "notifications": {
+          "add_notifier": "Bildirim Ekle",
+          "new_notifier": "+ Yeni Bildirimci",
+          "no_channels": "Bildirim kanalı bulunamadı, önce bir tane oluşturun.",
+          "no_channels_available": "Kanal mevcut değil",
+          "select_channel": "Kanal seç",
+          "select_notifier_placeholder": "Bildirimci Seç",
+          "selected_channels": "Seçilen Bildirim Kanalları",
+          "title": "Bildirim kanalları"
+        },
+        "proxy": {
+          "add_proxy": "Proxy Ekle",
+          "new_proxy": "+ Yeni Proxy",
+          "no_proxy": "Proxy Yok",
+          "remove_proxy": "Proxy'yi Kaldır",
+          "select_proxy_placeholder": "Proxy Seçin",
+          "selected_proxy": "Seçilen Proxy",
+          "title": "Proxy"
+        },
+        "tags": {
+          "label": "Etiketler",
+          "no_tags": "Etiket yok",
+          "placeholder": "Etiketleri seç"
+        }
+      },
+      "snmp": {
+        "community_description": "Kimlik doğrulama için SNMP topluluk dizesi (parola gibi)",
+        "community_label": "Topluluk Dizgisi",
+        "expected_value_description": "Karşılaştırılacak değer. Doğrulamayı atlamak için boş bırakın.",
+        "expected_value_label": "Beklenen Değer",
+        "host_description": "SNMP destekli cihazın ana bilgisayar adı veya IP adresi",
+        "host_label": "Sunucu",
+        "json_path_description": "Yanıttan değer çıkarmak için JSONPath ifadesi (ham değeri için \"$\" kullanın)",
+        "json_path_label": "JSON Yolu",
+        "json_path_operator_description": "Çıkarılan değeri beklenen değerle karşılaştırma",
+        "json_path_operator_eq": "eşittir",
+        "json_path_operator_ge": "büyük eşittir",
+        "json_path_operator_gt": "büyüktür",
+        "json_path_operator_label": "Koşul",
+        "json_path_operator_le": "küçük eşittir",
+        "json_path_operator_lt": "küçük",
+        "json_path_operator_ne": "eşit değil",
+        "oid_description": "Sorgulanacak SNMP Nesne Tanımlayıcısı (örneğin, sistem açıklaması için 1.3.6.1.2.1.1.1.0)",
+        "oid_label": "OID (Nesne Tanımlayıcı)",
+        "port_description": "SNMP portu (varsayılan: 161)",
+        "port_label": "Port",
+        "snmp_version_description": "Kullanılacak SNMP protokolü sürümü",
+        "snmp_version_label": "SNMP Sürümü",
+        "title": "SNMP Ayarları",
+        "value_validation_label": "Değer Doğrulama (İsteğe Bağlı)"
+      },
+      "sqlserver": {
+        "allowed_statements_description": "SELECT, SHOW, DESCRIBE, EXPLAIN, WITH, ve VALUES.",
+        "allowed_statements_label": "İzin verilen ifadeler:",
+        "connection_string_label": "Bağlantı Dizesi",
+        "query_description": "Sağlık kontrolü için çalıştırılacak sorgu. Varsayılanı kullanmak için boş bırakın.",
+        "query_label": "Sorgu",
+        "title": "Microsoft SQL Server Bağlantısı"
+      },
+      "tcp": {
+        "host": "Ana Bilgisayar",
+        "port": "Port",
+        "title": "TCP Bağlantısı"
+      },
+      "type": {
+        "dns": "DNS İzleyici",
+        "docker": "Docker Konteyneri",
+        "grpc": "gRPC Anahtar Kelime İzleyici",
+        "http": "",
+        "kafka": "Kafka Üretici İzleyici",
+        "mongodb": "MongoDB Veri Tabanı İzleyici",
+        "mqtt": "MQTT Broker İzleyici",
+        "mysql": "MySQL/MariaDB İzleyici",
+        "ping": "Ping İzleyici (ICMP)",
+        "postgres": "PostgreSQL Veritabanı İzleyici",
+        "push": "Push İzleyici (harici servis oluşturulan URL'yi çağırır)",
+        "rabbitmq": "RabbitMQ İzleyici",
+        "redis": "Redis Veritabanı İzleyicisi",
+        "snmp": "SNMP İzleyici",
+        "sqlserver": "Microsoft SQL Server İzleyicisi",
+        "tcp": "TCP Port İzleyici"
+      }
+    },
+    "page": {
+      "description": "Web sitenizin performansını izlemeye başlamak için yeni bir izleme oluşturun.",
+      "edit_title": "Gözlemciyi Düzenle:",
+      "new_title": "Yeni İzleme"
+    },
+    "title": "İzleyiciler",
+    "toasts": {
+      "deleted": "İzleyici silindi",
+      "paused": "İzleme duraklatıldı",
+      "reset_success": "İzleme verileri başarıyla sıfırlandı",
+      "resumed": "İzleme yeniden başladı"
+    },
+    "view": {
+      "buttons": {
+        "clone": "Klonla",
+        "delete": "Sil",
+        "edit": "Düzenle",
+        "pause": "Duraklat",
+        "reset_data": "Verileri Sıfırla",
+        "resume": "Devam Et"
+      },
+      "certificate": "Sertifika",
+      "check_every": "Her",
+      "current_status": "Mevcut durum",
+      "dialogs": {
+        "delete": {
+          "description": "Bu işlem geri alınamaz. Bu, monitörü ve tüm ilgili verileri kalıcı olarak silecektir.",
+          "title": "Kesinlikle emin misiniz?"
+        },
+        "pause": {
+          "description": "Durdurmak istediğinizden emin misiniz?",
+          "title": "Onay"
+        },
+        "reset": {
+          "description": "Bu işlem, bu monitör için tüm kalp atışı geçmişini ve çalışma süresi istatistiklerini kalıcı olarak siler. Monitör, yeni oluşturulmuş gibi görünecektir. Bu işlem geri alınamaz.",
+          "title": "İzleyici Verilerini Sıfırla"
+        }
+      },
+      "expiring_soon": "Süresi yakında dolacak",
+      "for": "için",
+      "live_status": "Canlı Durum",
+      "monitor_for": "İzlenecek",
+      "no_certificate_data": "Sertifika verisi yok",
+      "seconds": "saniye",
+      "stats": {
+        "last_24_hours": "Son 24 saat",
+        "last_30_days": "Son 30 gün",
+        "last_365_days": "Son 365 gün",
+        "last_7_days": "Son 7 gün"
+      },
+      "status": {
+        "down": "Çalışmıyor",
+        "maintenance": "Bakım",
+        "paused": "Duraklatıldı",
+        "up": "Çalışıyor"
+      }
+    }
+  },
+  "navigation": {
+    "maintenance": "Bakım",
+    "monitors": "Monitörler",
+    "notification_channels": "Bildirim Kanalları",
+    "proxies": "Proxy'ler",
+    "settings": "Ayarlar",
+    "status_pages": "Durum Sayfaları",
+    "tags": "Etiketler"
+  },
+  "notifications": {
+    "actions": {
+      "test": "Test",
+      "testing": "Test ediliyor..."
+    },
+    "aria": {
+      "delete": "Sil {{name}}"
+    },
+    "confirm_delete_description": "Bu işlem geri alınamaz. '{{name}}' bildirimcisi kalıcı olarak silinecek ve onu kullanan tüm izleyicilerden kaldırılacak.",
+    "create_title": "Bildirim Oluştur",
+    "edit_channel_title": "Bildirim Kanalını Düzenle",
+    "edit_title": "Bildirimci Düzenle",
+    "empty_state": {
+      "action": "İlk bildirim kanalınızı oluşturun",
+      "description": "İlk bildirim kanalınızı oluşturarak ekip üyelerinize uyarı göndermeye başlayın.",
+      "title": "Bildirim kanalları bulunamadı"
+    },
+    "form": {
+      "discord": {
+        "bot_display_name_description": "Discord mesajlarının göndereni olarak görünecek isim.",
+        "bot_display_name_label": "Bot Görünüm Adı",
+        "custom_message_prefix_description": "Tüm mesajların başına eklenecek isteğe bağlı ön ek.",
+        "custom_message_prefix_label": "Özel Mesaj Ön Ek",
+        "custom_message_prefix_placeholder": "İsteğe bağlı: Mesajınıza bir önek ekleyin",
+        "forum_post_name_description": "Yeni oluşturulacak forum gönderisinin adı.",
+        "forum_post_name_label": "Forum Gönderisi Adı",
+        "forum_post_name_placeholder": "Forum gönderisi adı girin",
+        "sending_message_to_channel": "Kanala gönder",
+        "sending_message_to_description": "Discord mesajlarının gönderileceği yeri seçin.",
+        "sending_message_to_label": "Mesaj Gönderiliyor",
+        "sending_message_to_new_forum_post": "Yeni forum gönderisine gönder",
+        "sending_message_to_placeholder": "Mesaj türünü seçin",
+        "sending_message_to_thread": "Thread'e gönder",
+        "setup_webhook_description_1": "Discord sunucu ayarlarından Webhook URL'nizi alın → Entegrasyonlar → Webhook'lar.",
+        "setup_webhook_description_2": "Yeni bir webhook oluşturun ve URL'yi kopyalayın. Doğru kanalı seçtiğinizden emin olun.",
+        "setup_webhook_title": "Discord Webhook Kurulumu",
+        "thread_id_description_1": "Discord Kullanıcı Ayarları → Gelişmiş → Geliştirici Modunu etkinleştir",
+        "thread_id_description_2": "Thread veya gönderiye sağ tıklayın ve \"Thread Kimliğini Kopyala\" veya \"Kanal Kimliğini Kopyala\" seçeneğini seçin.",
+        "thread_id_description_title": "Mesajların gönderileceği konu veya forum gönderisinin kimliği.",
+        "thread_id_label": "İleti Kimliği",
+        "thread_id_placeholder": "İş parçacığı veya gönderi kimliğini gir",
+        "webhook_url_label": "Discord Webhook URL"
+      },
+      "google_chat": {
+        "more_info_about_webhooks": "Webhooks hakkında daha fazla bilgi",
+        "webhook_url_label": "Google Chat Webhook URL'si"
+      },
+      "gotify": {
+        "application_token_description": "Gotify uygulamanızdaki uygulama jetonu. Bunu Gotify web arayüzünüzdeki Uygulamalar sekmesinde bulabilirsiniz.",
+        "application_token_label": "Uygulama Tokenı",
+        "custom_message_description": "Özel mesaj şablonu. Kullanılabilir değişkenler",
+        "custom_message_description_2": "Varsayılan mesajı kullanmak için boş bırakın.",
+        "custom_message_label": "Özel Mesaj",
+        "custom_title_description": "Bildirim için özel başlık. Kullanılabilir değişkenler: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Boş bırakılırsa varsayılan \"Peekaping\" başlığı kullanılır.",
+        "custom_title_label": "Özel Başlık",
+        "learn_more_label": "Gotify hakkında daha fazla bilgi edinin ve kurulumunu şu adreste yapın:",
+        "note_description": "Bu entegrasyonu kullanmak için Gotify sunucusunun çalışıyor olması gerekir.",
+        "note_label": "Not:",
+        "priority_0": "En Düşük",
+        "priority_1": "Çok Düşük",
+        "priority_10": "En yüksek",
+        "priority_2": "Düşük",
+        "priority_3": "Normaldan Düşük",
+        "priority_4": "Normal",
+        "priority_5": "Normalden Üstü",
+        "priority_6": "Orta",
+        "priority_7": "Yüksek",
+        "priority_8": "Çok Yüksek (Varsayılan)",
+        "priority_9": "Acil",
+        "priority_description": "Mesaj önceliği (0-10). Daha yüksek sayılar daha yüksek öncelik anlamına gelir. Varsayılan 8'dir.",
+        "priority_label": "Öncelik",
+        "priority_placeholder": "Öncelik seçin",
+        "server_url_description": "Gotify sunucunuzun URL'si. Bu uygulamadan erişilebilir olduğundan emin olun.",
+        "server_url_label": "Sunucu URL'si"
+      },
+      "grafana_oncall": {
+        "grafana_oncall_url_description": "Grafana OnCall entegrasyonunuzun webhook URL'si. Bu adresi, Grafana OnCall örneğinizde Alerts & IRM > IRM > Integrations > Webhook altında bulabilirsiniz.",
+        "grafana_oncall_url_label": "Grafana OnCall URL",
+        "learn_more_label": "Grafana OnCall webhookları hakkında daha fazla bilgi alın"
+      },
+      "line": {
+        "channel_access_token_description": "Kanallar erişim token'ınızı buradan alabilirsiniz",
+        "channel_access_token_description_2": "Kanal ayarlarınıza gidin ve arayın",
+        "channel_access_token_label": "Kanal Erişim Jetonu (Uzun Ömürlü)",
+        "channel_access_token_placeholder": "LINE kanal erişim belirtecinizi girin",
+        "template_description": "Mesaj formatını özelleştir. Kullanılabilir değişkenler",
+        "template_label": "Mesaj Şablonu",
+        "template_placeholder": "Özel mesaj şablonunu girin",
+        "user_id_description": "Kullanıcı kimliğinizi şu adreste bulabilirsiniz:",
+        "user_id_description_2": "Kanal ayarlarınıza gidin ve arayın",
+        "user_id_label": "Kullanıcı Kimliğiniz",
+        "user_id_placeholder": "LINE Kullanıcı Kimliğinizi girin"
+      },
+      "matrix": {
+        "access_token_description": "Kimlik doğrulama için Matrix erişim belirteci",
+        "access_token_label": "Erişim Anahtarı",
+        "custom_message_description": "Özel mesaj şablonu. Kullanılabilir değişkenler",
+        "custom_message_label": "Özel Mesaj",
+        "homeserver_url_description": "Matrix ev sunucunuzun URL'si",
+        "homeserver_url_label": "Ana sunucu URL'si",
+        "internal_room_id_description": "Bildirimlerin gönderileceği dahili oda kimliği. Bu, \"!\" ile başlamalı ve şöyle görünmelidir: !roomid:matrix.org",
+        "internal_room_id_label": "İç Oda Kimliği",
+        "setup_instructions_1": "Botunuz için bir Matrix hesabı oluşturun (veya mevcut hesabınızı kullanın)",
+        "setup_instructions_2": "İletileri almak istediğiniz oda oluşturun veya katılın",
+        "setup_instructions_3": "Bir giriş isteği göndererek erişim tokeninizi alın",
+        "setup_instructions_4": "Yanıt, bir access_token alanı içerecektir – bunu Erişim Anahtarınız olarak kullanın.",
+        "setup_instructions_5": "Odanızın içsel kimliğini (\"!\" ile başlar) Matrix istemcinizin oda ayarlarında bulun",
+        "setup_instructions_label": "Kurulum Talimatları"
+      },
+      "mattermost": {
+        "channel_name_description": "",
+        "channel_name_label": "Kanal Adı",
+        "icon_emoji_cheat_sheet_label": "Emoji kılavuzu",
+        "icon_emoji_description": "Simge olarak kullanılacak emoji. İki emoji, boşlukla ayrılarak (birincisi yükselme durumunda, ikincisi düşme durumunda) belirtebilirsiniz.",
+        "icon_emoji_label": "Simge Emoji",
+        "icon_url_description": "Bildirim mesajının simgesi olarak kullanılacak resmin URL'si.",
+        "icon_url_label": "İkon URL",
+        "learn_more_label": "Webhooks hakkında daha fazla bilgi edin",
+        "message_template_description": "Mesaj formatını özelleştir. Kullanılabilir değişkenler",
+        "message_template_label": "Mesaj Şablonu",
+        "use_message_template_description": "Özel mesaj şablonu ve biçimini kullanmayı etkinleştir.",
+        "use_message_template_label": "Mesaj Şablonunu Kullan",
+        "username_description": "Mesajın göndereni olarak görünecek kullanıcı adı.",
+        "webhook_url_label": "Webhook URL'si"
+      },
+      "ntfy": {
+        "authentication_type_basic": "Temel Kimlik Doğrulama",
+        "authentication_type_basic_description": "Temel kimlik doğrulama için kullanıcı adı ve şifre girin.",
+        "authentication_type_label": "Kimlik Doğrulama Türü",
+        "authentication_type_none": "Kimlik Doğrulama Yok",
+        "authentication_type_none_description": "Kimlik doğrulama gerekmez. Kamu NTFY sunucuları için uygundur.",
+        "authentication_type_placeholder": "Kimlik doğrulama türünü seçin",
+        "authentication_type_token": "Token Kimlik Doğrulama",
+        "authentication_type_token_description": "Kimlik doğrulama için erişim tokeni kullanın.",
+        "custom_message_description": "Özel mesaj içeriği. Kullanılabilir değişkenler",
+        "custom_message_label": "Özel Mesaj",
+        "password_required": "Temel kimlik doğrulama için şifre gereklidir.",
+        "priority_1": "Min (En düşük)",
+        "priority_2": "Düşük",
+        "priority_3": "Varsayılan",
+        "priority_4": "Yüksek",
+        "priority_5": "Acil (En Yüksek)",
+        "priority_description": "Bildirimin öncelik seviyesi. Daha yüksek öncelikler, istemci üzerinde farklı davranışlar tetikleyebilir.",
+        "priority_label": "Öncelik",
+        "priority_placeholder": "Öncelik seçin",
+        "server_url_description": "NTFY sunucunuzun URL'si. Halk için açık örnek olarak https://ntfy.sh kullanın.",
+        "server_url_label": "Sunucu URL'si",
+        "tags_description": "Bildirimleri sınıflandırmak için virgülle ayrılmış etiketler. Kullanılabilir değişkenler",
+        "tags_label": "Etiketler",
+        "title_description": "Bildirim için özel başlık. Kullanılabilir değişkenler",
+        "title_label": "Özel Başlık",
+        "token_description": "Kimlik doğrulama için NTFY erişim belirteciniz.",
+        "token_label": "Erişim Tokeni",
+        "token_required": "Token, token kimlik doğrulaması için gerekli.",
+        "topic_description": "Bildirimleriniz için konu adı. Bu, bildirimlerin gönderileceği kanaldır.",
+        "topic_label": "Konu",
+        "username_required": "Temel kimlik doğrulama için kullanıcı adı gerekli"
+      },
+      "opsgenie": {
+        "api_key_label": "API Anahtarı",
+        "more_info_about_api_keys_label": "API anahtarları hakkında daha fazla bilgi",
+        "priority_1": "Kritik",
+        "priority_2": "Yüksek",
+        "priority_3": "Orta",
+        "priority_4": "Düşük",
+        "priority_5": "Bilgilendirme",
+        "priority_description": "Uyarılar için öncelik seviyesini ayarlayın. Varsayılan P3 (Orta).",
+        "priority_label": "Öncelik",
+        "region_description": "Opsgenie bölgenizi seçin. Bu, kullanılacak API uç noktasını belirler.",
+        "region_label": "Bölge",
+        "region_placeholder": "Bölge seçin"
+      },
+      "pagerduty": {
+        "auto_resolve_acknowledge": "Otomatik Onayla",
+        "auto_resolve_acknowledge_description": "Olayı otomatik olarak onayla",
+        "auto_resolve_description": "Bir monitör tekrar çalıştığında ne yapılacağını seçin.",
+        "auto_resolve_do_nothing": "Hiçbir şey yapma",
+        "auto_resolve_do_nothing_description": "UP durumunda herhangi bir işlem yapılmaz",
+        "auto_resolve_label": "Otomatik Çözümle veya Onayla",
+        "auto_resolve_placeholder": "Otomatik çözümleme davranışını seçin",
+        "auto_resolve_resolve": "Otomatik çözüm",
+        "auto_resolve_resolve_description": "Olayı otomatik olarak çöz",
+        "integration_key_description": "Entegrasyon anahtarınızı nasıl alacağınızı öğrenin",
+        "integration_key_label": "Entegrasyon Anahtarı",
+        "integration_key_placeholder": "PagerDuty entegrasyon anahtarını girin",
+        "integration_url_description": "PagerDuty Events API v2 uç noktası URL'si. Varsayılan olarak standart uç nokta.",
+        "integration_url_label": "Entegrasyon URL'si",
+        "learn_more_label": "PagerDuty Dokümantasyonu",
+        "priority_critical": "Kritik",
+        "priority_description": "PagerDuty olayları için şiddet seviyesi. Varsayılan: \"warning\".",
+        "priority_error": "Hata",
+        "priority_info": "Bilgi",
+        "priority_label": "Öncelik",
+        "priority_placeholder": "Öncelik seviyesini seç",
+        "priority_warning": "Uyarı"
+      },
+      "pagertree": {
+        "authentication_token_description": "Gelişmiş güvenlik için isteğe bağlı kimlik doğrulama belirteci. Bu belirteç, pagertree-token başlığına gönderilecektir.",
+        "authentication_token_label": "Kimlik Doğrulama Jetonu (İsteğe Bağlı)",
+        "authentication_token_placeholder": "Gerekirse kimlik doğrulama jetonu girin",
+        "auto_resolve_alerts_description": "İzleme düzeldiğinde PagerTree uyarılarını otomatik olarak çöz.",
+        "auto_resolve_alerts_label": "Otomatik Çözüm Uyarıları",
+        "how_to_get_integration_url_label": "Entegrasyon URL'sini nasıl alırsınız",
+        "integration_url_description": "PagerTree webhook entegrasyon URL'sini girin.",
+        "integration_url_label": "PagerTree Webhook URL",
+        "urgency_level_critical": "Kritik",
+        "urgency_level_description": "PagerTree'ye gönderilen uyarılar için varsayılan öncelik seviyesini ayarla",
+        "urgency_level_high": "Yüksek",
+        "urgency_level_label": "Acillik Seviyesi",
+        "urgency_level_low": "Düşük",
+        "urgency_level_medium": "Orta",
+        "urgency_level_placeholder": "Aciliyet seviyesini seçin",
+        "urgency_level_silent": "Sessiz"
+      },
+      "pushbullet": {
+        "access_token": "Erişim Tokenı",
+        "access_token_description": "Pushbullet Erişim Anahtarı. Buradan alın.",
+        "access_token_label": "Erişim Jetonu",
+        "access_token_link": "Pushbullet Ayarları",
+        "channel_tag": "Kanal Etiketi (İsteğe Bağlı)",
+        "channel_tag_description": "Bildirimleri cihazlar yerine Pushbullet kanalına gönder",
+        "channel_tag_label": "Kanal Etiketi (İsteğe Bağlı)",
+        "custom_message_template_description": "Bildirim gövdesini şablon değişkenleriyle özelleştirin:",
+        "custom_message_template_heartbeat_ping": "Yanıt süresi",
+        "custom_message_template_heartbeat_time": "Zaman Damgası",
+        "custom_message_template_label": "Özel Mesaj Şablonu (İsteğe Bağlı)",
+        "custom_message_template_monitor_url": "İzleme URL'si",
+        "custom_message_template_msg": "Uyarı mesajı",
+        "custom_message_template_name": "İzleme Adı",
+        "custom_message_template_placeholder": "İzleyici: {{ name }}\nDurum: {{ status }}\nMesaj: {{ msg }}",
+        "custom_message_template_status": "Mevcut durum",
+        "device_id": "Cihaz Kimliği (İsteğe Bağlı)",
+        "device_id_description": "Bildirimleri belirli bir cihaza gönderin. Tüm cihazlara göndermek için boş bırakın. Cihaz kimliklerini şu şekilde bulabilirsiniz:",
+        "device_id_label": "Cihaz Kimliği (İsteğe Bağlı)",
+        "device_id_link": "Pushbullet API",
+        "more_info_on": "Daha fazla bilgi:"
+      },
+      "pushover": {
+        "application_token_label": "Uygulama Tokeni",
+        "application_token_placeholder": "Pushover uygulama tokeninizi girin",
+        "device_description": "Bütün cihazlara göndermek için boş bırakın",
+        "device_label": "Cihaz",
+        "device_placeholder": "Cihaz adı (isteğe bağlı)",
+        "message_title_description": "Varsayılan başlık kullanmak için boş bırakın",
+        "message_title_label": "Mesaj Başlığı",
+        "message_title_placeholder": "Özel mesaj başlığı (isteğe bağlı)",
+        "message_ttl_description": "Geçerlilik süresi (saniye) (0 = süresiz)",
+        "message_ttl_label": "Mesaj TTL",
+        "more_info_label": "Daha fazla bilgi:",
+        "more_info_label_2": "Bir uygulama oluşturabilir ve API tokeninizi şu adreste alabilirsiniz",
+        "more_info_label_3": "Kullanıcı anahtarınızı şu adreste bulabilirsiniz",
+        "notification_sound_down_description": "İzleme düşerken çalacak ses",
+        "notification_sound_down_label": "Bildirim Sesi - Çalışmıyor",
+        "notification_sound_down_placeholder": "Ses seçin",
+        "notification_sound_up_description": "Gözetim yeniden çalıştığında çalacak ses",
+        "notification_sound_up_label": "Bildirim Sesi - Yüksel",
+        "notification_sound_up_placeholder": "Ses seç",
+        "priority_1": "En düşük",
+        "priority_2": "Düşük",
+        "priority_3": "Normal",
+        "priority_4": "Yüksek",
+        "priority_5": "Acil",
+        "priority_description": "Mesaj öncelik seviyesi",
+        "priority_label": "Öncelik",
+        "priority_placeholder": "Öncelik seçin",
+        "sound_alien": "Uzaylı",
+        "sound_bike": "Bisiklet",
+        "sound_bugle": "kureş",
+        "sound_cashregister": "Kasa",
+        "sound_classical": "Klasik",
+        "sound_climb": "Yüksel",
+        "sound_cosmic": "Kozmik",
+        "sound_echo": "Eko",
+        "sound_falling": "Düşüş",
+        "sound_gamelan": "Gamelan",
+        "sound_incoming": "Gelen",
+        "sound_intermission": "Ara",
+        "sound_magic": "Büyü",
+        "sound_mechanical": "Mekanik",
+        "sound_none": "Yok",
+        "sound_persistent": "Sürekli",
+        "sound_pianobar": "Piyano Barı",
+        "sound_pushover": "Pushover (varsayılan)",
+        "sound_siren": "Sirene",
+        "sound_spacealarm": "Uzay Alarmı",
+        "sound_tugboat": "Kırıcı",
+        "sound_updown": "Yukarı Aşağı",
+        "sound_vibrate": "Titre",
+        "user_key_label": "Kullanıcı Anahtarı",
+        "user_key_placeholder": "Pushover kullanıcı anahtarınızı girin"
+      },
+      "signal": {
+        "custom_message_description": "Özel mesaj şablonu. Kullanılabilir değişkenler",
+        "custom_message_label": "Özel Mesaj",
+        "important_description": "Alıcılar içinde grupları ve numaraları karıştıramazsınız!",
+        "important_label": "ÖNEMLİ:",
+        "more_info_label": "Bu URL'i inceleyerek kurulum talimatlarını görebilirsiniz:",
+        "note_description": "REST API'li Signal istemcisine sahip olmanız gerekir.",
+        "note_label": "Not:",
+        "number_description": "Signal hesabınızın telefon numarası (gönderen numarası).",
+        "number_label": "Sayı",
+        "post_url_description": "Signal CLI REST API sunucunuzun URL'si.",
+        "post_url_label": "Post URL'su",
+        "recipients_description": "Bildirimlerin gönderileceği telefon numaralarının virgülle ayrılmış listesi.",
+        "recipients_label": "Alıcılar"
+      },
+      "slack": {
+        "channel_name_description": "Mesajın gönderileceği kanal. Belirtilmezse, mesaj webhook'ta yapılandırılmış varsayılan kanala gönderilecektir.",
+        "channel_name_description_2": "Varsayılan kanalı, kanal adı (örneğin, #alerts) veya bir kullanıcı adı (örneğin, @username) belirterek geçersiz kılabilirsiniz.",
+        "channel_name_label": "Kanal Adı",
+        "channel_notify_description": "Etkinleştirildiğinde, mesaj tüm kanal üyeleri için bildirim tetikleyecek. Spam önlemek için dikkatli kullanın.",
+        "channel_notify_label": "Bildirim Kanalı",
+        "icon_emoji_cheat_sheet_label": "Emoji rehberi",
+        "icon_emoji_description": "Bu mesajın simgesi olarak kullanılacak emoji. Formatı :emoji_name: şeklinde olmalıdır.",
+        "icon_emoji_label": "İkon Emoji",
+        "message_format_description": "Zengin mesajlar gönder",
+        "message_format_description_2": "Zengin biçimlendirme, ekler ve daha iyi görsel sunum sağlayan mesajlar gönderilmesini etkinleştir.",
+        "message_format_label": "Mesaj Biçimi",
+        "username_description": "Mesajın göndereni olarak görünecek kullanıcı adı. Belirtilmezse, varsayılan bot adı kullanılacaktır.",
+        "webhook_url_description": "Slack entegrasyonunuzun webhook URL'si. Slack örneğinizde Entegrasyonlar > Webhook'lar bölümünde bulabilirsiniz.",
+        "webhook_url_label": "Webhook URL'si"
+      },
+      "smtp": {
+        "custom_body_label": "Özel Gövde",
+        "custom_description": "Şablonlama, <b>Liquid</b> şablonlama diliyle sağlanır.",
+        "custom_description_2": "Kullanım talimatları için lütfen dokümantasyona başvurun.",
+        "custom_description_3": "Kullanılabilir değişkenler:",
+        "custom_description_4": "Bildirim mesajı",
+        "custom_description_5": "Hizmet adı",
+        "custom_description_6": "servis durumu (UP/DOWN/Sertifika süresi dolma bildirimleri)",
+        "custom_subject_label": "Özel Konu",
+        "smtp_from_label": "Gönderen (Gönderen E-posta)",
+        "smtp_host_description": "Bağlanmak istediğiniz sunucunun ana bilgisayar adını girin veya, yerel olarak yapılandırılmış bir posta transfer aracını kullanmayı planlıyorsanız, localhost girin.",
+        "smtp_host_label": "SMTP Sunucusu",
+        "smtp_password_placeholder": "SMTP Şifresi",
+        "smtp_port_label": "Port",
+        "smtp_to_label": "Kime (Alıcı E‑posta(lar))",
+        "smtp_username_placeholder": "SMTP kullanıcı adı"
+      },
+      "telegram": {
+        "auto_get_label": "Otomatik Al",
+        "bot_token_description": "Bot tokenunuzu buradan alın",
+        "bot_token_label": "Bot Token",
+        "chat_id_description": "Botunuza bir mesaj gönderip yukarıdaki \"Auto Get\" düğmesine tıklayarak veya Telegram API'si aracılığıyla manuel olarak sohbet kimliğinizi alabilirsiniz.",
+        "chat_id_description_2": "Manuel olarak almak için ziyaret edin",
+        "chat_id_description_3": "İncele",
+        "chat_id_description_4": "Telegram belgeleri",
+        "chat_id_description_5": "daha fazla bilgi için.",
+        "chat_id_label": "Sohbet Kimliği",
+        "chat_id_not_found": "Son güncellemede sohbet ID'si bulunamadı.",
+        "failed_to_fetch_chat_id": "Chat ID alınamadı",
+        "message_thread_id_description": "İsteğe bağlı. Forum süper grubundaki belirli bir konuya mesaj göndermek için kullanılır.",
+        "message_thread_id_label": "Mesaj Dizin ID",
+        "no_updates_found": "Güncelleme bulunamadı. Lütfen önce botunuza bir mesaj gönderin.",
+        "protect_content_description": "Etkinleştirildiğinde, mesaj içeriği yönlendirilmekten ve kaydedilmekten korunacaktır.",
+        "protect_content_label": "İçerik koruması",
+        "send_silently_description": "Etkinleştirildiğinde, mesajlar sessizce gönderilecek (kullanıcılar ses çıkarmayan bir bildirim alacak).",
+        "send_silently_label": "Sessizce Gönder",
+        "server_url_description": "Varsayılan",
+        "server_url_description_2": "Özel bir sunucu kullanabilirsiniz. Detaylar",
+        "server_url_description_3": "burada",
+        "server_url_description_4": "ayrıntılar için.",
+        "server_url_label": "Telegram Sunucu URL'si",
+        "template_description": "Mesaj formatını özelleştir. Kullanılabilir değişkenler",
+        "template_label": "Mesaj Şablonu",
+        "template_parse_mode_description": "Mesajın nasıl ayrıştırılacağını seçin. İncele",
+        "template_parse_mode_description_2": "Telegram biçimlendirme belgeleri",
+        "template_parse_mode_description_3": "daha fazla ayrıntı için.",
+        "template_parse_mode_label": "Şablon Ayrıştırma Kipi",
+        "template_parse_mode_placeholder": "Parse modunu seçin",
+        "template_placeholder": "Özel mesaj şablonunuzu girin",
+        "use_template_description": "Özel mesaj şablonu ve biçimini kullanmayı etkinleştir.",
+        "use_template_label": "Mesaj Şablonunu Kullan"
+      },
+      "webhook": {
+        "additional_headers_description": "Webkancı isteğine özel HTTP başlıkları ekleyin.",
+        "additional_headers_label": "Ek Başlıklar",
+        "custom_body_description": "İstek gövde formatını özelleştir. Kullanılabilir değişkenler",
+        "custom_body_label": "Özel Gövde",
+        "post_url_description": "Bildirimlerin gönderileceği webhook uç noktası URL'si.",
+        "post_url_label": "Gönderme URL'si",
+        "request_body_description_custom": "Aşağıda kendi özel istek gövdesi formatınızı tanımlayın.",
+        "request_body_description_form_data": "İçerik multipart/form-data olarak gönderilecektir. PHP'de <strong>json_decode($_POST['data'])</strong> kullanarak çözebilirsiniz.",
+        "request_body_description_json": "İçerik, \"application/json\" başlığıyla JSON olarak gönderilecektir.",
+        "request_body_label": "İstek Gövdesi",
+        "request_body_placeholder": "İçerik türünü seçin"
+      }
+    },
+    "important": "Önemli Bildirimler",
+    "important_notifications": "Önemli Bildirimler",
+    "labels": {
+      "friendly_name": "Kullanıcı Dostu Ad",
+      "type": "Bildirim Türü"
+    },
+    "messages": {
+      "create_failed": "Bildirim oluşturulamadı",
+      "created_success": "Bildirimci başarıyla oluşturuldu.",
+      "error_loading_notifier": "Notifier yüklenirken hata oluştu",
+      "test_failed": "Test bildirimi gönderilemedi.",
+      "test_success": "Test bildirimi başarıyla gönderildi.",
+      "update_failed": "Bildirimci güncellenemedi",
+      "updated_success": "Bildirimci başarıyla güncellendi"
+    },
+    "new": {
+      "title": "Yeni Bildirim Kanalı"
+    },
+    "no_important": "Önemli bildirim bulunamadı.",
+    "placeholders": {
+      "select_type": "Bildirim türünü seçin"
+    },
+    "search_placeholder": "İsimle bildirim kanallarını ara..."
+  },
+  "proxies": {
+    "delete_dialog": {
+      "description": "Bu işlem geri alınamaz. Bu, {{host}}:{{port}} proxy'sini kalıcı olarak silecektir.",
+      "title": "Kesinlikle emin misiniz?"
+    },
+    "edit": {
+      "page_name": "Proxy Düzenle"
+    },
+    "empty_list": {
+      "action_text": "İlk proxy'nizi oluştur",
+      "text": "İzleyicilerinizde kullanmak üzere ilk proxy'nizi oluşturarak başlayın.",
+      "title": "Proxy bulunamadı"
+    },
+    "form": {
+      "auth_label": "Proxy sunucusu kimlik doğrulama gerektiriyor",
+      "port_placeholder": "Port",
+      "protocol_label": "Proxy Protokolü",
+      "protocol_placeholder": "Proxy protokolünü seç",
+      "server_label": "Proxy Sunucu",
+      "server_placeholder": "Sunucu adresi",
+      "user": "Kullanıcı"
+    },
+    "messages": {
+      "create_failed": "Proxy oluşturulamadı",
+      "created_success": "Proxy başarıyla oluşturuldu",
+      "error_loading_proxy": "Proxy yüklenirken hata",
+      "update_failed": "Proxy güncellemesi başarısız oldu",
+      "updated_success": "Proxy başarıyla güncellendi"
+    },
+    "new": {
+      "page_name": "Yeni Proxy"
+    },
+    "page_name": "Proxy'ler",
+    "search_label": "Ara",
+    "search_placeholder": "Sunucuya göre proxy ara..."
+  },
+  "security": {
+    "enable_2fa": {
+      "form": {
+        "authenticator_code_label": "Kimlik Doğrulama Kodu",
+        "authenticator_code_placeholder": "6 haneli kodu girin",
+        "current_password_label": "Mevcut Parola",
+        "current_password_placeholder": "Geçerli şifrenizi girin",
+        "enable_2fa_button": "2FA'yı etkinleştir"
+      },
+      "messages": {
+        "2fa_active": "2FA Aktif",
+        "2fa_disabled_successfully": "2FA başarıyla devre dışı bırakıldı",
+        "2fa_enabled_successfully": "2FA başarıyla etkinleştirildi",
+        "account_is_protected_with_2fa": "Hesabınız 2FA ile korunuyor.",
+        "disable_2fa": "2FA'yı devre dışı bırak",
+        "enter_password_to_disable_2fa": "2FA'yi devre dışı bırakmak için şifrenizi girin",
+        "failed_to_disable_2fa": "2FA devre dışı bırakılamadı",
+        "failed_to_verify_2fa_code": "2FA kodu doğrulanamadı",
+        "failed_to_verify_password": "Şifre doğrulanamadı veya 2FA kurulumu başlatılamadı",
+        "have_enabled_2fa": "Hesabınız için iki faktörlü kimlik doğrulamayı (2FA) etkinleştirdiniz. Bu, ekstra bir güvenlik katmanı ekler.",
+        "or_enter_secret_manually": "Veya bu gizli anahtarı elle girin",
+        "scan_qr_code_with_authenticator_app": "Bu QR kodunu kimlik doğrulama uygulamanızla tarayın.",
+        "two_factor_authentication_enabled": "İki Faktörlü Kimlik Doğrulama Etkin",
+        "user_email_not_found": "Kullanıcı e-postası bulunamadı"
+      }
+    },
+    "page_name": "Güvenlik",
+    "update_password": {
+      "form": {
+        "confirm_new_password_label": "Yeni Şifreyi Onayla",
+        "confirm_new_password_placeholder": "Yeni şifreyi yeniden girin",
+        "new_password_label": "",
+        "new_password_placeholder": "Yeni şifre girin",
+        "old_password_label": "Eski Parola",
+        "old_password_placeholder": "Geçerli şifrenizi girin",
+        "update_password_button": "Şifre Güncelle"
+      },
+      "messages": {
+        "failed_to_update_password": "Şifre güncellenemedi",
+        "password_updated_successfully": "Parola başarıyla güncellendi."
+      },
+      "title": "Şifreyi Güncelle"
+    }
+  },
+  "sendgrid": {
+    "api_key_description": "SendGrid API anahtarınız. SendGrid hesabınızda Ayarlar → API Anahtarları altında bir tane oluşturabilirsiniz. \"Mail Send\" izinlerine sahip olduğundan emin olun.",
+    "api_key_label": "API Anahtarı",
+    "bcc_email_description": "Gizli karbon kopya alıcıları. Birden fazla e-posta adresini virgülle ayırın.",
+    "bcc_email_label": "BCC E-posta (İsteğe Bağlı)",
+    "cc_email_description": "Kopya alıcıları. Birden çok e-posta adresini virgülle ayırın.",
+    "cc_email_label": "CC E-posta (isteğe bağlı)",
+    "from_email_description": "Gönderici e-posta adresi. Bu, SendGrid hesabınızdaki doğrulanmış bir gönderici olmalıdır.",
+    "from_email_label": "Gönderen E-posta",
+    "subject_description": "E-posta konu satırı. Liquid şablonlamayı destekler.",
+    "subject_label": "Özel Konu (İsteğe Bağlı)",
+    "subject_variables_label": "Kullanılabilir değişkenler:",
+    "subject_variables_msg": "bildirim mesajı",
+    "subject_variables_name": "servis adı",
+    "subject_variables_status": "servis durumu (ÇALIŞIYOR / ÇALIŞMIYOR)",
+    "to_email_description": "Birincil alıcı e-posta adresi. Birden fazla alıcı için CC veya BCC alanlarını kullanın.",
+    "to_email_label": "E-posta"
+  },
+  "settings": {
+    "data_retention": {
+      "days_label": "Gün",
+      "description": "Veriyi saklayacağınız gün sayısını ayarlayın (KEEP_DATA_PERIOD_DAYS).",
+      "title": "Veri Saklama Süresi"
+    },
+    "timezone": {
+      "description": "Uygulamadaki tüm zamanları göstermek için tercih ettiğiniz saat dilimini seçin.",
+      "label": "Saat Dilimi",
+      "no_timezone_found": "Saat dilimi bulunamadı.",
+      "search_placeholder": "Zaman dilimi ara...",
+      "select_placeholder": "Saat dilimini seçin...",
+      "title": "Saat Dilimi"
+    },
+    "validation": {
+      "min_days": "En az 1 gün olmalıdır"
+    }
+  },
+  "status": {
+    "messages": {
+      "all_systems_operational": "Tüm Sistemler Çalışıyor",
+      "down": "Çalışmıyor",
+      "last_updated": "Son güncellenme",
+      "maintenance": "Bakım",
+      "no_monitors_configured": "Bu durum sayfası için izleyici yapılandırılmadı.",
+      "operational": "İşlemde",
+      "partial_system_outage": "Kısmi Sistem Arızası",
+      "powered_by": "Tarafından destekleniyor",
+      "refresh_in": "Yenile",
+      "refresh_now": "Şimdi Yenile",
+      "status_page_not_found": "Durum sayfası bulunamadı veya yayınlanmamış.",
+      "under_maintenance": "Bakımda",
+      "unknown": "Bilinmeyen"
+    }
+  },
+  "status_pages": {
+    "affected_monitors": "Etkilenen İzleyiciler",
+    "affected_monitors_info": "Bu bakımdan etkilenecek izleyicileri seçin",
+    "auto_refresh_interval": "Otomatik Yenileme Aralığı (saniye)",
+    "basic_information": "Temel Bilgiler",
+    "create_status_page": "Durum Sayfası Oluştur",
+    "customization": "Özelleştirme",
+    "delete_dialog": {
+      "description": "\"{{title}}\" öğesini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+      "title": "Durum Sayfasını Sil"
+    },
+    "description": "Durum sayfası açıklamasını girin",
+    "domain_already_used": "Alan adı {{domain}} zaten başka bir durum sayfası tarafından kullanılıyor.",
+    "domain_host_warning": "Bu alan adı, mevcut host URL'nizle aynıdır. Bu durum çatışmalara yol açabilir.",
+    "domains": "Alan Adları",
+    "domains_info_warning": "Her alan adı için CNAME kayıtlarını DNS'inize eklemeyi unutmayın.",
+    "draft_status": "Taslak",
+    "edit_page_name": "Durum Sayfasını Düzenle",
+    "messages": {
+      "create_description": "Kullanıcılarınızla hizmet durumunuzu paylaşmak için yeni bir durum sayfası oluşturun.",
+      "create_your_first_status_page": "İlk durum sayfanızı oluşturun",
+      "created_successfully": "Durum sayfası başarıyla oluşturuldu",
+      "delete_failed": "Durum sayfası silinemedi",
+      "deleted_successfully": "Durum sayfası başarıyla silindi",
+      "get_started_by_creating_your_first_status_page": "İlk durum sayfanızı oluşturarak başlayın.",
+      "no_status_pages_found": "Durum sayfaları bulunamadı",
+      "not_found": "Durum sayfası bulunamadı",
+      "update_description": "Durum sayfası ayarlarını ve yapılandırmasını güncelleyin.",
+      "updated_successfully": "Durum sayfası başarıyla güncellendi"
+    },
+    "new_page_name": "Yeni Durum Sayfası",
+    "page_name": "Durum Sayfaları",
+    "published": "Yayınlandı",
+    "published_info": "Bu durum sayfasını herkese açık yap",
+    "published_status": "Yayınlandı",
+    "search_label": "Ara",
+    "search_placeholder": "Başlığa göre durum sayfalarını ara…",
+    "update_status_page": "Durum Sayfasını Güncelle",
+    "view_page": "Sayfayı Görüntüle"
+  },
+  "tags": {
+    "confirm_delete_description": "Bu işlem geri alınamaz. Etiket \"{{name}}\" kalıcı olarak silinecek ve tüm izleyicilerden kaldırılacak.",
+    "edit_page_name": "Etiket Düzenle",
+    "empty_state": {
+      "action": "İlk etiketinizi oluştur",
+      "description": "İzleyicilerinizi düzenlemek için ilk etiketinizi oluşturarak başlayın.",
+      "title": "Etiket bulunamadı"
+    },
+    "form": {
+      "color_description": "Etiketiniz için bir renk seçin",
+      "color_label": "Renk",
+      "create_button": "Etiket Oluştur",
+      "description_label": "Açıklama",
+      "description_placeholder": "Etiket açıklamasını girin (isteğe bağlı)",
+      "name_label": "İsim",
+      "name_placeholder": "Etiket adı girin",
+      "update_button": "Etiketi Güncelle"
+    },
+    "messages": {
+      "create_description": "İzleyicilerinizi düzenlemek ve kategorize etmek için yeni bir etiket oluşturun.",
+      "failed_to_load_tag": "Etiket yüklenemedi. Etiket mevcut olmayabilir veya görüntüleme izniniz olmayabilir.",
+      "tag_id_required": "Etiket Kimliği gerekli",
+      "update_description": "Etiket ayrıntılarını güncelleyerek monitörlerinizi daha iyi organize edin."
+    },
+    "new_page_name": "Yeni Etiket",
+    "search_placeholder": "Etiketleri ara..."
+  },
+  "theme": {
+    "dark": "Koyu",
+    "light": "Aydınlık",
+    "system": "Sistem",
+    "toggle_theme": "Temayı değiştir"
+  },
+  "timezone": {
+    "average": "Ortalama",
+    "last_24_hours": "Son 24 saat",
+    "last_3_hours": "Son 3 saat",
+    "last_3_months": "Son 3 ay",
+    "last_30_minutes": "Son 30 dakika",
+    "last_6_hours": "Son 6 saat",
+    "last_7_days": "Son 7 gün",
+    "maximum": "Maksimum",
+    "minimum": "Minimum",
+    "ms": "ms",
+    "response_time": "Yanıt Süresi",
+    "uptime": "Çalışma Süresi"
+  },
+  "ui": {
+    "general": "Genel",
+    "intervals_retries": "Aralıklar, Tekrarlar, Zaman Aşımı"
+  }
+}

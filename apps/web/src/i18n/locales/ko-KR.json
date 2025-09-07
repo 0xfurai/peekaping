@@ -1,0 +1,1280 @@
+{
+  "actions": {
+    "cancel": "취소",
+    "saving": "저장 중..."
+  },
+  "auth": {
+    "login": {
+      "description": "이메일로 로그인",
+      "no_account": "계정이 없으신가요?",
+      "sign_up": "회원가입",
+      "submit": "로그인",
+      "title": "다시 오신 것을 환영합니다"
+    },
+    "register": {
+      "description": "관리자 계정 만들기",
+      "have_account": "이미 계정이 있나요?",
+      "sign_in": "로그인",
+      "submit": "생성",
+      "title": "안녕하세요"
+    },
+    "twofa": {
+      "code_label": "2FA 코드",
+      "code_placeholder": "2FA 코드를 입력하세요",
+      "description": "2FA가 귀하의 계정에 활성화되었습니다. 계속하려면 인증 코드를 입력하십시오.",
+      "title": "2단계 인증이 필요합니다",
+      "verify_button": "2FA 인증",
+      "verifying": "확인 중..."
+    }
+  },
+  "bars": {
+    "down_count": "다운 수",
+    "important": "중요",
+    "interval": "간격",
+    "message": "메시지",
+    "ms": "밀리초",
+    "notified": "알림",
+    "ping": "핑",
+    "retries": "재시도",
+    "status": "상태",
+    "time": "시간"
+  },
+  "common": {
+    "active": "활성",
+    "all": "전체",
+    "back": "뒤로",
+    "cancel": "취소",
+    "clear_all": "모두 지우기",
+    "clear_all_filters": "모든 필터 초기화",
+    "confirm": "확인",
+    "confirm_delete_title": "정말 확실합니까?",
+    "confirm_delete_title_short": "확인하시겠습니까?",
+    "continue": "계속",
+    "create": "생성",
+    "created": "생성됨",
+    "days": "일",
+    "default": "기본값",
+    "delete": "삭제",
+    "disabling": "비활성화 중...",
+    "dismiss": "닫기",
+    "down": "다운",
+    "enabling": "활성화 중...",
+    "error": "오류",
+    "expires": "만료",
+    "inactive": "비활성",
+    "loading": "로딩 중...",
+    "logout": "로그아웃",
+    "maintenance": "유지보수",
+    "no_options_found": "옵션이 없습니다",
+    "no_tags_available": "태그가 없습니다",
+    "please_refresh_page": "페이지를 새로 고쳐 주세요.",
+    "required": "필수",
+    "save": "저장",
+    "saving": "저장 중...",
+    "search": "검색",
+    "security": "보안",
+    "select": "선택",
+    "select_monitors": "모니터 선택...",
+    "select_tags": "태그 선택",
+    "settings": "설정",
+    "tags": "태그",
+    "unknown": "알 수 없음",
+    "unnamed_monitor": "이름없는 모니터",
+    "up": "위",
+    "update": "업데이트",
+    "verifying": "확인 중..."
+  },
+  "forms": {
+    "labels": {
+      "confirm_password": "비밀번호 확인",
+      "email": "이메일",
+      "footer_text": "푸터 텍스트",
+      "heartbeat_interval": "하트비트 간격 (초)",
+      "icon_url": "아이콘 URL",
+      "monitor_name": "이름",
+      "monitor_type": "타입",
+      "password": "비밀번호",
+      "retries": "재시도",
+      "slug": "슬러그",
+      "title": "제목",
+      "username": "사용자 이름"
+    },
+    "placeholders": {
+      "auto_refresh_help": "자동 새로고침을 하지 않을 경우 0",
+      "domains": "도메인 입력 (예: status.example.com)",
+      "footer_text": "푸터 텍스트 입력",
+      "icon_url": "https://example.com/icon.png",
+      "monitor_name": "내 모니터",
+      "page_description": "상태 페이지 설명을 입력하세요",
+      "page_title": "상태 페이지 제목을 입력",
+      "slug": "상태-페이지-슬러그"
+    },
+    "validation": {
+      "email_invalid": "유효한 이메일 주소를 입력하세요.",
+      "password_min_length": "비밀번호는 최소 8자 이상이어야 합니다.",
+      "passwords_mismatch": "비밀번호가 일치하지 않습니다"
+    }
+  },
+  "maintenance": {
+    "card": {
+      "aria": {
+        "delete": "{{title}} 삭제",
+        "pause": "유지보수 일시 중지",
+        "resume": "유지보수 재개"
+      },
+      "labels": {
+        "duration": "{{duration}} 분",
+        "end": "종료: {{date}}",
+        "start": "시작: {{date}}"
+      },
+      "status": {
+        "active": "활성",
+        "ended": "종료",
+        "inactive": "비활성"
+      }
+    },
+    "edit_title": "정비 편집",
+    "form": {
+      "affected_monitors_description": "이 유지보수에 영향을 받는 모니터를 선택하세요",
+      "affected_monitors_title": "영향받는 모니터",
+      "cron_description": "유효한 cron 표현식을 입력하세요",
+      "cron_expression": "Cron 표현식",
+      "date_time_title": "날짜 및 시간",
+      "day_of_month": "일",
+      "day_of_week": "요일",
+      "description_label": "설명",
+      "description_placeholder": "유지보수 설명...",
+      "duration_minutes": "지속 시간 (분)",
+      "effective_date_range": "유효 기간 범위 (선택 사항)",
+      "end_date_time": "종료 날짜 및 시간",
+      "end_time": "종료 시간",
+      "interval_label": "간격 (매일 한 번 실행)",
+      "last_day": "마지막 날",
+      "last_day_of_month": "월의 마지막 날",
+      "maintenance_time_window": "하루의 유지보수 시간 창",
+      "markdown_supported": "Markdown 지원",
+      "same_as_server": "서버와 동일한 시간대",
+      "start_date_time": "시작 날짜 및 시간",
+      "start_time": "시작 시간",
+      "strategy_label": "전략",
+      "strategy_placeholder": "전략 선택",
+      "timezone_label": "시간대",
+      "timezone_placeholder": "타임존 선택",
+      "title_label": "제목",
+      "title_placeholder": "유지보수 제목"
+    },
+    "page": {
+      "clear_filters": "모든 필터 지우기",
+      "dialogs": {
+        "confirm_action": {
+          "pause_description": "정말 이 유지보수를 일시 중지하시겠습니까?",
+          "resume_description": "이 유지보수를 재개하시겠습니까?",
+          "title": "작업 확인"
+        },
+        "confirm_delete": {
+          "description": "이 유지보수 창을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+          "title": "삭제 확인"
+        }
+      },
+      "edit_maintenance": "보수 편집: {{title}}",
+      "empty_state": {
+        "action": "첫 번째 유지보수 창 만들기",
+        "description": "첫 번째 유지보수 시간을 생성해 예정된 다운타임을 방지하세요.",
+        "title": "정비 창이 없습니다"
+      },
+      "error_loading": "유지보수 페이지 로드 오류",
+      "loading": "로딩 중...",
+      "loading_monitors": "모니터 로딩 중…",
+      "search_placeholder": "정비 검색..."
+    },
+    "page_title": "유지보수 창",
+    "schedule_title": "유지보수 예약",
+    "strategy": {
+      "cron": "크론 표현식",
+      "manual": "수동 활성/비활성",
+      "recurring_day_of_month": "반복 - 월의 일",
+      "recurring_interval": "반복 - 간격",
+      "recurring_weekday": "반복 - 요일",
+      "single": "단일 유지보수 창"
+    },
+    "toasts": {
+      "create_error": "유지보수 생성 실패",
+      "created_success": "정비가 성공적으로 생성되었습니다",
+      "delete_error": "유지보수 삭제에 실패했습니다.",
+      "deleted_success": "정상적으로 삭제되었습니다.",
+      "pause_error": "유지보수 일시 중지에 실패했습니다",
+      "paused_success": "보수 중단이 완료되었습니다",
+      "resume_error": "보수 재개에 실패했습니다.",
+      "resumed_success": "유지보수가 정상적으로 재개되었습니다",
+      "toggle_error": "유지보수 상태를 전환할 수 없습니다: ID가 누락되었습니다",
+      "update_error": "유지보수 업데이트에 실패했습니다",
+      "updated_success": "정비가 성공적으로 업데이트되었습니다."
+    },
+    "weekdays": {
+      "fri": "금",
+      "mon": "월",
+      "sat": "토",
+      "sun": "일요일",
+      "thu": "목",
+      "tue": "화",
+      "wed": "수"
+    }
+  },
+  "messages": {
+    "login_error": "로그인 중에 오류가 발생했습니다.",
+    "login_no_tokens": "로그인에 성공했으나 토큰을 수신하지 못했습니다.",
+    "login_success": "로그인에 성공했습니다.",
+    "notifier_delete_error": "알림자 삭제에 실패했습니다.",
+    "notifier_delete_success": "알림기 삭제가 완료되었습니다",
+    "register_error": "등록 중에 오류가 발생했습니다.",
+    "register_no_tokens": "등록은 성공했지만 토큰을 수신하지 못했습니다",
+    "register_success": "등록이 완료되었습니다.",
+    "setting_update_error": "설정 업데이트에 실패했습니다",
+    "setting_update_success": "설정이 성공적으로 업데이트되었습니다",
+    "tag_create_error": "태그 생성에 실패했습니다",
+    "tag_create_success": "태그가 성공적으로 생성되었습니다.",
+    "tag_delete_error": "태그 삭제에 실패했습니다",
+    "tag_delete_success": "태그가 성공적으로 삭제되었습니다",
+    "tag_update_error": "태그 업데이트에 실패했습니다",
+    "tag_update_success": "태그가 성공적으로 업데이트되었습니다.",
+    "unexpected_error": "예기치 않은 오류가 발생했습니다.",
+    "version_mismatch": "버전 불일치가 감지되었습니다"
+  },
+  "monitors": {
+    "card": {
+      "check_interval": "검사 간격:",
+      "loading_more": "더 불러오는 중..."
+    },
+    "empty_state": {
+      "action": "첫 번째 모니터 만들기",
+      "description": "첫 번째 모니터를 만들어 서비스 상태를 추적해 보세요.",
+      "title": "모니터가 없습니다"
+    },
+    "filtering_by_tags": "태그별 필터링",
+    "filters": {
+      "monitor_status": "상태",
+      "monitor_status_placeholder": "모니터링 상태",
+      "search_placeholder": "이름으로 모니터를 검색...",
+      "status_placeholder": "상태"
+    },
+    "form": {
+      "buttons": {
+        "copied": "복사 완료!",
+        "copy": "복사",
+        "create": "생성",
+        "regenerate": "다시 생성",
+        "update": "업데이트"
+      },
+      "dns": {
+        "hostname": "호스트 이름",
+        "port": "포트",
+        "record_type": "리소스 레코드 유형",
+        "record_type_placeholder": "레코드 유형 선택",
+        "resolver_server": "리졸버 서버",
+        "title": "DNS 설정"
+      },
+      "docker": {
+        "ca_cert_description": "PEM 형식의 인증 기관 인증서를 붙여넣으십시오.",
+        "ca_certificate": "CA 인증서 (PEM)",
+        "client_cert_description": "PEM 형식으로 클라이언트 인증서를 붙여넣으세요. 이는 상호 TLS 인증에 사용됩니다.",
+        "client_certificate": "클라이언트 인증서 (PEM)",
+        "client_private_key": "클라이언트 개인 키 (PEM)",
+        "common_tls_issues": "일반적인 TLS 문제:",
+        "connection_type": "연결 유형",
+        "container_name_id": "컨테이너 이름/ID",
+        "disabled": "비활성화",
+        "docker_container": "도커 컨테이너",
+        "docker_host": "Docker 호스트",
+        "enable_tls": "TLS 사용",
+        "enabled": "활성화",
+        "examples": "예시",
+        "hostname_mismatch": "\"x509: 인증서가 X에 대해 유효하지만 Y에 대해 유효하지 않음\":",
+        "hostname_mismatch_solution": "호스트 이름이 인증서의 SAN과 일치하도록 하거나(권장되지 않음) 검증을 비활성화하세요.",
+        "legacy_cert_error": "x509: 인증서가 레거시 Common Name 필드에 의존합니다:",
+        "legacy_cert_solution": "호스트명을 인증서의 주제 대체 이름(SAN)에 추가하세요.",
+        "mtls_note": "",
+        "note": "참고:",
+        "private_key_description": "PEM 형식의 개인 키를 붙여넣으세요. 보안에 유의하세요!",
+        "select_connection_type": "연결 유형 선택",
+        "select_tls_option": "TLS 옵션 선택",
+        "select_verification_option": "검증 옵션 선택",
+        "skip_verification": "검증 건너뛰기 (비보안)",
+        "tls_configuration": "TLS 구성",
+        "unknown_authority": "\"x509: 인증서가 알 수 없는 기관에 의해 서명되었습니다\":",
+        "unknown_authority_solution": "서버 인증서를 서명한 올바른 CA 인증서를 제공하세요.",
+        "verify_certificates": "인증서 검증",
+        "verify_tls": "TLS 검증"
+      },
+      "grpc": {
+        "body": "본문 데이터 (JSON)",
+        "enable_tls": "TLS 활성화",
+        "enable_tls_description": "보안 연결 사용 (TLS/SSL)",
+        "invert_keyword": "키워드 반전",
+        "invert_keyword_description": "키워드를 찾지 못하면 모니터가 UP으로 표시됩니다.",
+        "keyword": "키워드",
+        "keyword_description": "응답에서 이 키워드를 검색",
+        "keyword_placeholder": "검색 키워드 (옵션)",
+        "method_description": "대소문자 구분",
+        "method_placeholder": "확인",
+        "options_title": "gRPC 옵션",
+        "proto_content": "프로토버프 내용",
+        "proto_method": "Protobuf 메서드",
+        "proto_service_name": "Protobuf 서비스 이름",
+        "service_name_placeholder": "상태"
+      },
+      "http": {
+        "advanced": {
+          "accepted_status_codes": "허용된 상태 코드",
+          "ignore_tls": "HTTPS 웹사이트에서 TLS/SSL 오류 무시",
+          "ignore_tls_description": "TLS 인증서 검증을 건너뜁니다. 주의해서 사용하세요 - 연결이 덜 안전해집니다.",
+          "max_redirects": "최대 리다이렉션",
+          "max_redirects_description": "팔로우할 리다이렉트 최대 수 (0-30). 0으로 설정하면 리다이렉트가 비활성화됩니다.",
+          "title": "고급"
+        },
+        "authentication": {
+          "auth_header": "인증 헤더",
+          "certificate": "인증서",
+          "certificate_placeholder": "인증서",
+          "client_id": "클라이언트 ID",
+          "client_id_placeholder": "클라이언트 ID",
+          "client_secret": "클라이언트 시크릿",
+          "client_secret_placeholder": "클라이언트 비밀키",
+          "domain": "도메인",
+          "domain_placeholder": "도메인",
+          "form_data_body": "폼 데이터 본문",
+          "key": "키",
+          "key_placeholder": "키",
+          "method_label": "인증 방식",
+          "method_placeholder": "인증 유형 선택",
+          "oauth_scope": "OAuth 범위",
+          "oauth_scope_placeholder": "선택 사항: 공백으로 구분된 스코프 목록",
+          "oauth_token_url": "OAuth 토큰 URL",
+          "oauth_token_url_placeholder": "OAuth 토큰 URL",
+          "title": "인증",
+          "workstation": "작업스테이션",
+          "workstation_placeholder": "작업대"
+        },
+        "options": {
+          "body": "본문",
+          "body_encoding": "본문 인코딩",
+          "body_encoding_placeholder": "본문 인코딩 선택",
+          "form_example": "예시 폼 데이터",
+          "headers": "헤더",
+          "json_example": "예시 JSON",
+          "method": "메서드",
+          "method_placeholder": "모니터 유형 선택",
+          "select_encoding": "본문 인코딩 선택",
+          "select_method": "메서드 선택",
+          "text_example": "예시 텍스트:\n여기에 일반 텍스트 내용을 입력하세요...",
+          "title": "HTTP 옵션",
+          "xml_example": "예시 XML"
+        }
+      },
+      "http_json_query": {
+        "condition_label": "조건",
+        "expected_value_label": "예상 값",
+        "json_query_label": "JSON 쿼리 식",
+        "title": "JSON 쿼리 표현식"
+      },
+      "http_keyword": {
+        "invert_keyword_description": "키워드가 없음을 찾아보세요.",
+        "invert_keyword_label": "키워드 반전",
+        "keyword_label": "키워드",
+        "keyword_validation_title": "키워드 검증"
+      },
+      "kafka": {
+        "add_broker": "Broker 추가",
+        "auto_topic_creation_description": "프로듀서가 토픽이 없으면 자동으로 토픽을 생성하도록 허용합니다.",
+        "auto_topic_creation_label": "자동 토픽 생성 허용",
+        "brokers_description": "Kafka 브로커 주소 목록 (host:port 형식)",
+        "brokers_label": "카프카 브로커",
+        "configuration_title": "카프카 설정",
+        "enable_ssl_description": "연결에 SSL/TLS 암호화를 사용하세요",
+        "enable_ssl_label": "SSL/TLS 사용",
+        "message_description": "토픽에 전송할 메시지 내용 (JSON 형식 권장)",
+        "message_label": "메시지",
+        "sasl_mechanism_description": "SASL 인증 메커니즘 선택",
+        "sasl_mechanism_label": "SASL 메커니즘",
+        "sasl_mechanism_placeholder": "SASL 메커니즘 선택",
+        "sasl_password_description": "SASL 인증 비밀번호",
+        "sasl_password_label": "SASL 비밀번호",
+        "sasl_password_placeholder": "암호",
+        "sasl_username_description": "SASL 인증을 위한 사용자 이름",
+        "sasl_username_label": "SASL 사용자명",
+        "security_title": "보안",
+        "topic_description": "메시지를 전송할 Kafka 토픽"
+      },
+      "mongodb": {
+        "command_description": "실행할 MongoDB 명령을 JSON으로 지정합니다. 지정하지 않으면 기본값은 ping입니다.",
+        "command_label": "명령 (선택 사항)",
+        "configuration_title": "MongoDB 설정",
+        "connection_string_description": "MongoDB 연결 문자열. 표준 (mongodb://) 및 DNS 시드리스트 (mongodb+srv://) 형식을 모두 지원합니다.",
+        "connection_string_label": "연결 문자열",
+        "expected_value_description": "JSON 경로 결과와 비교할 예상값.",
+        "expected_value_label": "기대값 (옵션)",
+        "expected_value_placeholder": "예상 값",
+        "json_path_description": "응답에서 값을 추출할 JSON 경로. 루트 레벨은 $를 사용합니다.",
+        "json_path_label": "JSON Path (선택 사항)"
+      },
+      "mqtt": {
+        "check_type_json_query": "JSON 쿼리",
+        "check_type_keyword": "키워드",
+        "check_type_label": "MQTT 확인 유형",
+        "check_type_none": "없음 (모든 메시지)",
+        "check_type_placeholder": "검사 유형 선택",
+        "configuration_title": "MQTT 설정",
+        "expected_value_label": "예상값",
+        "hostname_label": "호스트 이름",
+        "json_path_label": "JSON 경로",
+        "password_label": "MQTT 비밀번호",
+        "password_placeholder": "비밀번호 (선택 사항)",
+        "port_label": "포트",
+        "success_keyword_label": "MQTT 성공 키워드",
+        "success_keyword_placeholder": "성공을 나타내는 키워드",
+        "username_label": "MQTT 사용자명",
+        "username_placeholder": "사용자 이름 (선택 사항)",
+        "validation": {
+          "expected_value_required": "JSON 쿼리 검사 유형일 때 기대값이 필요합니다.",
+          "json_path_required": "JSON 경로는 체크 유형이 json-query일 때 필요합니다.",
+          "success_keyword_required": "검사 유형이 키워드일 때 성공 키워드가 필요합니다."
+        }
+      },
+      "mysql": {
+        "connection_string_examples": "예시:",
+        "connection_string_label": "연결 문자열",
+        "connection_title": "MySQL 연결",
+        "query_label": "쿼리"
+      },
+      "ping": {
+        "data_size": "데이터 크기 (바이트)",
+        "host": "호스트명 / IP",
+        "title": "Ping 설정"
+      },
+      "postgres": {
+        "connection_string_label": "연결 문자열",
+        "connection_title": "PostgreSQL 연결",
+        "query_label": "쿼리"
+      },
+      "push": {
+        "url_description": "서비스에서 이 URL을 사용하여 상태를 보고하십시오. 이 엔드포인트에 HTTP 요청(POS/GET)을 보내 하트비트를 전송하세요.",
+        "url_title": "푸시 모니터 URL"
+      },
+      "rabbitmq": {
+        "documentation_link": "RabbitMQ 문서",
+        "health_checks_description": "모니터는 각 노드에서 {{code}} 엔드포인트를 확인하고, 어느 노드라도 정상이라면 UP을 반환합니다.",
+        "management_nodes_description": "RabbitMQ 관리 노드의 URL(프로토콜 및 포트 포함)을 입력하세요. 예시: https://node1.rabbitmq.com:15672",
+        "management_nodes_title": "관리 노드",
+        "node_url_label": "노드 URL",
+        "password_description": "RabbitMQ 관리 인터페이스 인증용 비밀번호",
+        "setup_information_description": "RabbitMQ 모니터를 사용하려면 RabbitMQ 설정에서 Management 플러그인을 활성화해야 합니다. 자세한 내용은 RabbitMQ 문서를 참조하십시오.",
+        "setup_information_title": "설정 정보",
+        "title": "RabbitMQ 설정",
+        "username_description": "RabbitMQ 관리 인터페이스 인증용 사용자 이름"
+      },
+      "redis": {
+        "ca_certificate_description": "Root CA 인증서(PEM 형식). 자체 서명 인증서의 올바른 TLS 검증에 필요합니다.",
+        "ca_certificate_label": "CA 인증서 (선택 사항)",
+        "client_certificate_description": "PEM 형식의 클라이언트 인증서입니다. 상호 TLS 인증에 필요합니다.",
+        "client_certificate_label": "클라이언트 인증서(선택 사항)",
+        "client_key_description": "PEM 형식의 클라이언트 개인 키입니다. 클라이언트 인증서와 함께 제공해야 합니다.",
+        "client_key_label": "클라이언트 비공개 키 (선택 사항)",
+        "connection_string_description": "Redis 연결 문자열 형식: {{redis}} 또는 TLS용 {{rediss}}",
+        "connection_string_label": "연결 문자열",
+        "ignore_tls_description": "TLS 인증서 검증 건너뛰기 (생산 환경에서는 권장되지 않음)",
+        "ignore_tls_label": "TLS/SSL 오류 무시",
+        "title": "Redis 설정"
+      },
+      "shared": {
+        "intervals": {
+          "heartbeat_retry": "하트비트 재시도 간격 ({{seconds}}초마다 재시도)",
+          "max_retries_description": "서비스가 다운으로 표시되고 알림이 전송되기 전까지의 최대 재시도 수",
+          "request_timeout": "요청 타임아웃 ({{seconds}}초 후)",
+          "resend_notification": "연속 X회 다운 시 알림 재전송 (재전송 비활성화)"
+        },
+        "notifications": {
+          "add_notifier": "알림기 추가",
+          "new_notifier": "+ 새 알림기",
+          "no_channels": "",
+          "no_channels_available": "채널이 없습니다",
+          "select_channel": "채널 선택",
+          "select_notifier_placeholder": "알림자 선택",
+          "selected_channels": "선택된 알림 채널",
+          "title": "알림 채널"
+        },
+        "proxy": {
+          "add_proxy": "프록시 추가",
+          "new_proxy": "+ 새 프록시",
+          "no_proxy": "프록시 없음",
+          "remove_proxy": "프록시 제거",
+          "select_proxy_placeholder": "프록시 선택",
+          "selected_proxy": "선택된 프록시",
+          "title": "프록시"
+        },
+        "tags": {
+          "label": "태그",
+          "no_tags": "태그가 없습니다",
+          "placeholder": "태그 선택"
+        }
+      },
+      "snmp": {
+        "community_description": "인증용 SNMP 커뮤니티 문자열(비밀번호와 같은 것)",
+        "community_label": "커뮤니티 문자열",
+        "expected_value_description": "비교할 값입니다. 비워 두면 검증을 건너뜁니다.",
+        "expected_value_label": "예상 값",
+        "host_description": "SNMP 지원 장치의 호스트명 또는 IP 주소",
+        "host_label": "호스트",
+        "json_path_description": "",
+        "json_path_label": "JSON 경로",
+        "json_path_operator_description": "추출된 값과 예상 값을 비교하는 방법",
+        "json_path_operator_eq": "같음",
+        "json_path_operator_ge": "이상",
+        "json_path_operator_gt": "보다 큰",
+        "json_path_operator_label": "조건",
+        "json_path_operator_le": "이하",
+        "json_path_operator_lt": "작음",
+        "json_path_operator_ne": "같지 않음",
+        "oid_description": "조회할 SNMP 객체 식별자 (예: 시스템 설명용 1.3.6.1.2.1.1.1.0)",
+        "oid_label": "OID (객체 식별자)",
+        "port_description": "SNMP 포트 (기본값: 161)",
+        "port_label": "포트",
+        "snmp_version_description": "사용할 SNMP 프로토콜 버전",
+        "snmp_version_label": "SNMP 버전",
+        "title": "SNMP 설정",
+        "value_validation_label": "값 검증 (옵션)"
+      },
+      "sqlserver": {
+        "allowed_statements_description": "SELECT, SHOW, DESCRIBE, EXPLAIN, WITH, 및 VALUES.",
+        "allowed_statements_label": "허용된 문장:",
+        "connection_string_label": "연결 문자열",
+        "query_description": "건강 점검용 쿼리. 비워 두면 기본값이 사용됩니다.",
+        "query_label": "쿼리",
+        "title": "Microsoft SQL Server 연결"
+      },
+      "tcp": {
+        "host": "호스트",
+        "port": "포트",
+        "title": "TCP 연결"
+      },
+      "type": {
+        "dns": "DNS 모니터",
+        "docker": "Docker 컨테이너",
+        "grpc": "gRPC 키워드 모니터",
+        "http": "HTTP(S) 모니터",
+        "kafka": "카프카 프로듀서 모니터",
+        "mongodb": "MongoDB 데이터베이스 모니터",
+        "mqtt": "MQTT 브로커 모니터",
+        "mysql": "MySQL/MariaDB 모니터",
+        "ping": "핑 모니터 (ICMP)",
+        "postgres": "PostgreSQL 데이터베이스 모니터",
+        "push": "푸시 모니터 (외부 서비스가 생성된 URL을 호출)",
+        "rabbitmq": "RabbitMQ 모니터",
+        "redis": "Redis 데이터베이스 모니터",
+        "snmp": "SNMP 모니터",
+        "sqlserver": "Microsoft SQL Server 모니터",
+        "tcp": "TCP 포트 모니터"
+      }
+    },
+    "page": {
+      "description": "새 모니터를 만들어 웹사이트 성능을 추적하세요.",
+      "edit_title": "모니터 편집:",
+      "new_title": "새 모니터"
+    },
+    "title": "모니터",
+    "toasts": {
+      "deleted": "모니터가 삭제되었습니다",
+      "paused": "감시 일시 중지",
+      "reset_success": "모니터 데이터가 성공적으로 초기화되었습니다",
+      "resumed": "모니터링이 재개되었습니다"
+    },
+    "view": {
+      "buttons": {
+        "clone": "복제",
+        "delete": "삭제",
+        "edit": "편집",
+        "pause": "일시 중지",
+        "reset_data": "데이터 재설정",
+        "resume": "다시 시작"
+      },
+      "certificate": "인증서",
+      "check_every": "검사 주기",
+      "current_status": "현재 상태",
+      "dialogs": {
+        "delete": {
+          "description": "이 작업은 되돌릴 수 없습니다. 모니터와 관련된 모든 데이터가 영구적으로 삭제됩니다.",
+          "title": "정말 확실합니까?"
+        },
+        "pause": {
+          "description": "정말 일시 중지하시겠습니까?",
+          "title": "확인"
+        },
+        "reset": {
+          "description": "이 작업은 이 모니터의 모든 하트비트 기록과 가동 시간 통계 데이터를 영구적으로 삭제합니다. 모니터는 새로 생성된 것처럼 보이게 됩니다. 이 동작은 복구할 수 없습니다.",
+          "title": "모니터 데이터 초기화"
+        }
+      },
+      "expiring_soon": "만료 임박",
+      "for": "대상",
+      "live_status": "실시간 상태",
+      "monitor_for": "모니터링 대상",
+      "no_certificate_data": "인증서 데이터 없음",
+      "seconds": "초",
+      "stats": {
+        "last_24_hours": "지난 24시간",
+        "last_30_days": "최근 30일",
+        "last_365_days": "지난 365일",
+        "last_7_days": "지난 7일"
+      },
+      "status": {
+        "down": "다운",
+        "maintenance": "점검",
+        "paused": "일시 중지됨",
+        "up": "가동 중"
+      }
+    }
+  },
+  "navigation": {
+    "maintenance": "유지보수",
+    "monitors": "모니터",
+    "notification_channels": "알림 채널",
+    "proxies": "프록시",
+    "settings": "설정",
+    "status_pages": "상태 페이지",
+    "tags": "태그"
+  },
+  "notifications": {
+    "actions": {
+      "test": "테스트",
+      "testing": "테스트 중..."
+    },
+    "aria": {
+      "delete": "삭제 {{name}}"
+    },
+    "confirm_delete_description": "이 작업은 되돌릴 수 없습니다. 이로 인해 알림자 {{name}}가 영구적으로 삭제되고, 이 알림자를 사용하는 모든 모니터에서 제거됩니다.",
+    "create_title": "알림기 생성",
+    "edit_channel_title": "알림 채널 편집",
+    "edit_title": "알림 전송기 편집",
+    "empty_state": {
+      "action": "첫 번째 알림 채널 만들기",
+      "description": "첫 번째 알림 채널을 만들어 팀에 알림을 보내세요.",
+      "title": "알림 채널을 찾을 수 없습니다"
+    },
+    "form": {
+      "discord": {
+        "bot_display_name_description": "Discord 메시지에서 발신자로 표시될 이름입니다.",
+        "bot_display_name_label": "봇 표시 이름",
+        "custom_message_prefix_description": "모든 메시지 앞에 추가될 선택적 접두사입니다.",
+        "custom_message_prefix_label": "맞춤 메시지 접두사",
+        "custom_message_prefix_placeholder": "선택 사항: 메시지에 접두사를 추가하세요",
+        "forum_post_name_description": "새로 생성될 포럼 게시물의 이름입니다.",
+        "forum_post_name_label": "포럼 게시물 이름",
+        "forum_post_name_placeholder": "포럼 게시물 이름을 입력하세요",
+        "sending_message_to_channel": "채널에 보내기",
+        "sending_message_to_description": "Discord 메시지를 보낼 위치를 선택하세요.",
+        "sending_message_to_label": "메시지를 보낼 대상",
+        "sending_message_to_new_forum_post": "새 포럼 게시물에 보내기",
+        "sending_message_to_placeholder": "메시지 유형 선택",
+        "sending_message_to_thread": "스레드에 전송",
+        "setup_webhook_description_1": "Discord 서버 설정 → 통합 → 웹후크에서 Webhook URL을 가져오세요.",
+        "setup_webhook_description_2": "새 웹후크를 만들고 URL을 복사하세요. 올바른 채널을 선택했는지 확인하세요.",
+        "setup_webhook_title": "디스코드 웹훅 설정",
+        "thread_id_description_1": "디스코드 사용자 설정 → 고급 → 개발자 모드에서 개발자 모드 활성화",
+        "thread_id_description_2": "스레드(또는 게시물)에서 마우스 오른쪽 버튼을 클릭하고 “스레드 ID 복사” 또는 “채널 ID 복사”를 선택합니다.",
+        "thread_id_description_title": "메시지가 전송될 스레드 또는 포럼 게시물의 ID",
+        "thread_id_label": "스레드 ID",
+        "thread_id_placeholder": "스레드 또는 게시물 ID 입력",
+        "webhook_url_label": "Discord 웹후크 URL"
+      },
+      "google_chat": {
+        "more_info_about_webhooks": "웹훅에 대한 자세한 정보",
+        "webhook_url_label": "Google Chat 웹훅 URL"
+      },
+      "gotify": {
+        "application_token_description": "Gotify 애플리케이션 토큰입니다. Gotify 웹 인터페이스의 Apps(앱) 메뉴에서 확인하실 수 있습니다.",
+        "application_token_label": "애플리케이션 토큰",
+        "custom_message_description": "사용자 지정 메시지 템플릿. 사용 가능한 변수",
+        "custom_message_description_2": "기본 메시지를 사용하려면 비워 두세요.",
+        "custom_message_label": "사용자 정의 메시지",
+        "custom_title_description": "알림에 대한 사용자 정의 제목. 사용 가능한 변수: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. 비워 두면 기본 \"Peekaping\" 제목이 사용됩니다.",
+        "custom_title_label": "맞춤 제목",
+        "learn_more_label": "Gotify에 대해 자세히 알아보려면, 설정 방법은 다음에서 확인하세요:",
+        "note_description": "이 통합 기능을 사용하려면 Gotify 서버가 실행 중이어야 합니다.",
+        "note_label": "참고:",
+        "priority_0": "최저",
+        "priority_1": "매우 낮음",
+        "priority_10": "최고",
+        "priority_2": "낮음",
+        "priority_3": "보통 이하",
+        "priority_4": "보통",
+        "priority_5": "보통 이상",
+        "priority_6": "보통",
+        "priority_7": "높음",
+        "priority_8": "매우 높음 (기본값)",
+        "priority_9": "긴급",
+        "priority_description": "메시지 우선순위 (0-10). 숫자가 높을수록 우선순위가 높습니다. 기본값은 8입니다.",
+        "priority_label": "우선순위",
+        "priority_placeholder": "우선순위 선택",
+        "server_url_description": "Gotify 서버 URL입니다. 이 애플리케이션에서 접근 가능한지 확인하세요.",
+        "server_url_label": "서버 URL"
+      },
+      "grafana_oncall": {
+        "grafana_oncall_url_description": "Grafana OnCall 통합에서 제공되는 웹훅 URL입니다. Grafana OnCall 인스턴스의 Alerts & IRM > IRM > Integrations > Webhook 메뉴에서 확인할 수 있습니다.",
+        "grafana_oncall_url_label": "Grafana OnCall URL",
+        "learn_more_label": "Grafana OnCall 웹훅 자세히 보기"
+      },
+      "line": {
+        "channel_access_token_description": "채널 액세스 토큰은 해당에서 가져올 수 있습니다.",
+        "channel_access_token_description_2": "채널 설정으로 이동해 확인하세요",
+        "channel_access_token_label": "채널 액세스 토큰 (장기 사용)",
+        "channel_access_token_placeholder": "LINE 채널 액세스 토큰을 입력하세요",
+        "template_description": "메시지 형식을 사용자 정의하세요. 사용 가능한 변수",
+        "template_label": "메시지 템플릿",
+        "template_placeholder": "사용자 정의 메시지 템플릿을 입력하세요",
+        "user_id_description": "사용자 ID는 ...에서 찾으실 수 있습니다.",
+        "user_id_description_2": "채널 설정으로 이동한 뒤 찾으세요",
+        "user_id_label": "사용자 ID",
+        "user_id_placeholder": "LINE 사용자 ID를 입력하세요"
+      },
+      "matrix": {
+        "access_token_description": "인증용 Matrix 액세스 토큰",
+        "access_token_label": "액세스 토큰",
+        "custom_message_description": "맞춤 메시지 템플릿. 사용 가능한 변수",
+        "custom_message_label": "사용자 지정 메시지",
+        "homeserver_url_description": "Matrix 홈서버 URL",
+        "homeserver_url_label": "홈서버 URL",
+        "internal_room_id_description": "알림이 전송될 내부 방 ID입니다. 이 ID는 \"!\"로 시작해야 하며 다음과 같이 보입니다: !roomid:matrix.org",
+        "internal_room_id_label": "내부 방 ID",
+        "setup_instructions_1": "봇용 Matrix 계정을 만들거나 기존 계정을 사용하세요",
+        "setup_instructions_2": "알림을 받을 방을 생성하거나 참여하세요",
+        "setup_instructions_3": "로그인 요청을 통해 액세스 토큰을 받으세요",
+        "setup_instructions_4": "응답에는 access_token 필드가 포함됩니다 — 이를 Access Token으로 사용하세요.",
+        "setup_instructions_5": "Matrix 클라이언트 방 설정에서 방의 내부 ID(‘!’로 시작)를 찾으세요",
+        "setup_instructions_label": "설정 지침"
+      },
+      "mattermost": {
+        "channel_name_description": "알림이 전송될 채널입니다. 비워 두면 웹후크에 설정된 기본 채널이 사용됩니다.",
+        "channel_name_label": "채널 이름",
+        "icon_emoji_cheat_sheet_label": "이모지 치트시트",
+        "icon_emoji_description": "아이콘으로 사용할 이모지입니다. 공백으로 구분된 두 개의 이모지를 지정할 수 있습니다 (첫 번째는 정상(up) 상태용, 두 번째는 다운(down) 상태용).",
+        "icon_emoji_label": "아이콘 이모지",
+        "icon_url_description": "알림 메시지의 아이콘으로 사용할 이미지 URL.",
+        "icon_url_label": "아이콘 URL",
+        "learn_more_label": "웹후크에 대해 자세히 알아보기",
+        "message_template_description": "메시지 형식을 사용자 정의하세요. 사용 가능한 변수",
+        "message_template_label": "메시지 템플릿",
+        "use_message_template_description": "사용자 정의 메시지 템플릿 및 형식 사용을 활성화합니다.",
+        "use_message_template_label": "메시지 템플릿 사용",
+        "username_description": "메시지의 보낸 사람으로 표시될 사용자 이름.",
+        "webhook_url_label": "웹훅 URL"
+      },
+      "ntfy": {
+        "authentication_type_basic": "기본 인증",
+        "authentication_type_basic_description": "기본 인증에 사용자 이름과 비밀번호를 사용하세요.",
+        "authentication_type_label": "인증 유형",
+        "authentication_type_none": "인증 없음",
+        "authentication_type_none_description": "인증이 필요 없습니다. 공개 NTFY 서버에 적합합니다.",
+        "authentication_type_placeholder": "인증 유형 선택",
+        "authentication_type_token": "토큰 인증",
+        "authentication_type_token_description": "",
+        "custom_message_description": "사용자 정의 메시지 내용. 사용 가능한 변수",
+        "custom_message_label": "사용자 정의 메시지",
+        "password_required": "기본 인증에 비밀번호가 필요합니다.",
+        "priority_1": "최소(가장 낮음)",
+        "priority_2": "낮음",
+        "priority_3": "기본",
+        "priority_4": "높음",
+        "priority_5": "긴급 (최고)",
+        "priority_description": "알림의 우선순위 수준입니다. 높은 우선순위는 클라이언트에서 다른 동작을 트리거할 수 있습니다.",
+        "priority_label": "우선순위",
+        "priority_placeholder": "우선순위 선택",
+        "server_url_description": "NTFY 서버의 URL입니다. 공개 인스턴스에는 https://ntfy.sh를 사용하세요.",
+        "server_url_label": "서버 URL",
+        "tags_description": "알림을 분류하기 위한 콤마(,)로 구분된 태그. 사용 가능한 변수",
+        "tags_label": "태그",
+        "title_description": "알림용 맞춤 제목. 사용 가능한 변수",
+        "title_label": "사용자 정의 제목",
+        "token_description": "인증용 NTFY 액세스 토큰",
+        "token_label": "액세스 토큰",
+        "token_required": "토큰 인증을 위해 토큰이 필요합니다",
+        "topic_description": "알림 토픽 이름입니다. 알림이 전송될 채널입니다.",
+        "topic_label": "주제",
+        "username_required": "기본 인증에 사용자 이름이 필요합니다."
+      },
+      "opsgenie": {
+        "api_key_label": "API 키",
+        "more_info_about_api_keys_label": "API 키에 대한 자세한 정보",
+        "priority_1": "긴급",
+        "priority_2": "높음",
+        "priority_3": "보통",
+        "priority_4": "낮음",
+        "priority_5": "알림",
+        "priority_description": "알림의 우선순위 수준을 설정합니다. 기본값은 P3 (보통)입니다.",
+        "priority_label": "우선순위",
+        "region_description": "Opsgenie 지역을 선택하세요. 이 선택에 따라 사용할 API 엔드포인트가 결정됩니다.",
+        "region_label": "지역",
+        "region_placeholder": "지역 선택"
+      },
+      "pagerduty": {
+        "auto_resolve_acknowledge": "자동 승인",
+        "auto_resolve_acknowledge_description": "사고를 자동으로 확인",
+        "auto_resolve_description": "모니터가 정상화되면 수행할 작업을 선택하세요",
+        "auto_resolve_do_nothing": "아무 것도 하지 않음",
+        "auto_resolve_do_nothing_description": "UP 상태에서는 아무 조치가 취해지지 않습니다",
+        "auto_resolve_label": "자동 해결 또는 확인",
+        "auto_resolve_placeholder": "자동 해결 동작 선택",
+        "auto_resolve_resolve": "자동 해결",
+        "auto_resolve_resolve_description": "인시던트를 자동으로 해결합니다",
+        "integration_key_description": "통합 키를 얻는 방법 알아보기",
+        "integration_key_label": "통합 키",
+        "integration_key_placeholder": "PagerDuty 통합 키를 입력하세요",
+        "integration_url_description": "PagerDuty Events API v2 엔드포인트 URL. 기본값은 표준 엔드포인트입니다.",
+        "integration_url_label": "연동 URL",
+        "learn_more_label": "PagerDuty 문서",
+        "priority_critical": "치명적",
+        "priority_description": "PagerDuty 인시던트의 심각도 수준입니다. 기본값은 \"warning\"입니다.",
+        "priority_error": "오류",
+        "priority_info": "정보",
+        "priority_label": "우선순위",
+        "priority_placeholder": "우선순위 선택",
+        "priority_warning": "경고"
+      },
+      "pagertree": {
+        "authentication_token_description": "보안 강화용 선택적 인증 토큰입니다. 이 토큰은 pagertree-token 헤더에 전송됩니다.",
+        "authentication_token_label": "인증 토큰 (선택 사항)",
+        "authentication_token_placeholder": "필요한 경우 인증 토큰을 입력하세요",
+        "auto_resolve_alerts_description": "모니터가 복구되면 PagerTree 알림을 자동으로 해결",
+        "auto_resolve_alerts_label": "",
+        "how_to_get_integration_url_label": "통합 URL 가져오는 방법",
+        "integration_url_description": "PagerTree 웹후크 통합 URL을 입력하세요.",
+        "integration_url_label": "PagerTree 웹훅 URL",
+        "urgency_level_critical": "위험",
+        "urgency_level_description": "PagerTree로 전송되는 알림의 기본 긴급도 수준을 설정",
+        "urgency_level_high": "높음",
+        "urgency_level_label": "긴급도",
+        "urgency_level_low": "낮음",
+        "urgency_level_medium": "보통",
+        "urgency_level_placeholder": "긴급도 선택",
+        "urgency_level_silent": "무음"
+      },
+      "pushbullet": {
+        "access_token": "액세스 토큰",
+        "access_token_description": "Pushbullet 접근 토큰. 여기에서 가져오세요.",
+        "access_token_label": "액세스 토큰",
+        "access_token_link": "Pushbullet 설정",
+        "channel_tag": "채널 태그 (선택 사항)",
+        "channel_tag_description": "장치 대신 Pushbullet 채널에 알림 전송",
+        "channel_tag_label": "채널 태그 (옵션)",
+        "custom_message_template_description": "템플릿 변수를 사용해 알림 본문을 맞춤 설정하세요:",
+        "custom_message_template_heartbeat_ping": "응답 시간",
+        "custom_message_template_heartbeat_time": "타임스탬프",
+        "custom_message_template_label": "사용자 정의 메시지 템플릿 (선택 사항)",
+        "custom_message_template_monitor_url": "모니터링 URL",
+        "custom_message_template_msg": "알림 메시지",
+        "custom_message_template_name": "모니터 이름",
+        "custom_message_template_placeholder": "모니터: {{ name }}\n상태: {{ status }}\n메시지: {{ msg }}",
+        "custom_message_template_status": "현재 상태",
+        "device_id": "장치 ID (선택)",
+        "device_id_description": "특정 기기로 알림을 보냅니다. 비워 두면 모든 기기로 보냅니다. 기기 ID는 다음(것)을 사용해 찾을 수 있습니다.",
+        "device_id_label": "디바이스 ID (선택 사항)",
+        "device_id_link": "Pushbullet API",
+        "more_info_on": "자세히 보기:"
+      },
+      "pushover": {
+        "application_token_label": "앱 토큰",
+        "application_token_placeholder": "Pushover 애플리케이션 토큰을 입력하세요",
+        "device_description": "모든 기기로 보내려면 비워 두세요",
+        "device_label": "장치",
+        "device_placeholder": "디바이스 이름 (선택 사항)",
+        "message_title_description": "비워 두면 기본 제목이 사용됩니다",
+        "message_title_label": "메시지 제목",
+        "message_title_placeholder": "사용자 정의 메시지 제목 (선택 사항)",
+        "message_ttl_description": "TTL(초) (0 = 만료 없음)",
+        "message_ttl_label": "메시지 TTL",
+        "more_info_label": "자세히 보기:",
+        "more_info_label_2": "여기에서 애플리케이션을 만들고 API 토큰을 받을 수 있습니다",
+        "more_info_label_3": "사용자 키는 다음에서 확인할 수 있습니다",
+        "notification_sound_down_description": "모니터가 다운될 때 재생되는 사운드",
+        "notification_sound_down_label": "알림음 - 다운",
+        "notification_sound_down_placeholder": "소리 선택",
+        "notification_sound_up_description": "모니터가 복구될 때 재생되는 사운드",
+        "notification_sound_up_label": "알림음 - 업",
+        "notification_sound_up_placeholder": "소리 선택",
+        "priority_1": "낮음",
+        "priority_2": "낮음",
+        "priority_3": "보통",
+        "priority_4": "높음",
+        "priority_5": "긴급",
+        "priority_description": "메시지 우선순위",
+        "priority_label": "우선순위",
+        "priority_placeholder": "우선순위 선택",
+        "sound_alien": "외계인",
+        "sound_bike": "자전거",
+        "sound_bugle": "버저",
+        "sound_cashregister": "현금 등록기",
+        "sound_classical": "클래식",
+        "sound_climb": "Climb",
+        "sound_cosmic": "우주",
+        "sound_echo": "에코",
+        "sound_falling": "떨어지는",
+        "sound_gamelan": "가멜란",
+        "sound_incoming": "수신",
+        "sound_intermission": "간주",
+        "sound_magic": "마법",
+        "sound_mechanical": "기계식",
+        "sound_none": "없음",
+        "sound_persistent": "지속",
+        "sound_pianobar": "피아노 바",
+        "sound_pushover": "Pushover (기본값)",
+        "sound_siren": "사이렌",
+        "sound_spacealarm": "스페이스 알람",
+        "sound_tugboat": "견인선",
+        "sound_updown": "상하",
+        "sound_vibrate": "진동",
+        "user_key_label": "사용자 키",
+        "user_key_placeholder": "Pushover 사용자 키를 입력하세요"
+      },
+      "signal": {
+        "custom_message_description": "맞춤 메시지 템플릿. 사용 가능한 변수",
+        "custom_message_label": "맞춤 메시지",
+        "important_description": "수신자에 그룹과 숫자를 혼합할 수 없습니다!",
+        "important_label": "중요:",
+        "more_info_label": "설정 방법을 확인하려면 이 URL을 참조하세요:",
+        "note_description": "Signal 클라이언트가 REST API를 지원해야 합니다.",
+        "note_label": "메모:",
+        "number_description": "Signal 계정(보내는 사람 번호)의 전화번호.",
+        "number_label": "번호",
+        "post_url_description": "Signal CLI REST API 서버 URL",
+        "post_url_label": "게시 URL",
+        "recipients_description": "알림을 보낼 전화번호를 쉼표로 구분한 목록",
+        "recipients_label": "수신자"
+      },
+      "slack": {
+        "channel_name_description": "메시지가 전송될 채널입니다. 지정하지 않으면 웹훅에 설정된 기본 채널로 전송됩니다.",
+        "channel_name_description_2": "기본 채널을 채널 이름(#alerts 등) 또는 사용자(@username 등)을 지정하여 덮어쓸 수 있습니다.",
+        "channel_name_label": "채널 이름",
+        "channel_notify_description": "활성화 시, 메시지가 채널 멤버 모두에게 알림을 보냅니다. 스팸 방지를 위해 신중히 사용하세요.",
+        "channel_notify_label": "채널 알림",
+        "icon_emoji_cheat_sheet_label": "이모지 치트 시트",
+        "icon_emoji_description": "이 메시지의 아이콘으로 사용할 이모지를 입력하세요. :emoji_name: 형식이어야 합니다.",
+        "icon_emoji_label": "아이콘 이모지",
+        "message_format_description": "풍부한 메시지 전송",
+        "message_format_description_2": "풍부한 서식, 첨부 파일 및 향상된 시각적 표현으로 메시지를 보낼 수 있도록 합니다.",
+        "message_format_label": "메시지 형식",
+        "username_description": "메시지 전송 시 표시될 사용자 이름입니다. 지정하지 않으면 기본 봇 이름이 사용됩니다.",
+        "webhook_url_description": "귀하의 Slack 통합에서 제공되는 웹훅 URL입니다. Slack 워크스페이스의 '통합 > 웹훅' 섹션에서 확인할 수 있습니다.",
+        "webhook_url_label": "웹후크 URL"
+      },
+      "smtp": {
+        "custom_body_label": "사용자 정의 본문",
+        "custom_description": "템플릿 활용 가능성은 <b>Liquid</b> 템플릿 언어를 통해 실현됩니다.",
+        "custom_description_2": "사용 방법에 대한 안내는 문서를 참조하십시오.",
+        "custom_description_3": "사용 가능한 변수:",
+        "custom_description_4": "알림 메시지",
+        "custom_description_5": "서비스 이름",
+        "custom_description_6": "서비스 상태 (업/다운/인증서 만료 알림)",
+        "custom_subject_label": "사용자 정의 제목",
+        "smtp_from_label": "보낸사람 (이메일)",
+        "smtp_host_description": "연결하려는 서버의 호스트명을 입력하거나, 로컬에서 구성된 메일 전송 에이전트를 사용하려면 localhost를 입력하세요.",
+        "smtp_host_label": "SMTP 호스트",
+        "smtp_password_placeholder": "SMTP 비밀번호",
+        "smtp_port_label": "포트",
+        "smtp_to_label": "받는 사람 (이메일)",
+        "smtp_username_placeholder": "SMTP 사용자 이름"
+      },
+      "telegram": {
+        "auto_get_label": "자동 가져오기",
+        "bot_token_description": "봇 토큰을 받으려면",
+        "bot_token_label": "봇 토큰",
+        "chat_id_description": "채팅 ID는 봇에게 메시지를 보내고 위의 ‘Auto Get’ 버튼을 클릭하거나, Telegram API를 통해 수동으로 얻을 수 있습니다.",
+        "chat_id_description_2": "",
+        "chat_id_description_3": "보기",
+        "chat_id_description_4": "Telegram 문서",
+        "chat_id_description_5": "자세한 내용은",
+        "chat_id_label": "채팅 ID",
+        "chat_id_not_found": "최신 업데이트에서 채팅 ID를 찾을 수 없습니다.",
+        "failed_to_fetch_chat_id": "채팅 ID를 가져오지 못했습니다",
+        "message_thread_id_description": "선택 사항입니다. 포럼 슈퍼그룹의 특정 스레드(주제)로 메시지를 보낼 때 사용됩니다.",
+        "message_thread_id_label": "메시지 스레드 ID",
+        "no_updates_found": "업데이트가 없습니다. 먼저 봇에게 메시지를 보내 주세요.",
+        "protect_content_description": "활성화 시, 메시지 내용이 전달 및 저장으로부터 보호됩니다.",
+        "protect_content_label": "콘텐츠 보호",
+        "send_silently_description": "활성화하면 메시지는 무음으로 전송됩니다 (사용자는 소리가 없는 알림을 받게 됩니다).",
+        "send_silently_label": "무음으로 보내기",
+        "server_url_description": "기본값은",
+        "server_url_description_2": "사용자 정의 서버를 사용할 수 있습니다. 보시려면",
+        "server_url_description_3": "여기",
+        "server_url_description_4": "자세히 보기",
+        "server_url_label": "텔레그램 서버 URL",
+        "template_description": "메시지 형식 사용자 정의. 사용 가능한 변수",
+        "template_label": "메시지 템플릿",
+        "template_parse_mode_description": "메시지 파싱 방식을 선택하세요. 보기",
+        "template_parse_mode_description_2": "Telegram 서식 문서",
+        "template_parse_mode_description_3": "자세히 알아보려면.",
+        "template_parse_mode_label": "템플릿 파싱 모드",
+        "template_parse_mode_placeholder": "파싱 모드 선택",
+        "template_placeholder": "사용자 정의 메시지 템플릿 입력",
+        "use_template_description": "맞춤 메시지 템플릿 및 서식을 사용하도록 활성화합니다.",
+        "use_template_label": "메시지 템플릿 사용"
+      },
+      "webhook": {
+        "additional_headers_description": "웹훅 요청에 사용자 정의 HTTP 헤더를 추가하세요.",
+        "additional_headers_label": "추가 헤더",
+        "custom_body_description": "요청 본문 형식을 사용자 정의하세요. 사용 가능한 변수",
+        "custom_body_label": "맞춤형 본문",
+        "post_url_description": "알림이 전송될 웹훅 엔드포인트 URL입니다.",
+        "post_url_label": "전송 URL",
+        "request_body_description_custom": "아래에 사용자 정의 요청 본문 형식을 지정하세요.",
+        "request_body_description_form_data": "콘텐츠는 multipart/form-data 형식으로 전송됩니다. PHP에서 <strong>json_decode($_POST['data'])</strong>를 사용해 디코딩할 수 있습니다.",
+        "request_body_description_json": "콘텐츠는 \"application/json\" 헤더를 사용해 JSON 형식으로 전송됩니다.",
+        "request_body_label": "요청 본문",
+        "request_body_placeholder": "콘텐츠 유형 선택"
+      }
+    },
+    "important": "중요 알림",
+    "important_notifications": "중요 알림",
+    "labels": {
+      "friendly_name": "친숙한 이름",
+      "type": "알림 유형"
+    },
+    "messages": {
+      "create_failed": "알림기 생성에 실패했습니다",
+      "created_success": "알림기 생성이 완료되었습니다.",
+      "error_loading_notifier": "알림기능 로드 오류",
+      "test_failed": "테스트 알림 전송에 실패했습니다",
+      "test_success": "테스트 알림이 성공적으로 전송되었습니다",
+      "update_failed": "알림기 업데이트에 실패했습니다.",
+      "updated_success": "Notifier 업데이트가 완료되었습니다."
+    },
+    "new": {
+      "title": "새 알림 채널"
+    },
+    "no_important": "중요 알림이 없습니다.",
+    "placeholders": {
+      "select_type": "알림 유형 선택"
+    },
+    "search_placeholder": "이름으로 알림 채널 검색..."
+  },
+  "proxies": {
+    "delete_dialog": {
+      "description": "이 작업은 되돌릴 수 없습니다. {{host}}:{{port}} 프록시가 영구적으로 삭제됩니다.",
+      "title": "정말 확실합니까?"
+    },
+    "edit": {
+      "page_name": "프록시 편집"
+    },
+    "empty_list": {
+      "action_text": "첫 번째 프록시 만들기",
+      "text": "모니터에 사용할 첫 번째 프록시를 생성하여 시작하세요.",
+      "title": "프록시가 없습니다"
+    },
+    "form": {
+      "auth_label": "프록시 서버 인증 필요",
+      "port_placeholder": "포트",
+      "protocol_label": "프록시 프로토콜",
+      "protocol_placeholder": "프록시 프로토콜 선택",
+      "server_label": "프록시 서버",
+      "server_placeholder": "서버 주소",
+      "user": "사용자"
+    },
+    "messages": {
+      "create_failed": "프록시 생성에 실패했습니다",
+      "created_success": "프록시가 성공적으로 생성되었습니다",
+      "error_loading_proxy": "프록시를 불러오는 중 오류가 발생했습니다.",
+      "update_failed": "프록시 업데이트에 실패했습니다",
+      "updated_success": "프록시가 성공적으로 업데이트되었습니다."
+    },
+    "new": {
+      "page_name": "새 프록시"
+    },
+    "page_name": "프록시",
+    "search_label": "검색",
+    "search_placeholder": "호스트별 프록시 검색..."
+  },
+  "security": {
+    "enable_2fa": {
+      "form": {
+        "authenticator_code_label": "인증기 코드",
+        "authenticator_code_placeholder": "6자리 코드를 입력하세요",
+        "current_password_label": "현재 비밀번호",
+        "current_password_placeholder": "현재 비밀번호를 입력하세요",
+        "enable_2fa_button": "2FA 사용 설정"
+      },
+      "messages": {
+        "2fa_active": "2FA 활성화",
+        "2fa_disabled_successfully": "2FA 해제에 성공했습니다.",
+        "2fa_enabled_successfully": "2FA가 성공적으로 활성화되었습니다",
+        "account_is_protected_with_2fa": "귀하의 계정은 2단계 인증으로 보호됩니다.",
+        "disable_2fa": "2FA 비활성화",
+        "enter_password_to_disable_2fa": "2FA를 해제하려면 비밀번호를 입력하세요",
+        "failed_to_disable_2fa": "2FA 비활성화에 실패했습니다",
+        "failed_to_verify_2fa_code": "2FA 코드 확인에 실패했습니다",
+        "failed_to_verify_password": "비밀번호 확인 또는 2단계 인증 설정에 실패했습니다",
+        "have_enabled_2fa": "계정에 2단계 인증(2FA)을 활성화했습니다. 보안이 한층 강화됩니다.",
+        "or_enter_secret_manually": "또는 이 비밀 키를 수동으로 입력하세요",
+        "scan_qr_code_with_authenticator_app": "인증기 앱으로 이 QR 코드를 스캔하세요",
+        "two_factor_authentication_enabled": "2단계 인증이 활성화되었습니다",
+        "user_email_not_found": "사용자 이메일을 찾을 수 없습니다"
+      }
+    },
+    "page_name": "보안",
+    "update_password": {
+      "form": {
+        "confirm_new_password_label": "새 비밀번호 재확인",
+        "confirm_new_password_placeholder": "새 비밀번호 재입력",
+        "new_password_label": "새 비밀번호",
+        "new_password_placeholder": "새 비밀번호를 입력하세요",
+        "old_password_label": "기존 비밀번호",
+        "old_password_placeholder": "현재 비밀번호를 입력하세요",
+        "update_password_button": "비밀번호 변경"
+      },
+      "messages": {
+        "failed_to_update_password": "비밀번호 업데이트에 실패했습니다.",
+        "password_updated_successfully": "비밀번호가 성공적으로 업데이트되었습니다."
+      },
+      "title": "비밀번호 변경"
+    }
+  },
+  "sendgrid": {
+    "api_key_description": "SendGrid API 키입니다. SendGrid 계정의 설정 → API 키에서 새 키를 만들 수 있습니다. 'Mail Send' 권한이 있는지 확인하세요.",
+    "api_key_label": "API 키",
+    "bcc_email_description": "숨은 참조 수신자. 여러 이메일은 쉼표로 구분합니다.",
+    "bcc_email_label": "숨은 참조 이메일 (선택 사항)",
+    "cc_email_description": "참조 수신자. 여러 이메일은 쉼표로 구분하세요.",
+    "cc_email_label": "CC 이메일 (선택 사항)",
+    "from_email_description": "보낸 사람 이메일 주소입니다. 이 주소는 SendGrid 계정에서 인증된 보낸 사람이어야 합니다.",
+    "from_email_label": "보낸이 이메일",
+    "subject_description": "이메일 제목 줄. Liquid 템플릿을 지원합니다.",
+    "subject_label": "맞춤 제목 (선택 사항)",
+    "subject_variables_label": "사용 가능한 변수:",
+    "subject_variables_msg": "알림 메시지",
+    "subject_variables_name": "서비스 이름",
+    "subject_variables_status": "서비스 상태 (업/다운)",
+    "to_email_description": "주요 수신자 이메일 주소. 여러 수신자에게는 CC 또는 BCC 필드를 사용하십시오.",
+    "to_email_label": "받는 사람 이메일"
+  },
+  "settings": {
+    "data_retention": {
+      "days_label": "일",
+      "description": "데이터 보관 일수를 설정하세요 (KEEP_DATA_PERIOD_DAYS).",
+      "title": "데이터 보존 기간"
+    },
+    "timezone": {
+      "description": "앱에서 모든 시간을 표시할 때 사용할 선호 시간대를 선택하세요.",
+      "label": "시간대",
+      "no_timezone_found": "타임존을 찾을 수 없습니다.",
+      "search_placeholder": "타임존 검색...",
+      "select_placeholder": "타임존 선택...",
+      "title": "시간대"
+    },
+    "validation": {
+      "min_days": "최소 1일 이상이어야 합니다"
+    }
+  },
+  "status": {
+    "messages": {
+      "all_systems_operational": "모든 시스템 가동 중",
+      "down": "다운",
+      "last_updated": "마지막 업데이트",
+      "maintenance": "유지보수",
+      "no_monitors_configured": "이 상태 페이지에는 모니터가 구성되어 있지 않습니다.",
+      "operational": "운영 중",
+      "partial_system_outage": "부분 시스템 장애",
+      "powered_by": "제공",
+      "refresh_in": "새로 고침까지",
+      "refresh_now": "지금 새로 고침",
+      "status_page_not_found": "상태 페이지를 찾을 수 없거나 공개되지 않았습니다.",
+      "under_maintenance": "유지보수 중",
+      "unknown": "알 수 없음"
+    }
+  },
+  "status_pages": {
+    "affected_monitors": "영향받는 모니터",
+    "affected_monitors_info": "이 유지보수에 영향을 받을 모니터를 선택하세요",
+    "auto_refresh_interval": "자동 새로고침 간격 (초)",
+    "basic_information": "기본 정보",
+    "create_status_page": "상태 페이지 생성",
+    "customization": "맞춤 설정",
+    "delete_dialog": {
+      "description": "정말 \"{{title}}\"을(를) 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+      "title": "상태 페이지 삭제"
+    },
+    "description": "상태 페이지 설명을 입력하세요",
+    "domain_already_used": "도메인 {{domain}}은 이미 다른 상태 페이지에서 사용 중입니다.",
+    "domain_host_warning": "이 도메인은 현재 호스트 URL과 동일합니다. 이로 인해 충돌이 발생할 수 있습니다.",
+    "domains": "도메인",
+    "domains_info_warning": "각 도메인에 대해 DNS에 CNAME 레코드를 추가하는 것을 잊지 마세요.",
+    "draft_status": "초안",
+    "edit_page_name": "상태 페이지 편집",
+    "messages": {
+      "create_description": "새 상태 페이지를 생성해 사용자에게 서비스 상태를 공유하세요.",
+      "create_your_first_status_page": "첫 번째 상태 페이지 만들기",
+      "created_successfully": "상태 페이지가 정상적으로 생성되었습니다.",
+      "delete_failed": "상태 페이지 삭제에 실패했습니다",
+      "deleted_successfully": "상태 페이지가 성공적으로 삭제되었습니다",
+      "get_started_by_creating_your_first_status_page": "첫 번째 상태 페이지를 만들어 시작하세요.",
+      "no_status_pages_found": "상태 페이지를 찾을 수 없습니다",
+      "not_found": "상태 페이지를 찾을 수 없습니다",
+      "update_description": "상태 페이지 설정 및 구성을 업데이트하세요.",
+      "updated_successfully": "상태 페이지가 성공적으로 업데이트되었습니다."
+    },
+    "new_page_name": "새 상태 페이지",
+    "page_name": "상태 페이지",
+    "published": "공개됨",
+    "published_info": "이 상태 페이지를 공개적으로 이용 가능하게 설정",
+    "published_status": "게시됨",
+    "search_label": "검색",
+    "search_placeholder": "제목으로 상태 페이지 검색...",
+    "update_status_page": "상태 페이지 업데이트",
+    "view_page": "페이지 보기"
+  },
+  "tags": {
+    "confirm_delete_description": "이 작업은 되돌릴 수 없습니다. 태그 '{{name}}'을(를) 영구적으로 삭제하고 모든 모니터에서 제거합니다.",
+    "edit_page_name": "태그 편집",
+    "empty_state": {
+      "action": "첫 번째 태그 만들기",
+      "description": "모니터를 정리하려면 첫 번째 태그를 만들어 시작하세요.",
+      "title": "태그를 찾을 수 없습니다"
+    },
+    "form": {
+      "color_description": "태그 색상을 선택하세요",
+      "color_label": "색상",
+      "create_button": "태그 생성",
+      "description_label": "설명",
+      "description_placeholder": "태그 설명을 입력하세요 (선택 사항)",
+      "name_label": "이름",
+      "name_placeholder": "태그 이름을 입력하세요",
+      "update_button": "태그 업데이트"
+    },
+    "messages": {
+      "create_description": "새 태그를 만들어 모니터를 정리·분류하세요.",
+      "failed_to_load_tag": "태그를 불러오지 못했습니다. 태그가 존재하지 않을 수 있거나, 태그를 볼 권한이 없을 수 있습니다.",
+      "tag_id_required": "태그 ID가 필요합니다.",
+      "update_description": "태그 세부 정보를 업데이트해 모니터를 보다 효율적으로 정리하세요."
+    },
+    "new_page_name": "새 태그",
+    "search_placeholder": "태그 검색..."
+  },
+  "theme": {
+    "dark": "다크",
+    "light": "라이트",
+    "system": "시스템",
+    "toggle_theme": "테마 전환"
+  },
+  "timezone": {
+    "average": "평균",
+    "last_24_hours": "지난 24시간",
+    "last_3_hours": "지난 3시간",
+    "last_3_months": "지난 3개월",
+    "last_30_minutes": "지난 30분",
+    "last_6_hours": "지난 6시간",
+    "last_7_days": "최근 7일",
+    "maximum": "최대",
+    "minimum": "최소",
+    "ms": "밀리초",
+    "response_time": "응답 시간",
+    "uptime": "가동 시간"
+  },
+  "ui": {
+    "general": "일반",
+    "intervals_retries": "간격, 재시도, 타임아웃"
+  }
+}

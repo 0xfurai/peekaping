@@ -1,0 +1,1280 @@
+{
+  "actions": {
+    "cancel": "Annuleren",
+    "saving": "Bezig met opslaan..."
+  },
+  "auth": {
+    "login": {
+      "description": "Inloggen met uw e-mailadres",
+      "no_account": "Nog geen account?",
+      "sign_up": "Registreren",
+      "submit": "Inloggen",
+      "title": "Welkom terug"
+    },
+    "register": {
+      "description": "Maak uw beheerdersaccount aan.",
+      "have_account": "Heeft u al een account?",
+      "sign_in": "Inloggen",
+      "submit": "Registreren",
+      "title": "Hallo"
+    },
+    "twofa": {
+      "code_label": "2FA-code",
+      "code_placeholder": "Voer 2FA-code in",
+      "description": "2FA is ingeschakeld voor uw account. Voer alstublieft uw authenticatiecode in om verder te gaan.",
+      "title": "Tweestapsverificatie vereist",
+      "verify_button": "Verifieer 2FA",
+      "verifying": "Verifiëren..."
+    }
+  },
+  "bars": {
+    "down_count": "Aantal storingen",
+    "important": "Belangrijk",
+    "interval": "Interval",
+    "message": "Bericht",
+    "ms": "ms",
+    "notified": "Geïnformeerd",
+    "ping": "Ping",
+    "retries": "Pogingen",
+    "status": "Status",
+    "time": "Tijd"
+  },
+  "common": {
+    "active": "Actief",
+    "all": "Alle",
+    "back": "Terug",
+    "cancel": "Annuleren",
+    "clear_all": "Alles verwijderen",
+    "clear_all_filters": "Alle filters verwijderen",
+    "confirm": "Bevestigen",
+    "confirm_delete_title": "Weet je het zeker?",
+    "confirm_delete_title_short": "Weet je het zeker?",
+    "continue": "Doorgaan",
+    "create": "Aanmaken",
+    "created": "Aangemaakt",
+    "days": "dagen",
+    "default": "Standaard",
+    "delete": "Verwijder",
+    "disabling": "Bezig met uitschakelen...",
+    "dismiss": "Sluiten",
+    "down": "Uitgevallen",
+    "enabling": "Inschakelen...",
+    "error": "Fout",
+    "expires": "Verloopt",
+    "inactive": "Inactief",
+    "loading": "Laden...",
+    "logout": "Uitloggen",
+    "maintenance": "Onderhoud",
+    "no_options_found": "Geen opties gevonden",
+    "no_tags_available": "Geen tags beschikbaar",
+    "please_refresh_page": "Vernieuw de pagina.",
+    "required": "Verplicht",
+    "save": "Opslaan",
+    "saving": "Bezig met opslaan...",
+    "search": "Zoek",
+    "security": "Beveiliging",
+    "select": "Kies",
+    "select_monitors": "Selecteer monitoren...",
+    "select_tags": "Selecteer tags",
+    "settings": "Instellingen",
+    "tags": "Etiketten",
+    "unknown": "Onbekend",
+    "unnamed_monitor": "Naamloze monitor",
+    "up": "Online",
+    "update": "Bijwerken",
+    "verifying": "Verifiëren..."
+  },
+  "forms": {
+    "labels": {
+      "confirm_password": "Wachtwoord bevestigen",
+      "email": "E-mailadres",
+      "footer_text": "Voettekst",
+      "heartbeat_interval": "Hartslaginterval (seconden)",
+      "icon_url": "Icoon-URL",
+      "monitor_name": "Naam",
+      "monitor_type": "Type",
+      "password": "Wachtwoord",
+      "retries": "Pogingen",
+      "slug": "Slug",
+      "title": "Titel",
+      "username": "Gebruikersnaam"
+    },
+    "placeholders": {
+      "auto_refresh_help": "0 voor geen automatische verversing",
+      "domains": "Voer domein in (bijv. status.example.com)",
+      "footer_text": "Voer voettekst in",
+      "icon_url": "https://example.com/icon.png",
+      "monitor_name": "Mijn monitor",
+      "page_description": "Voer de beschrijving van de statuspagina in",
+      "page_title": "Voer de titel van de statuspagina in",
+      "slug": "status-pagina-slug"
+    },
+    "validation": {
+      "email_invalid": "Voer een geldig e-mailadres in.",
+      "password_min_length": "Wachtwoord moet minimaal 8 tekens bevatten.",
+      "passwords_mismatch": "Wachtwoorden komen niet overeen"
+    }
+  },
+  "maintenance": {
+    "card": {
+      "aria": {
+        "delete": "Verwijder {{title}}",
+        "pause": "Pauzeer onderhoud",
+        "resume": "Hervat onderhoud"
+      },
+      "labels": {
+        "duration": "{{duration}} min",
+        "end": "Eind: {{date}}",
+        "start": "Start: {{date}}"
+      },
+      "status": {
+        "active": "Actief",
+        "ended": "Beëindigd",
+        "inactive": "Inactief"
+      }
+    },
+    "edit_title": "Onderhoud bewerken",
+    "form": {
+      "affected_monitors_description": "Selecteer de monitoren die door dit onderhoud beïnvloed zullen worden",
+      "affected_monitors_title": "Beïnvloede monitors",
+      "cron_description": "Voer een geldige cron-expressie in",
+      "cron_expression": "Cron-expressie",
+      "date_time_title": "Datum en Tijd",
+      "day_of_month": "Dag van de maand",
+      "day_of_week": "Dag van de week",
+      "description_label": "Beschrijving",
+      "description_placeholder": "Onderhoudsbeschrijving...",
+      "duration_minutes": "Duur (minuten)",
+      "effective_date_range": "Geldigheidsperiode (optioneel)",
+      "end_date_time": "Einddatum en tijd",
+      "end_time": "Eindtijd",
+      "interval_label": "Interval (Voer eenmaal per dag uit)",
+      "last_day": "Laatste dag",
+      "last_day_of_month": "Laatste dag van de maand",
+      "maintenance_time_window": "Onderhoudstijdvenster per dag",
+      "markdown_supported": "Markdown wordt ondersteund",
+      "same_as_server": "Gelijk aan de tijdzone van de server",
+      "start_date_time": "Startdatum en tijd",
+      "start_time": "Starttijd",
+      "strategy_label": "Strategie",
+      "strategy_placeholder": "Kies een strategie",
+      "timezone_label": "Tijdzone",
+      "timezone_placeholder": "Kies tijdzone",
+      "title_label": "Titel",
+      "title_placeholder": "Onderhoudstitel"
+    },
+    "page": {
+      "clear_filters": "Alle filters verwijderen",
+      "dialogs": {
+        "confirm_action": {
+          "pause_description": "Weet je zeker dat je dit onderhoud wilt pauzeren?",
+          "resume_description": "Weet u zeker dat u dit onderhoud wilt hervatten?",
+          "title": "Actie bevestigen"
+        },
+        "confirm_delete": {
+          "description": "Weet u zeker dat u dit onderhoudsvenster wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
+          "title": "Verwijdering bevestigen"
+        }
+      },
+      "edit_maintenance": "Bewerk Onderhoud: {{title}}",
+      "empty_state": {
+        "action": "Maak je eerste onderhoudsvenster aan",
+        "description": "Begin met het aanmaken van uw eerste onderhoudsvenster om geplande downtime te voorkomen.",
+        "title": "Geen onderhoudsvensters gevonden."
+      },
+      "error_loading": "Fout bij het laden van onderhoud",
+      "loading": "Laden...",
+      "loading_monitors": "Monitors laden...",
+      "search_placeholder": "Zoek onderhoudsvensters..."
+    },
+    "page_title": "Onderhoudsvensters",
+    "schedule_title": "Onderhoud plannen",
+    "strategy": {
+      "cron": "Cron-expressie",
+      "manual": "Actief / Inactief (handmatig)",
+      "recurring_day_of_month": "Periodiek - Dag van de maand",
+      "recurring_interval": "Periodiek - Interval",
+      "recurring_weekday": "Periodiek - Dag van de week",
+      "single": "Eenmalig onderhoudsvenster"
+    },
+    "toasts": {
+      "create_error": "Onderhoud aanmaken mislukt",
+      "created_success": "Onderhoud succesvol aangemaakt",
+      "delete_error": "Onderhoud verwijderen is mislukt.",
+      "deleted_success": "Onderhoud succesvol verwijderd",
+      "pause_error": "Pauzeren van onderhoud mislukt.",
+      "paused_success": "Onderhoud succesvol gepauzeerd",
+      "resume_error": "Fout bij het hervatten van onderhoud",
+      "resumed_success": "Onderhoud succesvol hervat",
+      "toggle_error": "Kan de onderhoudsstatus niet wijzigen: ID ontbreekt",
+      "update_error": "Fout bij het bijwerken van onderhoud",
+      "updated_success": "Onderhoud succesvol bijgewerkt"
+    },
+    "weekdays": {
+      "fri": "Vrij",
+      "mon": "Ma",
+      "sat": "Za",
+      "sun": "Zon",
+      "thu": "Do",
+      "tue": "Di",
+      "wed": "Wo"
+    }
+  },
+  "messages": {
+    "login_error": "Er is een fout opgetreden tijdens het inloggen",
+    "login_no_tokens": "Inloggen is gelukt, maar er zijn geen tokens ontvangen.",
+    "login_success": "Succesvol ingelogd",
+    "notifier_delete_error": "Notifier verwijderen mislukt.",
+    "notifier_delete_success": "Notifier succesvol verwijderd",
+    "register_error": "Er is een fout opgetreden tijdens de registratie",
+    "register_no_tokens": "Registratie geslaagd, maar er zijn geen tokens ontvangen.",
+    "register_success": "Registratie gelukt",
+    "setting_update_error": "Instelling bijwerken mislukt.",
+    "setting_update_success": "Instelling succesvol bijgewerkt",
+    "tag_create_error": "Tag aanmaken mislukt",
+    "tag_create_success": "Tag succesvol aangemaakt",
+    "tag_delete_error": "Tag verwijderen mislukt",
+    "tag_delete_success": "Tag succesvol verwijderd",
+    "tag_update_error": "Tag bijwerken mislukt",
+    "tag_update_success": "Tag succesvol bijgewerkt",
+    "unexpected_error": "Er is een onverwachte fout opgetreden.",
+    "version_mismatch": "Versie komt niet overeen"
+  },
+  "monitors": {
+    "card": {
+      "check_interval": "Controle-interval:",
+      "loading_more": "Meer laden..."
+    },
+    "empty_state": {
+      "action": "Maak je eerste monitor aan",
+      "description": "Begin met het aanmaken van je eerste monitor om de gezondheid van je diensten te volgen.",
+      "title": "Geen monitors gevonden"
+    },
+    "filtering_by_tags": "Filteren op tags",
+    "filters": {
+      "monitor_status": "Status",
+      "monitor_status_placeholder": "Monitorstatus",
+      "search_placeholder": "Zoek monitors op naam...",
+      "status_placeholder": "Status"
+    },
+    "form": {
+      "buttons": {
+        "copied": "Gekopieerd!",
+        "copy": "Kopiëren",
+        "create": "Aanmaken",
+        "regenerate": "Genereer opnieuw",
+        "update": "Bijwerken"
+      },
+      "dns": {
+        "hostname": "Hostnaam",
+        "port": "Poort",
+        "record_type": "Resource-record-type",
+        "record_type_placeholder": "Kies een DNS-recordtype",
+        "resolver_server": "DNS-resolver",
+        "title": "DNS-instellingen"
+      },
+      "docker": {
+        "ca_cert_description": "Plak uw CA-certificaat in PEM-formaat.",
+        "ca_certificate": "CA-certificaat (PEM)",
+        "client_cert_description": "Plak uw clientcertificaat in PEM-formaat. Dit wordt gebruikt voor onderlinge TLS-authenticatie.",
+        "client_certificate": "Clientcertificaat (PEM)",
+        "client_private_key": "Privé-sleutel van de cliënt (PEM)",
+        "common_tls_issues": "Veelvoorkomende TLS-problemen:",
+        "connection_type": "Verbindingstype",
+        "container_name_id": "Containernaam/ID",
+        "disabled": "Uitgeschakeld",
+        "docker_container": "Docker-container",
+        "docker_host": "Docker-host",
+        "enable_tls": "TLS inschakelen",
+        "enabled": "Ingeschakeld",
+        "examples": "Voorbeelden",
+        "hostname_mismatch": "\"x509: certificaat is geldig voor X, niet voor Y\":",
+        "hostname_mismatch_solution": "Zorg ervoor dat de hostnaam overeenkomt met het SAN-veld van het certificaat, of schakel verificatie uit (niet aanbevolen).",
+        "legacy_cert_error": "x509: certificaat maakt gebruik van het verouderde veld 'Common Name'.",
+        "legacy_cert_solution": "Voeg de hostnaam toe aan de Subject Alternative Names (SAN) in uw certificaat.",
+        "mtls_note": "Voor mutual TLS (mTLS) moet u zowel het clientcertificaat als de privésleutel opgeven. Het CA-certificaat wordt gebruikt om het certificaat van de server te verifiëren.",
+        "note": "Opmerking:",
+        "private_key_description": "Plak uw privésleutel in PEM-formaat. Bewaar dit veilig!",
+        "select_connection_type": "Verbindingstype kiezen",
+        "select_tls_option": "TLS-optie kiezen",
+        "select_verification_option": "Verificatie-optie selecteren",
+        "skip_verification": "Verificatie overslaan (onveilig)",
+        "tls_configuration": "TLS-configuratie",
+        "unknown_authority": "\"x509: certificaat ondertekend door onbekende certificaatautoriteit\":",
+        "unknown_authority_solution": "Lever het juiste CA-certificaat dat het servercertificaat heeft ondertekend.",
+        "verify_certificates": "Certificaten verifiëren",
+        "verify_tls": "TLS controleren"
+      },
+      "grpc": {
+        "body": "Berichtinhoud (JSON)",
+        "enable_tls": "TLS inschakelen",
+        "enable_tls_description": "Use secure connection (TLS/SSL)",
+        "invert_keyword": "Zoekwoord omkeren",
+        "invert_keyword_description": "De monitor wordt gemarkeerd als UP als het sleutelwoord NIET wordt gevonden.",
+        "keyword": "Zoekwoord",
+        "keyword_description": "Zoek dit trefwoord in het antwoord",
+        "keyword_placeholder": "Optioneel: zoekwoord om naar te zoeken",
+        "method_description": "Hoofdlettergevoelig",
+        "method_placeholder": "Controleer",
+        "options_title": "gRPC-opties",
+        "proto_content": "Protobuf-inhoud",
+        "proto_method": "Protobuf-methode",
+        "proto_service_name": "Protobuf-dienstnaam",
+        "service_name_placeholder": "Gezondheid"
+      },
+      "http": {
+        "advanced": {
+          "accepted_status_codes": "Geaccepteerde statuscodes",
+          "ignore_tls": "TLS/SSL-fouten negeren voor HTTPS-websites",
+          "ignore_tls_description": "TLS-certificaatverificatie overslaan. Gebruik met voorzichtigheid - dit maakt de verbindingen minder veilig.",
+          "max_redirects": "Maximale omleidingen",
+          "max_redirects_description": "Maximum aantal omleidingen om te volgen (0-30). Stel in op 0 om omleidingen uit te schakelen.",
+          "title": "Geavanceerd"
+        },
+        "authentication": {
+          "auth_header": "Autorisatie-header",
+          "certificate": "Certificaat",
+          "certificate_placeholder": "Certificaat",
+          "client_id": "Client-ID",
+          "client_id_placeholder": "Client-ID",
+          "client_secret": "Clientgeheim",
+          "client_secret_placeholder": "Clientgeheim",
+          "domain": "Domein",
+          "domain_placeholder": "Domein",
+          "form_data_body": "Inhoud van formuliergegevens",
+          "key": "Sleutel",
+          "key_placeholder": "Sleutel",
+          "method_label": "Authenticatiemethode",
+          "method_placeholder": "Kies authenticatiemethode",
+          "oauth_scope": "OAuth-scope",
+          "oauth_scope_placeholder": "Optioneel: Lijst met scopes gescheiden door spaties",
+          "oauth_token_url": "OAuth-token-URL",
+          "oauth_token_url_placeholder": "OAuth-token-URL",
+          "title": "Authenticatie",
+          "workstation": "Werkstation",
+          "workstation_placeholder": "Werkstation"
+        },
+        "options": {
+          "body": "Inhoud",
+          "body_encoding": "Inhoudcodering",
+          "body_encoding_placeholder": "Kies body-codering",
+          "form_example": "Voorbeeld formuliergegevens",
+          "headers": "HTTP-headers",
+          "json_example": "JSON-voorbeeld",
+          "method": "Methode",
+          "method_placeholder": "Kies monitortype",
+          "select_encoding": "Inhoudcodering kiezen",
+          "select_method": "Kies methode",
+          "text_example": "Voorbeeldtekst:\nHier staat platte tekst...",
+          "title": "HTTP-opties",
+          "xml_example": "Voorbeeld XML"
+        }
+      },
+      "http_json_query": {
+        "condition_label": "Voorwaarde",
+        "expected_value_label": "Verwachte waarde",
+        "json_query_label": "JSON-query-expressie",
+        "title": "JSON-query-uitdrukking"
+      },
+      "http_keyword": {
+        "invert_keyword_description": "Zoek naar het sleutelwoord dat afwezig is in plaats van aanwezig.",
+        "invert_keyword_label": "Trefwoord omkeren",
+        "keyword_label": "Zoekwoord",
+        "keyword_validation_title": "Zoekwoordvalidatie"
+      },
+      "kafka": {
+        "add_broker": "Broker toevoegen",
+        "auto_topic_creation_description": "Sta de producer toe om het topic automatisch aan te maken als het niet bestaat.",
+        "auto_topic_creation_label": "Automatische Topic-aanmaak toestaan",
+        "brokers_description": "Lijst met Kafka-brokeradressen (host:poort-formaat)",
+        "brokers_label": "Kafka-brokers",
+        "configuration_title": "Kafka-configuratie",
+        "enable_ssl_description": "SSL/TLS-encryptie gebruiken voor de verbinding",
+        "enable_ssl_label": "SSL/TLS inschakelen",
+        "message_description": "De inhoud van het bericht die naar het onderwerp verzonden wordt (JSON-indeling aanbevolen)",
+        "message_label": "Bericht",
+        "sasl_mechanism_description": "Kies de SASL-authenticatiemethode",
+        "sasl_mechanism_label": "SASL-mechanisme",
+        "sasl_mechanism_placeholder": "Selecteer SASL-mechanisme",
+        "sasl_password_description": "Wachtwoord voor SASL-authenticatie",
+        "sasl_password_label": "SASL-wachtwoord",
+        "sasl_password_placeholder": "Wachtwoord",
+        "sasl_username_description": "Gebruikersnaam voor SASL-authenticatie",
+        "sasl_username_label": "SASL-gebruikersnaam",
+        "security_title": "Beveiliging",
+        "topic_description": "Het Kafka-topic waarnaar berichten worden geproduceerd"
+      },
+      "mongodb": {
+        "command_description": "MongoDB-commando om uit te voeren als JSON. Standaardwaarde: ping als deze niet is opgegeven.",
+        "command_label": "Commando (Optioneel)",
+        "configuration_title": "MongoDB-configuratie",
+        "connection_string_description": "MongoDB-verbindingstring. Ondersteunt zowel standaard (mongodb://) als DNS seedlist (mongodb+srv://) formaten.",
+        "connection_string_label": "Verbindingsreeks",
+        "expected_value_description": "Verwachte waarde om te vergelijken met het resultaat van het JSON-pad.",
+        "expected_value_label": "Verwachte waarde (optioneel)",
+        "expected_value_placeholder": "Verwachte waarde",
+        "json_path_description": "JSON-pad om waarde uit de respons te extraheren. Gebruik $ voor het wortelniveau.",
+        "json_path_label": "JSON-pad (optioneel)"
+      },
+      "mqtt": {
+        "check_type_json_query": "JSON-query",
+        "check_type_keyword": "Zoekwoord",
+        "check_type_label": "MQTT-controletype",
+        "check_type_none": "Geen (Elk bericht)",
+        "check_type_placeholder": "Selecteer controle-type",
+        "configuration_title": "MQTT-configuratie",
+        "expected_value_label": "Verwachte waarde",
+        "hostname_label": "Hostnaam",
+        "json_path_label": "JSON-pad",
+        "password_label": "MQTT-wachtwoord",
+        "password_placeholder": "Wachtwoord (optioneel)",
+        "port_label": "Poort",
+        "success_keyword_label": "MQTT succes-sleutelwoord",
+        "success_keyword_placeholder": "Sleutelwoord dat succes aangeeft",
+        "username_label": "MQTT-gebruikersnaam",
+        "username_placeholder": "Gebruikersnaam (optioneel)",
+        "validation": {
+          "expected_value_required": "Verwachte waarde is vereist wanneer het controle-type json-query is",
+          "json_path_required": "JSON-pad is vereist bij het type json-query",
+          "success_keyword_required": "Sleutelwoord voor succes is vereist wanneer het controletype 'keyword' is."
+        }
+      },
+      "mysql": {
+        "connection_string_examples": "Voorbeelden:",
+        "connection_string_label": "Verbindingsreeks",
+        "connection_title": "MySQL-verbinding",
+        "query_label": "SQL-query"
+      },
+      "ping": {
+        "data_size": "Gegevensgrootte (bytes)",
+        "host": "Hostnaam / IP-adres",
+        "title": "Ping-instellingen"
+      },
+      "postgres": {
+        "connection_string_label": "Verbindingsreeks",
+        "connection_title": "Verbinding met PostgreSQL",
+        "query_label": "SQL-query"
+      },
+      "push": {
+        "url_description": "Gebruik deze URL in uw service om de status te melden. Maak een HTTP-verzoek (POST/GET) naar dit eindpunt om een heartbeat te verzenden.",
+        "url_title": "Push-monitor-URL"
+      },
+      "rabbitmq": {
+        "documentation_link": "RabbitMQ-documentatie",
+        "health_checks_description": "De monitor controleert het {{code}}-endpoint op elk knooppunt en geeft UP terug als ten minste één knooppunt gezond is.",
+        "management_nodes_description": "Voer de URL in van de RabbitMQ-beheersknooppunten, inclusief protocol en poort. Voorbeeld: https://node1.rabbitmq.com:15672",
+        "management_nodes_title": "Beheerknooppunten",
+        "node_url_label": "Knooppunt-URL",
+        "password_description": "Wachtwoord voor authenticatie van de RabbitMQ-beheerinterface",
+        "setup_information_description": "Om de RabbitMQ-monitor te gebruiken, moet u de Management Plugin inschakelen in uw RabbitMQ-installatie. Voor meer informatie raadpleeg u de RabbitMQ-documentatie.",
+        "setup_information_title": "Informatie over installatie",
+        "title": "RabbitMQ-configuratie",
+        "username_description": "Gebruikersnaam voor authenticatie bij de RabbitMQ-beheerinterface"
+      },
+      "redis": {
+        "ca_certificate_description": "Root CA-certificaat in PEM-formaat. Vereist voor correcte TLS-verificatie met zelfondertekende certificaten.",
+        "ca_certificate_label": "CA-certificaat (optioneel)",
+        "client_certificate_description": "Clientcertificaat in PEM-formaat. Vereist voor onderlinge TLS-authenticatie.",
+        "client_certificate_label": "Clientcertificaat (optioneel)",
+        "client_key_description": "Privé-sleutel van de client in PEM-indeling. Moet samen met het clientcertificaat worden verstrekt.",
+        "client_key_label": "Cliënt privé-sleutel (optioneel)",
+        "connection_string_description": "Redis-verbindingstring-formaat: {{redis}} of {{rediss}} voor TLS",
+        "connection_string_label": "Verbindingsreeks",
+        "ignore_tls_description": "TLS-certificaatverificatie overslaan (niet aanbevolen voor productie)",
+        "ignore_tls_label": "TLS/SSL-fouten negeren",
+        "title": "Redis-configuratie"
+      },
+      "shared": {
+        "intervals": {
+          "heartbeat_retry": "Heartbeat-herhaalinterval (Herhaal elke {{seconds}} seconden)",
+          "max_retries_description": "Maximale pogingen voordat de service als Down wordt gemarkeerd en er een melding wordt verzonden.",
+          "request_timeout": "Verzoek time-out (Time-out na {{seconds}} seconden)",
+          "resend_notification": "Notificatie opnieuw verzenden bij X opeenvolgende keren uitgevallen (Verzenden uitgeschakeld)"
+        },
+        "notifications": {
+          "add_notifier": "Notifier toevoegen",
+          "new_notifier": "+ Nieuwe notificatiebron",
+          "no_channels": "Geen notificatiekanalen gevonden, maak er eerst één aan.",
+          "no_channels_available": "Geen kanalen beschikbaar",
+          "select_channel": "Kies kanaal",
+          "select_notifier_placeholder": "Kies notifier",
+          "selected_channels": "Geselecteerde notificatiekanalen",
+          "title": "Notificatiekanalen"
+        },
+        "proxy": {
+          "add_proxy": "Proxy toevoegen",
+          "new_proxy": "+ Nieuwe proxy",
+          "no_proxy": "Geen proxy",
+          "remove_proxy": "Verwijder proxy",
+          "select_proxy_placeholder": "Kies een proxy",
+          "selected_proxy": "Geselecteerde proxy",
+          "title": "Proxy"
+        },
+        "tags": {
+          "label": "Tags",
+          "no_tags": "Geen tags beschikbaar",
+          "placeholder": "Selecteer tags"
+        }
+      },
+      "snmp": {
+        "community_description": "De SNMP-communitystring voor authenticatie (gelijk aan een wachtwoord)",
+        "community_label": "Gemeenschapsstring",
+        "expected_value_description": "De waarde waarmee vergeleken wordt. Laat leeg om validatie over te slaan.",
+        "expected_value_label": "Verwachte waarde",
+        "host_description": "De hostnaam of het IP-adres van het SNMP-apparaat",
+        "host_label": "Hostnaam",
+        "json_path_description": "JSONPath-expressie om waarde uit de respons te halen (gebruik \"$\" voor ruwe waarde)",
+        "json_path_label": "JSON-pad",
+        "json_path_operator_description": "Hoe de geëxtraheerde waarde met de verwachte waarde te vergelijken",
+        "json_path_operator_eq": "gelijk aan",
+        "json_path_operator_ge": "groter dan of gelijk aan",
+        "json_path_operator_gt": "groter dan",
+        "json_path_operator_label": "Voorwaarde",
+        "json_path_operator_le": "kleiner dan of gelijk aan",
+        "json_path_operator_lt": "minder dan",
+        "json_path_operator_ne": "ongelijk aan",
+        "oid_description": "De SNMP-objectidentifier om op te vragen (bijv. 1.3.6.1.2.1.1.1.0 voor systeemomschrijving)",
+        "oid_label": "OID (Object-ID)",
+        "port_description": "SNMP-poort (standaard: 161)",
+        "port_label": "Poort",
+        "snmp_version_description": "De SNMP-protocolversie die gebruikt moet worden",
+        "snmp_version_label": "SNMP-versie",
+        "title": "SNMP-instellingen",
+        "value_validation_label": "Waardevalidatie (optioneel)"
+      },
+      "sqlserver": {
+        "allowed_statements_description": "SELECT, SHOW, DESCRIBE, EXPLAIN, WITH en VALUES.",
+        "allowed_statements_label": "Toegestane SQL-instructies:",
+        "connection_string_label": "Verbindingsreeks",
+        "query_description": "Query die uitgevoerd wordt voor de gezondheidscontrole. Laat leeg om de standaard te gebruiken.",
+        "query_label": "Query",
+        "title": "Microsoft SQL Server-verbinding"
+      },
+      "tcp": {
+        "host": "Host",
+        "port": "Poort",
+        "title": "TCP-verbinding"
+      },
+      "type": {
+        "dns": "DNS-monitor",
+        "docker": "Docker-container",
+        "grpc": "gRPC Zoekwoordmonitor",
+        "http": "HTTP(S) Monitor",
+        "kafka": "Kafka Producer Monitor",
+        "mongodb": "MongoDB-databasemonitor",
+        "mqtt": "MQTT-brokermonitor",
+        "mysql": "MySQL/MariaDB-monitor",
+        "ping": "Ping-monitor (ICMP)",
+        "postgres": "PostgreSQL-databank-monitor",
+        "push": "Push-monitor (externe service roept een gegenereerde URL aan)",
+        "rabbitmq": "RabbitMQ-monitor",
+        "redis": "Redis Database Monitor",
+        "snmp": "SNMP-monitor",
+        "sqlserver": "Microsoft SQL Server Monitor",
+        "tcp": "TCP-poortmonitor"
+      }
+    },
+    "page": {
+      "description": "Maak een nieuwe monitor aan om de prestaties van uw website te volgen.",
+      "edit_title": "Monitor bewerken:",
+      "new_title": "Nieuwe monitor"
+    },
+    "title": "Monitoren",
+    "toasts": {
+      "deleted": "Monitor verwijderd",
+      "paused": "Monitor gepauzeerd",
+      "reset_success": "Monitorgegevens succesvol gereset",
+      "resumed": "Monitor hervat"
+    },
+    "view": {
+      "buttons": {
+        "clone": "Kloon",
+        "delete": "Verwijder",
+        "edit": "Bewerken",
+        "pause": "Pauze",
+        "reset_data": "Gegevens resetten",
+        "resume": "Hervatten"
+      },
+      "certificate": "Certificaat",
+      "check_every": "Controleer elke",
+      "current_status": "Huidige status",
+      "dialogs": {
+        "delete": {
+          "description": "Deze handeling kan niet ongedaan worden gemaakt. Hiermee worden de monitor en alle gerelateerde gegevens permanent verwijderd.",
+          "title": "Weet u het zeker?"
+        },
+        "pause": {
+          "description": "Weet u zeker dat u wilt pauzeren?",
+          "title": "Bevestiging"
+        },
+        "reset": {
+          "description": "Dit zal permanent alle heartbeat-geschiedenis en uptime-statistieken van deze monitor verwijderen. De monitor zal eruit zien alsof hij net is aangemaakt. Deze handeling kan niet worden ongedaan gemaakt.",
+          "title": "Monitorgegevens resetten"
+        }
+      },
+      "expiring_soon": "Verloopt binnenkort",
+      "for": "voor",
+      "live_status": "Live-status",
+      "monitor_for": "monitor voor",
+      "no_certificate_data": "Geen certificaatgegevens",
+      "seconds": "seconden",
+      "stats": {
+        "last_24_hours": "Laatste 24 uur",
+        "last_30_days": "Laatste 30 dagen",
+        "last_365_days": "Laatste 365 dagen",
+        "last_7_days": "Laatste 7 dagen"
+      },
+      "status": {
+        "down": "Uitgevallen",
+        "maintenance": "Onderhoud",
+        "paused": "Gepauzeerd",
+        "up": "Online"
+      }
+    }
+  },
+  "navigation": {
+    "maintenance": "Onderhoud",
+    "monitors": "Monitoren",
+    "notification_channels": "Notificatiekanalen",
+    "proxies": "Proxy's",
+    "settings": "Instellingen",
+    "status_pages": "Statuspagina's",
+    "tags": "Etiketten"
+  },
+  "notifications": {
+    "actions": {
+      "test": "Test",
+      "testing": "Bezig met testen..."
+    },
+    "aria": {
+      "delete": "Verwijder {{name}}"
+    },
+    "confirm_delete_description": "Deze actie kan niet ongedaan worden gemaakt. Hiermee wordt de notifier \"{{name}}\" permanent verwijderd en uit alle monitoren verwijderd die deze notifier gebruiken.",
+    "create_title": "Notifier aanmaken",
+    "edit_channel_title": "Notificatiekanaal bewerken",
+    "edit_title": "Notifier bewerken",
+    "empty_state": {
+      "action": "Maak je eerste meldingskanaal aan",
+      "description": "Begin met het aanmaken van uw eerste notificatiekanaal om waarschuwingen naar uw team te sturen.",
+      "title": "Geen notificatiekanalen gevonden"
+    },
+    "form": {
+      "discord": {
+        "bot_display_name_description": "De naam die als afzender van de Discord-berichten zal verschijnen.",
+        "bot_display_name_label": "Weergavenaam van de bot",
+        "custom_message_prefix_description": "Optioneel voorvoegsel dat aan het begin van alle berichten wordt toegevoegd.",
+        "custom_message_prefix_label": "Aangepaste berichtprefix",
+        "custom_message_prefix_placeholder": "Optioneel: Voeg een prefix toe aan uw bericht",
+        "forum_post_name_description": "De naam van het nieuwe forumbericht dat aangemaakt zal worden.",
+        "forum_post_name_label": "Forumberichtnaam",
+        "forum_post_name_placeholder": "Voer forumberichtnaam in",
+        "sending_message_to_channel": "Verstuur naar kanaal",
+        "sending_message_to_description": "Kies waar Discord-berichten naartoe verzonden worden.",
+        "sending_message_to_label": "Bericht verzenden naar",
+        "sending_message_to_new_forum_post": "Verzend naar nieuw forumbericht",
+        "sending_message_to_placeholder": "Berichttype kiezen",
+        "sending_message_to_thread": "Verzenden naar thread",
+        "setup_webhook_description_1": "Haal je webhook-URL uit Discord-serverinstellingen → Integraties → Webhooks.",
+        "setup_webhook_description_2": "Maak een nieuwe webhook aan en kopieer de URL. Zorg ervoor dat je het juiste kanaal hebt geselecteerd.",
+        "setup_webhook_title": "Discord Webhook instellen",
+        "thread_id_description_1": "Schakel Ontwikkelaarsmodus in via Discord-gebruikersinstellingen → Geavanceerd → Ontwikkelaarsmodus",
+        "thread_id_description_2": "Klik met de rechtermuisknop op de thread of het bericht en kies 'Thread-ID kopiëren' of 'Kanaal-ID kopiëren'.",
+        "thread_id_description_title": "De ID van de thread of het forumbericht waar berichten naartoe worden verzonden.",
+        "thread_id_label": "Thread-ID",
+        "thread_id_placeholder": "Voer thread-ID of bericht-ID in",
+        "webhook_url_label": "Discord Webhook-URL"
+      },
+      "google_chat": {
+        "more_info_about_webhooks": "Meer informatie over Webhooks",
+        "webhook_url_label": "Google Chat Webhook-URL"
+      },
+      "gotify": {
+        "application_token_description": "Het applicatietoken van uw Gotify-applicatie. U kunt dit vinden in de Gotify-webinterface onder Apps.",
+        "application_token_label": "Toegangstoken",
+        "custom_message_description": "Aangepast berichtsjabloon. Beschikbare variabelen",
+        "custom_message_description_2": "Laat leeg om het standaardbericht te gebruiken.",
+        "custom_message_label": "Aangepast bericht",
+        "custom_title_description": "Aangepaste titel voor de notificatie. Beschikbare variabelen: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Laat leeg om de standaardtitel \"Peekaping\" te gebruiken.",
+        "custom_title_label": "Aangepaste titel",
+        "learn_more_label": "Meer informatie over Gotify en hoe u dit instelt:",
+        "note_description": "U moet een Gotify-server draaien om deze integratie te gebruiken.",
+        "note_label": "Opmerking:",
+        "priority_0": "Laagste",
+        "priority_1": "Zeer laag",
+        "priority_10": "Hoogste",
+        "priority_2": "Laag",
+        "priority_3": "Onder normaal",
+        "priority_4": "Normaal",
+        "priority_5": "Boven normaal",
+        "priority_6": "Gemiddeld",
+        "priority_7": "Hoog",
+        "priority_8": "Very High (Default)",
+        "priority_9": "Noodsituatie",
+        "priority_description": "Berichtprioriteit (0-10). Hogere getallen staan voor een hogere prioriteit. Standaardwaarde: 8.",
+        "priority_label": "Prioriteit",
+        "priority_placeholder": "Kies prioriteit",
+        "server_url_description": "De URL van je Gotify-server. Zorg ervoor dat deze toegankelijk is vanaf deze applicatie.",
+        "server_url_label": "Server-URL"
+      },
+      "grafana_oncall": {
+        "grafana_oncall_url_description": "De webhook-URL van jouw Grafana OnCall-integratie. Je kunt deze vinden in jouw Grafana OnCall-installatie onder Alerts & IRM > IRM > Integrations > Webhook.",
+        "grafana_oncall_url_label": "Grafana OnCall URL",
+        "learn_more_label": "Meer informatie over Grafana OnCall-webhooks"
+      },
+      "line": {
+        "channel_access_token_description": "Je kunt je kanaaltoegangstoken verkrijgen vanuit de",
+        "channel_access_token_description_2": "Ga naar de instellingen van het kanaal en zoek naar",
+        "channel_access_token_label": "Kanaaltoegangstoken (langdurig geldig)",
+        "channel_access_token_placeholder": "Voer je LINE-kanaaltoegangstoken in",
+        "template_description": "Pas de berichtindeling aan. Beschikbare variabelen",
+        "template_label": "Berichtsjabloon",
+        "template_placeholder": "Voer uw aangepaste berichtsjabloon in",
+        "user_id_description": "Je kunt je gebruikers-ID vinden in de",
+        "user_id_description_2": "Navigeer naar de kanaalinstellingen en zoek naar",
+        "user_id_label": "Uw gebruikers-ID",
+        "user_id_placeholder": "Voer uw LINE-gebruikers-ID in"
+      },
+      "matrix": {
+        "access_token_description": "Uw Matrix-toegangstoken voor authenticatie",
+        "access_token_label": "Toegangstoken",
+        "custom_message_description": "Aangepast berichtsjabloon. Beschikbare variabelen.",
+        "custom_message_label": "Aangepast bericht",
+        "homeserver_url_description": "De URL van uw Matrix-homeserver",
+        "homeserver_url_label": "Homeserver URL",
+        "internal_room_id_description": "Het interne kamer-ID waar meldingen naartoe worden verzonden. Dit moet beginnen met ! en eruit zien als: !roomid:matrix.org",
+        "internal_room_id_label": "Interne kamer-ID",
+        "setup_instructions_1": "Maak een Matrix-account aan voor je bot (of gebruik je bestaande account)",
+        "setup_instructions_2": "Maak een kamer aan of sluit je aan bij de kamer waarin je meldingen wilt ontvangen.",
+        "setup_instructions_3": "Haal uw toegangstoken op door in te loggen.",
+        "setup_instructions_4": "Het antwoord bevat een veld access_token - gebruik dit als uw toegangstoken.",
+        "setup_instructions_5": "Vind de interne kamer-ID (begint met \"!\") in de kamerinstellingen van je Matrix-client.",
+        "setup_instructions_label": "Installatie-instructies"
+      },
+      "mattermost": {
+        "channel_name_description": "Het kanaal waar meldingen naartoe worden verzonden. Laat leeg om het standaardkanaal te gebruiken dat in de webhook is geconfigureerd.",
+        "channel_name_label": "Kanaalnaam",
+        "icon_emoji_cheat_sheet_label": "Emoji-handleiding",
+        "icon_emoji_description": "Emoji die als icoon wordt gebruikt. U kunt twee emoji's gescheiden door een spatie opgeven (eerste voor de Up-status, tweede voor de Down-status).",
+        "icon_emoji_label": "Icoon-emoji",
+        "icon_url_description": "URL van een afbeelding die als pictogram voor de notificatie wordt gebruikt.",
+        "icon_url_label": "Icoon-URL",
+        "learn_more_label": "Meer informatie over webhooks",
+        "message_template_description": "Pas de berichtindeling aan. Beschikbare variabelen",
+        "message_template_label": "Berichtsjabloon",
+        "use_message_template_description": "Schakel in om een aangepast berichtsjabloon te gebruiken en te formatteren.",
+        "use_message_template_label": "Berichtsjabloon gebruiken",
+        "username_description": "De gebruikersnaam die als afzender van het bericht zal verschijnen.",
+        "webhook_url_label": "Webhook-URL"
+      },
+      "ntfy": {
+        "authentication_type_basic": "Basic Authentication",
+        "authentication_type_basic_description": "Gebruik gebruikersnaam en wachtwoord voor basisauthenticatie.",
+        "authentication_type_label": "Authenticatietype",
+        "authentication_type_none": "Geen authenticatie",
+        "authentication_type_none_description": "Geen authenticatie vereist. Geschikt voor openbare NTFY-servers.",
+        "authentication_type_placeholder": "Authenticatietype kiezen",
+        "authentication_type_token": "Tokenauthenticatie",
+        "authentication_type_token_description": "Gebruik een toegangstoken voor authenticatie.",
+        "custom_message_description": "Aangepaste berichtinhoud. Beschikbare variabelen",
+        "custom_message_label": "Aangepast bericht",
+        "password_required": "Wachtwoord is vereist voor basisauthenticatie",
+        "priority_1": "Min (Laagste)",
+        "priority_2": "Laag",
+        "priority_3": "Standaard",
+        "priority_4": "Hoog",
+        "priority_5": "Dringend (Hoogste)",
+        "priority_description": "Het prioriteitsniveau van de melding. Hogere prioriteiten kunnen ander gedrag bij de client veroorzaken.",
+        "priority_label": "Prioriteit",
+        "priority_placeholder": "Kies prioriteit",
+        "server_url_description": "De URL van uw NTFY-server. Gebruik https://ntfy.sh voor de publieke instantie.",
+        "server_url_label": "Serveradres",
+        "tags_description": "Komma-gescheiden tags voor het categoriseren van meldingen. Beschikbare variabelen",
+        "tags_label": "Etiketten",
+        "title_description": "Aangepaste titel voor de notificatie. Beschikbare variabelen.",
+        "title_label": "Aangepaste titel",
+        "token_description": "Uw NTFY-toegangstoken voor authenticatie.",
+        "token_label": "Toegangstoken",
+        "token_required": "Token is vereist voor token-authenticatie",
+        "topic_description": "De naam van het onderwerp voor uw meldingen. Dit is het kanaal waar meldingen naartoe worden gestuurd.",
+        "topic_label": "Onderwerp",
+        "username_required": "Gebruikersnaam is vereist voor basisauthenticatie"
+      },
+      "opsgenie": {
+        "api_key_label": "API-sleutel",
+        "more_info_about_api_keys_label": "Meer informatie over API-sleutels",
+        "priority_1": "Kritiek",
+        "priority_2": "Hoog",
+        "priority_3": "Gemiddeld",
+        "priority_4": "Laag",
+        "priority_5": "Informatief",
+        "priority_description": "Stel het prioriteitsniveau voor meldingen in. Standaard is P3 (Gemiddeld).",
+        "priority_label": "Prioriteit",
+        "region_description": "Kies uw Opsgenie-regio. Dit bepaalt welk API-eindpunt wordt gebruikt.",
+        "region_label": "Regio",
+        "region_placeholder": "Regio selecteren"
+      },
+      "pagerduty": {
+        "auto_resolve_acknowledge": "Automatisch bevestigen",
+        "auto_resolve_acknowledge_description": "Incident automatisch bevestigen",
+        "auto_resolve_description": "Kies welke actie er moet worden ondernomen wanneer een monitor weer online is.",
+        "auto_resolve_do_nothing": "Niets doen",
+        "auto_resolve_do_nothing_description": "Geen actie ondernomen bij de UP-status",
+        "auto_resolve_label": "Automatisch oplossen of bevestigen",
+        "auto_resolve_placeholder": "Gedrag voor automatische oplossing kiezen",
+        "auto_resolve_resolve": "Automatisch oplossen",
+        "auto_resolve_resolve_description": "Los het incident automatisch op.",
+        "integration_key_description": "Leer hoe je jouw integratiesleutel krijgt",
+        "integration_key_label": "Integratiesleutel",
+        "integration_key_placeholder": "Voer uw PagerDuty-integratiesleutel in",
+        "integration_url_description": "URL van het PagerDuty Events API v2-eindpunt. Standaard wordt dit eindpunt gebruikt.",
+        "integration_url_label": "Integratie-URL",
+        "learn_more_label": "PagerDuty-documentatie",
+        "priority_critical": "Kritiek",
+        "priority_description": "Het ernstigheidsniveau voor PagerDuty-incidenten. Standaardwaarde: \"warning\".",
+        "priority_error": "Fout",
+        "priority_info": "Informatie",
+        "priority_label": "Prioriteit",
+        "priority_placeholder": "Selecteer prioriteitsniveau",
+        "priority_warning": "Waarschuwing"
+      },
+      "pagertree": {
+        "authentication_token_description": "Optioneel authenticatietoken voor extra beveiliging. Dit wordt verzonden in de pagertree-token header.",
+        "authentication_token_label": "Authenticatietoken (optioneel)",
+        "authentication_token_placeholder": "Voer autorisatietoken in, indien nodig",
+        "auto_resolve_alerts_description": "Automatisch PagerTree-waarschuwingen oplossen wanneer de monitor herstelt",
+        "auto_resolve_alerts_label": "Meldingen automatisch oplossen",
+        "how_to_get_integration_url_label": "Hoe verkrijg je de integratie-URL",
+        "integration_url_description": "Voer uw PagerTree-webhook-integratie-URL in.",
+        "integration_url_label": "PagerTree Webhook-URL",
+        "urgency_level_critical": "Kritiek",
+        "urgency_level_description": "Stel het standaard urgentieniveau in voor meldingen die naar PagerTree worden verzonden.",
+        "urgency_level_high": "Hoog",
+        "urgency_level_label": "Urgentieniveau",
+        "urgency_level_low": "Laag",
+        "urgency_level_medium": "Gemiddeld",
+        "urgency_level_placeholder": "Kies urgentieniveau",
+        "urgency_level_silent": "Stil"
+      },
+      "pushbullet": {
+        "access_token": "Toegangstoken",
+        "access_token_description": "Uw Pushbullet-toegangstoken. Haal het uit",
+        "access_token_label": "Toegangstoken",
+        "access_token_link": "Pushbullet-instellingen",
+        "channel_tag": "Kanaal-tag (optioneel)",
+        "channel_tag_description": "Stuur de melding naar een Pushbullet-kanaal in plaats van naar apparaten",
+        "channel_tag_label": "Kanaal-tag (optioneel)",
+        "custom_message_template_description": "Pas de notificatie-inhoud aan met sjabloonvariabelen:",
+        "custom_message_template_heartbeat_ping": "Reactietijd",
+        "custom_message_template_heartbeat_time": "Tijdstempel",
+        "custom_message_template_label": "Aangepast berichtsjabloon (optioneel)",
+        "custom_message_template_monitor_url": "Monitor-URL",
+        "custom_message_template_msg": "Waarschuwingsbericht",
+        "custom_message_template_name": "Monitornaam",
+        "custom_message_template_placeholder": "Monitor: {{ name }}\nStatus: {{ status }}\nBericht: {{ msg }}",
+        "custom_message_template_status": "Huidige status",
+        "device_id": "Apparaat-ID (optioneel)",
+        "device_id_description": "Stuur een melding naar een specifiek apparaat. Laat leeg om naar alle apparaten te verzenden. Je kunt apparaat-ID's vinden met de",
+        "device_id_label": "Apparaat-ID (optioneel)",
+        "device_id_link": "Pushbullet API",
+        "more_info_on": "Meer informatie over:"
+      },
+      "pushover": {
+        "application_token_label": "Applicatie-token",
+        "application_token_placeholder": "Voer uw Pushover-applicatietoken in",
+        "device_description": "Laat leeg om naar alle apparaten te verzenden.",
+        "device_label": "Apparaat",
+        "device_placeholder": "Apparaatnaam (optioneel)",
+        "message_title_description": "Laat leeg om de standaardtitel te gebruiken.",
+        "message_title_label": "Berichttitel",
+        "message_title_placeholder": "Aangepaste berichttitel (optioneel)",
+        "message_ttl_description": "Levensduur in seconden (0 = geen vervaldatum)",
+        "message_ttl_label": "Bericht TTL",
+        "more_info_label": "Meer informatie over:",
+        "more_info_label_2": "Je kunt een applicatie aanmaken en je API-sleutel verkrijgen op",
+        "more_info_label_3": "Uw gebruikerssleutel is te vinden op",
+        "notification_sound_down_description": "Geluid bij uitval van de monitor",
+        "notification_sound_down_label": "Notificatiegeluid - Down",
+        "notification_sound_down_placeholder": "Kies geluid",
+        "notification_sound_up_description": "Geluid voor wanneer de monitor weer online komt",
+        "notification_sound_up_label": "Notificatiegeluid - Up",
+        "notification_sound_up_placeholder": "Kies geluid",
+        "priority_1": "Laagste",
+        "priority_2": "Laag",
+        "priority_3": "Normaal",
+        "priority_4": "Hoog",
+        "priority_5": "Noodgeval",
+        "priority_description": "Berichtprioriteit",
+        "priority_label": "Prioriteit",
+        "priority_placeholder": "Kies prioriteit",
+        "sound_alien": "Alien",
+        "sound_bike": "Fiets",
+        "sound_bugle": "Bugel",
+        "sound_cashregister": "Kassa",
+        "sound_classical": "Klassiek",
+        "sound_climb": "Climb",
+        "sound_cosmic": "Kosmisch",
+        "sound_echo": "Echo",
+        "sound_falling": "Vallend",
+        "sound_gamelan": "Gamelan",
+        "sound_incoming": "Inkomend",
+        "sound_intermission": "Pauze",
+        "sound_magic": "Magie",
+        "sound_mechanical": "Mechanisch",
+        "sound_none": "Geen",
+        "sound_persistent": "Aanhoudend",
+        "sound_pianobar": "Piano Bar",
+        "sound_pushover": "Pushover (standaard)",
+        "sound_siren": "Sirene",
+        "sound_spacealarm": "Ruimtealarm",
+        "sound_tugboat": "Tugboat",
+        "sound_updown": "Omhoog / Omlaag",
+        "sound_vibrate": "Trillen",
+        "user_key_label": "Gebruikerssleutel",
+        "user_key_placeholder": "Voer uw Pushover-gebruikerssleutel in"
+      },
+      "signal": {
+        "custom_message_description": "Aangepast berichtsjabloon. Beschikbare variabelen",
+        "custom_message_label": "Aangepast bericht",
+        "important_description": "U kunt geen groepen en nummers combineren bij ontvangers!",
+        "important_label": "BELANGRIJK:",
+        "more_info_label": "Bekijk deze URL om te zien hoe je er een instelt:",
+        "note_description": "U heeft een Signal-client met REST API nodig.",
+        "note_label": "Opmerking:",
+        "number_description": "Het telefoonnummer van uw Signal-account (afzendernummer).",
+        "number_label": "Nummer",
+        "post_url_description": "De URL van uw Signal CLI REST API-server.",
+        "post_url_label": "Post-URL",
+        "recipients_description": "Komma-gescheiden lijst met telefoonnummers waaraan meldingen worden verzonden.",
+        "recipients_label": "Ontvangers"
+      },
+      "slack": {
+        "channel_name_description": "Het kanaal waar het bericht naartoe wordt verzonden. Als dit niet is opgegeven, wordt het bericht verzonden naar het standaardkanaal dat in de webhook is geconfigureerd.",
+        "channel_name_description_2": "Je kunt het standaardkanaal overschrijven door een kanaalnaam op te geven (bijv. #alerts) of een gebruiker (bijv. @gebruikersnaam).",
+        "channel_name_label": "Kanaalnaam",
+        "channel_notify_description": "Wanneer ingeschakeld, worden meldingen verzonden naar alle kanaalleden. Gebruik dit voorzichtig om spam te voorkomen.",
+        "channel_notify_label": "Kanaal melden",
+        "icon_emoji_cheat_sheet_label": "Emoji-hulplijst",
+        "icon_emoji_description": "Emoji die als icoon voor dit bericht wordt gebruikt. Moet in het formaat :emoji_name: staan.",
+        "icon_emoji_label": "Icoon-emoji",
+        "message_format_description": "Verstuur rijke berichten",
+        "message_format_description_2": "Schakel in om berichten te verzenden met rijke opmaak, bijlagen en een betere visuele weergave.",
+        "message_format_label": "Berichtopmaak",
+        "username_description": "De gebruikersnaam die als afzender van het bericht zal verschijnen. Als deze niet is opgegeven, wordt de standaard botnaam gebruikt.",
+        "webhook_url_description": "De webhook-URL van je Slack-integratie. Je vindt deze in je Slack-omgeving onder Integraties > Webhooks.",
+        "webhook_url_label": "Webhook-URL"
+      },
+      "smtp": {
+        "custom_body_label": "Aangepaste inhoud",
+        "custom_description": "Sjabloonmogelijkheden worden gerealiseerd met de <b>Liquid</b>-templatingtaal.",
+        "custom_description_2": "Zie de documentatie voor gebruiksinstructies.",
+        "custom_description_3": "Beschikbare variabelen:",
+        "custom_description_4": "Bericht van de notificatie",
+        "custom_description_5": "Dienstnaam",
+        "custom_description_6": "dienststatus (UP/DOWN/certificaatvervalmeldingen)",
+        "custom_subject_label": "Aangepast onderwerp",
+        "smtp_from_label": "Van (E-mailadres van afzender)",
+        "smtp_host_description": "Voer de hostnaam in van de server waarmee u verbinding wilt maken, of gebruik localhost als u een lokaal geconfigureerde mailtransferagent (MTA) wilt gebruiken.",
+        "smtp_host_label": "SMTP-hostnaam",
+        "smtp_password_placeholder": "SMTP-wachtwoord",
+        "smtp_port_label": "Poort",
+        "smtp_to_label": "Aan (Ontvanger(s) e-mailadressen)",
+        "smtp_username_placeholder": "SMTP-gebruikersnaam"
+      },
+      "telegram": {
+        "auto_get_label": "Automatisch ophalen",
+        "bot_token_description": "Haal uw bot-token uit",
+        "bot_token_label": "Bot-token",
+        "chat_id_description": "U kunt uw chat-ID verkrijgen door een bericht naar uw bot te sturen en hierboven op \"Auto Get\" te klikken, of handmatig via de Telegram API.",
+        "chat_id_description_2": "Om het handmatig te verkrijgen, bezoek",
+        "chat_id_description_3": "Zie",
+        "chat_id_description_4": "Telegram-documentatie",
+        "chat_id_description_5": "voor meer informatie.",
+        "chat_id_label": "Chat-ID",
+        "chat_id_not_found": "Chat-ID niet gevonden in de laatste update.",
+        "failed_to_fetch_chat_id": "Chat-ID kon niet worden opgehaald",
+        "message_thread_id_description": "Optioneel. Wordt gebruikt om berichten naar een specifieke thread (onderwerp) te sturen in een forum-supergroep.",
+        "message_thread_id_label": "Berichtdraad-ID",
+        "no_updates_found": "Geen updates gevonden. Stuur eerst een bericht naar je bot.",
+        "protect_content_description": "Als ingeschakeld, wordt de inhoud van het bericht beschermd tegen doorsturen en opslaan.",
+        "protect_content_label": "Inhoud beschermen",
+        "send_silently_description": "Indien ingeschakeld, worden berichten stil verzonden (gebruikers ontvangen een melding zonder geluid).",
+        "send_silently_label": "Zonder geluid verzenden",
+        "server_url_description": "De standaardwaarde is",
+        "server_url_description_2": "U kunt een aangepaste server gebruiken. Zie",
+        "server_url_description_3": "hier",
+        "server_url_description_4": "voor details.",
+        "server_url_label": "Telegram Server-URL",
+        "template_description": "Pas het berichtformaat aan. Beschikbare variabelen",
+        "template_label": "Berichtsjabloon",
+        "template_parse_mode_description": "Kies hoe het bericht moet worden geanalyseerd. Zie",
+        "template_parse_mode_description_2": "Telegram opmaakdocumentatie",
+        "template_parse_mode_description_3": "voor meer informatie.",
+        "template_parse_mode_label": "Sjabloonparseermodus",
+        "template_parse_mode_placeholder": "Kies parseermodus",
+        "template_placeholder": "Voer uw aangepaste berichtsjabloon in",
+        "use_template_description": "Schakel in om een aangepast berichtsjabloon te gebruiken en de opmaak toe te passen.",
+        "use_template_label": "Berichtsjabloon gebruiken"
+      },
+      "webhook": {
+        "additional_headers_description": "Voeg aangepaste HTTP-headers toe aan het webhook-verzoek.",
+        "additional_headers_label": "Aanvullende headers",
+        "custom_body_description": "Pas het formaat van de verzoekinhoud aan. Beschikbare variabelen",
+        "custom_body_label": "Aangepaste payload",
+        "post_url_description": "De URL van het webhook-eindpunt waar meldingen naartoe worden verzonden.",
+        "post_url_label": "Post-URL",
+        "request_body_description_custom": "Definieer hieronder uw eigen aangepast formaat voor het verzoeklichaam.",
+        "request_body_description_form_data": "De inhoud wordt verzonden als multipart/form-data. Je kunt het decoderen met <strong>json_decode($_POST['data'])</strong> in PHP.",
+        "request_body_description_json": "De inhoud wordt verzonden als JSON met de header 'application/json'.",
+        "request_body_label": "Inhoud van het verzoek",
+        "request_body_placeholder": "Inhoudstype kiezen"
+      }
+    },
+    "important": "Belangrijke meldingen",
+    "important_notifications": "Belangrijke meldingen",
+    "labels": {
+      "friendly_name": "Weergavenaam",
+      "type": "Notifier-type"
+    },
+    "messages": {
+      "create_failed": "Fout bij het aanmaken van de notifier",
+      "created_success": "Notifier succesvol aangemaakt",
+      "error_loading_notifier": "Fout bij het laden van notifier",
+      "test_failed": "Testnotificatie verzenden mislukt",
+      "test_success": "Testnotificatie succesvol verzonden",
+      "update_failed": "Notifier bijwerken mislukt",
+      "updated_success": "Notifier succesvol bijgewerkt"
+    },
+    "new": {
+      "title": "Nieuw notificatiekanaal"
+    },
+    "no_important": "Geen belangrijke meldingen gevonden.",
+    "placeholders": {
+      "select_type": "Kies notifier-type"
+    },
+    "search_placeholder": "Zoek notificatiekanalen op naam..."
+  },
+  "proxies": {
+    "delete_dialog": {
+      "description": "Deze actie kan niet ongedaan worden gemaakt. Hiermee wordt de proxy {{host}}:{{port}} permanent verwijderd.",
+      "title": "Weet u het zeker?"
+    },
+    "edit": {
+      "page_name": "Bewerk Proxy"
+    },
+    "empty_list": {
+      "action_text": "Maak je eerste proxy aan",
+      "text": "Begin met het aanmaken van je eerste proxy die je in je monitoren kunt gebruiken.",
+      "title": "Geen proxies gevonden"
+    },
+    "form": {
+      "auth_label": "Proxy-server heeft authenticatie",
+      "port_placeholder": "Poort",
+      "protocol_label": "Proxy-protocol",
+      "protocol_placeholder": "Proxyprotocol kiezen",
+      "server_label": "Proxyserver",
+      "server_placeholder": "Serveradres",
+      "user": "Gebruikersnaam"
+    },
+    "messages": {
+      "create_failed": "Proxy aanmaken mislukt",
+      "created_success": "Proxy succesvol aangemaakt",
+      "error_loading_proxy": "Fout bij het laden van de proxy",
+      "update_failed": "Proxy bijwerken mislukt",
+      "updated_success": "Proxy succesvol bijgewerkt"
+    },
+    "new": {
+      "page_name": "Nieuwe Proxy"
+    },
+    "page_name": "Proxies",
+    "search_label": "Zoek",
+    "search_placeholder": "Zoek proxies op hostnaam..."
+  },
+  "security": {
+    "enable_2fa": {
+      "form": {
+        "authenticator_code_label": "Authenticator-code",
+        "authenticator_code_placeholder": "Voer de 6-cijferige code in",
+        "current_password_label": "Huidig wachtwoord",
+        "current_password_placeholder": "Voer uw huidige wachtwoord in",
+        "enable_2fa_button": "Activeer 2FA"
+      },
+      "messages": {
+        "2fa_active": "2FA Actief",
+        "2fa_disabled_successfully": "2FA succesvol uitgeschakeld",
+        "2fa_enabled_successfully": "2FA succesvol ingeschakeld",
+        "account_is_protected_with_2fa": "Uw account is beveiligd met 2FA.",
+        "disable_2fa": "2FA uitschakelen",
+        "enter_password_to_disable_2fa": "Voer uw wachtwoord in om 2FA uit te schakelen",
+        "failed_to_disable_2fa": "Kan 2FA niet uitschakelen",
+        "failed_to_verify_2fa_code": "Fout bij het verifiëren van de 2FA-code",
+        "failed_to_verify_password": "Wachtwoordverificatie mislukt of het opzetten van 2FA mislukt",
+        "have_enabled_2fa": "Je hebt twee-factor-authenticatie (2FA) voor je account ingeschakeld. Dit voegt een extra beveiligingslaag toe.",
+        "or_enter_secret_manually": "Of voer dit geheim handmatig in",
+        "scan_qr_code_with_authenticator_app": "Scan deze QR-code met uw authenticator-app",
+        "two_factor_authentication_enabled": "2FA ingeschakeld",
+        "user_email_not_found": "E-mailadres niet gevonden"
+      }
+    },
+    "page_name": "Beveiliging",
+    "update_password": {
+      "form": {
+        "confirm_new_password_label": "Bevestig nieuw wachtwoord",
+        "confirm_new_password_placeholder": "Nieuw wachtwoord opnieuw invoeren",
+        "new_password_label": "Nieuw wachtwoord",
+        "new_password_placeholder": "Voer een nieuw wachtwoord in",
+        "old_password_label": "Oud wachtwoord",
+        "old_password_placeholder": "Voer uw huidige wachtwoord in",
+        "update_password_button": "Wachtwoord bijwerken"
+      },
+      "messages": {
+        "failed_to_update_password": "Wachtwoord bijwerken mislukt",
+        "password_updated_successfully": "Wachtwoord succesvol bijgewerkt"
+      },
+      "title": "Wachtwoord wijzigen"
+    }
+  },
+  "sendgrid": {
+    "api_key_description": "Uw SendGrid API-sleutel. U kunt er een aanmaken in uw SendGrid-account onder Instellingen → API-sleutels. Zorg ervoor dat deze sleutel de machtiging 'Mail verzenden' heeft.",
+    "api_key_label": "API-sleutel",
+    "bcc_email_description": "BCC-ontvangers. Scheid meerdere e-mailadressen met komma's.",
+    "bcc_email_label": "BCC-e-mailadres (optioneel)",
+    "cc_email_description": "Cc-ontvangers. Voer meerdere e-mailadressen in met komma's.",
+    "cc_email_label": "CC-e-mailadres (optioneel)",
+    "from_email_description": "Het e-mailadres van de afzender. Dit moet een geverifieerde afzender zijn in uw SendGrid-account.",
+    "from_email_label": "Afzender e-mailadres",
+    "subject_description": "Onderwerpregel voor de e-mail. Ondersteunt Liquid-sjablonen.",
+    "subject_label": "Aangepast onderwerp (optioneel)",
+    "subject_variables_label": "Beschikbare variabelen:",
+    "subject_variables_msg": "Bericht van de notificatie",
+    "subject_variables_name": "servicenaam",
+    "subject_variables_status": "Status van de dienst (UP/DOWN)",
+    "to_email_description": "E-mailadres van de primaire ontvanger. Voor meerdere ontvangers gebruik je CC- en BCC-velden.",
+    "to_email_label": "E-mailadres ontvanger"
+  },
+  "settings": {
+    "data_retention": {
+      "days_label": "Dagen",
+      "description": "Bepaal hoelang gegevens bewaard blijven (KEEP_DATA_PERIOD_DAYS).",
+      "title": "Gegevensbewaartermijn"
+    },
+    "timezone": {
+      "description": "Kies uw gewenste tijdzone om alle tijden in de app weer te geven.",
+      "label": "Tijdzone",
+      "no_timezone_found": "Geen tijdzone gevonden.",
+      "search_placeholder": "Zoek tijdzone...",
+      "select_placeholder": "Selecteer tijdzone...",
+      "title": "Tijdzone"
+    },
+    "validation": {
+      "min_days": "Moet minimaal 1 dag zijn"
+    }
+  },
+  "status": {
+    "messages": {
+      "all_systems_operational": "Alle systemen operationeel",
+      "down": "Uitgevallen",
+      "last_updated": "Laatst bijgewerkt",
+      "maintenance": "Onderhoud",
+      "no_monitors_configured": "Geen monitors geconfigureerd voor deze statuspagina.",
+      "operational": "Operationeel",
+      "partial_system_outage": "Gedeeltelijke systeemuitval",
+      "powered_by": "Aangedreven door",
+      "refresh_in": "Vernieuwen in",
+      "refresh_now": "Vernieuwen",
+      "status_page_not_found": "Statuspagina niet gevonden of niet gepubliceerd.",
+      "under_maintenance": "In onderhoud",
+      "unknown": "Onbekend"
+    }
+  },
+  "status_pages": {
+    "affected_monitors": "Betroffen monitoren",
+    "affected_monitors_info": "Selecteer monitors die door dit onderhoud beïnvloed zullen worden.",
+    "auto_refresh_interval": "Automatisch verversingsinterval (seconden)",
+    "basic_information": "Basisinformatie",
+    "create_status_page": "Statuspagina aanmaken",
+    "customization": "Aanpassing",
+    "delete_dialog": {
+      "description": "Weet je zeker dat je \"{{title}}\" wilt verwijderen? Deze actie kan niet ongedaan gemaakt worden.",
+      "title": "Statuspagina verwijderen"
+    },
+    "description": "Voer de statuspagina-omschrijving in",
+    "domain_already_used": "Domein {{domain}} is al in gebruik door een andere statuspagina",
+    "domain_host_warning": "Dit domein is hetzelfde als de huidige host-URL. Dit kan conflicten veroorzaken.",
+    "domains": "Domeinen",
+    "domains_info_warning": "Vergeet niet bij elk domein de CNAME-records aan uw DNS toe te voegen.",
+    "draft_status": "Concept",
+    "edit_page_name": "Statuspagina bewerken",
+    "messages": {
+      "create_description": "Maak een nieuwe statuspagina aan om de status van uw dienst met gebruikers te delen.",
+      "create_your_first_status_page": "Maak je eerste statuspagina aan",
+      "created_successfully": "Statuspagina succesvol aangemaakt",
+      "delete_failed": "Het verwijderen van de statuspagina is mislukt.",
+      "deleted_successfully": "Statuspagina succesvol verwijderd",
+      "get_started_by_creating_your_first_status_page": "Begin met het aanmaken van uw eerste statuspagina.",
+      "no_status_pages_found": "Geen statuspagina's gevonden",
+      "not_found": "Statuspagina niet gevonden",
+      "update_description": "Werk de instellingen en configuratie van uw statuspagina bij.",
+      "updated_successfully": "Statuspagina bijgewerkt"
+    },
+    "new_page_name": "Nieuwe statuspagina",
+    "page_name": "Statuspagina's",
+    "published": "Gepubliceerd",
+    "published_info": "Maak deze statuspagina openbaar",
+    "published_status": "Gepubliceerd",
+    "search_label": "Zoek",
+    "search_placeholder": "Zoek statuspagina's op titel...",
+    "update_status_page": "Statuspagina bijwerken",
+    "view_page": "Pagina bekijken"
+  },
+  "tags": {
+    "confirm_delete_description": "Deze handeling kan niet ongedaan gemaakt worden. Hiermee wordt de tag \\\"{{name}}\\\" permanent verwijderd en uit alle monitors verwijderd.",
+    "edit_page_name": "Tag bewerken",
+    "empty_state": {
+      "action": "Maak je eerste tag aan",
+      "description": "Begin met het aanmaken van je eerste tag om je monitors te organiseren.",
+      "title": "Geen tags gevonden"
+    },
+    "form": {
+      "color_description": "Kies een kleur voor je tag",
+      "color_label": "Kleur",
+      "create_button": "Tag aanmaken",
+      "description_label": "Beschrijving",
+      "description_placeholder": "Enter tag description (optional)",
+      "name_label": "Naam",
+      "name_placeholder": "Voer tagnaam in",
+      "update_button": "Tag bijwerken"
+    },
+    "messages": {
+      "create_description": "Maak een nieuwe tag aan om uw monitors te organiseren en te categoriseren.",
+      "failed_to_load_tag": "Fout bij het laden van de tag. De tag bestaat mogelijk niet of u hebt mogelijk geen toestemming om deze te bekijken.",
+      "tag_id_required": "Tag-ID is vereist",
+      "update_description": "Werk de taggegevens bij om uw monitoren beter te organiseren."
+    },
+    "new_page_name": "Nieuwe tag",
+    "search_placeholder": "Zoek tags..."
+  },
+  "theme": {
+    "dark": "Donker",
+    "light": "Licht",
+    "system": "Systeem",
+    "toggle_theme": "Thema wisselen"
+  },
+  "timezone": {
+    "average": "Gemiddelde",
+    "last_24_hours": "Laatste 24 uur",
+    "last_3_hours": "Laatste 3 uur",
+    "last_3_months": "Laatste 3 maanden",
+    "last_30_minutes": "Laatste 30 minuten",
+    "last_6_hours": "Laatste 6 uur",
+    "last_7_days": "Laatste 7 dagen",
+    "maximum": "Maximaal",
+    "minimum": "Minimum",
+    "ms": "ms",
+    "response_time": "Reactietijd",
+    "uptime": "Beschikbaarheid"
+  },
+  "ui": {
+    "general": "Algemeen",
+    "intervals_retries": "Intervallen, Pogingen, Time-outs"
+  }
+}

@@ -1,0 +1,1274 @@
+{
+  "actions": {
+    "cancel": "",
+    "saving": ""
+  },
+  "auth": {
+    "login": {
+      "description": "",
+      "no_account": "",
+      "sign_up": "",
+      "submit": "",
+      "title": ""
+    },
+    "register": {
+      "description": "",
+      "have_account": "",
+      "sign_in": "",
+      "submit": "",
+      "title": ""
+    },
+    "twofa": {
+      "code_label": "",
+      "code_placeholder": "",
+      "description": "",
+      "title": "",
+      "verify_button": "",
+      "verifying": ""
+    }
+  },
+  "bars": {
+    "down_count": "",
+    "important": "",
+    "interval": "",
+    "message": "",
+    "ms": "",
+    "notified": "",
+    "ping": "",
+    "retries": "",
+    "status": "",
+    "time": ""
+  },
+  "common": {
+    "active": "",
+    "all": "",
+    "back": "",
+    "cancel": "",
+    "clear_all": "",
+    "clear_all_filters": "",
+    "confirm": "",
+    "confirm_delete_title": "",
+    "confirm_delete_title_short": "",
+    "continue": "",
+    "create": "",
+    "created": "",
+    "days": "",
+    "default": "",
+    "delete": "",
+    "disabling": "",
+    "dismiss": "",
+    "down": "",
+    "enabling": "",
+    "error": "",
+    "expires": "",
+    "inactive": "",
+    "loading": "",
+    "logout": "",
+    "maintenance": "",
+    "no_options_found": "",
+    "no_tags_available": "",
+    "please_refresh_page": "",
+    "required": "",
+    "save": "",
+    "saving": "",
+    "search": "",
+    "security": "",
+    "select": "",
+    "select_monitors": "",
+    "select_tags": "",
+    "settings": "",
+    "tags": "",
+    "unknown": "",
+    "unnamed_monitor": "",
+    "up": "",
+    "update": "",
+    "verifying": ""
+  },
+  "forms": {
+    "labels": {
+      "confirm_password": "",
+      "email": "",
+      "footer_text": "",
+      "heartbeat_interval": "",
+      "icon_url": "",
+      "monitor_name": "",
+      "monitor_type": "",
+      "password": "",
+      "retries": "",
+      "slug": "",
+      "title": "",
+      "username": ""
+    },
+    "placeholders": {
+      "auto_refresh_help": "",
+      "domains": "",
+      "footer_text": "",
+      "icon_url": "",
+      "monitor_name": "",
+      "page_description": "",
+      "page_title": "",
+      "slug": ""
+    },
+    "validation": {
+      "email_invalid": "",
+      "password_min_length": "",
+      "passwords_mismatch": ""
+    }
+  },
+  "maintenance": {
+    "card": {
+      "aria": {
+        "delete": "",
+        "pause": "",
+        "resume": ""
+      },
+      "labels": {
+        "duration": "",
+        "end": "",
+        "start": ""
+      },
+      "status": {
+        "active": "",
+        "ended": "",
+        "inactive": ""
+      }
+    },
+    "edit_title": "",
+    "form": {
+      "affected_monitors_description": "",
+      "affected_monitors_title": "",
+      "cron_description": "",
+      "cron_expression": "",
+      "date_time_title": "",
+      "day_of_month": "",
+      "day_of_week": "",
+      "description_label": "",
+      "description_placeholder": "",
+      "duration_minutes": "",
+      "effective_date_range": "",
+      "end_date_time": "",
+      "end_time": "",
+      "interval_label": "",
+      "last_day": "",
+      "last_day_of_month": "",
+      "maintenance_time_window": "",
+      "markdown_supported": "",
+      "same_as_server": "",
+      "start_date_time": "",
+      "start_time": "",
+      "strategy_label": "",
+      "strategy_placeholder": "",
+      "timezone_label": "",
+      "timezone_placeholder": "",
+      "title_label": "",
+      "title_placeholder": ""
+    },
+    "page": {
+      "clear_filters": "",
+      "dialogs": {
+        "confirm_action": {
+          "pause_description": "",
+          "resume_description": "",
+          "title": ""
+        },
+        "confirm_delete": {
+          "description": "",
+          "title": ""
+        }
+      },
+      "edit_maintenance": "",
+      "empty_state": {
+        "action": "",
+        "description": "",
+        "title": ""
+      },
+      "error_loading": "",
+      "loading": "",
+      "loading_monitors": "",
+      "search_placeholder": ""
+    },
+    "page_title": "",
+    "schedule_title": "",
+    "strategy": {
+      "cron": "",
+      "manual": "",
+      "recurring_day_of_month": "",
+      "recurring_interval": "",
+      "recurring_weekday": "",
+      "single": ""
+    },
+    "toasts": {
+      "create_error": "",
+      "created_success": "",
+      "delete_error": "",
+      "deleted_success": "",
+      "pause_error": "",
+      "paused_success": "",
+      "resume_error": "",
+      "resumed_success": "",
+      "toggle_error": "",
+      "update_error": "",
+      "updated_success": ""
+    },
+    "weekdays": {
+      "fri": "",
+      "mon": "",
+      "sat": "",
+      "sun": "",
+      "thu": "",
+      "tue": "",
+      "wed": ""
+    }
+  },
+  "messages": {
+    "login_error": "",
+    "login_no_tokens": "",
+    "login_success": "",
+    "notifier_delete_error": "",
+    "notifier_delete_success": "",
+    "register_error": "",
+    "register_no_tokens": "",
+    "register_success": "",
+    "setting_update_error": "",
+    "setting_update_success": "",
+    "tag_create_error": "",
+    "tag_create_success": "",
+    "tag_delete_error": "",
+    "tag_delete_success": "",
+    "tag_update_error": "",
+    "tag_update_success": "",
+    "unexpected_error": "",
+    "version_mismatch": ""
+  },
+  "monitors": {
+    "card": {
+      "check_interval": "",
+      "loading_more": ""
+    },
+    "empty_state": {
+      "action": "",
+      "description": "",
+      "title": ""
+    },
+    "filtering_by_tags": "",
+    "filters": {
+      "monitor_status": "",
+      "monitor_status_placeholder": "",
+      "search_placeholder": "",
+      "status_placeholder": ""
+    },
+    "form": {
+      "buttons": {
+        "copied": "",
+        "copy": "",
+        "create": "",
+        "regenerate": "",
+        "update": ""
+      },
+      "dns": {
+        "hostname": "",
+        "port": "",
+        "record_type": "",
+        "record_type_placeholder": "",
+        "resolver_server": "",
+        "title": ""
+      },
+      "docker": {
+        "ca_cert_description": "",
+        "ca_certificate": "",
+        "client_cert_description": "",
+        "client_certificate": "",
+        "client_private_key": "",
+        "common_tls_issues": "",
+        "connection_type": "",
+        "container_name_id": "",
+        "disabled": "",
+        "docker_container": "",
+        "docker_host": "",
+        "enable_tls": "",
+        "enabled": "",
+        "examples": "",
+        "hostname_mismatch": "",
+        "hostname_mismatch_solution": "",
+        "legacy_cert_error": "",
+        "legacy_cert_solution": "",
+        "mtls_note": "",
+        "note": "",
+        "private_key_description": "",
+        "select_connection_type": "",
+        "select_tls_option": "",
+        "select_verification_option": "",
+        "skip_verification": "",
+        "tls_configuration": "",
+        "unknown_authority": "",
+        "unknown_authority_solution": "",
+        "verify_certificates": "",
+        "verify_tls": ""
+      },
+      "grpc": {
+        "body": "",
+        "enable_tls": "",
+        "enable_tls_description": "",
+        "invert_keyword": "",
+        "invert_keyword_description": "",
+        "keyword": "",
+        "keyword_description": "",
+        "keyword_placeholder": "",
+        "method_description": "",
+        "method_placeholder": "",
+        "options_title": "",
+        "proto_content": "",
+        "proto_method": "",
+        "proto_service_name": "",
+        "service_name_placeholder": ""
+      },
+      "http": {
+        "advanced": {
+          "accepted_status_codes": "",
+          "ignore_tls": "",
+          "ignore_tls_description": "",
+          "max_redirects": "",
+          "max_redirects_description": "",
+          "title": ""
+        },
+        "authentication": {
+          "auth_header": "",
+          "certificate": "",
+          "certificate_placeholder": "",
+          "client_id": "",
+          "client_id_placeholder": "",
+          "client_secret": "",
+          "client_secret_placeholder": "",
+          "domain": "",
+          "domain_placeholder": "",
+          "form_data_body": "",
+          "key": "",
+          "key_placeholder": "",
+          "method_label": "",
+          "method_placeholder": "",
+          "oauth_scope": "",
+          "oauth_scope_placeholder": "",
+          "oauth_token_url": "",
+          "oauth_token_url_placeholder": "",
+          "title": "",
+          "workstation": "",
+          "workstation_placeholder": ""
+        },
+        "options": {
+          "body": "",
+          "body_encoding": "",
+          "form_example": "",
+          "headers": "",
+          "json_example": "",
+          "method": "",
+          "select_encoding": "",
+          "select_method": "",
+          "text_example": "",
+          "title": "",
+          "xml_example": ""
+        }
+      },
+      "http_json_query": {
+        "condition_label": "",
+        "expected_value_label": "",
+        "json_query_label": "",
+        "title": ""
+      },
+      "http_keyword": {
+        "invert_keyword_description": "",
+        "invert_keyword_label": "",
+        "keyword_label": "",
+        "keyword_validation_title": ""
+      },
+      "kafka": {
+        "add_broker": "",
+        "auto_topic_creation_description": "",
+        "auto_topic_creation_label": "",
+        "brokers_description": "",
+        "brokers_label": "",
+        "configuration_title": "",
+        "enable_ssl_description": "",
+        "enable_ssl_label": "",
+        "message_description": "",
+        "message_label": "",
+        "sasl_mechanism_description": "",
+        "sasl_mechanism_label": "",
+        "sasl_mechanism_placeholder": "",
+        "sasl_password_description": "",
+        "sasl_password_label": "",
+        "sasl_password_placeholder": "",
+        "sasl_username_description": "",
+        "sasl_username_label": "",
+        "security_title": "",
+        "topic_description": ""
+      },
+      "mongodb": {
+        "command_description": "",
+        "command_label": "",
+        "configuration_title": "",
+        "connection_string_description": "",
+        "connection_string_label": "",
+        "expected_value_description": "",
+        "expected_value_label": "",
+        "expected_value_placeholder": "",
+        "json_path_description": "",
+        "json_path_label": ""
+      },
+      "mqtt": {
+        "check_type_json_query": "",
+        "check_type_keyword": "",
+        "check_type_label": "",
+        "check_type_none": "",
+        "check_type_placeholder": "",
+        "configuration_title": "",
+        "expected_value_label": "",
+        "hostname_label": "",
+        "json_path_label": "",
+        "password_label": "",
+        "password_placeholder": "",
+        "port_label": "",
+        "success_keyword_label": "",
+        "success_keyword_placeholder": "",
+        "username_label": "",
+        "username_placeholder": "",
+        "validation": {
+          "expected_value_required": "",
+          "json_path_required": "",
+          "success_keyword_required": ""
+        }
+      },
+      "mysql": {
+        "connection_string_examples": "",
+        "connection_string_label": "",
+        "connection_title": "",
+        "query_label": ""
+      },
+      "ping": {
+        "data_size": "",
+        "host": "",
+        "title": ""
+      },
+      "postgres": {
+        "connection_string_label": "",
+        "connection_title": "",
+        "query_label": ""
+      },
+      "push": {
+        "url_description": "",
+        "url_title": ""
+      },
+      "rabbitmq": {
+        "documentation_link": "",
+        "health_checks_description": "",
+        "management_nodes_description": "",
+        "management_nodes_title": "",
+        "node_url_label": "",
+        "password_description": "",
+        "setup_information_description": "",
+        "setup_information_title": "",
+        "title": "",
+        "username_description": ""
+      },
+      "redis": {
+        "ca_certificate_description": "",
+        "ca_certificate_label": "",
+        "client_certificate_description": "",
+        "client_certificate_label": "",
+        "client_key_description": "",
+        "client_key_label": "",
+        "connection_string_description": "",
+        "connection_string_label": "",
+        "ignore_tls_description": "",
+        "ignore_tls_label": "",
+        "title": ""
+      },
+      "shared": {
+        "intervals": {
+          "heartbeat_retry": "",
+          "max_retries_description": "",
+          "request_timeout": "",
+          "resend_notification": ""
+        },
+        "notifications": {
+          "add_notifier": "",
+          "new_notifier": "",
+          "no_channels": "",
+          "no_channels_available": "",
+          "select_channel": "",
+          "select_notifier_placeholder": "",
+          "selected_channels": "",
+          "title": ""
+        },
+        "proxy": {
+          "add_proxy": "",
+          "new_proxy": "",
+          "no_proxy": "",
+          "remove_proxy": "",
+          "select_proxy_placeholder": "",
+          "selected_proxy": "",
+          "title": ""
+        },
+        "tags": {
+          "label": "",
+          "no_tags": "",
+          "placeholder": ""
+        }
+      },
+      "snmp": {
+        "community_description": "",
+        "community_label": "",
+        "expected_value_description": "",
+        "expected_value_label": "",
+        "host_description": "",
+        "host_label": "",
+        "json_path_description": "",
+        "json_path_label": "",
+        "json_path_operator_description": "",
+        "json_path_operator_eq": "",
+        "json_path_operator_ge": "",
+        "json_path_operator_gt": "",
+        "json_path_operator_label": "",
+        "json_path_operator_le": "",
+        "json_path_operator_lt": "",
+        "json_path_operator_ne": "",
+        "oid_description": "",
+        "oid_label": "",
+        "port_description": "",
+        "port_label": "",
+        "snmp_version_description": "",
+        "snmp_version_label": "",
+        "title": "",
+        "value_validation_label": ""
+      },
+      "sqlserver": {
+        "allowed_statements_description": "",
+        "allowed_statements_label": "",
+        "connection_string_label": "",
+        "query_description": "",
+        "query_label": "",
+        "title": ""
+      },
+      "tcp": {
+        "host": "",
+        "port": "",
+        "title": ""
+      },
+      "type": {
+        "dns": "",
+        "docker": "",
+        "grpc": "",
+        "http": "",
+        "kafka": "",
+        "mongodb": "",
+        "mqtt": "",
+        "mysql": "",
+        "ping": "",
+        "postgres": "",
+        "push": "",
+        "rabbitmq": "",
+        "redis": "",
+        "snmp": "",
+        "sqlserver": "",
+        "tcp": ""
+      }
+    },
+    "page": {
+      "description": "",
+      "edit_title": "",
+      "new_title": ""
+    },
+    "title": "",
+    "toasts": {
+      "deleted": "",
+      "paused": "",
+      "reset_success": "",
+      "resumed": ""
+    },
+    "view": {
+      "buttons": {
+        "clone": "",
+        "delete": "",
+        "edit": "",
+        "pause": "",
+        "reset_data": "",
+        "resume": ""
+      },
+      "certificate": "",
+      "check_every": "",
+      "current_status": "",
+      "dialogs": {
+        "delete": {
+          "description": "",
+          "title": ""
+        },
+        "pause": {
+          "description": "",
+          "title": ""
+        },
+        "reset": {
+          "description": "",
+          "title": ""
+        }
+      },
+      "expiring_soon": "",
+      "for": "",
+      "live_status": "",
+      "monitor_for": "",
+      "no_certificate_data": "",
+      "seconds": "",
+      "stats": {
+        "last_24_hours": "",
+        "last_30_days": "",
+        "last_365_days": "",
+        "last_7_days": ""
+      },
+      "status": {
+        "down": "",
+        "maintenance": "",
+        "paused": "",
+        "up": ""
+      }
+    }
+  },
+  "navigation": {
+    "maintenance": "",
+    "monitors": "",
+    "notification_channels": "",
+    "proxies": "",
+    "settings": "",
+    "status_pages": "",
+    "tags": ""
+  },
+  "notifications": {
+    "actions": {
+      "test": "",
+      "testing": ""
+    },
+    "aria": {
+      "delete": ""
+    },
+    "confirm_delete_description": "",
+    "create_title": "",
+    "edit_channel_title": "",
+    "edit_title": "",
+    "empty_state": {
+      "action": "",
+      "description": "",
+      "title": ""
+    },
+    "form": {
+      "discord": {
+        "bot_display_name_description": "",
+        "bot_display_name_label": "",
+        "custom_message_prefix_description": "",
+        "custom_message_prefix_label": "",
+        "custom_message_prefix_placeholder": "",
+        "forum_post_name_description": "",
+        "forum_post_name_label": "",
+        "forum_post_name_placeholder": "",
+        "sending_message_to_channel": "",
+        "sending_message_to_description": "",
+        "sending_message_to_label": "",
+        "sending_message_to_new_forum_post": "",
+        "sending_message_to_placeholder": "",
+        "sending_message_to_thread": "",
+        "setup_webhook_description_1": "",
+        "setup_webhook_description_2": "",
+        "setup_webhook_title": "",
+        "thread_id_description_1": "",
+        "thread_id_description_2": "",
+        "thread_id_description_title": "",
+        "thread_id_label": "",
+        "thread_id_placeholder": "",
+        "webhook_url_label": ""
+      },
+      "google_chat": {
+        "more_info_about_webhooks": "",
+        "webhook_url_label": ""
+      },
+      "gotify": {
+        "application_token_description": "",
+        "application_token_label": "",
+        "custom_message_description": "",
+        "custom_message_description_2": "",
+        "custom_message_label": "",
+        "custom_title_description": "",
+        "custom_title_label": "",
+        "learn_more_label": "",
+        "note_description": "",
+        "note_label": "",
+        "priority_0": "",
+        "priority_1": "",
+        "priority_10": "",
+        "priority_2": "",
+        "priority_3": "",
+        "priority_4": "",
+        "priority_5": "",
+        "priority_6": "",
+        "priority_7": "",
+        "priority_8": "",
+        "priority_9": "",
+        "priority_description": "",
+        "priority_label": "",
+        "priority_placeholder": "",
+        "server_url_description": "",
+        "server_url_label": ""
+      },
+      "grafana_oncall": {
+        "grafana_oncall_url_description": "",
+        "grafana_oncall_url_label": "",
+        "learn_more_label": ""
+      },
+      "line": {
+        "channel_access_token_description": "",
+        "channel_access_token_description_2": "",
+        "channel_access_token_label": "",
+        "channel_access_token_placeholder": "",
+        "template_description": "",
+        "template_label": "",
+        "template_placeholder": "",
+        "user_id_description": "",
+        "user_id_description_2": "",
+        "user_id_label": "",
+        "user_id_placeholder": ""
+      },
+      "matrix": {
+        "access_token_description": "",
+        "access_token_label": "",
+        "custom_message_description": "",
+        "custom_message_label": "",
+        "homeserver_url_description": "",
+        "homeserver_url_label": "",
+        "internal_room_id_description": "",
+        "internal_room_id_label": "",
+        "setup_instructions_1": "",
+        "setup_instructions_2": "",
+        "setup_instructions_3": "",
+        "setup_instructions_4": "",
+        "setup_instructions_5": "",
+        "setup_instructions_label": ""
+      },
+      "mattermost": {
+        "channel_name_description": "",
+        "channel_name_label": "",
+        "icon_emoji_cheat_sheet_label": "",
+        "icon_emoji_description": "",
+        "icon_emoji_label": "",
+        "icon_url_description": "",
+        "icon_url_label": "",
+        "learn_more_label": "",
+        "message_template_description": "",
+        "message_template_label": "",
+        "use_message_template_description": "",
+        "use_message_template_label": "",
+        "username_description": "",
+        "webhook_url_label": ""
+      },
+      "ntfy": {
+        "authentication_type_basic": "",
+        "authentication_type_basic_description": "",
+        "authentication_type_label": "",
+        "authentication_type_none": "",
+        "authentication_type_none_description": "",
+        "authentication_type_placeholder": "",
+        "authentication_type_token": "",
+        "authentication_type_token_description": "",
+        "custom_message_description": "",
+        "custom_message_label": "",
+        "password_required": "",
+        "priority_1": "",
+        "priority_2": "",
+        "priority_3": "",
+        "priority_4": "",
+        "priority_5": "",
+        "priority_description": "",
+        "priority_label": "",
+        "priority_placeholder": "",
+        "server_url_description": "",
+        "server_url_label": "",
+        "tags_description": "",
+        "tags_label": "",
+        "title_description": "",
+        "title_label": "",
+        "token_description": "",
+        "token_label": "",
+        "token_required": "",
+        "topic_description": "",
+        "topic_label": "",
+        "username_required": ""
+      },
+      "opsgenie": {
+        "api_key_label": "",
+        "more_info_about_api_keys_label": "",
+        "priority_1": "",
+        "priority_2": "",
+        "priority_3": "",
+        "priority_4": "",
+        "priority_5": "",
+        "priority_description": "",
+        "priority_label": "",
+        "region_description": "",
+        "region_label": "",
+        "region_placeholder": ""
+      },
+      "pagerduty": {
+        "auto_resolve_acknowledge": "",
+        "auto_resolve_acknowledge_description": "",
+        "auto_resolve_description": "",
+        "auto_resolve_do_nothing": "",
+        "auto_resolve_do_nothing_description": "",
+        "auto_resolve_label": "",
+        "auto_resolve_placeholder": "",
+        "auto_resolve_resolve": "",
+        "auto_resolve_resolve_description": "",
+        "integration_key_description": "",
+        "integration_key_label": "",
+        "integration_key_placeholder": "",
+        "integration_url_description": "",
+        "integration_url_label": "",
+        "learn_more_label": "",
+        "priority_critical": "",
+        "priority_description": "",
+        "priority_error": "",
+        "priority_info": "",
+        "priority_label": "",
+        "priority_placeholder": "",
+        "priority_warning": ""
+      },
+      "pagertree": {
+        "authentication_token_description": "",
+        "authentication_token_label": "",
+        "authentication_token_placeholder": "",
+        "auto_resolve_alerts_description": "",
+        "auto_resolve_alerts_label": "",
+        "how_to_get_integration_url_label": "",
+        "integration_url_description": "",
+        "integration_url_label": "",
+        "urgency_level_critical": "",
+        "urgency_level_description": "",
+        "urgency_level_high": "",
+        "urgency_level_label": "",
+        "urgency_level_low": "",
+        "urgency_level_medium": "",
+        "urgency_level_placeholder": "",
+        "urgency_level_silent": ""
+      },
+      "pushbullet": {
+        "access_token": "",
+        "access_token_description": "",
+        "access_token_link": "",
+        "channel_tag": "",
+        "channel_tag_description": "",
+        "custom_message_template": "",
+        "custom_message_template_description": "",
+        "custom_message_template_heartbeat_ping": "",
+        "custom_message_template_heartbeat_time": "",
+        "custom_message_template_monitor_url": "",
+        "custom_message_template_msg": "",
+        "custom_message_template_name": "",
+        "custom_message_template_placeholder": "",
+        "custom_message_template_status": "",
+        "device_id": "",
+        "device_id_description": "",
+        "device_id_link": "",
+        "more_info_on": ""
+      },
+      "pushover": {
+        "application_token_label": "",
+        "application_token_placeholder": "",
+        "device_description": "",
+        "device_label": "",
+        "device_placeholder": "",
+        "message_title_description": "",
+        "message_title_label": "",
+        "message_title_placeholder": "",
+        "message_ttl_description": "",
+        "message_ttl_label": "",
+        "more_info_label": "",
+        "more_info_label_2": "",
+        "more_info_label_3": "",
+        "notification_sound_down_description": "",
+        "notification_sound_down_label": "",
+        "notification_sound_down_placeholder": "",
+        "notification_sound_up_description": "",
+        "notification_sound_up_label": "",
+        "notification_sound_up_placeholder": "",
+        "priority_1": "",
+        "priority_2": "",
+        "priority_3": "",
+        "priority_4": "",
+        "priority_5": "",
+        "priority_description": "",
+        "priority_label": "",
+        "priority_placeholder": "",
+        "sound_alien": "",
+        "sound_bike": "",
+        "sound_bugle": "",
+        "sound_cashregister": "",
+        "sound_classical": "",
+        "sound_climb": "",
+        "sound_cosmic": "",
+        "sound_echo": "",
+        "sound_falling": "",
+        "sound_gamelan": "",
+        "sound_incoming": "",
+        "sound_intermission": "",
+        "sound_magic": "",
+        "sound_mechanical": "",
+        "sound_none": "",
+        "sound_persistent": "",
+        "sound_pianobar": "",
+        "sound_pushover": "",
+        "sound_siren": "",
+        "sound_spacealarm": "",
+        "sound_tugboat": "",
+        "sound_updown": "",
+        "sound_vibrate": "",
+        "user_key_label": "",
+        "user_key_placeholder": ""
+      },
+      "signal": {
+        "custom_message_description": "",
+        "custom_message_label": "",
+        "important_description": "",
+        "important_label": "",
+        "more_info_label": "",
+        "note_description": "",
+        "note_label": "",
+        "number_description": "",
+        "number_label": "",
+        "post_url_description": "",
+        "post_url_label": "",
+        "recipients_description": "",
+        "recipients_label": ""
+      },
+      "slack": {
+        "channel_name_description": "",
+        "channel_name_description_2": "",
+        "channel_name_label": "",
+        "channel_notify_description": "",
+        "channel_notify_label": "",
+        "icon_emoji_cheat_sheet_label": "",
+        "icon_emoji_description": "",
+        "icon_emoji_label": "",
+        "message_format_description": "",
+        "message_format_description_2": "",
+        "message_format_label": "",
+        "username_description": "",
+        "webhook_url_description": "",
+        "webhook_url_label": ""
+      },
+      "smtp": {
+        "custom_body_label": "",
+        "custom_description": "",
+        "custom_description_2": "",
+        "custom_description_3": "",
+        "custom_description_4": "",
+        "custom_description_5": "",
+        "custom_description_6": "",
+        "custom_subject_label": "",
+        "smtp_from_label": "",
+        "smtp_host_description": "",
+        "smtp_host_label": "",
+        "smtp_password_placeholder": "",
+        "smtp_port_label": "",
+        "smtp_to_label": "",
+        "smtp_username_placeholder": ""
+      },
+      "telegram": {
+        "auto_get_label": "",
+        "bot_token_description": "",
+        "bot_token_label": "",
+        "chat_id_description": "",
+        "chat_id_description_2": "",
+        "chat_id_description_3": "",
+        "chat_id_description_4": "",
+        "chat_id_description_5": "",
+        "chat_id_label": "",
+        "chat_id_not_found": "",
+        "failed_to_fetch_chat_id": "",
+        "message_thread_id_description": "",
+        "message_thread_id_label": "",
+        "no_updates_found": "",
+        "protect_content_description": "",
+        "protect_content_label": "",
+        "send_silently_description": "",
+        "send_silently_label": "",
+        "server_url_description": "",
+        "server_url_description_2": "",
+        "server_url_description_3": "",
+        "server_url_description_4": "",
+        "server_url_label": "",
+        "template_description": "",
+        "template_label": "",
+        "template_parse_mode_description": "",
+        "template_parse_mode_description_2": "",
+        "template_parse_mode_description_3": "",
+        "template_parse_mode_label": "",
+        "template_parse_mode_placeholder": "",
+        "template_placeholder": "",
+        "use_template_description": "",
+        "use_template_label": ""
+      },
+      "webhook": {
+        "additional_headers_description": "",
+        "additional_headers_label": "",
+        "custom_body_description": "",
+        "custom_body_label": "",
+        "post_url_description": "",
+        "post_url_label": "",
+        "request_body_description_custom": "",
+        "request_body_description_form_data": "",
+        "request_body_description_json": "",
+        "request_body_label": "",
+        "request_body_placeholder": ""
+      }
+    },
+    "important": "",
+    "labels": {
+      "friendly_name": "",
+      "type": ""
+    },
+    "messages": {
+      "create_failed": "",
+      "created_success": "",
+      "error_loading_notifier": "",
+      "test_failed": "",
+      "test_success": "",
+      "update_failed": "",
+      "updated_success": ""
+    },
+    "new": {
+      "title": ""
+    },
+    "no_important": "",
+    "placeholders": {
+      "select_type": ""
+    },
+    "search_placeholder": ""
+  },
+  "proxies": {
+    "delete_dialog": {
+      "description": "",
+      "title": ""
+    },
+    "edit": {
+      "page_name": ""
+    },
+    "empty_list": {
+      "action_text": "",
+      "text": "",
+      "title": ""
+    },
+    "form": {
+      "auth_label": "",
+      "port_placeholder": "",
+      "protocol_label": "",
+      "protocol_placeholder": "",
+      "server_label": "",
+      "server_placeholder": "",
+      "user": ""
+    },
+    "messages": {
+      "create_failed": "",
+      "created_success": "",
+      "error_loading_proxy": "",
+      "update_failed": "",
+      "updated_success": ""
+    },
+    "new": {
+      "page_name": ""
+    },
+    "page_name": "",
+    "search_label": "",
+    "search_placeholder": ""
+  },
+  "security": {
+    "enable_2fa": {
+      "form": {
+        "authenticator_code_label": "",
+        "authenticator_code_placeholder": "",
+        "current_password_label": "",
+        "current_password_placeholder": "",
+        "enable_2fa_button": ""
+      },
+      "messages": {
+        "2fa_active": "",
+        "2fa_disabled_successfully": "",
+        "2fa_enabled_successfully": "",
+        "account_is_protected_with_2fa": "",
+        "disable_2fa": "",
+        "enter_password_to_disable_2fa": "",
+        "failed_to_disable_2fa": "",
+        "failed_to_verify_2fa_code": "",
+        "failed_to_verify_password": "",
+        "have_enabled_2fa": "",
+        "or_enter_secret_manually": "",
+        "scan_qr_code_with_authenticator_app": "",
+        "two_factor_authentication_enabled": "",
+        "user_email_not_found": ""
+      }
+    },
+    "page_name": "",
+    "update_password": {
+      "form": {
+        "confirm_new_password_label": "",
+        "confirm_new_password_placeholder": "",
+        "new_password_label": "",
+        "new_password_placeholder": "",
+        "old_password_label": "",
+        "old_password_placeholder": "",
+        "update_password_button": ""
+      },
+      "messages": {
+        "failed_to_update_password": "",
+        "password_updated_successfully": ""
+      },
+      "title": ""
+    }
+  },
+  "sendgrid": {
+    "api_key_description": "",
+    "api_key_label": "",
+    "bcc_email_description": "",
+    "bcc_email_label": "",
+    "cc_email_description": "",
+    "cc_email_label": "",
+    "from_email_description": "",
+    "from_email_label": "",
+    "subject_description": "",
+    "subject_label": "",
+    "subject_variables_label": "",
+    "subject_variables_msg": "",
+    "subject_variables_name": "",
+    "subject_variables_status": "",
+    "to_email_description": "",
+    "to_email_label": ""
+  },
+  "settings": {
+    "data_retention": {
+      "days_label": "",
+      "description": "",
+      "title": ""
+    },
+    "timezone": {
+      "description": "",
+      "label": "",
+      "no_timezone_found": "",
+      "search_placeholder": "",
+      "select_placeholder": "",
+      "title": ""
+    },
+    "validation": {
+      "min_days": ""
+    }
+  },
+  "status": {
+    "messages": {
+      "all_systems_operational": "",
+      "down": "",
+      "last_updated": "",
+      "maintenance": "",
+      "no_monitors_configured": "",
+      "operational": "",
+      "partial_system_outage": "",
+      "powered_by": "",
+      "refresh_in": "",
+      "refresh_now": "",
+      "status_page_not_found": "",
+      "under_maintenance": "",
+      "unknown": ""
+    }
+  },
+  "status_pages": {
+    "affected_monitors": "",
+    "affected_monitors_info": "",
+    "auto_refresh_interval": "",
+    "basic_information": "",
+    "create_status_page": "",
+    "customization": "",
+    "delete_dialog": {
+      "description": "",
+      "title": ""
+    },
+    "description": "",
+    "domain_already_used": "",
+    "domain_host_warning": "",
+    "domains": "",
+    "domains_info_warning": "",
+    "draft_status": "",
+    "edit_page_name": "",
+    "messages": {
+      "create_description": "",
+      "create_your_first_status_page": "",
+      "created_successfully": "",
+      "delete_failed": "",
+      "deleted_successfully": "",
+      "get_started_by_creating_your_first_status_page": "",
+      "no_status_pages_found": "",
+      "not_found": "",
+      "update_description": "",
+      "updated_successfully": ""
+    },
+    "new_page_name": "",
+    "page_name": "",
+    "published": "",
+    "published_info": "",
+    "published_status": "",
+    "search_label": "",
+    "search_placeholder": "",
+    "update_status_page": "",
+    "view_page": ""
+  },
+  "tags": {
+    "confirm_delete_description": "",
+    "edit_page_name": "",
+    "empty_state": {
+      "action": "",
+      "description": "",
+      "title": ""
+    },
+    "form": {
+      "color_description": "",
+      "color_label": "",
+      "create_button": "",
+      "description_label": "",
+      "description_placeholder": "",
+      "name_label": "",
+      "name_placeholder": "",
+      "update_button": ""
+    },
+    "messages": {
+      "create_description": "",
+      "failed_to_load_tag": "",
+      "tag_id_required": "",
+      "update_description": ""
+    },
+    "new_page_name": "",
+    "search_placeholder": ""
+  },
+  "theme": {
+    "dark": "",
+    "light": "",
+    "system": "",
+    "toggle_theme": ""
+  },
+  "timezone": {
+    "average": "",
+    "last_24_hours": "",
+    "last_3_hours": "",
+    "last_3_months": "",
+    "last_30_minutes": "",
+    "last_6_hours": "",
+    "last_7_days": "",
+    "maximum": "",
+    "minimum": "",
+    "ms": "",
+    "response_time": "",
+    "uptime": ""
+  },
+  "ui": {
+    "general": "",
+    "intervals_retries": ""
+  }
+}

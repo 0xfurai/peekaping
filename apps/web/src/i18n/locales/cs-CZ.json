@@ -1,0 +1,1280 @@
+{
+  "actions": {
+    "cancel": "Zrušit",
+    "saving": "Ukládám..."
+  },
+  "auth": {
+    "login": {
+      "description": "Přihlaste se pomocí e-mailu",
+      "no_account": "Nemáte účet?",
+      "sign_up": "Zaregistrujte se",
+      "submit": "Přihlásit se",
+      "title": "Vítejte zpět"
+    },
+    "register": {
+      "description": "Vytvořte si svůj administrátorský účet",
+      "have_account": "Už máte účet?",
+      "sign_in": "Přihlásit se",
+      "submit": "Vytvořit",
+      "title": "Vítejte"
+    },
+    "twofa": {
+      "code_label": "Kód dvoufaktorové autentizace",
+      "code_placeholder": "Zadejte 2FA kód",
+      "description": "Dvoufázové ověření (2FA) je pro váš účet povoleno. Zadejte prosím svůj ověřovací kód, abyste mohli pokračovat.",
+      "title": "Dvoufázové ověření vyžadováno",
+      "verify_button": "Ověřit 2FA",
+      "verifying": "Ověřování..."
+    }
+  },
+  "bars": {
+    "down_count": "Počet výpadků",
+    "important": "Důležité",
+    "interval": "Interval",
+    "message": "Zpráva",
+    "ms": "ms",
+    "notified": "Upozorněno",
+    "ping": "Ping",
+    "retries": "Opakování",
+    "status": "Stav",
+    "time": "Čas"
+  },
+  "common": {
+    "active": "Aktivní",
+    "all": "Vše",
+    "back": "Zpět",
+    "cancel": "Zrušit",
+    "clear_all": "Vymazat vše",
+    "clear_all_filters": "Vymazat všechny filtry",
+    "confirm": "Potvrdit",
+    "confirm_delete_title": "Jste si opravdu jistí?",
+    "confirm_delete_title_short": "Jste si jistí?",
+    "continue": "Pokračovat",
+    "create": "Vytvořit",
+    "created": "Vytvořeno",
+    "days": "dny",
+    "default": "Výchozí",
+    "delete": "Smazat",
+    "disabling": "Vypínám...",
+    "dismiss": "Zavřít",
+    "down": "Nedostupný",
+    "enabling": "Povolování...",
+    "error": "Chyba",
+    "expires": "Vyprší",
+    "inactive": "Neaktivní",
+    "loading": "Načítám...",
+    "logout": "Odhlásit se",
+    "maintenance": "Údržba",
+    "no_options_found": "Žádné možnosti nebyly nalezeny.",
+    "no_tags_available": "Žádné tagy nejsou k dispozici",
+    "please_refresh_page": "Prosím, obnovte stránku.",
+    "required": "Povinné",
+    "save": "Uložit",
+    "saving": "Ukládám...",
+    "search": "Hledat",
+    "security": "Zabezpečení",
+    "select": "Vybrat",
+    "select_monitors": "Vyberte monitory...",
+    "select_tags": "Vyberte štítky",
+    "settings": "Nastavení",
+    "tags": "Štítky",
+    "unknown": "Neznámý",
+    "unnamed_monitor": "Nepojmenovaný monitor",
+    "up": "V provozu",
+    "update": "Aktualizovat",
+    "verifying": "Ověřování..."
+  },
+  "forms": {
+    "labels": {
+      "confirm_password": "Potvrďte heslo",
+      "email": "E-mail",
+      "footer_text": "Text v zápatí",
+      "heartbeat_interval": "Interval pulzu (sekundy)",
+      "icon_url": "URL ikony",
+      "monitor_name": "Název",
+      "monitor_type": "Typ",
+      "password": "Heslo",
+      "retries": "Počet pokusů",
+      "slug": "Slug",
+      "title": "Název",
+      "username": "Uživatelské jméno"
+    },
+    "placeholders": {
+      "auto_refresh_help": "0 pro žádné automatické obnovení",
+      "domains": "Zadejte doménu (např. status.example.com)",
+      "footer_text": "Zadejte text zápatí",
+      "icon_url": "https://example.com/icon.png",
+      "monitor_name": "Můj monitor",
+      "page_description": "Zadejte popis stránky stavu",
+      "page_title": "Zadejte název stránky stavu",
+      "slug": "status-page-slug"
+    },
+    "validation": {
+      "email_invalid": "Zadejte platnou e-mailovou adresu",
+      "password_min_length": "Heslo musí mít alespoň 8 znaků.",
+      "passwords_mismatch": "Hesla se neshodují"
+    }
+  },
+  "maintenance": {
+    "card": {
+      "aria": {
+        "delete": "Smazat {{title}}",
+        "pause": "Pozastavit údržbu",
+        "resume": "Pokračovat v údržbě"
+      },
+      "labels": {
+        "duration": "{{duration}} min",
+        "end": "Konec: {{date}}",
+        "start": "Začátek: {{date}}"
+      },
+      "status": {
+        "active": "Aktivní",
+        "ended": "Ended",
+        "inactive": "Neaktivní"
+      }
+    },
+    "edit_title": "Upravit údržbu",
+    "form": {
+      "affected_monitors_description": "Vyberte monitory, které budou touto údržbou ovlivněny.",
+      "affected_monitors_title": "Dotčené monitory",
+      "cron_description": "Zadejte platný cron výraz",
+      "cron_expression": "Cron výraz",
+      "date_time_title": "Datum a čas",
+      "day_of_month": "Den v měsíci",
+      "day_of_week": "Den v týdnu",
+      "description_label": "Popis",
+      "description_placeholder": "Popis údržby...",
+      "duration_minutes": "Délka (minut)",
+      "effective_date_range": "Effective Date Range (Optional)",
+      "end_date_time": "Datum a čas konce",
+      "end_time": "Čas ukončení",
+      "interval_label": "Interval (spouští se jednou denně)",
+      "last_day": "Poslední den",
+      "last_day_of_month": "Poslední den měsíce",
+      "maintenance_time_window": "Denní časové okno údržby",
+      "markdown_supported": "Markdown je podporováno.",
+      "same_as_server": "Stejné jako časové pásmo serveru",
+      "start_date_time": "Datum a čas zahájení",
+      "start_time": "Čas zahájení",
+      "strategy_label": "Strategie",
+      "strategy_placeholder": "Vyberte strategii",
+      "timezone_label": "Časové pásmo",
+      "timezone_placeholder": "Vyberte časové pásmo",
+      "title_label": "Název",
+      "title_placeholder": "Název údržby"
+    },
+    "page": {
+      "clear_filters": "Vymazat všechny filtry",
+      "dialogs": {
+        "confirm_action": {
+          "pause_description": "Opravdu chcete tuto údržbu pozastavit?",
+          "resume_description": "Opravdu chcete tuto údržbu obnovit?",
+          "title": "Potvrdit akci"
+        },
+        "confirm_delete": {
+          "description": "Opravdu chcete smazat toto okno údržby? Tuto akci nelze vrátit zpět.",
+          "title": "Potvrdit smazání"
+        }
+      },
+      "edit_maintenance": "Upravit údržbu: {{title}}",
+      "empty_state": {
+        "action": "Vytvořte své první okno údržby",
+        "description": "Začněte vytvořením svého prvního okna údržby, abyste zabránili plánovaným odstávkám.",
+        "title": "Žádná okna údržby nebyla nalezena."
+      },
+      "error_loading": "Chyba při načítání údržby",
+      "loading": "Načítám...",
+      "loading_monitors": "Načítám monitory...",
+      "search_placeholder": "Hledat okna údržby..."
+    },
+    "page_title": "Okna údržby",
+    "schedule_title": "Naplánovat údržbu",
+    "strategy": {
+      "cron": "Cron výraz",
+      "manual": "Aktivní / Neaktivní ručně",
+      "recurring_day_of_month": "Opakování - Den v měsíci",
+      "recurring_interval": "Opakování - Interval",
+      "recurring_weekday": "Opakující se - Den v týdnu",
+      "single": "Jednorázové okno údržby"
+    },
+    "toasts": {
+      "create_error": "Nepodařilo se vytvořit údržbu",
+      "created_success": "Údržba byla úspěšně vytvořena.",
+      "delete_error": "Nepodařilo se odstranit údržbu",
+      "deleted_success": "Údržba byla úspěšně smazána",
+      "pause_error": "Nepodařilo se pozastavit údržbu",
+      "paused_success": "Údržba byla úspěšně pozastavena.",
+      "resume_error": "Nepodařilo se obnovit údržbu",
+      "resumed_success": "Údržba byla úspěšně obnovena.",
+      "toggle_error": "Nelze přepnout stav údržby: chybí ID",
+      "update_error": "Nepodařilo se aktualizovat údržbu",
+      "updated_success": "Údržba byla úspěšně aktualizována"
+    },
+    "weekdays": {
+      "fri": "Pá",
+      "mon": "Po",
+      "sat": "So",
+      "sun": "Ne",
+      "thu": "Čt",
+      "tue": "Út",
+      "wed": "Stř"
+    }
+  },
+  "messages": {
+    "login_error": "Chyba při přihlašování",
+    "login_no_tokens": "Přihlášení proběhlo úspěšně, ale nebyly obdrženy tokeny.",
+    "login_success": "Přihlášení proběhlo úspěšně",
+    "notifier_delete_error": "Nepodařilo se odstranit notifikátor.",
+    "notifier_delete_success": "Notifikátor byl úspěšně smazán",
+    "register_error": "Při registraci došlo k chybě.",
+    "register_no_tokens": "Registrace proběhla úspěšně, ale nebyly obdrženy žádné tokeny.",
+    "register_success": "Registrace proběhla úspěšně",
+    "setting_update_error": "Nepodařilo se aktualizovat nastavení",
+    "setting_update_success": "Nastavení bylo úspěšně aktualizováno.",
+    "tag_create_error": "Nepodařilo se vytvořit štítek",
+    "tag_create_success": "Štítek byl úspěšně vytvořen",
+    "tag_delete_error": "Nepodařilo se smazat štítek",
+    "tag_delete_success": "Štítek byl úspěšně smazán.",
+    "tag_update_error": "Chyba při aktualizaci štítku",
+    "tag_update_success": "Štítek byl úspěšně aktualizován",
+    "unexpected_error": "Došlo k neočekávané chybě.",
+    "version_mismatch": "Nesoulad verzí byl zjištěn"
+  },
+  "monitors": {
+    "card": {
+      "check_interval": "Interval kontroly:",
+      "loading_more": "Načítám další..."
+    },
+    "empty_state": {
+      "action": "Vytvořte svůj první monitor",
+      "description": "Začněte vytvořením svého prvního monitoru, který bude sledovat stav vašich služeb.",
+      "title": "Žádné monitory nebyly nalezeny."
+    },
+    "filtering_by_tags": "Filtrace podle štítků",
+    "filters": {
+      "monitor_status": "Stav",
+      "monitor_status_placeholder": "Stav monitoru",
+      "search_placeholder": "Hledat monitory podle názvu...",
+      "status_placeholder": "Stav"
+    },
+    "form": {
+      "buttons": {
+        "copied": "Zkopírováno!",
+        "copy": "Kopírovat",
+        "create": "Vytvořit",
+        "regenerate": "Znovu vygenerovat",
+        "update": "Aktualizovat"
+      },
+      "dns": {
+        "hostname": "Název hostitele",
+        "port": "Port",
+        "record_type": "Typ záznamu",
+        "record_type_placeholder": "Vyberte typ záznamu",
+        "resolver_server": "DNS resolver",
+        "title": "Nastavení DNS"
+      },
+      "docker": {
+        "ca_cert_description": "Vložte certifikát certifikační autority (CA) ve formátu PEM.",
+        "ca_certificate": "Certifikát CA (PEM)",
+        "client_cert_description": "Vložte svůj klientský certifikát ve formátu PEM. Používá se pro vzájemnou TLS autentifikaci.",
+        "client_certificate": "Klientský certifikát (PEM)",
+        "client_private_key": "Soukromý klíč klienta (PEM)",
+        "common_tls_issues": "Běžné TLS problémy:",
+        "connection_type": "Typ připojení",
+        "container_name_id": "Název kontejneru / ID",
+        "disabled": "Zakázáno",
+        "docker_container": "Docker kontejner",
+        "docker_host": "Host Dockeru",
+        "enable_tls": "Povolit TLS",
+        "enabled": "Povoleno",
+        "examples": "Příklady",
+        "hostname_mismatch": "\"x509: certifikát je platný pro X, nikoli pro Y\":",
+        "hostname_mismatch_solution": "Ujistěte se, že název hostitele odpovídá SAN certifikátu, nebo vypněte ověřování (nedoporučuje se).",
+        "legacy_cert_error": "x509: certifikát spoléhá na zastaralé pole Common Name:",
+        "legacy_cert_solution": "Přidejte název hostitele do Subject Alternative Name (SAN) ve vašem certifikátu.",
+        "mtls_note": "Pro vzájemné TLS (mTLS) je nutné poskytnout jak klientský certifikát, tak soukromý klíč. Certifikát CA se používá k ověření certifikátu serveru.",
+        "note": "Poznámka:",
+        "private_key_description": "Vložte svůj soukromý klíč ve formátu PEM. Udržujte jej v bezpečí!",
+        "select_connection_type": "Vyberte typ připojení",
+        "select_tls_option": "Vyberte TLS možnost",
+        "select_verification_option": "Vyberte možnost ověření",
+        "skip_verification": "Přeskočit ověření (nebezpečné)",
+        "tls_configuration": "Konfigurace TLS",
+        "unknown_authority": "\"x509: certifikát podepsaný neznámou autoritou\":",
+        "unknown_authority_solution": "Zadejte spravný certifikát CA, který podepsal serverový certifikát.",
+        "verify_certificates": "Ověřit certifikáty",
+        "verify_tls": "Ověřit TLS"
+      },
+      "grpc": {
+        "body": "Tělo dat (JSON)",
+        "enable_tls": "Povolit TLS",
+        "enable_tls_description": "Použijte zabezpečené spojení (TLS/SSL).",
+        "invert_keyword": "Invertovat klíčové slovo",
+        "invert_keyword_description": "Monitor bude považován za UP, pokud klíčové slovo nebude nalezeno.",
+        "keyword": "Klíčové slovo",
+        "keyword_description": "Vyhledejte toto klíčové slovo ve odpovědi",
+        "keyword_placeholder": "Nepovinné klíčové slovo k vyhledání",
+        "method_description": "Citlivé na velikost písmen",
+        "method_placeholder": "Zkontrolovat",
+        "options_title": "Možnosti gRPC",
+        "proto_content": "Obsah Protobuf",
+        "proto_method": "Protobuf metoda",
+        "proto_service_name": "Název služby Protobuf",
+        "service_name_placeholder": "Zdraví"
+      },
+      "http": {
+        "advanced": {
+          "accepted_status_codes": "Přijaté stavové kódy",
+          "ignore_tls": "Ignorovat TLS/SSL chyby pro HTTPS webové stránky",
+          "ignore_tls_description": "Ignorovat ověřování TLS certifikátu. Používejte opatrně — spojení bude méně bezpečné.",
+          "max_redirects": "Maximální počet přesměrování",
+          "max_redirects_description": "Maximální počet přesměrování, která se budou sledovat (0-30). Pro vypnutí přesměrování nastavte 0.",
+          "title": "Pokročilé"
+        },
+        "authentication": {
+          "auth_header": "Autorizace hlavičky",
+          "certificate": "Certifikát",
+          "certificate_placeholder": "Certifikát",
+          "client_id": "ID klienta",
+          "client_id_placeholder": "ID klienta",
+          "client_secret": "Tajný klíč klienta",
+          "client_secret_placeholder": "Klientské tajemství",
+          "domain": "Doména",
+          "domain_placeholder": "Doména",
+          "form_data_body": "Tělo dat formuláře",
+          "key": "Klíč",
+          "key_placeholder": "Klíč",
+          "method_label": "Metoda autentizace",
+          "method_placeholder": "Vyberte typ autentizace",
+          "oauth_scope": "Rozsah OAuth",
+          "oauth_scope_placeholder": "Volitelné: Seznam oprávnění oddělených mezerou",
+          "oauth_token_url": "OAuth Token URL",
+          "oauth_token_url_placeholder": "URL tokenu OAuth",
+          "title": "Autentizace",
+          "workstation": "Pracovní stanice",
+          "workstation_placeholder": "Pracovní stanice"
+        },
+        "options": {
+          "body": "Tělo požadavku",
+          "body_encoding": "Kódování těla",
+          "body_encoding_placeholder": "Vyberte kódování těla",
+          "form_example": "Ukázková data formuláře",
+          "headers": "Hlavičky",
+          "json_example": "Příklad JSON",
+          "method": "Metoda",
+          "method_placeholder": "Vyberte typ monitoru",
+          "select_encoding": "Vyberte kódování těla",
+          "select_method": "Vyberte metodu",
+          "text_example": "Příklad textu:\nZde je libovolný prostý text...",
+          "title": "Možnosti HTTP",
+          "xml_example": "Příklad XML"
+        }
+      },
+      "http_json_query": {
+        "condition_label": "Podmínka",
+        "expected_value_label": "Očekávaná hodnota",
+        "json_query_label": "JSON dotazový výraz",
+        "title": "JSON dotazový výraz"
+      },
+      "http_keyword": {
+        "invert_keyword_description": "Hledejte, zda klíčové slovo chybí, spíše než že je přítomné.",
+        "invert_keyword_label": "Invertovat klíčové slovo",
+        "keyword_label": "Klíčové slovo",
+        "keyword_validation_title": "Validace klíčového slova"
+      },
+      "kafka": {
+        "add_broker": "Přidat broker",
+        "auto_topic_creation_description": "Povolit producentovi, aby automaticky vytvořil téma, pokud neexistuje.",
+        "auto_topic_creation_label": "Povolit automatické vytváření témat",
+        "brokers_description": "Seznam adres Kafka brokerů (formát host:port)",
+        "brokers_label": "Kafka brokery",
+        "configuration_title": "Konfigurace Kafka",
+        "enable_ssl_description": "Použijte šifrování TLS/SSL pro spojení",
+        "enable_ssl_label": "Povolit SSL/TLS",
+        "message_description": "Obsah zprávy, který se odešle na téma (doporučený formát JSON)",
+        "message_label": "Zpráva",
+        "sasl_mechanism_description": "Vyberte SASL autentizační mechanismus",
+        "sasl_mechanism_label": "Mechanismus SASL",
+        "sasl_mechanism_placeholder": "Vyberte SASL mechanism",
+        "sasl_password_description": "Heslo pro autentizaci SASL",
+        "sasl_password_label": "Heslo SASL",
+        "sasl_password_placeholder": "Heslo",
+        "sasl_username_description": "Uživatelské jméno pro SASL autentizaci",
+        "sasl_username_label": "Uživatelské jméno SASL",
+        "security_title": "Zabezpečení",
+        "topic_description": "Kafka téma, do kterého se budou posílat zprávy"
+      },
+      "mongodb": {
+        "command_description": "Příkaz MongoDB, který se provede ve formátu JSON. Ve výchozím nastavení se použije ping, pokud není zadán.",
+        "command_label": "Příkaz (nepovinný)",
+        "configuration_title": "Konfigurace MongoDB",
+        "connection_string_description": "Řetězec pro připojení k MongoDB. Podporuje jak standardní (mongodb://), tak DNS seedlist (mongodb+srv://) formáty.",
+        "connection_string_label": "Připojovací řetězec",
+        "expected_value_description": "Očekávaná hodnota pro porovnání s výsledkem JSON Path.",
+        "expected_value_label": "Očekávaná hodnota (volitelná)",
+        "expected_value_placeholder": "Očekávaná hodnota",
+        "json_path_description": "JSONPath pro extrakci hodnoty z odpovědi. Pro kořenovou úroveň použijte $.",
+        "json_path_label": "JSON Path (volitelné)"
+      },
+      "mqtt": {
+        "check_type_json_query": "JSON dotaz",
+        "check_type_keyword": "Klíčové slovo",
+        "check_type_label": "Typ kontroly MQTT",
+        "check_type_none": "Žádná zpráva (libovolná zpráva)",
+        "check_type_placeholder": "Vyberte typ kontroly",
+        "configuration_title": "Nastavení MQTT",
+        "expected_value_label": "Očekávaná hodnota",
+        "hostname_label": "Název hostitele",
+        "json_path_label": "JSON cesta",
+        "password_label": "Heslo MQTT",
+        "password_placeholder": "Heslo (volitelné)",
+        "port_label": "Port",
+        "success_keyword_label": "MQTT klíčové slovo pro úspěch",
+        "success_keyword_placeholder": "Klíčové slovo signalizující úspěch",
+        "username_label": "MQTT uživatelské jméno",
+        "username_placeholder": "Uživatelské jméno (nepovinné)",
+        "validation": {
+          "expected_value_required": "Očekávaná hodnota je povinná, když je typ kontroly json-query.",
+          "json_path_required": "JSON Path se vyžaduje, když je typ kontroly json-query",
+          "success_keyword_required": "Požadováno je klíčové slovo pro úspěch, pokud je vybrán typ kontroly 'keyword'."
+        }
+      },
+      "mysql": {
+        "connection_string_examples": "Příklady:",
+        "connection_string_label": "Připojovací řetězec",
+        "connection_title": "MySQL Connection",
+        "query_label": "Dotaz"
+      },
+      "ping": {
+        "data_size": "Velikost dat (bajtů)",
+        "host": "Jméno hostitele / IP adresa",
+        "title": "Nastavení pingu"
+      },
+      "postgres": {
+        "connection_string_label": "Připojovací řetězec",
+        "connection_title": "Připojení k PostgreSQL",
+        "query_label": "Dotaz"
+      },
+      "push": {
+        "url_description": "Použijte tuto URL ve vaší službě k hlášení stavu. Pošlete HTTP požadavek (POST/GET) na tento koncový bod pro odeslání heartbeat.",
+        "url_title": "URL monitoru Push"
+      },
+      "rabbitmq": {
+        "documentation_link": "Dokumentace RabbitMQ",
+        "health_checks_description": "Monitor zkontroluje koncový bod {{code}} na každém uzlu a vrátí UP, pokud je alespoň jeden uzel zdravý.",
+        "management_nodes_description": "Zadejte URL adresu uzlů správy RabbitMQ, včetně protokolu a portu. Příklad: https://node1.rabbitmq.com:15672",
+        "management_nodes_title": "Uzly správy",
+        "node_url_label": "URL uzlu",
+        "password_description": "Heslo pro autentizaci do rozhraní správy RabbitMQ",
+        "setup_information_description": "Chcete-li používat monitor RabbitMQ, musíte v nastavení RabbitMQ povolit plugin správy. Pro více informací konzultujte dokumentaci RabbitMQ.",
+        "setup_information_title": "Informace o nastavení",
+        "title": "Konfigurace RabbitMQ",
+        "username_description": "Uživatelské jméno pro autentizaci do rozhraní správy RabbitMQ"
+      },
+      "redis": {
+        "ca_certificate_description": "Kořenový certifikát CA ve formátu PEM. Požadováno pro správné ověření TLS se samopodepsanými certifikáty.",
+        "ca_certificate_label": "Certifikát CA (volitelný)",
+        "client_certificate_description": "Klientský certifikát ve formátu PEM. Požadováno pro vzájemnou TLS autentifikaci.",
+        "client_certificate_label": "Klientský certifikát (volitelný)",
+        "client_key_description": "Soukromý klíč klienta ve formátu PEM. Musí být dodán spolu s klientským certifikátem.",
+        "client_key_label": "Soukromý klíč klienta (volitelný)",
+        "connection_string_description": "Formát řetězce pro připojení k Redisu: {{redis}} nebo {{rediss}} pro TLS",
+        "connection_string_label": "Připojovací řetězec",
+        "ignore_tls_description": "Přeskočit ověření TLS certifikátu (nedoporučuje se pro produkční prostředí)",
+        "ignore_tls_label": "Ignorovat chyby TLS/SSL",
+        "title": "Nastavení Redis"
+      },
+      "shared": {
+        "intervals": {
+          "heartbeat_retry": "Interval opětovného heartbeat (Opakovat každých {{seconds}} sekund)",
+          "max_retries_description": "Maximální počet pokusů, po nichž bude služba označena jako nedostupná a bude odesláno upozornění.",
+          "request_timeout": "Čas vypršení požadavku (po {{seconds}} sekundách vyprší)",
+          "resend_notification": "Znovu odeslat upozornění, pokud dojde k výpadku X krát po sobě (Znovu odesílání je vypnuto)"
+        },
+        "notifications": {
+          "add_notifier": "Přidat notifikátor",
+          "new_notifier": "+ Nový notifikátor",
+          "no_channels": "Nebyl nalezen žádný kanál notifikací. Vytvořte jej nejdříve.",
+          "no_channels_available": "Žádné kanály nejsou k dispozici",
+          "select_channel": "Vyberte kanál",
+          "select_notifier_placeholder": "Vyberte notifikátor",
+          "selected_channels": "Vybrané kanály notifikací",
+          "title": "Notifikační kanály"
+        },
+        "proxy": {
+          "add_proxy": "Přidat proxy",
+          "new_proxy": "+ Nový proxy",
+          "no_proxy": "Žádný proxy",
+          "remove_proxy": "Odebrat proxy",
+          "select_proxy_placeholder": "Select Proxy",
+          "selected_proxy": "Vybraný proxy server",
+          "title": "Proxy"
+        },
+        "tags": {
+          "label": "Tagy",
+          "no_tags": "Žádné štítky nejsou k dispozici.",
+          "placeholder": "Vyberte štítky"
+        }
+      },
+      "snmp": {
+        "community_description": "SNMP komunitní řetězec pro autentizaci (stejně jako heslo)",
+        "community_label": "Komunitní řetězec",
+        "expected_value_description": "Hodnota pro porovnání. Nechte prázdnou pro vynechání validace.",
+        "expected_value_label": "Očekávaná hodnota",
+        "host_description": "Název hostitele nebo IP adresa zařízení s podporou SNMP.",
+        "host_label": "Host",
+        "json_path_description": "JSONPath výraz pro získání hodnoty ze odpovědi (použij \"$\" pro surovou hodnotu)",
+        "json_path_label": "JSON cesta",
+        "json_path_operator_description": "Jak porovnat extrahovanou hodnotu s očekávanou hodnotou",
+        "json_path_operator_eq": "rovná se",
+        "json_path_operator_ge": "větší než nebo rovno",
+        "json_path_operator_gt": "větší než",
+        "json_path_operator_label": "Podmínka",
+        "json_path_operator_le": "menší než nebo rovno",
+        "json_path_operator_lt": "menší než",
+        "json_path_operator_ne": "nerovná se",
+        "oid_description": "Identifikátor SNMP objektu, který má být dotázán (např. 1.3.6.1.2.1.1.1.0 pro popis systému)",
+        "oid_label": "OID (identifikátor objektu)",
+        "port_description": "SNMP port (výchozí: 161)",
+        "port_label": "Port",
+        "snmp_version_description": "Verze protokolu SNMP, kterou použít",
+        "snmp_version_label": "Verze SNMP",
+        "title": "Nastavení SNMP",
+        "value_validation_label": "Validace hodnot (volitelné)"
+      },
+      "sqlserver": {
+        "allowed_statements_description": "SELECT, SHOW, DESCRIBE, EXPLAIN, WITH a VALUES.",
+        "allowed_statements_label": "Povolené příkazy:",
+        "connection_string_label": "Připojovací řetězec",
+        "query_description": "Dotaz k provedení kontroly stavu. Nechte prázdné pro použití výchozího dotazu.",
+        "query_label": "Dotaz",
+        "title": "Připojení k Microsoft SQL Serveru"
+      },
+      "tcp": {
+        "host": "Název hostitele",
+        "port": "Port",
+        "title": "TCP spojení"
+      },
+      "type": {
+        "dns": "DNS monitor",
+        "docker": "Docker kontejner",
+        "grpc": "gRPC monitor klíčového slova",
+        "http": "HTTP(S) monitor",
+        "kafka": "Monitor producenta Kafka",
+        "mongodb": "Databázový monitor MongoDB",
+        "mqtt": "Monitor brokera MQTT",
+        "mysql": "Monitor MySQL/MariaDB",
+        "ping": "Pingový monitor (ICMP)",
+        "postgres": "Databázový monitor PostgreSQL",
+        "push": "Push monitor (externí služba volá vygenerovanou URL adresu)",
+        "rabbitmq": "Monitor RabbitMQ",
+        "redis": "Redis databázový monitor",
+        "snmp": "SNMP Monitor",
+        "sqlserver": "Monitor Microsoft SQL Server",
+        "tcp": "TCP portový monitor"
+      }
+    },
+    "page": {
+      "description": "Vytvořte nový monitor a začněte sledovat výkon vaší webové stránky.",
+      "edit_title": "Upravit monitor:",
+      "new_title": "Nový monitor"
+    },
+    "title": "Monitory",
+    "toasts": {
+      "deleted": "Monitor byl smazán",
+      "paused": "Monitor pozastaven",
+      "reset_success": "Data monitoru byla úspěšně resetována.",
+      "resumed": "Monitor byl obnoven."
+    },
+    "view": {
+      "buttons": {
+        "clone": "Duplikovat",
+        "delete": "Smazat",
+        "edit": "Upravit",
+        "pause": "Pozastavit",
+        "reset_data": "Obnovit data",
+        "resume": "Obnovit"
+      },
+      "certificate": "Certifikát",
+      "check_every": "Kontrolovat každých",
+      "current_status": "Aktuální stav",
+      "dialogs": {
+        "delete": {
+          "description": "Tuto akci nelze vrátit zpět. Bude trvale smazán monitor a veškerá související data.",
+          "title": "Jste si naprosto jisti?"
+        },
+        "pause": {
+          "description": "Opravdu chcete pozastavit?",
+          "title": "Potvrzení"
+        },
+        "reset": {
+          "description": "To způsobí trvalé smazání veškeré historie heartbeat a statistik doby provozu tohoto monitoru. Monitor bude vypadat jako by byl právě vytvořen. Tuto akci nelze vzít zpět.",
+          "title": "Resetovat data monitoru"
+        }
+      },
+      "expiring_soon": "Brzy vyprší",
+      "for": "pro",
+      "live_status": "Aktuální stav",
+      "monitor_for": "monitor pro",
+      "no_certificate_data": "Žádná data o certifikátu",
+      "seconds": "sekundy",
+      "stats": {
+        "last_24_hours": "Posledních 24 hodin",
+        "last_30_days": "Posledních 30 dní",
+        "last_365_days": "Posledních 365 dní",
+        "last_7_days": "Posledních 7 dnů"
+      },
+      "status": {
+        "down": "Nedostupný",
+        "maintenance": "Údržba",
+        "paused": "Pozastaveno",
+        "up": "V provozu"
+      }
+    }
+  },
+  "navigation": {
+    "maintenance": "Údržba",
+    "monitors": "Monitory",
+    "notification_channels": "Notifikační kanály",
+    "proxies": "Proxy servery",
+    "settings": "Nastavení",
+    "status_pages": "Stránky stavu",
+    "tags": "Tagy"
+  },
+  "notifications": {
+    "actions": {
+      "test": "Otestovat",
+      "testing": "Probíhá testování..."
+    },
+    "aria": {
+      "delete": "Smazat {{name}}"
+    },
+    "confirm_delete_description": "Tuto akci nelze vrátit zpět. Tímto trvale smažete notifikátor \"{{name}}\" a odstraníte jej ze všech monitorů, které jej používají.",
+    "create_title": "Vytvořit notifikátor",
+    "edit_channel_title": "Upravit kanál notifikací",
+    "edit_title": "Upravit notifikátor",
+    "empty_state": {
+      "action": "Vytvořte svůj první kanál notifikací",
+      "description": "Začněte tím, že si vytvoříte svůj první kanál notifikací a pošlete upozornění vašemu týmu.",
+      "title": "Žádné kanály oznámení nebyly nalezeny."
+    },
+    "form": {
+      "discord": {
+        "bot_display_name_description": "Jméno, které se bude zobrazovat jako odesílatel zpráv na Discordu.",
+        "bot_display_name_label": "Jméno bota",
+        "custom_message_prefix_description": "Volitelný prefix, který bude přidán na začátek všech zpráv.",
+        "custom_message_prefix_label": "Vlastní předpona zprávy",
+        "custom_message_prefix_placeholder": "Volitelné: Přidejte předponu ke své zprávě",
+        "forum_post_name_description": "Název nového příspěvku na fóru, který bude vytvořen.",
+        "forum_post_name_label": "Název příspěvku ve fóru",
+        "forum_post_name_placeholder": "Zadejte název příspěvku na fóru",
+        "sending_message_to_channel": "Odeslat do kanálu",
+        "sending_message_to_description": "Zvolte, kam budou posílány zprávy Discordu.",
+        "sending_message_to_label": "Odesílání zprávy na",
+        "sending_message_to_new_forum_post": "Odeslat na nový příspěvek ve fóru",
+        "sending_message_to_placeholder": "Vyberte typ zprávy",
+        "sending_message_to_thread": "Odeslat do vlákna",
+        "setup_webhook_description_1": "Získejte URL webhooku z nastavení serveru Discordu → Integrace → Webhooky.",
+        "setup_webhook_description_2": "Vytvořte nový webhook a zkopírujte URL. Ujistěte se, že jste vybrali správný kanál.",
+        "setup_webhook_title": "Nastavit Discord webhook",
+        "thread_id_description_1": "Povolte režim vývojáře v nastaveních uživatele Discordu → Pokročilé → Režim vývojáře",
+        "thread_id_description_2": "Klikněte pravým tlačítkem myši na vlákno nebo příspěvek a vyberte \"Kopírovat ID vlákna\" nebo \"Kopírovat ID kanálu\"",
+        "thread_id_description_title": "ID vlákna nebo příspěvku ve fóru, kam budou zprávy odesílány",
+        "thread_id_label": "ID vlákna",
+        "thread_id_placeholder": "Zadejte ID vlákna nebo příspěvku",
+        "webhook_url_label": "URL webhooku Discordu"
+      },
+      "google_chat": {
+        "more_info_about_webhooks": "Více informací o webhookech",
+        "webhook_url_label": "URL webhooku Google Chat"
+      },
+      "gotify": {
+        "application_token_description": "Token aplikace Gotify z vaší aplikace Gotify. Najdete jej ve webovém rozhraní Gotify v sekci Aplikace.",
+        "application_token_label": "Přístupový token aplikace",
+        "custom_message_description": "Vlastní šablona zprávy. Dostupné proměnné",
+        "custom_message_description_2": "Nechte prázdné pro použití výchozí zprávy.",
+        "custom_message_label": "Vlastní zpráva",
+        "custom_title_description": "Vlastní název notifikace. Dostupné proměnné: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Nechte prázdné pro použití výchozího názvu \\\"Peekaping\\\".",
+        "custom_title_label": "Vlastní titulek",
+        "learn_more_label": "Další informace o Gotify a jak ho nastavit na:",
+        "note_description": "Pro použití této integrace je třeba mít spuštěný server Gotify.",
+        "note_label": "Poznámka:",
+        "priority_0": "Nejnižší",
+        "priority_1": "Velmi nízká",
+        "priority_10": "Nejvyšší",
+        "priority_2": "Nízká",
+        "priority_3": "Pod normou",
+        "priority_4": "Normální",
+        "priority_5": "Nad normou",
+        "priority_6": "Střední",
+        "priority_7": "Vysoká",
+        "priority_8": "Velmi vysoká (výchozí)",
+        "priority_9": "Nouzový",
+        "priority_description": "Priorita zprávy (0-10). Vyšší čísla znamenají vyšší prioritu. Výchozí hodnota je 8.",
+        "priority_label": "Priorita",
+        "priority_placeholder": "Vyberte prioritu",
+        "server_url_description": "Adresa serveru Gotify. Ujistěte se, že je z této aplikace dostupná.",
+        "server_url_label": "URL serveru"
+      },
+      "grafana_oncall": {
+        "grafana_oncall_url_description": "URL webhooku z vaší integrace Grafana OnCall. Tuto adresu najdete ve vaší instanci Grafana OnCall v sekci Upozornění a IRM &gt; IRM &gt; Integrace &gt; Webhook.",
+        "grafana_oncall_url_label": "Grafana OnCall URL",
+        "learn_more_label": "Další informace o webhookech Grafana OnCall"
+      },
+      "line": {
+        "channel_access_token_description": "Získejte svůj přístupový token ke kanálu z",
+        "channel_access_token_description_2": "Přejděte do nastavení kanálu a vyhledejte",
+        "channel_access_token_label": "Přístupový token kanálu (dlouhodobý)",
+        "channel_access_token_placeholder": "Zadejte svůj LINE kanálový přístupový token.",
+        "template_description": "Přizpůsobte formát zprávy. Dostupné proměnné",
+        "template_label": "Šablona zprávy",
+        "template_placeholder": "Zadejte vlastní šablonu zprávy",
+        "user_id_description": "Své uživatelské ID naleznete v",
+        "user_id_description_2": "Přejděte do nastavení kanálu a vyhledejte",
+        "user_id_label": "Vaše uživatelské ID",
+        "user_id_placeholder": "Zadejte své LINE uživatelské ID"
+      },
+      "matrix": {
+        "access_token_description": "Váš přístupový token Matrix pro autentizaci",
+        "access_token_label": "Přístupový token",
+        "custom_message_description": "Vlastní šablona zprávy. Dostupné proměnné",
+        "custom_message_label": "Vlastní zpráva",
+        "homeserver_url_description": "URL vašeho Matrix homeserveru",
+        "homeserver_url_label": "URL domovského serveru",
+        "internal_room_id_description": "Interní identifikátor místnosti, do které budou notifikace odesílány. Mělo by začínat znakem ! a vypadat jako: !roomid:matrix.org",
+        "internal_room_id_label": "Interní ID místnosti",
+        "setup_instructions_1": "Vytvořte si účet Matrix pro svého bota (nebo použijte již existující účet)",
+        "setup_instructions_2": "Vytvořte místnost nebo se k ní připojte, do které chcete dostávat upozornění",
+        "setup_instructions_3": "Získejte svůj přístupový token provedením požadavku na přihlášení.",
+        "setup_instructions_4": "Odpověď bude obsahovat pole access_token - použijte ho jako svůj přístupový token.",
+        "setup_instructions_5": "Najděte interní ID místnosti (začíná znakem \"!\") ve nastavení místnosti vašeho Matrix klienta.",
+        "setup_instructions_label": "Pokyny k nastavení"
+      },
+      "mattermost": {
+        "channel_name_description": "Kanál, na který budou notifikace odesílány. Nechte prázdné, pokud chcete použít výchozí kanál nastavený ve webhooku.",
+        "channel_name_label": "Název kanálu",
+        "icon_emoji_cheat_sheet_label": "Přehled emotikonů",
+        "icon_emoji_description": "Emoji, které se má použít jako ikona. Můžete zadat dvě emoji oddělené mezerou (první pro stav nahoru, druhé pro stav dolů).",
+        "icon_emoji_label": "Emoji ikona",
+        "icon_url_description": "URL obrázku, který bude použit jako ikona notifikace.",
+        "icon_url_label": "URL ikony",
+        "learn_more_label": "Další informace o webhookech",
+        "message_template_description": "Přizpůsobte formát zprávy. Dostupné proměnné",
+        "message_template_label": "Šablona zprávy",
+        "use_message_template_description": "Povolte použití vlastní šablony zprávy a jejího formátování.",
+        "use_message_template_label": "Použít šablonu zprávy",
+        "username_description": "Uživatelské jméno, které se zobrazí jako odesílatel zprávy.",
+        "webhook_url_label": "URL webhooku"
+      },
+      "ntfy": {
+        "authentication_type_basic": "Základní autentizace",
+        "authentication_type_basic_description": "Použijte uživatelské jméno a heslo pro základní autentizaci.",
+        "authentication_type_label": "Typ autentizace",
+        "authentication_type_none": "Žádná autentifikace",
+        "authentication_type_none_description": "Žádná autentizace není vyžadována. Vhodné pro veřejné servery NTFY.",
+        "authentication_type_placeholder": "Vyberte typ autentizace",
+        "authentication_type_token": "Tokenová autentizace",
+        "authentication_type_token_description": "Použijte přístupový token pro autentizaci.",
+        "custom_message_description": "Vlastní obsah zprávy. Dostupné proměnné",
+        "custom_message_label": "Vlastní zpráva",
+        "password_required": "Heslo je vyžadováno pro základní autentizaci.",
+        "priority_1": "Minimální (Nejnižší)",
+        "priority_2": "Nízká",
+        "priority_3": "Výchozí",
+        "priority_4": "Vysoká",
+        "priority_5": "Naléhavé (Nejvyšší)",
+        "priority_description": "Úroveň priority oznámení. Vyšší priority mohou na straně klienta vyvolat odlišné chování.",
+        "priority_label": "Priorita",
+        "priority_placeholder": "Vyberte prioritu",
+        "server_url_description": "Adresa URL vašeho serveru NTFY. Pro veřejnou instanci použijte https://ntfy.sh.",
+        "server_url_label": "URL serveru",
+        "tags_description": "Tagy oddělené čárkami pro kategorizaci notifikací. Dostupné proměnné",
+        "tags_label": "Štítky",
+        "title_description": "Vlastní nadpis notifikace. Dostupné proměnné",
+        "title_label": "Vlastní název",
+        "token_description": "Váš přístupový token NTFY pro autentizaci.",
+        "token_label": "Přístupový token",
+        "token_required": "Token je vyžadován pro autentizaci tokenem",
+        "topic_description": "Název tématu pro vaše notifikace. Toto bude kanál, do něhož budou notifikace odesílány.",
+        "topic_label": "Téma",
+        "username_required": "Uživatelské jméno je vyžadováno pro základní autentizaci."
+      },
+      "opsgenie": {
+        "api_key_label": "API klíč",
+        "more_info_about_api_keys_label": "Více informací o API klíčích",
+        "priority_1": "Kritický",
+        "priority_2": "Vysoká",
+        "priority_3": "Střední",
+        "priority_4": "Nízký",
+        "priority_5": "Informační",
+        "priority_description": "Nastavte úroveň priority pro upozornění. Výchozí hodnota je P3 (Střední).",
+        "priority_label": "Priorita",
+        "region_description": "Vyberte region Opsgenie. Tím se určí, který API koncový bod bude použit.",
+        "region_label": "Region",
+        "region_placeholder": "Vyberte oblast"
+      },
+      "pagerduty": {
+        "auto_resolve_acknowledge": "Automatické potvrzení",
+        "auto_resolve_acknowledge_description": "Automatické potvrzení incidentu",
+        "auto_resolve_description": "Zvolte, jakou akci provést, když se monitor vrátí do provozu",
+        "auto_resolve_do_nothing": "Nic nedělat",
+        "auto_resolve_do_nothing_description": "Žádná akce nebyla provedena pro stav UP",
+        "auto_resolve_label": "Automatické vyřešení nebo uznání",
+        "auto_resolve_placeholder": "Vyberte způsob automatického uzavření",
+        "auto_resolve_resolve": "Automatické vyřešení",
+        "auto_resolve_resolve_description": "Automatické řešení incidentu",
+        "integration_key_description": "Zjistěte, jak získat svůj integrační klíč.",
+        "integration_key_label": "Integrační klíč",
+        "integration_key_placeholder": "Zadejte svůj PagerDuty integrační klíč",
+        "integration_url_description": "URL koncového bodu PagerDuty Events API v2. Ve výchozím nastavení používá standardní koncový bod.",
+        "integration_url_label": "URL integrace",
+        "learn_more_label": "Dokumentace PagerDuty",
+        "priority_critical": "Kritický",
+        "priority_description": "Úroveň závažnosti pro incidenty PagerDuty. Výchozí hodnota je \\\"warning\\\".",
+        "priority_error": "Chyba",
+        "priority_info": "Informace",
+        "priority_label": "Priorita",
+        "priority_placeholder": "Vyberte úroveň priority",
+        "priority_warning": "Varování"
+      },
+      "pagertree": {
+        "authentication_token_description": "Volitelný autentizační token pro zvýšení zabezpečení. Bude odeslán v hlavičce pagertree-token.",
+        "authentication_token_label": "Autentizační token (volitelný)",
+        "authentication_token_placeholder": "Zadejte autentizační token, pokud je vyžadován",
+        "auto_resolve_alerts_description": "Automaticky vyřešit PagerTree upozornění, když se monitor vrátí do provozu.",
+        "auto_resolve_alerts_label": "Automatické vyřešení upozornění",
+        "how_to_get_integration_url_label": "Jak získat URL integrace",
+        "integration_url_description": "Zadejte URL webhooku PagerTree.",
+        "integration_url_label": "URL webhooku PagerTree",
+        "urgency_level_critical": "Kritická",
+        "urgency_level_description": "Nastavte výchozí úroveň naléhavosti pro upozornění, která se posílá do PagerTree.",
+        "urgency_level_high": "Vysoká",
+        "urgency_level_label": "Úroveň naléhavosti",
+        "urgency_level_low": "Nízká",
+        "urgency_level_medium": "Střední",
+        "urgency_level_placeholder": "Vyberte úroveň naléhavosti",
+        "urgency_level_silent": "Bez zvuku"
+      },
+      "pushbullet": {
+        "access_token": "Přístupový token",
+        "access_token_description": "Váš přístupový token Pushbulletu. Získejte ho z",
+        "access_token_label": "Přístupový token",
+        "access_token_link": "Nastavení Pushbullet",
+        "channel_tag": "Štítek kanálu (volitelný)",
+        "channel_tag_description": "Odeslat notifikaci do kanálu Pushbullet namísto zařízení",
+        "channel_tag_label": "Štítek kanálu (volitelné)",
+        "custom_message_template_description": "Přizpůsobte obsah notifikace pomocí šablonových proměnných:",
+        "custom_message_template_heartbeat_ping": "Čas odezvy",
+        "custom_message_template_heartbeat_time": "Časové razítko",
+        "custom_message_template_label": "Vlastní šablona zprávy (volitelná)",
+        "custom_message_template_monitor_url": "URL monitoru",
+        "custom_message_template_msg": "Upozornění",
+        "custom_message_template_name": "Název monitoru",
+        "custom_message_template_placeholder": "Monitor: {{ name }}\\nStav: {{ status }}\\nZpráva: {{ msg }}",
+        "custom_message_template_status": "Aktuální stav",
+        "device_id": "ID zařízení (volitelné)",
+        "device_id_description": "Odešlete notifikaci na konkrétní zařízení. Nechte prázdné pro odeslání na všechna zařízení. ID zařízení lze najít pomocí",
+        "device_id_label": "ID zařízení (volitelné)",
+        "device_id_link": "Pushbullet API",
+        "more_info_on": "Více informací o:"
+      },
+      "pushover": {
+        "application_token_label": "Aplikační token",
+        "application_token_placeholder": "Zadejte token aplikace Pushover",
+        "device_description": "Nechte prázdné pro odeslání na všechna zařízení",
+        "device_label": "Zařízení",
+        "device_placeholder": "Device name (optional)",
+        "message_title_description": "Nechte prázdné pro použití výchozího názvu",
+        "message_title_label": "Název zprávy",
+        "message_title_placeholder": "Vlastní nadpis zprávy (volitelný)",
+        "message_ttl_description": "Doba platnosti v sekundách (0 = bez vypršení platnosti)",
+        "message_ttl_label": "Životnost zprávy",
+        "more_info_label": "Více informací o:",
+        "more_info_label_2": "Můžete vytvořit aplikaci a získat svůj API token na adrese",
+        "more_info_label_3": "Váš uživatelský klíč lze nalézt na",
+        "notification_sound_down_description": "Zvuk při výpadku monitoru",
+        "notification_sound_down_label": "Zvuk notifikace - Při výpadku",
+        "notification_sound_down_placeholder": "Vyberte zvuk",
+        "notification_sound_up_description": "Zvuk při návratu monitoru do provozu",
+        "notification_sound_up_label": "Zvuk notifikace - Online",
+        "notification_sound_up_placeholder": "Vyberte zvuk",
+        "priority_1": "Nejnižší",
+        "priority_2": "Nízká",
+        "priority_3": "Normální",
+        "priority_4": "Vysoká",
+        "priority_5": "Nouzová",
+        "priority_description": "Stupeň priority zprávy",
+        "priority_label": "Priorita",
+        "priority_placeholder": "Vyberte prioritu",
+        "sound_alien": "Mimozemšťan",
+        "sound_bike": "Kolo",
+        "sound_bugle": "Bugle",
+        "sound_cashregister": "Pokladna",
+        "sound_classical": "Klasický",
+        "sound_climb": "Climb",
+        "sound_cosmic": "Kosmický",
+        "sound_echo": "Ozvěna",
+        "sound_falling": "Pád",
+        "sound_gamelan": "Gamelan",
+        "sound_incoming": "Příchozí",
+        "sound_intermission": "Přestávka",
+        "sound_magic": "Kouzlo",
+        "sound_mechanical": "Mechanický",
+        "sound_none": "Žádný",
+        "sound_persistent": "Trvalý",
+        "sound_pianobar": "Piano Bar",
+        "sound_pushover": "Pushover (výchozí)",
+        "sound_siren": "Siréna",
+        "sound_spacealarm": "Vesmírný poplach",
+        "sound_tugboat": "Remorkér",
+        "sound_updown": "Nahoru a dolů",
+        "sound_vibrate": "Vibrace",
+        "user_key_label": "Uživatelský klíč",
+        "user_key_placeholder": "Zadejte svůj uživatelský klíč Pushover"
+      },
+      "signal": {
+        "custom_message_description": "Vlastní šablona zprávy. Dostupné proměnné.",
+        "custom_message_label": "Vlastní zpráva",
+        "important_description": "Mezi příjemci nelze míchat skupiny a čísla.",
+        "important_label": "DŮLEŽITÉ:",
+        "more_info_label": "Podívejte se na tento odkaz a zjistěte, jak ho nastavit.",
+        "note_description": "Musíte mít klienta Signal s REST API.",
+        "note_label": "Poznámka:",
+        "number_description": "Telefonní číslo vašeho účtu Signal (odesílací číslo).",
+        "number_label": "Telefonní číslo",
+        "post_url_description": "URL vašeho serveru Signal CLI REST API.",
+        "post_url_label": "URL pro POST",
+        "recipients_description": "Seznam telefonních čísel oddělených čárkami, na která se budou posílat notifikace.",
+        "recipients_label": "Příjemci"
+      },
+      "slack": {
+        "channel_name_description": "Kanál, do kterého bude zpráva odeslána. Pokud není uveden, bude zpráva odeslána na výchozí kanál nastavený ve webhooku.",
+        "channel_name_description_2": "Výchozí kanál lze přepsat zadáním názvu kanálu (např. #alerts) nebo uživatele (např. @username).",
+        "channel_name_label": "Název kanálu",
+        "channel_notify_description": "Pokud je to zapnuto, zpráva vyvolá notifikace pro všechny členy kanálu. Buďte opatrní, abyste se vyhnuli spamu.",
+        "channel_notify_label": "Upozornit kanál",
+        "icon_emoji_cheat_sheet_label": "Přehled emoji",
+        "icon_emoji_description": "Emoji, které bude použito jako ikona této zprávy. Musí být ve formátu :emoji_name:",
+        "icon_emoji_label": "Emoji ikona",
+        "message_format_description": "Odesílat bohaté zprávy",
+        "message_format_description_2": "Povolit odesílání zpráv s bohatým formátováním, přílohami a lepší vizuální prezentací.",
+        "message_format_label": "Formát zprávy",
+        "username_description": "Uživatelské jméno, které se zobrazí jako odesílatel zprávy. Pokud není zadáno, bude použito výchozí jméno bota.",
+        "webhook_url_description": "URL webhooku ze Slack integrace. Najdete ji ve vaší instanci Slacku v sekci Integrace > Webhooky.",
+        "webhook_url_label": "URL webhooku"
+      },
+      "smtp": {
+        "custom_body_label": "Vlastní tělo zprávy",
+        "custom_description": "Možnost šablonování je dosažena pomocí šablonovacího jazyka <b>Liquid</b>.",
+        "custom_description_2": "Podívejte se do dokumentace pro pokyny k použití.",
+        "custom_description_3": "Dostupné proměnné:",
+        "custom_description_4": "Zpráva upozornění",
+        "custom_description_5": "Název služby",
+        "custom_description_6": "stav služby (UP/DOWN/oznámení o vypršení platnosti certifikátů)",
+        "custom_subject_label": "Vlastní předmět",
+        "smtp_from_label": "Odesílatel (e-mailová adresa)",
+        "smtp_host_description": "Zadejte buď název hostitele serveru, ke kterému se chcete připojit, nebo localhost, pokud hodláte použít místně nakonfigurovaný MTA (mail transfer agent).",
+        "smtp_host_label": "SMTP server",
+        "smtp_password_placeholder": "Heslo SMTP",
+        "smtp_port_label": "Port",
+        "smtp_to_label": "Komu (e-mailové adresy příjemců)",
+        "smtp_username_placeholder": "SMTP uživatelské jméno"
+      },
+      "telegram": {
+        "auto_get_label": "Automaticky získat",
+        "bot_token_description": "Získejte token bota z",
+        "bot_token_label": "Token bota",
+        "chat_id_description": "Můžete získat své ID chatu odesláním zprávy vašemu botovi a kliknutím na tlačítko \"Auto Get\" výše, nebo ručně prostřednictvím Telegram API.",
+        "chat_id_description_2": "Chcete-li to získat ručně, navštivte",
+        "chat_id_description_3": "Viz dokumentaci Telegramu pro více informací.",
+        "chat_id_description_4": "Dokumentace Telegramu",
+        "chat_id_description_5": "pro více informací.",
+        "chat_id_label": "ID chatu",
+        "chat_id_not_found": "V poslední aktualizaci nebylo nalezeno ID chatu.",
+        "failed_to_fetch_chat_id": "Chyba při načítání ID chatu",
+        "message_thread_id_description": "Nepovinné. Slouží k odesílání zpráv do konkrétního vlákna (téma) ve fóru typu supergroup.",
+        "message_thread_id_label": "ID vlákna zpráv",
+        "no_updates_found": "Nebyly nalezeny žádné aktualizace. Pošlete prosím zprávu svému botovi.",
+        "protect_content_description": "Pokud bude zapnuto, obsah zprávy bude chráněn před přeposíláním a ukládáním.",
+        "protect_content_label": "Ochrana obsahu",
+        "send_silently_description": "Pokud je tato volba povolena, zprávy budou odesílány potichu (uživatelé obdrží oznámení bez zvuku).",
+        "send_silently_label": "Odeslat bez zvuku",
+        "server_url_description": "Výchozí hodnota je",
+        "server_url_description_2": "Můžete použít vlastní server. Viz",
+        "server_url_description_3": "zde",
+        "server_url_description_4": "pro podrobnosti.",
+        "server_url_label": "URL serveru Telegramu",
+        "template_description": "Přizpůsobte formát zprávy. Dostupné proměnné",
+        "template_label": "Šablona zprávy",
+        "template_parse_mode_description": "Zvolte způsob, jak má být zpráva parsována. Viz",
+        "template_parse_mode_description_2": "Dokumentace k formátování Telegramu",
+        "template_parse_mode_description_3": "podrobnosti.",
+        "template_parse_mode_label": "Režim parsování šablony",
+        "template_parse_mode_placeholder": "Vyberte režim parsování",
+        "template_placeholder": "Zadejte svou vlastní šablonu zprávy",
+        "use_template_description": "Povolte použití vlastní šablony zprávy a jejího formátu.",
+        "use_template_label": "Použít šablonu zprávy"
+      },
+      "webhook": {
+        "additional_headers_description": "Přidejte vlastní HTTP hlavičky do požadavku webhooku.",
+        "additional_headers_label": "Další hlavičky",
+        "custom_body_description": "Přizpůsobte formát těla požadavku. Dostupné proměnné",
+        "custom_body_label": "Vlastní tělo",
+        "post_url_description": "Adresa koncového bodu webhooku, na kterou budou notifikace odesílány.",
+        "post_url_label": "URL pro odeslání",
+        "request_body_description_custom": "Níže zadejte svůj vlastní formát těla požadavku.",
+        "request_body_description_form_data": "Obsah bude odeslán jako multipart/form-data. Můžete jej dekódovat pomocí <strong>json_decode($_POST['data'])</strong> v PHP.",
+        "request_body_description_json": "Obsah bude odeslán jako JSON s hlavičkou 'application/json'.",
+        "request_body_label": "Tělo požadavku",
+        "request_body_placeholder": "Vyberte typ obsahu"
+      }
+    },
+    "important": "Důležité notifikace",
+    "important_notifications": "Důležité notifikace",
+    "labels": {
+      "friendly_name": "Zobrazené jméno",
+      "type": "Typ notifikátoru"
+    },
+    "messages": {
+      "create_failed": "Nepodařilo se vytvořit notifikátor.",
+      "created_success": "Notifikátor byl úspěšně vytvořen.",
+      "error_loading_notifier": "Chyba při načítání notifikátoru",
+      "test_failed": "Nepodařilo se odeslat testovací notifikaci.",
+      "test_success": "Testovací notifikace odeslána úspěšně",
+      "update_failed": "Nepodařilo se aktualizovat notifikátor.",
+      "updated_success": "Notifikátor byl úspěšně aktualizován"
+    },
+    "new": {
+      "title": "Nový notifikační kanál"
+    },
+    "no_important": "Nebyly nalezeny žádné důležité notifikace.",
+    "placeholders": {
+      "select_type": "Vyberte typ notifikátoru"
+    },
+    "search_placeholder": "Hledat notifikační kanály podle názvu..."
+  },
+  "proxies": {
+    "delete_dialog": {
+      "description": "Tuto akci nelze vrátit zpět. Tímto dojde k trvalému smazání proxy {{host}}:{{port}}.",
+      "title": "Jste si tím opravdu jistí?"
+    },
+    "edit": {
+      "page_name": "Upravit proxy"
+    },
+    "empty_list": {
+      "action_text": "Vytvořte svůj první proxy server",
+      "text": "Začněte vytvořením vašeho prvního proxy, který budete používat ve svých monitorech.",
+      "title": "Žádné proxy nebyly nalezeny."
+    },
+    "form": {
+      "auth_label": "Autentizace proxy serveru",
+      "port_placeholder": "Port",
+      "protocol_label": "Protokol proxy",
+      "protocol_placeholder": "Vyberte protokol proxy",
+      "server_label": "Proxyový server",
+      "server_placeholder": "Adresa serveru",
+      "user": "Uživatel"
+    },
+    "messages": {
+      "create_failed": "Nepodařilo se vytvořit proxy",
+      "created_success": "Proxy byl úspěšně vytvořen.",
+      "error_loading_proxy": "Chyba při načítání proxy",
+      "update_failed": "Nepodařilo se aktualizovat proxy.",
+      "updated_success": "Proxy byl úspěšně aktualizován"
+    },
+    "new": {
+      "page_name": "Nový proxy"
+    },
+    "page_name": "Proxy servery",
+    "search_label": "Hledat",
+    "search_placeholder": "Hledat proxy podle hosta..."
+  },
+  "security": {
+    "enable_2fa": {
+      "form": {
+        "authenticator_code_label": "Ověřovací kód",
+        "authenticator_code_placeholder": "Zadejte šestimístný kód",
+        "current_password_label": "Aktuální heslo",
+        "current_password_placeholder": "Zadejte své aktuální heslo",
+        "enable_2fa_button": "Povolit 2FA"
+      },
+      "messages": {
+        "2fa_active": "2FA aktivní",
+        "2fa_disabled_successfully": "Dvoufaktorová autentizace byla úspěšně deaktivována",
+        "2fa_enabled_successfully": "Dvoufázové ověření bylo úspěšně aktivováno",
+        "account_is_protected_with_2fa": "Váš účet je chráněn dvoufaktorovou autentizací (2FA).",
+        "disable_2fa": "Vypnout 2FA",
+        "enter_password_to_disable_2fa": "Zadejte své heslo pro deaktivaci 2FA",
+        "failed_to_disable_2fa": "Nepodařilo se vypnout 2FA",
+        "failed_to_verify_2fa_code": "Nepodařilo se ověřit kód 2FA",
+        "failed_to_verify_password": "Nepodařilo se ověřit heslo nebo zahájit nastavení 2FA.",
+        "have_enabled_2fa": "Na svůj účet jste povolili dvoufaktorové ověřování (2FA). To zvyšuje úroveň zabezpečení.",
+        "or_enter_secret_manually": "Nebo zadejte tento tajný klíč ručně.",
+        "scan_qr_code_with_authenticator_app": "Naskenujte tento QR kód pomocí vaší autentikační aplikace.",
+        "two_factor_authentication_enabled": "Dvoufaktorová autentizace povolena",
+        "user_email_not_found": "Uživatel s tímto e-mailem nebyl nalezen."
+      }
+    },
+    "page_name": "Zabezpečení",
+    "update_password": {
+      "form": {
+        "confirm_new_password_label": "Potvrdit nové heslo",
+        "confirm_new_password_placeholder": "Zadejte znovu nové heslo",
+        "new_password_label": "Nové heslo",
+        "new_password_placeholder": "Zadejte nové heslo",
+        "old_password_label": "Staré heslo",
+        "old_password_placeholder": "Zadejte své aktuální heslo",
+        "update_password_button": "Aktualizovat heslo"
+      },
+      "messages": {
+        "failed_to_update_password": "Nepodařilo se aktualizovat heslo",
+        "password_updated_successfully": "Heslo bylo úspěšně aktualizováno"
+      },
+      "title": "Změnit heslo"
+    }
+  },
+  "sendgrid": {
+    "api_key_description": "Váš API klíč SendGrid. Můžete si jej vytvořit ve svém účtu SendGrid v Nastavení → API klíče. Ujistěte se, že má oprávnění 'Mail Send'.",
+    "api_key_label": "API klíč",
+    "bcc_email_description": "Příjemci skryté kopie. Oddělte více e-mailů čárkami.",
+    "bcc_email_label": "BCC e-mail (nepovinné)",
+    "cc_email_description": "Kopie příjemců. Oddělte více e-mailů čárkami.",
+    "cc_email_label": "CC e-mail (nepovinné)",
+    "from_email_description": "E-mailová adresa odesílatele. Tato e-mailová adresa musí být ověřeným odesílatelem ve vašem účtu SendGrid.",
+    "from_email_label": "Email odesílatele",
+    "subject_description": "Předmět e-mailu. Podporuje šablonování Liquid.",
+    "subject_label": "Vlastní předmět (volitelný)",
+    "subject_variables_label": "Dostupné proměnné:",
+    "subject_variables_msg": "Obsah notifikace",
+    "subject_variables_name": "Název služby",
+    "subject_variables_status": "stav služby (UP/DOWN)",
+    "to_email_description": "Hlavní e-mailová adresa příjemce. Pro více příjemců použijte pole CC nebo BCC.",
+    "to_email_label": "E-mail příjemce"
+  },
+  "settings": {
+    "data_retention": {
+      "days_label": "Dny",
+      "description": "Nastavte, na kolik dní se budou data uchovávat (KEEP_DATA_PERIOD_DAYS).",
+      "title": "Doba uchovávání dat"
+    },
+    "timezone": {
+      "description": "Vyberte si své preferované časové pásmo pro zobrazení všech časů v aplikaci.",
+      "label": "Časová zóna",
+      "no_timezone_found": "Nebylo nalezeno žádné časové pásmo.",
+      "search_placeholder": "Hledat časové pásmo...",
+      "select_placeholder": "Vyberte časové pásmo...",
+      "title": "Časové pásmo"
+    },
+    "validation": {
+      "min_days": "Musí být alespoň 1 den"
+    }
+  },
+  "status": {
+    "messages": {
+      "all_systems_operational": "Všechny systémy jsou v provozu",
+      "down": "Nedostupný",
+      "last_updated": "Poslední aktualizace",
+      "maintenance": "Údržba",
+      "no_monitors_configured": "Pro tuto stránku stavu nebyly nakonfigurovány žádné monitory.",
+      "operational": "V provozu",
+      "partial_system_outage": "Částečný výpadek systému",
+      "powered_by": "Poháněno",
+      "refresh_in": "Obnovit za",
+      "refresh_now": "Obnovit nyní",
+      "status_page_not_found": "Stránka stavu nebyla nalezena nebo nebyla zveřejněna.",
+      "under_maintenance": "Probíhá údržba",
+      "unknown": "Neznámý"
+    }
+  },
+  "status_pages": {
+    "affected_monitors": "Postižené monitory",
+    "affected_monitors_info": "Vyberte monitory, které budou touto údržbou ovlivněny",
+    "auto_refresh_interval": "Interval automatického obnovení (sekundy)",
+    "basic_information": "Základní informace",
+    "create_status_page": "Vytvořit stránku stavu",
+    "customization": "Přizpůsobení",
+    "delete_dialog": {
+      "description": "Opravdu chcete smazat \\\"{{title}}\\\"? Tuto operaci nelze vrátit zpět.",
+      "title": "Smazat stavovou stránku"
+    },
+    "description": "Zadejte popis stránky stavu",
+    "domain_already_used": "Doména {{domain}} je již používána jinou stavovou stránkou",
+    "domain_host_warning": "Tato doména je stejná jako aktuální URL hostitele. To může způsobit konflikty.",
+    "domains": "Domény",
+    "domains_info_warning": "Nezapomeňte pro každou doménu přidat záznam CNAME do DNS.",
+    "draft_status": "Koncept",
+    "edit_page_name": "Upravit stránku stavu",
+    "messages": {
+      "create_description": "Vytvořte novou stránku stavu pro sdílení stavu vaší služby uživatelům.",
+      "create_your_first_status_page": "Vytvořte svou první stránku stavu",
+      "created_successfully": "Stavová stránka byla úspěšně vytvořena",
+      "delete_failed": "Nepodařilo se smazat stránku stavu",
+      "deleted_successfully": "Stránka stavu byla úspěšně smazána.",
+      "get_started_by_creating_your_first_status_page": "Začněte tím, že vytvoříte svou první stránku stavu.",
+      "no_status_pages_found": "Nebyly nalezeny žádné stránky stavu",
+      "not_found": "Stránka stavu nebyla nalezena",
+      "update_description": "Aktualizujte nastavení a konfiguraci stránky s informacemi o stavu.",
+      "updated_successfully": "Stránka stavu byla úspěšně aktualizována."
+    },
+    "new_page_name": "Nová stavová stránka",
+    "page_name": "Stránky stavu",
+    "published": "Zveřejněno",
+    "published_info": "Zpřístupnit tuto stránku pro veřejnost",
+    "published_status": "Publikováno",
+    "search_label": "Hledat",
+    "search_placeholder": "Hledat stránky stavu podle názvu...",
+    "update_status_page": "Aktualizovat stránku stavu",
+    "view_page": "Zobrazit stránku"
+  },
+  "tags": {
+    "confirm_delete_description": "Tuto akci nelze vrátit zpět. Tímto trvale smažete štítek \"{{name}}\" ze všech monitorů.",
+    "edit_page_name": "Upravit štítek",
+    "empty_state": {
+      "action": "Vytvořte svůj první štítek",
+      "description": "Začněte vytvořením prvního štítku pro organizaci vašich monitorů.",
+      "title": "Žádné štítky nebyly nalezeny."
+    },
+    "form": {
+      "color_description": "Vyberte barvu štítku",
+      "color_label": "Barva",
+      "create_button": "Vytvořit štítek",
+      "description_label": "Popis",
+      "description_placeholder": "Zadejte popis štítku (nepovinné)",
+      "name_label": "Název",
+      "name_placeholder": "Zadejte název štítku",
+      "update_button": "Aktualizovat štítek"
+    },
+    "messages": {
+      "create_description": "Vytvořte nový štítek pro organizaci a kategorizaci vašich monitorů.",
+      "failed_to_load_tag": "Nepodařilo se načíst štítek. Štítek buď neexistuje, nebo k zobrazení nemáte oprávnění.",
+      "tag_id_required": "ID tagu je povinné",
+      "update_description": "Aktualizujte podrobnosti štítku pro lepší organizaci vašich monitorů."
+    },
+    "new_page_name": "Nový štítek",
+    "search_placeholder": "Hledat štítky..."
+  },
+  "theme": {
+    "dark": "Tmavý",
+    "light": "Světlý",
+    "system": "Systém",
+    "toggle_theme": "Přepnout vzhled"
+  },
+  "timezone": {
+    "average": "Průměr",
+    "last_24_hours": "Posledních 24 hodin",
+    "last_3_hours": "Poslední 3 hodiny",
+    "last_3_months": "Poslední 3 měsíce",
+    "last_30_minutes": "Posledních 30 minut",
+    "last_6_hours": "Posledních 6 hodin",
+    "last_7_days": "Posledních 7 dní",
+    "maximum": "Maximální",
+    "minimum": "Minimální",
+    "ms": "ms",
+    "response_time": "Doba odezvy",
+    "uptime": "Doba provozu"
+  },
+  "ui": {
+    "general": "Obecné",
+    "intervals_retries": "Intervaly, Opakování, Časové limity"
+  }
+}

@@ -1,0 +1,1280 @@
+{
+  "actions": {
+    "cancel": "إلغاء",
+    "saving": "جارٍ الحفظ..."
+  },
+  "auth": {
+    "login": {
+      "description": "تسجيل الدخول باستخدام بريدك الإلكتروني",
+      "no_account": "ليس لديك حساب؟",
+      "sign_up": "سجل",
+      "submit": "تسجيل الدخول",
+      "title": "مرحبًا بعودتك"
+    },
+    "register": {
+      "description": "أنشئ حساب المسؤول الخاص بك",
+      "have_account": "هل لديك حساب بالفعل؟",
+      "sign_in": "تسجيل الدخول",
+      "submit": "إنشاء",
+      "title": "مرحبا"
+    },
+    "twofa": {
+      "code_label": "رمز التحقق الثنائي",
+      "code_placeholder": "أدخل رمز التحقق الثنائي",
+      "description": "تم تفعيل المصادقة الثنائية (2FA) لحسابك. يرجى إدخال رمز المصادقة الخاص بك للمتابعة.",
+      "title": "يتطلب التحقق بخطوتين",
+      "verify_button": "تحقق من 2FA",
+      "verifying": "جارٍ التحقق..."
+    }
+  },
+  "bars": {
+    "down_count": "عدد الانخفاضات",
+    "important": "مهم",
+    "interval": "الفترة",
+    "message": "رسالة",
+    "ms": "مللي ثانية",
+    "notified": "تم الإخطار",
+    "ping": "بينغ",
+    "retries": "محاولات",
+    "status": "الحالة",
+    "time": "الوقت"
+  },
+  "common": {
+    "active": "نشط",
+    "all": "الكل",
+    "back": "رجوع",
+    "cancel": "إلغاء",
+    "clear_all": "مسح الكل",
+    "clear_all_filters": "مسح جميع الفلاتر",
+    "confirm": "تأكيد",
+    "confirm_delete_title": "هل أنت متأكد تمامًا؟",
+    "confirm_delete_title_short": "هل أنت متأكد؟",
+    "continue": "استمر",
+    "create": "إنشاء",
+    "created": "تم الإنشاء",
+    "days": "أيام",
+    "default": "افتراضي",
+    "delete": "حذف",
+    "disabling": "تعطيل...",
+    "dismiss": "تجاهل",
+    "down": "متوقف",
+    "enabling": "جارٍ التمكين...",
+    "error": "خطأ",
+    "expires": "تنتهي صلاحية",
+    "inactive": "غير نشط",
+    "loading": "جارٍ التحميل...",
+    "logout": "تسجيل الخروج",
+    "maintenance": "صيانة",
+    "no_options_found": "لا توجد خيارات متاحة",
+    "no_tags_available": "لا توجد علامات متاحة",
+    "please_refresh_page": "يرجى تحديث الصفحة.",
+    "required": "مطلوب",
+    "save": "حفظ",
+    "saving": "جاري الحفظ...",
+    "search": "بحث",
+    "security": "الأمان",
+    "select": "اختر",
+    "select_monitors": "اختر المراقبين...",
+    "select_tags": "اختر العلامات",
+    "settings": "الإعدادات",
+    "tags": "العلامات",
+    "unknown": "غير معروف",
+    "unnamed_monitor": "المراقب بدون اسم",
+    "up": "مُتَاح",
+    "update": "تحديث",
+    "verifying": "جارٍ التحقق..."
+  },
+  "forms": {
+    "labels": {
+      "confirm_password": "تأكيد كلمة المرور",
+      "email": "البريد الإلكتروني",
+      "footer_text": "نص التذييل",
+      "heartbeat_interval": "فترة نبض القلب (بالثواني)",
+      "icon_url": "رابط الأيقونة",
+      "monitor_name": "الاسم",
+      "monitor_type": "النوع",
+      "password": "كلمة المرور",
+      "retries": "إعادة المحاولة",
+      "slug": "الرابط الثابت",
+      "title": "العنوان",
+      "username": "اسم المستخدم"
+    },
+    "placeholders": {
+      "auto_refresh_help": "0 لعدم التحديث التلقائي",
+      "domains": "أدخل النطاق (على سبيل المثال: status.example.com)",
+      "footer_text": "أدخل نص التذييل",
+      "icon_url": "https://example.com/icon.png",
+      "monitor_name": "مراقبي",
+      "page_description": "أدخل وصف صفحة الحالة",
+      "page_title": "أدخل عنوان صفحة الحالة",
+      "slug": "شريحة-حالة-الصفحة"
+    },
+    "validation": {
+      "email_invalid": "يرجى إدخال عنوان بريد إلكتروني صالح",
+      "password_min_length": "يجب أن تكون كلمة المرور مكونة من 8 أحرف على الأقل",
+      "passwords_mismatch": "كلمات المرور غير متطابقة"
+    }
+  },
+  "maintenance": {
+    "card": {
+      "aria": {
+        "delete": "حذف {{title}}",
+        "pause": "إيقاف الصيانة",
+        "resume": "استئناف الصيانة"
+      },
+      "labels": {
+        "duration": "{{duration}} دقيقة",
+        "end": "النهاية: {{date}}",
+        "start": "بدء: {{date}}"
+      },
+      "status": {
+        "active": "نشط",
+        "ended": "انتهى",
+        "inactive": "غير نشط"
+      }
+    },
+    "edit_title": "تعديل الصيانة",
+    "form": {
+      "affected_monitors_description": "اختر المراقبين الذين سيتأثرون بهذه الصيانة",
+      "affected_monitors_title": "المراقبات المتأثرة",
+      "cron_description": "أدخل تعبير كرون صالح",
+      "cron_expression": "تعبير كرون",
+      "date_time_title": "التاريخ والوقت",
+      "day_of_month": "يوم من الشهر",
+      "day_of_week": "يوم الأسبوع",
+      "description_label": "الوصف",
+      "description_placeholder": "وصف الصيانة...",
+      "duration_minutes": "المدة (بالدقائق)",
+      "effective_date_range": "نطاق التاريخ الفعّال (اختياري)",
+      "end_date_time": "تاريخ ووقت الانتهاء",
+      "end_time": "وقت الانتهاء",
+      "interval_label": "الفترة (تشغيل مرة واحدة كل يوم)",
+      "last_day": "آخر يوم",
+      "last_day_of_month": "آخر يوم من الشهر",
+      "maintenance_time_window": "فترة صيانة ليوم واحد",
+      "markdown_supported": "يدعم Markdown",
+      "same_as_server": "نفس المنطقة الزمنية للخادم",
+      "start_date_time": "تاريخ ووقت البدء",
+      "start_time": "وقت البدء",
+      "strategy_label": "الاستراتيجية",
+      "strategy_placeholder": "اختر الاستراتيجية",
+      "timezone_label": "المنطقة الزمنية",
+      "timezone_placeholder": "اختر المنطقة الزمنية",
+      "title_label": "العنوان",
+      "title_placeholder": "عنوان الصيانة"
+    },
+    "page": {
+      "clear_filters": "مسح جميع الفلاتر",
+      "dialogs": {
+        "confirm_action": {
+          "pause_description": "هل أنت متأكد أنك تريد إيقاف هذا الصيانة؟",
+          "resume_description": "هل أنت متأكد أنك تريد استئناف هذه الصيانة؟",
+          "title": "تأكيد الإجراء"
+        },
+        "confirm_delete": {
+          "description": "هل أنت متأكد أنك تريد حذف نافذة الصيانة هذه؟ لا يمكن التراجع عن هذا الإجراء.",
+          "title": "تأكيد الحذف"
+        }
+      },
+      "edit_maintenance": "تعديل الصيانة: {{title}}",
+      "empty_state": {
+        "action": "أنشئ نافذة الصيانة الأولى الخاصة بك",
+        "description": "ابدأ بإنشاء نافذة الصيانة الأولى الخاصة بك لتجنب التوقفات المجدولة.",
+        "title": "لا توجد نوافذ صيانة"
+      },
+      "error_loading": "خطأ في تحميل الصيانة",
+      "loading": "جاري التحميل...",
+      "loading_monitors": "جارٍ تحميل المراقبين...",
+      "search_placeholder": "ابحث عن الصيانة..."
+    },
+    "page_title": "نوافذ الصيانة",
+    "schedule_title": "جدولة الصيانة",
+    "strategy": {
+      "cron": "تعبير كرون",
+      "manual": "نشط/غير نشط يدويًا",
+      "recurring_day_of_month": "متكرر - يوم من الشهر",
+      "recurring_interval": "متكرر - الفاصل الزمني",
+      "recurring_weekday": "متكرر - يوم من الأسبوع",
+      "single": "نافذة صيانة واحدة"
+    },
+    "toasts": {
+      "create_error": "فشل إنشاء الصيانة",
+      "created_success": "تم إنشاء الصيانة بنجاح",
+      "delete_error": "فشل في حذف الصيانة",
+      "deleted_success": "تم حذف الصيانة بنجاح",
+      "pause_error": "فشل في إيقاف الصيانة",
+      "paused_success": "تم إيقاف الصيانة بنجاح",
+      "resume_error": "فشل في استئناف الصيانة",
+      "resumed_success": "تم استئناف الصيانة بنجاح",
+      "toggle_error": "لا يمكن تغيير حالة الصيانة: المعرف مفقود",
+      "update_error": "فشل في تحديث الصيانة",
+      "updated_success": "تم تحديث الصيانة بنجاح"
+    },
+    "weekdays": {
+      "fri": "الجمعة",
+      "mon": "الإثنين",
+      "sat": "السبت",
+      "sun": "الأحد",
+      "thu": "الخميس",
+      "tue": "ثلاثاء",
+      "wed": "الأربعاء"
+    }
+  },
+  "messages": {
+    "login_error": "حدث خطأ أثناء تسجيل الدخول",
+    "login_no_tokens": "تم تسجيل الدخول بنجاح ولكن لم يتم استلام أي رموز",
+    "login_success": "تم تسجيل الدخول بنجاح",
+    "notifier_delete_error": "فشل في حذف المنبه",
+    "notifier_delete_success": "تم حذف المنبه بنجاح",
+    "register_error": "حدث خطأ أثناء التسجيل",
+    "register_no_tokens": "تم التسجيل بنجاح ولكن لم يتم استلام أي رموز",
+    "register_success": "تم التسجيل بنجاح",
+    "setting_update_error": "فشل في تحديث الإعداد",
+    "setting_update_success": "تم تحديث الإعداد بنجاح",
+    "tag_create_error": "فشل في إنشاء العلامة",
+    "tag_create_success": "تم إنشاء العلامة بنجاح",
+    "tag_delete_error": "فشل في حذف الوسم",
+    "tag_delete_success": "تم حذف الوسم بنجاح",
+    "tag_update_error": "فشل في تحديث العلامة",
+    "tag_update_success": "تم تحديث العلامة بنجاح",
+    "unexpected_error": "حدث خطأ غير متوقع",
+    "version_mismatch": "تم اكتشاف عدم تطابق في الإصدار"
+  },
+  "monitors": {
+    "card": {
+      "check_interval": "فترة الفحص:",
+      "loading_more": "جارٍ تحميل المزيد..."
+    },
+    "empty_state": {
+      "action": "أنشئ أول مراقب لك",
+      "description": "ابدأ بإنشاء أول مراقب لك لتتبع صحة خدماتك.",
+      "title": "لا توجد مراقبات"
+    },
+    "filtering_by_tags": "تصفية حسب العلامات",
+    "filters": {
+      "monitor_status": "الحالة",
+      "monitor_status_placeholder": "حالة المراقب",
+      "search_placeholder": "ابحث عن المراقبين بالاسم...",
+      "status_placeholder": "الحالة"
+    },
+    "form": {
+      "buttons": {
+        "copied": "تم النسخ!",
+        "copy": "نسخ",
+        "create": "إنشاء",
+        "regenerate": "إعادة توليد",
+        "update": "تحديث"
+      },
+      "dns": {
+        "hostname": "اسم المضيف",
+        "port": "المنفذ",
+        "record_type": "نوع سجل الموارد",
+        "record_type_placeholder": "اختر نوع السجل",
+        "resolver_server": "خادم الحل",
+        "title": "إعدادات DNS"
+      },
+      "docker": {
+        "ca_cert_description": "قم بلصق شهادة هيئة التصديق الخاصة بك بتنسيق PEM.",
+        "ca_certificate": "شهادة CA (PEM)",
+        "client_cert_description": "قم بلصق شهادة العميل الخاصة بك بتنسيق PEM. تُستخدم هذه الشهادة للمصادقة المتبادلة عبر TLS.",
+        "client_certificate": "شهادة العميل (PEM)",
+        "client_private_key": "المفتاح الخاص للعميل (PEM)",
+        "common_tls_issues": "مشاكل TLS الشائعة:",
+        "connection_type": "نوع الاتصال",
+        "container_name_id": "اسم الحاوية/معرفها",
+        "disabled": "معطل",
+        "docker_container": "حاوية دوكر",
+        "docker_host": "خادم دوكر",
+        "enable_tls": "تفعيل TLS",
+        "enabled": "مفعل",
+        "examples": "أمثلة",
+        "hostname_mismatch": "\"x509: الشهادة صالحة لـ X، وليس لـ Y\":",
+        "hostname_mismatch_solution": "تأكد من أن اسم المضيف يتطابق مع SAN الخاص بالشهادة أو قم بتعطيل التحقق (غير موصى به).",
+        "legacy_cert_error": "\"x509: الشهادة تعتمد على حقل الاسم الشائع القديم\":",
+        "legacy_cert_solution": "أضف اسم المضيف إلى أسماء البدائل الموضوعية (SAN) في الشهادة الخاصة بك.",
+        "mtls_note": "لـ TLS المتبادل (mTLS)، تحتاج إلى تقديم كل من شهادة العميل والمفتاح الخاص. تُستخدم شهادة CA للتحقق من شهادة الخادم.",
+        "note": "ملاحظة:",
+        "private_key_description": "الصق مفتاحك الخاص بتنسيق PEM. احتفظ به بأمان!",
+        "select_connection_type": "اختر نوع الاتصال",
+        "select_tls_option": "اختر خيار TLS",
+        "select_verification_option": "اختر خيار التحقق",
+        "skip_verification": "تخطي التحقق (غير آمن)",
+        "tls_configuration": "TLS Configuration",
+        "unknown_authority": "\"x509: certificate signed by unknown authority\":",
+        "unknown_authority_solution": "Provide the correct CA certificate that signed the server certificate.",
+        "verify_certificates": "Verify certificates",
+        "verify_tls": "Verify TLS"
+      },
+      "grpc": {
+        "body": "بيانات الجسم (JSON)",
+        "enable_tls": "تمكين TLS",
+        "enable_tls_description": "استخدم اتصالاً آمنًا (TLS/SSL)",
+        "invert_keyword": "عكس الكلمة المفتاحية",
+        "invert_keyword_description": "سيُعتبر المراقب في وضع UP إذا لم يتم العثور على الكلمة المفتاحية.",
+        "keyword": "كلمة مفتاحية",
+        "keyword_description": "ابحث عن هذه الكلمة المفتاحية في الاستجابة",
+        "keyword_placeholder": "كلمة مفتاحية اختيارية للبحث عنها",
+        "method_description": "حساسية الأحرف",
+        "method_placeholder": "تحقق",
+        "options_title": "إعدادات gRPC",
+        "proto_content": "محتوى Protobuf",
+        "proto_method": "طريقة بروتوباف",
+        "proto_service_name": "اسم خدمة Protobuf",
+        "service_name_placeholder": "الصحة"
+      },
+      "http": {
+        "advanced": {
+          "accepted_status_codes": "أكواد الاستجابة المقبولة",
+          "ignore_tls": "تجاهل أخطاء TLS/SSL لمواقع HTTPS",
+          "ignore_tls_description": "تخطي التحقق من شهادة TLS. استخدمه بحذر - هذا يجعل الاتصالات أقل أماناً.",
+          "max_redirects": "الحد الأقصى لإعادة التوجيه",
+          "max_redirects_description": "أقصى عدد من عمليات إعادة التوجيه التي ستتم متابعتها (0-30). ضع القيمة 0 لتعطيل إعادة التوجيه.",
+          "title": "متقدم"
+        },
+        "authentication": {
+          "auth_header": "رأس المصادقة",
+          "certificate": "شهادة",
+          "certificate_placeholder": "شهادة",
+          "client_id": "معرّف العميل",
+          "client_id_placeholder": "معرّف العميل",
+          "client_secret": "سر العميل",
+          "client_secret_placeholder": "سر العميل",
+          "domain": "النطاق",
+          "domain_placeholder": "اسم النطاق",
+          "form_data_body": "جسم بيانات النموذج",
+          "key": "المفتاح",
+          "key_placeholder": "المفتاح",
+          "method_label": "طريقة المصادقة",
+          "method_placeholder": "اختر نوع المصادقة",
+          "oauth_scope": "نطاق OAuth",
+          "oauth_scope_placeholder": "اختياري: قائمة النطاقات مفصولة بمسافات",
+          "oauth_token_url": "رابط توكن OAuth",
+          "oauth_token_url_placeholder": "رابط توكن OAuth",
+          "title": "المصادقة",
+          "workstation": "محطة العمل",
+          "workstation_placeholder": "محطة العمل"
+        },
+        "options": {
+          "body": "جسم الطلب",
+          "body_encoding": "ترميز الجسم",
+          "body_encoding_placeholder": "اختر ترميز الجسم",
+          "form_example": "مثال لبيانات النموذج",
+          "headers": "رؤوس الطلب",
+          "json_example": "مثال JSON",
+          "method": "الطريقة",
+          "method_placeholder": "اختر نوع المراقبة",
+          "select_encoding": "اختر ترميز الجسم",
+          "select_method": "اختر الطريقة",
+          "text_example": "نص المثال:\nأي محتوى نصي بسيط هنا...",
+          "title": "خيارات HTTP",
+          "xml_example": "مثال XML"
+        }
+      },
+      "http_json_query": {
+        "condition_label": "الشرط",
+        "expected_value_label": "القيمة المتوقعة",
+        "json_query_label": "تعبير استعلام JSON",
+        "title": "تعبير استعلام JSON"
+      },
+      "http_keyword": {
+        "invert_keyword_description": "ابحث عن غياب الكلمة المفتاحية بدلاً من وجودها.",
+        "invert_keyword_label": "عكس الكلمة المفتاحية",
+        "keyword_label": "الكلمة المفتاحية",
+        "keyword_validation_title": "التحقق من صحة الكلمة المفتاحية"
+      },
+      "kafka": {
+        "add_broker": "إضافة وسيط",
+        "auto_topic_creation_description": "السماح للمنتج بإنشاء الموضوع تلقائياً إذا لم يكن موجوداً",
+        "auto_topic_creation_label": "السماح بإنشاء مواضيع تلقائية",
+        "brokers_description": "قائمة عناوين خوادم كافكا (تنسيق المضيف: المنفذ)",
+        "brokers_label": "وسطاء كافكا",
+        "configuration_title": "إعدادات كافكا",
+        "enable_ssl_description": "استخدم تشفير SSL/TLS للاتصال",
+        "enable_ssl_label": "تفعيل SSL/TLS",
+        "message_description": "محتوى الرسالة لإرسالها إلى الموضوع (يوصى بتنسيق JSON).",
+        "message_label": "الرسالة",
+        "sasl_mechanism_description": "اختر آلية المصادقة SASL",
+        "sasl_mechanism_label": "آلية SASL",
+        "sasl_mechanism_placeholder": "اختر آلية SASL",
+        "sasl_password_description": "كلمة المرور لمصادقة SASL",
+        "sasl_password_label": "SASL Password",
+        "sasl_password_placeholder": "كلمة المرور",
+        "sasl_username_description": "اسم المستخدم للمصادقة SASL",
+        "sasl_username_label": "اسم مستخدم SASL",
+        "security_title": "الأمان",
+        "topic_description": "الموضوع في Kafka الذي تُرسَل إليه الرسائل"
+      },
+      "mongodb": {
+        "command_description": "أمر MongoDB يُنفذ كـ JSON. الافتراضي هو ping إذا لم يتم تحديده.",
+        "command_label": "الأمر (اختياري)",
+        "configuration_title": "إعدادات MongoDB",
+        "connection_string_description": "سلسلة اتصال MongoDB. تدعم كلتا التنسيقتين القياسيّتين (mongodb://) وDNS seedlist (mongodb+srv://).",
+        "connection_string_label": "سلسلة الاتصال",
+        "expected_value_description": "القيمة المتوقعة للمقارنة مع نتيجة مسار JSON.",
+        "expected_value_label": "القيمة المتوقعة (اختياري)",
+        "expected_value_placeholder": "القيمة المتوقعة",
+        "json_path_description": "مسار JSON لاستخراج القيمة من الاستجابة. استخدم $ للمستوى الجذري.",
+        "json_path_label": "مسار JSON (اختياري)"
+      },
+      "mqtt": {
+        "check_type_json_query": "استعلام JSON",
+        "check_type_keyword": "الكلمة المفتاحية",
+        "check_type_label": "نوع فحص MQTT",
+        "check_type_none": "لا شيء (أي رسالة)",
+        "check_type_placeholder": "اختر نوع التحقق",
+        "configuration_title": "تكوين MQTT",
+        "expected_value_label": "القيمة المتوقعة",
+        "hostname_label": "اسم المضيف",
+        "json_path_label": "مسار JSON",
+        "password_label": "كلمة مرور MQTT",
+        "password_placeholder": "كلمة المرور (اختياري)",
+        "port_label": "المنفذ",
+        "success_keyword_label": "كلمة النجاح في MQTT",
+        "success_keyword_placeholder": "الكلمة المفتاحية التي تشير إلى النجاح",
+        "username_label": "اسم المستخدم لـ MQTT",
+        "username_placeholder": "اسم المستخدم (اختياري)",
+        "validation": {
+          "expected_value_required": "القيمة المتوقعة مطلوبة عندما يكون نوع التحقق هو json-query",
+          "json_path_required": "يتطلّب مسار JSON عندما يكون نوع التحقق هو json-query.",
+          "success_keyword_required": "كلمة المفتاح الناجحة مطلوبة عندما يكون نوع التحقق هو كلمة مفتاحية"
+        }
+      },
+      "mysql": {
+        "connection_string_examples": "أمثلة:",
+        "connection_string_label": "سلسلة الاتصال",
+        "connection_title": "اتصال MySQL",
+        "query_label": "استعلام"
+      },
+      "ping": {
+        "data_size": "حجم البيانات (بايتات)",
+        "host": "اسم المضيف / عنوان IP",
+        "title": "إعدادات Ping"
+      },
+      "postgres": {
+        "connection_string_label": "سلسلة الاتصال",
+        "connection_title": "اتصال PostgreSQL",
+        "query_label": "استعلام"
+      },
+      "push": {
+        "url_description": "استخدم هذا الرابط في خدمتك للإبلاغ عن الحالة. أرسل طلب HTTP (POST/GET) إلى هذه النقطة النهائية لإرسال نبضة.",
+        "url_title": "عنوان URL لمراقبة الإرسال"
+      },
+      "rabbitmq": {
+        "documentation_link": "توثيق RabbitMQ",
+        "health_checks_description": "يقوم المراقب بفحص نقطة النهاية {{code}} على كل عقدة ويعيد الحالة UP إذا كانت أي عقدة سليمة.",
+        "management_nodes_description": "أدخل عنوان URL لعُقد إدارة RabbitMQ بما في ذلك البروتوكول والمنفذ. مثال: https://node1.rabbitmq.com:15672",
+        "management_nodes_title": "عُقَد الإدارة",
+        "node_url_label": "عنوان العقدة (URL)",
+        "password_description": "كلمة المرور لمصادقة واجهة إدارة RabbitMQ",
+        "setup_information_description": "لاستخدام مراقب RabbitMQ، يجب تمكين إضافة الإدارة في إعدادات RabbitMQ لديك. لمزيد من المعلومات، يرجى الرجوع إلى توثيق RabbitMQ.",
+        "setup_information_title": "معلومات الإعداد",
+        "title": "إعدادات RabbitMQ",
+        "username_description": "اسم المستخدم لمصادقة واجهة إدارة RabbitMQ"
+      },
+      "redis": {
+        "ca_certificate_description": "شهادة CA الجذرية بتنسيق PEM. مطلوبة للتحقق من TLS بشكل صحيح مع الشهادات الموقّعة ذاتيًا.",
+        "ca_certificate_label": "شهادة CA (اختياري)",
+        "client_certificate_description": "شهادة العميل بتنسيق PEM. مطلوبة للمصادقة المتبادلة عبر TLS.",
+        "client_certificate_label": "شهادة العميل (اختياري)",
+        "client_key_description": "المفتاح الخاص بالعميل بصيغة PEM. يجب توفيره مع شهادة العميل.",
+        "client_key_label": "المفتاح الخاص بالعميل (اختياري)",
+        "connection_string_description": "صيغة سلسلة اتصال Redis: {{redis}} أو {{rediss}} لاستخدام TLS",
+        "connection_string_label": "سلسلة الاتصال",
+        "ignore_tls_description": "تخطي التحقق من شهادة TLS (غير موصى به للإنتاج)",
+        "ignore_tls_label": "تجاهل أخطاء TLS/SSL",
+        "title": "إعدادات Redis"
+      },
+      "shared": {
+        "intervals": {
+          "heartbeat_retry": "فترة إعادة المحاولة لإشارة النبض (إعادة المحاولة كل {{seconds}} ثانية)",
+          "max_retries_description": "Maximum retries before the service is marked as down and a notification is sent",
+          "request_timeout": "مهلة الطلب (تنتهي بعد {{seconds}} ثوانٍ)",
+          "resend_notification": "إعادة إرسال الإشعار إذا حدث الانقطاع X مرات متتالية (إعادة الإرسال معطلة)"
+        },
+        "notifications": {
+          "add_notifier": "إضافة مُرسِل الإشعارات",
+          "new_notifier": "+ مُرسِل إشعارات جديد",
+          "no_channels": "لا توجد قنوات إشعارات، أنشئ قناة واحدة أولاً",
+          "no_channels_available": "لا توجد قنوات متاحة",
+          "select_channel": "اختر القناة",
+          "select_notifier_placeholder": "اختر مُرسل الإشعارات",
+          "selected_channels": "قنوات الإشعارات المختارة",
+          "title": "قنوات الإشعارات"
+        },
+        "proxy": {
+          "add_proxy": "إضافة بروكسي",
+          "new_proxy": "+ بروكسي جديد",
+          "no_proxy": "بدون وكيل",
+          "remove_proxy": "إزالة البروكسي",
+          "select_proxy_placeholder": "اختر البروكسي",
+          "selected_proxy": "البروكسي المحدد",
+          "title": "وكيل"
+        },
+        "tags": {
+          "label": "الوسوم",
+          "no_tags": "لا توجد وسوم",
+          "placeholder": "اختر الوسوم"
+        }
+      },
+      "snmp": {
+        "community_description": "سلسلة المجتمع SNMP للمصادقة (تشبه كلمة المرور)",
+        "community_label": "سلسلة المجتمع",
+        "expected_value_description": "القيمة التي ستتم المقارنة بها. اتركها فارغة لتخطي التحقق من الصحة.",
+        "expected_value_label": "القيمة المتوقعة",
+        "host_description": "اسم المضيف أو عنوان IP للجهاز الذي يدعم SNMP",
+        "host_label": "المضيف",
+        "json_path_description": "تعبير JSONPath لاستخراج القيمة من الاستجابة (استخدم \"$\" للقيمة الخام)",
+        "json_path_label": "مسار JSON",
+        "json_path_operator_description": "كيفية مقارنة القيمة المستخرجة بالقيمة المتوقعة",
+        "json_path_operator_eq": "يساوي",
+        "json_path_operator_ge": "أكبر من أو يساوي",
+        "json_path_operator_gt": "أكبر من",
+        "json_path_operator_label": "الشرط",
+        "json_path_operator_le": "أصغر من أو يساوي",
+        "json_path_operator_lt": "أقل من",
+        "json_path_operator_ne": "لا يساوي",
+        "oid_description": "معرّف كائن SNMP الذي سيتم الاستعلام عنه (مثال: 1.3.6.1.2.1.1.1.0 للـوصف النظام)",
+        "oid_label": "OID (معرّف الكائن)",
+        "port_description": "منفذ SNMP (افتراضي: 161)",
+        "port_label": "المنفذ",
+        "snmp_version_description": "الإصدار المستخدم لبروتوكول SNMP",
+        "snmp_version_label": "إصدار SNMP",
+        "title": "إعدادات SNMP",
+        "value_validation_label": "التحقق من القيمة (اختياري)"
+      },
+      "sqlserver": {
+        "allowed_statements_description": "SELECT، SHOW، DESCRIBE، EXPLAIN، WITH، و VALUES.",
+        "allowed_statements_label": "العبارات المسموح بها:",
+        "connection_string_label": "سلسلة الاتصال",
+        "query_description": "استعلام لتنفيذ فحص الصحة. اتركه فارغاً لاستخدام الإعداد الافتراضي",
+        "query_label": "استعلام",
+        "title": "اتصال بخادم Microsoft SQL Server"
+      },
+      "tcp": {
+        "host": "اسم المضيف",
+        "port": "المنفذ",
+        "title": "اتصال TCP"
+      },
+      "type": {
+        "dns": "مراقب DNS",
+        "docker": "حاوية دوكر",
+        "grpc": "مراقبة الكلمات المفتاحية باستخدام gRPC",
+        "http": "مراقب HTTP(S)",
+        "kafka": "مراقب منتج كافكا",
+        "mongodb": "مراقب قاعدة بيانات MongoDB",
+        "mqtt": "مراقب MQTT",
+        "mysql": "مراقب MySQL/MariaDB",
+        "ping": "مراقب بينغ (ICMP)",
+        "postgres": "مراقب قاعدة بيانات PostgreSQL",
+        "push": "مراقبة الإرسال (الخدمة الخارجية تستدعي عنوان URL مولّد)",
+        "rabbitmq": "مراقب RabbitMQ",
+        "redis": "مراقب قاعدة بيانات ريديس",
+        "snmp": "مراقب SNMP",
+        "sqlserver": "مراقب Microsoft SQL Server",
+        "tcp": "مراقبة منفذ TCP"
+      }
+    },
+    "page": {
+      "description": "إنشاء مراقب جديد لبدء تتبّع أداء موقعك الإلكتروني.",
+      "edit_title": "تعديل المراقب:",
+      "new_title": "مراقب جديد"
+    },
+    "title": "المراقبون",
+    "toasts": {
+      "deleted": "تم حذف المراقب",
+      "paused": "المراقب متوقف",
+      "reset_success": "تمت إعادة تعيين بيانات المراقب بنجاح",
+      "resumed": "تم استئناف المراقبة"
+    },
+    "view": {
+      "buttons": {
+        "clone": "تكرار",
+        "delete": "حذف",
+        "edit": "تعديل",
+        "pause": "إيقاف مؤقت",
+        "reset_data": "إعادة تعيين البيانات",
+        "resume": "استئناف"
+      },
+      "certificate": "شهادة",
+      "check_every": "فحص كل",
+      "current_status": "الحالة الحالية",
+      "dialogs": {
+        "delete": {
+          "description": "لا يمكن التراجع عن هذا الإجراء. سيتم حذف المراقب وجميع البيانات المرتبطة به بشكل نهائي.",
+          "title": "هل أنت متأكد تماماً؟"
+        },
+        "pause": {
+          "description": "هل أنت متأكد أنك تريد الإيقاف المؤقت؟",
+          "title": "تأكيد"
+        },
+        "reset": {
+          "description": "سيؤدي هذا إلى حذف نهائي لجميع سجلات نبضات المراقبة وإحصاءات وقت التشغيل لهذا المراقب. سيظهر المراقب كما لو أنه تم إنشاؤه للتو. لا يمكن التراجع عن هذا الإجراء.",
+          "title": "إعادة ضبط بيانات المراقب"
+        }
+      },
+      "expiring_soon": "قريب من الانتهاء",
+      "for": "لـ",
+      "live_status": "الحالة المباشرة",
+      "monitor_for": "مراقبة لـ",
+      "no_certificate_data": "لا توجد بيانات الشهادة",
+      "seconds": "ثوانٍ",
+      "stats": {
+        "last_24_hours": "آخر 24 ساعة",
+        "last_30_days": "آخر 30 يوماً",
+        "last_365_days": "آخر 365 يوماً",
+        "last_7_days": "آخر 7 أيام"
+      },
+      "status": {
+        "down": "خارج الخدمة",
+        "maintenance": "صيانة",
+        "paused": "متوقف",
+        "up": "قيد التشغيل"
+      }
+    }
+  },
+  "navigation": {
+    "maintenance": "الصيانة",
+    "monitors": "المراقبون",
+    "notification_channels": "قنوات الإشعارات",
+    "proxies": "بروكسيات",
+    "settings": "الإعدادات",
+    "status_pages": "صفحات الحالة",
+    "tags": "وسوم"
+  },
+  "notifications": {
+    "actions": {
+      "test": "اختبار",
+      "testing": "جارٍ الاختبار..."
+    },
+    "aria": {
+      "delete": "حذف {{name}}"
+    },
+    "confirm_delete_description": "لا يمكن التراجع عن هذا الإجراء. سيؤدي ذلك إلى حذف قناة الإشعارات \"{{name}}\" بشكلٍ دائم وإزالتها من جميع المراقبات التي تستخدمها.",
+    "create_title": "إنشاء مُرسِل إشعارات",
+    "edit_channel_title": "تعديل قناة الإشعارات",
+    "edit_title": "تعديل مرسل الإشعارات",
+    "empty_state": {
+      "action": "إنشاء قناة الإشعارات الأولى",
+      "description": "ابدأ بإنشاء أول قناة إشعارات لإرسال التنبيهات إلى فريقك.",
+      "title": "لم يتم العثور على قنوات الإشعارات"
+    },
+    "form": {
+      "discord": {
+        "bot_display_name_description": "الاسم الذي سيظهر كمرسل رسائل Discord.",
+        "bot_display_name_label": "اسم البوت المعروض",
+        "custom_message_prefix_description": "بادئة اختيارية ستُضاف إلى بداية جميع الرسائل.",
+        "custom_message_prefix_label": "بادئة الرسالة المخصصة",
+        "custom_message_prefix_placeholder": "اختياري: أضف بادئة لرسالتك",
+        "forum_post_name_description": "اسم المشاركة الجديدة في المنتدى التي ستتم إنشاؤها.",
+        "forum_post_name_label": "اسم منشور المنتدى",
+        "forum_post_name_placeholder": "أدخل اسم منشور المنتدى",
+        "sending_message_to_channel": "إرسال إلى القناة",
+        "sending_message_to_description": "اختر أين سترسل رسائل Discord.",
+        "sending_message_to_label": "إرسال الرسالة إلى",
+        "sending_message_to_new_forum_post": "إرسال إلى منشور المنتدى الجديد",
+        "sending_message_to_placeholder": "اختر نوع الرسالة",
+        "sending_message_to_thread": "إرسال إلى الخيط",
+        "setup_webhook_description_1": "احصل على عنوان URL لويب هوك من إعدادات خادم Discord → التكاملات → Webhooks.",
+        "setup_webhook_description_2": "أنشئ ويب هوك جديدًا و انسخ عنوان URL. تأكد من اختيار القناة الصحيحة.",
+        "setup_webhook_title": "إعداد Webhook لـ Discord",
+        "thread_id_description_1": "تمكين وضع المطور في إعدادات المستخدم في ديسكورد → المتقدمة → وضع المطور",
+        "thread_id_description_2": "انقر بزر الماوس الأيمن على الخيط أو المنشور ثم اختر \\\"نسخ معرف الخيط\\\" أو \\\"نسخ معرف القناة\\\"",
+        "thread_id_description_title": "معرّف الخيط أو موضوع المنتدى الذي ستُرسل الرسائل إليه",
+        "thread_id_label": "معرّف الخيط",
+        "thread_id_placeholder": "أدخل معرف الخيط أو المشاركة",
+        "webhook_url_label": "رابط Webhook في ديسكورد"
+      },
+      "google_chat": {
+        "more_info_about_webhooks": "مزيد من المعلومات حول Webhooks",
+        "webhook_url_label": "رابط Webhook لـ Google Chat"
+      },
+      "gotify": {
+        "application_token_description": "رمز التطبيق من تطبيق Gotify الخاص بك. يمكنك العثور عليه في واجهة Gotify على الويب ضمن قسم التطبيقات.",
+        "application_token_label": "رمز التطبيق",
+        "custom_message_description": "قالب رسالة مخصص. المتغيرات المتاحة",
+        "custom_message_description_2": "اتركها فارغة لاستخدام الرسالة الافتراضية.",
+        "custom_message_label": "رسالة مخصصة",
+        "custom_title_description": "عنوان مخصص للإشعار. المتغيرات المتاحة: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. اتركه فارغاً لاستخدام العنوان الافتراضي \"Peekaping\".",
+        "custom_title_label": "عنوان مخصص",
+        "learn_more_label": "تعرف على Gotify وكيفية إعداده في:",
+        "note_description": "يجب تشغيل خادم Gotify لاستخدام هذا التكامل.",
+        "note_label": "ملاحظة:",
+        "priority_0": "الأدنى",
+        "priority_1": "منخفض جدًا",
+        "priority_10": "الأعلى",
+        "priority_2": "منخفض",
+        "priority_3": "أقل من الطبيعي",
+        "priority_4": "عادي",
+        "priority_5": "أعلى من المعتاد",
+        "priority_6": "متوسط",
+        "priority_7": "عالي",
+        "priority_8": "عالي جدًا (افتراضي)",
+        "priority_9": "طارئ",
+        "priority_description": "أولوية الرسالة (من 0 إلى 10). كلما ارتفع الرقم، زادت أولوية الرسالة. القيمة الافتراضية هي 8.",
+        "priority_label": "أولوية",
+        "priority_placeholder": "اختر الأولوية",
+        "server_url_description": "عنوان URL لخادم Gotify الخاص بك. تأكد من أنه يمكن الوصول إليه من هذا التطبيق.",
+        "server_url_label": "عنوان الخادم"
+      },
+      "grafana_oncall": {
+        "grafana_oncall_url_description": "عنوان URL لويب هوك من تكامل Grafana OnCall الخاص بك. يمكنك العثور على ذلك في مثيل Grafana OnCall الخاص بك ضمن الإشعارات وIRM > IRM > التكاملات > ويب هوك.",
+        "grafana_oncall_url_label": "رابط Grafana OnCall",
+        "learn_more_label": "تعرف على مزيد من المعلومات حول webhooks Grafana OnCall"
+      },
+      "line": {
+        "channel_access_token_description": "يمكنك الحصول على رمز وصول القناة من",
+        "channel_access_token_description_2": "انتقل إلى إعدادات القناة وابحث عن",
+        "channel_access_token_label": "رمز وصول القناة (طويل الأمد)",
+        "channel_access_token_placeholder": "أدخل رمز وصول قناة LINE الخاصة بك",
+        "template_description": "خصص تنسيق الرسالة. المتغيرات المتاحة",
+        "template_label": "قالب الرسالة",
+        "template_placeholder": "أدخل قالب الرسالة المخصص",
+        "user_id_description": "يمكنك العثور على معرف المستخدم الخاص بك في",
+        "user_id_description_2": "اذهب إلى إعدادات قناتك وابحث عن",
+        "user_id_label": "معرّف المستخدم الخاص بك",
+        "user_id_placeholder": "أدخل معرف المستخدم في LINE"
+      },
+      "matrix": {
+        "access_token_description": "رمز وصول Matrix للمصادقة الخاص بحسابك",
+        "access_token_label": "رمز الوصول",
+        "custom_message_description": "قالب رسالة مخصص. المتغيرات المتاحة",
+        "custom_message_label": "رسالة مخصصة",
+        "homeserver_url_description": "عنوان URL لخادم Matrix المحلي لديك",
+        "homeserver_url_label": "عنوان URL لخادم المنزل",
+        "internal_room_id_description": "معرّف الغرفة الداخلية الذي ستُرسَل إليه الإشعارات. يجب أن يبدأ بـ «!» ويكون مثل: !roomid:matrix.org",
+        "internal_room_id_label": "معرف الغرفة الداخلية",
+        "setup_instructions_1": "أنشئ حساب Matrix لروبوتك (أو استخدم حسابك الحالي)",
+        "setup_instructions_2": "أنشئ غرفة أو انضم إلى الغرفة التي تريد تلقي الإشعارات فيها",
+        "setup_instructions_3": "احصل على رمز الوصول الخاص بك من خلال إجراء تسجيل الدخول",
+        "setup_instructions_4": "سيحتوي الرد على حقل access_token؛ استخدمه كرمز الوصول الخاص بك",
+        "setup_instructions_5": "اعثر على المعرف الداخلي لغرفتك (يبدأ بـ '!') في إعدادات غرفة عميل Matrix لديك",
+        "setup_instructions_label": "إرشادات الإعداد"
+      },
+      "mattermost": {
+        "channel_name_description": "القناة التي ستُرسَل إليها الإشعارات. اتركها فارغة لاستخدام القناة الافتراضية المكوّنة في webhook.",
+        "channel_name_label": "اسم القناة",
+        "icon_emoji_cheat_sheet_label": "دليل الإيموجي",
+        "icon_emoji_description": "رمز تعبيري لاستخدامه كأيقونة. يمكنك تحديد رمزين تعبيريّين مفصولين بمسافة واحدة (الأول لحالة التشغيل، والثاني لحالة الانقطاع).",
+        "icon_emoji_label": "أيقونة تعبيرية",
+        "icon_url_description": "رابط صورة لاستخدامها كأيقونة لرسالة الإخطار.",
+        "icon_url_label": "رابط الأيقونة",
+        "learn_more_label": "المزيد من المعلومات عن Webhooks",
+        "message_template_description": "تخصيص صيغة الرسالة. المتغيرات المتاحة",
+        "message_template_label": "قالب الرسالة",
+        "use_message_template_description": "تمكين استخدام قالب رسالة مخصص وتنسيقه.",
+        "use_message_template_label": "استخدم قالب الرسالة",
+        "username_description": "اسم المستخدم الذي سيظهر كمرسل الرسالة",
+        "webhook_url_label": "عنوان URL للويب هوك"
+      },
+      "ntfy": {
+        "authentication_type_basic": "المصادقة الأساسية",
+        "authentication_type_basic_description": "استخدم اسم المستخدم وكلمة المرور للمصادقة الأساسية.",
+        "authentication_type_label": "نوع المصادقة",
+        "authentication_type_none": "بدون مصادقة",
+        "authentication_type_none_description": "لا يتطلب التوثيق. مناسب لخوادم NTFY العامة.",
+        "authentication_type_placeholder": "اختر نوع المصادقة",
+        "authentication_type_token": "توثيق بالرمز",
+        "authentication_type_token_description": "استخدم رمز وصول للمصادقة.",
+        "custom_message_description": "محتوى الرسالة المخصص. المتغيرات المتاحة",
+        "custom_message_label": "رسالة مخصَّصة",
+        "password_required": "كلمة المرور مطلوبة للمصادقة الأساسية",
+        "priority_1": "أدنى (الأقل)",
+        "priority_2": "منخفض",
+        "priority_3": "افتراضي",
+        "priority_4": "عالي",
+        "priority_5": "عاجل (الأعلى)",
+        "priority_description": "مستوى أولوية الإشعار. قد تؤدي الأولويات الأعلى إلى سلوكيات مختلفة لدى المستخدم.",
+        "priority_label": "الأولوية",
+        "priority_placeholder": "اختر الأولوية",
+        "server_url_description": "عنوان خادم NTFY الخاص بك. استخدم https://ntfy.sh للنسخة العامة.",
+        "server_url_label": "رابط الخادم",
+        "tags_description": "الوسوم المفصولة بفواصل لتصنيف الإشعارات. المتغيرات المتاحة",
+        "tags_label": "الوسوم",
+        "title_description": "عنوان إشعار مخصص. المتغيرات المتاحة",
+        "title_label": "عنوان مخصص",
+        "token_description": "رمز وصول NTFY للمصادقة.",
+        "token_label": "رمز الوصول",
+        "token_required": "يتطلب المصادقة باستخدام التوكن وجود توكن.",
+        "topic_description": "اسم الموضوع لإشعاراتك. ستكون هذه هي القناة التي تُرسل إليها الإشعارات.",
+        "topic_label": "الموضوع",
+        "username_required": "اسم المستخدم مطلوب للمصادقة الأساسية"
+      },
+      "opsgenie": {
+        "api_key_label": "مفتاح API",
+        "more_info_about_api_keys_label": "مزيد من المعلومات حول مفاتيح API",
+        "priority_1": "خطير",
+        "priority_2": "عالي",
+        "priority_3": "متوسط",
+        "priority_4": "منخفض",
+        "priority_5": "إخباري",
+        "priority_description": "حدد مستوى الأولوية للتنبيهات. الافتراضي هو P3 (متوسط).",
+        "priority_label": "الأولوية",
+        "region_description": "اختر منطقة Opsgenie الخاصة بك. هذا يحدد أي نقطة نهاية لواجهة برمجة التطبيقات ستُستخدم.",
+        "region_label": "المنطقة",
+        "region_placeholder": "اختر المنطقة"
+      },
+      "pagerduty": {
+        "auto_resolve_acknowledge": "التأكيد التلقائي",
+        "auto_resolve_acknowledge_description": "تأكيد الحادث تلقائياً",
+        "auto_resolve_description": "اختر الإجراء الذي سيتم اتخاذه عند عودة المراقب إلى الخدمة",
+        "auto_resolve_do_nothing": "لا تفعل شيئاً",
+        "auto_resolve_do_nothing_description": "لم يتم اتخاذ أي إجراء في حالة UP",
+        "auto_resolve_label": "الإغلاق التلقائي أو الإقرار",
+        "auto_resolve_placeholder": "اختر سلوك الإغلاق التلقائي",
+        "auto_resolve_resolve": "إغلاق تلقائي",
+        "auto_resolve_resolve_description": "حل الحادثة تلقائيًا",
+        "integration_key_description": "تعلم كيفية الحصول على مفتاح التكامل الخاص بك",
+        "integration_key_label": "مفتاح التكامل",
+        "integration_key_placeholder": "أدخل مفتاح التكامل الخاص بـ PagerDuty",
+        "integration_url_description": "عنوان URL لنقطة نهاية PagerDuty Events API الإصدار 2. افتراضيًا، يتم استخدام نقطة النهاية القياسية.",
+        "integration_url_label": "رابط التكامل",
+        "learn_more_label": "توثيق PagerDuty",
+        "priority_critical": "حرج",
+        "priority_description": "مستوى خطورة حوادث PagerDuty. الافتراضي هو \"تحذير\".",
+        "priority_error": "خطأ",
+        "priority_info": "معلومات",
+        "priority_label": "الأولوية",
+        "priority_placeholder": "اختر مستوى الأولوية",
+        "priority_warning": "تنبيه"
+      },
+      "pagertree": {
+        "authentication_token_description": "رمز مصادقة اختياري لتعزيز الأمان. سيتم إرساله في رأس pagertree-token.",
+        "authentication_token_label": "رمز المصادقة (اختياري)",
+        "authentication_token_placeholder": "أدخل رمز المصادقة إذا لزم الأمر",
+        "auto_resolve_alerts_description": "حل إشعارات PagerTree تلقائياً عند استعادة المراقبة",
+        "auto_resolve_alerts_label": "إغلاق الإنذارات تلقائياً",
+        "how_to_get_integration_url_label": "كيفية الحصول على رابط التكامل",
+        "integration_url_description": "أدخل عنوان URL الخاص بتكامل PagerTree مع Webhook.",
+        "integration_url_label": "عنوان URL لويب هوك PagerTree",
+        "urgency_level_critical": "حرج",
+        "urgency_level_description": "تعيين المستوى الافتراضي للأولوية في التنبيهات المرسلة إلى PagerTree",
+        "urgency_level_high": "عالي",
+        "urgency_level_label": "مستوى الاستعجال",
+        "urgency_level_low": "منخفض",
+        "urgency_level_medium": "متوسط",
+        "urgency_level_placeholder": "اختر مستوى الاستعجال",
+        "urgency_level_silent": "صامت"
+      },
+      "pushbullet": {
+        "access_token": "رمز الوصول",
+        "access_token_description": "رمز وصول Pushbullet الخاص بك. احصل عليه من",
+        "access_token_label": "رمز الوصول",
+        "access_token_link": "إعدادات Pushbullet",
+        "channel_tag": "وسم القناة (اختياري)",
+        "channel_tag_description": "إرسال الإخطار إلى قناة Pushbullet بدلاً من الأجهزة",
+        "channel_tag_label": "وسم القناة (اختياري)",
+        "custom_message_template_description": "تخصيص محتوى الإشعار باستخدام متغيرات القالب:",
+        "custom_message_template_heartbeat_ping": "زمن الاستجابة",
+        "custom_message_template_heartbeat_time": "الطابع الزمني",
+        "custom_message_template_label": "قالب رسالة مخصص (اختياري)",
+        "custom_message_template_monitor_url": "رابط المراقب",
+        "custom_message_template_msg": "رسالة التنبيه",
+        "custom_message_template_name": "اسم المراقب",
+        "custom_message_template_placeholder": "المراقب: {{ name }}\nالحالة: {{ status }}\nالرسالة: {{ msg }}",
+        "custom_message_template_status": "الحالة الحالية",
+        "device_id": "معرّف الجهاز (اختياري)",
+        "device_id_description": "إرسال إشعار إلى جهاز محدد. اتركه فارغًا لإرسال الإشعار إلى جميع الأجهزة. يمكنك العثور على معرفات الأجهزة باستخدام Pushbullet API",
+        "device_id_label": "معرّف الجهاز (اختياري)",
+        "device_id_link": "واجهة برمجة تطبيقات Pushbullet",
+        "more_info_on": "مزيد من المعلومات حول:"
+      },
+      "pushover": {
+        "application_token_label": "رمز التطبيق",
+        "application_token_placeholder": "أدخل رمز تطبيق Pushover الخاص بك",
+        "device_description": "اتركه فارغاً لإرسال الإشعار إلى جميع الأجهزة",
+        "device_label": "الجهاز",
+        "device_placeholder": "اسم الجهاز (اختياري)",
+        "message_title_description": "اتركه فارغاً لاستخدام العنوان الافتراضي",
+        "message_title_label": "عنوان الرسالة",
+        "message_title_placeholder": "عنوان الرسالة المخصص (اختياري)",
+        "message_ttl_description": "مدة الصلاحية بالثواني (0 = بدون انتهاء صلاحية)",
+        "message_ttl_label": "مدة صلاحية الرسالة",
+        "more_info_label": "المزيد من المعلومات حول:",
+        "more_info_label_2": "يمكنك إنشاء تطبيق والحصول على رمز API الخاص بك في",
+        "more_info_label_3": "يمكن العثور على مفتاح المستخدم الخاص بك في",
+        "notification_sound_down_description": "الصوت عند توقف المراقب",
+        "notification_sound_down_label": "صوت الإشعار - متوقف",
+        "notification_sound_down_placeholder": "اختر الصوت",
+        "notification_sound_up_description": "الصوت عند عودة المراقب إلى التشغيل",
+        "notification_sound_up_label": "صوت الإشعار - قيد التشغيل",
+        "notification_sound_up_placeholder": "اختر نغمة",
+        "priority_1": "الأدنى",
+        "priority_2": "منخفض",
+        "priority_3": "عادي",
+        "priority_4": "عادي",
+        "priority_5": "Emergency",
+        "priority_description": "مستوى أولوية الرسالة",
+        "priority_label": "الأولوية",
+        "priority_placeholder": "اختر الأولوية",
+        "sound_alien": "فضائي",
+        "sound_bike": "دراجة",
+        "sound_bugle": "بوق",
+        "sound_cashregister": "آلة تسجيل النقود",
+        "sound_classical": "كلاسيكي",
+        "sound_climb": "صعود",
+        "sound_cosmic": "كونسميك",
+        "sound_echo": "إيكو",
+        "sound_falling": "سقوط",
+        "sound_gamelan": "Gamelan",
+        "sound_incoming": "وارد",
+        "sound_intermission": "فاصل",
+        "sound_magic": "سحر",
+        "sound_mechanical": "ميكانيكي",
+        "sound_none": "بدون صوت",
+        "sound_persistent": "مستمر",
+        "sound_pianobar": "بيانو بار",
+        "sound_pushover": "Pushover (افتراضي)",
+        "sound_siren": "صفارة الإنذار",
+        "sound_spacealarm": "تنبيه فضائي",
+        "sound_tugboat": "قاطرة",
+        "sound_updown": "صعود وهبوط",
+        "sound_vibrate": "اهتزاز",
+        "user_key_label": "مفتاح المستخدم",
+        "user_key_placeholder": "أدخل مفتاح المستخدم الخاص بـ Pushover"
+      },
+      "signal": {
+        "custom_message_description": "قالب رسالة مخصص. المتغيرات المتاحة",
+        "custom_message_label": "رسالة مخصصة",
+        "important_description": "لا يمكنك المزج بين المجموعات والأرقام في المستلمين!",
+        "important_label": "مهم:",
+        "more_info_label": "يمكنك الاطلاع على هذا الرابط لمعرفة كيفية إعداده:",
+        "note_description": "يتوجب أن يكون لديك عميل Signal يدعم واجهة برمجة تطبيقات REST.",
+        "note_label": "ملاحظة:",
+        "number_description": "رقم الهاتف الخاص بحسابك في Signal (رقم المرسل).",
+        "number_label": "رقم الهاتف",
+        "post_url_description": "عنوان URL لخادم Signal CLI REST API الخاص بك.",
+        "post_url_label": "عنوان URL للإرسال",
+        "recipients_description": "قائمة أرقام الهواتف مفصولة بفواصل لإرسال الإشعارات إليها.",
+        "recipients_label": "المستلمون"
+      },
+      "slack": {
+        "channel_name_description": "القناة التي ستُرسل إليها الرسالة. إذا لم يتم تحديدها، فسيتم إرسال الرسالة إلى القناة الافتراضية المحددة في إعدادات Webhook.",
+        "channel_name_description_2": "يمكنك تجاوز القناة الافتراضية من خلال تحديد اسم القناة (مثلاً #alerts) أو مستخدم (مثلاً @username).",
+        "channel_name_label": "اسم القناة",
+        "channel_notify_description": "عند التمكين، ستؤدي الرسالة إلى إطلاق إشعارات لجميع أعضاء القناة. استخدمها بحذر لتجنب الرسائل المزعجة.",
+        "channel_notify_label": "إخطار القناة",
+        "icon_emoji_cheat_sheet_label": "دليل الرموز التعبيرية",
+        "icon_emoji_description": "رمز تعبيري لاستخدامه كأيقونة لهذه الرسالة. يجب أن يكون بالتنسيق :emoji_name:",
+        "icon_emoji_label": "أيقونة الإيموجي",
+        "message_format_description": "إرسال رسائل غنية",
+        "message_format_description_2": "تمكين إرسال الرسائل بتنسيقات غنية ومرفقات وعرض بصري أفضل.",
+        "message_format_label": "تنسيق الرسالة",
+        "username_description": "اسم المستخدم الذي سيظهر كمرسل الرسالة. إذا لم يتم تحديده، فسيتم استخدام اسم البوت الافتراضي.",
+        "webhook_url_description": "عنوان URL لويب هوك التكامل مع Slack الخاص بك. يمكنك العثور عليه ضمن مثيل Slack الخاص بك تحت التكاملات > ويب هوكات.",
+        "webhook_url_label": "عنوان URL للويب هوك"
+      },
+      "smtp": {
+        "custom_body_label": "المحتوى المخصص",
+        "custom_description": "يتم تحقيق قابلية القوالب من خلال لغة <b>Liquid</b>.",
+        "custom_description_2": "يرجى الاطلاع على التوثيق للحصول على تعليمات الاستخدام.",
+        "custom_description_3": "المتغيرات المتاحة:",
+        "custom_description_4": "رسالة الإشعار",
+        "custom_description_5": "اسم الخدمة",
+        "custom_description_6": "حالة الخدمة (UP/DOWN/إشعارات انتهاء صلاحية الشهادة)",
+        "custom_subject_label": "الموضوع المخصص",
+        "smtp_from_label": "من (عنوان البريد الإلكتروني للمرسل)",
+        "smtp_host_description": "إما إدخال اسم مضيف الخادم الذي تريد الاتصال به، أو استخدام localhost إذا كنت تقصد استخدام وكيل نقل بريد مُكوَّن محلياً.",
+        "smtp_host_label": "خادم SMTP",
+        "smtp_password_placeholder": "كلمة مرور SMTP",
+        "smtp_port_label": "المنفذ",
+        "smtp_to_label": "إلى (البريد الإلكتروني للمستلم/المستلمين)",
+        "smtp_username_placeholder": "اسم مستخدم SMTP"
+      },
+      "telegram": {
+        "auto_get_label": "احصل تلقائيًا",
+        "bot_token_description": "احصل على رمز البوت الخاص بك من",
+        "bot_token_label": "توكن البوت",
+        "chat_id_description": "يمكنك الحصول على معرّف المحادثة الخاص بك من خلال إرسال رسالة إلى بوتك والنقر على \"الحصول تلقائيًا\" أعلاه، أو يدويًا عبر Telegram API.",
+        "chat_id_description_2": "للحصول عليه يدويًا، قم بزيارة",
+        "chat_id_description_3": "انظر",
+        "chat_id_description_4": "وثائق تيليجرام",
+        "chat_id_description_5": "للمزيد من المعلومات.",
+        "chat_id_label": "معرّف المحادثة",
+        "chat_id_not_found": "لم يتم العثور على معرّف المحادثة في آخر تحديث.",
+        "failed_to_fetch_chat_id": "فشل في جلب معرف المحادثة",
+        "message_thread_id_description": "اختياري. يُستخدم لإرسال الرسائل إلى خيط محدد (موضوع) ضمن مجموعة منتدى كبيرة.",
+        "message_thread_id_label": "معرّف خيط المحادثة",
+        "no_updates_found": "لم يتم العثور على أي تحديثات. الرجاء إرسال رسالة إلى بوتك أولاً.",
+        "protect_content_description": "إذا تم تمكينها، فسيتم حماية محتوى الرسالة من إعادة التوجيه والحفظ.",
+        "protect_content_label": "حماية المحتوى",
+        "send_silently_description": "إذا تم التفعيل، سيتم إرسال الرسائل بصمت (سيتلقى المستخدمون إشعاراً بدون صوت).",
+        "send_silently_label": "إرسال بدون صوت",
+        "server_url_description": "الإعداد الافتراضي هو",
+        "server_url_description_2": "يمكنك استخدام خادم مخصص. انظر",
+        "server_url_description_3": "هنا",
+        "server_url_description_4": "للتفاصيل.",
+        "server_url_label": "رابط خادم تيليجرام",
+        "template_description": "قم بتخصيص تنسيق الرسالة. المتغيرات المتاحة",
+        "template_label": "نموذج الرسالة",
+        "template_parse_mode_description": "اختر طريقة تحليل الرسالة. انظر",
+        "template_parse_mode_description_2": "توثيق تنسيق تيليجرام",
+        "template_parse_mode_description_3": "للتفاصيل.",
+        "template_parse_mode_label": "وضع تحليل القالب",
+        "template_parse_mode_placeholder": "اختر وضع التفسير",
+        "template_placeholder": "أدخل قالب رسالتك المخصص",
+        "use_template_description": "تمكين استخدام قالب رسالة مخصص وتنسيقه",
+        "use_template_label": "استخدم قالب الرسالة"
+      },
+      "webhook": {
+        "additional_headers_description": "أضف رؤوس HTTP مخصصة إلى طلب ويب هوك.",
+        "additional_headers_label": "رؤوس إضافية",
+        "custom_body_description": "تخصيص تنسيق جسم الطلب. المتغيرات المتاحة",
+        "custom_body_label": "الجسم المخصص",
+        "post_url_description": "عنوان URL لنقطة نهاية Webhook التي سترسل الإشعارات إليها",
+        "post_url_label": "عنوان URL للإرسال",
+        "request_body_description_custom": "قم بتعريف تنسيق جسم الطلب المخصص الخاص بك أدناه.",
+        "request_body_description_form_data": "سيتم إرسال المحتوى كـ multipart/form-data. يمكنك فك ترميزه باستخدام <strong>json_decode($_POST['data'])</strong> في PHP.",
+        "request_body_description_json": "سيتم إرسال المحتوى كـ JSON مع رأس \"application/json\".",
+        "request_body_label": "جسم الطلب",
+        "request_body_placeholder": "اختر نوع المحتوى"
+      }
+    },
+    "important": "إشعارات مهمة",
+    "important_notifications": "إشعارات مهمة",
+    "labels": {
+      "friendly_name": "اسم العرض",
+      "type": "نوع مُرسل الإشعارات"
+    },
+    "messages": {
+      "create_failed": "فشل في إنشاء مُرسِل إشعارات",
+      "created_success": "تم إنشاء مُرسل الإشعارات بنجاح",
+      "error_loading_notifier": "خطأ في تحميل مُرسِل الإشعارات",
+      "test_failed": "فشل في إرسال إشعار الاختبار",
+      "test_success": "تم إرسال إشعار الاختبار بنجاح",
+      "update_failed": "فشل في تحديث جهة الإخطار",
+      "updated_success": "تم تحديث قناة الإشعارات بنجاح"
+    },
+    "new": {
+      "title": "قناة الإشعارات الجديدة"
+    },
+    "no_important": "لا توجد إشعارات مهمة.",
+    "placeholders": {
+      "select_type": "اختر نوع مُرسِل الإشعارات"
+    },
+    "search_placeholder": "ابحث عن قنوات الإشعارات بالاسم..."
+  },
+  "proxies": {
+    "delete_dialog": {
+      "description": "لا يمكن التراجع عن هذا الإجراء. سيتم حذف البروكسي بشكل دائم {{host}}:{{port}}.",
+      "title": "هل أنت متأكد تماماً؟"
+    },
+    "edit": {
+      "page_name": "تعديل البروكسي"
+    },
+    "empty_list": {
+      "action_text": "إنشاء بروكسيك الأول",
+      "text": "ابدأ بإنشاء أول بروكسي لاستخدامه مع مراقبيك.",
+      "title": "لا توجد أي بروكسيات"
+    },
+    "form": {
+      "auth_label": "الخادم الوكيل يتطلب المصادقة",
+      "port_placeholder": "المنفذ",
+      "protocol_label": "بروتوكول البروكسي",
+      "protocol_placeholder": "اختر بروتوكول البروكسي",
+      "server_label": "خادم البروكسي",
+      "server_placeholder": "عنوان الخادم",
+      "user": "المستخدم"
+    },
+    "messages": {
+      "create_failed": "فشل في إنشاء البروكسي",
+      "created_success": "تم إنشاء البروكسي بنجاح",
+      "error_loading_proxy": "خطأ في تحميل الوكيل",
+      "update_failed": "فشل في تحديث البروكسي",
+      "updated_success": "تم تحديث البروكسي بنجاح"
+    },
+    "new": {
+      "page_name": "بروكسي جديد"
+    },
+    "page_name": "بروكسيات",
+    "search_label": "بحث",
+    "search_placeholder": "ابحث عن البروكسيات حسب المضيف..."
+  },
+  "security": {
+    "enable_2fa": {
+      "form": {
+        "authenticator_code_label": "رمز المصادقة",
+        "authenticator_code_placeholder": "أدخل رمز المصادقة الثنائية المكوَّن من ستة أرقام",
+        "current_password_label": "كلمة المرور الحالية",
+        "current_password_placeholder": "أدخل كلمة المرور الحالية",
+        "enable_2fa_button": "تمكين المصادقة الثنائية"
+      },
+      "messages": {
+        "2fa_active": "المصادقة الثنائية مفعلة",
+        "2fa_disabled_successfully": "تم تعطيل المصادقة الثنائية بنجاح",
+        "2fa_enabled_successfully": "تم تفعيل المصادقة الثنائية بنجاح",
+        "account_is_protected_with_2fa": "حسابك محمي بواسطة المصادقة الثنائية.",
+        "disable_2fa": "تعطيل المصادقة الثنائية",
+        "enter_password_to_disable_2fa": "أدخل كلمة المرور الخاصة بك لإيقاف المصادقة الثنائية",
+        "failed_to_disable_2fa": "فشل في تعطيل المصادقة الثنائية",
+        "failed_to_verify_2fa_code": "فشل في التحقق من رمز المصادقة الثنائية",
+        "failed_to_verify_password": "فشل في التحقق من كلمة المرور أو بدء إعداد المصادقة الثنائية",
+        "have_enabled_2fa": "لقد قمت بتمكين المصادقة الثنائية (2FA) لحسابك. وهذا يضيف طبقة أمان إضافية.",
+        "or_enter_secret_manually": "أو أدخل هذا السر يدويًا",
+        "scan_qr_code_with_authenticator_app": "امسح رمز QR هذا باستخدام تطبيق المصادقة الخاص بك",
+        "two_factor_authentication_enabled": "تم تفعيل المصادقة الثنائية",
+        "user_email_not_found": "البريد الإلكتروني للمستخدم غير موجود"
+      }
+    },
+    "page_name": "الأمان",
+    "update_password": {
+      "form": {
+        "confirm_new_password_label": "تأكيد كلمة المرور الجديدة",
+        "confirm_new_password_placeholder": "أعد إدخال كلمة المرور الجديدة",
+        "new_password_label": "كلمة المرور الجديدة",
+        "new_password_placeholder": "أدخل كلمة مرور جديدة",
+        "old_password_label": "كلمة المرور القديمة",
+        "old_password_placeholder": "أدخل كلمة المرور الحالية",
+        "update_password_button": "تحديث كلمة المرور"
+      },
+      "messages": {
+        "failed_to_update_password": "فشل في تحديث كلمة المرور",
+        "password_updated_successfully": "تم تحديث كلمة المرور بنجاح"
+      },
+      "title": "تحديث كلمة المرور"
+    }
+  },
+  "sendgrid": {
+    "api_key_description": "مفتاح API الخاص بـ SendGrid. يمكنك إنشاء واحد في حساب SendGrid الخاص بك ضمن الإعدادات → مفاتيح API. تأكد من أن لديه صلاحيات \"Mail Send\".",
+    "api_key_label": "مفتاح API",
+    "bcc_email_description": "المستلمون بنسخ مخفية. افصل عناوين البريد الإلكتروني المتعددة بفواصل.",
+    "bcc_email_label": "البريد الإلكتروني بنسخة مخفية (اختياري)",
+    "cc_email_description": "المستلمون بنسخ كربونية. افصل عناوين البريد الإلكتروني المتعددة بفواصل.",
+    "cc_email_label": "نسخة إلى البريد الإلكتروني (اختياري)",
+    "from_email_description": "عنوان البريد الإلكتروني للمرسل. يجب أن يكون المرسل معتمدًا في حسابك على SendGrid.",
+    "from_email_label": "البريد الإلكتروني للمرسل",
+    "subject_description": "سطر موضوع البريد الإلكتروني. يدعم قوالب Liquid.",
+    "subject_label": "عنوان الرسالة المخصص (اختياري)",
+    "subject_variables_label": "المتغيرات المتاحة:",
+    "subject_variables_msg": "رسالة الإخطار",
+    "subject_variables_name": "اسم الخدمة",
+    "subject_variables_status": "حالة الخدمة (UP/DOWN)",
+    "to_email_description": "عنوان البريد الإلكتروني للمستلم الأساسي. للمستلمين المتعددين، استخدم حقول CC أو BCC.",
+    "to_email_label": "البريد الإلكتروني للمستلم"
+  },
+  "settings": {
+    "data_retention": {
+      "days_label": "أيام",
+      "description": "حدد عدد الأيام التي سيُحتفظ فيها بالبيانات (KEEP_DATA_PERIOD_DAYS).",
+      "title": "فترة الاحتفاظ بالبيانات"
+    },
+    "timezone": {
+      "description": "اختر منطقتك الزمنية المفضلة لعرض جميع الأوقات في التطبيق.",
+      "label": "المنطقة الزمنية",
+      "no_timezone_found": "لم يتم العثور على منطقة زمنية.",
+      "search_placeholder": "ابحث عن المنطقة الزمنية...",
+      "select_placeholder": "اختر المنطقة الزمنية...",
+      "title": "المنطقة الزمنية"
+    },
+    "validation": {
+      "min_days": "يجب أن يكون على الأقل يوم واحد"
+    }
+  },
+  "status": {
+    "messages": {
+      "all_systems_operational": "جميع الأنظمة قيد التشغيل",
+      "down": "خارج الخدمة",
+      "last_updated": "آخر تحديث",
+      "maintenance": "الصيانة",
+      "no_monitors_configured": "لا توجد مراقبات مُكوَّنة لصفحة الحالة هذه.",
+      "operational": "قيد التشغيل",
+      "partial_system_outage": "انقطاع جزئي في النظام",
+      "powered_by": "مشغّل بواسطة",
+      "refresh_in": "التحديث خلال",
+      "refresh_now": "تحديث الآن",
+      "status_page_not_found": "صفحة الحالة غير موجودة أو غير منشورة.",
+      "under_maintenance": "قيد الصيانة",
+      "unknown": "غير معروف"
+    }
+  },
+  "status_pages": {
+    "affected_monitors": "أجهزة الرصد المتأثرة",
+    "affected_monitors_info": "اختر المراقبات التي ستتأثر بهذه الصيانة",
+    "auto_refresh_interval": "المدة بين التحديثات التلقائية (ثوانٍ)",
+    "basic_information": "المعلومات الأساسية",
+    "create_status_page": "إنشاء صفحة الحالة",
+    "customization": "التخصيص",
+    "delete_dialog": {
+      "description": "هل أنت متأكد أنك تريد حذف «{{title}}»؟ لا يمكن التراجع عن هذا الإجراء.",
+      "title": "حذف صفحة الحالة"
+    },
+    "description": "أدخل وصف صفحة الحالة",
+    "domain_already_used": "النطاق {{domain}} مستخدم بالفعل من قبل صفحة حالة أخرى",
+    "domain_host_warning": "هذا النطاق مطابق لعنوان المضيف الحالي لديك. قد يؤدي ذلك إلى تعارضات.",
+    "domains": "النطاقات",
+    "domains_info_warning": "لا تنسَ إضافة سجلات CNAME إلى DNS لكل نطاق.",
+    "draft_status": "مسودة",
+    "edit_page_name": "تعديل صفحة الحالة",
+    "messages": {
+      "create_description": "إنشاء صفحة حالة جديدة لمشاركة حالة الخدمة مع المستخدمين.",
+      "create_your_first_status_page": "إنشاء صفحة الحالة الأولى",
+      "created_successfully": "تم إنشاء صفحة الحالة بنجاح",
+      "delete_failed": "فشل في حذف صفحة الحالة",
+      "deleted_successfully": "تم حذف صفحة الحالة بنجاح",
+      "get_started_by_creating_your_first_status_page": "ابدأ بإنشاء أول صفحة الحالة لك.",
+      "no_status_pages_found": "لم يتم العثور على صفحات الحالة",
+      "not_found": "لم يتم العثور على صفحة الحالة",
+      "update_description": "تحديث إعدادات صفحة الحالة وتكوينها",
+      "updated_successfully": "تم تحديث صفحة الحالة بنجاح"
+    },
+    "new_page_name": "صفحة حالة جديدة",
+    "page_name": "صفحات الحالة",
+    "published": "منشور",
+    "published_info": "اجعل صفحة الحالة هذه متاحة للجمهور",
+    "published_status": "تم النشر",
+    "search_label": "بحث",
+    "search_placeholder": "ابحث عن صفحات الحالة بالعنوان...",
+    "update_status_page": "تحديث صفحة الحالة",
+    "view_page": "عرض الصفحة"
+  },
+  "tags": {
+    "confirm_delete_description": "لا يمكن التراجع عن هذا الإجراء. سيؤدي ذلك إلى حذف الوسم \"{{name}}\" بشكل نهائي وإزالته من جميع أجهزة الرصد.",
+    "edit_page_name": "تعديل الوسم",
+    "empty_state": {
+      "action": "أنشئ أول وسم",
+      "description": "ابدأ بإنشاء أول وسم لتنظيم مراقباتك.",
+      "title": "لا توجد وسوم"
+    },
+    "form": {
+      "color_description": "اختر لوناً لوسمك",
+      "color_label": "اللون",
+      "create_button": "إنشاء وسم",
+      "description_label": "الوصف",
+      "description_placeholder": "أدخل وصف الوسم (اختياري)",
+      "name_label": "الاسم",
+      "name_placeholder": "أدخل اسم الوسم",
+      "update_button": "تحديث الوسم"
+    },
+    "messages": {
+      "create_description": "أنشئ وسمًا جديدًا لتنظيم وتصنيف مراقبيك.",
+      "failed_to_load_tag": "فشل في تحميل الوسم. قد يكون الوسم غير موجود أو أنك لا تملك صلاحية عرضه.",
+      "tag_id_required": "معرّف الوسم مطلوب",
+      "update_description": "تحديث تفاصيل الوسم لتنظيم مراقباتك بشكل أفضل."
+    },
+    "new_page_name": "وسم جديد",
+    "search_placeholder": "ابحث عن الوسوم..."
+  },
+  "theme": {
+    "dark": "داكن",
+    "light": "فاتح",
+    "system": "النظام",
+    "toggle_theme": "تبديل المظهر"
+  },
+  "timezone": {
+    "average": "متوسط",
+    "last_24_hours": "آخر 24 ساعة",
+    "last_3_hours": "آخر 3 ساعات",
+    "last_3_months": "آخر 3 أشهر",
+    "last_30_minutes": "آخر 30 دقيقة",
+    "last_6_hours": "آخر 6 ساعات",
+    "last_7_days": "آخر 7 أيام",
+    "maximum": "الحد الأقصى",
+    "minimum": "الحد الأدنى",
+    "ms": "ميللي ثانية",
+    "response_time": "زمن الاستجابة",
+    "uptime": "زمن التشغيل"
+  },
+  "ui": {
+    "general": "عام",
+    "intervals_retries": "الفواصل الزمنية، المحاولات المتكررة، مهَل الانتظار"
+  }
+}

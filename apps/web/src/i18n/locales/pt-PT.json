@@ -1,0 +1,1280 @@
+{
+  "actions": {
+    "cancel": "Cancelar",
+    "saving": "A guardar..."
+  },
+  "auth": {
+    "login": {
+      "description": "Iniciar sessão com o seu e‑mail",
+      "no_account": "Não tem conta?",
+      "sign_up": "Registar",
+      "submit": "Entrar",
+      "title": "Bem-vindo de volta"
+    },
+    "register": {
+      "description": "Criar a sua conta de administrador",
+      "have_account": "Já tem conta?",
+      "sign_in": "Iniciar sessão",
+      "submit": "Criar",
+      "title": "Olá"
+    },
+    "twofa": {
+      "code_label": "Código 2FA",
+      "code_placeholder": "Insira o código 2FA",
+      "description": "2FA está activada na sua conta. Por favor, introduza o seu código de autenticação para continuar.",
+      "title": "Autenticação de Dois Fatores Requerida",
+      "verify_button": "Verificar 2FA",
+      "verifying": "A verificar…"
+    }
+  },
+  "bars": {
+    "down_count": "Contagem de indisponibilidades",
+    "important": "Importante",
+    "interval": "Intervalo",
+    "message": "Mensagem",
+    "ms": "ms",
+    "notified": "Notificado",
+    "ping": "Ping",
+    "retries": "Repetições",
+    "status": "Estado",
+    "time": "Tempo"
+  },
+  "common": {
+    "active": "Ativo",
+    "all": "Todos",
+    "back": "Voltar",
+    "cancel": "Cancelar",
+    "clear_all": "Limpar tudo",
+    "clear_all_filters": "Limpar todos os filtros",
+    "confirm": "Confirmar",
+    "confirm_delete_title": "Tem a certeza absoluta?",
+    "confirm_delete_title_short": "Tem a certeza?",
+    "continue": "Continuar",
+    "create": "Criar",
+    "created": "Criado",
+    "days": "dias",
+    "default": "Padrão",
+    "delete": "Eliminar",
+    "disabling": "Desativando...",
+    "dismiss": "Ignorar",
+    "down": "Caído",
+    "enabling": "A ativar...",
+    "error": "Erro",
+    "expires": "Expira",
+    "inactive": "Inativo",
+    "loading": "A carregar...",
+    "logout": "Sair",
+    "maintenance": "Manutenção",
+    "no_options_found": "Nenhuma opção encontrada",
+    "no_tags_available": "Sem tags disponíveis",
+    "please_refresh_page": "Por favor, actualize a página.",
+    "required": "Obrigatório",
+    "save": "Guardar",
+    "saving": "A guardar...",
+    "search": "Pesquisar",
+    "security": "Segurança",
+    "select": "Selecionar",
+    "select_monitors": "Selecionar monitores...",
+    "select_tags": "Selecionar tags",
+    "settings": "Definições",
+    "tags": "Etiquetas",
+    "unknown": "Desconhecido",
+    "unnamed_monitor": "Monitor sem nome",
+    "up": "Ativo",
+    "update": "Actualizar",
+    "verifying": "Verificando..."
+  },
+  "forms": {
+    "labels": {
+      "confirm_password": "Confirmar palavra-passe",
+      "email": "Email",
+      "footer_text": "Texto do Rodapé",
+      "heartbeat_interval": "Intervalo de batimento (segundos)",
+      "icon_url": "URL do ícone",
+      "monitor_name": "Nome",
+      "monitor_type": "Tipo",
+      "password": "Palavra-passe",
+      "retries": "Tentativas",
+      "slug": "Slug",
+      "title": "Título",
+      "username": "Nome de utilizador"
+    },
+    "placeholders": {
+      "auto_refresh_help": "0 para não atualizar automaticamente",
+      "domains": "Insira o domínio (ex.: status.example.com)",
+      "footer_text": "Introduza o texto do rodapé",
+      "icon_url": "https://example.com/icon.png",
+      "monitor_name": "Meu monitor",
+      "page_description": "Introduza a descrição da página de estado",
+      "page_title": "Insira o título da página de estado",
+      "slug": "slug da página de estado"
+    },
+    "validation": {
+      "email_invalid": "Introduza um endereço de e‑mail válido",
+      "password_min_length": "A palavra-passe deve ter pelo menos 8 caracteres",
+      "passwords_mismatch": "As senhas não coincidem"
+    }
+  },
+  "maintenance": {
+    "card": {
+      "aria": {
+        "delete": "Eliminar {{title}}",
+        "pause": "Pausar manutenção",
+        "resume": "Retomar manutenção"
+      },
+      "labels": {
+        "duration": "{{duration}} min",
+        "end": "Fim: {{date}}",
+        "start": "Início: {{date}}"
+      },
+      "status": {
+        "active": "Activo",
+        "ended": "Encerrado",
+        "inactive": "Inativo"
+      }
+    },
+    "edit_title": "Editar Manutenção",
+    "form": {
+      "affected_monitors_description": "Seleccione os monitores que serão afetados por esta manutenção",
+      "affected_monitors_title": "Monitores Afetados",
+      "cron_description": "Introduza uma expressão cron válida",
+      "cron_expression": "Expressão cron",
+      "date_time_title": "Data e Hora",
+      "day_of_month": "Dia do Mês",
+      "day_of_week": "Dia da Semana",
+      "description_label": "Descrição",
+      "description_placeholder": "Descrição da manutenção...",
+      "duration_minutes": "Duração (Minutos)",
+      "effective_date_range": "Intervalo de Datas de Vigência (Opcional)",
+      "end_date_time": "Data e hora de fim",
+      "end_time": "Hora Final",
+      "interval_label": "Intervalo (Executar uma vez por dia)",
+      "last_day": "Último dia",
+      "last_day_of_month": "Último dia do mês",
+      "maintenance_time_window": "Janela de Manutenção de um Dia",
+      "markdown_supported": "Markdown é suportado",
+      "same_as_server": "Igual ao fuso horário do servidor",
+      "start_date_time": "Data e Hora de Início",
+      "start_time": "Hora de início",
+      "strategy_label": "Estratégia",
+      "strategy_placeholder": "Selecione estratégia",
+      "timezone_label": "Fuso horário",
+      "timezone_placeholder": "Selecionar fuso horário",
+      "title_label": "Título",
+      "title_placeholder": "Título da manutenção"
+    },
+    "page": {
+      "clear_filters": "Limpar todos os filtros",
+      "dialogs": {
+        "confirm_action": {
+          "pause_description": "Tem a certeza de que pretende pausar esta manutenção?",
+          "resume_description": "Tem a certeza de que pretende retomar esta manutenção?",
+          "title": "Confirmar ação"
+        },
+        "confirm_delete": {
+          "description": "Tem a certeza de que pretende eliminar esta janela de manutenção? Esta ação não pode ser desfeita.",
+          "title": "Confirmar exclusão"
+        }
+      },
+      "edit_maintenance": "Editar Manutenção: {{title}}",
+      "empty_state": {
+        "action": "Criar a sua primeira janela de manutenção",
+        "description": "Comece a criar a sua primeira janela de manutenção para prevenir períodos de inatividade programados.",
+        "title": "Não foram encontradas janelas de manutenção"
+      },
+      "error_loading": "Erro ao carregar a manutenção",
+      "loading": "Carregando...",
+      "loading_monitors": "A carregar monitores...",
+      "search_placeholder": "Procurar manutenções..."
+    },
+    "page_title": "Janelas de Manutenção",
+    "schedule_title": "Agendar Manutenção",
+    "strategy": {
+      "cron": "Expressão cron",
+      "manual": "Ativo/Inativo manualmente",
+      "recurring_day_of_month": "Recorrente – Dia do Mês",
+      "recurring_interval": "Recorrente - Intervalo",
+      "recurring_weekday": "Recorrente - Dia da Semana",
+      "single": "Janela Única de Manutenção"
+    },
+    "toasts": {
+      "create_error": "Falha ao criar manutenção",
+      "created_success": "Manutenção criada com sucesso",
+      "delete_error": "Falha ao eliminar manutenção",
+      "deleted_success": "Manutenção eliminada com sucesso",
+      "pause_error": "Falha ao pausar a manutenção",
+      "paused_success": "Manutenção pausada com sucesso",
+      "resume_error": "Falha ao retomar a manutenção",
+      "resumed_success": "Manutenção retomada com sucesso",
+      "toggle_error": "Não foi possível alternar o estado de manutenção: ID em falta",
+      "update_error": "Falha ao atualizar a manutenção",
+      "updated_success": "Manutenção atualizada com sucesso"
+    },
+    "weekdays": {
+      "fri": "Sex",
+      "mon": "Seg",
+      "sat": "Sáb",
+      "sun": "Dom",
+      "thu": "Qui",
+      "tue": "Ter",
+      "wed": "Qua"
+    }
+  },
+  "messages": {
+    "login_error": "Ocorreu um erro ao iniciar sessão",
+    "login_no_tokens": "Login bem-sucedido, mas não foram recebidos tokens",
+    "login_success": "Iniciou sessão com sucesso",
+    "notifier_delete_error": "Falha ao eliminar notificador",
+    "notifier_delete_success": "Notificador eliminado com sucesso",
+    "register_error": "Ocorreu um erro durante o registo",
+    "register_no_tokens": "Registo concluído com sucesso, mas não foram recebidos tokens",
+    "register_success": "Registado com sucesso",
+    "setting_update_error": "Falha ao atualizar a configuração",
+    "setting_update_success": "Configuração atualizada com sucesso",
+    "tag_create_error": "Falha ao criar tag",
+    "tag_create_success": "Tag criada com sucesso",
+    "tag_delete_error": "Falha ao eliminar etiqueta",
+    "tag_delete_success": "Etiqueta excluída com sucesso",
+    "tag_update_error": "Falha na atualização da tag",
+    "tag_update_success": "Etiqueta atualizada com sucesso",
+    "unexpected_error": "Ocorreu um erro inesperado",
+    "version_mismatch": "Incompatibilidade de versão detectada"
+  },
+  "monitors": {
+    "card": {
+      "check_interval": "Intervalo de verificação:",
+      "loading_more": "A carregar mais..."
+    },
+    "empty_state": {
+      "action": "Criar o seu primeiro monitor",
+      "description": "Comece a criar o seu primeiro monitor para acompanhar a saúde dos seus serviços.",
+      "title": "Nenhum monitor encontrado"
+    },
+    "filtering_by_tags": "Filtrar por tags",
+    "filters": {
+      "monitor_status": "Estado",
+      "monitor_status_placeholder": "Estado do Monitor",
+      "search_placeholder": "Pesquisar monitores por nome...",
+      "status_placeholder": "Estado"
+    },
+    "form": {
+      "buttons": {
+        "copied": "Copiado!",
+        "copy": "Copiar",
+        "create": "Criar",
+        "regenerate": "Regenerar",
+        "update": "Actualizar"
+      },
+      "dns": {
+        "hostname": "Nome do host",
+        "port": "Porta",
+        "record_type": "Tipo de Registo de Recursos",
+        "record_type_placeholder": "Seleccione um tipo de registo",
+        "resolver_server": "Servidor de Resolução",
+        "title": "Definições de DNS"
+      },
+      "docker": {
+        "ca_cert_description": "Cole o seu certificado da Autoridade de Certificação no formato PEM.",
+        "ca_certificate": "Certificado CA (PEM)",
+        "client_cert_description": "Cole o seu certificado de cliente em formato PEM. Isto é usado para autenticação mútua TLS.",
+        "client_certificate": "Certificado do Cliente (PEM)",
+        "client_private_key": "Chave Privada do Cliente (PEM)",
+        "common_tls_issues": "Problemas comuns de TLS:",
+        "connection_type": "Tipo de Conexão",
+        "container_name_id": "Nome/ID do contêiner",
+        "disabled": "Desativado",
+        "docker_container": "Contêiner Docker",
+        "docker_host": "Host Docker",
+        "enable_tls": "Ativar TLS",
+        "enabled": "Ativado",
+        "examples": "Exemplos",
+        "hostname_mismatch": "x509: o certificado é válido para X, não para Y",
+        "hostname_mismatch_solution": "Certifique‑se de que o nome do host corresponda ao SAN do certificado ou desative a verificação (não recomendado).",
+        "legacy_cert_error": "x509: o certificado baseia-se no campo Common Name legado",
+        "legacy_cert_solution": "Adicione o nome de host aos Nomes Alternativos de Assunto (SAN) no seu certificado.",
+        "mtls_note": "Para TLS mútuo (mTLS), deve fornecer tanto o certificado do cliente como a chave privada. O certificado da CA é usado para verificar o certificado do servidor.",
+        "note": "Nota:",
+        "private_key_description": "Cole a sua chave privada em formato PEM. Mantenha isto seguro!",
+        "select_connection_type": "Selecionar tipo de ligação",
+        "select_tls_option": "Selecionar opção TLS",
+        "select_verification_option": "Selecione a opção de verificação",
+        "skip_verification": "Ignorar verificação (inseguro)",
+        "tls_configuration": "Configuração TLS",
+        "unknown_authority": "x509: certificado assinado por autoridade desconhecida:",
+        "unknown_authority_solution": "Forneça o certificado CA correto que assinou o certificado do servidor.",
+        "verify_certificates": "Verificar certificados",
+        "verify_tls": "Verificar TLS"
+      },
+      "grpc": {
+        "body": "Corpo de Dados (JSON)",
+        "enable_tls": "Activar TLS",
+        "enable_tls_description": "Utilizar conexão segura (TLS/SSL)",
+        "invert_keyword": "Inverter Palavra-chave",
+        "invert_keyword_description": "O monitor será marcado como UP se a palavra-chave NÃO for encontrada",
+        "keyword": "Palavra-chave",
+        "keyword_description": "Pesquisar por esta palavra-chave na resposta",
+        "keyword_placeholder": "Palavra-chave opcional para pesquisar",
+        "method_description": "Sensível a maiúsculas e minúsculas",
+        "method_placeholder": "Verificar",
+        "options_title": "Opções gRPC",
+        "proto_content": "Conteúdo Protobuf",
+        "proto_method": "Método Protobuf",
+        "proto_service_name": "Nome do Serviço Protobuf",
+        "service_name_placeholder": "Saúde"
+      },
+      "http": {
+        "advanced": {
+          "accepted_status_codes": "Códigos de Estado Aceites",
+          "ignore_tls": "Ignorar erros TLS/SSL em sites HTTPS",
+          "ignore_tls_description": "Ignorar a validação do certificado TLS. Use com cautela – isto torna as conexões menos seguras.",
+          "max_redirects": "Redirecionamentos máximos",
+          "max_redirects_description": "Número máximo de redirecionamentos a seguir (0-30). Definir como 0 para desativar redirecionamentos.",
+          "title": "Avançado"
+        },
+        "authentication": {
+          "auth_header": "Cabeçalho de Autorização",
+          "certificate": "Certificado",
+          "certificate_placeholder": "Certificado",
+          "client_id": "ID do cliente",
+          "client_id_placeholder": "ID do Cliente",
+          "client_secret": "Segredo do Cliente",
+          "client_secret_placeholder": "Segredo do cliente",
+          "domain": "Domínio",
+          "domain_placeholder": "Domínio",
+          "form_data_body": "Corpo de dados do formulário",
+          "key": "Chave",
+          "key_placeholder": "Chave",
+          "method_label": "Método de autenticação",
+          "method_placeholder": "Seleccionar tipo de autenticação",
+          "oauth_scope": "Escopo OAuth",
+          "oauth_scope_placeholder": "Opcional: Lista de escopos separados por espaços",
+          "oauth_token_url": "URL do token OAuth",
+          "oauth_token_url_placeholder": "URL do token OAuth",
+          "title": "Autenticação",
+          "workstation": "Estação de trabalho",
+          "workstation_placeholder": "Estação de trabalho"
+        },
+        "options": {
+          "body": "Corpo",
+          "body_encoding": "Codificação do corpo",
+          "body_encoding_placeholder": "Seleccionar codificação do corpo",
+          "form_example": "Exemplo de Dados de Formulário",
+          "headers": "Cabeçalhos",
+          "json_example": "Exemplo JSON",
+          "method": "Método",
+          "method_placeholder": "Seleccione o tipo de monitor",
+          "select_encoding": "Selecionar codificação do corpo",
+          "select_method": "Selecionar método",
+          "text_example": "Texto de Exemplo:\nQualquer conteúdo de texto simples aqui...",
+          "title": "Opções HTTP",
+          "xml_example": "Exemplo XML"
+        }
+      },
+      "http_json_query": {
+        "condition_label": "Condição",
+        "expected_value_label": "Valor Esperado",
+        "json_query_label": "Expressão de Consulta JSON",
+        "title": "Expressão de consulta JSON"
+      },
+      "http_keyword": {
+        "invert_keyword_description": "Procure que a palavra-chave esteja ausente em vez de presente.",
+        "invert_keyword_label": "Inverter Palavra-chave",
+        "keyword_label": "Palavra-chave",
+        "keyword_validation_title": "Validação de Palavra‑Chave"
+      },
+      "kafka": {
+        "add_broker": "Adicionar broker",
+        "auto_topic_creation_description": "Permitir que o produtor crie automaticamente o tópico se não existir",
+        "auto_topic_creation_label": "Permitir criação automática de tópicos",
+        "brokers_description": "Lista de endereços dos brokers Kafka (formato host:porta)",
+        "brokers_label": "Brokers Kafka",
+        "configuration_title": "Configuração do Kafka",
+        "enable_ssl_description": "Use encriptação SSL/TLS para a ligação",
+        "enable_ssl_label": "Ativar SSL/TLS",
+        "message_description": "O conteúdo da mensagem a enviar ao tópico (formato JSON recomendado)",
+        "message_label": "Mensagem",
+        "sasl_mechanism_description": "Escolha o mecanismo de autenticação SASL",
+        "sasl_mechanism_label": "Mecanismo SASL",
+        "sasl_mechanism_placeholder": "Selecionar mecanismo SASL",
+        "sasl_password_description": "Palavra-passe para autenticação SASL",
+        "sasl_password_label": "Senha SASL",
+        "sasl_password_placeholder": "Senha",
+        "sasl_username_description": "Nome de utilizador para autenticação SASL",
+        "sasl_username_label": "Nome de utilizador SASL",
+        "security_title": "Segurança",
+        "topic_description": "Tópico Kafka para produzir mensagens"
+      },
+      "mongodb": {
+        "command_description": "Comando MongoDB a executar em JSON. O padrão é ping se não for especificado.",
+        "command_label": "Comando (Opcional)",
+        "configuration_title": "Configuração do MongoDB",
+        "connection_string_description": "String de ligação MongoDB. Suporta os formatos padrão (mongodb://) e de lista de sementes DNS (mongodb+srv://).",
+        "connection_string_label": "String de Conexão",
+        "expected_value_description": "Valor esperado para comparar com o resultado do caminho JSON.",
+        "expected_value_label": "Valor esperado (Opcional)",
+        "expected_value_placeholder": "Valor esperado",
+        "json_path_description": "JSON path para extrair valor da resposta. Use $ para o nível raiz.",
+        "json_path_label": "JSON Path (Opcional)"
+      },
+      "mqtt": {
+        "check_type_json_query": "Consulta JSON",
+        "check_type_keyword": "Palavra-chave",
+        "check_type_label": "Tipo de verificação MQTT",
+        "check_type_none": "Nenhum (Qualquer Mensagem)",
+        "check_type_placeholder": "Selecionar tipo de verificação",
+        "configuration_title": "Configuração MQTT",
+        "expected_value_label": "Valor esperado",
+        "hostname_label": "Nome de host",
+        "json_path_label": "JSON Path",
+        "password_label": "Senha MQTT",
+        "password_placeholder": "Palavra-passe (opcional)",
+        "port_label": "Porta",
+        "success_keyword_label": "Palavra-chave de sucesso MQTT",
+        "success_keyword_placeholder": "Palavra-chave que indica sucesso",
+        "username_label": "Nome de utilizador MQTT",
+        "username_placeholder": "Utilizador (opcional)",
+        "validation": {
+          "expected_value_required": "Valor esperado é obrigatório quando o tipo de verificação é json-query",
+          "json_path_required": "O caminho JSON é obrigatório quando o tipo de verificação é json-query",
+          "success_keyword_required": "A palavra-chave de sucesso é obrigatória quando o tipo de verificação é palavra-chave."
+        }
+      },
+      "mysql": {
+        "connection_string_examples": "Exemplos:",
+        "connection_string_label": "String de Conexão",
+        "connection_title": "Conexão MySQL",
+        "query_label": "Consulta"
+      },
+      "ping": {
+        "data_size": "Tamanho de Dados (bytes)",
+        "host": "Nome de host / IP",
+        "title": "Definições de Ping"
+      },
+      "postgres": {
+        "connection_string_label": "String de Conexão",
+        "connection_title": "Conexão PostgreSQL",
+        "query_label": "Consulta"
+      },
+      "push": {
+        "url_description": "Use esta URL no seu serviço para reportar o estado. Faça uma requisição HTTP (POST/GET) para este endpoint e envie um sinal de vida.",
+        "url_title": "URL do monitor de push"
+      },
+      "rabbitmq": {
+        "documentation_link": "Documentação do RabbitMQ",
+        "health_checks_description": "O monitor verifica o endpoint {{code}} em cada nó e retorna ATIVO se qualquer nó estiver saudável.",
+        "management_nodes_description": "Introduza a URL dos nós de gestão do RabbitMQ, incluindo protocolo e porto. Exemplo: https://node1.rabbitmq.com:15672",
+        "management_nodes_title": "Nós de Gestão",
+        "node_url_label": "URL do nó",
+        "password_description": "Senha de autenticação da interface de gestão do RabbitMQ",
+        "setup_information_description": "Para usar o monitor RabbitMQ, tem de activar o plugin de gestão na sua configuração do RabbitMQ. Para mais informação, consulte a documentação do RabbitMQ.",
+        "setup_information_title": "Informação de Configuração",
+        "title": "Configuração do RabbitMQ",
+        "username_description": "Nome de utilizador para autenticação na interface de gestão do RabbitMQ"
+      },
+      "redis": {
+        "ca_certificate_description": "Certificado de Autoridade Raiz em formato PEM. Necessário para a verificação TLS adequada com certificados autoassinados.",
+        "ca_certificate_label": "Certificado CA (Opcional)",
+        "client_certificate_description": "Certificado de cliente em formato PEM. Obrigatório para autenticação mútua TLS.",
+        "client_certificate_label": "Certificado de Cliente (Opcional)",
+        "client_key_description": "Chave privada do cliente no formato PEM. Precisa ser fornecida junto com o certificado do cliente.",
+        "client_key_label": "Chave Privada do Cliente (Opcional)",
+        "connection_string_description": "Formato de string de conexão Redis: {{redis}} ou {{rediss}} para TLS",
+        "connection_string_label": "String de conexão",
+        "ignore_tls_description": "Ignorar verificação do certificado TLS (não recomendado para produção)",
+        "ignore_tls_label": "Ignorar erros TLS/SSL",
+        "title": "Configuração do Redis"
+      },
+      "shared": {
+        "intervals": {
+          "heartbeat_retry": "Intervalo de Re‑tentativa do Heartbeat (Repetir a cada {{seconds}} segundos)",
+          "max_retries_description": "Tentativas máximas antes de o serviço ser marcado como indisponível e uma notificação ser enviada.",
+          "request_timeout": "Tempo limite da solicitação (Limite depois de {{seconds}} segundos)",
+          "resend_notification": "Reenviar notificação se estiver inativo X vezes consecutivas (Reenvio desativado)"
+        },
+        "notifications": {
+          "add_notifier": "Adicionar notificador",
+          "new_notifier": "+ Novo Notificador",
+          "no_channels": "Nenhum canal de notificação encontrado, crie um primeiro",
+          "no_channels_available": "Nenhum canal disponível",
+          "select_channel": "Selecionar canal",
+          "select_notifier_placeholder": "Selecionar notificador",
+          "selected_channels": "Canais de notificação selecionados",
+          "title": "Canais de notificação"
+        },
+        "proxy": {
+          "add_proxy": "Adicionar Proxy",
+          "new_proxy": "+ Novo Proxy",
+          "no_proxy": "Sem proxy",
+          "remove_proxy": "Remover proxy",
+          "select_proxy_placeholder": "Selecionar Proxy",
+          "selected_proxy": "Proxy Selecionado",
+          "title": "Proxy"
+        },
+        "tags": {
+          "label": "Etiquetas",
+          "no_tags": "Não há etiquetas disponíveis",
+          "placeholder": "Selecionar tags"
+        }
+      },
+      "snmp": {
+        "community_description": "A string da comunidade SNMP para autenticação (semelhante a uma palavra-passe)",
+        "community_label": "String de Comunidade",
+        "expected_value_description": "O valor a comparar. Deixe em branco para ignorar a validação.",
+        "expected_value_label": "Valor esperado",
+        "host_description": "O nome do host ou endereço IP do dispositivo com SNMP activado",
+        "host_label": "Host",
+        "json_path_description": "Expressão JSONPath para extrair o valor da resposta (usar \"$\" para o valor bruto)",
+        "json_path_label": "JSON Path",
+        "json_path_operator_description": "Como comparar o valor extraído com o valor esperado",
+        "json_path_operator_eq": "igual",
+        "json_path_operator_ge": "maior ou igual a",
+        "json_path_operator_gt": "maior que",
+        "json_path_operator_label": "Condição",
+        "json_path_operator_le": "menor ou igual",
+        "json_path_operator_lt": "menor que",
+        "json_path_operator_ne": "não é igual",
+        "oid_description": "O identificador de objeto SNMP a consultar (ex.: 1.3.6.1.2.1.1.1.0 para a descrição do sistema)",
+        "oid_label": "OID (Identificador de Objeto)",
+        "port_description": "Porta SNMP (padrão: 161)",
+        "port_label": "Porta",
+        "snmp_version_description": "Versão do protocolo SNMP a usar",
+        "snmp_version_label": "Versão SNMP",
+        "title": "Definições SNMP",
+        "value_validation_label": "Validação de Valor (Opcional)"
+      },
+      "sqlserver": {
+        "allowed_statements_description": "SELECT, SHOW, DESCRIBE, EXPLAIN, WITH e VALUES.",
+        "allowed_statements_label": "Declarações permitidas:",
+        "connection_string_label": "String de ligação",
+        "query_description": "Consulta a executar para a verificação de saúde. Deixe em branco para usar o padrão.",
+        "query_label": "Consulta",
+        "title": "Conexão Microsoft SQL Server"
+      },
+      "tcp": {
+        "host": "Servidor",
+        "port": "Porta",
+        "title": "Conexão TCP"
+      },
+      "type": {
+        "dns": "Monitor DNS",
+        "docker": "Contêiner Docker",
+        "grpc": "Monitor de Palavras-chave gRPC",
+        "http": "Monitor HTTP(S)",
+        "kafka": "Monitor de Produtor Kafka",
+        "mongodb": "Monitor de base de dados MongoDB",
+        "mqtt": "Monitor de Broker MQTT",
+        "mysql": "Monitor MySQL/MariaDB",
+        "ping": "Monitor de Ping (ICMP)",
+        "postgres": "Monitor de base de dados PostgreSQL",
+        "push": "Monitor de Push (o serviço externo invoca uma URL gerada)",
+        "rabbitmq": "Monitor do RabbitMQ",
+        "redis": "Monitor de base de dados Redis",
+        "snmp": "Monitor SNMP",
+        "sqlserver": "Monitor Microsoft SQL Server",
+        "tcp": "Monitor de Porta TCP"
+      }
+    },
+    "page": {
+      "description": "Criar um novo monitor para começar a acompanhar o desempenho do seu site.",
+      "edit_title": "Editar monitor:",
+      "new_title": "Novo Monitor"
+    },
+    "title": "Monitores",
+    "toasts": {
+      "deleted": "Monitor excluído",
+      "paused": "Monitor pausado",
+      "reset_success": "Dados do monitor redefinidos com sucesso",
+      "resumed": "Monitorização retomada"
+    },
+    "view": {
+      "buttons": {
+        "clone": "Clonar",
+        "delete": "Eliminar",
+        "edit": "Editar",
+        "pause": "Pausar",
+        "reset_data": "Repor dados",
+        "resume": "Retomar"
+      },
+      "certificate": "Certificado",
+      "check_every": "Verificar a cada",
+      "current_status": "Estado atual",
+      "dialogs": {
+        "delete": {
+          "description": "Esta ação não pode ser revertida. Isto irá eliminar permanentemente o monitor e todos os dados relacionados.",
+          "title": "Tem a certeza absoluta?"
+        },
+        "pause": {
+          "description": "Tem a certeza de que pretende pausar?",
+          "title": "Confirmação"
+        },
+        "reset": {
+          "description": "Esta ação eliminará permanentemente todo o histórico de batimentos cardíacos e estatísticas de uptime deste monitor. O monitor aparecerá como se tivesse acabado de ser criado. Esta ação não pode ser revertida.",
+          "title": "Reiniciar dados do monitor"
+        }
+      },
+      "expiring_soon": "Expira em breve",
+      "for": "para",
+      "live_status": "Estado ao vivo",
+      "monitor_for": "monitorizar por",
+      "no_certificate_data": "Sem dados de certificado",
+      "seconds": "segundos",
+      "stats": {
+        "last_24_hours": "Últimas 24 horas",
+        "last_30_days": "Últimos 30 dias",
+        "last_365_days": "Últimos 365 dias",
+        "last_7_days": "Últimos 7 dias"
+      },
+      "status": {
+        "down": "Offline",
+        "maintenance": "Manutenção",
+        "paused": "Pausado",
+        "up": "Ativo"
+      }
+    }
+  },
+  "navigation": {
+    "maintenance": "Manutenção",
+    "monitors": "Monitores",
+    "notification_channels": "Canais de notificação",
+    "proxies": "Proxies",
+    "settings": "Definições",
+    "status_pages": "Páginas de Estado",
+    "tags": "Etiquetas"
+  },
+  "notifications": {
+    "actions": {
+      "test": "Testar",
+      "testing": "A testar..."
+    },
+    "aria": {
+      "delete": "Eliminar {{name}}"
+    },
+    "confirm_delete_description": "Esta ação não pode ser revertida. Irá apagar permanentemente o notificador '{{name}}' e removê‑lo de todos os monitores que o utilizem.",
+    "create_title": "Criar Notificador",
+    "edit_channel_title": "Editar canal de notificação",
+    "edit_title": "Editar Notificador",
+    "empty_state": {
+      "action": "Criar o seu primeiro canal de notificação",
+      "description": "Inicie criando o seu primeiro canal de notificação para enviar alertas à sua equipa.",
+      "title": "Nenhum canal de notificação encontrado"
+    },
+    "form": {
+      "discord": {
+        "bot_display_name_description": "O nome que aparecerá como remetente das mensagens do Discord.",
+        "bot_display_name_label": "Nome de exibição do bot",
+        "custom_message_prefix_description": "Prefixo opcional que será adicionado ao início de todas as mensagens.",
+        "custom_message_prefix_label": "Prefixo de Mensagem Personalizado",
+        "custom_message_prefix_placeholder": "Opcional: Adicionar um prefixo à sua mensagem",
+        "forum_post_name_description": "O nome da nova publicação no fórum que será criada.",
+        "forum_post_name_label": "Nome da Publicação do Fórum",
+        "forum_post_name_placeholder": "Introduza o nome da publicação do fórum",
+        "sending_message_to_channel": "Enviar para o canal",
+        "sending_message_to_description": "Escolha onde enviar mensagens do Discord.",
+        "sending_message_to_label": "A enviar mensagem para",
+        "sending_message_to_new_forum_post": "Enviar para nova publicação no fórum",
+        "sending_message_to_placeholder": "Selecione o tipo de mensagem",
+        "sending_message_to_thread": "Enviar para o fio",
+        "setup_webhook_description_1": "Obtenha a URL do webhook nas definições do servidor Discord → Integrações → Webhooks.",
+        "setup_webhook_description_2": "Crie um novo webhook e copie o URL. Certifique‑se de ter seleccionado o canal correcto.",
+        "setup_webhook_title": "Configurar Webhook do Discord",
+        "thread_id_description_1": "Ativar o Modo de Desenvolvedor nas Configurações de Utilizador do Discord → Avançado → Modo de Desenvolvedor",
+        "thread_id_description_2": "Clique com o botão direito no tópico ou mensagem e selecione \"Copiar ID do tópico\" ou \"Copiar ID do canal\"",
+        "thread_id_description_title": "O ID do tópico ou publicação do fórum onde as mensagens serão enviadas",
+        "thread_id_label": "ID do Fio",
+        "thread_id_placeholder": "Insira o ID da conversa ou publicação",
+        "webhook_url_label": "URL do Webhook do Discord"
+      },
+      "google_chat": {
+        "more_info_about_webhooks": "Mais informações sobre Webhooks",
+        "webhook_url_label": "URL do Webhook do Google Chat"
+      },
+      "gotify": {
+        "application_token_description": "O token de aplicação da sua aplicação Gotify. Pode encontrá‑lo na interface web do Gotify, em Aplicações.",
+        "application_token_label": "Token da aplicação",
+        "custom_message_description": "Modelo de mensagem personalizado. Variáveis disponíveis",
+        "custom_message_description_2": "Deixe em branco para usar a mensagem predefinida.",
+        "custom_message_label": "Mensagem personalizada",
+        "custom_title_description": "Título personalizado para a notificação. Variáveis disponíveis: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Deixe em branco para usar o título padrão \"Peekaping\".",
+        "custom_title_label": "Título personalizado",
+        "learn_more_label": "Saiba mais sobre o Gotify e como configurá-lo em:",
+        "note_description": "Precisa de ter um servidor Gotify em funcionamento para usar esta integração.",
+        "note_label": "Nota:",
+        "priority_0": "Mais baixo",
+        "priority_1": "Muito Baixo",
+        "priority_10": "Máxima",
+        "priority_2": "Baixa",
+        "priority_3": "Abaixo do Normal",
+        "priority_4": "Normal",
+        "priority_5": "Acima do Normal",
+        "priority_6": "Médio",
+        "priority_7": "Alto",
+        "priority_8": "Muito Alta (Padrão)",
+        "priority_9": "Emergência",
+        "priority_description": "Prioridade da mensagem (0-10). Valores mais altos indicam maior prioridade. O valor por omissão é 8.",
+        "priority_label": "Prioridade",
+        "priority_placeholder": "Selecionar prioridade",
+        "server_url_description": "O URL do seu servidor Gotify. Certifique‑se de que esteja acessível a partir desta aplicação.",
+        "server_url_label": "URL do servidor"
+      },
+      "grafana_oncall": {
+        "grafana_oncall_url_description": "A URL do webhook da sua integração Grafana OnCall. Pode encontrá‑la na sua instância Grafana OnCall, em Alertas e IRM > IRM > Integrações > Webhook.",
+        "grafana_oncall_url_label": "URL do Grafana OnCall",
+        "learn_more_label": "Saber mais sobre webhooks do Grafana OnCall"
+      },
+      "line": {
+        "channel_access_token_description": "Pode obter o token de acesso ao canal a partir do",
+        "channel_access_token_description_2": "Aceda às configurações do seu canal e procure por",
+        "channel_access_token_label": "Token de Acesso ao Canal (Duradouro)",
+        "channel_access_token_placeholder": "Insira o token de acesso do canal LINE",
+        "template_description": "Personalize o formato da mensagem. Variáveis disponíveis",
+        "template_label": "Modelo de mensagem",
+        "template_placeholder": "Introduza o seu modelo de mensagem personalizado",
+        "user_id_description": "Pode encontrar o seu ID do utilizador em",
+        "user_id_description_2": "Aceda às configurações do seu canal e procure por",
+        "user_id_label": "O seu ID de utilizador",
+        "user_id_placeholder": "Introduza o seu ID do LINE"
+      },
+      "matrix": {
+        "access_token_description": "O seu token de acesso Matrix para autenticação",
+        "access_token_label": "Token de acesso",
+        "custom_message_description": "Modelo de mensagem personalizado. Variáveis disponíveis",
+        "custom_message_label": "Mensagem Personalizada",
+        "homeserver_url_description": "A URL do seu servidor Matrix",
+        "homeserver_url_label": "URL do servidor",
+        "internal_room_id_description": "O ID interno da sala para onde serão enviadas as notificações. Deve começar com \"!\" e ter a forma: !roomid:matrix.org",
+        "internal_room_id_label": "ID interno da sala",
+        "setup_instructions_1": "Criar uma conta Matrix para o seu bot (ou usar a sua conta existente)",
+        "setup_instructions_2": "Criar ou entrar na sala onde deseja receber notificações",
+        "setup_instructions_3": "Obtenha o seu token de acesso efetuando uma solicitação de login",
+        "setup_instructions_4": "A resposta conterá um campo access_token - use-o como seu Token de Acesso",
+        "setup_instructions_5": "Encontre o ID interno da sua sala (começa com '!') nas configurações da sala do seu cliente Matrix",
+        "setup_instructions_label": "Instruções de Configuração"
+      },
+      "mattermost": {
+        "channel_name_description": "O canal onde serão enviadas as notificações. Deixe em branco para usar o canal por defeito configurado no webhook.",
+        "channel_name_label": "Nome do Canal",
+        "icon_emoji_cheat_sheet_label": "Folha de referência de emojis",
+        "icon_emoji_description": "Emoji a usar como ícone. Pode especificar dois emojis separados por um espaço (o primeiro para o estado 'up', o segundo para o estado 'down').",
+        "icon_emoji_label": "Emoji do ícone",
+        "icon_url_description": "URL da imagem a usar como ícone da mensagem de notificação.",
+        "icon_url_label": "URL do ícone",
+        "learn_more_label": "Saiba mais sobre webhooks",
+        "message_template_description": "Personalize o formato da mensagem. Variáveis disponíveis",
+        "message_template_label": "Modelo de Mensagem",
+        "use_message_template_description": "Ativar para usar um modelo de mensagem personalizado e formatação.",
+        "use_message_template_label": "Usar modelo de mensagem",
+        "username_description": "O nome de utilizador que aparecerá como remetente da mensagem.",
+        "webhook_url_label": "URL do Webhook"
+      },
+      "ntfy": {
+        "authentication_type_basic": "Autenticação Básica",
+        "authentication_type_basic_description": "Use nome de utilizador e palavra-passe para a autenticação básica.",
+        "authentication_type_label": "Tipo de Autenticação",
+        "authentication_type_none": "Sem autenticação",
+        "authentication_type_none_description": "Sem autenticação necessária. Adequado para servidores NTFY públicos.",
+        "authentication_type_placeholder": "Selecionar tipo de autenticação",
+        "authentication_type_token": "Autenticação por Token",
+        "authentication_type_token_description": "Use um token de acesso para autenticação.",
+        "custom_message_description": "Conteúdo da mensagem personalizado. Variáveis disponíveis",
+        "custom_message_label": "Mensagem Personalizada",
+        "password_required": "A palavra-passe é necessária para a autenticação básica",
+        "priority_1": "Mín (Menor)",
+        "priority_2": "Baixo",
+        "priority_3": "Padrão",
+        "priority_4": "Alto",
+        "priority_5": "Urgente (máxima)",
+        "priority_description": "O nível de prioridade da notificação. Prioridades mais altas podem acionar comportamentos diferentes no cliente.",
+        "priority_label": "Prioridade",
+        "priority_placeholder": "Selecionar prioridade",
+        "server_url_description": "O URL do seu servidor NTFY. Use https://ntfy.sh para a instância pública.",
+        "server_url_label": "URL do servidor",
+        "tags_description": "Etiquetas separadas por vírgula para categorizar notificações. Variáveis disponíveis",
+        "tags_label": "Etiquetas",
+        "title_description": "Título personalizado para a notificação. Variáveis disponíveis",
+        "title_label": "Título Personalizado",
+        "token_description": "O seu token de acesso NTFY para autenticação.",
+        "token_label": "Token de Acesso",
+        "token_required": "Token obrigatório para autenticação por token",
+        "topic_description": "O nome do tópico para as suas notificações. Este será o canal onde as notificações são enviadas.",
+        "topic_label": "Tópico",
+        "username_required": "O nome de utilizador é obrigatório para autenticação básica"
+      },
+      "opsgenie": {
+        "api_key_label": "Chave API",
+        "more_info_about_api_keys_label": "Mais informações sobre as chaves de API",
+        "priority_1": "Crítico",
+        "priority_2": "Alto",
+        "priority_3": "Moderado",
+        "priority_4": "Baixa",
+        "priority_5": "Informativo",
+        "priority_description": "Defina o nível de prioridade para alertas. O padrão é P3 (Moderado).",
+        "priority_label": "Prioridade",
+        "region_description": "Escolha a sua região do Opsgenie. Isto determina qual endpoint da API será usado.",
+        "region_label": "Região",
+        "region_placeholder": "Selecionar região"
+      },
+      "pagerduty": {
+        "auto_resolve_acknowledge": "Reconhecer automaticamente",
+        "auto_resolve_acknowledge_description": "Reconhecer automaticamente o incidente",
+        "auto_resolve_description": "Escolha a ação a tomar quando o monitor voltar a funcionar",
+        "auto_resolve_do_nothing": "Não fazer nada",
+        "auto_resolve_do_nothing_description": "Nenhuma ação realizada em estado UP",
+        "auto_resolve_label": "Resolver automaticamente ou reconhecer",
+        "auto_resolve_placeholder": "Seleccionar comportamento de auto-resolução",
+        "auto_resolve_resolve": "Resolver automaticamente",
+        "auto_resolve_resolve_description": "Resolver automaticamente o incidente",
+        "integration_key_description": "Saiba como obter a sua chave de integração",
+        "integration_key_label": "Chave de Integração",
+        "integration_key_placeholder": "Insira a sua chave de integração do PagerDuty",
+        "integration_url_description": "O URL do ponto de extremidade da API de Eventos v2 do PagerDuty. O valor por omissão é o ponto de extremidade padrão.",
+        "integration_url_label": "URL de Integração",
+        "learn_more_label": "Documentação do PagerDuty",
+        "priority_critical": "Crítico",
+        "priority_description": "O nível de severidade para incidentes PagerDuty. Por omissão, 'warning'.",
+        "priority_error": "Erro",
+        "priority_info": "Informação",
+        "priority_label": "Prioridade",
+        "priority_placeholder": "Selecione o nível de prioridade",
+        "priority_warning": "Aviso"
+      },
+      "pagertree": {
+        "authentication_token_description": "Token de autenticação opcional para maior segurança. Será enviado no cabeçalho pagertree-token.",
+        "authentication_token_label": "Token de Autenticação (Opcional)",
+        "authentication_token_placeholder": "Introduza o token de autenticação, se necessário",
+        "auto_resolve_alerts_description": "Resolver automaticamente alertas do PagerTree quando o monitor recuperar",
+        "auto_resolve_alerts_label": "Resolver alertas automaticamente",
+        "how_to_get_integration_url_label": "Como obter a URL de integração",
+        "integration_url_description": "Introduza a URL de integração do webhook do PagerTree.",
+        "integration_url_label": "URL do Webhook do PagerTree",
+        "urgency_level_critical": "Crítico",
+        "urgency_level_description": "Definir o nível de urgência padrão para alertas enviados ao PagerTree",
+        "urgency_level_high": "Alta",
+        "urgency_level_label": "Nível de Urgência",
+        "urgency_level_low": "Baixo",
+        "urgency_level_medium": "Médio",
+        "urgency_level_placeholder": "Seleccionar nível de urgência",
+        "urgency_level_silent": "Silencioso"
+      },
+      "pushbullet": {
+        "access_token": "Token de Acesso",
+        "access_token_description": "O seu token de acesso Pushbullet. Obtenha-o em",
+        "access_token_label": "Token de acesso",
+        "access_token_link": "Definições do Pushbullet",
+        "channel_tag": "Etiqueta do canal (Opcional)",
+        "channel_tag_description": "Enviar notificação para um canal do Pushbullet em vez de dispositivos",
+        "channel_tag_label": "Etiqueta de canal (Opcional)",
+        "custom_message_template_description": "Personaliza o corpo da notificação usando variáveis de modelo:",
+        "custom_message_template_heartbeat_ping": "Tempo de resposta",
+        "custom_message_template_heartbeat_time": "Carimbo de data e hora",
+        "custom_message_template_label": "Modelo de Mensagem Personalizado (Opcional)",
+        "custom_message_template_monitor_url": "URL do monitor",
+        "custom_message_template_msg": "Mensagem de alerta",
+        "custom_message_template_name": "Nome do monitor",
+        "custom_message_template_placeholder": "Monitor: {{ name }}\nEstado: {{ status }}\nMensagem: {{ msg }}",
+        "custom_message_template_status": "Estado atual",
+        "device_id": "ID do dispositivo (Opcional)",
+        "device_id_description": "Enviar notificação para um dispositivo específico. Deixe em branco para enviar a todos os dispositivos. Pode encontrar os IDs de dispositivos usando o",
+        "device_id_label": "ID do dispositivo (opcional)",
+        "device_id_link": "API do Pushbullet",
+        "more_info_on": "Mais informações sobre:"
+      },
+      "pushover": {
+        "application_token_label": "Token de aplicação",
+        "application_token_placeholder": "Insira o token da aplicação Pushover",
+        "device_description": "Deixe em branco para enviar a todos os dispositivos",
+        "device_label": "Dispositivo",
+        "device_placeholder": "Nome do dispositivo (opcional)",
+        "message_title_description": "Deixe em branco para usar o título por omissão",
+        "message_title_label": "Título da mensagem",
+        "message_title_placeholder": "Título personalizado da mensagem (opcional)",
+        "message_ttl_description": "Tempo de vida em segundos (0 = sem expiração)",
+        "message_ttl_label": "TTL da mensagem",
+        "more_info_label": "Mais informação sobre:",
+        "more_info_label_2": "Pode criar uma aplicação e obter o seu token API em",
+        "more_info_label_3": "A sua chave de utilizador pode ser encontrada em",
+        "notification_sound_down_description": "Som quando o monitor cai",
+        "notification_sound_down_label": "Som de notificação - Em baixo",
+        "notification_sound_down_placeholder": "Selecionar som",
+        "notification_sound_up_description": "Som quando o monitor voltar online",
+        "notification_sound_up_label": "Som de notificação - Ligado",
+        "notification_sound_up_placeholder": "Selecionar som",
+        "priority_1": "Mais baixo",
+        "priority_2": "Baixa",
+        "priority_3": "Normal",
+        "priority_4": "Alto",
+        "priority_5": "Emergência",
+        "priority_description": "Nível de prioridade da mensagem",
+        "priority_label": "Prioridade",
+        "priority_placeholder": "Selecione a prioridade",
+        "sound_alien": "Alien",
+        "sound_bike": "Bicicleta",
+        "sound_bugle": "Bugle",
+        "sound_cashregister": "Caixa Registradora",
+        "sound_classical": "Clássico",
+        "sound_climb": "Escalada",
+        "sound_cosmic": "Cósmico",
+        "sound_echo": "Eco",
+        "sound_falling": "Queda",
+        "sound_gamelan": "Gamelão",
+        "sound_incoming": "Entrada",
+        "sound_intermission": "Intermissão",
+        "sound_magic": "Mágico",
+        "sound_mechanical": "Mecânico",
+        "sound_none": "Nenhum",
+        "sound_persistent": "Persistente",
+        "sound_pianobar": "Bar de Piano",
+        "sound_pushover": "Pushover (padrão)",
+        "sound_siren": "Sirene",
+        "sound_spacealarm": "Alarme espacial",
+        "sound_tugboat": "Bote de atração",
+        "sound_updown": "Subir/Descer",
+        "sound_vibrate": "Vibrar",
+        "user_key_label": "Chave de utilizador",
+        "user_key_placeholder": "Introduza a sua chave de utilizador Pushover"
+      },
+      "signal": {
+        "custom_message_description": "Modelo de mensagem personalizado. Variáveis disponíveis",
+        "custom_message_label": "Mensagem personalizada",
+        "important_description": "Não pode misturar grupos e números nos destinatários!",
+        "important_label": "IMPORTANTE:",
+        "more_info_label": "Pode consultar este URL para ver como configurar um:",
+        "note_description": "Precisa de ter um cliente Signal com API REST.",
+        "note_label": "Nota:",
+        "number_description": "O número de telefone da sua conta Signal (número de remetente).",
+        "number_label": "Número",
+        "post_url_description": "O URL do seu servidor Signal CLI REST API.",
+        "post_url_label": "URL de publicação",
+        "recipients_description": "Lista de números de telefone separados por vírgulas para enviar notificações.",
+        "recipients_label": "Destinatários"
+      },
+      "slack": {
+        "channel_name_description": "O canal onde a mensagem será enviada. Se não for especificado, a mensagem será enviada para o canal padrão configurado no webhook.",
+        "channel_name_description_2": "Você pode substituir o canal por omissão especificando um nome de canal (por ex.: #alerts) ou um utilizador (por ex.: @username).",
+        "channel_name_label": "Nome do Canal",
+        "channel_notify_description": "Quando ativado, a mensagem disparará notificações para todos os membros do canal. Use com cautela para evitar spam.",
+        "channel_notify_label": "Canal de notificação",
+        "icon_emoji_cheat_sheet_label": "Folha de referência de emojis",
+        "icon_emoji_description": "Emoji a usar como ícone para esta mensagem. Deve estar no formato :emoji_name:",
+        "icon_emoji_label": "Emoji do ícone",
+        "message_format_description": "Enviar mensagens ricas",
+        "message_format_description_2": "Ativar a opção de enviar mensagens com formatação rica, anexos e melhor apresentação visual.",
+        "message_format_label": "Formato da mensagem",
+        "username_description": "O nome de utilizador que aparecerá como remetente da mensagem. Se não for especificado, será utilizado o nome do bot padrão.",
+        "webhook_url_description": "O URL do webhook da sua integração Slack. Pode encontrar este na sua instância Slack, em Integrações > Webhooks.",
+        "webhook_url_label": "URL do webhook"
+      },
+      "smtp": {
+        "custom_body_label": "Corpo Personalizado",
+        "custom_description": "A templatabilidade é alcançada através da linguagem de templates <b>Liquid</b>.",
+        "custom_description_2": "Consulte a documentação para instruções de uso.",
+        "custom_description_3": "Variáveis disponíveis:",
+        "custom_description_4": "mensagem da notificação",
+        "custom_description_5": "nome do serviço",
+        "custom_description_6": "estado do serviço (Ativo/Inativo/Notificações de expiração de certificado)",
+        "custom_subject_label": "Assunto Personalizado",
+        "smtp_from_label": "De (E-mail do remetente)",
+        "smtp_host_description": "Introduza o nome de domínio do servidor ao qual pretende ligar ou \"localhost\" se pretende usar um agente de transferência de correio configurado localmente.",
+        "smtp_host_label": "Host SMTP",
+        "smtp_password_placeholder": "Senha SMTP",
+        "smtp_port_label": "Porta",
+        "smtp_to_label": "Para (E-mail(s) do(s) destinatário(s))",
+        "smtp_username_placeholder": "Nome de utilizador SMTP"
+      },
+      "telegram": {
+        "auto_get_label": "Obter automaticamente",
+        "bot_token_description": "Obtenha o seu token de bot em",
+        "bot_token_label": "Token do Bot",
+        "chat_id_description": "Pode obter o seu ID de chat enviando uma mensagem para o seu bot e clicando em 'Auto Get' acima, ou manualmente via a API do Telegram.",
+        "chat_id_description_2": "Para o obter manualmente, visite",
+        "chat_id_description_3": "Ver",
+        "chat_id_description_4": "Documentação do Telegram",
+        "chat_id_description_5": "para mais informações.",
+        "chat_id_label": "ID do chat",
+        "chat_id_not_found": "ID do chat não encontrado na última atualização.",
+        "failed_to_fetch_chat_id": "Falha ao obter o ID do chat",
+        "message_thread_id_description": "Opcional. Utilizado para enviar mensagens a um tópico específico num supergrupo de fórum.",
+        "message_thread_id_label": "ID do tópico",
+        "no_updates_found": "Nenhuma atualização encontrada. Por favor, envie uma mensagem ao seu bot primeiro.",
+        "protect_content_description": "Se activado, o conteúdo da mensagem será protegido contra encaminhamento e gravação.",
+        "protect_content_label": "Proteger Conteúdo",
+        "send_silently_description": "Se activado, as mensagens serão enviadas silenciosamente (os utilizadores receberão uma notificação sem som).",
+        "send_silently_label": "Enviar em silêncio",
+        "server_url_description": "O padrão é",
+        "server_url_description_2": "Pode usar um servidor personalizado. Veja",
+        "server_url_description_3": "aqui",
+        "server_url_description_4": "para mais detalhes",
+        "server_url_label": "URL do servidor Telegram",
+        "template_description": "Personalize o formato da mensagem. Variáveis disponíveis",
+        "template_label": "Modelo de mensagem",
+        "template_parse_mode_description": "Escolha como a mensagem deve ser analisada. Veja",
+        "template_parse_mode_description_2": "Documentos de formatação do Telegram",
+        "template_parse_mode_description_3": "para mais detalhes.",
+        "template_parse_mode_label": "Modo de Análise do Modelo",
+        "template_parse_mode_placeholder": "Selecionar modo de análise",
+        "template_placeholder": "Introduza o seu modelo de mensagem personalizado",
+        "use_template_description": "Ativar o uso de um modelo de mensagem personalizado e formatação.",
+        "use_template_label": "Usar modelo de mensagem"
+      },
+      "webhook": {
+        "additional_headers_description": "Adicionar cabeçalhos HTTP personalizados ao pedido do webhook.",
+        "additional_headers_label": "Cabeçalhos adicionais",
+        "custom_body_description": "Personalize o formato do corpo da requisição. Variáveis disponíveis",
+        "custom_body_label": "Corpo Personalizado",
+        "post_url_description": "URL do endpoint do webhook onde as notificações serão enviadas.",
+        "post_url_label": "URL do POST",
+        "request_body_description_custom": "Defina abaixo o seu próprio formato de corpo de pedido personalizado.",
+        "request_body_description_form_data": "O conteúdo será enviado como multipart/form-data. Pode decodificar-o usando <strong>json_decode($_POST['data'])</strong> em PHP.",
+        "request_body_description_json": "O conteúdo será enviado como JSON com o cabeçalho \"application/json\".",
+        "request_body_label": "Corpo da requisição",
+        "request_body_placeholder": "Selecionar tipo de conteúdo"
+      }
+    },
+    "important": "Notificações importantes",
+    "important_notifications": "Notificações Importantes",
+    "labels": {
+      "friendly_name": "Nome amigável",
+      "type": "Tipo de notificador"
+    },
+    "messages": {
+      "create_failed": "Falha ao criar o notificador",
+      "created_success": "Notificador criado com sucesso",
+      "error_loading_notifier": "Erro ao carregar o notificador",
+      "test_failed": "Falha ao enviar notificação de teste",
+      "test_success": "Notificação de teste enviada com sucesso",
+      "update_failed": "Falha ao atualizar o notificador",
+      "updated_success": "Notificador actualizado com sucesso"
+    },
+    "new": {
+      "title": "Novo Canal de Notificação"
+    },
+    "no_important": "Nenhuma notificação importante encontrada.",
+    "placeholders": {
+      "select_type": "Selecionar tipo de notificador"
+    },
+    "search_placeholder": "Pesquisar canais de notificação por nome..."
+  },
+  "proxies": {
+    "delete_dialog": {
+      "description": "Esta acção não pode ser revertida. Isto vai eliminar permanentemente o proxy {{host}}:{{port}}.",
+      "title": "Tem a certeza absoluta?"
+    },
+    "edit": {
+      "page_name": "Editar Proxy"
+    },
+    "empty_list": {
+      "action_text": "Criar o seu primeiro proxy",
+      "text": "Comece por criar o seu primeiro proxy para usar nos seus monitores.",
+      "title": "Nenhum proxy encontrado"
+    },
+    "form": {
+      "auth_label": "O servidor proxy tem autenticação",
+      "port_placeholder": "Porta",
+      "protocol_label": "Protocolo de Proxy",
+      "protocol_placeholder": "Selecionar protocolo do proxy",
+      "server_label": "Servidor de proxy",
+      "server_placeholder": "Endereço do servidor",
+      "user": "Utilizador"
+    },
+    "messages": {
+      "create_failed": "Falha ao criar proxy",
+      "created_success": "Proxy criado com sucesso",
+      "error_loading_proxy": "Erro ao carregar proxy",
+      "update_failed": "Falha ao atualizar o proxy",
+      "updated_success": "Proxy atualizado com sucesso"
+    },
+    "new": {
+      "page_name": "Novo Proxy"
+    },
+    "page_name": "Proxies",
+    "search_label": "Pesquisar",
+    "search_placeholder": "Pesquisar proxies por host..."
+  },
+  "security": {
+    "enable_2fa": {
+      "form": {
+        "authenticator_code_label": "Código do autenticador",
+        "authenticator_code_placeholder": "Introduza o código de 6 dígitos",
+        "current_password_label": "Senha atual",
+        "current_password_placeholder": "Introduza a sua palavra-passe atual",
+        "enable_2fa_button": "Ativar 2FA"
+      },
+      "messages": {
+        "2fa_active": "2FA Ativo",
+        "2fa_disabled_successfully": "Autenticação de Dois Fatores desativada com sucesso",
+        "2fa_enabled_successfully": "2FA activado com sucesso",
+        "account_is_protected_with_2fa": "A sua conta está protegida por autenticação de dois fatores.",
+        "disable_2fa": "Desativar 2FA",
+        "enter_password_to_disable_2fa": "Introduza a sua palavra-passe para desativar a 2FA",
+        "failed_to_disable_2fa": "Falha ao desativar a 2FA",
+        "failed_to_verify_2fa_code": "Falha ao verificar o código 2FA",
+        "failed_to_verify_password": "Falha na verificação da palavra-passe ou na configuração 2FA",
+        "have_enabled_2fa": "Você ativou a autenticação de dois fatores (2FA) para a sua conta. Isto adiciona uma camada extra de segurança.",
+        "or_enter_secret_manually": "Ou introduza este segredo manualmente",
+        "scan_qr_code_with_authenticator_app": "Escaneie este código QR com a sua aplicação de autenticação",
+        "two_factor_authentication_enabled": "Autenticação de dois fatores activada",
+        "user_email_not_found": "E‑mail do utilizador não encontrado"
+      }
+    },
+    "page_name": "Segurança",
+    "update_password": {
+      "form": {
+        "confirm_new_password_label": "Confirmar Nova Senha",
+        "confirm_new_password_placeholder": "Introduzir novamente a nova palavra-passe",
+        "new_password_label": "Nova Palavra-passe",
+        "new_password_placeholder": "Nova palavra-passe",
+        "old_password_label": "Senha antiga",
+        "old_password_placeholder": "Introduza a sua palavra-passe atual",
+        "update_password_button": "Actualizar palavra-passe"
+      },
+      "messages": {
+        "failed_to_update_password": "Falha ao atualizar a palavra‑passe",
+        "password_updated_successfully": "Senha atualizada com sucesso"
+      },
+      "title": "Actualizar Palavra-passe"
+    }
+  },
+  "sendgrid": {
+    "api_key_description": "A sua chave API do SendGrid. Pode criar uma na sua conta SendGrid em Configurações → Chaves API. Certifique‑se de que tem permissões de \"Mail Send\".",
+    "api_key_label": "Chave API",
+    "bcc_email_description": "Destinatários de cópia oculta. Separe vários e‑mails com vírgulas.",
+    "bcc_email_label": "Email BCC (Opcional)",
+    "cc_email_description": "Destinatários em cópia. Separe vários endereços de e‑mail por vírgulas.",
+    "cc_email_label": "E‑mail CC (Opcional)",
+    "from_email_description": "O endereço de email do remetente. Deve ser um remetente verificado na sua conta SendGrid.",
+    "from_email_label": "E‑mail de origem",
+    "subject_description": "Linha de assunto do e‑mail. Suporta a modelagem Liquid.",
+    "subject_label": "Assunto Personalizado (Opcional)",
+    "subject_variables_label": "Variáveis disponíveis:",
+    "subject_variables_msg": "mensagem da notificação",
+    "subject_variables_name": "nome do serviço",
+    "subject_variables_status": "estado do serviço (ATIVO/INATIVO)",
+    "to_email_description": "Endereço de e‑mail do destinatário principal. Para múltiplos destinatários, use os campos CC ou BCC.",
+    "to_email_label": "Para e‑mail"
+  },
+  "settings": {
+    "data_retention": {
+      "days_label": "Dias",
+      "description": "Definir quantos dias manter os dados (KEEP_DATA_PERIOD_DAYS).",
+      "title": "Período de Retenção de Dados"
+    },
+    "timezone": {
+      "description": "Selecione a zona horária preferida para exibir todos os horários na aplicação.",
+      "label": "Fuso horário",
+      "no_timezone_found": "Nenhum fuso horário encontrado.",
+      "search_placeholder": "Procurar fuso horário...",
+      "select_placeholder": "Selecionar fuso horário...",
+      "title": "Fuso horário"
+    },
+    "validation": {
+      "min_days": "Deve ter pelo menos 1 dia"
+    }
+  },
+  "status": {
+    "messages": {
+      "all_systems_operational": "Todos os sistemas em funcionamento",
+      "down": "Indisponível",
+      "last_updated": "Última atualização",
+      "maintenance": "Manutenção",
+      "no_monitors_configured": "Nenhum monitor configurado para esta página de estado.",
+      "operational": "Operacional",
+      "partial_system_outage": "Interrupção Parcial do Sistema",
+      "powered_by": "Impulsionado por",
+      "refresh_in": "Atualizar em",
+      "refresh_now": "Actualizar agora",
+      "status_page_not_found": "Página de estado não encontrada ou não publicada.",
+      "under_maintenance": "Em manutenção",
+      "unknown": "Desconhecido"
+    }
+  },
+  "status_pages": {
+    "affected_monitors": "Monitores afetados",
+    "affected_monitors_info": "Selecione os monitores que serão afetados por esta manutenção",
+    "auto_refresh_interval": "Intervalo de Atualização Automática (segundos)",
+    "basic_information": "Informação básica",
+    "create_status_page": "Criar página de status",
+    "customization": "Personalização",
+    "delete_dialog": {
+      "description": "Tem a certeza de que pretende eliminar \"{{title}}\"? Esta ação não pode ser revertida.",
+      "title": "Eliminar página de estado"
+    },
+    "description": "Introduza a descrição da página de status",
+    "domain_already_used": "O domínio {{domain}} já está em uso por outra página de estado",
+    "domain_host_warning": "Este domínio coincide com o URL do seu host actual. Isto pode causar conflitos.",
+    "domains": "Domínios",
+    "domains_info_warning": "Não se esqueça de adicionar os registos CNAME ao seu DNS para cada domínio.",
+    "draft_status": "Rascunho",
+    "edit_page_name": "Editar página de estado",
+    "messages": {
+      "create_description": "Criar uma nova página de estado para partilhar o estado do seu serviço com os utilizadores.",
+      "create_your_first_status_page": "Crie a sua primeira página de status",
+      "created_successfully": "Página de status criada com sucesso",
+      "delete_failed": "Falha ao eliminar a página de estado",
+      "deleted_successfully": "Página de estado eliminada com sucesso",
+      "get_started_by_creating_your_first_status_page": "Comece criando a sua primeira página de estado.",
+      "no_status_pages_found": "Nenhuma página de estado encontrada",
+      "not_found": "Página de status não encontrada",
+      "update_description": "Atualize as definições e configurações da sua página de estado.",
+      "updated_successfully": "Página de estado atualizada com sucesso"
+    },
+    "new_page_name": "Nova Página de Estado",
+    "page_name": "Páginas de Estado",
+    "published": "Publicado",
+    "published_info": "Disponibilizar publicamente esta página de status",
+    "published_status": "Publicado",
+    "search_label": "Pesquisar",
+    "search_placeholder": "Pesquisar páginas de status por título...",
+    "update_status_page": "Actualizar Página de Estado",
+    "view_page": "Ver página"
+  },
+  "tags": {
+    "confirm_delete_description": "Esta ação não pode ser desfeita. Esta irá eliminar permanentemente a tag \"{{name}}\" e removê-la de todos os monitores.",
+    "edit_page_name": "Editar etiqueta",
+    "empty_state": {
+      "action": "Criar a sua primeira etiqueta",
+      "description": "Comece por criar a sua primeira etiqueta para organizar os seus monitores.",
+      "title": "Nenhum rótulo encontrado"
+    },
+    "form": {
+      "color_description": "Escolha uma cor para a sua etiqueta",
+      "color_label": "Cor",
+      "create_button": "Criar etiqueta",
+      "description_label": "Descrição",
+      "description_placeholder": "Introduza a descrição da etiqueta (opcional)",
+      "name_label": "Nome",
+      "name_placeholder": "Introduza o nome da etiqueta",
+      "update_button": "Actualizar Etiqueta"
+    },
+    "messages": {
+      "create_description": "Criar uma nova tag para organizar e categorizar os seus monitores.",
+      "failed_to_load_tag": "Falha ao carregar a etiqueta. A etiqueta pode não existir ou pode não ter permissões para a visualizar.",
+      "tag_id_required": "O ID da tag é obrigatório",
+      "update_description": "Atualize os detalhes da etiqueta para organizar melhor os seus monitores."
+    },
+    "new_page_name": "Nova Etiqueta",
+    "search_placeholder": "Pesquisar tags..."
+  },
+  "theme": {
+    "dark": "Escuro",
+    "light": "Claro",
+    "system": "Sistema",
+    "toggle_theme": "Alternar tema"
+  },
+  "timezone": {
+    "average": "Média",
+    "last_24_hours": "Últimas 24 horas",
+    "last_3_hours": "Últimas 3 horas",
+    "last_3_months": "Últimos 3 meses",
+    "last_30_minutes": "Últimos 30 minutos",
+    "last_6_hours": "Últimas 6 horas",
+    "last_7_days": "Últimos 7 dias",
+    "maximum": "Máximo",
+    "minimum": "Mínimo",
+    "ms": "ms",
+    "response_time": "Tempo de Resposta",
+    "uptime": "Tempo de atividade"
+  },
+  "ui": {
+    "general": "Geral",
+    "intervals_retries": "Intervalos, Tentativas, Timeouts"
+  }
+}

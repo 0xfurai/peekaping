@@ -1,0 +1,1280 @@
+{
+  "actions": {
+    "cancel": "Peruuta",
+    "saving": "Tallennetaan..."
+  },
+  "auth": {
+    "login": {
+      "description": "Kirjaudu sähköpostilla",
+      "no_account": "Ei sinulla ole tiliä?",
+      "sign_up": "Rekisteröidy",
+      "submit": "Kirjaudu sisään",
+      "title": "Tervetuloa takaisin"
+    },
+    "register": {
+      "description": "Luo ylläpitokäyttäjätilisi",
+      "have_account": "Onko sinulla jo tili?",
+      "sign_in": "Kirjaudu sisään",
+      "submit": "Luo",
+      "title": "Hei"
+    },
+    "twofa": {
+      "code_label": "2FA-koodi",
+      "code_placeholder": "Syötä 2FA-koodi",
+      "description": "2FA on käytössä tililläsi. Syötä vahvistuskoodisi jatkaaksesi.",
+      "title": "Kaksivaiheinen tunnistautuminen vaaditaan",
+      "verify_button": "Vahvista 2FA",
+      "verifying": "Tarkistetaan..."
+    }
+  },
+  "bars": {
+    "down_count": "Alas-lukumäärä",
+    "important": "Tärkeä",
+    "interval": "Kausi",
+    "message": "Viesti",
+    "ms": "ms",
+    "notified": "Ilmoitettu",
+    "ping": "Ping",
+    "retries": "Uudelleententaukset",
+    "status": "Tila",
+    "time": "Aika"
+  },
+  "common": {
+    "active": "Käynnissä",
+    "all": "Kaikki",
+    "back": "Takaisin",
+    "cancel": "Peru",
+    "clear_all": "Tyhjennä kaikki",
+    "clear_all_filters": "Poista kaikki suodattimet",
+    "confirm": "Vahvista",
+    "confirm_delete_title": "Oletko täysin varma?",
+    "confirm_delete_title_short": "Oletko varma?",
+    "continue": "Jatka",
+    "create": "Luo",
+    "created": "Luotu",
+    "days": "päivät",
+    "default": "Oletus",
+    "delete": "Poista",
+    "disabling": "Poistetaan käytöstä...",
+    "dismiss": "Hylkää",
+    "down": "Poissa",
+    "enabling": "Otetaan käyttöön...",
+    "error": "Virhe",
+    "expires": "Vanhenee",
+    "inactive": "Inaktiivinen",
+    "loading": "Ladataan...",
+    "logout": "Kirjaudu ulos",
+    "maintenance": "Huolto",
+    "no_options_found": "Ei löytynyt vaihtoehtoja",
+    "no_tags_available": "Ei tageja saatavilla",
+    "please_refresh_page": "Päivitä sivu.",
+    "required": "Pakollinen",
+    "save": "Tallenna",
+    "saving": "Tallennetaan...",
+    "search": "Etsi",
+    "security": "Turvallisuus",
+    "select": "Valitse",
+    "select_monitors": "Valitse valvontakohteet...",
+    "select_tags": "Valitse tunnisteet",
+    "settings": "Asetukset",
+    "tags": "Tunnisteet",
+    "unknown": "Tuntematon",
+    "unnamed_monitor": "Nimetön valvonta",
+    "up": "Käynnissä",
+    "update": "Päivitä",
+    "verifying": "Tarkistetaan..."
+  },
+  "forms": {
+    "labels": {
+      "confirm_password": "Vahvista salasana",
+      "email": "Sähköposti",
+      "footer_text": "Alatunnisteen teksti",
+      "heartbeat_interval": "Sydämenlyöntiväli (sekuntia)",
+      "icon_url": "Kuvakkeen URL",
+      "monitor_name": "Nimi",
+      "monitor_type": "Tyyppi",
+      "password": "Salasana",
+      "retries": "Uudelleenyritykset",
+      "slug": "slug",
+      "title": "Otsikko",
+      "username": "Käyttäjänimi"
+    },
+    "placeholders": {
+      "auto_refresh_help": "0 ei automaattista virkistystä",
+      "domains": "Syötä domain (esim. status.example.com)",
+      "footer_text": "Syötä alatunnisteen teksti",
+      "icon_url": "https://example.com/icon.png",
+      "monitor_name": "Monitorini",
+      "page_description": "Syötä tilasivun kuvaus",
+      "page_title": "Anna tila-sivun otsikko",
+      "slug": "status-sivun-URL-tunniste"
+    },
+    "validation": {
+      "email_invalid": "Syötä kelvollinen sähköpostiosoite",
+      "password_min_length": "Salasanan tulee olla vähintään 8 merkkiä",
+      "passwords_mismatch": "Salasanat eivät täsmää"
+    }
+  },
+  "maintenance": {
+    "card": {
+      "aria": {
+        "delete": "Poista {{title}}",
+        "pause": "Pysäytä huolto",
+        "resume": "Jatka huoltoa"
+      },
+      "labels": {
+        "duration": "{{duration}} min",
+        "end": "Loppu: {{date}}",
+        "start": "Aloitus: {{date}}"
+      },
+      "status": {
+        "active": "Aktiivinen",
+        "ended": "Loppunut",
+        "inactive": "Passiivinen"
+      }
+    },
+    "edit_title": "Muokkaa huoltoa",
+    "form": {
+      "affected_monitors_description": "Valitse monitorit, jotka vaikuttavat tähän ylläpitoon",
+      "affected_monitors_title": "Vaikutetut valvojat",
+      "cron_description": "Syötä kelvollinen cron-merkintä",
+      "cron_expression": "Cron-muoto",
+      "date_time_title": "Päivä ja aika",
+      "day_of_month": "Kuukauden päivä",
+      "day_of_week": "Viikonpäivä",
+      "description_label": "Kuvaus",
+      "description_placeholder": "Huoltotiedon kuvaus...",
+      "duration_minutes": "Kesto (minuutit)",
+      "effective_date_range": "Voimassaoloväli (valinnainen)",
+      "end_date_time": "Päättymispäivämäärä ja aika",
+      "end_time": "Lopetusaika",
+      "interval_label": "Aikaväli (Suorita kerran päivässä)",
+      "last_day": "Viimeinen päivä",
+      "last_day_of_month": "Kuukauden viimeinen päivä",
+      "maintenance_time_window": "Päivän ylläpitoväli",
+      "markdown_supported": "Markdown on tuettu",
+      "same_as_server": "Sama kuin palvelimen aikavyöhyke",
+      "start_date_time": "Aloituspäivämäärä & Aika",
+      "start_time": "Aloitusaika",
+      "strategy_label": "Strategia",
+      "strategy_placeholder": "Valitse strategia",
+      "timezone_label": "Aikavyöhyke",
+      "timezone_placeholder": "Valitse aikavyöhyke",
+      "title_label": "Otsikko",
+      "title_placeholder": "Huoltoten otsikko"
+    },
+    "page": {
+      "clear_filters": "Poista kaikki suodattimet",
+      "dialogs": {
+        "confirm_action": {
+          "pause_description": "Haluatko varmasti keskeyttää tämän huollon?",
+          "resume_description": "Oletko varma, että haluat jatkaa tätä huoltoa?",
+          "title": "Vahvista toiminta"
+        },
+        "confirm_delete": {
+          "description": "Oletko varma, että haluat poistaa tämän huoltovälin? Tätä toimintoa ei voida peruuttaa.",
+          "title": "Vahvista poisto"
+        }
+      },
+      "edit_maintenance": "Muokkaa huoltoa: {{title}}",
+      "empty_state": {
+        "action": "Luo ensimmäinen huoltoikkuna",
+        "description": "Aloita luomalla ensimmäinen huoltoväli, jotta vältetään aikataulutetut huoltokatkokset.",
+        "title": "Ylläpitovälejä ei löytynyt"
+      },
+      "error_loading": "Virhe huollon latauksessa",
+      "loading": "Lataa...",
+      "loading_monitors": "Ladataan valvontaobjekteja...",
+      "search_placeholder": "Etsi huoltokierroksia..."
+    },
+    "page_title": "Huolto-ikkunat",
+    "schedule_title": "Aikatauluta ylläpito",
+    "strategy": {
+      "cron": "Cron-lauseke",
+      "manual": "Aktiivinen/Passiivinen käsin",
+      "recurring_day_of_month": "Toistuva - Kuukauden päivä",
+      "recurring_interval": "Toistuva – Aikaväli",
+      "recurring_weekday": "Toistuva - Viikonpäivä",
+      "single": "Yksi huoltoväli"
+    },
+    "toasts": {
+      "create_error": "Kunnossapidon luominen epäonnistui",
+      "created_success": "Huolto luotu onnistuneesti",
+      "delete_error": "Huollon poisto epäonnistui",
+      "deleted_success": "Huolto poistettu onnistuneesti",
+      "pause_error": "Huoltovälin keskeyttäminen epäonnistui",
+      "paused_success": "Huolto pysäytetty onnistuneesti",
+      "resume_error": "Ylläpidon jatkaminen epäonnistui",
+      "resumed_success": "Huolto on jatkunut onnistuneesti",
+      "toggle_error": "Ei voi vaihtaa huoltotilaa: ID puuttuu",
+      "update_error": "Huoltopäivitys epäonnistui",
+      "updated_success": "Huolto päivitetty onnistuneesti"
+    },
+    "weekdays": {
+      "fri": "pe",
+      "mon": "Ma",
+      "sat": "Lau",
+      "sun": "Su",
+      "thu": "Tor",
+      "tue": "Ti",
+      "wed": "ke"
+    }
+  },
+  "messages": {
+    "login_error": "Kirjautumisessa tapahtui virhe.",
+    "login_no_tokens": "Kirjautuminen onnistui, mutta tokenit eivät saapuneet.",
+    "login_success": "Kirjautuminen onnistui",
+    "notifier_delete_error": "Ilmoittimen poistaminen epäonnistui",
+    "notifier_delete_success": "Ilmoitin poistettu onnistuneesti",
+    "register_error": "Virhe tapahtui rekisteröinnin aikana.",
+    "register_no_tokens": "Rekisteröinti onnistui, mutta tunnuksia ei saatu.",
+    "register_success": "Rekisteröinti onnistui",
+    "setting_update_error": "Asetuksen päivitys epäonnistui",
+    "setting_update_success": "Asetus päivitetty onnistuneesti",
+    "tag_create_error": "Tagin luonti epäonnistui",
+    "tag_create_success": "Tunniste luotu onnistuneesti",
+    "tag_delete_error": "Tagin poisto epäonnistui",
+    "tag_delete_success": "Tunniste poistettu onnistuneesti",
+    "tag_update_error": "Tunnuksen päivittäminen epäonnistui",
+    "tag_update_success": "Tunniste päivitetty onnistuneesti",
+    "unexpected_error": "Tapahtui odottamaton virhe",
+    "version_mismatch": "Versio-epäyhtenäisyys havaittu"
+  },
+  "monitors": {
+    "card": {
+      "check_interval": "Tarkistusväli:",
+      "loading_more": "Ladataan lisää…"
+    },
+    "empty_state": {
+      "action": "Luo ensimmäinen valvonta",
+      "description": "Aloita luomalla ensimmäinen seuranta, jolla seuraat palveluidesi kuntoa.",
+      "title": "Valvonta ei löytynyt"
+    },
+    "filtering_by_tags": "Suodatus tageilla",
+    "filters": {
+      "monitor_status": "Tila",
+      "monitor_status_placeholder": "Seurantatila",
+      "search_placeholder": "Etsi valvontakohteita nimen perusteella...",
+      "status_placeholder": "Tila"
+    },
+    "form": {
+      "buttons": {
+        "copied": "Kopioitu!",
+        "copy": "Kopioi",
+        "create": "Luo",
+        "regenerate": "Uudista",
+        "update": "Päivitä"
+      },
+      "dns": {
+        "hostname": "Koneen nimi",
+        "port": "Portti",
+        "record_type": "Tietueen tyyppi",
+        "record_type_placeholder": "Valitse rekisterityyppi",
+        "resolver_server": "Resoluutio-palvelin",
+        "title": "DNS-asetukset"
+      },
+      "docker": {
+        "ca_cert_description": "Liitä CA-sertifikaattisi PEM-muodossa.",
+        "ca_certificate": "CA-varmenne (PEM)",
+        "client_cert_description": "Liitä asiakassertifikaattisi PEM-muodossa. Tätä käytetään kaksisuuntaiseen TLS-todennukseen.",
+        "client_certificate": "Asiakassertifikaatti (PEM)",
+        "client_private_key": "Asiakkaan yksityinen avain (PEM)",
+        "common_tls_issues": "Yleiset TLS-ongelmat:",
+        "connection_type": "Yhteystyyppi",
+        "container_name_id": "Konttinin nimi/ID",
+        "disabled": "Poistettu käytöstä",
+        "docker_container": "Docker-kontti",
+        "docker_host": "Docker-isäntä",
+        "enable_tls": "Ota TLS käyttöön",
+        "enabled": "Käytössä",
+        "examples": "Esimerkit",
+        "hostname_mismatch": "x509: varmenne on voimassa X:lle, ei Y:lle",
+        "hostname_mismatch_solution": "Varmista, että isäntänimi täsmää varmenteen SAN-osoitteisiin, tai poista vahvistus (ei suositeltavaa).",
+        "legacy_cert_error": "x509: varmenne perustuu vanhaan Common Name -kenttään",
+        "legacy_cert_solution": "Lisää isäntänimi (hostname) varmenteesi Subject Alternative Names (SAN) -osioon.",
+        "mtls_note": "Mutuaalisen TLS:n (mTLS) yhteydessä on annettava sekä asiakassertifikaatti että yksityinen avain. Luottamusviraston (CA) sertifikaatti käytetään palvelimen sertifikaatin vahvistamiseen.",
+        "note": "Huom:",
+        "private_key_description": "Liitä yksityinen avain PEM-muodossa. Säilytä se turvassa!",
+        "select_connection_type": "Valitse yhteysmenetelmä",
+        "select_tls_option": "Valitse TLS-vaihtoehto",
+        "select_verification_option": "Valitse vahvistusvaihtoehto",
+        "skip_verification": "Ohita vahvistus (turvaton)",
+        "tls_configuration": "TLS-asetukset",
+        "unknown_authority": "\"x509: sertifikaatti allekirjoitettu tuntemattoman viranomaisen toimesta\":",
+        "unknown_authority_solution": "Anna oikea CA-sertifikaatti, joka on allekirjoittanut palvelimen sertifikaatin.",
+        "verify_certificates": "Tarkista sertifikaatit",
+        "verify_tls": "Tarkista TLS"
+      },
+      "grpc": {
+        "body": "Keho (JSON)",
+        "enable_tls": "Ota TLS käyttöön",
+        "enable_tls_description": "Käytä suojattua yhteyttä (TLS/SSL)",
+        "invert_keyword": "Käänteinen avainsana",
+        "invert_keyword_description": "Jos avainsanaa ei löydy, seuranta merkitään UP-tilaan.",
+        "keyword": "Avainsana",
+        "keyword_description": "Etsi tämä avainsana vastauksesta",
+        "keyword_placeholder": "Valinnainen hakusana",
+        "method_description": "Kirjoituskäsittely",
+        "method_placeholder": "Tarkista",
+        "options_title": "gRPC-vaihtoehdot",
+        "proto_content": "Protobuf-sisältö",
+        "proto_method": "Protobuf-menetelmä",
+        "proto_service_name": "Protobuf-palvelun nimi",
+        "service_name_placeholder": "Terveys"
+      },
+      "http": {
+        "advanced": {
+          "accepted_status_codes": "Hyväksytyt tilakoodit",
+          "ignore_tls": "Ohita TLS/SSL-virheet HTTPS-sivustoille",
+          "ignore_tls_description": "Ohita TLS-varmennuksen vahvistus. Käytä varoen – tämä tekee yhteyksistä vähemmän suojattuja.",
+          "max_redirects": "Maksimimäärä uudelleenohjauksia",
+          "max_redirects_description": "Maksimimäärä seurattavia uudelleenohjauksia (0–30). Aseta 0 poistaaksesi uudelleenohjaukset.",
+          "title": "Lisäasetukset"
+        },
+        "authentication": {
+          "auth_header": "Valtuutusotsikko",
+          "certificate": "Varmenne",
+          "certificate_placeholder": "Varmenne",
+          "client_id": "Asiakas-ID",
+          "client_id_placeholder": "asiakas-ID",
+          "client_secret": "Asiakasavain",
+          "client_secret_placeholder": "Asiakas salaisuus",
+          "domain": "Domain",
+          "domain_placeholder": "Domain",
+          "form_data_body": "Lomakkeen datan sisältö",
+          "key": "Avain",
+          "key_placeholder": "Avain",
+          "method_label": "Tunnistautumismenetelmä",
+          "method_placeholder": "Valitse tunnistautumismenetelmä",
+          "oauth_scope": "OAuth-alue",
+          "oauth_scope_placeholder": "Valinnainen: välilyönnein erotettu lista käyttöoikeuksista",
+          "oauth_token_url": "OAuth-tunnuksen URL",
+          "oauth_token_url_placeholder": "OAuth-tunnisteen URL",
+          "title": "Tunnistautuminen",
+          "workstation": "Työpiste",
+          "workstation_placeholder": "työasema"
+        },
+        "options": {
+          "body": "Sisältö",
+          "body_encoding": "Sisällön koodaus",
+          "body_encoding_placeholder": "Valitse sisällön koodaus",
+          "form_example": "Esimerkkilomakkeen tiedot",
+          "headers": "Otsikot",
+          "json_example": "JSON-esimerkki",
+          "method": "Metodi",
+          "method_placeholder": "Valitse valvontatyyppi",
+          "select_encoding": "Valitse kehon koodaus",
+          "select_method": "Valitse metodi",
+          "text_example": "Esimerkkiteksti:\nMikä tahansa tavallinen teksti täällä...",
+          "title": "HTTP-asetukset",
+          "xml_example": "XML-esimerkki"
+        }
+      },
+      "http_json_query": {
+        "condition_label": "Ehto",
+        "expected_value_label": "Odotettu arvo",
+        "json_query_label": "JSON-kyselyilmaisu",
+        "title": "JSON-kyselylauseke"
+      },
+      "http_keyword": {
+        "invert_keyword_description": "Etsi avainsanan puuttuminen sen sijaan, että se olisi läsnä.",
+        "invert_keyword_label": "Käännä avainsana",
+        "keyword_label": "Avainsana",
+        "keyword_validation_title": "Avainsanan validointi"
+      },
+      "kafka": {
+        "add_broker": "Lisää broker",
+        "auto_topic_creation_description": "Salli tuottajan luoda aihe automaattisesti, jos se ei ole olemassa.",
+        "auto_topic_creation_label": "Salli automaattinen aiheiden luonti",
+        "brokers_description": "Kafkan välityspalvelinten osoitteiden luettelo (host:port-muodossa)",
+        "brokers_label": "Kafka-brokerit",
+        "configuration_title": "Kafka-asetukset",
+        "enable_ssl_description": "Käytä SSL/TLS-salausta yhteyden suojaamiseen",
+        "enable_ssl_label": "Ota SSL/TLS käyttöön",
+        "message_description": "Lähetettävän viestin sisältö aiheeseen (suositeltu JSON-muoto)",
+        "message_label": "Viesti",
+        "sasl_mechanism_description": "Valitse SASL-tunnistautumismekanismi",
+        "sasl_mechanism_label": "SASL-mekanismi",
+        "sasl_mechanism_placeholder": "Valitse SASL-mekanismi",
+        "sasl_password_description": "SASL-todennuksen salasana",
+        "sasl_password_label": "SASL-salasana",
+        "sasl_password_placeholder": "salasana",
+        "sasl_username_description": "SASL-todennuksen käyttäjänimi",
+        "sasl_username_label": "SASL-käyttäjänimi",
+        "security_title": "Turvallisuus",
+        "topic_description": "Kafka-teema, johon viestit julkaistaan"
+      },
+      "mongodb": {
+        "command_description": "MongoDB-komento suoritettavaksi JSON-muodossa. Oletuksena käytetään ping, jos ei ole määritelty.",
+        "command_label": "Komento (Valinnainen)",
+        "configuration_title": "MongoDB-konfiguraatio",
+        "connection_string_description": "MongoDB-yhteysmerkkijono. Tukee sekä standardimuotoa (mongodb://) että DNS‑seedlist‑muotoa (mongodb+srv://).",
+        "connection_string_label": "Yhteysmerkkijono",
+        "expected_value_description": "Odottettu arvo, jota verrataan JSON-polun tulokseen.",
+        "expected_value_label": "Odotettu arvo (valinnainen)",
+        "expected_value_placeholder": "Odottettu arvo",
+        "json_path_description": "JSON‑polku arvon hakemiseksi vastauksesta. Käytä $ juuritasolla.",
+        "json_path_label": "JSON Path (Valinnainen)"
+      },
+      "mqtt": {
+        "check_type_json_query": "JSON-kysely",
+        "check_type_keyword": "Avainsana",
+        "check_type_label": "MQTT-tarkistustyyppi",
+        "check_type_none": "Ei mitään (kaikki viestit)",
+        "check_type_placeholder": "Valitse tarkistustyyppi",
+        "configuration_title": "MQTT-asetukset",
+        "expected_value_label": "Odotettu arvo",
+        "hostname_label": "Isäntänimi",
+        "json_path_label": "JSON-polku",
+        "password_label": "MQTT-salasana",
+        "password_placeholder": "Salasana (valinnainen)",
+        "port_label": "Portti",
+        "success_keyword_label": "MQTT-onnistumisavainsana",
+        "success_keyword_placeholder": "Menestykseen viittaava avainsana",
+        "username_label": "MQTT-käyttäjätunnus",
+        "username_placeholder": "Käyttäjätunnus (valinnainen)",
+        "validation": {
+          "expected_value_required": "Odotettu arvo vaaditaan, kun tarkistustyyppi on json-query.",
+          "json_path_required": "JSON‑polku on pakollinen, kun tarkistuslaji on json-query",
+          "success_keyword_required": "Onnistumissana on pakollinen, kun tarkistuslaji on avainsana"
+        }
+      },
+      "mysql": {
+        "connection_string_examples": "Esimerkit:",
+        "connection_string_label": "Yhteysmerkkijono",
+        "connection_title": "MySQL-yhteys",
+        "query_label": "Kysely"
+      },
+      "ping": {
+        "data_size": "Datan koko (tavua)",
+        "host": "Isäntänimi / IP",
+        "title": "Ping-asetukset"
+      },
+      "postgres": {
+        "connection_string_label": "Yhteysmerkkijono",
+        "connection_title": "PostgreSQL-yhteys",
+        "query_label": "Kysely"
+      },
+      "push": {
+        "url_description": "Käytä tätä URL-osoitetta palvelussasi tilan raportoimiseen. Lähetä HTTP-pyyntö (POST/GET) tähän päätepisteeseen lähettääksesi sydämenlyönnin.",
+        "url_title": "Työnnä valvonta-URL"
+      },
+      "rabbitmq": {
+        "documentation_link": "RabbitMQ-dokumentaatio",
+        "health_checks_description": "Seuranta tarkistaa {{code}}-päätepisteen jokaisella solmulla ja palauttaa UP, jos jokin solmu on terve.",
+        "management_nodes_description": "Anna RabbitMQ-hallintanoden URL, mukaan lukien protokolla ja portti. Esimerkki: https://node1.rabbitmq.com:15672",
+        "management_nodes_title": "Hallintakoneet",
+        "node_url_label": "Solmun URL",
+        "password_description": "RabbitMQ-hallintaliittymän kirjautumissalasana",
+        "setup_information_description": "RabbitMQ:n valvontaominaisuuden käyttämiseksi sinun täytyy ottaa RabbitMQ:n hallintaplugini käyttöön. Lisätietoja saa RabbitMQ:n dokumentaatiosta.",
+        "setup_information_title": "Asetustiedot",
+        "title": "RabbitMQ-asetukset",
+        "username_description": "RabbitMQ-hallintapaneelin kirjautumisen käyttäjätunnus"
+      },
+      "redis": {
+        "ca_certificate_description": "Root-CA-varmenne PEM-muodossa. Pakollinen asianmukaisen TLS-todennuksen toteuttamiseksi itseallekirjoitettujen varmenteiden kanssa.",
+        "ca_certificate_label": "CA-varmenne (Valinnainen)",
+        "client_certificate_description": "Client certificate PEM-muodossa. Pakollinen molempien osapuolten TLS-todennukseen.",
+        "client_certificate_label": "Asiakasvarmenne (valinnainen)",
+        "client_key_description": "Yksityinen avain PEM-muodossa. On annettava yhdessä asiakkaan sertifikaatin kanssa.",
+        "client_key_label": "Clientin yksityinen avain (valinnainen)",
+        "connection_string_description": "Redis-yhteysmerkkijonon muoto: {{redis}} tai {{rediss}} TLS:lle",
+        "connection_string_label": "Yhteysmerkkijono",
+        "ignore_tls_description": "Ohita TLS-varmenneen tarkistus (ei suositella tuotannossa)",
+        "ignore_tls_label": "Ohita TLS/SSL-virheet",
+        "title": "Redis-asetukset"
+      },
+      "shared": {
+        "intervals": {
+          "heartbeat_retry": "Sydämen tarkistuksen uudelleenyritysaika (Uudelleenyrittää joka {{seconds}} sekuntia)",
+          "max_retries_description": "Enimmäismäärä yrityksiä ennen kuin palvelu merkitään alas ja ilmoitus lähetetään",
+          "request_timeout": "Pyyntö aikakatkaisu (Aika {{seconds}} sekunnin kuluttua)",
+          "resend_notification": "Lähetä ilmoitus uudelleen, jos Down X kertaa peräkkäin (Uudelleenlähetys poistettu käytöstä)"
+        },
+        "notifications": {
+          "add_notifier": "Lisää ilmoitin",
+          "new_notifier": "+ Uusi ilmoitin",
+          "no_channels": "Ilmoituskanavia ei löytynyt, luo ensin yksi",
+          "no_channels_available": "Ei kanavia saatavilla",
+          "select_channel": "Valitse kanava",
+          "select_notifier_placeholder": "Valitse ilmoitin",
+          "selected_channels": "Valitut ilmoituskanavat",
+          "title": "Ilmoituskanavat"
+        },
+        "proxy": {
+          "add_proxy": "Lisää välityspalvelin",
+          "new_proxy": "+ Uusi välityspalvelin",
+          "no_proxy": "Ei proxyä",
+          "remove_proxy": "Poista välityspalvelin",
+          "select_proxy_placeholder": "Valitse välityspalvelin",
+          "selected_proxy": "Valittu välityspalvelin",
+          "title": "Välityspalvelin"
+        },
+        "tags": {
+          "label": "Tunnisteet",
+          "no_tags": "Ei tagoja saatavilla",
+          "placeholder": "Valitse tunnisteet"
+        }
+      },
+      "snmp": {
+        "community_description": "SNMP-yhteisömerkkijono tunnistautumiseen (kuten salasana)",
+        "community_label": "Yhteisömerkkijono",
+        "expected_value_description": "Arvo, johon verrataan. Jätä tyhjäksi ohittaaksesi validoinnin.",
+        "expected_value_label": "Odotettu arvo",
+        "host_description": "SNMP-yhteensopivan laitteen isäntänimi tai IP-osoite",
+        "host_label": "Isäntä",
+        "json_path_description": "JSONPath-lauseke arvon hakemiseen vastauksesta (käytä \"$\" raaka-arvoon)",
+        "json_path_label": "JSON‑polku",
+        "json_path_operator_description": "Miten vertailla purettua arvoa odotetun arvon kanssa",
+        "json_path_operator_eq": "tasa",
+        "json_path_operator_ge": "suurempi tai yhtä suuri kuin",
+        "json_path_operator_gt": "suurempi kuin",
+        "json_path_operator_label": "Ehto",
+        "json_path_operator_le": "alle tai yhtä suuri",
+        "json_path_operator_lt": "vähemmän kuin",
+        "json_path_operator_ne": "ei ole",
+        "oid_description": "SNMP-objektiidentifikaattori, jota kysytään (esim. 1.3.6.1.2.1.1.1.0 järjestelmäkuvaukseen)",
+        "oid_label": "OID (Objekti-tunniste)",
+        "port_description": "SNMP-portti (oletusarvo: 161)",
+        "port_label": "Portti",
+        "snmp_version_description": "Käytettävä SNMP-protokollan versio",
+        "snmp_version_label": "SNMP Versio",
+        "title": "SNMP-asetukset",
+        "value_validation_label": "Arvon validointi (valinnainen)"
+      },
+      "sqlserver": {
+        "allowed_statements_description": "SELECT, SHOW, DESCRIBE, EXPLAIN, WITH ja VALUES.",
+        "allowed_statements_label": "Sallitut lauseet:",
+        "connection_string_label": "Yhteysmerkkijono",
+        "query_description": "Terveystarkistuksessa suoritettava kysely. Jätä tyhjäksi käyttää oletusarvoa.",
+        "query_label": "Kysely",
+        "title": "Microsoft SQL Server-yhteys"
+      },
+      "tcp": {
+        "host": "Isäntä",
+        "port": "Portti",
+        "title": "TCP-yhteys"
+      },
+      "type": {
+        "dns": "DNS‑seuranta",
+        "docker": "Docker-kontti",
+        "grpc": "gRPC-avainsanaseuranta",
+        "http": "HTTP(S)-seuranta",
+        "kafka": "Kafka-tuottajamonitori",
+        "mongodb": "MongoDB-tietokannan valvonta",
+        "mqtt": "MQTT-välittäjän valvonta",
+        "mysql": "MySQL/MariaDB -monitori",
+        "ping": "Ping-valvonta (ICMP)",
+        "postgres": "PostgreSQL-tietokannan valvonta",
+        "push": "Push-valvonta (ulkoiset palvelut kutsuvat luotua URL-osoitetta)",
+        "rabbitmq": "RabbitMQ-valvonta",
+        "redis": "Redis-tietokannan seuranta",
+        "snmp": "SNMP-valvonta",
+        "sqlserver": "Microsoft SQL Server -seurantatyökalu",
+        "tcp": "TCP-portin valvonta"
+      }
+    },
+    "page": {
+      "description": "Luo uusi valvonta aloittaaksesi verkkosivustosi suorituskyvyn seuraamisen.",
+      "edit_title": "Muokkaa valvontaa:",
+      "new_title": "Uusi valvonta"
+    },
+    "title": "Seuraukset",
+    "toasts": {
+      "deleted": "Seuranta poistettu",
+      "paused": "Seuranta keskeytetty",
+      "reset_success": "Seurantatiedot nollattiin onnistuneesti",
+      "resumed": "Valvonta jatkettu"
+    },
+    "view": {
+      "buttons": {
+        "clone": "Kloonaa",
+        "delete": "Poista",
+        "edit": "Muokkaa",
+        "pause": "Tauko",
+        "reset_data": "Nollaa tiedot",
+        "resume": "Jatka"
+      },
+      "certificate": "Varmenne",
+      "check_every": "Tarkista joka",
+      "current_status": "Nykyinen tila",
+      "dialogs": {
+        "delete": {
+          "description": "Tätä toimintoa ei voi peruuttaa. Tämä poistaa pysyvästi seurannan ja kaikki siihen liittyvät tiedot.",
+          "title": "Oletko täysin varma?"
+        },
+        "pause": {
+          "description": "Oletko varma, että haluat pysäyttää?",
+          "title": "Vahvistus"
+        },
+        "reset": {
+          "description": "Tämä poistaa pysyvästi tämän monitorin heartbeat-historian ja uptime-tilastot. Tarkkailija näyttää siltä, kuin se olisi juuri luotu. Tätä toimintoa ei voi peruuttaa.",
+          "title": "Nollaa monitorin tiedot"
+        }
+      },
+      "expiring_soon": "Viemässä pian",
+      "for": "jolle",
+      "live_status": "Reaaliaikainen tila",
+      "monitor_for": "seuraa",
+      "no_certificate_data": "Ei sertifikaattitietoja",
+      "seconds": "sekuntia",
+      "stats": {
+        "last_24_hours": "Viimeiset 24 tuntia",
+        "last_30_days": "Viimeiset 30 päivää",
+        "last_365_days": "Viimeiset 365 päivää",
+        "last_7_days": "Viimeiset 7 päivää"
+      },
+      "status": {
+        "down": "Poissa",
+        "maintenance": "Huolto",
+        "paused": "Pysäytetty",
+        "up": "Käynnissä"
+      }
+    }
+  },
+  "navigation": {
+    "maintenance": "Huolto",
+    "monitors": "Valvonta",
+    "notification_channels": "Ilmoituskanavat",
+    "proxies": "Välityspalvelimet",
+    "settings": "Asetukset",
+    "status_pages": "Tila-sivut",
+    "tags": "Tunnisteet"
+  },
+  "notifications": {
+    "actions": {
+      "test": "Testaa",
+      "testing": "Testataan..."
+    },
+    "aria": {
+      "delete": "Poista {{name}}"
+    },
+    "confirm_delete_description": "Tätä toimintoa ei voi peruuttaa. Tämä poistaa ilmoittajan \"{{name}}\" pysyvästi ja poistaa sen kaikista valvojista, jotka sitä käyttävät.",
+    "create_title": "Luo ilmoittaja",
+    "edit_channel_title": "Muokkaa ilmoituskanavaa",
+    "edit_title": "Muokkaa ilmoittajaa",
+    "empty_state": {
+      "action": "Luo ensimmäinen ilmoituskanava",
+      "description": "Aloita luomalla ensimmäinen ilmoituskanavasi, jolla lähetät ilmoituksia tiimillesi.",
+      "title": "Ilmoituskanavia ei löytynyt"
+    },
+    "form": {
+      "discord": {
+        "bot_display_name_description": "Nimi, joka näkyy Discord-viestien lähettäjänä.",
+        "bot_display_name_label": "Botin näyttönimi",
+        "custom_message_prefix_description": "Valinnainen etuliite, joka lisätään kaikkien viestien alkuun.",
+        "custom_message_prefix_label": "Mukautettu viestin etuliite",
+        "custom_message_prefix_placeholder": "Valinnainen: Lisää etuliite viestiisi",
+        "forum_post_name_description": "Uuden foorumipostin nimi, joka luodaan.",
+        "forum_post_name_label": "Foorumin julkaisun nimi",
+        "forum_post_name_placeholder": "Syötä foorumin viestin nimi",
+        "sending_message_to_channel": "Lähetä kanavalle",
+        "sending_message_to_description": "Valitse, minne Discord-viestit lähetetään.",
+        "sending_message_to_label": "Lähetetään viesti kohteeseen",
+        "sending_message_to_new_forum_post": "Lähetä uuteen foorumipostaukseen",
+        "sending_message_to_placeholder": "Valitse viestityyppi",
+        "sending_message_to_thread": "Lähetä ketjuun",
+        "setup_webhook_description_1": "Hanki webhook‑URL-osoitteesi Discord‑palvelun asetuksista → Integraatiot → Webhooks.",
+        "setup_webhook_description_2": "Luo uusi webhook ja kopioi URL-osoite. Varmista, että olet valinnut oikean kanavan.",
+        "setup_webhook_title": "Määritä Discord Webhook",
+        "thread_id_description_1": "Ota käyttöön kehittäjätila Discordin käyttäjäasetuksissa → Kehittyneet → Kehittäjätila",
+        "thread_id_description_2": "Napsauta ketjua tai viestiä hiiren oikealla painikkeella ja valitse \"Kopioi ketjun tunniste\" tai \"Kopioi kanavan tunniste\"",
+        "thread_id_description_title": "Juttun tai foorumiviestin tunnus, johon viestit lähetetään",
+        "thread_id_label": "Ketjun ID",
+        "thread_id_placeholder": "Syötä ketjun tai viestin tunniste",
+        "webhook_url_label": "Discord Webhook-URL"
+      },
+      "google_chat": {
+        "more_info_about_webhooks": "Lisätietoja Webhookeista",
+        "webhook_url_label": "Google Chatin webhook-URL"
+      },
+      "gotify": {
+        "application_token_description": "Gotify-sovelluksesi sovellusmerkki. Löydät sen Gotify‑verkkosivustoltasi Sovellukset‑välilehdeltä.",
+        "application_token_label": "Sovellustunnus",
+        "custom_message_description": "Mukautettu viestimalli. Saatavilla olevat muuttujat.",
+        "custom_message_description_2": "Jätä tyhjäksi, jolloin käytetään oletusviestiä.",
+        "custom_message_label": "Mukautettu viesti",
+        "custom_title_description": "Mukautettu otsikko ilmoitukselle. Saatavilla olevat muuttujat: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Jätä tyhjäksi, jotta käytetään oletusotsikkoa \"Peekaping\".",
+        "custom_title_label": "Mukautettu otsikko",
+        "learn_more_label": "Lue lisää Gotifystä ja sen asennuksesta osoitteessa:",
+        "note_description": "Sinun on käynnissä Gotify-palvelin, jotta voit käyttää tätä integraatiota.",
+        "note_label": "Huomio:",
+        "priority_0": "Alhaisin",
+        "priority_1": "Erittäin matala",
+        "priority_10": "Korkein",
+        "priority_2": "Alhainen",
+        "priority_3": "Alla normaalia",
+        "priority_4": "Normaali",
+        "priority_5": "Korkea",
+        "priority_6": "Keskitaso",
+        "priority_7": "Korkea",
+        "priority_8": "Erittäin korkea (Oletus)",
+        "priority_9": "Hätä",
+        "priority_description": "Viestin prioriteetti (0–10). Korkeammat luvut merkitsevät korkeampaa prioriteettia. Oletusarvo on 8.",
+        "priority_label": "Prioriteetti",
+        "priority_placeholder": "Valitse prioriteetti",
+        "server_url_description": "Gotify-palvelimesi URL-osoite. Varmista, että se on saavutettavissa tästä sovelluksesta.",
+        "server_url_label": "Palvelimen URL"
+      },
+      "grafana_oncall": {
+        "grafana_oncall_url_description": "Webhook-URL Grafana OnCall -integraatiosta. Löydät tämän Grafana OnCall -instanssista Alertien & IRM > IRM > Integraatiot > Webhook.",
+        "grafana_oncall_url_label": "Grafana OnCall -URL",
+        "learn_more_label": "Lue lisää Grafana OnCall -webhookista"
+      },
+      "line": {
+        "channel_access_token_description": "Voit hakea kanavan käyttötokenin ...",
+        "channel_access_token_description_2": "Siirry kanavasi asetuksiin ja etsi",
+        "channel_access_token_label": "Kanavan käyttömerkki (Pitkäikäinen)",
+        "channel_access_token_placeholder": "Syötä LINE-kanavan käyttöoikeustunniste",
+        "template_description": "Mukauta viestimuotoa. Saatavilla olevat muuttujat",
+        "template_label": "Viestimalli",
+        "template_placeholder": "Syötä oma viestimallisi",
+        "user_id_description": "Voit löytää käyttäjätunnuksesi",
+        "user_id_description_2": "Siirry kanavasi asetuksiin ja etsi",
+        "user_id_label": "Käyttäjätunnuksesi",
+        "user_id_placeholder": "Syötä LINE-käyttäjätunnuksesi"
+      },
+      "matrix": {
+        "access_token_description": "Matrix-tunniste tunnistautumista varten",
+        "access_token_label": "Käyttöoikeustunnus",
+        "custom_message_description": "Mukautettu viestimalli. Saatavilla olevat muuttujat",
+        "custom_message_label": "Mukautettu viesti",
+        "homeserver_url_description": "Matrix-hompalpalvelimen URL",
+        "homeserver_url_label": "Kotipalvelimen URL",
+        "internal_room_id_description": "Sisäinen huone-ID, johon ilmoitukset lähetetään. Sen tulee alkaa merkillä \"!\" ja näyttää tältä: !roomid:matrix.org",
+        "internal_room_id_label": "Sisäinen huoneen ID",
+        "setup_instructions_1": "Luo Matrix-tili botillesi (tai käytä olemassa olevaa tiliä)",
+        "setup_instructions_2": "Luo tai liity huoneeseen, jossa haluat vastaanottaa ilmoituksia",
+        "setup_instructions_3": "Hanki pääsytunnuksesi tekemällä kirjautumispyyntö",
+        "setup_instructions_4": "Vastauksessa on access_token-kenttä - käytä sitä Access Tokenina",
+        "setup_instructions_5": "Etsi huoneesi sisäinen tunniste (alkaa merkki '!') Matrix-asiakasohjelman huoneasetuksista",
+        "setup_instructions_label": "Asennusohjeet"
+      },
+      "mattermost": {
+        "channel_name_description": "Kanava, johon ilmoitukset lähetetään. Jätä tyhjäksi käyttääksesi webhookissa määritettyä oletuskanavaa.",
+        "channel_name_label": "Kanavan nimi",
+        "icon_emoji_cheat_sheet_label": "Emoji-pikavalikko",
+        "icon_emoji_description": "Käytettävä emoji kuvakkeenä. Voit määrittää kaksi emojia, jotka erotetaan välilyönnillä (ensimmäinen ylös, toinen alas).",
+        "icon_emoji_label": "Kuvakkeen emoji",
+        "icon_url_description": "Kuvan URL-osoite, jota käytetään ilmoitusviestin kuvakkeenä.",
+        "icon_url_label": "Kuvakkeen URL",
+        "learn_more_label": "Lue lisää webhookeista",
+        "message_template_description": "Mukauta viestin muotoa. Saatavilla olevat muuttujat",
+        "message_template_label": "Viesti-malli",
+        "use_message_template_description": "Salli räätälöidyn viestimallin ja muotoilun käyttö.",
+        "use_message_template_label": "Käytä viestipohjaa",
+        "username_description": "Käyttäjänimi, joka näkyy viestin lähettäjänä.",
+        "webhook_url_label": "Webhook-osoite"
+      },
+      "ntfy": {
+        "authentication_type_basic": "Perustunnistus",
+        "authentication_type_basic_description": "Käytä käyttäjänimeä ja salasanaa perusautentikointiin.",
+        "authentication_type_label": "Todennustyyppi",
+        "authentication_type_none": "Ei autentikointia",
+        "authentication_type_none_description": "Todennus ei vaadita. Sopii julkisille NTFY-palvelimille.",
+        "authentication_type_placeholder": "Valitse todennusmenetelmä",
+        "authentication_type_token": "Token-tunnistus",
+        "authentication_type_token_description": "Käytä pääsytunnusta tunnistautumiseen.",
+        "custom_message_description": "Mukautetun viestin sisältö. Käytettävissä olevat muuttujat",
+        "custom_message_label": "Mukautettu viesti",
+        "password_required": "Salasana vaaditaan perusautentikointiin",
+        "priority_1": "Min (Alhaisin)",
+        "priority_2": "Alhainen",
+        "priority_3": "Oletus",
+        "priority_4": "Korkea",
+        "priority_5": "Kriittinen (korkein)",
+        "priority_description": "Ilmoituksen prioriteettitaso. Korkeammat prioriteetit voivat johtaa erilaisiin käyttäytymismalleihin asiakasohjelmassa.",
+        "priority_label": "Prioriteetti",
+        "priority_placeholder": "Valitse prioriteetti",
+        "server_url_description": "NTFY-palvelimen URL-osoite. Käytä osoitetta https://ntfy.sh julkiseen instanssiin.",
+        "server_url_label": "Palvelimen URL",
+        "tags_description": "Pilkuin erotellut tunnisteet ilmoitusten luokitteluun. Saatavilla olevat muuttujat.",
+        "tags_label": "Tagit",
+        "title_description": "Ilmoituksen mukautettu otsikko. Käytettävissä olevat muuttujat",
+        "title_label": "Mukautettu otsikko",
+        "token_description": "NTFY-tunnuksesi todennukseen.",
+        "token_label": "Käyttö-Token",
+        "token_required": "Token on vaadittu token-todennukseen.",
+        "topic_description": "Ilmoitustesi aiheen nimi. Tämä on kanava, johon ilmoitukset lähetetään.",
+        "topic_label": "Aihe",
+        "username_required": "Käyttäjänimi on pakollinen perusautentikointia varten"
+      },
+      "opsgenie": {
+        "api_key_label": "API-avain",
+        "more_info_about_api_keys_label": "Lisätietoja API-avaimista",
+        "priority_1": "Kriittinen",
+        "priority_2": "Korkea",
+        "priority_3": "Keskitaso",
+        "priority_4": "Matala",
+        "priority_5": "Informatiivinen",
+        "priority_description": "Aseta hälytysten tärkeysaste. Oletusarvo on P3 (Keskivertinen).",
+        "priority_label": "Prioriteetti",
+        "region_description": "Valitse Opsgenie-alueesi. Tämä määrittää, mikä API-päätepiste käytetään.",
+        "region_label": "Alue",
+        "region_placeholder": "Valitse alue"
+      },
+      "pagerduty": {
+        "auto_resolve_acknowledge": "Automaattinen tunnustaminen",
+        "auto_resolve_acknowledge_description": "Tunnusta tapaus automaattisesti",
+        "auto_resolve_description": "Valitse, mitä toimia tehdään, kun valvonta palautuu.",
+        "auto_resolve_do_nothing": "Älä tee mitään",
+        "auto_resolve_do_nothing_description": "Ei toimenpiteitä, kun tila on UP",
+        "auto_resolve_label": "Automaattinen ratkaisu tai vahvista",
+        "auto_resolve_placeholder": "Valitse automaattinen ratkaisu",
+        "auto_resolve_resolve": "Automaattinen ratkaisu",
+        "auto_resolve_resolve_description": "Ratkaise tapaus automaattisesti",
+        "integration_key_description": "Opi, miten saat integraatiavahtiosi",
+        "integration_key_label": "Integraatioavain",
+        "integration_key_placeholder": "Syötä PagerDuty-integraatiavahtimus",
+        "integration_url_description": "PagerDuty Events API v2 -päätepisteen URL-osoite. Oletuksena käytetään standardipäätepistettä.",
+        "integration_url_label": "Integraatio-URL",
+        "learn_more_label": "PagerDuty-dokumentaatio",
+        "priority_critical": "Kriittinen",
+        "priority_description": "PagerDuty-tapahtumien vakavuustaso. Oletusarvo on \"warning\".",
+        "priority_error": "Virhe",
+        "priority_info": "Tieto",
+        "priority_label": "Prioriteetti",
+        "priority_placeholder": "Valitse tärkeysaste",
+        "priority_warning": "Varoitus"
+      },
+      "pagertree": {
+        "authentication_token_description": "Valinnainen autentikointitunniste lisäturvallisuuden takaamiseksi. Tämä lähetetään pagertree-token-otsakkeen.",
+        "authentication_token_label": "Todennusmerkki (Valinnainen)",
+        "authentication_token_placeholder": "Syötä valtuutusmerkki, jos se on vaadittu",
+        "auto_resolve_alerts_description": "Poista PagerTree-hälytykset automaattisesti, kun valvonta palautuu",
+        "auto_resolve_alerts_label": "Ilmoitusten automaattinen ratkaisu",
+        "how_to_get_integration_url_label": "Kuinka saada integraation URL",
+        "integration_url_description": "Syötä PagerTree-webhook‑integraation URL-osoite.",
+        "integration_url_label": "PagerTree Webhook-URL",
+        "urgency_level_critical": "Kriittinen",
+        "urgency_level_description": "Aseta PagerTreeen lähetettävien hälytysten oletuskiireellisyys",
+        "urgency_level_high": "Korkea",
+        "urgency_level_label": "Kriittisyysaste",
+        "urgency_level_low": "Alhainen",
+        "urgency_level_medium": "Keskitaso",
+        "urgency_level_placeholder": "Valitse kiireellisyysaste",
+        "urgency_level_silent": "Hiljainen"
+      },
+      "pushbullet": {
+        "access_token": "Pääsyavain",
+        "access_token_description": "Pushbullet-pääsytunnuksesi. Hanki se...",
+        "access_token_label": "Pääsytunnus",
+        "access_token_link": "Pushbullet‑asetukset",
+        "channel_tag": "Kanavan tunniste (valinnainen)",
+        "channel_tag_description": "Lähetä ilmoitus Pushbullet-kanavalle laitteiden sijaan",
+        "channel_tag_label": "Kanavan tunniste (valinnainen)",
+        "custom_message_template_description": "Mukauta ilmoituksen sisältö mallimuuttujien avulla:",
+        "custom_message_template_heartbeat_ping": "Vastausaika",
+        "custom_message_template_heartbeat_time": "Aikaleima",
+        "custom_message_template_label": "Mukautettu viestimalli (valinnainen)",
+        "custom_message_template_monitor_url": "Seurannan URL",
+        "custom_message_template_msg": "Varoitusviesti",
+        "custom_message_template_name": "Seurannan nimi",
+        "custom_message_template_placeholder": "Seuranta: {{ name }}\nTila: {{ status }}\nViesti: {{ msg }}",
+        "custom_message_template_status": "Nykyinen tila",
+        "device_id": "Laite-ID (Valinnainen)",
+        "device_id_description": "Lähetä ilmoitus tietylle laitteelle. Jätä tyhjäksi, jos haluat lähettää kaikille laitteille. Laitteiden tunnuksia voi löytää käyttämällä",
+        "device_id_label": "Laite-ID (valinnainen)",
+        "device_id_link": "Pushbullet API",
+        "more_info_on": "Lisätietoja:"
+      },
+      "pushover": {
+        "application_token_label": "Sovellustunnus",
+        "application_token_placeholder": "Anna Pushover-sovelluksesi tunnus",
+        "device_description": "Jätä tyhjäksi lähettääksesi kaikkiin laitteisiin",
+        "device_label": "Laite",
+        "device_placeholder": "Laitteen nimi (valinnainen)",
+        "message_title_description": "Jätä tyhjäksi, käytetään oletusotsikkoa",
+        "message_title_label": "Viestin otsikko",
+        "message_title_placeholder": "Mukautettu viestin otsikko (valinnainen)",
+        "message_ttl_description": "Aika elossa sekunteina (0 = ei vanhene)",
+        "message_ttl_label": "Viestin TTL",
+        "more_info_label": "Lisätietoja:",
+        "more_info_label_2": "Voit luoda sovelluksen ja saada API-avaimesi osoitteessa",
+        "more_info_label_3": "Käyttäjätunnuksesi löytyy osoitteesta",
+        "notification_sound_down_description": "Ääni, kun valvonta katkeaa",
+        "notification_sound_down_label": "Ilmoitusääni - Poissa",
+        "notification_sound_down_placeholder": "Valitse ääni",
+        "notification_sound_up_description": "Ääni, kun valvonta palautuu",
+        "notification_sound_up_label": "Ilmoitussävel - Ylös",
+        "notification_sound_up_placeholder": "Valitse ääni",
+        "priority_1": "Alhaisin",
+        "priority_2": "Alhainen",
+        "priority_3": "Normaali",
+        "priority_4": "Korkea",
+        "priority_5": "Hätä",
+        "priority_description": "Viestin prioriteettitaso",
+        "priority_label": "Prioriteetti",
+        "priority_placeholder": "Valitse prioriteetti",
+        "sound_alien": "Avaruusolento",
+        "sound_bike": "Pyörä",
+        "sound_bugle": "Bugli",
+        "sound_cashregister": "Kassa",
+        "sound_classical": "Klassinen",
+        "sound_climb": "Kiihtyminen",
+        "sound_cosmic": "Kosminen",
+        "sound_echo": "Ehetys",
+        "sound_falling": "Putous",
+        "sound_gamelan": "Gamelan",
+        "sound_incoming": "Saapuva",
+        "sound_intermission": "Tauko",
+        "sound_magic": "Taika",
+        "sound_mechanical": "Mekaaninen",
+        "sound_none": "Ei",
+        "sound_persistent": "Pysyvä",
+        "sound_pianobar": "Pianobar",
+        "sound_pushover": "Pushover (oletus)",
+        "sound_siren": "Hälytys",
+        "sound_spacealarm": "Avaruushälytys",
+        "sound_tugboat": "Tyypin alus",
+        "sound_updown": "Ylös alas",
+        "sound_vibrate": "Vibrata",
+        "user_key_label": "Käyttäjäavain",
+        "user_key_placeholder": "Syötä Pushover-käyttäjäavaimesi"
+      },
+      "signal": {
+        "custom_message_description": "Mukautettu viestipohja. Saatavilla olevat muuttujat.",
+        "custom_message_label": "Mukautettu viesti",
+        "important_description": "Et voi yhdistää ryhmiä ja numeroita vastaanottajiin!",
+        "important_label": "TÄRKEÄ:",
+        "more_info_label": "Voit tarkistaa tämän URL:n nähdäksesi, miten se asetetaan:",
+        "note_description": "Sinun täytyy käyttää Signal‑asiakasta, jossa on REST‑API.",
+        "note_label": "Huomio:",
+        "number_description": "Signal-tilisi puhelinnumero (lähettäjän numero).",
+        "number_label": "Numero",
+        "post_url_description": "Signal CLI REST API -palvelimen URL",
+        "post_url_label": "Lähetettävä URL",
+        "recipients_description": "Pilkulla eroteltu luettelo puhelinnumeroista, joihin ilmoitukset lähetetään.",
+        "recipients_label": "Vastaanottajat"
+      },
+      "slack": {
+        "channel_name_description": "Kanava, johon viesti lähetetään. Jos kanavaa ei määritetä, viesti lähetetään webhookissa määritettyyn oletuskanavaan.",
+        "channel_name_description_2": "Voit ohittaa oletuskanavan määrittämällä kanavan nimen (esim. #alerts) tai käyttäjän (esim. @username).",
+        "channel_name_label": "Kanavan nimi",
+        "channel_notify_description": "Kun käytössä, viesti laukaisee ilmoituksia kaikille kanavan jäsenille. Käytä varoen, jotta vältetään roskapostia.",
+        "channel_notify_label": "Ilmoita kanavalle",
+        "icon_emoji_cheat_sheet_label": "Emoji-viite",
+        "icon_emoji_description": "Emoji, jota käytetään tämän viestin kuvakkeenä. Täytyy olla muotoa :emoji_name:",
+        "icon_emoji_label": "Kuvakemojin",
+        "message_format_description": "Lähetä rikkaat viestit",
+        "message_format_description_2": "Ota käyttöön viestien lähetys rikkaalla muotoilulla, liitteillä ja parempaan visuaaliseen esitykseen.",
+        "message_format_label": "Viestimuoto",
+        "username_description": "Käyttäjänimi, joka näkyy viestin lähettäjänä. Jos se ei ole määritetty, käytetään oletusbotin nimeä.",
+        "webhook_url_description": "Webhook‑URL Slack‑integraatiossasi. Löydät sen Slack‑tililtäsi kohdasta Integraatiot > Webhooks.",
+        "webhook_url_label": "Webhook-osoite"
+      },
+      "smtp": {
+        "custom_body_label": "Mukautettu keho",
+        "custom_description": "Mallinnettavuus saavutetaan <b>Liquid</b>-mallintuskielen avulla.",
+        "custom_description_2": "Katso käyttöohjeet dokumentaatiosta.",
+        "custom_description_3": "Käytettävissä olevat muuttujat:",
+        "custom_description_4": "Ilmoituksen viesti",
+        "custom_description_5": "palvelun nimi",
+        "custom_description_6": "Palvelun tila (UP/DOWN/Varoitukset sertifikaatin umpeudesta)",
+        "custom_subject_label": "Mukautettu aihe",
+        "smtp_from_label": "Lähettäjä (lähettäjän sähköpostiosoite)",
+        "smtp_host_description": "Kirjoita joko halutun yhteyden muodostavan palvelimen isäntänimi tai localhost, jos aiot käyttää paikallisesti määriteltyä postinkäsittelijää.",
+        "smtp_host_label": "SMTP-palvelin",
+        "smtp_password_placeholder": "SMTP-salasana",
+        "smtp_port_label": "Portti",
+        "smtp_to_label": "Vastaanottaja (Vastaanottajan sähköpostiosoite(t))",
+        "smtp_username_placeholder": "SMTP-käyttäjätunnus"
+      },
+      "telegram": {
+        "auto_get_label": "Automaattinen haku",
+        "bot_token_description": "Hanki botin tokenisi osoitteesta",
+        "bot_token_label": "Bot-tunnus",
+        "chat_id_description": "Hanki chat-tunnuksesi lähettämällä viesti botillesi ja napsauttamalla yllä olevaa \"Auto Get\"-painiketta tai manuaalisesti Telegram‑API:n kautta.",
+        "chat_id_description_2": "Hanki se käsin, vieraile",
+        "chat_id_description_3": "Katso",
+        "chat_id_description_4": "Telegramin dokumentit",
+        "chat_id_description_5": "lisätietoja varten.",
+        "chat_id_label": "Chat ID",
+        "chat_id_not_found": "Chat ID:tä ei löytynyt viimeisimmässä päivityksessä.",
+        "failed_to_fetch_chat_id": "Keskustelun tunnuksen haku epäonnistui",
+        "message_thread_id_description": "Valinnainen. Käytetään viestien lähettämiseen tiettyyn ketjuun (aiheeseen) foorumien superryhmässä.",
+        "message_thread_id_label": "Viestiketjun tunnus",
+        "no_updates_found": "Päivityksiä ei löytynyt. Lähetä ensin viesti botillesi.",
+        "protect_content_description": "Jos on käytössä, viestin sisältö suojataan edelleenlähetykseltä ja tallentamiselta.",
+        "protect_content_label": "Suojaa sisältö",
+        "send_silently_description": "Jos käytössä, viestit lähetetään hiljaisesti (käyttäjät saavat ilmoituksen ilman ääntä).",
+        "send_silently_label": "Lähetä hiljaisesti",
+        "server_url_description": "Oletusarvo on",
+        "server_url_description_2": "Voit käyttää mukautettua palvelinta. Katso",
+        "server_url_description_3": "tähän",
+        "server_url_description_4": "Lisätietoja.",
+        "server_url_label": "Telegram-palvelimen URL",
+        "template_description": "Mukauta viestimuotoa. Saatavilla olevat muuttujat",
+        "template_label": "Viestin malli",
+        "template_parse_mode_description": "Valitse, miten viesti tulkitaan. Katso",
+        "template_parse_mode_description_2": "Telegram‑muotoiluohjeet",
+        "template_parse_mode_description_3": "Lisätietoja.",
+        "template_parse_mode_label": "Mallin jäsentystila",
+        "template_parse_mode_placeholder": "Valitse jäsentelytila",
+        "template_placeholder": "Syötä mukautettu viestimalli",
+        "use_template_description": "Ota käyttöön mukautettu viestimalli ja muotoilu.",
+        "use_template_label": "Käytä viestimallia"
+      },
+      "webhook": {
+        "additional_headers_description": "Lisää mukautetut HTTP-otsikot webhook-pyyntöön.",
+        "additional_headers_label": "Lisäotsikot",
+        "custom_body_description": "Mukauta pyynnön rungon muotoa. Saatavilla olevat muuttujat.",
+        "custom_body_label": "Mukautettu keho",
+        "post_url_description": "Webhook-päätepisteen URL-osoite, johon ilmoitukset lähetetään.",
+        "post_url_label": "Postaus-URL",
+        "request_body_description_custom": "Määritä oma räätälöity pyyntökehon muoto alla.",
+        "request_body_description_form_data": "Sisältö lähetetään multipart/form-data -muodossa. Voit purkaa sen käyttämällä <strong>json_decode($_POST['data'])</strong> PHP:ssä.",
+        "request_body_description_json": "Sisältö lähetetään JSON-muodossa otsikolla \"application/json\".",
+        "request_body_label": "Pyynnön sisältö",
+        "request_body_placeholder": "Valitse sisältötyyppi"
+      }
+    },
+    "important": "Tärkeät ilmoitukset",
+    "important_notifications": "Tärkeitä ilmoituksia",
+    "labels": {
+      "friendly_name": "Ystävällinen nimi",
+      "type": "Ilmoittimen tyyppi"
+    },
+    "messages": {
+      "create_failed": "Ilmoittimen luominen epäonnistui",
+      "created_success": "Ilmoitin luotiin onnistuneesti",
+      "error_loading_notifier": "Virhe notifierin latauksessa",
+      "test_failed": "Testilähetys epäonnistui",
+      "test_success": "Testilähetys lähetettiin onnistuneesti.",
+      "update_failed": "Ilmoittimen päivitys epäonnistui",
+      "updated_success": "Ilmoittaja päivitetty onnistuneesti"
+    },
+    "new": {
+      "title": "Uusi ilmoituskanava"
+    },
+    "no_important": "Ei tärkeitä ilmoituksia löytynyt.",
+    "placeholders": {
+      "select_type": "Valitse ilmoitustyyppi"
+    },
+    "search_placeholder": "Etsi ilmoituskanavia nimellä…"
+  },
+  "proxies": {
+    "delete_dialog": {
+      "description": "Tämä toiminto ei voida peruuttaa. Se poistaa pysyvästi välityspalvelimen {{host}}:{{port}}.",
+      "title": "Oletko todella varma?"
+    },
+    "edit": {
+      "page_name": "Muokkaa välitystä"
+    },
+    "empty_list": {
+      "action_text": "Luo ensimmäinen välityspalvelimesi",
+      "text": "Aloita luomalla ensimmäinen välityspalvelimesi, jota voit käyttää seurantatyökalujesi kanssa.",
+      "title": "Proksuja ei löytynyt"
+    },
+    "form": {
+      "auth_label": "Proxy-palvelin vaatii todennuksen",
+      "port_placeholder": "Portti",
+      "protocol_label": "Välitysprotokolla",
+      "protocol_placeholder": "Valitse välitysprotokolla",
+      "server_label": "Välityspalvelin",
+      "server_placeholder": "Palvelimen osoite",
+      "user": "Käyttäjä"
+    },
+    "messages": {
+      "create_failed": "Proxyin luominen epäonnistui",
+      "created_success": "Proxy luotiin onnistuneesti.",
+      "error_loading_proxy": "Virhe proxyn latauksessa",
+      "update_failed": "Proxy-päivitys epäonnistui",
+      "updated_success": "Proxy päivitetty onnistuneesti"
+    },
+    "new": {
+      "page_name": "Uusi välityspalvelin"
+    },
+    "page_name": "Välityspalvelimet",
+    "search_label": "Etsi",
+    "search_placeholder": "Etsi proxyt isäntänimen perusteella..."
+  },
+  "security": {
+    "enable_2fa": {
+      "form": {
+        "authenticator_code_label": "Todennuskoodi",
+        "authenticator_code_placeholder": "Syötä 6-numeroinen koodi",
+        "current_password_label": "Nykyinen salasana",
+        "current_password_placeholder": "Syötä nykyinen salasanasi",
+        "enable_2fa_button": "Ota 2FA käyttöön"
+      },
+      "messages": {
+        "2fa_active": "2FA käytössä",
+        "2fa_disabled_successfully": "2FA poistettu onnistuneesti",
+        "2fa_enabled_successfully": "2FA otettu käyttöön onnistuneesti",
+        "account_is_protected_with_2fa": "Tilisi on suojattu kaksivaiheisella tunnistuksella.",
+        "disable_2fa": "Poista 2FA",
+        "enter_password_to_disable_2fa": "Syötä salasanasi poistaaksesi 2FA",
+        "failed_to_disable_2fa": "2FA:n poisto epäonnistui",
+        "failed_to_verify_2fa_code": "2FA-koodin vahvistus epäonnistui",
+        "failed_to_verify_password": "Salasanan tarkistaminen tai 2FA-asennuksen aloittaminen epäonnistui",
+        "have_enabled_2fa": "Olet ottanut käyttöön kaksivaiheisen todennuksen (2FA) tilillesi. Tämä lisää ylimääräisen suojauskerroksen.",
+        "or_enter_secret_manually": "Tai syötä tämä salaisuus käsin",
+        "scan_qr_code_with_authenticator_app": "Skannaa tämä QR-koodi tunnistussovelluksellasi",
+        "two_factor_authentication_enabled": "Kaksivaiheinen todennus käytössä",
+        "user_email_not_found": "Käyttäjän sähköpostiosoitetta ei löydy"
+      }
+    },
+    "page_name": "Turvallisuus",
+    "update_password": {
+      "form": {
+        "confirm_new_password_label": "Vahvista uusi salasana",
+        "confirm_new_password_placeholder": "Kirjoita uusi salasana uudelleen",
+        "new_password_label": "Uusi salasana",
+        "new_password_placeholder": "Syötä uusi salasana",
+        "old_password_label": "Vanha salasana",
+        "old_password_placeholder": "Syötä nykyinen salasanasi",
+        "update_password_button": "Päivitä salasana"
+      },
+      "messages": {
+        "failed_to_update_password": "Salasanan päivittäminen epäonnistui",
+        "password_updated_successfully": "Salasana päivitetty onnistuneesti"
+      },
+      "title": "Päivitä salasana"
+    }
+  },
+  "sendgrid": {
+    "api_key_description": "SendGrid-API-avaimesi. Voit luoda sen SendGrid-tililläsi kohdasta Asetukset → API-avaimet. Varmista, että sillä on oikeudet \"Mail Send\".",
+    "api_key_label": "API-avain",
+    "bcc_email_description": "Piilotetun kopion vastaanottajat. Erottele useita sähköpostiosoitteita pilkuilla.",
+    "bcc_email_label": "Piilokopio-sähköposti (Valinnainen)",
+    "cc_email_description": "Vihjevastaanottajat. Erottele useita sähköpostiosoitteita pilkuilla.",
+    "cc_email_label": "CC-sähköposti (valinnainen)",
+    "from_email_description": "Lähettäjän sähköpostiosoite. Se on oltava vahvistettu lähettäjä SendGrid-tililläsi.",
+    "from_email_label": "Lähettäjän sähköpostiosoite",
+    "subject_description": "Viestin otsikkorivi. Tukee Liquid-mallinnusta.",
+    "subject_label": "Mukautettu otsikko (valinnainen)",
+    "subject_variables_label": "Saatavilla olevat muuttujat:",
+    "subject_variables_msg": "ilmoituksen viesti",
+    "subject_variables_name": "palvelun nimi",
+    "subject_variables_status": "Palvelun tila (KÄYNTÄSSÄ/POISTETTU)",
+    "to_email_description": "Ensisijainen vastaanottajan sähköpostiosoite. Useita vastaanottajia varten käytä CC- tai BCC-kenttiä.",
+    "to_email_label": "Vastaanottajan sähköposti"
+  },
+  "settings": {
+    "data_retention": {
+      "days_label": "Päiviä",
+      "description": "Aseta kuinka monta päivää tietoa säilytetään (KEEP_DATA_PERIOD_DAYS).",
+      "title": "Tietojen säilytysaika"
+    },
+    "timezone": {
+      "description": "Valitse haluamasi aikavyöhyke, jolla kaikki ajat näytetään sovelluksessa.",
+      "label": "Aikavyöhyke",
+      "no_timezone_found": "Aikavyöhykettä ei löydy.",
+      "search_placeholder": "Hae aikavyöhykettä...",
+      "select_placeholder": "Valitse aikavyöhyke...",
+      "title": "Aikavyöhyke"
+    },
+    "validation": {
+      "min_days": "Täytyy olla vähintään 1 päivä"
+    }
+  },
+  "status": {
+    "messages": {
+      "all_systems_operational": "Kaikki järjestelmät toiminnassa",
+      "down": "Poissa",
+      "last_updated": "Viimeksi päivitetty",
+      "maintenance": "Huolto",
+      "no_monitors_configured": "Tälle tilasivulle ei ole määritetty valvontaa.",
+      "operational": "Toiminnassa",
+      "partial_system_outage": "Osittainen järjestelmäkatko",
+      "powered_by": "Palvelun toiminta",
+      "refresh_in": "Päivitä",
+      "refresh_now": "Päivitä nyt",
+      "status_page_not_found": "Tilasivu ei löytynyt tai ei ole julkaistu.",
+      "under_maintenance": "Huoltotilassa",
+      "unknown": "Tuntematon"
+    }
+  },
+  "status_pages": {
+    "affected_monitors": "Vaikutetut monitorit",
+    "affected_monitors_info": "Valitse tarkkailimet, jotka vaikuttavat tähän huoltoon",
+    "auto_refresh_interval": "Automaattinen virkistyksen aikaväli (sekuntia)",
+    "basic_information": "Perustiedot",
+    "create_status_page": "Luo tilaussivu",
+    "customization": "Mukautus",
+    "delete_dialog": {
+      "description": "Oletko varma, että haluat poistaa \"{{title}}\"? Tätä toimintoa ei voida kumota.",
+      "title": "Poista status-sivu"
+    },
+    "description": "Syötä tilasivun kuvaus",
+    "domain_already_used": "Domain {{domain}} on jo varattu toisen status-sivun toimesta",
+    "domain_host_warning": "Tämä domain on sama kuin nykyinen isäntä-URL-osoitteesi. Tämä voi aiheuttaa konflikteja.",
+    "domains": "Domainit",
+    "domains_info_warning": "Älä unohda lisätä CNAME-tietueita DNS:ään jokaiselle domainille.",
+    "draft_status": "Luonnos",
+    "edit_page_name": "Muokkaa tilasivua",
+    "messages": {
+      "create_description": "Luo uusi tila-sivu ja jaa palvelusi tila käyttäjille.",
+      "create_your_first_status_page": "Luo ensimmäinen tilasivu",
+      "created_successfully": "Tilasivu luotiin onnistuneesti",
+      "delete_failed": "Tilasivun poistaminen epäonnistui",
+      "deleted_successfully": "Status-sivu poistettu onnistuneesti",
+      "get_started_by_creating_your_first_status_page": "Aloita luomalla ensimmäinen tilasivusi.",
+      "no_status_pages_found": "Status-sivuja ei löytynyt",
+      "not_found": "Status-sivu ei löytynyt",
+      "update_description": "Päivitä tila-sivusi asetukset ja määritykset.",
+      "updated_successfully": "Status-sivu päivitetty onnistuneesti"
+    },
+    "new_page_name": "Uusi tilasivu",
+    "page_name": "Tila-sivut",
+    "published": "Julkaistu",
+    "published_info": "Tee tämä tilaussivu julkisesti saatavilla",
+    "published_status": "Julkaistu",
+    "search_label": "Etsi",
+    "search_placeholder": "Etsi tilanne-sivut otsikon perusteella...",
+    "update_status_page": "Päivitä tilasivu",
+    "view_page": "Näytä sivu"
+  },
+  "tags": {
+    "confirm_delete_description": "Tätä toimintoa ei voi perua. Tämä poistaa tunnisteen \"{{name}}\" pysyvästi ja poistaa sen kaikista valvonnista.",
+    "edit_page_name": "Muokkaa tunnistetta",
+    "empty_state": {
+      "action": "Luo ensimmäinen tagi",
+      "description": "Aloita luomalla ensimmäinen tunniste, jolla järjestät valvontasi.",
+      "title": "Tunnisteita ei löytynyt"
+    },
+    "form": {
+      "color_description": "Valitse väri tunnuksellesi",
+      "color_label": "Väri",
+      "create_button": "Luo tagi",
+      "description_label": "Kuvaus",
+      "description_placeholder": "Syötä tunnisteen kuvaus (valinnainen)",
+      "name_label": "Nimi",
+      "name_placeholder": "Syötä tunnisteen nimi",
+      "update_button": "Päivitä tunniste"
+    },
+    "messages": {
+      "create_description": "Luo uusi tunniste valvontasi järjestämiseen ja luokitteluun.",
+      "failed_to_load_tag": "Tunnuksen lataaminen epäonnistui. Tunnus voi puuttua tai sinulla ei ole oikeutta nähdä sitä.",
+      "tag_id_required": "Tag ID on pakollinen",
+      "update_description": "Päivitä tunnisteen tiedot, jotta valvontasi järjestyy paremmin."
+    },
+    "new_page_name": "Uusi tunniste",
+    "search_placeholder": "Etsi tunnisteita..."
+  },
+  "theme": {
+    "dark": "Tumma",
+    "light": "Vaalea",
+    "system": "Järjestelmä",
+    "toggle_theme": "Vaihda teema"
+  },
+  "timezone": {
+    "average": "Keskiarvo",
+    "last_24_hours": "Viimeiset 24 tuntia",
+    "last_3_hours": "Viimeiset 3 tuntia",
+    "last_3_months": "Viimeiset 3 kuukautta",
+    "last_30_minutes": "Viimeiset 30 minuuttia",
+    "last_6_hours": "Viimeiset 6 tuntia",
+    "last_7_days": "Viimeiset 7 päivää",
+    "maximum": "Maksimi",
+    "minimum": "Minimi",
+    "ms": "ms",
+    "response_time": "Vastausaika",
+    "uptime": "saatavuusaika"
+  },
+  "ui": {
+    "general": "Yleiset",
+    "intervals_retries": "Väli, Uudelleenkokeilut, Aikakatkaisut"
+  }
+}

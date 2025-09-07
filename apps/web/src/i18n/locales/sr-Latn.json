@@ -1,0 +1,1280 @@
+{
+  "actions": {
+    "cancel": "Otkaži",
+    "saving": "Čuvam..."
+  },
+  "auth": {
+    "login": {
+      "description": "Prijavite se e‑mailom",
+      "no_account": "Nemaš račun?",
+      "sign_up": "Registrujte se",
+      "submit": "Prijava",
+      "title": "Dobrodošli nazad"
+    },
+    "register": {
+      "description": "Kreiraj svoj admin nalog",
+      "have_account": "Već imate nalog?",
+      "sign_in": "Prijavi se",
+      "submit": "Kreiraj",
+      "title": "Zdravo"
+    },
+    "twofa": {
+      "code_label": "2FA kod",
+      "code_placeholder": "Unesite 2FA kod",
+      "description": "2FA je omogućen za vaš nalog. Unesite svoj kod za autentifikaciju da biste nastavili.",
+      "title": "Potrebna dvofaktorska autentifikacija",
+      "verify_button": "Potvrdi 2FA",
+      "verifying": "Proveravanje..."
+    }
+  },
+  "bars": {
+    "down_count": "Broj pada",
+    "important": "Važno",
+    "interval": "Interval",
+    "message": "Poruka",
+    "ms": "ms",
+    "notified": "obavešten",
+    "ping": "Ping",
+    "retries": "Pokušaji",
+    "status": "Status",
+    "time": "Vreme"
+  },
+  "common": {
+    "active": "Aktivan",
+    "all": "Svi",
+    "back": "Nazad",
+    "cancel": "Otkaži",
+    "clear_all": "Obriši sve",
+    "clear_all_filters": "Obriši sve filtere",
+    "confirm": "Potvrdi",
+    "confirm_delete_title": "Da li ste zaista sigurni?",
+    "confirm_delete_title_short": "Da li ste sigurni?",
+    "continue": "Nastavi",
+    "create": "Kreiraj",
+    "created": "Kreirano",
+    "days": "dana",
+    "default": "Podrazumevano",
+    "delete": "Obriši",
+    "disabling": "Onemogućavanje...",
+    "dismiss": "Odbaci",
+    "down": "Ne radi",
+    "enabling": "Omogućavanje...",
+    "error": "Greška",
+    "expires": "Ističe",
+    "inactive": "Neaktivan",
+    "loading": "Učitavanje...",
+    "logout": "Odjavi se",
+    "maintenance": "Održavanje",
+    "no_options_found": "Opcije nisu pronađene",
+    "no_tags_available": "Nema dostupnih oznaka",
+    "please_refresh_page": "Molimo osvežite stranicu.",
+    "required": "Obavezno",
+    "save": "Sačuvaj",
+    "saving": "Snimam...",
+    "search": "Pretraži",
+    "security": "Sigurnost",
+    "select": "Izaberi",
+    "select_monitors": "Izaberi monitore…",
+    "select_tags": "Izaberi oznake",
+    "settings": "Podešavanja",
+    "tags": "Oznake",
+    "unknown": "Neznano",
+    "unnamed_monitor": "Neimenovani monitor",
+    "up": "Dostupno",
+    "update": "Ažuriraj",
+    "verifying": "Proveravamo..."
+  },
+  "forms": {
+    "labels": {
+      "confirm_password": "Potvrdi lozinku",
+      "email": "E-pošta",
+      "footer_text": "Tekst u podnožju",
+      "heartbeat_interval": "Interval otkucaja (sekunde)",
+      "icon_url": "URL ikone",
+      "monitor_name": "Ime",
+      "monitor_type": "Tip",
+      "password": "Lozinka",
+      "retries": "Pokušaji",
+      "slug": "Slug",
+      "title": "Naslov",
+      "username": "Korisničko ime"
+    },
+    "placeholders": {
+      "auto_refresh_help": "0 – bez automatskog osvežavanja",
+      "domains": "Unesite domen (npr. status.example.com)",
+      "footer_text": "Unesite tekst za podnožje",
+      "icon_url": "https://example.com/icon.png",
+      "monitor_name": "Moj monitor",
+      "page_description": "Unesite opis statusne stranice",
+      "page_title": "Unesite naslov statusne stranice",
+      "slug": "status-stranica-slug"
+    },
+    "validation": {
+      "email_invalid": "Unesite ispravnu e‑mail adresu.",
+      "password_min_length": "Lozinka mora imati najmanje 8 karaktera",
+      "passwords_mismatch": "Lozinke se ne poklapaju"
+    }
+  },
+  "maintenance": {
+    "card": {
+      "aria": {
+        "delete": "Obriši {{title}}",
+        "pause": "Pauziraj održavanje",
+        "resume": "Nastavi održavanje"
+      },
+      "labels": {
+        "duration": "{{duration}} min",
+        "end": "Kraj: {{date}}",
+        "start": "Početak: {{date}}"
+      },
+      "status": {
+        "active": "Aktivan",
+        "ended": "Završeno",
+        "inactive": "Neaktivan"
+      }
+    },
+    "edit_title": "",
+    "form": {
+      "affected_monitors_description": "Izaberite monitore koji će biti pogođeni ovim održavanjem.",
+      "affected_monitors_title": "Pogodjeni monitori",
+      "cron_description": "Unesite važeći cron izraz",
+      "cron_expression": "Cron izraz",
+      "date_time_title": "Datum i vreme",
+      "day_of_month": "Dan u mesecu",
+      "day_of_week": "Dan u nedelji",
+      "description_label": "Opis",
+      "description_placeholder": "Opis održavanja...",
+      "duration_minutes": "Trajanje (minuta)",
+      "effective_date_range": "Opseg datuma važenja (opciono)",
+      "end_date_time": "Datum i vreme završetka",
+      "end_time": "Krajnje vreme",
+      "interval_label": "Interval (Pokreni jednom dnevno)",
+      "last_day": "Poslednji dan",
+      "last_day_of_month": "Poslednji dan meseca",
+      "maintenance_time_window": "Vremenski prozor održavanja u danu",
+      "markdown_supported": "Markdown je podržan",
+      "same_as_server": "Isto kao vremenska zona servera",
+      "start_date_time": "Datum i vreme početka",
+      "start_time": "Početno vreme",
+      "strategy_label": "Strategija",
+      "strategy_placeholder": "Izaberi strategiju",
+      "timezone_label": "Vremenska zona",
+      "timezone_placeholder": "Izaberi vremensku zonu",
+      "title_label": "Naslov",
+      "title_placeholder": "Naslov održavanja"
+    },
+    "page": {
+      "clear_filters": "Očisti sve filtere",
+      "dialogs": {
+        "confirm_action": {
+          "pause_description": "Da li ste sigurni da želite da pauzirate ovo održavanje?",
+          "resume_description": "Da li ste sigurni da želite da nastavite ovo održavanje?",
+          "title": "Potvrdi radnju"
+        },
+        "confirm_delete": {
+          "description": "Da li ste sigurni da želite da obrišete ovaj period održavanja? Ova radnja se ne može poništiti.",
+          "title": "Potvrdi brisanje"
+        }
+      },
+      "edit_maintenance": "Uredi održavanje: {{title}}",
+      "empty_state": {
+        "action": "Kreirajte prvi period održavanja",
+        "description": "Počnite kreiranjem prvog perioda održavanja kako biste sprečili zakazane periode prekida.",
+        "title": "Nema otkrivenih prozora održavanja"
+      },
+      "error_loading": "Greška prilikom učitavanja održavanja",
+      "loading": "Učitavanje...",
+      "loading_monitors": "Učitavanje monitora...",
+      "search_placeholder": "Pretraži održavanja..."
+    },
+    "page_title": "Periodi održavanja",
+    "schedule_title": "Planiraj održavanje",
+    "strategy": {
+      "cron": "Cron izraz",
+      "manual": "Aktivan/Neaktivan ručno",
+      "recurring_day_of_month": "Ponavljanje - Dan u mesecu",
+      "recurring_interval": "Ponavljanje - Interval",
+      "recurring_weekday": "Ponavljanje - Dan u nedelji",
+      "single": "Jedan prozor održavanja"
+    },
+    "toasts": {
+      "create_error": "Neuspešno kreiranje održavanja",
+      "created_success": "Održavanje je uspešno kreirano",
+      "delete_error": "Neuspeh brisanja održavanja",
+      "deleted_success": "Održavanje je uspešno obrisano",
+      "pause_error": "Pauziranje održavanja nije uspelo",
+      "paused_success": "Održavanje je uspešno pauzirano",
+      "resume_error": "Nije uspelo nastavljanje održavanja",
+      "resumed_success": "Održavanje je uspešno nastavljeno",
+      "toggle_error": "Nije moguće prebaciti status održavanja: ID nedostaje.",
+      "update_error": "Nije uspelo ažuriranje održavanja",
+      "updated_success": "Održavanje je uspešno ažurirano"
+    },
+    "weekdays": {
+      "fri": "Pet",
+      "mon": "Pon",
+      "sat": "Sub",
+      "sun": "Ned.",
+      "thu": "čet",
+      "tue": "Uto",
+      "wed": "Sre"
+    }
+  },
+  "messages": {
+    "login_error": "Došlo je do greške prilikom prijave.",
+    "login_no_tokens": "Prijava uspešna, ali tokeni nisu primljeni.",
+    "login_success": "Uspešno ste se prijavili",
+    "notifier_delete_error": "Neuspešno brisanje notifikatora",
+    "notifier_delete_success": "Obavještač je uspešno obrisan",
+    "register_error": "Došlo je do greške prilikom registracije",
+    "register_no_tokens": "Registracija je uspešna, ali tokeni nisu primljeni",
+    "register_success": "Uspešno registrovan",
+    "setting_update_error": "Neuspešno ažuriranje podešavanja",
+    "setting_update_success": "Podešavanje je uspešno ažurirano.",
+    "tag_create_error": "Nije uspjelo kreiranje oznake",
+    "tag_create_success": "Tag uspešno kreiran",
+    "tag_delete_error": "Neuspešno brisanje oznake",
+    "tag_delete_success": "Oznaka je uspešno obrisana",
+    "tag_update_error": "Neuspešno ažuriranje oznake",
+    "tag_update_success": "Tag je uspešno ažuriran",
+    "unexpected_error": "Došlo je do neočekivane greške",
+    "version_mismatch": "Otkrivena neusklađenost verzija"
+  },
+  "monitors": {
+    "card": {
+      "check_interval": "Interval provere:",
+      "loading_more": "Učitavanje više..."
+    },
+    "empty_state": {
+      "action": "Kreirajte svoj prvi monitor",
+      "description": "Počnite tako što ćete kreirati svoj prvi monitor kako biste pratili stanje vaših servisa.",
+      "title": "Nema pronađenih monitora"
+    },
+    "filtering_by_tags": "Filtriranje po oznakama",
+    "filters": {
+      "monitor_status": "Status",
+      "monitor_status_placeholder": "Status monitora",
+      "search_placeholder": "Pretraži monitore po imenu...",
+      "status_placeholder": "Status"
+    },
+    "form": {
+      "buttons": {
+        "copied": "Kopirano!",
+        "copy": "Kopiraj",
+        "create": "Kreiraj",
+        "regenerate": "Regeneriši",
+        "update": "Ažuriraj"
+      },
+      "dns": {
+        "hostname": "Ime računara",
+        "port": "Port",
+        "record_type": "Tip resursnog zapisa",
+        "record_type_placeholder": "Izaberite tip zapisa",
+        "resolver_server": "Server rezolvera",
+        "title": "DNS Podešavanja"
+      },
+      "docker": {
+        "ca_cert_description": "Nalepite svoj CA sertifikat u PEM formatu.",
+        "ca_certificate": "CA Sertifikat (PEM)",
+        "client_cert_description": "Nalepi svoj klijentski sertifikat u PEM formatu. Ovo se koristi za mutualno TLS autentifikaciju.",
+        "client_certificate": "Klijentski sertifikat (PEM)",
+        "client_private_key": "Klijent privatni ključ (PEM)",
+        "common_tls_issues": "Uobičajeni TLS problemi:",
+        "connection_type": "Tip konekcije",
+        "container_name_id": "Ime/ID kontejnera",
+        "disabled": "Onemogućeno",
+        "docker_container": "Docker kontejner",
+        "docker_host": "Docker domaćin",
+        "enable_tls": "Omogući TLS",
+        "enabled": "Omogućen",
+        "examples": "Primeri",
+        "hostname_mismatch": "\"x509: sertifikat je važeći za X, a ne Y\":",
+        "hostname_mismatch_solution": "Osigurajte da se hostname poklapa sa SAN‑om sertifikata ili onemogućite verifikaciju (nije preporučeno).",
+        "legacy_cert_error": "x509: sertifikat zavisi od zastarelog Common Name polja:",
+        "legacy_cert_solution": "Dodajte naziv hosta u Alternativna imena subjekta (SAN) sertifikata.",
+        "mtls_note": "Za međusobni TLS (mTLS), potrebno je da obezbedite i klijentski sertifikat i privatni ključ. CA sertifikat se koristi za verifikaciju sertifikata servera.",
+        "note": "Napomena:",
+        "private_key_description": "Umetnite svoj privatni ključ u PEM formatu. Sačuvajte ga sigurno!",
+        "select_connection_type": "Izaberite tip veze",
+        "select_tls_option": "Izaberi TLS opciju",
+        "select_verification_option": "Izaberi opciju verifikacije",
+        "skip_verification": "Preskoči proveru (nebezbedno)",
+        "tls_configuration": "TLS konfiguracija",
+        "unknown_authority": "x509: sertifikat potpisan od nepoznatog autoriteta:",
+        "unknown_authority_solution": "Unesite tačan CA sertifikat koji je potpisao server sertifikat.",
+        "verify_certificates": "Proverite sertifikate",
+        "verify_tls": "Proveri TLS"
+      },
+      "grpc": {
+        "body": "Podaci u telu (JSON)",
+        "enable_tls": "Omogući TLS",
+        "enable_tls_description": "Koristite sigurnu vezu (TLS/SSL)",
+        "invert_keyword": "Obrni ključnu reč",
+        "invert_keyword_description": "Monitor će biti označen kao UP ako ključna reč NIJE nađena.",
+        "keyword": "Ključna reč",
+        "keyword_description": "Pretraži ovu ključnu reč u odgovoru.",
+        "keyword_placeholder": "Opciona ključna reč za pretragu",
+        "method_description": "Osetljivo na velika i mala slova",
+        "method_placeholder": "Proveri",
+        "options_title": "Opcije gRPC",
+        "proto_content": "Protobuf sadržaj",
+        "proto_method": "Protobuf metoda",
+        "proto_service_name": "Naziv Protobuf usluge",
+        "service_name_placeholder": "Zdravlje"
+      },
+      "http": {
+        "advanced": {
+          "accepted_status_codes": "Prihvaćeni statusni kodovi",
+          "ignore_tls": "Ignoriši TLS/SSL greške za HTTPS sajtove",
+          "ignore_tls_description": "Preskoči proveru TLS sertifikata. Koristi pažljivo – ovo čini veze manje bezbednim.",
+          "max_redirects": "Maksimalno preusmeravanja",
+          "max_redirects_description": "Maksimalan broj preusmeravanja koje će se slediti (0‑30). Postavite na 0 da biste onemogućili preusmeravanja.",
+          "title": "Napredno"
+        },
+        "authentication": {
+          "auth_header": "Zaglavlje autorizacije",
+          "certificate": "Sertifikat",
+          "certificate_placeholder": "Sertifikat",
+          "client_id": "ID klijenta",
+          "client_id_placeholder": "ID klijenta",
+          "client_secret": "Klijentova tajna",
+          "client_secret_placeholder": "Klijentova tajna",
+          "domain": "Domen",
+          "domain_placeholder": "Domen",
+          "form_data_body": "Telo podataka obrasca",
+          "key": "Ključ",
+          "key_placeholder": "Ključ",
+          "method_label": "Metoda autentifikacije",
+          "method_placeholder": "Izaberi tip autentifikacije",
+          "oauth_scope": "OAuth opseg",
+          "oauth_scope_placeholder": "Opcionalno: Lista opsega odvojena razmakom",
+          "oauth_token_url": "URL OAuth tokena",
+          "oauth_token_url_placeholder": "URL za OAuth token",
+          "title": "Autentifikacija",
+          "workstation": "Radna stanica",
+          "workstation_placeholder": "radna stanica"
+        },
+        "options": {
+          "body": "Telo",
+          "body_encoding": "Kodiranje tela",
+          "body_encoding_placeholder": "Izaberi kodiranje tela",
+          "form_example": "Primer podataka iz obrasca",
+          "headers": "Zaglavlja",
+          "json_example": "Primer JSON",
+          "method": "Metoda",
+          "method_placeholder": "Izaberite tip monitora",
+          "select_encoding": "Izaberi kodiranje tela",
+          "select_method": "Izaberi metodu",
+          "text_example": "Primer teksta: Bilo koji običan tekst ovde...",
+          "title": "HTTP Opcije",
+          "xml_example": "Primer XML"
+        }
+      },
+      "http_json_query": {
+        "condition_label": "Uslov",
+        "expected_value_label": "Očekivana vrednost",
+        "json_query_label": "JSON upitni izraz",
+        "title": "JSON upitni izraz"
+      },
+      "http_keyword": {
+        "invert_keyword_description": "Tražite da ključna reč bude odsutna umesto prisutne.",
+        "invert_keyword_label": "Obrni ključnu reč",
+        "keyword_label": "Ključna reč",
+        "keyword_validation_title": "Validacija ključne reči"
+      },
+      "kafka": {
+        "add_broker": "Dodaj brokera",
+        "auto_topic_creation_description": "Dozvoli proizvođaču da automatski kreira temu ako ne postoji",
+        "auto_topic_creation_label": "Dozvoli automatsko kreiranje topika",
+        "brokers_description": "Lista adresa Kafka brokera (format host:port)",
+        "brokers_label": "Kafka brokeri",
+        "configuration_title": "Konfiguracija Kafke",
+        "enable_ssl_description": "Koristite SSL/TLS enkripciju za vezu",
+        "enable_ssl_label": "Omogući SSL/TLS",
+        "message_description": "Sadržaj poruke koji se šalje na temu (JSON format se preporučuje).",
+        "message_label": "Poruka",
+        "sasl_mechanism_description": "Izaberite SASL mehanizam autentifikacije",
+        "sasl_mechanism_label": "SASL mehanizam",
+        "sasl_mechanism_placeholder": "Izaberite SASL mehanizam",
+        "sasl_password_description": "Lozinka za SASL autentifikaciju",
+        "sasl_password_label": "SASL lozinka",
+        "sasl_password_placeholder": "lozinka",
+        "sasl_username_description": "Korisničko ime za SASL autentifikaciju",
+        "sasl_username_label": "SASL korisničko ime",
+        "security_title": "Sigurnost",
+        "topic_description": "Kafka temu na koju se šalju poruke"
+      },
+      "mongodb": {
+        "command_description": "MongoDB naredba koja se izvršava kao JSON. Podrazumevano je ping ako nije navedeno.",
+        "command_label": "Naredba (opciono)",
+        "configuration_title": "MongoDB Konfiguracija",
+        "connection_string_description": "MongoDB konekcioni string. Podržava standardni (mongodb://) i DNS seedlist (mongodb+srv://) formate.",
+        "connection_string_label": "String za konekciju",
+        "expected_value_description": "Očekivana vrednost za poređenje sa rezultatom JSON putanje.",
+        "expected_value_label": "",
+        "expected_value_placeholder": "Očekivana vrednost",
+        "json_path_description": "JSON putanja za izvlačenje vrednosti iz odgovora. Koristite $ za korenski nivo.",
+        "json_path_label": "JSON putanja (opciono)"
+      },
+      "mqtt": {
+        "check_type_json_query": "JSON upit",
+        "check_type_keyword": "Ključna reč",
+        "check_type_label": "Tip MQTT provere",
+        "check_type_none": "Nijedan (bilo koja poruka)",
+        "check_type_placeholder": "Izaberi tip provere",
+        "configuration_title": "MQTT Konfiguracija",
+        "expected_value_label": "Očekivana vrednost",
+        "hostname_label": "Ime hosta",
+        "json_path_label": "JSON putanja",
+        "password_label": "MQTT lozinka",
+        "password_placeholder": "Lozinka (opciono)",
+        "port_label": "Port",
+        "success_keyword_label": "MQTT ključ uspeha",
+        "success_keyword_placeholder": "Ključna reč koja označava uspeh",
+        "username_label": "MQTT Korisničko ime",
+        "username_placeholder": "Korisničko ime (opciono)",
+        "validation": {
+          "expected_value_required": "Očekivana vrednost je obavezna kada je tip provere json-query.",
+          "json_path_required": "JSON putanja je obavezna kada je tip provere json-query",
+          "success_keyword_required": "Uspešna ključna reč je obavezna kada je tip provere ključna reč."
+        }
+      },
+      "mysql": {
+        "connection_string_examples": "Primeri:",
+        "connection_string_label": "String veze",
+        "connection_title": "MySQL konekcija",
+        "query_label": "Upit"
+      },
+      "ping": {
+        "data_size": "Veličina podataka (bajti)",
+        "host": "Hostname / IP",
+        "title": "Podešavanja pinga"
+      },
+      "postgres": {
+        "connection_string_label": "String veze",
+        "connection_title": "PostgreSQL konekcija",
+        "query_label": "Upit"
+      },
+      "push": {
+        "url_description": "Koristite ovaj URL u svojoj usluzi za izveštavanje o statusu. Izvršite HTTP zahtev (POST/GET) na ovu krajnju tačku kako biste poslali puls.",
+        "url_title": "URL za push monitor"
+      },
+      "rabbitmq": {
+        "documentation_link": "RabbitMQ dokumentacija",
+        "health_checks_description": "Monitor proverava {{code}} krajnju tačku na svakom čvoru i vraća UP ako je bilo koji čvor u dobrom stanju.",
+        "management_nodes_description": "Unesite URL za RabbitMQ menadžment čvorove, uključujući protokol i port. Primer: https://node1.rabbitmq.com:15672",
+        "management_nodes_title": "Upravljački čvorovi",
+        "node_url_label": "URL čvora",
+        "password_description": "Lozinka za autentifikaciju RabbitMQ upravljačkog interfejsa",
+        "setup_information_description": "Da biste koristili RabbitMQ monitor, morate omogućiti Plugin za upravljanje u vašoj RabbitMQ konfiguraciji. Za više informacija, pogledajte RabbitMQ dokumentaciju.",
+        "setup_information_title": "Informacije o podešavanju",
+        "title": "RabbitMQ konfiguracija",
+        "username_description": "Korisničko ime za autentifikaciju RabbitMQ upravljačkog interfejsa"
+      },
+      "redis": {
+        "ca_certificate_description": "Root CA sertifikat u PEM formatu. Obavezan za pravilnu TLS verifikaciju sa samo-potpisanim sertifikatima.",
+        "ca_certificate_label": "",
+        "client_certificate_description": "Klijentski sertifikat u PEM formatu. Obavezno za obostranu TLS autentifikaciju.",
+        "client_certificate_label": "Klijentski sertifikat (opcionalno)",
+        "client_key_description": "Privatni ključ klijenta u PEM formatu. Mora biti dostavljen zajedno sa klijentskim sertifikatom.",
+        "client_key_label": "Privatni ključ klijenta (opciono)",
+        "connection_string_description": "Redis format konekcijskog stringa: {{redis}} ili {{rediss}} za TLS",
+        "connection_string_label": "String konekcije",
+        "ignore_tls_description": "Preskoči proveru TLS sertifikata (nije preporučeno za produkciju)",
+        "ignore_tls_label": "Ignoriši TLS/SSL greške",
+        "title": "Redis konfiguracija"
+      },
+      "shared": {
+        "intervals": {
+          "heartbeat_retry": "Interval ponovnog pokušaja pulsa (ponovi svakih {{seconds}} sekundi)",
+          "max_retries_description": "Maksimalan broj ponovnih pokušaja pre nego što se usluga označi kao neaktivna i pošalje se obaveštenje",
+          "request_timeout": "Zastarevanje zahteva (Zastareva nakon {{seconds}} sekundi)",
+          "resend_notification": "Ponovo pošalji obaveštenje ako je X puta uzastopno ne radi (Ponovljavanje onemogućeno)"
+        },
+        "notifications": {
+          "add_notifier": "Dodaj notifikator",
+          "new_notifier": "+ Novi notifikator",
+          "no_channels": "Nema pronađenih kanala za obaveštenja, prvo kreirajte jedan",
+          "no_channels_available": "Nema dostupnih kanala",
+          "select_channel": "Izaberi kanal",
+          "select_notifier_placeholder": "Izaberite obaveštivača",
+          "selected_channels": "Izabrani kanali obaveštenja",
+          "title": "Kanali obaveštenja"
+        },
+        "proxy": {
+          "add_proxy": "Dodaj proksi",
+          "new_proxy": "+ Novi proxy",
+          "no_proxy": "Bez proxy",
+          "remove_proxy": "Ukloni proxy",
+          "select_proxy_placeholder": "Izaberi proxy",
+          "selected_proxy": "Izabrani proksi",
+          "title": "Proxy"
+        },
+        "tags": {
+          "label": "Oznake",
+          "no_tags": "Nema dostupnih oznaka",
+          "placeholder": "Izaberi oznake"
+        }
+      },
+      "snmp": {
+        "community_description": "SNMP zajednički string za autentifikaciju (kao lozinka)",
+        "community_label": "Zajednički string",
+        "expected_value_description": "Vrednost za poređenje. Ostavite prazno da preskočite proveru.",
+        "expected_value_label": "Očekivana vrednost",
+        "host_description": "Ime hosta ili IP adresa SNMP-om omogućenog uređaja",
+        "host_label": "Host",
+        "json_path_description": "JSONPath izraz za izvlačenje vrednosti iz odgovora (koristite \"$\" za sirovu vrednost)",
+        "json_path_label": "JSON putanja",
+        "json_path_operator_description": "Kako uporediti izvučenu vrednost sa očekivanom vrednošću",
+        "json_path_operator_eq": "jednako",
+        "json_path_operator_ge": "veće ili jednako",
+        "json_path_operator_gt": "veće od",
+        "json_path_operator_label": "Uslov",
+        "json_path_operator_le": "manje ili jednako",
+        "json_path_operator_lt": "manje od",
+        "json_path_operator_ne": "nije jednako",
+        "oid_description": "SNMP identifikator objekta koji se pretražuje (npr., 1.3.6.1.2.1.1.1.0 za opis sistema)",
+        "oid_label": "OID (Identifikator objekta)",
+        "port_description": "SNMP port (podrazumevano: 161)",
+        "port_label": "Port",
+        "snmp_version_description": "Verzija SNMP protokola koja se koristi",
+        "snmp_version_label": "SNMP Verzija",
+        "title": "SNMP Podešavanja",
+        "value_validation_label": "Validacija vrednosti (opciono)"
+      },
+      "sqlserver": {
+        "allowed_statements_description": "SELECT, SHOW, DESCRIBE, EXPLAIN, WITH i VALUES.",
+        "allowed_statements_label": "Dozvoljeni iskazi:",
+        "connection_string_label": "String konekcije",
+        "query_description": "Upit koji se izvršava za proveru stanja. Ostavite prazno da biste koristili podrazumevani upit.",
+        "query_label": "Upit",
+        "title": "Microsoft SQL Server konekcija"
+      },
+      "tcp": {
+        "host": "Domaćin",
+        "port": "Port",
+        "title": "TCP konekcija"
+      },
+      "type": {
+        "dns": "DNS nadzor",
+        "docker": "Docker kontejner",
+        "grpc": "gRPC Monitor ključnih reči",
+        "http": "HTTP(S) nadzor",
+        "kafka": "Monitor proizvođača Kafka",
+        "mongodb": "MongoDB monitor baze podataka",
+        "mqtt": "MQTT Broker Monitor",
+        "mysql": "MySQL/MariaDB Monitor",
+        "ping": "Ping nadzor (ICMP)",
+        "postgres": "PostgreSQL monitor baze podataka",
+        "push": "Push Monitor (vanjski servis poziva generisani URL)",
+        "rabbitmq": "RabbitMQ Nadzor",
+        "redis": "Redis monitor baze podataka",
+        "snmp": "SNMP monitor",
+        "sqlserver": "Microsoft SQL Server Monitor",
+        "tcp": "Praćenje TCP portova"
+      }
+    },
+    "page": {
+      "description": "Kreirajte novi monitor kako biste započeli praćenje performansi vašeg sajta.",
+      "edit_title": "Uredi monitor:",
+      "new_title": "Novi monitor"
+    },
+    "title": "Nadzori",
+    "toasts": {
+      "deleted": "Monitor obrisan",
+      "paused": "Nadzor pauziran",
+      "reset_success": "Podaci monitora su resetovani uspešno",
+      "resumed": "Monitor obnovljen"
+    },
+    "view": {
+      "buttons": {
+        "clone": "Kloniraj",
+        "delete": "Obriši",
+        "edit": "Izmeni",
+        "pause": "Pauziraj",
+        "reset_data": "Resetuj podatke",
+        "resume": "Nastavi"
+      },
+      "certificate": "Sertifikat",
+      "check_every": "Proveri svakog",
+      "current_status": "Trenutni status",
+      "dialogs": {
+        "delete": {
+          "description": "Ova radnja se ne može poništiti. Ovo će trajno obrisati monitor i sve povezane podatke.",
+          "title": "Da li ste zaista sigurni?"
+        },
+        "pause": {
+          "description": "Da li ste sigurni da želite da pauzirate?",
+          "title": "Potvrda"
+        },
+        "reset": {
+          "description": "Ovo će trajno obrisati sve istorije pulsa i statistike dostupnosti za ovaj monitor. Monitor će izgledati kao da je upravo kreiran. Ovu radnju nije moguće poništiti.",
+          "title": "Resetuj podatke monitora"
+        }
+      },
+      "expiring_soon": "Ističe uskoro",
+      "for": "za",
+      "live_status": "Status uživo",
+      "monitor_for": "monitoruj za",
+      "no_certificate_data": "Nema podataka o sertifikatu",
+      "seconds": "sekunde",
+      "stats": {
+        "last_24_hours": "Poslednjih 24 sata",
+        "last_30_days": "Poslednja 30 dana",
+        "last_365_days": "Poslednjih 365 dana",
+        "last_7_days": "Poslednjih 7 dana"
+      },
+      "status": {
+        "down": "Ne radi",
+        "maintenance": "Održavanje",
+        "paused": "Pauzirano",
+        "up": "Radi"
+      }
+    }
+  },
+  "navigation": {
+    "maintenance": "Održavanje",
+    "monitors": "Monitori",
+    "notification_channels": "Kanali obaveštenja",
+    "proxies": "Proksi",
+    "settings": "Podešavanja",
+    "status_pages": "Statusne stranice",
+    "tags": "Tagovi"
+  },
+  "notifications": {
+    "actions": {
+      "test": "Test",
+      "testing": "Testiranje..."
+    },
+    "aria": {
+      "delete": "Obriši {{name}}"
+    },
+    "confirm_delete_description": "Ova radnja se ne može poništiti. Ovo će trajno obrisati notifikatora \"{{name}}\" i ukloniti ga iz svih monitora koji ga koriste.",
+    "create_title": "Kreiraj notifikator",
+    "edit_channel_title": "Uredi kanal obaveštenja",
+    "edit_title": "Uredi obavestnika",
+    "empty_state": {
+      "action": "Kreiraj svoj prvi kanal obaveštenja",
+      "description": "Počnite kreiranjem prvog kanala obaveštenja za slanje upozorenja vašem timu.",
+      "title": "Nema kanala obaveštenja"
+    },
+    "form": {
+      "discord": {
+        "bot_display_name_description": "Ime koje će se pojaviti kao pošiljalac Discord poruka.",
+        "bot_display_name_label": "Ime prikaza bota",
+        "custom_message_prefix_description": "Opcioni prefiks koji će se dodati na početak svih poruka.",
+        "custom_message_prefix_label": "Prilagođeni prefiks poruke",
+        "custom_message_prefix_placeholder": "Opcionalno: Dodaj prefiks vašoj poruci",
+        "forum_post_name_description": "Ime nove objave na forumu koja će biti kreirana.",
+        "forum_post_name_label": "Naziv posta na forumu",
+        "forum_post_name_placeholder": "Unesite naziv forum posta",
+        "sending_message_to_channel": "",
+        "sending_message_to_description": "Izaberite gde slati Discord poruke.",
+        "sending_message_to_label": "Slanje poruke na",
+        "sending_message_to_new_forum_post": "Pošalji na novi forum post",
+        "sending_message_to_placeholder": "Izaberi tip poruke",
+        "sending_message_to_thread": "Pošalji u nit",
+        "setup_webhook_description_1": "Dobijte svoju webhook URL adresu iz Discord podešavanja servera → Integracije → Webhook-ovi.",
+        "setup_webhook_description_2": "Kreirajte novi webhook i kopirajte URL. Uverite se da ste izabrali ispravan kanal.",
+        "setup_webhook_title": "Podesi Discord Webhook",
+        "thread_id_description_1": "Omogući režim developera u Discord podešavanjima korisnika → Napredno → Režim developera",
+        "thread_id_description_2": "Desni klik na nit ili objavu i izaberite \"Kopiraj ID niti\" ili \"Kopiraj ID kanala\"",
+        "thread_id_description_title": "ID niti ili forum posta gde će se slati poruke",
+        "thread_id_label": "ID niti",
+        "thread_id_placeholder": "Unesite ID niti ili objave",
+        "webhook_url_label": "Discord Webhook URL"
+      },
+      "google_chat": {
+        "more_info_about_webhooks": "Više informacija o Webhook-ovima",
+        "webhook_url_label": "URL webhooka za Google Chat"
+      },
+      "gotify": {
+        "application_token_description": "Token aplikacije iz vaše Gotify aplikacije. Ovaj token možete pronaći u vašem Gotify veb interfejsu pod Aplikacijama.",
+        "application_token_label": "Token aplikacije",
+        "custom_message_description": "Šablon prilagođene poruke. Dostupne promenljive",
+        "custom_message_description_2": "Ostavite prazno da biste koristili podrazumevanu poruku.",
+        "custom_message_label": "Poruka po meri",
+        "custom_title_description": "Prilagođeni naslov za obaveštenje. Dostupne varijable: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Ostavite prazno da biste koristili podrazumevani naslov \"Peekaping\".",
+        "custom_title_label": "Prilagođeni naslov",
+        "learn_more_label": "Saznajte više o Gotify i kako ga postaviti na:",
+        "note_description": "Morate imati pokrenut Gotify server da biste koristili ovu integraciju.",
+        "note_label": "Napomena:",
+        "priority_0": "Najniži",
+        "priority_1": "Vrlo nisko",
+        "priority_10": "Najviši",
+        "priority_2": "Niska",
+        "priority_3": "Ispod normalnog",
+        "priority_4": "Normalan",
+        "priority_5": "Više od normalnog",
+        "priority_6": "Srednja",
+        "priority_7": "Visoka",
+        "priority_8": "Vrlo visoka (Podrazumevano)",
+        "priority_9": "Hitno",
+        "priority_description": "Prioritet poruke (0-10). Veće brojevi predstavljaju veći prioritet. Podrazumevano je 8.",
+        "priority_label": "Prioritet",
+        "priority_placeholder": "Izaberi prioritet",
+        "server_url_description": "URL vašeg Gotify servera. Uverite se da je dostupan iz ove aplikacije.",
+        "server_url_label": "URL servera"
+      },
+      "grafana_oncall": {
+        "grafana_oncall_url_description": "Webhook URL iz vaše Grafana OnCall integracije. Možete ga pronaći u vašoj Grafana OnCall instanci pod Alerts & IRM > IRM > Integrations > Webhook.",
+        "grafana_oncall_url_label": "Grafana OnCall URL",
+        "learn_more_label": "Saznajte više o Grafana OnCall webhook-ovima"
+      },
+      "line": {
+        "channel_access_token_description": "Možete dobiti svoj token za pristup kanalu od",
+        "channel_access_token_description_2": "Idite na podešavanja svog kanala i potražite",
+        "channel_access_token_label": "Token pristupa kanala (dugoročni)",
+        "channel_access_token_placeholder": "Unesite svoj LINE token za pristup kanalu",
+        "template_description": "Prilagodite format poruke. Dostupne varijable.",
+        "template_label": "Šablon poruke",
+        "template_placeholder": "Unesite svoj prilagođeni predložak poruke",
+        "user_id_description": "Možete pronaći svoj ID korisnika u",
+        "user_id_description_2": "Idite u podešavanja svog kanala i potražite",
+        "user_id_label": "Vaš korisnički ID",
+        "user_id_placeholder": "Unesite svoj LINE korisnički ID"
+      },
+      "matrix": {
+        "access_token_description": "Vaš Matrix pristupni token za autentifikaciju",
+        "access_token_label": "Pristupni token",
+        "custom_message_description": "Šablon prilagođene poruke. Dostupne varijable",
+        "custom_message_label": "Poruka po meri",
+        "homeserver_url_description": "URL vašeg Matrix domaćinskog servera",
+        "homeserver_url_label": "URL domaćeg servera",
+        "internal_room_id_description": "Interni ID sobe u koju će se slati obaveštenja. Trebalo bi da počinje sa \"!\" i izgleda ovako: !roomid:matrix.org",
+        "internal_room_id_label": "Interni ID sobe",
+        "setup_instructions_1": "Napravite Matrix nalog za vašeg bota (ili koristite svoj postojeći nalog)",
+        "setup_instructions_2": "Kreirajte ili se pridružite sobi u kojoj želite da primate obaveštenja.",
+        "setup_instructions_3": "Dobijte pristupni token slanjem zahteva za prijavu",
+        "setup_instructions_4": "Odgovor će sadržavati polje access_token – koristite ga kao svoj Access Token.",
+        "setup_instructions_5": "Pronađite interno ID sobe (počinje sa \"!\") u podešavanjima sobe vašeg Matrix klijenta",
+        "setup_instructions_label": "Uputstva za podešavanje"
+      },
+      "mattermost": {
+        "channel_name_description": "Kanal na koji će se slati obaveštenja. Ostavite prazno da biste koristili podrazumevani kanal podešen u webhook-u.",
+        "channel_name_label": "Naziv kanala",
+        "icon_emoji_cheat_sheet_label": "Priručnik emotikona",
+        "icon_emoji_description": "Emoji koji se koristi kao ikona. Možete navesti dva emojija odvojena razmakom (prvi za status \"up\", drugi za status \"down\").",
+        "icon_emoji_label": "Ikona emoji",
+        "icon_url_description": "URL slike koja se koristi kao ikona za poruku obaveštenja.",
+        "icon_url_label": "URL ikone",
+        "learn_more_label": "Naučite više o webhookovima",
+        "message_template_description": "Prilagodite format poruke. Dostupne varijable",
+        "message_template_label": "Šablon poruke",
+        "use_message_template_description": "Omogući korišćenje prilagođenog šablona poruke i formata.",
+        "use_message_template_label": "Koristi predložak poruke",
+        "username_description": "Korisničko ime koje će se pojaviti kao pošiljalac poruke.",
+        "webhook_url_label": "Webhook URL"
+      },
+      "ntfy": {
+        "authentication_type_basic": "Osnovna autentifikacija",
+        "authentication_type_basic_description": "Koristite korisničko ime i lozinku za osnovnu autentifikaciju.",
+        "authentication_type_label": "Tip autentifikacije",
+        "authentication_type_none": "Bez autentifikacije",
+        "authentication_type_none_description": "Nema potrebe za autentifikacijom. Pogodno za javne NTFY servere.",
+        "authentication_type_placeholder": "Izaberite tip autentifikacije",
+        "authentication_type_token": "Autentifikacija tokena",
+        "authentication_type_token_description": "Koristite pristupni token za autentifikaciju.",
+        "custom_message_description": "Sadržaj prilagođene poruke. Dostupne varijable.",
+        "custom_message_label": "Prilagođena poruka",
+        "password_required": "Lozinka je obavezna za osnovnu autentifikaciju.",
+        "priority_1": "Min (Najniži)",
+        "priority_2": "Nizak",
+        "priority_3": "Podrazumevano",
+        "priority_4": "Visok",
+        "priority_5": "Hitno (Najviši)",
+        "priority_description": "Nivo prioriteta obaveštenja. Viši prioriteti mogu uzrokovati različita ponašanja na klijentu.",
+        "priority_label": "Prioritet",
+        "priority_placeholder": "Odaberi prioritet",
+        "server_url_description": "URL vašeg NTFY servera. Koristite https://ntfy.sh za javnu instancu.",
+        "server_url_label": "URL servera",
+        "tags_description": "Zarezom odvojeni tagovi za kategorizaciju obaveštenja. Dostupne varijable",
+        "tags_label": "Tagovi",
+        "title_description": "Prilagođeni naslov za obaveštenje. Dostupne promenljive",
+        "title_label": "Prilagođeni naslov",
+        "token_description": "Vaš NTFY pristupni token za autentifikaciju.",
+        "token_label": "Pristupni token",
+        "token_required": "Token je obavezan za autentifikaciju tokena.",
+        "topic_description": "Naziv teme za vaše obaveštenja. Ovo će biti kanal na koji se obaveštenja šalju.",
+        "topic_label": "Tema",
+        "username_required": "Korisničko ime je obavezno za osnovnu autentifikaciju."
+      },
+      "opsgenie": {
+        "api_key_label": "API ključ",
+        "more_info_about_api_keys_label": "Više informacija o API ključevima",
+        "priority_1": "Kritičan",
+        "priority_2": "Visok",
+        "priority_3": "Srednji",
+        "priority_4": "Nizak",
+        "priority_5": "Informativno",
+        "priority_description": "Podesite nivo prioriteta za obaveštenja. Podrazumevano je P3 (Srednji).",
+        "priority_label": "Prioritet",
+        "region_description": "Izaberite vašu Opsgenie regiju. Ovo određuje koju API krajnju tačku će se koristiti.",
+        "region_label": "Region",
+        "region_placeholder": "Izaberi region"
+      },
+      "pagerduty": {
+        "auto_resolve_acknowledge": "Automatsko priznavanje",
+        "auto_resolve_acknowledge_description": "Automatski potvrdite incident",
+        "auto_resolve_description": "Izaberite koju radnju preduzeti kada monitor ponovo postane aktivan",
+        "auto_resolve_do_nothing": "Ne radite ništa",
+        "auto_resolve_do_nothing_description": "Nema akcije na UP statusu",
+        "auto_resolve_label": "Automatsko rešavanje ili potvrda",
+        "auto_resolve_placeholder": "Izaberite ponašanje automatskog rešavanja",
+        "auto_resolve_resolve": "Automatsko rešavanje",
+        "auto_resolve_resolve_description": "Automatski rešite incident",
+        "integration_key_description": "Saznajte kako da dobijete svoj ključ integracije",
+        "integration_key_label": "Ključ integracije",
+        "integration_key_placeholder": "Unesite ključ integracije PagerDuty",
+        "integration_url_description": "URL krajnje tačke PagerDuty Events API v2. Zadano je na standardnoj krajnjoj tački.",
+        "integration_url_label": "URL integracije",
+        "learn_more_label": "PagerDuty dokumentacija",
+        "priority_critical": "Kritično",
+        "priority_description": "",
+        "priority_error": "Greška",
+        "priority_info": "Info",
+        "priority_label": "Prioritet",
+        "priority_placeholder": "Izaberite nivo prioriteta",
+        "priority_warning": "Upozorenje"
+      },
+      "pagertree": {
+        "authentication_token_description": "Opcioni autentifikacioni token za unapređenu bezbednost. Ovaj će se poslati u zaglavlje pagertree-token.",
+        "authentication_token_label": "Autentikacioni token (opciono)",
+        "authentication_token_placeholder": "Unesite auth token ako je potreban",
+        "auto_resolve_alerts_description": "Automatski otkloni PagerTree upozorenja kada se monitor oporavi",
+        "auto_resolve_alerts_label": "Automatsko razrešavanje upozorenja",
+        "how_to_get_integration_url_label": "Kako dobiti URL integracije",
+        "integration_url_description": "Unesite URL integracije PagerTree webhooka.",
+        "integration_url_label": "PagerTree Webhook URL",
+        "urgency_level_critical": "Kritičan",
+        "urgency_level_description": "Postavite podrazumevani nivo hitnosti za obaveštenja koja se šalju na PagerTree",
+        "urgency_level_high": "Visok",
+        "urgency_level_label": "Nivo hitnosti",
+        "urgency_level_low": "Niska",
+        "urgency_level_medium": "Srednje",
+        "urgency_level_placeholder": "Izaberite nivo hitnosti",
+        "urgency_level_silent": "Utišeno"
+      },
+      "pushbullet": {
+        "access_token": "Token za pristup",
+        "access_token_description": "Vaš Pushbullet pristupni token. Nabavite ga od",
+        "access_token_label": "Pristupni token",
+        "access_token_link": "Pushbullet postavke",
+        "channel_tag": "Oznaka kanala (opcionalno)",
+        "channel_tag_description": "Pošalji obaveštenje u Pushbullet kanal umesto uređaja",
+        "channel_tag_label": "Tag kanala (Opcionalno)",
+        "custom_message_template_description": "Prilagodite telo obaveštenja koristeći promenljive šablona:",
+        "custom_message_template_heartbeat_ping": "Vreme odgovora",
+        "custom_message_template_heartbeat_time": "Vremenska oznaka",
+        "custom_message_template_label": "Prilagođeni predložak poruke (Opciono)",
+        "custom_message_template_monitor_url": "URL monitora",
+        "custom_message_template_msg": "Poruka upozorenja",
+        "custom_message_template_name": "Ime monitora",
+        "custom_message_template_placeholder": "Nadzor: {{ name }}\nStatus: {{ status }}\nPoruka: {{ msg }}",
+        "custom_message_template_status": "Trenutni status",
+        "device_id": "ID uređaja (opciono)",
+        "device_id_description": "Pošaljite obaveštenje na određeni uređaj. Ostavite prazno da se pošalje na sve uređaje. ID-jeve uređaja možete pronaći koristeći",
+        "device_id_label": "ID uređaja (opciono)",
+        "device_id_link": "Pushbullet API",
+        "more_info_on": "Više informacija o:"
+      },
+      "pushover": {
+        "application_token_label": "Aplikacioni token",
+        "application_token_placeholder": "Unesite svoj Pushover aplikacioni token",
+        "device_description": "Ostavite prazno da pošaljete na sve uređaje",
+        "device_label": "Uređaj",
+        "device_placeholder": "Ime uređaja (opciono)",
+        "message_title_description": "Ostavite prazno da biste koristili podrazumevani naslov",
+        "message_title_label": "Naslov poruke",
+        "message_title_placeholder": "Naslov poruke po meri (opcionalo)",
+        "message_ttl_description": "Vreme do isteka u sekundama (0 = bez isteka)",
+        "message_ttl_label": "Trajanje poruke",
+        "more_info_label": "Više informacija o:",
+        "more_info_label_2": "Možete da kreirate aplikaciju i dobijete vaš API token na",
+        "more_info_label_3": "Vaš korisnički ključ možete pronaći na",
+        "notification_sound_down_description": "Zvuk za pad monitora",
+        "notification_sound_down_label": "Zvuk obaveštenja - Ne radi",
+        "notification_sound_down_placeholder": "Izaberi zvuk",
+        "notification_sound_up_description": "Zvuk kada se monitor ponovo pokrene",
+        "notification_sound_up_label": "Zvuk obaveštenja - Online",
+        "notification_sound_up_placeholder": "Izaberite zvuk",
+        "priority_1": "Najniži",
+        "priority_2": "Nizak",
+        "priority_3": "Normal",
+        "priority_4": "Visoka",
+        "priority_5": "Hitno",
+        "priority_description": "Prioritet poruke",
+        "priority_label": "Prioritet",
+        "priority_placeholder": "Izaberi prioritet",
+        "sound_alien": "Vanzemaljac",
+        "sound_bike": "Bicikl",
+        "sound_bugle": "Bugla",
+        "sound_cashregister": "Kasa",
+        "sound_classical": "klasičan",
+        "sound_climb": "uspon",
+        "sound_cosmic": "Kosmički",
+        "sound_echo": "Eho",
+        "sound_falling": "Padanje",
+        "sound_gamelan": "Gamelan",
+        "sound_incoming": "Dolazni",
+        "sound_intermission": "Intermisija",
+        "sound_magic": "Magično",
+        "sound_mechanical": "Mehanički",
+        "sound_none": "Ništa",
+        "sound_persistent": "Postojan",
+        "sound_pianobar": "Piano bar",
+        "sound_pushover": "Pushover (podrazumevano)",
+        "sound_siren": "Sirena",
+        "sound_spacealarm": "Svemirski Alarm",
+        "sound_tugboat": "Tug",
+        "sound_updown": "Gore Dolje",
+        "sound_vibrate": "Vibriraj",
+        "user_key_label": "Ključ korisnika",
+        "user_key_placeholder": "Unesite svoj Pushover korisnički ključ"
+      },
+      "signal": {
+        "custom_message_description": "Prilagođeni šablon poruke. Dostupne varijable.",
+        "custom_message_label": "Poruka po meri",
+        "important_description": "Ne možete mešati grupe i brojeve u primaocima!",
+        "important_label": "VAŽNO:",
+        "more_info_label": "Možete da pogledate ovaj URL da biste videli kako da ga postavite:",
+        "note_description": "Potrebno je da imate Signal klijent sa REST API-jem.",
+        "note_label": "Napomena:",
+        "number_description": "Broj telefona vašeg Signal naloga (broj pošiljaoca).",
+        "number_label": "Broj",
+        "post_url_description": "URL vašeg Signal CLI REST API servera.",
+        "post_url_label": "URL objave",
+        "recipients_description": "Zarezom odvojeni spisak telefonskih brojeva na koje se šalju obaveštenja.",
+        "recipients_label": "Primaoci"
+      },
+      "slack": {
+        "channel_name_description": "Kanal na koji će se poslati poruka. Ako nije naveden, poruka će biti poslana u podrazumevani kanal konfigurisan u webhooku.",
+        "channel_name_description_2": "Možete da zamenite podrazumevani kanal navodeći ime kanala (npr. #alerts) ili korisnika (npr. @username).",
+        "channel_name_label": "Naziv kanala",
+        "channel_notify_description": "Kada je omogućeno, poruka će pokrenuti obaveštenja za sve članove kanala. Koristite ga oprezno da biste izbegli spam.",
+        "channel_notify_label": "Obavesti kanal",
+        "icon_emoji_cheat_sheet_label": "Priručnik emotikona",
+        "icon_emoji_description": "Emotikona koja se koristi kao ikona za ovu poruku. Mora biti u formatu :emoji_name:",
+        "icon_emoji_label": "Ikona Emoji",
+        "message_format_description": "Pošalji bogate poruke",
+        "message_format_description_2": "Omogući slanje poruka sa bogatim formatiranjem, prilozima i bolijom vizuelnom prezentacijom.",
+        "message_format_label": "Format poruke",
+        "username_description": "Korisničko ime koje će se pojaviti kao pošiljalac poruke. Ako nije navedeno, koristiće se podrazumevano ime bota.",
+        "webhook_url_description": "URL webhook-a iz vaše Slack integracije. Možete ga pronaći u vašoj Slack instanci pod Integrations > Webhooks.",
+        "webhook_url_label": "Webhook URL"
+      },
+      "smtp": {
+        "custom_body_label": "Prilagođeni tel",
+        "custom_description": "Mogućnost šabloniranja postiže se putem <b>Liquid</b> jezika šabloniranja.",
+        "custom_description_2": "Molimo vas da se obratite dokumentaciji za uputstva o upotrebi.",
+        "custom_description_3": "Dostupne promenljive:",
+        "custom_description_4": "poruka obaveštenja",
+        "custom_description_5": "ime usluge",
+        "custom_description_6": "status servisa (radi/neradi/obaveštenja o isteku sertifikata)",
+        "custom_subject_label": "Prilagođeni predmet",
+        "smtp_from_label": "Od (E‑mail pošiljaoca)",
+        "smtp_host_description": "Unesite hostname servera na koji želite da se povežete ili localhost ako planirate da koristite lokalno podešeni mail transfer agent.",
+        "smtp_host_label": "SMTP poslužitelj",
+        "smtp_password_placeholder": "Lozinka za SMTP",
+        "smtp_port_label": "Port",
+        "smtp_to_label": "Prima (Primatelji e-pošte)",
+        "smtp_username_placeholder": "SMTP korisničko ime"
+      },
+      "telegram": {
+        "auto_get_label": "Automatski preuzmi",
+        "bot_token_description": "Preuzmite svoj bot token od",
+        "bot_token_label": "Token bota",
+        "chat_id_description": "Chat ID možete dobiti slanjem poruke vašem botu i klikom na „Auto Get“ iznad, ili ručno putem Telegram API-ja.",
+        "chat_id_description_2": "Da biste ga ručno dobili, posetite",
+        "chat_id_description_3": "Pogledaj",
+        "chat_id_description_4": "Telegram dokumentacija",
+        "chat_id_description_5": "za više informacija.",
+        "chat_id_label": "ID razgovora",
+        "chat_id_not_found": "Chat ID nije pronađen u poslednjem ažuriranju.",
+        "failed_to_fetch_chat_id": "Nije moguće dohvatiti ID razgovora",
+        "message_thread_id_description": "Opcionalno. Koristi se za slanje poruka u određeni thread (tema) u supergrupi foruma.",
+        "message_thread_id_label": "ID niti poruke",
+        "no_updates_found": "Nema ažuriranja. Molimo pošaljite poruku botu prvo.",
+        "protect_content_description": "Ako je omogućeno, sadržaj poruke će biti zaštićen od prosleđivanja i čuvanja.",
+        "protect_content_label": "Zaštita sadržaja",
+        "send_silently_description": "Ako je omogućeno, poruke će se slati tiho (korisnici će primiti obaveštenje bez zvuka).",
+        "send_silently_label": "Pošalji tiho",
+        "server_url_description": "Podrazumevano je",
+        "server_url_description_2": "Možete koristiti prilagođeni server. Pogledajte",
+        "server_url_description_3": "ovde",
+        "server_url_description_4": "za detalje.",
+        "server_url_label": "URL servera Telegrama",
+        "template_description": "Prilagodite format poruke. Dostupne varijable",
+        "template_label": "Šablon poruke",
+        "template_parse_mode_description": "Izaberite kako poruka treba biti parsirana. Pogledajte",
+        "template_parse_mode_description_2": "Telegram formatiranje dokumenata",
+        "template_parse_mode_description_3": "za detalje.",
+        "template_parse_mode_label": "Režim parsiranja šablona",
+        "template_parse_mode_placeholder": "Izaberite režim obrade",
+        "template_placeholder": "Unesite svoj prilagođeni šablon poruke",
+        "use_template_description": "Omogući korišćenje prilagođenog predloška poruke i formata.",
+        "use_template_label": "Koristi predložak poruke"
+      },
+      "webhook": {
+        "additional_headers_description": "Dodajte prilagođena HTTP zaglavlja u webhook zahtev.",
+        "additional_headers_label": "Dodatna zaglavlja",
+        "custom_body_description": "Podesite format tela zahteva. Dostupne varijable",
+        "custom_body_label": "Prilagođeno telo",
+        "post_url_description": "URL krajnje tačke webhooka na koji će se slati obaveštenja.",
+        "post_url_label": "URL za objavu",
+        "request_body_description_custom": "Definišite svoj prilagođeni format tela zahteva ispod.",
+        "request_body_description_form_data": "Sadržaj će se slati kao multipart/form-data. Možete ga dekodirati pomoću <strong>json_decode($_POST['data'])</strong> u PHP.",
+        "request_body_description_json": "Sadržaj će se slati kao JSON sa zaglavljem \"application/json\".",
+        "request_body_label": "Telo zahteva",
+        "request_body_placeholder": "Izaberite tip sadržaja"
+      }
+    },
+    "important": "Važne obaveštenja",
+    "important_notifications": "Važne obaveštenja",
+    "labels": {
+      "friendly_name": "Laki naziv",
+      "type": "Tip notifikatora"
+    },
+    "messages": {
+      "create_failed": "Kreiranje notifikatora nije uspjelo.",
+      "created_success": "Notifikator je uspešno kreiran",
+      "error_loading_notifier": "Greška prilikom učitavanja obaveštivača",
+      "test_failed": "Nije uspelo slanje test obaveštenja",
+      "test_success": "Test obaveštenje poslato uspešno",
+      "update_failed": "Neuspešno ažuriranje notifikatora",
+      "updated_success": "Obaveštivač je uspešno ažuriran"
+    },
+    "new": {
+      "title": "Novi kanal obaveštenja"
+    },
+    "no_important": "Nema važnih obaveštenja.",
+    "placeholders": {
+      "select_type": "Izaberite tip notifikatora"
+    },
+    "search_placeholder": "Pretražite kanale obaveštenja po imenu..."
+  },
+  "proxies": {
+    "delete_dialog": {
+      "description": "Ova radnja se ne može poništiti. Ovo će trajno obrisati proxy {{host}}:{{port}}.",
+      "title": "Da li ste apsolutno sigurni?"
+    },
+    "edit": {
+      "page_name": "Uredi Proxy"
+    },
+    "empty_list": {
+      "action_text": "Kreirajte svoj prvi proxy",
+      "text": "Započnite kreiranjem prvog proxy‑ja za upotrebu u vašim monitorima.",
+      "title": "Proxy-ji nisu pronađeni."
+    },
+    "form": {
+      "auth_label": "Proxy server ima autentifikaciju",
+      "port_placeholder": "Port",
+      "protocol_label": "Proksi protokol",
+      "protocol_placeholder": "Izaberi protokol proxija",
+      "server_label": "Posredni server",
+      "server_placeholder": "Adresa servera",
+      "user": "Korisnik"
+    },
+    "messages": {
+      "create_failed": "Nije uspjelo kreiranje proxyja.",
+      "created_success": "Proxy je uspešno kreiran.",
+      "error_loading_proxy": "Greška pri učitavanju proxy-ja",
+      "update_failed": "Nije uspjelo ažuriranje proxy-ja",
+      "updated_success": "Proxy je uspešno ažuriran"
+    },
+    "new": {
+      "page_name": "Novi Proxy"
+    },
+    "page_name": "Proxyje",
+    "search_label": "Pretraži",
+    "search_placeholder": "Pretraži proxy-je po hostu..."
+  },
+  "security": {
+    "enable_2fa": {
+      "form": {
+        "authenticator_code_label": "Autentifikacioni kod",
+        "authenticator_code_placeholder": "Unesite 6-znamenkasti kod",
+        "current_password_label": "Trenutna lozinka",
+        "current_password_placeholder": "Unesite svoju trenutnu lozinku",
+        "enable_2fa_button": "Omogući 2FA"
+      },
+      "messages": {
+        "2fa_active": "2FA Aktivna",
+        "2fa_disabled_successfully": "2FA je isključen uspešno",
+        "2fa_enabled_successfully": "Dvofaktorska autentifikacija je uspešno omogućena",
+        "account_is_protected_with_2fa": "Vaš nalog je zaštićen 2FA-om.",
+        "disable_2fa": "Onemogući 2FA",
+        "enter_password_to_disable_2fa": "Unesite lozinku da biste onemogućili 2FA",
+        "failed_to_disable_2fa": "Neuspeh u deaktiviranju 2FA",
+        "failed_to_verify_2fa_code": "Neuspešna verifikacija 2FA koda",
+        "failed_to_verify_password": "Neuspešno verifikovanje lozinke ili pokretanje 2FA podešavanja",
+        "have_enabled_2fa": "Omogućili ste dvofaktorsku autentifikaciju (2FA) za svoj nalog. To dodaje dodatni sloj bezbednosti.",
+        "or_enter_secret_manually": "Ili unesite tajnu ručno",
+        "scan_qr_code_with_authenticator_app": "Skenirajte ovaj QR kod sa vašom aplikacijom za autentifikaciju",
+        "two_factor_authentication_enabled": "Dvofaktorska autentifikacija je omogućena",
+        "user_email_not_found": "E‑mail korisnika nije pronađen"
+      }
+    },
+    "page_name": "Bezbednost",
+    "update_password": {
+      "form": {
+        "confirm_new_password_label": "Potvrdi novu lozinku",
+        "confirm_new_password_placeholder": "Ponovo unesite novu lozinku",
+        "new_password_label": "Nova lozinka",
+        "new_password_placeholder": "Unesite novu lozinku",
+        "old_password_label": "Stara lozinka",
+        "old_password_placeholder": "Unesite vašu trenutnu lozinku",
+        "update_password_button": "Ažuriraj lozinku"
+      },
+      "messages": {
+        "failed_to_update_password": "Neuspešno ažuriranje lozinke",
+        "password_updated_successfully": "Lozinka je uspešno ažurirana"
+      },
+      "title": "Izmeni lozinku"
+    }
+  },
+  "sendgrid": {
+    "api_key_description": "Vaš SendGrid API ključ. Možete da kreirate jedan u vašem SendGrid nalogu pod Podešavanja → API ključevi. Uverite se da ima dozvole \"Mail Send\".",
+    "api_key_label": "API ključ",
+    "bcc_email_description": "BCC primalci. Odvojite više e‑mailova zarezima.",
+    "bcc_email_label": "BCC e-mail (opciono)",
+    "cc_email_description": "Primatelji kopije. Razdvojite više e‑adresa zarezima.",
+    "cc_email_label": "CC email (opcionalno)",
+    "from_email_description": "Adresa e‑pošte pošiljaoca. Ovo mora biti verifikovani pošiljalac u vašem SendGrid nalogu.",
+    "from_email_label": "E‑mail adresa pošiljaoca",
+    "subject_description": "",
+    "subject_label": "Prilagođeni predmet (opciono)",
+    "subject_variables_label": "Dostupne varijable:",
+    "subject_variables_msg": "poruka obaveštenja",
+    "subject_variables_name": "ime usluge",
+    "subject_variables_status": "status usluge (UP/DOWN)",
+    "to_email_description": "Primarna adresa primatelja e-pošte. Za više primatelja, koristite polja CC ili BCC.",
+    "to_email_label": "E‑mail primaoca"
+  },
+  "settings": {
+    "data_retention": {
+      "days_label": "Dani",
+      "description": "Podesite koliko dana će se zadržavati podaci (KEEP_DATA_PERIOD_DAYS).",
+      "title": "Period zadržavanja podataka"
+    },
+    "timezone": {
+      "description": "Izaberite svoju željenu vremensku zonu za prikaz svih vremena u aplikaciji.",
+      "label": "Vremenska zona",
+      "no_timezone_found": "Vremenska zona nije pronađena.",
+      "search_placeholder": "Traži vremensku zonu...",
+      "select_placeholder": "Izaberite vremensku zonu...",
+      "title": "Vremenska zona"
+    },
+    "validation": {
+      "min_days": "Mora biti najmanje 1 dan"
+    }
+  },
+  "status": {
+    "messages": {
+      "all_systems_operational": "Svi sistemi funkcionišu",
+      "down": "Nedostupan",
+      "last_updated": "Poslednji put ažurirano",
+      "maintenance": "Održavanje",
+      "no_monitors_configured": "Nema konfigurisanih monitora za ovu statusnu stranicu.",
+      "operational": "Operativan",
+      "partial_system_outage": "Delimični kvar sistema",
+      "powered_by": "Napravilo",
+      "refresh_in": "Osveži u",
+      "refresh_now": "Osveži sada",
+      "status_page_not_found": "Stranica statusa nije pronađena ili nije objavljena.",
+      "under_maintenance": "U održavanju",
+      "unknown": "Nepoznato"
+    }
+  },
+  "status_pages": {
+    "affected_monitors": "Pogodjeni monitori",
+    "affected_monitors_info": "Izaberite monitore koji će biti pogođeni ovim održavanjem.",
+    "auto_refresh_interval": "Interval automatskog osvežavanja (sekundi)",
+    "basic_information": "Osnovne informacije",
+    "create_status_page": "Kreiraj stranicu statusa",
+    "customization": "Prilagođavanje",
+    "delete_dialog": {
+      "description": "Da li ste sigurni da želite da obrišete \"{{title}}\"? Ova radnja se ne može poništiti.",
+      "title": "Obriši stranicu statusa"
+    },
+    "description": "Unesite opis statusne stranice",
+    "domain_already_used": "Domen {{domain}} je već u upotrebi od strane druge statusne stranice.",
+    "domain_host_warning": "Ova domena je ista kao trenutni URL domaćina. To može uzrokovati konflikte.",
+    "domains": "Domene",
+    "domains_info_warning": "Ne zaboravite da dodate CNAME zapise u vaš DNS za svaku domenu.",
+    "draft_status": "Skica",
+    "edit_page_name": "Izmeni stranicu statusa",
+    "messages": {
+      "create_description": "Kreiraj novu stranicu stanja da podeliš status svoje usluge sa korisnicima.",
+      "create_your_first_status_page": "Kreiraj prvu status stranicu",
+      "created_successfully": "Statusna stranica je uspešno kreirana",
+      "delete_failed": "Neuspešno brisanje statusne stranice",
+      "deleted_successfully": "Statusna stranica je uspešno obrisana",
+      "get_started_by_creating_your_first_status_page": "Započnite kreiranjem svoje prve status stranice.",
+      "no_status_pages_found": "Nema statusnih stranica",
+      "not_found": "Statusna stranica nije pronađena",
+      "update_description": "Ažurirajte postavke i konfiguraciju status stranice.",
+      "updated_successfully": "Statusna stranica je uspešno ažurirana"
+    },
+    "new_page_name": "Nova Status Stranica",
+    "page_name": "Statusne stranice",
+    "published": "Objavljeno",
+    "published_info": "Ovu statusnu stranicu učinite javnom",
+    "published_status": "Objavljeno",
+    "search_label": "Pretraga",
+    "search_placeholder": "",
+    "update_status_page": "Ažuriraj stranicu statusa",
+    "view_page": "Pogledaj stranicu"
+  },
+  "tags": {
+    "confirm_delete_description": "Ova radnja se ne može poništiti. Ovim će se trajno obrisati oznaka \"{{name}}\" i ukloniti je sa svih monitora.",
+    "edit_page_name": "Uredi oznaku",
+    "empty_state": {
+      "action": "Kreiraj svoj prvi tag",
+      "description": "Započnite tako što ćete kreirati svoju prvu oznaku za organizovanje monitora.",
+      "title": "Nema tagova"
+    },
+    "form": {
+      "color_description": "Izaberite boju za vašu oznaku",
+      "color_label": "Boja",
+      "create_button": "Kreiraj oznaku",
+      "description_label": "Opis",
+      "description_placeholder": "Unesite opis taga (opciono)",
+      "name_label": "Ime",
+      "name_placeholder": "Unesite naziv oznake",
+      "update_button": "Ažuriraj oznaku"
+    },
+    "messages": {
+      "create_description": "Kreiraj novu oznaku za organizaciju i kategorizaciju vaših monitora.",
+      "failed_to_load_tag": "Nije moguće učitati oznaku. Oznaka možda ne postoji ili nemate dozvolu da je pogledate.",
+      "tag_id_required": "Tag ID je obavezan",
+      "update_description": "Ažurirajte detalje oznake kako biste bolje organizovali vaše monitore."
+    },
+    "new_page_name": "Nova oznaka",
+    "search_placeholder": "Pretraži oznake..."
+  },
+  "theme": {
+    "dark": "Tamni",
+    "light": "Svetlo",
+    "system": "Sistem",
+    "toggle_theme": "Prebaci temu"
+  },
+  "timezone": {
+    "average": "Prosečno",
+    "last_24_hours": "Poslednja 24 sata",
+    "last_3_hours": "Poslednja 3 sata",
+    "last_3_months": "",
+    "last_30_minutes": "Zadnjih 30 minuta",
+    "last_6_hours": "Poslednjih 6 sati",
+    "last_7_days": "Poslednjih 7 dana",
+    "maximum": "Maksimum",
+    "minimum": "Minimum",
+    "ms": "ms",
+    "response_time": "Vreme odziva",
+    "uptime": "vreme rada"
+  },
+  "ui": {
+    "general": "Opšte",
+    "intervals_retries": "Intervali, Pokušaji, Timeout-ovi"
+  }
+}

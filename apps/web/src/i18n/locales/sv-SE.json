@@ -1,0 +1,1280 @@
+{
+  "actions": {
+    "cancel": "Avbryt",
+    "saving": "Sparar..."
+  },
+  "auth": {
+    "login": {
+      "description": "Logga in med din e-post",
+      "no_account": "Har du inget konto?",
+      "sign_up": "Registrera dig",
+      "submit": "Logga in",
+      "title": "Välkommen tillbaka"
+    },
+    "register": {
+      "description": "Skapa ditt administratörskonto",
+      "have_account": "Har du redan ett konto?",
+      "sign_in": "Logga in",
+      "submit": "Skapa",
+      "title": "Hej"
+    },
+    "twofa": {
+      "code_label": "2FA-kod",
+      "code_placeholder": "Ange 2FA-kod",
+      "description": "2FA är aktiverad för ditt konto. Ange din autentiseringskod för att fortsätta.",
+      "title": "Tvåfaktorsautentisering krävs",
+      "verify_button": "Verifiera 2FA",
+      "verifying": "Verifierar..."
+    }
+  },
+  "bars": {
+    "down_count": "Nedstopp",
+    "important": "Viktig",
+    "interval": "Intervall",
+    "message": "Meddelande",
+    "ms": "ms",
+    "notified": "Notifierad",
+    "ping": "Ping",
+    "retries": "Återförsök",
+    "status": "Status",
+    "time": "Tid"
+  },
+  "common": {
+    "active": "Aktiv",
+    "all": "Alla",
+    "back": "Tillbaka",
+    "cancel": "Avbryt",
+    "clear_all": "Rensa allt",
+    "clear_all_filters": "Rensa alla filter",
+    "confirm": "Bekräfta",
+    "confirm_delete_title": "Är du helt säker?",
+    "confirm_delete_title_short": "Är du säker?",
+    "continue": "Fortsätt",
+    "create": "Skapa",
+    "created": "Skapad",
+    "days": "dagar",
+    "default": "Standard",
+    "delete": "Ta bort",
+    "disabling": "Avaktiverar...",
+    "dismiss": "Avfärda",
+    "down": "Ned",
+    "enabling": "Aktiverar...",
+    "error": "Fel",
+    "expires": "Förfaller",
+    "inactive": "Inaktiv",
+    "loading": "Laddar...",
+    "logout": "Logga ut",
+    "maintenance": "Underhåll",
+    "no_options_found": "Inga alternativ hittades",
+    "no_tags_available": "Inga taggar tillgängliga",
+    "please_refresh_page": "Uppdatera sidan, tack.",
+    "required": "Obligatorisk",
+    "save": "Spara",
+    "saving": "Sparar...",
+    "search": "Sök",
+    "security": "Säkerhet",
+    "select": "Välj",
+    "select_monitors": "Välj övervakningar...",
+    "select_tags": "Välj taggar",
+    "settings": "Inställningar",
+    "tags": "Etiketter",
+    "unknown": "Okänt",
+    "unnamed_monitor": "Namnlös Övervakning",
+    "up": "Up",
+    "update": "Uppdatera",
+    "verifying": "Verifierar..."
+  },
+  "forms": {
+    "labels": {
+      "confirm_password": "Bekräfta lösenord",
+      "email": "E-post",
+      "footer_text": "Sidfotstext",
+      "heartbeat_interval": "Heartbeat-intervall (sekunder)",
+      "icon_url": "Ikon-URL",
+      "monitor_name": "Namn",
+      "monitor_type": "Typ",
+      "password": "Lösenord",
+      "retries": "Återförsök",
+      "slug": "Slug",
+      "title": "Titel",
+      "username": "Användarnamn"
+    },
+    "placeholders": {
+      "auto_refresh_help": "0 för ingen automatisk uppdatering",
+      "domains": "Ange domän (t.ex. status.example.com)",
+      "footer_text": "Ange sidfotstext",
+      "icon_url": "https://example.com/icon.png",
+      "monitor_name": "Min övervakning",
+      "page_description": "Ange beskrivning av status­sidan",
+      "page_title": "Ange statussidans titel",
+      "slug": "status-sida-slug"
+    },
+    "validation": {
+      "email_invalid": "Ange en giltig e-postadress",
+      "password_min_length": "Lösenord måste vara minst 8 tecken",
+      "passwords_mismatch": "Lösenorden matchar inte"
+    }
+  },
+  "maintenance": {
+    "card": {
+      "aria": {
+        "delete": "Ta bort {{title}}",
+        "pause": "Pausa underhåll",
+        "resume": "Återuppta underhåll"
+      },
+      "labels": {
+        "duration": "{{duration}} min",
+        "end": "Slut: {{date}}",
+        "start": "Start: {{date}}"
+      },
+      "status": {
+        "active": "Aktiv",
+        "ended": "Avslutad",
+        "inactive": "Inaktiv"
+      }
+    },
+    "edit_title": "Redigera underhåll",
+    "form": {
+      "affected_monitors_description": "Välj de övervakare som kommer att påverkas av detta underhåll",
+      "affected_monitors_title": "Påverkade övervakningar",
+      "cron_description": "Ange ett giltigt cron-uttryck",
+      "cron_expression": "Cron-uttryck",
+      "date_time_title": "Datum och tid",
+      "day_of_month": "Dag i månaden",
+      "day_of_week": "Veckodag",
+      "description_label": "Beskrivning",
+      "description_placeholder": "Underhållsbeskrivning...",
+      "duration_minutes": "Varaktighet (minuter)",
+      "effective_date_range": "Giltighetsperiod (Valfritt)",
+      "end_date_time": "Slutdatum & tid",
+      "end_time": "Sluttid",
+      "interval_label": "Intervall (Kör en gång per dag)",
+      "last_day": "Senaste dagen",
+      "last_day_of_month": "Sista dagen i månaden",
+      "maintenance_time_window": "Underhållstidsfönster för en dag",
+      "markdown_supported": "Markdown stöds",
+      "same_as_server": "Samma som serverns tidszon",
+      "start_date_time": "Startdatum & tid",
+      "start_time": "Starttid",
+      "strategy_label": "Strategi",
+      "strategy_placeholder": "Välj strategi",
+      "timezone_label": "Tidszon",
+      "timezone_placeholder": "Välj tidszon",
+      "title_label": "Titel",
+      "title_placeholder": "Underhållstitel"
+    },
+    "page": {
+      "clear_filters": "Rensa alla filter",
+      "dialogs": {
+        "confirm_action": {
+          "pause_description": "Är du säker på att du vill pausa detta underhåll?",
+          "resume_description": "Är du säker på att du vill återuppta detta underhåll?",
+          "title": "Bekräfta åtgärd"
+        },
+        "confirm_delete": {
+          "description": "Är du säker på att du vill radera detta underhållsfönster? Denna åtgärd kan inte ångras.",
+          "title": "Bekräfta borttagning"
+        }
+      },
+      "edit_maintenance": "Redigera underhåll: {{title}}",
+      "empty_state": {
+        "action": "Skapa ditt första underhållsfönster",
+        "description": "Börja med att skapa ditt första underhållsfönster för att förhindra planerad nedtid.",
+        "title": "Inga underhållsfönster hittade"
+      },
+      "error_loading": "Fel vid laddning av underhåll",
+      "loading": "Laddar…",
+      "loading_monitors": "Laddar övervakningar...",
+      "search_placeholder": "Sök underhåll..."
+    },
+    "page_title": "Underhållsfönster",
+    "schedule_title": "Schemalägg underhåll",
+    "strategy": {
+      "cron": "Cron-uttryck",
+      "manual": "Manuell aktiv/inaktiv",
+      "recurring_day_of_month": "Upprepande - Dag i månaden",
+      "recurring_interval": "Upprepande - Intervall",
+      "recurring_weekday": "Upprepning - Veckodag",
+      "single": "Enstaka underhållsfönster"
+    },
+    "toasts": {
+      "create_error": "Misslyckades med att skapa underhåll",
+      "created_success": "Underhåll skapades framgångsrikt",
+      "delete_error": "Kunde inte ta bort underhåll",
+      "deleted_success": "Underhåll borttaget framgångsrikt",
+      "pause_error": "Misslyckades med att pausa underhåll",
+      "paused_success": "Underhåll pausat framgångsrikt",
+      "resume_error": "Misslyckades med att återuppta underhåll",
+      "resumed_success": "Underhållet återupptogs framgångsrikt",
+      "toggle_error": "Kan inte växla underhållsstatus: ID saknas",
+      "update_error": "Misslyckades med att uppdatera underhåll",
+      "updated_success": "Underhåll uppdaterat framgångsrikt"
+    },
+    "weekdays": {
+      "fri": "Fre",
+      "mon": "Mån",
+      "sat": "Lör",
+      "sun": "Sön",
+      "thu": "tors.",
+      "tue": "tis.",
+      "wed": "Ons"
+    }
+  },
+  "messages": {
+    "login_error": "Ett fel uppstod vid inloggning",
+    "login_no_tokens": "Inloggning lyckades men inga token mottogs.",
+    "login_success": "Inloggning lyckad",
+    "notifier_delete_error": "Misslyckades med att ta bort notifier",
+    "notifier_delete_success": "Notifier borttagen framgångsrikt",
+    "register_error": "Ett fel uppstod under registreringen",
+    "register_no_tokens": "Registrering lyckad men inga token mottagna",
+    "register_success": "Registrerad framgångsrikt",
+    "setting_update_error": "Misslyckades med att uppdatera inställning",
+    "setting_update_success": "Inställning uppdaterad",
+    "tag_create_error": "Kunde inte skapa tag",
+    "tag_create_success": "Tagg skapad framgångsrikt",
+    "tag_delete_error": "Misslyckades med att ta bort tagg",
+    "tag_delete_success": "Tag borttagen framgångsrikt",
+    "tag_update_error": "Misslyckades med att uppdatera tagg",
+    "tag_update_success": "Tagg uppdaterad",
+    "unexpected_error": "Ett oväntat fel har inträffat",
+    "version_mismatch": "Versionsavvikelse upptäckt"
+  },
+  "monitors": {
+    "card": {
+      "check_interval": "Kontrollintervall:",
+      "loading_more": "Laddar mer..."
+    },
+    "empty_state": {
+      "action": "Skapa din första övervakning",
+      "description": "Börja med att skapa din första monitor för att spåra hälsan hos dina tjänster.",
+      "title": "Inga övervakningar hittade"
+    },
+    "filtering_by_tags": "Filtrera efter taggar",
+    "filters": {
+      "monitor_status": "Status",
+      "monitor_status_placeholder": "Övervakningsstatus",
+      "search_placeholder": "Sök monitorer efter namn...",
+      "status_placeholder": "Status"
+    },
+    "form": {
+      "buttons": {
+        "copied": "Kopierat!",
+        "copy": "Kopiera",
+        "create": "Skapa",
+        "regenerate": "Regenerera",
+        "update": "Uppdatera"
+      },
+      "dns": {
+        "hostname": "Värdnamn",
+        "port": "Port",
+        "record_type": "Resursposttyp",
+        "record_type_placeholder": "Välj en posttyp",
+        "resolver_server": "Resolverserver",
+        "title": "DNS-inställningar"
+      },
+      "docker": {
+        "ca_cert_description": "Klistra in ditt CA-certifikat i PEM-format.",
+        "ca_certificate": "CA-certifikat (PEM)",
+        "client_cert_description": "Klistra in ditt klientcertifikat i PEM-format. Detta används för ömsesidig TLS-autentisering.",
+        "client_certificate": "",
+        "client_private_key": "Klientens privata nyckel (PEM)",
+        "common_tls_issues": "Vanliga TLS-problem:",
+        "connection_type": "Anslutningstyp",
+        "container_name_id": "Behållarnamn/ID",
+        "disabled": "Inaktiverad",
+        "docker_container": "Docker-behållare",
+        "docker_host": "Docker-värd",
+        "enable_tls": "Aktivera TLS",
+        "enabled": "Aktiverad",
+        "examples": "Exempel",
+        "hostname_mismatch": "x509: certifikatet är giltigt för X, inte Y:",
+        "hostname_mismatch_solution": "Se till att värdnamnet matchar certifikatets SAN eller inaktivera verifieringen (rekommenderas inte).",
+        "legacy_cert_error": "\"x509: certifikatet förlitar sig på det äldre Common Name-fältet\":",
+        "legacy_cert_solution": "Lägg till värdnamnet i Subject Alternative Names (SAN) i ditt certifikat.",
+        "mtls_note": "För ömsesidigt TLS (mTLS) måste du ange både klientcertifikat och privat nyckel. CA-certifikatet används för att verifiera serverns certifikat.",
+        "note": "Notis:",
+        "private_key_description": "Klistra in din privata nyckel i PEM-format. Håll den säker!",
+        "select_connection_type": "Välj anslutningstyp",
+        "select_tls_option": "Välj TLS-alternativ",
+        "select_verification_option": "Välj verifieringsalternativ",
+        "skip_verification": "Skippa verifiering (osäker)",
+        "tls_configuration": "TLS-konfiguration",
+        "unknown_authority": "\"x509: certifikat signerats av okänd myndighet\":",
+        "unknown_authority_solution": "Ange det korrekta CA-certifikatet som signerat servercertifikatet.",
+        "verify_certificates": "Verifiera certifikat",
+        "verify_tls": "Verifiera TLS"
+      },
+      "grpc": {
+        "body": "Kroppsdata (JSON)",
+        "enable_tls": "Aktivera TLS",
+        "enable_tls_description": "Använd säker anslutning (TLS/SSL)",
+        "invert_keyword": "Invertera nyckelord",
+        "invert_keyword_description": "Övervakaren markeras som UP om nyckelordet inte hittas.",
+        "keyword": "Nyckelord",
+        "keyword_description": "Sök efter detta nyckelord i svaret",
+        "keyword_placeholder": "Valfritt sökord att söka efter",
+        "method_description": "Skiftlägeskänslig",
+        "method_placeholder": "Kontrollera",
+        "options_title": "gRPC-alternativ",
+        "proto_content": "Protobuf-innehåll",
+        "proto_method": "Protobuf-metod",
+        "proto_service_name": "Protobuf-tjänstnamn",
+        "service_name_placeholder": "Hälsa"
+      },
+      "http": {
+        "advanced": {
+          "accepted_status_codes": "Accepterade statuskoder",
+          "ignore_tls": "Ignorera TLS/SSL-fel för HTTPS-webbplatser",
+          "ignore_tls_description": "Hoppa över TLS‑certifikatvalidering. Använd med försiktighet – detta gör anslutningarna mindre säkra.",
+          "max_redirects": "Maximala omdirigeringar",
+          "max_redirects_description": "Maximalt antal omdirigeringar som ska följas (0–30). Ange 0 för att inaktivera omdirigeringar.",
+          "title": "Avancerat"
+        },
+        "authentication": {
+          "auth_header": "Behörighetsrubrik",
+          "certificate": "Certifikat",
+          "certificate_placeholder": "Certifikat",
+          "client_id": "Klient-ID",
+          "client_id_placeholder": "Klient-ID",
+          "client_secret": "Klienthemlighet",
+          "client_secret_placeholder": "Klienthemlighet",
+          "domain": "Domän",
+          "domain_placeholder": "Domän",
+          "form_data_body": "Formulärdata",
+          "key": "Nyckel",
+          "key_placeholder": "Nyckel",
+          "method_label": "Autentiseringsmetod",
+          "method_placeholder": "Välj autentiseringstyp",
+          "oauth_scope": "OAuth-behörighet",
+          "oauth_scope_placeholder": "Valfritt: Lista med scopes separerade med mellanslag",
+          "oauth_token_url": "OAuth-token-URL",
+          "oauth_token_url_placeholder": "OAuth-token-URL",
+          "title": "Autentisering",
+          "workstation": "Arbetsstation",
+          "workstation_placeholder": "Arbetsstation"
+        },
+        "options": {
+          "body": "Body",
+          "body_encoding": "Kroppskodning",
+          "body_encoding_placeholder": "Välj kroppskodning",
+          "form_example": "Exempelformulärdata",
+          "headers": "Headers",
+          "json_example": "Exempel JSON",
+          "method": "Metod",
+          "method_placeholder": "Välj monitortyp",
+          "select_encoding": "Välj kroppskodning",
+          "select_method": "Välj metod",
+          "text_example": "Exempeltext:\nAllt vanligt textinnehåll här...",
+          "title": "HTTP-alternativ",
+          "xml_example": "Exempel XML"
+        }
+      },
+      "http_json_query": {
+        "condition_label": "Villkor",
+        "expected_value_label": "Förväntat värde",
+        "json_query_label": "JSON-frågeuttryck",
+        "title": "JSON-frågeuttryck"
+      },
+      "http_keyword": {
+        "invert_keyword_description": "Sök efter att nyckelordet saknas snarare än närvarande.",
+        "invert_keyword_label": "Invertera nyckelord",
+        "keyword_label": "Nyckelord",
+        "keyword_validation_title": "Nyckelordsvalidering"
+      },
+      "kafka": {
+        "add_broker": "Lägg till broker",
+        "auto_topic_creation_description": "Tillåt producenten att automatiskt skapa ämnet om det inte finns.",
+        "auto_topic_creation_label": "Tillåt automatisk skapning av ämnen",
+        "brokers_description": "Lista över Kafka-brokeradresser (host:port-format)",
+        "brokers_label": "Kafka-brokers",
+        "configuration_title": "Kafka-konfiguration",
+        "enable_ssl_description": "Använd SSL/TLS-kryptering för anslutningen.",
+        "enable_ssl_label": "Aktivera SSL/TLS",
+        "message_description": "Meddelandets innehåll att skicka till ämnet (JSON-format rekommenderas)",
+        "message_label": "Meddelande",
+        "sasl_mechanism_description": "Välj SASL-autentiseringsmekanism",
+        "sasl_mechanism_label": "SASL-mekanism",
+        "sasl_mechanism_placeholder": "Välj SASL‑mekanism",
+        "sasl_password_description": "Lösenord för SASL-autentisering",
+        "sasl_password_label": "SASL-lösenord",
+        "sasl_password_placeholder": "lösenord",
+        "sasl_username_description": "Användarnamn för SASL-autentisering",
+        "sasl_username_label": "SASL-användarnamn",
+        "security_title": "Säkerhet",
+        "topic_description": "Kafka‑ämnet för att producera meddelanden"
+      },
+      "mongodb": {
+        "command_description": "MongoDB‑kommando att köra som JSON. Standard är ping om inget anges.",
+        "command_label": "Kommando (valfritt)",
+        "configuration_title": "MongoDB-konfiguration",
+        "connection_string_description": "MongoDB-anslutningssträng. Stöder både standardformat (mongodb://) och DNS-seedlistformat (mongodb+srv://).",
+        "connection_string_label": "Anslutningssträng",
+        "expected_value_description": "Förväntat värde att jämföra med JSON-path-resultatet.",
+        "expected_value_label": "Förväntat värde (valfritt)",
+        "expected_value_placeholder": "Förväntat värde",
+        "json_path_description": "JSON-sökväg för att extrahera värde från svar. Använd $ för rotnivå.",
+        "json_path_label": "JSON Path (valfri)"
+      },
+      "mqtt": {
+        "check_type_json_query": "JSON-fråga",
+        "check_type_keyword": "Nyckelord",
+        "check_type_label": "MQTT-kontrolltyp",
+        "check_type_none": "Ingen (Vilket som helst meddelande)",
+        "check_type_placeholder": "Välj kontrolltyp",
+        "configuration_title": "MQTT-konfiguration",
+        "expected_value_label": "Förväntat värde",
+        "hostname_label": "Värdnamn",
+        "json_path_label": "JSON‑väg",
+        "password_label": "MQTT-lösenord",
+        "password_placeholder": "Lösenord (valfritt)",
+        "port_label": "Port",
+        "success_keyword_label": "MQTT-framgångsnyckelord",
+        "success_keyword_placeholder": "Nyckelord som indikerar framgång",
+        "username_label": "MQTT-användarnamn",
+        "username_placeholder": "Användarnamn (valfritt)",
+        "validation": {
+          "expected_value_required": "Förväntat värde krävs när kontrolltypen är json-query",
+          "json_path_required": "JSON path krävs när kontrolltyp är json-query",
+          "success_keyword_required": "Framgångsnyckel krävs när kontrollerstypen är nyckel"
+        }
+      },
+      "mysql": {
+        "connection_string_examples": "Exempel:",
+        "connection_string_label": "Anslutningssträng",
+        "connection_title": "MySQL-anslutning",
+        "query_label": "Fråga"
+      },
+      "ping": {
+        "data_size": "Datastorlek (bytes)",
+        "host": "Värdnamn / IP",
+        "title": "Ping-inställningar"
+      },
+      "postgres": {
+        "connection_string_label": "Anslutningssträng",
+        "connection_title": "PostgreSQL-anslutning",
+        "query_label": "Fråga"
+      },
+      "push": {
+        "url_description": "Använd den här URL‑en i din tjänst för att rapportera status. Gör en HTTP‑förfrågan (POST/GET) till den här slutpunkten för att skicka ett heartbeat.",
+        "url_title": "Push Monitor-URL"
+      },
+      "rabbitmq": {
+        "documentation_link": "RabbitMQ-dokumentation",
+        "health_checks_description": "Monitorn kontrollerar {{code}}-ändpunkten på varje nod och returnerar UP om någon nod är frisk.",
+        "management_nodes_description": "Ange URL:en för RabbitMQ‑hanteringsnoder inklusive protokoll och port. Exempel: https://node1.rabbitmq.com:15672",
+        "management_nodes_title": "Förvaltningsnoder",
+        "node_url_label": "Nod-URL",
+        "password_description": "Lösenord för autentisering av RabbitMQ:s administrationsgränssnitt",
+        "setup_information_description": "För att använda RabbitMQ‑monitorn måste du aktivera Management‑plugin i din RabbitMQ‑installation. För mer information, se RabbitMQ‑dokumentationen.",
+        "setup_information_title": "Inställningsinformation",
+        "title": "RabbitMQ-konfiguration",
+        "username_description": "Användarnamn för autentisering mot RabbitMQ-administrationsgränssnittet"
+      },
+      "redis": {
+        "ca_certificate_description": "Rotcertifikat i PEM-format. Nödvändigt för korrekt TLS-verifiering med egenutgivna certifikat.",
+        "ca_certificate_label": "CA-certifikat (valfritt)",
+        "client_certificate_description": "Klientcertifikat i PEM-format. Krävs för ömsesidig TLS-autentisering.",
+        "client_certificate_label": "Klientcertifikat (valfritt)",
+        "client_key_description": "Klientens privata nyckel i PEM-format. Måste tillhandahållas tillsammans med klientcertifikatet.",
+        "client_key_label": "Klientens privata nyckel (valfritt)",
+        "connection_string_description": "Redis-anslutningssträngformat: {{redis}} eller {{rediss}} för TLS",
+        "connection_string_label": "Anslutningssträng",
+        "ignore_tls_description": "Hoppa över TLS-certifikatverifiering (ej rekommenderat för produktion)",
+        "ignore_tls_label": "Ignorera TLS/SSL-fel",
+        "title": "Redis-konfiguration"
+      },
+      "shared": {
+        "intervals": {
+          "heartbeat_retry": "Livssignalåterkopplingsintervall (Upprepa var {{seconds}} sekund)",
+          "max_retries_description": "Maximalt antal försök innan tjänsten anses nere och en notifikation skickas",
+          "request_timeout": "Begäran timeout (Timeout efter {{seconds}} sekunder)",
+          "resend_notification": "Skicka om varning vid nedgång X gånger i rad (Skicka om inaktiverat)"
+        },
+        "notifications": {
+          "add_notifier": "Lägg till notifierare",
+          "new_notifier": "",
+          "no_channels": "Inga notifikationskanaler hittade, skapa en först",
+          "no_channels_available": "Inga kanaler tillgängliga",
+          "select_channel": "Välj kanal",
+          "select_notifier_placeholder": "Välj notifierare",
+          "selected_channels": "Valda notifikationskanaler",
+          "title": "Aviseringskanaler"
+        },
+        "proxy": {
+          "add_proxy": "Lägg till proxy",
+          "new_proxy": "+ Ny proxy",
+          "no_proxy": "Ingen proxy",
+          "remove_proxy": "Ta bort proxy",
+          "select_proxy_placeholder": "Välj proxy",
+          "selected_proxy": "Vald proxy",
+          "title": "Proxy"
+        },
+        "tags": {
+          "label": "Taggar",
+          "no_tags": "Inga taggar tillgängliga",
+          "placeholder": "Välj taggar"
+        }
+      },
+      "snmp": {
+        "community_description": "SNMP-communitysträngen för autentisering (t.ex. ett lösenord)",
+        "community_label": "Community-sträng",
+        "expected_value_description": "Värdet att jämföra med. Lämna tomt för att hoppa över valideringen.",
+        "expected_value_label": "Förväntat värde",
+        "host_description": "Värdnamnet eller IP-adressen till SNMP-aktiverad enhet",
+        "host_label": "Värd",
+        "json_path_description": "JSONPath-uttryck för att extrahera värde från svaret (använd \"$\" för rått värde)",
+        "json_path_label": "JSON Path",
+        "json_path_operator_description": "Hur du jämför det extraherade värdet med det förväntade värdet",
+        "json_path_operator_eq": "är lika med",
+        "json_path_operator_ge": "större än eller lika med",
+        "json_path_operator_gt": "större än",
+        "json_path_operator_label": "Villkor",
+        "json_path_operator_le": "mindre än eller lika med",
+        "json_path_operator_lt": "mindre än",
+        "json_path_operator_ne": "inte lika med",
+        "oid_description": "SNMP‑objektidentifieraren som ska frågas (t.ex. 1.3.6.1.2.1.1.1.0 för systembeskrivning)",
+        "oid_label": "OID (Objektidentifierare)",
+        "port_description": "SNMP-porten (standard: 161)",
+        "port_label": "Port",
+        "snmp_version_description": "Den SNMP-protokollversion som ska användas",
+        "snmp_version_label": "SNMP-version",
+        "title": "SNMP-inställningar",
+        "value_validation_label": "Värdevalidering (valfritt)"
+      },
+      "sqlserver": {
+        "allowed_statements_description": "SELECT, SHOW, DESCRIBE, EXPLAIN, WITH, och VALUES.",
+        "allowed_statements_label": "Tillåtna satser:",
+        "connection_string_label": "Anslutningssträng",
+        "query_description": "Fråga att köra för hälsokontroll. Lämna tomt för att använda standard.",
+        "query_label": "Fråga",
+        "title": "Microsoft SQL Server-anslutning"
+      },
+      "tcp": {
+        "host": "Värd",
+        "port": "Port",
+        "title": "TCP-anslutning"
+      },
+      "type": {
+        "dns": "DNS-övervakning",
+        "docker": "Docker-kontainer",
+        "grpc": "gRPC Nyckelordsövervakning",
+        "http": "HTTP(S)-övervakning",
+        "kafka": "Kafka-producentövervakning",
+        "mongodb": "MongoDB-databasövervakning",
+        "mqtt": "MQTT-brokerövervakning",
+        "mysql": "MySQL/MariaDB‑övervakning",
+        "ping": "Ping-övervakning (ICMP)",
+        "postgres": "PostgreSQL-databasövervakning",
+        "push": "Push-övervakning (externtjänst anropar en genererad URL)",
+        "rabbitmq": "RabbitMQ-övervakning",
+        "redis": "Redis-databasövervakning",
+        "snmp": "SNMP-övervakning",
+        "sqlserver": "Microsoft SQL Server-övervakning",
+        "tcp": "TCP-portövervakning"
+      }
+    },
+    "page": {
+      "description": "Skapa en ny monitor för att börja spåra webbplatsens prestanda.",
+      "edit_title": "Redigera övervakning:",
+      "new_title": "Ny övervakning"
+    },
+    "title": "Övervakningar",
+    "toasts": {
+      "deleted": "Övervakning borttagen",
+      "paused": "Övervakning pausad",
+      "reset_success": "Monitordata återställdes framgångsrikt",
+      "resumed": "Övervakning återupptagen"
+    },
+    "view": {
+      "buttons": {
+        "clone": "Klonera",
+        "delete": "Radera",
+        "edit": "Redigera",
+        "pause": "Paus",
+        "reset_data": "Återställ data",
+        "resume": "Fortsätt"
+      },
+      "certificate": "Certifikat",
+      "check_every": "Kontrollera varje",
+      "current_status": "Nuvarande status",
+      "dialogs": {
+        "delete": {
+          "description": "Denna åtgärd kan inte ångras. Detta kommer permanent att radera monitor och all relaterad data.",
+          "title": "Är du absolut säker?"
+        },
+        "pause": {
+          "description": "Är du säker på att du vill pausa?",
+          "title": "Bekräftelse"
+        },
+        "reset": {
+          "description": "Detta kommer permanent att radera all heartbeat-historik och uppetidstatistik för denna monitor. Monitorn kommer att se ut som om den just skapats. Denna åtgärd kan inte ångras.",
+          "title": "Återställ övervakningsdata"
+        }
+      },
+      "expiring_soon": "Utgår snart",
+      "for": "för",
+      "live_status": "Direktstatus",
+      "monitor_for": "Övervaka för",
+      "no_certificate_data": "Ingen certifikatdata",
+      "seconds": "sekunder",
+      "stats": {
+        "last_24_hours": "Senaste 24 timmar",
+        "last_30_days": "Senaste 30 dagar",
+        "last_365_days": "Senaste 365 dagar",
+        "last_7_days": "Senaste 7 dagar"
+      },
+      "status": {
+        "down": "Ned",
+        "maintenance": "Underhåll",
+        "paused": "Pausad",
+        "up": "Upp"
+      }
+    }
+  },
+  "navigation": {
+    "maintenance": "Underhåll",
+    "monitors": "Övervakningar",
+    "notification_channels": "Aviseringskanaler",
+    "proxies": "Proxys",
+    "settings": "Inställningar",
+    "status_pages": "Status-sidor",
+    "tags": "Taggar"
+  },
+  "notifications": {
+    "actions": {
+      "test": "Testa",
+      "testing": "Testar..."
+    },
+    "aria": {
+      "delete": "Ta bort {{name}}"
+    },
+    "confirm_delete_description": "Denna åtgärd kan inte ångras. Det kommer att permanent ta bort notifieraren \"{{name}}\" och ta bort den från alla övervakningar som använder den.",
+    "create_title": "Skapa notifierare",
+    "edit_channel_title": "Redigera notifieringskanal",
+    "edit_title": "Redigera notifierare",
+    "empty_state": {
+      "action": "Skapa din första aviseringkanal",
+      "description": "Börja med att skapa din första varningskanal för att skicka varningar till ditt team.",
+      "title": "Inga notifieringskanaler hittades"
+    },
+    "form": {
+      "discord": {
+        "bot_display_name_description": "Det namn som kommer att visas som avsändare för Discord-meddelandena.",
+        "bot_display_name_label": "Botens visningsnamn",
+        "custom_message_prefix_description": "Valfritt prefix som kommer att läggas till i början av alla meddelanden.",
+        "custom_message_prefix_label": "Anpassat meddelandeprefix",
+        "custom_message_prefix_placeholder": "Valfritt: Lägg till ett prefix till ditt meddelande",
+        "forum_post_name_description": "Namnet på det nya foruminlägget som kommer att skapas.",
+        "forum_post_name_label": "Forumpostnamn",
+        "forum_post_name_placeholder": "Ange namn på foruminlägg",
+        "sending_message_to_channel": "Skicka till kanal",
+        "sending_message_to_description": "Välj var Discord-meddelanden ska skickas.",
+        "sending_message_to_label": "Skickar meddelande till",
+        "sending_message_to_new_forum_post": "Skicka till nytt foruminlägg",
+        "sending_message_to_placeholder": "Välj meddelandetyp",
+        "sending_message_to_thread": "Skicka till tråd",
+        "setup_webhook_description_1": "Hämta din webhook-URL från Discord-serverns inställningar → Integrationer → Webhooks.",
+        "setup_webhook_description_2": "Skapa en ny webhook och kopiera URL:en. Se till att du har valt rätt kanal.",
+        "setup_webhook_title": "Ställ in Discord Webhook",
+        "thread_id_description_1": "Aktivera utvecklarläge i Discord-inställningar → Avancerat → Utvecklarläge",
+        "thread_id_description_2": "Klicka med högra musknappen på tråden eller inlägget och välj \"Kopiera tråd-ID\" eller \"Kopiera kanal-ID\"",
+        "thread_id_description_title": "ID för tråden eller foruminlägget där meddelanden kommer att skickas",
+        "thread_id_label": "Tråd-ID",
+        "thread_id_placeholder": "Ange tråd- eller inläggs-ID",
+        "webhook_url_label": "Discord Webhook URL"
+      },
+      "google_chat": {
+        "more_info_about_webhooks": "Mer information om Webhooks",
+        "webhook_url_label": "Google Chat Webhook-URL"
+      },
+      "gotify": {
+        "application_token_description": "App-token från din Gotify-app. Du hittar den i ditt Gotify-webbgränssnitt under Apps.",
+        "application_token_label": "Applikationstoken",
+        "custom_message_description": "Anpassad meddelandemall. Tillgängliga variabler",
+        "custom_message_description_2": "Lämna tomt för att använda standardmeddelandet.",
+        "custom_message_label": "Anpassat meddelande",
+        "custom_title_description": "Anpassad titel för meddelandet. Tillgängliga variabler: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Lämna tomt för att använda standardtiteln \"Peekaping\".",
+        "custom_title_label": "Anpassad titel",
+        "learn_more_label": "Läs mer om Gotify och hur du sätter upp den på:",
+        "note_description": "Du behöver ha en Gotify-server igång för att använda den här integrationen.",
+        "note_label": "Notis:",
+        "priority_0": "Lägst",
+        "priority_1": "Mycket låg",
+        "priority_10": "Högsta",
+        "priority_2": "Låg",
+        "priority_3": "Lägre än normalt",
+        "priority_4": "Normal",
+        "priority_5": "Över normal",
+        "priority_6": "Mellan",
+        "priority_7": "Hög",
+        "priority_8": "Mycket hög (Standard)",
+        "priority_9": "Akut",
+        "priority_description": "Meddelandets prioritet (0-10). Högre siffror innebär högre prioritet. Standardvärde är 8.",
+        "priority_label": "Prioritet",
+        "priority_placeholder": "Välj prioritet",
+        "server_url_description": "URL-adressen för din Gotify-server. Se till att den är åtkomlig från denna applikation.",
+        "server_url_label": "Server‑URL"
+      },
+      "grafana_oncall": {
+        "grafana_oncall_url_description": "Webhook-URLen från din Grafana OnCall-integration. Du hittar den i din Grafana OnCall-instans under Alerts & IRM > IRM > Integrationer > Webhook.",
+        "grafana_oncall_url_label": "Grafana OnCall-URL",
+        "learn_more_label": "Läs mer om Grafana OnCall-webhooks"
+      },
+      "line": {
+        "channel_access_token_description": "Du kan hämta din kanalaccess-token från",
+        "channel_access_token_description_2": "Gå till kanalinställningarna och leta efter",
+        "channel_access_token_label": "Kanalåtkomsttoken (Långvarig)",
+        "channel_access_token_placeholder": "Ange din LINE-kanals åtkomsttoken",
+        "template_description": "Anpassa meddelandets format. Tillgängliga variabler",
+        "template_label": "Meddelandemall",
+        "template_placeholder": "Ange din egen meddelandemall",
+        "user_id_description": "Du hittar ditt Användar-ID i",
+        "user_id_description_2": "Gå till dina kanalinställningar och leta efter",
+        "user_id_label": "Ditt användar-ID",
+        "user_id_placeholder": "Ange ditt LINE-användar-ID"
+      },
+      "matrix": {
+        "access_token_description": "Din Matrix-åtkomsttoken för autentisering",
+        "access_token_label": "Åtkomsttoken",
+        "custom_message_description": "Anpassad meddelandemall. Tillgängliga variabler",
+        "custom_message_label": "Anpassat meddelande",
+        "homeserver_url_description": "URL för din Matrix-hemserver",
+        "homeserver_url_label": "Homeserver-URL",
+        "internal_room_id_description": "Det interna rums-ID där aviseringar kommer att skickas. Det bör börja med \"!\" och se ut som: !roomid:matrix.org",
+        "internal_room_id_label": "Internt rum-ID",
+        "setup_instructions_1": "Skapa ett Matrix‑konto för din bot (eller använd ditt befintliga konto)",
+        "setup_instructions_2": "Skapa eller gå med i rummet där du vill ta emot aviseringar",
+        "setup_instructions_3": "Hämta din åtkomsttoken genom att göra en inloggningsförfrågan.",
+        "setup_instructions_4": "Svaret kommer att innehålla ett access_token-fält – använd detta som din Access Token",
+        "setup_instructions_5": "Hitta ditt rumets interna ID (börjar med \"!\") i Matrix-klientens rumsinställningar",
+        "setup_instructions_label": "Inställningsinstruktioner"
+      },
+      "mattermost": {
+        "channel_name_description": "Kanalen där aviseringar skickas. Lämna tomt för att använda standardkanalen som är konfigurerad i webhooken.",
+        "channel_name_label": "Kanalnamn",
+        "icon_emoji_cheat_sheet_label": "Emoji‑cheatsheet",
+        "icon_emoji_description": "Emoji att använda som ikon. Du kan ange två emojis separerade med ett mellanslag (först för uppstatus, andra för nedstatus).",
+        "icon_emoji_label": "Ikon-emoji",
+        "icon_url_description": "URL för en bild som ska användas som ikon för meddelandet.",
+        "icon_url_label": "Ikon-URL",
+        "learn_more_label": "Läs mer om webhooks",
+        "message_template_description": "Anpassa meddelandets format. Tillgängliga variabler",
+        "message_template_label": "Meddelandemall",
+        "use_message_template_description": "Aktivera användning av en anpassad meddelandemall och format.",
+        "use_message_template_label": "Använd meddelandemall",
+        "username_description": "Det användarnamn som kommer att visas som avsändare för meddelandet.",
+        "webhook_url_label": "Webhook-URL"
+      },
+      "ntfy": {
+        "authentication_type_basic": "Grundläggande autentisering",
+        "authentication_type_basic_description": "Använd användarnamn och lösenord för grundläggande autentisering.",
+        "authentication_type_label": "Autentiseringstyp",
+        "authentication_type_none": "Ingen autentisering",
+        "authentication_type_none_description": "Ingen autentisering krävs. Lämpligt för offentliga NTFY-servrar.",
+        "authentication_type_placeholder": "Välj autentiseringstyp",
+        "authentication_type_token": "Tokenautentisering",
+        "authentication_type_token_description": "Använd en åtkomsttoken för autentisering.",
+        "custom_message_description": "Anpassat meddelandeinnehåll. Tillgängliga variabler",
+        "custom_message_label": "Anpassat meddelande",
+        "password_required": "Lösenord krävs för grundläggande autentisering",
+        "priority_1": "Min (Lägsta)",
+        "priority_2": "Låg",
+        "priority_3": "Standard",
+        "priority_4": "Hög",
+        "priority_5": "Brådskande (Högsta)",
+        "priority_description": "Prioritetsnivån för meddelandet. Höga prioriteringar kan utlösa olika beteenden på klienten.",
+        "priority_label": "Prioritet",
+        "priority_placeholder": "Välj prioritet",
+        "server_url_description": "URL till din NTFY-server. Använd https://ntfy.sh för den publika instansen.",
+        "server_url_label": "Server‑URL",
+        "tags_description": "Kommaseparerade taggar för att kategorisera aviseringar. Tillgängliga variabler",
+        "tags_label": "Taggar",
+        "title_description": "Anpassad titel för aviseringen. Tillgängliga variabler.",
+        "title_label": "Anpassad titel",
+        "token_description": "Din NTFY åtkomsttoken för autentisering.",
+        "token_label": "Åtkomsttoken",
+        "token_required": "Token krävs för tokenautentisering",
+        "topic_description": "Ämnesnamnet för dina aviseringar. Detta blir kanalen där aviseringarna skickas.",
+        "topic_label": "Ämne",
+        "username_required": "Användarnamn krävs för grundläggande autentisering"
+      },
+      "opsgenie": {
+        "api_key_label": "API-nyckel",
+        "more_info_about_api_keys_label": "Mer info om API-nycklar",
+        "priority_1": "Kritisk",
+        "priority_2": "Hög",
+        "priority_3": "Medium",
+        "priority_4": "Låg",
+        "priority_5": "Informativ",
+        "priority_description": "Ställ in prioritetnivån för varningar. Standard är P3 (Mellannivå).",
+        "priority_label": "Prioritet",
+        "region_description": "Välj din Opsgenie-region. Detta bestämmer vilken API-slutpunkt som kommer att användas.",
+        "region_label": "Region",
+        "region_placeholder": "Välj region"
+      },
+      "pagerduty": {
+        "auto_resolve_acknowledge": "Automatisk bekräftelse",
+        "auto_resolve_acknowledge_description": "Bekräfta incidenten automatiskt",
+        "auto_resolve_description": "Välj vad som ska göras när en övervakning går tillbaka online",
+        "auto_resolve_do_nothing": "Gör ingenting",
+        "auto_resolve_do_nothing_description": "",
+        "auto_resolve_label": "Auto Upplösning eller Bekräfta",
+        "auto_resolve_placeholder": "Välj automatisk upplösningsbeteende",
+        "auto_resolve_resolve": "Automatisk upplösning",
+        "auto_resolve_resolve_description": "Lös incidenten automatiskt",
+        "integration_key_description": "Lär dig hur du får din integrationsnyckel",
+        "integration_key_label": "Integrationsnyckel",
+        "integration_key_placeholder": "Ange din PagerDuty-integrationsnyckel",
+        "integration_url_description": "URL för PagerDuty Events API v2‑slutpunkten. Standardvärdet är den vanliga slutpunkten.",
+        "integration_url_label": "Integrations-URL",
+        "learn_more_label": "PagerDuty-dokumentation",
+        "priority_critical": "Kritisk",
+        "priority_description": "Allvarighetsnivån för PagerDuty-incidenter. Standardvärdet är \"warning\".",
+        "priority_error": "Fel",
+        "priority_info": "Info",
+        "priority_label": "Prioritet",
+        "priority_placeholder": "Välj prioritet",
+        "priority_warning": "Varning"
+      },
+      "pagertree": {
+        "authentication_token_description": "Valfri autentiseringstoken för ökad säkerhet. Detta kommer att skickas i pagertree-token-huvudet.",
+        "authentication_token_label": "Autentiseringstoken (valfritt)",
+        "authentication_token_placeholder": "Ange autentiseringstoken om det behövs",
+        "auto_resolve_alerts_description": "Lös automatiskt PagerTree-varningar när övervakningen återhämtar sig",
+        "auto_resolve_alerts_label": "Automatiskt lösa larm",
+        "how_to_get_integration_url_label": "Hur får du integrations-URL",
+        "integration_url_description": "Ange din PagerTree webhook-integration-URL.",
+        "integration_url_label": "PagerTree Webhook‑URL",
+        "urgency_level_critical": "Kritisk",
+        "urgency_level_description": "Ange standardnivå för allvar i aviseringar till PagerTree",
+        "urgency_level_high": "Hög",
+        "urgency_level_label": "Brådskande nivå",
+        "urgency_level_low": "Låg",
+        "urgency_level_medium": "Medium",
+        "urgency_level_placeholder": "Välj brådsknadsnivå",
+        "urgency_level_silent": "Tyst"
+      },
+      "pushbullet": {
+        "access_token": "Åtkomsttoken",
+        "access_token_description": "Din Pushbullet-åtkomsttoken. Få den från",
+        "access_token_label": "Åtkomsttoken",
+        "access_token_link": "Pushbullet-inställningar",
+        "channel_tag": "Kanaletikett (valfri)",
+        "channel_tag_description": "Skicka avisering till en Pushbullet-kanal istället för enheter",
+        "channel_tag_label": "Kanaltagg (valfri)",
+        "custom_message_template_description": "Anpassa meddelandetexten med mallvariabler:",
+        "custom_message_template_heartbeat_ping": "Svarstid",
+        "custom_message_template_heartbeat_time": "Tidstämpel",
+        "custom_message_template_label": "Anpassad meddelandemall (valfri)",
+        "custom_message_template_monitor_url": "Övervaknings-URL",
+        "custom_message_template_msg": "Varningsmeddelande",
+        "custom_message_template_name": "Övervakningsnamn",
+        "custom_message_template_placeholder": "Övervakning: {{ name }}\nStatus: {{ status }}\nMeddelande: {{ msg }}",
+        "custom_message_template_status": "Nuvarande status",
+        "device_id": "Enhets-ID (Valfritt)",
+        "device_id_description": "Skicka avisering till en specifik enhet. Lämna tomt för att skicka till alla enheter. Du kan hitta enhets-ID:n med hjälp av",
+        "device_id_label": "Enhets-ID (valfritt)",
+        "device_id_link": "Pushbullet API",
+        "more_info_on": "Mer info om:"
+      },
+      "pushover": {
+        "application_token_label": "Applikationstoken",
+        "application_token_placeholder": "Ange din Pushover-applikationstoken",
+        "device_description": "Lämna tomt för att skicka till alla enheter",
+        "device_label": "Enhet",
+        "device_placeholder": "Enhetsnamn (valfritt)",
+        "message_title_description": "Lämna tomt för att använda standardtitel",
+        "message_title_label": "Meddelande titel",
+        "message_title_placeholder": "Anpassad meddelandetitel (valfritt)",
+        "message_ttl_description": "Tidsgräns i sekunder (0 = ingen utgång)",
+        "message_ttl_label": "Meddelande TTL",
+        "more_info_label": "Mer info om:",
+        "more_info_label_2": "Du kan skapa en applikation och hämta din API-token på",
+        "more_info_label_3": "Din användarnyckel finns på",
+        "notification_sound_down_description": "Ljud när monitor går ner",
+        "notification_sound_down_label": "Notifikationsljud – Ned",
+        "notification_sound_down_placeholder": "Välj ljud",
+        "notification_sound_up_description": "Ljud för när monitor återupptas",
+        "notification_sound_up_label": "Aviseringsljud – Upp",
+        "notification_sound_up_placeholder": "Välj ljud",
+        "priority_1": "Lägst",
+        "priority_2": "Låg",
+        "priority_3": "Normal",
+        "priority_4": "Hög",
+        "priority_5": "Nödsituation",
+        "priority_description": "Meddelandets prioritetnivå",
+        "priority_label": "Prioritet",
+        "priority_placeholder": "Välj prioritet",
+        "sound_alien": "Utanomter",
+        "sound_bike": "Cykel",
+        "sound_bugle": "Bugel",
+        "sound_cashregister": "Kassapparat",
+        "sound_classical": "Klassisk",
+        "sound_climb": "Klättring",
+        "sound_cosmic": "Kosmisk",
+        "sound_echo": "Eko",
+        "sound_falling": "Fallande",
+        "sound_gamelan": "Gamelan",
+        "sound_incoming": "Inkommande",
+        "sound_intermission": "Intermission",
+        "sound_magic": "Magisk",
+        "sound_mechanical": "Mekanisk",
+        "sound_none": "Ingen",
+        "sound_persistent": "Persistenta",
+        "sound_pianobar": "Pianobar",
+        "sound_pushover": "Pushover (standard)",
+        "sound_siren": "Sirene",
+        "sound_spacealarm": "Rymdalarm",
+        "sound_tugboat": "tugboat",
+        "sound_updown": "Upp ner",
+        "sound_vibrate": "Vibrera",
+        "user_key_label": "Användarnyckel",
+        "user_key_placeholder": "Ange din Pushover‑användarnyckel"
+      },
+      "signal": {
+        "custom_message_description": "Anpassad meddelandemall. Tillgängliga variabler.",
+        "custom_message_label": "Anpassat meddelande",
+        "important_description": "Du får inte blanda grupper och nummer i mottagare!",
+        "important_label": "VIKTIG:",
+        "more_info_label": "Du kan titta på länken för att se hur du ställer in en:",
+        "note_description": "Du behöver ha en Signal‑klient med REST‑API.",
+        "note_label": "Obs:",
+        "number_description": "Telefonnumret för ditt Signal-konto (avsändarnummer).",
+        "number_label": "Nummer",
+        "post_url_description": "URL:en till din Signal CLI REST API-server.",
+        "post_url_label": "Post-URL",
+        "recipients_description": "Kommaavgränsad lista med telefonnummer som aviseringar ska skickas till.",
+        "recipients_label": "Mottagare"
+      },
+      "slack": {
+        "channel_name_description": "Kanalen där meddelandet kommer att skickas. Om inget anges skickas meddelandet till standardkanalen som är konfigurerad i webhooken.",
+        "channel_name_description_2": "Du kan åsidosätta standardkanalen genom att ange ett kanalnamn (t.ex. #alerts) eller en användare (t.ex. @användarnamn).",
+        "channel_name_label": "Kanalnamn",
+        "channel_notify_description": "När aktiverat kommer meddelandet att utlösa aviseringar för alla kanalmedlemmar. Använd med försiktighet för att undvika skräppost.",
+        "channel_notify_label": "Avisera kanal",
+        "icon_emoji_cheat_sheet_label": "Emoji snabbguide",
+        "icon_emoji_description": "Emoji att använda som ikon för detta meddelande. Måste vara i formatet :emoji_name:",
+        "icon_emoji_label": "Ikon Emoji",
+        "message_format_description": "Skicka rika meddelanden",
+        "message_format_description_2": "Aktivera för att skicka meddelanden med rik formatering, bilagor och bättre visuell presentation.",
+        "message_format_label": "Meddelandeformat",
+        "username_description": "Det användarnamnet som kommer att visas som avsändare av meddelandet. Om inget anges används standardbottnamnet.",
+        "webhook_url_description": "Webhook-URL från din Slack-integration. Du hittar den i din Slack-instans under Integrationer &gt; Webhooks.",
+        "webhook_url_label": "Webhook‑URL"
+      },
+      "smtp": {
+        "custom_body_label": "Anpassad kropp",
+        "custom_description": "Mallbarhet uppnås via <b>Liquid</b>-mallningsspråket.",
+        "custom_description_2": "Vänligen se dokumentationen för användningsinstruktioner.",
+        "custom_description_3": "Tillgängliga variabler:",
+        "custom_description_4": "Meddelande för aviseringen",
+        "custom_description_5": "Tjänstnamn",
+        "custom_description_6": "tjänstens status (UP/DOWN/Certifikatförfallovarningar)",
+        "custom_subject_label": "Anpassat ämne",
+        "smtp_from_label": "Från (avsändaradress)",
+        "smtp_host_description": "Ange antingen värdnamnet för servern du vill ansluta till eller \"localhost\" om du avser att använda en lokalt konfigurerad e-postöverföringsagent.",
+        "smtp_host_label": "SMTP‑värd",
+        "smtp_password_placeholder": "SMTP-lösenord",
+        "smtp_port_label": "Port",
+        "smtp_to_label": "Till (Mottagarens e-postadress(er))",
+        "smtp_username_placeholder": "SMTP-användarnamn"
+      },
+      "telegram": {
+        "auto_get_label": "Automatisk hämtning",
+        "bot_token_description": "Hämta din bot-token från",
+        "bot_token_label": "Bot-token",
+        "chat_id_description": "Du kan få ditt chat-ID genom att skicka ett meddelande till din bot och klicka på \"Auto Get\" ovan, eller manuellt via Telegram-API:t.",
+        "chat_id_description_2": "För att hämta den manuellt, besök",
+        "chat_id_description_3": "Se",
+        "chat_id_description_4": "Telegram-dokumentation",
+        "chat_id_description_5": "för mer information.",
+        "chat_id_label": "Chatt-ID",
+        "chat_id_not_found": "Chatt-ID hittades inte i den senaste uppdateringen.",
+        "failed_to_fetch_chat_id": "Kunde inte hämta chatt-ID",
+        "message_thread_id_description": "Valfritt. Används för att skicka meddelanden till en specifik tråd (ämne) i en forum-supergrupp.",
+        "message_thread_id_label": "Meddelandetrådens ID",
+        "no_updates_found": "Inga uppdateringar hittades. Skicka ett meddelande till din bot först.",
+        "protect_content_description": "Om aktiverat skyddas meddelandets innehåll mot vidarebefordran och sparande.",
+        "protect_content_label": "Skydda innehåll",
+        "send_silently_description": "Om aktiverat skickas meddelanden tyst (användare får en notifikation utan ljud).",
+        "send_silently_label": "Skicka tyst",
+        "server_url_description": "Standardvärdet är",
+        "server_url_description_2": "Du kan använda en anpassad server. Se",
+        "server_url_description_3": "",
+        "server_url_description_4": "för mer information.",
+        "server_url_label": "Telegram-server-URL",
+        "template_description": "Anpassa meddelandestrukturen. Tillgängliga variabler",
+        "template_label": "Meddelandemall",
+        "template_parse_mode_description": "Välj hur meddelandet ska tolkas. Se",
+        "template_parse_mode_description_2": "Telegram formateringsdokument",
+        "template_parse_mode_description_3": "för mer information",
+        "template_parse_mode_label": "Malltolkningsläge",
+        "template_parse_mode_placeholder": "Välj tolkningsläge",
+        "template_placeholder": "Ange din anpassade meddelandemall",
+        "use_template_description": "Aktivera för att använda en anpassad meddelandemall och format.",
+        "use_template_label": "Använd meddelandemall"
+      },
+      "webhook": {
+        "additional_headers_description": "Lägg till anpassade HTTP‑huvuden i webhook‑förfrågan.",
+        "additional_headers_label": "Ytterligare rubriker",
+        "custom_body_description": "Anpassa begärans body-format. Tillgängliga variabler",
+        "custom_body_label": "Anpassad kropp",
+        "post_url_description": "Webhook-endpoint‑URL där aviseringar skickas.",
+        "post_url_label": "Post‑URL",
+        "request_body_description_custom": "Ange ditt eget anpassade förfrågningskroppsformat nedan.",
+        "request_body_description_form_data": "Innehållet kommer att skickas som multipart/form-data. Du kan avkoda det med <strong>json_decode($_POST['data'])</strong> i PHP.",
+        "request_body_description_json": "Innehåll kommer att skickas som JSON med \"application/json\"-huvud.",
+        "request_body_label": "Förfrågningskropp",
+        "request_body_placeholder": "Välj innehållstyp"
+      }
+    },
+    "important": "Viktiga notiser",
+    "important_notifications": "Viktiga aviseringar",
+    "labels": {
+      "friendly_name": "Vänligt namn",
+      "type": "Notifieringstyp"
+    },
+    "messages": {
+      "create_failed": "Misslyckades med att skapa notifier",
+      "created_success": "Notifier skapad framgångsrikt",
+      "error_loading_notifier": "Fel vid laddning av notifierare",
+      "test_failed": "Misslyckades med att skicka testmeddelande",
+      "test_success": "Testnotifikationen skickades framgångsrikt",
+      "update_failed": "Uppdatering av notifieraren misslyckades",
+      "updated_success": "Notifier uppdaterad framgångsrikt"
+    },
+    "new": {
+      "title": "Ny notifikationskanal"
+    },
+    "no_important": "Inga viktiga aviseringar hittades.",
+    "placeholders": {
+      "select_type": "Välj notifieringstyp"
+    },
+    "search_placeholder": "Sök notifikationskanaler efter namn..."
+  },
+  "proxies": {
+    "delete_dialog": {
+      "description": "Denna åtgärd kan inte ångras. Detta kommer permanent att ta bort proxyn {{host}}:{{port}}.",
+      "title": "Är du helt säker?"
+    },
+    "edit": {
+      "page_name": "Redigera proxy"
+    },
+    "empty_list": {
+      "action_text": "Skapa din första proxy",
+      "text": "Kom igång genom att skapa din första proxy att använda i dina monitorer.",
+      "title": "Inga proxy hittades"
+    },
+    "form": {
+      "auth_label": "Proxyservern kräver autentisering",
+      "port_placeholder": "Port",
+      "protocol_label": "Proxy-protokoll",
+      "protocol_placeholder": "Välj proxyprotokoll",
+      "server_label": "Proxyserver",
+      "server_placeholder": "Serveradress",
+      "user": "Användare"
+    },
+    "messages": {
+      "create_failed": "Misslyckades med att skapa proxy",
+      "created_success": "Proxy skapad framgångsrikt",
+      "error_loading_proxy": "Fel vid laddning av proxy",
+      "update_failed": "Misslyckades med att uppdatera proxy",
+      "updated_success": "Proxy uppdaterad framgångsrikt"
+    },
+    "new": {
+      "page_name": "Ny proxy"
+    },
+    "page_name": "Proxyer",
+    "search_label": "Sök",
+    "search_placeholder": "Sök proxies efter värd..."
+  },
+  "security": {
+    "enable_2fa": {
+      "form": {
+        "authenticator_code_label": "Autentiseringskod",
+        "authenticator_code_placeholder": "Ange 6-siffrig kod",
+        "current_password_label": "Nuvarande lösenord",
+        "current_password_placeholder": "Ange ditt nuvarande lösenord",
+        "enable_2fa_button": "Aktivera 2FA"
+      },
+      "messages": {
+        "2fa_active": "2FA aktiv",
+        "2fa_disabled_successfully": "2FA inaktiverad",
+        "2fa_enabled_successfully": "2FA aktiverad framgångsrikt",
+        "account_is_protected_with_2fa": "Ditt konto är skyddat med 2FA.",
+        "disable_2fa": "Inaktivera 2FA",
+        "enter_password_to_disable_2fa": "Ange ditt lösenord för att inaktivera 2FA",
+        "failed_to_disable_2fa": "Misslyckades med att inaktivera 2FA",
+        "failed_to_verify_2fa_code": "Misslyckades med att verifiera 2FA-kod",
+        "failed_to_verify_password": "Misslyckades med att verifiera lösenordet eller starta 2FA-uppsättningen",
+        "have_enabled_2fa": "Du har aktiverat tvåfaktorsautentisering (2FA) för ditt konto. Detta lägger till ett extra säkerhetslager.",
+        "or_enter_secret_manually": "Eller ange den här hemligheten manuellt",
+        "scan_qr_code_with_authenticator_app": "Skanna den här QR-koden med din autentiseringsapp",
+        "two_factor_authentication_enabled": "Tvåfaktorsautentisering aktiverad",
+        "user_email_not_found": "Användarens e-postadress hittades inte"
+      }
+    },
+    "page_name": "Säkerhet",
+    "update_password": {
+      "form": {
+        "confirm_new_password_label": "Bekräfta nytt lösenord",
+        "confirm_new_password_placeholder": "Ange det nya lösenordet igen",
+        "new_password_label": "Nytt lösenord",
+        "new_password_placeholder": "Ange ett nytt lösenord",
+        "old_password_label": "Gammalt lösenord",
+        "old_password_placeholder": "Ange ditt nuvarande lösenord",
+        "update_password_button": "Uppdatera lösenord"
+      },
+      "messages": {
+        "failed_to_update_password": "Kunde inte uppdatera lösenordet",
+        "password_updated_successfully": "Lösenordet har uppdaterats"
+      },
+      "title": "Uppdatera lösenord"
+    }
+  },
+  "sendgrid": {
+    "api_key_description": "Din SendGrid API‑nyckel. Du kan skapa en i ditt SendGrid‑konto under Inställningar → API‑nycklar. Se till att den har behörighet för \"Mail Send\".",
+    "api_key_label": "API‑nyckel",
+    "bcc_email_description": "Blindkopier. Separera flera e-postadresser med kommatecken.",
+    "bcc_email_label": "Blindkopia e-post (valfritt)",
+    "cc_email_description": "Kopimottagare. Separera flera e-postadresser med kommatecken.",
+    "cc_email_label": "CC e-post (valfritt)",
+    "from_email_description": "Avsändarens e-postadress. Detta måste vara en verifierad avsändare i ditt SendGrid-konto.",
+    "from_email_label": "Från e-post",
+    "subject_description": "Ämnesrad för e-postmeddelandet. Stöder Liquid-mallning.",
+    "subject_label": "Anpassat ämne (valfritt)",
+    "subject_variables_label": "Tillgängliga variabler:",
+    "subject_variables_msg": "meddelandet i aviseringen",
+    "subject_variables_name": "tjänstnamn",
+    "subject_variables_status": "tjänststatus (UP/DOWN)",
+    "to_email_description": "Primär mottagarens e-postadress. För flera mottagare, använd CC- eller BCC-fälten.",
+    "to_email_label": "Till e-post"
+  },
+  "settings": {
+    "data_retention": {
+      "days_label": "Dagar",
+      "description": "Ange hur många dagar data ska sparas (KEEP_DATA_PERIOD_DAYS).",
+      "title": "Lagringstid för data"
+    },
+    "timezone": {
+      "description": "Välj din föredragna tidszon för att visa alla tider i appen.",
+      "label": "Tidszon",
+      "no_timezone_found": "Ingen tidszon hittad.",
+      "search_placeholder": "Sök tidszon...",
+      "select_placeholder": "Välj tidszon...",
+      "title": "Tidszon"
+    },
+    "validation": {
+      "min_days": "Måste vara minst 1 dag"
+    }
+  },
+  "status": {
+    "messages": {
+      "all_systems_operational": "Alla system fungerar",
+      "down": "Ned",
+      "last_updated": "Senast uppdaterad",
+      "maintenance": "Underhåll",
+      "no_monitors_configured": "Inga övervakningar är konfigurerade för denna statussida.",
+      "operational": "Operativ",
+      "partial_system_outage": "Delvis systemavbrott",
+      "powered_by": "Drivs av",
+      "refresh_in": "Uppdatera om",
+      "refresh_now": "Uppdatera nu",
+      "status_page_not_found": "Status-sidan hittades inte eller är inte publicerad.",
+      "under_maintenance": "Underhåll",
+      "unknown": "Okänd"
+    }
+  },
+  "status_pages": {
+    "affected_monitors": "Påverkade övervakningar",
+    "affected_monitors_info": "Välj de övervakningar som påverkas av detta underhåll",
+    "auto_refresh_interval": "Automatisk uppdateringsintervall (sekunder)",
+    "basic_information": "Grundinformation",
+    "create_status_page": "Skapa status­sida",
+    "customization": "Anpassning",
+    "delete_dialog": {
+      "description": "Är du säker på att du vill ta bort \"{{title}}\"? Denna åtgärd kan inte ångras.",
+      "title": "Ta bort status­sida"
+    },
+    "description": "Ange statussidans beskrivning",
+    "domain_already_used": "Domänen {{domain}} används redan av en annan status-sida",
+    "domain_host_warning": "Denna domän är densamma som din nuvarande värdadress. Det kan orsaka konflikter.",
+    "domains": "Domäner",
+    "domains_info_warning": "Glöm inte att lägga till CNAME-posterna i din DNS för varje domän.",
+    "draft_status": "Utkast",
+    "edit_page_name": "Redigera status­sida",
+    "messages": {
+      "create_description": "Skapa en ny status­sida för att dela tjänstens status med användare.",
+      "create_your_first_status_page": "Skapa din första statussida",
+      "created_successfully": "Status-sidan skapades framgångsrikt",
+      "delete_failed": "Det gick inte att ta bort status­sidan",
+      "deleted_successfully": "Status-sidan raderad",
+      "get_started_by_creating_your_first_status_page": "Börja med att skapa din första statuspage.",
+      "no_status_pages_found": "Inga statussidor hittades",
+      "not_found": "Status-sida hittades inte",
+      "update_description": "Uppdatera dina statussidans inställningar och konfiguration.",
+      "updated_successfully": "Status-sidan uppdaterades framgångsrikt"
+    },
+    "new_page_name": "Ny status­sida",
+    "page_name": "Status-sidor",
+    "published": "Publicerad",
+    "published_info": "Gör den här status-sidan offentlig",
+    "published_status": "Publicerad",
+    "search_label": "Sök",
+    "search_placeholder": "Sök status-sidor efter titel...",
+    "update_status_page": "Uppdatera status­sida",
+    "view_page": "Visa sida"
+  },
+  "tags": {
+    "confirm_delete_description": "Denna åtgärd kan inte ångras. Den här taggen \"{{name}}\" kommer att raderas för alltid och tas bort från alla övervakningar.",
+    "edit_page_name": "Redigera tagg",
+    "empty_state": {
+      "action": "Skapa din första tagg",
+      "description": "Börja med att skapa din första tagg för att organisera dina monitorer.",
+      "title": "Inga taggar hittades"
+    },
+    "form": {
+      "color_description": "Välj en färg för din tagg",
+      "color_label": "Färg",
+      "create_button": "Skapa tagg",
+      "description_label": "Beskrivning",
+      "description_placeholder": "Ange taggbeskrivning (valfritt)",
+      "name_label": "Namn",
+      "name_placeholder": "Ange taggnamn",
+      "update_button": "Uppdatera tagg"
+    },
+    "messages": {
+      "create_description": "Skapa en ny tagg för att organisera och kategorisera dina övervakningar.",
+      "failed_to_load_tag": "Misslyckades med att ladda tagg. Taggen kanske inte finns eller du har inte behörighet att se den.",
+      "tag_id_required": "Tagg-ID krävs",
+      "update_description": "Uppdatera taggens detaljer för att bättre organisera dina övervakningar."
+    },
+    "new_page_name": "Ny tagg",
+    "search_placeholder": "Sök taggar..."
+  },
+  "theme": {
+    "dark": "Mörk",
+    "light": "Ljus",
+    "system": "System",
+    "toggle_theme": "Växla tema"
+  },
+  "timezone": {
+    "average": "Genomsnitt",
+    "last_24_hours": "Senaste 24 timmar",
+    "last_3_hours": "Senaste 3 timmar",
+    "last_3_months": "Senaste 3 månader",
+    "last_30_minutes": "Senaste 30 minuterna",
+    "last_6_hours": "Senaste 6 timmarna",
+    "last_7_days": "Senaste 7 dagar",
+    "maximum": "Maximal",
+    "minimum": "Minimum",
+    "ms": "ms",
+    "response_time": "Svarstid",
+    "uptime": "Driftstid"
+  },
+  "ui": {
+    "general": "Allmänt",
+    "intervals_retries": "Intervaller, Upprepningar, Timeout"
+  }
+}

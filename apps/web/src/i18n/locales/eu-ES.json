@@ -1,0 +1,1280 @@
+{
+  "actions": {
+    "cancel": "Ezeztatu",
+    "saving": "Gordetzen..."
+  },
+  "auth": {
+    "login": {
+      "description": "Hasi saioa zure epostarekin",
+      "no_account": "Ez duzu konturik?",
+      "sign_up": "Erregistratu",
+      "submit": "Saioa hasi",
+      "title": "Berriz ongi etorri"
+    },
+    "register": {
+      "description": "Sortu zure administratzaile kontua",
+      "have_account": "Kontu bat baduzu?",
+      "sign_in": "Sartu",
+      "submit": "Sortu",
+      "title": "Kaixo"
+    },
+    "twofa": {
+      "code_label": "2FA kodea",
+      "code_placeholder": "Sartu 2FA kodea",
+      "description": "2FA aktibatuta dago zure kontuan. Sartu autentifikazio kodea jarraitzeko.",
+      "title": "Bi faktoreko autentifikazioa beharrezkoa",
+      "verify_button": "Egiaztatu 2FA",
+      "verifying": "Egiaztatzen..."
+    }
+  },
+  "bars": {
+    "down_count": "Jaitutako kopurua",
+    "important": "Garrantzitsua",
+    "interval": "Tartea",
+    "message": "Mezua",
+    "ms": "ms",
+    "notified": "Jakinarazita",
+    "ping": "Ping",
+    "retries": "Berriz probak",
+    "status": "Egoera",
+    "time": "Denbora"
+  },
+  "common": {
+    "active": "Aktibo",
+    "all": "Denak",
+    "back": "Atzera",
+    "cancel": "Ezeztatu",
+    "clear_all": "Guztiz garbitu",
+    "clear_all_filters": "Garbitu iragazki guztiak",
+    "confirm": "Berretsi",
+    "confirm_delete_title": "Ziur al zaude benetan?",
+    "confirm_delete_title_short": "Ziur al zaude?",
+    "continue": "Jarraitu",
+    "create": "Sortu",
+    "created": "Sortua",
+    "days": "egunak",
+    "default": "Lehenetsia",
+    "delete": "Ezabatu",
+    "disabling": "Desgaitatzen...",
+    "dismiss": "Baztertu",
+    "down": "Beheren",
+    "enabling": "Gaitzen...",
+    "error": "Errorea",
+    "expires": "Iraungitzen",
+    "inactive": "Inaktibo",
+    "loading": "Kargatzen...",
+    "logout": "Saioa amaitu",
+    "maintenance": "Mantentzea",
+    "no_options_found": "Aukerarik ez da aurkitu",
+    "no_tags_available": "Etiketarik ez dago",
+    "please_refresh_page": "Mesedez, berritu orria.",
+    "required": "Beharrezkoa",
+    "save": "Gorde",
+    "saving": "Gordetzen...",
+    "search": "Bilatu",
+    "security": "Segurtasuna",
+    "select": "Hautatu",
+    "select_monitors": "Hautatu monitoreak...",
+    "select_tags": "Etiketak hautatu",
+    "settings": "Ezarpenak",
+    "tags": "Etiketak",
+    "unknown": "Ezezaguna",
+    "unnamed_monitor": "Izengabeko monitor",
+    "up": "Goian",
+    "update": "Eguneratu",
+    "verifying": "Egiaztatzen..."
+  },
+  "forms": {
+    "labels": {
+      "confirm_password": "Pasahitza berretsi",
+      "email": "Eposta",
+      "footer_text": "Orri-oina testua",
+      "heartbeat_interval": "Baktiraren tartea (segundoak)",
+      "icon_url": "Ikono URLa",
+      "monitor_name": "Izena",
+      "monitor_type": "Mota",
+      "password": "Pasahitza",
+      "retries": "Errebairak",
+      "slug": "Slug",
+      "title": "Izenburua",
+      "username": "Erabiltzaile izena"
+    },
+    "placeholders": {
+      "auto_refresh_help": "0 automatikoki berrabiaraztea",
+      "domains": "Sartu domeinua (adibidez, status.example.com)",
+      "footer_text": "Sartu oinoko testua",
+      "icon_url": "https://example.com/icon.png",
+      "monitor_name": "Nire monitorea",
+      "page_description": "Sartu egoera orriaren deskribapena",
+      "page_title": "Sartu egoera orrialdearen izenburua",
+      "slug": "egoera-orri-slug"
+    },
+    "validation": {
+      "email_invalid": "Mesedez, sartu baliozko eposta helbidea",
+      "password_min_length": "Pasahitza gutxienez 8 karaktere izan behar du",
+      "passwords_mismatch": "Pasahitzak ez datoz bat"
+    }
+  },
+  "maintenance": {
+    "card": {
+      "aria": {
+        "delete": "Ezabatu {{title}}",
+        "pause": "Mantentzea pausatu",
+        "resume": "Mantentzea jarraitu"
+      },
+      "labels": {
+        "duration": "{{duration}} min",
+        "end": "Amaiera: {{date}}",
+        "start": "Hasiera: {{date}}"
+      },
+      "status": {
+        "active": "Aktibo",
+        "ended": "Amaitu",
+        "inactive": "Inaktibo"
+      }
+    },
+    "edit_title": "Mantentzea editatu",
+    "form": {
+      "affected_monitors_description": "Hautatu mantentze honek eragindako monitoreak",
+      "affected_monitors_title": "Eragindako monitorrak",
+      "cron_description": "Sartu baliozko cron adierazpena",
+      "cron_expression": "Cron adierazpena",
+      "date_time_title": "Data eta ordua",
+      "day_of_month": "Hilabeteen eguna",
+      "day_of_week": "Asteko eguna",
+      "description_label": "Deskribapena",
+      "description_placeholder": "Mantentzearen deskribapena...",
+      "duration_minutes": "Iraudia (minutuak)",
+      "effective_date_range": "Epaiteko data tartea (aukerazkoa)",
+      "end_date_time": "Amaiera data eta ordua",
+      "end_time": "Amaiera ordua",
+      "interval_label": "Tartea (Egunero behin exekutatu)",
+      "last_day": "Azken eguna",
+      "last_day_of_month": "Hilabetearen azken eguna",
+      "maintenance_time_window": "Eguneko mantentze denbora-leihoa",
+      "markdown_supported": "Markdown onartzen da",
+      "same_as_server": "Zerbitzariaren ordu-eremu bera",
+      "start_date_time": "Hasiera data eta ordua",
+      "start_time": "Hasiera-ordua",
+      "strategy_label": "Estrategia",
+      "strategy_placeholder": "Estrategia hautatu",
+      "timezone_label": "Ordu eremu",
+      "timezone_placeholder": "Hautatu ordu-eremua",
+      "title_label": "Izenburua",
+      "title_placeholder": "Mantentze izenburua"
+    },
+    "page": {
+      "clear_filters": "Iragazki guztiak ezabatu",
+      "dialogs": {
+        "confirm_action": {
+          "pause_description": "Mantentze hau pausatzea nahi duzula, ziur al zaude?",
+          "resume_description": "Ziur zaude mantentze hau berriro hastea nahi duzula?",
+          "title": "Ekintza berretsi"
+        },
+        "confirm_delete": {
+          "description": "Mantentze-leiho hau ezabatu nahi duzula? Ekintza hau ezin da desegin.",
+          "title": "Ezabapena baieztatu"
+        }
+      },
+      "edit_maintenance": "Mantentze editatu: {{title}}",
+      "empty_state": {
+        "action": "Sortu zure lehen mantentze-ordaina",
+        "description": "Hasi zure lehen mantentze-leihoa sortuz programatutako hasterik saihesteko",
+        "title": "Ez da mantentze-emaintze-leihoik aurkitu"
+      },
+      "error_loading": "Mantentzeen kargatzean errorea",
+      "loading": "Kargatzen...",
+      "loading_monitors": "Monitoreak kargatzen...",
+      "search_placeholder": "Bilatu mantentzeak…"
+    },
+    "page_title": "Mantentze-ordutegiak",
+    "schedule_title": "Mantentzea programatu",
+    "strategy": {
+      "cron": "Cron adierazpena",
+      "manual": "Eskuz aktibatu/desaktibatu",
+      "recurring_day_of_month": "Errepikatua - Hilabetearen egun",
+      "recurring_interval": "Errepikatua - Bitartea",
+      "recurring_weekday": "Errepikatzen - Asteko eguna",
+      "single": "Mantentze bakarreko leihoa"
+    },
+    "toasts": {
+      "create_error": "Mantentzea sortzea huts egin du",
+      "created_success": "Mantentzea arrakastuki sortu da",
+      "delete_error": "Mantentzea ezabatuak huts egin du",
+      "deleted_success": "Mantentzea behar bezala ezabatu da",
+      "pause_error": "Mantentzea pausatzean huts egin da",
+      "paused_success": "Mantentzea arrakastaz gelditu da",
+      "resume_error": "Mantentzea berrabiarazi huts egin du",
+      "resumed_success": "Mantentzea ondo berrabiarazi da",
+      "toggle_error": "Ezin da mantentze egoera aldatzen: ID falta da",
+      "update_error": "Mantentzea eguneratzeak huts egin du",
+      "updated_success": "Mantentzea ongi eguneratu da"
+    },
+    "weekdays": {
+      "fri": "Or",
+      "mon": "A",
+      "sat": "Ast",
+      "sun": "Ig.",
+      "thu": "O.",
+      "tue": "astea",
+      "wed": "Az"
+    }
+  },
+  "messages": {
+    "login_error": "Saioa hasitzerakoan errorea gertatu da",
+    "login_no_tokens": "Saioa arrakastaz hasi da, baina tokenak jaso gabe",
+    "login_success": "Saioa ongi hasi da",
+    "notifier_delete_error": "Ezin izan da jakinarazlea ezabatu",
+    "notifier_delete_success": "Jakinarazlea onurri ezabatu da.",
+    "register_error": "Erregistratzean errorea gertatu da",
+    "register_no_tokens": "Izenberri ongi eginda, baina tokenik jaso gabe",
+    "register_success": "Erregistratu da behar bezala",
+    "setting_update_error": "Ezarpena eguneratzean huts egin du",
+    "setting_update_success": "Ezarpena ongi eguneratu da",
+    "tag_create_error": "Etiketa sortzeak huts egin du",
+    "tag_create_success": "Etiketa arrakastaz sortu da",
+    "tag_delete_error": "Ezin izan da etiketa ezabatu",
+    "tag_delete_success": "Etiketa ondo ezabatu da",
+    "tag_update_error": "Ezin izan da etiketaren eguneraketa egin",
+    "tag_update_success": "Etiketa ondo eguneratu da",
+    "unexpected_error": "Errorea ustekabeko gertatu da",
+    "version_mismatch": "Bertsio desbatetzea detektatu da"
+  },
+  "monitors": {
+    "card": {
+      "check_interval": "Egiaztapen tartea:",
+      "loading_more": "Kargatzen gehiago..."
+    },
+    "empty_state": {
+      "action": "Sortu zure lehen monitorra",
+      "description": "Hasieratu lehen monitoa sortuz, zure zerbitzuen osasuna jarraitzeko.",
+      "title": "Monitoreik ez daude aurkitu"
+    },
+    "filtering_by_tags": "Etiketekin filtratzea",
+    "filters": {
+      "monitor_status": "Egoera",
+      "monitor_status_placeholder": "Monitorearen egoera",
+      "search_placeholder": "Bilatu monitoreak izenaren arabera...",
+      "status_placeholder": "Egoera"
+    },
+    "form": {
+      "buttons": {
+        "copied": "Kopiatu da!",
+        "copy": "Kopiatu",
+        "create": "Sortu",
+        "regenerate": "Berriz sortu",
+        "update": "Eguneratu"
+      },
+      "dns": {
+        "hostname": "Ostalabide izena",
+        "port": "Porta",
+        "record_type": "Erregistro baliabide mota",
+        "record_type_placeholder": "Hautatu erregistro mota",
+        "resolver_server": "Ebakitzaile-zerbitzaria",
+        "title": "DNS ezarpenak"
+      },
+      "docker": {
+        "ca_cert_description": "Itsatsi zure ziurtagiri-autoritateko ziurtagiria PEM formatuan.",
+        "ca_certificate": "CA Zertifikatu (PEM)",
+        "client_cert_description": "Itsatsi zure bezeroaren ziurtagiria PEM formatuan. Honek Mutual TLS autentifikazioa erabiltzen du.",
+        "client_certificate": "Bezeroaren ziurtagiria (PEM)",
+        "client_private_key": "Bezeroaren gako pribatua (PEM)",
+        "common_tls_issues": "TLS arazoak ohikoak:",
+        "connection_type": "Konektatze mota",
+        "container_name_id": "Konteiner izena/ID",
+        "disabled": "Desaktibatua",
+        "docker_container": "Docker-konteainerra",
+        "docker_host": "Docker ostalari",
+        "enable_tls": "Gaitu TLS",
+        "enabled": "Gaituta",
+        "examples": "Adibideak",
+        "hostname_mismatch": "\"x509: ziurtagiria X-rentzako balio du, Y ez\":\"",
+        "hostname_mismatch_solution": "Ziurtatu ostalizena zertifikatuaren SAN-rekin bat datozela edo desaktibatu egiaztatzea (ez da gomendatua).",
+        "legacy_cert_error": "x509: ziurtagiria 'Common Name' eremu zaharrean oinarritzen da:",
+        "legacy_cert_solution": "Gehitu ostale-izena Subject Alternative Names (SAN) zure ziurtagiriaren.",
+        "mtls_note": "Mutual TLS (mTLS)entzako, bezeroaren ziurtagiria eta gako pribatua ematea beharrezkoa da. CA ziurtagiria zerbitzariaren ziurtagiria egiaztatzeko erabiltzen da.",
+        "note": "Oharra:",
+        "private_key_description": "Kopiatu zure gako pribatua PEM formatuan. Gorde segurua!",
+        "select_connection_type": "Hautatu konexio mota",
+        "select_tls_option": "Hautatu TLS aukera",
+        "select_verification_option": "Hautatu egiaztapen aukera",
+        "skip_verification": "Egiaztapena saltatu (segurtasunik gabe)",
+        "tls_configuration": "TLS konfigurazioa",
+        "unknown_authority": "x509: epaiezik ez den autoritateak sinatutako ziurtagiria",
+        "unknown_authority_solution": "Eman zerbitzariaren ziurtagiria sinatu duen CA ziurtagiri zuzena.",
+        "verify_certificates": "Egiaztatu ziurtagiriak",
+        "verify_tls": "Egiaztatu TLS"
+      },
+      "grpc": {
+        "body": "Gorputz datuak (JSON)",
+        "enable_tls": "Gaitu TLS",
+        "enable_tls_description": "Erabili konexio segurua (TLS/SSL)",
+        "invert_keyword": "Gakoa alderantzizkatu",
+        "invert_keyword_description": "Monitorra UP bezala markatuko da, gako-hitza aurkitu ez bada.",
+        "keyword": "Gako-hitza",
+        "keyword_description": "Bilatu hitz gako hau erantzunean",
+        "keyword_placeholder": "Bilaketarako aukerazko gakoa",
+        "method_description": "Kaso-sensibiloa",
+        "method_placeholder": "Egiaztatu",
+        "options_title": "gRPC Aukkerak",
+        "proto_content": "Protobuf edukia",
+        "proto_method": "Protobuf Metodoa",
+        "proto_service_name": "Protobuf Zerbitzu izena",
+        "service_name_placeholder": "Osasuna"
+      },
+      "http": {
+        "advanced": {
+          "accepted_status_codes": "Onartutako egoera kodeak",
+          "ignore_tls": "Ez kontuan hartu TLS/SSL akatsak HTTPS webguneetan",
+          "ignore_tls_description": "Saltatu TLS ziurtagiriaren balidazioa. Kontuz erabili - honek konekzioak segurtasun gutxiagoa egiten du.",
+          "max_redirects": "Gehieneko birbideraketak",
+          "max_redirects_description": "Jarraitu beharreko bideratzeen gehieneko kopurua (0-30). Ezarri 0 gisa bideratzeak desgaitzeko.",
+          "title": "Aurreratua"
+        },
+        "authentication": {
+          "auth_header": "Baieztapena goiburua",
+          "certificate": "Ziurtagiria",
+          "certificate_placeholder": "Ziurtagiria",
+          "client_id": "Bezero IDa",
+          "client_id_placeholder": "Bezero ID",
+          "client_secret": "Bezeroaren sekretua",
+          "client_secret_placeholder": "Bezero sekretua",
+          "domain": "Domeinua",
+          "domain_placeholder": "Domeinua",
+          "form_data_body": "Inprimaki datu gorputza",
+          "key": "Gako",
+          "key_placeholder": "Gakoa",
+          "method_label": "Autentifikazio metodoa",
+          "method_placeholder": "Hautatu autentifikazio mota",
+          "oauth_scope": "OAuth eskala",
+          "oauth_scope_placeholder": "Aukerazkoa: Zuriuneak banatutako eskopuen zerrenda",
+          "oauth_token_url": "OAuth token-aren URLa",
+          "oauth_token_url_placeholder": "OAuth tokenen URLa",
+          "title": "Autentifikazioa",
+          "workstation": "Lanpostua",
+          "workstation_placeholder": "lanaerako mahaia"
+        },
+        "options": {
+          "body": "Gorputz",
+          "body_encoding": "Gorputzaren kodeaketa",
+          "body_encoding_placeholder": "Aukeratu gorputzaren kodaketa",
+          "form_example": "Inprimakiaren adibide datuak",
+          "headers": "Goiburuak",
+          "json_example": "JSON adibidea",
+          "method": "Metodoa",
+          "method_placeholder": "Hautatu monitore mota",
+          "select_encoding": "Gorputzaren kodeaketa hautatu",
+          "select_method": "Metodoa hautatu",
+          "text_example": "Adibidez testua: Edozein testu arrunta hemen...",
+          "title": "HTTP Aukerak",
+          "xml_example": "XML adibidea"
+        }
+      },
+      "http_json_query": {
+        "condition_label": "Baldintza",
+        "expected_value_label": "Itxarritako balioa",
+        "json_query_label": "JSON kontsulta adierazpena",
+        "title": "JSON kontsulta adierazpena"
+      },
+      "http_keyword": {
+        "invert_keyword_description": "Bilatu gakoa ez dagoena, agertu dena baino.",
+        "invert_keyword_label": "Aldatu gakoa",
+        "keyword_label": "Giltza",
+        "keyword_validation_title": "Hitz gakoen balioztatzea"
+      },
+      "kafka": {
+        "add_broker": "Brokera gehitu",
+        "auto_topic_creation_description": "Baimendu producenti gaia automatikoki sortzea, existitzen ez bada",
+        "auto_topic_creation_label": "Automatikoko gaia sortzea baimentu",
+        "brokers_description": "Kafka brokeren helbideen zerrenda (host:port formatua)",
+        "brokers_label": "Kafka brokerak",
+        "configuration_title": "Kafka konfigurazioa",
+        "enable_ssl_description": "Erabili SSL/TLS enkriptazioa konexiorako",
+        "enable_ssl_label": "Gaitu SSL/TLS",
+        "message_description": "Gaian bidaltzeko mezuaren edukia (JSON formatu gomendatua)",
+        "message_label": "Mezua",
+        "sasl_mechanism_description": "Aukeratu SASL autentifikazio mekanismoa",
+        "sasl_mechanism_label": "SASL mekanismoa",
+        "sasl_mechanism_placeholder": "Hautatu SASL mekanismoa",
+        "sasl_password_description": "SASL autentifikaziorako pasahitza",
+        "sasl_password_label": "SASL Pasahitza",
+        "sasl_password_placeholder": "pasahitza",
+        "sasl_username_description": "SASL autentifikaziorako erabiltzaile izena",
+        "sasl_username_label": "SASL erabiltzaile izena",
+        "security_title": "Segurtasuna",
+        "topic_description": "Kafka-ren gaia mezuak bidaltzeko"
+      },
+      "mongodb": {
+        "command_description": "MongoDB komandoa JSON gisa exekutatzeko. Espezifikatu ez bada, berezko balioa ping da.",
+        "command_label": "Komandoa (Aukerazkoa)",
+        "configuration_title": "MongoDB Konfigurazioa",
+        "connection_string_description": "MongoDB konexio-katea. Estandarreko (mongodb://) eta DNS seedlist (mongodb+srv://) formatuak onartzen ditu.",
+        "connection_string_label": "Konektzioaren katea",
+        "expected_value_description": "JSON bidearen emaitza konparatzeko itxaropena den balioa.",
+        "expected_value_label": "Itxarobide balioa (Aukerazkoa)",
+        "expected_value_placeholder": "Ispetatutako balioa",
+        "json_path_description": "JSON bidea erantzutatik balioa ateratzeko. Erabili $ erroko mailan.",
+        "json_path_label": "JSON Path (Aukerakoa)"
+      },
+      "mqtt": {
+        "check_type_json_query": "JSON Kontsulta",
+        "check_type_keyword": "Gako-hitza",
+        "check_type_label": "MQTT Egiaztatze mota",
+        "check_type_none": "Bat ere ez (edozein mezua)",
+        "check_type_placeholder": "Hautatu egiaztapen mota",
+        "configuration_title": "MQTT Konfigurazioa",
+        "expected_value_label": "Itxarobiko balioa",
+        "hostname_label": "Host izena",
+        "json_path_label": "JSON bide-izena",
+        "password_label": "MQTT Pasahitza",
+        "password_placeholder": "Pasahitza (aukerakoa)",
+        "port_label": "Ataka",
+        "success_keyword_label": "MQTT arrakastako gakoa",
+        "success_keyword_placeholder": "Arrakastua adierazteko gakoa",
+        "username_label": "MQTT erabiltzaile izena",
+        "username_placeholder": "Erabiltzaile-izena (aukerakoa)",
+        "validation": {
+          "expected_value_required": "Itxaropena den balioa beharrezkoa da 'json-query' egiaztapen mota izanda.",
+          "json_path_required": "JSON bidea beharrezkoa da egiaztapen mota json-query bada",
+          "success_keyword_required": "Arrakastako gakoa beharrezkoa da egiaztapen mota gakoa denean."
+        }
+      },
+      "mysql": {
+        "connection_string_examples": "Adibideak:",
+        "connection_string_label": "Konexio-katea",
+        "connection_title": "MySQL Konexioa",
+        "query_label": "Kontsulta"
+      },
+      "ping": {
+        "data_size": "Datuen tamaina (byteak)",
+        "host": "Ostalari izena / IP",
+        "title": "Ping Ezarpenak"
+      },
+      "postgres": {
+        "connection_string_label": "Konexio-katea",
+        "connection_title": "PostgreSQL Konexioa",
+        "query_label": "Kontsulta"
+      },
+      "push": {
+        "url_description": "Erabili URL hau zure zerbitzuan egoera jakinarazteko. Bidali HTTP eskaera (POST/GET) atzealdeko endpoint-ari bizitza bidaltzeko.",
+        "url_title": "Push Monitor URLa"
+      },
+      "rabbitmq": {
+        "documentation_link": "RabbitMQ dokumentazioa",
+        "health_checks_description": "Monitor-k {{code}} puntua amaiera egiaztatzen du nodo bakoitzean eta nodo bat osasuntsua badago UP itzultzen du.",
+        "management_nodes_description": "Sartu RabbitMQ kudeaketa nodoen URL-a, protokoloa eta ataka barne. Adibidez: https://node1.rabbitmq.com:15672",
+        "management_nodes_title": "Kudeaketa nodoak",
+        "node_url_label": "Nodoaren URLa",
+        "password_description": "RabbitMQ kudeaketa-interfazearen autentifikaziorako pasahitza",
+        "setup_information_description": "RabbitMQ monitorra erabiltzeko, zure RabbitMQ konfigurazioan Kudeaketa Plugin-a gaitzea beharrezkoa da. Informazio gehiago lortzeko, mesedez, kontsultatu RabbitMQren dokumentazioa.",
+        "setup_information_title": "Konfigurazio informazioa",
+        "title": "RabbitMQ konfigurazioa",
+        "username_description": "RabbitMQ kudeaketa-interfazearen autentifikazioaren erabiltzaile-izena"
+      },
+      "redis": {
+        "ca_certificate_description": "Root CA ziurtagiria PEM formatuan. Beharrezkoa da TLS egoki egiaztatzeko berez sinatutako ziurtagiriak erabiliz.",
+        "ca_certificate_label": "CA Ziurtagiria (Aukerakoa)",
+        "client_certificate_description": "Bezero ziurtagiria PEM formatuan. Beharrezkoa mutual TLS autentifikaziorako.",
+        "client_certificate_label": "Bezeroaren ziurtagiria (aukerakoa)",
+        "client_key_description": "Bezeroaren gako pribatua PEM formatuan. Beharrezkoa da bezeroaren ziurtagiria batekin batera ematea.",
+        "client_key_label": "Bezeroaren gako pribatua (Aukerakoa)",
+        "connection_string_description": "Redis konexio harri formatua: {{redis}} edo {{rediss}} TLS-rekin",
+        "connection_string_label": "Konektatze-katea",
+        "ignore_tls_description": "TLS ziurtagiriaren egiaztatzea saltatu (ez da gomendagarria produzioan)",
+        "ignore_tls_label": "Ezikusi TLS/SSL akatsak",
+        "title": "Redis Konfigurazioa"
+      },
+      "shared": {
+        "intervals": {
+          "heartbeat_retry": "Bizikuntza berriztaiteko tartea (Berriztaiteko {{seconds}} segundo)",
+          "max_retries_description": "Gehieneko saiakera kopurua, zerbitzuak 'ez dago' bezala markatu eta abisu bat bidaltzeko",
+          "request_timeout": "Eskariaren denbora-mugua ({{seconds}} segundoen ondoren)",
+          "resend_notification": "Berriz bidali abisua, X aldiz jarraian jaitsi (Berriz bidalketa desgaituta)"
+        },
+        "notifications": {
+          "add_notifier": "Gehitu jakinarazlea",
+          "new_notifier": "+ Jakinarazle berria",
+          "no_channels": "Jakinarazpen-kanalerik ez da aurkitu, sortu bat lehenik",
+          "no_channels_available": "Kanalerik ez dago eskuragarri",
+          "select_channel": "Aukeratu kanala",
+          "select_notifier_placeholder": "Jakinarazlea aukeratu",
+          "selected_channels": "Hautatutako jakinarazpen kanalak",
+          "title": "Jakinarazpen kanalenak"
+        },
+        "proxy": {
+          "add_proxy": "Proxya Gehitu",
+          "new_proxy": "+ Proxy berria",
+          "no_proxy": "Proxirik ez",
+          "remove_proxy": "Kendu proksia",
+          "select_proxy_placeholder": "Proxya hautatu",
+          "selected_proxy": "Hautatutako proxy",
+          "title": "Proxy"
+        },
+        "tags": {
+          "label": "Etiketak",
+          "no_tags": "Etiketarik ez",
+          "placeholder": "Hautatu etiketak"
+        }
+      },
+      "snmp": {
+        "community_description": "Autentifikaziorako SNMP komunitate-katea (adibidez, pasahitza)",
+        "community_label": "Komunitateen katea",
+        "expected_value_description": "Alderatzeko balioa. Hutsik utziz egiaztapena saltatu.",
+        "expected_value_label": "Itxarobide Balioa",
+        "host_description": "SNMP gaitu dagoen gailuaren ostalari‑izena edo IP helbidea",
+        "host_label": "Ostalaria",
+        "json_path_description": "JSONPath adierazpena erantzunetik balioa ateratzeko (erabili \"$\" balio zuzena eskuratzeko)",
+        "json_path_label": "JSON bidea",
+        "json_path_operator_description": "Nola konparatu ateratutako balioa espero denarekin",
+        "json_path_operator_eq": "berdin",
+        "json_path_operator_ge": "handiagoa edo berdina",
+        "json_path_operator_gt": "goitik",
+        "json_path_operator_label": "Baldintza",
+        "json_path_operator_le": "bikotek baino txikiagoa edo berdina",
+        "json_path_operator_lt": "gutxiago",
+        "json_path_operator_ne": "ez berdina",
+        "oid_description": "Kontsulta beharreko SNMP objektu-identifikatzailea (adibidez, 1.3.6.1.2.1.1.1.0 sistemaren deskribapenerako).",
+        "oid_label": "OID (Objektu identifikatzailea)",
+        "port_description": "SNMP porta (lehenetsia: 161)",
+        "port_label": "Porta",
+        "snmp_version_description": "Erabili beharreko SNMP protokoloaren bertsioa",
+        "snmp_version_label": "SNMP bertsioa",
+        "title": "SNMP ezarpenak",
+        "value_validation_label": "Balioen balioztatzea (Aukerakoa)"
+      },
+      "sqlserver": {
+        "allowed_statements_description": "SELECT, SHOW, DESCRIBE, EXPLAIN, WITH, eta VALUES.",
+        "allowed_statements_label": "Baimendutako adierazpenak:",
+        "connection_string_label": "Konektatze-katea",
+        "query_description": "Egiaztapenerako exekutatu beharreko kontsulta. Utzi hutsik lehenetsia erabiltzeko",
+        "query_label": "Kontsulta",
+        "title": "Microsoft SQL Server konexioa"
+      },
+      "tcp": {
+        "host": "Ostalaria",
+        "port": "Porta",
+        "title": "TCP konexioa"
+      },
+      "type": {
+        "dns": "DNS Monitorea",
+        "docker": "Docker Konteinerra",
+        "grpc": "gRPC gako-hizkuntza monitorra",
+        "http": "HTTP(S) monitorea",
+        "kafka": "Kafka Erretzale Monitor",
+        "mongodb": "MongoDB datu-basearen monitorea",
+        "mqtt": "MQTT Broker Monitorea",
+        "mysql": "MySQL/MariaDB monitoratzaile",
+        "ping": "Ping Monitorea (ICMP)",
+        "postgres": "PostgreSQL datu-basearen monitorea",
+        "push": "Push Monitoa (kanpoko zerbitzuak sortutako URLa deitzen du)",
+        "rabbitmq": "RabbitMQ Monitorea",
+        "redis": "Redis datu-base monitorea",
+        "snmp": "SNMP Monitorea",
+        "sqlserver": "Microsoft SQL Server Monitorea",
+        "tcp": "TCP atalearen monitorea"
+      }
+    },
+    "page": {
+      "description": "Sortu monito berria zure webgunearen errendimendua jarraitzeko.",
+      "edit_title": "Monitorea editatu:",
+      "new_title": "Kontrol berria"
+    },
+    "title": "Monitoreak",
+    "toasts": {
+      "deleted": "Monitorea ezabatu da",
+      "paused": "Monitorea pausatuta",
+      "reset_success": "Monitoreko datuak ondo berrabiarazi dira",
+      "resumed": "Monitorea berrabiarazi da"
+    },
+    "view": {
+      "buttons": {
+        "clone": "Klonatu",
+        "delete": "Ezabatu",
+        "edit": "Editatu",
+        "pause": "Pausatu",
+        "reset_data": "Berrezarri datuak",
+        "resume": "Berrekin"
+      },
+      "certificate": "Ziurtagiria",
+      "check_every": "Egiaztatu maiz",
+      "current_status": "Uneko egoera",
+      "dialogs": {
+        "delete": {
+          "description": "Ekintza hau ezin da desegin. Monitorra eta bere datu guztiak betirako ezabatuko dira.",
+          "title": "Ziur al zaude?"
+        },
+        "pause": {
+          "description": "Ziur zaude pausea egin nahi duzula?",
+          "title": "Berrespena"
+        },
+        "reset": {
+          "description": "Eguneroko ezabatuko da monitor honen biziketa historia eta egonaldia estatistikak. Monitorak sortua bezalako egoeran agertuko da. Ekintza honek ezin da desegin.",
+          "title": "Monitoreko datuak berrezarri"
+        }
+      },
+      "expiring_soon": "Iraungitzen ari da",
+      "for": "etarako",
+      "live_status": "Zuzeneko egoera",
+      "monitor_for": "monitoratu",
+      "no_certificate_data": "Ez dago ziurtagiri daturik",
+      "seconds": "segundoak",
+      "stats": {
+        "last_24_hours": "Azken 24 ordu",
+        "last_30_days": "Azken 30 egun",
+        "last_365_days": "Azken 365 egun",
+        "last_7_days": "Azken 7 egun"
+      },
+      "status": {
+        "down": "Behera",
+        "maintenance": "Mantentze",
+        "paused": "Pausatuta",
+        "up": "Alaba"
+      }
+    }
+  },
+  "navigation": {
+    "maintenance": "Mantentzea",
+    "monitors": "Monitoreak",
+    "notification_channels": "Joparpen kanalak",
+    "proxies": "Proxyak",
+    "settings": "Ezarpenak",
+    "status_pages": "Egoera orriak",
+    "tags": "Etiketak"
+  },
+  "notifications": {
+    "actions": {
+      "test": "Probatu",
+      "testing": "Probatzen..."
+    },
+    "aria": {
+      "delete": "Ezabatu {{name}}"
+    },
+    "confirm_delete_description": "Ekintza hau ezin da desegin. Notifikadorea \"{{name}}\" betiko ezabatuko da eta hura erabiltzen duen monitore guztietik kenduko da.",
+    "create_title": "Sortu Jakinarazlea",
+    "edit_channel_title": "Jakinarazpen kanala editatu",
+    "edit_title": "Editatu jakinarazlea",
+    "empty_state": {
+      "action": "Sortu zure lehen abisuratze-kanal",
+      "description": "Hasi lehen abisu kanal bat sortuz zure taldeari abisuak bidaltzeko.",
+      "title": "Ez da jakinarazpen kanalik aurkitu"
+    },
+    "form": {
+      "discord": {
+        "bot_display_name_description": "Discord mezuen bidaltzaile bezala agertuko den izena.",
+        "bot_display_name_label": "Bot-aren izena",
+        "custom_message_prefix_description": "Aukerazko aurrizki bat, mezu guztien hasieran gehituko da.",
+        "custom_message_prefix_label": "Mezuaren pertsonalizatutako aurrizkia",
+        "custom_message_prefix_placeholder": "Aukerazkoa: Gehitu aurrizkia zure mezuari",
+        "forum_post_name_description": "Berriko foru bidalketa sortuko den izena.",
+        "forum_post_name_label": "Forum Post Izena",
+        "forum_post_name_placeholder": "Sartu foro argitalpenaren izena",
+        "sending_message_to_channel": "Bidali kanalera",
+        "sending_message_to_description": "Aukeratu Discord mezuak nora bidaltzeko.",
+        "sending_message_to_label": "Mezua bidaltzen",
+        "sending_message_to_new_forum_post": "Bidali foro berriari",
+        "sending_message_to_placeholder": "Mezu mota aukeratu",
+        "sending_message_to_thread": "Bidali hilora",
+        "setup_webhook_description_1": "Eskuratu zure webhook URLa Discord zerbitzariaren ezarpenak → Integrazioak → Webhooks.",
+        "setup_webhook_description_2": "Sortu webhook berri bat eta kopiatu URLa. Ziurtatu kanala zuzena hautatu duzula.",
+        "setup_webhook_title": "Discord Webhook ezarri",
+        "thread_id_description_1": "Gaitu garatzaile modua Discord erabiltzaile-ezarpenetan → Aurreratua → Garatzaile modua",
+        "thread_id_description_2": "Egin eskuineko klik hilosan edo argitaratzailean eta hautatu \"Kopiatu hiloaren IDa\" edo \"Kopiatu kanalen IDa\"",
+        "thread_id_description_title": "Mezuak bidaliko diren hizketaren edo foroko postaren IDa",
+        "thread_id_label": "Ibilbide IDa",
+        "thread_id_placeholder": "Sartu hilaketaren edo argiaren IDa",
+        "webhook_url_label": "Discord Webhook URLa"
+      },
+      "google_chat": {
+        "more_info_about_webhooks": "Webhooks-en informazio gehiago",
+        "webhook_url_label": "Google Chat webhook URLa"
+      },
+      "gotify": {
+        "application_token_description": "Zure Gotify aplikazioaren aplikazio-tokena. Gotify web interfazeko 'Apps' atalean aurkitu daiteke.",
+        "application_token_label": "Aplikazio tokena",
+        "custom_message_description": "Mezu pertsonalizatuaren txantiloia. Eskuragarri dauden aldagaiak.",
+        "custom_message_description_2": "Utzi hutsik lehenetsitako mezua erabiltzeko.",
+        "custom_message_label": "Mezu pertsonalizatua",
+        "custom_title_description": "Mezuaren titulua pertsonalizatua. Eskuragarri dauden aldagaiak: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Utzi hutsik lehenetsitako \"Peekaping\" titulua erabiltzeko.",
+        "custom_title_label": "Izenburua pertsonalizatua",
+        "learn_more_label": "Gehiago ikasi Gotify-i buruz eta nola konfiguratu hemen:",
+        "note_description": "Gotify zerbitzaria martxan izatea beharrezkoa da integrazioa erabiltzeko.",
+        "note_label": "Oharra:",
+        "priority_0": "Baxena",
+        "priority_1": "Oso baxua",
+        "priority_10": "Gehiena",
+        "priority_2": "Baxua",
+        "priority_3": "Baxuagoa",
+        "priority_4": "Normal",
+        "priority_5": "Normal baino gorako",
+        "priority_6": "Tartekoa",
+        "priority_7": "Altua",
+        "priority_8": "Oso Handia (Lehenetsia)",
+        "priority_9": "Luzkapena",
+        "priority_description": "Mezuaren lehentasuna (0-10). Zenbaki handiak lehentasun handiagoak adierazten dute. Lehenetsia 8 da.",
+        "priority_label": "Lehentasuna",
+        "priority_placeholder": "Hautatu lehentasuna",
+        "server_url_description": "Zure Gotify zerbitzariaren URLa. Ziurtatu aplikazio honetatik eskuragarri dagoela.",
+        "server_url_label": "Zerbitzariaren URLa"
+      },
+      "grafana_oncall": {
+        "grafana_oncall_url_description": "Grafana OnCall integrazioaren webhook URLa. Hura Grafana OnCall instantziako 'Alerts & IRM > IRM > Integrations > Webhook' ataletan aurki dezakezu.",
+        "grafana_oncall_url_label": "Grafana OnCall URLa",
+        "learn_more_label": "Ikasi gehiago Grafana OnCall webhook-akien buruz"
+      },
+      "line": {
+        "channel_access_token_description": "Zure kanaleko atzitze tokena honetatik lortu dezakezu",
+        "channel_access_token_description_2": "Nabigatu zure kanalaren ezarpenetara eta bilatu",
+        "channel_access_token_label": "Kanaleko sarbide tokena (iraupen luzea)",
+        "channel_access_token_placeholder": "Sartu LINE kanala atzipen tokena",
+        "template_description": "Mesaje-formatua pertsonalizatu. Erabilgarriak diren aldagaiak",
+        "template_label": "Mezu txantiloia",
+        "template_placeholder": "Sartu zure mezua pertsonalizatuaren txantiloia",
+        "user_id_description": "Zure erabiltzaile IDa hemen",
+        "user_id_description_2": "Joan zure kanalen ezarpenetara eta bilatu",
+        "user_id_label": "Zure erabiltzaile IDa",
+        "user_id_placeholder": "Sartu zure LINE erabiltzailearen IDa"
+      },
+      "matrix": {
+        "access_token_description": "Zure Matrix sarbide tokena autentifikatzeko",
+        "access_token_label": "Tokena sarbide",
+        "custom_message_description": "Mezuaren txantiloi pertsonalizatua. Eskuragarri dauden aldagaiak.",
+        "custom_message_label": "Mezua pertsonalizatua",
+        "homeserver_url_description": "Zure Matrix haserren URLa",
+        "homeserver_url_label": "Etxeko zerbitzariaren URLa",
+        "internal_room_id_description": "Notifikazioak bidaliko diren barneko txatontziaren IDa. Honek \"!\"-rekin hasi beharko du eta honela itxura izango luke: !roomid:matrix.org",
+        "internal_room_id_label": "Barne tokiko ID",
+        "setup_instructions_1": "Zure bot-entzako Matrix kontu bat sortu (edo dagoeneko duzun kontua erabili)",
+        "setup_instructions_2": "Sortu edo sartu jakinarazpenak jasoko dituzun gelan",
+        "setup_instructions_3": "Eskuratu zure sarbide tokena saio-hasiera eskaera eginez",
+        "setup_instructions_4": "Erantzunak access_token eremua dauka - erabili hau zure sarbide token gisa.",
+        "setup_instructions_5": "Zure zuriaren barneko IDa bilatu (hasiko den '!') Matrix bezeroaren zuriaren ezarpenetan",
+        "setup_instructions_label": "Ezarpen argibideak"
+      },
+      "mattermost": {
+        "channel_name_description": "Jakinarazpenak bidaliko diren kanala. Utzi hutsik webhookean konfiguratutako kanal lehenetsia erabiltzeko.",
+        "channel_name_label": "Kanalen izena",
+        "icon_emoji_cheat_sheet_label": "Emoji errealbidea",
+        "icon_emoji_description": "Ikono bezala erabiliko den emoji. Bi emoji espazio batek bereiziz ditzakezu: lehenengoak egoera igarotakoan, bigarrak egoera jaitutakoan.",
+        "icon_emoji_label": "Emoji Ikonoa",
+        "icon_url_description": "Jakinarazpen mezuaren ikonoa gisa erabiltzeko irudi baten URLa.",
+        "icon_url_label": "Ikonoaren URLa",
+        "learn_more_label": "Ikasi gehiago webhooks-i buruz",
+        "message_template_description": "Mezu-formatua pertsonalizatu. Eskuragarri dauden aldagaiak.",
+        "message_template_label": "Mezu txantiloia",
+        "use_message_template_description": "Gaitu pertsonalizatutako mezua txantiloia eta formatua erabiltzeko.",
+        "use_message_template_label": "Erabili mezu txantiloi",
+        "username_description": "Erabiltzaile-izena, mezuaren bidaltzaile gisa agertuko dena.",
+        "webhook_url_label": "Webhook URLa"
+      },
+      "ntfy": {
+        "authentication_type_basic": "Oinarrizko autentifikazioa",
+        "authentication_type_basic_description": "Erabili erabiltzaile-izena eta pasahitza oinarrizko autentifikaziorako.",
+        "authentication_type_label": "Autentifikazio mota",
+        "authentication_type_none": "Autentifikaziorik ez",
+        "authentication_type_none_description": "Autentifikazioa ez da beharrezkoa. Publiko NTFY zerbitzarientzako egokia.",
+        "authentication_type_placeholder": "Aukeratu autentifikazio mota",
+        "authentication_type_token": "Token Autentifikazioa",
+        "authentication_type_token_description": "Erabili sarbide tokena autentifikaziorako.",
+        "custom_message_description": "Pertsonalizatutako mezuaren edukia. Eskainitako aldagaiak.",
+        "custom_message_label": "Mezu pertsonalizatua",
+        "password_required": "Pasahitza beharrezkoa da oinarrizko autentifikaziorako",
+        "priority_1": "Txikiena (Bikaina)",
+        "priority_2": "Baxua",
+        "priority_3": "Lehenetsia",
+        "priority_4": "Altua",
+        "priority_5": "Urgente (Gehienkoa)",
+        "priority_description": "Jakinarazpenaren lehentasun maila. Lehentasun altuak bezeroan bestelako jokabideak eragin ditzakete.",
+        "priority_label": "Lehentasuna",
+        "priority_placeholder": "Aukeratu lehentasuna",
+        "server_url_description": "Zure NTFY zerbitzariaren URL-a. Erabili https://ntfy.sh publikoko instantziarako.",
+        "server_url_label": "Zerbitzari URLa",
+        "tags_description": "Oharrak kategoria egiteko komaz banatutako etiketak. Eskuragarri dauden aldagaiak.",
+        "tags_label": "Etiketak",
+        "title_description": "Abisurako titulua pertsonalizatua. Eskuragarri dauden aldagaiak",
+        "title_label": "Izenburua pertsonalizatua",
+        "token_description": "Zure NTFY sarbide tokena autentifikatzeko.",
+        "token_label": "Sarbidetokena",
+        "token_required": "Tokena token egiaztatzean beharrezkoa da.",
+        "topic_description": "Zure jakinarazpenen gai-izena. Hona izango da jakinarazpenak bidaltzen diren kanal.",
+        "topic_label": "Gaia",
+        "username_required": "Erabiltzaile-izena beharrezkoa da oinarrizko autentifikaziorako"
+      },
+      "opsgenie": {
+        "api_key_label": "API Gakoa",
+        "more_info_about_api_keys_label": "API gakoen inguruko informazio gehiago",
+        "priority_1": "Kritikoa",
+        "priority_2": "Altu",
+        "priority_3": "Erdialdekoa",
+        "priority_4": "Baxua",
+        "priority_5": "Informacional",
+        "priority_description": "Ezarri alerta prioritate-maila. Lehenetsia P3 (Erdialdea).",
+        "priority_label": "Lehentasuna",
+        "region_description": "Aukeratu zure Opsgenie eremua. Horrela zehazten du zein API amaierako puntua erabiliko den.",
+        "region_label": "Erregion",
+        "region_placeholder": "Aukeratu eskualdea"
+      },
+      "pagerduty": {
+        "auto_resolve_acknowledge": "Automatikoki berretsi",
+        "auto_resolve_acknowledge_description": "Automatikoki onartu insidentzia",
+        "auto_resolve_description": "Aukeratu monitor-a berriz igarotzean zein ekintza hartu behar duzu",
+        "auto_resolve_do_nothing": "Ez egin",
+        "auto_resolve_do_nothing_description": "Ez da ekintzarik hartu UP egoeran",
+        "auto_resolve_label": "Auto konponketa edo onarpena",
+        "auto_resolve_placeholder": "Hautatu auto-berreskuratzearen portaera",
+        "auto_resolve_resolve": "Automatikoki konpontzea",
+        "auto_resolve_resolve_description": "Incidentea automatikoki konpontu",
+        "integration_key_description": "Ikasi nola lortu zure integrazio-gakoa",
+        "integration_key_label": "Integrazio gakoa",
+        "integration_key_placeholder": "Sartu zure PagerDuty integrazio gakoa",
+        "integration_url_description": "PagerDuty Events API v2 biderketaren URLa. Lehenetsi bezala, estandarreko biderketara joaten da.",
+        "integration_url_label": "Integrazioaren URLa",
+        "learn_more_label": "PagerDuty Dokumentazioa",
+        "priority_critical": "Kritikoa",
+        "priority_description": "PagerDuty egoerakentzako kalitate maila. Lehenetsia \"warning\" da.",
+        "priority_error": "Errorea",
+        "priority_info": "Informazioa",
+        "priority_label": "Lehentasuna",
+        "priority_placeholder": "Hautatu lehentasun maila",
+        "priority_warning": "Abisu"
+      },
+      "pagertree": {
+        "authentication_token_description": "Token autentifikazio aukerakoa segurtasun handiagoa lortzeko. Pagertree-token goiburuan bidaliko da.",
+        "authentication_token_label": "Autentifikazio token (aukerazkoa)",
+        "authentication_token_placeholder": "Sartu autentifikazio tokena, beharrezkoa bada",
+        "auto_resolve_alerts_description": "PagerTree abisuak automatikoki konpontu monitorea berreskuratzen denean",
+        "auto_resolve_alerts_label": "Alerta automatikoki desaktibatzea",
+        "how_to_get_integration_url_label": "Integrazioaren URLa nola lortu",
+        "integration_url_description": "Sartu PagerTree webhook integrazioaren URLa.",
+        "integration_url_label": "PagerTree Webhook URLa",
+        "urgency_level_critical": "Kritikoa",
+        "urgency_level_description": "PagerTree abisuen lehenetsitako urgentzia maila",
+        "urgency_level_high": "Altua",
+        "urgency_level_label": "Lasterbide maila",
+        "urgency_level_low": "Baxua",
+        "urgency_level_medium": "Ertaina",
+        "urgency_level_placeholder": "Aukeratu larrialde maila",
+        "urgency_level_silent": "Isila"
+      },
+      "pushbullet": {
+        "access_token": "Sarbide tokena",
+        "access_token_description": "Zure Pushbullet tokena. Hemendik lortu",
+        "access_token_label": "Sarbidetokena",
+        "access_token_link": "Pushbullet Ezarpenak",
+        "channel_tag": "Kanaleko Etiketa (Aukerakoa)",
+        "channel_tag_description": "Bidali jakinarazpena Pushbullet kanale batera gailuen ordez",
+        "channel_tag_label": "Kanal etiketa (Aukerakoa)",
+        "custom_message_template_description": "Pertsonalizatu abisuaren gorputza txantiloi-aldagaiak erabiliz:",
+        "custom_message_template_heartbeat_ping": "Erantzun denbora",
+        "custom_message_template_heartbeat_time": "Denbora-marka",
+        "custom_message_template_label": "Pertsonalizatutako mezu txantiloia (Aukerakoa)",
+        "custom_message_template_monitor_url": "URLa monitorea",
+        "custom_message_template_msg": "Alertaren mezua",
+        "custom_message_template_name": "Monitorearen izena",
+        "custom_message_template_placeholder": "Monitorea: {{ name }}\nEgoera: {{ status }}\nMezua: {{ msg }}",
+        "custom_message_template_status": "Uneko egoera",
+        "device_id": "Gailuaren IDa (aukerakoa)",
+        "device_id_description": "Bidali jakinarazpena gailu jakin batera. Utzi hutsik gailu guztiei bidaltzeko. Gailuen IDak aurkitzeko, erabiliz",
+        "device_id_label": "Gailuaren IDa (Aukerakoa)",
+        "device_id_link": "Pushbullet API",
+        "more_info_on": "Informazio gehiago:"
+      },
+      "pushover": {
+        "application_token_label": "Aplikazioaren tokena",
+        "application_token_placeholder": "Sartu zure Pushover aplikazioaren tokena",
+        "device_description": "Utzi hutsik gailu guztietara bidaltzeko",
+        "device_label": "Gailua",
+        "device_placeholder": "Gailuaren izena (aukerakoa)",
+        "message_title_description": "Utzi hutsik lehenetsitako izenburua erabiltzeko",
+        "message_title_label": "Mezuaren izenburua",
+        "message_title_placeholder": "Mezuaren izenburua pertsonalizatua (aukerakoa)",
+        "message_ttl_description": "Bizi denbora segundotan (0 = denbora-mugurik gabe)",
+        "message_ttl_label": "Mezuaren TTL",
+        "more_info_label": "Informazio gehiago:",
+        "more_info_label_2": "Aplikazioa sortu eta API tokena lortu hemen",
+        "more_info_label_3": "Zure erabiltzaile gakoa hemen aurkituko da",
+        "notification_sound_down_description": "Soinua monitorra apurtzen denean",
+        "notification_sound_down_label": "Jakinarazpen-soinu - Behera",
+        "notification_sound_down_placeholder": "Hautatu soinu",
+        "notification_sound_up_description": "Soinua monitor-a berriro goratu denean",
+        "notification_sound_up_label": "Jakinarazpenaren soinua - Goian",
+        "notification_sound_up_placeholder": "Hautatu soinua",
+        "priority_1": "Baxena",
+        "priority_2": "Baxua",
+        "priority_3": "Normala",
+        "priority_4": "Altua",
+        "priority_5": "luz",
+        "priority_description": "Mezuaren lehentasun maila",
+        "priority_label": "Lehentasuna",
+        "priority_placeholder": "Hautatu lehentasuna",
+        "sound_alien": "Aitena",
+        "sound_bike": "Bikieta",
+        "sound_bugle": "Bugle",
+        "sound_cashregister": "Txartilua",
+        "sound_classical": "Klasikoa",
+        "sound_climb": "Igoera",
+        "sound_cosmic": "Kosmik",
+        "sound_echo": "Echo",
+        "sound_falling": "Jaituta",
+        "sound_gamelan": "Gamelan",
+        "sound_incoming": "Sartzen",
+        "sound_intermission": "Espazioa",
+        "sound_magic": "Magia",
+        "sound_mechanical": "Mekanikoa",
+        "sound_none": "Bat ere ez",
+        "sound_persistent": "Iraunkorra",
+        "sound_pianobar": "Piano Bar",
+        "sound_pushover": "Pushover (lehenetsia)",
+        "sound_siren": "Sirena",
+        "sound_spacealarm": "Alarma Espazial",
+        "sound_tugboat": "Estia",
+        "sound_updown": "Gora Behera",
+        "sound_vibrate": "Bultzatu",
+        "user_key_label": "Erabiltzaile gakoa",
+        "user_key_placeholder": "Sartu zure Pushover erabiltzaile gakoa"
+      },
+      "signal": {
+        "custom_message_description": "Pertsonalizatutako mezu txantiloia. Eskuragarri dauden aldagaiak.",
+        "custom_message_label": "Mezu pertsonalizatua",
+        "important_description": "Ezin duzu taldeak eta zenbakiak nahastu hartzaileekin!",
+        "important_label": "GARRANTZIA:",
+        "more_info_label": "URL hau egiaztatu dezakezu nola konfiguratu:",
+        "note_description": "Signal bezero bat REST APIarekin izatea behar da.",
+        "note_label": "Oharra:",
+        "number_description": "Zure Signal kontuaren telefono zenbakiak (bidaltzailearen zenbakia).",
+        "number_label": "Zenbakia",
+        "post_url_description": "Zure Signal CLI REST API zerbitzariaren URL-a.",
+        "post_url_label": "Bidalketa URLa",
+        "recipients_description": "Komaz banandutako telefono zenbaki zerrenda, jakinarazpenak bidaltzeko.",
+        "recipients_label": "Jasotzaileak"
+      },
+      "slack": {
+        "channel_name_description": "Bidaliko den mezua joan den kanal. Ez badago adierazita, mezua webhook-eko konfiguratutako kanal lehenetsira bidaliko da.",
+        "channel_name_description_2": "Kanal lehenetsia gainjar dezakezu kanal izen bat zehaztuz (adibidez, #alerts) edo erabiltzaile bat (adibidez, @username).",
+        "channel_name_label": "Kanalaren izena",
+        "channel_notify_description": "Gaituta dagoenean, mezua kanalaren kide guztientzako jakinarazpenak abiaraziko ditu. Spam-a saihesteko kontuz erabili.",
+        "channel_notify_label": "Jakinarazi kanal",
+        "icon_emoji_cheat_sheet_label": "Emoji deskribapen erraza",
+        "icon_emoji_description": "Emoji erabili mezu honen ikono gisa. Formatua honakoa izan behar du :emoji_name:",
+        "icon_emoji_label": "Ikono Emoji",
+        "message_format_description": "Bidali mezu aberastuak",
+        "message_format_description_2": "Gaitu mezuak formatua aberatuta, eranskinak eta ondo irudiz aurkezteko.",
+        "message_format_label": "Mezuaren formatua",
+        "username_description": "Erabiltzaile-izena, mezularen bidaltzaile bezala agertuko dena. Ez bada adierazita, lehenetsitako bot-izena erabiliko da.",
+        "webhook_url_description": "Zure Slack integrazioaren webhook URLa. Hura zure Slack instantziaen Integrazioak > Webhooks atalean aurki dezakezu.",
+        "webhook_url_label": "Webhook URLa"
+      },
+      "smtp": {
+        "custom_body_label": "Iritzi pertsonalizatu",
+        "custom_description": "Txantiloiko funtzionalitatea <b>Liquid</b> txantiloia erabiliz lortzen da.",
+        "custom_description_2": "Mesedez, erreferentzi dokumentazioa erabiltzeazko argibideetarako.",
+        "custom_description_3": "Eskuragarri dauden aldagaiak:",
+        "custom_description_4": "jakinarazpenaren mezua",
+        "custom_description_5": "zerbitzu izena",
+        "custom_description_6": "zerbitzu egoera (GORA/BEHEA/Ziurtagiri iraungitze jakinarazpenak)",
+        "custom_subject_label": "Gaia pertsonalizatua",
+        "smtp_from_label": "Bidaltzailea (e-posta)",
+        "smtp_host_description": "Sartu konektatu nahi duzun zerbitzariaren ostalari izena edo localhosta, lokalizatutako posta transferentzia agentea erabiltzea nahi baduzu.",
+        "smtp_host_label": "SMTP Ostalaria",
+        "smtp_password_placeholder": "SMTP pasahitza",
+        "smtp_port_label": "Ataka",
+        "smtp_to_label": "Helburu (Jakar epostak)",
+        "smtp_username_placeholder": "SMTP erabiltzaile izena"
+      },
+      "telegram": {
+        "auto_get_label": "Automatikoki eskuratu",
+        "bot_token_description": "Lortu zure bot tokena hemendik",
+        "bot_token_label": "Bot tokena",
+        "chat_id_description": "Zure chat ID-a lortzeko, bidali mezu bat zure botera eta egin klik goiko \"Auto Get\" botoian, edo eskuz egin Telegram API bidez.",
+        "chat_id_description_2": "Eskuz eskuratzeko, bisitatu",
+        "chat_id_description_3": "Ikusi",
+        "chat_id_description_4": "Telegram dokumentazioa",
+        "chat_id_description_5": "informazio gehiagorako.",
+        "chat_id_label": "Txat IDa",
+        "chat_id_not_found": "Chat ID ez da aurkitu azken eguneraketan.",
+        "failed_to_fetch_chat_id": "Chat IDa eskuratzean huts egin du.",
+        "message_thread_id_description": "Aukerakoa. Forum supergroup-en thread (gaia) jakin batera mezua bidaltzeko erabiltzen da.",
+        "message_thread_id_label": "Mezularen arrainaren ID",
+        "no_updates_found": "Ez da eguneraketa bat aurkitu. Mesedez, bidali mezu bat zure botari lehen.",
+        "protect_content_description": "Gaituta badago, mezua birbidaltzea eta gordetzea babestuko da.",
+        "protect_content_label": "Babestu edukia",
+        "send_silently_description": "Gaituta badago, mezuak isiltasunez bidaliko dira (erabiltzaileek soinik gabeko jakinarazpena jasoko dute).",
+        "send_silently_label": "Isil bidali",
+        "server_url_description": "Berezkoa da",
+        "server_url_description_2": "Zerbitzari pertsonalizatua erabili dezakezu. Ikusi",
+        "server_url_description_3": "hemen",
+        "server_url_description_4": "xehetasunetarako.",
+        "server_url_label": "Telegram zerbitzariaren URL-a",
+        "template_description": "Mezu-formatua pertsonalizatu. Aldiago dauden aldagaiak",
+        "template_label": "Mezu txantiloia",
+        "template_parse_mode_description": "Aukeratu mezua nola parseatu behar den. Ikusi",
+        "template_parse_mode_description_2": "Telegramen formatizazio-dokumentazioa",
+        "template_parse_mode_description_3": "Xehetasunetarako.",
+        "template_parse_mode_label": "Txantiloiaren analisi modua",
+        "template_parse_mode_placeholder": "Hautatu parsaketa modua",
+        "template_placeholder": "Sartu zure mezua pertsonalizatzeko txantiloia",
+        "use_template_description": "Gaitu pertsonalizatutako mezu txantiloia eta formatua erabiltzea.",
+        "use_template_label": "Erabili mezua txantiloia"
+      },
+      "webhook": {
+        "additional_headers_description": "Gehitu HTTP izenburu pertsonalizatuak webhook eskaerari.",
+        "additional_headers_label": "Goiburu gehigarriak",
+        "custom_body_description": "Pertsonalizatu eskaerako gorputz-formatua. Eskainizko aldagaiak.",
+        "custom_body_label": "Pertsonalizatutako gorputza",
+        "post_url_description": "Webhook amaiera puntuaren URLa, non abisuak bidaliko diren.",
+        "post_url_label": "Post URLa",
+        "request_body_description_custom": "Zure eskaerako gorputz-formatu pertsonalizatua azpian zehaztu.",
+        "request_body_description_form_data": "Edukia multipart/form-data gisa bidaliko da. PHP-en <strong>json_decode($_POST['data'])</strong> erabiliz deskodetu dezakezu.",
+        "request_body_description_json": "Edukia JSON gisa bidaliko da \"application/json\" goiburuz.",
+        "request_body_label": "Eskaeraren gorputza",
+        "request_body_placeholder": "Hautatu eduki mota"
+      }
+    },
+    "important": "Jakinarazpen garrantzitsuak",
+    "important_notifications": "Ohar garrantzitsuak",
+    "labels": {
+      "friendly_name": "Izen lagungarria",
+      "type": "Jakinarazpen mota"
+    },
+    "messages": {
+      "create_failed": "Notifikadorea sortzeak huts egin du",
+      "created_success": "Jakinarazlea ongi sortu da",
+      "error_loading_notifier": "Errorea jakinarazlea kargatzerakoan",
+      "test_failed": "Probako jakinarazpena bidaltzeak huts egin du",
+      "test_success": "Probako abisua ongi bidali da",
+      "update_failed": "Notifikadorea eguneratzeak huts egin du",
+      "updated_success": "Jakinarazlea ongi eguneratu da"
+    },
+    "new": {
+      "title": "Jakinarazpen-kanal berria"
+    },
+    "no_important": "Ez da garrantzitsuen jakinarazpenik aurkitu.",
+    "placeholders": {
+      "select_type": "Hautatu jakinarazpen mota"
+    },
+    "search_placeholder": "Bilatu jakinarazpen kanalak izenaren arabera..."
+  },
+  "proxies": {
+    "delete_dialog": {
+      "description": "Ekintza hau ezin da desegin. Proxya {{host}}:{{port}} betiko ezabatuko da.",
+      "title": "Ziur zaude benetan?"
+    },
+    "edit": {
+      "page_name": "Proxy editatu"
+    },
+    "empty_list": {
+      "action_text": "Sortu zure lehen proksi",
+      "text": "Hasteko, sortu zure lehen proxya, monitoreetan erabili ahal izateko.",
+      "title": "Ez daude proxy-ak aurkitu"
+    },
+    "form": {
+      "auth_label": "Proxy-zerbitzariak autentifikazioa du",
+      "port_placeholder": "Ataka",
+      "protocol_label": "Proxy protokoloa",
+      "protocol_placeholder": "Hautatu proxy protokoloa",
+      "server_label": "Proxy zerbitzaria",
+      "server_placeholder": "Zerbitzariaren helbidea",
+      "user": "Erabiltzailea"
+    },
+    "messages": {
+      "create_failed": "Proxya sortzeak huts egin du",
+      "created_success": "Proxy sortu da arrakastaz",
+      "error_loading_proxy": "Proxy kargatzean errorea",
+      "update_failed": "Proxy eguneratzeak huts egin du",
+      "updated_success": "Proxy eguneratu da"
+    },
+    "new": {
+      "page_name": "Proxy berria"
+    },
+    "page_name": "Proxyak",
+    "search_label": "Bilatu",
+    "search_placeholder": "Bilatu proxieak hostean..."
+  },
+  "security": {
+    "enable_2fa": {
+      "form": {
+        "authenticator_code_label": "Autentifikatzaile kodea",
+        "authenticator_code_placeholder": "Sartu 6 digitu kodea",
+        "current_password_label": "Uneko pasahitza",
+        "current_password_placeholder": "Sartu zure uneko pasahitza",
+        "enable_2fa_button": "2FA aktibatu"
+      },
+      "messages": {
+        "2fa_active": "2FA Aktiboa",
+        "2fa_disabled_successfully": "2FA desaktibatuta arrakastatsuki",
+        "2fa_enabled_successfully": "2FA ongi gaitu da",
+        "account_is_protected_with_2fa": "Zure kontua 2FA-rekin babestuta dago.",
+        "disable_2fa": "2FA desgaitu",
+        "enter_password_to_disable_2fa": "Sartu zure pasahitza 2FA desgaitatzeko",
+        "failed_to_disable_2fa": "2FA desaktibatzeak huts egin du",
+        "failed_to_verify_2fa_code": "Ezin izan da 2FA kodea egiaztatu",
+        "failed_to_verify_password": "Huts egin du pasahitza egiaztatzean edo 2FA konfigurazioa abiaraztean",
+        "have_enabled_2fa": "Zure konturako bi faktoreko autentifikazioa (2FA) gaitu duzu. Horrek segurtasun maila gehigarri bat gehitzen du.",
+        "or_enter_secret_manually": "Edo, sartu sekretu hau eskuz",
+        "scan_qr_code_with_authenticator_app": "Eskaneatu QR kode hau zure autentifikazio aplikazioarekin",
+        "two_factor_authentication_enabled": "Bi faktoreko autentifikazioa gaituta",
+        "user_email_not_found": "Erabiltzailearen eposta ez da aurkitu"
+      }
+    },
+    "page_name": "Segurtasuna",
+    "update_password": {
+      "form": {
+        "confirm_new_password_label": "Berretsi pasahitza berria",
+        "confirm_new_password_placeholder": "Pasahitza berriro sartu",
+        "new_password_label": "Pasahitz berria",
+        "new_password_placeholder": "Sartu pasahitz berria",
+        "old_password_label": "Pasahitza zaharra",
+        "old_password_placeholder": "Sartu zure uneko pasahitza",
+        "update_password_button": "Pasahitza eguneratu"
+      },
+      "messages": {
+        "failed_to_update_password": "Pasahitza eguneratzean huts egin du",
+        "password_updated_successfully": "Pasahitza ongi eguneratu da"
+      },
+      "title": "Pasahitza Eguneratu"
+    }
+  },
+  "sendgrid": {
+    "api_key_description": "Zure SendGrid API gakoa. Sortu dezakezu bat zure SendGrid kontuan, Ezarpenak → API gakoak atalean. Ziurtatu 'Mail Send' baimenak dituzula.",
+    "api_key_label": "API gakoa",
+    "bcc_email_description": "Blindeatutako kopi karbono hartzaileak. Hainbat eposta komaz banatu.",
+    "bcc_email_label": "BCC eposta (aukera)",
+    "cc_email_description": "Kopiaren hartzaileak. Bikoiztutako e-postak koma bidez banatu.",
+    "cc_email_label": "CC E-posta (Aukerakoa)",
+    "from_email_description": "Bidaltzailearen epostako helbidea. SendGrid kontuan egiaztatutako bidaltzaile bat izan behar du.",
+    "from_email_label": "Jatorrizko eposta",
+    "subject_description": "Epostaren izenburua. Liquid txantilariak onartzen ditu.",
+    "subject_label": "Gaia pertsonalizatua (Aukerakoa)",
+    "subject_variables_label": "Eskuragarri dauden aldagaiak:",
+    "subject_variables_msg": "berriokiaren mezua",
+    "subject_variables_name": "zerbitzu izena",
+    "subject_variables_status": "zerbitzuaren egoera (GOREAN/BEHEAN)",
+    "to_email_description": "Helbide nagusiaren e-posta helbidea. Jakarri anitzeko hartzaileentzako, erabili CC edo BCC eremuak.",
+    "to_email_label": "Helbide elektronikoa"
+  },
+  "settings": {
+    "data_retention": {
+      "days_label": "Egunak",
+      "description": "Ezarri zenbat egun data mantendu (KEEP_DATA_PERIOD_DAYS).",
+      "title": "Datuen mantentze-epoa"
+    },
+    "timezone": {
+      "description": "Hautatu zure gustuko den ordu-zona aplikazioan denbora guztiak erakusteko.",
+      "label": "Ordu-eremua",
+      "no_timezone_found": "Ordu-eremurik ez da aurkitu.",
+      "search_placeholder": "Bilatu ordu-zona...",
+      "select_placeholder": "Hautatu ordu-eremua...",
+      "title": "Ordu-zona"
+    },
+    "validation": {
+      "min_days": "Gutxienez 1 egun"
+    }
+  },
+  "status": {
+    "messages": {
+      "all_systems_operational": "Sistema guztiak funtzionatzen",
+      "down": "Behera",
+      "last_updated": "Azken eguneratze-data",
+      "maintenance": "Mantentze",
+      "no_monitors_configured": "Status orri honetarako monitorik ez dago konfiguraturik.",
+      "operational": "eragitekoa",
+      "partial_system_outage": "Sistemaren eragin partziala",
+      "powered_by": "Powered by",
+      "refresh_in": "Birritsi",
+      "refresh_now": "Berritu orain",
+      "status_page_not_found": "Egoera orrialdea ez da aurkitu edo argitaratu gabe dago.",
+      "under_maintenance": "Mantentzean",
+      "unknown": "Ezezaguna"
+    }
+  },
+  "status_pages": {
+    "affected_monitors": "Eragindako monitoreak",
+    "affected_monitors_info": "Hautatu mantentze honek eragiten duten monitoreak",
+    "auto_refresh_interval": "Auto berriztorrera tartea (segundoak)",
+    "basic_information": "Oinarrizko informazioa",
+    "create_status_page": "Egoera-orri bat sortu",
+    "customization": "Pertsonalizazioa",
+    "delete_dialog": {
+      "description": "Ziur zaude '{{title}}' ezabatu nahi duzula? Ekintza hau ezin da desegin.",
+      "title": "Ezabatu egoera-orria"
+    },
+    "description": "Sartu egoera orriaren deskribapena",
+    "domain_already_used": "Domeinua {{domain}} dagoeneko beste egoera-orri batek erabiltzen du.",
+    "domain_host_warning": "Domeinua zure uneko ostalariaren URLa berdina da. Gatazkak sor daitezke.",
+    "domains": "Domeinuak",
+    "domains_info_warning": "Ez ahaztu zure DNS-era CNAME erregistroak gehitzea, domeinu bakoitzeko.",
+    "draft_status": "Zirriborroa",
+    "edit_page_name": "Editatu egoera orria",
+    "messages": {
+      "create_description": "Sortu egoera-orri berria zure zerbitzuaren egoera erabiltzaileekin partekatzeko.",
+      "create_your_first_status_page": "Sortu zure lehen egoera orria",
+      "created_successfully": "Egoera-orria ongi sortu da",
+      "delete_failed": "Ezin izan da egoera-orria ezabatu",
+      "deleted_successfully": "Egoera orrialdea ondo ezabatu da",
+      "get_started_by_creating_your_first_status_page": "Hasteko, sortu zure lehen egoera orria.",
+      "no_status_pages_found": "Egoera-orriak ez daude aurkitu",
+      "not_found": "Egoera-orria ez da aurkitu",
+      "update_description": "Eguneratu zure egoera-orriaren ezarpenak eta konfigurazioa.",
+      "updated_successfully": "Egoera orria ongi eguneratu da"
+    },
+    "new_page_name": "egoera orria berria",
+    "page_name": "Egoera Orrialdeak",
+    "published": "Argitaratua",
+    "published_info": "Publizizatu orri honen egoera",
+    "published_status": "Argitaratuta",
+    "search_label": "Bilatu",
+    "search_placeholder": "Bilatu egoera orriak izenbururako...",
+    "update_status_page": "Egoera orria eguneratu",
+    "view_page": "Orria ikusi"
+  },
+  "tags": {
+    "confirm_delete_description": "Ekintza hau ezin da desegin. Honek izen-etiketa {{name}} betirako ezabatuko du eta monitore guztietatik kenduko da.",
+    "edit_page_name": "Etiketa editatu",
+    "empty_state": {
+      "action": "Sortu zure lehen etiketa",
+      "description": "Hasi lehenengo etiketa sortuz monitor-ak antolatzeko.",
+      "title": "Etiketarik ez da aurkitu"
+    },
+    "form": {
+      "color_description": "Aukeratu zure etiketaren kolorea",
+      "color_label": "Kolorea",
+      "create_button": "Etiketa sortu",
+      "description_label": "Deskribapena",
+      "description_placeholder": "Sartu etiketa deskribapena (aukerakoa)",
+      "name_label": "Izena",
+      "name_placeholder": "Sartu etiketa izena",
+      "update_button": "Eguneratu Etiketa"
+    },
+    "messages": {
+      "create_description": "Sortu etiket berria zure monitoreak antolatzeko eta kategoria zatitzeko",
+      "failed_to_load_tag": "Etiketa kargatzean huts egin du. Etiketa ezingo delako existitzea edo ikusteko baimenik ez izatea.",
+      "tag_id_required": "Etiketaren IDa beharrezkoa da",
+      "update_description": "Eguneratu etiketa-detalgeak zure monitorak hobe antolatzeko."
+    },
+    "new_page_name": "Etiketa berria",
+    "search_placeholder": "Etiketak bilatu…"
+  },
+  "theme": {
+    "dark": "Iluna",
+    "light": "Argia",
+    "system": "Sistema",
+    "toggle_theme": "Aldatu itxura"
+  },
+  "timezone": {
+    "average": "batezbestekoa",
+    "last_24_hours": "Azken 24 orduak",
+    "last_3_hours": "Azken 3 orduak",
+    "last_3_months": "Azken 3 hilabeteak",
+    "last_30_minutes": "Azken 30 minutu",
+    "last_6_hours": "Azken 6 ordu",
+    "last_7_days": "Azken 7 egun",
+    "maximum": "Maximoa",
+    "minimum": "Gutxieneko",
+    "ms": "ms",
+    "response_time": "Erantzun denbora",
+    "uptime": "Igoera"
+  },
+  "ui": {
+    "general": "Orokorra",
+    "intervals_retries": "Ebakien, Errepikapenak, Denbora-mugak"
+  }
+}
