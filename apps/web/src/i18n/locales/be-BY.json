@@ -1,0 +1,1281 @@
+{
+  "actions": {
+    "cancel": "Скасаваць",
+    "saving": "Захоўваецца..."
+  },
+  "auth": {
+    "login": {
+      "description": "Увайдзіце з дапамогай электроннай пошты",
+      "no_account": "У вас няма ўліковага запісу?",
+      "sign_up": "Зарэгістравацца",
+      "submit": "Увайсці",
+      "title": "Вітаем зноў"
+    },
+    "register": {
+      "description": "Стварыце свой рахунак адміністратара",
+      "have_account": "У вас ужо ёсць уліковы запіс?",
+      "sign_in": "Увайсці",
+      "submit": "Стварыць",
+      "title": "Прывітанне"
+    },
+    "twofa": {
+      "code_label": "Код двухфакторнай аўтэнтыфікацыі",
+      "code_placeholder": "Увядзіце код 2FA",
+      "description": "2FA уключана для вашага ўліковага запісу. Калі ласка, увядзіце ваш код аўтэнтыфікацыі, каб працягнуць.",
+      "title": "Патрабуецца двухфакторная аўтэнтыфікацыя",
+      "verify_button": "Пацвердзіце 2FA",
+      "verifying": "Правяраю..."
+    }
+  },
+  "bars": {
+    "down_count": "Колькасць простояў",
+    "important": "Важнае",
+    "interval": "Інтэрвал",
+    "message": "Паведамленне",
+    "ms": "мс",
+    "notified": "Паведамлены",
+    "ping": "Пінг",
+    "retries": "Паўторныя спробы",
+    "status": "Статус",
+    "time": "Час"
+  },
+  "common": {
+    "active": "Актыўны",
+    "all": "Усе",
+    "back": "Назад",
+    "cancel": "Адмена",
+    "clear_all": "Ачысціць усе",
+    "clear_all_filters": "Ачысціць усе фільтры",
+    "confirm": "Пацвердзіць",
+    "confirm_delete_title": "Вы сапраўды ўпэўнены?",
+    "confirm_delete_title_short": "Вы ўпэўнены?",
+    "continue": "Працягнуць",
+    "create": "Стварыць",
+    "created": "Створана",
+    "days": "дні",
+    "default": "Па змаўчанні",
+    "delete": "Выдаліць",
+    "disabling": "Адключэнне...",
+    "dismiss": "Схаваць",
+    "down": "Уніз",
+    "enabling": "Уключэнне...",
+    "error": "Памылка",
+    "expires": "Тэрмін дзеяння",
+    "inactive": "Неактыўны",
+    "loading": "Загрузка...",
+    "logout": "Выйсці",
+    "maintenance": "Абслугоўванне",
+    "no_options_found": "Ніякіх опцый не знойдзена.",
+    "no_tags_available": "Няма тэгаў",
+    "please_refresh_page": "Калі ласка, абнавіце старонку.",
+    "required": "Абавязкова",
+    "save": "Захаваць",
+    "saving": "Захоўваецца...",
+    "search": "Пошук",
+    "security": "Бяспека",
+    "select": "Выбраць",
+    "select_monitors": "Выберыце маніторы...",
+    "select_tags": "Абярыце тэгі",
+    "settings": "Налады",
+    "tags": "Тэгі",
+    "unknown": "Невядомы",
+    "unnamed_monitor": "Безымянны манітор",
+    "up": "даступна",
+    "update": "Абнавіць",
+    "verifying": "Праверка..."
+  },
+  "forms": {
+    "labels": {
+      "confirm_password": "Пацвердзіце пароль",
+      "email": "Электронная пошта",
+      "footer_text": "Тэкст падвала",
+      "heartbeat_interval": "Інтэрвал пульсу (у секундах)",
+      "icon_url": "URL іконкі",
+      "monitor_name": "Назва",
+      "monitor_type": "Тып",
+      "password": "Пароль",
+      "retries": "Паўторныя спробы",
+      "slug": "URL-частка",
+      "title": "Назва",
+      "username": "Імя карыстальніка"
+    },
+    "placeholders": {
+      "auto_refresh_help": "0 для адключэння аўтаматычнага абнаўлення",
+      "domains": "Увядзіце домен (напрыклад, status.example.com)",
+      "footer_text": "Увядзіце тэкст падвала",
+      "icon_url": "https://example.com/icon.png",
+      "monitor_name": "Мой манітор",
+      "page_description": "Увядзіце апісанне старонкі стану",
+      "page_title": "Увядзіце назву старонкі стану",
+      "slug": "slug старонкі стану"
+    },
+    "validation": {
+      "email_invalid": "Калі ласка, увядзіце правільны адрас электроннай пошты.",
+      "password_min_length": "Пароль павінен быць не менш за 8 сімвалаў",
+      "passwords_mismatch": "Паролі не супадаюць"
+    }
+  },
+  "maintenance": {
+    "card": {
+      "aria": {
+        "delete": "Выдаліць {{title}}",
+        "pause": "Прыпыніць абслугоўванне",
+        "resume": "Працягнуць тэхнічнае абслугоўванне"
+      },
+      "labels": {
+        "duration": "{{duration}} хв",
+        "end": "Канец: {{date}}",
+        "start": "Пачатак: {{date}}"
+      },
+      "status": {
+        "active": "Актыўны",
+        "ended": "Завершана",
+        "inactive": "Неактыўны"
+      }
+    },
+    "edit_title": "Рэдагаваць абслугоўванне",
+    "form": {
+      "affected_monitors_description": "Выберыце маніторы, якія будуць затронуты гэтым рамонтам",
+      "affected_monitors_title": "Пацярпелыя Маніторы",
+      "cron_description": "Увядзіце правільны CRON-выраз",
+      "cron_expression": "Cron-выраз",
+      "date_time_title": "Дата і час",
+      "day_of_month": "Дзень месяца",
+      "day_of_week": "Дзень тыдня",
+      "description_label": "Апісанне",
+      "description_placeholder": "Апісанне абслугоўвання...",
+      "duration_minutes": "Працягласць (хвіліны)",
+      "effective_date_range": "Эфектыўны дыяпазон дат (неабавязкова)",
+      "end_date_time": "Дата і час заканчэння",
+      "end_time": "Час заканчэння",
+      "interval_label": "Інтэрвал (выканаць адзін раз у дзень)",
+      "last_day": "Апошні дзень",
+      "last_day_of_month": "Апошні дзень месяца",
+      "maintenance_time_window": "Часавое акно тэхнічнага абслугоўвання на працягу дня",
+      "markdown_supported": "Markdown падтрымліваецца",
+      "same_as_server": "Такі самы як часавы пояс сервера",
+      "start_date_time": "Дата і час пачатку",
+      "start_time": "Час пачатку",
+      "strategy_label": "Стратэгія",
+      "strategy_placeholder": "Абярыце стратэгію",
+      "timezone_label": "Часавы пояс",
+      "timezone_placeholder": "Абярыце часавы пояс",
+      "title_label": "Назва",
+      "title_placeholder": "Назва рамонту"
+    },
+    "page": {
+      "clear_filters": "Ачысціць усе фільтры",
+      "dialogs": {
+        "confirm_action": {
+          "pause_description": "Ці сапраўды вы жадаеце прыпыніць гэтыя тэхнічныя працы?",
+          "resume_description": "Ці вы ўпэўнены ў тым, што хочаце працягнуць гэтае тэхнічнае абслугоўванне?",
+          "title": "Пацвердзіце дзеянне"
+        },
+        "confirm_delete": {
+          "description": "Вы сапраўды хочаце выдаліць гэтае акно планаванага тэхнічнага абслугоўвання? Гэта дзеянне немагчыма адмяніць.",
+          "title": "Пацвердзіце выдаленне"
+        }
+      },
+      "edit_maintenance": "Рэдагаванне абслугоўвання: {{title}}",
+      "empty_state": {
+        "action": "Стварыце сваё першае акно тэхнічнага абслугоўвання",
+        "description": "Пачніце з стварэння вашага першага акна тэхнічнага абслугоўвання, каб прадухіліць запланаваныя перапынкі ў працы.",
+        "title": "Няма акнаў тэхнічнага абслугоўвання"
+      },
+      "error_loading": "Памылка загрузкі рамонтных работ",
+      "loading": "Загрузка...",
+      "loading_monitors": "Загрузка манітораў...",
+      "search_placeholder": "Пошук акнаў тэхнічнага абслугоўвання"
+    },
+    "page_title": "Перыяды тэхнічнага абслугоўвання",
+    "schedule_title": "Запланаваць тэхнічнае абслугоўванне",
+    "strategy": {
+      "cron": "Cron-выраз",
+      "manual": "Уручную: Актыўны/Неактыўны",
+      "recurring_day_of_month": "Паўторнае - Дзень месяца",
+      "recurring_interval": "Паўторны — Інтэрвал",
+      "recurring_weekday": "Паўторнае - Дзень тыдня",
+      "single": "Аднаразовае акно рамонту"
+    },
+    "toasts": {
+      "create_error": "Не ўдалося стварыць рамонт",
+      "created_success": "Тэхнічнае абслугоўванне паспяхова створана",
+      "delete_error": "Не ўдалося выдаліць тэхнічнае абслугоўванне",
+      "deleted_success": "Рамонт паспяхова выдалены",
+      "pause_error": "Не ўдалося прыпыніць тэхнічнае абслугоўванне",
+      "paused_success": "Абслугоўванне паспяхова прыпынена",
+      "resume_error": "Не ўдалося аднавіць тэхнічнае абслугоўванне",
+      "resumed_success": "Тэхнічнае абслугоўванне паспяхова працягнулася",
+      "toggle_error": "Не ўдалося змяніць стан рамонту: ID адсутнічае",
+      "update_error": "Не ўдалося абнавіць абслугоўванне",
+      "updated_success": "Тэхнічнае абслугоўванне паспяхова абноўлена."
+    },
+    "weekdays": {
+      "fri": "Пт",
+      "mon": "Пн",
+      "sat": "Суб",
+      "sun": "Нд",
+      "thu": "Чацвер",
+      "tue": "Аўт",
+      "wed": "Серада"
+    }
+  },
+  "messages": {
+    "login_error": "Падчас уваходу адбылася памылка",
+    "login_no_tokens": "Уваход у сістэму прайшоў паспяхова, але токены не атрыманы.",
+    "login_success": "Увайшлі ў сістэму паспяхова.",
+    "notifier_delete_error": "Не ўдалося выдаліць апавяшчальнік",
+    "notifier_delete_success": "Апавяшчальнік паспяхова выдалены",
+    "register_error": "Памылка падчас рэгістрацыі",
+    "register_no_tokens": "Рэгістрацыя прайшла паспяхова, але токены не атрыманы.",
+    "register_success": "Рэгістрацыя паспяхова завершана",
+    "setting_update_error": "Не ўдалося абнавіць наладку",
+    "setting_update_success": "Наладка паспяхова абноўлена.",
+    "tag_create_error": "Не ўдалося стварыць тэг",
+    "tag_create_success": "Тэг паспяхова створаны",
+    "tag_delete_error": "Не ўдалося выдаліць тэг",
+    "tag_delete_success": "Тэг паспяхова выдалены",
+    "tag_update_error": "Не ўдалося абнавіць тэг",
+    "tag_update_success": "Тэг паспяхова абноўлены",
+    "unexpected_error": "Адбылася нечаканая памылка",
+    "version_mismatch": "Выяўлена несупадзенне версій"
+  },
+  "monitors": {
+    "card": {
+      "check_interval": "Інтэрвал праверкі:",
+      "loading_more": "Загружаецца далей..."
+    },
+    "empty_state": {
+      "action": "Стварыце свой першы манітор",
+      "description": "Пачніце з стварэння вашага першага манітора, каб адсочваць стан вашых сэрвісаў.",
+      "title": "Маніторы не знойдзены"
+    },
+    "filtering_by_tags": "Фільтрацыя па тэгах",
+    "filters": {
+      "monitor_status": "Статус",
+      "monitor_status_placeholder": "Статус манітора",
+      "search_placeholder": "Шукайце маніторы па назве...",
+      "status_placeholder": "Статус"
+    },
+    "form": {
+      "buttons": {
+        "copied": "Скапіравана!",
+        "copy": "Скапіяваць",
+        "create": "Стварыць",
+        "regenerate": "Перастварыць",
+        "update": "Абнавіць"
+      },
+      "dns": {
+        "hostname": "Імя хоста",
+        "port": "Порт",
+        "record_type": "Тып запісу рэсурсу",
+        "record_type_placeholder": "Выберыце тып запісу",
+        "resolver_server": "DNS-развязальнік",
+        "title": "Наладкі DNS"
+      },
+      "docker": {
+        "ca_cert_description": "Устаўце ваш сертыфікат Цэнтру сертыфікацыі ў фармаце PEM.",
+        "ca_certificate": "Сертыфікат ЦС (PEM)",
+        "client_cert_description": "Устаўце свой кліентскі сертыфікат у фармаце PEM. Гэта выкарыстоўваецца для ўзаемнай TLS-аўтэнтыфікацыі.",
+        "client_certificate": "Сертыфікат кліента (PEM)",
+        "client_private_key": "Прыватны ключ кліента (PEM)",
+        "common_tls_issues": "Звычайныя праблемы TLS:",
+        "connection_type": "Тып падключэння",
+        "container_name_id": "Імя кантэйнера / ID",
+        "disabled": "Выключаны",
+        "docker_container": "Docker кантэйнер",
+        "docker_host": "Docker-хост",
+        "enable_tls": "Уключыць TLS",
+        "enabled": "Уключана",
+        "examples": "Прыклады",
+        "hostname_mismatch": "\"x509: сертыфікат сапраўдны для X, але не для Y\":",
+        "hostname_mismatch_solution": "Пераканайцеся, што імя хоста адпавядае SAN сертыфіката, або адключыце праверку (не рэкамендуецца).",
+        "legacy_cert_error": "x509: сертыфікат залежыць ад састарэлага поля агульнага імя (CN)",
+        "legacy_cert_solution": "Дадайце імя хоста ў Subject Alternative Names (SAN) у вашым сертыфікаце.",
+        "mtls_note": "Для ўзаемнага TLS (mTLS) вам неабходна прадаставіць як кліентскі сертыфікат, так і прыватны ключ. CA-сертыфікат выкарыстоўваецца для праверкі сертыфіката сервера.",
+        "note": "Заўвага:",
+        "private_key_description": "Устаўце ваш прыватны ключ у фармаце PEM. Захоўвайце яго ў бяспецы!",
+        "select_connection_type": "Абярыце тып злучэння",
+        "select_tls_option": "Выберыце опцыю TLS",
+        "select_verification_option": "Выберыце варыянт праверкі",
+        "skip_verification": "Прапусціць праверку (небяспечна)",
+        "tls_configuration": "Канфігурацыя TLS",
+        "unknown_authority": "x509: сертыфікат, падпісаны невядомым цэнтрам сертыфікацыі:",
+        "unknown_authority_solution": "Укажыце правільны CA-сертыфікат, які падпісаў серверны сертыфікат.",
+        "verify_certificates": "Праверыць сертыфікаты",
+        "verify_tls": "Праверыць TLS"
+      },
+      "grpc": {
+        "body": "Дадзеныя цела (JSON)",
+        "enable_tls": "Уключыць TLS",
+        "enable_tls_description": "Выкарыстоўвайце бяспечнае злучэнне (TLS/SSL)",
+        "invert_keyword": "Інверсаваць ключавое слова",
+        "invert_keyword_description": "Манітор будзе пазначаны як працаздольны, калі ключавое слова не знойдзена.",
+        "keyword": "Ключавое слова",
+        "keyword_description": "Пошук гэтага ключавога слова ў адказе",
+        "keyword_placeholder": "Неабавязковае ключавое слова для пошуку",
+        "method_description": "Адчувальны да рэгістру",
+        "method_placeholder": "Праверыць",
+        "options_title": "Опцыі gRPC",
+        "proto_content": "Змест Protobuf",
+        "proto_method": "Метад Protobuf",
+        "proto_service_name": "Назва Protobuf-сэрвісу",
+        "service_name_placeholder": "Здароўе"
+      },
+      "http": {
+        "advanced": {
+          "accepted_status_codes": "Прымальныя коды стану",
+          "ignore_tls": "Ігнараваць памылкі TLS/SSL для HTTPS-сайтаў",
+          "ignore_tls_description": "Прапусціце праверку TLS-сертыфіката. Выкарыстоўвайце з асцярогай — гэта робіць злучэнні менш бяспечнымі.",
+          "max_redirects": "Максімальная колькасць перанакіраванняў",
+          "max_redirects_description": "Максімальная колькасць перанакіраванняў, якія трэба прайсці (0-30). Усталюйце 0, каб адключыць перанакіраванні.",
+          "title": "Пашыраныя"
+        },
+        "authentication": {
+          "auth_header": "Загаловак аўтарызацыі",
+          "certificate": "Сертыфікат",
+          "certificate_placeholder": "Сертыфікат",
+          "client_id": "Ідэнтыфікатар кліента",
+          "client_id_placeholder": "Ідэнтыфікатар кліента",
+          "client_secret": "Сакрэт кліента",
+          "client_secret_placeholder": "Сакрэт кліента",
+          "domain": "Домен",
+          "domain_placeholder": "Домен",
+          "form_data_body": "Змест формы дадзеных",
+          "key": "Ключ",
+          "key_placeholder": "Ключ",
+          "method_label": "Метад аўтэнтыфікацыі",
+          "method_placeholder": "Абярыце тып аўтэнтыфікацыі",
+          "oauth_scope": "Абсяг доступу OAuth",
+          "oauth_scope_placeholder": "Опцыянальна: спіс дазволаў, раздзяляемых прабеламі",
+          "oauth_token_url": "URL токена OAuth",
+          "oauth_token_url_placeholder": "URL токена OAuth",
+          "title": "Аўтэнтыфікацыя",
+          "workstation": "Рабочая станцыя",
+          "workstation_placeholder": "Рабочая станцыя"
+        },
+        "options": {
+          "body": "Змест",
+          "body_encoding": "Кодаванне цела",
+          "body_encoding_placeholder": "Выберыце кодаванне цела запыту",
+          "form_example": "Прыклад дадзеных формы",
+          "headers": "Загалоўкі",
+          "json_example": "Прыклад JSON",
+          "method": "Метад",
+          "method_placeholder": "Выберыце тып манітора",
+          "select_encoding": "Выберыце кодаванне цела запыту",
+          "select_method": "Выберыце метад",
+          "text_example": "Прыклад тэксту:\nЛюбы звычайны тэкст тут...",
+          "title": "HTTP параметры",
+          "xml_example": "Прыклад XML"
+        }
+      },
+      "http_json_query": {
+        "condition_label": "Умова",
+        "expected_value_label": "Чаканае значэнне",
+        "json_query_label": "Выражэнне JSON-запыту",
+        "title": "Выраз JSON-запыту"
+      },
+      "http_keyword": {
+        "invert_keyword_description": "Шукайце ключавое слова, якога няма, а не таго, што існуе.",
+        "invert_keyword_label": "Інвертаваць ключавое слова",
+        "keyword_label": "Ключавое слова",
+        "keyword_validation_title": "Праверка ключавога слова"
+      },
+      "kafka": {
+        "add_broker": "Дадаць брокера",
+        "auto_topic_creation_description": "Дазволіць прадзюсару аўтаматычна ствараць топік, калі ён не існуе.",
+        "auto_topic_creation_label": "Дазволіць аўтаматычнае стварэнне тэм",
+        "brokers_description": "Спіс адрасоў брокераў Kafka (фармат хост:порт)",
+        "brokers_label": "Брокеры Kafka",
+        "configuration_title": "Канфігурацыя Kafka",
+        "enable_ssl_description": "Выкарыстоўвайце шыфраванне SSL/TLS для злучэння.",
+        "enable_ssl_label": "Уключыць SSL/TLS",
+        "message_description": "Змест паведамлення, які будзе адпраўляцца ў тэму (рэкамендуецца выкарыстоўваць JSON-фармат)",
+        "message_label": "Паведамленне",
+        "sasl_mechanism_description": "Выберыце механізм аўтэнтыфікацыі SASL",
+        "sasl_mechanism_label": "SASL-механізм",
+        "sasl_mechanism_placeholder": "Абярыце механізм SASL",
+        "sasl_password_description": "Пароль для аўтэнтыфікацыі SASL",
+        "sasl_password_label": "Пароль SASL",
+        "sasl_password_placeholder": "Пароль",
+        "sasl_username_description": "Імя карыстальніка для аўтэнтыфікацыі SASL",
+        "sasl_username_label": "Імя карыстальніка SASL",
+        "security_title": "Бяспека",
+        "topic_description": "Тэма Kafka, у якую будуць адпраўляцца паведамленні"
+      },
+      "mongodb": {
+        "command_description": "Каманда MongoDB для выканання ў фармаце JSON. Па змаўчанні — ping, калі не ўказана.",
+        "command_label": "Каманда (апцыянальна)",
+        "configuration_title": "Канфігурацыя MongoDB",
+        "connection_string_description": "Радок падключэння MongoDB. Падтрымліваюцца як стандартныя (mongodb://), так і фарматы DNS seedlist (mongodb+srv://).",
+        "connection_string_label": "радок падключэння",
+        "expected_value_description": "Чаканае значэнне для параўнання з вынікам JSON‑шляху.",
+        "expected_value_label": "Чаканае значэнне (неабавязкова)",
+        "expected_value_placeholder": "Чаканае значэнне",
+        "json_path_description": "JSON-шлях для выцягвання значэння з адказу. Выкарыстоўвайце $ для ўзроўня кораня.",
+        "json_path_label": "JSON шлях (неабавязкова)"
+      },
+      "mqtt": {
+        "check_type_json_query": "JSON-запыт",
+        "check_type_keyword": "Ключавое слова",
+        "check_type_label": "Тып праверкі MQTT",
+        "check_type_none": "Няма (Любое паведамленне)",
+        "check_type_placeholder": "Выберыце тып праверкі",
+        "configuration_title": "Наладкі MQTT",
+        "expected_value_label": "Чаканае значэнне",
+        "hostname_label": "Імя хоста",
+        "json_path_label": "JSON-шлях",
+        "password_label": "Пароль MQTT",
+        "password_placeholder": "Пароль (неабавязковы)",
+        "port_label": "Порт",
+        "success_keyword_label": "MQTT Ключавое слова паспяховага адказу",
+        "success_keyword_placeholder": "Ключавое слова, якое паказвае на поспех",
+        "username_label": "MQTT Імя карыстальніка",
+        "username_placeholder": "Імя карыстальніка (неабавязкова)",
+        "validation": {
+          "expected_value_required": "Чаканае значэнне патрабуецца, калі тып праверкі роўны json-query",
+          "json_path_required": "JSON-шлях абавязковы, калі тып праверкі роўны json-query",
+          "success_keyword_required": "Ключавое слова поспеху патрабуецца, калі тып праверкі — keyword."
+        }
+      },
+      "mysql": {
+        "connection_string_examples": "Прыклады:",
+        "connection_string_label": "Радок падключэння",
+        "connection_title": "Падключэнне да MySQL",
+        "query_label": "Запыт"
+      },
+      "ping": {
+        "data_size": "Памер дадзеных (байты)",
+        "host": "Хост / IP-адрас",
+        "title": "Налады пінга"
+      },
+      "postgres": {
+        "connection_string_label": "Радок падключэння",
+        "connection_title": "Падключэнне да PostgreSQL",
+        "query_label": "Запыт"
+      },
+      "push": {
+        "url_description": "Выкарыстоўвайце гэты URL у вашай службе для паведамлення пра стан. Зрабіце HTTP-запыт (POST/GET) да гэтай канчатковай кропкі, каб паслаць сігнал жыццядзейнасці.",
+        "url_title": "URL манітора Push"
+      },
+      "rabbitmq": {
+        "documentation_link": "Дакументацыя RabbitMQ",
+        "health_checks_description": "Манітор правярае эндпойнт {{code}} на кожным вузле і вяртае UP, калі любы вузел здаровы.",
+        "management_nodes_description": "Увядзіце URL вузлоў кіравання RabbitMQ, уключаючы пратакол і порт. Прыклад: https://node1.rabbitmq.com:15672",
+        "management_nodes_title": "Вузлы кіравання",
+        "node_url_label": "URL вузла",
+        "password_description": "Пароль для аўтэнтыфікацыі ў інтэрфейсе кіравання RabbitMQ",
+        "setup_information_description": "Каб выкарыстоўваць манітор RabbitMQ, неабходна ўключыць плагін кіравання ў вашай канфігурацыі RabbitMQ. Для атрымання дадатковай інфармацыі звярніцеся да дакументацыі RabbitMQ.",
+        "setup_information_title": "Інфармацыя пра наладжванне",
+        "title": "Канфігурацыя RabbitMQ",
+        "username_description": "Імя карыстальніка для аўтэнтыфікацыі інтэрфейсу кіравання RabbitMQ"
+      },
+      "redis": {
+        "ca_certificate_description": "Сертыфікат каранявога CA у фармаце PEM. Неабходны для правільнай праверкі TLS з самападпісанымі сертыфікатамі.",
+        "ca_certificate_label": "Сертыфікат ЦС (неабавязкова)",
+        "client_certificate_description": "Кліентскі сертыфікат у фармаце PEM. Патрабуецца для ўзаемнай TLS-аўтэнтыфікацыі.",
+        "client_certificate_label": "Сертыфікат кліента (неабавязковы)",
+        "client_key_description": "Кліентскі прыватны ключ у фармаце PEM. Павінен падавацца разам з кліентскім сертыфікатам.",
+        "client_key_label": "Прыватны ключ кліента (неабавязкова)",
+        "connection_string_description": "Фармат радка падключэння Redis: {{redis}} або {{rediss}} для TLS",
+        "connection_string_label": "Радок падключэння",
+        "ignore_tls_description": "Прапусціць праверку TLS-сертыфіката (не рэкамендуецца для вытворчага асяроддзя)",
+        "ignore_tls_label": "Ігнараваць памылкі TLS/SSL",
+        "title": "Канфігурацыя Redis"
+      },
+      "shared": {
+        "intervals": {
+          "heartbeat_retry": "Інтэрвал паўторных спроб (кожныя {{seconds}} секунд)",
+          "max_retries_description": "Максімальная колькасць паўторных спроб перад тым, як сэрвіс лічыцца недаступным і будзе адпраўлена апавяшчэнне.",
+          "request_timeout": "Тайм-аўт запыту (тайм-аўт праз {{seconds}} секунд)",
+          "resend_notification": "Паўторная адпраўка апавяшчэння, калі стан недаступны X раз запар (паўторная адпраўка адключана)"
+        },
+        "notifications": {
+          "add_notifier": "Дадаць апавяшчальнік",
+          "new_notifier": "+ Новы апавяшчальнік",
+          "no_channels": "Не знойдзены каналы апавяшчэння, спачатку стварыце адзін",
+          "no_channels_available": "Няма даступных каналаў апавяшчэння",
+          "select_channel": "Выберыце канал",
+          "select_notifier_placeholder": "Абярыце апавяшчальнік",
+          "selected_channels": "Выбраныя каналы апавяшчэння",
+          "title": "Каналы апавяшчэння"
+        },
+        "proxy": {
+          "add_proxy": "Дадаць праксі",
+          "new_proxy": "+ Дадаць праксі",
+          "no_proxy": "Без праксі",
+          "remove_proxy": "Выдаліць праксі",
+          "select_proxy_placeholder": "Абярыце праксі-сервер",
+          "selected_proxy": "Выбраны праксі",
+          "title": "Праксі"
+        },
+        "tags": {
+          "label": "Тэгі",
+          "no_tags": "Няма тэгаў",
+          "placeholder": "Абраць тэгі"
+        }
+      },
+      "snmp": {
+        "community_description": "Радок супольнасці SNMP для аўтэнтыфікацыі (напрыклад, пароль)",
+        "community_label": "Радок супольнасці",
+        "expected_value_description": "Значэнне, з якім трэба параўноўваць. Пакіньце пустым, каб прапусціць валідацыю.",
+        "expected_value_label": "Чаканае значэнне",
+        "host_description": "Імя хоста або IP-адрас прылады з падтрымкай SNMP",
+        "host_label": "Хост",
+        "json_path_description": "Выраз JSONPath для выцягвання значэння з адказу (выкарыстоўвайце $ для неапрацаванага значэння)",
+        "json_path_label": "JSON-шлях",
+        "json_path_operator_description": "Як параўнаць атрыманае значэнне з чаканым значэннем",
+        "json_path_operator_eq": "роўна",
+        "json_path_operator_ge": "больш за або роўна",
+        "json_path_operator_gt": "больш за",
+        "json_path_operator_label": "Умова",
+        "json_path_operator_le": "менш або роўна",
+        "json_path_operator_lt": "менш за",
+        "json_path_operator_ne": "не роўна",
+        "oid_description": "Ідэнтыфікатар аб'екта SNMP, які трэба запытаць (напрыклад, 1.3.6.1.2.1.1.1.0 для апісання сістэмы)",
+        "oid_label": "OID (Ідэнтыфікатар аб'екта)",
+        "port_description": "Порт SNMP (па змаўчанні: 161)",
+        "port_label": "Порт",
+        "snmp_version_description": "Версія SNMP-пратаколу, якая будзе выкарыстоўвацца",
+        "snmp_version_label": "Версія SNMP",
+        "title": "Наладкі SNMP",
+        "value_validation_label": "Праверка значэння (неабавязкова)"
+      },
+      "sqlserver": {
+        "allowed_statements_description": "SELECT, SHOW, DESCRIBE, EXPLAIN, WITH і VALUES.",
+        "allowed_statements_label": "Дазволеныя выказванні:",
+        "connection_string_label": "Радок падключэння",
+        "query_description": "Запыт, які выконваецца для праверкі стану. Пакіньце пустым, каб выкарыстоўваць па змаўчанні.",
+        "query_label": "Запыт",
+        "title": "Падключэнне да Microsoft SQL Server"
+      },
+      "tcp": {
+        "host": "Хост",
+        "port": "Порт",
+        "title": "TCP-злучэнне"
+      },
+      "type": {
+        "dns": "DNS-монітор",
+        "docker": "Docker кантэйнер",
+        "grpc": "gRPC Манітор ключавых слоў",
+        "http": "Манітор HTTP(S)",
+        "kafka": "Манітор прадуктара Kafka",
+        "mongodb": "Манітор базы дадзеных MongoDB",
+        "mqtt": "Манітор MQTT-брокера",
+        "mysql": "Манітор MySQL/MariaDB",
+        "ping": "Манітор пінга (ICMP)",
+        "postgres": "Манітор базы дадзеных PostgreSQL",
+        "push": "Push-манітор (знешні сэрвіс робіць запыт да згенераванага URL)",
+        "rabbitmq": "Манітор RabbitMQ",
+        "redis": "Манітор базы дадзеных Redis",
+        "snmp": "Манітор SNMP",
+        "sqlserver": "Манітор Microsoft SQL Server",
+        "tcp": "Манітор TCP-порта"
+      }
+    },
+    "page": {
+      "description": "Стварыце новы манітор, каб пачаць адсочваць прадукцыйнасць вашага вэб-сайта.",
+      "edit_title": "Рэдагаваць манітор:",
+      "new_title": "Новы манітор"
+    },
+    "title": "Маніторы",
+    "toasts": {
+      "deleted": "Манітор выдалены",
+      "paused": "Манітор прыпынены",
+      "reset_success": "Дадзеныя манітора паспяхова скінуты",
+      "resumed": "Манітор адноўлены"
+    },
+    "view": {
+      "buttons": {
+        "clone": "Клонаваць",
+        "delete": "Выдаліць",
+        "edit": "Рэдагаваць",
+        "pause": "Паўза",
+        "reset_data": "Скіньце дадзеныя",
+        "resume": "Працягнуць"
+      },
+      "certificate": "Сертыфікат",
+      "check_every": "Правярайце кожныя",
+      "current_status": "Бягучы стан",
+      "dialogs": {
+        "delete": {
+          "description": "Гэта дзеянне немагчыма адмяніць. Гэта прывядзе да пастаяннага выдалення манітора і ўсіх звязаных з ім дадзеных.",
+          "title": "Вы ўпэўнены на сто працэнтаў?"
+        },
+        "pause": {
+          "description": "Ці вы сапраўды жадаеце прыпыніць?",
+          "title": "Пацвярджэнне"
+        },
+        "reset": {
+          "description": "Гэта назаўжды выдаліць гісторыю пульсавання манітора і статыстыку часу бесперабойнай працы. Манітор будзе выглядаць так, нібы яго толькі што стварылі. Гэты крок нельга адмяніць.",
+          "title": "Скід дадзеных манітора"
+        }
+      },
+      "expiring_soon": "Хутка заканчваецца",
+      "for": "для",
+      "live_status": "Жывы стан",
+      "monitor_for": "Манітор для",
+      "no_certificate_data": "Няма дадзеных аб сертыфікаце",
+      "seconds": "sekundy",
+      "stats": {
+        "last_24_hours": "Апошнія 24 гадзіны",
+        "last_30_days": "Апошнія 30 дзён",
+        "last_365_days": "Апошнія 365 дзён",
+        "last_7_days": "Апошнія 7 дзён"
+      },
+      "status": {
+        "down": "Недаступна",
+        "maintenance": "Тэхнічнае абслугоўванне",
+        "paused": "Прыпынены",
+        "up": "Даступны"
+      }
+    }
+  },
+  "navigation": {
+    "maintenance": "Абслугоўванне",
+    "monitors": "Маніторы",
+    "notification_channels": "Каналы апавяшчэнняў",
+    "proxies": "Праксі",
+    "settings": "Налады",
+    "status_pages": "Старонкі стану",
+    "tags": "Тэгі"
+  },
+  "notifications": {
+    "actions": {
+      "test": "Пратэставаць",
+      "testing": "Тэставанне..."
+    },
+    "aria": {
+      "delete": "Выдаліць {{name}}"
+    },
+    "confirm_delete_description": "Гэтае дзеянне немагчыма адмяніць. Яно канчаткова выдаліць апавяшчальнік \"{{name}}\" і выдаліць яго з усіх манітораў, якія яго выкарыстоўваюць.",
+    "create_title": "Стварыць апавяшчальнік",
+    "edit_channel_title": "Рэдагаваць канал апавяшчэння",
+    "edit_title": "Рэдагаваць апавяшчальнік",
+    "empty_state": {
+      "action": "Стварыце свой першы канал апавяшчэнняў",
+      "description": "Пачніце з стварэння вашага першага канала апавяшчэнняў, каб адпраўляць апавяшчэнні вашай камандзе.",
+      "title": "Няма каналаў апавяшчэння"
+    },
+    "form": {
+      "discord": {
+        "bot_display_name_description": "Імя, якое будзе з'яўляцца адпраўнікам паведамленняў Discord.",
+        "bot_display_name_label": "Імя бота",
+        "custom_message_prefix_description": "Апцыянальны прэфікс, які будзе дададзены ў пачатак усіх паведамленняў.",
+        "custom_message_prefix_label": "Карыстальніцкі прэфікс паведамлення",
+        "custom_message_prefix_placeholder": "Неабавязкова: Дадайце прэфікс да вашага паведамлення",
+        "forum_post_name_description": "Назва новага паведамлення на форуме, якое будзе створана.",
+        "forum_post_name_label": "Назва форумнага паведамлення",
+        "forum_post_name_placeholder": "Увядзіце назву паведамлення ў форуме",
+        "sending_message_to_channel": "Адправіць у канал",
+        "sending_message_to_description": "Выберыце, куды адпраўляць паведамленні Discord.",
+        "sending_message_to_label": "Даслаць паведамленне да",
+        "sending_message_to_new_forum_post": "Адправіць у новы пост на форуме",
+        "sending_message_to_placeholder": "Выберыце тып паведамлення",
+        "sending_message_to_thread": "Адправіць у нітку",
+        "setup_webhook_description_1": "Атрымаеце URL webhook са наладак сервера Discord → Інтэграцыі → Webhooks.",
+        "setup_webhook_description_2": "Стварыце новы webhook і скапіруйце URL. Пераканайцеся, што вы абралі правільны канал.",
+        "setup_webhook_title": "Наладка Discord Webhook",
+        "thread_id_description_1": "Уключыце рэжым распрацоўніка ў наладах карыстальніка Discord → Дадатковыя → Рэжым распрацоўніка",
+        "thread_id_description_2": "Націсніце правую кнопку мышы на нітцы або паведамленні і выберыце «Скапіраваць ID ніткі» або «Скапіраваць ID канала»",
+        "thread_id_description_title": "Ідэнтыфікатар ніткі або паста на форуме, куды будуць адпраўляцца паведамленні.",
+        "thread_id_label": "ID треда",
+        "thread_id_placeholder": "Увядзіце ідэнтыфікатар ніткі або паведамлення",
+        "webhook_url_label": "URL вэбхука Discord"
+      },
+      "google_chat": {
+        "more_info_about_webhooks": "Дадатковая інфармацыя пра вэбхукі",
+        "webhook_url_label": "URL вэб-хука Google Chat"
+      },
+      "gotify": {
+        "application_token_description": "Токен вашага прыкладання Gotify. Вы можаце знайсці яго ў вэб-інтэрфейсе Gotify у раздзеле «Apps».",
+        "application_token_label": "Токен прыкладання",
+        "custom_message_description": "Карыстальніцкі шаблон паведамлення. Даступныя зменныя",
+        "custom_message_description_2": "Пакіньце пустым, каб выкарыстоўваць паведамленне па змаўчанні.",
+        "custom_message_label": "Сваё паведамленне",
+        "custom_title_description": "Карыстальніцкая назва апавяшчэння. Даступныя зменныя: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Пакіньце пустым, каб выкарыстоўваць назву па змаўчанні \"Peekaping\".",
+        "custom_title_label": "Індывідуальны загаловак",
+        "learn_more_label": "Даведайцеся больш пра Gotify і як яго наладзіць на наступнай старонцы:",
+        "note_description": "Для выкарыстання гэтай інтэграцыі неабходна, каб сервер Gotify быў запушчаны.",
+        "note_label": "Заўвага:",
+        "priority_0": "Самы нізкі",
+        "priority_1": "Вельмі нізкі",
+        "priority_10": "Найвышэйшы",
+        "priority_2": "Нізкі",
+        "priority_3": "Ніжэй за норму",
+        "priority_4": "Нармальны",
+        "priority_5": "Вышэй за нармальны",
+        "priority_6": "Умераны",
+        "priority_7": "Высокі",
+        "priority_8": "Вельмі высокая (па змаўчанні)",
+        "priority_9": "Аварыйны",
+        "priority_description": "Прыярытэт паведамлення (0–10). Большыя значэнні азначаюць больш высокі прыярытэт. Па змаўчанні — 8.",
+        "priority_label": "Прыярытэт",
+        "priority_placeholder": "Выберыце прыярытэт",
+        "server_url_description": "URL вашага сервера Gotify. Пераканайцеся, што ён даступны з гэтага прыкладання.",
+        "server_url_label": "URL сервера"
+      },
+      "grafana_oncall": {
+        "grafana_oncall_url_description": "URL вебхука з вашай інтэграцыі Grafana OnCall. Вы можаце знайсці яго ў вашай інстанцыі Grafana OnCall у раздзеле Alerts & IRM &gt; IRM &gt; Integrations &gt; Webhook.",
+        "grafana_oncall_url_label": "URL Grafana OnCall",
+        "learn_more_label": "Даведайцеся больш пра вэб-хукі Grafana OnCall."
+      },
+      "line": {
+        "channel_access_token_description": "Вы можаце атрымаць ваш токен доступу да канала з...",
+        "channel_access_token_description_2": "Перайдзіце ў налады вашага канала і знайдзіце",
+        "channel_access_token_label": "Токен доступу да канала (даўгавечны)",
+        "channel_access_token_placeholder": "Увядзіце ваш токен доступу канала LINE",
+        "template_description": "Наладзьце фармат паведамлення. Даступныя зменныя",
+        "template_label": "Шаблон паведамлення",
+        "template_placeholder": "Увядзіце свой уласны шаблон паведамлення",
+        "user_id_description": "Вы можаце знайсці ваш ID карыстальніка ў дадатку LINE",
+        "user_id_description_2": "Перайдзіце ў налады вашага канала і знайдзіце",
+        "user_id_label": "Ідэнтыфікатар карыстальніка",
+        "user_id_placeholder": "Увядзіце ваш ідэнтыфікатар карыстальніка LINE"
+      },
+      "matrix": {
+        "access_token_description": "Ваш токен доступу да Matrix для аўтэнтыфікацыі",
+        "access_token_label": "Токен доступу",
+        "custom_message_description": "Карыстальніцкі шаблон паведамлення. Даступныя зменныя",
+        "custom_message_label": "Карыстальніцкае паведамленне",
+        "homeserver_url_description": "Адрас вашага дамашняга сервера Matrix",
+        "homeserver_url_label": "URL хатняга сервера",
+        "internal_room_id_description": "Унутраны ідэнтыфікатар пакоя, у які будуць адпраўляцца паведамленні. Гэта павінна пачынацца з знака '!'' і выглядаць як: !roomid:matrix.org",
+        "internal_room_id_label": "Ўнутраны ідэнтыфікатар пакоя",
+        "setup_instructions_1": "Стварыце ўліковы запіс Matrix для вашага бота (ці выкарыстоўвайце існуючы ўліковы запіс)",
+        "setup_instructions_2": "Стварыце або далучыцеся да пакоя, у якім вы хочаце атрымліваць апавяшчэнні.",
+        "setup_instructions_3": "Атрымаеце токен доступу, зрабіўшы запыт на ўваход у сістэму",
+        "setup_instructions_4": "У адказе будзе поле access_token — выкарыстоўвайце яго як ваш токен доступу.",
+        "setup_instructions_5": "Знайдзіце ўнутраны ідэнтыфікатар пакоя (пачынаецца з '!') у наладах пакоя вашага кліента Matrix",
+        "setup_instructions_label": "Інструкцыі па наладжванні"
+      },
+      "mattermost": {
+        "channel_name_description": "Канал, у які будуць адпраўляцца апавяшчэнні. Пакіньце пустым, каб выкарыстоўваць канал па змаўчанні, які наладжаны ў webhook.",
+        "channel_name_label": "Назва канала",
+        "icon_emoji_cheat_sheet_label": "Шпаргалка эмодзі",
+        "icon_emoji_description": "Эмодзі, які выкарыстоўваецца як іконка. Вы можаце задаць два эмодзі, раздзяляючы іх прабелам (першае — стан Up, другое — стан Down).",
+        "icon_emoji_label": "Эмодзі для значка",
+        "icon_url_description": "URL выявы, якая будзе выкарыстоўвацца як іконка апавяшчэння.",
+        "icon_url_label": "URL іконкі",
+        "learn_more_label": "Даведайцеся больш пра вэбхукі",
+        "message_template_description": "Наладзьце фармат паведамлення. Даступныя зменныя",
+        "message_template_label": "Шаблон паведамлення",
+        "use_message_template_description": "Уключыце, каб выкарыстоўваць карыстальніцкі шаблон паведамлення і яго фарматаванне.",
+        "use_message_template_label": "Выкарыстоўваць шаблон паведамлення",
+        "username_description": "Імя карыстальніка, якое будзе выступаць як адпраўнік паведамлення.",
+        "webhook_url_label": "URL вебхука"
+      },
+      "ntfy": {
+        "authentication_type_basic": "Асноўная аўтэнтыфікацыя",
+        "authentication_type_basic_description": "Выкарыстоўвайце імя карыстальніка і пароль для асноўнай аўтэнтыфікацыі.",
+        "authentication_type_label": "Тып аўтэнтыфікацыі",
+        "authentication_type_none": "Без аўтэнтыфікацыі",
+        "authentication_type_none_description": "Не патрабуецца аўтэнтыфікацыя. Падыходзіць для публічных сервераў NTFY.",
+        "authentication_type_placeholder": "Абярыце тып аўтэнтыфікацыі",
+        "authentication_type_token": "Аўтэнтыфікацыя па токене",
+        "authentication_type_token_description": "Выкарыстоўвайце токен доступу для аўтэнтыфікацыі.",
+        "custom_message_description": "Змесціва карыстальніцкага паведамлення. Даступныя зменныя.",
+        "custom_message_label": "Карыстацкае паведамленне",
+        "password_required": "Пароль неабходны для асноўнай аўтэнтыфікацыі",
+        "priority_1": "Мін (Найніжэйшы)",
+        "priority_2": "Нізкі",
+        "priority_3": "Ніжэй за нармальны",
+        "priority_4": "Высокі",
+        "priority_5": "Тэрміновы (Найвышэйшы)",
+        "priority_description": "Прыярытэт апавяшэння. Больш высокі прыярытэт можа выклікаць розныя паводзіны на кліенце.",
+        "priority_label": "Прыярытэт",
+        "priority_placeholder": "Абярыце прыярытэт",
+        "server_url_description": "URL вашага сервера NTFY. Выкарыстоўвайце https://ntfy.sh для публічнай інстанцыі.",
+        "server_url_label": "URL сервера",
+        "tags_description": "Тэгі для класіфікацыі паведамленняў. Даступныя зменныя",
+        "tags_label": "Тэгі",
+        "title_description": "Карыстацкі загаловак апавяшчэння. Даступныя зменныя",
+        "title_label": "Уласны загаловак",
+        "token_description": "Ваш токен доступу NTFY для аўтэнтыфікацыі.",
+        "token_label": "Токен доступу",
+        "token_required": "Токен неабходны для аўтэнтыфікацыі токенам.",
+        "topic_description": "Назва тэмы для вашых апавяшчэнняў. Гэта будзе канал, праз які будуць адпраўляцца апавяшчэнні.",
+        "topic_label": "Тэма",
+        "username_required": "Імя карыстальніка патрабуецца для асноўнай аўтэнтыфікацыі"
+      },
+      "opsgenie": {
+        "api_key_label": "API-ключ",
+        "more_info_about_api_keys_label": "Дадатковая інфармацыя пра API-ключы",
+        "priority_1": "Крытычны",
+        "priority_2": "Высокі",
+        "priority_3": "Умераны",
+        "priority_4": "Нізкі",
+        "priority_5": "Інфармацыйны",
+        "priority_description": "Усталюйце ўзровень прыярытэту для апавяшчэнняў. Па змаўчанні — P3 (Сярэдні).",
+        "priority_label": "Прыярытэт",
+        "region_description": "Выберыце рэгіён Opsgenie. Това вызначае, які API-канец будзе выкарыстоўвацца.",
+        "region_label": "рэгіён",
+        "region_placeholder": "Абярыце рэгіён"
+      },
+      "pagerduty": {
+        "auto_resolve_acknowledge": "Аўтаматычнае прызнанне",
+        "auto_resolve_acknowledge_description": "Аўтаматычна прызнаць інцыдэнт",
+        "auto_resolve_description": "Выберыце, якое дзеянне трэба выканаць, калі манітор зноў стане даступным.",
+        "auto_resolve_do_nothing": "Нічога не рабіць",
+        "auto_resolve_do_nothing_description": "Ніякіх дзеянняў не зроблена для стану UP.",
+        "auto_resolve_label": "Аўтаматычнае вырашэнне або пацвярджэнне",
+        "auto_resolve_placeholder": "Выберыце паводзіны аўтаматычнага вырашэння інцыдэнту",
+        "auto_resolve_resolve": "Аўтаматычнае вырашэнне",
+        "auto_resolve_resolve_description": "Аўтаматычна вырашаць інцыдэнт",
+        "integration_key_description": "Даведайцеся, як атрымаць ваш інтэграцыйны ключ",
+        "integration_key_label": "Інтэграцыйны ключ",
+        "integration_key_placeholder": "Увядзіце ваш інтэграцыйны ключ PagerDuty",
+        "integration_url_description": "URL канчатковай кропкі PagerDuty Events API v2. Па змаўчанні выкарыстоўваецца стандартная канчатковая кропка.",
+        "integration_url_label": "URL інтэграцыі",
+        "learn_more_label": "Дакументацыя PagerDuty",
+        "priority_critical": "Крытычны",
+        "priority_description": "Узровень сур'ёзнасці інцыдэнтаў PagerDuty. Па змаўчанні — «папярэджанне».",
+        "priority_error": "Памылка",
+        "priority_info": "Інфармацыя",
+        "priority_label": "Прыярытэт",
+        "priority_placeholder": "Выбраць узровень прыярытэту",
+        "priority_warning": "Папярэджанне"
+      },
+      "pagertree": {
+        "authentication_token_description": "Неабавязковы токен аўтэнтыфікацыі для павышэння бяспекі. Ён будзе адпраўляцца ў загалоўку pagertree-token.",
+        "authentication_token_label": "Аўтэнтыфікацыйны токен (неабавязковы)",
+        "authentication_token_placeholder": "Увядзіце аўтэнтыфікацыйны токен (калі патрабуецца)",
+        "auto_resolve_alerts_description": "Аўтаматычна вырашаць алерты PagerTree, калі манітор аднавіцца",
+        "auto_resolve_alerts_label": "Аўтаматычнае ліквідаванне апавяшчэнняў",
+        "how_to_get_integration_url_label": "Як атрымаць інтэграцыйны URL",
+        "integration_url_description": "Увядзіце URL інтэграцыі webhook PagerTree.",
+        "integration_url_label": "URL вебхука PagerTree",
+        "urgency_level_critical": "Крытычны",
+        "urgency_level_description": "Усталюйце ўзровень тэрміновасці па змаўчанні для апавяшчэнняў, якія адпраўляюцца ў PagerTree",
+        "urgency_level_high": "Высокі",
+        "urgency_level_label": "Ступень тэрміновасці",
+        "urgency_level_low": "Нізкі",
+        "urgency_level_medium": "Сярэдні",
+        "urgency_level_placeholder": "Выбраць ступень тэрміновасці",
+        "urgency_level_silent": "Беззвучны"
+      },
+      "pushbullet": {
+        "access_token": "Токен доступу",
+        "access_token_description": "Ваш токен доступу Pushbullet. Атрымаць яго можна з налад Pushbullet.",
+        "access_token_label": "Токен доступу",
+        "access_token_link": "Налады Pushbullet",
+        "channel_tag": "Тэг канала (неабавязкова)",
+        "channel_tag_description": "Адправіце апавяшчэнне ў канал Pushbullet, замест прылад.",
+        "channel_tag_label": "Тэг канала (неабавязкова)",
+        "custom_message_template": "",
+        "custom_message_template_description": "Наладзьце змест апавяшчэння, выкарыстоўваючы зменныя шаблона:",
+        "custom_message_template_heartbeat_ping": "Час адказу",
+        "custom_message_template_heartbeat_time": "Метка часу",
+        "custom_message_template_label": "Карыстальніцкі шаблон паведамлення (неабавязкова)",
+        "custom_message_template_monitor_url": "URL манітора",
+        "custom_message_template_msg": "Паведамленне аб трывогу",
+        "custom_message_template_name": "Назва манітора",
+        "custom_message_template_placeholder": "Манітор: {{ name }}\nСтатус: {{ status }}\nПаведамленне: {{ msg }}",
+        "custom_message_template_status": "Бягучы стан",
+        "device_id": "Ідэнтыфікатар прылады (неабавязкова)",
+        "device_id_description": "Адправіць апавяшчэнне на канкрэтную прыладу. Пакіньце пустым, каб адпраўляць усім прыладам. Вы можаце знайсці ID прылад, выкарыстоўваючы ...",
+        "device_id_label": "Ідэнтыфікатар прылады (неабавязкова)",
+        "device_id_link": "Pushbullet АПІ",
+        "more_info_on": "Дадатковая інфармацыя пра:"
+      },
+      "pushover": {
+        "application_token_label": "Токен прыкладання",
+        "application_token_placeholder": "Увядзіце токен праграмы Pushover",
+        "device_description": "Пакінуць пустым, каб адпраўляць усім прыладам",
+        "device_label": "Прылада",
+        "device_placeholder": "Назва прылады (неабавязкова)",
+        "message_title_description": "Пакіньце пустым, каб выкарыстоўваць загаловак па змаўчанні.",
+        "message_title_label": "Загаловак паведамлення",
+        "message_title_placeholder": "Карыстацкі загаловак паведамлення (неабавязкова)",
+        "message_ttl_description": "Час жыцця ў секундах (0 — без тэрміну дзеяння)",
+        "message_ttl_label": "Час жыцця паведамлення",
+        "more_info_label": "Дадаткова інфармацыя пра:",
+        "more_info_label_2": "Вы можаце стварыць прыкладанне і атрымаць свой API-токен па адрасе",
+        "more_info_label_3": "Ваш ключ карыстальніка можна знайсці па адрасе",
+        "notification_sound_down_description": "Гук апавяшчэння, калі манітор выходзіць з ладу.",
+        "notification_sound_down_label": "Звук апавяшчэння - Недаступна",
+        "notification_sound_down_placeholder": "Выберыце гук",
+        "notification_sound_up_description": "Гук, які гучыць, калі манітор вяртаецца ў працазольны стан",
+        "notification_sound_up_label": "Гук апавяшчэння - Уверх",
+        "notification_sound_up_placeholder": "Выберыце гук",
+        "priority_1": "Самы нізкі",
+        "priority_2": "Нізкі",
+        "priority_3": "Звычайны",
+        "priority_4": "Высокі",
+        "priority_5": "Аварыйная сітуацыя",
+        "priority_description": "Прыярытэт паведамлення",
+        "priority_label": "Прыярытэт",
+        "priority_placeholder": "Выберыце прыярытэт",
+        "sound_alien": "Іншаземец",
+        "sound_bike": "Веласіпед",
+        "sound_bugle": "бугель",
+        "sound_cashregister": "Касавы апарат",
+        "sound_classical": "Класічны",
+        "sound_climb": "Пад'ём",
+        "sound_cosmic": "Касмічны",
+        "sound_echo": "Эха",
+        "sound_falling": "Падзенне",
+        "sound_gamelan": "Гамелан",
+        "sound_incoming": "Уваходны",
+        "sound_intermission": "Перапынак",
+        "sound_magic": "Магія",
+        "sound_mechanical": "Механічны",
+        "sound_none": "Без гуку",
+        "sound_persistent": "Пастаянны",
+        "sound_pianobar": "піаніно-бар",
+        "sound_pushover": "Pushover (па змаўчанні)",
+        "sound_siren": "Сірэна",
+        "sound_spacealarm": "Космічны сігнал",
+        "sound_tugboat": "буксір",
+        "sound_updown": "Уверх/Уніз",
+        "sound_vibrate": "Вібрацыя",
+        "user_key_label": "Ключ карыстальніка",
+        "user_key_placeholder": "Увядзіце ваш карыстальніцкі ключ Pushover"
+      },
+      "signal": {
+        "custom_message_description": "Шаблон карыстальніцкага паведамлення. Даступныя зменныя",
+        "custom_message_label": "Карыстальніцкае паведамленне",
+        "important_description": "Вы не можаце змешваць групы і нумары ў атрымальнікаў!",
+        "important_label": "ВАЖНА:",
+        "more_info_label": "Вы можаце праглядзець гэты URL, каб даведацца, як яго наладзіць:",
+        "note_description": "Неабходна мець кліент Signal з REST API.",
+        "note_label": "Заўвага:",
+        "number_description": "Тэлефонны нумар вашага ўліковага запісу Signal (нумар адпраўніка).",
+        "number_label": "Нумар",
+        "post_url_description": "URL вашага сервера Signal CLI REST API.",
+        "post_url_label": "URL пасты",
+        "recipients_description": "Спіс нумароў тэлефонаў, раздзяляемых запятымі, на якія будуць адпраўляцца апавяшчэнні.",
+        "recipients_label": "Атрымальнікі"
+      },
+      "slack": {
+        "channel_name_description": "Канал, у які будзе адпраўлена паведамленне. Калі не ўказаны, паведамленне будзе адпраўлена ў канал па змаўчанні, які наладжаны ў webhook.",
+        "channel_name_description_2": "Вы можаце замяніць стандартны канал, указаўшы назву канала (напрыклад, #alerts) або карыстальніка (напрыклад, @username).",
+        "channel_name_label": "Назва канала",
+        "channel_notify_description": "Калі ўключана, паведамленне будзе выклікаць апавяшчэнні для ўсіх удзельнікаў канала. Выкарыстоўвайце з асцярогай, каб пазбегнуць спаму.",
+        "channel_notify_label": "Канал апавяшчэння",
+        "icon_emoji_cheat_sheet_label": "Шпаргалка па эмодзі",
+        "icon_emoji_description": "Эмодзі, які будзе выкарыстоўвацца як значок для гэтага паведамлення. Павінна быць у фармаце :emoji_name:",
+        "icon_emoji_label": "Іконка эмодзі",
+        "message_format_description": "Адправіць фарматаваныя паведамленні",
+        "message_format_description_2": "Уключыць адпраўку паведамленняў з багатым фарматаваннем, дадаткамі і лепшым візуальным афармленнем.",
+        "message_format_label": "Фармат паведамлення",
+        "username_description": "Імя карыстальніка, якое будзе з'яўляцца адпраўнікам паведамлення. Калі не ўказана, будзе выкарыстана стандартнае імя бота.",
+        "webhook_url_description": "URL webhook з вашай інтэграцыі Slack. Вы можаце знайсці яго ў сваім Slack‑сістэме ў раздзеле Інтэграцыі > Webhooks.",
+        "webhook_url_label": "URL вэб-хука"
+      },
+      "smtp": {
+        "custom_body_label": "Карыстальніцкі змест паведамлення",
+        "custom_description": "Шаблонізацыя дасягаецца з дапамогай мовы шаблонізацыі <b>Liquid</b>.",
+        "custom_description_2": "Звярніцеся да дакументацыі для інструкцый па выкарыстанні.",
+        "custom_description_3": "Даступныя зменныя:",
+        "custom_description_4": "паведамленне апавяшчэння",
+        "custom_description_5": "назва сэрвіса",
+        "custom_description_6": "стан сэрвіса (UP/DOWN/паведамленні пра заканчэнне тэрміну дзеяння сертыфікатаў)",
+        "custom_subject_label": "Карыстальніцкая тэма ліста",
+        "smtp_from_label": "Адрас электроннай пошты адпраўніка",
+        "smtp_host_description": "Альбо Увядзіце імя хоста сервера, да якога хочаце падключыцца, або localhost, калі вы плануеце выкарыстоўваць лакальна наладжаны паштовы перадатчык.",
+        "smtp_host_label": "SMTP-хост",
+        "smtp_password_placeholder": "SMTP-пароль",
+        "smtp_port_label": "Порт",
+        "smtp_to_label": "Каму (адрас(ы) электроннай пошты)",
+        "smtp_username_placeholder": "Імя карыстальніка SMTP"
+      },
+      "telegram": {
+        "auto_get_label": "Аўтаматычна атрымаць",
+        "bot_token_description": "Атрымаеце токен бота з",
+        "bot_token_label": "Токен бота",
+        "chat_id_description": "Вы можаце атрымаць ID чата, адпраўляючы паведамленне вашаму боту і націснуўшы зверху «Auto Get», або зрабіць гэта ўручную праз Telegram API.",
+        "chat_id_description_2": "Каб атрымаць яго ўручна, наведайце",
+        "chat_id_description_3": "Паглядзець",
+        "chat_id_description_4": "Дакументацыя Telegram",
+        "chat_id_description_5": "для дадатковай інфармацыі.",
+        "chat_id_label": "ID чата",
+        "chat_id_not_found": "ID чата не знойдзены ў апошнім абнаўленні.",
+        "failed_to_fetch_chat_id": "Не ўдалося атрымаць ідэнтыфікатар чата",
+        "message_thread_id_description": "Неабавязкова. Выкарыстоўваецца для адпраўкі паведамленняў у пэўную тэму (тэма) у форумнай супергрупе.",
+        "message_thread_id_label": "ID ніткі размовы",
+        "no_updates_found": "Абнаўленняў не знойдзена. Спачатку адпраўце паведамленне вашаму боту.",
+        "protect_content_description": "Калі ўключана, змест паведамлення будзе абаронены ад перасылання і захавання.",
+        "protect_content_label": "Ахоўваць змесціва",
+        "send_silently_description": "Калі ўключана, паведамленні будуць адпраўляцца без гуку (карыстальнікі будуць атрымліваць апавяшчэнне без гуку).",
+        "send_silently_label": "Адправіць бясшумна",
+        "server_url_description": "Па змаўчанні",
+        "server_url_description_2": "Вы можаце выкарыстоўваць індывідуальны сервер. Глядзіце",
+        "server_url_description_3": "тут",
+        "server_url_description_4": "для падрабязнасцей.",
+        "server_url_label": "URL сервера Telegram",
+        "template_description": "Наладзьце фармат паведамлення. Даступныя зменныя.",
+        "template_label": "Шаблон паведамлення",
+        "template_parse_mode_description": "Абярыце, як паведамленне павінна быць распарсана. Глядзіце",
+        "template_parse_mode_description_2": "Дакументацыя па фарматаванні Telegram",
+        "template_parse_mode_description_3": "для падрабязнасцей.",
+        "template_parse_mode_label": "Рэжым парсінга шаблона",
+        "template_parse_mode_placeholder": "Абярыце рэжым разметкі",
+        "template_placeholder": "Увядзіце свой карыстальніцкі шаблон паведамлення",
+        "use_template_description": "Уключыце, каб выкарыстоўваць карыстацкі шаблон паведамлення і фарматаванне.",
+        "use_template_label": "Выкарыстоўваць шаблон паведамлення"
+      },
+      "webhook": {
+        "additional_headers_description": "Дадаць карыстальніцкія загалоўкі HTTP да запыту вэбхука.",
+        "additional_headers_label": "Дадатковыя загалоўкі",
+        "custom_body_description": "Наладзьце фармат цела запыту. Даступныя зменныя",
+        "custom_body_label": "Карыстацкае цела запыту",
+        "post_url_description": "URL канчатковай кропкі вэб-хука, на які будуць адпраўляцца апавяшчэнні.",
+        "post_url_label": "URL запыту POST",
+        "request_body_description_custom": "Вызначыце ніжэй свой уласны фармат змесціва запыту.",
+        "request_body_description_form_data": "Змесціва будзе адпраўлена як multipart/form-data. Вы можаце расшыфраваць яго, выкарыстоўваючы <strong>json_decode($_POST['data'])</strong> у PHP.",
+        "request_body_description_json": "Змест будзе адпраўлены як JSON з загалоўкам \"application/json\".",
+        "request_body_label": "Цела запыту",
+        "request_body_placeholder": "Абярыце тып зместу"
+      }
+    },
+    "important": "Важныя апавяшчэнні",
+    "important_notifications": "Важныя апавяшчэнні",
+    "labels": {
+      "friendly_name": "Адлюстроўванае імя",
+      "type": "Тып апавяшчальніка"
+    },
+    "messages": {
+      "create_failed": "Не ўдалося стварыць апавяшчальнік",
+      "created_success": "Апавяшчальнік паспяхова створаны",
+      "error_loading_notifier": "Памылка загрузкі апавяшчальніка",
+      "test_failed": "Не ўдалося адправіць тэставае апавяшчэнне",
+      "test_success": "Тэставое апавяшчэнне паспяхова адпраўлена.",
+      "update_failed": "Не атрымалася абнавіць апавяшчальнік",
+      "updated_success": "Апавяшчальнік паспяхова абноўлены"
+    },
+    "new": {
+      "title": "Новы канал апавяшчэнняў"
+    },
+    "no_important": "Не знойдзены важныя апавяшчэнні.",
+    "placeholders": {
+      "select_type": "Выберыце тып апавяшчальніка"
+    },
+    "search_placeholder": "Пошук каналаў апавяшчэння па назве..."
+  },
+  "proxies": {
+    "delete_dialog": {
+      "description": "Гэта дзеянне нельга адмяніць. Праксі-сервер {{host}}:{{port}} будзе выдалены назаўсёды.",
+      "title": "Вы сапраўды ўпэўнены?"
+    },
+    "edit": {
+      "page_name": "Рэдагаваць праксі"
+    },
+    "empty_list": {
+      "action_text": "Стварыце свой першы праксі",
+      "text": "Пачніце з стварэння вашай першай праксі, каб выкарыстоўваць яе ў маніторах.",
+      "title": "Праксі не знойдзены"
+    },
+    "form": {
+      "auth_label": "Праксі-сервер мае аўтэнтыфікацыю",
+      "port_placeholder": "Порт",
+      "protocol_label": "Проксі-пратакол",
+      "protocol_placeholder": "Выберыце пратакол праксі",
+      "server_label": "Проксі-сервер",
+      "server_placeholder": "Адрас сервера",
+      "user": "Карыстальнік"
+    },
+    "messages": {
+      "create_failed": "Не ўдалося стварыць праксі",
+      "created_success": "Праксі паспяхова створаны",
+      "error_loading_proxy": "Памылка загрузкі праксі",
+      "update_failed": "Не ўдалося абнавіць праксі",
+      "updated_success": "Праксі паспяхова абноўлена"
+    },
+    "new": {
+      "page_name": "Новы проксі"
+    },
+    "page_name": "Праксі",
+    "search_label": "Пошук",
+    "search_placeholder": "Пошук праксі па хосту..."
+  },
+  "security": {
+    "enable_2fa": {
+      "form": {
+        "authenticator_code_label": "Код аўтэнтыфікатара",
+        "authenticator_code_placeholder": "Увядзіце шасцізначны код",
+        "current_password_label": "Бягучы пароль",
+        "current_password_placeholder": "Увядзіце ваш бягучы пароль",
+        "enable_2fa_button": "Уключыць 2-факторную аўтэнтыфікацыю"
+      },
+      "messages": {
+        "2fa_active": "2FA ўключана",
+        "2fa_disabled_successfully": "2FA паспяхова адключана",
+        "2fa_enabled_successfully": "2FA паспяхова ўключана",
+        "account_is_protected_with_2fa": "Ваш рахунак абаронены двухфакторнай аўтэнтыфікацыяй.",
+        "disable_2fa": "Адключыць 2FA",
+        "enter_password_to_disable_2fa": "Увядзіце свой пароль, каб адключыць двухфакторную аўтарызацыю.",
+        "failed_to_disable_2fa": "Не ўдалося адключыць 2FA",
+        "failed_to_verify_2fa_code": "Не ўдалося праверыць код 2FA",
+        "failed_to_verify_password": "Не атрымалася праверыць пароль або пачаць наладку 2FA",
+        "have_enabled_2fa": "Вы ўключылі двухфакторную аўтэнтыфікацыю (2FA) для вашага акаунта. Гэта дадае дадатковы ўзровень бяспекі.",
+        "or_enter_secret_manually": "Ці увядзіце гэты сакрэт уручную",
+        "scan_qr_code_with_authenticator_app": "Скануйце гэты QR-код з дапамогай вашага прыкладання-аўтэнтыфікатара.",
+        "two_factor_authentication_enabled": "Двухфакторная аўтэнтыфікацыя ўключана",
+        "user_email_not_found": "Электронная пошта карыстальніка не знойдзена"
+      }
+    },
+    "page_name": "Бяспека",
+    "update_password": {
+      "form": {
+        "confirm_new_password_label": "Пацвердзіце новы пароль",
+        "confirm_new_password_placeholder": "Паўтарыце новы пароль",
+        "new_password_label": "Новы пароль",
+        "new_password_placeholder": "Увядзіце новы пароль",
+        "old_password_label": "Стары пароль",
+        "old_password_placeholder": "Увядзіце ваш бягучы пароль",
+        "update_password_button": "Абнавіць пароль"
+      },
+      "messages": {
+        "failed_to_update_password": "Не ўдалося абнавіць пароль",
+        "password_updated_successfully": "Пароль паспяхова абноўлены"
+      },
+      "title": "Абнавіць пароль"
+    }
+  },
+  "sendgrid": {
+    "api_key_description": "Ваш ключ API SendGrid. Вы можаце стварыць яго ў вашым акаўнце SendGrid у Раздзеле Наладкі → API-ключы. Пераканайцеся, што ў яго ёсць дазволы на «Mail Send».",
+    "api_key_label": "API-ключ",
+    "bcc_email_description": "Сляпая копія атрымальнікаў. Раздзяляйце некалькі адрасоў электроннай пошты коскамі.",
+    "bcc_email_label": "Схаваная копія электроннай пошты (неабавязкова)",
+    "cc_email_description": "Атрымальнікі копіі. Раздзяляйце некалькі адрасоў электроннай пошты коскамі.",
+    "cc_email_label": "Копія электроннай пошты (па жаданні)",
+    "from_email_description": "Адрас электроннай пошты адпраўніка. Гэты відрас павінен быць пацверджаным адпраўніком у вашым уліковым запісе SendGrid.",
+    "from_email_label": "Адрас адпраўніка электроннай пошты",
+    "subject_description": "Тэма электроннага ліста. Падтрымлівае шаблоны Liquid.",
+    "subject_label": "Індывідуальная тэма (неабавязкова)",
+    "subject_variables_label": "Даступныя зменныя:",
+    "subject_variables_msg": "паведамленне апавяшчэння",
+    "subject_variables_name": "назва сэрвіса",
+    "subject_variables_status": "стан сэрвіса (UP/DOWN)",
+    "to_email_description": "Асноўны адрас атрымальніка электроннай пошты. Для некалькіх атрымальнікаў выкарыстоўвайце палі CC або BCC.",
+    "to_email_label": "Адрас электроннай пошты атрымальніка"
+  },
+  "settings": {
+    "data_retention": {
+      "days_label": "Дні",
+      "description": "Устанавіце колькасць дзён, на працягу якіх дадзеныя будуць захоўвацца (KEEP_DATA_PERIOD_DAYS).",
+      "title": "Перыяд захавання дадзеных"
+    },
+    "timezone": {
+      "description": "Абярыце ваш пераважны часавы пояс для адлюстравання ўсіх часоў у дадатку.",
+      "label": "Часавы пояс",
+      "no_timezone_found": "Не знойдзены часавы пояс.",
+      "search_placeholder": "Пошук зоны часу...",
+      "select_placeholder": "Абярыце часавую зону...",
+      "title": "Часавы пояс"
+    },
+    "validation": {
+      "min_days": "Патрабуецца не менш за 1 дзень"
+    }
+  },
+  "status": {
+    "messages": {
+      "all_systems_operational": "Усе сістэмы працуюць",
+      "down": "Не працуе",
+      "last_updated": "Апошняе абнаўленне",
+      "maintenance": "Тэхнічнае абслугоўванне",
+      "no_monitors_configured": "Маніторы на гэтай старонцы стану не наладжаныя.",
+      "operational": "Функцыянуе",
+      "partial_system_outage": "Частковы перапынак працы сістэмы",
+      "powered_by": "Забяспечана",
+      "refresh_in": "Абнаўляецца праз",
+      "refresh_now": "Абнавіць зараз",
+      "status_page_not_found": "Старонка стану не знойдзена або не апублікавана.",
+      "under_maintenance": "У тэхнічным абслугоўванні",
+      "unknown": "Невядомы"
+    }
+  },
+  "status_pages": {
+    "affected_monitors": "Уражаныя маніторы",
+    "affected_monitors_info": "Выберыце маніторы, якія будуць закрануты гэтым рамонтам",
+    "auto_refresh_interval": "Інтэрвал аўтаматычнага абнаўлення (у секундах)",
+    "basic_information": "Асноўная інфармацыя",
+    "create_status_page": "Стварыць старонку статусу",
+    "customization": "Наладка",
+    "delete_dialog": {
+      "description": "Вы сапраўды хочаце выдаліць «{{title}}»? Гэтае дзеянне немагчыма адмяніць.",
+      "title": "Выдаліць старонку стану"
+    },
+    "description": "Увядзіце апісанне старонкі стану",
+    "domain_already_used": "Домен {{domain}} ужо выкарыстоўваецца іншай старонкай стану",
+    "domain_host_warning": "Гэты домен такі ж, як бягучы URL вашага хоста. Гэта можа прывесці да канфліктаў.",
+    "domains": "Домены",
+    "domains_info_warning": "Не забудзьце дадаць запісы CNAME у DNS для кожнага дамена.",
+    "draft_status": "Чарнавік",
+    "edit_page_name": "Рэдагаваць старонку стану",
+    "messages": {
+      "create_description": "Стварыце новую старонку стану, каб падзяліцца станам вашага сэрвіса з карыстальнікамі.",
+      "create_your_first_status_page": "Стварыце сваю першую старонку стану",
+      "created_successfully": "Старонка стану паспяхова створана",
+      "delete_failed": "Не ўдалося выдаліць старонку стану",
+      "deleted_successfully": "Старонка стану паспяхова выдалена",
+      "get_started_by_creating_your_first_status_page": "Пачніце з стварэння вашай першай старонкі статусу.",
+      "no_status_pages_found": "Не знойдзена ніводнай старонкі стану",
+      "not_found": "Старонка стану не знойдзена",
+      "update_description": "Абнавіце налады і канфігурацыю старонкі стану.",
+      "updated_successfully": "Старонка стану паспяхова абноўлена"
+    },
+    "new_page_name": "Нова старонка статусу",
+    "page_name": "Старонкі статусу",
+    "published": "Апублікавана",
+    "published_info": "Зрабіце гэтую агульнадаступную старонку статусу.",
+    "published_status": "Апублікавана",
+    "search_label": "Пошук",
+    "search_placeholder": "Пошук старонак стану па загалоўку...",
+    "update_status_page": "Абнавіць старонку статусу",
+    "view_page": "Паглядзець старонку"
+  },
+  "tags": {
+    "confirm_delete_description": "Гэта дзеянне нельга адмяніць. Гэта канчаткова выдаліць тэг «{{name}}» і выдаліць яго з усіх манітораў.",
+    "edit_page_name": "Рэдагаваць тэг",
+    "empty_state": {
+      "action": "Стварыце ваш першы тэг",
+      "description": "Пачніце з стварэння вашага першага тэга, каб арганізаваць вашы маніторы.",
+      "title": "Тэгі не знойдзены"
+    },
+    "form": {
+      "color_description": "Выберыце колер для тэга",
+      "color_label": "Колер",
+      "create_button": "Стварыць тэг",
+      "description_label": "Апісанне",
+      "description_placeholder": "Увядзіце апісанне тэга (неабавязкова)",
+      "name_label": "Назва",
+      "name_placeholder": "Увядзіце назву тэга",
+      "update_button": "Абнавіць тэг"
+    },
+    "messages": {
+      "create_description": "Стварыце новы тэг, каб арганізаваць і класіфікаваць вашы маніторы.",
+      "failed_to_load_tag": "Не ўдалося загрузіць тэг. Магчыма, тэг не існуе або ў вас няма дазволу на прагляд.",
+      "tag_id_required": "Ідэнтыфікатар тэга абавязковы",
+      "update_description": "Абнавіце падрабязнасці тэгу, каб лепш арганізаваць вашыя маніторы."
+    },
+    "new_page_name": "Новы тэг",
+    "search_placeholder": "Пошук тэгаў..."
+  },
+  "theme": {
+    "dark": "Цёмны",
+    "light": "Светлы",
+    "system": "Сістэма",
+    "toggle_theme": "Пераключыць тэму"
+  },
+  "timezone": {
+    "average": "сярэдні",
+    "last_24_hours": "Апошнія 24 гадзіны",
+    "last_3_hours": "Апошнія 3 гадзіны",
+    "last_3_months": "Апошнія 3 месяцы",
+    "last_30_minutes": "Апошнія 30 хвілін",
+    "last_6_hours": "Апошнія 6 гадзін",
+    "last_7_days": "Апошнія 7 дзён",
+    "maximum": "Максімум",
+    "minimum": "Мінімум",
+    "ms": "мс",
+    "response_time": "Час адказу",
+    "uptime": "Час працы"
+  },
+  "ui": {
+    "general": "Асноўныя",
+    "intervals_retries": "Інтэрвалы, Паспрабаванні, Тайм-аўты"
+  }
+}

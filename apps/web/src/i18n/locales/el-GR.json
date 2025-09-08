@@ -1,0 +1,1281 @@
+{
+  "actions": {
+    "cancel": "Ακύρωση",
+    "saving": "Αποθήκευση..."
+  },
+  "auth": {
+    "login": {
+      "description": "Σύνδεση με το email σας",
+      "no_account": "Δεν έχετε λογαριασμό;",
+      "sign_up": "Εγγραφή",
+      "submit": "Σύνδεση",
+      "title": "Καλώς ήρθες ξανά"
+    },
+    "register": {
+      "description": "Δημιουργήστε τον λογαριασμό διαχειριστή σας",
+      "have_account": "Έχετε ήδη λογαριασμό?",
+      "sign_in": "Σύνδεση",
+      "submit": "Δημιουργία",
+      "title": "Γειά"
+    },
+    "twofa": {
+      "code_label": "Κωδικός 2FA",
+      "code_placeholder": "Εισαγάγετε κωδικό 2FA",
+      "description": "Η 2FA έχει ενεργοποιηθεί για τον λογαριασμό σας. Παρακαλούμε εισάγετε τον κωδικό 2FA για να συνεχίσετε.",
+      "title": "Απαιτείται Διπλή Αυθεντικοποίηση",
+      "verify_button": "Επιβεβαίωση 2FA",
+      "verifying": "Επαλήθευση…"
+    }
+  },
+  "bars": {
+    "down_count": "Καταμέτρηση Πτώσεων",
+    "important": "Σημαντικό",
+    "interval": "Διάστημα",
+    "message": "Μήνυμα",
+    "ms": "ms",
+    "notified": "Ειδοποιημένος",
+    "ping": "Πινγκ",
+    "retries": "Επαναλήψεις",
+    "status": "Κατάσταση",
+    "time": "Χρόνος"
+  },
+  "common": {
+    "active": "Ενεργό",
+    "all": "Όλα",
+    "back": "Πίσω",
+    "cancel": "Ακύρωση",
+    "clear_all": "Καθαρισμός όλων",
+    "clear_all_filters": "Καθαρισμός όλων των φίλτρων",
+    "confirm": "Επιβεβαίωση",
+    "confirm_delete_title": "Είστε απόλυτα σίγουροι;",
+    "confirm_delete_title_short": "Είστε σίγουροι;",
+    "continue": "Συνέχεια",
+    "create": "Δημιουργία",
+    "created": "Δημιουργήθηκε",
+    "days": "ημέρες",
+    "default": "Προεπιλογή",
+    "delete": "Διαγραφή",
+    "disabling": "Απενεργοποίηση...",
+    "dismiss": "Απόρριψη",
+    "down": "Προβληματικό",
+    "enabling": "Ενεργοποίηση...",
+    "error": "Σφάλμα",
+    "expires": "Λήξη",
+    "inactive": "Ανενεργός",
+    "loading": "Φόρτωση...",
+    "logout": "Αποσύνδεση",
+    "maintenance": "Συντήρηση",
+    "no_options_found": "Δεν βρέθηκαν επιλογές",
+    "no_tags_available": "Δεν υπάρχουν ετικέτες",
+    "please_refresh_page": "Παρακαλώ ανανεώστε τη σελίδα.",
+    "required": "Υποχρεωτικό",
+    "save": "Αποθήκευση",
+    "saving": "Αποθηκεύεται...",
+    "search": "Αναζήτηση",
+    "security": "Ασφάλεια",
+    "select": "Επιλέξτε",
+    "select_monitors": "Επιλέξτε παρατηρητές…",
+    "select_tags": "Επιλέξτε ετικέτες",
+    "settings": "Ρυθμίσεις",
+    "tags": "ετικέτες",
+    "unknown": "Άγνωστο",
+    "unnamed_monitor": "Ανώνυμη Παρακολούθηση",
+    "up": "Ενεργό",
+    "update": "Ενημέρωση",
+    "verifying": "Επαλήθευση..."
+  },
+  "forms": {
+    "labels": {
+      "confirm_password": "Επιβεβαίωση κωδικού πρόσβασης",
+      "email": "E‑mail",
+      "footer_text": "Κείμενο υποσέλιδο",
+      "heartbeat_interval": "Διάστημα δρομέα (δευτερόλεπτα)",
+      "icon_url": "URL εικονιδίου",
+      "monitor_name": "Όνομα",
+      "monitor_type": "Τύπος",
+      "password": "Κωδικός πρόσβασης",
+      "retries": "Επαναπροσπάθειες",
+      "slug": "σλογκ",
+      "title": "Τίτλος",
+      "username": "Όνομα χρήστη"
+    },
+    "placeholders": {
+      "auto_refresh_help": "0 για μη αυτόματη ανανέωση",
+      "domains": "Εισάγετε το domain (π.χ., status.example.com)",
+      "footer_text": "Εισάγετε κείμενο υποσέλιδου",
+      "icon_url": "https://example.com/icon.png",
+      "monitor_name": "Το δικό μου παρακολούθημα",
+      "page_description": "Πληκτρολογήστε την περιγραφή της σελίδας κατάστασης",
+      "page_title": "Εισάγετε τον τίτλο της σελίδας κατάστασης",
+      "slug": "slug-σελίδας-κατάστασης"
+    },
+    "validation": {
+      "email_invalid": "Παρακαλώ εισάγετε μια έγκυρη διεύθυνση ηλεκτρονικού ταχυδρομείου",
+      "password_min_length": "Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες",
+      "passwords_mismatch": "Οι κωδικοί δεν ταιριάζουν"
+    }
+  },
+  "maintenance": {
+    "card": {
+      "aria": {
+        "delete": "Διαγραφή {{title}}",
+        "pause": "Παύση συντήρησης",
+        "resume": "Συνέχιση συντήρησης"
+      },
+      "labels": {
+        "duration": "{{duration}} λεπτά",
+        "end": "Τέλος: {{date}}",
+        "start": "Έναρξη: {{date}}"
+      },
+      "status": {
+        "active": "Ενεργό",
+        "ended": "Τελείωσε",
+        "inactive": "Απενεργοποιημένο"
+      }
+    },
+    "edit_title": "Επεξεργασία Συντήρησης",
+    "form": {
+      "affected_monitors_description": "Επιλέξτε τους παρατηρητές που θα επηρεαστούν από αυτή τη συντήρηση",
+      "affected_monitors_title": "Επηρεαζόμενοι Παρατηρητές",
+      "cron_description": "Εισάγετε μια έγκυρη έκφραση cron",
+      "cron_expression": "Cron έκφραση",
+      "date_time_title": "Ημερομηνία και ώρα",
+      "day_of_month": "Ημέρα του μήνα",
+      "day_of_week": "Ημέρα της εβδομάδας",
+      "description_label": "Περιγραφή",
+      "description_placeholder": "Περιγραφή συντήρησης...",
+      "duration_minutes": "Διάρκεια (λεπτά)",
+      "effective_date_range": "Εύρος Ημερομηνίας (Προαιρετικό)",
+      "end_date_time": "Ημερομηνία & Ώρα Λήξης",
+      "end_time": "Τέλος ώρας",
+      "interval_label": "Διάστημα (Εκτελείται μία φορά την ημέρα)",
+      "last_day": "Τελευταία Ημέρα",
+      "last_day_of_month": "Τελευταία ημέρα του μήνα",
+      "maintenance_time_window": "Παράθυρο Συντήρησης Ημέρας",
+      "markdown_supported": "Το Markdown υποστηρίζεται",
+      "same_as_server": "Ίδιο με την ζώνη ώρας του διακομιστή",
+      "start_date_time": "Ημερομηνία & Ώρα Έναρξης",
+      "start_time": "Ώρα Έναρξης",
+      "strategy_label": "Στρατηγική",
+      "strategy_placeholder": "Επιλέξτε στρατηγική",
+      "timezone_label": "Ζώνη ώρας",
+      "timezone_placeholder": "Επιλέξτε ζώνη ώρας",
+      "title_label": "Τίτλος",
+      "title_placeholder": "Τίτλος συντήρησης"
+    },
+    "page": {
+      "clear_filters": "Καθαρισμός όλων των φίλτρων",
+      "dialogs": {
+        "confirm_action": {
+          "pause_description": "Είστε σίγουροι ότι θέλετε να κάνετε παύση σε αυτή τη συντήρηση;",
+          "resume_description": "Είστε βέβαιοι ότι θέλετε να συνεχίσετε τη συντήρηση;",
+          "title": "Επιβεβαίωση ενέργειας"
+        },
+        "confirm_delete": {
+          "description": "Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το παράθυρο συντήρησης; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
+          "title": "Επιβεβαίωση Διαγραφής"
+        }
+      },
+      "edit_maintenance": "Επεξεργασία Συντήρησης: {{title}}",
+      "empty_state": {
+        "action": "Δημιουργήστε το πρώτο σας παράθυρο συντήρησης",
+        "description": "Ξεκινήστε δημιουργώντας το πρώτο σας παράθυρο συντήρησης για να αποτρέψετε προγραμματισμένες διακοπές λειτουργίας.",
+        "title": "Δεν βρέθηκαν παράθυρα συντήρησης"
+      },
+      "error_loading": "Σφάλμα φόρτωσης συντήρησης",
+      "loading": "Φόρτωση...",
+      "loading_monitors": "Φορτώνονται οι επιτηρητές...",
+      "search_placeholder": "Αναζήτηση συντηρήσεων..."
+    },
+    "page_title": "Παράθυρα Συντήρησης",
+    "schedule_title": "Προγραμματισμός Συντήρησης",
+    "strategy": {
+      "cron": "Έκφραση Cron",
+      "manual": "Ενεργό/Ανενεργό χειροκίνητα",
+      "recurring_day_of_month": "Επαναλαμβανόμενο - Ημέρα του Μήνα",
+      "recurring_interval": "Επαναλαμβανόμενη - Διάστημα",
+      "recurring_weekday": "Επαναλαμβανόμενο - Ημέρα της εβδομάδας",
+      "single": "Μονό παράθυρο συντήρησης"
+    },
+    "toasts": {
+      "create_error": "Απέτυχε η δημιουργία συντήρησης",
+      "created_success": "Η συντήρηση δημιουργήθηκε με επιτυχία",
+      "delete_error": "Αποτυχία διαγραφής της συντήρησης",
+      "deleted_success": "Η συντήρηση διαγράφηκε επιτυχώς",
+      "pause_error": "Η παύση της συντήρησης απέτυχε",
+      "paused_success": "Η συντήρηση σταμάτησε επιτυχώς",
+      "resume_error": "Η συνέχιση της συντήρησης απέτυχε",
+      "resumed_success": "Η συντήρηση επανήλθε επιτυχώς",
+      "toggle_error": "Αδυναμία εναλλαγής κατάστασης συντήρησης: Λείπει το ID",
+      "update_error": "Η ενημέρωση συντήρησης απέτυχε",
+      "updated_success": "Η συντήρηση ενημερώθηκε επιτυχώς"
+    },
+    "weekdays": {
+      "fri": "Πα",
+      "mon": "Δευ",
+      "sat": "Σάβ",
+      "sun": "Κυ",
+      "thu": "Πεμ",
+      "tue": "Τρ",
+      "wed": "Τετ"
+    }
+  },
+  "messages": {
+    "login_error": "Παρουσιάστηκε σφάλμα κατά την σύνδεση",
+    "login_no_tokens": "Σύνδεση επιτυχής, αλλά δεν λήφθηκαν tokens",
+    "login_success": "Συνδεθήκατε επιτυχώς",
+    "notifier_delete_error": "Απέτυχε η διαγραφή ειδοποιητή",
+    "notifier_delete_success": "Ο ειδοποιητής διαγράφηκε επιτυχώς",
+    "register_error": "Παρουσιάστηκε σφάλμα κατά τη διάρκεια της εγγραφής",
+    "register_no_tokens": "Η εγγραφή ολοκληρώθηκε, αλλά δεν λήφθηκαν διακριτικά",
+    "register_success": "Εγγραφή ολοκληρώθηκε με επιτυχία",
+    "setting_update_error": "Αποτυχία ενημέρωσης ρύθμισης",
+    "setting_update_success": "Η ρύθμιση ενημερώθηκε επιτυχώς",
+    "tag_create_error": "Αποτυχία δημιουργίας ετικέτας",
+    "tag_create_success": "Η ετικέτα δημιουργήθηκε επιτυχώς",
+    "tag_delete_error": "Απέτυχε η διαγραφή της ετικέτας",
+    "tag_delete_success": "Η ετικέτα διαγράφηκε επιτυχώς",
+    "tag_update_error": "Απέτυχε η ενημέρωση ετικέτας",
+    "tag_update_success": "Ετικέτα ενημερώθηκε με επιτυχία",
+    "unexpected_error": "Παρουσιάστηκε απροσδόκητο σφάλμα",
+    "version_mismatch": "Ασυμφωνία έκδοσης εντοπίστηκε"
+  },
+  "monitors": {
+    "card": {
+      "check_interval": "Διάστημα ελέγχου:",
+      "loading_more": "Φορτώνει περισσότερα…"
+    },
+    "empty_state": {
+      "action": "Δημιουργήστε την πρώτη σας παρακολούθηση",
+      "description": "Ξεκινήστε δημιουργώντας τον πρώτο παρατηρητή σας για να παρακολουθείτε την υγεία των υπηρεσιών σας.",
+      "title": "Δεν βρέθηκαν παρατηρήσεις"
+    },
+    "filtering_by_tags": "Φιλτράρισμα κατά ετικέτες",
+    "filters": {
+      "monitor_status": "Κατάσταση",
+      "monitor_status_placeholder": "Κατάσταση Παρακολούθησης",
+      "search_placeholder": "Αναζήτηση παρατηρήσεων με όνομα...",
+      "status_placeholder": "Κατάσταση"
+    },
+    "form": {
+      "buttons": {
+        "copied": "Αντιγράφηκε!",
+        "copy": "Αντιγραφή",
+        "create": "Δημιουργία",
+        "regenerate": "Επαναδημιουργία",
+        "update": "Ενημέρωση"
+      },
+      "dns": {
+        "hostname": "Όνομα κεντρικού υπολογιστή",
+        "port": "Θύρα",
+        "record_type": "Τύπος εγγραφής πόρων",
+        "record_type_placeholder": "Επιλέξτε τύπο εγγραφής",
+        "resolver_server": "Διακομιστής επίλυσης",
+        "title": "Ρυθμίσεις DNS"
+      },
+      "docker": {
+        "ca_cert_description": "Επικολλήστε το πιστοποιητικό της Πιστοποιητικής Αρχής σε μορφή PEM.",
+        "ca_certificate": "Πιστοποιητικό CA (PEM)",
+        "client_cert_description": "Επικολλήστε το πιστοποιητικό πελάτη σας σε μορφή PEM. Αυτό χρησιμοποιείται για αμοιβαία πιστοποίηση TLS.",
+        "client_certificate": "Πιστοποιητικό πελάτη (PEM)",
+        "client_private_key": "Ιδιωτικό κλειδί πελάτη (PEM)",
+        "common_tls_issues": "Συνηθισμένα ζητήματα TLS:",
+        "connection_type": "Τύπος σύνδεσης",
+        "container_name_id": "Όνομα/ID κοντέινερ",
+        "disabled": "Απενεργοποιημένο",
+        "docker_container": "Δέκτης Docker",
+        "docker_host": "Διακομιστής Docker",
+        "enable_tls": "Ενεργοποίηση TLS",
+        "enabled": "Ενεργοποιημένο",
+        "examples": "Παραδείγματα",
+        "hostname_mismatch": "x509: το πιστοποιητικό είναι έγκυρο για X, όχι Y",
+        "hostname_mismatch_solution": "Βεβαιωθείτε ότι το όνομα κεντρικού υπολογιστή αντιστοιχεί στο SAN του πιστοποιητικού ή απενεργοποιήστε την επαλήθευση (δεν συνιστάται).",
+        "legacy_cert_error": "x509: το πιστοποιητικό βασίζεται στο παλιό πεδίο Common Name:",
+        "legacy_cert_solution": "Προσθέστε το hostname στα εναλλακτικά ονόματα θέματος (SAN) του πιστοποιητικού σας.",
+        "mtls_note": "Για αμοίβανο TLS (mTLS), πρέπει να παρέχετε τόσο το πιστοποιητικό πελάτη όσο και το ιδιωτικό κλειδί. Το πιστοποιητικό CA χρησιμοποιείται για την επαλήθευση του πιστοποιητικού του διακομιστή.",
+        "note": "Σημείωση:",
+        "private_key_description": "Επικολλήστε το ιδιωτικό σας κλειδί σε μορφή PEM. Διατηρήστε το ασφαλές!",
+        "select_connection_type": "Επιλέξτε τύπο σύνδεσης",
+        "select_tls_option": "Επιλέξτε επιλογή TLS",
+        "select_verification_option": "Επιλέξτε την επιλογή επαλήθευσης",
+        "skip_verification": "Παράκαμψη επαλήθευσης (ασφαλές)",
+        "tls_configuration": "Διαμόρφωση TLS",
+        "unknown_authority": "x509: πιστοποιητικό υπογεγραμμένο από άγνωστη αρχή",
+        "unknown_authority_solution": "Παρέχετε το σωστό πιστοποιητικό CA που έχει υπογράψει το πιστοποιητικό του διακομιστή.",
+        "verify_certificates": "Επαληθεύστε τα πιστοποιητικά",
+        "verify_tls": "Επαληθεύστε το TLS"
+      },
+      "grpc": {
+        "body": "Δεδομένα σώματος (JSON)",
+        "enable_tls": "Ενεργοποίηση TLS",
+        "enable_tls_description": "Χρήση ασφαλούς σύνδεσης (TLS/SSL)",
+        "invert_keyword": "Αντιστροφή Λέξης",
+        "invert_keyword_description": "Η παρακολούθηση θα επισημανθεί ως UP εάν η λέξη‑κλειδί δεν βρεθεί.",
+        "keyword": "Λέξη-κλειδί",
+        "keyword_description": "Αναζήτηση για αυτή τη λέξη-κλειδί στην απάντηση",
+        "keyword_placeholder": "Προαιρετική λέξη-κλειδί για αναζήτηση",
+        "method_description": "Αναγνώριση πεζών/κεφαλαίων",
+        "method_placeholder": "Ελέγξτε",
+        "options_title": "Επιλογές gRPC",
+        "proto_content": "Περιεχόμενο Protobuf",
+        "proto_method": "Μέθοδος Protobuf",
+        "proto_service_name": "Όνομα υπηρεσίας Protobuf",
+        "service_name_placeholder": "Υγεία"
+      },
+      "http": {
+        "advanced": {
+          "accepted_status_codes": "Αποδεκτά Κωδικοί Κατάστασης",
+          "ignore_tls": "Παράκαμψη σφαλμάτων TLS/SSL για ιστοτόπους HTTPS",
+          "ignore_tls_description": "Παράλειψε την επαλήθευση πιστοποιητικού TLS. Χρησιμοποίησε με προσοχή – αυτό μειώνει την ασφάλεια των συνδέσεων.",
+          "max_redirects": "Μέγιστες Ανακατευθύνσεις",
+          "max_redirects_description": "Μέγιστος αριθμός ανακατευθύνσεων προς ακολούθηση (0–30). Ορίστε σε 0 για να απενεργοποιήσετε τις ανακατευθύνσεις.",
+          "title": "Προχωρημένο"
+        },
+        "authentication": {
+          "auth_header": "Κεφαλίδα εξουσιοδότησης",
+          "certificate": "Πιστοποιητικό",
+          "certificate_placeholder": "Πιστοποιητικό",
+          "client_id": "ID πελάτη",
+          "client_id_placeholder": "Αναγνωριστικό Πελάτη",
+          "client_secret": "Μυστικό Πελάτη",
+          "client_secret_placeholder": "Μυστικό πελάτη",
+          "domain": "Τομέας",
+          "domain_placeholder": "Τομέας",
+          "form_data_body": "Σώμα δεδομένων φόρμας",
+          "key": "Κλειδί",
+          "key_placeholder": "Κλειδί",
+          "method_label": "Μέθοδος ταυτοποίησης",
+          "method_placeholder": "Επιλέξτε τύπο ταυτοποίησης",
+          "oauth_scope": "Πεδίο OAuth",
+          "oauth_scope_placeholder": "Προαιρετικά: Λίστα scopes χωρισμένη με κενά",
+          "oauth_token_url": "URL διακριτικού OAuth",
+          "oauth_token_url_placeholder": "URL Διακριτικού OAuth",
+          "title": "Πιστοποίηση",
+          "workstation": "Σταθμός εργασίας",
+          "workstation_placeholder": "Σταθμός εργασίας"
+        },
+        "options": {
+          "body": "Σώμα",
+          "body_encoding": "Κωδικοποίηση σώματος",
+          "body_encoding_placeholder": "Επιλέξτε κωδικοποίηση σώματος",
+          "form_example": "Παράδειγμα Δεδομένων Φόρμας",
+          "headers": "Κεφαλίδες",
+          "json_example": "Παράδειγμα JSON",
+          "method": "Μέθοδος",
+          "method_placeholder": "Επιλέξτε τύπο παρακολούθησης",
+          "select_encoding": "Επιλέξτε κωδικοποίηση σώματος",
+          "select_method": "Επιλέξτε μέθοδο",
+          "text_example": "Παράδειγμα κειμένου: Κάθε απλό κείμενο εδώ...",
+          "title": "Επιλογές HTTP",
+          "xml_example": "Παράδειγμα XML"
+        }
+      },
+      "http_json_query": {
+        "condition_label": "Συνθήκη",
+        "expected_value_label": "Αναμενόμενη Αξία",
+        "json_query_label": "Έκφραση ερωτήματος JSON",
+        "title": "Έκφραση ερωτήματος JSON"
+      },
+      "http_keyword": {
+        "invert_keyword_description": "Αναζητήστε την απουσία της λέξης-κλειδί αντί για την παρουσία της.",
+        "invert_keyword_label": "Αντιστροφή Λέξης",
+        "keyword_label": "Λέξη-κλειδί",
+        "keyword_validation_title": "Επικύρωση Λέξης-Κλειδιού"
+      },
+      "kafka": {
+        "add_broker": "Προσθήκη Broker",
+        "auto_topic_creation_description": "Επιτρέψτε στον παραγωγό να δημιουργεί αυτόματα το θέμα εάν δεν υπάρχει",
+        "auto_topic_creation_label": "Επιτρέψτε την αυτόματη δημιουργία θέματος",
+        "brokers_description": "Λίστα διευθύνσεων broker Kafka (μορφή host:port)",
+        "brokers_label": "Διακομιστές Kafka",
+        "configuration_title": "Διαμόρφωση Kafka",
+        "enable_ssl_description": "Χρησιμοποιήστε κρυπτογράφηση SSL/TLS για τη σύνδεση",
+        "enable_ssl_label": "Ενεργοποίηση SSL/TLS",
+        "message_description": "Περιεχόμενο μηνύματος προς αποστολή στο θέμα (συνιστάται μορφή JSON)",
+        "message_label": "Μήνυμα",
+        "sasl_mechanism_description": "Επιλέξτε τον μηχανισμό αυθεντικοποίησης SASL",
+        "sasl_mechanism_label": "Μηχανισμός SASL",
+        "sasl_mechanism_placeholder": "Επιλέξτε μηχανισμό SASL",
+        "sasl_password_description": "Κωδικός πρόσβασης για πιστοποίηση SASL",
+        "sasl_password_label": "Κωδικός SASL",
+        "sasl_password_placeholder": "κωδικός πρόσβασης",
+        "sasl_username_description": "Όνομα χρήστη για πιστοποίηση SASL",
+        "sasl_username_label": "Όνομα χρήστη SASL",
+        "security_title": "Ασφάλεια",
+        "topic_description": "Το Kafka topic στο οποίο θα στέλνονται μηνύματα"
+      },
+      "mongodb": {
+        "command_description": "Εντολή MongoDB για εκτέλεση ως JSON. Προεπιλέγεται ping αν δεν οριστεί.",
+        "command_label": "Εντολή (Προαιρετικό)",
+        "configuration_title": "Διαμόρφωση MongoDB",
+        "connection_string_description": "Σύνδεσμος σύνδεσης MongoDB. Υποστηρίζει τόσο την τυπική (mongodb://) όσο και τη μορφή seedlist DNS (mongodb+srv://).",
+        "connection_string_label": "Σύνδεσμος σύνδεσης",
+        "expected_value_description": "Αναμενόμενη τιμή για σύγκριση με το αποτέλεσμα της διαδρομής JSON.",
+        "expected_value_label": "Αναμενόμενη τιμή (προαιρετικά)",
+        "expected_value_placeholder": "Περίμενη τιμή",
+        "json_path_description": "Διαδρομή JSON για εξαγωγή τιμής από την απάντηση. Χρησιμοποιήστε το $ για το επίπεδο ρίζας.",
+        "json_path_label": "JSON Path (Προαιρετικό)"
+      },
+      "mqtt": {
+        "check_type_json_query": "JSON ερώτημα",
+        "check_type_keyword": "Λέξη-κλειδί",
+        "check_type_label": "Τύπος ελέγχου MQTT",
+        "check_type_none": "Κανένα (οποιοδήποτε μήνυμα)",
+        "check_type_placeholder": "Επιλέξτε τύπο ελέγχου",
+        "configuration_title": "Ρύθμιση MQTT",
+        "expected_value_label": "Αναμενόμενη Τιμή",
+        "hostname_label": "Όνομα κεντρικού υπολογιστή",
+        "json_path_label": "Διαδρομή JSON",
+        "password_label": "Κωδικός MQTT",
+        "password_placeholder": "Κωδικός (προαιρετικό)",
+        "port_label": "Θύρα",
+        "success_keyword_label": "Λέξη-κλειδί επιτυχίας MQTT",
+        "success_keyword_placeholder": "Λέξη-κλειδί που υποδεικνύει επιτυχία",
+        "username_label": "Όνομα χρήστη MQTT",
+        "username_placeholder": "Όνομα χρήστη (προαιρετικό)",
+        "validation": {
+          "expected_value_required": "Αναμενόμενη τιμή απαιτείται όταν ο τύπος ελέγχου είναι json-query",
+          "json_path_required": "Το JSON path απαιτείται όταν ο τύπος ελέγχου είναι json-query",
+          "success_keyword_required": "Η λέξη-κλειδί επιτυχίας απαιτείται όταν ο τύπος ελέγχου είναι λέξη-κλειδί"
+        }
+      },
+      "mysql": {
+        "connection_string_examples": "Παραδείγματα:",
+        "connection_string_label": "Συμβολοσειρά σύνδεσης",
+        "connection_title": "Σύνδεση MySQL",
+        "query_label": "Ερώτημα"
+      },
+      "ping": {
+        "data_size": "Μέγεθος δεδομένων (bytes)",
+        "host": "Όνομα κεντρικού υπολογιστή / IP",
+        "title": "Ρυθμίσεις Ping"
+      },
+      "postgres": {
+        "connection_string_label": "Συμβολοσειρά σύνδεσης",
+        "connection_title": "Σύνδεση PostgreSQL",
+        "query_label": "Ερώτηση"
+      },
+      "push": {
+        "url_description": "Χρησιμοποιήστε αυτή τη διεύθυνση URL στην υπηρεσία σας για να αναφέρετε την κατάσταση. Κάντε ένα αίτημα HTTP (POST/GET) σε αυτό το τελικό σημείο για να στείλετε ένα καρδιακό σήμα.",
+        "url_title": "URL παρακολούθησης Push"
+      },
+      "rabbitmq": {
+        "documentation_link": "Τεκμηρίωση RabbitMQ",
+        "health_checks_description": "Η παρακολούθηση ελέγχει το {{code}} endpoint σε κάθε κόμβο και επιστρέφει UP αν οποιοσδήποτε κόμβος είναι υγιής.",
+        "management_nodes_description": "Εισάγετε τη διεύθυνση URL των κόμβων διαχείρισης RabbitMQ, συμπεριλαμβανομένου του πρωτοκόλλου και της θύρας. Παράδειγμα: https://node1.rabbitmq.com:15672",
+        "management_nodes_title": "Κόμβοι διαχείρισης",
+        "node_url_label": "URL κόμβου",
+        "password_description": "Κωδικός πρόσβασης για την ταυτοποίηση στη διεπαφή διαχείρισης RabbitMQ",
+        "setup_information_description": "Για να χρησιμοποιήσετε τον monitor RabbitMQ, πρέπει να ενεργοποιήσετε το Management Plugin στη ρύθμιση RabbitMQ σας. Για περισσότερες πληροφορίες, παρακαλώ συμβουλευτείτε την τεκμηρίωση RabbitMQ.",
+        "setup_information_title": "Πληροφορίες ρυθμίσεων",
+        "title": "Ρυθμίσεις RabbitMQ",
+        "username_description": "Όνομα χρήστη για την αυθεντικοποίηση του διαχειριστικού περιβάλλοντος RabbitMQ"
+      },
+      "redis": {
+        "ca_certificate_description": "Αρχικό πιστοποιητικό CA σε μορφή PEM. Απαιτείται για τη σωστή επαλήθευση TLS με αυτό-υπογεγραμμένα πιστοποιητικά.",
+        "ca_certificate_label": "Πιστοποιητικό CA (Προαιρετικό)",
+        "client_certificate_description": "Πιστοποιητικό πελάτη σε μορφή PEM. Απαιτείται για αμοιβαία TLS πιστοποίηση.",
+        "client_certificate_label": "Πιστοποιητικό πελάτη (Προαιρετικό)",
+        "client_key_description": "Ιδιωτικό κλειδί πελάτη σε μορφή PEM. Πρέπει να παρασχεθεί μαζί με το πιστοποιητικό του πελάτη.",
+        "client_key_label": "Ιδιωτικό κλειδί πελάτη (Προαιρετικό)",
+        "connection_string_description": "Μορφή συμβολοσειράς σύνδεσης Redis: {{redis}} ή {{rediss}} για TLS",
+        "connection_string_label": "Συμβολοσειρά σύνδεσης",
+        "ignore_tls_description": "Παράβλεψη επαλήθευσης πιστοποιητικού TLS (δεν συνιστάται για παραγωγή)",
+        "ignore_tls_label": "Παράβλεψη σφαλμάτων TLS/SSL",
+        "title": "Διαμόρφωση Redis"
+      },
+      "shared": {
+        "intervals": {
+          "heartbeat_retry": "Διάστημα επανάληψης Heartbeat (Επαναλήψεις κάθε {{seconds}} δευτερόλεπτα)",
+          "max_retries_description": "Μέγιστος αριθμός επαναλήψεων πριν η υπηρεσία θεωρηθεί εκτός λειτουργίας και αποσταλεί ειδοποίηση",
+          "request_timeout": "Τέλος αιτήματος (Λήξη μετά από {{seconds}} δευτερόλεπτα)",
+          "resend_notification": "Επανάληψη ειδοποίησης αν πέσει X φορές συνεχόμενα (Επανάληψη απενεργοποιημένη)"
+        },
+        "notifications": {
+          "add_notifier": "Προσθήκη ειδοποιητή",
+          "new_notifier": "+ Νέος ειδοποιητής",
+          "no_channels": "Δεν βρέθηκαν κανάλια ειδοποίησης, δημιουργήστε πρώτα ένα",
+          "no_channels_available": "Δεν υπάρχουν διαθέσιμα κανάλια",
+          "select_channel": "Επιλέξτε κανάλι",
+          "select_notifier_placeholder": "Επιλέξτε ειδοποιητή",
+          "selected_channels": "Επιλεγμένα κανάλια ειδοποιήσεων",
+          "title": "Κανάλια ειδοποιήσεων"
+        },
+        "proxy": {
+          "add_proxy": "Προσθήκη Proxy",
+          "new_proxy": "+ Νέο Proxy",
+          "no_proxy": "Χωρίς Proxy",
+          "remove_proxy": "Αφαίρεση Proxy",
+          "select_proxy_placeholder": "Επιλέξτε Proxy",
+          "selected_proxy": "Επιλεγμένος Διαμεσολαβητής",
+          "title": "Προξυ"
+        },
+        "tags": {
+          "label": "Ετικέτες",
+          "no_tags": "Δεν υπάρχουν ετικέτες",
+          "placeholder": "Επιλέξτε ετικέτες"
+        }
+      },
+      "snmp": {
+        "community_description": "Η συμβολοσειρά κοινότητας SNMP για έλεγχο ταυτότητας (όπως κωδικός πρόσβασης)",
+        "community_label": "Συμβολοσειρά Κοινότητας",
+        "expected_value_description": "Η τιμή προς σύγκριση. Αφήστε κενό για να παραλείψετε την επικύρωση.",
+        "expected_value_label": "Προσδοκώμενη τιμή",
+        "host_description": "Το όνομα κεντρικού υπολογιστή ή η διεύθυνση IP της συσκευής με ενεργοποιημένο SNMP",
+        "host_label": "Κεντρικός υπολογιστής",
+        "json_path_description": "Έκφραση JSONPath για εξαγωγή τιμής από την απάντηση (χρησιμοποιήστε \"$\" για ακατέργαστη τιμή)",
+        "json_path_label": "Διαδρομή JSON",
+        "json_path_operator_description": "Πώς να συγκρίνετε την εξαγόμενη τιμή με την αναμενόμενη τιμή",
+        "json_path_operator_eq": "ισούται",
+        "json_path_operator_ge": "≥",
+        "json_path_operator_gt": "μεγαλύτερο από",
+        "json_path_operator_label": "Κατάσταση",
+        "json_path_operator_le": "≤",
+        "json_path_operator_lt": "μικρότερο από",
+        "json_path_operator_ne": "δεν ισούται με",
+        "oid_description": "Ο SNMP Object Identifier προς ερώτηση (π.χ., 1.3.6.1.2.1.1.1.0 για την περιγραφή του συστήματος)",
+        "oid_label": "OID (Αναγνωριστικό Αντικειμένου)",
+        "port_description": "Η θύρα SNMP (προεπιλογή: 161)",
+        "port_label": "Θύρα",
+        "snmp_version_description": "Η έκδοση του πρωτοκόλλου SNMP που θα χρησιμοποιηθεί",
+        "snmp_version_label": "Έκδοση SNMP",
+        "title": "Ρυθμίσεις SNMP",
+        "value_validation_label": "Επικύρωση Τιμής (Προαιρετικό)"
+      },
+      "sqlserver": {
+        "allowed_statements_description": "SELECT, SHOW, DESCRIBE, EXPLAIN, WITH, και VALUES.",
+        "allowed_statements_label": "Επιτρεπόμενες εντολές:",
+        "connection_string_label": "Συμβολοσειρά σύνδεσης",
+        "query_description": "Ερώτημα προς εκτέλεση για έλεγχο υγείας. Αφήστε κενό για χρήση της προεπιλογής.",
+        "query_label": "Ερώτημα",
+        "title": "Σύνδεση Microsoft SQL Server"
+      },
+      "tcp": {
+        "host": "Διακομιστής",
+        "port": "Θύρα",
+        "title": "Σύνδεση TCP"
+      },
+      "type": {
+        "dns": "Παρακολούθηση DNS",
+        "docker": "Δοχείο Docker",
+        "grpc": "Παρακολούθηση λέξης-κλειδιού gRPC",
+        "http": "Παρακολούθηση HTTP(S)",
+        "kafka": "Παρακολούθηση Παραγωγού Kafka",
+        "mongodb": "Παρακολούθηση βάσης δεδομένων MongoDB",
+        "mqtt": "Παρακολούθηση MQTT Broker",
+        "mysql": "Παρακολούθηση MySQL/MariaDB",
+        "ping": "Παρακολούθηση Ping (ICMP)",
+        "postgres": "Παρακολούθηση βάσης δεδομένων PostgreSQL",
+        "push": "Παρακολούθηση Push (η εξωτερική υπηρεσία καλεί ένα παραγόμενο URL)",
+        "rabbitmq": "Παρακολούθηση RabbitMQ",
+        "redis": "Εποπτεία Βάσης Δεδομένων Redis",
+        "snmp": "Παρακολούθηση SNMP",
+        "sqlserver": "Παρακολούθηση Microsoft SQL Server",
+        "tcp": "Παρακολούθηση θύρας TCP"
+      }
+    },
+    "page": {
+      "description": "Δημιουργήστε έναν νέο ελεγκτή για να ξεκινήσετε την παρακολούθηση της απόδοσης του ιστότοπού σας.",
+      "edit_title": "Επεξεργασία Παρακολούθησης:",
+      "new_title": "Νέος Παρατηρητής"
+    },
+    "title": "Παρακολουθήσεις",
+    "toasts": {
+      "deleted": "Παρακολούθηση διαγράφηκε",
+      "paused": "Παρακολούθηση σε παύση",
+      "reset_success": "Επιτυχής επαναφορά δεδομένων παρακολούθησης",
+      "resumed": "Παρακολούθηση επανήλθε"
+    },
+    "view": {
+      "buttons": {
+        "clone": "Αντιγραφή",
+        "delete": "Διαγραφή",
+        "edit": "Επεξεργασία",
+        "pause": "Παύση",
+        "reset_data": "Επαναφορά δεδομένων",
+        "resume": "Συνέχεια"
+      },
+      "certificate": "Πιστοποιητικό",
+      "check_every": "ελέγξτε κάθε",
+      "current_status": "Τρέχουσα κατάσταση",
+      "dialogs": {
+        "delete": {
+          "description": "Αυτή η ενέργεια δεν μπορεί να αναιρεθεί. Θα διαγράψει μόνιμα τον monitor και όλα τα σχετιζόμενα δεδομένα.",
+          "title": "Είστε σίγουροι;"
+        },
+        "pause": {
+          "description": "Είστε σίγουροι ότι θέλετε να παύσετε;",
+          "title": "Επιβεβαίωση"
+        },
+        "reset": {
+          "description": "Αυτό θα διαγράψει μόνιμα όλο το ιστορικό καρδιακών παλμών και τις στατιστικές διαθεσιμότητας για αυτήν τη μονάδα παρακολούθησης. Η μονάδα παρακολούθησης θα εμφανιστεί όπως αν μόλις δημιουργήθηκε. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
+          "title": "Επαναφορά Δεδομένων Παρακολούθησης"
+        }
+      },
+      "expiring_soon": "Προσεχή λήξη",
+      "for": "για",
+      "live_status": "Ζωντανή Κατάσταση",
+      "monitor_for": "παρακολούθηση για",
+      "no_certificate_data": "Δεν υπάρχουν δεδομένα πιστοποιητικού",
+      "seconds": "δευτερόλεπτα",
+      "stats": {
+        "last_24_hours": "Τελευταίες 24 ώρες",
+        "last_30_days": "Τελευταίες 30 ημέρες",
+        "last_365_days": "Τελευταίες 365 ημέρες",
+        "last_7_days": "Τελευταίες 7 ημέρες"
+      },
+      "status": {
+        "down": "Κατεβασμένο",
+        "maintenance": "Συντήρηση",
+        "paused": "Σε παύση",
+        "up": "Ενεργός"
+      }
+    }
+  },
+  "navigation": {
+    "maintenance": "Συντήρηση",
+    "monitors": "Παρακολουθήσεις",
+    "notification_channels": "Κανάλια ειδοποιήσεων",
+    "proxies": "Προξί",
+    "settings": "Ρυθμίσεις",
+    "status_pages": "Σελίδες Κατάστασης",
+    "tags": "Ετικέτες"
+  },
+  "notifications": {
+    "actions": {
+      "test": "Δοκιμή",
+      "testing": "Δοκιμή…"
+    },
+    "aria": {
+      "delete": "Διαγραφή {{name}}"
+    },
+    "confirm_delete_description": "Αυτή η ενέργεια δεν μπορεί να αναιρεθεί. Αυτό θα διαγράψει μόνιμα τον ειδοποιητή '{{name}}' και θα τον αφαιρέσει από όλες τις παρακολουθήσεις που τον χρησιμοποιούν.",
+    "create_title": "Δημιουργία ειδοποιητή",
+    "edit_channel_title": "Επεξεργασία Κανάλι Ειδοποίησης",
+    "edit_title": "Επεξεργασία ειδοποιητή",
+    "empty_state": {
+      "action": "Δημιουργήστε το πρώτο σας κανάλι ειδοποίησης",
+      "description": "Ξεκινήστε δημιουργώντας το πρώτο σας κανάλι ειδοποίησης για αποστολή ειδοποιήσεων στην ομάδα σας.",
+      "title": "Δεν βρέθηκαν κανάλια ειδοποιήσεων"
+    },
+    "form": {
+      "discord": {
+        "bot_display_name_description": "Το όνομα που θα εμφανίζεται ως αποστολέας των μηνυμάτων Discord.",
+        "bot_display_name_label": "Εμφανιζόμενο όνομα Bot",
+        "custom_message_prefix_description": "Προαιρετικό πρόθεμα που θα προστεθεί στην αρχή όλων των μηνυμάτων.",
+        "custom_message_prefix_label": "Προσαρμοσμένο Πρόθεμα Μηνύματος",
+        "custom_message_prefix_placeholder": "Προαιρετικά: Προσθέστε ένα πρόθεμα στο μήνυμά σας",
+        "forum_post_name_description": "Το όνομα της νέας ανάρτησης στο φόρουμ που θα δημιουργηθεί.",
+        "forum_post_name_label": "Όνομα δημοσίευσης φόρουμ",
+        "forum_post_name_placeholder": "Εισαγωγή ονόματος δημοσίευσης",
+        "sending_message_to_channel": "Αποστολή στο κανάλι",
+        "sending_message_to_description": "Επιλέξτε πού θα αποστέλλετε μηνύματα Discord.",
+        "sending_message_to_label": "Αποστολή μηνύματος προς",
+        "sending_message_to_new_forum_post": "Αποστολή σε νέο δημοσίευμα στο φόρουμ",
+        "sending_message_to_placeholder": "Επιλέξτε τύπο μηνύματος",
+        "sending_message_to_thread": "Αποστολή στο νήμα",
+        "setup_webhook_description_1": "Πάρτε το URL του webhook από τις ρυθμίσεις του διακομιστή Discord → Ενσωματώσεις → Webhooks.",
+        "setup_webhook_description_2": "Δημιουργήστε ένα νέο webhook και αντιγράψτε τη διεύθυνση URL. Βεβαιωθείτε ότι έχετε επιλέξει το σωστό κανάλι.",
+        "setup_webhook_title": "Ρύθμιση Webhook Discord",
+        "thread_id_description_1": "Ενεργοποίηση Λειτουργίας Προγραμματιστή στις Ρυθμίσεις Χρήστη Discord → Προχωρημένο → Λειτουργία Προγραμματιστή",
+        "thread_id_description_2": "Δεξί κλικ στη νήμα ή στην ανάρτηση και επιλέξτε \"Αντιγραφή ID Νήματος\" ή \"Αντιγραφή ID Κανάλι\"",
+        "thread_id_description_title": "Το αναγνωριστικό του νήματος ή της δημοσίευσης φόρουμ όπου θα αποστέλλονται τα μηνύματα",
+        "thread_id_label": "Αναγνωριστικό νήματος",
+        "thread_id_placeholder": "Εισάγετε το ID νήματος ή ανάρτησης",
+        "webhook_url_label": "Διεύθυνση Webhook Discord"
+      },
+      "google_chat": {
+        "more_info_about_webhooks": "Περισσότερες πληροφορίες για Webhooks",
+        "webhook_url_label": "URL Webhook Google Chat"
+      },
+      "gotify": {
+        "application_token_description": "Το διακριτικό της εφαρμογής από την εφαρμογή Gotify σας. Μπορείτε να το βρείτε στη διεπαφή ιστού Gotify κάτω από το τμήμα Εφαρμογές.",
+        "application_token_label": "Token εφαρμογής",
+        "custom_message_description": "Προσαρμοσμένο πρότυπο μηνύματος. Διαθέσιμες μεταβλητές",
+        "custom_message_description_2": "Αφήστε κενό για να χρησιμοποιήσετε το προεπιλεγμένο μήνυμα.",
+        "custom_message_label": "Προσαρμοσμένο Μήνυμα",
+        "custom_title_description": "Προσαρμοσμένος τίτλος για την ειδοποίηση. Διαθέσιμες μεταβλητές: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Αφήστε κενό για να χρησιμοποιήσετε τον προεπιλεγμένο τίτλο \"Peekaping\".",
+        "custom_title_label": "Προσαρμοσμένος Τίτλος",
+        "learn_more_label": "Μάθετε περισσότερα για το Gotify και πώς να το ρυθμίσετε στο:",
+        "note_description": "Πρέπει να έχετε έναν ενεργό διακομιστή Gotify για να χρησιμοποιήσετε αυτήν την ενσωμάτωση.",
+        "note_label": "Σημείωση:",
+        "priority_0": "Χαμηλότερος",
+        "priority_1": "Πολύ χαμηλή",
+        "priority_10": "Ανώτατη",
+        "priority_2": "Χαμηλό",
+        "priority_3": "Κάτω από το κανονικό",
+        "priority_4": "Κανονική",
+        "priority_5": "Πάνω από το Κανονικό",
+        "priority_6": "Μέτριο",
+        "priority_7": "Υψηλή",
+        "priority_8": "Πολύ υψηλή (Προεπιλογή)",
+        "priority_9": "Επείγον",
+        "priority_description": "Προτεραιότητα μηνύματος (0-10). Τα μεγαλύτερα αριθμοί αντιπροσωπεύουν υψηλότερη προτεραιότητα. Το προεπιλεγμένο είναι 8.",
+        "priority_label": "Προτεραιότητα",
+        "priority_placeholder": "Επιλέξτε προτεραιότητα",
+        "server_url_description": "Η διεύθυνση URL του διακομιστή Gotify σας. Βεβαιωθείτε ότι είναι προσβάσιμη από αυτήν την εφαρμογή.",
+        "server_url_label": "URL διακομιστή"
+      },
+      "grafana_oncall": {
+        "grafana_oncall_url_description": "Η διεύθυνση webhook από την ενσωμάτωση Grafana OnCall. Μπορείτε να την βρείτε στην εγκατάσταση Grafana OnCall σας κάτω από Alerts & IRM > IRM > Integrations > Webhook.",
+        "grafana_oncall_url_label": "URL του Grafana OnCall",
+        "learn_more_label": "Μάθετε περισσότερα για τα webhooks του Grafana OnCall"
+      },
+      "line": {
+        "channel_access_token_description": "Μπορείτε να λάβετε το token πρόσβασης του καναλιού από το",
+        "channel_access_token_description_2": "Πλοηγηθείτε στις ρυθμίσεις του καναλιού σας και αναζητήστε",
+        "channel_access_token_label": "Token πρόσβασης καναλιού (Μακροχρόνιος)",
+        "channel_access_token_placeholder": "Εισάγετε το διακριτικό πρόσβασης του καναλιού LINE",
+        "template_description": "Προσαρμόστε τη μορφή του μηνύματος. Διαθέσιμες μεταβλητές",
+        "template_label": "Πρότυπο Μηνύματος",
+        "template_placeholder": "Εισάγετε το προσαρμοσμένο πρότυπο μηνύματος",
+        "user_id_description": "Μπορείτε να βρείτε το User ID σας στο",
+        "user_id_description_2": "Πηγαίνετε στις ρυθμίσεις του καναλιού σας και αναζητήστε",
+        "user_id_label": "Το ID του χρήστη σας",
+        "user_id_placeholder": "Εισάγετε το ID χρήστη LINE σας"
+      },
+      "matrix": {
+        "access_token_description": "Το token πρόσβασης Matrix για την ταυτοποίηση",
+        "access_token_label": "Token πρόσβασης",
+        "custom_message_description": "Προσαρμοσμένο πρότυπο μηνύματος. Διαθέσιμες μεταβλητές",
+        "custom_message_label": "Προσαρμοσμένο μήνυμα",
+        "homeserver_url_description": "Η διεύθυνση URL του Matrix homeserver",
+        "homeserver_url_label": "URL διακομιστή οικίας",
+        "internal_room_id_description": "Ο εσωτερικός αναγνωριστικός αριθμός δωμάτιου όπου θα σταλούν ειδοποιήσεις. Θα πρέπει να ξεκινά με \"!\" και να μοιάζει με: !roomid:matrix.org",
+        "internal_room_id_label": "Εσωτερικό ID Δωματίου",
+        "setup_instructions_1": "Δημιουργήστε έναν λογαριασμό Matrix για το bot σας (ή χρησιμοποιήστε τον υπάρχοντα λογαριασμό σας)",
+        "setup_instructions_2": "Δημιουργήστε ή ενταχθείτε στην αίθουσα όπου θέλετε να λαμβάνετε ειδοποιήσεις",
+        "setup_instructions_3": "Λάβετε το διακριτικό πρόσβασης σας κάνοντας μια αίτηση σύνδεσης",
+        "setup_instructions_4": "Η απάντηση θα περιλαμβάνει το πεδίο access_token – χρησιμοποιήστε το ως το Access Token σας.",
+        "setup_instructions_5": "Βρείτε το εσωτερικό αναγνωριστικό της αίθουσας σας (που ξεκινά με \"!\") στις ρυθμίσεις της αίθουσας του πελάτη Matrix",
+        "setup_instructions_label": "Οδηγίες εγκατάστασης"
+      },
+      "mattermost": {
+        "channel_name_description": "Το κανάλι όπου θα αποστέλλονται οι ειδοποιήσεις. Αφήστε κενό για να χρησιμοποιήσετε το προεπιλεγμένο κανάλι που έχει ρυθμιστεί στο webhook.",
+        "channel_name_label": "Όνομα Κανάλι",
+        "icon_emoji_cheat_sheet_label": "Λεξικό εικονιδίων",
+        "icon_emoji_description": "Emoji για χρήση ως εικονίδιο. Μπορείτε να καθορίσετε δύο emoji χωρισμένα με κενό (πρώτο για κατάσταση «up», δεύτερο για κατάσταση «down»).",
+        "icon_emoji_label": "Emoji εικονιδίου",
+        "icon_url_description": "URL μιας εικόνας για χρήση ως εικονίδιο του μηνύματος ειδοποίησης.",
+        "icon_url_label": "URL εικονιδίου",
+        "learn_more_label": "Μάθετε περισσότερα για τα webhooks",
+        "message_template_description": "Προσαρμόστε τη μορφή του μηνύματος. Διαθέσιμες μεταβλητές",
+        "message_template_label": "Πρότυπο Μηνύματος",
+        "use_message_template_description": "Ενεργοποιήστε τη χρήση προσαρμοσμένου προτύπου μηνύματος και μορφοποίησης.",
+        "use_message_template_label": "Χρήση προτύπου μηνύματος",
+        "username_description": "Το όνομα χρήστη που θα εμφανίζεται ως αποστολέας του μηνύματος.",
+        "webhook_url_label": "URL Webhook"
+      },
+      "ntfy": {
+        "authentication_type_basic": "Βασική Πιστοποίηση",
+        "authentication_type_basic_description": "Χρησιμοποιήστε όνομα χρήστη και κωδικό πρόσβασης για βασική αυθεντικοποίηση.",
+        "authentication_type_label": "Τύπος ταυτοποίησης",
+        "authentication_type_none": "Χωρίς ταυτοποίηση",
+        "authentication_type_none_description": "Δεν απαιτείται έλεγχος ταυτότητας. Κατάλληλο για δημόσιους διακομιστές NTFY.",
+        "authentication_type_placeholder": "Επιλέξτε τύπο πιστοποίησης",
+        "authentication_type_token": "Πιστοποίηση Διακριτικού",
+        "authentication_type_token_description": "Χρησιμοποιήστε ένα διακριτικό πρόσβασης για εξουσιοδότηση.",
+        "custom_message_description": "Προσαρμοσμένο περιεχόμενο μηνύματος. Διαθέσιμες μεταβλητές",
+        "custom_message_label": "Προσαρμοσμένο Μήνυμα",
+        "password_required": "Ο κωδικός πρόσβασης απαιτείται για βασική πιστοποίηση",
+        "priority_1": "Ελάχιστο (χαμηλότερο)",
+        "priority_2": "Χαμηλή",
+        "priority_3": "Προεπιλεγμένο",
+        "priority_4": "Υψηλή",
+        "priority_5": "Επείγον (Πιο Υψηλό)",
+        "priority_description": "Το επίπεδο προτεραιότητας της ειδοποίησης. Οι υψηλότερες προτεραιότητες μπορεί να προκαλέσουν διαφορετικές συμπεριφορές στον πελάτη.",
+        "priority_label": "Προτεραιότητα",
+        "priority_placeholder": "Επιλέξτε προτεραιότητα",
+        "server_url_description": "Η διεύθυνση URL του διακομιστή NTFY σας. Χρησιμοποιήστε το https://ntfy.sh για την δημόσια έκδοση.",
+        "server_url_label": "URL διακομιστή",
+        "tags_description": "Ετικέτες διαχωρισμένες με κόμμα για την κατηγοριοποίηση ειδοποιήσεων. Διαθέσιμες μεταβλητές",
+        "tags_label": "ετικέτες",
+        "title_description": "Προσαρμοσμένος τίτλος ειδοποίησης. Διαθέσιμες μεταβλητές",
+        "title_label": "Προσαρμοσμένος Τίτλος",
+        "token_description": "Το token πρόσβασης NTFY για αυθεντικοποίηση.",
+        "token_label": "Token πρόσβασης",
+        "token_required": "Απαιτείται token για την πιστοποίηση μέσω token",
+        "topic_description": "Όνομα θέματος για τις ειδοποιήσεις σας. Αυτό θα είναι το κανάλι όπου αποστέλλονται οι ειδοποιήσεις.",
+        "topic_label": "Θέμα",
+        "username_required": "Το όνομα χρήστη απαιτείται για βασική αυθεντικοποίηση."
+      },
+      "opsgenie": {
+        "api_key_label": "Κλειδί API",
+        "more_info_about_api_keys_label": "Περισσότερες πληροφορίες για τα κλειδιά API",
+        "priority_1": "Κρίσιμο",
+        "priority_2": "Υψηλή",
+        "priority_3": "Μετριαία",
+        "priority_4": "Χαμηλή",
+        "priority_5": "Πληροφοριακό",
+        "priority_description": "Ορίστε το επίπεδο προτεραιότητας για τις ειδοποιήσεις. Η προεπιλογή είναι η P3 (Μετριαία).",
+        "priority_label": "Προτεραιότητα",
+        "region_description": "Επιλέξτε την περιοχή Opsgenie. Αυτό καθορίζει ποιο τελικό σημείο API θα χρησιμοποιηθεί.",
+        "region_label": "Περιοχή",
+        "region_placeholder": "Επιλέξτε περιοχή"
+      },
+      "pagerduty": {
+        "auto_resolve_acknowledge": "Αυτόματη Αναγνώριση",
+        "auto_resolve_acknowledge_description": "Αυτόματη αναγνώριση του περιστατικού",
+        "auto_resolve_description": "Επιλέξτε την ενέργεια που θα πραγματοποιηθεί όταν ένας έλεγχος επανέρχεται σε λειτουργία.",
+        "auto_resolve_do_nothing": "Καμία ενέργεια",
+        "auto_resolve_do_nothing_description": "Καμία ενέργεια σε κατάσταση UP",
+        "auto_resolve_label": "Αυτόματη επίλυση ή επιβεβαίωση",
+        "auto_resolve_placeholder": "Επιλέξτε τη συμπεριφορά της αυτόματης επίλυσης",
+        "auto_resolve_resolve": "Αυτόματη επίλυση",
+        "auto_resolve_resolve_description": "Αυτόματη επίλυση του περιστατικού",
+        "integration_key_description": "Μάθετε πώς να αποκτήσετε το κλειδί ενσωμάτωσης",
+        "integration_key_label": "Κλειδί ενσωμάτωσης",
+        "integration_key_placeholder": "Εισαγάγετε το κλειδί ενσωμάτωσης PagerDuty",
+        "integration_url_description": "Το URL του τελικού σημείου (endpoint) του PagerDuty Events API v2. Η προεπιλογή είναι το τυπικό τελικό σημείο.",
+        "integration_url_label": "URL ενσωμάτωσης",
+        "learn_more_label": "Τεκμηρίωση PagerDuty",
+        "priority_critical": "Κρίσιμο",
+        "priority_description": "Το επίπεδο σοβαρότητας για περιστατικά PagerDuty. Η προεπιλογή είναι \"warning\".",
+        "priority_error": "Σφάλμα",
+        "priority_info": "Πληροφορίες",
+        "priority_label": "Προτεραιότητα",
+        "priority_placeholder": "Επιλέξτε επίπεδο προτεραιότητας",
+        "priority_warning": "Προειδοποίηση"
+      },
+      "pagertree": {
+        "authentication_token_description": "Προαιρετικό token αυθεντικοποίησης για ενισχυμένη ασφάλεια. Αυτό θα σταλεί στο κεφαλίδα pagertree-token.",
+        "authentication_token_label": "Token ταυτοποίησης (Προαιρετικό)",
+        "authentication_token_placeholder": "Εισάγετε το token αυθεντικοποίησης, αν απαιτείται",
+        "auto_resolve_alerts_description": "Αυτόματα επιλύστε τις ειδοποιήσεις PagerTree όταν το μονιτάρισμα αποκατασταθεί",
+        "auto_resolve_alerts_label": "Αυτόματη επίλυση ειδοποιήσεων",
+        "how_to_get_integration_url_label": "Πώς να πάρετε το URL ενσωμάτωσης",
+        "integration_url_description": "Εισάγετε το URL ενσωμάτωσης webhook του PagerTree.",
+        "integration_url_label": "URL Webhook του PagerTree",
+        "urgency_level_critical": "Κρίσιμο",
+        "urgency_level_description": "Ορίστε το προεπιλεγμένο επίπεδο επείγοντος για ειδοποιήσεις που αποστέλλονται στο PagerTree",
+        "urgency_level_high": "Υψηλό",
+        "urgency_level_label": "Επίπεδο Έντασης",
+        "urgency_level_low": "Χαμηλή",
+        "urgency_level_medium": "Μεσαίο",
+        "urgency_level_placeholder": "Επιλέξτε επίπεδο προτεραιότητας",
+        "urgency_level_silent": "Σιωπηλός"
+      },
+      "pushbullet": {
+        "access_token": "Token Πρόσβασης",
+        "access_token_description": "Το Access Token του Pushbullet. Λάβετε το από",
+        "access_token_label": "Token πρόσβασης",
+        "access_token_link": "Ρυθμίσεις Pushbullet",
+        "channel_tag": "Ετικέτα καναλιού (Προαιρετικό)",
+        "channel_tag_description": "Αποστολή ειδοποίησης σε κανάλι Pushbullet αντί για συσκευές",
+        "channel_tag_label": "Ετικέτα καναλιού (Προαιρετικό)",
+        "custom_message_template": "",
+        "custom_message_template_description": "Προσαρμόστε το σώμα της ειδοποίησης χρησιμοποιώντας μεταβλητές προτύπου:",
+        "custom_message_template_heartbeat_ping": "Χρόνος απόκρισης",
+        "custom_message_template_heartbeat_time": "Χρονική ένδειξη",
+        "custom_message_template_label": "Προσαρμοσμένο πρότυπο μηνύματος (Προαιρετικό)",
+        "custom_message_template_monitor_url": "URL παρακολούθησης",
+        "custom_message_template_msg": "Μήνυμα ειδοποίησης",
+        "custom_message_template_name": "Όνομα παρακολούθησης",
+        "custom_message_template_placeholder": "Παρακολούθηση: {{ name }}\nΚατάσταση: {{ status }}\nΜήνυμα: {{ msg }}",
+        "custom_message_template_status": "Τρέχουσα κατάσταση",
+        "device_id": "Αναγνωριστικό Συσκευής (Προαιρετικό)",
+        "device_id_description": "Αποστολή ειδοποίησης σε συγκεκριμένη συσκευή. Αφήστε κενό για αποστολή σε όλες τις συσκευές. Μπορείτε να βρείτε τα IDs συσκευών χρησιμοποιώντας το",
+        "device_id_label": "Αναγνωριστικό συσκευής (Προαιρετικό)",
+        "device_id_link": "API του Pushbullet",
+        "more_info_on": "Περισσότερες πληροφορίες για:"
+      },
+      "pushover": {
+        "application_token_label": "Token Εφαρμογής",
+        "application_token_placeholder": "Εισάγετε το διακριτικό της εφαρμογής Pushover",
+        "device_description": "Αφήστε κενό για αποστολή σε όλες τις συσκευές",
+        "device_label": "Συσκευή",
+        "device_placeholder": "Όνομα συσκευής (προαιρετικό)",
+        "message_title_description": "Αφήστε κενό για να χρησιμοποιηθεί ο προεπιλεγμένος τίτλος",
+        "message_title_label": "Τίτλος μηνύματος",
+        "message_title_placeholder": "Προσαρμοσμένος τίτλος μηνύματος (προαιρετικό)",
+        "message_ttl_description": "Διάρκεια ζωής σε δευτερόλεπτα (0 = χωρίς λήξη)",
+        "message_ttl_label": "Διάρκεια ζωής μηνύματος",
+        "more_info_label": "Περισσότερες πληροφορίες για:",
+        "more_info_label_2": "Μπορείτε να δημιουργήσετε μια εφαρμογή και να λάβετε το API token σας στο",
+        "more_info_label_3": "Το κλειδί χρήστη σας βρίσκεται στο",
+        "notification_sound_down_description": "Ήχος όταν το monitor πέσει",
+        "notification_sound_down_label": "Ήχος ειδοποίησης - Πτώση",
+        "notification_sound_down_placeholder": "Επιλέξτε ήχο",
+        "notification_sound_up_description": "Ήχος όταν το monitor επανέρχεται σε λειτουργία",
+        "notification_sound_up_label": "Ήχος ειδοποίησης - Up",
+        "notification_sound_up_placeholder": "Επιλέξτε ήχο",
+        "priority_1": "Χαμηλότερο",
+        "priority_2": "Χαμηλή",
+        "priority_3": "Κανονικό",
+        "priority_4": "Υψηλή",
+        "priority_5": "Επείγον",
+        "priority_description": "Επίπεδο προτεραιότητας μηνύματος",
+        "priority_label": "Προτεραιότητα",
+        "priority_placeholder": "Επιλέξτε προτεραιότητα",
+        "sound_alien": "Ξένος",
+        "sound_bike": "Ποδήλατο",
+        "sound_bugle": "Μπουγλέ",
+        "sound_cashregister": "Ταμείο",
+        "sound_classical": "Κλασικό",
+        "sound_climb": "Αναβαθμός",
+        "sound_cosmic": "Κοσμικός",
+        "sound_echo": "Ηχώ",
+        "sound_falling": "Πτώση",
+        "sound_gamelan": "Γκαμέλαν",
+        "sound_incoming": "Εισερχόμενο",
+        "sound_intermission": "Διάλειμμα",
+        "sound_magic": "Μαγικός",
+        "sound_mechanical": "Μηχανικό",
+        "sound_none": "Κανένα",
+        "sound_persistent": "Διαρκές",
+        "sound_pianobar": "Πιάνο Μπαρ",
+        "sound_pushover": "Pushover (προεπιλεγμένο)",
+        "sound_siren": "Συρεν",
+        "sound_spacealarm": "Συναγερμός Διάστηματος",
+        "sound_tugboat": "Καράζ",
+        "sound_updown": "Πάνω Κάτω",
+        "sound_vibrate": "Τυρτάρι",
+        "user_key_label": "Κλειδί χρήστη",
+        "user_key_placeholder": "Εισάγετε το κλειδί χρήστη Pushover"
+      },
+      "signal": {
+        "custom_message_description": "Προσαρμοσμένο πρότυπο μηνύματος. Διαθέσιμες μεταβλητές",
+        "custom_message_label": "Προσαρμοσμένο Μήνυμα",
+        "important_description": "Δεν μπορείτε να συνδυάζετε ομάδες και αριθμούς σε παραλήπτες!",
+        "important_label": "ΣΗΜΑΝΤΙΚΟ:",
+        "more_info_label": "Μπορείτε να ελέγξετε αυτό το URL για να δείτε πώς να το ρυθμίσετε:",
+        "note_description": "Πρέπει να έχετε έναν πελάτη Signal με REST API.",
+        "note_label": "Σημείωση:",
+        "number_description": "Ο αριθμός τηλεφώνου του λογαριασμού Signal σας (αριθμός αποστολέα).",
+        "number_label": "Αριθμός",
+        "post_url_description": "Η διεύθυνση URL του διακομιστή REST API του Signal CLI.",
+        "post_url_label": "URL POST",
+        "recipients_description": "Λίστα αριθμών τηλεφώνου, διαχωρισμένη με κόμμα, για αποστολή ειδοποιήσεων.",
+        "recipients_label": "Παραλήπτες"
+      },
+      "slack": {
+        "channel_name_description": "Το κανάλι στο οποίο θα σταλεί το μήνυμα. Αν δεν οριστεί, το μήνυμα θα σταλεί στο προεπιλεγμένο κανάλι που έχει ρυθμιστεί στο webhook.",
+        "channel_name_description_2": "Μπορείτε να αντικαταστήσετε το προεπιλεγμένο κανάλι, ορίζοντας ένα όνομα καναλιού (π.χ. #alerts) ή έναν χρήστη (π.χ. @username).",
+        "channel_name_label": "Όνομα καναλιού",
+        "channel_notify_description": "Όταν ενεργοποιηθεί, το μήνυμα θα ενεργοποιήσει ειδοποιήσεις για όλα τα μέλη του καναλιού. Χρησιμοποιήστε το με προσοχή για να αποφύγετε το spam.",
+        "channel_notify_label": "Κανάλι Ειδοποίησης",
+        "icon_emoji_cheat_sheet_label": "Λίστα emoji",
+        "icon_emoji_description": "Emoji που θα χρησιμοποιηθεί ως εικονίδιο για αυτό το μήνυμα. Πρέπει να είναι με τη μορφή :emoji_name:",
+        "icon_emoji_label": "Εικονίδιο Emoji",
+        "message_format_description": "Αποστολή πλούσιων μηνυμάτων",
+        "message_format_description_2": "Ενεργοποιήστε την αποστολή μηνυμάτων με πλούσια μορφοποίηση, συνημμένα και βελτιωμένη οπτική παρουσίαση.",
+        "message_format_label": "Μορφή Μηνύματος",
+        "username_description": "Το όνομα χρήστη που θα εμφανίζεται ως αποστολέας του μηνύματος. Αν δεν οριστεί, θα χρησιμοποιηθεί το προεπιλεγμένο όνομα του bot.",
+        "webhook_url_description": "Η διεύθυνση URL του webhook από την ενσωμάτωση Slack. Μπορείτε να τη βρείτε στη δική σας εγκατάσταση Slack κάτω από Integrations > Webhooks.",
+        "webhook_url_label": "URL Webhook"
+      },
+      "smtp": {
+        "custom_body_label": "Προσαρμοσμένο σώμα",
+        "custom_description": "Η δυνατότητα δημιουργίας προτύπων επιτυγχάνεται μέσω της γλώσσας προτύπων <b>Liquid</b>.",
+        "custom_description_2": "Παρακαλώ ανατρέξτε στην τεκμηρίωση για οδηγίες χρήσης.",
+        "custom_description_3": "Διαθέσιμες μεταβλητές:",
+        "custom_description_4": "μήνυμα ειδοποίησης",
+        "custom_description_5": "Όνομα υπηρεσίας",
+        "custom_description_6": "Κατάσταση υπηρεσίας (UP/DOWN/Ειδοποιήσεις λήξης πιστοποιητικού)",
+        "custom_subject_label": "Προσαρμοσμένο Θέμα",
+        "smtp_from_label": "Από (Διεύθυνση Αποστολέα)",
+        "smtp_host_description": "Εισάγετε είτε το hostname του διακομιστή στο οποίο θέλετε να συνδεθείτε, είτε το localhost αν σκοπεύετε να χρησιμοποιήσετε έναν τοπικά ρυθμισμένο mail transfer agent.",
+        "smtp_host_label": "SMTP διακομιστής",
+        "smtp_password_placeholder": "Κωδικός SMTP",
+        "smtp_port_label": "Θύρα",
+        "smtp_to_label": "Προς (E-mail παραλήπτη(ι))",
+        "smtp_username_placeholder": "Όνομα χρήστη SMTP"
+      },
+      "telegram": {
+        "auto_get_label": "Αυτόματη Λήψη",
+        "bot_token_description": "Λάβετε το token του bot σας από",
+        "bot_token_label": "Token Bot",
+        "chat_id_description": "Μπορείτε να αποκτήσετε το ID της συνομιλίας σας στέλνοντας ένα μήνυμα στον bot σας και κάνοντας κλικ στο 'Αυτόματη Λήψη' παραπάνω, ή χειροκίνητα μέσω του Telegram API.",
+        "chat_id_description_2": "Για να το λάβετε χειροκίνητα, επισκεφθείτε",
+        "chat_id_description_3": "Δείτε",
+        "chat_id_description_4": "Τεκμηρίωση Telegram",
+        "chat_id_description_5": "Για περισσότερες πληροφορίες.",
+        "chat_id_label": "Αναγνωριστικό Συνομιλίας",
+        "chat_id_not_found": "Το αναγνωριστικό συνομιλίας δεν βρέθηκε στην πιο πρόσφατη ενημέρωση.",
+        "failed_to_fetch_chat_id": "Απέτυχε η λήψη του chat ID",
+        "message_thread_id_description": "Προαιρετικό. Χρησιμοποιείται για αποστολή μηνυμάτων σε συγκεκριμένο νήμα (θέμα) σε ένα supergroup φόρουμ.",
+        "message_thread_id_label": "Αναγνωριστικό νήματος μηνύματος",
+        "no_updates_found": "Δεν βρέθηκαν ενημερώσεις. Παρακαλώ στείλτε ένα μήνυμα στον bot σας πρώτα.",
+        "protect_content_description": "Εάν ενεργοποιηθεί, το περιεχόμενο του μηνύματος θα προστατεύεται από την προώθηση και από την αποθήκευση.",
+        "protect_content_label": "Προστασία περιεχομένου",
+        "send_silently_description": "Εάν ενεργοποιηθεί, τα μηνύματα θα σταλούν σιωπηλά (τα χρήστες θα λάβουν ειδοποίηση χωρίς ήχο).",
+        "send_silently_label": "Αποστολή χωρίς ειδοποίηση",
+        "server_url_description": "Η προεπιλογή είναι",
+        "server_url_description_2": "Μπορείτε να χρησιμοποιήσετε έναν προσαρμοσμένο διακομιστή. Δείτε",
+        "server_url_description_3": "εδώ",
+        "server_url_description_4": "Για λεπτομέρειες.",
+        "server_url_label": "URL διακομιστή Telegram",
+        "template_description": "Προσαρμόστε τη μορφή του μηνύματος. Διαθέσιμες μεταβλητές",
+        "template_label": "Πρότυπο μηνύματος",
+        "template_parse_mode_description": "Επιλέξτε πώς θα αναλυθεί το μήνυμα. Δείτε",
+        "template_parse_mode_description_2": "Τεκμηρίωση μορφοποίησης Telegram",
+        "template_parse_mode_description_3": "Για λεπτομέρειες.",
+        "template_parse_mode_label": "Λειτουργία ανάλυσης προτύπου",
+        "template_parse_mode_placeholder": "Επιλέξτε τρόπο ανάλυσης",
+        "template_placeholder": "Εισάγετε το προσαρμοσμένο πρότυπο μηνύματος",
+        "use_template_description": "Ενεργοποιήστε τη χρήση προσαρμοσμένου προτύπου μηνύματος και μορφοποίησης.",
+        "use_template_label": "Χρήση προτύπου μηνύματος"
+      },
+      "webhook": {
+        "additional_headers_description": "Προσθήκη προσαρμοσμένων κεφαλίδων HTTP στην αίτηση webhook.",
+        "additional_headers_label": "Πρόσθετες κεφαλίδες",
+        "custom_body_description": "Προσαρμόστε τη μορφή του σώματος του αιτήματος. Διαθέσιμες μεταβλητές",
+        "custom_body_label": "Προσαρμοσμένο σώμα",
+        "post_url_description": "Η διεύθυνση URL του webhook endpoint όπου θα αποστέλλονται οι ειδοποιήσεις.",
+        "post_url_label": "URL δημοσίευσης",
+        "request_body_description_custom": "Καθορίστε το δικό σας προσαρμοσμένο σχήμα σώματος αιτήματος παρακάτω.",
+        "request_body_description_form_data": "Το περιεχόμενο θα σταλεί ως multipart/form-data. Μπορείτε να το αποκωδικοποιήσετε χρησιμοποιώντας <strong>json_decode($_POST['data'])</strong> στη PHP.",
+        "request_body_description_json": "Το περιεχόμενο θα σταλεί ως JSON με την κεφαλίδα \"application/json\".",
+        "request_body_label": "Σώμα Αίτησης",
+        "request_body_placeholder": "Επιλέξτε τύπο περιεχομένου"
+      }
+    },
+    "important": "Σημαντικές ειδοποιήσεις",
+    "important_notifications": "Σημαντικές Ειδοποιήσεις",
+    "labels": {
+      "friendly_name": "Φιλικό όνομα",
+      "type": "Τύπος ειδοποιητή"
+    },
+    "messages": {
+      "create_failed": "Η δημιουργία του ειδοποιητή απέτυχε",
+      "created_success": "Ειδοποιητής δημιουργήθηκε με επιτυχία",
+      "error_loading_notifier": "Σφάλμα φόρτωσης ειδοποιητή",
+      "test_failed": "Απέτυχε η αποστολή δοκιμαστικής ειδοποίησης",
+      "test_success": "Η ειδοποίηση δοκιμής στάλθηκε επιτυχώς",
+      "update_failed": "Αποτυχία ενημέρωσης ειδοποιητή",
+      "updated_success": "Ειδοποιητής ενημερώθηκε με επιτυχία"
+    },
+    "new": {
+      "title": "Νέο Κανάλι Ειδοποίησης"
+    },
+    "no_important": "Δεν βρέθηκαν σημαντικές ειδοποιήσεις.",
+    "placeholders": {
+      "select_type": "Επιλέξτε τύπο ειδοποιητή"
+    },
+    "search_placeholder": "Αναζήτηση καναλιών ειδοποιήσεων με όνομα..."
+  },
+  "proxies": {
+    "delete_dialog": {
+      "description": "Αυτή η ενέργεια δεν μπορεί να αναιρεθεί. Αυτό θα διαγράψει μόνιμα το proxy {{host}}:{{port}}.",
+      "title": "Είστε σίγουροι;"
+    },
+    "edit": {
+      "page_name": "Επεξεργασία προξυ"
+    },
+    "empty_list": {
+      "action_text": "Δημιουργήστε το πρώτο σας proxy",
+      "text": "Ξεκινήστε δημιουργώντας την πρώτη σας proxy για χρήση στις παρακολούθησεις σας.",
+      "title": "Δεν βρέθηκαν proxies"
+    },
+    "form": {
+      "auth_label": "Ο διακομιστής διαμεσολάβησης απαιτεί πιστοποίηση",
+      "port_placeholder": "Θύρα",
+      "protocol_label": "Πρωτόκολλο Διαμεσολαβητή",
+      "protocol_placeholder": "Επιλέξτε πρωτόκολλο διακομιστή ενδιάμεσης σύνδεσης",
+      "server_label": "Διακομιστής Proxy",
+      "server_placeholder": "Διεύθυνση διακομιστή",
+      "user": "Χρήστης"
+    },
+    "messages": {
+      "create_failed": "Αποτυχία δημιουργίας προξυλίας",
+      "created_success": "Το Proxy δημιουργήθηκε με επιτυχία",
+      "error_loading_proxy": "Σφάλμα φόρτωσης proxy",
+      "update_failed": "Απέτυχε η ενημέρωση του proxy",
+      "updated_success": "Το Proxy ενημερώθηκε επιτυχώς"
+    },
+    "new": {
+      "page_name": "Νέο Proxy"
+    },
+    "page_name": "Προξυ",
+    "search_label": "Αναζήτηση",
+    "search_placeholder": "Αναζήτηση μεσολαβητών ανά οικοδεσπότη..."
+  },
+  "security": {
+    "enable_2fa": {
+      "form": {
+        "authenticator_code_label": "Κωδικός Επαλήθευσης",
+        "authenticator_code_placeholder": "Εισάγετε τον 6ψήφιο κωδικό",
+        "current_password_label": "Τρέχων κωδικός πρόσβασης",
+        "current_password_placeholder": "Εισάγετε τον τρέχοντα κωδικό πρόσβασης",
+        "enable_2fa_button": "Ενεργοποίηση 2FA"
+      },
+      "messages": {
+        "2fa_active": "2FA ενεργό",
+        "2fa_disabled_successfully": "2FA απενεργοποιήθηκε επιτυχώς",
+        "2fa_enabled_successfully": "Η 2FA ενεργοποιήθηκε με επιτυχία",
+        "account_is_protected_with_2fa": "Ο λογαριασμός σας προστατεύεται με 2FA.",
+        "disable_2fa": "Απενεργοποιήστε 2FA",
+        "enter_password_to_disable_2fa": "Εισάγετε τον κωδικό πρόσβασής σας για να απενεργοποιήσετε την 2FA",
+        "failed_to_disable_2fa": "Αποτυχία απενεργοποίησης 2FA",
+        "failed_to_verify_2fa_code": "Αποτυχία επαλήθευσης κωδικού 2FA",
+        "failed_to_verify_password": "Αποτυχία επαλήθευσης κωδικού πρόσβασης ή εκκίνησης 2FA",
+        "have_enabled_2fa": "Έχετε ενεργοποιήσει την αυθεντικοποίηση δύο παραγόντων (2FA) για τον λογαριασμό σας. Προσθέτει ένα επιπλέον επίπεδο ασφαλείας.",
+        "or_enter_secret_manually": "Ή εισάγετε αυτό το μυστικό χειροκίνητα",
+        "scan_qr_code_with_authenticator_app": "Σάρωση αυτού του QR κώδικα με την εφαρμογή ελέγχου ταυτότητας",
+        "two_factor_authentication_enabled": "Αυθεντικοποίηση με δύο παράγοντες ενεργοποιημένη",
+        "user_email_not_found": "Το e‑mail του χρήστη δεν βρέθηκε"
+      }
+    },
+    "page_name": "Ασφάλεια",
+    "update_password": {
+      "form": {
+        "confirm_new_password_label": "Επιβεβαίωση νέου κωδικού",
+        "confirm_new_password_placeholder": "Εισάγετε ξανά τον νέο κωδικό πρόσβασης",
+        "new_password_label": "Νέος κωδικός",
+        "new_password_placeholder": "Εισάγετε νέο κωδικό πρόσβασης",
+        "old_password_label": "Παλαιός κωδικός πρόσβασης",
+        "old_password_placeholder": "Εισάγετε τον τρέχοντα κωδικό σας",
+        "update_password_button": "Ενημέρωση κωδικού πρόσβασης"
+      },
+      "messages": {
+        "failed_to_update_password": "Η ενημέρωση του κωδικού απέτυχε",
+        "password_updated_successfully": "Ο κωδικός πρόσβασης ενημερώθηκε με επιτυχία"
+      },
+      "title": "Αλλαγή κωδικού πρόσβασης"
+    }
+  },
+  "sendgrid": {
+    "api_key_description": "Το κλειδί API του SendGrid σας. Μπορείτε να δημιουργήσετε ένα στον λογαριασμό σας στο SendGrid, στην ενότητα Ρυθμίσεις → API κλειδιά. Βεβαιωθείτε ότι έχει δικαιώματα 'Mail Send'.",
+    "api_key_label": "Κλειδί API",
+    "bcc_email_description": "Παραλήπτες ανώνυμης αντιγραφής. Διαχωρίστε πολλαπλά email με κόμμα.",
+    "bcc_email_label": "BCC Email (Προαιρετικό)",
+    "cc_email_description": "Παραλήπτες CC. Διαχωρίστε πολλές διευθύνσεις email με κόμματα.",
+    "cc_email_label": "CC Email (Προαιρετικό)",
+    "from_email_description": "Η διεύθυνση ηλεκτρονικού ταχυδρομείου αποστολέα. Πρέπει να είναι ένας επαληθευμένος αποστολέας στον λογαριασμό SendGrid σας.",
+    "from_email_label": "Από e‑mail",
+    "subject_description": "Θέμα για το email. Υποστηρίζει Liquid templating.",
+    "subject_label": "Προσαρμοσμένο Θέμα (Προαιρετικό)",
+    "subject_variables_label": "Διαθέσιμες μεταβλητές:",
+    "subject_variables_msg": "Μήνυμα ειδοποίησης",
+    "subject_variables_name": "όνομα υπηρεσίας",
+    "subject_variables_status": "Κατάσταση υπηρεσίας (ΕΝΕΡΓΟΣ/ΚΑΤΑΒΑΘΜΟΣ)",
+    "to_email_description": "Διεύθυνση e‑mail κύριου παραλήπτη. Για πολλαπλούς παραλήπτες, χρησιμοποιήστε τα πεδία CC ή BCC.",
+    "to_email_label": "Προς email"
+  },
+  "settings": {
+    "data_retention": {
+      "days_label": "Ημέρες",
+      "description": "Ορίστε πόσες ημέρες θα διατηρηθούν τα δεδομένα (KEEP_DATA_PERIOD_DAYS).",
+      "title": "Περίοδος Διατήρησης Δεδομένων"
+    },
+    "timezone": {
+      "description": "Επιλέξτε την προτιμώμενη ζώνη ώρας για την εμφάνιση όλων των ωρών στην εφαρμογή.",
+      "label": "Ζώνη ώρας",
+      "no_timezone_found": "Δεν βρέθηκε η ζώνη ώρας.",
+      "search_placeholder": "Αναζήτηση ζώνης ώρας…",
+      "select_placeholder": "Επιλέξτε ζώνη ώρας...",
+      "title": "Ζώνη ώρας"
+    },
+    "validation": {
+      "min_days": "Πρέπει να είναι τουλάχιστον 1 ημέρα"
+    }
+  },
+  "status": {
+    "messages": {
+      "all_systems_operational": "Όλα τα συστήματα σε λειτουργία",
+      "down": "Κάτω",
+      "last_updated": "Τελευταία ενημέρωση",
+      "maintenance": "Συντήρηση",
+      "no_monitors_configured": "Δεν έχουν ρυθμιστεί παρατηρητές για αυτή τη σελίδα κατάστασης.",
+      "operational": "Λειτουργικό",
+      "partial_system_outage": "Μερική διακοπή του συστήματος",
+      "powered_by": "Παρέχεται από",
+      "refresh_in": "Ανανέωση σε",
+      "refresh_now": "Ανανέωση τώρα",
+      "status_page_not_found": "Η σελίδα κατάστασης δεν βρέθηκε ή δεν έχει δημοσιευτεί.",
+      "under_maintenance": "Σε συντήρηση",
+      "unknown": "Άγνωστο"
+    }
+  },
+  "status_pages": {
+    "affected_monitors": "Επηρεασμένοι Εποπτές",
+    "affected_monitors_info": "Επιλέξτε τους παρατηρητές που θα επηρεαστούν από αυτή τη συντήρηση",
+    "auto_refresh_interval": "Διάστημα αυτόματης ανανέωσης (δευτερόλεπτα)",
+    "basic_information": "Βασικές πληροφορίες",
+    "create_status_page": "Δημιουργία σελίδας κατάστασης",
+    "customization": "Προσαρμογή",
+    "delete_dialog": {
+      "description": "Είστε βέβαιοι ότι θέλετε να διαγράψετε το \"{{title}}\"; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
+      "title": "Διαγραφή Σελίδας Κατάστασης"
+    },
+    "description": "Εισάγετε περιγραφή σελίδας κατάστασης",
+    "domain_already_used": "Το domain {{domain}} χρησιμοποιείται ήδη από άλλη σελίδα κατάστασης",
+    "domain_host_warning": "Ο τομέας αυτός είναι ίδιος με τη διεύθυνση URL του τρέχοντος host σας. Αυτό μπορεί να προκαλέσει συγκρούσεις.",
+    "domains": "Τομείς",
+    "domains_info_warning": "Μην ξεχάσετε να προσθέσετε τις εγγραφές CNAME στο DNS για κάθε τομέα.",
+    "draft_status": "Πρόχειρο",
+    "edit_page_name": "Επεξεργασία Σελίδας Κατάστασης",
+    "messages": {
+      "create_description": "Δημιουργήστε νέα σελίδα κατάστασης για να μοιραστείτε την κατάσταση της υπηρεσίας σας με τους χρήστες.",
+      "create_your_first_status_page": "Δημιουργήστε την πρώτη σελίδα κατάστασης",
+      "created_successfully": "Η σελίδα κατάστασης δημιουργήθηκε επιτυχώς",
+      "delete_failed": "Η διαγραφή της σελίδας κατάστασης απέτυχε",
+      "deleted_successfully": "Η σελίδα κατάστασης διαγράφηκε επιτυχώς",
+      "get_started_by_creating_your_first_status_page": "Ξεκινήστε δημιουργώντας την πρώτη σας σελίδα κατάστασης.",
+      "no_status_pages_found": "Δεν βρέθηκαν σελίδες κατάστασης",
+      "not_found": "Η σελίδα κατάστασης δεν βρέθηκε",
+      "update_description": "Ενημερώστε τις ρυθμίσεις και τη διαμόρφωση της σελίδας κατάστασης.",
+      "updated_successfully": "Η σελίδα κατάστασης ενημερώθηκε επιτυχώς"
+    },
+    "new_page_name": "Νέα Σελίδα Κατάστασης",
+    "page_name": "Σελίδες Κατάστασης",
+    "published": "Δημοσιευμένο",
+    "published_info": "Κάντε αυτή τη σελίδα κατάστασης δημόσια",
+    "published_status": "Δημοσιευμένο",
+    "search_label": "Αναζήτηση",
+    "search_placeholder": "Αναζήτηση σελίδων κατάστασης με τίτλο…",
+    "update_status_page": "Ενημέρωση Σελίδας Κατάστασης",
+    "view_page": "Προβολή σελίδας"
+  },
+  "tags": {
+    "confirm_delete_description": "Αυτή η ενέργεια δεν μπορεί να αναιρεθεί. Αυτό θα διαγράψει μόνιμα την ετικέτα \"{{name}}\" και θα την αφαιρέσει από όλες τις παρακολουθήσεις.",
+    "edit_page_name": "Επεξεργασία ετικέτας",
+    "empty_state": {
+      "action": "Δημιουργήστε την πρώτη ετικέτα",
+      "description": "Ξεκινήστε δημιουργώντας την πρώτη ετικέτα για να οργανώσετε τους ελέγχους σας.",
+      "title": "Δεν βρέθηκαν ετικέτες"
+    },
+    "form": {
+      "color_description": "Επιλέξτε χρώμα για την ετικέτα σας",
+      "color_label": "Χρώμα",
+      "create_button": "Δημιουργία ετικέτας",
+      "description_label": "Περιγραφή",
+      "description_placeholder": "Εισάγετε περιγραφή ετικέτας (προαιρετικά)",
+      "name_label": "Όνομα",
+      "name_placeholder": "Εισάγετε όνομα ετικέτας",
+      "update_button": "Ενημέρωση ετικέτας"
+    },
+    "messages": {
+      "create_description": "Δημιουργήστε μια νέα ετικέτα για να οργανώσετε και να κατηγοριοποιήσετε τους ελεγκτές σας.",
+      "failed_to_load_tag": "Η φόρτωση ετικέτας απέτυχε. Η ετικέτα ενδέχεται να μην υπάρχει ή δεν έχετε δικαίωμα προβολής της.",
+      "tag_id_required": "Απαιτείται ID ετικέτας",
+      "update_description": "Ενημερώστε τις λεπτομέρειες της ετικέτας για να οργανώσετε καλύτερα τις παρακολουθήσεις σας."
+    },
+    "new_page_name": "Νέα ετικέτα",
+    "search_placeholder": "Αναζήτηση ετικετών..."
+  },
+  "theme": {
+    "dark": "Σκοτεινό",
+    "light": "Ανοιχτό",
+    "system": "Σύστημα",
+    "toggle_theme": "Εναλλαγή θέματος"
+  },
+  "timezone": {
+    "average": "Μέσος",
+    "last_24_hours": "Τελευταίες 24 ώρες",
+    "last_3_hours": "Τελευταίες 3 ώρες",
+    "last_3_months": "Τελευταίοι 3 μήνες",
+    "last_30_minutes": "Τελευταία 30 λεπτά",
+    "last_6_hours": "Τελευταίες 6 ώρες",
+    "last_7_days": "Τελευταίες 7 ημέρες",
+    "maximum": "Μέγιστο",
+    "minimum": "Ελάχιστο",
+    "ms": "ms",
+    "response_time": "Χρόνος Απόκρισης",
+    "uptime": "Διαθεσιμότητα"
+  },
+  "ui": {
+    "general": "Γενικά",
+    "intervals_retries": "Διάστημα, Προσπάθειες, Timeout"
+  }
+}

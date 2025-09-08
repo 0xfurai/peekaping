@@ -1,0 +1,1281 @@
+{
+  "actions": {
+    "cancel": "Atšaukti",
+    "saving": "Išsaugoma..."
+  },
+  "auth": {
+    "login": {
+      "description": "Prisijunkite su el. paštu",
+      "no_account": "Neturite paskyros?",
+      "sign_up": "Registruotis",
+      "submit": "Prisijungti",
+      "title": "Sveiki atvykę"
+    },
+    "register": {
+      "description": "Sukurkite savo administratoriaus paskyrą",
+      "have_account": "Ar jau turite paskyrą?",
+      "sign_in": "Prisijungti",
+      "submit": "Sukurti",
+      "title": "Sveiki"
+    },
+    "twofa": {
+      "code_label": "2FA kodas",
+      "code_placeholder": "Įveskite 2FA kodą",
+      "description": "2FA yra įjungta jūsų sąskaitoje. Prašome įvesti savo autentifikacijos kodą, kad tęstumėte.",
+      "title": "Dviejų veiksnių autentifikacija reikalaujama",
+      "verify_button": "Patvirtinti 2FA",
+      "verifying": "Patikrinama..."
+    }
+  },
+  "bars": {
+    "down_count": "Neveikimo skaičius",
+    "important": "Svarbu",
+    "interval": "Intervalas",
+    "message": "Žinutė",
+    "ms": "ms",
+    "notified": "Pranešta",
+    "ping": "Ping",
+    "retries": "Bandymai",
+    "status": "Būsena",
+    "time": "Laikas"
+  },
+  "common": {
+    "active": "Aktyvus",
+    "all": "Visi",
+    "back": "Atgal",
+    "cancel": "Atšaukti",
+    "clear_all": "Išvalyti viską",
+    "clear_all_filters": "Išvalyti visus filtrus",
+    "confirm": "Patvirtinti",
+    "confirm_delete_title": "Ar tikrai esate tikri?",
+    "confirm_delete_title_short": "Ar tikrai?",
+    "continue": "Tęsti",
+    "create": "Sukurti",
+    "created": "Sukurtas",
+    "days": "dienos",
+    "default": "Numatytasis",
+    "delete": "Ištrinti",
+    "disabling": "Išjungimas...",
+    "dismiss": "Atšaukti",
+    "down": "Žemyn",
+    "enabling": "Įjungiamas...",
+    "error": "Klaida",
+    "expires": "Sibaigia",
+    "inactive": "Neaktyvus",
+    "loading": "Įkeliama...",
+    "logout": "Atsijungti",
+    "maintenance": "Priežiūra",
+    "no_options_found": "Nerasta galimų variantų",
+    "no_tags_available": "Žymų nėra",
+    "please_refresh_page": "Prašome atnaujinti puslapį.",
+    "required": "Privaloma",
+    "save": "Išsaugoti",
+    "saving": "Išsaugoma...",
+    "search": "Paieška",
+    "security": "Saugumas",
+    "select": "Pasirinkti",
+    "select_monitors": "Pasirinkite monitorius...",
+    "select_tags": "Pasirinkti etiketės",
+    "settings": "Nustatymai",
+    "tags": "Žymos",
+    "unknown": "Nežinomas",
+    "unnamed_monitor": "Neįvardytas monitorius",
+    "up": "Veikia",
+    "update": "Atnaujinti",
+    "verifying": "Tikrinama..."
+  },
+  "forms": {
+    "labels": {
+      "confirm_password": "Patvirtinkite slaptažodį",
+      "email": "El. paštas",
+      "footer_text": "Poraštės tekstas",
+      "heartbeat_interval": "Sirdžių intervalas (sekundės)",
+      "icon_url": "Piktogramos URL",
+      "monitor_name": "Pavadinimas",
+      "monitor_type": "Tipas",
+      "password": "slaptažodis",
+      "retries": "Bandymai",
+      "slug": "Slugas",
+      "title": "Pavadinimas",
+      "username": "Vartotojo vardas"
+    },
+    "placeholders": {
+      "auto_refresh_help": "0 – be automatinio atnaujinimo",
+      "domains": "Įveskite domeną (pvz., status.example.com)",
+      "footer_text": "Įveskite poraštės tekstą",
+      "icon_url": "https://example.com/icon.png",
+      "monitor_name": "Mano stebėtojas",
+      "page_description": "Įveskite puslapio būsenos aprašymą",
+      "page_title": "Įveskite statuso puslapio pavadinimą",
+      "slug": "statuso puslapio slug"
+    },
+    "validation": {
+      "email_invalid": "Įveskite galiojantį el. pašto adresą",
+      "password_min_length": "Slaptažodis turi būti ne trumpesnis nei 8 simboliai.",
+      "passwords_mismatch": "Slaptažodžiai nesutampa"
+    }
+  },
+  "maintenance": {
+    "card": {
+      "aria": {
+        "delete": "Ištrinti {{title}}",
+        "pause": "Pristabdyti priežiūrą",
+        "resume": "Tęsti priežiūrą"
+      },
+      "labels": {
+        "duration": "{{duration}} min",
+        "end": "Pabaiga: {{date}}",
+        "start": "Pradžia: {{date}}"
+      },
+      "status": {
+        "active": "Aktyvus",
+        "ended": "Baigta",
+        "inactive": "Neaktyvus"
+      }
+    },
+    "edit_title": "Redaguoti prižiūrą",
+    "form": {
+      "affected_monitors_description": "Pasirinkite monitorius, kurie bus paveikti šiuo prižiūriminio laikotarpiu",
+      "affected_monitors_title": "Paveikti monitoriai",
+      "cron_description": "Įveskite tinkamą cron išraišką",
+      "cron_expression": "Cron išraiška",
+      "date_time_title": "Data ir laikas",
+      "day_of_month": "Mėnesio diena",
+      "day_of_week": "Savaitės diena",
+      "description_label": "Aprašymas",
+      "description_placeholder": "Priežiūros aprašymas...",
+      "duration_minutes": "Trukmė (minutės)",
+      "effective_date_range": "Galiojimo datų diapazonas (neprivaloma)",
+      "end_date_time": "Pabaigos data ir laikas",
+      "end_time": "Pabaigos laikas",
+      "interval_label": "Intervalas (Vykdyti vieną kartą per dieną)",
+      "last_day": "Paskutinė diena",
+      "last_day_of_month": "Mėnesio paskutinė diena",
+      "maintenance_time_window": "Dienos Priežiūros Laiko Intervalas",
+      "markdown_supported": "Markdown palaikomas",
+      "same_as_server": "Taip pat kaip serverio laiko juosta",
+      "start_date_time": "Pradžios data ir laikas",
+      "start_time": "Pradžios laikas",
+      "strategy_label": "Strategija",
+      "strategy_placeholder": "Pasirinkite strategiją",
+      "timezone_label": "Laiko juosta",
+      "timezone_placeholder": "Pasirinkti laiko juostą",
+      "title_label": "Pavadinimas",
+      "title_placeholder": "Priežiūros pavadinimas"
+    },
+    "page": {
+      "clear_filters": "Išvalyti visus filtrus",
+      "dialogs": {
+        "confirm_action": {
+          "pause_description": "Ar tikrai norite pristabdyti šį priežiūros laikotarpį?",
+          "resume_description": "Ar tikrai norite tęsti šią priežiūrą?",
+          "title": "Patvirtinti veiksmą"
+        },
+        "confirm_delete": {
+          "description": "Ar tikrai norite ištrinti šį priežiūros laikotarpį? Ši veiksmas negali būti atšauktas.",
+          "title": "Patvirtinti ištrynimą"
+        }
+      },
+      "edit_maintenance": "Redaguoti priežiūros periodą: {{title}}",
+      "empty_state": {
+        "action": "Sukurkite savo pirmą priežiūros laikotarpį",
+        "description": "Pradėkite sukūrę savo pirmą priežiūros periodą, kad išvengtumėte planuojamų gedimų.",
+        "title": "Priežiūros periodų nerasta"
+      },
+      "error_loading": "Klaida įkeliant priežiūrą",
+      "loading": "Įkeliama…",
+      "loading_monitors": "Kraunami monitoriai...",
+      "search_placeholder": "Ieškoti priežiūros..."
+    },
+    "page_title": "Priežiūros laikotarpiai",
+    "schedule_title": "Planuoti priežiūrą",
+    "strategy": {
+      "cron": "Cron išraiška",
+      "manual": "Aktyvus / neaktyvus rankiniu būdu",
+      "recurring_day_of_month": "Kartojantis - Mėnesio diena",
+      "recurring_interval": "Pakartojantis - intervalas",
+      "recurring_weekday": "Kartojantis - savaitės diena",
+      "single": "Vienas priežiūros langas"
+    },
+    "toasts": {
+      "create_error": "Sukurti priežiūrą nepavyko",
+      "created_success": "Priežiūra sėkmingai sukurta",
+      "delete_error": "Nepavyko ištrinti priežiūros",
+      "deleted_success": "Priežiūra sėkmingai ištrinta",
+      "pause_error": "Pristabdymas nepavyko",
+      "paused_success": "Priežiūra sėkmingai pristabdyta",
+      "resume_error": "Negalima pratęsti priežiūros",
+      "resumed_success": "Priežiūra sėkmingai pratęsta",
+      "toggle_error": "Neįmanoma perjungti priežiūros statuso: trūksta ID",
+      "update_error": "Nepavyko atnaujinti priežiūros",
+      "updated_success": "Priežiūra atnaujinta sėkmingai"
+    },
+    "weekdays": {
+      "fri": "Penkt.",
+      "mon": "Pr",
+      "sat": "Š",
+      "sun": "Sek",
+      "thu": "ktv",
+      "tue": "Antr.",
+      "wed": "Tre"
+    }
+  },
+  "messages": {
+    "login_error": "Prisijungimo metu įvyko klaida",
+    "login_no_tokens": "Prisijungimas sėkmingas, bet tokenai nebuvo gauti.",
+    "login_success": "Prisijungėte sėkmingai",
+    "notifier_delete_error": "Negalima ištrinti pranešimo priemonės",
+    "notifier_delete_success": "Notifikatorius sėkmingai pašalintas",
+    "register_error": "Registracijos metu įvyko klaida",
+    "register_no_tokens": "Registracija sėkminga, tačiau tokenų negaunate",
+    "register_success": "Registracija sėkminga",
+    "setting_update_error": "Nustatymo atnaujinimas nepavyko",
+    "setting_update_success": "Nustatymas sėkmingai atnaujintas",
+    "tag_create_error": "Negalima sukurti žymos",
+    "tag_create_success": "Žyma sėkmingai sukurta",
+    "tag_delete_error": "Ištrinti etiketę nepavyko",
+    "tag_delete_success": "Žyma ištrinta sėkmingai",
+    "tag_update_error": "Neįmanoma atnaujinti žymos",
+    "tag_update_success": "Etiketė sėkmingai atnaujinta",
+    "unexpected_error": "Įvyko netikėta klaida",
+    "version_mismatch": "Versijos neatitikimas aptiktas"
+  },
+  "monitors": {
+    "card": {
+      "check_interval": "Patikrinimo intervalas:",
+      "loading_more": "Įkeliama daugiau..."
+    },
+    "empty_state": {
+      "action": "Sukurkite pirmą monitorių",
+      "description": "Pradėkite, sukūrę savo pirmąjį stebėsenos įrašą, ir stebėkite paslaugų būklę.",
+      "title": "Nerasta monitorių"
+    },
+    "filtering_by_tags": "Filtravimas pagal žymas",
+    "filters": {
+      "monitor_status": "Būsena",
+      "monitor_status_placeholder": "Stebėjimo būsena",
+      "search_placeholder": "Ieškoti monitorių pagal pavadinimą...",
+      "status_placeholder": "Būklė"
+    },
+    "form": {
+      "buttons": {
+        "copied": "Nukopijuota!",
+        "copy": "Kopijuoti",
+        "create": "Sukurti",
+        "regenerate": "Regeneruoti",
+        "update": "Atnaujinti"
+      },
+      "dns": {
+        "hostname": "Serverio vardas",
+        "port": "Portas",
+        "record_type": "Resursų įrašo tipas",
+        "record_type_placeholder": "Pasirinkite įrašo tipą",
+        "resolver_server": "Išsprendimo serveris",
+        "title": "DNS nustatymai"
+      },
+      "docker": {
+        "ca_cert_description": "Įklijuokite savo CA sertifikatą PEM formatu.",
+        "ca_certificate": "CA sertifikatas (PEM)",
+        "client_cert_description": "Įklijuokite savo kliento liudijimą PEM formatu. Tai naudojama abipusiam TLS autentifikavimui.",
+        "client_certificate": "Kliento sertifikatas (PEM)",
+        "client_private_key": "Kliento privatinis raktas (PEM)",
+        "common_tls_issues": "Bendros TLS problemos:",
+        "connection_type": "Ryšio tipas",
+        "container_name_id": "Konteinerio vardas/ID",
+        "disabled": "Išjungta",
+        "docker_container": "Docker konteineris",
+        "docker_host": "Docker Hostas",
+        "enable_tls": "Įjungti TLS",
+        "enabled": "Įjungta",
+        "examples": "Pavyzdžiai",
+        "hostname_mismatch": "\"x509: liudijimas galioja X, o ne Y\":",
+        "hostname_mismatch_solution": "Įsitikinkite, kad serverio vardas atitinka sertifikato SAN arba išjunkite patikrinimą (nepatartina).",
+        "legacy_cert_error": "x509: sertifikatas remiasi senameno Common Name lauku:",
+        "legacy_cert_solution": "Pridėkite domeną prie Subjekto alternatyvių vardų (SAN) savo sertifikate.",
+        "mtls_note": "Dėl abipusio TLS (mTLS), jums reikia pateikti tiek kliento liudijimą, tiek privatus raktą. CA liudijimas naudojamas patvirtinti serverio liudijimą.",
+        "note": "Pastaba:",
+        "private_key_description": "Įdėkite savo privatus raktą PEM formatu. Laikyti šį raktą saugiai!",
+        "select_connection_type": "Pasirinkite ryšio tipą",
+        "select_tls_option": "Pasirinkti TLS parinktį",
+        "select_verification_option": "Pasirinkite patikrinimo parinktį",
+        "skip_verification": "Praleisti patikrinimą (nesaugus)",
+        "tls_configuration": "TLS Konfigūracija",
+        "unknown_authority": "\"x509: sertifikatas pasirašytas nepažįstamo autoriteto\"",
+        "unknown_authority_solution": "Pateikite tinkamą CA sertifikatą, kuris pasirašė serverio sertifikatą.",
+        "verify_certificates": "Patikrinkite sertifikatus",
+        "verify_tls": "Patikrinti TLS"
+      },
+      "grpc": {
+        "body": "Kūno duomenys (JSON)",
+        "enable_tls": "Įjungti TLS",
+        "enable_tls_description": "Naudoti saugų ryšį (TLS/SSL)",
+        "invert_keyword": "Apversti raktažodį",
+        "invert_keyword_description": "Monitorius bus pažymėtas kaip VEIKSMINGAS, jei raktinis žodis nebus rastas.",
+        "keyword": "Raktažodis",
+        "keyword_description": "Ieškokite šio raktinio žodžio atsakyme",
+        "keyword_placeholder": "Raktinis žodis (neprivalomas)",
+        "method_description": "Didžiosios raidės svarbios",
+        "method_placeholder": "Patikrinti",
+        "options_title": "gRPC parinktys",
+        "proto_content": "Protobuf turinys",
+        "proto_method": "Protobuf metodas",
+        "proto_service_name": "Protobuf paslaugos vardas",
+        "service_name_placeholder": "Sveikata"
+      },
+      "http": {
+        "advanced": {
+          "accepted_status_codes": "Priimti būsenos kodai",
+          "ignore_tls": "Ignoruoti TLS/SSL klaidas HTTPS svetainėms",
+          "ignore_tls_description": "Praleisti TLS sertifikato patikrinimą. Naudokite atsargiai – tai sumažina ryšių saugumą.",
+          "max_redirects": "Maksimalus nukreipimų skaičius",
+          "max_redirects_description": "Maksimalus peradresavimų, kuriuos sekti, skaičius (0–30). Įveskite 0, norėdami išjungti peradresavimus.",
+          "title": "Išplėstiniai"
+        },
+        "authentication": {
+          "auth_header": "Autorizacijos antraštė",
+          "certificate": "Sertifikatas",
+          "certificate_placeholder": "Sertifikatas",
+          "client_id": "Kliento ID",
+          "client_id_placeholder": "Kliento ID",
+          "client_secret": "Kliento slaptažodis",
+          "client_secret_placeholder": "Kliento slaptasis raktas",
+          "domain": "Domenas",
+          "domain_placeholder": "Domenas",
+          "form_data_body": "Formos duomenų kūnas",
+          "key": "Raktas",
+          "key_placeholder": "Raktas",
+          "method_label": "Autentifikavimo metodas",
+          "method_placeholder": "Pasirinkite autentifikacijos tipą",
+          "oauth_scope": "OAuth sritis",
+          "oauth_scope_placeholder": "Neprivaloma: su tarpu atskirtų aprėpės sąrašas",
+          "oauth_token_url": "OAuth žetono URL",
+          "oauth_token_url_placeholder": "OAuth žetono URL",
+          "title": "Autentifikacija",
+          "workstation": "Darbinė stotis",
+          "workstation_placeholder": "Darbinė stotis"
+        },
+        "options": {
+          "body": "Kūnas",
+          "body_encoding": "Turinio kodavimas",
+          "body_encoding_placeholder": "Pasirinkite turinio kodavimą",
+          "form_example": "Pavyzdinė formos duomenys",
+          "headers": "Antraštės",
+          "json_example": "JSON pavyzdys",
+          "method": "Metodas",
+          "method_placeholder": "Pasirinkite monitoro tipą",
+          "select_encoding": "Pasirinkite kūno koduotę",
+          "select_method": "Pasirinkite metodą",
+          "text_example": "Pavyzdinis tekstas: bet kuris paprastas teksto turinys čia...",
+          "title": "HTTP parinktys",
+          "xml_example": "XML pavyzdys"
+        }
+      },
+      "http_json_query": {
+        "condition_label": "Sąlyga",
+        "expected_value_label": "Numatyta reikšmė",
+        "json_query_label": "JSON užklausos išraiška",
+        "title": "JSON užklausos išraiška"
+      },
+      "http_keyword": {
+        "invert_keyword_description": "Ieškokite, kad raktinis žodis nebūtų, o ne būtų.",
+        "invert_keyword_label": "Apversti raktą",
+        "keyword_label": "Raktažodis",
+        "keyword_validation_title": "Raktinių žodžių patvirtinimas"
+      },
+      "kafka": {
+        "add_broker": "Pridėti brokerį",
+        "auto_topic_creation_description": "Leisti gamintojui automatiškai sukurti temą, jei ji neegzistuoja.",
+        "auto_topic_creation_label": "Leisti automatinį temų sukūrimą",
+        "brokers_description": "Kafka brokerio adresų sąrašas (host:port formatas)",
+        "brokers_label": "Kafka brokeriai",
+        "configuration_title": "Kafka Konfigūracija",
+        "enable_ssl_description": "Naudokite SSL/TLS šifravimą ryšiui",
+        "enable_ssl_label": "Įgalinti SSL/TLS",
+        "message_description": "Pranešimo turinys, siunčiamas į temą (rekomenduojamas JSON formatas)",
+        "message_label": "Pranešimas",
+        "sasl_mechanism_description": "Pasirinkite SASL tapatybės patvirtinimo mechanizmą",
+        "sasl_mechanism_label": "SASL mechanizmas",
+        "sasl_mechanism_placeholder": "Pasirinkite SASL mechanizmą",
+        "sasl_password_description": "SASL autentifikavimo slaptažodis",
+        "sasl_password_label": "SASL slaptažodis",
+        "sasl_password_placeholder": "slaptažodis",
+        "sasl_username_description": "SASL autentifikavimo vartotojo vardas",
+        "sasl_username_label": "SASL vartotojo vardas",
+        "security_title": "Saugumas",
+        "topic_description": "Kafka tema, į kurią bus siunčiami pranešimai"
+      },
+      "mongodb": {
+        "command_description": "MongoDB komanda, kurią vykdyti JSON formatu. Jei neapibrėžta, numatyta ping.",
+        "command_label": "Komanda (neprivaloma)",
+        "configuration_title": "MongoDB Konfigūracija",
+        "connection_string_description": "MongoDB jungties eilutė. Palaiko tiek standartinį (mongodb://), tiek DNS seedlist (mongodb+srv://) formatą.",
+        "connection_string_label": "Ryšio eilutė",
+        "expected_value_description": "Numatoma reikšmė, su kuria lyginamas JSON kelio rezultatas.",
+        "expected_value_label": "Numatoma vertė (neprivaloma)",
+        "expected_value_placeholder": "Numatoma vertė",
+        "json_path_description": "JSON kelias, skirtas išgauti reikšmę iš atsakymo. Naudokite $ pagrindiniam lygmeniu.",
+        "json_path_label": "JSON Path (neprivaloma)"
+      },
+      "mqtt": {
+        "check_type_json_query": "JSON užklausa",
+        "check_type_keyword": "Raktinis žodis",
+        "check_type_label": "MQTT patikros tipas",
+        "check_type_none": "Nėra (Bet koks pranešimas)",
+        "check_type_placeholder": "Pasirinkite tikrinimo tipą",
+        "configuration_title": "MQTT konfigūracija",
+        "expected_value_label": "Numatoma reikšmė",
+        "hostname_label": "Serverio vardas",
+        "json_path_label": "JSON kelias",
+        "password_label": "MQTT slaptažodis",
+        "password_placeholder": "Slaptažodis (neprivaloma)",
+        "port_label": "Portas",
+        "success_keyword_label": "MQTT Sėkmės raktas",
+        "success_keyword_placeholder": "Sėkmės rakto žodis",
+        "username_label": "MQTT naudotojo vardas",
+        "username_placeholder": "Naudotojo vardas (neprivalomas)",
+        "validation": {
+          "expected_value_required": "Būtina nurodyti laukiamą reikšmę, kai patikrinimo tipas yra json-query",
+          "json_path_required": "JSON kelias yra būtinas, kai patikrinimo tipas yra json-query.",
+          "success_keyword_required": "Sėkmės raktinis žodis būtinas, kai tikrinimo tipas yra raktinis žodis."
+        }
+      },
+      "mysql": {
+        "connection_string_examples": "Pavyzdžiai:",
+        "connection_string_label": "Ryšio eilutė",
+        "connection_title": "MySQL ryšys",
+        "query_label": "Užklausa"
+      },
+      "ping": {
+        "data_size": "Duomenų dydis (baitai)",
+        "host": "Vardas / IP",
+        "title": "Ping nustatymai"
+      },
+      "postgres": {
+        "connection_string_label": "Ryšio eilutė",
+        "connection_title": "PostgreSQL ryšys",
+        "query_label": "Užklausa"
+      },
+      "push": {
+        "url_description": "Naudokite šį URL savo paslaugai, kad praneštumėte apie būseną. Atmoka HTTP užklausą (POST/GET) šiam galiniam taškui, kad išsiųstumėte širdies ritmą.",
+        "url_title": "Push stebėtojo URL"
+      },
+      "rabbitmq": {
+        "documentation_link": "RabbitMQ dokumentacija",
+        "health_checks_description": "Monitorius patikrina {{code}} galutinį tašką kiekviename mazge ir grąžina UP, jei bent vienas mazgas veikia.",
+        "management_nodes_description": "Įveskite RabbitMQ valdymo mazgų URL, įskaitant protokolą ir portą. Pavyzdys: https://node1.rabbitmq.com:15672",
+        "management_nodes_title": "Valdymo mazgai",
+        "node_url_label": "Nodo URL",
+        "password_description": "RabbitMQ valdymo sąsajos autentifikacijos slaptažodis",
+        "setup_information_description": "Norėdami naudoti RabbitMQ monitorių, turite įjungti valdymo įskiepio (Management Plugin) funkciją savo RabbitMQ nustatymuose. Daugiau informacijos rasite RabbitMQ dokumentacijoje.",
+        "setup_information_title": "Nustatymų informacija",
+        "title": "RabbitMQ konfigūracija",
+        "username_description": "Vartotojo vardas RabbitMQ valdymo sąsajos autentifikavimui"
+      },
+      "redis": {
+        "ca_certificate_description": "Root CA sertifikatas PEM formatu. Reikalingas tinkamam TLS patikrinimui su savęs pasirašytais sertifikatais.",
+        "ca_certificate_label": "CA sertifikatas (neprivalomas)",
+        "client_certificate_description": "Kliento liudijimas PEM formatu. Reikalingas abipusiam TLS autentifikavimui.",
+        "client_certificate_label": "Kliento sertifikatas (neprivaloma)",
+        "client_key_description": "Kliento privatus raktas PEM formatu. Turi būti pateiktas kartu su kliento sertifikatu.",
+        "client_key_label": "Kliento privatinis raktas (neprivaloma)",
+        "connection_string_description": "Redis prisijungimo grandinės formatas: {{redis}} arba {{rediss}} TLS",
+        "connection_string_label": "Ryšio eilutė",
+        "ignore_tls_description": "Praleisti TLS sertifikato patikrinimą (nepatartina gamybos aplinkoje)",
+        "ignore_tls_label": "Ignoruoti TLS/SSL klaidas",
+        "title": "Redis konfigūracija"
+      },
+      "shared": {
+        "intervals": {
+          "heartbeat_retry": "Širdies ritmų bandymo intervalas (bandykite kas {{seconds}} sekundžių)",
+          "max_retries_description": "Maksimalus bandymų skaičius, kol paslauga pažymima neveikiančia ir siunčiamas pranešimas.",
+          "request_timeout": "Užklausos timeout (Baigiasi po {{seconds}} sekundžių)",
+          "resend_notification": "Persiųsti pranešimą, jei neveikia X kartus iš eilės (Persiuntimas išjungtas)"
+        },
+        "notifications": {
+          "add_notifier": "Pridėti pranešimo kanalą",
+          "new_notifier": "+ Naujas pranešėjas",
+          "no_channels": "Nerasta pranešimų kanalų, pirmiausia sukurkite vieną.",
+          "no_channels_available": "Nėra kanalų",
+          "select_channel": "Pasirinkite kanalą",
+          "select_notifier_placeholder": "Pasirinkite notifikatorių",
+          "selected_channels": "Pasirinkti pranešimų kanalai",
+          "title": "Pranešimų kanalai"
+        },
+        "proxy": {
+          "add_proxy": "Pridėti proxy",
+          "new_proxy": "+ Naujas proxy",
+          "no_proxy": "Nėra tarpininko",
+          "remove_proxy": "Pašalinti proksi",
+          "select_proxy_placeholder": "Pasirinkite tarpinį serverį",
+          "selected_proxy": "Pasirinktas tarpininkas",
+          "title": "Proksi"
+        },
+        "tags": {
+          "label": "Žymės",
+          "no_tags": "Nėra žymių",
+          "placeholder": "Pasirinkite žymas"
+        }
+      },
+      "snmp": {
+        "community_description": "SNMP bendrijos eilutė, naudojama autentifikavimui (pavyzdžiui, kaip slaptažodis)",
+        "community_label": "Bendrosios grupės eilutė",
+        "expected_value_description": "Reikšmė, su kuria lyginama. Palikite tuščią, jei norite praleisti patikrinimą.",
+        "expected_value_label": "Tikėtina reikšmė",
+        "host_description": "SNMP įrenginio vardas arba IP adresas",
+        "host_label": "Serveris",
+        "json_path_description": "JSONPath išraiška, naudojama išgauti reikšmę iš atsakymo (naudokite \"$\" neapdorotai reikšmei)",
+        "json_path_label": "JSON kelias",
+        "json_path_operator_description": "Kaip palyginti išgautą reikšmę su tikėtina reikšme",
+        "json_path_operator_eq": "lygiai",
+        "json_path_operator_ge": "daugiau ar lygiai",
+        "json_path_operator_gt": "daugiau nei",
+        "json_path_operator_label": "Sąlyga",
+        "json_path_operator_le": "mažiau arba lygu",
+        "json_path_operator_lt": "mažiau už",
+        "json_path_operator_ne": "ne lygus",
+        "oid_description": "SNMP objekto identifikatorius, kurį norite užklausti (pvz., 1.3.6.1.2.1.1.1.0 – sistemos aprašymui)",
+        "oid_label": "OID (Objekto identifikatorius)",
+        "port_description": "SNMP prievadas (numatytas: 161)",
+        "port_label": "Portas",
+        "snmp_version_description": "Naudojama SNMP protokolo versija",
+        "snmp_version_label": "SNMP versija",
+        "title": "SNMP nustatymai",
+        "value_validation_label": "Vertės patikrinimas (neprivaloma)"
+      },
+      "sqlserver": {
+        "allowed_statements_description": "SELECT, SHOW, DESCRIBE, EXPLAIN, WITH, ir VALUES.",
+        "allowed_statements_label": "Leidžiamieji užklausų sakiniai:",
+        "connection_string_label": "Ryšio eilutė",
+        "query_description": "Užklausa, kurią vykdyti sveikatos patikrinimui. Palikite tuščią, norėdami naudoti numatytąjį.",
+        "query_label": "Užklausa",
+        "title": "Microsoft SQL Server jungtis"
+      },
+      "tcp": {
+        "host": "Sritis",
+        "port": "Portas",
+        "title": "TCP ryšys"
+      },
+      "type": {
+        "dns": "DNS stebėjas",
+        "docker": "Docker konteineris",
+        "grpc": "gRPC raktinių žodžių monitorius",
+        "http": "HTTP(S) stebėjas",
+        "kafka": "Kafka gamintojo monitorius",
+        "mongodb": "MongoDB duomenų bazės monitorius",
+        "mqtt": "MQTT brokerio monitorius",
+        "mysql": "MySQL/MariaDB stebėtojas",
+        "ping": "Ping stebėtojas (ICMP)",
+        "postgres": "PostgreSQL duomenų bazės stebėjas",
+        "push": "Push monitorius (išorinė paslauga iškviečia sugeneruotą URL)",
+        "rabbitmq": "RabbitMQ stebėtojas",
+        "redis": "Redis duomenų bazės monitorius",
+        "snmp": "SNMP stebėjas",
+        "sqlserver": "Microsoft SQL Server stebėjas",
+        "tcp": "TCP prievadų monitorius"
+      }
+    },
+    "page": {
+      "description": "Sukurkite naują monitorių, kad pradėtumėte stebėti savo svetainės našumą.",
+      "edit_title": "Redaguoti stebėtoją:",
+      "new_title": "Naujas stebėjas"
+    },
+    "title": "Stebėjimo įrenginiai",
+    "toasts": {
+      "deleted": "Monitorius pašalintas",
+      "paused": "Stebėjimas pristabdytas",
+      "reset_success": "Monitorio duomenys sėkmingai atstatyti",
+      "resumed": "Monitoringas tęsiamas"
+    },
+    "view": {
+      "buttons": {
+        "clone": "Klonuoti",
+        "delete": "Ištrinti",
+        "edit": "Redaguoti",
+        "pause": "Pauzė",
+        "reset_data": "Išvalyti duomenis",
+        "resume": "Tęsti"
+      },
+      "certificate": "Sertifikatas",
+      "check_every": "Tikrink kas",
+      "current_status": "Dabartinė būsena",
+      "dialogs": {
+        "delete": {
+          "description": "Šis veiksmas negali būti atšauktas. Tai galutinai ištrins steigimą ir visus susijusius duomenis.",
+          "title": "Ar tikrai esate įsitikinę?"
+        },
+        "pause": {
+          "description": "Ar tikrai norite pristabdyti?",
+          "title": "Patvirtinimas"
+        },
+        "reset": {
+          "description": "Tai negrįžtamai ištrins visą šio stebėtuvo širdinio veikimo istoriją ir veikimo laiko statistiką. Stebėtojas atrodo, tarsi būtų tik sukurtas. Ši operacija negali būti atšaukta.",
+          "title": "Atstatyti monitoro duomenis"
+        }
+      },
+      "expiring_soon": "Artėja baigti",
+      "for": "skirta",
+      "live_status": "Gyva būsena",
+      "monitor_for": "Steigti",
+      "no_certificate_data": "Nėra sertifikato duomenų",
+      "seconds": "sekundės",
+      "stats": {
+        "last_24_hours": "Paskutinės 24 valandos",
+        "last_30_days": "Pastarųjų 30 dienų",
+        "last_365_days": "paskutiniai 365 dienų",
+        "last_7_days": "Paskutiniai 7 dienų"
+      },
+      "status": {
+        "down": "Neveikia",
+        "maintenance": "Priežiūra",
+        "paused": "Pristabdytas",
+        "up": "Veikia"
+      }
+    }
+  },
+  "navigation": {
+    "maintenance": "Priežiūra",
+    "monitors": "Monitoriai",
+    "notification_channels": "Pranešimo kanalai",
+    "proxies": "Tarpiniai serveriai",
+    "settings": "Nustatymai",
+    "status_pages": "Statuso puslapiai",
+    "tags": "Žymos"
+  },
+  "notifications": {
+    "actions": {
+      "test": "Testuoti",
+      "testing": "Testuojama..."
+    },
+    "aria": {
+      "delete": "Ištrinti {{name}}"
+    },
+    "confirm_delete_description": "Ši veiksmas negali būti atšauktas. Tai negrįžtamai ištrins pranešimo sistemą \"{{name}}\" ir pašalins ją iš visų stebėsenų, kurios jos naudoja.",
+    "create_title": "Sukurti pranešėją",
+    "edit_channel_title": "Redaguoti pranešimų kanalą",
+    "edit_title": "Redaguoti pranešimų siuntėją",
+    "empty_state": {
+      "action": "Sukurkite pirmą pranešimų kanalą",
+      "description": "Pradėkite, sukuriant savo pirmą įspėjimo kanalą, kad galėtumėte siųsti įspėjimus komandai.",
+      "title": "Nerasta pranešimų kanalų"
+    },
+    "form": {
+      "discord": {
+        "bot_display_name_description": "Vardas, kuris bus rodomas kaip Discord žinučių siuntėjas.",
+        "bot_display_name_label": "Bot rodomasis vardas",
+        "custom_message_prefix_description": "Pasirinktinai pridėtinė priešdėlis, kuris bus pridėtas prie visų žinučių pradžios.",
+        "custom_message_prefix_label": "Pasirinktinė pranešimo priešdėlis",
+        "custom_message_prefix_placeholder": "Neprivaloma: Pridėkite priešdėlį prie savo žinutės",
+        "forum_post_name_description": "Naujo forumo įrašo pavadinimas, kuris bus sukurtas.",
+        "forum_post_name_label": "Forumo įrašo pavadinimas",
+        "forum_post_name_placeholder": "Įveskite forumo įrašo pavadinimą",
+        "sending_message_to_channel": "Siųsti į kanalą",
+        "sending_message_to_description": "Pasirinkite, kur norite siųsti Discord žinutes.",
+        "sending_message_to_label": "Siunčiama žinutė į",
+        "sending_message_to_new_forum_post": "Siųsti į naują forumo įrašą",
+        "sending_message_to_placeholder": "Pasirinkite pranešimo tipą",
+        "sending_message_to_thread": "Siųsti į temą",
+        "setup_webhook_description_1": "Gaukite savo webhook URL iš Discord serverio nustatymų → Integracijos → Webhook'ai.",
+        "setup_webhook_description_2": "Sukurkite naują webhook ir nukopijuokite URL. Įsitikinkite, kad pasirinkote teisingą kanalą.",
+        "setup_webhook_title": "Nustatyti Discord webhook",
+        "thread_id_description_1": "Įgalinkite Kūrėjo režimą Discord vartotojo nustatymuose → Pažangiai → Kūrėjo režimas",
+        "thread_id_description_2": "Dešiniuoju pelės mygtuku spustelėkite giją ar įrašą ir pasirinkite \"Kopijuoti gijos ID\" arba \"Kopijuoti kanalo ID\"",
+        "thread_id_description_title": "Thread arba forumo įrašo ID, kuriame bus siunčiami pranešimai",
+        "thread_id_label": "Grybų ID",
+        "thread_id_placeholder": "Įveskite gijos ar įrašo ID",
+        "webhook_url_label": "Discord webhook URL"
+      },
+      "google_chat": {
+        "more_info_about_webhooks": "Daugiau informacijos apie Webhooks",
+        "webhook_url_label": "Google Chat Webhook URL"
+      },
+      "gotify": {
+        "application_token_description": "Jūsų Gotify programos prieigos raktas. Jūs galite rasti jį savo Gotify interneto sąsajoje, skiltyje Apps.",
+        "application_token_label": "Programos žetonas",
+        "custom_message_description": "Pasirinktinio pranešimo šablonas. Galimi kintamieji",
+        "custom_message_description_2": "Palikite tuščią, kad būtų naudojama numatytoji žinutė.",
+        "custom_message_label": "Pasirinktinė žinutė",
+        "custom_title_description": "Pasirinktinė pranešimo antraštė. Galimi kintamieji: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Palikite tuščią, kad būtų naudojama numatytoji „Peekaping“ antraštė.",
+        "custom_title_label": "Pasirinktinė antraštė",
+        "learn_more_label": "Sužinokite daugiau apie Gotify ir kaip jį įdiegti adresu:",
+        "note_description": "Norint naudoti šią integraciją, turite veikiantį Gotify serverį.",
+        "note_label": "Pastaba:",
+        "priority_0": "Žemiausias",
+        "priority_1": "Labai žemas",
+        "priority_10": "Didžiausia",
+        "priority_2": "Žemas",
+        "priority_3": "Žemiau normalio",
+        "priority_4": "Normalus",
+        "priority_5": "Virš normalaus",
+        "priority_6": "Vidutinis",
+        "priority_7": "Aukštas",
+        "priority_8": "Labai aukštas (numatytasis)",
+        "priority_9": "Nūria",
+        "priority_description": "Pranešimo prioritetas (0–10). Didesni skaičiai reiškia didesnį prioritetą. Numatytoji reikšmė – 8.",
+        "priority_label": "Prioritetas",
+        "priority_placeholder": "Pasirinkite prioritetą",
+        "server_url_description": "Jūsų Gotify serverio URL. Įsitikinkite, kad jis prieinamas iš šios programos.",
+        "server_url_label": "Serverio URL"
+      },
+      "grafana_oncall": {
+        "grafana_oncall_url_description": "Jūsų Grafana OnCall integracijos webhook URL. Jūs galite rasti šį adresą savo Grafana OnCall instancijoje po Alerts & IRM > IRM > Integrations > Webhook.",
+        "grafana_oncall_url_label": "Grafana OnCall URL",
+        "learn_more_label": "Sužinokite daugiau apie Grafana OnCall webhook'us"
+      },
+      "line": {
+        "channel_access_token_description": "Galite gauti savo kanalo prieigos žetoną iš",
+        "channel_access_token_description_2": "Eikite į kanalo nustatymus ir ieškokite",
+        "channel_access_token_label": "Kanalo prieigos raktas (ilgalaikis)",
+        "channel_access_token_placeholder": "Įveskite savo LINE kanalo prieigos žetoną",
+        "template_description": "Tinkinkite pranešimo formatą. Galimi kintamieji",
+        "template_label": "Pranešimo šablonas",
+        "template_placeholder": "Įveskite savo individualizuotą pranešimo šabloną",
+        "user_id_description": "Jūs galite rasti savo naudotojo ID",
+        "user_id_description_2": "Eikite į savo kanalo nustatymus ir ieškokite",
+        "user_id_label": "Jūsų vartotojo ID",
+        "user_id_placeholder": "Įveskite savo LINE vartotojo ID"
+      },
+      "matrix": {
+        "access_token_description": "Jūsų Matrix prieigos raktas autentifikavimui",
+        "access_token_label": "Prieigos raktas",
+        "custom_message_description": "Pasirinktinis pranešimo šablonas. Galimos kintamosios",
+        "custom_message_label": "Pasirinktinė žinutė",
+        "homeserver_url_description": "Jūsų Matrix namų serverio URL",
+        "homeserver_url_label": "Namų serverio URL",
+        "internal_room_id_description": "Vidinis kambario ID, kuriam bus siunčiami pranešimai. Jis turėtų prasidėti su \"!\" ir atrodyti taip: !roomid:matrix.org",
+        "internal_room_id_label": "Vidinis kambario ID",
+        "setup_instructions_1": "Sukurkite Matrix sąskaitą savo botui (arba naudokite esamą sąskaitą)",
+        "setup_instructions_2": "Sukurkite arba prisijunkite prie kambario, kuriame norite gauti pranešimus",
+        "setup_instructions_3": "Gaukite prieigos žetoną atlikdami prisijungimo užklausą",
+        "setup_instructions_4": "Atsakyje bus laukelis access_token – naudokite jį kaip savo prieigos raktą.",
+        "setup_instructions_5": "Suraskite savo kambario vidinį ID (pradedant su \"!\") savo Matrix kliento kambario nustatymuose.",
+        "setup_instructions_label": "Nustatymo instrukcijos"
+      },
+      "mattermost": {
+        "channel_name_description": "Kanalas, kuriame bus siunčiami pranešimai. Palikite tuščią, jei norite naudoti numatytąjį kanalą, nustatytą webhook'e.",
+        "channel_name_label": "Kanalo pavadinimas",
+        "icon_emoji_cheat_sheet_label": "Emotikų pagalbos rinkinys",
+        "icon_emoji_description": "Emoji, kurią naudoti kaip piktogramą. Galite nurodyti du emoji, atskirtus tarpu (pirmasis – veikanti būsena, antrasis – neveikanti būsena).",
+        "icon_emoji_label": "Emoji piktograma",
+        "icon_url_description": "Nuoroda į paveikslėlį, kuris bus naudojamas kaip pranešimo žinutės piktograma.",
+        "icon_url_label": "Piktograma URL",
+        "learn_more_label": "Sužinokite daugiau apie webhook'us",
+        "message_template_description": "Pritaikyti pranešimo formatą. Galimi kintamieji.",
+        "message_template_label": "Pranešimo šablonas",
+        "use_message_template_description": "Įgalinti naudoti pasirinktą pranešimo šabloną ir formatą.",
+        "use_message_template_label": "Naudoti žinutės šabloną",
+        "username_description": "Vartotojo vardas, kuris bus rodomas kaip žinutės siuntėjas.",
+        "webhook_url_label": "Webhook URL"
+      },
+      "ntfy": {
+        "authentication_type_basic": "Bazinė autentifikacija",
+        "authentication_type_basic_description": "Naudokite vartotojo vardą ir slaptažodį bendrinei autentifikacijai.",
+        "authentication_type_label": "Autentifikacijos tipas",
+        "authentication_type_none": "Nėra autentifikacijos",
+        "authentication_type_none_description": "Nėra reikalinga autentifikacija. Tinkamas viešiems NTFY serveriams.",
+        "authentication_type_placeholder": "Pasirinkite autentifikavimo tipą",
+        "authentication_type_token": "Žetono autentifikacija",
+        "authentication_type_token_description": "Naudokite prieigos raktą prisijungimui.",
+        "custom_message_description": "Pasirinktinė pranešimo turinys. Galimi kintamieji",
+        "custom_message_label": "Pasirinktinė žinutė",
+        "password_required": "Slaptažodis būtinas pagrindinei autentifikacijai",
+        "priority_1": "Min (Mažiausias)",
+        "priority_2": "Žemas",
+        "priority_3": "Numatytasis",
+        "priority_4": "Aukštas",
+        "priority_5": "Skubus (didžiausias)",
+        "priority_description": "Pranešimo svarbos lygis. Didelesnės svarbos gali sukelti skirtingą elgesį kliento pusėje.",
+        "priority_label": "Prioritetas",
+        "priority_placeholder": "Pasirinkite prioritetą",
+        "server_url_description": "Jūsų NTFY serverio URL. Naudokite https://ntfy.sh viešajai instancijai.",
+        "server_url_label": "Serverio URL",
+        "tags_description": "Skirtukai, atskirti kableliais, naudojami pranešimų kategorijavimui. Galimi kintamieji",
+        "tags_label": "Žymos",
+        "title_description": "Pasirinktinė pranešimo antraštė. Galimi kintamieji",
+        "title_label": "Pasirinktinė antraštė",
+        "token_description": "Jūsų NTFY prieigos raktas autentifikavimui.",
+        "token_label": "Prieigos raktas",
+        "token_required": "Tokenas yra reikalingas tokeno tapatybės patvirtinimui",
+        "topic_description": "Temos pavadinimas jūsų pranešimams. Tai bus kanalas, kuriuo siunčiami pranešimai.",
+        "topic_label": "Tema",
+        "username_required": "Naudotojo vardas reikalingas baziniam autentifikavimui."
+      },
+      "opsgenie": {
+        "api_key_label": "API raktas",
+        "more_info_about_api_keys_label": "Daugiau informacijos apie API raktus",
+        "priority_1": "Kritinis",
+        "priority_2": "Aukštas",
+        "priority_3": "Vidutinis",
+        "priority_4": "Žemas",
+        "priority_5": "Informacinis",
+        "priority_description": "Nustatykite įspėjimų prioriteto lygį. Numatyta P3 (Vidutinis).",
+        "priority_label": "Prioritetas",
+        "region_description": "Pasirinkite savo Opsgenie regioną. Tai nustato, kuris API galutinis taškas bus naudojamas.",
+        "region_label": "Regionas",
+        "region_placeholder": "Pasirinkite regioną"
+      },
+      "pagerduty": {
+        "auto_resolve_acknowledge": "Automatinis pripažinimas",
+        "auto_resolve_acknowledge_description": "Automatiškai pripažinkite incidentą",
+        "auto_resolve_description": "Pasirinkite, ką daryti, kai monitorius vėl įsigalioja",
+        "auto_resolve_do_nothing": "Nieko nedaryti",
+        "auto_resolve_do_nothing_description": "Nėra veiksmo, kai statusas yra „Veikia“",
+        "auto_resolve_label": "Automatiškai išspręsti arba prisiimti",
+        "auto_resolve_placeholder": "Pasirinkite automatinio išsprendimo elgesį",
+        "auto_resolve_resolve": "Automatinis išsprendimas",
+        "auto_resolve_resolve_description": "Automatiškai išspręsti incidentą",
+        "integration_key_description": "Sužinokite, kaip gauti savo integracijos raktą",
+        "integration_key_label": "Integracijos raktas",
+        "integration_key_placeholder": "Įveskite savo PagerDuty integracijos raktą",
+        "integration_url_description": "PagerDuty Events API v2 galutinio taško URL. Numatytasis - standartinis galutinis taškas.",
+        "integration_url_label": "Integracijos URL",
+        "learn_more_label": "PagerDuty dokumentacija",
+        "priority_critical": "Kritinis",
+        "priority_description": "PagerDuty įvykdžių rimtumo lygis. Numatytasis lygis – „warning“. ",
+        "priority_error": "Klaida",
+        "priority_info": "Informacija",
+        "priority_label": "Prioritetas",
+        "priority_placeholder": "Pasirinkite prioriteto lygį",
+        "priority_warning": "Įspėjimas"
+      },
+      "pagertree": {
+        "authentication_token_description": "Neprivalomas autentifikacijos žetonas pagerintam saugumui. Tai bus siunčiama pagertree-token antraštėje.",
+        "authentication_token_label": "Autentifikacijos žetonas (neprivalomas)",
+        "authentication_token_placeholder": "Įveskite autorizacijos žetoną, jei reikalingas",
+        "auto_resolve_alerts_description": "Automatiškai išspręsti PagerTree įspėjimus, kai monitorius atsigaukia",
+        "auto_resolve_alerts_label": "Automatinis įspėjimų išsprendimas",
+        "how_to_get_integration_url_label": "Kaip gauti integracijos URL",
+        "integration_url_description": "Įveskite savo PagerTree webhook integracijos URL.",
+        "integration_url_label": "PagerTree Webhook URL",
+        "urgency_level_critical": "Kritinis",
+        "urgency_level_description": "Nustatykite numatytąjį skubumo lygį įspėjimams, siunčiamiems į PagerTree",
+        "urgency_level_high": "Aukštas",
+        "urgency_level_label": "Svarbumo lygis",
+        "urgency_level_low": "Žemas",
+        "urgency_level_medium": "Vidutinis",
+        "urgency_level_placeholder": "Pasirinkite rimtumo lygį",
+        "urgency_level_silent": "Tišmas"
+      },
+      "pushbullet": {
+        "access_token": "Prieigos raktas",
+        "access_token_description": "Jūsų Pushbullet prieigos raktas. Gaukite jį iš",
+        "access_token_label": "Prieigos raktas",
+        "access_token_link": "Pushbullet nustatymai",
+        "channel_tag": "Kanalo žyma (neprivaloma)",
+        "channel_tag_description": "Siųsti pranešimą į Pushbullet kanalą vietoj įrenginių",
+        "channel_tag_label": "Kanalo žyma (neprivaloma)",
+        "custom_message_template": "",
+        "custom_message_template_description": "Pritaikykite pranešimo turinį naudodami šablono kintamuosius:",
+        "custom_message_template_heartbeat_ping": "Atsakymo laikas",
+        "custom_message_template_heartbeat_time": "Laiko žyma",
+        "custom_message_template_label": "Pasirinktinė pranešimo šablonas (neprivaloma)",
+        "custom_message_template_monitor_url": "Monitorio URL",
+        "custom_message_template_msg": "Įspėjimo žinutė",
+        "custom_message_template_name": "Stebėtojo pavadinimas",
+        "custom_message_template_placeholder": "Stebėjas: {{ name }}\nBūsena: {{ status }}\nPranešimas: {{ msg }}",
+        "custom_message_template_status": "Dabartinė būsena",
+        "device_id": "Įrenginio ID (neprivaloma)",
+        "device_id_description": "Siųsti pranešimą konkrečiam įrenginiui. Palikite tuščio, kad pranešimas būtų siunčiamas visiems įrenginiams. Galite rasti įrenginių ID, naudodami",
+        "device_id_label": "Įrenginio ID (neprivaloma)",
+        "device_id_link": "Pushbullet API",
+        "more_info_on": "Daugiau informacijos apie:"
+      },
+      "pushover": {
+        "application_token_label": "Programos žetonas",
+        "application_token_placeholder": "Įveskite savo Pushover programos žetoną",
+        "device_description": "Palikite tuščią, jei norite siųsti visiems įrenginiams.",
+        "device_label": "Įrenginys",
+        "device_placeholder": "Įrenginio pavadinimas (neprivaloma)",
+        "message_title_description": "Palikite tuščią, kad naudotumėte numatytąjį pavadinimą.",
+        "message_title_label": "Pranešimo pavadinimas",
+        "message_title_placeholder": "Pasirinktinė pranešimo antraštė (neprivaloma)",
+        "message_ttl_description": "Išnykimo laikas sekundėmis (0 = be galiojimo termino)",
+        "message_ttl_label": "Pranešimo TTL",
+        "more_info_label": "Daugiau informacijos apie:",
+        "more_info_label_2": "Galite sukurti programą ir gauti savo API raktą čia",
+        "more_info_label_3": "Jūsų naudotojo raktą galite rasti",
+        "notification_sound_down_description": "Garsas, kai monitorius neveikia",
+        "notification_sound_down_label": "Pranešimo garsas – ne veikia",
+        "notification_sound_down_placeholder": "Pasirinkite garsą",
+        "notification_sound_up_description": "Garsas, kai monitorius vėl veikia",
+        "notification_sound_up_label": "Pranešimo garsas – Įjungtas",
+        "notification_sound_up_placeholder": "Pasirinkti garsą",
+        "priority_1": "Žemiausias",
+        "priority_2": "Žemas",
+        "priority_3": "Normalus",
+        "priority_4": "Aukštas",
+        "priority_5": "Avarinė",
+        "priority_description": "Pranešimo prioriteto lygis",
+        "priority_label": "Prioritetas",
+        "priority_placeholder": "Pasirinkti prioritetą",
+        "sound_alien": "Alienas",
+        "sound_bike": "Dviratis",
+        "sound_bugle": "Bugelė",
+        "sound_cashregister": "kassos registras",
+        "sound_classical": "Klasikinis",
+        "sound_climb": "Klajūnas",
+        "sound_cosmic": "Kosminis",
+        "sound_echo": "Eko",
+        "sound_falling": "Kritimas",
+        "sound_gamelan": "Gamelan",
+        "sound_incoming": "Įeinantis",
+        "sound_intermission": "Pertrauka",
+        "sound_magic": "Magija",
+        "sound_mechanical": "Mechaninis",
+        "sound_none": "Nėra",
+        "sound_persistent": "Nuolatinis",
+        "sound_pianobar": "Piano baras",
+        "sound_pushover": "Pushover (numatyta)",
+        "sound_siren": "Sirena",
+        "sound_spacealarm": "Kosminis alarmas",
+        "sound_tugboat": "Drovinė",
+        "sound_updown": "Aukštyn Žemyn",
+        "sound_vibrate": "Vibruoti",
+        "user_key_label": "Vartotojo raktas",
+        "user_key_placeholder": "Įveskite savo Pushover vartotojo raktą"
+      },
+      "signal": {
+        "custom_message_description": "Pasirinktinio pranešimo šablonas. Galimi kintamieji",
+        "custom_message_label": "Pasirinktinė žinutė",
+        "important_description": "Negalite derinti grupių ir numerių gavėjų!",
+        "important_label": "Svarbu:",
+        "more_info_label": "Patikrinkite šią nuorodą, kad sužinotumėte, kaip ją sukonfigūruoti:",
+        "note_description": "Jums reikia Signal kliento su REST API.",
+        "note_label": "Pastaba:",
+        "number_description": "Signal paskyros telefono numeris (siuntėjo numeris).",
+        "number_label": "Numeris",
+        "post_url_description": "Jūsų Signal CLI REST API serverio URL.",
+        "post_url_label": "Siuntimo URL",
+        "recipients_description": "Skaičių sąrašas, atskirtų kableliais, kurių telefonų numeriai bus naudojami pranešimų siuntimui.",
+        "recipients_label": "Gavėjai"
+      },
+      "slack": {
+        "channel_name_description": "Kanalas, kuriame bus išsiųstas pranešimas. Jei ne nurodyta, pranešimas bus išsiųstas į numatytą kanalą, nustatytą webhook'e.",
+        "channel_name_description_2": "Galite perrašyti numatytąjį kanalą, nurodydami kanalo pavadinimą (pvz., #alerts) arba naudotoją (pvz., @username).",
+        "channel_name_label": "Kanalo pavadinimas",
+        "channel_notify_description": "Įjungus, žinutė sukels pranešimus visiems kanalo nariams. Naudokite atsargiai, kad išvengtumėte spam.",
+        "channel_notify_label": "Pranešti kanalui",
+        "icon_emoji_cheat_sheet_label": "Emoji trikčių lentelė",
+        "icon_emoji_description": "Emoji, kurį naudoti kaip piktogramą šiam pranešimui. Turi būti formato :emoji_name:",
+        "icon_emoji_label": "Emoji piktograma",
+        "message_format_description": "Siųsti praturtintus pranešimus",
+        "message_format_description_2": "Leisti siųsti pranešimus su turtinga formatavimu, prisegimais ir geresniu vaizdu.",
+        "message_format_label": "Žinutės formatas",
+        "username_description": "Vartotojo vardas, kuris bus rodomas kaip žinutės siuntėjas. Jei neįrašytas, bus naudojamas numatytasis botas.",
+        "webhook_url_description": "Jūsų Slack integracijos webhook URL. Jūs galite jį rasti savo Slack instancijoje skiltyje Integracijos &gt; Webhook'ai.",
+        "webhook_url_label": "Webhook nuoroda"
+      },
+      "smtp": {
+        "custom_body_label": "Pasirinktinis turinys",
+        "custom_description": "Templatinimo galimybė pasiekiama naudojant <b>Liquid</b> šabloniavimo kalbą.",
+        "custom_description_2": "Prašome kreiptis į dokumentaciją dėl naudojimo instrukcijų.",
+        "custom_description_3": "Galimos kintamosios:",
+        "custom_description_4": "pranešimo žinutė",
+        "custom_description_5": "Paslaugos pavadinimas",
+        "custom_description_6": "Paslaugos būsena (Veikanti/Neveikanti/Liudijimo galiojimo pabaigos pranešimai)",
+        "custom_subject_label": "Pasirinktinė tema",
+        "smtp_from_label": "Nuo (Siuntėjo el. paštas)",
+        "smtp_host_description": "Įveskite tą serverio vardą, prie kurio norite prisijungti, arba localhost, jei ketinate naudoti vietiškai sukonfigūruotą pašto perdavimo agentą.",
+        "smtp_host_label": "SMTP serveris",
+        "smtp_password_placeholder": "SMTP slaptažodis",
+        "smtp_port_label": "Portas",
+        "smtp_to_label": "Kam (gavėjo el. pašto adresas(ų))",
+        "smtp_username_placeholder": "SMTP naudotojo vardas"
+      },
+      "telegram": {
+        "auto_get_label": "Automatiškai gauti",
+        "bot_token_description": "Gaukite savo bot'o žetoną iš",
+        "bot_token_label": "Bot tokenas",
+        "chat_id_description": "Jūs galite gauti savo pokalbio ID, išsiųsdami žinutę botui ir spustelėdami aukščiau „Auto Get“, arba rankiniu būdu per Telegram API.",
+        "chat_id_description_2": "Norėdami gauti jį rankiniu būdu, apsilankykite",
+        "chat_id_description_3": "Žiūrėti",
+        "chat_id_description_4": "Telegram dokumentacija",
+        "chat_id_description_5": "daugiau informacijos.",
+        "chat_id_label": "Pokalbio ID",
+        "chat_id_not_found": "Chat ID nerastas paskutiniame atnaujinime.",
+        "failed_to_fetch_chat_id": "Nepavyko gauti pokalbio ID",
+        "message_thread_id_description": "Pasirinktinai. Naudojama, norint siųsti žinutes į konkrečią giją (temą) forumo supergrupe.",
+        "message_thread_id_label": "Pranešimo gijos ID",
+        "no_updates_found": "Nerasta atnaujinimų. Prašome pirmiausia išsiųsti žinutę savo botui.",
+        "protect_content_description": "Jei įjungta, pranešimo turinys bus apsaugotas nuo persiuntimo ir įrašymo.",
+        "protect_content_label": "Apsaugoti turinį",
+        "send_silently_description": "Jei įjungta, pranešimai bus siunčiami tyliai (vartotojai gaus pranešimą be garso).",
+        "send_silently_label": "Siųsti tyliai",
+        "server_url_description": "Numatyta yra",
+        "server_url_description_2": "Galite naudoti individualų serverį. Žiūrėkite",
+        "server_url_description_3": "čia",
+        "server_url_description_4": "daugiau informacijos.",
+        "server_url_label": "Telegram serverio URL",
+        "template_description": "Tinkrinkite žinutės formatą. Galimi kintamieji.",
+        "template_label": "Pranešimo šablonas",
+        "template_parse_mode_description": "Pasirinkite, kaip turinys turėtų būti apdorojamas. Žiūrėkite",
+        "template_parse_mode_description_2": "Telegram formatavimo dokumentai",
+        "template_parse_mode_description_3": "Daugiau informacijos.",
+        "template_parse_mode_label": "Šablono analizės režimas",
+        "template_parse_mode_placeholder": "Pasirinkite analizės režimą",
+        "template_placeholder": "Įveskite savo pritaikytą pranešimo šabloną",
+        "use_template_description": "Įgalinti naudoti individualų žinutės šabloną ir formatą.",
+        "use_template_label": "Naudoti pranešimo šabloną"
+      },
+      "webhook": {
+        "additional_headers_description": "Pridėti pasirinktines HTTP antraštes prie webhook užklausos.",
+        "additional_headers_label": "Papildomos antraštės",
+        "custom_body_description": "Pritaikykite užklausos kūno formatą. Galimi kintamieji",
+        "custom_body_label": "Pasirinktinis kūnas",
+        "post_url_description": "Webhook galutinis taškas URL, kurio adresu bus siunčiami pranešimai.",
+        "post_url_label": "Siųsti URL",
+        "request_body_description_custom": "Apibrėžkite savo pasirinktinį užklausos kūno formatą žemiau.",
+        "request_body_description_form_data": "Turinys bus siunčiamas kaip multipart/form-data. Jį galite dekoduoti naudodami <strong>json_decode($_POST['data'])</strong> PHP.",
+        "request_body_description_json": "Turinys bus siunčiamas kaip JSON su „application/json“ antrašte.",
+        "request_body_label": "Užklausos kūnas",
+        "request_body_placeholder": "Pasirinkite turinio tipą"
+      }
+    },
+    "important": "Svarbūs pranešimai",
+    "important_notifications": "Svarbūs pranešimai",
+    "labels": {
+      "friendly_name": "Draugiškas pavadinimas",
+      "type": "Pranešėjo tipas"
+    },
+    "messages": {
+      "create_failed": "Sukūrimas nepavyko",
+      "created_success": "Notifikatorius sukurtas sėkmingai",
+      "error_loading_notifier": "Klaida įkeliant pranešimo įrankį",
+      "test_failed": "Testinio pranešimo siuntimas nepavyko",
+      "test_success": "Testinis pranešimas sėkmingai išsiųstas",
+      "update_failed": "Nepavyko atnaujinti pranešimo įrenginio",
+      "updated_success": "Pranešiklis sėkmingai atnaujintas"
+    },
+    "new": {
+      "title": "Naujas pranešimų kanalas"
+    },
+    "no_important": "Nėra svarbių pranešimų.",
+    "placeholders": {
+      "select_type": "Pasirinkite pranešimo tipą"
+    },
+    "search_placeholder": "Paieška kanalų pagal pavadinimą..."
+  },
+  "proxies": {
+    "delete_dialog": {
+      "description": "Šis veiksmas negali būti atšauktas. Tai negrįžtamai ištrins tarpinį serverį {{host}}:{{port}}.",
+      "title": "Ar tikrai?"
+    },
+    "edit": {
+      "page_name": "Redaguoti tarpininką"
+    },
+    "empty_list": {
+      "action_text": "Sukurkite savo pirmąjį proksi",
+      "text": "Pradėkite sukurdami savo pirmąjį proksį, kurį naudokite savo monitoriuose.",
+      "title": "Nerasta tarpinio serverio"
+    },
+    "form": {
+      "auth_label": "Proxy server reikalauja tapatybės patvirtinimo",
+      "port_placeholder": "Portas",
+      "protocol_label": "Proxy protokolas",
+      "protocol_placeholder": "Pasirinkite tarpinio serverio protokolą",
+      "server_label": "Proksi serveris",
+      "server_placeholder": "Serverio adresas",
+      "user": "Vartotojas"
+    },
+    "messages": {
+      "create_failed": "Proxy sukūrimas nepavyko",
+      "created_success": "Tarpinis serveris sukurtas sėkmingai",
+      "error_loading_proxy": "Klaida įkeliant tarpinį serverį",
+      "update_failed": "Nepavyko atnaujinti proksi",
+      "updated_success": "Proxy sėkmingai atnaujintas"
+    },
+    "new": {
+      "page_name": "Naujas tarpinis"
+    },
+    "page_name": "Proxys",
+    "search_label": "Ieškoti",
+    "search_placeholder": "Ieškoti proksų pagal hostą..."
+  },
+  "security": {
+    "enable_2fa": {
+      "form": {
+        "authenticator_code_label": "Autentifikatoriaus kodas",
+        "authenticator_code_placeholder": "Įveskite 6-cifru kodą",
+        "current_password_label": "Dabartinis slaptažodis",
+        "current_password_placeholder": "Įveskite savo dabartinį slaptažodį",
+        "enable_2fa_button": "Įjungti 2FA"
+      },
+      "messages": {
+        "2fa_active": "2FA aktyvus",
+        "2fa_disabled_successfully": "2FA išjungta sėkmingai",
+        "2fa_enabled_successfully": "2FA sėkmingai įjungta",
+        "account_is_protected_with_2fa": "Jūsų paskyra apsaugota 2FA.",
+        "disable_2fa": "Išjungti 2FA",
+        "enter_password_to_disable_2fa": "Įveskite savo slaptažodį, norėdami išjungti 2FA",
+        "failed_to_disable_2fa": "Nepavyko išjungti 2FA",
+        "failed_to_verify_2fa_code": "Neįmanoma patvirtinti 2FA kodo",
+        "failed_to_verify_password": "Nesėkmingas slaptažodžio patvirtinimas arba 2FA nustatymų pradžia",
+        "have_enabled_2fa": "Jūs aktyvuote dviejų veiksnių tapatybės patvirtinimą (2FA) savo sąskaitai. Tai suteikia papildomą saugumo sluoksnį.",
+        "or_enter_secret_manually": "Arba įveskite šį slaptą raktą rankiniu būdu",
+        "scan_qr_code_with_authenticator_app": "Nuskaitykite šį QR kodą su savo autentifikacijos programa.",
+        "two_factor_authentication_enabled": "Dviejų veiksnių autentifikacija įjungta",
+        "user_email_not_found": "Naudotojo el. pašto adresas nerastas"
+      }
+    },
+    "page_name": "Saugumas",
+    "update_password": {
+      "form": {
+        "confirm_new_password_label": "Patvirtinkite naują slaptažodį",
+        "confirm_new_password_placeholder": "Įveskite naują slaptažodį dar kartą",
+        "new_password_label": "Naujas slaptažodis",
+        "new_password_placeholder": "Įveskite naują slaptažodį",
+        "old_password_label": "Senas slaptažodis",
+        "old_password_placeholder": "Įveskite savo dabartinį slaptažodį",
+        "update_password_button": "Atnaujinti slaptažodį"
+      },
+      "messages": {
+        "failed_to_update_password": "Nepavyko atnaujinti slaptažodžio",
+        "password_updated_successfully": "Slaptažodis sėkmingai atnaujintas"
+      },
+      "title": "Atnaujinti slaptažodį"
+    }
+  },
+  "sendgrid": {
+    "api_key_description": "Jūsų SendGrid API raktas. Galite jį sukurti savo SendGrid paskyroje, eikite į Nustatymai → API raktai. Įsitikinkite, kad jame yra „Mail Send“ leidimai.",
+    "api_key_label": "API raktas",
+    "bcc_email_description": "Slapta kopija gavėjai. Atskirti kelis el. pašto adresus kableliais.",
+    "bcc_email_label": "Paslėptos kopijos el. paštas (neprivaloma)",
+    "cc_email_description": "Kopijos gavėjai. Atskirkite kelis el. pašto adresus kableliais.",
+    "cc_email_label": "Kopijos el. paštas (neprivaloma)",
+    "from_email_description": "Siuntėjo el. pašto adresas. Tai turi būti patvirtintas siuntėjas jūsų SendGrid sąskaitoje.",
+    "from_email_label": "Iš el. pašto",
+    "subject_description": "El. laiško tema. Palaiko Liquid šablonus.",
+    "subject_label": "Pasirinktinė tema (neprivaloma)",
+    "subject_variables_label": "Galimi kintamieji:",
+    "subject_variables_msg": "pranešimo žinutė",
+    "subject_variables_name": "paslaugos pavadinimas",
+    "subject_variables_status": "Paslaugos būsena (VEIKIA/NEVEIKIA)",
+    "to_email_description": "Pagrindinis gavėjo el. pašto adresas. Daugeliui gavėjų naudokite CC arba BCC laukus.",
+    "to_email_label": "El. pašto adresas"
+  },
+  "settings": {
+    "data_retention": {
+      "days_label": "Dienos",
+      "description": "Nustatykite, kiek dienų laikyti duomenis (KEEP_DATA_PERIOD_DAYS).",
+      "title": "Duomenų saugojimo laikotarpis"
+    },
+    "timezone": {
+      "description": "Pasirinkite pageidaujamą laiko juostą, pagal kurią bus rodomi visi laikai programoje.",
+      "label": "Laiko juosta",
+      "no_timezone_found": "Nerasta laiko juostos.",
+      "search_placeholder": "Ieškoti laiko juostos...",
+      "select_placeholder": "Pasirinkite laiko juostą...",
+      "title": "Laiko juosta"
+    },
+    "validation": {
+      "min_days": "Turi būti ne mažiau kaip 1 diena"
+    }
+  },
+  "status": {
+    "messages": {
+      "all_systems_operational": "Visos sistemos veikia",
+      "down": "Neveikia",
+      "last_updated": "Paskutinis atnaujinimas",
+      "maintenance": "Priežiūra",
+      "no_monitors_configured": "Šiam būsenos puslapiui nebuvo sukonfigūruojamų monitorių.",
+      "operational": "Veikia",
+      "partial_system_outage": "Dalinis sistemos sutrikimas",
+      "powered_by": "Sąskaitą palaiko",
+      "refresh_in": "Per",
+      "refresh_now": "Atnaujinti dabar",
+      "status_page_not_found": "Statuso puslapis nerastas arba nebuvo paskelbtas.",
+      "under_maintenance": "Priežiūroje",
+      "unknown": "Nežinoma"
+    }
+  },
+  "status_pages": {
+    "affected_monitors": "Paveikti monitoriai",
+    "affected_monitors_info": "Pasirinkite stebimus, kurie bus paveikti šio priežiūros laikotarpio",
+    "auto_refresh_interval": "Automatinio atnaujinimo intervalas (sekundės)",
+    "basic_information": "Bazinė informacija",
+    "create_status_page": "Sukurti būsenos puslapį",
+    "customization": "Pritaikymas",
+    "delete_dialog": {
+      "description": "Ar tikrai norite ištrinti „{{title}}“? Ši veiksmas negali būti atšauktas.",
+      "title": "Ištrinti statuso puslapį"
+    },
+    "description": "Įveskite puslapio būklės aprašymą",
+    "domain_already_used": "Domenas {{domain}} jau naudojamas kito statuso puslapio.",
+    "domain_host_warning": "Šis domenas yra tas pats, kaip jūsų dabartinis hosto URL. Tai gali sukelti konfliktų.",
+    "domains": "Domenai",
+    "domains_info_warning": "Neužmirškite pridėti CNAME įrašų į savo DNS kiekvienam domenui.",
+    "draft_status": "Juodraštis",
+    "edit_page_name": "Redaguoti būsenos puslapį",
+    "messages": {
+      "create_description": "Sukurkite naują būsenos puslapį, kad galėtumėte dalintis savo paslaugos būsena su vartotojais.",
+      "create_your_first_status_page": "Sukurkite savo pirmąją būsenos puslapį",
+      "created_successfully": "Statuso puslapis sukurtas sėkmingai",
+      "delete_failed": "Būsenos puslapio ištrynimas nepavyko",
+      "deleted_successfully": "Statuso puslapis sėkmingai ištrintas",
+      "get_started_by_creating_your_first_status_page": "Pradėkite, sukūrę pirmąjį statuso puslapį.",
+      "no_status_pages_found": "Nėra statuso puslapių",
+      "not_found": "Būsenos puslapis nerastas",
+      "update_description": "Atnaujinkite savo būsenos puslapio nustatymus ir konfigūraciją.",
+      "updated_successfully": "Statuso puslapis sėkmingai atnaujintas"
+    },
+    "new_page_name": "Naujas būsenos puslapis",
+    "page_name": "Būsenos puslapiai",
+    "published": "Paskelbta",
+    "published_info": "Padaryti šį būsenos puslapį viešai prieinamą",
+    "published_status": "Paskelbta",
+    "search_label": "Paieška",
+    "search_placeholder": "Ieškoti būsenų puslapių pagal pavadinimą...",
+    "update_status_page": "Atnaujinti statuso puslapį",
+    "view_page": "Peržiūrėti puslapį"
+  },
+  "tags": {
+    "confirm_delete_description": "Ši veiksmas negali būti atšauktas. Tai negrįžtamai ištrins žymę \"{{name}}\" ir pašalins ją iš visų monitorių.",
+    "edit_page_name": "Redaguoti žymą",
+    "empty_state": {
+      "action": "Sukurk savo pirmą žymę",
+      "description": "Pradėkite, sukurdami savo pirmąją žymą, kad galėtumėte tvarkyti savo monitorius.",
+      "title": "Tagų nerasta"
+    },
+    "form": {
+      "color_description": "Pasirinkite spalvą savo žymekliui",
+      "color_label": "Spalva",
+      "create_button": "Sukurti žymę",
+      "description_label": "Aprašymas",
+      "description_placeholder": "Įveskite etiketės aprašymą (neprivaloma)",
+      "name_label": "Vardas",
+      "name_placeholder": "Įveskite etiketės pavadinimą",
+      "update_button": "Atnaujinti žymą"
+    },
+    "messages": {
+      "create_description": "Sukurti naują žymę, kad galėtumėte organizuoti ir kategorizuoti savo monitorius.",
+      "failed_to_load_tag": "Klaida įkeliant žymę. Žyma gali neegzistuoti arba neturite leidimo ją peržiūrėti.",
+      "tag_id_required": "Etiketės ID privalomas",
+      "update_description": "Atnaujinkite etiketės duomenis, kad geriau organizuotumėte savo monitorius."
+    },
+    "new_page_name": "Nauja žyma",
+    "search_placeholder": "Ieškoti žymų..."
+  },
+  "theme": {
+    "dark": "Tamsus",
+    "light": "Šviesus",
+    "system": "Sistema",
+    "toggle_theme": "Perjungti temą"
+  },
+  "timezone": {
+    "average": "Vidurkis",
+    "last_24_hours": "Paskutiniai 24 valandos",
+    "last_3_hours": "Past 3 valandų",
+    "last_3_months": "Paskutiniai 3 mėnesiai",
+    "last_30_minutes": "Pastarųjų 30 minučių",
+    "last_6_hours": "Paskutiniai 6 valandos",
+    "last_7_days": "Paskutinės 7 dienos",
+    "maximum": "Maksimumas",
+    "minimum": "Minimumas",
+    "ms": "ms",
+    "response_time": "Atsakymo laikas",
+    "uptime": "Veikimo laikas"
+  },
+  "ui": {
+    "general": "Bendros",
+    "intervals_retries": "Intervalai, bandymai, terminai"
+  }
+}

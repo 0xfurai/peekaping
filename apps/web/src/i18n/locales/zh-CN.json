@@ -1,0 +1,1281 @@
+{
+  "actions": {
+    "cancel": "取消",
+    "saving": "保存中…"
+  },
+  "auth": {
+    "login": {
+      "description": "使用您的电子邮件登录",
+      "no_account": "还没有账号？",
+      "sign_up": "注册",
+      "submit": "登录",
+      "title": "欢迎回来"
+    },
+    "register": {
+      "description": "创建您的管理员账户",
+      "have_account": "已有账号？",
+      "sign_in": "登录",
+      "submit": "创建",
+      "title": "你好"
+    },
+    "twofa": {
+      "code_label": "两步验证码",
+      "code_placeholder": "输入 2FA 码",
+      "description": "您的账户已启用 2FA。请输入您的身份验证码以继续。",
+      "title": "需要双因素认证",
+      "verify_button": "验证 2FA",
+      "verifying": "正在验证…"
+    }
+  },
+  "bars": {
+    "down_count": "宕机次数",
+    "important": "重要",
+    "interval": "间隔",
+    "message": "消息",
+    "ms": "毫秒",
+    "notified": "已通知",
+    "ping": "Ping",
+    "retries": "重试次数",
+    "status": "状态",
+    "time": "时间"
+  },
+  "common": {
+    "active": "激活",
+    "all": "全部",
+    "back": "返回",
+    "cancel": "取消",
+    "clear_all": "清除全部",
+    "clear_all_filters": "清除全部筛选",
+    "confirm": "确认",
+    "confirm_delete_title": "您确定要删除吗？",
+    "confirm_delete_title_short": "确定吗？",
+    "continue": "继续",
+    "create": "创建",
+    "created": "已创建",
+    "days": "天",
+    "default": "默认",
+    "delete": "删除",
+    "disabling": "禁用中...",
+    "dismiss": "关闭",
+    "down": "宕机",
+    "enabling": "启用中...",
+    "error": "错误",
+    "expires": "过期",
+    "inactive": "停用",
+    "loading": "加载中…",
+    "logout": "登出",
+    "maintenance": "维护",
+    "no_options_found": "未找到选项",
+    "no_tags_available": "没有可用标签",
+    "please_refresh_page": "请刷新页面。",
+    "required": "必填",
+    "save": "保存",
+    "saving": "保存中…",
+    "search": "搜索",
+    "security": "安全",
+    "select": "选择",
+    "select_monitors": "选择监控…",
+    "select_tags": "选择标签",
+    "settings": "设置",
+    "tags": "标签",
+    "unknown": "未知",
+    "unnamed_monitor": "未命名监控",
+    "up": "正常",
+    "update": "更新",
+    "verifying": "验证中…"
+  },
+  "forms": {
+    "labels": {
+      "confirm_password": "确认密码",
+      "email": "邮箱",
+      "footer_text": "页脚文本",
+      "heartbeat_interval": "心跳间隔（秒）",
+      "icon_url": "图标 URL",
+      "monitor_name": "名称",
+      "monitor_type": "类型",
+      "password": "密码",
+      "retries": "重试次数",
+      "slug": "别名",
+      "title": "标题",
+      "username": "用户名"
+    },
+    "placeholders": {
+      "auto_refresh_help": "0 表示不自动刷新",
+      "domains": "输入域名（例如 status.example.com）",
+      "footer_text": "输入页脚文字",
+      "icon_url": "https://example.com/icon.png",
+      "monitor_name": "我的监控",
+      "page_description": "输入状态页面描述",
+      "page_title": "输入状态页面标题",
+      "slug": "状态页别名"
+    },
+    "validation": {
+      "email_invalid": "请输入有效的电子邮件地址",
+      "password_min_length": "密码必须至少包含8个字符",
+      "passwords_mismatch": "密码不匹配"
+    }
+  },
+  "maintenance": {
+    "card": {
+      "aria": {
+        "delete": "删除 {{title}}",
+        "pause": "暂停维护",
+        "resume": "恢复维护"
+      },
+      "labels": {
+        "duration": "{{duration}} 分钟",
+        "end": "结束：{{date}}",
+        "start": "开始: {{date}}"
+      },
+      "status": {
+        "active": "激活",
+        "ended": "已结束",
+        "inactive": "停用"
+      }
+    },
+    "edit_title": "编辑维护",
+    "form": {
+      "affected_monitors_description": "选择受此维护影响的监控",
+      "affected_monitors_title": "受影响的监控项",
+      "cron_description": "请输入有效的 cron 表达式",
+      "cron_expression": "Cron 表达式",
+      "date_time_title": "日期和时间",
+      "day_of_month": "每月的哪一天",
+      "day_of_week": "星期几",
+      "description_label": "描述",
+      "description_placeholder": "维护描述...",
+      "duration_minutes": "持续时间（分钟）",
+      "effective_date_range": "生效日期范围（可选）",
+      "end_date_time": "结束日期 & 时间",
+      "end_time": "结束时间",
+      "interval_label": "间隔（每天运行一次）",
+      "last_day": "最近一天",
+      "last_day_of_month": "每月最后一天",
+      "maintenance_time_window": "每日维护时间窗口",
+      "markdown_supported": "支持 Markdown",
+      "same_as_server": "与服务器时区相同",
+      "start_date_time": "开始日期 & 时间",
+      "start_time": "开始时间",
+      "strategy_label": "策略",
+      "strategy_placeholder": "选择策略",
+      "timezone_label": "时区",
+      "timezone_placeholder": "选择时区",
+      "title_label": "标题",
+      "title_placeholder": "维护标题"
+    },
+    "page": {
+      "clear_filters": "清除所有筛选",
+      "dialogs": {
+        "confirm_action": {
+          "pause_description": "确定要暂停此维护吗？",
+          "resume_description": "您确定要恢复此维护吗？",
+          "title": "确认操作"
+        },
+        "confirm_delete": {
+          "description": "您确定要删除此维护窗口吗？此操作无法撤销。",
+          "title": "确认删除"
+        }
+      },
+      "edit_maintenance": "编辑维护：{{title}}",
+      "empty_state": {
+        "action": "创建第一个维护窗口",
+        "description": "先创建第一个维护窗口，防止计划停机。",
+        "title": "未找到维护窗口"
+      },
+      "error_loading": "加载维护页面时出错",
+      "loading": "加载中...",
+      "loading_monitors": "加载监控...",
+      "search_placeholder": "搜索维护…"
+    },
+    "page_title": "维护窗口",
+    "schedule_title": "安排维护",
+    "strategy": {
+      "cron": "Cron 表达式",
+      "manual": "手动激活/停用",
+      "recurring_day_of_month": "周期性 - 每月某日",
+      "recurring_interval": "定期 - 间隔",
+      "recurring_weekday": "重复 - 星期几",
+      "single": "单一维护窗口"
+    },
+    "toasts": {
+      "create_error": "创建维护失败",
+      "created_success": "维护已成功创建",
+      "delete_error": "删除维护失败",
+      "deleted_success": "维护已成功删除",
+      "pause_error": "暂停维护失败",
+      "paused_success": "维护已暂停",
+      "resume_error": "恢复维护失败",
+      "resumed_success": "维护已成功恢复",
+      "toggle_error": "无法切换维护状态：缺少 ID",
+      "update_error": "更新维护失败",
+      "updated_success": "维护已成功更新"
+    },
+    "weekdays": {
+      "fri": "周五",
+      "mon": "周一",
+      "sat": "周六",
+      "sun": "周日",
+      "thu": "周四",
+      "tue": "周二",
+      "wed": "周三"
+    }
+  },
+  "messages": {
+    "login_error": "登录时发生错误",
+    "login_no_tokens": "登录成功，但未收到令牌",
+    "login_success": "登录成功",
+    "notifier_delete_error": "删除通知器失败",
+    "notifier_delete_success": "已成功删除通知器",
+    "register_error": "注册时发生错误",
+    "register_no_tokens": "注册成功，但未收到令牌",
+    "register_success": "注册成功",
+    "setting_update_error": "设置更新失败",
+    "setting_update_success": "设置已成功更新",
+    "tag_create_error": "创建标签失败",
+    "tag_create_success": "标签创建成功",
+    "tag_delete_error": "删除标签失败",
+    "tag_delete_success": "标签已成功删除",
+    "tag_update_error": "更新标签失败",
+    "tag_update_success": "标签更新成功",
+    "unexpected_error": "发生了意外错误",
+    "version_mismatch": "检测到版本不匹配"
+  },
+  "monitors": {
+    "card": {
+      "check_interval": "检查间隔：",
+      "loading_more": "加载更多..."
+    },
+    "empty_state": {
+      "action": "创建第一个监控",
+      "description": "通过创建第一个监控，开始跟踪您的服务健康状况。",
+      "title": "未找到监控项"
+    },
+    "filtering_by_tags": "按标签过滤",
+    "filters": {
+      "monitor_status": "状态",
+      "monitor_status_placeholder": "监控状态",
+      "search_placeholder": "按名称搜索监控...",
+      "status_placeholder": "状态"
+    },
+    "form": {
+      "buttons": {
+        "copied": "已复制！",
+        "copy": "复制",
+        "create": "创建",
+        "regenerate": "重新生成",
+        "update": "更新"
+      },
+      "dns": {
+        "hostname": "主机名",
+        "port": "端口",
+        "record_type": "资源记录类型",
+        "record_type_placeholder": "请选择记录类型",
+        "resolver_server": "解析服务器",
+        "title": "DNS 设置"
+      },
+      "docker": {
+        "ca_cert_description": "将您的证书颁发机构（CA）证书粘贴为 PEM 格式。",
+        "ca_certificate": "CA 证书（PEM）",
+        "client_cert_description": "粘贴您的客户端证书（PEM 格式）。此证书用于相互 TLS 身份验证。",
+        "client_certificate": "客户端证书（PEM）",
+        "client_private_key": "客户端私钥 (PEM)",
+        "common_tls_issues": "常见 TLS 问题：",
+        "connection_type": "连接类型",
+        "container_name_id": "容器名称/ID",
+        "disabled": "已禁用",
+        "docker_container": "Docker 容器",
+        "docker_host": "Docker 主机",
+        "enable_tls": "启用 TLS",
+        "enabled": "已启用",
+        "examples": "示例",
+        "hostname_mismatch": "\"x509: 证书有效于 X，而不是 Y\":\"",
+        "hostname_mismatch_solution": "确保主机名与证书的 SAN 匹配，或禁用验证（不建议）。",
+        "legacy_cert_error": "x509: 证书依赖旧版通用名称字段:",
+        "legacy_cert_solution": "将主机名添加到证书的主题备用名称（SAN）中。",
+        "mtls_note": "对于相互 TLS（mTLS），您需要同时提供客户端证书和私钥。CA 证书用于验证服务器的证书。",
+        "note": "提示：",
+        "private_key_description": "粘贴您的 PEM 格式私钥。请妥善保管！",
+        "select_connection_type": "选择连接类型",
+        "select_tls_option": "选择 TLS 选项",
+        "select_verification_option": "选择验证方式",
+        "skip_verification": "跳过验证（不安全）",
+        "tls_configuration": "TLS 配置",
+        "unknown_authority": "x509: 证书签名来自未知授权机构",
+        "unknown_authority_solution": "提供签署服务器证书的正确 CA 证书。",
+        "verify_certificates": "验证证书",
+        "verify_tls": "验证 TLS"
+      },
+      "grpc": {
+        "body": "请求体数据（JSON）",
+        "enable_tls": "启用 TLS",
+        "enable_tls_description": "使用安全连接（TLS/SSL）",
+        "invert_keyword": "反转关键词",
+        "invert_keyword_description": "如果未找到关键字，监控将被标记为 UP",
+        "keyword": "关键词",
+        "keyword_description": "在响应中搜索此关键字",
+        "keyword_placeholder": "可选搜索关键字",
+        "method_description": "大小写敏感",
+        "method_placeholder": "检查",
+        "options_title": "gRPC 选项",
+        "proto_content": "Protobuf 内容",
+        "proto_method": "Protobuf 方法",
+        "proto_service_name": "Protobuf 服务名称",
+        "service_name_placeholder": "健康"
+      },
+      "http": {
+        "advanced": {
+          "accepted_status_codes": "可接受的状态码",
+          "ignore_tls": "忽略 HTTPS 网站的 TLS/SSL 错误",
+          "ignore_tls_description": "跳过 TLS 证书验证。请谨慎使用——此操作会降低连接安全性。",
+          "max_redirects": "最大重定向次数",
+          "max_redirects_description": "最大重定向跟随次数（0-30）。设置为 0 可禁用重定向。",
+          "title": "高级"
+        },
+        "authentication": {
+          "auth_header": "授权头",
+          "certificate": "证书",
+          "certificate_placeholder": "证书",
+          "client_id": "客户端 ID",
+          "client_id_placeholder": "客户端 ID",
+          "client_secret": "客户端密钥",
+          "client_secret_placeholder": "客户端密钥",
+          "domain": "域名",
+          "domain_placeholder": "域名",
+          "form_data_body": "表单数据主体",
+          "key": "密钥",
+          "key_placeholder": "密钥",
+          "method_label": "认证方式",
+          "method_placeholder": "选择认证类型",
+          "oauth_scope": "OAuth 范围",
+          "oauth_scope_placeholder": "可选：以空格分隔的作用域列表",
+          "oauth_token_url": "OAuth 令牌 URL",
+          "oauth_token_url_placeholder": "OAuth 令牌 URL",
+          "title": "身份验证",
+          "workstation": "工作站",
+          "workstation_placeholder": "工作站"
+        },
+        "options": {
+          "body": "请求体",
+          "body_encoding": "请求体编码",
+          "body_encoding_placeholder": "选择请求体编码",
+          "form_example": "示例表单数据",
+          "headers": "请求头",
+          "json_example": "示例 JSON",
+          "method": "方法",
+          "method_placeholder": "选择监控类型",
+          "select_encoding": "选择请求体编码",
+          "select_method": "选择方法",
+          "text_example": "示例文本：\n这里可以放任何纯文本内容...",
+          "title": "HTTP 选项",
+          "xml_example": "XML 示例"
+        }
+      },
+      "http_json_query": {
+        "condition_label": "条件",
+        "expected_value_label": "期望值",
+        "json_query_label": "JSON 查询表达式",
+        "title": "JSON 查询表达式"
+      },
+      "http_keyword": {
+        "invert_keyword_description": "寻找关键词的缺失，而不是出现。",
+        "invert_keyword_label": "反转关键字",
+        "keyword_label": "关键词",
+        "keyword_validation_title": "关键词验证"
+      },
+      "kafka": {
+        "add_broker": "添加代理",
+        "auto_topic_creation_description": "允许生产者在主题不存在时自动创建主题",
+        "auto_topic_creation_label": "允许自动创建主题",
+        "brokers_description": "Kafka代理地址列表（主机:端口 格式）",
+        "brokers_label": "Kafka 代理",
+        "configuration_title": "Kafka 配置",
+        "enable_ssl_description": "使用 SSL/TLS 加密连接",
+        "enable_ssl_label": "启用 SSL/TLS",
+        "message_description": "要发送到主题的消息内容（建议使用 JSON 格式）",
+        "message_label": "消息",
+        "sasl_mechanism_description": "选择 SASL 认证机制",
+        "sasl_mechanism_label": "SASL 机制",
+        "sasl_mechanism_placeholder": "选择 SASL 机制",
+        "sasl_password_description": "SASL 认证密码",
+        "sasl_password_label": "SASL 密码",
+        "sasl_password_placeholder": "密码",
+        "sasl_username_description": "SASL 认证用户名",
+        "sasl_username_label": "SASL 用户名",
+        "security_title": "安全",
+        "topic_description": "用于发布消息的 Kafka 主题"
+      },
+      "mongodb": {
+        "command_description": "MongoDB 命令，以 JSON 格式执行。若未指定，默认使用 ping。",
+        "command_label": "命令（可选）",
+        "configuration_title": "MongoDB 配置",
+        "connection_string_description": "MongoDB 连接字符串。支持标准（mongodb://）和 DNS 种子列表（mongodb+srv://）格式。",
+        "connection_string_label": "连接字符串",
+        "expected_value_description": "期望值，用于与 JSON 路径结果比较。",
+        "expected_value_label": "期望值（可选）",
+        "expected_value_placeholder": "预期值",
+        "json_path_description": "提取响应值的 JSON 路径。使用 $ 表示根级别。",
+        "json_path_label": "JSON 路径（可选）"
+      },
+      "mqtt": {
+        "check_type_json_query": "JSON 查询",
+        "check_type_keyword": "关键字",
+        "check_type_label": "MQTT 检测类型",
+        "check_type_none": "无（任何消息）",
+        "check_type_placeholder": "选择检查类型",
+        "configuration_title": "MQTT 配置",
+        "expected_value_label": "期望值",
+        "hostname_label": "主机名",
+        "json_path_label": "JSON 路径",
+        "password_label": "MQTT 密码",
+        "password_placeholder": "密码（可选）",
+        "port_label": "端口",
+        "success_keyword_label": "MQTT 成功关键词",
+        "success_keyword_placeholder": "表示成功的关键词",
+        "username_label": "MQTT 用户名",
+        "username_placeholder": "用户名（可选）",
+        "validation": {
+          "expected_value_required": "检查类型为 json-query 时，期望值是必填项",
+          "json_path_required": "JSON路径在检查类型为 json-query 时为必填",
+          "success_keyword_required": "当检查类型为 keyword 时，必须填写成功关键词"
+        }
+      },
+      "mysql": {
+        "connection_string_examples": "示例:",
+        "connection_string_label": "连接字符串",
+        "connection_title": "MySQL 连接",
+        "query_label": "查询"
+      },
+      "ping": {
+        "data_size": "数据大小（字节）",
+        "host": "主机名 / IP",
+        "title": "Ping 设置"
+      },
+      "postgres": {
+        "connection_string_label": "连接字符串",
+        "connection_title": "PostgreSQL 连接",
+        "query_label": "查询"
+      },
+      "push": {
+        "url_description": "在您的服务中使用此 URL 来报告状态。通过向此端点发起 HTTP 请求（POST/GET）来发送心跳。",
+        "url_title": "推送监控 URL"
+      },
+      "rabbitmq": {
+        "documentation_link": "RabbitMQ 文档",
+        "health_checks_description": "监控器会在每个节点上检查 {{code}} 端点，如果任意节点健康，则返回 UP。",
+        "management_nodes_description": "输入包含协议和端口的 RabbitMQ 管理节点 URL。示例： https://node1.rabbitmq.com:15672",
+        "management_nodes_title": "管理节点",
+        "node_url_label": "节点URL",
+        "password_description": "RabbitMQ 管理界面认证密码",
+        "setup_information_description": "要使用 RabbitMQ 监控，您需要在 RabbitMQ 设置中启用管理插件。有关更多信息，请参阅 RabbitMQ 文档。",
+        "setup_information_title": "设置信息",
+        "title": "RabbitMQ 配置",
+        "username_description": "RabbitMQ 管理界面身份验证用用户名"
+      },
+      "redis": {
+        "ca_certificate_description": "根 CA 证书（PEM 格式）。自签证书的 TLS 验证所必需。",
+        "ca_certificate_label": "CA 证书（可选）",
+        "client_certificate_description": "PEM 格式的客户端证书。用于双向 TLS 认证（必需）。",
+        "client_certificate_label": "客户端证书（可选）",
+        "client_key_description": "客户端私钥（PEM 格式）。必须与客户端证书一起提供。",
+        "client_key_label": "客户端私钥（可选）",
+        "connection_string_description": "Redis 连接字符串格式：{{redis}} 或 {{rediss}}（TLS）",
+        "connection_string_label": "连接字符串",
+        "ignore_tls_description": "跳过 TLS 证书验证（不建议在生产环境中使用）",
+        "ignore_tls_label": "忽略 TLS/SSL 错误",
+        "title": "Redis 配置"
+      },
+      "shared": {
+        "intervals": {
+          "heartbeat_retry": "心跳重试间隔 (每 {{seconds}} 秒重试)",
+          "max_retries_description": "最大重试次数，超过后服务将被标记为宕机并发送通知",
+          "request_timeout": "请求超时（{{seconds}} 秒后超时）",
+          "resend_notification": "若连续宕机 X 次，重新发送通知（已禁用）"
+        },
+        "notifications": {
+          "add_notifier": "添加通知器",
+          "new_notifier": "+ 新建通知器",
+          "no_channels": "未找到通知渠道，请先创建一个。",
+          "no_channels_available": "暂无可用渠道",
+          "select_channel": "选择渠道",
+          "select_notifier_placeholder": "选择通知器",
+          "selected_channels": "已选通知渠道",
+          "title": "通知渠道"
+        },
+        "proxy": {
+          "add_proxy": "添加代理",
+          "new_proxy": "新增代理",
+          "no_proxy": "无代理",
+          "remove_proxy": "删除代理",
+          "select_proxy_placeholder": "选择代理",
+          "selected_proxy": "已选代理",
+          "title": "代理"
+        },
+        "tags": {
+          "label": "标签",
+          "no_tags": "暂无标签",
+          "placeholder": "选择标签"
+        }
+      },
+      "snmp": {
+        "community_description": "用于身份验证的 SNMP 社区字符串（类似密码）",
+        "community_label": "社区字符串",
+        "expected_value_description": "要比较的值。留空则跳过验证。",
+        "expected_value_label": "期望值",
+        "host_description": "SNMP 设备的主机名或 IP 地址",
+        "host_label": "主机",
+        "json_path_description": "JSONPath 表达式，用于从响应中提取值（使用 \"$\" 表示原始值）",
+        "json_path_label": "JSON 路径",
+        "json_path_operator_description": "如何比较提取的值与预期值",
+        "json_path_operator_eq": "等于",
+        "json_path_operator_ge": "大于或等于",
+        "json_path_operator_gt": "大于",
+        "json_path_operator_label": "条件",
+        "json_path_operator_le": "小于等于",
+        "json_path_operator_lt": "小于",
+        "json_path_operator_ne": "不等于",
+        "oid_description": "用于查询的 SNMP 对象标识符（例如，1.3.6.1.2.1.1.1.0 表示系统描述）",
+        "oid_label": "OID（对象标识符）",
+        "port_description": "SNMP端口（默认：161）",
+        "port_label": "端口",
+        "snmp_version_description": "要使用的 SNMP 协议版本",
+        "snmp_version_label": "SNMP 版本",
+        "title": "SNMP 设置",
+        "value_validation_label": "值校验（可选）"
+      },
+      "sqlserver": {
+        "allowed_statements_description": "SELECT、SHOW、DESCRIBE、EXPLAIN、WITH 和 VALUES。",
+        "allowed_statements_label": "允许的语句:",
+        "connection_string_label": "连接字符串",
+        "query_description": "健康检查的查询语句。留空使用默认值。",
+        "query_label": "查询",
+        "title": "Microsoft SQL Server 连接"
+      },
+      "tcp": {
+        "host": "主机",
+        "port": "端口",
+        "title": "TCP 连接"
+      },
+      "type": {
+        "dns": "DNS 监控",
+        "docker": "Docker 容器",
+        "grpc": "gRPC 关键字监控",
+        "http": "HTTP(S) 监控",
+        "kafka": "Kafka 生产者监控",
+        "mongodb": "MongoDB 数据库监控",
+        "mqtt": "MQTT 代理监控",
+        "mysql": "MySQL / MariaDB 监控",
+        "ping": "Ping 监控 (ICMP)",
+        "postgres": "PostgreSQL 数据库监控",
+        "push": "推送监控（外部服务调用生成的 URL）",
+        "rabbitmq": "RabbitMQ 监控",
+        "redis": "Redis 数据库监控",
+        "snmp": "SNMP 监控",
+        "sqlserver": "微软 SQL Server 监控",
+        "tcp": "TCP 端口监控"
+      }
+    },
+    "page": {
+      "description": "创建一个新的监控，以开始跟踪您的网站性能。",
+      "edit_title": "编辑监控:",
+      "new_title": "新建监控"
+    },
+    "title": "监控",
+    "toasts": {
+      "deleted": "已删除监控",
+      "paused": "监控已暂停",
+      "reset_success": "监控数据已成功重置",
+      "resumed": "监控已恢复"
+    },
+    "view": {
+      "buttons": {
+        "clone": "克隆",
+        "delete": "删除",
+        "edit": "编辑",
+        "pause": "暂停",
+        "reset_data": "重置数据",
+        "resume": "恢复"
+      },
+      "certificate": "证书",
+      "check_every": "检查每",
+      "current_status": "当前状态",
+      "dialogs": {
+        "delete": {
+          "description": "此操作无法撤销。此操作将永久删除监视器及其所有相关数据。",
+          "title": "您确定吗？"
+        },
+        "pause": {
+          "description": "您确定要暂停吗？",
+          "title": "确认"
+        },
+        "reset": {
+          "description": "此操作将永久删除该监控的所有心跳历史和在线时间统计。监控将像刚创建一样显示。此操作无法撤销。",
+          "title": "重置监控数据"
+        }
+      },
+      "expiring_soon": "即将到期",
+      "for": "针对",
+      "live_status": "实时状态",
+      "monitor_for": "监测",
+      "no_certificate_data": "无证书数据",
+      "seconds": "秒",
+      "stats": {
+        "last_24_hours": "最近24小时",
+        "last_30_days": "最近30天",
+        "last_365_days": "过去 365 天",
+        "last_7_days": "最近 7 天"
+      },
+      "status": {
+        "down": "离线",
+        "maintenance": "维护",
+        "paused": "暂停",
+        "up": "正常"
+      }
+    }
+  },
+  "navigation": {
+    "maintenance": "维护",
+    "monitors": "监控",
+    "notification_channels": "通知渠道",
+    "proxies": "代理",
+    "settings": "设置",
+    "status_pages": "状态页面",
+    "tags": "标签"
+  },
+  "notifications": {
+    "actions": {
+      "test": "测试",
+      "testing": "测试中..."
+    },
+    "aria": {
+      "delete": "删除 {{name}}"
+    },
+    "confirm_delete_description": "此操作无法撤销。此操作将永久删除通知器“{{name}}”，并将其从使用它的所有监控器中移除。",
+    "create_title": "创建通知器",
+    "edit_channel_title": "编辑通知渠道",
+    "edit_title": "编辑通知器",
+    "empty_state": {
+      "action": "创建您的第一个通知渠道",
+      "description": "先创建第一个通知渠道，将警报发送给您的团队。",
+      "title": "未找到通知渠道"
+    },
+    "form": {
+      "discord": {
+        "bot_display_name_description": "此名称将作为 Discord 消息的发送者显示。",
+        "bot_display_name_label": "机器人显示名称",
+        "custom_message_prefix_description": "可选前缀，添加至所有消息的开头。",
+        "custom_message_prefix_label": "自定义消息前缀",
+        "custom_message_prefix_placeholder": "可选：为您的消息添加前缀",
+        "forum_post_name_description": "要创建的新论坛帖子名称",
+        "forum_post_name_label": "论坛帖子名称",
+        "forum_post_name_placeholder": "输入论坛帖子名称",
+        "sending_message_to_channel": "发送到频道",
+        "sending_message_to_description": "选择发送 Discord 消息的目的地。",
+        "sending_message_to_label": "发送消息至",
+        "sending_message_to_new_forum_post": "发送到新论坛帖子",
+        "sending_message_to_placeholder": "选择消息类型",
+        "sending_message_to_thread": "发送到线程",
+        "setup_webhook_description_1": "从 Discord 服务器设置 → 集成 → Webhooks 中获取你的 webhook URL。",
+        "setup_webhook_description_2": "创建一个新的 webhook 并复制 URL。确保您已选择正确的频道。",
+        "setup_webhook_title": "配置 Discord Webhook",
+        "thread_id_description_1": "在 Discord 用户设置 → 高级 → 开发者模式中开启开发者模式",
+        "thread_id_description_2": "右键点击主题或帖子，然后选择“复制主题 ID”或“复制频道 ID”",
+        "thread_id_description_title": "消息将发送到的线程或论坛帖子的 ID",
+        "thread_id_label": "线程 ID",
+        "thread_id_placeholder": "输入主题或帖子 ID",
+        "webhook_url_label": "Discord Webhook 地址"
+      },
+      "google_chat": {
+        "more_info_about_webhooks": "更多关于 Webhooks 的信息",
+        "webhook_url_label": "Google Chat 网络钩子 URL"
+      },
+      "gotify": {
+        "application_token_description": "Gotify 应用的应用令牌。您可以在 Gotify 网页界面的 Apps 选项卡下找到。",
+        "application_token_label": "应用程序令牌",
+        "custom_message_description": "自定义消息模板。可用变量",
+        "custom_message_description_2": "留空以使用默认消息。",
+        "custom_message_label": "自定义消息",
+        "custom_title_description": "自定义通知标题。可用变量：{{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}。留空则使用默认“Peekaping”标题。",
+        "custom_title_label": "自定义标题",
+        "learn_more_label": "了解 Gotify 以及如何设置，更多信息请访问：",
+        "note_description": "要使用此集成，您需要运行 Gotify 服务器。",
+        "note_label": "注意：",
+        "priority_0": "最低",
+        "priority_1": "非常低",
+        "priority_10": "最高",
+        "priority_2": "低",
+        "priority_3": "低于正常",
+        "priority_4": "普通",
+        "priority_5": "高于正常",
+        "priority_6": "中等",
+        "priority_7": "高",
+        "priority_8": "非常高（默认）",
+        "priority_9": "紧急",
+        "priority_description": "消息优先级 (0-10)。数值越大表示优先级越高。默认值为 8。",
+        "priority_label": "优先级",
+        "priority_placeholder": "选择优先级",
+        "server_url_description": "您的 Gotify 服务器的 URL。请确保它可从此应用程序访问。",
+        "server_url_label": "服务器 URL"
+      },
+      "grafana_oncall": {
+        "grafana_oncall_url_description": "Grafana OnCall 集成的 webhook URL。您可以在 Grafana OnCall 实例的 Alerts & IRM > IRM > Integrations > Webhook 中找到此 URL。",
+        "grafana_oncall_url_label": "Grafana OnCall 网址",
+        "learn_more_label": "了解更多关于 Grafana OnCall Webhooks 的信息"
+      },
+      "line": {
+        "channel_access_token_description": "您可以从…获取您的频道访问令牌",
+        "channel_access_token_description_2": "前往您的频道设置并查找",
+        "channel_access_token_label": "渠道访问令牌（长期有效）",
+        "channel_access_token_placeholder": "输入您的 LINE 通道访问令牌",
+        "template_description": "自定义消息格式。可用变量",
+        "template_label": "消息模板",
+        "template_placeholder": "请输入自定义消息模板",
+        "user_id_description": "您可以在 ... 中找到您的用户ID",
+        "user_id_description_2": "前往您的频道设置，查找",
+        "user_id_label": "您的用户 ID",
+        "user_id_placeholder": "请输入您的 LINE 用户 ID"
+      },
+      "matrix": {
+        "access_token_description": "用于身份验证的 Matrix 访问令牌",
+        "access_token_label": "访问令牌",
+        "custom_message_description": "自定义消息模板。可用变量",
+        "custom_message_label": "自定义消息",
+        "homeserver_url_description": "Matrix 家庭服务器的 URL",
+        "homeserver_url_label": "主服务器 URL",
+        "internal_room_id_description": "将发送通知的内部房间 ID。该 ID 必须以 “!” 开头，格式类似：!roomid:matrix.org",
+        "internal_room_id_label": "内部房间 ID",
+        "setup_instructions_1": "为您的机器人创建一个 Matrix 账号（或使用您现有的账号）",
+        "setup_instructions_2": "创建或加入你想接收通知的房间",
+        "setup_instructions_3": "通过发起登录请求获取您的访问令牌",
+        "setup_instructions_4": "响应将包含一个 access_token 字段——请将其作为您的访问令牌使用",
+        "setup_instructions_5": "在您的 Matrix 客户端房间设置中找到房间的内部 ID（以 '!' 开头）",
+        "setup_instructions_label": "设置说明"
+      },
+      "mattermost": {
+        "channel_name_description": "将发送通知的频道。留空将使用 Webhook 中配置的默认频道。",
+        "channel_name_label": "频道名称",
+        "icon_emoji_cheat_sheet_label": "表情符号速查表",
+        "icon_emoji_description": "用于图标的表情符号。您可以指定两个表情符号，用空格分隔（第一个表示正常状态，第二个表示异常状态）。",
+        "icon_emoji_label": "图标表情符号",
+        "icon_url_description": "用于通知消息图标的图像 URL。",
+        "icon_url_label": "图标 URL",
+        "learn_more_label": "了解更多关于 Webhooks",
+        "message_template_description": "自定义消息格式。可用变量",
+        "message_template_label": "消息模板",
+        "use_message_template_description": "开启自定义消息模板和格式",
+        "use_message_template_label": "使用消息模板",
+        "username_description": "将作为消息发送者出现的用户名。",
+        "webhook_url_label": "Webhook 地址"
+      },
+      "ntfy": {
+        "authentication_type_basic": "基本身份验证",
+        "authentication_type_basic_description": "使用用户名和密码进行基本身份验证。",
+        "authentication_type_label": "认证类型",
+        "authentication_type_none": "无身份验证",
+        "authentication_type_none_description": "不需要身份验证。适用于公共 NTFY 服务器。",
+        "authentication_type_placeholder": "选择认证类型",
+        "authentication_type_token": "令牌身份验证",
+        "authentication_type_token_description": "使用访问令牌进行身份验证。",
+        "custom_message_description": "自定义消息内容。可用变量",
+        "custom_message_label": "自定义消息",
+        "password_required": "基本认证需要密码",
+        "priority_1": "最小（最低）",
+        "priority_2": "低",
+        "priority_3": "默认",
+        "priority_4": "高",
+        "priority_5": "紧急（最高）",
+        "priority_description": "通知的优先级。较高的优先级可能会在客户端触发不同的行为。",
+        "priority_label": "优先级",
+        "priority_placeholder": "选择优先级",
+        "server_url_description": "您的 NTFY 服务器的 URL。使用 https://ntfy.sh 作为公共实例。",
+        "server_url_label": "服务器 URL",
+        "tags_description": "用于对通知进行分类的逗号分隔标签。可用变量",
+        "tags_label": "标签",
+        "title_description": "自定义通知标题。可用变量",
+        "title_label": "自定义标题",
+        "token_description": "您的 NTFY 访问令牌（用于身份验证）",
+        "token_label": "访问令牌",
+        "token_required": "令牌是身份验证所必需的",
+        "topic_description": "通知主题名称。通知将发送到此频道。",
+        "topic_label": "主题",
+        "username_required": "基本身份验证需要用户名"
+      },
+      "opsgenie": {
+        "api_key_label": "API 密钥",
+        "more_info_about_api_keys_label": "关于 API 密钥的更多信息",
+        "priority_1": "严重",
+        "priority_2": "高",
+        "priority_3": "中等",
+        "priority_4": "低",
+        "priority_5": "信息",
+        "priority_description": "设置警报的优先级。默认级别为 P3（中等）。",
+        "priority_label": "优先级",
+        "region_description": "选择您的 Opsgenie 区域。此设置决定将使用哪个 API 端点。",
+        "region_label": "地区",
+        "region_placeholder": "选择地区"
+      },
+      "pagerduty": {
+        "auto_resolve_acknowledge": "自动确认",
+        "auto_resolve_acknowledge_description": "自动确认事件",
+        "auto_resolve_description": "选择监控恢复后采取的操作",
+        "auto_resolve_do_nothing": "不做任何操作",
+        "auto_resolve_do_nothing_description": "UP 状态时不执行任何操作",
+        "auto_resolve_label": "自动恢复或确认",
+        "auto_resolve_placeholder": "选择自动恢复行为",
+        "auto_resolve_resolve": "自动解决",
+        "auto_resolve_resolve_description": "自动解决事件",
+        "integration_key_description": "了解如何获取您的集成密钥",
+        "integration_key_label": "集成密钥",
+        "integration_key_placeholder": "请输入您的 PagerDuty 集成密钥",
+        "integration_url_description": "PagerDuty Events API v2 端点 URL。默认使用标准端点。",
+        "integration_url_label": "集成 URL",
+        "learn_more_label": "PagerDuty 文档",
+        "priority_critical": "严重",
+        "priority_description": "PagerDuty 事件的严重级别。默认值为 'warning'。",
+        "priority_error": "错误",
+        "priority_info": "信息",
+        "priority_label": "优先级",
+        "priority_placeholder": "选择优先级",
+        "priority_warning": "警告"
+      },
+      "pagertree": {
+        "authentication_token_description": "可选的身份验证令牌，以增强安全性。此令牌将通过 pagertree-token 头部发送。",
+        "authentication_token_label": "身份验证令牌（可选）",
+        "authentication_token_placeholder": "如需，请输入授权令牌",
+        "auto_resolve_alerts_description": "监控恢复时自动解决 PagerTree 警报",
+        "auto_resolve_alerts_label": "自动解决告警",
+        "how_to_get_integration_url_label": "如何获取集成 URL",
+        "integration_url_description": "输入您的 PagerTree Webhook 集成 URL。",
+        "integration_url_label": "PagerTree Webhook 地址",
+        "urgency_level_critical": "严重",
+        "urgency_level_description": "为发送至 PagerTree 的告警设置默认紧急级别",
+        "urgency_level_high": "高",
+        "urgency_level_label": "紧急程度",
+        "urgency_level_low": "低",
+        "urgency_level_medium": "中等",
+        "urgency_level_placeholder": "选择紧急级别",
+        "urgency_level_silent": "静默"
+      },
+      "pushbullet": {
+        "access_token": "访问令牌",
+        "access_token_description": "您的 Pushbullet 访问令牌。可从 Pushbullet 获取",
+        "access_token_label": "访问令牌",
+        "access_token_link": "Pushbullet 设置",
+        "channel_tag": "频道标签（可选）",
+        "channel_tag_description": "将通知发送至 Pushbullet 通道，而非设备",
+        "channel_tag_label": "频道标签（可选）",
+        "custom_message_template": "",
+        "custom_message_template_description": "使用模板变量自定义通知正文：",
+        "custom_message_template_heartbeat_ping": "响应时间",
+        "custom_message_template_heartbeat_time": "时间戳",
+        "custom_message_template_label": "自定义消息模板（可选）",
+        "custom_message_template_monitor_url": "监控 URL",
+        "custom_message_template_msg": "警报消息",
+        "custom_message_template_name": "监控名称",
+        "custom_message_template_placeholder": "监控: {{ name }}\n状态: {{ status }}\n消息: {{ msg }}",
+        "custom_message_template_status": "当前状态",
+        "device_id": "设备 ID（可选）",
+        "device_id_description": "将通知发送到特定设备。留空则发送至所有设备。您可以使用以下方式查找设备 ID",
+        "device_id_label": "设备 ID (可选)",
+        "device_id_link": "Pushbullet 接口",
+        "more_info_on": "更多信息："
+      },
+      "pushover": {
+        "application_token_label": "应用程序令牌",
+        "application_token_placeholder": "输入您的 Pushover 应用程序令牌",
+        "device_description": "留空以发送到所有设备",
+        "device_label": "设备",
+        "device_placeholder": "设备名称（可选）",
+        "message_title_description": "留空使用默认标题",
+        "message_title_label": "消息标题",
+        "message_title_placeholder": "自定义消息标题（可选）",
+        "message_ttl_description": "存活时间（秒）（0 = 不过期）",
+        "message_ttl_label": "消息 TTL",
+        "more_info_label": "更多信息：",
+        "more_info_label_2": "您可以创建应用程序并在此获取您的 API 令牌",
+        "more_info_label_3": "您的用户密钥可以在此处找到",
+        "notification_sound_down_description": "监控失效时的声音",
+        "notification_sound_down_label": "通知声音 - 下线",
+        "notification_sound_down_placeholder": "选择声音",
+        "notification_sound_up_description": "监控恢复上线时的提示音",
+        "notification_sound_up_label": "通知音 - 上升",
+        "notification_sound_up_placeholder": "选择声音",
+        "priority_1": "最低",
+        "priority_2": "低",
+        "priority_3": "普通",
+        "priority_4": "高",
+        "priority_5": "紧急",
+        "priority_description": "消息优先级",
+        "priority_label": "优先级",
+        "priority_placeholder": "选择优先级",
+        "sound_alien": "外星",
+        "sound_bike": "自行车",
+        "sound_bugle": "号角",
+        "sound_cashregister": "收银机",
+        "sound_classical": "古典",
+        "sound_climb": "攀升",
+        "sound_cosmic": "宇宙",
+        "sound_echo": "回声",
+        "sound_falling": "下落",
+        "sound_gamelan": "甘美兰",
+        "sound_incoming": "接收",
+        "sound_intermission": "间奏",
+        "sound_magic": "魔法",
+        "sound_mechanical": "机械",
+        "sound_none": "无",
+        "sound_persistent": "持续",
+        "sound_pianobar": "钢琴酒吧",
+        "sound_pushover": "Pushover（默认）",
+        "sound_siren": "警笛",
+        "sound_spacealarm": "太空警报",
+        "sound_tugboat": "拖船",
+        "sound_updown": "上升下降",
+        "sound_vibrate": "震动",
+        "user_key_label": "用户密钥",
+        "user_key_placeholder": "请输入您的 Pushover 用户密钥"
+      },
+      "signal": {
+        "custom_message_description": "自定义消息模板。可用变量",
+        "custom_message_label": "自定义消息",
+        "important_description": "收件人中不能同时混合使用组和数字！",
+        "important_label": "重要：",
+        "more_info_label": "您可以查看此 URL 以了解如何设置",
+        "note_description": "您需要使用支持 REST API 的 Signal 客户端。",
+        "note_label": "注意:",
+        "number_description": "Signal 账号的手机号（发送者号码）。",
+        "number_label": "编号",
+        "post_url_description": "Signal CLI REST API 服务器的 URL",
+        "post_url_label": "发送 URL",
+        "recipients_description": "要发送通知的手机号码，以逗号分隔",
+        "recipients_label": "收件人"
+      },
+      "slack": {
+        "channel_name_description": "消息将被发送到的频道。如果未指定，则消息将被发送到 webhook 配置的默认频道。",
+        "channel_name_description_2": "您可以通过指定频道名称（例如 #alerts）或用户（例如 @username）来覆盖默认频道。",
+        "channel_name_label": "频道名称",
+        "channel_notify_description": "启用后，消息将触发对所有频道成员的通知。请谨慎使用以避免垃圾信息。",
+        "channel_notify_label": "通知频道",
+        "icon_emoji_cheat_sheet_label": "Emoji速查表",
+        "icon_emoji_description": "用于此消息图标的表情符号。必须采用 :emoji_name: 的格式",
+        "icon_emoji_label": "图标表情符号",
+        "message_format_description": "发送富文本消息",
+        "message_format_description_2": "启用发送具有富文本格式、附件以及更佳视觉呈现的消息。",
+        "message_format_label": "消息格式",
+        "username_description": "将作为消息发送者显示的用户名。如果未指定，将使用默认机器人名称。",
+        "webhook_url_description": "来自您 Slack 集成的 webhook URL。您可以在 Slack 实例的 Integrations > Webhooks 中找到。",
+        "webhook_url_label": "Webhook 网址"
+      },
+      "smtp": {
+        "custom_body_label": "自定义正文",
+        "custom_description": "模板化功能是通过<b>Liquid</b> 模板语言实现的。",
+        "custom_description_2": "请参阅文档以获取使用说明。",
+        "custom_description_3": "可用变量：",
+        "custom_description_4": "通知内容",
+        "custom_description_5": "服务名称",
+        "custom_description_6": "服务状态（正常/异常/证书到期通知）",
+        "custom_subject_label": "自定义主题",
+        "smtp_from_label": "发件人（发送者邮箱）",
+        "smtp_host_description": "输入要连接的服务器主机名，或若想使用本地已配置的邮件传输代理，请输入 localhost",
+        "smtp_host_label": "SMTP 主机",
+        "smtp_password_placeholder": "SMTP 密码",
+        "smtp_port_label": "端口",
+        "smtp_to_label": "收件人（邮箱地址）",
+        "smtp_username_placeholder": "SMTP 用户名"
+      },
+      "telegram": {
+        "auto_get_label": "自动获取",
+        "bot_token_description": "从…获取您的机器人令牌",
+        "bot_token_label": "机器人令牌",
+        "chat_id_description": "您可以通过向机器人发送消息并点击上方的“自动获取”，或者手动通过 Telegram API 来获取您的聊天 ID。",
+        "chat_id_description_2": "手动获取，请访问",
+        "chat_id_description_3": "查看",
+        "chat_id_description_4": "Telegram 文档",
+        "chat_id_description_5": "了解更多信息。",
+        "chat_id_label": "聊天 ID",
+        "chat_id_not_found": "在最新更新中未找到聊天 ID。",
+        "failed_to_fetch_chat_id": "获取聊天 ID 失败",
+        "message_thread_id_description": "可选。用于向论坛超级群组中特定主题（线程）发送消息。",
+        "message_thread_id_label": "消息线程 ID",
+        "no_updates_found": "未发现更新。请先向您的机器人发送消息。",
+        "protect_content_description": "开启后，消息内容将被保护，禁止转发和保存。",
+        "protect_content_label": "保护内容",
+        "send_silently_description": "如果启用，消息将静默发送（用户将收到无声的通知）。",
+        "send_silently_label": "静默发送",
+        "server_url_description": "默认是",
+        "server_url_description_2": "您可以使用自定义服务器。查看",
+        "server_url_description_3": "这里",
+        "server_url_description_4": "详情请参阅。",
+        "server_url_label": "Telegram 服务器 URL",
+        "template_description": "自定义消息格式。可用变量",
+        "template_label": "消息模板",
+        "template_parse_mode_description": "选择消息的解析方式。见",
+        "template_parse_mode_description_2": "Telegram 格式化文档",
+        "template_parse_mode_description_3": "查看详情",
+        "template_parse_mode_label": "模板解析模式",
+        "template_parse_mode_placeholder": "选择解析模式",
+        "template_placeholder": "请输入自定义消息模板",
+        "use_template_description": "启用自定义消息模板和格式",
+        "use_template_label": "使用消息模板"
+      },
+      "webhook": {
+        "additional_headers_description": "为 webhook 请求添加自定义 HTTP 头部。",
+        "additional_headers_label": "附加头部",
+        "custom_body_description": "自定义请求体格式。可用变量",
+        "custom_body_label": "自定义正文",
+        "post_url_description": "通知将发送到的 webhook 端点 URL。",
+        "post_url_label": "POST 地址",
+        "request_body_description_custom": "请在下方定义您自己的自定义请求体格式。",
+        "request_body_description_form_data": "内容将以 multipart/form-data 形式发送。您可以在 PHP 中使用 <strong>json_decode($_POST['data'])</strong> 进行解码。",
+        "request_body_description_json": "内容将以 JSON 格式发送，并使用 “application/json” 头部。",
+        "request_body_label": "请求体",
+        "request_body_placeholder": "选择内容类型"
+      }
+    },
+    "important": "重要通知",
+    "important_notifications": "重要通知",
+    "labels": {
+      "friendly_name": "友好名称",
+      "type": "通知器类型"
+    },
+    "messages": {
+      "create_failed": "创建通知器失败",
+      "created_success": "已成功创建通知器",
+      "error_loading_notifier": "加载通知器时出错",
+      "test_failed": "发送测试通知失败",
+      "test_success": "测试通知已成功发送",
+      "update_failed": "更新通知器失败",
+      "updated_success": "通知器已成功更新"
+    },
+    "new": {
+      "title": "新建通知渠道"
+    },
+    "no_important": "未找到重要通知。",
+    "placeholders": {
+      "select_type": "选择通知器类型"
+    },
+    "search_placeholder": "按名称搜索通知渠道…"
+  },
+  "proxies": {
+    "delete_dialog": {
+      "description": "此操作不可撤销。将永久删除代理 {{host}}:{{port}}。",
+      "title": "您确定吗？"
+    },
+    "edit": {
+      "page_name": "编辑代理"
+    },
+    "empty_list": {
+      "action_text": "创建第一个代理",
+      "text": "先创建第一个代理，开始在监控中使用。",
+      "title": "未找到代理"
+    },
+    "form": {
+      "auth_label": "代理服务器已启用身份验证",
+      "port_placeholder": "端口",
+      "protocol_label": "代理协议",
+      "protocol_placeholder": "选择代理协议",
+      "server_label": "代理服务器",
+      "server_placeholder": "服务器地址",
+      "user": "用户"
+    },
+    "messages": {
+      "create_failed": "创建代理失败",
+      "created_success": "代理已创建",
+      "error_loading_proxy": "加载代理错误",
+      "update_failed": "更新代理失败",
+      "updated_success": "代理已成功更新"
+    },
+    "new": {
+      "page_name": "新建代理"
+    },
+    "page_name": "代理",
+    "search_label": "搜索",
+    "search_placeholder": "按主机搜索代理…"
+  },
+  "security": {
+    "enable_2fa": {
+      "form": {
+        "authenticator_code_label": "身份验证器码",
+        "authenticator_code_placeholder": "输入6位验证码",
+        "current_password_label": "当前密码",
+        "current_password_placeholder": "输入当前密码",
+        "enable_2fa_button": "开启 2FA"
+      },
+      "messages": {
+        "2fa_active": "2FA 已启用",
+        "2fa_disabled_successfully": "2FA 已成功禁用",
+        "2fa_enabled_successfully": "已成功启用双因素身份验证",
+        "account_is_protected_with_2fa": "您的账户已启用双因素身份验证。",
+        "disable_2fa": "禁用 2FA",
+        "enter_password_to_disable_2fa": "输入您的密码以禁用双因素认证",
+        "failed_to_disable_2fa": "禁用 2FA 失败",
+        "failed_to_verify_2fa_code": "验证 2FA 代码失败",
+        "failed_to_verify_password": "验证密码或启动双因素认证设置失败",
+        "have_enabled_2fa": "您已为您的账户启用双因素身份验证（2FA）。这为您的账户增加了额外的安全层。",
+        "or_enter_secret_manually": "或手动输入此密钥",
+        "scan_qr_code_with_authenticator_app": "使用身份验证器扫描此二维码",
+        "two_factor_authentication_enabled": "双因素身份验证已启用",
+        "user_email_not_found": "未找到用户邮箱"
+      }
+    },
+    "page_name": "安全",
+    "update_password": {
+      "form": {
+        "confirm_new_password_label": "确认新密码",
+        "confirm_new_password_placeholder": "再次输入新密码",
+        "new_password_label": "新密码",
+        "new_password_placeholder": "请输入新密码",
+        "old_password_label": "旧密码",
+        "old_password_placeholder": "请输入当前密码",
+        "update_password_button": "更新密码"
+      },
+      "messages": {
+        "failed_to_update_password": "密码更新失败",
+        "password_updated_successfully": "密码已成功更新"
+      },
+      "title": "更新密码"
+    }
+  },
+  "sendgrid": {
+    "api_key_description": "您的 SendGrid API 密钥。您可以在 SendGrid 账户的 设置 → API 密钥 中创建。请确保它具有 \"Mail Send\" 权限。",
+    "api_key_label": "API 密钥",
+    "bcc_email_description": "密件抄送收件人。请使用逗号分隔多个邮箱。",
+    "bcc_email_label": "密件抄送电子邮件（可选）",
+    "cc_email_description": "抄送收件人。用逗号分隔多个邮件地址。",
+    "cc_email_label": "抄送邮箱（可选）",
+    "from_email_description": "发送者电子邮件地址。此地址必须是您 SendGrid 账户中已验证的发送者。",
+    "from_email_label": "发件人邮箱",
+    "subject_description": "邮件主题行。支持 Liquid 模板。",
+    "subject_label": "自定义主题（可选）",
+    "subject_variables_label": "可用变量：",
+    "subject_variables_msg": "通知消息",
+    "subject_variables_name": "服务名称",
+    "subject_variables_status": "服务状态（正常/停机）",
+    "to_email_description": "主要收件人电子邮件地址。若有多位收件人，请使用抄送（CC）或密送（BCC）字段。",
+    "to_email_label": "收件人邮箱"
+  },
+  "settings": {
+    "data_retention": {
+      "days_label": "天",
+      "description": "设置保留数据的天数（KEEP_DATA_PERIOD_DAYS）。",
+      "title": "数据保留期限"
+    },
+    "timezone": {
+      "description": "选择您偏好的时区，以在应用程序中显示所有时间。",
+      "label": "时区",
+      "no_timezone_found": "未找到时区。",
+      "search_placeholder": "搜索时区...",
+      "select_placeholder": "选择时区…",
+      "title": "时区"
+    },
+    "validation": {
+      "min_days": "至少1天"
+    }
+  },
+  "status": {
+    "messages": {
+      "all_systems_operational": "全部系统正常",
+      "down": "已停止",
+      "last_updated": "最近更新时间",
+      "maintenance": "维护",
+      "no_monitors_configured": "此状态页面未配置任何监控。",
+      "operational": "正常运行",
+      "partial_system_outage": "系统部分停机",
+      "powered_by": "由",
+      "refresh_in": "刷新中",
+      "refresh_now": "立即刷新",
+      "status_page_not_found": "未找到状态页面或未发布。",
+      "under_maintenance": "维护中",
+      "unknown": "未知"
+    }
+  },
+  "status_pages": {
+    "affected_monitors": "受影响的监控",
+    "affected_monitors_info": "选择受此维护影响的监控",
+    "auto_refresh_interval": "自动刷新间隔（秒）",
+    "basic_information": "基本信息",
+    "create_status_page": "创建状态页面",
+    "customization": "自定义",
+    "delete_dialog": {
+      "description": "确定要删除「{{title}}」吗？此操作无法恢复。",
+      "title": "删除状态页面"
+    },
+    "description": "输入状态页面描述",
+    "domain_already_used": "域名 {{domain}} 已被其他状态页面使用",
+    "domain_host_warning": "此域名与您当前的主机 URL 相同，可能导致冲突。",
+    "domains": "域名",
+    "domains_info_warning": "别忘记为每个域名在 DNS 中添加 CNAME 记录。",
+    "draft_status": "草稿",
+    "edit_page_name": "编辑状态页面",
+    "messages": {
+      "create_description": "创建一个新的状态页面，以便与用户共享您的服务状态。",
+      "create_your_first_status_page": "创建您的第一个状态页面",
+      "created_successfully": "状态页面创建成功",
+      "delete_failed": "删除状态页面失败",
+      "deleted_successfully": "状态页面已成功删除",
+      "get_started_by_creating_your_first_status_page": "先创建您的第一个状态页面。",
+      "no_status_pages_found": "未找到状态页面",
+      "not_found": "状态页面未找到",
+      "update_description": "更新您的状态页面设置与配置。",
+      "updated_successfully": "状态页面更新成功"
+    },
+    "new_page_name": "新建状态页面",
+    "page_name": "状态页面",
+    "published": "已发布",
+    "published_info": "公开此状态页面",
+    "published_status": "已发布",
+    "search_label": "搜索",
+    "search_placeholder": "按标题搜索状态页面…",
+    "update_status_page": "更新状态页面",
+    "view_page": "查看页面"
+  },
+  "tags": {
+    "confirm_delete_description": "此操作不可撤销。此操作将永久删除标签 \"{{name}}\" 并从所有监控中移除。",
+    "edit_page_name": "编辑标签",
+    "empty_state": {
+      "action": "创建你的第一个标签",
+      "description": "先创建第一个标签，组织您的监控。",
+      "title": "未找到标签"
+    },
+    "form": {
+      "color_description": "为您的标签选择颜色",
+      "color_label": "颜色",
+      "create_button": "创建标签",
+      "description_label": "描述",
+      "description_placeholder": "输入标签描述（可选）",
+      "name_label": "名称",
+      "name_placeholder": "输入标签名称",
+      "update_button": "更新标签"
+    },
+    "messages": {
+      "create_description": "创建新标签，帮助您组织和分类监控项。",
+      "failed_to_load_tag": "加载标签失败。该标签可能不存在，或者您无权查看它。",
+      "tag_id_required": "标签 ID 为必填项",
+      "update_description": "更新标签详情，以更好地组织您的监控。"
+    },
+    "new_page_name": "新标签",
+    "search_placeholder": "搜索标签…"
+  },
+  "theme": {
+    "dark": "深色",
+    "light": "浅色",
+    "system": "系统",
+    "toggle_theme": "切换主题"
+  },
+  "timezone": {
+    "average": "平均",
+    "last_24_hours": "最近24小时",
+    "last_3_hours": "最近3小时",
+    "last_3_months": "最近3个月",
+    "last_30_minutes": "最近30分钟",
+    "last_6_hours": "最近 6 小时",
+    "last_7_days": "最近 7 天",
+    "maximum": "最大",
+    "minimum": "最小",
+    "ms": "毫秒",
+    "response_time": "响应时间",
+    "uptime": "正常运行时间"
+  },
+  "ui": {
+    "general": "通用",
+    "intervals_retries": "间隔、重试、超时"
+  }
+}

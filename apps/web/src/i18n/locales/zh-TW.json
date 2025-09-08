@@ -1,0 +1,1281 @@
+{
+  "actions": {
+    "cancel": "取消",
+    "saving": "儲存中…"
+  },
+  "auth": {
+    "login": {
+      "description": "使用您的電子郵件登入",
+      "no_account": "還沒有帳號？",
+      "sign_up": "註冊",
+      "submit": "登入",
+      "title": "歡迎回來"
+    },
+    "register": {
+      "description": "建立您的管理員帳戶",
+      "have_account": "已有帳號？",
+      "sign_in": "登入",
+      "submit": "建立",
+      "title": "您好"
+    },
+    "twofa": {
+      "code_label": "兩步驗證碼",
+      "code_placeholder": "輸入 2FA 代碼",
+      "description": "已為您的帳號啟用雙重身份驗證。請輸入您的驗證碼以繼續。",
+      "title": "需要雙因素認證",
+      "verify_button": "驗證 2FA",
+      "verifying": "驗證中…"
+    }
+  },
+  "bars": {
+    "down_count": "停機次數",
+    "important": "重要",
+    "interval": "間隔",
+    "message": "訊息",
+    "ms": "毫秒",
+    "notified": "已通知",
+    "ping": "Ping",
+    "retries": "重試次數",
+    "status": "狀態",
+    "time": "時間"
+  },
+  "common": {
+    "active": "啟用",
+    "all": "全部",
+    "back": "返回",
+    "cancel": "取消",
+    "clear_all": "清除全部",
+    "clear_all_filters": "清除所有篩選",
+    "confirm": "確認",
+    "confirm_delete_title": "您確定嗎？",
+    "confirm_delete_title_short": "你確定嗎？",
+    "continue": "繼續",
+    "create": "建立",
+    "created": "已建立",
+    "days": "天",
+    "default": "預設",
+    "delete": "刪除",
+    "disabling": "停用中…",
+    "dismiss": "關閉",
+    "down": "宕機",
+    "enabling": "啟用中...",
+    "error": "錯誤",
+    "expires": "到期",
+    "inactive": "停用",
+    "loading": "載入中…",
+    "logout": "登出",
+    "maintenance": "維護",
+    "no_options_found": "找不到選項",
+    "no_tags_available": "尚無標籤可用",
+    "please_refresh_page": "請刷新頁面。",
+    "required": "必填",
+    "save": "儲存",
+    "saving": "儲存中…",
+    "search": "搜尋",
+    "security": "安全",
+    "select": "選擇",
+    "select_monitors": "選擇監控項目...",
+    "select_tags": "選擇標籤",
+    "settings": "設定",
+    "tags": "標籤",
+    "unknown": "未知",
+    "unnamed_monitor": "未命名監控",
+    "up": "正常",
+    "update": "更新",
+    "verifying": "驗證中…"
+  },
+  "forms": {
+    "labels": {
+      "confirm_password": "確認密碼",
+      "email": "電子郵件",
+      "footer_text": "頁腳文字",
+      "heartbeat_interval": "心跳間隔（秒）",
+      "icon_url": "圖標 URL",
+      "monitor_name": "名稱",
+      "monitor_type": "類型",
+      "password": "密碼",
+      "retries": "重試次數",
+      "slug": "别名",
+      "title": "標題",
+      "username": "使用者名稱"
+    },
+    "placeholders": {
+      "auto_refresh_help": "0 表示不自動刷新",
+      "domains": "輸入網域（例如 status.example.com）",
+      "footer_text": "輸入頁腳文字",
+      "icon_url": "https://example.com/icon.png",
+      "monitor_name": "我的監控",
+      "page_description": "請輸入狀態頁面說明",
+      "page_title": "輸入狀態頁標題",
+      "slug": "狀態頁別名"
+    },
+    "validation": {
+      "email_invalid": "請輸入有效的電子郵件地址",
+      "password_min_length": "密碼至少要 8 個字元",
+      "passwords_mismatch": "密碼不一致"
+    }
+  },
+  "maintenance": {
+    "card": {
+      "aria": {
+        "delete": "刪除 {{title}}",
+        "pause": "暫停維護",
+        "resume": "繼續維護"
+      },
+      "labels": {
+        "duration": "{{duration}} 分鐘",
+        "end": "結束：{{date}}",
+        "start": "開始：{{date}}"
+      },
+      "status": {
+        "active": "啟用",
+        "ended": "已結束",
+        "inactive": "停用"
+      }
+    },
+    "edit_title": "編輯維護",
+    "form": {
+      "affected_monitors_description": "選擇將受到此維護影響的監控項目",
+      "affected_monitors_title": "受影響的監控器",
+      "cron_description": "請輸入有效的 cron 表達式",
+      "cron_expression": "Cron 表達式",
+      "date_time_title": "日期與時間",
+      "day_of_month": "日",
+      "day_of_week": "星期",
+      "description_label": "說明",
+      "description_placeholder": "維護說明...",
+      "duration_minutes": "持续时间（分钟）",
+      "effective_date_range": "生效日期範圍（可選）",
+      "end_date_time": "結束日期與時間",
+      "end_time": "結束時間",
+      "interval_label": "間隔 (每天執行一次)",
+      "last_day": "最後一天",
+      "last_day_of_month": "每月最後一天",
+      "maintenance_time_window": "每日維護時間窗",
+      "markdown_supported": "Markdown 支援",
+      "same_as_server": "與伺服器時區相同",
+      "start_date_time": "開始日期 & 時間",
+      "start_time": "開始時間",
+      "strategy_label": "策略",
+      "strategy_placeholder": "選擇策略",
+      "timezone_label": "時區",
+      "timezone_placeholder": "選擇時區",
+      "title_label": "標題",
+      "title_placeholder": "維護標題"
+    },
+    "page": {
+      "clear_filters": "清除所有篩選",
+      "dialogs": {
+        "confirm_action": {
+          "pause_description": "確定要暫停此維護嗎？",
+          "resume_description": "您確定要恢復此維護嗎？",
+          "title": "確認操作"
+        },
+        "confirm_delete": {
+          "description": "您確定要刪除此維護窗口嗎？此操作將無法復原。",
+          "title": "確認刪除"
+        }
+      },
+      "edit_maintenance": "編輯維護：{{title}}",
+      "empty_state": {
+        "action": "建立你的第一個維護窗口",
+        "description": "先建立第一個維護窗口，預防預定停機時間。",
+        "title": "找不到任何維護窗口"
+      },
+      "error_loading": "載入維護頁面時出錯",
+      "loading": "載入中...",
+      "loading_monitors": "載入監控中…",
+      "search_placeholder": "搜尋維護項目..."
+    },
+    "page_title": "維護窗口",
+    "schedule_title": "排程維護",
+    "strategy": {
+      "cron": "Cron 表達式",
+      "manual": "手動啟用/停用",
+      "recurring_day_of_month": "重複 - 每月日期",
+      "recurring_interval": "週期性 - 間隔",
+      "recurring_weekday": "重複 - 星期幾",
+      "single": "单个维护窗口"
+    },
+    "toasts": {
+      "create_error": "建立維護失敗",
+      "created_success": "維護已成功建立",
+      "delete_error": "刪除維護失敗",
+      "deleted_success": "維護已成功刪除",
+      "pause_error": "無法暫停維護",
+      "paused_success": "維護已暫停成功",
+      "resume_error": "恢復維護失敗",
+      "resumed_success": "維護已成功恢復",
+      "toggle_error": "無法切換維護狀態：缺少 ID",
+      "update_error": "更新維護失敗",
+      "updated_success": "維護更新成功"
+    },
+    "weekdays": {
+      "fri": "週五",
+      "mon": "週一",
+      "sat": "週六",
+      "sun": "日",
+      "thu": "週四",
+      "tue": "週二",
+      "wed": "週三"
+    }
+  },
+  "messages": {
+    "login_error": "登入時發生錯誤",
+    "login_no_tokens": "登入成功，但未收到權杖",
+    "login_success": "已成功登入",
+    "notifier_delete_error": "刪除通知器失敗",
+    "notifier_delete_success": "通知器已成功刪除",
+    "register_error": "註冊時發生錯誤",
+    "register_no_tokens": "註冊成功，但未收到任何權杖",
+    "register_success": "註冊成功",
+    "setting_update_error": "設定更新失敗",
+    "setting_update_success": "設定已成功更新",
+    "tag_create_error": "建立標籤失敗",
+    "tag_create_success": "標籤已成功建立",
+    "tag_delete_error": "標籤刪除失敗",
+    "tag_delete_success": "已成功刪除標籤",
+    "tag_update_error": "更新標籤失敗",
+    "tag_update_success": "標籤已成功更新",
+    "unexpected_error": "發生了意外錯誤",
+    "version_mismatch": "偵測到版本不匹配"
+  },
+  "monitors": {
+    "card": {
+      "check_interval": "檢查間隔：",
+      "loading_more": "載入更多..."
+    },
+    "empty_state": {
+      "action": "建立您的第一個監控",
+      "description": "先建立第一個監控，以追蹤您的服務健康狀態。",
+      "title": "未找到任何監控項目"
+    },
+    "filtering_by_tags": "按標籤篩選",
+    "filters": {
+      "monitor_status": "狀態",
+      "monitor_status_placeholder": "監控狀態",
+      "search_placeholder": "搜尋監控器名稱…",
+      "status_placeholder": "狀態"
+    },
+    "form": {
+      "buttons": {
+        "copied": "已複製！",
+        "copy": "複製",
+        "create": "新增",
+        "regenerate": "重新產生",
+        "update": "更新"
+      },
+      "dns": {
+        "hostname": "主機名稱",
+        "port": "埠號",
+        "record_type": "資源記錄類型",
+        "record_type_placeholder": "選擇記錄類型",
+        "resolver_server": "解析伺服器",
+        "title": "DNS 設定"
+      },
+      "docker": {
+        "ca_cert_description": "請將憑證授權機構證書以 PEM 格式貼上。",
+        "ca_certificate": "CA 憑證 (PEM)",
+        "client_cert_description": "請貼上您的客戶端證書（PEM 格式）。此證書用於雙向 TLS 認證。",
+        "client_certificate": "客戶端證書（PEM）",
+        "client_private_key": "客戶端私鑰（PEM）",
+        "common_tls_issues": "常見 TLS 問題：",
+        "connection_type": "連線類型",
+        "container_name_id": "容器名稱/ID",
+        "disabled": "停用",
+        "docker_container": "Docker 容器",
+        "docker_host": "Docker 主機",
+        "enable_tls": "啟用 TLS",
+        "enabled": "已啟用",
+        "examples": "範例",
+        "hostname_mismatch": "x509: 證書有效於 X，而非 Y：",
+        "hostname_mismatch_solution": "確保主機名稱符合憑證的 SAN，或停用驗證（不建議）。",
+        "legacy_cert_error": "x509: 證書依賴舊版 Common Name 欄位",
+        "legacy_cert_solution": "將主機名稱加入憑證中的主旨替代名稱 (SAN)。",
+        "mtls_note": "對於相互 TLS (mTLS)，您需要提供客戶端證書與私鑰。CA 證書用於驗證服務器的證書。",
+        "note": "備註:",
+        "private_key_description": "將您的私鑰以 PEM 格式貼上。請妥善保管！",
+        "select_connection_type": "選擇連線類型",
+        "select_tls_option": "選擇 TLS 選項",
+        "select_verification_option": "選擇驗證方式",
+        "skip_verification": "跳過驗證（不安全）",
+        "tls_configuration": "TLS 設定",
+        "unknown_authority": "\"x509：憑證簽署者未知授權機構\":",
+        "unknown_authority_solution": "請提供正確簽署該伺服器證書的 CA 證書。",
+        "verify_certificates": "驗證憑證",
+        "verify_tls": "驗證 TLS"
+      },
+      "grpc": {
+        "body": "正文資料（JSON）",
+        "enable_tls": "啟用 TLS",
+        "enable_tls_description": "使用安全連線 (TLS/SSL)",
+        "invert_keyword": "反向關鍵字",
+        "invert_keyword_description": "若未找到關鍵字，監控將被標記為 UP",
+        "keyword": "關鍵字",
+        "keyword_description": "在回應中搜尋此關鍵字",
+        "keyword_placeholder": "可選搜尋關鍵字",
+        "method_description": "區分大小寫",
+        "method_placeholder": "檢查",
+        "options_title": "gRPC 選項",
+        "proto_content": "Protobuf 內容",
+        "proto_method": "Protobuf 方法",
+        "proto_service_name": "Protobuf 服務名稱",
+        "service_name_placeholder": "健康"
+      },
+      "http": {
+        "advanced": {
+          "accepted_status_codes": "可接受的狀態碼",
+          "ignore_tls": "忽略 HTTPS 網站的 TLS/SSL 錯誤",
+          "ignore_tls_description": "忽略 TLS 證書驗證。請謹慎使用—這會降低連線安全性。",
+          "max_redirects": "最大重定向次數",
+          "max_redirects_description": "最大重定向次數（0-30）。設為 0 以停用重定向。",
+          "title": "進階"
+        },
+        "authentication": {
+          "auth_header": "授權標頭",
+          "certificate": "憑證",
+          "certificate_placeholder": "憑證",
+          "client_id": "客戶端 ID",
+          "client_id_placeholder": "客戶端 ID",
+          "client_secret": "客戶端密鑰",
+          "client_secret_placeholder": "客戶端祕密",
+          "domain": "域名",
+          "domain_placeholder": "域名",
+          "form_data_body": "表單資料主體",
+          "key": "金鑰",
+          "key_placeholder": "金鑰",
+          "method_label": "認證方式",
+          "method_placeholder": "選擇驗證類型",
+          "oauth_scope": "OAuth 範圍",
+          "oauth_scope_placeholder": "可選：以空格分隔的範圍列表",
+          "oauth_token_url": "OAuth 令牌 URL",
+          "oauth_token_url_placeholder": "OAuth 令牌 URL",
+          "title": "身份驗證",
+          "workstation": "工作站",
+          "workstation_placeholder": "工作站"
+        },
+        "options": {
+          "body": "主體",
+          "body_encoding": "正文編碼",
+          "body_encoding_placeholder": "選擇正文編碼",
+          "form_example": "範例表單資料",
+          "headers": "標頭",
+          "json_example": "範例 JSON",
+          "method": "方法",
+          "method_placeholder": "選擇監控類型",
+          "select_encoding": "選擇請求體編碼",
+          "select_method": "選擇方法",
+          "text_example": "範例文字：\n此處可輸入任何純文字內容...",
+          "title": "HTTP 選項",
+          "xml_example": "XML 範例"
+        }
+      },
+      "http_json_query": {
+        "condition_label": "條件",
+        "expected_value_label": "預期值",
+        "json_query_label": "JSON 查詢表達式",
+        "title": "JSON 查詢表達式"
+      },
+      "http_keyword": {
+        "invert_keyword_description": "尋找關鍵字缺失，而非存在。",
+        "invert_keyword_label": "反向關鍵字",
+        "keyword_label": "關鍵字",
+        "keyword_validation_title": "關鍵字驗證"
+      },
+      "kafka": {
+        "add_broker": "新增代理",
+        "auto_topic_creation_description": "允許生產者在主題不存在時自動建立主題",
+        "auto_topic_creation_label": "允許自動建立主題",
+        "brokers_description": "Kafka broker 位址清單（主機:埠格式）",
+        "brokers_label": "Kafka 代理伺服器",
+        "configuration_title": "Kafka 設定",
+        "enable_ssl_description": "使用 SSL/TLS 加密連線",
+        "enable_ssl_label": "启用SSL/TLS",
+        "message_description": "要發送到主題的訊息內容（建議使用 JSON 格式）",
+        "message_label": "訊息",
+        "sasl_mechanism_description": "選擇 SASL 認證機制",
+        "sasl_mechanism_label": "SASL 機制",
+        "sasl_mechanism_placeholder": "選擇 SASL 機制",
+        "sasl_password_description": "SASL 認證密碼",
+        "sasl_password_label": "SASL 密碼",
+        "sasl_password_placeholder": "密碼",
+        "sasl_username_description": "SASL 認證用戶名",
+        "sasl_username_label": "SASL 用戶名",
+        "security_title": "安全",
+        "topic_description": "要產出訊息的 Kafka 主題"
+      },
+      "mongodb": {
+        "command_description": "要以 JSON 執行的 MongoDB 命令。若未指定，預設為 ping。",
+        "command_label": "指令 (可選)",
+        "configuration_title": "MongoDB 設定",
+        "connection_string_description": "MongoDB 連線字串。支援標準（mongodb://）與 DNS seedlist（mongodb+srv://）格式。",
+        "connection_string_label": "連線字串",
+        "expected_value_description": "要與 JSON 路徑結果比較的預期值。",
+        "expected_value_label": "期望值 (選填)",
+        "expected_value_placeholder": "預期值",
+        "json_path_description": "JSON 路徑以從回應中提取值。使用 $ 為根層級。",
+        "json_path_label": "JSON Path（可選）"
+      },
+      "mqtt": {
+        "check_type_json_query": "JSON 查詢",
+        "check_type_keyword": "關鍵字",
+        "check_type_label": "MQTT 檢查類型",
+        "check_type_none": "無（任何訊息）",
+        "check_type_placeholder": "選擇檢查類型",
+        "configuration_title": "MQTT 設定",
+        "expected_value_label": "期望值",
+        "hostname_label": "主機名稱",
+        "json_path_label": "JSON 路徑",
+        "password_label": "MQTT 密碼",
+        "password_placeholder": "密碼（可選）",
+        "port_label": "埠號",
+        "success_keyword_label": "MQTT 成功關鍵字",
+        "success_keyword_placeholder": "表示成功的關鍵字",
+        "username_label": "MQTT 用戶名",
+        "username_placeholder": "使用者名稱（可選）",
+        "validation": {
+          "expected_value_required": "當檢查類型為 json-query 時，必須填寫預期值",
+          "json_path_required": "檢查類型為 json-query 時，JSON 路徑為必填",
+          "success_keyword_required": "當檢查類型為關鍵字時，成功關鍵字為必填項"
+        }
+      },
+      "mysql": {
+        "connection_string_examples": "範例：",
+        "connection_string_label": "連接字串",
+        "connection_title": "MySQL 連線",
+        "query_label": "查詢"
+      },
+      "ping": {
+        "data_size": "資料大小（位元組）",
+        "host": "主機名稱 / IP",
+        "title": "Ping 設定"
+      },
+      "postgres": {
+        "connection_string_label": "連接字串",
+        "connection_title": "PostgreSQL 連線",
+        "query_label": "查詢"
+      },
+      "push": {
+        "url_description": "使用此 URL 在您的服務中報告狀態。向此端點發送 HTTP 請求（POST/GET）來傳送心跳。",
+        "url_title": "推送監控網址"
+      },
+      "rabbitmq": {
+        "documentation_link": "RabbitMQ 文檔",
+        "health_checks_description": "監控器會在每個節點上檢查 {{code}} 端點，若任一節點健康，即回傳 UP。",
+        "management_nodes_description": "請輸入 RabbitMQ 管理節點的 URL，包含協定與埠號。範例： https://node1.rabbitmq.com:15672",
+        "management_nodes_title": "管理節點",
+        "node_url_label": "節點網址",
+        "password_description": "RabbitMQ 管理介面驗證密碼",
+        "setup_information_description": "要使用 RabbitMQ 監控功能，您需要在 RabbitMQ 配置中啟用管理插件。若需進一步資訊，請參閱 RabbitMQ 文件。",
+        "setup_information_title": "設定資訊",
+        "title": "RabbitMQ 設定",
+        "username_description": "RabbitMQ 管理介面驗證使用者名稱"
+      },
+      "redis": {
+        "ca_certificate_description": "根 CA 證書（PEM 格式）。需要此證書以正確驗證自簽證書。",
+        "ca_certificate_label": "CA 憑證（可選）",
+        "client_certificate_description": "PEM 格式的客戶端證書。必須用於雙向 TLS 認證。",
+        "client_certificate_label": "客戶端憑證 (可選)",
+        "client_key_description": "以 PEM 格式的客戶端私鑰。必須與客戶端證書一起提供。",
+        "client_key_label": "客戶端私鑰（可選）",
+        "connection_string_description": "Redis 連線字串格式：{{redis}} 或 {{rediss}}（使用 TLS）",
+        "connection_string_label": "連接字串",
+        "ignore_tls_description": "跳過 TLS 證書驗證（不建議在生產環境使用）",
+        "ignore_tls_label": "忽略 TLS/SSL 錯誤",
+        "title": "Redis 設定"
+      },
+      "shared": {
+        "intervals": {
+          "heartbeat_retry": "心跳重試間隔 (每 {{seconds}} 秒重試一次)",
+          "max_retries_description": "在將服務標記為停機並發送通知之前的最大重試次數",
+          "request_timeout": "請求逾時 ({{seconds}} 秒後逾時)",
+          "resend_notification": "若連續失效 X 次，重新發送通知（已停用）"
+        },
+        "notifications": {
+          "add_notifier": "新增通知器",
+          "new_notifier": "+ 新增通知者",
+          "no_channels": "尚未找到通知通道，請先建立一個",
+          "no_channels_available": "尚無可用頻道",
+          "select_channel": "選擇頻道",
+          "select_notifier_placeholder": "選擇通知器",
+          "selected_channels": "已選通知頻道",
+          "title": "通知頻道"
+        },
+        "proxy": {
+          "add_proxy": "新增代理",
+          "new_proxy": "+ 新代理",
+          "no_proxy": "無代理",
+          "remove_proxy": "移除代理",
+          "select_proxy_placeholder": "選擇代理",
+          "selected_proxy": "已選代理",
+          "title": "代理"
+        },
+        "tags": {
+          "label": "標籤",
+          "no_tags": "尚無標籤",
+          "placeholder": "選擇標籤"
+        }
+      },
+      "snmp": {
+        "community_description": "用於身份驗證的 SNMP 社群字串（類似密碼）",
+        "community_label": "社群字串",
+        "expected_value_description": "用於比較的值。留空以跳過驗證。",
+        "expected_value_label": "預期值",
+        "host_description": "啟用 SNMP 的裝置的主機名稱或 IP 位址",
+        "host_label": "主機",
+        "json_path_description": "JSONPath 表達式，用於從回應中提取值（使用 \"$\" 取得原始值）",
+        "json_path_label": "JSON 路徑",
+        "json_path_operator_description": "如何將提取值與預期值進行比較",
+        "json_path_operator_eq": "等於",
+        "json_path_operator_ge": "大於或等於",
+        "json_path_operator_gt": "大於",
+        "json_path_operator_label": "條件",
+        "json_path_operator_le": "小於或等於",
+        "json_path_operator_lt": "小於",
+        "json_path_operator_ne": "不等於",
+        "oid_description": "要查詢的 SNMP 對象識別碼（例如，系統描述的 1.3.6.1.2.1.1.1.0）",
+        "oid_label": "OID（物件識別碼）",
+        "port_description": "SNMP 端口 (預設值: 161)",
+        "port_label": "埠號",
+        "snmp_version_description": "要使用的 SNMP 協定版本",
+        "snmp_version_label": "SNMP 版本",
+        "title": "SNMP 設定",
+        "value_validation_label": "值驗證（可選）"
+      },
+      "sqlserver": {
+        "allowed_statements_description": "SELECT、SHOW、DESCRIBE、EXPLAIN、WITH 以及 VALUES。",
+        "allowed_statements_label": "允許的語句：",
+        "connection_string_label": "連線字串",
+        "query_description": "健康檢查所執行的查詢。留空則使用預設",
+        "query_label": "查詢",
+        "title": "Microsoft SQL Server 連線"
+      },
+      "tcp": {
+        "host": "主機",
+        "port": "埠號",
+        "title": "TCP 連線"
+      },
+      "type": {
+        "dns": "DNS 監控",
+        "docker": "Docker 容器",
+        "grpc": "gRPC 關鍵字監控",
+        "http": "HTTP(S) 監控",
+        "kafka": "Kafka 產生器監控",
+        "mongodb": "MongoDB 資料庫監控",
+        "mqtt": "MQTT 代理監控",
+        "mysql": "MySQL/MariaDB 監控",
+        "ping": "Ping 監控 (ICMP)",
+        "postgres": "PostgreSQL 資料庫監控",
+        "push": "Push 監控（外部服務呼叫生成的 URL）",
+        "rabbitmq": "RabbitMQ 監控",
+        "redis": "Redis 資料庫監控",
+        "snmp": "SNMP 監控",
+        "sqlserver": "Microsoft SQL Server 監控",
+        "tcp": "TCP 端口監控"
+      }
+    },
+    "page": {
+      "description": "新增監控以開始追蹤您的網站效能。",
+      "edit_title": "編輯監控:",
+      "new_title": "新增監控"
+    },
+    "title": "監控",
+    "toasts": {
+      "deleted": "監控已刪除",
+      "paused": "監控已暫停",
+      "reset_success": "監控資料已成功重置",
+      "resumed": "監控已恢復"
+    },
+    "view": {
+      "buttons": {
+        "clone": "複製",
+        "delete": "刪除",
+        "edit": "編輯",
+        "pause": "暫停",
+        "reset_data": "重設資料",
+        "resume": "恢復"
+      },
+      "certificate": "憑證",
+      "check_every": "檢查每",
+      "current_status": "目前狀態",
+      "dialogs": {
+        "delete": {
+          "description": "此操作無法復原。將永久刪除監控及其所有相關資料。",
+          "title": "您確定嗎？"
+        },
+        "pause": {
+          "description": "確定要暫停嗎？",
+          "title": "確認"
+        },
+        "reset": {
+          "description": "此操作將永久刪除此監控器的所有心跳歷史與正常上線統計資料。監控器將回復至剛建立時的狀態。此操作不可復原。",
+          "title": "重置監控資料"
+        }
+      },
+      "expiring_soon": "即將到期",
+      "for": "針對",
+      "live_status": "即時狀態",
+      "monitor_for": "監控對象",
+      "no_certificate_data": "無憑證資料",
+      "seconds": "秒",
+      "stats": {
+        "last_24_hours": "最近24小時",
+        "last_30_days": "最近 30 天",
+        "last_365_days": "最近 365 天",
+        "last_7_days": "最近7天"
+      },
+      "status": {
+        "down": "停機",
+        "maintenance": "維護",
+        "paused": "暫停",
+        "up": "正常"
+      }
+    }
+  },
+  "navigation": {
+    "maintenance": "維護",
+    "monitors": "監控",
+    "notification_channels": "通知頻道",
+    "proxies": "代理",
+    "settings": "設定",
+    "status_pages": "狀態頁面",
+    "tags": "標籤"
+  },
+  "notifications": {
+    "actions": {
+      "test": "測試",
+      "testing": "測試中…"
+    },
+    "aria": {
+      "delete": "刪除 {{name}}"
+    },
+    "confirm_delete_description": "此操作不可恢復。這將永久刪除通知者「{{name}}」，並將其從所有使用它的監控中移除。",
+    "create_title": "建立通知器",
+    "edit_channel_title": "編輯通知頻道",
+    "edit_title": "編輯通知器",
+    "empty_state": {
+      "action": "建立您的第一個通知頻道",
+      "description": "先創建您的第一個通知通道，將警報發送給您的團隊。",
+      "title": "找不到通知頻道"
+    },
+    "form": {
+      "discord": {
+        "bot_display_name_description": "此名稱將顯示為 Discord 訊息的發件人。",
+        "bot_display_name_label": "機器人顯示名稱",
+        "custom_message_prefix_description": "可選前綴，將添加至所有訊息的開頭。",
+        "custom_message_prefix_label": "自訂訊息前綴",
+        "custom_message_prefix_placeholder": "可選：為訊息加入前綴",
+        "forum_post_name_description": "將要建立的新論壇貼文名稱。",
+        "forum_post_name_label": "論壇貼文名稱",
+        "forum_post_name_placeholder": "輸入論壇貼文名稱",
+        "sending_message_to_channel": "發送到頻道",
+        "sending_message_to_description": "選擇將 Discord 訊息發送到哪裡。",
+        "sending_message_to_label": "傳送訊息至",
+        "sending_message_to_new_forum_post": "發送到新論壇貼文",
+        "sending_message_to_placeholder": "選擇訊息類型",
+        "sending_message_to_thread": "傳送到主題",
+        "setup_webhook_description_1": "從 Discord 伺服器設定中取得您的 Webhook URL → 整合 → Webhooks。",
+        "setup_webhook_description_2": "建立一個新的 webhook 並複製 URL。確保已選擇正確的頻道。",
+        "setup_webhook_title": "設定 Discord Webhook",
+        "thread_id_description_1": "在 Discord 使用者設定 → 高級 → 開發者模式中啟用",
+        "thread_id_description_2": "右鍵點擊線程或貼文，然後選擇「複製線程 ID」或「複製頻道 ID」",
+        "thread_id_description_title": "訊息將被發送到的討論串或論壇貼文 ID",
+        "thread_id_label": "討論串 ID",
+        "thread_id_placeholder": "輸入討論串或貼文 ID",
+        "webhook_url_label": "Discord Webhook 地址"
+      },
+      "google_chat": {
+        "more_info_about_webhooks": "更多關於 Webhooks 的資訊",
+        "webhook_url_label": "Google Chat Webhook 網址"
+      },
+      "gotify": {
+        "application_token_description": "來自您 Gotify 應用程式的應用程式令牌。您可在 Gotify 網頁介面「Apps」頁面中找到。",
+        "application_token_label": "應用程式令牌",
+        "custom_message_description": "自訂訊息範本。可用變數",
+        "custom_message_description_2": "留空以使用預設訊息。",
+        "custom_message_label": "自訂訊息",
+        "custom_title_description": "自訂通知標題。可使用的變數：{{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}。留空則使用預設「Peekaping」標題。",
+        "custom_title_label": "自訂標題",
+        "learn_more_label": "了解更多關於 Gotify 及其設定方式，請參閱：",
+        "note_description": "您需要啟動 Gotify 伺服器才能使用此整合功能。",
+        "note_label": "備註：",
+        "priority_0": "最低",
+        "priority_1": "極低",
+        "priority_10": "最高",
+        "priority_2": "低",
+        "priority_3": "低於正常",
+        "priority_4": "一般",
+        "priority_5": "高於正常",
+        "priority_6": "中等",
+        "priority_7": "高",
+        "priority_8": "非常高（預設）",
+        "priority_9": "緊急",
+        "priority_description": "訊息優先權 (0-10)。數值越高代表優先權越高。預設為 8。",
+        "priority_label": "優先級",
+        "priority_placeholder": "選擇優先級",
+        "server_url_description": "Gotify 伺服器的 URL。請確保此應用程式可以存取此 URL。",
+        "server_url_label": "伺服器網址"
+      },
+      "grafana_oncall": {
+        "grafana_oncall_url_description": "Grafana OnCall 整合的 webhook URL。您可以在 Grafana OnCall 實例的 Alerts & IRM > IRM > Integrations > Webhook 中找到。",
+        "grafana_oncall_url_label": "Grafana OnCall 網址",
+        "learn_more_label": "了解更多關於 Grafana OnCall webhooks"
+      },
+      "line": {
+        "channel_access_token_description": "您可以從下列取得您的頻道存取權杖",
+        "channel_access_token_description_2": "前往您的頻道設定並尋找",
+        "channel_access_token_label": "頻道存取權杖（長效）",
+        "channel_access_token_placeholder": "請輸入您的 LINE 通道存取權杖",
+        "template_description": "自訂訊息格式。可用變數",
+        "template_label": "訊息模板",
+        "template_placeholder": "輸入自訂訊息範本",
+        "user_id_description": "您可以在此處找到您的使用者 ID",
+        "user_id_description_2": "前往您的頻道設定並尋找",
+        "user_id_label": "您的使用者 ID",
+        "user_id_placeholder": "請輸入您的 LINE 使用者 ID"
+      },
+      "matrix": {
+        "access_token_description": "用於身份驗證的 Matrix 存取權杖",
+        "access_token_label": "存取令牌",
+        "custom_message_description": "自訂訊息模板。可用變數",
+        "custom_message_label": "自訂訊息",
+        "homeserver_url_description": "Matrix 主機伺服器 URL",
+        "homeserver_url_label": "家庭伺服器網址",
+        "internal_room_id_description": "通知將被發送到的內部聊天室 ID。應以 \"!\" 開頭，格式如：!roomid:matrix.org",
+        "internal_room_id_label": "內部房間 ID",
+        "setup_instructions_1": "為您的機器人創建一個 Matrix 帳戶（或使用您現有的帳戶）",
+        "setup_instructions_2": "建立或加入您想接收通知的房間",
+        "setup_instructions_3": "透過登入請求取得您的存取權杖",
+        "setup_instructions_4": "回應將包含 `access_token` 欄位 - 請將此作為您的存取令牌",
+        "setup_instructions_5": "在 Matrix 客戶端房間設定中，找到您的房間內部 ID（以「!」開頭）",
+        "setup_instructions_label": "設定說明"
+      },
+      "mattermost": {
+        "channel_name_description": "通知將被送到的頻道。若留空，將使用 webhook 設定的預設頻道。",
+        "channel_name_label": "頻道名稱",
+        "icon_emoji_cheat_sheet_label": "表情符號速查表",
+        "icon_emoji_description": "表情符號作為圖示。您可以指定兩個表情符號，用空格分隔（第一個代表正常上線，第二個代表停線）。",
+        "icon_emoji_label": "圖示表情符號",
+        "icon_url_description": "通知訊息圖示的圖片 URL",
+        "icon_url_label": "圖示 URL",
+        "learn_more_label": "了解 Webhook 的更多資訊",
+        "message_template_description": "自訂訊息格式。可用變數",
+        "message_template_label": "訊息範本",
+        "use_message_template_description": "啟用自訂訊息模板與格式",
+        "use_message_template_label": "使用訊息範本",
+        "username_description": "將作為訊息發送者顯示的使用者名稱。",
+        "webhook_url_label": "Webhook 網址"
+      },
+      "ntfy": {
+        "authentication_type_basic": "基本身份驗證",
+        "authentication_type_basic_description": "使用使用者名稱與密碼進行基本驗證。",
+        "authentication_type_label": "認證類型",
+        "authentication_type_none": "無需驗證",
+        "authentication_type_none_description": "不需要身份驗證。適用於公開 NTFY 伺服器。",
+        "authentication_type_placeholder": "選擇身份驗證類型",
+        "authentication_type_token": "Token 認證",
+        "authentication_type_token_description": "使用存取權杖進行身份驗證。",
+        "custom_message_description": "自訂訊息內容。可用變數",
+        "custom_message_label": "自訂訊息",
+        "password_required": "基本身份驗證需要密碼",
+        "priority_1": "最小（最低）",
+        "priority_2": "低",
+        "priority_3": "預設",
+        "priority_4": "高",
+        "priority_5": "緊急（最高）",
+        "priority_description": "通知的優先等級。較高的優先級可能會在客戶端觸發不同的行為。",
+        "priority_label": "優先級",
+        "priority_placeholder": "選擇優先級",
+        "server_url_description": "NTFY 伺服器網址。請使用 https://ntfy.sh 作為公共實例。",
+        "server_url_label": "伺服器網址",
+        "tags_description": "以逗號分隔的標籤，用於分類通知。可用變數",
+        "tags_label": "標籤",
+        "title_description": "自定义通知标题。可用变量",
+        "title_label": "自訂標題",
+        "token_description": "用于身份验证的 NTFY 访问令牌",
+        "token_label": "存取權杖",
+        "token_required": "必須提供令牌以進行令牌驗證",
+        "topic_description": "通知的主題名稱。此將成為通知傳送的頻道。",
+        "topic_label": "主題",
+        "username_required": "基本認證需要使用者名稱"
+      },
+      "opsgenie": {
+        "api_key_label": "API 金鑰",
+        "more_info_about_api_keys_label": "更多 API 金鑰資訊",
+        "priority_1": "關鍵",
+        "priority_2": "高",
+        "priority_3": "中等",
+        "priority_4": "低",
+        "priority_5": "資訊",
+        "priority_description": "設定警報的優先級。預設為 P3（中等）。",
+        "priority_label": "優先級",
+        "region_description": "請選擇您的 Opsgenie 區域。這將決定使用的 API 端點。",
+        "region_label": "區域",
+        "region_placeholder": "選擇區域"
+      },
+      "pagerduty": {
+        "auto_resolve_acknowledge": "自動確認",
+        "auto_resolve_acknowledge_description": "自動確認事件",
+        "auto_resolve_description": "當監控恢復時，選擇要執行的動作",
+        "auto_resolve_do_nothing": "不執行",
+        "auto_resolve_do_nothing_description": "UP 狀態不採取任何動作",
+        "auto_resolve_label": "自動解除或確認",
+        "auto_resolve_placeholder": "選擇自動解決行為",
+        "auto_resolve_resolve": "自動解除",
+        "auto_resolve_resolve_description": "自動解決事件",
+        "integration_key_description": "了解如何取得您的整合金鑰",
+        "integration_key_label": "整合金鑰",
+        "integration_key_placeholder": "輸入您的 PagerDuty 整合金鑰",
+        "integration_url_description": "PagerDuty Events API v2 端點 URL。預設為標準端點。",
+        "integration_url_label": "整合網址",
+        "learn_more_label": "PagerDuty 文檔",
+        "priority_critical": "關鍵",
+        "priority_description": "PagerDuty 事件的嚴重程度。預設為「warning」。",
+        "priority_error": "錯誤",
+        "priority_info": "資訊",
+        "priority_label": "優先級",
+        "priority_placeholder": "選擇優先級",
+        "priority_warning": "警告"
+      },
+      "pagertree": {
+        "authentication_token_description": "可選的驗證令牌，以提升安全性。這將在 pagertree-token 標頭中發送。",
+        "authentication_token_label": "認證令牌（可選）",
+        "authentication_token_placeholder": "若需要，請輸入授權碼",
+        "auto_resolve_alerts_description": "當監控恢復時，自動解決 PagerTree 警報",
+        "auto_resolve_alerts_label": "自動解除警報",
+        "how_to_get_integration_url_label": "如何取得整合網址",
+        "integration_url_description": "輸入您的 PagerTree webhook 整合 URL。",
+        "integration_url_label": "PagerTree Webhook 地址",
+        "urgency_level_critical": "緊急",
+        "urgency_level_description": "設定傳送至 PagerTree 的警報預設緊急程度",
+        "urgency_level_high": "高",
+        "urgency_level_label": "緊急級別",
+        "urgency_level_low": "低",
+        "urgency_level_medium": "中等",
+        "urgency_level_placeholder": "選擇緊急程度",
+        "urgency_level_silent": "靜默"
+      },
+      "pushbullet": {
+        "access_token": "存取令牌",
+        "access_token_description": "您的 Pushbullet 存取權杖。從此取得",
+        "access_token_label": "存取金鑰",
+        "access_token_link": "Pushbullet 設定",
+        "channel_tag": "頻道標籤（可選）",
+        "channel_tag_description": "將通知傳送到 Pushbullet 頻道，而非裝置",
+        "channel_tag_label": "頻道標籤（選填）",
+        "custom_message_template": "",
+        "custom_message_template_description": "自訂通知內容，使用範本變數：",
+        "custom_message_template_heartbeat_ping": "回應時間",
+        "custom_message_template_heartbeat_time": "時間戳",
+        "custom_message_template_label": "自訂訊息範本（可選）",
+        "custom_message_template_monitor_url": "監控網址",
+        "custom_message_template_msg": "警報訊息",
+        "custom_message_template_name": "監控名稱",
+        "custom_message_template_placeholder": "監控: {{ name }}\n狀態: {{ status }}\n訊息: {{ msg }}",
+        "custom_message_template_status": "目前狀態",
+        "device_id": "裝置 ID（可選）",
+        "device_id_description": "將通知發送至特定裝置。留空則發送至所有裝置。您可透過以下方式查找裝置 ID",
+        "device_id_label": "裝置 ID（可選）",
+        "device_id_link": "Pushbullet 接口",
+        "more_info_on": "更多資訊："
+      },
+      "pushover": {
+        "application_token_label": "應用程式令牌",
+        "application_token_placeholder": "輸入您的 Pushover 應用程式金鑰",
+        "device_description": "留空即可送至所有裝置",
+        "device_label": "裝置",
+        "device_placeholder": "裝置名稱（可選）",
+        "message_title_description": "留空以使用預設標題",
+        "message_title_label": "訊息標題",
+        "message_title_placeholder": "自訂訊息標題（選填）",
+        "message_ttl_description": "存活時間（秒）（0 = 不過期）",
+        "message_ttl_label": "訊息 TTL",
+        "more_info_label": "更多資訊：",
+        "more_info_label_2": "您可以在此建立應用程式並取得您的 API 令牌",
+        "more_info_label_3": "您的使用者金鑰可在此處找到",
+        "notification_sound_down_description": "監控失效時的提示音",
+        "notification_sound_down_label": "通知音 - 停機",
+        "notification_sound_down_placeholder": "選擇聲音",
+        "notification_sound_up_description": "監控復原時的音效",
+        "notification_sound_up_label": "通知音效 - 上",
+        "notification_sound_up_placeholder": "選擇音效",
+        "priority_1": "最低",
+        "priority_2": "低",
+        "priority_3": "一般",
+        "priority_4": "高",
+        "priority_5": "緊急",
+        "priority_description": "訊息優先等級",
+        "priority_label": "優先級",
+        "priority_placeholder": "選擇優先權",
+        "sound_alien": "外星人",
+        "sound_bike": "自行車",
+        "sound_bugle": "號角",
+        "sound_cashregister": "收銀機",
+        "sound_classical": "古典",
+        "sound_climb": "攀爬",
+        "sound_cosmic": "宇宙",
+        "sound_echo": "迴音",
+        "sound_falling": "下落",
+        "sound_gamelan": "甘美蘭",
+        "sound_incoming": "傳入",
+        "sound_intermission": "暫停",
+        "sound_magic": "魔法",
+        "sound_mechanical": "機械",
+        "sound_none": "無",
+        "sound_persistent": "持續",
+        "sound_pianobar": "鋼琴酒吧",
+        "sound_pushover": "Pushover（預設）",
+        "sound_siren": "警笛",
+        "sound_spacealarm": "太空警報",
+        "sound_tugboat": "拖船",
+        "sound_updown": "升降",
+        "sound_vibrate": "震動",
+        "user_key_label": "使用者金鑰",
+        "user_key_placeholder": "輸入您的 Pushover 使用者金鑰"
+      },
+      "signal": {
+        "custom_message_description": "自訂訊息範本。可用變數",
+        "custom_message_label": "自訂訊息",
+        "important_description": "收件人中不允許同時混合群組與數字！",
+        "important_label": "重要：",
+        "more_info_label": "您可以點擊此連結以查看如何設置：",
+        "note_description": "您需要使用支援 REST API 的 Signal 客戶端。",
+        "note_label": "備註：",
+        "number_description": "您的 Signal 帳戶電話號碼（發件人號碼）。",
+        "number_label": "號碼",
+        "post_url_description": "您的 Signal CLI REST API 伺服器網址",
+        "post_url_label": "發佈網址",
+        "recipients_description": "逗號分隔的電話號碼列表，用於接收通知。",
+        "recipients_label": "收件人"
+      },
+      "slack": {
+        "channel_name_description": "訊息將發送至的頻道。如未指定，訊息將發送至 webhook 設定的預設頻道。",
+        "channel_name_description_2": "您可以透過指定頻道名稱（例如 #alerts）或使用者（例如 @username）來覆蓋預設頻道。",
+        "channel_name_label": "頻道名稱",
+        "channel_notify_description": "啟用後，訊息將觸發對所有頻道成員的通知。請謹慎使用以避免垃圾訊息。",
+        "channel_notify_label": "通知頻道",
+        "icon_emoji_cheat_sheet_label": "表情符號速查表",
+        "icon_emoji_description": "用於此訊息圖示的表情符號。必須以 :emoji_name: 的格式。",
+        "icon_emoji_label": "圖示表情符號",
+        "message_format_description": "发送富文本消息",
+        "message_format_description_2": "允許發送帶有豐富格式、附件和更佳視覺呈現的訊息。",
+        "message_format_label": "訊息格式",
+        "username_description": "用於訊息發送者的使用者名稱。若未設定，將使用預設機器人名稱。",
+        "webhook_url_description": "Slack 整合的 webhook URL。您可以在 Slack 服務的 Integrations > Webhooks 找到。",
+        "webhook_url_label": "Webhook 地址"
+      },
+      "smtp": {
+        "custom_body_label": "自訂內容",
+        "custom_description": "模板化能力是透過 <b>Liquid</b> 範本語言實現的。",
+        "custom_description_2": "請參閱文件以了解使用說明。",
+        "custom_description_3": "可使用的變數:",
+        "custom_description_4": "通知訊息",
+        "custom_description_5": "服務名稱",
+        "custom_description_6": "服務狀態 (UP/DOWN/憑證到期通知)",
+        "custom_subject_label": "自訂主旨",
+        "smtp_from_label": "寄件者（發件人電郵）",
+        "smtp_host_description": "請輸入您想連線的伺服器主機名稱，或若您打算使用本機已設定的郵件傳輸代理，請填入 localhost",
+        "smtp_host_label": "SMTP 主機",
+        "smtp_password_placeholder": "SMTP 密碼",
+        "smtp_port_label": "埠號",
+        "smtp_to_label": "收件人 (接收者 Email)",
+        "smtp_username_placeholder": "SMTP 使用者名稱"
+      },
+      "telegram": {
+        "auto_get_label": "自動取得",
+        "bot_token_description": "從此取得您的機器人令牌",
+        "bot_token_label": "機器人令牌",
+        "chat_id_description": "您可以透過向您的機器人發送訊息並點擊上方的「自動取得」來獲取聊天 ID，或手動使用 Telegram API。",
+        "chat_id_description_2": "手動取得，請至",
+        "chat_id_description_3": "查看",
+        "chat_id_description_4": "Telegram 文檔",
+        "chat_id_description_5": "更多資訊。",
+        "chat_id_label": "聊天 ID",
+        "chat_id_not_found": "在最新更新中找不到聊天 ID。",
+        "failed_to_fetch_chat_id": "無法取得聊天 ID",
+        "message_thread_id_description": "可選。用於將訊息發送到論壇超級群組中的特定討論串（主題）。",
+        "message_thread_id_label": "訊息主題 ID",
+        "no_updates_found": "未發現更新。請先向您的機器人發送訊息。",
+        "protect_content_description": "如果啟用，訊息內容將被保護，避免轉發和儲存。",
+        "protect_content_label": "保護內容",
+        "send_silently_description": "如果啟用，訊息將以靜音方式發送（使用者將收到無聲通知）。",
+        "send_silently_label": "靜默發送",
+        "server_url_description": "預設為",
+        "server_url_description_2": "您可以使用自訂伺服器。參閱",
+        "server_url_description_3": "此處",
+        "server_url_description_4": "詳情。",
+        "server_url_label": "Telegram 伺服器 URL",
+        "template_description": "自訂訊息格式。可用變數",
+        "template_label": "訊息模板",
+        "template_parse_mode_description": "選擇訊息的解析方式。查看",
+        "template_parse_mode_description_2": "Telegram 格式說明文件",
+        "template_parse_mode_description_3": "詳情。",
+        "template_parse_mode_label": "模板解析模式",
+        "template_parse_mode_placeholder": "選擇解析模式",
+        "template_placeholder": "輸入自訂訊息範本",
+        "use_template_description": "啟用以使用自訂訊息模板與格式。",
+        "use_template_label": "使用訊息範本"
+      },
+      "webhook": {
+        "additional_headers_description": "為 webhook 請求添加自定義 HTTP 標頭。",
+        "additional_headers_label": "附加標頭",
+        "custom_body_description": "自訂請求正文格式。可用變數",
+        "custom_body_label": "自訂內容",
+        "post_url_description": "通知將被發送到的 webhook 端點 URL。",
+        "post_url_label": "發送網址",
+        "request_body_description_custom": "請在下方定義您自己的自訂請求正文格式。",
+        "request_body_description_form_data": "內容將以 multipart/form-data 形式傳送。您可以使用 PHP 的 <strong>json_decode($_POST['data'])</strong> 進行解碼。",
+        "request_body_description_json": "內容將以 JSON 格式發送，標頭為 'application/json'。",
+        "request_body_label": "請求正文",
+        "request_body_placeholder": "選擇內容類型"
+      }
+    },
+    "important": "重要通知",
+    "important_notifications": "重要通知",
+    "labels": {
+      "friendly_name": "友善名稱",
+      "type": "通知器類型"
+    },
+    "messages": {
+      "create_failed": "無法建立通知器",
+      "created_success": "已成功建立通知器",
+      "error_loading_notifier": "載入通知器失敗",
+      "test_failed": "發送測試通知失敗",
+      "test_success": "測試通知已成功發送",
+      "update_failed": "更新通知器失敗",
+      "updated_success": "通知器已成功更新"
+    },
+    "new": {
+      "title": "新增通知頻道"
+    },
+    "no_important": "未發現重要通知。",
+    "placeholders": {
+      "select_type": "選擇通知器類型"
+    },
+    "search_placeholder": "搜尋通知頻道名稱..."
+  },
+  "proxies": {
+    "delete_dialog": {
+      "description": "此操作不可復原。這將永久刪除代理 {{host}}:{{port}}。",
+      "title": "您確定嗎？"
+    },
+    "edit": {
+      "page_name": "編輯代理"
+    },
+    "empty_list": {
+      "action_text": "建立您的第一個代理",
+      "text": "先建立第一個代理，開始在監控中使用。",
+      "title": "未找到代理"
+    },
+    "form": {
+      "auth_label": "代理伺服器需要身份驗證",
+      "port_placeholder": "埠號",
+      "protocol_label": "代理協議",
+      "protocol_placeholder": "選擇代理協定",
+      "server_label": "代理伺服器",
+      "server_placeholder": "服务器地址",
+      "user": "使用者"
+    },
+    "messages": {
+      "create_failed": "建立代理失敗",
+      "created_success": "代理已成功建立",
+      "error_loading_proxy": "載入代理失敗",
+      "update_failed": "更新代理失敗",
+      "updated_success": "代理更新成功"
+    },
+    "new": {
+      "page_name": "新增代理"
+    },
+    "page_name": "代理",
+    "search_label": "搜尋",
+    "search_placeholder": "根據主機搜尋代理..."
+  },
+  "security": {
+    "enable_2fa": {
+      "form": {
+        "authenticator_code_label": "驗證碼",
+        "authenticator_code_placeholder": "請輸入六位數碼",
+        "current_password_label": "目前密碼",
+        "current_password_placeholder": "請輸入您的現行密碼",
+        "enable_2fa_button": "啟用 2FA"
+      },
+      "messages": {
+        "2fa_active": "2FA 已啟用",
+        "2fa_disabled_successfully": "雙因素驗證已成功停用",
+        "2fa_enabled_successfully": "已成功啟用雙因素驗證",
+        "account_is_protected_with_2fa": "您的帳戶已受 2FA 保護。",
+        "disable_2fa": "停用兩因素認證",
+        "enter_password_to_disable_2fa": "請輸入您的密碼以停用雙重驗證",
+        "failed_to_disable_2fa": "無法停用 2FA",
+        "failed_to_verify_2fa_code": "無法驗證 2FA 代碼",
+        "failed_to_verify_password": "驗證密碼失敗或無法啟動 2FA 設定",
+        "have_enabled_2fa": "您已為帳戶啟用雙重驗證（2FA）。這為您的帳戶增加額外的安全層級。",
+        "or_enter_secret_manually": "或手動輸入此密鑰",
+        "scan_qr_code_with_authenticator_app": "使用您的驗證器應用程式掃描此 QR 碼",
+        "two_factor_authentication_enabled": "已啟用雙因素身份驗證",
+        "user_email_not_found": "找不到使用者電郵"
+      }
+    },
+    "page_name": "安全",
+    "update_password": {
+      "form": {
+        "confirm_new_password_label": "確認新密碼",
+        "confirm_new_password_placeholder": "再次輸入新密碼",
+        "new_password_label": "新密碼",
+        "new_password_placeholder": "請輸入新密碼",
+        "old_password_label": "舊密碼",
+        "old_password_placeholder": "輸入目前密碼",
+        "update_password_button": "更新密碼"
+      },
+      "messages": {
+        "failed_to_update_password": "更新密碼失敗",
+        "password_updated_successfully": "密碼更新成功"
+      },
+      "title": "更新密碼"
+    }
+  },
+  "sendgrid": {
+    "api_key_description": "您的 SendGrid API 金鑰。您可以在 SendGrid 帳戶的設定 → API 金鑰中建立。請確保它具有「Mail Send」權限。",
+    "api_key_label": "API 金鑰",
+    "bcc_email_description": "密件副本收件人。用逗號分隔多個電子郵件。",
+    "bcc_email_label": "密件副本電子郵件 (選填)",
+    "cc_email_description": "抄送收件人。多個電子郵件請以逗號分隔。",
+    "cc_email_label": "抄送電子郵件 (可選)",
+    "from_email_description": "發件人電子郵件地址。此地址必須是您 SendGrid 帳戶中已驗證的發件人。",
+    "from_email_label": "寄件者電郵",
+    "subject_description": "電子郵件主旨行。支援 Liquid 模板。",
+    "subject_label": "自訂主旨（可選）",
+    "subject_variables_label": "可用變數:",
+    "subject_variables_msg": "通知訊息",
+    "subject_variables_name": "服務名稱",
+    "subject_variables_status": "服務狀態 (UP/DOWN)",
+    "to_email_description": "主要收件人電子郵件地址。若有多位收件人，請使用 CC 或 BCC 欄位。",
+    "to_email_label": "收件人電子郵件"
+  },
+  "settings": {
+    "data_retention": {
+      "days_label": "天",
+      "description": "設定保留資料的天數 (KEEP_DATA_PERIOD_DAYS)。",
+      "title": "資料保留期限"
+    },
+    "timezone": {
+      "description": "選擇您在應用程式中顯示所有時間時所偏好的時區。",
+      "label": "時區",
+      "no_timezone_found": "找不到時區。",
+      "search_placeholder": "搜尋時區…",
+      "select_placeholder": "選擇時區...",
+      "title": "時區"
+    },
+    "validation": {
+      "min_days": "至少 1 天"
+    }
+  },
+  "status": {
+    "messages": {
+      "all_systems_operational": "全部系統正常運作",
+      "down": "宕機",
+      "last_updated": "最後更新",
+      "maintenance": "維護",
+      "no_monitors_configured": "此狀態頁面尚未設定監控項目。",
+      "operational": "正常",
+      "partial_system_outage": "部分系統停機",
+      "powered_by": "由…提供",
+      "refresh_in": "刷新倒數",
+      "refresh_now": "立即刷新",
+      "status_page_not_found": "找不到狀態頁面，或尚未發佈。",
+      "under_maintenance": "維護中",
+      "unknown": "未知"
+    }
+  },
+  "status_pages": {
+    "affected_monitors": "受影響的監控項目",
+    "affected_monitors_info": "選擇此維護期間受影響的監控項目",
+    "auto_refresh_interval": "自動重新整理間隔（秒）",
+    "basic_information": "基本資訊",
+    "create_status_page": "建立狀態頁面",
+    "customization": "客製化",
+    "delete_dialog": {
+      "description": "你確定要刪除「{{title}}」嗎？此操作不可撤銷。",
+      "title": "刪除狀態頁面"
+    },
+    "description": "輸入狀態頁說明",
+    "domain_already_used": "域名 {{domain}} 已被其他狀態頁使用",
+    "domain_host_warning": "此域名與您目前的主機網址相同，可能會導致衝突。",
+    "domains": "網域",
+    "domains_info_warning": "别忘了为每个域名在 DNS 中添加 CNAME 记录。",
+    "draft_status": "草稿",
+    "edit_page_name": "編輯狀態頁面",
+    "messages": {
+      "create_description": "建立新的狀態頁面，與使用者分享您的服務狀態。",
+      "create_your_first_status_page": "創建你的第一個狀態頁面",
+      "created_successfully": "狀態頁已成功建立",
+      "delete_failed": "刪除狀態頁失敗",
+      "deleted_successfully": "狀態頁面已成功刪除",
+      "get_started_by_creating_your_first_status_page": "先創建您的第一個狀態頁面以開始使用。",
+      "no_status_pages_found": "找不到狀態頁面",
+      "not_found": "找不到狀態頁面",
+      "update_description": "更新您的狀態頁面設定與組態。",
+      "updated_successfully": "狀態頁已成功更新"
+    },
+    "new_page_name": "新增狀態頁面",
+    "page_name": "狀態頁面",
+    "published": "已發布",
+    "published_info": "將此狀態頁面公開",
+    "published_status": "已發佈",
+    "search_label": "搜尋",
+    "search_placeholder": "按標題搜尋狀態頁面…",
+    "update_status_page": "更新狀態頁面",
+    "view_page": "查看頁面"
+  },
+  "tags": {
+    "confirm_delete_description": "此操作無法復原。這將永久刪除標籤「{{name}}」並將其從所有監控中移除。",
+    "edit_page_name": "編輯標籤",
+    "empty_state": {
+      "action": "新增第一個標籤",
+      "description": "先建立第一個標籤，即可開始使用，並整理您的監控項目。",
+      "title": "未找到標籤"
+    },
+    "form": {
+      "color_description": "為您的標籤選擇顏色",
+      "color_label": "顏色",
+      "create_button": "新增標籤",
+      "description_label": "描述",
+      "description_placeholder": "輸入標籤說明（可選）",
+      "name_label": "名稱",
+      "name_placeholder": "輸入標籤名稱",
+      "update_button": "更新標籤"
+    },
+    "messages": {
+      "create_description": "建立新標籤以組織並分類您的監控。",
+      "failed_to_load_tag": "無法載入標籤。標籤可能不存在或您無權查看它。",
+      "tag_id_required": "標籤 ID 為必填",
+      "update_description": "更新標籤詳細資訊，以更好地整理您的監控項目。"
+    },
+    "new_page_name": "新增標籤",
+    "search_placeholder": "搜尋標籤…"
+  },
+  "theme": {
+    "dark": "深色",
+    "light": "亮色",
+    "system": "系統",
+    "toggle_theme": "切換主題"
+  },
+  "timezone": {
+    "average": "平均",
+    "last_24_hours": "最近 24 小時",
+    "last_3_hours": "最近 3 小時",
+    "last_3_months": "最近3個月",
+    "last_30_minutes": "最近30分鐘",
+    "last_6_hours": "最近 6 小時",
+    "last_7_days": "最近 7 天",
+    "maximum": "最大",
+    "minimum": "最小",
+    "ms": "毫秒",
+    "response_time": "回應時間",
+    "uptime": "正常運作時間"
+  },
+  "ui": {
+    "general": "一般",
+    "intervals_retries": "間隔、重試、逾時"
+  }
+}

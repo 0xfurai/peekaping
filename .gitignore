@@ -50,3 +50,4 @@ tmp
 package-lock.json
 
 storageState.json
+apps/web/src/i18n/progress

@@ -1,0 +1,1280 @@
+{
+  "actions": {
+    "cancel": "Cealaigh",
+    "saving": "Ag sábháil…"
+  },
+  "auth": {
+    "login": {
+      "description": "Logáil isteach le do ríomhphost",
+      "no_account": "Níl cuntas agat?",
+      "sign_up": "Cláraigh",
+      "submit": "Logáil isteach",
+      "title": "Fáilte ar ais"
+    },
+    "register": {
+      "description": "Cruthaigh do chuntas riarthóra",
+      "have_account": "An bhfuil cuntas agat cheana féin?",
+      "sign_in": "Logáil isteach",
+      "submit": "Cruthaigh",
+      "title": "Dia dhuit"
+    },
+    "twofa": {
+      "code_label": "Cód 2FA",
+      "code_placeholder": "Cuir isteach cód 2FA",
+      "description": "Tá 2FA cumasaithe do do chuntas. Cuir isteach do chód fíordheimhnithe chun leanúint ar aghaidh.",
+      "title": "Fíordheimhniú dhá fhéad riachtanach",
+      "verify_button": "Deimhnigh 2FA",
+      "verifying": "Ag fíorú..."
+    }
+  },
+  "bars": {
+    "down_count": "Uimhir na nGabhála",
+    "important": "Tábhachtach",
+    "interval": "Lárpháirt",
+    "message": "Teachtaireacht",
+    "ms": "Malaí",
+    "notified": "Fógraíodh",
+    "ping": "Ping",
+    "retries": "Athbhreithnithe",
+    "status": "Stádas",
+    "time": "Am"
+  },
+  "common": {
+    "active": "Gníomhach",
+    "all": "Gach",
+    "back": "Ar ais",
+    "cancel": "Cealaigh",
+    "clear_all": "Bánaigh go léir",
+    "clear_all_filters": "Bánaigh gach scagaire",
+    "confirm": "Dearbhaigh",
+    "confirm_delete_title": "An bhfuil tú cinnte go hiomlán?",
+    "confirm_delete_title_short": "An bhfuil tú cinnte?",
+    "continue": "Lean",
+    "create": "Cruthaigh",
+    "created": "Cruthaithe",
+    "days": "lána",
+    "default": "Réamhshocraithe",
+    "delete": "Scrios",
+    "disabling": "Á díchumasú...",
+    "dismiss": "Cealaigh",
+    "down": "Síos",
+    "enabling": "Ag cumascadh...",
+    "error": "Earráid",
+    "expires": "Ag imeacht",
+    "inactive": "Neamhghníomhach",
+    "loading": "Ag lódáil...",
+    "logout": "Logáil amach",
+    "maintenance": "Coimeád",
+    "no_options_found": "Níor aimsíodh roghanna",
+    "no_tags_available": "Níl aon clibeanna ar fáil",
+    "please_refresh_page": "Athnuaigh an leathanach le do thoil.",
+    "required": "Riachtanach",
+    "save": "Sábháil",
+    "saving": "Ag sábáil...",
+    "search": "Cuardaigh",
+    "security": "Slándáil",
+    "select": "Roghnaigh",
+    "select_monitors": "Roghnaigh monáiteanna...",
+    "select_tags": "Roghnaigh clibeanna",
+    "settings": "Socruithe",
+    "tags": "Clibeanna",
+    "unknown": "Anaithnid",
+    "unnamed_monitor": "Monaitéir gan ainm",
+    "up": "Ar Fheidh",
+    "update": "Nuashonraigh",
+    "verifying": "Ag fíorú..."
+  },
+  "forms": {
+    "labels": {
+      "confirm_password": "Cuir Focal Faire san aice",
+      "email": "Ríomhphost",
+      "footer_text": "Téacs Buntheasta",
+      "heartbeat_interval": "Eileamh bréag (soicind)",
+      "icon_url": "URL Eikon",
+      "monitor_name": "Ainm",
+      "monitor_type": "Cineál",
+      "password": "Focal Faire",
+      "retries": "Athchóiri",
+      "slug": "Slóg",
+      "title": "Teideal",
+      "username": "Ainm úsáideora"
+    },
+    "placeholders": {
+      "auto_refresh_help": "0 le haghaidh gan athnuachan uathoibríoch",
+      "domains": "Cuir isteach fearann (m.sh., status.example.com)",
+      "footer_text": "Cuir isteach téacs na footair",
+      "icon_url": "https://example.com/icon.png",
+      "monitor_name": "Mo mhonatóireacht",
+      "page_description": "Iontráil tuairisc ar an leathanach stádas",
+      "page_title": "Cuir isteach teideal leathanach stádais",
+      "slug": "sluagh-leathanach-stádais"
+    },
+    "validation": {
+      "email_invalid": "Cuir isteach seoladh ríomhphost bailí le do thoil",
+      "password_min_length": "Caithfidh an focal faire a bheith ar a laghad 8 carachtar.",
+      "passwords_mismatch": "Ní ionann na pasfhocail"
+    }
+  },
+  "maintenance": {
+    "card": {
+      "aria": {
+        "delete": "Scrios {{title}}",
+        "pause": "Cuir coimead ar stad",
+        "resume": "Athchóiriú cothromaíochta"
+      },
+      "labels": {
+        "duration": "{{duration}} m",
+        "end": "Críoch: {{date}}",
+        "start": "Tús: {{date}}"
+      },
+      "status": {
+        "active": "Gníomhach",
+        "ended": "Críochnaithe",
+        "inactive": "Neamhghníomhach"
+      }
+    },
+    "edit_title": "Cuir cothromú in eagar",
+    "form": {
+      "affected_monitors_description": "Roghnaigh na monaitirí a bhfaighidh tionchar le cothromaíocht seo",
+      "affected_monitors_title": "Monaitóirí Éiginithe",
+      "cron_description": "Cuir isteach saini crón bailí",
+      "cron_expression": "Cruth Cron",
+      "date_time_title": "Dáta agus Am",
+      "day_of_month": "Lá den mhí",
+      "day_of_week": "Lá na Seachtaine",
+      "description_label": "Cur síos",
+      "description_placeholder": "Cur síos ar cheadú...",
+      "duration_minutes": "Fad (nóimí)",
+      "effective_date_range": "Téarma Dáta Iompair (Roghnach)",
+      "end_date_time": "Dáta & Am Críoch",
+      "end_time": "Am Deiridh",
+      "interval_label": "Éilimint (Rith uair amháin gach lá)",
+      "last_day": "Lá deireanach",
+      "last_day_of_month": "An lá deireanach den mhí",
+      "maintenance_time_window": "Fuinneog ama cothaithe den lá",
+      "markdown_supported": "Tá Markdown tacaithe",
+      "same_as_server": "Cothrom le Cairt Ama an Fhreastalaí",
+      "start_date_time": "Dáta & Am Tosaíochta",
+      "start_time": "Am Tosaithe",
+      "strategy_label": "Stráíteas",
+      "strategy_placeholder": "Roghnaigh straitéis",
+      "timezone_label": "Cás ama",
+      "timezone_placeholder": "Roghnaigh an chinnte ama",
+      "title_label": "Teideal",
+      "title_placeholder": "Teideal cothromaíochta"
+    },
+    "page": {
+      "clear_filters": "Bánaigh gach scagairí",
+      "dialogs": {
+        "confirm_action": {
+          "pause_description": "An bhfuil tú cinnte go dteastaíonn uait é seo a chur ar fionraí?",
+          "resume_description": "An bhfuil tú cinnte go bhfuil tú ag iarraidh leanúint ar aghaidh leis an mbarrtha seo?",
+          "title": "Deimhnigh Gníomh"
+        },
+        "confirm_delete": {
+          "description": "An bhfuil tú cinnte go dteastaíonn uait an séaghlach cothabhála seo a scriosadh? Ní féidir an gníomh seo a chur ar ais.",
+          "title": "Deimhnigh scriosadh"
+        }
+      },
+      "edit_maintenance": "Cuir Cothromú in eagar: {{title}}",
+      "empty_state": {
+        "action": "Cruthaigh do chéad fuinneog cothromaíochta",
+        "description": "Tosaigh trí do chéad fhuinneog cothabhála a chruthú, chun dhochtú a shocrú a sheachadadh.",
+        "title": "Níor aimsíodh aon fuinneoga cothromaíochta."
+      },
+      "error_loading": "Earráid ag luchtú cothromaíocht",
+      "loading": "Ag lódáil...",
+      "loading_monitors": "Ag luchtú monaitirí…",
+      "search_placeholder": "Cuardaigh cothromaíochtaí..."
+    },
+    "page_title": "Fuinneoga cothromaíochta",
+    "schedule_title": "Sceideal an Choighneachta",
+    "strategy": {
+      "cron": "Easpraíocht Cron",
+      "manual": "Gníomhach/Neamhghníomhach de láimh",
+      "recurring_day_of_month": "Athchúrsaithe - Lá den mhí",
+      "recurring_interval": "Athchurtha - Éadán",
+      "recurring_weekday": "Aisrithe - Lá na Seachtaine",
+      "single": "Fuinneog cothromú amháin"
+    },
+    "toasts": {
+      "create_error": "Níorbh fhéidir cruthú cothromaíochta",
+      "created_success": "Cruthaitheadh cothromaíocht go rathúil",
+      "delete_error": "Níorbh fhéidir an cothromaíocht a scriosadh",
+      "deleted_success": "Scriosadh an cothromaíocht go rathúil",
+      "pause_error": "Ní bhfuair cur ar crioch cothromaíocht",
+      "paused_success": "Sosadh na coimeád go rathúil",
+      "resume_error": "Theip ar atosú an bhforghníomhachta",
+      "resumed_success": "Tosaíodh cothromú go rathúil",
+      "toggle_error": "Ní féidir stádas cothabhála a athrú: ID ar iarraidh",
+      "update_error": "Níor bhuaileadh nuashonrú na cothromaíochta",
+      "updated_success": "Nuashonraíodh an cothromaíocht go rathúil."
+    },
+    "weekdays": {
+      "fri": "Aoine",
+      "mon": "Dé Luain",
+      "sat": "Dé Sathairn",
+      "sun": "Dom",
+      "thu": "Déardaoin",
+      "tue": "Dé",
+      "wed": "Cé"
+    }
+  },
+  "messages": {
+    "login_error": "Tharla earráid le linn logáil a‑isteach",
+    "login_no_tokens": "Logáil isteach reatha, ach ní bhfuair tokens",
+    "login_success": "Logáilte isteach go rathúil",
+    "notifier_delete_error": "Theip ar scriosadh an fógraí",
+    "notifier_delete_success": "Baineadh an t-údarshamhláraithe go rathúil",
+    "register_error": "Tharla earráid le linn clárúcháin",
+    "register_no_tokens": "Clárú rathúil, ach ní bhailíodh aon tócaí",
+    "register_success": "Cláraíodh go rathúil",
+    "setting_update_error": "Níor bhuaigh nuashonrú an socruithe",
+    "setting_update_success": "Socrú nuashonraithe go rathúil",
+    "tag_create_error": "Theip ar chruthú clib",
+    "tag_create_success": "Cruthaithe an clib go rathúil",
+    "tag_delete_error": "Theip ar scriosadh clib",
+    "tag_delete_success": "Scriosadh an tag go rathúil",
+    "tag_update_error": "Níorbh fhéidir an tag a nuashonrú",
+    "tag_update_success": "Nuashonraíodh an clib go rathúil",
+    "unexpected_error": "Tharla earráid gan choinne",
+    "version_mismatch": "Aimsíodh díshlándáil leagan"
+  },
+  "monitors": {
+    "card": {
+      "check_interval": "Am seiceáil:",
+      "loading_more": "Ag luchtú níos mó..."
+    },
+    "empty_state": {
+      "action": "Cruthaigh do mhórbhainisteoir a thús",
+      "description": "Tósaigh trí do monitor a chruthú chun sláinte do na seirbhísí a rianú.",
+      "title": "Níor aimsíodh aon mhonáiteoirí"
+    },
+    "filtering_by_tags": "Scagadh de réir clibí",
+    "filters": {
+      "monitor_status": "Stádas",
+      "monitor_status_placeholder": "Stádas monaitéara",
+      "search_placeholder": "Cuardaigh monáiteoirí de réir ainm...",
+      "status_placeholder": "Stádas"
+    },
+    "form": {
+      "buttons": {
+        "copied": "Chóipeáladh!",
+        "copy": "Cóipeáil",
+        "create": "Cruthaigh",
+        "regenerate": "Athghnáthú",
+        "update": "Nuashonraigh"
+      },
+      "dns": {
+        "hostname": "Ainm óstála",
+        "port": "Port",
+        "record_type": "Cineál Taifid Acmhainn",
+        "record_type_placeholder": "Roghnaigh cineál taifid",
+        "resolver_server": "Seirbhéir Freagarach",
+        "title": "Socruithe DNS"
+      },
+      "docker": {
+        "ca_cert_description": "Cuir isteach do teastas Tionndálaí Theistíochta i bhfoirm PEM.",
+        "ca_certificate": "Teastas Údarás (PEM)",
+        "client_cert_description": "Cuir isteach do teifíce cliant sa fhormáid PEM. Is bainte úsáid as é seo le haghaidh fíordheimhniú TLS co-bhaintithe.",
+        "client_certificate": "Teastas an chliaint (PEM)",
+        "client_private_key": "Eochair Phríobháideach an Chliaint (PEM)",
+        "common_tls_issues": "Fadhbanna TLS coitianta:",
+        "connection_type": "Cineál Ceangal",
+        "container_name_id": "Ainm/ID an Chointeáin",
+        "disabled": "Díchumasaithe",
+        "docker_container": "Coimeádán Docker",
+        "docker_host": "Ostair Docker",
+        "enable_tls": "Cumasaigh TLS",
+        "enabled": "Cumaithe",
+        "examples": "Samplaí",
+        "hostname_mismatch": "\"\"x509: teastas bailí do X, ní Y\":\"",
+        "hostname_mismatch_solution": "Cinntigh go bhfuil an t-ainm óstála ag teacht le SAN an fhíriciúne nó díchumasaigh fíorú (níor mholtar).",
+        "legacy_cert_error": "x509: tá an teastais ag brath ar réimse Common Name atá séarach:",
+        "legacy_cert_solution": "Cuir an t-ainm óstálaí leis na Ainmneacha Alternata (SAN) in do cheadúnas.",
+        "mtls_note": "Do TLS comhoibríoch (mTLS), caithfidh tú an teideal cliaint agus an eochair phríobháideach a sholáthar. Is é an teideal CA a úsáidtear chun fíorú a dhéanamh ar theideal an fhreastalaí.",
+        "note": "Nóta:",
+        "private_key_description": "Cuir isteach do eochair phríobháideach sa fhormáid PEM. Coinnigh sé slán!",
+        "select_connection_type": "Roghnaigh cineál an cheangail",
+        "select_tls_option": "Roghnaigh rogha TLS",
+        "select_verification_option": "Roghnaigh rogha fíorúcháin",
+        "skip_verification": "Seachain fírinne (neamhshábháilte)",
+        "tls_configuration": "Cumraíocht TLS",
+        "unknown_authority": "\"x509: teastas sínta le údarás anaithnid:\"",
+        "unknown_authority_solution": "Cuir isteach an teastais CA ceart a shíniú an teastais freastalaí.",
+        "verify_certificates": "Fíoraigh teastais",
+        "verify_tls": "Fíoraigh TLS"
+      },
+      "grpc": {
+        "body": "Sonraí an Lúb (JSON)",
+        "enable_tls": "Cumasaigh TLS",
+        "enable_tls_description": "Úsáid nasc sábháilte (TLS/SSL)",
+        "invert_keyword": "Inbhreithnigh eochairfhocal",
+        "invert_keyword_description": "Beidh an monatóireacht marcáilte mar UP má nár aimsíodh an focal gnáth",
+        "keyword": "Eochairfhocal",
+        "keyword_description": "Cuardaigh an focal seo san fhreagra",
+        "keyword_placeholder": "Beart roghnach le haghaidh cuardaigh",
+        "method_description": "Cás Mothóireach",
+        "method_placeholder": "Seiceáil",
+        "options_title": "Roghanna gRPC",
+        "proto_content": "Ábhar Protobuf",
+        "proto_method": "Modh Protobuf",
+        "proto_service_name": "Ainm Seirbhíse Protobuf",
+        "service_name_placeholder": "Sláinte"
+      },
+      "http": {
+        "advanced": {
+          "accepted_status_codes": "Códanna Stádais Ghabhann",
+          "ignore_tls": "Déan neamhaird de earráidí TLS/SSL ar shuíomhanna HTTPS",
+          "ignore_tls_description": "Scipeáil bhailíocht teastais TLS. Bain úsáid leis le cúram – torthaíonn sé nascanna níos neamhshábháilte.",
+          "max_redirects": "Athruithe Uachtair",
+          "max_redirects_description": "An líon uasta athchuirte le lean (0-30). Socraigh 0 chun athchuirte a díchumasaigh.",
+          "title": "Arda"
+        },
+        "authentication": {
+          "auth_header": "Ceanntásc Údarachta",
+          "certificate": "Teastas",
+          "certificate_placeholder": "Teastas",
+          "client_id": "ID an Cliant",
+          "client_id_placeholder": "Aitheantas an Cliant",
+          "client_secret": "Rún an Chliaint",
+          "client_secret_placeholder": "Rún an Cliant",
+          "domain": "Fearann",
+          "domain_placeholder": "Fearann",
+          "form_data_body": "Corp Sonraí Foirm",
+          "key": "Eochair",
+          "key_placeholder": "Eochair",
+          "method_label": "Modh Fíordheimhniú",
+          "method_placeholder": "Roghnaigh cineál fíordheimhniú",
+          "oauth_scope": "Scop OAuth",
+          "oauth_scope_placeholder": "Roghnach: Liosta scopanna a roinnt le spás",
+          "oauth_token_url": "URL Token OAuth",
+          "oauth_token_url_placeholder": "URL an Tóca OAuth",
+          "title": "Fíordheimhnú",
+          "workstation": "Stáisiún Oibre",
+          "workstation_placeholder": "Seasmhór"
+        },
+        "options": {
+          "body": "Corp",
+          "body_encoding": "Eangú corp",
+          "body_encoding_placeholder": "Roghnaigh ionchódú corp",
+          "form_example": "Sonraí Sampla Foirmi",
+          "headers": "Ceannairí",
+          "json_example": "Sampla JSON",
+          "method": "Modh",
+          "method_placeholder": "Roghnaigh cineál an mhonatóire",
+          "select_encoding": "Roghnaigh cóidú an chorp",
+          "select_method": "Roghnaigh módh",
+          "text_example": "Téacs Sampla:\nTéacs bhunúsach ar bith seo...",
+          "title": "Roghanna HTTP",
+          "xml_example": "Sampla XML"
+        }
+      },
+      "http_json_query": {
+        "condition_label": "Coinníoll",
+        "expected_value_label": "Luach Ag Smaoineamh",
+        "json_query_label": "Tagairt Iarratais JSON",
+        "title": "Ionchais cuardach JSON"
+      },
+      "http_keyword": {
+        "invert_keyword_description": "Féach ar an eochairfhocal a bheith as láthair in ionad go bhfuil sé ann.",
+        "invert_keyword_label": "Ionadaigh Ciangh",
+        "keyword_label": "Eochairfhocail",
+        "keyword_validation_title": "Bailíocht Eochairfhocail"
+      },
+      "kafka": {
+        "add_broker": "Cuir Broker",
+        "auto_topic_creation_description": "Ceadaigh d'an bhriontóir cruthú an t-ábhar go huathoibríoch má níl sé ann",
+        "auto_topic_creation_label": "Ceadaigh Cruthú Tionscadal Uath",
+        "brokers_description": "Liosta de sheachadóirí broker Kafka (formáid host:port)",
+        "brokers_label": "Brocairí Kafka",
+        "configuration_title": "Cumraíocht Kafka",
+        "enable_ssl_description": "Bain úsáid as criptiú SSL/TLS don cheangal.",
+        "enable_ssl_label": "Cumasaigh SSL/TLS",
+        "message_description": "Ábhar na teachtaireachta le sheoladh go dtí an t-ábhar (móide JSON a mholtar).",
+        "message_label": "Teachtaireacht",
+        "sasl_mechanism_description": "Roghnaigh an mhóide aitheanta SASL",
+        "sasl_mechanism_label": "Móide SASL",
+        "sasl_mechanism_placeholder": "Roghnaigh modh SASL",
+        "sasl_password_description": "Focal faire le haghaidh fíordheimhnú SASL",
+        "sasl_password_label": "Pasfhocal SASL",
+        "sasl_password_placeholder": "focal faire",
+        "sasl_username_description": "Ainm úsáideora le haghaidh fíordheimhniú SASL",
+        "sasl_username_label": "Ainm úsáideora SASL",
+        "security_title": "Slándáil",
+        "topic_description": "An t-ábhar Kafka le teachtaireachtaí a chur isteach"
+      },
+      "mongodb": {
+        "command_description": "Ordú MongoDB a rith mar JSON. Mura bhfuil sé shainithe, úsáidfear ping de réir réamhshocraithe.",
+        "command_label": "Ordú (roghnach)",
+        "configuration_title": "Cumraíocht MongoDB",
+        "connection_string_description": "Sainiolas nasc le MongoDB. Tacaíonn sé le dhá fhórma: (mongodb://) (fórma shóiseartha) agus (mongodb+srv://) (liosta foinse DNS).",
+        "connection_string_label": "Streabhadh Ceangal",
+        "expected_value_description": "Luach atá ag teastáil le comparáid a dhéanamh leis an toradh JSON path.",
+        "expected_value_label": "Luach Ag Feitheamh (Roghnach)",
+        "expected_value_placeholder": "Luach atá ag súil",
+        "json_path_description": "JSON path chun luach a bhaint as an fhreagra. Úsáid $ don leibhéal bhunús.",
+        "json_path_label": "JSON Path (Roghnach)"
+      },
+      "mqtt": {
+        "check_type_json_query": "Ceist JSON",
+        "check_type_keyword": "Ord eagrach",
+        "check_type_label": "Cineál Seiceála MQTT",
+        "check_type_none": "Neamhní (Aon teachtaireacht)",
+        "check_type_placeholder": "Roghnaigh cineál seiceála",
+        "configuration_title": "Cumraíocht MQTT",
+        "expected_value_label": "Luach an fhianais",
+        "hostname_label": "Óstainm",
+        "json_path_label": "Cosán JSON",
+        "password_label": "Pasfhocal MQTT",
+        "password_placeholder": "Pasfhocal (roghnach)",
+        "port_label": "Port",
+        "success_keyword_label": "Eochairfhocal Buaidh MQTT",
+        "success_keyword_placeholder": "Eochairfhocal a léiríonn rath",
+        "username_label": "Ainm úsáideora MQTT",
+        "username_placeholder": "Ainm úsáideora (roghnach)",
+        "validation": {
+          "expected_value_required": "Tá luach ag teastáil nuair atá cineál an cheiste 'json-query'",
+          "json_path_required": "Tá path JSON riachtanach nuair a bhíonn cineál seiceála \"json-query\".",
+          "success_keyword_required": "Tá focal faire riachtanach nuair a bhíonn cineál seiceála 'focal faire'"
+        }
+      },
+      "mysql": {
+        "connection_string_examples": "Samplaí:",
+        "connection_string_label": "Ceangal Streabhán",
+        "connection_title": "Ceangal MySQL",
+        "query_label": "Cuardach"
+      },
+      "ping": {
+        "data_size": "Méid Sonraí (bytes)",
+        "host": "Óstainm / IP",
+        "title": "Socruithe Ping"
+      },
+      "postgres": {
+        "connection_string_label": "Streanga Ceangal",
+        "connection_title": "Ceangal PostgreSQL",
+        "query_label": "Cuardach"
+      },
+      "push": {
+        "url_description": "Bain úsáid as an URL seo i do sheirbhís chun stádas a chur i rian. Déan iarratas HTTP (POST/GET) chuig an endpoint seo chun bricfeasta a sheoladh.",
+        "url_title": "URL Monas Push"
+      },
+      "rabbitmq": {
+        "documentation_link": "Doiciméadú RabbitMQ",
+        "health_checks_description": "Seiceáilann an monaitir an {{code}} pont deiridh ar gach nóid agus tugann sé 'UP' má tá aon nóid go saine.",
+        "management_nodes_description": "Cuir isteach an URL do na nódanna bainisteoireachta RabbitMQ, lena n-áirítear an prótacal agus an port. Sampla: https://node1.rabbitmq.com:15672",
+        "management_nodes_title": "Núideanna Bainistíochta",
+        "node_url_label": "URL an nóid",
+        "password_description": "Pasfhocal le haghaidh fíordheimhniú ar an ateagais bainisteoireachta RabbitMQ",
+        "setup_information_description": "Chun an monatóir RabbitMQ a úsáid, caithfidh tú Plugin Bainisteoireachta a chur i bhfeidhm i do shocrú RabbitMQ. Chun tuilleadh eolais a fháil, féach ar doiciméadú RabbitMQ.",
+        "setup_information_title": "Eolas faoi shocrú",
+        "title": "Cumraíocht RabbitMQ",
+        "username_description": "Ainm úsáideora le haghaidh fíordheimhnú interféise bainistíochta RabbitMQ"
+      },
+      "redis": {
+        "ca_certificate_description": "Teastas Root CA i bhfoirm PEM. Eisithe le haghaidh fíorú TLS ceart le teastais shamhlaithe féin.",
+        "ca_certificate_label": "Teastais CA (Réamhshocraithe)",
+        "client_certificate_description": "Teastas cliaint i bhfoirm PEM. Éilíonn sé le haghaidh fíordheimhniú TLS co-bharr.",
+        "client_certificate_label": "Teastas do Chliaint (Roghnach)",
+        "client_key_description": "Eochair phríobháideach an t‑chliaint i bhfoirm PEM. Ní mór a sholáthar le teastas an t‑chliaint.",
+        "client_key_label": "Eochair phríobháideach an chliaint (roghnach)",
+        "connection_string_description": "Réimse teaghráin ceangal Redis: {{redis}} nó {{rediss}} le haghaidh TLS",
+        "connection_string_label": "Teaghrán Ceangal",
+        "ignore_tls_description": "Seachaint deimhniú teastais TLS (níor mholtar le haghaidh táirgeadh)",
+        "ignore_tls_label": "Sórtáil earráidí TLS/SSL",
+        "title": "Cumraíocht Redis"
+      },
+      "shared": {
+        "intervals": {
+          "heartbeat_retry": "Titim Athsheachadán Lorglanna (Athsheachadú gach {{seconds}} soicind)",
+          "max_retries_description": "Iarrtais uasta roimh a bheith marcáilte mar thíos agus fógra a sheoladh",
+          "request_timeout": "Teip Iarratais (tar éis {{seconds}} nóiméad)",
+          "resend_notification": "Athsheol Fógra má tá sé i dorchadas X uaire le chéile (Neamhcheadaithe)"
+        },
+        "notifications": {
+          "add_notifier": "Cuir Fógraíú",
+          "new_notifier": "+ Fógraí Nua",
+          "no_channels": "Níor aimsíodh aon chánálacha fógra; cruthaigh ceann ar dtús.",
+          "no_channels_available": "Níl aon chanais ar fáil",
+          "select_channel": "Roghnaigh an chanál",
+          "select_notifier_placeholder": "Roghnaigh Eagarthóir",
+          "selected_channels": "Cánálacha fógraí roghnaithe",
+          "title": "Cainéil Fógraí"
+        },
+        "proxy": {
+          "add_proxy": "Cuir Próiseas",
+          "new_proxy": "+ Próise Nua",
+          "no_proxy": "Gan Próxí",
+          "remove_proxy": "Bain Proxy",
+          "select_proxy_placeholder": "Roghnaigh Próiseálaí",
+          "selected_proxy": "Próiseálaí roghnaithe",
+          "title": "Próiseas"
+        },
+        "tags": {
+          "label": "Clibeanna",
+          "no_tags": "Níl aon clibeanna ar fáil",
+          "placeholder": "Roghnaigh taganna"
+        }
+      },
+      "snmp": {
+        "community_description": "An teaghrán cumannais SNMP le haghaidh fíordheimhniú (mar fhocal faire)",
+        "community_label": "Sraith Pobal",
+        "expected_value_description": "An luach le déanamh comparáide leis. Fág folamh chun ionráite a léim.",
+        "expected_value_label": "Luach Ag Siocht",
+        "host_description": "Ainm ósta nó seoladh IP do ghléas le SNMP.",
+        "host_label": "Óstach",
+        "json_path_description": "Tionscadal JSONPath le haghaidh luach a bhaint as freagra (úsáid \"$\" le haghaidh luach amh)",
+        "json_path_label": "Conair JSON",
+        "json_path_operator_description": "Conas an luach a bhailiú a chcomparáil leis an luach atá ag tnúth",
+        "json_path_operator_eq": "ionann",
+        "json_path_operator_ge": "níl níos mó ná nó cothrom le",
+        "json_path_operator_gt": "níl níos mó ná",
+        "json_path_operator_label": "Coinníoll",
+        "json_path_operator_le": "níos lú ná nó cothrom le",
+        "json_path_operator_lt": "níl níos mó ná",
+        "json_path_operator_ne": "níl ionann le",
+        "oid_description": "An Ainmfhéidir Oibríochta SNMP le haghaidh fiosrú (m.sh., 1.3.6.1.2.1.1.1.0 le haghaidh tuairisc ar an gcóras)",
+        "oid_label": "OID (Aitheantas Oibre)",
+        "port_description": "Port SNMP (réamhshocrú: 161)",
+        "port_label": "Poirt",
+        "snmp_version_description": "Leagan na protacail SNMP a úsáidfear",
+        "snmp_version_label": "Leagan SNMP",
+        "title": "Socruithe SNMP",
+        "value_validation_label": "Bailíochtú Luach (Roghnach)"
+      },
+      "sqlserver": {
+        "allowed_statements_description": "SELECT, SHOW, DESCRIBE, EXPLAIN, WITH, agus VALUES.",
+        "allowed_statements_label": "Staidiméid ceadaithe:",
+        "connection_string_label": "Sreang Ceangal",
+        "query_description": "Ceist le rith le haghaidh seiceáil sláinte. Fág folamh chun úsáid a bhaint as an réamhshocrú.",
+        "query_label": "Iarratas",
+        "title": "Ceangal le Microsoft SQL Server"
+      },
+      "tcp": {
+        "host": "Ósta",
+        "port": "Port",
+        "title": "Ceangal TCP"
+      },
+      "type": {
+        "dns": "Monasóir DNS",
+        "docker": "Contaeán Docker",
+        "grpc": "Monaitir Focail gRPC",
+        "http": "Monaitéir HTTP(S)",
+        "kafka": "Monaitéir Fhuirceora Kafka",
+        "mongodb": "Monaitéir Bunachar Sonraí MongoDB",
+        "mqtt": "Monaitéir Broker MQTT",
+        "mysql": "Monaitéir MySQL/MariaDB",
+        "ping": "Monatóireacht Ping (ICMP)",
+        "postgres": "Monaitir Bunachar sonraí PostgreSQL",
+        "push": "Monatóir Push (glaonnann seirbhís seachtrach URL giniúint)",
+        "rabbitmq": "Monatóireacht RabbitMQ",
+        "redis": "Monatare Bunachar sonraí Redis",
+        "snmp": "Monaitéir SNMP",
+        "sqlserver": "Monataoir Microsoft SQL Server",
+        "tcp": "Monaitir Port TCP"
+      }
+    },
+    "page": {
+      "description": "Cruthaigh monatóireacht nua chun tosú le trááil feidhmíochta do shuíomh gréasáin.",
+      "edit_title": "Cuir monaitir in eagar:",
+      "new_title": "Monaitir Nua"
+    },
+    "title": "Monaitiseoirí",
+    "toasts": {
+      "deleted": "Monatóir scriosta",
+      "paused": "Monaitéir coise",
+      "reset_success": "Baineadh sonraí an mhionadaithe go rathúil",
+      "resumed": "Monatóireacht seasmhaíodh arís"
+    },
+    "view": {
+      "buttons": {
+        "clone": "Clónáil",
+        "delete": "Scrios",
+        "edit": "Cuir in eagar",
+        "pause": "Cuir ar stad",
+        "reset_data": "Athshocraigh Sonraí",
+        "resume": "Leanúint"
+      },
+      "certificate": "Teastas",
+      "check_every": "Seiceáil gach",
+      "current_status": "Stádas reatha",
+      "dialogs": {
+        "delete": {
+          "description": "Ní féidir an gníomh seo a chur ar ais. Scriosfaidh sé an monait agus na sonraí a bhaineann leis go buan.",
+          "title": "An bhfuil tú cinnte go hiomlán?"
+        },
+        "pause": {
+          "description": "An bhfuil tú cinnte go bhfuil tú ag iarraidh sé a mhórú?",
+          "title": "Dearbhú"
+        },
+        "reset": {
+          "description": "Scriosfar go daingean gach stair na clochbhrú agus staitisticí airdte don mhonatóireacht seo. Cuirfear don mhonatóireacht ag léiriú mar go bhfuil sé cruthaithe díreach. Ní féidir é a cealú.",
+          "title": "Athshocraigh Sonraí an mhonatóra"
+        }
+      },
+      "expiring_soon": "Ag léiriú go luath",
+      "for": "do",
+      "live_status": "Stáit Beo",
+      "monitor_for": "monatóireacht ar",
+      "no_certificate_data": "Níl sonraí ar an gceartúireacht",
+      "seconds": "soicindí",
+      "stats": {
+        "last_24_hours": "24 uair an chloig anuas",
+        "last_30_days": "30 lá deireanach",
+        "last_365_days": "365 lá anuas",
+        "last_7_days": "7 lá deireanach"
+      },
+      "status": {
+        "down": "Síos",
+        "maintenance": "Cothromaíocht",
+        "paused": "Sosadh",
+        "up": "Ar Fáil"
+      }
+    }
+  },
+  "navigation": {
+    "maintenance": "Cothromaíocht",
+    "monitors": "Móntóirí",
+    "notification_channels": "Canálacha Fógairtí",
+    "proxies": "Próiseasanna",
+    "settings": "Socruithe",
+    "status_pages": "Leathanacha stádas",
+    "tags": "Tagaí"
+  },
+  "notifications": {
+    "actions": {
+      "test": "Tástáil",
+      "testing": "Ag tástáil..."
+    },
+    "aria": {
+      "delete": "Scrios {{name}}"
+    },
+    "confirm_delete_description": "Ní féidir an gníomh seo a chur ar ais. Scriosfar an fógra {{name}} go sealadach agus bainfear sé as gach monatóire a úsáideann sé.",
+    "create_title": "Cruthaigh Fógraí",
+    "edit_channel_title": "Cuir in eagar an Chainéal Fógra",
+    "edit_title": "Cuir Innealtóir in eagar",
+    "empty_state": {
+      "action": "Cruthaigh do chéad canál fógra",
+      "description": "Tósaigh ag cruthú do chéad seanál nuachtála chun fógraí a sheoladh chuig do fhoireann.",
+      "title": "Níor aimsíodh aon chánál nuachainte"
+    },
+    "form": {
+      "discord": {
+        "bot_display_name_description": "An t-ainm a thaispeántar mar tharlóra na n-isteachta Discord.",
+        "bot_display_name_label": "Ainm Taispeántais Bóta",
+        "custom_message_prefix_description": "Réimse roghnach a cuirfear ag an tús de gach teachtaireacht.",
+        "custom_message_prefix_label": "Réamhfhógáil Meachta Sainioc",
+        "custom_message_prefix_placeholder": "Roghnach: Cuir réimír leis do theachtaireacht",
+        "forum_post_name_description": "An t-ainm ar an post nua ar fhuirm a cruthófar.",
+        "forum_post_name_label": "Ainm Post Fóram",
+        "forum_post_name_placeholder": "Cuir isteach ainm an phost bhliant",
+        "sending_message_to_channel": "Seol chuig an gcainéal",
+        "sending_message_to_description": "Roghnaigh áit a sheoltar teachtaireachtaí Discord.",
+        "sending_message_to_label": "Seachadadh Teachtaireachta chuig",
+        "sending_message_to_new_forum_post": "Seol chuig post nua an fórais",
+        "sending_message_to_placeholder": "Roghnaigh cineál na teachtaireachta",
+        "sending_message_to_thread": "Seol chuig an sreang",
+        "setup_webhook_description_1": "Faigh do URL webhook ó shocruithe freastalaí Discord → Eagraíochtaí → Webhooks.",
+        "setup_webhook_description_2": "Cruthaigh webhook nua agus cóipeáil an URL. Bí cinnte go roghnaigh tú an gcainéal ceart.",
+        "setup_webhook_title": "Socraigh Discord Webhook",
+        "thread_id_description_1": "Cumasaigh Mód Forbróra i Socruithe Úsáideora Discord → Uasmhéada → Mód Forbróra",
+        "thread_id_description_2": "Cliceáil de dheis ar an snáithe nó posta agus roghnaigh \"Cóipeáil ID an Snáithe\" nó \"Cóipeáil ID an Chanáil\"",
+        "thread_id_description_title": "An ID den sreath nó an post foirme, áit a gcuirtear teachtaireachtaí.",
+        "thread_id_label": "ID an snámh",
+        "thread_id_placeholder": "Cuir isteach ID an chliaidh nó posta",
+        "webhook_url_label": "URL webhook Discord"
+      },
+      "google_chat": {
+        "more_info_about_webhooks": "Tuilleadh eolais faoi Webhooks",
+        "webhook_url_label": "URL Gabhála Google Chat"
+      },
+      "gotify": {
+        "application_token_description": "An t-tioncán iarratais ó do airdchumraíocht Gotify. Is féidir leat é a aimsiú sa bhfoirm Gréasáin Gotify faoi Apps.",
+        "application_token_label": "Token Aip",
+        "custom_message_description": "Teimpléad teachtaireachta shaincheaptha. Athróga atá ar fáil",
+        "custom_message_description_2": "Fág folamh chun úsáid a bhaint as an teachtaireacht réamhshocraithe.",
+        "custom_message_label": "Teachtaireacht Saincheaptha",
+        "custom_title_description": "Teideal saincheaptha do an t-leanúint. Tá na hamháin ar fáil: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Fág bán chun an teideal réamhshocraithe \"Peekaping\" a úsáid.",
+        "custom_title_label": "Teideal Saincheaptha",
+        "learn_more_label": "Tuilleadh eolais faoi Gotify agus conas é a shocrú ag:",
+        "note_description": "Tá sé riachtanach go bhfuil seirbhéir Gotify ag rith chun an inteagraíocht seo a úsáid.",
+        "note_label": "Nóta:",
+        "priority_0": "Is ísle",
+        "priority_1": "Isteacht Uaimh",
+        "priority_10": "Ard",
+        "priority_2": "Íseal",
+        "priority_3": "Íseal Gnáth",
+        "priority_4": "Gnáth",
+        "priority_5": "Iarrtaigh",
+        "priority_6": "Meánmhian",
+        "priority_7": "Ard",
+        "priority_8": "Ard go hiúin (Réamhshocrú)",
+        "priority_9": "Éigeandáil",
+        "priority_description": "Priotás teachtaireachta (0-10). Níos mó uimhir, níos mó priotás. Is 8 an réamhshocrú.",
+        "priority_label": "Príort",
+        "priority_placeholder": "Roghnaigh tábhacht",
+        "server_url_description": "An URL de do fhreastalaí Gotify. Déan cinnte go bhfuil sé inúsáidte ón aip seo.",
+        "server_url_label": "URL an fhreastalaí"
+      },
+      "grafana_oncall": {
+        "grafana_oncall_url_description": "URL an webhook ó do iinteagraíocht Grafana OnCall. Is féidir leat é a fháil i do instaint Grafana OnCall faoi Fógraí & IRM > IRM > Einteagraíochtaí > Webhook.",
+        "grafana_oncall_url_label": "URL Grafana OnCall",
+        "learn_more_label": "Tuilleadh eolais faoi Grafana OnCall webhooks"
+      },
+      "line": {
+        "channel_access_token_description": "Is féidir leat do chomhartha rochtana an gcánail a fháil ó",
+        "channel_access_token_description_2": "Téigh chuig do shocruithe cánail agus féach ar",
+        "channel_access_token_label": "Token rochtana an gcánála (fada-bhuail)",
+        "channel_access_token_placeholder": "Cuir isteach do bhriathar rochtana do cheannál LINE",
+        "template_description": "Saincheap formáid na teachtaireachta. Athróga ar fáil",
+        "template_label": "Teimpléad Teachtaireachta",
+        "template_placeholder": "Cuir isteach do teimpléad teachtaireachta shaincheaptha",
+        "user_id_description": "Is féidir leat do User ID a fháil i",
+        "user_id_description_2": "Téigh go dtí do shocruithe an chánail agus féach ar",
+        "user_id_label": "Do ID Úsáideora",
+        "user_id_placeholder": "Iontráil d'ID úsáideora LINE"
+      },
+      "matrix": {
+        "access_token_description": "Teacún rochtana Matrix le haghaidh fíordheimhniú",
+        "access_token_label": "Token rochtana",
+        "custom_message_description": "Teimpléad teachtaireachta saincheaptha. Athróga atá ar fáil.",
+        "custom_message_label": "Teachtaireacht Saincheaptha",
+        "homeserver_url_description": "URL do fhreastalaí Matrix",
+        "homeserver_url_label": "URL Bunseirbhíse",
+        "internal_room_id_description": "An ID aisteanna inmheánach a sheoladh nuachtáin. Ba chóir go dtosóidh sé le '!' agus aird go bhfuil sé mar: !roomid:matrix.org",
+        "internal_room_id_label": "ID teampaoin intíre",
+        "setup_instructions_1": "Cruthaigh cuntas Matrix do bhóta (nó bain úsáid as do chuntas atá ann cheana)",
+        "setup_instructions_2": "Cruthaigh nó bímh isteach sa seomra inar mhaith leat faighteachtaí a fháil",
+        "setup_instructions_3": "Faigh do teicinn rochtana trí iarratas logála isteach",
+        "setup_instructions_4": "Beidh an réimse access_token san fhreagra; bain úsáid as seo mar do Token Rochtana.",
+        "setup_instructions_5": "Faigh ID inmheánach do sheomra (tosaíonn le \"!\") i socruithe seomra an chliaint Matrix",
+        "setup_instructions_label": "Treoracha Saincheapadh"
+      },
+      "mattermost": {
+        "channel_name_description": "An t-aistriú ina gcuirfear na fógraí. Fág folamh chun an bhéarlach réamhshocraithe atá cumraithe sa webhook a úsáid.",
+        "channel_name_label": "Ainm an chánál",
+        "icon_emoji_cheat_sheet_label": "Leabhar aice emoji",
+        "icon_emoji_description": "Emoji a úsáidtear mar dearadh. Is féidir leat dhá emoji a shainiú, ailtar a ghá spás (céad de réir stádas reatha, dara de réir stádas faoi mhíchumas).",
+        "icon_emoji_label": "Iomagoí Deilbhín",
+        "icon_url_description": "URL do ghrianghraf a úsáidtear mar deilbhín don teachtaireacht fógra.",
+        "icon_url_label": "URL an íocán",
+        "learn_more_label": "Tuilleadh eolais faoi webhooks",
+        "message_template_description": "Saincheap an fhórmáid na teachtaireachta. Seantaí atá ar fáil",
+        "message_template_label": "Teimpléad teachtaireachta",
+        "use_message_template_description": "Cuir cumas ar úsáid teimpléad teachtaireachta saincheaptha agus formáid.",
+        "use_message_template_label": "Úsáid teimpléad teachtaireachta",
+        "username_description": "An t-ainm úsáideora a thaispeánfar mar thagairí an teachtaireachta.",
+        "webhook_url_label": "URL do bhóithróg"
+      },
+      "ntfy": {
+        "authentication_type_basic": "Fíordheimhniú Bunúsach",
+        "authentication_type_basic_description": "Bain úsáid as ainm úsáideora agus focal faire le haghaidh fíordheimhnithe bhunúsach.",
+        "authentication_type_label": "Cineál Fíordheimhniú",
+        "authentication_type_none": "Gan fíordheimhniú",
+        "authentication_type_none_description": "Ní gá fíordheimhniú. Reátha do fhreastalaí NTFY poiblí.",
+        "authentication_type_placeholder": "Roghnaigh cineál fíordheimhnithe",
+        "authentication_type_token": "Fíordheimhniú comhartha",
+        "authentication_type_token_description": "Bain úsáid as scannán rochtana le haghaidh fíordheimhniú.",
+        "custom_message_description": "Ábhar teachtaireachta saincheaptha. Athróga atá ar fáil",
+        "custom_message_label": "Teachtaireacht Saincheaptha",
+        "password_required": "Tá an focal faire riachtanach don fhíordheimhniú bhásic.",
+        "priority_1": "Íochtair (Is íochtair)",
+        "priority_2": "Íseal",
+        "priority_3": "Bunreatha",
+        "priority_4": "Ard",
+        "priority_5": "Fásta (Uachtair)",
+        "priority_description": "Leibhéal tábhachta na h‑fógra. Is féidir le tábhachtaí níos airde rudaí éagsúla a thosú ar an gcianán.",
+        "priority_label": "Praoiort",
+        "priority_placeholder": "Roghnaigh tairbhe",
+        "server_url_description": "URL do fhreastalaí NTFY. Bain úsáid as https://ntfy.sh don leagan poiblí.",
+        "server_url_label": "URL Freastalaí",
+        "tags_description": "Clibeanna ailtáilte le camóid chun na nuachtáin a chrionglú. Aibreanna atá ar fáil",
+        "tags_label": "Clibeanna",
+        "title_description": "Teideal saincheaptha don fhógra. Bhogálacha ar fáil",
+        "title_label": "Teideal Saincheaptha",
+        "token_description": "Do guthán rochtana NTFY le haghaidh fíordheimhniú.",
+        "token_label": "Ioncú Rochtana",
+        "token_required": "Tá teacsa riachtanach don fíordheimhnithe teicse",
+        "topic_description": "An t-ainm tógála do fhógraí. Beidh sé seo an seanail ina sheoltar na fógraí.",
+        "topic_label": "Ábhar",
+        "username_required": "Tá ainm úsáideora de dhíth ar fhíordheimhniú bunúsach"
+      },
+      "opsgenie": {
+        "api_key_label": "Eochair API",
+        "more_info_about_api_keys_label": "Tuilleadh eolais faoi eochairí API",
+        "priority_1": "Tábhachtach",
+        "priority_2": "Ard",
+        "priority_3": "Meán",
+        "priority_4": "Íseal",
+        "priority_5": "Eolasúil",
+        "priority_description": "Socraigh leibhéal príort a fógraí. Is P3 an réamhshocraithe (Meánach).",
+        "priority_label": "Tosaíocht",
+        "region_description": "Roghnaigh do réigiún Opsgenie. Céaráidh sé seo a shainiú cén cnas API a úsáid.",
+        "region_label": "Réigiún",
+        "region_placeholder": "Roghnaigh réigiún"
+      },
+      "pagerduty": {
+        "auto_resolve_acknowledge": "Glacadh uath",
+        "auto_resolve_acknowledge_description": "Aontaigh an bhréag go huathoibríoch",
+        "auto_resolve_description": "Roghnaigh an gníomh atá le glacadh nuair a théann an monataí ar ais.",
+        "auto_resolve_do_nothing": "Ná déan ar bith",
+        "auto_resolve_do_nothing_description": "Ní tharla aon ghníomhaíocht ar stádas UP",
+        "auto_resolve_label": "Réiteach Uathoibríoch nó Aithint",
+        "auto_resolve_placeholder": "Roghnaigh uathréiteach",
+        "auto_resolve_resolve": "Réiteach Uathoibríoch",
+        "auto_resolve_resolve_description": "Réiteach an t-íoctha go huathoibríoch",
+        "integration_key_description": "Féach conas do eochair integrála a fháil",
+        "integration_key_label": "Eochair Iontach",
+        "integration_key_placeholder": "Cuir isteach do eochair chumais PagerDuty",
+        "integration_url_description": "Seo an URL deársa do API na nImeachtaí PagerDuty v2. Is réamhshocrú an deársa bunaidh.",
+        "integration_url_label": "URL Eagrúcháin",
+        "learn_more_label": "Doiciméadú PagerDuty",
+        "priority_critical": "Criticiúil",
+        "priority_description": "Leibhéal fulaingt do chásanna PagerDuty. Is default e \"rabhadh\".",
+        "priority_error": "Earráid",
+        "priority_info": "Eolas",
+        "priority_label": "Priontú",
+        "priority_placeholder": "Roghnaigh leibhéal tábhachta",
+        "priority_warning": "Rabhadh"
+      },
+      "pagertree": {
+        "authentication_token_description": "Tóin aitheantais roghnach chun slándáil níos fearr a chur i bhfeidhm. Beidh sé seo seolta i gteideal pagertree-token.",
+        "authentication_token_label": "Token Fíordheimhnithe (Roghnach)",
+        "authentication_token_placeholder": "Cuir isteach an t-iontráil cód údaraithe, má teastaíonn sé.",
+        "auto_resolve_alerts_description": "Réitigh na n-éireachtaí PagerTree go huathoibríoch nuair a bhuaíonn an monatóire.",
+        "auto_resolve_alerts_label": "Réiteach Uathúil na Fógraí",
+        "how_to_get_integration_url_label": "Conas URL an tintegraíochta a fháil",
+        "integration_url_description": "Iontráil URL do chomhsholú webhook PagerTree.",
+        "integration_url_label": "URL do PagerTree Webhook",
+        "urgency_level_critical": "Críticiúil",
+        "urgency_level_description": "Socraigh leibhéal turgne réamhshocraithe do aiseolas a sheoladh chuig PagerTree",
+        "urgency_level_high": "Ard",
+        "urgency_level_label": "Leibhéal turgnamh",
+        "urgency_level_low": "Íseal",
+        "urgency_level_medium": "Meán",
+        "urgency_level_placeholder": "Roghnaigh leibhéal éagrachta",
+        "urgency_level_silent": "Glaist"
+      },
+      "pushbullet": {
+        "access_token": "Ceadlann Rochtana",
+        "access_token_description": "Do chomhartha rochtana Pushbullet. Faigh é as",
+        "access_token_label": "Token rochtana",
+        "access_token_link": "Socruithe Pushbullet",
+        "channel_tag": "Tag na Seiche (Roghnach)",
+        "channel_tag_description": "Seol fógra chuig canál Pushbullet in áit ghléasanna",
+        "channel_tag_label": "Clib an Chanail (Roghnach)",
+        "custom_message_template_description": "Saincheap an corp an nuachtúcháin ag úsáid athróga teimpléid:",
+        "custom_message_template_heartbeat_ping": "Am freagartha",
+        "custom_message_template_heartbeat_time": "Stáitseam",
+        "custom_message_template_label": "Teimpléad Teachtaire Saincheaptha (Roghnach)",
+        "custom_message_template_monitor_url": "URL an mhonatóire",
+        "custom_message_template_msg": "Teachtaireacht aiseolas",
+        "custom_message_template_name": "Ainm an monaitir",
+        "custom_message_template_placeholder": "Monaitir: {{ name }}\nStádas: {{ status }}\nTeachtaireacht: {{ msg }}",
+        "custom_message_template_status": "Stádas reatha",
+        "device_id": "Aitheantas Gléas (roghnach)",
+        "device_id_description": "Seol nuacht chuig gléas shonraithe. Fág folamh le seoladh chuig gach gléas. Is féidir leat IDanna gléas a aimsiú ag úsáid an",
+        "device_id_label": "Aitheantas Gléas (Roghnach)",
+        "device_id_link": "Pushbullet API",
+        "more_info_on": "Tuilleadh eolais faoi:"
+      },
+      "pushover": {
+        "application_token_label": "Token Fheidhmchláir",
+        "application_token_placeholder": "Iontráil do thoken iarratais Pushover",
+        "device_description": "Fág folamh le haghaidh seoladh chuig gach gléas",
+        "device_label": "Gléas",
+        "device_placeholder": "Ainm an ghlais (roghnach)",
+        "message_title_description": "Fág bán chun teideal réamhshocraithe a úsáid",
+        "message_title_label": "Teideal an teachtaireachta",
+        "message_title_placeholder": "Teideal saincheaptha (roghnach)",
+        "message_ttl_description": "Am maireacht i soicindí (0 = gan dtiúnaíocht)",
+        "message_ttl_label": "TTL teachtaireachta",
+        "more_info_label": "Tuilleadh eolais faoi:",
+        "more_info_label_2": "Is féidir leat feidhmchlár a chruthú agus do teagras API a fháil ag",
+        "more_info_label_3": "Is féidir leat do eochair úsáideora a fháil ag",
+        "notification_sound_down_description": "Fuaim nuair a bhíonn an monaitóir thíos",
+        "notification_sound_down_label": "Fuaim Fógra - Sí",
+        "notification_sound_down_placeholder": "Roghnaigh fuaim",
+        "notification_sound_up_description": "Fuaim nuair a théann an monatóir ar ais",
+        "notification_sound_up_label": "Fuaim Fógra - Suas",
+        "notification_sound_up_placeholder": "Roghnaigh fuaim",
+        "priority_1": "is íochtair",
+        "priority_2": "Íseal",
+        "priority_3": "Gnáth",
+        "priority_4": "Ard",
+        "priority_5": "Díograis",
+        "priority_description": "Leibhéal tábhacht na teachtaireachta",
+        "priority_label": "Tábhacht",
+        "priority_placeholder": "Roghnaigh airdecha",
+        "sound_alien": "Alainn",
+        "sound_bike": "Biga",
+        "sound_bugle": "Bugla",
+        "sound_cashregister": "Clár Airgid",
+        "sound_classical": "Clasaiceach",
+        "sound_climb": "Ascann",
+        "sound_cosmic": "Cosmaíoch",
+        "sound_echo": "Eochú",
+        "sound_falling": "Titim",
+        "sound_gamelan": "Gamelan",
+        "sound_incoming": "Ag teacht isteach",
+        "sound_intermission": "Tionscadal",
+        "sound_magic": "Draíocht",
+        "sound_mechanical": "Meicníoch",
+        "sound_none": "Gan fuaim",
+        "sound_persistent": "Seasmhach",
+        "sound_pianobar": "Bár Píona",
+        "sound_pushover": "Pushover (réamhshocraithe)",
+        "sound_siren": "Sírín",
+        "sound_spacealarm": "Alam Spáis",
+        "sound_tugboat": "Bád aiste",
+        "sound_updown": "Suas Síos",
+        "sound_vibrate": "Taitneamh",
+        "user_key_label": "Eochair Úsáideora",
+        "user_key_placeholder": "Cuir isteach do eochair úsáideora Pushover"
+      },
+      "signal": {
+        "custom_message_description": "Teimpléad teachtaireacht saincheaptha. Athróga atá ar fáil.",
+        "custom_message_label": "Teachtaireacht Saincheaptha",
+        "important_description": "Ní féidir leat grúpaí agus uimhreacha a mheascadh i bhfaighteoirí!",
+        "important_label": "Tábhachtach:",
+        "more_info_label": "Is féidir leat an URL seo a sheiceáil chun féachaint conas é a shocrú:",
+        "note_description": "Caithfidh tú cliant Signal a bheith agat le REST API.",
+        "note_label": "Nóta:",
+        "number_description": "Uimhir fón do chuntas Signal (uimhir seoltóra).",
+        "number_label": "Uimhir",
+        "post_url_description": "An URL do fhreastalaí Signal CLI REST API.",
+        "post_url_label": "URL Postála",
+        "recipients_description": "Liosta gnótha de n-úmara fón le camóg chun turgnaimh a sheoladh chuig.",
+        "recipients_label": "Faighteoirí"
+      },
+      "slack": {
+        "channel_name_description": "An gcré inar chuirtear an teachtaireacht. Mura sonraítear, seolfar an teachtaireacht chuig an gcré réamhshocraithe atá socraithe sa webhook.",
+        "channel_name_description_2": "Is féidir leat an abhair réamhshocraithe a athrú trí ainm na n-abhair a shaincheiste (m.sh., #alerts) nó úsáideoir a shaincheiste (m.sh., @username).",
+        "channel_name_label": "Ainm an chánála",
+        "channel_notify_description": "Nuair a bheidh sé cumasaithe, cuirfidh an teachtaireacht fógraí do gach bhall an chomhairle. Bain úsáid as go cúramach chun spam a sheachaint.",
+        "channel_notify_label": "Cánal Fógra",
+        "icon_emoji_cheat_sheet_label": "Léarscríbhinn Emoji",
+        "icon_emoji_description": "Emoji le húsáid mar íocán don teachtaireacht seo. Ní mór go mbeadh sé sa fhormáid :emoji_name:",
+        "icon_emoji_label": "Ícon Emoji",
+        "message_format_description": "Seol teachtaireachtaí gháine",
+        "message_format_description_2": "Cumasaigh a sheoladh teachtaireachtaí le formáidiú saibhir, ceangaltáin, agus léiriú níos fearr.",
+        "message_format_label": "Formáid Teachtaireachta",
+        "username_description": "An t-ainm úsáideora a tharlóidh mar thosaitheoir an teachtaireachta. Mura bhfuil sé sainiúnaithe, úsáidfear ainm réamhshocraithe an bota.",
+        "webhook_url_description": "URL an webhook ó do chomhtháthú Slack. Is féidir leat é a aimsiú i do shlúit Slack faoi Integrations > Webhooks.",
+        "webhook_url_label": "URL Bhuailéim"
+      },
+      "smtp": {
+        "custom_body_label": "Corpa Sainiúcháin",
+        "custom_description": "Is féidir teimpléadú a bhaint amach tríd an teanga teimpléadú <b>Liquid</b>.",
+        "custom_description_2": "Tabhair faoi deara na treoracha úsáide sa doiciméid.",
+        "custom_description_3": "Athróga atá ar fáil:",
+        "custom_description_4": "teachtaireacht an fógra",
+        "custom_description_5": "Ainm na seirbhíse",
+        "custom_description_6": "Stádas na seirbhíse (UP/DOWN/Fógraí maidir le teorainn scagtha)",
+        "custom_subject_label": "Ábhar Saincheaptha",
+        "smtp_from_label": "Ó (Seoladh Seolta)",
+        "smtp_host_description": "Cuir isteach ainm óstaigh an fhreastalaí a bhfuil tú ag iarraidh dul i dteagmháil leis, nó localhost má tá tú ag iarraidh aistean gluaisteacht ríomhphoist saincheaptha go híos.",
+        "smtp_host_label": "Óst SMTP",
+        "smtp_password_placeholder": "Pasfhocal SMTP",
+        "smtp_port_label": "Port",
+        "smtp_to_label": "Chuig (Seoltaí ríomhphoist)",
+        "smtp_username_placeholder": "Ainm úsáideora SMTP"
+      },
+      "telegram": {
+        "auto_get_label": "Uath-Glac",
+        "bot_token_description": "Faigh do bhót token ó",
+        "bot_token_label": "Boirt Token",
+        "chat_id_description": "Is féidir d'ID comhrá a fháil trí sheoladh teachtaireachta chuig do bhóta agus cliceáil 'Auto Get' thuas, nó le trádáil trí úsáid a bhaint as an API Telegram.",
+        "chat_id_description_2": "Chun é a fháil de shaincheist, tabhair cuairt ar",
+        "chat_id_description_3": "Féach",
+        "chat_id_description_4": "Doiciméid Telegram",
+        "chat_id_description_5": "le haghaidh tuilleadh eolais.",
+        "chat_id_label": "ID na comhrá",
+        "chat_id_not_found": "Ní bhfuarthas ID an chomhrá sna nuashonrú is déanaí.",
+        "failed_to_fetch_chat_id": "Ní bhailíodh ID an chomhrá",
+        "message_thread_id_description": "Roghnach. Úsáidtear é chun teachtaireachtaí a sheoladh chuig snámhpharaic shonraithe (topaic) i gcrua-phréag fóram.",
+        "message_thread_id_label": "ID snáithe teachtaireachta",
+        "no_updates_found": "Níor aimsíodh nuashonruithe. Seol teachtaireacht chuig do bhóta ar dtús.",
+        "protect_content_description": "Má tá sé cumasaithe, cosanta an t-innealtacht teachtaireachta ó aistriú agus ó shábháil.",
+        "protect_content_label": "Cosain an tÁbhar",
+        "send_silently_description": "Má tá sé cumasaithe, seoltar teachtaireachtaí go sinne (glacfaidh úsáideoirí fógra gan fuaim).",
+        "send_silently_label": "Seol go ciúin",
+        "server_url_description": "Is béasach go",
+        "server_url_description_2": "Is féidir leat freastalaí saincheaptha a úsáid. Féach",
+        "server_url_description_3": "anseo",
+        "server_url_description_4": "para le sonraí.",
+        "server_url_label": "URL Freastalaí Telegram",
+        "template_description": "Saincheap formáid na teachtaireachta. Athróga atá ar fáil.",
+        "template_label": "Teimpléad Teachtaireachta",
+        "template_parse_mode_description": "Roghnaigh conas ba chóir na teachtaireachta a pharsáil. Féach",
+        "template_parse_mode_description_2": "Acmhainní formáiteála Telegram",
+        "template_parse_mode_description_3": "tuilleadh sonraí.",
+        "template_parse_mode_label": "Mód Parseáil teimpléad",
+        "template_parse_mode_placeholder": "Roghnaigh mód parsing",
+        "template_placeholder": "Cuir isteach teimpléad do theachtaireacht shaincheaptha",
+        "use_template_description": "Cumasaigh úsáid teimpléad agus formáid teachtaireachta saincheaptha.",
+        "use_template_label": "Bain úsáid as teimpléad teachtaireachta"
+      },
+      "webhook": {
+        "additional_headers_description": "Cuir tiotalacha HTTP saincheaptha leis an t-iarratas webhook.",
+        "additional_headers_label": "Ceanntáscanna Breise",
+        "custom_body_description": "Sainiú formáid an bodhaí iarratais. Variabail atá ar fáil.",
+        "custom_body_label": "Lúb Saincheaptha",
+        "post_url_description": "An URL críochphointe webhook áit a gcaitear na nuachtáin.",
+        "post_url_label": "URL Post",
+        "request_body_description_custom": "Sainntigh an fhormáid thíos de chás iarratais a shon féin.",
+        "request_body_description_form_data": "Seoltar an t-ábhar mar multipart/form-data. Is féidir leat é a dhíchódú ag úsáid <strong>json_decode($_POST['data'])</strong> i PHP.",
+        "request_body_description_json": "Cuirfear an t-ábhar i bhfoirm JSON le teideal \"application/json\".",
+        "request_body_label": "Corparáid Iarratais",
+        "request_body_placeholder": "Roghnaigh cineál ábhair"
+      }
+    },
+    "important": "Fógraí tábhachtacha",
+    "important_notifications": "Fógraí Tábhachtaí",
+    "labels": {
+      "friendly_name": "Ainm cairdeach",
+      "type": "Cineál fógraí"
+    },
+    "messages": {
+      "create_failed": "Níor Éirigh le cruthú an Notifier",
+      "created_success": "Cruthaithe go rathúil an Notifier",
+      "error_loading_notifier": "Earráid ag luchtú an t-fógraíoltóra",
+      "test_failed": "Níorbh fhéidir fógra tástála a sheoladh.",
+      "test_success": "D'éirigh le seoladh an teachtaireachta tástála",
+      "update_failed": "Theip ar nuashonrú an fógraí",
+      "updated_success": "Nuashonraíodh an Notifier go rathúil"
+    },
+    "new": {
+      "title": "Cán Fógra Nua"
+    },
+    "no_important": "Ní bhfaightear fógraí tábhachtacha.",
+    "placeholders": {
+      "select_type": "Roghnaigh cineál an fhaisnéiseoir"
+    },
+    "search_placeholder": "Cuardaigh canálacha fógraí de réir ainm..."
+  },
+  "proxies": {
+    "delete_dialog": {
+      "description": "Ní féidir an gníomh seo a chur ar ais. Scriosfar an próiseas {{host}}:{{port}} go deo.",
+      "title": "An bhfuil tú cinnte go hiomlán?"
+    },
+    "edit": {
+      "page_name": "Cuir in eagar an spreag"
+    },
+    "empty_list": {
+      "action_text": "Cruthaigh do chéad próiseas",
+      "text": "Tosaigh ag cruthú do chéad príopí a úsáidtear i do mhonadóirí.",
+      "title": "Níor aimsíodh próifíola"
+    },
+    "form": {
+      "auth_label": "Tá fíordheimhniú ag an bhfreastalaí proxi.",
+      "port_placeholder": "Port",
+      "protocol_label": "Prótacal Próiseas",
+      "protocol_placeholder": "Roghnaigh prótacal proíseála",
+      "server_label": "Freastalaí Próxai",
+      "server_placeholder": "Seoladh freastalaí",
+      "user": "Úsáideoir"
+    },
+    "messages": {
+      "create_failed": "Theip ar chruthú próiseas",
+      "created_success": "Próxy cruthaithe go rathúil",
+      "error_loading_proxy": "Earráid ag lódáil próiseála",
+      "update_failed": "Níorbh fhéidir an prostála a nuashonrú",
+      "updated_success": "Púroise nuashonraithe go rathúil"
+    },
+    "new": {
+      "page_name": "Próiseas Nua"
+    },
+    "page_name": "Próiseacha",
+    "search_label": "Cuardaigh",
+    "search_placeholder": "Cuardaigh próxyí de réir óstainm…"
+  },
+  "security": {
+    "enable_2fa": {
+      "form": {
+        "authenticator_code_label": "Cód Údaraithe",
+        "authenticator_code_placeholder": "Cuir isteach an cód 6 dígit",
+        "current_password_label": "Focal Faire Reatha",
+        "current_password_placeholder": "Cuir isteach do phasfhocal reatha",
+        "enable_2fa_button": "Cumasaigh 2FA"
+      },
+      "messages": {
+        "2fa_active": "2FA Gníomhach",
+        "2fa_disabled_successfully": "2FA dícháipear go rathúil",
+        "2fa_enabled_successfully": "2FA gníomhachtaithe go rathúil",
+        "account_is_protected_with_2fa": "Tá do chuntas cosanta le 2FA.",
+        "disable_2fa": "Díchumasaigh 2FA",
+        "enter_password_to_disable_2fa": "Cuir isteach do phasfhocal chun 2FA a díchumasú",
+        "failed_to_disable_2fa": "Ní bhailí 2FA a dhícheáil",
+        "failed_to_verify_2fa_code": "Theip ar fhíorú an chóid 2FA",
+        "failed_to_verify_password": "Theip ar fhíordheimhniú an focal faire nó ar thosú an cumraíocht 2FA",
+        "have_enabled_2fa": "Chuir tú cosaint dhú-chórais (2FA) ar do chuntas. Cuireann sé seo leibhéal breise slándála.",
+        "or_enter_secret_manually": "Nó iontráil an rún seo de láimh",
+        "scan_qr_code_with_authenticator_app": "Scan an cód QR seo le do fhéidhmchlár dearbhaithe",
+        "two_factor_authentication_enabled": "Fíordheimhniú Dúiche-Chóige Gníomhachtaithe",
+        "user_email_not_found": "Níor aimsíodh ríomhphost an t‑úsáideora"
+      }
+    },
+    "page_name": "Slándáil",
+    "update_password": {
+      "form": {
+        "confirm_new_password_label": "Deimhnigh Focal Faire Nua",
+        "confirm_new_password_placeholder": "Cuir isteach an pasfhocal nua arís",
+        "new_password_label": "Pasfhocal Nua",
+        "new_password_placeholder": "Cuir isteach focal faire nua",
+        "old_password_label": "Focal faire reatha",
+        "old_password_placeholder": "Cuir isteach do phasfhocal reatha",
+        "update_password_button": "Nuashonraigh Focal Faire"
+      },
+      "messages": {
+        "failed_to_update_password": "Níorbh fhéidir an focal faire a nuashonrú",
+        "password_updated_successfully": "Pasfhocal nuashonraithe go rathúil"
+      },
+      "title": "Cuir Pasfhocal in eagar"
+    }
+  },
+  "sendgrid": {
+    "api_key_description": "Do eochair API SendGrid. Is féidir leat ceann a chruthú i do chuntas SendGrid faoi Settings → API Keys. Cinntigh go bhfuil ceadanna \"Mail Send\" ag é.",
+    "api_key_label": "Eochair API",
+    "bcc_email_description": "Faighteoirí cóip bhán. Sarraidh na seoltaí ríomhphoist le camóg.",
+    "bcc_email_label": "Ríomhphost BCC (Roghnach)",
+    "cc_email_description": "Réitithe cóip carbón. Deighil na seoltaí ríomhphoist le comhaí.",
+    "cc_email_label": "Ríomhphost CC (Roghnach)",
+    "from_email_description": "Seoladh ríomhphoist an tseoltóra. Ní mór go mbeadh sé fíoraithe mar shéoltóir i do chuntas SendGrid.",
+    "from_email_label": "Eómail ó",
+    "subject_description": "Ábhar na ríomhphoist. Tacaíonn sé le teimpléadáil Liquid.",
+    "subject_label": "Ábhar Saincheaptha (Roghnach)",
+    "subject_variables_label": "Athraitheoirí atá ar fáil:",
+    "subject_variables_msg": "teachtaireacht an fhógra",
+    "subject_variables_name": "ainm seirbhíse",
+    "subject_variables_status": "Stádas an tseirbhis (Ar líne/As líne)",
+    "to_email_description": "Seoladh ríomhphost príomha an fhaighteora. Mura bhfuil aon fhaighteoir amháin, bain úsáid as na réimsí CC nó BCC.",
+    "to_email_label": "Chuig ríomhphost"
+  },
+  "settings": {
+    "data_retention": {
+      "days_label": "Laethanta",
+      "description": "Socraigh líon na lá a choinneálfar sonraí (KEEP_DATA_PERIOD_DAYS).",
+      "title": "Am Cothromaíochta na Sonraí"
+    },
+    "timezone": {
+      "description": "Roghnaigh do réimse ama is fearr leat chun gach ama a thaispeáint sa bhFeidhmchlár.",
+      "label": "Crios ama",
+      "no_timezone_found": "Níor aimsíodh aon réimse ama.",
+      "search_placeholder": "Cuardaigh ama shóisear...",
+      "select_placeholder": "Roghnaigh crios ama...",
+      "title": "Crios ama"
+    },
+    "validation": {
+      "min_days": "Caithfidh sé a bheith ar a laghad 1 lá."
+    }
+  },
+  "status": {
+    "messages": {
+      "all_systems_operational": "Tá gach córas ag obair",
+      "down": "Síos",
+      "last_updated": "Cuirteigh as Deireanach",
+      "maintenance": "Cothú",
+      "no_monitors_configured": "Níor cumraíodh aon monaitirí don leathanach stádais seo.",
+      "operational": "Oibríochtúil",
+      "partial_system_outage": "Teip Córas Leathúil",
+      "powered_by": "Le cumhacht ag",
+      "refresh_in": "Athraigh i",
+      "refresh_now": "Athbhreithnigh Anois",
+      "status_page_not_found": "Níor aimsíodh an leathanach stádas nó níl foilsithe.",
+      "under_maintenance": "Faoi mhian",
+      "unknown": "Anaithnid"
+    }
+  },
+  "status_pages": {
+    "affected_monitors": "Monáiteoirí atá ag éirí",
+    "affected_monitors_info": "Roghnaigh monataóirí a bheidh faoi bharr cothromaíochta seo.",
+    "auto_refresh_interval": "Athnuaite Aonad-am (soicind)",
+    "basic_information": "Eolas Bunúsach",
+    "create_status_page": "Cruthaigh Leathanach Stáit",
+    "customization": "Saincheapadh",
+    "delete_dialog": {
+      "description": "An bhfuil tú cinnte gur mhaith leat scriosadh \"{{title}}\"? Ní féidir an ghníomh seo a chur ar ais.",
+      "title": "Scrios Leathanach Stádas"
+    },
+    "description": "Iontráil tuairisc leathanach staitéis",
+    "domain_already_used": "Tá an t-ainm domain {{domain}} in úsáid cheana féin ag cianbhalla eile",
+    "domain_host_warning": "Is an t‑ainmleabhra seo an URL reatha do fhreastalaí. D’fhéadfadh sé seo conbhróga a chruthú.",
+    "domains": "Domhan",
+    "domains_info_warning": "Ná déan dearmad na taifid CNAME a chur do DNS do gach fearann.",
+    "draft_status": "Dréacht",
+    "edit_page_name": "Cuir Leathanach Stáit in Eagar",
+    "messages": {
+      "create_description": "Cruthaigh leathanach stádas nua chun stádas do sheirbhíse a roinnt le húsáideoirí.",
+      "create_your_first_status_page": "Cruthaigh do chéad leathanach stádais",
+      "created_successfully": "Leathanach stádais cruthaithe go rathúil",
+      "delete_failed": "Theip ar scriosadh an leathanach stádas",
+      "deleted_successfully": "Scriosadh leathanach stádais go rathúil",
+      "get_started_by_creating_your_first_status_page": "Tosaigh le cruthú do chéad leathanach stádais.",
+      "no_status_pages_found": "Níor aimsíodh aon leathbhreifí stádais",
+      "not_found": "Ní bhfuarthas leathanach stádais",
+      "update_description": "Nuashonraigh na socruithe agus an chumraíocht de do leathanach stádas.",
+      "updated_successfully": "Leathanach stádais nuashonraíodh go rathúil"
+    },
+    "new_page_name": "Leathanach Stádas Nua",
+    "page_name": "Leathanaí Stádais",
+    "published": "Foilsithe",
+    "published_info": "Bailigh an leathanach stádais seo go poiblí",
+    "published_status": "Foilsithe",
+    "search_label": "Cuardaigh",
+    "search_placeholder": "Cuardaigh leathanacha stádas de réir teideal…",
+    "update_status_page": "Nuashonraigh Leathanach Stádas",
+    "view_page": "Féach an leathanach"
+  },
+  "tags": {
+    "confirm_delete_description": "Ní féidir sé seo a chur ar ais. Déanfar an t-iasc \"{{name}}\" a scriosadh go buan agus bainfear é as gach monataur.",
+    "edit_page_name": "Cuir in eagar an tag",
+    "empty_state": {
+      "action": "Cruthaigh do chéad tag",
+      "description": "Tosaigh le do chéad clib a chruthú chun do mhonatóirí a eagrú.",
+      "title": "Ní bhfuarthas clibíní"
+    },
+    "form": {
+      "color_description": "Roghnaigh dath do thag",
+      "color_label": "Dath",
+      "create_button": "Cruthaigh clib",
+      "description_label": "Cur síos",
+      "description_placeholder": "Cuir isteach tuairisc na tag (roghnach)",
+      "name_label": "Ainm",
+      "name_placeholder": "Cuir isteach ainm an tag",
+      "update_button": "Nuashonraigh an clib"
+    },
+    "messages": {
+      "create_description": "Cruthaigh tag nua chun do mhonaitéirí a eagrachadh agus a chriochadh.",
+      "failed_to_load_tag": "Níorbh fhéidir an clib a lódáil. Seans nach bhfuil an clib ann nó nach bhfuil cead agat é a fheiceáil.",
+      "tag_id_required": "Tá ID an tag riachtanach",
+      "update_description": "Nuashonraigh sonraí an ticte chun do mhiontairí a eagrú níos fearr."
+    },
+    "new_page_name": "Taga Nua",
+    "search_placeholder": "Cuardaigh taganna..."
+  },
+  "theme": {
+    "dark": "Dorcha",
+    "light": "Solas",
+    "system": "Córas",
+    "toggle_theme": "Athraigh téama"
+  },
+  "timezone": {
+    "average": "Meán",
+    "last_24_hours": "24 uair an chloig seo caite",
+    "last_3_hours": "3 uair an chloig seo caite",
+    "last_3_months": "Trí mhí deireanach",
+    "last_30_minutes": "30 nóiméad seo caite",
+    "last_6_hours": "Na 6 uair seo caite",
+    "last_7_days": "7 lá deireanach",
+    "maximum": "Uachtair",
+    "minimum": "Íochtair",
+    "ms": "ms",
+    "response_time": "Am freagartha",
+    "uptime": "Am ar líne"
+  },
+  "ui": {
+    "general": "Ginearálta",
+    "intervals_retries": "Interlaicí, Athbhreithnithe, Téimshocraí"
+  }
+}

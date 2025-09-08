@@ -1,0 +1,1281 @@
+{
+  "actions": {
+    "cancel": "Tühista",
+    "saving": "Salvestamine…"
+  },
+  "auth": {
+    "login": {
+      "description": "Logi sisse oma e-posti aadressiga",
+      "no_account": "Pole kontot?",
+      "sign_up": "Registreeru",
+      "submit": "Logi sisse",
+      "title": "Tere tulemast tagasi"
+    },
+    "register": {
+      "description": "Loo oma admini konto",
+      "have_account": "Sul on juba konto?",
+      "sign_in": "Logi sisse",
+      "submit": "Loo",
+      "title": "Tere"
+    },
+    "twofa": {
+      "code_label": "2FA kood",
+      "code_placeholder": "Sisesta 2FA kood",
+      "description": "2FA on teie kontole lubatud. Palun sisestage oma autentimiskood jätkamiseks.",
+      "title": "Kaksfaktoriline autentimine nõutud",
+      "verify_button": "Kinnita 2FA",
+      "verifying": "Kontrollimine..."
+    }
+  },
+  "bars": {
+    "down_count": "Allolekute arv",
+    "important": "Oluline",
+    "interval": "Intervall",
+    "message": "Sõnum",
+    "ms": "ms",
+    "notified": "Teavitatud",
+    "ping": "Ping",
+    "retries": "Uuesti proovimised",
+    "status": "Staatus",
+    "time": "aeg"
+  },
+  "common": {
+    "active": "Aktiivne",
+    "all": "Kõik",
+    "back": "Tagasi",
+    "cancel": "Tühista",
+    "clear_all": "Tühjenda kõik",
+    "clear_all_filters": "Eemalda kõik filtrid",
+    "confirm": "Kinnita",
+    "confirm_delete_title": "Oled sa kindel?",
+    "confirm_delete_title_short": "Olete kindel?",
+    "continue": "Jätka",
+    "create": "Loo",
+    "created": "Loodud",
+    "days": "päevad",
+    "default": "Vaikimisi",
+    "delete": "Kustuta",
+    "disabling": "Keelamine...",
+    "dismiss": "Loobu",
+    "down": "All",
+    "enabling": "Lubamine...",
+    "error": "Viga",
+    "expires": "Aegumine",
+    "inactive": "Passiivne",
+    "loading": "Laadimine...",
+    "logout": "Logi välja",
+    "maintenance": "Hooldus",
+    "no_options_found": "Valikuid ei leitud",
+    "no_tags_available": "Siltid pole saadaval",
+    "please_refresh_page": "Palun värskenda lehte.",
+    "required": "Vajalik",
+    "save": "Salvesta",
+    "saving": "Salvestamine...",
+    "search": "Otsi",
+    "security": "Turvalisus",
+    "select": "Vali",
+    "select_monitors": "Vali monitoorid…",
+    "select_tags": "Vali sildid",
+    "settings": "Seaded",
+    "tags": "Märgid",
+    "unknown": "Tundmatu",
+    "unnamed_monitor": "Nimetu monitor",
+    "up": "Üles",
+    "update": "Uuenda",
+    "verifying": "Kontrollitakse..."
+  },
+  "forms": {
+    "labels": {
+      "confirm_password": "Kinnita parool",
+      "email": "E-post",
+      "footer_text": "Jaluse tekst",
+      "heartbeat_interval": "Põlvavahe (sekundites)",
+      "icon_url": "Ikooni URL",
+      "monitor_name": "Nimi",
+      "monitor_type": "Tüüp",
+      "password": "Parool",
+      "retries": "Katseid",
+      "slug": "URL",
+      "title": "Pealkiri",
+      "username": "Kasutajanimi"
+    },
+    "placeholders": {
+      "auto_refresh_help": "0 tähendab automaatse värskenduse keelust",
+      "domains": "Sisesta domeen (nt status.example.com)",
+      "footer_text": "Sisesta jaluse tekst",
+      "icon_url": "https://example.com/icon.png",
+      "monitor_name": "Minu monitoor",
+      "page_description": "Sisesta oleku lehe kirjeldus",
+      "page_title": "Sisesta seisundi lehe pealkiri",
+      "slug": "statusi-lehe-slug"
+    },
+    "validation": {
+      "email_invalid": "Palun sisesta kehtiv e-posti aadress",
+      "password_min_length": "Parool peab olema vähemalt 8 tähemärki",
+      "passwords_mismatch": "Paroolid ei ühti"
+    }
+  },
+  "maintenance": {
+    "card": {
+      "aria": {
+        "delete": "Kustuta {{title}}",
+        "pause": "Peata hooldus",
+        "resume": "Jätka hooldust"
+      },
+      "labels": {
+        "duration": "{{duration}} min",
+        "end": "Lõpp: {{date}}",
+        "start": "Algus: {{date}}"
+      },
+      "status": {
+        "active": "Aktiivne",
+        "ended": "Lõppenud",
+        "inactive": "Inaktiivne"
+      }
+    },
+    "edit_title": "Muuda hooldust",
+    "form": {
+      "affected_monitors_description": "Vali jälgijad, mida see hooldus mõjutab",
+      "affected_monitors_title": "Mõjutatud monitoorid",
+      "cron_description": "Sisesta kehtiv cron-avaldis",
+      "cron_expression": "Cron-väljend",
+      "date_time_title": "Kuupäev ja kellaaeg",
+      "day_of_month": "Kuupäev",
+      "day_of_week": "Nädalapäev",
+      "description_label": "Kirjeldus",
+      "description_placeholder": "Hoolduse kirjeldus...",
+      "duration_minutes": "Kestus (minutit)",
+      "effective_date_range": "Kehtivuse ajavahemik (valikuline)",
+      "end_date_time": "Lõpu kuupäev ja kellaaeg",
+      "end_time": "Lõppuaeg",
+      "interval_label": "Intervall (käivita üks kord päevas)",
+      "last_day": "Viimane päev",
+      "last_day_of_month": "Kuu viimane päev",
+      "maintenance_time_window": "Päeva hoolduse ajavahemik",
+      "markdown_supported": "Markdown on toetatud",
+      "same_as_server": "Sama serveri ajastikuga",
+      "start_date_time": "Alguskuupäev ja kellaaeg",
+      "start_time": "Algusaeg",
+      "strategy_label": "Strateegia",
+      "strategy_placeholder": "Vali strateegia",
+      "timezone_label": "Ajavöönd",
+      "timezone_placeholder": "Vali ajavöönd",
+      "title_label": "Pealkiri",
+      "title_placeholder": "Hoolduse pealkiri"
+    },
+    "page": {
+      "clear_filters": "Tühjenda kõik filtrid",
+      "dialogs": {
+        "confirm_action": {
+          "pause_description": "Olete kindel, et soovite selle hoolduse peatada?",
+          "resume_description": "Kas olete kindel, et soovite selle hoolduse jätkata?",
+          "title": "Kinnita toiming"
+        },
+        "confirm_delete": {
+          "description": "Olete kindel, et soovite selle hooldusakna kustutada? See toiming ei saa tagasi võtta.",
+          "title": "Kinnita kustutamine"
+        }
+      },
+      "edit_maintenance": "Muuda hooldust: {{title}}",
+      "empty_state": {
+        "action": "Loo esimene hooldusakend",
+        "description": "Alustamiseks loo esimene hoolduseperiood, et vältida planeeritud seisakuid.",
+        "title": "Hooldusajad ei leitud"
+      },
+      "error_loading": "Viga hoolduse laadimisel",
+      "loading": "Laadimine...",
+      "loading_monitors": "Monitorite laadimine…",
+      "search_placeholder": "Otsi hooldusi..."
+    },
+    "page_title": "Hoolduse ajavahemikud",
+    "schedule_title": "Ajasta hooldus",
+    "strategy": {
+      "cron": "Cron avaldis",
+      "manual": "Manuaalselt aktiivne / passiivne",
+      "recurring_day_of_month": "Korduv - Kuupäev kuus",
+      "recurring_interval": "Korduv - Intervall",
+      "recurring_weekday": "Taastuv - Päev nädalast",
+      "single": "Ühekordne hooldustakistus"
+    },
+    "toasts": {
+      "create_error": "Hoolduse loomine ebaõnnestus",
+      "created_success": "Hooldus loodud edukalt",
+      "delete_error": "Hoidmise kustutamine ebaõnnestus",
+      "deleted_success": "Hooldus on edukalt kustutatud",
+      "pause_error": "Hoidluse peatamine nurjus",
+      "paused_success": "Hooldus peatati edukalt",
+      "resume_error": "Hoolduse jätkamine ebaõnnestus",
+      "resumed_success": "Hooldus jätkati edukalt",
+      "toggle_error": "Ei saa hooldusolekut lülitada: ID puudub",
+      "update_error": "Hoolduse uuendamine nurjus",
+      "updated_success": "Hooldus on edukalt uuendatud"
+    },
+    "weekdays": {
+      "fri": "Re",
+      "mon": "E",
+      "sat": "lau",
+      "sun": "Pühapäev",
+      "thu": "N",
+      "tue": "Te",
+      "wed": "Kol"
+    }
+  },
+  "messages": {
+    "login_error": "Sisselogimisel tekkis viga",
+    "login_no_tokens": "Sisselogimine õnnestus, kuid tokenid ei ole saadud",
+    "login_success": "Sisselogimine õnnestus",
+    "notifier_delete_error": "Teatekanali kustutamine ebaõnnestus",
+    "notifier_delete_success": "Notifier kustutati edukalt",
+    "register_error": "Registratsiooni käigus tekkis viga",
+    "register_no_tokens": "Registreerimine õnnestus, kuid token'eid ei vastu võetud",
+    "register_success": "Registreerimine õnnestus",
+    "setting_update_error": "Seadistuse uuendamine ebaõnnestus",
+    "setting_update_success": "Seade on edukalt uuendatud",
+    "tag_create_error": "Tagi loomine ebaõnnestus",
+    "tag_create_success": "Silt on edukalt loodud",
+    "tag_delete_error": "Sildi kustutamine ebaõnnestus",
+    "tag_delete_success": "Silt kustutatud edukalt",
+    "tag_update_error": "Märgi uuendamine ebaõnnestus",
+    "tag_update_success": "Silt uuendati edukalt",
+    "unexpected_error": "Esines ootamatu tõrge",
+    "version_mismatch": "Versiooni übereastmatus avastatud"
+  },
+  "monitors": {
+    "card": {
+      "check_interval": "Kontrollintervall:",
+      "loading_more": "Laadimine jätkub..."
+    },
+    "empty_state": {
+      "action": "Loo esimene jälgija",
+      "description": "Alustamiseks looge oma esimene monitor, et jälgida oma teenuste tervist.",
+      "title": "Monitoore ei leitud"
+    },
+    "filtering_by_tags": "Filtreerimine siltide järgi",
+    "filters": {
+      "monitor_status": "Staatus",
+      "monitor_status_placeholder": "Monitoori olek",
+      "search_placeholder": "Otsi monitoore nime järgi...",
+      "status_placeholder": "Staatus"
+    },
+    "form": {
+      "buttons": {
+        "copied": "Kopeeritud!",
+        "copy": "Kopeeri",
+        "create": "Loo",
+        "regenerate": "Genereeri uuesti",
+        "update": "Uuenda"
+      },
+      "dns": {
+        "hostname": "Hostinimi",
+        "port": "Port",
+        "record_type": "Resurssirekordi tüüp",
+        "record_type_placeholder": "Vali kirjetüüp",
+        "resolver_server": "Resoluutoriserver",
+        "title": "DNS-i seaded"
+      },
+      "docker": {
+        "ca_cert_description": "Kleebi oma sertifikaadi autoriteedi sertifikaat PEM-vormingus.",
+        "ca_certificate": "CA-i sertifikaat (PEM)",
+        "client_cert_description": "Kleebi oma klientsertifikaat PEM‑vormingus. Seda kasutatakse vastastikuse TLS‑i autentimiseks.",
+        "client_certificate": "Kliendi sertifikaat (PEM)",
+        "client_private_key": "Kliendi privaatvõti (PEM)",
+        "common_tls_issues": "Levinud TLS-probleemid:",
+        "connection_type": "Ühenduse tüüp",
+        "container_name_id": "Konteineri nimi/ID",
+        "disabled": "Keelatud",
+        "docker_container": "Docker-konteiner",
+        "docker_host": "Docker host",
+        "enable_tls": "Aktiveeri TLS",
+        "enabled": "Lubatud",
+        "examples": "Näited",
+        "hostname_mismatch": "\"x509: sertifikaat kehtib X jaoks, mitte Y\":\"",
+        "hostname_mismatch_solution": "Veenduge, et hostinimi vastab sertifikaadi SAN-ile, või keelake kontroll (ei ole soovitatav).",
+        "legacy_cert_error": "x509: sertifikaat toetub vanale Common Name välja:",
+        "legacy_cert_solution": "Lisage hostinimi oma sertifikaadi Subject Alternative Names (SAN) osasse.",
+        "mtls_note": "Mõistliku TLS-i (mTLS) puhul on vaja esitada nii kliendi sertifikaat kui ka privaatvõti. CA sertifikaat kasutatakse serveri sertifikaadi kontrollimiseks.",
+        "note": "Märkus:",
+        "private_key_description": "Kleepige oma privaatvõti PEM-vormingus. Hoidke see turvaliselt!",
+        "select_connection_type": "Vali ühenduse tüüp",
+        "select_tls_option": "Vali TLS valik",
+        "select_verification_option": "Vali verifitseerimisvalik",
+        "skip_verification": "Kontrolli vahele jätmine (ohtlik)",
+        "tls_configuration": "TLS-konfiguratsioon",
+        "unknown_authority": "\"x509: sertifikaat on allkirjastatud tundmatu autoriteedi poolt\":\"",
+        "unknown_authority_solution": "Esitage õige CA‑sertifikaat, mis allkirjastas serveri sertifikaati.",
+        "verify_certificates": "Kontrolli sertifikaate",
+        "verify_tls": "Kontrolli TLS"
+      },
+      "grpc": {
+        "body": "Keha andmed (JSON)",
+        "enable_tls": "Luba TLS",
+        "enable_tls_description": "Kasuta turvalist ühendust (TLS/SSL)",
+        "invert_keyword": "Pööra märksõna",
+        "invert_keyword_description": "Monitoor märgistatakse \"UP\", kui märksõna ei leidu.",
+        "keyword": "Märksõna",
+        "keyword_description": "Otsi seda märksõna vastusest",
+        "keyword_placeholder": "Valikuline otsingusõna",
+        "method_description": "Tähtsuse tundlik",
+        "method_placeholder": "Kontrolli",
+        "options_title": "gRPC Valikud",
+        "proto_content": "Protobuf sisu",
+        "proto_method": "Protobufi meetod",
+        "proto_service_name": "Protobufi teenuse nimi",
+        "service_name_placeholder": "Tervis"
+      },
+      "http": {
+        "advanced": {
+          "accepted_status_codes": "Vastuvõetud olekukoodid",
+          "ignore_tls": "Ignoreeri TLS/SSL- vigu HTTPS veebisaitidel",
+          "ignore_tls_description": "Jäta TLS-sertifikaadi valideerimine vahele. Kasuta ettevaatusega – see muudab ühendused vähem turvaliseks.",
+          "max_redirects": "Maksimaalne ümbersuunamiste arv",
+          "max_redirects_description": "Jälgitavate ümbersuunamiste maksimum arv (0‑30). Seadista väärtuseks 0, et ümbersuunamisi keelata.",
+          "title": "Täiustatud"
+        },
+        "authentication": {
+          "auth_header": "Autoriseerimise päis",
+          "certificate": "Sertifikaat",
+          "certificate_placeholder": "Sertifikaat",
+          "client_id": "Kliendi ID",
+          "client_id_placeholder": "Kliendi ID",
+          "client_secret": "Kliendi saladus",
+          "client_secret_placeholder": "Kliendi saladus",
+          "domain": "Domeen",
+          "domain_placeholder": "Domeen",
+          "form_data_body": "Vormi andmete keha",
+          "key": "Võti",
+          "key_placeholder": "Võti",
+          "method_label": "Autentimismeetod",
+          "method_placeholder": "Vali autentimise tüüp",
+          "oauth_scope": "OAuth-ulatus",
+          "oauth_scope_placeholder": "Valikuline: ruumiga eraldatud ulatuste loend",
+          "oauth_token_url": "OAuth-tokeni URL",
+          "oauth_token_url_placeholder": "OAuth tokeni URL",
+          "title": "Autentimine",
+          "workstation": "Tööpost",
+          "workstation_placeholder": "Töölaud"
+        },
+        "options": {
+          "body": "Keha",
+          "body_encoding": "Korpuse kodeering",
+          "body_encoding_placeholder": "Vali keha kodeering",
+          "form_example": "Näidisvormi andmed",
+          "headers": "Päised",
+          "json_example": "JSON näide",
+          "method": "Meetod",
+          "method_placeholder": "Vali monitoori tüüp",
+          "select_encoding": "Vali keha kodeering",
+          "select_method": "Vali meetod",
+          "text_example": "Näidis Tekst:\nIga tavaline tekstisisu siia...",
+          "title": "HTTP-valikud",
+          "xml_example": "Näidis XML"
+        }
+      },
+      "http_json_query": {
+        "condition_label": "Tingimus",
+        "expected_value_label": "Oodatav väärtus",
+        "json_query_label": "JSON-päringu avaldis",
+        "title": "JSON päringu avaldis"
+      },
+      "http_keyword": {
+        "invert_keyword_description": "Otsi märksõna puudumist, mitte olemasolu.",
+        "invert_keyword_label": "Pöörata märksõna",
+        "keyword_label": "Märksõna",
+        "keyword_validation_title": "Märksõna valideerimine"
+      },
+      "kafka": {
+        "add_broker": "Lisa broker",
+        "auto_topic_creation_description": "Luba tootjal automaatselt luua teema, kui see ei eksisteeri",
+        "auto_topic_creation_label": "Luba automaatne teema loomine",
+        "brokers_description": "Kafka brokerite aadresside loend (host:port vorming)",
+        "brokers_label": "Kafka brokerid",
+        "configuration_title": "Kafka konfiguratsioon",
+        "enable_ssl_description": "Kasutage SSL/TLS krüpteerimist ühenduse jaoks",
+        "enable_ssl_label": "Luba SSL/TLS",
+        "message_description": "Teate sisu, mida teemale saata (soovitatav JSON-vorming)",
+        "message_label": "Sõnum",
+        "sasl_mechanism_description": "Vali SASL autentimismehhanism",
+        "sasl_mechanism_label": "SASL-mehhanism",
+        "sasl_mechanism_placeholder": "Vali SASL mehhanism",
+        "sasl_password_description": "SASL autentimise parool",
+        "sasl_password_label": "SASL parool",
+        "sasl_password_placeholder": "parool",
+        "sasl_username_description": "SASL autentimise kasutajanimi",
+        "sasl_username_label": "SASL kasutajanimi",
+        "security_title": "Turvalisus",
+        "topic_description": "Kafka teema, kuhu sõnumeid toimetada"
+      },
+      "mongodb": {
+        "command_description": "MongoDB käsk, mis täidetakse JSONina. Kui pole määratud, kasutatakse vaikimisi ping.",
+        "command_label": "Käsk (valikuline)",
+        "configuration_title": "MongoDB konfiguratsioon",
+        "connection_string_description": "MongoDB ühenduse string. Toetab nii tavalisi (mongodb://) kui ka DNS seedlisti (mongodb+srv://) formaate.",
+        "connection_string_label": "Ühendusstring",
+        "expected_value_description": "Oodatav väärtus, millega võrrelda JSON-itee tulemusega.",
+        "expected_value_label": "Oodatav väärtus (valikuline)",
+        "expected_value_placeholder": "Oodatav väärtus",
+        "json_path_description": "JSON-i tee vastusest väärtuse väljavõtmiseks. Kasuta $ juurtaseme jaoks.",
+        "json_path_label": "JSON Path (Valikuline)"
+      },
+      "mqtt": {
+        "check_type_json_query": "JSON-päring",
+        "check_type_keyword": "Märksõna",
+        "check_type_label": "MQTT Kontrollitüüp",
+        "check_type_none": "Mitte ükski (mistahes sõnum)",
+        "check_type_placeholder": "Vali kontrollitüüp",
+        "configuration_title": "MQTT Konfiguratsioon",
+        "expected_value_label": "Oodatav väärtus",
+        "hostname_label": "Hostnimi",
+        "json_path_label": "JSON tee",
+        "password_label": "MQTT parool",
+        "password_placeholder": "Parool (valikuline)",
+        "port_label": "Port",
+        "success_keyword_label": "MQTT edukuse märksõna",
+        "success_keyword_placeholder": "Edu näitaja märksõna",
+        "username_label": "MQTT kasutajanimi",
+        "username_placeholder": "Kasutajanimi (valikuline)",
+        "validation": {
+          "expected_value_required": "Oodatav väärtus on nõutav, kui kontrollitüüp on json-query",
+          "json_path_required": "JSON tee on kohustuslik, kui kontrollitüüp on json-query",
+          "success_keyword_required": "Edu märksõna on nõutav, kui kontrollitüüp on märksõna"
+        }
+      },
+      "mysql": {
+        "connection_string_examples": "Näited:",
+        "connection_string_label": "Ühendusstring",
+        "connection_title": "MySQL ühendus",
+        "query_label": "Päring"
+      },
+      "ping": {
+        "data_size": "Andmete suurus (baiti)",
+        "host": "Masinnimi / IP",
+        "title": "Ping'i seaded"
+      },
+      "postgres": {
+        "connection_string_label": "Ühendusstring",
+        "connection_title": "PostgreSQL'i ühendus",
+        "query_label": "Päring"
+      },
+      "push": {
+        "url_description": "Kasutage seda URL-i oma teenuses, et raporteerida seisundit. Tehke sellele lõpp-punktile HTTP-päring (POST/GET), et saata tõrkumise signaal.",
+        "url_title": "Push Monitori URL"
+      },
+      "rabbitmq": {
+        "documentation_link": "RabbitMQ dokumentatsioon",
+        "health_checks_description": "Jälgija kontrollib iga sõlme {{code}} lõpp-punkti ja tagastab UP, kui ükski sõlm on terve.",
+        "management_nodes_description": "Sisesta RabbitMQ haldustäppe URL koos protokolliga ja pordi numbriga. Näide: https://node1.rabbitmq.com:15672",
+        "management_nodes_title": "Halduse sõlmed",
+        "node_url_label": "Sõlme URL",
+        "password_description": "RabbitMQ haldamise liidese autentimise parool",
+        "setup_information_description": "RabbitMQ monitori kasutamiseks peate oma RabbitMQ seadistuses lubama Halldusplugini. Täpsemate üksikasjade saamiseks vaadake RabbitMQ dokumentatsiooni.",
+        "setup_information_title": "Seadistamise teave",
+        "title": "RabbitMQ konfiguratsioon",
+        "username_description": "RabbitMQ haldusliidese autentimise kasutajanimi"
+      },
+      "redis": {
+        "ca_certificate_description": "Root CA sertifikaat PEM formaadis. Vajalik korraliku TLS-i kontrollimiseks iseallkirjastatud sertifikaatidega.",
+        "ca_certificate_label": "CA sertifikaat (valikuline)",
+        "client_certificate_description": "Klienditunnistus PEM-vormingus. Nõutav vastastikuse TLS-i autentimiseks.",
+        "client_certificate_label": "Klientsertifikaat (Valikuline)",
+        "client_key_description": "Kliendi privaatvõti PEM-vormingus. Peab olema esitatud koos kliendisertifikaadiga.",
+        "client_key_label": "Kliendi privaatvõti (valikuline)",
+        "connection_string_description": "Redis ühendusstringi vorming: {{redis}} või {{rediss}} TLS-iks",
+        "connection_string_label": "Ühenduse string",
+        "ignore_tls_description": "Jäta TLS‑sertifikaadi kontroll vahele (ei ole tootmise jaoks soovitatav)",
+        "ignore_tls_label": "Ignoreerige TLS/SSL tõrkeid",
+        "title": "Redis'i konfiguratsioon"
+      },
+      "shared": {
+        "intervals": {
+          "heartbeat_retry": "Püütise taaste intervall (Taasta iga {{seconds}} sekundit)",
+          "max_retries_description": "Maksimaalne ürituste arv enne, kui teenus märgitakse alla ja teavitus saadetakse",
+          "request_timeout": "Päringu aegumine (aegumine pärast {{seconds}} sekundit)",
+          "resend_notification": "Saada teavitus uuesti, kui alla X korda järjest (Uuesti saatmine keelatud)"
+        },
+        "notifications": {
+          "add_notifier": "Lisa teavitaja",
+          "new_notifier": "+ Lisa uus teavituskanal",
+          "no_channels": "Teavituskanaleid ei leitud, loo kõigepealt üks",
+          "no_channels_available": "Kanalid pole saadaval",
+          "select_channel": "Vali kanal",
+          "select_notifier_placeholder": "Vali teavitaja",
+          "selected_channels": "Valitud teavituskanalid",
+          "title": "Teavituskanalid"
+        },
+        "proxy": {
+          "add_proxy": "Lisa proksi",
+          "new_proxy": "+ Uus proksi",
+          "no_proxy": "Proksi puudub",
+          "remove_proxy": "Eemalda proksi",
+          "select_proxy_placeholder": "Vali proksi",
+          "selected_proxy": "Valitud proksi",
+          "title": "Proksi"
+        },
+        "tags": {
+          "label": "Märgid",
+          "no_tags": "Silte pole saadaval",
+          "placeholder": "Vali sildid"
+        }
+      },
+      "snmp": {
+        "community_description": "SNMP kogukonna string autentimiseks (näiteks parool)",
+        "community_label": "Kogukonna string",
+        "expected_value_description": "Väärtus, millega võrrelda. Jäta tühjaks, et valideerimist vahelejätada.",
+        "expected_value_label": "Oodatav väärtus",
+        "host_description": "SNMP-ga varustatud seadme hostinimi või IP-aadress",
+        "host_label": "Host",
+        "json_path_description": "JSONPath-väljend vastusest väärtuse tõmbamiseks (kasuta \"$\" originaalväärtuse jaoks)",
+        "json_path_label": "JSON tee",
+        "json_path_operator_description": "Kuidas võrrelda ekstraheeritud väärtust oodatud väärtusega",
+        "json_path_operator_eq": "võrdub",
+        "json_path_operator_ge": "suurem või võrdne",
+        "json_path_operator_gt": "suurem kui",
+        "json_path_operator_label": "tingimus",
+        "json_path_operator_le": "mindre või võrdne",
+        "json_path_operator_lt": "vähem kui",
+        "json_path_operator_ne": "ei võrdu",
+        "oid_description": "Päringusse kasutatav SNMP objekti identifikaator (nt 1.3.6.1.2.1.1.1.0 süsteemi kirjelduse jaoks)",
+        "oid_label": "OID (Objekti identifikaator)",
+        "port_description": "SNMP-port (vaikimisi: 161)",
+        "port_label": "Port",
+        "snmp_version_description": "Kasutatav SNMP protokolli versioon",
+        "snmp_version_label": "SNMP Versioon",
+        "title": "SNMP seaded",
+        "value_validation_label": "Väärtuse valideerimine (valikuline)"
+      },
+      "sqlserver": {
+        "allowed_statements_description": "SELECT, SHOW, DESCRIBE, EXPLAIN, WITH ja VALUES.",
+        "allowed_statements_label": "Lubatud laused:",
+        "connection_string_label": "Ühendusstring",
+        "query_description": "Tervisekontrolli käivitamiseks kasutatav päring. Jätke tühjaks, et kasutada vaikeväärtust.",
+        "query_label": "Päring",
+        "title": "Microsoft SQL Serveri ühendus"
+      },
+      "tcp": {
+        "host": "Host",
+        "port": "Port",
+        "title": "TCP-ühendus"
+      },
+      "type": {
+        "dns": "DNS-jälgija",
+        "docker": "Docker konteiner",
+        "grpc": "gRPC märksõna jälgija",
+        "http": "HTTP(S) jälgija",
+        "kafka": "Kafka tootja monitor",
+        "mongodb": "MongoDB andmebaasi jälgija",
+        "mqtt": "MQTT Brokeri jälgija",
+        "mysql": "MySQL/MariaDB jälgija",
+        "ping": "Pingikontroll (ICMP)",
+        "postgres": "PostgreSQL andmebaasi jälgija",
+        "push": "Push Monitor (välisettevõte teostab päringu genereeritud URL-ile)",
+        "rabbitmq": "RabbitMQ jälgija",
+        "redis": "Redis andmebaasi monitor",
+        "snmp": "SNMP jälgimine",
+        "sqlserver": "Microsoft SQL Serveri jälgija",
+        "tcp": "TCP-porti jälgija"
+      }
+    },
+    "page": {
+      "description": "Loo uus monitoor, et alustada oma veebisaidi jõudluse jälgimist.",
+      "edit_title": "Muuda monitoori:",
+      "new_title": "Uus monitor"
+    },
+    "title": "Monitoorid",
+    "toasts": {
+      "deleted": "Monitor kustutatud",
+      "paused": "Jälgimine peatatud",
+      "reset_success": "Monitordi andmed lähtestati edukalt",
+      "resumed": "Kontroll jätkati"
+    },
+    "view": {
+      "buttons": {
+        "clone": "Kopeeri",
+        "delete": "Kustuta",
+        "edit": "Muuda",
+        "pause": "Paus",
+        "reset_data": "Taasta andmed",
+        "resume": "Jätka"
+      },
+      "certificate": "Sertifikaat",
+      "check_every": "Kontrolli iga",
+      "current_status": "Praegune olek",
+      "dialogs": {
+        "delete": {
+          "description": "See toiming on pöördumatu. See kustutab püsivalt monitori ja kõik sellega seotud andmed.",
+          "title": "Oled sa täiesti kindel?"
+        },
+        "pause": {
+          "description": "Kas olete kindel, et soovite peatada?",
+          "title": "Kinnitus"
+        },
+        "reset": {
+          "description": "See kustutab püsivalt selle monitori südameütlite ajalugu ja tööaegade statistika. Monitor näeb välja, nagu oleks just loodud. Seda toimingut ei saa tagasi võtta.",
+          "title": "Lähtesta jälgimise andmed"
+        }
+      },
+      "expiring_soon": "Aegumine varsti",
+      "for": "selleks",
+      "live_status": "Reaalajas olek",
+      "monitor_for": "Monitoorimiseks",
+      "no_certificate_data": "Sertifikaatiandmeid pole",
+      "seconds": "sekundit",
+      "stats": {
+        "last_24_hours": "Viimased 24 tundi",
+        "last_30_days": "Viimased 30 päeva",
+        "last_365_days": "Viimased 365 päeva",
+        "last_7_days": "Viimased 7 päeva"
+      },
+      "status": {
+        "down": "Alla",
+        "maintenance": "Hooldus",
+        "paused": "Peatatud",
+        "up": "Ülal"
+      }
+    }
+  },
+  "navigation": {
+    "maintenance": "Hooldus",
+    "monitors": "Monitoorid",
+    "notification_channels": "Teavituskanalid",
+    "proxies": "Proksid",
+    "settings": "Seaded",
+    "status_pages": "Olekusivud",
+    "tags": "Sildid"
+  },
+  "notifications": {
+    "actions": {
+      "test": "Testi",
+      "testing": "Testimine..."
+    },
+    "aria": {
+      "delete": "Kustuta {{name}}"
+    },
+    "confirm_delete_description": "See toiming ei saa tagasi võtta. See kustutab püsivalt teatja \"{{name}}\" ja eemaldab selle kõikidest jälgijatest, kes seda kasutavad.",
+    "create_title": "Loo teavitanija",
+    "edit_channel_title": "Muuda teavituskanalit",
+    "edit_title": "Muuda teavitajat",
+    "empty_state": {
+      "action": "Loo oma esimene teavituskanal",
+      "description": "Alustage, luues oma esimese teavitusskanali, et saata teateid oma meeskonnale.",
+      "title": "Teavituskanaleid ei leitud"
+    },
+    "form": {
+      "discord": {
+        "bot_display_name_description": "Nimi, mis kuvatakse Discordi sõnumite saatjana.",
+        "bot_display_name_label": "Boti kuvamisnimi",
+        "custom_message_prefix_description": "Valikuline eesliide, mis lisatakse kõigi sõnumite alguses.",
+        "custom_message_prefix_label": "Kohandatud sõnumi eesliide",
+        "custom_message_prefix_placeholder": "Valikuline: lisage sõnumile eesliide",
+        "forum_post_name_description": "Uue foorumiposti nimi, mis luuakse.",
+        "forum_post_name_label": "Foorumi postituse nimi",
+        "forum_post_name_placeholder": "Sisesta foorumi postituse nimi",
+        "sending_message_to_channel": "Saada kanalisse",
+        "sending_message_to_description": "Vali, kuhu saata Discordi sõnumid.",
+        "sending_message_to_label": "Sõnumi saatmine siia",
+        "sending_message_to_new_forum_post": "Saada uuele foorumipostile",
+        "sending_message_to_placeholder": "Vali sõnumitüüp",
+        "sending_message_to_thread": "Saada foorumisse",
+        "setup_webhook_description_1": "Hangi oma webhooki URL Discordi serveri seadetest → Integreerimised → Webhooks.",
+        "setup_webhook_description_2": "Loo uus webhook ja kopeeri URL. Veendu, et oled valinud õige kanal.",
+        "setup_webhook_title": "Seadista Discord webhook",
+        "thread_id_description_1": "Luba arendajarežiim Discordi kasutaja seadetetes → Täpsemalt → Arendajarežiim",
+        "thread_id_description_2": "Paremklõpsake lõigule või postitusele ja valige \"Kopeeri lõigu ID\" või \"Kopeeri kanal ID\"",
+        "thread_id_description_title": "Teema või foorumipostituse ID, kuhu sõnumeid saadetakse",
+        "thread_id_label": "Sõnumijada ID",
+        "thread_id_placeholder": "Sisesta lõigu või postituse ID",
+        "webhook_url_label": "Discordi Webhooki URL"
+      },
+      "google_chat": {
+        "more_info_about_webhooks": "Lisateave Webhook'ide kohta",
+        "webhook_url_label": "Google Chati veebikõne URL"
+      },
+      "gotify": {
+        "application_token_description": "Sinu Gotify rakenduse rakendustoken. Leiad selle Gotify veebiliidesest Rakenduste sektsioonist.",
+        "application_token_label": "Rakenduse token",
+        "custom_message_description": "Kohandatud sõnumimall. Saadaval olevad muutujad",
+        "custom_message_description_2": "Jäta tühjaks, et kasutada vaikimisi sõnumit.",
+        "custom_message_label": "Kohandatud sõnum",
+        "custom_title_description": "Teavituse kohandatud pealkiri. Saadaval olevad muutujad: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Jäta tühjaks, et kasutada vaikimisi \"Peekaping\" pealkirja.",
+        "custom_title_label": "Kohandatud pealkiri",
+        "learn_more_label": "Loe rohkem Gotify kohta ja selle seadistamise kohta aadressil:",
+        "note_description": "Te peate Gotify serverit käima, et seda integratsiooni kasutada.",
+        "note_label": "Märkus:",
+        "priority_0": "Madalaim",
+        "priority_1": "Väga madal",
+        "priority_10": "Kõrgeim",
+        "priority_2": "Madal",
+        "priority_3": "Alla normaal",
+        "priority_4": "Normaalne",
+        "priority_5": "Üle normaalne",
+        "priority_6": "Mõõdukas",
+        "priority_7": "Kõrge",
+        "priority_8": "Väga kõrge (Vaikimisi)",
+        "priority_9": "Äratus",
+        "priority_description": "Sõnumi prioriteet (0-10). Suuremad numbrid tähistavad kõrgemat prioriteeti. Vaikimisi on 8.",
+        "priority_label": "Prioriteet",
+        "priority_placeholder": "Vali prioriteet",
+        "server_url_description": "Teie Gotify-serveri URL. Veenduge, et see oleks selle rakenduse kaudu kättesaadav.",
+        "server_url_label": "Serveri URL"
+      },
+      "grafana_oncall": {
+        "grafana_oncall_url_description": "Teie Grafana OnCalli integreerimise webhooki URL. Selle leiate oma Grafana OnCalli instantsist Alerts & IRM > IRM > Integrations > Webhook.",
+        "grafana_oncall_url_label": "Grafana OnCalli URL",
+        "learn_more_label": "Loe rohkem Grafana OnCalli veebikõnede kohta"
+      },
+      "line": {
+        "channel_access_token_description": "Sa saad oma kanali juurdepääsutunnuse",
+        "channel_access_token_description_2": "Minge oma kanali seadetesse ja otsige",
+        "channel_access_token_label": "Kanalipõhine ligipääsetunnistus (pikkajaline)",
+        "channel_access_token_placeholder": "Sisesta oma LINE'i kanali juurdepääsu token",
+        "template_description": "Kohanda sõnumi vormingut. Saadaval olevad muutujad.",
+        "template_label": "Sõnumimall",
+        "template_placeholder": "Sisesta oma kohandatud sõnumimall",
+        "user_id_description": "Teie kasutaja ID leiate aadressil",
+        "user_id_description_2": "Minge oma kanali seadetesse ja otsige",
+        "user_id_label": "Sinu kasutaja ID",
+        "user_id_placeholder": "Sisesta oma LINE kasutaja-ID"
+      },
+      "matrix": {
+        "access_token_description": "Sinu Matrixi juurdepääsutoken autentimiseks",
+        "access_token_label": "Ligipääsu token",
+        "custom_message_description": "Kohandatud sõnumimall. Saadaval olevad variabelid.",
+        "custom_message_label": "Kohandatud sõnum",
+        "homeserver_url_description": "Sinu Matrixi kodu serveri URL",
+        "homeserver_url_label": "Kodumasina URL",
+        "internal_room_id_description": "Sisemine ruumi ID, kuhu teavitused saadetakse. See peaks algama märgiga \"!\" ja nägema välja nii: !roomid:matrix.org",
+        "internal_room_id_label": "Sisene ruumi ID",
+        "setup_instructions_1": "Loo Matrixi konto oma boti jaoks (või kasuta oma olemasolevat kontot)",
+        "setup_instructions_2": "Loo või liitu ruumiga, kuhu soovid teavitusi vastu võtta",
+        "setup_instructions_3": "Hangi juurdepääsuta token sisselogimispäringu teostamisega",
+        "setup_instructions_4": "Vastuses on välja access_token - kasutage seda oma juurdepääsupistikuks.",
+        "setup_instructions_5": "Leia oma ruumi sisemine ID (algab märgiga \"!\") Matrixi kliendi ruumi seadetest",
+        "setup_instructions_label": "Seadistamise juhised"
+      },
+      "mattermost": {
+        "channel_name_description": "Teadete saatmise kanal. Jäta tühjaks, et kasutada webhooki vaikekanalit.",
+        "channel_name_label": "Kanalinimi",
+        "icon_emoji_cheat_sheet_label": "Emojite lühike juhend",
+        "icon_emoji_description": "Emoji, mida kasutada ikoonina. Võite määrata kaks emoji't, eraldades need tühikuga (esimene ülesolekule, teine allaolekule).",
+        "icon_emoji_label": "Ikooni emoji",
+        "icon_url_description": "Pildi URL, mida kasutatakse teavitussõnumi ikoonina.",
+        "icon_url_label": "Ikooni URL",
+        "learn_more_label": "Loe rohkem webhookidest",
+        "message_template_description": "Kohandage sõnumi vormingut. Saadaval olevad muutujad",
+        "message_template_label": "Sõnumimall",
+        "use_message_template_description": "Luba kasutada kohandatud sõnumimalli ja vormindust.",
+        "use_message_template_label": "Kasuta sõnumimalli",
+        "username_description": "Kasutajanimi, mis kuvatakse sõnumi saatjana.",
+        "webhook_url_label": "Webhooki URL"
+      },
+      "ntfy": {
+        "authentication_type_basic": "Baasautentimine",
+        "authentication_type_basic_description": "Kasutage kasutajanime ja parooli baasautentimiseks.",
+        "authentication_type_label": "Autentimise tüüp",
+        "authentication_type_none": "Autentimata",
+        "authentication_type_none_description": "Autentimist ei nõuta. Sobib avalikele NTFY-serveritele.",
+        "authentication_type_placeholder": "Vali autentimismeetod",
+        "authentication_type_token": "Tokeni autentimine",
+        "authentication_type_token_description": "Kasutage ligipääsu tokenit autentimiseks.",
+        "custom_message_description": "Kohandatud sõnumi sisu. Saadaolevad muutujad",
+        "custom_message_label": "Kohandatud sõnum",
+        "password_required": "Parool on nõutav põhilise autentimise jaoks",
+        "priority_1": "Min (madalaim)",
+        "priority_2": "Madal",
+        "priority_3": "Vaikimisi",
+        "priority_4": "Kõrge",
+        "priority_5": "Avarane (kõige kõrge)",
+        "priority_description": "Teate prioriteeditasemed. Kõrgemad prioriteedid võivad kliendis tekitada erinevaid käitumisviise.",
+        "priority_label": "Prioriteet",
+        "priority_placeholder": "Vali prioriteet",
+        "server_url_description": "Teie NTFY-serveri URL. Kasutage avalikku instantsi https://ntfy.sh.",
+        "server_url_label": "Serveri URL",
+        "tags_description": "Komaeraldatud sildid teavituste kategooriate määramiseks. Saadaval olevad muutujad",
+        "tags_label": "Märksõnad",
+        "title_description": "Kohandatud teavituse pealkiri. Saadaval olevad muutujad",
+        "title_label": "Kohandatud pealkiri",
+        "token_description": "Teie NTFY juurdepääs token autentimiseks.",
+        "token_label": "Ligipääsu token",
+        "token_required": "Token on nõutud tokeni autentimiseks",
+        "topic_description": "Teie teatede teema nimi. See on kanal, kuhu teated saadetakse.",
+        "topic_label": "Teema",
+        "username_required": "Kasutajanimi on nõutav põhiliseks autentimiseks"
+      },
+      "opsgenie": {
+        "api_key_label": "API võti",
+        "more_info_about_api_keys_label": "Lisainfo API võtmete kohta",
+        "priority_1": "Kriitiline",
+        "priority_2": "Kõrge",
+        "priority_3": "Mõõdukas",
+        "priority_4": "Madal",
+        "priority_5": "Informatiivne",
+        "priority_description": "Määra häirete prioriteetitasand. Vaikimisi on P3 (Keskmine).",
+        "priority_label": "Prioriteet",
+        "region_description": "Vali oma Opsgenie'i piirkond. See määrab, millist API-punkti kasutatakse.",
+        "region_label": "Regioon",
+        "region_placeholder": "Vali piirkond"
+      },
+      "pagerduty": {
+        "auto_resolve_acknowledge": "Automaatselt tunnistamine",
+        "auto_resolve_acknowledge_description": "Tunnista automaatselt juhtumit",
+        "auto_resolve_description": "Vali toiming, mida teha, kui monitoor taastub",
+        "auto_resolve_do_nothing": "Ära tee midagi",
+        "auto_resolve_do_nothing_description": "UP-olekus ei tehta midagi",
+        "auto_resolve_label": "Automaatne lahendamine või tunnistamine",
+        "auto_resolve_placeholder": "Vali automaatse lahendamise käitumine",
+        "auto_resolve_resolve": "Automaatne lahendamine",
+        "auto_resolve_resolve_description": "Lahenda juhtum automaatselt",
+        "integration_key_description": "Õppige, kuidas saada oma integreerimisvõtit",
+        "integration_key_label": "Integreerimise võti",
+        "integration_key_placeholder": "Sisesta PagerDuty integratsioonivõti",
+        "integration_url_description": "PagerDuty Events API v2 lõpp-punkti URL. Vaikimisi on määratud standardne lõpp-punkt.",
+        "integration_url_label": "Integreerimise URL",
+        "learn_more_label": "PagerDuty dokumentatsioon",
+        "priority_critical": "Kriitiline",
+        "priority_description": "PagerDuty sündmuste tõsidusaste. Vaikimisi on \"warning\".",
+        "priority_error": "Viga",
+        "priority_info": "Teave",
+        "priority_label": "Prioriteet",
+        "priority_placeholder": "Vali prioriteedi tase",
+        "priority_warning": "Hoiatus"
+      },
+      "pagertree": {
+        "authentication_token_description": "Valikuline autentimiskood kõrgema turvalisuse tagamiseks. See saadetakse pagertree-token päises.",
+        "authentication_token_label": "Autentimisetoken (Valikuline)",
+        "authentication_token_placeholder": "Sisesta autentimiste token, kui see on vajalik",
+        "auto_resolve_alerts_description": "Automaatselt lahendatakse PagerTree hoiatused, kui monitor taastub",
+        "auto_resolve_alerts_label": "Automaatne häirete lahendamine",
+        "how_to_get_integration_url_label": "Kuidas saada integratsiooni URL",
+        "integration_url_description": "Sisesta oma PagerTree webhooki integreerimise URL.",
+        "integration_url_label": "PagerTree Webhook'i URL",
+        "urgency_level_critical": "Kriitiline",
+        "urgency_level_description": "Määra PagerTree-le saadavate teavitusõnude vaikimisi tõsidusaste",
+        "urgency_level_high": "Kõrge",
+        "urgency_level_label": "Tähtsuse tase",
+        "urgency_level_low": "Madal",
+        "urgency_level_medium": "Keskmine",
+        "urgency_level_placeholder": "Vali kiireusaste",
+        "urgency_level_silent": "Vaikne"
+      },
+      "pushbullet": {
+        "access_token": "Ligipääsu token",
+        "access_token_description": "Sinu Pushbullet ligipääsetunnus. Hangi see siit:",
+        "access_token_label": "Ligipääsu token",
+        "access_token_link": "Pushbullet'i seaded",
+        "channel_tag": "Kanalitag (valikuline)",
+        "channel_tag_description": "Saada teatis Pushbulleti kanalile seadmete asemel",
+        "channel_tag_label": "Kanali silt (valikuline)",
+        "custom_message_template": "",
+        "custom_message_template_description": "Kohanda teate keha mallimuutujate abil:",
+        "custom_message_template_heartbeat_ping": "Reageerimisaeg",
+        "custom_message_template_heartbeat_time": "Ajamärkus",
+        "custom_message_template_label": "Kohandatud sõnumimall (valikuline)",
+        "custom_message_template_monitor_url": "Monitoori URL",
+        "custom_message_template_msg": "Hoiatusi teade",
+        "custom_message_template_name": "Monitoori nimi",
+        "custom_message_template_placeholder": "Monitoor: {{ name }}\nStaatus: {{ status }}\nSõnum: {{ msg }}",
+        "custom_message_template_status": "Praegune olek",
+        "device_id": "Seadme ID (valikuline)",
+        "device_id_description": "Saada teatis konkreetsele seadmele. Jäta tühjaks, et saata kõigile seadmetele. Seadmete ID'd leiad kasutades",
+        "device_id_label": "Seadme ID (Valikuline)",
+        "device_id_link": "Pushbullet API",
+        "more_info_on": "Rohkem teavet:"
+      },
+      "pushover": {
+        "application_token_label": "Rakenduse token",
+        "application_token_placeholder": "Sisesta oma Pushoveri rakenduse token",
+        "device_description": "Jäta tühjaks, et saata kõigile seadmetele",
+        "device_label": "Seade",
+        "device_placeholder": "Seadme nimi (valikuline)",
+        "message_title_description": "Jäta tühjaks, et kasutada vaikimisi pealkirja.",
+        "message_title_label": "Teate pealkiri",
+        "message_title_placeholder": "Kohandatud sõnumi pealkiri (valikuline)",
+        "message_ttl_description": "Kehtivusaeg sekundites (0 = kehtivus lõpmatu)",
+        "message_ttl_label": "Sõnumi TTL",
+        "more_info_label": "Lisainfo:",
+        "more_info_label_2": "Sa võid luua rakenduse ja saada oma API-Token aadressil",
+        "more_info_label_3": "Sinu kasutajavõtme leiad aadressilt",
+        "notification_sound_down_description": "Heli, kui jälgitav süsteem kukub",
+        "notification_sound_down_label": "Teatise helikõne - All",
+        "notification_sound_down_placeholder": "Vali heli",
+        "notification_sound_up_description": "Heli, mis esitatakse, kui monitoor taastub",
+        "notification_sound_up_label": "Teatise heli - Up",
+        "notification_sound_up_placeholder": "Vali heli",
+        "priority_1": "Alim",
+        "priority_2": "Madal",
+        "priority_3": "Normaalne",
+        "priority_4": "Kõrge",
+        "priority_5": "Äkki",
+        "priority_description": "Teate prioriteeditasand",
+        "priority_label": "Prioriteet",
+        "priority_placeholder": "Vali prioriteet",
+        "sound_alien": "Avar",
+        "sound_bike": "Raam",
+        "sound_bugle": "kondor",
+        "sound_cashregister": "Kassa",
+        "sound_classical": "Klassikaline",
+        "sound_climb": "Kõrgenemine",
+        "sound_cosmic": "Kosmiline",
+        "sound_echo": "Eko",
+        "sound_falling": "Lahkumine",
+        "sound_gamelan": "Gamelan",
+        "sound_incoming": "Sisse tulevane",
+        "sound_intermission": "Paus",
+        "sound_magic": "Maagia",
+        "sound_mechanical": "Mehaaniline",
+        "sound_none": "Puudub",
+        "sound_persistent": "Püsiv",
+        "sound_pianobar": "Pianobar",
+        "sound_pushover": "Pushover (vaikimisi)",
+        "sound_siren": "Sirene",
+        "sound_spacealarm": "Kosmosetäna",
+        "sound_tugboat": "Tugikaru",
+        "sound_updown": "Üle Alla",
+        "sound_vibrate": "Vibratsioon",
+        "user_key_label": "Kasutaja võti",
+        "user_key_placeholder": "Sisesta oma Pushover kasutaja võti"
+      },
+      "signal": {
+        "custom_message_description": "Kohandatud sõnumimall. Saadaval olevad muutujad",
+        "custom_message_label": "Kohandatud sõnum",
+        "important_description": "Sa ei saa segada gruppe ja numbreid adressaatides!",
+        "important_label": "TÄHTIS:",
+        "more_info_label": "Kontrolli seda URL-i, et näha, kuidas seda seadistada:",
+        "note_description": "Te peate omama Signal'i kliendi, millel on REST API.",
+        "note_label": "Märkus:",
+        "number_description": "Teie Signal-i konto telefoninumber (saaja number).",
+        "number_label": "Arv",
+        "post_url_description": "Teie Signal CLI REST API serveri URL.",
+        "post_url_label": "Posti URL",
+        "recipients_description": "Telefoninumbrite komadega eraldatud loend, kuhu teavitusi saadetakse.",
+        "recipients_label": "Saajad"
+      },
+      "slack": {
+        "channel_name_description": "Kanal, kuhu sõnum saadetakse. Kui seda pole määratud, saadetakse sõnum vaikimisi kanale, mis on webhookis seadistatud.",
+        "channel_name_description_2": "Saate vaikimisi kanali asendada, määrates kanali nime (nt #alerts) või kasutajanime (nt @username).",
+        "channel_name_label": "Kanali nimi",
+        "channel_notify_description": "Kui see on lubatud, saadetakse teavitused kõigile kanaliliikmetele. Kasutage ettevaatusega, et vältida spämmi.",
+        "channel_notify_label": "Teavita kanal",
+        "icon_emoji_cheat_sheet_label": "Emojide näpunäite leht",
+        "icon_emoji_description": "Emoji, mida kasutada selle sõnumi ikoonina. Peab olema vormis :emoji_name:",
+        "icon_emoji_label": "Ikooni emoji",
+        "message_format_description": "Saada rikastatud sõnumid",
+        "message_format_description_2": "Luba sõnumite saatmist rikkaliku vorminduse, manuste ja parema visuaalse esitusega.",
+        "message_format_label": "Sõnumi vorming",
+        "username_description": "Kasutajanimi, mis kuvatakse sõnumi saatjana. Kui seda pole määratud, kasutatakse vaikimisi boti nime.",
+        "webhook_url_description": "Sinu Slacki integreerimise webhooki URL. Seda leiad oma Slacki instantsist Integratsioonid > Webhooks.",
+        "webhook_url_label": "Webhooki URL"
+      },
+      "smtp": {
+        "custom_body_label": "Kohandatud keha",
+        "custom_description": "Mallistamisvõime saavutatakse <b>Liquid</b> mallikeelaga.",
+        "custom_description_2": "Palun tutvu dokumentatsiooniga, et saada kasutamisjuhiseid.",
+        "custom_description_3": "Saadaval olevad muutujad:",
+        "custom_description_4": "teavituse sõnum",
+        "custom_description_5": "teenuse nimi",
+        "custom_description_6": "teenuse staatus (ÜLES/ALLA/Sertifikaadi aegumise teavitused)",
+        "custom_subject_label": "Kohandatud Teema",
+        "smtp_from_label": "Saatja (Saatja e-post)",
+        "smtp_host_description": "Sisesta serveri hostinimi, millega ühendust võtta, või localhost, kui kavatsete kasutada lokaalselt konfigureeritud meiliteenuse edastamise vahendit.",
+        "smtp_host_label": "SMTP host",
+        "smtp_password_placeholder": "SMTP parool",
+        "smtp_port_label": "Port",
+        "smtp_to_label": "Saaja (saaja e-posti aadress(ed))",
+        "smtp_username_placeholder": "SMTP kasutajanimi"
+      },
+      "telegram": {
+        "auto_get_label": "Automaatselt hanki",
+        "bot_token_description": "Hangi oma boti token",
+        "bot_token_label": "Boti token",
+        "chat_id_description": "Sa saad oma vestluse ID, saatma sõnumi oma botile ja klõpsates ülalpool olevat 'Auto Get', või käsitsi Telegram API kaudu.",
+        "chat_id_description_2": "Saamiseks käsitsi külastage",
+        "chat_id_description_3": "Vaata",
+        "chat_id_description_4": "Telegrami dokumentatsioon",
+        "chat_id_description_5": "lisainfo saamiseks.",
+        "chat_id_label": "Vestluse ID",
+        "chat_id_not_found": "Chat ID ei leitud viimase uuenduse puhul.",
+        "failed_to_fetch_chat_id": "Chat ID hankimine ebaõnnestus",
+        "message_thread_id_description": "Valikuline. Kasutatakse sõnumite saatmiseks konkreetsele teemale foorum superrühmas.",
+        "message_thread_id_label": "Sõnumijada ID",
+        "no_updates_found": "Uuendusi ei leitud. Palun saada esmalt sõnum oma botile.",
+        "protect_content_description": "Kui see on lubatud, kaitstakse sõnumi sisu edastamise ja salvestamise eest.",
+        "protect_content_label": "Kaitse sisu",
+        "send_silently_description": "Kui see on lubatud, saadetakse sõnumid vaikides (kasutajad saavad teate ilma helita).",
+        "send_silently_label": "Saada vaikides",
+        "server_url_description": "Vaikimisi on",
+        "server_url_description_2": "Saate kasutada kohandatud serverit. Vaata",
+        "server_url_description_3": "siin",
+        "server_url_description_4": "Lisateabe saamiseks.",
+        "server_url_label": "Telegrami serveri URL",
+        "template_description": "Kohandage sõnumi vormingut. Saadaval olevad muutujad",
+        "template_label": "Sõnumimall",
+        "template_parse_mode_description": "Vali, kuidas sõnum peaks olema tõlgendatud. Vaata",
+        "template_parse_mode_description_2": "Telegrami vormindamisjuhendid",
+        "template_parse_mode_description_3": "detailide jaoks.",
+        "template_parse_mode_label": "Malli parsimise režiim",
+        "template_parse_mode_placeholder": "Vali parse režiim",
+        "template_placeholder": "Sisesta oma kohandatud sõnumimall",
+        "use_template_description": "Luba kasutada kohandatud sõnumimalli ja vormingut.",
+        "use_template_label": "Kasutage sõnumimalli"
+      },
+      "webhook": {
+        "additional_headers_description": "Lisage webhooki päringusse kohandatud HTTP-päised.",
+        "additional_headers_label": "Lisapäised",
+        "custom_body_description": "Kohanda päringu keha vormingut. Saadaval olevad muutujad",
+        "custom_body_label": "Kohandatud keha",
+        "post_url_description": "Webhooki lõpp-punkti URL, kuhu teavitused saadetakse.",
+        "post_url_label": "Posti URL",
+        "request_body_description_custom": "Määra allpool oma kohandatud päringu keha vorming.",
+        "request_body_description_form_data": "Sisu saadetakse multipart/form-data vormingus. Saate selle dekodeerida kasutades <strong>json_decode($_POST['data'])</strong> PHP-is.",
+        "request_body_description_json": "Sisu saadetakse JSONina koos päisega 'application/json'.",
+        "request_body_label": "Taotluse keha",
+        "request_body_placeholder": "Vali sisu tüüp"
+      }
+    },
+    "important": "Olulised teated",
+    "important_notifications": "Olulised teated",
+    "labels": {
+      "friendly_name": "Sõbralik nimi",
+      "type": "Teataja tüüp"
+    },
+    "messages": {
+      "create_failed": "Nõustaja loomine ebaõnnestus",
+      "created_success": "Teatekanal loodud edukalt",
+      "error_loading_notifier": "Viga notifikaatori laadimisel",
+      "test_failed": "Testiteate saatmine ebaõnnestus",
+      "test_success": "Testi teate saatmine õnnestus",
+      "update_failed": "Notifyeri uuendamine nurjus",
+      "updated_success": "Teavitaja uuendati edukalt"
+    },
+    "new": {
+      "title": "Uus teavituskanal"
+    },
+    "no_important": "Ühtegi olulist teadet ei leitud.",
+    "placeholders": {
+      "select_type": "Vali teavitustüüp"
+    },
+    "search_placeholder": "Otsige teavituskanaale nime järgi…"
+  },
+  "proxies": {
+    "delete_dialog": {
+      "description": "See toiming ei saa tühistada. See kustutab jäädavalt proksi {{host}}:{{port}}.",
+      "title": "Olete täiesti kindel?"
+    },
+    "edit": {
+      "page_name": "Muuda proksi"
+    },
+    "empty_list": {
+      "action_text": "Loo oma esimene proksi",
+      "text": "Alustage esimese proksi loomisega, mida kasutada oma monitorites.",
+      "title": "Proxid ei leitud"
+    },
+    "form": {
+      "auth_label": "Proksi server nõuab autentimist",
+      "port_placeholder": "Port",
+      "protocol_label": "Proksi protokoll",
+      "protocol_placeholder": "Vali proksi protokoll",
+      "server_label": "puhverserver",
+      "server_placeholder": "Serveri aadress",
+      "user": "Kasutaja"
+    },
+    "messages": {
+      "create_failed": "Proksi loomine ebaõnnestus",
+      "created_success": "Proksi loodud edukalt",
+      "error_loading_proxy": "Proksi laadimisel tekkis viga",
+      "update_failed": "Proksi uuendamine ebaõnnestus",
+      "updated_success": "Proksi uuendatud edukalt"
+    },
+    "new": {
+      "page_name": "Uus proksi"
+    },
+    "page_name": "Proksid",
+    "search_label": "Otsing",
+    "search_placeholder": "Otsi proksid hosti järgi..."
+  },
+  "security": {
+    "enable_2fa": {
+      "form": {
+        "authenticator_code_label": "Autentikaatori kood",
+        "authenticator_code_placeholder": "Sisesta 6-kohaline kood",
+        "current_password_label": "Praegune parool",
+        "current_password_placeholder": "Sisesta oma praegune salasõna",
+        "enable_2fa_button": "Luba 2FA"
+      },
+      "messages": {
+        "2fa_active": "2FA aktiveeritud",
+        "2fa_disabled_successfully": "2FA keelatud edukalt",
+        "2fa_enabled_successfully": "2FA edukalt lubatud",
+        "account_is_protected_with_2fa": "Teie konto on kaitstud 2FA-ga.",
+        "disable_2fa": "Keela 2FA",
+        "enter_password_to_disable_2fa": "Sisesta oma parool, et 2FA keelata",
+        "failed_to_disable_2fa": "2FA keelamine ebaõnnestus",
+        "failed_to_verify_2fa_code": "2FA-koodi kontrollimine ebaõnnestus",
+        "failed_to_verify_password": "Parooli kinnitamine või 2FA seadistamine ebaõnnestus",
+        "have_enabled_2fa": "Olete oma kontole lubanud kaksifaktorilise autentimise (2FA). See lisab turvakihi.",
+        "or_enter_secret_manually": "Või sisesta see saladus käsitsi",
+        "scan_qr_code_with_authenticator_app": "Skaneeri see QR-kood oma autentimisrakendusega",
+        "two_factor_authentication_enabled": "Kaksfaasi autentimine on lubatud",
+        "user_email_not_found": "Kasutaja e-posti aadressi ei leitud"
+      }
+    },
+    "page_name": "Turvalisus",
+    "update_password": {
+      "form": {
+        "confirm_new_password_label": "Kinnita uus parool",
+        "confirm_new_password_placeholder": "Sisesta uus parool uuesti",
+        "new_password_label": "Uus parool",
+        "new_password_placeholder": "Sisesta uus parool",
+        "old_password_label": "Vana parool",
+        "old_password_placeholder": "Sisesta oma praegune salasõna",
+        "update_password_button": "Uuenda parooli"
+      },
+      "messages": {
+        "failed_to_update_password": "Parooli uuendamine ebaõnnestus",
+        "password_updated_successfully": "Parool edukalt uuendatud"
+      },
+      "title": "Parooli uuendamine"
+    }
+  },
+  "sendgrid": {
+    "api_key_description": "Sinu SendGridi API võti. Sa võid luua ühe oma SendGridi kontolt seades → API võtmed. Veendu, et sellel on \"Mail Send\" õigused.",
+    "api_key_label": "API võti",
+    "bcc_email_description": "Varjatult koopia (BCC) saajad. Kirjuta mitu e-posti aadressi koma eraldades.",
+    "bcc_email_label": "BCC e-post (valikuline)",
+    "cc_email_description": "Karbonkoopia vastuvõtjad. Eralda mitu e‑posti aadressi koma-ga.",
+    "cc_email_label": "CC e-posti aadress (valikuline)",
+    "from_email_description": "Saatja e-posti aadress. See peab olema teie SendGridi konto kinnitatud saatja.",
+    "from_email_label": "Saatja e-post",
+    "subject_description": "Teema rida e-postis. Toetab Liquid-malle.",
+    "subject_label": "Kohandatud teema (valikuline)",
+    "subject_variables_label": "Saadaval olevad muutujad:",
+    "subject_variables_msg": "Teate sõnum",
+    "subject_variables_name": "teenuse nimi",
+    "subject_variables_status": "teenuse olek (ÜLES/ALLA)",
+    "to_email_description": "Põhi saaja e-posti aadress. Mitme saajaga korral kasutage CC või BCC välju.",
+    "to_email_label": "Saaja e-posti aadress"
+  },
+  "settings": {
+    "data_retention": {
+      "days_label": "päevad",
+      "description": "Määrake, mitu päeva andmeid hoitakse (KEEP_DATA_PERIOD_DAYS).",
+      "title": "Andmete säilitamise periood"
+    },
+    "timezone": {
+      "description": "Vali oma eelistatud ajavöönd, mille alusel rakendus kuvab kõik ajatükkid.",
+      "label": "Ajavöönd",
+      "no_timezone_found": "Ajavööndit ei leitud.",
+      "search_placeholder": "Otsi ajavööndit…",
+      "select_placeholder": "Vali ajavöönd...",
+      "title": "Ajavöönd"
+    },
+    "validation": {
+      "min_days": "Peab olema vähemalt 1 päev"
+    }
+  },
+  "status": {
+    "messages": {
+      "all_systems_operational": "Kõik süsteemid toimivad",
+      "down": "Alla",
+      "last_updated": "Viimati uuendatud",
+      "maintenance": "Hooldus",
+      "no_monitors_configured": "Selle oleku lehe jaoks pole monitoore seadistatud.",
+      "operational": "Töökorras",
+      "partial_system_outage": "Osaline süsteemi katkestus",
+      "powered_by": "Põhineb",
+      "refresh_in": "Värskendamine",
+      "refresh_now": "Värskenda kohe",
+      "status_page_not_found": "Statuse lehte ei leitud või pole avaldatud.",
+      "under_maintenance": "Hooldusel",
+      "unknown": "Tundmatu"
+    }
+  },
+  "status_pages": {
+    "affected_monitors": "Mõjutatud monitoorid",
+    "affected_monitors_info": "Vali monitoorid, mida see hooldus mõjutab",
+    "auto_refresh_interval": "Automaatse värskendamise intervall (sekundites)",
+    "basic_information": "Põhilised andmed",
+    "create_status_page": "Loo olekuleht",
+    "customization": "Kohandamine",
+    "delete_dialog": {
+      "description": "Olete kindel, et soovite kustutada \"{{title}}\"? Seda toimingut ei saa tagasi võtta.",
+      "title": "Kustuta seisukorra leht"
+    },
+    "description": "Sisesta oleku lehe kirjeldus",
+    "domain_already_used": "Domeen {{domain}} on juba kasutusel teise olekukirjelduse lehe jaoks",
+    "domain_host_warning": "See domeen on sama, mis on teie praeguse hosti URL. See võib põhjustada konflikte.",
+    "domains": "domeenid",
+    "domains_info_warning": "Ära unusta iga domeeni jaoks CNAME kirjeid oma DNS-s lisada.",
+    "draft_status": "Mustand",
+    "edit_page_name": "Muuda olekukirja lehte",
+    "messages": {
+      "create_description": "Loo uus oleku lehekülg, et jagada oma teenuse olekut kasutajatega.",
+      "create_your_first_status_page": "Loo oma esimene oleku leht",
+      "created_successfully": "Staatusleht on edukalt loodud",
+      "delete_failed": "Staatuslehe kustutamine ebaõnnestus",
+      "deleted_successfully": "Statusleht edukalt kustutatud",
+      "get_started_by_creating_your_first_status_page": "Alustage oma esimese seisukorra lehe loomist.",
+      "no_status_pages_found": "Statuslehti ei leitud",
+      "not_found": "Staatuslehte ei leitud",
+      "update_description": "Uuenda oma oleku lehe seadeid ja konfiguratsiooni.",
+      "updated_successfully": "Statusleht edukalt uuendatud"
+    },
+    "new_page_name": "Uus oleku lehekülg",
+    "page_name": "Staatuslehed",
+    "published": "Avaldatud",
+    "published_info": "Avalikusta seisu leht",
+    "published_status": "Avaldatud",
+    "search_label": "Otsi",
+    "search_placeholder": "Otsi olekupäevikke pealkirja järgi...",
+    "update_status_page": "Uuenda olekulehte",
+    "view_page": "Vaata lehte"
+  },
+  "tags": {
+    "confirm_delete_description": "See tegevus pole tagasivõetav. See kustutab sildi \"{{name}}\" jäädavalt ja eemaldab selle kõikidest monitoritest.",
+    "edit_page_name": "Muuda silt",
+    "empty_state": {
+      "action": "Loo esimene silt",
+      "description": "Alustamiseks looge esimene silt, et oma monitoore korraldada.",
+      "title": "Sile ei leitud"
+    },
+    "form": {
+      "color_description": "Vali oma sildi värv",
+      "color_label": "värv",
+      "create_button": "Loo silt",
+      "description_label": "Kirjeldus",
+      "description_placeholder": "Sisesta sildi kirjeldus (valikuline)",
+      "name_label": "Nimi",
+      "name_placeholder": "Sisesta sildi nimi",
+      "update_button": "Uuenda silt"
+    },
+    "messages": {
+      "create_description": "Loo uus silt oma monitooride organiseerimiseks ja kategooriseerimiseks.",
+      "failed_to_load_tag": "Sildi laadimine nurjus. Silt võib puududa või teil puuduvad selle vaatamise õigused.",
+      "tag_id_required": "Tag ID on nõutav",
+      "update_description": "Uuenda sildi üksikasju, et paremini oma monitoore korraldada."
+    },
+    "new_page_name": "Uus silt",
+    "search_placeholder": "Otsi sildid..."
+  },
+  "theme": {
+    "dark": "Tumine",
+    "light": "Hele",
+    "system": "Süsteem",
+    "toggle_theme": "Lülita teema"
+  },
+  "timezone": {
+    "average": "Keskmine",
+    "last_24_hours": "Viimased 24 tundi",
+    "last_3_hours": "Viimased 3 tundi",
+    "last_3_months": "Viimased 3 kuud",
+    "last_30_minutes": "Viimased 30 minutit",
+    "last_6_hours": "Viimased 6 tundi",
+    "last_7_days": "Viimased 7 päeva",
+    "maximum": "Maksimum",
+    "minimum": "Minimaalne",
+    "ms": "ms",
+    "response_time": "Vastusaeg",
+    "uptime": "Kättesaadavus"
+  },
+  "ui": {
+    "general": "Üldine",
+    "intervals_retries": "Intervallid, Kordused, Aegumised"
+  }
+}

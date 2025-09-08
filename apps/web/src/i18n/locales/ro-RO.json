@@ -1,0 +1,1280 @@
+{
+  "actions": {
+    "cancel": "Anulează",
+    "saving": "Se salvează..."
+  },
+  "auth": {
+    "login": {
+      "description": "Autentifică-te cu e-mailul tău",
+      "no_account": "Nu ai un cont?",
+      "sign_up": "Înregistrează-te",
+      "submit": "Conectare",
+      "title": "Bine ai revenit"
+    },
+    "register": {
+      "description": "Creați contul de admin",
+      "have_account": "Ai deja un cont?",
+      "sign_in": "Autentificare",
+      "submit": "Creează",
+      "title": "Salut"
+    },
+    "twofa": {
+      "code_label": "Cod 2FA",
+      "code_placeholder": "Introduceți codul 2FA",
+      "description": "Autentificarea în doi pași este activată pentru contul dvs. Vă rugăm să introduceți codul de autentificare pentru a continua.",
+      "title": "Autentificare cu doi factori necesară",
+      "verify_button": "Verifică 2FA",
+      "verifying": "Se verifică..."
+    }
+  },
+  "bars": {
+    "down_count": "Număr de întreruperi",
+    "important": "Important",
+    "interval": "Interval",
+    "message": "Mesaj",
+    "ms": "ms",
+    "notified": "Notificat",
+    "ping": "Ping",
+    "retries": "Reîncercări",
+    "status": "Stare",
+    "time": "Timp"
+  },
+  "common": {
+    "active": "Activ",
+    "all": "Toate",
+    "back": "Înapoi",
+    "cancel": "Anulează",
+    "clear_all": "Șterge tot",
+    "clear_all_filters": "Golește toate filtrele",
+    "confirm": "Confirmă",
+    "confirm_delete_title": "Ești sigur/ă absolut?",
+    "confirm_delete_title_short": "Sunteţi sigur?",
+    "continue": "Continuă",
+    "create": "Creează",
+    "created": "Creat",
+    "days": "zile",
+    "default": "Implicit",
+    "delete": "Șterge",
+    "disabling": "Dezactivare...",
+    "dismiss": "Închide",
+    "down": "Nefuncțional",
+    "enabling": "Activare...",
+    "error": "Eroare",
+    "expires": "Expiră",
+    "inactive": "Inactiv",
+    "loading": "Încărcare...",
+    "logout": "Deconectare",
+    "maintenance": "Întreținere",
+    "no_options_found": "Nu s-au găsit opțiuni",
+    "no_tags_available": "Nu există etichete disponibile",
+    "please_refresh_page": "Vă rugăm să reîmprospătați pagina.",
+    "required": "Obligatoriu",
+    "save": "Salvează",
+    "saving": "Se salvează...",
+    "search": "Căutare",
+    "security": "Securitate",
+    "select": "Selectează",
+    "select_monitors": "Selectează monitoarele...",
+    "select_tags": "Selectează etichete",
+    "settings": "Setări",
+    "tags": "Etichete",
+    "unknown": "Necunoscut",
+    "unnamed_monitor": "Monitor nedenumit",
+    "up": "Funcționează",
+    "update": "Actualizează",
+    "verifying": "Se verifică..."
+  },
+  "forms": {
+    "labels": {
+      "confirm_password": "Confirmare parolă",
+      "email": "E-mail",
+      "footer_text": "Text subsol",
+      "heartbeat_interval": "Interval de puls (secunde)",
+      "icon_url": "URL pictogramă",
+      "monitor_name": "Nume",
+      "monitor_type": "Tip",
+      "password": "Parola",
+      "retries": "Reîncercări",
+      "slug": "Slug",
+      "title": "Titlu",
+      "username": "Nume de utilizator"
+    },
+    "placeholders": {
+      "auto_refresh_help": "0 pentru nici o reîmprospătare automată",
+      "domains": "Introduceți domeniul (de exemplu, status.example.com)",
+      "footer_text": "Introduceți textul subsolului",
+      "icon_url": "https://example.com/icon.png",
+      "monitor_name": "Monitorul meu",
+      "page_description": "Introduceți descrierea paginii de stare",
+      "page_title": "Introduceți titlul paginii de stare",
+      "slug": "slug pagina de stare"
+    },
+    "validation": {
+      "email_invalid": "Vă rugăm să introduceți o adresă de e-mail validă",
+      "password_min_length": "Parola trebuie să aibă cel puțin 8 caractere",
+      "passwords_mismatch": "Parolele nu se potrivesc"
+    }
+  },
+  "maintenance": {
+    "card": {
+      "aria": {
+        "delete": "Șterge {{title}}",
+        "pause": "Pauză întreținere",
+        "resume": "Reia întreținerea"
+      },
+      "labels": {
+        "duration": "{{duration}} min",
+        "end": "Sfârșit: {{date}}",
+        "start": "Început: {{date}}"
+      },
+      "status": {
+        "active": "Activ",
+        "ended": "Încheiat",
+        "inactive": "Inactiv"
+      }
+    },
+    "edit_title": "Editează întreținerea",
+    "form": {
+      "affected_monitors_description": "Selectați monitoarele care vor fi afectate de această întreținere.",
+      "affected_monitors_title": "Monitoare afectate",
+      "cron_description": "Introduceți o expresie cron validă",
+      "cron_expression": "Expresie Cron",
+      "date_time_title": "Dată și oră",
+      "day_of_month": "Ziua lunii",
+      "day_of_week": "Ziua săptămânii",
+      "description_label": "Descriere",
+      "description_placeholder": "Descriere întreținere...",
+      "duration_minutes": "Durată (minute)",
+      "effective_date_range": "Interval de date efective (opțional)",
+      "end_date_time": "Data și ora finală",
+      "end_time": "Ora de încheiere",
+      "interval_label": "Interval (rulează o dată pe zi)",
+      "last_day": "Ultima zi",
+      "last_day_of_month": "Ultima zi a lunii",
+      "maintenance_time_window": "Fereastră de întreținere a unei zile",
+      "markdown_supported": "Markdown este suportat",
+      "same_as_server": "Același ca fusul orar al serverului",
+      "start_date_time": "Data și ora de început",
+      "start_time": "Ora de început",
+      "strategy_label": "Strategie",
+      "strategy_placeholder": "Selectează strategia",
+      "timezone_label": "Fus orar",
+      "timezone_placeholder": "Selectați fusul orar",
+      "title_label": "Titlu",
+      "title_placeholder": "Titlu întreținere"
+    },
+    "page": {
+      "clear_filters": "Șterge toate filtrele",
+      "dialogs": {
+        "confirm_action": {
+          "pause_description": "Sunteți sigur că doriți să suspendați această întreținere?",
+          "resume_description": "Sunteți sigur că doriți să reluați această întreținere?",
+          "title": "Confirmă acțiunea"
+        },
+        "confirm_delete": {
+          "description": "Sunteți sigur că doriți să ștergeți această fereastră de întreținere? Această acțiune nu poate fi anulată.",
+          "title": "Confirmă ștergerea"
+        }
+      },
+      "edit_maintenance": "Editează întreținere: {{title}}",
+      "empty_state": {
+        "action": "Creați prima fereastră de mentenanță",
+        "description": "Începeți prin crearea primei fereastră de mentenanță pentru a preveni perioadele programate de nefuncționare.",
+        "title": "Nu există ferestre de mentenanță"
+      },
+      "error_loading": "Eroare la încărcarea paginii de mentenanță",
+      "loading": "Se încarcă...",
+      "loading_monitors": "Încărcare monitoare...",
+      "search_placeholder": "Caută întrețineri..."
+    },
+    "page_title": "Ferestre de întreținere",
+    "schedule_title": "Programă mentenanța",
+    "strategy": {
+      "cron": "Expresie Cron",
+      "manual": "Activ/Inactiv manual",
+      "recurring_day_of_month": "Recursiv – Ziua lunii",
+      "recurring_interval": "Recurent - Interval",
+      "recurring_weekday": "Recursiv - Ziua săptămânii",
+      "single": "Fereastră unică de întreținere"
+    },
+    "toasts": {
+      "create_error": "Nu s-a putut crea întreținerea",
+      "created_success": "Întreținere creată cu succes",
+      "delete_error": "Nu a reușit ștergerea întreținerii",
+      "deleted_success": "Întreținerea a fost ștearsă cu succes",
+      "pause_error": "Nu s-a putut pune în pauză întreținerea",
+      "paused_success": "Mentenanța a fost oprită cu succes",
+      "resume_error": "Eșec la reluarea mentenanței",
+      "resumed_success": "Mentenanța a fost reluată cu succes",
+      "toggle_error": "Nu se poate comuta starea de întreținere: ID lipsă",
+      "update_error": "Actualizarea întreținerii a eșuat",
+      "updated_success": "Întreținere actualizată cu succes"
+    },
+    "weekdays": {
+      "fri": "Joi",
+      "mon": "Lun",
+      "sat": "Sam",
+      "sun": "Du",
+      "thu": "Joi",
+      "tue": "Mar",
+      "wed": "Mi"
+    }
+  },
+  "messages": {
+    "login_error": "O eroare a apărut în timpul autentificării.",
+    "login_no_tokens": "Autentificare reușită, dar nu au fost primite token-uri.",
+    "login_success": "Autentificare reușită",
+    "notifier_delete_error": "Nu s-a putut șterge notificatorul",
+    "notifier_delete_success": "Notificator șters cu succes",
+    "register_error": "Eroare în timpul înregistrării",
+    "register_no_tokens": "Înregistrare reușită, dar nu s-au primit token-uri",
+    "register_success": "Înregistrare reușită",
+    "setting_update_error": "Nu s-a putut actualiza setarea",
+    "setting_update_success": "Setare actualizată cu succes",
+    "tag_create_error": "Eșec la crearea etichetei",
+    "tag_create_success": "Etichetă creată cu succes",
+    "tag_delete_error": "Nu s-a putut șterge eticheta",
+    "tag_delete_success": "Etichetă ștearsă cu succes",
+    "tag_update_error": "Actualizarea etichetei a eșuat",
+    "tag_update_success": "Etichetă actualizată cu succes",
+    "unexpected_error": "A apărut o eroare neașteptată",
+    "version_mismatch": "Incompatibilitate de versiune detectată"
+  },
+  "monitors": {
+    "card": {
+      "check_interval": "Interval de verificare:",
+      "loading_more": "Se încarcă mai multe..."
+    },
+    "empty_state": {
+      "action": "Creați primul monitor",
+      "description": "Începe prin crearea primului monitor pentru a urmări starea de sănătate a serviciilor tale.",
+      "title": "Nu există monitoare"
+    },
+    "filtering_by_tags": "Filtrare după etichete",
+    "filters": {
+      "monitor_status": "Stare",
+      "monitor_status_placeholder": "Stare monitorizare",
+      "search_placeholder": "Căutați monitoare după nume...",
+      "status_placeholder": "Stare"
+    },
+    "form": {
+      "buttons": {
+        "copied": "Copiat!",
+        "copy": "Copiază",
+        "create": "Creează",
+        "regenerate": "Regenerare",
+        "update": "Actualizează"
+      },
+      "dns": {
+        "hostname": "Nume gazdă",
+        "port": "Port",
+        "record_type": "Tip de înregistrare de resursă",
+        "record_type_placeholder": "Selectați un tip de înregistrare",
+        "resolver_server": "Server de rezolvare",
+        "title": "Setări DNS"
+      },
+      "docker": {
+        "ca_cert_description": "Lipiți certificatul Autorității de Certificare în format PEM.",
+        "ca_certificate": "Certificat CA (PEM)",
+        "client_cert_description": "Lipește certificatul client în format PEM. Acesta este folosit pentru autentificarea TLS mutuală.",
+        "client_certificate": "Certificat client (PEM)",
+        "client_private_key": "Cheie privată a clientului (PEM)",
+        "common_tls_issues": "Probleme comune TLS:",
+        "connection_type": "Tip de conexiune",
+        "container_name_id": "Nume/ID container",
+        "disabled": "Dezactivat",
+        "docker_container": "Container Docker",
+        "docker_host": "Gazda Docker",
+        "enable_tls": "Activează TLS",
+        "enabled": "Activat",
+        "examples": "Exemple",
+        "hostname_mismatch": "\"\"x509: certificatul este valabil pentru X, nu Y\":\"",
+        "hostname_mismatch_solution": "Asigurați-vă că numele gazdei corespunde SAN-ului certificatului sau dezactivați verificarea (nu este recomandat).",
+        "legacy_cert_error": "x509: certificatul se bazează pe câmpul legacy Common Name:",
+        "legacy_cert_solution": "Adaugă numele de gazdă la Subject Alternative Names (SAN) din certificatul tău.",
+        "mtls_note": "Pentru TLS mutual (mTLS), trebuie să furnizați atât certificatul client, cât și cheia privată. Certificatul CA este folosit pentru a verifica certificatul serverului.",
+        "note": "Notă:",
+        "private_key_description": "Lipiți cheia privată în format PEM. Păstrați-o în siguranță!",
+        "select_connection_type": "Selectează tipul de conexiune",
+        "select_tls_option": "Selectează opțiunea TLS",
+        "select_verification_option": "Selectează opțiunea de verificare",
+        "skip_verification": "Omite verificarea (nesigur)",
+        "tls_configuration": "Configurare TLS",
+        "unknown_authority": "\"\"x509: certificat semnat de autoritate necunoscută\":\"\"",
+        "unknown_authority_solution": "Oferiți certificatul CA corect care a semnat certificatul serverului.",
+        "verify_certificates": "Verifică certificatele",
+        "verify_tls": "Verifică TLS"
+      },
+      "grpc": {
+        "body": "Date de corp (JSON)",
+        "enable_tls": "Activează TLS",
+        "enable_tls_description": "Utilizați o conexiune securizată (TLS/SSL)",
+        "invert_keyword": "Inversează Cuvântul Cheie",
+        "invert_keyword_description": "Monitorul va fi marcat ca UP dacă cuvântul cheie NU este găsit.",
+        "keyword": "Cuvânt cheie",
+        "keyword_description": "Caută acest cuvânt-cheie în răspuns",
+        "keyword_placeholder": "Cuvânt cheie opțional de căutat",
+        "method_description": "Sensibil la majuscule",
+        "method_placeholder": "Verifică",
+        "options_title": "Opțiuni gRPC",
+        "proto_content": "Conținut Protobuf",
+        "proto_method": "Metodă Protobuf",
+        "proto_service_name": "Numele serviciului Protobuf",
+        "service_name_placeholder": "Sănătate"
+      },
+      "http": {
+        "advanced": {
+          "accepted_status_codes": "Coduri de stare acceptate",
+          "ignore_tls": "Ignoră erorile TLS/SSL pentru site-urile HTTPS",
+          "ignore_tls_description": "Omite validarea certificatului TLS. Folosește cu prudență – acest lucru face conexiunile mai puțin sigure.",
+          "max_redirects": "Redirecturi maxime",
+          "max_redirects_description": "Numărul maxim de redirecționări urmate (0-30). Setează la 0 pentru a dezactiva redirecționările.",
+          "title": "Avansat"
+        },
+        "authentication": {
+          "auth_header": "Antet de autorizare",
+          "certificate": "Certificat",
+          "certificate_placeholder": "Certificat",
+          "client_id": "ID client",
+          "client_id_placeholder": "ID client",
+          "client_secret": "Secret clientului",
+          "client_secret_placeholder": "Secret client",
+          "domain": "Domeniu",
+          "domain_placeholder": "Domeniu",
+          "form_data_body": "Corpul datelor formularului",
+          "key": "Cheie",
+          "key_placeholder": "Cheie",
+          "method_label": "Metodă de autentificare",
+          "method_placeholder": "Selectați tipul de autentificare",
+          "oauth_scope": "Scop OAuth",
+          "oauth_scope_placeholder": "Opțional: Listă de scope-uri separate prin spațiu",
+          "oauth_token_url": "URL pentru token OAuth",
+          "oauth_token_url_placeholder": "URL de token OAuth",
+          "title": "Autentificare",
+          "workstation": "Stație de lucru",
+          "workstation_placeholder": "Stație de lucru"
+        },
+        "options": {
+          "body": "Corpul",
+          "body_encoding": "Codificare corp",
+          "body_encoding_placeholder": "Selectează codarea corpului",
+          "form_example": "Exemplu de date de formular",
+          "headers": "Antete",
+          "json_example": "Exemplu JSON",
+          "method": "Metodă",
+          "method_placeholder": "Selectați tipul monitorului",
+          "select_encoding": "Selectează codificarea corpului",
+          "select_method": "Selectează metoda",
+          "text_example": "Exemplu de text:\nOrice conținut de text simplu aici...",
+          "title": "Opțiuni HTTP",
+          "xml_example": "Exemplu XML"
+        }
+      },
+      "http_json_query": {
+        "condition_label": "Condiție",
+        "expected_value_label": "Valoare așteptată",
+        "json_query_label": "Expresie de interogare JSON",
+        "title": "Expresie de interogare JSON"
+      },
+      "http_keyword": {
+        "invert_keyword_description": "Căutați ca cuvântul cheie să fie absent în loc de prezent.",
+        "invert_keyword_label": "Inversează cuvântul cheie",
+        "keyword_label": "Cuvânt cheie",
+        "keyword_validation_title": "Validare cuvânt cheie"
+      },
+      "kafka": {
+        "add_broker": "Adaugă broker",
+        "auto_topic_creation_description": "Permite producătorului să creeze automat topic‑ul dacă nu există",
+        "auto_topic_creation_label": "Permite crearea automată a topicurilor",
+        "brokers_description": "Lista adreselor brokerilor Kafka (format host:port)",
+        "brokers_label": "Brokeri Kafka",
+        "configuration_title": "Configurare Kafka",
+        "enable_ssl_description": "Folosește criptarea SSL/TLS pentru conexiune",
+        "enable_ssl_label": "Activează SSL/TLS",
+        "message_description": "Conținutul mesajului de trimis la topic (format JSON recomandat)",
+        "message_label": "Mesaj",
+        "sasl_mechanism_description": "Alegeți mecanismul de autentificare SASL",
+        "sasl_mechanism_label": "Mecanism SASL",
+        "sasl_mechanism_placeholder": "Selectează mecanismul SASL",
+        "sasl_password_description": "Parola pentru autentificarea SASL",
+        "sasl_password_label": "Parola SASL",
+        "sasl_password_placeholder": "parolă",
+        "sasl_username_description": "Nume de utilizator pentru autentificarea SASL",
+        "sasl_username_label": "Nume de utilizator SASL",
+        "security_title": "Securitate",
+        "topic_description": "Topicul Kafka în care se produc mesaje"
+      },
+      "mongodb": {
+        "command_description": "Comandă MongoDB de executat în format JSON. În mod implicit, este ping dacă nu este specificat.",
+        "command_label": "Comandă (Opțional)",
+        "configuration_title": "Configurare MongoDB",
+        "connection_string_description": "Șirul de conexiune MongoDB. Acceptă atât formatul standard (mongodb://) cât și formatul listă de seme DNS (mongodb+srv://).",
+        "connection_string_label": "Șir de conexiune",
+        "expected_value_description": "Valoarea așteptată pentru comparare cu rezultatul căii JSON.",
+        "expected_value_label": "Valoare așteptată (opțional)",
+        "expected_value_placeholder": "Valoare așteptată",
+        "json_path_description": "Calea JSON pentru a extrage valoarea din răspuns. Folosește $ pentru nivelul rădăcină.",
+        "json_path_label": "JSON Path (Opțional)"
+      },
+      "mqtt": {
+        "check_type_json_query": "Interogare JSON",
+        "check_type_keyword": "Cuvânt-cheie",
+        "check_type_label": "Tip de verificare MQTT",
+        "check_type_none": "Niciun mesaj (Orice mesaj)",
+        "check_type_placeholder": "Selectează tipul de verificare",
+        "configuration_title": "Configurare MQTT",
+        "expected_value_label": "Valoare așteptată",
+        "hostname_label": "Nume gazdă",
+        "json_path_label": "Calea JSON",
+        "password_label": "Parola MQTT",
+        "password_placeholder": "Parola (opțional)",
+        "port_label": "Port",
+        "success_keyword_label": "Cuvânt-cheie pentru succes MQTT",
+        "success_keyword_placeholder": "Cuvânt cheie care indică succesul",
+        "username_label": "Utilizator MQTT",
+        "username_placeholder": "Nume de utilizator (opțional)",
+        "validation": {
+          "expected_value_required": "Valoarea așteptată este necesară când tipul de verificare este json-query",
+          "json_path_required": "Calea JSON este obligatorie când tipul de verificare este json-query",
+          "success_keyword_required": "Cuvântul de succes este obligatoriu când tipul de verificare este 'keyword'."
+        }
+      },
+      "mysql": {
+        "connection_string_examples": "Exemple:",
+        "connection_string_label": "Șir de conexiune",
+        "connection_title": "Conexiune MySQL",
+        "query_label": "Interogare"
+      },
+      "ping": {
+        "data_size": "Dimensiune date (octeți)",
+        "host": "Nume gazdă / IP",
+        "title": "Setări Ping"
+      },
+      "postgres": {
+        "connection_string_label": "Șir de conexiune",
+        "connection_title": "Conexiune PostgreSQL",
+        "query_label": "Interogare"
+      },
+      "push": {
+        "url_description": "Folosește acest URL în serviciul tău pentru a raporta starea. Trimite o cerere HTTP (POST/GET) către acest endpoint pentru a transmite un semnal de viață.",
+        "url_title": "Trimite URL monitor"
+      },
+      "rabbitmq": {
+        "documentation_link": "Documentația RabbitMQ",
+        "health_checks_description": "Monitorul verifică endpointul {{code}} pe fiecare nod și returnează UP dacă oricare nod este sănătos.",
+        "management_nodes_description": "Introduceți URL-ul pentru nodurile de administrare RabbitMQ, inclusiv protocolul și portul. Exemplu: https://node1.rabbitmq.com:15672",
+        "management_nodes_title": "Noduri de management",
+        "node_url_label": "URL nodului",
+        "password_description": "Parola pentru autentificarea interfeței de administrare RabbitMQ",
+        "setup_information_description": "Pentru a utiliza monitorul RabbitMQ, trebuie să activați Pluginul de Administrare în configurația RabbitMQ. Pentru mai multe informații, vă rugăm să consultați documentația RabbitMQ.",
+        "setup_information_title": "Informații de configurare",
+        "title": "Configurare RabbitMQ",
+        "username_description": "Nume de utilizator pentru autentificarea interfeței de administrare RabbitMQ"
+      },
+      "redis": {
+        "ca_certificate_description": "Certificat rădăcină CA în format PEM. Este necesar pentru verificarea corectă a TLS cu certificate auto‑semnate.",
+        "ca_certificate_label": "Certificat CA (Opțional)",
+        "client_certificate_description": "Certificat client în format PEM. Obligatoriu pentru autentificarea mutuală TLS.",
+        "client_certificate_label": "Certificat client (Opțional)",
+        "client_key_description": "Cheie privată a clientului în format PEM. Trebuie furnizată împreună cu certificatul clientului.",
+        "client_key_label": "Cheie privată a clientului (Opțional)",
+        "connection_string_description": "Formatul șirului de conexiune Redis: {{redis}} sau {{rediss}} pentru TLS",
+        "connection_string_label": "Șir de conexiune",
+        "ignore_tls_description": "Omite verificarea certificatului TLS (nu recomandat pentru producție)",
+        "ignore_tls_label": "Ignoră erorile TLS/SSL",
+        "title": "Configurare Redis"
+      },
+      "shared": {
+        "intervals": {
+          "heartbeat_retry": "Interval de reîncercare a semnalului de viață (reîncearcă la fiecare {{seconds}} secunde)",
+          "max_retries_description": "Numărul maxim de încercări înainte ca serviciul să fie marcat ca inactiv și să se trimită o notificare.",
+          "request_timeout": "Timeout cerere (Timeout după {{seconds}} secunde)",
+          "resend_notification": "Retrimitere notificare dacă serviciul e indisponibil X ori consecutiv (Retrimitere dezactivată)"
+        },
+        "notifications": {
+          "add_notifier": "Adaugă notificator",
+          "new_notifier": "+ Notificator nou",
+          "no_channels": "Nu există canale de notificare, creați unul mai întâi.",
+          "no_channels_available": "Nu există canale disponibile",
+          "select_channel": "Selectează canalul",
+          "select_notifier_placeholder": "Selectează notificator",
+          "selected_channels": "Canale de notificare selectate",
+          "title": "Canale de notificare"
+        },
+        "proxy": {
+          "add_proxy": "Adaugă proxy",
+          "new_proxy": "+ Proxy nou",
+          "no_proxy": "Fără Proxy",
+          "remove_proxy": "Elimină Proxy",
+          "select_proxy_placeholder": "Selectează proxy",
+          "selected_proxy": "Proxy selectat",
+          "title": "Proxy"
+        },
+        "tags": {
+          "label": "Etichete",
+          "no_tags": "Nu există etichete disponibile",
+          "placeholder": "Selectează etichete"
+        }
+      },
+      "snmp": {
+        "community_description": "Șirul comunității SNMP pentru autentificare (ca o parolă)",
+        "community_label": "Șir de comunitate",
+        "expected_value_description": "Valoarea cu care se compară. Lăsați necompletat pentru a omite validarea.",
+        "expected_value_label": "Valoare așteptată",
+        "host_description": "Numele gazdei sau adresa IP a dispozitivului cu SNMP activat",
+        "host_label": "Gazda",
+        "json_path_description": "Expresie JSONPath pentru extragerea valorii din răspuns (folosiți \"$\" pentru valoarea brută)",
+        "json_path_label": "Căi JSON",
+        "json_path_operator_description": "Cum să compari valoarea extrasă cu valoarea așteptată",
+        "json_path_operator_eq": "egal",
+        "json_path_operator_ge": "mai mare sau egal",
+        "json_path_operator_gt": "mai mare decât",
+        "json_path_operator_label": "Condiție",
+        "json_path_operator_le": "mai mic sau egal",
+        "json_path_operator_lt": "mai puțin decât",
+        "json_path_operator_ne": "nu este egal",
+        "oid_description": "Identificatorul SNMP Object Identifier de interogat (de exemplu, 1.3.6.1.2.1.1.1.0 pentru descrierea sistemului)",
+        "oid_label": "OID (Identificator de Obiect)",
+        "port_description": "Portul SNMP (implicit: 161)",
+        "port_label": "Port",
+        "snmp_version_description": "Versiunea protocolului SNMP de utilizat",
+        "snmp_version_label": "Versiune SNMP",
+        "title": "Setări SNMP",
+        "value_validation_label": "Validare valoare (Opțională)"
+      },
+      "sqlserver": {
+        "allowed_statements_description": "SELECT, SHOW, DESCRIBE, EXPLAIN, WITH și VALUES.",
+        "allowed_statements_label": "Declarații permise:",
+        "connection_string_label": "Șir de conexiune",
+        "query_description": "Interogare de executat pentru verificarea stării de sănătate. Lăsați gol pentru a utiliza implicit.",
+        "query_label": "Interogare",
+        "title": "Conexiune Microsoft SQL Server"
+      },
+      "tcp": {
+        "host": "Gazda",
+        "port": "Port",
+        "title": "Conexiune TCP"
+      },
+      "type": {
+        "dns": "Monitor DNS",
+        "docker": "Container Docker",
+        "grpc": "Monitor de cuvinte cheie gRPC",
+        "http": "Monitor HTTP(S)",
+        "kafka": "Monitor de producător Kafka",
+        "mongodb": "Monitor bază de date MongoDB",
+        "mqtt": "Monitor broker MQTT",
+        "mysql": "Monitor MySQL/MariaDB",
+        "ping": "Monitor de Ping (ICMP)",
+        "postgres": "Monitor PostgreSQL pentru baze de date",
+        "push": "Monitor Push (serviciul extern apelează un URL generat)",
+        "rabbitmq": "Monitorare RabbitMQ",
+        "redis": "Monitorizare bază de date Redis",
+        "snmp": "Monitor SNMP",
+        "sqlserver": "Monitor Microsoft SQL Server",
+        "tcp": "Monitor de port TCP"
+      }
+    },
+    "page": {
+      "description": "Creați un nou monitor pentru a începe urmărirea performanței site-ului dvs.",
+      "edit_title": "Editează monitorul:",
+      "new_title": "Monitor nou"
+    },
+    "title": "Monitoare",
+    "toasts": {
+      "deleted": "Monitor șters",
+      "paused": "Monitor în pauză",
+      "reset_success": "Datele monitorului au fost resetate cu succes",
+      "resumed": "Monitorizarea reluată"
+    },
+    "view": {
+      "buttons": {
+        "clone": "Clonează",
+        "delete": "Șterge",
+        "edit": "Editează",
+        "pause": "Pauză",
+        "reset_data": "Resetează datele",
+        "resume": "Reia"
+      },
+      "certificate": "Certificat",
+      "check_every": "Verifică la fiecare",
+      "current_status": "Stare curentă",
+      "dialogs": {
+        "delete": {
+          "description": "Această acțiune nu poate fi anulată. Aceasta va șterge definitiv monitorul și toate datele asociate.",
+          "title": "Sunteți sigur?"
+        },
+        "pause": {
+          "description": "Sunteți sigur că doriți să faceți o pauză?",
+          "title": "Confirmare"
+        },
+        "reset": {
+          "description": "Aceasta va șterge permanent tot istoricul de heartbeat și statisticile de uptime pentru acest monitor. Monitorul va apărea ca și cum ar fi fost tocmai creat. Această acțiune nu poate fi anulată.",
+          "title": "Resetează datele monitorului"
+        }
+      },
+      "expiring_soon": "În curând expiră",
+      "for": "pentru",
+      "live_status": "Stare live",
+      "monitor_for": "Monitorizare pentru",
+      "no_certificate_data": "Fără date despre certificat",
+      "seconds": "secunde",
+      "stats": {
+        "last_24_hours": "Ultimele 24 de ore",
+        "last_30_days": "Ultimele 30 de zile",
+        "last_365_days": "Ultimele 365 de zile",
+        "last_7_days": "Ultimele 7 zile"
+      },
+      "status": {
+        "down": "Nefuncțional",
+        "maintenance": "Întreținere",
+        "paused": "Pauză",
+        "up": "Funcționează"
+      }
+    }
+  },
+  "navigation": {
+    "maintenance": "Întreținere",
+    "monitors": "Monitoare",
+    "notification_channels": "Canale de notificare",
+    "proxies": "Proxy-uri",
+    "settings": "Setări",
+    "status_pages": "Pagini de stare",
+    "tags": "Etichete"
+  },
+  "notifications": {
+    "actions": {
+      "test": "Testează",
+      "testing": "Testare..."
+    },
+    "aria": {
+      "delete": "Șterge {{name}}"
+    },
+    "confirm_delete_description": "Această acțiune nu poate fi anulată. Aceasta va șterge permanent notificatorul \"{{name}}\" și îl va elimina din toate monitorizările care îl utilizează.",
+    "create_title": "Creați Notifier",
+    "edit_channel_title": "Editează canalul de notificare",
+    "edit_title": "Editează Notificator",
+    "empty_state": {
+      "action": "Creați primul canal de notificări",
+      "description": "Începeți prin a crea primul canal de notificare pentru a trimite alerte echipei dvs.",
+      "title": "Nu există canale de notificare"
+    },
+    "form": {
+      "discord": {
+        "bot_display_name_description": "Numele care va apărea ca expeditor al mesajelor Discord.",
+        "bot_display_name_label": "Nume afișat botului",
+        "custom_message_prefix_description": "Prefix opțional care va fi adăugat la începutul tuturor mesajelor.",
+        "custom_message_prefix_label": "Prefix mesaj personalizat",
+        "custom_message_prefix_placeholder": "Opțional: adaugă un prefix la mesaj",
+        "forum_post_name_description": "Numele noului post de forum care va fi creat.",
+        "forum_post_name_label": "Numele postării forumului",
+        "forum_post_name_placeholder": "Introduceți numele postării",
+        "sending_message_to_channel": "Trimite la canal",
+        "sending_message_to_description": "Alegeți unde să trimiteți mesajele Discord.",
+        "sending_message_to_label": "Trimite mesaj către",
+        "sending_message_to_new_forum_post": "Trimite la noul post de forum",
+        "sending_message_to_placeholder": "Selectează tipul mesajului",
+        "sending_message_to_thread": "Trimite în fir",
+        "setup_webhook_description_1": "Obțineți URL-ul webhook-ului din setările serverului Discord → Integrări → Webhooks.",
+        "setup_webhook_description_2": "Creați un webhook nou și copiați URL-ul. Asigurați-vă că ați selectat canalul corect.",
+        "setup_webhook_title": "Configurează webhook Discord",
+        "thread_id_description_1": "Activați modul dezvoltator în Discord Setări utilizator → Avansat → Mod dezvoltator",
+        "thread_id_description_2": "Faceți clic dreapta pe firul de discuție sau pe mesaj și selectați „Copiază ID fir” sau „Copiază ID canal”.",
+        "thread_id_description_title": "ID-ul firului de discuție sau al postării din forum unde vor fi trimise mesajele",
+        "thread_id_label": "ID fir",
+        "thread_id_placeholder": "Introduceți ID firului sau al postării",
+        "webhook_url_label": "URL webhook Discord"
+      },
+      "google_chat": {
+        "more_info_about_webhooks": "Mai multe informații despre Webhooks",
+        "webhook_url_label": "URL Webhook Google Chat"
+      },
+      "gotify": {
+        "application_token_description": "Tokenul aplicației din aplicația ta Gotify. Poți găsi acest token în interfața web Gotify, sub Apps.",
+        "application_token_label": "Token de aplicație",
+        "custom_message_description": "Șablon de mesaj personalizat. Variabile disponibile",
+        "custom_message_description_2": "Lăsați gol pentru a folosi mesajul implicit.",
+        "custom_message_label": "Mesaj personalizat",
+        "custom_title_description": "Titlu personalizat pentru notificare. Variabile disponibile: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Lăsați necompletat pentru a folosi titlul implicit „Peekaping”.",
+        "custom_title_label": "Titlu personalizat",
+        "learn_more_label": "Află mai multe despre Gotify și cum să îl configurezi la:",
+        "note_description": "Trebuie să ai un server Gotify în funcțiune pentru a folosi această integrare.",
+        "note_label": "Notă:",
+        "priority_0": "Cel mai mic",
+        "priority_1": "Foarte scăzut",
+        "priority_10": "Cel mai înalt",
+        "priority_2": "Scăzut",
+        "priority_3": "Mai jos decât normal",
+        "priority_4": "Normal",
+        "priority_5": "Mai mult decât normal",
+        "priority_6": "Moderat",
+        "priority_7": "Ridicat",
+        "priority_8": "Foarte Înaltă (implicită)",
+        "priority_9": "Urgență",
+        "priority_description": "Prioritatea mesajului (0-10). Numerele mai mari reprezintă o prioritate mai înaltă. Valoarea implicită este 8.",
+        "priority_label": "Prioritate",
+        "priority_placeholder": "Selectează prioritatea",
+        "server_url_description": "URL-ul serverului tău Gotify. Asigură-te că este accesibil de la această aplicație.",
+        "server_url_label": "URL server"
+      },
+      "grafana_oncall": {
+        "grafana_oncall_url_description": "URL-ul webhook-ului din integrarea dvs. Grafana OnCall. Puteți găsi acest URL în instanța dvs. Grafana OnCall sub Alerts & IRM &gt; IRM &gt; Integrations &gt; Webhook.",
+        "grafana_oncall_url_label": "URL Grafana OnCall",
+        "learn_more_label": "Află mai multe despre webhook-urile Grafana OnCall"
+      },
+      "line": {
+        "channel_access_token_description": "Puteți obține tokenul de acces al canalului de la",
+        "channel_access_token_description_2": "Navigați la setările canalului și căutați",
+        "channel_access_token_label": "Token de acces al canalului (de lungă durată)",
+        "channel_access_token_placeholder": "Introduceți tokenul de acces al canalului LINE",
+        "template_description": "Personalizați formatul mesajului. Variabile disponibile",
+        "template_label": "Șablon de mesaj",
+        "template_placeholder": "Introduceți șablonul personalizat de mesaj",
+        "user_id_description": "Puteți găsi ID-ul utilizatorului dvs. în",
+        "user_id_description_2": "Navigați la setările canalului și căutați",
+        "user_id_label": "ID-ul tău de utilizator",
+        "user_id_placeholder": "Introduceți ID-ul utilizatorului LINE"
+      },
+      "matrix": {
+        "access_token_description": "Tokenul de acces Matrix pentru autentificare",
+        "access_token_label": "Token de acces",
+        "custom_message_description": "Șablon de mesaj personalizat. Variabile disponibile",
+        "custom_message_label": "Mesaj personalizat",
+        "homeserver_url_description": "URL-ul serverului tău Matrix",
+        "homeserver_url_label": "URL server de casă",
+        "internal_room_id_description": "ID-ul camerei interne unde vor fi trimise notificările. Acesta trebuie să înceapă cu \"!\" și să arate astfel: !roomid:matrix.org",
+        "internal_room_id_label": "ID cameră internă",
+        "setup_instructions_1": "Creați un cont Matrix pentru botul dvs. (sau folosiți contul existent)",
+        "setup_instructions_2": "Creați sau alăturați-vă camerei în care doriți să primiți notificări.",
+        "setup_instructions_3": "Obțineți tokenul de acces printr-o cerere de autentificare",
+        "setup_instructions_4": "Răspunsul va conține câmpul access_token - folosiți-l ca Token de acces",
+        "setup_instructions_5": "Găsiți ID-ul intern al camerei dvs. (începe cu \"!\") în setările camerei din clientul Matrix",
+        "setup_instructions_label": "Instrucțiuni de configurare"
+      },
+      "mattermost": {
+        "channel_name_description": "Canalul în care vor fi trimise notificările. Lăsați gol pentru a utiliza canalul implicit configurat în webhook.",
+        "channel_name_label": "Nume canal",
+        "icon_emoji_cheat_sheet_label": "Ghid rapid de emoji",
+        "icon_emoji_description": "Emoji de utilizat ca icon. Puteți specifica două emoji separate prin spațiu (prima pentru starea activă, a doua pentru starea inactivă).",
+        "icon_emoji_label": "Emoji pictogramă",
+        "icon_url_description": "URL-ul unei imagini care să fie folosită ca icon pentru mesajul de notificare.",
+        "icon_url_label": "URL pictogramă",
+        "learn_more_label": "Află mai multe despre webhooks",
+        "message_template_description": "Personalizați formatul mesajului. Variabile disponibile.",
+        "message_template_label": "Șablon de mesaj",
+        "use_message_template_description": "Activați pentru a utiliza un șablon de mesaj personalizat și format.",
+        "use_message_template_label": "Utilizați șablonul de mesaj",
+        "username_description": "Numele de utilizator care va apărea ca expeditor al mesajului.",
+        "webhook_url_label": "URL Webhook"
+      },
+      "ntfy": {
+        "authentication_type_basic": "Autentificare de bază",
+        "authentication_type_basic_description": "Folosește nume de utilizator și parolă pentru autentificare de bază.",
+        "authentication_type_label": "Tip de autentificare",
+        "authentication_type_none": "Fără autentificare",
+        "authentication_type_none_description": "Nu este necesară autentificarea. Potrivit pentru servere NTFY publice.",
+        "authentication_type_placeholder": "Selectează tipul de autentificare",
+        "authentication_type_token": "Autentificare cu token",
+        "authentication_type_token_description": "Folosiți un token de acces pentru autentificare.",
+        "custom_message_description": "Conținutul mesajului personalizat. Variabile disponibile.",
+        "custom_message_label": "Mesaj personalizat",
+        "password_required": "Parola este necesară pentru autentificarea de bază",
+        "priority_1": "Min (cel mai scăzut)",
+        "priority_2": "Scăzut",
+        "priority_3": "Implicit",
+        "priority_4": "Înaltă",
+        "priority_5": "Urgent (Cel mai înalt)",
+        "priority_description": "Nivelul de prioritate al notificării. Prioritățile mai mari pot declanșa diferite comportamente pe client.",
+        "priority_label": "Prioritate",
+        "priority_placeholder": "Selectați prioritatea",
+        "server_url_description": "URL-ul serverului NTFY. Folosește https://ntfy.sh pentru instanța publică.",
+        "server_url_label": "URL server",
+        "tags_description": "Etichete separate prin virgulă pentru clasificarea notificărilor. Variabile disponibile",
+        "tags_label": "Etichete",
+        "title_description": "Titlu personalizat pentru notificare. Variabile disponibile",
+        "title_label": "Titlu personalizat",
+        "token_description": "Tokenul de acces NTFY pentru autentificare.",
+        "token_label": "Token de acces",
+        "token_required": "Tokenul este necesar pentru autentificarea cu token",
+        "topic_description": "Numele subiectului pentru notificările tale. Aceasta va fi canalul în care notificările sunt trimise.",
+        "topic_label": "Subiect",
+        "username_required": "Numele de utilizator este obligatoriu pentru autentificarea de bază"
+      },
+      "opsgenie": {
+        "api_key_label": "Cheie API",
+        "more_info_about_api_keys_label": "Mai multe informații despre cheile API",
+        "priority_1": "Critic",
+        "priority_2": "Înaltă",
+        "priority_3": "Moderată",
+        "priority_4": "Scăzut",
+        "priority_5": "Informativ",
+        "priority_description": "Setați nivelul de prioritate pentru alerte. Implicit este P3 (Moderat).",
+        "priority_label": "Prioritate",
+        "region_description": "Alege regiunea Opsgenie. Aceasta determină endpointul API care va fi folosit.",
+        "region_label": "Regiune",
+        "region_placeholder": "Selectează regiunea"
+      },
+      "pagerduty": {
+        "auto_resolve_acknowledge": "Reconocere automată",
+        "auto_resolve_acknowledge_description": "Confirmă automat incidentul",
+        "auto_resolve_description": "Alege ce acțiune să efectuezi când un monitor se restabilește",
+        "auto_resolve_do_nothing": "Nu face nimic",
+        "auto_resolve_do_nothing_description": "Nicio acțiune efectuată în starea UP",
+        "auto_resolve_label": "Rezolvă automat sau recunoaște",
+        "auto_resolve_placeholder": "Selectează comportamentul de auto-îndreptare",
+        "auto_resolve_resolve": "Rezolvare automată",
+        "auto_resolve_resolve_description": "Rezolvă incidentul automat",
+        "integration_key_description": "Aflați cum să obțineți cheia de integrare",
+        "integration_key_label": "Cheie de integrare",
+        "integration_key_placeholder": "Introduceți cheia de integrare PagerDuty",
+        "integration_url_description": "URL-ul punctului final al API-ului PagerDuty Events v2. Implicit este setat la punctul final standard.",
+        "integration_url_label": "URL de integrare",
+        "learn_more_label": "Documentația PagerDuty",
+        "priority_critical": "Critic",
+        "priority_description": "Nivelul de severitate pentru incidentele PagerDuty. Valoarea implicită este „warning”.",
+        "priority_error": "Eroare",
+        "priority_info": "Informații",
+        "priority_label": "Prioritate",
+        "priority_placeholder": "Selectează nivelul de prioritate",
+        "priority_warning": "Avertisment"
+      },
+      "pagertree": {
+        "authentication_token_description": "Token de autentificare opțional pentru securitate sporită. Acesta va fi trimis în antetul pagertree-token.",
+        "authentication_token_label": "Token de autentificare (Opțional)",
+        "authentication_token_placeholder": "Introduceți token de autentificare dacă este necesar",
+        "auto_resolve_alerts_description": "Rezolva automat alertele PagerTree când monitorul se restabilește",
+        "auto_resolve_alerts_label": "Rezolvare automată a alertelor",
+        "how_to_get_integration_url_label": "Cum obții URL‑ul de integrare",
+        "integration_url_description": "Introduceți URL‑ul webhook PagerTree.",
+        "integration_url_label": "URL webhook PagerTree",
+        "urgency_level_critical": "Critic",
+        "urgency_level_description": "Setează nivelul implicit de urgență pentru alertele trimise către PagerTree",
+        "urgency_level_high": "Ridicat",
+        "urgency_level_label": "Nivel de urgență",
+        "urgency_level_low": "Scăzut",
+        "urgency_level_medium": "Mediu",
+        "urgency_level_placeholder": "Selectează nivelul de urgență",
+        "urgency_level_silent": "Tăcut"
+      },
+      "pushbullet": {
+        "access_token": "Token de acces",
+        "access_token_description": "Tokenul de acces Pushbullet. O obțineți de la",
+        "access_token_label": "Token de acces",
+        "access_token_link": "Setări Pushbullet",
+        "channel_tag": "Etichetă canal (opțional)",
+        "channel_tag_description": "Trimite notificare către canalul Pushbullet în loc de dispozitive",
+        "channel_tag_label": "Etichetă canal (Opțional)",
+        "custom_message_template_description": "Personalizați corpul notificării utilizând variabilele șablonului:",
+        "custom_message_template_heartbeat_ping": "Timp de răspuns",
+        "custom_message_template_heartbeat_time": "Marcă de timp",
+        "custom_message_template_label": "Șablon de mesaj personalizat (Opțional)",
+        "custom_message_template_monitor_url": "URL monitor",
+        "custom_message_template_msg": "Mesaj de alertă",
+        "custom_message_template_name": "Nume monitor",
+        "custom_message_template_placeholder": "Monitor: {{ name }}\nStare: {{ status }}\nMesaj: {{ msg }}",
+        "custom_message_template_status": "Stare curentă",
+        "device_id": "ID dispozitiv (Opțional)",
+        "device_id_description": "Trimite notificarea către un dispozitiv specific. Lăsați gol pentru a trimite către toate dispozitivele. Puteți găsi ID-urile dispozitivelor folosind",
+        "device_id_label": "ID dispozitiv (opțional)",
+        "device_id_link": "API Pushbullet",
+        "more_info_on": "Mai multe informații despre:"
+      },
+      "pushover": {
+        "application_token_label": "Token de aplicație",
+        "application_token_placeholder": "Introduceți tokenul aplicației Pushover",
+        "device_description": "Lăsați gol pentru a trimite către toate dispozitivele",
+        "device_label": "Dispozitiv",
+        "device_placeholder": "Nume dispozitiv (opțional)",
+        "message_title_description": "Lăsați gol pentru a folosi titlul implicit",
+        "message_title_label": "Titlu mesaj",
+        "message_title_placeholder": "Titlu personalizat al mesajului (opțional)",
+        "message_ttl_description": "Timp de viață în secunde (0 = fără expirare)",
+        "message_ttl_label": "TTL mesaj",
+        "more_info_label": "Mai multe informații despre:",
+        "more_info_label_2": "Puteți crea o aplicație și obține tokenul API la",
+        "more_info_label_3": "Cheia dvs. de utilizator poate fi găsită la",
+        "notification_sound_down_description": "Sunet pentru când monitorul intră în defecțiune",
+        "notification_sound_down_label": "Sunet de notificare - Întrerupere",
+        "notification_sound_down_placeholder": "Selectează sunet",
+        "notification_sound_up_description": "Sunet pentru când monitorul revine online",
+        "notification_sound_up_label": "Sunet notificare - Activ",
+        "notification_sound_up_placeholder": "Selectează sunet",
+        "priority_1": "Cel mai scăzut",
+        "priority_2": "Scăzut",
+        "priority_3": "Normal",
+        "priority_4": "Ridicat",
+        "priority_5": "Urgent",
+        "priority_description": "Nivel de prioritate al mesajului",
+        "priority_label": "Prioritate",
+        "priority_placeholder": "Selectați prioritatea",
+        "sound_alien": "Extraterestru",
+        "sound_bike": "Bicicletă",
+        "sound_bugle": "Bugă",
+        "sound_cashregister": "Registru de casă",
+        "sound_classical": "Clasic",
+        "sound_climb": "Ascensiune",
+        "sound_cosmic": "Cosmic",
+        "sound_echo": "Ecou",
+        "sound_falling": "Căzând",
+        "sound_gamelan": "Gamelan",
+        "sound_incoming": "În sosire",
+        "sound_intermission": "Pauză",
+        "sound_magic": "Magie",
+        "sound_mechanical": "Mecanic",
+        "sound_none": "Niciunul",
+        "sound_persistent": "Persistente",
+        "sound_pianobar": "Bar de pian",
+        "sound_pushover": "Pushover (implicit)",
+        "sound_siren": "Sirena",
+        "sound_spacealarm": "Alarmă spațială",
+        "sound_tugboat": "Remorca",
+        "sound_updown": "Sus Jos",
+        "sound_vibrate": "Vibrează",
+        "user_key_label": "Cheie de utilizator",
+        "user_key_placeholder": "Introduceți cheia de utilizator Pushover"
+      },
+      "signal": {
+        "custom_message_description": "Șablon de mesaj personalizat. Variabile disponibile",
+        "custom_message_label": "Mesaj personalizat",
+        "important_description": "Nu poți combina grupuri și numere în destinatari!",
+        "important_label": "IMPORTANT:",
+        "more_info_label": "Puteți verifica această adresă URL pentru a vedea cum să o configurați:",
+        "note_description": "Trebuie să ai un client Signal cu API REST.",
+        "note_label": "Notă:",
+        "number_description": "Numărul de telefon al contului tău Signal (numărul expeditorului).",
+        "number_label": "Număr",
+        "post_url_description": "URL-ul serverului Signal CLI REST API al dvs.",
+        "post_url_label": "URL POST",
+        "recipients_description": "Listă de numere de telefon separate prin virgulă, către care se trimit notificările.",
+        "recipients_label": "Destinatari"
+      },
+      "slack": {
+        "channel_name_description": "Canalul în care va fi trimis mesajul. Dacă nu este specificat, mesajul va fi trimis în canalul implicit configurat în webhook.",
+        "channel_name_description_2": "Puteți suprascrie canalul implicit specificând un nume de canal (de exemplu, #alerts) sau un utilizator (de exemplu, @username).",
+        "channel_name_label": "Nume canal",
+        "channel_notify_description": "Când este activat, mesajul va declanșa notificări pentru toți membrii canalului. Folosiți cu atenție pentru a evita spamul.",
+        "channel_notify_label": "Notifică canalul",
+        "icon_emoji_cheat_sheet_label": "Fascicul de emoji",
+        "icon_emoji_description": "Emoji de utilizat ca pictogramă pentru acest mesaj. Trebuie să fie în formatul :emoji_name:",
+        "icon_emoji_label": "Emoji pictogramă",
+        "message_format_description": "Trimite mesaje bogate",
+        "message_format_description_2": "Permite trimiterea de mesaje cu formatare bogată, atașamente și prezentare vizuală îmbunătățită.",
+        "message_format_label": "Format mesaj",
+        "username_description": "Numele de utilizator care va apărea ca expeditor al mesajului. Dacă nu este specificat, va fi folosit numele implicit al botului.",
+        "webhook_url_description": "URL-ul webhook-ului din integrarea Slack. Îl poți găsi în instanța ta Slack sub Integrații > Webhook-uri.",
+        "webhook_url_label": "URL webhook"
+      },
+      "smtp": {
+        "custom_body_label": "Corp personalizat",
+        "custom_description": "Capacitatea de șablonare se realizează prin limbajul de șabloane <b>Liquid</b>.",
+        "custom_description_2": "Vă rugăm să consultați documentația pentru instrucțiuni de utilizare.",
+        "custom_description_3": "Variabile disponibile:",
+        "custom_description_4": "mesajul notificării",
+        "custom_description_5": "nume serviciu",
+        "custom_description_6": "Stare serviciu (UP/DOWN/notificări expirare certificat)",
+        "custom_subject_label": "Subiect Personalizat",
+        "smtp_from_label": "De la (E-mail expeditor)",
+        "smtp_host_description": "Introduceți fie numele gazdei serverului la care doriți să vă conectați, fie localhost dacă intenționați să utilizați un agent de transfer de mail configurat local.",
+        "smtp_host_label": "Gazda SMTP",
+        "smtp_password_placeholder": "Parolă SMTP",
+        "smtp_port_label": "Port",
+        "smtp_to_label": "Către (Email(e) destinatari)",
+        "smtp_username_placeholder": "Utilizator SMTP"
+      },
+      "telegram": {
+        "auto_get_label": "Obține automat",
+        "bot_token_description": "Obține tokenul botului tău de la",
+        "bot_token_label": "Token bot",
+        "chat_id_description": "Puteți obține ID‑ul de chat trimetând un mesaj botului dvs. și apăsând pe „Auto Get” de mai sus, sau manual prin API‑ul Telegram.",
+        "chat_id_description_2": "Pentru a-l obține manual, vizitați",
+        "chat_id_description_3": "Vezi",
+        "chat_id_description_4": "Documentație Telegram",
+        "chat_id_description_5": "pentru mai multe informații.",
+        "chat_id_label": "ID chat",
+        "chat_id_not_found": "ID chat nu a fost găsit în ultima actualizare.",
+        "failed_to_fetch_chat_id": "Nu s-a putut obține ID-ul chatului",
+        "message_thread_id_description": "Opțional. Folosit pentru a trimite mesaje către un fir (subiect) specific într-un supergrup de forum.",
+        "message_thread_id_label": "ID fir de mesaje",
+        "no_updates_found": "Nu s-au găsit actualizări. Vă rugăm să trimiteți mai întâi un mesaj botului.",
+        "protect_content_description": "Dacă este activat, conținutul mesajului va fi protejat împotriva redirecționării și salvării.",
+        "protect_content_label": "Protejează conținutul",
+        "send_silently_description": "Dacă este activat, mesajele vor fi trimise în mod silențios (utilizatorii vor primi o notificare fără sunet).",
+        "send_silently_label": "Trimite în silențios",
+        "server_url_description": "Implicit este",
+        "server_url_description_2": "Puteți utiliza un server personalizat. Vezi",
+        "server_url_description_3": "aici",
+        "server_url_description_4": "pentru detalii.",
+        "server_url_label": "URL server Telegram",
+        "template_description": "Personalizați formatul mesajului. Variabile disponibile.",
+        "template_label": "Șablon de mesaj",
+        "template_parse_mode_description": "Alege cum să fie analizat mesajul. Vezi",
+        "template_parse_mode_description_2": "Documente de formatare Telegram",
+        "template_parse_mode_description_3": "pentru detalii.",
+        "template_parse_mode_label": "Mod de parsare a șablonului",
+        "template_parse_mode_placeholder": "Selectează modul de interpretare",
+        "template_placeholder": "Introduceți șablonul personalizat de mesaj",
+        "use_template_description": "Permiteți utilizarea unui șablon personalizat de mesaj și format.",
+        "use_template_label": "Folosește șablonul de mesaj"
+      },
+      "webhook": {
+        "additional_headers_description": "Adaugă antete HTTP personalizate la solicitarea webhook-ului.",
+        "additional_headers_label": "Antete suplimentare",
+        "custom_body_description": "Personalizați formatul corpului cererii. Variabile disponibile",
+        "custom_body_label": "Corpul personalizat",
+        "post_url_description": "URL‑ul punctului final al webhook‑ului către care vor fi trimise notificările.",
+        "post_url_label": "URL de POST",
+        "request_body_description_custom": "Definiți formatul personalizat al corpului de cerere mai jos.",
+        "request_body_description_form_data": "Conținutul va fi trimis ca multipart/form-data. Poți decodifica folosind <strong>json_decode($_POST['data'])</strong> în PHP.",
+        "request_body_description_json": "Conținutul va fi trimis ca JSON cu antetul “application/json”.",
+        "request_body_label": "Corpul cererii",
+        "request_body_placeholder": "Selectați tipul de conținut"
+      }
+    },
+    "important": "Notificări importante",
+    "important_notifications": "Notificări importante",
+    "labels": {
+      "friendly_name": "Nume prietenos",
+      "type": "Tip notificator"
+    },
+    "messages": {
+      "create_failed": "Eșec la crearea notificatorului",
+      "created_success": "Notificator creat cu succes",
+      "error_loading_notifier": "Eroare la încărcarea notificatorului",
+      "test_failed": "Trimiterea notificării de test a eșuat",
+      "test_success": "Notificarea de test a fost trimisă cu succes",
+      "update_failed": "Actualizarea notificatorului a eșuat",
+      "updated_success": "Notifier actualizat cu succes"
+    },
+    "new": {
+      "title": "Canal nou de notificare"
+    },
+    "no_important": "Nu există notificări importante.",
+    "placeholders": {
+      "select_type": "Selectează tipul de notificator"
+    },
+    "search_placeholder": "Căutați canalele de notificare după nume..."
+  },
+  "proxies": {
+    "delete_dialog": {
+      "description": "Această acțiune nu poate fi anulată. Aceasta va șterge permanent proxy-ul {{host}}:{{port}}.",
+      "title": "Ești sigur pe deplin?"
+    },
+    "edit": {
+      "page_name": "Editează proxy"
+    },
+    "empty_list": {
+      "action_text": "Creați primul proxy",
+      "text": "Începe prin crearea primei proxy pentru a o utiliza în monitorizările tale.",
+      "title": "Nu au fost găsite proxy-uri"
+    },
+    "form": {
+      "auth_label": "Serverul proxy necesită autentificare",
+      "port_placeholder": "Port",
+      "protocol_label": "Protocol proxy",
+      "protocol_placeholder": "Selectați protocolul proxy",
+      "server_label": "Server proxy",
+      "server_placeholder": "Adresa serverului",
+      "user": "Utilizator"
+    },
+    "messages": {
+      "create_failed": "Eșec la crearea proxy-ului",
+      "created_success": "Proxy creat cu succes",
+      "error_loading_proxy": "Eroare la încărcarea proxy-ului",
+      "update_failed": "Actualizarea proxy-ului a eșuat",
+      "updated_success": "Proxy actualizat cu succes"
+    },
+    "new": {
+      "page_name": "Proxy nou"
+    },
+    "page_name": "Proxy-uri",
+    "search_label": "Căutare",
+    "search_placeholder": "Caută proxy-uri după gazdă..."
+  },
+  "security": {
+    "enable_2fa": {
+      "form": {
+        "authenticator_code_label": "Cod de autentificare",
+        "authenticator_code_placeholder": "Introduceți codul de 6 cifre",
+        "current_password_label": "Parola curentă",
+        "current_password_placeholder": "Introduceți parola curentă",
+        "enable_2fa_button": "Activează 2FA"
+      },
+      "messages": {
+        "2fa_active": "2FA activă",
+        "2fa_disabled_successfully": "Autentificarea în doi pași a fost dezactivată cu succes",
+        "2fa_enabled_successfully": "Autentificarea în doi factori activată cu succes",
+        "account_is_protected_with_2fa": "Contul tău este protejat cu 2FA.",
+        "disable_2fa": "Dezactivează 2FA",
+        "enter_password_to_disable_2fa": "Introduceți parola pentru a dezactiva 2FA",
+        "failed_to_disable_2fa": "Eșec la dezactivarea 2FA",
+        "failed_to_verify_2fa_code": "Verificarea codului 2FA a eșuat",
+        "failed_to_verify_password": "Verificarea parolei sau inițierea configurării 2FA a eșuat",
+        "have_enabled_2fa": "Ai activat autentificarea în doi factori (2FA) pentru contul tău. Acest lucru adaugă un strat suplimentar de securitate.",
+        "or_enter_secret_manually": "Sau introduceți secretul manual",
+        "scan_qr_code_with_authenticator_app": "Scanează acest cod QR cu aplicația ta de autentificare",
+        "two_factor_authentication_enabled": "Autentificare în doi factori activată",
+        "user_email_not_found": "Adresa de e-mail a utilizatorului nu a fost găsită"
+      }
+    },
+    "page_name": "Securitate",
+    "update_password": {
+      "form": {
+        "confirm_new_password_label": "Confirmă noua parolă",
+        "confirm_new_password_placeholder": "Reintroduceți noua parolă",
+        "new_password_label": "Parola nouă",
+        "new_password_placeholder": "Introduceți o parolă nouă",
+        "old_password_label": "Parola veche",
+        "old_password_placeholder": "Introduceți parola curentă",
+        "update_password_button": "Actualizează parola"
+      },
+      "messages": {
+        "failed_to_update_password": "Nu s-a putut actualiza parola",
+        "password_updated_successfully": "Parola actualizată cu succes"
+      },
+      "title": "Actualizare parolă"
+    }
+  },
+  "sendgrid": {
+    "api_key_description": "Cheia API SendGrid. Poți crea una în contul tău SendGrid, sub Setări → Chei API. Asigură-te că are permisiunile \"Mail Send\".",
+    "api_key_label": "Cheie API",
+    "bcc_email_description": "Destinatari BCC. Separă mai multe adrese e-mail cu virgule.",
+    "bcc_email_label": "Email BCC (Opțional)",
+    "cc_email_description": "Destinatarii CC. Separă mai multe adrese de e-mail prin virgulă.",
+    "cc_email_label": "E-mail CC (Opțional)",
+    "from_email_description": "Adresa e‑mail a expeditorului. Aceasta trebuie să fie un expeditor verificat în contul dvs. SendGrid.",
+    "from_email_label": "E-mail de la",
+    "subject_description": "Linia de subiect pentru e-mail. Suportă șablonare Liquid.",
+    "subject_label": "Subiect personalizat (opțional)",
+    "subject_variables_label": "Variabile disponibile:",
+    "subject_variables_msg": "mesajul notificării",
+    "subject_variables_name": "numele serviciului",
+    "subject_variables_status": "status serviciu (UP/DOWN)",
+    "to_email_description": "Adresa de e‑mail a destinatarului principal. Pentru mai mulți destinatari, folosiți câmpurile CC sau BCC.",
+    "to_email_label": "E-mail destinatar"
+  },
+  "settings": {
+    "data_retention": {
+      "days_label": "Zile",
+      "description": "Setează câte zile să păstrezi datele (KEEP_DATA_PERIOD_DAYS).",
+      "title": "Perioada de păstrare a datelor"
+    },
+    "timezone": {
+      "description": "Selectați fusul orar preferat pentru afișarea tuturor orelor în aplicație.",
+      "label": "Fus orar",
+      "no_timezone_found": "Niciun fus orar găsit.",
+      "search_placeholder": "Caută fus orar...",
+      "select_placeholder": "Selectează fusul orar...",
+      "title": "Fus orar"
+    },
+    "validation": {
+      "min_days": "Trebuie să fie cel puțin 1 zi"
+    }
+  },
+  "status": {
+    "messages": {
+      "all_systems_operational": "Toate sistemele sunt operaționale",
+      "down": "Nefuncțional",
+      "last_updated": "Ultima actualizare",
+      "maintenance": "Întreținere",
+      "no_monitors_configured": "Niciun monitor configurat pentru această pagină de stare.",
+      "operational": "Operațional",
+      "partial_system_outage": "Întrerupere parțială a sistemului",
+      "powered_by": "Propulsat de",
+      "refresh_in": "Actualizare în",
+      "refresh_now": "Reîmprospătează acum",
+      "status_page_not_found": "Pagina de stare nu a fost găsită sau nu este publicată.",
+      "under_maintenance": "În întreținere",
+      "unknown": "Necunoscut"
+    }
+  },
+  "status_pages": {
+    "affected_monitors": "Monitoare afectate",
+    "affected_monitors_info": "Selectați monitoarele care vor fi afectate de această întreținere.",
+    "auto_refresh_interval": "Interval de reîmprospătare automată (secunde)",
+    "basic_information": "Informații de bază",
+    "create_status_page": "Creează pagină de stare",
+    "customization": "Personalizare",
+    "delete_dialog": {
+      "description": "Sunteți sigur că doriți să ștergeți \"{{title}}\"? Această acțiune nu poate fi anulată.",
+      "title": "Șterge pagina de stare"
+    },
+    "description": "Introduceți descrierea paginii de stare",
+    "domain_already_used": "Domeniul {{domain}} este deja utilizat de o altă pagină de stare",
+    "domain_host_warning": "Acest domeniu este același cu URL-ul gazdei curente. Acest lucru ar putea cauza conflicte.",
+    "domains": "Domenii",
+    "domains_info_warning": "Nu uita să adaugi înregistrările CNAME în DNS pentru fiecare domeniu.",
+    "draft_status": "Ciornă",
+    "edit_page_name": "Editează pagina de stare",
+    "messages": {
+      "create_description": "Creați o pagină de stare nouă pentru a partaja starea serviciului cu utilizatorii.",
+      "create_your_first_status_page": "Creați prima pagină de stare",
+      "created_successfully": "Pagina de stare creată cu succes",
+      "delete_failed": "Nu s-a putut șterge pagina de stare",
+      "deleted_successfully": "Pagina de stare a fost ștearsă cu succes",
+      "get_started_by_creating_your_first_status_page": "Începeți prin crearea primei pagini de stare.",
+      "no_status_pages_found": "Nu există pagini de stare",
+      "not_found": "Pagina de stare nu a fost găsită",
+      "update_description": "Actualizați setările și configurarea paginii de stare.",
+      "updated_successfully": "Pagina de stare actualizată cu succes"
+    },
+    "new_page_name": "Pagină nouă de stare",
+    "page_name": "Pagini de stare",
+    "published": "Publicat",
+    "published_info": "Publică această pagină de stare",
+    "published_status": "Publicat",
+    "search_label": "Căutare",
+    "search_placeholder": "Caută pagini de stare după titlu...",
+    "update_status_page": "Actualizează pagina de stare",
+    "view_page": "Vezi pagina"
+  },
+  "tags": {
+    "confirm_delete_description": "Acțiunea nu poate fi anulată. Aceasta va șterge permanent eticheta „{{name}}” și o va elimina de la toate monitoarele.",
+    "edit_page_name": "Editează eticheta",
+    "empty_state": {
+      "action": "Creați primul tag",
+      "description": "Începeți prin crearea primei etichete pentru a organiza monitoarele.",
+      "title": "Nu există etichete"
+    },
+    "form": {
+      "color_description": "Alegeți o culoare pentru eticheta dvs.",
+      "color_label": "Culoare",
+      "create_button": "Creează etichetă",
+      "description_label": "Descriere",
+      "description_placeholder": "Introduceți descrierea etichetei (opțional)",
+      "name_label": "Nume",
+      "name_placeholder": "Introduceți numele etichetei",
+      "update_button": "Actualizează eticheta"
+    },
+    "messages": {
+      "create_description": "Creați o etichetă nouă pentru a organiza și categoriza monitoarele dvs.",
+      "failed_to_load_tag": "Încărcarea etichetei a eșuat. Eticheta poate să nu existe sau nu aveți permisiunea de a o vizualiza.",
+      "tag_id_required": "Tag ID este obligatoriu",
+      "update_description": "Actualizează detaliile etichetei pentru a-ți organiza mai bine monitoarele."
+    },
+    "new_page_name": "Etichetă nouă",
+    "search_placeholder": "Căutare etichete..."
+  },
+  "theme": {
+    "dark": "Întunecat",
+    "light": "Luminos",
+    "system": "Sistem",
+    "toggle_theme": "Comută tema"
+  },
+  "timezone": {
+    "average": "Medie",
+    "last_24_hours": "Ultimele 24 de ore",
+    "last_3_hours": "Ultimele 3 ore",
+    "last_3_months": "Ultimele 3 luni",
+    "last_30_minutes": "Ultimele 30 de minute",
+    "last_6_hours": "Ultimele 6 ore",
+    "last_7_days": "Ultimele 7 zile",
+    "maximum": "Maxim",
+    "minimum": "Minim",
+    "ms": "ms",
+    "response_time": "Timp de răspuns",
+    "uptime": "Disponibilitate"
+  },
+  "ui": {
+    "general": "General",
+    "intervals_retries": "Intervale, Reîncercări, Timeout-uri"
+  }
+}

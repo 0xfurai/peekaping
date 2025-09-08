@@ -1,0 +1,1281 @@
+{
+  "actions": {
+    "cancel": "Mégse",
+    "saving": "Mentés..."
+  },
+  "auth": {
+    "login": {
+      "description": "Bejelentkezz e-mail címeddel",
+      "no_account": "Nincs fiókod?",
+      "sign_up": "Regisztrálj",
+      "submit": "Bejelentkezés",
+      "title": "Üdv újra"
+    },
+    "register": {
+      "description": "Hozd létre az adminisztrátori fiókodat",
+      "have_account": "Már van fiókod?",
+      "sign_in": "Bejelentkezés",
+      "submit": "Létrehoz",
+      "title": "Szia"
+    },
+    "twofa": {
+      "code_label": "2FA kód",
+      "code_placeholder": "Adja meg a 2FA kódot",
+      "description": "A 2FA engedélyezve van a fiókodhoz. Kérjük, add meg hitelesítő kódodat a folytatáshoz.",
+      "title": "Kétfaktoros hitelesítés szükséges",
+      "verify_button": "2FA ellenőrzése",
+      "verifying": "Ellenőrzés..."
+    }
+  },
+  "bars": {
+    "down_count": "Leállások száma",
+    "important": "Fontos",
+    "interval": "Intervallum",
+    "message": "Üzenet",
+    "ms": "maláj",
+    "notified": "Értesítve",
+    "ping": "Ping",
+    "retries": "Ismétlések",
+    "status": "Állapot",
+    "time": "Idő"
+  },
+  "common": {
+    "active": "Aktív",
+    "all": "Minden",
+    "back": "Vissza",
+    "cancel": "Mégse",
+    "clear_all": "Mindent töröl",
+    "clear_all_filters": "Minden szűrő törlése",
+    "confirm": "Megerősít",
+    "confirm_delete_title": "Biztos vagy benne?",
+    "confirm_delete_title_short": "Biztos benne?",
+    "continue": "Tovább",
+    "create": "Létrehozás",
+    "created": "Létrehozva",
+    "days": "napok",
+    "default": "Alapértelmezett",
+    "delete": "Töröl",
+    "disabling": "Tiltás...",
+    "dismiss": "Bezár",
+    "down": "Nem elérhető",
+    "enabling": "Engedélyezés...",
+    "error": "Hiba",
+    "expires": "Lejár",
+    "inactive": "Inaktív",
+    "loading": "Betöltés...",
+    "logout": "Kijelentkezés",
+    "maintenance": "Karbantartás",
+    "no_options_found": "Nem található opció",
+    "no_tags_available": "Nincs elérhető címke",
+    "please_refresh_page": "Kérjük, frissítse az oldalt.",
+    "required": "Kötelező",
+    "save": "Mentés",
+    "saving": "Mentés...",
+    "search": "Keresés",
+    "security": "Biztonság",
+    "select": "Válasszon",
+    "select_monitors": "Válasszon monitorokat...",
+    "select_tags": "Válassz címkéket",
+    "settings": "Beállítások",
+    "tags": "Címkék",
+    "unknown": "Ismeretlen",
+    "unnamed_monitor": "Névtelen monitor",
+    "up": "Fut",
+    "update": "Frissítés",
+    "verifying": "Ellenőrzés…"
+  },
+  "forms": {
+    "labels": {
+      "confirm_password": "Jelszó megerősítése",
+      "email": "E-mail",
+      "footer_text": "Lábléc szöveg",
+      "heartbeat_interval": "Szívverési időköz (másodperc)",
+      "icon_url": "Ikon URL",
+      "monitor_name": "Név",
+      "monitor_type": "Típus",
+      "password": "Jelszó",
+      "retries": "Ismétlések",
+      "slug": "Slug",
+      "title": "Cím",
+      "username": "Felhasználónév"
+    },
+    "placeholders": {
+      "auto_refresh_help": "0 a automatikus frissítés nélkül",
+      "domains": "Adja meg a domaint (pl. status.example.com)",
+      "footer_text": "Add meg a lábléc szövegét",
+      "icon_url": "https://example.com/icon.png",
+      "monitor_name": "Monitorom",
+      "page_description": "Írja be a státusz oldal leírását",
+      "page_title": "Adja meg a státuszlap címét",
+      "slug": "állapot-oldal-azonosító"
+    },
+    "validation": {
+      "email_invalid": "Kérjük, adjon meg egy érvényes e-mail címet.",
+      "password_min_length": "A jelszónak legalább 8 karakterből kell állnia",
+      "passwords_mismatch": "A jelszavak nem egyeznek"
+    }
+  },
+  "maintenance": {
+    "card": {
+      "aria": {
+        "delete": "{{title}} törlése",
+        "pause": "Karbantartás szüneteltetése",
+        "resume": "Karbantartás folytatása"
+      },
+      "labels": {
+        "duration": "{{duration}} perc",
+        "end": "Vége: {{date}}",
+        "start": "Kezdés: {{date}}"
+      },
+      "status": {
+        "active": "Aktív",
+        "ended": "Befejezett",
+        "inactive": "Inaktív"
+      }
+    },
+    "edit_title": "Karbantartás szerkesztése",
+    "form": {
+      "affected_monitors_description": "Válaszd ki azokat a monitorokat, amelyekre ez a karbantartás hatással lesz.",
+      "affected_monitors_title": "Érintett figyelők",
+      "cron_description": "Adjon meg érvényes cron kifejezést",
+      "cron_expression": "Cron kifejezés",
+      "date_time_title": "Dátum és idő",
+      "day_of_month": "Hónap napja",
+      "day_of_week": "Nap a héten",
+      "description_label": "Leírás",
+      "description_placeholder": "Karbantartási leírás...",
+      "duration_minutes": "Időtartam (perc)",
+      "effective_date_range": "Hatályos dátumtartomány (opcionális)",
+      "end_date_time": "Befejezési dátum és idő",
+      "end_time": "Végidő",
+      "interval_label": "Intervallum (naponta egyszer)",
+      "last_day": "Utolsó nap",
+      "last_day_of_month": "Hónap utolsó napja",
+      "maintenance_time_window": "Napra vonatkozó karbantartási időablak",
+      "markdown_supported": "Markdown támogatott",
+      "same_as_server": "Azonos a szerver időzónájával",
+      "start_date_time": "Kezdő dátum és idő",
+      "start_time": "Kezdés időpontja",
+      "strategy_label": "Stratégia",
+      "strategy_placeholder": "Válassz stratégiát",
+      "timezone_label": "Időzóna",
+      "timezone_placeholder": "Válasszon időzónát",
+      "title_label": "Cím",
+      "title_placeholder": "Karbantartási cím"
+    },
+    "page": {
+      "clear_filters": "Szűrők törlése",
+      "dialogs": {
+        "confirm_action": {
+          "pause_description": "Biztos, hogy szüneteltetni szeretné ezt a karbantartást?",
+          "resume_description": "Biztos benne, hogy folytatni szeretné ezt a karbantartást?",
+          "title": "Megerősítés"
+        },
+        "confirm_delete": {
+          "description": "Biztos, hogy törölni szeretnéd ezt a karbantartási ablakot? Ez a művelet nem vonható vissza.",
+          "title": "Törlés megerősítése"
+        }
+      },
+      "edit_maintenance": "Karbantartás szerkesztése: {{title}}",
+      "empty_state": {
+        "action": "Hozd létre az első karbantartási ablakot",
+        "description": "Kezdje el az első karbantartási ablak létrehozásával a tervezett leállások elkerülése érdekében.",
+        "title": "Nincsenek karbantartási ablakok"
+      },
+      "error_loading": "Hiba a karbantartás betöltésekor",
+      "loading": "Betöltés...",
+      "loading_monitors": "Monitorok betöltése…",
+      "search_placeholder": "Keresés karbantartások..."
+    },
+    "page_title": "Karbantartási ablakok",
+    "schedule_title": "Karbantartás ütemezése",
+    "strategy": {
+      "cron": "Cron kifejezés",
+      "manual": "Manuálisan aktív/inaktív",
+      "recurring_day_of_month": "Ismétlő - Hónap napja",
+      "recurring_interval": "Ismétlődik - Intervallum",
+      "recurring_weekday": "Ismétlő - Heti nap",
+      "single": "Egyszeres karbantartási ablak"
+    },
+    "toasts": {
+      "create_error": "Nem sikerült a karbantartás létrehozása",
+      "created_success": "Karbantartás sikeresen létrehozva",
+      "delete_error": "Karbantartás törlése sikertelen",
+      "deleted_success": "Karbantartás sikeresen törölve",
+      "pause_error": "Nem sikerült a karbantartás szüneteltetése",
+      "paused_success": "A karbantartás sikeresen szüneteltetve",
+      "resume_error": "Sikertelen a karbantartás folytatása",
+      "resumed_success": "Karbantartás sikeresen folytatódott",
+      "toggle_error": "Nem sikerült váltani a karbantartási állapotot: az ID hiányzik.",
+      "update_error": "Karbantartás frissítése nem sikerült",
+      "updated_success": "Karbantartás frissítve"
+    },
+    "weekdays": {
+      "fri": "Pén",
+      "mon": "Hét",
+      "sat": "Szo",
+      "sun": "Vasárnap",
+      "thu": "csüt",
+      "tue": "kedd",
+      "wed": "Sze"
+    }
+  },
+  "messages": {
+    "login_error": "Hiba történt a bejelentkezés során",
+    "login_no_tokens": "Bejelentkezés sikeres, de nem érkeztek tokenek",
+    "login_success": "Sikeres bejelentkezés",
+    "notifier_delete_error": "Nem sikerült törölni az értesítőt",
+    "notifier_delete_success": "A figyelő sikeresen törölve",
+    "register_error": "Regisztráció során hiba történt",
+    "register_no_tokens": "Regisztráció sikeres, de tokeneket nem kaptunk.",
+    "register_success": "Regisztráció sikeres",
+    "setting_update_error": "A beállítás frissítése nem sikerült",
+    "setting_update_success": "Beállítás sikeresen frissítve",
+    "tag_create_error": "Címke létrehozása sikertelen",
+    "tag_create_success": "Címke sikeresen létrehozva",
+    "tag_delete_error": "Címke törlése nem sikerült.",
+    "tag_delete_success": "Címke sikeresen törölve",
+    "tag_update_error": "Címke frissítése sikertelen",
+    "tag_update_success": "Címke sikeresen frissítve",
+    "unexpected_error": "Váratlan hiba történt",
+    "version_mismatch": "Verzióeltérés észlelve"
+  },
+  "monitors": {
+    "card": {
+      "check_interval": "Ellenőrzési időköz:",
+      "loading_more": "Több betöltése..."
+    },
+    "empty_state": {
+      "action": "Hozd létre az első figyelődet",
+      "description": "Kezdje el az első monitor létrehozásával, hogy nyomon kövesse a szolgáltatásainak egészségét.",
+      "title": "Nem találhatók monitorok"
+    },
+    "filtering_by_tags": "Címke szerinti szűrés",
+    "filters": {
+      "monitor_status": "Állapot",
+      "monitor_status_placeholder": "Monitor állapota",
+      "search_placeholder": "Keresés monitorok nevére…",
+      "status_placeholder": "Állapot"
+    },
+    "form": {
+      "buttons": {
+        "copied": "Másolva!",
+        "copy": "Másol",
+        "create": "Létrehozás",
+        "regenerate": "Regenerál",
+        "update": "Frissítés"
+      },
+      "dns": {
+        "hostname": "Hosztnév",
+        "port": "Port",
+        "record_type": "Forrásbejegyzés típusa",
+        "record_type_placeholder": "Válasszon rekord típust",
+        "resolver_server": "Feloldó szerver",
+        "title": "DNS beállítások"
+      },
+      "docker": {
+        "ca_cert_description": "Illessze be a CA tanúsítványát PEM formátumban.",
+        "ca_certificate": "CA tanúsítvány (PEM)",
+        "client_cert_description": "Illessze be a kliens tanúsítványát PEM formátumban. Ezt használja a kölcsönös TLS hitelesítéshez.",
+        "client_certificate": "Ügyfél tanúsítvány (PEM)",
+        "client_private_key": "Kliens magánkulcs (PEM)",
+        "common_tls_issues": "Gyakori TLS-problémák:",
+        "connection_type": "Kapcsolat típusa",
+        "container_name_id": "Konténer neve/azonosító",
+        "disabled": "Letiltva",
+        "docker_container": "Docker konténer",
+        "docker_host": "Docker-szerver",
+        "enable_tls": "TLS engedélyezése",
+        "enabled": "Engedélyezve",
+        "examples": "Példák",
+        "hostname_mismatch": "x509: a tanúsítvány X-re érvényes, nem Y-re",
+        "hostname_mismatch_solution": "Győződj meg róla, hogy a hostname megegyezik a tanúsítvány SAN-jával, vagy tiltsd le a hitelesítést (nem ajánlott).",
+        "legacy_cert_error": "\"x509: a tanúsítvány a régi Common Name mezőre támaszkodik\":\"",
+        "legacy_cert_solution": "Adja hozzá a gazdagépnevet a tanúsítvány Subject Alternative Names (SAN) mezőjéhez.",
+        "mtls_note": "A kölcsönös TLS (mTLS) esetén mind az ügyfél tanúsítványát, mind a privát kulcsát meg kell adnia. A CA tanúsítványt a szerver tanúsítványának ellenőrzésére használják.",
+        "note": "Megjegyzés:",
+        "private_key_description": "Illessze be a privát kulcsát PEM formátumban. Tartsa biztonságban!",
+        "select_connection_type": "Kapcsolattípus kiválasztása",
+        "select_tls_option": "Válasszon TLS beállítást",
+        "select_verification_option": "Válasszon ellenőrzési opciót",
+        "skip_verification": "Hitelesítés kihagyása (biztonságtalan)",
+        "tls_configuration": "TLS konfiguráció",
+        "unknown_authority": "\"x509: tanúsítványt egy ismeretlen hatóság hitelesített:\"",
+        "unknown_authority_solution": "Adja meg a megfelelő CA tanúsítványt, amely aláírta a szerver tanúsítványát.",
+        "verify_certificates": "Tanúsítványok ellenőrzése",
+        "verify_tls": "TLS ellenőrzése"
+      },
+      "grpc": {
+        "body": "Testadat (JSON)",
+        "enable_tls": "TLS engedélyezése",
+        "enable_tls_description": "Használj biztonságos kapcsolatot (TLS/SSL)",
+        "invert_keyword": "Kulcsszó invertálása",
+        "invert_keyword_description": "A monitor \"UP\" állapotba kerül, ha a kulcsszó NINCS megtalálva",
+        "keyword": "Kulcsszó",
+        "keyword_description": "Keresd ezt a kulcsszót a válaszban",
+        "keyword_placeholder": "Opcionális kulcsszó a kereséshez",
+        "method_description": "Kis- és nagybetűérzékeny",
+        "method_placeholder": "Ellenőrizze",
+        "options_title": "gRPC beállítások",
+        "proto_content": "Protobuf tartalom",
+        "proto_method": "Protobuf módszer",
+        "proto_service_name": "Protobuf szolgáltatás neve",
+        "service_name_placeholder": "Egészség"
+      },
+      "http": {
+        "advanced": {
+          "accepted_status_codes": "Elfogadott állapotkódok",
+          "ignore_tls": "TLS/SSL hibák figyelmen kívül hagyása HTTPS webhelyekhez",
+          "ignore_tls_description": "TLS tanúsítvány érvényesítésének kihagyása. Használatkor óvatosan járjon el – ez a kapcsolat biztonságát csökkenti.",
+          "max_redirects": "Maximális átirányítások",
+          "max_redirects_description": "Legnagyobb átirányítások száma, amelyet követni kell (0-30). Állítsa 0-ra az átirányítások letiltásához.",
+          "title": "Haladó"
+        },
+        "authentication": {
+          "auth_header": "Hitelesítési fejléc",
+          "certificate": "Tanúsítvány",
+          "certificate_placeholder": "Tanúsítvány",
+          "client_id": "Ügyfélazonosító",
+          "client_id_placeholder": "Kliensazonosító",
+          "client_secret": "Ügyfél titkos kulcs",
+          "client_secret_placeholder": "Ügyfél titkos kulcs",
+          "domain": "Domain",
+          "domain_placeholder": "Domain",
+          "form_data_body": "Űrlapadat test",
+          "key": "Kulcs",
+          "key_placeholder": "Kulcs",
+          "method_label": "Hitelesítési mód",
+          "method_placeholder": "Válassza ki a hitelesítési típust",
+          "oauth_scope": "OAuth hatókör",
+          "oauth_scope_placeholder": "Opcionális: szóközzel elválasztott scopes listája",
+          "oauth_token_url": "OAuth token URL",
+          "oauth_token_url_placeholder": "OAuth token URL",
+          "title": "Hitelesítés",
+          "workstation": "Munkaállomás",
+          "workstation_placeholder": "Műhelygép"
+        },
+        "options": {
+          "body": "Tartalom",
+          "body_encoding": "Testkódolás",
+          "body_encoding_placeholder": "Válasszon testkódolást",
+          "form_example": "Példa űrlapadat",
+          "headers": "Fejlécek",
+          "json_example": "JSON példa",
+          "method": "Metódus",
+          "method_placeholder": "Válaszd ki a monitor típusát",
+          "select_encoding": "Válasszon testkódolást",
+          "select_method": "Módszer kiválasztása",
+          "text_example": "Példaszöveg:\nItt bármilyen egyszerű szöveg...",
+          "title": "HTTP beállítások",
+          "xml_example": "XML példa"
+        }
+      },
+      "http_json_query": {
+        "condition_label": "Feltétel",
+        "expected_value_label": "Várt érték",
+        "json_query_label": "JSON lekérdezési kifejezés",
+        "title": "JSON lekérdezési kifejezés"
+      },
+      "http_keyword": {
+        "invert_keyword_description": "Keresse a kulcsszó hiányát, a megjelenés helyett.",
+        "invert_keyword_label": "Kulcsszó visszafordítása",
+        "keyword_label": "Kulcsszó",
+        "keyword_validation_title": "Kulcsszó-ellenőrzés"
+      },
+      "kafka": {
+        "add_broker": "Broker hozzáadása",
+        "auto_topic_creation_description": "A termelő automatikusan hozza létre a témát, ha nem létezik",
+        "auto_topic_creation_label": "Automatikus téma létrehozás engedélyezése",
+        "brokers_description": "Kafka broker címeinek listája (host:port formátumban)",
+        "brokers_label": "Kafka brokerek",
+        "configuration_title": "Kafka konfiguráció",
+        "enable_ssl_description": "Használja az SSL/TLS titkosítást a kapcsolathoz",
+        "enable_ssl_label": "SSL/TLS engedélyezése",
+        "message_description": "A témahoz küldendő üzenet tartalma (JSON formátum javasolt)",
+        "message_label": "Üzenet",
+        "sasl_mechanism_description": "Válassza ki a SASL hitelesítési mechanizmust",
+        "sasl_mechanism_label": "SASL mechanizmus",
+        "sasl_mechanism_placeholder": "Válasszon SASL mechanizmust",
+        "sasl_password_description": "Jelszó a SASL hitelesítéshez",
+        "sasl_password_label": "SASL jelszó",
+        "sasl_password_placeholder": "jelszó",
+        "sasl_username_description": "Felhasználónév a SASL hitelesítéshez",
+        "sasl_username_label": "SASL felhasználónév",
+        "security_title": "Biztonság",
+        "topic_description": "A Kafka téma, ahová üzeneteket küldünk"
+      },
+      "mongodb": {
+        "command_description": "MongoDB parancs JSON formátumban, amelyet végrehajtanak. Ha nincs megadva, alapértelmezés szerint ping kerül futtatásra.",
+        "command_label": "Parancs (opcionális)",
+        "configuration_title": "MongoDB konfiguráció",
+        "connection_string_description": "MongoDB kapcsolati karakterlánc. Támogatja a szabványos (mongodb://) és a DNS seedlist (mongodb+srv://) formátumokat.",
+        "connection_string_label": "Kapcsolati karakterlánc",
+        "expected_value_description": "Olyan várható érték, amellyel a JSON útvonal eredményét összehasonlítjuk.",
+        "expected_value_label": "Várható érték (opcionális)",
+        "expected_value_placeholder": "várt érték",
+        "json_path_description": "JSON útvonal a válasz értékének kinyeréséhez. Használja a $ jelet a gyökérszinthez.",
+        "json_path_label": "JSON Path (Opcionális)"
+      },
+      "mqtt": {
+        "check_type_json_query": "JSON lekérdezés",
+        "check_type_keyword": "Kulcsszó",
+        "check_type_label": "MQTT ellenőrzés típusa",
+        "check_type_none": "Nincs (bármilyen üzenet)",
+        "check_type_placeholder": "Válassza ki az ellenőrzési típust",
+        "configuration_title": "MQTT-beállítás",
+        "expected_value_label": "Várt érték",
+        "hostname_label": "Hostnév",
+        "json_path_label": "JSON útvonal",
+        "password_label": "MQTT jelszó",
+        "password_placeholder": "Jelszó (opcionális)",
+        "port_label": "Port",
+        "success_keyword_label": "MQTT Siker kulcsszó",
+        "success_keyword_placeholder": "Siker jelző kulcsszó",
+        "username_label": "MQTT felhasználónév",
+        "username_placeholder": "Felhasználónév (opcionális)",
+        "validation": {
+          "expected_value_required": "A várt érték kötelező, ha az ellenőrzési típus json-query.",
+          "json_path_required": "JSON útvonal kötelező, ha a ellenőrzés típusa json-query",
+          "success_keyword_required": "Siker kulcsszó szükséges, ha az ellenőrzés típusa kulcsszó."
+        }
+      },
+      "mysql": {
+        "connection_string_examples": "Példák:",
+        "connection_string_label": "Kapcsolati karakterlánc",
+        "connection_title": "MySQL-kapcsolat",
+        "query_label": "Lekérdezés"
+      },
+      "ping": {
+        "data_size": "Adatmennyiség (byte)",
+        "host": "Hosztnév / IP",
+        "title": "Ping beállítások"
+      },
+      "postgres": {
+        "connection_string_label": "Kapcsolati karakterlánc",
+        "connection_title": "PostgreSQL kapcsolat",
+        "query_label": "Lekérdezés"
+      },
+      "push": {
+        "url_description": "Használja ezt az URL-t a szolgáltatásában a státusz bejelentésére. Küldjön HTTP kérést (POST/GET) erre az endpointra a szívverés küldéséhez.",
+        "url_title": "Push Monitor URL"
+      },
+      "rabbitmq": {
+        "documentation_link": "RabbitMQ dokumentáció",
+        "health_checks_description": "A monitor ellenőrzi a(z) {{code}} végpontot minden csomóponton, és UP állapotot ad vissza, ha valamely csomópont egészséges.",
+        "management_nodes_description": "Adja meg a RabbitMQ kezelőcsomópontok URL-jét, beleértve a protokollt és a portot. Például: https://node1.rabbitmq.com:15672",
+        "management_nodes_title": "Kezelőcsomópontok",
+        "node_url_label": "Csomópont URL",
+        "password_description": "Jelszó a RabbitMQ adminisztrációs felületének hitelesítéséhez",
+        "setup_information_description": "A RabbitMQ monitor használatához engedélyeznie kell a Management Plugin-t a RabbitMQ-beállításainál. További információkért kérjük, tekintse meg a RabbitMQ dokumentációját.",
+        "setup_information_title": "Beállítási adatok",
+        "title": "RabbitMQ konfiguráció",
+        "username_description": "Felhasználónév a RabbitMQ kezelőfelület hitelesítéséhez"
+      },
+      "redis": {
+        "ca_certificate_description": "Gyökér CA tanúsítvány PEM formátumban. Szükséges a megfelelő TLS ellenőrzéshez önaláírt tanúsítványokkal.",
+        "ca_certificate_label": "CA tanúsítvány (Opcionális)",
+        "client_certificate_description": "PEM formátumú ügyfél tanúsítvány. Kötelező a kétirányú TLS hitelesítéshez.",
+        "client_certificate_label": "Ügyfél tanúsítvány (opcionális)",
+        "client_key_description": "Kliens magánkulcsa PEM formátumban. Társként a kliens tanúsítványt is meg kell adni.",
+        "client_key_label": "Ügyfél privát kulcs (opcionális)",
+        "connection_string_description": "Redis csatlakozási karakterlánc formátuma: {{redis}} vagy {{rediss}} TLS esetén",
+        "connection_string_label": "Kapcsolati karakterlánc",
+        "ignore_tls_description": "TLS tanúsítvány ellenőrzésének kihagyása (nem ajánlott termelésben)",
+        "ignore_tls_label": "TLS/SSL hibák figyelmen kívül hagyása",
+        "title": "Redis konfiguráció"
+      },
+      "shared": {
+        "intervals": {
+          "heartbeat_retry": "Szívverés újrapróbálkozási intervallum (újrapróbálkozás minden {{seconds}} másodpercben)",
+          "max_retries_description": "A szolgáltatás leállásáig és értesítés küldéséig maximális újrapróbálkozások száma",
+          "request_timeout": "Kérés időtúllépés ({{seconds}} másodperc után)",
+          "resend_notification": "Értesítés újraküldése, ha X alkalommal egymás után le van (újraküldés letiltva)"
+        },
+        "notifications": {
+          "add_notifier": "Értesítő hozzáadása",
+          "new_notifier": "+ Új Értesítő",
+          "no_channels": "Nem találhatók értesítési csatornák, hozzon létre egyet először",
+          "no_channels_available": "Nincs elérhető csatorna",
+          "select_channel": "Csatorna kiválasztása",
+          "select_notifier_placeholder": "Válasszon értesítőt",
+          "selected_channels": "Kiválasztott értesítési csatornák",
+          "title": "Értesítési csatornák"
+        },
+        "proxy": {
+          "add_proxy": "Proxy hozzáadása",
+          "new_proxy": "+ Új proxy",
+          "no_proxy": "Nincs proxy",
+          "remove_proxy": "Proxy eltávolítása",
+          "select_proxy_placeholder": "Proxy kiválasztása",
+          "selected_proxy": "Kiválasztott Proxy",
+          "title": "Proxy"
+        },
+        "tags": {
+          "label": "Címkék",
+          "no_tags": "Nincs elérhető címke",
+          "placeholder": "Válassz címkéket"
+        }
+      },
+      "snmp": {
+        "community_description": "Az SNMP közösségi karakterlánc a hitelesítéshez (mint egy jelszó)",
+        "community_label": "Közösségi sztring",
+        "expected_value_description": "Az összehasonlítandó érték. Üresen hagyva a validálás kihagyásához.",
+        "expected_value_label": "Elvárt érték",
+        "host_description": "A SNMP-t támogató eszköz hosztnév vagy IP-címe",
+        "host_label": "Gép",
+        "json_path_description": "JSONPath kifejezés a válasz értékének kinyeréséhez (használja a \"$\" jelet a nyers értékhez)",
+        "json_path_label": "JSON útvonal",
+        "json_path_operator_description": "Hogyan hasonlítsuk össze a kinyert értéket a várt értékkel",
+        "json_path_operator_eq": "egyenlő",
+        "json_path_operator_ge": "nagyobb vagy egyenlő",
+        "json_path_operator_gt": "nagyobb mint",
+        "json_path_operator_label": "Feltétel",
+        "json_path_operator_le": "kevesebb vagy egyenlő",
+        "json_path_operator_lt": "kisebb",
+        "json_path_operator_ne": "nem egyenlő",
+        "oid_description": "A lekérdezendő SNMP objektumazonosító (pl. 1.3.6.1.2.1.1.1.0 a rendszer leírásához)",
+        "oid_label": "OID (Objektumazonosító)",
+        "port_description": "Az SNMP port (alapértelmezett: 161)",
+        "port_label": "Port",
+        "snmp_version_description": "Az SNMP protokoll verziója, amelyet használni kell",
+        "snmp_version_label": "SNMP-verzió",
+        "title": "SNMP beállítások",
+        "value_validation_label": "Értékellenőrzés (opcionális)"
+      },
+      "sqlserver": {
+        "allowed_statements_description": "SELECT, SHOW, DESCRIBE, EXPLAIN, WITH, és VALUES.",
+        "allowed_statements_label": "Engedélyezett utasítások:",
+        "connection_string_label": "Kapcsolati sztring",
+        "query_description": "Egészségellenőrzéshez futtatandó lekérdezés. Hagyja üresen az alapértelmezett használatához.",
+        "query_label": "Lekérdezés",
+        "title": "Microsoft SQL Server kapcsolat"
+      },
+      "tcp": {
+        "host": "Gazda",
+        "port": "Port",
+        "title": "TCP kapcsolat"
+      },
+      "type": {
+        "dns": "DNS ellenőrző",
+        "docker": "Docker konténer",
+        "grpc": "gRPC Kulcsszófigyelő",
+        "http": "HTTP(S) figyelő",
+        "kafka": "Kafka Termelő Monitor",
+        "mongodb": "MongoDB adatbázis monitor",
+        "mqtt": "MQTT Broker figyelő",
+        "mysql": "MySQL/MariaDB monitor",
+        "ping": "Ping-figyelő (ICMP)",
+        "postgres": "PostgreSQL adatbázis-figyelő",
+        "push": "Push Monitor (a külső szolgáltatás hív egy generált URL-t)",
+        "rabbitmq": "RabbitMQ monitorozó",
+        "redis": "Redis adatbázis monitor",
+        "snmp": "SNMP-figyelő",
+        "sqlserver": "Microsoft SQL Server figyelő",
+        "tcp": "TCP port figyelő"
+      }
+    },
+    "page": {
+      "description": "Hozzon létre egy új monitort, hogy elkezdje nyomon követni weboldala teljesítményét.",
+      "edit_title": "Monitor szerkesztése:",
+      "new_title": "Új monitor"
+    },
+    "title": "Monitorok",
+    "toasts": {
+      "deleted": "Figyelő törölve",
+      "paused": "Megfigyelés szünetelve",
+      "reset_success": "Monitor adatai sikeresen visszaállítva",
+      "resumed": "Monitor folytatva"
+    },
+    "view": {
+      "buttons": {
+        "clone": "Klónozás",
+        "delete": "Törlés",
+        "edit": "Szerkesztés",
+        "pause": "Szünet",
+        "reset_data": "Adatok visszaállítása",
+        "resume": "Folytatás"
+      },
+      "certificate": "Tanúsítvány",
+      "check_every": "Ellenőrizze minden",
+      "current_status": "Jelenlegi állapot",
+      "dialogs": {
+        "delete": {
+          "description": "Ez a művelet nem visszavonható. A monitor és minden kapcsolódó adat véglegesen törlődik.",
+          "title": "Biztos vagy benne?"
+        },
+        "pause": {
+          "description": "Biztos, hogy szüneteltessük?",
+          "title": "Megerősítés"
+        },
+        "reset": {
+          "description": "Ez véglegesen törli a szívverési előzményeket és az uptime statisztikákat ehhez a monitorhoz. A monitor úgy fog kinézni, mintha most hozták volna létre. Ezt a műveletet nem lehet visszavonni.",
+          "title": "Monitoradatok visszaállítása"
+        }
+      },
+      "expiring_soon": "Szorosan lejár",
+      "for": "höz",
+      "live_status": "Élő állapot",
+      "monitor_for": "Figyelés",
+      "no_certificate_data": "Nincs tanúsítvány adat",
+      "seconds": "másodperc",
+      "stats": {
+        "last_24_hours": "Utolsó 24 óra",
+        "last_30_days": "Utolsó 30 nap",
+        "last_365_days": "Utolsó 365 nap",
+        "last_7_days": "Az elmúlt 7 nap"
+      },
+      "status": {
+        "down": "Leáll",
+        "maintenance": "Karbantartás",
+        "paused": "Szünetelve",
+        "up": "Elérhető"
+      }
+    }
+  },
+  "navigation": {
+    "maintenance": "Karbantartás",
+    "monitors": "Figyelők",
+    "notification_channels": "Értesítési csatornák",
+    "proxies": "Proxik",
+    "settings": "Beállítások",
+    "status_pages": "Állapotlapok",
+    "tags": "Címkék"
+  },
+  "notifications": {
+    "actions": {
+      "test": "Teszt",
+      "testing": "Tesztelés…"
+    },
+    "aria": {
+      "delete": "Töröld {{name}}"
+    },
+    "confirm_delete_description": "Ez a művelet nem vonható vissza. A '{{name}}' figyelőt véglegesen törli, és eltávolítja azt minden monitorból, amely használja.",
+    "create_title": "Értesítő létrehozása",
+    "edit_channel_title": "Értesítési csatorna szerkesztése",
+    "edit_title": "Értesítő szerkesztése",
+    "empty_state": {
+      "action": "Hozd létre első értesítési csatornád",
+      "description": "Kezdje el az első értesítési csatorna létrehozásával, hogy figyelmeztetéseket küldhessen csapatába.",
+      "title": "Nem találhatók értesítési csatornák"
+    },
+    "form": {
+      "discord": {
+        "bot_display_name_description": "Az a név, amely a Discord üzenetek feladójaként fog megjelenni.",
+        "bot_display_name_label": "Bot megjelenítési név",
+        "custom_message_prefix_description": "Opcionális előtag, amely minden üzenet elejéhez lesz hozzáadva.",
+        "custom_message_prefix_label": "Egyéni üzenet előtag",
+        "custom_message_prefix_placeholder": "Opcionális: Adj előtagot az üzenetedhez.",
+        "forum_post_name_description": "Az új fórumbejegyzés neve, amely létrejön.",
+        "forum_post_name_label": "Fórum poszt neve",
+        "forum_post_name_placeholder": "Adja meg a fórumposzt nevét",
+        "sending_message_to_channel": "Küldés a csatornára",
+        "sending_message_to_description": "Válassza ki, hova küldje a Discord üzeneteket.",
+        "sending_message_to_label": "Üzenet küldése ide",
+        "sending_message_to_new_forum_post": "Küldés új fórumposztra",
+        "sending_message_to_placeholder": "Válassz üzenet típust",
+        "sending_message_to_thread": "Küldés szálba",
+        "setup_webhook_description_1": "Szerezd meg a webhook URL-t a Discord szerver beállításai → Integrációk → Webhooks.",
+        "setup_webhook_description_2": "Hozzon létre egy új webhookot, és másolja ki az URL-t. Győződjön meg róla, hogy a megfelelő csatornát választotta.",
+        "setup_webhook_title": "Discord Webhook beállítása",
+        "thread_id_description_1": "Kapcsolja be a Fejlesztői módot a Discord Felhasználói beállítások → Haladó → Fejlesztői mód",
+        "thread_id_description_2": "Kattintson jobb egérgombbal a szálra vagy a bejegyzésre, és válassza a „Szál azonosító másolása” vagy a „Csatorna azonosító másolása” lehetőséget.",
+        "thread_id_description_title": "A szál vagy fórumposzt azonosítója, ahová az üzeneteket küldeni fogjuk",
+        "thread_id_label": "Szálazonosító",
+        "thread_id_placeholder": "Adja meg a szál vagy bejegyzés azonosítóját",
+        "webhook_url_label": "Discord webhook URL"
+      },
+      "google_chat": {
+        "more_info_about_webhooks": "További információ a Webhookokról",
+        "webhook_url_label": "Google Chat Webhook URL"
+      },
+      "gotify": {
+        "application_token_description": "Az alkalmazás tokenje a Gotify alkalmazásodból. A webes felületeden az Alkalmazások alatt találhatod.",
+        "application_token_label": "Alkalmazás token",
+        "custom_message_description": "Egyéni üzenetsablon. Elérhető változók.",
+        "custom_message_description_2": "Hagyd üresen, hogy az alapértelmezett üzenet kerüljön használatra.",
+        "custom_message_label": "Egyéni üzenet",
+        "custom_title_description": "Az értesítés egyéni címe. Elérhető változók: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Hagyja üresen a \"Peekaping\" alapértelmezett cím használatához.",
+        "custom_title_label": "Egyéni cím",
+        "learn_more_label": "Tudjon meg többet a Gotify-ről, és arról, hogyan állítsa be:",
+        "note_description": "Gotify szervernek futnia kell az integráció használatához.",
+        "note_label": "Megjegyzés:",
+        "priority_0": "Legalacsonyabb",
+        "priority_1": "Nagyon alacsony",
+        "priority_10": "Legmagasabb",
+        "priority_2": "Alacsony",
+        "priority_3": "Alacsony",
+        "priority_4": "Normál",
+        "priority_5": "Normál felett",
+        "priority_6": "Mérsékelt",
+        "priority_7": "Magas",
+        "priority_8": "Nagyon magas (Alapértelmezett)",
+        "priority_9": "Sürgős",
+        "priority_description": "Üzenet prioritása (0-10). A magasabb számok magasabb prioritást jelentenek. Az alapértelmezett érték 8.",
+        "priority_label": "Prioritás",
+        "priority_placeholder": "Válasszon prioritást",
+        "server_url_description": "A Gotify szerver URL-je. Győződj meg róla, hogy az elérhető az alkalmazásból.",
+        "server_url_label": "Szerver URL"
+      },
+      "grafana_oncall": {
+        "grafana_oncall_url_description": "Az Ön Grafana OnCall integrációjának webhook URL-je. Ezt a Grafana OnCall példányában az 'Értesítések & IRM > IRM > Integrációk > Webhook' menüben találja.",
+        "grafana_oncall_url_label": "Grafana OnCall URL",
+        "learn_more_label": "Tudjon meg többet a Grafana OnCall webhookekről"
+      },
+      "line": {
+        "channel_access_token_description": "A csatorna hozzáférési tokenjét a",
+        "channel_access_token_description_2": "Nyissa meg a csatorna beállításait, és keresse meg",
+        "channel_access_token_label": "Csatorna hozzáférési token (hosszú élettartamú)",
+        "channel_access_token_placeholder": "Írja be a LINE csatorna hozzáférési token-jét",
+        "template_description": "Testreszabja az üzenetformátumot. Elérhető változók.",
+        "template_label": "Üzenet sablon",
+        "template_placeholder": "Adja meg egyéni üzenet sablonját",
+        "user_id_description": "Az Ön felhasználóazonosítóját itt találja:",
+        "user_id_description_2": "Navigálj a csatorna beállításaihoz, és keresd meg",
+        "user_id_label": "Felhasználói azonosító",
+        "user_id_placeholder": "Adja meg a LINE felhasználói azonosítóját"
+      },
+      "matrix": {
+        "access_token_description": "A Matrix hitelesítéshez használandó hozzáférési token",
+        "access_token_label": "Hozzáférési token",
+        "custom_message_description": "Egyéni üzenet sablon. Elérhető változók",
+        "custom_message_label": "Egyéni üzenet",
+        "homeserver_url_description": "A Matrix házigazda URL-je",
+        "homeserver_url_label": "Házigazda URL",
+        "internal_room_id_description": "Az a belső szobaazonosító, ahova az értesítések kerülnek. Ennek '!' karakterrel kell kezdődnie, és így kell kinéznie: !roomid:matrix.org",
+        "internal_room_id_label": "Belső szobakód",
+        "setup_instructions_1": "Hozzon létre egy Matrix-fiókot a botjához (vagy használja meglévő fiókját)",
+        "setup_instructions_2": "Hozzon létre vagy csatlakozzon a szobához, ahol szeretné fogadni az értesítéseket",
+        "setup_instructions_3": "Szerezd meg a hozzáférési tokened a bejelentkezési kérelem elküldésével",
+        "setup_instructions_4": "A válasz tartalmazni fog egy access_token mezőt – használja ezt a hozzáférési tokenként.",
+        "setup_instructions_5": "Keresse meg a szobája belső azonosítóját ('!'-nel kezdődik) a Matrix kliens szoba beállításaiban.",
+        "setup_instructions_label": "Beállítási utasítások"
+      },
+      "mattermost": {
+        "channel_name_description": "Az a csatorna, ahová az értesítések kerülnek. Hagyja üresen, hogy a webhookban beállított alapértelmezett csatornát használja.",
+        "channel_name_label": "Csatorna neve",
+        "icon_emoji_cheat_sheet_label": "Emóji tippek",
+        "icon_emoji_description": "Az ikonként használandó emoji. Két emoji megadható szóközzel elválasztva (az első a \"friss\" állapothoz, a második a \"leállt\" állapothoz).",
+        "icon_emoji_label": "Ikon Emoji",
+        "icon_url_description": "Az értesítés üzenet ikonjaként használandó kép URL-je.",
+        "icon_url_label": "Ikon URL",
+        "learn_more_label": "További információ a webhookokról",
+        "message_template_description": "Testreszabhatod az üzenet formátumát. Elérhető változók",
+        "message_template_label": "Üzenet sablon",
+        "use_message_template_description": "Lehetővé teszi egyéni üzenetsablon és formátum használatát.",
+        "use_message_template_label": "Üzenetsablon használata",
+        "username_description": "A felhasználónév, amely a küldőként fog megjelenni az üzenetben.",
+        "webhook_url_label": "Webhook URL"
+      },
+      "ntfy": {
+        "authentication_type_basic": "Alap hitelesítés",
+        "authentication_type_basic_description": "Használja a felhasználónevet és jelszót az alapvető hitelesítéshez.",
+        "authentication_type_label": "Hitelesítési típus",
+        "authentication_type_none": "Nincs hitelesítés",
+        "authentication_type_none_description": "Hitelesítés nélkül. Alkalmas nyilvános NTFY szerverekhez.",
+        "authentication_type_placeholder": "Válasszon hitelesítési módot",
+        "authentication_type_token": "Token hitelesítés",
+        "authentication_type_token_description": "Használja a hozzáférési tokent az autentikációhoz.",
+        "custom_message_description": "Egyéni üzenet tartalma. Elérhető változók",
+        "custom_message_label": "Egyedi üzenet",
+        "password_required": "A jelszó szükséges az alapvető hitelesítéshez",
+        "priority_1": "Min (Legalacsonyabb)",
+        "priority_2": "Alacsony",
+        "priority_3": "Alapértelmezett",
+        "priority_4": "Magas",
+        "priority_5": "Sürgős (Legmagasabb)",
+        "priority_description": "Az értesítés prioritási szintje. Magasabb prioritások más viselkedést válthatnak ki a kliensnél.",
+        "priority_label": "Prioritás",
+        "priority_placeholder": "Válassz prioritást",
+        "server_url_description": "Az NTFY szerver URL-je. Használja az https://ntfy.sh címét a nyilvános példányhoz.",
+        "server_url_label": "Szerver URL",
+        "tags_description": "Vesszővel elválasztott címkék a figyelmeztetések kategorizálásához. Elérhető változók",
+        "tags_label": "Címkék",
+        "title_description": "Egyéni cím az értesítéshez. Elérhető változók",
+        "title_label": "Egyéni cím",
+        "token_description": "Az NTFY hozzáférési tokenje a hitelesítéshez.",
+        "token_label": "Hozzáférési token",
+        "token_required": "Token szükséges a token hitelesítéshez",
+        "topic_description": "Az értesítéseid témaneve. Ez lesz a csatorna, ahova az értesítések kerülnek.",
+        "topic_label": "Téma",
+        "username_required": "A felhasználónév kötelező az alapértelmezett hitelesítéshez."
+      },
+      "opsgenie": {
+        "api_key_label": "API kulcs",
+        "more_info_about_api_keys_label": "További információ az API-kulcsokról",
+        "priority_1": "Kritikus",
+        "priority_2": "Magas",
+        "priority_3": "Mérsékelt",
+        "priority_4": "Alacsony",
+        "priority_5": "Információs",
+        "priority_description": "Állítsa be a riasztások prioritás szintjét. Alapértelmezett érték: P3 (Közepes).",
+        "priority_label": "Prioritás",
+        "region_description": "Válassza ki Opsgenie régióját. Ez határozza meg, hogy melyik API végpontot használja.",
+        "region_label": "Régió",
+        "region_placeholder": "Válasszon régiót"
+      },
+      "pagerduty": {
+        "auto_resolve_acknowledge": "Automatikus elfogadás",
+        "auto_resolve_acknowledge_description": "Az esemény automatikus elismerése",
+        "auto_resolve_description": "Válassza ki, milyen műveletet hajtson végre, amikor egy monitor újra működésbe kerül",
+        "auto_resolve_do_nothing": "Semmit sem csinál",
+        "auto_resolve_do_nothing_description": "Nincs intézkedés az UP státuszra",
+        "auto_resolve_label": "Automatikus feloldás vagy megerősítés",
+        "auto_resolve_placeholder": "Válaszd ki az automatikus feloldás viselkedését",
+        "auto_resolve_resolve": "Automatikus feloldás",
+        "auto_resolve_resolve_description": "Az incidens automatikus lezárása",
+        "integration_key_description": "Tudja meg, hogyan szerezheti be az integrációs kulcsát",
+        "integration_key_label": "Integrációs kulcs",
+        "integration_key_placeholder": "Adja meg a PagerDuty integrációs kulcsát",
+        "integration_url_description": "A PagerDuty Events API v2 végpont URL-je. Alapértelmezés szerint a szabványos végpont használatos.",
+        "integration_url_label": "Integráció URL",
+        "learn_more_label": "PagerDuty dokumentáció",
+        "priority_critical": "Kritikus",
+        "priority_description": "A PagerDuty incidensek súlyossági szintje. Alapértelmezés szerint \"warning\".",
+        "priority_error": "Hiba",
+        "priority_info": "Információ",
+        "priority_label": "Prioritás",
+        "priority_placeholder": "Válasszon prioritási szintet",
+        "priority_warning": "Figyelmeztetés"
+      },
+      "pagertree": {
+        "authentication_token_description": "Opcionális hitelesítési token a biztonság fokozásához. Ez a pagertree-token fejlécben kerül elküldésre.",
+        "authentication_token_label": "Hitelesítési token (opcionális)",
+        "authentication_token_placeholder": "Adja meg a hitelesítési tokent, ha szükséges",
+        "auto_resolve_alerts_description": "Automatikusan feloldja a PagerTree riasztásokat, amikor a monitor helyreáll",
+        "auto_resolve_alerts_label": "Automatikus riasztások feloldása",
+        "how_to_get_integration_url_label": "Hogyan kapjuk meg az integrációs URL-t",
+        "integration_url_description": "Adja meg a PagerTree webhook integrációs URL-jét.",
+        "integration_url_label": "PagerTree Webhook URL",
+        "urgency_level_critical": "Kritikus",
+        "urgency_level_description": "Állítsa be a PagerTree-hez küldött riasztások alapértelmezett sürgősségi szintjét",
+        "urgency_level_high": "Magas",
+        "urgency_level_label": "Sürgősségi szint",
+        "urgency_level_low": "Alacsony",
+        "urgency_level_medium": "Közepes",
+        "urgency_level_placeholder": "Válassza ki a sürgősségi szintet",
+        "urgency_level_silent": "Némítva"
+      },
+      "pushbullet": {
+        "access_token": "Hozzáférési token",
+        "access_token_description": "Pushbullet hozzáférési tokenje. Szerezze meg innen",
+        "access_token_label": "Hozzáférési token",
+        "access_token_link": "Pushbullet beállításai",
+        "channel_tag": "Csatorna címke (opcionális)",
+        "channel_tag_description": "Pushbullet csatornára küldés eszközök helyett",
+        "channel_tag_label": "Csatorna címke (Opcionális)",
+        "custom_message_template": "",
+        "custom_message_template_description": "Testreszabhatja az értesítés törzsét sablonváltozókkal:",
+        "custom_message_template_heartbeat_ping": "Válaszidő",
+        "custom_message_template_heartbeat_time": "Időbélyeg",
+        "custom_message_template_label": "Egyéni üzenetsablon (opcionális)",
+        "custom_message_template_monitor_url": "Figyelő URL",
+        "custom_message_template_msg": "Figyelmeztető üzenet",
+        "custom_message_template_name": "Monitor neve",
+        "custom_message_template_placeholder": "Monitor: {{ name }}\nÁllapot: {{ status }}\nÜzenet: {{ msg }}",
+        "custom_message_template_status": "Jelenlegi állapot",
+        "device_id": "Eszközazonosító (Opcionális)",
+        "device_id_description": "Küldjön értesítést egy meghatározott eszközre. Hagyja üresen, hogy minden eszközre küldje. Eszközazonosítókat a következő módon találhatja meg:",
+        "device_id_label": "Eszközazonosító (opcionális)",
+        "device_id_link": "Pushbullet API",
+        "more_info_on": "További információ a(z) …:"
+      },
+      "pushover": {
+        "application_token_label": "Alkalmazás token",
+        "application_token_placeholder": "Adja meg a Pushover alkalmazás tokenjét",
+        "device_description": "Hagyja üresen, hogy minden eszközhöz küldje",
+        "device_label": "Eszköz",
+        "device_placeholder": "Eszköz neve (opcionális)",
+        "message_title_description": "Hagyja üresen a cím, ha az alapértelmezett címet szeretné használni.",
+        "message_title_label": "Üzenet címe",
+        "message_title_placeholder": "Egyéni üzenetcím (opcionális)",
+        "message_ttl_description": "Élettartam másodpercben (0 = nem jár le)",
+        "message_ttl_label": "Üzenet TTL",
+        "more_info_label": "További információ a:",
+        "more_info_label_2": "Létrehozhat egy alkalmazást, és megkaphatja API tokenjét itt",
+        "more_info_label_3": "A felhasználói kulcsod itt található:",
+        "notification_sound_down_description": "Hang a monitor leállásakor",
+        "notification_sound_down_label": "Értesítési hang - Leáll",
+        "notification_sound_down_placeholder": "Hang kiválasztása",
+        "notification_sound_up_description": "Hang a monitor visszatérésekor",
+        "notification_sound_up_label": "Értesítési hang - Fel",
+        "notification_sound_up_placeholder": "Hang kiválasztása",
+        "priority_1": "Legalacsonyabb",
+        "priority_2": "Alacsony",
+        "priority_3": "Normál",
+        "priority_4": "Magas",
+        "priority_5": "Vészhelyzet",
+        "priority_description": "Üzenet prioritási szint",
+        "priority_label": "Prioritás",
+        "priority_placeholder": "Válasszon priorítást",
+        "sound_alien": "Idegen",
+        "sound_bike": "Kerékpár",
+        "sound_bugle": "Kürt",
+        "sound_cashregister": "Pénztár",
+        "sound_classical": "Klasszikus",
+        "sound_climb": "Mászás",
+        "sound_cosmic": "Kósmikus",
+        "sound_echo": "Eko",
+        "sound_falling": "esés",
+        "sound_gamelan": "Gamelán",
+        "sound_incoming": "Bejövő",
+        "sound_intermission": "Intermisszió",
+        "sound_magic": "Varázslat",
+        "sound_mechanical": "Mechanikus",
+        "sound_none": "Nincs",
+        "sound_persistent": "Állandó",
+        "sound_pianobar": "Piano bár",
+        "sound_pushover": "Pushover (alapértelmezett)",
+        "sound_siren": "Sirén",
+        "sound_spacealarm": "Űri riasztás",
+        "sound_tugboat": "Hajózáró",
+        "sound_updown": "Fel-le",
+        "sound_vibrate": "Rántás",
+        "user_key_label": "Felhasználói kulcs",
+        "user_key_placeholder": "Add meg a Pushover felhasználói kulcsodat"
+      },
+      "signal": {
+        "custom_message_description": "Egyéni üzenetsablon. Elérhető változók",
+        "custom_message_label": "Egyéni üzenet",
+        "important_description": "Nem keverheted a csoportokat és a számokat a címzettekben!",
+        "important_label": "FONTOS:",
+        "more_info_label": "Ellenőrizze ezt az URL-t, hogy lássa, hogyan hozhat létre egyet:",
+        "note_description": "Signal kliens szükséges REST API-val.",
+        "note_label": "Megjegyzés:",
+        "number_description": "A Signal-fiókod telefonszáma (küldőszám).",
+        "number_label": "Szám",
+        "post_url_description": "A Signal CLI REST API szerverének URL-je.",
+        "post_url_label": "Poszt URL",
+        "recipients_description": "Vesszővel elválasztott telefonszámok listája, amelyre értesítéseket küldünk.",
+        "recipients_label": "Címzettek"
+      },
+      "slack": {
+        "channel_name_description": "Az a csatorna, ahová a üzenet kerül. Ha nem adja meg, az üzenet a webhookban beállított alapértelmezett csatornára kerül.",
+        "channel_name_description_2": "Az alapértelmezett csatornát felülbírálhatja csatorna név megadásával (pl. #alerts) vagy felhasználó megadásával (pl. @username).",
+        "channel_name_label": "Csatorna neve",
+        "channel_notify_description": "Ha engedélyezve van, az üzenet minden csatornamemberhez értesítéseket indít. Használja óvatosan a spam elkerülése érdekében.",
+        "channel_notify_label": "Csatorna értesítése",
+        "icon_emoji_cheat_sheet_label": "Emoji trükköskönyv",
+        "icon_emoji_description": "Az üzenet ikonjaként használandó emoji. Formátuma: :emoji_name:",
+        "icon_emoji_label": "Ikon Emoji",
+        "message_format_description": "Gazdag üzenetek küldése",
+        "message_format_description_2": "Engedélyezze a dús formázású, mellékletekkel ellátott és vizuálisan jobb megjelenítésű üzenetek küldését.",
+        "message_format_label": "Üzenet formátuma",
+        "username_description": "A felhasználónév, amely a küldőként jelenik meg az üzenetben. Ha nem ad meg, az alapértelmezett botnév lesz használva.",
+        "webhook_url_description": "A webhook URL a Slack integrációdhoz. Ezt a Slack példányodban az Integrációk > Webhookok alatt találhatod.",
+        "webhook_url_label": "Webhook URL"
+      },
+      "smtp": {
+        "custom_body_label": "Egyéni törzs",
+        "custom_description": "A sablonozás a <b>Liquid</b> sablonnyelv által valósul meg.",
+        "custom_description_2": "Kérjük, tekintse meg a dokumentációt a használati utasításokért.",
+        "custom_description_3": "Elérhető változók:",
+        "custom_description_4": "értesítés üzenete",
+        "custom_description_5": "szolgáltatás neve",
+        "custom_description_6": "Szolgáltatás állapota (FEL/LE/Tanúsítvány lejárati értesítések)",
+        "custom_subject_label": "Egyéni tárgy",
+        "smtp_from_label": "Feladó (Küldő e-mail)",
+        "smtp_host_description": "Adja meg a csatlakozni kívánt szerver hosztnevét, vagy a \"localhost\"-t, ha helyi levelező átviteli ügynököt szeretne használni.",
+        "smtp_host_label": "SMTP szerver",
+        "smtp_password_placeholder": "SMTP jelszó",
+        "smtp_port_label": "Port",
+        "smtp_to_label": "Címzett (e-mail cím(ek))",
+        "smtp_username_placeholder": "SMTP felhasználónév"
+      },
+      "telegram": {
+        "auto_get_label": "Automatikus lekérés",
+        "bot_token_description": "Szerezze meg a bot tokenjét innen",
+        "bot_token_label": "Bot token",
+        "chat_id_description": "A chat ID-t megkaphatod, ha üzenetet küldesz a botodnak, majd az \"Automatikus letöltés\" gombra kattintasz, vagy manuálisan a Telegram API-n keresztül.",
+        "chat_id_description_2": "Manuálisan beszerzéséhez látogassa meg a",
+        "chat_id_description_3": "Lásd",
+        "chat_id_description_4": "Telegram dokumentáció",
+        "chat_id_description_5": "További információért.",
+        "chat_id_label": "Csevegés azonosító",
+        "chat_id_not_found": "Chat ID nem található a legutóbbi frissítésben.",
+        "failed_to_fetch_chat_id": "Chat ID lekérdezése sikertelen",
+        "message_thread_id_description": "Opcionális. Ezt használhatod üzenetek küldésére egy konkrét szál (téma) a fórum szuperszuperszúrtban.",
+        "message_thread_id_label": "Üzenetszál azonosító",
+        "no_updates_found": "Nem találhatók frissítések. Kérjük, először küldj üzenetet a botodnak.",
+        "protect_content_description": "Ha engedélyezve van, az üzenet tartalma védve lesz az átküldéstől és mentéstől.",
+        "protect_content_label": "Tartalom védelme",
+        "send_silently_description": "Ha engedélyezett, a üzenetek csendben lesznek elküldve (a felhasználók értesítést kapnak hang nélkül).",
+        "send_silently_label": "Csendesen küld",
+        "server_url_description": "Az alapértelmezett",
+        "server_url_description_2": "Egyéni szervert is használhatsz. Lásd",
+        "server_url_description_3": "itt",
+        "server_url_description_4": "Részletekért.",
+        "server_url_label": "Telegram szerver URL",
+        "template_description": "Testreszabhatja az üzenet formátumát. Elérhető változók",
+        "template_label": "Üzenet sablon",
+        "template_parse_mode_description": "Válassza ki, hogyan kell feldolgozni az üzenetet. Lásd",
+        "template_parse_mode_description_2": "Telegram formázási dokumentáció",
+        "template_parse_mode_description_3": "Részletekért.",
+        "template_parse_mode_label": "Sablon-elemzés mód",
+        "template_parse_mode_placeholder": "Válaszd ki az értelmezési módot",
+        "template_placeholder": "Adja meg a saját üzenetsablonját",
+        "use_template_description": "Lehetővé teszi egy egyéni üzenet sablon és formátum használatát.",
+        "use_template_label": "Üzenetsablon használata"
+      },
+      "webhook": {
+        "additional_headers_description": "Adjon hozzá egyéni HTTP fejléceket a webhook kérésehez.",
+        "additional_headers_label": "További fejlécek",
+        "custom_body_description": "Testreszabhatja a kérés törzsének formátumát. Elérhető változók",
+        "custom_body_label": "Egyéni törzs",
+        "post_url_description": "A webhook végpont URL-je, ahova az értesítéseket küldjük.",
+        "post_url_label": "Bejegyzés URL",
+        "request_body_description_custom": "Adja meg a saját egyéni kérés törzs formátumát alább.",
+        "request_body_description_form_data": "A tartalom multipart/form-data formátumban lesz elküldve. PHP-ben dekódolhatod a <strong>json_decode($_POST['data'])</strong> használatával.",
+        "request_body_description_json": "A tartalom JSON-ként kerül elküldésre az \"application/json\" fejléccel.",
+        "request_body_label": "Kérelem törzs",
+        "request_body_placeholder": "Tartalomtípus kiválasztása"
+      }
+    },
+    "important": "Fontos értesítések",
+    "important_notifications": "Fontos értesítések",
+    "labels": {
+      "friendly_name": "Baráti név",
+      "type": "Értesítő típus"
+    },
+    "messages": {
+      "create_failed": "Nem sikerült a figyelő létrehozása",
+      "created_success": "Értesítő létrehozva sikeresen",
+      "error_loading_notifier": "Hiba az értesítő betöltésekor",
+      "test_failed": "Tesztértesítés küldése sikertelen",
+      "test_success": "Tesztértesítést sikeresen elküldtük",
+      "update_failed": "A figyelő frissítése nem sikerült",
+      "updated_success": "Értesítő sikeresen frissítve"
+    },
+    "new": {
+      "title": "Új értesítési csatorna"
+    },
+    "no_important": "Nem található fontos értesítés.",
+    "placeholders": {
+      "select_type": "Válasszon értesítő típust"
+    },
+    "search_placeholder": "Értesítési csatornák keresése név szerint..."
+  },
+  "proxies": {
+    "delete_dialog": {
+      "description": "Ezzel a művelettel nem lehet visszavonni. Ez véglegesen törli a proxyt {{host}}:{{port}}.",
+      "title": "Biztos vagy benne?"
+    },
+    "edit": {
+      "page_name": "Proxy szerkesztése"
+    },
+    "empty_list": {
+      "action_text": "Hozd létre az első proxy-t",
+      "text": "Kezdje el az első proxy létrehozásával, amit a monitorokban használhat.",
+      "title": "Nincs proxy"
+    },
+    "form": {
+      "auth_label": "A proxy szerver hitelesítést igényel",
+      "port_placeholder": "Port",
+      "protocol_label": "Proxy protokoll",
+      "protocol_placeholder": "Válasszon proxy protokollt",
+      "server_label": "Proxy szerver",
+      "server_placeholder": "Szerver cím",
+      "user": "Felhasználó"
+    },
+    "messages": {
+      "create_failed": "A proxy létrehozása sikertelen",
+      "created_success": "Proxy sikeresen létrehozva",
+      "error_loading_proxy": "Hiba a proxy betöltésekor",
+      "update_failed": "A proxy frissítése sikertelen",
+      "updated_success": "A Proxy sikeresen frissítve"
+    },
+    "new": {
+      "page_name": "Új proxy"
+    },
+    "page_name": "Proxyk",
+    "search_label": "Keresés",
+    "search_placeholder": "Keresés proxy host alapján..."
+  },
+  "security": {
+    "enable_2fa": {
+      "form": {
+        "authenticator_code_label": "Hitelesítő kód",
+        "authenticator_code_placeholder": "Írja be a 6 jegyű kódot",
+        "current_password_label": "Jelenlegi jelszó",
+        "current_password_placeholder": "Adja meg a jelenlegi jelszavát",
+        "enable_2fa_button": "2FA engedélyezése"
+      },
+      "messages": {
+        "2fa_active": "2FA aktív",
+        "2fa_disabled_successfully": "2FA sikeresen letiltva",
+        "2fa_enabled_successfully": "2FA sikeresen engedélyezve",
+        "account_is_protected_with_2fa": "A fiókod 2FA-val védett.",
+        "disable_2fa": "2FA letiltása",
+        "enter_password_to_disable_2fa": "Adja meg jelszavát a 2FA letiltásához",
+        "failed_to_disable_2fa": "Nem sikerült a 2FA letiltása.",
+        "failed_to_verify_2fa_code": "Nem sikerült ellenőrizni a 2FA kódot",
+        "failed_to_verify_password": "Sikertelen a jelszó ellenőrzése vagy a 2FA beállítása",
+        "have_enabled_2fa": "Engedélyezte a kétlépcsős hitelesítést (2FA) fiókjához. Ez egy extra biztonsági réteget biztosít.",
+        "or_enter_secret_manually": "Vagy adja meg ezt a titkos kulcsot manuálisan.",
+        "scan_qr_code_with_authenticator_app": "Olvassa be ezt a QR-kódot a hitelesítő alkalmazással.",
+        "two_factor_authentication_enabled": "Kétfaktoros hitelesítés engedélyezve",
+        "user_email_not_found": "Felhasználó e-mail címe nem található"
+      }
+    },
+    "page_name": "Biztonság",
+    "update_password": {
+      "form": {
+        "confirm_new_password_label": "Új jelszó megerősítése",
+        "confirm_new_password_placeholder": "Jelszó megismétlése",
+        "new_password_label": "Új jelszó",
+        "new_password_placeholder": "Adjon meg egy új jelszót",
+        "old_password_label": "Régi jelszó",
+        "old_password_placeholder": "Adja meg a jelenlegi jelszavát",
+        "update_password_button": "Jelszó frissítése"
+      },
+      "messages": {
+        "failed_to_update_password": "Nem sikerült a jelszó frissítése",
+        "password_updated_successfully": "Jelszó sikeresen frissítve"
+      },
+      "title": "Jelszó frissítése"
+    }
+  },
+  "sendgrid": {
+    "api_key_description": "A SendGrid API kulcsod. A SendGrid fiókodban a Beállítások → API kulcsok menüpont alatt hozhatsz létre egyet. Győződj meg róla, hogy a „Mail Send” jogosultságokkal rendelkezik.",
+    "api_key_label": "API kulcs",
+    "bcc_email_description": "Rejtett másolat címzettek. Több e-mail cím vesszővel kell elválasztani.",
+    "bcc_email_label": "BCC e-mail (opcionális)",
+    "cc_email_description": "Másolat címzettek. Több e-mail címet vesszővel válassza el.",
+    "cc_email_label": "CC e-mail (Opcionális)",
+    "from_email_description": "A feladó e-mail címe. A SendGrid fiókodban a feladónak hitelesítettnek kell lennie.",
+    "from_email_label": "Feladó e-mail",
+    "subject_description": "A levél tárgysora. Támogatja a Liquid sablonokat.",
+    "subject_label": "Egyéni tárgy (Opcionális)",
+    "subject_variables_label": "Elérhető változók:",
+    "subject_variables_msg": "Az értesítés üzenete",
+    "subject_variables_name": "szolgáltatás neve",
+    "subject_variables_status": "szolgáltatás állapota (FEL/LÁG)",
+    "to_email_description": "Elsődleges címzett e-mail címe. Több címzett esetén használja a CC vagy BCC mezőket.",
+    "to_email_label": "Címzett e-mail"
+  },
+  "settings": {
+    "data_retention": {
+      "days_label": "Napok",
+      "description": "Állítsa be, hogy hány napig tartsuk a adatokat (KEEP_DATA_PERIOD_DAYS).",
+      "title": "Adattartási időszak"
+    },
+    "timezone": {
+      "description": "Válassza ki a preferált időzónát az alkalmazásban megjelenő összes időpont megjelenítéséhez.",
+      "label": "Időzóna",
+      "no_timezone_found": "Nem található időzóna.",
+      "search_placeholder": "Időzóna keresése...",
+      "select_placeholder": "Válasszon időzónát...",
+      "title": "Időzóna"
+    },
+    "validation": {
+      "min_days": "Legalább 1 napnak kell lennie"
+    }
+  },
+  "status": {
+    "messages": {
+      "all_systems_operational": "Minden rendszer működik",
+      "down": "Nem elérhető",
+      "last_updated": "Utolsó frissítés",
+      "maintenance": "Karbantartás",
+      "no_monitors_configured": "Nincs monitor beállítva ehhez a státusz oldalhoz.",
+      "operational": "Működik",
+      "partial_system_outage": "Részleges rendszerleállás",
+      "powered_by": "Powered by",
+      "refresh_in": "Frissítés:",
+      "refresh_now": "Frissítés most",
+      "status_page_not_found": "A státuszlap nem található, vagy még nem publikált.",
+      "under_maintenance": "Karbantartás alatt",
+      "unknown": "Ismeretlen"
+    }
+  },
+  "status_pages": {
+    "affected_monitors": "Érintett monitorok",
+    "affected_monitors_info": "Válassza ki a fenntartás által érintett monitorokat",
+    "auto_refresh_interval": "Automatikus frissítés időköz (másodperc)",
+    "basic_information": "Alapvető információk",
+    "create_status_page": "Állapotlap létrehozása",
+    "customization": "Testreszabás",
+    "delete_dialog": {
+      "description": "Biztos benne, hogy törli a \"{{title}}\"? Ez a művelet nem vonható vissza.",
+      "title": "Állapotlap törlése"
+    },
+    "description": "Adja meg a státuszlap leírását",
+    "domain_already_used": "A(z) {{domain}} domain már egy másik státuszoldal által van használva.",
+    "domain_host_warning": "Ez a domain megegyezik a jelenlegi hosztnév URL-jével. Ez konfliktusokat okozhat.",
+    "domains": "Domainok",
+    "domains_info_warning": "Ne felejtsd el hozzáadni a CNAME rekordokat a DNS-hez minden domain-hez.",
+    "draft_status": "Piszkozat",
+    "edit_page_name": "Állapotoldal szerkesztése",
+    "messages": {
+      "create_description": "Hozzon létre egy új állapotlapot, amelyen megoszthatja szolgáltatásának állapotát a felhasználókkal.",
+      "create_your_first_status_page": "Készítsd el első állapotlapodat",
+      "created_successfully": "Állapotlap sikeresen létrehozva",
+      "delete_failed": "Nem sikerült a státuszoldal törlése.",
+      "deleted_successfully": "Státuszlap sikeresen törölve",
+      "get_started_by_creating_your_first_status_page": "Kezdje el az első állapotlap létrehozásával.",
+      "no_status_pages_found": "Nem találhatók állapotlapok",
+      "not_found": "Állapotoldal nem található",
+      "update_description": "Frissítse a státuszoldal beállításait és konfigurációját.",
+      "updated_successfully": "Állapotlap sikeresen frissítve"
+    },
+    "new_page_name": "Új státusz oldal",
+    "page_name": "Státuszoldalak",
+    "published": "Közzétéve",
+    "published_info": "Tedd elérhetővé ezt az állapotlapot nyilvánosan.",
+    "published_status": "Közzétéve",
+    "search_label": "Keresés",
+    "search_placeholder": "Keresés a státuszlapok címén...",
+    "update_status_page": "Állapotlap frissítése",
+    "view_page": "Oldal megtekintése"
+  },
+  "tags": {
+    "confirm_delete_description": "Ez a művelet nem vonható vissza. A \"{{name}}\" címke véglegesen törlődik, és minden monitorból eltávolításra kerül.",
+    "edit_page_name": "Címke szerkesztése",
+    "empty_state": {
+      "action": "Készítsd el első címkédet",
+      "description": "Kezdje azzal, hogy létrehozza első címkét a monitorok rendszerezéséhez.",
+      "title": "Nincsenek címkék"
+    },
+    "form": {
+      "color_description": "Válassz színt a címkéhez",
+      "color_label": "Szín",
+      "create_button": "Címke létrehozása",
+      "description_label": "Leírás",
+      "description_placeholder": "Címke leírása (opcionális)",
+      "name_label": "Név",
+      "name_placeholder": "Címke neve",
+      "update_button": "Címke frissítése"
+    },
+    "messages": {
+      "create_description": "Hozzon létre új címkét a monitorok szervezéséhez és kategorizálásához.",
+      "failed_to_load_tag": "Nem sikerült betölteni a címkét. A címke nem létezhet, vagy nincs jogosultságod a megtekintésére.",
+      "tag_id_required": "A címkeazonosító kötelező",
+      "update_description": "Frissítse a címke részleteit a monitorok jobb szervezése érdekében."
+    },
+    "new_page_name": "Új címke",
+    "search_placeholder": "Címkék keresése..."
+  },
+  "theme": {
+    "dark": "Sötét",
+    "light": "Világos",
+    "system": "Rendszer",
+    "toggle_theme": "Téma váltása"
+  },
+  "timezone": {
+    "average": "Átlag",
+    "last_24_hours": "Utolsó 24 óra",
+    "last_3_hours": "Utolsó 3 óra",
+    "last_3_months": "Utolsó 3 hónap",
+    "last_30_minutes": "Utolsó 30 perc",
+    "last_6_hours": "Utolsó 6 óra",
+    "last_7_days": "Utolsó 7 nap",
+    "maximum": "Maximum",
+    "minimum": "Minimum",
+    "ms": "ms",
+    "response_time": "Válaszidő",
+    "uptime": "Rendelkezésre állás"
+  },
+  "ui": {
+    "general": "Általános",
+    "intervals_retries": "Intervallumok, Ismétlések, Időkorlátok"
+  }
+}

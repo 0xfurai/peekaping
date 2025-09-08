@@ -1,0 +1,1281 @@
+{
+  "actions": {
+    "cancel": "ยกเลิก",
+    "saving": "กำลังบันทึก..."
+  },
+  "auth": {
+    "login": {
+      "description": "เข้าสู่ระบบด้วยอีเมลของคุณ",
+      "no_account": "ยังไม่มีบัญชี?",
+      "sign_up": "สมัคร",
+      "submit": "เข้าสู่ระบบ",
+      "title": "ยินดีต้อนรับกลับ"
+    },
+    "register": {
+      "description": "สร้างบัญชีผู้ดูแลระบบของคุณ",
+      "have_account": "มีบัญชีอยู่แล้ว?",
+      "sign_in": "เข้าสู่ระบบ",
+      "submit": "สร้าง",
+      "title": "สวัสดี"
+    },
+    "twofa": {
+      "code_label": "รหัส 2FA",
+      "code_placeholder": "กรอกรหัส 2FA",
+      "description": "2FA ได้เปิดใช้งานสำหรับบัญชีของคุณ กรุณากรอกรหัสยืนยันตัวตนของคุณเพื่อดำเนินการต่อ",
+      "title": "ยืนยันตัวตนแบบสองขั้นตอนจำเป็น",
+      "verify_button": "ยืนยัน 2FA",
+      "verifying": "กำลังตรวจสอบ..."
+    }
+  },
+  "bars": {
+    "down_count": "จำนวนการหยุดทำงาน",
+    "important": "สำคัญ",
+    "interval": "ช่วงเวลา",
+    "message": "ข้อความ",
+    "ms": "มลายู",
+    "notified": "ได้รับแจ้ง",
+    "ping": "ปิง",
+    "retries": "จำนวนครั้งที่ลองใหม่",
+    "status": "สถานะ",
+    "time": "เวลา"
+  },
+  "common": {
+    "active": "เปิดใช้งาน",
+    "all": "ทั้งหมด",
+    "back": "กลับ",
+    "cancel": "ยกเลิก",
+    "clear_all": "ล้างทั้งหมด",
+    "clear_all_filters": "ล้างตัวกรองทั้งหมด",
+    "confirm": "ยืนยัน",
+    "confirm_delete_title": "คุณแน่ใจจริงๆ ไหม?",
+    "confirm_delete_title_short": "คุณแน่ใจหรือไม่?",
+    "continue": "ดำเนินต่อ",
+    "create": "สร้าง",
+    "created": "สร้างแล้ว",
+    "days": "วัน",
+    "default": "ค่าเริ่มต้น",
+    "delete": "ลบ",
+    "disabling": "กำลังปิดใช้งาน...",
+    "dismiss": "ปิด",
+    "down": "หยุดทำงาน",
+    "enabling": "กำลังเปิดใช้งาน…",
+    "error": "ข้อผิดพลาด",
+    "expires": "หมดอายุ",
+    "inactive": "ไม่ใช้งาน",
+    "loading": "กำลังโหลด...",
+    "logout": "ออกจากระบบ",
+    "maintenance": "การบำรุงรักษา",
+    "no_options_found": "ไม่พบตัวเลือก",
+    "no_tags_available": "ไม่มีแท็กพร้อมใช้งาน",
+    "please_refresh_page": "กรุณารีเฟรชหน้านี้",
+    "required": "จำเป็น",
+    "save": "บันทึก",
+    "saving": "กำลังบันทึก…",
+    "search": "ค้นหา",
+    "security": "ความปลอดภัย",
+    "select": "เลือก",
+    "select_monitors": "เลือกตัวตรวจสอบ...",
+    "select_tags": "เลือกแท็ก",
+    "settings": "ตั้งค่า",
+    "tags": "แท็ก",
+    "unknown": "ไม่ทราบ",
+    "unnamed_monitor": "ตัวตรวจสอบที่ไม่มีชื่อ",
+    "up": "ออนไลน์",
+    "update": "อัปเดต",
+    "verifying": "กำลังตรวจสอบ..."
+  },
+  "forms": {
+    "labels": {
+      "confirm_password": "ยืนยันรหัสผ่าน",
+      "email": "อีเมล",
+      "footer_text": "ข้อความในส่วนท้าย",
+      "heartbeat_interval": "ระยะเวลาการสั่นหัวใจ (วินาที)",
+      "icon_url": "URL ไอคอน",
+      "monitor_name": "ชื่อ",
+      "monitor_type": "ประเภท",
+      "password": "รหัสผ่าน",
+      "retries": "จำนวนครั้งที่ลองใหม่",
+      "slug": "Slug",
+      "title": "หัวข้อ",
+      "username": "ชื่อผู้ใช้"
+    },
+    "placeholders": {
+      "auto_refresh_help": "0 หมายถึงไม่รีเฟรชอัตโนมัติ",
+      "domains": "ป้อนโดเมน (เช่น status.example.com)",
+      "footer_text": "ใส่ข้อความส่วนท้าย",
+      "icon_url": "https://example.com/icon.png",
+      "monitor_name": "มอนิเตอร์ของฉัน",
+      "page_description": "ใส่คำอธิบายหน้าสถานะ",
+      "page_title": "กรอกชื่อหน้าแสดงสถานะ",
+      "slug": "slug ของหน้าแสดงสถานะ"
+    },
+    "validation": {
+      "email_invalid": "กรุณาใส่อีเมลที่ถูกต้อง",
+      "password_min_length": "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร",
+      "passwords_mismatch": "รหัสผ่านไม่ตรงกัน"
+    }
+  },
+  "maintenance": {
+    "card": {
+      "aria": {
+        "delete": "ลบ {{title}}",
+        "pause": "พักการบำรุงรักษา",
+        "resume": "ต่อการบำรุงรักษา"
+      },
+      "labels": {
+        "duration": "{{duration}} นาที",
+        "end": "สิ้นสุด: {{date}}",
+        "start": "เริ่มต้น: {{date}}"
+      },
+      "status": {
+        "active": "เปิดใช้งาน",
+        "ended": "สิ้นสุด",
+        "inactive": "ไม่ใช้งาน"
+      }
+    },
+    "edit_title": "แก้ไขการบำรุงรักษา",
+    "form": {
+      "affected_monitors_description": "เลือกมอนิเตอร์ที่ได้รับผลกระทบจากการบำรุงรักษานี้",
+      "affected_monitors_title": "โมนิตอรที่ได้รับผลกระทบ",
+      "cron_description": "กรอก cron expression ให้ถูกต้อง",
+      "cron_expression": "นิพจน์ Cron",
+      "date_time_title": "วันที่และเวลา",
+      "day_of_month": "วันของเดือน",
+      "day_of_week": "วันในสัปดาห์",
+      "description_label": "คำอธิบาย",
+      "description_placeholder": "คำอธิบายการบำรุงรักษา...",
+      "duration_minutes": "ระยะเวลา (นาที)",
+      "effective_date_range": "ช่วงวันที่มีผล (ไม่จำเป็น)",
+      "end_date_time": "วันที่สิ้นสุด & เวลา",
+      "end_time": "เวลาสิ้นสุด",
+      "interval_label": "ช่วง (ทำงานเพียงครั้งเดียวทุกวัน)",
+      "last_day": "วันสุดท้าย",
+      "last_day_of_month": "วันสุดท้ายของเดือน",
+      "maintenance_time_window": "ช่วงเวลาการบำรุงรักษาต่อวัน",
+      "markdown_supported": "รองรับ Markdown",
+      "same_as_server": "ตรงกับเขตเวลาเซิร์ฟเวอร์",
+      "start_date_time": "วันที่เริ่มต้นและเวลา",
+      "start_time": "เวลาเริ่มต้น",
+      "strategy_label": "กลยุทธ์",
+      "strategy_placeholder": "เลือกกลยุทธ์",
+      "timezone_label": "เขตเวลา",
+      "timezone_placeholder": "เลือกเขตเวลา",
+      "title_label": "หัวข้อ",
+      "title_placeholder": "หัวข้อการบำรุงรักษา"
+    },
+    "page": {
+      "clear_filters": "ล้างกรองทั้งหมด",
+      "dialogs": {
+        "confirm_action": {
+          "pause_description": "คุณแน่ใจหรือไม่ว่าต้องการระงับการบำรุงรักษานี้?",
+          "resume_description": "คุณแน่ใจว่าต้องการดำเนินการต่อการบำรุงรักษานี้หรือไม่?",
+          "title": "ยืนยันการดำเนินการ"
+        },
+        "confirm_delete": {
+          "description": "คุณแน่ใจหรือไม่ว่าต้องการลบหน้าต่างบำรุงรักษานี้? การกระทำนี้ไม่สามารถยกเลิกได้.",
+          "title": "ยืนยันการลบ"
+        }
+      },
+      "edit_maintenance": "แก้ไขการบำรุงรักษา: {{title}}",
+      "empty_state": {
+        "action": "สร้างหน้าต่างบำรุงรักษาแรกของคุณ",
+        "description": "เริ่มต้นด้วยการสร้างหน้าต่างบำรุงรักษาแรกของคุณ เพื่อป้องกันการหยุดทำงานที่กำหนดล่วงหน้า",
+        "title": "ไม่พบหน้าต่างบำรุงรักษา"
+      },
+      "error_loading": "เกิดข้อผิดพลาดในการโหลดหน้าบำรุงรักษา",
+      "loading": "กำลังโหลด...",
+      "loading_monitors": "กำลังโหลดตัวตรวจสอบ…",
+      "search_placeholder": "ค้นหาการบำรุงรักษา..."
+    },
+    "page_title": "หน้าต่างบำรุงรักษา",
+    "schedule_title": "กำหนดเวลาบำรุงรักษา",
+    "strategy": {
+      "cron": "นิพจน์ Cron",
+      "manual": "เปิด/ปิดด้วยตนเอง",
+      "recurring_day_of_month": "ซ้ำ - วันในเดือน",
+      "recurring_interval": "ซ้ำ - ระยะเวลา",
+      "recurring_weekday": "เป็นประจำ - วันของสัปดาห์",
+      "single": "หน้าต่างบำรุงรักษาเดียว"
+    },
+    "toasts": {
+      "create_error": "ไม่สามารถสร้างการบำรุงรักษา",
+      "created_success": "บำรุงรักษาได้สร้างสำเร็จ",
+      "delete_error": "ไม่สามารถลบการบำรุงรักษาได้",
+      "deleted_success": "ลบการบำรุงรักษาเรียบร้อยแล้ว",
+      "pause_error": "ไม่สามารถหยุดการบำรุงรักษาได้",
+      "paused_success": "หยุดการบำรุงรักษาเรียบร้อยแล้ว",
+      "resume_error": "ไม่สามารถดำเนินการต่อการบำรุงรักษา",
+      "resumed_success": "บำรุงรักษาเริ่มทำงานต่อสำเร็จ",
+      "toggle_error": "ไม่สามารถสลับสถานะการบำรุงรักษาได้: ID ไม่พบ",
+      "update_error": "ไม่สามารถอัปเดตการบำรุงรักษาได้",
+      "updated_success": "อัปเดตการบำรุงรักษาเรียบร้อยแล้ว"
+    },
+    "weekdays": {
+      "fri": "ศุกร์",
+      "mon": "จ.",
+      "sat": "เสาร์",
+      "sun": "อา.",
+      "thu": "พฤ",
+      "tue": "อังคาร",
+      "wed": "พ"
+    }
+  },
+  "messages": {
+    "login_error": "เกิดข้อผิดพลาดขณะเข้าสู่ระบบ",
+    "login_no_tokens": "ล็อกอินสำเร็จแต่ไม่ได้รับโทเค็น",
+    "login_success": "เข้าสู่ระบบสำเร็จ",
+    "notifier_delete_error": "ไม่สามารถลบ notifier ได้",
+    "notifier_delete_success": "ลบตัวแจ้งเตือนสำเร็จ",
+    "register_error": "เกิดข้อผิดพลาดระหว่างการลงทะเบียน",
+    "register_no_tokens": "ลงทะเบียนสำเร็จแต่ไม่ได้รับโทเค็น",
+    "register_success": "ลงทะเบียนสำเร็จ",
+    "setting_update_error": "ไม่สามารถอัปเดตการตั้งค่าได้",
+    "setting_update_success": "ตั้งค่าอัปเดตสำเร็จ",
+    "tag_create_error": "ไม่สามารถสร้างแท็กได้",
+    "tag_create_success": "สร้างแท็กสำเร็จ",
+    "tag_delete_error": "ไม่สามารถลบแท็กได้",
+    "tag_delete_success": "ลบแท็กสำเร็จ",
+    "tag_update_error": "ไม่สามารถอัปเดตแท็กได้",
+    "tag_update_success": "แท็กอัปเดตสำเร็จ",
+    "unexpected_error": "เกิดข้อผิดพลาดที่ไม่คาดคิด",
+    "version_mismatch": "ตรวจพบความไม่ตรงกันของเวอร์ชัน"
+  },
+  "monitors": {
+    "card": {
+      "check_interval": "ช่วงเวลาตรวจสอบ:",
+      "loading_more": "กำลังโหลดเพิ่มเติม..."
+    },
+    "empty_state": {
+      "action": "สร้างมอนิเตอร์แรกของคุณ",
+      "description": "เริ่มต้นด้วยการสร้างตัวตรวจสอบแรกเพื่อดูสุขภาพของบริการของคุณ",
+      "title": "ไม่พบตัวตรวจสอบ"
+    },
+    "filtering_by_tags": "กรองโดยแท็ก",
+    "filters": {
+      "monitor_status": "สถานะ",
+      "monitor_status_placeholder": "สถานะการเฝ้าระวัง",
+      "search_placeholder": "ค้นหาเครื่องมือตรวจสอบตามชื่อ...",
+      "status_placeholder": "สถานะ"
+    },
+    "form": {
+      "buttons": {
+        "copied": "คัดลอกแล้ว",
+        "copy": "คัดลอก",
+        "create": "สร้าง",
+        "regenerate": "สร้างใหม่",
+        "update": "อัปเดต"
+      },
+      "dns": {
+        "hostname": "ชื่อโฮสต์",
+        "port": "พอร์ต",
+        "record_type": "ประเภทบันทึกทรัพยากร",
+        "record_type_placeholder": "เลือกประเภทเรคอร์ด",
+        "resolver_server": "เซิร์ฟเวอร์แก้ไข",
+        "title": "ตั้งค่า DNS"
+      },
+      "docker": {
+        "ca_cert_description": "วางใบรับรอง CA ของคุณในรูปแบบ PEM",
+        "ca_certificate": "ใบรับรอง CA (PEM)",
+        "client_cert_description": "วางใบรับรองลูกค้าของคุณในรูปแบบ PEM. ใช้สำหรับการยืนยันตัวตนแบบ mutual TLS.",
+        "client_certificate": "ใบรับรองลูกค้า (PEM)",
+        "client_private_key": "คีย์ส่วนตัวของลูกค้า (PEM)",
+        "common_tls_issues": "ปัญหา TLS ทั่วไป:",
+        "connection_type": "ประเภทการเชื่อมต่อ",
+        "container_name_id": "ชื่อ/รหัสคอนเทนเนอร์",
+        "disabled": "ปิดใช้งาน",
+        "docker_container": "คอนเทนเนอร์ Docker",
+        "docker_host": "โฮสต์ Docker",
+        "enable_tls": "เปิดใช้งาน TLS",
+        "enabled": "เปิดใช้งาน",
+        "examples": "ตัวอย่าง",
+        "hostname_mismatch": "x509: ใบรับรองมีผลบังคับใช้สำหรับ X แต่ไม่ใช่ Y",
+        "hostname_mismatch_solution": "ตรวจสอบให้ชื่อโฮสต์ตรงกับ SAN ของใบรับรอง หรือปิดการตรวจสอบ (ไม่แนะนำ)",
+        "legacy_cert_error": "\"x509: ใบรับรองขึ้นอยู่กับฟิลด์ Common Name แบบเก่า\":\"",
+        "legacy_cert_solution": "เพิ่มชื่อโฮสต์ลงในชื่อทางเลือกของหัวข้อ (SAN) ในใบรับรองของคุณ.",
+        "mtls_note": "สำหรับ Mutual TLS (mTLS) คุณต้องให้ใบรับรองลูกค้าและกุญแจส่วนตัว ใบรับรองของ CA จะถูกใช้เพื่อตรวจสอบใบรับรองของเซิร์ฟเวอร์",
+        "note": "หมายเหตุ:",
+        "private_key_description": "วางคีย์ส่วนตัวของคุณในรูปแบบ PEM. เก็บรักษาความปลอดภัย!",
+        "select_connection_type": "เลือกประเภทการเชื่อมต่อ",
+        "select_tls_option": "เลือกตัวเลือก TLS",
+        "select_verification_option": "เลือกตัวเลือกการตรวจสอบ",
+        "skip_verification": "ข้ามการตรวจสอบ (ไม่ปลอดภัย)",
+        "tls_configuration": "กำหนดค่า TLS",
+        "unknown_authority": "\"x509: ใบรับรองถูกลงนามโดยอำนาจที่ไม่รู้จัก\":",
+        "unknown_authority_solution": "กรุณาระบุใบรับรอง CA ที่ถูกต้องซึ่งได้ลงนามใบรับรองเซิร์ฟเวอร์",
+        "verify_certificates": "ตรวจสอบใบรับรอง",
+        "verify_tls": "ตรวจสอบ TLS"
+      },
+      "grpc": {
+        "body": "ข้อมูลร่าง (JSON)",
+        "enable_tls": "เปิดใช้งาน TLS",
+        "enable_tls_description": "ใช้การเชื่อมต่อแบบปลอดภัย (TLS/SSL)",
+        "invert_keyword": "กลับคีย์เวิร์ด",
+        "invert_keyword_description": "ระบบเฝ้าระวังจะทำเครื่องหมายเป็น UP หากไม่พบคีย์เวิร์ด",
+        "keyword": "คีย์เวิร์ด",
+        "keyword_description": "ค้นหาคีย์เวิร์ดนี้ในผลลัพธ์",
+        "keyword_placeholder": "คำสำคัญ (ไม่บังคับ)",
+        "method_description": "ตัวพิมพ์ใหญ่/เล็กมีความสำคัญ",
+        "method_placeholder": "ตรวจสอบ",
+        "options_title": "ตัวเลือก gRPC",
+        "proto_content": "เนื้อหาของ Protobuf",
+        "proto_method": "เมธอด Protobuf",
+        "proto_service_name": "ชื่อบริการ Protobuf",
+        "service_name_placeholder": "สุขภาพ"
+      },
+      "http": {
+        "advanced": {
+          "accepted_status_codes": "รหัสสถานะที่ยอมรับ",
+          "ignore_tls": "ข้ามข้อผิดพลาด TLS/SSL สำหรับเว็บไซต์ HTTPS",
+          "ignore_tls_description": "ข้ามการตรวจสอบใบรับรอง TLS. ใช้ด้วยความระมัดระวัง - ทำให้การเชื่อมต่อปลอดภัยน้อยลง",
+          "max_redirects": "จำนวนการเปลี่ยนเส้นทางสูงสุด",
+          "max_redirects_description": "จำนวนสูงสุดของการเปลี่ยนเส้นทางที่ระบบจะทำตาม (0‑30). กำหนดเป็น 0 เพื่อปิดการเปลี่ยนเส้นทาง.",
+          "title": "ขั้นสูง"
+        },
+        "authentication": {
+          "auth_header": "หัวข้อ Authorization",
+          "certificate": "ใบรับรอง",
+          "certificate_placeholder": "ใบรับรอง",
+          "client_id": "รหัสไคลเอนต์",
+          "client_id_placeholder": "รหัสไคลเอนต์",
+          "client_secret": "รหัสลับของลูกค้า",
+          "client_secret_placeholder": "รหัสลับของลูกค้า",
+          "domain": "โดเมน",
+          "domain_placeholder": "โดเมน",
+          "form_data_body": "เนื้อหาข้อมูลแบบฟอร์ม",
+          "key": "คีย์",
+          "key_placeholder": "คีย์",
+          "method_label": "วิธียืนยันตัวตน",
+          "method_placeholder": "เลือกประเภทการยืนยันตัวตน",
+          "oauth_scope": "ขอบเขต OAuth",
+          "oauth_scope_placeholder": "เลือกได้: รายการขอบเขตที่คั่นด้วยช่องว่าง",
+          "oauth_token_url": "URL ของโทเค็น OAuth",
+          "oauth_token_url_placeholder": "URL โทเค็น OAuth",
+          "title": "ยืนยันตัวตน",
+          "workstation": "เครื่องทำงาน",
+          "workstation_placeholder": "เครื่องทำงาน"
+        },
+        "options": {
+          "body": "เนื้อหา",
+          "body_encoding": "รหัสการเข้ารหัส",
+          "body_encoding_placeholder": "เลือกการเข้ารหัสเนื้อหา",
+          "form_example": "ข้อมูลตัวอย่างแบบฟอร์ม",
+          "headers": "หัวข้อ",
+          "json_example": "ตัวอย่าง JSON",
+          "method": "วิธี",
+          "method_placeholder": "เลือกประเภทการตรวจสอบ",
+          "select_encoding": "เลือกการเข้ารหัสเนื้อหา",
+          "select_method": "เลือกวิธี",
+          "text_example": "ตัวอย่างข้อความ:\nใส่ข้อความธรรมดาใด ๆ ที่นี่...",
+          "title": "ตัวเลือก HTTP",
+          "xml_example": "ตัวอย่าง XML"
+        }
+      },
+      "http_json_query": {
+        "condition_label": "เงื่อนไข",
+        "expected_value_label": "ค่าที่คาดหวัง",
+        "json_query_label": "นิพจน์ค้นหา JSON",
+        "title": "นิพจน์ค้นหา JSON"
+      },
+      "http_keyword": {
+        "invert_keyword_description": "ค้นหาให้คีย์เวิร์ดหายไปแทนที่จะมีอยู่",
+        "invert_keyword_label": "กลับคีย์เวิร์ด",
+        "keyword_label": "คีย์เวิร์ด",
+        "keyword_validation_title": "ตรวจสอบคำหลัก"
+      },
+      "kafka": {
+        "add_broker": "เพิ่มโบรกเกอร์",
+        "auto_topic_creation_description": "อนุญาตให้ผู้ผลิตสร้างหัวข้อโดยอัตโนมัติถ้าไม่มีอยู่",
+        "auto_topic_creation_label": "อนุญาตสร้างหัวข้ออัตโนมัติ",
+        "brokers_description": "รายการที่อยู่ของ broker Kafka (รูปแบบ host:port)",
+        "brokers_label": "โฮสต์ Kafka",
+        "configuration_title": "กำหนดค่า Kafka",
+        "enable_ssl_description": "ใช้การเข้ารหัส SSL/TLS สำหรับการเชื่อมต่อ",
+        "enable_ssl_label": "เปิดใช้งาน SSL/TLS",
+        "message_description": "เนื้อหาข้อความที่ส่งไปยังหัวข้อ (แนะนำใช้รูปแบบ JSON)",
+        "message_label": "ข้อความ",
+        "sasl_mechanism_description": "เลือกกลไกการตรวจสอบตัวตนแบบ SASL",
+        "sasl_mechanism_label": "กลไก SASL",
+        "sasl_mechanism_placeholder": "เลือกกลไก SASL",
+        "sasl_password_description": "รหัสผ่านสำหรับการยืนยันตัวตนด้วย SASL",
+        "sasl_password_label": "รหัสผ่าน SASL",
+        "sasl_password_placeholder": "รหัสผ่าน",
+        "sasl_username_description": "ชื่อผู้ใช้สำหรับการตรวจสอบสิทธิ์ด้วย SASL",
+        "sasl_username_label": "ชื่อผู้ใช้ SASL",
+        "security_title": "ความปลอดภัย",
+        "topic_description": "หัวข้อ Kafka ที่ใช้ส่งข้อความ"
+      },
+      "mongodb": {
+        "command_description": "คำสั่ง MongoDB ที่จะดำเนินการเป็น JSON. หากไม่ได้ระบุ จะใช้ ping เป็นค่าปริยาย.",
+        "command_label": "คำสั่ง (ไม่บังคับ)",
+        "configuration_title": "การตั้งค่า MongoDB",
+        "connection_string_description": "MongoDB connection string. รองรับรูปแบบทั้งมาตรฐาน (mongodb://) และ DNS seedlist (mongodb+srv://).",
+        "connection_string_label": "สตริงการเชื่อมต่อ",
+        "expected_value_description": "ค่าที่คาดหวังสำหรับเปรียบเทียบกับผลลัพธ์ของ JSON path",
+        "expected_value_label": "ค่าที่คาดหวัง (ไม่บังคับ)",
+        "expected_value_placeholder": "ค่าที่คาดหวัง",
+        "json_path_description": "JSON path เพื่อดึงค่าออกจากผลตอบรับ ใช้ $ แทนระดับราก",
+        "json_path_label": "JSON Path (ไม่จำเป็น)"
+      },
+      "mqtt": {
+        "check_type_json_query": "JSON คำสืบค้น",
+        "check_type_keyword": "คีย์เวิร์ด",
+        "check_type_label": "ประเภทการตรวจสอบ MQTT",
+        "check_type_none": "ไม่มี (ข้อความใด ๆ)",
+        "check_type_placeholder": "เลือกประเภทการตรวจสอบ",
+        "configuration_title": "การตั้งค่า MQTT",
+        "expected_value_label": "ค่าที่คาดหวัง",
+        "hostname_label": "ชื่อโฮสต์",
+        "json_path_label": "เส้นทาง JSON",
+        "password_label": "รหัสผ่าน MQTT",
+        "password_placeholder": "รหัสผ่าน (ไม่บังคับ)",
+        "port_label": "พอร์ต",
+        "success_keyword_label": "MQTT คีย์เวิร์ดสำเร็จ",
+        "success_keyword_placeholder": "คีย์เวิร์ดที่บ่งบอกความสำเร็จ",
+        "username_label": "ชื่อผู้ใช้ MQTT",
+        "username_placeholder": "ชื่อผู้ใช้ (ไม่บังคับ)",
+        "validation": {
+          "expected_value_required": "ค่าที่คาดหวังคือต้องระบุเมื่อชนิดตรวจสอบเป็น json-query",
+          "json_path_required": "JSON path จำเป็นเมื่อประเภทตรวจสอบเป็น json-query",
+          "success_keyword_required": "ต้องระบุ Success keyword เมื่อประเภทการตรวจสอบเป็นคีย์เวิร์ด"
+        }
+      },
+      "mysql": {
+        "connection_string_examples": "ตัวอย่าง:",
+        "connection_string_label": "สตริงการเชื่อมต่อ",
+        "connection_title": "การเชื่อมต่อ MySQL",
+        "query_label": "คำสั่ง"
+      },
+      "ping": {
+        "data_size": "ขนาดข้อมูล (ไบต์)",
+        "host": "ชื่อโฮสต์ / IP",
+        "title": "ตั้งค่า Ping"
+      },
+      "postgres": {
+        "connection_string_label": "สตริงการเชื่อมต่อ",
+        "connection_title": "การเชื่อมต่อ PostgreSQL",
+        "query_label": "คิวรี"
+      },
+      "push": {
+        "url_description": "ใช้ URL นี้ในบริการของคุณเพื่อรายงานสถานะ ทำการส่งคำขอ HTTP (POST/GET) ไปยังจุดสิ้นสุดนี้เพื่อส่งสัญญาณหัวใจ",
+        "url_title": "URL สำหรับตรวจสอบแบบพุช"
+      },
+      "rabbitmq": {
+        "documentation_link": "เอกสาร RabbitMQ",
+        "health_checks_description": "ตัวตรวจสอบจะเช็ค {{code}} endpoint ในแต่ละโหนดและส่งค่า UP หากโหนดใด ๆ มีสภาพปกติ",
+        "management_nodes_description": "กรุณาใส่ URL ของโหนดการจัดการ RabbitMQ รวมถึงโปรโตคอลและพอร์ต ตัวอย่าง: https://node1.rabbitmq.com:15672",
+        "management_nodes_title": "โหนดการจัดการ",
+        "node_url_label": "URL ของโหนด",
+        "password_description": "รหัสผ่านสำหรับการยืนยันตัวตนของอินเทอร์เฟซการจัดการ RabbitMQ",
+        "setup_information_description": "เพื่อใช้ตัวตรวจสอบ RabbitMQ คุณจำเป็นต้องเปิดใช้งานปลั๊กอินการจัดการในระบบ RabbitMQ ของคุณ สำหรับข้อมูลเพิ่มเติม โปรดดูเอกสาร RabbitMQ",
+        "setup_information_title": "ข้อมูลการตั้งค่า",
+        "title": "การกำหนดค่า RabbitMQ",
+        "username_description": "ชื่อผู้ใช้สำหรับการยืนยันตัวตนบนอินเทอร์เฟซการจัดการ RabbitMQ"
+      },
+      "redis": {
+        "ca_certificate_description": "ใบรับรอง Root CA ในรูปแบบ PEM. จำเป็นสำหรับการตรวจสอบ TLS ที่ถูกต้องกับใบรับรองที่ลงนามด้วยตนเอง.",
+        "ca_certificate_label": "ใบรับรอง CA (ไม่บังคับ)",
+        "client_certificate_description": "ใบรับรองลูกค้าในรูปแบบ PEM จำเป็นสำหรับการตรวจสอบตัวตนแบบ mutual TLS.",
+        "client_certificate_label": "ใบรับรองลูกค้า (ไม่บังคับ)",
+        "client_key_description": "กุญแจส่วนตัวของลูกค้าในรูปแบบ PEM ต้องจัดเตรียมพร้อมกับใบรับรองลูกค้า",
+        "client_key_label": "คีย์ส่วนตัวของไคลเอ็นต์ (ไม่บังคับ)",
+        "connection_string_description": "รูปแบบสตริงการเชื่อมต่อ Redis: {{redis}} หรือ {{rediss}} สำหรับ TLS",
+        "connection_string_label": "สตริงการเชื่อมต่อ",
+        "ignore_tls_description": "ข้ามการตรวจสอบใบรับรอง TLS (ไม่แนะนำให้ใช้ในระบบจริง)",
+        "ignore_tls_label": "ไม่ตรวจสอบข้อผิดพลาด TLS/SSL",
+        "title": "กำหนดค่า Redis"
+      },
+      "shared": {
+        "intervals": {
+          "heartbeat_retry": "ช่วงเวลาการลองใหม่ของ heartbeat (ลองใหม่ทุก {{seconds}} วินาที)",
+          "max_retries_description": "จำนวนครั้งสูงสุดในการพยายามใหม่ก่อนที่บริการจะถูกตั้งเป็นหยุดทำงานและส่งการแจ้งเตือน",
+          "request_timeout": "หมดเวลาการร้องขอ (หมดเวลาหลัง {{seconds}} วินาที)",
+          "resend_notification": "ส่งการแจ้งเตือนซ้ำหากหยุดทำงาน X ครั้งติดต่อกัน (ส่งซ้ำปิดใช้งาน)"
+        },
+        "notifications": {
+          "add_notifier": "เพิ่มผู้แจ้งเตือน",
+          "new_notifier": "+ เพิ่มตัวแจ้งเตือน",
+          "no_channels": "ยังไม่พบช่องทางการแจ้งเตือน, กรุณาสร้างช่องทางการแจ้งเตือนก่อน",
+          "no_channels_available": "ไม่มีช่องทางการแจ้งเตือน",
+          "select_channel": "เลือกช่องทาง",
+          "select_notifier_placeholder": "เลือกผู้แจ้ง",
+          "selected_channels": "ช่องทางแจ้งเตือนที่เลือก",
+          "title": "ช่องทางการแจ้งเตือน"
+        },
+        "proxy": {
+          "add_proxy": "เพิ่มพร็อกซี",
+          "new_proxy": "+ เพิ่มพร็อกซี",
+          "no_proxy": "ไม่ใช้พร็อกซี",
+          "remove_proxy": "ลบพร็อกซี",
+          "select_proxy_placeholder": "เลือกพร็อกซี",
+          "selected_proxy": "พร็อกซีที่เลือก",
+          "title": "พร็อกซี่"
+        },
+        "tags": {
+          "label": "แท็ก",
+          "no_tags": "ไม่มีแท็ก",
+          "placeholder": "เลือกแท็ก"
+        }
+      },
+      "snmp": {
+        "community_description": "สตริงชุมชน SNMP สำหรับการตรวจสอบสิทธิ์ (เหมือนรหัสผ่าน)",
+        "community_label": "สตริงชุมชน",
+        "expected_value_description": "ค่าที่ใช้เปรียบเทียบ หากเว้นว่างจะข้ามการตรวจสอบ.",
+        "expected_value_label": "ค่าที่คาดหวัง",
+        "host_description": "ชื่อโฮสต์หรือที่อยู่ IP ของอุปกรณ์ที่รองรับ SNMP",
+        "host_label": "โฮสต์",
+        "json_path_description": "นิพจน์ JSONPath เพื่อดึงค่าจากผลตอบสนอง (ใช้ \"$\" สำหรับค่าดิบ)",
+        "json_path_label": "พาธ JSON",
+        "json_path_operator_description": "วิธีเปรียบเทียบค่าที่ดึงมาแล้วกับค่าที่คาดหวัง",
+        "json_path_operator_eq": "เท่ากับ",
+        "json_path_operator_ge": "มากกว่าหรือเท่ากับ",
+        "json_path_operator_gt": "มากกว่า",
+        "json_path_operator_label": "เงื่อนไข",
+        "json_path_operator_le": "น้อยกว่าหรือเท่ากับ",
+        "json_path_operator_lt": "น้อยกว่า",
+        "json_path_operator_ne": "ไม่เท่ากับ",
+        "oid_description": "ตัวระบุวัตถุ SNMP ที่ต้องการสอบถาม (เช่น 1.3.6.1.2.1.1.1.0 สำหรับคำอธิบายระบบ)",
+        "oid_label": "OID (ตัวระบุวัตถุ)",
+        "port_description": "พอร์ต SNMP (ค่าเริ่มต้น: 161)",
+        "port_label": "พอร์ต",
+        "snmp_version_description": "รุ่นโปรโตคอล SNMP ที่ใช้",
+        "snmp_version_label": "รุ่น SNMP",
+        "title": "ตั้งค่า SNMP",
+        "value_validation_label": "การตรวจสอบค่า (ไม่บังคับ)"
+      },
+      "sqlserver": {
+        "allowed_statements_description": "SELECT, SHOW, DESCRIBE, EXPLAIN, WITH, และ VALUES.",
+        "allowed_statements_label": "คำสั่งที่อนุญาต:",
+        "connection_string_label": "สตริงการเชื่อมต่อ",
+        "query_description": "คำสั่งที่ใช้ตรวจสอบสุขภาพ. หากว่าง ให้ใช้ค่าปริยาย",
+        "query_label": "คำสั่ง",
+        "title": "การเชื่อมต่อ Microsoft SQL Server"
+      },
+      "tcp": {
+        "host": "โฮสต์",
+        "port": "พอร์ต",
+        "title": "การเชื่อมต่อ TCP"
+      },
+      "type": {
+        "dns": "ตัวตรวจสอบ DNS",
+        "docker": "คอนเทนเนอร์ Docker",
+        "grpc": "ตรวจสอบคำสำคัญ gRPC",
+        "http": "HTTP(S) มอนิเตอร์",
+        "kafka": "ตัวตรวจสอบผู้ผลิต Kafka",
+        "mongodb": "ตัวตรวจสอบฐานข้อมูล MongoDB",
+        "mqtt": "ตัวตรวจสอบบูร์เกอร์ MQTT",
+        "mysql": "ตัวตรวจสอบ MySQL/MariaDB",
+        "ping": "ตัวตรวจสอบ Ping (ICMP)",
+        "postgres": "ตัวตรวจสอบฐานข้อมูล PostgreSQL",
+        "push": "Push Monitor (บริการภายนอกเรียก URL ที่สร้างขึ้น)",
+        "rabbitmq": "ตรวจสอบ RabbitMQ",
+        "redis": "ตัวตรวจสอบฐานข้อมูล Redis",
+        "snmp": "ตัวตรวจสอบ SNMP",
+        "sqlserver": "ตัวตรวจสอบ Microsoft SQL Server",
+        "tcp": "ตัวตรวจสอบพอร์ต TCP"
+      }
+    },
+    "page": {
+      "description": "สร้างตัวตรวจสอบใหม่เพื่อเริ่มติดตามประสิทธิภาพเว็บไซต์ของคุณ",
+      "edit_title": "แก้ไขตัวตรวจสอบ:",
+      "new_title": "ตรวจสอบใหม่"
+    },
+    "title": "ตัวตรวจสอบ",
+    "toasts": {
+      "deleted": "ลบโมนิเตอร์แล้ว",
+      "paused": "การตรวจสอบหยุดชั่วคราว",
+      "reset_success": "รีเซ็ตข้อมูลสำเร็จ",
+      "resumed": "การเฝ้าติดตามทำงานต่อ"
+    },
+    "view": {
+      "buttons": {
+        "clone": "สำเนา",
+        "delete": "ลบ",
+        "edit": "แก้ไข",
+        "pause": "พัก",
+        "reset_data": "รีเซ็ตข้อมูล",
+        "resume": "ต่อ"
+      },
+      "certificate": "ใบรับรอง",
+      "check_every": "ตรวจสอบทุก",
+      "current_status": "สถานะปัจจุบัน",
+      "dialogs": {
+        "delete": {
+          "description": "การกระทำนี้ไม่สามารถย้อนคืนได้ การดำเนินการนี้จะลบโมนิตอร์และข้อมูลที่เกี่ยวข้องทั้งหมดอย่างถาวร",
+          "title": "คุณแน่ใจอย่างแน่นอนไหม?"
+        },
+        "pause": {
+          "description": "คุณแน่ใจหรือไม่ว่าต้องการหยุด?",
+          "title": "ยืนยัน"
+        },
+        "reset": {
+          "description": "การดำเนินการนี้จะลบประวัติการตรวจสอบและสถิติอัปไทม์ของมอนิเตอร์นี้อย่างถาวร มอนิเตอร์จะปรากฏเหมือนเพิ่งสร้างใหม่ การกระทำนี้ไม่สามารถยกเลิกได้",
+          "title": "รีเซ็ตข้อมูลการตรวจสอบ"
+        }
+      },
+      "expiring_soon": "กำลังจะหมดอายุ",
+      "for": "สำหรับ",
+      "live_status": "สถานะสด",
+      "monitor_for": "ตรวจสอบ",
+      "no_certificate_data": "ไม่มีข้อมูลใบรับรอง",
+      "seconds": "วินาที",
+      "stats": {
+        "last_24_hours": "24 ชั่วโมงที่ผ่านมา",
+        "last_30_days": "30 วันล่าสุด",
+        "last_365_days": "365 วันที่ผ่านมา",
+        "last_7_days": "7 วันที่ผ่านมา"
+      },
+      "status": {
+        "down": "หยุดทำงาน",
+        "maintenance": "บำรุงรักษา",
+        "paused": "หยุดชั่วคราว",
+        "up": "ออนไลน์"
+      }
+    }
+  },
+  "navigation": {
+    "maintenance": "บำรุงรักษา",
+    "monitors": "มอนิเตอร์",
+    "notification_channels": "ช่องทางการแจ้งเตือน",
+    "proxies": "พร็อกซี่",
+    "settings": "ตั้งค่า",
+    "status_pages": "หน้าสถานะ",
+    "tags": "แท็ก"
+  },
+  "notifications": {
+    "actions": {
+      "test": "ทดสอบ",
+      "testing": "กำลังทดสอบ..."
+    },
+    "aria": {
+      "delete": "ลบ {{name}}"
+    },
+    "confirm_delete_description": "การดำเนินการนี้ไม่สามารถย้อนกลับได้. การดำเนินการนี้จะลบ notifier \"{{name}}\" อย่างถาวรและลบออกจากตัวตรวจสอบทั้งหมดที่ใช้มัน.",
+    "create_title": "สร้างตัวแจ้งเตือน",
+    "edit_channel_title": "แก้ไขช่องทางการแจ้งเตือน",
+    "edit_title": "แก้ไข Notifier",
+    "empty_state": {
+      "action": "สร้างช่องแจ้งเตือนแรกของคุณ",
+      "description": "เริ่มต้นโดยการสร้างช่องทางการแจ้งเตือนครั้งแรกเพื่อส่งการแจ้งเตือนให้กับทีมของคุณ",
+      "title": "ไม่พบช่องทางการแจ้งเตือน"
+    },
+    "form": {
+      "discord": {
+        "bot_display_name_description": "ชื่อที่แสดงเป็นผู้ส่งข้อความ Discord",
+        "bot_display_name_label": "ชื่อแสดงของบอท",
+        "custom_message_prefix_description": "คำนำหน้าที่เป็นทางเลือก ซึ่งจะถูกเพิ่มไว้ที่ต้นข้อความทั้งหมด",
+        "custom_message_prefix_label": "คำนำหน้าข้อความกำหนดเอง",
+        "custom_message_prefix_placeholder": "เลือกใช้: เพิ่มคำนำหน้าข้อความของคุณ",
+        "forum_post_name_description": "ชื่อของโพสต์ฟอรัมใหม่ที่จะถูกสร้าง",
+        "forum_post_name_label": "ชื่อโพสต์ฟอรัม",
+        "forum_post_name_placeholder": "ป้อนชื่อโพสต์ในฟอรั่ม",
+        "sending_message_to_channel": "ส่งไปยังช่อง",
+        "sending_message_to_description": "เลือกตำแหน่งที่ต้องการส่งข้อความ Discord",
+        "sending_message_to_label": "กำลังส่งข้อความไปยัง",
+        "sending_message_to_new_forum_post": "ส่งไปยังโพสต์ใหม่ในฟอรั่ม",
+        "sending_message_to_placeholder": "เลือกประเภทข้อความ",
+        "sending_message_to_thread": "ส่งไปยังเธรด",
+        "setup_webhook_description_1": "รับ URL ของ webhook ของคุณจากการตั้งค่าเซิร์ฟเวอร์ Discord → การผสาน → Webhooks.",
+        "setup_webhook_description_2": "สร้างเว็บฮุกใหม่และคัดลอก URL ให้แน่ใจว่าคุณเลือกช่องทางที่ถูกต้อง",
+        "setup_webhook_title": "ตั้งค่า Discord Webhook",
+        "thread_id_description_1": "เปิดโหมดนักพัฒนาใน Discord การตั้งค่าผู้ใช้ → ขั้นสูง → โหมดนักพัฒนา",
+        "thread_id_description_2": "คลิกขวาบนเธรดหรือโพสต์แล้วเลือก \"คัดลอกรหัสเธรด\" หรือ \"คัดลอกรหัสช่อง\"",
+        "thread_id_description_title": "รหัสของกระทู้หรือโพสต์ในฟอรั่มที่ข้อความจะถูกส่ง",
+        "thread_id_label": "รหัสเธรด",
+        "thread_id_placeholder": "ใส่รหัสเธรดหรือโพสต์",
+        "webhook_url_label": "URL Webhook Discord"
+      },
+      "google_chat": {
+        "more_info_about_webhooks": "ข้อมูลเพิ่มเติมเกี่ยวกับ Webhooks",
+        "webhook_url_label": "URL ของ Webhook Google Chat"
+      },
+      "gotify": {
+        "application_token_description": "โทเค็นแอปพลิเคชันจากแอป Gotify ของคุณ คุณสามารถค้นหาได้ในอินเตอร์เฟสเว็บ Gotify ของคุณใต้เมนู Apps",
+        "application_token_label": "โทเค็นแอปพลิเคชัน",
+        "custom_message_description": "เทมเพลตข้อความกำหนดเอง. ตัวแปรที่ใช้ได้",
+        "custom_message_description_2": "ปล่อยว่างเพื่อใช้ข้อความเริ่มต้น",
+        "custom_message_label": "ข้อความกำหนดเอง",
+        "custom_title_description": "ตั้งชื่อกำหนดเองสำหรับการแจ้งเตือน ตัวแปรที่ใช้ได้: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. เว้นว่างไว้เพื่อใช้ชื่อเริ่มต้น \"Peekaping\"",
+        "custom_title_label": "หัวข้อกำหนดเอง",
+        "learn_more_label": "เรียนรู้เพิ่มเติมเกี่ยวกับ Gotify และวิธีตั้งค่าได้ที่:",
+        "note_description": "คุณต้องมีเซิร์ฟเวอร์ Gotify ที่กำลังทำงานอยู่เพื่อใช้การบูรณาการนี้",
+        "note_label": "หมายเหตุ:",
+        "priority_0": "ต่ำสุด",
+        "priority_1": "ต่ำมาก",
+        "priority_10": "สูงสุด",
+        "priority_2": "ต่ำ",
+        "priority_3": "ต่ำกว่าปกติ",
+        "priority_4": "ปกติ",
+        "priority_5": "เกินปกติ",
+        "priority_6": "ปานกลาง",
+        "priority_7": "สูง",
+        "priority_8": "สูงมาก (ค่าเริ่มต้น)",
+        "priority_9": "ฉุกเฉิน",
+        "priority_description": "ความสำคัญของข้อความ (0-10). ตัวเลขที่สูงขึ้นแสดงถึงความสำคัญที่สูงขึ้น. ค่าเริ่มต้นคือ 8.",
+        "priority_label": "ลำดับความสำคัญ",
+        "priority_placeholder": "เลือกระดับความสำคัญ",
+        "server_url_description": "URL ของเซิร์ฟเวอร์ Gotify ของคุณ โปรดตรวจสอบให้แน่ใจว่า URL นี้เข้าถึงได้จากแอปพลิเคชันนี้",
+        "server_url_label": "URL ของเซิร์ฟเวอร์"
+      },
+      "grafana_oncall": {
+        "grafana_oncall_url_description": "URL ของเว็บฮุกจากการผสาน Grafana OnCall ของคุณ คุณสามารถหาได้ในอินสแตนซ์ Grafana OnCall ของคุณที่เมนู แจ้งเตือน & IRM > IRM > การผสาน > Webhook",
+        "grafana_oncall_url_label": "URL ของ Grafana OnCall",
+        "learn_more_label": "เรียนรู้เพิ่มเติมเกี่ยวกับเว็บฮุกของ Grafana OnCall"
+      },
+      "line": {
+        "channel_access_token_description": "คุณสามารถรับโทเค็นการเข้าถึงช่องได้จาก",
+        "channel_access_token_description_2": "ไปที่การตั้งค่าช่องของคุณและค้นหา",
+        "channel_access_token_label": "โทเค็นการเข้าถึงช่องทาง (ยาวนาน)",
+        "channel_access_token_placeholder": "ป้อนโทเค็นเข้าถึงช่อง LINE ของคุณ",
+        "template_description": "ปรับแต่งรูปแบบข้อความ. ตัวแปรที่ใช้ได้",
+        "template_label": "เทมเพลตข้อความ",
+        "template_placeholder": "ป้อนเทมเพลตข้อความกำหนดเอง",
+        "user_id_description": "คุณสามารถหา User ID ของคุณได้ที่",
+        "user_id_description_2": "ไปที่การตั้งค่าแชนแนลของคุณแล้วค้นหา",
+        "user_id_label": "รหัสผู้ใช้ของคุณ",
+        "user_id_placeholder": "ป้อนรหัสผู้ใช้ LINE ของคุณ"
+      },
+      "matrix": {
+        "access_token_description": "โทเค็นการเข้าถึง Matrix ของคุณสำหรับการยืนยันตัวตน",
+        "access_token_label": "โทเค็นการเข้าถึง",
+        "custom_message_description": "เทมเพลตข้อความกำหนดเอง. ตัวแปรที่ใช้ได้",
+        "custom_message_label": "ข้อความกำหนดเอง",
+        "homeserver_url_description": "URL ของเซิร์ฟเวอร์ Matrix ของคุณ",
+        "homeserver_url_label": "URL ของเซิร์ฟเวอร์บ้าน",
+        "internal_room_id_description": "รหัสห้องภายในที่ข้อความแจ้งเตือนจะถูกส่งไป ควรเริ่มต้นด้วย \"!\" และมีรูปแบบเช่น: !roomid:matrix.org",
+        "internal_room_id_label": "รหัสห้องภายใน",
+        "setup_instructions_1": "สร้างบัญชี Matrix สำหรับบอทของคุณ (หรือใช้บัญชีที่มีอยู่แล้ว)",
+        "setup_instructions_2": "สร้างหรือลงเข้าห้องที่คุณต้องการรับการแจ้งเตือน",
+        "setup_instructions_3": "รับโทเค็นเข้าถึงของคุณโดยทำคำขอล็อกอิน",
+        "setup_instructions_4": "ผลตอบกลับจะมีฟิลด์ access_token - ใช้เป็น Access Token ของคุณ",
+        "setup_instructions_5": "ค้นหา ID ภายในของห้องของคุณ (เริ่มต้นด้วย \"!\") ในการตั้งค่าห้องของผู้ใช้ Matrix",
+        "setup_instructions_label": "คำแนะนำการตั้งค่า"
+      },
+      "mattermost": {
+        "channel_name_description": "ช่องทางที่ใช้ส่งการแจ้งเตือน หากปล่อยว่างไว้ จะใช้ช่องทางเริ่มต้นที่กำหนดใน webhook",
+        "channel_name_label": "ชื่อช่อง",
+        "icon_emoji_cheat_sheet_label": "แผ่นช่วยจำอีโมจิ",
+        "icon_emoji_description": "อีโมจิที่ใช้เป็นไอคอน คุณสามารถระบุอีโมจิสองตัวแยกด้วยช่องว่าง (อีโมจิแรกสำหรับสถานะออนไลน์, อีโมจิที่สองสำหรับสถานะออฟไลน์)",
+        "icon_emoji_label": "ไอคอนอิโมจิ",
+        "icon_url_description": "URL ของรูปภาพที่ใช้เป็นไอคอนสำหรับข้อความแจ้งเตือน",
+        "icon_url_label": "URL ไอคอน",
+        "learn_more_label": "เรียนรู้เพิ่มเติมเกี่ยวกับเว็บฮุก",
+        "message_template_description": "ปรับแต่งรูปแบบข้อความ. ตัวแปรที่ใช้ได้",
+        "message_template_label": "เทมเพลตข้อความ",
+        "use_message_template_description": "เปิดใช้งานเพื่อใช้เทมเพลตข้อความและรูปแบบกำหนดเอง.",
+        "use_message_template_label": "ใช้เทมเพลตข้อความ",
+        "username_description": "ชื่อผู้ใช้ที่จะแสดงเป็นผู้ส่งข้อความ",
+        "webhook_url_label": "URL ของ Webhook"
+      },
+      "ntfy": {
+        "authentication_type_basic": "การตรวจสอบสิทธิ์พื้นฐาน",
+        "authentication_type_basic_description": "ใช้ชื่อผู้ใช้และรหัสผ่านสำหรับการยืนยันตัวตนแบบพื้นฐาน",
+        "authentication_type_label": "ประเภทการยืนยันตัวตน",
+        "authentication_type_none": "ไม่มีการยืนยันตัวตน",
+        "authentication_type_none_description": "ไม่ต้องใช้การยืนยันตัวตน เหมาะสำหรับเซิร์ฟเวอร์ NTFY สาธารณะ",
+        "authentication_type_placeholder": "เลือกประเภทการยืนยันตัวตน",
+        "authentication_type_token": "การตรวจสอบสิทธิ์ด้วยโทเค็น",
+        "authentication_type_token_description": "ใช้โทเค็นการเข้าถึงสำหรับการยืนยันตัวตน.",
+        "custom_message_description": "เนื้อหาข้อความกำหนดเอง. ตัวแปรที่ใช้ได้",
+        "custom_message_label": "ข้อความกำหนดเอง",
+        "password_required": "รหัสผ่านจำเป็นสำหรับการตรวจสอบสิทธิ์แบบพื้นฐาน",
+        "priority_1": "ต่ำสุด (ต่ำที่สุด)",
+        "priority_2": "ต่ำ",
+        "priority_3": "ค่าเริ่มต้น",
+        "priority_4": "สูง",
+        "priority_5": "ฉุกเฉิน (สูงสุด)",
+        "priority_description": "ระดับความสำคัญของการแจ้งเตือน ระดับความสำคัญที่สูงขึ้นอาจทำให้เกิดพฤติกรรมที่แตกต่างกันบนไคลเอนต์.",
+        "priority_label": "ความสำคัญ",
+        "priority_placeholder": "เลือกความสำคัญ",
+        "server_url_description": "URL ของเซิร์ฟเวอร์ NTFY ของคุณ ใช้ https://ntfy.sh สำหรับอินสแตนซ์สาธารณะ",
+        "server_url_label": "URL ของเซิร์ฟเวอร์",
+        "tags_description": "แท็กที่คั่นด้วยเครื่องหมายจุลภาคเพื่อจัดประเภทการแจ้งเตือน ตัวแปรที่มีอยู่",
+        "tags_label": "แท็ก",
+        "title_description": "หัวข้อกำหนดเองสำหรับการแจ้งเตือน. ตัวแปรที่มีอยู่",
+        "title_label": "ชื่อกำหนดเอง",
+        "token_description": "โทเค็นเข้าถึง NTFY ของคุณสำหรับการยืนยันตัวตน.",
+        "token_label": "โทเค็นเข้าถึง",
+        "token_required": "ต้องใช้ Token เพื่อยืนยันตัวตนด้วย Token",
+        "topic_description": "ชื่อหัวข้อสำหรับการแจ้งเตือนของคุณ. นี่จะเป็นช่องทางที่ส่งการแจ้งเตือน.",
+        "topic_label": "หัวข้อ",
+        "username_required": "ต้องกรอกชื่อผู้ใช้สำหรับการยืนยันตัวตนพื้นฐาน"
+      },
+      "opsgenie": {
+        "api_key_label": "คีย์ API",
+        "more_info_about_api_keys_label": "ข้อมูลเพิ่มเติมเกี่ยวกับคีย์ API",
+        "priority_1": "วิกฤติ",
+        "priority_2": "สูง",
+        "priority_3": "ปานกลาง",
+        "priority_4": "ต่ำ",
+        "priority_5": "ข้อมูล",
+        "priority_description": "กำหนดระดับความสำคัญของการแจ้งเตือน ค่าเริ่มต้นคือ P3 (ปานกลาง)",
+        "priority_label": "ความสำคัญ",
+        "region_description": "เลือกภูมิภาค Opsgenie ของคุณ ซึ่งจะกำหนดว่าต้องใช้ endpoint API ใด",
+        "region_label": "ภูมิภาค",
+        "region_placeholder": "เลือกภูมิภาค"
+      },
+      "pagerduty": {
+        "auto_resolve_acknowledge": "ยอมรับอัตโนมัติ",
+        "auto_resolve_acknowledge_description": "ยอมรับเหตุการณ์โดยอัตโนมัติ",
+        "auto_resolve_description": "เลือกว่าต้องทำอะไรเมื่อมอนิเตอร์กลับมาออนไลน์",
+        "auto_resolve_do_nothing": "ไม่ทำอะไร",
+        "auto_resolve_do_nothing_description": "ไม่ดำเนินการเมื่อสถานะ UP",
+        "auto_resolve_label": "แก้ไขอัตโนมัติหรือยอมรับ",
+        "auto_resolve_placeholder": "เลือกพฤติกรรมการแก้ไขอัตโนมัติ",
+        "auto_resolve_resolve": "แก้ไขอัตโนมัติ",
+        "auto_resolve_resolve_description": "แก้ไขเหตุการณ์อัตโนมัติ",
+        "integration_key_description": "เรียนรู้วิธีรับคีย์ผสานของคุณ",
+        "integration_key_label": "คีย์การบูรณาการ",
+        "integration_key_placeholder": "ป้อนคีย์ผสานรวมของ PagerDuty",
+        "integration_url_description": "URL จุดปลาย (endpoint) ของ PagerDuty Events API v2. ค่าเริ่มต้นเป็นจุดปลายมาตรฐาน.",
+        "integration_url_label": "URL บูรณาการ",
+        "learn_more_label": "เอกสารของ PagerDuty",
+        "priority_critical": "วิกฤติ",
+        "priority_description": "ระดับความรุนแรงสำหรับเหตุการณ์ PagerDuty เริ่มต้นเป็น \"warning\".",
+        "priority_error": "ข้อผิดพลาด",
+        "priority_info": "ข้อมูล",
+        "priority_label": "ลำดับความสำคัญ",
+        "priority_placeholder": "เลือกระดับความสำคัญ",
+        "priority_warning": "คำเตือน"
+      },
+      "pagertree": {
+        "authentication_token_description": "โทเค็นการยืนยันตัวตนที่เลือกใช้เพื่อเพิ่มความปลอดภัย. ข้อมูลนี้จะถูกส่งในหัวข้อ pagertree-token.",
+        "authentication_token_label": "โทเค็นการตรวจสอบสิทธิ์ (ไม่บังคับ)",
+        "authentication_token_placeholder": "ใส่โทเค็นยืนยันตัวตนหากจำเป็น",
+        "auto_resolve_alerts_description": "แก้ไขการแจ้งเตือนของ PagerTree โดยอัตโนมัติเมื่อมอนิเตอร์ฟื้นตัว",
+        "auto_resolve_alerts_label": "แก้ไขแจ้งเตือนอัตโนมัติ",
+        "how_to_get_integration_url_label": "วิธีรับ URL การบูรณาการ",
+        "integration_url_description": "ป้อน URL ของเว็บฮุกสำหรับการรวม PagerTree ของคุณ",
+        "integration_url_label": "URL Webhook ของ PagerTree",
+        "urgency_level_critical": "วิกฤติ",
+        "urgency_level_description": "ตั้งค่าระดับความเร่งด่วนเริ่มต้นสำหรับการแจ้งเตือนที่ส่งไปยัง PagerTree",
+        "urgency_level_high": "สูง",
+        "urgency_level_label": "ระดับความเร่งด่วน",
+        "urgency_level_low": "ต่ำ",
+        "urgency_level_medium": "ปานกลาง",
+        "urgency_level_placeholder": "เลือกระดับความเร่งด่วน",
+        "urgency_level_silent": "เงียบ"
+      },
+      "pushbullet": {
+        "access_token": "โทเค็นเข้าถึง",
+        "access_token_description": "โทเค็นการเข้าถึง Pushbullet ของคุณ. รับได้จาก",
+        "access_token_label": "โทเค็นการเข้าถึง",
+        "access_token_link": "ตั้งค่า Pushbullet",
+        "channel_tag": "แท็กช่อง (ไม่บังคับ)",
+        "channel_tag_description": "ส่งการแจ้งเตือนไปยังช่องทาง Pushbullet แทนอุปกรณ์",
+        "channel_tag_label": "แท็กช่องทาง (ไม่บังคับ)",
+        "custom_message_template": "",
+        "custom_message_template_description": "ปรับแต่งเนื้อหาการแจ้งเตือนโดยใช้ตัวแปรเทมเพลต:",
+        "custom_message_template_heartbeat_ping": "เวลาตอบสนอง",
+        "custom_message_template_heartbeat_time": "เวลาที่บันทึก",
+        "custom_message_template_label": "เทมเพลตข้อความกำหนดเอง (ไม่บังคับ)",
+        "custom_message_template_monitor_url": "URL ของการตรวจสอบ",
+        "custom_message_template_msg": "ข้อความแจ้งเตือน",
+        "custom_message_template_name": "ชื่อมอนิเตอร์",
+        "custom_message_template_placeholder": "เฝ้าระวัง: {{ name }}\nสถานะ: {{ status }}\nข้อความ: {{ msg }}",
+        "custom_message_template_status": "สถานะปัจจุบัน",
+        "device_id": "รหัสอุปกรณ์ (ไม่บังคับ)",
+        "device_id_description": "ส่งการแจ้งเตือนไปยังอุปกรณ์เฉพาะ. เว้นว่างเพื่อส่งไปยังอุปกรณ์ทั้งหมด. คุณสามารถค้นหา ID ของอุปกรณ์โดยใช้",
+        "device_id_label": "รหัสอุปกรณ์ (ไม่บังคับ)",
+        "device_id_link": "Pushbullet API",
+        "more_info_on": "ข้อมูลเพิ่มเติมเกี่ยวกับ:"
+      },
+      "pushover": {
+        "application_token_label": "โทเค็นแอปพลิเคชัน",
+        "application_token_placeholder": "ป้อนโทเค็นแอปพลิเคชัน Pushover ของคุณ",
+        "device_description": "ปล่อยว่างไว้เพื่อส่งถึงอุปกรณ์ทั้งหมด",
+        "device_label": "อุปกรณ์",
+        "device_placeholder": "ชื่ออุปกรณ์ (ไม่บังคับ)",
+        "message_title_description": "ปล่อยว่างเพื่อใช้หัวเรื่องเริ่มต้น",
+        "message_title_label": "หัวข้อข้อความ",
+        "message_title_placeholder": "หัวข้อข้อความกำหนดเอง (ไม่บังคับ)",
+        "message_ttl_description": "อายุการใช้งานในวินาที (0 = ไม่มีการหมดอายุ)",
+        "message_ttl_label": "TTL ของข้อความ",
+        "more_info_label": "ข้อมูลเพิ่มเติมเกี่ยวกับ:",
+        "more_info_label_2": "คุณสามารถสร้างแอปพลิเคชันและรับโทเค็น API ของคุณได้ที่",
+        "more_info_label_3": "คีย์ผู้ใช้ของคุณสามารถหาได้ที่",
+        "notification_sound_down_description": "เสียงเมื่อการตรวจสอบหยุดทำงาน",
+        "notification_sound_down_label": "เสียงแจ้งเตือน - หยุด",
+        "notification_sound_down_placeholder": "เลือกเสียง",
+        "notification_sound_up_description": "เสียงเมื่อมอนิเตอร์กลับมาออนไลน์",
+        "notification_sound_up_label": "เสียงแจ้งเตือน - พร้อมใช้งาน",
+        "notification_sound_up_placeholder": "เลือกเสียง",
+        "priority_1": "ต่ำสุด",
+        "priority_2": "ต่ำ",
+        "priority_3": "ปกติ",
+        "priority_4": "สูง",
+        "priority_5": "ฉุกเฉิน",
+        "priority_description": "ระดับความสำคัญของข้อความ",
+        "priority_label": "ความสำคัญ",
+        "priority_placeholder": "เลือกระดับความสำคัญ",
+        "sound_alien": "เอเลี่ยน",
+        "sound_bike": "จักรยาน",
+        "sound_bugle": "บูกเลย์",
+        "sound_cashregister": "เครื่องคิดเงิน",
+        "sound_classical": "คลาสสิก",
+        "sound_climb": "ขึ้น",
+        "sound_cosmic": "จักรวาล",
+        "sound_echo": "เสียงสะท้อน",
+        "sound_falling": "ตก",
+        "sound_gamelan": "กามเลาน",
+        "sound_incoming": "เข้า",
+        "sound_intermission": "หยุดพัก",
+        "sound_magic": "เวทมนตร์",
+        "sound_mechanical": "เครื่องจักร",
+        "sound_none": "ไม่มี",
+        "sound_persistent": "ถาวร",
+        "sound_pianobar": "บาร์เปียโน",
+        "sound_pushover": "Pushover (ค่าเริ่มต้น)",
+        "sound_siren": "ไซเรน",
+        "sound_spacealarm": "อัลแร่มอวกาศ",
+        "sound_tugboat": "เรือขับ",
+        "sound_updown": "ขึ้นลง",
+        "sound_vibrate": "สั่น",
+        "user_key_label": "คีย์ผู้ใช้",
+        "user_key_placeholder": "ป้อนรหัสผู้ใช้ Pushover ของคุณ"
+      },
+      "signal": {
+        "custom_message_description": "เทมเพลตข้อความกำหนดเอง. ตัวแปรที่ใช้ได้",
+        "custom_message_label": "ข้อความกำหนดเอง",
+        "important_description": "คุณไม่สามารถผสมกลุ่มกับตัวเลขในผู้รับได้!",
+        "important_label": "สำคัญ:",
+        "more_info_label": "คุณสามารถตรวจสอบ URL นี้เพื่อดูวิธีตั้งค่าได้:",
+        "note_description": "คุณต้องมีไคลเอนต์ Signal ที่รองรับ REST API.",
+        "note_label": "หมายเหตุ:",
+        "number_description": "หมายเลขโทรศัพท์ของบัญชี Signal ของคุณ (หมายเลขผู้ส่ง)",
+        "number_label": "หมายเลข",
+        "post_url_description": "URL ของเซิร์ฟเวอร์ REST API ของ Signal CLI ของคุณ",
+        "post_url_label": "URL ของการโพสต์",
+        "recipients_description": "รายการหมายเลขโทรศัพท์คั่นด้วยเครื่องหมายจุลภาคสำหรับส่งการแจ้งเตือน",
+        "recipients_label": "ผู้รับ"
+      },
+      "slack": {
+        "channel_name_description": "ช่องที่ข้อความจะถูกส่งไป หากไม่ระบุ ข้อความจะถูกส่งไปยังช่องเริ่มต้นที่กำหนดใน webhook",
+        "channel_name_description_2": "คุณสามารถกำหนดช่องทางเริ่มต้นใหม่ได้โดยระบุชื่อช่องทาง (เช่น #alerts) หรือผู้ใช้ (เช่น @username).",
+        "channel_name_label": "ชื่อช่อง",
+        "channel_notify_description": "เมื่อเปิดใช้งาน ข้อความจะกระตุ้นการแจ้งเตือนให้กับสมาชิกทุกคนในช่อง ใช้ด้วยความระมัดระวังเพื่อหลีกเลี่ยงสแปม",
+        "channel_notify_label": "แจ้งเตือนช่องทาง",
+        "icon_emoji_cheat_sheet_label": "แผ่นอ้างอิงอีโมจิ",
+        "icon_emoji_description": "อีโมจิที่ใช้เป็นไอคอนสำหรับข้อความนี้ ต้องเป็นรูปแบบ :emoji_name:",
+        "icon_emoji_label": "ไอคอนอิโมจิ",
+        "message_format_description": "ส่งข้อความเต็มรูปแบบ",
+        "message_format_description_2": "เปิดใช้งานเพื่อส่งข้อความด้วยรูปแบบที่อุดมสมบูรณ์, ไฟล์แนบ, และการนำเสนอภาพที่ดีกว่า",
+        "message_format_label": "รูปแบบข้อความ",
+        "username_description": "ชื่อผู้ใช้ที่จะแสดงเป็นผู้ส่งข้อความ หากไม่ระบุ จะใช้ชื่อบอทเริ่มต้น",
+        "webhook_url_description": "URL ของ webhook จากการผสานรวม Slack ของคุณ คุณสามารถค้นหาได้ในอินสแตนซ์ Slack ของคุณที่เมนู การผสานรวม > Webhooks.",
+        "webhook_url_label": "URL ของ Webhook"
+      },
+      "smtp": {
+        "custom_body_label": "เนื้อหาที่กำหนดเอง",
+        "custom_description": "ความสามารถในการใช้เทมเพลตได้รับการบรรลุผ่านภาษาการสร้างเทมเพลต <b>Liquid</b>.",
+        "custom_description_2": "โปรดดูเอกสารสำหรับคำแนะนำการใช้งาน",
+        "custom_description_3": "ตัวแปรที่ใช้ได้:",
+        "custom_description_4": "ข้อความของการแจ้งเตือน",
+        "custom_description_5": "ชื่อบริการ",
+        "custom_description_6": "สถานะบริการ (UP/DOWN/การแจ้งเตือนหมดอายุใบรับรอง)",
+        "custom_subject_label": "หัวข้อกำหนดเอง",
+        "smtp_from_label": "จาก (อีเมลผู้ส่ง)",
+        "smtp_host_description": "ใส่ชื่อโฮสต์ของเซิร์ฟเวอร์ที่คุณต้องการเชื่อมต่อ หรือ localhost หากต้องการใช้ตัวส่งเมลที่ตั้งค่าท้องถิ่น",
+        "smtp_host_label": "โฮสต์ SMTP",
+        "smtp_password_placeholder": "รหัสผ่าน SMTP",
+        "smtp_port_label": "พอร์ต",
+        "smtp_to_label": "ถึง (อีเมลผู้รับ)",
+        "smtp_username_placeholder": "ชื่อผู้ใช้ SMTP"
+      },
+      "telegram": {
+        "auto_get_label": "ดึงอัตโนมัติ",
+        "bot_token_description": "รับโทเค็นบอทของคุณจาก",
+        "bot_token_label": "โทเค็นบอท",
+        "chat_id_description": "คุณสามารถได้รับรหัสแชทของคุณได้โดยส่งข้อความไปยังบอทของคุณและคลิก “Auto Get” ที่ด้านบน หรือโดยทำด้วยตนเองผ่าน Telegram API.",
+        "chat_id_description_2": "เพื่อรับค่าแบบ Manual ให้ไปที่",
+        "chat_id_description_3": "ดู",
+        "chat_id_description_4": "เอกสาร Telegram",
+        "chat_id_description_5": "สำหรับข้อมูลเพิ่มเติม.",
+        "chat_id_label": "รหัสแชท",
+        "chat_id_not_found": "ไม่พบรหัสแชทในอัปเดตล่าสุด.",
+        "failed_to_fetch_chat_id": "ไม่สามารถดึง Chat ID ได้",
+        "message_thread_id_description": "ไม่บังคับ. ใช้สำหรับส่งข้อความไปยังเธรด (หัวข้อ) เฉพาะในซูเปอร์กลุ่มฟอรั่ม.",
+        "message_thread_id_label": "รหัสเธรดข้อความ",
+        "no_updates_found": "ไม่พบอัปเดต กรุณาส่งข้อความไปยังบอทของคุณก่อน",
+        "protect_content_description": "หากเปิดใช้งาน เนื้อหาข้อความจะป้องกันไม่ให้ส่งต่อและบันทึก",
+        "protect_content_label": "ป้องกันเนื้อหา",
+        "send_silently_description": "ถ้าเปิดใช้งาน ข้อความจะถูกส่งแบบเงียบ (ผู้ใช้จะได้รับการแจ้งเตือนโดยไม่มีเสียง).",
+        "send_silently_label": "ส่งแบบเงียบ",
+        "server_url_description": "ค่าเริ่มต้นคือ",
+        "server_url_description_2": "คุณสามารถใช้เซิร์ฟเวอร์กำหนดเองได้ ดู",
+        "server_url_description_3": "ที่นี่",
+        "server_url_description_4": "สำหรับรายละเอียด.",
+        "server_url_label": "URL ของเซิร์ฟเวอร์ Telegram",
+        "template_description": "ปรับแต่งรูปแบบข้อความ. ตัวแปรที่ใช้ได้",
+        "template_label": "เทมเพลตข้อความ",
+        "template_parse_mode_description": "เลือกวิธีการตีความข้อความ ดู",
+        "template_parse_mode_description_2": "เอกสารจัดรูปแบบ Telegram",
+        "template_parse_mode_description_3": "สำหรับรายละเอียด",
+        "template_parse_mode_label": "โหมดการตีความเทมเพลต",
+        "template_parse_mode_placeholder": "เลือกโหมดจัดรูปแบบ",
+        "template_placeholder": "ใส่เทมเพลตข้อความของคุณ",
+        "use_template_description": "เปิดใช้งานเพื่อใช้เทมเพลตข้อความและรูปแบบที่กำหนดเอง",
+        "use_template_label": "ใช้เทมเพลตข้อความ"
+      },
+      "webhook": {
+        "additional_headers_description": "เพิ่มหัวข้อ HTTP ที่กำหนดเองในคำขอ webhook.",
+        "additional_headers_label": "หัวข้อเพิ่มเติม",
+        "custom_body_description": "กำหนดรูปแบบเนื้อหาคำขอเองได้ ตัวแปรที่ใช้ได้",
+        "custom_body_label": "เนื้อหาที่กำหนดเอง",
+        "post_url_description": "URL ของจุดปลายทาง webhook ที่จะแจ้งเตือนจะถูกส่งไป",
+        "post_url_label": "URL สำหรับโพสต์",
+        "request_body_description_custom": "กำหนดรูปแบบเนื้อหาแบบกำหนดเองด้านล่าง",
+        "request_body_description_form_data": "เนื้อหาจะถูกส่งเป็น multipart/form-data คุณสามารถถอดรหัสได้โดยใช้ <strong>json_decode($_POST['data'])</strong> ใน PHP.",
+        "request_body_description_json": "เนื้อหาจะถูกส่งเป็น JSON พร้อมหัวข้อ \"application/json\".",
+        "request_body_label": "ร่างคำขอ",
+        "request_body_placeholder": "เลือกประเภทเนื้อหา"
+      }
+    },
+    "important": "การแจ้งเตือนสำคัญ",
+    "important_notifications": "แจ้งเตือนสำคัญ",
+    "labels": {
+      "friendly_name": "ชื่อที่เป็นมิตร",
+      "type": "ประเภทตัวแจ้ง"
+    },
+    "messages": {
+      "create_failed": "ไม่สามารถสร้างตัวแจ้งเตือนได้",
+      "created_success": "สร้างตัวแจ้งเตือนสำเร็จ",
+      "error_loading_notifier": "ไม่สามารถโหลดตัวแจ้งเตือน",
+      "test_failed": "ไม่สามารถส่งการแจ้งเตือนทดสอบได้",
+      "test_success": "ส่งการแจ้งเตือนทดสอบสำเร็จ",
+      "update_failed": "ไม่สามารถอัปเดตตัวแจ้งเตือน",
+      "updated_success": "อัปเดต Notifier สำเร็จ"
+    },
+    "new": {
+      "title": "ช่องทางแจ้งเตือนใหม่"
+    },
+    "no_important": "ไม่พบการแจ้งเตือนสำคัญ.",
+    "placeholders": {
+      "select_type": "เลือกประเภทตัวแจ้งเตือน"
+    },
+    "search_placeholder": "ค้นหาช่องแจ้งเตือนตามชื่อ…"
+  },
+  "proxies": {
+    "delete_dialog": {
+      "description": "การดำเนินการนี้ไม่สามารถย้อนกลับได้. จะลบพร็อกซี่ {{host}}:{{port}} อย่างถาวร.",
+      "title": "คุณแน่ใจอย่างแน่นอนหรือไม่?"
+    },
+    "edit": {
+      "page_name": "แก้ไขพร็อกซี"
+    },
+    "empty_list": {
+      "action_text": "สร้างพร็อกซีแรกของคุณ",
+      "text": "เริ่มต้นด้วยการสร้างพร็อกซีตัวแรกของคุณเพื่อใช้ในตัวตรวจสอบของคุณ",
+      "title": "ไม่พบพร็อกซี"
+    },
+    "form": {
+      "auth_label": "พร็อกซีมีการตรวจสอบสิทธิ์",
+      "port_placeholder": "พอร์ต",
+      "protocol_label": "โปรโตคอลพร็อกซี",
+      "protocol_placeholder": "เลือกโปรโตคอลพร็อกซี",
+      "server_label": "เซิร์ฟเวอร์พร็อกซี",
+      "server_placeholder": "ที่อยู่เซิร์ฟเวอร์",
+      "user": "ผู้ใช้"
+    },
+    "messages": {
+      "create_failed": "ไม่สามารถสร้างพร็อกซีได้",
+      "created_success": "สร้าง Proxy สำเร็จ",
+      "error_loading_proxy": "เกิดข้อผิดพลาดในการโหลดพร็อกซี",
+      "update_failed": "ไม่สามารถอัปเดตพร็อกซีได้",
+      "updated_success": "พร็อกซีอัปเดตเรียบร้อยแล้ว"
+    },
+    "new": {
+      "page_name": "พร็อกซีใหม่"
+    },
+    "page_name": "พร็อกซี",
+    "search_label": "ค้นหา",
+    "search_placeholder": "ค้นหา Proxy ตาม host..."
+  },
+  "security": {
+    "enable_2fa": {
+      "form": {
+        "authenticator_code_label": "รหัสยืนยันตัวตน",
+        "authenticator_code_placeholder": "ใส่รหัส 6 หลัก",
+        "current_password_label": "รหัสผ่านปัจจุบัน",
+        "current_password_placeholder": "ป้อนรหัสผ่านปัจจุบัน",
+        "enable_2fa_button": "เปิดใช้งาน 2FA"
+      },
+      "messages": {
+        "2fa_active": "2FA เปิดใช้งาน",
+        "2fa_disabled_successfully": "ปิด 2FA สำเร็จ",
+        "2fa_enabled_successfully": "เปิดใช้งาน 2FA สำเร็จ",
+        "account_is_protected_with_2fa": "บัญชีของคุณถูกป้องกันด้วย 2FA.",
+        "disable_2fa": "ปิด 2FA",
+        "enter_password_to_disable_2fa": "ป้อนรหัสผ่านของคุณเพื่อปิดการใช้งาน 2FA",
+        "failed_to_disable_2fa": "ไม่สามารถปิด 2FA ได้",
+        "failed_to_verify_2fa_code": "ไม่สามารถยืนยันรหัส 2FA ได้",
+        "failed_to_verify_password": "ไม่สามารถตรวจสอบรหัสผ่านหรือเริ่มต้นการตั้งค่า 2FA",
+        "have_enabled_2fa": "คุณได้เปิดใช้งานการยืนยันตัวตนแบบสองปัจจัย (2FA) สำหรับบัญชีของคุณแล้ว ซึ่งช่วยเพิ่มความปลอดภัยเพิ่มเติม",
+        "or_enter_secret_manually": "หรือป้อนรหัสลับนี้ด้วยตนเอง",
+        "scan_qr_code_with_authenticator_app": "สแกนรหัส QR นี้ด้วยแอปตรวจสอบตัวตนของคุณ",
+        "two_factor_authentication_enabled": "ยืนยันตัวตนแบบสองปัจจัยเปิดใช้งาน",
+        "user_email_not_found": "ไม่พบอีเมลของผู้ใช้"
+      }
+    },
+    "page_name": "ความปลอดภัย",
+    "update_password": {
+      "form": {
+        "confirm_new_password_label": "ยืนยันรหัสผ่านใหม่",
+        "confirm_new_password_placeholder": "ป้อนรหัสผ่านใหม่อีกครั้ง",
+        "new_password_label": "รหัสผ่านใหม่",
+        "new_password_placeholder": "ใส่รหัสผ่านใหม่",
+        "old_password_label": "รหัสผ่านเก่า",
+        "old_password_placeholder": "กรอกรหัสผ่านปัจจุบันของคุณ",
+        "update_password_button": "อัปเดตรหัสผ่าน"
+      },
+      "messages": {
+        "failed_to_update_password": "ไม่สามารถอัปเดตรหัสผ่านได้",
+        "password_updated_successfully": "อัปเดตรหัสผ่านสำเร็จ"
+      },
+      "title": "อัปเดตรหัสผ่าน"
+    }
+  },
+  "sendgrid": {
+    "api_key_description": "คีย์ API ของ SendGrid ของคุณ คุณสามารถสร้างได้ในบัญชี SendGrid ของคุณใต้เมนู Settings → API Keys กรุณาตรวจสอบว่ามีสิทธิ์ “Mail Send”",
+    "api_key_label": "คีย์ API",
+    "bcc_email_description": "ผู้รับสำเนาแฝง. แยกอีเมลหลายรายการด้วยเครื่องหมายจุลภาค.",
+    "bcc_email_label": "อีเมล BCC (ไม่บังคับ)",
+    "cc_email_description": "ผู้รับสำเนา (CC). แยกอีเมลหลายรายการด้วยเครื่องหมายจุลภาค.",
+    "cc_email_label": "อีเมล CC (ไม่บังคับ)",
+    "from_email_description": "ที่อยู่อีเมลของผู้ส่ง. ต้องเป็นผู้ส่งที่ได้รับการยืนยันในบัญชี SendGrid ของคุณ.",
+    "from_email_label": "อีเมลผู้ส่ง",
+    "subject_description": "บรรทัดหัวข้ออีเมล รองรับเทมเพลต Liquid",
+    "subject_label": "หัวข้อกำหนดเอง (ไม่บังคับ)",
+    "subject_variables_label": "ตัวแปรที่ใช้ได้:",
+    "subject_variables_msg": "ข้อความของการแจ้งเตือน",
+    "subject_variables_name": "ชื่อบริการ",
+    "subject_variables_status": "สถานะบริการ (ออนไลน์/ออฟไลน์)",
+    "to_email_description": "ที่อยู่อีเมลของผู้รับหลัก. หากมีผู้รับหลายราย ให้ใช้ช่อง CC หรือ BCC.",
+    "to_email_label": "อีเมลผู้รับ"
+  },
+  "settings": {
+    "data_retention": {
+      "days_label": "วัน",
+      "description": "กำหนดจำนวนวันในการเก็บข้อมูล (KEEP_DATA_PERIOD_DAYS).",
+      "title": "ระยะเวลาการเก็บข้อมูล"
+    },
+    "timezone": {
+      "description": "เลือกเขตเวลาที่คุณต้องการใช้เพื่อแสดงเวลาทั้งหมดในแอป",
+      "label": "เขตเวลา",
+      "no_timezone_found": "ไม่พบเขตเวลา.",
+      "search_placeholder": "ค้นหาโซนเวลา...",
+      "select_placeholder": "เลือกเขตเวลา...",
+      "title": "เขตเวลา"
+    },
+    "validation": {
+      "min_days": "ต้องมีอย่างน้อย 1 วัน"
+    }
+  },
+  "status": {
+    "messages": {
+      "all_systems_operational": "ระบบทั้งหมดทำงานได้",
+      "down": "หยุดทำงาน",
+      "last_updated": "อัปเดตล่าสุด",
+      "maintenance": "บำรุงรักษา",
+      "no_monitors_configured": "ยังไม่มีตัวตรวจสอบสำหรับหน้าสถานะนี้",
+      "operational": "ปกติ",
+      "partial_system_outage": "ระบบขัดข้องบางส่วน",
+      "powered_by": "ขับเคลื่อนโดย",
+      "refresh_in": "รีเฟรชใน",
+      "refresh_now": "รีเฟรชเดี๋ยวนี้",
+      "status_page_not_found": "ไม่พบหน้าแสดงสถานะหรือยังไม่ได้เผยแพร่",
+      "under_maintenance": "กำลังบำรุงรักษา",
+      "unknown": "ไม่ทราบ"
+    }
+  },
+  "status_pages": {
+    "affected_monitors": "มอนิเตอร์ที่ได้รับผลกระทบ",
+    "affected_monitors_info": "เลือกมอนิเตอร์ที่จะได้รับผลกระทบจากการบำรุงรักษานี้",
+    "auto_refresh_interval": "ช่วงรีเฟรชอัตโนมัติ (วินาที)",
+    "basic_information": "ข้อมูลพื้นฐาน",
+    "create_status_page": "สร้างหน้าสถานะ",
+    "customization": "การปรับแต่ง",
+    "delete_dialog": {
+      "description": "คุณแน่ใจหรือว่าต้องการลบ \"{{title}}\"? การดำเนินการนี้ไม่สามารถย้อนกลับได้.",
+      "title": "ลบหน้าแสดงสถานะ"
+    },
+    "description": "กรอกคำอธิบายหน้าแสดงสถานะ",
+    "domain_already_used": "โดเมน {{domain}} ถูกใช้โดยหน้าแสดงสถานะอื่นแล้ว",
+    "domain_host_warning": "โดเมนนี้ตรงกับ URL ของโฮสต์ปัจจุบันของคุณ ซึ่งอาจทำให้เกิดความขัดแย้ง",
+    "domains": "โดเมน",
+    "domains_info_warning": "อย่าลืมเพิ่มระเบียน CNAME ใน DNS ของคุณสำหรับแต่ละโดเมน",
+    "draft_status": "ร่าง",
+    "edit_page_name": "แก้ไขหน้าสถานะ",
+    "messages": {
+      "create_description": "สร้างหน้าสถานะใหม่เพื่อแชร์สถานะบริการของคุณกับผู้ใช้",
+      "create_your_first_status_page": "สร้างหน้าสถานะแรกของคุณ",
+      "created_successfully": "สร้างหน้าสถานะเรียบร้อยแล้ว",
+      "delete_failed": "ไม่สามารถลบหน้าสถานะได้",
+      "deleted_successfully": "หน้าสถานะถูกลบเรียบร้อยแล้ว",
+      "get_started_by_creating_your_first_status_page": "เริ่มต้นด้วยการสร้างหน้าแสดงสถานะแรกของคุณ",
+      "no_status_pages_found": "ไม่พบหน้าสถานะ",
+      "not_found": "ไม่พบหน้าสถานะ",
+      "update_description": "อัปเดตการตั้งค่าและการกำหนดค่าหน้าสถานะของคุณ",
+      "updated_successfully": "หน้าสถานะอัปเดตสำเร็จ"
+    },
+    "new_page_name": "หน้าสถานะใหม่",
+    "page_name": "หน้าสถานะ",
+    "published": "เผยแพร่",
+    "published_info": "เผยแพร่หน้าสถานะนี้เป็นสาธารณะ",
+    "published_status": "เผยแพร่",
+    "search_label": "ค้นหา",
+    "search_placeholder": "ค้นหาหน้าแสดงสถานะตามชื่อ...",
+    "update_status_page": "อัปเดตหน้าแสดงสถานะ",
+    "view_page": "ดูหน้า"
+  },
+  "tags": {
+    "confirm_delete_description": "การดำเนินการนี้ไม่สามารถยกเลิกได้ การลบแท็ก \"{{name}}\" นี้จะถูกลบอย่างถาวรและจะถูกลบออกจากตัวตรวจสอบทั้งหมด",
+    "edit_page_name": "แก้ไขแท็ก",
+    "empty_state": {
+      "action": "สร้างแท็กแรกของคุณ",
+      "description": "เริ่มต้นโดยสร้างแท็กแรกของคุณเพื่อจัดระเบียบมอนิเตอร์ของคุณ",
+      "title": "ไม่พบแท็ก"
+    },
+    "form": {
+      "color_description": "เลือกสีสำหรับแท็กของคุณ",
+      "color_label": "สี",
+      "create_button": "สร้างแท็ก",
+      "description_label": "คำอธิบาย",
+      "description_placeholder": "ป้อนคำอธิบายแท็ก (ไม่จำเป็น)",
+      "name_label": "ชื่อ",
+      "name_placeholder": "ป้อนชื่อแท็ก",
+      "update_button": "อัปเดตแท็ก"
+    },
+    "messages": {
+      "create_description": "สร้างแท็กใหม่เพื่อจัดระเบียบและจัดประเภทมอนิเตอร์ของคุณ",
+      "failed_to_load_tag": "ไม่สามารถโหลดแท็กได้ แท็กอาจไม่มีอยู่หรือคุณอาจไม่มีสิทธิ์ดู",
+      "tag_id_required": "ต้องระบุ Tag ID",
+      "update_description": "อัปเดตรายละเอียดแท็กเพื่อจัดระเบียบมอนิเตอร์ของคุณให้ดียิ่งขึ้น"
+    },
+    "new_page_name": "แท็กใหม่",
+    "search_placeholder": "ค้นหาแท็ก..."
+  },
+  "theme": {
+    "dark": "มืด",
+    "light": "สว่าง",
+    "system": "ระบบ",
+    "toggle_theme": "เปลี่ยนธีม"
+  },
+  "timezone": {
+    "average": "ค่าเฉลี่ย",
+    "last_24_hours": "24 ชั่วโมงล่าสุด",
+    "last_3_hours": "3 ชั่วโมงล่าสุด",
+    "last_3_months": "3 เดือนล่าสุด",
+    "last_30_minutes": "30 นาทีที่ผ่านมา",
+    "last_6_hours": "6 ชั่วโมงล่าสุด",
+    "last_7_days": "7 วันที่ผ่านมา",
+    "maximum": "สูงสุด",
+    "minimum": "ขั้นต่ำ",
+    "ms": "มิลลิวินาที",
+    "response_time": "เวลาตอบสนอง",
+    "uptime": "อัปไทม์"
+  },
+  "ui": {
+    "general": "ทั่วไป",
+    "intervals_retries": "ช่วงเวลา, การลองใหม่, เวลาเกิน"
+  }
+}

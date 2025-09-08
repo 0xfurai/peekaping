@@ -1,0 +1,1281 @@
+{
+  "actions": {
+    "cancel": "Откажи",
+    "saving": "Запазване..."
+  },
+  "auth": {
+    "login": {
+      "description": "Влезте с имейл адреса си",
+      "no_account": "Нямате акаунт?",
+      "sign_up": "Регистрирайте се",
+      "submit": "Вход",
+      "title": "Добре дошли отново"
+    },
+    "register": {
+      "description": "Създайте вашия администраторски акаунт",
+      "have_account": "Вече имате акаунт?",
+      "sign_in": "Влез",
+      "submit": "Създай",
+      "title": "Здравейте"
+    },
+    "twofa": {
+      "code_label": "Код за двуфакторна автентификация",
+      "code_placeholder": "Въведете 2FA код",
+      "description": "2FA е активирана за вашия акаунт. Моля, въведете вашия код за удостоверяване, за да продължите.",
+      "title": "Изисквана двуфакторна автентикация",
+      "verify_button": "Потвърди 2FA",
+      "verifying": "Проверяване..."
+    }
+  },
+  "bars": {
+    "down_count": "Брой прекъсвания",
+    "important": "Важно",
+    "interval": "Интервал",
+    "message": "Съобщение",
+    "ms": "мс",
+    "notified": "Уведомено",
+    "ping": "Пинг",
+    "retries": "Опити",
+    "status": "Статус",
+    "time": "Време"
+  },
+  "common": {
+    "active": "Активен",
+    "all": "Всички",
+    "back": "Назад",
+    "cancel": "Отказ",
+    "clear_all": "Изчисти всичко",
+    "clear_all_filters": "Изчисти всички филтри",
+    "confirm": "Потвърди",
+    "confirm_delete_title": "Сигурни ли сте напълно?",
+    "confirm_delete_title_short": "Сигурни ли сте?",
+    "continue": "Продължи",
+    "create": "Създай",
+    "created": "Създадено",
+    "days": "дни",
+    "default": "По подразбиране",
+    "delete": "Изтрий",
+    "disabling": "Деактивиране...",
+    "dismiss": "Затвори",
+    "down": "Недостъпно",
+    "enabling": "Активиране...",
+    "error": "Грешка",
+    "expires": "Изтича",
+    "inactive": "Неактивен",
+    "loading": "Зареждане...",
+    "logout": "Изход",
+    "maintenance": "Поддръжка",
+    "no_options_found": "Няма намерени опции",
+    "no_tags_available": "Няма налични етикети",
+    "please_refresh_page": "Моля, презаредете страницата.",
+    "required": "Задължително",
+    "save": "Запази",
+    "saving": "Запазване...",
+    "search": "Търсене",
+    "security": "Сигурност",
+    "select": "Изберете",
+    "select_monitors": "Изберете мониторите...",
+    "select_tags": "Изберете етикети",
+    "settings": "Настройки",
+    "tags": "Етикети",
+    "unknown": "Неизвестно",
+    "unnamed_monitor": "Безименен монитор",
+    "up": "Работи",
+    "update": "Обнови",
+    "verifying": "Проверяване..."
+  },
+  "forms": {
+    "labels": {
+      "confirm_password": "Потвърди паролата",
+      "email": "Имейл",
+      "footer_text": "Текст за подвал",
+      "heartbeat_interval": "Интервал на heartbeat (секунди)",
+      "icon_url": "URL на иконата",
+      "monitor_name": "Име",
+      "monitor_type": "Тип",
+      "password": "Парола",
+      "retries": "Опити",
+      "slug": "Част от URL",
+      "title": "Заглавие",
+      "username": "Потребителско име"
+    },
+    "placeholders": {
+      "auto_refresh_help": "0 за изключване на автоматичното презареждане",
+      "domains": "Въведете домейн (напр. status.example.com)",
+      "footer_text": "Въведете текст за футера",
+      "icon_url": "https://example.com/icon.png",
+      "monitor_name": "Моят монитор",
+      "page_description": "Въведете описание на страницата за статус",
+      "page_title": "Въведете заглавието на страницата за статус.",
+      "slug": "slug за страница за статус"
+    },
+    "validation": {
+      "email_invalid": "Моля, въведете валиден имейл адрес.",
+      "password_min_length": "Паролата трябва да е най-малко 8 символа.",
+      "passwords_mismatch": "Паролите не съвпадат"
+    }
+  },
+  "maintenance": {
+    "card": {
+      "aria": {
+        "delete": "Изтрий {{title}}",
+        "pause": "Паузирай поддръжката",
+        "resume": "Продължи поддръжката"
+      },
+      "labels": {
+        "duration": "{{duration}} мин",
+        "end": "Край: {{date}}",
+        "start": "Начало: {{date}}"
+      },
+      "status": {
+        "active": "Активен",
+        "ended": "Завършен",
+        "inactive": "Неактивен"
+      }
+    },
+    "edit_title": "Редактиране на поддръжка",
+    "form": {
+      "affected_monitors_description": "Изберете мониторите, които ще бъдат засегнати от тази поддръжка.",
+      "affected_monitors_title": "Засегнати монитори",
+      "cron_description": "Въведете валиден cron израз",
+      "cron_expression": "Cron израз",
+      "date_time_title": "Дата и час",
+      "day_of_month": "Ден от месеца",
+      "day_of_week": "Ден от седмицата",
+      "description_label": "Описание",
+      "description_placeholder": "Описание на поддръжката...",
+      "duration_minutes": "Продължителност (минути)",
+      "effective_date_range": "Диапазон на начална и крайна дата (по избор)",
+      "end_date_time": "Крайна дата и час",
+      "end_time": "Краен час",
+      "interval_label": "Интервал (Изпълнявайте веднъж дневно)",
+      "last_day": "Последен ден",
+      "last_day_of_month": "Последен ден от месеца",
+      "maintenance_time_window": "Дневен прозорец за поддръжка",
+      "markdown_supported": "Markdown се поддържа",
+      "same_as_server": "Същата като часовата зона на сървъра",
+      "start_date_time": "Начална дата и час",
+      "start_time": "Начален час",
+      "strategy_label": "Стратегия",
+      "strategy_placeholder": "Изберете стратегия",
+      "timezone_label": "Часова зона",
+      "timezone_placeholder": "Изберете часовата зона",
+      "title_label": "Заглавие",
+      "title_placeholder": "Заглавие на поддръжката"
+    },
+    "page": {
+      "clear_filters": "Изчисти всички филтри",
+      "dialogs": {
+        "confirm_action": {
+          "pause_description": "Сигурни ли сте, че искате да паузирате тази поддръжка?",
+          "resume_description": "Сигурни ли сте, че искате да възобновите тази поддръжка?",
+          "title": "Потвърдете действието"
+        },
+        "confirm_delete": {
+          "description": "Сигурни ли сте, че искате да изтриете този прозорец за поддръжка? Това действие не може да бъде отменено.",
+          "title": "Потвърди изтриване"
+        }
+      },
+      "edit_maintenance": "Редактиране на поддръжка: {{title}}",
+      "empty_state": {
+        "action": "Създайте първия прозорец за поддръжка",
+        "description": "Започнете, като създадете първия си прозорец за поддръжка, за да предотвратите планираните прекъсвания.",
+        "title": "Няма намерени прозорци за поддръжка"
+      },
+      "error_loading": "Грешка при зареждането на страницата за поддръжка",
+      "loading": "Зареждане...",
+      "loading_monitors": "Зареждане на мониторите...",
+      "search_placeholder": "Търсене на поддръжки..."
+    },
+    "page_title": "Периоди за поддръжка",
+    "schedule_title": "Планиране на поддръжка",
+    "strategy": {
+      "cron": "Cron израз",
+      "manual": "Ръчно активиране/деактивиране",
+      "recurring_day_of_month": "Повтарящ се - Ден от месеца",
+      "recurring_interval": "Повтарящ се - Интервал",
+      "recurring_weekday": "Повторение - Ден от седмицата",
+      "single": "Еднократен прозорец за поддръжка"
+    },
+    "toasts": {
+      "create_error": "Неуспешно създаване на поддръжка",
+      "created_success": "Прозорецът за поддръжка е създаден успешно.",
+      "delete_error": "Неуспешно изтриване на поддръжка",
+      "deleted_success": "Периодът за поддръжка беше успешно изтрит.",
+      "pause_error": "Неуспешно паузиране на поддръжката",
+      "paused_success": "Поддръжката е спряна успешно.",
+      "resume_error": "Неуспешно възобновяване на поддръжката",
+      "resumed_success": "Поддръжката е успешно възобновена",
+      "toggle_error": "Не може да се промени статусът на поддръжката: липсва ID",
+      "update_error": "Неуспешно актуализиране на поддръжката",
+      "updated_success": "Поддръжката е успешно обновена."
+    },
+    "weekdays": {
+      "fri": "Пт",
+      "mon": "Пон",
+      "sat": "Съб",
+      "sun": "Неделя",
+      "thu": "Чет",
+      "tue": "Вто",
+      "wed": "Ср"
+    }
+  },
+  "messages": {
+    "login_error": "Възникна грешка по време на входа",
+    "login_no_tokens": "Входът е успешен, но токени не са получени.",
+    "login_success": "Влязохте успешно",
+    "notifier_delete_error": "Неуспешно изтриване на уведомител",
+    "notifier_delete_success": "Известителят е успешно изтрит",
+    "register_error": "Възникна грешка по време на регистрацията.",
+    "register_no_tokens": "Регистрацията е успешна, но не са получени токени.",
+    "register_success": "Регистрацията завърши успешно",
+    "setting_update_error": "Неуспешно актуализиране на настройката",
+    "setting_update_success": "Настройката е успешно актуализирана",
+    "tag_create_error": "Неуспешно създаване на таг",
+    "tag_create_success": "Тагът е създаден успешно.",
+    "tag_delete_error": "Неуспешно изтриване на таг",
+    "tag_delete_success": "Тагът успешно изтрит.",
+    "tag_update_error": "Неуспешно актуализиране на етикета",
+    "tag_update_success": "Етикетът е успешно актуализиран.",
+    "unexpected_error": "Възникна неочаквана грешка",
+    "version_mismatch": "Открито несъответствие на версията"
+  },
+  "monitors": {
+    "card": {
+      "check_interval": "Интервал за проверка:",
+      "loading_more": "Зареждане на още..."
+    },
+    "empty_state": {
+      "action": "Създайте първия си монитор",
+      "description": "Започнете, като създадете първия си монитор, за да проследите здравето на вашите услуги.",
+      "title": "Няма намерени монитори"
+    },
+    "filtering_by_tags": "Филтриране по етикети",
+    "filters": {
+      "monitor_status": "Статус",
+      "monitor_status_placeholder": "Статус на монитора",
+      "search_placeholder": "Търсене на монитори по име...",
+      "status_placeholder": "Статус"
+    },
+    "form": {
+      "buttons": {
+        "copied": "Копирано!",
+        "copy": "Копирай",
+        "create": "Създай",
+        "regenerate": "Генерирай отново",
+        "update": "Обнови"
+      },
+      "dns": {
+        "hostname": "Хост",
+        "port": "Порт",
+        "record_type": "Тип на ресурсен запис",
+        "record_type_placeholder": "Изберете тип запис",
+        "resolver_server": "DNS резолвер",
+        "title": "DNS настройки"
+      },
+      "docker": {
+        "ca_cert_description": "Поставете вашия CA сертификат във PEM формат.",
+        "ca_certificate": "CA сертификат (PEM)",
+        "client_cert_description": "Поставете вашия клиентски сертификат във PEM формат. Този сертификат се използва за взаимна TLS автентикация.",
+        "client_certificate": "Сертификат на клиента (PEM)",
+        "client_private_key": "Частен ключ на клиента (PEM)",
+        "common_tls_issues": "Общи TLS проблеми:",
+        "connection_type": "Тип на връзката",
+        "container_name_id": "Име на контейнера/ID",
+        "disabled": "Неактивно",
+        "docker_container": "Docker контейнер",
+        "docker_host": "Docker хост",
+        "enable_tls": "Активирай TLS",
+        "enabled": "Включено",
+        "examples": "Примери",
+        "hostname_mismatch": "\"x509: сертификатът е валиден за X, а не за Y\":",
+        "hostname_mismatch_solution": "Уверете се, че името на хоста съвпада със SAN на сертификата, или деактивирайте проверката (не се препоръчва).",
+        "legacy_cert_error": "\"x509: сертификатът разчита на остаряло поле Общо име (CN)\"",
+        "legacy_cert_solution": "Добавете името на хоста в Алтернативните имена на субекта (SAN) на сертификата ви.",
+        "mtls_note": "За взаимна TLS (mTLS) е необходимо да предоставите както клиентския сертификат, така и частния ключ. CA сертификатът се използва за проверка на сертификата на сървъра.",
+        "note": "Бележка:",
+        "private_key_description": "Поставете частния си ключ във формат PEM. Съхранявайте го в безопасност!",
+        "select_connection_type": "Изберете тип връзка",
+        "select_tls_option": "Изберете TLS опция",
+        "select_verification_option": "Изберете опция за проверка",
+        "skip_verification": "Пропусни проверката (несигурно)",
+        "tls_configuration": "TLS конфигурация",
+        "unknown_authority": "\"x509: сертификатът е подписан от неизвестен издател\":",
+        "unknown_authority_solution": "Предоставете правилния CA сертификат, който е подписал сървърния сертификат.",
+        "verify_certificates": "Проверка на сертификатите",
+        "verify_tls": "Потвърди TLS"
+      },
+      "grpc": {
+        "body": "Тяло на заявката (JSON)",
+        "enable_tls": "Активирай TLS",
+        "enable_tls_description": "Използвайте сигурна връзка (TLS/SSL)",
+        "invert_keyword": "Инвертирай ключова дума",
+        "invert_keyword_description": "Мониторът ще бъде отбелязан като UP, ако ключовата дума не бъде открита.",
+        "keyword": "Ключова дума",
+        "keyword_description": "Търсете тази ключова дума в отговора.",
+        "keyword_placeholder": "Опционална ключова дума за търсене",
+        "method_description": "Чувствителен към регистъра",
+        "method_placeholder": "Провери",
+        "options_title": "Опции gRPC",
+        "proto_content": "Съдържание на Protobuf",
+        "proto_method": "Protobuf метод",
+        "proto_service_name": "Име на Protobuf услуга",
+        "service_name_placeholder": "Здраве"
+      },
+      "http": {
+        "advanced": {
+          "accepted_status_codes": "Приети HTTP статус кодове",
+          "ignore_tls": "Игнорирайте TLS/SSL грешки за HTTPS сайтове",
+          "ignore_tls_description": "Изключете валидирането на TLS сертификата. Използвайте с повишено внимание — това прави връзките по-малко сигурни.",
+          "max_redirects": "Максимален брой пренасочвания",
+          "max_redirects_description": "Максимален брой пренасочвания, които да следвате (0–30). Задайте 0, за да деактивирате пренасочванията.",
+          "title": "Разширено"
+        },
+        "authentication": {
+          "auth_header": "Заглавка за автентикация",
+          "certificate": "Преводът е за етикет в потребителския интерфейс, свързан с TLS/SSL сертификати. Обичайно се използва думата Сертификат.",
+          "certificate_placeholder": "Сертификат",
+          "client_id": "Идентификатор на клиента",
+          "client_id_placeholder": "Идентификатор на клиента",
+          "client_secret": "Секрет на клиента",
+          "client_secret_placeholder": "Таен ключ на клиента",
+          "domain": "Домен",
+          "domain_placeholder": "Домен",
+          "form_data_body": "Тяло на данните от формуляра",
+          "key": "Ключ",
+          "key_placeholder": "Ключ",
+          "method_label": "Метод за удостоверяване",
+          "method_placeholder": "Изберете тип удостоверяване",
+          "oauth_scope": "Обхват OAuth",
+          "oauth_scope_placeholder": "Опционално: списък от обхвати, разделени с интервали",
+          "oauth_token_url": "URL за OAuth токен",
+          "oauth_token_url_placeholder": "URL за OAuth токен",
+          "title": "Автентикация",
+          "workstation": "Работна станция",
+          "workstation_placeholder": "Работна станция"
+        },
+        "options": {
+          "body": "Тяло",
+          "body_encoding": "Кодиране на тялото",
+          "body_encoding_placeholder": "Изберете кодиране на тялото",
+          "form_example": "Примерни данни от формуляра",
+          "headers": "Заглавки",
+          "json_example": "Пример JSON",
+          "method": "Метод",
+          "method_placeholder": "Изберете тип монитор",
+          "select_encoding": "Изберете кодиране на тялото",
+          "select_method": "Изберете метод",
+          "text_example": "Примерен текст:\nТук е обикновено текстово съдържание...",
+          "title": "Опции за HTTP",
+          "xml_example": "Пример за XML"
+        }
+      },
+      "http_json_query": {
+        "condition_label": "Условие",
+        "expected_value_label": "Очаквана стойност",
+        "json_query_label": "Израз за JSON заявка",
+        "title": "Израз за JSON заявка"
+      },
+      "http_keyword": {
+        "invert_keyword_description": "Ключовата дума трябва да липсва, а не да се появява.",
+        "invert_keyword_label": "Инвертирай ключова дума",
+        "keyword_label": "Ключова дума",
+        "keyword_validation_title": "Валидиране на ключова дума"
+      },
+      "kafka": {
+        "add_broker": "Добави брокер",
+        "auto_topic_creation_description": "Разрешете на изпращача автоматично да създаде темата, ако не съществува.",
+        "auto_topic_creation_label": "Разреши автоматично създаване на теми",
+        "brokers_description": "Списък с адреси на Kafka брокери (формат хост:порт)",
+        "brokers_label": "Kafka брокери",
+        "configuration_title": "Kafka конфигурация",
+        "enable_ssl_description": "Използвайте TLS/SSL криптиране за връзката",
+        "enable_ssl_label": "Активиране на SSL/TLS",
+        "message_description": "Съдържанието на съобщението, което ще се изпрати към темата (препоръчва се формат JSON)",
+        "message_label": "Съобщение",
+        "sasl_mechanism_description": "Изберете SASL механизъм за удостоверяване",
+        "sasl_mechanism_label": "SASL механизъм",
+        "sasl_mechanism_placeholder": "Изберете SASL механизъм",
+        "sasl_password_description": "Парола за SASL автентикация",
+        "sasl_password_label": "Парола за SASL",
+        "sasl_password_placeholder": "Парола",
+        "sasl_username_description": "Потребителско име за SASL автентикация",
+        "sasl_username_label": "SASL потребителско име",
+        "security_title": "Сигурност",
+        "topic_description": "Kafka темата, към която се изпращат съобщения"
+      },
+      "mongodb": {
+        "command_description": "MongoDB команда за изпълнение като JSON. По подразбиране се използва ping, ако не е посочена.",
+        "command_label": "Команда (по избор)",
+        "configuration_title": "Конфигурация на MongoDB",
+        "connection_string_description": "Стринг за свързване към MongoDB. Поддържа както стандартния формат (mongodb://), така и DNS seedlist формат (mongodb+srv://).",
+        "connection_string_label": "Строка за свързване",
+        "expected_value_description": "Очаквана стойност за сравнение с резултата от JSON пътя.",
+        "expected_value_label": "Очаквана стойност (по избор)",
+        "expected_value_placeholder": "Очаквана стойност",
+        "json_path_description": "JSON път за извличане на стойност от отговора. Използвайте $ за кореново ниво.",
+        "json_path_label": "JSON път (опционално)"
+      },
+      "mqtt": {
+        "check_type_json_query": "JSON заявка",
+        "check_type_keyword": "Ключова дума",
+        "check_type_label": "Тип на MQTT проверка",
+        "check_type_none": "Няма (каквото и да е съобщение)",
+        "check_type_placeholder": "Изберете тип на проверка",
+        "configuration_title": "MQTT конфигурация",
+        "expected_value_label": "Очаквана стойност",
+        "hostname_label": "Хост",
+        "json_path_label": "JSON път",
+        "password_label": "Парола за MQTT",
+        "password_placeholder": "Парола (по избор)",
+        "port_label": "Порт",
+        "success_keyword_label": "MQTT - Ключова дума за успех",
+        "success_keyword_placeholder": "Ключова дума, която означава успех",
+        "username_label": "MQTT потребителско име",
+        "username_placeholder": "Потребителско име (по избор)",
+        "validation": {
+          "expected_value_required": "Очакваната стойност е задължителна, когато типът на проверката е json-query",
+          "json_path_required": "JSON пътят е задължителен, когато типът на проверката е json-query",
+          "success_keyword_required": "Успешната ключова дума е задължителна, когато типът на проверката е 'ключова дума'."
+        }
+      },
+      "mysql": {
+        "connection_string_examples": "Примери:",
+        "connection_string_label": "Стринг за свързване",
+        "connection_title": "Връзка към MySQL",
+        "query_label": "SQL заявка"
+      },
+      "ping": {
+        "data_size": "Размер на данните (байтове)",
+        "host": "Име на хоста / IP адрес",
+        "title": "Настройки на пинг"
+      },
+      "postgres": {
+        "connection_string_label": "Строка за свързване",
+        "connection_title": "Връзка към PostgreSQL",
+        "query_label": "Запитване"
+      },
+      "push": {
+        "url_description": "Използвайте този URL във вашата услуга, за да докладвате статуса. Направете HTTP заявка (POST/GET) към тази крайна точка, за да изпратите сигнал за живост.",
+        "url_title": "URL на Push монитора"
+      },
+      "rabbitmq": {
+        "documentation_link": "Документация за RabbitMQ",
+        "health_checks_description": "Мониторът проверява крайната точка {{code}} на всеки възел и връща UP, ако някой от възлите е здрав.",
+        "management_nodes_description": "Въведете URL адрес за възлите за управление на RabbitMQ, включително протокола и порта. Пример: https://node1.rabbitmq.com:15672",
+        "management_nodes_title": "Възли за управление",
+        "node_url_label": "URL на възел",
+        "password_description": "Парола за автентикация в интерфейса за управление на RabbitMQ",
+        "setup_information_description": "За да използвате монитора RabbitMQ, трябва да активирате плъгина за управление във конфигурацията на RabbitMQ. За повече информация, моля, консултирайте документацията на RabbitMQ.",
+        "setup_information_title": "Информация за настройката",
+        "title": "Конфигурация на RabbitMQ",
+        "username_description": "Потребителско име за автентикация в управляващия интерфейс на RabbitMQ"
+      },
+      "redis": {
+        "ca_certificate_description": "Коренният CA сертификат в PEM формат. Необходим за правилната TLS верификация със самоподписани сертификати.",
+        "ca_certificate_label": "CA сертификат (по избор)",
+        "client_certificate_description": "Клиентски сертификат в PEM формат. Изисква се за взаимна TLS автентикация.",
+        "client_certificate_label": "Клиентски сертификат (по избор)",
+        "client_key_description": "Частният ключ на клиента в PEM формат. Трябва да се предостави заедно с клиентския сертификат.",
+        "client_key_label": "Частен ключ на клиента (по избор)",
+        "connection_string_description": "Формат на връзката към Redis: {{redis}} или {{rediss}} за TLS",
+        "connection_string_label": "Строка за свързване",
+        "ignore_tls_description": "Изключи проверката на TLS сертификата (не се препоръчва за продукционна среда)",
+        "ignore_tls_label": "Игнорирай TLS/SSL грешки",
+        "title": "Конфигурация на Redis"
+      },
+      "shared": {
+        "intervals": {
+          "heartbeat_retry": "Интервал за повторни опити на heartbeat (Опитайте отново на всеки {{seconds}} секунди)",
+          "max_retries_description": "Максималният брой повторни опити, преди услугата да се маркира като недостъпна и да се изпрати уведомление.",
+          "request_timeout": "Таймаут на заявката (Изтичане след {{seconds}} секунди)",
+          "resend_notification": "Повторно изпращане на уведомление, ако мониторът е недостъпен X поредни пъти (Повторното изпращане е деактивирано)"
+        },
+        "notifications": {
+          "add_notifier": "Добави известител",
+          "new_notifier": "+ Нов известител",
+          "no_channels": "Няма намерени канали за уведомления. Създайте поне един канал.",
+          "no_channels_available": "Няма налични канали",
+          "select_channel": "Изберете канал",
+          "select_notifier_placeholder": "Изберете известител",
+          "selected_channels": "Избрани канали за известия",
+          "title": "Канали за уведомления"
+        },
+        "proxy": {
+          "add_proxy": "Добави прокси",
+          "new_proxy": "+ Нов прокси",
+          "no_proxy": "Без прокси",
+          "remove_proxy": "Премахни прокси",
+          "select_proxy_placeholder": "Изберете прокси",
+          "selected_proxy": "Избран прокси",
+          "title": "Прокси"
+        },
+        "tags": {
+          "label": "Етикети",
+          "no_tags": "Няма налични етикети",
+          "placeholder": "Изберете тагове"
+        }
+      },
+      "snmp": {
+        "community_description": "SNMP общностен низ за удостоверяване (като парола)",
+        "community_label": "Стринг на общността",
+        "expected_value_description": "Стойността за сравнение. Оставете празно, за да пропуснете валидирането.",
+        "expected_value_label": "Очаквана стойност",
+        "host_description": "Името на хоста или IP адресът на SNMP-устройството",
+        "host_label": "Хост",
+        "json_path_description": "JSONPath израз за извличане на стойност от отговора (използвайте \"$\" за необработвана стойност)",
+        "json_path_label": "JSON път",
+        "json_path_operator_description": "Как да сравните извлечената стойност с очакваната стойност.",
+        "json_path_operator_eq": "равно",
+        "json_path_operator_ge": "по-голямо или равно",
+        "json_path_operator_gt": "По-голямо от",
+        "json_path_operator_label": "Условие",
+        "json_path_operator_le": "по-малко или равно",
+        "json_path_operator_lt": "по-малко от",
+        "json_path_operator_ne": "не е равно",
+        "oid_description": "SNMP обектен идентификатор за заявка (напр. 1.3.6.1.2.1.1.1.0 за описание на системата)",
+        "oid_label": "OID (обектен идентификатор)",
+        "port_description": "SNMP порт (по подразбиране: 161)",
+        "port_label": "Порт",
+        "snmp_version_description": "Версия на SNMP протокола, която да използвате",
+        "snmp_version_label": "SNMP версия",
+        "title": "SNMP настройки",
+        "value_validation_label": "Проверка на стойността (опционално)"
+      },
+      "sqlserver": {
+        "allowed_statements_description": "SELECT, SHOW, DESCRIBE, EXPLAIN, WITH и VALUES.",
+        "allowed_statements_label": "Разрешени заявки:",
+        "connection_string_label": "Строка за свързване",
+        "query_description": "SQL заявка за изпълнение при проверка на здравето. Оставете празно, за да използвате настройките по подразбиране.",
+        "query_label": "Запитване",
+        "title": "Свързване към Microsoft SQL Server"
+      },
+      "tcp": {
+        "host": "Хост",
+        "port": "Порт",
+        "title": "TCP връзка"
+      },
+      "type": {
+        "dns": "DNS монитор",
+        "docker": "Docker контейнер",
+        "grpc": "gRPC Монитор за ключови думи",
+        "http": "HTTP(S) монитор",
+        "kafka": "Монитор за Kafka производител",
+        "mongodb": "Монитор за база данни MongoDB",
+        "mqtt": "MQTT Брокер Монитор",
+        "mysql": "Монитор за MySQL/MariaDB",
+        "ping": "Ping монитор (ICMP)",
+        "postgres": "Монитор за база данни PostgreSQL",
+        "push": "Push монитор (външна услуга извиква генериран URL)",
+        "rabbitmq": "RabbitMQ монитор",
+        "redis": "Монитор за база данни Redis",
+        "snmp": "SNMP монитор",
+        "sqlserver": "Монитор на Microsoft SQL Server",
+        "tcp": "Монитор за TCP порт"
+      }
+    },
+    "page": {
+      "description": "Създайте нов монитор, за да започнете да следите производителността на вашия уебсайт.",
+      "edit_title": "Редактиране на монитор:",
+      "new_title": "Нов монитор"
+    },
+    "title": "Монитори",
+    "toasts": {
+      "deleted": "Мониторът е изтрит",
+      "paused": "Мониторът е паузиран",
+      "reset_success": "Данните на монитора са нулирани успешно",
+      "resumed": "Мониторът е възобновен."
+    },
+    "view": {
+      "buttons": {
+        "clone": "Клонирай",
+        "delete": "Изтрий",
+        "edit": "Редактирай",
+        "pause": "Пауза",
+        "reset_data": "Нулирай данните",
+        "resume": "Възобнови"
+      },
+      "certificate": "Сертификат",
+      "check_every": "Проверявайте на всеки",
+      "current_status": "Текущ статус",
+      "dialogs": {
+        "delete": {
+          "description": "Това действие не може да бъде отменено. То ще изтрие монитора завинаги и всички свързани данни.",
+          "title": "Сигурни ли сте напълно?"
+        },
+        "pause": {
+          "description": "Сигурни ли сте, че искате да паузирате?",
+          "title": "Потвърждение"
+        },
+        "reset": {
+          "description": "Това ще изтрие завинаги историята на heartbeat и статистиките за времето на работа за този монитор. Мониторът ще изглежда сякаш току-що е създаден. Това действие не може да бъде отменено.",
+          "title": "Нулиране на данните на монитора"
+        }
+      },
+      "expiring_soon": "Изтича скоро",
+      "for": "за",
+      "live_status": "Статус в реално време",
+      "monitor_for": "Следи за",
+      "no_certificate_data": "Няма данни за сертификат",
+      "seconds": "секунди",
+      "stats": {
+        "last_24_hours": "Последните 24 часа",
+        "last_30_days": "Последните 30 дни",
+        "last_365_days": "Последните 365 дни",
+        "last_7_days": "Последните 7 дни"
+      },
+      "status": {
+        "down": "Неработещ",
+        "maintenance": "Поддръжка",
+        "paused": "Паузирано",
+        "up": "Работи"
+      }
+    }
+  },
+  "navigation": {
+    "maintenance": "Поддръжка",
+    "monitors": "Монитори",
+    "notification_channels": "Канали за известия",
+    "proxies": "Прокси",
+    "settings": "Настройки",
+    "status_pages": "Страници за статус",
+    "tags": "Етикети"
+  },
+  "notifications": {
+    "actions": {
+      "test": "Тест",
+      "testing": "Тестиране..."
+    },
+    "aria": {
+      "delete": "Изтрий {{name}}"
+    },
+    "confirm_delete_description": "Това действие не може да бъде отменено. Това ще завинаги изтрие известителя \"{{name}}\" и ще го премахне от всички монитори, които го използват.",
+    "create_title": "Създай уведомител",
+    "edit_channel_title": "Редактиране на канал за известия",
+    "edit_title": "Редактиране на известител",
+    "empty_state": {
+      "action": "Създайте своя първи канал за уведомления",
+      "description": "Започнете, като създадете първия си канал за известия, за да изпращате сигнали на екипа си.",
+      "title": "Няма намерени канали за известия"
+    },
+    "form": {
+      "discord": {
+        "bot_display_name_description": "Името, което ще се появи като изпращач на съобщенията в Discord.",
+        "bot_display_name_label": "Име за показване на бот",
+        "custom_message_prefix_description": "Опционален префикс, който ще бъде добавен в началото на всички съобщения.",
+        "custom_message_prefix_label": "Персонализиран префикс на съобщението",
+        "custom_message_prefix_placeholder": "По избор: Добавете префикс към вашето съобщение",
+        "forum_post_name_description": "Името на новата публикация във форума, която ще бъде създадена.",
+        "forum_post_name_label": "Име на публикацията във форума",
+        "forum_post_name_placeholder": "Въведете име на публикацията във форума",
+        "sending_message_to_channel": "Изпрати към канала",
+        "sending_message_to_description": "Изберете къде да изпращате съобщения в Discord.",
+        "sending_message_to_label": "Изпращане на съобщение до",
+        "sending_message_to_new_forum_post": "Изпрати към нова публикация във форума",
+        "sending_message_to_placeholder": "Изберете тип съобщение",
+        "sending_message_to_thread": "Изпрати към нишка",
+        "setup_webhook_description_1": "Вземете URL за уебхука от настройките на Discord сървъра → Интеграции → Уебхукове.",
+        "setup_webhook_description_2": "Създайте нов уебхук и копирайте URL адреса. Уверете се, че сте избрали правилния канал.",
+        "setup_webhook_title": "Настройка на Discord уебхук",
+        "thread_id_description_1": "Активирайте режим на разработчика в настройките на потребителя в Discord → Разширени → Режим на разработчика",
+        "thread_id_description_2": "Щракнете с десния бутон върху нишка или публикация и изберете „Копирай ID на нишката“ или „Копирай ID на канала“",
+        "thread_id_description_title": "Идентификаторът на нишката или форума, където ще бъдат изпращани съобщения.",
+        "thread_id_label": "ID на нишка",
+        "thread_id_placeholder": "Въведете ID на нишка или публикация",
+        "webhook_url_label": "Discord уебхук URL"
+      },
+      "google_chat": {
+        "more_info_about_webhooks": "Повече информация за уебхуковете",
+        "webhook_url_label": "URL за уебхук на Google Chat"
+      },
+      "gotify": {
+        "application_token_description": "Токенът на вашето Gotify приложение. Можете да го намерите в уеб интерфейса на Gotify под Приложения.",
+        "application_token_label": "Токен за приложение",
+        "custom_message_description": "Шаблон за персонализирано съобщение. Налични променливи",
+        "custom_message_description_2": "Оставете празно, за да използвате съобщението по подразбиране.",
+        "custom_message_label": "Персонализирано съобщение",
+        "custom_title_description": "Персонализирано заглавие за уведомлението. Налични променливи: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Оставете празно, за да използвате стандартното заглавие „Peekaping“.",
+        "custom_title_label": "Персонализирано заглавие",
+        "learn_more_label": "Научете повече за Gotify и как да го настроите:",
+        "note_description": "За да използвате тази интеграция, трябва да имате работещ Gotify сървър.",
+        "note_label": "Бележка:",
+        "priority_0": "Най-нисък",
+        "priority_1": "Много ниско",
+        "priority_10": "Най-висок",
+        "priority_2": "Нисък",
+        "priority_3": "Под нормално",
+        "priority_4": "Нормално",
+        "priority_5": "Повишено",
+        "priority_6": "Умерено",
+        "priority_7": "Високо",
+        "priority_8": "Много висок (по подразбиране)",
+        "priority_9": "Спешно",
+        "priority_description": "Приоритет на съобщението (0-10). По-големите числа означават по-висок приоритет. По подразбиране е 8.",
+        "priority_label": "Приоритет",
+        "priority_placeholder": "Изберете приоритет",
+        "server_url_description": "URL адресът на вашия Gotify сървър. Уверете се, че е достъпен за това приложение.",
+        "server_url_label": "URL на сървъра"
+      },
+      "grafana_oncall": {
+        "grafana_oncall_url_description": "URL на уебхука от вашата Grafana OnCall интеграция. Можете да намерите този URL във вашата Grafana OnCall инстанция под Alerts & IRM > IRM > Integrations > Webhook.",
+        "grafana_oncall_url_label": "URL на Grafana OnCall",
+        "learn_more_label": "Научете повече за уебхуковете Grafana OnCall"
+      },
+      "line": {
+        "channel_access_token_description": "Можете да получите вашия токен за достъп до канала от",
+        "channel_access_token_description_2": "Отидете до настройките на канала си и потърсете",
+        "channel_access_token_label": "Дълготраен токен за достъп до канал",
+        "channel_access_token_placeholder": "Въведете токена за достъп до LINE канала",
+        "template_description": "Персонализирайте формата на съобщението. Налични променливи.",
+        "template_label": "Шаблон за съобщение",
+        "template_placeholder": "Въведете вашия персонализиран шаблон за съобщение",
+        "user_id_description": "Можете да намерите вашия потребителски идентификатор в",
+        "user_id_description_2": "Отидете в настройките на канала си и потърсете",
+        "user_id_label": "Вашият потребителски идентификатор",
+        "user_id_placeholder": "Въведете вашия LINE потребителски идентификатор"
+      },
+      "matrix": {
+        "access_token_description": "Вашият Matrix токен за достъп за удостоверяване",
+        "access_token_label": "Токен за достъп",
+        "custom_message_description": "Персонализиран шаблон за съобщение. Налични променливи",
+        "custom_message_label": "Персонализирано съобщение",
+        "homeserver_url_description": "URL адресът на вашия Matrix homeserver",
+        "homeserver_url_label": "URL на домашния сървър",
+        "internal_room_id_description": "Вътрешният идентификатор на стаята, към която ще бъдат изпращани известията. Трябва да започва с \"!\" и да изглежда като: !roomid:matrix.org",
+        "internal_room_id_label": "Вътрешен идентификатор на стая",
+        "setup_instructions_1": "Създайте акаунт в Matrix за вашия бот (или използвайте съществуващия ви акаунт)",
+        "setup_instructions_2": "Създайте или се присъединете към стаята, в която искате да получавате известия.",
+        "setup_instructions_3": "Получете токен за достъп, като изпратите заявка за вход.",
+        "setup_instructions_4": "В отговора ще има поле access_token — използвайте го като вашия токен за достъп.",
+        "setup_instructions_5": "Намери вътрешния идентификатор на стаята си (започва с \"!\") в настройките на стаята във вашия Matrix клиент.",
+        "setup_instructions_label": "Инструкции за настройка"
+      },
+      "mattermost": {
+        "channel_name_description": "Каналът, към който ще се изпращат известия. Оставете празно, за да използвате канала по подразбиране, конфигуриран в уебхука.",
+        "channel_name_label": "Име на канал",
+        "icon_emoji_cheat_sheet_label": "Шпаргалка за емоджита",
+        "icon_emoji_description": "Емоджи, което да се използва като икона. Можете да посочите две емоджи, разделени с интервал (първото за статус „Горе“, второто за статус „Долу“).",
+        "icon_emoji_label": "Емоджи за икона",
+        "icon_url_description": "URL на изображение, което да се използва като икона на уведомлението.",
+        "icon_url_label": "URL на иконата",
+        "learn_more_label": "Научете повече за уебхуковете",
+        "message_template_description": "Персонализирайте формата на съобщението. Налични променливи",
+        "message_template_label": "Шаблон за съобщение",
+        "use_message_template_description": "Активирайте, за да използвате персонализиран шаблон за съобщение и форматирането му.",
+        "use_message_template_label": "Използвай шаблон за съобщение",
+        "username_description": "Потребителското име, което ще се покаже като изпращач на съобщението.",
+        "webhook_url_label": "URL на уебхука"
+      },
+      "ntfy": {
+        "authentication_type_basic": "Основна автентикация",
+        "authentication_type_basic_description": "Използвайте потребителско име и парола за основна автентикация.",
+        "authentication_type_label": "Тип удостоверяване",
+        "authentication_type_none": "Без аутентикация",
+        "authentication_type_none_description": "Не се изисква автентикация. Подходящо за публични NTFY сървъри.",
+        "authentication_type_placeholder": "Изберете тип автентикация",
+        "authentication_type_token": "Аутентикация с токен",
+        "authentication_type_token_description": "Използвайте токен за достъп за удостоверяване.",
+        "custom_message_description": "Съдържание на персонализираното съобщение. Налични променливи",
+        "custom_message_label": "Персонализирано съобщение",
+        "password_required": "Паролата е задължителна за основна автентикация.",
+        "priority_1": "Мин. (Най-нисък)",
+        "priority_2": "Нисък",
+        "priority_3": "По подразбиране",
+        "priority_4": "Високо",
+        "priority_5": "Спешно (Най-висок)",
+        "priority_description": "Нивото на приоритет на уведомлението. По-високите приоритети могат да задействат различно поведение на клиента.",
+        "priority_label": "Приоритет",
+        "priority_placeholder": "Изберете приоритет",
+        "server_url_description": "URL адресът на вашия NTFY сървър. За публичната инстанция използвайте https://ntfy.sh.",
+        "server_url_label": "URL адрес на сървъра",
+        "tags_description": "Тагове, разделени със запетаи, за категоризиране на известия. Налични променливи.",
+        "tags_label": "Етикети",
+        "title_description": "Персонализирано заглавие за уведомлението. Налични са променливи.",
+        "title_label": "Персонализирано заглавие",
+        "token_description": "Вашият NTFY токен за автентикация.",
+        "token_label": "Токен за достъп",
+        "token_required": "За удостоверяване чрез токен е необходим токен.",
+        "topic_description": "Името на темата за уведомленията ви. Това ще бъде каналът, през който се изпращат уведомленията.",
+        "topic_label": "Тема",
+        "username_required": "Потребителското име е задължително за основна автентикация."
+      },
+      "opsgenie": {
+        "api_key_label": "API ключ",
+        "more_info_about_api_keys_label": "Повече информация за API ключове",
+        "priority_1": "Критично",
+        "priority_2": "Висок",
+        "priority_3": "Умерено",
+        "priority_4": "Ниско",
+        "priority_5": "Информационен",
+        "priority_description": "Задайте нивото на приоритет за алармите. По подразбиране е P3 (умерено).",
+        "priority_label": "Приоритет",
+        "region_description": "Изберете региона на Opsgenie. Това определя коя API крайна точка ще се използва.",
+        "region_label": "Регион",
+        "region_placeholder": "Изберете регион"
+      },
+      "pagerduty": {
+        "auto_resolve_acknowledge": "Автоматично потвърждаване",
+        "auto_resolve_acknowledge_description": "Автоматично потвърждаване на инцидента",
+        "auto_resolve_description": "Изберете какво действие да предприемете, когато мониторът се върне онлайн.",
+        "auto_resolve_do_nothing": "Без действие",
+        "auto_resolve_do_nothing_description": "Няма предприето действие при статуса UP",
+        "auto_resolve_label": "Автоматично разрешаване или потвърждаване",
+        "auto_resolve_placeholder": "Изберете поведение за автоматично разрешаване",
+        "auto_resolve_resolve": "Автоматично разрешаване",
+        "auto_resolve_resolve_description": "Автоматично разрешаване на инцидента",
+        "integration_key_description": "Научете как да получите вашия интеграционен ключ",
+        "integration_key_label": "Ключ за интеграция",
+        "integration_key_placeholder": "Въведете вашия интеграционен ключ за PagerDuty",
+        "integration_url_description": "URL адрес на крайна точка на PagerDuty Events API v2. По подразбиране се използва стандартната крайна точка.",
+        "integration_url_label": "URL за интеграция",
+        "learn_more_label": "Документация за PagerDuty",
+        "priority_critical": "Критичен",
+        "priority_description": "Степен на сериозност за инциденти в PagerDuty. По подразбиране е \"warning\".",
+        "priority_error": "Грешка",
+        "priority_info": "Информация",
+        "priority_label": "Приоритет",
+        "priority_placeholder": "Изберете ниво на приоритет",
+        "priority_warning": "Предупреждение"
+      },
+      "pagertree": {
+        "authentication_token_description": "Опционален токен за удостоверяване за повишена сигурност. Този токен ще бъде изпратен в заглавката pagertree-token.",
+        "authentication_token_label": "Аутентификационен токен (по избор)",
+        "authentication_token_placeholder": "Въведете автентикационен токен, ако е необходим.",
+        "auto_resolve_alerts_description": "Автоматично затваряне на PagerTree алармите, когато мониторът се възстанови",
+        "auto_resolve_alerts_label": "Автоматично решаване на аларми",
+        "how_to_get_integration_url_label": "Как да получите URL за интеграция",
+        "integration_url_description": "Въведете URL за PagerTree webhook интеграцията.",
+        "integration_url_label": "PagerTree URL за уебхук",
+        "urgency_level_critical": "Критично",
+        "urgency_level_description": "Задайте нивото на спешност по подразбиране за аларми, изпращани към PagerTree",
+        "urgency_level_high": "Висок",
+        "urgency_level_label": "Ниво на спешност",
+        "urgency_level_low": "Ниско",
+        "urgency_level_medium": "Среден",
+        "urgency_level_placeholder": "Изберете ниво на спешност",
+        "urgency_level_silent": "Безшумен"
+      },
+      "pushbullet": {
+        "access_token": "Токен за достъп",
+        "access_token_description": "Вашият Pushbullet токен за достъп. Вземете го от",
+        "access_token_label": "Ключ за достъп",
+        "access_token_link": "Настройки на Pushbullet",
+        "channel_tag": "Етикет на канал (по избор)",
+        "channel_tag_description": "Изпращайте уведомление към канал Pushbullet, вместо към устройства.",
+        "channel_tag_label": "Таг на канал (по избор)",
+        "custom_message_template": "",
+        "custom_message_template_description": "Персонализирайте съдържанието на уведомлението чрез шаблонни променливи:",
+        "custom_message_template_heartbeat_ping": "Време за отговор",
+        "custom_message_template_heartbeat_time": "Времева отметка",
+        "custom_message_template_label": "Персонализиран шаблон за съобщение (по избор)",
+        "custom_message_template_monitor_url": "URL на монитор",
+        "custom_message_template_msg": "Съобщение за предупреждение",
+        "custom_message_template_name": "Име на монитор",
+        "custom_message_template_placeholder": "Монитор: {{ name }}\nСтатус: {{ status }}\nСъобщение: {{ msg }}",
+        "custom_message_template_status": "Текущ статус",
+        "device_id": "Идентификатор на устройството (по избор)",
+        "device_id_description": "Изпратете уведомление до конкретно устройство. Оставете празно, за да изпратите до всички устройства. Можете да намерите идентификаторите на устройствата, като използвате…",
+        "device_id_label": "Идентификатор на устройството (по избор)",
+        "device_id_link": "API на Pushbullet",
+        "more_info_on": "Повече информация за:"
+      },
+      "pushover": {
+        "application_token_label": "Токен за приложение",
+        "application_token_placeholder": "Въведете токен за приложението Pushover",
+        "device_description": "Оставете полето празно, за да изпратите до всички устройства",
+        "device_label": "Устройство",
+        "device_placeholder": "Име на устройство (по избор)",
+        "message_title_description": "Оставете празно, за да използвате заглавието по подразбиране.",
+        "message_title_label": "Заглавие на известието",
+        "message_title_placeholder": "Персонализирано заглавие на съобщението (опционално)",
+        "message_ttl_description": "Време на живот в секунди (0 = без изтичане)",
+        "message_ttl_label": "TTL на съобщението",
+        "more_info_label": "Повече информация за:",
+        "more_info_label_2": "Можете да създадете приложение и да получите вашия API токен на",
+        "more_info_label_3": "Вашият потребителски ключ може да бъде намерен на",
+        "notification_sound_down_description": "Звук при падане на монитора",
+        "notification_sound_down_label": "Звуков сигнал за известяване - Изключено",
+        "notification_sound_down_placeholder": "Изберете звук",
+        "notification_sound_up_description": "Звук при възстановяване на монитора",
+        "notification_sound_up_label": "Звуков сигнал за известяване - Работи",
+        "notification_sound_up_placeholder": "Изберете звук",
+        "priority_1": "Най-нисък",
+        "priority_2": "Нисък",
+        "priority_3": "Нормално",
+        "priority_4": "Висок",
+        "priority_5": "Спешно",
+        "priority_description": "Ниво на приоритет на съобщението",
+        "priority_label": "Приоритет",
+        "priority_placeholder": "Изберете приоритет",
+        "sound_alien": "Чужденец",
+        "sound_bike": "Велосипед",
+        "sound_bugle": "Сигнален рог",
+        "sound_cashregister": "Касов апарат",
+        "sound_classical": "Класика",
+        "sound_climb": "Възкачване",
+        "sound_cosmic": "Космически",
+        "sound_echo": "Ехо",
+        "sound_falling": "Падане",
+        "sound_gamelan": "Гамелан",
+        "sound_incoming": "Входящ",
+        "sound_intermission": "Пауза между актове",
+        "sound_magic": "Магия",
+        "sound_mechanical": "Механичен",
+        "sound_none": "Без звук",
+        "sound_persistent": "Постоянен",
+        "sound_pianobar": "Пиано бар",
+        "sound_pushover": "Pushover (по подразбиране)",
+        "sound_siren": "Сирена",
+        "sound_spacealarm": "Космическа аларма",
+        "sound_tugboat": "буксирен кораб",
+        "sound_updown": "Горе Долу",
+        "sound_vibrate": "Вибрация",
+        "user_key_label": "Потребителски ключ",
+        "user_key_placeholder": "Въведете вашия потребителски ключ за Pushover"
+      },
+      "signal": {
+        "custom_message_description": "Персонализиран шаблон за съобщение. Налични променливи.",
+        "custom_message_label": "Персонализирано съобщение",
+        "important_description": "Не можете да комбинирате групи и номера в получателите!",
+        "important_label": "ВАЖНО:",
+        "more_info_label": "Можете да прегледате този URL, за да видите как да го настроите:",
+        "note_description": "Трябва да имате Signal клиент с REST API.",
+        "note_label": "Бележка:",
+        "number_description": "Телефонният номер на вашия Signal акаунт (номерът на изпращача).",
+        "number_label": "Телефонен номер",
+        "post_url_description": "URL адресът на вашия Signal CLI REST API сървър.",
+        "post_url_label": "URL за POST заявка",
+        "recipients_description": "Списък с телефонни номера, разделени със запетаи, към които да се изпращат известия.",
+        "recipients_label": "Получатели"
+      },
+      "slack": {
+        "channel_name_description": "Каналът, към който ще бъде изпратено съобщението. Ако не е посочен, съобщението ще бъде изпратено към канала по подразбиране, конфигуриран във webhook.",
+        "channel_name_description_2": "Можете да замените канала по подразбиране, като посочите име на канал (например #alerts) или потребител (например @username).",
+        "channel_name_label": "Име на канал",
+        "channel_notify_description": "Когато е активирано, съобщението ще задейства известия за всички членове на канала. Използвайте внимателно, за да избегнете спам.",
+        "channel_notify_label": "Уведоми канала",
+        "icon_emoji_cheat_sheet_label": "Шпаргалка за емоджита",
+        "icon_emoji_description": "Емоджи, който да се използва като икона за това съобщение. Трябва да е във формат :emoji_name:",
+        "icon_emoji_label": "Емоджи за икона",
+        "message_format_description": "Изпращане на богати съобщения",
+        "message_format_description_2": "Активирайте за изпращане на съобщения с богато форматиране, прикачени файлове и по-добро визуално оформление.",
+        "message_format_label": "Формат на съобщението",
+        "username_description": "Потребителското име, което ще се покаже като подател на съобщението. Ако не е посочено, ще се използва името по подразбиране на бота.",
+        "webhook_url_description": "URL адресът на webhook от Slack интеграцията ви. Можете да го намерите във вашата Slack инстанция под Интеграции > Уебхукове.",
+        "webhook_url_label": "URL на уебхука"
+      },
+      "smtp": {
+        "custom_body_label": "Персонализирано съдържание",
+        "custom_description": "Възможността за шаблониране се постига чрез езика за шаблониране <b>Liquid</b>.",
+        "custom_description_2": "Моля, консултирайте се с документацията за инструкции за употреба.",
+        "custom_description_3": "Налични променливи:",
+        "custom_description_4": "Съобщение на известието",
+        "custom_description_5": "име на услуга",
+        "custom_description_6": "Статус на услугата (UP/DOWN/Известия за изтичане на сертификати)",
+        "custom_subject_label": "Персонализирана тема",
+        "smtp_from_label": "От (Имейл на изпращача)",
+        "smtp_host_description": "Въведете името на хоста на сървъра, към който искате да се свържете, или localhost, ако възнамерявате да използвате локално конфигуриран MTA (агент за предаване на електронна поща).",
+        "smtp_host_label": "SMTP хост",
+        "smtp_password_placeholder": "Парола за SMTP",
+        "smtp_port_label": "Порт",
+        "smtp_to_label": "Към (имейл(и) на получателите)",
+        "smtp_username_placeholder": "SMTP потребителско име"
+      },
+      "telegram": {
+        "auto_get_label": "Автоматично получаване",
+        "bot_token_description": "Вземете токена на вашия бот от",
+        "bot_token_label": "Токен за бота",
+        "chat_id_description": "Можете да получите ID на чата, като изпратите съобщение на вашия бот и щракнете върху \"Auto Get\" отгоре, или ръчно чрез Telegram API.",
+        "chat_id_description_2": "За да го получите ръчно, посетете",
+        "chat_id_description_3": "Виж",
+        "chat_id_description_4": "Документация за Telegram",
+        "chat_id_description_5": "за повече информация.",
+        "chat_id_label": "ID на чат",
+        "chat_id_not_found": "ID на чат не е намерен в последната актуализация.",
+        "failed_to_fetch_chat_id": "Неуспешно извличане на ID на чата",
+        "message_thread_id_description": "По избор. Използва се за изпращане на съобщения към конкретна нишка (тема) във форумна супергрупа.",
+        "message_thread_id_label": "ID на нишката на съобщението",
+        "no_updates_found": "Няма актуализации. Моля, изпратете първо съобщение до вашия бот.",
+        "protect_content_description": "Ако е включено, съдържанието на съобщението ще бъде защитено от препращане и запазване.",
+        "protect_content_label": "Защити съдържанието",
+        "send_silently_description": "Ако е включено, съобщенията ще се изпращат безшумно (потребителите ще получават известие без звук).",
+        "send_silently_label": "Изпрати без звук",
+        "server_url_description": "По подразбиране е",
+        "server_url_description_2": "Можете да използвате персонализиран сървър. Вижте",
+        "server_url_description_3": "тук",
+        "server_url_description_4": "за подробности.",
+        "server_url_label": "URL на Telegram сървъра",
+        "template_description": "Персонализирайте формата на съобщението. Налични променливи.",
+        "template_label": "Шаблон за съобщение",
+        "template_parse_mode_description": "Изберете начина, по който съобщението трябва да бъде разпарсено. Вижте",
+        "template_parse_mode_description_2": "Документация за форматиране в Telegram",
+        "template_parse_mode_description_3": "за подробности.",
+        "template_parse_mode_label": "Режим на форматиране на шаблон",
+        "template_parse_mode_placeholder": "Изберете режим на парсване",
+        "template_placeholder": "Въведете вашия персонализиран шаблон за съобщение",
+        "use_template_description": "Активирайте, за да използвате потребителски шаблон за съобщение и форматиране.",
+        "use_template_label": "Използвай шаблон за съобщение"
+      },
+      "webhook": {
+        "additional_headers_description": "Добавете персонализирани HTTP заглавки към заявката за уебхук.",
+        "additional_headers_label": "Допълнителни HTTP заглавки",
+        "custom_body_description": "Персонализирайте формата на тялото на заявката. Налични променливи.",
+        "custom_body_label": "Персонализирано тяло",
+        "post_url_description": "URL адрес на крайна точка за уебхук, към която ще се изпращат известия.",
+        "post_url_label": "URL за POST заявка",
+        "request_body_description_custom": "Определете своя собствен персонализиран формат на тялото на заявката по-долу.",
+        "request_body_description_form_data": "Съдържанието ще се изпраща като multipart/form-data. Можете да го декодирате с помощта на <strong>json_decode($_POST['data'])</strong> в PHP.",
+        "request_body_description_json": "Съдържанието ще бъде изпратено като JSON с HTTP заглавка \"application/json\".",
+        "request_body_label": "Тяло на заявката",
+        "request_body_placeholder": "Изберете тип съдържание"
+      }
+    },
+    "important": "Важни уведомления",
+    "important_notifications": "Важни известия",
+    "labels": {
+      "friendly_name": "Показвано име",
+      "type": "Тип известителя"
+    },
+    "messages": {
+      "create_failed": "Неуспешно създаване на известител",
+      "created_success": "Известителят е създаден успешно.",
+      "error_loading_notifier": "Грешка при зареждането на уведомителя",
+      "test_failed": "Не успяхте да изпратите тестово известие.",
+      "test_success": "Тестовото известие е изпратено успешно.",
+      "update_failed": "Неуспешно актуализиране на известителя",
+      "updated_success": "Известителят е актуализиран успешно."
+    },
+    "new": {
+      "title": "Нов канал за уведомления"
+    },
+    "no_important": "Няма важни известия.",
+    "placeholders": {
+      "select_type": "Изберете тип известителя"
+    },
+    "search_placeholder": "Търсене на канали за известия по име..."
+  },
+  "proxies": {
+    "delete_dialog": {
+      "description": "Това действие не може да бъде отменено. Това ще изтрие завинаги прокси сървъра {{host}}:{{port}}.",
+      "title": "Наистина ли сте сигурни?"
+    },
+    "edit": {
+      "page_name": "Редактиране на прокси"
+    },
+    "empty_list": {
+      "action_text": "Създайте първия прокси",
+      "text": "Започнете, като създадете първия си прокси, който да се използва във вашите монитори.",
+      "title": "Няма намерени прокси"
+    },
+    "form": {
+      "auth_label": "Прокси сървърът изисква автентикация",
+      "port_placeholder": "Порт",
+      "protocol_label": "Протокол за прокси",
+      "protocol_placeholder": "Изберете протокол за прокси",
+      "server_label": "Прокси сървър",
+      "server_placeholder": "Адрес на сървъра",
+      "user": "Потребител"
+    },
+    "messages": {
+      "create_failed": "Неуспешно създаване на прокси",
+      "created_success": "Прокси създаден успешно",
+      "error_loading_proxy": "Грешка при зареждането на прокси",
+      "update_failed": "Неуспешно актуализиране на прокси",
+      "updated_success": "Проксито е успешно актуализирано."
+    },
+    "new": {
+      "page_name": "Нов прокси сървър"
+    },
+    "page_name": "Прокси",
+    "search_label": "Търсене",
+    "search_placeholder": "Търсете прокси по хост..."
+  },
+  "security": {
+    "enable_2fa": {
+      "form": {
+        "authenticator_code_label": "Код за удостоверяване",
+        "authenticator_code_placeholder": "Въведете 6-цифрен код",
+        "current_password_label": "Текуща парола",
+        "current_password_placeholder": "Въведете текущата си парола",
+        "enable_2fa_button": "Активирай двуфакторна автентикация"
+      },
+      "messages": {
+        "2fa_active": "2FA Активен",
+        "2fa_disabled_successfully": "2FA деактивиран успешно",
+        "2fa_enabled_successfully": "2FA успешно активиран",
+        "account_is_protected_with_2fa": "Вашият акаунт е защитен с 2FA.",
+        "disable_2fa": "Деактивирай двуфакторна автентикация",
+        "enter_password_to_disable_2fa": "Въведете паролата си, за да деактивирате двуфакторна автентикация",
+        "failed_to_disable_2fa": "Неуспешно деактивиране на 2FA",
+        "failed_to_verify_2fa_code": "Грешка при проверката на 2FA кода",
+        "failed_to_verify_password": "Неуспешно потвърждаване на паролата или стартиране на настройката за двуфакторна автентикация.",
+        "have_enabled_2fa": "Активирали сте двуфакторна автентикация (2FA) за акаунта ви. Това добавя допълнителен слой защита.",
+        "or_enter_secret_manually": "Или въведете този секрет ръчно",
+        "scan_qr_code_with_authenticator_app": "Сканирайте този QR код с вашето приложение за двуфакторна автентикация.",
+        "two_factor_authentication_enabled": "Двуфакторна автентикация включена",
+        "user_email_not_found": "Имейлът на потребителя не е намерен"
+      }
+    },
+    "page_name": "Сигурност",
+    "update_password": {
+      "form": {
+        "confirm_new_password_label": "Потвърди новата парола",
+        "confirm_new_password_placeholder": "Въведете отново новата парола",
+        "new_password_label": "Нова парола",
+        "new_password_placeholder": "Въведете нова парола",
+        "old_password_label": "Стара парола",
+        "old_password_placeholder": "Въведете текущата си парола",
+        "update_password_button": "Обнови паролата"
+      },
+      "messages": {
+        "failed_to_update_password": "Неуспешно обновяване на паролата",
+        "password_updated_successfully": "Паролата е актуализирана"
+      },
+      "title": "Промяна на паролата"
+    }
+  },
+  "sendgrid": {
+    "api_key_description": "Вашият SendGrid API ключ. Можете да го създадете в акаунта си в SendGrid през Настройки → API ключове. Уверете се, че има разрешения за \"Mail Send\".",
+    "api_key_label": "API ключ",
+    "bcc_email_description": "Получатели със скрито копие. Разделяйте няколко имейла със запетаи.",
+    "bcc_email_label": "Имейл за скрито копие (по выбор)",
+    "cc_email_description": "Получатели на копие. Разделяйте имейл адресите с запетаи.",
+    "cc_email_label": "Копие до имейл (по избор)",
+    "from_email_description": "Имейл адрес на изпращача. Този изпращач трябва да бъде верифициран във вашия SendGrid акаунт.",
+    "from_email_label": "Имейл от",
+    "subject_description": "Тема на имейла. Поддържа Liquid шаблони.",
+    "subject_label": "Персонализирана тема (по избор)",
+    "subject_variables_label": "Налични променливи:",
+    "subject_variables_msg": "Съобщение на уведомлението",
+    "subject_variables_name": "име на услуга",
+    "subject_variables_status": "Статус на услугата (UP/DOWN)",
+    "to_email_description": "Основен имейл адрес на получателя. За множество получатели използвайте полетата CC или BCC.",
+    "to_email_label": "Имейл получател"
+  },
+  "settings": {
+    "data_retention": {
+      "days_label": "Дни",
+      "description": "Задайте колко дни да се запазват данните (KEEP_DATA_PERIOD_DAYS).",
+      "title": "Период на съхранение на данни"
+    },
+    "timezone": {
+      "description": "Изберете вашата предпочитана часова зона за показване на всички времена във приложението.",
+      "label": "Часова зона",
+      "no_timezone_found": "Не е намерена часовата зона.",
+      "search_placeholder": "Търсене на часови зони...",
+      "select_placeholder": "Изберете часовата зона...",
+      "title": "Часова зона"
+    },
+    "validation": {
+      "min_days": "Трябва да бъде най-малко 1 ден"
+    }
+  },
+  "status": {
+    "messages": {
+      "all_systems_operational": "Всички системи са в експлоатация",
+      "down": "Недостъпно",
+      "last_updated": "Последно обновено",
+      "maintenance": "Поддръжка",
+      "no_monitors_configured": "Няма монитори конфигурирани за тази страница за статус.",
+      "operational": "Оперативен",
+      "partial_system_outage": "Частично прекъсване на системата",
+      "powered_by": "Задвижвано от",
+      "refresh_in": "Обновяване след",
+      "refresh_now": "Презареди сега",
+      "status_page_not_found": "Страница за статус не е намерена или не е публикувана.",
+      "under_maintenance": "Поддръжка",
+      "unknown": "Неизвестно"
+    }
+  },
+  "status_pages": {
+    "affected_monitors": "Засегнати монитори",
+    "affected_monitors_info": "Изберете мониторите, които ще бъдат засегнати от тази поддръжка",
+    "auto_refresh_interval": "Интервал за автоматично обновяване (секунди)",
+    "basic_information": "Основна информация",
+    "create_status_page": "Създай страница за статус",
+    "customization": "Персонализация",
+    "delete_dialog": {
+      "description": "Сигурни ли сте, че искате да изтриете \"{{title}}\"? Това действие не може да бъде отменено.",
+      "title": "Изтриване на страница за статус"
+    },
+    "description": "Въведете описание на страницата за статус",
+    "domain_already_used": "Доменът {{domain}} вече се използва от друга страница за статус.",
+    "domain_host_warning": "Този домейн е същият като текущия URL на хоста ви. Това може да доведе до конфликт.",
+    "domains": "Домени",
+    "domains_info_warning": "Не забравяйте да добавите CNAME записите във DNS за всеки домейн.",
+    "draft_status": "Чернова",
+    "edit_page_name": "Редактиране на страница за статус",
+    "messages": {
+      "create_description": "Създайте нова страница за статус, за да споделите състоянието на вашата услуга с потребителите.",
+      "create_your_first_status_page": "Създайте първата си страница за статус",
+      "created_successfully": "Страницата за статус е създадена успешно",
+      "delete_failed": "Неуспешно изтриване на страницата за статус",
+      "deleted_successfully": "Страницата за статус е успешно изтрита.",
+      "get_started_by_creating_your_first_status_page": "Започнете, като създадете първата си страница за статус.",
+      "no_status_pages_found": "Няма намерени страници за статус",
+      "not_found": "Страница за статус не е намерена",
+      "update_description": "Актуализирайте настройките и конфигурацията на страницата за статус.",
+      "updated_successfully": "Страницата за статуса е успешно обновена"
+    },
+    "new_page_name": "Нова страница за статус",
+    "page_name": "Страници за статуси",
+    "published": "Публикувано",
+    "published_info": "Направете тази страница за статус публично достъпна",
+    "published_status": "Публикувана",
+    "search_label": "Търсене",
+    "search_placeholder": "Търсене на страници за статус по заглавие...",
+    "update_status_page": "Актуализирай страницата за статус",
+    "view_page": "Преглед на страницата"
+  },
+  "tags": {
+    "confirm_delete_description": "Това действие не може да бъде отменено. Това ще изтрие трайно етикета „{{name}}“ и ще го премахне от всички монитори.",
+    "edit_page_name": "Редактиране на етикета",
+    "empty_state": {
+      "action": "Създайте първия си етикет",
+      "description": "Започнете, като създадете първия си етикет, за да организирате мониторите си.",
+      "title": "Няма намерени етикети"
+    },
+    "form": {
+      "color_description": "Изберете цвят за вашия етикет",
+      "color_label": "Цвят",
+      "create_button": "Създай етикет",
+      "description_label": "Описание",
+      "description_placeholder": "Въведете описание на таг (по избор)",
+      "name_label": "Име",
+      "name_placeholder": "Въведете име на етикет",
+      "update_button": "Актуализирай таг"
+    },
+    "messages": {
+      "create_description": "Създайте нов етикет, за да организирате и категоризирате мониторите ви.",
+      "failed_to_load_tag": "Не може да се зареди тагът. Тагът може да не съществува или да нямате разрешение да го видите.",
+      "tag_id_required": "Идентификаторът на таг е задължителен",
+      "update_description": "Актуализирайте детайлите на таговете, за да организирате по-добре вашите монитори."
+    },
+    "new_page_name": "Нов етикет",
+    "search_placeholder": "Търсене на етикети..."
+  },
+  "theme": {
+    "dark": "Тъмен",
+    "light": "Светъл",
+    "system": "Системно",
+    "toggle_theme": "Превключване на темата"
+  },
+  "timezone": {
+    "average": "Средно",
+    "last_24_hours": "Последните 24 часа",
+    "last_3_hours": "Последните 3 часа",
+    "last_3_months": "Последните 3 месеца",
+    "last_30_minutes": "Последните 30 минути",
+    "last_6_hours": "Последните 6 часа",
+    "last_7_days": "Последни 7 дни",
+    "maximum": "Максимум",
+    "minimum": "Минимум",
+    "ms": "мс",
+    "response_time": "Време за реакция",
+    "uptime": "Време на работа"
+  },
+  "ui": {
+    "general": "Общи",
+    "intervals_retries": "Интервали, опити за повторение, таймаути"
+  }
+}

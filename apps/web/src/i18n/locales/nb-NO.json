@@ -1,0 +1,1281 @@
+{
+  "actions": {
+    "cancel": "Avbryt",
+    "saving": "Lagrer..."
+  },
+  "auth": {
+    "login": {
+      "description": "Logg inn med din e-post",
+      "no_account": "Har du ikke konto?",
+      "sign_up": "Registrer deg",
+      "submit": "Logg inn",
+      "title": "Velkommen tilbake"
+    },
+    "register": {
+      "description": "Opprett din admin-konto",
+      "have_account": "Har du allerede en konto?",
+      "sign_in": "Logg inn",
+      "submit": "Opprett",
+      "title": "Hei"
+    },
+    "twofa": {
+      "code_label": "2FA-kode",
+      "code_placeholder": "Oppgi 2FA-kode",
+      "description": "2FA er aktivert for din konto. Vennligst skriv inn din autentiseringskode for å fortsette.",
+      "title": "To-faktorautentisering påkrevd",
+      "verify_button": "Verifiser 2FA",
+      "verifying": "Verifiserer..."
+    }
+  },
+  "bars": {
+    "down_count": "Ned Antall",
+    "important": "Viktig",
+    "interval": "intervall",
+    "message": "Melding",
+    "ms": "ms",
+    "notified": "Varslet",
+    "ping": "Ping",
+    "retries": "Forsøk",
+    "status": "Status",
+    "time": "Tid"
+  },
+  "common": {
+    "active": "Aktiv",
+    "all": "Alle",
+    "back": "Tilbake",
+    "cancel": "Avbryt",
+    "clear_all": "Fjern alle",
+    "clear_all_filters": "Fjern alle filter",
+    "confirm": "Bekreft",
+    "confirm_delete_title": "Er du helt sikker?",
+    "confirm_delete_title_short": "Er du sikker?",
+    "continue": "Fortsett",
+    "create": "Opprett",
+    "created": "Opprettet",
+    "days": "dager",
+    "default": "Standard",
+    "delete": "Slett",
+    "disabling": "Deaktiverer...",
+    "dismiss": "Lukk",
+    "down": "Nede",
+    "enabling": "Aktiverer...",
+    "error": "Feil",
+    "expires": "Utløper",
+    "inactive": "Inaktiv",
+    "loading": "Laster...",
+    "logout": "Logg ut",
+    "maintenance": "Vedlikehold",
+    "no_options_found": "Ingen alternativer funnet",
+    "no_tags_available": "Ingen tagger tilgjengelige",
+    "please_refresh_page": "Vennligst oppdater siden.",
+    "required": "Obligatorisk",
+    "save": "Lagre",
+    "saving": "Lagrer...",
+    "search": "Søk",
+    "security": "Sikkerhet",
+    "select": "Velg",
+    "select_monitors": "Velg overvåkningspunkter...",
+    "select_tags": "Velg merkelapper",
+    "settings": "Innstillinger",
+    "tags": "Tagger",
+    "unknown": "Ukjent",
+    "unnamed_monitor": "Navnløs overvåker",
+    "up": "Opp",
+    "update": "Oppdater",
+    "verifying": "Verifiserer..."
+  },
+  "forms": {
+    "labels": {
+      "confirm_password": "Bekreft passord",
+      "email": "E-post",
+      "footer_text": "Footer-tekst",
+      "heartbeat_interval": "Hjertebankintervall (sekunder)",
+      "icon_url": "Ikon-URL",
+      "monitor_name": "Navn",
+      "monitor_type": "Type",
+      "password": "Passord",
+      "retries": "Gjentakelser",
+      "slug": "Slug",
+      "title": "Tittel",
+      "username": "Brukernavn"
+    },
+    "placeholders": {
+      "auto_refresh_help": "0 for ingen automatisk oppdatering",
+      "domains": "Oppgi domene (f.eks. status.example.com)",
+      "footer_text": "Skriv inn bunntekst",
+      "icon_url": "https://example.com/ikon.png",
+      "monitor_name": "Min overvåking",
+      "page_description": "Oppgi statussidebeskrivelse",
+      "page_title": "Skriv inn tittel på statusside",
+      "slug": "statusside-slug"
+    },
+    "validation": {
+      "email_invalid": "Vennligst oppgi en gyldig e‑postadresse",
+      "password_min_length": "Passord må være minst 8 tegn",
+      "passwords_mismatch": "Passordene stemmer ikke"
+    }
+  },
+  "maintenance": {
+    "card": {
+      "aria": {
+        "delete": "Slett {{title}}",
+        "pause": "Pause vedlikehold",
+        "resume": "Fortsett vedlikehold"
+      },
+      "labels": {
+        "duration": "{{duration}} min",
+        "end": "Slutt: {{date}}",
+        "start": "Start: {{date}}"
+      },
+      "status": {
+        "active": "Aktiv",
+        "ended": "Avsluttet",
+        "inactive": "Inaktiv"
+      }
+    },
+    "edit_title": "Rediger vedlikehold",
+    "form": {
+      "affected_monitors_description": "Velg de overvåkningsobjektene som påvirkes av dette vedlikeholdet",
+      "affected_monitors_title": "Berørte monitorer",
+      "cron_description": "Oppgi et gyldig cron-uttrykk",
+      "cron_expression": "Cron-uttrykk",
+      "date_time_title": "Dato og tid",
+      "day_of_month": "Dag i måneden",
+      "day_of_week": "Ukedag",
+      "description_label": "Beskrivelse",
+      "description_placeholder": "Vedlikeholdsbeskrivelse...",
+      "duration_minutes": "Varighet (minutter)",
+      "effective_date_range": "Gyldighetsperiode (valgfritt)",
+      "end_date_time": "Slutt dato og tid",
+      "end_time": "Sluttid",
+      "interval_label": "Intervall (Kjør en gang per dag)",
+      "last_day": "Siste dag",
+      "last_day_of_month": "Siste dag i måneden",
+      "maintenance_time_window": "Vedlikeholdstidsspenn for en dag",
+      "markdown_supported": "Markdown er støttet",
+      "same_as_server": "Samme som serverens tidssone",
+      "start_date_time": "Startdato og tid",
+      "start_time": "Starttid",
+      "strategy_label": "Strategi",
+      "strategy_placeholder": "Velg strategi",
+      "timezone_label": "Tidssone",
+      "timezone_placeholder": "Velg tidssone",
+      "title_label": "Tittel",
+      "title_placeholder": "Vedlikeholdstitel"
+    },
+    "page": {
+      "clear_filters": "Fjern alle filtre",
+      "dialogs": {
+        "confirm_action": {
+          "pause_description": "Er du sikker på at du vil pause denne vedlikeholdsperioden?",
+          "resume_description": "Er du sikker på at du vil gjenoppta dette vedlikeholdet?",
+          "title": "Bekreft handling"
+        },
+        "confirm_delete": {
+          "description": "Er du sikker på at du vil slette denne vedlikeholdsperioden? Denne handlingen kan ikke angres.",
+          "title": "Bekreft sletting"
+        }
+      },
+      "edit_maintenance": "Rediger vedlikehold: {{title}}",
+      "empty_state": {
+        "action": "Opprett din første vedlikeholdsperiode",
+        "description": "Kom i gang ved å opprette din første vedlikeholdsperiode for å forhindre planlagte nedetider.",
+        "title": "Ingen vedlikeholdsvinduer funnet"
+      },
+      "error_loading": "Feil ved lasting av vedlikehold",
+      "loading": "Laster...",
+      "loading_monitors": "Laster overvåkningspunkter...",
+      "search_placeholder": "Søk vedlikehold..."
+    },
+    "page_title": "Vedlikeholdsvinduer",
+    "schedule_title": "Planlegg vedlikehold",
+    "strategy": {
+      "cron": "Cron‑uttrykk",
+      "manual": "Manuelt aktiv / inaktiv",
+      "recurring_day_of_month": "Gjentar - Dag i måneden",
+      "recurring_interval": "Periodisk - Intervall",
+      "recurring_weekday": "Periodisk - Ukedag",
+      "single": "Enkelt vedlikeholdsperiode"
+    },
+    "toasts": {
+      "create_error": "Kunne ikke opprette vedlikehold",
+      "created_success": "Vedlikehold opprettet",
+      "delete_error": "Kunne ikke slette vedlikehold",
+      "deleted_success": "Vedlikeholdet ble slettet suksessfullt",
+      "pause_error": "Kunne ikke pause vedlikehold",
+      "paused_success": "Vedlikeholdet ble satt på pause",
+      "resume_error": "Kunne ikke gjenoppta vedlikehold",
+      "resumed_success": "Vedlikeholdet er gjenopptatt",
+      "toggle_error": "Kan ikke bytte vedlikeholdstilstand: ID mangler",
+      "update_error": "Kunne ikke oppdatere vedlikehold",
+      "updated_success": "Vedlikehold oppdatert"
+    },
+    "weekdays": {
+      "fri": "Fre.",
+      "mon": "Ma",
+      "sat": "la",
+      "sun": "Søn",
+      "thu": "Tor",
+      "tue": "ti",
+      "wed": "Ons"
+    }
+  },
+  "messages": {
+    "login_error": "Det oppstod en feil under påloggingen.",
+    "login_no_tokens": "Innlogging vellykket, men ingen token mottatt.",
+    "login_success": "Innlogging vellykket",
+    "notifier_delete_error": "Klarte ikke å slette varsel",
+    "notifier_delete_success": "Notifier slettet",
+    "register_error": "En feil oppstod under registrering.",
+    "register_no_tokens": "Registrering vellykket, men ingen tokens mottatt",
+    "register_success": "Registrert suksessfullt",
+    "setting_update_error": "Kunne ikke oppdatere innstilling",
+    "setting_update_success": "Innstillingen ble oppdatert.",
+    "tag_create_error": "Kunne ikke opprette tag",
+    "tag_create_success": "Tag opprettet",
+    "tag_delete_error": "Klarte ikke å slette tag",
+    "tag_delete_success": "Tag slettet vellykket",
+    "tag_update_error": "Kunne ikke oppdatere taggen",
+    "tag_update_success": "Tag oppdatert",
+    "unexpected_error": "En uventet feil oppstod",
+    "version_mismatch": "Versjonsfeil oppdaget"
+  },
+  "monitors": {
+    "card": {
+      "check_interval": "Kontrollintervall:",
+      "loading_more": "Laster mer…"
+    },
+    "empty_state": {
+      "action": "Opprett din første overvåking",
+      "description": "Kom i gang ved å opprette din første overvåkning for å spore helsen til tjenestene dine.",
+      "title": "Ingen overvåkningsmonitter funnet"
+    },
+    "filtering_by_tags": "Filtrering etter tags",
+    "filters": {
+      "monitor_status": "Status",
+      "monitor_status_placeholder": "Status for overvåking",
+      "search_placeholder": "Søk i overvåkningsenheter etter navn...",
+      "status_placeholder": "Status"
+    },
+    "form": {
+      "buttons": {
+        "copied": "Kopiert!",
+        "copy": "Kopier",
+        "create": "Opprett",
+        "regenerate": "Regenerer",
+        "update": "Oppdater"
+      },
+      "dns": {
+        "hostname": "Vertsnavn",
+        "port": "Port",
+        "record_type": "Oppføringstype",
+        "record_type_placeholder": "Velg en posttype",
+        "resolver_server": "Resolver‑server",
+        "title": "DNS-innstillinger"
+      },
+      "docker": {
+        "ca_cert_description": "Lim inn sertifikatutstederens sertifikat i PEM-format.",
+        "ca_certificate": "CA-sertifikat (PEM)",
+        "client_cert_description": "Lim inn klientsertifikatet ditt i PEM-format. Dette brukes til gjensidig TLS-godkjenning.",
+        "client_certificate": "Klientsertifikat (PEM)",
+        "client_private_key": "Klientens private nøkkel (PEM)",
+        "common_tls_issues": "Vanlige TLS-problemer:",
+        "connection_type": "Tilkoblingstype",
+        "container_name_id": "Container-navn/ID",
+        "disabled": "Deaktivert",
+        "docker_container": "Docker-beholder",
+        "docker_host": "Docker-vert",
+        "enable_tls": "Aktiver TLS",
+        "enabled": "Aktivert",
+        "examples": "Eksempler",
+        "hostname_mismatch": "x509: sertifikatet er gyldig for X, ikke Y",
+        "hostname_mismatch_solution": "Sørg for at vertsnavnet samsvarer med sertifikatets SAN, eller deaktiver verifikasjon (ikke anbefalt).",
+        "legacy_cert_error": "\"x509: sertifikatet avhenger av legacy Common Name-feltet\":",
+        "legacy_cert_solution": "Legg til vertsnavnet i Subject Alternative Names (SAN) i sertifikatet ditt.",
+        "mtls_note": "For gjensidig TLS (mTLS) må du oppgi både klientsertifikat og privat nøkkel. CA-sertifikatet brukes til å verifisere serverens sertifikat.",
+        "note": "Merk:",
+        "private_key_description": "Lim inn din private nøkkel i PEM-format. Hold den sikker!",
+        "select_connection_type": "Velg tilkoblingstype",
+        "select_tls_option": "Velg TLS-alternativ",
+        "select_verification_option": "Velg verifikasjonsalternativ",
+        "skip_verification": "Hopp over verifisering (usikker)",
+        "tls_configuration": "TLS-konfigurasjon",
+        "unknown_authority": "\"x509: sertifikat signert av ukjent autoritet\":\"",
+        "unknown_authority_solution": "Oppgi riktig CA-sertifikat som signerte serverens sertifikat.",
+        "verify_certificates": "Verifiser sertifikater",
+        "verify_tls": "Verifiser TLS"
+      },
+      "grpc": {
+        "body": "Kroppedata (JSON)",
+        "enable_tls": "Aktiver TLS",
+        "enable_tls_description": "Bruk sikker tilkobling (TLS/SSL)",
+        "invert_keyword": "Inverter nøkkelord",
+        "invert_keyword_description": "Monitoren vil bli markert som OPPE hvis nøkkelordet IKKE finnes.",
+        "keyword": "Nøkkelord",
+        "keyword_description": "Søk etter dette nøkkelordet i svaret",
+        "keyword_placeholder": "Valgfritt nøkkelord å søke etter",
+        "method_description": "Store/små bokstaver",
+        "method_placeholder": "Sjekk",
+        "options_title": "gRPC-alternativer",
+        "proto_content": "Protobuf-innhold",
+        "proto_method": "Protobuf-metode",
+        "proto_service_name": "Protobuf-tjenestenavn",
+        "service_name_placeholder": "Helse"
+      },
+      "http": {
+        "advanced": {
+          "accepted_status_codes": "Aksepterte statuskoder",
+          "ignore_tls": "Ignorer TLS/SSL-feil for HTTPS-nettsteder",
+          "ignore_tls_description": "Hopp over TLS-sertifikatvalidering. Bruk med forsiktighet – dette gjør tilkoblinger mindre sikre.",
+          "max_redirects": "Maksimale omdirigeringer",
+          "max_redirects_description": "Maksimalt antall omdirigeringer som skal følges (0‑30). Sett til 0 for å deaktivere omdirigeringer.",
+          "title": "Avansert"
+        },
+        "authentication": {
+          "auth_header": "Autorisasjons‑header",
+          "certificate": "Sertifikat",
+          "certificate_placeholder": "Sertifikat",
+          "client_id": "Klient-ID",
+          "client_id_placeholder": "Klient-ID",
+          "client_secret": "Klienthemmelighet",
+          "client_secret_placeholder": "Klienthemmelighet",
+          "domain": "Domene",
+          "domain_placeholder": "Domene",
+          "form_data_body": "Formdata-Body",
+          "key": "Nøkkel",
+          "key_placeholder": "Nøkkel",
+          "method_label": "Autentiseringsmetode",
+          "method_placeholder": "Velg autentiseringstype",
+          "oauth_scope": "OAuth-omfang",
+          "oauth_scope_placeholder": "Valgfritt: Mellomromsseparert liste over scopes",
+          "oauth_token_url": "OAuth-token-URL",
+          "oauth_token_url_placeholder": "OAuth-token-URL",
+          "title": "Autentisering",
+          "workstation": "Arbeidsstasjon",
+          "workstation_placeholder": "Arbeidsstasjon"
+        },
+        "options": {
+          "body": "Innhold",
+          "body_encoding": "Body-enkoding",
+          "body_encoding_placeholder": "Velg kroppskoding",
+          "form_example": "Eksempel på skjemadata",
+          "headers": "Header",
+          "json_example": "JSON‑eksempel",
+          "method": "Metode",
+          "method_placeholder": "Velg overvåkningstype",
+          "select_encoding": "Velg kroppskoding",
+          "select_method": "Velg metode",
+          "text_example": "Eksempeltekst:\nEnhver enkel tekst her...",
+          "title": "HTTP-alternativer",
+          "xml_example": "Eksempel XML"
+        }
+      },
+      "http_json_query": {
+        "condition_label": "Betingelse",
+        "expected_value_label": "Forventet verdi",
+        "json_query_label": "JSON‑spørringsuttrykk",
+        "title": "JSON‑spørring"
+      },
+      "http_keyword": {
+        "invert_keyword_description": "Se etter at nøkkelordet er fraværende i stedet for at det er til stede.",
+        "invert_keyword_label": "Inverter nøkkelord",
+        "keyword_label": "Nøkkelord",
+        "keyword_validation_title": "Nøkkelordvalidering"
+      },
+      "kafka": {
+        "add_broker": "Legg til broker",
+        "auto_topic_creation_description": "Tillat produsenten å automatisk opprette emnet hvis det ikke finnes",
+        "auto_topic_creation_label": "Tillat automatisk oppretting av emner",
+        "brokers_description": "Liste over Kafka-broker-adresser (host:port-format)",
+        "brokers_label": "Kafka-brokere",
+        "configuration_title": "Kafka-konfigurasjon",
+        "enable_ssl_description": "Bruk SSL/TLS‑kryptering for tilkoblingen",
+        "enable_ssl_label": "Aktiver SSL/TLS",
+        "message_description": "Meldingsinnholdet som skal sendes til emnet (JSON-format anbefales)",
+        "message_label": "Melding",
+        "sasl_mechanism_description": "Velg SASL‑autentiseringsmekanismen",
+        "sasl_mechanism_label": "SASL-mekanisme",
+        "sasl_mechanism_placeholder": "Velg SASL-mekanisme",
+        "sasl_password_description": "Passord for SASL-autentisering",
+        "sasl_password_label": "SASL-passord",
+        "sasl_password_placeholder": "passord",
+        "sasl_username_description": "Brukernavn for SASL-autentisering",
+        "sasl_username_label": "SASL-brukernavn",
+        "security_title": "Sikkerhet",
+        "topic_description": "Kafka-emnet du produserer meldinger til"
+      },
+      "mongodb": {
+        "command_description": "MongoDB-kommando som skal kjøres som JSON. Standard er ping hvis ikke angitt.",
+        "command_label": "Kommando (Valgfritt)",
+        "configuration_title": "MongoDB-konfigurasjon",
+        "connection_string_description": "MongoDB-tilkoblingsstreng. Støtter både standard (mongodb://) og DNS-seedlist (mongodb+srv://) formater.",
+        "connection_string_label": "Koblingsstreng",
+        "expected_value_description": "Forventet verdi som skal sammenlignes med resultatet av JSON‑path.",
+        "expected_value_label": "Forventet verdi (valgfritt)",
+        "expected_value_placeholder": "Forventet verdi",
+        "json_path_description": "JSON-sti for å hente verdi fra responsen. Bruk $ for rotnivå.",
+        "json_path_label": "JSON Path (Valgfritt)"
+      },
+      "mqtt": {
+        "check_type_json_query": "JSON-spørring",
+        "check_type_keyword": "Nøkkelord",
+        "check_type_label": "MQTT-sjekktype",
+        "check_type_none": "Ingen (Alle meldinger)",
+        "check_type_placeholder": "Velg sjekktype",
+        "configuration_title": "MQTT-konfigurasjon",
+        "expected_value_label": "Forventet verdi",
+        "hostname_label": "Vertsnavn",
+        "json_path_label": "JSON‑sti",
+        "password_label": "MQTT-passord",
+        "password_placeholder": "Passord (valgfritt)",
+        "port_label": "Port",
+        "success_keyword_label": "MQTT-suksessord",
+        "success_keyword_placeholder": "Nøkkelord som indikerer suksess",
+        "username_label": "MQTT-brukernavn",
+        "username_placeholder": "Brukernavn (valgfritt)",
+        "validation": {
+          "expected_value_required": "Forventet verdi er påkrevd når sjekketype er json-query",
+          "json_path_required": "JSON‑sti er påkrevd når sjekktype er json‑query",
+          "success_keyword_required": "Success keyword er påkrevd når sjekketype er nøkkelord."
+        }
+      },
+      "mysql": {
+        "connection_string_examples": "Eksempler:",
+        "connection_string_label": "Tilkoblingsstreng",
+        "connection_title": "MySQL-tilkobling",
+        "query_label": "Spørring"
+      },
+      "ping": {
+        "data_size": "Datastørrelse (byte)",
+        "host": "Vertsnavn / IP",
+        "title": "Ping-innstillinger"
+      },
+      "postgres": {
+        "connection_string_label": "Tilkoblingsstreng",
+        "connection_title": "PostgreSQL-tilkobling",
+        "query_label": "Spørring"
+      },
+      "push": {
+        "url_description": "Bruk denne URL-en i tjenesten din for å rapportere status. Send en HTTP‑forespørsel (POST/GET) til dette endepunktet for å sende et livssignal.",
+        "url_title": "Push Monitor-URL"
+      },
+      "rabbitmq": {
+        "documentation_link": "RabbitMQ-dokumentasjon",
+        "health_checks_description": "Monitoren sjekker {{code}}-endepunktet på hver node og gir status OPPE hvis noen node er i god stand.",
+        "management_nodes_description": "Oppgi URL‑en for RabbitMQ‑administrasjonselementer, inkludert protokoll og port. Eksempel: https://node1.rabbitmq.com:15672",
+        "management_nodes_title": "Administrasjonsnoder",
+        "node_url_label": "Node-URL",
+        "password_description": "Passord for autentisering av RabbitMQ‑administrasjonsgrensesnittet",
+        "setup_information_description": "For å bruke RabbitMQ‑monitoren, må du aktivere Management‑plugin‑en i RabbitMQ‑oppsettet ditt. For mer informasjon, vennligst se RabbitMQ‑dokumentasjonen.",
+        "setup_information_title": "Oppsettinformasjon",
+        "title": "RabbitMQ-konfigurasjon",
+        "username_description": "Brukernavn for autentisering av RabbitMQ‑administrasjonsgrensesnitt"
+      },
+      "redis": {
+        "ca_certificate_description": "Rot-CA-sertifikat i PEM-format. Påkrevd for korrekt TLS-verifisering med selvsignerte sertifikater.",
+        "ca_certificate_label": "CA-sertifikat (Valgfritt)",
+        "client_certificate_description": "Klientsertifikat i PEM-format. Påkrevd for gjensidig TLS-autentisering.",
+        "client_certificate_label": "Klientsertifikat (valgfritt)",
+        "client_key_description": "Klientens private nøkkel i PEM-format. Må leveres sammen med klientsertifikatet.",
+        "client_key_label": "Klient privat nøkkel (Valgfritt)",
+        "connection_string_description": "Redis-tilkoblingsstrengformat: {{redis}} eller {{rediss}} for TLS",
+        "connection_string_label": "Tilkoblingsstreng",
+        "ignore_tls_description": "Hopp over TLS-sertifikatsverifisering (ikke anbefalt i produksjon)",
+        "ignore_tls_label": "Ignorer TLS/SSL-feil",
+        "title": "Redis-konfigurasjon"
+      },
+      "shared": {
+        "intervals": {
+          "heartbeat_retry": "Heartbeat-retryintervall (forsøk hver {{seconds}} sekund)",
+          "max_retries_description": "Maksimale forsøk før tjenesten markeres som ned og en varsling sendes.",
+          "request_timeout": "Forespørsel timeout (Timeout etter {{seconds}} sekunder)",
+          "resend_notification": "Send varsel på nytt hvis ned i X påfølgende ganger (Send på nytt deaktivert)"
+        },
+        "notifications": {
+          "add_notifier": "Legg til varsel",
+          "new_notifier": "+ Ny varsler",
+          "no_channels": "Ingen varslingkanaler funnet, opprett en først",
+          "no_channels_available": "Ingen kanaler tilgjengelig",
+          "select_channel": "Velg kanal",
+          "select_notifier_placeholder": "Velg varsler",
+          "selected_channels": "Valgte varslingskanaler",
+          "title": "Varslingskanaler"
+        },
+        "proxy": {
+          "add_proxy": "Legg til proxy",
+          "new_proxy": "+ Ny proxy",
+          "no_proxy": "Ingen proxy",
+          "remove_proxy": "Fjern proxy",
+          "select_proxy_placeholder": "Velg proxy",
+          "selected_proxy": "Valgt proxy",
+          "title": "Mellomtjener"
+        },
+        "tags": {
+          "label": "Tagger",
+          "no_tags": "Ingen tagger tilgjengelig",
+          "placeholder": "Velg merkelapper"
+        }
+      },
+      "snmp": {
+        "community_description": "SNMP‑fellesskapsstreng for autentisering (som et passord)",
+        "community_label": "Samfunnsstreng",
+        "expected_value_description": "Verdien som skal sammenlignes med. La stå tom for å hoppe over validering.",
+        "expected_value_label": "Forventet verdi",
+        "host_description": "Vertsnavnet eller IP-adressen til en SNMP-aktivert enhet",
+        "host_label": "Vert",
+        "json_path_description": "JSONPath-uttrykk for å hente ut verdi fra responsen (bruk \"$\" for råverdi)",
+        "json_path_label": "JSON‑sti",
+        "json_path_operator_description": "Slik sammenligner du den ekstraherte verdien med den forventede verdien",
+        "json_path_operator_eq": "er lik",
+        "json_path_operator_ge": "større enn eller lik",
+        "json_path_operator_gt": "større enn",
+        "json_path_operator_label": "Betingelse",
+        "json_path_operator_le": "mindre enn eller lik",
+        "json_path_operator_lt": "mindre enn",
+        "json_path_operator_ne": "ikke lik",
+        "oid_description": "SNMP-objektidentifikatoren som skal spørres (f.eks. 1.3.6.1.2.1.1.1.0 for systembeskrivelse)",
+        "oid_label": "OID (Objektidentifikator)",
+        "port_description": "SNMP-porten (standard: 161)",
+        "port_label": "Port",
+        "snmp_version_description": "SNMP-protokollversjon som skal brukes",
+        "snmp_version_label": "SNMP-versjon",
+        "title": "SNMP-innstillinger",
+        "value_validation_label": "Verdivalidering (valgfritt)"
+      },
+      "sqlserver": {
+        "allowed_statements_description": "SELECT, SHOW, DESCRIBE, EXPLAIN, WITH og VALUES.",
+        "allowed_statements_label": "Tillatte setninger:",
+        "connection_string_label": "Tilkoblingsstreng",
+        "query_description": "Spørring som skal kjøres for helsesjekk. La stå tomt for å bruke standard",
+        "query_label": "Spørring",
+        "title": "Microsoft SQL Server-tilkobling"
+      },
+      "tcp": {
+        "host": "Vert",
+        "port": "Port",
+        "title": "TCP-tilkobling"
+      },
+      "type": {
+        "dns": "DNS-overvåkning",
+        "docker": "Docker-beholder",
+        "grpc": "gRPC nøkkelordmonitor",
+        "http": "HTTP(S)-overvåking",
+        "kafka": "Kafka-produsentovervåker",
+        "mongodb": "MongoDB-databaseovervåking",
+        "mqtt": "MQTT-brokerovervåking",
+        "mysql": "MySQL/MariaDB-overvåker",
+        "ping": "Ping-tilsyn (ICMP)",
+        "postgres": "PostgreSQL-databaseovervåker",
+        "push": "Push Monitor (eksterne tjenester kaller en generert URL)",
+        "rabbitmq": "RabbitMQ-overvåking",
+        "redis": "Redis-database-overvåker",
+        "snmp": "SNMP-overvåking",
+        "sqlserver": "Microsoft SQL Server-overvåker",
+        "tcp": "TCP-portmonitor"
+      }
+    },
+    "page": {
+      "description": "Opprett en ny overvåking for å begynne å spore nettstedets ytelse.",
+      "edit_title": "Rediger overvåking:",
+      "new_title": "Ny overvåker"
+    },
+    "title": "Overvåkningsverktøy",
+    "toasts": {
+      "deleted": "Overvåking slettet",
+      "paused": "Overvåkning satt på pause",
+      "reset_success": "Monitor data tilbakestilt vellykket",
+      "resumed": "Overvåking gjenopptatt"
+    },
+    "view": {
+      "buttons": {
+        "clone": "Klon",
+        "delete": "Slett",
+        "edit": "Rediger",
+        "pause": "Pause",
+        "reset_data": "Tilbakestill data",
+        "resume": "Gjenoppta"
+      },
+      "certificate": "Sertifikat",
+      "check_every": "Sjekk hvert",
+      "current_status": "Nåværende status",
+      "dialogs": {
+        "delete": {
+          "description": "Denne handlingen kan ikke angres. Dette vil permanent slette overvåking og all tilknyttet data.",
+          "title": "Er du helt sikker?"
+        },
+        "pause": {
+          "description": "Er du sikker på at du vil pause?",
+          "title": "Bekreftelse"
+        },
+        "reset": {
+          "description": "Dette vil permanent slette all heartbeat‑historikk og oppetidstatistikk for denne monitoren. Monitoren vil se ut som om den nettopp ble opprettet. Denne handlingen kan ikke angres.",
+          "title": "Tilbakestill overvåkningsdata"
+        }
+      },
+      "expiring_soon": "Utløper snart",
+      "for": "for",
+      "live_status": "Direkte status",
+      "monitor_for": "overvåk for",
+      "no_certificate_data": "Ingen sertifikatdata",
+      "seconds": "sekunder",
+      "stats": {
+        "last_24_hours": "Siste 24 timer",
+        "last_30_days": "Siste 30 dager",
+        "last_365_days": "Siste 365 dager",
+        "last_7_days": "Siste 7 dager"
+      },
+      "status": {
+        "down": "Ned",
+        "maintenance": "Vedlikehold",
+        "paused": "Pauset",
+        "up": "Opp"
+      }
+    }
+  },
+  "navigation": {
+    "maintenance": "Vedlikehold",
+    "monitors": "Overvåkninger",
+    "notification_channels": "Varslingskanaler",
+    "proxies": "Proxyer",
+    "settings": "Innstillinger",
+    "status_pages": "Status‑sider",
+    "tags": "Merker"
+  },
+  "notifications": {
+    "actions": {
+      "test": "Test",
+      "testing": "Tester..."
+    },
+    "aria": {
+      "delete": "Slett {{name}}"
+    },
+    "confirm_delete_description": "Denne handlingen kan ikke angres. Dette vil permanent slette varsleren \"{{name}}\" og fjerne den fra alle overvåkningsverktøy som bruker den.",
+    "create_title": "Opprett varsler",
+    "edit_channel_title": "Rediger varslingskanal",
+    "edit_title": "Rediger varsler",
+    "empty_state": {
+      "action": "Opprett din første varslingskanal",
+      "description": "Kom i gang ved å opprette din første varselskanal for å sende varsler til teamet ditt.",
+      "title": "Ingen varslingkanaler funnet"
+    },
+    "form": {
+      "discord": {
+        "bot_display_name_description": "Navnet som vises som avsender i Discord-meldingene.",
+        "bot_display_name_label": "Bot-visningsnavn",
+        "custom_message_prefix_description": "Valgfritt prefiks som legges til i begynnelsen av alle meldinger.",
+        "custom_message_prefix_label": "Egendefinert meldingsprefiks",
+        "custom_message_prefix_placeholder": "Valgfritt: Legg til et prefiks til meldingen din",
+        "forum_post_name_description": "Navnet på det nye foruminnlegget som skal opprettes.",
+        "forum_post_name_label": "Foruminnleggsnavn",
+        "forum_post_name_placeholder": "Oppgi navnet på foruminnlegget",
+        "sending_message_to_channel": "Send til kanal",
+        "sending_message_to_description": "Velg hvor Discord-meldinger skal sendes.",
+        "sending_message_to_label": "Sender melding til",
+        "sending_message_to_new_forum_post": "Send til nytt foruminnlegg",
+        "sending_message_to_placeholder": "Velg meldingstype",
+        "sending_message_to_thread": "Send til tråd",
+        "setup_webhook_description_1": "Få webhook‑URLen din fra Discord‑serverinnstillinger → Integrasjoner → Webhooks.",
+        "setup_webhook_description_2": "Opprett en ny webhook og kopier URL‑en. Sørg for at du har valgt riktig kanal.",
+        "setup_webhook_title": "Sett opp Discord Webhook",
+        "thread_id_description_1": "Aktiver Utviklermodus i Discord-brukerinnstillinger → Avansert → Utviklermodus",
+        "thread_id_description_2": "Høyreklikk på tråden eller innlegget og velg \"Kopier tråds-ID\" eller \"Kopier kanal-ID\"",
+        "thread_id_description_title": "ID‑en til tråden eller foruminnlegget der meldingene vil bli sendt",
+        "thread_id_label": "Tråd-ID",
+        "thread_id_placeholder": "Skriv inn tråd- eller innlegg-ID",
+        "webhook_url_label": "Discord Webhook‑URL"
+      },
+      "google_chat": {
+        "more_info_about_webhooks": "Mer informasjon om Webhooks",
+        "webhook_url_label": "Google Chat Webhook‑URL"
+      },
+      "gotify": {
+        "application_token_description": "Applikasjonstoken fra Gotify‑applikasjonen din. Du finner det i Gotify‑nettgrensesnittet ditt under Apps.",
+        "application_token_label": "Applikasjonstoken",
+        "custom_message_description": "Egendefinert meldingsmal. Tilgjengelige variabler",
+        "custom_message_description_2": "La stå tomt for å bruke standardmeldingen.",
+        "custom_message_label": "Tilpasset melding",
+        "custom_title_description": "Egendefinert tittel for varselet. Tilgjengelige variabler: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. La stå tomt for å bruke standard \"Peekaping\"-tittel.",
+        "custom_title_label": "Tilpasset tittel",
+        "learn_more_label": "Lær mer om Gotify og hvordan du setter det opp på:",
+        "note_description": "Du må ha en Gotify-server kjørende for å bruke denne integrasjonen.",
+        "note_label": "Merknad:",
+        "priority_0": "Lavest",
+        "priority_1": "Svært lav",
+        "priority_10": "Høyeste",
+        "priority_2": "Lav",
+        "priority_3": "Under normal",
+        "priority_4": "Normal",
+        "priority_5": "Over normal",
+        "priority_6": "Middels",
+        "priority_7": "Høy",
+        "priority_8": "Veldig høy (Standard)",
+        "priority_9": "Nød",
+        "priority_description": "Meldingens prioritet (0-10). Høyere tall betyr høyere prioritet. Standard er 8.",
+        "priority_label": "Prioritet",
+        "priority_placeholder": "Velg prioritet",
+        "server_url_description": "URL-en til Gotify-serveren din. Sørg for at den er tilgjengelig fra denne applikasjonen.",
+        "server_url_label": "Server-URL"
+      },
+      "grafana_oncall": {
+        "grafana_oncall_url_description": "Webhook‑URL‑en fra Grafana OnCall-integrasjonen din. Du finner den i Grafana OnCall‑instansen din under Alerts & IRM > IRM > Integrations > Webhook.",
+        "grafana_oncall_url_label": "Grafana OnCall‑URL",
+        "learn_more_label": "Lær mer om Grafana OnCall-webhooks"
+      },
+      "line": {
+        "channel_access_token_description": "Du kan få kanalens tilgangstoken fra",
+        "channel_access_token_description_2": "Gå til kanalsinnstillingene dine og se etter",
+        "channel_access_token_label": "Kanal-tilgangstoken (langvarig)",
+        "channel_access_token_placeholder": "Skriv inn LINE-kanalens tilgangstoken",
+        "template_description": "Tilpass meldingsformatet. Tilgjengelige variabler",
+        "template_label": "Meldingsmal",
+        "template_placeholder": "Angi din egendefinerte meldingsmal",
+        "user_id_description": "Du finner bruker‑IDen din i",
+        "user_id_description_2": "Gå til kanalinnstillingene og se etter",
+        "user_id_label": "Din bruker-ID",
+        "user_id_placeholder": "Oppgi LINE-bruker-ID"
+      },
+      "matrix": {
+        "access_token_description": "Din Matrix-tilgangstoken for autentisering",
+        "access_token_label": "Tilgangstoken",
+        "custom_message_description": "Egendefinert meldingsmal. Tilgjengelige variabler",
+        "custom_message_label": "Egendefinert melding",
+        "homeserver_url_description": "URL-en til din Matrix-hjemmeserver",
+        "homeserver_url_label": "Homeserver-URL",
+        "internal_room_id_description": "Den interne rom-IDen der varsler skal sendes. Denne skal starte med \"!\" og se slik ut: !roomid:matrix.org",
+        "internal_room_id_label": "Intern rom-ID",
+        "setup_instructions_1": "Opprett en Matrix-konto for boten din (eller bruk din eksisterende konto)",
+        "setup_instructions_2": "Opprett eller bli med i rommet du vil motta varsler i",
+        "setup_instructions_3": "Få tilgangstokenet ditt ved å sende en påloggingsforespørsel",
+        "setup_instructions_4": "Svaret vil inneholde et access_token-felt – bruk dette som ditt Access Token",
+        "setup_instructions_5": "Finn rommets interne ID (starter med \"!\") i Matrix‑klientens rominnstillinger",
+        "setup_instructions_label": "Installasjonsinstruksjoner"
+      },
+      "mattermost": {
+        "channel_name_description": "Kanalen der varsler skal sendes. La feltet stå tomt for å bruke standardkanalen som er konfigurert i webhooken.",
+        "channel_name_label": "Kanalnavn",
+        "icon_emoji_cheat_sheet_label": "Emoji-hjelpetabell",
+        "icon_emoji_description": "Emoji å bruke som ikon. Du kan angi to emojier adskilt med et mellomrom (først for oppstatus, andre for nedstatus).",
+        "icon_emoji_label": "Ikon-emoji",
+        "icon_url_description": "URL til et bilde som skal brukes som ikon for varslingsmeldingen.",
+        "icon_url_label": "Ikon‑URL",
+        "learn_more_label": "Lær mer om webhooks",
+        "message_template_description": "Tilpass meldingsformatet. Tilgjengelige variabler.",
+        "message_template_label": "Meldingsmal",
+        "use_message_template_description": "Aktiver for å bruke en tilpasset meldingsmal og format.",
+        "use_message_template_label": "Bruk meldingsmal",
+        "username_description": "Brukernavnet som vil vises som avsenderen av meldingen.",
+        "webhook_url_label": "Webhook-URL"
+      },
+      "ntfy": {
+        "authentication_type_basic": "Grunnleggende autentisering",
+        "authentication_type_basic_description": "Bruk brukernavn og passord for grunnleggende autentisering.",
+        "authentication_type_label": "Autentiseringstype",
+        "authentication_type_none": "Ingen autentisering",
+        "authentication_type_none_description": "Ingen autentisering kreves. Passer for offentlige NTFY-servere.",
+        "authentication_type_placeholder": "Velg autentiseringstype",
+        "authentication_type_token": "Tokenautentisering",
+        "authentication_type_token_description": "Bruk en tilgangstoken for autentisering.",
+        "custom_message_description": "Tilpasset meldingsinnhold. Tilgjengelige variabler",
+        "custom_message_label": "Tilpasset melding",
+        "password_required": "Passord kreves for grunnleggende autentisering",
+        "priority_1": "Lav (Lavest)",
+        "priority_2": "Lav",
+        "priority_3": "Standard",
+        "priority_4": "Høy",
+        "priority_5": "Hasende (Høyeste)",
+        "priority_description": "Prioritetsnivået for varslingen. Høyere prioritet kan utløse ulike oppførsel på klienten.",
+        "priority_label": "Prioritet",
+        "priority_placeholder": "Velg prioritet",
+        "server_url_description": "URL-en til NTFY-serveren din. Bruk https://ntfy.sh for den offentlige instansen.",
+        "server_url_label": "Server-URL",
+        "tags_description": "Kommaseparerte tags for å kategorisere varsler. Tilgjengelige variabler",
+        "tags_label": "Tagger",
+        "title_description": "Tilpasset tittel for varslingen. Tilgjengelige variabler",
+        "title_label": "Tilpasset tittel",
+        "token_description": "Din NTFY-tilgangstoken for autentisering.",
+        "token_label": "Tilgangstoken",
+        "token_required": "Token er påkrevd for token‑autentisering",
+        "topic_description": "Tema-navn for varslingene dine. Dette vil være kanalen der varsler sendes.",
+        "topic_label": "Emne",
+        "username_required": "Brukernavn er påkrevd for grunnleggende autentisering."
+      },
+      "opsgenie": {
+        "api_key_label": "API-nøkkel",
+        "more_info_about_api_keys_label": "Mer info om API-nøkler",
+        "priority_1": "Kritisk",
+        "priority_2": "Høy",
+        "priority_3": "Moderat",
+        "priority_4": "Lav",
+        "priority_5": "Informativ",
+        "priority_description": "Angi prioritetsnivå for varsler. Standard er P3 (Moderat).",
+        "priority_label": "Prioritet",
+        "region_description": "Velg din Opsgenie-region. Dette bestemmer hvilket API‑endepunkt som brukes.",
+        "region_label": "Region",
+        "region_placeholder": "Velg region"
+      },
+      "pagerduty": {
+        "auto_resolve_acknowledge": "Auto-godta",
+        "auto_resolve_acknowledge_description": "Automatisk anerkjenne hendelsen",
+        "auto_resolve_description": "Velg hva som skal skje når en overvåker kommer opp igjen",
+        "auto_resolve_do_nothing": "Ikke gjør noe",
+        "auto_resolve_do_nothing_description": "Ingen handling utført ved status UP",
+        "auto_resolve_label": "Auto Løs eller Bekreft",
+        "auto_resolve_placeholder": "Velg automatisk oppklaring",
+        "auto_resolve_resolve": "Auto-løsning",
+        "auto_resolve_resolve_description": "Løs incidenten automatisk",
+        "integration_key_description": "Lær hvordan du får din integrasjonssøkkel",
+        "integration_key_label": "Integrasjonsnøkkel",
+        "integration_key_placeholder": "Oppgi din PagerDuty-integrasjonsnøkkel",
+        "integration_url_description": "PagerDuty Events API v2-endepunkt-URL. Standard er standardendepunktet.",
+        "integration_url_label": "Integrasjons-URL",
+        "learn_more_label": "PagerDuty-dokumentasjon",
+        "priority_critical": "Kritisk",
+        "priority_description": "Alvorlighetsnivå for PagerDuty-hendelser. Standard er \"warning\".",
+        "priority_error": "Feil",
+        "priority_info": "Info",
+        "priority_label": "Prioritet",
+        "priority_placeholder": "Velg prioritet",
+        "priority_warning": "Advarsel"
+      },
+      "pagertree": {
+        "authentication_token_description": "Valgfri autentiseringstoken for forbedret sikkerhet. Dette vil bli sendt i pagertree-token-headeren.",
+        "authentication_token_label": "Autentiseringstoken (valgfritt)",
+        "authentication_token_placeholder": "Oppgi auth‑token hvis nødvendig",
+        "auto_resolve_alerts_description": "Løs opp PagerTree-varsler automatisk når overvåkningen er oppe igjen.",
+        "auto_resolve_alerts_label": "Automatisk løsning av varsler",
+        "how_to_get_integration_url_label": "Hvordan få integrasjons‑URL",
+        "integration_url_description": "Oppgi din PagerTree webhook-integrasjons‑URL.",
+        "integration_url_label": "PagerTree Webhook‑URL",
+        "urgency_level_critical": "Kritisk",
+        "urgency_level_description": "Sett standard varslingsnivå for varsler sendt til PagerTree.",
+        "urgency_level_high": "Høy",
+        "urgency_level_label": "Alvorlighetsnivå",
+        "urgency_level_low": "Lav",
+        "urgency_level_medium": "Middels",
+        "urgency_level_placeholder": "Velg hasternivå",
+        "urgency_level_silent": "Stille"
+      },
+      "pushbullet": {
+        "access_token": "Tilgangstoken",
+        "access_token_description": "Pushbullet-tilgangstoken. Hent det fra",
+        "access_token_label": "Tilgangstoken",
+        "access_token_link": "Pushbullet-innstillinger",
+        "channel_tag": "Kanaletikett (Valgfritt)",
+        "channel_tag_description": "Send varsling til en Pushbullet-kanal i stedet for enheter",
+        "channel_tag_label": "Kanal-tag (Valgfritt)",
+        "custom_message_template": "",
+        "custom_message_template_description": "Tilpass meldingskroppen ved å bruke malvariabler:",
+        "custom_message_template_heartbeat_ping": "Svartid",
+        "custom_message_template_heartbeat_time": "Tidspunkt",
+        "custom_message_template_label": "Tilpasset meldingsmal (Valgfritt)",
+        "custom_message_template_monitor_url": "URL for overvåking",
+        "custom_message_template_msg": "Varselmelding",
+        "custom_message_template_name": "Monitornavn",
+        "custom_message_template_placeholder": "Overvåker: {{ name }}\nStatus: {{ status }}\nMelding: {{ msg }}",
+        "custom_message_template_status": "Nåværende status",
+        "device_id": "Enhets-ID (Valgfritt)",
+        "device_id_description": "Send varsling til en spesifikk enhet. La stå tomt for å sende til alle enheter. Du kan finne enhets-IDer ved å bruke den",
+        "device_id_label": "Enhets-ID (valgfritt)",
+        "device_id_link": "Pushbullet API",
+        "more_info_on": "Mer info om:"
+      },
+      "pushover": {
+        "application_token_label": "Applikasjonstoken",
+        "application_token_placeholder": "Oppgi Pushover-applikasjonstoken",
+        "device_description": "La stå tomt for å sende til alle enheter",
+        "device_label": "Enhet",
+        "device_placeholder": "Enhetsnavn (valgfritt)",
+        "message_title_description": "La stå tomt for å bruke standardtittel",
+        "message_title_label": "Meldingstittel",
+        "message_title_placeholder": "Tilpasset meldingtittel (valgfritt)",
+        "message_ttl_description": "Tid til levetid i sekunder (0 = ingen utløp)",
+        "message_ttl_label": "Melding TTL",
+        "more_info_label": "Mer info om:",
+        "more_info_label_2": "Du kan opprette en applikasjon og få API‑tokenet ditt på",
+        "more_info_label_3": "Brukernøkkelen din kan finnes på",
+        "notification_sound_down_description": "Lyd for når overvåking går ned",
+        "notification_sound_down_label": "Varslingslyd - Ned",
+        "notification_sound_down_placeholder": "Velg lyd",
+        "notification_sound_up_description": "Lyd når overvåkingen kommer tilbake",
+        "notification_sound_up_label": "Varslingslyd - Opp",
+        "notification_sound_up_placeholder": "Velg lyd",
+        "priority_1": "Lavest",
+        "priority_2": "Lav",
+        "priority_3": "Normal",
+        "priority_4": "Høy",
+        "priority_5": "Nødhendelse",
+        "priority_description": "Meldingsprioritetsnivå",
+        "priority_label": "Prioritet",
+        "priority_placeholder": "Velg prioritet",
+        "sound_alien": "Utenomjordisk",
+        "sound_bike": "Sykkel",
+        "sound_bugle": "Bugle",
+        "sound_cashregister": "Kasseapparat",
+        "sound_classical": "Klassisk",
+        "sound_climb": "Klatre",
+        "sound_cosmic": "Kosmisk",
+        "sound_echo": "Ekko",
+        "sound_falling": "Fallende",
+        "sound_gamelan": "Gamelan",
+        "sound_incoming": "Innkommende",
+        "sound_intermission": "Pause",
+        "sound_magic": "Magisk",
+        "sound_mechanical": "Mekanisk",
+        "sound_none": "Ingen",
+        "sound_persistent": "Vedvarende",
+        "sound_pianobar": "Pianobar",
+        "sound_pushover": "Pushover (standard)",
+        "sound_siren": "Sirene",
+        "sound_spacealarm": "Romalarm",
+        "sound_tugboat": "tugbåt",
+        "sound_updown": "Opp Ned",
+        "sound_vibrate": "Vibrer",
+        "user_key_label": "Brukernøkkel",
+        "user_key_placeholder": "Oppgi Pushover-brukernøkkel"
+      },
+      "signal": {
+        "custom_message_description": "Tilpasset meldingsmal. Tilgjengelige variabler",
+        "custom_message_label": "Egendefinert melding",
+        "important_description": "Du kan ikke blande grupper og tall i mottakere!",
+        "important_label": "VIKTIG:",
+        "more_info_label": "Du kan sjekke denne URLen for å se hvordan du setter den opp:",
+        "note_description": "Du må ha en Signal-klient med REST‑API.",
+        "note_label": "Merk:",
+        "number_description": "Telefonnummeret til Signal-kontoen din (avsendernummer).",
+        "number_label": "Nummer",
+        "post_url_description": "URLen til Signal CLI REST API-serveren din.",
+        "post_url_label": "Post-URL",
+        "recipients_description": "Kommaseparert liste over telefonnumre som varsler skal sendes til.",
+        "recipients_label": "Mottakere"
+      },
+      "slack": {
+        "channel_name_description": "Kanalen der meldingen vil bli sendt til. Hvis ikke angitt, vil meldingen bli sendt til standardkanalen som er konfigurert i webhooken.",
+        "channel_name_description_2": "Du kan overstyre standardkanalen ved å angi et kanalnavn (f.eks. #alerts) eller en bruker (f.eks. @username).",
+        "channel_name_label": "Kanalnavn",
+        "channel_notify_description": "Når aktivert, vil meldingen utløse varsler for alle kanalmedlemmer. Bruk med forsiktighet for å unngå spam.",
+        "channel_notify_label": "Varsle kanal",
+        "icon_emoji_cheat_sheet_label": "Emoji-håndbok",
+        "icon_emoji_description": "Emoji som skal brukes som ikon for denne meldingen. Må være i formatet :emoji_name:",
+        "icon_emoji_label": "Emoji-ikon",
+        "message_format_description": "Send rike meldinger",
+        "message_format_description_2": "Aktiver muligheten til å sende meldinger med rik formatering, vedlegg og bedre visuell presentasjon.",
+        "message_format_label": "Meldingsformat",
+        "username_description": "Brukernavnet som vil vises som avsender av meldingen. Hvis ikke oppgitt, brukes standardbotnavnet.",
+        "webhook_url_description": "Webhook‑URL-en fra Slack‑integrasjonen din. Du finner den i Slack‑instansen din under Integrasjoner > Webhooks.",
+        "webhook_url_label": "Webhook-URL"
+      },
+      "smtp": {
+        "custom_body_label": "Egendefinert kropp",
+        "custom_description": "Templating er muliggjort via <b>Liquid</b>-malingsspråket.",
+        "custom_description_2": "Vennligst se dokumentasjonen for bruksinstruksjoner.",
+        "custom_description_3": "Tilgjengelige variabler:",
+        "custom_description_4": "Varslingsmelding",
+        "custom_description_5": "tjenestenavn",
+        "custom_description_6": "tjenestestatus (OPP/NED/varsler om sertifikatutløp)",
+        "custom_subject_label": "Egendefinert emne",
+        "smtp_from_label": "Fra (Avsender e-post)",
+        "smtp_host_description": "Enten skriv inn vertsnavnet til serveren du vil koble til, eller localhost hvis du har til hensikt å bruke en lokalt konfigurert postoverføringsagent.",
+        "smtp_host_label": "SMTP-vert",
+        "smtp_password_placeholder": "SMTP-passord",
+        "smtp_port_label": "Port",
+        "smtp_to_label": "Til (Mottaker(e) e-postadresser)",
+        "smtp_username_placeholder": "SMTP-brukernavn"
+      },
+      "telegram": {
+        "auto_get_label": "Auto hent",
+        "bot_token_description": "Hent bottokenet ditt fra",
+        "bot_token_label": "Bot-token",
+        "chat_id_description": "Du kan få chat‑ID‑en din ved å sende en melding til boten din og klikke på «Auto‑hent» ovenfor, eller manuelt via Telegram‑APIet.",
+        "chat_id_description_2": "For å få det manuelt, besøk",
+        "chat_id_description_3": "Se",
+        "chat_id_description_4": "Telegram-dokumentasjon",
+        "chat_id_description_5": "for mer info.",
+        "chat_id_label": "Chat-ID",
+        "chat_id_not_found": "Chat-ID ikke funnet i den siste oppdateringen.",
+        "failed_to_fetch_chat_id": "Kunne ikke hente chat-ID",
+        "message_thread_id_description": "Valgfritt. Brukt for å sende meldinger til en spesifikk tråd (emne) i en forum-supergruppe.",
+        "message_thread_id_label": "Meldingstråds-ID",
+        "no_updates_found": "Ingen oppdateringer funnet. Vennligst send en melding til boten din først.",
+        "protect_content_description": "Hvis aktivert, vil meldingsinnholdet bli beskyttet mot videresending og lagring.",
+        "protect_content_label": "Beskytt innhold",
+        "send_silently_description": "Hvis aktivert, vil meldinger bli sendt stille (brukere vil motta et varsel uten lyd).",
+        "send_silently_label": "Send stille",
+        "server_url_description": "Standard er",
+        "server_url_description_2": "Du kan bruke en egendefinert server. Se",
+        "server_url_description_3": "her",
+        "server_url_description_4": "for detaljer.",
+        "server_url_label": "Telegram‑Server‑URL",
+        "template_description": "Tilpass meldingsformatet. Tilgjengelige variabler",
+        "template_label": "Meldingsmal",
+        "template_parse_mode_description": "Velg hvordan meldingen skal tolkes. Se",
+        "template_parse_mode_description_2": "Telegram formateringsdokumenter",
+        "template_parse_mode_description_3": "for detaljer.",
+        "template_parse_mode_label": "Malparsingmodus",
+        "template_parse_mode_placeholder": "Velg tolkningsmodus",
+        "template_placeholder": "Oppgi din tilpassede meldingsmal",
+        "use_template_description": "Aktiver for å bruke en egendefinert meldingsmal og format.",
+        "use_template_label": "Bruk meldingsmal"
+      },
+      "webhook": {
+        "additional_headers_description": "Legg til egendefinerte HTTP‑overskrifter i webhook‑forespørselen.",
+        "additional_headers_label": "Ekstra overskrifter",
+        "custom_body_description": "Tilpass formatet på forespørselskroppen. Tilgjengelige variabler",
+        "custom_body_label": "Tilpasset kropp",
+        "post_url_description": "Webhook-endepunkt-URL-en der varsler vil bli sendt.",
+        "post_url_label": "Post‑URL",
+        "request_body_description_custom": "Definer ditt eget egendefinerte forespørselsinnhold nedenfor.",
+        "request_body_description_form_data": "Innholdet vil bli sendt som multipart/form-data. Du kan dekode det ved å bruke <strong>json_decode($_POST['data'])</strong> i PHP.",
+        "request_body_description_json": "Innholdet vil bli sendt som JSON med \"application/json\"-header.",
+        "request_body_label": "Forespørselsbody",
+        "request_body_placeholder": "Velg innholdstype"
+      }
+    },
+    "important": "Viktige varsler",
+    "important_notifications": "Viktige varsler",
+    "labels": {
+      "friendly_name": "Vennlig navn",
+      "type": "Varslingstype"
+    },
+    "messages": {
+      "create_failed": "Kunne ikke opprette varsler",
+      "created_success": "Varsel opprettet",
+      "error_loading_notifier": "Feil ved lasting av notifikator",
+      "test_failed": "Kunne ikke sende testvarsling",
+      "test_success": "Testvarsling sendt vellykket",
+      "update_failed": "Kunne ikke oppdatere varsler",
+      "updated_success": "Notifier oppdatert"
+    },
+    "new": {
+      "title": "Ny varslingkanal"
+    },
+    "no_important": "Ingen viktige varsler funnet.",
+    "placeholders": {
+      "select_type": "Velg varslertype"
+    },
+    "search_placeholder": "Søk i varselskanaler etter navn..."
+  },
+  "proxies": {
+    "delete_dialog": {
+      "description": "Denne handlingen kan ikke angres. Proxyen {{host}}:{{port}} vil bli permanent slettet.",
+      "title": "Er du helt sikker?"
+    },
+    "edit": {
+      "page_name": "Rediger proxy"
+    },
+    "empty_list": {
+      "action_text": "Opprett din første proxy",
+      "text": "Få i gang ved å opprette din første proxy som du kan bruke i overvåkningsverktøyene.",
+      "title": "Ingen proxyer funnet"
+    },
+    "form": {
+      "auth_label": "Proxy‑serveren krever autentisering",
+      "port_placeholder": "Port",
+      "protocol_label": "Proxy-protokoll",
+      "protocol_placeholder": "Velg proxy-protokoll",
+      "server_label": "Proxyserver",
+      "server_placeholder": "Serveradresse",
+      "user": "Bruker"
+    },
+    "messages": {
+      "create_failed": "Kunne ikke opprette proxy",
+      "created_success": "Proxy opprettet vellykket",
+      "error_loading_proxy": "Feil ved lasting av proxy",
+      "update_failed": "Klarte ikke å oppdatere proxy",
+      "updated_success": "Proxy oppdatert"
+    },
+    "new": {
+      "page_name": "Ny proxy"
+    },
+    "page_name": "Proxyer",
+    "search_label": "Søk",
+    "search_placeholder": "Søk proxyer etter vert..."
+  },
+  "security": {
+    "enable_2fa": {
+      "form": {
+        "authenticator_code_label": "Autentiseringskode",
+        "authenticator_code_placeholder": "Skriv inn 6-sifrede koden",
+        "current_password_label": "Nåværende passord",
+        "current_password_placeholder": "Oppgi ditt nåværende passord",
+        "enable_2fa_button": "Aktiver 2FA"
+      },
+      "messages": {
+        "2fa_active": "2FA aktiv",
+        "2fa_disabled_successfully": "2FA deaktivert vellykket",
+        "2fa_enabled_successfully": "2FA ble aktivert",
+        "account_is_protected_with_2fa": "Kontoen din er beskyttet med 2FA.",
+        "disable_2fa": "Deaktiver 2FA",
+        "enter_password_to_disable_2fa": "Skriv inn passordet ditt for å deaktivere 2FA",
+        "failed_to_disable_2fa": "Klarte ikke å deaktivere 2FA",
+        "failed_to_verify_2fa_code": "Kunne ikke verifisere 2FA-kode",
+        "failed_to_verify_password": "Kunne ikke verifisere passord eller starte 2FA-innstilling",
+        "have_enabled_2fa": "Du har aktivert tverrfaktorautentisering (2FA) for kontoen din. Dette gir et ekstra lag med sikkerhet.",
+        "or_enter_secret_manually": "Eller skriv inn denne hemmeligheten manuelt.",
+        "scan_qr_code_with_authenticator_app": "Skann denne QR‑koden med autentiseringsappen din",
+        "two_factor_authentication_enabled": "To-faktorautentisering aktivert",
+        "user_email_not_found": "Brukerens e-postadresse ikke funnet"
+      }
+    },
+    "page_name": "Sikkerhet",
+    "update_password": {
+      "form": {
+        "confirm_new_password_label": "Bekreft nytt passord",
+        "confirm_new_password_placeholder": "Skriv inn nytt passord igjen",
+        "new_password_label": "Nytt passord",
+        "new_password_placeholder": "Skriv inn nytt passord",
+        "old_password_label": "Gammelt passord",
+        "old_password_placeholder": "Oppgi gjeldende passord",
+        "update_password_button": "Oppdater passord"
+      },
+      "messages": {
+        "failed_to_update_password": "Kunne ikke oppdatere passordet",
+        "password_updated_successfully": "Passord oppdatert"
+      },
+      "title": "Oppdater passord"
+    }
+  },
+  "sendgrid": {
+    "api_key_description": "Din SendGrid API-nøkkel. Du kan opprette en i SendGrid-kontoen din under Innstillinger → API-nøkler. Sørg for at den har \"Mail Send\"-tillatelser.",
+    "api_key_label": "API‑nøkkel",
+    "bcc_email_description": "Blindkopi-mottakere. Adskil flere e‑poster med komma.",
+    "bcc_email_label": "BCC e-post (Valgfritt)",
+    "cc_email_description": "Mottakere i kopi. Adskil flere e-postadresser med komma.",
+    "cc_email_label": "CC E-post (valgfri)",
+    "from_email_description": "Avsenderens e-postadresse. Dette må være en verifisert avsender i SendGrid-kontoen din.",
+    "from_email_label": "Fra e-post",
+    "subject_description": "Emnefelt for e-posten. Støtter Liquid-maler.",
+    "subject_label": "Egendefinert emne (valgfritt)",
+    "subject_variables_label": "Tilgjengelige variabler:",
+    "subject_variables_msg": "Varslingsmelding",
+    "subject_variables_name": "tjenestenavn",
+    "subject_variables_status": "tjenestestatus (OPP/NED)",
+    "to_email_description": "Primær mottakers e-postadresse. For flere mottakere, bruk CC- eller BCC-felter.",
+    "to_email_label": "Til e-post"
+  },
+  "settings": {
+    "data_retention": {
+      "days_label": "Dager",
+      "description": "Angi hvor mange dager data skal beholdes (KEEP_DATA_PERIOD_DAYS).",
+      "title": "Databeholdelsesperiode"
+    },
+    "timezone": {
+      "description": "Velg ønsket tidssone for visning av alle tider i appen.",
+      "label": "Tidssone",
+      "no_timezone_found": "Ingen tidssone funnet.",
+      "search_placeholder": "Søk i tidszoner...",
+      "select_placeholder": "Velg tidssone...",
+      "title": "Tidssone"
+    },
+    "validation": {
+      "min_days": "Må være minst 1 dag"
+    }
+  },
+  "status": {
+    "messages": {
+      "all_systems_operational": "Alle systemer er operative",
+      "down": "Ned",
+      "last_updated": "Sist oppdatert",
+      "maintenance": "Vedlikehold",
+      "no_monitors_configured": "Ingen overvåkere er konfigurert for denne status‑siden.",
+      "operational": "Operativ",
+      "partial_system_outage": "Delvis systemnedetid",
+      "powered_by": "Drives av",
+      "refresh_in": "Oppdaterer om",
+      "refresh_now": "Oppdater nå",
+      "status_page_not_found": "Status‑siden ble ikke funnet eller er ikke publisert.",
+      "under_maintenance": "Under vedlikehold",
+      "unknown": "Ukjent"
+    }
+  },
+  "status_pages": {
+    "affected_monitors": "Berørte overvåkere",
+    "affected_monitors_info": "Velg monitorer som vil bli påvirket av dette vedlikeholdet",
+    "auto_refresh_interval": "Automatisk oppdateringsintervall (sekunder)",
+    "basic_information": "Grunnleggende informasjon",
+    "create_status_page": "Opprett statusside",
+    "customization": "Tilpasning",
+    "delete_dialog": {
+      "description": "Er du sikker på at du vil slette \"{{title}}\"? Denne handlingen kan ikke angres.",
+      "title": "Slett statusside"
+    },
+    "description": "Skriv inn statussidens beskrivelse",
+    "domain_already_used": "Domene {{domain}} er allerede i bruk av en annen statusside.",
+    "domain_host_warning": "Dette domenet er det samme som din nåværende vert‑URL. Dette kan føre til konflikter.",
+    "domains": "Domener",
+    "domains_info_warning": "Ikke glem å legge til CNAME‑poster i DNS‑en din for hvert domene.",
+    "draft_status": "Utkast",
+    "edit_page_name": "Rediger statusside",
+    "messages": {
+      "create_description": "Opprett en ny statusside for å dele tjenestestatusen din med brukere.",
+      "create_your_first_status_page": "Opprett din første statusside",
+      "created_successfully": "Statusside opprettet",
+      "delete_failed": "Kunne ikke slette statusside",
+      "deleted_successfully": "Statusside slettet",
+      "get_started_by_creating_your_first_status_page": "Start med å lage din første statusside.",
+      "no_status_pages_found": "Ingen status-sider funnet",
+      "not_found": "Statusside ikke funnet",
+      "update_description": "Oppdater statussidens innstillinger og konfigurasjon.",
+      "updated_successfully": "Statusside oppdatert"
+    },
+    "new_page_name": "Ny statusside",
+    "page_name": "Status-sider",
+    "published": "Publisert",
+    "published_info": "Gjør denne status‑siden offentlig tilgjengelig",
+    "published_status": "Publisert",
+    "search_label": "Søk",
+    "search_placeholder": "Søk status­sider etter tittel…",
+    "update_status_page": "Oppdater statusside",
+    "view_page": "Se side"
+  },
+  "tags": {
+    "confirm_delete_description": "Denne handlingen kan ikke angres. Dette vil permanent slette taggen '{{name}}' og fjerne den fra alle overvåkningsinstanser.",
+    "edit_page_name": "Rediger tagg",
+    "empty_state": {
+      "action": "Opprett din første tag",
+      "description": "Kom i gang ved å opprette din første etikett for å organisere overvåkningsobjektene dine.",
+      "title": "Ingen tagger funnet"
+    },
+    "form": {
+      "color_description": "Velg en farge for merket ditt",
+      "color_label": "Farge",
+      "create_button": "Opprett merkelapp",
+      "description_label": "Beskrivelse",
+      "description_placeholder": "Angi tagbeskrivelse (valgfritt)",
+      "name_label": "Navn",
+      "name_placeholder": "Angi taggnavn",
+      "update_button": "Oppdater tag"
+    },
+    "messages": {
+      "create_description": "Opprett en ny tag for å organisere og kategorisere monitorene dine.",
+      "failed_to_load_tag": "Kunne ikke laste inn taggen. Taggen kan ikke eksistere, eller du har ikke tilgang til å se den.",
+      "tag_id_required": "Tag ID er påkrevd",
+      "update_description": "Oppdater tag‑detaljene for å organisere overvåkningsobjektene bedre."
+    },
+    "new_page_name": "Ny merkelapp",
+    "search_placeholder": "Søk etter merkelapper..."
+  },
+  "theme": {
+    "dark": "Mørk",
+    "light": "Lys",
+    "system": "System",
+    "toggle_theme": "Bytt tema"
+  },
+  "timezone": {
+    "average": "Gjennomsnitt",
+    "last_24_hours": "Siste 24 timer",
+    "last_3_hours": "Siste 3 timer",
+    "last_3_months": "Siste 3 måneder",
+    "last_30_minutes": "Siste 30 minutter",
+    "last_6_hours": "Siste 6 timer",
+    "last_7_days": "Siste 7 dager",
+    "maximum": "Maksimum",
+    "minimum": "Minimum",
+    "ms": "ms",
+    "response_time": "Svartid",
+    "uptime": "Oppetid"
+  },
+  "ui": {
+    "general": "Generelt",
+    "intervals_retries": "Intervaller, Gjenopprøvninger, Tidsavbrudd"
+  }
+}

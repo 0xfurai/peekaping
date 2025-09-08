@@ -1,0 +1,1281 @@
+{
+  "actions": {
+    "cancel": "Batal",
+    "saving": "Menyimpan..."
+  },
+  "auth": {
+    "login": {
+      "description": "Masuk dengan email Anda",
+      "no_account": "Tidak punya akun?",
+      "sign_up": "Daftar",
+      "submit": "Masuk",
+      "title": "Selamat datang kembali"
+    },
+    "register": {
+      "description": "Buat akun admin Anda",
+      "have_account": "Sudah punya akun?",
+      "sign_in": "Masuk",
+      "submit": "Buat",
+      "title": "Halo"
+    },
+    "twofa": {
+      "code_label": "Kode 2FA",
+      "code_placeholder": "Masukkan kode 2FA",
+      "description": "Autentikasi dua faktor (2FA) sudah diaktifkan untuk akun Anda. Silakan masukkan kode otentikasi Anda untuk melanjutkan.",
+      "title": "Autentikasi Dua Faktor Diperlukan",
+      "verify_button": "Verifikasi 2FA",
+      "verifying": "Memverifikasi..."
+    }
+  },
+  "bars": {
+    "down_count": "Jumlah Downtime",
+    "important": "Penting",
+    "interval": "Interval",
+    "message": "Pesan",
+    "ms": "ms",
+    "notified": "Diberitahu",
+    "ping": "Ping",
+    "retries": "Percobaan Ulang",
+    "status": "Status",
+    "time": "Waktu"
+  },
+  "common": {
+    "active": "Aktif",
+    "all": "Semua",
+    "back": "Kembali",
+    "cancel": "Batal",
+    "clear_all": "Hapus semua",
+    "clear_all_filters": "Hapus semua filter",
+    "confirm": "Konfirmasi",
+    "confirm_delete_title": "Apakah Anda benar-benar yakin?",
+    "confirm_delete_title_short": "Apakah Anda yakin?",
+    "continue": "Lanjutkan",
+    "create": "Buat",
+    "created": "Dibuat",
+    "days": "hari",
+    "default": "Bawaan",
+    "delete": "Hapus",
+    "disabling": "Menonaktifkan...",
+    "dismiss": "Tutup",
+    "down": "Tidak Aktif",
+    "enabling": "Mengaktifkan...",
+    "error": "Kesalahan",
+    "expires": "Kadaluarsa",
+    "inactive": "Tidak aktif",
+    "loading": "Memuat...",
+    "logout": "Keluar",
+    "maintenance": "Pemeliharaan",
+    "no_options_found": "Tidak ada opsi yang ditemukan",
+    "no_tags_available": "Tidak ada tag tersedia",
+    "please_refresh_page": "Silakan muat ulang halaman.",
+    "required": "Wajib",
+    "save": "Simpan",
+    "saving": "Menyimpan...",
+    "search": "Cari",
+    "security": "Keamanan",
+    "select": "Pilih",
+    "select_monitors": "Pilih monitor...",
+    "select_tags": "Pilih tag",
+    "settings": "Pengaturan",
+    "tags": "Tag",
+    "unknown": "Tidak diketahui",
+    "unnamed_monitor": "Monitor Tanpa Nama",
+    "up": "Berjalan",
+    "update": "Perbarui",
+    "verifying": "Memverifikasi..."
+  },
+  "forms": {
+    "labels": {
+      "confirm_password": "Konfirmasi Kata Sandi",
+      "email": "Sure",
+      "footer_text": "Teks Footer",
+      "heartbeat_interval": "Interval detak jantung (detik)",
+      "icon_url": "URL Ikon",
+      "monitor_name": "Nama",
+      "monitor_type": "Tipe",
+      "password": "Kata Sandi",
+      "retries": "Pengulangan",
+      "slug": "Slug",
+      "title": "Judul",
+      "username": "Nama Pengguna"
+    },
+    "placeholders": {
+      "auto_refresh_help": "0 untuk tidak ada pembaruan otomatis",
+      "domains": "Masukkan domain (misalnya, status.example.com)",
+      "footer_text": "Masukkan teks footer",
+      "icon_url": "https://example.com/icon.png",
+      "monitor_name": "Monitor saya",
+      "page_description": "Masukkan deskripsi halaman status",
+      "page_title": "Masukkan judul halaman status",
+      "slug": "slug-halaman-status"
+    },
+    "validation": {
+      "email_invalid": "Silakan masukkan alamat email yang valid",
+      "password_min_length": "Kata sandi harus minimal 8 karakter",
+      "passwords_mismatch": "Kata sandi tidak cocok"
+    }
+  },
+  "maintenance": {
+    "card": {
+      "aria": {
+        "delete": "Hapus {{title}}",
+        "pause": "Jeda pemeliharaan",
+        "resume": "Lanjutkan pemeliharaan"
+      },
+      "labels": {
+        "duration": "{{duration}} menit",
+        "end": "Akhir: {{date}}",
+        "start": "Mulai: {{date}}"
+      },
+      "status": {
+        "active": "Aktif",
+        "ended": "Selesai",
+        "inactive": "Nonaktif"
+      }
+    },
+    "edit_title": "Edit Pemeliharaan",
+    "form": {
+      "affected_monitors_description": "Pilih monitor yang akan terpengaruh oleh pemeliharaan ini",
+      "affected_monitors_title": "Monitor yang Terdampak",
+      "cron_description": "Masukkan ekspresi cron yang valid",
+      "cron_expression": "Ekspresi Cron",
+      "date_time_title": "Tanggal dan Waktu",
+      "day_of_month": "Hari dalam Bulan",
+      "day_of_week": "Hari dalam Minggu",
+      "description_label": "Deskripsi",
+      "description_placeholder": "Deskripsi pemeliharaan...",
+      "duration_minutes": "Durasi (Menit)",
+      "effective_date_range": "Rentang Tanggal Efektif (Opsional)",
+      "end_date_time": "Tanggal & Waktu Akhir",
+      "end_time": "Waktu Akhir",
+      "interval_label": "Interval (Jalankan sekali setiap hari)",
+      "last_day": "Hari Terakhir",
+      "last_day_of_month": "Hari Terakhir Bulan",
+      "maintenance_time_window": "Jendela Waktu Pemeliharaan per Hari",
+      "markdown_supported": "Markdown didukung",
+      "same_as_server": "Sama dengan Zona Waktu Server",
+      "start_date_time": "Tanggal & Waktu Mulai",
+      "start_time": "Waktu Mulai",
+      "strategy_label": "Strategi",
+      "strategy_placeholder": "Pilih strategi",
+      "timezone_label": "Zona Waktu",
+      "timezone_placeholder": "Pilih zona waktu",
+      "title_label": "Judul",
+      "title_placeholder": "Judul Pemeliharaan"
+    },
+    "page": {
+      "clear_filters": "Hapus semua filter",
+      "dialogs": {
+        "confirm_action": {
+          "pause_description": "Apakah Anda yakin ingin menunda pemeliharaan ini?",
+          "resume_description": "Apakah Anda yakin ingin melanjutkan pemeliharaan ini?",
+          "title": "Konfirmasi Tindakan"
+        },
+        "confirm_delete": {
+          "description": "Apakah Anda yakin ingin menghapus jendela pemeliharaan ini? Tindakan ini tidak dapat dibatalkan.",
+          "title": "Konfirmasi Hapus"
+        }
+      },
+      "edit_maintenance": "Sunting Pemeliharaan: {{title}}",
+      "empty_state": {
+        "action": "Buat jendela pemeliharaan pertama Anda",
+        "description": "Mulai dengan membuat jendela pemeliharaan pertama Anda untuk mencegah downtime terjadwal.",
+        "title": "Tidak ada jendela pemeliharaan"
+      },
+      "error_loading": "Kesalahan memuat pemeliharaan",
+      "loading": "Memuat...",
+      "loading_monitors": "Memuat monitor...",
+      "search_placeholder": "Cari pemeliharaan..."
+    },
+    "page_title": "Jendela Pemeliharaan",
+    "schedule_title": "Jadwalkan Pemeliharaan",
+    "strategy": {
+      "cron": "Ekspresi Cron",
+      "manual": "Aktif/Tidak Aktif secara manual",
+      "recurring_day_of_month": "Berulang - Hari Bulan",
+      "recurring_interval": "Berulang - Interval",
+      "recurring_weekday": "Berulang - Hari Minggu",
+      "single": "Jendela Pemeliharaan Tunggal"
+    },
+    "toasts": {
+      "create_error": "Gagal membuat pemeliharaan",
+      "created_success": "Pemeliharaan berhasil dibuat",
+      "delete_error": "Gagal menghapus pemeliharaan",
+      "deleted_success": "Pemeliharaan berhasil dihapus",
+      "pause_error": "Gagal menunda pemeliharaan",
+      "paused_success": "Pemeliharaan berhasil dijeda",
+      "resume_error": "Gagal melanjutkan pemeliharaan",
+      "resumed_success": "Pemeliharaan berhasil dilanjutkan",
+      "toggle_error": "Tidak dapat mengubah status pemeliharaan: ID tidak tersedia",
+      "update_error": "Gagal memperbarui pemeliharaan",
+      "updated_success": "Pemeliharaan berhasil diperbarui"
+    },
+    "weekdays": {
+      "fri": "Jum",
+      "mon": "Sen",
+      "sat": "Sab",
+      "sun": "Minggu",
+      "thu": "Kam",
+      "tue": "Sel",
+      "wed": "Rabu"
+    }
+  },
+  "messages": {
+    "login_error": "Terjadi kesalahan saat login",
+    "login_no_tokens": "Login berhasil, tetapi tidak ada token yang diterima",
+    "login_success": "Login berhasil",
+    "notifier_delete_error": "Gagal menghapus notifier",
+    "notifier_delete_success": "Notifier berhasil dihapus",
+    "register_error": "Terjadi kesalahan saat registrasi",
+    "register_no_tokens": "Pendaftaran berhasil, namun tidak ada token yang diterima",
+    "register_success": "Berhasil terdaftar",
+    "setting_update_error": "Gagal memperbarui pengaturan",
+    "setting_update_success": "Pengaturan berhasil diperbarui",
+    "tag_create_error": "Gagal membuat tag",
+    "tag_create_success": "Tag berhasil dibuat",
+    "tag_delete_error": "Gagal menghapus tag",
+    "tag_delete_success": "Tag berhasil dihapus",
+    "tag_update_error": "Gagal memperbarui tag",
+    "tag_update_success": "Tag berhasil diperbarui",
+    "unexpected_error": "Terjadi kesalahan yang tidak terduga",
+    "version_mismatch": "Versi tidak cocok terdeteksi"
+  },
+  "monitors": {
+    "card": {
+      "check_interval": "Interval pemeriksaan:",
+      "loading_more": "Memuat lebih banyak..."
+    },
+    "empty_state": {
+      "action": "Buat monitor pertama Anda",
+      "description": "Mulailah dengan membuat monitor pertama Anda untuk melacak kesehatan layanan Anda.",
+      "title": "Tidak ada monitor yang ditemukan"
+    },
+    "filtering_by_tags": "Menyaring berdasarkan tag",
+    "filters": {
+      "monitor_status": "Status",
+      "monitor_status_placeholder": "Status Pengawasan",
+      "search_placeholder": "Cari monitor berdasarkan nama...",
+      "status_placeholder": "Status"
+    },
+    "form": {
+      "buttons": {
+        "copied": "Tersalin!",
+        "copy": "Salin",
+        "create": "Buat",
+        "regenerate": "Buat Ulang",
+        "update": "Perbarui"
+      },
+      "dns": {
+        "hostname": "Nama host",
+        "port": "Port",
+        "record_type": "Tipe Rekor Sumber",
+        "record_type_placeholder": "Pilih tipe catatan",
+        "resolver_server": "Server Resolver",
+        "title": "Pengaturan DNS"
+      },
+      "docker": {
+        "ca_cert_description": "Tempel sertifikat CA Anda dalam format PEM.",
+        "ca_certificate": "Sertifikat CA (PEM)",
+        "client_cert_description": "Tempelkan sertifikat klien Anda dalam format PEM. Ini digunakan untuk otentikasi TLS dua arah.",
+        "client_certificate": "Sertifikat Klien (PEM)",
+        "client_private_key": "Kunci Privat Klien (PEM)",
+        "common_tls_issues": "Masalah TLS Umum:",
+        "connection_type": "Jenis Koneksi",
+        "container_name_id": "Nama/ID Kontainer",
+        "disabled": "Nonaktif",
+        "docker_container": "Kontainer Docker",
+        "docker_host": "Host Docker",
+        "enable_tls": "Aktifkan TLS",
+        "enabled": "Diaktifkan",
+        "examples": "Contoh",
+        "hostname_mismatch": "\"x509: sertifikat valid untuk X, bukan Y\":\"",
+        "hostname_mismatch_solution": "Pastikan nama host cocok dengan SAN sertifikat atau nonaktifkan verifikasi (tidak disarankan).",
+        "legacy_cert_error": "x509: sertifikat mengandalkan field Common Name legacy:",
+        "legacy_cert_solution": "Tambahkan hostname ke Subject Alternative Names (SAN) dalam sertifikat Anda.",
+        "mtls_note": "Untuk mutual TLS (mTLS), Anda perlu menyediakan sertifikat klien dan kunci privat. Sertifikat CA digunakan untuk memverifikasi sertifikat server.",
+        "note": "Catatan:",
+        "private_key_description": "Tempelkan kunci privat Anda dalam format PEM. Jaga kerahasiaannya!",
+        "select_connection_type": "Pilih tipe koneksi",
+        "select_tls_option": "Pilih opsi TLS",
+        "select_verification_option": "Pilih opsi verifikasi",
+        "skip_verification": "Lewati verifikasi (tidak aman)",
+        "tls_configuration": "Konfigurasi TLS",
+        "unknown_authority": "\"x509: sertifikat ditandatangani oleh otoritas yang tidak dikenal\":",
+        "unknown_authority_solution": "Berikan sertifikat CA yang benar yang menandatangani sertifikat server.",
+        "verify_certificates": "Verifikasi sertifikat",
+        "verify_tls": "Verifikasi TLS"
+      },
+      "grpc": {
+        "body": "Data Body (JSON)",
+        "enable_tls": "Aktifkan TLS",
+        "enable_tls_description": "Gunakan koneksi aman (TLS/SSL)",
+        "invert_keyword": "Balik Kata Kunci",
+        "invert_keyword_description": "Monitor akan ditandai sebagai UP jika kata kunci tidak ditemukan",
+        "keyword": "Kata kunci",
+        "keyword_description": "Cari kata kunci ini di respons",
+        "keyword_placeholder": "Kata kunci opsional untuk dicari",
+        "method_description": "Pengecekan huruf besar kecil",
+        "method_placeholder": "Cek",
+        "options_title": "Opsi gRPC",
+        "proto_content": "Konten Protobuf",
+        "proto_method": "Metode Protobuf",
+        "proto_service_name": "Nama Layanan Protobuf",
+        "service_name_placeholder": "Kesehatan"
+      },
+      "http": {
+        "advanced": {
+          "accepted_status_codes": "Kode Status Diterima",
+          "ignore_tls": "Abaikan kesalahan TLS/SSL untuk situs web HTTPS",
+          "ignore_tls_description": "Lewatkan validasi sertifikat TLS. Gunakan dengan hati‑hati – ini membuat koneksi kurang aman.",
+          "max_redirects": "Redirect Maksimum",
+          "max_redirects_description": "Jumlah maksimum pengalihan yang akan diikuti (0‑30). Setel ke 0 untuk menonaktifkan pengalihan.",
+          "title": "Lanjutan"
+        },
+        "authentication": {
+          "auth_header": "Header Otorisasi",
+          "certificate": "Sertifikat",
+          "certificate_placeholder": "Sertifikat",
+          "client_id": "ID Klien",
+          "client_id_placeholder": "ID Klien",
+          "client_secret": "Rahasia Klien",
+          "client_secret_placeholder": "Rahasia Klien",
+          "domain": "Domain",
+          "domain_placeholder": "Domain",
+          "form_data_body": "Badan Data Formulir",
+          "key": "Kunci",
+          "key_placeholder": "Kunci",
+          "method_label": "Metode Otentikasi",
+          "method_placeholder": "Pilih tipe otentikasi",
+          "oauth_scope": "Ruang lingkup OAuth",
+          "oauth_scope_placeholder": "Opsional: Daftar scope yang dipisahkan spasi",
+          "oauth_token_url": "URL Token OAuth",
+          "oauth_token_url_placeholder": "URL Token OAuth",
+          "title": "Otentikasi",
+          "workstation": "Stasiun kerja",
+          "workstation_placeholder": "Stasiun Kerja"
+        },
+        "options": {
+          "body": "Isi",
+          "body_encoding": "Enkoding Body",
+          "body_encoding_placeholder": "Pilih enkoding badan",
+          "form_example": "Contoh Data Form",
+          "headers": "Header",
+          "json_example": "Contoh JSON",
+          "method": "Metode",
+          "method_placeholder": "Pilih tipe monitor",
+          "select_encoding": "Pilih encoding badan",
+          "select_method": "Pilih metode",
+          "text_example": "Contoh Teks:\nIsi teks biasa di sini...",
+          "title": "Pilihan HTTP",
+          "xml_example": "Contoh XML"
+        }
+      },
+      "http_json_query": {
+        "condition_label": "Kondisi",
+        "expected_value_label": "Nilai Diharapkan",
+        "json_query_label": "Ekspresi Query JSON",
+        "title": "Ekspresi Query JSON"
+      },
+      "http_keyword": {
+        "invert_keyword_description": "Cari ketidakhadiran kata kunci, bukan kehadirannya.",
+        "invert_keyword_label": "Balik Kata Kunci",
+        "keyword_label": "Kata Kunci",
+        "keyword_validation_title": "Validasi Kata Kunci"
+      },
+      "kafka": {
+        "add_broker": "Tambah Broker",
+        "auto_topic_creation_description": "Izinkan produser membuat topik secara otomatis jika belum ada",
+        "auto_topic_creation_label": "Izinkan Pembuatan Topik Otomatis",
+        "brokers_description": "Daftar alamat broker Kafka (format host:port)",
+        "brokers_label": "Broker Kafka",
+        "configuration_title": "Konfigurasi Kafka",
+        "enable_ssl_description": "Gunakan enkripsi SSL/TLS untuk koneksi",
+        "enable_ssl_label": "Aktifkan SSL/TLS",
+        "message_description": "Konten pesan yang akan dikirim ke topik (format JSON disarankan)",
+        "message_label": "Pesan",
+        "sasl_mechanism_description": "Pilih mekanisme autentikasi SASL",
+        "sasl_mechanism_label": "Mekanisme SASL",
+        "sasl_mechanism_placeholder": "Pilih mekanisme SASL",
+        "sasl_password_description": "Password untuk otentikasi SASL",
+        "sasl_password_label": "Kata Sandi SASL",
+        "sasl_password_placeholder": "kata sandi",
+        "sasl_username_description": "Nama pengguna untuk otentikasi SASL",
+        "sasl_username_label": "Nama Pengguna SASL",
+        "security_title": "Keamanan",
+        "topic_description": "Topik Kafka untuk mengirim pesan"
+      },
+      "mongodb": {
+        "command_description": "Perintah MongoDB yang akan dijalankan dalam format JSON. Secara default, menggunakan ping jika tidak ditentukan.",
+        "command_label": "Perintah (Opsional)",
+        "configuration_title": "Konfigurasi MongoDB",
+        "connection_string_description": "String koneksi MongoDB. Mendukung format standar (mongodb://) dan daftar seed DNS (mongodb+srv://).",
+        "connection_string_label": "String Koneksi",
+        "expected_value_description": "Nilai yang diharapkan untuk dibandingkan dengan hasil JSON Path.",
+        "expected_value_label": "Nilai yang Diharapkan (Opsional)",
+        "expected_value_placeholder": "Nilai yang diharapkan",
+        "json_path_description": "JSON path untuk mengekstrak nilai dari respons. Gunakan $ untuk level akar.",
+        "json_path_label": "JSON Path (Opsional)"
+      },
+      "mqtt": {
+        "check_type_json_query": "Kueri JSON",
+        "check_type_keyword": "Kata Kunci",
+        "check_type_label": "Tipe Pemeriksaan MQTT",
+        "check_type_none": "Tidak Ada (Pesan apa saja)",
+        "check_type_placeholder": "Pilih jenis pemeriksaan",
+        "configuration_title": "Konfigurasi MQTT",
+        "expected_value_label": "Nilai yang Diharapkan",
+        "hostname_label": "Nama host",
+        "json_path_label": "Path JSON",
+        "password_label": "Kata Sandi MQTT",
+        "password_placeholder": "Kata sandi (opsional)",
+        "port_label": "Port",
+        "success_keyword_label": "Kata Kunci Sukses MQTT",
+        "success_keyword_placeholder": "Kata kunci yang menunjukkan keberhasilan",
+        "username_label": "Nama Pengguna MQTT",
+        "username_placeholder": "Nama pengguna (opsional)",
+        "validation": {
+          "expected_value_required": "Nilai yang diharapkan diperlukan ketika tipe pemeriksaan adalah json-query",
+          "json_path_required": "JSON path diperlukan ketika tipe pemeriksaan adalah json-query",
+          "success_keyword_required": "Kata kunci keberhasilan diperlukan ketika jenis pemeriksaan adalah kata kunci."
+        }
+      },
+      "mysql": {
+        "connection_string_examples": "Contoh:",
+        "connection_string_label": "String Koneksi",
+        "connection_title": "Koneksi MySQL",
+        "query_label": "Kueri"
+      },
+      "ping": {
+        "data_size": "Ukuran Data (byte)",
+        "host": "Nama host / IP",
+        "title": "Pengaturan Ping"
+      },
+      "postgres": {
+        "connection_string_label": "String Koneksi",
+        "connection_title": "Koneksi PostgreSQL",
+        "query_label": "Kueri"
+      },
+      "push": {
+        "url_description": "Gunakan URL ini di layanan Anda untuk melaporkan status. Lakukan permintaan HTTP (POST/GET) ke endpoint ini untuk mengirimkan detak jantung.",
+        "url_title": "URL Monitor Push"
+      },
+      "rabbitmq": {
+        "documentation_link": "Dokumentasi RabbitMQ",
+        "health_checks_description": "Monitor memeriksa endpoint {{code}} pada setiap node dan mengembalikan UP jika ada node yang sehat.",
+        "management_nodes_description": "Masukkan URL untuk node manajemen RabbitMQ termasuk protokol dan port. Contoh: https://node1.rabbitmq.com:15672",
+        "management_nodes_title": "Node Manajemen",
+        "node_url_label": "URL Node",
+        "password_description": "Kata sandi untuk otentikasi antarmuka manajemen RabbitMQ",
+        "setup_information_description": "Untuk menggunakan monitor RabbitMQ, Anda perlu mengaktifkan Plugin Manajemen di konfigurasi RabbitMQ Anda. Untuk informasi lebih lanjut, silakan konsultasikan dokumentasi RabbitMQ.",
+        "setup_information_title": "Informasi Pengaturan",
+        "title": "Konfigurasi RabbitMQ",
+        "username_description": "Nama pengguna untuk otentikasi antarmuka manajemen RabbitMQ"
+      },
+      "redis": {
+        "ca_certificate_description": "Sertifikat Root CA dalam format PEM. Diperlukan untuk verifikasi TLS yang tepat dengan sertifikat self-signed.",
+        "ca_certificate_label": "Sertifikat CA (Opsional)",
+        "client_certificate_description": "Sertifikat klien dalam format PEM. Diperlukan untuk otentikasi mutual TLS.",
+        "client_certificate_label": "Sertifikat Klien (Opsional)",
+        "client_key_description": "Kunci privat klien dalam format PEM. Harus disediakan bersama dengan sertifikat klien.",
+        "client_key_label": "Kunci Privat Klien (Opsional)",
+        "connection_string_description": "Format string koneksi Redis: {{redis}} atau {{rediss}} untuk TLS",
+        "connection_string_label": "String Koneksi",
+        "ignore_tls_description": "Lewati verifikasi sertifikat TLS (tidak disarankan untuk produksi)",
+        "ignore_tls_label": "Abaikan kesalahan TLS/SSL",
+        "title": "Konfigurasi Redis"
+      },
+      "shared": {
+        "intervals": {
+          "heartbeat_retry": "Interval Ulang Heartbeat (Ulang setiap {{seconds}} detik)",
+          "max_retries_description": "Maksimum percobaan ulang sebelum layanan dinyatakan tidak aktif dan notifikasi dikirim",
+          "request_timeout": "Waktu Permintaan Habis (Timeout setelah {{seconds}} detik)",
+          "resend_notification": "Kirim ulang pemberitahuan jika Down X kali berturut-turut (Kirim ulang dinonaktifkan)"
+        },
+        "notifications": {
+          "add_notifier": "Tambah Pemberitahuan",
+          "new_notifier": "+ Notifier Baru",
+          "no_channels": "Tidak ada saluran notifikasi, buat satu terlebih dahulu",
+          "no_channels_available": "Tidak ada saluran tersedia",
+          "select_channel": "Pilih saluran",
+          "select_notifier_placeholder": "Pilih Notifier",
+          "selected_channels": "Saluran Notifikasi yang Dipilih",
+          "title": "Saluran Pemberitahuan"
+        },
+        "proxy": {
+          "add_proxy": "Tambahkan Proxy",
+          "new_proxy": "+ Proxy Baru",
+          "no_proxy": "Tanpa Proxy",
+          "remove_proxy": "Hapus Proxy",
+          "select_proxy_placeholder": "Pilih Proxy",
+          "selected_proxy": "Proxy Terpilih",
+          "title": "Proksi"
+        },
+        "tags": {
+          "label": "Tag",
+          "no_tags": "Tidak ada tag yang tersedia",
+          "placeholder": "Pilih tag"
+        }
+      },
+      "snmp": {
+        "community_description": "String komunitas SNMP untuk otentikasi (seperti kata sandi)",
+        "community_label": "String Komunitas",
+        "expected_value_description": "Nilai yang akan dibandingkan. Biarkan kosong untuk melewati validasi.",
+        "expected_value_label": "Nilai yang Diharapkan",
+        "host_description": "Nama host atau alamat IP perangkat yang diaktifkan SNMP",
+        "host_label": "Host",
+        "json_path_description": "Ekspresi JSONPath untuk mengekstrak nilai dari respons (gunakan \"$\" untuk nilai mentah)",
+        "json_path_label": "Jalur JSON",
+        "json_path_operator_description": "Cara membandingkan nilai yang diekstrak dengan nilai yang diharapkan",
+        "json_path_operator_eq": "sama dengan",
+        "json_path_operator_ge": "lebih besar atau sama dengan",
+        "json_path_operator_gt": "lebih besar dari",
+        "json_path_operator_label": "Kondisi",
+        "json_path_operator_le": "kurang dari atau sama dengan",
+        "json_path_operator_lt": "kurang dari",
+        "json_path_operator_ne": "tidak sama dengan",
+        "oid_description": "Identifier Objek SNMP yang akan dikueri (misalnya 1.3.6.1.2.1.1.1.0 untuk deskripsi sistem)",
+        "oid_label": "OID (Pengidentifikasi Objek)",
+        "port_description": "Port SNMP (default: 161)",
+        "port_label": "Port",
+        "snmp_version_description": "Versi protokol SNMP yang digunakan",
+        "snmp_version_label": "Versi SNMP",
+        "title": "Pengaturan SNMP",
+        "value_validation_label": "Validasi Nilai (Opsional)"
+      },
+      "sqlserver": {
+        "allowed_statements_description": "SELECT, SHOW, DESCRIBE, EXPLAIN, WITH, dan VALUES.",
+        "allowed_statements_label": "Pernyataan yang diizinkan:",
+        "connection_string_label": "String Koneksi",
+        "query_description": "Query yang akan dijalankan untuk pemeriksaan kesehatan. Biarkan kosong untuk menggunakan default",
+        "query_label": "Kueri",
+        "title": "Koneksi Microsoft SQL Server"
+      },
+      "tcp": {
+        "host": "Tuan Rumah",
+        "port": "Port",
+        "title": "Koneksi TCP"
+      },
+      "type": {
+        "dns": "Monitor DNS",
+        "docker": "Kontainer Docker",
+        "grpc": "Pemantau Kata Kunci gRPC",
+        "http": "Pemantau HTTP(S)",
+        "kafka": "Pemantau Produser Kafka",
+        "mongodb": "Pemantau Database MongoDB",
+        "mqtt": "Pemantau Broker MQTT",
+        "mysql": "Monitor MySQL/MariaDB",
+        "ping": "Monitor Ping (ICMP)",
+        "postgres": "Monitor Basis Data PostgreSQL",
+        "push": "Monitor Push (layanan eksternal memanggil URL yang dihasilkan)",
+        "rabbitmq": "Monitor RabbitMQ",
+        "redis": "Monitor Database Redis",
+        "snmp": "Monitor SNMP",
+        "sqlserver": "Pemantau Microsoft SQL Server",
+        "tcp": "Monitor Port TCP"
+      }
+    },
+    "page": {
+      "description": "Buat monitor baru untuk mulai memantau kinerja situs web Anda.",
+      "edit_title": "Ubah Monitor:",
+      "new_title": "Monit Baru"
+    },
+    "title": "Pengawasan",
+    "toasts": {
+      "deleted": "Monitor dihapus",
+      "paused": "Pemantauan dijeda",
+      "reset_success": "Data monitor berhasil direset",
+      "resumed": "Pemantauan dilanjutkan"
+    },
+    "view": {
+      "buttons": {
+        "clone": "Duplikat",
+        "delete": "Hapus",
+        "edit": "Sunting",
+        "pause": "Jeda",
+        "reset_data": "Atur Ulang Data",
+        "resume": "Lanjutkan"
+      },
+      "certificate": "Sertifikat",
+      "check_every": "Periksa setiap",
+      "current_status": "Status saat ini",
+      "dialogs": {
+        "delete": {
+          "description": "Tindakan ini tidak dapat dibatalkan. Ini akan menghapus monitor secara permanen beserta semua data terkait.",
+          "title": "Apakah Anda benar-benar yakin?"
+        },
+        "pause": {
+          "description": "Apakah Anda yakin ingin menjeda?",
+          "title": "Konfirmasi"
+        },
+        "reset": {
+          "description": "Tindakan ini akan menghapus secara permanen semua riwayat heartbeat dan statistik ketersediaan untuk monitor ini. Monitor akan muncul seolah-olah baru saja dibuat. Tindakan ini tidak dapat dibatalkan.",
+          "title": "Reset Data Monitor"
+        }
+      },
+      "expiring_soon": "Segera kedaluwarsa",
+      "for": "untuk",
+      "live_status": "Status Langsung",
+      "monitor_for": "Pantau untuk",
+      "no_certificate_data": "Tidak ada data sertifikat",
+      "seconds": "detik",
+      "stats": {
+        "last_24_hours": "24 jam terakhir",
+        "last_30_days": "30 hari terakhir",
+        "last_365_days": "365 hari terakhir",
+        "last_7_days": "7 hari terakhir"
+      },
+      "status": {
+        "down": "Offline",
+        "maintenance": "Pemeliharaan",
+        "paused": "Berhenti",
+        "up": "Berjalan"
+      }
+    }
+  },
+  "navigation": {
+    "maintenance": "Pemeliharaan",
+    "monitors": "Pengawasan",
+    "notification_channels": "Saluran Pemberitahuan",
+    "proxies": "Proksi",
+    "settings": "Pengaturan",
+    "status_pages": "Halaman Status",
+    "tags": "Tag"
+  },
+  "notifications": {
+    "actions": {
+      "test": "Tes",
+      "testing": "Menguji..."
+    },
+    "aria": {
+      "delete": "Hapus {{name}}"
+    },
+    "confirm_delete_description": "Tindakan ini tidak dapat dibatalkan. Ini akan menghapus notifier \"{{name}}\" secara permanen dan menghapusnya dari semua monitor yang menggunakannya.",
+    "create_title": "Buat Notifier",
+    "edit_channel_title": "Ubah Saluran Pemberitahuan",
+    "edit_title": "Edit Pemberi Pemberitahuan",
+    "empty_state": {
+      "action": "Buat saluran notifikasi pertama Anda",
+      "description": "Mulailah dengan membuat saluran notifikasi pertama Anda untuk mengirim peringatan ke tim Anda.",
+      "title": "Tidak ditemukan saluran notifikasi"
+    },
+    "form": {
+      "discord": {
+        "bot_display_name_description": "Nama yang akan muncul sebagai pengirim pesan Discord.",
+        "bot_display_name_label": "Nama Tampilan Bot",
+        "custom_message_prefix_description": "Prefix opsional yang akan ditambahkan di awal semua pesan.",
+        "custom_message_prefix_label": "Prefiks Pesan Kustom",
+        "custom_message_prefix_placeholder": "Opsional: Tambahkan awalan ke pesan Anda",
+        "forum_post_name_description": "Nama posting forum baru yang akan dibuat.",
+        "forum_post_name_label": "Nama Postingan Forum",
+        "forum_post_name_placeholder": "Masukkan nama postingan forum",
+        "sending_message_to_channel": "Kirim ke saluran",
+        "sending_message_to_description": "Pilih tempat mengirim pesan Discord.",
+        "sending_message_to_label": "Mengirim Pesan ke",
+        "sending_message_to_new_forum_post": "Kirim ke posting forum baru",
+        "sending_message_to_placeholder": "Pilih jenis pesan",
+        "sending_message_to_thread": "Kirim ke thread",
+        "setup_webhook_description_1": "Dapatkan URL webhook Anda dari pengaturan server Discord → Integrasi → Webhooks.",
+        "setup_webhook_description_2": "Buat webhook baru dan salin URL-nya. Pastikan Anda memilih saluran yang benar.",
+        "setup_webhook_title": "Atur Webhook Discord",
+        "thread_id_description_1": "Aktifkan Mode Pengembang di Pengaturan Pengguna Discord → Lanjutan → Mode Pengembang",
+        "thread_id_description_2": "Klik kanan pada thread atau postingan dan pilih \"Salin ID Thread\" atau \"Salin ID Saluran\"",
+        "thread_id_description_title": "ID thread atau posting forum tempat pesan akan dikirim",
+        "thread_id_label": "ID Thread",
+        "thread_id_placeholder": "Masukkan ID thread atau posting",
+        "webhook_url_label": "URL Webhook Discord"
+      },
+      "google_chat": {
+        "more_info_about_webhooks": "Info lebih lanjut tentang Webhooks",
+        "webhook_url_label": "URL Webhook Google Chat"
+      },
+      "gotify": {
+        "application_token_description": "Token aplikasi dari aplikasi Gotify Anda. Anda dapat menemukannya di antarmuka web Gotify Anda di bawah Aplikasi.",
+        "application_token_label": "Token Aplikasi",
+        "custom_message_description": "Template pesan kustom. Variabel yang tersedia",
+        "custom_message_description_2": "Biarkan kosong untuk menggunakan pesan default.",
+        "custom_message_label": "Pesan Khusus",
+        "custom_title_description": "Judul khusus untuk notifikasi. Variabel yang tersedia: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Kosongkan untuk menggunakan judul default \"Peekaping\".",
+        "custom_title_label": "Judul Kustom",
+        "learn_more_label": "Pelajari lebih lanjut tentang Gotify dan cara mengaturnya di:",
+        "note_description": "Anda perlu menjalankan server Gotify untuk menggunakan integrasi ini.",
+        "note_label": "Catatan:",
+        "priority_0": "Terendah",
+        "priority_1": "Sangat Rendah",
+        "priority_10": "Tertinggi",
+        "priority_2": "Rendah",
+        "priority_3": "Di Bawah Normal",
+        "priority_4": "Normal",
+        "priority_5": "Di atas Normal",
+        "priority_6": "Sedang",
+        "priority_7": "Tinggi",
+        "priority_8": "Sangat Tinggi (Bawaan)",
+        "priority_9": "Darurat",
+        "priority_description": "Prioritas pesan (0-10). Angka yang lebih tinggi menunjukkan prioritas lebih tinggi. Nilai default adalah 8.",
+        "priority_label": "Prioritas",
+        "priority_placeholder": "Pilih prioritas",
+        "server_url_description": "URL server Gotify Anda. Pastikan dapat diakses dari aplikasi ini.",
+        "server_url_label": "URL Server"
+      },
+      "grafana_oncall": {
+        "grafana_oncall_url_description": "URL webhook dari integrasi Grafana OnCall Anda. Anda dapat menemukannya di instance Grafana OnCall Anda di bawah Alerts & IRM > IRM > Integrations > Webhook.",
+        "grafana_oncall_url_label": "URL Grafana OnCall",
+        "learn_more_label": "Pelajari lebih lanjut tentang webhook Grafana OnCall"
+      },
+      "line": {
+        "channel_access_token_description": "Anda dapat memperoleh token akses saluran Anda dari",
+        "channel_access_token_description_2": "Buka pengaturan saluran Anda dan cari",
+        "channel_access_token_label": "Token Akses Saluran (Tahan Lama)",
+        "channel_access_token_placeholder": "Masukkan token akses saluran LINE Anda",
+        "template_description": "Sesuaikan format pesan. Variabel yang tersedia",
+        "template_label": "Template Pesan",
+        "template_placeholder": "Masukkan template pesan kustom Anda",
+        "user_id_description": "Anda dapat menemukan ID Pengguna Anda di",
+        "user_id_description_2": "Buka pengaturan saluran Anda dan cari",
+        "user_id_label": "ID Pengguna Anda",
+        "user_id_placeholder": "Masukkan ID Pengguna LINE Anda"
+      },
+      "matrix": {
+        "access_token_description": "Token akses Matrix Anda untuk autentikasi",
+        "access_token_label": "Token Akses",
+        "custom_message_description": "Template pesan khusus. Variabel yang tersedia",
+        "custom_message_label": "Pesan Khusus",
+        "homeserver_url_description": "URL homeserver Matrix Anda",
+        "homeserver_url_label": "URL Homeserver",
+        "internal_room_id_description": "ID kamar internal tempat notifikasi akan dikirim. ID ini harus diawali dengan \"!\" dan seharusnya terlihat seperti: !roomid:matrix.org",
+        "internal_room_id_label": "ID Ruangan Internal",
+        "setup_instructions_1": "Buat akun Matrix untuk bot Anda (atau gunakan akun yang sudah ada)",
+        "setup_instructions_2": "Buat atau bergabung dengan ruang di mana Anda ingin menerima pemberitahuan",
+        "setup_instructions_3": "Dapatkan token akses Anda dengan melakukan permintaan login",
+        "setup_instructions_4": "Respons akan berisi field access_token - gunakan ini sebagai Token Akses Anda",
+        "setup_instructions_5": "Temukan ID internal ruang Anda (dimulai dengan \"!\") di pengaturan ruang klien Matrix",
+        "setup_instructions_label": "Petunjuk Pengaturan"
+      },
+      "mattermost": {
+        "channel_name_description": "Saluran tempat notifikasi akan dikirim. Biarkan kosong untuk menggunakan saluran default yang dikonfigurasi di webhook.",
+        "channel_name_label": "Nama Saluran",
+        "icon_emoji_cheat_sheet_label": "Panduan Emoji",
+        "icon_emoji_description": "Emoji yang akan digunakan sebagai ikon. Anda dapat menentukan dua emoji dipisahkan oleh spasi (yang pertama untuk status up, yang kedua untuk status down).",
+        "icon_emoji_label": "Ikon Emoji",
+        "icon_url_description": "URL gambar yang akan digunakan sebagai ikon pesan pemberitahuan.",
+        "icon_url_label": "URL Ikon",
+        "learn_more_label": "Pelajari lebih lanjut tentang webhooks",
+        "message_template_description": "Sesuaikan format pesan. Variabel yang tersedia",
+        "message_template_label": "Template Pesan",
+        "use_message_template_description": "Aktifkan penggunaan template pesan kustom dan format.",
+        "use_message_template_label": "Gunakan Template Pesan",
+        "username_description": "Nama pengguna yang akan muncul sebagai pengirim pesan.",
+        "webhook_url_label": "URL Webhook"
+      },
+      "ntfy": {
+        "authentication_type_basic": "Autentikasi Dasar",
+        "authentication_type_basic_description": "Gunakan nama pengguna dan kata sandi untuk otentikasi dasar.",
+        "authentication_type_label": "Jenis Autentikasi",
+        "authentication_type_none": "Tanpa Otentikasi",
+        "authentication_type_none_description": "Tidak memerlukan autentikasi. Cocok untuk server NTFY publik.",
+        "authentication_type_placeholder": "Pilih jenis otentikasi",
+        "authentication_type_token": "Autentikasi Token",
+        "authentication_type_token_description": "Gunakan token akses untuk otentikasi.",
+        "custom_message_description": "Konten pesan kustom. Variabel yang tersedia",
+        "custom_message_label": "Pesan Kustom",
+        "password_required": "Password diperlukan untuk otentikasi dasar",
+        "priority_1": "Min (Terendah)",
+        "priority_2": "Rendah",
+        "priority_3": "Bawaan",
+        "priority_4": "Tinggi",
+        "priority_5": "Darurat (Tertinggi)",
+        "priority_description": "Tingkat prioritas notifikasi. Prioritas yang lebih tinggi dapat memicu perilaku berbeda pada klien.",
+        "priority_label": "Prioritas",
+        "priority_placeholder": "Pilih prioritas",
+        "server_url_description": "URL server NTFY Anda. Gunakan https://ntfy.sh untuk instance publik.",
+        "server_url_label": "URL Server",
+        "tags_description": "Tag yang dipisahkan koma untuk mengkategorikan notifikasi. Variabel yang tersedia",
+        "tags_label": "Tag",
+        "title_description": "Judul khusus untuk pemberitahuan. Variabel yang tersedia",
+        "title_label": "Judul Kustom",
+        "token_description": "Token akses NTFY Anda untuk otentikasi.",
+        "token_label": "Token Akses",
+        "token_required": "Token diperlukan untuk otentikasi token",
+        "topic_description": "Nama topik untuk notifikasi Anda. Ini akan menjadi saluran tempat notifikasi dikirim.",
+        "topic_label": "Topik",
+        "username_required": "Nama pengguna diperlukan untuk otentikasi dasar."
+      },
+      "opsgenie": {
+        "api_key_label": "Kunci API",
+        "more_info_about_api_keys_label": "Informasi lebih lanjut tentang kunci API",
+        "priority_1": "Kritis",
+        "priority_2": "Tinggi",
+        "priority_3": "Sedang",
+        "priority_4": "Rendah",
+        "priority_5": "Informasional",
+        "priority_description": "Atur tingkat prioritas untuk peringatan. Nilai default adalah P3 (Sedang).",
+        "priority_label": "Prioritas",
+        "region_description": "Pilih wilayah Opsgenie Anda. Ini menentukan endpoint API mana yang akan digunakan.",
+        "region_label": "Wilayah",
+        "region_placeholder": "Pilih wilayah"
+      },
+      "pagerduty": {
+        "auto_resolve_acknowledge": "Otomatis Mengakui",
+        "auto_resolve_acknowledge_description": "Mengakui insiden secara otomatis",
+        "auto_resolve_description": "Pilih tindakan apa yang akan diambil ketika monitor kembali online",
+        "auto_resolve_do_nothing": "Tidak melakukan apa-apa",
+        "auto_resolve_do_nothing_description": "Tidak ada tindakan yang diambil pada status UP",
+        "auto_resolve_label": "Selesaikan Otomatis atau Konfirmasi",
+        "auto_resolve_placeholder": "Pilih perilaku penyelesaian otomatis",
+        "auto_resolve_resolve": "Resolusi Otomatis",
+        "auto_resolve_resolve_description": "Selesaikan insiden secara otomatis",
+        "integration_key_description": "Pelajari cara mendapatkan kunci integrasi Anda",
+        "integration_key_label": "Kunci Integrasi",
+        "integration_key_placeholder": "Masukkan kunci integrasi PagerDuty Anda",
+        "integration_url_description": "URL endpoint API Events PagerDuty v2. Secara default mengarah ke endpoint standar.",
+        "integration_url_label": "URL Integrasi",
+        "learn_more_label": "Dokumentasi PagerDuty",
+        "priority_critical": "Kritis",
+        "priority_description": "Tingkat keparahan untuk insiden PagerDuty. Secara default \"warning\".",
+        "priority_error": "Kesalahan",
+        "priority_info": "Informasi",
+        "priority_label": "Prioritas",
+        "priority_placeholder": "Pilih tingkat prioritas",
+        "priority_warning": "Peringatan"
+      },
+      "pagertree": {
+        "authentication_token_description": "Token autentikasi opsional untuk keamanan yang lebih baik. Token ini akan dikirim dalam header pagertree-token.",
+        "authentication_token_label": "Token Autentikasi (Opsional)",
+        "authentication_token_placeholder": "Masukkan token otentikasi jika diperlukan",
+        "auto_resolve_alerts_description": "Secara otomatis menyelesaikan peringatan PagerTree ketika monitor pulih.",
+        "auto_resolve_alerts_label": "Selesaikan Peringatan Otomatis",
+        "how_to_get_integration_url_label": "Cara mendapatkan URL integrasi",
+        "integration_url_description": "Masukkan URL integrasi webhook PagerTree Anda.",
+        "integration_url_label": "URL Webhook PagerTree",
+        "urgency_level_critical": "Kritis",
+        "urgency_level_description": "Atur tingkat urgensi default untuk peringatan yang dikirim ke PagerTree",
+        "urgency_level_high": "Tinggi",
+        "urgency_level_label": "Tingkat Urgensi",
+        "urgency_level_low": "Rendah",
+        "urgency_level_medium": "Sedang",
+        "urgency_level_placeholder": "Pilih tingkat urgensi",
+        "urgency_level_silent": "Diam"
+      },
+      "pushbullet": {
+        "access_token": "Token Akses",
+        "access_token_description": "Token Akses Pushbullet Anda. Dapatkan dari",
+        "access_token_label": "Token Akses",
+        "access_token_link": "Pengaturan Pushbullet",
+        "channel_tag": "Tag Kanal (Opsional)",
+        "channel_tag_description": "Kirim notifikasi ke saluran Pushbullet alih-alih perangkat",
+        "channel_tag_label": "Tag Saluran (Opsional)",
+        "custom_message_template": "",
+        "custom_message_template_description": "Sesuaikan isi notifikasi menggunakan variabel template:",
+        "custom_message_template_heartbeat_ping": "Waktu Respon",
+        "custom_message_template_heartbeat_time": "Tanda Waktu",
+        "custom_message_template_label": "Template Pesan Kustom (Opsional)",
+        "custom_message_template_monitor_url": "URL Monitor",
+        "custom_message_template_msg": "Pesan peringatan",
+        "custom_message_template_name": "Nama monitor",
+        "custom_message_template_placeholder": "Monitor: {{ name }}\nStatus: {{ status }}\nPesan: {{ msg }}",
+        "custom_message_template_status": "Status saat ini",
+        "device_id": "ID Perangkat (Opsional)",
+        "device_id_description": "Kirim notifikasi ke perangkat tertentu. Kosongkan untuk mengirim ke semua perangkat. Anda dapat menemukan ID perangkat menggunakan ...",
+        "device_id_label": "ID Perangkat (Opsional)",
+        "device_id_link": "API Pushbullet",
+        "more_info_on": "Info lebih lanjut tentang:"
+      },
+      "pushover": {
+        "application_token_label": "Token Aplikasi",
+        "application_token_placeholder": "Masukkan token aplikasi Pushover Anda",
+        "device_description": "Biarkan kosong untuk mengirim ke semua perangkat.",
+        "device_label": "Perangkat",
+        "device_placeholder": "Nama perangkat (opsional)",
+        "message_title_description": "Biarkan kosong untuk menggunakan judul default",
+        "message_title_label": "Judul Pesan",
+        "message_title_placeholder": "Judul pesan khusus (opsional)",
+        "message_ttl_description": "Waktu hidup dalam detik (0 = tidak ada kedaluwarsa)",
+        "message_ttl_label": "TTL Pesan",
+        "more_info_label": "Informasi lebih lanjut tentang:",
+        "more_info_label_2": "Anda dapat membuat aplikasi dan memperoleh token API Anda di",
+        "more_info_label_3": "Kunci pengguna Anda dapat ditemukan di",
+        "notification_sound_down_description": "Suara saat monitor turun",
+        "notification_sound_down_label": "Suara Notifikasi - Down",
+        "notification_sound_down_placeholder": "Pilih suara",
+        "notification_sound_up_description": "Suara saat monitor kembali online",
+        "notification_sound_up_label": "Suara Pemberitahuan - Up",
+        "notification_sound_up_placeholder": "Pilih suara",
+        "priority_1": "Terendah",
+        "priority_2": "Rendah",
+        "priority_3": "Normal",
+        "priority_4": "Tinggi",
+        "priority_5": "Darurat",
+        "priority_description": "Tingkat prioritas pesan",
+        "priority_label": "Prioritas",
+        "priority_placeholder": "Pilih prioritas",
+        "sound_alien": "Alien",
+        "sound_bike": "Sepeda",
+        "sound_bugle": "Bugle",
+        "sound_cashregister": "Kasir",
+        "sound_classical": "Klasik",
+        "sound_climb": "Naik",
+        "sound_cosmic": "Kosmik",
+        "sound_echo": "Gema",
+        "sound_falling": "Jatuh",
+        "sound_gamelan": "Gamelan",
+        "sound_incoming": "Masuk",
+        "sound_intermission": "Jeda",
+        "sound_magic": "Ajaib",
+        "sound_mechanical": "Mekanik",
+        "sound_none": "Tidak ada",
+        "sound_persistent": "Tetap",
+        "sound_pianobar": "Bar Piano",
+        "sound_pushover": "Pushover (baku)",
+        "sound_siren": "Sirene",
+        "sound_spacealarm": "Alarm Luar Angkasa",
+        "sound_tugboat": "kapal tunda",
+        "sound_updown": "Naik Turun",
+        "sound_vibrate": "Getar",
+        "user_key_label": "Kunci Pengguna",
+        "user_key_placeholder": "Masukkan kunci pengguna Pushover Anda"
+      },
+      "signal": {
+        "custom_message_description": "Template pesan kustom. Variabel yang tersedia",
+        "custom_message_label": "Pesan Kustom",
+        "important_description": "Anda tidak dapat mencampur grup dan nomor di penerima!",
+        "important_label": "PENTING:",
+        "more_info_label": "Anda dapat memeriksa URL ini untuk melihat cara menyiapkannya:",
+        "note_description": "Anda perlu memiliki klien Signal dengan API REST.",
+        "note_label": "Catatan:",
+        "number_description": "Nomor telepon akun Signal Anda (nomor pengirim).",
+        "number_label": "Nomor",
+        "post_url_description": "URL server REST API Signal CLI Anda.",
+        "post_url_label": "URL Kirim",
+        "recipients_description": "Daftar nomor telepon yang dipisahkan koma untuk mengirim pemberitahuan.",
+        "recipients_label": "Penerima"
+      },
+      "slack": {
+        "channel_name_description": "Saluran tempat pesan akan dikirim. Jika tidak ditentukan, pesan akan dikirim ke saluran default yang telah dikonfigurasi dalam webhook.",
+        "channel_name_description_2": "Anda dapat mengganti saluran default dengan menentukan nama saluran (misalnya #alerts) atau pengguna (misalnya @username).",
+        "channel_name_label": "Nama Saluran",
+        "channel_notify_description": "Saat diaktifkan, pesan akan memicu notifikasi untuk semua anggota saluran. Gunakan dengan hati-hati untuk menghindari spam.",
+        "channel_notify_label": "Saluran Pemberitahuan",
+        "icon_emoji_cheat_sheet_label": "Daftar Cepat Emoji",
+        "icon_emoji_description": "Emoji yang akan dipakai sebagai ikon pesan ini. Harus dalam format :emoji_name:",
+        "icon_emoji_label": "Ikon Emoji",
+        "message_format_description": "Kirim pesan kaya",
+        "message_format_description_2": "Aktifkan pengiriman pesan dengan format kaya, lampiran, dan tampilan visual yang lebih baik.",
+        "message_format_label": "Format Pesan",
+        "username_description": "Nama pengguna yang akan muncul sebagai pengirim pesan. Jika tidak ditentukan, nama bot default akan digunakan.",
+        "webhook_url_description": "URL webhook dari integrasi Slack Anda. Anda dapat menemukan URL ini di instance Slack Anda di bagian Integrasi > Webhook.",
+        "webhook_url_label": "URL Webhook"
+      },
+      "smtp": {
+        "custom_body_label": "Teks Kustom",
+        "custom_description": "Templatability dicapai melalui bahasa templating <b>Liquid</b>.",
+        "custom_description_2": "Silakan lihat dokumentasi untuk petunjuk penggunaan.",
+        "custom_description_3": "Variabel yang tersedia:",
+        "custom_description_4": "pesan pemberitahuan",
+        "custom_description_5": "nama layanan",
+        "custom_description_6": "Status layanan (UP/DOWN/Pemberitahuan kedaluwarsa sertifikat)",
+        "custom_subject_label": "Subjek Kustom",
+        "smtp_from_label": "Dari (Email Pengirim)",
+        "smtp_host_description": "Masukkan nama host server yang ingin Anda hubungkan atau localhost jika Anda berniat menggunakan agen transfer surat yang dikonfigurasi secara lokal.",
+        "smtp_host_label": "Host SMTP",
+        "smtp_password_placeholder": "kata sandi SMTP",
+        "smtp_port_label": "Port",
+        "smtp_to_label": "Kepada (Email Penerima)",
+        "smtp_username_placeholder": "Nama pengguna SMTP"
+      },
+      "telegram": {
+        "auto_get_label": "Dapatkan Otomatis",
+        "bot_token_description": "Dapatkan token bot Anda dari",
+        "bot_token_label": "Token Bot",
+        "chat_id_description": "Anda dapat memperoleh ID obrolan Anda dengan mengirim pesan ke bot Anda dan mengklik \"Auto Get\" di atas, atau secara manual melalui API Telegram.",
+        "chat_id_description_2": "Untuk mendapatkannya secara manual, kunjungi",
+        "chat_id_description_3": "Lihat",
+        "chat_id_description_4": "Dokumentasi Telegram",
+        "chat_id_description_5": "untuk info lebih lanjut.",
+        "chat_id_label": "ID Obrolan",
+        "chat_id_not_found": "Chat ID tidak ditemukan di pembaruan terakhir.",
+        "failed_to_fetch_chat_id": "Gagal mengambil ID obrolan",
+        "message_thread_id_description": "Opsional. Digunakan untuk mengirim pesan ke thread (topik) tertentu dalam supergroup forum.",
+        "message_thread_id_label": "ID Thread Pesan",
+        "no_updates_found": "Tidak ada pembaruan yang ditemukan. Silakan kirim pesan ke bot Anda terlebih dahulu.",
+        "protect_content_description": "Jika diaktifkan, isi pesan akan dilindungi dari pengiriman ulang dan penyimpanan.",
+        "protect_content_label": "Lindungi Konten",
+        "send_silently_description": "Jika diaktifkan, pesan akan dikirim secara diam (pengguna akan menerima notifikasi tanpa suara).",
+        "send_silently_label": "Kirim Diam-diam",
+        "server_url_description": "Secara default adalah",
+        "server_url_description_2": "Anda dapat menggunakan server kustom. Lihat",
+        "server_url_description_3": "di sini",
+        "server_url_description_4": "untuk rincian.",
+        "server_url_label": "URL Server Telegram",
+        "template_description": "Sesuaikan format pesan. Variabel yang tersedia",
+        "template_label": "Template Pesan",
+        "template_parse_mode_description": "Pilih bagaimana pesan harus diurai. Lihat",
+        "template_parse_mode_description_2": "Dokumentasi format Telegram",
+        "template_parse_mode_description_3": "untuk detail.",
+        "template_parse_mode_label": "Mode Parse Template",
+        "template_parse_mode_placeholder": "Pilih mode parse",
+        "template_placeholder": "Masukkan template pesan kustom Anda",
+        "use_template_description": "Aktifkan agar dapat menggunakan template pesan kustom dan format.",
+        "use_template_label": "Gunakan Template Pesan"
+      },
+      "webhook": {
+        "additional_headers_description": "Tambahkan header HTTP kustom ke permintaan webhook.",
+        "additional_headers_label": "Header Tambahan",
+        "custom_body_description": "Sesuaikan format badan permintaan. Variabel yang tersedia",
+        "custom_body_label": "Body Kustom",
+        "post_url_description": "URL endpoint webhook tempat pemberitahuan akan dikirim.",
+        "post_url_label": "URL POST",
+        "request_body_description_custom": "Definisikan format badan permintaan kustom Anda di bawah ini.",
+        "request_body_description_form_data": "Konten akan dikirim sebagai multipart/form-data. Anda dapat mendekodekannya menggunakan <strong>json_decode($_POST['data'])</strong> di PHP.",
+        "request_body_description_json": "Konten akan dikirim sebagai JSON dengan header \"application/json\".",
+        "request_body_label": "Body Permintaan",
+        "request_body_placeholder": "Pilih jenis konten"
+      }
+    },
+    "important": "Notifikasi Penting",
+    "important_notifications": "Pemberitahuan Penting",
+    "labels": {
+      "friendly_name": "Nama ramah",
+      "type": "Jenis Notifier"
+    },
+    "messages": {
+      "create_failed": "Gagal membuat notifier",
+      "created_success": "Notifier berhasil dibuat",
+      "error_loading_notifier": "Kesalahan memuat pemberi notifikasi",
+      "test_failed": "Gagal mengirim notifikasi uji",
+      "test_success": "Notifikasi uji berhasil dikirim",
+      "update_failed": "Gagal memperbarui notifier",
+      "updated_success": "Notifier berhasil diperbarui"
+    },
+    "new": {
+      "title": "Saluran Pemberitahuan Baru"
+    },
+    "no_important": "Tidak ada notifikasi penting.",
+    "placeholders": {
+      "select_type": "Pilih tipe notifier"
+    },
+    "search_placeholder": "Cari saluran notifikasi berdasarkan nama..."
+  },
+  "proxies": {
+    "delete_dialog": {
+      "description": "Tindakan ini tidak dapat dibatalkan. Ini akan menghapus proxy {{host}}:{{port}} secara permanen.",
+      "title": "Apakah Anda benar-benar yakin?"
+    },
+    "edit": {
+      "page_name": "Ubah Proxy"
+    },
+    "empty_list": {
+      "action_text": "Buat proxy pertama Anda",
+      "text": "Mulai dengan membuat proksi pertama Anda untuk digunakan di monitor Anda.",
+      "title": "Tidak ada proxy"
+    },
+    "form": {
+      "auth_label": "Server proxy memerlukan otentikasi",
+      "port_placeholder": "Port",
+      "protocol_label": "Protokol Proxy",
+      "protocol_placeholder": "Pilih protokol proxy",
+      "server_label": "Server Proxy",
+      "server_placeholder": "Alamat server",
+      "user": "Pengguna"
+    },
+    "messages": {
+      "create_failed": "Gagal membuat proxy",
+      "created_success": "Proxy berhasil dibuat",
+      "error_loading_proxy": "Kesalahan memuat proxy",
+      "update_failed": "Gagal memperbarui proxy",
+      "updated_success": "Proxy berhasil diperbarui"
+    },
+    "new": {
+      "page_name": "Proxy Baru"
+    },
+    "page_name": "Proksi",
+    "search_label": "Cari",
+    "search_placeholder": "Cari proksi berdasarkan host..."
+  },
+  "security": {
+    "enable_2fa": {
+      "form": {
+        "authenticator_code_label": "Kode Authenticator",
+        "authenticator_code_placeholder": "Masukkan kode 6-digit",
+        "current_password_label": "Password Saat Ini",
+        "current_password_placeholder": "Masukkan kata sandi Anda saat ini",
+        "enable_2fa_button": "Aktifkan 2FA"
+      },
+      "messages": {
+        "2fa_active": "2FA Aktif",
+        "2fa_disabled_successfully": "2FA berhasil dinonaktifkan",
+        "2fa_enabled_successfully": "2FA berhasil diaktifkan",
+        "account_is_protected_with_2fa": "Akun Anda dilindungi dengan 2FA.",
+        "disable_2fa": "Nonaktifkan 2FA",
+        "enter_password_to_disable_2fa": "Masukkan kata sandi Anda untuk menonaktifkan 2FA",
+        "failed_to_disable_2fa": "Gagal menonaktifkan 2FA",
+        "failed_to_verify_2fa_code": "Gagal memverifikasi kode 2FA",
+        "failed_to_verify_password": "Gagal memverifikasi kata sandi atau memulai pengaturan 2FA",
+        "have_enabled_2fa": "Anda telah mengaktifkan otentikasi dua faktor (2FA) untuk akun Anda. Ini menambahkan lapisan keamanan tambahan.",
+        "or_enter_secret_manually": "Atau masukkan rahasia ini secara manual",
+        "scan_qr_code_with_authenticator_app": "Pindai kode QR ini dengan aplikasi authenticator Anda",
+        "two_factor_authentication_enabled": "Autentikasi Dua Faktor Diaktifkan",
+        "user_email_not_found": "Email pengguna tidak ditemukan"
+      }
+    },
+    "page_name": "Keamanan",
+    "update_password": {
+      "form": {
+        "confirm_new_password_label": "Konfirmasi Kata Sandi Baru",
+        "confirm_new_password_placeholder": "Masukkan ulang kata sandi baru",
+        "new_password_label": "Password Baru",
+        "new_password_placeholder": "Masukkan kata sandi baru",
+        "old_password_label": "Password Lama",
+        "old_password_placeholder": "Masukkan kata sandi Anda saat ini",
+        "update_password_button": "Perbarui Kata Sandi"
+      },
+      "messages": {
+        "failed_to_update_password": "Gagal memperbarui kata sandi",
+        "password_updated_successfully": "Password berhasil diperbarui"
+      },
+      "title": "Perbarui Kata Sandi"
+    }
+  },
+  "sendgrid": {
+    "api_key_description": "Kunci API SendGrid Anda. Anda dapat membuatnya di akun SendGrid Anda di bawah Pengaturan → Kunci API. Pastikan ia memiliki izin \"Mail Send\".",
+    "api_key_label": "Kunci API",
+    "bcc_email_description": "Penerima BCC. Pisahkan beberapa email dengan koma.",
+    "bcc_email_label": "Email BCC (Opsional)",
+    "cc_email_description": "Penerima CC. Pisahkan beberapa email dengan koma.",
+    "cc_email_label": "Email CC (Opsional)",
+    "from_email_description": "Alamat email pengirim. Ini harus menjadi pengirim terverifikasi di akun SendGrid Anda.",
+    "from_email_label": "Dari Email",
+    "subject_description": "Baris subjek untuk email. Mendukung templating Liquid.",
+    "subject_label": "Subjek Kustom (Opsional)",
+    "subject_variables_label": "Variabel yang tersedia:",
+    "subject_variables_msg": "pesan pemberitahuan",
+    "subject_variables_name": "nama layanan",
+    "subject_variables_status": "status layanan (UP/DOWN)",
+    "to_email_description": "Alamat email penerima utama. Untuk beberapa penerima, gunakan kolom CC atau BCC.",
+    "to_email_label": "Email Tujuan"
+  },
+  "settings": {
+    "data_retention": {
+      "days_label": "Hari",
+      "description": "Tetapkan berapa hari data akan disimpan (KEEP_DATA_PERIOD_DAYS).",
+      "title": "Periode Retensi Data"
+    },
+    "timezone": {
+      "description": "Pilih zona waktu yang Anda sukai untuk menampilkan semua waktu di aplikasi.",
+      "label": "Zona Waktu",
+      "no_timezone_found": "Zona waktu tidak ditemukan.",
+      "search_placeholder": "Cari zona waktu...",
+      "select_placeholder": "Pilih zona waktu...",
+      "title": "Zona Waktu"
+    },
+    "validation": {
+      "min_days": "Harus minimal 1 hari"
+    }
+  },
+  "status": {
+    "messages": {
+      "all_systems_operational": "Semua Sistem Beroperasi",
+      "down": "Tidak tersedia",
+      "last_updated": "Terakhir Diperbarui",
+      "maintenance": "Pemeliharaan",
+      "no_monitors_configured": "Tidak ada monitor yang dikonfigurasi untuk halaman status ini.",
+      "operational": "Operasional",
+      "partial_system_outage": "Gangguan Sistem Parsial",
+      "powered_by": "Didukung oleh",
+      "refresh_in": "Segarkan dalam",
+      "refresh_now": "Segarkan Sekarang",
+      "status_page_not_found": "Halaman status tidak ditemukan atau belum dipublikasikan.",
+      "under_maintenance": "Sedang dalam Pemeliharaan",
+      "unknown": "Tidak diketahui"
+    }
+  },
+  "status_pages": {
+    "affected_monitors": "Monitor Terkait",
+    "affected_monitors_info": "Pilih monitor yang akan terpengaruh oleh pemeliharaan ini",
+    "auto_refresh_interval": "Interval Penyegaran Otomatis (detik)",
+    "basic_information": "Informasi Dasar",
+    "create_status_page": "Buat Halaman Status",
+    "customization": "Kustomisasi",
+    "delete_dialog": {
+      "description": "Apakah Anda yakin ingin menghapus '{{title}}'? Tindakan ini tidak dapat dibatalkan.",
+      "title": "Hapus Halaman Status"
+    },
+    "description": "Masukkan deskripsi halaman status",
+    "domain_already_used": "Domain {{domain}} sudah digunakan oleh halaman status lain",
+    "domain_host_warning": "Domain ini sama dengan URL host Anda saat ini. Hal ini dapat menyebabkan konflik.",
+    "domains": "Domain",
+    "domains_info_warning": "Jangan lupa menambahkan catatan CNAME ke DNS Anda untuk setiap domain.",
+    "draft_status": "Konsep",
+    "edit_page_name": "Ubah Halaman Status",
+    "messages": {
+      "create_description": "Buat halaman status baru untuk berbagi status layanan Anda dengan pengguna.",
+      "create_your_first_status_page": "Buat halaman status pertama Anda",
+      "created_successfully": "Halaman status berhasil dibuat",
+      "delete_failed": "Gagal menghapus halaman status",
+      "deleted_successfully": "Halaman status berhasil dihapus",
+      "get_started_by_creating_your_first_status_page": "Mulailah dengan membuat halaman status pertama Anda.",
+      "no_status_pages_found": "Tidak ada halaman status",
+      "not_found": "Halaman status tidak ditemukan",
+      "update_description": "Perbarui pengaturan dan konfigurasi halaman status Anda.",
+      "updated_successfully": "Halaman status berhasil diperbarui"
+    },
+    "new_page_name": "Halaman Status Baru",
+    "page_name": "Halaman Status",
+    "published": "Terbit",
+    "published_info": "Buat halaman status ini tersedia secara publik",
+    "published_status": "Terbit",
+    "search_label": "Cari",
+    "search_placeholder": "Cari halaman status berdasarkan judul...",
+    "update_status_page": "Perbarui Halaman Status",
+    "view_page": "Lihat Halaman"
+  },
+  "tags": {
+    "confirm_delete_description": "Tindakan ini tidak dapat dibalik. Ini akan secara permanen menghapus tag \"{{name}}\" dan menghapusnya dari semua monitor.",
+    "edit_page_name": "Ubah Tag",
+    "empty_state": {
+      "action": "Buat tag pertama Anda",
+      "description": "Mulai dengan membuat tag pertama Anda untuk mengatur monitor Anda.",
+      "title": "Tidak ada tag"
+    },
+    "form": {
+      "color_description": "Pilih warna untuk tag Anda",
+      "color_label": "Warna",
+      "create_button": "Buat Tag",
+      "description_label": "Deskripsi",
+      "description_placeholder": "Masukkan deskripsi tag (opsional)",
+      "name_label": "Nama",
+      "name_placeholder": "Masukkan nama tag",
+      "update_button": "Perbarui Tag"
+    },
+    "messages": {
+      "create_description": "Buat tag baru untuk mengatur dan mengkategorikan monitor Anda.",
+      "failed_to_load_tag": "Gagal memuat tag. Tag mungkin tidak ada atau Anda tidak memiliki izin untuk melihatnya.",
+      "tag_id_required": "Tag ID wajib",
+      "update_description": "Perbarui detail tag untuk mengorganisir monitor Anda dengan lebih baik."
+    },
+    "new_page_name": "Tag Baru",
+    "search_placeholder": "Cari tag..."
+  },
+  "theme": {
+    "dark": "Gelap",
+    "light": "Terang",
+    "system": "Sistem",
+    "toggle_theme": "Ubah tema"
+  },
+  "timezone": {
+    "average": "Rata-rata",
+    "last_24_hours": "24 jam terakhir",
+    "last_3_hours": "3 jam terakhir",
+    "last_3_months": "3 bulan terakhir",
+    "last_30_minutes": "30 menit terakhir",
+    "last_6_hours": "6 jam terakhir",
+    "last_7_days": "7 hari terakhir",
+    "maximum": "Maksimum",
+    "minimum": "Minimal",
+    "ms": "ms",
+    "response_time": "Waktu Respons",
+    "uptime": "Waktu Aktif"
+  },
+  "ui": {
+    "general": "Umum",
+    "intervals_retries": "Interval, Ulang, Timeout"
+  }
+}

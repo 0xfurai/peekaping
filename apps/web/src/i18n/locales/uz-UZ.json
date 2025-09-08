@@ -1,0 +1,1280 @@
+{
+  "actions": {
+    "cancel": "Bekor qilish",
+    "saving": "Saqlanmoqda..."
+  },
+  "auth": {
+    "login": {
+      "description": "E-pochta bilan kirish",
+      "no_account": "Hisobingiz yo'qmi?",
+      "sign_up": "Ro'yxatdan o'tish",
+      "submit": "Kirish",
+      "title": "Xush kelibsiz"
+    },
+    "register": {
+      "description": "Admin hisobingizni yarating",
+      "have_account": "Allaqachon hisobingiz bormi?",
+      "sign_in": "Kirish",
+      "submit": "Yaratish",
+      "title": "Salom"
+    },
+    "twofa": {
+      "code_label": "2FA kodi",
+      "code_placeholder": "2FA kodini kiriting",
+      "description": "2FA sizning hisobingizda yoqilgan. Iltimos, davom etish uchun autentifikatsiya kodini kiriting.",
+      "title": "Ikki bosqichli autentifikatsiya talab qilinadi",
+      "verify_button": "2FA ni tasdiqlash",
+      "verifying": "Tasdiqlanmoqda..."
+    }
+  },
+  "bars": {
+    "down_count": "Quyishlar soni",
+    "important": "Muhim",
+    "interval": "Oraliq",
+    "message": "Xabar",
+    "ms": "millisekund",
+    "notified": "Xabardor qilingan",
+    "ping": "Ping",
+    "retries": "Qayta urinishlar",
+    "status": "Holat",
+    "time": "Vaqt"
+  },
+  "common": {
+    "active": "Faol",
+    "all": "Barchasi",
+    "back": "Orqaga",
+    "cancel": "Bekor",
+    "clear_all": "Barchasini tozalash",
+    "clear_all_filters": "Barcha filterlarni tozalash",
+    "confirm": "Tasdiqlash",
+    "confirm_delete_title": "Haqiqatan ham ishonchingiz komilmi?",
+    "confirm_delete_title_short": "Ishonchingiz komilmi?",
+    "continue": "Davom et",
+    "create": "Yaratish",
+    "created": "Yaratildi",
+    "days": "kunlar",
+    "default": "Standart",
+    "delete": "O'chirish",
+    "disabling": "O'chirilmoqda...",
+    "dismiss": "Bekor qilish",
+    "down": "Quyi",
+    "enabling": "Faollashtirilmoqda...",
+    "error": "Xato",
+    "expires": "Muddati tugadi",
+    "inactive": "Faol emas",
+    "loading": "Yuklanmoqda...",
+    "logout": "Chiqish",
+    "maintenance": "Texnik xizmat",
+    "no_options_found": "Variantlar topilmadi",
+    "no_tags_available": "Teglar mavjud emas",
+    "please_refresh_page": "Iltimos, sahifani yangilang.",
+    "required": "Majburiy",
+    "save": "Saqlash",
+    "saving": "Saqlanmoqda...",
+    "search": "Qidirish",
+    "security": "Xavfsizlik",
+    "select": "Tanlang",
+    "select_monitors": "Monitorlarni tanlang...",
+    "select_tags": "Etiketlarni tanlang",
+    "settings": "Sozlamalar",
+    "tags": "Etiketlar",
+    "unknown": "Noma'lum",
+    "unnamed_monitor": "Nomsiz Monitor",
+    "up": "Onlayn",
+    "update": "Yangilash",
+    "verifying": "Tekshirilmoqda..."
+  },
+  "forms": {
+    "labels": {
+      "confirm_password": "Parolni tasdiqlang",
+      "email": "E-pochta",
+      "footer_text": "Footer matni",
+      "heartbeat_interval": "Yurish intervalli (soniya)",
+      "icon_url": "Ikonka URL",
+      "monitor_name": "Nomi",
+      "monitor_type": "Turi",
+      "password": "Parol",
+      "retries": "Qayta urinishlar",
+      "slug": "slug",
+      "title": "Sarlavha",
+      "username": "Foydalanuvchi nomi"
+    },
+    "placeholders": {
+      "auto_refresh_help": "Auto yangilash yo‘q – 0",
+      "domains": "Domain kiriting (masalan, status.example.com)",
+      "footer_text": "Footer matnini kiriting",
+      "icon_url": "https://example.com/icon.png",
+      "monitor_name": "Mening nazoratim",
+      "page_description": "Status sahifasi tavsifini kiriting",
+      "page_title": "Status sahifa nomini kiriting",
+      "slug": "status-sahifasi-slug"
+    },
+    "validation": {
+      "email_invalid": "Iltimos, to‘g‘ri elektron pochta manzilini kiriting",
+      "password_min_length": "Parol kamida 8 belgidan iborat bo‘lishi kerak",
+      "passwords_mismatch": "Parollar mos kelmadi"
+    }
+  },
+  "maintenance": {
+    "card": {
+      "aria": {
+        "delete": "O'chirish {{title}}",
+        "pause": "Xizmatni vaqtincha to'xtatish",
+        "resume": "Ta'mirlashni davom ettirish"
+      },
+      "labels": {
+        "duration": "{{duration}} daqiqa",
+        "end": "Tugash: {{date}}",
+        "start": "Boshlanish: {{date}}"
+      },
+      "status": {
+        "active": "Faol",
+        "ended": "Yakunlangan",
+        "inactive": "Faol emas"
+      }
+    },
+    "edit_title": "Texnik xizmatni tahrirlash",
+    "form": {
+      "affected_monitors_description": "Ushbu texnik xizmat ko‘rsatishdan ta'sirlanadigan monitorlarni tanlang",
+      "affected_monitors_title": "Ta'sirlangan nazoratlar",
+      "cron_description": "To‘g‘ri cron ifodasini kiriting",
+      "cron_expression": "Cron ifodasi",
+      "date_time_title": "Sana va Vaqt",
+      "day_of_month": "Oylik kun",
+      "day_of_week": "Hafta kuni",
+      "description_label": "Ta'rif",
+      "description_placeholder": "Texnik xizmat tavsifi...",
+      "duration_minutes": "Muddat (Daqiqa)",
+      "effective_date_range": "Amalda bo'ladigan sana oralig'i (ixtiyoriy)",
+      "end_date_time": "Tugash sanasi va vaqti",
+      "end_time": "Tugash vaqti",
+      "interval_label": "Interval (Har kuni bir marta ishga tushurish)",
+      "last_day": "Oxirgi kun",
+      "last_day_of_month": "Oy oxirgi kuni",
+      "maintenance_time_window": "Kunlik texnik xizmat ko'rsatish vaqt oynasi",
+      "markdown_supported": "Markdown qo'llab-quvvatlanadi",
+      "same_as_server": "Server vaqt zonasiga mos",
+      "start_date_time": "Boshlash sanasi va vaqti",
+      "start_time": "Boshlash vaqti",
+      "strategy_label": "Strategiya",
+      "strategy_placeholder": "Strategiyani tanlang",
+      "timezone_label": "Vaqt zonasi",
+      "timezone_placeholder": "Vaqt zonasini tanlang",
+      "title_label": "Sarlavha",
+      "title_placeholder": "Ta'mirlash sarlavhasi"
+    },
+    "page": {
+      "clear_filters": "Barcha filtrlarni tozalash",
+      "dialogs": {
+        "confirm_action": {
+          "pause_description": "Siz bu texnik xizmatni to'xtatishdan ishonchmisiz?",
+          "resume_description": "Siz bu texnik xizmatni davom ettirishni hohlaysizmi?",
+          "title": "Harakatni tasdiqlash"
+        },
+        "confirm_delete": {
+          "description": "Ushbu texnik xizmat ko‘rsatish oynasini o‘chirishdan ishonch hosil qilingmi? Ushbu amalni bekor qilish mumkin emas.",
+          "title": "O‘chirishni tasdiqlash"
+        }
+      },
+      "edit_maintenance": "Xizmatni tahrirlash: {{title}}",
+      "empty_state": {
+        "action": "Birinchi texnik xizmat ko‘rsatish oynasini yarating",
+        "description": "Rejalashtirilgan to‘xtashlarni oldini olish uchun birinchi texnik xizmat ko‘rsatish oynasini yaratib boshlang.",
+        "title": "Xizmatni ta'mirlash oynalari topilmadi"
+      },
+      "error_loading": "Texnik xizmatni yuklashda xatolik",
+      "loading": "Yuklanmoqda...",
+      "loading_monitors": "Monitorlar yuklanmoqda...",
+      "search_placeholder": "Xizmatlarni qidirish…"
+    },
+    "page_title": "Xizmat ko‘rsatish oynalari",
+    "schedule_title": "Texnik xizmatni rejalashtirish",
+    "strategy": {
+      "cron": "Cron ifodasi",
+      "manual": "Qo'lda faol/fulsuz",
+      "recurring_day_of_month": "Takroriy - Oy kuni",
+      "recurring_interval": "Takrorlanadigan - Interval",
+      "recurring_weekday": "Takroriy - Haftaning kuni",
+      "single": "Bitta texnik xizmat oynasi"
+    },
+    "toasts": {
+      "create_error": "Texnik xizmatni yaratish muvaffaqiyatsiz",
+      "created_success": "Texnik xizmat muvaffaqiyatli yaratildi",
+      "delete_error": "Texnik xizmatni o'chirish amalga oshmadi",
+      "deleted_success": "Texnik xizmat muvaffaqiyatli o'chirildi",
+      "pause_error": "Kechikish vaqtini to'xtatishda xato",
+      "paused_success": "Xizmatni ta'mirlash muvaffaqiyatli to'xtatildi",
+      "resume_error": "Xizmatni qayta ishga tushirish muvaffaqiyatsiz",
+      "resumed_success": "Texnik xizmat muvaffaqiyatli qayta ishga tushdi",
+      "toggle_error": "Buzish holatini o'zgartirib bo'lmaydi: ID topilmadi",
+      "update_error": "Xizmatni yangilash amalga oshmadi",
+      "updated_success": "Texnik xizmat muvaffaqiyatli yangilandi"
+    },
+    "weekdays": {
+      "fri": "Juma",
+      "mon": "Du",
+      "sat": "Shanba",
+      "sun": "Yakshanba",
+      "thu": "Pay",
+      "tue": "Sesh",
+      "wed": "Chorshanba"
+    }
+  },
+  "messages": {
+    "login_error": "Kirish paytida xatolik yuz berdi",
+    "login_no_tokens": "Kirish muvaffaqiyatli, ammo tokenlar olinmadi.",
+    "login_success": "Muvaffaqiyatli tizimga kirdingiz",
+    "notifier_delete_error": "Bildirishnoma o‘chirilmadi",
+    "notifier_delete_success": "Notifier muvaffaqiyatli o‘chirildi",
+    "register_error": "Roʻyxatdan oʻtish paytida xatolik yuz berdi",
+    "register_no_tokens": "Ro‘yxatdan o‘tish muvaffaqiyatli, ammo tokenlar yetkazilmadi",
+    "register_success": "Muvaffaqiyatli ro‘yxatdan o'tildi",
+    "setting_update_error": "Sozlamani yangilash amalga oshmadi",
+    "setting_update_success": "Sozlama muvaffaqiyatli yangilandi",
+    "tag_create_error": "Teg yaratishda xatolik yuz berdi",
+    "tag_create_success": "Tag muvaffaqiyatli yaratildi",
+    "tag_delete_error": "Etiketni o'chirish amalga oshmadi",
+    "tag_delete_success": "Tag muvaffaqiyatli o'chirildi",
+    "tag_update_error": "Tagni yangilash amalga oshmadi",
+    "tag_update_success": "Tag muvaffaqiyatli yangilandi",
+    "unexpected_error": "Kutilmagan xatolik yuz berdi",
+    "version_mismatch": "Versiya mos emas aniqlangan"
+  },
+  "monitors": {
+    "card": {
+      "check_interval": "Tekshirish intervali:",
+      "loading_more": "Ko'proq yuklanmoqda..."
+    },
+    "empty_state": {
+      "action": "Birinchi monitoringni yarating",
+      "description": "Birinchi monitorni yaratish orqali xizmatlaringizning sog‘lig‘ini kuzatishni boshlang.",
+      "title": "Hech qanday monitor topilmadi"
+    },
+    "filtering_by_tags": "Taglar bo'yicha filtr",
+    "filters": {
+      "monitor_status": "Holat",
+      "monitor_status_placeholder": "Monitoring holati",
+      "search_placeholder": "Monitorlarni nomi bo'yicha qidirish...",
+      "status_placeholder": "Holati"
+    },
+    "form": {
+      "buttons": {
+        "copied": "Nusxa ko'chirildi!",
+        "copy": "Nusxa olish",
+        "create": "Yaratish",
+        "regenerate": "Qayta yaratish",
+        "update": "Yangilash"
+      },
+      "dns": {
+        "hostname": "Host nomi",
+        "port": "Port",
+        "record_type": "Resurs yozuvi turi",
+        "record_type_placeholder": "Rekord turini tanlang",
+        "resolver_server": "Rezolver serveri",
+        "title": "DNS Sozlamalari"
+      },
+      "docker": {
+        "ca_cert_description": "Sertifikat Xurmatiga (CA) sertifikatini PEM formatida joylashtiring.",
+        "ca_certificate": "CA Sertifikati (PEM)",
+        "client_cert_description": "Mijoz sertifikatingizni PEM formatida joylashtiring. Bu o'zaro TLS autentifikatsiyasi uchun ishlatiladi.",
+        "client_certificate": "Client sertifikati (PEM)",
+        "client_private_key": "Mijozning Maxfiy Kaliti (PEM)",
+        "common_tls_issues": "Umumiy TLS muammolari:",
+        "connection_type": "Ulanish turi",
+        "container_name_id": "Konteyner Nomi/ID",
+        "disabled": "O'chirilgan",
+        "docker_container": "Docker konteyneri",
+        "docker_host": "Docker Xost",
+        "enable_tls": "TLS-ni yoqish",
+        "enabled": "Faollashtirilgan",
+        "examples": "Misollar",
+        "hostname_mismatch": "\"x509: sertifikat X uchun amal qiladi, Y uchun emas\"",
+        "hostname_mismatch_solution": "Host nomi sertifikatdagi SAN bilan mos kelishini ta'minlang yoki tekshirishni o'chirib qo'ying (tavsiya etilmaydi).",
+        "legacy_cert_error": "x509: sertifikat eski Common Name maydoniga tayanadi:",
+        "legacy_cert_solution": "Sertifikatingizdagi Subject Alternative Names (SAN) ga xost nomini qo'shing.",
+        "mtls_note": "Mutaqarrar TLS (mTLS) uchun siz mijoz sertifikati va shaxsiy kalitni taqdim etishingiz kerak. CA sertifikati serverning sertifikatini tasdiqlashda ishlatiladi.",
+        "note": "Eslatma:",
+        "private_key_description": "PEM formatida shaxsiy kalitingizni joylashtiring. Uni xavfsiz saqlang!",
+        "select_connection_type": "Ulanish turini tanlang",
+        "select_tls_option": "TLS variantini tanlang",
+        "select_verification_option": "Tasdiqlash variantini tanlang",
+        "skip_verification": "Tasdiqlashni o'tkazib yuborish (ishonchsiz)",
+        "tls_configuration": "TLS Konfiguratsiyasi",
+        "unknown_authority": "\"x509: sertifikat noma'lum vakolat tomonidan imzolangan\"",
+        "unknown_authority_solution": "Server sertifikatini imzolagan to‘g‘ri CA sertifikatini taqdim eting.",
+        "verify_certificates": "Sertifikatlarni tekshirish",
+        "verify_tls": "TLS ni tekshirish"
+      },
+      "grpc": {
+        "body": "Jism ma'lumotlari (JSON)",
+        "enable_tls": "TLS ni yoqish",
+        "enable_tls_description": "Xavfsiz ulanish (TLS/SSL) yoqing",
+        "invert_keyword": "Kalit soʻzni teskari",
+        "invert_keyword_description": "Monitor 'UP' bo'ladi, agar kalit so'zi topilmasa.",
+        "keyword": "Kalit so'z",
+        "keyword_description": "Javobda bu kalit soʻzni qidirish",
+        "keyword_placeholder": "Izlash uchun opsional kalit soʻz",
+        "method_description": "Kisqich-ich sezgir",
+        "method_placeholder": "Tekshirish",
+        "options_title": "gRPC Sozlamalari",
+        "proto_content": "Protobuf mazmuni",
+        "proto_method": "Protobuf Metodi",
+        "proto_service_name": "Protobuf Xizmat nomi",
+        "service_name_placeholder": "Sog‘liq"
+      },
+      "http": {
+        "advanced": {
+          "accepted_status_codes": "Qabul qilingan holat kodlari",
+          "ignore_tls": "HTTPS saytlar uchun TLS/SSL xatolarini e’tiborsiz qoldiring",
+          "ignore_tls_description": "TLS sertifikat tasdiqlashini o'tkazib yuboring. Diqqat bilan foydalaning – bu ulanishlarni xavfsizsiz qiladi.",
+          "max_redirects": "Maksimum yo‘naltirishlar",
+          "max_redirects_description": "Foliylash uchun maksimal yo'naltirishlar soni (0‑30). 0 ga o'rnatish yo'naltirishlarni o'chiradi.",
+          "title": "Kengaytirilgan"
+        },
+        "authentication": {
+          "auth_header": "Avtorizatsiya sarlavhasi",
+          "certificate": "Sertifikat",
+          "certificate_placeholder": "Sertifikat",
+          "client_id": "Mijoz ID",
+          "client_id_placeholder": "Mijoz ID",
+          "client_secret": "Mijoz maxfiy kaliti",
+          "client_secret_placeholder": "Mijoz Maxfiy Kaliti",
+          "domain": "Domen",
+          "domain_placeholder": "Domen",
+          "form_data_body": "Form ma'lumotlari jismi",
+          "key": "Kalit",
+          "key_placeholder": "Kalit",
+          "method_label": "Avtentifikatsiya usuli",
+          "method_placeholder": "Autentifikatsiya turini tanlang",
+          "oauth_scope": "OAuth Scope",
+          "oauth_scope_placeholder": "Ixtiyoriy: Bo'sh joy bilan ajratilgan scope'lar ro'yxati",
+          "oauth_token_url": "OAuth Token URL",
+          "oauth_token_url_placeholder": "OAuth token URL",
+          "title": "Autentifikatsiya",
+          "workstation": "Ish stoli",
+          "workstation_placeholder": "Ish stansiyasi"
+        },
+        "options": {
+          "body": "Jism",
+          "body_encoding": "Jism kodlash",
+          "body_encoding_placeholder": "Jism kodlashini tanlang",
+          "form_example": "Misol Shakli Ma'lumotlari",
+          "headers": "Sarlavhalar",
+          "json_example": "JSON misoli",
+          "method": "Metod",
+          "method_placeholder": "Monitor turini tanlang",
+          "select_encoding": "Tana kodlashini tanlang",
+          "select_method": "Metodni tanlang",
+          "text_example": "Misol matni:\nBu yerda har qanday oddiy matnni kiriting...",
+          "title": "HTTP parametrlari",
+          "xml_example": "XML namunasi"
+        }
+      },
+      "http_json_query": {
+        "condition_label": "Shart",
+        "expected_value_label": "Kutilgan Qiymat",
+        "json_query_label": "JSON So‘rov ifodasi",
+        "title": "JSON So'rov Ifodasi"
+      },
+      "http_keyword": {
+        "invert_keyword_description": "Kalit soʻzni mavjud emasligiga e’tibor bering, mavjudligiga emas.",
+        "invert_keyword_label": "Teskari Kalit soʻz",
+        "keyword_label": "Kalit soʻz",
+        "keyword_validation_title": "Kalit Soʻz Tekshiruvi"
+      },
+      "kafka": {
+        "add_broker": "Broker qo'shish",
+        "auto_topic_creation_description": "Ilozchi mavzuni mavjud bo'lmasa, avtomatik ravishda yaratishiga ruxsat bering.",
+        "auto_topic_creation_label": "Avtomatik mavzu yaratishni ruxsat berish",
+        "brokers_description": "Kafka broker manzillar ro'yxati (host:port formatida)",
+        "brokers_label": "Kafka brokerlari",
+        "configuration_title": "Kafka konfiguratsiyasi",
+        "enable_ssl_description": "Ulanish uchun SSL/TLS shifrlashini ishlating",
+        "enable_ssl_label": "SSL/TLS ni yoqish",
+        "message_description": "Mavzu (topic) ga yuboriladigan xabar mazmuni (JSON formatini tavsiya qilinadi)",
+        "message_label": "Xabar",
+        "sasl_mechanism_description": "SASL autentifikatsiya mexanizmini tanlang",
+        "sasl_mechanism_label": "SASL mexanizmi",
+        "sasl_mechanism_placeholder": "SASL mexanizmini tanlang",
+        "sasl_password_description": "SASL tasdiqlash paroli",
+        "sasl_password_label": "SASL Paroli",
+        "sasl_password_placeholder": "parol",
+        "sasl_username_description": "SASL tasdiqlash uchun foydalanuvchi nomi",
+        "sasl_username_label": "SASL foydalanuvchi nomi",
+        "security_title": "Xavfsizlik",
+        "topic_description": "Xabar yuborish uchun Kafka mavzusi"
+      },
+      "mongodb": {
+        "command_description": "MongoDB buyrug'ini JSON shaklida bajarish. Ko'rsatilmasa, 'ping' bo'ladi.",
+        "command_label": "Buyruq (ixtiyoriy)",
+        "configuration_title": "MongoDB Konfiguratsiyasi",
+        "connection_string_description": "MongoDB ulanish satri. Standard (mongodb://) va DNS seedlist (mongodb+srv://) formatlarini qo‘llab-quvvatlaydi.",
+        "connection_string_label": "Ulanish satri",
+        "expected_value_description": "JSON yo‘l natijasini solishtirish uchun kutilyotgan qiymat.",
+        "expected_value_label": "Kutilgan qiymat (Ixtiyoriy)",
+        "expected_value_placeholder": "Kutilgan qiymat",
+        "json_path_description": "Javobdan qiymatni olish uchun JSON Path. Ildiz darajasida $ ishlating.",
+        "json_path_label": "JSON Path (Ixtiyoriy)"
+      },
+      "mqtt": {
+        "check_type_json_query": "JSON so'rovi",
+        "check_type_keyword": "Kalit soʻz",
+        "check_type_label": "MQTT tekshirish turi",
+        "check_type_none": "Hech (Har qanday xabar)",
+        "check_type_placeholder": "Tekshiruv turini tanlang",
+        "configuration_title": "MQTT Sozlamalari",
+        "expected_value_label": "Kutilgan Qiymat",
+        "hostname_label": "Host nomi",
+        "json_path_label": "JSON yo'li",
+        "password_label": "MQTT Paroli",
+        "password_placeholder": "Parol (ixtiyoriy)",
+        "port_label": "Port",
+        "success_keyword_label": "MQTT Muvaffaqiyat Kaliti",
+        "success_keyword_placeholder": "Muvaffaqiyatni ko'rsatadigan kalit so'z",
+        "username_label": "MQTT foydalanuvchi nomi",
+        "username_placeholder": "Foydalanuvchi nomi (ixtiyoriy)",
+        "validation": {
+          "expected_value_required": "JSON-izlash turi uchun kutilgan qiymat talab qilinadi",
+          "json_path_required": "JSON yo'li json-query tekshiruv turi bo'lsa talab qilinadi.",
+          "success_keyword_required": "Success kaliti tekshirish turi 'keyword' bo'lganda talab qilinadi."
+        }
+      },
+      "mysql": {
+        "connection_string_examples": "Misollar:",
+        "connection_string_label": "Ulanish satri",
+        "connection_title": "MySQL bog‘lanishi",
+        "query_label": "So'rov"
+      },
+      "ping": {
+        "data_size": "Ma'lumot hajmi (bayt)",
+        "host": "Host nomi / IP",
+        "title": "Ping sozlamalari"
+      },
+      "postgres": {
+        "connection_string_label": "Ulanish satri",
+        "connection_title": "PostgreSQL Ulanishi",
+        "query_label": "So'rov"
+      },
+      "push": {
+        "url_description": "Xizmatingizda holatni bildirish uchun ushbu URL‑dan foydalaning. Hayotni tekshirish uchun bu endpointga HTTP so‘rovi (POST/GET) yuboring.",
+        "url_title": "Push monitor URL"
+      },
+      "rabbitmq": {
+        "documentation_link": "RabbitMQ hujjatlari",
+        "health_checks_description": "Monitor har bir noddagi {{code}} tugunini tekshiradi va har qanday tugun sog'lom bo'lsa UP holatini qaytaradi.",
+        "management_nodes_description": "RabbitMQ boshqaruv tugunlari uchun protokol va portni o'z ichiga olgan URLni kiriting. Masalan: https://node1.rabbitmq.com:15672",
+        "management_nodes_title": "Boshqaruv tugunlari",
+        "node_url_label": "Node manzili",
+        "password_description": "RabbitMQ boshqaruv interfeysi tasdiqlash paroli",
+        "setup_information_description": "RabbitMQ monitorini ishlatish uchun RabbitMQ o‘rnatishingizda Boshqaruv plagini yoqish lozim. Qo‘shimcha ma'lumot uchun, iltimos, RabbitMQ hujjatlarini tekshirib chiqing.",
+        "setup_information_title": "O'rnatish ma'lumotlari",
+        "title": "RabbitMQ Konfiguratsiyasi",
+        "username_description": "RabbitMQ boshqaruv interfeysi autentifikatsiyasi uchun foydalanuvchi nomi"
+      },
+      "redis": {
+        "ca_certificate_description": "Root CA sertifikati PEM formatida. O‘ziga imzo qo‘yilgan sertifikatlar bilan to‘g‘ri TLS tasdiqlash uchun talab qilinadi.",
+        "ca_certificate_label": "CA Sertifikati (Ixtiyoriy)",
+        "client_certificate_description": "PEM formatidagi mijoz sertifikati. Mutual TLS autentifikatsiyasi uchun talab qilinadi.",
+        "client_certificate_label": "Mijoz sertifikati (ixtiyoriy)",
+        "client_key_description": "PEM formatidagi mijozning shaxsiy kaliti. U mijoz sertifikati bilan birga taqdim etilishi kerak.",
+        "client_key_label": "Mijoz Maxfiy Kaliti (Ixtiyoriy)",
+        "connection_string_description": "Redis ulanish satri formati: {{redis}} yoki TLS uchun {{rediss}}",
+        "connection_string_label": "Ulanish satri",
+        "ignore_tls_description": "TLS sertifikat tekshirishini o'tkazib yuborish (ishlab chiqarish muhitida tavsiya etilmaydi)",
+        "ignore_tls_label": "TLS/SSL xatoliklarini e'tiborsiz qoldirish",
+        "title": "Redis Konfiguratsiyasi"
+      },
+      "shared": {
+        "intervals": {
+          "heartbeat_retry": "Qayta urinish intervali (Har {{seconds}} soniyada qayta urinib ko'rish)",
+          "max_retries_description": "Xizmatni pastda deb belgilashdan va bildirishnoma yuborishdan oldingi maksimal qayta urinishlar soni",
+          "request_timeout": "So'rovning muddat tugashi ({{seconds}} soniya o'tgach)",
+          "resend_notification": "X ta uzluksiz down bo'lsa, xabarni qayta yuborish (Qayta yuborish o'chirilgan)"
+        },
+        "notifications": {
+          "add_notifier": "Bildirishnoma qo'shish",
+          "new_notifier": "+ Yangi bildirishchi",
+          "no_channels": "Hech qanday bildirishkan kanali topilmadi, birini yaratib qo'ying",
+          "no_channels_available": "Mavjud kanal yo'q",
+          "select_channel": "Kanalni tanlang",
+          "select_notifier_placeholder": "Notifierni tanlang",
+          "selected_channels": "Tanlangan Xabarnoma kanallari",
+          "title": "Bildirish kanallari"
+        },
+        "proxy": {
+          "add_proxy": "Proxy qo'shish",
+          "new_proxy": "+ Yangi Proksi",
+          "no_proxy": "Proksi yo'q",
+          "remove_proxy": "Proksi olib tashlash",
+          "select_proxy_placeholder": "Proksi tanlang",
+          "selected_proxy": "Tanlangan proksi",
+          "title": "Proksi"
+        },
+        "tags": {
+          "label": "Teglar",
+          "no_tags": "Teglar mavjud emas",
+          "placeholder": "Taglarni tanlang"
+        }
+      },
+      "snmp": {
+        "community_description": "Authentifikatsiya uchun SNMP jamiyat satri (parolga o'xshash)",
+        "community_label": "Jamoa satri",
+        "expected_value_description": "Taqqoslash uchun qiymat. Tekshirishni o'tkazish uchun bo'sh qoldiring.",
+        "expected_value_label": "Kutilgan Qiymat",
+        "host_description": "SNMP qo‘llab‑quvvatlanadigan qurilmaning hostname yoki IP manzili",
+        "host_label": "Xost",
+        "json_path_description": "JSONPath ifodasi, javobdan qiymatni chiqarish uchun (xuddi shu qiymat uchun \"$\" dan foydalaning)",
+        "json_path_label": "JSON yo'li",
+        "json_path_operator_description": "Olingan qiymatni kutilgan qiymat bilan qanday taqqoslash mumkin",
+        "json_path_operator_eq": "teng",
+        "json_path_operator_ge": "teng yoki undan katta",
+        "json_path_operator_gt": "kattaroq",
+        "json_path_operator_label": "Shart",
+        "json_path_operator_le": "kam yoki teng",
+        "json_path_operator_lt": "kamroq",
+        "json_path_operator_ne": "teng emas",
+        "oid_description": "So'rov qilish uchun SNMP Ob'ekt Identifikatori (masalan, tizim tavsifi uchun 1.3.6.1.2.1.1.1.0)",
+        "oid_label": "OID (Ob'ekt Identifikatori)",
+        "port_description": "SNMP porti (standart: 161)",
+        "port_label": "Port",
+        "snmp_version_description": "SNMP protokoli versiyasi",
+        "snmp_version_label": "SNMP versiyasi",
+        "title": "SNMP Sozlamalari",
+        "value_validation_label": "Qiymat tekshiruvi (Ixtiyoriy)"
+      },
+      "sqlserver": {
+        "allowed_statements_description": "SELECT, SHOW, DESCRIBE, EXPLAIN, WITH, va VALUES.",
+        "allowed_statements_label": "Ruxsat etilgan bayonotlar:",
+        "connection_string_label": "Ulanish satri",
+        "query_description": "Sog‘liq tekshiruvini bajarish uchun so‘rov. Bo‘sh qoldiring, standartdan foydalaning.",
+        "query_label": "So'rov",
+        "title": "Microsoft SQL Server bog‘lanishi"
+      },
+      "tcp": {
+        "host": "Xost",
+        "port": "Port",
+        "title": "TCP Ulanishi"
+      },
+      "type": {
+        "dns": "DNS monitori",
+        "docker": "Docker konteyneri",
+        "grpc": "gRPC Kalit Soʻz Monitor",
+        "http": "HTTP(S) nazorati",
+        "kafka": "Kafka ishlab chiqaruvchisi monitoringi",
+        "mongodb": "MongoDB ma'lumotlar bazasini kuzatuvchi",
+        "mqtt": "MQTT broker nazorati",
+        "mysql": "MySQL/MariaDB kuzatuvchi",
+        "ping": "Ping monitoringi (ICMP)",
+        "postgres": "PostgreSQL Ma'lumotlar Bazasini Kuzatish",
+        "push": "Push Monitor (tashqi xizmat yaratilgan URLni chaqiradi)",
+        "rabbitmq": "RabbitMQ Kuzatuvchisi",
+        "redis": "Redis ma'lumotlar bazasini kuzatuvchi",
+        "snmp": "SNMP nazorati",
+        "sqlserver": "Microsoft SQL Server nazorati",
+        "tcp": "TCP Port monitori"
+      }
+    },
+    "page": {
+      "description": "Saytingizning ishlashini kuzatishni boshlash uchun yangi monitor yarating.",
+      "edit_title": "Monitorni tahrirlash:",
+      "new_title": "Yangi monitor"
+    },
+    "title": "Kuzatishlar",
+    "toasts": {
+      "deleted": "Monitor o'chirildi",
+      "paused": "Monitor to'xtatildi",
+      "reset_success": "Monitor ma'lumotlari muvaffaqiyatli qayta o‘rnatildi",
+      "resumed": "Monitoring qayta boshlandi"
+    },
+    "view": {
+      "buttons": {
+        "clone": "Klonlash",
+        "delete": "O'chirish",
+        "edit": "Tahrirlash",
+        "pause": "To‘xtatish",
+        "reset_data": "Ma'lumotni tiklash",
+        "resume": "Davom ettirish"
+      },
+      "certificate": "Sertifikat",
+      "check_every": "Har",
+      "current_status": "Joriy holat",
+      "dialogs": {
+        "delete": {
+          "description": "Ushbu amaliyotni bekor qilish mumkin emas. Bu monitor va unga tegishli barcha ma'lumotlarni doimiy ravishda o'chiradi.",
+          "title": "Siz haqiqatdan ham ishonch hosil qildingizmi?"
+        },
+        "pause": {
+          "description": "Siz to'xtatishni xohlaysizmi?",
+          "title": "Tasdiqlash"
+        },
+        "reset": {
+          "description": "Bu amal ushbu monitor uchun barcha yurak urishi tarixi va tizim holati statistikalarini doimiy ravishda o'chiradi. Monitor yangi yaratilganidek ko'rinishga ega bo'ladi. Ushbu harakatni bekor qilish mumkin emas.",
+          "title": "Monitor ma'lumotlarini tozalash"
+        }
+      },
+      "expiring_soon": "Yaqin muddatda tugaydi",
+      "for": "uchun",
+      "live_status": "Canli Holati",
+      "monitor_for": "monitor qilish uchun",
+      "no_certificate_data": "Sertifikat ma'lumotlari yo'q",
+      "seconds": "soniyalar",
+      "stats": {
+        "last_24_hours": "Oxirgi 24 soat",
+        "last_30_days": "So'nggi 30 kun",
+        "last_365_days": "Oxirgi 365 kun",
+        "last_7_days": "So'nggi 7 kun"
+      },
+      "status": {
+        "down": "O‘chirilgan",
+        "maintenance": "Texnik xizmat",
+        "paused": "To'xtatildi",
+        "up": "Onlayn"
+      }
+    }
+  },
+  "navigation": {
+    "maintenance": "Texnik xizmat",
+    "monitors": "Monitoring",
+    "notification_channels": "Xabarnoma kanallari",
+    "proxies": "Proksilar",
+    "settings": "Sozlamalar",
+    "status_pages": "Status sahifalari",
+    "tags": "Etiketlar"
+  },
+  "notifications": {
+    "actions": {
+      "test": "Sinov",
+      "testing": "Sinov..."
+    },
+    "aria": {
+      "delete": "O'chirish {{name}}"
+    },
+    "confirm_delete_description": "Bu harakatni bekor qilish mumkin emas. Bu, \"{{name}}\" notifikatorini doimiy ravishda o‘chiradi va u foydalanilayotgan barcha monitoringlardan olib tashlaydi.",
+    "create_title": "Bildirishchi yaratish",
+    "edit_channel_title": "Bildirishkan kanalini tahrirlash",
+    "edit_title": "Notifierni tahrirlash",
+    "empty_state": {
+      "action": "Birinchi ogohlantirish kanalini yarating",
+      "description": "Birinchi bildirishkan kanalingizni yaratish orqali jamoangizga ogohlantirishlar yuborishni boshlang.",
+      "title": "Bildirish kanallari topilmadi"
+    },
+    "form": {
+      "discord": {
+        "bot_display_name_description": "Discord xabarlari yuboruvchisi sifatida paydo bo‘ladigan nom.",
+        "bot_display_name_label": "Bot ko'rsatish nomi",
+        "custom_message_prefix_description": "Barcha xabarlarning boshiga qo'shiladigan, ixtiyoriy prefiks.",
+        "custom_message_prefix_label": "Maxsus Xabar prefiksi",
+        "custom_message_prefix_placeholder": "Ixtiyoriy: Xabaringizga prefiks qo'shing",
+        "forum_post_name_description": "Yangi forum posti yaratiladigan nomi.",
+        "forum_post_name_label": "Forum posti nomi",
+        "forum_post_name_placeholder": "Forum posti nomini kiriting",
+        "sending_message_to_channel": "Kanala yubor",
+        "sending_message_to_description": "Discord xabarlari qayerga yuborilishini tanlang.",
+        "sending_message_to_label": "Xabar yuborilmoqda",
+        "sending_message_to_new_forum_post": "Yangi forum postiga yuborish",
+        "sending_message_to_placeholder": "Xabar turini tanlang",
+        "sending_message_to_thread": "Jildga yubor",
+        "setup_webhook_description_1": "Discord serverining sozlamalaridan webhook URL'ni oling → Integratsiyalar → Webhooks.",
+        "setup_webhook_description_2": "Yangi webhook yarating va URL-ni nusxa oling. To‘g‘ri kanalni tanlaganingizga ishonch hosil qiling.",
+        "setup_webhook_title": "Discord Webhook'ni sozlash",
+        "thread_id_description_1": "Discord foydalanuvchi sozlamalarida → Ilg'or → Tahrirchi rejimini yoqing",
+        "thread_id_description_2": "Jild yoki postni o'ng tugmasini bosing va \"Copy Thread ID\" yoki \"Copy Channel ID\" ni tanlang",
+        "thread_id_description_title": "Xabarlar yuboriladigan jild yoki forum posti ID-si",
+        "thread_id_label": "Jild ID",
+        "thread_id_placeholder": "Jild yoki post ID'sini kiriting",
+        "webhook_url_label": "Discord Webhook manzili"
+      },
+      "google_chat": {
+        "more_info_about_webhooks": "Webhooklar haqida qo'shimcha ma'lumot",
+        "webhook_url_label": "Google Chat Webhook manzili"
+      },
+      "gotify": {
+        "application_token_description": "Gotify ilovangizdan ilova tokeni. Uni Gotify veb interfeysining Ilovalar bo‘limida topishingiz mumkin.",
+        "application_token_label": "Ilova tokeni",
+        "custom_message_description": "Maxsus xabar shabloni. Mavjud o'zgaruvchilar",
+        "custom_message_description_2": "Standart xabarni qo‘llash uchun bo‘sh qoldiring.",
+        "custom_message_label": "Maxsus Xabar",
+        "custom_title_description": "Bildirishnoma uchun maxsus sarlavha. Mavjud o'zgaruvchilar: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Ushbu maydonni bo‘sh qoldiring, shunda standart \"Peekaping\" sarlavhasi ishlatiladi.",
+        "custom_title_label": "Maxsus sarlavha",
+        "learn_more_label": "Gotify haqida va uni qanday sozlash bo'yicha ko'proq ma'lumot olish uchun:",
+        "note_description": "Bu integratsiyani ishlatish uchun Gotify serveri ishga tushirilgan bo‘lishi kerak.",
+        "note_label": "Eslatma:",
+        "priority_0": "Eng past",
+        "priority_1": "Juda Past",
+        "priority_10": "Eng yuqori",
+        "priority_2": "Past",
+        "priority_3": "Normaldan past",
+        "priority_4": "Oddiy",
+        "priority_5": "Normaldan yuqori",
+        "priority_6": "O'rtacha",
+        "priority_7": "Yuqori",
+        "priority_8": "Jiddiy yuqori (Standart)",
+        "priority_9": "Favqulodda",
+        "priority_description": "Xabar ustuvorligi (0-10). Yuqori raqamlar yuqori ustuvorlikni bildiradi. O‘rnatilgan qiymat 8.",
+        "priority_label": "Prioritet",
+        "priority_placeholder": "Prioritetni tanlang",
+        "server_url_description": "Gotify serveringizning URL manzili. Ushbu ilovadan kirish mumkinligiga ishonch hosil qiling.",
+        "server_url_label": "Server URL"
+      },
+      "grafana_oncall": {
+        "grafana_oncall_url_description": "Grafana OnCall integratsiyangizdagi webhook URL-si. Uni Grafana OnCall nusxangizda Alertlar va IRM > IRM > Integratsiyalar > Webhook bo‘limida topishingiz mumkin.",
+        "grafana_oncall_url_label": "Grafana OnCall URL",
+        "learn_more_label": "Grafana OnCall veb-hooklari haqida ko‘proq ma’lumot"
+      },
+      "line": {
+        "channel_access_token_description": "kanalingizga kirish tokenini quyidagidan olishingiz mumkin:",
+        "channel_access_token_description_2": "Kanal sozlamalaringizga o'ting va qidiring",
+        "channel_access_token_label": "Channel Access Token (Uzun muddatli)",
+        "channel_access_token_placeholder": "LINE kanalining kirish tokenini kiriting",
+        "template_description": "Xabar formatini moslashtiring. Mavjud o'zgaruvchilar",
+        "template_label": "Xabar shabloni",
+        "template_placeholder": "Maxsus xabar shablonini kiriting",
+        "user_id_description": "User ID'ingizni ushbu bo'limda",
+        "user_id_description_2": "Kanal sozlamalaringizga o'ting va qidiring",
+        "user_id_label": "Sizning Foydalanuvchi ID",
+        "user_id_placeholder": "LINE foydalanuvchi ID sini kiriting"
+      },
+      "matrix": {
+        "access_token_description": "Autentifikatsiya uchun Matrix kirish tokeningiz",
+        "access_token_label": "Kirish tokeni",
+        "custom_message_description": "Maxsus xabar shabloni. Mavjud o'zgaruvchilar",
+        "custom_message_label": "Maxsus Xabar",
+        "homeserver_url_description": "Matrix bosh serveringizning URL manzili",
+        "homeserver_url_label": "Uy server URL",
+        "internal_room_id_description": "Bildirishnomalar yuboriladigan ichki xona ID'si. U \"!\" bilan boshlanishi va quyidagicha ko'rinishi kerak: !roomid:matrix.org",
+        "internal_room_id_label": "Ichki xona ID",
+        "setup_instructions_1": "Botingiz uchun Matrix hisobini yarating (yoki mavjud hisobingizni ishlating)",
+        "setup_instructions_2": "Xabarnomalarni olishni xohlagan xona yarating yoki qo'shiling",
+        "setup_instructions_3": "Login so‘rovi yuborish orqali kirish tokeningizni oling",
+        "setup_instructions_4": "Javobda access_token maydoni bo'ladi - uni Access Tokeningiz sifatida ishlating.",
+        "setup_instructions_5": "Xonangizning ichki ID‑si (! bilan boshlanadi)ni Matrix ilovangizning xona sozlamalarida toping",
+        "setup_instructions_label": "O'rnatish ko'rsatmalari"
+      },
+      "mattermost": {
+        "channel_name_description": "Bildirishnomalar yuboriladigan kanal. Webhook da sozlangan standart kanalni ishlatish uchun bo‘sh qoldiring.",
+        "channel_name_label": "Kanal nomi",
+        "icon_emoji_cheat_sheet_label": "Emoji tez ko‘rsatmalar",
+        "icon_emoji_description": "Icon sifatida foydalaniladigan emoji. Bo'shliq bilan ajratilgan ikki emoji ko'rsatishingiz mumkin (birinchi – holat yuqorida, ikkinchi – holat pastda).",
+        "icon_emoji_label": "Emoji ikona",
+        "icon_url_description": "Bildirishnoma xabari uchun belgi sifatida ishlatiladigan rasmning URL",
+        "icon_url_label": "Ikon URL",
+        "learn_more_label": "Webhooklar haqida ko‘proq o‘qing",
+        "message_template_description": "Xabar formatini sozlang. Mavjud o'zgaruvchilar",
+        "message_template_label": "Xabar shabloni",
+        "use_message_template_description": "Maxsus xabar shablonini va formatini ishlatish uchun yoqing.",
+        "use_message_template_label": "Xabar shablonidan foydalanish",
+        "username_description": "Xabar yuboruvchisi sifatida paydo bo‘ladigan foydalanuvchi nomi.",
+        "webhook_url_label": "Webhook URL"
+      },
+      "ntfy": {
+        "authentication_type_basic": "Asosiy autentifikatsiya",
+        "authentication_type_basic_description": "Asosiy autentifikatsiya uchun foydalanuvchi nomi va parolni qo‘llang.",
+        "authentication_type_label": "Autentifikatsiya turi",
+        "authentication_type_none": "Autentifikatsiya yo'q",
+        "authentication_type_none_description": "Autentifikatsiya talab qilinmaydi. Jamoatga ochiq NTFY serverlari uchun mos.",
+        "authentication_type_placeholder": "Autentifikatsiya turini tanlang",
+        "authentication_type_token": "Token autentifikatsiyasi",
+        "authentication_type_token_description": "Autentifikatsiya uchun kirish tokenidan foydalaning.",
+        "custom_message_description": "Maxsus xabar mazmuni. Mavjud o'zgaruvchilar",
+        "custom_message_label": "Maxsus Xabar",
+        "password_required": "Asosiy autentifikatsiya uchun parol talab qilinadi",
+        "priority_1": "Min (Eng past)",
+        "priority_2": "Past",
+        "priority_3": "Standart",
+        "priority_4": "Yuqori",
+        "priority_5": "Favqulodda (Eng yuqori)",
+        "priority_description": "Bildirishnomadagi ustuvorlik darajasi. Yuqori ustuvorlik darajalari mijozda turli xatti-harakatlarni ishga tushirishi mumkin.",
+        "priority_label": "Prioritet",
+        "priority_placeholder": "Prioritetni tanlang",
+        "server_url_description": "NTFY serveringiz URL‑suri. Ommaviy versiya uchun https://ntfy.sh‑ni ishlating.",
+        "server_url_label": "Server manzili",
+        "tags_description": "Bildirishnomalarni tasniflash uchun vergul bilan ajratilgan teglar. Mavjud o'zgaruvchilar",
+        "tags_label": "Etiketlar",
+        "title_description": "Bildirishnoma uchun maxsus sarlavha. Mavjud o'zgaruvchilar.",
+        "title_label": "Maxsus Sarlavha",
+        "token_description": "Authentifikatsiya uchun NTFY kirish tokeningiz.",
+        "token_label": "Kirish tokeni",
+        "token_required": "Token autentifikatsiyasi uchun token talab qilinadi.",
+        "topic_description": "Bildirishnomalaringiz uchun mavzu nomi. Bu bildirishnomalar yuboriladigan kanal bo'ladi.",
+        "topic_label": "Mavzu",
+        "username_required": "Baza autentifikatsiyasi uchun foydalanuvchi nomi talab qilinadi"
+      },
+      "opsgenie": {
+        "api_key_label": "API kaliti",
+        "more_info_about_api_keys_label": "API kalitlari haqida ko'proq ma'lumot",
+        "priority_1": "Kritik",
+        "priority_2": "Yuqori",
+        "priority_3": "O'rta",
+        "priority_4": "Past",
+        "priority_5": "Informatsion",
+        "priority_description": "Ogohlantirishlar uchun ustuvorlik darajasini belgilang. Standart P3 (O'rtacha).",
+        "priority_label": "Prioritet",
+        "region_description": "Opsgenie hududingizni tanlang. Bu qaysi API endpoint‑ni ishlatilishini belgilaydi.",
+        "region_label": "Mintaqa",
+        "region_placeholder": "Mintaqani tanlang"
+      },
+      "pagerduty": {
+        "auto_resolve_acknowledge": "Avtomatik tasdiqlash",
+        "auto_resolve_acknowledge_description": "Insidentni avtomatik ravishda qabul qilish",
+        "auto_resolve_description": "Monitoring qayta ishga tushganda qaysi harakatni bajarishni tanlang",
+        "auto_resolve_do_nothing": "Hech narsa qilmang",
+        "auto_resolve_do_nothing_description": "UP holatida hech qanday harakat amalga oshirilmagan",
+        "auto_resolve_label": "Avtomatik hal qilish yoki tasdiqlash",
+        "auto_resolve_placeholder": "Avtomatik yechim xatti-harakatini tanlang",
+        "auto_resolve_resolve": "Avtomatik yechish",
+        "auto_resolve_resolve_description": "Voqeani avtomatik ravishda hal qilish",
+        "integration_key_description": "Integratsiya kalitingizni qanday olishni o‘rganing",
+        "integration_key_label": "Integratsiya kaliti",
+        "integration_key_placeholder": "PagerDuty integratsiya kalitini kiriting",
+        "integration_url_description": "PagerDuty Events API v2 endpoint URL. Standart endpointga o'rnatilgan.",
+        "integration_url_label": "Integratsiya URL",
+        "learn_more_label": "PagerDuty hujjatlari",
+        "priority_critical": "Kritik",
+        "priority_description": "PagerDuty hodisalari uchun og'irlik darajasi. Standart ravishda \"warning\" deb belgilangan.",
+        "priority_error": "Xato",
+        "priority_info": "Ma'lumot",
+        "priority_label": "Prioritet",
+        "priority_placeholder": "Prioritet darajasini tanlang",
+        "priority_warning": "Ogohlantirish"
+      },
+      "pagertree": {
+        "authentication_token_description": "Qoʻshimcha xavfsizlik uchun ixtiyoriy autentifikatsiya tokeni. Bu token pagertree-token sarlavhasiga yuboriladi.",
+        "authentication_token_label": "Autentifikatsiya Tokeni (Ixtiyoriy)",
+        "authentication_token_placeholder": "Kerak bo'lsa, avtorizatsiya tokenini kiriting.",
+        "auto_resolve_alerts_description": "Monitor tiklanganda PagerTree ogohlantirishlari avtomatik ravishda yechiladi.",
+        "auto_resolve_alerts_label": "Ogohlantirishlarni avtomatik ravishda hal qilish",
+        "how_to_get_integration_url_label": "Integratsiya URLini olish usuli",
+        "integration_url_description": "PagerTree webhook integratsiyasi URLini kiriting.",
+        "integration_url_label": "PagerTree Webhook manzili",
+        "urgency_level_critical": "Kritik",
+        "urgency_level_description": "PagerTree ga yuboriladigan ogohlantirishlar uchun standart ahamiyat darajasini o'rnating",
+        "urgency_level_high": "Yuqori",
+        "urgency_level_label": "Favqulodda darajasi",
+        "urgency_level_low": "Past",
+        "urgency_level_medium": "O'rta",
+        "urgency_level_placeholder": "Shoshilinch darajani tanlang",
+        "urgency_level_silent": "Sukutli"
+      },
+      "pushbullet": {
+        "access_token": "Kirish tokeni",
+        "access_token_description": "Sizning Pushbullet kirish tokeningiz. Buni olish uchun",
+        "access_token_label": "Kirish tokeni",
+        "access_token_link": "Pushbullet Sozlamalari",
+        "channel_tag": "Kanal tegi (Ixtiyoriy)",
+        "channel_tag_description": "Pushbullet kanaliga bildirishnoma yuborish, qurilmalar o'rniga",
+        "channel_tag_label": "Kanal etiketi (Ixtiyoriy)",
+        "custom_message_template_description": "Bildirishnoma matnini shablon o'zgaruvchilaridan foydalanib moslang:",
+        "custom_message_template_heartbeat_ping": "Javob vaqti",
+        "custom_message_template_heartbeat_time": "Vaqt belgi",
+        "custom_message_template_label": "Maxsus Xabar Shabloni (Ixtiyoriy)",
+        "custom_message_template_monitor_url": "Nazarat URL",
+        "custom_message_template_msg": "Ogohlantirish xabari",
+        "custom_message_template_name": "Monitor nomi",
+        "custom_message_template_placeholder": "Monitoring: {{ name }}\nHolati: {{ status }}\nXabar: {{ msg }}",
+        "custom_message_template_status": "Joriy holat",
+        "device_id": "Qurilma ID (Ixtiyoriy)",
+        "device_id_description": "Xabarni ma'lum bir qurilmaga yuboring. Barcha qurilmalarga yuborish uchun bo'sh qoldiring. Qurilma IDlarini quyidagi orqali topishingiz mumkin:",
+        "device_id_label": "Uskuna ID (Ixtiyoriy)",
+        "device_id_link": "Pushbullet API",
+        "more_info_on": "Ko'proq ma'lumot:"
+      },
+      "pushover": {
+        "application_token_label": "Ilova Tokeni",
+        "application_token_placeholder": "Pushover ilova tokeningizni kiriting",
+        "device_description": "Barcha qurilmalarga yuborish uchun bo'sh qoldiring",
+        "device_label": "Qurilma",
+        "device_placeholder": "Qurilma nomi (ixtiyoriy)",
+        "message_title_description": "Standart sarlavha ishlatish uchun bo‘sh qoldiring",
+        "message_title_label": "Xabar sarlavhasi",
+        "message_title_placeholder": "Maxsus xabar sarlavhasi (ixtiyoriy)",
+        "message_ttl_description": "O‘tkazish muddati (soniya) (0 = cheksiz)",
+        "message_ttl_label": "Xabar TTL",
+        "more_info_label": "Ko'proq ma'lumot:",
+        "more_info_label_2": "Ilova yaratib, API kalitingizni bu yerda olishingiz mumkin:",
+        "more_info_label_3": "Foydalanuvchi kalitingizni bu yerda topishingiz mumkin",
+        "notification_sound_down_description": "Monitor yomonlashganda eshittiriladigan tovush",
+        "notification_sound_down_label": "Xabarnoma ovozi - Past",
+        "notification_sound_down_placeholder": "Tovushni tanlang",
+        "notification_sound_up_description": "Monitor qayta ishga tushganda ovoz",
+        "notification_sound_up_label": "Bildirishnoma ovozi - Up",
+        "notification_sound_up_placeholder": "Tovushni tanlang",
+        "priority_1": "Eng past",
+        "priority_2": "Past",
+        "priority_3": "Oddiy",
+        "priority_4": "Yuqori",
+        "priority_5": "Favqulodda",
+        "priority_description": "Xabar afzallik darajasi",
+        "priority_label": "Prioritet",
+        "priority_placeholder": "Prioritetni tanlang",
+        "sound_alien": "Xaridor",
+        "sound_bike": "Velosiped",
+        "sound_bugle": "buglo",
+        "sound_cashregister": "Naqd Pul Kassa",
+        "sound_classical": "Klassik",
+        "sound_climb": "Yuksalish",
+        "sound_cosmic": "Kosmik",
+        "sound_echo": "Eko",
+        "sound_falling": "Quyib ketish",
+        "sound_gamelan": "Gamelan",
+        "sound_incoming": "Kelayotgan",
+        "sound_intermission": "Oraliq",
+        "sound_magic": "Jadugar",
+        "sound_mechanical": "Mexanik",
+        "sound_none": "Yo'q",
+        "sound_persistent": "Doimiy",
+        "sound_pianobar": "Piyano bar",
+        "sound_pushover": "Pushover (standart)",
+        "sound_siren": "Sirene",
+        "sound_spacealarm": "Kosmos Alarmi",
+        "sound_tugboat": "Tugkema",
+        "sound_updown": "Yuqoriga Pastga",
+        "sound_vibrate": "Vibratsiya",
+        "user_key_label": "Foydalanuvchi kaliti",
+        "user_key_placeholder": "Pushover foydalanuvchi kalitini kiriting"
+      },
+      "signal": {
+        "custom_message_description": "Maxsus xabar shabloni. Mavjud o'zgaruvchilar",
+        "custom_message_label": "Maxsus Xabar",
+        "important_description": "Qabul qiluvchilarda guruhlar va raqamlarni aralashtira olmaysiz!",
+        "important_label": "MUHIM:",
+        "more_info_label": "Ushbu URLni tekshirib, qanday o'rnatish kerakligini ko'rishingiz mumkin:",
+        "note_description": "Signal mijozingiz REST API bilan bo‘lishi zarur.",
+        "note_label": "Eslatma:",
+        "number_description": "Signal hisobingizning telefon raqami (joyuvchi raqami).",
+        "number_label": "Raqam",
+        "post_url_description": "Signal CLI REST API serveringizning URL manzili.",
+        "post_url_label": "Yuborish URL",
+        "recipients_description": "Xabarnomalarni yuborish uchun telefon raqamlarining vergul bilan ajratilgan ro‘yxati.",
+        "recipients_label": "Qabul qiluvchilar"
+      },
+      "slack": {
+        "channel_name_description": "Xabar yuboriladigan kanal. Agar ko‘rsatilmasa, xabar webhookda o‘rnatilgan standart kanalda yuboriladi.",
+        "channel_name_description_2": "Standart kanaldan chiqib, kanal nomini (masalan, #alerts) yoki foydalanuvchini (masalan, @username) ko'rsatib almashtirishingiz mumkin.",
+        "channel_name_label": "Kanal nomi",
+        "channel_notify_description": "Faollashtirilgan holda, xabar barcha kanal a'zolariga bildirishnomalarni yuboradi. Spamni oldini olish uchun ehtiyotkorlik bilan foydalaning.",
+        "channel_notify_label": "Kanalni xabardor qilish",
+        "icon_emoji_cheat_sheet_label": "Emoji qo‘llanmasi",
+        "icon_emoji_description": "Bu xabar uchun belgi sifatida ishlatiladigan emoji. Format :emoji_name: bo‘lishi kerak.",
+        "icon_emoji_label": "Emoji ikonka",
+        "message_format_description": "Boy xabar yuborish",
+        "message_format_description_2": "Boy formatlash, ilova va yaxshiroq vizual taqdimot bilan xabar yuborishni yoqish.",
+        "message_format_label": "Xabar formati",
+        "username_description": "Xabar yuboruvchisiga ko'rsatiladigan foydalanuvchi nomi. Agar belgilansa, standart bot nomi ishlatiladi.",
+        "webhook_url_description": "Slack integratsiyangizdagi webhook URLsi. Uni Slack nusxangizda Integratsiyalar > Webhooks bo‘limida topishingiz mumkin.",
+        "webhook_url_label": "Webhook URL"
+      },
+      "smtp": {
+        "custom_body_label": "Maxsus matn",
+        "custom_description": "Shablonlashtirish <b>Liquid</b> shablonlash tilidan foydalanish orqali amalga oshiriladi.",
+        "custom_description_2": "Iltimos, foydalanish ko'rsatmalari uchun hujjatlarga murojaat qiling.",
+        "custom_description_3": "Mavjud o'zgaruvchilar:",
+        "custom_description_4": "Bildirishnoma xabari",
+        "custom_description_5": "xizmat nomi",
+        "custom_description_6": "xizmat holati (UP/DOWN/sertifikat muddati tugash haqida ogohlantirishlar)",
+        "custom_subject_label": "Maxsus Mavzu",
+        "smtp_from_label": "From (Yuboruvchi Email)",
+        "smtp_host_description": "Ishlatmoqchi bo'lgan serverning hostname ni yoki mahalliy konfiguratsiyalangan pochtani yuborish agentidan foydalanmoqchi bo'lsangiz localhost ni kiriting.",
+        "smtp_host_label": "SMTP Xost",
+        "smtp_password_placeholder": "SMTP paroli",
+        "smtp_port_label": "Port",
+        "smtp_to_label": "Kimga (Qabul qiluvchi email(lar))",
+        "smtp_username_placeholder": "SMTP foydalanuvchi nomi"
+      },
+      "telegram": {
+        "auto_get_label": "Avtomatik Olish",
+        "bot_token_description": "Bot tokenini olish uchun",
+        "bot_token_label": "Bot tokeni",
+        "chat_id_description": "Chat ID‑ni botingizga xabar yuborib va yuqoridagi “Auto Get” tugmasini bosish orqali, yoki Telegram API‑ni qo‘lda ishlatib olishingiz mumkin.",
+        "chat_id_description_2": "Qo‘lda olish uchun, tashrif buyuring",
+        "chat_id_description_3": "Ko'rish",
+        "chat_id_description_4": "Telegram hujjatlari",
+        "chat_id_description_5": "Ko'proq ma'lumot.",
+        "chat_id_label": "Chat ID",
+        "chat_id_not_found": "Chat ID so‘nggi yangilanishda topilmadi.",
+        "failed_to_fetch_chat_id": "Chat ID‑ni olishda xatolik",
+        "message_thread_id_description": "Ixtiyoriy. Forum superguruhidagi ma'lum bir mavzu ga xabar yuborish uchun ishlatiladi.",
+        "message_thread_id_label": "Xabarlar jamoasi ID",
+        "no_updates_found": "Yangilanishlar topilmadi. Iltimos, avval botingizga xabar yuboring.",
+        "protect_content_description": "Agar yoqilgan bo'lsa, xabar mazmuni uzatilish va saqlanishdan himoyalangan bo'ladi.",
+        "protect_content_label": "Kontentni himoya qilish",
+        "send_silently_description": "Agar yoqilgan bo'lsa, xabarlar sukunat bilan yuboriladi (foydalanuvchilar og'ishsiz bildirishnoma oladi).",
+        "send_silently_label": "Sukut bilan yuborish",
+        "server_url_description": "Standart qiymati",
+        "server_url_description_2": "Maxsus serverdan foydalanishingiz mumkin. Ko'ring",
+        "server_url_description_3": "bu yerda",
+        "server_url_description_4": "tafsilotlar uchun.",
+        "server_url_label": "Telegram serverining URL",
+        "template_description": "Xabar formatini moslashtiring. Mavjud o'zgaruvchilar",
+        "template_label": "Xabar shabloni",
+        "template_parse_mode_description": "Xabar qanday tahlil qilinishi kerakligini tanlang. Ko'rib chiqing",
+        "template_parse_mode_description_2": "Telegram formatlash hujjatlari",
+        "template_parse_mode_description_3": "Tafsilotlar uchun.",
+        "template_parse_mode_label": "Shablonni tahlil qilish rejimi",
+        "template_parse_mode_placeholder": "Tahlil rejimini tanlang",
+        "template_placeholder": "Maxsus xabar shablonini kiriting",
+        "use_template_description": "Maxsus xabar shablonidan va formatdan foydalanishni yoqish.",
+        "use_template_label": "Xabar shablonidan foydalanish"
+      },
+      "webhook": {
+        "additional_headers_description": "Webhook so‘rofiga maxsus HTTP sarlavhalar qo‘shing.",
+        "additional_headers_label": "Qo‘shimcha sarlavhalar",
+        "custom_body_description": "So'rov jismining formatini moslashtiring. Mavjud o'zgaruvchilar",
+        "custom_body_label": "Maxsus tana",
+        "post_url_description": "E'lonlar yuboriladigan webhook tugun URL'si.",
+        "post_url_label": "Yuborish URL",
+        "request_body_description_custom": "Quyida o'zingizning maxsus so'rov jismi formatini belgilang.",
+        "request_body_description_form_data": "Kontent multipart/form-data sifatida yuboriladi. PHP da <strong>json_decode($_POST['data'])</strong> yordamida uni dekodlash mumkin.",
+        "request_body_description_json": "Kontent JSON formatida \"application/json\" sarlavhasi bilan yuboriladi.",
+        "request_body_label": "So'rov tanasi",
+        "request_body_placeholder": "Kontent turini tanlang"
+      }
+    },
+    "important": "Muhim Xabarnomalar",
+    "important_notifications": "Muhim Xabarnomalar",
+    "labels": {
+      "friendly_name": "Do'stona nom",
+      "type": "Bildirishchi turi"
+    },
+    "messages": {
+      "create_failed": "Notifier yaratishda xatolik",
+      "created_success": "Notifier muvaffaqiyatli yaratildi",
+      "error_loading_notifier": "Notifikatorni yuklashda xatolik",
+      "test_failed": "Sinov bildirishnomasini yuborishda xatolik",
+      "test_success": "Test bildirishnoma muvaffaqiyatli yuborildi",
+      "update_failed": "Notifier yangilash amalga oshilmadi",
+      "updated_success": "Notifikator muvaffaqiyatli yangilandi"
+    },
+    "new": {
+      "title": "Yangi Bildirishkan kanali"
+    },
+    "no_important": "Muhim xabarnomalar topilmadi.",
+    "placeholders": {
+      "select_type": "Xabarnoma turi tanlang"
+    },
+    "search_placeholder": "Xabarnoma kanallarini nomi bilan qidirish..."
+  },
+  "proxies": {
+    "delete_dialog": {
+      "description": "Bu amaliyot bekor qilinmaydi. Bu proxy {{host}}:{{port}}ni doimiy ravishda o'chiradi.",
+      "title": "Siz haqiqatdan ham ishonchli misiz?"
+    },
+    "edit": {
+      "page_name": "Proksi tahrirlash"
+    },
+    "empty_list": {
+      "action_text": "Birinchi proksi yarating",
+      "text": "Monitoringlaringizda foydalanish uchun birinchi proksingizni yaratish bilan boshlang.",
+      "title": "Hech qanday proksi topilmadi"
+    },
+    "form": {
+      "auth_label": "Proxy server autentifikatsiyaga ega",
+      "port_placeholder": "Port",
+      "protocol_label": "Proksi protokoli",
+      "protocol_placeholder": "Proksi protokolini tanlang",
+      "server_label": "Proksi server",
+      "server_placeholder": "Server manzili",
+      "user": "Foydalanuvchi"
+    },
+    "messages": {
+      "create_failed": "Proksi yaratishda xatolik",
+      "created_success": "Proxy muvaffaqiyatli yaratildi",
+      "error_loading_proxy": "Proksi yuklanayotganda xatolik",
+      "update_failed": "Proksi yangilanishi amalga oshmadi",
+      "updated_success": "Proxy muvaffaqiyatli yangilandi"
+    },
+    "new": {
+      "page_name": "Yangi proksi"
+    },
+    "page_name": "Proksilar",
+    "search_label": "Qidiruv",
+    "search_placeholder": "Host orqali proksilarni qidirish..."
+  },
+  "security": {
+    "enable_2fa": {
+      "form": {
+        "authenticator_code_label": "Autentifikator kodi",
+        "authenticator_code_placeholder": "6 raqamli kodni kiriting",
+        "current_password_label": "Joriy Parol",
+        "current_password_placeholder": "Joriy parolingizni kiriting",
+        "enable_2fa_button": "2FA ni yoqish"
+      },
+      "messages": {
+        "2fa_active": "2FA Faol",
+        "2fa_disabled_successfully": "2FA muvaffaqiyatli o'chirildi",
+        "2fa_enabled_successfully": "2FA muvaffaqiyatli yoqildi",
+        "account_is_protected_with_2fa": "Hisobingiz 2FA bilan himoyalangan.",
+        "disable_2fa": "2FA‑ni o‘chirish",
+        "enter_password_to_disable_2fa": "2FA ni o'chirish uchun parolingizni kiriting",
+        "failed_to_disable_2fa": "2FA ni o‘chirib bo‘lmadi",
+        "failed_to_verify_2fa_code": "2FA kodini tasdiqlash muvaffaqiyatsiz bo'ldi",
+        "failed_to_verify_password": "Parol tekshirish yoki 2FA sozlashni boshlash muvaffaqiyatsiz",
+        "have_enabled_2fa": "Hisobingiz uchun ikki omillik tasdiqlash (2FA) yoqildi. Bu qo'shimcha xavfsizlik qatlamini qo'shadi.",
+        "or_enter_secret_manually": "Yoki bu maxfiy kalitni qo'lda kiriting",
+        "scan_qr_code_with_authenticator_app": "Ushbu QR kodni autentifikator ilovangiz bilan skanerlang",
+        "two_factor_authentication_enabled": "Ikki omillik autentifikatsiya yoqildi",
+        "user_email_not_found": "Foydalanuvchi emaili topilmadi"
+      }
+    },
+    "page_name": "Xavfsizlik",
+    "update_password": {
+      "form": {
+        "confirm_new_password_label": "Yangi parolni tasdiqlash",
+        "confirm_new_password_placeholder": "Yangi parolni qayta kiriting",
+        "new_password_label": "Yangi Parol",
+        "new_password_placeholder": "Yangi parolni kiriting",
+        "old_password_label": "Eski parol",
+        "old_password_placeholder": "Joriy parolingizni kiriting",
+        "update_password_button": "Parolni yangilash"
+      },
+      "messages": {
+        "failed_to_update_password": "Parolni yangilash muvaffaqiyatsiz",
+        "password_updated_successfully": "Parol muvaffaqiyatli yangilandi"
+      },
+      "title": "Parolni Yangilash"
+    }
+  },
+  "sendgrid": {
+    "api_key_description": "SendGrid API kalitingiz. SendGrid hisobingizdagi Sozlamalar → API kalitlari bo'limida birini yaratishingiz mumkin. \"Mail Send\" ruxsatiga ega ekanligiga ishonch hosil qiling.",
+    "api_key_label": "API Kaliti",
+    "bcc_email_description": "Bcc qabul qiluvchilar. Bir nechta elektron pochta manzillarini vergul bilan ajrating.",
+    "bcc_email_label": "BCC Email (Ixtiyoriy)",
+    "cc_email_description": "CC (Carbon Copy) qabul qiluvchilari. Bir nechta emailni vergul bilan ajrating.",
+    "cc_email_label": "CC Email (ixtiyoriy)",
+    "from_email_description": "Yuboruvchi elektron pochtasi manzili. Bu SendGrid hisobingizda tasdiqlangan yuboruvchi bo‘lishi kerak.",
+    "from_email_label": "Yuboruvchi email",
+    "subject_description": "E‑pochtaning mavzu satri. Liquid shablonlashni qo‘llab‑quvvatlaydi.",
+    "subject_label": "Maxsus Mavzu (Ixtiyoriy)",
+    "subject_variables_label": "Mavjud o'zgaruvchilar:",
+    "subject_variables_msg": "xabarning matni",
+    "subject_variables_name": "xizmat nomi",
+    "subject_variables_status": "Xizmat holati (Yuqorida/Quyida)",
+    "to_email_description": "Asosiy qabul qiluvchining email manzili. Bir nechta qabul qiluvchilar uchun CC yoki BCC maydonlaridan foydalaning.",
+    "to_email_label": "E-pochta"
+  },
+  "settings": {
+    "data_retention": {
+      "days_label": "Kunlar",
+      "description": "Ma'lumotlarni necha kun saqlashni belgilang (KEEP_DATA_PERIOD_DAYS).",
+      "title": "Ma'lumot saqlash muddati"
+    },
+    "timezone": {
+      "description": "Ilovada barcha vaqtlar ko'rsatilganda ishlatiladigan vaqt zonangizni tanlang.",
+      "label": "Vaqt zonasi",
+      "no_timezone_found": "Vaqt zonasi topilmadi.",
+      "search_placeholder": "Vaqt zonasini qidirish...",
+      "select_placeholder": "Vaqt zonasini tanlang...",
+      "title": "Vaqt zonasi"
+    },
+    "validation": {
+      "min_days": "Kamida 1 kun bo'lishi kerak"
+    }
+  },
+  "status": {
+    "messages": {
+      "all_systems_operational": "Barcha tizimlar ishlamoqda",
+      "down": "O'chgan",
+      "last_updated": "Oxirgi yangilangan",
+      "maintenance": "Texnik xizmat",
+      "no_monitors_configured": "Status sahifasi uchun hech qanday monitorlar sozlanmagan.",
+      "operational": "Operatsion",
+      "partial_system_outage": "Tizimning qisman uzilishi",
+      "powered_by": "Ta'minlagan:",
+      "refresh_in": "ichida yangilash",
+      "refresh_now": "Hozir yangilash",
+      "status_page_not_found": "Status sahifasi topilmadi yoki nashr etilmagan.",
+      "under_maintenance": "Texnik xizmat ko'rsatilmoqda",
+      "unknown": "Noma'lum"
+    }
+  },
+  "status_pages": {
+    "affected_monitors": "Ta'sirlangan monitorlar",
+    "affected_monitors_info": "Ushbu texnik xizmat ko‘rsatishdan ta'sirlangan kuzatuvchilarni tanlang",
+    "auto_refresh_interval": "Avtomatik yangilash intervali (soniya)",
+    "basic_information": "Bosh ma'lumot",
+    "create_status_page": "Status sahifasini yaratish",
+    "customization": "Moslashtirish",
+    "delete_dialog": {
+      "description": "Siz \"{{title}}\"ni o'chirishni istaysizmi? Bu amalni bekor qilish mumkin emas.",
+      "title": "Status sahifasini o'chirish"
+    },
+    "description": "Status sahifasi tavsifini kiriting",
+    "domain_already_used": "Domain {{domain}} allaqachon boshqa holat sahifasida ishlatilmoqda",
+    "domain_host_warning": "Ushbu domen hozirgi xost URL'ingiz bilan bir xil. Bu konfliktlarga olib kelishi mumkin.",
+    "domains": "Domenlar",
+    "domains_info_warning": "Har bir domen uchun DNS ga CNAME yozuvlarini qo'shishni unutmang.",
+    "draft_status": "Taslak",
+    "edit_page_name": "Status sahifasini tahrirlash",
+    "messages": {
+      "create_description": "Xizmat holatingizni foydalanuvchilar bilan bo‘lishish uchun yangi holat sahifasini yarating.",
+      "create_your_first_status_page": "Birinchi status sahifangizni yarating",
+      "created_successfully": "Status sahifasi muvaffaqiyatli yaratildi",
+      "delete_failed": "Status sahifasini o'chirish muvaffaqiyatsiz bo'ldi",
+      "deleted_successfully": "Status sahifasi muvaffaqiyatli o'chirildi",
+      "get_started_by_creating_your_first_status_page": "Birinchi holat sahifangizni yaratib boshlang.",
+      "no_status_pages_found": "Status sahifalari topilmadi",
+      "not_found": "Status sahifasi topilmadi",
+      "update_description": "Status sahifangizning sozlamalarini va konfiguratsiyasini yangilang.",
+      "updated_successfully": "Status sahifasi muvaffaqiyatli yangilandi"
+    },
+    "new_page_name": "Yangi Holat Sahifasi",
+    "page_name": "Holat sahifalari",
+    "published": "Nashr etildi",
+    "published_info": "Ushbu holat sahifasini jamoatga ochiq qilish",
+    "published_status": "Nashr qilingan",
+    "search_label": "Qidirish",
+    "search_placeholder": "Status sahifalarini sarlavha bo'yicha qidirish...",
+    "update_status_page": "Holat sahifasini yangilash",
+    "view_page": "Sahifani ko‘rish"
+  },
+  "tags": {
+    "confirm_delete_description": "Bu amaliyotni bekor qilish mumkin emas. Bu amal {{name}} yorlig'ini doimiy ravishda o'chiradi va u barcha monitorlardan olib tashlanadi.",
+    "edit_page_name": "Tagni tahrirlash",
+    "empty_state": {
+      "action": "Birinchi tegni yarating",
+      "description": "Birinchi tegni yaratish bilan boshlang va monitorlaringizni tartibga soling.",
+      "title": "E'tiketlar topilmadi"
+    },
+    "form": {
+      "color_description": "Etiketangiz uchun rangni tanlang",
+      "color_label": "Rang",
+      "create_button": "Tag yaratish",
+      "description_label": "Ta'rif",
+      "description_placeholder": "Etiket tavsifini kiriting (ixtiyoriy)",
+      "name_label": "Nomi",
+      "name_placeholder": "Tag nomini kiriting",
+      "update_button": "Tagni yangilash"
+    },
+    "messages": {
+      "create_description": "Monitoringlaringizni tartiblash va tasniflash uchun yangi yorliq yarating.",
+      "failed_to_load_tag": "Tagni yuklash amalga oshmadi. Tag mavjud bo‘lmasligi yoki uni ko‘rish uchun ruxsatingiz bo‘lmasligi mumkin.",
+      "tag_id_required": "Tag ID talab qilinadi",
+      "update_description": "Etiket ma'lumotlarini yangilab, monitorlaringizni yaxshiroq tartibga soling."
+    },
+    "new_page_name": "Yangi teg",
+    "search_placeholder": "Teglarni qidirish..."
+  },
+  "theme": {
+    "dark": "Qorong'i",
+    "light": "Yorug",
+    "system": "Tizim",
+    "toggle_theme": "Tema almashtirish"
+  },
+  "timezone": {
+    "average": "O'rtacha",
+    "last_24_hours": "Oxirgi 24 soat",
+    "last_3_hours": "Oxirgi 3 soat",
+    "last_3_months": "So'nggi 3 oy",
+    "last_30_minutes": "Oxirgi 30 daqiqa",
+    "last_6_hours": "Oxirgi 6 soat",
+    "last_7_days": "So‘nggi 7 kun",
+    "maximum": "Maksimum",
+    "minimum": "Minimal",
+    "ms": "ms",
+    "response_time": "Javob vaqti",
+    "uptime": "Ishonchlilik"
+  },
+  "ui": {
+    "general": "Umumiy",
+    "intervals_retries": "Intervallar, Qayta urinishlar, Timeoutlar"
+  }
+}

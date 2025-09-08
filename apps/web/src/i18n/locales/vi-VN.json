@@ -1,0 +1,1281 @@
+{
+  "actions": {
+    "cancel": "Hủy",
+    "saving": "Đang lưu..."
+  },
+  "auth": {
+    "login": {
+      "description": "Đăng nhập bằng email của bạn",
+      "no_account": "Bạn chưa có tài khoản?",
+      "sign_up": "Đăng ký",
+      "submit": "Đăng nhập",
+      "title": "Chào mừng trở lại"
+    },
+    "register": {
+      "description": "Tạo tài khoản quản trị của bạn",
+      "have_account": "Bạn đã có tài khoản?",
+      "sign_in": "Đăng nhập",
+      "submit": "Tạo",
+      "title": "Xin chào"
+    },
+    "twofa": {
+      "code_label": "Mã 2FA",
+      "code_placeholder": "Nhập mã 2FA",
+      "description": "Xác thực hai yếu tố đã được kích hoạt cho tài khoản của bạn. Vui lòng nhập mã xác thực của bạn để tiếp tục.",
+      "title": "Xác thực hai yếu tố cần thiết",
+      "verify_button": "Xác thực 2FA",
+      "verifying": "Đang xác thực..."
+    }
+  },
+  "bars": {
+    "down_count": "Số lần ngừng",
+    "important": "Quan trọng",
+    "interval": "Khoảng",
+    "message": "Tin nhắn",
+    "ms": "ms",
+    "notified": "Đã thông báo",
+    "ping": "Ping",
+    "retries": "Số lần thử lại",
+    "status": "Trạng thái",
+    "time": "Thời gian"
+  },
+  "common": {
+    "active": "Hoạt động",
+    "all": "Tất cả",
+    "back": "Quay lại",
+    "cancel": "Hủy",
+    "clear_all": "Xóa tất cả",
+    "clear_all_filters": "Xóa tất cả bộ lọc",
+    "confirm": "Xác nhận",
+    "confirm_delete_title": "Bạn có chắc chắn không?",
+    "confirm_delete_title_short": "Bạn có chắc?",
+    "continue": "Tiếp tục",
+    "create": "Tạo",
+    "created": "Đã tạo",
+    "days": "ngày",
+    "default": "Mặc định",
+    "delete": "Xóa",
+    "disabling": "Đang vô hiệu hóa...",
+    "dismiss": "Đóng",
+    "down": "Ngừng",
+    "enabling": "Đang kích hoạt...",
+    "error": "Lỗi",
+    "expires": "Hết hạn",
+    "inactive": "Không hoạt động",
+    "loading": "Đang tải...",
+    "logout": "Đăng xuất",
+    "maintenance": "Bảo trì",
+    "no_options_found": "Không tìm thấy tùy chọn",
+    "no_tags_available": "Không có thẻ nào",
+    "please_refresh_page": "Vui lòng làm mới trang.",
+    "required": "Bắt buộc",
+    "save": "Lưu",
+    "saving": "Đang lưu...",
+    "search": "Tìm kiếm",
+    "security": "Bảo mật",
+    "select": "Chọn",
+    "select_monitors": "Chọn các bộ giám sát...",
+    "select_tags": "Chọn thẻ",
+    "settings": "Cài đặt",
+    "tags": "Thẻ",
+    "unknown": "Không rõ",
+    "unnamed_monitor": "Giám sát chưa đặt tên",
+    "up": "Hoạt động",
+    "update": "Cập nhật",
+    "verifying": "Đang xác minh..."
+  },
+  "forms": {
+    "labels": {
+      "confirm_password": "Xác nhận mật khẩu",
+      "email": "Email",
+      "footer_text": "Văn bản chân trang",
+      "heartbeat_interval": "Khoảng thời gian Heartbeat (giây)",
+      "icon_url": "URL biểu tượng",
+      "monitor_name": "Tên",
+      "monitor_type": "Loại",
+      "password": "Mật khẩu",
+      "retries": "Lần thử lại",
+      "slug": "Slug",
+      "title": "Tiêu đề",
+      "username": "Tên đăng nhập"
+    },
+    "placeholders": {
+      "auto_refresh_help": "0 để không tự động làm mới",
+      "domains": "Nhập tên miền (ví dụ, status.example.com)",
+      "footer_text": "Nhập văn bản chân trang",
+      "icon_url": "https://example.com/icon.png",
+      "monitor_name": "Tên giám sát của tôi",
+      "page_description": "Nhập mô tả trang trạng thái",
+      "page_title": "Nhập tiêu đề trang trạng thái",
+      "slug": "slug trang trạng thái"
+    },
+    "validation": {
+      "email_invalid": "Vui lòng nhập địa chỉ email hợp lệ",
+      "password_min_length": "Mật khẩu phải có ít nhất 8 ký tự",
+      "passwords_mismatch": "Mật khẩu không khớp"
+    }
+  },
+  "maintenance": {
+    "card": {
+      "aria": {
+        "delete": "Xóa {{title}}",
+        "pause": "Tạm dừng bảo trì",
+        "resume": "Tiếp tục bảo trì"
+      },
+      "labels": {
+        "duration": "{{duration}} phút",
+        "end": "Kết thúc: {{date}}",
+        "start": "Bắt đầu: {{date}}"
+      },
+      "status": {
+        "active": "Hoạt động",
+        "ended": "Kết thúc",
+        "inactive": "Không hoạt động"
+      }
+    },
+    "edit_title": "Chỉnh sửa bảo trì",
+    "form": {
+      "affected_monitors_description": "Chọn các điểm giám sát sẽ bị ảnh hưởng bởi bảo trì này",
+      "affected_monitors_title": "Các monitor bị ảnh hưởng",
+      "cron_description": "Nhập một biểu thức cron hợp lệ",
+      "cron_expression": "Biểu thức Cron",
+      "date_time_title": "Ngày và Giờ",
+      "day_of_month": "Ngày trong tháng",
+      "day_of_week": "Ngày trong tuần",
+      "description_label": "Mô tả",
+      "description_placeholder": "Mô tả bảo trì...",
+      "duration_minutes": "Thời gian (Phút)",
+      "effective_date_range": "Khoảng thời gian hiệu lực (Tuỳ chọn)",
+      "end_date_time": "Ngày & Giờ kết thúc",
+      "end_time": "Thời gian kết thúc",
+      "interval_label": "Khoảng thời gian (Chạy một lần mỗi ngày)",
+      "last_day": "Ngày cuối",
+      "last_day_of_month": "Ngày cuối tháng",
+      "maintenance_time_window": "Khung thời gian bảo trì trong một ngày",
+      "markdown_supported": "Markdown được hỗ trợ",
+      "same_as_server": "Giống như múi giờ máy chủ",
+      "start_date_time": "Ngày & Giờ Bắt Đầu",
+      "start_time": "Thời gian bắt đầu",
+      "strategy_label": "Chiến lược",
+      "strategy_placeholder": "Chọn chiến lược",
+      "timezone_label": "Múi giờ",
+      "timezone_placeholder": "Chọn múi giờ",
+      "title_label": "Tiêu đề",
+      "title_placeholder": "Tiêu đề bảo trì"
+    },
+    "page": {
+      "clear_filters": "Xóa tất cả bộ lọc",
+      "dialogs": {
+        "confirm_action": {
+          "pause_description": "Bạn có chắc chắn muốn tạm dừng bảo trì này?",
+          "resume_description": "Bạn có chắc muốn tiếp tục bảo trì này?",
+          "title": "Xác nhận hành động"
+        },
+        "confirm_delete": {
+          "description": "Bạn có chắc muốn xóa cửa sổ bảo trì này không? Hành động này không thể hoàn tác.",
+          "title": "Xác nhận xóa"
+        }
+      },
+      "edit_maintenance": "Chỉnh sửa bảo trì: {{title}}",
+      "empty_state": {
+        "action": "Tạo cửa sổ bảo trì đầu tiên",
+        "description": "Bắt đầu bằng cách tạo cửa sổ bảo trì đầu tiên của bạn để tránh thời gian ngừng hoạt động theo lịch.",
+        "title": "Không tìm thấy cửa sổ bảo trì"
+      },
+      "error_loading": "Lỗi tải trang bảo trì",
+      "loading": "Đang tải...",
+      "loading_monitors": "Đang tải các bộ giám sát…",
+      "search_placeholder": "Tìm kiếm bảo trì..."
+    },
+    "page_title": "Cửa sổ bảo trì",
+    "schedule_title": "Lên lịch bảo trì",
+    "strategy": {
+      "cron": "Biểu thức Cron",
+      "manual": "Kích hoạt/Không kích hoạt thủ công",
+      "recurring_day_of_month": "Định kỳ - Ngày trong tháng",
+      "recurring_interval": "Định kỳ - Khoảng thời gian",
+      "recurring_weekday": "Lặp lại - Ngày trong tuần",
+      "single": "Khung bảo trì duy nhất"
+    },
+    "toasts": {
+      "create_error": "Không thể tạo bảo trì",
+      "created_success": "Bảo trì đã được tạo thành công",
+      "delete_error": "Không thể xóa bảo trì",
+      "deleted_success": "Bảo trì đã được xóa thành công",
+      "pause_error": "Không thể tạm dừng bảo trì",
+      "paused_success": "Bảo trì đã được tạm dừng thành công.",
+      "resume_error": "Không thể tiếp tục bảo trì",
+      "resumed_success": "Bảo trì đã tiếp tục thành công",
+      "toggle_error": "Không thể bật/tắt trạng thái bảo trì: ID bị thiếu",
+      "update_error": "Không thể cập nhật bảo trì",
+      "updated_success": "Bảo trì đã được cập nhật thành công"
+    },
+    "weekdays": {
+      "fri": "Thu 5",
+      "mon": "Thứ 2",
+      "sat": "Thứ Bảy",
+      "sun": "Chủ Nhật",
+      "thu": "Thu",
+      "tue": "Thứ ba",
+      "wed": "Thu Tư"
+    }
+  },
+  "messages": {
+    "login_error": "Đã xảy ra lỗi khi đăng nhập",
+    "login_no_tokens": "Đăng nhập thành công nhưng không nhận được token",
+    "login_success": "Đăng nhập thành công",
+    "notifier_delete_error": "Không thể xóa notifier",
+    "notifier_delete_success": "Thông báo đã được xóa thành công",
+    "register_error": "Đã xảy ra lỗi trong quá trình đăng ký",
+    "register_no_tokens": "Đăng ký thành công nhưng không nhận được token",
+    "register_success": "Đăng ký thành công",
+    "setting_update_error": "Không thể cập nhật cài đặt",
+    "setting_update_success": "Cài đặt đã được cập nhật thành công",
+    "tag_create_error": "Không thể tạo thẻ",
+    "tag_create_success": "Thẻ đã được tạo thành công",
+    "tag_delete_error": "Không thể xóa thẻ",
+    "tag_delete_success": "Thẻ đã xóa thành công",
+    "tag_update_error": "Cập nhật thẻ thất bại",
+    "tag_update_success": "Cập nhật thẻ thành công",
+    "unexpected_error": "Đã xảy ra lỗi không mong muốn",
+    "version_mismatch": "Phát hiện không khớp phiên bản"
+  },
+  "monitors": {
+    "card": {
+      "check_interval": "Khoảng thời gian kiểm tra:",
+      "loading_more": "Đang tải thêm..."
+    },
+    "empty_state": {
+      "action": "Tạo bộ giám sát đầu tiên",
+      "description": "Bắt đầu bằng cách tạo bộ giám sát đầu tiên để theo dõi tình trạng sức khỏe của các dịch vụ của bạn.",
+      "title": "Không có bộ giám sát"
+    },
+    "filtering_by_tags": "Lọc theo thẻ",
+    "filters": {
+      "monitor_status": "Trạng thái",
+      "monitor_status_placeholder": "Trạng thái giám sát",
+      "search_placeholder": "Tìm kiếm theo tên...",
+      "status_placeholder": "Trạng thái"
+    },
+    "form": {
+      "buttons": {
+        "copied": "Đã sao chép!",
+        "copy": "Sao chép",
+        "create": "Tạo",
+        "regenerate": "Tạo lại",
+        "update": "Cập nhật"
+      },
+      "dns": {
+        "hostname": "Tên máy chủ",
+        "port": "Cổng",
+        "record_type": "Loại bản ghi tài nguyên",
+        "record_type_placeholder": "Chọn loại bản ghi",
+        "resolver_server": "Máy chủ phân giải",
+        "title": "Cài đặt DNS"
+      },
+      "docker": {
+        "ca_cert_description": "Dán chứng chỉ CA của bạn ở định dạng PEM.",
+        "ca_certificate": "Chứng chỉ CA (PEM)",
+        "client_cert_description": "Dán chứng chỉ khách hàng của bạn ở định dạng PEM. Điều này được sử dụng cho xác thực TLS hai chiều.",
+        "client_certificate": "Chứng chỉ Khách hàng (PEM)",
+        "client_private_key": "Khóa riêng của khách hàng (PEM)",
+        "common_tls_issues": "Các vấn đề TLS thường gặp:",
+        "connection_type": "Loại kết nối",
+        "container_name_id": "Tên Container / ID",
+        "disabled": "Vô hiệu",
+        "docker_container": "Container Docker",
+        "docker_host": "Máy chủ Docker",
+        "enable_tls": "Bật TLS",
+        "enabled": "Bật",
+        "examples": "Ví dụ",
+        "hostname_mismatch": "\"x509: chứng chỉ hợp lệ cho X, không phải Y:\"",
+        "hostname_mismatch_solution": "Hãy đảm bảo tên máy chủ khớp với SAN của chứng chỉ hoặc tắt xác thực (không được khuyến nghị).",
+        "legacy_cert_error": "x509: chứng chỉ dựa trên trường Common Name truyền thống",
+        "legacy_cert_solution": "Thêm tên máy chủ vào Tên thay thế chủ đề (SAN) trong chứng chỉ của bạn.",
+        "mtls_note": "Đối với TLS hai chiều (mTLS), bạn cần cung cấp cả chứng chỉ client và khóa riêng. Chứng chỉ CA được dùng để xác thực chứng chỉ của máy chủ.",
+        "note": "Lưu ý:",
+        "private_key_description": "Dán khóa riêng của bạn ở định dạng PEM. Hãy bảo mật nó!",
+        "select_connection_type": "Chọn kiểu kết nối",
+        "select_tls_option": "Chọn tùy chọn TLS",
+        "select_verification_option": "Chọn tùy chọn xác thực",
+        "skip_verification": "Bỏ qua xác thực (không an toàn)",
+        "tls_configuration": "Cấu hình TLS",
+        "unknown_authority": "\"x509: chứng chỉ được ký bởi chủ thể không xác thực\":",
+        "unknown_authority_solution": "Cung cấp chứng chỉ CA chính xác đã ký chứng chỉ máy chủ.",
+        "verify_certificates": "Xác minh chứng chỉ",
+        "verify_tls": "Xác minh TLS"
+      },
+      "grpc": {
+        "body": "Dữ liệu Thân (JSON)",
+        "enable_tls": "Bật TLS",
+        "enable_tls_description": "Sử dụng kết nối an toàn (TLS/SSL)",
+        "invert_keyword": "Đảo ngược từ khóa",
+        "invert_keyword_description": "Bộ giám sát sẽ được đánh dấu là UP nếu từ khóa không được tìm thấy",
+        "keyword": "Từ khóa",
+        "keyword_description": "Tìm từ khóa này trong phản hồi",
+        "keyword_placeholder": "Từ khóa tùy chọn để tìm kiếm",
+        "method_description": "Phân biệt chữ hoa chữ thường",
+        "method_placeholder": "Kiểm tra",
+        "options_title": "Tùy chọn gRPC",
+        "proto_content": "Nội dung Protobuf",
+        "proto_method": "Phương thức Protobuf",
+        "proto_service_name": "Tên dịch vụ Protobuf",
+        "service_name_placeholder": "Sức khỏe"
+      },
+      "http": {
+        "advanced": {
+          "accepted_status_codes": "Mã trạng thái được chấp nhận",
+          "ignore_tls": "Bỏ qua lỗi TLS/SSL cho trang web HTTPS",
+          "ignore_tls_description": "Bỏ qua xác thực chứng chỉ TLS. Sử dụng cẩn thận – điều này làm cho kết nối kém an toàn hơn.",
+          "max_redirects": "Số lần chuyển hướng tối đa",
+          "max_redirects_description": "Số lần chuyển hướng tối đa để theo dõi (0-30). Đặt thành 0 để vô hiệu hoá chuyển hướng.",
+          "title": "Nâng cao"
+        },
+        "authentication": {
+          "auth_header": "Tiêu đề Xác thực",
+          "certificate": "Chứng chỉ",
+          "certificate_placeholder": "Chứng chỉ",
+          "client_id": "ID Khách hàng",
+          "client_id_placeholder": "ID Khách hàng",
+          "client_secret": "Mật khẩu Khách hàng",
+          "client_secret_placeholder": "Mật khẩu Khách hàng",
+          "domain": "Tên miền",
+          "domain_placeholder": "Tên miền",
+          "form_data_body": "Thân dữ liệu biểu mẫu",
+          "key": "Khóa",
+          "key_placeholder": "Khóa",
+          "method_label": "Phương thức xác thực",
+          "method_placeholder": "Chọn loại xác thực",
+          "oauth_scope": "Phạm vi OAuth",
+          "oauth_scope_placeholder": "Tuỳ chọn: danh sách các phạm vi cách nhau bởi dấu cách",
+          "oauth_token_url": "URL Mã thông báo OAuth",
+          "oauth_token_url_placeholder": "URL Token OAuth",
+          "title": "Xác thực",
+          "workstation": "Máy làm việc",
+          "workstation_placeholder": "Máy làm việc"
+        },
+        "options": {
+          "body": "Thân",
+          "body_encoding": "Mã hóa nội dung",
+          "body_encoding_placeholder": "Chọn mã hóa nội dung",
+          "form_example": "Dữ liệu Mẫu",
+          "headers": "Tiêu đề",
+          "json_example": "Ví dụ JSON",
+          "method": "Phương thức",
+          "method_placeholder": "Chọn loại giám sát",
+          "select_encoding": "Chọn mã hóa nội dung",
+          "select_method": "Chọn phương thức",
+          "text_example": "Ví dụ Văn bản:\nNội dung văn bản thuần túy ở đây...",
+          "title": "Tùy chọn HTTP",
+          "xml_example": "Ví dụ XML"
+        }
+      },
+      "http_json_query": {
+        "condition_label": "Điều kiện",
+        "expected_value_label": "Giá trị mong đợi",
+        "json_query_label": "Biểu thức truy vấn JSON",
+        "title": "Biểu thức truy vấn JSON"
+      },
+      "http_keyword": {
+        "invert_keyword_description": "Tìm kiếm khi từ khóa không xuất hiện thay vì xuất hiện.",
+        "invert_keyword_label": "Đảo ngược từ khóa",
+        "keyword_label": "Từ khóa",
+        "keyword_validation_title": "Xác thực từ khóa"
+      },
+      "kafka": {
+        "add_broker": "Thêm broker",
+        "auto_topic_creation_description": "Cho phép nhà sản xuất tự động tạo chủ đề nếu nó chưa tồn tại",
+        "auto_topic_creation_label": "Cho phép tạo chủ đề tự động",
+        "brokers_description": "Danh sách địa chỉ broker Kafka (định dạng host:port)",
+        "brokers_label": "Máy chủ Kafka",
+        "configuration_title": "Cấu hình Kafka",
+        "enable_ssl_description": "Sử dụng mã hóa SSL/TLS cho kết nối",
+        "enable_ssl_label": "Bật SSL/TLS",
+        "message_description": "Nội dung tin nhắn sẽ gửi tới chủ đề (định dạng JSON được khuyến nghị)",
+        "message_label": "Tin nhắn",
+        "sasl_mechanism_description": "Chọn cơ chế xác thực SASL",
+        "sasl_mechanism_label": "Cơ chế SASL",
+        "sasl_mechanism_placeholder": "Chọn cơ chế SASL",
+        "sasl_password_description": "Mật khẩu cho xác thực SASL",
+        "sasl_password_label": "Mật khẩu SASL",
+        "sasl_password_placeholder": "mật khẩu",
+        "sasl_username_description": "Tên người dùng để xác thực SASL",
+        "sasl_username_label": "Tên người dùng SASL",
+        "security_title": "Bảo mật",
+        "topic_description": "Chủ đề Kafka để gửi tin nhắn"
+      },
+      "mongodb": {
+        "command_description": "Lệnh MongoDB cần thực thi dưới dạng JSON. Mặc định là ping nếu không được chỉ định.",
+        "command_label": "Lệnh (Tùy chọn)",
+        "configuration_title": "Cấu hình MongoDB",
+        "connection_string_description": "Chuỗi kết nối MongoDB. Hỗ trợ cả định dạng tiêu chuẩn (mongodb://) và danh sách DNS (mongodb+srv://).",
+        "connection_string_label": "Chuỗi Kết Nối",
+        "expected_value_description": "Giá trị mong đợi để so sánh với kết quả đường dẫn JSON.",
+        "expected_value_label": "Giá trị mong đợi (Tuỳ chọn)",
+        "expected_value_placeholder": "Giá trị mong đợi",
+        "json_path_description": "Đường dẫn JSON để trích xuất giá trị từ phản hồi. Sử dụng $ cho cấp độ gốc.",
+        "json_path_label": "Đường dẫn JSON (Tuỳ chọn)"
+      },
+      "mqtt": {
+        "check_type_json_query": "Truy vấn JSON",
+        "check_type_keyword": "Từ khóa",
+        "check_type_label": "Kiểu Kiểm Tra MQTT",
+        "check_type_none": "Không (Bất kỳ tin nhắn)",
+        "check_type_placeholder": "Chọn kiểu kiểm tra",
+        "configuration_title": "Cấu hình MQTT",
+        "expected_value_label": "Giá trị mong đợi",
+        "hostname_label": "Tên máy chủ",
+        "json_path_label": "Đường dẫn JSON",
+        "password_label": "Mật khẩu MQTT",
+        "password_placeholder": "Mật khẩu (tùy chọn)",
+        "port_label": "Cổng",
+        "success_keyword_label": "Từ khóa thành công MQTT",
+        "success_keyword_placeholder": "Từ khóa cho biết thành công",
+        "username_label": "Tên người dùng MQTT",
+        "username_placeholder": "Tên người dùng (tùy chọn)",
+        "validation": {
+          "expected_value_required": "Giá trị mong đợi là bắt buộc khi kiểu kiểm tra là json-query.",
+          "json_path_required": "JSON path là bắt buộc khi kiểu kiểm tra là json-query",
+          "success_keyword_required": "Từ khóa thành công được yêu cầu khi loại kiểm tra là từ khóa"
+        }
+      },
+      "mysql": {
+        "connection_string_examples": "Ví dụ:",
+        "connection_string_label": "Chuỗi kết nối",
+        "connection_title": "Kết nối MySQL",
+        "query_label": "Truy vấn"
+      },
+      "ping": {
+        "data_size": "Kích thước dữ liệu (byte)",
+        "host": "Tên máy chủ / IP",
+        "title": "Cài đặt Ping"
+      },
+      "postgres": {
+        "connection_string_label": "Chuỗi kết nối",
+        "connection_title": "Kết nối PostgreSQL",
+        "query_label": "Truy vấn"
+      },
+      "push": {
+        "url_description": "Sử dụng URL này trong dịch vụ của bạn để báo cáo trạng thái. Gửi một yêu cầu HTTP (POST/GET) tới điểm cuối này để gửi dấu nhịp.",
+        "url_title": "Đẩy URL Giám sát"
+      },
+      "rabbitmq": {
+        "documentation_link": "Tài liệu RabbitMQ",
+        "health_checks_description": "Máy giám sát kiểm tra điểm cuối {{code}} trên mỗi nút và trả về UP nếu bất kỳ nút nào đang khỏe mạnh.",
+        "management_nodes_description": "Nhập URL của các nút quản lý RabbitMQ bao gồm giao thức và cổng. Ví dụ: https://node1.rabbitmq.com:15672",
+        "management_nodes_title": "Nút Quản Lý",
+        "node_url_label": "URL nút",
+        "password_description": "Mật khẩu để xác thực giao diện quản trị RabbitMQ",
+        "setup_information_description": "Để sử dụng trình theo dõi RabbitMQ, bạn cần kích hoạt Plugin Quản lý trong cài đặt RabbitMQ của mình. Để biết thêm thông tin, vui lòng tham khảo tài liệu RabbitMQ.",
+        "setup_information_title": "Thông tin cài đặt",
+        "title": "Cấu hình RabbitMQ",
+        "username_description": "Tên người dùng để xác thực giao diện quản trị RabbitMQ"
+      },
+      "redis": {
+        "ca_certificate_description": "Chứng chỉ CA gốc ở định dạng PEM. Cần thiết cho việc xác thực TLS chính xác với các chứng chỉ tự ký.",
+        "ca_certificate_label": "Chứng chỉ CA (Tuỳ chọn)",
+        "client_certificate_description": "Chứng chỉ khách hàng ở định dạng PEM. Yêu cầu cho xác thực TLS hai chiều.",
+        "client_certificate_label": "Chứng chỉ khách hàng (Tùy chọn)",
+        "client_key_description": "Khóa riêng của khách hàng trong định dạng PEM. Phải được cung cấp cùng với chứng chỉ của khách hàng.",
+        "client_key_label": "Khóa riêng tư của khách hàng (Tùy chọn)",
+        "connection_string_description": "Định dạng chuỗi kết nối Redis: {{redis}} hoặc {{rediss}} cho TLS",
+        "connection_string_label": "Chuỗi Kết Nối",
+        "ignore_tls_description": "Bỏ qua xác thực chứng chỉ TLS (không khuyến nghị cho môi trường sản xuất)",
+        "ignore_tls_label": "Bỏ qua lỗi TLS/SSL",
+        "title": "Cấu hình Redis"
+      },
+      "shared": {
+        "intervals": {
+          "heartbeat_retry": "Khoảng thời gian thử lại nhịp tim (Thử lại mỗi {{seconds}} giây)",
+          "max_retries_description": "Số lần thử tối đa trước khi dịch vụ được đánh dấu là không khả dụng và gửi thông báo",
+          "request_timeout": "Yêu cầu hết thời gian (Hết thời gian sau {{seconds}} giây)",
+          "resend_notification": "Gửi lại thông báo nếu bị ngừng X lần liên tiếp (Gửi lại đã vô hiệu)"
+        },
+        "notifications": {
+          "add_notifier": "Thêm thông báo",
+          "new_notifier": "+ Thêm kênh thông báo",
+          "no_channels": "Không tìm thấy kênh thông báo, hãy tạo một kênh trước",
+          "no_channels_available": "Không có kênh nào",
+          "select_channel": "Chọn kênh",
+          "select_notifier_placeholder": "Chọn kênh thông báo",
+          "selected_channels": "Kênh thông báo đã chọn",
+          "title": "Kênh thông báo"
+        },
+        "proxy": {
+          "add_proxy": "Thêm Proxy",
+          "new_proxy": "+ Proxy Mới",
+          "no_proxy": "Không Proxy",
+          "remove_proxy": "Xóa Proxy",
+          "select_proxy_placeholder": "Chọn Proxy",
+          "selected_proxy": "Proxy đã chọn",
+          "title": "Ủy quyền"
+        },
+        "tags": {
+          "label": "Thẻ",
+          "no_tags": "Không có thẻ",
+          "placeholder": "Chọn thẻ"
+        }
+      },
+      "snmp": {
+        "community_description": "Chuỗi cộng đồng SNMP dùng cho xác thực (giống như mật khẩu)",
+        "community_label": "Chuỗi cộng đồng",
+        "expected_value_description": "Giá trị để so sánh. Để trống để bỏ qua xác thực.",
+        "expected_value_label": "Giá trị mong đợi",
+        "host_description": "Tên máy chủ hoặc địa chỉ IP của thiết bị hỗ trợ SNMP",
+        "host_label": "Máy chủ",
+        "json_path_description": "Biểu thức JSONPath để trích xuất giá trị từ phản hồi (sử dụng \"$\" cho giá trị thô)",
+        "json_path_label": "Đường dẫn JSON",
+        "json_path_operator_description": "So sánh giá trị đã trích xuất với giá trị mong đợi",
+        "json_path_operator_eq": "bằng",
+        "json_path_operator_ge": "lớn hơn hoặc bằng",
+        "json_path_operator_gt": "lớn hơn",
+        "json_path_operator_label": "Điều kiện",
+        "json_path_operator_le": "bằng hoặc nhỏ hơn",
+        "json_path_operator_lt": "nhỏ hơn",
+        "json_path_operator_ne": "không bằng",
+        "oid_description": "Mã đối tượng SNMP để truy vấn (ví dụ, 1.3.6.1.2.1.1.1.0 cho mô tả hệ thống)",
+        "oid_label": "OID (Định danh đối tượng)",
+        "port_description": "Cổng SNMP (mặc định: 161)",
+        "port_label": "Cổng",
+        "snmp_version_description": "Phiên bản giao thức SNMP cần dùng",
+        "snmp_version_label": "Phiên bản SNMP",
+        "title": "Cài đặt SNMP",
+        "value_validation_label": "Xác nhận giá trị (Tùy chọn)"
+      },
+      "sqlserver": {
+        "allowed_statements_description": "SELECT, SHOW, DESCRIBE, EXPLAIN, WITH, và VALUES.",
+        "allowed_statements_label": "Các câu lệnh được phép:",
+        "connection_string_label": "Chuỗi kết nối",
+        "query_description": "Truy vấn để thực thi trong kiểm tra sức khỏe. Để trống để sử dụng mặc định.",
+        "query_label": "Truy vấn",
+        "title": "Kết nối Microsoft SQL Server"
+      },
+      "tcp": {
+        "host": "Máy chủ",
+        "port": "Cổng",
+        "title": "Kết nối TCP"
+      },
+      "type": {
+        "dns": "Giám sát DNS",
+        "docker": "Hộp chứa Docker",
+        "grpc": "Giám sát từ khóa gRPC",
+        "http": "Giám sát HTTP(S)",
+        "kafka": "Giám sát Producer Kafka",
+        "mongodb": "Giám sát Cơ sở dữ liệu MongoDB",
+        "mqtt": "Giám sát MQTT Broker",
+        "mysql": "Giám sát MySQL/MariaDB",
+        "ping": "Trình giám sát Ping (ICMP)",
+        "postgres": "Giám sát Cơ sở dữ liệu PostgreSQL",
+        "push": "Giám sát Push (dịch vụ bên ngoài gọi URL được tạo)",
+        "rabbitmq": "Giám sát RabbitMQ",
+        "redis": "Giám sát Cơ sở dữ liệu Redis",
+        "snmp": "Giám sát SNMP",
+        "sqlserver": "Giám sát Microsoft SQL Server",
+        "tcp": "Giám sát cổng TCP"
+      }
+    },
+    "page": {
+      "description": "Tạo một bộ giám sát mới để bắt đầu theo dõi hiệu suất trang web của bạn.",
+      "edit_title": "Chỉnh sửa Monitor:",
+      "new_title": "Giám sát mới"
+    },
+    "title": "Giám sát",
+    "toasts": {
+      "deleted": "Giám sát đã bị xóa",
+      "paused": "Giám sát tạm dừng",
+      "reset_success": "Dữ liệu giám sát đã được đặt lại thành công",
+      "resumed": "Giám sát đã tiếp tục"
+    },
+    "view": {
+      "buttons": {
+        "clone": "Nhân bản",
+        "delete": "Xóa",
+        "edit": "Chỉnh sửa",
+        "pause": "Tạm dừng",
+        "reset_data": "Đặt lại dữ liệu",
+        "resume": "Tiếp tục"
+      },
+      "certificate": "Chứng chỉ",
+      "check_every": "Kiểm tra mỗi",
+      "current_status": "Trạng thái hiện tại",
+      "dialogs": {
+        "delete": {
+          "description": "Hành động này không thể hoàn tác. Điều này sẽ xóa vĩnh viễn trình giám sát và tất cả dữ liệu liên quan.",
+          "title": "Bạn có thực sự chắc chắn không?"
+        },
+        "pause": {
+          "description": "Bạn có chắc muốn tạm dừng?",
+          "title": "Xác nhận"
+        },
+        "reset": {
+          "description": "Thao tác này sẽ xoá vĩnh viễn toàn bộ lịch sử nhịp tim và thống kê thời gian hoạt động của điểm giám sát này. Điểm giám sát sẽ xuất hiện như mới được tạo. Hành động này không thể hoàn tác.",
+          "title": "Đặt lại dữ liệu giám sát"
+        }
+      },
+      "expiring_soon": "Sắp hết hạn",
+      "for": "cho",
+      "live_status": "Tình trạng trực tiếp",
+      "monitor_for": "Giám sát",
+      "no_certificate_data": "Không có dữ liệu chứng chỉ",
+      "seconds": "giây",
+      "stats": {
+        "last_24_hours": "24 giờ qua",
+        "last_30_days": "30 ngày gần đây",
+        "last_365_days": "365 ngày gần nhất",
+        "last_7_days": "7 ngày qua"
+      },
+      "status": {
+        "down": "Ngừng",
+        "maintenance": "Bảo trì",
+        "paused": "Tạm dừng",
+        "up": "Hoạt động"
+      }
+    }
+  },
+  "navigation": {
+    "maintenance": "Bảo trì",
+    "monitors": "Giám sát",
+    "notification_channels": "Kênh thông báo",
+    "proxies": "Proxy",
+    "settings": "Cài đặt",
+    "status_pages": "Trang trạng thái",
+    "tags": "Thẻ"
+  },
+  "notifications": {
+    "actions": {
+      "test": "Kiểm tra",
+      "testing": "Đang kiểm tra…"
+    },
+    "aria": {
+      "delete": "Xóa {{name}}"
+    },
+    "confirm_delete_description": "Bạn không thể hoàn tác hành động này. Việc này sẽ xóa vĩnh viễn trình thông báo \"{{name}}\" và loại bỏ nó khỏi tất cả các điều kiện giám sát đang sử dụng nó.",
+    "create_title": "Tạo Trình Gửi Thông Báo",
+    "edit_channel_title": "Chỉnh sửa kênh thông báo",
+    "edit_title": "Chỉnh sửa Trình thông báo",
+    "empty_state": {
+      "action": "Tạo kênh thông báo đầu tiên của bạn",
+      "description": "Bắt đầu bằng cách tạo kênh thông báo đầu tiên để gửi cảnh báo tới nhóm của bạn.",
+      "title": "Không tìm thấy kênh thông báo"
+    },
+    "form": {
+      "discord": {
+        "bot_display_name_description": "Tên sẽ hiển thị làm người gửi trong tin nhắn Discord.",
+        "bot_display_name_label": "Tên hiển thị Bot",
+        "custom_message_prefix_description": "Tiền tố tùy chọn sẽ được thêm vào đầu tất cả các tin nhắn.",
+        "custom_message_prefix_label": "Tiền tố tin nhắn tùy chỉnh",
+        "custom_message_prefix_placeholder": "Tùy chọn: Thêm tiền tố vào tin nhắn của bạn",
+        "forum_post_name_description": "Tên bài đăng diễn đàn mới sẽ được tạo.",
+        "forum_post_name_label": "Tên bài đăng diễn đàn",
+        "forum_post_name_placeholder": "Nhập tên bài đăng diễn đàn",
+        "sending_message_to_channel": "Gửi tới kênh",
+        "sending_message_to_description": "Chọn nơi gửi tin nhắn Discord.",
+        "sending_message_to_label": "Đang gửi tin nhắn tới",
+        "sending_message_to_new_forum_post": "Gửi tới bài viết mới",
+        "sending_message_to_placeholder": "Chọn loại tin nhắn",
+        "sending_message_to_thread": "Gửi vào chủ đề",
+        "setup_webhook_description_1": "Lấy URL webhook của bạn từ cài đặt máy chủ Discord → Tích hợp → Webhooks.",
+        "setup_webhook_description_2": "Tạo một webhook mới và sao chép URL. Đảm bảo bạn đã chọn kênh đúng.",
+        "setup_webhook_title": "Cài đặt Webhook Discord",
+        "thread_id_description_1": "Bật Chế độ Phát Triển trong Cài đặt Người dùng Discord → Nâng cao → Chế độ Phát Triển",
+        "thread_id_description_2": "Nhấp chuột phải vào thread hoặc bài đăng và chọn \"Sao chép ID Thread\" hoặc \"Sao chép ID Kênh\"",
+        "thread_id_description_title": "ID của chủ đề hoặc bài đăng diễn đàn nơi tin nhắn sẽ được gửi",
+        "thread_id_label": "ID Luồng",
+        "thread_id_placeholder": "Nhập ID thread hoặc ID bài đăng",
+        "webhook_url_label": "URL Webhook Discord"
+      },
+      "google_chat": {
+        "more_info_about_webhooks": "Thêm thông tin về Webhooks",
+        "webhook_url_label": "URL Webhook Google Chat"
+      },
+      "gotify": {
+        "application_token_description": "Mã truy cập ứng dụng từ ứng dụng Gotify của bạn. Bạn có thể tìm thấy nó trong giao diện web Gotify của bạn dưới mục Apps.",
+        "application_token_label": "Token Ứng dụng",
+        "custom_message_description": "Mẫu tin nhắn tùy chỉnh. Các biến có sẵn",
+        "custom_message_description_2": "Để trống để sử dụng tin nhắn mặc định.",
+        "custom_message_label": "Thông điệp tùy chỉnh",
+        "custom_title_description": "Tiêu đề tùy chỉnh cho thông báo. Các biến có sẵn: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Để trống để sử dụng tiêu đề mặc định \"Peekaping\".",
+        "custom_title_label": "Tiêu đề tùy chỉnh",
+        "learn_more_label": "Tìm hiểu thêm về Gotify và cách cài đặt tại:",
+        "note_description": "Bạn cần có một máy chủ Gotify đang chạy để sử dụng tích hợp này.",
+        "note_label": "Ghi chú:",
+        "priority_0": "Thấp nhất",
+        "priority_1": "Rất thấp",
+        "priority_10": "Cao nhất",
+        "priority_2": "Thấp",
+        "priority_3": "Dưới bình thường",
+        "priority_4": "Thường",
+        "priority_5": "Cao hơn bình thường",
+        "priority_6": "Trung bình",
+        "priority_7": "Cao",
+        "priority_8": "Rất cao (Mặc định)",
+        "priority_9": "Cấp cứu",
+        "priority_description": "Ưu tiên tin nhắn (0-10). Số cao hơn biểu thị mức ưu tiên cao hơn. Mặc định là 8.",
+        "priority_label": "Ưu tiên",
+        "priority_placeholder": "Chọn mức độ ưu tiên",
+        "server_url_description": "URL của máy chủ Gotify của bạn. Hãy đảm bảo nó có thể truy cập được từ ứng dụng này.",
+        "server_url_label": "URL máy chủ"
+      },
+      "grafana_oncall": {
+        "grafana_oncall_url_description": "URL webhook từ tích hợp Grafana OnCall của bạn. Bạn có thể tìm thấy nó trong phiên bản Grafana OnCall của mình dưới mục Alerts & IRM > IRM > Integrations > Webhook.",
+        "grafana_oncall_url_label": "URL Grafana OnCall",
+        "learn_more_label": "Tìm hiểu thêm về webhooks của Grafana OnCall"
+      },
+      "line": {
+        "channel_access_token_description": "Bạn có thể lấy token truy cập kênh từ",
+        "channel_access_token_description_2": "Đi tới cài đặt kênh của bạn và tìm kiếm",
+        "channel_access_token_label": "Token truy cập kênh (Dài hạn)",
+        "channel_access_token_placeholder": "Nhập mã truy cập kênh LINE của bạn",
+        "template_description": "Tùy chỉnh định dạng tin nhắn. Các biến có sẵn",
+        "template_label": "Mẫu tin nhắn",
+        "template_placeholder": "Nhập mẫu tin nhắn tùy chỉnh",
+        "user_id_description": "Bạn có thể tìm ID người dùng của mình trong",
+        "user_id_description_2": "Đi tới cài đặt kênh của bạn và tìm kiếm",
+        "user_id_label": "ID người dùng của bạn",
+        "user_id_placeholder": "Nhập ID người dùng LINE của bạn"
+      },
+      "matrix": {
+        "access_token_description": "Token truy cập Matrix của bạn để xác thực",
+        "access_token_label": "Token truy cập",
+        "custom_message_description": "Mẫu tin nhắn tùy chỉnh. Biến có sẵn",
+        "custom_message_label": "Tin nhắn tùy chỉnh",
+        "homeserver_url_description": "Địa chỉ URL của máy chủ Matrix của bạn",
+        "homeserver_url_label": "URL máy chủ",
+        "internal_room_id_description": "ID phòng nội bộ nơi thông báo sẽ được gửi. Nên bắt đầu bằng \"!\" và có dạng: !roomid:matrix.org",
+        "internal_room_id_label": "ID phòng nội bộ",
+        "setup_instructions_1": "Tạo tài khoản Matrix cho bot của bạn (hoặc sử dụng tài khoản hiện có)",
+        "setup_instructions_2": "Tạo hoặc tham gia phòng mà bạn muốn nhận thông báo",
+        "setup_instructions_3": "Lấy token truy cập của bạn bằng cách thực hiện yêu cầu đăng nhập",
+        "setup_instructions_4": "Trả về sẽ có trường access_token - sử dụng nó làm Token truy cập",
+        "setup_instructions_5": "Tìm ID nội bộ của phòng (bắt đầu bằng \"!\") trong cài đặt phòng của khách hàng Matrix.",
+        "setup_instructions_label": "Hướng dẫn cài đặt"
+      },
+      "mattermost": {
+        "channel_name_description": "Kênh mà thông báo sẽ được gửi đến. Để trống để sử dụng kênh mặc định được cấu hình trong webhook.",
+        "channel_name_label": "Tên kênh",
+        "icon_emoji_cheat_sheet_label": "Bảng cheat sheet emoji",
+        "icon_emoji_description": "Emoji được dùng làm biểu tượng. Bạn có thể chỉ định hai emoji, cách nhau bởi một khoảng trắng (emoji đầu tiên cho trạng thái hoạt động, emoji thứ hai cho trạng thái ngừng).",
+        "icon_emoji_label": "Biểu tượng Emoji",
+        "icon_url_description": "URL của hình ảnh để dùng làm biểu tượng cho tin nhắn thông báo.",
+        "icon_url_label": "URL biểu tượng",
+        "learn_more_label": "Tìm hiểu thêm về webhooks",
+        "message_template_description": "Tùy chỉnh định dạng tin nhắn. Các biến có sẵn",
+        "message_template_label": "Mẫu tin nhắn",
+        "use_message_template_description": "Bật để sử dụng mẫu tin nhắn tùy chỉnh và định dạng.",
+        "use_message_template_label": "Sử dụng mẫu tin nhắn",
+        "username_description": "Tên người dùng sẽ xuất hiện làm người gửi tin nhắn.",
+        "webhook_url_label": "URL Webhook"
+      },
+      "ntfy": {
+        "authentication_type_basic": "Xác thực cơ bản",
+        "authentication_type_basic_description": "Sử dụng tên đăng nhập và mật khẩu để xác thực cơ bản.",
+        "authentication_type_label": "Kiểu xác thực",
+        "authentication_type_none": "Không xác thực",
+        "authentication_type_none_description": "Không cần xác thực. Phù hợp với máy chủ NTFY công cộng.",
+        "authentication_type_placeholder": "Chọn loại xác thực",
+        "authentication_type_token": "Xác thực Token",
+        "authentication_type_token_description": "Sử dụng token truy cập để xác thực.",
+        "custom_message_description": "Nội dung tin nhắn tùy chỉnh. Các biến có sẵn",
+        "custom_message_label": "Tin nhắn tùy chỉnh",
+        "password_required": "Mật khẩu là bắt buộc cho xác thực cơ bản",
+        "priority_1": "Tối thiểu (Thấp nhất)",
+        "priority_2": "Thấp",
+        "priority_3": "Mặc định",
+        "priority_4": "Cao",
+        "priority_5": "Khẩn cấp (cao nhất)",
+        "priority_description": "Mức độ ưu tiên của thông báo. Các mức ưu tiên cao hơn có thể kích hoạt các hành vi khác nhau trên máy khách.",
+        "priority_label": "Ưu tiên",
+        "priority_placeholder": "Chọn mức độ ưu tiên",
+        "server_url_description": "Địa chỉ URL của máy chủ NTFY của bạn. Sử dụng https://ntfy.sh cho phiên bản công cộng.",
+        "server_url_label": "URL máy chủ",
+        "tags_description": "Các thẻ phân loại thông báo, được phân cách bằng dấu phẩy. Biến có sẵn",
+        "tags_label": "Thẻ",
+        "title_description": "Tiêu đề tùy chỉnh cho thông báo. Các biến có sẵn",
+        "title_label": "Tiêu đề tùy chỉnh",
+        "token_description": "Mã truy cập NTFY của bạn để xác thực.",
+        "token_label": "Token truy cập",
+        "token_required": "Token là bắt buộc cho xác thực bằng token",
+        "topic_description": "Tên chủ đề cho thông báo của bạn. Đây sẽ là kênh nơi các thông báo được gửi.",
+        "topic_label": "Chủ đề",
+        "username_required": "Tên đăng nhập là bắt buộc cho xác thực cơ bản"
+      },
+      "opsgenie": {
+        "api_key_label": "Khóa API",
+        "more_info_about_api_keys_label": "Thông tin thêm về khóa API",
+        "priority_1": "Cấp độ 1",
+        "priority_2": "Cao",
+        "priority_3": "Trung bình",
+        "priority_4": "Thấp",
+        "priority_5": "Thông tin",
+        "priority_description": "Đặt mức độ ưu tiên cho cảnh báo. Mặc định là P3 (Tầm trung).",
+        "priority_label": "Ưu tiên",
+        "region_description": "Chọn vùng Opsgenie của bạn. Điều này xác định điểm cuối API sẽ được sử dụng.",
+        "region_label": "Khu vực",
+        "region_placeholder": "Chọn vùng"
+      },
+      "pagerduty": {
+        "auto_resolve_acknowledge": "Tự động công nhận",
+        "auto_resolve_acknowledge_description": "Xác nhận sự cố tự động",
+        "auto_resolve_description": "Chọn hành động khi giám sát khôi phục",
+        "auto_resolve_do_nothing": "Không làm gì",
+        "auto_resolve_do_nothing_description": "Không có hành động khi trạng thái UP",
+        "auto_resolve_label": "Giải quyết tự động hoặc Xác nhận",
+        "auto_resolve_placeholder": "Chọn hành vi tự động giải quyết",
+        "auto_resolve_resolve": "Tự động giải quyết",
+        "auto_resolve_resolve_description": "Tự động giải quyết sự cố",
+        "integration_key_description": "Tìm hiểu cách lấy khóa tích hợp của bạn",
+        "integration_key_label": "Khóa Tích hợp",
+        "integration_key_placeholder": "Nhập khóa tích hợp PagerDuty của bạn",
+        "integration_url_description": "URL điểm cuối của API Sự kiện PagerDuty v2. Mặc định là điểm cuối chuẩn.",
+        "integration_url_label": "URL tích hợp",
+        "learn_more_label": "Tài liệu PagerDuty",
+        "priority_critical": "Cấp độ nghiêm trọng",
+        "priority_description": "Mức độ nghiêm trọng cho các sự cố PagerDuty. Mặc định là \"warning\".",
+        "priority_error": "Lỗi",
+        "priority_info": "Thông tin",
+        "priority_label": "Ưu tiên",
+        "priority_placeholder": "Chọn mức độ ưu tiên",
+        "priority_warning": "Cảnh báo"
+      },
+      "pagertree": {
+        "authentication_token_description": "Token xác thực tùy chọn để tăng cường bảo mật. Token này sẽ được gửi trong header pagertree-token.",
+        "authentication_token_label": "Token xác thực (Tuỳ chọn)",
+        "authentication_token_placeholder": "Nhập mã xác thực nếu cần",
+        "auto_resolve_alerts_description": "Tự động giải quyết cảnh báo PagerTree khi máy giám sát phục hồi",
+        "auto_resolve_alerts_label": "Tự động giải quyết cảnh báo",
+        "how_to_get_integration_url_label": "Cách lấy URL tích hợp",
+        "integration_url_description": "Nhập URL tích hợp webhook PagerTree của bạn.",
+        "integration_url_label": "URL Webhook PagerTree",
+        "urgency_level_critical": "Cấp cứu",
+        "urgency_level_description": "Thiết lập mức độ ưu tiên mặc định cho cảnh báo gửi tới PagerTree",
+        "urgency_level_high": "Cao",
+        "urgency_level_label": "Cấp độ khẩn cấp",
+        "urgency_level_low": "Thấp",
+        "urgency_level_medium": "Trung bình",
+        "urgency_level_placeholder": "Chọn mức độ khẩn cấp",
+        "urgency_level_silent": "Im lặng"
+      },
+      "pushbullet": {
+        "access_token": "Mã truy cập",
+        "access_token_description": "Token truy cập Pushbullet của bạn. Nhận nó từ",
+        "access_token_label": "Mã truy cập",
+        "access_token_link": "Cài đặt Pushbullet",
+        "channel_tag": "Thẻ kênh (Tùy chọn)",
+        "channel_tag_description": "Gửi thông báo tới kênh Pushbullet thay vì thiết bị",
+        "channel_tag_label": "Tag kênh (tùy chọn)",
+        "custom_message_template": "",
+        "custom_message_template_description": "Tùy chỉnh nội dung thông báo bằng cách sử dụng biến mẫu:",
+        "custom_message_template_heartbeat_ping": "Thời gian phản hồi",
+        "custom_message_template_heartbeat_time": "Dấu thời gian",
+        "custom_message_template_label": "Mẫu tin nhắn tùy chỉnh (tùy chọn)",
+        "custom_message_template_monitor_url": "URL giám sát",
+        "custom_message_template_msg": "Thông báo cảnh báo",
+        "custom_message_template_name": "Tên máy giám sát",
+        "custom_message_template_placeholder": "Giám sát: {{ name }}\nTình trạng: {{ status }}\nTin nhắn: {{ msg }}",
+        "custom_message_template_status": "Trạng thái hiện tại",
+        "device_id": "ID thiết bị (Tùy chọn)",
+        "device_id_description": "Gửi thông báo tới một thiết bị cụ thể. Để trống để gửi tới tất cả thiết bị. Bạn có thể tìm ID thiết bị bằng cách",
+        "device_id_label": "ID thiết bị (Tùy chọn)",
+        "device_id_link": "API Pushbullet",
+        "more_info_on": "Thông tin chi tiết về:"
+      },
+      "pushover": {
+        "application_token_label": "Token Ứng dụng",
+        "application_token_placeholder": "Nhập mã ứng dụng Pushover của bạn",
+        "device_description": "Để trống để gửi tới tất cả thiết bị",
+        "device_label": "Thiết bị",
+        "device_placeholder": "Tên thiết bị (tùy chọn)",
+        "message_title_description": "Để trống để sử dụng tiêu đề mặc định",
+        "message_title_label": "Tiêu đề tin nhắn",
+        "message_title_placeholder": "Tiêu đề tin nhắn tùy chỉnh (tùy chọn)",
+        "message_ttl_description": "Thời gian tồn tại (đơn vị: giây) (0 = không hết hạn)",
+        "message_ttl_label": "TTL tin nhắn",
+        "more_info_label": "Thông tin thêm về:",
+        "more_info_label_2": "Bạn có thể tạo một ứng dụng và lấy mã API của mình tại",
+        "more_info_label_3": "Khóa người dùng của bạn có thể được tìm thấy tại",
+        "notification_sound_down_description": "Âm thanh khi giám sát bị ngừng",
+        "notification_sound_down_label": "Âm thanh thông báo - Ngừng",
+        "notification_sound_down_placeholder": "Chọn âm thanh",
+        "notification_sound_up_description": "Âm thanh khi giám sát trở lại hoạt động",
+        "notification_sound_up_label": "Âm thanh thông báo - Hoạt động",
+        "notification_sound_up_placeholder": "Chọn âm thanh",
+        "priority_1": "Thấp nhất",
+        "priority_2": "Thấp",
+        "priority_3": "Bình thường",
+        "priority_4": "Cao",
+        "priority_5": "Khẩn cấp",
+        "priority_description": "Cấp độ ưu tiên tin nhắn",
+        "priority_label": "Ưu tiên",
+        "priority_placeholder": "Chọn mức độ ưu tiên",
+        "sound_alien": "Người ngoài hành tinh",
+        "sound_bike": "Xe đạp",
+        "sound_bugle": "Kèn hô",
+        "sound_cashregister": "Thu ngân",
+        "sound_classical": "Cổ điển",
+        "sound_climb": "Lên",
+        "sound_cosmic": "Vũ trụ",
+        "sound_echo": "Âm vọng",
+        "sound_falling": "Rơi",
+        "sound_gamelan": "Gamelan",
+        "sound_incoming": "Đang nhận",
+        "sound_intermission": "Giai đoạn giữa",
+        "sound_magic": "Ma thuật",
+        "sound_mechanical": "Cơ khí",
+        "sound_none": "Không",
+        "sound_persistent": "Liên tục",
+        "sound_pianobar": "Quán Piano",
+        "sound_pushover": "Pushover (mặc định)",
+        "sound_siren": "Tiếng còi cảnh báo",
+        "sound_spacealarm": "Cảnh báo không gian",
+        "sound_tugboat": "đầm chũi",
+        "sound_updown": "Lên Xuống",
+        "sound_vibrate": "Rung",
+        "user_key_label": "Khóa người dùng",
+        "user_key_placeholder": "Nhập khóa người dùng Pushover của bạn"
+      },
+      "signal": {
+        "custom_message_description": "Mẫu tin nhắn tùy chỉnh. Các biến có sẵn",
+        "custom_message_label": "Tin nhắn tùy chỉnh",
+        "important_description": "Bạn không thể kết hợp nhóm và số trong danh sách người nhận!",
+        "important_label": "CIẾT QUAN:",
+        "more_info_label": "Bạn có thể kiểm tra liên kết này để xem cách thiết lập:",
+        "note_description": "Bạn cần có một client Signal có API REST.",
+        "note_label": "Ghi chú:",
+        "number_description": "Số điện thoại của tài khoản Signal của bạn (số người gửi).",
+        "number_label": "Số",
+        "post_url_description": "URL của máy chủ API REST Signal CLI của bạn.",
+        "post_url_label": "URL gửi",
+        "recipients_description": "Danh sách số điện thoại, phân cách bằng dấu phẩy, để gửi thông báo tới.",
+        "recipients_label": "Người nhận"
+      },
+      "slack": {
+        "channel_name_description": "Kênh nơi tin nhắn sẽ được gửi. Nếu không được chỉ định, tin nhắn sẽ được gửi tới kênh mặc định đã cấu hình trong webhook.",
+        "channel_name_description_2": "Bạn có thể ghi đè kênh mặc định bằng cách chỉ định tên kênh (ví dụ, #alerts) hoặc một người dùng (ví dụ, @username).",
+        "channel_name_label": "Tên kênh",
+        "channel_notify_description": "Khi bật, tin nhắn sẽ kích hoạt thông báo cho tất cả thành viên kênh. Hãy sử dụng cẩn thận để tránh gây spam.",
+        "channel_notify_label": "Kênh thông báo",
+        "icon_emoji_cheat_sheet_label": "Bảng cheat sheet emoji",
+        "icon_emoji_description": "Emoji để sử dụng làm biểu tượng cho tin nhắn này. Phải có định dạng :emoji_name:",
+        "icon_emoji_label": "Biểu tượng Emoji",
+        "message_format_description": "Gửi tin nhắn phong phú",
+        "message_format_description_2": "Cho phép gửi tin nhắn có định dạng phong phú, tệp đính kèm và trình bày trực quan tốt hơn.",
+        "message_format_label": "Định dạng tin nhắn",
+        "username_description": "Tên người dùng sẽ xuất hiện làm người gửi tin nhắn. Nếu không được chỉ định, tên bot mặc định sẽ được sử dụng.",
+        "webhook_url_description": "URL webhook từ tích hợp Slack của bạn. Bạn có thể tìm thấy nó trong tài khoản Slack của mình, vào mục Tích hợp > Webhooks.",
+        "webhook_url_label": "URL Webhook"
+      },
+      "smtp": {
+        "custom_body_label": "Nội dung tùy chỉnh",
+        "custom_description": "Khả năng templating được thực hiện qua ngôn ngữ mẫu <b>Liquid</b>.",
+        "custom_description_2": "Vui lòng tham khảo tài liệu hướng dẫn sử dụng.",
+        "custom_description_3": "Các biến có sẵn:",
+        "custom_description_4": "Nội dung thông báo",
+        "custom_description_5": "Tên dịch vụ",
+        "custom_description_6": "tình trạng dịch vụ (UP/DOWN/Thông báo hết hạn chứng chỉ)",
+        "custom_subject_label": "Chủ đề tùy chỉnh",
+        "smtp_from_label": "Từ (Email người gửi)",
+        "smtp_host_description": "Nhập tên máy chủ (hostname) của máy chủ bạn muốn kết nối hoặc localhost nếu bạn dự định sử dụng máy chuyển thư được cấu hình cục bộ",
+        "smtp_host_label": "Máy chủ SMTP",
+        "smtp_password_placeholder": "Mật khẩu SMTP",
+        "smtp_port_label": "Cổng",
+        "smtp_to_label": "Đến (Email người nhận)",
+        "smtp_username_placeholder": "Tên người dùng SMTP"
+      },
+      "telegram": {
+        "auto_get_label": "Tự động lấy",
+        "bot_token_description": "Nhận token bot của bạn từ",
+        "bot_token_label": "Token Bot",
+        "chat_id_description": "Bạn có thể lấy ID chat của mình bằng cách gửi tin nhắn tới bot và nhấn “Tự động lấy” ở trên, hoặc thủ công qua API Telegram.",
+        "chat_id_description_2": "Để lấy thủ công, truy cập",
+        "chat_id_description_3": "Xem",
+        "chat_id_description_4": "Tài liệu Telegram",
+        "chat_id_description_5": "để biết thêm.",
+        "chat_id_label": "ID trò chuyện",
+        "chat_id_not_found": "Không tìm thấy ID trò chuyện trong bản cập nhật mới nhất.",
+        "failed_to_fetch_chat_id": "Không thể lấy ID trò chuyện",
+        "message_thread_id_description": "Tùy chọn. Dùng để gửi tin nhắn tới một chủ đề (topic) cụ thể trong một supergroup diễn đàn.",
+        "message_thread_id_label": "ID Chủ đề tin nhắn",
+        "no_updates_found": "Không tìm thấy cập nhật. Vui lòng gửi tin nhắn tới bot của bạn trước.",
+        "protect_content_description": "Nếu được bật, nội dung tin nhắn sẽ được bảo vệ khỏi việc chuyển tiếp và lưu trữ.",
+        "protect_content_label": "Bảo vệ nội dung",
+        "send_silently_description": "Nếu bật, tin nhắn sẽ được gửi một cách yên lặng (người dùng sẽ nhận được thông báo mà không có âm thanh).",
+        "send_silently_label": "Gửi ẩn danh",
+        "server_url_description": "Mặc định là",
+        "server_url_description_2": "Bạn có thể sử dụng máy chủ tùy chỉnh. Xem",
+        "server_url_description_3": "đây",
+        "server_url_description_4": "để biết thêm chi tiết.",
+        "server_url_label": "Địa chỉ máy chủ Telegram",
+        "template_description": "Tùy chỉnh định dạng tin nhắn. Các biến có sẵn",
+        "template_label": "Mẫu tin nhắn",
+        "template_parse_mode_description": "Chọn cách phân tích cú pháp tin nhắn. Xem",
+        "template_parse_mode_description_2": "Tài liệu định dạng Telegram",
+        "template_parse_mode_description_3": "để biết thêm chi tiết.",
+        "template_parse_mode_label": "Chế độ phân tích mẫu",
+        "template_parse_mode_placeholder": "Chọn chế độ phân tích",
+        "template_placeholder": "Nhập mẫu tin nhắn tùy chỉnh",
+        "use_template_description": "Bật để sử dụng mẫu tin nhắn tùy chỉnh và định dạng.",
+        "use_template_label": "Sử dụng mẫu tin nhắn"
+      },
+      "webhook": {
+        "additional_headers_description": "Thêm tiêu đề HTTP tùy chỉnh vào yêu cầu webhook.",
+        "additional_headers_label": "Header bổ sung",
+        "custom_body_description": "Tùy chỉnh định dạng nội dung yêu cầu. Các biến có sẵn",
+        "custom_body_label": "Nội dung tùy chỉnh",
+        "post_url_description": "URL điểm cuối webhook nơi các thông báo sẽ được gửi.",
+        "post_url_label": "URL POST",
+        "request_body_description_custom": "Định nghĩa định dạng nội dung yêu cầu tùy chỉnh của bạn ở dưới.",
+        "request_body_description_form_data": "Nội dung sẽ được gửi dưới dạng multipart/form-data. Bạn có thể giải mã nó bằng <strong>json_decode($_POST['data'])</strong> trong PHP.",
+        "request_body_description_json": "Nội dung sẽ được gửi dưới dạng JSON với header \"application/json\".",
+        "request_body_label": "Nội dung Yêu Cầu",
+        "request_body_placeholder": "Chọn kiểu nội dung"
+      }
+    },
+    "important": "Thông báo quan trọng",
+    "important_notifications": "Thông báo quan trọng",
+    "labels": {
+      "friendly_name": "Tên thân thiện",
+      "type": "Loại kênh thông báo"
+    },
+    "messages": {
+      "create_failed": "Không thể tạo notifier",
+      "created_success": "Notifier đã được tạo thành công",
+      "error_loading_notifier": "Lỗi khi tải notifier",
+      "test_failed": "Không gửi được thông báo thử nghiệm",
+      "test_success": "Thông báo thử nghiệm đã được gửi thành công",
+      "update_failed": "Không thể cập nhật trình thông báo",
+      "updated_success": "Cập nhật thông báo thành công"
+    },
+    "new": {
+      "title": "Kênh thông báo mới"
+    },
+    "no_important": "Không tìm thấy thông báo quan trọng.",
+    "placeholders": {
+      "select_type": "Chọn loại trình thông báo"
+    },
+    "search_placeholder": "Tìm kiếm kênh thông báo theo tên…"
+  },
+  "proxies": {
+    "delete_dialog": {
+      "description": "Hành động này không thể hoàn tác. Điều này sẽ xóa vĩnh viễn proxy {{host}}:{{port}}.",
+      "title": "Bạn có chắc chắn không?"
+    },
+    "edit": {
+      "page_name": "Chỉnh sửa Proxy"
+    },
+    "empty_list": {
+      "action_text": "Tạo proxy đầu tiên của bạn",
+      "text": "Bắt đầu bằng cách tạo proxy đầu tiên để sử dụng trong bộ giám sát của bạn.",
+      "title": "Không tìm thấy proxy"
+    },
+    "form": {
+      "auth_label": "Máy chủ proxy có xác thực",
+      "port_placeholder": "Cổng",
+      "protocol_label": "Giao thức Proxy",
+      "protocol_placeholder": "Chọn giao thức proxy",
+      "server_label": "Máy chủ Proxy",
+      "server_placeholder": "Địa chỉ máy chủ",
+      "user": "Người dùng"
+    },
+    "messages": {
+      "create_failed": "Không thể tạo proxy",
+      "created_success": "Proxy đã được tạo thành công",
+      "error_loading_proxy": "Lỗi tải proxy",
+      "update_failed": "Không thể cập nhật proxy",
+      "updated_success": "Proxy đã được cập nhật thành công"
+    },
+    "new": {
+      "page_name": "Proxy Mới"
+    },
+    "page_name": "Proxy",
+    "search_label": "Tìm kiếm",
+    "search_placeholder": "Tìm proxy theo host..."
+  },
+  "security": {
+    "enable_2fa": {
+      "form": {
+        "authenticator_code_label": "Mã xác thực",
+        "authenticator_code_placeholder": "Nhập mã 6 chữ số",
+        "current_password_label": "Mật khẩu hiện tại",
+        "current_password_placeholder": "Nhập mật khẩu hiện tại của bạn",
+        "enable_2fa_button": "Bật 2FA"
+      },
+      "messages": {
+        "2fa_active": "2FA đang hoạt động",
+        "2fa_disabled_successfully": "Xác thực hai yếu tố đã được vô hiệu hóa thành công",
+        "2fa_enabled_successfully": "Xác thực hai yếu tố đã được kích hoạt thành công",
+        "account_is_protected_with_2fa": "Tài khoản của bạn được bảo vệ bằng 2FA.",
+        "disable_2fa": "Tắt 2FA",
+        "enter_password_to_disable_2fa": "Nhập mật khẩu của bạn để tắt 2FA",
+        "failed_to_disable_2fa": "Không thể tắt 2FA",
+        "failed_to_verify_2fa_code": "Không thể xác thực mã 2FA",
+        "failed_to_verify_password": "Không thể xác minh mật khẩu hoặc bắt đầu thiết lập 2FA",
+        "have_enabled_2fa": "Bạn đã bật xác thực hai yếu tố (2FA) cho tài khoản của mình. Điều này cung cấp một lớp bảo mật bổ sung.",
+        "or_enter_secret_manually": "Hoặc nhập khóa bí mật này thủ công",
+        "scan_qr_code_with_authenticator_app": "Quét mã QR này với ứng dụng xác thực của bạn",
+        "two_factor_authentication_enabled": "Xác thực hai yếu tố đã được bật",
+        "user_email_not_found": "Không tìm thấy email người dùng"
+      }
+    },
+    "page_name": "Bảo mật",
+    "update_password": {
+      "form": {
+        "confirm_new_password_label": "Xác nhận mật khẩu mới",
+        "confirm_new_password_placeholder": "Nhập lại mật khẩu mới",
+        "new_password_label": "Mật khẩu mới",
+        "new_password_placeholder": "Nhập mật khẩu mới",
+        "old_password_label": "Mật khẩu cũ",
+        "old_password_placeholder": "Nhập mật khẩu hiện tại của bạn",
+        "update_password_button": "Cập nhật mật khẩu"
+      },
+      "messages": {
+        "failed_to_update_password": "Không thể cập nhật mật khẩu",
+        "password_updated_successfully": "Mật khẩu đã được cập nhật thành công"
+      },
+      "title": "Cập nhật mật khẩu"
+    }
+  },
+  "sendgrid": {
+    "api_key_description": "Chìa khóa API SendGrid của bạn. Bạn có thể tạo một trong tài khoản SendGrid của mình tại Cài đặt → Khóa API. Đảm bảo nó có quyền \"Mail Send\".",
+    "api_key_label": "Khóa API",
+    "bcc_email_description": "Người nhận BCC. Ngăn cách nhiều email bằng dấu phẩy.",
+    "bcc_email_label": "Email ẩn danh (tùy chọn)",
+    "cc_email_description": "Đối tượng CC. Ngăn cách nhiều địa chỉ email bằng dấu phẩy.",
+    "cc_email_label": "Email CC (Tùy chọn)",
+    "from_email_description": "Địa chỉ email người gửi. Đây phải là một địa chỉ đã được xác thực trong tài khoản SendGrid của bạn.",
+    "from_email_label": "E-mail người gửi",
+    "subject_description": "Dòng chủ đề cho email. Hỗ trợ templating Liquid.",
+    "subject_label": "Chủ đề tùy chỉnh (Tùy chọn)",
+    "subject_variables_label": "Các biến có sẵn:",
+    "subject_variables_msg": "tin nhắn của thông báo",
+    "subject_variables_name": "tên dịch vụ",
+    "subject_variables_status": "Trạng thái dịch vụ (UP/DOWN)",
+    "to_email_description": "Địa chỉ email người nhận chính. Đối với nhiều người nhận, hãy sử dụng trường CC hoặc BCC.",
+    "to_email_label": "Đến email"
+  },
+  "settings": {
+    "data_retention": {
+      "days_label": "Ngày",
+      "description": "Đặt số ngày lưu dữ liệu (KEEP_DATA_PERIOD_DAYS).",
+      "title": "Thời gian lưu trữ dữ liệu"
+    },
+    "timezone": {
+      "description": "Chọn múi giờ ưu tiên của bạn để hiển thị tất cả thời gian trong ứng dụng.",
+      "label": "Múi giờ",
+      "no_timezone_found": "Không tìm thấy múi giờ.",
+      "search_placeholder": "Tìm kiếm múi giờ...",
+      "select_placeholder": "Chọn múi giờ...",
+      "title": "Múi giờ"
+    },
+    "validation": {
+      "min_days": "Phải ít nhất 1 ngày"
+    }
+  },
+  "status": {
+    "messages": {
+      "all_systems_operational": "Tất cả hệ thống hoạt động",
+      "down": "Dừng",
+      "last_updated": "Cập nhật lần cuối",
+      "maintenance": "Bảo trì",
+      "no_monitors_configured": "Không có trình giám sát nào được cấu hình cho trang trạng thái này.",
+      "operational": "Hoạt động",
+      "partial_system_outage": "Hệ thống bị gián đoạn một phần",
+      "powered_by": "Được cung cấp bởi",
+      "refresh_in": "Cập nhật trong",
+      "refresh_now": "Làm mới ngay",
+      "status_page_not_found": "Trang trạng thái không tìm thấy hoặc chưa được xuất bản.",
+      "under_maintenance": "Đang bảo trì",
+      "unknown": "Không xác định"
+    }
+  },
+  "status_pages": {
+    "affected_monitors": "Giám sát bị ảnh hưởng",
+    "affected_monitors_info": "Chọn các giám sát sẽ bị ảnh hưởng bởi bảo trì này",
+    "auto_refresh_interval": "Khoảng thời gian tự động làm mới (giây)",
+    "basic_information": "Thông tin cơ bản",
+    "create_status_page": "Tạo trang trạng thái",
+    "customization": "Tùy chỉnh",
+    "delete_dialog": {
+      "description": "Bạn có chắc chắn muốn xóa \"{{title}}\"? Hành động này không thể hoàn tác.",
+      "title": "Xóa trang trạng thái"
+    },
+    "description": "Nhập mô tả trang trạng thái",
+    "domain_already_used": "Tên miền {{domain}} đã được sử dụng bởi một trang trạng thái khác",
+    "domain_host_warning": "Tên miền này giống với URL máy chủ hiện tại của bạn. Điều này có thể gây ra xung đột.",
+    "domains": "Tên miền",
+    "domains_info_warning": "Đừng quên thêm các bản ghi CNAME vào DNS của bạn cho từng miền.",
+    "draft_status": "Nháp",
+    "edit_page_name": "Chỉnh sửa trang trạng thái",
+    "messages": {
+      "create_description": "Tạo một trang trạng thái mới để chia sẻ tình trạng dịch vụ của bạn với người dùng.",
+      "create_your_first_status_page": "Tạo trang trạng thái đầu tiên của bạn",
+      "created_successfully": "Trang trạng thái đã được tạo thành công",
+      "delete_failed": "Không thể xóa trang trạng thái",
+      "deleted_successfully": "Trang trạng thái đã được xóa thành công",
+      "get_started_by_creating_your_first_status_page": "Bắt đầu bằng cách tạo trang trạng thái đầu tiên của bạn.",
+      "no_status_pages_found": "Không có trang trạng thái",
+      "not_found": "Trang trạng thái không tìm thấy",
+      "update_description": "Cập nhật cài đặt và cấu hình trang trạng thái của bạn.",
+      "updated_successfully": "Trang trạng thái đã được cập nhật thành công"
+    },
+    "new_page_name": "Trang Trạng Thái Mới",
+    "page_name": "Trang trạng thái",
+    "published": "Công khai",
+    "published_info": "Công khai trang trạng thái này",
+    "published_status": "Đã xuất bản",
+    "search_label": "Tìm kiếm",
+    "search_placeholder": "Tìm trang trạng thái theo tiêu đề...",
+    "update_status_page": "Cập nhật trang trạng thái",
+    "view_page": "Xem trang"
+  },
+  "tags": {
+    "confirm_delete_description": "Hành động này không thể hoàn tác. Thao tác này sẽ xóa vĩnh viễn thẻ \"{{name}}\" và loại bỏ nó khỏi tất cả các giám sát.",
+    "edit_page_name": "Chỉnh sửa thẻ",
+    "empty_state": {
+      "action": "Tạo thẻ đầu tiên",
+      "description": "Bắt đầu bằng cách tạo thẻ đầu tiên để tổ chức các điểm giám sát của bạn.",
+      "title": "Không tìm thấy thẻ"
+    },
+    "form": {
+      "color_description": "Chọn màu cho thẻ của bạn",
+      "color_label": "Màu",
+      "create_button": "Tạo thẻ",
+      "description_label": "Mô tả",
+      "description_placeholder": "Nhập mô tả thẻ (tuỳ chọn)",
+      "name_label": "Tên",
+      "name_placeholder": "Nhập tên thẻ",
+      "update_button": "Cập nhật thẻ"
+    },
+    "messages": {
+      "create_description": "Tạo thẻ mới để tổ chức và phân loại các bộ theo dõi của bạn.",
+      "failed_to_load_tag": "Không thể tải thẻ. Thẻ có thể không tồn tại hoặc bạn không có quyền xem.",
+      "tag_id_required": "Tag ID là bắt buộc",
+      "update_description": "Cập nhật chi tiết thẻ để tổ chức các máy giám sát của bạn tốt hơn."
+    },
+    "new_page_name": "Thẻ mới",
+    "search_placeholder": "Tìm kiếm thẻ..."
+  },
+  "theme": {
+    "dark": "Tối",
+    "light": "Sáng",
+    "system": "Hệ thống",
+    "toggle_theme": "Chuyển đổi giao diện"
+  },
+  "timezone": {
+    "average": "Trung bình",
+    "last_24_hours": "24 giờ qua",
+    "last_3_hours": "3 giờ qua",
+    "last_3_months": "3 tháng gần nhất",
+    "last_30_minutes": "30 phút trước",
+    "last_6_hours": "6 giờ qua",
+    "last_7_days": "7 ngày gần nhất",
+    "maximum": "Tối đa",
+    "minimum": "Tối thiểu",
+    "ms": "ms",
+    "response_time": "Thời gian phản hồi",
+    "uptime": "Tính sẵn sàng"
+  },
+  "ui": {
+    "general": "Chung",
+    "intervals_retries": "Khoảng thời gian, Lần thử lại, Thời gian chờ"
+  }
+}

@@ -1,0 +1,1281 @@
+{
+  "actions": {
+    "cancel": "キャンセル",
+    "saving": "保存中…"
+  },
+  "auth": {
+    "login": {
+      "description": "メールでログイン",
+      "no_account": "アカウントをお持ちではありませんか？",
+      "sign_up": "サインアップ",
+      "submit": "ログイン",
+      "title": "お帰りなさい"
+    },
+    "register": {
+      "description": "管理者アカウントを作成",
+      "have_account": "既にアカウントをお持ちですか？",
+      "sign_in": "ログイン",
+      "submit": "登録",
+      "title": "こんにちは"
+    },
+    "twofa": {
+      "code_label": "2FAコード",
+      "code_placeholder": "2FAコードを入力",
+      "description": "2FA はご利用のアカウントで有効です。続行するには認証コードを入力してください。",
+      "title": "二要素認証が必要です",
+      "verify_button": "2FAを確認",
+      "verifying": "検証中…"
+    }
+  },
+  "bars": {
+    "down_count": "停止回数",
+    "important": "重要",
+    "interval": "間隔",
+    "message": "メッセージ",
+    "ms": "ミリ秒",
+    "notified": "通知済み",
+    "ping": "ピング",
+    "retries": "リトライ回数",
+    "status": "ステータス",
+    "time": "時間"
+  },
+  "common": {
+    "active": "アクティブ",
+    "all": "すべて",
+    "back": "戻る",
+    "cancel": "キャンセル",
+    "clear_all": "すべてクリア",
+    "clear_all_filters": "すべてのフィルターをクリア",
+    "confirm": "確認",
+    "confirm_delete_title": "本当に確信していますか？",
+    "confirm_delete_title_short": "本当に削除しますか？",
+    "continue": "続ける",
+    "create": "作成",
+    "created": "作成済み",
+    "days": "日",
+    "default": "デフォルト",
+    "delete": "削除",
+    "disabling": "無効化中…",
+    "dismiss": "閉じる",
+    "down": "停止",
+    "enabling": "有効化中…",
+    "error": "エラー",
+    "expires": "有効期限",
+    "inactive": "非アクティブ",
+    "loading": "読み込み中…",
+    "logout": "ログアウト",
+    "maintenance": "メンテナンス",
+    "no_options_found": "オプションが見つかりません",
+    "no_tags_available": "タグがありません",
+    "please_refresh_page": "ページを更新してください。",
+    "required": "必須",
+    "save": "保存",
+    "saving": "保存中…",
+    "search": "検索",
+    "security": "セキュリティ",
+    "select": "選択",
+    "select_monitors": "監視対象を選択...",
+    "select_tags": "タグを選択",
+    "settings": "設定",
+    "tags": "タグ",
+    "unknown": "不明",
+    "unnamed_monitor": "未命名モニター",
+    "up": "稼働中",
+    "update": "更新",
+    "verifying": "確認中…"
+  },
+  "forms": {
+    "labels": {
+      "confirm_password": "パスワード確認",
+      "email": "メール",
+      "footer_text": "フッターテキスト",
+      "heartbeat_interval": "ハートビート間隔（秒）",
+      "icon_url": "アイコンURL",
+      "monitor_name": "名前",
+      "monitor_type": "タイプ",
+      "password": "パスワード",
+      "retries": "再試行",
+      "slug": "スラッグ",
+      "title": "タイトル",
+      "username": "ユーザー名"
+    },
+    "placeholders": {
+      "auto_refresh_help": "0で自動更新しない",
+      "domains": "ドメインを入力してください（例：status.example.com）",
+      "footer_text": "フッターのテキストを入力",
+      "icon_url": "https://example.com/icon.png",
+      "monitor_name": "私のモニター",
+      "page_description": "ステータスページの説明を入力",
+      "page_title": "ステータスページタイトルを入力",
+      "slug": "ステータスページスラッグ"
+    },
+    "validation": {
+      "email_invalid": "有効なメールアドレスを入力してください",
+      "password_min_length": "パスワードは8文字以上にしてください",
+      "passwords_mismatch": "パスワードが一致しません"
+    }
+  },
+  "maintenance": {
+    "card": {
+      "aria": {
+        "delete": "削除 {{title}}",
+        "pause": "メンテナンスを一時停止",
+        "resume": "メンテナンスを再開"
+      },
+      "labels": {
+        "duration": "{{duration}} 分",
+        "end": "終了: {{date}}",
+        "start": "開始: {{date}}"
+      },
+      "status": {
+        "active": "アクティブ",
+        "ended": "終了",
+        "inactive": "非アクティブ"
+      }
+    },
+    "edit_title": "メンテナンスを編集",
+    "form": {
+      "affected_monitors_description": "このメンテナンスの対象となるモニターを選択してください",
+      "affected_monitors_title": "影響対象モニター",
+      "cron_description": "有効な cron 式を入力してください",
+      "cron_expression": "Cron式",
+      "date_time_title": "日付と時刻",
+      "day_of_month": "日",
+      "day_of_week": "曜日",
+      "description_label": "説明",
+      "description_placeholder": "メンテナンスの説明…",
+      "duration_minutes": "期間（分）",
+      "effective_date_range": "有効日付範囲（任意）",
+      "end_date_time": "終了日時",
+      "end_time": "終了時間",
+      "interval_label": "間隔（毎日1回実行）",
+      "last_day": "最終日",
+      "last_day_of_month": "月末日",
+      "maintenance_time_window": "1日のメンテナンス時間帯",
+      "markdown_supported": "Markdownに対応しています",
+      "same_as_server": "サーバーと同じタイムゾーン",
+      "start_date_time": "開始日時",
+      "start_time": "開始時間",
+      "strategy_label": "戦略",
+      "strategy_placeholder": "戦略を選択",
+      "timezone_label": "タイムゾーン",
+      "timezone_placeholder": "タイムゾーンを選択",
+      "title_label": "タイトル",
+      "title_placeholder": "メンテナンスタイトル"
+    },
+    "page": {
+      "clear_filters": "フィルタをすべてクリア",
+      "dialogs": {
+        "confirm_action": {
+          "pause_description": "このメンテナンスを一時停止してもよろしいですか？",
+          "resume_description": "このメンテナンスを再開してもよろしいですか？",
+          "title": "アクションの確認"
+        },
+        "confirm_delete": {
+          "description": "このメンテナンスウィンドウを削除してもよろしいですか？ この操作は元に戻せません。",
+          "title": "削除の確認"
+        }
+      },
+      "edit_maintenance": "メンテナンスの編集: {{title}}",
+      "empty_state": {
+        "action": "最初のメンテナンスウィンドウを作成",
+        "description": "最初のメンテナンスウィンドウを作成して、予定されたダウンタイムを防止しましょう。",
+        "title": "メンテナンスウィンドウが見つかりません"
+      },
+      "error_loading": "メンテナンスページの読み込みエラー",
+      "loading": "読み込み中…",
+      "loading_monitors": "モニターを読み込み中…",
+      "search_placeholder": "メンテナンスを検索…"
+    },
+    "page_title": "メンテナンス時間帯",
+    "schedule_title": "メンテナンスをスケジュール",
+    "strategy": {
+      "cron": "Cron式",
+      "manual": "手動で有効/無効",
+      "recurring_day_of_month": "定期 - 月の日",
+      "recurring_interval": "定期 - インターバル",
+      "recurring_weekday": "繰り返し - 曜日",
+      "single": "単一メンテナンスウィンドウ"
+    },
+    "toasts": {
+      "create_error": "メンテナンスの作成に失敗しました",
+      "created_success": "メンテナンスを正常に作成しました",
+      "delete_error": "メンテナンスの削除に失敗しました",
+      "deleted_success": "メンテナンスの削除に成功しました",
+      "pause_error": "メンテナンスの一時停止に失敗しました",
+      "paused_success": "メンテナンスを一時停止しました",
+      "resume_error": "メンテナンス再開に失敗しました",
+      "resumed_success": "メンテナンスの再開に成功しました",
+      "toggle_error": "メンテナンスステータスを切り替えできません: ID がありません",
+      "update_error": "メンテナンスの更新に失敗しました",
+      "updated_success": "メンテナンスの更新に成功しました"
+    },
+    "weekdays": {
+      "fri": "金",
+      "mon": "月",
+      "sat": "土",
+      "sun": "日",
+      "thu": "木",
+      "tue": "火",
+      "wed": "水"
+    }
+  },
+  "messages": {
+    "login_error": "ログイン中にエラーが発生しました",
+    "login_no_tokens": "ログインは成功しましたが、トークンは受信されませんでした",
+    "login_success": "ログインに成功しました",
+    "notifier_delete_error": "通知者の削除に失敗しました",
+    "notifier_delete_success": "Notifier の削除に成功しました",
+    "register_error": "登録中にエラーが発生しました",
+    "register_no_tokens": "登録に成功しましたが、トークンが受信できませんでした",
+    "register_success": "登録に成功しました",
+    "setting_update_error": "設定の更新に失敗しました",
+    "setting_update_success": "設定が正常に更新されました",
+    "tag_create_error": "タグの作成に失敗しました",
+    "tag_create_success": "タグの作成に成功しました",
+    "tag_delete_error": "タグの削除に失敗しました",
+    "tag_delete_success": "タグを正常に削除しました",
+    "tag_update_error": "タグの更新に失敗しました",
+    "tag_update_success": "タグが正常に更新されました",
+    "unexpected_error": "予期しないエラーが発生しました",
+    "version_mismatch": "バージョン不一致が検出されました"
+  },
+  "monitors": {
+    "card": {
+      "check_interval": "チェック間隔:",
+      "loading_more": "読み込み中…"
+    },
+    "empty_state": {
+      "action": "最初のモニターを作成",
+      "description": "最初のモニターを作成して、サービスの健康状態を追跡し始めましょう。",
+      "title": "モニターが見つかりません"
+    },
+    "filtering_by_tags": "タグでフィルタリング",
+    "filters": {
+      "monitor_status": "ステータス",
+      "monitor_status_placeholder": "監視状況",
+      "search_placeholder": "名前でモニターを検索…",
+      "status_placeholder": "ステータス"
+    },
+    "form": {
+      "buttons": {
+        "copied": "コピーしました！",
+        "copy": "コピー",
+        "create": "作成",
+        "regenerate": "再生成",
+        "update": "更新"
+      },
+      "dns": {
+        "hostname": "ホスト名",
+        "port": "ポート",
+        "record_type": "リソースレコードタイプ",
+        "record_type_placeholder": "レコードタイプを選択",
+        "resolver_server": "リゾルバサーバー",
+        "title": "DNS設定"
+      },
+      "docker": {
+        "ca_cert_description": "PEM形式の認証局証明書を貼り付けてください。",
+        "ca_certificate": "CA 証明書 (PEM)",
+        "client_cert_description": "クライアント証明書（PEM形式）を貼り付けてください。相互TLS認証に使用されます。",
+        "client_certificate": "クライアント証明書 (PEM)",
+        "client_private_key": "クライアント秘密鍵 (PEM)",
+        "common_tls_issues": "一般的なTLSの問題:",
+        "connection_type": "接続タイプ",
+        "container_name_id": "コンテナ名/ID",
+        "disabled": "無効",
+        "docker_container": "Docker コンテナ",
+        "docker_host": "Docker ホスト",
+        "enable_tls": "TLSを有効化",
+        "enabled": "有効",
+        "examples": "例",
+        "hostname_mismatch": "x509: 証明書は X に対して有効ですが、Y には有効ではありません:",
+        "hostname_mismatch_solution": "ホスト名が証明書のSANと一致するように設定するか、検証を無効にしてください（推奨されません）。",
+        "legacy_cert_error": "\"x509: 証明書がレガシーな Common Name フィールドに依存しています\":\"",
+        "legacy_cert_solution": "証明書の Subject Alternative Names (SAN) にホスト名を追加してください。",
+        "mtls_note": "相互 TLS（mTLS）では、クライアント証明書と秘密鍵の両方を提供する必要があります。CA 証明書は、サーバーの証明書を検証するために使用されます。",
+        "note": "ノート：",
+        "private_key_description": "PEM形式で秘密鍵を貼り付けてください。安全に保管してください！",
+        "select_connection_type": "接続タイプを選択",
+        "select_tls_option": "TLSオプションを選択",
+        "select_verification_option": "検証オプションを選択",
+        "skip_verification": "検証をスキップ（不安全）",
+        "tls_configuration": "TLS 設定",
+        "unknown_authority": "\"x509: 未知の認証機関によって署名された証明書\":",
+        "unknown_authority_solution": "サーバー証明書を署名した正しいCA証明書を提供してください。",
+        "verify_certificates": "証明書を検証",
+        "verify_tls": "TLSを検証"
+      },
+      "grpc": {
+        "body": "ボディデータ (JSON)",
+        "enable_tls": "TLSを有効化",
+        "enable_tls_description": "安全な接続（TLS/SSL）を使用",
+        "invert_keyword": "キーワードを反転",
+        "invert_keyword_description": "キーワードが見つからない場合、モニターはUP（正常）としてマークされます",
+        "keyword": "キーワード",
+        "keyword_description": "レスポンス内でこのキーワードを検索",
+        "keyword_placeholder": "検索キーワード（任意）",
+        "method_description": "大文字と小文字を区別する",
+        "method_placeholder": "チェック",
+        "options_title": "gRPC オプション",
+        "proto_content": "Protobuf コンテンツ",
+        "proto_method": "Protobuf メソッド",
+        "proto_service_name": "Protobuf サービス名",
+        "service_name_placeholder": "ヘルス"
+      },
+      "http": {
+        "advanced": {
+          "accepted_status_codes": "許容ステータスコード",
+          "ignore_tls": "HTTPSサイトのTLS/SSLエラーを無視する",
+          "ignore_tls_description": "TLS証明書の検証をスキップします。注意して使用してください - 接続の安全性が低下します。",
+          "max_redirects": "最大リダイレクト数",
+          "max_redirects_description": "フォローするリダイレクトの最大数（0-30）。0に設定するとリダイレクトを無効にします。",
+          "title": "高度な"
+        },
+        "authentication": {
+          "auth_header": "認証ヘッダー",
+          "certificate": "証明書",
+          "certificate_placeholder": "証明書",
+          "client_id": "クライアントID",
+          "client_id_placeholder": "クライアント ID",
+          "client_secret": "クライアントシークレット",
+          "client_secret_placeholder": "クライアントシークレット",
+          "domain": "ドメイン",
+          "domain_placeholder": "ドメイン",
+          "form_data_body": "フォームデータ本体",
+          "key": "キー",
+          "key_placeholder": "キー",
+          "method_label": "認証方式",
+          "method_placeholder": "認証タイプを選択",
+          "oauth_scope": "OAuth スコープ",
+          "oauth_scope_placeholder": "オプション: スペースで区切ったスコープの一覧",
+          "oauth_token_url": "OAuth トークン URL",
+          "oauth_token_url_placeholder": "OAuthトークンURL",
+          "title": "認証",
+          "workstation": "ワークステーション",
+          "workstation_placeholder": "ワークステーション"
+        },
+        "options": {
+          "body": "本文",
+          "body_encoding": "本文エンコード",
+          "body_encoding_placeholder": "ボディエンコーディングを選択",
+          "form_example": "サンプルフォームデータ",
+          "headers": "ヘッダー",
+          "json_example": "JSON例",
+          "method": "メソッド",
+          "method_placeholder": "モニタタイプを選択",
+          "select_encoding": "ボディエンコーディングを選択",
+          "select_method": "メソッドを選択",
+          "text_example": "サンプルテキスト:\nここに任意のプレーンテキスト内容を入力してください...",
+          "title": "HTTPオプション",
+          "xml_example": "XMLサンプル"
+        }
+      },
+      "http_json_query": {
+        "condition_label": "条件",
+        "expected_value_label": "期待値",
+        "json_query_label": "JSONクエリ式",
+        "title": "JSONクエリ式"
+      },
+      "http_keyword": {
+        "invert_keyword_description": "キーワードが存在しないことを探す（存在するよりも）",
+        "invert_keyword_label": "キーワードを反転",
+        "keyword_label": "キーワード",
+        "keyword_validation_title": "キーワード検証"
+      },
+      "kafka": {
+        "add_broker": "ブローカーを追加",
+        "auto_topic_creation_description": "存在しない場合にプロデューサーが自動でトピックを作成できるようにする",
+        "auto_topic_creation_label": "自動トピック作成を許可",
+        "brokers_description": "Kafkaブローカーアドレスの一覧（ホスト:ポート形式）",
+        "brokers_label": "Kafkaブローカー",
+        "configuration_title": "Kafka設定",
+        "enable_ssl_description": "接続にSSL/TLS暗号化を使用する",
+        "enable_ssl_label": "SSL/TLSを有効化",
+        "message_description": "トピックに送信するメッセージ内容（JSON形式を推奨）",
+        "message_label": "メッセージ",
+        "sasl_mechanism_description": "SASL 認証メカニズムを選択",
+        "sasl_mechanism_label": "SASL メカニズム",
+        "sasl_mechanism_placeholder": "SASL メカニズムを選択",
+        "sasl_password_description": "SASL 認証用パスワード",
+        "sasl_password_label": "SASL パスワード",
+        "sasl_password_placeholder": "パスワード",
+        "sasl_username_description": "SASL認証のユーザー名",
+        "sasl_username_label": "SASL ユーザー名",
+        "security_title": "セキュリティ",
+        "topic_description": "メッセージを送信する Kafka トピック"
+      },
+      "mongodb": {
+        "command_description": "MongoDB コマンドを JSON 形式で実行します。指定がない場合はデフォルトで ping が使用されます。",
+        "command_label": "コマンド（任意）",
+        "configuration_title": "MongoDB設定",
+        "connection_string_description": "MongoDB 接続文字列。標準形式 (mongodb://) と DNS シードリスト形式 (mongodb+srv://) の両方をサポートします。",
+        "connection_string_label": "接続文字列",
+        "expected_value_description": "JSON パスの結果と比較するための期待値",
+        "expected_value_label": "期待値（任意）",
+        "expected_value_placeholder": "期待値",
+        "json_path_description": "レスポンスから値を抽出するためのJSONパス。ルートレベルには$を使用してください。",
+        "json_path_label": "JSON Path（任意）"
+      },
+      "mqtt": {
+        "check_type_json_query": "JSON クエリ",
+        "check_type_keyword": "キーワード",
+        "check_type_label": "MQTT チェックタイプ",
+        "check_type_none": "なし (任意のメッセージ)",
+        "check_type_placeholder": "チェックタイプを選択",
+        "configuration_title": "MQTT設定",
+        "expected_value_label": "期待値",
+        "hostname_label": "ホスト名",
+        "json_path_label": "JSONパス",
+        "password_label": "MQTTパスワード",
+        "password_placeholder": "パスワード（任意）",
+        "port_label": "ポート",
+        "success_keyword_label": "MQTT 成功キーワード",
+        "success_keyword_placeholder": "成功を示すキーワード",
+        "username_label": "MQTT ユーザー名",
+        "username_placeholder": "ユーザー名（任意）",
+        "validation": {
+          "expected_value_required": "チェックタイプが json-query の場合、期待値は必須です",
+          "json_path_required": "チェックタイプが json-query の場合、JSON パスは必須です。",
+          "success_keyword_required": "チェックタイプがキーワードの場合、成功キーワードは必須です"
+        }
+      },
+      "mysql": {
+        "connection_string_examples": "例:",
+        "connection_string_label": "接続文字列",
+        "connection_title": "MySQL 接続",
+        "query_label": "クエリ"
+      },
+      "ping": {
+        "data_size": "データサイズ（バイト）",
+        "host": "ホスト名 / IP",
+        "title": "Ping 設定"
+      },
+      "postgres": {
+        "connection_string_label": "接続文字列",
+        "connection_title": "PostgreSQL 接続",
+        "query_label": "クエリ"
+      },
+      "push": {
+        "url_description": "サービスでステータスを報告するためにこの URL を使用してください。このエンドポイントに対して HTTP リクエスト（POST/GET）を送信し、ハートビートを送信します。",
+        "url_title": "プッシュモニタURL"
+      },
+      "rabbitmq": {
+        "documentation_link": "RabbitMQ ドキュメント",
+        "health_checks_description": "モニターは各ノードの {{code}} エンドポイントをチェックし、いずれかのノードが正常であれば UP を返します。",
+        "management_nodes_description": "RabbitMQ管理ノードのURL（プロトコルとポートを含む）を入力してください。例： https://node1.rabbitmq.com:15672",
+        "management_nodes_title": "管理ノード",
+        "node_url_label": "ノードURL",
+        "password_description": "RabbitMQ 管理インターフェース認証用パスワード",
+        "setup_information_description": "RabbitMQ モニターを使用するには、RabbitMQ の設定で Management プラグインを有効にする必要があります。詳細については、RabbitMQ ドキュメントをご参照ください。",
+        "setup_information_title": "設定情報",
+        "title": "RabbitMQ設定",
+        "username_description": "RabbitMQ 管理インターフェース認証用ユーザー名"
+      },
+      "redis": {
+        "ca_certificate_description": "PEM形式のルートCA証明書。自己署名証明書に対する正確なTLS検証には必須です。",
+        "ca_certificate_label": "CA証明書（任意）",
+        "client_certificate_description": "PEM形式のクライアント証明書。相互TLS認証に必要です。",
+        "client_certificate_label": "クライアント証明書（オプション）",
+        "client_key_description": "PEM形式のクライアント秘密鍵。クライアント証明書と共に指定する必要があります。",
+        "client_key_label": "クライアント秘密鍵（任意）",
+        "connection_string_description": "Redis 接続文字列形式: {{redis}} または TLS 用の {{rediss}}",
+        "connection_string_label": "接続文字列",
+        "ignore_tls_description": "TLS証明書検証をスキップ（本番環境では推奨されません）",
+        "ignore_tls_label": "TLS/SSL エラーを無視",
+        "title": "Redis設定"
+      },
+      "shared": {
+        "intervals": {
+          "heartbeat_retry": "ハートビートリトライ間隔（{{seconds}} 秒ごとにリトライ）",
+          "max_retries_description": "サービスが停止とみなされ、通知が送信されるまでの最大再試行回数",
+          "request_timeout": "リクエストタイムアウト（{{seconds}} 秒後にタイムアウト）",
+          "resend_notification": "ダウンがX回連続した場合に再送通知（再送無効）"
+        },
+        "notifications": {
+          "add_notifier": "通知を追加",
+          "new_notifier": "+ 新しい通知先",
+          "no_channels": "通知チャネルが見つかりません。まずは作成してください。",
+          "no_channels_available": "使用可能なチャンネルがありません",
+          "select_channel": "チャンネルを選択",
+          "select_notifier_placeholder": "通知者を選択",
+          "selected_channels": "選択済み通知チャネル",
+          "title": "通知チャンネル"
+        },
+        "proxy": {
+          "add_proxy": "プロキシを追加",
+          "new_proxy": "+ 新しいプロキシ",
+          "no_proxy": "プロキシなし",
+          "remove_proxy": "プロキシを削除",
+          "select_proxy_placeholder": "プロキシを選択",
+          "selected_proxy": "選択済みプロキシ",
+          "title": "プロキシ"
+        },
+        "tags": {
+          "label": "タグ",
+          "no_tags": "タグがありません",
+          "placeholder": "タグを選択"
+        }
+      },
+      "snmp": {
+        "community_description": "認証に使用する SNMP コミュニティ文字列（パスワードのようなもの）",
+        "community_label": "コミュニティ文字列",
+        "expected_value_description": "比較対象となる値です。空欄にすると検証をスキップします。",
+        "expected_value_label": "期待値",
+        "host_description": "SNMP 対応デバイスのホスト名または IP アドレス",
+        "host_label": "ホスト",
+        "json_path_description": "レスポンスから値を抽出するJSONPath式（生の値を取得するには「$」を使用してください）",
+        "json_path_label": "JSONパス",
+        "json_path_operator_description": "抽出値を期待値と比較する方法",
+        "json_path_operator_eq": "等しい",
+        "json_path_operator_ge": "以上",
+        "json_path_operator_gt": "より大きい",
+        "json_path_operator_label": "条件",
+        "json_path_operator_le": "以下",
+        "json_path_operator_lt": "未満",
+        "json_path_operator_ne": "等しくない",
+        "oid_description": "クエリ対象の SNMP オブジェクト識別子 (例: システム説明の 1.3.6.1.2.1.1.1.0)",
+        "oid_label": "OID（オブジェクト識別子）",
+        "port_description": "SNMP ポート（デフォルト: 161）",
+        "port_label": "ポート",
+        "snmp_version_description": "使用する SNMP プロトコルのバージョン",
+        "snmp_version_label": "SNMP バージョン",
+        "title": "SNMP設定",
+        "value_validation_label": "値検証（任意）"
+      },
+      "sqlserver": {
+        "allowed_statements_description": "SELECT、SHOW、DESCRIBE、EXPLAIN、WITH、および VALUES。",
+        "allowed_statements_label": "許可されたステートメント:",
+        "connection_string_label": "接続文字列",
+        "query_description": "ヘルスチェック用に実行するクエリ。空欄にするとデフォルトが使用されます。",
+        "query_label": "クエリ",
+        "title": "Microsoft SQL Server 接続"
+      },
+      "tcp": {
+        "host": "ホスト",
+        "port": "ポート",
+        "title": "TCP接続"
+      },
+      "type": {
+        "dns": "DNSモニター",
+        "docker": "Docker コンテナ",
+        "grpc": "gRPC キーワードモニター",
+        "http": "HTTP(S) 監視",
+        "kafka": "Kafkaプロデューサー監視",
+        "mongodb": "MongoDB データベースモニター",
+        "mqtt": "MQTTブローカー監視",
+        "mysql": "MySQL/MariaDB 監視",
+        "ping": "Pingモニター（ICMP）",
+        "postgres": "PostgreSQL データベースモニター",
+        "push": "プッシュモニター（外部サービスが生成されたURLを呼び出す）",
+        "rabbitmq": "RabbitMQモニター",
+        "redis": "Redis データベース監視",
+        "snmp": "SNMP監視",
+        "sqlserver": "Microsoft SQL Server 監視",
+        "tcp": "TCPポートモニター"
+      }
+    },
+    "page": {
+      "description": "新しいモニターを作成して、ウェブサイトのパフォーマンスを追跡しましょう。",
+      "edit_title": "モニター編集:",
+      "new_title": "新しいモニター"
+    },
+    "title": "モニター",
+    "toasts": {
+      "deleted": "モニターを削除しました",
+      "paused": "監視停止",
+      "reset_success": "モニターデータを正常にリセットしました",
+      "resumed": "監視が再開されました"
+    },
+    "view": {
+      "buttons": {
+        "clone": "複製",
+        "delete": "削除",
+        "edit": "編集",
+        "pause": "一時停止",
+        "reset_data": "データをリセット",
+        "resume": "再開"
+      },
+      "certificate": "証明書",
+      "check_every": "チェック間隔",
+      "current_status": "現在のステータス",
+      "dialogs": {
+        "delete": {
+          "description": "この操作は元に戻せません。モニターと関連データは完全に削除されます。",
+          "title": "本当に合っているのですか？"
+        },
+        "pause": {
+          "description": "本当に一時停止してもよろしいですか？",
+          "title": "確認"
+        },
+        "reset": {
+          "description": "この操作は、このモニターのすべてのハートビート履歴と稼働時間統計を完全に削除します。モニターは新規作成されたかのように表示されます。この操作は取り消せません。",
+          "title": "監視データをリセット"
+        }
+      },
+      "expiring_soon": "まもなく期限切れ",
+      "for": "対象",
+      "live_status": "ライブステータス",
+      "monitor_for": "監視対象",
+      "no_certificate_data": "証明書データなし",
+      "seconds": "秒",
+      "stats": {
+        "last_24_hours": "過去 24 時間",
+        "last_30_days": "過去30日",
+        "last_365_days": "過去 365 日",
+        "last_7_days": "過去7日間"
+      },
+      "status": {
+        "down": "停止",
+        "maintenance": "メンテナンス",
+        "paused": "停止中",
+        "up": "稼働中"
+      }
+    }
+  },
+  "navigation": {
+    "maintenance": "メンテナンス",
+    "monitors": "モニター",
+    "notification_channels": "通知チャネル",
+    "proxies": "プロキシ",
+    "settings": "設定",
+    "status_pages": "ステータスページ",
+    "tags": "タグ"
+  },
+  "notifications": {
+    "actions": {
+      "test": "テスト",
+      "testing": "テスト中…"
+    },
+    "aria": {
+      "delete": "削除 {{name}}"
+    },
+    "confirm_delete_description": "この操作は取り消せません。通知者 \"{{name}}\" を完全に削除し、それを利用しているすべての監視からも削除します。",
+    "create_title": "Notifierを作成",
+    "edit_channel_title": "通知チャンネルを編集",
+    "edit_title": "通知者を編集",
+    "empty_state": {
+      "action": "最初の通知チャンネルを作成",
+      "description": "まずは最初の通知チャンネルを作成して、チームにアラートを送信しましょう。",
+      "title": "通知チャンネルが見つかりません"
+    },
+    "form": {
+      "discord": {
+        "bot_display_name_description": "Discordメッセージの送信者として表示される名前です。",
+        "bot_display_name_label": "ボット表示名",
+        "custom_message_prefix_description": "すべてのメッセージの先頭に追加される任意の接頭辞。",
+        "custom_message_prefix_label": "カスタムメッセージ接頭辞",
+        "custom_message_prefix_placeholder": "任意：メッセージにプレフィックスを追加",
+        "forum_post_name_description": "新しく作成されるフォーラム投稿の名前です。",
+        "forum_post_name_label": "フォーラム投稿名",
+        "forum_post_name_placeholder": "フォーラム投稿名を入力",
+        "sending_message_to_channel": "チャンネルに送信",
+        "sending_message_to_description": "Discordメッセージの送信先を選択してください。",
+        "sending_message_to_label": "メッセージ送信先",
+        "sending_message_to_new_forum_post": "新しいフォーラム投稿へ送信",
+        "sending_message_to_placeholder": "メッセージタイプを選択",
+        "sending_message_to_thread": "スレッドに送信",
+        "setup_webhook_description_1": "Discordのサーバー設定 → インテグレーション → ウェブフックからWebhook URLを取得してください。",
+        "setup_webhook_description_2": "Webhookを新規作成し、URLをコピーしてください。正しいチャンネルを選択していることをご確認ください。",
+        "setup_webhook_title": "Discord Webhook を設定",
+        "thread_id_description_1": "Discordのユーザー設定 → 高度設定 → デベロッパーモードを有効にする",
+        "thread_id_description_2": "スレッドまたは投稿を右クリックし、「スレッド ID をコピー」または「チャンネル ID をコピー」を選択してください。",
+        "thread_id_description_title": "メッセージが送信されるスレッドまたはフォーラム投稿のID",
+        "thread_id_label": "スレッドID",
+        "thread_id_placeholder": "スレッドまたは投稿IDを入力",
+        "webhook_url_label": "Discord ウェブフック URL"
+      },
+      "google_chat": {
+        "more_info_about_webhooks": "Webhooks の詳細情報",
+        "webhook_url_label": "Google Chat ウェブフック URL"
+      },
+      "gotify": {
+        "application_token_description": "Gotify アプリケーションのアプリケーション・トークンです。Gotify のウェブインターフェースの「Apps」セクションで確認できます。",
+        "application_token_label": "アプリケーション・トークン",
+        "custom_message_description": "カスタムメッセージテンプレート。利用可能な変数",
+        "custom_message_description_2": "空欄のままにすると、デフォルトのメッセージが使用されます。",
+        "custom_message_label": "カスタムメッセージ",
+        "custom_title_description": "通知のカスタムタイトル。利用可能な変数: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}。空欄にすると、デフォルトの「Peekaping」タイトルが使用されます。",
+        "custom_title_label": "カスタムタイトル",
+        "learn_more_label": "Gotify と設定方法についてはこちら:",
+        "note_description": "この統合を利用するには、Gotifyサーバーが稼働している必要があります。",
+        "note_label": "備考:",
+        "priority_0": "最低",
+        "priority_1": "非常に低い",
+        "priority_10": "最高",
+        "priority_2": "低",
+        "priority_3": "標準以下",
+        "priority_4": "通常",
+        "priority_5": "通常より上",
+        "priority_6": "中程度",
+        "priority_7": "高",
+        "priority_8": "非常に高い（デフォルト）",
+        "priority_9": "緊急",
+        "priority_description": "メッセージ優先度（0-10）。数値が大きいほど優先度が高くなります。デフォルトは8です。",
+        "priority_label": "優先度",
+        "priority_placeholder": "優先度を選択",
+        "server_url_description": "GotifyサーバーのURLです。このアプリケーションからアクセスできることを確認してください。",
+        "server_url_label": "サーバーURL"
+      },
+      "grafana_oncall": {
+        "grafana_oncall_url_description": "Grafana OnCall 統合から取得した Webhook URL。Grafana OnCall インスタンスの「Alerts & IRM」>「IRM」>「Integrations」>「Webhook」で確認できます。",
+        "grafana_oncall_url_label": "Grafana オンコール URL",
+        "learn_more_label": "Grafana OnCall Webhooks の詳細を確認"
+      },
+      "line": {
+        "channel_access_token_description": "チャンネルアクセストークンは、以下から取得できます",
+        "channel_access_token_description_2": "チャンネル設定へ移動し、",
+        "channel_access_token_label": "チャネルアクセストークン（長期有効）",
+        "channel_access_token_placeholder": "LINE チャンネルアクセストークンを入力してください",
+        "template_description": "メッセージ形式をカスタマイズ。利用可能な変数",
+        "template_label": "メッセージテンプレート",
+        "template_placeholder": "カスタムメッセージテンプレートを入力してください",
+        "user_id_description": "ユーザーIDは次の場所で確認できます",
+        "user_id_description_2": "チャンネル設定へ移動して、探してください",
+        "user_id_label": "ユーザーID",
+        "user_id_placeholder": "LINEユーザーIDを入力してください"
+      },
+      "matrix": {
+        "access_token_description": "認証に使用するMatrixアクセストークン",
+        "access_token_label": "アクセストークン",
+        "custom_message_description": "カスタムメッセージテンプレート。使用可能な変数",
+        "custom_message_label": "カスタムメッセージ",
+        "homeserver_url_description": "Matrix ホームサーバーのURL",
+        "homeserver_url_label": "ホームサーバーURL",
+        "internal_room_id_description": "通知が送信される内部ルームIDです。これは「!」で始まり、次のような形式になります: !roomid:matrix.org",
+        "internal_room_id_label": "内部ルームID",
+        "setup_instructions_1": "ボット用のMatrixアカウントを作成する（または既存のアカウントを使用する）",
+        "setup_instructions_2": "通知を受け取りたいルームを作成するか、参加してください",
+        "setup_instructions_3": "ログインリクエストでアクセストークンを取得",
+        "setup_instructions_4": "レスポンスに access_token フィールドが含まれます。この値をアクセストークンとして使用してください",
+        "setup_instructions_5": "Matrix クライアントのルーム設定で、内部 ID（「!」で始まります）を探してください",
+        "setup_instructions_label": "セットアップ手順"
+      },
+      "mattermost": {
+        "channel_name_description": "通知を送信するチャンネルを指定します。空白のままにすると、Webhook で設定されたデフォルトのチャンネルが使用されます。",
+        "channel_name_label": "チャンネル名",
+        "icon_emoji_cheat_sheet_label": "絵文字チートシート",
+        "icon_emoji_description": "アイコンとして使用する絵文字。スペースで区切った2つの絵文字を指定できます（最初の絵文字は稼働状態、2番目は停止状態）。",
+        "icon_emoji_label": "アイコン絵文字",
+        "icon_url_description": "通知メッセージのアイコンに使用する画像URL。",
+        "icon_url_label": "アイコンURL",
+        "learn_more_label": "Webhook の詳細を確認",
+        "message_template_description": "メッセージ形式をカスタマイズします。利用可能な変数",
+        "message_template_label": "メッセージテンプレート",
+        "use_message_template_description": "カスタムメッセージテンプレートとフォーマットを有効にする",
+        "use_message_template_label": "メッセージテンプレートを使用",
+        "username_description": "メッセージ送信者として表示されるユーザー名。",
+        "webhook_url_label": "Webhook URL（ウェブフックURL）"
+      },
+      "ntfy": {
+        "authentication_type_basic": "ベーシック認証",
+        "authentication_type_basic_description": "基本認証にはユーザー名とパスワードを使用してください。",
+        "authentication_type_label": "認証タイプ",
+        "authentication_type_none": "認証なし",
+        "authentication_type_none_description": "認証不要。公開 NTFY サーバーに最適です。",
+        "authentication_type_placeholder": "認証タイプを選択",
+        "authentication_type_token": "トークン認証",
+        "authentication_type_token_description": "認証にアクセストークンを使用してください。",
+        "custom_message_description": "カスタムメッセージ内容。利用可能な変数",
+        "custom_message_label": "カスタムメッセージ",
+        "password_required": "基本認証にはパスワードが必須です",
+        "priority_1": "最小（最低）",
+        "priority_2": "低",
+        "priority_3": "デフォルト",
+        "priority_4": "高",
+        "priority_5": "緊急（最高）",
+        "priority_description": "通知の優先度です。優先度が高いとクライアントで異なる動作がトリガーされる場合があります。",
+        "priority_label": "優先度",
+        "priority_placeholder": "優先度を選択",
+        "server_url_description": "NTFYサーバーの URL。公開インスタンスには https://ntfy.sh をご利用ください。",
+        "server_url_label": "サーバーURL",
+        "tags_description": "通知をカテゴリ分けするためのカンマ区切りタグ。利用可能な変数",
+        "tags_label": "タグ",
+        "title_description": "通知のカスタムタイトル。利用可能な変数",
+        "title_label": "カスタムタイトル",
+        "token_description": "認証に使用するNTFYアクセス・トークンです。",
+        "token_label": "アクセストークン",
+        "token_required": "トークン認証にはトークンが必要です",
+        "topic_description": "通知のトピック名です。通知はこのチャンネルに送信されます。",
+        "topic_label": "トピック",
+        "username_required": "ベーシック認証にはユーザー名が必要です"
+      },
+      "opsgenie": {
+        "api_key_label": "API キー",
+        "more_info_about_api_keys_label": "API キーに関する詳細情報",
+        "priority_1": "重大",
+        "priority_2": "高",
+        "priority_3": "中程度",
+        "priority_4": "低",
+        "priority_5": "情報",
+        "priority_description": "アラートの優先度を設定します。デフォルトは P3（中程度）です。",
+        "priority_label": "優先度",
+        "region_description": "Opsgenie のリージョンを選択してください。これにより、使用される API エンドポイントが決定します。",
+        "region_label": "リージョン",
+        "region_placeholder": "リージョンを選択"
+      },
+      "pagerduty": {
+        "auto_resolve_acknowledge": "自動承認",
+        "auto_resolve_acknowledge_description": "インシデントを自動的に確認する",
+        "auto_resolve_description": "モニターが復旧したときに取るアクションを選択してください",
+        "auto_resolve_do_nothing": "何もしない",
+        "auto_resolve_do_nothing_description": "UPステータスに対しては何も行いません",
+        "auto_resolve_label": "自動で解決または確認",
+        "auto_resolve_placeholder": "自動解決の動作を選択",
+        "auto_resolve_resolve": "自動解決",
+        "auto_resolve_resolve_description": "インシデントを自動的に解決",
+        "integration_key_description": "統合キーの取得方法を学ぶ",
+        "integration_key_label": "統合キー",
+        "integration_key_placeholder": "PagerDuty の統合キーを入力してください",
+        "integration_url_description": "PagerDuty Events API v2 エンドポイントURL。デフォルトでは標準エンドポイントが設定されています。",
+        "integration_url_label": "統合 URL",
+        "learn_more_label": "PagerDuty ドキュメント",
+        "priority_critical": "クリティカル",
+        "priority_description": "PagerDuty インシデントの重大度レベル。デフォルトは「warning」です。",
+        "priority_error": "エラー",
+        "priority_info": "情報",
+        "priority_label": "優先度",
+        "priority_placeholder": "優先度を選択",
+        "priority_warning": "警告"
+      },
+      "pagertree": {
+        "authentication_token_description": "高度なセキュリティのための任意の認証トークン。これは pagertree-token ヘッダーに送信されます。",
+        "authentication_token_label": "認証トークン（任意）",
+        "authentication_token_placeholder": "必要な場合は認証トークンを入力してください",
+        "auto_resolve_alerts_description": "モニターが回復したときにPagerTreeアラートを自動的に解消する",
+        "auto_resolve_alerts_label": "自動でアラートを解決",
+        "how_to_get_integration_url_label": "統合URLの取得方法",
+        "integration_url_description": "PagerTree ウェブフック統合 URL を入力してください。",
+        "integration_url_label": "PagerTree ウェブフックURL",
+        "urgency_level_critical": "重大",
+        "urgency_level_description": "PagerTreeに送信されるアラートのデフォルト緊急度レベルを設定",
+        "urgency_level_high": "高",
+        "urgency_level_label": "緊急度",
+        "urgency_level_low": "低",
+        "urgency_level_medium": "中",
+        "urgency_level_placeholder": "緊急度を選択",
+        "urgency_level_silent": "サイレント"
+      },
+      "pushbullet": {
+        "access_token": "アクセストークン",
+        "access_token_description": "Pushbullet のアクセストークン。取得方法はこちらから",
+        "access_token_label": "アクセストークン",
+        "access_token_link": "Pushbullet 設定",
+        "channel_tag": "チャンネルタグ（任意）",
+        "channel_tag_description": "デバイスの代わりに Pushbullet チャンネルに通知を送信",
+        "channel_tag_label": "チャンネルタグ（オプション）",
+        "custom_message_template": "",
+        "custom_message_template_description": "テンプレート変数を使用して通知本文をカスタマイズ:",
+        "custom_message_template_heartbeat_ping": "応答時間",
+        "custom_message_template_heartbeat_time": "タイムスタンプ",
+        "custom_message_template_label": "カスタムメッセージテンプレート（オプション）",
+        "custom_message_template_monitor_url": "監視URL",
+        "custom_message_template_msg": "アラートメッセージ",
+        "custom_message_template_name": "監視名",
+        "custom_message_template_placeholder": "モニター: {{ name }}\nステータス: {{ status }}\nメッセージ: {{ msg }}",
+        "custom_message_template_status": "現在のステータス",
+        "device_id": "デバイスID（任意）",
+        "device_id_description": "特定のデバイスに通知を送信します。空欄にするとすべてのデバイスに送信されます。デバイスIDは次の方法で確認できます",
+        "device_id_label": "デバイスID（任意）",
+        "device_id_link": "Pushbullet API",
+        "more_info_on": "詳細情報:"
+      },
+      "pushover": {
+        "application_token_label": "アプリケーショントークン",
+        "application_token_placeholder": "Pushover アプリケーション・トークンを入力してください",
+        "device_description": "全デバイスに送るには空欄にしてください",
+        "device_label": "デバイス",
+        "device_placeholder": "デバイス名（任意）",
+        "message_title_description": "空欄にするとデフォルトタイトルが使用されます",
+        "message_title_label": "メッセージタイトル",
+        "message_title_placeholder": "カスタムメッセージタイトル（任意）",
+        "message_ttl_description": "TTL（秒）(0 = 無期限)",
+        "message_ttl_label": "メッセージTTL",
+        "more_info_label": "詳細情報:",
+        "more_info_label_2": "アプリケーションを作成し、APIトークンを取得するには",
+        "more_info_label_3": "ユーザーキーは以下から確認できます",
+        "notification_sound_down_description": "モニターがダウンしたときのサウンド",
+        "notification_sound_down_label": "ダウン時の通知音",
+        "notification_sound_down_placeholder": "サウンドを選択",
+        "notification_sound_up_description": "監視対象が復旧したときのサウンド",
+        "notification_sound_up_label": "通知音 - 稼働",
+        "notification_sound_up_placeholder": "音を選択",
+        "priority_1": "最低",
+        "priority_2": "低",
+        "priority_3": "標準",
+        "priority_4": "高",
+        "priority_5": "緊急",
+        "priority_description": "メッセージの優先度",
+        "priority_label": "優先度",
+        "priority_placeholder": "優先度を選択",
+        "sound_alien": "エイリアン",
+        "sound_bike": "バイク",
+        "sound_bugle": "バグル",
+        "sound_cashregister": "レジ",
+        "sound_classical": "クラシック",
+        "sound_climb": "クライム",
+        "sound_cosmic": "コズミック",
+        "sound_echo": "エコー",
+        "sound_falling": "落下",
+        "sound_gamelan": "ガメラン",
+        "sound_incoming": "着信",
+        "sound_intermission": "インターミッション",
+        "sound_magic": "マジック",
+        "sound_mechanical": "機械式",
+        "sound_none": "なし",
+        "sound_persistent": "永続",
+        "sound_pianobar": "ピアノバー",
+        "sound_pushover": "Pushover (デフォルト)",
+        "sound_siren": "サイレン",
+        "sound_spacealarm": "スペースアラーム",
+        "sound_tugboat": "牽引船",
+        "sound_updown": "上昇/下降",
+        "sound_vibrate": "振動",
+        "user_key_label": "ユーザーキー",
+        "user_key_placeholder": "Pushover ユーザーキーを入力してください"
+      },
+      "signal": {
+        "custom_message_description": "カスタムメッセージテンプレート。利用可能な変数",
+        "custom_message_label": "カスタムメッセージ",
+        "important_description": "受信者にはグループと番号を混在させることはできません！",
+        "important_label": "重要：",
+        "more_info_label": "設定方法はこのURLをご確認ください:",
+        "note_description": "Signal の REST API を持つクライアントが必要です。",
+        "note_label": "備考:",
+        "number_description": "Signalアカウントの電話番号（送信者番号）",
+        "number_label": "番号",
+        "post_url_description": "Signal CLI REST API サーバーのURL",
+        "post_url_label": "POST URL",
+        "recipients_description": "通知を送信する電話番号のカンマ区切りリスト。",
+        "recipients_label": "受信者"
+      },
+      "slack": {
+        "channel_name_description": "メッセージが送信されるチャンネルです。指定しない場合、メッセージはWebhookで設定されたデフォルトチャンネルに送信されます。",
+        "channel_name_description_2": "デフォルトのチャンネルは、チャンネル名（例：#alerts）またはユーザー（例：@username）を指定して上書きできます。",
+        "channel_name_label": "チャンネル名",
+        "channel_notify_description": "有効にすると、メッセージがすべてのチャンネルメンバーに通知を送信します。スパムを避けるため、慎重にご利用ください。",
+        "channel_notify_label": "通知チャンネル",
+        "icon_emoji_cheat_sheet_label": "絵文字 チートシート",
+        "icon_emoji_description": "このメッセージのアイコンとして使用する絵文字。フォーマットは :emoji_name: である必要があります。",
+        "icon_emoji_label": "アイコン絵文字",
+        "message_format_description": "リッチメッセージを送信",
+        "message_format_description_2": "リッチなフォーマット、添付ファイル、より良いビジュアル表現を備えたメッセージの送信を有効にします。",
+        "message_format_label": "メッセージ形式",
+        "username_description": "メッセージの送信者として表示されるユーザー名です。指定しない場合は、デフォルトのボット名が使用されます。",
+        "webhook_url_description": "Slack統合のWebhook URLです。Slackのインスタンス内の「Integrations > Webhooks」で確認できます。",
+        "webhook_url_label": "Webhook URL"
+      },
+      "smtp": {
+        "custom_body_label": "カスタム本文",
+        "custom_description": "テンプレート化は <b>Liquid</b> テンプレート言語により実現されます。",
+        "custom_description_2": "使用方法については、ドキュメントをご覧ください。",
+        "custom_description_3": "使用可能な変数:",
+        "custom_description_4": "通知メッセージ",
+        "custom_description_5": "サービス名",
+        "custom_description_6": "サービス状態 (UP/DOWN/証明書有効期限切れ通知)",
+        "custom_subject_label": "カスタム件名",
+        "smtp_from_label": "送信者 (メールアドレス)",
+        "smtp_host_description": "接続したいサーバーのホスト名を入力するか、ローカルに設定したメール転送エージェントを使用する場合は localhost を入力してください",
+        "smtp_host_label": "SMTP ホスト",
+        "smtp_password_placeholder": "SMTP パスワード",
+        "smtp_port_label": "ポート",
+        "smtp_to_label": "宛先（受信者メールアドレス）",
+        "smtp_username_placeholder": "SMTP ユーザー名"
+      },
+      "telegram": {
+        "auto_get_label": "自動取得",
+        "bot_token_description": "ボットトークンを取得するには",
+        "bot_token_label": "ボットトークン",
+        "chat_id_description": "チャットIDは、ボットにメッセージを送信し、上部の「Auto Get」をクリックするか、Telegram APIを使用して手動で取得できます。",
+        "chat_id_description_2": "手動で取得するには、こちらを参照してください",
+        "chat_id_description_3": "確認",
+        "chat_id_description_4": "Telegram ドキュメント",
+        "chat_id_description_5": "詳細情報はこちら。",
+        "chat_id_label": "チャットID",
+        "chat_id_not_found": "最新の更新でチャットIDが見つかりませんでした。",
+        "failed_to_fetch_chat_id": "チャットIDの取得に失敗しました",
+        "message_thread_id_description": "任意。フォーラムスーパグループ内の特定スレッド（トピック）へメッセージを送信するために使用します。",
+        "message_thread_id_label": "メッセージスレッドID",
+        "no_updates_found": "更新が見つかりません。まずはボットにメッセージを送信してください。",
+        "protect_content_description": "有効にすると、メッセージの内容は転送や保存から保護されます。",
+        "protect_content_label": "内容保護",
+        "send_silently_description": "有効にすると、メッセージは無音で送信されます（ユーザーは音のない通知を受け取ります）。",
+        "send_silently_label": "静かに送信",
+        "server_url_description": "デフォルトは",
+        "server_url_description_2": "カスタムサーバーを使用できます。参照してください",
+        "server_url_description_3": "ここ",
+        "server_url_description_4": "詳細はこちら",
+        "server_url_label": "TelegramサーバーURL",
+        "template_description": "メッセージ形式をカスタマイズします。利用可能な変数",
+        "template_label": "メッセージテンプレート",
+        "template_parse_mode_description": "メッセージの解析方法を選択してください。参照",
+        "template_parse_mode_description_2": "Telegram 書式設定ドキュメント",
+        "template_parse_mode_description_3": "詳細について。",
+        "template_parse_mode_label": "テンプレート解析モード",
+        "template_parse_mode_placeholder": "パースモードを選択",
+        "template_placeholder": "カスタムメッセージテンプレートを入力してください",
+        "use_template_description": "カスタムメッセージテンプレートとフォーマットを使用できるようにする。",
+        "use_template_label": "メッセージテンプレートを使用"
+      },
+      "webhook": {
+        "additional_headers_description": "WebhookリクエストにカスタムHTTPヘッダーを追加します。",
+        "additional_headers_label": "追加ヘッダー",
+        "custom_body_description": "リクエスト本文フォーマットをカスタマイズします。利用可能な変数",
+        "custom_body_label": "カスタム本文",
+        "post_url_description": "通知が送信されるWebhookエンドポイントURL",
+        "post_url_label": "送信 URL",
+        "request_body_description_custom": "以下に独自のリクエストボディ形式を定義してください。",
+        "request_body_description_form_data": "コンテンツは multipart/form-data 形式で送信されます。PHP で <strong>json_decode($_POST['data'])</strong> を使用してデコードできます。",
+        "request_body_description_json": "Content は \"application/json\" ヘッダー付きで JSON 形式で送信されます。",
+        "request_body_label": "リクエスト本文",
+        "request_body_placeholder": "コンテンツタイプを選択"
+      }
+    },
+    "important": "重要通知",
+    "important_notifications": "重要な通知",
+    "labels": {
+      "friendly_name": "親しみやすい名前",
+      "type": "通知タイプ"
+    },
+    "messages": {
+      "create_failed": "通知者の作成に失敗しました",
+      "created_success": "Notifier の作成に成功しました",
+      "error_loading_notifier": "Notifierの読み込みに失敗しました",
+      "test_failed": "テスト通知の送信に失敗しました",
+      "test_success": "テスト通知が正常に送信されました",
+      "update_failed": "通知者の更新に失敗しました",
+      "updated_success": "Notifierを正常に更新しました"
+    },
+    "new": {
+      "title": "新しい通知チャネル"
+    },
+    "no_important": "重要な通知はありません。",
+    "placeholders": {
+      "select_type": "通知タイプを選択"
+    },
+    "search_placeholder": "名前で通知チャネルを検索..."
+  },
+  "proxies": {
+    "delete_dialog": {
+      "description": "この操作は元に戻せません。プロキシ {{host}}:{{port}} を完全に削除します。",
+      "title": "本当に削除してもよろしいですか？"
+    },
+    "edit": {
+      "page_name": "プロキシ編集"
+    },
+    "empty_list": {
+      "action_text": "最初のプロキシを作成",
+      "text": "モニターで使用する最初のプロキシを作成して、始めましょう。",
+      "title": "プロキシが見つかりません"
+    },
+    "form": {
+      "auth_label": "プロキシサーバーに認証あり",
+      "port_placeholder": "ポート",
+      "protocol_label": "プロキシプロトコル",
+      "protocol_placeholder": "プロキシプロトコルを選択",
+      "server_label": "プロキシサーバー",
+      "server_placeholder": "サーバーアドレス",
+      "user": "ユーザー"
+    },
+    "messages": {
+      "create_failed": "プロキシの作成に失敗しました",
+      "created_success": "プロキシの作成に成功しました",
+      "error_loading_proxy": "プロキシの読み込みエラー",
+      "update_failed": "プロキシの更新に失敗しました",
+      "updated_success": "プロキシの更新に成功しました"
+    },
+    "new": {
+      "page_name": "新規プロキシ"
+    },
+    "page_name": "プロキシ",
+    "search_label": "検索",
+    "search_placeholder": "ホスト名でプロキシを検索…"
+  },
+  "security": {
+    "enable_2fa": {
+      "form": {
+        "authenticator_code_label": "認証コード",
+        "authenticator_code_placeholder": "6桁のコードを入力してください",
+        "current_password_label": "現在のパスワード",
+        "current_password_placeholder": "現在のパスワードを入力してください",
+        "enable_2fa_button": "2FAを有効にする"
+      },
+      "messages": {
+        "2fa_active": "2FA有効",
+        "2fa_disabled_successfully": "2FA を無効化しました",
+        "2fa_enabled_successfully": "2FA 有効化に成功しました",
+        "account_is_protected_with_2fa": "アカウントは二要素認証で保護されています。",
+        "disable_2fa": "2FAを無効にする",
+        "enter_password_to_disable_2fa": "2FAを無効にするには、パスワードを入力してください",
+        "failed_to_disable_2fa": "2FA の無効化に失敗しました",
+        "failed_to_verify_2fa_code": "2FAコードの確認に失敗しました",
+        "failed_to_verify_password": "パスワードの確認または2FA設定の開始に失敗しました",
+        "have_enabled_2fa": "アカウントで2段階認証（2FA）を有効にしました。これにより、セキュリティがさらに強化されます。",
+        "or_enter_secret_manually": "または、手動でこのシークレットを入力してください",
+        "scan_qr_code_with_authenticator_app": "このQRコードを認証アプリでスキャンしてください",
+        "two_factor_authentication_enabled": "二要素認証有効",
+        "user_email_not_found": "ユーザーのメールアドレスが見つかりません"
+      }
+    },
+    "page_name": "セキュリティ",
+    "update_password": {
+      "form": {
+        "confirm_new_password_label": "新しいパスワードを確認",
+        "confirm_new_password_placeholder": "新しいパスワードを再入力",
+        "new_password_label": "新しいパスワード",
+        "new_password_placeholder": "新しいパスワードを入力",
+        "old_password_label": "旧パスワード",
+        "old_password_placeholder": "現在のパスワードを入力",
+        "update_password_button": "パスワードを更新"
+      },
+      "messages": {
+        "failed_to_update_password": "パスワードの更新に失敗しました",
+        "password_updated_successfully": "パスワードを正常に更新しました"
+      },
+      "title": "パスワードを更新"
+    }
+  },
+  "sendgrid": {
+    "api_key_description": "SendGrid API キー。SendGrid アカウントの設定 → API キーで作成できます。'Mail Send' 権限が付与されていることを確認してください。",
+    "api_key_label": "APIキー",
+    "bcc_email_description": "Bcc 受信者。複数のメールはカンマで区切ってください。",
+    "bcc_email_label": "Bccメール（任意）",
+    "cc_email_description": "CC 受信者。複数のメールアドレスはカンマで区切ってください。",
+    "cc_email_label": "CCメール（任意）",
+    "from_email_description": "送信者のメールアドレスです。SendGrid アカウントで認証済みの送信者である必要があります。",
+    "from_email_label": "送信元メールアドレス",
+    "subject_description": "メール件名。Liquid テンプレートに対応しています。",
+    "subject_label": "カスタム件名（任意）",
+    "subject_variables_label": "利用可能な変数:",
+    "subject_variables_msg": "通知メッセージ",
+    "subject_variables_name": "サービス名",
+    "subject_variables_status": "サービスステータス (UP/DOWN)",
+    "to_email_description": "主受信者のメールアドレス。複数受信者の場合は CC や BCC フィールドを使用してください。",
+    "to_email_label": "宛先メール"
+  },
+  "settings": {
+    "data_retention": {
+      "days_label": "日",
+      "description": "データ保持期間（KEEP_DATA_PERIOD_DAYS）を日数で設定してください。",
+      "title": "データ保存期間"
+    },
+    "timezone": {
+      "description": "アプリ内のすべての時間表示に使用するタイムゾーンを選択してください。",
+      "label": "タイムゾーン",
+      "no_timezone_found": "タイムゾーンが見つかりません。",
+      "search_placeholder": "タイムゾーン検索…",
+      "select_placeholder": "タイムゾーンを選択...",
+      "title": "タイムゾーン"
+    },
+    "validation": {
+      "min_days": "最低1日必要です"
+    }
+  },
+  "status": {
+    "messages": {
+      "all_systems_operational": "すべてのシステムは稼働しています",
+      "down": "停止中",
+      "last_updated": "最終更新",
+      "maintenance": "メンテナンス",
+      "no_monitors_configured": "このステータスページにはモニターが設定されていません。",
+      "operational": "稼働中",
+      "partial_system_outage": "一部システム障害",
+      "powered_by": "提供元",
+      "refresh_in": "リフレッシュまで",
+      "refresh_now": "今すぐ更新",
+      "status_page_not_found": "ステータスページが見つからないか、公開されていません。",
+      "under_maintenance": "メンテナンス中",
+      "unknown": "不明"
+    }
+  },
+  "status_pages": {
+    "affected_monitors": "影響を受けたモニター",
+    "affected_monitors_info": "このメンテナンスで影響を受けるモニターを選択",
+    "auto_refresh_interval": "自動更新間隔（秒）",
+    "basic_information": "基本情報",
+    "create_status_page": "ステータスページを作成",
+    "customization": "カスタマイズ",
+    "delete_dialog": {
+      "description": "「{{title}}」を削除してもよろしいですか？ この操作は取り消せません。",
+      "title": "ステータスページの削除"
+    },
+    "description": "ステータスページの説明を入力",
+    "domain_already_used": "ドメイン {{domain}} は既に別のステータスページで使用されています。",
+    "domain_host_warning": "このドメインは現在のホストURLと同じです。これにより競合が発生する可能性があります。",
+    "domains": "ドメイン",
+    "domains_info_warning": "各ドメインのCNAMEレコードをDNSに追加するのをお忘れなく。",
+    "draft_status": "ドラフト",
+    "edit_page_name": "ステータスページを編集",
+    "messages": {
+      "create_description": "サービスのステータスをユーザーに共有するために、新しいステータスページを作成してください。",
+      "create_your_first_status_page": "最初のステータスページを作成",
+      "created_successfully": "ステータスページを正常に作成しました",
+      "delete_failed": "ステータスページの削除に失敗しました",
+      "deleted_successfully": "ステータスページを正常に削除しました",
+      "get_started_by_creating_your_first_status_page": "最初のステータスページを作成して始めましょう。",
+      "no_status_pages_found": "ステータスページが見つかりません",
+      "not_found": "ステータスページが見つかりません",
+      "update_description": "ステータスページの設定と構成を更新する",
+      "updated_successfully": "ステータスページを正常に更新しました"
+    },
+    "new_page_name": "新規ステータスページ",
+    "page_name": "ステータスページ",
+    "published": "公開済み",
+    "published_info": "このステータスページを公開する",
+    "published_status": "公開済み",
+    "search_label": "検索",
+    "search_placeholder": "タイトルでステータスページを検索…",
+    "update_status_page": "ステータスページを更新",
+    "view_page": "ページを表示"
+  },
+  "tags": {
+    "confirm_delete_description": "この操作は元に戻せません。タグ「{{name}}」を永久に削除し、すべてのモニターからも削除されます。",
+    "edit_page_name": "タグ編集",
+    "empty_state": {
+      "action": "最初のタグを作成",
+      "description": "モニターを整理するために、最初のタグを作成して始めましょう。",
+      "title": "タグが見つかりません"
+    },
+    "form": {
+      "color_description": "タグの色を選択してください",
+      "color_label": "色",
+      "create_button": "タグを作成",
+      "description_label": "説明",
+      "description_placeholder": "タグの説明を入力（任意）",
+      "name_label": "名前",
+      "name_placeholder": "タグ名を入力",
+      "update_button": "タグを更新"
+    },
+    "messages": {
+      "create_description": "モニターを整理・分類するための新しいタグを作成します。",
+      "failed_to_load_tag": "タグの読み込みに失敗しました。タグが存在しないか、閲覧権限がない可能性があります。",
+      "tag_id_required": "タグIDは必須です",
+      "update_description": "タグの詳細を更新して、モニターをより整理しましょう。"
+    },
+    "new_page_name": "新しいタグ",
+    "search_placeholder": "タグを検索…"
+  },
+  "theme": {
+    "dark": "ダーク",
+    "light": "ライト",
+    "system": "システム",
+    "toggle_theme": "テーマを切り替える"
+  },
+  "timezone": {
+    "average": "平均",
+    "last_24_hours": "過去24時間",
+    "last_3_hours": "過去 3 時間",
+    "last_3_months": "直近3か月",
+    "last_30_minutes": "過去30分",
+    "last_6_hours": "直近6時間",
+    "last_7_days": "過去7日間",
+    "maximum": "最大",
+    "minimum": "最小",
+    "ms": "ミリ秒",
+    "response_time": "応答時間",
+    "uptime": "稼働時間"
+  },
+  "ui": {
+    "general": "一般",
+    "intervals_retries": "インターバル、リトライ、タイムアウト"
+  }
+}
