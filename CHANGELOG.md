@@ -16,10 +16,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.0.39] - 2025-09-08
 
 ### Added
+- Chinese translation (thanks @MciG-ggg)
+- General translations support (thanks @0xfurai)
+-  LINE messaging channel for notifications (thanks @KarinaOliinyk)
+- Keyword and JSON-over-HTTP support (thanks @0xfurai)
 
 ### Changed
+- Domains are now unique across all status pages (thanks @sergeykobylchenko)
 
 ### Fixed
+- Heartbeat retry interval labels now correctly show actual form values instead of the hardcoded 60/48 seconds (thanks @JustAnotherDevGuy)
 
 ## [0.0.38] - 2025-08-29
 
