@@ -85,7 +85,10 @@ const BasicAuth = () => {
           <FormItem>
             <FormLabel>{t("forms.labels.password")}</FormLabel>
             <FormControl>
-              <Input placeholder={t("forms.labels.password")} {...field} />
+              <PasswordInput
+                {...field}
+                placeholder={t("forms.labels.password")}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -106,11 +109,17 @@ const OAuth2 = () => {
         name="authentication.oauth_auth_method"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>{t("monitors.form.http.authentication.method_label")}</FormLabel>
+            <FormLabel>
+              {t("monitors.form.http.authentication.method_label")}
+            </FormLabel>
             <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder={t("monitors.form.http.authentication.method_placeholder")} />
+                  <SelectValue
+                    placeholder={t(
+                      "monitors.form.http.authentication.method_placeholder"
+                    )}
+                  />
                 </SelectTrigger>
               </FormControl>
 
@@ -136,9 +145,16 @@ const OAuth2 = () => {
         name="authentication.oauth_token_url"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>{t("monitors.form.http.authentication.oauth_token_url")}</FormLabel>
+            <FormLabel>
+              {t("monitors.form.http.authentication.oauth_token_url")}
+            </FormLabel>
             <FormControl>
-              <Input placeholder={t("monitors.form.http.authentication.oauth_token_url_placeholder")} {...field} />
+              <Input
+                placeholder={t(
+                  "monitors.form.http.authentication.oauth_token_url_placeholder"
+                )}
+                {...field}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -150,9 +166,16 @@ const OAuth2 = () => {
         name="authentication.oauth_client_id"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>{t("monitors.form.http.authentication.client_id")}</FormLabel>
+            <FormLabel>
+              {t("monitors.form.http.authentication.client_id")}
+            </FormLabel>
             <FormControl>
-              <Input placeholder={t("monitors.form.http.authentication.client_id_placeholder")} {...field} />
+              <Input
+                placeholder={t(
+                  "monitors.form.http.authentication.client_id_placeholder"
+                )}
+                {...field}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -164,9 +187,16 @@ const OAuth2 = () => {
         name="authentication.oauth_client_secret"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>{t("monitors.form.http.authentication.client_secret")}</FormLabel>
+            <FormLabel>
+              {t("monitors.form.http.authentication.client_secret")}
+            </FormLabel>
             <FormControl>
-              <PasswordInput {...field} placeholder={t("monitors.form.http.authentication.client_secret_placeholder")} />
+              <PasswordInput
+                {...field}
+                placeholder={t(
+                  "monitors.form.http.authentication.client_secret_placeholder"
+                )}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -178,10 +208,14 @@ const OAuth2 = () => {
         name="authentication.oauth_scopes"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>{t("monitors.form.http.authentication.oauth_scope")}</FormLabel>
+            <FormLabel>
+              {t("monitors.form.http.authentication.oauth_scope")}
+            </FormLabel>
             <FormControl>
               <Input
-                placeholder={t("monitors.form.http.authentication.oauth_scope_placeholder")}
+                placeholder={t(
+                  "monitors.form.http.authentication.oauth_scope_placeholder"
+                )}
                 {...field}
               />
             </FormControl>
@@ -204,9 +238,16 @@ const NTLM = () => {
         name="authentication.authDomain"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>{t("monitors.form.http.authentication.domain")}</FormLabel>
+            <FormLabel>
+              {t("monitors.form.http.authentication.domain")}
+            </FormLabel>
             <FormControl>
-              <Input placeholder={t("monitors.form.http.authentication.domain_placeholder")} {...field} />
+              <Input
+                placeholder={t(
+                  "monitors.form.http.authentication.domain_placeholder"
+                )}
+                {...field}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -218,9 +259,16 @@ const NTLM = () => {
         name="authentication.authWorkstation"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>{t("monitors.form.http.authentication.workstation")}</FormLabel>
+            <FormLabel>
+              {t("monitors.form.http.authentication.workstation")}
+            </FormLabel>
             <FormControl>
-              <Input placeholder={t("monitors.form.http.authentication.workstation_placeholder")} {...field} />
+              <Input
+                placeholder={t(
+                  "monitors.form.http.authentication.workstation_placeholder"
+                )}
+                {...field}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -241,9 +289,16 @@ const MTLS = () => {
         name="authentication.tlsCert"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>{t("monitors.form.http.authentication.certificate")}</FormLabel>
+            <FormLabel>
+              {t("monitors.form.http.authentication.certificate")}
+            </FormLabel>
             <FormControl>
-              <Textarea placeholder={t("monitors.form.http.authentication.certificate_placeholder")} {...field} />
+              <Textarea
+                placeholder={t(
+                  "monitors.form.http.authentication.certificate_placeholder"
+                )}
+                {...field}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -257,7 +312,12 @@ const MTLS = () => {
           <FormItem>
             <FormLabel>{t("monitors.form.http.authentication.key")}</FormLabel>
             <FormControl>
-              <Textarea placeholder={t("monitors.form.http.authentication.key_placeholder")} {...field} />
+              <Textarea
+                placeholder={t(
+                  "monitors.form.http.authentication.key_placeholder"
+                )}
+                {...field}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -299,14 +359,18 @@ const Authentication = () => {
 
   return (
     <>
-      <TypographyH4>{t("monitors.form.http.authentication.title")}</TypographyH4>
+      <TypographyH4>
+        {t("monitors.form.http.authentication.title")}
+      </TypographyH4>
 
       <FormField
         control={form.control}
         name="authentication.authMethod"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>{t("monitors.form.http.authentication.method_label")}</FormLabel>
+            <FormLabel>
+              {t("monitors.form.http.authentication.method_label")}
+            </FormLabel>
             <Select
               onValueChange={(v) => {
                 if (!v) {
@@ -318,7 +382,11 @@ const Authentication = () => {
             >
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder={t("monitors.form.http.authentication.method_placeholder")} />
+                  <SelectValue
+                    placeholder={t(
+                      "monitors.form.http.authentication.method_placeholder"
+                    )}
+                  />
                 </SelectTrigger>
               </FormControl>
 
