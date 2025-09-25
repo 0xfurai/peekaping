@@ -16,10 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.0.40] - 2025-09-25
 
 ### Added
+- mask password field with toggle option for http monitor authentication block
 
 ### Changed
 
 ### Fixed
+- update default data retention period to 365 days in ui and add settings navigation option
 
 ## [0.0.39] - 2025-09-08
 
