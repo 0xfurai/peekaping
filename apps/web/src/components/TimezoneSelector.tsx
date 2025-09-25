@@ -53,7 +53,8 @@ const TimezoneSelector: React.FC = () => {
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="min-w-[260px] p-0">
+
+        <PopoverContent className="min-w-[360px] p-0">
           <Command>
             <CommandInput
               placeholder={t("settings.timezone.search_placeholder")}
@@ -79,8 +80,8 @@ const TimezoneSelector: React.FC = () => {
                         timezone === tz ? "opacity-100" : "opacity-0"
                       )}
                     />
-                    {tz}{" "}
-                    <span className="ml-2 text-muted-foreground">
+                    <span className="whitespace-nowrap">{tz}{" "}</span>
+                    <span className="text-muted-foreground whitespace-nowrap">
                       ({getTimezoneOffsetLabel(tz)})
                     </span>
                   </CommandItem>
