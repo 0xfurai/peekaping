@@ -47,7 +47,7 @@ const KeepDataPeriodSetting = () => {
 
   const form = useForm({
     resolver: zodResolver(keepDataPeriodSchema),
-    defaultValues: { value: 30 },
+    defaultValues: { value: 365 },
   });
 
   // Reset form when data is loaded
@@ -69,12 +69,14 @@ const KeepDataPeriodSetting = () => {
     },
     onError: commonMutationErrorHandler(t("messages.setting_update_error")),
   });
+
   function onSubmit(values: { value: number }) {
     mutation.mutate({
       path: { key: KEEP_DATA_KEY },
       body: { type: "int", value: String(values.value) },
     });
   }
+
   return (
     <Card>
       <CardHeader>
@@ -83,6 +85,7 @@ const KeepDataPeriodSetting = () => {
           {t("settings.data_retention.description")}
         </CardDescription>
       </CardHeader>
+
       <CardContent>
         {isLoading ? (
           <div className="h-10 flex items-center">{t("common.loading")}</div>

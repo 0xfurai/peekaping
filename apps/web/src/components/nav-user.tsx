@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOutIcon, MoreVerticalIcon, ShieldCheckIcon } from "lucide-react";
+import { LogOutIcon, MoreVerticalIcon, SettingsIcon, ShieldCheckIcon } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -96,8 +96,15 @@ export function NavUser({
                 <ShieldCheckIcon />
                 {t("common.security")}
               </DropdownMenuItem>
+
+              <DropdownMenuItem onClick={() => navigate("/settings")}>
+                <SettingsIcon />
+                {t("common.settings")}
+              </DropdownMenuItem>
             </DropdownMenuGroup>
+
             <DropdownMenuSeparator />
+
             <DropdownMenuItem onClick={handleLogout}>
               <LogOutIcon />
               {t("common.logout")}
