@@ -2,7 +2,7 @@
 sidebar_position: 4
 ---
 
-# Badges 🏷️
+# Badges
 
 Peekaping provides real-time SVG badges that you can embed in your README files, websites, or dashboards to display the status and metrics of your monitored services.
 
