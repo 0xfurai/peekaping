@@ -3,6 +3,7 @@ package monitor
 import (
 	"context"
 	"errors"
+	"fmt"
 	"peekaping/src/config"
 	"peekaping/src/modules/heartbeat"
 	"time"
@@ -384,6 +385,9 @@ func (r *MonitorRepositoryImpl) UpdateFull(ctx context.Context, id string, monit
 	existingMonitor, err := r.FindByID(ctx, id)
 	if err != nil {
 		return err
+	}
+	if existingMonitor == nil {
+		return fmt.Errorf("%w: monitor %s", ErrMonitorNotFound, id)
 	}
 
 	filter := bson.M{"_id": objectID}

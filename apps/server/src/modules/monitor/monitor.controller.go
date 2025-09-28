@@ -1,6 +1,7 @@
 package monitor
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"peekaping/src/modules/monitor_notification"
@@ -285,6 +286,10 @@ func (ic *MonitorController) UpdateFull(ctx *gin.Context) {
 	updatedMonitor, err := ic.monitorService.UpdateFull(ctx, id, &monitor)
 	if err != nil {
 		ic.logger.Errorw("Failed to update monitor", "error", err)
+		if errors.Is(err, ErrMonitorNotFound) {
+			ctx.JSON(http.StatusNotFound, utils.NewFailResponse(err.Error()))
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
 	}
