@@ -309,7 +309,7 @@ func (r *MonitorRepositoryImpl) FindAll(
 	return monitors, nil
 }
 
-func buildSetMapFromModel(m *Model, includeProxyId bool, proxyObjectID primitive.ObjectID) bson.M {
+func buildSetMapFromModelForUpdate(m *Model, preserveCreatedAt time.Time, includeProxyId bool, proxyObjectID primitive.ObjectID) bson.M {
 	set := bson.M{
 		"type":            m.Type,
 		"name":            m.Name,
@@ -319,8 +319,8 @@ func buildSetMapFromModel(m *Model, includeProxyId bool, proxyObjectID primitive
 		"retry_interval":  m.RetryInterval,
 		"resend_interval": m.ResendInterval,
 		"active":          m.Active,
-		"status":          0, // or m.Status if available
-		"created_at":      time.Now().UTC(),
+		"status":          0,                 // or m.Status if available
+		"created_at":      preserveCreatedAt, // Preserve original created_at
 		"updated_at":      time.Now().UTC(),
 		"config":          m.Config,
 	}
@@ -380,11 +380,17 @@ func (r *MonitorRepositoryImpl) UpdateFull(ctx context.Context, id string, monit
 		return err
 	}
 
+	// Fetch existing monitor to preserve created_at
+	existingMonitor, err := r.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
 	filter := bson.M{"_id": objectID}
 	update := bson.M{}
 
 	if monitor.ProxyId == "" {
-		set := buildSetMapFromModel(monitor, false, primitive.NilObjectID)
+		set := buildSetMapFromModelForUpdate(monitor, existingMonitor.CreatedAt, false, primitive.NilObjectID)
 		update["$set"] = set
 		update["$unset"] = bson.M{"proxy_id": ""}
 	} else {
@@ -392,7 +398,7 @@ func (r *MonitorRepositoryImpl) UpdateFull(ctx context.Context, id string, monit
 		if err != nil {
 			return err
 		}
-		set := buildSetMapFromModel(monitor, true, proxyObjectID)
+		set := buildSetMapFromModelForUpdate(monitor, existingMonitor.CreatedAt, true, proxyObjectID)
 		update["$set"] = set
 	}
 
