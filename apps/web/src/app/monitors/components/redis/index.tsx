@@ -201,7 +201,12 @@ const RedisForm = () => {
 
   useEffect(() => {
     if (mode === "create") {
-      form.reset(redisDefaultValues);
+      // Preserve the current name when resetting form
+      const currentName = form.getValues("name");
+      form.reset({
+        ...redisDefaultValues,
+        name: currentName || redisDefaultValues.name,
+      });
     }
   }, [mode, form]);
 

@@ -184,7 +184,12 @@ const MongoDBForm = () => {
   // Reset form with default values when in create mode
   useEffect(() => {
     if (mode === "create") {
-      form.reset(mongodbDefaultValues);
+      // Preserve the current name when resetting form
+      const currentName = form.getValues("name");
+      form.reset({
+        ...mongodbDefaultValues,
+        name: currentName || mongodbDefaultValues.name,
+      });
     }
   }, [mode, form]);
 

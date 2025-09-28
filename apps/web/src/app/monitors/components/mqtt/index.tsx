@@ -207,7 +207,12 @@ const MQTTForm = () => {
 
   useEffect(() => {
     if (mode === "create") {
-      form.reset(mqttDefaultValues);
+      // Preserve the current name when resetting form
+      const currentName = form.getValues("name");
+      form.reset({
+        ...mqttDefaultValues,
+        name: currentName || mqttDefaultValues.name,
+      });
     }
   }, [mode, form]);
 

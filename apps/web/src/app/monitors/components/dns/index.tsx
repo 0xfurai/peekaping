@@ -182,7 +182,12 @@ const DNSForm = () => {
 
   useEffect(() => {
     if (mode === "create") {
-      form.reset(dnsDefaultValues);
+      // Preserve the current name when resetting form
+      const currentName = form.getValues("name");
+      form.reset({
+        ...dnsDefaultValues,
+        name: currentName || dnsDefaultValues.name,
+      });
     }
   }, [mode, form]);
 

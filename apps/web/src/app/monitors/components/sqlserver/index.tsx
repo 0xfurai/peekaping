@@ -61,7 +61,12 @@ const SQLServerForm = () => {
 
   useEffect(() => {
     if (mode === "create") {
-      form.reset(sqlServerDefaultValues);
+      // Preserve the current name when resetting form
+      const currentName = form.getValues("name");
+      form.reset({
+        ...sqlServerDefaultValues,
+        name: currentName || sqlServerDefaultValues.name,
+      });
     }
   }, [mode, form]);
 
