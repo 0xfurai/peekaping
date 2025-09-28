@@ -502,6 +502,35 @@ func TestMonitorService_UpdatePartial(t *testing.T) {
 		// EventBus should not be called when noPublish is true
 	})
 
+	t.Run("successful partial update with config field", func(t *testing.T) {
+		service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
+		monitorID := "monitor123"
+		config := "{\"host\":\"example.com\",\"port\":8080}"
+		updateDto := &PartialUpdateDto{
+			Config: &config,
+		}
+
+		expectedModel := &Model{
+			ID:     monitorID,
+			Name:   "Test Monitor",
+			Config: config,
+		}
+
+		mockRepo.On("UpdatePartial", ctx, monitorID, mock.MatchedBy(func(m *UpdateModel) bool {
+			return *m.ID == monitorID &&
+				m.Config != nil &&
+				*m.Config == config
+		})).Return(nil)
+
+		mockRepo.On("FindByID", ctx, monitorID).Return(expectedModel, nil)
+
+		result, err := service.UpdatePartial(ctx, monitorID, updateDto, false)
+
+		assert.NoError(t, err)
+		assert.Equal(t, expectedModel, result)
+		mockRepo.AssertExpectations(t)
+	})
+
 	t.Run("update error", func(t *testing.T) {
 		service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
 		monitorID := "monitor123"

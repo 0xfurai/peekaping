@@ -177,6 +177,9 @@ func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, moni
 		ResendInterval: monitor.ResendInterval,
 		Active:         monitor.Active,
 		Status:         monitor.Status,
+		Config:         monitor.Config,
+		ProxyId:        monitor.ProxyId,
+		PushToken:      monitor.PushToken,
 	}
 
 	err := mr.monitorRepository.UpdatePartial(ctx, id, model)
