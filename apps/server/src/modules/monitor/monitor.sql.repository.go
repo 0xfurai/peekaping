@@ -2,6 +2,7 @@ package monitor
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"peekaping/src/modules/shared"
@@ -209,11 +210,25 @@ func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, monitor *
 	sm := toSQLModel(monitor)
 	sm.UpdatedAt = time.Now()
 
-	_, err := r.db.NewUpdate().
+	result, err := r.db.NewUpdate().
 		Model(sm).
 		Where("id = ?", id).
 		ExcludeColumn("id", "created_at").
 		Exec(ctx)
+
+	if err != nil {
+		return err
+	}
+
+	rowAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowAffected == 0 {
+		return fmt.Errorf("%w: monitor %s", ErrMonitorNotFound, id)
+	}
+
 	return err
 }
 
