@@ -154,7 +154,12 @@ const PingForm = () => {
 
   useEffect(() => {
     if (mode === "create") {
-      form.reset(pingDefaultValues);
+      // Preserve the current name when resetting form
+      const currentName = form.getValues("name");
+      form.reset({
+        ...pingDefaultValues,
+        name: currentName || pingDefaultValues.name,
+      });
     }
   }, [mode, form]);
 

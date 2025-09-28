@@ -378,7 +378,12 @@ const DockerForm = () => {
 
   useEffect(() => {
     if (mode === "create") {
-      form.reset(dockerDefaultValues);
+      // Preserve the current name when resetting form
+      const currentName = form.getValues("name");
+      form.reset({
+        ...dockerDefaultValues,
+        name: currentName || dockerDefaultValues.name,
+      });
     }
   }, [mode, form]);
 

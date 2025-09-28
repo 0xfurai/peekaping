@@ -152,7 +152,12 @@ const RabbitMQForm = () => {
 
   useEffect(() => {
     if (mode === "create") {
-      form.reset(rabbitMQDefaultValues);
+      // Preserve the current name when resetting form
+      const currentName = form.getValues("name");
+      form.reset({
+        ...rabbitMQDefaultValues,
+        name: currentName || rabbitMQDefaultValues.name,
+      });
     }
   }, [mode, form]);
 

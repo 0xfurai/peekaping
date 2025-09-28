@@ -163,7 +163,12 @@ const MySQLForm = () => {
 
   useEffect(() => {
     if (mode === "create") {
-      form.reset(mysqlDefaultValues);
+      // Preserve the current name when resetting form
+      const currentName = form.getValues("name");
+      form.reset({
+        ...mysqlDefaultValues,
+        name: currentName || mysqlDefaultValues.name,
+      });
     }
   }, [mode, form]);
 

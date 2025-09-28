@@ -150,7 +150,12 @@ const TCPForm = () => {
 
   useEffect(() => {
     if (mode === "create") {
-      form.reset(tcpDefaultValues);
+      // Preserve the current name when resetting form
+      const currentName = form.getValues("name");
+      form.reset({
+        ...tcpDefaultValues,
+        name: currentName || tcpDefaultValues.name,
+      });
     }
   }, [mode, form]);
 

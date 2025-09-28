@@ -78,7 +78,12 @@ const KafkaProducerForm = () => {
 
   useEffect(() => {
     if (mode === "create") {
-      form.reset(kafkaProducerDefaultValues);
+      // Preserve the current name when resetting form
+      const currentName = form.getValues("name");
+      form.reset({
+        ...kafkaProducerDefaultValues,
+        name: currentName || kafkaProducerDefaultValues.name,
+      });
       setBrokers(kafkaProducerDefaultValues.brokers);
     }
   }, [mode, form]);

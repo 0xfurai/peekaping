@@ -49,7 +49,12 @@ const PostgresFormComponent = () => {
 
   useEffect(() => {
     if (mode === "create") {
-      form.reset(postgresDefaultValues);
+      // Preserve the current name when resetting form
+      const currentName = form.getValues("name");
+      form.reset({
+        ...postgresDefaultValues,
+        name: currentName || postgresDefaultValues.name,
+      });
     }
   }, [mode, form]);
 
