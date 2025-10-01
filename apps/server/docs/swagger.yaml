@@ -20,6 +20,10 @@ definitions:
         type: string
       user:
         $ref: '#/definitions/auth.Model'
+      workspaces:
+        items:
+          $ref: '#/definitions/auth.WorkspaceInfo'
+        type: array
     type: object
   auth.Model:
     properties:
@@ -111,6 +115,15 @@ definitions:
     required:
     - currentPassword
     - newPassword
+    type: object
+  auth.WorkspaceInfo:
+    properties:
+      active:
+        type: boolean
+      id:
+        type: string
+      name:
+        type: string
     type: object
   heartbeat.Model:
     properties:

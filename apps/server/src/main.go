@@ -30,7 +30,9 @@ import (
 	"peekaping/src/modules/stats"
 	"peekaping/src/modules/status_page"
 	"peekaping/src/modules/tag"
+	"peekaping/src/modules/user_workspace"
 	"peekaping/src/modules/websocket"
+	"peekaping/src/modules/workspace"
 	"peekaping/src/utils"
 	"peekaping/src/version"
 
@@ -85,6 +87,8 @@ func main() {
 	monitor.RegisterDependencies(container, &cfg)
 	healthcheck.RegisterDependencies(container)
 	bruteforce.RegisterDependencies(container, &cfg)
+	workspace.RegisterDependencies(container, &cfg)
+	user_workspace.RegisterDependencies(container, &cfg)
 	auth.RegisterDependencies(container, &cfg)
 	notification_channel.RegisterDependencies(container, &cfg)
 	monitor_notification.RegisterDependencies(container, &cfg)
