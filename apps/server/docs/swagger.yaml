@@ -20,10 +20,6 @@ definitions:
         type: string
       user:
         $ref: '#/definitions/auth.Model'
-      workspaces:
-        items:
-          $ref: '#/definitions/auth.WorkspaceInfo'
-        type: array
     type: object
   auth.Model:
     properties:
@@ -115,15 +111,6 @@ definitions:
     required:
     - currentPassword
     - newPassword
-    type: object
-  auth.WorkspaceInfo:
-    properties:
-      active:
-        type: boolean
-      id:
-        type: string
-      name:
-        type: string
     type: object
   heartbeat.Model:
     properties:
@@ -1359,7 +1346,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.APIError'
-      summary: Login admin
+      summary: Login user
       tags:
       - Auth
   /auth/password:
@@ -1454,7 +1441,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.APIError'
-      summary: Register new admin
+      summary: Register new user
       tags:
       - Auth
   /badge/{monitorId}/cert-exp:

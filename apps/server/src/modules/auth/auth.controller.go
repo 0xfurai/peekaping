@@ -57,7 +57,7 @@ func (c *Controller) validateWithDetails(dto interface{}) error {
 }
 
 // @Router		/auth/register [post]
-// @Summary		Register new admin
+// @Summary		Register new user
 // @Tags			Auth
 // @Produce		json
 // @Accept		json
@@ -80,8 +80,8 @@ func (c *Controller) Register(ctx *gin.Context) {
 
 	response, err := c.service.Register(ctx, dto)
 	if err != nil {
-		c.logger.Errorw("Failed to register admin", "error", err)
-		if err.Error() == "admin already exists" {
+		c.logger.Errorw("Failed to register user", "error", err)
+		if err.Error() == "user with this email already exists" {
 			ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 			return
 		}
@@ -93,7 +93,7 @@ func (c *Controller) Register(ctx *gin.Context) {
 }
 
 // @Router		/auth/login [post]
-// @Summary		Login admin
+// @Summary		Login user
 // @Tags			Auth
 // @Produce		json
 // @Accept		json
@@ -116,7 +116,7 @@ func (c *Controller) Login(ctx *gin.Context) {
 
 	response, err := c.service.Login(ctx, dto)
 	if err != nil {
-		c.logger.Errorw("Failed to login admin", "error", err)
+		c.logger.Errorw("Failed to login user", "error", err)
 		ctx.JSON(http.StatusUnauthorized, utils.NewFailResponse(err.Error()))
 		return
 	}

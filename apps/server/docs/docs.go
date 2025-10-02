@@ -161,7 +161,7 @@ const docTemplate = `{
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Login admin",
+                "summary": "Login user",
                 "parameters": [
                     {
                         "description": "Login data",
@@ -314,7 +314,7 @@ const docTemplate = `{
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Register new admin",
+                "summary": "Register new user",
                 "parameters": [
                     {
                         "description": "Registration data",
@@ -3542,12 +3542,6 @@ const docTemplate = `{
                 },
                 "user": {
                     "$ref": "#/definitions/auth.Model"
-                },
-                "workspaces": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/auth.WorkspaceInfo"
-                    }
                 }
             }
         },
@@ -3683,20 +3677,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "newPassword": {
-                    "type": "string"
-                }
-            }
-        },
-        "auth.WorkspaceInfo": {
-            "type": "object",
-            "properties": {
-                "active": {
-                    "type": "boolean"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
                     "type": "string"
                 }
             }

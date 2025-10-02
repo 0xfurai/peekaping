@@ -5,6 +5,9 @@ import (
 	"errors"
 	"time"
 
+	"peekaping/src/modules/user_workspace"
+	"peekaping/src/modules/workspace"
+
 	"github.com/pquerna/otp/totp"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
@@ -23,36 +26,34 @@ type Service interface {
 }
 
 type ServiceImpl struct {
-	repo       Repository
-	tokenMaker *TokenMaker
-	logger     *zap.SugaredLogger
+	repo                 Repository
+	tokenMaker           *TokenMaker
+	workspaceService     workspace.Service
+	userWorkspaceService user_workspace.Service
+	logger               *zap.SugaredLogger
 }
 
 func NewService(
 	repo Repository,
 	tokenMaker *TokenMaker,
+	workspaceService workspace.Service,
+	userWorkspaceService user_workspace.Service,
 	logger *zap.SugaredLogger,
 ) Service {
 	return &ServiceImpl{
-		repo:       repo,
-		tokenMaker: tokenMaker,
-		logger:     logger.Named("[auth-service]"),
+		repo:                 repo,
+		tokenMaker:           tokenMaker,
+		workspaceService:     workspaceService,
+		userWorkspaceService: userWorkspaceService,
+		logger:               logger.Named("[auth-service]"),
 	}
 }
 
 func (s *ServiceImpl) Register(ctx context.Context, dto RegisterDto) (*LoginResponse, error) {
-	count, err := s.repo.FindAllCount(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	if count > 0 {
-		return nil, errors.New("admin already exists")
-	}
-	// Check if admin with this email already exists
-	existingAdmin, err := s.repo.FindByEmail(ctx, dto.Email)
-	if err == nil && existingAdmin != nil {
-		return nil, errors.New("admin with this email already exists")
+	// Check if user with this email already exists
+	existingUser, err := s.repo.FindByEmail(ctx, dto.Email)
+	if err == nil && existingUser != nil {
+		return nil, errors.New("user with this email already exists")
 	}
 
 	// Hash password
@@ -61,7 +62,7 @@ func (s *ServiceImpl) Register(ctx context.Context, dto RegisterDto) (*LoginResp
 		return nil, err
 	}
 
-	// Create new admin
+	// Create new user
 	user := &Model{
 		Email:     dto.Email,
 		Password:  string(hashedPassword),
@@ -70,10 +71,27 @@ func (s *ServiceImpl) Register(ctx context.Context, dto RegisterDto) (*LoginResp
 		UpdatedAt: time.Now().UTC(),
 	}
 
-	// Save to database
+	// Save user to database
 	user, err = s.repo.Create(ctx, user)
 	if err != nil {
 		return nil, err
+	}
+
+	// Create personal workspace for the user
+	workspace, err := s.workspaceService.CreateDefault(ctx, user.Email)
+	if err != nil {
+		s.logger.Errorw("Failed to create personal workspace for user", "error", err, "userID", user.ID, "email", user.Email)
+		// Note: We don't return error here to avoid failing registration if workspace creation fails
+		// The user can still use the system, just without a default workspace
+	} else {
+		// Associate user with their personal workspace as owner
+		_, err = s.userWorkspaceService.Create(ctx, user.ID, workspace.ID, "owner")
+		if err != nil {
+			s.logger.Errorw("Failed to associate user with personal workspace", "error", err, "userID", user.ID, "workspaceID", workspace.ID)
+			// Note: We don't return error here for the same reason as above
+		} else {
+			s.logger.Infow("Personal workspace created and associated with user", "userID", user.ID, "workspaceID", workspace.ID, "email", user.Email)
+		}
 	}
 
 	// Generate access token
