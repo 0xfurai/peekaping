@@ -86,10 +86,16 @@ export const setupInterceptors = () => {
               .getState()
               .setTokens(data.data.accessToken, data.data.refreshToken);
 
+            const selectedWorkspaceId = useAuthStore.getState().selectedWorkspaceId;
+            const headers: Record<string, string> = {
+              Authorization: `Bearer ${data.data.accessToken}`,
+            };
+            if (selectedWorkspaceId) {
+              headers['x-peekaping-workspace'] = selectedWorkspaceId;
+            }
+
             client.setConfig({
-              headers: {
-                Authorization: `Bearer ${data.data.accessToken}`,
-              },
+              headers,
             });
 
             processQueue(null, data.data.accessToken);
@@ -97,6 +103,9 @@ export const setupInterceptors = () => {
               originalRequest.headers[
                 "Authorization"
               ] = `Bearer ${data.data.accessToken}`;
+              if (selectedWorkspaceId) {
+                originalRequest.headers['x-peekaping-workspace'] = selectedWorkspaceId;
+              }
             }
             return client.instance.request(
               originalRequest as InternalAxiosRequestConfig

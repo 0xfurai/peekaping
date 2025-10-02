@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"peekaping/src/modules/user_workspace"
-	"peekaping/src/modules/workspace"
+	workspaceModule "peekaping/src/modules/workspace"
 
 	"github.com/pquerna/otp/totp"
 	"go.uber.org/zap"
@@ -28,7 +28,7 @@ type Service interface {
 type ServiceImpl struct {
 	repo                 Repository
 	tokenMaker           *TokenMaker
-	workspaceService     workspace.Service
+	workspaceService     workspaceModule.Service
 	userWorkspaceService user_workspace.Service
 	logger               *zap.SugaredLogger
 }
@@ -36,7 +36,7 @@ type ServiceImpl struct {
 func NewService(
 	repo Repository,
 	tokenMaker *TokenMaker,
-	workspaceService workspace.Service,
+	workspaceService workspaceModule.Service,
 	userWorkspaceService user_workspace.Service,
 	logger *zap.SugaredLogger,
 ) Service {
@@ -106,10 +106,36 @@ func (s *ServiceImpl) Register(ctx context.Context, dto RegisterDto) (*LoginResp
 		return nil, err
 	}
 
+	// Fetch user workspaces
+	userWorkspaces, err := s.userWorkspaceService.FindByUserID(ctx, user.ID)
+	if err != nil {
+		s.logger.Errorw("Failed to fetch user workspaces", "error", err, "userID", user.ID)
+		// Return empty workspaces list instead of error
+		userWorkspaces = []*user_workspace.Model{}
+	}
+
+	// Extract workspace IDs
+	workspaceIDs := make([]string, 0, len(userWorkspaces))
+	for _, uw := range userWorkspaces {
+		workspaceIDs = append(workspaceIDs, uw.WorkspaceID)
+	}
+
+	// Fetch workspace details
+	workspaces := []*workspaceModule.Model{}
+	if len(workspaceIDs) > 0 {
+		workspaces, err = s.workspaceService.FindByIDs(ctx, workspaceIDs)
+		if err != nil {
+			s.logger.Errorw("Failed to fetch workspaces", "error", err, "workspaceIDs", workspaceIDs)
+			// Return empty workspaces list instead of error
+			workspaces = []*workspaceModule.Model{}
+		}
+	}
+
 	return &LoginResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 		User:         user,
+		Workspaces:   workspaces,
 	}, nil
 }
 
@@ -151,10 +177,36 @@ func (s *ServiceImpl) Login(ctx context.Context, dto LoginDto) (*LoginResponse, 
 		return nil, err
 	}
 
+	// Fetch user workspaces
+	userWorkspaces, err := s.userWorkspaceService.FindByUserID(ctx, user.ID)
+	if err != nil {
+		s.logger.Errorw("Failed to fetch user workspaces", "error", err, "userID", user.ID)
+		// Return empty workspaces list instead of error
+		userWorkspaces = []*user_workspace.Model{}
+	}
+
+	// Extract workspace IDs
+	workspaceIDs := make([]string, 0, len(userWorkspaces))
+	for _, uw := range userWorkspaces {
+		workspaceIDs = append(workspaceIDs, uw.WorkspaceID)
+	}
+
+	// Fetch workspace details
+	workspaces := []*workspaceModule.Model{}
+	if len(workspaceIDs) > 0 {
+		workspaces, err = s.workspaceService.FindByIDs(ctx, workspaceIDs)
+		if err != nil {
+			s.logger.Errorw("Failed to fetch workspaces", "error", err, "workspaceIDs", workspaceIDs)
+			// Return empty workspaces list instead of error
+			workspaces = []*workspaceModule.Model{}
+		}
+	}
+
 	return &LoginResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 		User:         user,
+		Workspaces:   workspaces,
 	}, nil
 }
 
@@ -188,10 +240,36 @@ func (s *ServiceImpl) RefreshToken(ctx context.Context, refreshToken string) (*L
 		return nil, err
 	}
 
+	// Fetch user workspaces
+	userWorkspaces, err := s.userWorkspaceService.FindByUserID(ctx, user.ID)
+	if err != nil {
+		s.logger.Errorw("Failed to fetch user workspaces", "error", err, "userID", user.ID)
+		// Return empty workspaces list instead of error
+		userWorkspaces = []*user_workspace.Model{}
+	}
+
+	// Extract workspace IDs
+	workspaceIDs := make([]string, 0, len(userWorkspaces))
+	for _, uw := range userWorkspaces {
+		workspaceIDs = append(workspaceIDs, uw.WorkspaceID)
+	}
+
+	// Fetch workspace details
+	workspaces := []*workspaceModule.Model{}
+	if len(workspaceIDs) > 0 {
+		workspaces, err = s.workspaceService.FindByIDs(ctx, workspaceIDs)
+		if err != nil {
+			s.logger.Errorw("Failed to fetch workspaces", "error", err, "workspaceIDs", workspaceIDs)
+			// Return empty workspaces list instead of error
+			workspaces = []*workspaceModule.Model{}
+		}
+	}
+
 	return &LoginResponse{
 		User:         user,
 		RefreshToken: newRefreshToken,
 		AccessToken:  accessToken,
+		Workspaces:   workspaces,
 	}, nil
 }
 

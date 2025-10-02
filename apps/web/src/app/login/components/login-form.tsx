@@ -57,17 +57,21 @@ export function LoginForm({
   const setUser = useAuthStore(
     (state: { setUser: (user: AuthModel | null) => void }) => state.setUser
   );
+  const setWorkspaces = useAuthStore(
+    (state) => state.setWorkspaces
+  );
   const [show2FAPrompt, setShow2FAPrompt] = React.useState(false);
   const [verifying2FA, setVerifying2FA] = React.useState(false);
 
   const loginMutation = useMutation({
     ...postAuthLoginMutation(),
     onSuccess: (response) => {
-      const { accessToken, refreshToken, user } = response.data || {};
+      const { accessToken, refreshToken, user, workspaces } = response.data || {};
 
       if (accessToken && refreshToken) {
         setTokens(accessToken, refreshToken);
         setUser(user ?? null);
+        setWorkspaces(workspaces ?? []);
         toast.success(t("messages.login_success"));
         setShow2FAPrompt(false);
       } else {

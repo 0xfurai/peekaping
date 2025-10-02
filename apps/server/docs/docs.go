@@ -3542,6 +3542,12 @@ const docTemplate = `{
                 },
                 "user": {
                     "$ref": "#/definitions/auth.Model"
+                },
+                "workspaces": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/workspace.Model"
+                    }
                 }
             }
         },
@@ -5307,6 +5313,23 @@ const docTemplate = `{
                     "$ref": "#/definitions/tag.Model"
                 },
                 "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "workspace.Model": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updatedAt": {
                     "type": "string"
                 }
             }

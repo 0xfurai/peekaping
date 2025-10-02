@@ -421,7 +421,7 @@ export const postAuthLoginQueryKey = (options: Options<PostAuthLoginData>) =>
   createQueryKey("postAuthLogin", options);
 
 /**
- * Login admin
+ * Login user
  */
 export const postAuthLoginOptions = (options: Options<PostAuthLoginData>) => {
   return queryOptions({
@@ -439,7 +439,7 @@ export const postAuthLoginOptions = (options: Options<PostAuthLoginData>) => {
 };
 
 /**
- * Login admin
+ * Login user
  */
 export const postAuthLoginMutation = (
   options?: Partial<Options<PostAuthLoginData>>,
@@ -548,7 +548,7 @@ export const postAuthRegisterQueryKey = (
 ) => createQueryKey("postAuthRegister", options);
 
 /**
- * Register new admin
+ * Register new user
  */
 export const postAuthRegisterOptions = (
   options: Options<PostAuthRegisterData>,
@@ -568,7 +568,7 @@ export const postAuthRegisterOptions = (
 };
 
 /**
- * Register new admin
+ * Register new user
  */
 export const postAuthRegisterMutation = (
   options?: Partial<Options<PostAuthRegisterData>>,

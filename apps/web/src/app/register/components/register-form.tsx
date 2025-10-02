@@ -60,6 +60,7 @@ export function RegisterForm({
     }) => state.setTokens
   );
   const setUser = useAuthStore((state: { setUser: (user: AuthModel | null) => void }) => state.setUser);
+  const setWorkspaces = useAuthStore((state) => state.setWorkspaces);
 
   const registerMutation = useMutation({
     ...postAuthRegisterMutation(),
@@ -67,6 +68,7 @@ export function RegisterForm({
       if (response.data?.accessToken && response.data?.refreshToken) {
         setTokens(response.data.accessToken, response.data.refreshToken);
         setUser(response.data.user ?? null);
+        setWorkspaces(response.data.workspaces ?? []);
         toast.success(t("messages.register_success"));
       } else {
         toast.error(t("messages.register_no_tokens"));
@@ -88,7 +90,7 @@ export function RegisterForm({
   });
 
   const formSchema = React.useMemo(() => createFormSchema(t), [t]);
-  
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {

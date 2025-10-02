@@ -1,5 +1,7 @@
 package auth
 
+import "peekaping/src/modules/workspace"
+
 type RegisterDto struct {
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,password"`
@@ -16,9 +18,10 @@ type RefreshTokenDto struct {
 }
 
 type LoginResponse struct {
-	User         *Model `json:"user"`
-	AccessToken  string `json:"accessToken"`
-	RefreshToken string `json:"refreshToken"`
+	User         *Model             `json:"user"`
+	AccessToken  string             `json:"accessToken"`
+	RefreshToken string             `json:"refreshToken"`
+	Workspaces   []*workspace.Model `json:"workspaces"`
 }
 
 // DTO for updating user password

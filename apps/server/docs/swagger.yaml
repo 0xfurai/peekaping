@@ -20,6 +20,10 @@ definitions:
         type: string
       user:
         $ref: '#/definitions/auth.Model'
+      workspaces:
+        items:
+          $ref: '#/definitions/workspace.Model'
+        type: array
     type: object
   auth.Model:
     properties:
@@ -1224,6 +1228,17 @@ definitions:
     required:
     - data
     - message
+    type: object
+  workspace.Model:
+    properties:
+      createdAt:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      updatedAt:
+        type: string
     type: object
 info:
   contact: {}

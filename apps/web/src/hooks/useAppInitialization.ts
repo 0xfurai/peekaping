@@ -11,14 +11,19 @@ import { setupInterceptors } from "@/interceptors";
 
 export const configureClient = () => {
   const accessToken = useAuthStore.getState().accessToken;
+  const selectedWorkspaceId = useAuthStore.getState().selectedWorkspaceId;
+
+  const headers: Record<string, string> = {};
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+  if (selectedWorkspaceId) {
+    headers['x-peekaping-workspace'] = selectedWorkspaceId;
+  }
 
   client.setConfig({
     baseURL: getConfig().API_URL + "/api/v1",
-    headers: accessToken
-      ? {
-          Authorization: `Bearer ${accessToken}`,
-        }
-      : undefined,
+    headers: Object.keys(headers).length > 0 ? headers : undefined,
   });
 };
 
@@ -35,13 +40,17 @@ export const useAppInitialization = () => {
 
     // Subscribe to auth state changes
     useAuthStore.subscribe((state) => {
+      const headers: Record<string, string> = {};
+      if (state.accessToken) {
+        headers.Authorization = `Bearer ${state.accessToken}`;
+      }
+      if (state.selectedWorkspaceId) {
+        headers['x-peekaping-workspace'] = state.selectedWorkspaceId;
+      }
+
       client.setConfig({
         baseURL: getConfig().API_URL + "/api/v1",
-        headers: state.accessToken
-          ? {
-              Authorization: `Bearer ${state.accessToken}`,
-            }
-          : undefined,
+        headers: Object.keys(headers).length > 0 ? headers : undefined,
       });
     });
   }, []);

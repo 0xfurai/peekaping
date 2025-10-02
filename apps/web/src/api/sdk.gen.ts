@@ -279,7 +279,7 @@ export const postAuth2FaVerify = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * Login admin
+ * Login user
  */
 export const postAuthLogin = <ThrowOnError extends boolean = false>(
   options: Options<PostAuthLoginData, ThrowOnError>,
@@ -342,7 +342,7 @@ export const postAuthRefresh = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * Register new admin
+ * Register new user
  */
 export const postAuthRegister = <ThrowOnError extends boolean = false>(
   options: Options<PostAuthRegisterData, ThrowOnError>,

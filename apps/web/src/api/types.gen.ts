@@ -10,6 +10,7 @@ export type AuthLoginResponse = {
   accessToken?: string;
   refreshToken?: string;
   user?: AuthModel;
+  workspaces?: Array<WorkspaceModel>;
 };
 
 export type AuthModel = {
@@ -590,6 +591,13 @@ export type UtilsApiResponseStatusPageStatusPageWithMonitorsResponseDto = {
 export type UtilsApiResponseTagModel = {
   data: TagModel;
   message: string;
+};
+
+export type WorkspaceModel = {
+  createdAt?: string;
+  id?: string;
+  name?: string;
+  updatedAt?: string;
 };
 
 export type PostAuth2FaDisableData = {
