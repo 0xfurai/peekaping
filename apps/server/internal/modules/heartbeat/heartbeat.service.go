@@ -24,14 +24,14 @@ type Service interface {
 type ServiceImpl struct {
 	repository   Repository
 	statsService stats.Service
-	eventBus     *events.EventBus
+	eventBus     events.EventBus
 	logger       *zap.SugaredLogger
 }
 
 func NewService(
 	repository Repository,
 	statsService stats.Service,
-	eventBus *events.EventBus,
+	eventBus events.EventBus,
 	logger *zap.SugaredLogger,
 ) Service {
 	return &ServiceImpl{

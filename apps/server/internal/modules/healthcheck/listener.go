@@ -3,6 +3,7 @@ package healthcheck
 import (
 	"context"
 	"fmt"
+	"peekaping/internal/infra"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/shared"
 )
@@ -20,7 +21,7 @@ func NewEventListener(supervisor *HealthCheckSupervisor) *EventListener {
 }
 
 // Start subscribes to monitor events
-func (l *EventListener) Start(eventBus *events.EventBus) {
+func (l *EventListener) Start(eventBus events.EventBus) {
 	// Subscribe to monitor events
 	eventBus.Subscribe(events.MonitorCreated, l.handleMonitorCreated)
 	eventBus.Subscribe(events.MonitorUpdated, l.handleMonitorUpdated)
@@ -31,9 +32,9 @@ func (l *EventListener) Start(eventBus *events.EventBus) {
 
 // handleMonitorCreated starts health check polling for newly created monitors
 func (l *EventListener) handleMonitorCreated(event events.Event) {
-	monitor, ok := event.Payload.(*shared.Monitor)
+	monitor, ok := infra.UnmarshalEventPayload[shared.Monitor](event)
 	if !ok {
-		fmt.Printf("Invalid payload type for monitor.created event: %T\n", event.Payload)
+		fmt.Printf("Failed to unmarshal monitor.created event payload\n")
 		return
 	}
 
@@ -47,9 +48,9 @@ func (l *EventListener) handleMonitorCreated(event events.Event) {
 
 // handleMonitorUpdated manages health check polling based on monitor updates
 func (l *EventListener) handleMonitorUpdated(event events.Event) {
-	monitor, ok := event.Payload.(*shared.Monitor)
+	monitor, ok := infra.UnmarshalEventPayload[shared.Monitor](event)
 	if !ok {
-		fmt.Printf("Invalid payload type for monitor.updated event: %T\n", event.Payload)
+		fmt.Printf("Failed to unmarshal monitor.updated event payload\n")
 		return
 	}
 
@@ -65,9 +66,9 @@ func (l *EventListener) handleMonitorUpdated(event events.Event) {
 
 // handleMonitorDeleted stops health check polling for deleted monitors
 func (l *EventListener) handleMonitorDeleted(event events.Event) {
-	monitorID, ok := event.Payload.(string)
+	monitorID, ok := infra.UnmarshalEventPayloadValue[string](event)
 	if !ok {
-		fmt.Printf("Invalid payload type for monitor.deleted event: %T\n", event.Payload)
+		fmt.Printf("Failed to unmarshal monitor.deleted event payload\n")
 		return
 	}
 
@@ -75,9 +76,9 @@ func (l *EventListener) handleMonitorDeleted(event events.Event) {
 }
 
 func (l *EventListener) handleProxyUpdated(event events.Event) {
-	proxy, ok := event.Payload.(*shared.Proxy)
+	proxy, ok := infra.UnmarshalEventPayload[shared.Proxy](event)
 	if !ok {
-		l.supervisor.logger.Warnf("Invalid payload for proxy.updated event: %T", event.Payload)
+		l.supervisor.logger.Warnf("Failed to unmarshal proxy.updated event payload")
 		return
 	}
 	ctx := context.Background()

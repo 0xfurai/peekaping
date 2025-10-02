@@ -11,7 +11,7 @@ import (
 func RegisterDependencies(container *dig.Container, cfg *config.Config) {
 	utils.RegisterRepositoryByDBType(container, cfg, NewSQLRepository, NewMongoRepository)
 	container.Provide(NewService)
-	container.Invoke(func(s Service, bus *events.EventBus) {
+	container.Invoke(func(s Service, bus events.EventBus) {
 		if impl, ok := s.(*ServiceImpl); ok {
 			impl.RegisterEventHandlers(bus)
 		}

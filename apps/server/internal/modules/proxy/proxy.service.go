@@ -21,7 +21,7 @@ type Service interface {
 type ServiceImpl struct {
 	repository     Repository
 	monitorService monitor.Service
-	eventBus       *events.EventBus
+	eventBus       events.EventBus
 	logger         *zap.SugaredLogger
 }
 
@@ -29,7 +29,7 @@ type NewServiceParams struct {
 	dig.In
 	Repository     Repository
 	MonitorService monitor.Service
-	EventBus       *events.EventBus
+	EventBus       events.EventBus
 	Logger         *zap.SugaredLogger
 }
 

@@ -1,8 +1,6 @@
 package producer
 
 import (
-	"fmt"
-	"peekaping/internal/config"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/queue"
@@ -15,8 +13,7 @@ import (
 
 // RegisterDependencies registers producer dependencies in the DI container
 func RegisterDependencies(container *dig.Container) {
-	// Provide Redis client for leader election
-	container.Provide(ProvideRedisClient)
+	// Note: Redis client is provided by infra.ProvideRedisClient
 
 	// Provide leader election
 	container.Provide(ProvideLeaderElection)
@@ -29,18 +26,6 @@ func RegisterDependencies(container *dig.Container) {
 
 	// Provide producer
 	container.Provide(ProvideProducer)
-}
-
-// ProvideRedisClient provides a Redis client for the producer
-func ProvideRedisClient(cfg *config.Config, logger *zap.SugaredLogger) (*redis.Client, error) {
-	client := redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%s", cfg.RedisHost, cfg.RedisPort),
-		Password: cfg.RedisPassword,
-		DB:       cfg.RedisDB,
-	})
-
-	logger.Info("Successfully created Redis client for producer")
-	return client, nil
 }
 
 // ProvideLeaderElection provides a leader election instance
@@ -77,7 +62,7 @@ func ProvideProducer(
 	return NewProducer(election, scheduler, eventListener, logger)
 }
 
-// SubscribeToEvents subscribes the event listener to the event bus
-func SubscribeToEvents(listener *EventListener, eventBus *events.EventBus) {
+// SubscribeToEvents subscribes the event listener to the Redis event bus
+func SubscribeToEvents(listener *EventListener, eventBus events.EventBus) {
 	listener.Subscribe(eventBus)
 }

@@ -51,7 +51,7 @@ type StatPoint struct {
 type MonitorServiceImpl struct {
 	monitorRepository          MonitorRepository
 	heartbeatService           heartbeat.Service
-	eventBus                   *events.EventBus
+	eventBus events.EventBus
 	monitorNotificationService monitor_notification.Service
 	monitorTagService          monitor_tag.Service
 	executorRegistry           *executor.ExecutorRegistry
@@ -62,7 +62,7 @@ type MonitorServiceImpl struct {
 func NewMonitorService(
 	monitorRepository MonitorRepository,
 	heartbeatService heartbeat.Service,
-	eventBus *events.EventBus,
+	eventBus events.EventBus,
 	monitorNotificationService monitor_notification.Service,
 	monitorTagService monitor_tag.Service,
 	executorRegistry *executor.ExecutorRegistry,

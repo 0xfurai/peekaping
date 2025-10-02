@@ -13,7 +13,7 @@ import (
 func RegisterDependencies(container *dig.Container) {
 	container.Provide(func(
 		settingService shared.SettingService,
-		eventBus *events.EventBus,
+		eventBus events.EventBus,
 		notificationHistoryService notification_sent_history.Service,
 		tlsInfoService monitor_tls_info.Service,
 		logger *zap.SugaredLogger,

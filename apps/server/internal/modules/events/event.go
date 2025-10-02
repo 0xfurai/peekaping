@@ -1,11 +1,5 @@
 package events
 
-import (
-	"sync"
-
-	"go.uber.org/zap"
-)
-
 // EventType represents the type of event
 type EventType string
 
@@ -39,44 +33,20 @@ type Event struct {
 // EventHandler is a function that handles events
 type EventHandler func(event Event)
 
-// EventBus manages event subscriptions and publishing
-type EventBus struct {
-	mu       sync.RWMutex
-	handlers map[EventType][]EventHandler
-	logger   *zap.SugaredLogger
+// EventBus defines the interface for event bus implementations
+// This allows different implementations (Redis, Kafka, RabbitMQ, etc.)
+type EventBus interface {
+	// Subscribe registers a handler for a specific event type
+	Subscribe(eventType EventType, handler EventHandler)
+
+	// Publish sends an event to all registered handlers
+	Publish(event Event)
+
+	// Close closes the event bus and cleans up resources
+	Close() error
 }
 
-// NewEventBus creates a new event bus
-func NewEventBus(logger *zap.SugaredLogger) *EventBus {
-	return &EventBus{
-		handlers: make(map[EventType][]EventHandler),
-		logger:   logger,
-	}
-}
-
-// Subscribe registers a handler for a specific event type
-func (b *EventBus) Subscribe(eventType EventType, handler EventHandler) {
-	b.logger.Debugf("Subscribing to event: %s", eventType)
-	b.mu.Lock()
-	defer b.mu.Unlock()
-
-	handlers := b.handlers[eventType]
-	handlers = append(handlers, handler)
-	b.handlers[eventType] = handlers
-}
-
-// Publish sends an event to all registered handlers
-func (b *EventBus) Publish(event Event) {
-	b.logger.Debugf("Publishing event: %s", event.Type)
-	b.mu.RLock()
-	defer b.mu.RUnlock()
-
-	handlers := b.handlers[event.Type]
-	for _, handler := range handlers {
-		go handler(event)
-	}
-}
-
+// HeartbeatCreatedPayload represents the payload for heartbeat created events
 type HeartbeatCreatedPayload struct {
 	MonitorID string
 	Status    int

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"peekaping/internal/config"
+	"peekaping/internal/infra"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
@@ -15,7 +16,7 @@ import (
 
 type Server struct {
 	io         *socket.Server
-	eventBus   *events.EventBus
+	eventBus   events.EventBus
 	tokenMaker *auth.TokenMaker
 }
 
@@ -25,7 +26,7 @@ type SocketData struct {
 
 func NewServer(
 	cfg *config.Config,
-	eventBus *events.EventBus,
+	eventBus events.EventBus,
 	tokenMaker *auth.TokenMaker,
 	logger *zap.SugaredLogger,
 ) (*Server, error) {
@@ -86,10 +87,14 @@ func NewServer(
 
 	// Listen for heartbeat events and broadcast to room
 	eventBus.Subscribe(events.HeartbeatEvent, func(event events.Event) {
-		heartbeat := event.Payload.(*heartbeat.Model)
-		roomName := "monitor:" + heartbeat.MonitorID
-		server.io.To(socket.Room(roomName)).Emit(roomName+":heartbeat", event.Payload)
-		server.io.To(socket.Room("monitor:all")).Emit("monitor:all:heartbeat", event.Payload)
+		hb, ok := infra.UnmarshalEventPayload[heartbeat.Model](event)
+		if !ok {
+			logger.Warn("Failed to unmarshal heartbeat event payload")
+			return
+		}
+		roomName := "monitor:" + hb.MonitorID
+		server.io.To(socket.Room(roomName)).Emit(roomName+":heartbeat", hb)
+		server.io.To(socket.Room("monitor:all")).Emit("monitor:all:heartbeat", hb)
 	})
 
 	return server, nil
