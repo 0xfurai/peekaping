@@ -156,14 +156,14 @@ func (s *HealthCheckSupervisor) StartMonitor(
 		}
 
 		// Run once immediately
-		go s.handleMonitorTick(ctx, m, executor, proxyModel, func(newInterval time.Duration) {
+		go s.HandleMonitorTick(ctx, m, executor, proxyModel, func(newInterval time.Duration) {
 			intervalUpdate <- newInterval
 		})
 
 		for {
 			select {
 			case <-time.After(interval):
-				go s.handleMonitorTick(ctx, m, executor, proxyModel, func(newInterval time.Duration) {
+				go s.HandleMonitorTick(ctx, m, executor, proxyModel, func(newInterval time.Duration) {
 					intervalUpdate <- newInterval
 				})
 			case newInterval := <-intervalUpdate:
