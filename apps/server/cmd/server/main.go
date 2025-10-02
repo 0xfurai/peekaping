@@ -8,6 +8,7 @@ import (
 	"peekaping/docs"
 	"peekaping/internal"
 	"peekaping/internal/config"
+	"peekaping/internal/infra"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/badge"
 	"peekaping/internal/modules/bruteforce"
@@ -73,9 +74,9 @@ func main() {
 	// database-specific deps
 	switch cfg.DBType {
 	case "postgres", "postgresql", "mysql", "sqlite":
-		container.Provide(internal.ProvideSQLDB)
+		container.Provide(infra.ProvideSQLDB)
 	case "mongo", "mongodb":
-		container.Provide(internal.ProvideMongoDB)
+		container.Provide(infra.ProvideMongoDB)
 	default:
 		panic(fmt.Errorf("unsupported DB_DRIVER %q", cfg.DBType))
 	}
