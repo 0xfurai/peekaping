@@ -147,14 +147,14 @@ func main() {
 	}
 
 	// Start the health check supervisor
-	err = container.Invoke(func(supervisor *healthcheck.HealthCheckSupervisor) {
-		if err := supervisor.StartAll(context.Background()); err != nil {
-			log.Fatal(err)
-		}
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
+	// err = container.Invoke(func(supervisor *healthcheck.HealthCheckSupervisor) {
+	// 	if err := supervisor.StartAll(context.Background()); err != nil {
+	// 		log.Fatal(err)
+	// 	}
+	// })
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
 	err = container.Invoke(func(listener *notification_channel.NotificationEventListener, eventBus events.EventBus) {
 		listener.Subscribe(eventBus)
