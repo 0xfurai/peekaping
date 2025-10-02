@@ -26,7 +26,7 @@ func (uc *Route) ConnectRoute(
 ) {
 	router := rg.Group("/settings")
 
-	router.Use(uc.middleware.Auth())
+	router.Use(uc.middleware.AuthWithWorkspace())
 
 	router.GET("key/:key", uc.controller.GetByKey)
 	router.PUT("key/:key", uc.controller.SetByKey)

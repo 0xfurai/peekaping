@@ -26,7 +26,7 @@ func (r *Route) ConnectRoute(rg *gin.RouterGroup, controller *Controller) {
 	sp.GET("/slug/:slug/monitors", r.controller.GetMonitorsBySlug)
 	sp.GET("/slug/:slug/monitors/homepage", r.controller.GetMonitorsBySlugForHomepage)
 
-	sp.Use(r.middleware.Auth())
+	sp.Use(r.middleware.AuthWithWorkspace())
 	{
 		sp.POST("", r.controller.Create)
 		sp.GET("", r.controller.FindAll)

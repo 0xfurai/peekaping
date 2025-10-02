@@ -32,7 +32,7 @@ func (r *Route) ConnectRoute(router *gin.RouterGroup, controller *Controller) {
 
 	auth.POST("/refresh", controller.RefreshToken)
 
-	auth.Use(r.middleware.Auth())
+	router.Use(r.middleware.AuthWithWorkspace())
 	auth.POST("/2fa/setup", controller.SetupTwoFA)
 	auth.POST("/2fa/verify", controller.VerifyTwoFA)
 	auth.POST("/2fa/disable", controller.DisableTwoFA)

@@ -27,7 +27,7 @@ func (uc *Route) ConnectRoute(
 ) {
 	router := rg.Group("notification-channels")
 
-	router.Use(uc.middleware.Auth())
+	router.Use(uc.middleware.AuthWithWorkspace())
 
 	router.GET("", controller.FindAll)
 	router.POST("", controller.Create)

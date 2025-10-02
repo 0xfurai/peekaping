@@ -87,7 +87,7 @@ func ProvideServer(
 	server.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
-		AllowHeaders:     []string{"Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"},
+		AllowHeaders:     []string{"Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization", "x-peekaping-workspace"},
 		ExposeHeaders:    []string{"Authorization"},
 		AllowCredentials: true,
 	}))

@@ -27,7 +27,7 @@ func (r *Route) ConnectRoute(
 ) {
 	router := rg.Group("tags")
 
-	router.Use(r.middleware.Auth())
+	router.Use(r.middleware.AuthWithWorkspace())
 
 	router.GET("", controller.FindAll)
 	router.POST("", controller.Create)

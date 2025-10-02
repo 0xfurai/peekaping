@@ -26,7 +26,7 @@ func (uc *MonitorRoute) ConnectRoute(
 	monitorController *MonitorController,
 ) {
 	router := rg.Group("monitors")
-	router.Use(uc.middleware.Auth())
+	router.Use(uc.middleware.AuthWithWorkspace())
 
 	router.GET("", uc.monitorController.FindAll)
 	router.GET("batch", uc.monitorController.FindByIDs)

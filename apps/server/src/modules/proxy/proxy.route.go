@@ -27,7 +27,7 @@ func (uc *Route) ConnectRoute(
 ) {
 	router := rg.Group("proxies")
 
-	router.Use(uc.middleware.Auth())
+	router.Use(uc.middleware.AuthWithWorkspace())
 	router.GET("", uc.controller.FindAll)
 	router.POST("", uc.controller.Create)
 	router.GET(":id", uc.controller.FindByID)
