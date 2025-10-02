@@ -212,3 +212,17 @@ test-server: ## Test the server
 lint-web: ## Test the web
 	@echo "Testing the web..."
 	cd apps/web && pnpm lint && pnpm build
+
+# Producer targets
+.PHONY: build-producer
+build-producer: ## Build the producer binary
+	@echo "Building producer..."
+	cd $(GO_SERVER_DIR) && go build -o ../../bin/producer ./cmd/producer
+
+.PHONY: run-producer
+run-producer: ## Run the producer service
+	@echo "Running producer..."
+	cd $(GO_SERVER_DIR) && go run ./cmd/producer/main.go
+
+.PHONY: producer
+producer: run-producer ## Alias for run-producer
