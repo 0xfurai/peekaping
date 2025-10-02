@@ -13,6 +13,10 @@
       "cache": false,
       "persistent": true
     },
+    "dev:worker": {
+      "cache": false,
+      "persistent": true
+    },
     "docs:watch": {
       "cache": false,
       "persistent": true

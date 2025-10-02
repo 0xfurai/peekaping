@@ -227,8 +227,8 @@ func (s *HealthCheckSupervisor) postProcessHeartbeat(result *executor.Result, m 
 	}
 }
 
-// handleMonitorTick processes a single monitor tick in its own goroutine.
-func (s *HealthCheckSupervisor) handleMonitorTick(
+// HandleMonitorTick processes a single monitor tick in its own goroutine.
+func (s *HealthCheckSupervisor) HandleMonitorTick(
 	ctx context.Context,
 	m *Monitor,
 	exec executor.Executor,
