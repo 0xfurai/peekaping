@@ -37,6 +37,16 @@ type Config struct {
 
 	Timezone string `env:"TZ" validate:"required" default:"UTC"`
 
+	// Redis configuration for queue
+	RedisHost     string `env:"REDIS_HOST" validate:"required" default:"localhost"`
+	RedisPort     string `env:"REDIS_PORT" validate:"required,port" default:"6379"`
+	RedisPassword string `env:"REDIS_PASSWORD" default:""`
+	RedisDB       int    `env:"REDIS_DB" validate:"min=0,max=15" default:"0"`
+
+	// Queue configuration
+	// Number of concurrent workers to process tasks
+	QueueConcurrency int `env:"QUEUE_CONCURRENCY" validate:"min=1" default:"10"`
+
 	// Bruteforce protection settings
 	// Maximum number of failed login attempts allowed within the time window
 	// After exceeding this limit, the account will be temporarily locked
