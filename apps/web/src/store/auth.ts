@@ -28,11 +28,21 @@ export const useAuthStore = create<AuthState>()(
         set({ accessToken, refreshToken }),
       setUser: (user: AuthModel | null) => set({ user }),
       setWorkspaces: (workspaces: WorkspaceModel[]) => {
-        // Set first workspace as default if no workspace is selected
-        set((state) => ({
-          workspaces,
-          selectedWorkspaceId: state.selectedWorkspaceId || (workspaces.length > 0 ? workspaces[0].id : null),
-        }));
+        set((state) => {
+          // Check if the currently selected workspace is still in the list
+          const isSelectedWorkspaceValid = state.selectedWorkspaceId &&
+            workspaces.some(w => w.id === state.selectedWorkspaceId);
+
+          // Use existing selection if valid, otherwise use first workspace or null
+          const selectedWorkspaceId = isSelectedWorkspaceValid
+            ? state.selectedWorkspaceId
+            : (workspaces.length > 0 ? workspaces[0].id : null);
+
+          return {
+            workspaces,
+            selectedWorkspaceId,
+          };
+        });
       },
       setSelectedWorkspaceId: (workspaceId: string | null) =>
         set({ selectedWorkspaceId: workspaceId }),
