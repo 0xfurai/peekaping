@@ -72,7 +72,7 @@ func RegisterPushEndpoint(
 			EndTime:   time.Now().UTC(),
 		}
 
-		healthcheckSupervisor.postProcessHeartbeat(result, monitor, nil)
+		_ = healthcheckSupervisor.postProcessHeartbeat(result, monitor)
 
 		ctx.JSON(http.StatusOK, gin.H{"ok": "true"})
 	})

@@ -47,9 +47,11 @@ func ProvideAsynqServer(
 
 		// Queue priorities - higher value means higher priority
 		Queues: map[string]int{
-			"critical": 6, // Highest priority
-			"default":  3, // Medium priority
-			"low":      1, // Lowest priority
+			"critical":    6, // Highest priority
+			"healthcheck": 5, // High priority for health checks
+			"ingester":    4, // High priority for ingestion
+			"default":     3, // Medium priority
+			"low":         1, // Lowest priority
 		},
 
 		// Error handler for logging failed tasks

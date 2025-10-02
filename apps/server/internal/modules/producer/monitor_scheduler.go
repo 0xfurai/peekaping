@@ -207,7 +207,7 @@ func (ms *MonitorScheduler) enqueueHealthCheckTask(ctx context.Context, monitorI
 	}
 
 	opts := &queue.EnqueueOptions{
-		Queue:     "default",
+		Queue:     "healthcheck",
 		MaxRetry:  3,
 		Timeout:   5 * time.Minute,
 		Retention: 1 * time.Hour,
