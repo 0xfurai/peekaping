@@ -38,7 +38,7 @@ type Config struct {
 	Timezone string `env:"TZ" validate:"required" default:"UTC"`
 
 	// Redis configuration for queue
-	RedisHost     string `env:"REDIS_HOST" validate:"required" default:"localhost"`
+	RedisHost     string `env:"REDIS_HOST" validate:"required" default:"redis"`
 	RedisPort     string `env:"REDIS_PORT" validate:"required,port" default:"6379"`
 	RedisPassword string `env:"REDIS_PASSWORD" default:""`
 	RedisDB       int    `env:"REDIS_DB" validate:"min=0,max=15" default:"0"`

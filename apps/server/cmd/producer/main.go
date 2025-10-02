@@ -9,6 +9,7 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/infra"
 	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_notification"
@@ -82,12 +83,14 @@ func main() {
 
 	// Provide queue infrastructure
 	container.Provide(infra.ProvideAsynqClient)
+	container.Provide(infra.ProvideAsynqInspector)
 	container.Provide(infra.ProvideQueueService)
 
 	// Register module dependencies
 	events.RegisterDependencies(container)
 	heartbeat.RegisterDependencies(container, &cfg)
 	monitor.RegisterDependencies(container, &cfg)
+	healthcheck.RegisterDependencies(container)
 	monitor_notification.RegisterDependencies(container, &cfg)
 	monitor_tag.RegisterDependencies(container, &cfg)
 	proxy.RegisterDependencies(container, &cfg)
