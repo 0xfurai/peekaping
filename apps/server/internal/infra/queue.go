@@ -41,6 +41,7 @@ func ProvideAsynqServer(
 	}
 
 	// Configure server with appropriate concurrency and queue priorities
+	// Note: Worker only processes healthcheck tasks. Ingester tasks are handled by a separate ingester service.
 	serverCfg := asynq.Config{
 		// Number of concurrent workers to process tasks
 		Concurrency: cfg.QueueConcurrency,
@@ -49,7 +50,6 @@ func ProvideAsynqServer(
 		Queues: map[string]int{
 			"critical":    6, // Highest priority
 			"healthcheck": 5, // High priority for health checks
-			"ingester":    4, // High priority for ingestion
 			"default":     3, // Medium priority
 			"low":         1, // Lowest priority
 		},
