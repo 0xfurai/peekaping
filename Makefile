@@ -226,3 +226,17 @@ run-producer: ## Run the producer service
 
 .PHONY: producer
 producer: run-producer ## Alias for run-producer
+
+# Ingester targets
+.PHONY: build-ingester
+build-ingester: ## Build the ingester binary
+	@echo "Building ingester..."
+	cd $(GO_SERVER_DIR) && go build -o ../../bin/ingester ./cmd/ingester
+
+.PHONY: run-ingester
+run-ingester: ## Run the ingester service
+	@echo "Running ingester..."
+	cd $(GO_SERVER_DIR) && go run ./cmd/ingester/main.go
+
+.PHONY: ingester
+ingester: run-ingester ## Alias for run-ingester

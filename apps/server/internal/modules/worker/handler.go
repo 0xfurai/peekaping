@@ -139,40 +139,40 @@ func (h *HealthCheckTaskHandler) ProcessTask(ctx context.Context, task *asynq.Ta
 	)
 
 	// Enqueue the result to the ingester queue
-	// ingesterPayload := IngesterTaskPayload{
-	// 	MonitorID:          m.ID,
-	// 	MonitorName:        m.Name,
-	// 	MonitorType:        m.Type,
-	// 	MonitorInterval:    m.Interval,
-	// 	MonitorTimeout:     m.Timeout,
-	// 	MonitorMaxRetries:  m.MaxRetries,
-	// 	MonitorRetryInt:    m.RetryInterval,
-	// 	MonitorResendInt:   m.ResendInterval,
-	// 	MonitorConfig:      m.Config,
-	// 	Status:             tickResult.ExecutionResult.Status,
-	// 	Message:            tickResult.ExecutionResult.Message,
-	// 	PingMs:             tickResult.PingMs,
-	// 	StartTime:          tickResult.ExecutionResult.StartTime,
-	// 	EndTime:            tickResult.ExecutionResult.EndTime,
-	// 	IsUnderMaintenance: tickResult.IsUnderMaintenance,
-	// 	TLSInfo:            tickResult.ExecutionResult.TLSInfo,
-	// }
+	ingesterPayload := IngesterTaskPayload{
+		MonitorID:          m.ID,
+		MonitorName:        m.Name,
+		MonitorType:        m.Type,
+		MonitorInterval:    m.Interval,
+		MonitorTimeout:     m.Timeout,
+		MonitorMaxRetries:  m.MaxRetries,
+		MonitorRetryInt:    m.RetryInterval,
+		MonitorResendInt:   m.ResendInterval,
+		MonitorConfig:      m.Config,
+		Status:             tickResult.ExecutionResult.Status,
+		Message:            tickResult.ExecutionResult.Message,
+		PingMs:             tickResult.PingMs,
+		StartTime:          tickResult.ExecutionResult.StartTime,
+		EndTime:            tickResult.ExecutionResult.EndTime,
+		IsUnderMaintenance: tickResult.IsUnderMaintenance,
+		TLSInfo:            tickResult.ExecutionResult.TLSInfo,
+	}
 
-	// opts := &queue.EnqueueOptions{
-	// 	Queue:     "ingester",
-	// 	MaxRetry:  3,
-	// 	Timeout:   2 * time.Minute,
-	// 	Retention: 1 * time.Hour,
-	// }
+	opts := &queue.EnqueueOptions{
+		Queue:     "ingester",
+		MaxRetry:  3,
+		Timeout:   2 * time.Minute,
+		Retention: 1 * time.Hour,
+	}
 
-	// _, err = h.queueService.Enqueue(ctx, TaskTypeIngester, ingesterPayload, opts)
-	// if err != nil {
-	// 	h.logger.Errorw("Failed to enqueue ingester task",
-	// 		"monitor_id", payload.MonitorID,
-	// 		"error", err,
-	// 	)
-	// 	return fmt.Errorf("failed to enqueue ingester task: %w", err)
-	// }
+	_, err = h.queueService.Enqueue(ctx, TaskTypeIngester, ingesterPayload, opts)
+	if err != nil {
+		h.logger.Errorw("Failed to enqueue ingester task",
+			"monitor_id", payload.MonitorID,
+			"error", err,
+		)
+		return fmt.Errorf("failed to enqueue ingester task: %w", err)
+	}
 
 	h.logger.Debugw("Successfully enqueued result to ingester",
 		"monitor_id", payload.MonitorID,
