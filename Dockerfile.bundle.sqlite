@@ -19,7 +19,7 @@ RUN go mod download
 COPY apps/server/ .
 
 # Build the Go server
-RUN go build -o main ./src
+RUN go build -o main ./cmd/server
 
 # Build the migration tool
 RUN go build -o bun ./cmd/bun

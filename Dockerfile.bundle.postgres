@@ -8,7 +8,7 @@ WORKDIR /app/server
 COPY apps/server/go.mod apps/server/go.sum ./
 RUN go mod download
 COPY apps/server/ .
-RUN go build -o main ./src
+RUN go build -o main ./cmd/server
 RUN go build -o bun ./cmd/bun
 
 # Stage 2: Build React web app
