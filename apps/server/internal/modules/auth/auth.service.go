@@ -1,0 +1,401 @@
+package auth
+
+import (
+	"context"
+	"errors"
+	"time"
+
+	"peekaping/internal/modules/user_workspace"
+	workspaceModule "peekaping/internal/modules/workspace"
+
+	"github.com/pquerna/otp/totp"
+	"go.uber.org/zap"
+	"golang.org/x/crypto/bcrypt"
+)
+
+type Service interface {
+	Register(ctx context.Context, dto RegisterDto) (*LoginResponse, error)
+	Login(ctx context.Context, dto LoginDto) (*LoginResponse, error)
+	RefreshToken(ctx context.Context, refreshToken string) (*LoginResponse, error)
+	UpdatePassword(ctx context.Context, userId string, dto UpdatePasswordDto) error
+
+	// 2FA methods
+	SetupTwoFA(ctx context.Context, userId, password string) (secret string, provisioningURI string, err error)
+	VerifyTwoFA(ctx context.Context, userId, code string) (bool, error)
+	DisableTwoFA(ctx context.Context, userId, password string) error
+}
+
+type ServiceImpl struct {
+	repo                 Repository
+	tokenMaker           *TokenMaker
+	workspaceService     workspaceModule.Service
+	userWorkspaceService user_workspace.Service
+	logger               *zap.SugaredLogger
+}
+
+func NewService(
+	repo Repository,
+	tokenMaker *TokenMaker,
+	workspaceService workspaceModule.Service,
+	userWorkspaceService user_workspace.Service,
+	logger *zap.SugaredLogger,
+) Service {
+	return &ServiceImpl{
+		repo:                 repo,
+		tokenMaker:           tokenMaker,
+		workspaceService:     workspaceService,
+		userWorkspaceService: userWorkspaceService,
+		logger:               logger.Named("[auth-service]"),
+	}
+}
+
+func (s *ServiceImpl) Register(ctx context.Context, dto RegisterDto) (*LoginResponse, error) {
+	// Check if user with this email already exists
+	existingUser, err := s.repo.FindByEmail(ctx, dto.Email)
+	if err == nil && existingUser != nil {
+		return nil, errors.New("user with this email already exists")
+	}
+
+	// Hash password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(dto.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create new user
+	user := &Model{
+		Email:     dto.Email,
+		Password:  string(hashedPassword),
+		Active:    true,
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
+	}
+
+	// Save user to database
+	user, err = s.repo.Create(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create personal workspace for the user
+	workspace, err := s.workspaceService.CreateDefault(ctx, user.Email)
+	if err != nil {
+		s.logger.Errorw("Failed to create personal workspace for user", "error", err, "userID", user.ID, "email", user.Email)
+		// Note: We don't return error here to avoid failing registration if workspace creation fails
+		// The user can still use the system, just without a default workspace
+	} else {
+		// Associate user with their personal workspace as owner
+		_, err = s.userWorkspaceService.Create(ctx, user.ID, workspace.ID, "owner")
+		if err != nil {
+			s.logger.Errorw("Failed to associate user with personal workspace", "error", err, "userID", user.ID, "workspaceID", workspace.ID)
+			// Note: We don't return error here for the same reason as above
+		} else {
+			s.logger.Infow("Personal workspace created and associated with user", "userID", user.ID, "workspaceID", workspace.ID, "email", user.Email)
+		}
+	}
+
+	// Generate access token
+	accessToken, err := s.tokenMaker.CreateAccessToken(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
+	// Generate refresh token
+	refreshToken, err := s.tokenMaker.CreateRefreshToken(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
+	// Fetch user workspaces
+	userWorkspaces, err := s.userWorkspaceService.FindByUserID(ctx, user.ID)
+	if err != nil {
+		s.logger.Errorw("Failed to fetch user workspaces", "error", err, "userID", user.ID)
+		// Return empty workspaces list instead of error
+		userWorkspaces = []*user_workspace.Model{}
+	}
+
+	// Extract workspace IDs
+	workspaceIDs := make([]string, 0, len(userWorkspaces))
+	for _, uw := range userWorkspaces {
+		workspaceIDs = append(workspaceIDs, uw.WorkspaceID)
+	}
+
+	// Fetch workspace details
+	workspaces := []*workspaceModule.Model{}
+	if len(workspaceIDs) > 0 {
+		workspaces, err = s.workspaceService.FindByIDs(ctx, workspaceIDs)
+		if err != nil {
+			s.logger.Errorw("Failed to fetch workspaces", "error", err, "workspaceIDs", workspaceIDs)
+			// Return empty workspaces list instead of error
+			workspaces = []*workspaceModule.Model{}
+		}
+	}
+
+	return &LoginResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		User:         user,
+		Workspaces:   workspaces,
+	}, nil
+}
+
+func (s *ServiceImpl) Login(ctx context.Context, dto LoginDto) (*LoginResponse, error) {
+	// Find admin by email
+	user, err := s.repo.FindByEmail(ctx, dto.Email)
+	if err != nil {
+		return nil, errors.New("invalid credentials")
+	}
+	if user == nil {
+		return nil, errors.New("invalid credentials")
+	}
+
+	// Verify password
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(dto.Password))
+	if err != nil {
+		return nil, errors.New("invalid credentials")
+	}
+
+	// Enforce 2FA if enabled
+	if user.TwoFASecret != "" && user.TwoFAStatus {
+		if dto.Token == "" {
+			return nil, errors.New("2FA token required")
+		}
+		if !totp.Validate(dto.Token, user.TwoFASecret) {
+			return nil, errors.New("invalid 2FA token")
+		}
+	}
+
+	// Generate access token
+	accessToken, err := s.tokenMaker.CreateAccessToken(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
+	// Generate refresh token
+	refreshToken, err := s.tokenMaker.CreateRefreshToken(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
+	// Fetch user workspaces
+	userWorkspaces, err := s.userWorkspaceService.FindByUserID(ctx, user.ID)
+	if err != nil {
+		s.logger.Errorw("Failed to fetch user workspaces", "error", err, "userID", user.ID)
+		// Return empty workspaces list instead of error
+		userWorkspaces = []*user_workspace.Model{}
+	}
+
+	// Extract workspace IDs
+	workspaceIDs := make([]string, 0, len(userWorkspaces))
+	for _, uw := range userWorkspaces {
+		workspaceIDs = append(workspaceIDs, uw.WorkspaceID)
+	}
+
+	// Fetch workspace details
+	workspaces := []*workspaceModule.Model{}
+	if len(workspaceIDs) > 0 {
+		workspaces, err = s.workspaceService.FindByIDs(ctx, workspaceIDs)
+		if err != nil {
+			s.logger.Errorw("Failed to fetch workspaces", "error", err, "workspaceIDs", workspaceIDs)
+			// Return empty workspaces list instead of error
+			workspaces = []*workspaceModule.Model{}
+		}
+	}
+
+	return &LoginResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		User:         user,
+		Workspaces:   workspaces,
+	}, nil
+}
+
+func (s *ServiceImpl) RefreshToken(ctx context.Context, refreshToken string) (*LoginResponse, error) {
+	// Verify refresh token
+	claims, err := s.tokenMaker.VerifyToken(ctx, refreshToken, "refresh")
+	if err != nil {
+		return nil, errors.New("invalid refresh token")
+	}
+
+	// Check if it's a refresh token
+	if claims.Type != "refresh" {
+		return nil, errors.New("invalid token type")
+	}
+
+	// Find admin by ID
+	user, err := s.repo.FindByID(ctx, claims.UserID)
+	if err != nil || user == nil {
+		return nil, errors.New("user not found")
+	}
+
+	// Generate new access token
+	accessToken, err := s.tokenMaker.CreateAccessToken(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
+	// Generate new refresh token
+	newRefreshToken, err := s.tokenMaker.CreateRefreshToken(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
+	// Fetch user workspaces
+	userWorkspaces, err := s.userWorkspaceService.FindByUserID(ctx, user.ID)
+	if err != nil {
+		s.logger.Errorw("Failed to fetch user workspaces", "error", err, "userID", user.ID)
+		// Return empty workspaces list instead of error
+		userWorkspaces = []*user_workspace.Model{}
+	}
+
+	// Extract workspace IDs
+	workspaceIDs := make([]string, 0, len(userWorkspaces))
+	for _, uw := range userWorkspaces {
+		workspaceIDs = append(workspaceIDs, uw.WorkspaceID)
+	}
+
+	// Fetch workspace details
+	workspaces := []*workspaceModule.Model{}
+	if len(workspaceIDs) > 0 {
+		workspaces, err = s.workspaceService.FindByIDs(ctx, workspaceIDs)
+		if err != nil {
+			s.logger.Errorw("Failed to fetch workspaces", "error", err, "workspaceIDs", workspaceIDs)
+			// Return empty workspaces list instead of error
+			workspaces = []*workspaceModule.Model{}
+		}
+	}
+
+	return &LoginResponse{
+		User:         user,
+		RefreshToken: newRefreshToken,
+		AccessToken:  accessToken,
+		Workspaces:   workspaces,
+	}, nil
+}
+
+func (s *ServiceImpl) UpdatePassword(ctx context.Context, userId string, dto UpdatePasswordDto) error {
+	// Find user by ID
+	user, err := s.repo.FindByID(ctx, userId)
+	if err != nil || user == nil {
+		return errors.New("user not found")
+	}
+
+	// Verify current password
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(dto.CurrentPassword))
+	if err != nil {
+		return errors.New("current password is incorrect")
+	}
+
+	// Hash new password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(dto.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return errors.New("failed to hash new password")
+	}
+
+	password := string(hashedPassword)
+	updateModel := &UpdateModel{
+		Password: &password,
+	}
+
+	// Update user in DB
+	err = s.repo.Update(ctx, userId, updateModel)
+	if err != nil {
+		return errors.New("failed to update password")
+	}
+
+	return nil
+}
+
+func (s *ServiceImpl) SetupTwoFA(ctx context.Context, userId, password string) (string, string, error) {
+	user, err := s.repo.FindByID(ctx, userId)
+	if err != nil || user == nil {
+		return "", "", errors.New("user not found")
+	}
+
+	// Require password verification
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	if err != nil {
+		return "", "", errors.New("invalid password")
+	}
+	var secretStr, provisioningURI string
+	if user.TwoFASecret == "" {
+		// Generate new secret and provisioning URI
+		key, err := totp.Generate(totp.GenerateOpts{
+			Issuer:      "peekaping",
+			AccountName: user.Email,
+		})
+		if err != nil {
+			return "", "", err
+		}
+		secretStr = key.Secret()
+		provisioningURI = key.URL()
+		updateModel := &UpdateModel{
+			TwoFASecret: &secretStr,
+		}
+		err = s.repo.Update(ctx, userId, updateModel)
+		if err != nil {
+			return "", "", err
+		}
+	} else {
+		// If already set, just return existing
+		secretStr = user.TwoFASecret
+		// Recreate the provisioning URI
+		key, err := totp.Generate(totp.GenerateOpts{
+			Issuer:      "peekaping",
+			AccountName: user.Email,
+			Secret:      []byte(user.TwoFASecret),
+		})
+		if err != nil {
+			return "", "", err
+		}
+		provisioningURI = key.URL()
+	}
+	return secretStr, provisioningURI, nil
+}
+
+func (s *ServiceImpl) VerifyTwoFA(ctx context.Context, userId, code string) (bool, error) {
+	user, err := s.repo.FindByID(ctx, userId)
+	if err != nil || user == nil {
+		return false, errors.New("user not found")
+	}
+	if user.TwoFASecret == "" {
+		return false, errors.New("2FA not setup")
+	}
+	valid := totp.Validate(code, user.TwoFASecret)
+	if valid {
+		status := true
+		updateModel := &UpdateModel{
+			TwoFAStatus: &status,
+		}
+		s.repo.Update(ctx, userId, updateModel)
+	}
+	return valid, nil
+}
+
+func (s *ServiceImpl) DisableTwoFA(ctx context.Context, userId, password string) error {
+	user, err := s.repo.FindByID(ctx, userId)
+	if err != nil || user == nil {
+		return errors.New("user not found")
+	}
+	// Require password verification
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	if err != nil {
+		return errors.New("invalid password")
+	}
+
+	// Prepare values for pointers
+	secret := ""
+	status := false
+
+	updateModel := &UpdateModel{
+		TwoFASecret: &secret,
+		TwoFAStatus: &status,
+	}
+
+	err = s.repo.Update(ctx, userId, updateModel)
+	if err != nil {
+		return errors.New("failed to disable 2FA")
+	}
+
+	return nil
+}

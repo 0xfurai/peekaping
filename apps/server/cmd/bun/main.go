@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 	"peekaping/cmd/bun/migrations"
-	"peekaping/src/config"
+	"peekaping/internal/config"
 	"strings"
 
 	"github.com/uptrace/bun"
