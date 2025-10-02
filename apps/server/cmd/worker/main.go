@@ -88,7 +88,10 @@ func main() {
 	container.Provide(infra.ProvideRedisEventBus)
 
 	// Provide queue infrastructure for worker
+	container.Provide(infra.ProvideAsynqClient)
 	container.Provide(infra.ProvideAsynqServer)
+	container.Provide(infra.ProvideAsynqInspector)
+	container.Provide(infra.ProvideQueueService)
 
 	// Register module dependencies
 	events.RegisterDependencies(container)

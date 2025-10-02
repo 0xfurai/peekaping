@@ -72,7 +72,7 @@ func (s *HealthCheckSupervisor) isImportantBeat(prevBeatStatus, currBeatStatus h
 		(prevBeatStatus == pending && currBeatStatus == down)
 }
 
-func (s *HealthCheckSupervisor) postProcessHeartbeat(result *executor.Result, m *Monitor, intervalUpdateCb func(newInterval time.Duration)) {
+func (s *HealthCheckSupervisor) postProcessHeartbeat(result *executor.Result, m *Monitor) (newInterval time.Duration) {
 	ping := int(result.EndTime.Sub(result.StartTime).Milliseconds())
 
 	ctx := context.Background()
@@ -115,14 +115,10 @@ func (s *HealthCheckSupervisor) postProcessHeartbeat(result *executor.Result, m 
 		if !isFirstBeat && m.MaxRetries > 0 && previousBeat.Retries < m.MaxRetries {
 			hb.Status = shared.MonitorStatusPending
 		}
-		if intervalUpdateCb != nil {
-			intervalUpdateCb(time.Duration(m.RetryInterval) * time.Second)
-		}
+		newInterval = time.Duration(m.RetryInterval) * time.Second
 		hb.Retries++
 	} else {
-		if intervalUpdateCb != nil {
-			intervalUpdateCb(time.Duration(m.Interval) * time.Second)
-		}
+		newInterval = time.Duration(m.Interval) * time.Second
 		hb.Retries = 0
 	}
 
@@ -225,16 +221,18 @@ func (s *HealthCheckSupervisor) postProcessHeartbeat(result *executor.Result, m 
 			Payload: dbHb,
 		})
 	}
+
+	return newInterval
 }
 
-// HandleMonitorTick processes a single monitor tick in its own goroutine.
+// HandleMonitorTick processes a single monitor tick and returns the result.
+// It does NOT save to the database - that's the ingester's job.
 func (s *HealthCheckSupervisor) HandleMonitorTick(
 	ctx context.Context,
 	m *Monitor,
 	exec executor.Executor,
 	proxyModel *proxy.Model,
-	intervalUpdateCb func(newInterval time.Duration),
-) {
+) *TickResult {
 	// Check if monitor is under maintenance
 	isUnderMaintenance, err := s.isUnderMaintenance(ctx, m.ID)
 	s.logger.Debugf("isUnderMaintenance for %s: %t", m.Name, isUnderMaintenance)
@@ -250,8 +248,13 @@ func (s *HealthCheckSupervisor) HandleMonitorTick(
 			StartTime: time.Now(),
 			EndTime:   time.Now(),
 		}
-		s.postProcessHeartbeat(result, m, intervalUpdateCb)
-		return
+		ping := int(result.EndTime.Sub(result.StartTime).Milliseconds())
+		return &TickResult{
+			ExecutionResult:    result,
+			Monitor:            m,
+			PingMs:             ping,
+			IsUnderMaintenance: true,
+		}
 	}
 
 	callCtx, cCancel := context.WithTimeout(
@@ -263,8 +266,15 @@ func (s *HealthCheckSupervisor) HandleMonitorTick(
 	// Execute the health check
 	result := exec.Execute(callCtx, m, proxyModel)
 	if result == nil {
-		return
+		return nil
 	}
 
-	s.postProcessHeartbeat(result, m, intervalUpdateCb)
+	ping := int(result.EndTime.Sub(result.StartTime).Milliseconds())
+
+	return &TickResult{
+		ExecutionResult:    result,
+		Monitor:            m,
+		PingMs:             ping,
+		IsUnderMaintenance: false,
+	}
 }

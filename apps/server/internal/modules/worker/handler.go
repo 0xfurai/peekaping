@@ -4,10 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/healthcheck/executor"
+	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/proxy"
+	"peekaping/internal/modules/queue"
 	"time"
 
 	"github.com/hibiken/asynq"
@@ -17,6 +20,8 @@ import (
 const (
 	// TaskTypeHealthCheck is the task type for health check tasks
 	TaskTypeHealthCheck = "monitor:healthcheck"
+	// TaskTypeIngester is the task type for ingesting health check results
+	TaskTypeIngester = "monitor:ingest"
 )
 
 // HealthCheckTaskPayload is the payload for health check tasks
@@ -25,12 +30,33 @@ type HealthCheckTaskPayload struct {
 	ScheduledAt time.Time `json:"scheduled_at"`
 }
 
+// IngesterTaskPayload is the payload for ingester tasks
+type IngesterTaskPayload struct {
+	MonitorID          string                  `json:"monitor_id"`
+	MonitorName        string                  `json:"monitor_name"`
+	MonitorType        string                  `json:"monitor_type"`
+	MonitorInterval    int                     `json:"monitor_interval"`
+	MonitorTimeout     int                     `json:"monitor_timeout"`
+	MonitorMaxRetries  int                     `json:"monitor_max_retries"`
+	MonitorRetryInt    int                     `json:"monitor_retry_interval"`
+	MonitorResendInt   int                     `json:"monitor_resend_interval"`
+	MonitorConfig      string                  `json:"monitor_config"`
+	Status             heartbeat.MonitorStatus `json:"status"`
+	Message            string                  `json:"message"`
+	PingMs             int                     `json:"ping_ms"`
+	StartTime          time.Time               `json:"start_time"`
+	EndTime            time.Time               `json:"end_time"`
+	IsUnderMaintenance bool                    `json:"is_under_maintenance"`
+	TLSInfo            *certificate.TLSInfo    `json:"tls_info,omitempty"`
+}
+
 // HealthCheckTaskHandler handles health check tasks from the queue
 type HealthCheckTaskHandler struct {
 	monitorService     monitor.Service
 	proxyService       proxy.Service
 	execRegistry       *executor.ExecutorRegistry
 	healthCheckService *healthcheck.HealthCheckSupervisor
+	queueService       queue.Service
 	logger             *zap.SugaredLogger
 }
 
@@ -40,6 +66,7 @@ func NewHealthCheckTaskHandler(
 	proxyService proxy.Service,
 	execRegistry *executor.ExecutorRegistry,
 	healthCheckService *healthcheck.HealthCheckSupervisor,
+	queueService queue.Service,
 	logger *zap.SugaredLogger,
 ) *HealthCheckTaskHandler {
 	return &HealthCheckTaskHandler{
@@ -47,6 +74,7 @@ func NewHealthCheckTaskHandler(
 		proxyService:       proxyService,
 		execRegistry:       execRegistry,
 		healthCheckService: healthCheckService,
+		queueService:       queueService,
 		logger:             logger.With("component", "healthcheck_handler"),
 	}
 }
@@ -96,10 +124,57 @@ func (h *HealthCheckTaskHandler) ProcessTask(ctx context.Context, task *asynq.Ta
 	}
 
 	// Execute the health check using the supervisor's method
-	// We pass nil for intervalUpdateCb since we're not managing intervals in the worker
-	h.healthCheckService.HandleMonitorTick(ctx, m, exec, proxyModel, nil)
+	tickResult := h.healthCheckService.HandleMonitorTick(ctx, m, exec, proxyModel)
 
-	h.logger.Debugw("Successfully processed health check task",
+	if tickResult == nil {
+		h.logger.Warnw("Health check returned nil result", "monitor_id", payload.MonitorID)
+		return fmt.Errorf("health check returned nil result")
+	}
+
+	h.logger.Debugw("Health check executed",
+		"monitor_id", payload.MonitorID,
+		"monitor_name", m.Name,
+		"status", tickResult.ExecutionResult.Status,
+		"ping_ms", tickResult.PingMs,
+	)
+
+	// Enqueue the result to the ingester queue
+	// ingesterPayload := IngesterTaskPayload{
+	// 	MonitorID:          m.ID,
+	// 	MonitorName:        m.Name,
+	// 	MonitorType:        m.Type,
+	// 	MonitorInterval:    m.Interval,
+	// 	MonitorTimeout:     m.Timeout,
+	// 	MonitorMaxRetries:  m.MaxRetries,
+	// 	MonitorRetryInt:    m.RetryInterval,
+	// 	MonitorResendInt:   m.ResendInterval,
+	// 	MonitorConfig:      m.Config,
+	// 	Status:             tickResult.ExecutionResult.Status,
+	// 	Message:            tickResult.ExecutionResult.Message,
+	// 	PingMs:             tickResult.PingMs,
+	// 	StartTime:          tickResult.ExecutionResult.StartTime,
+	// 	EndTime:            tickResult.ExecutionResult.EndTime,
+	// 	IsUnderMaintenance: tickResult.IsUnderMaintenance,
+	// 	TLSInfo:            tickResult.ExecutionResult.TLSInfo,
+	// }
+
+	// opts := &queue.EnqueueOptions{
+	// 	Queue:     "ingester",
+	// 	MaxRetry:  3,
+	// 	Timeout:   2 * time.Minute,
+	// 	Retention: 1 * time.Hour,
+	// }
+
+	// _, err = h.queueService.Enqueue(ctx, TaskTypeIngester, ingesterPayload, opts)
+	// if err != nil {
+	// 	h.logger.Errorw("Failed to enqueue ingester task",
+	// 		"monitor_id", payload.MonitorID,
+	// 		"error", err,
+	// 	)
+	// 	return fmt.Errorf("failed to enqueue ingester task: %w", err)
+	// }
+
+	h.logger.Debugw("Successfully enqueued result to ingester",
 		"monitor_id", payload.MonitorID,
 		"monitor_name", m.Name,
 	)
