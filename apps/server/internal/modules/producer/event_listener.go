@@ -22,7 +22,7 @@ func NewEventListener(scheduler *MonitorScheduler, logger *zap.SugaredLogger) *E
 }
 
 // Subscribe subscribes to monitor events
-func (el *EventListener) Subscribe(eventBus *events.EventBus) {
+func (el *EventListener) Subscribe(eventBus events.EventBus) {
 	el.logger.Info("Subscribing to monitor events")
 
 	// Subscribe to monitor created events

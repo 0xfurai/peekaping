@@ -25,7 +25,7 @@ type HealthCheckSupervisor struct {
 	maintenanceSvc     maintenance.Service
 	execRegistry       *executor.ExecutorRegistry
 	heartbeatService   heartbeat.Service
-	eventBus           *events.EventBus
+	eventBus           events.EventBus
 	logger             *zap.SugaredLogger
 	proxyService       proxy.Service
 	certificateService certificate.Service
@@ -42,7 +42,7 @@ func NewHealthCheck(
 	monitorService monitor.Service,
 	maintenanceService maintenance.Service,
 	heartbeatService heartbeat.Service,
-	eventBus *events.EventBus,
+	eventBus events.EventBus,
 	execRegistry *executor.ExecutorRegistry,
 	logger *zap.SugaredLogger,
 	proxyService proxy.Service,
@@ -67,7 +67,7 @@ func NewHealthCheckWithJitter(
 	monitorService monitor.Service,
 	maintenanceService maintenance.Service,
 	heartbeatService heartbeat.Service,
-	eventBus *events.EventBus,
+	eventBus events.EventBus,
 	execRegistry *executor.ExecutorRegistry,
 	logger *zap.SugaredLogger,
 	proxyService proxy.Service,

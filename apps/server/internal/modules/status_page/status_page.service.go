@@ -25,7 +25,7 @@ type Service interface {
 
 type ServiceImpl struct {
 	repository               Repository
-	eventBus                 *events.EventBus
+	eventBus events.EventBus
 	monitorStatusPageService monitor_status_page.Service
 	domainStatusPageService  domain_status_page.Service
 	logger                   *zap.SugaredLogger
@@ -33,7 +33,7 @@ type ServiceImpl struct {
 
 func NewService(
 	repository Repository,
-	eventBus *events.EventBus,
+	eventBus events.EventBus,
 	monitorStatusPageService monitor_status_page.Service,
 	domainStatusPageService domain_status_page.Service,
 	logger *zap.SugaredLogger,

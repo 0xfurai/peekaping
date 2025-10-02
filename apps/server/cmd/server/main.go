@@ -83,6 +83,10 @@ func main() {
 		panic(fmt.Errorf("unsupported DB_DRIVER %q", cfg.DBType))
 	}
 
+	// Provide Redis event bus
+	container.Provide(infra.ProvideRedisClient)
+	container.Provide(infra.ProvideRedisEventBus)
+
 	// Register dependencies in the correct order to handle circular dependencies
 	events.RegisterDependencies(container)
 	heartbeat.RegisterDependencies(container, &cfg)
@@ -110,7 +114,7 @@ func main() {
 	badge.RegisterDependencies(container, &cfg)
 
 	// Start the event healthcheck listener
-	err = container.Invoke(func(listener *healthcheck.EventListener, eventBus *events.EventBus) {
+	err = container.Invoke(func(listener *healthcheck.EventListener, eventBus events.EventBus) {
 		listener.Start(eventBus)
 	})
 
@@ -152,7 +156,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = container.Invoke(func(listener *notification_channel.NotificationEventListener, eventBus *events.EventBus) {
+	err = container.Invoke(func(listener *notification_channel.NotificationEventListener, eventBus events.EventBus) {
 		listener.Subscribe(eventBus)
 	})
 	if err != nil {
@@ -160,7 +164,7 @@ func main() {
 	}
 
 	// Start the monitor event listener
-	err = container.Invoke(func(listener *monitor.MonitorEventListener, eventBus *events.EventBus) {
+	err = container.Invoke(func(listener *monitor.MonitorEventListener, eventBus events.EventBus) {
 		listener.Subscribe(eventBus)
 	})
 	if err != nil {

@@ -76,6 +76,10 @@ func main() {
 		log.Fatalf("Unsupported DB_TYPE: %s", cfg.DBType)
 	}
 
+	// Provide Redis infrastructure
+	container.Provide(infra.ProvideRedisClient)
+	container.Provide(infra.ProvideRedisEventBus)
+
 	// Provide queue infrastructure
 	container.Provide(infra.ProvideAsynqClient)
 	container.Provide(infra.ProvideQueueService)
@@ -97,7 +101,7 @@ func main() {
 	err = container.Invoke(func(
 		prod *producer.Producer,
 		eventListener *producer.EventListener,
-		eventBus *events.EventBus,
+		eventBus events.EventBus,
 		logger *zap.SugaredLogger,
 	) error {
 		// Subscribe to monitor events
@@ -121,6 +125,12 @@ func main() {
 
 		logger.Info("Shutdown signal received, stopping producer...")
 		prod.Stop()
+
+		// Close event bus
+		if err := eventBus.Close(); err != nil {
+			logger.Errorw("Failed to close event bus", "error", err)
+		}
+
 		logger.Info("Producer stopped gracefully")
 
 		return nil

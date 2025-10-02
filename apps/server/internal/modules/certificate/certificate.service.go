@@ -286,11 +286,11 @@ type CertificateExpiryEvent struct {
 
 // EventBasedNotificationService integrates with the existing notification system via events
 type EventBasedNotificationService struct {
-	eventBus *events.EventBus
+	eventBus events.EventBus
 	logger   *zap.SugaredLogger
 }
 
-func NewEventBasedNotificationService(eventBus *events.EventBus, logger *zap.SugaredLogger) NotificationService {
+func NewEventBasedNotificationService(eventBus events.EventBus, logger *zap.SugaredLogger) NotificationService {
 	return &EventBasedNotificationService{
 		eventBus: eventBus,
 		logger:   logger,

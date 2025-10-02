@@ -41,3 +41,11 @@ services:
       - server
     environment:
       - API_URL=http://localhost:8034
+
+  redis:
+    image: redis:7
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - appnet

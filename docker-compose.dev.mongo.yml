@@ -49,3 +49,11 @@ services:
       - API_URL=http://localhost:8034
     networks:
       - appnet
+
+  redis:
+    image: redis:7
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - appnet

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"peekaping/internal/config"
+	"peekaping/internal/infra"
 	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
@@ -69,7 +70,7 @@ func NewNotificationEventListener(p NotificationEventListenerParams) *Notificati
 }
 
 // Subscribe subscribes to NotifyEvent and sends notifications
-func (l *NotificationEventListener) Subscribe(eventBus *events.EventBus) {
+func (l *NotificationEventListener) Subscribe(eventBus events.EventBus) {
 	eventBus.Subscribe(events.ImportantHeartbeat, l.handleNotifyEvent)
 	eventBus.Subscribe(events.CertificateExpiry, l.handleCertificateExpiryEvent)
 }
@@ -77,9 +78,9 @@ func (l *NotificationEventListener) Subscribe(eventBus *events.EventBus) {
 func (l *NotificationEventListener) handleNotifyEvent(event events.Event) {
 	ctx := context.Background()
 
-	hb, ok := event.Payload.(*heartbeat.Model)
+	hb, ok := infra.UnmarshalEventPayload[heartbeat.Model](event)
 	if !ok {
-		l.logger.Errorf("Invalid handleNotifyEvent event payload type: %v", event.Payload)
+		l.logger.Errorf("Failed to unmarshal heartbeat event payload")
 		return
 	}
 
@@ -145,9 +146,9 @@ func (l *NotificationEventListener) handleNotifyEvent(event events.Event) {
 func (l *NotificationEventListener) handleCertificateExpiryEvent(event events.Event) {
 	ctx := context.Background()
 
-	certEvent, ok := event.Payload.(*certificate.CertificateExpiryEvent)
+	certEvent, ok := infra.UnmarshalEventPayload[certificate.CertificateExpiryEvent](event)
 	if !ok {
-		l.logger.Errorf("Invalid certificate expiry event payload type: %v", event.Payload)
+		l.logger.Errorf("Failed to unmarshal certificate expiry event payload")
 		return
 	}
 

@@ -191,7 +191,7 @@ func TestNewService(t *testing.T) {
 	mockRepo := new(MockRepository)
 	mockMonitorService := new(MockMonitorService)
 	logger := zap.NewNop().Sugar()
-	eventBus := events.NewEventBus(logger)
+	eventBus := infra.NewRedisEventBus(logger)
 
 	params := NewServiceParams{
 		Repository:     mockRepo,
@@ -281,7 +281,7 @@ func TestServiceImpl_Create(t *testing.T) {
 			mockRepo := new(MockRepository)
 			mockMonitorService := new(MockMonitorService)
 			logger := zap.NewNop().Sugar()
-			eventBus := events.NewEventBus(logger)
+			eventBus := infra.NewRedisEventBus(logger)
 
 			service := &ServiceImpl{
 				repository:     mockRepo,
@@ -368,7 +368,7 @@ func TestServiceImpl_FindByID(t *testing.T) {
 			mockRepo := new(MockRepository)
 			mockMonitorService := new(MockMonitorService)
 			logger := zap.NewNop().Sugar()
-			eventBus := events.NewEventBus(logger)
+			eventBus := infra.NewRedisEventBus(logger)
 
 			service := &ServiceImpl{
 				repository:     mockRepo,
@@ -471,7 +471,7 @@ func TestServiceImpl_FindAll(t *testing.T) {
 			mockRepo := new(MockRepository)
 			mockMonitorService := new(MockMonitorService)
 			logger := zap.NewNop().Sugar()
-			eventBus := events.NewEventBus(logger)
+			eventBus := infra.NewRedisEventBus(logger)
 
 			service := &ServiceImpl{
 				repository:     mockRepo,
@@ -577,9 +577,9 @@ func TestServiceImpl_UpdateFull(t *testing.T) {
 			mockRepo := new(MockRepository)
 			mockMonitorService := new(MockMonitorService)
 			logger := zap.NewNop().Sugar()
-			var eventBus *events.EventBus
+			var eventBus events.EventBus
 			if !tt.eventBusNil {
-				eventBus = events.NewEventBus(logger)
+				eventBus = infra.NewRedisEventBus(logger)
 			}
 
 			service := &ServiceImpl{
@@ -722,9 +722,9 @@ func TestServiceImpl_UpdatePartial(t *testing.T) {
 			mockRepo := new(MockRepository)
 			mockMonitorService := new(MockMonitorService)
 			logger := zap.NewNop().Sugar()
-			var eventBus *events.EventBus
+			var eventBus events.EventBus
 			if !tt.eventBusNil {
-				eventBus = events.NewEventBus(logger)
+				eventBus = infra.NewRedisEventBus(logger)
 			}
 
 			service := &ServiceImpl{
@@ -835,9 +835,9 @@ func TestServiceImpl_Delete(t *testing.T) {
 			mockRepo := new(MockRepository)
 			mockMonitorService := new(MockMonitorService)
 			logger := zap.NewNop().Sugar()
-			var eventBus *events.EventBus
+			var eventBus events.EventBus
 			if !tt.eventBusNil {
-				eventBus = events.NewEventBus(logger)
+				eventBus = infra.NewRedisEventBus(logger)
 			}
 
 			service := &ServiceImpl{

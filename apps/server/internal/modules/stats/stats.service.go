@@ -3,6 +3,7 @@ package stats
 import (
 	"context"
 	"fmt"
+	"peekaping/internal/infra"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/shared"
 	"time"
@@ -19,7 +20,7 @@ type HeartbeatPayload struct {
 
 type Service interface {
 	AggregateHeartbeat(ctx context.Context, hb *HeartbeatPayload) error
-	RegisterEventHandlers(eventBus *events.EventBus)
+	RegisterEventHandlers(eventBus events.EventBus)
 	FindStatsByMonitorIDAndTimeRange(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod) ([]*Stat, error)
 	FindStatsByMonitorIDAndTimeRangeWithInterval(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod, monitorInterval int) ([]*Stat, error)
 	StatPointsSummary(statsList []*Stat) *Stats
@@ -111,10 +112,11 @@ func (s *ServiceImpl) AggregateHeartbeat(ctx context.Context, hb *HeartbeatPaylo
 	return nil
 }
 
-func (s *ServiceImpl) RegisterEventHandlers(eventBus *events.EventBus) {
+func (s *ServiceImpl) RegisterEventHandlers(eventBus events.EventBus) {
 	eventBus.Subscribe(events.HeartbeatEvent, func(event events.Event) {
-		payload, ok := event.Payload.(*shared.HeartBeatModel)
+		payload, ok := infra.UnmarshalEventPayload[shared.HeartBeatModel](event)
 		if !ok {
+			s.logger.Warn("Failed to unmarshal heartbeat event payload")
 			return
 		}
 		hb := &HeartbeatPayload{
