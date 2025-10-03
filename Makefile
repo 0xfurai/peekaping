@@ -177,17 +177,17 @@ docker-down-all: ## Stop all Docker Compose services
 .PHONY: migrate-init
 migrate-init: ## Run database migrations init
 	@echo "Running database migrations init..."
-	cd apps/server && go run cmd/bun/main.go db init
+	cd apps/server && asdf exec go run cmd/bun/main.go db init
 
 .PHONY: migrate-up
 migrate-up: ## Run database migrations up
 	@echo "Running database migrations..."
-	cd apps/server && go run cmd/bun/main.go db migrate
+	cd apps/server && asdf exec go run cmd/bun/main.go db migrate
 
 .PHONY: migrate-down
 migrate-down: ## Run database migrations down
 	@echo "Rolling back database migrations..."
-	cd apps/server && go run cmd/bun/main.go db rollback
+	cd apps/server && asdf exec go run cmd/bun/main.go db rollback
 
 
 # Quick database environment switchers
@@ -206,7 +206,7 @@ switch-to-sqlite: docker-down-all dev-sqlite ## Switch to SQLite development env
 .PHONY: test-server
 test-server: ## Test the server
 	@echo "Testing the server..."
-	cd apps/server && go test -v ./src/...
+	cd apps/server && asdf exec go test -v ./src/...
 
 .PHONY: lint-web
 lint-web: ## Test the web
