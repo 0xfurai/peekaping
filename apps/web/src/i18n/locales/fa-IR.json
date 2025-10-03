@@ -1132,6 +1132,58 @@
         "password_updated_successfully": "رمز عبور با موفقیت به‌روزرسانی شد"
       },
       "title": "بروزرسانی گذرواژه"
+    },
+    "api_keys": {
+      "title": "کلیدهای API",
+      "description": "کلیدهای API خود را برای ادغام با طرف‌های سوم مدیریت کنید",
+      "create_button": "ایجاد کلید API",
+      "no_keys_title": "هیچ کلید API وجود ندارد",
+      "no_keys_description": "اولین کلید API خود را برای شروع ادغام با سرویس‌های خارجی ایجاد کنید.",
+      "create_dialog": {
+        "title": "ایجاد کلید API جدید",
+        "description": "کلید API جدیدی برای ادغام با طرف‌های سوم ایجاد کنید. کلید فقط یک بار نمایش داده می‌شود.",
+        "form": {
+          "name_label": "نام",
+          "name_placeholder": "مثال، ادغام صفحه اصلی",
+          "expires_at_label": "تاریخ انقضا (اختیاری)",
+          "max_usage_label": "حداکثر تعداد استفاده (اختیاری)",
+          "max_usage_placeholder": "مثال، 1000"
+        },
+        "buttons": {
+          "cancel": "لغو",
+          "create": "ایجاد کلید API",
+          "creating": "در حال ایجاد..."
+        }
+      },
+      "success_alert": {
+        "title": "کلید API با موفقیت ایجاد شد",
+        "description": "کلید API شما ایجاد شد. اکنون آن را کپی کنید زیرا دیگر نمایش داده نخواهد شد:"
+      },
+      "table": {
+        "headers": {
+          "name": "نام",
+          "key": "کلید",
+          "usage": "استفاده",
+          "last_used": "آخرین استفاده",
+          "expires": "انقضا",
+          "status": "وضعیت",
+          "actions": "اقدامات"
+        },
+        "status": {
+          "active": "فعال",
+          "expired": "منقضی شده",
+          "limit_exceeded": "حد مجاز تجاوز شده"
+        },
+        "never": "هرگز"
+      },
+      "messages": {
+        "created_successfully": "کلید API با موفقیت ایجاد شد",
+        "deleted_successfully": "کلید API با موفقیت حذف شد",
+        "failed_to_create": "ایجاد کلید API ناموفق بود",
+        "failed_to_delete": "حذف کلید API ناموفق بود",
+        "copy_success": "در کلیپ‌بورد کپی شد",
+        "delete_confirm": "آیا مطمئن هستید که می‌خواهید این کلید API را حذف کنید؟ این عمل قابل بازگشت نیست."
+      }
     }
   },
   "sendgrid": {

@@ -1132,6 +1132,58 @@
         "password_updated_successfully": "Passwort erfolgreich aktualisiert"
       },
       "title": "Passwort aktualisieren"
+    },
+    "api_keys": {
+      "title": "API-Schlüssel",
+      "description": "Verwalten Sie Ihre API-Schlüssel für Drittanbieter-Integrationen",
+      "create_button": "API-Schlüssel erstellen",
+      "no_keys_title": "Keine API-Schlüssel",
+      "no_keys_description": "Erstellen Sie Ihren ersten API-Schlüssel, um mit externen Diensten zu integrieren.",
+      "create_dialog": {
+        "title": "Neuen API-Schlüssel erstellen",
+        "description": "Erstellen Sie einen neuen API-Schlüssel für Drittanbieter-Integrationen. Der Schlüssel wird nur einmal angezeigt.",
+        "form": {
+          "name_label": "Name",
+          "name_placeholder": "z. B. Homepage-Integration",
+          "expires_at_label": "Ablaufdatum (Optional)",
+          "max_usage_label": "Maximale Nutzungsanzahl (Optional)",
+          "max_usage_placeholder": "z. B. 1000"
+        },
+        "buttons": {
+          "cancel": "Abbrechen",
+          "create": "API-Schlüssel erstellen",
+          "creating": "Wird erstellt..."
+        }
+      },
+      "success_alert": {
+        "title": "API-Schlüssel erfolgreich erstellt",
+        "description": "Ihr API-Schlüssel wurde erstellt. Kopieren Sie ihn jetzt, da er nicht erneut angezeigt wird:"
+      },
+      "table": {
+        "headers": {
+          "name": "Name",
+          "key": "Schlüssel",
+          "usage": "Nutzung",
+          "last_used": "Zuletzt verwendet",
+          "expires": "Läuft ab",
+          "status": "Status",
+          "actions": "Aktionen"
+        },
+        "status": {
+          "active": "Aktiv",
+          "expired": "Abgelaufen",
+          "limit_exceeded": "Limit überschritten"
+        },
+        "never": "Nie"
+      },
+      "messages": {
+        "created_successfully": "API-Schlüssel erfolgreich erstellt",
+        "deleted_successfully": "API-Schlüssel erfolgreich gelöscht",
+        "failed_to_create": "Fehler beim Erstellen des API-Schlüssels",
+        "failed_to_delete": "Fehler beim Löschen des API-Schlüssels",
+        "copy_success": "In die Zwischenablage kopiert",
+        "delete_confirm": "Sind Sie sicher, dass Sie diesen API-Schlüssel löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden."
+      }
     }
   },
   "sendgrid": {

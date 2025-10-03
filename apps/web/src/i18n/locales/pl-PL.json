@@ -1132,6 +1132,58 @@
         "password_updated_successfully": "Hasło zostało pomyślnie zaktualizowane"
       },
       "title": "Zaktualizuj hasło"
+    },
+    "api_keys": {
+      "title": "Klucze API",
+      "description": "Zarządzaj kluczami API do integracji z zewnętrznymi usługami",
+      "create_button": "Utwórz Klucz API",
+      "no_keys_title": "Brak Kluczy API",
+      "no_keys_description": "Utwórz swój pierwszy klucz API, aby rozpocząć integrację z zewnętrznymi usługami.",
+      "create_dialog": {
+        "title": "Utwórz Nowy Klucz API",
+        "description": "Utwórz nowy klucz API do integracji z zewnętrznymi usługami. Klucz zostanie wyświetlony tylko raz.",
+        "form": {
+          "name_label": "Nazwa",
+          "name_placeholder": "np., Integracja Strony Głównej",
+          "expires_at_label": "Data Wygasania (Opcjonalne)",
+          "max_usage_label": "Maksymalna Liczba Użyć (Opcjonalne)",
+          "max_usage_placeholder": "np., 1000"
+        },
+        "buttons": {
+          "cancel": "Anuluj",
+          "create": "Utwórz Klucz API",
+          "creating": "Tworzenie..."
+        }
+      },
+      "success_alert": {
+        "title": "Klucz API Został Utworzony",
+        "description": "Twój klucz API został utworzony. Skopiuj go teraz, ponieważ nie zostanie wyświetlony ponownie:"
+      },
+      "table": {
+        "headers": {
+          "name": "Nazwa",
+          "key": "Klucz",
+          "usage": "Użycie",
+          "last_used": "Ostatnie Użycie",
+          "expires": "Wygasa",
+          "status": "Status",
+          "actions": "Akcje"
+        },
+        "status": {
+          "active": "Aktywny",
+          "expired": "Wygasł",
+          "limit_exceeded": "Przekroczono Limit"
+        },
+        "never": "Nigdy"
+      },
+      "messages": {
+        "created_successfully": "Klucz API został utworzony pomyślnie",
+        "deleted_successfully": "Klucz API został usunięty pomyślnie",
+        "failed_to_create": "Nie udało się utworzyć klucza API",
+        "failed_to_delete": "Nie udało się usunąć klucza API",
+        "copy_success": "Skopiowano do schowka",
+        "delete_confirm": "Czy na pewno chcesz usunąć ten klucz API? Ta akcja nie może zostać cofnięta."
+      }
     }
   },
   "sendgrid": {

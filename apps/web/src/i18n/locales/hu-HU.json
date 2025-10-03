@@ -1132,6 +1132,58 @@
         "password_updated_successfully": "Jelszó sikeresen frissítve"
       },
       "title": "Jelszó frissítése"
+    },
+    "api_keys": {
+      "title": "API Kulcsok",
+      "description": "Kezelje API kulcsait harmadik féltől származó integrációkhoz",
+      "create_button": "API Kulcs Létrehozása",
+      "no_keys_title": "Nincsenek API Kulcsok",
+      "no_keys_description": "Hozzon létre első API kulcsát a külső szolgáltatásokkal való integráció megkezdéséhez.",
+      "create_dialog": {
+        "title": "Új API Kulcs Létrehozása",
+        "description": "Hozzon létre új API kulcsot harmadik féltől származó integrációkhoz. A kulcs csak egyszer jelenik meg.",
+        "form": {
+          "name_label": "Név",
+          "name_placeholder": "pl., Honlap Integráció",
+          "expires_at_label": "Lejárati Dátum (Opcionális)",
+          "max_usage_label": "Maximális Használat (Opcionális)",
+          "max_usage_placeholder": "pl., 1000"
+        },
+        "buttons": {
+          "cancel": "Mégse",
+          "create": "API Kulcs Létrehozása",
+          "creating": "Létrehozás..."
+        }
+      },
+      "success_alert": {
+        "title": "API Kulcs Sikeresen Létrehozva",
+        "description": "API kulcsa létrejött. Másolja ki most, mert később nem fog megjelenni:"
+      },
+      "table": {
+        "headers": {
+          "name": "Név",
+          "key": "Kulcs",
+          "usage": "Használat",
+          "last_used": "Utoljára Használva",
+          "expires": "Lejár",
+          "status": "Állapot",
+          "actions": "Műveletek"
+        },
+        "status": {
+          "active": "Aktív",
+          "expired": "Lejárt",
+          "limit_exceeded": "Korlát Túllépve"
+        },
+        "never": "Soha"
+      },
+      "messages": {
+        "created_successfully": "API kulcs sikeresen létrehozva",
+        "deleted_successfully": "API kulcs sikeresen törölve",
+        "failed_to_create": "API kulcs létrehozása sikertelen",
+        "failed_to_delete": "API kulcs törlése sikertelen",
+        "copy_success": "Vágólapra másolva",
+        "delete_confirm": "Biztosan törölni szeretné ezt az API kulcsot? Ez a művelet nem vonható vissza."
+      }
     }
   },
   "sendgrid": {

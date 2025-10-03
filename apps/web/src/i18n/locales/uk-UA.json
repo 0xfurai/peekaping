@@ -1132,6 +1132,58 @@
         "password_updated_successfully": "Пароль успішно оновлено"
       },
       "title": "Оновити пароль"
+    },
+    "api_keys": {
+      "title": "API Ключі",
+      "description": "Керуйте своїми API ключами для інтеграції з третіми сторонами",
+      "create_button": "Створити API Ключ",
+      "no_keys_title": "Немає API Ключів",
+      "no_keys_description": "Створіть свій перший API ключ для початку інтеграції з зовнішніми сервісами.",
+      "create_dialog": {
+        "title": "Створити Новий API Ключ",
+        "description": "Створіть новий API ключ для інтеграції з третіми сторонами. Ключ буде показано лише один раз.",
+        "form": {
+          "name_label": "Назва",
+          "name_placeholder": "наприклад, Інтеграція Головної Сторінки",
+          "expires_at_label": "Дата Завершення (Опціонально)",
+          "max_usage_label": "Максимальна Кількість Використань (Опціонально)",
+          "max_usage_placeholder": "наприклад, 1000"
+        },
+        "buttons": {
+          "cancel": "Скасувати",
+          "create": "Створити API Ключ",
+          "creating": "Створення..."
+        }
+      },
+      "success_alert": {
+        "title": "API Ключ Успішно Створено",
+        "description": "Ваш API ключ створено. Скопіюйте його зараз, оскільки він більше не буде показано:"
+      },
+      "table": {
+        "headers": {
+          "name": "Назва",
+          "key": "Ключ",
+          "usage": "Використання",
+          "last_used": "Останнє Використання",
+          "expires": "Завершується",
+          "status": "Статус",
+          "actions": "Дії"
+        },
+        "status": {
+          "active": "Активний",
+          "expired": "Завершений",
+          "limit_exceeded": "Ліміт Перевищено"
+        },
+        "never": "Ніколи"
+      },
+      "messages": {
+        "created_successfully": "API ключ успішно створено",
+        "deleted_successfully": "API ключ успішно видалено",
+        "failed_to_create": "Не вдалося створити API ключ",
+        "failed_to_delete": "Не вдалося видалити API ключ",
+        "copy_success": "Скопійовано в буфер обміну",
+        "delete_confirm": "Ви впевнені, що хочете видалити цей API ключ? Цю дію неможливо скасувати."
+      }
     }
   },
   "sendgrid": {

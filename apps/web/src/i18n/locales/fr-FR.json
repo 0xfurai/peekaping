@@ -1132,6 +1132,58 @@
         "password_updated_successfully": "Mot de passe mis à jour avec succès"
       },
       "title": "Mettre à jour le mot de passe"
+    },
+    "api_keys": {
+      "title": "Clés API",
+      "description": "Gérez vos clés API pour les intégrations tierces",
+      "create_button": "Créer une clé API",
+      "no_keys_title": "Aucune clé API",
+      "no_keys_description": "Créez votre première clé API pour commencer à intégrer avec des services externes.",
+      "create_dialog": {
+        "title": "Créer une nouvelle clé API",
+        "description": "Créez une nouvelle clé API pour les intégrations tierces. La clé ne sera affichée qu'une seule fois.",
+        "form": {
+          "name_label": "Nom",
+          "name_placeholder": "ex. Intégration Page d'accueil",
+          "expires_at_label": "Date d'expiration (Optionnel)",
+          "max_usage_label": "Nombre maximum d'utilisations (Optionnel)",
+          "max_usage_placeholder": "ex. 1000"
+        },
+        "buttons": {
+          "cancel": "Annuler",
+          "create": "Créer la clé API",
+          "creating": "Création en cours..."
+        }
+      },
+      "success_alert": {
+        "title": "Clé API créée avec succès",
+        "description": "Votre clé API a été créée. Copiez-la maintenant car elle ne sera plus affichée :"
+      },
+      "table": {
+        "headers": {
+          "name": "Nom",
+          "key": "Clé",
+          "usage": "Utilisation",
+          "last_used": "Dernière utilisation",
+          "expires": "Expire",
+          "status": "Statut",
+          "actions": "Actions"
+        },
+        "status": {
+          "active": "Actif",
+          "expired": "Expiré",
+          "limit_exceeded": "Limite dépassée"
+        },
+        "never": "Jamais"
+      },
+      "messages": {
+        "created_successfully": "Clé API créée avec succès",
+        "deleted_successfully": "Clé API supprimée avec succès",
+        "failed_to_create": "Échec de la création de la clé API",
+        "failed_to_delete": "Échec de la suppression de la clé API",
+        "copy_success": "Copié dans le presse-papiers",
+        "delete_confirm": "Êtes-vous sûr de vouloir supprimer cette clé API ? Cette action ne peut pas être annulée."
+      }
     }
   },
   "sendgrid": {

@@ -1132,6 +1132,58 @@
         "password_updated_successfully": "تم تحديث كلمة المرور بنجاح"
       },
       "title": "تحديث كلمة المرور"
+    },
+    "api_keys": {
+      "title": "مفاتيح API",
+      "description": "إدارة مفاتيح API الخاصة بك للتكامل مع الأطراف الثالثة",
+      "create_button": "إنشاء مفتاح API",
+      "no_keys_title": "لا توجد مفاتيح API",
+      "no_keys_description": "أنشئ مفتاح API الأول الخاص بك لبدء التكامل مع الخدمات الخارجية.",
+      "create_dialog": {
+        "title": "إنشاء مفتاح API جديد",
+        "description": "إنشاء مفتاح API جديد للتكامل مع الأطراف الثالثة. سيتم عرض المفتاح مرة واحدة فقط.",
+        "form": {
+          "name_label": "الاسم",
+          "name_placeholder": "مثال، تكامل الصفحة الرئيسية",
+          "expires_at_label": "تاريخ الانتهاء (اختياري)",
+          "max_usage_label": "الحد الأقصى للاستخدام (اختياري)",
+          "max_usage_placeholder": "مثال، 1000"
+        },
+        "buttons": {
+          "cancel": "إلغاء",
+          "create": "إنشاء مفتاح API",
+          "creating": "جاري الإنشاء..."
+        }
+      },
+      "success_alert": {
+        "title": "تم إنشاء مفتاح API بنجاح",
+        "description": "تم إنشاء مفتاح API الخاص بك. انسخه الآن لأنه لن يظهر مرة أخرى:"
+      },
+      "table": {
+        "headers": {
+          "name": "الاسم",
+          "key": "المفتاح",
+          "usage": "الاستخدام",
+          "last_used": "آخر استخدام",
+          "expires": "ينتهي",
+          "status": "الحالة",
+          "actions": "الإجراءات"
+        },
+        "status": {
+          "active": "نشط",
+          "expired": "منتهي الصلاحية",
+          "limit_exceeded": "تم تجاوز الحد"
+        },
+        "never": "أبداً"
+      },
+      "messages": {
+        "created_successfully": "تم إنشاء مفتاح API بنجاح",
+        "deleted_successfully": "تم حذف مفتاح API بنجاح",
+        "failed_to_create": "فشل في إنشاء مفتاح API",
+        "failed_to_delete": "فشل في حذف مفتاح API",
+        "copy_success": "تم النسخ إلى الحافظة",
+        "delete_confirm": "هل أنت متأكد من أنك تريد حذف مفتاح API هذا؟ لا يمكن التراجع عن هذا الإجراء."
+      }
     }
   },
   "sendgrid": {

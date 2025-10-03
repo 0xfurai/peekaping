@@ -1132,6 +1132,58 @@
         "password_updated_successfully": "パスワードを正常に更新しました"
       },
       "title": "パスワードを更新"
+    },
+    "api_keys": {
+      "title": "APIキー",
+      "description": "サードパーティ統合用のAPIキーを管理",
+      "create_button": "APIキーを作成",
+      "no_keys_title": "APIキーがありません",
+      "no_keys_description": "外部サービスとの統合を開始するために、最初のAPIキーを作成してください。",
+      "create_dialog": {
+        "title": "新しいAPIキーを作成",
+        "description": "サードパーティ統合用の新しいAPIキーを作成します。キーは一度だけ表示されます。",
+        "form": {
+          "name_label": "名前",
+          "name_placeholder": "例：ホームページ統合",
+          "expires_at_label": "有効期限（任意）",
+          "max_usage_label": "最大使用回数（任意）",
+          "max_usage_placeholder": "例：1000"
+        },
+        "buttons": {
+          "cancel": "キャンセル",
+          "create": "APIキーを作成",
+          "creating": "作成中..."
+        }
+      },
+      "success_alert": {
+        "title": "APIキーが正常に作成されました",
+        "description": "APIキーが作成されました。再度表示されることはないので、今すぐコピーしてください："
+      },
+      "table": {
+        "headers": {
+          "name": "名前",
+          "key": "キー",
+          "usage": "使用状況",
+          "last_used": "最終使用",
+          "expires": "有効期限",
+          "status": "ステータス",
+          "actions": "アクション"
+        },
+        "status": {
+          "active": "アクティブ",
+          "expired": "期限切れ",
+          "limit_exceeded": "制限超過"
+        },
+        "never": "なし"
+      },
+      "messages": {
+        "created_successfully": "APIキーが正常に作成されました",
+        "deleted_successfully": "APIキーが正常に削除されました",
+        "failed_to_create": "APIキーの作成に失敗しました",
+        "failed_to_delete": "APIキーの削除に失敗しました",
+        "copy_success": "クリップボードにコピーしました",
+        "delete_confirm": "このAPIキーを削除してもよろしいですか？この操作は元に戻せません。"
+      }
     }
   },
   "sendgrid": {

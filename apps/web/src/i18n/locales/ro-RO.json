@@ -1131,6 +1131,58 @@
         "password_updated_successfully": "Parola actualizată cu succes"
       },
       "title": "Actualizare parolă"
+    },
+    "api_keys": {
+      "title": "Chei API",
+      "description": "Gestionează cheile tale API pentru integrări cu terți",
+      "create_button": "Creează Cheie API",
+      "no_keys_title": "Nu Există Chei API",
+      "no_keys_description": "Creează prima ta cheie API pentru a începe integrarea cu servicii externe.",
+      "create_dialog": {
+        "title": "Creează Cheie API Nouă",
+        "description": "Creează o cheie API nouă pentru integrări cu terți. Cheia va fi afișată o singură dată.",
+        "form": {
+          "name_label": "Nume",
+          "name_placeholder": "ex., Integrare Pagină Principală",
+          "expires_at_label": "Data Expirării (Opțional)",
+          "max_usage_label": "Numărul Maxim de Utilizări (Opțional)",
+          "max_usage_placeholder": "ex., 1000"
+        },
+        "buttons": {
+          "cancel": "Anulează",
+          "create": "Creează Cheie API",
+          "creating": "Se creează..."
+        }
+      },
+      "success_alert": {
+        "title": "Cheia API a Fost Creată cu Succes",
+        "description": "Cheia ta API a fost creată. Copiază-o acum pentru că nu va mai fi afișată:"
+      },
+      "table": {
+        "headers": {
+          "name": "Nume",
+          "key": "Cheie",
+          "usage": "Utilizare",
+          "last_used": "Ultima Utilizare",
+          "expires": "Expiră",
+          "status": "Status",
+          "actions": "Acțiuni"
+        },
+        "status": {
+          "active": "Activ",
+          "expired": "Expirat",
+          "limit_exceeded": "Limita Depășită"
+        },
+        "never": "Niciodată"
+      },
+      "messages": {
+        "created_successfully": "Cheia API a fost creată cu succes",
+        "deleted_successfully": "Cheia API a fost ștearsă cu succes",
+        "failed_to_create": "Nu s-a putut crea cheia API",
+        "failed_to_delete": "Nu s-a putut șterge cheia API",
+        "copy_success": "Copiat în clipboard",
+        "delete_confirm": "Ești sigur că vrei să ștergi această cheie API? Această acțiune nu poate fi anulată."
+      }
     }
   },
   "sendgrid": {

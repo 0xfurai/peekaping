@@ -1132,6 +1132,58 @@
         "password_updated_successfully": "Senha atualizada com sucesso"
       },
       "title": "Atualizar Senha"
+    },
+    "api_keys": {
+      "title": "Chaves API",
+      "description": "Gerencie suas chaves API para integrações de terceiros",
+      "create_button": "Criar Chave API",
+      "no_keys_title": "Nenhuma Chave API",
+      "no_keys_description": "Crie sua primeira chave API para começar a integrar com serviços externos.",
+      "create_dialog": {
+        "title": "Criar Nova Chave API",
+        "description": "Crie uma nova chave API para integrações de terceiros. A chave será mostrada apenas uma vez.",
+        "form": {
+          "name_label": "Nome",
+          "name_placeholder": "ex. Integração Homepage",
+          "expires_at_label": "Data de Expiração (Opcional)",
+          "max_usage_label": "Número Máximo de Usos (Opcional)",
+          "max_usage_placeholder": "ex. 1000"
+        },
+        "buttons": {
+          "cancel": "Cancelar",
+          "create": "Criar Chave API",
+          "creating": "Criando..."
+        }
+      },
+      "success_alert": {
+        "title": "Chave API Criada com Sucesso",
+        "description": "Sua chave API foi criada. Copie-a agora pois ela não será mostrada novamente:"
+      },
+      "table": {
+        "headers": {
+          "name": "Nome",
+          "key": "Chave",
+          "usage": "Uso",
+          "last_used": "Último Uso",
+          "expires": "Expira",
+          "status": "Status",
+          "actions": "Ações"
+        },
+        "status": {
+          "active": "Ativo",
+          "expired": "Expirado",
+          "limit_exceeded": "Limite Excedido"
+        },
+        "never": "Nunca"
+      },
+      "messages": {
+        "created_successfully": "Chave API criada com sucesso",
+        "deleted_successfully": "Chave API excluída com sucesso",
+        "failed_to_create": "Falha ao criar chave API",
+        "failed_to_delete": "Falha ao excluir chave API",
+        "copy_success": "Copiado para a área de transferência",
+        "delete_confirm": "Tem certeza de que deseja excluir esta chave API? Esta ação não pode ser desfeita."
+      }
     }
   },
   "sendgrid": {
