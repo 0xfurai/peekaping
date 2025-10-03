@@ -1,32 +1,30 @@
-package auth
+package api_key
 
 import (
 	"net/http"
+	"peekaping/src/modules/auth"
 	"peekaping/src/utils"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
-// MiddlewareProvider holds all middleware functions
-type MiddlewareProvider struct {
-	tokenMaker *TokenMaker
+// HybridMiddlewareProvider provides middleware that supports both JWT and API key authentication
+type HybridMiddlewareProvider struct {
+	apiKeyService Service
+	jwtMiddleware *auth.MiddlewareProvider
 }
 
-// NewMiddlewareProvider creates a new middleware provider
-func NewMiddlewareProvider(tokenMaker *TokenMaker) *MiddlewareProvider {
-	return &MiddlewareProvider{
-		tokenMaker: tokenMaker,
+// NewHybridMiddlewareProvider creates a new hybrid middleware provider
+func NewHybridMiddlewareProvider(apiKeyService Service, jwtMiddleware *auth.MiddlewareProvider) *HybridMiddlewareProvider {
+	return &HybridMiddlewareProvider{
+		apiKeyService: apiKeyService,
+		jwtMiddleware: jwtMiddleware,
 	}
 }
 
-// GetTokenMaker returns the token maker instance
-func (p *MiddlewareProvider) GetTokenMaker() *TokenMaker {
-	return p.tokenMaker
-}
-
-// Auth is a middleware that verifies the JWT access token
-func (p *MiddlewareProvider) Auth() gin.HandlerFunc {
+// HybridAuth is a middleware that supports both JWT and API key authentication
+func (p *HybridMiddlewareProvider) HybridAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Get the Authorization header
 		authHeader := c.GetHeader("Authorization")
@@ -38,13 +36,25 @@ func (p *MiddlewareProvider) Auth() gin.HandlerFunc {
 
 		// Check if it's an API key (starts with pk_)
 		if strings.HasPrefix(authHeader, "pk_") {
-			// API key authentication - this will be handled by API key middleware
-			// For now, just pass through to allow hybrid authentication
+			// Validate the API key
+			apiKey, err := p.apiKeyService.ValidateKey(c, authHeader)
+			if err != nil {
+				c.JSON(http.StatusUnauthorized, utils.NewFailResponse("Invalid or expired API key"))
+				c.Abort()
+				return
+			}
+
+			// Set user information in the context
+			c.Set("userId", apiKey.UserID)
+			c.Set("email", "") // API keys don't have email directly
+			c.Set("apiKeyId", apiKey.ID)
+			c.Set("authType", "api_key")
+
 			c.Next()
 			return
 		}
 
-		// JWT authentication
+		// For JWT tokens, use the existing JWT middleware logic
 		// Add Bearer prefix if not present
 		if !strings.HasPrefix(authHeader, "Bearer ") {
 			authHeader = "Bearer " + authHeader
@@ -61,8 +71,8 @@ func (p *MiddlewareProvider) Auth() gin.HandlerFunc {
 		// Extract the token
 		accessToken := fields[1]
 
-		// Verify the token
-		claims, err := p.tokenMaker.VerifyToken(c, accessToken, "access")
+		// Verify the token using the JWT middleware
+		claims, err := p.jwtMiddleware.GetTokenMaker().VerifyToken(c, accessToken, "access")
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, utils.NewFailResponse("Invalid or expired token"))
 			c.Abort()

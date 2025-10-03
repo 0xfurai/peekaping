@@ -1,0 +1,428 @@
+import { useState } from "react";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { TypographyH4 } from "@/components/ui/typography";
+import { Copy, Trash2, Plus, Key } from "lucide-react";
+import { toast } from "sonner";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  useAPIKeys,
+  useCreateAPIKey,
+  useDeleteAPIKey,
+} from "@/api/api-keys-hooks";
+
+const createAPIKeySchema = z.object({
+  name: z.string().min(1, "Name is required").max(255, "Name too long"),
+  expiresAt: z.string().optional(),
+  maxUsageCount: z
+    .string()
+    .optional()
+    .refine((val) => !val || !isNaN(parseInt(val, 10)), {
+      message: "Must be a valid number",
+    }),
+});
+
+type CreateAPIKeyForm = z.infer<typeof createAPIKeySchema>;
+
+const APIKeys = () => {
+  const { t } = useLocalizedTranslation();
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [newToken, setNewToken] = useState<string | null>(null);
+
+  const { data: apiKeys = [], isLoading } = useAPIKeys();
+  const createMutation = useCreateAPIKey();
+  const deleteMutation = useDeleteAPIKey();
+
+  const form = useForm<CreateAPIKeyForm>({
+    resolver: zodResolver(createAPIKeySchema),
+    defaultValues: {
+      name: "",
+      expiresAt: "",
+      maxUsageCount: "",
+    },
+  });
+
+  const handleCreateSuccess = (response: { token: string }) => {
+    setNewToken(response.token);
+    setShowCreateDialog(false);
+    form.reset();
+    toast.success(t("security.api_keys.messages.created_successfully"));
+  };
+
+  const handleCreateError = () => {
+    toast.error(t("security.api_keys.messages.failed_to_create"));
+  };
+
+  const onSubmit = (data: CreateAPIKeyForm) => {
+    createMutation.mutate(
+      {
+        name: data.name,
+        expires_at: data.expiresAt || undefined,
+        max_usage_count: data.maxUsageCount
+          ? parseInt(data.maxUsageCount, 10)
+          : undefined,
+      },
+      {
+        onSuccess: handleCreateSuccess,
+        onError: handleCreateError,
+      }
+    );
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirm(t("security.api_keys.messages.delete_confirm"))) {
+      deleteMutation.mutate(id, {
+        onSuccess: () => {
+          toast.success(t("security.api_keys.messages.deleted_successfully"));
+        },
+        onError: () => {
+          toast.error(t("security.api_keys.messages.failed_to_delete"));
+        },
+      });
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success(t("security.api_keys.messages.copy_success"));
+  };
+
+  const maskToken = (token: string) => {
+    if (token.length <= 8) return token;
+    return `${token.substring(0, 8)}...${token.substring(token.length - 4)}`;
+  };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return t("security.api_keys.table.never");
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  const formatDateTime = (dateString: string | null) => {
+    if (!dateString) return t("security.api_keys.table.never");
+    return new Date(dateString).toLocaleString();
+  };
+
+  const isExpired = (expiresAt: string | null) => {
+    if (!expiresAt) return false;
+    return new Date(expiresAt) < new Date();
+  };
+
+  const isUsageExceeded = (
+    usageCount: number,
+    maxUsageCount: number | null
+  ) => {
+    if (!maxUsageCount) return false;
+    return usageCount >= maxUsageCount;
+  };
+
+  return (
+    <div className="flex flex-col gap-4 mt-8">
+      <div className="flex items-center justify-between">
+        <TypographyH4>{t("security.api_keys.title")}</TypographyH4>
+        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              {t("security.api_keys.create_button")}
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                {t("security.api_keys.create_dialog.title")}
+              </DialogTitle>
+              <DialogDescription>
+                {t("security.api_keys.create_dialog.description")}
+              </DialogDescription>
+            </DialogHeader>
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        {t("security.api_keys.create_dialog.form.name_label")}
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder={t(
+                            "security.api_keys.create_dialog.form.name_placeholder"
+                          )}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="expiresAt"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        {t(
+                          "security.api_keys.create_dialog.form.expires_at_label"
+                        )}
+                      </FormLabel>
+                      <FormControl>
+                        <Input {...field} type="datetime-local" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="maxUsageCount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        {t(
+                          "security.api_keys.create_dialog.form.max_usage_label"
+                        )}
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="number"
+                          min="1"
+                          placeholder={t(
+                            "security.api_keys.create_dialog.form.max_usage_placeholder"
+                          )}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowCreateDialog(false)}
+                  >
+                    {t("security.api_keys.create_dialog.buttons.cancel")}
+                  </Button>
+                  <Button type="submit" disabled={createMutation.isPending}>
+                    {createMutation.isPending
+                      ? t("security.api_keys.create_dialog.buttons.creating")
+                      : t("security.api_keys.create_dialog.buttons.create")}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {newToken && (
+        <Alert>
+          <Key className="h-4 w-4" />
+          <AlertTitle>{t("security.api_keys.success_alert.title")}</AlertTitle>
+          <AlertDescription>
+            <div className="mt-2">
+              <p className="text-sm text-muted-foreground mb-2">
+                {t("security.api_keys.success_alert.description")}
+              </p>
+              <div className="flex items-center gap-2">
+                <code className="bg-muted px-2 py-1 rounded text-sm font-mono">
+                  {newToken}
+                </code>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => copyToClipboard(newToken)}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {isLoading ? (
+        <div>Loading API keys...</div>
+      ) : apiKeys.length === 0 ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-8">
+            <Key className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">
+              {t("security.api_keys.no_keys_title")}
+            </h3>
+            <p className="text-muted-foreground text-center mb-4">
+              {t("security.api_keys.no_keys_description")}
+            </p>
+            <Button onClick={() => setShowCreateDialog(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              {t("security.api_keys.create_button")}
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("security.api_keys.title")}</CardTitle>
+            <CardDescription>
+              {t("security.api_keys.description")}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>
+                    {t("security.api_keys.table.headers.name")}
+                  </TableHead>
+                  <TableHead>
+                    {t("security.api_keys.table.headers.key")}
+                  </TableHead>
+                  <TableHead>
+                    {t("security.api_keys.table.headers.usage")}
+                  </TableHead>
+                  <TableHead>
+                    {t("security.api_keys.table.headers.last_used")}
+                  </TableHead>
+                  <TableHead>
+                    {t("security.api_keys.table.headers.expires")}
+                  </TableHead>
+                  <TableHead>
+                    {t("security.api_keys.table.headers.status")}
+                  </TableHead>
+                  <TableHead>
+                    {t("security.api_keys.table.headers.actions")}
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {apiKeys.map((apiKey) => (
+                  <TableRow key={apiKey.id}>
+                    <TableCell className="font-medium">{apiKey.name}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <code className="bg-muted px-2 py-1 rounded text-sm font-mono">
+                          {maskToken(
+                            `pk_${apiKey.id}${Math.random()
+                              .toString(36)
+                              .substr(2, 8)}`
+                          )}
+                        </code>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() =>
+                            copyToClipboard(
+                              `pk_${apiKey.id}${Math.random()
+                                .toString(36)
+                                .substr(2, 8)}`
+                            )
+                          }
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        {apiKey.usage_count}
+                        {apiKey.max_usage_count &&
+                          ` / ${apiKey.max_usage_count}`}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {formatDateTime(apiKey.last_used)}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {formatDate(apiKey.expires_at)}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        {isExpired(apiKey.expires_at) && (
+                          <Badge variant="destructive">
+                            {t("security.api_keys.table.status.expired")}
+                          </Badge>
+                        )}
+                        {isUsageExceeded(
+                          apiKey.usage_count,
+                          apiKey.max_usage_count
+                        ) && (
+                          <Badge variant="destructive">
+                            {t("security.api_keys.table.status.limit_exceeded")}
+                          </Badge>
+                        )}
+                        {!isExpired(apiKey.expires_at) &&
+                          !isUsageExceeded(
+                            apiKey.usage_count,
+                            apiKey.max_usage_count
+                          ) && (
+                            <Badge variant="default">
+                              {t("security.api_keys.table.status.active")}
+                            </Badge>
+                          )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleDelete(apiKey.id)}
+                        disabled={deleteMutation.isPending}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+};
+
+export default APIKeys;

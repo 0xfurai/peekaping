@@ -7,6 +7,7 @@ import (
 	"os"
 	"peekaping/docs"
 	"peekaping/src/config"
+	"peekaping/src/modules/api_key"
 	"peekaping/src/modules/auth"
 	"peekaping/src/modules/badge"
 	"peekaping/src/modules/bruteforce"
@@ -102,6 +103,7 @@ func main() {
 	tag.RegisterDependencies(container, &cfg)
 	monitor_tag.RegisterDependencies(container, &cfg)
 	badge.RegisterDependencies(container, &cfg)
+	api_key.RegisterDependencies(container, &cfg)
 
 	// Start the event healthcheck listener
 	err = container.Invoke(func(listener *healthcheck.EventListener, eventBus *events.EventBus) {
