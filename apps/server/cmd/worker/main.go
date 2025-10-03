@@ -13,9 +13,11 @@ import (
 	"peekaping/internal/modules/worker"
 	"peekaping/internal/version"
 	"syscall"
+	"time"
 
 	"go.uber.org/dig"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 func main() {
@@ -44,7 +46,14 @@ func main() {
 		if cfg.Mode == "prod" {
 			zapLogger, err = zap.NewProduction()
 		} else {
-			zapLogger, err = zap.NewDevelopment()
+			cfg := zap.NewDevelopmentConfig()
+			cfg.Level = zap.NewAtomicLevelAt(zap.InfoLevel) // filter out Debug
+			cfg.EncoderConfig.EncodeTime = zapcore.TimeEncoder(func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+				enc.AppendString("[" + t.Format("15:04:05.000") + "]")
+			})
+			cfg.EncoderConfig.LevelKey = "" // remove level
+			cfg.EncoderConfig.CallerKey = ""
+			zapLogger, err = cfg.Build()
 		}
 
 		if err != nil {

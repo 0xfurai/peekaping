@@ -45,7 +45,7 @@ type Config struct {
 
 	// Queue configuration
 	// Number of concurrent workers to process tasks
-	QueueConcurrency int `env:"QUEUE_CONCURRENCY" validate:"min=1" default:"10"`
+	QueueConcurrency int `env:"QUEUE_CONCURRENCY" validate:"min=1" default:"300"`
 
 	// Bruteforce protection settings
 	// Maximum number of failed login attempts allowed within the time window

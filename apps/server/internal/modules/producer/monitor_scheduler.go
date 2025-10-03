@@ -323,8 +323,8 @@ func (ms *MonitorScheduler) enqueueHealthCheckTask(ctx context.Context, monitorI
 	opts := &queue.EnqueueOptions{
 		Queue:     "healthcheck",
 		MaxRetry:  3,
-		Timeout:   5 * time.Minute,
-		Retention: 1 * time.Hour,
+		Timeout:   time.Duration(m.Interval) * time.Second,
+		Retention: 1 * time.Minute,
 	}
 
 	payloadJSON, err := json.Marshal(payload)
