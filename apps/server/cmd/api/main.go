@@ -28,6 +28,7 @@ import (
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/notification_sent_history"
 	"peekaping/internal/modules/proxy"
+	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/stats"
 	"peekaping/internal/modules/status_page"
@@ -85,6 +86,11 @@ func main() {
 	container.Provide(infra.ProvideRedisClient)
 	container.Provide(infra.ProvideRedisEventBus)
 
+	// Provide queue infrastructure (for push endpoint)
+	container.Provide(infra.ProvideAsynqClient)
+	container.Provide(infra.ProvideAsynqInspector)
+	container.Provide(infra.ProvideQueueService)
+
 	// Register dependencies in the correct order to handle circular dependencies
 	events.RegisterDependencies(container)
 	heartbeat.RegisterDependencies(container, &cfg)
@@ -108,6 +114,7 @@ func main() {
 	tag.RegisterDependencies(container, &cfg)
 	monitor_tag.RegisterDependencies(container, &cfg)
 	badge.RegisterDependencies(container, &cfg)
+	queue.RegisterDependencies(container, &cfg)
 
 	// Start the event healthcheck listener
 	err = container.Invoke(func(listener *healthcheck.EventListener, eventBus events.EventBus) {

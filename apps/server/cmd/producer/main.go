@@ -11,7 +11,9 @@ import (
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/heartbeat"
+	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/monitor"
+	"peekaping/internal/modules/monitor_maintenance"
 	"peekaping/internal/modules/monitor_notification"
 	"peekaping/internal/modules/monitor_tag"
 	"peekaping/internal/modules/producer"
@@ -90,6 +92,8 @@ func main() {
 	events.RegisterDependencies(container)
 	heartbeat.RegisterDependencies(container, &cfg)
 	monitor.RegisterDependencies(container, &cfg)
+	monitor_maintenance.RegisterDependencies(container, &cfg)
+	maintenance.RegisterDependencies(container, &cfg)
 	healthcheck.RegisterDependencies(container)
 	monitor_notification.RegisterDependencies(container, &cfg)
 	monitor_tag.RegisterDependencies(container, &cfg)

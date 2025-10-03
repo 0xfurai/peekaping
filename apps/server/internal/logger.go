@@ -22,6 +22,8 @@ func ProvideLogger(cfg *config.Config) (*zap.SugaredLogger, error) {
 		zapConfig = zap.NewProductionConfig()
 	} else {
 		zapConfig = zap.NewDevelopmentConfig()
+		zapConfig.EncoderConfig.TimeKey = ""  // ⟵ no time
+		zapConfig.EncoderConfig.LevelKey = "" // ⟵ no level
 	}
 
 	// Override the log level with the one from LOG_LEVEL environment variable

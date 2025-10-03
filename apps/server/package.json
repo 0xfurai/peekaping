@@ -2,7 +2,7 @@
   "name": "server",
   "dependencies": {},
   "scripts": {
-    "dev:api": "nodemon --watch './**/*' -e go,html --signal SIGTERM --exec \"go run ./cmd/server\"",
+    "dev:api": "nodemon --watch './**/*' -e go,html --signal SIGTERM --exec \"go run ./cmd/api\"",
     "dev:producer": "nodemon --watch './**/*' -e go,html --signal SIGTERM --exec \"go run ./cmd/producer\"",
     "dev:worker": "nodemon --watch './**/*' -e go,html --signal SIGTERM --exec \"go run ./cmd/worker\"",
     "dev:ingester": "nodemon --watch './**/*' -e go,html --signal SIGTERM --exec \"go run ./cmd/ingester\"",

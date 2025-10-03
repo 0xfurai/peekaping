@@ -11,6 +11,7 @@ import (
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/proxy"
+	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/status_page"
 	"peekaping/internal/modules/tag"
@@ -68,7 +69,7 @@ func ProvideServer(
 	settingController *setting.Controller,
 	heartbeatService heartbeat.Service,
 	monitorService monitor.Service,
-	healthcheckSupervisor *healthcheck.HealthCheckSupervisor,
+	queueService queue.Service,
 	maintenanceRoute *maintenance.Route,
 	maintenanceController *maintenance.Controller,
 	statusPageRoute *status_page.Route,
@@ -111,7 +112,7 @@ func ProvideServer(
 	badgeRoute.ConnectRoute(router, badgeController)
 
 	// Register push endpoint
-	healthcheck.RegisterPushEndpoint(router, monitorService, heartbeatService, healthcheckSupervisor, logger)
+	healthcheck.RegisterPushEndpoint(router, monitorService, heartbeatService, queueService, logger)
 
 	// Swagger routes
 	url := ginSwagger.URL("/swagger/doc.json")
