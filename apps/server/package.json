@@ -3,9 +3,9 @@
   "dependencies": {},
   "scripts": {
     "dev": "pnpm dev:watch",
-    "dev:watch": "nodemon --watch './**/*' -e go,html --signal SIGTERM --exec \"go run ./src\"",
+    "dev:watch": "nodemon --watch './**/*' -e go,html --signal SIGTERM --exec \"asdf exec go run ./src\"",
     "docs:watch": "nodemon --watch './**/*' --ignore docs -e go --exec \"swag init -d src\"",
-    "build": "go build -o dist/server ./src",
+    "build": "asdf exec go build -o dist/server ./src",
     "build:docker": "docker build -t peekaping/server:latest ."
   }
 }
