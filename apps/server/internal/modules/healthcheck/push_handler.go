@@ -2,9 +2,9 @@ package healthcheck
 
 import (
 	"net/http"
-	"peekaping/internal/modules/healthcheck/executor"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
+	"peekaping/internal/modules/queue"
 	"peekaping/internal/utils"
 	"strconv"
 	"time"
@@ -26,11 +26,32 @@ type PushConfig struct {
 	PushToken string `json:"pushToken"`
 }
 
+// IngesterTaskPayload matches the payload structure for ingester tasks
+type PushIngesterPayload struct {
+	MonitorID          string               `json:"monitor_id"`
+	MonitorName        string               `json:"monitor_name"`
+	MonitorType        string               `json:"monitor_type"`
+	MonitorInterval    int                  `json:"monitor_interval"`
+	MonitorTimeout     int                  `json:"monitor_timeout"`
+	MonitorMaxRetries  int                  `json:"monitor_max_retries"`
+	MonitorRetryInt    int                  `json:"monitor_retry_interval"`
+	MonitorResendInt   int                  `json:"monitor_resend_interval"`
+	MonitorConfig      string               `json:"monitor_config"`
+	Status             shared.MonitorStatus `json:"status"`
+	Message            string               `json:"message"`
+	PingMs             int                  `json:"ping_ms"`
+	StartTime          time.Time            `json:"start_time"`
+	EndTime            time.Time            `json:"end_time"`
+	IsUnderMaintenance bool                 `json:"is_under_maintenance"`
+	TLSInfo            interface{}          `json:"tls_info,omitempty"`
+	CheckCertExpiry    bool                 `json:"check_cert_expiry"`
+}
+
 func RegisterPushEndpoint(
 	router *gin.RouterGroup,
 	monitorService monitor.Service,
 	heartbeatService heartbeat.Service,
-	healthcheckSupervisor *HealthCheckSupervisor,
+	queueService queue.Service,
 	logger *zap.SugaredLogger,
 ) {
 	router.GET("/push/:token", func(ctx *gin.Context) {
@@ -58,21 +79,52 @@ func RegisterPushEndpoint(
 		msg := ctx.DefaultQuery("msg", "OK")
 		statusStr := ctx.DefaultQuery("status", "1")
 
-		// Parse status and ping
+		// Parse status
 		statusInt, err := strconv.Atoi(statusStr)
 		if err != nil {
 			statusInt = 1
 		}
 		status := shared.MonitorStatus(statusInt)
 
-		result := &executor.Result{
-			Status:    status,
-			Message:   msg,
-			StartTime: time.Now().UTC(),
-			EndTime:   time.Now().UTC(),
+		now := time.Now().UTC()
+
+		// Enqueue to ingester instead of processing directly
+		payload := PushIngesterPayload{
+			MonitorID:          monitor.ID,
+			MonitorName:        monitor.Name,
+			MonitorType:        monitor.Type,
+			MonitorInterval:    monitor.Interval,
+			MonitorTimeout:     monitor.Timeout,
+			MonitorMaxRetries:  monitor.MaxRetries,
+			MonitorRetryInt:    monitor.RetryInterval,
+			MonitorResendInt:   monitor.ResendInterval,
+			MonitorConfig:      monitor.Config,
+			Status:             status,
+			Message:            msg,
+			PingMs:             0, // Push monitors don't have meaningful ping times
+			StartTime:          now,
+			EndTime:            now,
+			IsUnderMaintenance: false, // Push monitors don't have maintenance windows in the same way
+			TLSInfo:            nil,
+			CheckCertExpiry:    false,
 		}
 
-		_ = healthcheckSupervisor.postProcessHeartbeat(result, monitor)
+		opts := &queue.EnqueueOptions{
+			Queue:     "ingester",
+			MaxRetry:  3,
+			Timeout:   2 * time.Minute,
+			Retention: 1 * time.Hour,
+		}
+
+		_, err = queueService.Enqueue(ctx, "monitor:ingest", payload, opts)
+		if err != nil {
+			logger.Errorw("Failed to enqueue push heartbeat to ingester",
+				"monitor_id", monitor.ID,
+				"error", err,
+			)
+			ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Failed to process push heartbeat"))
+			return
+		}
 
 		ctx.JSON(http.StatusOK, gin.H{"ok": "true"})
 	})

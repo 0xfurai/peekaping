@@ -2,7 +2,9 @@ package producer
 
 import (
 	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/monitor"
+	"peekaping/internal/modules/proxy"
 	"peekaping/internal/modules/queue"
 
 	"github.com/google/uuid"
@@ -38,10 +40,12 @@ func ProvideLeaderElection(client *redis.Client, logger *zap.SugaredLogger) *Lea
 // ProvideMonitorScheduler provides a monitor scheduler
 func ProvideMonitorScheduler(
 	monitorService monitor.Service,
+	proxyService proxy.Service,
 	queueService queue.Service,
+	maintenanceService maintenance.Service,
 	logger *zap.SugaredLogger,
 ) *MonitorScheduler {
-	return NewMonitorScheduler(monitorService, queueService, logger)
+	return NewMonitorScheduler(monitorService, proxyService, queueService, maintenanceService, logger)
 }
 
 // ProvideEventListener provides an event listener

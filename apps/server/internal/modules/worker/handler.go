@@ -24,10 +24,32 @@ const (
 	TaskTypeIngester = "monitor:ingest"
 )
 
+// ProxyData contains proxy configuration for health checks
+type ProxyData struct {
+	ID       string `json:"id"`
+	Protocol string `json:"protocol"`
+	Host     string `json:"host"`
+	Port     int    `json:"port"`
+	Auth     bool   `json:"auth"`
+	Username string `json:"username,omitempty"`
+	Password string `json:"password,omitempty"`
+}
+
 // HealthCheckTaskPayload is the payload for health check tasks
 type HealthCheckTaskPayload struct {
-	MonitorID   string    `json:"monitor_id"`
-	ScheduledAt time.Time `json:"scheduled_at"`
+	MonitorID          string     `json:"monitor_id"`
+	MonitorName        string     `json:"monitor_name"`
+	MonitorType        string     `json:"monitor_type"`
+	Interval           int        `json:"interval"`
+	Timeout            int        `json:"timeout"`
+	MaxRetries         int        `json:"max_retries"`
+	RetryInterval      int        `json:"retry_interval"`
+	ResendInterval     int        `json:"resend_interval"`
+	Config             string     `json:"config"`
+	Proxy              *ProxyData `json:"proxy,omitempty"`
+	ScheduledAt        time.Time  `json:"scheduled_at"`
+	IsUnderMaintenance bool       `json:"is_under_maintenance"`
+	CheckCertExpiry    bool       `json:"check_cert_expiry"`
 }
 
 // IngesterTaskPayload is the payload for ingester tasks
@@ -48,12 +70,11 @@ type IngesterTaskPayload struct {
 	EndTime            time.Time               `json:"end_time"`
 	IsUnderMaintenance bool                    `json:"is_under_maintenance"`
 	TLSInfo            *certificate.TLSInfo    `json:"tls_info,omitempty"`
+	CheckCertExpiry    bool                    `json:"check_cert_expiry"`
 }
 
 // HealthCheckTaskHandler handles health check tasks from the queue
 type HealthCheckTaskHandler struct {
-	monitorService     monitor.Service
-	proxyService       proxy.Service
 	execRegistry       *executor.ExecutorRegistry
 	healthCheckService *healthcheck.HealthCheckSupervisor
 	queueService       queue.Service
@@ -62,16 +83,12 @@ type HealthCheckTaskHandler struct {
 
 // NewHealthCheckTaskHandler creates a new health check task handler
 func NewHealthCheckTaskHandler(
-	monitorService monitor.Service,
-	proxyService proxy.Service,
 	execRegistry *executor.ExecutorRegistry,
 	healthCheckService *healthcheck.HealthCheckSupervisor,
 	queueService queue.Service,
 	logger *zap.SugaredLogger,
 ) *HealthCheckTaskHandler {
 	return &HealthCheckTaskHandler{
-		monitorService:     monitorService,
-		proxyService:       proxyService,
 		execRegistry:       execRegistry,
 		healthCheckService: healthCheckService,
 		queueService:       queueService,
@@ -90,29 +107,34 @@ func (h *HealthCheckTaskHandler) ProcessTask(ctx context.Context, task *asynq.Ta
 
 	h.logger.Debugw("Processing health check task",
 		"monitor_id", payload.MonitorID,
+		"monitor_name", payload.MonitorName,
 		"scheduled_at", payload.ScheduledAt,
 	)
 
-	// Fetch the monitor
-	m, err := h.monitorService.FindByID(ctx, payload.MonitorID)
-	if err != nil {
-		h.logger.Errorw("Failed to fetch monitor", "monitor_id", payload.MonitorID, "error", err)
-		return fmt.Errorf("failed to fetch monitor: %w", err)
+	// Create monitor model from payload
+	m := &monitor.Model{
+		ID:             payload.MonitorID,
+		Type:           payload.MonitorType,
+		Name:           payload.MonitorName,
+		Interval:       payload.Interval,
+		Timeout:        payload.Timeout,
+		MaxRetries:     payload.MaxRetries,
+		RetryInterval:  payload.RetryInterval,
+		ResendInterval: payload.ResendInterval,
+		Config:         payload.Config,
 	}
 
-	if m == nil {
-		h.logger.Warnw("Monitor not found", "monitor_id", payload.MonitorID)
-		return fmt.Errorf("monitor not found: %s", payload.MonitorID)
-	}
-
-	// Fetch proxy if needed
+	// Create proxy model from payload if present
 	var proxyModel *proxy.Model = nil
-	if m.ProxyId != "" {
-		p, err := h.proxyService.FindByID(ctx, m.ProxyId)
-		if err != nil {
-			h.logger.Errorw("Failed to fetch proxy for monitor", "monitor_id", m.ID, "proxy_id", m.ProxyId, "error", err)
-		} else if p != nil {
-			proxyModel = p
+	if payload.Proxy != nil {
+		proxyModel = &proxy.Model{
+			ID:       payload.Proxy.ID,
+			Protocol: payload.Proxy.Protocol,
+			Host:     payload.Proxy.Host,
+			Port:     payload.Proxy.Port,
+			Auth:     payload.Proxy.Auth,
+			Username: payload.Proxy.Username,
+			Password: payload.Proxy.Password,
 		}
 	}
 
@@ -124,7 +146,7 @@ func (h *HealthCheckTaskHandler) ProcessTask(ctx context.Context, task *asynq.Ta
 	}
 
 	// Execute the health check using the supervisor's method
-	tickResult := h.healthCheckService.HandleMonitorTick(ctx, m, exec, proxyModel)
+	tickResult := h.healthCheckService.HandleMonitorTick(ctx, m, exec, proxyModel, payload.IsUnderMaintenance)
 
 	if tickResult == nil {
 		h.logger.Warnw("Health check returned nil result", "monitor_id", payload.MonitorID)
@@ -133,7 +155,7 @@ func (h *HealthCheckTaskHandler) ProcessTask(ctx context.Context, task *asynq.Ta
 
 	h.logger.Debugw("Health check executed",
 		"monitor_id", payload.MonitorID,
-		"monitor_name", m.Name,
+		"monitor_name", payload.MonitorName,
 		"status", tickResult.ExecutionResult.Status,
 		"ping_ms", tickResult.PingMs,
 	)
@@ -156,6 +178,7 @@ func (h *HealthCheckTaskHandler) ProcessTask(ctx context.Context, task *asynq.Ta
 		EndTime:            tickResult.ExecutionResult.EndTime,
 		IsUnderMaintenance: tickResult.IsUnderMaintenance,
 		TLSInfo:            tickResult.ExecutionResult.TLSInfo,
+		CheckCertExpiry:    payload.CheckCertExpiry,
 	}
 
 	opts := &queue.EnqueueOptions{
@@ -165,7 +188,7 @@ func (h *HealthCheckTaskHandler) ProcessTask(ctx context.Context, task *asynq.Ta
 		Retention: 1 * time.Hour,
 	}
 
-	_, err = h.queueService.Enqueue(ctx, TaskTypeIngester, ingesterPayload, opts)
+	_, err := h.queueService.Enqueue(ctx, TaskTypeIngester, ingesterPayload, opts)
 	if err != nil {
 		h.logger.Errorw("Failed to enqueue ingester task",
 			"monitor_id", payload.MonitorID,
@@ -176,7 +199,7 @@ func (h *HealthCheckTaskHandler) ProcessTask(ctx context.Context, task *asynq.Ta
 
 	h.logger.Debugw("Successfully enqueued result to ingester",
 		"monitor_id", payload.MonitorID,
-		"monitor_name", m.Name,
+		"monitor_name", payload.MonitorName,
 	)
 
 	return nil

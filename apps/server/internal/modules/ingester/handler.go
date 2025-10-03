@@ -39,6 +39,7 @@ type IngesterTaskPayload struct {
 	EndTime            time.Time            `json:"end_time"`
 	IsUnderMaintenance bool                 `json:"is_under_maintenance"`
 	TLSInfo            *certificate.TLSInfo `json:"tls_info,omitempty"`
+	CheckCertExpiry    bool                 `json:"check_cert_expiry"`
 }
 
 // IngesterTaskHandler handles ingester tasks from the queue
@@ -237,31 +238,16 @@ func (h *IngesterTaskHandler) processHeartbeat(ctx context.Context, payload *Ing
 			)
 		}
 
-		// Check if certificate expiry checking is enabled in monitor configuration
-		shouldCheckCertExpiry := false
-		if payload.MonitorConfig != "" {
-			// Parse HTTP configuration to check if certificate expiry checking is enabled
-			var httpConfig struct {
-				CheckCertExpiry bool `json:"check_cert_expiry"`
-			}
-			if err := json.Unmarshal([]byte(payload.MonitorConfig), &httpConfig); err != nil {
-				h.logger.Errorw("Failed to parse HTTP config for monitor",
-					"monitor_name", payload.MonitorName,
-					"error", err,
-				)
-			} else {
-				shouldCheckCertExpiry = httpConfig.CheckCertExpiry
-			}
-		}
-
-		// Check certificate expiry and send notifications only if enabled
-		if shouldCheckCertExpiry {
+		// Check certificate expiry and send notifications only if enabled (flag comes from payload)
+		if payload.CheckCertExpiry {
 			if err := h.certificateService.CheckCertificateExpiry(ctx, payload.TLSInfo, payload.MonitorID, payload.MonitorName); err != nil {
 				h.logger.Errorw("Failed to check certificate expiry for monitor",
 					"monitor_name", payload.MonitorName,
 					"error", err,
 				)
 			}
+		} else {
+			h.logger.Debugw("Certificate expiry checking disabled for monitor", "monitor_name", payload.MonitorName)
 		}
 	}
 

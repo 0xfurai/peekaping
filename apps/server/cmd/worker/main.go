@@ -8,21 +8,8 @@ import (
 	"os/signal"
 	"peekaping/internal/config"
 	"peekaping/internal/infra"
-	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/healthcheck"
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/maintenance"
-	"peekaping/internal/modules/monitor"
-	"peekaping/internal/modules/monitor_maintenance"
-	"peekaping/internal/modules/monitor_notification"
-	"peekaping/internal/modules/monitor_tag"
-	"peekaping/internal/modules/monitor_tls_info"
-	"peekaping/internal/modules/notification_channel"
-	"peekaping/internal/modules/notification_sent_history"
-	"peekaping/internal/modules/proxy"
-	"peekaping/internal/modules/setting"
-	"peekaping/internal/modules/stats"
 	"peekaping/internal/modules/worker"
 	"peekaping/internal/version"
 	"syscall"
@@ -38,12 +25,6 @@ func main() {
 	cfg, err := config.LoadConfig[config.Config]("../..")
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
-	}
-
-	// Validate database configuration
-	err = config.ValidateDatabaseCustomRules(config.ExtractDBConfig(&cfg))
-	if err != nil {
-		log.Fatalf("Failed to validate database config: %v", err)
 	}
 
 	// Set timezone
@@ -73,16 +54,6 @@ func main() {
 		return zapLogger.Sugar(), nil
 	})
 
-	// Provide database
-	switch cfg.DBType {
-	case "postgres", "postgresql", "mysql", "sqlite":
-		container.Provide(infra.ProvideSQLDB)
-	case "mongo", "mongodb":
-		container.Provide(infra.ProvideMongoDB)
-	default:
-		log.Fatalf("Unsupported DB_TYPE: %s", cfg.DBType)
-	}
-
 	// Provide Redis infrastructure
 	container.Provide(infra.ProvideRedisClient)
 	container.Provide(infra.ProvideRedisEventBus)
@@ -93,22 +64,9 @@ func main() {
 	container.Provide(infra.ProvideAsynqInspector)
 	container.Provide(infra.ProvideQueueService)
 
-	// Register module dependencies
+	// Register only non-database module dependencies needed for health checks
 	events.RegisterDependencies(container)
-	heartbeat.RegisterDependencies(container, &cfg)
-	monitor.RegisterDependencies(container, &cfg)
 	healthcheck.RegisterDependencies(container)
-	monitor_notification.RegisterDependencies(container, &cfg)
-	notification_channel.RegisterDependencies(container, &cfg)
-	notification_sent_history.RegisterDependencies(container, &cfg)
-	monitor_tag.RegisterDependencies(container, &cfg)
-	monitor_tls_info.RegisterDependencies(container, &cfg)
-	certificate.RegisterDependencies(container)
-	monitor_maintenance.RegisterDependencies(container, &cfg)
-	maintenance.RegisterDependencies(container, &cfg)
-	proxy.RegisterDependencies(container, &cfg)
-	stats.RegisterDependencies(container, &cfg)
-	setting.RegisterDependencies(container, &cfg)
 
 	// Register worker dependencies
 	worker.RegisterDependencies(container)

@@ -51,13 +51,13 @@ type ExecutorRegistry struct {
 	registry map[string]Executor
 }
 
-func NewExecutorRegistry(logger *zap.SugaredLogger, heartbeatService heartbeat.Service) *ExecutorRegistry {
+func NewExecutorRegistry(logger *zap.SugaredLogger) *ExecutorRegistry {
 	registry := make(map[string]Executor)
 
 	registry["http"] = NewHTTPExecutor(logger)
 	registry["http-keyword"] = NewHTTPExecutor(logger)
 	registry["http-json-query"] = NewHTTPExecutor(logger)
-	registry["push"] = NewPushExecutor(logger, heartbeatService)
+	// registry["push"] = NewPushExecutor(logger, heartbeatService)
 	registry["tcp"] = NewTCPExecutor(logger)
 	registry["ping"] = NewPingExecutor(logger)
 	registry["dns"] = NewDNSExecutor(logger)

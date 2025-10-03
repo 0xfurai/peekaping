@@ -4,8 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/monitor"
+	"peekaping/internal/modules/proxy"
 	"peekaping/internal/modules/queue"
+	"strings"
 	"sync"
 	"time"
 
@@ -18,34 +21,62 @@ const (
 	TaskTypeHealthCheck = "monitor:healthcheck"
 )
 
+// ProxyData contains proxy configuration for health checks
+type ProxyData struct {
+	ID       string `json:"id"`
+	Protocol string `json:"protocol"`
+	Host     string `json:"host"`
+	Port     int    `json:"port"`
+	Auth     bool   `json:"auth"`
+	Username string `json:"username,omitempty"`
+	Password string `json:"password,omitempty"`
+}
+
 // HealthCheckTaskPayload is the payload for health check tasks
 type HealthCheckTaskPayload struct {
-	MonitorID   string    `json:"monitor_id"`
-	ScheduledAt time.Time `json:"scheduled_at"`
+	MonitorID          string     `json:"monitor_id"`
+	MonitorName        string     `json:"monitor_name"`
+	MonitorType        string     `json:"monitor_type"`
+	Interval           int        `json:"interval"`
+	Timeout            int        `json:"timeout"`
+	MaxRetries         int        `json:"max_retries"`
+	RetryInterval      int        `json:"retry_interval"`
+	ResendInterval     int        `json:"resend_interval"`
+	Config             string     `json:"config"`
+	Proxy              *ProxyData `json:"proxy,omitempty"`
+	ScheduledAt        time.Time  `json:"scheduled_at"`
+	IsUnderMaintenance bool       `json:"is_under_maintenance"`
+	CheckCertExpiry    bool       `json:"check_cert_expiry"`
 }
 
 // MonitorScheduler manages cron jobs for monitors
 type MonitorScheduler struct {
-	mu             sync.RWMutex
-	cron           *cron.Cron
-	jobs           map[string]cron.EntryID // monitor ID -> cron entry ID
-	monitorService monitor.Service
-	queueService   queue.Service
-	logger         *zap.SugaredLogger
+	mu                 sync.RWMutex
+	cron               *cron.Cron
+	jobs               map[string]cron.EntryID // monitor ID -> cron entry ID
+	monitorService     monitor.Service
+	proxyService       proxy.Service
+	queueService       queue.Service
+	maintenanceService maintenance.Service
+	logger             *zap.SugaredLogger
 }
 
 // NewMonitorScheduler creates a new monitor scheduler
 func NewMonitorScheduler(
 	monitorService monitor.Service,
+	proxyService proxy.Service,
 	queueService queue.Service,
+	maintenanceService maintenance.Service,
 	logger *zap.SugaredLogger,
 ) *MonitorScheduler {
 	return &MonitorScheduler{
-		cron:           cron.New(cron.WithSeconds()),
-		jobs:           make(map[string]cron.EntryID),
-		monitorService: monitorService,
-		queueService:   queueService,
-		logger:         logger.With("component", "monitor_scheduler"),
+		cron:               cron.New(cron.WithSeconds()),
+		jobs:               make(map[string]cron.EntryID),
+		monitorService:     monitorService,
+		proxyService:       proxyService,
+		queueService:       queueService,
+		maintenanceService: maintenanceService,
+		logger:             logger.With("component", "monitor_scheduler"),
 	}
 }
 
@@ -201,9 +232,92 @@ func (ms *MonitorScheduler) addOrUpdateMonitorJob(ctx context.Context, m *monito
 
 // enqueueHealthCheckTask enqueues a health check task to the queue
 func (ms *MonitorScheduler) enqueueHealthCheckTask(ctx context.Context, monitorID, monitorName string) error {
+	// Fetch the full monitor data
+	m, err := ms.monitorService.FindByID(ctx, monitorID)
+	if err != nil {
+		return fmt.Errorf("failed to fetch monitor: %w", err)
+	}
+	if m == nil {
+		return fmt.Errorf("monitor not found: %s", monitorID)
+	}
+
+	// Check if monitor is under maintenance
+	isUnderMaintenance := false
+	maintenances, err := ms.maintenanceService.GetMaintenancesByMonitorID(ctx, m.ID)
+	if err != nil {
+		ms.logger.Warnw("Failed to get maintenances for monitor, assuming not under maintenance",
+			"monitor_id", m.ID,
+			"error", err,
+		)
+	} else {
+		for _, maint := range maintenances {
+			underMaintenance, err := ms.maintenanceService.IsUnderMaintenance(ctx, maint)
+			if err != nil {
+				ms.logger.Warnw("Failed to check maintenance status, skipping",
+					"maintenance_id", maint.ID,
+					"error", err,
+				)
+				continue
+			}
+			if underMaintenance {
+				isUnderMaintenance = true
+				break
+			}
+		}
+	}
+
+	// Check if certificate expiry checking is enabled (for HTTPS monitors)
+	checkCertExpiry := false
+	if strings.HasPrefix(strings.ToLower(m.Type), "http") && m.Config != "" {
+		var httpConfig struct {
+			CheckCertExpiry bool `json:"check_cert_expiry"`
+		}
+		if err := json.Unmarshal([]byte(m.Config), &httpConfig); err != nil {
+			ms.logger.Warnw("Failed to parse HTTP config for monitor, assuming cert check disabled",
+				"monitor_id", m.ID,
+				"error", err,
+			)
+		} else {
+			checkCertExpiry = httpConfig.CheckCertExpiry
+		}
+	}
+
+	// Prepare the payload with all monitor data
 	payload := HealthCheckTaskPayload{
-		MonitorID:   monitorID,
-		ScheduledAt: time.Now().UTC(),
+		MonitorID:          m.ID,
+		MonitorName:        m.Name,
+		MonitorType:        m.Type,
+		Interval:           m.Interval,
+		Timeout:            m.Timeout,
+		MaxRetries:         m.MaxRetries,
+		RetryInterval:      m.RetryInterval,
+		ResendInterval:     m.ResendInterval,
+		Config:             m.Config,
+		ScheduledAt:        time.Now().UTC(),
+		IsUnderMaintenance: isUnderMaintenance,
+		CheckCertExpiry:    checkCertExpiry,
+	}
+
+	// Fetch proxy data if monitor has a proxy configured
+	if m.ProxyId != "" {
+		p, err := ms.proxyService.FindByID(ctx, m.ProxyId)
+		if err != nil {
+			ms.logger.Warnw("Failed to fetch proxy for monitor, proceeding without proxy",
+				"monitor_id", m.ID,
+				"proxy_id", m.ProxyId,
+				"error", err,
+			)
+		} else if p != nil {
+			payload.Proxy = &ProxyData{
+				ID:       p.ID,
+				Protocol: p.Protocol,
+				Host:     p.Host,
+				Port:     p.Port,
+				Auth:     p.Auth,
+				Username: p.Username,
+				Password: p.Password,
+			}
+		}
 	}
 
 	opts := &queue.EnqueueOptions{
