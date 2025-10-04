@@ -95,6 +95,7 @@ func main() {
 	// Provide queue infrastructure
 	container.Provide(infra.ProvideAsynqClient)
 	container.Provide(infra.ProvideAsynqInspector)
+	container.Provide(infra.ProvideAsynqScheduler)
 	container.Provide(infra.ProvideQueueService)
 
 	// Register module dependencies

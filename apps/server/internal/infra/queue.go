@@ -123,6 +123,42 @@ func ProvideAsynqInspector(
 	return inspector, nil
 }
 
+// ProvideAsynqScheduler creates and returns an asynq.Scheduler for scheduling periodic tasks
+func ProvideAsynqScheduler(
+	cfg *config.Config,
+	logger *zap.SugaredLogger,
+) (*asynq.Scheduler, error) {
+	redisOpt := asynq.RedisClientOpt{
+		Addr:     fmt.Sprintf("%s:%s", cfg.RedisHost, cfg.RedisPort),
+		Password: cfg.RedisPassword,
+		DB:       cfg.RedisDB,
+	}
+
+	// Create scheduler with location for cron expressions
+	location, err := time.LoadLocation(cfg.Timezone)
+	if err != nil {
+		logger.Warnw("Failed to load timezone, using UTC", "timezone", cfg.Timezone, "error", err)
+		location = time.UTC
+	}
+
+	schedulerCfg := &asynq.SchedulerOpts{
+		Location: location,
+		Logger:   NewAsynqLogger(logger),
+		// EnqueueErrorHandler is called when there's an error enqueuing a task
+		EnqueueErrorHandler: func(task *asynq.Task, opts []asynq.Option, err error) {
+			logger.Errorw("Failed to enqueue scheduled task",
+				"type", task.Type(),
+				"error", err,
+			)
+		},
+	}
+
+	scheduler := asynq.NewScheduler(redisOpt, schedulerCfg)
+
+	logger.Info("Successfully created Asynq scheduler")
+	return scheduler, nil
+}
+
 // queueServiceImpl is the implementation of the queue.Service interface using asynq
 type queueServiceImpl struct {
 	client    *asynq.Client
