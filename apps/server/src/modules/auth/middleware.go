@@ -20,7 +20,12 @@ func NewMiddlewareProvider(tokenMaker *TokenMaker) *MiddlewareProvider {
 	}
 }
 
-// Auth is a middleware that verifies the JWT access token
+// GetTokenMaker returns the token maker instance
+func (p *MiddlewareProvider) GetTokenMaker() *TokenMaker {
+	return p.tokenMaker
+}
+
+// Auth is a middleware that verifies JWT access tokens only
 func (p *MiddlewareProvider) Auth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Get the Authorization header
@@ -31,6 +36,7 @@ func (p *MiddlewareProvider) Auth() gin.HandlerFunc {
 			return
 		}
 
+		// JWT authentication
 		// Add Bearer prefix if not present
 		if !strings.HasPrefix(authHeader, "Bearer ") {
 			authHeader = "Bearer " + authHeader
@@ -65,6 +71,7 @@ func (p *MiddlewareProvider) Auth() gin.HandlerFunc {
 		// Set user information in the context
 		c.Set("userId", claims.UserID)
 		c.Set("email", claims.Email)
+		c.Set("authType", "jwt")
 
 		c.Next()
 	}

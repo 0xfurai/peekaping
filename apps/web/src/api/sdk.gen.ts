@@ -2,6 +2,23 @@
 
 import type { Options as ClientOptions, TDataShape, Client } from "./client";
 import type {
+  GetApiKeysData,
+  GetApiKeysResponses,
+  GetApiKeysErrors,
+  PostApiKeysData,
+  PostApiKeysResponses,
+  PostApiKeysErrors,
+  GetApiKeysConfigData,
+  GetApiKeysConfigResponses,
+  DeleteApiKeysByIdData,
+  DeleteApiKeysByIdResponses,
+  DeleteApiKeysByIdErrors,
+  GetApiKeysByIdData,
+  GetApiKeysByIdResponses,
+  GetApiKeysByIdErrors,
+  PutApiKeysByIdData,
+  PutApiKeysByIdResponses,
+  PutApiKeysByIdErrors,
   PostAuth2FaDisableData,
   PostAuth2FaDisableResponses,
   PostAuth2FaDisableErrors,
@@ -200,7 +217,7 @@ import { client as _heyApiClient } from "./client.gen";
 
 export type Options<
   TData extends TDataShape = TDataShape,
-  ThrowOnError extends boolean = boolean,
+  ThrowOnError extends boolean = boolean
 > = ClientOptions<TData, ThrowOnError> & {
   /**
    * You can provide a client instance returned by `createClient()` instead of
@@ -216,10 +233,156 @@ export type Options<
 };
 
 /**
+ * Get API keys
+ * Get all API keys for the authenticated user
+ */
+export const getApiKeys = <ThrowOnError extends boolean = false>(
+  options?: Options<GetApiKeysData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetApiKeysResponses,
+    GetApiKeysErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/api-keys",
+    ...options,
+  });
+};
+
+/**
+ * Create API key
+ * Create a new API key for the authenticated user
+ */
+export const postApiKeys = <ThrowOnError extends boolean = false>(
+  options: Options<PostApiKeysData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostApiKeysResponses,
+    PostApiKeysErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/api-keys",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * Get API key configuration
+ * Get API key configuration including prefix
+ */
+export const getApiKeysConfig = <ThrowOnError extends boolean = false>(
+  options?: Options<GetApiKeysConfigData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetApiKeysConfigResponses,
+    unknown,
+    ThrowOnError
+  >({
+    responseType: "json",
+    url: "/api-keys/config",
+    ...options,
+  });
+};
+
+/**
+ * Delete API key
+ * Delete an API key
+ */
+export const deleteApiKeysById = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteApiKeysByIdData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    DeleteApiKeysByIdResponses,
+    DeleteApiKeysByIdErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/api-keys/{id}",
+    ...options,
+  });
+};
+
+/**
+ * Get API key
+ * Get a specific API key by ID
+ */
+export const getApiKeysById = <ThrowOnError extends boolean = false>(
+  options: Options<GetApiKeysByIdData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetApiKeysByIdResponses,
+    GetApiKeysByIdErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/api-keys/{id}",
+    ...options,
+  });
+};
+
+/**
+ * Update API key
+ * Update an API key
+ */
+export const putApiKeysById = <ThrowOnError extends boolean = false>(
+  options: Options<PutApiKeysByIdData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).put<
+    PutApiKeysByIdResponses,
+    PutApiKeysByIdErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/api-keys/{id}",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
  * Disable 2FA (TOTP) for user
  */
 export const postAuth2FaDisable = <ThrowOnError extends boolean = false>(
-  options: Options<PostAuth2FaDisableData, ThrowOnError>,
+  options: Options<PostAuth2FaDisableData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).post<
     PostAuth2FaDisableResponses,
@@ -240,7 +403,7 @@ export const postAuth2FaDisable = <ThrowOnError extends boolean = false>(
  * Enable 2FA (TOTP) for user
  */
 export const postAuth2FaSetup = <ThrowOnError extends boolean = false>(
-  options: Options<PostAuth2FaSetupData, ThrowOnError>,
+  options: Options<PostAuth2FaSetupData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).post<
     PostAuth2FaSetupResponses,
@@ -261,7 +424,7 @@ export const postAuth2FaSetup = <ThrowOnError extends boolean = false>(
  * Verify 2FA (TOTP) code for user
  */
 export const postAuth2FaVerify = <ThrowOnError extends boolean = false>(
-  options: Options<PostAuth2FaVerifyData, ThrowOnError>,
+  options: Options<PostAuth2FaVerifyData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).post<
     PostAuth2FaVerifyResponses,
@@ -282,7 +445,7 @@ export const postAuth2FaVerify = <ThrowOnError extends boolean = false>(
  * Login admin
  */
 export const postAuthLogin = <ThrowOnError extends boolean = false>(
-  options: Options<PostAuthLoginData, ThrowOnError>,
+  options: Options<PostAuthLoginData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).post<
     PostAuthLoginResponses,
@@ -303,7 +466,7 @@ export const postAuthLogin = <ThrowOnError extends boolean = false>(
  * Update user password
  */
 export const putAuthPassword = <ThrowOnError extends boolean = false>(
-  options: Options<PutAuthPasswordData, ThrowOnError>,
+  options: Options<PutAuthPasswordData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).put<
     PutAuthPasswordResponses,
@@ -324,7 +487,7 @@ export const putAuthPassword = <ThrowOnError extends boolean = false>(
  * Refresh access token
  */
 export const postAuthRefresh = <ThrowOnError extends boolean = false>(
-  options: Options<PostAuthRefreshData, ThrowOnError>,
+  options: Options<PostAuthRefreshData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).post<
     PostAuthRefreshResponses,
@@ -345,7 +508,7 @@ export const postAuthRefresh = <ThrowOnError extends boolean = false>(
  * Register new admin
  */
 export const postAuthRegister = <ThrowOnError extends boolean = false>(
-  options: Options<PostAuthRegisterData, ThrowOnError>,
+  options: Options<PostAuthRegisterData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).post<
     PostAuthRegisterResponses,
@@ -366,9 +529,9 @@ export const postAuthRegister = <ThrowOnError extends boolean = false>(
  * Get certificate expiry badge
  */
 export const getBadgeByMonitorIdCertExp = <
-  ThrowOnError extends boolean = false,
+  ThrowOnError extends boolean = false
 >(
-  options: Options<GetBadgeByMonitorIdCertExpData, ThrowOnError>,
+  options: Options<GetBadgeByMonitorIdCertExpData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).get<
     GetBadgeByMonitorIdCertExpResponses,
@@ -385,9 +548,9 @@ export const getBadgeByMonitorIdCertExp = <
  * Get ping badge
  */
 export const getBadgeByMonitorIdPingByDuration = <
-  ThrowOnError extends boolean = false,
+  ThrowOnError extends boolean = false
 >(
-  options: Options<GetBadgeByMonitorIdPingByDurationData, ThrowOnError>,
+  options: Options<GetBadgeByMonitorIdPingByDurationData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).get<
     GetBadgeByMonitorIdPingByDurationResponses,
@@ -404,9 +567,9 @@ export const getBadgeByMonitorIdPingByDuration = <
  * Get response time badge
  */
 export const getBadgeByMonitorIdResponse = <
-  ThrowOnError extends boolean = false,
+  ThrowOnError extends boolean = false
 >(
-  options: Options<GetBadgeByMonitorIdResponseData, ThrowOnError>,
+  options: Options<GetBadgeByMonitorIdResponseData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).get<
     GetBadgeByMonitorIdResponseResponses,
@@ -423,7 +586,7 @@ export const getBadgeByMonitorIdResponse = <
  * Get status badge
  */
 export const getBadgeByMonitorIdStatus = <ThrowOnError extends boolean = false>(
-  options: Options<GetBadgeByMonitorIdStatusData, ThrowOnError>,
+  options: Options<GetBadgeByMonitorIdStatusData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).get<
     GetBadgeByMonitorIdStatusResponses,
@@ -440,9 +603,9 @@ export const getBadgeByMonitorIdStatus = <ThrowOnError extends boolean = false>(
  * Get uptime badge
  */
 export const getBadgeByMonitorIdUptimeByDuration = <
-  ThrowOnError extends boolean = false,
+  ThrowOnError extends boolean = false
 >(
-  options: Options<GetBadgeByMonitorIdUptimeByDurationData, ThrowOnError>,
+  options: Options<GetBadgeByMonitorIdUptimeByDurationData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).get<
     GetBadgeByMonitorIdUptimeByDurationResponses,
@@ -460,7 +623,7 @@ export const getBadgeByMonitorIdUptimeByDuration = <
  * Returns the current server health
  */
 export const getHealth = <ThrowOnError extends boolean = false>(
-  options?: Options<GetHealthData, ThrowOnError>,
+  options?: Options<GetHealthData, ThrowOnError>
 ) => {
   return (options?.client ?? _heyApiClient).get<
     GetHealthResponses,
@@ -477,7 +640,7 @@ export const getHealth = <ThrowOnError extends boolean = false>(
  * Get maintenances
  */
 export const getMaintenances = <ThrowOnError extends boolean = false>(
-  options?: Options<GetMaintenancesData, ThrowOnError>,
+  options?: Options<GetMaintenancesData, ThrowOnError>
 ) => {
   return (options?.client ?? _heyApiClient).get<
     GetMaintenancesResponses,
@@ -500,7 +663,7 @@ export const getMaintenances = <ThrowOnError extends boolean = false>(
  * Create maintenance
  */
 export const postMaintenances = <ThrowOnError extends boolean = false>(
-  options: Options<PostMaintenancesData, ThrowOnError>,
+  options: Options<PostMaintenancesData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).post<
     PostMaintenancesResponses,
@@ -527,7 +690,7 @@ export const postMaintenances = <ThrowOnError extends boolean = false>(
  * Delete maintenance
  */
 export const deleteMaintenancesById = <ThrowOnError extends boolean = false>(
-  options: Options<DeleteMaintenancesByIdData, ThrowOnError>,
+  options: Options<DeleteMaintenancesByIdData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).delete<
     DeleteMaintenancesByIdResponses,
@@ -550,7 +713,7 @@ export const deleteMaintenancesById = <ThrowOnError extends boolean = false>(
  * Get maintenance by ID
  */
 export const getMaintenancesById = <ThrowOnError extends boolean = false>(
-  options: Options<GetMaintenancesByIdData, ThrowOnError>,
+  options: Options<GetMaintenancesByIdData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).get<
     GetMaintenancesByIdResponses,
@@ -573,7 +736,7 @@ export const getMaintenancesById = <ThrowOnError extends boolean = false>(
  * Update maintenance
  */
 export const patchMaintenancesById = <ThrowOnError extends boolean = false>(
-  options: Options<PatchMaintenancesByIdData, ThrowOnError>,
+  options: Options<PatchMaintenancesByIdData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).patch<
     PatchMaintenancesByIdResponses,
@@ -600,7 +763,7 @@ export const patchMaintenancesById = <ThrowOnError extends boolean = false>(
  * Update maintenance
  */
 export const putMaintenancesById = <ThrowOnError extends boolean = false>(
-  options: Options<PutMaintenancesByIdData, ThrowOnError>,
+  options: Options<PutMaintenancesByIdData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).put<
     PutMaintenancesByIdResponses,
@@ -627,9 +790,9 @@ export const putMaintenancesById = <ThrowOnError extends boolean = false>(
  * Pause maintenance
  */
 export const patchMaintenancesByIdPause = <
-  ThrowOnError extends boolean = false,
+  ThrowOnError extends boolean = false
 >(
-  options: Options<PatchMaintenancesByIdPauseData, ThrowOnError>,
+  options: Options<PatchMaintenancesByIdPauseData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).patch<
     PatchMaintenancesByIdPauseResponses,
@@ -652,9 +815,9 @@ export const patchMaintenancesByIdPause = <
  * Resume maintenance
  */
 export const patchMaintenancesByIdResume = <
-  ThrowOnError extends boolean = false,
+  ThrowOnError extends boolean = false
 >(
-  options: Options<PatchMaintenancesByIdResumeData, ThrowOnError>,
+  options: Options<PatchMaintenancesByIdResumeData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).patch<
     PatchMaintenancesByIdResumeResponses,
@@ -677,7 +840,7 @@ export const patchMaintenancesByIdResume = <
  * Get monitors
  */
 export const getMonitors = <ThrowOnError extends boolean = false>(
-  options?: Options<GetMonitorsData, ThrowOnError>,
+  options?: Options<GetMonitorsData, ThrowOnError>
 ) => {
   return (options?.client ?? _heyApiClient).get<
     GetMonitorsResponses,
@@ -700,7 +863,7 @@ export const getMonitors = <ThrowOnError extends boolean = false>(
  * Create monitor
  */
 export const postMonitors = <ThrowOnError extends boolean = false>(
-  options: Options<PostMonitorsData, ThrowOnError>,
+  options: Options<PostMonitorsData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).post<
     PostMonitorsResponses,
@@ -727,7 +890,7 @@ export const postMonitors = <ThrowOnError extends boolean = false>(
  * Get monitors by IDs
  */
 export const getMonitorsBatch = <ThrowOnError extends boolean = false>(
-  options: Options<GetMonitorsBatchData, ThrowOnError>,
+  options: Options<GetMonitorsBatchData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).get<
     GetMonitorsBatchResponses,
@@ -750,7 +913,7 @@ export const getMonitorsBatch = <ThrowOnError extends boolean = false>(
  * Delete monitor
  */
 export const deleteMonitorsById = <ThrowOnError extends boolean = false>(
-  options: Options<DeleteMonitorsByIdData, ThrowOnError>,
+  options: Options<DeleteMonitorsByIdData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).delete<
     DeleteMonitorsByIdResponses,
@@ -773,7 +936,7 @@ export const deleteMonitorsById = <ThrowOnError extends boolean = false>(
  * Get monitor by ID
  */
 export const getMonitorsById = <ThrowOnError extends boolean = false>(
-  options: Options<GetMonitorsByIdData, ThrowOnError>,
+  options: Options<GetMonitorsByIdData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).get<
     GetMonitorsByIdResponses,
@@ -796,7 +959,7 @@ export const getMonitorsById = <ThrowOnError extends boolean = false>(
  * Update monitor
  */
 export const patchMonitorsById = <ThrowOnError extends boolean = false>(
-  options: Options<PatchMonitorsByIdData, ThrowOnError>,
+  options: Options<PatchMonitorsByIdData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).patch<
     PatchMonitorsByIdResponses,
@@ -823,7 +986,7 @@ export const patchMonitorsById = <ThrowOnError extends boolean = false>(
  * Update monitor
  */
 export const putMonitorsById = <ThrowOnError extends boolean = false>(
-  options: Options<PutMonitorsByIdData, ThrowOnError>,
+  options: Options<PutMonitorsByIdData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).put<
     PutMonitorsByIdResponses,
@@ -850,7 +1013,7 @@ export const putMonitorsById = <ThrowOnError extends boolean = false>(
  * Get paginated heartbeats for a monitor
  */
 export const getMonitorsByIdHeartbeats = <ThrowOnError extends boolean = false>(
-  options: Options<GetMonitorsByIdHeartbeatsData, ThrowOnError>,
+  options: Options<GetMonitorsByIdHeartbeatsData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).get<
     GetMonitorsByIdHeartbeatsResponses,
@@ -873,7 +1036,7 @@ export const getMonitorsByIdHeartbeats = <ThrowOnError extends boolean = false>(
  * Reset monitor data (heartbeats and stats)
  */
 export const postMonitorsByIdReset = <ThrowOnError extends boolean = false>(
-  options: Options<PostMonitorsByIdResetData, ThrowOnError>,
+  options: Options<PostMonitorsByIdResetData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).post<
     PostMonitorsByIdResetResponses,
@@ -896,9 +1059,9 @@ export const postMonitorsByIdReset = <ThrowOnError extends boolean = false>(
  * Get monitor stat points (ping/up/down) from stats tables
  */
 export const getMonitorsByIdStatsPoints = <
-  ThrowOnError extends boolean = false,
+  ThrowOnError extends boolean = false
 >(
-  options: Options<GetMonitorsByIdStatsPointsData, ThrowOnError>,
+  options: Options<GetMonitorsByIdStatsPointsData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).get<
     GetMonitorsByIdStatsPointsResponses,
@@ -921,9 +1084,9 @@ export const getMonitorsByIdStatsPoints = <
  * Get monitor uptime stats (24h, 30d, 365d)
  */
 export const getMonitorsByIdStatsUptime = <
-  ThrowOnError extends boolean = false,
+  ThrowOnError extends boolean = false
 >(
-  options: Options<GetMonitorsByIdStatsUptimeData, ThrowOnError>,
+  options: Options<GetMonitorsByIdStatsUptimeData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).get<
     GetMonitorsByIdStatsUptimeResponses,
@@ -946,7 +1109,7 @@ export const getMonitorsByIdStatsUptime = <
  * Get monitor TLS certificate information
  */
 export const getMonitorsByIdTls = <ThrowOnError extends boolean = false>(
-  options: Options<GetMonitorsByIdTlsData, ThrowOnError>,
+  options: Options<GetMonitorsByIdTlsData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).get<
     GetMonitorsByIdTlsResponses,
@@ -969,7 +1132,7 @@ export const getMonitorsByIdTls = <ThrowOnError extends boolean = false>(
  * Get notification channels
  */
 export const getNotificationChannels = <ThrowOnError extends boolean = false>(
-  options?: Options<GetNotificationChannelsData, ThrowOnError>,
+  options?: Options<GetNotificationChannelsData, ThrowOnError>
 ) => {
   return (options?.client ?? _heyApiClient).get<
     GetNotificationChannelsResponses,
@@ -992,7 +1155,7 @@ export const getNotificationChannels = <ThrowOnError extends boolean = false>(
  * Create notification channel
  */
 export const postNotificationChannels = <ThrowOnError extends boolean = false>(
-  options: Options<PostNotificationChannelsData, ThrowOnError>,
+  options: Options<PostNotificationChannelsData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).post<
     PostNotificationChannelsResponses,
@@ -1019,9 +1182,9 @@ export const postNotificationChannels = <ThrowOnError extends boolean = false>(
  * Test notification channel
  */
 export const postNotificationChannelsTest = <
-  ThrowOnError extends boolean = false,
+  ThrowOnError extends boolean = false
 >(
-  options: Options<PostNotificationChannelsTestData, ThrowOnError>,
+  options: Options<PostNotificationChannelsTestData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).post<
     PostNotificationChannelsTestResponses,
@@ -1048,9 +1211,9 @@ export const postNotificationChannelsTest = <
  * Delete notification channel
  */
 export const deleteNotificationChannelsById = <
-  ThrowOnError extends boolean = false,
+  ThrowOnError extends boolean = false
 >(
-  options: Options<DeleteNotificationChannelsByIdData, ThrowOnError>,
+  options: Options<DeleteNotificationChannelsByIdData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).delete<
     DeleteNotificationChannelsByIdResponses,
@@ -1073,9 +1236,9 @@ export const deleteNotificationChannelsById = <
  * Get notification channel by ID
  */
 export const getNotificationChannelsById = <
-  ThrowOnError extends boolean = false,
+  ThrowOnError extends boolean = false
 >(
-  options: Options<GetNotificationChannelsByIdData, ThrowOnError>,
+  options: Options<GetNotificationChannelsByIdData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).get<
     GetNotificationChannelsByIdResponses,
@@ -1098,9 +1261,9 @@ export const getNotificationChannelsById = <
  * Update notification channel
  */
 export const patchNotificationChannelsById = <
-  ThrowOnError extends boolean = false,
+  ThrowOnError extends boolean = false
 >(
-  options: Options<PatchNotificationChannelsByIdData, ThrowOnError>,
+  options: Options<PatchNotificationChannelsByIdData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).patch<
     PatchNotificationChannelsByIdResponses,
@@ -1127,9 +1290,9 @@ export const patchNotificationChannelsById = <
  * Update notification channel
  */
 export const putNotificationChannelsById = <
-  ThrowOnError extends boolean = false,
+  ThrowOnError extends boolean = false
 >(
-  options: Options<PutNotificationChannelsByIdData, ThrowOnError>,
+  options: Options<PutNotificationChannelsByIdData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).put<
     PutNotificationChannelsByIdResponses,
@@ -1156,7 +1319,7 @@ export const putNotificationChannelsById = <
  * Get proxies
  */
 export const getProxies = <ThrowOnError extends boolean = false>(
-  options?: Options<GetProxiesData, ThrowOnError>,
+  options?: Options<GetProxiesData, ThrowOnError>
 ) => {
   return (options?.client ?? _heyApiClient).get<
     GetProxiesResponses,
@@ -1179,7 +1342,7 @@ export const getProxies = <ThrowOnError extends boolean = false>(
  * Create proxy
  */
 export const postProxies = <ThrowOnError extends boolean = false>(
-  options: Options<PostProxiesData, ThrowOnError>,
+  options: Options<PostProxiesData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).post<
     PostProxiesResponses,
@@ -1206,7 +1369,7 @@ export const postProxies = <ThrowOnError extends boolean = false>(
  * Delete proxy
  */
 export const deleteProxiesById = <ThrowOnError extends boolean = false>(
-  options: Options<DeleteProxiesByIdData, ThrowOnError>,
+  options: Options<DeleteProxiesByIdData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).delete<
     DeleteProxiesByIdResponses,
@@ -1229,7 +1392,7 @@ export const deleteProxiesById = <ThrowOnError extends boolean = false>(
  * Get proxy by ID
  */
 export const getProxiesById = <ThrowOnError extends boolean = false>(
-  options: Options<GetProxiesByIdData, ThrowOnError>,
+  options: Options<GetProxiesByIdData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).get<
     GetProxiesByIdResponses,
@@ -1252,7 +1415,7 @@ export const getProxiesById = <ThrowOnError extends boolean = false>(
  * Update proxy
  */
 export const patchProxiesById = <ThrowOnError extends boolean = false>(
-  options: Options<PatchProxiesByIdData, ThrowOnError>,
+  options: Options<PatchProxiesByIdData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).patch<
     PatchProxiesByIdResponses,
@@ -1279,7 +1442,7 @@ export const patchProxiesById = <ThrowOnError extends boolean = false>(
  * Update proxy
  */
 export const putProxiesById = <ThrowOnError extends boolean = false>(
-  options: Options<PutProxiesByIdData, ThrowOnError>,
+  options: Options<PutProxiesByIdData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).put<
     PutProxiesByIdResponses,
@@ -1306,7 +1469,7 @@ export const putProxiesById = <ThrowOnError extends boolean = false>(
  * Delete setting by key
  */
 export const deleteSettingsKeyByKey = <ThrowOnError extends boolean = false>(
-  options: Options<DeleteSettingsKeyByKeyData, ThrowOnError>,
+  options: Options<DeleteSettingsKeyByKeyData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).delete<
     DeleteSettingsKeyByKeyResponses,
@@ -1329,7 +1492,7 @@ export const deleteSettingsKeyByKey = <ThrowOnError extends boolean = false>(
  * Get setting by key
  */
 export const getSettingsKeyByKey = <ThrowOnError extends boolean = false>(
-  options: Options<GetSettingsKeyByKeyData, ThrowOnError>,
+  options: Options<GetSettingsKeyByKeyData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).get<
     GetSettingsKeyByKeyResponses,
@@ -1352,7 +1515,7 @@ export const getSettingsKeyByKey = <ThrowOnError extends boolean = false>(
  * Set setting by key
  */
 export const putSettingsKeyByKey = <ThrowOnError extends boolean = false>(
-  options: Options<PutSettingsKeyByKeyData, ThrowOnError>,
+  options: Options<PutSettingsKeyByKeyData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).put<
     PutSettingsKeyByKeyResponses,
@@ -1379,7 +1542,7 @@ export const putSettingsKeyByKey = <ThrowOnError extends boolean = false>(
  * Get all status pages
  */
 export const getStatusPages = <ThrowOnError extends boolean = false>(
-  options?: Options<GetStatusPagesData, ThrowOnError>,
+  options?: Options<GetStatusPagesData, ThrowOnError>
 ) => {
   return (options?.client ?? _heyApiClient).get<
     GetStatusPagesResponses,
@@ -1402,7 +1565,7 @@ export const getStatusPages = <ThrowOnError extends boolean = false>(
  * Create a new status page
  */
 export const postStatusPages = <ThrowOnError extends boolean = false>(
-  options: Options<PostStatusPagesData, ThrowOnError>,
+  options: Options<PostStatusPagesData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).post<
     PostStatusPagesResponses,
@@ -1429,9 +1592,9 @@ export const postStatusPages = <ThrowOnError extends boolean = false>(
  * Get a status page by domain name
  */
 export const getStatusPagesDomainByDomain = <
-  ThrowOnError extends boolean = false,
+  ThrowOnError extends boolean = false
 >(
-  options: Options<GetStatusPagesDomainByDomainData, ThrowOnError>,
+  options: Options<GetStatusPagesDomainByDomainData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).get<
     GetStatusPagesDomainByDomainResponses,
@@ -1448,7 +1611,7 @@ export const getStatusPagesDomainByDomain = <
  * Get a status page by slug
  */
 export const getStatusPagesSlugBySlug = <ThrowOnError extends boolean = false>(
-  options: Options<GetStatusPagesSlugBySlugData, ThrowOnError>,
+  options: Options<GetStatusPagesSlugBySlugData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).get<
     GetStatusPagesSlugBySlugResponses,
@@ -1465,9 +1628,9 @@ export const getStatusPagesSlugBySlug = <ThrowOnError extends boolean = false>(
  * Get monitors for a status page by slug with heartbeats and uptime
  */
 export const getStatusPagesSlugBySlugMonitors = <
-  ThrowOnError extends boolean = false,
+  ThrowOnError extends boolean = false
 >(
-  options: Options<GetStatusPagesSlugBySlugMonitorsData, ThrowOnError>,
+  options: Options<GetStatusPagesSlugBySlugMonitorsData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).get<
     GetStatusPagesSlugBySlugMonitorsResponses,
@@ -1484,9 +1647,9 @@ export const getStatusPagesSlugBySlugMonitors = <
  * Get monitors for a status page by slug for homepage
  */
 export const getStatusPagesSlugBySlugMonitorsHomepage = <
-  ThrowOnError extends boolean = false,
+  ThrowOnError extends boolean = false
 >(
-  options: Options<GetStatusPagesSlugBySlugMonitorsHomepageData, ThrowOnError>,
+  options: Options<GetStatusPagesSlugBySlugMonitorsHomepageData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).get<
     GetStatusPagesSlugBySlugMonitorsHomepageResponses,
@@ -1503,7 +1666,7 @@ export const getStatusPagesSlugBySlugMonitorsHomepage = <
  * Delete a status page
  */
 export const deleteStatusPagesById = <ThrowOnError extends boolean = false>(
-  options: Options<DeleteStatusPagesByIdData, ThrowOnError>,
+  options: Options<DeleteStatusPagesByIdData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).delete<
     DeleteStatusPagesByIdResponses,
@@ -1526,7 +1689,7 @@ export const deleteStatusPagesById = <ThrowOnError extends boolean = false>(
  * Get a status page by ID
  */
 export const getStatusPagesById = <ThrowOnError extends boolean = false>(
-  options: Options<GetStatusPagesByIdData, ThrowOnError>,
+  options: Options<GetStatusPagesByIdData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).get<
     GetStatusPagesByIdResponses,
@@ -1549,7 +1712,7 @@ export const getStatusPagesById = <ThrowOnError extends boolean = false>(
  * Update a status page
  */
 export const patchStatusPagesById = <ThrowOnError extends boolean = false>(
-  options: Options<PatchStatusPagesByIdData, ThrowOnError>,
+  options: Options<PatchStatusPagesByIdData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).patch<
     PatchStatusPagesByIdResponses,
@@ -1576,7 +1739,7 @@ export const patchStatusPagesById = <ThrowOnError extends boolean = false>(
  * Get tags
  */
 export const getTags = <ThrowOnError extends boolean = false>(
-  options?: Options<GetTagsData, ThrowOnError>,
+  options?: Options<GetTagsData, ThrowOnError>
 ) => {
   return (options?.client ?? _heyApiClient).get<
     GetTagsResponses,
@@ -1599,7 +1762,7 @@ export const getTags = <ThrowOnError extends boolean = false>(
  * Create tag
  */
 export const postTags = <ThrowOnError extends boolean = false>(
-  options: Options<PostTagsData, ThrowOnError>,
+  options: Options<PostTagsData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).post<
     PostTagsResponses,
@@ -1626,7 +1789,7 @@ export const postTags = <ThrowOnError extends boolean = false>(
  * Delete tag
  */
 export const deleteTagsById = <ThrowOnError extends boolean = false>(
-  options: Options<DeleteTagsByIdData, ThrowOnError>,
+  options: Options<DeleteTagsByIdData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).delete<
     DeleteTagsByIdResponses,
@@ -1649,7 +1812,7 @@ export const deleteTagsById = <ThrowOnError extends boolean = false>(
  * Get tag by ID
  */
 export const getTagsById = <ThrowOnError extends boolean = false>(
-  options: Options<GetTagsByIdData, ThrowOnError>,
+  options: Options<GetTagsByIdData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).get<
     GetTagsByIdResponses,
@@ -1672,7 +1835,7 @@ export const getTagsById = <ThrowOnError extends boolean = false>(
  * Update tag
  */
 export const patchTagsById = <ThrowOnError extends boolean = false>(
-  options: Options<PatchTagsByIdData, ThrowOnError>,
+  options: Options<PatchTagsByIdData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).patch<
     PatchTagsByIdResponses,
@@ -1699,7 +1862,7 @@ export const patchTagsById = <ThrowOnError extends boolean = false>(
  * Update tag
  */
 export const putTagsById = <ThrowOnError extends boolean = false>(
-  options: Options<PutTagsByIdData, ThrowOnError>,
+  options: Options<PutTagsByIdData, ThrowOnError>
 ) => {
   return (options.client ?? _heyApiClient).put<
     PutTagsByIdResponses,
@@ -1727,7 +1890,7 @@ export const putTagsById = <ThrowOnError extends boolean = false>(
  * Returns the current server version
  */
 export const getVersion = <ThrowOnError extends boolean = false>(
-  options?: Options<GetVersionData, ThrowOnError>,
+  options?: Options<GetVersionData, ThrowOnError>
 ) => {
   return (options?.client ?? _heyApiClient).get<
     GetVersionResponses,

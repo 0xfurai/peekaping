@@ -1,19 +1,19 @@
 package monitor
 
 import (
-	"peekaping/src/modules/auth"
+	"peekaping/src/modules/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
 type MonitorRoute struct {
 	monitorController *MonitorController
-	middleware        *auth.MiddlewareProvider
+	middleware        *middleware.AuthChain
 }
 
 func NewMonitorRoute(
 	monitorController *MonitorController,
-	middleware *auth.MiddlewareProvider,
+	middleware *middleware.AuthChain,
 ) *MonitorRoute {
 	return &MonitorRoute{
 		monitorController,
@@ -26,7 +26,7 @@ func (uc *MonitorRoute) ConnectRoute(
 	monitorController *MonitorController,
 ) {
 	router := rg.Group("monitors")
-	router.Use(uc.middleware.Auth())
+	router.Use(uc.middleware.AllAuth())
 
 	router.GET("", uc.monitorController.FindAll)
 	router.GET("batch", uc.monitorController.FindByIDs)
