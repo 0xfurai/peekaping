@@ -7,12 +7,11 @@ import (
 	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/proxy"
-	"peekaping/internal/modules/queue"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/robfig/cron/v3"
+	"github.com/hibiken/asynq"
 	"go.uber.org/zap"
 )
 
@@ -49,48 +48,48 @@ type HealthCheckTaskPayload struct {
 	CheckCertExpiry    bool       `json:"check_cert_expiry"`
 }
 
-// MonitorScheduler manages cron jobs for monitors
+// MonitorScheduler manages periodic tasks for monitors using asynq scheduler
 type MonitorScheduler struct {
 	mu                 sync.RWMutex
-	cron               *cron.Cron
-	jobs               map[string]cron.EntryID // monitor ID -> cron entry ID
+	scheduler          *asynq.Scheduler
+	jobs               map[string]string // monitor ID -> entry ID (for tracking)
 	monitorService     monitor.Service
 	proxyService       proxy.Service
-	queueService       queue.Service
 	maintenanceService maintenance.Service
 	logger             *zap.SugaredLogger
 }
 
 // NewMonitorScheduler creates a new monitor scheduler
 func NewMonitorScheduler(
+	scheduler *asynq.Scheduler,
 	monitorService monitor.Service,
 	proxyService proxy.Service,
-	queueService queue.Service,
 	maintenanceService maintenance.Service,
 	logger *zap.SugaredLogger,
 ) *MonitorScheduler {
 	return &MonitorScheduler{
-		cron:               cron.New(cron.WithSeconds()),
-		jobs:               make(map[string]cron.EntryID),
+		scheduler:          scheduler,
+		jobs:               make(map[string]string),
 		monitorService:     monitorService,
 		proxyService:       proxyService,
-		queueService:       queueService,
 		maintenanceService: maintenanceService,
 		logger:             logger.With("component", "monitor_scheduler"),
 	}
 }
 
-// Start starts the cron scheduler
-func (ms *MonitorScheduler) Start() {
+// Start starts the asynq scheduler
+func (ms *MonitorScheduler) Start() error {
 	ms.logger.Info("Starting monitor scheduler")
-	ms.cron.Start()
+	if err := ms.scheduler.Run(); err != nil {
+		return fmt.Errorf("failed to start scheduler: %w", err)
+	}
+	return nil
 }
 
-// Stop stops the cron scheduler
+// Stop stops the asynq scheduler
 func (ms *MonitorScheduler) Stop() {
 	ms.logger.Info("Stopping monitor scheduler")
-	ctx := ms.cron.Stop()
-	<-ctx.Done()
+	ms.scheduler.Shutdown()
 	ms.logger.Info("Monitor scheduler stopped")
 }
 
@@ -114,9 +113,16 @@ func (ms *MonitorScheduler) SyncMonitors(ctx context.Context) error {
 	}
 
 	// Remove jobs for monitors that are no longer active
-	for monitorID, entryID := range ms.jobs {
+	for monitorID := range ms.jobs {
 		if !currentMonitorIDs[monitorID] {
-			ms.cron.Remove(entryID)
+			entryID := ms.getEntryID(monitorID)
+			if err := ms.scheduler.Unregister(entryID); err != nil {
+				ms.logger.Warnw("Failed to unregister job",
+					"monitor_id", monitorID,
+					"entry_id", entryID,
+					"error", err,
+				)
+			}
 			delete(ms.jobs, monitorID)
 			ms.logger.Infow("Removed job for inactive monitor", "monitor_id", monitorID)
 		}
@@ -160,8 +166,15 @@ func (ms *MonitorScheduler) RemoveMonitor(monitorID string) {
 	ms.mu.Lock()
 	defer ms.mu.Unlock()
 
-	if entryID, exists := ms.jobs[monitorID]; exists {
-		ms.cron.Remove(entryID)
+	if _, exists := ms.jobs[monitorID]; exists {
+		entryID := ms.getEntryID(monitorID)
+		if err := ms.scheduler.Unregister(entryID); err != nil {
+			ms.logger.Warnw("Failed to unregister monitor",
+				"monitor_id", monitorID,
+				"entry_id", entryID,
+				"error", err,
+			)
+		}
 		delete(ms.jobs, monitorID)
 		ms.logger.Infow("Removed monitor from scheduler", "monitor_id", monitorID)
 	}
@@ -178,8 +191,15 @@ func (ms *MonitorScheduler) UpdateMonitor(ctx context.Context, monitorID string)
 	defer ms.mu.Unlock()
 
 	// Remove existing job if it exists
-	if entryID, exists := ms.jobs[monitorID]; exists {
-		ms.cron.Remove(entryID)
+	if _, exists := ms.jobs[monitorID]; exists {
+		entryID := ms.getEntryID(monitorID)
+		if err := ms.scheduler.Unregister(entryID); err != nil {
+			ms.logger.Warnw("Failed to unregister existing job",
+				"monitor_id", monitorID,
+				"entry_id", entryID,
+				"error", err,
+			)
+		}
 		delete(ms.jobs, monitorID)
 	}
 
@@ -194,29 +214,50 @@ func (ms *MonitorScheduler) UpdateMonitor(ctx context.Context, monitorID string)
 // addOrUpdateMonitorJob adds or updates a monitor job (must be called with lock held)
 func (ms *MonitorScheduler) addOrUpdateMonitorJob(ctx context.Context, m *monitor.Model) error {
 	// Remove existing job if it exists
-	if entryID, exists := ms.jobs[m.ID]; exists {
-		ms.cron.Remove(entryID)
+	if _, exists := ms.jobs[m.ID]; exists {
+		entryID := ms.getEntryID(m.ID)
+		if err := ms.scheduler.Unregister(entryID); err != nil {
+			ms.logger.Warnw("Failed to unregister existing job",
+				"monitor_id", m.ID,
+				"entry_id", entryID,
+				"error", err,
+			)
+		}
 		delete(ms.jobs, m.ID)
 	}
+
+	// Prepare the task payload
+	payload, err := ms.buildHealthCheckPayload(ctx, m)
+	if err != nil {
+		return fmt.Errorf("failed to build payload: %w", err)
+	}
+
+	payloadJSON, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("failed to marshal payload: %w", err)
+	}
+
+	// Create the task
+	task := asynq.NewTask(TaskTypeHealthCheck, payloadJSON)
 
 	// Convert interval (seconds) to cron expression
 	cronExpr := fmt.Sprintf("@every %ds", m.Interval)
 
-	// Create the job function
-	jobFunc := func() {
-		if err := ms.enqueueHealthCheckTask(context.Background(), m.ID, m.Name); err != nil {
-			ms.logger.Errorw("Failed to enqueue health check task",
-				"monitor_id", m.ID,
-				"monitor_name", m.Name,
-				"error", err,
-			)
-		}
-	}
+	// Create unique entry ID for this monitor
+	entryID := ms.getEntryID(m.ID)
 
-	// Add the job to cron
-	entryID, err := ms.cron.AddFunc(cronExpr, jobFunc)
+	// Register the periodic task
+	_, err = ms.scheduler.Register(
+		cronExpr,
+		task,
+		asynq.Queue("healthcheck"),
+		asynq.MaxRetry(3),
+		asynq.Timeout(time.Duration(m.Interval)*time.Second),
+		asynq.Retention(1*time.Minute),
+		asynq.TaskID(entryID),
+	)
 	if err != nil {
-		return fmt.Errorf("failed to add cron job: %w", err)
+		return fmt.Errorf("failed to register periodic task: %w", err)
 	}
 
 	ms.jobs[m.ID] = entryID
@@ -225,21 +266,19 @@ func (ms *MonitorScheduler) addOrUpdateMonitorJob(ctx context.Context, m *monito
 		"monitor_name", m.Name,
 		"interval", m.Interval,
 		"cron_expr", cronExpr,
+		"entry_id", entryID,
 	)
 
 	return nil
 }
 
-// enqueueHealthCheckTask enqueues a health check task to the queue
-func (ms *MonitorScheduler) enqueueHealthCheckTask(ctx context.Context, monitorID, monitorName string) error {
-	// Fetch the full monitor data
-	m, err := ms.monitorService.FindByID(ctx, monitorID)
-	if err != nil {
-		return fmt.Errorf("failed to fetch monitor: %w", err)
-	}
-	if m == nil {
-		return fmt.Errorf("monitor not found: %s", monitorID)
-	}
+// getEntryID generates a unique entry ID for a monitor
+func (ms *MonitorScheduler) getEntryID(monitorID string) string {
+	return fmt.Sprintf("monitor:%s:healthcheck", monitorID)
+}
+
+// buildHealthCheckPayload builds the health check payload for a monitor
+func (ms *MonitorScheduler) buildHealthCheckPayload(ctx context.Context, m *monitor.Model) (*HealthCheckTaskPayload, error) {
 
 	// Check if monitor is under maintenance
 	isUnderMaintenance := false
@@ -283,7 +322,7 @@ func (ms *MonitorScheduler) enqueueHealthCheckTask(ctx context.Context, monitorI
 	}
 
 	// Prepare the payload with all monitor data
-	payload := HealthCheckTaskPayload{
+	payload := &HealthCheckTaskPayload{
 		MonitorID:          m.ID,
 		MonitorName:        m.Name,
 		MonitorType:        m.Type,
@@ -320,35 +359,7 @@ func (ms *MonitorScheduler) enqueueHealthCheckTask(ctx context.Context, monitorI
 		}
 	}
 
-	opts := &queue.EnqueueOptions{
-		Queue:     "healthcheck",
-		MaxRetry:  3,
-		Timeout:   time.Duration(m.Interval) * time.Second,
-		Retention: 1 * time.Minute,
-	}
-
-	payloadJSON, err := json.Marshal(payload)
-	if err != nil {
-		return fmt.Errorf("failed to marshal payload: %w", err)
-	}
-
-	ms.logger.Debugw("Enqueuing health check task",
-		"monitor_id", monitorID,
-		"monitor_name", monitorName,
-		"payload", string(payloadJSON),
-	)
-
-	_, err = ms.queueService.Enqueue(ctx, TaskTypeHealthCheck, payload, opts)
-	if err != nil {
-		return fmt.Errorf("failed to enqueue task: %w", err)
-	}
-
-	ms.logger.Debugw("Successfully enqueued health check task",
-		"monitor_id", monitorID,
-		"monitor_name", monitorName,
-	)
-
-	return nil
+	return payload, nil
 }
 
 // GetStats returns statistics about the scheduler
@@ -357,7 +368,6 @@ func (ms *MonitorScheduler) GetStats() map[string]interface{} {
 	defer ms.mu.RUnlock()
 
 	return map[string]interface{}{
-		"total_jobs":   len(ms.jobs),
-		"cron_entries": len(ms.cron.Entries()),
+		"total_jobs": len(ms.jobs),
 	}
 }

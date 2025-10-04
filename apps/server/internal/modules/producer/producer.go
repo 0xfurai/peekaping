@@ -44,9 +44,6 @@ func (p *Producer) Start(ctx context.Context) error {
 	// Start leader election
 	p.election.Start(ctx)
 
-	// Start the scheduler
-	p.scheduler.Start()
-
 	// Start the monitoring goroutine
 	go p.monitorLeadership(ctx)
 
@@ -74,6 +71,7 @@ func (p *Producer) monitorLeadership(ctx context.Context) {
 	defer close(p.doneChan)
 
 	var wasLeader bool
+	var schedulerStarted bool
 	ticker := time.NewTicker(p.syncInterval)
 	defer ticker.Stop()
 
@@ -83,12 +81,26 @@ func (p *Producer) monitorLeadership(ctx context.Context) {
 		// Check if leadership status changed
 		if isLeader != wasLeader {
 			if isLeader {
-				p.logger.Info("Became leader, syncing monitors")
+				p.logger.Info("Became leader, starting scheduler and syncing monitors")
+
+				// Start the scheduler (this runs in a goroutine internally)
+				if !schedulerStarted {
+					go func() {
+						if err := p.scheduler.Start(); err != nil {
+							p.logger.Errorw("Failed to start scheduler", "error", err)
+						}
+					}()
+					schedulerStarted = true
+				}
+
+				// Sync monitors to register all active monitors
 				if err := p.scheduler.SyncMonitors(ctx); err != nil {
 					p.logger.Errorw("Failed to sync monitors", "error", err)
 				}
 			} else {
-				p.logger.Info("Lost leadership, scheduler will continue but won't sync")
+				p.logger.Info("Lost leadership")
+				// Note: Asynq scheduler handles distributed coordination internally
+				// Multiple schedulers can run, but only one will enqueue tasks
 			}
 			wasLeader = isLeader
 		}

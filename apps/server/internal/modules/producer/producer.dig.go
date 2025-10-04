@@ -5,9 +5,9 @@ import (
 	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/proxy"
-	"peekaping/internal/modules/queue"
 
 	"github.com/google/uuid"
+	"github.com/hibiken/asynq"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/dig"
 	"go.uber.org/zap"
@@ -39,13 +39,13 @@ func ProvideLeaderElection(client *redis.Client, logger *zap.SugaredLogger) *Lea
 
 // ProvideMonitorScheduler provides a monitor scheduler
 func ProvideMonitorScheduler(
+	scheduler *asynq.Scheduler,
 	monitorService monitor.Service,
 	proxyService proxy.Service,
-	queueService queue.Service,
 	maintenanceService maintenance.Service,
 	logger *zap.SugaredLogger,
 ) *MonitorScheduler {
-	return NewMonitorScheduler(monitorService, proxyService, queueService, maintenanceService, logger)
+	return NewMonitorScheduler(scheduler, monitorService, proxyService, maintenanceService, logger)
 }
 
 // ProvideEventListener provides an event listener

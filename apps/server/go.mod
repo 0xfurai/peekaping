@@ -18,6 +18,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/google/uuid v1.6.0
 	github.com/gosnmp/gosnmp v1.41.0
+	github.com/hibiken/asynq v0.25.1
 	github.com/jinzhu/inflection v1.0.0
 	github.com/miekg/dns v1.1.66
 	github.com/osteele/liquid v1.6.0
@@ -97,7 +98,6 @@ require (
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
-	github.com/hibiken/asynq v0.25.1 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
 	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect
 	github.com/jcmturner/gofork v1.7.6 // indirect
