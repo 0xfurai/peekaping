@@ -1,13 +1,13 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"peekaping/internal/config"
 	"peekaping/internal/infra"
+	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/heartbeat"
@@ -16,10 +16,13 @@ import (
 	"peekaping/internal/modules/monitor_maintenance"
 	"peekaping/internal/modules/monitor_notification"
 	"peekaping/internal/modules/monitor_tag"
+	"peekaping/internal/modules/monitor_tls_info"
+	"peekaping/internal/modules/notification_sent_history"
 	"peekaping/internal/modules/producer"
 	"peekaping/internal/modules/proxy"
-	"peekaping/internal/modules/queue"
+	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/stats"
+	"peekaping/internal/modules/tag"
 	"peekaping/internal/version"
 	"syscall"
 	"time"
@@ -95,21 +98,24 @@ func main() {
 	// Provide queue infrastructure
 	container.Provide(infra.ProvideAsynqClient)
 	container.Provide(infra.ProvideAsynqInspector)
-	container.Provide(infra.ProvideAsynqScheduler)
 	container.Provide(infra.ProvideQueueService)
 
-	// Register module dependencies
+	// Register module dependencies that producer needs
 	events.RegisterDependencies(container)
 	heartbeat.RegisterDependencies(container, &cfg)
-	monitor.RegisterDependencies(container, &cfg)
-	monitor_maintenance.RegisterDependencies(container, &cfg)
-	maintenance.RegisterDependencies(container, &cfg)
-	healthcheck.RegisterDependencies(container)
-	monitor_notification.RegisterDependencies(container, &cfg)
+	healthcheck.RegisterDependencies(container) // Provides ExecutorRegistry
+	tag.RegisterDependencies(container, &cfg)
 	monitor_tag.RegisterDependencies(container, &cfg)
+	monitor.RegisterDependencies(container, &cfg)
 	proxy.RegisterDependencies(container, &cfg)
+	maintenance.RegisterDependencies(container, &cfg)
+	monitor_maintenance.RegisterDependencies(container, &cfg)
+	monitor_notification.RegisterDependencies(container, &cfg)
+	setting.RegisterDependencies(container, &cfg)
+	notification_sent_history.RegisterDependencies(container, &cfg)
+	monitor_tls_info.RegisterDependencies(container, &cfg)
+	certificate.RegisterDependencies(container)
 	stats.RegisterDependencies(container, &cfg)
-	queue.RegisterDependencies(container, &cfg)
 
 	// Register producer dependencies
 	producer.RegisterDependencies(container)
@@ -117,17 +123,11 @@ func main() {
 	// Start the producer
 	err = container.Invoke(func(
 		prod *producer.Producer,
-		eventListener *producer.EventListener,
 		eventBus events.EventBus,
 		logger *zap.SugaredLogger,
 	) error {
-		// Subscribe to monitor events
-		eventListener.Subscribe(eventBus)
-		logger.Info("Event listener subscribed to monitor events")
-
 		// Start the producer
-		ctx := context.Background()
-		if err := prod.Start(ctx); err != nil {
+		if err := prod.Start(); err != nil {
 			return fmt.Errorf("failed to start producer: %w", err)
 		}
 
