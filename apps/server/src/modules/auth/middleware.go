@@ -36,15 +36,6 @@ func (p *MiddlewareProvider) Auth() gin.HandlerFunc {
 			return
 		}
 
-		// Check if it's an API key (starts with pk_)
-		if strings.HasPrefix(authHeader, "pk_") {
-			// API key authentication should be handled by dedicated API key middleware
-			// This middleware only handles JWT authentication
-			c.JSON(http.StatusUnauthorized, utils.NewFailResponse("API key authentication not supported by this middleware"))
-			c.Abort()
-			return
-		}
-
 		// JWT authentication
 		// Add Bearer prefix if not present
 		if !strings.HasPrefix(authHeader, "Bearer ") {

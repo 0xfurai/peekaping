@@ -1,7 +1,6 @@
 package api_key
 
 import (
-	"context"
 	"time"
 )
 
@@ -11,6 +10,7 @@ type Model struct {
 	UserID         string     `json:"user_id"`
 	Name           string     `json:"name"`
 	KeyHash        string     `json:"-"` // Never expose the hash
+	DisplayKey     string     `json:"display_key"` // Masked key for display (e.g., "pk_1234...5678")
 	LastUsed       *time.Time `json:"last_used"`
 	ExpiresAt      *time.Time `json:"expires_at"`
 	UsageCount     int64      `json:"usage_count"`
@@ -40,13 +40,3 @@ type APIKeyWithToken struct {
 	Token string `json:"token"` // Only present when creating a new key
 }
 
-// Repository defines the interface for API key data operations
-type Repository interface {
-	Create(ctx context.Context, apiKey *CreateModel) (*APIKeyWithToken, error)
-	FindByID(ctx context.Context, id string) (*Model, error)
-	FindByUserID(ctx context.Context, userID string) ([]*Model, error)
-	FindByKeyHash(ctx context.Context, keyHash string) (*Model, error)
-	Update(ctx context.Context, id string, update *UpdateModel) (*Model, error)
-	Delete(ctx context.Context, id string) error
-	UpdateLastUsed(ctx context.Context, id string) error
-}

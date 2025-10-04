@@ -24,7 +24,10 @@ func NewRoute(
 func (r *Route) ConnectRoute(router *gin.RouterGroup, controller *Controller) {
 	apiKeys := router.Group("api-keys")
 	
-	// All API key management endpoints require JWT authentication
+	// Config endpoint doesn't require authentication
+	apiKeys.GET("config", controller.GetAPIKeyConfig)
+	
+	// All other API key management endpoints require JWT authentication
 	apiKeys.Use(r.middleware.Auth())
 	{
 		apiKeys.POST("", controller.CreateAPIKey)

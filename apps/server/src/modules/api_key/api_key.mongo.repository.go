@@ -17,6 +17,7 @@ type mongoModel struct {
 	UserID         string             `bson:"user_id"`
 	Name           string             `bson:"name"`
 	KeyHash        string             `bson:"key_hash"`
+	DisplayKey     string             `bson:"display_key"`
 	LastUsed       *time.Time         `bson:"last_used"`
 	ExpiresAt      *time.Time         `bson:"expires_at"`
 	UsageCount     int64              `bson:"usage_count"`
@@ -38,6 +39,7 @@ func toDomainModel(mm *mongoModel) *Model {
 		UserID:        mm.UserID,
 		Name:          mm.Name,
 		KeyHash:       mm.KeyHash,
+		DisplayKey:    mm.DisplayKey,
 		LastUsed:      mm.LastUsed,
 		ExpiresAt:     mm.ExpiresAt,
 		UsageCount:    mm.UsageCount,
@@ -61,7 +63,7 @@ func NewMongoRepository(client *mongo.Client, cfg *config.Config) Repository {
 
 func (r *RepositoryImpl) Create(ctx context.Context, apiKey *CreateModel) (*APIKeyWithToken, error) {
 	// Generate a secure API key
-	token, keyHash, err := generateAPIKey()
+	token, keyHash, displayKey, err := generateAPIKey()
 	if err != nil {
 		return nil, err
 	}
@@ -71,6 +73,7 @@ func (r *RepositoryImpl) Create(ctx context.Context, apiKey *CreateModel) (*APIK
 		UserID:        apiKey.UserID,
 		Name:          apiKey.Name,
 		KeyHash:       keyHash,
+		DisplayKey:    displayKey,
 		LastUsed:      nil,
 		ExpiresAt:     apiKey.ExpiresAt,
 		UsageCount:    0,
@@ -186,6 +189,26 @@ func (r *RepositoryImpl) Delete(ctx context.Context, id string) error {
 
 	_, err = r.collection.DeleteOne(ctx, bson.M{"_id": objectID})
 	return err
+}
+
+func (r *RepositoryImpl) FindAll(ctx context.Context) ([]*Model, error) {
+	cursor, err := r.collection.Find(ctx, bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var mongoModels []mongoModel
+	if err = cursor.All(ctx, &mongoModels); err != nil {
+		return nil, err
+	}
+
+	models := make([]*Model, len(mongoModels))
+	for i, mongoModel := range mongoModels {
+		models[i] = toDomainModel(&mongoModel)
+	}
+
+	return models, nil
 }
 
 func (r *RepositoryImpl) UpdateLastUsed(ctx context.Context, id string) error {

@@ -2,11 +2,10 @@ package api_key
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/base64"
 	"errors"
 	"time"
 
+	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -35,23 +34,29 @@ type UpdateRequest struct {
 }
 
 type ServiceImpl struct {
-	repo Repository
+	repo   Repository
+	logger *zap.SugaredLogger
 }
 
-func NewService(repo Repository) Service {
+func NewService(repo Repository, logger *zap.SugaredLogger) Service {
 	return &ServiceImpl{
-		repo: repo,
+		repo:   repo,
+		logger: logger.Named("[api-key-service]"),
 	}
 }
 
 func (s *ServiceImpl) Create(ctx context.Context, userID string, req *CreateRequest) (*APIKeyWithToken, error) {
+	s.logger.Infow("Creating API key", "userId", userID, "name", req.Name)
+
 	// Validate expiration date
 	if req.ExpiresAt != nil && req.ExpiresAt.Before(time.Now()) {
+		s.logger.Warnw("Invalid expiration date provided", "userId", userID, "expiresAt", req.ExpiresAt)
 		return nil, errors.New("expiration date cannot be in the past")
 	}
 
 	// Validate max usage count
 	if req.MaxUsageCount != nil && *req.MaxUsageCount <= 0 {
+		s.logger.Warnw("Invalid max usage count provided", "userId", userID, "maxUsageCount", *req.MaxUsageCount)
 		return nil, errors.New("max usage count must be greater than 0")
 	}
 
@@ -62,7 +67,14 @@ func (s *ServiceImpl) Create(ctx context.Context, userID string, req *CreateRequ
 		MaxUsageCount: req.MaxUsageCount,
 	}
 
-	return s.repo.Create(ctx, createModel)
+	result, err := s.repo.Create(ctx, createModel)
+	if err != nil {
+		s.logger.Errorw("Failed to create API key", "userId", userID, "name", req.Name, "error", err)
+		return nil, err
+	}
+
+	s.logger.Infow("API key created successfully", "userId", userID, "apiKeyId", result.ID, "name", req.Name)
+	return result, nil
 }
 
 func (s *ServiceImpl) FindByUserID(ctx context.Context, userID string) ([]*Model, error) {
@@ -126,79 +138,59 @@ func (s *ServiceImpl) Delete(ctx context.Context, id string, userID string) erro
 }
 
 func (s *ServiceImpl) ValidateKey(ctx context.Context, key string) (*Model, error) {
+	s.logger.Debugw("Validating API key", "key", maskAPIKey(key))
+
 	// Validate key format
 	if !isValidAPIKeyFormat(key) {
-		return nil, errors.New("invalid API key format")
+		s.logger.Warnw("Invalid API key format", "key", maskAPIKey(key))
+		return nil, errors.New("Invalid API key")
 	}
 
-	// Hash the provided key
-	keyHash, err := hashAPIKey(key)
+	// Get all API keys and compare using bcrypt.CompareHashAndPassword
+	// This is necessary because bcrypt generates different hashes each time
+	// We need to iterate through all keys and compare the plain text
+	apiKeys, err := s.repo.FindAll(ctx)
 	if err != nil {
+		s.logger.Errorw("Error finding API keys", "key", maskAPIKey(key), "error", err)
 		return nil, err
 	}
 
-	// Find the API key by hash
-	apiKey, err := s.repo.FindByKeyHash(ctx, keyHash)
-	if err != nil {
-		return nil, err
+	// Find matching API key by comparing with stored hash
+	var matchedKey *Model
+	for _, apiKey := range apiKeys {
+		err := bcrypt.CompareHashAndPassword([]byte(apiKey.KeyHash), []byte(key))
+		if err == nil {
+			matchedKey = apiKey
+			break
+		}
 	}
-	if apiKey == nil {
-		return nil, errors.New("invalid API key")
+
+	if matchedKey == nil {
+		s.logger.Warnw("API key not found", "key", maskAPIKey(key))
+		return nil, errors.New("Invalid API key")
 	}
 
 	// Check if the key has expired
-	if apiKey.ExpiresAt != nil && apiKey.ExpiresAt.Before(time.Now()) {
+	if matchedKey.ExpiresAt != nil && matchedKey.ExpiresAt.Before(time.Now()) {
+		s.logger.Warnw("API key has expired", "apiKeyId", matchedKey.ID, "expiresAt", matchedKey.ExpiresAt)
 		return nil, errors.New("API key has expired")
 	}
 
 	// Check if the key has exceeded max usage count
-	if apiKey.MaxUsageCount != nil && apiKey.UsageCount >= *apiKey.MaxUsageCount {
+	if matchedKey.MaxUsageCount != nil && matchedKey.UsageCount >= *matchedKey.MaxUsageCount {
+		s.logger.Warnw("API key usage limit exceeded", "apiKeyId", matchedKey.ID, "usageCount", matchedKey.UsageCount, "maxUsageCount", *matchedKey.MaxUsageCount)
 		return nil, errors.New("API key usage limit exceeded")
 	}
 
 	// Update last used timestamp and usage count
-	err = s.repo.UpdateLastUsed(ctx, apiKey.ID)
+	err = s.repo.UpdateLastUsed(ctx, matchedKey.ID)
 	if err != nil {
 		// Log error but don't fail the validation
 		// This is a non-critical operation
+		s.logger.Errorw("Error updating last used timestamp and usage count", "apiKeyId", matchedKey.ID, "error", err)
 	}
 
-	return apiKey, nil
+	s.logger.Infow("API key validation successful", "apiKeyId", matchedKey.ID, "userId", matchedKey.UserID, "name", matchedKey.Name)
+	return matchedKey, nil
 }
 
-// generateAPIKey generates a secure API key with pk_ prefix
-func generateAPIKey() (string, string, error) {
-	// Generate 32 random bytes
-	bytes := make([]byte, 32)
-	_, err := rand.Read(bytes)
-	if err != nil {
-		return "", "", err
-	}
-
-	// Encode to base64 and add prefix
-	key := "pk_" + base64.URLEncoding.EncodeToString(bytes)
-
-	// Hash the key for storage
-	keyHash, err := hashAPIKey(key)
-	if err != nil {
-		return "", "", err
-	}
-
-	return key, keyHash, nil
-}
-
-// hashAPIKey hashes an API key using bcrypt
-func hashAPIKey(key string) (string, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(key), bcrypt.DefaultCost)
-	if err != nil {
-		return "", err
-	}
-	return string(hash), nil
-}
-
-// isValidAPIKeyFormat validates the format of an API key
-func isValidAPIKeyFormat(key string) bool {
-	// Check if it starts with pk_ and has reasonable length
-	return len(key) >= 10 && len(key) <= 100 && 
-		   len(key) > 3 && key[:3] == "pk_"
-}

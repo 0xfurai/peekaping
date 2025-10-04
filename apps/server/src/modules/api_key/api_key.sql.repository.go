@@ -15,6 +15,7 @@ type sqlModel struct {
 	UserID         string     `bun:"user_id,notnull"`
 	Name           string     `bun:"name,notnull"`
 	KeyHash        string     `bun:"key_hash,notnull"`
+	DisplayKey     string     `bun:"display_key,notnull"`
 	LastUsed       *time.Time `bun:"last_used"`
 	ExpiresAt      *time.Time `bun:"expires_at"`
 	UsageCount     int64      `bun:"usage_count,notnull,default:0"`
@@ -24,11 +25,18 @@ type sqlModel struct {
 }
 
 func toDomainModelFromSQL(sm *sqlModel) *Model {
+	// Handle missing display_key column gracefully
+	displayKey := sm.DisplayKey
+	if displayKey == "" {
+		displayKey = "pk_" + sm.ID[:6] + "..."
+	}
+	
 	return &Model{
 		ID:            sm.ID,
 		UserID:        sm.UserID,
 		Name:          sm.Name,
 		KeyHash:       sm.KeyHash,
+		DisplayKey:    displayKey,
 		LastUsed:      sm.LastUsed,
 		ExpiresAt:     sm.ExpiresAt,
 		UsageCount:    sm.UsageCount,
@@ -44,6 +52,7 @@ func toSQLModel(m *Model) *sqlModel {
 		UserID:        m.UserID,
 		Name:          m.Name,
 		KeyHash:       m.KeyHash,
+		DisplayKey:    m.DisplayKey,
 		LastUsed:      m.LastUsed,
 		ExpiresAt:     m.ExpiresAt,
 		UsageCount:    m.UsageCount,
@@ -63,7 +72,7 @@ func NewSQLRepository(db *bun.DB) Repository {
 
 func (r *SQLRepositoryImpl) Create(ctx context.Context, apiKey *CreateModel) (*APIKeyWithToken, error) {
 	// Generate a secure API key
-	token, keyHash, err := generateAPIKey()
+	token, keyHash, displayKey, err := generateAPIKey()
 	if err != nil {
 		return nil, err
 	}
@@ -73,6 +82,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, apiKey *CreateModel) (*A
 		UserID:        apiKey.UserID,
 		Name:          apiKey.Name,
 		KeyHash:       keyHash,
+		DisplayKey:    displayKey,
 		LastUsed:      nil,
 		ExpiresAt:     apiKey.ExpiresAt,
 		UsageCount:    0,
@@ -160,6 +170,21 @@ func (r *SQLRepositoryImpl) Update(ctx context.Context, id string, update *Updat
 func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string) error {
 	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Exec(ctx)
 	return err
+}
+
+func (r *SQLRepositoryImpl) FindAll(ctx context.Context) ([]*Model, error) {
+	var sqlModels []sqlModel
+	err := r.db.NewSelect().Model(&sqlModels).Scan(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	models := make([]*Model, len(sqlModels))
+	for i, sqlModel := range sqlModels {
+		models[i] = toDomainModelFromSQL(&sqlModel)
+	}
+
+	return models, nil
 }
 
 func (r *SQLRepositoryImpl) UpdateLastUsed(ctx context.Context, id string) error {

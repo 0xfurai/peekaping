@@ -22,12 +22,18 @@ type UpdateAPIKeyDto struct {
 type APIKeyResponse struct {
 	ID            string     `json:"id"`
 	Name          string     `json:"name"`
+	DisplayKey    string     `json:"display_key"` // Masked key for display
 	LastUsed      *time.Time `json:"last_used"`
 	ExpiresAt     *time.Time `json:"expires_at"`
 	UsageCount    int64      `json:"usage_count"`
 	MaxUsageCount *int64     `json:"max_usage_count"`
 	CreatedAt     time.Time  `json:"created_at"`
 	UpdatedAt     time.Time  `json:"updated_at"`
+}
+
+// APIKeyConfigResponse represents the API key configuration
+type APIKeyConfigResponse struct {
+	Prefix string `json:"prefix"`
 }
 
 // APIKeyWithTokenResponse represents the response when creating an API key (includes the token)
@@ -41,6 +47,7 @@ func (m *Model) ToAPIKeyResponse() *APIKeyResponse {
 	return &APIKeyResponse{
 		ID:            m.ID,
 		Name:          m.Name,
+		DisplayKey:    m.DisplayKey,
 		LastUsed:      m.LastUsed,
 		ExpiresAt:     m.ExpiresAt,
 		UsageCount:    m.UsageCount,

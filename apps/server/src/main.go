@@ -18,6 +18,7 @@ import (
 	"peekaping/src/modules/healthcheck"
 	"peekaping/src/modules/heartbeat"
 	"peekaping/src/modules/maintenance"
+	"peekaping/src/modules/middleware"
 	"peekaping/src/modules/monitor"
 	"peekaping/src/modules/monitor_maintenance"
 	"peekaping/src/modules/monitor_notification"
@@ -104,6 +105,7 @@ func main() {
 	monitor_tag.RegisterDependencies(container, &cfg)
 	badge.RegisterDependencies(container, &cfg)
 	api_key.RegisterDependencies(container, &cfg)
+	middleware.RegisterDependencies(container)
 
 	// Start the event healthcheck listener
 	err = container.Invoke(func(listener *healthcheck.EventListener, eventBus *events.EventBus) {

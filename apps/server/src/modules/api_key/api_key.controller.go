@@ -209,3 +209,17 @@ func (c *Controller) DeleteAPIKey(ctx *gin.Context) {
 
 	ctx.Status(http.StatusNoContent)
 }
+
+// GetAPIKeyConfig gets API key configuration
+// @Summary Get API key configuration
+// @Description Get API key configuration including prefix
+// @Tags api-keys
+// @Produce json
+// @Success 200 {object} utils.SuccessResponse{data=APIKeyConfigResponse}
+// @Router /api-keys/config [get]
+func (c *Controller) GetAPIKeyConfig(ctx *gin.Context) {
+	config := &APIKeyConfigResponse{
+		Prefix: ApiKeyPrefix,
+	}
+	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("API key configuration retrieved successfully", config))
+}

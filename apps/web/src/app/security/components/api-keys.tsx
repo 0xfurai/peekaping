@@ -46,7 +46,7 @@ import {
   useAPIKeys,
   useCreateAPIKey,
   useDeleteAPIKey,
-} from "@/api/api-keys-hooks";
+} from "@/lib/api-keys-hooks";
 
 const createAPIKeySchema = z.object({
   name: z.string().min(1, "Name is required").max(255, "Name too long"),
@@ -65,6 +65,7 @@ const APIKeys = () => {
   const { t } = useLocalizedTranslation();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newToken, setNewToken] = useState<string | null>(null);
+  const [_, setNewlyCreatedKeyId] = useState<string | null>(null);
 
   const { data: apiKeys = [], isLoading } = useAPIKeys();
   const createMutation = useCreateAPIKey();
@@ -79,8 +80,9 @@ const APIKeys = () => {
     },
   });
 
-  const handleCreateSuccess = (response: { token: string }) => {
+  const handleCreateSuccess = (response: { token: string; id: string }) => {
     setNewToken(response.token);
+    setNewlyCreatedKeyId(response.id);
     setShowCreateDialog(false);
     form.reset();
     toast.success(t("security.api_keys.messages.created_successfully"));
@@ -124,9 +126,9 @@ const APIKeys = () => {
     toast.success(t("security.api_keys.messages.copy_success"));
   };
 
-  const maskToken = (token: string) => {
-    if (token.length <= 8) return token;
-    return `${token.substring(0, 8)}...${token.substring(token.length - 4)}`;
+  const dismissNewToken = () => {
+    setNewToken(null);
+    setNewlyCreatedKeyId(null);
   };
 
   const formatDate = (dateString: string | null) => {
@@ -278,6 +280,9 @@ const APIKeys = () => {
                 >
                   <Copy className="h-4 w-4" />
                 </Button>
+                <Button size="sm" variant="ghost" onClick={dismissNewToken}>
+                  Dismiss
+                </Button>
               </div>
             </div>
           </AlertDescription>
@@ -342,28 +347,9 @@ const APIKeys = () => {
                   <TableRow key={apiKey.id}>
                     <TableCell className="font-medium">{apiKey.name}</TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <code className="bg-muted px-2 py-1 rounded text-sm font-mono">
-                          {maskToken(
-                            `pk_${apiKey.id}${Math.random()
-                              .toString(36)
-                              .substr(2, 8)}`
-                          )}
-                        </code>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() =>
-                            copyToClipboard(
-                              `pk_${apiKey.id}${Math.random()
-                                .toString(36)
-                                .substr(2, 8)}`
-                            )
-                          }
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      <code className="bg-muted px-2 py-1 rounded text-sm font-mono">
+                        {apiKey.display_key}
+                      </code>
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
