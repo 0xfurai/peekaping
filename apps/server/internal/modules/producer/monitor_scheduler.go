@@ -281,29 +281,29 @@ func (ms *MonitorScheduler) getEntryID(monitorID string) string {
 func (ms *MonitorScheduler) buildHealthCheckPayload(ctx context.Context, m *monitor.Model) (*HealthCheckTaskPayload, error) {
 
 	// Check if monitor is under maintenance
-	isUnderMaintenance := false
-	maintenances, err := ms.maintenanceService.GetMaintenancesByMonitorID(ctx, m.ID)
-	if err != nil {
-		ms.logger.Warnw("Failed to get maintenances for monitor, assuming not under maintenance",
-			"monitor_id", m.ID,
-			"error", err,
-		)
-	} else {
-		for _, maint := range maintenances {
-			underMaintenance, err := ms.maintenanceService.IsUnderMaintenance(ctx, maint)
-			if err != nil {
-				ms.logger.Warnw("Failed to check maintenance status, skipping",
-					"maintenance_id", maint.ID,
-					"error", err,
-				)
-				continue
-			}
-			if underMaintenance {
-				isUnderMaintenance = true
-				break
-			}
-		}
-	}
+	// isUnderMaintenance := false
+	// maintenances, err := ms.maintenanceService.GetMaintenancesByMonitorID(ctx, m.ID)
+	// if err != nil {
+	// 	ms.logger.Warnw("Failed to get maintenances for monitor, assuming not under maintenance",
+	// 		"monitor_id", m.ID,
+	// 		"error", err,
+	// 	)
+	// } else {
+	// 	for _, maint := range maintenances {
+	// 		underMaintenance, err := ms.maintenanceService.IsUnderMaintenance(ctx, maint)
+	// 		if err != nil {
+	// 			ms.logger.Warnw("Failed to check maintenance status, skipping",
+	// 				"maintenance_id", maint.ID,
+	// 				"error", err,
+	// 			)
+	// 			continue
+	// 		}
+	// 		if underMaintenance {
+	// 			isUnderMaintenance = true
+	// 			break
+	// 		}
+	// 	}
+	// }
 
 	// Check if certificate expiry checking is enabled (for HTTPS monitors)
 	checkCertExpiry := false
@@ -333,7 +333,7 @@ func (ms *MonitorScheduler) buildHealthCheckPayload(ctx context.Context, m *moni
 		ResendInterval:     m.ResendInterval,
 		Config:             m.Config,
 		ScheduledAt:        time.Now().UTC(),
-		IsUnderMaintenance: isUnderMaintenance,
+		IsUnderMaintenance: false,
 		CheckCertExpiry:    checkCertExpiry,
 	}
 
