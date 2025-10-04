@@ -43,10 +43,16 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  useAPIKeys,
-  useCreateAPIKey,
-  useDeleteAPIKey,
-} from "@/lib/api-keys-hooks";
+  getApiKeysOptions,
+  postApiKeysMutation,
+  deleteApiKeysByIdMutation,
+} from "@/api/@tanstack/react-query.gen";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import type {
+  ApiKeyApiKeyResponse,
+  ApiKeyCreateApiKeyDto,
+  PostApiKeysResponse,
+} from "@/api/types.gen";
 
 const createAPIKeySchema = z.object({
   name: z.string().min(1, "Name is required").max(255, "Name too long"),
@@ -63,13 +69,18 @@ type CreateAPIKeyForm = z.infer<typeof createAPIKeySchema>;
 
 const APIKeys = () => {
   const { t } = useLocalizedTranslation();
+  const queryClient = useQueryClient();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newToken, setNewToken] = useState<string | null>(null);
-  const [_, setNewlyCreatedKeyId] = useState<string | null>(null);
+  const [newlyCreatedKeyId, setNewlyCreatedKeyId] = useState<string | null>(
+    null
+  );
 
-  const { data: apiKeys = [], isLoading } = useAPIKeys();
-  const createMutation = useCreateAPIKey();
-  const deleteMutation = useDeleteAPIKey();
+  const { data: apiKeysResponse, isLoading } = useQuery(getApiKeysOptions());
+  const createMutation = useMutation(postApiKeysMutation());
+  const deleteMutation = useMutation(deleteApiKeysByIdMutation());
+
+  const apiKeys: ApiKeyApiKeyResponse[] = apiKeysResponse?.data || [];
 
   const form = useForm<CreateAPIKeyForm>({
     resolver: zodResolver(createAPIKeySchema),
@@ -80,11 +91,13 @@ const APIKeys = () => {
     },
   });
 
-  const handleCreateSuccess = (response: { token: string; id: string }) => {
-    setNewToken(response.token);
-    setNewlyCreatedKeyId(response.id);
+  const handleCreateSuccess = (response: PostApiKeysResponse) => {
+    setNewToken(response.data.token || null);
+    setNewlyCreatedKeyId(response.data.id || null);
     setShowCreateDialog(false);
     form.reset();
+    // Invalidate and refetch the API keys query to update the UI
+    queryClient.invalidateQueries({ queryKey: getApiKeysOptions().queryKey });
     toast.success(t("security.api_keys.messages.created_successfully"));
   };
 
@@ -93,13 +106,17 @@ const APIKeys = () => {
   };
 
   const onSubmit = (data: CreateAPIKeyForm) => {
+    const createData: ApiKeyCreateApiKeyDto = {
+      name: data.name,
+      expires_at: data.expiresAt || undefined,
+      max_usage_count: data.maxUsageCount
+        ? parseInt(data.maxUsageCount, 10)
+        : undefined,
+    };
+
     createMutation.mutate(
       {
-        name: data.name,
-        expires_at: data.expiresAt || undefined,
-        max_usage_count: data.maxUsageCount
-          ? parseInt(data.maxUsageCount, 10)
-          : undefined,
+        body: createData,
       },
       {
         onSuccess: handleCreateSuccess,
@@ -110,14 +127,23 @@ const APIKeys = () => {
 
   const handleDelete = (id: string) => {
     if (confirm(t("security.api_keys.messages.delete_confirm"))) {
-      deleteMutation.mutate(id, {
-        onSuccess: () => {
-          toast.success(t("security.api_keys.messages.deleted_successfully"));
+      deleteMutation.mutate(
+        {
+          path: { id },
         },
-        onError: () => {
-          toast.error(t("security.api_keys.messages.failed_to_delete"));
-        },
-      });
+        {
+          onSuccess: () => {
+            // Invalidate and refetch the API keys query to update the UI
+            queryClient.invalidateQueries({
+              queryKey: getApiKeysOptions().queryKey,
+            });
+            toast.success(t("security.api_keys.messages.deleted_successfully"));
+          },
+          onError: () => {
+            toast.error(t("security.api_keys.messages.failed_to_delete"));
+          },
+        }
+      );
     }
   };
 
@@ -344,45 +370,58 @@ const APIKeys = () => {
               </TableHeader>
               <TableBody>
                 {apiKeys.map((apiKey) => (
-                  <TableRow key={apiKey.id}>
+                  <TableRow key={apiKey.id || ""}>
                     <TableCell className="font-medium">{apiKey.name}</TableCell>
                     <TableCell>
-                      <code className="bg-muted px-2 py-1 rounded text-sm font-mono">
-                        {apiKey.display_key}
-                      </code>
+                      <div className="flex items-center gap-2">
+                        <code className="bg-muted px-2 py-1 rounded text-sm font-mono">
+                          {apiKey.display_key}
+                        </code>
+                        {newlyCreatedKeyId === apiKey.id && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() =>
+                              copyToClipboard(apiKey.display_key || "")
+                            }
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        {apiKey.usage_count}
+                        {apiKey.usage_count || 0}
                         {apiKey.max_usage_count &&
                           ` / ${apiKey.max_usage_count}`}
                       </div>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {formatDateTime(apiKey.last_used)}
+                      {formatDateTime(apiKey.last_used || null)}
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {formatDate(apiKey.expires_at)}
+                      {formatDate(apiKey.expires_at || null)}
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1">
-                        {isExpired(apiKey.expires_at) && (
+                        {isExpired(apiKey.expires_at || null) && (
                           <Badge variant="destructive">
                             {t("security.api_keys.table.status.expired")}
                           </Badge>
                         )}
                         {isUsageExceeded(
-                          apiKey.usage_count,
-                          apiKey.max_usage_count
+                          apiKey.usage_count || 0,
+                          apiKey.max_usage_count || null
                         ) && (
                           <Badge variant="destructive">
                             {t("security.api_keys.table.status.limit_exceeded")}
                           </Badge>
                         )}
-                        {!isExpired(apiKey.expires_at) &&
+                        {!isExpired(apiKey.expires_at || null) &&
                           !isUsageExceeded(
-                            apiKey.usage_count,
-                            apiKey.max_usage_count
+                            apiKey.usage_count || 0,
+                            apiKey.max_usage_count || null
                           ) && (
                             <Badge variant="default">
                               {t("security.api_keys.table.status.active")}
@@ -394,7 +433,7 @@ const APIKeys = () => {
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => handleDelete(apiKey.id)}
+                        onClick={() => handleDelete(apiKey.id || "")}
                         disabled={deleteMutation.isPending}
                       >
                         <Trash2 className="h-4 w-4" />

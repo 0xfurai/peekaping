@@ -24,10 +24,10 @@ func NewController(service Service) *Controller {
 // @Accept json
 // @Produce json
 // @Param request body CreateAPIKeyDto true "API key creation data"
-// @Success 201 {object} utils.SuccessResponse{data=APIKeyWithTokenResponse}
-// @Failure 400 {object} utils.FailResponse
-// @Failure 401 {object} utils.FailResponse
-// @Failure 500 {object} utils.FailResponse
+// @Success 201 {object} utils.ApiResponse[APIKeyWithTokenResponse]
+// @Failure 400 {object} utils.APIError
+// @Failure 401 {object} utils.APIError
+// @Failure 500 {object} utils.APIError
 // @Router /api-keys [post]
 // @Security BearerAuth
 func (c *Controller) CreateAPIKey(ctx *gin.Context) {
@@ -64,9 +64,9 @@ func (c *Controller) CreateAPIKey(ctx *gin.Context) {
 // @Description Get all API keys for the authenticated user
 // @Tags api-keys
 // @Produce json
-// @Success 200 {object} utils.SuccessResponse{data=[]APIKeyResponse}
-// @Failure 401 {object} utils.FailResponse
-// @Failure 500 {object} utils.FailResponse
+// @Success 200 {object} utils.ApiResponse[[]APIKeyResponse]
+// @Failure 401 {object} utils.APIError
+// @Failure 500 {object} utils.APIError
 // @Router /api-keys [get]
 // @Security BearerAuth
 func (c *Controller) GetAPIKeys(ctx *gin.Context) {
@@ -96,10 +96,10 @@ func (c *Controller) GetAPIKeys(ctx *gin.Context) {
 // @Tags api-keys
 // @Produce json
 // @Param id path string true "API key ID"
-// @Success 200 {object} utils.SuccessResponse{data=APIKeyResponse}
-// @Failure 401 {object} utils.FailResponse
-// @Failure 404 {object} utils.FailResponse
-// @Failure 500 {object} utils.FailResponse
+// @Success 200 {object} utils.ApiResponse[APIKeyResponse]
+// @Failure 401 {object} utils.APIError
+// @Failure 404 {object} utils.APIError
+// @Failure 500 {object} utils.APIError
 // @Router /api-keys/{id} [get]
 // @Security BearerAuth
 func (c *Controller) GetAPIKey(ctx *gin.Context) {
@@ -137,11 +137,11 @@ func (c *Controller) GetAPIKey(ctx *gin.Context) {
 // @Produce json
 // @Param id path string true "API key ID"
 // @Param request body UpdateAPIKeyDto true "API key update data"
-// @Success 200 {object} utils.SuccessResponse{data=APIKeyResponse}
-// @Failure 400 {object} utils.FailResponse
-// @Failure 401 {object} utils.FailResponse
-// @Failure 404 {object} utils.FailResponse
-// @Failure 500 {object} utils.FailResponse
+// @Success 200 {object} utils.ApiResponse[APIKeyResponse]
+// @Failure 400 {object} utils.APIError
+// @Failure 401 {object} utils.APIError
+// @Failure 404 {object} utils.APIError
+// @Failure 500 {object} utils.APIError
 // @Router /api-keys/{id} [put]
 // @Security BearerAuth
 func (c *Controller) UpdateAPIKey(ctx *gin.Context) {
@@ -184,9 +184,9 @@ func (c *Controller) UpdateAPIKey(ctx *gin.Context) {
 // @Tags api-keys
 // @Param id path string true "API key ID"
 // @Success 204 "No Content"
-// @Failure 401 {object} utils.FailResponse
-// @Failure 404 {object} utils.FailResponse
-// @Failure 500 {object} utils.FailResponse
+// @Failure 401 {object} utils.APIError
+// @Failure 404 {object} utils.APIError
+// @Failure 500 {object} utils.APIError
 // @Router /api-keys/{id} [delete]
 // @Security BearerAuth
 func (c *Controller) DeleteAPIKey(ctx *gin.Context) {
@@ -215,7 +215,7 @@ func (c *Controller) DeleteAPIKey(ctx *gin.Context) {
 // @Description Get API key configuration including prefix
 // @Tags api-keys
 // @Produce json
-// @Success 200 {object} utils.SuccessResponse{data=APIKeyConfigResponse}
+// @Success 200 {object} utils.ApiResponse[APIKeyConfigResponse]
 // @Router /api-keys/config [get]
 func (c *Controller) GetAPIKeyConfig(ctx *gin.Context) {
 	config := &APIKeyConfigResponse{
