@@ -19,6 +19,8 @@ Peekaping is a powerful, feature-rich uptime monitoring system similar to Uptime
 
 🔗 Documentation **[docs.peekaping.com](https://docs.peekaping.com)**
 
+🔗 Community terraform provider **[registry.terraform.io/providers/tafaust/peekaping](https://registry.terraform.io/providers/tafaust/peekaping/latest)**
+
 ## ⚠️ Beta Status
 
 **Peekaping is currently in beta and actively being developed.** While I am excited to share this project with the community, please note that:
