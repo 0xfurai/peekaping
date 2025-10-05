@@ -98,6 +98,7 @@ func NewHealthCheckTaskHandler(
 
 // ProcessTask implements asynq.HandlerFunc
 func (h *HealthCheckTaskHandler) ProcessTask(ctx context.Context, task *asynq.Task) error {
+	start := time.Now()
 	// Parse the payload
 	var payload HealthCheckTaskPayload
 	if err := json.Unmarshal(task.Payload(), &payload); err != nil {
@@ -111,28 +112,28 @@ func (h *HealthCheckTaskHandler) ProcessTask(ctx context.Context, task *asynq.Ta
 		"scheduled_at", payload.ScheduledAt,
 	)
 
-	// Check if task is stale and should be skipped
-	now := time.Now().UTC()
-	scheduledAt := payload.ScheduledAt
-	timeSinceScheduled := now.Sub(scheduledAt)
-	intervalDuration := time.Duration(payload.Interval) * time.Second
+	// // Check if task is stale and should be skipped
+	// now := time.Now().UTC()
+	// scheduledAt := payload.ScheduledAt
+	// timeSinceScheduled := now.Sub(scheduledAt)
+	// intervalDuration := time.Duration(payload.Interval) * time.Second
 
-	// Consider task stale if it's more than 1.5x the interval old
-	// This allows some buffer for processing delays while preventing old backlog processing
-	staleThreshold := intervalDuration + (intervalDuration / 2)
+	// // Consider task stale if it's more than 1.5x the interval old
+	// // This allows some buffer for processing delays while preventing old backlog processing
+	// staleThreshold := intervalDuration + (intervalDuration / 2)
 
-	if timeSinceScheduled > staleThreshold {
-		h.logger.Warnw("Skipping stale health check task",
-			"monitor_id", payload.MonitorID,
-			"monitor_name", payload.MonitorName,
-			"scheduled_at", scheduledAt,
-			"time_since_scheduled", timeSinceScheduled,
-			"stale_threshold", staleThreshold,
-			"interval", intervalDuration,
-		)
-		// Return nil to mark task as successfully processed (not retried)
-		return nil
-	}
+	// if timeSinceScheduled > staleThreshold {
+	// 	h.logger.Warnw("Skipping stale health check task",
+	// 		"monitor_id", payload.MonitorID,
+	// 		"monitor_name", payload.MonitorName,
+	// 		"scheduled_at", scheduledAt,
+	// 		"time_since_scheduled", timeSinceScheduled,
+	// 		"stale_threshold", staleThreshold,
+	// 		"interval", intervalDuration,
+	// 	)
+	// 	// Return nil to mark task as successfully processed (not retried)
+	// 	return nil
+	// }
 
 	// Create monitor model from payload
 	m := &monitor.Model{
@@ -225,9 +226,10 @@ func (h *HealthCheckTaskHandler) ProcessTask(ctx context.Context, task *asynq.Ta
 		return fmt.Errorf("failed to enqueue ingester task: %w", err)
 	}
 
-	h.logger.Debugw("Successfully enqueued result to ingester",
+	h.logger.Infow("Successfully enqueued result to ingester",
 		"monitor_id", payload.MonitorID,
 		"monitor_name", payload.MonitorName,
+		"duration", time.Since(start),
 	)
 
 	return nil

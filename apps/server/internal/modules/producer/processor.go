@@ -181,7 +181,7 @@ func (p *Producer) processMonitor(monitorID string, nowMs int64) (int, error) {
 		return 0, fmt.Errorf("failed to enqueue health check: %w", err)
 	}
 
-	p.logger.Debugw("Enqueued health check",
+	p.logger.Infow("Enqueued health check",
 		"monitor_id", mon.ID,
 		"monitor_name", mon.Name,
 		"monitor_type", mon.Type,
