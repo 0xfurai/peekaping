@@ -81,6 +81,14 @@ type MongoRepositoryImpl struct {
 func NewMongoRepository(client *mongo.Client, cfg *config.Config) Repository {
 	db := client.Database(cfg.DBName)
 	collection := db.Collection("maintenance")
+
+	_, err := collection.Indexes().CreateOne(context.Background(), mongo.IndexModel{
+		Keys: bson.D{{Key: "monitor_id", Value: 1}},
+	})
+	if err != nil {
+		panic("Failed to create index on maintenance collection: " + err.Error())
+	}
+
 	return &MongoRepositoryImpl{client, db, collection}
 }
 
