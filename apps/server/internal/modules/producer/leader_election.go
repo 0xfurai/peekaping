@@ -63,7 +63,10 @@ func (le *LeaderElection) Start(ctx context.Context) {
 				return
 			case <-ctx.Done():
 				le.logger.Info("Context cancelled, stopping leader election")
-				le.releaseLeadership(ctx)
+				// Use a fresh context for cleanup since the original context is canceled
+				cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 5*time.Second)
+				defer cleanupCancel()
+				le.releaseLeadership(cleanupCtx)
 				return
 			}
 		}
