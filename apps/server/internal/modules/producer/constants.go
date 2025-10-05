@@ -11,7 +11,7 @@ const (
 	SchedDueKey   = "peekaping:sched:due"   // ZSET: score=next_due_ms, member=monitor_id
 	SchedLeaseKey = "peekaping:sched:lease" // ZSET: score=lease_expire_ms, member=monitor_id
 
-	BatchClaim   = 1000                  // max items to claim per tick
+	BatchClaim   = 2                     // max items to claim per tick
 	LeaseTTL     = 10 * time.Second      // how long an item can sit in "lease" while enqueuing
 	ReclaimEvery = 2 * time.Second       // how often to sweep expired leases
 	ClaimTick    = 25 * time.Millisecond // how often to check for due monitors

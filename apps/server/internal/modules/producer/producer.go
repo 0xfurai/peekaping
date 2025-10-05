@@ -2,6 +2,7 @@ package producer
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"peekaping/internal/modules/maintenance"
@@ -53,7 +54,12 @@ func (p *Producer) Start() error {
 	// Start leader election
 	p.leaderElection.Start(p.ctx)
 
-	// Start a goroutine to monitor leadership changes
+	// Start job processing immediately (all producers process jobs)
+	if err := p.startJobProcessing(); err != nil {
+		return fmt.Errorf("failed to start job processing: %w", err)
+	}
+
+	// Start a goroutine to monitor leadership changes for monitor syncing
 	p.wg.Add(1)
 	go p.runLeadershipMonitor()
 
