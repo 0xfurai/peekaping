@@ -1,6 +1,7 @@
 package healthcheck
 
 import (
+	"fmt"
 	"net/http"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
@@ -116,7 +117,12 @@ func RegisterPushEndpoint(
 			Retention: 1 * time.Hour,
 		}
 
-		_, err = queueService.Enqueue(ctx, "monitor:ingest", payload, opts)
+		// Use EnqueueUnique to prevent duplicate push heartbeat ingestion
+		// The unique key includes monitor ID and timestamp to prevent duplicate submissions
+		uniqueKey := fmt.Sprintf("ingest:push:%s:%d", monitor.ID, now.UnixNano())
+		ttl := 5 * time.Minute // Short TTL for push monitors to allow frequent updates
+
+		_, err = queueService.EnqueueUnique(ctx, "monitor:ingest", payload, uniqueKey, ttl, opts)
 		if err != nil {
 			logger.Errorw("Failed to enqueue push heartbeat to ingester",
 				"monitor_id", monitor.ID,

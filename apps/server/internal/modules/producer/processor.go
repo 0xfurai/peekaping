@@ -170,7 +170,13 @@ func (p *Producer) processMonitor(monitorID string, nowMs int64) (int, error) {
 		Retention: 0 * time.Minute,
 	}
 
-	_, err = p.queueService.Enqueue(p.ctx, worker.TaskTypeHealthCheck, payload, opts)
+	// Use EnqueueUnique to prevent duplicate tasks from being scheduled
+	// The unique key is based on monitor ID, and TTL is 2x the interval to ensure
+	// no duplicate tasks are created even if there are scheduling delays
+	uniqueKey := fmt.Sprintf("healthcheck:%s", mon.ID)
+	ttl := time.Duration(mon.Interval*2) * time.Second
+
+	_, err = p.queueService.EnqueueUnique(p.ctx, worker.TaskTypeHealthCheck, payload, uniqueKey, ttl, opts)
 	if err != nil {
 		return 0, fmt.Errorf("failed to enqueue health check: %w", err)
 	}
