@@ -44,7 +44,8 @@ func (p *Producer) runProducer() error {
 		// Process each claimed monitor
 		pipe := p.rdb.Pipeline()
 		for _, monitorID := range ids {
-			if err := p.processMonitor(monitorID, nowMs); err != nil {
+			interval, err := p.processMonitor(monitorID, nowMs)
+			if err != nil {
 				p.logger.Errorw("Failed to process monitor",
 					"monitor_id", monitorID,
 					"error", err)
@@ -52,13 +53,9 @@ func (p *Producer) runProducer() error {
 				continue
 			}
 
-			// Get monitor interval for rescheduling
-			p.mu.RLock()
-			interval, exists := p.monitorIntervals[monitorID]
-			p.mu.RUnlock()
-
-			if !exists {
-				p.logger.Warnw("Monitor interval not found, will be refreshed soon", "monitor_id", monitorID)
+			// Skip rescheduling if interval is invalid (e.g., monitor was deleted or deactivated)
+			if interval <= 0 {
+				p.logger.Debugw("Skipping reschedule for monitor with invalid interval", "monitor_id", monitorID)
 				continue
 			}
 
@@ -74,23 +71,24 @@ func (p *Producer) runProducer() error {
 }
 
 // processMonitor loads monitor config and enqueues a health check task
-func (p *Producer) processMonitor(monitorID string, nowMs int64) error {
+// Returns the monitor interval (for rescheduling) and any error
+func (p *Producer) processMonitor(monitorID string, nowMs int64) (int, error) {
 	start := time.Now()
 	// Fetch monitor from database
 	mon, err := p.monitorService.FindByID(p.ctx, monitorID)
 	if err != nil {
-		return fmt.Errorf("failed to find monitor: %w", err)
+		return 0, fmt.Errorf("failed to find monitor: %w", err)
 	}
 
 	// Check if monitor exists (it might have been deleted)
 	if mon == nil {
 		p.logger.Warnw("Monitor not found, skipping", "monitor_id", monitorID)
-		return nil
+		return 0, nil
 	}
 
 	if !mon.Active {
 		p.logger.Infow("Skipping inactive monitor", "monitor_id", monitorID)
-		return nil
+		return 0, nil
 	}
 
 	// Check if monitor is under maintenance
@@ -174,7 +172,7 @@ func (p *Producer) processMonitor(monitorID string, nowMs int64) error {
 
 	_, err = p.queueService.Enqueue(p.ctx, worker.TaskTypeHealthCheck, payload, opts)
 	if err != nil {
-		return fmt.Errorf("failed to enqueue health check: %w", err)
+		return 0, fmt.Errorf("failed to enqueue health check: %w", err)
 	}
 
 	p.logger.Debugw("Enqueued health check",
@@ -183,5 +181,5 @@ func (p *Producer) processMonitor(monitorID string, nowMs int64) error {
 		"monitor_type", mon.Type,
 		"duration", time.Since(start))
 
-	return nil
+	return mon.Interval, nil
 }
