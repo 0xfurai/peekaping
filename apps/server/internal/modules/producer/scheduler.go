@@ -22,8 +22,23 @@ func (p *Producer) initializeSchedule() error {
 		return nil
 	}
 
+	// Get existing scheduled monitors from Redis
+	existingScheduled, err := p.rdb.ZRangeWithScores(p.ctx, SchedDueKey, 0, -1).Result()
+	if err != nil {
+		return fmt.Errorf("failed to get existing scheduled monitors: %w", err)
+	}
+
+	// Create a map of existing scheduled monitor IDs for quick lookup
+	existingMonitorIDs := make(map[string]bool)
+	for _, item := range existingScheduled {
+		if monitorID, ok := item.Member.(string); ok {
+			existingMonitorIDs[monitorID] = true
+		}
+	}
+
 	now := time.Now().UTC()
 	pipe := p.rdb.Pipeline()
+	newlyScheduledCount := 0
 
 	for _, mon := range monitors {
 		if mon.Interval <= 0 {
@@ -36,19 +51,29 @@ func (p *Producer) initializeSchedule() error {
 		p.monitorIntervals[mon.ID] = mon.Interval
 		p.mu.Unlock()
 
-		// Schedule monitor at next aligned time
-		next := nextAligned(now, time.Duration(mon.Interval)*time.Second)
-		pipe.ZAdd(p.ctx, SchedDueKey, redis.Z{
-			Score:  float64(next.UnixMilli()),
-			Member: mon.ID,
-		})
+		// Only schedule if not already in Redis
+		if !existingMonitorIDs[mon.ID] {
+			// Schedule monitor at next aligned time
+			next := nextAligned(now, time.Duration(mon.Interval)*time.Second)
+			pipe.ZAdd(p.ctx, SchedDueKey, redis.Z{
+				Score:  float64(next.UnixMilli()),
+				Member: mon.ID,
+			})
+			newlyScheduledCount++
+			p.logger.Debugw("Scheduled new monitor", "monitor_id", mon.ID, "next_run", next)
+		} else {
+			p.logger.Debugw("Monitor already scheduled, skipping", "monitor_id", mon.ID)
+		}
 	}
 
 	if _, err := pipe.Exec(p.ctx); err != nil {
 		return fmt.Errorf("failed to schedule monitors: %w", err)
 	}
 
-	p.logger.Infow("Initialized schedule", "monitor_count", len(monitors))
+	p.logger.Infow("Initialized schedule",
+		"total_monitors", len(monitors),
+		"newly_scheduled", newlyScheduledCount,
+		"already_scheduled", len(existingMonitorIDs))
 	return nil
 }
 
