@@ -123,9 +123,14 @@ func main() {
 	// Start the producer
 	err = container.Invoke(func(
 		prod *producer.Producer,
+		eventListener *producer.EventListener,
 		eventBus events.EventBus,
 		logger *zap.SugaredLogger,
 	) error {
+		// Subscribe to monitor events
+		eventListener.Subscribe(eventBus)
+		logger.Info("Event listener subscribed to monitor events")
+
 		// Start the producer
 		if err := prod.Start(); err != nil {
 			return fmt.Errorf("failed to start producer: %w", err)

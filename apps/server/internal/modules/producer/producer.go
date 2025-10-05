@@ -76,13 +76,11 @@ return ids
 
 var (
 	claimScript   *redis.Script
-	reschedScript *redis.Script
 	reclaimScript *redis.Script
 )
 
 func init() {
 	claimScript = redis.NewScript(claimLua)
-	reschedScript = redis.NewScript(reschedLua)
 	reclaimScript = redis.NewScript(reclaimLua)
 }
 
@@ -102,6 +100,7 @@ type Producer struct {
 	mu                      sync.RWMutex
 	monitorIntervals        map[string]int // monitor_id -> interval in seconds
 	scheduleRefreshInterval time.Duration
+	leaderElection          *LeaderElection
 }
 
 // NewProducer creates a new producer instance
@@ -113,6 +112,7 @@ func NewProducer(
 	maintenanceService maintenance.Service,
 	monitorNotificationSvc monitor_notification.Service,
 	settingService shared.SettingService,
+	leaderElection *LeaderElection,
 	logger *zap.SugaredLogger,
 ) *Producer {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -130,17 +130,65 @@ func NewProducer(
 		cancel:                  cancel,
 		monitorIntervals:        make(map[string]int),
 		scheduleRefreshInterval: 30 * time.Second, // Refresh schedule every 30 seconds
+		leaderElection:          leaderElection,
 	}
 }
 
-// Start starts the producer
+// Start starts the producer with leader election
 func (p *Producer) Start() error {
-	p.logger.Info("Starting producer")
+	p.logger.Info("Starting producer with leader election")
 
+	// Start leader election
+	p.leaderElection.Start(p.ctx)
+
+	// Start a goroutine to monitor leadership changes
+	p.wg.Add(1)
+	go p.runLeadershipMonitor()
+
+	p.logger.Info("Producer started successfully")
+	return nil
+}
+
+// runLeadershipMonitor monitors leadership status and starts/stops scheduling accordingly
+func (p *Producer) runLeadershipMonitor() {
+	defer p.wg.Done()
+
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
+
+	var isScheduling bool
+
+	for {
+		select {
+		case <-p.ctx.Done():
+			if isScheduling {
+				p.logger.Info("Context cancelled, stopping scheduling")
+			}
+			return
+		case <-ticker.C:
+			isLeader := p.leaderElection.IsLeader()
+
+			if isLeader && !isScheduling {
+				p.logger.Info("Became leader, starting scheduling")
+				if err := p.startScheduling(); err != nil {
+					p.logger.Errorw("Failed to start scheduling", "error", err)
+				} else {
+					isScheduling = true
+				}
+			} else if !isLeader && isScheduling {
+				p.logger.Info("Lost leadership, stopping scheduling")
+				p.stopScheduling()
+				isScheduling = false
+			}
+		}
+	}
+}
+
+// startScheduling initializes and starts the scheduling components
+func (p *Producer) startScheduling() error {
 	// Initialize schedule with active monitors
 	if err := p.initializeSchedule(); err != nil {
-		p.logger.Errorw("Failed to initialize schedule", "error", err)
-		return err
+		return fmt.Errorf("failed to initialize schedule: %w", err)
 	}
 
 	// Start background reclaimer (handles crashed or slow producers)
@@ -155,8 +203,15 @@ func (p *Producer) Start() error {
 	p.wg.Add(1)
 	go p.runProducer()
 
-	p.logger.Info("Producer started successfully")
 	return nil
+}
+
+// stopScheduling is called when this node loses leadership
+// The goroutines will naturally exit when they check the context
+func (p *Producer) stopScheduling() {
+	// The goroutines will stop when they check ctx.Done()
+	// No need to do anything special here as we use the same context
+	p.logger.Info("Scheduling stopped due to leadership loss")
 }
 
 // Stop stops the producer gracefully
@@ -389,6 +444,7 @@ func (p *Producer) runProducer() error {
 
 // processMonitor loads monitor config and enqueues a health check task
 func (p *Producer) processMonitor(monitorID string, nowMs int64) error {
+	start := time.Now()
 	// Fetch monitor from database
 	mon, err := p.monitorService.FindByID(p.ctx, monitorID)
 	if err != nil {
@@ -483,10 +539,13 @@ func (p *Producer) processMonitor(monitorID string, nowMs int64) error {
 		return fmt.Errorf("failed to enqueue health check: %w", err)
 	}
 
-	p.logger.Debugw("Enqueued health check",
+	// p.logger.Debugw("Enqueued health check",
+	// 	"monitor_id", mon.ID,
+	// 	"monitor_name", mon.Name,
+	// 	"monitor_type", mon.Type)
+	p.logger.Infow("Enqueued health check",
 		"monitor_id", mon.ID,
-		"monitor_name", mon.Name,
-		"monitor_type", mon.Type)
+		"duration", time.Since(start))
 
 	return nil
 }
@@ -576,4 +635,49 @@ func (p *Producer) UnscheduleMonitor(ctx context.Context, monitorID string) erro
 
 	p.logger.Infow("Unscheduled monitor", "monitor_id", monitorID)
 	return nil
+}
+
+// AddMonitor adds a new monitor to the schedule
+func (p *Producer) AddMonitor(ctx context.Context, monitorID string) error {
+	// Fetch monitor from database
+	mon, err := p.monitorService.FindByID(ctx, monitorID)
+	if err != nil {
+		return fmt.Errorf("failed to find monitor: %w", err)
+	}
+
+	if !mon.Active || mon.Interval <= 0 {
+		p.logger.Infow("Skipping inactive or invalid monitor", "monitor_id", monitorID, "active", mon.Active, "interval", mon.Interval)
+		return nil
+	}
+
+	// Schedule the monitor
+	return p.ScheduleMonitor(ctx, monitorID, mon.Interval)
+}
+
+// UpdateMonitor updates an existing monitor in the schedule
+func (p *Producer) UpdateMonitor(ctx context.Context, monitorID string) error {
+	// Fetch monitor from database
+	mon, err := p.monitorService.FindByID(ctx, monitorID)
+	if err != nil {
+		return fmt.Errorf("failed to find monitor: %w", err)
+	}
+
+	if !mon.Active {
+		// If monitor is no longer active, unschedule it
+		p.logger.Infow("Monitor became inactive, unscheduling", "monitor_id", monitorID)
+		return p.UnscheduleMonitor(ctx, monitorID)
+	}
+
+	if mon.Interval <= 0 {
+		p.logger.Warnw("Monitor has invalid interval, unscheduling", "monitor_id", monitorID, "interval", mon.Interval)
+		return p.UnscheduleMonitor(ctx, monitorID)
+	}
+
+	// Reschedule the monitor with updated interval
+	return p.ScheduleMonitor(ctx, monitorID, mon.Interval)
+}
+
+// RemoveMonitor removes a monitor from the schedule
+func (p *Producer) RemoveMonitor(ctx context.Context, monitorID string) error {
+	return p.UnscheduleMonitor(ctx, monitorID)
 }

@@ -19,6 +19,51 @@ type MongoRepository struct {
 
 func NewMongoRepository(client *mongo.Client, cfg *config.Config) Repository {
 	db := client.Database(cfg.DBName)
+
+	_, err := db.Collection("stat_minutely").Indexes().CreateOne(context.Background(), mongo.IndexModel{
+		Keys: bson.D{
+			{Key: "monitor_id", Value: 1},
+			{Key: "timestamp", Value: 1},
+		},
+	})
+
+	if err != nil {
+		panic("Failed to create index on stat_minutely collection:" + err.Error())
+	}
+
+	_, err = db.Collection("stat_hourly").Indexes().CreateOne(context.Background(), mongo.IndexModel{
+		Keys: bson.D{
+			{Key: "monitor_id", Value: 1},
+			{Key: "timestamp", Value: 1},
+		},
+	})
+
+	if err != nil {
+		panic("Failed to create index on stat_hourly collection:" + err.Error())
+	}
+
+	_, err = db.Collection("stat_daily").Indexes().CreateOne(context.Background(), mongo.IndexModel{
+		Keys: bson.D{
+			{Key: "monitor_id", Value: 1},
+			{Key: "timestamp", Value: 1},
+		},
+	})
+
+	if err != nil {
+		panic("Failed to create index on stat_daily collection:" + err.Error())
+	}
+
+	_, err = db.Collection("stat_minutely").Indexes().CreateOne(context.Background(), mongo.IndexModel{
+		Keys: bson.D{
+			{Key: "monitor_id", Value: 1},
+			{Key: "timestamp", Value: 1},
+		},
+	})
+
+	if err != nil {
+		panic("Failed to create index on stat_minutely collection:" + err.Error())
+	}
+
 	return &MongoRepository{client, db}
 }
 
