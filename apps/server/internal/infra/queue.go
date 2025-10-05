@@ -213,11 +213,11 @@ func (s *queueServiceImpl) Enqueue(ctx context.Context, taskType string, payload
 		return nil, fmt.Errorf("failed to enqueue task: %w", err)
 	}
 
-	s.logger.Infow("Task enqueued successfully",
-		"task_type", taskType,
-		"task_id", info.ID,
-		"queue", info.Queue,
-	)
+	// s.logger.Infow("Task enqueued successfully",
+	// 	"task_type", taskType,
+	// 	"task_id", info.ID,
+	// 	"queue", info.Queue,
+	// )
 
 	return convertTaskInfo(info), nil
 }
@@ -262,12 +262,12 @@ func (s *queueServiceImpl) EnqueueUnique(ctx context.Context, taskType string, p
 		return nil, fmt.Errorf("failed to enqueue unique task: %w", err)
 	}
 
-	s.logger.Infow("Unique task enqueued successfully",
-		"task_type", taskType,
-		"task_id", info.ID,
-		"queue", info.Queue,
-		"unique_key", uniqueKey,
-	)
+	// s.logger.Infow("Unique task enqueued successfully",
+	// 	"task_type", taskType,
+	// 	"task_id", info.ID,
+	// 	"queue", info.Queue,
+	// 	"unique_key", uniqueKey,
+	// )
 
 	return convertTaskInfo(info), nil
 }
