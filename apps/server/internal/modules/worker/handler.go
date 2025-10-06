@@ -215,7 +215,7 @@ func (h *HealthCheckTaskHandler) ProcessTask(ctx context.Context, task *asynq.Ta
 	// Use EnqueueUnique to prevent duplicate ingester tasks
 	// The unique key includes monitor ID and start time to ensure each health check result is processed only once
 	uniqueKey := fmt.Sprintf("ingest:%s:%d", m.ID, tickResult.ExecutionResult.StartTime.UnixNano())
-	ttl := 10 * time.Minute // TTL to prevent duplicates during processing
+	ttl := 1 * time.Second // TTL to prevent duplicates during processing
 
 	_, err := h.queueService.EnqueueUnique(ctx, TaskTypeIngester, ingesterPayload, uniqueKey, ttl, opts)
 	if err != nil {

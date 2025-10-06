@@ -45,7 +45,11 @@ type Config struct {
 
 	// Queue configuration
 	// Number of concurrent workers to process tasks
-	QueueConcurrency int `env:"QUEUE_CONCURRENCY" validate:"min=1" default:"300"`
+	QueueConcurrency int `env:"QUEUE_CONCURRENCY" validate:"min=1" default:"1000"`
+
+	// Producer configuration
+	// Number of concurrent producer goroutines for claiming and processing monitors
+	ProducerConcurrency int `env:"PRODUCER_CONCURRENCY" validate:"min=1,max=128" default:"10"`
 
 	// Bruteforce protection settings
 	// Maximum number of failed login attempts allowed within the time window

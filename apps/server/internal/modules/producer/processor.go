@@ -1,7 +1,9 @@
 package producer
 
 import (
+	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"peekaping/internal/modules/queue"
@@ -9,7 +11,7 @@ import (
 )
 
 // runProducer is the main producer loop
-func (p *Producer) runProducer() error {
+func (p *Producer) runProducer(workerID int) error {
 	defer p.wg.Done()
 
 	for {
@@ -27,7 +29,7 @@ func (p *Producer) runProducer() error {
 			nowMs, BatchClaim, int64(LeaseTTL/time.Millisecond),
 		).Result()
 		if err != nil {
-			p.logger.Errorw("Claim error", "error", err)
+			p.logger.Errorw("Claim error", "worker_id", workerID, "error", err)
 			time.Sleep(100 * time.Millisecond)
 			continue
 		}
@@ -39,14 +41,18 @@ func (p *Producer) runProducer() error {
 			continue
 		}
 
-		p.logger.Debugw("Claimed monitors for scheduling", "count", len(ids))
+		p.logger.Debugw("Claimed monitors for scheduling", "worker_id", workerID, "count", len(ids))
 
-		// Process each claimed monitor
+		// Process each claimed monitor with a timeout context
+		// This ensures that claimed monitors can complete processing even during shutdown
+		// Use a generous timeout to handle large batches (up to BatchClaim=1000 monitors)
+		processCtx, processCancel := context.WithTimeout(context.Background(), 2*time.Minute)
 		pipe := p.rdb.Pipeline()
 		for _, monitorID := range ids {
-			interval, err := p.processMonitor(monitorID, nowMs)
+			interval, err := p.processMonitor(processCtx, monitorID, nowMs)
 			if err != nil {
 				p.logger.Errorw("Failed to process monitor",
+					"worker_id", workerID,
 					"monitor_id", monitorID,
 					"error", err)
 				// Don't reschedule on error - let lease expire and be reclaimed
@@ -55,27 +61,30 @@ func (p *Producer) runProducer() error {
 
 			// Skip rescheduling if interval is invalid (e.g., monitor was deleted or deactivated)
 			if interval <= 0 {
-				p.logger.Debugw("Skipping reschedule for monitor with invalid interval", "monitor_id", monitorID)
+				p.logger.Debugw("Skipping reschedule for monitor with invalid interval",
+					"worker_id", workerID,
+					"monitor_id", monitorID)
 				continue
 			}
 
 			// Calculate next execution time
 			next := nextAligned(time.UnixMilli(nowMs).UTC(), time.Duration(interval)*time.Second)
-			pipe.Eval(p.ctx, reschedLua, []string{SchedLeaseKey, SchedDueKey}, monitorID, next.UnixMilli())
+			pipe.Eval(processCtx, reschedLua, []string{SchedLeaseKey, SchedDueKey}, monitorID, next.UnixMilli())
 		}
 
-		if _, err := pipe.Exec(p.ctx); err != nil {
-			p.logger.Errorw("Resched pipeline error", "error", err)
+		if _, err := pipe.Exec(processCtx); err != nil {
+			p.logger.Errorw("Resched pipeline error", "worker_id", workerID, "error", err)
 		}
+		processCancel()
 	}
 }
 
 // processMonitor loads monitor config and enqueues a health check task
 // Returns the monitor interval (for rescheduling) and any error
-func (p *Producer) processMonitor(monitorID string, nowMs int64) (int, error) {
+func (p *Producer) processMonitor(ctx context.Context, monitorID string, nowMs int64) (int, error) {
 	start := time.Now()
 	// Fetch monitor from database
-	mon, err := p.monitorService.FindByID(p.ctx, monitorID)
+	mon, err := p.monitorService.FindByID(ctx, monitorID)
 	if err != nil {
 		return 0, fmt.Errorf("failed to find monitor: %w", err)
 	}
@@ -93,12 +102,12 @@ func (p *Producer) processMonitor(monitorID string, nowMs int64) (int, error) {
 
 	// Check if monitor is under maintenance
 	isUnderMaintenance := false
-	maintenances, err := p.maintenanceService.GetMaintenancesByMonitorID(p.ctx, monitorID)
+	maintenances, err := p.maintenanceService.GetMaintenancesByMonitorID(ctx, monitorID)
 	if err != nil {
 		p.logger.Errorw("Failed to get maintenances", "monitor_id", monitorID, "error", err)
 	} else {
 		for _, maint := range maintenances {
-			underMaintenance, err := p.maintenanceService.IsUnderMaintenance(p.ctx, maint)
+			underMaintenance, err := p.maintenanceService.IsUnderMaintenance(ctx, maint)
 			if err != nil {
 				p.logger.Warnw("Failed to check maintenance status",
 					"monitor_id", monitorID,
@@ -116,7 +125,7 @@ func (p *Producer) processMonitor(monitorID string, nowMs int64) (int, error) {
 	// Fetch proxy if configured
 	var proxyData *worker.ProxyData
 	if mon.ProxyId != "" {
-		proxyModel, err := p.proxyService.FindByID(p.ctx, mon.ProxyId)
+		proxyModel, err := p.proxyService.FindByID(ctx, mon.ProxyId)
 		if err != nil {
 			p.logger.Warnw("Failed to fetch proxy, continuing without it",
 				"monitor_id", monitorID,
@@ -176,8 +185,21 @@ func (p *Producer) processMonitor(monitorID string, nowMs int64) (int, error) {
 	uniqueKey := fmt.Sprintf("healthcheck:%s", mon.ID)
 	ttl := time.Duration(mon.Interval*2) * time.Second
 
-	_, err = p.queueService.EnqueueUnique(p.ctx, worker.TaskTypeHealthCheck, payload, uniqueKey, ttl, opts)
+	_, err = p.queueService.EnqueueUnique(ctx, worker.TaskTypeHealthCheck, payload, uniqueKey, ttl, opts)
 	if err != nil {
+		// Check if this is a duplicate task error (expected with high concurrency)
+		errMsg := err.Error()
+		if strings.Contains(errMsg, "task ID conflicts") ||
+			strings.Contains(errMsg, "duplicated") ||
+			strings.Contains(errMsg, "already exists") {
+			// This is not an error - the task is already queued, which is exactly what we want
+			// This commonly happens when multiple workers process monitors concurrently
+			p.logger.Debugw("Monitor task already queued (duplicate prevented)",
+				"monitor_id", mon.ID,
+				"duration", time.Since(start))
+			return mon.Interval, nil
+		}
+		// This is a real error
 		return 0, fmt.Errorf("failed to enqueue health check: %w", err)
 	}
 
