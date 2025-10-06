@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"peekaping/internal/config"
 	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_notification"
@@ -26,9 +27,16 @@ func NewProducer(
 	monitorNotificationSvc monitor_notification.Service,
 	settingService shared.SettingService,
 	leaderElection *LeaderElection,
+	cfg *config.Config,
 	logger *zap.SugaredLogger,
 ) *Producer {
 	ctx, cancel := context.WithCancel(context.Background())
+
+	// Use configured concurrency, fallback to constant if not set
+	concurrency := cfg.ProducerConcurrency
+	if concurrency <= 0 {
+		concurrency = ConcurrentProducers
+	}
 
 	return &Producer{
 		rdb:                     rdb,
@@ -44,6 +52,7 @@ func NewProducer(
 		monitorIntervals:        make(map[string]int),
 		scheduleRefreshInterval: 30 * time.Second, // Refresh schedule every 30 seconds
 		leaderElection:          leaderElection,
+		concurrency:             concurrency,
 	}
 }
 

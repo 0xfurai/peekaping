@@ -43,15 +43,25 @@ func (p *Producer) runLeadershipMonitor() {
 
 // startJobProcessing starts job processing tasks (runs on all producers)
 func (p *Producer) startJobProcessing() error {
-	p.logger.Info("Starting job processing")
+	p.logger.Infow("Starting job processing", "concurrent_producers", p.concurrency)
 
 	// Start background reclaimer (handles expired leases from any producer)
 	p.wg.Add(1)
 	go p.runReclaimer()
 
-	// Start main producer loop (all producers can claim and process jobs)
-	p.wg.Add(1)
-	go p.runProducer()
+	// Start multiple producer goroutines for concurrent processing
+	// Each goroutine independently claims and processes batches of monitors
+	for i := 0; i < p.concurrency; i++ {
+		p.wg.Add(1)
+		go func(workerID int) {
+			p.logger.Infow("Starting producer worker", "worker_id", workerID)
+			if err := p.runProducer(workerID); err != nil {
+				p.logger.Errorw("Producer worker exited with error", "worker_id", workerID, "error", err)
+			} else {
+				p.logger.Infow("Producer worker stopped gracefully", "worker_id", workerID)
+			}
+		}(i)
+	}
 
 	p.logger.Info("Job processing started successfully")
 	return nil

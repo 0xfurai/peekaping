@@ -33,4 +33,5 @@ type Producer struct {
 	monitorIntervals        map[string]int // monitor_id -> interval in seconds
 	scheduleRefreshInterval time.Duration
 	leaderElection          *LeaderElection
+	concurrency             int // number of concurrent producer goroutines
 }

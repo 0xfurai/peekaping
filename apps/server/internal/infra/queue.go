@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"peekaping/internal/config"
 	"peekaping/internal/modules/queue"
+	"strings"
 	"time"
 
 	"github.com/hibiken/asynq"
@@ -258,6 +259,20 @@ func (s *queueServiceImpl) EnqueueUnique(ctx context.Context, taskType string, p
 	}
 
 	if err != nil {
+		// Check if this is a duplicate task error (expected behavior with unique constraint)
+		errMsg := err.Error()
+		if strings.Contains(errMsg, "task ID conflicts") ||
+			strings.Contains(errMsg, "duplicated") ||
+			strings.Contains(errMsg, "already exists") {
+			// This is expected behavior - task is already queued (deduplication working)
+			// Log at debug level instead of error, but still return error for caller to handle
+			s.logger.Debugw("Task already queued (duplicate prevented by unique constraint)",
+				"task_type", taskType,
+				"unique_key", uniqueKey)
+			return nil, fmt.Errorf("task already exists: %w", err)
+		}
+
+		// This is a real error - log at error level
 		s.logger.Errorw("Failed to enqueue unique task", "task_type", taskType, "unique_key", uniqueKey, "error", err)
 		return nil, fmt.Errorf("failed to enqueue unique task: %w", err)
 	}
