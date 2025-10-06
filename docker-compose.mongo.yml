@@ -15,14 +15,13 @@ services:
 
   redis:
     image: redis:7-alpine
-    command:
-      [
-        "redis-server",
-        "--appendonly",
-        "yes",
-        "--appendfsync",
-        "everysec",
-      ]
+    command: [
+      "redis-server",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+    ]
     ports:
       - "6381:6379"
     volumes:

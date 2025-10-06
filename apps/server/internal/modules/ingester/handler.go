@@ -70,6 +70,7 @@ func NewIngesterTaskHandler(
 
 // ProcessTask implements asynq.HandlerFunc
 func (h *IngesterTaskHandler) ProcessTask(ctx context.Context, task *asynq.Task) error {
+	start := time.Now()
 	// Parse the payload
 	var payload IngesterTaskPayload
 	if err := json.Unmarshal(task.Payload(), &payload); err != nil {
@@ -92,9 +93,10 @@ func (h *IngesterTaskHandler) ProcessTask(ctx context.Context, task *asynq.Task)
 		return fmt.Errorf("failed to process heartbeat: %w", err)
 	}
 
-	h.logger.Debugw("Successfully processed ingester task",
+	h.logger.Infow("Successfully processed ingester task",
 		"monitor_id", payload.MonitorID,
 		"monitor_name", payload.MonitorName,
+		"duration", time.Since(start),
 	)
 
 	return nil
