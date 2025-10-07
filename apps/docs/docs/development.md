@@ -13,12 +13,39 @@ cd peekaping
 
 ---
 
-## 2. Install pnpm (if you don't have it)
+## 2. Tool Management (Optional asdf support)
 
-We use [pnpm](https://pnpm.io/) for managing JavaScript dependencies. Install it globally with npm:
+Peekaping supports both asdf and manual runtime installation:
+
+### Option A: Using asdf (Recommended)
+
+If you have [asdf](https://asdf-vm.com/) installed, you can use our automated setup:
 
 ```bash
-npm install -g pnpm
+# Run the setup target
+make setup
+```
+
+This will automatically install the correct versions of Go and Node.js using asdf.
+
+### Option B: Manual Installation
+
+If you prefer to install tools manually:
+
+- **Node.js**: Version **22.0.0** ([Download Node.js](https://nodejs.org/en/download/))
+- **Go**: Version **1.24.1** ([Download Go](https://go.dev/dl/))
+- **pnpm**: Version **9.0.0** ([Install pnpm](https://pnpm.io/installation))
+
+Install pnpm globally:
+```bash
+npm install -g pnpm@9.0.0
+```
+
+Check your versions:
+```bash
+node -v
+go version
+pnpm --version
 ```
 
 ---
@@ -33,21 +60,7 @@ pnpm install
 
 ---
 
-## 4. Node.js & Go Requirements
-
-- **Node.js**: Minimum version **18** ([Download Node.js](https://nodejs.org/en/download/))
-- **Go**: Minimum version **1.24** ([Download Go](https://go.dev/dl/))
-
-Check your versions:
-
-```bash
-node -v
-go version
-```
-
----
-
-## 5. Environment Variables
+## 4. Environment Variables
 
 Copy the example environment file and edit as needed:
 
@@ -79,7 +92,7 @@ TZ="America/New_York"
 
 ---
 
-## 6. Run a Database for Development
+## 5. Run a Database for Development
 
 You can use Docker Compose to run a local database. Example for **Postgres**:
 
@@ -92,7 +105,7 @@ Other options:
 
 ---
 
-## 7. Start the Development Servers
+## 6. Start the Development Servers
 
 Run the full stack (backend, frontend, docs) in development mode:
 
@@ -102,8 +115,30 @@ pnpm run dev docs:watch
 
 - The web UI will be available at [http://localhost:8383](http://localhost:8383)
 - The backend API will be at [http://localhost:8034](http://localhost:8034)
-- Api docs will be available at [http://localhost:8034/swagger/index.html](http://localhost:8034/swagger/index.html)
-- Documentation will be available at[http://localhost:3000](http://localhost:3000)
+
+---
+
+## 7. Wrapper Scripts
+
+Peekaping includes wrapper scripts that automatically detect if asdf is available and use it, otherwise falling back to system binaries:
+
+- `scripts/go.sh` - Go-specific wrapper
+- `scripts/pnpm.sh` - pnpm-specific wrapper
+
+These scripts are used throughout the project's Makefile and package.json files to ensure consistent tool usage regardless of your setup.
+
+### Example Usage
+
+```bash
+# Using the Go wrapper
+./scripts/go.sh test ./src/...
+
+# Using the pnpm wrapper
+./scripts/pnpm.sh install
+```
+
+- API docs will be available at [http://localhost:8034/swagger/index.html](http://localhost:8034/swagger/index.html)
+- Documentation will be available at [http://localhost:3000](http://localhost:3000)
 
 ---
 
