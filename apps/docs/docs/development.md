@@ -32,7 +32,7 @@ This will automatically install the correct versions of Go and Node.js using asd
 
 If you prefer to install tools manually:
 
-- **Node.js**: Version **22.0.0** ([Download Node.js](https://nodejs.org/en/download/))
+- **Node.js**: Version **20.18.0** ([Download Node.js](https://nodejs.org/en/download/))
 - **Go**: Version **1.24.1** ([Download Go](https://go.dev/dl/))
 - **pnpm**: Version **9.0.0** ([Install pnpm](https://pnpm.io/installation))
 
