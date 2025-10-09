@@ -120,21 +120,19 @@ pnpm run dev docs:watch
 
 ## 7. Wrapper Scripts
 
-Peekaping includes wrapper scripts that automatically detect if asdf is available and use it, otherwise falling back to system binaries:
+Peekaping includes a unified wrapper script that automatically detects if asdf is available and use it, otherwise falling back to system binaries:
 
-- `scripts/go.sh` - Go-specific wrapper
-- `scripts/pnpm.sh` - pnpm-specific wrapper
+- `scripts/tool.sh` - Universal wrapper for any command (go, pnpm, etc.)
 
-These scripts are used throughout the project's Makefile and package.json files to ensure consistent tool usage regardless of your setup.
+This script is used throughout the project's Makefile and package.json files to ensure consistent tool usage regardless of your setup.
 
 ### Example Usage
 
 ```bash
-# Using the Go wrapper
-./scripts/go.sh test ./src/...
-
-# Using the pnpm wrapper
-./scripts/pnpm.sh install
+# Using the universal wrapper
+./scripts/tool.sh go test ./src/...
+./scripts/tool.sh pnpm install
+./scripts/tool.sh node --version
 ```
 
 - API docs will be available at [http://localhost:8034/swagger/index.html](http://localhost:8034/swagger/index.html)
