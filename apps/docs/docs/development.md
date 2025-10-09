@@ -36,11 +36,6 @@ If you prefer to install tools manually:
 - **Go**: Version **1.24.1** ([Download Go](https://go.dev/dl/))
 - **pnpm**: Version **9.0.0** ([Install pnpm](https://pnpm.io/installation))
 
-Install pnpm globally:
-```bash
-npm install -g pnpm@9.0.0
-```
-
 Check your versions:
 ```bash
 node -v
@@ -110,6 +105,10 @@ Other options:
 Run the full stack (backend, frontend, docs) in development mode:
 
 ```bash
+# Option 1: Using the Makefile (recommended)
+make dev
+
+# Option 2: Using pnpm directly
 pnpm run dev docs:watch
 ```
 

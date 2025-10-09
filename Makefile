@@ -245,3 +245,7 @@ setup: ## Setup development environment (asdf or manual)
 	@echo ""
 	@echo "🎉 Development environment setup complete!"
 	@echo "Run 'make help' to see available commands."
+
+.PHONY: dev
+dev: ## Start development environment
+	./scripts/tool.sh pnpm run dev
