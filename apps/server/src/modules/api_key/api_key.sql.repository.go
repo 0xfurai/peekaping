@@ -156,21 +156,6 @@ func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string) error {
 	return err
 }
 
-func (r *SQLRepositoryImpl) FindAll(ctx context.Context) ([]*Model, error) {
-	var sqlModels []sqlModel
-	err := r.db.NewSelect().Model(&sqlModels).Scan(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	models := make([]*Model, len(sqlModels))
-	for i, sqlModel := range sqlModels {
-		models[i] = toDomainModelFromSQL(&sqlModel)
-	}
-
-	return models, nil
-}
-
 func (r *SQLRepositoryImpl) UpdateLastUsed(ctx context.Context, id string) error {
 	_, err := r.db.NewUpdate().Model((*sqlModel)(nil)).
 		Set("last_used = ?", time.Now()).
