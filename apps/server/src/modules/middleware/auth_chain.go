@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"net/http"
 	"peekaping/src/modules/api_key"
 	"peekaping/src/modules/auth"
 	"peekaping/src/utils"
@@ -35,14 +36,14 @@ func (ac *AuthChain) JWTOnly() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			c.JSON(401, utils.NewFailResponse("Authorization header is required"))
+			c.JSON(http.StatusUnauthorized, utils.NewFailResponse("Authorization header is required"))
 			c.Abort()
 			return
 		}
 
 		// Reject API keys explicitly
-		if strings.HasPrefix(authHeader, "pk_") {
-			c.JSON(401, utils.NewFailResponse("JWT token required. This endpoint does not accept API keys."))
+		if strings.HasPrefix(authHeader, api_key.ApiKeyPrefix) {
+			c.JSON(http.StatusUnauthorized, utils.NewFailResponse("JWT token required. This endpoint does not accept API keys."))
 			c.Abort()
 			return
 		}
@@ -65,7 +66,7 @@ func (ac *AuthChain) AllAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			c.JSON(401, utils.NewFailResponse("Authorization header is required"))
+			c.JSON(http.StatusUnauthorized, utils.NewFailResponse("Authorization header is required"))
 			c.Abort()
 			return
 		}
@@ -82,7 +83,7 @@ func (ac *AuthChain) AllAuth() gin.HandlerFunc {
 
 		// Both failed, abort
 		ac.logger.Warnw("Authentication failed for both JWT and API key", "ip", c.ClientIP())
-		c.JSON(401, utils.NewFailResponse("Invalid authentication credentials"))
+		c.JSON(http.StatusUnauthorized, utils.NewFailResponse("Invalid authentication credentials"))
 		c.Abort()
 	}
 }
@@ -90,7 +91,7 @@ func (ac *AuthChain) AllAuth() gin.HandlerFunc {
 // tryJWTAuth attempts JWT authentication
 func (ac *AuthChain) tryJWTAuth(c *gin.Context, authHeader string) bool {
 	// Skip if it's clearly an API key
-	if strings.HasPrefix(authHeader, "pk_") {
+	if strings.HasPrefix(authHeader, api_key.ApiKeyPrefix) {
 		return false
 	}
 
@@ -111,8 +112,8 @@ func (ac *AuthChain) tryJWTAuth(c *gin.Context, authHeader string) bool {
 
 // tryAPIKeyAuth attempts API key authentication
 func (ac *AuthChain) tryAPIKeyAuth(c *gin.Context, authHeader string) bool {
-	// Only try API key if it starts with pk_
-	if !strings.HasPrefix(authHeader, "pk_") {
+	// Only try API key if it starts with ApiKeyPrefix
+	if !strings.HasPrefix(authHeader, api_key.ApiKeyPrefix) {
 		return false
 	}
 
