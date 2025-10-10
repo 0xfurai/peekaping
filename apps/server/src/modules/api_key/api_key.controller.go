@@ -20,34 +20,28 @@ func NewController(service Service) *Controller {
 
 // CreateAPIKey creates a new API key
 // @Summary Create API key
-// @Description Create a new API key for the authenticated user
+// @Description Create a new API key
 // @Tags api-keys
 // @Accept json
 // @Produce json
 // @Param request body CreateAPIKeyDto true "API key creation data"
 // @Success 201 {object} utils.ApiResponse[APIKeyWithTokenResponse]
 // @Failure 400 {object} utils.APIError
-// @Failure 401 {object} utils.APIError
 // @Failure 500 {object} utils.APIError
 // @Router /api-keys [post]
-// @Security BearerAuth
 func (c *Controller) CreateAPIKey(ctx *gin.Context) {
-	userID, exists := ctx.Get("userId")
-	if !exists {
-		ctx.JSON(http.StatusUnauthorized, utils.NewFailResponse("User not authenticated"))
-		return
-	}
+	// MARK: CreateAPIKey
 
 	var req CreateAPIKeyDto
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid request data"))
+		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		return
 	}
 
 	// Validate the request
 	validate := validator.New()
 	if err := validate.Struct(req); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Validation failed: " + err.Error()))
+		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		return
 	}
 
@@ -58,7 +52,7 @@ func (c *Controller) CreateAPIKey(ctx *gin.Context) {
 		MaxUsageCount: req.MaxUsageCount,
 	}
 
-	apiKey, err := c.service.Create(ctx, userID.(string), serviceReq)
+	apiKey, err := c.service.Create(ctx, serviceReq)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		return
@@ -67,24 +61,18 @@ func (c *Controller) CreateAPIKey(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, utils.NewSuccessResponse("API key created successfully", apiKey.ToAPIKeyWithTokenResponse()))
 }
 
-// GetAPIKeys gets all API keys for the authenticated user
+// GetAPIKeys gets all API keys
 // @Summary Get API keys
-// @Description Get all API keys for the authenticated user
+// @Description Get all API keys
 // @Tags api-keys
 // @Produce json
 // @Success 200 {object} utils.ApiResponse[[]APIKeyResponse]
-// @Failure 401 {object} utils.APIError
 // @Failure 500 {object} utils.APIError
 // @Router /api-keys [get]
-// @Security BearerAuth
 func (c *Controller) GetAPIKeys(ctx *gin.Context) {
-	userID, exists := ctx.Get("userId")
-	if !exists {
-		ctx.JSON(http.StatusUnauthorized, utils.NewFailResponse("User not authenticated"))
-		return
-	}
+	// MARK: GetAPIKeys
 
-	apiKeys, err := c.service.FindByUserID(ctx, userID.(string))
+	apiKeys, err := c.service.FindAll(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Failed to fetch API keys"))
 		return
@@ -105,17 +93,11 @@ func (c *Controller) GetAPIKeys(ctx *gin.Context) {
 // @Produce json
 // @Param id path string true "API key ID"
 // @Success 200 {object} utils.ApiResponse[APIKeyResponse]
-// @Failure 401 {object} utils.APIError
 // @Failure 404 {object} utils.APIError
 // @Failure 500 {object} utils.APIError
 // @Router /api-keys/{id} [get]
-// @Security BearerAuth
 func (c *Controller) GetAPIKey(ctx *gin.Context) {
-	userID, exists := ctx.Get("userId")
-	if !exists {
-		ctx.JSON(http.StatusUnauthorized, utils.NewFailResponse("User not authenticated"))
-		return
-	}
+	// MARK: GetAPIKey
 
 	id := ctx.Param("id")
 	apiKey, err := c.service.FindByID(ctx, id)
@@ -124,12 +106,6 @@ func (c *Controller) GetAPIKey(ctx *gin.Context) {
 		return
 	}
 	if apiKey == nil {
-		ctx.JSON(http.StatusNotFound, utils.NewFailResponse("API key not found"))
-		return
-	}
-
-	// Verify the API key belongs to the user
-	if apiKey.UserID != userID.(string) {
 		ctx.JSON(http.StatusNotFound, utils.NewFailResponse("API key not found"))
 		return
 	}
@@ -147,17 +123,11 @@ func (c *Controller) GetAPIKey(ctx *gin.Context) {
 // @Param request body UpdateAPIKeyDto true "API key update data"
 // @Success 200 {object} utils.ApiResponse[APIKeyResponse]
 // @Failure 400 {object} utils.APIError
-// @Failure 401 {object} utils.APIError
 // @Failure 404 {object} utils.APIError
 // @Failure 500 {object} utils.APIError
 // @Router /api-keys/{id} [put]
-// @Security BearerAuth
 func (c *Controller) UpdateAPIKey(ctx *gin.Context) {
-	userID, exists := ctx.Get("userId")
-	if !exists {
-		ctx.JSON(http.StatusUnauthorized, utils.NewFailResponse("User not authenticated"))
-		return
-	}
+	// MARK: UpdateAPIKey
 
 	id := ctx.Param("id")
 	var req UpdateAPIKeyDto
@@ -180,9 +150,9 @@ func (c *Controller) UpdateAPIKey(ctx *gin.Context) {
 		MaxUsageCount: req.MaxUsageCount,
 	}
 
-	apiKey, err := c.service.Update(ctx, id, userID.(string), serviceReq)
+	apiKey, err := c.service.Update(ctx, id, serviceReq)
 	if err != nil {
-		if err.Error() == "API key not found" || err.Error() == "unauthorized" {
+		if err.Error() == "API key not found" {
 			ctx.JSON(http.StatusNotFound, utils.NewFailResponse("API key not found"))
 			return
 		}
@@ -199,22 +169,16 @@ func (c *Controller) UpdateAPIKey(ctx *gin.Context) {
 // @Tags api-keys
 // @Param id path string true "API key ID"
 // @Success 204 "No Content"
-// @Failure 401 {object} utils.APIError
 // @Failure 404 {object} utils.APIError
 // @Failure 500 {object} utils.APIError
 // @Router /api-keys/{id} [delete]
-// @Security BearerAuth
 func (c *Controller) DeleteAPIKey(ctx *gin.Context) {
-	userID, exists := ctx.Get("userId")
-	if !exists {
-		ctx.JSON(http.StatusUnauthorized, utils.NewFailResponse("User not authenticated"))
-		return
-	}
+	// MARK: DeleteAPIKey
 
 	id := ctx.Param("id")
-	err := c.service.Delete(ctx, id, userID.(string))
+	err := c.service.Delete(ctx, id)
 	if err != nil {
-		if err.Error() == "API key not found" || err.Error() == "unauthorized" {
+		if err.Error() == "API key not found" {
 			ctx.JSON(http.StatusNotFound, utils.NewFailResponse("API key not found"))
 			return
 		}
@@ -233,6 +197,8 @@ func (c *Controller) DeleteAPIKey(ctx *gin.Context) {
 // @Success 200 {object} utils.ApiResponse[APIKeyConfigResponse]
 // @Router /api-keys/config [get]
 func (c *Controller) GetAPIKeyConfig(ctx *gin.Context) {
+	// MARK: GetAPIKeyConfig
+
 	config := &APIKeyConfigResponse{
 		Prefix: ApiKeyPrefix,
 	}

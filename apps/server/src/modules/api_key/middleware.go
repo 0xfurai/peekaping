@@ -47,9 +47,7 @@ func (p *MiddlewareProvider) Auth() gin.HandlerFunc {
 			return
 		}
 
-		// Set user information in the context
-		c.Set("userId", apiKey.UserID)
-		c.Set("email", "") // API keys don't have email directly
+		// Set API key information in the context
 		c.Set("apiKeyId", apiKey.ID)
 		c.Set("authType", "api_key")
 

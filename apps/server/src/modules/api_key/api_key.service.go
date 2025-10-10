@@ -11,11 +11,11 @@ import (
 
 // Service defines the interface for API key business logic
 type Service interface {
-	Create(ctx context.Context, userID string, req *CreateRequest) (*APIKeyWithToken, error)
-	FindByUserID(ctx context.Context, userID string) ([]*Model, error)
+	Create(ctx context.Context, req *CreateRequest) (*APIKeyWithToken, error)
+	FindAll(ctx context.Context) ([]*Model, error)
 	FindByID(ctx context.Context, id string) (*Model, error)
-	Update(ctx context.Context, id string, userID string, req *UpdateRequest) (*Model, error)
-	Delete(ctx context.Context, id string, userID string) error
+	Update(ctx context.Context, id string, req *UpdateRequest) (*Model, error)
+	Delete(ctx context.Context, id string) error
 	ValidateKey(ctx context.Context, key string) (*Model, error)
 }
 
@@ -38,6 +38,7 @@ type ServiceImpl struct {
 	logger *zap.SugaredLogger
 }
 
+// MARK: Constructor
 func NewService(repo Repository, logger *zap.SugaredLogger) Service {
 	return &ServiceImpl{
 		repo:   repo,
@@ -45,23 +46,23 @@ func NewService(repo Repository, logger *zap.SugaredLogger) Service {
 	}
 }
 
-func (s *ServiceImpl) Create(ctx context.Context, userID string, req *CreateRequest) (*APIKeyWithToken, error) {
-	s.logger.Infow("Creating API key", "userId", userID, "name", req.Name)
+// MARK: Create
+func (s *ServiceImpl) Create(ctx context.Context, req *CreateRequest) (*APIKeyWithToken, error) {
+	s.logger.Infow("Creating API key", "name", req.Name)
 
 	// Validate expiration date
 	if req.ExpiresAt != nil && req.ExpiresAt.Before(time.Now()) {
-		s.logger.Warnw("Invalid expiration date provided", "userId", userID, "expiresAt", req.ExpiresAt)
+		s.logger.Warnw("Invalid expiration date provided", "expiresAt", req.ExpiresAt)
 		return nil, errors.New("expiration date cannot be in the past")
 	}
 
 	// Validate max usage count
 	if req.MaxUsageCount != nil && *req.MaxUsageCount <= 0 {
-		s.logger.Warnw("Invalid max usage count provided", "userId", userID, "maxUsageCount", *req.MaxUsageCount)
+		s.logger.Warnw("Invalid max usage count provided", "maxUsageCount", *req.MaxUsageCount)
 		return nil, errors.New("max usage count must be greater than 0")
 	}
 
 	createModel := &CreateModel{
-		UserID:        userID,
 		Name:          req.Name,
 		ExpiresAt:     req.ExpiresAt,
 		MaxUsageCount: req.MaxUsageCount,
@@ -69,33 +70,33 @@ func (s *ServiceImpl) Create(ctx context.Context, userID string, req *CreateRequ
 
 	result, err := s.repo.Create(ctx, createModel)
 	if err != nil {
-		s.logger.Errorw("Failed to create API key", "userId", userID, "name", req.Name, "error", err)
+		s.logger.Errorw("Failed to create API key", "name", req.Name, "error", err)
 		return nil, err
 	}
 
-	s.logger.Infow("API key created successfully", "userId", userID, "apiKeyId", result.ID, "name", req.Name)
+	s.logger.Infow("API key created successfully", "apiKeyId", result.ID, "name", req.Name)
 	return result, nil
 }
 
-func (s *ServiceImpl) FindByUserID(ctx context.Context, userID string) ([]*Model, error) {
-	return s.repo.FindByUserID(ctx, userID)
+// MARK: FindAll
+func (s *ServiceImpl) FindAll(ctx context.Context) ([]*Model, error) {
+	return s.repo.FindAll(ctx)
 }
 
+// MARK: FindByID
 func (s *ServiceImpl) FindByID(ctx context.Context, id string) (*Model, error) {
 	return s.repo.FindByID(ctx, id)
 }
 
-func (s *ServiceImpl) Update(ctx context.Context, id string, userID string, req *UpdateRequest) (*Model, error) {
-	// First, verify the API key belongs to the user
+// MARK: Update
+func (s *ServiceImpl) Update(ctx context.Context, id string, req *UpdateRequest) (*Model, error) {
+	// First, verify the API key exists
 	apiKey, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 	if apiKey == nil {
 		return nil, errors.New("API key not found")
-	}
-	if apiKey.UserID != userID {
-		return nil, errors.New("unauthorized")
 	}
 
 	// Validate expiration date if provided
@@ -121,8 +122,9 @@ func (s *ServiceImpl) Update(ctx context.Context, id string, userID string, req 
 	return s.repo.Update(ctx, id, updateModel)
 }
 
-func (s *ServiceImpl) Delete(ctx context.Context, id string, userID string) error {
-	// First, verify the API key belongs to the user
+// MARK: Delete
+func (s *ServiceImpl) Delete(ctx context.Context, id string) error {
+	// First, verify the API key exists
 	apiKey, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		return err
@@ -130,13 +132,11 @@ func (s *ServiceImpl) Delete(ctx context.Context, id string, userID string) erro
 	if apiKey == nil {
 		return errors.New("API key not found")
 	}
-	if apiKey.UserID != userID {
-		return errors.New("unauthorized")
-	}
 
 	return s.repo.Delete(ctx, id)
 }
 
+// MARK: ValidateKey
 func (s *ServiceImpl) ValidateKey(ctx context.Context, key string) (*Model, error) {
 	s.logger.Debugw("Validating API key", "key", maskAPIKey(key))
 
@@ -190,7 +190,7 @@ func (s *ServiceImpl) ValidateKey(ctx context.Context, key string) (*Model, erro
 		s.logger.Errorw("Error updating last used timestamp and usage count", "apiKeyId", matchedKey.ID, "error", err)
 	}
 
-	s.logger.Infow("API key validation successful", "apiKeyId", matchedKey.ID, "userId", matchedKey.UserID, "name", matchedKey.Name)
+	s.logger.Infow("API key validation successful", "apiKeyId", matchedKey.ID, "name", matchedKey.Name)
 	return matchedKey, nil
 }
 
