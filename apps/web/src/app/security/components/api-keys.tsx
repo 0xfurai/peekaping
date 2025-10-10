@@ -59,13 +59,32 @@ import type {
 
 const createAPIKeySchema = z.object({
   name: z.string().min(1, "Name is required").max(255, "Name too long"),
-  expiresAt: z.string().optional(),
+  expiresAt: z
+    .string()
+    .optional()
+    .refine(
+      (val) => {
+        if (val === undefined || val === "") return true; // Optional field
+        const date = new Date(val);
+        return !isNaN(date.getTime()) && date > new Date(); // Must be valid date and in future
+      },
+      {
+        message: "Must be a valid future date",
+      }
+    ),
   maxUsageCount: z
     .string()
     .optional()
-    .refine((val) => !val || !isNaN(parseInt(val, 10)), {
-      message: "Must be a valid number",
-    }),
+    .refine(
+      (val) => {
+        if (val === undefined || val === "") return true; // Optional field
+        const num = parseInt(val, 10);
+        return !isNaN(num) && num > 0; // Must be positive integer
+      },
+      {
+        message: "Must be a positive number",
+      }
+    ),
 });
 
 type CreateAPIKeyForm = z.infer<typeof createAPIKeySchema>;
@@ -119,6 +138,18 @@ const APIKeys = () => {
         ? parseInt(data.maxUsageCount, 10)
         : undefined,
     };
+
+    // Additional validation before submission
+    if (
+      createData.expires_at &&
+      new Date(createData.expires_at) <= new Date()
+    ) {
+      form.setError("expiresAt", {
+        type: "manual",
+        message: "Expiration date must be in the future",
+      });
+      return;
+    }
 
     createMutation.mutate(
       {
@@ -200,6 +231,7 @@ const APIKeys = () => {
     return usageCount >= maxUsageCount;
   };
 
+  // MARK: Render
   return (
     <div className="flex flex-col gap-4 mt-8">
       <div className="flex items-center justify-between">
