@@ -17,7 +17,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Table,
@@ -89,24 +88,19 @@ const createAPIKeySchema = z.object({
 
 type CreateAPIKeyForm = z.infer<typeof createAPIKeySchema>;
 
-const APIKeys = () => {
+// MARK: CreateAPIKeyModal
+const CreateAPIKeyModal = ({
+  open,
+  onOpenChange,
+  onSuccess,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess: (response: PostApiKeysResponse) => void;
+}) => {
   const { t } = useLocalizedTranslation();
   const { timezone: userTimezone } = useTimezone();
   const queryClient = useQueryClient();
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [newKeyState, setNewKeyState] = useState<{
-    token: string | null;
-    id: string | null;
-  }>({
-    token: null,
-    id: null,
-  });
-
-  const { data: apiKeysResponse, isLoading } = useQuery(getApiKeysOptions());
-  const createMutation = useMutation(postApiKeysMutation());
-  const deleteMutation = useMutation(deleteApiKeysByIdMutation());
-
-  const apiKeys: ApiKeyApiKeyResponse[] = apiKeysResponse?.data || [];
 
   const form = useForm<CreateAPIKeyForm>({
     resolver: zodResolver(createAPIKeySchema),
@@ -117,17 +111,7 @@ const APIKeys = () => {
     },
   });
 
-  const handleCreateSuccess = (response: PostApiKeysResponse) => {
-    setNewKeyState({
-      token: response.data.token,
-      id: response.data.id,
-    });
-    setShowCreateDialog(false);
-    form.reset();
-    // Invalidate and refetch the API keys query to update the UI
-    queryClient.invalidateQueries({ queryKey: getApiKeysOptions().queryKey });
-    toast.success(t("security.api_keys.messages.created_successfully"));
-  };
+  const createMutation = useMutation(postApiKeysMutation());
 
   const handleCreateError = () => {
     toast.error(t("security.api_keys.messages.failed_to_create"));
@@ -161,10 +145,134 @@ const APIKeys = () => {
         body: createData,
       },
       {
-        onSuccess: handleCreateSuccess,
+        onSuccess: (response) => {
+          onSuccess(response);
+          onOpenChange(false);
+          queryClient.invalidateQueries({
+            queryKey: getApiKeysOptions().queryKey,
+          });
+          toast.success(t("security.api_keys.messages.created_successfully"));
+        },
         onError: handleCreateError,
       }
     );
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>
+            {t("security.api_keys.create_dialog.title")}
+          </DialogTitle>
+          <DialogDescription>
+            {t("security.api_keys.create_dialog.description")}
+          </DialogDescription>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    {t("security.api_keys.create_dialog.form.name_label")}
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder={t(
+                        "security.api_keys.create_dialog.form.name_placeholder"
+                      )}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="expiresAt"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    {t("security.api_keys.create_dialog.form.expires_at_label")}
+                  </FormLabel>
+                  <FormControl>
+                    <Input {...field} type="datetime-local" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="maxUsageCount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    {t("security.api_keys.create_dialog.form.max_usage_label")}
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="number"
+                      min="1"
+                      placeholder={t(
+                        "security.api_keys.create_dialog.form.max_usage_placeholder"
+                      )}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
+                {t("security.api_keys.create_dialog.buttons.cancel")}
+              </Button>
+              <Button type="submit" disabled={createMutation.isPending}>
+                {createMutation.isPending
+                  ? t("security.api_keys.create_dialog.buttons.creating")
+                  : t("security.api_keys.create_dialog.buttons.create")}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+// MARK: APIKeys Component
+const APIKeys = () => {
+  const { t } = useLocalizedTranslation();
+  const { timezone: userTimezone } = useTimezone();
+  const queryClient = useQueryClient();
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [newKeyState, setNewKeyState] = useState<{
+    token: string | null;
+    id: string | null;
+  }>({
+    token: null,
+    id: null,
+  });
+
+  const { data: apiKeysResponse, isLoading } = useQuery(getApiKeysOptions());
+  const deleteMutation = useMutation(deleteApiKeysByIdMutation());
+
+  const apiKeys: ApiKeyApiKeyResponse[] = apiKeysResponse?.data || [];
+
+  const handleCreateSuccess = (response: PostApiKeysResponse) => {
+    setNewKeyState({
+      token: response.data.token,
+      id: response.data.id,
+    });
   };
 
   const handleDelete = (id: string) => {
@@ -243,107 +351,17 @@ const APIKeys = () => {
     <div className="flex flex-col gap-4 mt-8">
       <div className="flex items-center justify-between">
         <TypographyH4>{t("security.api_keys.title")}</TypographyH4>
-        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              {t("security.api_keys.create_button")}
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {t("security.api_keys.create_dialog.title")}
-              </DialogTitle>
-              <DialogDescription>
-                {t("security.api_keys.create_dialog.description")}
-              </DialogDescription>
-            </DialogHeader>
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-4"
-              >
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        {t("security.api_keys.create_dialog.form.name_label")}
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          placeholder={t(
-                            "security.api_keys.create_dialog.form.name_placeholder"
-                          )}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="expiresAt"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        {t(
-                          "security.api_keys.create_dialog.form.expires_at_label"
-                        )}
-                      </FormLabel>
-                      <FormControl>
-                        <Input {...field} type="datetime-local" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="maxUsageCount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        {t(
-                          "security.api_keys.create_dialog.form.max_usage_label"
-                        )}
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="number"
-                          min="1"
-                          placeholder={t(
-                            "security.api_keys.create_dialog.form.max_usage_placeholder"
-                          )}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <DialogFooter>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowCreateDialog(false)}
-                  >
-                    {t("security.api_keys.create_dialog.buttons.cancel")}
-                  </Button>
-                  <Button type="submit" disabled={createMutation.isPending}>
-                    {createMutation.isPending
-                      ? t("security.api_keys.create_dialog.buttons.creating")
-                      : t("security.api_keys.create_dialog.buttons.create")}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={() => setShowCreateDialog(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          {t("security.api_keys.create_button")}
+        </Button>
       </div>
+
+      <CreateAPIKeyModal
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
+        onSuccess={handleCreateSuccess}
+      />
 
       {newKeyState.token && (
         <Alert>
