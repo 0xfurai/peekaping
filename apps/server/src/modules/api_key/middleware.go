@@ -33,7 +33,7 @@ func (p *MiddlewareProvider) Auth() gin.HandlerFunc {
 		}
 
 		// Only accept API keys
-		if !strings.HasPrefix(authHeader, "pk_") {
+		if !strings.HasPrefix(authHeader, ApiKeyPrefix) {
 			c.JSON(http.StatusUnauthorized, utils.NewFailResponse("API key required"))
 			c.Abort()
 			return

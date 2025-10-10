@@ -27,7 +27,7 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 	// Handle missing display_key column gracefully
 	displayKey := sm.DisplayKey
 	if displayKey == "" {
-		displayKey = "pk_" + sm.ID[:6] + "..."
+		displayKey = ApiKeyPrefix + sm.ID[:6] + "..."
 	}
 	
 	return &Model{
