@@ -130,6 +130,7 @@ func (s *ServiceImpl) Delete(ctx context.Context, id string) error {
 		return err
 	}
 	if apiKey == nil {
+		s.logger.Warnw("API key not found", "id", id)
 		return errors.New("API key not found")
 	}
 

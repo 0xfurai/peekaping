@@ -54,7 +54,7 @@ func (c *Controller) CreateAPIKey(ctx *gin.Context) {
 
 	apiKey, err := c.service.Create(ctx, serviceReq)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse(err.Error()))
 		return
 	}
 
@@ -74,7 +74,7 @@ func (c *Controller) GetAPIKeys(ctx *gin.Context) {
 
 	apiKeys, err := c.service.FindAll(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Failed to fetch API keys"))
+		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse(err.Error()))
 		return
 	}
 
@@ -102,7 +102,7 @@ func (c *Controller) GetAPIKey(ctx *gin.Context) {
 	id := ctx.Param("id")
 	apiKey, err := c.service.FindByID(ctx, id)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Failed to fetch API key"))
+		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse(err.Error()))
 		return
 	}
 	if apiKey == nil {
@@ -132,14 +132,14 @@ func (c *Controller) UpdateAPIKey(ctx *gin.Context) {
 	id := ctx.Param("id")
 	var req UpdateAPIKeyDto
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid request data"))
+		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		return
 	}
 
 	// Validate the request
 	validate := validator.New()
 	if err := validate.Struct(req); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Validation failed: " + err.Error()))
+		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		return
 	}
 
@@ -156,7 +156,7 @@ func (c *Controller) UpdateAPIKey(ctx *gin.Context) {
 			ctx.JSON(http.StatusNotFound, utils.NewFailResponse("API key not found"))
 			return
 		}
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse(err.Error()))
 		return
 	}
 
@@ -178,11 +178,7 @@ func (c *Controller) DeleteAPIKey(ctx *gin.Context) {
 	id := ctx.Param("id")
 	err := c.service.Delete(ctx, id)
 	if err != nil {
-		if err.Error() == "API key not found" {
-			ctx.JSON(http.StatusNotFound, utils.NewFailResponse("API key not found"))
-			return
-		}
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Failed to delete API key"))
+		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse(err.Error()))
 		return
 	}
 
