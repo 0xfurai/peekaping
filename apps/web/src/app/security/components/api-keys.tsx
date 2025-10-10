@@ -94,10 +94,13 @@ const APIKeys = () => {
   const { timezone: userTimezone } = useTimezone();
   const queryClient = useQueryClient();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [newToken, setNewToken] = useState<string | null>(null);
-  const [newlyCreatedKeyId, setNewlyCreatedKeyId] = useState<string | null>(
-    null
-  );
+  const [newKeyState, setNewKeyState] = useState<{
+    token: string | null;
+    id: string | null;
+  }>({
+    token: null,
+    id: null,
+  });
 
   const { data: apiKeysResponse, isLoading } = useQuery(getApiKeysOptions());
   const createMutation = useMutation(postApiKeysMutation());
@@ -115,8 +118,10 @@ const APIKeys = () => {
   });
 
   const handleCreateSuccess = (response: PostApiKeysResponse) => {
-    setNewToken(response.data.token);
-    setNewlyCreatedKeyId(response.data.id);
+    setNewKeyState({
+      token: response.data.token,
+      id: response.data.id,
+    });
     setShowCreateDialog(false);
     form.reset();
     // Invalidate and refetch the API keys query to update the UI
@@ -190,8 +195,10 @@ const APIKeys = () => {
   };
 
   const dismissNewToken = () => {
-    setNewToken(null);
-    setNewlyCreatedKeyId(null);
+    setNewKeyState({
+      token: null,
+      id: null,
+    });
   };
 
   const formatDate = (dateString: string | null | undefined) => {
@@ -338,7 +345,7 @@ const APIKeys = () => {
         </Dialog>
       </div>
 
-      {newToken && (
+      {newKeyState.token && (
         <Alert>
           <Key className="h-4 w-4" />
           <AlertTitle>{t("security.api_keys.success_alert.title")}</AlertTitle>
@@ -349,12 +356,14 @@ const APIKeys = () => {
               </p>
               <div className="flex items-center gap-2">
                 <code className="bg-muted px-2 py-1 rounded text-sm font-mono">
-                  {newToken}
+                  {newKeyState.token}
                 </code>
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => copyToClipboard(newToken)}
+                  onClick={() =>
+                    newKeyState.token && copyToClipboard(newKeyState.token)
+                  }
                 >
                   <Copy className="h-4 w-4" />
                 </Button>
@@ -429,7 +438,7 @@ const APIKeys = () => {
                         <code className="bg-muted px-2 py-1 rounded text-sm font-mono">
                           {apiKey.display_key}
                         </code>
-                        {newlyCreatedKeyId === apiKey.id && (
+                        {newKeyState.id === apiKey.id && (
                           <Button
                             size="sm"
                             variant="outline"
