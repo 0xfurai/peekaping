@@ -128,18 +128,6 @@ func (r *RepositoryImpl) FindAll(ctx context.Context) ([]*Model, error) {
 	return models, nil
 }
 
-func (r *RepositoryImpl) FindByKeyHash(ctx context.Context, keyHash string) (*Model, error) {
-	mm := new(mongoModel)
-	err := r.collection.FindOne(ctx, bson.M{"key_hash": keyHash}).Decode(mm)
-	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return toDomainModel(mm), nil
-}
-
 func (r *RepositoryImpl) Update(ctx context.Context, id string, update *UpdateModel) (*Model, error) {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {

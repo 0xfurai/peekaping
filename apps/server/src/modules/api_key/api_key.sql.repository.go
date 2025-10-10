@@ -125,18 +125,6 @@ func (r *SQLRepositoryImpl) FindAll(ctx context.Context) ([]*Model, error) {
 	return models, nil
 }
 
-func (r *SQLRepositoryImpl) FindByKeyHash(ctx context.Context, keyHash string) (*Model, error) {
-	sm := new(sqlModel)
-	err := r.db.NewSelect().Model(sm).Where("key_hash = ?", keyHash).Scan(ctx)
-	if err != nil {
-		if err.Error() == "sql: no rows in result set" {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return toDomainModelFromSQL(sm), nil
-}
-
 func (r *SQLRepositoryImpl) Update(ctx context.Context, id string, update *UpdateModel) (*Model, error) {
 	sm := new(sqlModel)
 	
