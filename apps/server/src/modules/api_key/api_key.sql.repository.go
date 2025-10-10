@@ -68,14 +68,17 @@ func NewSQLRepository(db *bun.DB) Repository {
 }
 
 func (r *SQLRepositoryImpl) Create(ctx context.Context, apiKey *CreateModel) (*APIKeyWithToken, error) {
-	// Generate a secure API key
-	token, keyHash, displayKey, err := generateAPIKey()
+	// Generate API key ID upfront
+	apiKeyID := uuid.New().String()
+	
+	// Generate a secure API key using the ID
+	token, keyHash, displayKey, err := generateAPIKey(apiKeyID)
 	if err != nil {
 		return nil, err
 	}
 
 	sm := &sqlModel{
-		ID:            uuid.New().String(),
+		ID:            apiKeyID,
 		Name:          apiKey.Name,
 		KeyHash:       keyHash,
 		DisplayKey:    displayKey,
