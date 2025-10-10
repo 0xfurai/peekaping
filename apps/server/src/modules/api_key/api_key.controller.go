@@ -3,6 +3,7 @@ package api_key
 import (
 	"net/http"
 	"peekaping/src/utils"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -42,6 +43,18 @@ func (c *Controller) CreateAPIKey(ctx *gin.Context) {
 	validate := validator.New()
 	if err := validate.Struct(req); err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+		return
+	}
+
+	// Validate expiration date
+	if req.ExpiresAt != nil && req.ExpiresAt.Before(time.Now()) {
+		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("expiration date cannot be in the past"))
+		return
+	}
+
+	// Validate max usage count
+	if req.MaxUsageCount != nil && *req.MaxUsageCount <= 0 {
+		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("max usage count must be greater than 0"))
 		return
 	}
 
@@ -140,6 +153,18 @@ func (c *Controller) UpdateAPIKey(ctx *gin.Context) {
 	validate := validator.New()
 	if err := validate.Struct(req); err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+		return
+	}
+
+	// Validate expiration date if provided
+	if req.ExpiresAt != nil && req.ExpiresAt.Before(time.Now()) {
+		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("expiration date cannot be in the past"))
+		return
+	}
+
+	// Validate max usage count if provided
+	if req.MaxUsageCount != nil && *req.MaxUsageCount <= 0 {
+		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("max usage count must be greater than 0"))
 		return
 	}
 

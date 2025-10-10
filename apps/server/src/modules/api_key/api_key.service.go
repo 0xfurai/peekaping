@@ -50,18 +50,6 @@ func NewService(repo Repository, logger *zap.SugaredLogger) Service {
 func (s *ServiceImpl) Create(ctx context.Context, req *CreateRequest) (*APIKeyWithToken, error) {
 	s.logger.Infow("Creating API key", "name", req.Name)
 
-	// Validate expiration date
-	if req.ExpiresAt != nil && req.ExpiresAt.Before(time.Now()) {
-		s.logger.Warnw("Invalid expiration date provided", "expiresAt", req.ExpiresAt)
-		return nil, errors.New("expiration date cannot be in the past")
-	}
-
-	// Validate max usage count
-	if req.MaxUsageCount != nil && *req.MaxUsageCount <= 0 {
-		s.logger.Warnw("Invalid max usage count provided", "maxUsageCount", *req.MaxUsageCount)
-		return nil, errors.New("max usage count must be greater than 0")
-	}
-
 	createModel := &CreateModel{
 		Name:          req.Name,
 		ExpiresAt:     req.ExpiresAt,
@@ -99,20 +87,6 @@ func (s *ServiceImpl) Update(ctx context.Context, id string, req *UpdateRequest)
 		return nil, errors.New("API key not found")
 	}
 
-	// Validate expiration date if provided
-	if req.ExpiresAt != nil {
-		if req.ExpiresAt.Before(time.Now()) {
-			return nil, errors.New("expiration date cannot be in the past")
-		}
-	}
-
-	// Validate max usage count if provided
-	if req.MaxUsageCount != nil {
-		if *req.MaxUsageCount <= 0 {
-			return nil, errors.New("max usage count must be greater than 0")
-		}
-	}
-
 	updateModel := &UpdateModel{
 		Name:          req.Name,
 		ExpiresAt:     req.ExpiresAt,
@@ -131,7 +105,6 @@ func (s *ServiceImpl) Delete(ctx context.Context, id string) error {
 	}
 	if apiKey == nil {
 		s.logger.Warnw("API key not found", "id", id)
-		return errors.New("API key not found")
 	}
 
 	return s.repo.Delete(ctx, id)
