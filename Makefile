@@ -246,6 +246,15 @@ setup: ## Setup development environment (asdf or manual)
 	@echo "🎉 Development environment setup complete!"
 	@echo "Run 'make help' to see available commands."
 
+.PHONY: install
+install: ## Install all dependencies (pnpm install + go mod tidy)
+	@echo "📦 Installing all project dependencies..."
+	@echo "Installing Node.js dependencies..."
+	./scripts/tool.sh pnpm install
+	@echo "Tidying Go modules..."
+	cd apps/server && ../../scripts/tool.sh go mod tidy
+	@echo "✅ All dependencies installed successfully!"
+
 .PHONY: dev
 dev: ## Start development environment
 	./scripts/tool.sh pnpm run dev

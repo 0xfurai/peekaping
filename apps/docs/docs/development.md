@@ -13,7 +13,7 @@ cd peekaping
 
 ---
 
-## 2. Tool Management (Optional asdf support)
+## 2. Tool Management
 
 Peekaping supports both asdf and manual runtime installation:
 
@@ -43,14 +43,25 @@ go version
 pnpm --version
 ```
 
+### How asdf Works in This Project
+
+Peekaping includes `.tool-versions` files that specify the exact tool versions:
+- Root `.tool-versions`: Contains all tools (golang, nodejs, pnpm)
+- `apps/server/.tool-versions`: Contains server-specific tools (golang, nodejs)
+
+The project uses a universal wrapper script (`scripts/tool.sh`) that automatically:
+- Uses asdf-managed tools when asdf is available
+- Falls back to system tools when asdf is not installed
+- Ensures consistent tool usage across all development commands
+
 ---
 
 ## 3. Install Dependencies
 
-Install all project dependencies:
+Install all project dependencies in apps/{web,server}:
 
 ```bash
-pnpm install
+make install
 ```
 
 ---
@@ -117,13 +128,21 @@ pnpm run dev docs:watch
 
 ---
 
-## 7. Wrapper Scripts
+## 7. Wrapper Scripts & asdf Integration
 
-Peekaping includes a unified wrapper script that automatically detects if asdf is available and use it, otherwise falling back to system binaries:
+Peekaping includes a unified wrapper script that automatically detects if asdf is available and uses it, otherwise falling back to system binaries:
 
 - `scripts/tool.sh` - Universal wrapper for any command (go, pnpm, etc.)
 
 This script is used throughout the project's Makefile and package.json files to ensure consistent tool usage regardless of your setup.
+
+### How the Wrapper Works
+
+The wrapper script (`scripts/tool.sh`) provides seamless integration between asdf and system tools:
+
+1. **With asdf**: Automatically uses the versions specified in `.tool-versions`
+2. **Without asdf**: Falls back to system-installed tools
+3. **Error handling**: Provides clear error messages if tools are missing
 
 ### Example Usage
 
@@ -139,8 +158,59 @@ This script is used throughout the project's Makefile and package.json files to 
 
 ---
 
-## 8. Additional Tips
+## 8. Troubleshooting
 
+### Common asdf Issues
+
+**Problem**: `asdf: command not found`
+```bash
+# Solution: Make sure asdf is in your PATH
+echo '. "$HOME/.asdf/asdf.sh"' >> ~/.zshrc  # or ~/.bashrc
+source ~/.zshrc  # or ~/.bashrc
+```
+
+**Problem**: Tools not found after asdf installation
+```bash
+# Solution: Reshim asdf
+asdf reshim golang
+asdf reshim nodejs
+asdf reshim pnpm
+```
+
+**Problem**: Wrong tool versions being used
+```bash
+# Solution: Check which version is active
+asdf current
+
+# Set the correct version
+asdf local golang 1.24.1
+asdf local nodejs 20.18.0
+```
+
+**Problem**: `make setup` fails
+```bash
+# Solution: Install asdf plugins manually
+asdf plugin add golang
+asdf plugin add nodejs
+asdf plugin add pnpm
+asdf install
+```
+
+### Manual Tool Installation Issues
+
+- For Go development, make sure your `GOPATH` and `PATH` are set up correctly ([Go install instructions](https://go.dev/doc/install))
+- Ensure Node.js and pnpm are in your system PATH
+- Check that all required tools are installed with correct versions
+
+## 9. Additional Tips
+
+When using binaries:
 - For Go development, make sure your `GOPATH` and `PATH` are set up correctly ([Go install instructions](https://go.dev/doc/install)).
+
+When using asdf:
+- Use `make setup` to automatically configure your development environment
+- The wrapper script (`scripts/tool.sh`) ensures consistent tool usage across the project
+- Check `.tool-versions` files to see the exact versions used in this project
+- Use `asdf current` to verify your tool versions match the project requirements
 
 Happy hacking! 🚀
