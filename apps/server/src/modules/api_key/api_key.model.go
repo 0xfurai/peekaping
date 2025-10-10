@@ -7,7 +7,6 @@ import (
 // Model represents an API key in the domain
 type Model struct {
 	ID             string     `json:"id"`
-	UserID         string     `json:"user_id"`
 	Name           string     `json:"name"`
 	KeyHash        string     `json:"-"` // Never expose the hash
 	DisplayKey     string     `json:"display_key"` // Masked key for display (e.g., "pk_1234...5678")
@@ -21,7 +20,6 @@ type Model struct {
 
 // CreateModel represents data needed to create an API key
 type CreateModel struct {
-	UserID         string     `json:"user_id"`
 	Name           string     `json:"name"`
 	ExpiresAt      *time.Time `json:"expires_at,omitempty"`
 	MaxUsageCount  *int64     `json:"max_usage_count,omitempty"`

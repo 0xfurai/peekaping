@@ -14,7 +14,6 @@ import (
 
 type mongoModel struct {
 	ID             primitive.ObjectID `bson:"_id"`
-	UserID         string             `bson:"user_id"`
 	Name           string             `bson:"name"`
 	KeyHash        string             `bson:"key_hash"`
 	DisplayKey     string             `bson:"display_key"`
@@ -36,7 +35,6 @@ type mongoUpdateModel struct {
 func toDomainModel(mm *mongoModel) *Model {
 	return &Model{
 		ID:            mm.ID.Hex(),
-		UserID:        mm.UserID,
 		Name:          mm.Name,
 		KeyHash:       mm.KeyHash,
 		DisplayKey:    mm.DisplayKey,
@@ -70,7 +68,6 @@ func (r *RepositoryImpl) Create(ctx context.Context, apiKey *CreateModel) (*APIK
 
 	mm := &mongoModel{
 		ID:            primitive.NewObjectID(),
-		UserID:        apiKey.UserID,
 		Name:          apiKey.Name,
 		KeyHash:       keyHash,
 		DisplayKey:    displayKey,
@@ -111,9 +108,9 @@ func (r *RepositoryImpl) FindByID(ctx context.Context, id string) (*Model, error
 	return toDomainModel(mm), nil
 }
 
-func (r *RepositoryImpl) FindByUserID(ctx context.Context, userID string) ([]*Model, error) {
+func (r *RepositoryImpl) FindAll(ctx context.Context) ([]*Model, error) {
 	opts := options.Find().SetSort(bson.M{"createdAt": -1})
-	cursor, err := r.collection.Find(ctx, bson.M{"user_id": userID}, opts)
+	cursor, err := r.collection.Find(ctx, bson.M{}, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -189,26 +186,6 @@ func (r *RepositoryImpl) Delete(ctx context.Context, id string) error {
 
 	_, err = r.collection.DeleteOne(ctx, bson.M{"_id": objectID})
 	return err
-}
-
-func (r *RepositoryImpl) FindAll(ctx context.Context) ([]*Model, error) {
-	cursor, err := r.collection.Find(ctx, bson.M{})
-	if err != nil {
-		return nil, err
-	}
-	defer cursor.Close(ctx)
-
-	var mongoModels []mongoModel
-	if err = cursor.All(ctx, &mongoModels); err != nil {
-		return nil, err
-	}
-
-	models := make([]*Model, len(mongoModels))
-	for i, mongoModel := range mongoModels {
-		models[i] = toDomainModel(&mongoModel)
-	}
-
-	return models, nil
 }
 
 func (r *RepositoryImpl) UpdateLastUsed(ctx context.Context, id string) error {

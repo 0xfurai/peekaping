@@ -12,7 +12,6 @@ type sqlModel struct {
 	bun.BaseModel `bun:"table:api_keys,alias:ak"`
 
 	ID             string     `bun:"id,pk"`
-	UserID         string     `bun:"user_id,notnull"`
 	Name           string     `bun:"name,notnull"`
 	KeyHash        string     `bun:"key_hash,notnull"`
 	DisplayKey     string     `bun:"display_key,notnull"`
@@ -33,7 +32,6 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 	
 	return &Model{
 		ID:            sm.ID,
-		UserID:        sm.UserID,
 		Name:          sm.Name,
 		KeyHash:       sm.KeyHash,
 		DisplayKey:    displayKey,
@@ -49,7 +47,6 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 func toSQLModel(m *Model) *sqlModel {
 	return &sqlModel{
 		ID:            m.ID,
-		UserID:        m.UserID,
 		Name:          m.Name,
 		KeyHash:       m.KeyHash,
 		DisplayKey:    m.DisplayKey,
@@ -79,7 +76,6 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, apiKey *CreateModel) (*A
 
 	sm := &sqlModel{
 		ID:            uuid.New().String(),
-		UserID:        apiKey.UserID,
 		Name:          apiKey.Name,
 		KeyHash:       keyHash,
 		DisplayKey:    displayKey,
@@ -115,9 +111,9 @@ func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, er
 	return toDomainModelFromSQL(sm), nil
 }
 
-func (r *SQLRepositoryImpl) FindByUserID(ctx context.Context, userID string) ([]*Model, error) {
+func (r *SQLRepositoryImpl) FindAll(ctx context.Context) ([]*Model, error) {
 	var sms []*sqlModel
-	err := r.db.NewSelect().Model(&sms).Where("user_id = ?", userID).Order("created_at DESC").Scan(ctx)
+	err := r.db.NewSelect().Model(&sms).Order("created_at DESC").Scan(ctx)
 	if err != nil {
 		return nil, err
 	}
