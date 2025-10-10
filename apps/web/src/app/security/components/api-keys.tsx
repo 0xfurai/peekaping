@@ -88,6 +88,57 @@ const createAPIKeySchema = z.object({
 
 type CreateAPIKeyForm = z.infer<typeof createAPIKeySchema>;
 
+// MARK: DeleteConfirmationModal
+const DeleteConfirmationModal = ({
+  open,
+  onOpenChange,
+  onConfirm,
+  apiKeyName,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => void;
+  apiKeyName: string;
+}) => {
+  const { t } = useLocalizedTranslation();
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>
+            {t("security.api_keys.delete_dialog.title")}
+          </DialogTitle>
+          <DialogDescription>
+            {t("security.api_keys.delete_dialog.description", {
+              name: apiKeyName,
+            })}
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+          >
+            {t("security.api_keys.delete_dialog.buttons.cancel")}
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={() => {
+              onConfirm();
+              onOpenChange(false);
+            }}
+          >
+            {t("security.api_keys.delete_dialog.buttons.delete")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 // MARK: CreateAPIKeyModal
 const CreateAPIKeyModal = ({
   open,
@@ -255,6 +306,15 @@ const APIKeys = () => {
   const { timezone: userTimezone } = useTimezone();
   const queryClient = useQueryClient();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    open: boolean;
+    id: string | null;
+    name: string | null;
+  }>({
+    open: false,
+    id: null,
+    name: null,
+  });
   const [newKeyState, setNewKeyState] = useState<{
     token: string | null;
     id: string | null;
@@ -275,11 +335,19 @@ const APIKeys = () => {
     });
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm(t("security.api_keys.messages.delete_confirm"))) {
+  const handleDelete = (id: string, name: string) => {
+    setDeleteConfirmation({
+      open: true,
+      id,
+      name,
+    });
+  };
+
+  const confirmDelete = () => {
+    if (deleteConfirmation.id) {
       deleteMutation.mutate(
         {
-          path: { id },
+          path: { id: deleteConfirmation.id },
         },
         {
           onSuccess: () => {
@@ -361,6 +429,15 @@ const APIKeys = () => {
         open={showCreateDialog}
         onOpenChange={setShowCreateDialog}
         onSuccess={handleCreateSuccess}
+      />
+
+      <DeleteConfirmationModal
+        open={deleteConfirmation.open}
+        onOpenChange={(open) =>
+          setDeleteConfirmation((prev) => ({ ...prev, open }))
+        }
+        onConfirm={confirmDelete}
+        apiKeyName={deleteConfirmation.name || ""}
       />
 
       {newKeyState.token && (
@@ -510,7 +587,7 @@ const APIKeys = () => {
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => handleDelete(apiKey.id)}
+                        onClick={() => handleDelete(apiKey.id, apiKey.name)}
                         disabled={deleteMutation.isPending}
                       >
                         <Trash2 className="h-4 w-4" />
