@@ -114,57 +114,52 @@ func (s *ServiceImpl) Delete(ctx context.Context, id string) error {
 func (s *ServiceImpl) ValidateKey(ctx context.Context, key string) (*Model, error) {
 	s.logger.Debugw("Validating API key", "key", maskAPIKey(key))
 
-	// Validate key format
-	if !isValidAPIKeyFormat(key) {
-		s.logger.Warnw("Invalid API key format", "key", maskAPIKey(key))
+	// Parse the API key token to extract ID and actual key
+	apiKeyID, actualKey, err := parseAPIKeyToken(key)
+	if err != nil {
+		s.logger.Warnw("Invalid API key format", "key", maskAPIKey(key), "error", err)
 		return nil, errors.New("Invalid API key")
 	}
 
-	// Get all API keys and compare using bcrypt.CompareHashAndPassword
-	// This is necessary because bcrypt generates different hashes each time
-	// We need to iterate through all keys and compare the plain text
-	apiKeys, err := s.repo.FindAll(ctx)
+	// Find the API key by ID (single database query)
+	apiKey, err := s.repo.FindByID(ctx, apiKeyID)
 	if err != nil {
-		s.logger.Errorw("Error finding API keys", "key", maskAPIKey(key), "error", err)
+		s.logger.Errorw("Error finding API key by ID", "apiKeyId", apiKeyID, "error", err)
 		return nil, err
 	}
-
-	// Find matching API key by comparing with stored hash
-	var matchedKey *Model
-	for _, apiKey := range apiKeys {
-		err := bcrypt.CompareHashAndPassword([]byte(apiKey.KeyHash), []byte(key))
-		if err == nil {
-			matchedKey = apiKey
-			break
-		}
-	}
-
-	if matchedKey == nil {
-		s.logger.Warnw("API key not found", "key", maskAPIKey(key))
+	if apiKey == nil {
+		s.logger.Warnw("API key not found", "apiKeyId", apiKeyID)
 		return nil, errors.New("Invalid API key")
 	}
 
 	// Check if the key has expired
-	if matchedKey.ExpiresAt != nil && matchedKey.ExpiresAt.Before(time.Now()) {
-		s.logger.Warnw("API key has expired", "apiKeyId", matchedKey.ID, "expiresAt", matchedKey.ExpiresAt)
+	if apiKey.ExpiresAt != nil && apiKey.ExpiresAt.Before(time.Now()) {
+		s.logger.Warnw("API key has expired", "apiKeyId", apiKey.ID, "expiresAt", apiKey.ExpiresAt)
 		return nil, errors.New("API key has expired")
 	}
 
 	// Check if the key has exceeded max usage count
-	if matchedKey.MaxUsageCount != nil && matchedKey.UsageCount >= *matchedKey.MaxUsageCount {
-		s.logger.Warnw("API key usage limit exceeded", "apiKeyId", matchedKey.ID, "usageCount", matchedKey.UsageCount, "maxUsageCount", *matchedKey.MaxUsageCount)
+	if apiKey.MaxUsageCount != nil && apiKey.UsageCount >= *apiKey.MaxUsageCount {
+		s.logger.Warnw("API key usage limit exceeded", "apiKeyId", apiKey.ID, "usageCount", apiKey.UsageCount, "maxUsageCount", *apiKey.MaxUsageCount)
 		return nil, errors.New("API key usage limit exceeded")
 	}
 
+	// Verify the actual key against the stored bcrypt hash
+	err = bcrypt.CompareHashAndPassword([]byte(apiKey.KeyHash), []byte(actualKey))
+	if err != nil {
+		s.logger.Warnw("API key verification failed", "apiKeyId", apiKeyID)
+		return nil, errors.New("Invalid API key")
+	}
+
 	// Update last used timestamp and usage count
-	err = s.repo.UpdateLastUsed(ctx, matchedKey.ID)
+	err = s.repo.UpdateLastUsed(ctx, apiKey.ID)
 	if err != nil {
 		// Log error but don't fail the validation
 		// This is a non-critical operation
-		s.logger.Errorw("Error updating last used timestamp and usage count", "apiKeyId", matchedKey.ID, "error", err)
+		s.logger.Errorw("Error updating last used timestamp and usage count", "apiKeyId", apiKey.ID, "error", err)
 	}
 
-	s.logger.Infow("API key validation successful", "apiKeyId", matchedKey.ID, "name", matchedKey.Name)
-	return matchedKey, nil
+	s.logger.Infow("API key validation successful", "apiKeyId", apiKey.ID, "name", apiKey.Name)
+	return apiKey, nil
 }
 

@@ -60,14 +60,17 @@ func NewMongoRepository(client *mongo.Client, cfg *config.Config) Repository {
 }
 
 func (r *RepositoryImpl) Create(ctx context.Context, apiKey *CreateModel) (*APIKeyWithToken, error) {
-	// Generate a secure API key
-	token, keyHash, displayKey, err := generateAPIKey()
+	// Generate API key ID upfront
+	apiKeyID := primitive.NewObjectID()
+	
+	// Generate a secure API key using the ID
+	token, keyHash, displayKey, err := generateAPIKey(apiKeyID.Hex())
 	if err != nil {
 		return nil, err
 	}
 
 	mm := &mongoModel{
-		ID:            primitive.NewObjectID(),
+		ID:            apiKeyID,
 		Name:          apiKey.Name,
 		KeyHash:       keyHash,
 		DisplayKey:    displayKey,
