@@ -8,7 +8,7 @@ The kafka-producer monitor type allows monitoring of Kafka clusters by attemptin
 
 ## Server-Side Implementation
 
-### 1. Kafka Producer Executor (`apps/server/src/modules/healthcheck/executor/kafka_producer.go`)
+### 1. Kafka Producer Executor (`apps/server/internal/modules/healthcheck/executor/kafka_producer.go`)
 
 **Key Features:**
 - Implements the `Executor` interface with `Execute`, `Validate`, and `Unmarshal` methods
@@ -36,7 +36,7 @@ The kafka-producer monitor type allows monitoring of Kafka clusters by attemptin
 - Topic creation issues
 - Network connectivity problems
 
-### 2. Executor Registration (`apps/server/src/modules/healthcheck/executor/executor.go`)
+### 2. Executor Registration (`apps/server/internal/modules/healthcheck/executor/executor.go`)
 
 - Added `kafka-producer` to the executor registry
 - Instantiates `NewKafkaProducerExecutor` with logger dependency

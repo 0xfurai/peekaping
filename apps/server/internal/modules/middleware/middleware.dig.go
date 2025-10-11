@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"peekaping/src/modules/api_key"
-	"peekaping/src/modules/auth"
+	"peekaping/internal/modules/api_key"
+	"peekaping/internal/modules/auth"
 
 	"go.uber.org/dig"
 	"go.uber.org/zap"

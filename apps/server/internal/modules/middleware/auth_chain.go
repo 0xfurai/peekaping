@@ -2,9 +2,9 @@ package middleware
 
 import (
 	"net/http"
-	"peekaping/src/modules/api_key"
-	"peekaping/src/modules/auth"
-	"peekaping/src/utils"
+	"peekaping/internal/modules/api_key"
+	"peekaping/internal/modules/auth"
+	"peekaping/internal/utils"
 	"strings"
 
 	"github.com/gin-gonic/gin"

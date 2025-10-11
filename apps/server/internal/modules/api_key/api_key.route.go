@@ -1,7 +1,7 @@
 package api_key
 
 import (
-	"peekaping/src/modules/auth"
+	"peekaping/internal/modules/auth"
 
 	"github.com/gin-gonic/gin"
 )
@@ -23,10 +23,10 @@ func NewRoute(
 
 func (r *Route) ConnectRoute(router *gin.RouterGroup, controller *Controller) {
 	apiKeys := router.Group("api-keys")
-	
+
 	// Config endpoint doesn't require authentication
 	apiKeys.GET("config", controller.GetAPIKeyConfig)
-	
+
 	// All other API key management endpoints require JWT authentication
 	apiKeys.Use(r.middleware.Auth())
 	{
