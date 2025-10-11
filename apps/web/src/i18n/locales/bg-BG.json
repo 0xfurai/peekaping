@@ -1132,6 +1132,66 @@
         "password_updated_successfully": "Паролата е актуализирана"
       },
       "title": "Промяна на паролата"
+    },
+    "api_keys": {
+      "title": "API Ключове",
+      "description": "Управлявайте вашите API ключове за интеграция с трети страни",
+      "create_button": "Създай API Ключ",
+      "no_keys_title": "Няма API Ключове",
+      "no_keys_description": "Създайте първия си API ключ, за да започнете интеграция с външни услуги.",
+      "create_dialog": {
+        "title": "Създай Нов API Ключ",
+        "description": "Създайте нов API ключ за интеграция с трети страни. Ключът ще бъде показан само веднъж.",
+        "form": {
+          "name_label": "Име",
+          "name_placeholder": "напр., Интеграция на Начална Страница",
+          "expires_at_label": "Дата на Изтичане (По избор)",
+          "max_usage_label": "Максимален Брой Използвания (По избор)",
+          "max_usage_placeholder": "напр., 1000"
+        },
+        "buttons": {
+          "cancel": "Отказ",
+          "create": "Създай API Ключ",
+          "creating": "Създаване..."
+        }
+      },
+      "success_alert": {
+        "title": "API Ключът е Създаден Успешно",
+        "description": "Вашият API ключ е създаден. Копирайте го сега, тъй като няма да бъде показан отново:"
+      },
+      "table": {
+        "headers": {
+          "name": "Име",
+          "key": "Ключ",
+          "usage": "Използване",
+          "last_used": "Последно Използван",
+          "expires": "Изтича",
+          "status": "Статус",
+          "actions": "Действия"
+        },
+        "status": {
+          "active": "Активен",
+          "expired": "Изтекъл",
+          "limit_exceeded": "Лимитът е Превишен"
+        },
+        "never": "Никога"
+      },
+      "delete_dialog": {
+        "title": "Изтриване на API ключ",
+        "description": "Сигурни ли сте, че искате да изтриете API ключа \"{{name}}\"? Това действие не може да бъде отменено.",
+        "buttons": {
+          "cancel": "Отказ",
+          "delete": "Изтрий"
+        }
+      },
+      "messages": {
+        "created_successfully": "API ключът е създаден успешно",
+        "deleted_successfully": "API ключът е изтрит успешно",
+        "failed_to_create": "Неуспешно създаване на API ключ",
+        "failed_to_delete": "Неуспешно изтриване на API ключ",
+        "copy_success": "Копирано в клипборда",
+        "delete_confirm": "Сигурни ли сте, че искате да изтриете този API ключ? Това действие не може да бъде отменено."
+      }
     }
   },
   "sendgrid": {

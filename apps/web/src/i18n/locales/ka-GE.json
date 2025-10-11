@@ -1131,6 +1131,66 @@
         "password_updated_successfully": "პაროლი წარმატებით განახლდა"
       },
       "title": "პაროლის განახლება"
+    },
+    "api_keys": {
+      "title": "API Keys",
+      "description": "Manage your API keys for third-party integrations",
+      "create_button": "Create API Key",
+      "no_keys_title": "No API Keys",
+      "no_keys_description": "Create your first API key to start integrating with external services.",
+      "create_dialog": {
+        "title": "Create New API Key",
+        "description": "Create a new API key for third-party integrations. The key will be shown only once.",
+        "form": {
+          "name_label": "Name",
+          "name_placeholder": "e.g., Homepage Integration",
+          "expires_at_label": "Expiration Date (Optional)",
+          "max_usage_label": "Max Usage Count (Optional)",
+          "max_usage_placeholder": "e.g., 1000"
+        },
+        "buttons": {
+          "cancel": "Cancel",
+          "create": "Create API Key",
+          "creating": "Creating..."
+        }
+      },
+      "success_alert": {
+        "title": "API Key Created Successfully",
+        "description": "Your API key has been created. Copy it now as it won't be shown again:"
+      },
+      "table": {
+        "headers": {
+          "name": "Name",
+          "key": "Key",
+          "usage": "Usage",
+          "last_used": "Last Used",
+          "expires": "Expires",
+          "status": "Status",
+          "actions": "Actions"
+        },
+        "status": {
+          "active": "Active",
+          "expired": "Expired",
+          "limit_exceeded": "Limit Exceeded"
+        },
+        "never": "Never"
+      },
+      "delete_dialog": {
+        "title": "API გასაღების წაშლა",
+        "description": "დარწმუნებული ხართ, რომ გსურთ API გასაღების \"{{name}}\" წაშლა? ეს ქმედება ვერ უკან დაბრუნდება.",
+        "buttons": {
+          "cancel": "გაუქმება",
+          "delete": "წაშლა"
+        }
+      },
+      "messages": {
+        "created_successfully": "API key created successfully",
+        "deleted_successfully": "API key deleted successfully",
+        "failed_to_create": "Failed to create API key",
+        "failed_to_delete": "Failed to delete API key",
+        "copy_success": "Copied to clipboard",
+        "delete_confirm": "Are you sure you want to delete this API key? This action cannot be undone."
+      }
     }
   },
   "sendgrid": {

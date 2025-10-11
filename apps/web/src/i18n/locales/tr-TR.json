@@ -1132,6 +1132,66 @@
         "password_updated_successfully": "Parola başarıyla güncellendi."
       },
       "title": "Şifreyi Güncelle"
+    },
+    "api_keys": {
+      "title": "API Anahtarları",
+      "description": "Üçüncü taraf entegrasyonları için API anahtarlarınızı yönetin",
+      "create_button": "API Anahtarı Oluştur",
+      "no_keys_title": "API Anahtarı Yok",
+      "no_keys_description": "Harici hizmetlerle entegrasyona başlamak için ilk API anahtarınızı oluşturun.",
+      "create_dialog": {
+        "title": "Yeni API Anahtarı Oluştur",
+        "description": "Üçüncü taraf entegrasyonları için yeni bir API anahtarı oluşturun. Anahtar sadece bir kez gösterilecektir.",
+        "form": {
+          "name_label": "Ad",
+          "name_placeholder": "örn., Ana Sayfa Entegrasyonu",
+          "expires_at_label": "Son Kullanma Tarihi (İsteğe Bağlı)",
+          "max_usage_label": "Maksimum Kullanım Sayısı (İsteğe Bağlı)",
+          "max_usage_placeholder": "örn., 1000"
+        },
+        "buttons": {
+          "cancel": "İptal",
+          "create": "API Anahtarı Oluştur",
+          "creating": "Oluşturuluyor..."
+        }
+      },
+      "success_alert": {
+        "title": "API Anahtarı Başarıyla Oluşturuldu",
+        "description": "API anahtarınız oluşturuldu. Şimdi kopyalayın çünkü tekrar gösterilmeyecek:"
+      },
+      "table": {
+        "headers": {
+          "name": "Ad",
+          "key": "Anahtar",
+          "usage": "Kullanım",
+          "last_used": "Son Kullanım",
+          "expires": "Biter",
+          "status": "Durum",
+          "actions": "İşlemler"
+        },
+        "status": {
+          "active": "Aktif",
+          "expired": "Süresi Dolmuş",
+          "limit_exceeded": "Limit Aşıldı"
+        },
+        "never": "Hiçbir Zaman"
+      },
+      "delete_dialog": {
+        "title": "API Anahtarını Sil",
+        "description": "\"{{name}}\" API anahtarını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+        "buttons": {
+          "cancel": "İptal",
+          "delete": "Sil"
+        }
+      },
+      "messages": {
+        "created_successfully": "API anahtarı başarıyla oluşturuldu",
+        "deleted_successfully": "API anahtarı başarıyla silindi",
+        "failed_to_create": "API anahtarı oluşturulamadı",
+        "failed_to_delete": "API anahtarı silinemedi",
+        "copy_success": "Panoya kopyalandı",
+        "delete_confirm": "Bu API anahtarını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+      }
     }
   },
   "sendgrid": {

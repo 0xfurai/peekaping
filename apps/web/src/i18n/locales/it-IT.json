@@ -1132,6 +1132,66 @@
         "password_updated_successfully": "Password aggiornata con successo"
       },
       "title": "Aggiorna password"
+    },
+    "api_keys": {
+      "title": "Chiavi API",
+      "description": "Gestisci le tue chiavi API per integrazioni di terze parti",
+      "create_button": "Crea chiave API",
+      "no_keys_title": "Nessuna chiave API",
+      "no_keys_description": "Crea la tua prima chiave API per iniziare a integrare con servizi esterni.",
+      "create_dialog": {
+        "title": "Crea nuova chiave API",
+        "description": "Crea una nuova chiave API per integrazioni di terze parti. La chiave verrà mostrata solo una volta.",
+        "form": {
+          "name_label": "Nome",
+          "name_placeholder": "es. Integrazione Homepage",
+          "expires_at_label": "Data di scadenza (Opzionale)",
+          "max_usage_label": "Numero massimo di utilizzi (Opzionale)",
+          "max_usage_placeholder": "es. 1000"
+        },
+        "buttons": {
+          "cancel": "Annulla",
+          "create": "Crea chiave API",
+          "creating": "Creazione in corso..."
+        }
+      },
+      "success_alert": {
+        "title": "Chiave API creata con successo",
+        "description": "La tua chiave API è stata creata. Copiala ora perché non verrà più mostrata:"
+      },
+      "table": {
+        "headers": {
+          "name": "Nome",
+          "key": "Chiave",
+          "usage": "Utilizzo",
+          "last_used": "Ultimo utilizzo",
+          "expires": "Scade",
+          "status": "Stato",
+          "actions": "Azioni"
+        },
+        "status": {
+          "active": "Attivo",
+          "expired": "Scaduto",
+          "limit_exceeded": "Limite superato"
+        },
+        "never": "Mai"
+      },
+      "delete_dialog": {
+        "title": "Elimina chiave API",
+        "description": "Sei sicuro di voler eliminare la chiave API \"{{name}}\"? Questa azione non può essere annullata.",
+        "buttons": {
+          "cancel": "Annulla",
+          "delete": "Elimina"
+        }
+      },
+      "messages": {
+        "created_successfully": "Chiave API creata con successo",
+        "deleted_successfully": "Chiave API eliminata con successo",
+        "failed_to_create": "Errore nella creazione della chiave API",
+        "failed_to_delete": "Errore nell'eliminazione della chiave API",
+        "copy_success": "Copiato negli appunti",
+        "delete_confirm": "Sei sicuro di voler eliminare questa chiave API? Questa azione non può essere annullata."
+      }
     }
   },
   "sendgrid": {

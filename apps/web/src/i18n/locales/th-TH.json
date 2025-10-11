@@ -1132,6 +1132,66 @@
         "password_updated_successfully": "อัปเดตรหัสผ่านสำเร็จ"
       },
       "title": "อัปเดตรหัสผ่าน"
+    },
+    "api_keys": {
+      "title": "คีย์ API",
+      "description": "จัดการคีย์ API ของคุณสำหรับการรวมกับบุคคลที่สาม",
+      "create_button": "สร้างคีย์ API",
+      "no_keys_title": "ไม่มีคีย์ API",
+      "no_keys_description": "สร้างคีย์ API แรกของคุณเพื่อเริ่มการรวมกับบริการภายนอก",
+      "create_dialog": {
+        "title": "สร้างคีย์ API ใหม่",
+        "description": "สร้างคีย์ API ใหม่สำหรับการรวมกับบุคคลที่สาม คีย์จะแสดงเพียงครั้งเดียว",
+        "form": {
+          "name_label": "ชื่อ",
+          "name_placeholder": "เช่น การรวมหน้าแรก",
+          "expires_at_label": "วันที่หมดอายุ (ไม่บังคับ)",
+          "max_usage_label": "จำนวนการใช้งานสูงสุด (ไม่บังคับ)",
+          "max_usage_placeholder": "เช่น 1000"
+        },
+        "buttons": {
+          "cancel": "ยกเลิก",
+          "create": "สร้างคีย์ API",
+          "creating": "กำลังสร้าง..."
+        }
+      },
+      "success_alert": {
+        "title": "สร้างคีย์ API สำเร็จ",
+        "description": "คีย์ API ของคุณถูกสร้างแล้ว คัดลอกตอนนี้เพราะจะไม่แสดงอีก:"
+      },
+      "table": {
+        "headers": {
+          "name": "ชื่อ",
+          "key": "คีย์",
+          "usage": "การใช้งาน",
+          "last_used": "ใช้ครั้งล่าสุด",
+          "expires": "หมดอายุ",
+          "status": "สถานะ",
+          "actions": "การดำเนินการ"
+        },
+        "status": {
+          "active": "ใช้งานได้",
+          "expired": "หมดอายุ",
+          "limit_exceeded": "เกินขีดจำกัด"
+        },
+        "never": "ไม่เคย"
+      },
+      "delete_dialog": {
+        "title": "ลบคีย์ API",
+        "description": "คุณแน่ใจหรือไม่ว่าต้องการลบคีย์ API \"{{name}}\" การดำเนินการนี้ไม่สามารถยกเลิกได้",
+        "buttons": {
+          "cancel": "ยกเลิก",
+          "delete": "ลบ"
+        }
+      },
+      "messages": {
+        "created_successfully": "สร้างคีย์ API สำเร็จ",
+        "deleted_successfully": "ลบคีย์ API สำเร็จ",
+        "failed_to_create": "สร้างคีย์ API ไม่สำเร็จ",
+        "failed_to_delete": "ลบคีย์ API ไม่สำเร็จ",
+        "copy_success": "คัดลอกไปยังคลิปบอร์ดแล้ว",
+        "delete_confirm": "คุณแน่ใจหรือไม่ว่าต้องการลบคีย์ API นี้? การดำเนินการนี้ไม่สามารถยกเลิกได้"
+      }
     }
   },
   "sendgrid": {

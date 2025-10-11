@@ -1132,6 +1132,66 @@
         "password_updated_successfully": "Contraseña actualizada correctamente"
       },
       "title": "Actualizar contraseña"
+    },
+    "api_keys": {
+      "title": "Claves API",
+      "description": "Gestiona tus claves API para integraciones de terceros",
+      "create_button": "Crear clave API",
+      "no_keys_title": "Sin claves API",
+      "no_keys_description": "Crea tu primera clave API para comenzar a integrar con servicios externos.",
+      "create_dialog": {
+        "title": "Crear nueva clave API",
+        "description": "Crea una nueva clave API para integraciones de terceros. La clave se mostrará solo una vez.",
+        "form": {
+          "name_label": "Nombre",
+          "name_placeholder": "ej. Integración Página Principal",
+          "expires_at_label": "Fecha de expiración (Opcional)",
+          "max_usage_label": "Número máximo de usos (Opcional)",
+          "max_usage_placeholder": "ej. 1000"
+        },
+        "buttons": {
+          "cancel": "Cancelar",
+          "create": "Crear clave API",
+          "creating": "Creando..."
+        }
+      },
+      "success_alert": {
+        "title": "Clave API creada exitosamente",
+        "description": "Tu clave API ha sido creada. Cópiala ahora ya que no se mostrará de nuevo:"
+      },
+      "table": {
+        "headers": {
+          "name": "Nombre",
+          "key": "Clave",
+          "usage": "Uso",
+          "last_used": "Último uso",
+          "expires": "Expira",
+          "status": "Estado",
+          "actions": "Acciones"
+        },
+        "status": {
+          "active": "Activo",
+          "expired": "Expirado",
+          "limit_exceeded": "Límite excedido"
+        },
+        "never": "Nunca"
+      },
+      "delete_dialog": {
+        "title": "Eliminar clave API",
+        "description": "¿Estás seguro de que quieres eliminar la clave API \"{{name}}\"? Esta acción no se puede deshacer.",
+        "buttons": {
+          "cancel": "Cancelar",
+          "delete": "Eliminar"
+        }
+      },
+      "messages": {
+        "created_successfully": "Clave API creada exitosamente",
+        "deleted_successfully": "Clave API eliminada exitosamente",
+        "failed_to_create": "Error al crear la clave API",
+        "failed_to_delete": "Error al eliminar la clave API",
+        "copy_success": "Copiado al portapapeles",
+        "delete_confirm": "¿Estás seguro de que quieres eliminar esta clave API? Esta acción no se puede deshacer."
+      }
     }
   },
   "sendgrid": {

@@ -1,0 +1,181 @@
+package api_key
+
+import (
+	"context"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/uptrace/bun"
+)
+
+type sqlModel struct {
+	bun.BaseModel `bun:"table:api_keys,alias:ak"`
+
+	ID             string     `bun:"id,pk"`
+	Name           string     `bun:"name,notnull"`
+	KeyHash        string     `bun:"key_hash,notnull"`
+	DisplayKey     string     `bun:"display_key,notnull"`
+	LastUsed       *time.Time `bun:"last_used"`
+	ExpiresAt      *time.Time `bun:"expires_at"`
+	UsageCount     int64      `bun:"usage_count,notnull,default:0"`
+	MaxUsageCount  *int64     `bun:"max_usage_count"`
+	CreatedAt      time.Time  `bun:"created_at,nullzero,notnull,default:current_timestamp"`
+	UpdatedAt      time.Time  `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
+}
+
+func toDomainModelFromSQL(sm *sqlModel) *Model {
+	// Handle missing display_key column gracefully
+	displayKey := sm.DisplayKey
+	if displayKey == "" {
+		displayKey = ApiKeyPrefix + sm.ID[:6] + "..."
+	}
+	
+	return &Model{
+		ID:            sm.ID,
+		Name:          sm.Name,
+		KeyHash:       sm.KeyHash,
+		DisplayKey:    displayKey,
+		LastUsed:      sm.LastUsed,
+		ExpiresAt:     sm.ExpiresAt,
+		UsageCount:    sm.UsageCount,
+		MaxUsageCount: sm.MaxUsageCount,
+		CreatedAt:     sm.CreatedAt,
+		UpdatedAt:     sm.UpdatedAt,
+	}
+}
+
+func toSQLModel(m *Model) *sqlModel {
+	return &sqlModel{
+		ID:            m.ID,
+		Name:          m.Name,
+		KeyHash:       m.KeyHash,
+		DisplayKey:    m.DisplayKey,
+		LastUsed:      m.LastUsed,
+		ExpiresAt:     m.ExpiresAt,
+		UsageCount:    m.UsageCount,
+		MaxUsageCount: m.MaxUsageCount,
+		CreatedAt:     m.CreatedAt,
+		UpdatedAt:     m.UpdatedAt,
+	}
+}
+
+type SQLRepositoryImpl struct {
+	db *bun.DB
+}
+
+// MARK: Constructor
+func NewSQLRepository(db *bun.DB) Repository {
+	return &SQLRepositoryImpl{db: db}
+}
+
+// MARK: Create
+func (r *SQLRepositoryImpl) Create(ctx context.Context, apiKey *CreateModel) (*APIKeyWithToken, error) {
+	// Generate API key ID upfront
+	apiKeyID := uuid.New().String()
+
+	sm := &sqlModel{
+		ID:            apiKeyID,
+		Name:          apiKey.Name,
+		KeyHash:       apiKey.KeyHash,
+		DisplayKey:    apiKey.DisplayKey,
+		LastUsed:      nil,
+		ExpiresAt:     apiKey.ExpiresAt,
+		UsageCount:    0,
+		MaxUsageCount: apiKey.MaxUsageCount,
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
+	}
+
+	_, err := r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	domainModel := toDomainModelFromSQL(sm)
+	return &APIKeyWithToken{
+		Model: *domainModel,
+		// Token will be set by the service layer
+	}, nil
+}
+
+// MARK: FindByID
+func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, error) {
+	sm := new(sqlModel)
+	err := r.db.NewSelect().Model(sm).Where("id = ?", id).Scan(ctx)
+	if err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return toDomainModelFromSQL(sm), nil
+}
+
+// MARK: FindAll
+func (r *SQLRepositoryImpl) FindAll(ctx context.Context) ([]*Model, error) {
+	var sms []*sqlModel
+	err := r.db.NewSelect().Model(&sms).Order("created_at DESC").Scan(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	models := make([]*Model, len(sms))
+	for i, sm := range sms {
+		models[i] = toDomainModelFromSQL(sm)
+	}
+	return models, nil
+}
+
+// MARK: Update
+func (r *SQLRepositoryImpl) Update(ctx context.Context, id string, update *UpdateModel) (*Model, error) {
+	sm := new(sqlModel)
+	
+	// Build update query dynamically
+	query := r.db.NewUpdate().Model(sm).Where("id = ?", id)
+	
+	if update.Name != nil {
+		query = query.Set("name = ?", *update.Name)
+	}
+	if update.ExpiresAt != nil {
+		query = query.Set("expires_at = ?", *update.ExpiresAt)
+	}
+	if update.MaxUsageCount != nil {
+		query = query.Set("max_usage_count = ?", *update.MaxUsageCount)
+	}
+	
+	query = query.Set("updated_at = ?", time.Now())
+	
+	_, err := query.Returning("*").Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+	
+	return toDomainModelFromSQL(sm), nil
+}
+
+// MARK: Delete
+func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string) error {
+	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Exec(ctx)
+	return err
+}
+
+// MARK: UpdateLastUsed
+func (r *SQLRepositoryImpl) UpdateLastUsed(ctx context.Context, id string) error {
+	_, err := r.db.NewUpdate().Model((*sqlModel)(nil)).
+		Set("last_used = ?", time.Now()).
+		Set("usage_count = usage_count + 1").
+		Where("id = ?", id).
+		Exec(ctx)
+	return err
+}
+
+// MARK: UpdateKeyHash
+func (r *SQLRepositoryImpl) UpdateKeyHash(ctx context.Context, id string, keyHash string, displayKey string) error {
+	_, err := r.db.NewUpdate().Model((*sqlModel)(nil)).
+		Set("key_hash = ?", keyHash).
+		Set("display_key = ?", displayKey).
+		Set("updated_at = ?", time.Now()).
+		Where("id = ?", id).
+		Exec(ctx)
+	return err
+}
