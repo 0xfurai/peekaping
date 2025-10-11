@@ -1,19 +1,19 @@
 package tag
 
 import (
-	"peekaping/internal/modules/auth"
+	"peekaping/internal/modules/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Route struct {
 	controller *Controller
-	middleware *auth.MiddlewareProvider
+	middleware *middleware.AuthChain
 }
 
 func NewRoute(
 	controller *Controller,
-	middleware *auth.MiddlewareProvider,
+	middleware *middleware.AuthChain,
 ) *Route {
 	return &Route{
 		controller,
@@ -27,7 +27,7 @@ func (r *Route) ConnectRoute(
 ) {
 	router := rg.Group("tags")
 
-	router.Use(r.middleware.Auth())
+	router.Use(r.middleware.AllAuth())
 
 	router.GET("", controller.FindAll)
 	router.POST("", controller.Create)

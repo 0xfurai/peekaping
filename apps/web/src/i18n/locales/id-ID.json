@@ -1132,6 +1132,66 @@
         "password_updated_successfully": "Password berhasil diperbarui"
       },
       "title": "Perbarui Kata Sandi"
+    },
+    "api_keys": {
+      "title": "Kunci API",
+      "description": "Kelola kunci API Anda untuk integrasi pihak ketiga",
+      "create_button": "Buat Kunci API",
+      "no_keys_title": "Tidak Ada Kunci API",
+      "no_keys_description": "Buat kunci API pertama Anda untuk mulai berintegrasi dengan layanan eksternal.",
+      "create_dialog": {
+        "title": "Buat Kunci API Baru",
+        "description": "Buat kunci API baru untuk integrasi pihak ketiga. Kunci hanya akan ditampilkan sekali.",
+        "form": {
+          "name_label": "Nama",
+          "name_placeholder": "contoh, Integrasi Beranda",
+          "expires_at_label": "Tanggal Kedaluwarsa (Opsional)",
+          "max_usage_label": "Jumlah Penggunaan Maksimal (Opsional)",
+          "max_usage_placeholder": "contoh, 1000"
+        },
+        "buttons": {
+          "cancel": "Batal",
+          "create": "Buat Kunci API",
+          "creating": "Membuat..."
+        }
+      },
+      "success_alert": {
+        "title": "Kunci API Berhasil Dibuat",
+        "description": "Kunci API Anda telah dibuat. Salin sekarang karena tidak akan ditampilkan lagi:"
+      },
+      "table": {
+        "headers": {
+          "name": "Nama",
+          "key": "Kunci",
+          "usage": "Penggunaan",
+          "last_used": "Terakhir Digunakan",
+          "expires": "Kedaluwarsa",
+          "status": "Status",
+          "actions": "Aksi"
+        },
+        "status": {
+          "active": "Aktif",
+          "expired": "Kedaluwarsa",
+          "limit_exceeded": "Batas Terlampaui"
+        },
+        "never": "Tidak Pernah"
+      },
+      "delete_dialog": {
+        "title": "Hapus Kunci API",
+        "description": "Apakah Anda yakin ingin menghapus kunci API \"{{name}}\"? Tindakan ini tidak dapat dibatalkan.",
+        "buttons": {
+          "cancel": "Batal",
+          "delete": "Hapus"
+        }
+      },
+      "messages": {
+        "created_successfully": "Kunci API berhasil dibuat",
+        "deleted_successfully": "Kunci API berhasil dihapus",
+        "failed_to_create": "Gagal membuat kunci API",
+        "failed_to_delete": "Gagal menghapus kunci API",
+        "copy_success": "Disalin ke clipboard",
+        "delete_confirm": "Apakah Anda yakin ingin menghapus kunci API ini? Tindakan ini tidak dapat dibatalkan."
+      }
     }
   },
   "sendgrid": {

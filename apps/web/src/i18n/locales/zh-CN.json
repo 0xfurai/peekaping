@@ -1132,6 +1132,66 @@
         "password_updated_successfully": "密码已成功更新"
       },
       "title": "更新密码"
+    },
+    "api_keys": {
+      "title": "API 密钥",
+      "description": "管理第三方集成的 API 密钥",
+      "create_button": "创建 API 密钥",
+      "no_keys_title": "没有 API 密钥",
+      "no_keys_description": "创建您的第一个 API 密钥以开始与外部服务集成。",
+      "create_dialog": {
+        "title": "创建新的 API 密钥",
+        "description": "为第三方集成创建新的 API 密钥。密钥只会显示一次。",
+        "form": {
+          "name_label": "名称",
+          "name_placeholder": "例如：首页集成",
+          "expires_at_label": "过期日期（可选）",
+          "max_usage_label": "最大使用次数（可选）",
+          "max_usage_placeholder": "例如：1000"
+        },
+        "buttons": {
+          "cancel": "取消",
+          "create": "创建 API 密钥",
+          "creating": "创建中..."
+        }
+      },
+      "success_alert": {
+        "title": "API 密钥创建成功",
+        "description": "您的 API 密钥已创建。请立即复制，因为它不会再次显示："
+      },
+      "table": {
+        "headers": {
+          "name": "名称",
+          "key": "密钥",
+          "usage": "使用情况",
+          "last_used": "最后使用",
+          "expires": "过期时间",
+          "status": "状态",
+          "actions": "操作"
+        },
+        "status": {
+          "active": "活跃",
+          "expired": "已过期",
+          "limit_exceeded": "超出限制"
+        },
+        "never": "从未"
+      },
+      "delete_dialog": {
+        "title": "删除 API 密钥",
+        "description": "您确定要删除 API 密钥「{{name}}」吗？此操作无法撤销。",
+        "buttons": {
+          "cancel": "取消",
+          "delete": "删除"
+        }
+      },
+      "messages": {
+        "created_successfully": "API 密钥创建成功",
+        "deleted_successfully": "API 密钥删除成功",
+        "failed_to_create": "API 密钥创建失败",
+        "failed_to_delete": "API 密钥删除失败",
+        "copy_success": "已复制到剪贴板",
+        "delete_confirm": "您确定要删除此 API 密钥吗？此操作无法撤销。"
+      }
     }
   },
   "sendgrid": {

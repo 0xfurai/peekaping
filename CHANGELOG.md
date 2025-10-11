@@ -13,6 +13,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [0.0.41] - 2025-10-11
+
+### Added
+
+- Feature: add api key auth (#204) (Thanks @tafaust) 0ad9871
+- docs(README.md): add community terraform provider mention (#205) (Thanks @mail) 4c6a127
+
+### Changed
+
+- chore: update Makefile and add asdf configuration for Go environment (#202) (Thanks @tafaust) 1336d6c
+- Update documentation headers for badges and intro pages by removing emojis for consistency (Thanks @0xfurai) e934fda
+
+### Fixed
+
+- fix(docs): update healthcheck command in Docker configurations to use wget with output option (#200) (Thanks @Shurco) a523953
+- Fix/monitor partial update not update config (#194) (Thanks @0xfurai) a01404b
+- Fix/update monitor 200 if monitor not found (#193) (Thanks @0xfurai) 3fab720
+- refactor(monitor): update buildSetMapFromModel function to preserve created_at timestamp during updates (#192) (Thanks @0xfurai) a77456f
+- fix(forms): preserve current name when resetting form in create mode across multiple components (#191) (Thanks @0xfurai) d0cc2ca
+
 ## [0.0.40] - 2025-09-25
 
 ### Added

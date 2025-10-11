@@ -1,19 +1,19 @@
 package notification_channel
 
 import (
-	"peekaping/internal/modules/auth"
+	"peekaping/internal/modules/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Route struct {
 	controller *Controller
-	middleware *auth.MiddlewareProvider
+	middleware *middleware.AuthChain
 }
 
 func NewRoute(
 	controller *Controller,
-	middleware *auth.MiddlewareProvider,
+	middleware *middleware.AuthChain,
 ) *Route {
 	return &Route{
 		controller,
@@ -27,7 +27,7 @@ func (uc *Route) ConnectRoute(
 ) {
 	router := rg.Group("notification-channels")
 
-	router.Use(uc.middleware.Auth())
+	router.Use(uc.middleware.AllAuth())
 
 	router.GET("", controller.FindAll)
 	router.POST("", controller.Create)

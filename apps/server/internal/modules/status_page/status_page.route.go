@@ -1,17 +1,17 @@
 package status_page
 
 import (
-	"peekaping/internal/modules/auth"
+	"peekaping/internal/modules/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Route struct {
 	controller *Controller
-	middleware *auth.MiddlewareProvider
+	middleware *middleware.AuthChain
 }
 
-func NewRoute(controller *Controller, middleware *auth.MiddlewareProvider) *Route {
+func NewRoute(controller *Controller, middleware *middleware.AuthChain) *Route {
 	return &Route{
 		controller: controller,
 		middleware: middleware,
@@ -26,7 +26,7 @@ func (r *Route) ConnectRoute(rg *gin.RouterGroup, controller *Controller) {
 	sp.GET("/slug/:slug/monitors", r.controller.GetMonitorsBySlug)
 	sp.GET("/slug/:slug/monitors/homepage", r.controller.GetMonitorsBySlugForHomepage)
 
-	sp.Use(r.middleware.Auth())
+	sp.Use(r.middleware.AllAuth())
 	{
 		sp.POST("", r.controller.Create)
 		sp.GET("", r.controller.FindAll)

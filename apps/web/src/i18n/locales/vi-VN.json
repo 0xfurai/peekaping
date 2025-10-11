@@ -1132,6 +1132,66 @@
         "password_updated_successfully": "Mật khẩu đã được cập nhật thành công"
       },
       "title": "Cập nhật mật khẩu"
+    },
+    "api_keys": {
+      "title": "Khóa API",
+      "description": "Quản lý khóa API của bạn để tích hợp với bên thứ ba",
+      "create_button": "Tạo Khóa API",
+      "no_keys_title": "Không Có Khóa API",
+      "no_keys_description": "Tạo khóa API đầu tiên của bạn để bắt đầu tích hợp với các dịch vụ bên ngoài.",
+      "create_dialog": {
+        "title": "Tạo Khóa API Mới",
+        "description": "Tạo khóa API mới để tích hợp với bên thứ ba. Khóa sẽ chỉ hiển thị một lần.",
+        "form": {
+          "name_label": "Tên",
+          "name_placeholder": "ví dụ: Tích hợp Trang Chủ",
+          "expires_at_label": "Ngày Hết Hạn (Tùy chọn)",
+          "max_usage_label": "Số Lần Sử Dụng Tối Đa (Tùy chọn)",
+          "max_usage_placeholder": "ví dụ: 1000"
+        },
+        "buttons": {
+          "cancel": "Hủy",
+          "create": "Tạo Khóa API",
+          "creating": "Đang tạo..."
+        }
+      },
+      "success_alert": {
+        "title": "Khóa API Được Tạo Thành Công",
+        "description": "Khóa API của bạn đã được tạo. Hãy sao chép ngay bây giờ vì nó sẽ không hiển thị lại:"
+      },
+      "table": {
+        "headers": {
+          "name": "Tên",
+          "key": "Khóa",
+          "usage": "Sử dụng",
+          "last_used": "Lần Cuối Sử Dụng",
+          "expires": "Hết hạn",
+          "status": "Trạng thái",
+          "actions": "Hành động"
+        },
+        "status": {
+          "active": "Hoạt động",
+          "expired": "Hết hạn",
+          "limit_exceeded": "Vượt quá giới hạn"
+        },
+        "never": "Không bao giờ"
+      },
+      "delete_dialog": {
+        "title": "Xóa khóa API",
+        "description": "Bạn có chắc chắn muốn xóa khóa API \"{{name}}\" không? Hành động này không thể hoàn tác.",
+        "buttons": {
+          "cancel": "Hủy",
+          "delete": "Xóa"
+        }
+      },
+      "messages": {
+        "created_successfully": "Khóa API được tạo thành công",
+        "deleted_successfully": "Khóa API được xóa thành công",
+        "failed_to_create": "Không thể tạo khóa API",
+        "failed_to_delete": "Không thể xóa khóa API",
+        "copy_success": "Đã sao chép vào clipboard",
+        "delete_confirm": "Bạn có chắc chắn muốn xóa khóa API này không? Hành động này không thể hoàn tác."
+      }
     }
   },
   "sendgrid": {

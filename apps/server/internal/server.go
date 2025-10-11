@@ -2,7 +2,9 @@ package internal
 
 import (
 	"net/http"
+	_ "peekaping/docs"
 	"peekaping/internal/config"
+	"peekaping/internal/modules/api_key"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/badge"
 	"peekaping/internal/modules/healthcheck"
@@ -17,8 +19,6 @@ import (
 	"peekaping/internal/modules/tag"
 	"peekaping/internal/modules/websocket"
 	"peekaping/internal/version"
-
-	_ "peekaping/docs"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -78,6 +78,8 @@ func ProvideServer(
 	tagController *tag.Controller,
 	badgeRoute *badge.Route,
 	badgeController *badge.Controller,
+	apiKeyRoute *api_key.Route,
+	apiKeyController *api_key.Controller,
 ) *Server {
 	server := gin.Default()
 	// server := gin.New()
@@ -110,6 +112,7 @@ func ProvideServer(
 	statusPageRoute.ConnectRoute(router, statusPageController)
 	tagRoute.ConnectRoute(router, tagController)
 	badgeRoute.ConnectRoute(router, badgeController)
+	apiKeyRoute.ConnectRoute(router, apiKeyController)
 
 	// Register push endpoint
 	healthcheck.RegisterPushEndpoint(router, monitorService, heartbeatService, queueService, logger)

@@ -1132,6 +1132,66 @@
         "password_updated_successfully": "Wachtwoord succesvol bijgewerkt"
       },
       "title": "Wachtwoord wijzigen"
+    },
+    "api_keys": {
+      "title": "API-sleutels",
+      "description": "Beheer uw API-sleutels voor integraties van derden",
+      "create_button": "API-sleutel aanmaken",
+      "no_keys_title": "Geen API-sleutels",
+      "no_keys_description": "Maak uw eerste API-sleutel aan om te beginnen met integreren met externe services.",
+      "create_dialog": {
+        "title": "Nieuwe API-sleutel aanmaken",
+        "description": "Maak een nieuwe API-sleutel aan voor integraties van derden. De sleutel wordt slechts één keer getoond.",
+        "form": {
+          "name_label": "Naam",
+          "name_placeholder": "bijv. Homepage-integratie",
+          "expires_at_label": "Vervaldatum (Optioneel)",
+          "max_usage_label": "Maximaal aantal gebruik (Optioneel)",
+          "max_usage_placeholder": "bijv. 1000"
+        },
+        "buttons": {
+          "cancel": "Annuleren",
+          "create": "API-sleutel aanmaken",
+          "creating": "Aanmaken..."
+        }
+      },
+      "success_alert": {
+        "title": "API-sleutel succesvol aangemaakt",
+        "description": "Uw API-sleutel is aangemaakt. Kopieer deze nu want deze wordt niet opnieuw getoond:"
+      },
+      "table": {
+        "headers": {
+          "name": "Naam",
+          "key": "Sleutel",
+          "usage": "Gebruik",
+          "last_used": "Laatst gebruikt",
+          "expires": "Verloopt",
+          "status": "Status",
+          "actions": "Acties"
+        },
+        "status": {
+          "active": "Actief",
+          "expired": "Verlopen",
+          "limit_exceeded": "Limiet overschreden"
+        },
+        "never": "Nooit"
+      },
+      "delete_dialog": {
+        "title": "API-sleutel verwijderen",
+        "description": "Weet je zeker dat je de API-sleutel \"{{name}}\" wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
+        "buttons": {
+          "cancel": "Annuleren",
+          "delete": "Verwijderen"
+        }
+      },
+      "messages": {
+        "created_successfully": "API-sleutel succesvol aangemaakt",
+        "deleted_successfully": "API-sleutel succesvol verwijderd",
+        "failed_to_create": "API-sleutel aanmaken mislukt",
+        "failed_to_delete": "API-sleutel verwijderen mislukt",
+        "copy_success": "Gekopieerd naar klembord",
+        "delete_confirm": "Weet u zeker dat u deze API-sleutel wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
+      }
     }
   },
   "sendgrid": {

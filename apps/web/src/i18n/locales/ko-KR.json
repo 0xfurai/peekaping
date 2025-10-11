@@ -1132,6 +1132,66 @@
         "password_updated_successfully": "비밀번호가 성공적으로 업데이트되었습니다."
       },
       "title": "비밀번호 변경"
+    },
+    "api_keys": {
+      "title": "API 키",
+      "description": "서드파티 통합을 위한 API 키를 관리하세요",
+      "create_button": "API 키 생성",
+      "no_keys_title": "API 키 없음",
+      "no_keys_description": "외부 서비스와 통합을 시작하려면 첫 번째 API 키를 생성하세요.",
+      "create_dialog": {
+        "title": "새 API 키 생성",
+        "description": "서드파티 통합을 위한 새 API 키를 생성하세요. 키는 한 번만 표시됩니다.",
+        "form": {
+          "name_label": "이름",
+          "name_placeholder": "예: 홈페이지 통합",
+          "expires_at_label": "만료 날짜 (선택사항)",
+          "max_usage_label": "최대 사용 횟수 (선택사항)",
+          "max_usage_placeholder": "예: 1000"
+        },
+        "buttons": {
+          "cancel": "취소",
+          "create": "API 키 생성",
+          "creating": "생성 중..."
+        }
+      },
+      "success_alert": {
+        "title": "API 키가 성공적으로 생성되었습니다",
+        "description": "API 키가 생성되었습니다. 다시 표시되지 않으므로 지금 복사하세요:"
+      },
+      "table": {
+        "headers": {
+          "name": "이름",
+          "key": "키",
+          "usage": "사용량",
+          "last_used": "마지막 사용",
+          "expires": "만료",
+          "status": "상태",
+          "actions": "작업"
+        },
+        "status": {
+          "active": "활성",
+          "expired": "만료됨",
+          "limit_exceeded": "한도 초과"
+        },
+        "never": "없음"
+      },
+      "delete_dialog": {
+        "title": "API 키 삭제",
+        "description": "API 키 \"{{name}}\"을(를) 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+        "buttons": {
+          "cancel": "취소",
+          "delete": "삭제"
+        }
+      },
+      "messages": {
+        "created_successfully": "API 키가 성공적으로 생성되었습니다",
+        "deleted_successfully": "API 키가 성공적으로 삭제되었습니다",
+        "failed_to_create": "API 키 생성에 실패했습니다",
+        "failed_to_delete": "API 키 삭제에 실패했습니다",
+        "copy_success": "클립보드에 복사되었습니다",
+        "delete_confirm": "이 API 키를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+      }
     }
   },
   "sendgrid": {

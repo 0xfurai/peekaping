@@ -36,6 +36,8 @@ import (
 	"peekaping/internal/modules/websocket"
 	"peekaping/internal/utils"
 	"peekaping/internal/version"
+	"peekaping/src/modules/api_key"
+	"peekaping/src/modules/middleware"
 
 	"go.uber.org/dig"
 	"go.uber.org/zap"
@@ -115,6 +117,8 @@ func main() {
 	monitor_tag.RegisterDependencies(container, &cfg)
 	badge.RegisterDependencies(container, &cfg)
 	queue.RegisterDependencies(container, &cfg)
+	api_key.RegisterDependencies(container, &cfg)
+	middleware.RegisterDependencies(container)
 
 	// Start the event healthcheck listener
 	err = container.Invoke(func(listener *healthcheck.EventListener, eventBus events.EventBus) {
