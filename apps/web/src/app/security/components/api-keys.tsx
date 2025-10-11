@@ -1,3 +1,4 @@
+// MARK: - Imports
 import { useState } from "react";
 import {
   Card,
@@ -7,17 +8,8 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -26,282 +18,27 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { TypographyH4 } from "@/components/ui/typography";
 import { Copy, Trash2, Plus, Key } from "lucide-react";
 import { toast } from "sonner";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { useTimezone } from "@/context/timezone-context";
 import { formatDateToTimezone } from "@/lib/formatDateToTimezone";
-import { convertDateTimeLocalToUTC } from "@/lib/timezone-utils";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import {
   getApiKeysOptions,
-  postApiKeysMutation,
   deleteApiKeysByIdMutation,
 } from "@/api/@tanstack/react-query.gen";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type {
   ApiKeyApiKeyResponse,
-  ApiKeyCreateApiKeyDto,
   PostApiKeysResponse,
 } from "@/api/types.gen";
+import CreateAPIKeyModal from "./create-api-key-modal";
+import DeleteConfirmationModal from "./delete-confirmation-modal";
 
-const createAPIKeySchema = z.object({
-  name: z.string().min(1, "Name is required").max(255, "Name too long"),
-  expiresAt: z
-    .string()
-    .optional()
-    .refine(
-      (val) => {
-        if (val === undefined || val === "") return true; // Optional field
-        const date = new Date(val);
-        return !isNaN(date.getTime()) && date > new Date(); // Must be valid date and in future
-      },
-      {
-        message: "Must be a valid future date",
-      }
-    ),
-  maxUsageCount: z
-    .string()
-    .optional()
-    .refine(
-      (val) => {
-        if (val === undefined || val === "") return true; // Optional field
-        const num = parseInt(val, 10);
-        return !isNaN(num) && num > 0; // Must be positive integer
-      },
-      {
-        message: "Must be a positive number",
-      }
-    ),
-});
-
-type CreateAPIKeyForm = z.infer<typeof createAPIKeySchema>;
-
-// MARK: DeleteConfirmationModal
-const DeleteConfirmationModal = ({
-  open,
-  onOpenChange,
-  onConfirm,
-  apiKeyName,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
-  apiKeyName: string;
-}) => {
-  const { t } = useLocalizedTranslation();
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>
-            {t("security.api_keys.delete_dialog.title")}
-          </DialogTitle>
-          <DialogDescription>
-            {t("security.api_keys.delete_dialog.description", {
-              name: apiKeyName,
-            })}
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
-            {t("security.api_keys.delete_dialog.buttons.cancel")}
-          </Button>
-          <Button
-            type="button"
-            variant="destructive"
-            onClick={() => {
-              onConfirm();
-              onOpenChange(false);
-            }}
-          >
-            {t("security.api_keys.delete_dialog.buttons.delete")}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-};
-
-// MARK: CreateAPIKeyModal
-const CreateAPIKeyModal = ({
-  open,
-  onOpenChange,
-  onSuccess,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSuccess: (response: PostApiKeysResponse) => void;
-}) => {
-  const { t } = useLocalizedTranslation();
-  const { timezone: userTimezone } = useTimezone();
-  const queryClient = useQueryClient();
-
-  const form = useForm<CreateAPIKeyForm>({
-    resolver: zodResolver(createAPIKeySchema),
-    defaultValues: {
-      name: "",
-      expiresAt: "",
-      maxUsageCount: "",
-    },
-  });
-
-  const createMutation = useMutation(postApiKeysMutation());
-
-  const handleCreateError = () => {
-    toast.error(t("security.api_keys.messages.failed_to_create"));
-  };
-
-  const onSubmit = (data: CreateAPIKeyForm) => {
-    const createData: ApiKeyCreateApiKeyDto = {
-      name: data.name,
-      expires_at: data.expiresAt
-        ? convertDateTimeLocalToUTC(data.expiresAt, userTimezone)
-        : undefined,
-      max_usage_count: data.maxUsageCount
-        ? parseInt(data.maxUsageCount, 10)
-        : undefined,
-    };
-
-    // Additional validation before submission
-    if (
-      createData.expires_at &&
-      new Date(createData.expires_at) <= new Date()
-    ) {
-      form.setError("expiresAt", {
-        type: "manual",
-        message: "Expiration date must be in the future",
-      });
-      return;
-    }
-
-    createMutation.mutate(
-      {
-        body: createData,
-      },
-      {
-        onSuccess: (response) => {
-          onSuccess(response);
-          onOpenChange(false);
-          queryClient.invalidateQueries({
-            queryKey: getApiKeysOptions().queryKey,
-          });
-          toast.success(t("security.api_keys.messages.created_successfully"));
-        },
-        onError: handleCreateError,
-      }
-    );
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>
-            {t("security.api_keys.create_dialog.title")}
-          </DialogTitle>
-          <DialogDescription>
-            {t("security.api_keys.create_dialog.description")}
-          </DialogDescription>
-        </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    {t("security.api_keys.create_dialog.form.name_label")}
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder={t(
-                        "security.api_keys.create_dialog.form.name_placeholder"
-                      )}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="expiresAt"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    {t("security.api_keys.create_dialog.form.expires_at_label")}
-                  </FormLabel>
-                  <FormControl>
-                    <Input {...field} type="datetime-local" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="maxUsageCount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    {t("security.api_keys.create_dialog.form.max_usage_label")}
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      type="number"
-                      min="1"
-                      placeholder={t(
-                        "security.api_keys.create_dialog.form.max_usage_placeholder"
-                      )}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-              >
-                {t("security.api_keys.create_dialog.buttons.cancel")}
-              </Button>
-              <Button type="submit" disabled={createMutation.isPending}>
-                {createMutation.isPending
-                  ? t("security.api_keys.create_dialog.buttons.creating")
-                  : t("security.api_keys.create_dialog.buttons.create")}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
-  );
-};
-
-// MARK: APIKeys Component
+// MARK: - Main Component
 const APIKeys = () => {
+  // MARK: - Hooks & State
   const { t } = useLocalizedTranslation();
   const { timezone: userTimezone } = useTimezone();
   const queryClient = useQueryClient();
@@ -323,11 +60,13 @@ const APIKeys = () => {
     id: null,
   });
 
+  // MARK: - Data Fetching
   const { data: apiKeysResponse, isLoading } = useQuery(getApiKeysOptions());
   const deleteMutation = useMutation(deleteApiKeysByIdMutation());
 
   const apiKeys: ApiKeyApiKeyResponse[] = apiKeysResponse?.data || [];
 
+  // MARK: - Event Handlers
   const handleCreateSuccess = (response: PostApiKeysResponse) => {
     setNewKeyState({
       token: response.data.token,
@@ -377,6 +116,7 @@ const APIKeys = () => {
     });
   };
 
+  // MARK: - Utility Functions
   const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return t("security.api_keys.table.never");
     // Convert UTC date from backend to user's timezone for display
@@ -414,7 +154,7 @@ const APIKeys = () => {
     return usageCount >= maxUsageCount;
   };
 
-  // MARK: Render
+  // MARK: - Render
   return (
     <div className="flex flex-col gap-4 mt-8">
       <div className="flex items-center justify-between">
