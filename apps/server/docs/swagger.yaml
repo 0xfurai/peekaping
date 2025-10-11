@@ -1,5 +1,99 @@
 basePath: /api/v1
 definitions:
+  api_key.APIKeyConfigResponse:
+    properties:
+      prefix:
+        type: string
+    required:
+    - prefix
+    type: object
+  api_key.APIKeyResponse:
+    properties:
+      created_at:
+        type: string
+      display_key:
+        description: Masked key for display
+        type: string
+      expires_at:
+        type: string
+      id:
+        type: string
+      last_used:
+        type: string
+      max_usage_count:
+        type: integer
+      name:
+        type: string
+      updated_at:
+        type: string
+      usage_count:
+        type: integer
+    required:
+    - created_at
+    - display_key
+    - id
+    - name
+    - updated_at
+    - usage_count
+    type: object
+  api_key.APIKeyWithTokenResponse:
+    properties:
+      created_at:
+        type: string
+      display_key:
+        description: Masked key for display
+        type: string
+      expires_at:
+        type: string
+      id:
+        type: string
+      last_used:
+        type: string
+      max_usage_count:
+        type: integer
+      name:
+        type: string
+      token:
+        type: string
+      updated_at:
+        type: string
+      usage_count:
+        type: integer
+    required:
+    - created_at
+    - display_key
+    - id
+    - name
+    - token
+    - updated_at
+    - usage_count
+    type: object
+  api_key.CreateAPIKeyDto:
+    properties:
+      expires_at:
+        type: string
+      max_usage_count:
+        minimum: 1
+        type: integer
+      name:
+        maxLength: 255
+        minLength: 1
+        type: string
+    required:
+    - name
+    type: object
+  api_key.UpdateAPIKeyDto:
+    properties:
+      expires_at:
+        type: string
+      max_usage_count:
+        minimum: 1
+        type: integer
+      name:
+        maxLength: 255
+        minLength: 1
+        type: string
+    type: object
   auth.LoginDto:
     properties:
       email:
@@ -999,6 +1093,48 @@ definitions:
     - data
     - message
     type: object
+  utils.ApiResponse-api_key_APIKeyConfigResponse:
+    properties:
+      data:
+        $ref: '#/definitions/api_key.APIKeyConfigResponse'
+      message:
+        type: string
+    required:
+    - data
+    - message
+    type: object
+  utils.ApiResponse-api_key_APIKeyResponse:
+    properties:
+      data:
+        $ref: '#/definitions/api_key.APIKeyResponse'
+      message:
+        type: string
+    required:
+    - data
+    - message
+    type: object
+  utils.ApiResponse-api_key_APIKeyWithTokenResponse:
+    properties:
+      data:
+        $ref: '#/definitions/api_key.APIKeyWithTokenResponse'
+      message:
+        type: string
+    required:
+    - data
+    - message
+    type: object
+  utils.ApiResponse-array_api_key_APIKeyResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/api_key.APIKeyResponse'
+        type: array
+      message:
+        type: string
+    required:
+    - data
+    - message
+    type: object
   utils.ApiResponse-array_heartbeat_Model:
     properties:
       data:
@@ -1229,6 +1365,182 @@ info:
   contact: {}
   title: Peekaping API
 paths:
+  /api-keys:
+    get:
+      description: Get all API keys for the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.ApiResponse-array_api_key_APIKeyResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      security:
+      - BearerAuth: []
+      summary: Get API keys
+      tags:
+      - api-keys
+    post:
+      consumes:
+      - application/json
+      description: Create a new API key for the authenticated user
+      parameters:
+      - description: API key creation data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api_key.CreateAPIKeyDto'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/utils.ApiResponse-api_key_APIKeyWithTokenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      security:
+      - BearerAuth: []
+      summary: Create API key
+      tags:
+      - api-keys
+  /api-keys/{id}:
+    delete:
+      description: Delete an API key
+      parameters:
+      - description: API key ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      security:
+      - BearerAuth: []
+      summary: Delete API key
+      tags:
+      - api-keys
+    get:
+      description: Get a specific API key by ID
+      parameters:
+      - description: API key ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.ApiResponse-api_key_APIKeyResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      security:
+      - BearerAuth: []
+      summary: Get API key
+      tags:
+      - api-keys
+    put:
+      consumes:
+      - application/json
+      description: Update an API key
+      parameters:
+      - description: API key ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: API key update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api_key.UpdateAPIKeyDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.ApiResponse-api_key_APIKeyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      security:
+      - BearerAuth: []
+      summary: Update API key
+      tags:
+      - api-keys
+  /api-keys/config:
+    get:
+      description: Get API key configuration including prefix
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.ApiResponse-api_key_APIKeyConfigResponse'
+      summary: Get API key configuration
+      tags:
+      - api-keys
   /auth/2fa/disable:
     post:
       consumes:

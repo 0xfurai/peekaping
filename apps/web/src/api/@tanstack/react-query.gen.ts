@@ -2,6 +2,12 @@
 
 import {
   type Options,
+  getApiKeys,
+  postApiKeys,
+  getApiKeysConfig,
+  deleteApiKeysById,
+  getApiKeysById,
+  putApiKeysById,
   postAuth2FaDisable,
   postAuth2FaSetup,
   postAuth2FaVerify,
@@ -75,6 +81,17 @@ import {
   type InfiniteData,
 } from "@tanstack/react-query";
 import type {
+  GetApiKeysData,
+  PostApiKeysData,
+  PostApiKeysError,
+  PostApiKeysResponse,
+  GetApiKeysConfigData,
+  DeleteApiKeysByIdData,
+  DeleteApiKeysByIdError,
+  GetApiKeysByIdData,
+  PutApiKeysByIdData,
+  PutApiKeysByIdError,
+  PutApiKeysByIdResponse,
   PostAuth2FaDisableData,
   PostAuth2FaDisableError,
   PostAuth2FaDisableResponse,
@@ -234,13 +251,13 @@ export type QueryKey<TOptions extends Options> = [
   Pick<TOptions, "baseURL" | "body" | "headers" | "path" | "query"> & {
     _id: string;
     _infinite?: boolean;
-  },
+  }
 ];
 
 const createQueryKey = <TOptions extends Options>(
   id: string,
   options?: TOptions,
-  infinite?: boolean,
+  infinite?: boolean
 ): [QueryKey<TOptions>[0]] => {
   const params: QueryKey<TOptions>[0] = {
     _id: id,
@@ -264,15 +281,190 @@ const createQueryKey = <TOptions extends Options>(
   return [params];
 };
 
+export const getApiKeysQueryKey = (options?: Options<GetApiKeysData>) =>
+  createQueryKey("getApiKeys", options);
+
+/**
+ * Get API keys
+ * Get all API keys for the authenticated user
+ */
+export const getApiKeysOptions = (options?: Options<GetApiKeysData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getApiKeys({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getApiKeysQueryKey(options),
+  });
+};
+
+export const postApiKeysQueryKey = (options: Options<PostApiKeysData>) =>
+  createQueryKey("postApiKeys", options);
+
+/**
+ * Create API key
+ * Create a new API key for the authenticated user
+ */
+export const postApiKeysOptions = (options: Options<PostApiKeysData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postApiKeys({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postApiKeysQueryKey(options),
+  });
+};
+
+/**
+ * Create API key
+ * Create a new API key for the authenticated user
+ */
+export const postApiKeysMutation = (
+  options?: Partial<Options<PostApiKeysData>>
+): UseMutationOptions<
+  PostApiKeysResponse,
+  AxiosError<PostApiKeysError>,
+  Options<PostApiKeysData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostApiKeysResponse,
+    AxiosError<PostApiKeysError>,
+    Options<PostApiKeysData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postApiKeys({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getApiKeysConfigQueryKey = (
+  options?: Options<GetApiKeysConfigData>
+) => createQueryKey("getApiKeysConfig", options);
+
+/**
+ * Get API key configuration
+ * Get API key configuration including prefix
+ */
+export const getApiKeysConfigOptions = (
+  options?: Options<GetApiKeysConfigData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getApiKeysConfig({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getApiKeysConfigQueryKey(options),
+  });
+};
+
+/**
+ * Delete API key
+ * Delete an API key
+ */
+export const deleteApiKeysByIdMutation = (
+  options?: Partial<Options<DeleteApiKeysByIdData>>
+): UseMutationOptions<
+  unknown,
+  AxiosError<DeleteApiKeysByIdError>,
+  Options<DeleteApiKeysByIdData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    unknown,
+    AxiosError<DeleteApiKeysByIdError>,
+    Options<DeleteApiKeysByIdData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteApiKeysById({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getApiKeysByIdQueryKey = (options: Options<GetApiKeysByIdData>) =>
+  createQueryKey("getApiKeysById", options);
+
+/**
+ * Get API key
+ * Get a specific API key by ID
+ */
+export const getApiKeysByIdOptions = (options: Options<GetApiKeysByIdData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getApiKeysById({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getApiKeysByIdQueryKey(options),
+  });
+};
+
+/**
+ * Update API key
+ * Update an API key
+ */
+export const putApiKeysByIdMutation = (
+  options?: Partial<Options<PutApiKeysByIdData>>
+): UseMutationOptions<
+  PutApiKeysByIdResponse,
+  AxiosError<PutApiKeysByIdError>,
+  Options<PutApiKeysByIdData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PutApiKeysByIdResponse,
+    AxiosError<PutApiKeysByIdError>,
+    Options<PutApiKeysByIdData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await putApiKeysById({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
 export const postAuth2FaDisableQueryKey = (
-  options: Options<PostAuth2FaDisableData>,
+  options: Options<PostAuth2FaDisableData>
 ) => createQueryKey("postAuth2FaDisable", options);
 
 /**
  * Disable 2FA (TOTP) for user
  */
 export const postAuth2FaDisableOptions = (
-  options: Options<PostAuth2FaDisableData>,
+  options: Options<PostAuth2FaDisableData>
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -292,7 +484,7 @@ export const postAuth2FaDisableOptions = (
  * Disable 2FA (TOTP) for user
  */
 export const postAuth2FaDisableMutation = (
-  options?: Partial<Options<PostAuth2FaDisableData>>,
+  options?: Partial<Options<PostAuth2FaDisableData>>
 ): UseMutationOptions<
   PostAuth2FaDisableResponse,
   AxiosError<PostAuth2FaDisableError>,
@@ -316,14 +508,14 @@ export const postAuth2FaDisableMutation = (
 };
 
 export const postAuth2FaSetupQueryKey = (
-  options: Options<PostAuth2FaSetupData>,
+  options: Options<PostAuth2FaSetupData>
 ) => createQueryKey("postAuth2FaSetup", options);
 
 /**
  * Enable 2FA (TOTP) for user
  */
 export const postAuth2FaSetupOptions = (
-  options: Options<PostAuth2FaSetupData>,
+  options: Options<PostAuth2FaSetupData>
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -343,7 +535,7 @@ export const postAuth2FaSetupOptions = (
  * Enable 2FA (TOTP) for user
  */
 export const postAuth2FaSetupMutation = (
-  options?: Partial<Options<PostAuth2FaSetupData>>,
+  options?: Partial<Options<PostAuth2FaSetupData>>
 ): UseMutationOptions<
   PostAuth2FaSetupResponse,
   AxiosError<PostAuth2FaSetupError>,
@@ -367,14 +559,14 @@ export const postAuth2FaSetupMutation = (
 };
 
 export const postAuth2FaVerifyQueryKey = (
-  options: Options<PostAuth2FaVerifyData>,
+  options: Options<PostAuth2FaVerifyData>
 ) => createQueryKey("postAuth2FaVerify", options);
 
 /**
  * Verify 2FA (TOTP) code for user
  */
 export const postAuth2FaVerifyOptions = (
-  options: Options<PostAuth2FaVerifyData>,
+  options: Options<PostAuth2FaVerifyData>
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -394,7 +586,7 @@ export const postAuth2FaVerifyOptions = (
  * Verify 2FA (TOTP) code for user
  */
 export const postAuth2FaVerifyMutation = (
-  options?: Partial<Options<PostAuth2FaVerifyData>>,
+  options?: Partial<Options<PostAuth2FaVerifyData>>
 ): UseMutationOptions<
   PostAuth2FaVerifyResponse,
   AxiosError<PostAuth2FaVerifyError>,
@@ -442,7 +634,7 @@ export const postAuthLoginOptions = (options: Options<PostAuthLoginData>) => {
  * Login admin
  */
 export const postAuthLoginMutation = (
-  options?: Partial<Options<PostAuthLoginData>>,
+  options?: Partial<Options<PostAuthLoginData>>
 ): UseMutationOptions<
   PostAuthLoginResponse,
   AxiosError<PostAuthLoginError>,
@@ -469,7 +661,7 @@ export const postAuthLoginMutation = (
  * Update user password
  */
 export const putAuthPasswordMutation = (
-  options?: Partial<Options<PutAuthPasswordData>>,
+  options?: Partial<Options<PutAuthPasswordData>>
 ): UseMutationOptions<
   PutAuthPasswordResponse,
   AxiosError<PutAuthPasswordError>,
@@ -493,14 +685,14 @@ export const putAuthPasswordMutation = (
 };
 
 export const postAuthRefreshQueryKey = (
-  options: Options<PostAuthRefreshData>,
+  options: Options<PostAuthRefreshData>
 ) => createQueryKey("postAuthRefresh", options);
 
 /**
  * Refresh access token
  */
 export const postAuthRefreshOptions = (
-  options: Options<PostAuthRefreshData>,
+  options: Options<PostAuthRefreshData>
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -520,7 +712,7 @@ export const postAuthRefreshOptions = (
  * Refresh access token
  */
 export const postAuthRefreshMutation = (
-  options?: Partial<Options<PostAuthRefreshData>>,
+  options?: Partial<Options<PostAuthRefreshData>>
 ): UseMutationOptions<
   PostAuthRefreshResponse,
   AxiosError<PostAuthRefreshError>,
@@ -544,14 +736,14 @@ export const postAuthRefreshMutation = (
 };
 
 export const postAuthRegisterQueryKey = (
-  options: Options<PostAuthRegisterData>,
+  options: Options<PostAuthRegisterData>
 ) => createQueryKey("postAuthRegister", options);
 
 /**
  * Register new admin
  */
 export const postAuthRegisterOptions = (
-  options: Options<PostAuthRegisterData>,
+  options: Options<PostAuthRegisterData>
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -571,7 +763,7 @@ export const postAuthRegisterOptions = (
  * Register new admin
  */
 export const postAuthRegisterMutation = (
-  options?: Partial<Options<PostAuthRegisterData>>,
+  options?: Partial<Options<PostAuthRegisterData>>
 ): UseMutationOptions<
   PostAuthRegisterResponse,
   AxiosError<PostAuthRegisterError>,
@@ -595,14 +787,14 @@ export const postAuthRegisterMutation = (
 };
 
 export const getBadgeByMonitorIdCertExpQueryKey = (
-  options: Options<GetBadgeByMonitorIdCertExpData>,
+  options: Options<GetBadgeByMonitorIdCertExpData>
 ) => createQueryKey("getBadgeByMonitorIdCertExp", options);
 
 /**
  * Get certificate expiry badge
  */
 export const getBadgeByMonitorIdCertExpOptions = (
-  options: Options<GetBadgeByMonitorIdCertExpData>,
+  options: Options<GetBadgeByMonitorIdCertExpData>
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -619,14 +811,14 @@ export const getBadgeByMonitorIdCertExpOptions = (
 };
 
 export const getBadgeByMonitorIdPingByDurationQueryKey = (
-  options: Options<GetBadgeByMonitorIdPingByDurationData>,
+  options: Options<GetBadgeByMonitorIdPingByDurationData>
 ) => createQueryKey("getBadgeByMonitorIdPingByDuration", options);
 
 /**
  * Get ping badge
  */
 export const getBadgeByMonitorIdPingByDurationOptions = (
-  options: Options<GetBadgeByMonitorIdPingByDurationData>,
+  options: Options<GetBadgeByMonitorIdPingByDurationData>
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -643,14 +835,14 @@ export const getBadgeByMonitorIdPingByDurationOptions = (
 };
 
 export const getBadgeByMonitorIdResponseQueryKey = (
-  options: Options<GetBadgeByMonitorIdResponseData>,
+  options: Options<GetBadgeByMonitorIdResponseData>
 ) => createQueryKey("getBadgeByMonitorIdResponse", options);
 
 /**
  * Get response time badge
  */
 export const getBadgeByMonitorIdResponseOptions = (
-  options: Options<GetBadgeByMonitorIdResponseData>,
+  options: Options<GetBadgeByMonitorIdResponseData>
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -667,14 +859,14 @@ export const getBadgeByMonitorIdResponseOptions = (
 };
 
 export const getBadgeByMonitorIdStatusQueryKey = (
-  options: Options<GetBadgeByMonitorIdStatusData>,
+  options: Options<GetBadgeByMonitorIdStatusData>
 ) => createQueryKey("getBadgeByMonitorIdStatus", options);
 
 /**
  * Get status badge
  */
 export const getBadgeByMonitorIdStatusOptions = (
-  options: Options<GetBadgeByMonitorIdStatusData>,
+  options: Options<GetBadgeByMonitorIdStatusData>
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -691,14 +883,14 @@ export const getBadgeByMonitorIdStatusOptions = (
 };
 
 export const getBadgeByMonitorIdUptimeByDurationQueryKey = (
-  options: Options<GetBadgeByMonitorIdUptimeByDurationData>,
+  options: Options<GetBadgeByMonitorIdUptimeByDurationData>
 ) => createQueryKey("getBadgeByMonitorIdUptimeByDuration", options);
 
 /**
  * Get uptime badge
  */
 export const getBadgeByMonitorIdUptimeByDurationOptions = (
-  options: Options<GetBadgeByMonitorIdUptimeByDurationData>,
+  options: Options<GetBadgeByMonitorIdUptimeByDurationData>
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -737,14 +929,14 @@ export const getHealthOptions = (options?: Options<GetHealthData>) => {
 };
 
 export const getMaintenancesQueryKey = (
-  options?: Options<GetMaintenancesData>,
+  options?: Options<GetMaintenancesData>
 ) => createQueryKey("getMaintenances", options);
 
 /**
  * Get maintenances
  */
 export const getMaintenancesOptions = (
-  options?: Options<GetMaintenancesData>,
+  options?: Options<GetMaintenancesData>
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -761,10 +953,10 @@ export const getMaintenancesOptions = (
 };
 
 const createInfiniteParams = <
-  K extends Pick<QueryKey<Options>[0], "body" | "headers" | "path" | "query">,
+  K extends Pick<QueryKey<Options>[0], "body" | "headers" | "path" | "query">
 >(
   queryKey: QueryKey<Options>,
-  page: K,
+  page: K
 ) => {
   const params = {
     ...queryKey[0],
@@ -797,7 +989,7 @@ const createInfiniteParams = <
 };
 
 export const getMaintenancesInfiniteQueryKey = (
-  options?: Options<GetMaintenancesData>,
+  options?: Options<GetMaintenancesData>
 ): QueryKey<Options<GetMaintenancesData>> =>
   createQueryKey("getMaintenances", options, true);
 
@@ -805,7 +997,7 @@ export const getMaintenancesInfiniteQueryKey = (
  * Get maintenances
  */
 export const getMaintenancesInfiniteOptions = (
-  options?: Options<GetMaintenancesData>,
+  options?: Options<GetMaintenancesData>
 ) => {
   return infiniteQueryOptions<
     GetMaintenancesResponse,
@@ -843,19 +1035,19 @@ export const getMaintenancesInfiniteOptions = (
         return data;
       },
       queryKey: getMaintenancesInfiniteQueryKey(options),
-    },
+    }
   );
 };
 
 export const postMaintenancesQueryKey = (
-  options: Options<PostMaintenancesData>,
+  options: Options<PostMaintenancesData>
 ) => createQueryKey("postMaintenances", options);
 
 /**
  * Create maintenance
  */
 export const postMaintenancesOptions = (
-  options: Options<PostMaintenancesData>,
+  options: Options<PostMaintenancesData>
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -875,7 +1067,7 @@ export const postMaintenancesOptions = (
  * Create maintenance
  */
 export const postMaintenancesMutation = (
-  options?: Partial<Options<PostMaintenancesData>>,
+  options?: Partial<Options<PostMaintenancesData>>
 ): UseMutationOptions<
   PostMaintenancesResponse,
   AxiosError<PostMaintenancesError>,
@@ -902,7 +1094,7 @@ export const postMaintenancesMutation = (
  * Delete maintenance
  */
 export const deleteMaintenancesByIdMutation = (
-  options?: Partial<Options<DeleteMaintenancesByIdData>>,
+  options?: Partial<Options<DeleteMaintenancesByIdData>>
 ): UseMutationOptions<
   DeleteMaintenancesByIdResponse,
   AxiosError<DeleteMaintenancesByIdError>,
@@ -926,14 +1118,14 @@ export const deleteMaintenancesByIdMutation = (
 };
 
 export const getMaintenancesByIdQueryKey = (
-  options: Options<GetMaintenancesByIdData>,
+  options: Options<GetMaintenancesByIdData>
 ) => createQueryKey("getMaintenancesById", options);
 
 /**
  * Get maintenance by ID
  */
 export const getMaintenancesByIdOptions = (
-  options: Options<GetMaintenancesByIdData>,
+  options: Options<GetMaintenancesByIdData>
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -953,7 +1145,7 @@ export const getMaintenancesByIdOptions = (
  * Update maintenance
  */
 export const patchMaintenancesByIdMutation = (
-  options?: Partial<Options<PatchMaintenancesByIdData>>,
+  options?: Partial<Options<PatchMaintenancesByIdData>>
 ): UseMutationOptions<
   PatchMaintenancesByIdResponse,
   AxiosError<PatchMaintenancesByIdError>,
@@ -980,7 +1172,7 @@ export const patchMaintenancesByIdMutation = (
  * Update maintenance
  */
 export const putMaintenancesByIdMutation = (
-  options?: Partial<Options<PutMaintenancesByIdData>>,
+  options?: Partial<Options<PutMaintenancesByIdData>>
 ): UseMutationOptions<
   PutMaintenancesByIdResponse,
   AxiosError<PutMaintenancesByIdError>,
@@ -1007,7 +1199,7 @@ export const putMaintenancesByIdMutation = (
  * Pause maintenance
  */
 export const patchMaintenancesByIdPauseMutation = (
-  options?: Partial<Options<PatchMaintenancesByIdPauseData>>,
+  options?: Partial<Options<PatchMaintenancesByIdPauseData>>
 ): UseMutationOptions<
   PatchMaintenancesByIdPauseResponse,
   AxiosError<PatchMaintenancesByIdPauseError>,
@@ -1034,7 +1226,7 @@ export const patchMaintenancesByIdPauseMutation = (
  * Resume maintenance
  */
 export const patchMaintenancesByIdResumeMutation = (
-  options?: Partial<Options<PatchMaintenancesByIdResumeData>>,
+  options?: Partial<Options<PatchMaintenancesByIdResumeData>>
 ): UseMutationOptions<
   PatchMaintenancesByIdResumeResponse,
   AxiosError<PatchMaintenancesByIdResumeError>,
@@ -1079,7 +1271,7 @@ export const getMonitorsOptions = (options?: Options<GetMonitorsData>) => {
 };
 
 export const getMonitorsInfiniteQueryKey = (
-  options?: Options<GetMonitorsData>,
+  options?: Options<GetMonitorsData>
 ): QueryKey<Options<GetMonitorsData>> =>
   createQueryKey("getMonitors", options, true);
 
@@ -1087,7 +1279,7 @@ export const getMonitorsInfiniteQueryKey = (
  * Get monitors
  */
 export const getMonitorsInfiniteOptions = (
-  options?: Options<GetMonitorsData>,
+  options?: Options<GetMonitorsData>
 ) => {
   return infiniteQueryOptions<
     GetMonitorsResponse,
@@ -1125,7 +1317,7 @@ export const getMonitorsInfiniteOptions = (
         return data;
       },
       queryKey: getMonitorsInfiniteQueryKey(options),
-    },
+    }
   );
 };
 
@@ -1154,7 +1346,7 @@ export const postMonitorsOptions = (options: Options<PostMonitorsData>) => {
  * Create monitor
  */
 export const postMonitorsMutation = (
-  options?: Partial<Options<PostMonitorsData>>,
+  options?: Partial<Options<PostMonitorsData>>
 ): UseMutationOptions<
   PostMonitorsResponse,
   AxiosError<PostMonitorsError>,
@@ -1178,14 +1370,14 @@ export const postMonitorsMutation = (
 };
 
 export const getMonitorsBatchQueryKey = (
-  options: Options<GetMonitorsBatchData>,
+  options: Options<GetMonitorsBatchData>
 ) => createQueryKey("getMonitorsBatch", options);
 
 /**
  * Get monitors by IDs
  */
 export const getMonitorsBatchOptions = (
-  options: Options<GetMonitorsBatchData>,
+  options: Options<GetMonitorsBatchData>
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -1205,7 +1397,7 @@ export const getMonitorsBatchOptions = (
  * Delete monitor
  */
 export const deleteMonitorsByIdMutation = (
-  options?: Partial<Options<DeleteMonitorsByIdData>>,
+  options?: Partial<Options<DeleteMonitorsByIdData>>
 ): UseMutationOptions<
   DeleteMonitorsByIdResponse,
   AxiosError<DeleteMonitorsByIdError>,
@@ -1229,14 +1421,14 @@ export const deleteMonitorsByIdMutation = (
 };
 
 export const getMonitorsByIdQueryKey = (
-  options: Options<GetMonitorsByIdData>,
+  options: Options<GetMonitorsByIdData>
 ) => createQueryKey("getMonitorsById", options);
 
 /**
  * Get monitor by ID
  */
 export const getMonitorsByIdOptions = (
-  options: Options<GetMonitorsByIdData>,
+  options: Options<GetMonitorsByIdData>
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -1256,7 +1448,7 @@ export const getMonitorsByIdOptions = (
  * Update monitor
  */
 export const patchMonitorsByIdMutation = (
-  options?: Partial<Options<PatchMonitorsByIdData>>,
+  options?: Partial<Options<PatchMonitorsByIdData>>
 ): UseMutationOptions<
   PatchMonitorsByIdResponse,
   AxiosError<PatchMonitorsByIdError>,
@@ -1283,7 +1475,7 @@ export const patchMonitorsByIdMutation = (
  * Update monitor
  */
 export const putMonitorsByIdMutation = (
-  options?: Partial<Options<PutMonitorsByIdData>>,
+  options?: Partial<Options<PutMonitorsByIdData>>
 ): UseMutationOptions<
   PutMonitorsByIdResponse,
   AxiosError<PutMonitorsByIdError>,
@@ -1307,14 +1499,14 @@ export const putMonitorsByIdMutation = (
 };
 
 export const getMonitorsByIdHeartbeatsQueryKey = (
-  options: Options<GetMonitorsByIdHeartbeatsData>,
+  options: Options<GetMonitorsByIdHeartbeatsData>
 ) => createQueryKey("getMonitorsByIdHeartbeats", options);
 
 /**
  * Get paginated heartbeats for a monitor
  */
 export const getMonitorsByIdHeartbeatsOptions = (
-  options: Options<GetMonitorsByIdHeartbeatsData>,
+  options: Options<GetMonitorsByIdHeartbeatsData>
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -1331,7 +1523,7 @@ export const getMonitorsByIdHeartbeatsOptions = (
 };
 
 export const getMonitorsByIdHeartbeatsInfiniteQueryKey = (
-  options: Options<GetMonitorsByIdHeartbeatsData>,
+  options: Options<GetMonitorsByIdHeartbeatsData>
 ): QueryKey<Options<GetMonitorsByIdHeartbeatsData>> =>
   createQueryKey("getMonitorsByIdHeartbeats", options, true);
 
@@ -1339,7 +1531,7 @@ export const getMonitorsByIdHeartbeatsInfiniteQueryKey = (
  * Get paginated heartbeats for a monitor
  */
 export const getMonitorsByIdHeartbeatsInfiniteOptions = (
-  options: Options<GetMonitorsByIdHeartbeatsData>,
+  options: Options<GetMonitorsByIdHeartbeatsData>
 ) => {
   return infiniteQueryOptions<
     GetMonitorsByIdHeartbeatsResponse,
@@ -1377,19 +1569,19 @@ export const getMonitorsByIdHeartbeatsInfiniteOptions = (
         return data;
       },
       queryKey: getMonitorsByIdHeartbeatsInfiniteQueryKey(options),
-    },
+    }
   );
 };
 
 export const postMonitorsByIdResetQueryKey = (
-  options: Options<PostMonitorsByIdResetData>,
+  options: Options<PostMonitorsByIdResetData>
 ) => createQueryKey("postMonitorsByIdReset", options);
 
 /**
  * Reset monitor data (heartbeats and stats)
  */
 export const postMonitorsByIdResetOptions = (
-  options: Options<PostMonitorsByIdResetData>,
+  options: Options<PostMonitorsByIdResetData>
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -1409,7 +1601,7 @@ export const postMonitorsByIdResetOptions = (
  * Reset monitor data (heartbeats and stats)
  */
 export const postMonitorsByIdResetMutation = (
-  options?: Partial<Options<PostMonitorsByIdResetData>>,
+  options?: Partial<Options<PostMonitorsByIdResetData>>
 ): UseMutationOptions<
   PostMonitorsByIdResetResponse,
   AxiosError<PostMonitorsByIdResetError>,
@@ -1433,14 +1625,14 @@ export const postMonitorsByIdResetMutation = (
 };
 
 export const getMonitorsByIdStatsPointsQueryKey = (
-  options: Options<GetMonitorsByIdStatsPointsData>,
+  options: Options<GetMonitorsByIdStatsPointsData>
 ) => createQueryKey("getMonitorsByIdStatsPoints", options);
 
 /**
  * Get monitor stat points (ping/up/down) from stats tables
  */
 export const getMonitorsByIdStatsPointsOptions = (
-  options: Options<GetMonitorsByIdStatsPointsData>,
+  options: Options<GetMonitorsByIdStatsPointsData>
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -1457,14 +1649,14 @@ export const getMonitorsByIdStatsPointsOptions = (
 };
 
 export const getMonitorsByIdStatsUptimeQueryKey = (
-  options: Options<GetMonitorsByIdStatsUptimeData>,
+  options: Options<GetMonitorsByIdStatsUptimeData>
 ) => createQueryKey("getMonitorsByIdStatsUptime", options);
 
 /**
  * Get monitor uptime stats (24h, 30d, 365d)
  */
 export const getMonitorsByIdStatsUptimeOptions = (
-  options: Options<GetMonitorsByIdStatsUptimeData>,
+  options: Options<GetMonitorsByIdStatsUptimeData>
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -1481,14 +1673,14 @@ export const getMonitorsByIdStatsUptimeOptions = (
 };
 
 export const getMonitorsByIdTlsQueryKey = (
-  options: Options<GetMonitorsByIdTlsData>,
+  options: Options<GetMonitorsByIdTlsData>
 ) => createQueryKey("getMonitorsByIdTls", options);
 
 /**
  * Get monitor TLS certificate information
  */
 export const getMonitorsByIdTlsOptions = (
-  options: Options<GetMonitorsByIdTlsData>,
+  options: Options<GetMonitorsByIdTlsData>
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -1505,14 +1697,14 @@ export const getMonitorsByIdTlsOptions = (
 };
 
 export const getNotificationChannelsQueryKey = (
-  options?: Options<GetNotificationChannelsData>,
+  options?: Options<GetNotificationChannelsData>
 ) => createQueryKey("getNotificationChannels", options);
 
 /**
  * Get notification channels
  */
 export const getNotificationChannelsOptions = (
-  options?: Options<GetNotificationChannelsData>,
+  options?: Options<GetNotificationChannelsData>
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -1529,7 +1721,7 @@ export const getNotificationChannelsOptions = (
 };
 
 export const getNotificationChannelsInfiniteQueryKey = (
-  options?: Options<GetNotificationChannelsData>,
+  options?: Options<GetNotificationChannelsData>
 ): QueryKey<Options<GetNotificationChannelsData>> =>
   createQueryKey("getNotificationChannels", options, true);
 
@@ -1537,7 +1729,7 @@ export const getNotificationChannelsInfiniteQueryKey = (
  * Get notification channels
  */
 export const getNotificationChannelsInfiniteOptions = (
-  options?: Options<GetNotificationChannelsData>,
+  options?: Options<GetNotificationChannelsData>
 ) => {
   return infiniteQueryOptions<
     GetNotificationChannelsResponse,
@@ -1575,19 +1767,19 @@ export const getNotificationChannelsInfiniteOptions = (
         return data;
       },
       queryKey: getNotificationChannelsInfiniteQueryKey(options),
-    },
+    }
   );
 };
 
 export const postNotificationChannelsQueryKey = (
-  options: Options<PostNotificationChannelsData>,
+  options: Options<PostNotificationChannelsData>
 ) => createQueryKey("postNotificationChannels", options);
 
 /**
  * Create notification channel
  */
 export const postNotificationChannelsOptions = (
-  options: Options<PostNotificationChannelsData>,
+  options: Options<PostNotificationChannelsData>
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -1607,7 +1799,7 @@ export const postNotificationChannelsOptions = (
  * Create notification channel
  */
 export const postNotificationChannelsMutation = (
-  options?: Partial<Options<PostNotificationChannelsData>>,
+  options?: Partial<Options<PostNotificationChannelsData>>
 ): UseMutationOptions<
   PostNotificationChannelsResponse,
   AxiosError<PostNotificationChannelsError>,
@@ -1631,14 +1823,14 @@ export const postNotificationChannelsMutation = (
 };
 
 export const postNotificationChannelsTestQueryKey = (
-  options: Options<PostNotificationChannelsTestData>,
+  options: Options<PostNotificationChannelsTestData>
 ) => createQueryKey("postNotificationChannelsTest", options);
 
 /**
  * Test notification channel
  */
 export const postNotificationChannelsTestOptions = (
-  options: Options<PostNotificationChannelsTestData>,
+  options: Options<PostNotificationChannelsTestData>
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -1658,7 +1850,7 @@ export const postNotificationChannelsTestOptions = (
  * Test notification channel
  */
 export const postNotificationChannelsTestMutation = (
-  options?: Partial<Options<PostNotificationChannelsTestData>>,
+  options?: Partial<Options<PostNotificationChannelsTestData>>
 ): UseMutationOptions<
   PostNotificationChannelsTestResponse,
   AxiosError<PostNotificationChannelsTestError>,
@@ -1685,7 +1877,7 @@ export const postNotificationChannelsTestMutation = (
  * Delete notification channel
  */
 export const deleteNotificationChannelsByIdMutation = (
-  options?: Partial<Options<DeleteNotificationChannelsByIdData>>,
+  options?: Partial<Options<DeleteNotificationChannelsByIdData>>
 ): UseMutationOptions<
   DeleteNotificationChannelsByIdResponse,
   AxiosError<DeleteNotificationChannelsByIdError>,
@@ -1709,14 +1901,14 @@ export const deleteNotificationChannelsByIdMutation = (
 };
 
 export const getNotificationChannelsByIdQueryKey = (
-  options: Options<GetNotificationChannelsByIdData>,
+  options: Options<GetNotificationChannelsByIdData>
 ) => createQueryKey("getNotificationChannelsById", options);
 
 /**
  * Get notification channel by ID
  */
 export const getNotificationChannelsByIdOptions = (
-  options: Options<GetNotificationChannelsByIdData>,
+  options: Options<GetNotificationChannelsByIdData>
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -1736,7 +1928,7 @@ export const getNotificationChannelsByIdOptions = (
  * Update notification channel
  */
 export const patchNotificationChannelsByIdMutation = (
-  options?: Partial<Options<PatchNotificationChannelsByIdData>>,
+  options?: Partial<Options<PatchNotificationChannelsByIdData>>
 ): UseMutationOptions<
   PatchNotificationChannelsByIdResponse,
   AxiosError<PatchNotificationChannelsByIdError>,
@@ -1763,7 +1955,7 @@ export const patchNotificationChannelsByIdMutation = (
  * Update notification channel
  */
 export const putNotificationChannelsByIdMutation = (
-  options?: Partial<Options<PutNotificationChannelsByIdData>>,
+  options?: Partial<Options<PutNotificationChannelsByIdData>>
 ): UseMutationOptions<
   PutNotificationChannelsByIdResponse,
   AxiosError<PutNotificationChannelsByIdError>,
@@ -1808,7 +2000,7 @@ export const getProxiesOptions = (options?: Options<GetProxiesData>) => {
 };
 
 export const getProxiesInfiniteQueryKey = (
-  options?: Options<GetProxiesData>,
+  options?: Options<GetProxiesData>
 ): QueryKey<Options<GetProxiesData>> =>
   createQueryKey("getProxies", options, true);
 
@@ -1816,7 +2008,7 @@ export const getProxiesInfiniteQueryKey = (
  * Get proxies
  */
 export const getProxiesInfiniteOptions = (
-  options?: Options<GetProxiesData>,
+  options?: Options<GetProxiesData>
 ) => {
   return infiniteQueryOptions<
     GetProxiesResponse,
@@ -1854,7 +2046,7 @@ export const getProxiesInfiniteOptions = (
         return data;
       },
       queryKey: getProxiesInfiniteQueryKey(options),
-    },
+    }
   );
 };
 
@@ -1883,7 +2075,7 @@ export const postProxiesOptions = (options: Options<PostProxiesData>) => {
  * Create proxy
  */
 export const postProxiesMutation = (
-  options?: Partial<Options<PostProxiesData>>,
+  options?: Partial<Options<PostProxiesData>>
 ): UseMutationOptions<
   PostProxiesResponse,
   AxiosError<PostProxiesError>,
@@ -1910,7 +2102,7 @@ export const postProxiesMutation = (
  * Delete proxy
  */
 export const deleteProxiesByIdMutation = (
-  options?: Partial<Options<DeleteProxiesByIdData>>,
+  options?: Partial<Options<DeleteProxiesByIdData>>
 ): UseMutationOptions<
   DeleteProxiesByIdResponse,
   AxiosError<DeleteProxiesByIdError>,
@@ -1958,7 +2150,7 @@ export const getProxiesByIdOptions = (options: Options<GetProxiesByIdData>) => {
  * Update proxy
  */
 export const patchProxiesByIdMutation = (
-  options?: Partial<Options<PatchProxiesByIdData>>,
+  options?: Partial<Options<PatchProxiesByIdData>>
 ): UseMutationOptions<
   PatchProxiesByIdResponse,
   AxiosError<PatchProxiesByIdError>,
@@ -1985,7 +2177,7 @@ export const patchProxiesByIdMutation = (
  * Update proxy
  */
 export const putProxiesByIdMutation = (
-  options?: Partial<Options<PutProxiesByIdData>>,
+  options?: Partial<Options<PutProxiesByIdData>>
 ): UseMutationOptions<
   PutProxiesByIdResponse,
   AxiosError<PutProxiesByIdError>,
@@ -2012,7 +2204,7 @@ export const putProxiesByIdMutation = (
  * Delete setting by key
  */
 export const deleteSettingsKeyByKeyMutation = (
-  options?: Partial<Options<DeleteSettingsKeyByKeyData>>,
+  options?: Partial<Options<DeleteSettingsKeyByKeyData>>
 ): UseMutationOptions<
   DeleteSettingsKeyByKeyResponse,
   AxiosError<DeleteSettingsKeyByKeyError>,
@@ -2036,14 +2228,14 @@ export const deleteSettingsKeyByKeyMutation = (
 };
 
 export const getSettingsKeyByKeyQueryKey = (
-  options: Options<GetSettingsKeyByKeyData>,
+  options: Options<GetSettingsKeyByKeyData>
 ) => createQueryKey("getSettingsKeyByKey", options);
 
 /**
  * Get setting by key
  */
 export const getSettingsKeyByKeyOptions = (
-  options: Options<GetSettingsKeyByKeyData>,
+  options: Options<GetSettingsKeyByKeyData>
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -2063,7 +2255,7 @@ export const getSettingsKeyByKeyOptions = (
  * Set setting by key
  */
 export const putSettingsKeyByKeyMutation = (
-  options?: Partial<Options<PutSettingsKeyByKeyData>>,
+  options?: Partial<Options<PutSettingsKeyByKeyData>>
 ): UseMutationOptions<
   PutSettingsKeyByKeyResponse,
   AxiosError<PutSettingsKeyByKeyError>,
@@ -2093,7 +2285,7 @@ export const getStatusPagesQueryKey = (options?: Options<GetStatusPagesData>) =>
  * Get all status pages
  */
 export const getStatusPagesOptions = (
-  options?: Options<GetStatusPagesData>,
+  options?: Options<GetStatusPagesData>
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -2110,7 +2302,7 @@ export const getStatusPagesOptions = (
 };
 
 export const getStatusPagesInfiniteQueryKey = (
-  options?: Options<GetStatusPagesData>,
+  options?: Options<GetStatusPagesData>
 ): QueryKey<Options<GetStatusPagesData>> =>
   createQueryKey("getStatusPages", options, true);
 
@@ -2118,7 +2310,7 @@ export const getStatusPagesInfiniteQueryKey = (
  * Get all status pages
  */
 export const getStatusPagesInfiniteOptions = (
-  options?: Options<GetStatusPagesData>,
+  options?: Options<GetStatusPagesData>
 ) => {
   return infiniteQueryOptions<
     GetStatusPagesResponse,
@@ -2156,19 +2348,19 @@ export const getStatusPagesInfiniteOptions = (
         return data;
       },
       queryKey: getStatusPagesInfiniteQueryKey(options),
-    },
+    }
   );
 };
 
 export const postStatusPagesQueryKey = (
-  options: Options<PostStatusPagesData>,
+  options: Options<PostStatusPagesData>
 ) => createQueryKey("postStatusPages", options);
 
 /**
  * Create a new status page
  */
 export const postStatusPagesOptions = (
-  options: Options<PostStatusPagesData>,
+  options: Options<PostStatusPagesData>
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -2188,7 +2380,7 @@ export const postStatusPagesOptions = (
  * Create a new status page
  */
 export const postStatusPagesMutation = (
-  options?: Partial<Options<PostStatusPagesData>>,
+  options?: Partial<Options<PostStatusPagesData>>
 ): UseMutationOptions<
   PostStatusPagesResponse,
   AxiosError<PostStatusPagesError>,
@@ -2212,14 +2404,14 @@ export const postStatusPagesMutation = (
 };
 
 export const getStatusPagesDomainByDomainQueryKey = (
-  options: Options<GetStatusPagesDomainByDomainData>,
+  options: Options<GetStatusPagesDomainByDomainData>
 ) => createQueryKey("getStatusPagesDomainByDomain", options);
 
 /**
  * Get a status page by domain name
  */
 export const getStatusPagesDomainByDomainOptions = (
-  options: Options<GetStatusPagesDomainByDomainData>,
+  options: Options<GetStatusPagesDomainByDomainData>
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -2236,14 +2428,14 @@ export const getStatusPagesDomainByDomainOptions = (
 };
 
 export const getStatusPagesSlugBySlugQueryKey = (
-  options: Options<GetStatusPagesSlugBySlugData>,
+  options: Options<GetStatusPagesSlugBySlugData>
 ) => createQueryKey("getStatusPagesSlugBySlug", options);
 
 /**
  * Get a status page by slug
  */
 export const getStatusPagesSlugBySlugOptions = (
-  options: Options<GetStatusPagesSlugBySlugData>,
+  options: Options<GetStatusPagesSlugBySlugData>
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -2260,14 +2452,14 @@ export const getStatusPagesSlugBySlugOptions = (
 };
 
 export const getStatusPagesSlugBySlugMonitorsQueryKey = (
-  options: Options<GetStatusPagesSlugBySlugMonitorsData>,
+  options: Options<GetStatusPagesSlugBySlugMonitorsData>
 ) => createQueryKey("getStatusPagesSlugBySlugMonitors", options);
 
 /**
  * Get monitors for a status page by slug with heartbeats and uptime
  */
 export const getStatusPagesSlugBySlugMonitorsOptions = (
-  options: Options<GetStatusPagesSlugBySlugMonitorsData>,
+  options: Options<GetStatusPagesSlugBySlugMonitorsData>
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -2284,14 +2476,14 @@ export const getStatusPagesSlugBySlugMonitorsOptions = (
 };
 
 export const getStatusPagesSlugBySlugMonitorsHomepageQueryKey = (
-  options: Options<GetStatusPagesSlugBySlugMonitorsHomepageData>,
+  options: Options<GetStatusPagesSlugBySlugMonitorsHomepageData>
 ) => createQueryKey("getStatusPagesSlugBySlugMonitorsHomepage", options);
 
 /**
  * Get monitors for a status page by slug for homepage
  */
 export const getStatusPagesSlugBySlugMonitorsHomepageOptions = (
-  options: Options<GetStatusPagesSlugBySlugMonitorsHomepageData>,
+  options: Options<GetStatusPagesSlugBySlugMonitorsHomepageData>
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -2311,7 +2503,7 @@ export const getStatusPagesSlugBySlugMonitorsHomepageOptions = (
  * Delete a status page
  */
 export const deleteStatusPagesByIdMutation = (
-  options?: Partial<Options<DeleteStatusPagesByIdData>>,
+  options?: Partial<Options<DeleteStatusPagesByIdData>>
 ): UseMutationOptions<
   DeleteStatusPagesByIdResponse,
   AxiosError<DeleteStatusPagesByIdError>,
@@ -2335,14 +2527,14 @@ export const deleteStatusPagesByIdMutation = (
 };
 
 export const getStatusPagesByIdQueryKey = (
-  options: Options<GetStatusPagesByIdData>,
+  options: Options<GetStatusPagesByIdData>
 ) => createQueryKey("getStatusPagesById", options);
 
 /**
  * Get a status page by ID
  */
 export const getStatusPagesByIdOptions = (
-  options: Options<GetStatusPagesByIdData>,
+  options: Options<GetStatusPagesByIdData>
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -2362,7 +2554,7 @@ export const getStatusPagesByIdOptions = (
  * Update a status page
  */
 export const patchStatusPagesByIdMutation = (
-  options?: Partial<Options<PatchStatusPagesByIdData>>,
+  options?: Partial<Options<PatchStatusPagesByIdData>>
 ): UseMutationOptions<
   PatchStatusPagesByIdResponse,
   AxiosError<PatchStatusPagesByIdError>,
@@ -2407,7 +2599,7 @@ export const getTagsOptions = (options?: Options<GetTagsData>) => {
 };
 
 export const getTagsInfiniteQueryKey = (
-  options?: Options<GetTagsData>,
+  options?: Options<GetTagsData>
 ): QueryKey<Options<GetTagsData>> => createQueryKey("getTags", options, true);
 
 /**
@@ -2450,7 +2642,7 @@ export const getTagsInfiniteOptions = (options?: Options<GetTagsData>) => {
         return data;
       },
       queryKey: getTagsInfiniteQueryKey(options),
-    },
+    }
   );
 };
 
@@ -2479,7 +2671,7 @@ export const postTagsOptions = (options: Options<PostTagsData>) => {
  * Create tag
  */
 export const postTagsMutation = (
-  options?: Partial<Options<PostTagsData>>,
+  options?: Partial<Options<PostTagsData>>
 ): UseMutationOptions<
   PostTagsResponse,
   AxiosError<PostTagsError>,
@@ -2506,7 +2698,7 @@ export const postTagsMutation = (
  * Delete tag
  */
 export const deleteTagsByIdMutation = (
-  options?: Partial<Options<DeleteTagsByIdData>>,
+  options?: Partial<Options<DeleteTagsByIdData>>
 ): UseMutationOptions<
   DeleteTagsByIdResponse,
   AxiosError<DeleteTagsByIdError>,
@@ -2554,7 +2746,7 @@ export const getTagsByIdOptions = (options: Options<GetTagsByIdData>) => {
  * Update tag
  */
 export const patchTagsByIdMutation = (
-  options?: Partial<Options<PatchTagsByIdData>>,
+  options?: Partial<Options<PatchTagsByIdData>>
 ): UseMutationOptions<
   PatchTagsByIdResponse,
   AxiosError<PatchTagsByIdError>,
@@ -2581,7 +2773,7 @@ export const patchTagsByIdMutation = (
  * Update tag
  */
 export const putTagsByIdMutation = (
-  options?: Partial<Options<PutTagsByIdData>>,
+  options?: Partial<Options<PutTagsByIdData>>
 ): UseMutationOptions<
   PutTagsByIdResponse,
   AxiosError<PutTagsByIdError>,

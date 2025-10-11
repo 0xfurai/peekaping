@@ -1,0 +1,165 @@
+package api_key
+
+import (
+	"context"
+	"errors"
+	"time"
+
+	"go.uber.org/zap"
+	"golang.org/x/crypto/bcrypt"
+)
+
+// Service defines the interface for API key business logic
+type Service interface {
+	Create(ctx context.Context, req *CreateRequest) (*APIKeyWithToken, error)
+	FindAll(ctx context.Context) ([]*Model, error)
+	FindByID(ctx context.Context, id string) (*Model, error)
+	Update(ctx context.Context, id string, req *UpdateRequest) (*Model, error)
+	Delete(ctx context.Context, id string) error
+	ValidateKey(ctx context.Context, key string) (*Model, error)
+}
+
+// CreateRequest represents the request to create an API key
+type CreateRequest struct {
+	Name          string
+	ExpiresAt     *time.Time
+	MaxUsageCount *int64
+}
+
+// UpdateRequest represents the request to update an API key
+type UpdateRequest struct {
+	Name          *string
+	ExpiresAt     *time.Time
+	MaxUsageCount *int64
+}
+
+type ServiceImpl struct {
+	repo   Repository
+	logger *zap.SugaredLogger
+}
+
+// MARK: Constructor
+func NewService(repo Repository, logger *zap.SugaredLogger) Service {
+	return &ServiceImpl{
+		repo:   repo,
+		logger: logger.Named("[api-key-service]"),
+	}
+}
+
+// MARK: Create
+func (s *ServiceImpl) Create(ctx context.Context, req *CreateRequest) (*APIKeyWithToken, error) {
+	s.logger.Infow("Creating API key", "name", req.Name)
+
+	createModel := &CreateModel{
+		Name:          req.Name,
+		ExpiresAt:     req.ExpiresAt,
+		MaxUsageCount: req.MaxUsageCount,
+	}
+
+	result, err := s.repo.Create(ctx, createModel)
+	if err != nil {
+		s.logger.Errorw("Failed to create API key", "name", req.Name, "error", err)
+		return nil, err
+	}
+
+	s.logger.Infow("API key created successfully", "apiKeyId", result.ID, "name", req.Name)
+	return result, nil
+}
+
+// MARK: FindAll
+func (s *ServiceImpl) FindAll(ctx context.Context) ([]*Model, error) {
+	return s.repo.FindAll(ctx)
+}
+
+// MARK: FindByID
+func (s *ServiceImpl) FindByID(ctx context.Context, id string) (*Model, error) {
+	return s.repo.FindByID(ctx, id)
+}
+
+// MARK: Update
+func (s *ServiceImpl) Update(ctx context.Context, id string, req *UpdateRequest) (*Model, error) {
+	// First, verify the API key exists
+	apiKey, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if apiKey == nil {
+		return nil, errors.New("API key not found")
+	}
+
+	updateModel := &UpdateModel{
+		Name:          req.Name,
+		ExpiresAt:     req.ExpiresAt,
+		MaxUsageCount: req.MaxUsageCount,
+	}
+
+	return s.repo.Update(ctx, id, updateModel)
+}
+
+// MARK: Delete
+func (s *ServiceImpl) Delete(ctx context.Context, id string) error {
+	// First, verify the API key exists
+	apiKey, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if apiKey == nil {
+		s.logger.Warnw("API key not found", "id", id)
+	}
+
+	return s.repo.Delete(ctx, id)
+}
+
+// MARK: ValidateKey
+func (s *ServiceImpl) ValidateKey(ctx context.Context, key string) (*Model, error) {
+	s.logger.Debugw("Validating API key", "key", maskAPIKey(key))
+
+	// Parse the API key token to extract ID and actual key
+	apiKeyID, actualKey, err := parseAPIKeyToken(key)
+	if err != nil {
+		s.logger.Warnw("Invalid API key format", "key", maskAPIKey(key), "error", err)
+		return nil, errors.New("Invalid API key")
+	}
+
+	// Find the API key by ID (single database query)
+	apiKey, err := s.repo.FindByID(ctx, apiKeyID)
+	if err != nil {
+		s.logger.Errorw("Error finding API key by ID", "apiKeyId", apiKeyID, "error", err)
+		return nil, err
+	}
+	if apiKey == nil {
+		s.logger.Warnw("API key not found", "apiKeyId", apiKeyID)
+		return nil, errors.New("Invalid API key")
+	}
+
+	// Check if the key has expired
+	if apiKey.ExpiresAt != nil && apiKey.ExpiresAt.Before(time.Now()) {
+		s.logger.Warnw("API key has expired", "apiKeyId", apiKey.ID, "expiresAt", apiKey.ExpiresAt)
+		return nil, errors.New("API key has expired")
+	}
+
+	// Check if the key has exceeded max usage count
+	if apiKey.MaxUsageCount != nil && apiKey.UsageCount >= *apiKey.MaxUsageCount {
+		s.logger.Warnw("API key usage limit exceeded", "apiKeyId", apiKey.ID, "usageCount", apiKey.UsageCount, "maxUsageCount", *apiKey.MaxUsageCount)
+		return nil, errors.New("API key usage limit exceeded")
+	}
+
+	// Verify the actual key against the stored bcrypt hash
+	err = bcrypt.CompareHashAndPassword([]byte(apiKey.KeyHash), []byte(actualKey))
+	if err != nil {
+		s.logger.Warnw("API key verification failed", "apiKeyId", apiKeyID)
+		return nil, errors.New("Invalid API key")
+	}
+
+	// Update last used timestamp and usage count
+	err = s.repo.UpdateLastUsed(ctx, apiKey.ID)
+	if err != nil {
+		// Log error but don't fail the validation
+		// This is a non-critical operation
+		s.logger.Errorw("Error updating last used timestamp and usage count", "apiKeyId", apiKey.ID, "error", err)
+	}
+
+	s.logger.Infow("API key validation successful", "apiKeyId", apiKey.ID, "name", apiKey.Name)
+	return apiKey, nil
+}
+

@@ -1,19 +1,19 @@
 package setting
 
 import (
-	"peekaping/src/modules/auth"
+	"peekaping/src/modules/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Route struct {
 	controller *Controller
-	middleware *auth.MiddlewareProvider
+	middleware *middleware.AuthChain
 }
 
 func NewRoute(
 	controller *Controller,
-	middleware *auth.MiddlewareProvider,
+	middleware *middleware.AuthChain,
 ) *Route {
 	return &Route{
 		controller, middleware,
@@ -26,7 +26,7 @@ func (uc *Route) ConnectRoute(
 ) {
 	router := rg.Group("/settings")
 
-	router.Use(uc.middleware.Auth())
+	router.Use(uc.middleware.AllAuth())
 
 	router.GET("key/:key", uc.controller.GetByKey)
 	router.PUT("key/:key", uc.controller.SetByKey)

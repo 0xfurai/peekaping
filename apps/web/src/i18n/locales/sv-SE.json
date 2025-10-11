@@ -1132,6 +1132,58 @@
         "password_updated_successfully": "Lösenordet har uppdaterats"
       },
       "title": "Uppdatera lösenord"
+    },
+    "api_keys": {
+      "title": "API-nycklar",
+      "description": "Hantera dina API-nycklar för tredjepartsintegrationer",
+      "create_button": "Skapa API-nyckel",
+      "no_keys_title": "Inga API-nycklar",
+      "no_keys_description": "Skapa din första API-nyckel för att börja integrera med externa tjänster.",
+      "create_dialog": {
+        "title": "Skapa Ny API-nyckel",
+        "description": "Skapa en ny API-nyckel för tredjepartsintegrationer. Nyckeln visas endast en gång.",
+        "form": {
+          "name_label": "Namn",
+          "name_placeholder": "t.ex., Hemsideintegration",
+          "expires_at_label": "Utgångsdatum (Valfritt)",
+          "max_usage_label": "Max Antal Användningar (Valfritt)",
+          "max_usage_placeholder": "t.ex., 1000"
+        },
+        "buttons": {
+          "cancel": "Avbryt",
+          "create": "Skapa API-nyckel",
+          "creating": "Skapar..."
+        }
+      },
+      "success_alert": {
+        "title": "API-nyckel Skapad Framgångsrikt",
+        "description": "Din API-nyckel har skapats. Kopiera den nu eftersom den inte kommer att visas igen:"
+      },
+      "table": {
+        "headers": {
+          "name": "Namn",
+          "key": "Nyckel",
+          "usage": "Användning",
+          "last_used": "Senast Använd",
+          "expires": "Går Ut",
+          "status": "Status",
+          "actions": "Åtgärder"
+        },
+        "status": {
+          "active": "Aktiv",
+          "expired": "Utgången",
+          "limit_exceeded": "Gräns Överskriden"
+        },
+        "never": "Aldrig"
+      },
+      "messages": {
+        "created_successfully": "API-nyckel skapad framgångsrikt",
+        "deleted_successfully": "API-nyckel borttagen framgångsrikt",
+        "failed_to_create": "Misslyckades att skapa API-nyckel",
+        "failed_to_delete": "Misslyckades att ta bort API-nyckel",
+        "copy_success": "Kopierat till urklipp",
+        "delete_confirm": "Är du säker på att du vill ta bort denna API-nyckel? Denna åtgärd kan inte ångras."
+      }
     }
   },
   "sendgrid": {
