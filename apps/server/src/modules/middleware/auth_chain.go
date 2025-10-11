@@ -11,6 +11,8 @@ import (
 	"go.uber.org/zap"
 )
 
+// MARK: Types and Constructor
+
 // AuthChain provides a chained authentication middleware
 type AuthChain struct {
 	jwtMiddleware    *auth.MiddlewareProvider
@@ -31,103 +33,26 @@ func NewAuthChain(
 	}
 }
 
-// JWTAuth creates a middleware that only accepts JWT authentication
-func (ac *AuthChain) JWTOnly() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, utils.NewFailResponse("Authorization header is required"))
-			c.Abort()
-			return
-		}
-
-		// Reject API keys explicitly
-		if strings.HasPrefix(authHeader, api_key.ApiKeyPrefix) {
-			c.JSON(http.StatusUnauthorized, utils.NewFailResponse("JWT token required. This endpoint does not accept API keys."))
-			c.Abort()
-			return
-		}
-
-		// Use JWT middleware
-		ac.jwtMiddleware.Auth()(c)
-	}
-}
-
-// APIKeyAuth creates a middleware that only accepts API key authentication
-func (ac *AuthChain) APIKeyAuth() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		// Use the API key middleware directly
-		ac.apiKeyMiddleware.Auth()(c)
-	}
-}
+// MARK: AllAuth
 
 // AllAuth creates a middleware that tries JWT first, then API key
 func (ac *AuthChain) AllAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
+			ac.logger.Warnw("Missing Authorization header", "ip", c.ClientIP(), "path", c.Request.URL.Path)
 			c.JSON(http.StatusUnauthorized, utils.NewFailResponse("Authorization header is required"))
 			c.Abort()
 			return
 		}
 
-		// Try JWT authentication first
-		if ac.tryJWTAuth(c, authHeader) {
-			return
+		isApiKey := strings.HasPrefix(authHeader, api_key.ApiKeyPrefix)
+		if isApiKey {
+			ac.logger.Infow("Routing to API key authentication", "ip", c.ClientIP(), "path", c.Request.URL.Path, "keyPrefix", authHeader[:min(len(authHeader), 10)]+"...")
+			ac.apiKeyMiddleware.Auth()(c)
+		} else {
+			ac.logger.Infow("Routing to JWT authentication", "ip", c.ClientIP(), "path", c.Request.URL.Path, "tokenPrefix", authHeader[:min(len(authHeader), 10)]+"...")
+			ac.jwtMiddleware.Auth()(c)
 		}
-
-		// Try API key authentication
-		if ac.tryAPIKeyAuth(c, authHeader) {
-			return
-		}
-
-		// Both failed, abort
-		ac.logger.Warnw("Authentication failed for both JWT and API key", "ip", c.ClientIP())
-		c.JSON(http.StatusUnauthorized, utils.NewFailResponse("Invalid authentication credentials"))
-		c.Abort()
 	}
-}
-
-// tryJWTAuth attempts JWT authentication
-func (ac *AuthChain) tryJWTAuth(c *gin.Context, authHeader string) bool {
-	// Skip if it's clearly an API key
-	if strings.HasPrefix(authHeader, api_key.ApiKeyPrefix) {
-		return false
-	}
-
-	// Store the original abort state
-	wasAborted := c.IsAborted()
-	
-	// Use the JWT middleware on original context
-	ac.jwtMiddleware.Auth()(c)
-	
-	// Check if authentication was successful
-	if c.IsAborted() && !wasAborted {
-		return false
-	}
-
-	ac.logger.Infow("JWT authentication successful", "ip", c.ClientIP())
-	return true
-}
-
-// tryAPIKeyAuth attempts API key authentication
-func (ac *AuthChain) tryAPIKeyAuth(c *gin.Context, authHeader string) bool {
-	// Only try API key if it starts with ApiKeyPrefix
-	if !strings.HasPrefix(authHeader, api_key.ApiKeyPrefix) {
-		return false
-	}
-
-	// Store the original abort state
-	wasAborted := c.IsAborted()
-	
-	// Use the API key middleware on original context
-	ac.apiKeyMiddleware.Auth()(c)
-	
-	// Check if authentication was successful
-	if c.IsAborted() && !wasAborted {
-		return false
-	}
-
-	ac.logger.Infow("API key authentication successful", "ip", c.ClientIP())
-	return true
 }
