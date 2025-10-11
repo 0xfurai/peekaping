@@ -1176,6 +1176,14 @@
         },
         "never": "Never"
       },
+      "delete_dialog": {
+        "title": "מחק מפתח API",
+        "description": "האם אתה בטוח שברצונך למחוק את מפתח ה-API \"{{name}}\"? לא ניתן לבטל פעולה זו.",
+        "buttons": {
+          "cancel": "ביטול",
+          "delete": "מחק"
+        }
+      },
       "messages": {
         "created_successfully": "API key created successfully",
         "deleted_successfully": "API key deleted successfully",

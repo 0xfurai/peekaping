@@ -1176,6 +1176,14 @@
         },
         "never": "Nooit"
       },
+      "delete_dialog": {
+        "title": "API-sleutel verwijderen",
+        "description": "Weet je zeker dat je de API-sleutel \"{{name}}\" wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
+        "buttons": {
+          "cancel": "Annuleren",
+          "delete": "Verwijderen"
+        }
+      },
       "messages": {
         "created_successfully": "API-sleutel succesvol aangemaakt",
         "deleted_successfully": "API-sleutel succesvol verwijderd",

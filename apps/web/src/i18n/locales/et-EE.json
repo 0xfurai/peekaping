@@ -1176,6 +1176,14 @@
         },
         "never": "Never"
       },
+      "delete_dialog": {
+        "title": "Kustuta API võti",
+        "description": "Kas olete kindel, et soovite kustutada API võtme \"{{name}}\"? Seda toimingut ei saa tagasi võtta.",
+        "buttons": {
+          "cancel": "Tühista",
+          "delete": "Kustuta"
+        }
+      },
       "messages": {
         "created_successfully": "API key created successfully",
         "deleted_successfully": "API key deleted successfully",

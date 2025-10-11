@@ -1176,6 +1176,14 @@
         },
         "never": "ไม่เคย"
       },
+      "delete_dialog": {
+        "title": "ลบคีย์ API",
+        "description": "คุณแน่ใจหรือไม่ว่าต้องการลบคีย์ API \"{{name}}\" การดำเนินการนี้ไม่สามารถยกเลิกได้",
+        "buttons": {
+          "cancel": "ยกเลิก",
+          "delete": "ลบ"
+        }
+      },
       "messages": {
         "created_successfully": "สร้างคีย์ API สำเร็จ",
         "deleted_successfully": "ลบคีย์ API สำเร็จ",

@@ -1176,6 +1176,14 @@
         },
         "never": "Hiçbir Zaman"
       },
+      "delete_dialog": {
+        "title": "API Anahtarını Sil",
+        "description": "\"{{name}}\" API anahtarını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+        "buttons": {
+          "cancel": "İptal",
+          "delete": "Sil"
+        }
+      },
       "messages": {
         "created_successfully": "API anahtarı başarıyla oluşturuldu",
         "deleted_successfully": "API anahtarı başarıyla silindi",

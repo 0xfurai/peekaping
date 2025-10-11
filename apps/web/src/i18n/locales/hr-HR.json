@@ -1176,6 +1176,14 @@
         },
         "never": "Never"
       },
+      "delete_dialog": {
+        "title": "Obriši API ključ",
+        "description": "Jeste li sigurni da želite obrisati API ključ \"{{name}}\"? Ova radnja se ne može poništiti.",
+        "buttons": {
+          "cancel": "Odustani",
+          "delete": "Obriši"
+        }
+      },
       "messages": {
         "created_successfully": "API key created successfully",
         "deleted_successfully": "API key deleted successfully",

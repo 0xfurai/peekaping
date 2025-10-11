@@ -1176,6 +1176,14 @@
         },
         "never": "從未"
       },
+      "delete_dialog": {
+        "title": "刪除 API 金鑰",
+        "description": "您確定要刪除 API 金鑰「{{name}}」嗎？此操作無法撤銷。",
+        "buttons": {
+          "cancel": "取消",
+          "delete": "刪除"
+        }
+      },
       "messages": {
         "created_successfully": "API 金鑰建立成功",
         "deleted_successfully": "API 金鑰刪除成功",

@@ -1175,6 +1175,14 @@
         },
         "never": "Niciodată"
       },
+      "delete_dialog": {
+        "title": "Șterge cheia API",
+        "description": "Sunteți sigur că doriți să ștergeți cheia API \"{{name}}\"? Această acțiune nu poate fi anulată.",
+        "buttons": {
+          "cancel": "Anulează",
+          "delete": "Șterge"
+        }
+      },
       "messages": {
         "created_successfully": "Cheia API a fost creată cu succes",
         "deleted_successfully": "Cheia API a fost ștearsă cu succes",

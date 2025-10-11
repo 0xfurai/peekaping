@@ -1175,6 +1175,14 @@
         },
         "never": "Never"
       },
+      "delete_dialog": {
+        "title": "Scrios eochair API",
+        "description": "An bhfuil tú cinnte gur mian leat eochair API \"{{name}}\" a scriosadh? Ní féidir an gníomh seo a chur ar ceal.",
+        "buttons": {
+          "cancel": "Cealaigh",
+          "delete": "Scrios"
+        }
+      },
       "messages": {
         "created_successfully": "API key created successfully",
         "deleted_successfully": "API key deleted successfully",

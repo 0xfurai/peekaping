@@ -1176,6 +1176,14 @@
         },
         "never": "Ποτέ"
       },
+      "delete_dialog": {
+        "title": "Διαγραφή κλειδιού API",
+        "description": "Είστε σίγουροι ότι θέλετε να διαγράψετε το κλειδί API \"{{name}}\"; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
+        "buttons": {
+          "cancel": "Ακύρωση",
+          "delete": "Διαγραφή"
+        }
+      },
       "messages": {
         "created_successfully": "Το κλειδί API δημιουργήθηκε επιτυχώς",
         "deleted_successfully": "Το κλειδί API διαγράφηκε επιτυχώς",

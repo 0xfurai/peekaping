@@ -1176,6 +1176,14 @@
         },
         "never": "Never"
       },
+      "delete_dialog": {
+        "title": "Slett API-nøkkel",
+        "description": "Er du sikker på at du vil slette API-nøkkelen \"{{name}}\"? Denne handlingen kan ikke angres.",
+        "buttons": {
+          "cancel": "Avbryt",
+          "delete": "Slett"
+        }
+      },
       "messages": {
         "created_successfully": "API key created successfully",
         "deleted_successfully": "API key deleted successfully",

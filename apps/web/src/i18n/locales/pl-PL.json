@@ -1176,6 +1176,14 @@
         },
         "never": "Nigdy"
       },
+      "delete_dialog": {
+        "title": "Usuń klucz API",
+        "description": "Czy na pewno chcesz usunąć klucz API \"{{name}}\"? Ta czynność nie może zostać cofnięta.",
+        "buttons": {
+          "cancel": "Anuluj",
+          "delete": "Usuń"
+        }
+      },
       "messages": {
         "created_successfully": "Klucz API został utworzony pomyślnie",
         "deleted_successfully": "Klucz API został usunięty pomyślnie",

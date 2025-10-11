@@ -1176,6 +1176,14 @@
         },
         "never": "Ніколи"
       },
+      "delete_dialog": {
+        "title": "Видалити API ключ",
+        "description": "Ви впевнені, що хочете видалити API ключ \"{{name}}\"? Цю дію неможливо скасувати.",
+        "buttons": {
+          "cancel": "Скасувати",
+          "delete": "Видалити"
+        }
+      },
       "messages": {
         "created_successfully": "API ключ успішно створено",
         "deleted_successfully": "API ключ успішно видалено",

@@ -1176,6 +1176,14 @@
         },
         "never": "Never"
       },
+      "delete_dialog": {
+        "title": "Ezabatu API gakoa",
+        "description": "Ziur zaude \"{{name}}\" API gakoa ezabatu nahi duzula? Ekintza hau ezin da desegin.",
+        "buttons": {
+          "cancel": "Utzi",
+          "delete": "Ezabatu"
+        }
+      },
       "messages": {
         "created_successfully": "API key created successfully",
         "deleted_successfully": "API key deleted successfully",

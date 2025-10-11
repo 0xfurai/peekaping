@@ -1176,6 +1176,14 @@
         },
         "never": "Mai"
       },
+      "delete_dialog": {
+        "title": "Elimina chiave API",
+        "description": "Sei sicuro di voler eliminare la chiave API \"{{name}}\"? Questa azione non può essere annullata.",
+        "buttons": {
+          "cancel": "Annulla",
+          "delete": "Elimina"
+        }
+      },
       "messages": {
         "created_successfully": "Chiave API creata con successo",
         "deleted_successfully": "Chiave API eliminata con successo",

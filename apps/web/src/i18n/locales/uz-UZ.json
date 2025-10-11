@@ -1175,6 +1175,14 @@
         },
         "never": "Never"
       },
+      "delete_dialog": {
+        "title": "API kalitini o'chirish",
+        "description": "\"{{name}}\" API kalitini o'chirishni xohlaysizmi? Bu amalni bekor qilib bo'lmaydi.",
+        "buttons": {
+          "cancel": "Bekor qilish",
+          "delete": "O'chirish"
+        }
+      },
       "messages": {
         "created_successfully": "API key created successfully",
         "deleted_successfully": "API key deleted successfully",

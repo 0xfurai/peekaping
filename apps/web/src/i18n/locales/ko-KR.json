@@ -1176,6 +1176,14 @@
         },
         "never": "없음"
       },
+      "delete_dialog": {
+        "title": "API 키 삭제",
+        "description": "API 키 \"{{name}}\"을(를) 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+        "buttons": {
+          "cancel": "취소",
+          "delete": "삭제"
+        }
+      },
       "messages": {
         "created_successfully": "API 키가 성공적으로 생성되었습니다",
         "deleted_successfully": "API 키가 성공적으로 삭제되었습니다",

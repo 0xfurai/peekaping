@@ -1176,6 +1176,14 @@
         },
         "never": "Soha"
       },
+      "delete_dialog": {
+        "title": "API kulcs törlése",
+        "description": "Biztosan törölni szeretné az \"{{name}}\" API kulcsot? Ez a művelet nem vonható vissza.",
+        "buttons": {
+          "cancel": "Mégse",
+          "delete": "Törlés"
+        }
+      },
       "messages": {
         "created_successfully": "API kulcs sikeresen létrehozva",
         "deleted_successfully": "API kulcs sikeresen törölve",

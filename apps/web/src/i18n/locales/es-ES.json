@@ -1176,6 +1176,14 @@
         },
         "never": "Nunca"
       },
+      "delete_dialog": {
+        "title": "Eliminar clave API",
+        "description": "¿Estás seguro de que quieres eliminar la clave API \"{{name}}\"? Esta acción no se puede deshacer.",
+        "buttons": {
+          "cancel": "Cancelar",
+          "delete": "Eliminar"
+        }
+      },
       "messages": {
         "created_successfully": "Clave API creada exitosamente",
         "deleted_successfully": "Clave API eliminada exitosamente",

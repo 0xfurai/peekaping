@@ -1176,6 +1176,14 @@
         },
         "never": "Never"
       },
+      "delete_dialog": {
+        "title": "Poista API-avain",
+        "description": "Oletko varma, että haluat poistaa API-avaimen \"{{name}}\"? Tätä toimintoa ei voi peruuttaa.",
+        "buttons": {
+          "cancel": "Peruuta",
+          "delete": "Poista"
+        }
+      },
       "messages": {
         "created_successfully": "API key created successfully",
         "deleted_successfully": "API key deleted successfully",

@@ -1175,6 +1175,14 @@
         },
         "never": "Never"
       },
+      "delete_dialog": {
+        "title": "API გასაღების წაშლა",
+        "description": "დარწმუნებული ხართ, რომ გსურთ API გასაღების \"{{name}}\" წაშლა? ეს ქმედება ვერ უკან დაბრუნდება.",
+        "buttons": {
+          "cancel": "გაუქმება",
+          "delete": "წაშლა"
+        }
+      },
       "messages": {
         "created_successfully": "API key created successfully",
         "deleted_successfully": "API key deleted successfully",

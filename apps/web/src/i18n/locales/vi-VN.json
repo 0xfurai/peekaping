@@ -1176,6 +1176,14 @@
         },
         "never": "Không bao giờ"
       },
+      "delete_dialog": {
+        "title": "Xóa khóa API",
+        "description": "Bạn có chắc chắn muốn xóa khóa API \"{{name}}\" không? Hành động này không thể hoàn tác.",
+        "buttons": {
+          "cancel": "Hủy",
+          "delete": "Xóa"
+        }
+      },
       "messages": {
         "created_successfully": "Khóa API được tạo thành công",
         "deleted_successfully": "Khóa API được xóa thành công",

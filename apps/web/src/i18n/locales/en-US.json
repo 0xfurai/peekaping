@@ -1176,6 +1176,14 @@
         },
         "never": "Never"
       },
+      "delete_dialog": {
+        "title": "Delete API Key",
+        "description": "Are you sure you want to delete the API key \"{{name}}\"? This action cannot be undone.",
+        "buttons": {
+          "cancel": "Cancel",
+          "delete": "Delete"
+        }
+      },
       "messages": {
         "created_successfully": "API key created successfully",
         "deleted_successfully": "API key deleted successfully",

@@ -1176,6 +1176,14 @@
         },
         "never": "Tidak Pernah"
       },
+      "delete_dialog": {
+        "title": "Hapus Kunci API",
+        "description": "Apakah Anda yakin ingin menghapus kunci API \"{{name}}\"? Tindakan ini tidak dapat dibatalkan.",
+        "buttons": {
+          "cancel": "Batal",
+          "delete": "Hapus"
+        }
+      },
       "messages": {
         "created_successfully": "Kunci API berhasil dibuat",
         "deleted_successfully": "Kunci API berhasil dihapus",

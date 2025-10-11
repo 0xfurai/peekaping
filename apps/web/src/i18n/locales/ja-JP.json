@@ -1176,6 +1176,14 @@
         },
         "never": "なし"
       },
+      "delete_dialog": {
+        "title": "APIキーを削除",
+        "description": "APIキー「{{name}}」を削除してもよろしいですか？この操作は元に戻せません。",
+        "buttons": {
+          "cancel": "キャンセル",
+          "delete": "削除"
+        }
+      },
       "messages": {
         "created_successfully": "APIキーが正常に作成されました",
         "deleted_successfully": "APIキーが正常に削除されました",

@@ -1176,6 +1176,14 @@
         },
         "never": "Nie"
       },
+      "delete_dialog": {
+        "title": "API-Schlüssel löschen",
+        "description": "Sind Sie sicher, dass Sie den API-Schlüssel \"{{name}}\" löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+        "buttons": {
+          "cancel": "Abbrechen",
+          "delete": "Löschen"
+        }
+      },
       "messages": {
         "created_successfully": "API-Schlüssel erfolgreich erstellt",
         "deleted_successfully": "API-Schlüssel erfolgreich gelöscht",

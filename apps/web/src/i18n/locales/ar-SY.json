@@ -1176,6 +1176,14 @@
         },
         "never": "أبداً"
       },
+      "delete_dialog": {
+        "title": "حذف مفتاح API",
+        "description": "هل أنت متأكد من أنك تريد حذف مفتاح API \"{{name}}\"؟ لا يمكن التراجع عن هذا الإجراء.",
+        "buttons": {
+          "cancel": "إلغاء",
+          "delete": "حذف"
+        }
+      },
       "messages": {
         "created_successfully": "تم إنشاء مفتاح API بنجاح",
         "deleted_successfully": "تم حذف مفتاح API بنجاح",

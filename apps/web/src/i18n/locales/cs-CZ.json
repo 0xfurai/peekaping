@@ -1176,6 +1176,14 @@
         },
         "never": "Never"
       },
+      "delete_dialog": {
+        "title": "Smazat API klíč",
+        "description": "Jste si jisti, že chcete smazat API klíč \"{{name}}\"? Tuto akci nelze vrátit zpět.",
+        "buttons": {
+          "cancel": "Zrušit",
+          "delete": "Smazat"
+        }
+      },
       "messages": {
         "created_successfully": "API key created successfully",
         "deleted_successfully": "API key deleted successfully",

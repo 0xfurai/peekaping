@@ -1176,6 +1176,14 @@
         },
         "never": "هرگز"
       },
+      "delete_dialog": {
+        "title": "حذف کلید API",
+        "description": "آیا مطمئن هستید که می‌خواهید کلید API \"{{name}}\" را حذف کنید؟ این عمل قابل برگشت نیست.",
+        "buttons": {
+          "cancel": "لغو",
+          "delete": "حذف"
+        }
+      },
       "messages": {
         "created_successfully": "کلید API با موفقیت ایجاد شد",
         "deleted_successfully": "کلید API با موفقیت حذف شد",

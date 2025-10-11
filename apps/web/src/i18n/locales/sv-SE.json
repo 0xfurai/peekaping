@@ -1176,6 +1176,14 @@
         },
         "never": "Aldrig"
       },
+      "delete_dialog": {
+        "title": "Ta bort API-nyckel",
+        "description": "Är du säker på att du vill ta bort API-nyckeln \"{{name}}\"? Denna åtgärd kan inte ångras.",
+        "buttons": {
+          "cancel": "Avbryt",
+          "delete": "Ta bort"
+        }
+      },
       "messages": {
         "created_successfully": "API-nyckel skapad framgångsrikt",
         "deleted_successfully": "API-nyckel borttagen framgångsrikt",
