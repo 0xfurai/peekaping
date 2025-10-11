@@ -17,29 +17,57 @@ func (p *Producer) initializeSchedule() error {
 		return fmt.Errorf("failed to find active monitors: %w", err)
 	}
 
-	if len(monitors) == 0 {
-		p.logger.Info("No active monitors found to schedule")
-		return nil
+	// Get existing scheduled monitors from Redis (both due and lease sets)
+	existingDue, err := p.rdb.ZRangeWithScores(p.ctx, SchedDueKey, 0, -1).Result()
+	if err != nil {
+		return fmt.Errorf("failed to get existing scheduled monitors from due set: %w", err)
 	}
 
-	// Get existing scheduled monitors from Redis
-	existingScheduled, err := p.rdb.ZRangeWithScores(p.ctx, SchedDueKey, 0, -1).Result()
+	existingLease, err := p.rdb.ZRangeWithScores(p.ctx, SchedLeaseKey, 0, -1).Result()
 	if err != nil {
-		return fmt.Errorf("failed to get existing scheduled monitors: %w", err)
+		return fmt.Errorf("failed to get existing scheduled monitors from lease set: %w", err)
 	}
 
 	// Create a map of existing scheduled monitor IDs for quick lookup
 	existingMonitorIDs := make(map[string]bool)
-	for _, item := range existingScheduled {
+	for _, item := range existingDue {
 		if monitorID, ok := item.Member.(string); ok {
 			existingMonitorIDs[monitorID] = true
+		}
+	}
+	for _, item := range existingLease {
+		if monitorID, ok := item.Member.(string); ok {
+			existingMonitorIDs[monitorID] = true
+		}
+	}
+
+	// Create a map of active monitor IDs from database
+	activeMonitorIDs := make(map[string]bool)
+	for _, mon := range monitors {
+		if mon.Interval > 0 {
+			activeMonitorIDs[mon.ID] = true
 		}
 	}
 
 	now := time.Now().UTC()
 	pipe := p.rdb.Pipeline()
 	newlyScheduledCount := 0
+	removedCount := 0
 
+	// Remove monitors that are in Redis but not active in database
+	for monitorID := range existingMonitorIDs {
+		if !activeMonitorIDs[monitorID] {
+			pipe.ZRem(p.ctx, SchedDueKey, monitorID)
+			pipe.ZRem(p.ctx, SchedLeaseKey, monitorID)
+			p.mu.Lock()
+			delete(p.monitorIntervals, monitorID)
+			p.mu.Unlock()
+			removedCount++
+			p.logger.Infow("Removing stale monitor from schedule", "monitor_id", monitorID)
+		}
+	}
+
+	// Schedule active monitors
 	for _, mon := range monitors {
 		if mon.Interval <= 0 {
 			p.logger.Warnw("Skipping monitor with invalid interval", "monitor_id", mon.ID, "interval", mon.Interval)
@@ -71,9 +99,10 @@ func (p *Producer) initializeSchedule() error {
 	}
 
 	p.logger.Infow("Initialized schedule",
-		"total_monitors", len(monitors),
+		"total_active_monitors", len(monitors),
 		"newly_scheduled", newlyScheduledCount,
-		"already_scheduled", len(existingMonitorIDs))
+		"already_scheduled", len(existingMonitorIDs)-removedCount,
+		"removed_stale", removedCount)
 	return nil
 }
 
