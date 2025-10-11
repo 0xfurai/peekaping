@@ -2,7 +2,7 @@ package api_key
 
 import (
 	"net/http"
-	"peekaping/src/utils"
+	"peekaping/internal/utils"
 	"time"
 
 	"github.com/gin-gonic/gin"

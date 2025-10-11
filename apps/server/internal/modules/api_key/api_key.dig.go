@@ -1,8 +1,8 @@
 package api_key
 
 import (
-	"peekaping/src/config"
-	"peekaping/src/utils"
+	"peekaping/internal/config"
+	"peekaping/internal/utils"
 
 	"go.uber.org/dig"
 )

@@ -3,7 +3,7 @@ package api_key
 import (
 	"context"
 	"errors"
-	"peekaping/src/config"
+	"peekaping/internal/config"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -13,16 +13,16 @@ import (
 )
 
 type mongoModel struct {
-	ID             primitive.ObjectID `bson:"_id"`
-	Name           string             `bson:"name"`
-	KeyHash        string             `bson:"key_hash"`
-	DisplayKey     string             `bson:"display_key"`
-	LastUsed       *time.Time         `bson:"last_used"`
-	ExpiresAt      *time.Time         `bson:"expires_at"`
-	UsageCount     int64              `bson:"usage_count"`
-	MaxUsageCount  *int64             `bson:"max_usage_count"`
-	CreatedAt      time.Time          `bson:"createdAt"`
-	UpdatedAt      time.Time          `bson:"updatedAt"`
+	ID            primitive.ObjectID `bson:"_id"`
+	Name          string             `bson:"name"`
+	KeyHash       string             `bson:"key_hash"`
+	DisplayKey    string             `bson:"display_key"`
+	LastUsed      *time.Time         `bson:"last_used"`
+	ExpiresAt     *time.Time         `bson:"expires_at"`
+	UsageCount    int64              `bson:"usage_count"`
+	MaxUsageCount *int64             `bson:"max_usage_count"`
+	CreatedAt     time.Time          `bson:"createdAt"`
+	UpdatedAt     time.Time          `bson:"updatedAt"`
 }
 
 type mongoUpdateModel struct {

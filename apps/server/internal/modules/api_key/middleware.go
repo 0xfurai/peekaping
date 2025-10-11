@@ -2,7 +2,7 @@ package api_key
 
 import (
 	"net/http"
-	"peekaping/src/utils"
+	"peekaping/internal/utils"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -54,4 +54,3 @@ func (p *MiddlewareProvider) Auth() gin.HandlerFunc {
 		c.Next()
 	}
 }
-

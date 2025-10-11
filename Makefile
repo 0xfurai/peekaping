@@ -279,4 +279,4 @@ install: ## Install all dependencies (pnpm install + go mod tidy)
 
 .PHONY: dev
 dev: ## Start development environment
-	./scripts/tool.sh pnpm run dev:api dev:ingester dev:producer dev:worker dev:docs
+	./scripts/tool.sh pnpm run dev dev:api dev:ingester dev:producer dev:worker docs:watch
