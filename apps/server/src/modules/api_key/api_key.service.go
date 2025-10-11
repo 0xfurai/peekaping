@@ -21,16 +21,16 @@ type Service interface {
 
 // CreateRequest represents the request to create an API key
 type CreateRequest struct {
-	Name          string     `json:"name" validate:"required,min=1,max=255"`
-	ExpiresAt     *time.Time `json:"expires_at,omitempty"`
-	MaxUsageCount *int64     `json:"max_usage_count,omitempty"`
+	Name          string
+	ExpiresAt     *time.Time
+	MaxUsageCount *int64
 }
 
 // UpdateRequest represents the request to update an API key
 type UpdateRequest struct {
-	Name          *string     `json:"name,omitempty" validate:"omitempty,min=1,max=255"`
-	ExpiresAt     *time.Time  `json:"expires_at,omitempty"`
-	MaxUsageCount *int64      `json:"max_usage_count,omitempty"`
+	Name          *string
+	ExpiresAt     *time.Time
+	MaxUsageCount *int64
 }
 
 type ServiceImpl struct {
