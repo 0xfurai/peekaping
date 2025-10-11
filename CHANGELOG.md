@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Fixed
+
+## [0.0.41] - 2025-10-11
+
+### Added
+
 - Feature: add api key auth (#204) (Thanks @tafaust) 0ad9871
 - docs(README.md): add community terraform provider mention (#205) (Thanks @mail) 4c6a127
 
