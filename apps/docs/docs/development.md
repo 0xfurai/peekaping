@@ -58,7 +58,7 @@ The project uses a universal wrapper script (`scripts/tool.sh`) that automatical
 
 ## 3. Install Dependencies
 
-Install all project dependencies in apps/{web,server}:
+Install all project dependencies in apps/\{web,server\}:
 
 ```bash
 make install
