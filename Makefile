@@ -177,17 +177,17 @@ docker-down-all: ## Stop all Docker Compose services
 .PHONY: migrate-init
 migrate-init: ## Run database migrations init
 	@echo "Running database migrations init..."
-	cd apps/server && go run cmd/bun/main.go db init
+	cd apps/server && ../../scripts/tool.sh go run cmd/bun/main.go db init
 
 .PHONY: migrate-up
 migrate-up: ## Run database migrations up
 	@echo "Running database migrations..."
-	cd apps/server && go run cmd/bun/main.go db migrate
+	cd apps/server && ../../scripts/tool.sh go run cmd/bun/main.go db migrate
 
 .PHONY: migrate-down
 migrate-down: ## Run database migrations down
 	@echo "Rolling back database migrations..."
-	cd apps/server && go run cmd/bun/main.go db rollback
+	cd apps/server && ../../scripts/tool.sh go run cmd/bun/main.go db rollback
 
 
 # Quick database environment switchers
@@ -206,9 +206,55 @@ switch-to-sqlite: docker-down-all dev-sqlite ## Switch to SQLite development env
 .PHONY: test-server
 test-server: ## Test the server
 	@echo "Testing the server..."
-	cd apps/server && go test -v ./src/...
+	cd apps/server && ../../scripts/tool.sh go test -v ./src/...
 
 .PHONY: lint-web
 lint-web: ## Test the web
 	@echo "Testing the web..."
-	cd apps/web && pnpm lint && pnpm build
+	cd apps/web && ../../scripts/tool.sh pnpm lint && ../../scripts/tool.sh pnpm build
+
+.PHONY: setup
+setup: ## Setup development environment (asdf or manual)
+	@echo "🚀 Setting up Peekaping development environment..."
+	@if command -v asdf >/dev/null 2>&1; then \
+		echo "✅ asdf found - using asdf for tool management"; \
+		echo "📦 Adding asdf plugins..."; \
+		asdf plugin add golang || true; \
+		asdf plugin add nodejs || true; \
+		asdf plugin add pnpm || true; \
+		echo "🔧 Installing tools with asdf..."; \
+		asdf install; \
+		echo "✅ Setup complete! Tools installed via asdf:"; \
+		echo "  - Go: $$(asdf current golang)"; \
+		echo "  - Node.js: $$(asdf current nodejs)"; \
+		echo "  - pnpm: $$(asdf exec pnpm --version)"; \
+	else \
+		echo "⚠️  asdf not found - you'll need to install tools manually"; \
+		echo ""; \
+		echo "Required tools:"; \
+		echo "  - Go 1.24.1"; \
+		echo "  - Node.js 22.0.0"; \
+		echo "  - pnpm 9.0.0"; \
+		echo ""; \
+		echo "Installation options:"; \
+		echo "  1. Install asdf: https://asdf-vm.com/guide/getting-started.html"; \
+		echo "  2. Install tools manually from their official websites"; \
+		echo ""; \
+		echo "If you install asdf, run 'make setup' again to automatically install tools."; \
+	fi
+	@echo ""
+	@echo "🎉 Development environment setup complete!"
+	@echo "Run 'make help' to see available commands."
+
+.PHONY: install
+install: ## Install all dependencies (pnpm install + go mod tidy)
+	@echo "📦 Installing all project dependencies..."
+	@echo "Installing Node.js dependencies..."
+	./scripts/tool.sh pnpm install
+	@echo "Tidying Go modules..."
+	cd apps/server && ../../scripts/tool.sh go mod tidy
+	@echo "✅ All dependencies installed successfully!"
+
+.PHONY: dev
+dev: ## Start development environment
+	./scripts/tool.sh pnpm run dev
