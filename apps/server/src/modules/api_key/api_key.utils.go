@@ -14,7 +14,6 @@ func maskAPIKey(apiKey string) string {
 func isValidAPIKeyFormat(key string) bool {
 	// MARK: isValidAPIKeyFormat
 	
-	// Check if it starts with `ApiKeyPrefix` and has reasonable length
-	return len(key) >= 10 && len(key) <= 100 && 
-		   len(key) > 3 && key[:3] == ApiKeyPrefix
+	// Check if it starts with `ApiKeyPrefix` and has reasonable length (for base64 encode!)
+	return len(key) >= 10 && len(key) <= 200 && key[:len(ApiKeyPrefix)] == ApiKeyPrefix
 }
