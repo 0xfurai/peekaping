@@ -11,4 +11,5 @@ type Repository interface {
 	Update(ctx context.Context, id string, update *UpdateModel) (*Model, error)
 	Delete(ctx context.Context, id string) error
 	UpdateLastUsed(ctx context.Context, id string) error
+	UpdateKeyHash(ctx context.Context, id string, keyHash string, displayKey string) error
 }

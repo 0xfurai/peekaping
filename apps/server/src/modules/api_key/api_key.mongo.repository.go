@@ -53,27 +53,23 @@ type RepositoryImpl struct {
 	collection *mongo.Collection
 }
 
+// MARK: Constructor
 func NewMongoRepository(client *mongo.Client, cfg *config.Config) Repository {
 	db := client.Database(cfg.DBName)
 	collection := db.Collection("api_keys")
 	return &RepositoryImpl{client, db, collection}
 }
 
+// MARK: Create
 func (r *RepositoryImpl) Create(ctx context.Context, apiKey *CreateModel) (*APIKeyWithToken, error) {
 	// Generate API key ID upfront
 	apiKeyID := primitive.NewObjectID()
-	
-	// Generate a secure API key using the ID
-	token, keyHash, displayKey, err := generateAPIKey(apiKeyID.Hex())
-	if err != nil {
-		return nil, err
-	}
 
 	mm := &mongoModel{
 		ID:            apiKeyID,
 		Name:          apiKey.Name,
-		KeyHash:       keyHash,
-		DisplayKey:    displayKey,
+		KeyHash:       apiKey.KeyHash,
+		DisplayKey:    apiKey.DisplayKey,
 		LastUsed:      nil,
 		ExpiresAt:     apiKey.ExpiresAt,
 		UsageCount:    0,
@@ -82,7 +78,7 @@ func (r *RepositoryImpl) Create(ctx context.Context, apiKey *CreateModel) (*APIK
 		UpdatedAt:     time.Now(),
 	}
 
-	_, err = r.collection.InsertOne(ctx, mm)
+	_, err := r.collection.InsertOne(ctx, mm)
 	if err != nil {
 		return nil, err
 	}
@@ -90,10 +86,11 @@ func (r *RepositoryImpl) Create(ctx context.Context, apiKey *CreateModel) (*APIK
 	domainModel := toDomainModel(mm)
 	return &APIKeyWithToken{
 		Model: *domainModel,
-		Token: token,
+		// Token will be set by the service layer
 	}, nil
 }
 
+// MARK: FindByID
 func (r *RepositoryImpl) FindByID(ctx context.Context, id string) (*Model, error) {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -111,6 +108,7 @@ func (r *RepositoryImpl) FindByID(ctx context.Context, id string) (*Model, error
 	return toDomainModel(mm), nil
 }
 
+// MARK: FindAll
 func (r *RepositoryImpl) FindAll(ctx context.Context) ([]*Model, error) {
 	opts := options.Find().SetSort(bson.M{"createdAt": -1})
 	cursor, err := r.collection.Find(ctx, bson.M{}, opts)
@@ -131,6 +129,7 @@ func (r *RepositoryImpl) FindAll(ctx context.Context) ([]*Model, error) {
 	return models, nil
 }
 
+// MARK: Update
 func (r *RepositoryImpl) Update(ctx context.Context, id string, update *UpdateModel) (*Model, error) {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -169,6 +168,7 @@ func (r *RepositoryImpl) Update(ctx context.Context, id string, update *UpdateMo
 	return toDomainModel(mm), nil
 }
 
+// MARK: Delete
 func (r *RepositoryImpl) Delete(ctx context.Context, id string) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -179,6 +179,7 @@ func (r *RepositoryImpl) Delete(ctx context.Context, id string) error {
 	return err
 }
 
+// MARK: UpdateLastUsed
 func (r *RepositoryImpl) UpdateLastUsed(ctx context.Context, id string) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -193,5 +194,22 @@ func (r *RepositoryImpl) UpdateLastUsed(ctx context.Context, id string) error {
 			"$inc": bson.M{"usage_count": 1},
 		},
 	)
+	return err
+}
+
+// MARK: UpdateKeyHash
+func (r *RepositoryImpl) UpdateKeyHash(ctx context.Context, id string, keyHash string, displayKey string) error {
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	update := bson.M{
+		"$set": bson.M{
+			"key_hash":    keyHash,
+			"display_key": displayKey,
+			"updated_at":  time.Now(),
+		},
+	}
+	_, err = r.collection.UpdateOne(ctx, bson.M{"_id": objectID}, update)
 	return err
 }

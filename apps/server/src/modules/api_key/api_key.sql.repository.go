@@ -63,25 +63,21 @@ type SQLRepositoryImpl struct {
 	db *bun.DB
 }
 
+// MARK: Constructor
 func NewSQLRepository(db *bun.DB) Repository {
 	return &SQLRepositoryImpl{db: db}
 }
 
+// MARK: Create
 func (r *SQLRepositoryImpl) Create(ctx context.Context, apiKey *CreateModel) (*APIKeyWithToken, error) {
 	// Generate API key ID upfront
 	apiKeyID := uuid.New().String()
-	
-	// Generate a secure API key using the ID
-	token, keyHash, displayKey, err := generateAPIKey(apiKeyID)
-	if err != nil {
-		return nil, err
-	}
 
 	sm := &sqlModel{
 		ID:            apiKeyID,
 		Name:          apiKey.Name,
-		KeyHash:       keyHash,
-		DisplayKey:    displayKey,
+		KeyHash:       apiKey.KeyHash,
+		DisplayKey:    apiKey.DisplayKey,
 		LastUsed:      nil,
 		ExpiresAt:     apiKey.ExpiresAt,
 		UsageCount:    0,
@@ -90,7 +86,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, apiKey *CreateModel) (*A
 		UpdatedAt:     time.Now(),
 	}
 
-	_, err = r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
+	_, err := r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -98,10 +94,11 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, apiKey *CreateModel) (*A
 	domainModel := toDomainModelFromSQL(sm)
 	return &APIKeyWithToken{
 		Model: *domainModel,
-		Token: token,
+		// Token will be set by the service layer
 	}, nil
 }
 
+// MARK: FindByID
 func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, error) {
 	sm := new(sqlModel)
 	err := r.db.NewSelect().Model(sm).Where("id = ?", id).Scan(ctx)
@@ -114,6 +111,7 @@ func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, er
 	return toDomainModelFromSQL(sm), nil
 }
 
+// MARK: FindAll
 func (r *SQLRepositoryImpl) FindAll(ctx context.Context) ([]*Model, error) {
 	var sms []*sqlModel
 	err := r.db.NewSelect().Model(&sms).Order("created_at DESC").Scan(ctx)
@@ -128,6 +126,7 @@ func (r *SQLRepositoryImpl) FindAll(ctx context.Context) ([]*Model, error) {
 	return models, nil
 }
 
+// MARK: Update
 func (r *SQLRepositoryImpl) Update(ctx context.Context, id string, update *UpdateModel) (*Model, error) {
 	sm := new(sqlModel)
 	
@@ -154,15 +153,28 @@ func (r *SQLRepositoryImpl) Update(ctx context.Context, id string, update *Updat
 	return toDomainModelFromSQL(sm), nil
 }
 
+// MARK: Delete
 func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string) error {
 	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Exec(ctx)
 	return err
 }
 
+// MARK: UpdateLastUsed
 func (r *SQLRepositoryImpl) UpdateLastUsed(ctx context.Context, id string) error {
 	_, err := r.db.NewUpdate().Model((*sqlModel)(nil)).
 		Set("last_used = ?", time.Now()).
 		Set("usage_count = usage_count + 1").
+		Where("id = ?", id).
+		Exec(ctx)
+	return err
+}
+
+// MARK: UpdateKeyHash
+func (r *SQLRepositoryImpl) UpdateKeyHash(ctx context.Context, id string, keyHash string, displayKey string) error {
+	_, err := r.db.NewUpdate().Model((*sqlModel)(nil)).
+		Set("key_hash = ?", keyHash).
+		Set("display_key = ?", displayKey).
+		Set("updated_at = ?", time.Now()).
 		Where("id = ?", id).
 		Exec(ctx)
 	return err

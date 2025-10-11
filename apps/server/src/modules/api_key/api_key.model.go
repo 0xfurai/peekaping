@@ -9,7 +9,7 @@ type Model struct {
 	ID             string     `json:"id"`
 	Name           string     `json:"name"`
 	KeyHash        string     `json:"-"` // Never expose the hash
-	DisplayKey     string     `json:"display_key"` // Masked key for display (e.g., "pk_1234...5678")
+	DisplayKey     string     `json:"display_key"` // Masked key for display (e.g. "pk_1234...5678")
 	LastUsed       *time.Time `json:"last_used"`
 	ExpiresAt      *time.Time `json:"expires_at"`
 	UsageCount     int64      `json:"usage_count"`
@@ -21,6 +21,8 @@ type Model struct {
 // CreateModel represents data needed to create an API key
 type CreateModel struct {
 	Name           string     `json:"name"`
+	KeyHash        string     `json:"-"` // Can be empty on initial create
+	DisplayKey     string     `json:"-"` // Can be empty on initial create
 	ExpiresAt      *time.Time `json:"expires_at,omitempty"`
 	MaxUsageCount  *int64     `json:"max_usage_count,omitempty"`
 }
