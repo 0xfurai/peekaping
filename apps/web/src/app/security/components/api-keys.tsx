@@ -441,7 +441,7 @@ const APIKeys = () => {
       />
 
       {newKeyState.token && (
-        <Alert>
+        <Alert variant="success">
           <Key className="h-4 w-4" />
           <AlertTitle>{t("security.api_keys.success_alert.title")}</AlertTitle>
           <AlertDescription>
@@ -450,7 +450,7 @@ const APIKeys = () => {
                 {t("security.api_keys.success_alert.description")}
               </p>
               <div className="flex items-center gap-2">
-                <code className="bg-muted px-2 py-1 rounded text-sm font-mono">
+                <code className="px-2 py-1 rounded text-sm font-mono bg-green-500/20">
                   {newKeyState.token}
                 </code>
                 <Button
