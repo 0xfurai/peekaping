@@ -2,6 +2,7 @@ package producer
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -152,14 +153,28 @@ func (p *Producer) processMonitor(ctx context.Context, monitorID string, nowMs i
 		}
 	}
 
-	// TODO: fix this
-	// Check if we should check certificate expiry
-	// This is typically enabled by default for http and tcp monitors
+	// Check if certificate expiry checking is enabled in monitor configuration
+	// This applies to monitors that support TLS (http, tcp)
 	checkCertExpiry := false
-	if mon.Type == "http" || mon.Type == "tcp" {
-		// Certificate checking is typically always enabled for these monitor types
-		// The certificate service handles notification settings
-		checkCertExpiry = true
+	if strings.HasPrefix(strings.ToLower(mon.Type), "http") || mon.Type == "tcp" {
+		if mon.Config != "" {
+			// Parse monitor configuration to check if certificate expiry checking is enabled
+			var config struct {
+				CheckCertExpiry bool `json:"check_cert_expiry"`
+			}
+			if err := json.Unmarshal([]byte(mon.Config), &config); err != nil {
+				p.logger.Warnw("Failed to parse monitor config for certificate expiry check",
+					"monitor_id", mon.ID,
+					"monitor_name", mon.Name,
+					"error", err)
+			} else {
+				checkCertExpiry = config.CheckCertExpiry
+			}
+		}
+		p.logger.Debugw("Certificate expiry checking configured",
+			"monitor_id", mon.ID,
+			"monitor_name", mon.Name,
+			"check_cert_expiry", checkCertExpiry)
 	}
 
 	// Create health check task payload
