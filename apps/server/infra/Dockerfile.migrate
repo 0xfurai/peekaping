@@ -34,7 +34,7 @@ COPY --from=builder /app/bun .
 COPY cmd/bun/migrations ./cmd/bun/migrations
 
 # Copy config files that might be needed
-COPY src/config ./src/config
+COPY internal/config ./internal/config
 
 # Copy the migration script
 COPY scripts/run-migrations.sh .
