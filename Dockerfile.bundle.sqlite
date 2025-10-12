@@ -66,7 +66,7 @@ COPY --from=go-builder /app/server/bun /app/server/bun
 
 # Copy migration files and scripts
 COPY --from=go-builder /app/server/cmd/bun/migrations /app/server/cmd/bun/migrations
-COPY --from=go-builder /app/server/src/config /app/server/src/config
+COPY --from=go-builder /app/server/internal/config /app/server/internal/config
 COPY --from=go-builder /app/server/scripts/run-migrations.sh /app/server/run-migrations.sh
 
 # Copy built web assets
