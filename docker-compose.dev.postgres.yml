@@ -30,7 +30,7 @@ services:
   migrate:
     build:
       context: ./apps/server
-      dockerfile: Dockerfile.migrate
+      dockerfile: infra/Dockerfile.migrate
     restart: "no"
     env_file:
       - .env
