@@ -363,6 +363,7 @@ func TestProcessMonitor(t *testing.T) {
 			Type:     "http",
 			Active:   true,
 			Interval: 60,
+			Config:   `{"check_cert_expiry": true}`,
 		}
 
 		mockMonitorSvc.On("FindByID", ctx, "mon-1").Return(mon, nil)
@@ -400,6 +401,7 @@ func TestProcessMonitor(t *testing.T) {
 			Type:     "tcp",
 			Active:   true,
 			Interval: 60,
+			Config:   `{"check_cert_expiry": true}`,
 		}
 
 		mockMonitorSvc.On("FindByID", ctx, "mon-1").Return(mon, nil)
