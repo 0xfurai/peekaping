@@ -38,22 +38,6 @@ services:
     networks:
       - appnet
 
-  # server:
-  #   image: 0xfurai/peekaping-server:latest
-  #   env_file:
-  #     - .env
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #     migrate:
-  #       condition: service_completed_successfully
-  #   environment:
-  #     DB_HOST: postgres
-  #     DB_PORT: 5432
-  #     DB_TYPE: postgres
-  #   networks:
-  #     - appnet
-
   api:
     image: 0xfurai/peekaping-api:latest
     restart: unless-stopped
@@ -148,7 +132,7 @@ services:
   web:
     image: 0xfurai/peekaping-web:latest
     depends_on:
-      - server
+      - api
     networks:
       - appnet
 
@@ -159,7 +143,7 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      - server
+      - api
       - web
     networks:
       - appnet
