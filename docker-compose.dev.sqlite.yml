@@ -49,6 +49,8 @@ services:
       - REDIS_PORT=6379
       - REDIS_PASSWORD=""
       - REDIS_DB=0
+    volumes:
+      - ./.data/sqlite:/app/data
     depends_on:
       redis:
         condition: service_healthy
@@ -71,6 +73,8 @@ services:
       - REDIS_PORT=6379
       - REDIS_PASSWORD=""
       - REDIS_DB=0
+    volumes:
+      - ./.data/sqlite:/app/data
     depends_on:
       redis:
         condition: service_healthy
@@ -113,6 +117,8 @@ services:
       - REDIS_PORT=6379
       - REDIS_PASSWORD=""
       - REDIS_DB=0
+    volumes:
+      - ./.data/sqlite:/app/data
     depends_on:
       redis:
         condition: service_healthy
