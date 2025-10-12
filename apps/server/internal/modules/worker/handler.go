@@ -7,10 +7,10 @@ import (
 	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/healthcheck/executor"
-	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/proxy"
 	"peekaping/internal/modules/queue"
+	"peekaping/internal/modules/shared"
 	"time"
 
 	"github.com/hibiken/asynq"
@@ -54,23 +54,23 @@ type HealthCheckTaskPayload struct {
 
 // IngesterTaskPayload is the payload for ingester tasks
 type IngesterTaskPayload struct {
-	MonitorID          string                  `json:"monitor_id"`
-	MonitorName        string                  `json:"monitor_name"`
-	MonitorType        string                  `json:"monitor_type"`
-	MonitorInterval    int                     `json:"monitor_interval"`
-	MonitorTimeout     int                     `json:"monitor_timeout"`
-	MonitorMaxRetries  int                     `json:"monitor_max_retries"`
-	MonitorRetryInt    int                     `json:"monitor_retry_interval"`
-	MonitorResendInt   int                     `json:"monitor_resend_interval"`
-	MonitorConfig      string                  `json:"monitor_config"`
-	Status             heartbeat.MonitorStatus `json:"status"`
-	Message            string                  `json:"message"`
-	PingMs             int                     `json:"ping_ms"`
-	StartTime          time.Time               `json:"start_time"`
-	EndTime            time.Time               `json:"end_time"`
-	IsUnderMaintenance bool                    `json:"is_under_maintenance"`
-	TLSInfo            *certificate.TLSInfo    `json:"tls_info,omitempty"`
-	CheckCertExpiry    bool                    `json:"check_cert_expiry"`
+	MonitorID          string               `json:"monitor_id"`
+	MonitorName        string               `json:"monitor_name"`
+	MonitorType        string               `json:"monitor_type"`
+	MonitorInterval    int                  `json:"monitor_interval"`
+	MonitorTimeout     int                  `json:"monitor_timeout"`
+	MonitorMaxRetries  int                  `json:"monitor_max_retries"`
+	MonitorRetryInt    int                  `json:"monitor_retry_interval"`
+	MonitorResendInt   int                  `json:"monitor_resend_interval"`
+	MonitorConfig      string               `json:"monitor_config"`
+	Status             shared.MonitorStatus `json:"status"`
+	Message            string               `json:"message"`
+	PingMs             int                  `json:"ping_ms"`
+	StartTime          time.Time            `json:"start_time"`
+	EndTime            time.Time            `json:"end_time"`
+	IsUnderMaintenance bool                 `json:"is_under_maintenance"`
+	TLSInfo            *certificate.TLSInfo `json:"tls_info,omitempty"`
+	CheckCertExpiry    bool                 `json:"check_cert_expiry"`
 }
 
 // HealthCheckTaskHandler handles health check tasks from the queue
@@ -112,28 +112,28 @@ func (h *HealthCheckTaskHandler) ProcessTask(ctx context.Context, task *asynq.Ta
 		"scheduled_at", payload.ScheduledAt,
 	)
 
-	// // Check if task is stale and should be skipped
-	// now := time.Now().UTC()
-	// scheduledAt := payload.ScheduledAt
-	// timeSinceScheduled := now.Sub(scheduledAt)
-	// intervalDuration := time.Duration(payload.Interval) * time.Second
+	// Check if task is stale and should be skipped
+	now := time.Now().UTC()
+	scheduledAt := payload.ScheduledAt
+	timeSinceScheduled := now.Sub(scheduledAt)
+	intervalDuration := time.Duration(payload.Interval) * time.Second
 
-	// // Consider task stale if it's more than 1.5x the interval old
-	// // This allows some buffer for processing delays while preventing old backlog processing
-	// staleThreshold := intervalDuration + (intervalDuration / 2)
+	// Consider task stale if it's more than 1.5x the interval old
+	// This allows some buffer for processing delays while preventing old backlog processing
+	staleThreshold := intervalDuration + (intervalDuration / 2)
 
-	// if timeSinceScheduled > staleThreshold {
-	// 	h.logger.Warnw("Skipping stale health check task",
-	// 		"monitor_id", payload.MonitorID,
-	// 		"monitor_name", payload.MonitorName,
-	// 		"scheduled_at", scheduledAt,
-	// 		"time_since_scheduled", timeSinceScheduled,
-	// 		"stale_threshold", staleThreshold,
-	// 		"interval", intervalDuration,
-	// 	)
-	// 	// Return nil to mark task as successfully processed (not retried)
-	// 	return nil
-	// }
+	if timeSinceScheduled > staleThreshold {
+		h.logger.Warnw("Skipping stale health check task",
+			"monitor_id", payload.MonitorID,
+			"monitor_name", payload.MonitorName,
+			"scheduled_at", scheduledAt,
+			"time_since_scheduled", timeSinceScheduled,
+			"stale_threshold", staleThreshold,
+			"interval", intervalDuration,
+		)
+		// Return nil to mark task as successfully processed (not retried)
+		return nil
+	}
 
 	// Create monitor model from payload
 	m := &monitor.Model{
@@ -172,9 +172,57 @@ func (h *HealthCheckTaskHandler) ProcessTask(ctx context.Context, task *asynq.Ta
 	// Execute the health check using the supervisor's method
 	tickResult := h.healthCheckService.HandleMonitorTick(ctx, m, exec, proxyModel, payload.IsUnderMaintenance)
 
+	// Handle nil result (e.g., push monitors that return nil from executor)
 	if tickResult == nil {
-		h.logger.Warnw("Health check returned nil result", "monitor_id", payload.MonitorID)
-		return fmt.Errorf("health check returned nil result")
+		h.logger.Debugw("Executor returned nil (passive monitor), enqueuing to ingester for validation",
+			"monitor_id", payload.MonitorID,
+			"monitor_type", m.Type)
+
+		// For passive monitors (like push), send to ingester for validation
+		// Ingester will check if heartbeat was received within interval
+		ingesterPayload := IngesterTaskPayload{
+			MonitorID:          m.ID,
+			MonitorName:        m.Name,
+			MonitorType:        m.Type,
+			MonitorInterval:    m.Interval,
+			MonitorTimeout:     m.Timeout,
+			MonitorMaxRetries:  m.MaxRetries,
+			MonitorRetryInt:    m.RetryInterval,
+			MonitorResendInt:   m.ResendInterval,
+			MonitorConfig:      m.Config,
+			Status:             shared.MonitorStatusPending, // Ingester will determine actual status
+			Message:            "Pending validation",
+			PingMs:             0,
+			StartTime:          now,
+			EndTime:            now,
+			IsUnderMaintenance: payload.IsUnderMaintenance,
+			TLSInfo:            nil,
+			CheckCertExpiry:    false,
+		}
+
+		opts := &queue.EnqueueOptions{
+			Queue:     "ingester",
+			MaxRetry:  3,
+			Timeout:   2 * time.Minute,
+			Retention: 1 * time.Hour,
+		}
+
+		uniqueKey := fmt.Sprintf("ingest:%s:%d", m.ID, now.UnixNano())
+		ttl := 1 * time.Second
+
+		_, err := h.queueService.EnqueueUnique(ctx, TaskTypeIngester, ingesterPayload, uniqueKey, ttl, opts)
+		if err != nil {
+			h.logger.Errorw("Failed to enqueue passive monitor result to ingester",
+				"monitor_id", payload.MonitorID,
+				"error", err)
+			return fmt.Errorf("failed to enqueue ingester task: %w", err)
+		}
+
+		h.logger.Infow("Successfully enqueued passive monitor to ingester for validation",
+			"monitor_id", payload.MonitorID,
+			"duration", time.Since(start))
+
+		return nil
 	}
 
 	h.logger.Debugw("Health check executed",

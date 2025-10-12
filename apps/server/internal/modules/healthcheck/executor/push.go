@@ -2,9 +2,6 @@ package executor
 
 import (
 	"context"
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/shared"
-	"time"
 
 	"go.uber.org/zap"
 )
@@ -14,14 +11,12 @@ type PushConfig struct {
 }
 
 type PushExecutor struct {
-	logger           *zap.SugaredLogger
-	heartbeatService heartbeat.Service
+	logger *zap.SugaredLogger
 }
 
-func NewPushExecutor(logger *zap.SugaredLogger, heartbeatService heartbeat.Service) *PushExecutor {
+func NewPushExecutor(logger *zap.SugaredLogger) *PushExecutor {
 	return &PushExecutor{
-		logger:           logger,
-		heartbeatService: heartbeatService,
+		logger: logger,
 	}
 }
 
@@ -38,46 +33,17 @@ func (s *PushExecutor) Validate(configJSON string) error {
 }
 
 func (s *PushExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
-	// Check for the latest heartbeat for this monitor
-	var startTime, endTime = time.Now().UTC(), time.Now().UTC()
-	latestHeartbeats, err := s.heartbeatService.FindByMonitorIDPaginated(ctx, m.ID, 1, 0, nil, false)
+	// Push monitors are passive - they don't actively check anything.
+	// The status is determined by whether the push endpoint receives calls in time.
+	// Status determination based on heartbeat age should be handled by a separate
+	// stateful service that monitors heartbeat timestamps.
+	// When the executor is called, it just indicates the monitor configuration is valid.
+	// var startTime, endTime = time.Now().UTC(), time.Now().UTC()
 
-	if err != nil {
-		s.logger.Errorf("Failed to fetch latest heartbeat for monitor %s: %v", m.ID, err)
-		return &Result{
-			Status:    shared.MonitorStatusDown,
-			Message:   "Failed to fetch heartbeat: " + err.Error(),
-			StartTime: startTime,
-			EndTime:   endTime,
-		}
-	}
+	// s.logger.Debugf("Push executor called for monitor %s - returning nil (no-op)", m.ID)
 
-	var status shared.MonitorStatus
-	var message string
+	// Return nil to indicate no active check needed (push monitors are passive)
+	// The actual status is determined when the push endpoint is called
 
-	if len(latestHeartbeats) > 0 {
-		hb := latestHeartbeats[0]
-		s.logger.Infof("Latest heartbeat: %v", hb)
-		timeSince := time.Since(hb.Time)
-		s.logger.Infof("Time since last heartbeat: %v", timeSince)
-		if timeSince <= time.Duration(m.Interval)*time.Second {
-			s.logger.Infof("Push received in time")
-			return nil
-		} else {
-			s.logger.Infof("Push received too late")
-			status = shared.MonitorStatusDown
-			message = "No push received in time"
-		}
-	} else {
-		s.logger.Infof("No heartbeat found")
-		status = shared.MonitorStatusDown
-		message = "No push received yet"
-	}
-
-	return &Result{
-		Status:    status,
-		Message:   message,
-		StartTime: startTime,
-		EndTime:   endTime,
-	}
+	return nil
 }

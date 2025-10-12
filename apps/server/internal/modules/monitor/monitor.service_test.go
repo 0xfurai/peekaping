@@ -277,7 +277,7 @@ func setupMonitorService() (*MonitorServiceImpl, *MockMonitorRepository, *MockHe
 	realEventBus := infra.NewRedisEventBus(logger)
 
 	// Create a real ExecutorRegistry since the service expects a pointer to ExecutorRegistry
-	realExecutorRegistry := executor.NewExecutorRegistry(logger, mockHeartbeatService)
+	realExecutorRegistry := executor.NewExecutorRegistry(logger)
 
 	service := NewMonitorService(
 		mockRepo,
@@ -1227,7 +1227,7 @@ func TestNewMonitorService(t *testing.T) {
 
 	// Create real instances for dependencies that expect concrete types
 	realEventBus := infra.NewRedisEventBus(logger)
-	realExecutorRegistry := executor.NewExecutorRegistry(logger, mockHeartbeatService)
+	realExecutorRegistry := executor.NewExecutorRegistry(logger)
 
 	service := NewMonitorService(
 		mockRepo,

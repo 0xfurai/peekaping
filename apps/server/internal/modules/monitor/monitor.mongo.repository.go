@@ -487,7 +487,9 @@ func (r *MonitorRepositoryImpl) FindActive(ctx context.Context) ([]*Model, error
 	var monitors []*Model
 
 	// Define options for pagination
-	options := &options.FindOptions{}
+	options := &options.FindOptions{
+		Sort: bson.D{{Key: "_id", Value: -1}},
+	}
 
 	// Filter for active monitors
 	filter := bson.M{"active": true}
@@ -524,7 +526,7 @@ func (r *MonitorRepositoryImpl) FindActivePaginated(ctx context.Context, page in
 	options := &options.FindOptions{
 		Skip:  &skip,
 		Limit: &limit64,
-		Sort:  bson.D{{Key: "created_at", Value: -1}},
+		Sort:  bson.D{{Key: "_id", Value: -1}},
 	}
 
 	// Filter for active monitors

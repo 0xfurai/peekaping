@@ -10,6 +10,7 @@ import (
 	"peekaping/internal/infra"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/healthcheck"
+	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/worker"
 	"peekaping/internal/version"
 	"syscall"
@@ -76,6 +77,7 @@ func main() {
 	// Register only non-database module dependencies needed for health checks
 	events.RegisterDependencies(container)
 	healthcheck.RegisterDependencies(container)
+	heartbeat.RegisterDependencies(container, &cfg)
 
 	// Register worker dependencies
 	worker.RegisterDependencies(container)

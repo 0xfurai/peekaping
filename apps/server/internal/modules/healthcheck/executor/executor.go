@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"peekaping/internal/modules/certificate"
-	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/shared"
 	"time"
 
@@ -12,7 +11,7 @@ import (
 )
 
 type Result struct {
-	Status    heartbeat.MonitorStatus
+	Status    shared.MonitorStatus
 	Message   string
 	StartTime time.Time
 	EndTime   time.Time
@@ -33,7 +32,7 @@ type ExecutorMonitorParams struct {
 	RetryInterval  int
 	ResendInterval int
 	Active         bool
-	Status         heartbeat.MonitorStatus
+	Status         shared.MonitorStatus
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 	Config         string
@@ -51,13 +50,15 @@ type ExecutorRegistry struct {
 	registry map[string]Executor
 }
 
-func NewExecutorRegistry(logger *zap.SugaredLogger) *ExecutorRegistry {
+func NewExecutorRegistry(
+	logger *zap.SugaredLogger,
+) *ExecutorRegistry {
 	registry := make(map[string]Executor)
 
 	registry["http"] = NewHTTPExecutor(logger)
 	registry["http-keyword"] = NewHTTPExecutor(logger)
 	registry["http-json-query"] = NewHTTPExecutor(logger)
-	// registry["push"] = NewPushExecutor(logger, heartbeatService)
+	registry["push"] = NewPushExecutor(logger)
 	registry["tcp"] = NewTCPExecutor(logger)
 	registry["ping"] = NewPingExecutor(logger)
 	registry["dns"] = NewDNSExecutor(logger)

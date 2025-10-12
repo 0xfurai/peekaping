@@ -3,7 +3,6 @@ package heartbeat
 import (
 	"context"
 	"peekaping/internal/modules/events"
-	"peekaping/internal/modules/stats"
 	"time"
 
 	"go.uber.org/zap"
@@ -22,21 +21,18 @@ type Service interface {
 }
 
 type ServiceImpl struct {
-	repository   Repository
-	statsService stats.Service
-	eventBus     events.EventBus
-	logger       *zap.SugaredLogger
+	repository Repository
+	eventBus   events.EventBus
+	logger     *zap.SugaredLogger
 }
 
 func NewService(
 	repository Repository,
-	statsService stats.Service,
 	eventBus events.EventBus,
 	logger *zap.SugaredLogger,
 ) Service {
 	return &ServiceImpl{
 		repository,
-		statsService,
 		eventBus,
 		logger.Named("[heartbeat-service]"),
 	}

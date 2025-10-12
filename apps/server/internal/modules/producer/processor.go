@@ -79,6 +79,30 @@ func (p *Producer) runProducer(workerID int) error {
 	}
 }
 
+func (p *Producer) isUnderMaintenance(ctx context.Context, monitorID string) (bool, error) {
+	maintenances, err := p.maintenanceService.GetMaintenancesByMonitorID(ctx, monitorID)
+	if err != nil {
+		return false, err
+	}
+
+	p.logger.Infof("Found %d maintenances for monitor %s", len(maintenances), monitorID)
+
+	for _, m := range maintenances {
+		underMaintenance, err := p.maintenanceService.IsUnderMaintenance(ctx, m)
+		if err != nil {
+			p.logger.Warnf("Failed to get maintenance status for maintenance %s: %v", m.ID, err)
+			continue
+		}
+
+		// If any maintenance is under-maintenance, the monitor is under maintenance
+		if underMaintenance {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
 // processMonitor loads monitor config and enqueues a health check task
 // Returns the monitor interval (for rescheduling) and any error
 func (p *Producer) processMonitor(ctx context.Context, monitorID string, nowMs int64) (int, error) {
@@ -100,26 +124,10 @@ func (p *Producer) processMonitor(ctx context.Context, monitorID string, nowMs i
 		return 0, nil
 	}
 
-	// Check if monitor is under maintenance
-	isUnderMaintenance := false
-	maintenances, err := p.maintenanceService.GetMaintenancesByMonitorID(ctx, monitorID)
+	isUnderMaintenance, err := p.isUnderMaintenance(ctx, monitorID)
 	if err != nil {
-		p.logger.Errorw("Failed to get maintenances", "monitor_id", monitorID, "error", err)
-	} else {
-		for _, maint := range maintenances {
-			underMaintenance, err := p.maintenanceService.IsUnderMaintenance(ctx, maint)
-			if err != nil {
-				p.logger.Warnw("Failed to check maintenance status",
-					"monitor_id", monitorID,
-					"maintenance_id", maint.ID,
-					"error", err)
-				continue
-			}
-			if underMaintenance {
-				isUnderMaintenance = true
-				break
-			}
-		}
+		p.logger.Errorw("Failed to check if monitor is under maintenance", "monitor_id", monitorID, "error", err)
+		return 0, err
 	}
 
 	// Fetch proxy if configured

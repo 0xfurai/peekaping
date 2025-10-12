@@ -59,8 +59,7 @@ func (m *ExecutorMockHeartbeatService) DeleteByMonitorID(ctx context.Context, mo
 func TestExecutorRegistry_GetExecutor(t *testing.T) {
 	// Setup
 	logger := zap.NewNop().Sugar()
-	heartbeatSvc := new(ExecutorMockHeartbeatService)
-	registry := NewExecutorRegistry(logger, heartbeatSvc)
+	registry := NewExecutorRegistry(logger)
 
 	tests := []struct {
 		name          string
@@ -120,8 +119,7 @@ func TestExecutorRegistry_GetExecutor(t *testing.T) {
 func TestExecutorRegistry_ValidateConfig(t *testing.T) {
 	// Setup
 	logger := zap.NewNop().Sugar()
-	heartbeatSvc := new(ExecutorMockHeartbeatService)
-	registry := NewExecutorRegistry(logger, heartbeatSvc)
+	registry := NewExecutorRegistry(logger)
 
 	tests := []struct {
 		name          string
@@ -266,8 +264,7 @@ func TestExecutorRegistry_ValidateConfig(t *testing.T) {
 func TestExecutorRegistry_ValidateConfig_Error_Logging(t *testing.T) {
 	// Setup with a logger that can be captured
 	logger := zap.NewNop().Sugar()
-	heartbeatSvc := new(ExecutorMockHeartbeatService)
-	registry := NewExecutorRegistry(logger, heartbeatSvc)
+	registry := NewExecutorRegistry(logger)
 
 	// Test that errors are properly logged
 	err := registry.ValidateConfig("http", `{"invalid": "config"}`)
@@ -278,16 +275,13 @@ func TestExecutorRegistry_ValidateConfig_Error_Logging(t *testing.T) {
 func TestExecutorRegistry_Execute(t *testing.T) {
 	// Setup
 	logger := zap.NewNop().Sugar()
-	heartbeatSvc := new(ExecutorMockHeartbeatService)
-	registry := NewExecutorRegistry(logger, heartbeatSvc)
-
-	heartbeatSvc.On("FindByMonitorIDPaginated", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
-		Return([]*heartbeat.Model{}, nil)
+	registry := NewExecutorRegistry(logger)
 
 	tests := []struct {
-		name          string
-		monitor       *Monitor
-		expectedError bool
+		name            string
+		monitor         *Monitor
+		expectedError   bool
+		expectNilResult bool
 	}{
 		{
 			name: "execute http monitor",
@@ -304,7 +298,8 @@ func TestExecutorRegistry_Execute(t *testing.T) {
 					"authMethod": "none"
 				}`,
 			},
-			expectedError: false,
+			expectedError:   false,
+			expectNilResult: false,
 		},
 		{
 			name: "execute push monitor",
@@ -317,7 +312,8 @@ func TestExecutorRegistry_Execute(t *testing.T) {
 					"pushToken": "valid-token"
 				}`,
 			},
-			expectedError: false,
+			expectedError:   false,
+			expectNilResult: true, // Push monitors are stateless and return nil
 		},
 		{
 			name: "execute postgres monitor",
@@ -331,7 +327,8 @@ func TestExecutorRegistry_Execute(t *testing.T) {
 					"database_query": "SELECT 1"
 				}`,
 			},
-			expectedError: false,
+			expectedError:   false,
+			expectNilResult: false,
 		},
 		{
 			name: "execute mysql monitor",
@@ -345,7 +342,8 @@ func TestExecutorRegistry_Execute(t *testing.T) {
 					"query": "SELECT 1"
 				}`,
 			},
-			expectedError: false,
+			expectedError:   false,
+			expectNilResult: false,
 		},
 		{
 			name: "execute rabbitmq monitor",
@@ -360,7 +358,8 @@ func TestExecutorRegistry_Execute(t *testing.T) {
 					"password": "password"
 				}`,
 			},
-			expectedError: false,
+			expectedError:   false,
+			expectNilResult: false,
 		},
 		{
 			name: "execute invalid monitor type",
@@ -371,7 +370,8 @@ func TestExecutorRegistry_Execute(t *testing.T) {
 				Interval: 30,
 				Config:   `{}`,
 			},
-			expectedError: true,
+			expectedError:   true,
+			expectNilResult: false,
 		},
 		{
 			name: "execute monitor with nil config",
@@ -382,7 +382,8 @@ func TestExecutorRegistry_Execute(t *testing.T) {
 				Interval: 30,
 				Config:   "",
 			},
-			expectedError: false, // Should not error in getting executor, but execution will fail
+			expectedError:   false, // Should not error in getting executor, but execution will fail
+			expectNilResult: false,
 		},
 	}
 
@@ -396,7 +397,11 @@ func TestExecutorRegistry_Execute(t *testing.T) {
 				assert.True(t, found)
 				assert.NotNil(t, executor)
 				result := executor.Execute(context.Background(), tt.monitor, nil)
-				assert.NotNil(t, result)
+				if tt.expectNilResult {
+					assert.Nil(t, result, "Expected nil result for %s monitor", tt.monitor.Type)
+				} else {
+					assert.NotNil(t, result, "Expected non-nil result for %s monitor", tt.monitor.Type)
+				}
 			}
 		})
 	}
@@ -405,10 +410,9 @@ func TestExecutorRegistry_Execute(t *testing.T) {
 func TestNewExecutorRegistry(t *testing.T) {
 	// Setup
 	logger := zap.NewNop().Sugar()
-	heartbeatSvc := new(ExecutorMockHeartbeatService)
 
 	// Test registry creation
-	registry := NewExecutorRegistry(logger, heartbeatSvc)
+	registry := NewExecutorRegistry(logger)
 
 	// Verify registry is properly initialized
 	assert.NotNil(t, registry)
