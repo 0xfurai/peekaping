@@ -95,7 +95,7 @@ jobs:
         run: |
           sed -i.bak -E 's/(Version[[:space:]]*=[[:space:]]*")[^"]+(")/\1${{ github.event.inputs.version }}\2/' version.go
           rm version.go.bak
-        working-directory: ./apps/server/src/version
+        working-directory: ./apps/server/internal/version
 
       - name: Write version.ts for web - temp
         run: |
@@ -278,7 +278,7 @@ jobs:
         run: |
           sed -i.bak -E 's/(Version[[:space:]]*=[[:space:]]*")[^"]+(")/\1${{ github.event.inputs.version }}\2/' version.go
           rm version.go.bak
-        working-directory: ./apps/server/src/version
+        working-directory: ./apps/server/internal/version
 
       - name: Write version.ts for web - temp
         run: |
