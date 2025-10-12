@@ -206,7 +206,7 @@ switch-to-sqlite: docker-down-all dev-sqlite ## Switch to SQLite development env
 .PHONY: test-server
 test-server: ## Test the server
 	@echo "Testing the server..."
-	cd apps/server && ../../scripts/tool.sh go test -v ./src/...
+	cd apps/server && ../../scripts/tool.sh go test -v ./internal/...
 
 .PHONY: lint-web
 lint-web: ## Test the web
