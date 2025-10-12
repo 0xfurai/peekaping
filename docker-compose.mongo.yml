@@ -24,8 +24,6 @@ services:
     ]
     ports:
       - "6381:6379"
-    volumes:
-      - ./.data/redis:/data
 
   asynqmon:
     image: hibiken/asynqmon:latest

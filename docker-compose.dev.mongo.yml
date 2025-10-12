@@ -18,10 +18,10 @@ services:
     networks:
       - appnet
 
-  server:
+  api:
     build:
       context: ./apps/server
-      dockerfile: Dockerfile
+      dockerfile: infra/Dockerfile.api
     restart: unless-stopped
     ports:
       - "8034:8034"
@@ -31,6 +31,67 @@ services:
       - DB_HOST=mongodb
       - DB_PORT=27017
       - DB_TYPE=mongo
+      - REDIS_HOST="redis"
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=""
+      - REDIS_DB=0
+    depends_on:
+      - mongodb
+    networks:
+      - appnet
+
+  producer:
+    build:
+      context: ./apps/server
+      dockerfile: infra/Dockerfile.producer
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=mongodb
+      - DB_PORT=27017
+      - DB_TYPE=mongo
+      - REDIS_HOST="redis"
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=""
+      - REDIS_DB=0
+    depends_on:
+      - mongodb
+    networks:
+      - appnet
+
+  worker:
+    build:
+      context: ./apps/server
+      dockerfile: infra/Dockerfile.worker
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - REDIS_HOST="redis"
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=""
+      - REDIS_DB=0
+    depends_on:
+      - mongodb
+    networks:
+      - appnet
+
+  ingester:
+    build:
+      context: ./apps/server
+      dockerfile: infra/Dockerfile.ingester
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=mongodb
+      - DB_PORT=27017
+      - DB_TYPE=mongo
+      - REDIS_HOST="redis"
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=""
+      - REDIS_DB=0
     depends_on:
       - mongodb
     networks:
@@ -57,3 +118,9 @@ services:
       - "6381:6379"
     networks:
       - appnet
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
