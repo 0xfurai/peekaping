@@ -38,19 +38,110 @@ services:
     networks:
       - appnet
 
-  server:
-    image: 0xfurai/peekaping-server:latest
+  # server:
+  #   image: 0xfurai/peekaping-server:latest
+  #   env_file:
+  #     - .env
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     migrate:
+  #       condition: service_completed_successfully
+  #   environment:
+  #     DB_HOST: postgres
+  #     DB_PORT: 5432
+  #     DB_TYPE: postgres
+  #   networks:
+  #     - appnet
+
+  api:
+    image: 0xfurai/peekaping-api:latest
+    restart: unless-stopped
+    ports:
+      - "8034:8034"
     env_file:
       - .env
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_TYPE=postgres
+      - REDIS_HOST="redis"
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=""
+      - REDIS_DB=0
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
       migrate:
         condition: service_completed_successfully
+    networks:
+      - appnet
+
+  producer:
+    image: 0xfurai/peekaping-producer:latest
+    restart: unless-stopped
+    env_file:
+      - .env
     environment:
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_TYPE: postgres
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_TYPE=postgres
+      - REDIS_HOST="redis"
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=""
+      - REDIS_DB=0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      - appnet
+
+  worker:
+    image: 0xfurai/peekaping-worker:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - REDIS_HOST="redis"
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=""
+      - REDIS_DB=0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      - appnet
+
+  ingester:
+    image: 0xfurai/peekaping-ingester:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_TYPE=postgres
+      - REDIS_HOST="redis"
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=""
+      - REDIS_DB=0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     networks:
       - appnet
 
@@ -70,5 +161,17 @@ services:
     depends_on:
       - server
       - web
+    networks:
+      - appnet
+
+  redis:
+    image: redis:7
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
     networks:
       - appnet

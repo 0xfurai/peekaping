@@ -79,9 +79,9 @@ services:
     env_file:
       - .env
     environment:
-      - DB_HOST=mongodb
-      - DB_PORT=27017
-      - DB_TYPE=mongo
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_TYPE=postgres
       - REDIS_HOST="redis"
       - REDIS_PORT=6379
       - REDIS_PASSWORD=""
@@ -126,9 +126,9 @@ services:
     env_file:
       - .env
     environment:
-      - DB_HOST=mongodb
-      - DB_PORT=27017
-      - DB_TYPE=mongo
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_TYPE=postgres
       - REDIS_HOST="redis"
       - REDIS_PORT=6379
       - REDIS_PASSWORD=""

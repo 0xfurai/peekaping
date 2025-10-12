@@ -15,24 +15,6 @@ services:
     volumes:
       - ./.data/sqlite:/app/data
 
-  # server:
-  #   build:
-  #     context: ./apps/server
-  #     dockerfile: Dockerfile
-  #   restart: unless-stopped
-  #   ports:
-  #     - "8034:8034"
-  #   env_file:
-  #     - .env
-  #   environment:
-  #     - DB_TYPE=sqlite
-  #     - DB_NAME=/app/data/peekaping.db
-  #   volumes:
-  #     - ./.data/sqlite:/app/data
-  #   depends_on:
-  #     migrate:
-  #       condition: service_completed_successfully
-
   api:
     build:
       context: ./apps/server

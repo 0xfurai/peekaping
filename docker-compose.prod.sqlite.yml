@@ -13,18 +13,87 @@ services:
     volumes:
       - ./.data/sqlite:/app/data
 
-  server:
-    image: 0xfurai/peekaping-server:latest
+  api:
+    image: 0xfurai/peekaping-api:latest
+    restart: unless-stopped
+    ports:
+      - "8034:8034"
+    env_file:
+      - .env
+    environment:
+      - DB_TYPE=sqlite
+      - DB_NAME=/app/data/peekaping.db
+      - REDIS_HOST="redis"
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=""
+      - REDIS_DB=0
+    volumes:
+      - ./.data/sqlite:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      - appnet
+
+  producer:
+    image: 0xfurai/peekaping-producer:latest
     restart: unless-stopped
     env_file:
       - .env
     environment:
       - DB_TYPE=sqlite
       - DB_NAME=/app/data/peekaping.db
-      - MODE=prod
+      - REDIS_HOST="redis"
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=""
+      - REDIS_DB=0
     volumes:
       - ./.data/sqlite:/app/data
     depends_on:
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      - appnet
+
+  worker:
+    image: 0xfurai/peekaping-worker:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - REDIS_HOST="redis"
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=""
+      - REDIS_DB=0
+    depends_on:
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      - appnet
+
+  ingester:
+    image: 0xfurai/peekaping-ingester:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - DB_TYPE=sqlite
+      - DB_NAME=/app/data/peekaping.db
+      - REDIS_HOST="redis"
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=""
+      - REDIS_DB=0
+    volumes:
+      - ./.data/sqlite:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
       migrate:
         condition: service_completed_successfully
     networks:
@@ -47,5 +116,17 @@ services:
     depends_on:
       - server
       - web
+    networks:
+      - appnet
+
+  redis:
+    image: redis:7
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
     networks:
       - appnet
