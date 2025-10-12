@@ -16,6 +16,7 @@ type MonitorRepository interface {
 		tagIds []string,
 	) ([]*Model, error)
 	FindActive(ctx context.Context) ([]*Model, error)
+	FindActivePaginated(ctx context.Context, page int, limit int) ([]*Model, error)
 	UpdateFull(ctx context.Context, id string, monitor *Model) error
 	UpdatePartial(ctx context.Context, id string, monitor *UpdateModel) error
 	Delete(ctx context.Context, id string) error

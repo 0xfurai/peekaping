@@ -193,7 +193,27 @@ func (r *SQLRepositoryImpl) FindActive(ctx context.Context) ([]*Model, error) {
 	err := r.db.NewSelect().
 		Model(&sms).
 		Where("active = ?", true).
-		Order("created_at DESC").
+		Order("id DESC").
+		Scan(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var models []*Model
+	for _, sm := range sms {
+		models = append(models, toDomainModelFromSQL(sm))
+	}
+	return models, nil
+}
+
+func (r *SQLRepositoryImpl) FindActivePaginated(ctx context.Context, page int, limit int) ([]*Model, error) {
+	var sms []*sqlModel
+	err := r.db.NewSelect().
+		Model(&sms).
+		Where("active = ?", true).
+		Order("id DESC").
+		Limit(limit).
+		Offset(page * limit).
 		Scan(ctx)
 	if err != nil {
 		return nil, err

@@ -21,6 +21,7 @@ type Service interface {
 	FindByIDs(ctx context.Context, ids []string) ([]*Model, error)
 	FindAll(ctx context.Context, page int, limit int, q string, active *bool, status *int, tagIds []string) ([]*Model, error)
 	FindActive(ctx context.Context) ([]*Model, error)
+	FindActivePaginated(ctx context.Context, page int, limit int) ([]*Model, error)
 	UpdateFull(ctx context.Context, id string, monitor *CreateUpdateDto) (*Model, error)
 	UpdatePartial(ctx context.Context, id string, monitor *PartialUpdateDto, noPublish bool) (*Model, error)
 	Delete(ctx context.Context, id string) error
@@ -51,7 +52,7 @@ type StatPoint struct {
 type MonitorServiceImpl struct {
 	monitorRepository          MonitorRepository
 	heartbeatService           heartbeat.Service
-	eventBus events.EventBus
+	eventBus                   events.EventBus
 	monitorNotificationService monitor_notification.Service
 	monitorTagService          monitor_tag.Service
 	executorRegistry           *executor.ExecutorRegistry
@@ -131,6 +132,10 @@ func (mr *MonitorServiceImpl) FindAll(ctx context.Context, page int, limit int, 
 
 func (mr *MonitorServiceImpl) FindActive(ctx context.Context) ([]*Model, error) {
 	return mr.monitorRepository.FindActive(ctx)
+}
+
+func (mr *MonitorServiceImpl) FindActivePaginated(ctx context.Context, page int, limit int) ([]*Model, error) {
+	return mr.monitorRepository.FindActivePaginated(ctx, page, limit)
 }
 
 func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, id string, monitor *CreateUpdateDto) (*Model, error) {

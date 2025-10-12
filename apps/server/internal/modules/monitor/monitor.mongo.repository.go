@@ -512,6 +512,44 @@ func (r *MonitorRepositoryImpl) FindActive(ctx context.Context) ([]*Model, error
 	return monitors, nil
 }
 
+// FindActivePaginated retrieves active monitors from the MongoDB collection with pagination.
+func (r *MonitorRepositoryImpl) FindActivePaginated(ctx context.Context, page int, limit int) ([]*Model, error) {
+	var monitors []*Model
+
+	// Calculate skip value
+	skip := int64(page * limit)
+	limit64 := int64(limit)
+
+	// Define options for pagination
+	options := &options.FindOptions{
+		Skip:  &skip,
+		Limit: &limit64,
+		Sort:  bson.D{{Key: "created_at", Value: -1}},
+	}
+
+	// Filter for active monitors
+	filter := bson.M{"active": true}
+
+	cursor, err := r.collection.Find(ctx, filter, options)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	for cursor.Next(ctx) {
+		var mm mongoModel
+		if err := cursor.Decode(&mm); err != nil {
+			return nil, err
+		}
+		monitors = append(monitors, toDomainModel(&mm))
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+	return monitors, nil
+}
+
 // RemoveProxyReference sets proxy_id to an empty string for all monitors with the given proxyId.
 func (r *MonitorRepositoryImpl) RemoveProxyReference(ctx context.Context, proxyId string) error {
 	objectID, err := primitive.ObjectIDFromHex(proxyId)

@@ -3,6 +3,7 @@ package monitor
 import (
 	"context"
 	"errors"
+	"peekaping/internal/infra"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/healthcheck/executor"
 	"peekaping/internal/modules/heartbeat"
@@ -48,6 +49,11 @@ func (m *MockMonitorRepository) FindAll(ctx context.Context, page int, limit int
 
 func (m *MockMonitorRepository) FindActive(ctx context.Context) ([]*Model, error) {
 	args := m.Called(ctx)
+	return args.Get(0).([]*Model), args.Error(1)
+}
+
+func (m *MockMonitorRepository) FindActivePaginated(ctx context.Context, page int, limit int) ([]*Model, error) {
+	args := m.Called(ctx, page, limit)
 	return args.Get(0).([]*Model), args.Error(1)
 }
 

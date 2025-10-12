@@ -8,14 +8,9 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// initializeSchedule loads all active monitors and schedules them
+// initializeSchedule loads all active monitors and schedules them in a paginated manner
 func (p *Producer) initializeSchedule() error {
 	p.logger.Info("Initializing schedule with active monitors")
-
-	monitors, err := p.monitorService.FindActive(p.ctx)
-	if err != nil {
-		return fmt.Errorf("failed to find active monitors: %w", err)
-	}
 
 	// Get existing scheduled monitors from Redis (both due and lease sets)
 	existingDue, err := p.rdb.ZRangeWithScores(p.ctx, SchedDueKey, 0, -1).Result()
@@ -41,20 +36,78 @@ func (p *Producer) initializeSchedule() error {
 		}
 	}
 
-	// Create a map of active monitor IDs from database
+	// Pagination settings
+	const pageSize = 100
+	page := 0
+	totalMonitors := 0
+	newlyScheduledCount := 0
+	removedCount := 0
 	activeMonitorIDs := make(map[string]bool)
-	for _, mon := range monitors {
-		if mon.Interval > 0 {
-			activeMonitorIDs[mon.ID] = true
+	now := time.Now().UTC()
+
+	// Process monitors in pages
+	for {
+		monitors, err := p.monitorService.FindActivePaginated(p.ctx, page, pageSize)
+		if err != nil {
+			return fmt.Errorf("failed to find active monitors (page %d): %w", page, err)
+		}
+
+		if len(monitors) == 0 {
+			break
+		}
+
+		p.logger.Infow("Processing page of active monitors", "page", page, "count", len(monitors))
+
+		// Track active monitor IDs
+		for _, mon := range monitors {
+			if mon.Interval > 0 {
+				activeMonitorIDs[mon.ID] = true
+			}
+		}
+
+		// Process monitors in this page
+		pipe := p.rdb.Pipeline()
+		for _, mon := range monitors {
+			if mon.Interval <= 0 {
+				p.logger.Warnw("Skipping monitor with invalid interval", "monitor_id", mon.ID, "interval", mon.Interval)
+				continue
+			}
+
+			// Store monitor interval for future reference
+			p.mu.Lock()
+			p.monitorIntervals[mon.ID] = mon.Interval
+			p.mu.Unlock()
+
+			// Only schedule if not already in Redis
+			if !existingMonitorIDs[mon.ID] {
+				// Schedule monitor at next aligned time
+				next := nextAligned(now, time.Duration(mon.Interval)*time.Second)
+				pipe.ZAdd(p.ctx, SchedDueKey, redis.Z{
+					Score:  float64(next.UnixMilli()),
+					Member: mon.ID,
+				})
+				newlyScheduledCount++
+				p.logger.Debugw("Scheduled new monitor", "monitor_id", mon.ID, "next_run", next)
+			} else {
+				p.logger.Debugw("Monitor already scheduled, skipping", "monitor_id", mon.ID)
+			}
+		}
+
+		if _, err := pipe.Exec(p.ctx); err != nil {
+			return fmt.Errorf("failed to schedule monitors (page %d): %w", page, err)
+		}
+
+		totalMonitors += len(monitors)
+		page++
+
+		// If we got fewer monitors than the page size, we've reached the end
+		if len(monitors) < pageSize {
+			break
 		}
 	}
 
-	now := time.Now().UTC()
-	pipe := p.rdb.Pipeline()
-	newlyScheduledCount := 0
-	removedCount := 0
-
 	// Remove monitors that are in Redis but not active in database
+	pipe := p.rdb.Pipeline()
 	for monitorID := range existingMonitorIDs {
 		if !activeMonitorIDs[monitorID] {
 			pipe.ZRem(p.ctx, SchedDueKey, monitorID)
@@ -67,39 +120,12 @@ func (p *Producer) initializeSchedule() error {
 		}
 	}
 
-	// Schedule active monitors
-	for _, mon := range monitors {
-		if mon.Interval <= 0 {
-			p.logger.Warnw("Skipping monitor with invalid interval", "monitor_id", mon.ID, "interval", mon.Interval)
-			continue
-		}
-
-		// Store monitor interval for future reference
-		p.mu.Lock()
-		p.monitorIntervals[mon.ID] = mon.Interval
-		p.mu.Unlock()
-
-		// Only schedule if not already in Redis
-		if !existingMonitorIDs[mon.ID] {
-			// Schedule monitor at next aligned time
-			next := nextAligned(now, time.Duration(mon.Interval)*time.Second)
-			pipe.ZAdd(p.ctx, SchedDueKey, redis.Z{
-				Score:  float64(next.UnixMilli()),
-				Member: mon.ID,
-			})
-			newlyScheduledCount++
-			p.logger.Debugw("Scheduled new monitor", "monitor_id", mon.ID, "next_run", next)
-		} else {
-			p.logger.Debugw("Monitor already scheduled, skipping", "monitor_id", mon.ID)
-		}
-	}
-
 	if _, err := pipe.Exec(p.ctx); err != nil {
-		return fmt.Errorf("failed to schedule monitors: %w", err)
+		return fmt.Errorf("failed to remove stale monitors: %w", err)
 	}
 
 	p.logger.Infow("Initialized schedule",
-		"total_active_monitors", len(monitors),
+		"total_active_monitors", totalMonitors,
 		"newly_scheduled", newlyScheduledCount,
 		"already_scheduled", len(existingMonitorIDs)-removedCount,
 		"removed_stale", removedCount)
@@ -148,57 +174,80 @@ func (p *Producer) runScheduleRefresher() {
 	}
 }
 
-// refreshSchedule updates the schedule with any new or updated monitors
+// refreshSchedule updates the schedule with any new or updated monitors in a paginated manner
 func (p *Producer) refreshSchedule() error {
-	monitors, err := p.monitorService.FindActive(p.ctx)
-	if err != nil {
-		return fmt.Errorf("failed to find active monitors: %w", err)
-	}
-
+	// Pagination settings
+	const pageSize = 100
+	page := 0
 	currentMonitorIDs := make(map[string]bool)
 	now := time.Now().UTC()
-	pipe := p.rdb.Pipeline()
 
-	for _, mon := range monitors {
-		if mon.Interval <= 0 {
-			continue
+	// Process monitors in pages
+	for {
+		monitors, err := p.monitorService.FindActivePaginated(p.ctx, page, pageSize)
+		if err != nil {
+			return fmt.Errorf("failed to find active monitors (page %d): %w", page, err)
 		}
 
-		currentMonitorIDs[mon.ID] = true
+		if len(monitors) == 0 {
+			break
+		}
 
-		p.mu.RLock()
-		oldInterval, exists := p.monitorIntervals[mon.ID]
-		p.mu.RUnlock()
+		pipe := p.rdb.Pipeline()
 
-		// If monitor is new or interval changed, reschedule it
-		if !exists || oldInterval != mon.Interval {
-			p.mu.Lock()
-			p.monitorIntervals[mon.ID] = mon.Interval
-			p.mu.Unlock()
-
-			// Remove from both due and lease sets
-			pipe.ZRem(p.ctx, SchedDueKey, mon.ID)
-			pipe.ZRem(p.ctx, SchedLeaseKey, mon.ID)
-
-			// Schedule at next aligned time
-			next := nextAligned(now, time.Duration(mon.Interval)*time.Second)
-			pipe.ZAdd(p.ctx, SchedDueKey, redis.Z{
-				Score:  float64(next.UnixMilli()),
-				Member: mon.ID,
-			})
-
-			if !exists {
-				p.logger.Infow("Scheduling new monitor", "monitor_id", mon.ID, "interval", mon.Interval)
-			} else {
-				p.logger.Infow("Rescheduling monitor with updated interval",
-					"monitor_id", mon.ID,
-					"old_interval", oldInterval,
-					"new_interval", mon.Interval)
+		for _, mon := range monitors {
+			if mon.Interval <= 0 {
+				continue
 			}
+
+			currentMonitorIDs[mon.ID] = true
+
+			p.mu.RLock()
+			oldInterval, exists := p.monitorIntervals[mon.ID]
+			p.mu.RUnlock()
+
+			// If monitor is new or interval changed, reschedule it
+			if !exists || oldInterval != mon.Interval {
+				p.mu.Lock()
+				p.monitorIntervals[mon.ID] = mon.Interval
+				p.mu.Unlock()
+
+				// Remove from both due and lease sets
+				pipe.ZRem(p.ctx, SchedDueKey, mon.ID)
+				pipe.ZRem(p.ctx, SchedLeaseKey, mon.ID)
+
+				// Schedule at next aligned time
+				next := nextAligned(now, time.Duration(mon.Interval)*time.Second)
+				pipe.ZAdd(p.ctx, SchedDueKey, redis.Z{
+					Score:  float64(next.UnixMilli()),
+					Member: mon.ID,
+				})
+
+				if !exists {
+					p.logger.Infow("Scheduling new monitor", "monitor_id", mon.ID, "interval", mon.Interval)
+				} else {
+					p.logger.Infow("Rescheduling monitor with updated interval",
+						"monitor_id", mon.ID,
+						"old_interval", oldInterval,
+						"new_interval", mon.Interval)
+				}
+			}
+		}
+
+		if _, err := pipe.Exec(p.ctx); err != nil {
+			return fmt.Errorf("failed to refresh schedule (page %d): %w", page, err)
+		}
+
+		page++
+
+		// If we got fewer monitors than the page size, we've reached the end
+		if len(monitors) < pageSize {
+			break
 		}
 	}
 
 	// Remove monitors that are no longer active
+	pipe := p.rdb.Pipeline()
 	p.mu.Lock()
 	for monitorID := range p.monitorIntervals {
 		if !currentMonitorIDs[monitorID] {
@@ -211,7 +260,7 @@ func (p *Producer) refreshSchedule() error {
 	p.mu.Unlock()
 
 	if _, err := pipe.Exec(p.ctx); err != nil {
-		return fmt.Errorf("failed to refresh schedule: %w", err)
+		return fmt.Errorf("failed to remove inactive monitors: %w", err)
 	}
 
 	return nil
