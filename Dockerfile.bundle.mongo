@@ -8,7 +8,10 @@ WORKDIR /app/server
 COPY apps/server/go.mod apps/server/go.sum ./
 RUN go mod download
 COPY apps/server/ .
-RUN go build -o main ./cmd/server
+RUN go build -o api ./cmd/api
+RUN go build -o producer ./cmd/producer
+RUN go build -o worker ./cmd/worker
+RUN go build -o ingester ./cmd/ingester
 RUN go build -o bun ./cmd/bun
 
 # Stage 2: Build React web app
@@ -66,7 +69,10 @@ RUN mkdir -p /app/server /app/data /var/log/supervisor /app/web /data/db && \
     chmod -R 750 /data/db
 
 # Copy built artifacts from previous stages
-COPY --from=go-builder /app/server/main /app/server/main
+COPY --from=go-builder /app/server/api /app/server/api
+COPY --from=go-builder /app/server/producer /app/server/producer
+COPY --from=go-builder /app/server/worker /app/server/worker
+COPY --from=go-builder /app/server/ingester /app/server/ingester
 COPY --from=go-builder /app/server/bun /app/server/bun
 COPY --from=go-builder /app/server/cmd/bun/migrations /app/server/cmd/bun/migrations
 COPY --from=go-builder /app/server/src/config /app/server/src/config
@@ -79,7 +85,7 @@ COPY supervisord.bundle.mongo.conf /etc/supervisor/conf.d/supervisord.conf
 COPY startup.bundle.mongo.sh /app/startup.sh
 
 # Set proper permissions for executables and sensitive files
-RUN chmod +x /app/server/run-migrations.sh /app/startup.sh /app/server/main /app/server/bun && \
+RUN chmod +x /app/server/run-migrations.sh /app/startup.sh /app/server/api /app/server/producer /app/server/worker /app/server/ingester /app/server/bun && \
     chmod 644 /etc/caddy/Caddyfile && \
     chmod 644 /etc/supervisor/conf.d/supervisord.conf && \
     chown -R root:root /app/server && \
