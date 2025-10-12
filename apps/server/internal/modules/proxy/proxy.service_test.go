@@ -3,6 +3,7 @@ package proxy
 import (
 	"context"
 	"errors"
+	"peekaping/internal/infra"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
@@ -10,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"go.uber.org/zap"
@@ -186,12 +188,23 @@ func (m *MockMonitorService) ResetMonitorData(ctx context.Context, id string) er
 	return args.Error(0)
 }
 
+func (m *MockMonitorService) FindActivePaginated(ctx context.Context, page int, limit int) ([]*shared.Monitor, error) {
+	args := m.Called(ctx, page, limit)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*shared.Monitor), args.Error(1)
+}
+
 func TestNewService(t *testing.T) {
 	// Setup
 	mockRepo := new(MockRepository)
 	mockMonitorService := new(MockMonitorService)
 	logger := zap.NewNop().Sugar()
-	eventBus := infra.NewRedisEventBus(logger)
+	redisClient := redis.NewClient(&redis.Options{
+		Addr: "localhost:6379",
+	})
+	eventBus := infra.NewRedisEventBus(redisClient, logger)
 
 	params := NewServiceParams{
 		Repository:     mockRepo,
@@ -281,7 +294,10 @@ func TestServiceImpl_Create(t *testing.T) {
 			mockRepo := new(MockRepository)
 			mockMonitorService := new(MockMonitorService)
 			logger := zap.NewNop().Sugar()
-			eventBus := infra.NewRedisEventBus(logger)
+			redisClient := redis.NewClient(&redis.Options{
+				Addr: "localhost:6379",
+			})
+			eventBus := infra.NewRedisEventBus(redisClient, logger)
 
 			service := &ServiceImpl{
 				repository:     mockRepo,
@@ -368,7 +384,10 @@ func TestServiceImpl_FindByID(t *testing.T) {
 			mockRepo := new(MockRepository)
 			mockMonitorService := new(MockMonitorService)
 			logger := zap.NewNop().Sugar()
-			eventBus := infra.NewRedisEventBus(logger)
+			redisClient := redis.NewClient(&redis.Options{
+				Addr: "localhost:6379",
+			})
+			eventBus := infra.NewRedisEventBus(redisClient, logger)
 
 			service := &ServiceImpl{
 				repository:     mockRepo,
@@ -471,7 +490,10 @@ func TestServiceImpl_FindAll(t *testing.T) {
 			mockRepo := new(MockRepository)
 			mockMonitorService := new(MockMonitorService)
 			logger := zap.NewNop().Sugar()
-			eventBus := infra.NewRedisEventBus(logger)
+			redisClient := redis.NewClient(&redis.Options{
+				Addr: "localhost:6379",
+			})
+			eventBus := infra.NewRedisEventBus(redisClient, logger)
 
 			service := &ServiceImpl{
 				repository:     mockRepo,
@@ -579,7 +601,10 @@ func TestServiceImpl_UpdateFull(t *testing.T) {
 			logger := zap.NewNop().Sugar()
 			var eventBus events.EventBus
 			if !tt.eventBusNil {
-				eventBus = infra.NewRedisEventBus(logger)
+				redisClient := redis.NewClient(&redis.Options{
+					Addr: "localhost:6379",
+				})
+				eventBus = infra.NewRedisEventBus(redisClient, logger)
 			}
 
 			service := &ServiceImpl{
@@ -724,7 +749,10 @@ func TestServiceImpl_UpdatePartial(t *testing.T) {
 			logger := zap.NewNop().Sugar()
 			var eventBus events.EventBus
 			if !tt.eventBusNil {
-				eventBus = infra.NewRedisEventBus(logger)
+				redisClient := redis.NewClient(&redis.Options{
+					Addr: "localhost:6379",
+				})
+				eventBus = infra.NewRedisEventBus(redisClient, logger)
 			}
 
 			service := &ServiceImpl{
@@ -837,7 +865,10 @@ func TestServiceImpl_Delete(t *testing.T) {
 			logger := zap.NewNop().Sugar()
 			var eventBus events.EventBus
 			if !tt.eventBusNil {
-				eventBus = infra.NewRedisEventBus(logger)
+				redisClient := redis.NewClient(&redis.Options{
+					Addr: "localhost:6379",
+				})
+				eventBus = infra.NewRedisEventBus(redisClient, logger)
 			}
 
 			service := &ServiceImpl{

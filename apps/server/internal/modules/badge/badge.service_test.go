@@ -125,6 +125,11 @@ func (m *MockMonitorService) ResetMonitorData(ctx context.Context, id string) er
 	return args.Error(0)
 }
 
+func (m *MockMonitorService) FindActivePaginated(ctx context.Context, page int, limit int) ([]*shared.Monitor, error) {
+	args := m.Called(ctx, page, limit)
+	return args.Get(0).([]*shared.Monitor), args.Error(1)
+}
+
 type MockHeartbeatService struct {
 	mock.Mock
 }
@@ -184,7 +189,7 @@ func (m *MockStatsService) AggregateHeartbeat(ctx context.Context, hb *stats.Hea
 	return args.Error(0)
 }
 
-func (m *MockStatsService) RegisterEventHandlers(eventBus *events.EventBus) {
+func (m *MockStatsService) RegisterEventHandlers(eventBus events.EventBus) {
 	m.Called(eventBus)
 }
 

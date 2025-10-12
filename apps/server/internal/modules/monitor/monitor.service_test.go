@@ -14,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"go.uber.org/zap"
@@ -238,7 +239,7 @@ func (m *MockStatsService) AggregateHeartbeat(ctx context.Context, hb *stats.Hea
 	return args.Error(0)
 }
 
-func (m *MockStatsService) RegisterEventHandlers(eventBus *events.EventBus) {
+func (m *MockStatsService) RegisterEventHandlers(eventBus events.EventBus) {
 	m.Called(eventBus)
 }
 
@@ -273,8 +274,13 @@ func setupMonitorService() (*MonitorServiceImpl, *MockMonitorRepository, *MockHe
 	mockStatsService := &MockStatsService{}
 	logger := zap.NewNop().Sugar()
 
+	// Create a redis client for EventBus (will fail to connect but that's ok for unit tests)
+	redisClient := redis.NewClient(&redis.Options{
+		Addr: "localhost:6379",
+	})
+
 	// Create a real EventBus for the service since it expects pointer to EventBus
-	realEventBus := infra.NewRedisEventBus(logger)
+	realEventBus := infra.NewRedisEventBus(redisClient, logger)
 
 	// Create a real ExecutorRegistry since the service expects a pointer to ExecutorRegistry
 	realExecutorRegistry := executor.NewExecutorRegistry(logger)
@@ -1225,8 +1231,13 @@ func TestNewMonitorService(t *testing.T) {
 	mockStatsService := &MockStatsService{}
 	logger := zap.NewNop().Sugar()
 
+	// Create a redis client for EventBus (will fail to connect but that's ok for unit tests)
+	redisClient := redis.NewClient(&redis.Options{
+		Addr: "localhost:6379",
+	})
+
 	// Create real instances for dependencies that expect concrete types
-	realEventBus := infra.NewRedisEventBus(logger)
+	realEventBus := infra.NewRedisEventBus(redisClient, logger)
 	realExecutorRegistry := executor.NewExecutorRegistry(logger)
 
 	service := NewMonitorService(
