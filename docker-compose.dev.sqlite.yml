@@ -126,7 +126,7 @@ services:
     ports:
       - "8383:80"
     depends_on:
-      - server
+      - api
     environment:
       - API_URL=http://localhost:8034
 
