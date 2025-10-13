@@ -116,6 +116,56 @@ networks:
 3. **Host**: Enter `http://dockerproxy:2375`
 4. **Test Connection** to verify proxy access
 
+### Distroless Bundle Variants
+
+For enhanced security, distroless bundle variants are available that run only the server and web components:
+
+```bash
+docker run -d --restart=always \
+  -p 8034:8034 \
+  -e DB_TYPE=mongo \
+  -e DB_HOST=your-mongo-host \
+  -e DB_PORT=27017 \
+  -e DB_NAME=peekaping \
+  -e DB_USER=peekaping \
+  -e DB_PASS=secure_test_password_123 \
+  ghcr.io/0xfurai/peekaping-bundle-mongo-distroless:latest
+```
+
+**Note**: Distroless bundles require external database and reverse proxy setup. They run as nonroot user (UID 65532) and have minimal attack surface.
+
+**Important**: Distroless bundles do not run database migrations automatically. You must run migrations separately before starting the server.
+
+#### Running Migrations for Distroless Bundles
+
+Before starting the distroless bundle, run migrations using the migration container:
+
+```bash
+# For MongoDB distroless bundle
+docker run --rm \
+  --link mongo-test:mongo \
+  -e DB_TYPE=mongo \
+  -e DB_HOST=mongo \
+  -e DB_PORT=27017 \
+  -e DB_NAME=peekaping \
+  -e DB_USER=peekaping \
+  -e DB_PASS=password \
+  ghcr.io/0xfurai/peekaping-migrate:latest
+
+# Then start the distroless bundle
+docker run -d --restart=always \
+  -p 8034:8034 \
+  --link mongo-test:mongo \
+  -e DB_TYPE=mongo \
+  -e DB_HOST=mongo \
+  -e DB_PORT=27017 \
+  -e DB_NAME=peekaping \
+  -e DB_USER=peekaping \
+  -e DB_PASS=password \
+  ghcr.io/0xfurai/peekaping-bundle-mongo-distroless:latest
+```
+
+**Note**: MongoDB doesn't require SQL migrations, but the migration container will skip them automatically.
 
 ## Monolithic mode
 

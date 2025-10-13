@@ -115,6 +115,51 @@ networks:
 3. **Host**: Enter `http://dockerproxy:2375`
 4. **Test Connection** to verify proxy access
 
+### Distroless Bundle Variants
+
+For enhanced security, distroless bundle variants are available that run only the server and web components:
+
+```bash
+docker run -d --restart=always \
+  -p 8034:8034 \
+  -e DB_TYPE=sqlite \
+  -e DB_NAME=/app/data/peekaping.db \
+  -v $(pwd)/.data/sqlite:/app/data \
+  ghcr.io/0xfurai/peekaping-bundle-sqlite-distroless:latest
+```
+
+**Note**: Distroless bundles require external reverse proxy setup. They run as nonroot user (UID 65532) and have minimal attack surface.
+
+**Important**: Distroless bundles do not run database migrations automatically. You must run migrations separately before starting the server.
+
+#### Running Migrations for Distroless Bundles
+
+Before starting the distroless bundle, run migrations using the migration container:
+
+```bash
+# For SQLite distroless bundle
+# First initialize the database
+docker run --rm \
+  -v $(pwd)/test-data:/app/data \
+  -e DB_TYPE=sqlite \
+  -e DB_NAME=/app/data/peekaping.db \
+  ghcr.io/0xfurai/peekaping-migrate:latest /app/bun db init
+
+# Then run migrations
+docker run --rm \
+  -v $(pwd)/test-data:/app/data \
+  -e DB_TYPE=sqlite \
+  -e DB_NAME=/app/data/peekaping.db \
+  ghcr.io/0xfurai/peekaping-migrate:latest /app/bun db migrate
+
+# Then start the distroless bundle
+docker run -d --restart=always \
+  -p 8034:8034 \
+  -e DB_TYPE=sqlite \
+  -e DB_NAME=/app/data/peekaping.db \
+  -v $(pwd)/test-data:/app/data \
+  ghcr.io/0xfurai/peekaping-bundle-sqlite-distroless:latest
+```
 
 ## Monolithic mode
 

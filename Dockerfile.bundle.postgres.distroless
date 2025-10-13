@@ -1,0 +1,77 @@
+# Multi-stage Dockerfile to build server and web in one container (Distroless - External DB)
+
+# Stage 1: Build Go server and migration tool
+FROM golang:1.24.3-alpine AS go-builder
+
+RUN apk add --no-cache git
+WORKDIR /app/server
+COPY apps/server/go.mod apps/server/go.sum ./
+RUN go mod download
+COPY apps/server/ .
+RUN go build -o main ./src
+RUN go build -o bun ./cmd/bun
+
+# Create empty file for data directory
+RUN touch /tmp/.keep
+
+# Stage 2: Build React web app
+FROM node:22-alpine AS web-builder
+
+WORKDIR /app
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY patches/ ./patches/
+COPY apps/web/package.json ./apps/web/package.json
+RUN npm install -g pnpm && pnpm install --filter=web
+COPY apps/web/ ./apps/web/
+WORKDIR /app/apps/web
+RUN pnpm run build
+
+# Stage 3: Final runtime image (Distroless with Caddy2)
+FROM caddy:2-alpine
+
+# Security: Add build args for configurable user/group
+ARG UID=1000
+ARG GID=1000
+
+# Install supervisor to manage multiple processes
+RUN apk add --no-cache supervisor netcat-openbsd
+
+# Create necessary directories
+RUN mkdir -p /app/server /app/data /var/log/supervisor /app/web
+
+# Security: Create peekaping user and group with configurable UID/GID
+RUN addgroup -g ${GID} peekaping && adduser -u ${UID} -G peekaping -s /bin/sh -D peekaping
+
+# Copy Go server and migration tool from go-builder
+COPY --from=go-builder /app/server/main /app/server/main
+COPY --from=go-builder /app/server/bun /app/server/bun
+
+# Copy migration files and scripts
+COPY --from=go-builder /app/server/cmd/bun/migrations /app/server/cmd/bun/migrations
+COPY --from=go-builder /app/server/src/config /app/server/src/config
+COPY --from=go-builder /app/server/scripts/run-migrations.sh /app/server/run-migrations.sh
+
+# Copy built web assets
+COPY --from=web-builder /app/apps/web/dist /app/web
+
+# Copy Caddy configuration
+COPY Caddyfile /etc/caddy/Caddyfile
+
+# Copy supervisor configuration for PostgreSQL
+COPY supervisord.bundle.postgres.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Copy startup script
+COPY startup.bundle.postgres.sh /app/startup.sh
+
+# Make scripts executable
+RUN chmod +x /app/server/run-migrations.sh /app/startup.sh /app/server/main /app/server/bun
+
+# Security: Set proper ownership for peekaping user
+RUN chown -R peekaping:peekaping /app/server /app/web /app/data && \
+    chmod 755 /app/server /app/web /app/data
+
+# Expose port 8383 (matches Caddyfile)
+EXPOSE 8383
+
+# Use our startup script
+CMD ["/app/startup.sh"]

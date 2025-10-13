@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version (e.g. 1.2.3)'
+        description: "Version (e.g. 1.2.3)"
         required: true
         type: string
       changelog:
-        description: 'Changelog for this release (optional - will auto-generate if not provided)'
+        description: "Changelog for this release (optional - will auto-generate if not provided)"
         required: false
         type: string
 
@@ -28,7 +28,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Fetch full history for changelog generation
+          fetch-depth: 0 # Fetch full history for changelog generation
 
       - name: Generate changelog (amd64 only)
         if: matrix.arch == 'amd64'
@@ -317,9 +317,81 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  build-distroless-bundle-containers:
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-latest
+            arch: amd64
+            database: sqlite
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+            arch: arm64
+            database: sqlite
+          - platform: linux/amd64
+            runner: ubuntu-latest
+            arch: amd64
+            database: mongo
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+            arch: arm64
+            database: mongo
+          - platform: linux/amd64
+            runner: ubuntu-latest
+            arch: amd64
+            database: postgres
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+            arch: arm64
+            database: postgres
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Distroless Bundle image - ${{ matrix.database }}
+        id: build_distroless_bundle
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile.bundle.${{ matrix.database }}.distroless
+          push: true
+          platforms: ${{ matrix.platform }}
+          provenance: false
+          sbom: false
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}-distroless:${{ github.event.inputs.version }}-${{ matrix.arch }}
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}-distroless:latest-${{ matrix.arch }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}-distroless:${{ github.event.inputs.version }}-${{ matrix.arch }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}-distroless:latest-${{ matrix.arch }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
   create-manifest:
     runs-on: ubuntu-latest
-    needs: [build-and-release, build-bundle-containers]
+    needs:
+      [
+        build-and-release,
+        build-bundle-containers,
+        build-distroless-bundle-containers,
+      ]
     steps:
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -385,6 +457,18 @@ jobs:
               ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${db}:latest-amd64 \
               ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${db}:latest-arm64
             docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${db}:latest
+
+            # Distroless Bundle manifest for each database - versioned
+            docker manifest create --amend ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${db}-distroless:${{ github.event.inputs.version }} \
+              ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${db}-distroless:${{ github.event.inputs.version }}-amd64 \
+              ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${db}-distroless:${{ github.event.inputs.version }}-arm64
+            docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${db}-distroless:${{ github.event.inputs.version }}
+
+            # Distroless Bundle manifest for each database - latest
+            docker manifest create --amend ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${db}-distroless:latest \
+              ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${db}-distroless:latest-amd64 \
+              ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${db}-distroless:latest-arm64
+            docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${db}-distroless:latest
           done
 
       - name: Create and push multi-arch manifests for Docker Hub
@@ -438,6 +522,18 @@ jobs:
               ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${db}:latest-amd64 \
               ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${db}:latest-arm64
             docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${db}:latest
+
+            # Distroless Bundle manifest for each database - versioned
+            docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${db}-distroless:${{ github.event.inputs.version }} \
+              ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${db}-distroless:${{ github.event.inputs.version }}-amd64 \
+              ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${db}-distroless:${{ github.event.inputs.version }}-arm64
+            docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${db}-distroless:${{ github.event.inputs.version }}
+
+            # Distroless Bundle manifest for each database - latest
+            docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${db}-distroless:latest \
+              ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${db}-distroless:latest-amd64 \
+              ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${db}-distroless:latest-arm64
+            docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${db}-distroless:latest
           done
 
   playwright-tests:
@@ -486,6 +582,11 @@ jobs:
             - MongoDB Bundle: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-mongo:${{ github.event.inputs.version }}` / `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-mongo:latest`
             - PostgreSQL Bundle: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-postgres:${{ github.event.inputs.version }}` / `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-postgres:latest`
 
+            ### Distroless Bundle Containers (GHCR)
+            - SQLite Distroless Bundle: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite-distroless:${{ github.event.inputs.version }}` / `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite-distroless:latest`
+            - MongoDB Distroless Bundle: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-mongo-distroless:${{ github.event.inputs.version }}` / `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-mongo-distroless:latest`
+            - PostgreSQL Distroless Bundle: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-postgres-distroless:${{ github.event.inputs.version }}` / `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-postgres-distroless:latest`
+
             ### Docker Hub
             - UI: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-web:latest`
             - Server: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-server:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-server:latest`
@@ -495,6 +596,11 @@ jobs:
             - SQLite Bundle: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite:latest`
             - MongoDB Bundle: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-mongo:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-mongo:latest`
             - PostgreSQL Bundle: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-postgres:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-postgres:latest`
+
+            ### Distroless Bundle Containers (Docker Hub)
+            - SQLite Distroless Bundle: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite-distroless:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite-distroless:latest`
+            - MongoDB Distroless Bundle: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-mongo-distroless:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-mongo-distroless:latest`
+            - PostgreSQL Distroless Bundle: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-postgres-distroless:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-postgres-distroless:latest`
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

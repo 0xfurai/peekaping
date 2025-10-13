@@ -116,6 +116,66 @@ networks:
 3. **Host**: Enter `http://dockerproxy:2375`
 4. **Test Connection** to verify proxy access
 
+### Distroless Bundle Variants
+
+For enhanced security, distroless bundle variants are available that run only the server and web components:
+
+```bash
+docker run -d --restart=always \
+  -p 8034:8034 \
+  -e DB_TYPE=postgres \
+  -e DB_HOST=your-postgres-host \
+  -e DB_PORT=5432 \
+  -e DB_NAME=peekaping \
+  -e DB_USER=peekaping \
+  -e DB_PASS=secure_test_password_123 \
+  ghcr.io/0xfurai/peekaping-bundle-postgres-distroless:latest
+```
+
+**Note**: Distroless bundles require external database and reverse proxy setup. They run as nonroot user (UID 65532) and have minimal attack surface.
+
+**Important**: Distroless bundles do not run database migrations automatically. You must run migrations separately before starting the server.
+
+#### Running Migrations for Distroless Bundles
+
+Before starting the distroless bundle, run migrations using the migration container:
+
+```bash
+# For PostgreSQL distroless bundle
+# First initialize the database
+docker run --rm \
+  --link postgres-test:postgres \
+  -e DB_TYPE=postgres \
+  -e DB_HOST=postgres \
+  -e DB_PORT=5432 \
+  -e DB_NAME=peekaping \
+  -e DB_USER=peekaping \
+  -e DB_PASS=password \
+  ghcr.io/0xfurai/peekaping-migrate:latest /app/bun db init
+
+# Then run migrations
+docker run --rm \
+  --link postgres-test:postgres \
+  -e DB_TYPE=postgres \
+  -e DB_HOST=postgres \
+  -e DB_PORT=5432 \
+  -e DB_NAME=peekaping \
+  -e DB_USER=peekaping \
+  -e DB_PASS=password \
+  ghcr.io/0xfurai/peekaping-migrate:latest /app/bun db migrate
+
+# Then start the distroless bundle
+docker run -d --restart=always \
+  -p 8034:8034 \
+  --link postgres-test:postgres \
+  -e DB_TYPE=postgres \
+  -e DB_HOST=postgres \
+  -e DB_PORT=5432 \
+  -e DB_NAME=peekaping \
+  -e DB_USER=peekaping \
+  -e DB_PASS=password \
+  ghcr.io/0xfurai/peekaping-bundle-postgres-distroless:latest
+```
 
 ## Monolithic mode
 
