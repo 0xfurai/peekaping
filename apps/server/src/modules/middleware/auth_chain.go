@@ -45,15 +45,15 @@ func (ac *AuthChain) AllAuth() gin.HandlerFunc {
 
 		if apiKeyHeader != "" {
 			// Route to API key authentication
-			ac.logger.Infow("Routing to API key authentication", "ip", c.ClientIP(), "path", c.Request.URL.Path, "keyPrefix", apiKeyHeader[:min(len(apiKeyHeader), 10)]+"...")
+			ac.logger.Debugw("Routing to API key authentication", "ip", c.ClientIP(), "path", c.Request.URL.Path, "keyPrefix", apiKeyHeader[:min(len(apiKeyHeader), 10)]+"...")
 			ac.apiKeyMiddleware.Auth()(c)
 		} else if authHeader != "" {
 			// Route to JWT authentication
-			ac.logger.Infow("Routing to JWT authentication", "ip", c.ClientIP(), "path", c.Request.URL.Path, "tokenPrefix", authHeader[:min(len(authHeader), 10)]+"...")
+			ac.logger.Debugw("Routing to JWT authentication", "ip", c.ClientIP(), "path", c.Request.URL.Path, "tokenPrefix", authHeader[:min(len(authHeader), 10)]+"...")
 			ac.jwtMiddleware.Auth()(c)
 		} else {
 			// No authentication headers provided
-			ac.logger.Debugw("Missing authentication headers", "ip", c.ClientIP(), "path", c.Request.URL.Path)
+			ac.logger.Warnw("Missing authentication headers", "ip", c.ClientIP(), "path", c.Request.URL.Path)
 			c.JSON(http.StatusUnauthorized, utils.NewFailResponse("Authentication required: provide either X-API-Key header or Authorization header"))
 			c.Abort()
 			return
