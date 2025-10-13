@@ -446,8 +446,12 @@
         "query_label": "쿼리"
       },
       "ping": {
+        "count": "최대 패킷 수",
+        "count_description": "중지하기 전에 보낼 패킷 수",
         "data_size": "데이터 크기 (바이트)",
         "host": "호스트명 / IP",
+        "per_request_timeout": "Ping당 타임아웃 (초)",
+        "per_request_timeout_description": "단일 ping이 손실된 것으로 간주되기 전의 최대 대기 시간",
         "title": "Ping 설정"
       },
       "postgres": {

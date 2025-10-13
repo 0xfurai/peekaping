@@ -9,20 +9,26 @@
       "no_account": "還沒有帳號？",
       "sign_up": "註冊",
       "submit": "登入",
-      "title": "歡迎回來"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "歡迎回來"
     },
     "register": {
       "description": "建立您的管理員帳戶",
       "have_account": "已有帳號？",
       "sign_in": "登入",
       "submit": "建立",
-      "title": "您好"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "您好"
     },
     "twofa": {
       "code_label": "兩步驗證碼",
       "code_placeholder": "輸入 2FA 代碼",
       "description": "已為您的帳號啟用雙重身份驗證。請輸入您的驗證碼以繼續。",
-      "title": "需要雙因素認證",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "需要雙因素認證",
       "verify_button": "驗證 2FA",
       "verifying": "驗證中…"
     }
@@ -96,7 +102,9 @@
       "password": "密碼",
       "retries": "重試次數",
       "slug": "别名",
-      "title": "標題",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "標題",
       "username": "使用者名稱"
     },
     "placeholders": {
@@ -169,17 +177,23 @@
         "confirm_action": {
           "pause_description": "確定要暫停此維護嗎？",
           "resume_description": "您確定要恢復此維護嗎？",
-          "title": "確認操作"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "確認操作"
         },
         "confirm_delete": {
           "description": "您確定要刪除此維護窗口嗎？此操作將無法復原。",
-          "title": "確認刪除"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "確認刪除"
         }
       },
       "edit_maintenance": "編輯維護：{{title}}",
       "empty_state": {
         "action": "建立你的第一個維護窗口",
         "description": "先建立第一個維護窗口，預防預定停機時間。",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "找不到任何維護窗口"
       },
       "error_loading": "載入維護頁面時出錯",
@@ -248,7 +262,9 @@
     "empty_state": {
       "action": "建立您的第一個監控",
       "description": "先建立第一個監控，以追蹤您的服務健康狀態。",
-      "title": "未找到任何監控項目"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "未找到任何監控項目"
     },
     "filtering_by_tags": "按標籤篩選",
     "filters": {
@@ -271,6 +287,8 @@
         "record_type": "資源記錄類型",
         "record_type_placeholder": "選擇記錄類型",
         "resolver_server": "解析伺服器",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "DNS 設定"
       },
       "docker": {
@@ -329,7 +347,9 @@
           "ignore_tls_description": "忽略 TLS 證書驗證。請謹慎使用—這會降低連線安全性。",
           "max_redirects": "最大重定向次數",
           "max_redirects_description": "最大重定向次數（0-30）。設為 0 以停用重定向。",
-          "title": "進階"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "進階"
         },
         "authentication": {
           "auth_header": "授權標頭",
@@ -350,7 +370,9 @@
           "oauth_scope_placeholder": "可選：以空格分隔的範圍列表",
           "oauth_token_url": "OAuth 令牌 URL",
           "oauth_token_url_placeholder": "OAuth 令牌 URL",
-          "title": "身份驗證",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "身份驗證",
           "workstation": "工作站",
           "workstation_placeholder": "工作站"
         },
@@ -366,7 +388,9 @@
           "select_encoding": "選擇請求體編碼",
           "select_method": "選擇方法",
           "text_example": "範例文字：\n此處可輸入任何純文字內容...",
-          "title": "HTTP 選項",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "HTTP 選項",
           "xml_example": "XML 範例"
         }
       },
@@ -374,6 +398,8 @@
         "condition_label": "條件",
         "expected_value_label": "預期值",
         "json_query_label": "JSON 查詢表達式",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "JSON 查詢表達式"
       },
       "http_keyword": {
@@ -446,8 +472,13 @@
         "query_label": "查詢"
       },
       "ping": {
+        "count": "Max Packets",
+        "count_description": "Number of packets to send before stopping",
+        
         "data_size": "資料大小（位元組）",
         "host": "主機名稱 / IP",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Ping 設定"
       },
       "postgres": {
@@ -468,6 +499,8 @@
         "password_description": "RabbitMQ 管理介面驗證密碼",
         "setup_information_description": "要使用 RabbitMQ 監控功能，您需要在 RabbitMQ 配置中啟用管理插件。若需進一步資訊，請參閱 RabbitMQ 文件。",
         "setup_information_title": "設定資訊",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "RabbitMQ 設定",
         "username_description": "RabbitMQ 管理介面驗證使用者名稱"
       },
@@ -482,6 +515,8 @@
         "connection_string_label": "連接字串",
         "ignore_tls_description": "跳過 TLS 證書驗證（不建議在生產環境使用）",
         "ignore_tls_label": "忽略 TLS/SSL 錯誤",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Redis 設定"
       },
       "shared": {
@@ -499,7 +534,9 @@
           "select_channel": "選擇頻道",
           "select_notifier_placeholder": "選擇通知器",
           "selected_channels": "已選通知頻道",
-          "title": "通知頻道"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "通知頻道"
         },
         "proxy": {
           "add_proxy": "新增代理",
@@ -508,7 +545,9 @@
           "remove_proxy": "移除代理",
           "select_proxy_placeholder": "選擇代理",
           "selected_proxy": "已選代理",
-          "title": "代理"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "代理"
         },
         "tags": {
           "label": "標籤",
@@ -539,6 +578,8 @@
         "port_label": "埠號",
         "snmp_version_description": "要使用的 SNMP 協定版本",
         "snmp_version_label": "SNMP 版本",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "SNMP 設定",
         "value_validation_label": "值驗證（可選）"
       },
@@ -548,11 +589,15 @@
         "connection_string_label": "連線字串",
         "query_description": "健康檢查所執行的查詢。留空則使用預設",
         "query_label": "查詢",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Microsoft SQL Server 連線"
       },
       "tcp": {
         "host": "主機",
         "port": "埠號",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "TCP 連線"
       },
       "type": {
@@ -579,7 +624,9 @@
       "edit_title": "編輯監控:",
       "new_title": "新增監控"
     },
-    "title": "監控",
+    "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "監控",
     "toasts": {
       "deleted": "監控已刪除",
       "paused": "監控已暫停",
@@ -601,15 +648,21 @@
       "dialogs": {
         "delete": {
           "description": "此操作無法復原。將永久刪除監控及其所有相關資料。",
-          "title": "您確定嗎？"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "您確定嗎？"
         },
         "pause": {
           "description": "確定要暫停嗎？",
-          "title": "確認"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "確認"
         },
         "reset": {
           "description": "此操作將永久刪除此監控器的所有心跳歷史與正常上線統計資料。監控器將回復至剛建立時的狀態。此操作不可復原。",
-          "title": "重置監控資料"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "重置監控資料"
         }
       },
       "expiring_soon": "即將到期",
@@ -656,7 +709,9 @@
     "empty_state": {
       "action": "建立您的第一個通知頻道",
       "description": "先創建您的第一個通知通道，將警報發送給您的團隊。",
-      "title": "找不到通知頻道"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "找不到通知頻道"
     },
     "form": {
       "discord": {
@@ -1046,7 +1101,9 @@
       "updated_success": "通知器已成功更新"
     },
     "new": {
-      "title": "新增通知頻道"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "新增通知頻道"
     },
     "no_important": "未發現重要通知。",
     "placeholders": {
@@ -1057,7 +1114,9 @@
   "proxies": {
     "delete_dialog": {
       "description": "此操作不可復原。這將永久刪除代理 {{host}}:{{port}}。",
-      "title": "您確定嗎？"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "您確定嗎？"
     },
     "edit": {
       "page_name": "編輯代理"
@@ -1065,7 +1124,9 @@
     "empty_list": {
       "action_text": "建立您的第一個代理",
       "text": "先建立第一個代理，開始在監控中使用。",
-      "title": "未找到代理"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "未找到代理"
     },
     "form": {
       "auth_label": "代理伺服器需要身份驗證",
@@ -1131,15 +1192,21 @@
         "failed_to_update_password": "更新密碼失敗",
         "password_updated_successfully": "密碼更新成功"
       },
-      "title": "更新密碼"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "更新密碼"
     },
     "api_keys": {
-      "title": "API 金鑰",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "API 金鑰",
       "description": "管理您的 API 金鑰以進行第三方整合",
       "create_button": "建立 API 金鑰",
       "no_keys_title": "沒有 API 金鑰",
       "no_keys_description": "建立您的第一個 API 金鑰以開始與外部服務整合。",
       "create_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "建立新的 API 金鑰",
         "description": "建立新的 API 金鑰以進行第三方整合。金鑰只會顯示一次。",
         "form": {
@@ -1156,6 +1223,8 @@
         }
       },
       "success_alert": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "API 金鑰建立成功",
         "description": "您的 API 金鑰已建立。請立即複製，因為它不會再次顯示："
       },
@@ -1177,6 +1246,8 @@
         "never": "從未"
       },
       "delete_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "刪除 API 金鑰",
         "description": "您確定要刪除 API 金鑰「{{name}}」嗎？此操作無法撤銷。",
         "buttons": {
@@ -1216,7 +1287,9 @@
     "data_retention": {
       "days_label": "天",
       "description": "設定保留資料的天數 (KEEP_DATA_PERIOD_DAYS)。",
-      "title": "資料保留期限"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "資料保留期限"
     },
     "timezone": {
       "description": "選擇您在應用程式中顯示所有時間時所偏好的時區。",
@@ -1224,7 +1297,9 @@
       "no_timezone_found": "找不到時區。",
       "search_placeholder": "搜尋時區…",
       "select_placeholder": "選擇時區...",
-      "title": "時區"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "時區"
     },
     "validation": {
       "min_days": "至少 1 天"
@@ -1256,7 +1331,9 @@
     "customization": "客製化",
     "delete_dialog": {
       "description": "你確定要刪除「{{title}}」嗎？此操作不可撤銷。",
-      "title": "刪除狀態頁面"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "刪除狀態頁面"
     },
     "description": "輸入狀態頁說明",
     "domain_already_used": "域名 {{domain}} 已被其他狀態頁使用",
@@ -1293,7 +1370,9 @@
     "empty_state": {
       "action": "新增第一個標籤",
       "description": "先建立第一個標籤，即可開始使用，並整理您的監控項目。",
-      "title": "未找到標籤"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "未找到標籤"
     },
     "form": {
       "color_description": "為您的標籤選擇顏色",

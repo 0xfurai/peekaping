@@ -9,20 +9,26 @@
       "no_account": "אין לך חשבון?",
       "sign_up": "הירשם",
       "submit": "התחבר",
-      "title": "ברוך שוב"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "ברוך שוב"
     },
     "register": {
       "description": "צור את חשבון המנהל שלך",
       "have_account": "יש לך כבר חשבון?",
       "sign_in": "התחבר",
       "submit": "צור",
-      "title": "שלום"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "שלום"
     },
     "twofa": {
       "code_label": "קוד 2FA",
       "code_placeholder": "הזן קוד 2FA",
       "description": "אימות דו‑שלבי (2FA) מופעל בחשבונך. אנא הזן את קוד האימות שלך כדי להמשיך.",
-      "title": "אימות דו‑שלבי נדרש",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "אימות דו‑שלבי נדרש",
       "verify_button": "אמת 2FA",
       "verifying": "מתבצע אימות…"
     }
@@ -96,7 +102,9 @@
       "password": "סיסמה",
       "retries": "חזרות",
       "slug": "קיצור",
-      "title": "כותרת",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "כותרת",
       "username": "שם משתמש"
     },
     "placeholders": {
@@ -169,17 +177,23 @@
         "confirm_action": {
           "pause_description": "האם אתה בטוח שברצונך להשהות את התחזוקה הזו?",
           "resume_description": "האם אתה בטוח שברצונך להמשיך את התחזוקה?",
-          "title": "אשר פעולה"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "אשר פעולה"
         },
         "confirm_delete": {
           "description": "האם אתה בטוח שברצונך למחוק את חלון התחזוקה הזה? פעולה זו אינה ניתנת לביטול.",
-          "title": "אשר מחיקה"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "אשר מחיקה"
         }
       },
       "edit_maintenance": "ערוך תחזוקה: {{title}}",
       "empty_state": {
         "action": "צור את חלון התחזוקה הראשון שלך",
         "description": "התחל ביצירת החלון הראשון לתחזוקה כדי למנוע תקלות מתוכננות.",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "לא נמצאו חלונות תחזוקה"
       },
       "error_loading": "שגיאה בטעינת תחזוקה",
@@ -248,7 +262,9 @@
     "empty_state": {
       "action": "צור את המעקב הראשון שלך",
       "description": "התחל ביצירת המוניטור הראשון שלך כדי לעקוב אחר בריאות השירותים שלך.",
-      "title": "לא נמצאו ניטורים"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "לא נמצאו ניטורים"
     },
     "filtering_by_tags": "סינון לפי תגיות",
     "filters": {
@@ -271,6 +287,8 @@
         "record_type": "סוג רשומת משאב",
         "record_type_placeholder": "בחר סוג רשומה",
         "resolver_server": "שרת מפענח",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "הגדרות DNS"
       },
       "docker": {
@@ -329,7 +347,9 @@
           "ignore_tls_description": "דלג על אימות תעודת TLS. השתמש בזה בזהירות - כך החיבורים הופכים לפחות מאובטחים.",
           "max_redirects": "הפניות מרביות",
           "max_redirects_description": "מספר מקסימלי של הפניות לעקוב אחריהן (0-30). הגדר ל-0 כדי להשבית הפניות.",
-          "title": "מתקדם"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "מתקדם"
         },
         "authentication": {
           "auth_header": "כותרת אימות",
@@ -350,7 +370,9 @@
           "oauth_scope_placeholder": "אופציונלי: רשימה של תחומי גישה מופרדת ברווחים",
           "oauth_token_url": "כתובת URL של אסימון OAuth",
           "oauth_token_url_placeholder": "כתובת אסימון OAuth",
-          "title": "אימות",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "אימות",
           "workstation": "מחשב עבודה",
           "workstation_placeholder": "מחשב קצה"
         },
@@ -366,7 +388,9 @@
           "select_encoding": "בחר קידוד גוף",
           "select_method": "בחר שיטה",
           "text_example": "טקסט לדוגמה: כל תוכן טקסט פשוט כאן…",
-          "title": "אפשרויות HTTP",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "אפשרויות HTTP",
           "xml_example": "דוגמה ל־XML"
         }
       },
@@ -374,6 +398,8 @@
         "condition_label": "תנאי",
         "expected_value_label": "ערך נדרש",
         "json_query_label": "ביטוי שאילתת JSON",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "ביטוי שאילתה JSON"
       },
       "http_keyword": {
@@ -446,8 +472,13 @@
         "query_label": "שאילתה"
       },
       "ping": {
+        "count": "Max Packets",
+        "count_description": "Number of packets to send before stopping",
+        
         "data_size": "גודל נתונים (בייטים)",
         "host": "שם מארח / IP",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "הגדרות פינג"
       },
       "postgres": {
@@ -468,6 +499,8 @@
         "password_description": "סיסמה לאימות ממשק הניהול של RabbitMQ",
         "setup_information_description": "לשימוש במוניטור RabbitMQ, עליך להפעיל את תוסף הניהול במערכת RabbitMQ שלך. לקבלת מידע נוסף, אנא עיין בתיעוד של RabbitMQ.",
         "setup_information_title": "מידע על ההתקנה",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "הגדרות RabbitMQ",
         "username_description": "שם המשתמש לאימות ממשק ניהול RabbitMQ"
       },
@@ -482,6 +515,8 @@
         "connection_string_label": "מחרוזת חיבור",
         "ignore_tls_description": "דלג על אימות תעודת TLS (לא מומלץ לסביבת ייצור)",
         "ignore_tls_label": "התעלם משגיאות TLS/SSL",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "הגדרות Redis"
       },
       "shared": {
@@ -499,7 +534,9 @@
           "select_channel": "בחר ערוץ",
           "select_notifier_placeholder": "בחר נוטיפייר",
           "selected_channels": "ערוצי התראות נבחרים",
-          "title": "ערוצי התראות"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "ערוצי התראות"
         },
         "proxy": {
           "add_proxy": "הוסף פרוקסי",
@@ -508,7 +545,9 @@
           "remove_proxy": "הסר פרוקסי",
           "select_proxy_placeholder": "בחר פרוקסי",
           "selected_proxy": "פרוקסי נבחר",
-          "title": "פרוקסי"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "פרוקסי"
         },
         "tags": {
           "label": "תגיות",
@@ -539,6 +578,8 @@
         "port_label": "פורט",
         "snmp_version_description": "גרסת הפרוטוקול SNMP שיש להשתמש בה",
         "snmp_version_label": "גרסת SNMP",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "הגדרות SNMP",
         "value_validation_label": "אימות ערך (אופציונלי)"
       },
@@ -548,11 +589,15 @@
         "connection_string_label": "מחרוזת חיבור",
         "query_description": "שאילתה לביצוע לבדיקה של בריאות. השאר ריק כדי להשתמש ברירת המחדל",
         "query_label": "שאילתה",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "חיבור ל-Microsoft SQL Server"
       },
       "tcp": {
         "host": "מארח",
         "port": "פורט",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "חיבור TCP"
       },
       "type": {
@@ -579,7 +624,9 @@
       "edit_title": "ערוך ניטור:",
       "new_title": "מעקב חדש"
     },
-    "title": "מניטורים",
+    "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "מניטורים",
     "toasts": {
       "deleted": "ניטור נמחק",
       "paused": "המעקב מושהה",
@@ -601,15 +648,21 @@
       "dialogs": {
         "delete": {
           "description": "פעולה זו אינה ניתנת לביטול. פעולה זו תמחק את המעקב ואת כל המידע הקשור אליו לצמיתות.",
-          "title": "האם אתה בטוח לגמרי?"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "האם אתה בטוח לגמרי?"
         },
         "pause": {
           "description": "האם אתה בטוח שברצונך להשהות?",
-          "title": "אישור"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "אישור"
         },
         "reset": {
           "description": "פעולה זו תמחק לצמיתות את כל היסטוריית הדופק ואת סטטיסטיקת זמינות של המוניטור. המוניטור יופיע כאילו נוצר כעת. לא ניתן לבטל פעולה זו.",
-          "title": "איפוס נתוני המוניטור"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "איפוס נתוני המוניטור"
         }
       },
       "expiring_soon": "פוג בקרוב",
@@ -656,7 +709,9 @@
     "empty_state": {
       "action": "צור ערוץ התראות הראשון שלך",
       "description": "התחילו ביצירת ערוץ התראות הראשון שלכם לשליחת התראות לצוות שלכם.",
-      "title": "לא נמצאו ערוצי התראות"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "לא נמצאו ערוצי התראות"
     },
     "form": {
       "discord": {
@@ -1046,7 +1101,9 @@
       "updated_success": "המתוור עודכן בהצלחה"
     },
     "new": {
-      "title": "ערוץ התראות חדש"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "ערוץ התראות חדש"
     },
     "no_important": "לא נמצאו הודעות חשובות.",
     "placeholders": {
@@ -1057,7 +1114,9 @@
   "proxies": {
     "delete_dialog": {
       "description": "לא ניתן לבטל פעולה זו. הפרוקסי {{host}}:{{port}} ימחק לצמיתות.",
-      "title": "האם אתה בטוח לגמרי?"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "האם אתה בטוח לגמרי?"
     },
     "edit": {
       "page_name": "ערוך פרוקסי"
@@ -1065,7 +1124,9 @@
     "empty_list": {
       "action_text": "צור את הפרוקסי הראשון שלך",
       "text": "התחל ביצירת הפרוקסי הראשון שלך לשימוש במעקביך.",
-      "title": "לא נמצאו פרוקסי"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "לא נמצאו פרוקסי"
     },
     "form": {
       "auth_label": "השרת פרוקסי דורש אימות",
@@ -1131,15 +1192,21 @@
         "failed_to_update_password": "עדכון הסיסמה נכשל",
         "password_updated_successfully": "סיסמה עודכנה בהצלחה"
       },
-      "title": "עדכון סיסמה"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "עדכון סיסמה"
     },
     "api_keys": {
-      "title": "API Keys",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "API Keys",
       "description": "Manage your API keys for third-party integrations",
       "create_button": "Create API Key",
       "no_keys_title": "No API Keys",
       "no_keys_description": "Create your first API key to start integrating with external services.",
       "create_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Create New API Key",
         "description": "Create a new API key for third-party integrations. The key will be shown only once.",
         "form": {
@@ -1156,6 +1223,8 @@
         }
       },
       "success_alert": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "API Key Created Successfully",
         "description": "Your API key has been created. Copy it now as it won't be shown again:"
       },
@@ -1177,6 +1246,8 @@
         "never": "Never"
       },
       "delete_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "מחק מפתח API",
         "description": "האם אתה בטוח שברצונך למחוק את מפתח ה-API \"{{name}}\"? לא ניתן לבטל פעולה זו.",
         "buttons": {
@@ -1216,7 +1287,9 @@
     "data_retention": {
       "days_label": "ימים",
       "description": "הגדר את מספר הימים לשמירת נתונים (KEEP_DATA_PERIOD_DAYS).",
-      "title": "תקופת שמירת נתונים"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "תקופת שמירת נתונים"
     },
     "timezone": {
       "description": "בחר את אזור הזמן המועדף עליך להצגת כל הזמנים באפליקציה.",
@@ -1224,7 +1297,9 @@
       "no_timezone_found": "לא נמצא אזור זמן.",
       "search_placeholder": "חפש אזור זמן…",
       "select_placeholder": "בחר אזור זמן…",
-      "title": "אזור זמן"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "אזור זמן"
     },
     "validation": {
       "min_days": "חייב להיות לפחות יום אחד"
@@ -1256,7 +1331,9 @@
     "customization": "התאמה אישית",
     "delete_dialog": {
       "description": "האם אתה בטוח שברצונך למחוק את \"{{title}}\"? הפעולה אינה ניתנת לביטול.",
-      "title": "מחק דף סטטוס"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "מחק דף סטטוס"
     },
     "description": "הזן תיאור דף סטטוס",
     "domain_already_used": "התחום {{domain}} כבר בשימוש על עמוד סטטוס אחר",
@@ -1293,7 +1370,9 @@
     "empty_state": {
       "action": "צור את התג הראשון שלך",
       "description": "התחל ביצירת התווית הראשונה שלך כדי לארגן את המוניטורים שלך.",
-      "title": "לא נמצאו תגיות"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "לא נמצאו תגיות"
     },
     "form": {
       "color_description": "בחר/י צבע עבור התווית שלך",

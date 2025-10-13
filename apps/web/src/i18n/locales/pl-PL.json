@@ -446,8 +446,12 @@
         "query_label": "Zapytanie"
       },
       "ping": {
+        "count": "Maksymalne pakiety",
+        "count_description": "Liczba pakietów do wysłania przed zatrzymaniem",
         "data_size": "Rozmiar danych (bajty)",
         "host": "Nazwa hosta / IP",
+        "per_request_timeout": "Timeout na ping (sekundy)",
+        "per_request_timeout_description": "Maksymalny czas oczekiwania przed uznaniem jednego pingu za utracony",
         "title": "Ustawienia ping"
       },
       "postgres": {

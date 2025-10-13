@@ -9,20 +9,26 @@
       "no_account": "Hesabınız yok mu?",
       "sign_up": "Kayıt Ol",
       "submit": "Giriş",
-      "title": "Tekrar hoş geldiniz"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Tekrar hoş geldiniz"
     },
     "register": {
       "description": "Yönetici hesabınızı oluşturun",
       "have_account": "Zaten bir hesabınız var mı?",
       "sign_in": "Giriş Yap",
       "submit": "Oluştur",
-      "title": "Merhaba"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Merhaba"
     },
     "twofa": {
       "code_label": "2FA Kodu",
       "code_placeholder": "2FA kodunu girin",
       "description": "Hesabınızda 2FA etkin. Devam etmek için kimlik doğrulama kodunuzu girin.",
-      "title": "İki Faktörlü Kimlik Doğrulama Gerekli",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "İki Faktörlü Kimlik Doğrulama Gerekli",
       "verify_button": "2FA'yı doğrula",
       "verifying": "Doğrulanıyor..."
     }
@@ -96,7 +102,9 @@
       "password": "Parola",
       "retries": "Yeniden denemeler",
       "slug": "Slug",
-      "title": "Başlık",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Başlık",
       "username": "Kullanıcı adı"
     },
     "placeholders": {
@@ -169,17 +177,23 @@
         "confirm_action": {
           "pause_description": "Bu bakımı duraklatmak istediğinizden emin misiniz?",
           "resume_description": "Bu bakımın devamını istediğinizden emin misiniz?",
-          "title": "İşlem Onayı"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "İşlem Onayı"
         },
         "confirm_delete": {
           "description": "Bu bakım penceresini silmek istediğinizden emin misiniz? Bu eylem geri alınamaz.",
-          "title": "Silmeyi Onayla"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Silmeyi Onayla"
         }
       },
       "edit_maintenance": "Bakım Düzenle: {{title}}",
       "empty_state": {
         "action": "İlk bakım penceresini oluşturun",
         "description": "Planlı kesintileri önlemek için ilk bakım penceresi oluşturarak başlayın.",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Bakım pencereleri bulunamadı"
       },
       "error_loading": "Bakım sayfası yüklenirken hata",
@@ -248,7 +262,9 @@
     "empty_state": {
       "action": "İlk izleme oluştur",
       "description": "İlk izleyicinizi oluşturarak hizmetlerinizin sağlığını izlemeye başlayın.",
-      "title": "İzleyici bulunamadı"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "İzleyici bulunamadı"
     },
     "filtering_by_tags": "Etiketlere göre filtreleme",
     "filters": {
@@ -271,6 +287,8 @@
         "record_type": "Kaynak Kayıt Türü",
         "record_type_placeholder": "Kayıt Türünü Seçin",
         "resolver_server": "Çözümleyici Sunucu",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "DNS Ayarları"
       },
       "docker": {
@@ -329,7 +347,9 @@
           "ignore_tls_description": "TLS sertifikası doğrulamasını atla. Dikkatli kullanın - bağlantılar daha az güvenli olur.",
           "max_redirects": "Maksimum Yönlendirme Sayısı",
           "max_redirects_description": "Takip edilecek maksimum yönlendirme sayısı (0-30). Yönlendirmeleri devre dışı bırakmak için 0 olarak ayarlayın.",
-          "title": "Gelişmiş"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Gelişmiş"
         },
         "authentication": {
           "auth_header": "Yetkilendirme Başlığı",
@@ -350,7 +370,9 @@
           "oauth_scope_placeholder": "İsteğe bağlı: Boşlukla ayrılmış kapsam listesi",
           "oauth_token_url": "OAuth Erişim Belirteci URL'si",
           "oauth_token_url_placeholder": "OAuth Kimlik Belirteci URL",
-          "title": "Kimlik Doğrulama",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Kimlik Doğrulama",
           "workstation": "Çalışma İstasyonu",
           "workstation_placeholder": "Çalışma İstasyonu"
         },
@@ -366,7 +388,9 @@
           "select_encoding": "İçerik kodlamasını seç",
           "select_method": "Yöntemi seç",
           "text_example": "Örnek Metin:\nBurada herhangi bir düz metin içeriği...",
-          "title": "HTTP Seçenekleri",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "HTTP Seçenekleri",
           "xml_example": "Örnek XML"
         }
       },
@@ -374,6 +398,8 @@
         "condition_label": "Koşul",
         "expected_value_label": "Beklenen Değer",
         "json_query_label": "JSON Sorgu İfadesi",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "JSON Sorgu İfadesi"
       },
       "http_keyword": {
@@ -446,8 +472,13 @@
         "query_label": "Sorgu"
       },
       "ping": {
+        "count": "Max Packets",
+        "count_description": "Number of packets to send before stopping",
+        
         "data_size": "Veri Boyutu (bayt)",
         "host": "Host Adı / IP",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Ping Ayarları"
       },
       "postgres": {
@@ -468,6 +499,8 @@
         "password_description": "RabbitMQ yönetim arayüzü kimlik doğrulama şifresi",
         "setup_information_description": "RabbitMQ izleyicisini kullanmak için RabbitMQ kurulumunuzda Yönetim Eklentisini etkinleştirmeniz gerekir. Daha fazla bilgi için RabbitMQ belgelerine bakın.",
         "setup_information_title": "Kurulum Bilgileri",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "RabbitMQ Yapılandırması",
         "username_description": "RabbitMQ yönetim arayüzü kimlik doğrulaması için kullanıcı adı"
       },
@@ -482,6 +515,8 @@
         "connection_string_label": "Bağlantı Dizesi",
         "ignore_tls_description": "TLS sertifikası doğrulamasını atla (üretimde önerilmez)",
         "ignore_tls_label": "TLS/SSL hatalarını yok say",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Redis Yapılandırması"
       },
       "shared": {
@@ -499,7 +534,9 @@
           "select_channel": "Kanal seç",
           "select_notifier_placeholder": "Bildirimci Seç",
           "selected_channels": "Seçilen Bildirim Kanalları",
-          "title": "Bildirim kanalları"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Bildirim kanalları"
         },
         "proxy": {
           "add_proxy": "Proxy Ekle",
@@ -508,7 +545,9 @@
           "remove_proxy": "Proxy'yi Kaldır",
           "select_proxy_placeholder": "Proxy Seçin",
           "selected_proxy": "Seçilen Proxy",
-          "title": "Vekil"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Vekil"
         },
         "tags": {
           "label": "Etiketler",
@@ -539,6 +578,8 @@
         "port_label": "Port",
         "snmp_version_description": "Kullanılacak SNMP protokolü sürümü",
         "snmp_version_label": "SNMP Sürümü",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "SNMP Ayarları",
         "value_validation_label": "Değer Doğrulama (İsteğe Bağlı)"
       },
@@ -548,11 +589,15 @@
         "connection_string_label": "Bağlantı Dizesi",
         "query_description": "Sağlık kontrolü için çalıştırılacak sorgu. Varsayılanı kullanmak için boş bırakın.",
         "query_label": "Sorgu",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Microsoft SQL Server Bağlantısı"
       },
       "tcp": {
         "host": "Ana Bilgisayar",
         "port": "Port",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "TCP Bağlantısı"
       },
       "type": {
@@ -579,7 +624,9 @@
       "edit_title": "Gözlemciyi Düzenle:",
       "new_title": "Yeni İzleme"
     },
-    "title": "İzleyiciler",
+    "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "İzleyiciler",
     "toasts": {
       "deleted": "İzleyici silindi",
       "paused": "İzleme duraklatıldı",
@@ -601,15 +648,21 @@
       "dialogs": {
         "delete": {
           "description": "Bu işlem geri alınamaz. Bu, monitörü ve tüm ilgili verileri kalıcı olarak silecektir.",
-          "title": "Kesinlikle emin misiniz?"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Kesinlikle emin misiniz?"
         },
         "pause": {
           "description": "Durdurmak istediğinizden emin misiniz?",
-          "title": "Onay"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Onay"
         },
         "reset": {
           "description": "Bu işlem, bu monitör için tüm kalp atışı geçmişini ve çalışma süresi istatistiklerini kalıcı olarak siler. Monitör, yeni oluşturulmuş gibi görünecektir. Bu işlem geri alınamaz.",
-          "title": "İzleyici Verilerini Sıfırla"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "İzleyici Verilerini Sıfırla"
         }
       },
       "expiring_soon": "Süresi yakında dolacak",
@@ -656,7 +709,9 @@
     "empty_state": {
       "action": "İlk bildirim kanalınızı oluşturun",
       "description": "İlk bildirim kanalınızı oluşturarak ekip üyelerinize uyarı göndermeye başlayın.",
-      "title": "Bildirim kanalları bulunamadı"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Bildirim kanalları bulunamadı"
     },
     "form": {
       "discord": {
@@ -1046,7 +1101,9 @@
       "updated_success": "Bildirimci başarıyla güncellendi"
     },
     "new": {
-      "title": "Yeni Bildirim Kanalı"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Yeni Bildirim Kanalı"
     },
     "no_important": "Önemli bildirim bulunamadı.",
     "placeholders": {
@@ -1057,7 +1114,9 @@
   "proxies": {
     "delete_dialog": {
       "description": "Bu işlem geri alınamaz. Bu, {{host}}:{{port}} proxy'sini kalıcı olarak silecektir.",
-      "title": "Kesinlikle emin misiniz?"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Kesinlikle emin misiniz?"
     },
     "edit": {
       "page_name": "Proxy Düzenle"
@@ -1065,7 +1124,9 @@
     "empty_list": {
       "action_text": "İlk proxy'nizi oluştur",
       "text": "İzleyicilerinizde kullanmak üzere ilk proxy'nizi oluşturarak başlayın.",
-      "title": "Proxy bulunamadı"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Proxy bulunamadı"
     },
     "form": {
       "auth_label": "Proxy sunucusu kimlik doğrulama gerektiriyor",
@@ -1131,15 +1192,21 @@
         "failed_to_update_password": "Şifre güncellenemedi",
         "password_updated_successfully": "Parola başarıyla güncellendi."
       },
-      "title": "Şifreyi Güncelle"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Şifreyi Güncelle"
     },
     "api_keys": {
-      "title": "API Anahtarları",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "API Anahtarları",
       "description": "Üçüncü taraf entegrasyonları için API anahtarlarınızı yönetin",
       "create_button": "API Anahtarı Oluştur",
       "no_keys_title": "API Anahtarı Yok",
       "no_keys_description": "Harici hizmetlerle entegrasyona başlamak için ilk API anahtarınızı oluşturun.",
       "create_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Yeni API Anahtarı Oluştur",
         "description": "Üçüncü taraf entegrasyonları için yeni bir API anahtarı oluşturun. Anahtar sadece bir kez gösterilecektir.",
         "form": {
@@ -1156,6 +1223,8 @@
         }
       },
       "success_alert": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "API Anahtarı Başarıyla Oluşturuldu",
         "description": "API anahtarınız oluşturuldu. Şimdi kopyalayın çünkü tekrar gösterilmeyecek:"
       },
@@ -1177,6 +1246,8 @@
         "never": "Hiçbir Zaman"
       },
       "delete_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "API Anahtarını Sil",
         "description": "\"{{name}}\" API anahtarını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
         "buttons": {
@@ -1216,7 +1287,9 @@
     "data_retention": {
       "days_label": "Gün",
       "description": "Veriyi saklayacağınız gün sayısını ayarlayın (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Veri Saklama Süresi"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Veri Saklama Süresi"
     },
     "timezone": {
       "description": "Uygulamadaki tüm zamanları göstermek için tercih ettiğiniz saat dilimini seçin.",
@@ -1224,7 +1297,9 @@
       "no_timezone_found": "Saat dilimi bulunamadı.",
       "search_placeholder": "Zaman dilimi ara...",
       "select_placeholder": "Saat dilimini seçin...",
-      "title": "Saat Dilimi"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Saat Dilimi"
     },
     "validation": {
       "min_days": "En az 1 gün olmalıdır"
@@ -1256,7 +1331,9 @@
     "customization": "Özelleştirme",
     "delete_dialog": {
       "description": "\"{{title}}\" öğesini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
-      "title": "Durum Sayfasını Sil"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Durum Sayfasını Sil"
     },
     "description": "Durum sayfası açıklamasını girin",
     "domain_already_used": "Alan adı {{domain}} zaten başka bir durum sayfası tarafından kullanılıyor.",
@@ -1293,7 +1370,9 @@
     "empty_state": {
       "action": "İlk etiketinizi oluştur",
       "description": "İzleyicilerinizi düzenlemek için ilk etiketinizi oluşturarak başlayın.",
-      "title": "Etiket bulunamadı"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Etiket bulunamadı"
     },
     "form": {
       "color_description": "Etiketiniz için bir renk seçin",

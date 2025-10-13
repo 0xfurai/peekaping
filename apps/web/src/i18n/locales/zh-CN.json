@@ -446,8 +446,12 @@
         "query_label": "查询"
       },
       "ping": {
+        "count": "最大数据包数",
+        "count_description": "停止前要发送的数据包数量",
         "data_size": "数据大小（字节）",
         "host": "主机名 / IP",
+        "per_request_timeout": "每次 Ping 超时（秒）",
+        "per_request_timeout_description": "认为单个 ping 丢失前的最大等待时间",
         "title": "Ping 设置"
       },
       "postgres": {
