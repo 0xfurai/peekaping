@@ -24,10 +24,10 @@ import (
 func main() {
 	log.Printf("Starting Peekaping Worker v%s", version.Version)
 
-	// Load configuration
-	cfg, err := config.LoadConfig[config.Config]("../..")
+	// Load and validate Worker-specific config
+	cfg, err := LoadAndValidate("../..")
 	if err != nil {
-		log.Fatalf("Failed to load config: %v", err)
+		log.Fatalf("Failed to load and validate Worker config: %v", err)
 	}
 
 	// Set timezone
@@ -36,8 +36,11 @@ func main() {
 	// Create DI container
 	container := dig.New()
 
+	// Convert to internal config format for dependency injection
+	internalCfg := cfg.ToInternalConfig()
+
 	// Provide configuration
-	container.Provide(func() *config.Config { return &cfg })
+	container.Provide(func() *config.Config { return internalCfg })
 
 	// Provide logger
 	container.Provide(func(cfg *config.Config) (*zap.SugaredLogger, error) {
@@ -77,7 +80,7 @@ func main() {
 	// Register only non-database module dependencies needed for health checks
 	events.RegisterDependencies(container)
 	healthcheck.RegisterDependencies(container)
-	heartbeat.RegisterDependencies(container, &cfg)
+	heartbeat.RegisterDependencies(container, internalCfg)
 
 	// Register worker dependencies
 	worker.RegisterDependencies(container)

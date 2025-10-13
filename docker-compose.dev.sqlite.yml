@@ -80,8 +80,6 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
     networks:
       - appnet
 

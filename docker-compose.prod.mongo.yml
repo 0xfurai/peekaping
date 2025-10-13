@@ -35,6 +35,7 @@ services:
       - REDIS_DB=0
     depends_on:
       - mongodb
+      - redis
     networks:
       - appnet
 
@@ -53,6 +54,7 @@ services:
       - REDIS_DB=0
     depends_on:
       - mongodb
+      - redis
     networks:
       - appnet
 
@@ -67,7 +69,7 @@ services:
       - REDIS_PASSWORD=""
       - REDIS_DB=0
     depends_on:
-      - mongodb
+      - redis
     networks:
       - appnet
 
@@ -86,6 +88,7 @@ services:
       - REDIS_DB=0
     depends_on:
       - mongodb
+      - redis
     networks:
       - appnet
 

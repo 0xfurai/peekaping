@@ -64,3 +64,8 @@ func validatePassword(fl validator.FieldLevel) bool {
 func RegisterCustomValidators() {
 	Validate.RegisterValidation("password", validatePassword)
 }
+
+// InitializeValidator registers all custom validators on the global Validate instance
+func InitializeValidator() {
+	RegisterCustomValidators()
+}

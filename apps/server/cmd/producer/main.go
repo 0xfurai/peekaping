@@ -35,16 +35,10 @@ import (
 func main() {
 	log.Printf("Starting Peekaping Producer v%s", version.Version)
 
-	// Load configuration
-	cfg, err := config.LoadConfig[config.Config]("../..")
+	// Load and validate Producer-specific config
+	cfg, err := LoadAndValidate("../..")
 	if err != nil {
-		log.Fatalf("Failed to load config: %v", err)
-	}
-
-	// Validate database configuration
-	err = config.ValidateDatabaseCustomRules(config.ExtractDBConfig(&cfg))
-	if err != nil {
-		log.Fatalf("Failed to validate database config: %v", err)
+		log.Fatalf("Failed to load and validate Producer config: %v", err)
 	}
 
 	// Set timezone
@@ -53,8 +47,11 @@ func main() {
 	// Create DI container
 	container := dig.New()
 
+	// Convert to internal config format for dependency injection
+	internalCfg := cfg.ToInternalConfig()
+
 	// Provide configuration
-	container.Provide(func() *config.Config { return &cfg })
+	container.Provide(func() *config.Config { return internalCfg })
 
 	// Provide logger
 	container.Provide(func(cfg *config.Config) (*zap.SugaredLogger, error) {
@@ -82,13 +79,13 @@ func main() {
 	})
 
 	// Provide database
-	switch cfg.DBType {
+	switch internalCfg.DBType {
 	case "postgres", "postgresql", "mysql", "sqlite":
 		container.Provide(infra.ProvideSQLDB)
 	case "mongo", "mongodb":
 		container.Provide(infra.ProvideMongoDB)
 	default:
-		log.Fatalf("Unsupported DB_TYPE: %s", cfg.DBType)
+		log.Fatalf("Unsupported DB_TYPE: %s", internalCfg.DBType)
 	}
 
 	// Provide Redis infrastructure
@@ -102,20 +99,20 @@ func main() {
 
 	// Register module dependencies that producer needs
 	events.RegisterDependencies(container)
-	heartbeat.RegisterDependencies(container, &cfg)
+	heartbeat.RegisterDependencies(container, internalCfg)
 	healthcheck.RegisterDependencies(container) // Provides ExecutorRegistry
-	tag.RegisterDependencies(container, &cfg)
-	monitor_tag.RegisterDependencies(container, &cfg)
-	monitor.RegisterDependencies(container, &cfg)
-	proxy.RegisterDependencies(container, &cfg)
-	maintenance.RegisterDependencies(container, &cfg)
-	monitor_maintenance.RegisterDependencies(container, &cfg)
-	monitor_notification.RegisterDependencies(container, &cfg)
-	setting.RegisterDependencies(container, &cfg)
-	notification_sent_history.RegisterDependencies(container, &cfg)
-	monitor_tls_info.RegisterDependencies(container, &cfg)
+	tag.RegisterDependencies(container, internalCfg)
+	monitor_tag.RegisterDependencies(container, internalCfg)
+	monitor.RegisterDependencies(container, internalCfg)
+	proxy.RegisterDependencies(container, internalCfg)
+	maintenance.RegisterDependencies(container, internalCfg)
+	monitor_maintenance.RegisterDependencies(container, internalCfg)
+	monitor_notification.RegisterDependencies(container, internalCfg)
+	setting.RegisterDependencies(container, internalCfg)
+	notification_sent_history.RegisterDependencies(container, internalCfg)
+	monitor_tls_info.RegisterDependencies(container, internalCfg)
 	certificate.RegisterDependencies(container)
-	stats.RegisterDependencies(container, &cfg)
+	stats.RegisterDependencies(container, internalCfg)
 
 	// Register producer dependencies
 	producer.RegisterDependencies(container)

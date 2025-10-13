@@ -97,12 +97,8 @@ services:
       - REDIS_PASSWORD=""
       - REDIS_DB=0
     depends_on:
-      postgres:
-        condition: service_healthy
       redis:
         condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
     networks:
       - appnet
 

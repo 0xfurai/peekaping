@@ -8,13 +8,13 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-// RegisterCustomValidators registers custom validators for configuration
-func RegisterCustomValidators() {
-	validate.RegisterValidation("duration_min", validateDurationMin)
-	validate.RegisterValidation("numeric", validateNumeric)
-	validate.RegisterValidation("port", validatePort)
-	validate.RegisterValidation("db_type", validateDBType)
-	validate.RegisterValidation("log_level", validateLogLevel)
+// RegisterCustomValidators registers custom validators for configuration on the provided validator instance
+func RegisterCustomValidators(v *validator.Validate) {
+	v.RegisterValidation("duration_min", validateDurationMin)
+	v.RegisterValidation("numeric", validateNumeric)
+	v.RegisterValidation("port", validatePort)
+	v.RegisterValidation("db_type", validateDBType)
+	v.RegisterValidation("log_level", validateLogLevel)
 }
 
 // validateDurationMin validates that a time.Duration is at least the specified minimum

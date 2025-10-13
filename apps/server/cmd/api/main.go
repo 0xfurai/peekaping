@@ -53,35 +53,33 @@ func main() {
 
 	utils.RegisterCustomValidators()
 
-	cfg, err := config.LoadConfig[config.Config]("../..")
-
+	// Load and validate API-specific config
+	cfg, err := LoadAndValidate("../..")
 	if err != nil {
-		panic(err)
-	}
-
-	err = config.ValidateDatabaseCustomRules(config.ExtractDBConfig(&cfg))
-	if err != nil {
-		panic(err)
+		log.Fatalf("Failed to load and validate API config: %v", err)
 	}
 
 	os.Setenv("TZ", cfg.Timezone)
 
 	container := dig.New()
 
+	// Convert to internal config format for dependency injection
+	internalCfg := cfg.ToInternalConfig()
+
 	// Provide dependencies
-	container.Provide(func() *config.Config { return &cfg })
+	container.Provide(func() *config.Config { return internalCfg })
 	container.Provide(internal.ProvideLogger)
 	container.Provide(internal.ProvideServer)
 	container.Provide(websocket.NewServer)
 
 	// database-specific deps
-	switch cfg.DBType {
+	switch internalCfg.DBType {
 	case "postgres", "postgresql", "mysql", "sqlite":
 		container.Provide(infra.ProvideSQLDB)
 	case "mongo", "mongodb":
 		container.Provide(infra.ProvideMongoDB)
 	default:
-		panic(fmt.Errorf("unsupported DB_DRIVER %q", cfg.DBType))
+		panic(fmt.Errorf("unsupported DB_DRIVER %q", internalCfg.DBType))
 	}
 
 	// Provide Redis event bus
@@ -95,29 +93,29 @@ func main() {
 
 	// Register dependencies in the correct order to handle circular dependencies
 	events.RegisterDependencies(container)
-	heartbeat.RegisterDependencies(container, &cfg)
-	monitor.RegisterDependencies(container, &cfg)
+	heartbeat.RegisterDependencies(container, internalCfg)
+	monitor.RegisterDependencies(container, internalCfg)
 	healthcheck.RegisterDependencies(container)
-	bruteforce.RegisterDependencies(container, &cfg)
-	auth.RegisterDependencies(container, &cfg)
-	notification_channel.RegisterDependencies(container, &cfg)
-	monitor_notification.RegisterDependencies(container, &cfg)
-	proxy.RegisterDependencies(container, &cfg)
-	setting.RegisterDependencies(container, &cfg)
-	notification_sent_history.RegisterDependencies(container, &cfg)
-	monitor_tls_info.RegisterDependencies(container, &cfg)
+	bruteforce.RegisterDependencies(container, internalCfg)
+	auth.RegisterDependencies(container, internalCfg)
+	notification_channel.RegisterDependencies(container, internalCfg)
+	monitor_notification.RegisterDependencies(container, internalCfg)
+	proxy.RegisterDependencies(container, internalCfg)
+	setting.RegisterDependencies(container, internalCfg)
+	notification_sent_history.RegisterDependencies(container, internalCfg)
+	monitor_tls_info.RegisterDependencies(container, internalCfg)
 	certificate.RegisterDependencies(container)
-	stats.RegisterDependencies(container, &cfg)
-	monitor_maintenance.RegisterDependencies(container, &cfg)
-	maintenance.RegisterDependencies(container, &cfg)
-	status_page.RegisterDependencies(container, &cfg)
-	monitor_status_page.RegisterDependencies(container, &cfg)
-	domain_status_page.RegisterDependencies(container, &cfg)
-	tag.RegisterDependencies(container, &cfg)
-	monitor_tag.RegisterDependencies(container, &cfg)
-	badge.RegisterDependencies(container, &cfg)
-	queue.RegisterDependencies(container, &cfg)
-	api_key.RegisterDependencies(container, &cfg)
+	stats.RegisterDependencies(container, internalCfg)
+	monitor_maintenance.RegisterDependencies(container, internalCfg)
+	maintenance.RegisterDependencies(container, internalCfg)
+	status_page.RegisterDependencies(container, internalCfg)
+	monitor_status_page.RegisterDependencies(container, internalCfg)
+	domain_status_page.RegisterDependencies(container, internalCfg)
+	tag.RegisterDependencies(container, internalCfg)
+	monitor_tag.RegisterDependencies(container, internalCfg)
+	badge.RegisterDependencies(container, internalCfg)
+	queue.RegisterDependencies(container, internalCfg)
+	api_key.RegisterDependencies(container, internalCfg)
 	middleware.RegisterDependencies(container)
 
 	// Start the event healthcheck listener

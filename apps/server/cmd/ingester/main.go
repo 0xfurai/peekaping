@@ -30,16 +30,10 @@ import (
 func main() {
 	log.Printf("Starting Peekaping Ingester v%s", version.Version)
 
-	// Load configuration
-	cfg, err := config.LoadConfig[config.Config]("../..")
+	// Load and validate Ingester-specific config
+	cfg, err := LoadAndValidate("../..")
 	if err != nil {
-		log.Fatalf("Failed to load config: %v", err)
-	}
-
-	// Validate database configuration
-	err = config.ValidateDatabaseCustomRules(config.ExtractDBConfig(&cfg))
-	if err != nil {
-		log.Fatalf("Failed to validate database config: %v", err)
+		log.Fatalf("Failed to load and validate Ingester config: %v", err)
 	}
 
 	// Set timezone
@@ -48,8 +42,11 @@ func main() {
 	// Create DI container
 	container := dig.New()
 
+	// Convert to internal config format for dependency injection
+	internalCfg := cfg.ToInternalConfig()
+
 	// Provide configuration
-	container.Provide(func() *config.Config { return &cfg })
+	container.Provide(func() *config.Config { return internalCfg })
 
 	// Provide logger
 	container.Provide(func(cfg *config.Config) (*zap.SugaredLogger, error) {
@@ -77,13 +74,13 @@ func main() {
 	})
 
 	// Provide database
-	switch cfg.DBType {
+	switch internalCfg.DBType {
 	case "postgres", "postgresql", "mysql", "sqlite":
 		container.Provide(infra.ProvideSQLDB)
 	case "mongo", "mongodb":
 		container.Provide(infra.ProvideMongoDB)
 	default:
-		log.Fatalf("Unsupported DB_TYPE: %s", cfg.DBType)
+		log.Fatalf("Unsupported DB_TYPE: %s", internalCfg.DBType)
 	}
 
 	// Provide Redis infrastructure
@@ -125,13 +122,13 @@ func main() {
 
 	// Register module dependencies
 	events.RegisterDependencies(container)
-	heartbeat.RegisterDependencies(container, &cfg)
-	notification_sent_history.RegisterDependencies(container, &cfg)
-	monitor_tls_info.RegisterDependencies(container, &cfg)
+	heartbeat.RegisterDependencies(container, internalCfg)
+	notification_sent_history.RegisterDependencies(container, internalCfg)
+	monitor_tls_info.RegisterDependencies(container, internalCfg)
 	certificate.RegisterDependencies(container)
-	monitor_maintenance.RegisterDependencies(container, &cfg)
-	stats.RegisterDependencies(container, &cfg)
-	setting.RegisterDependencies(container, &cfg)
+	monitor_maintenance.RegisterDependencies(container, internalCfg)
+	stats.RegisterDependencies(container, internalCfg)
+	setting.RegisterDependencies(container, internalCfg)
 
 	// Register ingester dependencies
 	ingester.RegisterDependencies(container)

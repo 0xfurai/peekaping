@@ -71,7 +71,7 @@ var validate = validator.New()
 
 func LoadConfig[T any](path string) (config T, err error) {
 	// Register custom validators
-	RegisterCustomValidators()
+	RegisterCustomValidators(validate)
 
 	// Try to load from .env file first
 	envFile := path + "/.env"
@@ -110,17 +110,6 @@ func LoadConfig[T any](path string) (config T, err error) {
 	printEnvVars("Defaults applied:", defaultsApplied)
 
 	return
-}
-
-func ExtractDBConfig(config *Config) *DBConfig {
-	return &DBConfig{
-		DBHost: config.DBHost,
-		DBPort: config.DBPort,
-		DBName: config.DBName,
-		DBUser: config.DBUser,
-		DBPass: config.DBPass,
-		DBType: config.DBType,
-	}
 }
 
 func validateConfig[T any](config *T) error {
