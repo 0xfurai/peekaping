@@ -42,7 +42,7 @@ func (ac *AuthChain) AllAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		apiKeyHeader := c.GetHeader("X-API-Key")
 		authHeader := c.GetHeader("Authorization")
-		
+
 		if apiKeyHeader != "" {
 			// Route to API key authentication
 			ac.logger.Infow("Routing to API key authentication", "ip", c.ClientIP(), "path", c.Request.URL.Path, "keyPrefix", apiKeyHeader[:min(len(apiKeyHeader), 10)]+"...")
@@ -53,7 +53,7 @@ func (ac *AuthChain) AllAuth() gin.HandlerFunc {
 			ac.jwtMiddleware.Auth()(c)
 		} else {
 			// No authentication headers provided
-			ac.logger.Warnw("Missing authentication headers", "ip", c.ClientIP(), "path", c.Request.URL.Path)
+			ac.logger.Debugw("Missing authentication headers", "ip", c.ClientIP(), "path", c.Request.URL.Path)
 			c.JSON(http.StatusUnauthorized, utils.NewFailResponse("Authentication required: provide either X-API-Key header or Authorization header"))
 			c.Abort()
 			return
