@@ -74,7 +74,7 @@ ENV PATH="/usr/lib/postgresql/17/bin:$PATH"
 ENV PGDATA="/var/lib/postgresql/data"
 
 # Security: Create peekaping user and group with configurable UID/GID
-RUN groupadd -g ${GID} peekaping && useradd -u ${UID} -g peekaping -m -s /bin/bash peekaping
+RUN (groupadd -g ${GID} peekaping || groupadd peekaping) && useradd -u ${UID} -g peekaping -m -s /bin/bash peekaping
 
 RUN mkdir -p /app/server /app/data /var/log/supervisor /app/web
 COPY --from=go-builder /app/server/main /app/server/main

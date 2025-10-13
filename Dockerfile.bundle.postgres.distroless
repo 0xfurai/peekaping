@@ -40,7 +40,7 @@ RUN apk add --no-cache supervisor netcat-openbsd
 RUN mkdir -p /app/server /app/data /var/log/supervisor /app/web
 
 # Security: Create peekaping user and group with configurable UID/GID
-RUN addgroup -g ${GID} peekaping && adduser -u ${UID} -G peekaping -s /bin/sh -D peekaping
+RUN (addgroup -g ${GID} peekaping || addgroup peekaping) && adduser -u ${UID} -G peekaping -s /bin/sh -D peekaping
 
 # Copy Go server and migration tool from go-builder
 COPY --from=go-builder /app/server/main /app/server/main

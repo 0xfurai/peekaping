@@ -70,7 +70,7 @@ RUN mkdir -p /app/server /app/data /var/log/supervisor /app/web /data/db && \
     chmod -R 750 /data/db
 
 # Security: Create peekaping user and group with configurable UID/GID
-RUN groupadd -g ${GID} peekaping && useradd -u ${UID} -g peekaping -m -s /bin/bash peekaping
+RUN (groupadd -g ${GID} peekaping || groupadd peekaping) && useradd -u ${UID} -g peekaping -m -s /bin/bash peekaping
 
 # Copy built artifacts from previous stages
 COPY --from=go-builder /app/server/main /app/server/main
