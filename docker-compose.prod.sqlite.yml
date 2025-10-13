@@ -23,9 +23,9 @@ services:
     environment:
       - DB_TYPE=sqlite
       - DB_NAME=/app/data/peekaping.db
-      - REDIS_HOST="redis"
+      - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - REDIS_PASSWORD=""
+      - REDIS_PASSWORD=
       - REDIS_DB=0
     volumes:
       - ./.data/sqlite:/app/data
@@ -45,9 +45,9 @@ services:
     environment:
       - DB_TYPE=sqlite
       - DB_NAME=/app/data/peekaping.db
-      - REDIS_HOST="redis"
+      - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - REDIS_PASSWORD=""
+      - REDIS_PASSWORD=
       - REDIS_DB=0
     volumes:
       - ./.data/sqlite:/app/data
@@ -65,9 +65,9 @@ services:
     env_file:
       - .env
     environment:
-      - REDIS_HOST="redis"
+      - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - REDIS_PASSWORD=""
+      - REDIS_PASSWORD=
       - REDIS_DB=0
     depends_on:
       redis:
@@ -83,9 +83,9 @@ services:
     environment:
       - DB_TYPE=sqlite
       - DB_NAME=/app/data/peekaping.db
-      - REDIS_HOST="redis"
+      - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - REDIS_PASSWORD=""
+      - REDIS_PASSWORD=
       - REDIS_DB=0
     volumes:
       - ./.data/sqlite:/app/data

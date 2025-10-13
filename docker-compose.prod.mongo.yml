@@ -29,9 +29,9 @@ services:
       - DB_HOST=mongodb
       - DB_PORT=27017
       - DB_TYPE=mongo
-      - REDIS_HOST="redis"
+      - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - REDIS_PASSWORD=""
+      - REDIS_PASSWORD=
       - REDIS_DB=0
     depends_on:
       - mongodb
@@ -48,9 +48,9 @@ services:
       - DB_HOST=mongodb
       - DB_PORT=27017
       - DB_TYPE=mongo
-      - REDIS_HOST="redis"
+      - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - REDIS_PASSWORD=""
+      - REDIS_PASSWORD=
       - REDIS_DB=0
     depends_on:
       - mongodb
@@ -64,9 +64,9 @@ services:
     env_file:
       - .env
     environment:
-      - REDIS_HOST="redis"
+      - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - REDIS_PASSWORD=""
+      - REDIS_PASSWORD=
       - REDIS_DB=0
     depends_on:
       - redis
@@ -82,9 +82,9 @@ services:
       - DB_HOST=mongodb
       - DB_PORT=27017
       - DB_TYPE=mongo
-      - REDIS_HOST="redis"
+      - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - REDIS_PASSWORD=""
+      - REDIS_PASSWORD=
       - REDIS_DB=0
     depends_on:
       - mongodb

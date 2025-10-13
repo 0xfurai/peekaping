@@ -57,9 +57,9 @@ services:
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_TYPE=postgres
-      - REDIS_HOST="redis"
+      - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - REDIS_PASSWORD=""
+      - REDIS_PASSWORD=
       - REDIS_DB=0
     depends_on:
       postgres:
@@ -82,9 +82,9 @@ services:
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_TYPE=postgres
-      - REDIS_HOST="redis"
+      - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - REDIS_PASSWORD=""
+      - REDIS_PASSWORD=
       - REDIS_DB=0
     depends_on:
       postgres:
@@ -104,9 +104,9 @@ services:
     env_file:
       - .env
     environment:
-      - REDIS_HOST="redis"
+      - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - REDIS_PASSWORD=""
+      - REDIS_PASSWORD=
       - REDIS_DB=0
     depends_on:
       redis:
@@ -127,9 +127,9 @@ services:
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_TYPE=postgres
-      - REDIS_HOST="redis"
+      - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - REDIS_PASSWORD=""
+      - REDIS_PASSWORD=
       - REDIS_DB=0
     depends_on:
       postgres:
