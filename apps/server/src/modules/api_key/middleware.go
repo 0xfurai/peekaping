@@ -40,7 +40,7 @@ func (p *MiddlewareProvider) Auth() gin.HandlerFunc {
 		}
 
 		// Validate the API key
-		apiKey, err := p.service.ValidateKey(c, authHeader)
+		apiKey, err := p.service.ValidateKey(c.Request.Context(), authHeader)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, utils.NewFailResponse("Invalid or expired API key"))
 			c.Abort()
