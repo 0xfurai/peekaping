@@ -70,7 +70,7 @@ RUN mkdir -p /app/server /app/data /var/log/supervisor /app/web /data/db && \
     chmod -R 750 /data/db
 
 # Security: Create peekaping user and group with configurable UID/GID
-RUN (groupadd -g ${GID} peekaping || groupadd peekaping) && useradd -u ${UID} -g peekaping -m -s /bin/bash peekaping
+RUN (groupadd -g ${GID} peekaping || groupadd peekaping) && (useradd -u ${UID} -g peekaping -m -s /bin/bash peekaping || useradd -g peekaping -m -s /bin/bash peekaping)
 
 # Copy built artifacts from previous stages
 COPY --from=go-builder /app/server/main /app/server/main
@@ -88,9 +88,7 @@ COPY startup.bundle.mongo.sh /app/startup.sh
 # Set proper permissions for executables and sensitive files
 RUN chmod +x /app/server/run-migrations.sh /app/startup.sh /app/server/main /app/server/bun && \
     chmod 644 /etc/caddy/Caddyfile && \
-    chmod 644 /etc/supervisor/conf.d/supervisord.conf && \
-    chown -R root:root /app/server && \
-    chown -R root:root /app/web
+    chmod 644 /etc/supervisor/conf.d/supervisord.conf
 
 # Security: Set proper ownership for peekaping user
 RUN chown -R peekaping:peekaping /app/server /app/web /app/data && \
