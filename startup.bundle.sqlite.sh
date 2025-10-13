@@ -27,6 +27,10 @@ export TZ=${TZ:-UTC}
 # Create data directory if it doesn't exist
 mkdir -p /app/data
 
+# Security: Ensure peekaping user owns the data directory
+chown -R peekaping:peekaping /app/data
+chmod 755 /app/data
+
 # Run database migrations
 echo "Running database migrations..."
 cd /app/server

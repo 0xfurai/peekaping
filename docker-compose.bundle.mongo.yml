@@ -3,6 +3,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.bundle.mongo
+      # Security: Customize UID/GID for non-root user (optional)
+      # args:
+      #   UID: 1000
+      #   GID: 1000
     restart: unless-stopped
     ports:
       - "8383:8383"

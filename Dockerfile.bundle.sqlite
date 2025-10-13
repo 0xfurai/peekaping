@@ -51,11 +51,18 @@ RUN pnpm run build
 # Stage 3: Final runtime image
 FROM caddy:alpine
 
+# Security: Add build args for configurable user/group
+ARG UID=1000
+ARG GID=1000
+
 # Install supervisor to manage multiple processes
 RUN apk add --no-cache supervisor netcat-openbsd
 
 # Create necessary directories
 RUN mkdir -p /app/server /app/data /var/log/supervisor /app/web
+
+# Security: Create peekaping user and group with configurable UID/GID
+RUN addgroup -g ${GID} peekaping && adduser -u ${UID} -G peekaping -s /bin/sh -D peekaping
 
 # Copy Go server and migration tool from go-builder
 COPY --from=go-builder /app/server/main /app/server/main
@@ -80,6 +87,10 @@ COPY startup.bundle.sqlite.sh /app/startup.sh
 
 # Make scripts executable
 RUN chmod +x /app/server/run-migrations.sh /app/startup.sh /app/server/main /app/server/bun
+
+# Security: Set proper ownership for peekaping user
+RUN chown -R peekaping:peekaping /app/server /app/web /app/data && \
+    chmod 755 /app/server /app/web /app/data
 
 # Expose port 8383 (matches your current setup)
 EXPOSE 8383

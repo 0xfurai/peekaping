@@ -26,6 +26,10 @@ RUN pnpm run build
 # Stage 3: Final runtime image with PostgreSQL
 FROM ubuntu:24.04
 
+# Security: Add build args for configurable user/group
+ARG UID=1000
+ARG GID=1000
+
 # Security: Install packages with minimal privileges and clean up
 RUN apt-get update && apt-get install -y \
     supervisor \
@@ -69,6 +73,9 @@ RUN mkdir -p /var/lib/postgresql/data \
 ENV PATH="/usr/lib/postgresql/17/bin:$PATH"
 ENV PGDATA="/var/lib/postgresql/data"
 
+# Security: Create peekaping user and group with configurable UID/GID
+RUN groupadd -g ${GID} peekaping && useradd -u ${UID} -g peekaping -m -s /bin/bash peekaping
+
 RUN mkdir -p /app/server /app/data /var/log/supervisor /app/web
 COPY --from=go-builder /app/server/main /app/server/main
 COPY --from=go-builder /app/server/bun /app/server/bun
@@ -80,6 +87,10 @@ COPY Caddyfile /etc/caddy/Caddyfile
 COPY supervisord.bundle.postgres.conf /etc/supervisor/conf.d/supervisord.conf
 COPY startup.bundle.postgres.sh /app/startup.sh
 RUN chmod +x /app/server/run-migrations.sh /app/startup.sh /app/server/main /app/server/bun
+
+# Security: Set proper ownership for peekaping user
+RUN chown -R peekaping:peekaping /app/server /app/web /app/data && \
+    chmod 755 /app/server /app/web /app/data
 
 EXPOSE 8383
 

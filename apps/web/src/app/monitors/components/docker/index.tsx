@@ -15,10 +15,7 @@ import Notifications, {
   notificationsSchema,
 } from "../shared/notifications";
 import { proxiesSchema } from "../shared/proxies";
-import Tags, {
-  tagsDefaultValues,
-  tagsSchema,
-} from "../shared/tags";
+import Tags, { tagsDefaultValues, tagsSchema } from "../shared/tags";
 import { useMonitorFormContext } from "../../context/monitor-form-context";
 import {
   Form,
@@ -117,7 +114,10 @@ export const deserialize = (data: MonitorMonitorResponseDto): DockerForm => {
         tls_cert: parsedConfig.tls_cert || "",
         tls_key: parsedConfig.tls_key || "",
         tls_ca: parsedConfig.tls_ca || "",
-        tls_verify: parsedConfig.tls_verify !== undefined ? parsedConfig.tls_verify : true,
+        tls_verify:
+          parsedConfig.tls_verify !== undefined
+            ? parsedConfig.tls_verify
+            : true,
       };
     } catch (error) {
       console.error("Failed to parse Docker monitor config:", error);
@@ -195,7 +195,9 @@ const TLSSection = () => {
   return (
     <Card>
       <CardContent className="space-y-4">
-        <TypographyH4>{t("monitors.form.docker.tls_configuration")}</TypographyH4>
+        <TypographyH4>
+          {t("monitors.form.docker.tls_configuration")}
+        </TypographyH4>
 
         <FormField
           control={form.control}
@@ -211,12 +213,18 @@ const TLSSection = () => {
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder={t("monitors.form.docker.select_tls_option")} />
+                    <SelectValue
+                      placeholder={t("monitors.form.docker.select_tls_option")}
+                    />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="false">{t("monitors.form.docker.disabled")}</SelectItem>
-                  <SelectItem value="true">{t("monitors.form.docker.enabled")}</SelectItem>
+                  <SelectItem value="false">
+                    {t("monitors.form.docker.disabled")}
+                  </SelectItem>
+                  <SelectItem value="true">
+                    {t("monitors.form.docker.enabled")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -240,12 +248,20 @@ const TLSSection = () => {
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={t("monitors.form.docker.select_verification_option")} />
+                        <SelectValue
+                          placeholder={t(
+                            "monitors.form.docker.select_verification_option"
+                          )}
+                        />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="true">{t("monitors.form.docker.verify_certificates")}</SelectItem>
-                      <SelectItem value="false">{t("monitors.form.docker.skip_verification")}</SelectItem>
+                      <SelectItem value="true">
+                        {t("monitors.form.docker.verify_certificates")}
+                      </SelectItem>
+                      <SelectItem value="false">
+                        {t("monitors.form.docker.skip_verification")}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -258,7 +274,9 @@ const TLSSection = () => {
               name="tls_cert"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("monitors.form.docker.client_certificate")}</FormLabel>
+                  <FormLabel>
+                    {t("monitors.form.docker.client_certificate")}
+                  </FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"
@@ -280,7 +298,9 @@ const TLSSection = () => {
               name="tls_key"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("monitors.form.docker.client_private_key")}</FormLabel>
+                  <FormLabel>
+                    {t("monitors.form.docker.client_private_key")}
+                  </FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="-----BEGIN PRIVATE KEY-----&#10;...&#10;-----END PRIVATE KEY-----"
@@ -302,7 +322,9 @@ const TLSSection = () => {
               name="tls_ca"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("monitors.form.docker.ca_certificate")}</FormLabel>
+                  <FormLabel>
+                    {t("monitors.form.docker.ca_certificate")}
+                  </FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"
@@ -321,7 +343,8 @@ const TLSSection = () => {
 
             <div className="bg-amber-50 border border-amber-200 rounded-md p-4">
               <div className="text-sm text-amber-800">
-                <strong>{t("monitors.form.docker.note")}</strong> {t("monitors.form.docker.mtls_note")}
+                <strong>{t("monitors.form.docker.note")}</strong>{" "}
+                {t("monitors.form.docker.mtls_note")}
               </div>
             </div>
 
@@ -329,9 +352,24 @@ const TLSSection = () => {
               <div className="text-sm text-blue-800">
                 <strong>{t("monitors.form.docker.common_tls_issues")}</strong>
                 <ul className="mt-2 space-y-1 list-disc list-inside">
-                  <li><strong>{t("monitors.form.docker.legacy_cert_error")}</strong> {t("monitors.form.docker.legacy_cert_solution")}</li>
-                  <li><strong>{t("monitors.form.docker.unknown_authority")}</strong> {t("monitors.form.docker.unknown_authority_solution")}</li>
-                  <li><strong>{t("monitors.form.docker.hostname_mismatch")}</strong> {t("monitors.form.docker.hostname_mismatch_solution")}</li>
+                  <li>
+                    <strong>
+                      {t("monitors.form.docker.legacy_cert_error")}
+                    </strong>{" "}
+                    {t("monitors.form.docker.legacy_cert_solution")}
+                  </li>
+                  <li>
+                    <strong>
+                      {t("monitors.form.docker.unknown_authority")}
+                    </strong>{" "}
+                    {t("monitors.form.docker.unknown_authority_solution")}
+                  </li>
+                  <li>
+                    <strong>
+                      {t("monitors.form.docker.hostname_mismatch")}
+                    </strong>{" "}
+                    {t("monitors.form.docker.hostname_mismatch_solution")}
+                  </li>
                 </ul>
               </div>
             </div>
@@ -401,13 +439,17 @@ const DockerForm = () => {
 
         <Card>
           <CardContent className="space-y-4">
-            <TypographyH4>{t("monitors.form.docker.docker_container")}</TypographyH4>
+            <TypographyH4>
+              {t("monitors.form.docker.docker_container")}
+            </TypographyH4>
             <FormField
               control={form.control}
               name="container_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("monitors.form.docker.container_name_id")}</FormLabel>
+                  <FormLabel>
+                    {t("monitors.form.docker.container_name_id")}
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="my-container" {...field} />
                   </FormControl>
@@ -426,7 +468,9 @@ const DockerForm = () => {
               name="connection_type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("monitors.form.docker.connection_type")}</FormLabel>
+                  <FormLabel>
+                    {t("monitors.form.docker.connection_type")}
+                  </FormLabel>
                   <Select
                     onValueChange={(val) => {
                       if (!val) {
@@ -445,7 +489,11 @@ const DockerForm = () => {
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={t("monitors.form.docker.select_connection_type")} />
+                        <SelectValue
+                          placeholder={t(
+                            "monitors.form.docker.select_connection_type"
+                          )}
+                        />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -472,7 +520,9 @@ const DockerForm = () => {
                   </FormControl>
                   <FormMessage />
                   <div className="text-sm text-muted-foreground">
-                    <p className="font-medium mb-1">{t("monitors.form.docker.examples")}:</p>
+                    <p className="font-medium mb-1">
+                      {t("monitors.form.docker.examples")}:
+                    </p>
                     <ul className="list-disc list-inside space-y-0.5">
                       <li>/var/run/docker.sock</li>
                       <li>http://localhost:2375</li>
@@ -507,7 +557,9 @@ const DockerForm = () => {
 
         <Button type="submit">
           {isPending && <Loader2 className="animate-spin" />}
-          {mode === "create" ? t("monitors.form.buttons.create") : t("monitors.form.buttons.update")}
+          {mode === "create"
+            ? t("monitors.form.buttons.create")
+            : t("monitors.form.buttons.update")}
         </Button>
       </form>
     </Form>

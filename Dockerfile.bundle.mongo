@@ -26,6 +26,10 @@ RUN pnpm run build
 # Stage 3: Final runtime image with Ubuntu and MongoDB 7
 FROM ubuntu:22.04
 
+# Security: Add build args for configurable user/group
+ARG UID=1000
+ARG GID=1000
+
 # Set environment variables for non-interactive installation
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=UTC
@@ -65,6 +69,9 @@ RUN mkdir -p /app/server /app/data /var/log/supervisor /app/web /data/db && \
     chown -R mongodb:mongodb /data/db && \
     chmod -R 750 /data/db
 
+# Security: Create peekaping user and group with configurable UID/GID
+RUN groupadd -g ${GID} peekaping && useradd -u ${UID} -g peekaping -m -s /bin/bash peekaping
+
 # Copy built artifacts from previous stages
 COPY --from=go-builder /app/server/main /app/server/main
 COPY --from=go-builder /app/server/bun /app/server/bun
@@ -84,6 +91,10 @@ RUN chmod +x /app/server/run-migrations.sh /app/startup.sh /app/server/main /app
     chmod 644 /etc/supervisor/conf.d/supervisord.conf && \
     chown -R root:root /app/server && \
     chown -R root:root /app/web
+
+# Security: Set proper ownership for peekaping user
+RUN chown -R peekaping:peekaping /app/server /app/web /app/data && \
+    chmod 755 /app/server /app/web /app/data
 
 # Create MongoDB configuration directory
 RUN mkdir -p /etc/mongod && \
