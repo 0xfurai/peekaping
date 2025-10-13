@@ -45,7 +45,8 @@ func NewMonitorController(
 // @Summary		Get monitors
 // @Tags			Monitors
 // @Produce		json
-// @Security  BearerAuth
+// @Security  JwtAuth
+// @Security  ApiKeyAuth
 // @Param     q    query     string  false  "Search query"
 // @Param     page query     int     false  "Page number" default(1)
 // @Param     limit query    int     false  "Items per page" default(10)
@@ -120,7 +121,8 @@ func (ic *MonitorController) FindAll(ctx *gin.Context) {
 // @Tags			Monitors
 // @Produce		json
 // @Accept		json
-// @Security  BearerAuth
+// @Security  JwtAuth
+// @Security  ApiKeyAuth
 // @Param     body body   CreateUpdateDto  true  "Monitor object"
 // @Success		201	{object}	utils.ApiResponse[Model]
 // @Failure		400	{object}	utils.APIError[any]
@@ -632,7 +634,8 @@ func (ic *MonitorController) GetUptimeStats(ctx *gin.Context) {
 // @Summary		Get monitors by IDs
 // @Tags			Monitors
 // @Produce		json
-// @Security  BearerAuth
+// @Security  JwtAuth
+// @Security  ApiKeyAuth
 // @Param     ids    query     string  true  "Comma-separated list of monitor IDs"
 // @Success		200	{object}	utils.ApiResponse[[]Model]
 // @Failure		400	{object}	utils.APIError[any]

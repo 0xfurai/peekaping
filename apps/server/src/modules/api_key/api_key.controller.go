@@ -25,6 +25,7 @@ func NewController(service Service) *Controller {
 // @Tags api-keys
 // @Accept json
 // @Produce json
+// @Security JwtAuth
 // @Param request body CreateAPIKeyDto true "API key creation data"
 // @Success 201 {object} utils.ApiResponse[APIKeyWithTokenResponse]
 // @Failure 400 {object} utils.APIError
@@ -79,6 +80,7 @@ func (c *Controller) CreateAPIKey(ctx *gin.Context) {
 // @Description Get all API keys
 // @Tags api-keys
 // @Produce json
+// @Security JwtAuth
 // @Success 200 {object} utils.ApiResponse[[]APIKeyResponse]
 // @Failure 500 {object} utils.APIError
 // @Router /api-keys [get]
@@ -104,6 +106,7 @@ func (c *Controller) GetAPIKeys(ctx *gin.Context) {
 // @Description Get a specific API key by ID
 // @Tags api-keys
 // @Produce json
+// @Security JwtAuth
 // @Param id path string true "API key ID"
 // @Success 200 {object} utils.ApiResponse[APIKeyResponse]
 // @Failure 404 {object} utils.APIError
@@ -132,6 +135,7 @@ func (c *Controller) GetAPIKey(ctx *gin.Context) {
 // @Tags api-keys
 // @Accept json
 // @Produce json
+// @Security JwtAuth
 // @Param id path string true "API key ID"
 // @Param request body UpdateAPIKeyDto true "API key update data"
 // @Success 200 {object} utils.ApiResponse[APIKeyResponse]
@@ -192,6 +196,7 @@ func (c *Controller) UpdateAPIKey(ctx *gin.Context) {
 // @Summary Delete API key
 // @Description Delete an API key
 // @Tags api-keys
+// @Security JwtAuth
 // @Param id path string true "API key ID"
 // @Success 204 "No Content"
 // @Failure 404 {object} utils.APIError

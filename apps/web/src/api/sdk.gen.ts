@@ -234,7 +234,7 @@ export type Options<
 
 /**
  * Get API keys
- * Get all API keys for the authenticated user
+ * Get all API keys
  */
 export const getApiKeys = <ThrowOnError extends boolean = false>(
   options?: Options<GetApiKeysData, ThrowOnError>
@@ -258,7 +258,7 @@ export const getApiKeys = <ThrowOnError extends boolean = false>(
 
 /**
  * Create API key
- * Create a new API key for the authenticated user
+ * Create a new API key
  */
 export const postApiKeys = <ThrowOnError extends boolean = false>(
   options: Options<PostApiKeysData, ThrowOnError>
@@ -390,6 +390,12 @@ export const postAuth2FaDisable = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
     url: "/auth/2fa/disable",
     ...options,
     headers: {
@@ -411,6 +417,12 @@ export const postAuth2FaSetup = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
     url: "/auth/2fa/setup",
     ...options,
     headers: {
@@ -432,6 +444,12 @@ export const postAuth2FaVerify = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
     url: "/auth/2fa/verify",
     ...options,
     headers: {
@@ -474,6 +492,12 @@ export const putAuthPassword = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
     url: "/auth/password",
     ...options,
     headers: {
@@ -653,6 +677,10 @@ export const getMaintenances = <ThrowOnError extends boolean = false>(
         name: "Authorization",
         type: "apiKey",
       },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
     ],
     url: "/maintenances",
     ...options,
@@ -674,6 +702,10 @@ export const postMaintenances = <ThrowOnError extends boolean = false>(
     security: [
       {
         name: "Authorization",
+        type: "apiKey",
+      },
+      {
+        name: "X-API-Key",
         type: "apiKey",
       },
     ],
@@ -698,12 +730,6 @@ export const deleteMaintenancesById = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
     url: "/maintenances/{id}",
     ...options,
   });
@@ -721,12 +747,6 @@ export const getMaintenancesById = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
     url: "/maintenances/{id}",
     ...options,
   });
@@ -744,12 +764,6 @@ export const patchMaintenancesById = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
     url: "/maintenances/{id}",
     ...options,
     headers: {
@@ -771,12 +785,6 @@ export const putMaintenancesById = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
     url: "/maintenances/{id}",
     ...options,
     headers: {
@@ -800,12 +808,6 @@ export const patchMaintenancesByIdPause = <
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
     url: "/maintenances/{id}/pause",
     ...options,
   });
@@ -825,12 +827,6 @@ export const patchMaintenancesByIdResume = <
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
     url: "/maintenances/{id}/resume",
     ...options,
   });
@@ -851,6 +847,10 @@ export const getMonitors = <ThrowOnError extends boolean = false>(
     security: [
       {
         name: "Authorization",
+        type: "apiKey",
+      },
+      {
+        name: "X-API-Key",
         type: "apiKey",
       },
     ],
@@ -874,6 +874,10 @@ export const postMonitors = <ThrowOnError extends boolean = false>(
     security: [
       {
         name: "Authorization",
+        type: "apiKey",
+      },
+      {
+        name: "X-API-Key",
         type: "apiKey",
       },
     ],
@@ -903,6 +907,10 @@ export const getMonitorsBatch = <ThrowOnError extends boolean = false>(
         name: "Authorization",
         type: "apiKey",
       },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
     ],
     url: "/monitors/batch",
     ...options,
@@ -921,12 +929,6 @@ export const deleteMonitorsById = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
     url: "/monitors/{id}",
     ...options,
   });
@@ -944,12 +946,6 @@ export const getMonitorsById = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
     url: "/monitors/{id}",
     ...options,
   });
@@ -967,12 +963,6 @@ export const patchMonitorsById = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
     url: "/monitors/{id}",
     ...options,
     headers: {
@@ -994,12 +984,6 @@ export const putMonitorsById = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
     url: "/monitors/{id}",
     ...options,
     headers: {
@@ -1021,12 +1005,6 @@ export const getMonitorsByIdHeartbeats = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
     url: "/monitors/{id}/heartbeats",
     ...options,
   });
@@ -1044,12 +1022,6 @@ export const postMonitorsByIdReset = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
     url: "/monitors/{id}/reset",
     ...options,
   });
@@ -1069,12 +1041,6 @@ export const getMonitorsByIdStatsPoints = <
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
     url: "/monitors/{id}/stats/points",
     ...options,
   });
@@ -1094,12 +1060,6 @@ export const getMonitorsByIdStatsUptime = <
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
     url: "/monitors/{id}/stats/uptime",
     ...options,
   });
@@ -1117,12 +1077,6 @@ export const getMonitorsByIdTls = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
     url: "/monitors/{id}/tls",
     ...options,
   });
@@ -1143,6 +1097,10 @@ export const getNotificationChannels = <ThrowOnError extends boolean = false>(
     security: [
       {
         name: "Authorization",
+        type: "apiKey",
+      },
+      {
+        name: "X-API-Key",
         type: "apiKey",
       },
     ],
@@ -1166,6 +1124,10 @@ export const postNotificationChannels = <ThrowOnError extends boolean = false>(
     security: [
       {
         name: "Authorization",
+        type: "apiKey",
+      },
+      {
+        name: "X-API-Key",
         type: "apiKey",
       },
     ],
@@ -1197,6 +1159,10 @@ export const postNotificationChannelsTest = <
         name: "Authorization",
         type: "apiKey",
       },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
     ],
     url: "/notification-channels/test",
     ...options,
@@ -1221,12 +1187,6 @@ export const deleteNotificationChannelsById = <
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
     url: "/notification-channels/{id}",
     ...options,
   });
@@ -1246,12 +1206,6 @@ export const getNotificationChannelsById = <
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
     url: "/notification-channels/{id}",
     ...options,
   });
@@ -1271,12 +1225,6 @@ export const patchNotificationChannelsById = <
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
     url: "/notification-channels/{id}",
     ...options,
     headers: {
@@ -1300,12 +1248,6 @@ export const putNotificationChannelsById = <
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
     url: "/notification-channels/{id}",
     ...options,
     headers: {
@@ -1332,6 +1274,10 @@ export const getProxies = <ThrowOnError extends boolean = false>(
         name: "Authorization",
         type: "apiKey",
       },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
     ],
     url: "/proxies",
     ...options,
@@ -1353,6 +1299,10 @@ export const postProxies = <ThrowOnError extends boolean = false>(
     security: [
       {
         name: "Authorization",
+        type: "apiKey",
+      },
+      {
+        name: "X-API-Key",
         type: "apiKey",
       },
     ],
@@ -1377,12 +1327,6 @@ export const deleteProxiesById = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
     url: "/proxies/{id}",
     ...options,
   });
@@ -1400,12 +1344,6 @@ export const getProxiesById = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
     url: "/proxies/{id}",
     ...options,
   });
@@ -1423,12 +1361,6 @@ export const patchProxiesById = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
     url: "/proxies/{id}",
     ...options,
     headers: {
@@ -1450,12 +1382,6 @@ export const putProxiesById = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
     url: "/proxies/{id}",
     ...options,
     headers: {
@@ -1482,6 +1408,10 @@ export const deleteSettingsKeyByKey = <ThrowOnError extends boolean = false>(
         name: "Authorization",
         type: "apiKey",
       },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
     ],
     url: "/settings/key/{key}",
     ...options,
@@ -1505,6 +1435,10 @@ export const getSettingsKeyByKey = <ThrowOnError extends boolean = false>(
         name: "Authorization",
         type: "apiKey",
       },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
     ],
     url: "/settings/key/{key}",
     ...options,
@@ -1526,6 +1460,10 @@ export const putSettingsKeyByKey = <ThrowOnError extends boolean = false>(
     security: [
       {
         name: "Authorization",
+        type: "apiKey",
+      },
+      {
+        name: "X-API-Key",
         type: "apiKey",
       },
     ],
@@ -1555,6 +1493,10 @@ export const getStatusPages = <ThrowOnError extends boolean = false>(
         name: "Authorization",
         type: "apiKey",
       },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
     ],
     url: "/status-pages",
     ...options,
@@ -1576,6 +1518,10 @@ export const postStatusPages = <ThrowOnError extends boolean = false>(
     security: [
       {
         name: "Authorization",
+        type: "apiKey",
+      },
+      {
+        name: "X-API-Key",
         type: "apiKey",
       },
     ],
@@ -1679,6 +1625,10 @@ export const deleteStatusPagesById = <ThrowOnError extends boolean = false>(
         name: "Authorization",
         type: "apiKey",
       },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
     ],
     url: "/status-pages/{id}",
     ...options,
@@ -1702,6 +1652,10 @@ export const getStatusPagesById = <ThrowOnError extends boolean = false>(
         name: "Authorization",
         type: "apiKey",
       },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
     ],
     url: "/status-pages/{id}",
     ...options,
@@ -1723,6 +1677,10 @@ export const patchStatusPagesById = <ThrowOnError extends boolean = false>(
     security: [
       {
         name: "Authorization",
+        type: "apiKey",
+      },
+      {
+        name: "X-API-Key",
         type: "apiKey",
       },
     ],
@@ -1752,6 +1710,10 @@ export const getTags = <ThrowOnError extends boolean = false>(
         name: "Authorization",
         type: "apiKey",
       },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
     ],
     url: "/tags",
     ...options,
@@ -1773,6 +1735,10 @@ export const postTags = <ThrowOnError extends boolean = false>(
     security: [
       {
         name: "Authorization",
+        type: "apiKey",
+      },
+      {
+        name: "X-API-Key",
         type: "apiKey",
       },
     ],
@@ -1797,12 +1763,6 @@ export const deleteTagsById = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
     url: "/tags/{id}",
     ...options,
   });
@@ -1820,12 +1780,6 @@ export const getTagsById = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
     url: "/tags/{id}",
     ...options,
   });
@@ -1843,12 +1797,6 @@ export const patchTagsById = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
     url: "/tags/{id}",
     ...options,
     headers: {
@@ -1870,12 +1818,6 @@ export const putTagsById = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
     url: "/tags/{id}",
     ...options,
     headers: {

@@ -42,9 +42,14 @@ import (
 
 // @title			Peekaping API
 // @BasePath	/api/v1
-// @securityDefinitions.apikey BearerAuth
+// @securityDefinitions.apikey JwtAuth
 // @in header
 // @name Authorization
+// @description JWT token authentication (Bearer token format)
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name X-API-Key
+// @description API key authentication (pk_ prefix format)
 func main() {
 	docs.SwaggerInfo.Version = version.Version
 

@@ -10,10 +10,10 @@
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
                     }
                 ],
-                "description": "Get all API keys for the authenticated user",
+                "description": "Get all API keys",
                 "produces": [
                     "application/json"
                 ],
@@ -28,12 +28,6 @@
                             "$ref": "#/definitions/utils.ApiResponse-array_api_key_APIKeyResponse"
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/utils.APIError"
-                        }
-                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -45,10 +39,10 @@
             "post": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
                     }
                 ],
-                "description": "Create a new API key for the authenticated user",
+                "description": "Create a new API key",
                 "consumes": [
                     "application/json"
                 ],
@@ -79,12 +73,6 @@
                     },
                     "400": {
                         "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/utils.APIError"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/utils.APIError"
                         }
@@ -122,7 +110,7 @@
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
                     }
                 ],
                 "description": "Get a specific API key by ID",
@@ -149,12 +137,6 @@
                             "$ref": "#/definitions/utils.ApiResponse-api_key_APIKeyResponse"
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/utils.APIError"
-                        }
-                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -172,7 +154,7 @@
             "put": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
                     }
                 ],
                 "description": "Update an API key",
@@ -217,12 +199,6 @@
                             "$ref": "#/definitions/utils.APIError"
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/utils.APIError"
-                        }
-                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -240,7 +216,7 @@
             "delete": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
                     }
                 ],
                 "description": "Delete an API key",
@@ -261,12 +237,6 @@
                     "204": {
                         "description": "No Content"
                     },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/utils.APIError"
-                        }
-                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -284,6 +254,11 @@
         },
         "/auth/2fa/disable": {
             "post": {
+                "security": [
+                    {
+                        "JwtAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -329,6 +304,11 @@
         },
         "/auth/2fa/setup": {
             "post": {
+                "security": [
+                    {
+                        "JwtAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -374,6 +354,11 @@
         },
         "/auth/2fa/verify": {
             "post": {
+                "security": [
+                    {
+                        "JwtAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -470,6 +455,11 @@
         },
         "/auth/password": {
             "put": {
+                "security": [
+                    {
+                        "JwtAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -1012,7 +1002,10 @@
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -1080,7 +1073,10 @@
             "post": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "consumes": [
@@ -1454,7 +1450,10 @@
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -1534,7 +1533,10 @@
             "post": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "consumes": [
@@ -1584,7 +1586,10 @@
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -2149,7 +2154,10 @@
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -2211,7 +2219,10 @@
             "post": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "consumes": [
@@ -2261,7 +2272,10 @@
             "post": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "consumes": [
@@ -2533,7 +2547,10 @@
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -2595,7 +2612,10 @@
             "post": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "consumes": [
@@ -2867,7 +2887,10 @@
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -2910,7 +2933,10 @@
             "put": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "consumes": [
@@ -2965,7 +2991,10 @@
             "delete": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -3010,7 +3039,10 @@
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -3066,7 +3098,10 @@
             "post": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "consumes": [
@@ -3276,7 +3311,10 @@
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -3319,7 +3357,10 @@
             "delete": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -3362,7 +3403,10 @@
             "patch": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "consumes": [
@@ -3425,7 +3469,10 @@
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -3487,7 +3534,10 @@
             "post": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "consumes": [
@@ -5777,7 +5827,14 @@
         }
     },
     "securityDefinitions": {
-        "BearerAuth": {
+        "ApiKeyAuth": {
+            "description": "API key authentication (pk_ prefix format)",
+            "type": "apiKey",
+            "name": "X-API-Key",
+            "in": "header"
+        },
+        "JwtAuth": {
+            "description": "JWT token authentication (Bearer token format)",
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"
