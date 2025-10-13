@@ -101,10 +101,22 @@ func (p *PingExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 
 // tryNativePing attempts to use native ICMP implementation
 func (p *PingExecutor) tryNativePing(ctx context.Context, host string, packetSize int, timeout time.Duration) (bool, time.Duration, error) {
-	// Resolve the host
-	dst, err := net.ResolveIPAddr("ip4", host)
+	// Resolve the host using context-aware DNS resolution
+	ips, err := net.DefaultResolver.LookupIPAddr(ctx, host)
 	if err != nil {
 		return false, 0, fmt.Errorf("failed to resolve host: %v", err)
+	}
+
+	// Find the first IPv4 address
+	var dst *net.IPAddr
+	for _, ip := range ips {
+		if ip.IP.To4() != nil {
+			dst = &ip
+			break
+		}
+	}
+	if dst == nil {
+		return false, 0, fmt.Errorf("no IPv4 address found for host: %s", host)
 	}
 
 	// Try to open raw socket for ICMP
@@ -145,31 +157,56 @@ func (p *PingExecutor) tryNativePing(ctx context.Context, host string, packetSiz
 	}
 
 	start := time.Now()
+
+	// Check if context is cancelled before sending
+	select {
+	case <-ctx.Done():
+		return false, 0, fmt.Errorf("ping cancelled: %v", ctx.Err())
+	default:
+	}
+
 	_, err = conn.WriteTo(msgBytes, dst)
 	if err != nil {
 		return false, 0, fmt.Errorf("failed to send ICMP packet: %v", err)
 	}
 
-	// Read response
+	// Read response with context cancellation support
 	reply := make([]byte, 1500)
-	n, peer, err := conn.ReadFrom(reply)
-	if err != nil {
-		return false, 0, fmt.Errorf("failed to read ICMP reply: %v", err)
-	}
-	rtt := time.Since(start)
-
-	// Parse the reply - protocol 1 for IPv4 ICMP
-	replyMsg, err := icmp.ParseMessage(1, reply[:n])
-	if err != nil {
-		return false, 0, fmt.Errorf("failed to parse ICMP reply: %v", err)
+	type readResult struct {
+		n    int
+		peer net.Addr
+		err  error
 	}
 
-	if replyMsg.Type == ipv4.ICMPTypeEchoReply {
-		p.logger.Debugf("Received ICMP reply from %v", peer)
-		return true, rtt, nil
-	}
+	readChan := make(chan readResult, 1)
+	go func() {
+		n, peer, err := conn.ReadFrom(reply)
+		readChan <- readResult{n, peer, err}
+	}()
 
-	return false, 0, fmt.Errorf("unexpected ICMP message type: %v", replyMsg.Type)
+	select {
+	case result := <-readChan:
+		if result.err != nil {
+			return false, 0, fmt.Errorf("failed to read ICMP reply: %v", result.err)
+		}
+		rtt := time.Since(start)
+
+		// Parse the reply - protocol 1 for IPv4 ICMP
+		replyMsg, err := icmp.ParseMessage(1, reply[:result.n])
+		if err != nil {
+			return false, 0, fmt.Errorf("failed to parse ICMP reply: %v", err)
+		}
+
+		if replyMsg.Type == ipv4.ICMPTypeEchoReply {
+			p.logger.Debugf("Received ICMP reply from %v", result.peer)
+			return true, rtt, nil
+		}
+
+		return false, 0, fmt.Errorf("unexpected ICMP message type: %v", replyMsg.Type)
+
+	case <-ctx.Done():
+		return false, 0, fmt.Errorf("ping timeout: %v", ctx.Err())
+	}
 }
 
 // trySystemPing falls back to using the system ping command
