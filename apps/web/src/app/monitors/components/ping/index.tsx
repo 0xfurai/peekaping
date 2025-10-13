@@ -14,10 +14,7 @@ import Notifications, {
   notificationsDefaultValues,
   notificationsSchema,
 } from "../shared/notifications";
-import Tags, {
-  tagsDefaultValues,
-  tagsSchema,
-} from "../shared/tags";
+import Tags, { tagsDefaultValues, tagsSchema } from "../shared/tags";
 import { useMonitorFormContext } from "../../context/monitor-form-context";
 import {
   Form,
@@ -36,6 +33,8 @@ import { useLocalizedTranslation } from "@/hooks/useTranslation";
 interface PingConfig {
   host: string;
   packet_size: number;
+  count?: number;
+  per_request_timeout?: number;
 }
 
 export const pingSchema = z
@@ -46,6 +45,16 @@ export const pingSchema = z
       .number()
       .min(0, "Data size must be at least 0 bytes")
       .max(65507, "Data size must be at most 65507 bytes")
+      .optional(),
+    count: z
+      .number()
+      .min(1, "Count must be at least 1")
+      .max(100, "Count must be at most 100")
+      .optional(),
+    per_request_timeout: z
+      .number()
+      .min(1, "Per-request timeout must be at least 1 second")
+      .max(60, "Per-request timeout must be at most 60 seconds")
       .optional(),
   })
   .merge(generalSchema)
@@ -59,6 +68,8 @@ export const pingDefaultValues: PingForm = {
   type: "ping",
   host: "example.com",
   packet_size: 32,
+  count: 1,
+  per_request_timeout: 2,
   ...generalDefaultValues,
   ...intervalsDefaultValues,
   ...notificationsDefaultValues,
@@ -69,6 +80,8 @@ export const deserialize = (data: MonitorMonitorResponseDto): PingForm => {
   let config: PingConfig = {
     host: "example.com",
     packet_size: 32,
+    count: 1,
+    per_request_timeout: 2,
   };
 
   if (data.config) {
@@ -77,6 +90,8 @@ export const deserialize = (data: MonitorMonitorResponseDto): PingForm => {
       config = {
         host: parsedConfig.host || "example.com",
         packet_size: parsedConfig.packet_size ?? 32,
+        count: parsedConfig.count ?? 1,
+        per_request_timeout: parsedConfig.per_request_timeout ?? 2,
       };
     } catch (error) {
       console.error("Failed to parse ping monitor config:", error);
@@ -88,6 +103,8 @@ export const deserialize = (data: MonitorMonitorResponseDto): PingForm => {
     name: data.name || "My Ping Monitor",
     host: config.host,
     packet_size: config.packet_size,
+    count: config.count,
+    per_request_timeout: config.per_request_timeout,
     interval: data.interval || 60,
     timeout: data.timeout || 16,
     max_retries: data.max_retries ?? 3,
@@ -102,6 +119,8 @@ export const serialize = (formData: PingForm): MonitorCreateUpdateDto => {
   const config: PingConfig = {
     host: formData.host,
     packet_size: formData.packet_size ?? 32,
+    count: formData.count ?? 1,
+    per_request_timeout: formData.per_request_timeout ?? 2,
   };
 
   return {
@@ -214,6 +233,54 @@ const PingForm = () => {
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="count"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("monitors.form.ping.count")}</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="1"
+                      min="1"
+                      max="100"
+                      {...field}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value, 10) || 1)
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="per_request_timeout"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    {t("monitors.form.ping.per_request_timeout")}
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="2"
+                      min="1"
+                      max="60"
+                      {...field}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value, 10) || 2)
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </CardContent>
         </Card>
 
@@ -237,7 +304,9 @@ const PingForm = () => {
 
         <Button type="submit">
           {isPending && <Loader2 className="animate-spin" />}
-          {mode === "create" ? t("monitors.form.buttons.create") : t("monitors.form.buttons.update")}
+          {mode === "create"
+            ? t("monitors.form.buttons.create")
+            : t("monitors.form.buttons.update")}
         </Button>
       </form>
     </Form>

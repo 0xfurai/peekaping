@@ -446,8 +446,12 @@
         "query_label": "Query"
       },
       "ping": {
+        "count": "Max Packets",
+        "count_description": "Number of packets to send before stopping",
         "data_size": "Data Size (bytes)",
         "host": "Hostname / IP",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Ping Settings"
       },
       "postgres": {
