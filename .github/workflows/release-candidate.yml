@@ -105,6 +105,25 @@ jobs:
           echo "export const VERSION = \"${{ github.event.inputs.version }}\";" >> src/version.ts
         working-directory: ./apps/web
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build UI image (without DockerHub login to avoid pull limits)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./apps/web/Dockerfile
+          push: false
+          load: true
+          platforms: ${{ matrix.platform }}
+          provenance: false
+          sbom: false
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }}-${{ matrix.arch }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }}-${{ matrix.arch }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
@@ -118,23 +137,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build and push UI image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./apps/web/Dockerfile
-          push: true
-          platforms: ${{ matrix.platform }}
-          provenance: false
-          sbom: false
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }}-${{ matrix.arch }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      - name: Push UI image to registries
+        run: |
+          docker push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }}-${{ matrix.arch }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }}-${{ matrix.arch }}
 
   build-api:
     runs-on: ${{ matrix.runner }}
@@ -158,6 +164,25 @@ jobs:
           rm version.go.bak
         working-directory: ./apps/server/internal/version
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build API image (without DockerHub login to avoid pull limits)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./apps/server
+          file: ./apps/server/infra/Dockerfile.api
+          push: false
+          load: true
+          platforms: ${{ matrix.platform }}
+          provenance: false
+          sbom: false
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}-${{ matrix.arch }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}-${{ matrix.arch }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
@@ -171,23 +196,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build and push API image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./apps/server
-          file: ./apps/server/infra/Dockerfile.api
-          push: true
-          platforms: ${{ matrix.platform }}
-          provenance: false
-          sbom: false
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}-${{ matrix.arch }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      - name: Push API image to registries
+        run: |
+          docker push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}-${{ matrix.arch }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}-${{ matrix.arch }}
 
   build-worker:
     runs-on: ${{ matrix.runner }}
@@ -211,6 +223,25 @@ jobs:
           rm version.go.bak
         working-directory: ./apps/server/internal/version
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Worker image (without DockerHub login to avoid pull limits)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./apps/server
+          file: ./apps/server/infra/Dockerfile.worker
+          push: false
+          load: true
+          platforms: ${{ matrix.platform }}
+          provenance: false
+          sbom: false
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-${{ matrix.arch }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-${{ matrix.arch }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
@@ -224,23 +255,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build and push Worker image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./apps/server
-          file: ./apps/server/infra/Dockerfile.worker
-          push: true
-          platforms: ${{ matrix.platform }}
-          provenance: false
-          sbom: false
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-${{ matrix.arch }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      - name: Push Worker image to registries
+        run: |
+          docker push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-${{ matrix.arch }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-${{ matrix.arch }}
 
   build-producer:
     runs-on: ${{ matrix.runner }}
@@ -264,6 +282,25 @@ jobs:
           rm version.go.bak
         working-directory: ./apps/server/internal/version
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Producer image (without DockerHub login to avoid pull limits)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./apps/server
+          file: ./apps/server/infra/Dockerfile.producer
+          push: false
+          load: true
+          platforms: ${{ matrix.platform }}
+          provenance: false
+          sbom: false
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}-${{ matrix.arch }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}-${{ matrix.arch }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
@@ -277,23 +314,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build and push Producer image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./apps/server
-          file: ./apps/server/infra/Dockerfile.producer
-          push: true
-          platforms: ${{ matrix.platform }}
-          provenance: false
-          sbom: false
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}-${{ matrix.arch }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      - name: Push Producer image to registries
+        run: |
+          docker push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}-${{ matrix.arch }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}-${{ matrix.arch }}
 
   build-ingester:
     runs-on: ${{ matrix.runner }}
@@ -317,6 +341,25 @@ jobs:
           rm version.go.bak
         working-directory: ./apps/server/internal/version
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Ingester image (without DockerHub login to avoid pull limits)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./apps/server
+          file: ./apps/server/infra/Dockerfile.ingester
+          push: false
+          load: true
+          platforms: ${{ matrix.platform }}
+          provenance: false
+          sbom: false
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}-${{ matrix.arch }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}-${{ matrix.arch }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
@@ -330,23 +373,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build and push Ingester image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./apps/server
-          file: ./apps/server/infra/Dockerfile.ingester
-          push: true
-          platforms: ${{ matrix.platform }}
-          provenance: false
-          sbom: false
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}-${{ matrix.arch }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      - name: Push Ingester image to registries
+        run: |
+          docker push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}-${{ matrix.arch }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}-${{ matrix.arch }}
 
   build-migrate:
     runs-on: ${{ matrix.runner }}
@@ -370,6 +400,25 @@ jobs:
           rm version.go.bak
         working-directory: ./apps/server/internal/version
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Migrate image (without DockerHub login to avoid pull limits)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./apps/server
+          file: ./apps/server/infra/Dockerfile.migrate
+          push: false
+          load: true
+          platforms: ${{ matrix.platform }}
+          provenance: false
+          sbom: false
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}-${{ matrix.arch }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}-${{ matrix.arch }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
@@ -383,23 +432,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build and push Migrate image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./apps/server
-          file: ./apps/server/infra/Dockerfile.migrate
-          push: true
-          platforms: ${{ matrix.platform }}
-          provenance: false
-          sbom: false
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}-${{ matrix.arch }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      - name: Push Migrate image to registries
+        run: |
+          docker push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}-${{ matrix.arch }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}-${{ matrix.arch }}
 
   build-bundle-containers:
     runs-on: ${{ matrix.runner }}
@@ -436,19 +472,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -469,13 +492,14 @@ jobs:
           echo "export const VERSION = \"${{ github.event.inputs.version }}\";" >> src/version.ts
         working-directory: ./apps/web
 
-      - name: Build and push Bundle image - ${{ matrix.database }}
+      - name: Build Bundle image - ${{ matrix.database }} (without DockerHub login to avoid pull limits)
         id: build_bundle
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile.bundle.${{ matrix.database }}
-          push: true
+          push: false
+          load: true
           platforms: ${{ matrix.platform }}
           provenance: false
           sbom: false
@@ -484,6 +508,24 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}:${{ github.event.inputs.version }}-${{ matrix.arch }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push Bundle image to registries
+        run: |
+          docker push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}:${{ github.event.inputs.version }}-${{ matrix.arch }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}:${{ github.event.inputs.version }}-${{ matrix.arch }}
 
   create-manifest:
     runs-on: ubuntu-latest
