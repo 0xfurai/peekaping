@@ -4,6 +4,10 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "dev:api": "turbo run dev:api",
+    "dev:producer": "turbo run dev:producer",
+    "dev:worker": "turbo run dev:worker",
+    "dev:ingester": "turbo run dev:ingester",
     "lint": "turbo run lint",
     "check-types": "turbo run check-types",
     "e2e": "pnpm exec playwright test"

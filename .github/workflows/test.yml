@@ -75,7 +75,7 @@ jobs:
         working-directory: apps/server
         run: |
           pwd
-          go test -v -coverprofile=coverage.txt ./src/...
+          go test -v -coverprofile=coverage.txt ./internal/...
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5

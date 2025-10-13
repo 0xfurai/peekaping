@@ -58,7 +58,7 @@ Migrations are stored in `apps/server/cmd/bun/migrations/` and follow the naming
 
 ## Migration Container Details
 
-- **Image**: Built from `apps/server/Dockerfile.migrate`
+- **Image**: Built from `apps/server/infra/Dockerfile.migrate`
 - **Tool**: Uses bun migration tool (`./bun db migrate`)
 - **Restart Policy**: `no` (runs once and exits)
 - **Dependencies**: Waits for database to be healthy before running

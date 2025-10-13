@@ -206,12 +206,34 @@ switch-to-sqlite: docker-down-all dev-sqlite ## Switch to SQLite development env
 .PHONY: test-server
 test-server: ## Test the server
 	@echo "Testing the server..."
-	cd apps/server && ../../scripts/tool.sh go test -v ./src/...
+	cd apps/server && ../../scripts/tool.sh go test -v ./internal/...
 
 .PHONY: lint-web
 lint-web: ## Test the web
 	@echo "Testing the web..."
 	cd apps/web && ../../scripts/tool.sh pnpm lint && ../../scripts/tool.sh pnpm build
+
+# Producer targets
+.PHONY: build-producer
+build-producer: ## Build the producer binary
+	@echo "Building producer..."
+	cd $(GO_SERVER_DIR) && ../../scripts/tool.sh go build -o ../../bin/producer ./cmd/producer
+
+.PHONY: run-producer
+run-producer: ## Run the producer service
+	@echo "Running producer..."
+	cd $(GO_SERVER_DIR) && ../../scripts/tool.sh go run ./cmd/producer/main.go
+
+# Ingester targets
+.PHONY: build-ingester
+build-ingester: ## Build the ingester binary
+	@echo "Building ingester..."
+	cd $(GO_SERVER_DIR) && ../../scripts/tool.sh go build -o ../../bin/ingester ./cmd/ingester
+
+.PHONY: run-ingester
+run-ingester: ## Run the ingester service
+	@echo "Running ingester..."
+	cd $(GO_SERVER_DIR) && ../../scripts/tool.sh go run ./cmd/ingester/main.go
 
 .PHONY: setup
 setup: ## Setup development environment (asdf or manual)
@@ -257,4 +279,4 @@ install: ## Install all dependencies (pnpm install + go mod tidy)
 
 .PHONY: dev
 dev: ## Start development environment
-	./scripts/tool.sh pnpm run dev
+	./scripts/tool.sh pnpm run dev dev:api dev:ingester dev:producer dev:worker docs:watch

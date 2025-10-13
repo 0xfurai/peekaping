@@ -43,7 +43,10 @@ jobs:
         cp docker-compose.prod.${{ matrix.database }}.yml docker-compose.test.${{ matrix.database }}.yml
 
         # Replace container tags with the specified version
-        sed -i 's|0xfurai/peekaping-server:latest|0xfurai/peekaping-server:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
+        sed -i 's|0xfurai/peekaping-api:latest|0xfurai/peekaping-api:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
+        sed -i 's|0xfurai/peekaping-producer:latest|0xfurai/peekaping-producer:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
+        sed -i 's|0xfurai/peekaping-worker:latest|0xfurai/peekaping-worker:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
+        sed -i 's|0xfurai/peekaping-ingester:latest|0xfurai/peekaping-ingester:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
         sed -i 's|0xfurai/peekaping-web:latest|0xfurai/peekaping-web:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
         sed -i 's|0xfurai/peekaping-migrate:latest|0xfurai/peekaping-migrate:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
 
@@ -59,7 +62,10 @@ jobs:
           docker compose -f docker-compose.test.${{ matrix.database }}.yml logs
           echo "=== Individual Service Logs ==="
           docker compose -f docker-compose.test.${{ matrix.database }}.yml logs migrate || echo "No migrate service logs"
-          docker compose -f docker-compose.test.${{ matrix.database }}.yml logs server || echo "No server service logs"
+          docker compose -f docker-compose.test.${{ matrix.database }}.yml logs api || echo "No api service logs"
+          docker compose -f docker-compose.test.${{ matrix.database }}.yml logs producer || echo "No producer service logs"
+          docker compose -f docker-compose.test.${{ matrix.database }}.yml logs worker || echo "No worker service logs"
+          docker compose -f docker-compose.test.${{ matrix.database }}.yml logs ingester || echo "No ingester service logs"
           docker compose -f docker-compose.test.${{ matrix.database }}.yml logs web || echo "No web service logs"
           docker compose -f docker-compose.test.${{ matrix.database }}.yml logs gateway || echo "No gateway service logs"
           exit 1
@@ -87,8 +93,16 @@ jobs:
             sleep 5
             echo "=== Container Status ==="
             docker compose -f docker-compose.test.${{ matrix.database }}.yml ps
-            echo "=== Server Logs ==="
-            docker compose -f docker-compose.test.${{ matrix.database }}.yml logs server
+            echo "=== API Logs ==="
+            docker compose -f docker-compose.test.${{ matrix.database }}.yml logs api
+            echo "=== Producer Logs ==="
+            docker compose -f docker-compose.test.${{ matrix.database }}.yml logs producer
+            echo "=== Worker Logs ==="
+            docker compose -f docker-compose.test.${{ matrix.database }}.yml logs worker
+            echo "=== Ingester Logs ==="
+            docker compose -f docker-compose.test.${{ matrix.database }}.yml logs ingester
+            echo "=== Web Logs ==="
+            docker compose -f docker-compose.test.${{ matrix.database }}.yml logs web
             echo "=== Gateway Logs ==="
             docker compose -f docker-compose.test.${{ matrix.database }}.yml logs gateway
 
@@ -229,7 +243,7 @@ jobs:
         echo "=== Container Processes ==="
         docker exec peekaping-bundle-test-${{ matrix.database }} ps aux || echo "Could not list processes"
         echo "=== Testing internal connectivity ==="
-        docker exec peekaping-bundle-test-${{ matrix.database }} nc -zv localhost 8034 || echo "Go server not responding on port 8034"
+        docker exec peekaping-bundle-test-${{ matrix.database }} nc -zv localhost 8034 || echo "Go api not responding on port 8034"
 
     - name: Wait for bundle service to be ready
       run: |
@@ -270,7 +284,7 @@ jobs:
         echo "=== Final Container Processes ==="
         docker exec peekaping-bundle-test-${{ matrix.database }} ps aux || echo "Could not list processes"
         echo "=== Final internal connectivity test ==="
-        docker exec peekaping-bundle-test-${{ matrix.database }} nc -zv localhost 8034 || echo "Go server not responding on port 8034"
+        docker exec peekaping-bundle-test-${{ matrix.database }} nc -zv localhost 8034 || echo "Go api not responding on port 8034"
 
     - name: Stop bundle container
       if: always()

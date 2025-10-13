@@ -18,6 +18,26 @@
       "cache": false,
       "persistent": true
     },
+    "dev:api": {
+      "dependsOn": ["^dev:api"],
+      "cache": false,
+      "persistent": true
+    },
+    "dev:producer": {
+      "dependsOn": ["^dev:producer"],
+      "cache": false,
+      "persistent": true
+    },
+    "dev:worker": {
+      "dependsOn": ["^dev:worker"],
+      "cache": false,
+      "persistent": true
+    },
+    "dev:ingester": {
+      "dependsOn": ["^dev:ingester"],
+      "cache": false,
+      "persistent": true
+    },
     "docs:watch": {
       "dependsOn": ["^docs:watch"],
       "cache": false,
