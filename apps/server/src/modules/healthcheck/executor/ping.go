@@ -16,9 +16,21 @@ import (
 	"golang.org/x/net/ipv4"
 )
 
+// Ping configuration constants (inspired by Uptime Kuma's approach)
+const (
+	PING_COUNT_MIN                   = 1
+	PING_COUNT_MAX                   = 100
+	PING_COUNT_DEFAULT               = 1
+	PING_PER_REQUEST_TIMEOUT_MIN     = 1
+	PING_PER_REQUEST_TIMEOUT_MAX     = 60
+	PING_PER_REQUEST_TIMEOUT_DEFAULT = 2
+)
+
 type PingConfig struct {
-	Host       string `json:"host" validate:"required" example:"example.com"`
-	PacketSize int    `json:"packet_size" validate:"min=0,max=65507" example:"32"`
+	Host              string `json:"host" validate:"required" example:"example.com"`
+	PacketSize        int    `json:"packet_size" validate:"min=0,max=65507" example:"32"`
+	Count             int    `json:"count" validate:"min=1,max=100" example:"1"`
+	PerRequestTimeout int    `json:"per_request_timeout" validate:"min=1,max=60" example:"2"`
 }
 
 type PingExecutor struct {
@@ -40,7 +52,27 @@ func (s *PingExecutor) Validate(configJSON string) error {
 	if err != nil {
 		return err
 	}
-	return GenericValidator(cfg.(*PingConfig))
+
+	pingCfg := cfg.(*PingConfig)
+
+	// Validate basic fields
+	if err := GenericValidator(pingCfg); err != nil {
+		return err
+	}
+
+	// Validate count range
+	if pingCfg.Count < PING_COUNT_MIN || pingCfg.Count > PING_COUNT_MAX {
+		return fmt.Errorf("count must be between %d and %d (default: %d)",
+			PING_COUNT_MIN, PING_COUNT_MAX, PING_COUNT_DEFAULT)
+	}
+
+	// Validate per-request timeout range
+	if pingCfg.PerRequestTimeout < PING_PER_REQUEST_TIMEOUT_MIN || pingCfg.PerRequestTimeout > PING_PER_REQUEST_TIMEOUT_MAX {
+		return fmt.Errorf("per_request_timeout must be between %d and %d seconds (default: %d)",
+			PING_PER_REQUEST_TIMEOUT_MIN, PING_PER_REQUEST_TIMEOUT_MAX, PING_PER_REQUEST_TIMEOUT_DEFAULT)
+	}
+
+	return nil
 }
 
 func (p *PingExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
@@ -55,12 +87,29 @@ func (p *PingExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		cfg.PacketSize = 32
 	}
 
+	// Set default count if not provided
+	if cfg.Count == 0 {
+		cfg.Count = PING_COUNT_DEFAULT
+	}
+
+	// Set default per-request timeout if not provided
+	if cfg.PerRequestTimeout == 0 {
+		cfg.PerRequestTimeout = PING_PER_REQUEST_TIMEOUT_DEFAULT
+	}
+
 	p.logger.Debugf("execute ping cfg: %+v", cfg)
+
+	// Validate global timeout is sufficient for the ping configuration
+	theoreticalMaxTime := cfg.Count * cfg.PerRequestTimeout
+	if m.Timeout < theoreticalMaxTime {
+		return DownResult(fmt.Errorf("global timeout (%ds) must be >= theoretical max time (%ds = %d pings × %ds per ping)",
+			m.Timeout, theoreticalMaxTime, cfg.Count, cfg.PerRequestTimeout), time.Now().UTC(), time.Now().UTC())
+	}
 
 	startTime := time.Now().UTC()
 
 	// Try native ICMP first, fallback to system ping command
-	success, rtt, err := p.tryNativePing(ctx, cfg.Host, cfg.PacketSize, time.Duration(m.Timeout)*time.Second)
+	success, rtt, err := p.tryNativePing(ctx, cfg.Host, cfg.PacketSize, cfg.Count, cfg.PerRequestTimeout, time.Duration(m.Timeout)*time.Second)
 	if err != nil {
 		// Fallback to system ping command
 		p.logger.Debugf("Ping failed: %s, %s, %s", m.Name, err.Error(), "trying system ping")
@@ -99,8 +148,8 @@ func (p *PingExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	}
 }
 
-// tryNativePing attempts to use native ICMP implementation
-func (p *PingExecutor) tryNativePing(ctx context.Context, host string, packetSize int, timeout time.Duration) (bool, time.Duration, error) {
+// tryNativePing attempts to use native ICMP implementation with multi-ping support
+func (p *PingExecutor) tryNativePing(ctx context.Context, host string, packetSize int, count int, perRequestTimeout int, globalTimeout time.Duration) (bool, time.Duration, error) {
 	// Resolve the host using context-aware DNS resolution
 	ips, err := net.DefaultResolver.LookupIPAddr(ctx, host)
 	if err != nil {
@@ -126,8 +175,8 @@ func (p *PingExecutor) tryNativePing(ctx context.Context, host string, packetSiz
 	}
 	defer conn.Close()
 
-	// Set timeout
-	deadline := time.Now().Add(timeout)
+	// Set global timeout on the connection
+	deadline := time.Now().Add(globalTimeout)
 	conn.SetDeadline(deadline)
 
 	// Create ICMP message with custom data size
@@ -139,74 +188,100 @@ func (p *PingExecutor) tryNativePing(ctx context.Context, host string, packetSiz
 	data := make([]byte, dataSize)
 	copy(data, []byte("Peekaping"))
 
-	p.logger.Debugf("Native ping: host=%s, dataSize=%d, totalPacketSize=%d", host, dataSize, dataSize+8)
+	p.logger.Debugf("Native ping: host=%s, count=%d, perRequestTimeout=%ds, dataSize=%d", host, count, perRequestTimeout, dataSize)
 
-	msg := &icmp.Message{
-		Type: ipv4.ICMPTypeEcho,
-		Code: 0,
-		Body: &icmp.Echo{
-			ID:   1,
-			Seq:  1,
-			Data: data,
-		},
-	}
+	var totalRTT time.Duration
+	successfulPings := 0
 
-	msgBytes, err := msg.Marshal(nil)
-	if err != nil {
-		return false, 0, fmt.Errorf("failed to marshal ICMP message: %v", err)
-	}
-
-	start := time.Now()
-
-	// Check if context is cancelled before sending
-	select {
-	case <-ctx.Done():
-		return false, 0, fmt.Errorf("ping cancelled: %v", ctx.Err())
-	default:
-	}
-
-	_, err = conn.WriteTo(msgBytes, dst)
-	if err != nil {
-		return false, 0, fmt.Errorf("failed to send ICMP packet: %v", err)
-	}
-
-	// Read response with context cancellation support
-	reply := make([]byte, 1500)
-	type readResult struct {
-		n    int
-		peer net.Addr
-		err  error
-	}
-
-	readChan := make(chan readResult, 1)
-	go func() {
-		n, peer, err := conn.ReadFrom(reply)
-		readChan <- readResult{n, peer, err}
-	}()
-
-	select {
-	case result := <-readChan:
-		if result.err != nil {
-			return false, 0, fmt.Errorf("failed to read ICMP reply: %v", result.err)
+	// Send multiple ping packets
+	for i := 0; i < count; i++ {
+		// Check if global context is cancelled before each ping
+		select {
+		case <-ctx.Done():
+			return false, 0, fmt.Errorf("ping cancelled: %v", ctx.Err())
+		default:
 		}
-		rtt := time.Since(start)
 
-		// Parse the reply - protocol 1 for IPv4 ICMP
-		replyMsg, err := icmp.ParseMessage(1, reply[:result.n])
+		// Create ICMP message for this ping
+		msg := &icmp.Message{
+			Type: ipv4.ICMPTypeEcho,
+			Code: 0,
+			Body: &icmp.Echo{
+				ID:   i + 1, // Use sequence number as ID
+				Seq:  i + 1,
+				Data: data,
+			},
+		}
+
+		msgBytes, err := msg.Marshal(nil)
 		if err != nil {
-			return false, 0, fmt.Errorf("failed to parse ICMP reply: %v", err)
+			return false, 0, fmt.Errorf("failed to marshal ICMP message: %v", err)
 		}
 
-		if replyMsg.Type == ipv4.ICMPTypeEchoReply {
-			p.logger.Debugf("Received ICMP reply from %v", result.peer)
-			return true, rtt, nil
+		start := time.Now()
+
+		// Send the ping
+		_, err = conn.WriteTo(msgBytes, dst)
+		if err != nil {
+			return false, 0, fmt.Errorf("failed to send ICMP packet: %v", err)
 		}
 
-		return false, 0, fmt.Errorf("unexpected ICMP message type: %v", replyMsg.Type)
+		// Read response with per-request timeout
+		reply := make([]byte, 1500)
+		type readResult struct {
+			n    int
+			peer net.Addr
+			err  error
+		}
 
-	case <-ctx.Done():
-		return false, 0, fmt.Errorf("ping timeout: %v", ctx.Err())
+		readChan := make(chan readResult, 1)
+		go func() {
+			n, peer, err := conn.ReadFrom(reply)
+			readChan <- readResult{n, peer, err}
+		}()
+
+		// Wait for response with per-request timeout
+		perRequestCtx, cancel := context.WithTimeout(ctx, time.Duration(perRequestTimeout)*time.Second)
+		defer cancel()
+
+		select {
+		case result := <-readChan:
+			if result.err != nil {
+				p.logger.Debugf("Ping %d failed: %v", i+1, result.err)
+				continue // Try next ping
+			}
+
+			rtt := time.Since(start)
+
+			// Parse the reply - protocol 1 for IPv4 ICMP
+			replyMsg, err := icmp.ParseMessage(1, reply[:result.n])
+			if err != nil {
+				p.logger.Debugf("Ping %d failed to parse reply: %v", i+1, err)
+				continue // Try next ping
+			}
+
+			if replyMsg.Type == ipv4.ICMPTypeEchoReply {
+				p.logger.Debugf("Ping %d successful, RTT: %v", i+1, rtt)
+				totalRTT += rtt
+				successfulPings++
+			} else {
+				p.logger.Debugf("Ping %d unexpected ICMP message type: %v", i+1, replyMsg.Type)
+			}
+
+		case <-perRequestCtx.Done():
+			p.logger.Debugf("Ping %d timed out after %ds", i+1, perRequestTimeout)
+			continue // Try next ping
+		}
 	}
+
+	// Return success if at least one ping succeeded
+	if successfulPings > 0 {
+		avgRTT := totalRTT / time.Duration(successfulPings)
+		p.logger.Debugf("Ping completed: %d/%d successful, avg RTT: %v", successfulPings, count, avgRTT)
+		return true, avgRTT, nil
+	}
+
+	return false, 0, fmt.Errorf("all %d ping attempts failed", count)
 }
 
 // trySystemPing falls back to using the system ping command
