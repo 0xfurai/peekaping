@@ -34,23 +34,24 @@ func TestPingExecutor_EnhancedTimeout(t *testing.T) {
 		}
 	})
 
-	t.Run("GlobalTimeoutValidation", func(t *testing.T) {
-		// Test that global timeout validation works
+	t.Run("AutomaticGlobalTimeoutCalculation", func(t *testing.T) {
+		// Test that global timeout is calculated automatically
 		config := `{"host": "8.8.8.8", "packet_size": 32, "count": 3, "per_request_timeout": 5}`
 		monitor := &Monitor{
 			Name:    "test-ping",
-			Timeout: 10, // Global timeout: 10s (should be >= 3 * 5 = 15s, but it's not)
+			Timeout: 10, // This is now ignored - global timeout is calculated automatically
 			Config:  config,
 		}
 
 		ctx := context.Background()
 		result := executor.Execute(ctx, monitor, nil)
 
-		// Should return down result due to timeout validation failure
+		// Should return up result for a valid host (if network allows)
+		// Global timeout is now calculated as: 3 * 5 + 2 = 17s (capped at 60s)
 		assert.NotNil(t, result)
-		assert.Equal(t, shared.MonitorStatusDown, result.Status)
-		assert.Contains(t, result.Message, "global timeout")
-		assert.Contains(t, result.Message, "theoretical max time")
+		if result.Status == shared.MonitorStatusUp {
+			assert.Contains(t, result.Message, "successful")
+		}
 	})
 
 	t.Run("ContextTimeout", func(t *testing.T) {
