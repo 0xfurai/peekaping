@@ -6,6 +6,7 @@ import (
 	"net"
 	"os/exec"
 	"peekaping/src/modules/shared"
+	"reflect"
 	"runtime"
 	"strconv"
 	"strings"
@@ -16,21 +17,11 @@ import (
 	"golang.org/x/net/ipv4"
 )
 
-// Ping configuration constants (inspired by Uptime Kuma's approach)
-const (
-	PING_COUNT_MIN                   = 1
-	PING_COUNT_MAX                   = 100
-	PING_COUNT_DEFAULT               = 1
-	PING_PER_REQUEST_TIMEOUT_MIN     = 1
-	PING_PER_REQUEST_TIMEOUT_MAX     = 60
-	PING_PER_REQUEST_TIMEOUT_DEFAULT = 2
-)
-
 type PingConfig struct {
 	Host              string `json:"host" validate:"required" example:"example.com"`
-	PacketSize        int    `json:"packet_size" validate:"min=0,max=65507" example:"32"`
-	Count             int    `json:"count" validate:"min=1,max=100" example:"1"`
-	PerRequestTimeout int    `json:"per_request_timeout" validate:"min=1,max=60" example:"2"`
+	PacketSize        int    `json:"packet_size" validate:"min=0,max=65507" example:"32" default:"32"`
+	Count             int    `json:"count" validate:"min=1,max=100" example:"1" default:"1"`
+	PerRequestTimeout int    `json:"per_request_timeout" validate:"min=1,max=60" example:"2" default:"2"`
 }
 
 type PingExecutor struct {
@@ -40,6 +31,27 @@ type PingExecutor struct {
 func NewPingExecutor(logger *zap.SugaredLogger) *PingExecutor {
 	return &PingExecutor{
 		logger: logger,
+	}
+}
+
+// applyDefaults applies default values from struct tags to zero-value fields
+func applyDefaults(cfg *PingConfig) {
+	configType := reflect.TypeOf(*cfg)
+	configValue := reflect.ValueOf(cfg).Elem()
+
+	for i := 0; i < configType.NumField(); i++ {
+		field := configType.Field(i)
+		fieldValue := configValue.Field(i)
+		defaultValue := field.Tag.Get("default")
+
+		if defaultValue != "" && fieldValue.IsZero() {
+			switch fieldValue.Kind() {
+			case reflect.Int:
+				if intValue, err := strconv.Atoi(defaultValue); err == nil {
+					fieldValue.SetInt(int64(intValue))
+				}
+			}
+		}
 	}
 }
 
@@ -55,21 +67,9 @@ func (s *PingExecutor) Validate(configJSON string) error {
 
 	pingCfg := cfg.(*PingConfig)
 
-	// Validate basic fields
+	// Validate basic fields - struct tags handle min/max validation
 	if err := GenericValidator(pingCfg); err != nil {
 		return err
-	}
-
-	// Validate count range
-	if pingCfg.Count < PING_COUNT_MIN || pingCfg.Count > PING_COUNT_MAX {
-		return fmt.Errorf("count must be between %d and %d (default: %d)",
-			PING_COUNT_MIN, PING_COUNT_MAX, PING_COUNT_DEFAULT)
-	}
-
-	// Validate per-request timeout range
-	if pingCfg.PerRequestTimeout < PING_PER_REQUEST_TIMEOUT_MIN || pingCfg.PerRequestTimeout > PING_PER_REQUEST_TIMEOUT_MAX {
-		return fmt.Errorf("per_request_timeout must be between %d and %d seconds (default: %d)",
-			PING_PER_REQUEST_TIMEOUT_MIN, PING_PER_REQUEST_TIMEOUT_MAX, PING_PER_REQUEST_TIMEOUT_DEFAULT)
 	}
 
 	return nil
@@ -82,20 +82,8 @@ func (p *PingExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	}
 	cfg := cfgAny.(*PingConfig)
 
-	// Set default packet size if not provided
-	if cfg.PacketSize == 0 {
-		cfg.PacketSize = 32
-	}
-
-	// Set default count if not provided
-	if cfg.Count == 0 {
-		cfg.Count = PING_COUNT_DEFAULT
-	}
-
-	// Set default per-request timeout if not provided
-	if cfg.PerRequestTimeout == 0 {
-		cfg.PerRequestTimeout = PING_PER_REQUEST_TIMEOUT_DEFAULT
-	}
+	// Apply default values from struct tags
+	applyDefaults(cfg)
 
 	p.logger.Debugf("execute ping cfg: %+v", cfg)
 
