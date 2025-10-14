@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Changed
+
+### Fixed
+
+## [0.0.42] - 2025-10-14
+
+### Added
+
+### Changed
 > [!WARNING]
 >Attention: Breaking change with the API Key !
 >Change header from Authorization: pk_... to X-API-Key: pk_...
