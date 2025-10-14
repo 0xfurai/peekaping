@@ -55,26 +55,6 @@ func applyDefaults(cfg *PingConfig) {
 	}
 }
 
-// CalculateGlobalTimeout calculates the global timeout based on ping configuration
-func (p *PingExecutor) CalculateGlobalTimeout(configJSON string) (int, error) {
-	cfgAny, err := p.Unmarshal(configJSON)
-	if err != nil {
-		return 0, err
-	}
-	cfg := cfgAny.(*PingConfig)
-
-	// Apply defaults first
-	applyDefaults(cfg)
-
-	// Calculate global timeout with margin
-	globalTimeout := cfg.Count*cfg.PerRequestTimeout + 2 // +2s margin for safety
-	if globalTimeout > 60 {
-		globalTimeout = 60 // Cap at 60s maximum
-	}
-
-	return globalTimeout, nil
-}
-
 func (s *PingExecutor) Unmarshal(configJSON string) (any, error) {
 	return GenericUnmarshal[PingConfig](configJSON)
 }
