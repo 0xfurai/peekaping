@@ -55,6 +55,26 @@ func applyDefaults(cfg *PingConfig) {
 	}
 }
 
+// CalculateGlobalTimeout calculates the global timeout based on ping configuration
+func (p *PingExecutor) CalculateGlobalTimeout(configJSON string) (int, error) {
+	cfgAny, err := p.Unmarshal(configJSON)
+	if err != nil {
+		return 0, err
+	}
+	cfg := cfgAny.(*PingConfig)
+
+	// Apply defaults first
+	applyDefaults(cfg)
+
+	// Calculate global timeout with margin
+	globalTimeout := cfg.Count*cfg.PerRequestTimeout + 2 // +2s margin for safety
+	if globalTimeout > 60 {
+		globalTimeout = 60 // Cap at 60s maximum
+	}
+
+	return globalTimeout, nil
+}
+
 func (s *PingExecutor) Unmarshal(configJSON string) (any, error) {
 	return GenericUnmarshal[PingConfig](configJSON)
 }
@@ -87,22 +107,21 @@ func (p *PingExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 
 	p.logger.Debugf("execute ping cfg: %+v", cfg)
 
-	// Validate global timeout is sufficient for the ping configuration
-	theoreticalMaxTime := cfg.Count * cfg.PerRequestTimeout
-	if m.Timeout < theoreticalMaxTime {
-		return DownResult(fmt.Errorf("global timeout (%ds) must be >= theoretical max time (%ds = %d pings × %ds per ping)",
-			m.Timeout, theoreticalMaxTime, cfg.Count, cfg.PerRequestTimeout), time.Now().UTC(), time.Now().UTC())
+	// Calculate global timeout automatically with margin
+	globalTimeout := cfg.Count*cfg.PerRequestTimeout + 2 // +2s margin for safety
+	if globalTimeout > 60 {
+		globalTimeout = 60 // Cap at 60s maximum
 	}
 
 	startTime := time.Now().UTC()
 
 	// Try native ICMP first, fallback to system ping command
-	success, rtt, err := p.tryNativePing(ctx, cfg.Host, cfg.PacketSize, cfg.Count, cfg.PerRequestTimeout, time.Duration(m.Timeout)*time.Second)
+	success, rtt, err := p.tryNativePing(ctx, cfg.Host, cfg.PacketSize, cfg.Count, cfg.PerRequestTimeout, time.Duration(globalTimeout)*time.Second)
 	if err != nil {
 		// Fallback to system ping command
 		p.logger.Debugf("Ping failed: %s, %s, %s", m.Name, err.Error(), "trying system ping")
 		startTime = time.Now().UTC() // reset start time
-		success, rtt, err = p.trySystemPing(ctx, cfg.Host, cfg.PacketSize, time.Duration(m.Timeout)*time.Second)
+		success, rtt, err = p.trySystemPing(ctx, cfg.Host, cfg.PacketSize, time.Duration(globalTimeout)*time.Second)
 	}
 
 	endTime := time.Now().UTC()

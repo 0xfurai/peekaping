@@ -449,6 +449,8 @@
         "count": "Max Packets",
         "count_description": "Number of packets to send before stopping",
         "data_size": "Data Size (bytes)",
+        "global_timeout": "Global Timeout (calculated)",
+        "global_timeout_description": "Automatically calculated as: (count × per-request timeout) + 2s margin",
         "host": "Hostname / IP",
         "per_request_timeout": "Per-Ping Timeout (seconds)",
         "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",

@@ -19,6 +19,7 @@ import { useMonitorFormContext } from "../../context/monitor-form-context";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -281,6 +282,27 @@ const PingForm = () => {
                 </FormItem>
               )}
             />
+
+            {/* Calculated Global Timeout Display */}
+            <FormItem>
+              <FormLabel>{t("monitors.form.ping.global_timeout")}</FormLabel>
+              <FormControl>
+                <Input
+                  type="text"
+                  value={`${Math.min(
+                    (form.watch("count") || 1) *
+                      (form.watch("per_request_timeout") || 2) +
+                      2,
+                    60
+                  )}s`}
+                  readOnly
+                  className="bg-muted"
+                />
+              </FormControl>
+              <FormDescription>
+                {t("monitors.form.ping.global_timeout_description")}
+              </FormDescription>
+            </FormItem>
           </CardContent>
         </Card>
 
