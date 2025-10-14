@@ -5,7 +5,6 @@ import (
 	"peekaping/src/modules/api_key"
 	"peekaping/src/modules/auth"
 	"peekaping/src/utils"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -35,24 +34,29 @@ func NewAuthChain(
 
 // MARK: AllAuth
 
-// AllAuth creates a middleware that tries JWT first, then API key
+// AllAuth creates a middleware that supports both JWT and API key authentication
+// The middleware automatically routes requests based on header presence:
+// - If X-API-Key header is present: routes to API key authentication
+// - Otherwise: routes to JWT authentication (expects Authorization header with Bearer token)
 func (ac *AuthChain) AllAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		apiKeyHeader := c.GetHeader("X-API-Key")
 		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			ac.logger.Warnw("Missing Authorization header", "ip", c.ClientIP(), "path", c.Request.URL.Path)
-			c.JSON(http.StatusUnauthorized, utils.NewFailResponse("Authorization header is required"))
+
+		if apiKeyHeader != "" {
+			// Route to API key authentication
+			ac.logger.Debugw("Routing to API key authentication", "ip", c.ClientIP(), "path", c.Request.URL.Path, "keyPrefix", apiKeyHeader[:min(len(apiKeyHeader), 10)]+"...")
+			ac.apiKeyMiddleware.Auth()(c)
+		} else if authHeader != "" {
+			// Route to JWT authentication
+			ac.logger.Debugw("Routing to JWT authentication", "ip", c.ClientIP(), "path", c.Request.URL.Path, "tokenPrefix", authHeader[:min(len(authHeader), 10)]+"...")
+			ac.jwtMiddleware.Auth()(c)
+		} else {
+			// No authentication headers provided
+			ac.logger.Warnw("Missing authentication headers", "ip", c.ClientIP(), "path", c.Request.URL.Path)
+			c.JSON(http.StatusUnauthorized, utils.NewFailResponse("Authentication required: provide either X-API-Key header or Authorization header"))
 			c.Abort()
 			return
-		}
-
-		isApiKey := strings.HasPrefix(authHeader, api_key.ApiKeyPrefix)
-		if isApiKey {
-			ac.logger.Infow("Routing to API key authentication", "ip", c.ClientIP(), "path", c.Request.URL.Path, "keyPrefix", authHeader[:min(len(authHeader), 10)]+"...")
-			ac.apiKeyMiddleware.Auth()(c)
-		} else {
-			ac.logger.Infow("Routing to JWT authentication", "ip", c.ClientIP(), "path", c.Request.URL.Path, "tokenPrefix", authHeader[:min(len(authHeader), 10)]+"...")
-			ac.jwtMiddleware.Auth()(c)
 		}
 	}
 }

@@ -668,10 +668,6 @@ export type GetApiKeysData = {
 
 export type GetApiKeysErrors = {
   /**
-   * Unauthorized
-   */
-  401: UtilsApiError;
-  /**
    * Internal Server Error
    */
   500: UtilsApiError;
@@ -703,10 +699,6 @@ export type PostApiKeysErrors = {
    * Bad Request
    */
   400: UtilsApiError;
-  /**
-   * Unauthorized
-   */
-  401: UtilsApiError;
   /**
    * Internal Server Error
    */
@@ -756,10 +748,6 @@ export type DeleteApiKeysByIdData = {
 
 export type DeleteApiKeysByIdErrors = {
   /**
-   * Unauthorized
-   */
-  401: UtilsApiError;
-  /**
    * Not Found
    */
   404: UtilsApiError;
@@ -792,10 +780,6 @@ export type GetApiKeysByIdData = {
 };
 
 export type GetApiKeysByIdErrors = {
-  /**
-   * Unauthorized
-   */
-  401: UtilsApiError;
   /**
    * Not Found
    */
@@ -839,10 +823,6 @@ export type PutApiKeysByIdErrors = {
    * Bad Request
    */
   400: UtilsApiError;
-  /**
-   * Unauthorized
-   */
-  401: UtilsApiError;
   /**
    * Not Found
    */

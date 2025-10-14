@@ -32,7 +32,8 @@ func NewController(service Service, monitorService monitor.Service, heartbeatSer
 // @Tags      Status Pages
 // @Accept    json
 // @Produce   json
-// @Security  BearerAuth
+// @Security  JwtAuth
+// @Security  ApiKeyAuth
 // @Param     body body CreateStatusPageDTO true "Status Page object"
 // @Success   201  {object} utils.ApiResponse[Model]
 // @Failure   400  {object} utils.APIError[any]
@@ -73,7 +74,8 @@ func (c *Controller) Create(ctx *gin.Context) {
 // @Summary   Get a status page by ID
 // @Tags      Status Pages
 // @Produce   json
-// @Security  BearerAuth
+// @Security  JwtAuth
+// @Security  ApiKeyAuth
 // @Param     id   path      string  true  "Status Page ID"
 // @Success   200  {object}  utils.ApiResponse[StatusPageWithMonitorsResponseDTO]
 // @Failure   404  {object}  utils.APIError[any]
@@ -143,7 +145,8 @@ func (c *Controller) FindByDomain(ctx *gin.Context) {
 // @Summary   Get all status pages
 // @Tags      Status Pages
 // @Produce   json
-// @Security  BearerAuth
+// @Security  JwtAuth
+// @Security  ApiKeyAuth
 // @Param     q    query     string  false  "Search query"
 // @Param     page query     int     false  "Page number" default(0)
 // @Param     limit query    int     false  "Items per page" default(10)
@@ -177,7 +180,8 @@ func (c *Controller) FindAll(ctx *gin.Context) {
 // @Tags      Status Pages
 // @Accept    json
 // @Produce   json
-// @Security  BearerAuth
+// @Security  JwtAuth
+// @Security  ApiKeyAuth
 // @Param     id   path      string  true  "Status Page ID"
 // @Param     body body UpdateStatusPageDTO true "Status Page object"
 // @Success   200  {object}  utils.ApiResponse[Model]
@@ -215,7 +219,8 @@ func (c *Controller) Update(ctx *gin.Context) {
 // @Summary   Delete a status page
 // @Tags      Status Pages
 // @Produce   json
-// @Security  BearerAuth
+// @Security  JwtAuth
+// @Security  ApiKeyAuth
 // @Param     id   path      string  true  "Status Page ID"
 // @Success   200  {object}  utils.ApiResponse[any]
 // @Failure   404  {object}  utils.APIError[any]
