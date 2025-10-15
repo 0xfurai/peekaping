@@ -9,20 +9,26 @@
       "no_account": "Nemáte účet?",
       "sign_up": "Zaregistrujte se",
       "submit": "Přihlásit se",
-      "title": "Vítejte zpět"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Vítejte zpět"
     },
     "register": {
       "description": "Vytvořte si svůj administrátorský účet",
       "have_account": "Už máte účet?",
       "sign_in": "Přihlásit se",
       "submit": "Vytvořit",
-      "title": "Vítejte"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Vítejte"
     },
     "twofa": {
       "code_label": "Kód dvoufaktorové autentizace",
       "code_placeholder": "Zadejte 2FA kód",
       "description": "Dvoufázové ověření (2FA) je pro váš účet povoleno. Zadejte prosím svůj ověřovací kód, abyste mohli pokračovat.",
-      "title": "Dvoufázové ověření vyžadováno",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Dvoufázové ověření vyžadováno",
       "verify_button": "Ověřit 2FA",
       "verifying": "Ověřování..."
     }
@@ -96,7 +102,9 @@
       "password": "Heslo",
       "retries": "Počet pokusů",
       "slug": "Slug",
-      "title": "Název",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Název",
       "username": "Uživatelské jméno"
     },
     "placeholders": {
@@ -169,17 +177,23 @@
         "confirm_action": {
           "pause_description": "Opravdu chcete tuto údržbu pozastavit?",
           "resume_description": "Opravdu chcete tuto údržbu obnovit?",
-          "title": "Potvrdit akci"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Potvrdit akci"
         },
         "confirm_delete": {
           "description": "Opravdu chcete smazat toto okno údržby? Tuto akci nelze vrátit zpět.",
-          "title": "Potvrdit smazání"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Potvrdit smazání"
         }
       },
       "edit_maintenance": "Upravit údržbu: {{title}}",
       "empty_state": {
         "action": "Vytvořte své první okno údržby",
         "description": "Začněte vytvořením svého prvního okna údržby, abyste zabránili plánovaným odstávkám.",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Žádná okna údržby nebyla nalezena."
       },
       "error_loading": "Chyba při načítání údržby",
@@ -248,7 +262,9 @@
     "empty_state": {
       "action": "Vytvořte svůj první monitor",
       "description": "Začněte vytvořením svého prvního monitoru, který bude sledovat stav vašich služeb.",
-      "title": "Žádné monitory nebyly nalezeny."
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Žádné monitory nebyly nalezeny."
     },
     "filtering_by_tags": "Filtrace podle štítků",
     "filters": {
@@ -271,6 +287,8 @@
         "record_type": "Typ záznamu",
         "record_type_placeholder": "Vyberte typ záznamu",
         "resolver_server": "DNS resolver",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Nastavení DNS"
       },
       "docker": {
@@ -329,7 +347,9 @@
           "ignore_tls_description": "Ignorovat ověřování TLS certifikátu. Používejte opatrně — spojení bude méně bezpečné.",
           "max_redirects": "Maximální počet přesměrování",
           "max_redirects_description": "Maximální počet přesměrování, která se budou sledovat (0-30). Pro vypnutí přesměrování nastavte 0.",
-          "title": "Pokročilé"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Pokročilé"
         },
         "authentication": {
           "auth_header": "Autorizace hlavičky",
@@ -350,7 +370,9 @@
           "oauth_scope_placeholder": "Volitelné: Seznam oprávnění oddělených mezerou",
           "oauth_token_url": "URL tokenu OAuth",
           "oauth_token_url_placeholder": "URL tokenu OAuth",
-          "title": "Autentizace",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Autentizace",
           "workstation": "Pracovní stanice",
           "workstation_placeholder": "Pracovní stanice"
         },
@@ -366,7 +388,9 @@
           "select_encoding": "Vyberte kódování těla",
           "select_method": "Vyberte metodu",
           "text_example": "Příklad textu:\nZde je libovolný prostý text...",
-          "title": "Možnosti HTTP",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Možnosti HTTP",
           "xml_example": "Příklad XML"
         }
       },
@@ -374,6 +398,8 @@
         "condition_label": "Podmínka",
         "expected_value_label": "Očekávaná hodnota",
         "json_query_label": "JSON dotazový výraz",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "JSON dotazový výraz"
       },
       "http_keyword": {
@@ -446,8 +472,13 @@
         "query_label": "Dotaz"
       },
       "ping": {
+        "count": "Max Packets",
+        "count_description": "Number of packets to send before stopping",
+        
         "data_size": "Velikost dat (bajtů)",
         "host": "Jméno hostitele / IP adresa",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Nastavení pingu"
       },
       "postgres": {
@@ -468,6 +499,8 @@
         "password_description": "Heslo pro autentizaci do rozhraní správy RabbitMQ",
         "setup_information_description": "Chcete-li používat monitor RabbitMQ, musíte v nastavení RabbitMQ povolit plugin správy. Pro více informací konzultujte dokumentaci RabbitMQ.",
         "setup_information_title": "Informace o nastavení",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Konfigurace RabbitMQ",
         "username_description": "Uživatelské jméno pro autentizaci do rozhraní správy RabbitMQ"
       },
@@ -482,6 +515,8 @@
         "connection_string_label": "Připojovací řetězec",
         "ignore_tls_description": "Přeskočit ověření TLS certifikátu (nedoporučuje se pro produkční prostředí)",
         "ignore_tls_label": "Ignorovat chyby TLS/SSL",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Nastavení Redis"
       },
       "shared": {
@@ -499,7 +534,9 @@
           "select_channel": "Vyberte kanál",
           "select_notifier_placeholder": "Vyberte notifikátor",
           "selected_channels": "Vybrané kanály notifikací",
-          "title": "Notifikační kanály"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Notifikační kanály"
         },
         "proxy": {
           "add_proxy": "Přidat proxy",
@@ -508,7 +545,9 @@
           "remove_proxy": "Odebrat proxy",
           "select_proxy_placeholder": "Vyberte proxy",
           "selected_proxy": "Vybraný proxy server",
-          "title": "Proxy"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Proxy"
         },
         "tags": {
           "label": "Tagy",
@@ -539,6 +578,8 @@
         "port_label": "Port",
         "snmp_version_description": "Verze protokolu SNMP, kterou použít",
         "snmp_version_label": "Verze SNMP",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Nastavení SNMP",
         "value_validation_label": "Validace hodnot (volitelné)"
       },
@@ -548,11 +589,15 @@
         "connection_string_label": "Připojovací řetězec",
         "query_description": "Dotaz k provedení kontroly stavu. Nechte prázdné pro použití výchozího dotazu.",
         "query_label": "Dotaz",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Připojení k Microsoft SQL Serveru"
       },
       "tcp": {
         "host": "Název hostitele",
         "port": "Port",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "TCP spojení"
       },
       "type": {
@@ -579,7 +624,9 @@
       "edit_title": "Upravit monitor:",
       "new_title": "Nový monitor"
     },
-    "title": "Monitory",
+    "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Monitory",
     "toasts": {
       "deleted": "Monitor byl smazán",
       "paused": "Monitor pozastaven",
@@ -601,15 +648,21 @@
       "dialogs": {
         "delete": {
           "description": "Tuto akci nelze vrátit zpět. Bude trvale smazán monitor a veškerá související data.",
-          "title": "Jste si naprosto jisti?"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Jste si naprosto jisti?"
         },
         "pause": {
           "description": "Opravdu chcete pozastavit?",
-          "title": "Potvrzení"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Potvrzení"
         },
         "reset": {
           "description": "To způsobí trvalé smazání veškeré historie heartbeat a statistik doby provozu tohoto monitoru. Monitor bude vypadat jako by byl právě vytvořen. Tuto akci nelze vzít zpět.",
-          "title": "Resetovat data monitoru"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Resetovat data monitoru"
         }
       },
       "expiring_soon": "Brzy vyprší",
@@ -656,7 +709,9 @@
     "empty_state": {
       "action": "Vytvořte svůj první kanál notifikací",
       "description": "Začněte tím, že si vytvoříte svůj první kanál notifikací a pošlete upozornění vašemu týmu.",
-      "title": "Žádné kanály oznámení nebyly nalezeny."
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Žádné kanály oznámení nebyly nalezeny."
     },
     "form": {
       "discord": {
@@ -1046,7 +1101,9 @@
       "updated_success": "Notifikátor byl úspěšně aktualizován"
     },
     "new": {
-      "title": "Nový notifikační kanál"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Nový notifikační kanál"
     },
     "no_important": "Nebyly nalezeny žádné důležité notifikace.",
     "placeholders": {
@@ -1057,7 +1114,9 @@
   "proxies": {
     "delete_dialog": {
       "description": "Tuto akci nelze vrátit zpět. Tímto dojde k trvalému smazání proxy {{host}}:{{port}}.",
-      "title": "Jste si tím opravdu jistí?"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Jste si tím opravdu jistí?"
     },
     "edit": {
       "page_name": "Upravit proxy"
@@ -1065,7 +1124,9 @@
     "empty_list": {
       "action_text": "Vytvořte svůj první proxy server",
       "text": "Začněte vytvořením vašeho prvního proxy, který budete používat ve svých monitorech.",
-      "title": "Žádné proxy nebyly nalezeny."
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Žádné proxy nebyly nalezeny."
     },
     "form": {
       "auth_label": "Autentizace proxy serveru",
@@ -1131,15 +1192,21 @@
         "failed_to_update_password": "Nepodařilo se aktualizovat heslo",
         "password_updated_successfully": "Heslo bylo úspěšně aktualizováno"
       },
-      "title": "Změnit heslo"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Změnit heslo"
     },
     "api_keys": {
-      "title": "API Keys",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "API Keys",
       "description": "Manage your API keys for third-party integrations",
       "create_button": "Create API Key",
       "no_keys_title": "No API Keys",
       "no_keys_description": "Create your first API key to start integrating with external services.",
       "create_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Create New API Key",
         "description": "Create a new API key for third-party integrations. The key will be shown only once.",
         "form": {
@@ -1156,6 +1223,8 @@
         }
       },
       "success_alert": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "API Key Created Successfully",
         "description": "Your API key has been created. Copy it now as it won't be shown again:"
       },
@@ -1177,6 +1246,8 @@
         "never": "Never"
       },
       "delete_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Smazat API klíč",
         "description": "Jste si jisti, že chcete smazat API klíč \"{{name}}\"? Tuto akci nelze vrátit zpět.",
         "buttons": {
@@ -1216,7 +1287,9 @@
     "data_retention": {
       "days_label": "Dny",
       "description": "Nastavte, na kolik dní se budou data uchovávat (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Doba uchovávání dat"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Doba uchovávání dat"
     },
     "timezone": {
       "description": "Vyberte si své preferované časové pásmo pro zobrazení všech časů v aplikaci.",
@@ -1224,7 +1297,9 @@
       "no_timezone_found": "Nebylo nalezeno žádné časové pásmo.",
       "search_placeholder": "Hledat časové pásmo...",
       "select_placeholder": "Vyberte časové pásmo...",
-      "title": "Časové pásmo"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Časové pásmo"
     },
     "validation": {
       "min_days": "Musí být alespoň 1 den"
@@ -1256,7 +1331,9 @@
     "customization": "Přizpůsobení",
     "delete_dialog": {
       "description": "Opravdu chcete smazat \\\"{{title}}\\\"? Tuto operaci nelze vrátit zpět.",
-      "title": "Smazat stavovou stránku"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Smazat stavovou stránku"
     },
     "description": "Zadejte popis stránky stavu",
     "domain_already_used": "Doména {{domain}} je již používána jinou stavovou stránkou",
@@ -1293,7 +1370,9 @@
     "empty_state": {
       "action": "Vytvořte svůj první štítek",
       "description": "Začněte vytvořením prvního štítku pro organizaci vašich monitorů.",
-      "title": "Žádné štítky nebyly nalezeny."
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Žádné štítky nebyly nalezeny."
     },
     "form": {
       "color_description": "Vyberte barvu štítku",

@@ -446,8 +446,12 @@
         "query_label": "Fråga"
       },
       "ping": {
+        "count": "Maximala paket",
+        "count_description": "Antal paket att skicka innan stopp",
         "data_size": "Datastorlek (bytes)",
         "host": "Värdnamn / IP",
+        "per_request_timeout": "Per-ping timeout (sekunder)",
+        "per_request_timeout_description": "Maximal väntetid innan en enskild ping anses förlorad",
         "title": "Ping-inställningar"
       },
       "postgres": {

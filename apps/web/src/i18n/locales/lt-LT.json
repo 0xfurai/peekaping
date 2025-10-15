@@ -9,20 +9,26 @@
       "no_account": "Neturite paskyros?",
       "sign_up": "Registruotis",
       "submit": "Prisijungti",
-      "title": "Sveiki atvykę"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Sveiki atvykę"
     },
     "register": {
       "description": "Sukurkite savo administratoriaus paskyrą",
       "have_account": "Ar jau turite paskyrą?",
       "sign_in": "Prisijungti",
       "submit": "Sukurti",
-      "title": "Sveiki"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Sveiki"
     },
     "twofa": {
       "code_label": "2FA kodas",
       "code_placeholder": "Įveskite 2FA kodą",
       "description": "2FA yra įjungta jūsų sąskaitoje. Prašome įvesti savo autentifikacijos kodą, kad tęstumėte.",
-      "title": "Dviejų veiksnių autentifikacija reikalaujama",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Dviejų veiksnių autentifikacija reikalaujama",
       "verify_button": "Patvirtinti 2FA",
       "verifying": "Patikrinama..."
     }
@@ -96,7 +102,9 @@
       "password": "slaptažodis",
       "retries": "Bandymai",
       "slug": "Slugas",
-      "title": "Pavadinimas",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Pavadinimas",
       "username": "Vartotojo vardas"
     },
     "placeholders": {
@@ -169,17 +177,23 @@
         "confirm_action": {
           "pause_description": "Ar tikrai norite pristabdyti šį priežiūros laikotarpį?",
           "resume_description": "Ar tikrai norite tęsti šią priežiūrą?",
-          "title": "Patvirtinti veiksmą"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Patvirtinti veiksmą"
         },
         "confirm_delete": {
           "description": "Ar tikrai norite ištrinti šį priežiūros laikotarpį? Ši veiksmas negali būti atšauktas.",
-          "title": "Patvirtinti ištrynimą"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Patvirtinti ištrynimą"
         }
       },
       "edit_maintenance": "Redaguoti priežiūros periodą: {{title}}",
       "empty_state": {
         "action": "Sukurkite savo pirmą priežiūros laikotarpį",
         "description": "Pradėkite sukūrę savo pirmą priežiūros periodą, kad išvengtumėte planuojamų gedimų.",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Priežiūros periodų nerasta"
       },
       "error_loading": "Klaida įkeliant priežiūrą",
@@ -248,7 +262,9 @@
     "empty_state": {
       "action": "Sukurkite pirmą monitorių",
       "description": "Pradėkite, sukūrę savo pirmąjį stebėsenos įrašą, ir stebėkite paslaugų būklę.",
-      "title": "Nerasta monitorių"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Nerasta monitorių"
     },
     "filtering_by_tags": "Filtravimas pagal žymas",
     "filters": {
@@ -271,6 +287,8 @@
         "record_type": "Resursų įrašo tipas",
         "record_type_placeholder": "Pasirinkite įrašo tipą",
         "resolver_server": "Išsprendimo serveris",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "DNS nustatymai"
       },
       "docker": {
@@ -329,7 +347,9 @@
           "ignore_tls_description": "Praleisti TLS sertifikato patikrinimą. Naudokite atsargiai – tai sumažina ryšių saugumą.",
           "max_redirects": "Maksimalus nukreipimų skaičius",
           "max_redirects_description": "Maksimalus peradresavimų, kuriuos sekti, skaičius (0–30). Įveskite 0, norėdami išjungti peradresavimus.",
-          "title": "Išplėstiniai"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Išplėstiniai"
         },
         "authentication": {
           "auth_header": "Autorizacijos antraštė",
@@ -350,7 +370,9 @@
           "oauth_scope_placeholder": "Neprivaloma: su tarpu atskirtų aprėpės sąrašas",
           "oauth_token_url": "OAuth žetono URL",
           "oauth_token_url_placeholder": "OAuth žetono URL",
-          "title": "Autentifikacija",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Autentifikacija",
           "workstation": "Darbinė stotis",
           "workstation_placeholder": "Darbinė stotis"
         },
@@ -366,7 +388,9 @@
           "select_encoding": "Pasirinkite kūno koduotę",
           "select_method": "Pasirinkite metodą",
           "text_example": "Pavyzdinis tekstas: bet kuris paprastas teksto turinys čia...",
-          "title": "HTTP parinktys",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "HTTP parinktys",
           "xml_example": "XML pavyzdys"
         }
       },
@@ -374,6 +398,8 @@
         "condition_label": "Sąlyga",
         "expected_value_label": "Numatyta reikšmė",
         "json_query_label": "JSON užklausos išraiška",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "JSON užklausos išraiška"
       },
       "http_keyword": {
@@ -446,8 +472,13 @@
         "query_label": "Užklausa"
       },
       "ping": {
+        "count": "Max Packets",
+        "count_description": "Number of packets to send before stopping",
+        
         "data_size": "Duomenų dydis (baitai)",
         "host": "Vardas / IP",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Ping nustatymai"
       },
       "postgres": {
@@ -468,6 +499,8 @@
         "password_description": "RabbitMQ valdymo sąsajos autentifikacijos slaptažodis",
         "setup_information_description": "Norėdami naudoti RabbitMQ monitorių, turite įjungti valdymo įskiepio (Management Plugin) funkciją savo RabbitMQ nustatymuose. Daugiau informacijos rasite RabbitMQ dokumentacijoje.",
         "setup_information_title": "Nustatymų informacija",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "RabbitMQ konfigūracija",
         "username_description": "Vartotojo vardas RabbitMQ valdymo sąsajos autentifikavimui"
       },
@@ -482,6 +515,8 @@
         "connection_string_label": "Ryšio eilutė",
         "ignore_tls_description": "Praleisti TLS sertifikato patikrinimą (nepatartina gamybos aplinkoje)",
         "ignore_tls_label": "Ignoruoti TLS/SSL klaidas",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Redis konfigūracija"
       },
       "shared": {
@@ -499,7 +534,9 @@
           "select_channel": "Pasirinkite kanalą",
           "select_notifier_placeholder": "Pasirinkite notifikatorių",
           "selected_channels": "Pasirinkti pranešimų kanalai",
-          "title": "Pranešimų kanalai"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Pranešimų kanalai"
         },
         "proxy": {
           "add_proxy": "Pridėti proxy",
@@ -508,7 +545,9 @@
           "remove_proxy": "Pašalinti proksi",
           "select_proxy_placeholder": "Pasirinkite tarpinį serverį",
           "selected_proxy": "Pasirinktas tarpininkas",
-          "title": "Proksi"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Proksi"
         },
         "tags": {
           "label": "Žymės",
@@ -539,6 +578,8 @@
         "port_label": "Portas",
         "snmp_version_description": "Naudojama SNMP protokolo versija",
         "snmp_version_label": "SNMP versija",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "SNMP nustatymai",
         "value_validation_label": "Vertės patikrinimas (neprivaloma)"
       },
@@ -548,11 +589,15 @@
         "connection_string_label": "Ryšio eilutė",
         "query_description": "Užklausa, kurią vykdyti sveikatos patikrinimui. Palikite tuščią, norėdami naudoti numatytąjį.",
         "query_label": "Užklausa",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Microsoft SQL Server jungtis"
       },
       "tcp": {
         "host": "Sritis",
         "port": "Portas",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "TCP ryšys"
       },
       "type": {
@@ -579,7 +624,9 @@
       "edit_title": "Redaguoti stebėtoją:",
       "new_title": "Naujas stebėjas"
     },
-    "title": "Stebėjimo įrenginiai",
+    "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Stebėjimo įrenginiai",
     "toasts": {
       "deleted": "Monitorius pašalintas",
       "paused": "Stebėjimas pristabdytas",
@@ -601,15 +648,21 @@
       "dialogs": {
         "delete": {
           "description": "Šis veiksmas negali būti atšauktas. Tai galutinai ištrins steigimą ir visus susijusius duomenis.",
-          "title": "Ar tikrai esate įsitikinę?"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ar tikrai esate įsitikinę?"
         },
         "pause": {
           "description": "Ar tikrai norite pristabdyti?",
-          "title": "Patvirtinimas"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Patvirtinimas"
         },
         "reset": {
           "description": "Tai negrįžtamai ištrins visą šio stebėtuvo širdinio veikimo istoriją ir veikimo laiko statistiką. Stebėtojas atrodo, tarsi būtų tik sukurtas. Ši operacija negali būti atšaukta.",
-          "title": "Atstatyti monitoro duomenis"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Atstatyti monitoro duomenis"
         }
       },
       "expiring_soon": "Artėja baigti",
@@ -656,7 +709,9 @@
     "empty_state": {
       "action": "Sukurkite pirmą pranešimų kanalą",
       "description": "Pradėkite, sukuriant savo pirmą įspėjimo kanalą, kad galėtumėte siųsti įspėjimus komandai.",
-      "title": "Nerasta pranešimų kanalų"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Nerasta pranešimų kanalų"
     },
     "form": {
       "discord": {
@@ -1046,7 +1101,9 @@
       "updated_success": "Pranešiklis sėkmingai atnaujintas"
     },
     "new": {
-      "title": "Naujas pranešimų kanalas"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Naujas pranešimų kanalas"
     },
     "no_important": "Nėra svarbių pranešimų.",
     "placeholders": {
@@ -1057,7 +1114,9 @@
   "proxies": {
     "delete_dialog": {
       "description": "Šis veiksmas negali būti atšauktas. Tai negrįžtamai ištrins tarpinį serverį {{host}}:{{port}}.",
-      "title": "Ar tikrai?"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ar tikrai?"
     },
     "edit": {
       "page_name": "Redaguoti tarpininką"
@@ -1065,7 +1124,9 @@
     "empty_list": {
       "action_text": "Sukurkite savo pirmąjį proksi",
       "text": "Pradėkite sukurdami savo pirmąjį proksį, kurį naudokite savo monitoriuose.",
-      "title": "Nerasta tarpinio serverio"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Nerasta tarpinio serverio"
     },
     "form": {
       "auth_label": "Proxy server reikalauja tapatybės patvirtinimo",
@@ -1131,15 +1192,21 @@
         "failed_to_update_password": "Nepavyko atnaujinti slaptažodžio",
         "password_updated_successfully": "Slaptažodis sėkmingai atnaujintas"
       },
-      "title": "Atnaujinti slaptažodį"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Atnaujinti slaptažodį"
     },
     "api_keys": {
-      "title": "API Keys",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "API Keys",
       "description": "Manage your API keys for third-party integrations",
       "create_button": "Create API Key",
       "no_keys_title": "No API Keys",
       "no_keys_description": "Create your first API key to start integrating with external services.",
       "create_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Create New API Key",
         "description": "Create a new API key for third-party integrations. The key will be shown only once.",
         "form": {
@@ -1156,6 +1223,8 @@
         }
       },
       "success_alert": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "API Key Created Successfully",
         "description": "Your API key has been created. Copy it now as it won't be shown again:"
       },
@@ -1177,6 +1246,8 @@
         "never": "Never"
       },
       "delete_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Ištrinti API raktą",
         "description": "Ar tikrai norite ištrinti API raktą \"{{name}}\"? Šis veiksmas negali būti atšauktas.",
         "buttons": {
@@ -1216,7 +1287,9 @@
     "data_retention": {
       "days_label": "Dienos",
       "description": "Nustatykite, kiek dienų laikyti duomenis (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Duomenų saugojimo laikotarpis"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Duomenų saugojimo laikotarpis"
     },
     "timezone": {
       "description": "Pasirinkite pageidaujamą laiko juostą, pagal kurią bus rodomi visi laikai programoje.",
@@ -1224,7 +1297,9 @@
       "no_timezone_found": "Nerasta laiko juostos.",
       "search_placeholder": "Ieškoti laiko juostos...",
       "select_placeholder": "Pasirinkite laiko juostą...",
-      "title": "Laiko juosta"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Laiko juosta"
     },
     "validation": {
       "min_days": "Turi būti ne mažiau kaip 1 diena"
@@ -1256,7 +1331,9 @@
     "customization": "Pritaikymas",
     "delete_dialog": {
       "description": "Ar tikrai norite ištrinti „{{title}}“? Ši veiksmas negali būti atšauktas.",
-      "title": "Ištrinti statuso puslapį"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ištrinti statuso puslapį"
     },
     "description": "Įveskite puslapio būklės aprašymą",
     "domain_already_used": "Domenas {{domain}} jau naudojamas kito statuso puslapio.",
@@ -1293,7 +1370,9 @@
     "empty_state": {
       "action": "Sukurk savo pirmą žymę",
       "description": "Pradėkite, sukurdami savo pirmąją žymą, kad galėtumėte tvarkyti savo monitorius.",
-      "title": "Tagų nerasta"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Tagų nerasta"
     },
     "form": {
       "color_description": "Pasirinkite spalvą savo žymekliui",

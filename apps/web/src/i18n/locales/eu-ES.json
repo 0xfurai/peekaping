@@ -9,20 +9,26 @@
       "no_account": "Ez duzu konturik?",
       "sign_up": "Erregistratu",
       "submit": "Saioa hasi",
-      "title": "Berriz ongi etorri"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Berriz ongi etorri"
     },
     "register": {
       "description": "Sortu zure administratzaile kontua",
       "have_account": "Kontu bat baduzu?",
       "sign_in": "Sartu",
       "submit": "Sortu",
-      "title": "Kaixo"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Kaixo"
     },
     "twofa": {
       "code_label": "2FA kodea",
       "code_placeholder": "Sartu 2FA kodea",
       "description": "2FA aktibatuta dago zure kontuan. Sartu autentifikazio kodea jarraitzeko.",
-      "title": "Bi faktoreko autentifikazioa beharrezkoa",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Bi faktoreko autentifikazioa beharrezkoa",
       "verify_button": "Egiaztatu 2FA",
       "verifying": "Egiaztatzen..."
     }
@@ -96,7 +102,9 @@
       "password": "Pasahitza",
       "retries": "Errebairak",
       "slug": "slug",
-      "title": "Izenburua",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Izenburua",
       "username": "Erabiltzaile izena"
     },
     "placeholders": {
@@ -169,17 +177,23 @@
         "confirm_action": {
           "pause_description": "Mantentze hau pausatzea nahi duzula, ziur al zaude?",
           "resume_description": "Ziur zaude mantentze hau berriro hastea nahi duzula?",
-          "title": "Ekintza berretsi"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ekintza berretsi"
         },
         "confirm_delete": {
           "description": "Mantentze-leiho hau ezabatu nahi duzula? Ekintza hau ezin da desegin.",
-          "title": "Ezabapena baieztatu"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ezabapena baieztatu"
         }
       },
       "edit_maintenance": "Mantentze editatu: {{title}}",
       "empty_state": {
         "action": "Sortu zure lehen mantentze-ordaina",
         "description": "Hasi zure lehen mantentze-leihoa sortuz programatutako hasterik saihesteko",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Ez da mantentze-emaintze-leihoik aurkitu"
       },
       "error_loading": "Mantentzeen kargatzean errorea",
@@ -248,7 +262,9 @@
     "empty_state": {
       "action": "Sortu zure lehen monitorra",
       "description": "Hasieratu lehen monitoa sortuz, zure zerbitzuen osasuna jarraitzeko.",
-      "title": "Monitoreik ez daude aurkitu"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Monitoreik ez daude aurkitu"
     },
     "filtering_by_tags": "Etiketekin filtratzea",
     "filters": {
@@ -271,6 +287,8 @@
         "record_type": "Erregistro baliabide mota",
         "record_type_placeholder": "Hautatu erregistro mota",
         "resolver_server": "Ebakitzaile-zerbitzaria",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "DNS ezarpenak"
       },
       "docker": {
@@ -329,7 +347,9 @@
           "ignore_tls_description": "Saltatu TLS ziurtagiriaren balidazioa. Kontuz erabili - honek konekzioak segurtasun gutxiagoa egiten du.",
           "max_redirects": "Gehieneko birbideraketak",
           "max_redirects_description": "Jarraitu beharreko bideratzeen gehieneko kopurua (0-30). Ezarri 0 gisa bideratzeak desgaitzeko.",
-          "title": "Aurreratua"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Aurreratua"
         },
         "authentication": {
           "auth_header": "Baieztapena goiburua",
@@ -350,7 +370,9 @@
           "oauth_scope_placeholder": "Aukerazkoa: Zuriuneak banatutako eskopuen zerrenda",
           "oauth_token_url": "OAuth token-aren URLa",
           "oauth_token_url_placeholder": "OAuth tokenen URLa",
-          "title": "Autentifikazioa",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Autentifikazioa",
           "workstation": "Lanpostua",
           "workstation_placeholder": "lanaerako mahaia"
         },
@@ -366,7 +388,9 @@
           "select_encoding": "Gorputzaren kodeaketa hautatu",
           "select_method": "Metodoa hautatu",
           "text_example": "Adibidez testua: Edozein testu arrunta hemen...",
-          "title": "HTTP Aukerak",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "HTTP Aukerak",
           "xml_example": "XML adibidea"
         }
       },
@@ -374,6 +398,8 @@
         "condition_label": "Baldintza",
         "expected_value_label": "Itxarritako balioa",
         "json_query_label": "JSON kontsulta adierazpena",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "JSON kontsulta adierazpena"
       },
       "http_keyword": {
@@ -446,8 +472,13 @@
         "query_label": "Kontsulta"
       },
       "ping": {
+        "count": "Max Packets",
+        "count_description": "Number of packets to send before stopping",
+        
         "data_size": "Datuen tamaina (byteak)",
         "host": "Ostalari izena / IP",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Ping Ezarpenak"
       },
       "postgres": {
@@ -468,6 +499,8 @@
         "password_description": "RabbitMQ kudeaketa-interfazearen autentifikaziorako pasahitza",
         "setup_information_description": "RabbitMQ monitorra erabiltzeko, zure RabbitMQ konfigurazioan Kudeaketa Plugin-a gaitzea beharrezkoa da. Informazio gehiago lortzeko, mesedez, kontsultatu RabbitMQren dokumentazioa.",
         "setup_information_title": "Konfigurazio informazioa",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "RabbitMQ konfigurazioa",
         "username_description": "RabbitMQ kudeaketa-interfazearen autentifikazioaren erabiltzaile-izena"
       },
@@ -482,6 +515,8 @@
         "connection_string_label": "Konektatze-katea",
         "ignore_tls_description": "TLS ziurtagiriaren egiaztatzea saltatu (ez da gomendagarria produzioan)",
         "ignore_tls_label": "Ezikusi TLS/SSL akatsak",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Redis Konfigurazioa"
       },
       "shared": {
@@ -499,7 +534,9 @@
           "select_channel": "Aukeratu kanala",
           "select_notifier_placeholder": "Jakinarazlea aukeratu",
           "selected_channels": "Hautatutako jakinarazpen kanalak",
-          "title": "Jakinarazpen kanalenak"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Jakinarazpen kanalenak"
         },
         "proxy": {
           "add_proxy": "Proxya Gehitu",
@@ -508,7 +545,9 @@
           "remove_proxy": "Kendu proksia",
           "select_proxy_placeholder": "Proxya hautatu",
           "selected_proxy": "Hautatutako proxy",
-          "title": "hatziratz"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "hatziratz"
         },
         "tags": {
           "label": "Etiketak",
@@ -539,6 +578,8 @@
         "port_label": "Porta",
         "snmp_version_description": "Erabili beharreko SNMP protokoloaren bertsioa",
         "snmp_version_label": "SNMP bertsioa",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "SNMP ezarpenak",
         "value_validation_label": "Balioen balioztatzea (Aukerakoa)"
       },
@@ -548,11 +589,15 @@
         "connection_string_label": "Konektatze-katea",
         "query_description": "Egiaztapenerako exekutatu beharreko kontsulta. Utzi hutsik lehenetsia erabiltzeko",
         "query_label": "Kontsulta",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Microsoft SQL Server konexioa"
       },
       "tcp": {
         "host": "Ostalaria",
         "port": "Porta",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "TCP konexioa"
       },
       "type": {
@@ -579,7 +624,9 @@
       "edit_title": "Monitorea editatu:",
       "new_title": "Kontrol berria"
     },
-    "title": "Monitoreak",
+    "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Monitoreak",
     "toasts": {
       "deleted": "Monitorea ezabatu da",
       "paused": "Monitorea pausatuta",
@@ -601,15 +648,21 @@
       "dialogs": {
         "delete": {
           "description": "Ekintza hau ezin da desegin. Monitorra eta bere datu guztiak betirako ezabatuko dira.",
-          "title": "Ziur al zaude?"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ziur al zaude?"
         },
         "pause": {
           "description": "Ziur zaude pausea egin nahi duzula?",
-          "title": "Berrespena"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Berrespena"
         },
         "reset": {
           "description": "Eguneroko ezabatuko da monitor honen biziketa historia eta egonaldia estatistikak. Monitorak sortua bezalako egoeran agertuko da. Ekintza honek ezin da desegin.",
-          "title": "Monitoreko datuak berrezarri"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Monitoreko datuak berrezarri"
         }
       },
       "expiring_soon": "Iraungitzen ari da",
@@ -656,7 +709,9 @@
     "empty_state": {
       "action": "Sortu zure lehen abisuratze-kanal",
       "description": "Hasi lehen abisu kanal bat sortuz zure taldeari abisuak bidaltzeko.",
-      "title": "Ez da jakinarazpen kanalik aurkitu"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ez da jakinarazpen kanalik aurkitu"
     },
     "form": {
       "discord": {
@@ -1046,7 +1101,9 @@
       "updated_success": "Jakinarazlea ongi eguneratu da"
     },
     "new": {
-      "title": "Jakinarazpen-kanal berria"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Jakinarazpen-kanal berria"
     },
     "no_important": "Ez da garrantzitsuen jakinarazpenik aurkitu.",
     "placeholders": {
@@ -1057,7 +1114,9 @@
   "proxies": {
     "delete_dialog": {
       "description": "Ekintza hau ezin da desegin. Proxya {{host}}:{{port}} betiko ezabatuko da.",
-      "title": "Ziur zaude benetan?"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ziur zaude benetan?"
     },
     "edit": {
       "page_name": "Proxy editatu"
@@ -1065,7 +1124,9 @@
     "empty_list": {
       "action_text": "Sortu zure lehen proksi",
       "text": "Hasteko, sortu zure lehen proxya, monitoreetan erabili ahal izateko.",
-      "title": "Ez daude proxy-ak aurkitu"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ez daude proxy-ak aurkitu"
     },
     "form": {
       "auth_label": "Proxy-zerbitzariak autentifikazioa du",
@@ -1131,15 +1192,21 @@
         "failed_to_update_password": "Pasahitza eguneratzean huts egin du",
         "password_updated_successfully": "Pasahitza ongi eguneratu da"
       },
-      "title": "Pasahitza Eguneratu"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Pasahitza Eguneratu"
     },
     "api_keys": {
-      "title": "API Keys",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "API Keys",
       "description": "Manage your API keys for third-party integrations",
       "create_button": "Create API Key",
       "no_keys_title": "No API Keys",
       "no_keys_description": "Create your first API key to start integrating with external services.",
       "create_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Create New API Key",
         "description": "Create a new API key for third-party integrations. The key will be shown only once.",
         "form": {
@@ -1156,6 +1223,8 @@
         }
       },
       "success_alert": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "API Key Created Successfully",
         "description": "Your API key has been created. Copy it now as it won't be shown again:"
       },
@@ -1177,6 +1246,8 @@
         "never": "Never"
       },
       "delete_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Ezabatu API gakoa",
         "description": "Ziur zaude \"{{name}}\" API gakoa ezabatu nahi duzula? Ekintza hau ezin da desegin.",
         "buttons": {
@@ -1216,7 +1287,9 @@
     "data_retention": {
       "days_label": "Egunak",
       "description": "Ezarri zenbat egun data mantendu (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Datuen mantentze-epoa"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Datuen mantentze-epoa"
     },
     "timezone": {
       "description": "Hautatu zure gustuko den ordu-zona aplikazioan denbora guztiak erakusteko.",
@@ -1224,7 +1297,9 @@
       "no_timezone_found": "Ordu-eremurik ez da aurkitu.",
       "search_placeholder": "Bilatu ordu-zona...",
       "select_placeholder": "Hautatu ordu-eremua...",
-      "title": "Ordu-zona"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ordu-zona"
     },
     "validation": {
       "min_days": "Gutxienez 1 egun"
@@ -1256,7 +1331,9 @@
     "customization": "Pertsonalizazioa",
     "delete_dialog": {
       "description": "Ziur zaude '{{title}}' ezabatu nahi duzula? Ekintza hau ezin da desegin.",
-      "title": "Ezabatu egoera-orria"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ezabatu egoera-orria"
     },
     "description": "Sartu egoera orriaren deskribapena",
     "domain_already_used": "Domeinua {{domain}} dagoeneko beste egoera-orri batek erabiltzen du.",
@@ -1293,7 +1370,9 @@
     "empty_state": {
       "action": "Sortu zure lehen etiketa",
       "description": "Hasi lehenengo etiketa sortuz monitor-ak antolatzeko.",
-      "title": "Etiketarik ez da aurkitu"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Etiketarik ez da aurkitu"
     },
     "form": {
       "color_description": "Aukeratu zure etiketaren kolorea",

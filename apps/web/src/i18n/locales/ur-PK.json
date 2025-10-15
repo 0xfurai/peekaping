@@ -9,20 +9,26 @@
       "no_account": "کیا آپ کا کوئی اکاؤنٹ نہیں ہے؟",
       "sign_up": "سائن اپ",
       "submit": "لاگ ان",
-      "title": "دوبارہ خوش آمدید"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "دوبارہ خوش آمدید"
     },
     "register": {
       "description": "اپنا ایڈمن اکاؤنٹ بنائیں",
       "have_account": "کیا آپ کا اکاؤنٹ پہلے سے موجود ہے؟",
       "sign_in": "سائن ان",
       "submit": "بنائیں",
-      "title": "ہیلو"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "ہیلو"
     },
     "twofa": {
       "code_label": "2FA کوڈ",
       "code_placeholder": "2FA کوڈ درج کریں",
       "description": "2FA آپ کے اکاؤنٹ کے لیے فعال ہے۔ براہِ کرم اپنا تصدیقی کوڈ درج کریں تاکہ جاری رکھا جا سکے۔",
-      "title": "دو عامل تصدیق درکار ہے",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "دو عامل تصدیق درکار ہے",
       "verify_button": "2FA کی تصدیق کریں",
       "verifying": "تصدیق ہو رہا ہے..."
     }
@@ -96,7 +102,9 @@
       "password": "پاس ورڈ",
       "retries": "دوبارہ کوششیں",
       "slug": "سلگ",
-      "title": "عنوان",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "عنوان",
       "username": "صارف نام"
     },
     "placeholders": {
@@ -169,17 +177,23 @@
         "confirm_action": {
           "pause_description": "کیا آپ واقعی اس مینٹیننس کو روکنا چاہتے ہیں؟",
           "resume_description": "کیا آپ واقعی اس مرمت کو دوبارہ شروع کرنا چاہتے ہیں؟",
-          "title": "عمل کی تصدیق"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "عمل کی تصدیق"
         },
         "confirm_delete": {
           "description": "کیا آپ واقعی اس مینٹیننس ونڈو کو حذف کرنا چاہتے ہیں؟ یہ کارروائی واپس نہیں کی جا سکتی۔",
-          "title": "حذف کی تصدیق"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "حذف کی تصدیق"
         }
       },
       "edit_maintenance": "مینٹیننس کی ترمیم کریں: {{title}}",
       "empty_state": {
         "action": "اپنی پہلی مینٹیننس ونڈو بنائیں",
         "description": "شروع کریں اپنی پہلی مینٹیننس ونڈو بناتے ہوئے تاکہ شیڈول شدہ ڈاؤن ٹائم سے بچا جا سکے۔",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "کوئی مرمت کا وقت نہیں ملا"
       },
       "error_loading": "رکھ‑رکھاؤ لوڈ کرنے میں خرابی",
@@ -248,7 +262,9 @@
     "empty_state": {
       "action": "اپنا پہلا مانیٹر بنائیں",
       "description": "اپنا پہلا مانیٹر بنا کر اپنی خدمات کی صحت کو ٹریک کرنا شروع کریں۔",
-      "title": "کوئی مانیٹر نہیں ملا"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "کوئی مانیٹر نہیں ملا"
     },
     "filtering_by_tags": "ٹیگز کے ذریعے فلٹرنگ",
     "filters": {
@@ -271,6 +287,8 @@
         "record_type": "ریسورس ریکارڈ کی قسم",
         "record_type_placeholder": "ریکارڈ ٹائپ منتخب کریں",
         "resolver_server": "ریزولور سرور",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "DNS ترتیبات"
       },
       "docker": {
@@ -329,7 +347,9 @@
           "ignore_tls_description": "TLS سرٹیفکیٹ کی توثیق چھوڑیں۔ احتیاط سے استعمال کریں - اس سے کنیکشنز کم محفوظ ہو جاتے ہیں۔",
           "max_redirects": "زیادہ سے زیادہ ری ڈائریکٹ",
           "max_redirects_description": "زیادہ سے زیادہ ری ڈائریکٹس کی تعداد فالو کرنے کے لیے (0-30). ری ڈائریکٹس کو غیر فعال کرنے کے لیے 0 سیٹ کریں۔",
-          "title": "متقدم"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "متقدم"
         },
         "authentication": {
           "auth_header": "آتھارائزیشن ہیڈر",
@@ -350,7 +370,9 @@
           "oauth_scope_placeholder": "اختیاری: خالی جگہ سے جدا کردہ سکوپس کی فہرست",
           "oauth_token_url": "OAuth ٹوکن یو آر ایل",
           "oauth_token_url_placeholder": "OAuth ٹوکن URL",
-          "title": "تصدیق",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "تصدیق",
           "workstation": "ورک اسٹیشن",
           "workstation_placeholder": "ورک اسٹیشن"
         },
@@ -366,7 +388,9 @@
           "select_encoding": "بدن کوڈنگ منتخب کریں",
           "select_method": "طریقہ منتخب کریں",
           "text_example": "مثال کے طور پر متن:\nیہاں کوئی بھی سادہ متن شامل کریں...",
-          "title": "HTTP اختیارات",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "HTTP اختیارات",
           "xml_example": "مثال XML"
         }
       },
@@ -374,6 +398,8 @@
         "condition_label": "شرط",
         "expected_value_label": "متوقع قدر",
         "json_query_label": "JSON کوئری اظہار",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "JSON سوالی اظہار"
       },
       "http_keyword": {
@@ -446,8 +472,13 @@
         "query_label": "کوئری"
       },
       "ping": {
+        "count": "Max Packets",
+        "count_description": "Number of packets to send before stopping",
+        
         "data_size": "ڈیٹا سائز (بائٹس)",
         "host": "ہوسٹ نام / آئی پی",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "پیِنگ سیٹنگز"
       },
       "postgres": {
@@ -468,6 +499,8 @@
         "password_description": "RabbitMQ انتظامی انٹرفیس کی توثیق کے لیے پاس ورڈ",
         "setup_information_description": "RabbitMQ مانیٹر استعمال کرنے کے لیے، آپ کو اپنے RabbitMQ سیٹ اپ میں مینجمنٹ پلگ ان کو فعال کرنا ہوگا۔ مزید معلومات کے لیے، براہ کرم RabbitMQ دستاویزات سے رجوع کریں۔",
         "setup_information_title": "سیٹ اپ کی معلومات",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "RabbitMQ کنفیگریشن",
         "username_description": "رَبِٹ ایم کیو مینجمنٹ انٹرفیس کی توثیق کے لیے یوزر نیم"
       },
@@ -482,6 +515,8 @@
         "connection_string_label": "کنکشن سٹرنگ",
         "ignore_tls_description": "TLS سرٹیفکیٹ کی تصدیق چھوڑ دیں (پروڈکشن میں سفارش نہیں کی جاتی)",
         "ignore_tls_label": "TLS/SSL کی غلطیوں کو نظرانداز کریں",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Redis کنفیگریشن"
       },
       "shared": {
@@ -499,7 +534,9 @@
           "select_channel": "چنل منتخب کریں",
           "select_notifier_placeholder": "نوٹیفائر منتخب کریں",
           "selected_channels": "منتخب شدہ نوٹیفیکیشن چینلز",
-          "title": "نوٹیفکیشن چینلز"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "نوٹیفکیشن چینلز"
         },
         "proxy": {
           "add_proxy": "پروکسی شامل کریں",
@@ -508,7 +545,9 @@
           "remove_proxy": "پروکسی ہٹائیں",
           "select_proxy_placeholder": "پروکسی منتخب کریں",
           "selected_proxy": "منتخب شدہ پراکسی",
-          "title": "پروکسی"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "پروکسی"
         },
         "tags": {
           "label": "ٹیگز",
@@ -539,6 +578,8 @@
         "port_label": "پورٹ",
         "snmp_version_description": "استعمال کے لیے SNMP پروٹوکول کا ورژن",
         "snmp_version_label": "SNMP ورژن",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "SNMP ترتیبات",
         "value_validation_label": "مقدار کی تصدیق (اختیاری)"
       },
@@ -548,11 +589,15 @@
         "connection_string_label": "کنیکشن سٹرنگ",
         "query_description": "صحت چیک کے لیے چلانے والی کوئری۔ خالی چھوڑیں تو ڈیفالٹ استعمال ہو گا۔",
         "query_label": "کوئری",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Microsoft SQL Server کنکشن"
       },
       "tcp": {
         "host": "ہوسٹ",
         "port": "پورٹ",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "ٹی سی پی کنکشن"
       },
       "type": {
@@ -579,7 +624,9 @@
       "edit_title": "مانیٹر میں ترمیم کریں:",
       "new_title": "نیا مانیٹر"
     },
-    "title": "مانیٹرز",
+    "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "مانیٹرز",
     "toasts": {
       "deleted": "مانیٹر حذف ہوا",
       "paused": "مانیٹر معطل",
@@ -601,15 +648,21 @@
       "dialogs": {
         "delete": {
           "description": "یہ کارروائی واپس نہیں لی جا سکتی۔ اس سے مانیٹر اور تمام متعلقہ ڈیٹا مستقل طور پر حذف ہو جائے گا۔",
-          "title": "کیا آپ واقعی یقین رکھتے ہیں؟"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "کیا آپ واقعی یقین رکھتے ہیں؟"
         },
         "pause": {
           "description": "کیا آپ واقعی روکنا چاہتے ہیں؟",
-          "title": "تصدیق"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "تصدیق"
         },
         "reset": {
           "description": "یہ عمل اس مانیٹر کے تمام ہارٹ بیٹ ہسٹری اور اپ ٹائم سٹیٹس کو مستقل طور پر حذف کر دے گا۔ مانیٹر ایسا دکھائی دے گا جیسے ابھی ابھی بنایا گیا ہو۔ یہ کارروائی واپس نہیں لی جا سکتی۔",
-          "title": "مانیٹر کا ڈیٹا ری سیٹ کریں"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "مانیٹر کا ڈیٹا ری سیٹ کریں"
         }
       },
       "expiring_soon": "قریبی ختم ہونے والا",
@@ -656,7 +709,9 @@
     "empty_state": {
       "action": "اپنا پہلا نوٹیفیکیشن چینل بنائیں",
       "description": "شروع کریں اپنا پہلا نوٹیفیکیشن چینل بنائیں تاکہ آپ اپنی ٹیم کو الرٹس بھیج سکیں۔",
-      "title": "کوئی نوٹیفیکیشن چینل نہیں ملا"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "کوئی نوٹیفیکیشن چینل نہیں ملا"
     },
     "form": {
       "discord": {
@@ -1045,7 +1100,9 @@
       "updated_success": "نوٹیفائر کامیابی سے اپ ڈیٹ ہو گیا"
     },
     "new": {
-      "title": "نیا نوٹیفیکیشن چینل"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "نیا نوٹیفیکیشن چینل"
     },
     "no_important": "کوئی اہم نوٹیفیکیشن نہیں ملی۔",
     "placeholders": {
@@ -1056,7 +1113,9 @@
   "proxies": {
     "delete_dialog": {
       "description": "یہ کارروائی واپس نہیں لی جا سکتی۔ یہ مستقل طور پر پروکسی {{host}}:{{port}} کو حذف کر دے گا۔",
-      "title": "کیا آپ واقعی یقین رکھتے ہیں؟"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "کیا آپ واقعی یقین رکھتے ہیں؟"
     },
     "edit": {
       "page_name": "پروکسی ترمیم کریں"
@@ -1064,7 +1123,9 @@
     "empty_list": {
       "action_text": "اپنا پہلا پراکسی بنائیں",
       "text": "اپنا پہلا پراکسی بنائیں تاکہ آپ اسے اپنے مانیٹرز میں استعمال کر سکیں۔",
-      "title": "کوئی پراکسی نہیں ملی"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "کوئی پراکسی نہیں ملی"
     },
     "form": {
       "auth_label": "پروکسی سرور میں تصدیق موجود ہے",
@@ -1130,15 +1191,21 @@
         "failed_to_update_password": "پاس ورڈ اپ ڈیٹ کرنے میں ناکام",
         "password_updated_successfully": "پاس ورڈ کامیابی سے اپ ڈیٹ ہوا"
       },
-      "title": "پاس ورڈ اپ ڈیٹ کریں"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "پاس ورڈ اپ ڈیٹ کریں"
     },
     "api_keys": {
-      "title": "API Keys",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "API Keys",
       "description": "Manage your API keys for third-party integrations",
       "create_button": "Create API Key",
       "no_keys_title": "No API Keys",
       "no_keys_description": "Create your first API key to start integrating with external services.",
       "create_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Create New API Key",
         "description": "Create a new API key for third-party integrations. The key will be shown only once.",
         "form": {
@@ -1155,6 +1222,8 @@
         }
       },
       "success_alert": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "API Key Created Successfully",
         "description": "Your API key has been created. Copy it now as it won't be shown again:"
       },
@@ -1176,6 +1245,8 @@
         "never": "Never"
       },
       "delete_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "API کلید حذف کریں",
         "description": "کیا آپ یقینی ہیں کہ آپ API کلید \"{{name}}\" کو حذف کرنا چاہتے ہیں؟ یہ عمل واپس نہیں لیا جا سکتا۔",
         "buttons": {
@@ -1215,7 +1286,9 @@
     "data_retention": {
       "days_label": "دن",
       "description": "ڈیٹا کو کتنے دن تک رکھنے کا تعین کریں (KEEP_DATA_PERIOD_DAYS).",
-      "title": "ڈیٹا برقرار رکھنے کا دورانیہ"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "ڈیٹا برقرار رکھنے کا دورانیہ"
     },
     "timezone": {
       "description": "اپنا پسندیدہ ٹائم زون منتخب کریں تاکہ ایپ میں تمام وقت دکھائے جائیں۔",
@@ -1223,7 +1296,9 @@
       "no_timezone_found": "کوئی ٹائم زون نہیں ملا۔",
       "search_placeholder": "ٹائم زون تلاش کریں...",
       "select_placeholder": "ٹائم زون منتخب کریں...",
-      "title": "ٹائم زون"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "ٹائم زون"
     },
     "validation": {
       "min_days": "کم از کم 1 دن ہونا ضروری ہے"
@@ -1255,7 +1330,9 @@
     "customization": "حسبِ ضرورت",
     "delete_dialog": {
       "description": "کیا آپ واقعی \"{{title}}\" حذف کرنا چاہتے ہیں؟ یہ کارروائی واپس نہیں لائی جا سکتی۔",
-      "title": "حیثیت صفحہ حذف کریں"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "حیثیت صفحہ حذف کریں"
     },
     "description": "حیثیت صفحے کی تفصیل درج کریں",
     "domain_already_used": "ڈومین {{domain}} پہلے ہی کسی دوسری اسٹیٹس پیج کے ذریعے استعمال ہو چکا ہے",
@@ -1292,7 +1369,9 @@
     "empty_state": {
       "action": "اپنا پہلا ٹیگ بنائیں",
       "description": "پہلا ٹیگ بنا کر شروع کریں تاکہ اپنے مانیٹرز کو منظم کر سکیں۔",
-      "title": "کوئی ٹیگ نہیں ملا"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "کوئی ٹیگ نہیں ملا"
     },
     "form": {
       "color_description": "اپنے ٹیگ کے لیے ایک رنگ منتخب کریں",

@@ -9,20 +9,26 @@
       "no_account": "Нямате акаунт?",
       "sign_up": "Регистрирайте се",
       "submit": "Вход",
-      "title": "Добре дошли отново"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Добре дошли отново"
     },
     "register": {
       "description": "Създайте вашия администраторски акаунт",
       "have_account": "Вече имате акаунт?",
       "sign_in": "Влез",
       "submit": "Създай",
-      "title": "Здравейте"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Здравейте"
     },
     "twofa": {
       "code_label": "Код за двуфакторна автентификация",
       "code_placeholder": "Въведете 2FA код",
       "description": "2FA е активирана за вашия акаунт. Моля, въведете вашия код за удостоверяване, за да продължите.",
-      "title": "Изисквана двуфакторна автентикация",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Изисквана двуфакторна автентикация",
       "verify_button": "Потвърди 2FA",
       "verifying": "Проверяване..."
     }
@@ -96,7 +102,9 @@
       "password": "Парола",
       "retries": "Опити",
       "slug": "Част от URL",
-      "title": "Заглавие",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Заглавие",
       "username": "Потребителско име"
     },
     "placeholders": {
@@ -169,17 +177,23 @@
         "confirm_action": {
           "pause_description": "Сигурни ли сте, че искате да паузирате тази поддръжка?",
           "resume_description": "Сигурни ли сте, че искате да възобновите тази поддръжка?",
-          "title": "Потвърдете действието"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Потвърдете действието"
         },
         "confirm_delete": {
           "description": "Сигурни ли сте, че искате да изтриете този прозорец за поддръжка? Това действие не може да бъде отменено.",
-          "title": "Потвърди изтриване"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Потвърди изтриване"
         }
       },
       "edit_maintenance": "Редактиране на поддръжка: {{title}}",
       "empty_state": {
         "action": "Създайте първия прозорец за поддръжка",
         "description": "Започнете, като създадете първия си прозорец за поддръжка, за да предотвратите планираните прекъсвания.",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Няма намерени прозорци за поддръжка"
       },
       "error_loading": "Грешка при зареждането на страницата за поддръжка",
@@ -248,7 +262,9 @@
     "empty_state": {
       "action": "Създайте първия си монитор",
       "description": "Започнете, като създадете първия си монитор, за да проследите здравето на вашите услуги.",
-      "title": "Няма намерени монитори"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Няма намерени монитори"
     },
     "filtering_by_tags": "Филтриране по етикети",
     "filters": {
@@ -271,6 +287,8 @@
         "record_type": "Тип на ресурсен запис",
         "record_type_placeholder": "Изберете тип запис",
         "resolver_server": "DNS резолвер",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "DNS настройки"
       },
       "docker": {
@@ -329,7 +347,9 @@
           "ignore_tls_description": "Изключете валидирането на TLS сертификата. Използвайте с повишено внимание — това прави връзките по-малко сигурни.",
           "max_redirects": "Максимален брой пренасочвания",
           "max_redirects_description": "Максимален брой пренасочвания, които да следвате (0–30). Задайте 0, за да деактивирате пренасочванията.",
-          "title": "Разширено"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Разширено"
         },
         "authentication": {
           "auth_header": "Заглавка за автентикация",
@@ -350,7 +370,9 @@
           "oauth_scope_placeholder": "Опционално: списък от обхвати, разделени с интервали",
           "oauth_token_url": "URL за OAuth токен",
           "oauth_token_url_placeholder": "URL за OAuth токен",
-          "title": "Автентикация",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Автентикация",
           "workstation": "Работна станция",
           "workstation_placeholder": "Работна станция"
         },
@@ -366,7 +388,9 @@
           "select_encoding": "Изберете кодиране на тялото",
           "select_method": "Изберете метод",
           "text_example": "Примерен текст:\nТук е обикновено текстово съдържание...",
-          "title": "Опции за HTTP",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Опции за HTTP",
           "xml_example": "Пример за XML"
         }
       },
@@ -374,6 +398,8 @@
         "condition_label": "Условие",
         "expected_value_label": "Очаквана стойност",
         "json_query_label": "Израз за JSON заявка",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Израз за JSON заявка"
       },
       "http_keyword": {
@@ -446,8 +472,13 @@
         "query_label": "SQL заявка"
       },
       "ping": {
+        "count": "Max Packets",
+        "count_description": "Number of packets to send before stopping",
+        
         "data_size": "Размер на данните (байтове)",
         "host": "Име на хоста / IP адрес",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Настройки на пинг"
       },
       "postgres": {
@@ -468,6 +499,8 @@
         "password_description": "Парола за автентикация в интерфейса за управление на RabbitMQ",
         "setup_information_description": "За да използвате монитора RabbitMQ, трябва да активирате плъгина за управление във конфигурацията на RabbitMQ. За повече информация, моля, консултирайте документацията на RabbitMQ.",
         "setup_information_title": "Информация за настройката",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Конфигурация на RabbitMQ",
         "username_description": "Потребителско име за автентикация в управляващия интерфейс на RabbitMQ"
       },
@@ -482,6 +515,8 @@
         "connection_string_label": "Строка за свързване",
         "ignore_tls_description": "Изключи проверката на TLS сертификата (не се препоръчва за продукционна среда)",
         "ignore_tls_label": "Игнорирай TLS/SSL грешки",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Конфигурация на Redis"
       },
       "shared": {
@@ -499,7 +534,9 @@
           "select_channel": "Изберете канал",
           "select_notifier_placeholder": "Изберете известител",
           "selected_channels": "Избрани канали за известия",
-          "title": "Канали за уведомления"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Канали за уведомления"
         },
         "proxy": {
           "add_proxy": "Добави прокси",
@@ -508,7 +545,9 @@
           "remove_proxy": "Премахни прокси",
           "select_proxy_placeholder": "Изберете прокси",
           "selected_proxy": "Избран прокси",
-          "title": "Прокси"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Прокси"
         },
         "tags": {
           "label": "Етикети",
@@ -539,6 +578,8 @@
         "port_label": "Порт",
         "snmp_version_description": "Версия на SNMP протокола, която да използвате",
         "snmp_version_label": "SNMP версия",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "SNMP настройки",
         "value_validation_label": "Проверка на стойността (опционално)"
       },
@@ -548,11 +589,15 @@
         "connection_string_label": "Строка за свързване",
         "query_description": "SQL заявка за изпълнение при проверка на здравето. Оставете празно, за да използвате настройките по подразбиране.",
         "query_label": "Запитване",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Свързване към Microsoft SQL Server"
       },
       "tcp": {
         "host": "Хост",
         "port": "Порт",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "TCP връзка"
       },
       "type": {
@@ -579,7 +624,9 @@
       "edit_title": "Редактиране на монитор:",
       "new_title": "Нов монитор"
     },
-    "title": "Монитори",
+    "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Монитори",
     "toasts": {
       "deleted": "Мониторът е изтрит",
       "paused": "Мониторът е паузиран",
@@ -601,15 +648,21 @@
       "dialogs": {
         "delete": {
           "description": "Това действие не може да бъде отменено. То ще изтрие монитора завинаги и всички свързани данни.",
-          "title": "Сигурни ли сте напълно?"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Сигурни ли сте напълно?"
         },
         "pause": {
           "description": "Сигурни ли сте, че искате да паузирате?",
-          "title": "Потвърждение"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Потвърждение"
         },
         "reset": {
           "description": "Това ще изтрие завинаги историята на heartbeat и статистиките за времето на работа за този монитор. Мониторът ще изглежда сякаш току-що е създаден. Това действие не може да бъде отменено.",
-          "title": "Нулиране на данните на монитора"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Нулиране на данните на монитора"
         }
       },
       "expiring_soon": "Изтича скоро",
@@ -656,7 +709,9 @@
     "empty_state": {
       "action": "Създайте своя първи канал за уведомления",
       "description": "Започнете, като създадете първия си канал за известия, за да изпращате сигнали на екипа си.",
-      "title": "Няма намерени канали за известия"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Няма намерени канали за известия"
     },
     "form": {
       "discord": {
@@ -1046,7 +1101,9 @@
       "updated_success": "Известителят е актуализиран успешно."
     },
     "new": {
-      "title": "Нов канал за уведомления"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Нов канал за уведомления"
     },
     "no_important": "Няма важни известия.",
     "placeholders": {
@@ -1057,7 +1114,9 @@
   "proxies": {
     "delete_dialog": {
       "description": "Това действие не може да бъде отменено. Това ще изтрие завинаги прокси сървъра {{host}}:{{port}}.",
-      "title": "Наистина ли сте сигурни?"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Наистина ли сте сигурни?"
     },
     "edit": {
       "page_name": "Редактиране на прокси"
@@ -1065,7 +1124,9 @@
     "empty_list": {
       "action_text": "Създайте първия прокси",
       "text": "Започнете, като създадете първия си прокси, който да се използва във вашите монитори.",
-      "title": "Няма намерени прокси"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Няма намерени прокси"
     },
     "form": {
       "auth_label": "Прокси сървърът изисква автентикация",
@@ -1131,15 +1192,21 @@
         "failed_to_update_password": "Неуспешно обновяване на паролата",
         "password_updated_successfully": "Паролата е актуализирана"
       },
-      "title": "Промяна на паролата"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Промяна на паролата"
     },
     "api_keys": {
-      "title": "API Ключове",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "API Ключове",
       "description": "Управлявайте вашите API ключове за интеграция с трети страни",
       "create_button": "Създай API Ключ",
       "no_keys_title": "Няма API Ключове",
       "no_keys_description": "Създайте първия си API ключ, за да започнете интеграция с външни услуги.",
       "create_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Създай Нов API Ключ",
         "description": "Създайте нов API ключ за интеграция с трети страни. Ключът ще бъде показан само веднъж.",
         "form": {
@@ -1156,6 +1223,8 @@
         }
       },
       "success_alert": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "API Ключът е Създаден Успешно",
         "description": "Вашият API ключ е създаден. Копирайте го сега, тъй като няма да бъде показан отново:"
       },
@@ -1177,6 +1246,8 @@
         "never": "Никога"
       },
       "delete_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Изтриване на API ключ",
         "description": "Сигурни ли сте, че искате да изтриете API ключа \"{{name}}\"? Това действие не може да бъде отменено.",
         "buttons": {
@@ -1216,7 +1287,9 @@
     "data_retention": {
       "days_label": "Дни",
       "description": "Задайте колко дни да се запазват данните (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Период на съхранение на данни"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Период на съхранение на данни"
     },
     "timezone": {
       "description": "Изберете вашата предпочитана часова зона за показване на всички времена във приложението.",
@@ -1224,7 +1297,9 @@
       "no_timezone_found": "Не е намерена часовата зона.",
       "search_placeholder": "Търсене на часови зони...",
       "select_placeholder": "Изберете часовата зона...",
-      "title": "Часова зона"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Часова зона"
     },
     "validation": {
       "min_days": "Трябва да бъде най-малко 1 ден"
@@ -1256,7 +1331,9 @@
     "customization": "Персонализация",
     "delete_dialog": {
       "description": "Сигурни ли сте, че искате да изтриете \"{{title}}\"? Това действие не може да бъде отменено.",
-      "title": "Изтриване на страница за статус"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Изтриване на страница за статус"
     },
     "description": "Въведете описание на страницата за статус",
     "domain_already_used": "Доменът {{domain}} вече се използва от друга страница за статус.",
@@ -1293,7 +1370,9 @@
     "empty_state": {
       "action": "Създайте първия си етикет",
       "description": "Започнете, като създадете първия си етикет, за да организирате мониторите си.",
-      "title": "Няма намерени етикети"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Няма намерени етикети"
     },
     "form": {
       "color_description": "Изберете цвят за вашия етикет",

@@ -9,20 +9,26 @@
       "no_account": "Nu ai un cont?",
       "sign_up": "Înregistrează-te",
       "submit": "Conectare",
-      "title": "Bine ai revenit"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Bine ai revenit"
     },
     "register": {
       "description": "Creați contul de admin",
       "have_account": "Ai deja un cont?",
       "sign_in": "Autentificare",
       "submit": "Creează",
-      "title": "Salut"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Salut"
     },
     "twofa": {
       "code_label": "Cod 2FA",
       "code_placeholder": "Introduceți codul 2FA",
       "description": "Autentificarea în doi pași este activată pentru contul dvs. Vă rugăm să introduceți codul de autentificare pentru a continua.",
-      "title": "Autentificare cu doi factori necesară",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Autentificare cu doi factori necesară",
       "verify_button": "Verifică 2FA",
       "verifying": "Se verifică..."
     }
@@ -96,7 +102,9 @@
       "password": "Parola",
       "retries": "Reîncercări",
       "slug": "Slug",
-      "title": "Titlu",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Titlu",
       "username": "Nume de utilizator"
     },
     "placeholders": {
@@ -169,17 +177,23 @@
         "confirm_action": {
           "pause_description": "Sunteți sigur că doriți să suspendați această întreținere?",
           "resume_description": "Sunteți sigur că doriți să reluați această întreținere?",
-          "title": "Confirmă acțiunea"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Confirmă acțiunea"
         },
         "confirm_delete": {
           "description": "Sunteți sigur că doriți să ștergeți această fereastră de întreținere? Această acțiune nu poate fi anulată.",
-          "title": "Confirmă ștergerea"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Confirmă ștergerea"
         }
       },
       "edit_maintenance": "Editează întreținere: {{title}}",
       "empty_state": {
         "action": "Creați prima fereastră de mentenanță",
         "description": "Începeți prin crearea primei fereastră de mentenanță pentru a preveni perioadele programate de nefuncționare.",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Nu există ferestre de mentenanță"
       },
       "error_loading": "Eroare la încărcarea paginii de mentenanță",
@@ -248,7 +262,9 @@
     "empty_state": {
       "action": "Creați primul monitor",
       "description": "Începe prin crearea primului monitor pentru a urmări starea de sănătate a serviciilor tale.",
-      "title": "Nu există monitoare"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Nu există monitoare"
     },
     "filtering_by_tags": "Filtrare după etichete",
     "filters": {
@@ -271,6 +287,8 @@
         "record_type": "Tip de înregistrare de resursă",
         "record_type_placeholder": "Selectați un tip de înregistrare",
         "resolver_server": "Server de rezolvare",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Setări DNS"
       },
       "docker": {
@@ -329,7 +347,9 @@
           "ignore_tls_description": "Omite validarea certificatului TLS. Folosește cu prudență – acest lucru face conexiunile mai puțin sigure.",
           "max_redirects": "Redirecturi maxime",
           "max_redirects_description": "Numărul maxim de redirecționări urmate (0-30). Setează la 0 pentru a dezactiva redirecționările.",
-          "title": "Avansat"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Avansat"
         },
         "authentication": {
           "auth_header": "Antet de autorizare",
@@ -350,7 +370,9 @@
           "oauth_scope_placeholder": "Opțional: Listă de scope-uri separate prin spațiu",
           "oauth_token_url": "URL pentru token OAuth",
           "oauth_token_url_placeholder": "URL de token OAuth",
-          "title": "Autentificare",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Autentificare",
           "workstation": "Stație de lucru",
           "workstation_placeholder": "Stație de lucru"
         },
@@ -366,7 +388,9 @@
           "select_encoding": "Selectează codificarea corpului",
           "select_method": "Selectează metoda",
           "text_example": "Exemplu de text:\nOrice conținut de text simplu aici...",
-          "title": "Opțiuni HTTP",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Opțiuni HTTP",
           "xml_example": "Exemplu XML"
         }
       },
@@ -374,6 +398,8 @@
         "condition_label": "Condiție",
         "expected_value_label": "Valoare așteptată",
         "json_query_label": "Expresie de interogare JSON",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Expresie de interogare JSON"
       },
       "http_keyword": {
@@ -446,8 +472,13 @@
         "query_label": "Interogare"
       },
       "ping": {
+        "count": "Max Packets",
+        "count_description": "Number of packets to send before stopping",
+        
         "data_size": "Dimensiune date (octeți)",
         "host": "Nume gazdă / IP",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Setări Ping"
       },
       "postgres": {
@@ -468,6 +499,8 @@
         "password_description": "Parola pentru autentificarea interfeței de administrare RabbitMQ",
         "setup_information_description": "Pentru a utiliza monitorul RabbitMQ, trebuie să activați Pluginul de Administrare în configurația RabbitMQ. Pentru mai multe informații, vă rugăm să consultați documentația RabbitMQ.",
         "setup_information_title": "Informații de configurare",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Configurare RabbitMQ",
         "username_description": "Nume de utilizator pentru autentificarea interfeței de administrare RabbitMQ"
       },
@@ -482,6 +515,8 @@
         "connection_string_label": "Șir de conexiune",
         "ignore_tls_description": "Omite verificarea certificatului TLS (nu recomandat pentru producție)",
         "ignore_tls_label": "Ignoră erorile TLS/SSL",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Configurare Redis"
       },
       "shared": {
@@ -499,7 +534,9 @@
           "select_channel": "Selectează canalul",
           "select_notifier_placeholder": "Selectează notificator",
           "selected_channels": "Canale de notificare selectate",
-          "title": "Canale de notificare"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Canale de notificare"
         },
         "proxy": {
           "add_proxy": "Adaugă proxy",
@@ -508,7 +545,9 @@
           "remove_proxy": "Elimină Proxy",
           "select_proxy_placeholder": "Selectează proxy",
           "selected_proxy": "Proxy selectat",
-          "title": "Proxy"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Proxy"
         },
         "tags": {
           "label": "Etichete",
@@ -539,6 +578,8 @@
         "port_label": "Port",
         "snmp_version_description": "Versiunea protocolului SNMP de utilizat",
         "snmp_version_label": "Versiune SNMP",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Setări SNMP",
         "value_validation_label": "Validare valoare (Opțională)"
       },
@@ -548,11 +589,15 @@
         "connection_string_label": "Șir de conexiune",
         "query_description": "Interogare de executat pentru verificarea stării de sănătate. Lăsați gol pentru a utiliza implicit.",
         "query_label": "Interogare",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Conexiune Microsoft SQL Server"
       },
       "tcp": {
         "host": "Gazda",
         "port": "Port",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Conexiune TCP"
       },
       "type": {
@@ -579,7 +624,9 @@
       "edit_title": "Editează monitorul:",
       "new_title": "Monitor nou"
     },
-    "title": "Monitoare",
+    "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Monitoare",
     "toasts": {
       "deleted": "Monitor șters",
       "paused": "Monitor în pauză",
@@ -601,15 +648,21 @@
       "dialogs": {
         "delete": {
           "description": "Această acțiune nu poate fi anulată. Aceasta va șterge definitiv monitorul și toate datele asociate.",
-          "title": "Sunteți sigur?"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Sunteți sigur?"
         },
         "pause": {
           "description": "Sunteți sigur că doriți să faceți o pauză?",
-          "title": "Confirmare"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Confirmare"
         },
         "reset": {
           "description": "Aceasta va șterge permanent tot istoricul de heartbeat și statisticile de uptime pentru acest monitor. Monitorul va apărea ca și cum ar fi fost tocmai creat. Această acțiune nu poate fi anulată.",
-          "title": "Resetează datele monitorului"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Resetează datele monitorului"
         }
       },
       "expiring_soon": "În curând expiră",
@@ -656,7 +709,9 @@
     "empty_state": {
       "action": "Creați primul canal de notificări",
       "description": "Începeți prin a crea primul canal de notificare pentru a trimite alerte echipei dvs.",
-      "title": "Nu există canale de notificare"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Nu există canale de notificare"
     },
     "form": {
       "discord": {
@@ -1045,7 +1100,9 @@
       "updated_success": "Notifier actualizat cu succes"
     },
     "new": {
-      "title": "Canal nou de notificare"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Canal nou de notificare"
     },
     "no_important": "Nu există notificări importante.",
     "placeholders": {
@@ -1056,7 +1113,9 @@
   "proxies": {
     "delete_dialog": {
       "description": "Această acțiune nu poate fi anulată. Aceasta va șterge permanent proxy-ul {{host}}:{{port}}.",
-      "title": "Ești sigur pe deplin?"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ești sigur pe deplin?"
     },
     "edit": {
       "page_name": "Editează proxy"
@@ -1064,7 +1123,9 @@
     "empty_list": {
       "action_text": "Creați primul proxy",
       "text": "Începe prin crearea primei proxy pentru a o utiliza în monitorizările tale.",
-      "title": "Nu au fost găsite proxy-uri"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Nu au fost găsite proxy-uri"
     },
     "form": {
       "auth_label": "Serverul proxy necesită autentificare",
@@ -1130,15 +1191,21 @@
         "failed_to_update_password": "Nu s-a putut actualiza parola",
         "password_updated_successfully": "Parola actualizată cu succes"
       },
-      "title": "Actualizare parolă"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Actualizare parolă"
     },
     "api_keys": {
-      "title": "Chei API",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Chei API",
       "description": "Gestionează cheile tale API pentru integrări cu terți",
       "create_button": "Creează Cheie API",
       "no_keys_title": "Nu Există Chei API",
       "no_keys_description": "Creează prima ta cheie API pentru a începe integrarea cu servicii externe.",
       "create_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Creează Cheie API Nouă",
         "description": "Creează o cheie API nouă pentru integrări cu terți. Cheia va fi afișată o singură dată.",
         "form": {
@@ -1155,6 +1222,8 @@
         }
       },
       "success_alert": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Cheia API a Fost Creată cu Succes",
         "description": "Cheia ta API a fost creată. Copiază-o acum pentru că nu va mai fi afișată:"
       },
@@ -1176,6 +1245,8 @@
         "never": "Niciodată"
       },
       "delete_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Șterge cheia API",
         "description": "Sunteți sigur că doriți să ștergeți cheia API \"{{name}}\"? Această acțiune nu poate fi anulată.",
         "buttons": {
@@ -1215,7 +1286,9 @@
     "data_retention": {
       "days_label": "Zile",
       "description": "Setează câte zile să păstrezi datele (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Perioada de păstrare a datelor"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Perioada de păstrare a datelor"
     },
     "timezone": {
       "description": "Selectați fusul orar preferat pentru afișarea tuturor orelor în aplicație.",
@@ -1223,7 +1296,9 @@
       "no_timezone_found": "Niciun fus orar găsit.",
       "search_placeholder": "Caută fus orar...",
       "select_placeholder": "Selectează fusul orar...",
-      "title": "Fus orar"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Fus orar"
     },
     "validation": {
       "min_days": "Trebuie să fie cel puțin 1 zi"
@@ -1255,7 +1330,9 @@
     "customization": "Personalizare",
     "delete_dialog": {
       "description": "Sunteți sigur că doriți să ștergeți \"{{title}}\"? Această acțiune nu poate fi anulată.",
-      "title": "Șterge pagina de stare"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Șterge pagina de stare"
     },
     "description": "Introduceți descrierea paginii de stare",
     "domain_already_used": "Domeniul {{domain}} este deja utilizat de o altă pagină de stare",
@@ -1292,7 +1369,9 @@
     "empty_state": {
       "action": "Creați primul tag",
       "description": "Începeți prin crearea primei etichete pentru a organiza monitoarele.",
-      "title": "Nu există etichete"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Nu există etichete"
     },
     "form": {
       "color_description": "Alegeți o culoare pentru eticheta dvs.",

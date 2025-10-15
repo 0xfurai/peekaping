@@ -446,8 +446,12 @@
         "query_label": "استعلام"
       },
       "ping": {
+        "count": "الحد الأقصى للحزم",
+        "count_description": "عدد الحزم المرسلة قبل التوقف",
         "data_size": "حجم البيانات (بايتات)",
         "host": "اسم المضيف / عنوان IP",
+        "per_request_timeout": "مهلة زمنية لكل ping (ثواني)",
+        "per_request_timeout_description": "الحد الأقصى لوقت الانتظار قبل اعتبار ping واحد مفقود",
         "title": "إعدادات Ping"
       },
       "postgres": {

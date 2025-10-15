@@ -9,20 +9,26 @@
       "no_account": "Δεν έχετε λογαριασμό;",
       "sign_up": "Εγγραφή",
       "submit": "Σύνδεση",
-      "title": "Καλώς ήρθες ξανά"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Καλώς ήρθες ξανά"
     },
     "register": {
       "description": "Δημιουργήστε τον λογαριασμό διαχειριστή σας",
       "have_account": "Έχετε ήδη λογαριασμό?",
       "sign_in": "Σύνδεση",
       "submit": "Δημιουργία",
-      "title": "Γειά"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Γειά"
     },
     "twofa": {
       "code_label": "Κωδικός 2FA",
       "code_placeholder": "Εισαγάγετε κωδικό 2FA",
       "description": "Η 2FA έχει ενεργοποιηθεί για τον λογαριασμό σας. Παρακαλούμε εισάγετε τον κωδικό 2FA για να συνεχίσετε.",
-      "title": "Απαιτείται Διπλή Αυθεντικοποίηση",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Απαιτείται Διπλή Αυθεντικοποίηση",
       "verify_button": "Επιβεβαίωση 2FA",
       "verifying": "Επαλήθευση…"
     }
@@ -96,7 +102,9 @@
       "password": "Κωδικός πρόσβασης",
       "retries": "Επαναπροσπάθειες",
       "slug": "σλογκ",
-      "title": "Τίτλος",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Τίτλος",
       "username": "Όνομα χρήστη"
     },
     "placeholders": {
@@ -169,17 +177,23 @@
         "confirm_action": {
           "pause_description": "Είστε σίγουροι ότι θέλετε να κάνετε παύση σε αυτή τη συντήρηση;",
           "resume_description": "Είστε βέβαιοι ότι θέλετε να συνεχίσετε τη συντήρηση;",
-          "title": "Επιβεβαίωση ενέργειας"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Επιβεβαίωση ενέργειας"
         },
         "confirm_delete": {
           "description": "Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το παράθυρο συντήρησης; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
-          "title": "Επιβεβαίωση Διαγραφής"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Επιβεβαίωση Διαγραφής"
         }
       },
       "edit_maintenance": "Επεξεργασία Συντήρησης: {{title}}",
       "empty_state": {
         "action": "Δημιουργήστε το πρώτο σας παράθυρο συντήρησης",
         "description": "Ξεκινήστε δημιουργώντας το πρώτο σας παράθυρο συντήρησης για να αποτρέψετε προγραμματισμένες διακοπές λειτουργίας.",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Δεν βρέθηκαν παράθυρα συντήρησης"
       },
       "error_loading": "Σφάλμα φόρτωσης συντήρησης",
@@ -248,7 +262,9 @@
     "empty_state": {
       "action": "Δημιουργήστε την πρώτη σας παρακολούθηση",
       "description": "Ξεκινήστε δημιουργώντας τον πρώτο παρατηρητή σας για να παρακολουθείτε την υγεία των υπηρεσιών σας.",
-      "title": "Δεν βρέθηκαν παρατηρήσεις"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Δεν βρέθηκαν παρατηρήσεις"
     },
     "filtering_by_tags": "Φιλτράρισμα κατά ετικέτες",
     "filters": {
@@ -271,6 +287,8 @@
         "record_type": "Τύπος εγγραφής πόρων",
         "record_type_placeholder": "Επιλέξτε τύπο εγγραφής",
         "resolver_server": "Διακομιστής επίλυσης",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Ρυθμίσεις DNS"
       },
       "docker": {
@@ -329,7 +347,9 @@
           "ignore_tls_description": "Παράλειψε την επαλήθευση πιστοποιητικού TLS. Χρησιμοποίησε με προσοχή – αυτό μειώνει την ασφάλεια των συνδέσεων.",
           "max_redirects": "Μέγιστες Ανακατευθύνσεις",
           "max_redirects_description": "Μέγιστος αριθμός ανακατευθύνσεων προς ακολούθηση (0–30). Ορίστε σε 0 για να απενεργοποιήσετε τις ανακατευθύνσεις.",
-          "title": "Προχωρημένο"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Προχωρημένο"
         },
         "authentication": {
           "auth_header": "Κεφαλίδα εξουσιοδότησης",
@@ -350,7 +370,9 @@
           "oauth_scope_placeholder": "Προαιρετικά: Λίστα scopes χωρισμένη με κενά",
           "oauth_token_url": "URL διακριτικού OAuth",
           "oauth_token_url_placeholder": "URL Διακριτικού OAuth",
-          "title": "Πιστοποίηση",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Πιστοποίηση",
           "workstation": "Σταθμός εργασίας",
           "workstation_placeholder": "Σταθμός εργασίας"
         },
@@ -366,7 +388,9 @@
           "select_encoding": "Επιλέξτε κωδικοποίηση σώματος",
           "select_method": "Επιλέξτε μέθοδο",
           "text_example": "Παράδειγμα κειμένου: Κάθε απλό κείμενο εδώ...",
-          "title": "Επιλογές HTTP",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Επιλογές HTTP",
           "xml_example": "Παράδειγμα XML"
         }
       },
@@ -374,6 +398,8 @@
         "condition_label": "Συνθήκη",
         "expected_value_label": "Αναμενόμενη Αξία",
         "json_query_label": "Έκφραση ερωτήματος JSON",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Έκφραση ερωτήματος JSON"
       },
       "http_keyword": {
@@ -446,8 +472,13 @@
         "query_label": "Ερώτημα"
       },
       "ping": {
+        "count": "Max Packets",
+        "count_description": "Number of packets to send before stopping",
+        
         "data_size": "Μέγεθος δεδομένων (bytes)",
         "host": "Όνομα κεντρικού υπολογιστή / IP",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Ρυθμίσεις Ping"
       },
       "postgres": {
@@ -468,6 +499,8 @@
         "password_description": "Κωδικός πρόσβασης για την ταυτοποίηση στη διεπαφή διαχείρισης RabbitMQ",
         "setup_information_description": "Για να χρησιμοποιήσετε τον monitor RabbitMQ, πρέπει να ενεργοποιήσετε το Management Plugin στη ρύθμιση RabbitMQ σας. Για περισσότερες πληροφορίες, παρακαλώ συμβουλευτείτε την τεκμηρίωση RabbitMQ.",
         "setup_information_title": "Πληροφορίες ρυθμίσεων",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Ρυθμίσεις RabbitMQ",
         "username_description": "Όνομα χρήστη για την αυθεντικοποίηση του διαχειριστικού περιβάλλοντος RabbitMQ"
       },
@@ -482,6 +515,8 @@
         "connection_string_label": "Συμβολοσειρά σύνδεσης",
         "ignore_tls_description": "Παράβλεψη επαλήθευσης πιστοποιητικού TLS (δεν συνιστάται για παραγωγή)",
         "ignore_tls_label": "Παράβλεψη σφαλμάτων TLS/SSL",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Διαμόρφωση Redis"
       },
       "shared": {
@@ -499,7 +534,9 @@
           "select_channel": "Επιλέξτε κανάλι",
           "select_notifier_placeholder": "Επιλέξτε ειδοποιητή",
           "selected_channels": "Επιλεγμένα κανάλια ειδοποιήσεων",
-          "title": "Κανάλια ειδοποιήσεων"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Κανάλια ειδοποιήσεων"
         },
         "proxy": {
           "add_proxy": "Προσθήκη Proxy",
@@ -508,7 +545,9 @@
           "remove_proxy": "Αφαίρεση Proxy",
           "select_proxy_placeholder": "Επιλέξτε Proxy",
           "selected_proxy": "Επιλεγμένος Διαμεσολαβητής",
-          "title": "Προξυ"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Προξυ"
         },
         "tags": {
           "label": "Ετικέτες",
@@ -539,6 +578,8 @@
         "port_label": "Θύρα",
         "snmp_version_description": "Η έκδοση του πρωτοκόλλου SNMP που θα χρησιμοποιηθεί",
         "snmp_version_label": "Έκδοση SNMP",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Ρυθμίσεις SNMP",
         "value_validation_label": "Επικύρωση Τιμής (Προαιρετικό)"
       },
@@ -548,11 +589,15 @@
         "connection_string_label": "Συμβολοσειρά σύνδεσης",
         "query_description": "Ερώτημα προς εκτέλεση για έλεγχο υγείας. Αφήστε κενό για χρήση της προεπιλογής.",
         "query_label": "Ερώτημα",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Σύνδεση Microsoft SQL Server"
       },
       "tcp": {
         "host": "Διακομιστής",
         "port": "Θύρα",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Σύνδεση TCP"
       },
       "type": {
@@ -579,7 +624,9 @@
       "edit_title": "Επεξεργασία Παρακολούθησης:",
       "new_title": "Νέος Παρατηρητής"
     },
-    "title": "Παρακολουθήσεις",
+    "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Παρακολουθήσεις",
     "toasts": {
       "deleted": "Παρακολούθηση διαγράφηκε",
       "paused": "Παρακολούθηση σε παύση",
@@ -601,15 +648,21 @@
       "dialogs": {
         "delete": {
           "description": "Αυτή η ενέργεια δεν μπορεί να αναιρεθεί. Θα διαγράψει μόνιμα τον monitor και όλα τα σχετιζόμενα δεδομένα.",
-          "title": "Είστε σίγουροι;"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Είστε σίγουροι;"
         },
         "pause": {
           "description": "Είστε σίγουροι ότι θέλετε να παύσετε;",
-          "title": "Επιβεβαίωση"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Επιβεβαίωση"
         },
         "reset": {
           "description": "Αυτό θα διαγράψει μόνιμα όλο το ιστορικό καρδιακών παλμών και τις στατιστικές διαθεσιμότητας για αυτήν τη μονάδα παρακολούθησης. Η μονάδα παρακολούθησης θα εμφανιστεί όπως αν μόλις δημιουργήθηκε. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
-          "title": "Επαναφορά Δεδομένων Παρακολούθησης"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Επαναφορά Δεδομένων Παρακολούθησης"
         }
       },
       "expiring_soon": "Προσεχή λήξη",
@@ -656,7 +709,9 @@
     "empty_state": {
       "action": "Δημιουργήστε το πρώτο σας κανάλι ειδοποίησης",
       "description": "Ξεκινήστε δημιουργώντας το πρώτο σας κανάλι ειδοποίησης για αποστολή ειδοποιήσεων στην ομάδα σας.",
-      "title": "Δεν βρέθηκαν κανάλια ειδοποιήσεων"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Δεν βρέθηκαν κανάλια ειδοποιήσεων"
     },
     "form": {
       "discord": {
@@ -1046,7 +1101,9 @@
       "updated_success": "Ειδοποιητής ενημερώθηκε με επιτυχία"
     },
     "new": {
-      "title": "Νέο Κανάλι Ειδοποίησης"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Νέο Κανάλι Ειδοποίησης"
     },
     "no_important": "Δεν βρέθηκαν σημαντικές ειδοποιήσεις.",
     "placeholders": {
@@ -1057,7 +1114,9 @@
   "proxies": {
     "delete_dialog": {
       "description": "Αυτή η ενέργεια δεν μπορεί να αναιρεθεί. Αυτό θα διαγράψει μόνιμα το proxy {{host}}:{{port}}.",
-      "title": "Είστε σίγουροι;"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Είστε σίγουροι;"
     },
     "edit": {
       "page_name": "Επεξεργασία προξυ"
@@ -1065,7 +1124,9 @@
     "empty_list": {
       "action_text": "Δημιουργήστε το πρώτο σας proxy",
       "text": "Ξεκινήστε δημιουργώντας την πρώτη σας proxy για χρήση στις παρακολούθησεις σας.",
-      "title": "Δεν βρέθηκαν proxies"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Δεν βρέθηκαν proxies"
     },
     "form": {
       "auth_label": "Ο διακομιστής διαμεσολάβησης απαιτεί πιστοποίηση",
@@ -1131,15 +1192,21 @@
         "failed_to_update_password": "Η ενημέρωση του κωδικού απέτυχε",
         "password_updated_successfully": "Ο κωδικός πρόσβασης ενημερώθηκε με επιτυχία"
       },
-      "title": "Αλλαγή κωδικού πρόσβασης"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Αλλαγή κωδικού πρόσβασης"
     },
     "api_keys": {
-      "title": "Κλειδιά API",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Κλειδιά API",
       "description": "Διαχειριστείτε τα κλειδιά API σας για ενσωματώσεις τρίτων",
       "create_button": "Δημιουργία Κλειδιού API",
       "no_keys_title": "Δεν Υπάρχουν Κλειδιά API",
       "no_keys_description": "Δημιουργήστε το πρώτο σας κλειδί API για να αρχίσετε την ενσωμάτωση με εξωτερικές υπηρεσίες.",
       "create_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Δημιουργία Νέου Κλειδιού API",
         "description": "Δημιουργήστε ένα νέο κλειδί API για ενσωματώσεις τρίτων. Το κλειδί θα εμφανιστεί μόνο μία φορά.",
         "form": {
@@ -1156,6 +1223,8 @@
         }
       },
       "success_alert": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Το Κλειδί API Δημιουργήθηκε Επιτυχώς",
         "description": "Το κλειδί API σας δημιουργήθηκε. Αντιγράψτε το τώρα καθώς δεν θα εμφανιστεί ξανά:"
       },
@@ -1177,6 +1246,8 @@
         "never": "Ποτέ"
       },
       "delete_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Διαγραφή κλειδιού API",
         "description": "Είστε σίγουροι ότι θέλετε να διαγράψετε το κλειδί API \"{{name}}\"; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
         "buttons": {
@@ -1216,7 +1287,9 @@
     "data_retention": {
       "days_label": "Ημέρες",
       "description": "Ορίστε πόσες ημέρες θα διατηρηθούν τα δεδομένα (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Περίοδος Διατήρησης Δεδομένων"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Περίοδος Διατήρησης Δεδομένων"
     },
     "timezone": {
       "description": "Επιλέξτε την προτιμώμενη ζώνη ώρας για την εμφάνιση όλων των ωρών στην εφαρμογή.",
@@ -1224,7 +1297,9 @@
       "no_timezone_found": "Δεν βρέθηκε η ζώνη ώρας.",
       "search_placeholder": "Αναζήτηση ζώνης ώρας…",
       "select_placeholder": "Επιλέξτε ζώνη ώρας...",
-      "title": "Ζώνη ώρας"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ζώνη ώρας"
     },
     "validation": {
       "min_days": "Πρέπει να είναι τουλάχιστον 1 ημέρα"
@@ -1256,7 +1331,9 @@
     "customization": "Προσαρμογή",
     "delete_dialog": {
       "description": "Είστε βέβαιοι ότι θέλετε να διαγράψετε το \"{{title}}\"; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
-      "title": "Διαγραφή Σελίδας Κατάστασης"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Διαγραφή Σελίδας Κατάστασης"
     },
     "description": "Εισάγετε περιγραφή σελίδας κατάστασης",
     "domain_already_used": "Το domain {{domain}} χρησιμοποιείται ήδη από άλλη σελίδα κατάστασης",
@@ -1293,7 +1370,9 @@
     "empty_state": {
       "action": "Δημιουργήστε την πρώτη ετικέτα",
       "description": "Ξεκινήστε δημιουργώντας την πρώτη ετικέτα για να οργανώσετε τους ελέγχους σας.",
-      "title": "Δεν βρέθηκαν ετικέτες"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Δεν βρέθηκαν ετικέτες"
     },
     "form": {
       "color_description": "Επιλέξτε χρώμα για την ετικέτα σας",

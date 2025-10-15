@@ -9,20 +9,26 @@
       "no_account": "ანგარიში არ გაქვთ?",
       "sign_up": "რეგისტრაცია",
       "submit": "შესვლა",
-      "title": "კეთილი იყოს თქვენი დაბრუნება"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "კეთილი იყოს თქვენი დაბრუნება"
     },
     "register": {
       "description": "შექმენით თქვენი ადმინისტრატორის ანგარიში",
       "have_account": "უკვე გაქვთ ანგარიში?",
       "sign_in": "შესვლა",
       "submit": "შექმნა",
-      "title": "გამარჯობა"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "გამარჯობა"
     },
     "twofa": {
       "code_label": "2FA კოდი",
       "code_placeholder": "შეიყვანეთ 2FA კოდი",
       "description": "2FA არის ჩართული თქვენს ანგარიშზე. გთხოვთ, შეიყვანეთ თქვენი ავთენტიკაციის კოდი, რომ გააგრძელოთ.",
-      "title": "ორ-ფაქტორიანი ავთენტიკაცია აუცილებელია",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "ორ-ფაქტორიანი ავთენტიკაცია აუცილებელია",
       "verify_button": "2FA‑ის გადამოწმება",
       "verifying": "შემოწმება..."
     }
@@ -96,7 +102,9 @@
       "password": "პაროლი",
       "retries": "გამეორებები",
       "slug": "სლუგ",
-      "title": "სათაური",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "სათაური",
       "username": "მომხმარებლის სახელი"
     },
     "placeholders": {
@@ -169,17 +177,23 @@
         "confirm_action": {
           "pause_description": "დარწმუნებული ხართ, რომ გსურთ ამ მოვლენის შეჩერება?",
           "resume_description": "დარწმუნებული ხართ, რომ გნებავთ, ამ შენარჩუნების გაგრძელება?",
-          "title": "ქმედების დადასტურება"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "ქმედების დადასტურება"
         },
         "confirm_delete": {
           "description": "დარწმუნებული ხართ, რომ გსურთ ამ შენარჩუნების ფანჯრის წაშლა? ეს ქმედება შეუქცევადია.",
-          "title": "დაადასტურეთ წაშლა"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "დაადასტურეთ წაშლა"
         }
       },
       "edit_maintenance": "რემონტის რედაქტირება: {{title}}",
       "empty_state": {
         "action": "შექმენით თქვენი პირველი მოვლენის დრო",
         "description": "დაიწყეთ, შექმნით თქვენს პირველ მოვლენის ფანჯარას, რომ თავიდან აიცილოთ დაგეგმილი გათიშვები.",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "სარემონტო დროები ვერ მოიძებნა"
       },
       "error_loading": "მომარაგების ჩატვირთვის შეცდომა",
@@ -248,7 +262,9 @@
     "empty_state": {
       "action": "შექმენით თქვენი პირველი მონიტორი",
       "description": "დაიწყეთ, შექმნით თქვენს პირველ მონიტორს, რათა მონიტორინგის საშუალებით გააკონტროლოთ თქვენი მომსახურებების ჯანმრთელობა.",
-      "title": "მონიტორები არ მოიძებნა"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "მონიტორები არ მოიძებნა"
     },
     "filtering_by_tags": "ტეგებით გაფილტვრა",
     "filters": {
@@ -271,6 +287,8 @@
         "record_type": "რესურსის ჩანაწერის ტიპი",
         "record_type_placeholder": "აირჩიეთ ჩანაწერის ტიპი",
         "resolver_server": "რეზოლვერის სერვერი",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "DNS პარამეტრები"
       },
       "docker": {
@@ -329,7 +347,9 @@
           "ignore_tls_description": "TLS სერტიფიკატის შემოწმება გამოტოვეთ. გამოიყენეთ სიფრთხილით – ეს შეამცირებს კავშირების უსაფრთხოებას.",
           "max_redirects": "მაქსიმალური გადამისამართებები",
           "max_redirects_description": "გადამისამართებების მაქსიმალური რაოდენობა (0–30). 0‑ს მიუთითეთ, რომ გადამისამართებები გამორთოთ.",
-          "title": "გაფართოებული"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "გაფართოებული"
         },
         "authentication": {
           "auth_header": "ავტორიზაციის ჰედერი",
@@ -350,7 +370,9 @@
           "oauth_scope_placeholder": "არასავალდებულო: სკოპების სივრცით გამოყოფილი სია",
           "oauth_token_url": "OAuth ტოკენის URL",
           "oauth_token_url_placeholder": "OAuth-ტოკენის URL",
-          "title": "ავთენტიკაცია",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "ავთენტიკაცია",
           "workstation": "სამ სამუშაო მაგიდა",
           "workstation_placeholder": "სამუშაო მანქანა"
         },
@@ -366,7 +388,9 @@
           "select_encoding": "აირჩიეთ შიგთავსის კოდირება",
           "select_method": "აირჩიეთ მეთოდი",
           "text_example": "მაგალითი ტექსტი:\nაქ შეგიძლიათ ნებისმიერი მარტივი ტექსტის შიგთავსი...",
-          "title": "HTTP პარამეტრები",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "HTTP პარამეტრები",
           "xml_example": "XML‑ის მაგალითი"
         }
       },
@@ -374,6 +398,8 @@
         "condition_label": "პირობა",
         "expected_value_label": "მოსალოდნელი მნიშვნელობა",
         "json_query_label": "JSON მოთხოვნის გამოთქმა",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "JSON‑შეკითხვის გამოთქმა"
       },
       "http_keyword": {
@@ -446,8 +472,13 @@
         "query_label": "მოთხოვნა"
       },
       "ping": {
+        "count": "Max Packets",
+        "count_description": "Number of packets to send before stopping",
+        
         "data_size": "მონაცემთა ზომა (ბაიტი)",
         "host": "ჰოსტის სახელი / IP",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Ping პარამეტრები"
       },
       "postgres": {
@@ -468,6 +499,8 @@
         "password_description": "RabbitMQ მმართველის ინტერფეისის ავთენტიფიკაციის პაროლი",
         "setup_information_description": "RabbitMQ მონიტორინგის გამოყენებისთვის, საჭიროა თქვენი RabbitMQ კონფიგურაციაში მართვის პლაგინის ჩართვა. მეტი ინფორმაციისთვის, გთხოვთ მიმართოთ RabbitMQ დოკუმენტაციას.",
         "setup_information_title": "მორგების ინფორმაცია",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "RabbitMQ კონფიგურაცია",
         "username_description": "RabbitMQ მართვის ინტერფეისის ავთენტიკაციის მომხმარებლის სახელი"
       },
@@ -482,6 +515,8 @@
         "connection_string_label": "კავშირის სტრიქონი",
         "ignore_tls_description": "TLS სერტიფიკატის გადამოწმების გამოტოვება (პროდაქციაში რეკომენდირებული არაა)",
         "ignore_tls_label": "TLS/SSL შეცდომების უგულებელყოფა",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Redis კონფიგურაცია"
       },
       "shared": {
@@ -499,7 +534,9 @@
           "select_channel": "არჩევა არხი",
           "select_notifier_placeholder": "აირჩიეთ შეტყობინების გამგზავნი",
           "selected_channels": "არჩეული შეტყობინებების არხები",
-          "title": "შეტყობინების არხები"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "შეტყობინების არხები"
         },
         "proxy": {
           "add_proxy": "პროქსი დამატება",
@@ -508,7 +545,9 @@
           "remove_proxy": "პროქსის წაშლა",
           "select_proxy_placeholder": "აირჩიეთ პროქსი",
           "selected_proxy": "არჩეული პროქსი",
-          "title": "პროქსი"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "პროქსი"
         },
         "tags": {
           "label": "ტეგები",
@@ -539,6 +578,8 @@
         "port_label": "პორტი",
         "snmp_version_description": "SNMP პროტოკოლის ვერსია",
         "snmp_version_label": "SNMP ვერსია",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "SNMP პარამეტრები",
         "value_validation_label": "მნიშვნელობის შემოწმება (არასავალდებულო)"
       },
@@ -548,11 +589,15 @@
         "connection_string_label": "კავშირის სტრიქონი",
         "query_description": "სერვერის ჯანმრთელობის შემოწმებისთვის შესასრულებელი შეკითხვა. ცარიელი დატოვეთ, ნაგულისხმევი გამოყენებისთვის.",
         "query_label": "მოთხოვნა",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Microsoft SQL Server-თან მიერთება"
       },
       "tcp": {
         "host": "ჰოსტი",
         "port": "პორტი",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "TCP კავშირი"
       },
       "type": {
@@ -579,7 +624,9 @@
       "edit_title": "მონიტორის რედაქტირება:",
       "new_title": "ახალი მონიტორი"
     },
-    "title": "მონიტორები",
+    "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "მონიტორები",
     "toasts": {
       "deleted": "მონიტორი წაიშალა",
       "paused": "მონიტორინგი შეჩერებულია",
@@ -601,15 +648,21 @@
       "dialogs": {
         "delete": {
           "description": "ეს ქმედება ვერ გაუქმდება. ეს სამუდამოდ წაშლის მონიტორს და ყველა დაკავშირებულ მონაცემს.",
-          "title": "დარწმუნებული ხარ, ნამდვილი?"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "დარწმუნებული ხარ, ნამდვილი?"
         },
         "pause": {
           "description": "დარწმუნებული ხართ, რომ შეჩერება გსურთ?",
-          "title": "დადასტურება"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "დადასტურება"
         },
         "reset": {
           "description": "ეს სამუდამოდ წაშლის ამ მონიტორის ყველა ჰარტბეიტის ისტორიის და uptime სტატისტიკის. მონიტორი იმოქმედებს, როგორც ახლახანს შექმნილი. ეს ქმედება ვერ მოხსდება.",
-          "title": "მონიტორის მონაცემების საწყის მდგომარეობაში დაბრუნება"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "მონიტორის მონაცემების საწყის მდგომარეობაში დაბრუნება"
         }
       },
       "expiring_soon": "ვადა მალე",
@@ -656,7 +709,9 @@
     "empty_state": {
       "action": "შექმენი თქვენი პირველი შეტყობინების არხი",
       "description": "დაიწყეთ თქვენი პირველი შეტყობინების არხის შექმნით, რათა გამოაგზავნოთ გაფრთხილებები თქვენს გუნდში.",
-      "title": "შეტყობინების არხები ვერ მოიძებნა"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "შეტყობინების არხები ვერ მოიძებნა"
     },
     "form": {
       "discord": {
@@ -1045,7 +1100,9 @@
       "updated_success": "Notifier წარმატებით განახლდა"
     },
     "new": {
-      "title": "ახალი შეტყობინების არხი"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "ახალი შეტყობინების არხი"
     },
     "no_important": "მნიშვნელოვანი შეტყობინებები ნაპოვნი არაა.",
     "placeholders": {
@@ -1056,7 +1113,9 @@
   "proxies": {
     "delete_dialog": {
       "description": "ეს ქმედება არ შეიძლება გააუქმდეს. ეს სამუდამოდ წაიშლება პროქსი {{host}}:{{port}}.",
-      "title": "დარწმუნებული ხართ, რომ სრულად დარწმუნებული ხართ?"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "დარწმუნებული ხართ, რომ სრულად დარწმუნებული ხართ?"
     },
     "edit": {
       "page_name": "პროქსის რედაქტირება"
@@ -1064,7 +1123,9 @@
     "empty_list": {
       "action_text": "შექმენი შენი პირველი პროქსი",
       "text": "დაიწყეთ, შექმენით თქვენი პირველი პროქსი მონიტორებში გამოყენებისთვის.",
-      "title": "პროქსები ვერ მოიძებნა"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "პროქსები ვერ მოიძებნა"
     },
     "form": {
       "auth_label": "პროქსი სერვერს ავთენტიფიკაცია აქვს",
@@ -1130,15 +1191,21 @@
         "failed_to_update_password": "პაროლის განახლება ვერ მოხერხდა",
         "password_updated_successfully": "პაროლი წარმატებით განახლდა"
       },
-      "title": "პაროლის განახლება"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "პაროლის განახლება"
     },
     "api_keys": {
-      "title": "API Keys",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "API Keys",
       "description": "Manage your API keys for third-party integrations",
       "create_button": "Create API Key",
       "no_keys_title": "No API Keys",
       "no_keys_description": "Create your first API key to start integrating with external services.",
       "create_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Create New API Key",
         "description": "Create a new API key for third-party integrations. The key will be shown only once.",
         "form": {
@@ -1155,6 +1222,8 @@
         }
       },
       "success_alert": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "API Key Created Successfully",
         "description": "Your API key has been created. Copy it now as it won't be shown again:"
       },
@@ -1176,6 +1245,8 @@
         "never": "Never"
       },
       "delete_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "API გასაღების წაშლა",
         "description": "დარწმუნებული ხართ, რომ გსურთ API გასაღების \"{{name}}\" წაშლა? ეს ქმედება ვერ უკან დაბრუნდება.",
         "buttons": {
@@ -1215,7 +1286,9 @@
     "data_retention": {
       "days_label": "დღეები",
       "description": "დააყენეთ, რამდენი დღე შეინახება მონაცემები (KEEP_DATA_PERIOD_DAYS).",
-      "title": "მონაცემთა შენახვის პერიოდი"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "მონაცემთა შენახვის პერიოდი"
     },
     "timezone": {
       "description": "აირჩიეთ თქვენი სასურველი დროის ზონა, რომელიც გამოიყენება აპლიკაციის ყველა დროის ჩვენებისთვის.",
@@ -1223,7 +1296,9 @@
       "no_timezone_found": "დროის ზონა არ მოიძებნა.",
       "search_placeholder": "ძებნა დროის ზონა…",
       "select_placeholder": "აირჩიეთ დროის ზონა...",
-      "title": "დროის ზონა"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "დროის ზონა"
     },
     "validation": {
       "min_days": "უნდა იყოს მინიმუმ 1 დღე"
@@ -1255,7 +1330,9 @@
     "customization": "მორგება",
     "delete_dialog": {
       "description": "დარწმუნებული ხართ, რომ გსურთ \"{{title}}\" წაშლა? ეს ქმედება შეუქცევადია.",
-      "title": "სტატუსის გვერდის წაშლა"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "სტატუსის გვერდის წაშლა"
     },
     "description": "შეიყვანეთ სტატუსის გვერდის აღწერა",
     "domain_already_used": "დომენი {{domain}} უკვე გამოიყენება სხვა სტატუსის გვერდის მიერ",
@@ -1292,7 +1369,9 @@
     "empty_state": {
       "action": "შექმენი თქვენი პირველი ჭდე",
       "description": "დაიწყეთ, შექმნით თქვენს პირველი ტეგს მონიტორების ორგანიზაციისთვის.",
-      "title": "თეგები არ მოიძებნა"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "თეგები არ მოიძებნა"
     },
     "form": {
       "color_description": "აირჩიეთ ფერი თქვენი ტეგისთვის",

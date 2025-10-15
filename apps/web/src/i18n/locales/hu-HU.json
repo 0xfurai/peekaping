@@ -9,20 +9,26 @@
       "no_account": "Nincs fiókod?",
       "sign_up": "Regisztrálj",
       "submit": "Bejelentkezés",
-      "title": "Üdv újra"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Üdv újra"
     },
     "register": {
       "description": "Hozd létre az adminisztrátori fiókodat",
       "have_account": "Már van fiókod?",
       "sign_in": "Bejelentkezés",
       "submit": "Létrehoz",
-      "title": "Szia"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Szia"
     },
     "twofa": {
       "code_label": "2FA kód",
       "code_placeholder": "Adja meg a 2FA kódot",
       "description": "A 2FA engedélyezve van a fiókodhoz. Kérjük, add meg hitelesítő kódodat a folytatáshoz.",
-      "title": "Kétfaktoros hitelesítés szükséges",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Kétfaktoros hitelesítés szükséges",
       "verify_button": "2FA ellenőrzése",
       "verifying": "Ellenőrzés..."
     }
@@ -96,7 +102,9 @@
       "password": "Jelszó",
       "retries": "Ismétlések",
       "slug": "Slug",
-      "title": "Cím",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Cím",
       "username": "Felhasználónév"
     },
     "placeholders": {
@@ -169,17 +177,23 @@
         "confirm_action": {
           "pause_description": "Biztos, hogy szüneteltetni szeretné ezt a karbantartást?",
           "resume_description": "Biztos benne, hogy folytatni szeretné ezt a karbantartást?",
-          "title": "Megerősítés"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Megerősítés"
         },
         "confirm_delete": {
           "description": "Biztos, hogy törölni szeretnéd ezt a karbantartási ablakot? Ez a művelet nem vonható vissza.",
-          "title": "Törlés megerősítése"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Törlés megerősítése"
         }
       },
       "edit_maintenance": "Karbantartás szerkesztése: {{title}}",
       "empty_state": {
         "action": "Hozd létre az első karbantartási ablakot",
         "description": "Kezdje el az első karbantartási ablak létrehozásával a tervezett leállások elkerülése érdekében.",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Nincsenek karbantartási ablakok"
       },
       "error_loading": "Hiba a karbantartás betöltésekor",
@@ -248,7 +262,9 @@
     "empty_state": {
       "action": "Hozd létre az első figyelődet",
       "description": "Kezdje el az első monitor létrehozásával, hogy nyomon kövesse a szolgáltatásainak egészségét.",
-      "title": "Nem találhatók monitorok"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Nem találhatók monitorok"
     },
     "filtering_by_tags": "Címke szerinti szűrés",
     "filters": {
@@ -271,6 +287,8 @@
         "record_type": "Forrásbejegyzés típusa",
         "record_type_placeholder": "Válasszon rekord típust",
         "resolver_server": "Feloldó szerver",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "DNS beállítások"
       },
       "docker": {
@@ -329,7 +347,9 @@
           "ignore_tls_description": "TLS tanúsítvány érvényesítésének kihagyása. Használatkor óvatosan járjon el – ez a kapcsolat biztonságát csökkenti.",
           "max_redirects": "Maximális átirányítások",
           "max_redirects_description": "Legnagyobb átirányítások száma, amelyet követni kell (0-30). Állítsa 0-ra az átirányítások letiltásához.",
-          "title": "Haladó"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Haladó"
         },
         "authentication": {
           "auth_header": "Hitelesítési fejléc",
@@ -350,7 +370,9 @@
           "oauth_scope_placeholder": "Opcionális: szóközzel elválasztott scopes listája",
           "oauth_token_url": "OAuth token URL",
           "oauth_token_url_placeholder": "OAuth token URL",
-          "title": "Hitelesítés",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Hitelesítés",
           "workstation": "Munkaállomás",
           "workstation_placeholder": "Műhelygép"
         },
@@ -366,7 +388,9 @@
           "select_encoding": "Válasszon testkódolást",
           "select_method": "Módszer kiválasztása",
           "text_example": "Példaszöveg:\nItt bármilyen egyszerű szöveg...",
-          "title": "HTTP beállítások",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "HTTP beállítások",
           "xml_example": "XML példa"
         }
       },
@@ -374,6 +398,8 @@
         "condition_label": "Feltétel",
         "expected_value_label": "Várt érték",
         "json_query_label": "JSON lekérdezési kifejezés",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "JSON lekérdezési kifejezés"
       },
       "http_keyword": {
@@ -446,8 +472,13 @@
         "query_label": "Lekérdezés"
       },
       "ping": {
+        "count": "Max Packets",
+        "count_description": "Number of packets to send before stopping",
+        
         "data_size": "Adatmennyiség (byte)",
         "host": "Hosztnév / IP",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Ping beállítások"
       },
       "postgres": {
@@ -468,6 +499,8 @@
         "password_description": "Jelszó a RabbitMQ adminisztrációs felületének hitelesítéséhez",
         "setup_information_description": "A RabbitMQ monitor használatához engedélyeznie kell a Management Plugin-t a RabbitMQ-beállításainál. További információkért kérjük, tekintse meg a RabbitMQ dokumentációját.",
         "setup_information_title": "Beállítási adatok",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "RabbitMQ konfiguráció",
         "username_description": "Felhasználónév a RabbitMQ kezelőfelület hitelesítéséhez"
       },
@@ -482,6 +515,8 @@
         "connection_string_label": "Kapcsolati karakterlánc",
         "ignore_tls_description": "TLS tanúsítvány ellenőrzésének kihagyása (nem ajánlott termelésben)",
         "ignore_tls_label": "TLS/SSL hibák figyelmen kívül hagyása",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Redis konfiguráció"
       },
       "shared": {
@@ -499,7 +534,9 @@
           "select_channel": "Csatorna kiválasztása",
           "select_notifier_placeholder": "Válasszon értesítőt",
           "selected_channels": "Kiválasztott értesítési csatornák",
-          "title": "Értesítési csatornák"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Értesítési csatornák"
         },
         "proxy": {
           "add_proxy": "Proxy hozzáadása",
@@ -508,7 +545,9 @@
           "remove_proxy": "Proxy eltávolítása",
           "select_proxy_placeholder": "Proxy kiválasztása",
           "selected_proxy": "Kiválasztott Proxy",
-          "title": "Proxy"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Proxy"
         },
         "tags": {
           "label": "Címkék",
@@ -539,6 +578,8 @@
         "port_label": "Port",
         "snmp_version_description": "Az SNMP protokoll verziója, amelyet használni kell",
         "snmp_version_label": "SNMP-verzió",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "SNMP beállítások",
         "value_validation_label": "Értékellenőrzés (opcionális)"
       },
@@ -548,11 +589,15 @@
         "connection_string_label": "Kapcsolati sztring",
         "query_description": "Egészségellenőrzéshez futtatandó lekérdezés. Hagyja üresen az alapértelmezett használatához.",
         "query_label": "Lekérdezés",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Microsoft SQL Server kapcsolat"
       },
       "tcp": {
         "host": "Gazda",
         "port": "Port",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "TCP kapcsolat"
       },
       "type": {
@@ -579,7 +624,9 @@
       "edit_title": "Monitor szerkesztése:",
       "new_title": "Új monitor"
     },
-    "title": "Monitorok",
+    "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Monitorok",
     "toasts": {
       "deleted": "Figyelő törölve",
       "paused": "Megfigyelés szünetelve",
@@ -601,15 +648,21 @@
       "dialogs": {
         "delete": {
           "description": "Ez a művelet nem visszavonható. A monitor és minden kapcsolódó adat véglegesen törlődik.",
-          "title": "Biztos vagy benne?"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Biztos vagy benne?"
         },
         "pause": {
           "description": "Biztos, hogy szüneteltessük?",
-          "title": "Megerősítés"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Megerősítés"
         },
         "reset": {
           "description": "Ez véglegesen törli a szívverési előzményeket és az uptime statisztikákat ehhez a monitorhoz. A monitor úgy fog kinézni, mintha most hozták volna létre. Ezt a műveletet nem lehet visszavonni.",
-          "title": "Monitoradatok visszaállítása"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Monitoradatok visszaállítása"
         }
       },
       "expiring_soon": "Szorosan lejár",
@@ -656,7 +709,9 @@
     "empty_state": {
       "action": "Hozd létre első értesítési csatornád",
       "description": "Kezdje el az első értesítési csatorna létrehozásával, hogy figyelmeztetéseket küldhessen csapatába.",
-      "title": "Nem találhatók értesítési csatornák"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Nem találhatók értesítési csatornák"
     },
     "form": {
       "discord": {
@@ -1046,7 +1101,9 @@
       "updated_success": "Értesítő sikeresen frissítve"
     },
     "new": {
-      "title": "Új értesítési csatorna"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Új értesítési csatorna"
     },
     "no_important": "Nem található fontos értesítés.",
     "placeholders": {
@@ -1057,7 +1114,9 @@
   "proxies": {
     "delete_dialog": {
       "description": "Ezzel a művelettel nem lehet visszavonni. Ez véglegesen törli a proxyt {{host}}:{{port}}.",
-      "title": "Biztos vagy benne?"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Biztos vagy benne?"
     },
     "edit": {
       "page_name": "Proxy szerkesztése"
@@ -1065,7 +1124,9 @@
     "empty_list": {
       "action_text": "Hozd létre az első proxy-t",
       "text": "Kezdje el az első proxy létrehozásával, amit a monitorokban használhat.",
-      "title": "Nincs proxy"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Nincs proxy"
     },
     "form": {
       "auth_label": "A proxy szerver hitelesítést igényel",
@@ -1131,15 +1192,21 @@
         "failed_to_update_password": "Nem sikerült a jelszó frissítése",
         "password_updated_successfully": "Jelszó sikeresen frissítve"
       },
-      "title": "Jelszó frissítése"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Jelszó frissítése"
     },
     "api_keys": {
-      "title": "API Kulcsok",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "API Kulcsok",
       "description": "Kezelje API kulcsait harmadik féltől származó integrációkhoz",
       "create_button": "API Kulcs Létrehozása",
       "no_keys_title": "Nincsenek API Kulcsok",
       "no_keys_description": "Hozzon létre első API kulcsát a külső szolgáltatásokkal való integráció megkezdéséhez.",
       "create_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Új API Kulcs Létrehozása",
         "description": "Hozzon létre új API kulcsot harmadik féltől származó integrációkhoz. A kulcs csak egyszer jelenik meg.",
         "form": {
@@ -1156,6 +1223,8 @@
         }
       },
       "success_alert": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "API Kulcs Sikeresen Létrehozva",
         "description": "API kulcsa létrejött. Másolja ki most, mert később nem fog megjelenni:"
       },
@@ -1177,6 +1246,8 @@
         "never": "Soha"
       },
       "delete_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "API kulcs törlése",
         "description": "Biztosan törölni szeretné az \"{{name}}\" API kulcsot? Ez a művelet nem vonható vissza.",
         "buttons": {
@@ -1216,7 +1287,9 @@
     "data_retention": {
       "days_label": "Napok",
       "description": "Állítsa be, hogy hány napig tartsuk a adatokat (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Adattartási időszak"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Adattartási időszak"
     },
     "timezone": {
       "description": "Válassza ki a preferált időzónát az alkalmazásban megjelenő összes időpont megjelenítéséhez.",
@@ -1224,7 +1297,9 @@
       "no_timezone_found": "Nem található időzóna.",
       "search_placeholder": "Időzóna keresése...",
       "select_placeholder": "Válasszon időzónát...",
-      "title": "Időzóna"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Időzóna"
     },
     "validation": {
       "min_days": "Legalább 1 napnak kell lennie"
@@ -1256,7 +1331,9 @@
     "customization": "Testreszabás",
     "delete_dialog": {
       "description": "Biztos benne, hogy törli a \"{{title}}\"? Ez a művelet nem vonható vissza.",
-      "title": "Állapotlap törlése"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Állapotlap törlése"
     },
     "description": "Adja meg a státuszlap leírását",
     "domain_already_used": "A(z) {{domain}} domain már egy másik státuszoldal által van használva.",
@@ -1293,7 +1370,9 @@
     "empty_state": {
       "action": "Készítsd el első címkédet",
       "description": "Kezdje azzal, hogy létrehozza első címkét a monitorok rendszerezéséhez.",
-      "title": "Nincsenek címkék"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Nincsenek címkék"
     },
     "form": {
       "color_description": "Válassz színt a címkéhez",

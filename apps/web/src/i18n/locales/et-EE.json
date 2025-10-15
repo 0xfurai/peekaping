@@ -9,20 +9,26 @@
       "no_account": "Pole kontot?",
       "sign_up": "Registreeru",
       "submit": "Logi sisse",
-      "title": "Tere tulemast tagasi"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Tere tulemast tagasi"
     },
     "register": {
       "description": "Loo oma admini konto",
       "have_account": "Sul on juba konto?",
       "sign_in": "Logi sisse",
       "submit": "Loo",
-      "title": "Tere"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Tere"
     },
     "twofa": {
       "code_label": "2FA kood",
       "code_placeholder": "Sisesta 2FA kood",
       "description": "2FA on teie kontole lubatud. Palun sisestage oma autentimiskood jätkamiseks.",
-      "title": "Kaksfaktoriline autentimine nõutud",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Kaksfaktoriline autentimine nõutud",
       "verify_button": "Kinnita 2FA",
       "verifying": "Kontrollimine..."
     }
@@ -96,7 +102,9 @@
       "password": "Parool",
       "retries": "Katseid",
       "slug": "URL",
-      "title": "Pealkiri",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Pealkiri",
       "username": "Kasutajanimi"
     },
     "placeholders": {
@@ -169,17 +177,23 @@
         "confirm_action": {
           "pause_description": "Olete kindel, et soovite selle hoolduse peatada?",
           "resume_description": "Kas olete kindel, et soovite selle hoolduse jätkata?",
-          "title": "Kinnita toiming"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Kinnita toiming"
         },
         "confirm_delete": {
           "description": "Olete kindel, et soovite selle hooldusakna kustutada? See toiming ei saa tagasi võtta.",
-          "title": "Kinnita kustutamine"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Kinnita kustutamine"
         }
       },
       "edit_maintenance": "Muuda hooldust: {{title}}",
       "empty_state": {
         "action": "Loo esimene hooldusakend",
         "description": "Alustamiseks loo esimene hoolduseperiood, et vältida planeeritud seisakuid.",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Hooldusajad ei leitud"
       },
       "error_loading": "Viga hoolduse laadimisel",
@@ -248,7 +262,9 @@
     "empty_state": {
       "action": "Loo esimene jälgija",
       "description": "Alustamiseks looge oma esimene monitor, et jälgida oma teenuste tervist.",
-      "title": "Monitoore ei leitud"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Monitoore ei leitud"
     },
     "filtering_by_tags": "Filtreerimine siltide järgi",
     "filters": {
@@ -271,6 +287,8 @@
         "record_type": "Resurssirekordi tüüp",
         "record_type_placeholder": "Vali kirjetüüp",
         "resolver_server": "Resoluutoriserver",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "DNS-i seaded"
       },
       "docker": {
@@ -329,7 +347,9 @@
           "ignore_tls_description": "Jäta TLS-sertifikaadi valideerimine vahele. Kasuta ettevaatusega – see muudab ühendused vähem turvaliseks.",
           "max_redirects": "Maksimaalne ümbersuunamiste arv",
           "max_redirects_description": "Jälgitavate ümbersuunamiste maksimum arv (0‑30). Seadista väärtuseks 0, et ümbersuunamisi keelata.",
-          "title": "Täiustatud"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Täiustatud"
         },
         "authentication": {
           "auth_header": "Autoriseerimise päis",
@@ -350,7 +370,9 @@
           "oauth_scope_placeholder": "Valikuline: ruumiga eraldatud ulatuste loend",
           "oauth_token_url": "OAuth-tokeni URL",
           "oauth_token_url_placeholder": "OAuth tokeni URL",
-          "title": "Autentimine",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Autentimine",
           "workstation": "Tööpost",
           "workstation_placeholder": "Töölaud"
         },
@@ -366,7 +388,9 @@
           "select_encoding": "Vali keha kodeering",
           "select_method": "Vali meetod",
           "text_example": "Näidis Tekst:\nIga tavaline tekstisisu siia...",
-          "title": "HTTP-valikud",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "HTTP-valikud",
           "xml_example": "Näidis XML"
         }
       },
@@ -374,6 +398,8 @@
         "condition_label": "Tingimus",
         "expected_value_label": "Oodatav väärtus",
         "json_query_label": "JSON-päringu avaldis",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "JSON päringu avaldis"
       },
       "http_keyword": {
@@ -446,8 +472,13 @@
         "query_label": "Päring"
       },
       "ping": {
+        "count": "Max Packets",
+        "count_description": "Number of packets to send before stopping",
+        
         "data_size": "Andmete suurus (baiti)",
         "host": "Masinnimi / IP",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Ping'i seaded"
       },
       "postgres": {
@@ -468,6 +499,8 @@
         "password_description": "RabbitMQ haldamise liidese autentimise parool",
         "setup_information_description": "RabbitMQ monitori kasutamiseks peate oma RabbitMQ seadistuses lubama Halldusplugini. Täpsemate üksikasjade saamiseks vaadake RabbitMQ dokumentatsiooni.",
         "setup_information_title": "Seadistamise teave",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "RabbitMQ konfiguratsioon",
         "username_description": "RabbitMQ haldusliidese autentimise kasutajanimi"
       },
@@ -482,6 +515,8 @@
         "connection_string_label": "Ühenduse string",
         "ignore_tls_description": "Jäta TLS‑sertifikaadi kontroll vahele (ei ole tootmise jaoks soovitatav)",
         "ignore_tls_label": "Ignoreerige TLS/SSL tõrkeid",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Redis'i konfiguratsioon"
       },
       "shared": {
@@ -499,7 +534,9 @@
           "select_channel": "Vali kanal",
           "select_notifier_placeholder": "Vali teavitaja",
           "selected_channels": "Valitud teavituskanalid",
-          "title": "Teavituskanalid"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Teavituskanalid"
         },
         "proxy": {
           "add_proxy": "Lisa proksi",
@@ -508,7 +545,9 @@
           "remove_proxy": "Eemalda proksi",
           "select_proxy_placeholder": "Vali proksi",
           "selected_proxy": "Valitud proksi",
-          "title": "Proksi"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Proksi"
         },
         "tags": {
           "label": "Märgid",
@@ -539,6 +578,8 @@
         "port_label": "Port",
         "snmp_version_description": "Kasutatav SNMP protokolli versioon",
         "snmp_version_label": "SNMP Versioon",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "SNMP seaded",
         "value_validation_label": "Väärtuse valideerimine (valikuline)"
       },
@@ -548,11 +589,15 @@
         "connection_string_label": "Ühendusstring",
         "query_description": "Tervisekontrolli käivitamiseks kasutatav päring. Jätke tühjaks, et kasutada vaikeväärtust.",
         "query_label": "Päring",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Microsoft SQL Serveri ühendus"
       },
       "tcp": {
         "host": "Host",
         "port": "Port",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "TCP-ühendus"
       },
       "type": {
@@ -579,7 +624,9 @@
       "edit_title": "Muuda monitoori:",
       "new_title": "Uus monitor"
     },
-    "title": "Monitoorid",
+    "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Monitoorid",
     "toasts": {
       "deleted": "Monitor kustutatud",
       "paused": "Jälgimine peatatud",
@@ -601,15 +648,21 @@
       "dialogs": {
         "delete": {
           "description": "See toiming on pöördumatu. See kustutab püsivalt monitori ja kõik sellega seotud andmed.",
-          "title": "Oled sa täiesti kindel?"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Oled sa täiesti kindel?"
         },
         "pause": {
           "description": "Kas olete kindel, et soovite peatada?",
-          "title": "Kinnitus"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Kinnitus"
         },
         "reset": {
           "description": "See kustutab püsivalt selle monitori südameütlite ajalugu ja tööaegade statistika. Monitor näeb välja, nagu oleks just loodud. Seda toimingut ei saa tagasi võtta.",
-          "title": "Lähtesta jälgimise andmed"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Lähtesta jälgimise andmed"
         }
       },
       "expiring_soon": "Aegumine varsti",
@@ -656,7 +709,9 @@
     "empty_state": {
       "action": "Loo oma esimene teavituskanal",
       "description": "Alustage, luues oma esimese teavitusskanali, et saata teateid oma meeskonnale.",
-      "title": "Teavituskanaleid ei leitud"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Teavituskanaleid ei leitud"
     },
     "form": {
       "discord": {
@@ -1046,7 +1101,9 @@
       "updated_success": "Teavitaja uuendati edukalt"
     },
     "new": {
-      "title": "Uus teavituskanal"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Uus teavituskanal"
     },
     "no_important": "Ühtegi olulist teadet ei leitud.",
     "placeholders": {
@@ -1057,7 +1114,9 @@
   "proxies": {
     "delete_dialog": {
       "description": "See toiming ei saa tühistada. See kustutab jäädavalt proksi {{host}}:{{port}}.",
-      "title": "Olete täiesti kindel?"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Olete täiesti kindel?"
     },
     "edit": {
       "page_name": "Muuda proksi"
@@ -1065,7 +1124,9 @@
     "empty_list": {
       "action_text": "Loo oma esimene proksi",
       "text": "Alustage esimese proksi loomisega, mida kasutada oma monitorites.",
-      "title": "Proxid ei leitud"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Proxid ei leitud"
     },
     "form": {
       "auth_label": "Proksi server nõuab autentimist",
@@ -1131,15 +1192,21 @@
         "failed_to_update_password": "Parooli uuendamine ebaõnnestus",
         "password_updated_successfully": "Parool edukalt uuendatud"
       },
-      "title": "Parooli uuendamine"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Parooli uuendamine"
     },
     "api_keys": {
-      "title": "API Keys",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "API Keys",
       "description": "Manage your API keys for third-party integrations",
       "create_button": "Create API Key",
       "no_keys_title": "No API Keys",
       "no_keys_description": "Create your first API key to start integrating with external services.",
       "create_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Create New API Key",
         "description": "Create a new API key for third-party integrations. The key will be shown only once.",
         "form": {
@@ -1156,6 +1223,8 @@
         }
       },
       "success_alert": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "API Key Created Successfully",
         "description": "Your API key has been created. Copy it now as it won't be shown again:"
       },
@@ -1177,6 +1246,8 @@
         "never": "Never"
       },
       "delete_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Kustuta API võti",
         "description": "Kas olete kindel, et soovite kustutada API võtme \"{{name}}\"? Seda toimingut ei saa tagasi võtta.",
         "buttons": {
@@ -1216,7 +1287,9 @@
     "data_retention": {
       "days_label": "päevad",
       "description": "Määrake, mitu päeva andmeid hoitakse (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Andmete säilitamise periood"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Andmete säilitamise periood"
     },
     "timezone": {
       "description": "Vali oma eelistatud ajavöönd, mille alusel rakendus kuvab kõik ajatükkid.",
@@ -1224,7 +1297,9 @@
       "no_timezone_found": "Ajavööndit ei leitud.",
       "search_placeholder": "Otsi ajavööndit…",
       "select_placeholder": "Vali ajavöönd...",
-      "title": "Ajavöönd"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ajavöönd"
     },
     "validation": {
       "min_days": "Peab olema vähemalt 1 päev"
@@ -1256,7 +1331,9 @@
     "customization": "Kohandamine",
     "delete_dialog": {
       "description": "Olete kindel, et soovite kustutada \"{{title}}\"? Seda toimingut ei saa tagasi võtta.",
-      "title": "Kustuta seisukorra leht"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Kustuta seisukorra leht"
     },
     "description": "Sisesta oleku lehe kirjeldus",
     "domain_already_used": "Domeen {{domain}} on juba kasutusel teise olekukirjelduse lehe jaoks",
@@ -1293,7 +1370,9 @@
     "empty_state": {
       "action": "Loo esimene silt",
       "description": "Alustamiseks looge esimene silt, et oma monitoore korraldada.",
-      "title": "Sile ei leitud"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Sile ei leitud"
     },
     "form": {
       "color_description": "Vali oma sildi värv",

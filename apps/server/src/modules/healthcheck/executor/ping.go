@@ -6,6 +6,7 @@ import (
 	"net"
 	"os/exec"
 	"peekaping/src/modules/shared"
+	"reflect"
 	"runtime"
 	"strconv"
 	"strings"
@@ -17,8 +18,10 @@ import (
 )
 
 type PingConfig struct {
-	Host       string `json:"host" validate:"required" example:"example.com"`
-	PacketSize int    `json:"packet_size" validate:"min=0,max=65507" example:"32"`
+	Host              string `json:"host" validate:"required" example:"example.com"`
+	PacketSize        int    `json:"packet_size" validate:"min=0,max=65507" example:"32" default:"32"`
+	Count             int    `json:"count" validate:"min=1,max=100" example:"1" default:"1"`
+	PerRequestTimeout int    `json:"per_request_timeout" validate:"min=1,max=60" example:"2" default:"2"`
 }
 
 type PingExecutor struct {
@@ -31,6 +34,27 @@ func NewPingExecutor(logger *zap.SugaredLogger) *PingExecutor {
 	}
 }
 
+// applyDefaults applies default values from struct tags to zero-value fields
+func applyDefaults(cfg *PingConfig) {
+	configType := reflect.TypeOf(*cfg)
+	configValue := reflect.ValueOf(cfg).Elem()
+
+	for i := 0; i < configType.NumField(); i++ {
+		field := configType.Field(i)
+		fieldValue := configValue.Field(i)
+		defaultValue := field.Tag.Get("default")
+
+		if defaultValue != "" && fieldValue.IsZero() {
+			switch fieldValue.Kind() {
+			case reflect.Int:
+				if intValue, err := strconv.Atoi(defaultValue); err == nil {
+					fieldValue.SetInt(int64(intValue))
+				}
+			}
+		}
+	}
+}
+
 func (s *PingExecutor) Unmarshal(configJSON string) (any, error) {
 	return GenericUnmarshal[PingConfig](configJSON)
 }
@@ -40,7 +64,15 @@ func (s *PingExecutor) Validate(configJSON string) error {
 	if err != nil {
 		return err
 	}
-	return GenericValidator(cfg.(*PingConfig))
+
+	pingCfg := cfg.(*PingConfig)
+
+	// Validate basic fields - struct tags handle min/max validation
+	if err := GenericValidator(pingCfg); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (p *PingExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
@@ -50,22 +82,26 @@ func (p *PingExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	}
 	cfg := cfgAny.(*PingConfig)
 
-	// Set default packet size if not provided
-	if cfg.PacketSize == 0 {
-		cfg.PacketSize = 32
-	}
+	// Apply default values from struct tags
+	applyDefaults(cfg)
 
 	p.logger.Debugf("execute ping cfg: %+v", cfg)
+
+	// Calculate global timeout automatically with margin
+	globalTimeout := cfg.Count*cfg.PerRequestTimeout + 2 // +2s margin for safety
+	if globalTimeout > 60 {
+		globalTimeout = 60 // Cap at 60s maximum
+	}
 
 	startTime := time.Now().UTC()
 
 	// Try native ICMP first, fallback to system ping command
-	success, rtt, err := p.tryNativePing(ctx, cfg.Host, cfg.PacketSize, time.Duration(m.Timeout)*time.Second)
+	success, rtt, err := p.tryNativePing(ctx, cfg.Host, cfg.PacketSize, cfg.Count, cfg.PerRequestTimeout, time.Duration(globalTimeout)*time.Second)
 	if err != nil {
 		// Fallback to system ping command
 		p.logger.Debugf("Ping failed: %s, %s, %s", m.Name, err.Error(), "trying system ping")
 		startTime = time.Now().UTC() // reset start time
-		success, rtt, err = p.trySystemPing(ctx, cfg.Host, cfg.PacketSize, time.Duration(m.Timeout)*time.Second)
+		success, rtt, err = p.trySystemPing(ctx, cfg.Host, cfg.PacketSize, time.Duration(globalTimeout)*time.Second)
 	}
 
 	endTime := time.Now().UTC()
@@ -99,12 +135,24 @@ func (p *PingExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	}
 }
 
-// tryNativePing attempts to use native ICMP implementation
-func (p *PingExecutor) tryNativePing(ctx context.Context, host string, packetSize int, timeout time.Duration) (bool, time.Duration, error) {
-	// Resolve the host
-	dst, err := net.ResolveIPAddr("ip4", host)
+// tryNativePing attempts to use native ICMP implementation with multi-ping support
+func (p *PingExecutor) tryNativePing(ctx context.Context, host string, packetSize int, count int, perRequestTimeout int, globalTimeout time.Duration) (bool, time.Duration, error) {
+	// Resolve the host using context-aware DNS resolution
+	ips, err := net.DefaultResolver.LookupIPAddr(ctx, host)
 	if err != nil {
 		return false, 0, fmt.Errorf("failed to resolve host: %v", err)
+	}
+
+	// Find the first IPv4 address
+	var dst *net.IPAddr
+	for _, ip := range ips {
+		if ip.IP.To4() != nil {
+			dst = &ip
+			break
+		}
+	}
+	if dst == nil {
+		return false, 0, fmt.Errorf("no IPv4 address found for host: %s", host)
 	}
 
 	// Try to open raw socket for ICMP
@@ -114,8 +162,8 @@ func (p *PingExecutor) tryNativePing(ctx context.Context, host string, packetSiz
 	}
 	defer conn.Close()
 
-	// Set timeout
-	deadline := time.Now().Add(timeout)
+	// Set global timeout on the connection
+	deadline := time.Now().Add(globalTimeout)
 	conn.SetDeadline(deadline)
 
 	// Create ICMP message with custom data size
@@ -127,49 +175,100 @@ func (p *PingExecutor) tryNativePing(ctx context.Context, host string, packetSiz
 	data := make([]byte, dataSize)
 	copy(data, []byte("Peekaping"))
 
-	p.logger.Debugf("Native ping: host=%s, dataSize=%d, totalPacketSize=%d", host, dataSize, dataSize+8)
+	p.logger.Debugf("Native ping: host=%s, count=%d, perRequestTimeout=%ds, dataSize=%d", host, count, perRequestTimeout, dataSize)
 
-	msg := &icmp.Message{
-		Type: ipv4.ICMPTypeEcho,
-		Code: 0,
-		Body: &icmp.Echo{
-			ID:   1,
-			Seq:  1,
-			Data: data,
-		},
+	var totalRTT time.Duration
+	successfulPings := 0
+
+	// Send multiple ping packets
+	for i := 0; i < count; i++ {
+		// Check if global context is cancelled before each ping
+		select {
+		case <-ctx.Done():
+			return false, 0, fmt.Errorf("ping cancelled: %v", ctx.Err())
+		default:
+		}
+
+		// Create ICMP message for this ping
+		msg := &icmp.Message{
+			Type: ipv4.ICMPTypeEcho,
+			Code: 0,
+			Body: &icmp.Echo{
+				ID:   i + 1, // Use sequence number as ID
+				Seq:  i + 1,
+				Data: data,
+			},
+		}
+
+		msgBytes, err := msg.Marshal(nil)
+		if err != nil {
+			return false, 0, fmt.Errorf("failed to marshal ICMP message: %v", err)
+		}
+
+		start := time.Now()
+
+		// Send the ping
+		_, err = conn.WriteTo(msgBytes, dst)
+		if err != nil {
+			return false, 0, fmt.Errorf("failed to send ICMP packet: %v", err)
+		}
+
+		// Read response with per-request timeout
+		reply := make([]byte, 1500)
+		type readResult struct {
+			n    int
+			peer net.Addr
+			err  error
+		}
+
+		readChan := make(chan readResult, 1)
+		go func() {
+			n, peer, err := conn.ReadFrom(reply)
+			readChan <- readResult{n, peer, err}
+		}()
+
+		// Wait for response with per-request timeout
+		perRequestCtx, cancel := context.WithTimeout(ctx, time.Duration(perRequestTimeout)*time.Second)
+		defer cancel()
+
+		select {
+		case result := <-readChan:
+			if result.err != nil {
+				p.logger.Debugf("Ping %d failed: %v", i+1, result.err)
+				continue // Try next ping
+			}
+
+			rtt := time.Since(start)
+
+			// Parse the reply - protocol 1 for IPv4 ICMP
+			replyMsg, err := icmp.ParseMessage(1, reply[:result.n])
+			if err != nil {
+				p.logger.Debugf("Ping %d failed to parse reply: %v", i+1, err)
+				continue // Try next ping
+			}
+
+			if replyMsg.Type == ipv4.ICMPTypeEchoReply {
+				p.logger.Debugf("Ping %d successful, RTT: %v", i+1, rtt)
+				totalRTT += rtt
+				successfulPings++
+			} else {
+				p.logger.Debugf("Ping %d unexpected ICMP message type: %v", i+1, replyMsg.Type)
+			}
+
+		case <-perRequestCtx.Done():
+			p.logger.Debugf("Ping %d timed out after %ds", i+1, perRequestTimeout)
+			continue // Try next ping
+		}
 	}
 
-	msgBytes, err := msg.Marshal(nil)
-	if err != nil {
-		return false, 0, fmt.Errorf("failed to marshal ICMP message: %v", err)
+	// Return success if at least one ping succeeded
+	if successfulPings > 0 {
+		avgRTT := totalRTT / time.Duration(successfulPings)
+		p.logger.Debugf("Ping completed: %d/%d successful, avg RTT: %v", successfulPings, count, avgRTT)
+		return true, avgRTT, nil
 	}
 
-	start := time.Now()
-	_, err = conn.WriteTo(msgBytes, dst)
-	if err != nil {
-		return false, 0, fmt.Errorf("failed to send ICMP packet: %v", err)
-	}
-
-	// Read response
-	reply := make([]byte, 1500)
-	n, peer, err := conn.ReadFrom(reply)
-	if err != nil {
-		return false, 0, fmt.Errorf("failed to read ICMP reply: %v", err)
-	}
-	rtt := time.Since(start)
-
-	// Parse the reply - protocol 1 for IPv4 ICMP
-	replyMsg, err := icmp.ParseMessage(1, reply[:n])
-	if err != nil {
-		return false, 0, fmt.Errorf("failed to parse ICMP reply: %v", err)
-	}
-
-	if replyMsg.Type == ipv4.ICMPTypeEchoReply {
-		p.logger.Debugf("Received ICMP reply from %v", peer)
-		return true, rtt, nil
-	}
-
-	return false, 0, fmt.Errorf("unexpected ICMP message type: %v", replyMsg.Type)
+	return false, 0, fmt.Errorf("all %d ping attempts failed", count)
 }
 
 // trySystemPing falls back to using the system ping command

@@ -9,20 +9,26 @@
       "no_account": "Hisobingiz yo'qmi?",
       "sign_up": "Ro'yxatdan o'tish",
       "submit": "Kirish",
-      "title": "Xush kelibsiz"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Xush kelibsiz"
     },
     "register": {
       "description": "Admin hisobingizni yarating",
       "have_account": "Allaqachon hisobingiz bormi?",
       "sign_in": "Kirish",
       "submit": "Yaratish",
-      "title": "Salom"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Salom"
     },
     "twofa": {
       "code_label": "2FA kodi",
       "code_placeholder": "2FA kodini kiriting",
       "description": "2FA sizning hisobingizda yoqilgan. Iltimos, davom etish uchun autentifikatsiya kodini kiriting.",
-      "title": "Ikki bosqichli autentifikatsiya talab qilinadi",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ikki bosqichli autentifikatsiya talab qilinadi",
       "verify_button": "2FA ni tasdiqlash",
       "verifying": "Tasdiqlanmoqda..."
     }
@@ -96,7 +102,9 @@
       "password": "Parol",
       "retries": "Qayta urinishlar",
       "slug": "slug",
-      "title": "Sarlavha",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Sarlavha",
       "username": "Foydalanuvchi nomi"
     },
     "placeholders": {
@@ -169,17 +177,23 @@
         "confirm_action": {
           "pause_description": "Siz bu texnik xizmatni to'xtatishdan ishonchmisiz?",
           "resume_description": "Siz bu texnik xizmatni davom ettirishni hohlaysizmi?",
-          "title": "Harakatni tasdiqlash"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Harakatni tasdiqlash"
         },
         "confirm_delete": {
           "description": "Ushbu texnik xizmat ko‘rsatish oynasini o‘chirishdan ishonch hosil qilingmi? Ushbu amalni bekor qilish mumkin emas.",
-          "title": "O‘chirishni tasdiqlash"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "O‘chirishni tasdiqlash"
         }
       },
       "edit_maintenance": "Xizmatni tahrirlash: {{title}}",
       "empty_state": {
         "action": "Birinchi texnik xizmat ko‘rsatish oynasini yarating",
         "description": "Rejalashtirilgan to‘xtashlarni oldini olish uchun birinchi texnik xizmat ko‘rsatish oynasini yaratib boshlang.",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Xizmatni ta'mirlash oynalari topilmadi"
       },
       "error_loading": "Texnik xizmatni yuklashda xatolik",
@@ -248,7 +262,9 @@
     "empty_state": {
       "action": "Birinchi monitoringni yarating",
       "description": "Birinchi monitorni yaratish orqali xizmatlaringizning sog‘lig‘ini kuzatishni boshlang.",
-      "title": "Hech qanday monitor topilmadi"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Hech qanday monitor topilmadi"
     },
     "filtering_by_tags": "Taglar bo'yicha filtr",
     "filters": {
@@ -271,6 +287,8 @@
         "record_type": "Resurs yozuvi turi",
         "record_type_placeholder": "Rekord turini tanlang",
         "resolver_server": "Rezolver serveri",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "DNS Sozlamalari"
       },
       "docker": {
@@ -329,7 +347,9 @@
           "ignore_tls_description": "TLS sertifikat tasdiqlashini o'tkazib yuboring. Diqqat bilan foydalaning – bu ulanishlarni xavfsizsiz qiladi.",
           "max_redirects": "Maksimum yo‘naltirishlar",
           "max_redirects_description": "Foliylash uchun maksimal yo'naltirishlar soni (0‑30). 0 ga o'rnatish yo'naltirishlarni o'chiradi.",
-          "title": "Kengaytirilgan"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Kengaytirilgan"
         },
         "authentication": {
           "auth_header": "Avtorizatsiya sarlavhasi",
@@ -350,7 +370,9 @@
           "oauth_scope_placeholder": "Ixtiyoriy: Bo'sh joy bilan ajratilgan scope'lar ro'yxati",
           "oauth_token_url": "OAuth Token URL",
           "oauth_token_url_placeholder": "OAuth token URL",
-          "title": "Autentifikatsiya",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Autentifikatsiya",
           "workstation": "Ish stoli",
           "workstation_placeholder": "Ish stansiyasi"
         },
@@ -366,7 +388,9 @@
           "select_encoding": "Tana kodlashini tanlang",
           "select_method": "Metodni tanlang",
           "text_example": "Misol matni:\nBu yerda har qanday oddiy matnni kiriting...",
-          "title": "HTTP parametrlari",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "HTTP parametrlari",
           "xml_example": "XML namunasi"
         }
       },
@@ -374,6 +398,8 @@
         "condition_label": "Shart",
         "expected_value_label": "Kutilgan Qiymat",
         "json_query_label": "JSON So‘rov ifodasi",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "JSON So'rov Ifodasi"
       },
       "http_keyword": {
@@ -446,8 +472,13 @@
         "query_label": "So'rov"
       },
       "ping": {
+        "count": "Max Packets",
+        "count_description": "Number of packets to send before stopping",
+        
         "data_size": "Ma'lumot hajmi (bayt)",
         "host": "Host nomi / IP",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Ping sozlamalari"
       },
       "postgres": {
@@ -468,6 +499,8 @@
         "password_description": "RabbitMQ boshqaruv interfeysi tasdiqlash paroli",
         "setup_information_description": "RabbitMQ monitorini ishlatish uchun RabbitMQ o‘rnatishingizda Boshqaruv plagini yoqish lozim. Qo‘shimcha ma'lumot uchun, iltimos, RabbitMQ hujjatlarini tekshirib chiqing.",
         "setup_information_title": "O'rnatish ma'lumotlari",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "RabbitMQ Konfiguratsiyasi",
         "username_description": "RabbitMQ boshqaruv interfeysi autentifikatsiyasi uchun foydalanuvchi nomi"
       },
@@ -482,6 +515,8 @@
         "connection_string_label": "Ulanish satri",
         "ignore_tls_description": "TLS sertifikat tekshirishini o'tkazib yuborish (ishlab chiqarish muhitida tavsiya etilmaydi)",
         "ignore_tls_label": "TLS/SSL xatoliklarini e'tiborsiz qoldirish",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Redis Konfiguratsiyasi"
       },
       "shared": {
@@ -499,7 +534,9 @@
           "select_channel": "Kanalni tanlang",
           "select_notifier_placeholder": "Notifierni tanlang",
           "selected_channels": "Tanlangan Xabarnoma kanallari",
-          "title": "Bildirish kanallari"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Bildirish kanallari"
         },
         "proxy": {
           "add_proxy": "Proxy qo'shish",
@@ -508,7 +545,9 @@
           "remove_proxy": "Proksi olib tashlash",
           "select_proxy_placeholder": "Proksi tanlang",
           "selected_proxy": "Tanlangan proksi",
-          "title": "Proksi"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Proksi"
         },
         "tags": {
           "label": "Teglar",
@@ -539,6 +578,8 @@
         "port_label": "Port",
         "snmp_version_description": "SNMP protokoli versiyasi",
         "snmp_version_label": "SNMP versiyasi",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "SNMP Sozlamalari",
         "value_validation_label": "Qiymat tekshiruvi (Ixtiyoriy)"
       },
@@ -548,11 +589,15 @@
         "connection_string_label": "Ulanish satri",
         "query_description": "Sog‘liq tekshiruvini bajarish uchun so‘rov. Bo‘sh qoldiring, standartdan foydalaning.",
         "query_label": "So'rov",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Microsoft SQL Server bog‘lanishi"
       },
       "tcp": {
         "host": "Xost",
         "port": "Port",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "TCP Ulanishi"
       },
       "type": {
@@ -579,7 +624,9 @@
       "edit_title": "Monitorni tahrirlash:",
       "new_title": "Yangi monitor"
     },
-    "title": "Kuzatishlar",
+    "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Kuzatishlar",
     "toasts": {
       "deleted": "Monitor o'chirildi",
       "paused": "Monitor to'xtatildi",
@@ -601,15 +648,21 @@
       "dialogs": {
         "delete": {
           "description": "Ushbu amaliyotni bekor qilish mumkin emas. Bu monitor va unga tegishli barcha ma'lumotlarni doimiy ravishda o'chiradi.",
-          "title": "Siz haqiqatdan ham ishonch hosil qildingizmi?"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Siz haqiqatdan ham ishonch hosil qildingizmi?"
         },
         "pause": {
           "description": "Siz to'xtatishni xohlaysizmi?",
-          "title": "Tasdiqlash"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Tasdiqlash"
         },
         "reset": {
           "description": "Bu amal ushbu monitor uchun barcha yurak urishi tarixi va tizim holati statistikalarini doimiy ravishda o'chiradi. Monitor yangi yaratilganidek ko'rinishga ega bo'ladi. Ushbu harakatni bekor qilish mumkin emas.",
-          "title": "Monitor ma'lumotlarini tozalash"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Monitor ma'lumotlarini tozalash"
         }
       },
       "expiring_soon": "Yaqin muddatda tugaydi",
@@ -656,7 +709,9 @@
     "empty_state": {
       "action": "Birinchi ogohlantirish kanalini yarating",
       "description": "Birinchi bildirishkan kanalingizni yaratish orqali jamoangizga ogohlantirishlar yuborishni boshlang.",
-      "title": "Bildirish kanallari topilmadi"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Bildirish kanallari topilmadi"
     },
     "form": {
       "discord": {
@@ -1045,7 +1100,9 @@
       "updated_success": "Notifikator muvaffaqiyatli yangilandi"
     },
     "new": {
-      "title": "Yangi Bildirishkan kanali"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Yangi Bildirishkan kanali"
     },
     "no_important": "Muhim xabarnomalar topilmadi.",
     "placeholders": {
@@ -1056,7 +1113,9 @@
   "proxies": {
     "delete_dialog": {
       "description": "Bu amaliyot bekor qilinmaydi. Bu proxy {{host}}:{{port}}ni doimiy ravishda o'chiradi.",
-      "title": "Siz haqiqatdan ham ishonchli misiz?"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Siz haqiqatdan ham ishonchli misiz?"
     },
     "edit": {
       "page_name": "Proksi tahrirlash"
@@ -1064,7 +1123,9 @@
     "empty_list": {
       "action_text": "Birinchi proksi yarating",
       "text": "Monitoringlaringizda foydalanish uchun birinchi proksingizni yaratish bilan boshlang.",
-      "title": "Hech qanday proksi topilmadi"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Hech qanday proksi topilmadi"
     },
     "form": {
       "auth_label": "Proxy server autentifikatsiyaga ega",
@@ -1130,15 +1191,21 @@
         "failed_to_update_password": "Parolni yangilash muvaffaqiyatsiz",
         "password_updated_successfully": "Parol muvaffaqiyatli yangilandi"
       },
-      "title": "Parolni Yangilash"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Parolni Yangilash"
     },
     "api_keys": {
-      "title": "API Keys",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "API Keys",
       "description": "Manage your API keys for third-party integrations",
       "create_button": "Create API Key",
       "no_keys_title": "No API Keys",
       "no_keys_description": "Create your first API key to start integrating with external services.",
       "create_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Create New API Key",
         "description": "Create a new API key for third-party integrations. The key will be shown only once.",
         "form": {
@@ -1155,6 +1222,8 @@
         }
       },
       "success_alert": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "API Key Created Successfully",
         "description": "Your API key has been created. Copy it now as it won't be shown again:"
       },
@@ -1176,6 +1245,8 @@
         "never": "Never"
       },
       "delete_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "API kalitini o'chirish",
         "description": "\"{{name}}\" API kalitini o'chirishni xohlaysizmi? Bu amalni bekor qilib bo'lmaydi.",
         "buttons": {
@@ -1215,7 +1286,9 @@
     "data_retention": {
       "days_label": "Kunlar",
       "description": "Ma'lumotlarni necha kun saqlashni belgilang (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Ma'lumot saqlash muddati"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ma'lumot saqlash muddati"
     },
     "timezone": {
       "description": "Ilovada barcha vaqtlar ko'rsatilganda ishlatiladigan vaqt zonangizni tanlang.",
@@ -1223,7 +1296,9 @@
       "no_timezone_found": "Vaqt zonasi topilmadi.",
       "search_placeholder": "Vaqt zonasini qidirish...",
       "select_placeholder": "Vaqt zonasini tanlang...",
-      "title": "Vaqt zonasi"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Vaqt zonasi"
     },
     "validation": {
       "min_days": "Kamida 1 kun bo'lishi kerak"
@@ -1255,7 +1330,9 @@
     "customization": "Moslashtirish",
     "delete_dialog": {
       "description": "Siz \"{{title}}\"ni o'chirishni istaysizmi? Bu amalni bekor qilish mumkin emas.",
-      "title": "Status sahifasini o'chirish"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Status sahifasini o'chirish"
     },
     "description": "Status sahifasi tavsifini kiriting",
     "domain_already_used": "Domain {{domain}} allaqachon boshqa holat sahifasida ishlatilmoqda",
@@ -1292,7 +1369,9 @@
     "empty_state": {
       "action": "Birinchi tegni yarating",
       "description": "Birinchi tegni yaratish bilan boshlang va monitorlaringizni tartibga soling.",
-      "title": "E'tiketlar topilmadi"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "E'tiketlar topilmadi"
     },
     "form": {
       "color_description": "Etiketangiz uchun rangni tanlang",

@@ -9,20 +9,26 @@
       "no_account": "Tidak punya akun?",
       "sign_up": "Daftar",
       "submit": "Masuk",
-      "title": "Selamat datang kembali"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Selamat datang kembali"
     },
     "register": {
       "description": "Buat akun admin Anda",
       "have_account": "Sudah punya akun?",
       "sign_in": "Masuk",
       "submit": "Buat",
-      "title": "Halo"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Halo"
     },
     "twofa": {
       "code_label": "Kode 2FA",
       "code_placeholder": "Masukkan kode 2FA",
       "description": "Autentikasi dua faktor (2FA) sudah diaktifkan untuk akun Anda. Silakan masukkan kode otentikasi Anda untuk melanjutkan.",
-      "title": "Autentikasi Dua Faktor Diperlukan",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Autentikasi Dua Faktor Diperlukan",
       "verify_button": "Verifikasi 2FA",
       "verifying": "Memverifikasi..."
     }
@@ -96,7 +102,9 @@
       "password": "Kata Sandi",
       "retries": "Pengulangan",
       "slug": "Slug",
-      "title": "Judul",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Judul",
       "username": "Nama Pengguna"
     },
     "placeholders": {
@@ -169,17 +177,23 @@
         "confirm_action": {
           "pause_description": "Apakah Anda yakin ingin menunda pemeliharaan ini?",
           "resume_description": "Apakah Anda yakin ingin melanjutkan pemeliharaan ini?",
-          "title": "Konfirmasi Tindakan"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Konfirmasi Tindakan"
         },
         "confirm_delete": {
           "description": "Apakah Anda yakin ingin menghapus jendela pemeliharaan ini? Tindakan ini tidak dapat dibatalkan.",
-          "title": "Konfirmasi Hapus"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Konfirmasi Hapus"
         }
       },
       "edit_maintenance": "Sunting Pemeliharaan: {{title}}",
       "empty_state": {
         "action": "Buat jendela pemeliharaan pertama Anda",
         "description": "Mulai dengan membuat jendela pemeliharaan pertama Anda untuk mencegah downtime terjadwal.",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Tidak ada jendela pemeliharaan"
       },
       "error_loading": "Kesalahan memuat pemeliharaan",
@@ -248,7 +262,9 @@
     "empty_state": {
       "action": "Buat monitor pertama Anda",
       "description": "Mulailah dengan membuat monitor pertama Anda untuk melacak kesehatan layanan Anda.",
-      "title": "Tidak ada monitor yang ditemukan"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Tidak ada monitor yang ditemukan"
     },
     "filtering_by_tags": "Menyaring berdasarkan tag",
     "filters": {
@@ -271,6 +287,8 @@
         "record_type": "Tipe Rekor Sumber",
         "record_type_placeholder": "Pilih tipe catatan",
         "resolver_server": "Server Resolver",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Pengaturan DNS"
       },
       "docker": {
@@ -329,7 +347,9 @@
           "ignore_tls_description": "Lewatkan validasi sertifikat TLS. Gunakan dengan hati‑hati – ini membuat koneksi kurang aman.",
           "max_redirects": "Redirect Maksimum",
           "max_redirects_description": "Jumlah maksimum pengalihan yang akan diikuti (0‑30). Setel ke 0 untuk menonaktifkan pengalihan.",
-          "title": "Lanjutan"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Lanjutan"
         },
         "authentication": {
           "auth_header": "Header Otorisasi",
@@ -350,7 +370,9 @@
           "oauth_scope_placeholder": "Opsional: Daftar scope yang dipisahkan spasi",
           "oauth_token_url": "URL Token OAuth",
           "oauth_token_url_placeholder": "URL Token OAuth",
-          "title": "Otentikasi",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Otentikasi",
           "workstation": "Stasiun kerja",
           "workstation_placeholder": "Stasiun Kerja"
         },
@@ -366,7 +388,9 @@
           "select_encoding": "Pilih encoding badan",
           "select_method": "Pilih metode",
           "text_example": "Contoh Teks:\nIsi teks biasa di sini...",
-          "title": "Pilihan HTTP",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Pilihan HTTP",
           "xml_example": "Contoh XML"
         }
       },
@@ -374,6 +398,8 @@
         "condition_label": "Kondisi",
         "expected_value_label": "Nilai Diharapkan",
         "json_query_label": "Ekspresi Query JSON",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Ekspresi Query JSON"
       },
       "http_keyword": {
@@ -446,8 +472,13 @@
         "query_label": "Kueri"
       },
       "ping": {
+        "count": "Max Packets",
+        "count_description": "Number of packets to send before stopping",
+        
         "data_size": "Ukuran Data (byte)",
         "host": "Nama host / IP",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Pengaturan Ping"
       },
       "postgres": {
@@ -468,6 +499,8 @@
         "password_description": "Kata sandi untuk otentikasi antarmuka manajemen RabbitMQ",
         "setup_information_description": "Untuk menggunakan monitor RabbitMQ, Anda perlu mengaktifkan Plugin Manajemen di konfigurasi RabbitMQ Anda. Untuk informasi lebih lanjut, silakan konsultasikan dokumentasi RabbitMQ.",
         "setup_information_title": "Informasi Pengaturan",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Konfigurasi RabbitMQ",
         "username_description": "Nama pengguna untuk otentikasi antarmuka manajemen RabbitMQ"
       },
@@ -482,6 +515,8 @@
         "connection_string_label": "String Koneksi",
         "ignore_tls_description": "Lewati verifikasi sertifikat TLS (tidak disarankan untuk produksi)",
         "ignore_tls_label": "Abaikan kesalahan TLS/SSL",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Konfigurasi Redis"
       },
       "shared": {
@@ -499,7 +534,9 @@
           "select_channel": "Pilih saluran",
           "select_notifier_placeholder": "Pilih Notifier",
           "selected_channels": "Saluran Notifikasi yang Dipilih",
-          "title": "Saluran Pemberitahuan"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Saluran Pemberitahuan"
         },
         "proxy": {
           "add_proxy": "Tambahkan Proxy",
@@ -508,7 +545,9 @@
           "remove_proxy": "Hapus Proxy",
           "select_proxy_placeholder": "Pilih Proxy",
           "selected_proxy": "Proxy Terpilih",
-          "title": "Proksi"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Proksi"
         },
         "tags": {
           "label": "Tag",
@@ -539,6 +578,8 @@
         "port_label": "Port",
         "snmp_version_description": "Versi protokol SNMP yang digunakan",
         "snmp_version_label": "Versi SNMP",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Pengaturan SNMP",
         "value_validation_label": "Validasi Nilai (Opsional)"
       },
@@ -548,11 +589,15 @@
         "connection_string_label": "String Koneksi",
         "query_description": "Query yang akan dijalankan untuk pemeriksaan kesehatan. Biarkan kosong untuk menggunakan default",
         "query_label": "Kueri",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Koneksi Microsoft SQL Server"
       },
       "tcp": {
         "host": "Tuan Rumah",
         "port": "Port",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Koneksi TCP"
       },
       "type": {
@@ -579,7 +624,9 @@
       "edit_title": "Ubah Monitor:",
       "new_title": "Monit Baru"
     },
-    "title": "Pengawasan",
+    "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Pengawasan",
     "toasts": {
       "deleted": "Monitor dihapus",
       "paused": "Pemantauan dijeda",
@@ -601,15 +648,21 @@
       "dialogs": {
         "delete": {
           "description": "Tindakan ini tidak dapat dibatalkan. Ini akan menghapus monitor secara permanen beserta semua data terkait.",
-          "title": "Apakah Anda benar-benar yakin?"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Apakah Anda benar-benar yakin?"
         },
         "pause": {
           "description": "Apakah Anda yakin ingin menjeda?",
-          "title": "Konfirmasi"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Konfirmasi"
         },
         "reset": {
           "description": "Tindakan ini akan menghapus secara permanen semua riwayat heartbeat dan statistik ketersediaan untuk monitor ini. Monitor akan muncul seolah-olah baru saja dibuat. Tindakan ini tidak dapat dibatalkan.",
-          "title": "Reset Data Monitor"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Reset Data Monitor"
         }
       },
       "expiring_soon": "Segera kedaluwarsa",
@@ -656,7 +709,9 @@
     "empty_state": {
       "action": "Buat saluran notifikasi pertama Anda",
       "description": "Mulailah dengan membuat saluran notifikasi pertama Anda untuk mengirim peringatan ke tim Anda.",
-      "title": "Tidak ditemukan saluran notifikasi"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Tidak ditemukan saluran notifikasi"
     },
     "form": {
       "discord": {
@@ -1046,7 +1101,9 @@
       "updated_success": "Notifier berhasil diperbarui"
     },
     "new": {
-      "title": "Saluran Pemberitahuan Baru"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Saluran Pemberitahuan Baru"
     },
     "no_important": "Tidak ada notifikasi penting.",
     "placeholders": {
@@ -1057,7 +1114,9 @@
   "proxies": {
     "delete_dialog": {
       "description": "Tindakan ini tidak dapat dibatalkan. Ini akan menghapus proxy {{host}}:{{port}} secara permanen.",
-      "title": "Apakah Anda benar-benar yakin?"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Apakah Anda benar-benar yakin?"
     },
     "edit": {
       "page_name": "Ubah Proxy"
@@ -1065,7 +1124,9 @@
     "empty_list": {
       "action_text": "Buat proxy pertama Anda",
       "text": "Mulai dengan membuat proksi pertama Anda untuk digunakan di monitor Anda.",
-      "title": "Tidak ada proxy"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Tidak ada proxy"
     },
     "form": {
       "auth_label": "Server proxy memerlukan otentikasi",
@@ -1131,15 +1192,21 @@
         "failed_to_update_password": "Gagal memperbarui kata sandi",
         "password_updated_successfully": "Password berhasil diperbarui"
       },
-      "title": "Perbarui Kata Sandi"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Perbarui Kata Sandi"
     },
     "api_keys": {
-      "title": "Kunci API",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Kunci API",
       "description": "Kelola kunci API Anda untuk integrasi pihak ketiga",
       "create_button": "Buat Kunci API",
       "no_keys_title": "Tidak Ada Kunci API",
       "no_keys_description": "Buat kunci API pertama Anda untuk mulai berintegrasi dengan layanan eksternal.",
       "create_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Buat Kunci API Baru",
         "description": "Buat kunci API baru untuk integrasi pihak ketiga. Kunci hanya akan ditampilkan sekali.",
         "form": {
@@ -1156,6 +1223,8 @@
         }
       },
       "success_alert": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Kunci API Berhasil Dibuat",
         "description": "Kunci API Anda telah dibuat. Salin sekarang karena tidak akan ditampilkan lagi:"
       },
@@ -1177,6 +1246,8 @@
         "never": "Tidak Pernah"
       },
       "delete_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Hapus Kunci API",
         "description": "Apakah Anda yakin ingin menghapus kunci API \"{{name}}\"? Tindakan ini tidak dapat dibatalkan.",
         "buttons": {
@@ -1216,7 +1287,9 @@
     "data_retention": {
       "days_label": "Hari",
       "description": "Tetapkan berapa hari data akan disimpan (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Periode Retensi Data"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Periode Retensi Data"
     },
     "timezone": {
       "description": "Pilih zona waktu yang Anda sukai untuk menampilkan semua waktu di aplikasi.",
@@ -1224,7 +1297,9 @@
       "no_timezone_found": "Zona waktu tidak ditemukan.",
       "search_placeholder": "Cari zona waktu...",
       "select_placeholder": "Pilih zona waktu...",
-      "title": "Zona Waktu"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Zona Waktu"
     },
     "validation": {
       "min_days": "Harus minimal 1 hari"
@@ -1256,7 +1331,9 @@
     "customization": "Kustomisasi",
     "delete_dialog": {
       "description": "Apakah Anda yakin ingin menghapus '{{title}}'? Tindakan ini tidak dapat dibatalkan.",
-      "title": "Hapus Halaman Status"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Hapus Halaman Status"
     },
     "description": "Masukkan deskripsi halaman status",
     "domain_already_used": "Domain {{domain}} sudah digunakan oleh halaman status lain",
@@ -1293,7 +1370,9 @@
     "empty_state": {
       "action": "Buat tag pertama Anda",
       "description": "Mulai dengan membuat tag pertama Anda untuk mengatur monitor Anda.",
-      "title": "Tidak ada tag"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Tidak ada tag"
     },
     "form": {
       "color_description": "Pilih warna untuk tag Anda",
