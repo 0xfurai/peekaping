@@ -12,6 +12,7 @@ const queryClient = new QueryClient({
     queries: {
       retry: false,
       staleTime: 1000 * 60 * 5, // 5 minutes
+      refetchOnWindowFocus: false, // Prevent refetch when switching tabs to avoid form resets
     },
     mutations: {
       retry: false,
