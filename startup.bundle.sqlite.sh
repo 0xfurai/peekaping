@@ -37,6 +37,10 @@ else
     exit 1
 fi
 
+# Security: Ensure peekaping user owns the data directory and database file after migrations
+chown -R peekaping:peekaping /app/data
+chmod 755 /app/data
+
 # Start supervisor to manage both server and Caddy
 echo "Starting supervisor to manage server and Caddy..."
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
