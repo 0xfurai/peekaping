@@ -60,8 +60,9 @@ func (s *DiscordSender) Send(
 	bindings := PrepareTemplateBindings(monitor, heartbeat, message)
 
 	s.logger.Infof("Sending Discord message: %s", message)
+	s.logger.Debugf("Available bindings: %s", bindings)
 
-	finalMessage := message
+	var finalMessage string
 
 	finalEmbed := createDiscordEmbed(bindings)
 
@@ -69,7 +70,7 @@ func (s *DiscordSender) Send(
 
 	// Add custom message prefix if provided
 	if cfg.CustomMessagePrefix != "" {
-		finalMessage = cfg.CustomMessagePrefix + " " + finalMessage
+		finalMessage = cfg.CustomMessagePrefix
 	}
 
 	// Prepare Discord webhook payload
@@ -78,11 +79,13 @@ func (s *DiscordSender) Send(
 	if cfg.MessageType == "send_to_new_forum_post" {
 		payload = map[string]interface{}{
 			"content":     finalMessage,
+			"embeds":      [1]map[string]interface{}{finalEmbed},
+			"attachments": []*string{},
 			"thread_name": cfg.ThreadName,
 		}
 	} else {
 		payload = map[string]interface{}{
-			"content":     nil,
+			"content":     finalMessage,
 			"embeds":      [1]map[string]interface{}{finalEmbed},
 			"attachments": []*string{},
 		}
