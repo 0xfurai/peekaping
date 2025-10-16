@@ -15,6 +15,7 @@ docker run -d --restart=always \
   -e DB_USER=peekaping \
   -e DB_PASS=secure_test_password_123 \
   -v $(pwd)/.data/postgres:/var/lib/postgresql/data \
+  --name peekaping \
   0xfurai/peekaping-bundle-postgres:latest
 ```
 To add custom caddy file add

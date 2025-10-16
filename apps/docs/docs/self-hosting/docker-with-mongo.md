@@ -15,6 +15,7 @@ docker run -d --restart=always \
   -e DB_USER=peekaping \
   -e DB_PASS=secure_test_password_123 \
   -v $(pwd)/.data/mongodb:/data/db \
+  --name peekaping \
   0xfurai/peekaping-bundle-mongo:latest
 ```
 To add custom caddy file add
