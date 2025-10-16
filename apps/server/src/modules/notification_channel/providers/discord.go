@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"peekaping/src/modules/heartbeat"
 	"peekaping/src/modules/monitor"
+	"time"
 
 	"go.uber.org/zap"
 )
@@ -56,9 +57,15 @@ func (s *DiscordSender) Send(
 	}
 	cfg := cfgAny.(*DiscordConfig)
 
+	bindings := PrepareTemplateBindings(monitor, heartbeat, message)
+
 	s.logger.Infof("Sending Discord message: %s", message)
 
 	finalMessage := message
+
+	finalEmbed := createDiscordEmbed(bindings)
+
+	s.logger.Debug(finalEmbed)
 
 	// Add custom message prefix if provided
 	if cfg.CustomMessagePrefix != "" {
@@ -75,7 +82,9 @@ func (s *DiscordSender) Send(
 		}
 	} else {
 		payload = map[string]interface{}{
-			"content": finalMessage,
+			"content":     nil,
+			"embeds":      [1]map[string]interface{}{finalEmbed},
+			"attachments": []*string{},
 		}
 	}
 
@@ -128,4 +137,44 @@ func (s *DiscordSender) Send(
 
 	s.logger.Infof("Discord message sent successfully")
 	return nil
+}
+
+func createDiscordEmbed(bindings map[string]any) map[string]interface{} {
+	var fields []*map[string]interface{}
+
+	fields = append(fields, &map[string]interface{}{
+		"name":   "Name",
+		"value":  bindings["name"],
+		"inline": true,
+	})
+	fields = append(fields, &map[string]interface{}{
+		"name":   "Status",
+		"value":  bindings["status"],
+		"inline": true,
+	})
+	if bindings["ping"] != nil && bindings["ping"] != 0 {
+		fields = append(fields, &map[string]interface{}{
+			"name":   "Ping",
+			"value":  fmt.Sprintf("%d ms", bindings["ping"]),
+			"inline": true,
+		})
+	}
+	if bindings["time"].(time.Time).IsZero() == false {
+		fields = append(fields, &map[string]interface{}{
+			"name":  "Time",
+			"value": bindings["time"].(time.Time).Format("2006-01-02 15:04:05"),
+		})
+	}
+	fields = append(fields, &map[string]interface{}{
+		"name":  "Message",
+		"value": bindings["msg"],
+	})
+
+	payload := map[string]interface{}{
+		"title":  fmt.Sprintf("%s Your service %s is %s %s", bindings["status_icon"], bindings["name"], bindings["status"], bindings["status_icon"]),
+		"color":  bindings["status_color"],
+		"fields": fields,
+	}
+
+	return payload
 }
