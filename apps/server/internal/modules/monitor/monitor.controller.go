@@ -722,7 +722,7 @@ func (ic *MonitorController) GetTLSInfo(ctx *gin.Context) {
 	// Get TLS info for the monitor
 	tlsInfo, err := ic.tlsInfoService.GetTLSInfo(ctx, id)
 	if err != nil {
-		ic.logger.Errorw("Failed to get TLS info", "monitorID", id, "error", err)
+		ic.logger.Errorw("Failed to get TLS info", "monitorID", id, "error", err) // TODO: fix 500 when no rows in a set
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
 	}

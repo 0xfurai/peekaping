@@ -26,53 +26,64 @@ COPY apps/web/ ./apps/web/
 WORKDIR /app/apps/web
 RUN pnpm run build
 
-# Stage 3: Final runtime image with PostgreSQL
-FROM ubuntu:24.04
+# Stage 3: Final runtime image with Debian bookworm-slim and PostgreSQL
+FROM debian:bookworm-slim
 
-# Security: Install packages with minimal privileges and clean up
+# Set environment variables for non-interactive installation
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+
+# Install base dependencies
 RUN apt-get update && apt-get install -y \
     supervisor \
     netcat-openbsd \
     wget \
     curl \
-    gosu \
-    openssl \
     ca-certificates \
     gnupg \
     lsb-release \
     locales \
     && rm -rf /var/lib/apt/lists/*
 
-# Security: Set up proper locales to avoid encoding issues
-RUN locale-gen en_US.UTF-8
+# Set up proper locales
+RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 ENV LANG=en_US.UTF-8 \
     LANGUAGE=en_US:en \
     LC_ALL=en_US.UTF-8
 
-# Install PostgreSQL 17 from official repository
-RUN sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list' \
-    && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
-    && apt-get update \
-    && apt-get install -y postgresql-17 postgresql-client-17 postgresql-contrib-17 \
+# Install Redis 7 from Debian bookworm repositories
+RUN apt-get update \
+    && apt-get install -y redis-server \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Caddy
+# Install Caddy web server
 RUN curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg \
     && curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list \
     && apt-get update \
     && apt-get install -y caddy \
     && rm -rf /var/lib/apt/lists/*
 
-# Security: Set proper permissions for PostgreSQL
+# Install PostgreSQL 17 from official repository
+RUN sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list' \
+    && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql-archive-keyring.gpg \
+    && sed -i 's|deb http://apt.postgresql.org/pub/repos/apt|deb [signed-by=/usr/share/keyrings/postgresql-archive-keyring.gpg] http://apt.postgresql.org/pub/repos/apt|' /etc/apt/sources.list.d/pgdg.list \
+    && apt-get update \
+    && apt-get install -y postgresql-17 postgresql-client-17 postgresql-contrib-17 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set PostgreSQL binary paths and data directory
+ENV PATH="/usr/lib/postgresql/17/bin:$PATH"
+ENV PGDATA="/var/lib/postgresql/data"
+
+# Create necessary directories
+RUN mkdir -p /app/server /app/data /var/log/supervisor /app/web
+
+# Set proper permissions for PostgreSQL
 RUN mkdir -p /var/lib/postgresql/data \
     && chown -R postgres:postgres /var/lib/postgresql \
     && chmod 700 /var/lib/postgresql/data
 
-# Security: Set PostgreSQL binary paths
-ENV PATH="/usr/lib/postgresql/17/bin:$PATH"
-ENV PGDATA="/var/lib/postgresql/data"
-
-RUN mkdir -p /app/server /app/data /var/log/supervisor /app/web
+# Copy built Go binaries from go-builder
 COPY --from=go-builder /app/server/api /app/server/api
 COPY --from=go-builder /app/server/producer /app/server/producer
 COPY --from=go-builder /app/server/worker /app/server/worker
@@ -81,12 +92,20 @@ COPY --from=go-builder /app/server/bun /app/server/bun
 COPY --from=go-builder /app/server/cmd/bun/migrations /app/server/cmd/bun/migrations
 COPY --from=go-builder /app/server/internal/config /app/server/internal/config
 COPY --from=go-builder /app/server/scripts/run-migrations.sh /app/server/run-migrations.sh
+
+# Copy built web assets from web-builder
 COPY --from=web-builder /app/apps/web/dist /app/web
+
+# Copy configuration files
 COPY Caddyfile /etc/caddy/Caddyfile
 COPY supervisord.bundle.postgres.conf /etc/supervisor/conf.d/supervisord.conf
 COPY startup.bundle.postgres.sh /app/startup.sh
+
+# Set proper permissions for executables
 RUN chmod +x /app/server/run-migrations.sh /app/startup.sh /app/server/api /app/server/producer /app/server/worker /app/server/ingester /app/server/bun
 
+# Expose port
 EXPOSE 8383
 
+# Start the application
 CMD ["/app/startup.sh"]
