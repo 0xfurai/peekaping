@@ -78,7 +78,6 @@ func main() {
 	container.Provide(infra.ProvideQueueService)
 
 	// Register only non-database module dependencies needed for health checks
-	events.RegisterDependencies(container)
 	healthcheck.RegisterDependencies(container)
 	heartbeat.RegisterDependencies(container, internalCfg)
 

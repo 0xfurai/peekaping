@@ -25,10 +25,15 @@ func (p *Producer) runProducer(workerID int) error {
 		nowMs := p.redisNowMs()
 
 		// Atomically claim a batch of due items
-		idsAny, err := claimScript.Run(p.ctx, p.rdb,
+		idsAny, err := claimScript.Run(
+			p.ctx,
+			p.rdb,
 			[]string{SchedDueKey, SchedLeaseKey},
-			nowMs, BatchClaim, int64(LeaseTTL/time.Millisecond),
+			nowMs,
+			BatchClaim,
+			int64(LeaseTTL/time.Millisecond),
 		).Result()
+
 		if err != nil {
 			p.logger.Errorw("Claim error", "worker_id", workerID, "error", err)
 			time.Sleep(100 * time.Millisecond)
@@ -47,10 +52,10 @@ func (p *Producer) runProducer(workerID int) error {
 		// Process each claimed monitor with a timeout context
 		// This ensures that claimed monitors can complete processing even during shutdown
 		// Use a generous timeout to handle large batches (up to BatchClaim=1000 monitors)
-		processCtx, processCancel := context.WithTimeout(context.Background(), 2*time.Minute)
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 		pipe := p.rdb.Pipeline()
 		for _, monitorID := range ids {
-			interval, err := p.processMonitor(processCtx, monitorID, nowMs)
+			interval, err := p.processMonitor(ctx, monitorID, nowMs)
 			if err != nil {
 				p.logger.Errorw("Failed to process monitor",
 					"worker_id", workerID,
@@ -70,13 +75,19 @@ func (p *Producer) runProducer(workerID int) error {
 
 			// Calculate next execution time
 			next := nextAligned(time.UnixMilli(nowMs).UTC(), time.Duration(interval)*time.Second)
-			pipe.Eval(processCtx, reschedLua, []string{SchedLeaseKey, SchedDueKey}, monitorID, next.UnixMilli())
+			pipe.Eval(
+				ctx,
+				reschedLua,
+				[]string{SchedLeaseKey, SchedDueKey},
+				monitorID,
+				next.UnixMilli(),
+			)
 		}
 
-		if _, err := pipe.Exec(processCtx); err != nil {
+		if _, err := pipe.Exec(ctx); err != nil {
 			p.logger.Errorw("Resched pipeline error", "worker_id", workerID, "error", err)
 		}
-		processCancel()
+		cancel()
 	}
 }
 
@@ -86,7 +97,7 @@ func (p *Producer) isUnderMaintenance(ctx context.Context, monitorID string) (bo
 		return false, err
 	}
 
-	p.logger.Infof("Found %d maintenances for monitor %s", len(maintenances), monitorID)
+	p.logger.Debugf("Found %d maintenances for monitor %s", len(maintenances), monitorID)
 
 	for _, m := range maintenances {
 		underMaintenance, err := p.maintenanceService.IsUnderMaintenance(ctx, m)
@@ -156,7 +167,7 @@ func (p *Producer) processMonitor(ctx context.Context, monitorID string, nowMs i
 	// Check if certificate expiry checking is enabled in monitor configuration
 	// This applies to monitors that support TLS (http, tcp)
 	checkCertExpiry := false
-	if strings.HasPrefix(strings.ToLower(mon.Type), "http") || mon.Type == "tcp" {
+	if strings.HasPrefix(strings.ToLower(mon.Type), "http") {
 		if mon.Config != "" {
 			// Parse monitor configuration to check if certificate expiry checking is enabled
 			var config struct {
@@ -199,7 +210,7 @@ func (p *Producer) processMonitor(ctx context.Context, monitorID string, nowMs i
 		Queue:     "healthcheck",
 		MaxRetry:  0,
 		Timeout:   time.Duration(mon.Timeout) * time.Second,
-		Retention: 0 * time.Minute,
+		Retention: 0,
 	}
 
 	// Use EnqueueUnique to prevent duplicate tasks from being scheduled

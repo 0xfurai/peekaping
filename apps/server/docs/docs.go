@@ -17,12 +17,7 @@ const docTemplate = `{
     "paths": {
         "/api-keys": {
             "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get all API keys for the authenticated user",
+                "description": "Get all API keys",
                 "produces": [
                     "application/json"
                 ],
@@ -37,12 +32,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/utils.ApiResponse-array_api_key_APIKeyResponse"
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/utils.APIError"
-                        }
-                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -52,12 +41,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Create a new API key for the authenticated user",
+                "description": "Create a new API key",
                 "consumes": [
                     "application/json"
                 ],
@@ -88,12 +72,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/utils.APIError"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/utils.APIError"
                         }
@@ -129,11 +107,6 @@ const docTemplate = `{
         },
         "/api-keys/{id}": {
             "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
                 "description": "Get a specific API key by ID",
                 "produces": [
                     "application/json"
@@ -158,12 +131,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/utils.ApiResponse-api_key_APIKeyResponse"
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/utils.APIError"
-                        }
-                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -179,11 +146,6 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
                 "description": "Update an API key",
                 "consumes": [
                     "application/json"
@@ -226,12 +188,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/utils.APIError"
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/utils.APIError"
-                        }
-                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -247,11 +203,6 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
                 "description": "Delete an API key",
                 "tags": [
                     "api-keys"
@@ -269,12 +220,6 @@ const docTemplate = `{
                 "responses": {
                     "204": {
                         "description": "No Content"
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/utils.APIError"
-                        }
                     },
                     "404": {
                         "description": "Not Found",

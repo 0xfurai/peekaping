@@ -6,7 +6,7 @@
     "dev:producer": "nodemon --watch './**/*' -e go,html --signal SIGTERM --exec \"../../scripts/tool.sh go run ./cmd/producer\"",
     "dev:worker": "nodemon --watch './**/*' -e go,html --signal SIGTERM --exec \"../../scripts/tool.sh go run ./cmd/worker\"",
     "dev:ingester": "nodemon --watch './**/*' -e go,html --signal SIGTERM --exec \"../../scripts/tool.sh go run ./cmd/ingester\"",
-    "docs:watch": "nodemon --watch './**/*' --ignore docs -e go --exec \"../../scripts/tool.sh go swag init -d src\"",
+    "docs:watch": "nodemon --watch './**/*' --ignore docs -e go --exec \"swag init -d cmd/api,internal\"",
     "build": "../../scripts/tool.sh go build -o dist/server ./cmd/server",
     "build:docker": "docker build -t peekaping/server:latest ."
   }

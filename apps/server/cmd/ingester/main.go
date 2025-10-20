@@ -121,7 +121,6 @@ func main() {
 	})
 
 	// Register module dependencies
-	events.RegisterDependencies(container)
 	heartbeat.RegisterDependencies(container, internalCfg)
 	notification_sent_history.RegisterDependencies(container, internalCfg)
 	monitor_tls_info.RegisterDependencies(container, internalCfg)

@@ -26,6 +26,9 @@ type EnqueueOptions struct {
 
 	// TaskID is a unique identifier for the task (for deduplication)
 	TaskID string
+
+	// Deadline specifies when the task should expire (task will be discarded if not processed by this time)
+	Deadline *time.Time
 }
 
 // DefaultEnqueueOptions returns default options for enqueuing

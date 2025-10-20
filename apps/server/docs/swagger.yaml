@@ -1367,7 +1367,7 @@ info:
 paths:
   /api-keys:
     get:
-      description: Get all API keys for the authenticated user
+      description: Get all API keys
       produces:
       - application/json
       responses:
@@ -1375,23 +1375,17 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/utils.ApiResponse-array_api_key_APIKeyResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/utils.APIError'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.APIError'
-      security:
-      - BearerAuth: []
       summary: Get API keys
       tags:
       - api-keys
     post:
       consumes:
       - application/json
-      description: Create a new API key for the authenticated user
+      description: Create a new API key
       parameters:
       - description: API key creation data
         in: body
@@ -1410,16 +1404,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/utils.APIError'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/utils.APIError'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.APIError'
-      security:
-      - BearerAuth: []
       summary: Create API key
       tags:
       - api-keys
@@ -1435,10 +1423,6 @@ paths:
       responses:
         "204":
           description: No Content
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/utils.APIError'
         "404":
           description: Not Found
           schema:
@@ -1447,8 +1431,6 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.APIError'
-      security:
-      - BearerAuth: []
       summary: Delete API key
       tags:
       - api-keys
@@ -1467,10 +1449,6 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/utils.ApiResponse-api_key_APIKeyResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/utils.APIError'
         "404":
           description: Not Found
           schema:
@@ -1479,8 +1457,6 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.APIError'
-      security:
-      - BearerAuth: []
       summary: Get API key
       tags:
       - api-keys
@@ -1511,10 +1487,6 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/utils.APIError'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/utils.APIError'
         "404":
           description: Not Found
           schema:
@@ -1523,8 +1495,6 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.APIError'
-      security:
-      - BearerAuth: []
       summary: Update API key
       tags:
       - api-keys

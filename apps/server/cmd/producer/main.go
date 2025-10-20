@@ -35,25 +35,19 @@ import (
 func main() {
 	log.Printf("Starting Peekaping Producer v%s", version.Version)
 
-	// Load and validate Producer-specific config
 	cfg, err := LoadAndValidate("../..")
 	if err != nil {
 		log.Fatalf("Failed to load and validate Producer config: %v", err)
 	}
 
-	// Set timezone
 	os.Setenv("TZ", cfg.Timezone)
 
-	// Create DI container
 	container := dig.New()
 
-	// Convert to internal config format for dependency injection
 	internalCfg := cfg.ToInternalConfig()
 
-	// Provide configuration
 	container.Provide(func() *config.Config { return internalCfg })
 
-	// Provide logger
 	container.Provide(func(cfg *config.Config) (*zap.SugaredLogger, error) {
 		var zapLogger *zap.Logger
 		var err error
@@ -78,7 +72,6 @@ func main() {
 		return zapLogger.Sugar(), nil
 	})
 
-	// Provide database
 	switch internalCfg.DBType {
 	case "postgres", "postgresql", "mysql", "sqlite":
 		container.Provide(infra.ProvideSQLDB)
@@ -98,7 +91,6 @@ func main() {
 	container.Provide(infra.ProvideQueueService)
 
 	// Register module dependencies that producer needs
-	events.RegisterDependencies(container)
 	heartbeat.RegisterDependencies(container, internalCfg)
 	healthcheck.RegisterDependencies(container) // Provides ExecutorRegistry
 	tag.RegisterDependencies(container, internalCfg)
@@ -124,7 +116,6 @@ func main() {
 		eventBus events.EventBus,
 		logger *zap.SugaredLogger,
 	) error {
-		// Subscribe to monitor events
 		eventListener.Subscribe(eventBus)
 		logger.Info("Event listener subscribed to monitor events")
 

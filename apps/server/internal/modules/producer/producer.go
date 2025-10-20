@@ -60,10 +60,8 @@ func NewProducer(
 func (p *Producer) Start() error {
 	p.logger.Info("Starting producer with leader election")
 
-	// Start leader election
 	p.leaderElection.Start(p.ctx)
 
-	// Start job processing immediately (all producers process jobs)
 	if err := p.startJobProcessing(); err != nil {
 		return fmt.Errorf("failed to start job processing: %w", err)
 	}

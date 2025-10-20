@@ -92,7 +92,6 @@ func main() {
 	container.Provide(infra.ProvideQueueService)
 
 	// Register dependencies in the correct order to handle circular dependencies
-	events.RegisterDependencies(container)
 	heartbeat.RegisterDependencies(container, internalCfg)
 	monitor.RegisterDependencies(container, internalCfg)
 	healthcheck.RegisterDependencies(container)

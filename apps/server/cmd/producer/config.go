@@ -71,11 +71,6 @@ func Validate(cfg *Config) error {
 		return fmt.Errorf("database validation failed: %w", err)
 	}
 
-	// Additional producer validation
-	if cfg.ProducerConcurrency < 1 || cfg.ProducerConcurrency > 128 {
-		return fmt.Errorf("PRODUCER_CONCURRENCY must be between 1 and 128")
-	}
-
 	return nil
 }
 

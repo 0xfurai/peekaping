@@ -224,7 +224,14 @@ func (s *queueServiceImpl) Enqueue(ctx context.Context, taskType string, payload
 }
 
 // EnqueueUnique adds a task to the queue with deduplication
-func (s *queueServiceImpl) EnqueueUnique(ctx context.Context, taskType string, payload interface{}, uniqueKey string, ttl time.Duration, opts *queue.EnqueueOptions) (*queue.TaskInfo, error) {
+func (s *queueServiceImpl) EnqueueUnique(
+	_ context.Context,
+	taskType string,
+	payload interface{},
+	uniqueKey string,
+	ttl time.Duration,
+	opts *queue.EnqueueOptions,
+) (*queue.TaskInfo, error) {
 	if opts == nil {
 		opts = queue.DefaultEnqueueOptions()
 	}
@@ -416,6 +423,10 @@ func buildAsynqOptions(opts *queue.EnqueueOptions) []asynq.Option {
 
 	if opts.TaskID != "" {
 		asynqOpts = append(asynqOpts, asynq.TaskID(opts.TaskID))
+	}
+
+	if opts.Deadline != nil {
+		asynqOpts = append(asynqOpts, asynq.Deadline(*opts.Deadline))
 	}
 
 	return asynqOpts
