@@ -43,6 +43,8 @@ RUN apt-get update && apt-get install -y \
     gnupg \
     lsb-release \
     locales \
+    procps \
+    sudo \
     && rm -rf /var/lib/apt/lists/*
 
 # Set up proper locales

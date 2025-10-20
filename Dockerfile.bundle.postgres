@@ -43,6 +43,7 @@ RUN apt-get update && apt-get install -y \
     gnupg \
     lsb-release \
     locales \
+    gosu \
     && rm -rf /var/lib/apt/lists/*
 
 # Set up proper locales
