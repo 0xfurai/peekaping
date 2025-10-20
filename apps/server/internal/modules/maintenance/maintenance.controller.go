@@ -29,7 +29,8 @@ func NewController(
 // @Summary		Get maintenances
 // @Tags			Maintenances
 // @Produce		json
-// @Security  BearerAuth
+// @Security  JwtAuth
+// @Security  ApiKeyAuth
 // @Param     q    query     string  false  "Search query"
 // @Param     strategy query string  false  "Filter by strategy"
 // @Param     page query     int     false  "Page number" default(1)
@@ -77,7 +78,8 @@ func (ic *Controller) FindAll(ctx *gin.Context) {
 // @Tags			Maintenances
 // @Produce		json
 // @Accept		json
-// @Security  BearerAuth
+// @Security  JwtAuth
+// @Security  ApiKeyAuth
 // @Param     body body   CreateUpdateDto  true  "Maintenance object"
 // @Success		201	{object}	utils.ApiResponse[Model]
 // @Failure		400	{object}	utils.APIError[any]

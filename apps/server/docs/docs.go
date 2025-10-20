@@ -17,6 +17,14 @@ const docTemplate = `{
     "paths": {
         "/api-keys": {
             "get": {
+<<<<<<< HEAD
+=======
+                "security": [
+                    {
+                        "JwtAuth": []
+                    }
+                ],
+>>>>>>> main
                 "description": "Get all API keys",
                 "produces": [
                     "application/json"
@@ -41,6 +49,14 @@ const docTemplate = `{
                 }
             },
             "post": {
+<<<<<<< HEAD
+=======
+                "security": [
+                    {
+                        "JwtAuth": []
+                    }
+                ],
+>>>>>>> main
                 "description": "Create a new API key",
                 "consumes": [
                     "application/json"
@@ -107,6 +123,14 @@ const docTemplate = `{
         },
         "/api-keys/{id}": {
             "get": {
+<<<<<<< HEAD
+=======
+                "security": [
+                    {
+                        "JwtAuth": []
+                    }
+                ],
+>>>>>>> main
                 "description": "Get a specific API key by ID",
                 "produces": [
                     "application/json"
@@ -146,6 +170,14 @@ const docTemplate = `{
                 }
             },
             "put": {
+<<<<<<< HEAD
+=======
+                "security": [
+                    {
+                        "JwtAuth": []
+                    }
+                ],
+>>>>>>> main
                 "description": "Update an API key",
                 "consumes": [
                     "application/json"
@@ -203,6 +235,14 @@ const docTemplate = `{
                 }
             },
             "delete": {
+<<<<<<< HEAD
+=======
+                "security": [
+                    {
+                        "JwtAuth": []
+                    }
+                ],
+>>>>>>> main
                 "description": "Delete an API key",
                 "tags": [
                     "api-keys"
@@ -238,6 +278,11 @@ const docTemplate = `{
         },
         "/auth/2fa/disable": {
             "post": {
+                "security": [
+                    {
+                        "JwtAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -283,6 +328,11 @@ const docTemplate = `{
         },
         "/auth/2fa/setup": {
             "post": {
+                "security": [
+                    {
+                        "JwtAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -328,6 +378,11 @@ const docTemplate = `{
         },
         "/auth/2fa/verify": {
             "post": {
+                "security": [
+                    {
+                        "JwtAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -424,6 +479,11 @@ const docTemplate = `{
         },
         "/auth/password": {
             "put": {
+                "security": [
+                    {
+                        "JwtAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -966,7 +1026,10 @@ const docTemplate = `{
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -1034,7 +1097,10 @@ const docTemplate = `{
             "post": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "consumes": [
@@ -1408,7 +1474,10 @@ const docTemplate = `{
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -1488,7 +1557,10 @@ const docTemplate = `{
             "post": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "consumes": [
@@ -1538,7 +1610,10 @@ const docTemplate = `{
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -2103,7 +2178,10 @@ const docTemplate = `{
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -2165,7 +2243,10 @@ const docTemplate = `{
             "post": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "consumes": [
@@ -2215,7 +2296,10 @@ const docTemplate = `{
             "post": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "consumes": [
@@ -2487,7 +2571,10 @@ const docTemplate = `{
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -2549,7 +2636,10 @@ const docTemplate = `{
             "post": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "consumes": [
@@ -2821,7 +2911,10 @@ const docTemplate = `{
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -2864,7 +2957,10 @@ const docTemplate = `{
             "put": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "consumes": [
@@ -2919,7 +3015,10 @@ const docTemplate = `{
             "delete": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -2964,7 +3063,10 @@ const docTemplate = `{
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -3020,7 +3122,10 @@ const docTemplate = `{
             "post": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "consumes": [
@@ -3230,7 +3335,10 @@ const docTemplate = `{
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -3273,7 +3381,10 @@ const docTemplate = `{
             "delete": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -3316,7 +3427,10 @@ const docTemplate = `{
             "patch": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "consumes": [
@@ -3379,7 +3493,10 @@ const docTemplate = `{
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -3441,7 +3558,10 @@ const docTemplate = `{
             "post": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "consumes": [
@@ -5731,7 +5851,14 @@ const docTemplate = `{
         }
     },
     "securityDefinitions": {
-        "BearerAuth": {
+        "ApiKeyAuth": {
+            "description": "API key authentication (pk_ prefix format)",
+            "type": "apiKey",
+            "name": "X-API-Key",
+            "in": "header"
+        },
+        "JwtAuth": {
+            "description": "JWT token authentication (Bearer token format)",
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"

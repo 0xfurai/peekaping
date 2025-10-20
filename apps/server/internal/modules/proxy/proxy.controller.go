@@ -29,7 +29,8 @@ func NewController(
 // @Summary		Get proxies
 // @Tags			Proxies
 // @Produce		json
-// @Security  BearerAuth
+// @Security  JwtAuth
+// @Security  ApiKeyAuth
 // @Param     q    query     string  false  "Search query"
 // @Param     page query     int     false  "Page number" default(1)
 // @Param     limit query    int     false  "Items per page" default(10)
@@ -67,7 +68,8 @@ func (ic *Controller) FindAll(ctx *gin.Context) {
 // @Tags			Proxies
 // @Produce		json
 // @Accept		json
-// @Security  BearerAuth
+// @Security  JwtAuth
+// @Security  ApiKeyAuth
 // @Param     body body   CreateUpdateDto  true  "Proxy object"
 // @Success		201	{object}	utils.ApiResponse[Model]
 // @Failure		400	{object}	utils.APIError[any]

@@ -39,6 +39,7 @@ docker run -d --restart=always \
   -p 8383:8383 \
   -e DB_NAME=/app/data/peekaping.db \
   -v $(pwd)/.data/sqlite:/app/data \
+  --name peekaping \
   0xfurai/peekaping-bundle-sqlite:latest
 ```
 

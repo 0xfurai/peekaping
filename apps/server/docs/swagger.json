@@ -8,6 +8,14 @@
     "paths": {
         "/api-keys": {
             "get": {
+<<<<<<< HEAD
+=======
+                "security": [
+                    {
+                        "JwtAuth": []
+                    }
+                ],
+>>>>>>> main
                 "description": "Get all API keys",
                 "produces": [
                     "application/json"
@@ -32,6 +40,14 @@
                 }
             },
             "post": {
+<<<<<<< HEAD
+=======
+                "security": [
+                    {
+                        "JwtAuth": []
+                    }
+                ],
+>>>>>>> main
                 "description": "Create a new API key",
                 "consumes": [
                     "application/json"
@@ -98,6 +114,14 @@
         },
         "/api-keys/{id}": {
             "get": {
+<<<<<<< HEAD
+=======
+                "security": [
+                    {
+                        "JwtAuth": []
+                    }
+                ],
+>>>>>>> main
                 "description": "Get a specific API key by ID",
                 "produces": [
                     "application/json"
@@ -137,6 +161,14 @@
                 }
             },
             "put": {
+<<<<<<< HEAD
+=======
+                "security": [
+                    {
+                        "JwtAuth": []
+                    }
+                ],
+>>>>>>> main
                 "description": "Update an API key",
                 "consumes": [
                     "application/json"
@@ -194,6 +226,14 @@
                 }
             },
             "delete": {
+<<<<<<< HEAD
+=======
+                "security": [
+                    {
+                        "JwtAuth": []
+                    }
+                ],
+>>>>>>> main
                 "description": "Delete an API key",
                 "tags": [
                     "api-keys"
@@ -229,6 +269,11 @@
         },
         "/auth/2fa/disable": {
             "post": {
+                "security": [
+                    {
+                        "JwtAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -274,6 +319,11 @@
         },
         "/auth/2fa/setup": {
             "post": {
+                "security": [
+                    {
+                        "JwtAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -319,6 +369,11 @@
         },
         "/auth/2fa/verify": {
             "post": {
+                "security": [
+                    {
+                        "JwtAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -415,6 +470,11 @@
         },
         "/auth/password": {
             "put": {
+                "security": [
+                    {
+                        "JwtAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -957,7 +1017,10 @@
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -1025,7 +1088,10 @@
             "post": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "consumes": [
@@ -1399,7 +1465,10 @@
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -1479,7 +1548,10 @@
             "post": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "consumes": [
@@ -1529,7 +1601,10 @@
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -2094,7 +2169,10 @@
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -2156,7 +2234,10 @@
             "post": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "consumes": [
@@ -2206,7 +2287,10 @@
             "post": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "consumes": [
@@ -2478,7 +2562,10 @@
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -2540,7 +2627,10 @@
             "post": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "consumes": [
@@ -2812,7 +2902,10 @@
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -2855,7 +2948,10 @@
             "put": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "consumes": [
@@ -2910,7 +3006,10 @@
             "delete": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -2955,7 +3054,10 @@
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -3011,7 +3113,10 @@
             "post": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "consumes": [
@@ -3221,7 +3326,10 @@
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -3264,7 +3372,10 @@
             "delete": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -3307,7 +3418,10 @@
             "patch": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "consumes": [
@@ -3370,7 +3484,10 @@
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "produces": [
@@ -3432,7 +3549,10 @@
             "post": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "consumes": [
@@ -5722,7 +5842,14 @@
         }
     },
     "securityDefinitions": {
-        "BearerAuth": {
+        "ApiKeyAuth": {
+            "description": "API key authentication (pk_ prefix format)",
+            "type": "apiKey",
+            "name": "X-API-Key",
+            "in": "header"
+        },
+        "JwtAuth": {
+            "description": "JWT token authentication (Bearer token format)",
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"

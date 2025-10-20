@@ -32,7 +32,8 @@ func NewController(
 // @Summary	Get setting by key
 // @Tags		Settings
 // @Produce	json
-// @Security	BearerAuth
+// @Security	JwtAuth
+// @Security	ApiKeyAuth
 // @Param	key	path	string	true	"Setting Key"
 // @Success	200	{object}	utils.ApiResponse[Model]
 // @Failure	404	{object}	utils.APIError[any]
@@ -61,7 +62,8 @@ func (ic *Controller) GetByKey(ctx *gin.Context) {
 // @Tags		Settings
 // @Produce	json
 // @Accept	json
-// @Security	BearerAuth
+// @Security	JwtAuth
+// @Security	ApiKeyAuth
 // @Param	key	path	string	true	"Setting Key"
 // @Param	body	body	CreateUpdateDto	true	"Setting object"
 // @Success	200	{object}	utils.ApiResponse[Model]
@@ -96,7 +98,8 @@ func (ic *Controller) SetByKey(ctx *gin.Context) {
 // @Summary	Delete setting by key
 // @Tags		Settings
 // @Produce	json
-// @Security	BearerAuth
+// @Security	JwtAuth
+// @Security	ApiKeyAuth
 // @Param	key	path	string	true	"Setting Key"
 // @Success	200	{object}	utils.ApiResponse[any]
 // @Failure	404	{object}	utils.APIError[any]

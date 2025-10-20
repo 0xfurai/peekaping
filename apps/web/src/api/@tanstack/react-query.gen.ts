@@ -286,7 +286,7 @@ export const getApiKeysQueryKey = (options?: Options<GetApiKeysData>) =>
 
 /**
  * Get API keys
- * Get all API keys for the authenticated user
+ * Get all API keys
  */
 export const getApiKeysOptions = (options?: Options<GetApiKeysData>) => {
   return queryOptions({
@@ -308,7 +308,7 @@ export const postApiKeysQueryKey = (options: Options<PostApiKeysData>) =>
 
 /**
  * Create API key
- * Create a new API key for the authenticated user
+ * Create a new API key
  */
 export const postApiKeysOptions = (options: Options<PostApiKeysData>) => {
   return queryOptions({
@@ -327,7 +327,7 @@ export const postApiKeysOptions = (options: Options<PostApiKeysData>) => {
 
 /**
  * Create API key
- * Create a new API key for the authenticated user
+ * Create a new API key
  */
 export const postApiKeysMutation = (
   options?: Partial<Options<PostApiKeysData>>

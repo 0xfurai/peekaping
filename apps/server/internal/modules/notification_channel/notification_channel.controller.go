@@ -30,7 +30,8 @@ func NewController(
 // @Summary		Get notification channels
 // @Tags			Notification channels
 // @Produce		json
-// @Security  BearerAuth
+// @Security  JwtAuth
+// @Security  ApiKeyAuth
 // @Param     q    query     string  false  "Search query"
 // @Param     page query     int     false  "Page number" default(1)
 // @Param     limit query    int     false  "Items per page" default(10)
@@ -69,7 +70,8 @@ func (ic *Controller) FindAll(ctx *gin.Context) {
 // @Tags			Notification channels
 // @Produce		json
 // @Accept		json
-// @Security  BearerAuth
+// @Security  JwtAuth
+// @Security  ApiKeyAuth
 // @Param     body body   CreateUpdateDto  true  "Notification object"
 // @Success		201	{object}	utils.ApiResponse[Model]
 // @Failure		400	{object}	utils.APIError[any]
@@ -237,7 +239,8 @@ func (ic *Controller) Delete(ctx *gin.Context) {
 // @Tags			Notification channels
 // @Produce		json
 // @Accept		json
-// @Security  BearerAuth
+// @Security  JwtAuth
+// @Security  ApiKeyAuth
 // @Param     body body   CreateUpdateDto  true  "Notification object"
 // @Success		200	{object}	utils.ApiResponse[any]
 // @Failure		400	{object}	utils.APIError[any]

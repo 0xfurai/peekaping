@@ -161,6 +161,7 @@ func (c *Controller) RefreshToken(ctx *gin.Context) {
 // @Tags		Auth
 // @Produce	json
 // @Accept	json
+// @Security JwtAuth
 // @Param	body body     UpdatePasswordDto  true  "Password update data"
 // @Success	200	{object}	utils.ApiResponse[any]
 // @Failure	400	{object}	utils.APIError[any]
@@ -203,6 +204,7 @@ func (c *Controller) UpdatePassword(ctx *gin.Context) {
 // @Tags		Auth
 // @Produce	json
 // @Accept	json
+// @Security JwtAuth
 // @Param	body body     TwoFASetupRequestDto  true  "2FA setup request"
 // @Success	200 {object} TwoFASetupResponseDto
 // @Failure	400 {object} utils.APIError[any]
@@ -237,6 +239,7 @@ func (c *Controller) SetupTwoFA(ctx *gin.Context) {
 // @Tags		Auth
 // @Produce	json
 // @Accept	json
+// @Security JwtAuth
 // @Param	body body     TwoFAVerifyRequestDto  true  "2FA verify request"
 // @Success	200 {object} TwoFAVerifyResponseDto
 // @Failure	400 {object} TwoFAVerifyResponseDto
@@ -269,6 +272,7 @@ func (c *Controller) VerifyTwoFA(ctx *gin.Context) {
 // @Tags		Auth
 // @Produce	json
 // @Accept	json
+// @Security JwtAuth
 // @Param	body body     TwoFADisableRequestDto  true  "2FA disable request"
 // @Success	200 {object} utils.ApiResponse[any]
 // @Failure	400 {object} utils.APIError[any]

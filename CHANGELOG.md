@@ -13,6 +13,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [0.0.42] - 2025-10-14
+
+### Added
+
+### Changed
+> [!WARNING]
+>Attention: Breaking change with the API Key !
+>Change header from Authorization: pk_... to X-API-Key: pk_...
+
+- feat!: refactor swagger API authentication, using X-API-Key header instead of Authorization for api key auth (#210) (Thanks @tafaust) 4b3adfa
+
+- feat: automate version updates in release workflow (Thanks @0xfurai) 12cb83e
+
+### Fixed
+
 ## [0.0.41] - 2025-10-11
 
 ### Added

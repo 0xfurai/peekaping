@@ -148,7 +148,7 @@ func (s *ServiceImpl) ValidateKey(ctx context.Context, key string) (*Model, erro
 	apiKeyID, actualKey, err := s.parseAPIKeyToken(key)
 	if err != nil {
 		s.logger.Warnw("Invalid API key format", "key", maskAPIKey(key), "error", err)
-		return nil, errors.New("Invalid API key")
+		return nil, errors.New("invalid API key")
 	}
 
 	// Find the API key by ID (single database query)
@@ -159,7 +159,7 @@ func (s *ServiceImpl) ValidateKey(ctx context.Context, key string) (*Model, erro
 	}
 	if apiKey == nil {
 		s.logger.Warnw("API key not found", "apiKeyId", apiKeyID)
-		return nil, errors.New("Invalid API key")
+		return nil, errors.New("invalid API key")
 	}
 
 	// Check if the key has expired
@@ -178,7 +178,7 @@ func (s *ServiceImpl) ValidateKey(ctx context.Context, key string) (*Model, erro
 	err = bcrypt.CompareHashAndPassword([]byte(apiKey.KeyHash), []byte(actualKey))
 	if err != nil {
 		s.logger.Warnw("API key verification failed", "apiKeyId", apiKeyID)
-		return nil, errors.New("Invalid API key")
+		return nil, errors.New("invalid API key")
 	}
 
 	// Update last used timestamp and usage count
@@ -197,7 +197,7 @@ func (s *ServiceImpl) ValidateKey(ctx context.Context, key string) (*Model, erro
 // generateAPIKey generates a secure API key with the new format: prefix + base64encode({id: api_key_id, key: actual_key})
 func (s *ServiceImpl) generateAPIKey(apiKeyID string) (string, string, string, error) {
 	s.logger.Debugw("Starting API key generation", "apiKeyId", apiKeyID)
-	
+
 	// Generate random bytes for the actual key
 	bytes := make([]byte, ApiKeyRandomBytes)
 	_, err := rand.Read(bytes)
@@ -246,7 +246,7 @@ func (s *ServiceImpl) generateAPIKey(apiKeyID string) (string, string, string, e
 // parseAPIKeyToken parses an API key token and extracts the ID and actual key
 func (s *ServiceImpl) parseAPIKeyToken(token string) (string, string, error) {
 	s.logger.Debugw("Parsing API key token", "tokenLength", len(token))
-	
+
 	// Remove prefix
 	if !isValidAPIKeyFormat(token) {
 		s.logger.Warnw("Invalid API key format", "tokenLength", len(token))
@@ -291,4 +291,3 @@ func (s *ServiceImpl) hashAPIKey(key string) (string, error) {
 	}
 	return string(hash), nil
 }
-

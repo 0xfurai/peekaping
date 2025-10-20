@@ -24,13 +24,13 @@ func NewMiddlewareProvider(service Service) *MiddlewareProvider {
 // This should be used as the final middleware in a chain for API key-only endpoints
 func (p *MiddlewareProvider) Auth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Get the Authorization header
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, utils.NewFailResponse("Authorization header is required"))
-			c.Abort()
-			return
-		}
+	// Get the X-API-Key header
+	authHeader := c.GetHeader("X-API-Key")
+	if authHeader == "" {
+		c.JSON(http.StatusUnauthorized, utils.NewFailResponse("X-API-Key header is required"))
+		c.Abort()
+		return
+	}
 
 		// Only accept API keys
 		if !strings.HasPrefix(authHeader, ApiKeyPrefix) {
@@ -40,7 +40,7 @@ func (p *MiddlewareProvider) Auth() gin.HandlerFunc {
 		}
 
 		// Validate the API key
-		apiKey, err := p.service.ValidateKey(c, authHeader)
+		apiKey, err := p.service.ValidateKey(c.Request.Context(), authHeader)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, utils.NewFailResponse("Invalid or expired API key"))
 			c.Abort()

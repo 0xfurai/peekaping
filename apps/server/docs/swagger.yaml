@@ -1379,6 +1379,11 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.APIError'
+<<<<<<< HEAD
+=======
+      security:
+      - JwtAuth: []
+>>>>>>> main
       summary: Get API keys
       tags:
       - api-keys
@@ -1408,6 +1413,11 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.APIError'
+<<<<<<< HEAD
+=======
+      security:
+      - JwtAuth: []
+>>>>>>> main
       summary: Create API key
       tags:
       - api-keys
@@ -1431,6 +1441,11 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.APIError'
+<<<<<<< HEAD
+=======
+      security:
+      - JwtAuth: []
+>>>>>>> main
       summary: Delete API key
       tags:
       - api-keys
@@ -1457,6 +1472,11 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.APIError'
+<<<<<<< HEAD
+=======
+      security:
+      - JwtAuth: []
+>>>>>>> main
       summary: Get API key
       tags:
       - api-keys
@@ -1495,6 +1515,11 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.APIError'
+<<<<<<< HEAD
+=======
+      security:
+      - JwtAuth: []
+>>>>>>> main
       summary: Update API key
       tags:
       - api-keys
@@ -1537,6 +1562,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.APIError'
+      security:
+      - JwtAuth: []
       summary: Disable 2FA (TOTP) for user
       tags:
       - Auth
@@ -1566,6 +1593,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.APIError'
+      security:
+      - JwtAuth: []
       summary: Enable 2FA (TOTP) for user
       tags:
       - Auth
@@ -1595,6 +1624,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.APIError'
+      security:
+      - JwtAuth: []
       summary: Verify 2FA (TOTP) code for user
       tags:
       - Auth
@@ -1661,6 +1692,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.APIError'
+      security:
+      - JwtAuth: []
       summary: Update user password
       tags:
       - Auth
@@ -2026,7 +2059,8 @@ paths:
           schema:
             $ref: '#/definitions/utils.APIError'
       security:
-      - BearerAuth: []
+      - JwtAuth: []
+      - ApiKeyAuth: []
       summary: Get maintenances
       tags:
       - Maintenances
@@ -2056,7 +2090,8 @@ paths:
           schema:
             $ref: '#/definitions/utils.APIError'
       security:
-      - BearerAuth: []
+      - JwtAuth: []
+      - ApiKeyAuth: []
       summary: Create maintenance
       tags:
       - Maintenances
@@ -2314,7 +2349,8 @@ paths:
           schema:
             $ref: '#/definitions/utils.APIError'
       security:
-      - BearerAuth: []
+      - JwtAuth: []
+      - ApiKeyAuth: []
       summary: Get monitors
       tags:
       - Monitors
@@ -2344,7 +2380,8 @@ paths:
           schema:
             $ref: '#/definitions/utils.APIError'
       security:
-      - BearerAuth: []
+      - JwtAuth: []
+      - ApiKeyAuth: []
       summary: Create monitor
       tags:
       - Monitors
@@ -2702,7 +2739,8 @@ paths:
           schema:
             $ref: '#/definitions/utils.APIError'
       security:
-      - BearerAuth: []
+      - JwtAuth: []
+      - ApiKeyAuth: []
       summary: Get monitors by IDs
       tags:
       - Monitors
@@ -2743,7 +2781,8 @@ paths:
           schema:
             $ref: '#/definitions/utils.APIError'
       security:
-      - BearerAuth: []
+      - JwtAuth: []
+      - ApiKeyAuth: []
       summary: Get notification channels
       tags:
       - Notification channels
@@ -2773,7 +2812,8 @@ paths:
           schema:
             $ref: '#/definitions/utils.APIError'
       security:
-      - BearerAuth: []
+      - JwtAuth: []
+      - ApiKeyAuth: []
       summary: Create notification channel
       tags:
       - Notification channels
@@ -2945,7 +2985,8 @@ paths:
           schema:
             $ref: '#/definitions/utils.APIError'
       security:
-      - BearerAuth: []
+      - JwtAuth: []
+      - ApiKeyAuth: []
       summary: Test notification channel
       tags:
       - Notification channels
@@ -2986,7 +3027,8 @@ paths:
           schema:
             $ref: '#/definitions/utils.APIError'
       security:
-      - BearerAuth: []
+      - JwtAuth: []
+      - ApiKeyAuth: []
       summary: Get proxies
       tags:
       - Proxies
@@ -3016,7 +3058,8 @@ paths:
           schema:
             $ref: '#/definitions/utils.APIError'
       security:
-      - BearerAuth: []
+      - JwtAuth: []
+      - ApiKeyAuth: []
       summary: Create proxy
       tags:
       - Proxies
@@ -3185,7 +3228,8 @@ paths:
           schema:
             $ref: '#/definitions/utils.APIError'
       security:
-      - BearerAuth: []
+      - JwtAuth: []
+      - ApiKeyAuth: []
       summary: Delete setting by key
       tags:
       - Settings
@@ -3212,7 +3256,8 @@ paths:
           schema:
             $ref: '#/definitions/utils.APIError'
       security:
-      - BearerAuth: []
+      - JwtAuth: []
+      - ApiKeyAuth: []
       summary: Get setting by key
       tags:
       - Settings
@@ -3247,7 +3292,8 @@ paths:
           schema:
             $ref: '#/definitions/utils.APIError'
       security:
-      - BearerAuth: []
+      - JwtAuth: []
+      - ApiKeyAuth: []
       summary: Set setting by key
       tags:
       - Settings
@@ -3284,7 +3330,8 @@ paths:
           schema:
             $ref: '#/definitions/utils.APIError'
       security:
-      - BearerAuth: []
+      - JwtAuth: []
+      - ApiKeyAuth: []
       summary: Get all status pages
       tags:
       - Status Pages
@@ -3314,7 +3361,8 @@ paths:
           schema:
             $ref: '#/definitions/utils.APIError'
       security:
-      - BearerAuth: []
+      - JwtAuth: []
+      - ApiKeyAuth: []
       summary: Create a new status page
       tags:
       - Status Pages
@@ -3342,7 +3390,8 @@ paths:
           schema:
             $ref: '#/definitions/utils.APIError'
       security:
-      - BearerAuth: []
+      - JwtAuth: []
+      - ApiKeyAuth: []
       summary: Delete a status page
       tags:
       - Status Pages
@@ -3369,7 +3418,8 @@ paths:
           schema:
             $ref: '#/definitions/utils.APIError'
       security:
-      - BearerAuth: []
+      - JwtAuth: []
+      - ApiKeyAuth: []
       summary: Get a status page by ID
       tags:
       - Status Pages
@@ -3408,7 +3458,8 @@ paths:
           schema:
             $ref: '#/definitions/utils.APIError'
       security:
-      - BearerAuth: []
+      - JwtAuth: []
+      - ApiKeyAuth: []
       summary: Update a status page
       tags:
       - Status Pages
@@ -3553,7 +3604,8 @@ paths:
           schema:
             $ref: '#/definitions/utils.APIError'
       security:
-      - BearerAuth: []
+      - JwtAuth: []
+      - ApiKeyAuth: []
       summary: Get tags
       tags:
       - Tags
@@ -3583,7 +3635,8 @@ paths:
           schema:
             $ref: '#/definitions/utils.APIError'
       security:
-      - BearerAuth: []
+      - JwtAuth: []
+      - ApiKeyAuth: []
       summary: Create tag
       tags:
       - Tags
@@ -3744,7 +3797,13 @@ paths:
       tags:
       - System
 securityDefinitions:
-  BearerAuth:
+  ApiKeyAuth:
+    description: API key authentication (pk_ prefix format)
+    in: header
+    name: X-API-Key
+    type: apiKey
+  JwtAuth:
+    description: JWT token authentication (Bearer token format)
     in: header
     name: Authorization
     type: apiKey
