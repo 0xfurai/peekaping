@@ -167,7 +167,8 @@ func (p *Producer) processMonitor(ctx context.Context, monitorID string, nowMs i
 	// Check if certificate expiry checking is enabled in monitor configuration
 	// This applies to monitors that support TLS (http, tcp)
 	checkCertExpiry := false
-	if strings.HasPrefix(strings.ToLower(mon.Type), "http") {
+	monType := strings.ToLower(mon.Type)
+	if strings.HasPrefix(monType, "http") || monType == "tcp" {
 		if mon.Config != "" {
 			// Parse monitor configuration to check if certificate expiry checking is enabled
 			var config struct {

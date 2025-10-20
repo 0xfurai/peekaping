@@ -129,25 +129,25 @@ func TestIntegration_UsageLimitEnforcement(t *testing.T) {
 	require.NoError(t, err)
 
 	// First validation should succeed
-	validated, err := service.ValidateKey(ctx, result.Token)
+	_, err = service.ValidateKey(ctx, result.Token)
 	require.NoError(t, err)
-	
+
 	// Fetch updated values from database
 	updatedKey, err := service.FindByID(ctx, result.ID)
 	require.NoError(t, err)
 	assert.Equal(t, int64(1), updatedKey.UsageCount)
 
 	// Second validation should succeed
-	validated, err = service.ValidateKey(ctx, result.Token)
+	_, err = service.ValidateKey(ctx, result.Token)
 	require.NoError(t, err)
-	
+
 	// Fetch updated values from database
 	updatedKey, err = service.FindByID(ctx, result.ID)
 	require.NoError(t, err)
 	assert.Equal(t, int64(2), updatedKey.UsageCount)
 
 	// Third validation should fail (exceeded limit)
-	validated, err = service.ValidateKey(ctx, result.Token)
+	validated, err := service.ValidateKey(ctx, result.Token)
 	assert.Error(t, err)
 	assert.Nil(t, validated)
 	assert.Contains(t, err.Error(), "usage limit exceeded")
