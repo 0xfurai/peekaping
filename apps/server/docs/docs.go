@@ -17,14 +17,11 @@ const docTemplate = `{
     "paths": {
         "/api-keys": {
             "get": {
-<<<<<<< HEAD
-=======
                 "security": [
                     {
                         "JwtAuth": []
                     }
                 ],
->>>>>>> main
                 "description": "Get all API keys",
                 "produces": [
                     "application/json"
@@ -49,14 +46,11 @@ const docTemplate = `{
                 }
             },
             "post": {
-<<<<<<< HEAD
-=======
                 "security": [
                     {
                         "JwtAuth": []
                     }
                 ],
->>>>>>> main
                 "description": "Create a new API key",
                 "consumes": [
                     "application/json"
@@ -123,14 +117,11 @@ const docTemplate = `{
         },
         "/api-keys/{id}": {
             "get": {
-<<<<<<< HEAD
-=======
                 "security": [
                     {
                         "JwtAuth": []
                     }
                 ],
->>>>>>> main
                 "description": "Get a specific API key by ID",
                 "produces": [
                     "application/json"
@@ -170,14 +161,11 @@ const docTemplate = `{
                 }
             },
             "put": {
-<<<<<<< HEAD
-=======
                 "security": [
                     {
                         "JwtAuth": []
                     }
                 ],
->>>>>>> main
                 "description": "Update an API key",
                 "consumes": [
                     "application/json"
@@ -235,14 +223,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
-<<<<<<< HEAD
-=======
                 "security": [
                     {
                         "JwtAuth": []
                     }
                 ],
->>>>>>> main
                 "description": "Delete an API key",
                 "tags": [
                     "api-keys"
@@ -4583,6 +4568,14 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 60
                 },
+                "last_heartbeat": {
+                    "description": "Last heartbeat for push monitors",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/shared.HeartBeatModel"
+                        }
+                    ]
+                },
                 "max_retries": {
                     "description": "Maximum retries before the service is marked as down and a notification is sent",
                     "type": "integer",
@@ -5045,6 +5038,47 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "shared.HeartBeatModel": {
+            "type": "object",
+            "properties": {
+                "down_count": {
+                    "type": "integer"
+                },
+                "duration": {
+                    "type": "integer"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "important": {
+                    "type": "boolean"
+                },
+                "monitor_id": {
+                    "type": "string"
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "notified": {
+                    "type": "boolean"
+                },
+                "ping": {
+                    "type": "integer"
+                },
+                "retries": {
+                    "type": "integer"
+                },
+                "status": {
+                    "$ref": "#/definitions/shared.MonitorStatus"
+                },
+                "time": {
                     "type": "string"
                 }
             }

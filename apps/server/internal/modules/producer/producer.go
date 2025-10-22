@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"peekaping/internal/config"
+	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_notification"
@@ -26,6 +27,7 @@ func NewProducer(
 	maintenanceService maintenance.Service,
 	monitorNotificationSvc monitor_notification.Service,
 	settingService shared.SettingService,
+	heartbeatService heartbeat.Service,
 	leaderElection *LeaderElection,
 	cfg *config.Config,
 	logger *zap.SugaredLogger,
@@ -46,6 +48,7 @@ func NewProducer(
 		maintenanceService:      maintenanceService,
 		monitorNotificationSvc:  monitorNotificationSvc,
 		settingService:          settingService,
+		heartbeatService:        heartbeatService,
 		logger:                  logger.With("component", "producer"),
 		ctx:                     ctx,
 		cancel:                  cancel,

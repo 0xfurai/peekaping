@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"peekaping/internal/modules/queue"
+	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/worker"
 )
 
@@ -189,6 +190,19 @@ func (p *Producer) processMonitor(ctx context.Context, monitorID string, nowMs i
 			"check_cert_expiry", checkCertExpiry)
 	}
 
+	// For push monitors, fetch the latest heartbeat to include in the payload
+	var lastHeartbeat *shared.HeartBeatModel
+	if mon.Type == "push" {
+		latestHeartbeats, err := p.heartbeatService.FindByMonitorIDPaginated(ctx, mon.ID, 1, 0, nil, false)
+		if err != nil {
+			p.logger.Warnw("Failed to fetch latest heartbeat for push monitor",
+				"monitor_id", mon.ID,
+				"error", err)
+		} else if len(latestHeartbeats) > 0 {
+			lastHeartbeat = latestHeartbeats[0]
+		}
+	}
+
 	// Create health check task payload
 	payload := worker.HealthCheckTaskPayload{
 		MonitorID:          mon.ID,
@@ -201,6 +215,7 @@ func (p *Producer) processMonitor(ctx context.Context, monitorID string, nowMs i
 		ResendInterval:     mon.ResendInterval,
 		Config:             mon.Config,
 		Proxy:              proxyData,
+		LastHeartbeat:      lastHeartbeat,
 		ScheduledAt:        time.UnixMilli(nowMs).UTC(),
 		IsUnderMaintenance: isUnderMaintenance,
 		CheckCertExpiry:    checkCertExpiry,

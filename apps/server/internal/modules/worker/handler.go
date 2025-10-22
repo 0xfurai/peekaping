@@ -37,19 +37,20 @@ type ProxyData struct {
 
 // HealthCheckTaskPayload is the payload for health check tasks
 type HealthCheckTaskPayload struct {
-	MonitorID          string     `json:"monitor_id"`
-	MonitorName        string     `json:"monitor_name"`
-	MonitorType        string     `json:"monitor_type"`
-	Interval           int        `json:"interval"`
-	Timeout            int        `json:"timeout"`
-	MaxRetries         int        `json:"max_retries"`
-	RetryInterval      int        `json:"retry_interval"`
-	ResendInterval     int        `json:"resend_interval"`
-	Config             string     `json:"config"`
-	Proxy              *ProxyData `json:"proxy,omitempty"`
-	ScheduledAt        time.Time  `json:"scheduled_at"`
-	IsUnderMaintenance bool       `json:"is_under_maintenance"`
-	CheckCertExpiry    bool       `json:"check_cert_expiry"`
+	MonitorID          string                 `json:"monitor_id"`
+	MonitorName        string                 `json:"monitor_name"`
+	MonitorType        string                 `json:"monitor_type"`
+	Interval           int                    `json:"interval"`
+	Timeout            int                    `json:"timeout"`
+	MaxRetries         int                    `json:"max_retries"`
+	RetryInterval      int                    `json:"retry_interval"`
+	ResendInterval     int                    `json:"resend_interval"`
+	Config             string                 `json:"config"`
+	Proxy              *ProxyData             `json:"proxy,omitempty"`
+	LastHeartbeat      *shared.HeartBeatModel `json:"last_heartbeat,omitempty"`
+	ScheduledAt        time.Time              `json:"scheduled_at"`
+	IsUnderMaintenance bool                   `json:"is_under_maintenance"`
+	CheckCertExpiry    bool                   `json:"check_cert_expiry"`
 }
 
 // IngesterTaskPayload is the payload for ingester tasks
@@ -146,6 +147,7 @@ func (h *HealthCheckTaskHandler) ProcessTask(ctx context.Context, task *asynq.Ta
 		RetryInterval:  payload.RetryInterval,
 		ResendInterval: payload.ResendInterval,
 		Config:         payload.Config,
+		LastHeartbeat:  payload.LastHeartbeat,
 	}
 
 	// Create proxy model from payload if present
@@ -172,55 +174,11 @@ func (h *HealthCheckTaskHandler) ProcessTask(ctx context.Context, task *asynq.Ta
 	// Execute the health check using the supervisor's method
 	tickResult := h.healthCheckService.HandleMonitorTick(ctx, m, exec, proxyModel, payload.IsUnderMaintenance)
 
-	// Handle nil result (e.g., push monitors that return nil from executor)
+	// Handle nil result (for monitors that return nil from executor)
 	if tickResult == nil {
-		h.logger.Debugw("Executor returned nil (passive monitor), enqueuing to ingester for validation",
+		h.logger.Debugw("Executor returned nil - no heartbeat needed",
 			"monitor_id", payload.MonitorID,
 			"monitor_type", m.Type)
-
-		// For passive monitors (like push), send to ingester for validation
-		// Ingester will check if heartbeat was received within interval
-		ingesterPayload := IngesterTaskPayload{
-			MonitorID:          m.ID,
-			MonitorName:        m.Name,
-			MonitorType:        m.Type,
-			MonitorInterval:    m.Interval,
-			MonitorTimeout:     m.Timeout,
-			MonitorMaxRetries:  m.MaxRetries,
-			MonitorRetryInt:    m.RetryInterval,
-			MonitorResendInt:   m.ResendInterval,
-			MonitorConfig:      m.Config,
-			Status:             shared.MonitorStatusPending, // Ingester will determine actual status
-			Message:            "Pending validation",
-			PingMs:             0,
-			StartTime:          now,
-			EndTime:            now,
-			IsUnderMaintenance: payload.IsUnderMaintenance,
-			TLSInfo:            nil,
-			CheckCertExpiry:    false,
-		}
-
-		opts := &queue.EnqueueOptions{
-			Queue:     "ingester",
-			MaxRetry:  3,
-			Timeout:   2 * time.Minute,
-			Retention: 1 * time.Hour,
-		}
-
-		uniqueKey := fmt.Sprintf("ingest:%s:%d", m.ID, now.UnixNano())
-		ttl := 1 * time.Second
-
-		_, err := h.queueService.EnqueueUnique(ctx, TaskTypeIngester, ingesterPayload, uniqueKey, ttl, opts)
-		if err != nil {
-			h.logger.Errorw("Failed to enqueue passive monitor result to ingester",
-				"monitor_id", payload.MonitorID,
-				"error", err)
-			return fmt.Errorf("failed to enqueue ingester task: %w", err)
-		}
-
-		h.logger.Infow("Successfully enqueued passive monitor to ingester for validation",
-			"monitor_id", payload.MonitorID,
-			"duration", time.Since(start))
 
 		return nil
 	}

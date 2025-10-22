@@ -142,52 +142,6 @@ func (h *IngesterTaskHandler) processHeartbeat(ctx context.Context, payload *Ing
 
 	isFirstBeat := previousBeat == nil
 
-	// Special handling for push monitors with PENDING status
-	// This means the executor returned nil and we need to validate if push was received
-	if payload.MonitorType == "push" && payload.Status == shared.MonitorStatusPending {
-		h.logger.Debugw("Validating push monitor heartbeat",
-			"monitor_id", payload.MonitorID,
-			"monitor_name", payload.MonitorName)
-
-		// Check if we received a push within the expected interval
-		if previousBeat != nil {
-			timeSinceLastHeartbeat := time.Now().UTC().Sub(previousBeat.Time)
-			intervalDuration := time.Duration(payload.MonitorInterval) * time.Second
-
-			h.logger.Debugw("Push monitor heartbeat validation",
-				"monitor_id", payload.MonitorID,
-				"last_heartbeat_time", previousBeat.Time,
-				"time_since_last", timeSinceLastHeartbeat,
-				"interval", intervalDuration)
-
-			if timeSinceLastHeartbeat <= intervalDuration {
-				// Push was received within interval - no need to create a new heartbeat
-				h.logger.Infow("Push monitor is up - heartbeat received within interval",
-					"monitor_id", payload.MonitorID,
-					"monitor_name", payload.MonitorName,
-					"time_since_last", timeSinceLastHeartbeat)
-				return nil
-			}
-
-			// No push received in time - create DOWN heartbeat
-			h.logger.Infow("Push monitor is down - no push received in time",
-				"monitor_id", payload.MonitorID,
-				"monitor_name", payload.MonitorName,
-				"time_since_last", timeSinceLastHeartbeat)
-
-			payload.Status = shared.MonitorStatusDown
-			payload.Message = fmt.Sprintf("No push received in time (last: %v ago)", timeSinceLastHeartbeat.Round(time.Second))
-		} else {
-			// No heartbeat found - create DOWN heartbeat
-			h.logger.Infow("Push monitor is down - no push received yet",
-				"monitor_id", payload.MonitorID,
-				"monitor_name", payload.MonitorName)
-
-			payload.Status = shared.MonitorStatusDown
-			payload.Message = "No push received yet"
-		}
-	}
-
 	hb := &heartbeat.CreateUpdateDto{
 		MonitorID: payload.MonitorID,
 		Status:    payload.Status,

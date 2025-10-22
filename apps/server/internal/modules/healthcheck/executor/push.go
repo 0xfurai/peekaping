@@ -2,6 +2,8 @@ package executor
 
 import (
 	"context"
+	"peekaping/internal/modules/shared"
+	"time"
 
 	"go.uber.org/zap"
 )
@@ -33,17 +35,35 @@ func (s *PushExecutor) Validate(configJSON string) error {
 }
 
 func (s *PushExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
-	// Push monitors are passive - they don't actively check anything.
-	// The status is determined by whether the push endpoint receives calls in time.
-	// Status determination based on heartbeat age should be handled by a separate
-	// stateful service that monitors heartbeat timestamps.
-	// When the executor is called, it just indicates the monitor configuration is valid.
-	// var startTime, endTime = time.Now().UTC(), time.Now().UTC()
+	// Check for the latest heartbeat for this monitor
+	var startTime, endTime = time.Now().UTC(), time.Now().UTC()
 
-	// s.logger.Debugf("Push executor called for monitor %s - returning nil (no-op)", m.ID)
+	var status shared.MonitorStatus
+	var message string
 
-	// Return nil to indicate no active check needed (push monitors are passive)
-	// The actual status is determined when the push endpoint is called
+	if m.LastHeartbeat != nil {
+		s.logger.Infof("Latest heartbeat: %v", m.LastHeartbeat)
+		timeSince := time.Since(m.LastHeartbeat.Time)
+		s.logger.Infof("Time since last heartbeat: %v", timeSince)
 
-	return nil
+		if m.LastHeartbeat.Status == 1 && timeSince <= time.Duration(m.Interval)*time.Second {
+			s.logger.Infof("Push received in time")
+			return nil
+		} else {
+			s.logger.Infof("Push received too late")
+			status = shared.MonitorStatusDown
+			message = "No push received in time"
+		}
+	} else {
+		s.logger.Infof("No heartbeat found")
+		status = shared.MonitorStatusDown
+		message = "No push received yet"
+	}
+
+	return &Result{
+		Status:    status,
+		Message:   message,
+		StartTime: startTime,
+		EndTime:   endTime,
+	}
 }

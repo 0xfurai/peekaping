@@ -8,6 +8,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 
+	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_notification"
@@ -25,6 +26,7 @@ type Producer struct {
 	maintenanceService      maintenance.Service
 	monitorNotificationSvc  monitor_notification.Service
 	settingService          shared.SettingService
+	heartbeatService        heartbeat.Service
 	logger                  *zap.SugaredLogger
 	ctx                     context.Context
 	cancel                  context.CancelFunc

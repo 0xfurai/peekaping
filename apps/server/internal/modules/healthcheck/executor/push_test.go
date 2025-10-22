@@ -2,7 +2,9 @@ package executor
 
 import (
 	"context"
+	"peekaping/internal/modules/shared"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
@@ -165,34 +167,68 @@ func TestPushExecutor_Execute(t *testing.T) {
 	logger := zap.NewNop().Sugar()
 	executor := NewPushExecutor(logger)
 
+	now := time.Now().UTC()
+
 	tests := []struct {
-		name    string
-		monitor *Monitor
-		config  string
+		name           string
+		monitor        *Monitor
+		config         string
+		expectedStatus *shared.MonitorStatus
+		expectedMsg    string
 	}{
 		{
-			name: "push executor returns nil - no active check",
+			name: "no heartbeat - should return DOWN",
 			monitor: &Monitor{
-				ID:       "monitor1",
-				Type:     "push",
-				Name:     "Test Monitor",
-				Interval: 30,
+				ID:            "monitor1",
+				Type:          "push",
+				Name:          "Test Monitor",
+				Interval:      30,
+				LastHeartbeat: nil,
 			},
 			config: `{
 				"pushToken": "valid-token"
 			}`,
+			expectedStatus: func() *shared.MonitorStatus { s := shared.MonitorStatusDown; return &s }(),
+			expectedMsg:    "No push received yet",
 		},
 		{
-			name: "push executor with different interval",
+			name: "heartbeat within interval - should return nil",
 			monitor: &Monitor{
 				ID:       "monitor2",
 				Type:     "push",
 				Name:     "Another Monitor",
 				Interval: 60,
+				LastHeartbeat: &shared.HeartBeatModel{
+					ID:        "hb1",
+					MonitorID: "monitor2",
+					Status:    shared.MonitorStatusUp,
+					Time:      now.Add(-30 * time.Second), // 30 seconds ago, within 60 second interval
+				},
 			},
 			config: `{
 				"pushToken": "another-token"
 			}`,
+			expectedStatus: nil,
+		},
+		{
+			name: "heartbeat outside interval - should return DOWN",
+			monitor: &Monitor{
+				ID:       "monitor3",
+				Type:     "push",
+				Name:     "Expired Monitor",
+				Interval: 30,
+				LastHeartbeat: &shared.HeartBeatModel{
+					ID:        "hb2",
+					MonitorID: "monitor3",
+					Status:    shared.MonitorStatusUp,
+					Time:      now.Add(-60 * time.Second), // 60 seconds ago, outside 30 second interval
+				},
+			},
+			config: `{
+				"pushToken": "expired-token"
+			}`,
+			expectedStatus: func() *shared.MonitorStatus { s := shared.MonitorStatusDown; return &s }(),
+			expectedMsg:    "No push received in time",
 		},
 	}
 
@@ -202,9 +238,13 @@ func TestPushExecutor_Execute(t *testing.T) {
 			tt.monitor.Config = tt.config
 			result := executor.Execute(context.Background(), tt.monitor, nil)
 
-			// Assert - push executor is stateless and always returns nil
-			// Status determination is handled by separate heartbeat monitoring
-			assert.Nil(t, result, "Push executor should return nil (no-op)")
+			if tt.expectedStatus == nil {
+				assert.Nil(t, result, "Push executor should return nil when heartbeat is within interval")
+			} else {
+				assert.NotNil(t, result)
+				assert.Equal(t, *tt.expectedStatus, result.Status)
+				assert.Equal(t, tt.expectedMsg, result.Message)
+			}
 		})
 	}
 }
@@ -222,6 +262,7 @@ func TestPushExecutor_Execute_WithProxy(t *testing.T) {
 		Config: `{
 			"pushToken": "valid-token"
 		}`,
+		LastHeartbeat: nil,
 	}
 
 	// Proxy should be ignored for push monitors
@@ -235,6 +276,8 @@ func TestPushExecutor_Execute_WithProxy(t *testing.T) {
 	// Execute with proxy
 	result := executor.Execute(context.Background(), monitor, proxy)
 
-	// Assert that result is nil (stateless executor)
-	assert.Nil(t, result, "Push executor should return nil regardless of proxy")
+	// Assert that result is DOWN since no heartbeat
+	assert.NotNil(t, result)
+	assert.Equal(t, shared.MonitorStatusDown, result.Status)
+	assert.Equal(t, "No push received yet", result.Message)
 }
