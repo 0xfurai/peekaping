@@ -313,7 +313,7 @@ func TestExecutorRegistry_Execute(t *testing.T) {
 				}`,
 			},
 			expectedError:   false,
-			expectNilResult: true, // Push monitors are stateless and return nil
+			expectNilResult: false, // Push monitors return DOWN status when no heartbeat exists
 		},
 		{
 			name: "execute postgres monitor",
