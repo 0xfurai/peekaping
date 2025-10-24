@@ -4,6 +4,163 @@ sidebar_position: 1
 
 # Docker + SQLite
 
+## Security Features
+
+### Non-root User Support
+
+Peekaping bundle images now run the server and web components as a non-root user (`peekaping`) for enhanced security.
+
+#### Custom UID/GID
+
+You can customize the user and group IDs for the `peekaping` user using build arguments:
+
+```bash
+docker build --build-arg UID=1001 --build-arg GID=1001 -f Dockerfile.bundle.sqlite -t peekaping-custom .
+```
+
+Or in docker-compose.yml:
+
+```yaml
+services:
+  peekaping:
+    build:
+      context: .
+      dockerfile: Dockerfile.bundle.sqlite
+      args:
+        UID: 1001
+        GID: 1001
+```
+
+#### Volume Permissions
+
+When using custom UID/GID, ensure your host volumes have appropriate permissions:
+
+```bash
+# Create data directory with correct ownership
+sudo mkdir -p ./.data/sqlite
+sudo chown -R 1001:1001 ./.data/sqlite
+```
+
+### Docker Socket Security
+
+For Docker monitoring, Peekaping supports both socket and TCP connections. For enhanced security, consider using a Docker socket proxy:
+
+1. Set up [docker-socket-proxy](https://github.com/Tecnativa/docker-socket-proxy)
+2. Configure your Docker monitors to use TCP connection type
+3. Point to your proxy endpoint (e.g., `http://dockerproxy:2375`)
+
+This eliminates the need to mount the Docker socket directly into the Peekaping container.
+
+#### Docker Socket Proxy Setup
+
+For maximum security, use `docker-socket-proxy` to provide read-only access to Docker API:
+
+```yaml
+version: "3.8"
+
+services:
+  dockerproxy:
+    image: ghcr.io/tecnativa/docker-socket-proxy:latest
+    container_name: dockerproxy
+    environment:
+      CONTAINERS: 1
+      SERVICES: 1
+      TASKS: 1
+      POST: 0
+      PRIVILEGED: 0
+      IMAGES: 0
+      VOLUMES: 0
+      NETWORKS: 0
+      SYSTEM: 0
+    ports: []
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+    networks:
+      - internal
+
+  peekaping:
+    image: ghcr.io/0xfurai/peekaping-bundle-sqlite:latest
+    container_name: peekaping
+    restart: unless-stopped
+    ports:
+      - 8383:8383
+    environment:
+      DB_TYPE: sqlite
+      DB_NAME: /app/data/peekaping.db
+      DOCKERPROXY_HOST: "http://dockerproxy:2375"
+      UID: 1000
+      GID: 1000
+      TZ: "Europe/Berlin"
+    volumes:
+      - ./data/sqlite:/app/data
+    networks:
+      - internal
+    depends_on:
+      - dockerproxy
+
+networks:
+  internal: {}
+```
+
+**Security Benefits:**
+- **Read-only access** - Cannot create/delete containers
+- **No privileged operations** - Prevents system modifications
+- **Network isolation** - Proxy runs in internal network
+- **Minimal permissions** - Only necessary Docker API endpoints
+
+**Configuration in Peekaping:**
+1. Go to **Settings** → **Docker**
+2. **Connection Type**: Select "TCP"
+3. **Host**: Enter `http://dockerproxy:2375`
+4. **Test Connection** to verify proxy access
+
+### Distroless Bundle Variants
+
+For enhanced security, distroless bundle variants are available that run only the server and web components:
+
+```bash
+docker run -d --restart=always \
+  -p 8034:8034 \
+  -e DB_TYPE=sqlite \
+  -e DB_NAME=/app/data/peekaping.db \
+  -v $(pwd)/.data/sqlite:/app/data \
+  ghcr.io/0xfurai/peekaping-bundle-sqlite-distroless:latest
+```
+
+**Note**: Distroless bundles require external reverse proxy setup. They run as nonroot user (UID 65532) and have minimal attack surface.
+
+**Important**: Distroless bundles do not run database migrations automatically. You must run migrations separately before starting the server.
+
+#### Running Migrations for Distroless Bundles
+
+Before starting the distroless bundle, run migrations using the migration container:
+
+```bash
+# For SQLite distroless bundle
+# First initialize the database
+docker run --rm \
+  -v $(pwd)/test-data:/app/data \
+  -e DB_TYPE=sqlite \
+  -e DB_NAME=/app/data/peekaping.db \
+  ghcr.io/0xfurai/peekaping-migrate:latest /app/bun db init
+
+# Then run migrations
+docker run --rm \
+  -v $(pwd)/test-data:/app/data \
+  -e DB_TYPE=sqlite \
+  -e DB_NAME=/app/data/peekaping.db \
+  ghcr.io/0xfurai/peekaping-migrate:latest /app/bun db migrate
+
+# Then start the distroless bundle
+docker run -d --restart=always \
+  -p 8034:8034 \
+  -e DB_TYPE=sqlite \
+  -e DB_NAME=/app/data/peekaping.db \
+  -v $(pwd)/test-data:/app/data \
+  ghcr.io/0xfurai/peekaping-bundle-sqlite-distroless:latest
+```
+
 ## Monolithic mode
 
 The simplest mode of operation is the monolithic deployment mode. This mode runs all of Peekaping microservice components (db + api + web + gateway) inside a single process as a single Docker image.

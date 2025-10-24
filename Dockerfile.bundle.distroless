@@ -1,55 +1,30 @@
-# Multi-stage Dockerfile to build server, web, and migrations in one container with SQLite
+# Multi-stage Dockerfile to build server and web in one container (Distroless - External DB)
 
 # Stage 1: Build Go server and migration tool
 FROM golang:1.24.3-alpine AS go-builder
 
-# Install build dependencies
 RUN apk add --no-cache git
-
-# Set the Current Working Directory inside the container
 WORKDIR /app/server
-
-# Copy go mod and sum files
 COPY apps/server/go.mod apps/server/go.sum ./
-
-# Download all dependencies
 RUN go mod download
-
-# Copy the source code into the container
 COPY apps/server/ .
-
-# Build the Go server
 RUN go build -o main ./src
-
-# Build the migration tool
 RUN go build -o bun ./cmd/bun
 
 # Stage 2: Build React web app
 FROM node:22-alpine AS web-builder
 
 WORKDIR /app
-
-# Copy workspace configuration files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-
-# Copy patches directory
 COPY patches/ ./patches/
-
-# Copy web app package.json
 COPY apps/web/package.json ./apps/web/package.json
-
-# Install dependencies using workspace (filter for web app only)
 RUN npm install -g pnpm && pnpm install --filter=web
-
-# Copy web app source code
 COPY apps/web/ ./apps/web/
-
-# Build the web app
 WORKDIR /app/apps/web
 RUN pnpm run build
 
-# Stage 3: Final runtime image
-FROM caddy:alpine
+# Stage 3: Final runtime image (Distroless with Caddy2)
+FROM caddy:2-alpine
 
 # Security: Add build args for configurable user/group
 ARG UID=1000
@@ -79,7 +54,7 @@ COPY --from=web-builder /app/apps/web/dist /app/web
 # Copy Caddy configuration
 COPY Caddyfile /etc/caddy/Caddyfile
 
-# Copy supervisor configuration for SQLite
+# Copy supervisor configuration for SQLite (default)
 COPY supervisord.bundle.sqlite.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Copy startup script
@@ -92,7 +67,7 @@ RUN chmod +x /app/server/run-migrations.sh /app/startup.sh /app/server/main /app
 RUN chown -R peekaping:peekaping /app/server /app/web /app/data && \
     chmod 755 /app/server /app/web /app/data
 
-# Expose port 8383 (matches your current setup)
+# Expose port 8383 (matches Caddyfile)
 EXPOSE 8383
 
 # Use our startup script
