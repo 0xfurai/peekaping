@@ -84,7 +84,6 @@ COPY --from=go-builder /app/server/api /app/server/api
 COPY --from=go-builder /app/server/producer /app/server/producer
 COPY --from=go-builder /app/server/worker /app/server/worker
 COPY --from=go-builder /app/server/ingester /app/server/ingester
-COPY --from=go-builder /app/server/cmd/bun/migrations /app/server/cmd/bun/migrations
 COPY --from=go-builder /app/server/internal/config /app/server/internal/config
 COPY --from=go-builder /app/server/scripts/run-migrations.sh /app/server/run-migrations.sh
 
@@ -97,7 +96,7 @@ COPY supervisord.bundle.mongo.conf /etc/supervisor/conf.d/supervisord.conf
 COPY startup.bundle.mongo.sh /app/startup.sh
 
 # Set proper permissions for executables
-RUN chmod +x /app/server/run-migrations.sh /app/startup.sh /app/server/api /app/server/producer /app/server/worker /app/server/ingester /app/server/bun
+RUN chmod +x /app/server/run-migrations.sh /app/startup.sh /app/server/api /app/server/producer /app/server/worker /app/server/ingester
 
 # Expose port
 EXPOSE 8383
