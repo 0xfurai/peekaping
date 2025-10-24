@@ -22,6 +22,8 @@ RUN CGO_ENABLED=0 go build -o bun -ldflags="-s -w" ./cmd/bun
 # Start a new stage from scratch
 FROM alpine:latest
 
+USER 65532:65532
+
 # Install netcat for database connectivity check
 RUN apk add --no-cache netcat-openbsd
 
