@@ -12,7 +12,7 @@ RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o api -ldflags="-s -w" ./cmd/api
 RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o producer -ldflags="-s -w" ./cmd/producer
 RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o worker -ldflags="-s -w" ./cmd/worker
 RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o ingester -ldflags="-s -w" ./cmd/ingester
-RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o bun -ldflags="-s -w" ./cmd/bun
+RUN CGO_ENABLED=0 go build -o bun -ldflags="-s -w" ./cmd/bun
 
 # Stage 2: Build React web app
 FROM node:22-alpine AS web-builder
