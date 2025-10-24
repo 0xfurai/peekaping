@@ -19,8 +19,6 @@ RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o main -ldflags="-s -w" ./cmd/ap
 # Start a new stage from scratch
 FROM scratch
 
-USER 65532:65532
-
 WORKDIR /app
 
 # Copy the pre-built binary file from the previous stage

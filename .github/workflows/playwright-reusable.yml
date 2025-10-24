@@ -55,10 +55,6 @@ jobs:
 
     - name: Start services
       run: |
-        mkdir -p ./.data/sqlite
-        chown -R 65532:65532 ./.data/sqlite
-        chmod -R 755 ./.data/sqlite
-
         if ! docker compose -f docker-compose.test.${{ matrix.database }}.yml up -d; then
           echo "=== Service startup failed! Showing container logs ==="
           docker compose -f docker-compose.test.${{ matrix.database }}.yml ps
