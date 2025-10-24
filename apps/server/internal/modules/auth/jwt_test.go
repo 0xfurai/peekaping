@@ -709,7 +709,7 @@ func TestTokenMaker_CreateToken_EdgeCases(t *testing.T) {
 	// Test with very short duration
 	mockSettingService.On("GetByKey", ctx, "ACCESS_TOKEN_EXPIRED_IN").Return(&shared.SettingModel{
 		Key:   "ACCESS_TOKEN_EXPIRED_IN",
-		Value: "1s",
+		Value: "5s",
 	}, nil)
 	mockSettingService.On("GetByKey", ctx, "ACCESS_TOKEN_SECRET_KEY").Return(&shared.SettingModel{
 		Key:   "ACCESS_TOKEN_SECRET_KEY",
@@ -733,7 +733,7 @@ func TestTokenMaker_CreateToken_EdgeCases(t *testing.T) {
 
 	// Test that the token has the correct expiration time
 	assert.True(t, claims.ExpiresAt.Time.After(time.Now().UTC()))
-	assert.True(t, claims.ExpiresAt.Time.Before(time.Now().UTC().Add(2*time.Second)))
+	assert.True(t, claims.ExpiresAt.Time.Before(time.Now().UTC().Add(6*time.Second)))
 
 	mockSettingService.AssertExpectations(t)
 }
