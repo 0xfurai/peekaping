@@ -39,6 +39,5 @@
             message_key  msg
         }
         level info
-        timestamp true
     }
 }
