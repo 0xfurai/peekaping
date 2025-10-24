@@ -155,6 +155,8 @@ jobs:
           sqlite)
             # SQLite data directory
             mkdir -p ./test-data/sqlite/app
+            # Set proper permissions for SQLite database directory
+            chmod -R 777 ./test-data/sqlite/app
             ;;
           mongo)
             # MongoDB data directory
