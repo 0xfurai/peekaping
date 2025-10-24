@@ -1,4 +1,4 @@
-# Peekaping 🚀
+# Peekaping - the best uptime kuma alternative
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Go](https://img.shields.io/badge/go-%23007d9c.svg?style=flat&logo=go&logoColor=white)
@@ -11,7 +11,7 @@
 
 **A modern, self-hosted uptime monitoring solution**
 
-Peekaping is a powerful, feature-rich uptime monitoring system similar to Uptime Kuma, built with Go and React. Monitor your websites, APIs, and services with real-time notifications, beautiful status pages, and comprehensive analytics.
+Peekaping is a uptime monitoring system built with Golang and React. You can monitor your websites, API and many more leveraging beautiful status pages, alert notifications.
 
 🔗 Website **[peekaping.com](https://peekaping.com)**
 
@@ -21,16 +21,27 @@ Peekaping is a powerful, feature-rich uptime monitoring system similar to Uptime
 
 🔗 Community terraform provider **[registry.terraform.io/providers/tafaust/peekaping](https://registry.terraform.io/providers/tafaust/peekaping/latest)**
 
+## Why Peekaping Is the Best Alternative to Uptime Kuma
+
+- API first architecture
+- easy to extend server architecture
+- Server written in golang that make it fast and lightweight using minimum RAM and CPU
+- high stability thanks to typed client and compiled golang
+- clean and modern ui design
+- flexible storage options: SQLite / PostgreSQL / MongoDB
+- API keys management and access control
+
 ## ⚠️ Beta Status
 
-**Peekaping is currently in beta and actively being developed.** While I am excited to share this project with the community, please note that:
+**Peekaping is currently in beta and actively being developed.**
+Please note:
 
-- The software is still undergoing testing and refinement
-- Some features may be incomplete or subject to change
+- The software is still under active development
+- Some features could be changed
 - I recommend testing in non-production environments first
 - Please report any issues you encounter - your feedback helps us improve!
 
-We encourage you to try Peekaping and provide feedback, but please use it at your own discretion. Your testing and feedback are invaluable to making Peekaping production-ready! 🚀
+Please try Peekaping and provide feedback, this is huge contribution for us! Let's make Peekaping production ready.
 
 ## Quick start (docker + SQLite)
 
@@ -101,11 +112,13 @@ Peekaping also support [PostgreSQL Setup](https://docs.peekaping.com/self-hostin
 - Brute-Force Login Protection
 - SSL Certificate Expiration Checks
 
-## 💡 Motivation
+## 💡 Motivation behind creating uptime kuma alternative
 
-Peekaping is designed as a modern alternative to Uptime Kuma, built with a focus on **strongly typed architecture** and **extensibility**. Our server is written in Go, a fast and efficient language that enables a small footprint while maintaining high performance. The codebase is structured for easy extensibility, allowing developers to seamlessly add new notification channels, monitor types, and even swap out the database layer without major refactoring.
+Peekaping was deeply inspired by Uptime Kuma. We tried to cover all the fundamental flaws of Uptime Kuma. Alternative was to build new system with features community love and request but using typed approaches applying extendable architecture. First of all - we are API first. Our server side written in Golang, fast and efficient language that works with minimal RAM. Architecture allows easily extend system adding new notification channels, monitor types etc.
 
-The client-side application is also strongly typed and built with modern React patterns, making it equally extensible and maintainable. This combination of type safety, performance, and modular design makes Peekaping an ideal choice for teams who need a reliable, customizable uptime monitoring solution.
+Client side written with React and typescript that makes it reliable and fast. Client side is also easily extensible.
+
+Peekaping an ideal choice for teams who need a reliable, customizable uptime monitoring solution.
 
 ![Peekaping Dashboard](./pictures/monitor.png)
 
