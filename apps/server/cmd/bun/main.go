@@ -270,10 +270,15 @@ func connectToDatabase(cfg *config.DBConfig) (*bun.DB, error) {
 		if dbPath == "" {
 			dbPath = "./data.db"
 		}
-		sqldb, err = sql.Open(sqliteshim.ShimName, fmt.Sprintf("file:%s?cache=shared&mode=rwc", dbPath))
+		// Configure SQLite for concurrent access with WAL mode
+		sqldb, err = sql.Open(sqliteshim.ShimName, fmt.Sprintf("file:%s?cache=shared&mode=rwc&_journal_mode=WAL&_busy_timeout=5000", dbPath))
 		if err != nil {
 			return nil, fmt.Errorf("failed to open SQLite connection: %w", err)
 		}
+		// Set connection pool limits for SQLite
+		sqldb.SetMaxOpenConns(10)
+		sqldb.SetMaxIdleConns(5)
+		sqldb.SetConnMaxLifetime(0)
 		db = bun.NewDB(sqldb, sqlitedialect.New())
 
 	default:

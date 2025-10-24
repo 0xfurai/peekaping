@@ -57,14 +57,25 @@ func ProvideSQLDB(
 			dbPath = "./data.db" // Default SQLite file path
 		}
 
-		sqldb, err = sql.Open(sqliteshim.ShimName, fmt.Sprintf("file:%s?cache=shared&mode=rwc", dbPath))
+		// Configure SQLite for concurrent access with WAL mode
+		// _journal_mode=WAL: Enable Write-Ahead Logging for better concurrency
+		// _busy_timeout=5000: Wait up to 5 seconds when database is locked
+		// cache=shared: Share cache between connections
+		// mode=rwc: Read-write-create mode
+		sqldb, err = sql.Open(sqliteshim.ShimName, fmt.Sprintf("file:%s?cache=shared&mode=rwc&_journal_mode=WAL&_busy_timeout=5000", dbPath))
 		if err != nil {
 			return nil, fmt.Errorf("failed to open SQLite connection: %w", err)
 		}
 
+		// Set connection pool limits for SQLite to prevent lock contention
+		// SQLite works best with a limited number of connections
+		sqldb.SetMaxOpenConns(10)   // Maximum open connections
+		sqldb.SetMaxIdleConns(5)    // Maximum idle connections
+		sqldb.SetConnMaxLifetime(0) // Connections never expire (important for WAL mode)
+
 		db = bun.NewDB(sqldb, sqlitedialect.New())
 
-		logger.Infof("Connecting to SQLite database: %s", dbPath)
+		logger.Infof("Connecting to SQLite database: %s (WAL mode enabled)", dbPath)
 
 	default:
 		return nil, fmt.Errorf("unsupported database type: %s. Supported types: postgres, mysql, sqlite", cfg.DBType)
