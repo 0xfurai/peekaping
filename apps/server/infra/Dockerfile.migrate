@@ -17,7 +17,7 @@ RUN go mod download
 COPY . .
 
 # Build the bun migration tool
-RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o bun -ldflags="-s -w" ./cmd/bun
+RUN CGO_ENABLED=0 go build -o bun -ldflags="-s -w" ./cmd/bun
 
 # Start a new stage from scratch
 FROM alpine:latest
