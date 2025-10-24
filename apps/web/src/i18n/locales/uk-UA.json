@@ -9,20 +9,26 @@
       "no_account": "Немає обліковго запису?",
       "sign_up": "Зареєструватися",
       "submit": "Увійти",
-      "title": "З поверненням"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "З поверненням"
     },
     "register": {
       "description": "Створіть ваш обліковий запис адміністратора",
       "have_account": "Вже маєте обліковий запис?",
       "sign_in": "Увійти",
       "submit": "Створити",
-      "title": "Привіт"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Привіт"
     },
     "twofa": {
       "code_label": "2FA код",
       "code_placeholder": "Введіть 2FA код",
       "description": "Двофакторна аутентифікація увімкнена для вашого облікового запису. Будь ласка, введіть код аутентифікації для продовження.",
-      "title": "Потрібна двофакторна аутентифікація",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Потрібна двофакторна аутентифікація",
       "verify_button": "Перевірити 2FA",
       "verifying": "Перевірка..."
     }
@@ -96,7 +102,9 @@
       "password": "Пароль",
       "retries": "Повторні спроби",
       "slug": "Слаг",
-      "title": "Назва",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Назва",
       "username": "Ім'я користувача"
     },
     "placeholders": {
@@ -169,17 +177,23 @@
         "confirm_action": {
           "pause_description": "Ви впевнені, що хочете призупинити це обслуговування?",
           "resume_description": "Ви впевнені, що хочете відновити це обслуговування?",
-          "title": "Підтвердити дію"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Підтвердити дію"
         },
         "confirm_delete": {
           "description": "Ви впевнені, що хочете видалити це вікно обслуговування? Цю дію неможливо скасувати.",
-          "title": "Підтвердити видалення"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Підтвердити видалення"
         }
       },
       "edit_maintenance": "Редагувати обслуговування: {{title}}",
       "empty_state": {
         "action": "Створіть ваше перше вікно обслуговування",
         "description": "Почніть зі створення вашого першого вікна обслуговування для запобігання запланованим простоям.",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Вікон обслуговування не знайдено"
       },
       "error_loading": "Помилка завантаження обслуговування",
@@ -248,7 +262,9 @@
     "empty_state": {
       "action": "Створіть ваш перший монітор",
       "description": "Почніть зі створення вашого першого монітора для відстеження стану ваших сервісів.",
-      "title": "Моніторів не знайдено"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Моніторів не знайдено"
     },
     "filtering_by_tags": "Фільтрування за тегами",
     "filters": {
@@ -271,6 +287,8 @@
         "record_type": "Тип запису ресурсу",
         "record_type_placeholder": "Виберіть тип запису",
         "resolver_server": "Сервер резолвера",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Налаштування DNS"
       },
       "docker": {
@@ -329,7 +347,9 @@
           "ignore_tls_description": "Пропустити перевірку сертифіката TLS. Використовуйте обережно - це робить з'єднання менш безпечними.",
           "max_redirects": "Максимальна кількість перенаправлень",
           "max_redirects_description": "Максимальна кількість перенаправлень для слідування (0-30). Встановіть 0, щоб вимкнути перенаправлення.",
-          "title": "Розширені"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Розширені"
         },
         "authentication": {
           "auth_header": "Заголовок авторизації",
@@ -350,7 +370,9 @@
           "oauth_scope_placeholder": "Необов'язково: Список областей, розділених пробілами",
           "oauth_token_url": "URL токена OAuth",
           "oauth_token_url_placeholder": "URL токена OAuth",
-          "title": "Аутентифікація",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Аутентифікація",
           "workstation": "Робоча станція",
           "workstation_placeholder": "Робоча станція"
         },
@@ -366,7 +388,9 @@
           "select_encoding": "Виберіть кодування тіла",
           "select_method": "Виберіть метод",
           "text_example": "Приклад тексту:\nБудь-який текстовий вміст тут...",
-          "title": "Параметри HTTP",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Параметри HTTP",
           "xml_example": "Приклад XML"
         }
       },
@@ -374,6 +398,8 @@
         "condition_label": "Умова",
         "expected_value_label": "Очікуване значення",
         "json_query_label": "JSON-вираз запиту",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "JSON Запитовий вираз"
       },
       "http_keyword": {
@@ -446,8 +472,13 @@
         "query_label": "Запит"
       },
       "ping": {
+        "count": "Max Packets",
+        "count_description": "Number of packets to send before stopping",
+        
         "data_size": "Розмір даних (байти)",
         "host": "Ім'я хоста / IP",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Налаштування Ping"
       },
       "postgres": {
@@ -468,6 +499,8 @@
         "password_description": "Пароль для керування RabbitMQ",
         "setup_information_description": "Для використання монітора RabbitMQ, вам потрібно увімкнути плагін Management у вашому конфігураційному файлі RabbitMQ. Для більш детальної інформації, будь ласка, зверніться до документації RabbitMQ.",
         "setup_information_title": "Інформація про налаштування",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Налаштування RabbitMQ",
         "username_description": "Ім'я користувача для керування RabbitMQ"
       },
@@ -482,6 +515,8 @@
         "connection_string_label": "Рядок підключення",
         "ignore_tls_description": "Пропустити перевірку сертифіката TLS (не рекомендується для виробництва)",
         "ignore_tls_label": "Ігнорувати помилки TLS/SSL",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Налаштування Redis"
       },
       "shared": {
@@ -499,7 +534,9 @@
           "select_channel": "Виберіть канал",
           "select_notifier_placeholder": "Виберіть сповіщувач",
           "selected_channels": "Вибрані канали сповіщень",
-          "title": "Канали сповіщень"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Канали сповіщень"
         },
         "proxy": {
           "add_proxy": "Додати проксі",
@@ -508,7 +545,9 @@
           "remove_proxy": "Видалити проксі",
           "select_proxy_placeholder": "Виберіть проксі",
           "selected_proxy": "Вибраний проксі",
-          "title": "Проксі"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Проксі"
         },
         "tags": {
           "label": "Теги",
@@ -539,6 +578,8 @@
         "port_label": "Порт",
         "snmp_version_description": "Версія протоколу SNMP для використання",
         "snmp_version_label": "Версія SNMP",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Налаштування SNMP",
         "value_validation_label": "Перевірка значення (Необов'язково)"
       },
@@ -548,11 +589,15 @@
         "connection_string_label": "Рядок підключення",
         "query_description": "Запит для виконання для перевірки здоров'я. Залиште поле порожнім, щоб використовувати значення за замовчуванням",
         "query_label": "Запит",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Підключення Microsoft SQL Server"
       },
       "tcp": {
         "host": "Хост",
         "port": "Порт",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "TCP з'єднання"
       },
       "type": {
@@ -579,7 +624,9 @@
       "edit_title": "Редагувати монітор:",
       "new_title": "Новий монітор"
     },
-    "title": "Моніторинг",
+    "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Моніторинг",
     "toasts": {
       "deleted": "Монітор видалено",
       "paused": "Монітор призупинено",
@@ -601,15 +648,21 @@
       "dialogs": {
         "delete": {
           "description": "Цю дію неможливо скасувати. Це назавжди видалить монітор та всі пов'язані дані.",
-          "title": "Ви абсолютно впевнені?"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ви абсолютно впевнені?"
         },
         "pause": {
           "description": "Ви впевнені, що хочете призупинити?",
-          "title": "Підтвердження"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Підтвердження"
         },
         "reset": {
           "description": "Це назавжди видалить всю історію пульсу та статистику доступності для цього монітора. Монітор з'явиться так, ніби він щойно був створений. Цю дію неможливо скасувати.",
-          "title": "Скинути дані монітора"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Скинути дані монітора"
         }
       },
       "expiring_soon": "Скоро закінчується термін дії",
@@ -656,7 +709,9 @@
     "empty_state": {
       "action": "Створіть ваш перший канал сповіщень",
       "description": "Почніть зі створення вашого першого каналу сповіщень для надсилання сповіщень вашій команді.",
-      "title": "Каналів сповіщень не знайдено"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Каналів сповіщень не знайдено"
     },
     "form": {
       "discord": {
@@ -1046,7 +1101,9 @@
       "updated_success": "Сповіщувач успішно оновлено"
     },
     "new": {
-      "title": "Новий канал сповіщень"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Новий канал сповіщень"
     },
     "no_important": "Важливих сповіщень не знайдено.",
     "placeholders": {
@@ -1057,7 +1114,9 @@
   "proxies": {
     "delete_dialog": {
       "description": "Цю дію неможливо скасувати. Це назавжди видалить проксі {{host}}:{{port}}.",
-      "title": "Ви абсолютно впевнені?"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ви абсолютно впевнені?"
     },
     "edit": {
       "page_name": "Редагувати проксі"
@@ -1065,7 +1124,9 @@
     "empty_list": {
       "action_text": "Створіть ваш перший проксі",
       "text": "Почніть зі створення вашого першого проксі для використання у ваших моніторах.",
-      "title": "Проксі не знайдено"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Проксі не знайдено"
     },
     "form": {
       "auth_label": "Проксі-сервер має автентифікацію",
@@ -1131,15 +1192,21 @@
         "failed_to_update_password": "Не вдалося оновити пароль",
         "password_updated_successfully": "Пароль успішно оновлено"
       },
-      "title": "Оновити пароль"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Оновити пароль"
     },
     "api_keys": {
-      "title": "API Ключі",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "API Ключі",
       "description": "Керуйте своїми API ключами для інтеграції з третіми сторонами",
       "create_button": "Створити API Ключ",
       "no_keys_title": "Немає API Ключів",
       "no_keys_description": "Створіть свій перший API ключ для початку інтеграції з зовнішніми сервісами.",
       "create_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Створити Новий API Ключ",
         "description": "Створіть новий API ключ для інтеграції з третіми сторонами. Ключ буде показано лише один раз.",
         "form": {
@@ -1156,6 +1223,8 @@
         }
       },
       "success_alert": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "API Ключ Успішно Створено",
         "description": "Ваш API ключ створено. Скопіюйте його зараз, оскільки він більше не буде показано:"
       },
@@ -1177,6 +1246,8 @@
         "never": "Ніколи"
       },
       "delete_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Видалити API ключ",
         "description": "Ви впевнені, що хочете видалити API ключ \"{{name}}\"? Цю дію неможливо скасувати.",
         "buttons": {
@@ -1216,7 +1287,9 @@
     "data_retention": {
       "days_label": "Дні",
       "description": "Встановіть, скільки днів зберігати дані (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Період зберігання даних"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Період зберігання даних"
     },
     "timezone": {
       "description": "Виберіть ваш часовий пояс для відображення всіх часів у додатку.",
@@ -1224,7 +1297,9 @@
       "no_timezone_found": "Часовий пояс не знайдено.",
       "search_placeholder": "Пошук часового поясу...",
       "select_placeholder": "Вибрати часовий пояс...",
-      "title": "Часовий пояс"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Часовий пояс"
     },
     "validation": {
       "min_days": "Має бути щонайменше 1 день"
@@ -1256,7 +1331,9 @@
     "customization": "Налаштування",
     "delete_dialog": {
       "description": "Ви впевнені, що хочете видалити \"{{title}}\"? Цю дію неможливо скасувати.",
-      "title": "Видалити сторінку статусу"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Видалити сторінку статусу"
     },
     "description": "Введіть опис сторінки статусу",
     "domain_already_used": "Домен {{domain}} вже використовується іншою сторінкою статусу",
@@ -1293,7 +1370,9 @@
     "empty_state": {
       "action": "Створіть ваш перший тег",
       "description": "Почніть зі створення вашого першого тегу для організації ваших моніторів.",
-      "title": "Тегів не знайдено"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Тегів не знайдено"
     },
     "form": {
       "color_description": "Виберіть колір для вашого тегу",

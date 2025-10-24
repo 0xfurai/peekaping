@@ -9,20 +9,26 @@
       "no_account": "Níl cuntas agat?",
       "sign_up": "Cláraigh",
       "submit": "Logáil isteach",
-      "title": "Fáilte ar ais"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Fáilte ar ais"
     },
     "register": {
       "description": "Cruthaigh do chuntas riarthóra",
       "have_account": "An bhfuil cuntas agat cheana féin?",
       "sign_in": "Logáil isteach",
       "submit": "Cruthaigh",
-      "title": "Dia dhuit"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Dia dhuit"
     },
     "twofa": {
       "code_label": "Cód 2FA",
       "code_placeholder": "Cuir isteach cód 2FA",
       "description": "Tá 2FA cumasaithe do do chuntas. Cuir isteach do chód fíordheimhnithe chun leanúint ar aghaidh.",
-      "title": "Fíordheimhniú dhá fhéad riachtanach",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Fíordheimhniú dhá fhéad riachtanach",
       "verify_button": "Deimhnigh 2FA",
       "verifying": "Ag fíorú..."
     }
@@ -96,7 +102,9 @@
       "password": "Focal Faire",
       "retries": "Athchóiri",
       "slug": "Slóg",
-      "title": "Teideal",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Teideal",
       "username": "Ainm úsáideora"
     },
     "placeholders": {
@@ -169,17 +177,23 @@
         "confirm_action": {
           "pause_description": "An bhfuil tú cinnte go dteastaíonn uait é seo a chur ar fionraí?",
           "resume_description": "An bhfuil tú cinnte go bhfuil tú ag iarraidh leanúint ar aghaidh leis an mbarrtha seo?",
-          "title": "Deimhnigh Gníomh"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Deimhnigh Gníomh"
         },
         "confirm_delete": {
           "description": "An bhfuil tú cinnte go dteastaíonn uait an séaghlach cothabhála seo a scriosadh? Ní féidir an gníomh seo a chur ar ais.",
-          "title": "Deimhnigh scriosadh"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Deimhnigh scriosadh"
         }
       },
       "edit_maintenance": "Cuir Cothromú in eagar: {{title}}",
       "empty_state": {
         "action": "Cruthaigh do chéad fuinneog cothromaíochta",
         "description": "Tosaigh trí do chéad fhuinneog cothabhála a chruthú, chun dhochtú a shocrú a sheachadadh.",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Níor aimsíodh aon fuinneoga cothromaíochta."
       },
       "error_loading": "Earráid ag luchtú cothromaíocht",
@@ -248,7 +262,9 @@
     "empty_state": {
       "action": "Cruthaigh do mhórbhainisteoir a thús",
       "description": "Tósaigh trí do monitor a chruthú chun sláinte do na seirbhísí a rianú.",
-      "title": "Níor aimsíodh aon mhonáiteoirí"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Níor aimsíodh aon mhonáiteoirí"
     },
     "filtering_by_tags": "Scagadh de réir clibí",
     "filters": {
@@ -271,6 +287,8 @@
         "record_type": "Cineál Taifid Acmhainn",
         "record_type_placeholder": "Roghnaigh cineál taifid",
         "resolver_server": "Seirbhéir Freagarach",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Socruithe DNS"
       },
       "docker": {
@@ -329,7 +347,9 @@
           "ignore_tls_description": "Scipeáil bhailíocht teastais TLS. Bain úsáid leis le cúram – torthaíonn sé nascanna níos neamhshábháilte.",
           "max_redirects": "Athruithe Uachtair",
           "max_redirects_description": "An líon uasta athchuirte le lean (0-30). Socraigh 0 chun athchuirte a díchumasaigh.",
-          "title": "Arda"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Arda"
         },
         "authentication": {
           "auth_header": "Ceanntásc Údarachta",
@@ -350,7 +370,9 @@
           "oauth_scope_placeholder": "Roghnach: Liosta scopanna a roinnt le spás",
           "oauth_token_url": "URL Token OAuth",
           "oauth_token_url_placeholder": "URL an Tóca OAuth",
-          "title": "Fíordheimhnú",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Fíordheimhnú",
           "workstation": "Stáisiún Oibre",
           "workstation_placeholder": "Seasmhór"
         },
@@ -366,7 +388,9 @@
           "select_encoding": "Roghnaigh cóidú an chorp",
           "select_method": "Roghnaigh módh",
           "text_example": "Téacs Sampla:\nTéacs bhunúsach ar bith seo...",
-          "title": "Roghanna HTTP",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Roghanna HTTP",
           "xml_example": "Sampla XML"
         }
       },
@@ -374,6 +398,8 @@
         "condition_label": "Coinníoll",
         "expected_value_label": "Luach Ag Smaoineamh",
         "json_query_label": "Tagairt Iarratais JSON",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Ionchais cuardach JSON"
       },
       "http_keyword": {
@@ -446,8 +472,13 @@
         "query_label": "Cuardach"
       },
       "ping": {
+        "count": "Max Packets",
+        "count_description": "Number of packets to send before stopping",
+        
         "data_size": "Méid Sonraí (bytes)",
         "host": "Óstainm / IP",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Socruithe Ping"
       },
       "postgres": {
@@ -468,6 +499,8 @@
         "password_description": "Pasfhocal le haghaidh fíordheimhniú ar an ateagais bainisteoireachta RabbitMQ",
         "setup_information_description": "Chun an monatóir RabbitMQ a úsáid, caithfidh tú Plugin Bainisteoireachta a chur i bhfeidhm i do shocrú RabbitMQ. Chun tuilleadh eolais a fháil, féach ar doiciméadú RabbitMQ.",
         "setup_information_title": "Eolas faoi shocrú",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Cumraíocht RabbitMQ",
         "username_description": "Ainm úsáideora le haghaidh fíordheimhnú interféise bainistíochta RabbitMQ"
       },
@@ -482,6 +515,8 @@
         "connection_string_label": "Teaghrán Ceangal",
         "ignore_tls_description": "Seachaint deimhniú teastais TLS (níor mholtar le haghaidh táirgeadh)",
         "ignore_tls_label": "Sórtáil earráidí TLS/SSL",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Cumraíocht Redis"
       },
       "shared": {
@@ -499,7 +534,9 @@
           "select_channel": "Roghnaigh an chanál",
           "select_notifier_placeholder": "Roghnaigh Eagarthóir",
           "selected_channels": "Cánálacha fógraí roghnaithe",
-          "title": "Cainéil Fógraí"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Cainéil Fógraí"
         },
         "proxy": {
           "add_proxy": "Cuir Próiseas",
@@ -508,7 +545,9 @@
           "remove_proxy": "Bain Proxy",
           "select_proxy_placeholder": "Roghnaigh Próiseálaí",
           "selected_proxy": "Próiseálaí roghnaithe",
-          "title": "Próiseas"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Próiseas"
         },
         "tags": {
           "label": "Clibeanna",
@@ -539,6 +578,8 @@
         "port_label": "Poirt",
         "snmp_version_description": "Leagan na protacail SNMP a úsáidfear",
         "snmp_version_label": "Leagan SNMP",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Socruithe SNMP",
         "value_validation_label": "Bailíochtú Luach (Roghnach)"
       },
@@ -548,11 +589,15 @@
         "connection_string_label": "Sreang Ceangal",
         "query_description": "Ceist le rith le haghaidh seiceáil sláinte. Fág folamh chun úsáid a bhaint as an réamhshocrú.",
         "query_label": "Iarratas",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Ceangal le Microsoft SQL Server"
       },
       "tcp": {
         "host": "Ósta",
         "port": "Port",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Ceangal TCP"
       },
       "type": {
@@ -579,7 +624,9 @@
       "edit_title": "Cuir monaitir in eagar:",
       "new_title": "Monaitir Nua"
     },
-    "title": "Monaitiseoirí",
+    "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Monaitiseoirí",
     "toasts": {
       "deleted": "Monatóir scriosta",
       "paused": "Monaitéir coise",
@@ -601,15 +648,21 @@
       "dialogs": {
         "delete": {
           "description": "Ní féidir an gníomh seo a chur ar ais. Scriosfaidh sé an monait agus na sonraí a bhaineann leis go buan.",
-          "title": "An bhfuil tú cinnte go hiomlán?"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "An bhfuil tú cinnte go hiomlán?"
         },
         "pause": {
           "description": "An bhfuil tú cinnte go bhfuil tú ag iarraidh sé a mhórú?",
-          "title": "Dearbhú"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Dearbhú"
         },
         "reset": {
           "description": "Scriosfar go daingean gach stair na clochbhrú agus staitisticí airdte don mhonatóireacht seo. Cuirfear don mhonatóireacht ag léiriú mar go bhfuil sé cruthaithe díreach. Ní féidir é a cealú.",
-          "title": "Athshocraigh Sonraí an mhonatóra"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Athshocraigh Sonraí an mhonatóra"
         }
       },
       "expiring_soon": "Ag léiriú go luath",
@@ -656,7 +709,9 @@
     "empty_state": {
       "action": "Cruthaigh do chéad canál fógra",
       "description": "Tósaigh ag cruthú do chéad seanál nuachtála chun fógraí a sheoladh chuig do fhoireann.",
-      "title": "Níor aimsíodh aon chánál nuachainte"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Níor aimsíodh aon chánál nuachainte"
     },
     "form": {
       "discord": {
@@ -1045,7 +1100,9 @@
       "updated_success": "Nuashonraíodh an Notifier go rathúil"
     },
     "new": {
-      "title": "Cán Fógra Nua"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Cán Fógra Nua"
     },
     "no_important": "Ní bhfaightear fógraí tábhachtacha.",
     "placeholders": {
@@ -1056,7 +1113,9 @@
   "proxies": {
     "delete_dialog": {
       "description": "Ní féidir an gníomh seo a chur ar ais. Scriosfar an próiseas {{host}}:{{port}} go deo.",
-      "title": "An bhfuil tú cinnte go hiomlán?"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "An bhfuil tú cinnte go hiomlán?"
     },
     "edit": {
       "page_name": "Cuir in eagar an spreag"
@@ -1064,7 +1123,9 @@
     "empty_list": {
       "action_text": "Cruthaigh do chéad próiseas",
       "text": "Tosaigh ag cruthú do chéad príopí a úsáidtear i do mhonadóirí.",
-      "title": "Níor aimsíodh próifíola"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Níor aimsíodh próifíola"
     },
     "form": {
       "auth_label": "Tá fíordheimhniú ag an bhfreastalaí proxi.",
@@ -1130,15 +1191,21 @@
         "failed_to_update_password": "Níorbh fhéidir an focal faire a nuashonrú",
         "password_updated_successfully": "Pasfhocal nuashonraithe go rathúil"
       },
-      "title": "Cuir Pasfhocal in eagar"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Cuir Pasfhocal in eagar"
     },
     "api_keys": {
-      "title": "API Keys",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "API Keys",
       "description": "Manage your API keys for third-party integrations",
       "create_button": "Create API Key",
       "no_keys_title": "No API Keys",
       "no_keys_description": "Create your first API key to start integrating with external services.",
       "create_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Create New API Key",
         "description": "Create a new API key for third-party integrations. The key will be shown only once.",
         "form": {
@@ -1155,6 +1222,8 @@
         }
       },
       "success_alert": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "API Key Created Successfully",
         "description": "Your API key has been created. Copy it now as it won't be shown again:"
       },
@@ -1176,6 +1245,8 @@
         "never": "Never"
       },
       "delete_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Scrios eochair API",
         "description": "An bhfuil tú cinnte gur mian leat eochair API \"{{name}}\" a scriosadh? Ní féidir an gníomh seo a chur ar ceal.",
         "buttons": {
@@ -1215,7 +1286,9 @@
     "data_retention": {
       "days_label": "Laethanta",
       "description": "Socraigh líon na lá a choinneálfar sonraí (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Am Cothromaíochta na Sonraí"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Am Cothromaíochta na Sonraí"
     },
     "timezone": {
       "description": "Roghnaigh do réimse ama is fearr leat chun gach ama a thaispeáint sa bhFeidhmchlár.",
@@ -1223,7 +1296,9 @@
       "no_timezone_found": "Níor aimsíodh aon réimse ama.",
       "search_placeholder": "Cuardaigh ama shóisear...",
       "select_placeholder": "Roghnaigh crios ama...",
-      "title": "Crios ama"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Crios ama"
     },
     "validation": {
       "min_days": "Caithfidh sé a bheith ar a laghad 1 lá."
@@ -1255,7 +1330,9 @@
     "customization": "Saincheapadh",
     "delete_dialog": {
       "description": "An bhfuil tú cinnte gur mhaith leat scriosadh \"{{title}}\"? Ní féidir an ghníomh seo a chur ar ais.",
-      "title": "Scrios Leathanach Stádas"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Scrios Leathanach Stádas"
     },
     "description": "Iontráil tuairisc leathanach staitéis",
     "domain_already_used": "Tá an t-ainm domain {{domain}} in úsáid cheana féin ag cianbhalla eile",
@@ -1292,7 +1369,9 @@
     "empty_state": {
       "action": "Cruthaigh do chéad tag",
       "description": "Tosaigh le do chéad clib a chruthú chun do mhonatóirí a eagrú.",
-      "title": "Ní bhfuarthas clibíní"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ní bhfuarthas clibíní"
     },
     "form": {
       "color_description": "Roghnaigh dath do thag",

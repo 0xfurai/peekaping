@@ -9,20 +9,26 @@
       "no_account": "Ei sinulla ole tiliä?",
       "sign_up": "Rekisteröidy",
       "submit": "Kirjaudu sisään",
-      "title": "Tervetuloa takaisin"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Tervetuloa takaisin"
     },
     "register": {
       "description": "Luo ylläpitokäyttäjätilisi",
       "have_account": "Onko sinulla jo tili?",
       "sign_in": "Kirjaudu sisään",
       "submit": "Luo",
-      "title": "Hei"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Hei"
     },
     "twofa": {
       "code_label": "2FA-koodi",
       "code_placeholder": "Syötä 2FA-koodi",
       "description": "2FA on käytössä tililläsi. Syötä vahvistuskoodisi jatkaaksesi.",
-      "title": "Kaksivaiheinen tunnistautuminen vaaditaan",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Kaksivaiheinen tunnistautuminen vaaditaan",
       "verify_button": "Vahvista 2FA",
       "verifying": "Tarkistetaan..."
     }
@@ -96,7 +102,9 @@
       "password": "Salasana",
       "retries": "Uudelleenyritykset",
       "slug": "slug",
-      "title": "Otsikko",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Otsikko",
       "username": "Käyttäjänimi"
     },
     "placeholders": {
@@ -169,17 +177,23 @@
         "confirm_action": {
           "pause_description": "Haluatko varmasti keskeyttää tämän huollon?",
           "resume_description": "Oletko varma, että haluat jatkaa tätä huoltoa?",
-          "title": "Vahvista toiminta"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Vahvista toiminta"
         },
         "confirm_delete": {
           "description": "Oletko varma, että haluat poistaa tämän huoltovälin? Tätä toimintoa ei voida peruuttaa.",
-          "title": "Vahvista poisto"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Vahvista poisto"
         }
       },
       "edit_maintenance": "Muokkaa huoltoa: {{title}}",
       "empty_state": {
         "action": "Luo ensimmäinen huoltoikkuna",
         "description": "Aloita luomalla ensimmäinen huoltoväli, jotta vältetään aikataulutetut huoltokatkokset.",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Ylläpitovälejä ei löytynyt"
       },
       "error_loading": "Virhe huollon latauksessa",
@@ -248,7 +262,9 @@
     "empty_state": {
       "action": "Luo ensimmäinen valvonta",
       "description": "Aloita luomalla ensimmäinen seuranta, jolla seuraat palveluidesi kuntoa.",
-      "title": "Valvonta ei löytynyt"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Valvonta ei löytynyt"
     },
     "filtering_by_tags": "Suodatus tageilla",
     "filters": {
@@ -271,6 +287,8 @@
         "record_type": "Tietueen tyyppi",
         "record_type_placeholder": "Valitse rekisterityyppi",
         "resolver_server": "Resoluutio-palvelin",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "DNS-asetukset"
       },
       "docker": {
@@ -329,7 +347,9 @@
           "ignore_tls_description": "Ohita TLS-varmennuksen vahvistus. Käytä varoen – tämä tekee yhteyksistä vähemmän suojattuja.",
           "max_redirects": "Maksimimäärä uudelleenohjauksia",
           "max_redirects_description": "Maksimimäärä seurattavia uudelleenohjauksia (0–30). Aseta 0 poistaaksesi uudelleenohjaukset.",
-          "title": "Lisäasetukset"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Lisäasetukset"
         },
         "authentication": {
           "auth_header": "Valtuutusotsikko",
@@ -350,7 +370,9 @@
           "oauth_scope_placeholder": "Valinnainen: välilyönnein erotettu lista käyttöoikeuksista",
           "oauth_token_url": "OAuth-tunnuksen URL",
           "oauth_token_url_placeholder": "OAuth-tunnisteen URL",
-          "title": "Tunnistautuminen",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Tunnistautuminen",
           "workstation": "Työpiste",
           "workstation_placeholder": "työasema"
         },
@@ -366,7 +388,9 @@
           "select_encoding": "Valitse kehon koodaus",
           "select_method": "Valitse metodi",
           "text_example": "Esimerkkiteksti:\nMikä tahansa tavallinen teksti täällä...",
-          "title": "HTTP-asetukset",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "HTTP-asetukset",
           "xml_example": "XML-esimerkki"
         }
       },
@@ -374,6 +398,8 @@
         "condition_label": "Ehto",
         "expected_value_label": "Odotettu arvo",
         "json_query_label": "JSON-kyselyilmaisu",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "JSON-kyselylauseke"
       },
       "http_keyword": {
@@ -446,8 +472,13 @@
         "query_label": "Kysely"
       },
       "ping": {
+        "count": "Max Packets",
+        "count_description": "Number of packets to send before stopping",
+        
         "data_size": "Datan koko (tavua)",
         "host": "Isäntänimi / IP",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Ping-asetukset"
       },
       "postgres": {
@@ -468,6 +499,8 @@
         "password_description": "RabbitMQ-hallintaliittymän kirjautumissalasana",
         "setup_information_description": "RabbitMQ:n valvontaominaisuuden käyttämiseksi sinun täytyy ottaa RabbitMQ:n hallintaplugini käyttöön. Lisätietoja saa RabbitMQ:n dokumentaatiosta.",
         "setup_information_title": "Asetustiedot",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "RabbitMQ-asetukset",
         "username_description": "RabbitMQ-hallintapaneelin kirjautumisen käyttäjätunnus"
       },
@@ -482,6 +515,8 @@
         "connection_string_label": "Yhteysmerkkijono",
         "ignore_tls_description": "Ohita TLS-varmenneen tarkistus (ei suositella tuotannossa)",
         "ignore_tls_label": "Ohita TLS/SSL-virheet",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Redis-asetukset"
       },
       "shared": {
@@ -499,7 +534,9 @@
           "select_channel": "Valitse kanava",
           "select_notifier_placeholder": "Valitse ilmoitin",
           "selected_channels": "Valitut ilmoituskanavat",
-          "title": "Ilmoituskanavat"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ilmoituskanavat"
         },
         "proxy": {
           "add_proxy": "Lisää välityspalvelin",
@@ -508,7 +545,9 @@
           "remove_proxy": "Poista välityspalvelin",
           "select_proxy_placeholder": "Valitse välityspalvelin",
           "selected_proxy": "Valittu välityspalvelin",
-          "title": "Välityspalvelin"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Välityspalvelin"
         },
         "tags": {
           "label": "Tunnisteet",
@@ -539,6 +578,8 @@
         "port_label": "Portti",
         "snmp_version_description": "Käytettävä SNMP-protokollan versio",
         "snmp_version_label": "SNMP Versio",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "SNMP-asetukset",
         "value_validation_label": "Arvon validointi (valinnainen)"
       },
@@ -548,11 +589,15 @@
         "connection_string_label": "Yhteysmerkkijono",
         "query_description": "Terveystarkistuksessa suoritettava kysely. Jätä tyhjäksi käyttää oletusarvoa.",
         "query_label": "Kysely",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Microsoft SQL Server-yhteys"
       },
       "tcp": {
         "host": "Isäntä",
         "port": "Portti",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "TCP-yhteys"
       },
       "type": {
@@ -579,7 +624,9 @@
       "edit_title": "Muokkaa valvontaa:",
       "new_title": "Uusi valvonta"
     },
-    "title": "Seuraukset",
+    "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Seuraukset",
     "toasts": {
       "deleted": "Seuranta poistettu",
       "paused": "Seuranta keskeytetty",
@@ -601,15 +648,21 @@
       "dialogs": {
         "delete": {
           "description": "Tätä toimintoa ei voi peruuttaa. Tämä poistaa pysyvästi seurannan ja kaikki siihen liittyvät tiedot.",
-          "title": "Oletko täysin varma?"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Oletko täysin varma?"
         },
         "pause": {
           "description": "Oletko varma, että haluat pysäyttää?",
-          "title": "Vahvistus"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Vahvistus"
         },
         "reset": {
           "description": "Tämä poistaa pysyvästi tämän monitorin heartbeat-historian ja uptime-tilastot. Tarkkailija näyttää siltä, kuin se olisi juuri luotu. Tätä toimintoa ei voi peruuttaa.",
-          "title": "Nollaa monitorin tiedot"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Nollaa monitorin tiedot"
         }
       },
       "expiring_soon": "Viemässä pian",
@@ -656,7 +709,9 @@
     "empty_state": {
       "action": "Luo ensimmäinen ilmoituskanava",
       "description": "Aloita luomalla ensimmäinen ilmoituskanavasi, jolla lähetät ilmoituksia tiimillesi.",
-      "title": "Ilmoituskanavia ei löytynyt"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ilmoituskanavia ei löytynyt"
     },
     "form": {
       "discord": {
@@ -1046,7 +1101,9 @@
       "updated_success": "Ilmoittaja päivitetty onnistuneesti"
     },
     "new": {
-      "title": "Uusi ilmoituskanava"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Uusi ilmoituskanava"
     },
     "no_important": "Ei tärkeitä ilmoituksia löytynyt.",
     "placeholders": {
@@ -1057,7 +1114,9 @@
   "proxies": {
     "delete_dialog": {
       "description": "Tämä toiminto ei voida peruuttaa. Se poistaa pysyvästi välityspalvelimen {{host}}:{{port}}.",
-      "title": "Oletko todella varma?"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Oletko todella varma?"
     },
     "edit": {
       "page_name": "Muokkaa välitystä"
@@ -1065,7 +1124,9 @@
     "empty_list": {
       "action_text": "Luo ensimmäinen välityspalvelimesi",
       "text": "Aloita luomalla ensimmäinen välityspalvelimesi, jota voit käyttää seurantatyökalujesi kanssa.",
-      "title": "Proksuja ei löytynyt"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Proksuja ei löytynyt"
     },
     "form": {
       "auth_label": "Proxy-palvelin vaatii todennuksen",
@@ -1131,15 +1192,21 @@
         "failed_to_update_password": "Salasanan päivittäminen epäonnistui",
         "password_updated_successfully": "Salasana päivitetty onnistuneesti"
       },
-      "title": "Päivitä salasana"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Päivitä salasana"
     },
     "api_keys": {
-      "title": "API Keys",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "API Keys",
       "description": "Manage your API keys for third-party integrations",
       "create_button": "Create API Key",
       "no_keys_title": "No API Keys",
       "no_keys_description": "Create your first API key to start integrating with external services.",
       "create_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Create New API Key",
         "description": "Create a new API key for third-party integrations. The key will be shown only once.",
         "form": {
@@ -1156,6 +1223,8 @@
         }
       },
       "success_alert": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "API Key Created Successfully",
         "description": "Your API key has been created. Copy it now as it won't be shown again:"
       },
@@ -1177,6 +1246,8 @@
         "never": "Never"
       },
       "delete_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Poista API-avain",
         "description": "Oletko varma, että haluat poistaa API-avaimen \"{{name}}\"? Tätä toimintoa ei voi peruuttaa.",
         "buttons": {
@@ -1216,7 +1287,9 @@
     "data_retention": {
       "days_label": "Päiviä",
       "description": "Aseta kuinka monta päivää tietoa säilytetään (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Tietojen säilytysaika"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Tietojen säilytysaika"
     },
     "timezone": {
       "description": "Valitse haluamasi aikavyöhyke, jolla kaikki ajat näytetään sovelluksessa.",
@@ -1224,7 +1297,9 @@
       "no_timezone_found": "Aikavyöhykettä ei löydy.",
       "search_placeholder": "Hae aikavyöhykettä...",
       "select_placeholder": "Valitse aikavyöhyke...",
-      "title": "Aikavyöhyke"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Aikavyöhyke"
     },
     "validation": {
       "min_days": "Täytyy olla vähintään 1 päivä"
@@ -1256,7 +1331,9 @@
     "customization": "Mukautus",
     "delete_dialog": {
       "description": "Oletko varma, että haluat poistaa \"{{title}}\"? Tätä toimintoa ei voida kumota.",
-      "title": "Poista status-sivu"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Poista status-sivu"
     },
     "description": "Syötä tilasivun kuvaus",
     "domain_already_used": "Domain {{domain}} on jo varattu toisen status-sivun toimesta",
@@ -1293,7 +1370,9 @@
     "empty_state": {
       "action": "Luo ensimmäinen tagi",
       "description": "Aloita luomalla ensimmäinen tunniste, jolla järjestät valvontasi.",
-      "title": "Tunnisteita ei löytynyt"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Tunnisteita ei löytynyt"
     },
     "form": {
       "color_description": "Valitse väri tunnuksellesi",

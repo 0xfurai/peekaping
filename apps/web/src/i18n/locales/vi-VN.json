@@ -9,20 +9,26 @@
       "no_account": "Bạn chưa có tài khoản?",
       "sign_up": "Đăng ký",
       "submit": "Đăng nhập",
-      "title": "Chào mừng trở lại"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Chào mừng trở lại"
     },
     "register": {
       "description": "Tạo tài khoản quản trị của bạn",
       "have_account": "Bạn đã có tài khoản?",
       "sign_in": "Đăng nhập",
       "submit": "Tạo",
-      "title": "Xin chào"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Xin chào"
     },
     "twofa": {
       "code_label": "Mã 2FA",
       "code_placeholder": "Nhập mã 2FA",
       "description": "Xác thực hai yếu tố đã được kích hoạt cho tài khoản của bạn. Vui lòng nhập mã xác thực của bạn để tiếp tục.",
-      "title": "Xác thực hai yếu tố cần thiết",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Xác thực hai yếu tố cần thiết",
       "verify_button": "Xác thực 2FA",
       "verifying": "Đang xác thực..."
     }
@@ -96,7 +102,9 @@
       "password": "Mật khẩu",
       "retries": "Lần thử lại",
       "slug": "Slug",
-      "title": "Tiêu đề",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Tiêu đề",
       "username": "Tên đăng nhập"
     },
     "placeholders": {
@@ -169,17 +177,23 @@
         "confirm_action": {
           "pause_description": "Bạn có chắc chắn muốn tạm dừng bảo trì này?",
           "resume_description": "Bạn có chắc muốn tiếp tục bảo trì này?",
-          "title": "Xác nhận hành động"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Xác nhận hành động"
         },
         "confirm_delete": {
           "description": "Bạn có chắc muốn xóa cửa sổ bảo trì này không? Hành động này không thể hoàn tác.",
-          "title": "Xác nhận xóa"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Xác nhận xóa"
         }
       },
       "edit_maintenance": "Chỉnh sửa bảo trì: {{title}}",
       "empty_state": {
         "action": "Tạo cửa sổ bảo trì đầu tiên",
         "description": "Bắt đầu bằng cách tạo cửa sổ bảo trì đầu tiên của bạn để tránh thời gian ngừng hoạt động theo lịch.",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Không tìm thấy cửa sổ bảo trì"
       },
       "error_loading": "Lỗi tải trang bảo trì",
@@ -248,7 +262,9 @@
     "empty_state": {
       "action": "Tạo bộ giám sát đầu tiên",
       "description": "Bắt đầu bằng cách tạo bộ giám sát đầu tiên để theo dõi tình trạng sức khỏe của các dịch vụ của bạn.",
-      "title": "Không có bộ giám sát"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Không có bộ giám sát"
     },
     "filtering_by_tags": "Lọc theo thẻ",
     "filters": {
@@ -271,6 +287,8 @@
         "record_type": "Loại bản ghi tài nguyên",
         "record_type_placeholder": "Chọn loại bản ghi",
         "resolver_server": "Máy chủ phân giải",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Cài đặt DNS"
       },
       "docker": {
@@ -329,7 +347,9 @@
           "ignore_tls_description": "Bỏ qua xác thực chứng chỉ TLS. Sử dụng cẩn thận – điều này làm cho kết nối kém an toàn hơn.",
           "max_redirects": "Số lần chuyển hướng tối đa",
           "max_redirects_description": "Số lần chuyển hướng tối đa để theo dõi (0-30). Đặt thành 0 để vô hiệu hoá chuyển hướng.",
-          "title": "Nâng cao"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Nâng cao"
         },
         "authentication": {
           "auth_header": "Tiêu đề Xác thực",
@@ -350,7 +370,9 @@
           "oauth_scope_placeholder": "Tuỳ chọn: danh sách các phạm vi cách nhau bởi dấu cách",
           "oauth_token_url": "URL Mã thông báo OAuth",
           "oauth_token_url_placeholder": "URL Token OAuth",
-          "title": "Xác thực",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Xác thực",
           "workstation": "Máy làm việc",
           "workstation_placeholder": "Máy làm việc"
         },
@@ -366,7 +388,9 @@
           "select_encoding": "Chọn mã hóa nội dung",
           "select_method": "Chọn phương thức",
           "text_example": "Ví dụ Văn bản:\nNội dung văn bản thuần túy ở đây...",
-          "title": "Tùy chọn HTTP",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Tùy chọn HTTP",
           "xml_example": "Ví dụ XML"
         }
       },
@@ -374,6 +398,8 @@
         "condition_label": "Điều kiện",
         "expected_value_label": "Giá trị mong đợi",
         "json_query_label": "Biểu thức truy vấn JSON",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Biểu thức truy vấn JSON"
       },
       "http_keyword": {
@@ -446,8 +472,13 @@
         "query_label": "Truy vấn"
       },
       "ping": {
+        "count": "Max Packets",
+        "count_description": "Number of packets to send before stopping",
+        
         "data_size": "Kích thước dữ liệu (byte)",
         "host": "Tên máy chủ / IP",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Cài đặt Ping"
       },
       "postgres": {
@@ -468,6 +499,8 @@
         "password_description": "Mật khẩu để xác thực giao diện quản trị RabbitMQ",
         "setup_information_description": "Để sử dụng trình theo dõi RabbitMQ, bạn cần kích hoạt Plugin Quản lý trong cài đặt RabbitMQ của mình. Để biết thêm thông tin, vui lòng tham khảo tài liệu RabbitMQ.",
         "setup_information_title": "Thông tin cài đặt",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Cấu hình RabbitMQ",
         "username_description": "Tên người dùng để xác thực giao diện quản trị RabbitMQ"
       },
@@ -482,6 +515,8 @@
         "connection_string_label": "Chuỗi Kết Nối",
         "ignore_tls_description": "Bỏ qua xác thực chứng chỉ TLS (không khuyến nghị cho môi trường sản xuất)",
         "ignore_tls_label": "Bỏ qua lỗi TLS/SSL",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Cấu hình Redis"
       },
       "shared": {
@@ -499,7 +534,9 @@
           "select_channel": "Chọn kênh",
           "select_notifier_placeholder": "Chọn kênh thông báo",
           "selected_channels": "Kênh thông báo đã chọn",
-          "title": "Kênh thông báo"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Kênh thông báo"
         },
         "proxy": {
           "add_proxy": "Thêm Proxy",
@@ -508,7 +545,9 @@
           "remove_proxy": "Xóa Proxy",
           "select_proxy_placeholder": "Chọn Proxy",
           "selected_proxy": "Proxy đã chọn",
-          "title": "Ủy quyền"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ủy quyền"
         },
         "tags": {
           "label": "Thẻ",
@@ -539,6 +578,8 @@
         "port_label": "Cổng",
         "snmp_version_description": "Phiên bản giao thức SNMP cần dùng",
         "snmp_version_label": "Phiên bản SNMP",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Cài đặt SNMP",
         "value_validation_label": "Xác nhận giá trị (Tùy chọn)"
       },
@@ -548,11 +589,15 @@
         "connection_string_label": "Chuỗi kết nối",
         "query_description": "Truy vấn để thực thi trong kiểm tra sức khỏe. Để trống để sử dụng mặc định.",
         "query_label": "Truy vấn",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Kết nối Microsoft SQL Server"
       },
       "tcp": {
         "host": "Máy chủ",
         "port": "Cổng",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Kết nối TCP"
       },
       "type": {
@@ -579,7 +624,9 @@
       "edit_title": "Chỉnh sửa Monitor:",
       "new_title": "Giám sát mới"
     },
-    "title": "Giám sát",
+    "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Giám sát",
     "toasts": {
       "deleted": "Giám sát đã bị xóa",
       "paused": "Giám sát tạm dừng",
@@ -601,15 +648,21 @@
       "dialogs": {
         "delete": {
           "description": "Hành động này không thể hoàn tác. Điều này sẽ xóa vĩnh viễn trình giám sát và tất cả dữ liệu liên quan.",
-          "title": "Bạn có thực sự chắc chắn không?"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Bạn có thực sự chắc chắn không?"
         },
         "pause": {
           "description": "Bạn có chắc muốn tạm dừng?",
-          "title": "Xác nhận"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Xác nhận"
         },
         "reset": {
           "description": "Thao tác này sẽ xoá vĩnh viễn toàn bộ lịch sử nhịp tim và thống kê thời gian hoạt động của điểm giám sát này. Điểm giám sát sẽ xuất hiện như mới được tạo. Hành động này không thể hoàn tác.",
-          "title": "Đặt lại dữ liệu giám sát"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Đặt lại dữ liệu giám sát"
         }
       },
       "expiring_soon": "Sắp hết hạn",
@@ -656,7 +709,9 @@
     "empty_state": {
       "action": "Tạo kênh thông báo đầu tiên của bạn",
       "description": "Bắt đầu bằng cách tạo kênh thông báo đầu tiên để gửi cảnh báo tới nhóm của bạn.",
-      "title": "Không tìm thấy kênh thông báo"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Không tìm thấy kênh thông báo"
     },
     "form": {
       "discord": {
@@ -1046,7 +1101,9 @@
       "updated_success": "Cập nhật thông báo thành công"
     },
     "new": {
-      "title": "Kênh thông báo mới"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Kênh thông báo mới"
     },
     "no_important": "Không tìm thấy thông báo quan trọng.",
     "placeholders": {
@@ -1057,7 +1114,9 @@
   "proxies": {
     "delete_dialog": {
       "description": "Hành động này không thể hoàn tác. Điều này sẽ xóa vĩnh viễn proxy {{host}}:{{port}}.",
-      "title": "Bạn có chắc chắn không?"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Bạn có chắc chắn không?"
     },
     "edit": {
       "page_name": "Chỉnh sửa Proxy"
@@ -1065,7 +1124,9 @@
     "empty_list": {
       "action_text": "Tạo proxy đầu tiên của bạn",
       "text": "Bắt đầu bằng cách tạo proxy đầu tiên để sử dụng trong bộ giám sát của bạn.",
-      "title": "Không tìm thấy proxy"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Không tìm thấy proxy"
     },
     "form": {
       "auth_label": "Máy chủ proxy có xác thực",
@@ -1131,15 +1192,21 @@
         "failed_to_update_password": "Không thể cập nhật mật khẩu",
         "password_updated_successfully": "Mật khẩu đã được cập nhật thành công"
       },
-      "title": "Cập nhật mật khẩu"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Cập nhật mật khẩu"
     },
     "api_keys": {
-      "title": "Khóa API",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Khóa API",
       "description": "Quản lý khóa API của bạn để tích hợp với bên thứ ba",
       "create_button": "Tạo Khóa API",
       "no_keys_title": "Không Có Khóa API",
       "no_keys_description": "Tạo khóa API đầu tiên của bạn để bắt đầu tích hợp với các dịch vụ bên ngoài.",
       "create_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Tạo Khóa API Mới",
         "description": "Tạo khóa API mới để tích hợp với bên thứ ba. Khóa sẽ chỉ hiển thị một lần.",
         "form": {
@@ -1156,6 +1223,8 @@
         }
       },
       "success_alert": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Khóa API Được Tạo Thành Công",
         "description": "Khóa API của bạn đã được tạo. Hãy sao chép ngay bây giờ vì nó sẽ không hiển thị lại:"
       },
@@ -1177,6 +1246,8 @@
         "never": "Không bao giờ"
       },
       "delete_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Xóa khóa API",
         "description": "Bạn có chắc chắn muốn xóa khóa API \"{{name}}\" không? Hành động này không thể hoàn tác.",
         "buttons": {
@@ -1216,7 +1287,9 @@
     "data_retention": {
       "days_label": "Ngày",
       "description": "Đặt số ngày lưu dữ liệu (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Thời gian lưu trữ dữ liệu"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Thời gian lưu trữ dữ liệu"
     },
     "timezone": {
       "description": "Chọn múi giờ ưu tiên của bạn để hiển thị tất cả thời gian trong ứng dụng.",
@@ -1224,7 +1297,9 @@
       "no_timezone_found": "Không tìm thấy múi giờ.",
       "search_placeholder": "Tìm kiếm múi giờ...",
       "select_placeholder": "Chọn múi giờ...",
-      "title": "Múi giờ"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Múi giờ"
     },
     "validation": {
       "min_days": "Phải ít nhất 1 ngày"
@@ -1256,7 +1331,9 @@
     "customization": "Tùy chỉnh",
     "delete_dialog": {
       "description": "Bạn có chắc chắn muốn xóa \"{{title}}\"? Hành động này không thể hoàn tác.",
-      "title": "Xóa trang trạng thái"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Xóa trang trạng thái"
     },
     "description": "Nhập mô tả trang trạng thái",
     "domain_already_used": "Tên miền {{domain}} đã được sử dụng bởi một trang trạng thái khác",
@@ -1293,7 +1370,9 @@
     "empty_state": {
       "action": "Tạo thẻ đầu tiên",
       "description": "Bắt đầu bằng cách tạo thẻ đầu tiên để tổ chức các điểm giám sát của bạn.",
-      "title": "Không tìm thấy thẻ"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Không tìm thấy thẻ"
     },
     "form": {
       "color_description": "Chọn màu cho thẻ của bạn",

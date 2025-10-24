@@ -9,20 +9,26 @@
       "no_account": "Nimate računa?",
       "sign_up": "Registriraj se",
       "submit": "Prijava",
-      "title": "Dobrodošel nazaj"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Dobrodošel nazaj"
     },
     "register": {
       "description": "Ustvari svoj račun skrbnika",
       "have_account": "Ali že imate račun?",
       "sign_in": "Prijavi se",
       "submit": "Ustvari",
-      "title": "Pozdravljeni"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Pozdravljeni"
     },
     "twofa": {
       "code_label": "2FA Koda",
       "code_placeholder": "Vnesite kodo 2FA",
       "description": "2FA je omogočena za vaš račun. Vnesite svojo overitveno kodo, da nadaljujete.",
-      "title": "Dvostopenjska avtentikacija je zahtevana",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Dvostopenjska avtentikacija je zahtevana",
       "verify_button": "Preveri 2FA",
       "verifying": "Preverjanje..."
     }
@@ -96,7 +102,9 @@
       "password": "Geslo",
       "retries": "Ponovitve",
       "slug": "Slug",
-      "title": "Naslov",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Naslov",
       "username": "Uporabniško ime"
     },
     "placeholders": {
@@ -169,17 +177,23 @@
         "confirm_action": {
           "pause_description": "Ali ste prepričani, da želite ustaviti to vzdrževanje?",
           "resume_description": "Ali ste prepričani, da želite nadaljevati to vzdrževanje?",
-          "title": "Potrditev dejanja"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Potrditev dejanja"
         },
         "confirm_delete": {
           "description": "Ste prepričani, da želite izbrisati to vzdrževalno okno? Ta dejanje ne more biti razveljavljeno.",
-          "title": "Potrdi izbris"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Potrdi izbris"
         }
       },
       "edit_maintenance": "Uredi vzdrževanje: {{title}}",
       "empty_state": {
         "action": "Ustvari svoje prvo okno vzdrževanja",
         "description": "Začnite z ustvarjanjem prvega okna vzdrževanja, da preprečite načrtovane izpade.",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Ni najdenih časov vzdrževanja"
       },
       "error_loading": "Napaka pri nalaganju vzdrževanja",
@@ -248,7 +262,9 @@
     "empty_state": {
       "action": "Ustvari svoj prvi monitor",
       "description": "Začnite z ustvarjanjem prvega nadzornika, ki bo spremljal zdravje vaših storitev.",
-      "title": "Ni monitorjev"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ni monitorjev"
     },
     "filtering_by_tags": "Filtriranje po oznakah",
     "filters": {
@@ -271,6 +287,8 @@
         "record_type": "Tip zapisa vira",
         "record_type_placeholder": "Izberi tip zapisa",
         "resolver_server": "Strežnik razreševalnika",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Nastavitve DNS"
       },
       "docker": {
@@ -329,7 +347,9 @@
           "ignore_tls_description": "Preskoči preverjanje TLS potrdila. Uporabljajte previdno - to zmanjša varnost povezav.",
           "max_redirects": "Največ preusmeritev",
           "max_redirects_description": "Največje število preusmeritev za sledenje (0-30). Nastavite na 0, da onemogočite preusmeritve.",
-          "title": "Napredno"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Napredno"
         },
         "authentication": {
           "auth_header": "Glava avtentikacije",
@@ -350,7 +370,9 @@
           "oauth_scope_placeholder": "Neobvezno: seznam obsegov ločenih z presledki",
           "oauth_token_url": "URL za OAuth žeton",
           "oauth_token_url_placeholder": "OAuth URL žetona",
-          "title": "Avtentikacija",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Avtentikacija",
           "workstation": "radna postaja",
           "workstation_placeholder": "delovna postaja"
         },
@@ -366,7 +388,9 @@
           "select_encoding": "Izberi kodiranje telesa",
           "select_method": "Izberi metodo",
           "text_example": "Primer besedila:\nKaterikoli navaden besedilni podatek tukaj...",
-          "title": "Možnosti HTTP",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Možnosti HTTP",
           "xml_example": "Primer XML"
         }
       },
@@ -374,6 +398,8 @@
         "condition_label": "Pogoji",
         "expected_value_label": "Pričakovana vrednost",
         "json_query_label": "JSON poizvedbeni izraz",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "JSON poizvedbeni izraz"
       },
       "http_keyword": {
@@ -446,8 +472,13 @@
         "query_label": "Poizvedba"
       },
       "ping": {
+        "count": "Max Packets",
+        "count_description": "Number of packets to send before stopping",
+        
         "data_size": "Velikost podatkov (bajti)",
         "host": "Gostiteljsko ime / IP",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Nastavitve pinga"
       },
       "postgres": {
@@ -468,6 +499,8 @@
         "password_description": "Geslo za overjanje v vmesniku za upravljanje RabbitMQ",
         "setup_information_description": "Za uporabo monitorja RabbitMQ morate omogočiti vtičnik za upravljanje v vaši nastavitvi RabbitMQ. Za več informacij si oglejte dokumentacijo RabbitMQ.",
         "setup_information_title": "Nastavitvene informacije",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Nastavitve RabbitMQ",
         "username_description": "Uporabniško ime za overjanje v vmesniku upravljanja RabbitMQ"
       },
@@ -482,6 +515,8 @@
         "connection_string_label": "Povezovalni niz",
         "ignore_tls_description": "Preskoči preverjanje TLS potrdila (ne priporočeno za proizvodnjo)",
         "ignore_tls_label": "Prezri napake TLS/SSL",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Redis konfiguracija"
       },
       "shared": {
@@ -499,7 +534,9 @@
           "select_channel": "Izberi kanal",
           "select_notifier_placeholder": "Izberi pošiljatelja obvestil",
           "selected_channels": "Izbrani kanali obvestil",
-          "title": "Sporočilni kanali"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Sporočilni kanali"
         },
         "proxy": {
           "add_proxy": "Dodaj posrednik",
@@ -508,7 +545,9 @@
           "remove_proxy": "Odstrani proxy",
           "select_proxy_placeholder": "Izberi posredniški strežnik",
           "selected_proxy": "Izbrani posrednik",
-          "title": "Posrednik"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Posrednik"
         },
         "tags": {
           "label": "Oznake",
@@ -539,6 +578,8 @@
         "port_label": "Vrata",
         "snmp_version_description": "Verzija protokola SNMP, ki se uporablja",
         "snmp_version_label": "Različica SNMP",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Nastavitve SNMP",
         "value_validation_label": "Validacija vrednosti (neobvezno)"
       },
@@ -548,11 +589,15 @@
         "connection_string_label": "povezovalni niz",
         "query_description": "Poizvedba za preverjanje zdravja. Pustite prazno, če želite uporabiti privzeto.",
         "query_label": "Poizvedba",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Povezava z Microsoft SQL strežnikom"
       },
       "tcp": {
         "host": "Gostitelj",
         "port": "Vrata",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "TCP povezava"
       },
       "type": {
@@ -579,7 +624,9 @@
       "edit_title": "Uredi monitor:",
       "new_title": "Nov monitor"
     },
-    "title": "Monitorji",
+    "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Monitorji",
     "toasts": {
       "deleted": "Spremljanje izbrisano",
       "paused": "Nadzor je ustavljen",
@@ -601,15 +648,21 @@
       "dialogs": {
         "delete": {
           "description": "Ta dejanje ni mogoče razveljaviti. To bo trajno izbrisalo monitor in vse povezane podatke.",
-          "title": "Ste povsem prepričani?"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ste povsem prepričani?"
         },
         "pause": {
           "description": "Ali ste prepričani, da želite ustaviti?",
-          "title": "Potrditev"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Potrditev"
         },
         "reset": {
           "description": "To bo trajno izbrisalo vso zgodovino heartbeat in statistike dobe delovanja za ta monitor. Monitor bo izgledal, kot bi bil pravkar ustvarjen. To dejanje ne more biti razveljavljeno.",
-          "title": "Ponastavi podatke nadzora"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ponastavi podatke nadzora"
         }
       },
       "expiring_soon": "Skoraj izteče",
@@ -656,7 +709,9 @@
     "empty_state": {
       "action": "Ustvari svoj prvi kanal za obvestila",
       "description": "Začnite tako, da ustvarite prvi kanal obvestil, s katerim pošiljate opozorila svojemu ekipi.",
-      "title": "Ni najdenih kanalov za obvestila"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ni najdenih kanalov za obvestila"
     },
     "form": {
       "discord": {
@@ -1046,7 +1101,9 @@
       "updated_success": "Obveščevalnik je bil uspešno posodobljen."
     },
     "new": {
-      "title": "Nova kanal za obvestila"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Nova kanal za obvestila"
     },
     "no_important": "Ni najdenih pomembnih obvestil.",
     "placeholders": {
@@ -1057,7 +1114,9 @@
   "proxies": {
     "delete_dialog": {
       "description": "To dejanje ne more biti razveljavljeno. Proxy {{host}}:{{port}} bo trajno izbrisan.",
-      "title": "Ste popolnoma prepričani?"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ste popolnoma prepričani?"
     },
     "edit": {
       "page_name": "Uredi proxy"
@@ -1065,7 +1124,9 @@
     "empty_list": {
       "action_text": "Ustvari svoj prvi proxy",
       "text": "Začnite z ustvarjanjem svojega prvega posrednika, ki ga boste uporabili v svojih monitorjih.",
-      "title": "Ni najdenih posrednikov"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ni najdenih posrednikov"
     },
     "form": {
       "auth_label": "Proxy strežnik zahteva overjanje",
@@ -1131,15 +1192,21 @@
         "failed_to_update_password": "Posodobitev gesla ni uspela.",
         "password_updated_successfully": "Geslo je bilo uspešno posodobljeno"
       },
-      "title": "Posodobi geslo"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Posodobi geslo"
     },
     "api_keys": {
-      "title": "API Keys",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "API Keys",
       "description": "Manage your API keys for third-party integrations",
       "create_button": "Create API Key",
       "no_keys_title": "No API Keys",
       "no_keys_description": "Create your first API key to start integrating with external services.",
       "create_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Create New API Key",
         "description": "Create a new API key for third-party integrations. The key will be shown only once.",
         "form": {
@@ -1156,6 +1223,8 @@
         }
       },
       "success_alert": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "API Key Created Successfully",
         "description": "Your API key has been created. Copy it now as it won't be shown again:"
       },
@@ -1177,6 +1246,8 @@
         "never": "Never"
       },
       "delete_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Izbriši API ključ",
         "description": "Ali ste prepričani, da želite izbrisati API ključ \"{{name}}\"? Tega dejanja ni mogoče razveljaviti.",
         "buttons": {
@@ -1216,7 +1287,9 @@
     "data_retention": {
       "days_label": "Dnevi",
       "description": "Nastavite, koliko dni naj se shranjujejo podatki (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Obdobje ohranjanja podatkov"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Obdobje ohranjanja podatkov"
     },
     "timezone": {
       "description": "Izberite želeni časovni pas za prikaz vseh časov v aplikaciji.",
@@ -1224,7 +1297,9 @@
       "no_timezone_found": "Časovna cona ni bila najdena.",
       "search_placeholder": "Išči časovni pas...",
       "select_placeholder": "Izberite časovni pas...",
-      "title": "Časovni pas"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Časovni pas"
     },
     "validation": {
       "min_days": "Mora biti vsaj 1 dan"
@@ -1256,7 +1331,9 @@
     "customization": "Prilagajanje",
     "delete_dialog": {
       "description": "Ali ste prepričani, da želite izbrisati \"{{title}}\"? To dejanje ni mogoče razveljaviti.",
-      "title": "Izbriši statusno stran"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Izbriši statusno stran"
     },
     "description": "Vnesite opis statusne strani",
     "domain_already_used": "Domena {{domain}} je že uporabljena z drugo statusno stranjo.",
@@ -1293,7 +1370,9 @@
     "empty_state": {
       "action": "Ustvari svojo prvo oznako",
       "description": "Začnite z ustvarjanjem svoje prve oznake za organizacijo monitorjev.",
-      "title": "Oznake niso bile najdene"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Oznake niso bile najdene"
     },
     "form": {
       "color_description": "Izberi barvo za svojo oznako",

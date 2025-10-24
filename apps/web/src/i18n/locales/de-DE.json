@@ -446,8 +446,12 @@
         "query_label": "Abfrage"
       },
       "ping": {
+        "count": "Maximale Pakete",
+        "count_description": "Anzahl der zu sendenden Pakete vor dem Stoppen",
         "data_size": "Datenmenge (Bytes)",
         "host": "Hostname / IP-Adresse",
+        "per_request_timeout": "Pro-Ping-Timeout (Sekunden)",
+        "per_request_timeout_description": "Maximale Wartezeit, bevor ein einzelner Ping als verloren betrachtet wird",
         "title": "Ping-Einstellungen"
       },
       "postgres": {

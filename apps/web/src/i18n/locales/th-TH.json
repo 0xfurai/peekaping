@@ -9,20 +9,26 @@
       "no_account": "ยังไม่มีบัญชี?",
       "sign_up": "สมัคร",
       "submit": "เข้าสู่ระบบ",
-      "title": "ยินดีต้อนรับกลับ"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "ยินดีต้อนรับกลับ"
     },
     "register": {
       "description": "สร้างบัญชีผู้ดูแลระบบของคุณ",
       "have_account": "มีบัญชีอยู่แล้ว?",
       "sign_in": "เข้าสู่ระบบ",
       "submit": "สร้าง",
-      "title": "สวัสดี"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "สวัสดี"
     },
     "twofa": {
       "code_label": "รหัส 2FA",
       "code_placeholder": "กรอกรหัส 2FA",
       "description": "2FA ได้เปิดใช้งานสำหรับบัญชีของคุณ กรุณากรอกรหัสยืนยันตัวตนของคุณเพื่อดำเนินการต่อ",
-      "title": "ยืนยันตัวตนแบบสองขั้นตอนจำเป็น",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "ยืนยันตัวตนแบบสองขั้นตอนจำเป็น",
       "verify_button": "ยืนยัน 2FA",
       "verifying": "กำลังตรวจสอบ..."
     }
@@ -96,7 +102,9 @@
       "password": "รหัสผ่าน",
       "retries": "จำนวนครั้งที่ลองใหม่",
       "slug": "Slug",
-      "title": "หัวข้อ",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "หัวข้อ",
       "username": "ชื่อผู้ใช้"
     },
     "placeholders": {
@@ -169,17 +177,23 @@
         "confirm_action": {
           "pause_description": "คุณแน่ใจหรือไม่ว่าต้องการระงับการบำรุงรักษานี้?",
           "resume_description": "คุณแน่ใจว่าต้องการดำเนินการต่อการบำรุงรักษานี้หรือไม่?",
-          "title": "ยืนยันการดำเนินการ"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "ยืนยันการดำเนินการ"
         },
         "confirm_delete": {
           "description": "คุณแน่ใจหรือไม่ว่าต้องการลบหน้าต่างบำรุงรักษานี้? การกระทำนี้ไม่สามารถยกเลิกได้.",
-          "title": "ยืนยันการลบ"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "ยืนยันการลบ"
         }
       },
       "edit_maintenance": "แก้ไขการบำรุงรักษา: {{title}}",
       "empty_state": {
         "action": "สร้างหน้าต่างบำรุงรักษาแรกของคุณ",
         "description": "เริ่มต้นด้วยการสร้างหน้าต่างบำรุงรักษาแรกของคุณ เพื่อป้องกันการหยุดทำงานที่กำหนดล่วงหน้า",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "ไม่พบหน้าต่างบำรุงรักษา"
       },
       "error_loading": "เกิดข้อผิดพลาดในการโหลดหน้าบำรุงรักษา",
@@ -248,7 +262,9 @@
     "empty_state": {
       "action": "สร้างมอนิเตอร์แรกของคุณ",
       "description": "เริ่มต้นด้วยการสร้างตัวตรวจสอบแรกเพื่อดูสุขภาพของบริการของคุณ",
-      "title": "ไม่พบตัวตรวจสอบ"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "ไม่พบตัวตรวจสอบ"
     },
     "filtering_by_tags": "กรองโดยแท็ก",
     "filters": {
@@ -271,6 +287,8 @@
         "record_type": "ประเภทบันทึกทรัพยากร",
         "record_type_placeholder": "เลือกประเภทเรคอร์ด",
         "resolver_server": "เซิร์ฟเวอร์แก้ไข",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "ตั้งค่า DNS"
       },
       "docker": {
@@ -329,7 +347,9 @@
           "ignore_tls_description": "ข้ามการตรวจสอบใบรับรอง TLS. ใช้ด้วยความระมัดระวัง - ทำให้การเชื่อมต่อปลอดภัยน้อยลง",
           "max_redirects": "จำนวนการเปลี่ยนเส้นทางสูงสุด",
           "max_redirects_description": "จำนวนสูงสุดของการเปลี่ยนเส้นทางที่ระบบจะทำตาม (0‑30). กำหนดเป็น 0 เพื่อปิดการเปลี่ยนเส้นทาง.",
-          "title": "ขั้นสูง"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "ขั้นสูง"
         },
         "authentication": {
           "auth_header": "หัวข้อ Authorization",
@@ -350,7 +370,9 @@
           "oauth_scope_placeholder": "เลือกได้: รายการขอบเขตที่คั่นด้วยช่องว่าง",
           "oauth_token_url": "URL ของโทเค็น OAuth",
           "oauth_token_url_placeholder": "URL โทเค็น OAuth",
-          "title": "ยืนยันตัวตน",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "ยืนยันตัวตน",
           "workstation": "เครื่องทำงาน",
           "workstation_placeholder": "เครื่องทำงาน"
         },
@@ -366,7 +388,9 @@
           "select_encoding": "เลือกการเข้ารหัสเนื้อหา",
           "select_method": "เลือกวิธี",
           "text_example": "ตัวอย่างข้อความ:\nใส่ข้อความธรรมดาใด ๆ ที่นี่...",
-          "title": "ตัวเลือก HTTP",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "ตัวเลือก HTTP",
           "xml_example": "ตัวอย่าง XML"
         }
       },
@@ -374,6 +398,8 @@
         "condition_label": "เงื่อนไข",
         "expected_value_label": "ค่าที่คาดหวัง",
         "json_query_label": "นิพจน์ค้นหา JSON",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "นิพจน์ค้นหา JSON"
       },
       "http_keyword": {
@@ -446,8 +472,13 @@
         "query_label": "คำสั่ง"
       },
       "ping": {
+        "count": "Max Packets",
+        "count_description": "Number of packets to send before stopping",
+        
         "data_size": "ขนาดข้อมูล (ไบต์)",
         "host": "ชื่อโฮสต์ / IP",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "ตั้งค่า Ping"
       },
       "postgres": {
@@ -468,6 +499,8 @@
         "password_description": "รหัสผ่านสำหรับการยืนยันตัวตนของอินเทอร์เฟซการจัดการ RabbitMQ",
         "setup_information_description": "เพื่อใช้ตัวตรวจสอบ RabbitMQ คุณจำเป็นต้องเปิดใช้งานปลั๊กอินการจัดการในระบบ RabbitMQ ของคุณ สำหรับข้อมูลเพิ่มเติม โปรดดูเอกสาร RabbitMQ",
         "setup_information_title": "ข้อมูลการตั้งค่า",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "การกำหนดค่า RabbitMQ",
         "username_description": "ชื่อผู้ใช้สำหรับการยืนยันตัวตนบนอินเทอร์เฟซการจัดการ RabbitMQ"
       },
@@ -482,6 +515,8 @@
         "connection_string_label": "สตริงการเชื่อมต่อ",
         "ignore_tls_description": "ข้ามการตรวจสอบใบรับรอง TLS (ไม่แนะนำให้ใช้ในระบบจริง)",
         "ignore_tls_label": "ไม่ตรวจสอบข้อผิดพลาด TLS/SSL",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "กำหนดค่า Redis"
       },
       "shared": {
@@ -499,7 +534,9 @@
           "select_channel": "เลือกช่องทาง",
           "select_notifier_placeholder": "เลือกผู้แจ้ง",
           "selected_channels": "ช่องทางแจ้งเตือนที่เลือก",
-          "title": "ช่องทางการแจ้งเตือน"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "ช่องทางการแจ้งเตือน"
         },
         "proxy": {
           "add_proxy": "เพิ่มพร็อกซี",
@@ -508,7 +545,9 @@
           "remove_proxy": "ลบพร็อกซี",
           "select_proxy_placeholder": "เลือกพร็อกซี",
           "selected_proxy": "พร็อกซีที่เลือก",
-          "title": "พร็อกซี่"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "พร็อกซี่"
         },
         "tags": {
           "label": "แท็ก",
@@ -539,6 +578,8 @@
         "port_label": "พอร์ต",
         "snmp_version_description": "รุ่นโปรโตคอล SNMP ที่ใช้",
         "snmp_version_label": "รุ่น SNMP",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "ตั้งค่า SNMP",
         "value_validation_label": "การตรวจสอบค่า (ไม่บังคับ)"
       },
@@ -548,11 +589,15 @@
         "connection_string_label": "สตริงการเชื่อมต่อ",
         "query_description": "คำสั่งที่ใช้ตรวจสอบสุขภาพ. หากว่าง ให้ใช้ค่าปริยาย",
         "query_label": "คำสั่ง",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "การเชื่อมต่อ Microsoft SQL Server"
       },
       "tcp": {
         "host": "โฮสต์",
         "port": "พอร์ต",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "การเชื่อมต่อ TCP"
       },
       "type": {
@@ -579,7 +624,9 @@
       "edit_title": "แก้ไขตัวตรวจสอบ:",
       "new_title": "ตรวจสอบใหม่"
     },
-    "title": "ตัวตรวจสอบ",
+    "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "ตัวตรวจสอบ",
     "toasts": {
       "deleted": "ลบโมนิเตอร์แล้ว",
       "paused": "การตรวจสอบหยุดชั่วคราว",
@@ -601,15 +648,21 @@
       "dialogs": {
         "delete": {
           "description": "การกระทำนี้ไม่สามารถย้อนคืนได้ การดำเนินการนี้จะลบโมนิตอร์และข้อมูลที่เกี่ยวข้องทั้งหมดอย่างถาวร",
-          "title": "คุณแน่ใจอย่างแน่นอนไหม?"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "คุณแน่ใจอย่างแน่นอนไหม?"
         },
         "pause": {
           "description": "คุณแน่ใจหรือไม่ว่าต้องการหยุด?",
-          "title": "ยืนยัน"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "ยืนยัน"
         },
         "reset": {
           "description": "การดำเนินการนี้จะลบประวัติการตรวจสอบและสถิติอัปไทม์ของมอนิเตอร์นี้อย่างถาวร มอนิเตอร์จะปรากฏเหมือนเพิ่งสร้างใหม่ การกระทำนี้ไม่สามารถยกเลิกได้",
-          "title": "รีเซ็ตข้อมูลการตรวจสอบ"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "รีเซ็ตข้อมูลการตรวจสอบ"
         }
       },
       "expiring_soon": "กำลังจะหมดอายุ",
@@ -656,7 +709,9 @@
     "empty_state": {
       "action": "สร้างช่องแจ้งเตือนแรกของคุณ",
       "description": "เริ่มต้นโดยการสร้างช่องทางการแจ้งเตือนครั้งแรกเพื่อส่งการแจ้งเตือนให้กับทีมของคุณ",
-      "title": "ไม่พบช่องทางการแจ้งเตือน"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "ไม่พบช่องทางการแจ้งเตือน"
     },
     "form": {
       "discord": {
@@ -1046,7 +1101,9 @@
       "updated_success": "อัปเดต Notifier สำเร็จ"
     },
     "new": {
-      "title": "ช่องทางแจ้งเตือนใหม่"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "ช่องทางแจ้งเตือนใหม่"
     },
     "no_important": "ไม่พบการแจ้งเตือนสำคัญ.",
     "placeholders": {
@@ -1057,7 +1114,9 @@
   "proxies": {
     "delete_dialog": {
       "description": "การดำเนินการนี้ไม่สามารถย้อนกลับได้. จะลบพร็อกซี่ {{host}}:{{port}} อย่างถาวร.",
-      "title": "คุณแน่ใจอย่างแน่นอนหรือไม่?"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "คุณแน่ใจอย่างแน่นอนหรือไม่?"
     },
     "edit": {
       "page_name": "แก้ไขพร็อกซี"
@@ -1065,7 +1124,9 @@
     "empty_list": {
       "action_text": "สร้างพร็อกซีแรกของคุณ",
       "text": "เริ่มต้นด้วยการสร้างพร็อกซีตัวแรกของคุณเพื่อใช้ในตัวตรวจสอบของคุณ",
-      "title": "ไม่พบพร็อกซี"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "ไม่พบพร็อกซี"
     },
     "form": {
       "auth_label": "พร็อกซีมีการตรวจสอบสิทธิ์",
@@ -1131,15 +1192,21 @@
         "failed_to_update_password": "ไม่สามารถอัปเดตรหัสผ่านได้",
         "password_updated_successfully": "อัปเดตรหัสผ่านสำเร็จ"
       },
-      "title": "อัปเดตรหัสผ่าน"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "อัปเดตรหัสผ่าน"
     },
     "api_keys": {
-      "title": "คีย์ API",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "คีย์ API",
       "description": "จัดการคีย์ API ของคุณสำหรับการรวมกับบุคคลที่สาม",
       "create_button": "สร้างคีย์ API",
       "no_keys_title": "ไม่มีคีย์ API",
       "no_keys_description": "สร้างคีย์ API แรกของคุณเพื่อเริ่มการรวมกับบริการภายนอก",
       "create_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "สร้างคีย์ API ใหม่",
         "description": "สร้างคีย์ API ใหม่สำหรับการรวมกับบุคคลที่สาม คีย์จะแสดงเพียงครั้งเดียว",
         "form": {
@@ -1156,6 +1223,8 @@
         }
       },
       "success_alert": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "สร้างคีย์ API สำเร็จ",
         "description": "คีย์ API ของคุณถูกสร้างแล้ว คัดลอกตอนนี้เพราะจะไม่แสดงอีก:"
       },
@@ -1177,6 +1246,8 @@
         "never": "ไม่เคย"
       },
       "delete_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "ลบคีย์ API",
         "description": "คุณแน่ใจหรือไม่ว่าต้องการลบคีย์ API \"{{name}}\" การดำเนินการนี้ไม่สามารถยกเลิกได้",
         "buttons": {
@@ -1216,7 +1287,9 @@
     "data_retention": {
       "days_label": "วัน",
       "description": "กำหนดจำนวนวันในการเก็บข้อมูล (KEEP_DATA_PERIOD_DAYS).",
-      "title": "ระยะเวลาการเก็บข้อมูล"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "ระยะเวลาการเก็บข้อมูล"
     },
     "timezone": {
       "description": "เลือกเขตเวลาที่คุณต้องการใช้เพื่อแสดงเวลาทั้งหมดในแอป",
@@ -1224,7 +1297,9 @@
       "no_timezone_found": "ไม่พบเขตเวลา.",
       "search_placeholder": "ค้นหาโซนเวลา...",
       "select_placeholder": "เลือกเขตเวลา...",
-      "title": "เขตเวลา"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "เขตเวลา"
     },
     "validation": {
       "min_days": "ต้องมีอย่างน้อย 1 วัน"
@@ -1256,7 +1331,9 @@
     "customization": "การปรับแต่ง",
     "delete_dialog": {
       "description": "คุณแน่ใจหรือว่าต้องการลบ \"{{title}}\"? การดำเนินการนี้ไม่สามารถย้อนกลับได้.",
-      "title": "ลบหน้าแสดงสถานะ"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "ลบหน้าแสดงสถานะ"
     },
     "description": "กรอกคำอธิบายหน้าแสดงสถานะ",
     "domain_already_used": "โดเมน {{domain}} ถูกใช้โดยหน้าแสดงสถานะอื่นแล้ว",
@@ -1293,7 +1370,9 @@
     "empty_state": {
       "action": "สร้างแท็กแรกของคุณ",
       "description": "เริ่มต้นโดยสร้างแท็กแรกของคุณเพื่อจัดระเบียบมอนิเตอร์ของคุณ",
-      "title": "ไม่พบแท็ก"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "ไม่พบแท็ก"
     },
     "form": {
       "color_description": "เลือกสีสำหรับแท็กของคุณ",

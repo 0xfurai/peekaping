@@ -9,20 +9,26 @@
       "no_account": "حساب کاربری ندارید؟",
       "sign_up": "ثبت نام",
       "submit": "ورود",
-      "title": "خوش آمدید"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "خوش آمدید"
     },
     "register": {
       "description": "ایجاد حساب کاربری مدیر",
       "have_account": "حساب کاربری دارید؟",
       "sign_in": "ورود",
       "submit": "ایجاد",
-      "title": "سلام"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "سلام"
     },
     "twofa": {
       "code_label": "کد ۲FA",
       "code_placeholder": "کد ۲FA را وارد کنید",
       "description": "2FA برای حساب شما فعال است. لطفاً کد احراز هویت خود را وارد کنید تا ادامه دهید.",
-      "title": "تایید هویت دو عاملی مورد نیاز است",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "تایید هویت دو عاملی مورد نیاز است",
       "verify_button": "تایید ۲FA",
       "verifying": "در حال تأیید..."
     }
@@ -96,7 +102,9 @@
       "password": "رمز عبور",
       "retries": "تلاش‌های مجدد",
       "slug": "اسلاگ",
-      "title": "عنوان",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "عنوان",
       "username": "نام کاربری"
     },
     "placeholders": {
@@ -169,17 +177,23 @@
         "confirm_action": {
           "pause_description": "آیا مطمئن هستید می‌خواهید این نگهداری را متوقف کنید؟",
           "resume_description": "آیا مطمئن هستید که می‌خواهید این نگهداری را ادامه دهید؟",
-          "title": "تایید عمل"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "تایید عمل"
         },
         "confirm_delete": {
           "description": "آیا مطمئن هستید که می‌خواهید این پنجره نگهداری را حذف کنید؟ این عمل قابل بازگشت نیست.",
-          "title": "تایید حذف"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "تایید حذف"
         }
       },
       "edit_maintenance": "ویرایش نگهداری: {{title}}",
       "empty_state": {
         "action": "ایجاد اولین پنجره نگهداری",
         "description": "برای شروع، پنجره نگهداری اول خود را ایجاد کنید تا از زمان‌های توقف برنامه‌ریزی‌شده جلوگیری کنید.",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "هیچ پنجره نگهداری یافت نشد"
       },
       "error_loading": "خطا در بارگذاری نگهداری",
@@ -248,7 +262,9 @@
     "empty_state": {
       "action": "ایجاد اولین مانیتور",
       "description": "برای شروع، اولین مانیتور خود را برای رصد سلامت سرویس‌های خود ایجاد کنید.",
-      "title": "هیچ مانیتوری پیدا نشد"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "هیچ مانیتوری پیدا نشد"
     },
     "filtering_by_tags": "فیلتر بر اساس برچسب‌ها",
     "filters": {
@@ -271,6 +287,8 @@
         "record_type": "نوع رکورد منبع",
         "record_type_placeholder": "نوع رکورد را انتخاب کنید",
         "resolver_server": "سرور حل‌کننده",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "تنظیمات DNS"
       },
       "docker": {
@@ -329,7 +347,9 @@
           "ignore_tls_description": "نادیده گرفتن اعتبارسنجی گواهی TLS. با احتیاط استفاده کنید – این باعث می‌شود اتصالات کمتر امن شوند.",
           "max_redirects": "حداکثر ریدایرکت",
           "max_redirects_description": "حداکثر تعداد ریدایرکت‌هایی که باید دنبال شوند (0–30). برای غیرفعال کردن ریدایرکت‌ها، مقدار را روی 0 تنظیم کنید.",
-          "title": "پیشرفته"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "پیشرفته"
         },
         "authentication": {
           "auth_header": "هدر احراز هویت",
@@ -350,7 +370,9 @@
           "oauth_scope_placeholder": "اختیاری: فهرست دامنه‌های جدا شده با فاصله",
           "oauth_token_url": "URL توکن OAuth",
           "oauth_token_url_placeholder": "URL توکن OAuth",
-          "title": "احراز هویت",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "احراز هویت",
           "workstation": "محل کار",
           "workstation_placeholder": "ایستگاه کار"
         },
@@ -366,7 +388,9 @@
           "select_encoding": "انتخاب کدگذاری بدنه",
           "select_method": "انتخاب متد",
           "text_example": "متن نمونه:\nمحتوای متن ساده‌ای در اینجا...",
-          "title": "گزینه‌های HTTP",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "گزینه‌های HTTP",
           "xml_example": "نمونه XML"
         }
       },
@@ -374,6 +398,8 @@
         "condition_label": "شرط",
         "expected_value_label": "مقدار مورد انتظار",
         "json_query_label": "عبارت پرس‌وجو JSON",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "عبارت پرس و جو JSON"
       },
       "http_keyword": {
@@ -446,8 +472,13 @@
         "query_label": "کوئری"
       },
       "ping": {
+        "count": "Max Packets",
+        "count_description": "Number of packets to send before stopping",
+        
         "data_size": "حجم داده (بایت)",
         "host": "نام میزبان / آی‌پی",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "تنظیمات پینگ"
       },
       "postgres": {
@@ -468,6 +499,8 @@
         "password_description": "کلمه عبور برای احراز هویت رابط مدیریت RabbitMQ",
         "setup_information_description": "برای استفاده از مانیتور RabbitMQ، باید پلاگین مدیریت را در تنظیمات RabbitMQ خود فعال کنید. برای اطلاعات بیشتر، به مستندات RabbitMQ مراجعه کنید.",
         "setup_information_title": "اطلاعات راه‌اندازی",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "پیکربندی RabbitMQ",
         "username_description": "نام‌کاربری برای احراز هویت رابط مدیریت RabbitMQ"
       },
@@ -482,6 +515,8 @@
         "connection_string_label": "رشته اتصال",
         "ignore_tls_description": "نادیده گرفتن تأیید گواهی TLS (برای محیط تولید توصیه نمی‌شود)",
         "ignore_tls_label": "نادیده گرفتن خطاهای TLS/SSL",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "پیکربندی Redis"
       },
       "shared": {
@@ -499,7 +534,9 @@
           "select_channel": "انتخاب کانال",
           "select_notifier_placeholder": "انتخاب اطلاع‌رسان",
           "selected_channels": "کانال‌های اعلان انتخاب شده",
-          "title": "کانال‌های اعلان"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "کانال‌های اعلان"
         },
         "proxy": {
           "add_proxy": "افزودن پراکسی",
@@ -508,7 +545,9 @@
           "remove_proxy": "حذف پروکسی",
           "select_proxy_placeholder": "انتخاب پراکسی",
           "selected_proxy": "پروکسی انتخاب‌شده",
-          "title": "پروکسی"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "پروکسی"
         },
         "tags": {
           "label": "برچسب‌ها",
@@ -539,6 +578,8 @@
         "port_label": "پورت",
         "snmp_version_description": "نسخه پروتکل SNMP مورد استفاده",
         "snmp_version_label": "نسخه SNMP",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "تنظیمات SNMP",
         "value_validation_label": "اعتبارسنجی مقدار (اختیاری)"
       },
@@ -548,11 +589,15 @@
         "connection_string_label": "رشته اتصال",
         "query_description": "پرس و جو برای بررسی سلامت. اگر خالی بگذارید، از پیش‌فرض استفاده شود.",
         "query_label": "پرس‌وجو",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "اتصال سرور SQL مایکروسافت"
       },
       "tcp": {
         "host": "میزبان",
         "port": "پورت",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "اتصال TCP"
       },
       "type": {
@@ -579,7 +624,9 @@
       "edit_title": "ویرایش مانیتور:",
       "new_title": "مانیتور جدید"
     },
-    "title": "مانیتورها",
+    "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "مانیتورها",
     "toasts": {
       "deleted": "پایش حذف شد",
       "paused": "مانیتور متوقف شد",
@@ -601,15 +648,21 @@
       "dialogs": {
         "delete": {
           "description": "این عمل قابل بازگشت نیست. این باعث حذف دائمی مانیتور و تمام داده‌های مرتبط خواهد شد.",
-          "title": "آیا کاملاً مطمئن هستید؟"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "آیا کاملاً مطمئن هستید؟"
         },
         "pause": {
           "description": "آیا مطمئن هستید که می‌خواهید مکث کنید؟",
-          "title": "تأیید"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "تأیید"
         },
         "reset": {
           "description": "این عملیات باعث حذف دائمی تمام تاریخچه‌ی سعی‌ها و آمار زمان آنلاین این مانیتور می‌شود. مانیتور به‌گونه‌ای نمایش داده می‌شود که همانند تازه ایجاد شده باشد. این عمل غیرقابل بازگشت است.",
-          "title": "بازنشانی داده‌های مانیتور"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "بازنشانی داده‌های مانیتور"
         }
       },
       "expiring_soon": "انقضا نزدیک",
@@ -656,7 +709,9 @@
     "empty_state": {
       "action": "کانال هشدار اول خود را ایجاد کنید",
       "description": "برای شروع، کانال اعلان اول خود را ایجاد کنید تا هشدارها را به تیم خود ارسال کنید.",
-      "title": "هیچ کانالی برای اعلان پیدا نشد"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "هیچ کانالی برای اعلان پیدا نشد"
     },
     "form": {
       "discord": {
@@ -1046,7 +1101,9 @@
       "updated_success": "نوتیفایر با موفقیت به‌روزرسانی شد"
     },
     "new": {
-      "title": "کانال اعلان جدید"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "کانال اعلان جدید"
     },
     "no_important": "هیچ اعلان مهمی پیدا نشد.",
     "placeholders": {
@@ -1057,7 +1114,9 @@
   "proxies": {
     "delete_dialog": {
       "description": "این عمل قابل بازگشت نیست. این عمل باعث حذف دائمی پروکسی {{host}}:{{port}} می‌شود.",
-      "title": "آیا کاملاً مطمئن هستید؟"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "آیا کاملاً مطمئن هستید؟"
     },
     "edit": {
       "page_name": "ویرایش پروکسی"
@@ -1065,7 +1124,9 @@
     "empty_list": {
       "action_text": "پراکسی اول خود را ایجاد کنید",
       "text": "برای شروع، اولین پراکسی خود را ایجاد کنید تا در مانیتورهای خود استفاده کنید.",
-      "title": "هیچ پراکسی یافت نشد"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "هیچ پراکسی یافت نشد"
     },
     "form": {
       "auth_label": "سرور پراکسی دارای احراز هویت است",
@@ -1131,15 +1192,21 @@
         "failed_to_update_password": "خطا در بروزرسانی رمز عبور",
         "password_updated_successfully": "رمز عبور با موفقیت به‌روزرسانی شد"
       },
-      "title": "بروزرسانی گذرواژه"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "بروزرسانی گذرواژه"
     },
     "api_keys": {
-      "title": "کلیدهای API",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "کلیدهای API",
       "description": "کلیدهای API خود را برای ادغام با طرف‌های سوم مدیریت کنید",
       "create_button": "ایجاد کلید API",
       "no_keys_title": "هیچ کلید API وجود ندارد",
       "no_keys_description": "اولین کلید API خود را برای شروع ادغام با سرویس‌های خارجی ایجاد کنید.",
       "create_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "ایجاد کلید API جدید",
         "description": "کلید API جدیدی برای ادغام با طرف‌های سوم ایجاد کنید. کلید فقط یک بار نمایش داده می‌شود.",
         "form": {
@@ -1156,6 +1223,8 @@
         }
       },
       "success_alert": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "کلید API با موفقیت ایجاد شد",
         "description": "کلید API شما ایجاد شد. اکنون آن را کپی کنید زیرا دیگر نمایش داده نخواهد شد:"
       },
@@ -1177,6 +1246,8 @@
         "never": "هرگز"
       },
       "delete_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "حذف کلید API",
         "description": "آیا مطمئن هستید که می‌خواهید کلید API \"{{name}}\" را حذف کنید؟ این عمل قابل برگشت نیست.",
         "buttons": {
@@ -1216,7 +1287,9 @@
     "data_retention": {
       "days_label": "روز",
       "description": "تعیین تعداد روزی که داده‌ها نگهداری می‌شوند (KEEP_DATA_PERIOD_DAYS).",
-      "title": "مدت زمان نگهداری داده"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "مدت زمان نگهداری داده"
     },
     "timezone": {
       "description": "منطقه زمانی مورد نظر خود را برای نمایش تمام زمان‌ها در برنامه انتخاب کنید.",
@@ -1224,7 +1297,9 @@
       "no_timezone_found": "منطقه زمانی یافت نشد.",
       "search_placeholder": "جستجوی منطقه زمانی...",
       "select_placeholder": "انتخاب منطقه زمانی...",
-      "title": "منطقه زمانی"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "منطقه زمانی"
     },
     "validation": {
       "min_days": "حداقل باید ۱ روز باشد"
@@ -1256,7 +1331,9 @@
     "customization": "سفارشی‌سازی",
     "delete_dialog": {
       "description": "آیا مطمئن هستید که می‌خواهید \"{{title}}\" را حذف کنید؟ این عمل قابل بازگشت نیست.",
-      "title": "حذف صفحه وضعیت"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "حذف صفحه وضعیت"
     },
     "description": "توضیحات صفحه وضعیت را وارد کنید",
     "domain_already_used": "دامین {{domain}} قبلاً توسط صفحه وضعیت دیگری استفاده شده است",
@@ -1293,7 +1370,9 @@
     "empty_state": {
       "action": "برچسب اول خود را ایجاد کنید",
       "description": "با ایجاد برچسب اول خود برای سازماندهی مانیتورهای خود شروع کنید.",
-      "title": "هیچ برچسبی یافت نشد"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "هیچ برچسبی یافت نشد"
     },
     "form": {
       "color_description": "یک رنگ برای برچسب خود انتخاب کنید",

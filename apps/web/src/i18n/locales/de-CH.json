@@ -9,20 +9,26 @@
       "no_account": "Noch kein Konto?",
       "sign_up": "Registrieren",
       "submit": "Anmelden",
-      "title": "Willkommen zurück"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Willkommen zurück"
     },
     "register": {
       "description": "Erstelle dein Admin-Konto",
       "have_account": "Sie haben bereits ein Konto?",
       "sign_in": "Anmelden",
       "submit": "Erstellen",
-      "title": "Willkommen"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Willkommen"
     },
     "twofa": {
       "code_label": "2FA-Code",
       "code_placeholder": "2FA-Code eingeben",
       "description": "2FA ist für Ihr Konto aktiviert. Bitte geben Sie Ihren Authentifizierungscode ein, um fortzufahren.",
-      "title": "Zwei-Faktor-Authentifizierung erforderlich",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Zwei-Faktor-Authentifizierung erforderlich",
       "verify_button": "2FA verifizieren",
       "verifying": "Verifizierung läuft..."
     }
@@ -96,7 +102,9 @@
       "password": "Passwort",
       "retries": "Wiederholungsversuche",
       "slug": "Slug",
-      "title": "Titel",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Titel",
       "username": "Nutzername"
     },
     "placeholders": {
@@ -169,17 +177,23 @@
         "confirm_action": {
           "pause_description": "Sind Sie sicher, dass Sie diese Wartung pausieren möchten?",
           "resume_description": "Sind Sie sicher, dass Sie diese Wartung fortsetzen möchten?",
-          "title": "Aktion bestätigen"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Aktion bestätigen"
         },
         "confirm_delete": {
           "description": "Möchten Sie dieses Wartungsfenster wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
-          "title": "Löschen bestätigen"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Löschen bestätigen"
         }
       },
       "edit_maintenance": "Wartung bearbeiten: {{title}}",
       "empty_state": {
         "action": "Erstelle dein erstes Wartungsfenster",
         "description": "Legen Sie los, indem Sie Ihr erstes Wartungsfenster erstellen, um geplante Ausfallzeiten zu verhindern.",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Keine Wartungsfenster gefunden"
       },
       "error_loading": "Fehler beim Laden der Wartungsseite",
@@ -248,7 +262,9 @@
     "empty_state": {
       "action": "Erstelle deinen ersten Monitor",
       "description": "Legen Sie los, indem Sie Ihren ersten Monitor erstellen, um den Gesundheitszustand Ihrer Dienste zu überwachen.",
-      "title": "Keine Monitore gefunden"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Keine Monitore gefunden"
     },
     "filtering_by_tags": "Filtern nach Tags",
     "filters": {
@@ -271,6 +287,8 @@
         "record_type": "Typ des Ressourceneintrags",
         "record_type_placeholder": "Datensatztyp auswählen",
         "resolver_server": "DNS-Resolver",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "DNS-Einstellungen"
       },
       "docker": {
@@ -329,7 +347,9 @@
           "ignore_tls_description": "TLS-Zertifikatsvalidierung überspringen. Mit Vorsicht verwenden – dadurch sind Verbindungen weniger sicher.",
           "max_redirects": "Maximale Weiterleitungen",
           "max_redirects_description": "Maximale Anzahl der Weiterleitungen, denen gefolgt wird (0-30). Setzen Sie 0, um Weiterleitungen zu deaktivieren.",
-          "title": "Erweitert"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Erweitert"
         },
         "authentication": {
           "auth_header": "Autorisierungs-Header",
@@ -350,7 +370,9 @@
           "oauth_scope_placeholder": "Optional: Liste von Zugriffsbereichen, durch Leerzeichen getrennt",
           "oauth_token_url": "OAuth-Token-URL",
           "oauth_token_url_placeholder": "OAuth-Token-URL",
-          "title": "Authentifizierung",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Authentifizierung",
           "workstation": "Arbeitsplatz",
           "workstation_placeholder": "Arbeitsplatz"
         },
@@ -366,7 +388,9 @@
           "select_encoding": "Body-Codierung auswählen",
           "select_method": "Methode auswählen",
           "text_example": "Beispieltext:\nHier kann beliebiger Klartext eingefügt werden...",
-          "title": "HTTP-Optionen",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "HTTP-Optionen",
           "xml_example": "XML-Beispiel"
         }
       },
@@ -374,6 +398,8 @@
         "condition_label": "Bedingung",
         "expected_value_label": "Erwarteter Wert",
         "json_query_label": "JSON-Abfrageausdruck",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "JSON-Abfrageausdruck"
       },
       "http_keyword": {
@@ -446,8 +472,13 @@
         "query_label": "Abfrage"
       },
       "ping": {
+        "count": "Max Packets",
+        "count_description": "Number of packets to send before stopping",
+        
         "data_size": "Datenmenge (Bytes)",
         "host": "Hostname / IP-Adresse",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Ping-Einstellungen"
       },
       "postgres": {
@@ -468,6 +499,8 @@
         "password_description": "Passwort für die Authentifizierung an der RabbitMQ-Verwaltungsoberfläche",
         "setup_information_description": "Um den RabbitMQ-Monitor zu verwenden, müssen Sie das Management-Plugin in Ihrer RabbitMQ-Installation aktivieren. Weitere Informationen finden Sie in der RabbitMQ-Dokumentation.",
         "setup_information_title": "Setup-Informationen",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "RabbitMQ-Konfiguration",
         "username_description": "Benutzername für die Authentifizierung an der RabbitMQ-Verwaltungsoberfläche"
       },
@@ -482,6 +515,8 @@
         "connection_string_label": "Verbindungszeichenfolge",
         "ignore_tls_description": "TLS-Zertifikatsprüfung überspringen (in der Produktion nicht empfohlen)",
         "ignore_tls_label": "TLS/SSL-Fehler ignorieren",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Redis-Konfiguration"
       },
       "shared": {
@@ -499,7 +534,9 @@
           "select_channel": "Kanal auswählen",
           "select_notifier_placeholder": "Benachrichtigungsdienst auswählen",
           "selected_channels": "Ausgewählte Benachrichtigungskanäle",
-          "title": "Benachrichtigungskanäle"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Benachrichtigungskanäle"
         },
         "proxy": {
           "add_proxy": "Proxy hinzufügen",
@@ -508,7 +545,9 @@
           "remove_proxy": "Proxy entfernen",
           "select_proxy_placeholder": "Proxy auswählen",
           "selected_proxy": "Ausgewählter Proxy",
-          "title": "Proxy"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Proxy"
         },
         "tags": {
           "label": "Schlagwörter",
@@ -539,6 +578,8 @@
         "port_label": "Port",
         "snmp_version_description": "Zu verwendende SNMP-Protokollversion",
         "snmp_version_label": "SNMP-Version",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "SNMP-Einstellungen",
         "value_validation_label": "Wertvalidierung (Optional)"
       },
@@ -548,11 +589,15 @@
         "connection_string_label": "Verbindungszeichenfolge",
         "query_description": "Abfrage für den Gesundheitscheck ausführen. Leer lassen, um den Standard zu verwenden.",
         "query_label": "Abfrage",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Microsoft SQL-Server-Verbindung"
       },
       "tcp": {
         "host": "Hostname",
         "port": "Port",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "TCP-Verbindung"
       },
       "type": {
@@ -579,7 +624,9 @@
       "edit_title": "Monitor bearbeiten:",
       "new_title": "Neuer Monitor"
     },
-    "title": "Monitore",
+    "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Monitore",
     "toasts": {
       "deleted": "Monitor gelöscht",
       "paused": "Monitor pausiert",
@@ -601,15 +648,21 @@
       "dialogs": {
         "delete": {
           "description": "Diese Aktion kann nicht rückgängig gemacht werden. Der Monitor und alle zugehörigen Daten werden dauerhaft gelöscht.",
-          "title": "Sind Sie absolut sicher?"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Sind Sie absolut sicher?"
         },
         "pause": {
           "description": "Sind Sie sicher, dass Sie pausieren möchten?",
-          "title": "Bestätigung"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Bestätigung"
         },
         "reset": {
           "description": "Dies wird dauerhaft alle Herzschlagverläufe und Uptime-Statistiken für diesen Monitor löschen. Der Monitor wird danach so erscheinen, als wäre er gerade erst erstellt worden. Diese Aktion kann nicht rückgängig gemacht werden.",
-          "title": "Monitor-Daten zurücksetzen"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Monitor-Daten zurücksetzen"
         }
       },
       "expiring_soon": "Bald ablaufend",
@@ -656,7 +709,9 @@
     "empty_state": {
       "action": "Erstelle deinen ersten Benachrichtigungskanal",
       "description": "Beginnen Sie damit, Ihren ersten Benachrichtigungskanal zu erstellen, um Benachrichtigungen an Ihr Team zu senden.",
-      "title": "Keine Benachrichtigungskanäle gefunden"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Keine Benachrichtigungskanäle gefunden"
     },
     "form": {
       "discord": {
@@ -1046,7 +1101,9 @@
       "updated_success": "Benachrichtigungsdienst erfolgreich aktualisiert"
     },
     "new": {
-      "title": "Neuer Benachrichtigungskanal"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Neuer Benachrichtigungskanal"
     },
     "no_important": "Keine wichtigen Benachrichtigungen gefunden.",
     "placeholders": {
@@ -1057,7 +1114,9 @@
   "proxies": {
     "delete_dialog": {
       "description": "Diese Aktion kann nicht rückgängig gemacht werden. Dadurch wird der Proxy {{host}}:{{port}} dauerhaft gelöscht.",
-      "title": "Bist du dir wirklich sicher?"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Bist du dir wirklich sicher?"
     },
     "edit": {
       "page_name": "Proxy bearbeiten"
@@ -1065,7 +1124,9 @@
     "empty_list": {
       "action_text": "Erstelle deinen ersten Proxy",
       "text": "Beginnen Sie damit, Ihren ersten Proxy zu erstellen, den Sie in Ihren Monitoren verwenden können.",
-      "title": "Keine Proxys gefunden"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Keine Proxys gefunden"
     },
     "form": {
       "auth_label": "Proxy-Server benötigt Authentifizierung",
@@ -1131,15 +1192,21 @@
         "failed_to_update_password": "Fehler beim Aktualisieren des Passworts",
         "password_updated_successfully": "Passwort erfolgreich aktualisiert"
       },
-      "title": "Passwort aktualisieren"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Passwort aktualisieren"
     },
     "api_keys": {
-      "title": "API Keys",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "API Keys",
       "description": "Manage your API keys for third-party integrations",
       "create_button": "Create API Key",
       "no_keys_title": "No API Keys",
       "no_keys_description": "Create your first API key to start integrating with external services.",
       "create_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Create New API Key",
         "description": "Create a new API key for third-party integrations. The key will be shown only once.",
         "form": {
@@ -1156,6 +1223,8 @@
         }
       },
       "success_alert": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "API Key Created Successfully",
         "description": "Your API key has been created. Copy it now as it won't be shown again:"
       },
@@ -1177,6 +1246,8 @@
         "never": "Never"
       },
       "delete_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "API-Schlüssel löschen",
         "description": "Sind Sie sicher, dass Sie den API-Schlüssel \"{{name}}\" löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
         "buttons": {
@@ -1216,7 +1287,9 @@
     "data_retention": {
       "days_label": "Tage",
       "description": "Legen Sie fest, wie viele Tage Daten gespeichert werden (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Datenaufbewahrungsdauer"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Datenaufbewahrungsdauer"
     },
     "timezone": {
       "description": "Wählen Sie Ihre bevorzugte Zeitzone aus, damit alle Zeiten in der App angezeigt werden.",
@@ -1224,7 +1297,9 @@
       "no_timezone_found": "Keine Zeitzone gefunden.",
       "search_placeholder": "Zeitzone suchen...",
       "select_placeholder": "Zeitzone auswählen...",
-      "title": "Zeitzone"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Zeitzone"
     },
     "validation": {
       "min_days": "Muss mindestens 1 Tag sein."
@@ -1256,7 +1331,9 @@
     "customization": "Anpassung",
     "delete_dialog": {
       "description": "Möchten Sie \\\"{{title}}\\\" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
-      "title": "Statusseite löschen"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Statusseite löschen"
     },
     "description": "Beschreibung der Statusseite eingeben",
     "domain_already_used": "Domain {{domain}} wird bereits von einer anderen Statusseite verwendet.",
@@ -1293,7 +1370,9 @@
     "empty_state": {
       "action": "Erstelle deinen ersten Tag",
       "description": "Beginnen Sie damit, Ihren ersten Tag zu erstellen, um Ihre Monitore zu organisieren.",
-      "title": "Keine Tags gefunden"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Keine Tags gefunden"
     },
     "form": {
       "color_description": "Wähle eine Farbe für deinen Tag",

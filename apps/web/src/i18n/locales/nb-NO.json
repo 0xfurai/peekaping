@@ -9,20 +9,26 @@
       "no_account": "Har du ikke konto?",
       "sign_up": "Registrer deg",
       "submit": "Logg inn",
-      "title": "Velkommen tilbake"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Velkommen tilbake"
     },
     "register": {
       "description": "Opprett din admin-konto",
       "have_account": "Har du allerede en konto?",
       "sign_in": "Logg inn",
       "submit": "Opprett",
-      "title": "Hei"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Hei"
     },
     "twofa": {
       "code_label": "2FA-kode",
       "code_placeholder": "Oppgi 2FA-kode",
       "description": "2FA er aktivert for din konto. Vennligst skriv inn din autentiseringskode for å fortsette.",
-      "title": "To-faktorautentisering påkrevd",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "To-faktorautentisering påkrevd",
       "verify_button": "Verifiser 2FA",
       "verifying": "Verifiserer..."
     }
@@ -96,7 +102,9 @@
       "password": "Passord",
       "retries": "Gjentakelser",
       "slug": "Slug",
-      "title": "Tittel",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Tittel",
       "username": "Brukernavn"
     },
     "placeholders": {
@@ -169,17 +177,23 @@
         "confirm_action": {
           "pause_description": "Er du sikker på at du vil pause denne vedlikeholdsperioden?",
           "resume_description": "Er du sikker på at du vil gjenoppta dette vedlikeholdet?",
-          "title": "Bekreft handling"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Bekreft handling"
         },
         "confirm_delete": {
           "description": "Er du sikker på at du vil slette denne vedlikeholdsperioden? Denne handlingen kan ikke angres.",
-          "title": "Bekreft sletting"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Bekreft sletting"
         }
       },
       "edit_maintenance": "Rediger vedlikehold: {{title}}",
       "empty_state": {
         "action": "Opprett din første vedlikeholdsperiode",
         "description": "Kom i gang ved å opprette din første vedlikeholdsperiode for å forhindre planlagte nedetider.",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Ingen vedlikeholdsvinduer funnet"
       },
       "error_loading": "Feil ved lasting av vedlikehold",
@@ -248,7 +262,9 @@
     "empty_state": {
       "action": "Opprett din første overvåking",
       "description": "Kom i gang ved å opprette din første overvåkning for å spore helsen til tjenestene dine.",
-      "title": "Ingen overvåkningsmonitter funnet"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ingen overvåkningsmonitter funnet"
     },
     "filtering_by_tags": "Filtrering etter tags",
     "filters": {
@@ -271,6 +287,8 @@
         "record_type": "Oppføringstype",
         "record_type_placeholder": "Velg en posttype",
         "resolver_server": "Resolver‑server",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "DNS-innstillinger"
       },
       "docker": {
@@ -329,7 +347,9 @@
           "ignore_tls_description": "Hopp over TLS-sertifikatvalidering. Bruk med forsiktighet – dette gjør tilkoblinger mindre sikre.",
           "max_redirects": "Maksimale omdirigeringer",
           "max_redirects_description": "Maksimalt antall omdirigeringer som skal følges (0‑30). Sett til 0 for å deaktivere omdirigeringer.",
-          "title": "Avansert"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Avansert"
         },
         "authentication": {
           "auth_header": "Autorisasjons‑header",
@@ -350,7 +370,9 @@
           "oauth_scope_placeholder": "Valgfritt: Mellomromsseparert liste over scopes",
           "oauth_token_url": "OAuth-token-URL",
           "oauth_token_url_placeholder": "OAuth-token-URL",
-          "title": "Autentisering",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Autentisering",
           "workstation": "Arbeidsstasjon",
           "workstation_placeholder": "Arbeidsstasjon"
         },
@@ -366,7 +388,9 @@
           "select_encoding": "Velg kroppskoding",
           "select_method": "Velg metode",
           "text_example": "Eksempeltekst:\nEnhver enkel tekst her...",
-          "title": "HTTP-alternativer",
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "HTTP-alternativer",
           "xml_example": "Eksempel XML"
         }
       },
@@ -374,6 +398,8 @@
         "condition_label": "Betingelse",
         "expected_value_label": "Forventet verdi",
         "json_query_label": "JSON‑spørringsuttrykk",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "JSON‑spørring"
       },
       "http_keyword": {
@@ -446,8 +472,13 @@
         "query_label": "Spørring"
       },
       "ping": {
+        "count": "Max Packets",
+        "count_description": "Number of packets to send before stopping",
+        
         "data_size": "Datastørrelse (byte)",
         "host": "Vertsnavn / IP",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Ping-innstillinger"
       },
       "postgres": {
@@ -468,6 +499,8 @@
         "password_description": "Passord for autentisering av RabbitMQ‑administrasjonsgrensesnittet",
         "setup_information_description": "For å bruke RabbitMQ‑monitoren, må du aktivere Management‑plugin‑en i RabbitMQ‑oppsettet ditt. For mer informasjon, vennligst se RabbitMQ‑dokumentasjonen.",
         "setup_information_title": "Oppsettinformasjon",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "RabbitMQ-konfigurasjon",
         "username_description": "Brukernavn for autentisering av RabbitMQ‑administrasjonsgrensesnitt"
       },
@@ -482,6 +515,8 @@
         "connection_string_label": "Tilkoblingsstreng",
         "ignore_tls_description": "Hopp over TLS-sertifikatsverifisering (ikke anbefalt i produksjon)",
         "ignore_tls_label": "Ignorer TLS/SSL-feil",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Redis-konfigurasjon"
       },
       "shared": {
@@ -499,7 +534,9 @@
           "select_channel": "Velg kanal",
           "select_notifier_placeholder": "Velg varsler",
           "selected_channels": "Valgte varslingskanaler",
-          "title": "Varslingskanaler"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Varslingskanaler"
         },
         "proxy": {
           "add_proxy": "Legg til proxy",
@@ -508,7 +545,9 @@
           "remove_proxy": "Fjern proxy",
           "select_proxy_placeholder": "Velg proxy",
           "selected_proxy": "Valgt proxy",
-          "title": "Mellomtjener"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Mellomtjener"
         },
         "tags": {
           "label": "Tagger",
@@ -539,6 +578,8 @@
         "port_label": "Port",
         "snmp_version_description": "SNMP-protokollversjon som skal brukes",
         "snmp_version_label": "SNMP-versjon",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "SNMP-innstillinger",
         "value_validation_label": "Verdivalidering (valgfritt)"
       },
@@ -548,11 +589,15 @@
         "connection_string_label": "Tilkoblingsstreng",
         "query_description": "Spørring som skal kjøres for helsesjekk. La stå tomt for å bruke standard",
         "query_label": "Spørring",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Microsoft SQL Server-tilkobling"
       },
       "tcp": {
         "host": "Vert",
         "port": "Port",
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "TCP-tilkobling"
       },
       "type": {
@@ -579,7 +624,9 @@
       "edit_title": "Rediger overvåking:",
       "new_title": "Ny overvåker"
     },
-    "title": "Overvåkningsverktøy",
+    "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Overvåkningsverktøy",
     "toasts": {
       "deleted": "Overvåking slettet",
       "paused": "Overvåkning satt på pause",
@@ -601,15 +648,21 @@
       "dialogs": {
         "delete": {
           "description": "Denne handlingen kan ikke angres. Dette vil permanent slette overvåking og all tilknyttet data.",
-          "title": "Er du helt sikker?"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Er du helt sikker?"
         },
         "pause": {
           "description": "Er du sikker på at du vil pause?",
-          "title": "Bekreftelse"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Bekreftelse"
         },
         "reset": {
           "description": "Dette vil permanent slette all heartbeat‑historikk og oppetidstatistikk for denne monitoren. Monitoren vil se ut som om den nettopp ble opprettet. Denne handlingen kan ikke angres.",
-          "title": "Tilbakestill overvåkningsdata"
+          "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Tilbakestill overvåkningsdata"
         }
       },
       "expiring_soon": "Utløper snart",
@@ -656,7 +709,9 @@
     "empty_state": {
       "action": "Opprett din første varslingskanal",
       "description": "Kom i gang ved å opprette din første varselskanal for å sende varsler til teamet ditt.",
-      "title": "Ingen varslingkanaler funnet"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ingen varslingkanaler funnet"
     },
     "form": {
       "discord": {
@@ -1046,7 +1101,9 @@
       "updated_success": "Notifier oppdatert"
     },
     "new": {
-      "title": "Ny varslingkanal"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ny varslingkanal"
     },
     "no_important": "Ingen viktige varsler funnet.",
     "placeholders": {
@@ -1057,7 +1114,9 @@
   "proxies": {
     "delete_dialog": {
       "description": "Denne handlingen kan ikke angres. Proxyen {{host}}:{{port}} vil bli permanent slettet.",
-      "title": "Er du helt sikker?"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Er du helt sikker?"
     },
     "edit": {
       "page_name": "Rediger proxy"
@@ -1065,7 +1124,9 @@
     "empty_list": {
       "action_text": "Opprett din første proxy",
       "text": "Få i gang ved å opprette din første proxy som du kan bruke i overvåkningsverktøyene.",
-      "title": "Ingen proxyer funnet"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ingen proxyer funnet"
     },
     "form": {
       "auth_label": "Proxy‑serveren krever autentisering",
@@ -1131,15 +1192,21 @@
         "failed_to_update_password": "Kunne ikke oppdatere passordet",
         "password_updated_successfully": "Passord oppdatert"
       },
-      "title": "Oppdater passord"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Oppdater passord"
     },
     "api_keys": {
-      "title": "API Keys",
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "API Keys",
       "description": "Manage your API keys for third-party integrations",
       "create_button": "Create API Key",
       "no_keys_title": "No API Keys",
       "no_keys_description": "Create your first API key to start integrating with external services.",
       "create_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Create New API Key",
         "description": "Create a new API key for third-party integrations. The key will be shown only once.",
         "form": {
@@ -1156,6 +1223,8 @@
         }
       },
       "success_alert": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "API Key Created Successfully",
         "description": "Your API key has been created. Copy it now as it won't be shown again:"
       },
@@ -1177,6 +1246,8 @@
         "never": "Never"
       },
       "delete_dialog": {
+        "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
         "title": "Slett API-nøkkel",
         "description": "Er du sikker på at du vil slette API-nøkkelen \"{{name}}\"? Denne handlingen kan ikke angres.",
         "buttons": {
@@ -1216,7 +1287,9 @@
     "data_retention": {
       "days_label": "Dager",
       "description": "Angi hvor mange dager data skal beholdes (KEEP_DATA_PERIOD_DAYS).",
-      "title": "Databeholdelsesperiode"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Databeholdelsesperiode"
     },
     "timezone": {
       "description": "Velg ønsket tidssone for visning av alle tider i appen.",
@@ -1224,7 +1297,9 @@
       "no_timezone_found": "Ingen tidssone funnet.",
       "search_placeholder": "Søk i tidszoner...",
       "select_placeholder": "Velg tidssone...",
-      "title": "Tidssone"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Tidssone"
     },
     "validation": {
       "min_days": "Må være minst 1 dag"
@@ -1256,7 +1331,9 @@
     "customization": "Tilpasning",
     "delete_dialog": {
       "description": "Er du sikker på at du vil slette \"{{title}}\"? Denne handlingen kan ikke angres.",
-      "title": "Slett statusside"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Slett statusside"
     },
     "description": "Skriv inn statussidens beskrivelse",
     "domain_already_used": "Domene {{domain}} er allerede i bruk av en annen statusside.",
@@ -1293,7 +1370,9 @@
     "empty_state": {
       "action": "Opprett din første tag",
       "description": "Kom i gang ved å opprette din første etikett for å organisere overvåkningsobjektene dine.",
-      "title": "Ingen tagger funnet"
+      "per_request_timeout": "Per-Ping Timeout (seconds)",
+        "per_request_timeout_description": "Maximum waiting time before considering a single ping lost",
+        "title": "Ingen tagger funnet"
     },
     "form": {
       "color_description": "Velg en farge for merket ditt",
