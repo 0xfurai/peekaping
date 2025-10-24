@@ -37,7 +37,6 @@
         format json {
             time_format  iso8601
             message_key  msg
-            field svc peekaping
         }
         level info
         timestamp true
