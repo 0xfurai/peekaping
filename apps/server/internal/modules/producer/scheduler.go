@@ -80,14 +80,13 @@ func (p *Producer) initializeSchedule() error {
 
 			// Only schedule if not already in Redis
 			if !existingMonitorIDs[mon.ID] {
-				// Schedule monitor at next aligned time
-				next := nextAligned(now, time.Duration(mon.Interval)*time.Second)
+				// Schedule monitor immediately for first check
 				pipe.ZAdd(p.ctx, SchedDueKey, redis.Z{
-					Score:  float64(next.UnixMilli()),
+					Score:  float64(now.UnixMilli()),
 					Member: mon.ID,
 				})
 				newlyScheduledCount++
-				p.logger.Debugw("Scheduled new monitor", "monitor_id", mon.ID, "next_run", next)
+				p.logger.Debugw("Scheduled new monitor for immediate first check", "monitor_id", mon.ID, "scheduled_at", now)
 			} else {
 				p.logger.Debugw("Monitor already scheduled, skipping", "monitor_id", mon.ID)
 			}
@@ -216,20 +215,28 @@ func (p *Producer) refreshSchedule() error {
 				pipe.ZRem(p.ctx, SchedDueKey, mon.ID)
 				pipe.ZRem(p.ctx, SchedLeaseKey, mon.ID)
 
-				// Schedule at next aligned time
-				next := nextAligned(now, time.Duration(mon.Interval)*time.Second)
+				// For new monitors, schedule immediately for first check
+				// For monitors with interval changes, use next aligned time
+				var scheduleTime time.Time
+				if !exists {
+					scheduleTime = now
+				} else {
+					scheduleTime = nextAligned(now, time.Duration(mon.Interval)*time.Second)
+				}
+
 				pipe.ZAdd(p.ctx, SchedDueKey, redis.Z{
-					Score:  float64(next.UnixMilli()),
+					Score:  float64(scheduleTime.UnixMilli()),
 					Member: mon.ID,
 				})
 
 				if !exists {
-					p.logger.Infow("Scheduling new monitor", "monitor_id", mon.ID, "interval", mon.Interval)
+					p.logger.Infow("Scheduling new monitor for immediate first check", "monitor_id", mon.ID, "interval", mon.Interval, "scheduled_at", scheduleTime)
 				} else {
 					p.logger.Infow("Rescheduling monitor with updated interval",
 						"monitor_id", mon.ID,
 						"old_interval", oldInterval,
-						"new_interval", mon.Interval)
+						"new_interval", mon.Interval,
+						"next_run", scheduleTime)
 				}
 			}
 		}
@@ -273,17 +280,26 @@ func (p *Producer) ScheduleMonitor(ctx context.Context, monitorID string, interv
 	}
 
 	p.mu.Lock()
+	_, exists := p.monitorIntervals[monitorID]
 	p.monitorIntervals[monitorID] = intervalSeconds
 	p.mu.Unlock()
 
 	now := time.Now().UTC()
-	next := nextAligned(now, time.Duration(intervalSeconds)*time.Second)
+	var scheduleTime time.Time
+
+	// For new monitors, schedule immediately for first check
+	// For existing monitors, use next aligned time
+	if !exists {
+		scheduleTime = now
+	} else {
+		scheduleTime = nextAligned(now, time.Duration(intervalSeconds)*time.Second)
+	}
 
 	// Remove from lease in case it's there, then add to due
 	pipe := p.rdb.Pipeline()
 	pipe.ZRem(ctx, SchedLeaseKey, monitorID)
 	pipe.ZAdd(ctx, SchedDueKey, redis.Z{
-		Score:  float64(next.UnixMilli()),
+		Score:  float64(scheduleTime.UnixMilli()),
 		Member: monitorID,
 	})
 
@@ -291,7 +307,11 @@ func (p *Producer) ScheduleMonitor(ctx context.Context, monitorID string, interv
 		return fmt.Errorf("failed to schedule monitor: %w", err)
 	}
 
-	p.logger.Infow("Scheduled monitor", "monitor_id", monitorID, "interval", intervalSeconds, "next_run", next)
+	if !exists {
+		p.logger.Infow("Scheduled new monitor for immediate first check", "monitor_id", monitorID, "interval", intervalSeconds, "scheduled_at", scheduleTime)
+	} else {
+		p.logger.Infow("Rescheduled monitor", "monitor_id", monitorID, "interval", intervalSeconds, "next_run", scheduleTime)
+	}
 	return nil
 }
 
