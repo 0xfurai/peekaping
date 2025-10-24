@@ -14,10 +14,12 @@ RUN go mod download
 COPY . .
 
 # Build the Go app
-RUN go build -o main ./cmd/api
+RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o main -ldflags="-s -w" ./cmd/api
 
 # Start a new stage from scratch
-FROM alpine:latest
+FROM scratch
+
+USER 65532:65532
 
 WORKDIR /app
 
