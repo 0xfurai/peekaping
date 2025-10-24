@@ -23,6 +23,8 @@ type Config struct {
 
 	// Queue configuration
 	QueueConcurrency int `env:"QUEUE_CONCURRENCY" validate:"min=1" default:"1000"`
+
+	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"peekaping:worker"`
 }
 
 // LoadAndValidate loads and validates the Worker service configuration

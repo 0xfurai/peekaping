@@ -65,6 +65,8 @@ type Config struct {
 	// During this period, all login attempts will be blocked with HTTP 429
 	// Examples: "5m", "30m", "1h", "24h"
 	BruteforceLockout time.Duration `env:"BRUTEFORCE_LOCKOUT" default:"1m"`
+
+	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"peekaping:api"`
 }
 
 var validate = validator.New()

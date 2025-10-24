@@ -31,6 +31,8 @@ type Config struct {
 
 	// Producer configuration
 	ProducerConcurrency int `env:"PRODUCER_CONCURRENCY" validate:"min=1,max=128" default:"10"`
+
+	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"peekaping:producer"`
 }
 
 // LoadAndValidate loads and validates the Producer service configuration

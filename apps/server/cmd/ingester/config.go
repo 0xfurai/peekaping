@@ -31,6 +31,8 @@ type Config struct {
 
 	// Queue configuration
 	QueueConcurrency int `env:"QUEUE_CONCURRENCY" validate:"min=1" default:"1000"`
+
+	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"peekaping:ingester"`
 }
 
 // LoadAndValidate loads and validates the Ingester service configuration

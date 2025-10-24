@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"peekaping/internal"
 	"peekaping/internal/config"
 	"peekaping/internal/infra"
 	"peekaping/internal/modules/events"
@@ -14,11 +15,9 @@ import (
 	"peekaping/internal/modules/worker"
 	"peekaping/internal/version"
 	"syscall"
-	"time"
 
 	"go.uber.org/dig"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
 func main() {
@@ -43,29 +42,7 @@ func main() {
 	container.Provide(func() *config.Config { return internalCfg })
 
 	// Provide logger
-	container.Provide(func(cfg *config.Config) (*zap.SugaredLogger, error) {
-		var zapLogger *zap.Logger
-		var err error
-
-		if cfg.Mode == "prod" {
-			zapLogger, err = zap.NewProduction()
-		} else {
-			cfg := zap.NewDevelopmentConfig()
-			cfg.Level = zap.NewAtomicLevelAt(zap.InfoLevel) // filter out Debug
-			cfg.EncoderConfig.EncodeTime = zapcore.TimeEncoder(func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
-				enc.AppendString("[" + t.Format("15:04:05.000") + "]")
-			})
-			cfg.EncoderConfig.LevelKey = "" // remove level
-			cfg.EncoderConfig.CallerKey = ""
-			zapLogger, err = cfg.Build()
-		}
-
-		if err != nil {
-			return nil, err
-		}
-
-		return zapLogger.Sugar(), nil
-	})
+	container.Provide(internal.ProvideLogger)
 
 	// Provide Redis infrastructure
 	container.Provide(infra.ProvideRedisClient)

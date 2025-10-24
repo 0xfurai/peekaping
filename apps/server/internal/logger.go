@@ -20,10 +20,11 @@ func ProvideLogger(cfg *config.Config) (*zap.SugaredLogger, error) {
 	var zapConfig zap.Config
 	if cfg.Mode == "prod" {
 		zapConfig = zap.NewProductionConfig()
+		zapConfig.InitialFields = map[string]interface{}{
+			"svc": cfg.ServiceName,
+		}
 	} else {
 		zapConfig = zap.NewDevelopmentConfig()
-		zapConfig.EncoderConfig.TimeKey = ""  // ⟵ no time
-		zapConfig.EncoderConfig.LevelKey = "" // ⟵ no level
 	}
 
 	// Override the log level with the one from LOG_LEVEL environment variable

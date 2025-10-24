@@ -34,6 +34,12 @@
     # Enable logging
     log {
         output stdout
-        format console
+        format json {
+            time_format  iso8601
+            message_key  msg
+            field svc peekaping
+        }
+        level info
+        timestamp true
     }
 }
