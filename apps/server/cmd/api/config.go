@@ -124,5 +124,6 @@ func (c *Config) ToInternalConfig() *config.Config {
 		BruteforceMaxAttempts: c.BruteforceMaxAttempts,
 		BruteforceWindow:      c.BruteforceWindow,
 		BruteforceLockout:     c.BruteforceLockout,
+		ServiceName:           c.ServiceName,
 	}
 }

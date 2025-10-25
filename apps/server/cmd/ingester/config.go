@@ -99,5 +99,6 @@ func (c *Config) ToInternalConfig() *config.Config {
 		RedisPassword:    c.RedisPassword,
 		RedisDB:          c.RedisDB,
 		QueueConcurrency: c.QueueConcurrency,
+		ServiceName:      c.ServiceName,
 	}
 }
