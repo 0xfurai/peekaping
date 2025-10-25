@@ -73,7 +73,8 @@ func (p *Producer) initializeSchedule() error {
 				continue
 			}
 
-			// Store monitor interval for future reference
+			// Always store monitor interval for future reference, even if already scheduled
+			// This is critical for HA setups where leadership can change
 			p.mu.Lock()
 			p.monitorIntervals[mon.ID] = mon.Interval
 			p.mu.Unlock()
@@ -88,7 +89,7 @@ func (p *Producer) initializeSchedule() error {
 				newlyScheduledCount++
 				p.logger.Debugw("Scheduled new monitor for immediate first check", "monitor_id", mon.ID, "scheduled_at", now)
 			} else {
-				p.logger.Debugw("Monitor already scheduled, skipping", "monitor_id", mon.ID)
+				p.logger.Debugw("Monitor already scheduled, skipping reschedule but interval cached", "monitor_id", mon.ID)
 			}
 		}
 
@@ -164,6 +165,11 @@ func (p *Producer) runScheduleRefresher() {
 	for {
 		select {
 		case <-p.ctx.Done():
+			// Main producer context cancelled (shutdown)
+			return
+		case <-p.syncCtx.Done():
+			// Sync context cancelled (lost leadership)
+			p.logger.Info("Schedule refresher stopped due to leadership loss")
 			return
 		case <-ticker.C:
 			if err := p.refreshSchedule(); err != nil {

@@ -30,6 +30,8 @@ type Producer struct {
 	logger                  *zap.SugaredLogger
 	ctx                     context.Context
 	cancel                  context.CancelFunc
+	syncCtx                 context.Context    // context for monitor syncing (leader-only tasks)
+	syncCancel              context.CancelFunc // cancel function for monitor syncing
 	wg                      sync.WaitGroup
 	mu                      sync.RWMutex
 	monitorIntervals        map[string]int // monitor_id -> interval in seconds

@@ -1,6 +1,7 @@
 package producer
 
 import (
+	"context"
 	"fmt"
 	"time"
 )
@@ -69,6 +70,9 @@ func (p *Producer) startJobProcessing() error {
 
 // startMonitorSyncing initializes and starts monitor syncing (leader only)
 func (p *Producer) startMonitorSyncing() error {
+	// Create a new context for monitor syncing that can be cancelled independently
+	p.syncCtx, p.syncCancel = context.WithCancel(p.ctx)
+
 	// Initialize schedule with active monitors from database
 	if err := p.initializeSchedule(); err != nil {
 		return fmt.Errorf("failed to initialize schedule: %w", err)
@@ -83,9 +87,12 @@ func (p *Producer) startMonitorSyncing() error {
 }
 
 // stopMonitorSyncing is called when this node loses leadership
-// The goroutines will naturally exit when they check the context
 func (p *Producer) stopMonitorSyncing() {
-	// The goroutines will stop when they check ctx.Done()
-	// No need to do anything special here as we use the same context
-	p.logger.Info("Monitor syncing stopped due to leadership loss")
+	// Cancel the sync context to stop all monitor syncing goroutines
+	if p.syncCancel != nil {
+		p.logger.Info("Stopping monitor syncing due to leadership loss")
+		p.syncCancel()
+		p.syncCancel = nil
+		p.syncCtx = nil
+	}
 }
