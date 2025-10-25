@@ -35,12 +35,13 @@
     log {
         output stdout
         format append {
-        fields {
-            svc peekaping:gateway
-        }
-        wrap json {
-            time_format iso8601
-            message_key msg
+            fields {
+                svc peekaping:gateway
+            }
+            wrap json {
+                time_format iso8601
+                message_key msg
+            }
         }
         level info
     }
