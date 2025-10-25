@@ -88,6 +88,7 @@ func ProvideServer(
 		server = gin.Default()
 	} else {
 		// Production/Test: use clean instance with only recovery middleware
+		gin.SetMode(gin.ReleaseMode)
 		server = gin.New()
 		server.Use(gin.Recovery()) // Always use recovery middleware to prevent crashes
 	}
