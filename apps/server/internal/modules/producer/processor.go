@@ -12,6 +12,23 @@ import (
 	"peekaping/internal/modules/worker"
 )
 
+// claimDueMonitors atomically claims a batch of due monitors from the due queue
+// It moves monitors from the due set (where score <= nowMs) to the lease set with a lease expiry
+func (p *Producer) claimDueMonitors(ctx context.Context, nowMs int64, maxMonitors int, leaseTTLMs int64) ([]string, error) {
+	result, err := claimScript.Run(
+		ctx,
+		p.rdb,
+		[]string{SchedDueKey, SchedLeaseKey},
+		nowMs,
+		maxMonitors,
+		leaseTTLMs,
+	).Result()
+	if err != nil {
+		return nil, err
+	}
+	return toStringSlice(result), nil
+}
+
 // runProducer is the main producer loop
 func (p *Producer) runProducer(workerID int) error {
 	defer p.wg.Done()
@@ -24,24 +41,17 @@ func (p *Producer) runProducer(workerID int) error {
 		}
 
 		nowMs := p.redisNowMs()
+		leaseTTLMs := int64(LeaseTTL / time.Millisecond)
 
-		// Atomically claim a batch of due items
-		idsAny, err := claimScript.Run(
-			p.ctx,
-			p.rdb,
-			[]string{SchedDueKey, SchedLeaseKey},
-			nowMs,
-			BatchClaim,
-			int64(LeaseTTL/time.Millisecond),
-		).Result()
-
+		// Atomically claim a batch of due monitors
+		ids, err := p.claimDueMonitors(p.ctx, nowMs, BatchClaim, leaseTTLMs)
 		if err != nil {
 			p.logger.Errorw("Claim error", "worker_id", workerID, "error", err)
 			time.Sleep(100 * time.Millisecond)
 			continue
 		}
 
-		ids := toStringSlice(idsAny)
+		// If no monitors were claimed, sleep until next check
 		if len(ids) == 0 {
 			// Sleep until next check
 			time.Sleep(ClaimTick)

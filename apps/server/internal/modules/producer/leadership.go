@@ -27,7 +27,7 @@ func (p *Producer) runLeadershipMonitor() {
 			isLeader := p.leaderElection.IsLeader()
 
 			if isLeader && !isSyncing {
-				p.logger.Info("Became leader, starting monitor syncing")
+				p.logger.Info("Starting monitor syncing as leader")
 				if err := p.startMonitorSyncing(); err != nil {
 					p.logger.Errorw("Failed to start monitor syncing", "error", err)
 				} else {

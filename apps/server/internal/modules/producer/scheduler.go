@@ -132,11 +132,25 @@ func (p *Producer) initializeSchedule() error {
 	return nil
 }
 
+// reclaimExpiredLeases atomically moves expired leases back to the due queue
+// It moves items from the lease set where score <= nowMs back to the due set
+func (p *Producer) reclaimExpiredLeases(ctx context.Context, nowMs int64, maxItems int) ([]string, error) {
+	result, err := reclaimScript.Run(ctx, p.rdb,
+		[]string{SchedLeaseKey, SchedDueKey},
+		nowMs, maxItems).Result()
+	if err != nil {
+		return nil, err
+	}
+	return toStringSlice(result), nil
+}
+
 // runReclaimer periodically reclaims expired leases
 func (p *Producer) runReclaimer() {
 	defer p.wg.Done()
 	ticker := time.NewTicker(ReclaimEvery)
 	defer ticker.Stop()
+
+	const maxReclaimItems = 5000 // maximum number of expired leases to reclaim per iteration
 
 	for {
 		select {
@@ -144,13 +158,11 @@ func (p *Producer) runReclaimer() {
 			return
 		case <-ticker.C:
 			nowMs := p.redisNowMs()
-			result, err := reclaimScript.Run(p.ctx, p.rdb,
-				[]string{SchedLeaseKey, SchedDueKey},
-				nowMs, 5000).Result()
+			reclaimedIDs, err := p.reclaimExpiredLeases(p.ctx, nowMs, maxReclaimItems)
 			if err != nil {
 				p.logger.Errorw("Reclaim error", "error", err)
-			} else if ids, ok := result.([]interface{}); ok && len(ids) > 0 {
-				p.logger.Infow("Reclaimed expired leases", "count", len(ids))
+			} else if len(reclaimedIDs) > 0 {
+				p.logger.Infow("Reclaimed expired leases", "count", len(reclaimedIDs))
 			}
 		}
 	}
