@@ -108,6 +108,12 @@ func main() {
 	// Register ingester dependencies
 	ingester.RegisterDependencies(container)
 
+	container.Invoke(func(s stats.Service, bus events.EventBus) {
+		if impl, ok := s.(*stats.ServiceImpl); ok {
+			impl.RegisterEventHandlers(bus)
+		}
+	})
+
 	// Start the ingester
 	err = container.Invoke(func(
 		ing *ingester.Ingester,
