@@ -57,23 +57,51 @@ func ProvideSQLDB(
 			dbPath = "./data.db" // Default SQLite file path
 		}
 
-		// Configure SQLite for concurrent access with WAL mode
-		// _journal_mode=WAL: Enable Write-Ahead Logging for better concurrency
-		// _busy_timeout=5000: Wait up to 5 seconds when database is locked
+		// Configure SQLite for concurrent access
 		// cache=shared: Share cache between connections
 		// mode=rwc: Read-write-create mode
-		sqldb, err = sql.Open(sqliteshim.ShimName, fmt.Sprintf("file:%s?cache=shared&mode=rwc&_journal_mode=WAL&_busy_timeout=5000", dbPath))
+		sqldb, err = sql.Open(sqliteshim.ShimName, fmt.Sprintf("file:%s?cache=shared&mode=rwc", dbPath))
 		if err != nil {
 			return nil, fmt.Errorf("failed to open SQLite connection: %w", err)
 		}
 
 		// Set connection pool limits for SQLite to prevent lock contention
 		// SQLite works best with a limited number of connections
-		sqldb.SetMaxOpenConns(10)   // Maximum open connections
-		sqldb.SetMaxIdleConns(5)    // Maximum idle connections
+		// For multiple processes, use very conservative limits
+		sqldb.SetMaxOpenConns(1)    // Force serialized access
+		sqldb.SetMaxIdleConns(1)    // Keep one connection alive
 		sqldb.SetConnMaxLifetime(0) // Connections never expire (important for WAL mode)
 
 		db = bun.NewDB(sqldb, sqlitedialect.New())
+
+		// Configure SQLite using PRAGMA statements
+		// Set busy_timeout FIRST so subsequent PRAGMA statements can wait for locks
+		if _, err := db.Exec("PRAGMA busy_timeout=5000"); err != nil {
+			logger.Warnf("Failed to set busy_timeout (non-fatal): %v", err)
+		}
+
+		// Check current journal mode before trying to change it
+		var currentJournalMode string
+		if err := db.QueryRow("PRAGMA journal_mode").Scan(&currentJournalMode); err != nil {
+			logger.Warnf("Failed to check journal_mode (non-fatal): %v", err)
+		}
+
+		// Only set WAL mode if it's not already enabled
+		if currentJournalMode != "wal" {
+			if _, err := db.Exec("PRAGMA journal_mode=WAL"); err != nil {
+				// If it fails, log warning but don't fail - database might already be in WAL mode
+				logger.Warnf("Failed to set journal_mode to WAL (non-fatal, current mode: %s): %v", currentJournalMode, err)
+			} else {
+				logger.Infof("SQLite journal mode set to WAL")
+			}
+		} else {
+			logger.Infof("SQLite already in WAL mode")
+		}
+
+		// Enable synchronous mode for better reliability in multi-process scenarios
+		if _, err := db.Exec("PRAGMA synchronous=NORMAL"); err != nil {
+			logger.Warnf("Failed to set synchronous mode (non-fatal): %v", err)
+		}
 
 		logger.Infof("Connecting to SQLite database: %s (WAL mode enabled)", dbPath)
 
