@@ -20,7 +20,7 @@ type Config struct {
 
 	// Common settings
 	Mode     string `env:"MODE" validate:"required,oneof=dev prod test" default:"dev"`
-	LogLevel string `env:"LOG_LEVEL" validate:"omitempty,log_level" default:"info"`
+	LogLevel string `env:"LOG_LEVEL" validate:"omitempty,log_level" default:"debug"`
 	Timezone string `env:"TZ" validate:"required" default:"UTC"`
 
 	// Redis configuration

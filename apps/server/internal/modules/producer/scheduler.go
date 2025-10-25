@@ -43,7 +43,8 @@ func (p *Producer) initializeSchedule() error {
 	newlyScheduledCount := 0
 	removedCount := 0
 	activeMonitorIDs := make(map[string]bool)
-	now := time.Now().UTC()
+	nowMs := p.redisNowMs()
+	now := time.UnixMilli(nowMs).UTC()
 
 	// Process monitors in pages
 	for {
@@ -197,7 +198,8 @@ func (p *Producer) refreshSchedule() error {
 	const pageSize = 100
 	page := 0
 	currentMonitorIDs := make(map[string]bool)
-	now := time.Now().UTC()
+	nowMs := p.redisNowMs()
+	now := time.UnixMilli(nowMs).UTC()
 
 	// Process monitors in pages
 	for {
@@ -302,7 +304,8 @@ func (p *Producer) ScheduleMonitor(ctx context.Context, monitorID string, interv
 	p.monitorIntervals[monitorID] = intervalSeconds
 	p.mu.Unlock()
 
-	now := time.Now().UTC()
+	nowMs := p.redisNowMs()
+	now := time.UnixMilli(nowMs).UTC()
 	var scheduleTime time.Time
 
 	// For new monitors, schedule immediately for first check
