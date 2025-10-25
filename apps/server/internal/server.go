@@ -81,8 +81,16 @@ func ProvideServer(
 	apiKeyRoute *api_key.Route,
 	apiKeyController *api_key.Controller,
 ) *Server {
-	server := gin.Default()
-	// server := gin.New()
+	// Initialize server based on mode
+	var server *gin.Engine
+	if cfg.Mode == "dev" {
+		// Development: use default with logger and recovery middleware
+		server = gin.Default()
+	} else {
+		// Production/Test: use clean instance with only recovery middleware
+		server = gin.New()
+		server.Use(gin.Recovery()) // Always use recovery middleware to prevent crashes
+	}
 
 	server.RedirectTrailingSlash = false
 
