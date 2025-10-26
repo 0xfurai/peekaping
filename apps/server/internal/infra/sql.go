@@ -1,6 +1,7 @@
 package infra
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"peekaping/internal/config"
@@ -12,6 +13,8 @@ import (
 	"github.com/uptrace/bun/driver/pgdriver"
 	"github.com/uptrace/bun/driver/sqliteshim"
 	"github.com/uptrace/bun/extra/bundebug"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.uber.org/dig"
 	"go.uber.org/zap"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -202,4 +205,30 @@ func GracefulSQLiteShutdown(db *bun.DB, dbType string, logger *zap.SugaredLogger
 
 	logger.Info("SQLite database closed gracefully")
 	return nil
+}
+
+// GracefulDatabaseShutdown performs graceful shutdown for any database type
+// It uses the DI container to get the appropriate database connection
+func GracefulDatabaseShutdown(container *dig.Container, cfg *config.Config, logger *zap.SugaredLogger) error {
+	switch cfg.DBType {
+	case "postgres", "postgresql", "mysql", "sqlite":
+		// For SQL databases, perform graceful shutdown
+		return container.Invoke(func(db *bun.DB) {
+			if err := GracefulSQLiteShutdown(db, cfg.DBType, logger); err != nil {
+				logger.Errorw("Failed to gracefully shutdown database", "error", err)
+			}
+		})
+	case "mongo", "mongodb":
+		// For MongoDB, disconnect the client
+		return container.Invoke(func(client *mongo.Client) {
+			if err := client.Disconnect(context.Background()); err != nil {
+				logger.Errorw("Failed to disconnect MongoDB client", "error", err)
+			} else {
+				logger.Info("MongoDB client disconnected gracefully")
+			}
+		})
+	default:
+		logger.Warnf("Unknown database type for shutdown: %s", cfg.DBType)
+		return nil
+	}
 }

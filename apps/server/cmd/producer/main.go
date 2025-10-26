@@ -27,7 +27,6 @@ import (
 	"peekaping/internal/version"
 	"syscall"
 
-	"github.com/uptrace/bun"
 	"go.uber.org/dig"
 	"go.uber.org/zap"
 )
@@ -91,7 +90,6 @@ func main() {
 	err = container.Invoke(func(
 		prod *producer.Producer,
 		eventListener *producer.EventListener,
-		db *bun.DB,
 		eventBus events.EventBus,
 		logger *zap.SugaredLogger,
 	) error {
@@ -120,9 +118,9 @@ func main() {
 			logger.Errorw("Failed to close event bus", "error", err)
 		}
 
-		// Perform graceful SQLite shutdown if using SQLite
-		if err := infra.GracefulSQLiteShutdown(db, internalCfg.DBType, logger); err != nil {
-			logger.Errorw("Failed to gracefully shutdown database", "error", err)
+		// Perform graceful database shutdown
+		if err := infra.GracefulDatabaseShutdown(container, internalCfg, logger); err != nil {
+			logger.Errorw("Failed to shutdown database", "error", err)
 		}
 
 		logger.Info("Producer stopped gracefully")
