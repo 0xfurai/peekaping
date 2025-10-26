@@ -52,7 +52,7 @@ func ProvideMongoDB(
 		cfg.DBPort,
 		cfg.DBName,
 	)
-	logger.Infof("Connecting to MongoDB: %s", DBUri)
+	logger.Infof("Connecting to MongoDB: %s:%s/%s", cfg.DBHost, cfg.DBPort, cfg.DBName)
 	ctx := context.Background()
 
 	clientOpts := options.Client().ApplyURI(DBUri)
