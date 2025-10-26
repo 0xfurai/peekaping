@@ -22,6 +22,7 @@ COMPOSE_PROD_MONGO = docker-compose.prod.mongo.yml
 COMPOSE_PROD_SQLITE = docker-compose.prod.sqlite.yml
 COMPOSE_POSTGRES = docker-compose.postgres.yml
 COMPOSE_MONGO = docker-compose.mongo.yml
+COMPOSE_SQLITE = docker-compose.sqlite.yml
 
 # Default configurations
 DEFAULT_DEV_DB = mongo
@@ -117,6 +118,11 @@ docker-mongo: ## Start MongoDB environment
 	@echo "Starting MongoDB environment..."
 	docker-compose -f $(COMPOSE_MONGO) up -d
 
+.PHONY: docker-sqlite
+docker-sqlite: ## Start SQLite environment
+	@echo "Starting SQLite environment..."
+	docker-compose -f $(COMPOSE_SQLITE) up -d
+
 # Docker targets - Service Management
 .PHONY: down-dev-postgres
 down-dev-postgres: ## Stop development PostgreSQL services
@@ -158,6 +164,11 @@ down-mongo: ## Stop MongoDB services
 	@echo "Stopping MongoDB services..."
 	docker-compose -f $(COMPOSE_MONGO) down
 
+.PHONY: down-sqlite
+down-sqlite: ## Stop SQLite services
+	@echo "Stopping SQLite services..."
+	docker-compose -f $(COMPOSE_SQLITE) down
+
 .PHONY: docker-down
 docker-down: down-dev-$(DEFAULT_DEV_DB) ## Stop default development services
 
@@ -172,6 +183,7 @@ docker-down-all: ## Stop all Docker Compose services
 	@docker-compose -f $(COMPOSE_PROD_SQLITE) down 2>/dev/null || true
 	@docker-compose -f $(COMPOSE_POSTGRES) down 2>/dev/null || true
 	@docker-compose -f $(COMPOSE_MONGO) down 2>/dev/null || true
+	@docker-compose -f $(COMPOSE_SQLITE) down 2>/dev/null || true
 
 # Database targets
 .PHONY: migrate-init
