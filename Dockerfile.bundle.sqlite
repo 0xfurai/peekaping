@@ -63,6 +63,11 @@ RUN curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --de
     && apt-get install -y caddy \
     && rm -rf /var/lib/apt/lists/*
 
+# Install SQLite for database health checks
+RUN apt-get update \
+    && apt-get install -y sqlite3 \
+    && rm -rf /var/lib/apt/lists/*
+
 # Create necessary directories
 RUN mkdir -p /app/server /app/data /var/log/supervisor /app/web
 
@@ -83,9 +88,10 @@ COPY --from=web-builder /app/apps/web/dist /app/web
 COPY Caddyfile /etc/caddy/Caddyfile
 COPY supervisord.bundle.sqlite.conf /etc/supervisor/conf.d/supervisord.conf
 COPY startup.bundle.sqlite.sh /app/startup.sh
+COPY wait-for-db.sh /app/wait-for-db.sh
 
 # Set proper permissions for executables
-RUN chmod +x /app/server/run-migrations.sh /app/startup.sh /app/server/api /app/server/producer /app/server/worker /app/server/ingester /app/server/bun
+RUN chmod +x /app/server/run-migrations.sh /app/startup.sh /app/server/api /app/server/producer /app/server/worker /app/server/ingester /app/server/bun /app/wait-for-db.sh
 
 # Expose port
 EXPOSE 8383

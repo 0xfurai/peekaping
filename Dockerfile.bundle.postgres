@@ -101,9 +101,10 @@ COPY --from=web-builder /app/apps/web/dist /app/web
 COPY Caddyfile /etc/caddy/Caddyfile
 COPY supervisord.bundle.postgres.conf /etc/supervisor/conf.d/supervisord.conf
 COPY startup.bundle.postgres.sh /app/startup.sh
+COPY wait-for-db.sh /app/wait-for-db.sh
 
 # Set proper permissions for executables
-RUN chmod +x /app/server/run-migrations.sh /app/startup.sh /app/server/api /app/server/producer /app/server/worker /app/server/ingester /app/server/bun
+RUN chmod +x /app/server/run-migrations.sh /app/startup.sh /app/server/api /app/server/producer /app/server/worker /app/server/ingester /app/server/bun /app/wait-for-db.sh
 
 # Expose port
 EXPOSE 8383
