@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
 	"peekaping/docs"
 	"peekaping/internal"
 	"peekaping/internal/config"
@@ -38,7 +39,9 @@ import (
 	"peekaping/internal/modules/websocket"
 	"peekaping/internal/utils"
 	"peekaping/internal/version"
+	"syscall"
 
+	"github.com/uptrace/bun"
 	"go.uber.org/dig"
 	"go.uber.org/zap"
 )
@@ -180,8 +183,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Start the server
-	err = container.Invoke(func(server *internal.Server) {
+	// Start the server with graceful shutdown
+	err = container.Invoke(func(
+		server *internal.Server,
+		db *bun.DB,
+		eventBus events.EventBus,
+		logger *zap.SugaredLogger,
+	) error {
 		docs.SwaggerInfo.Host = "localhost:" + server.Cfg.Port
 
 		port := server.Cfg.Port
@@ -191,9 +199,34 @@ func main() {
 		if port[0] != ':' {
 			port = ":" + port
 		}
-		if err := server.Router.Run(port); err != nil {
-			log.Fatal(err)
+
+		// Set up signal handling for graceful shutdown
+		sigChan := make(chan os.Signal, 1)
+		signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+
+		// Start server in a goroutine
+		go func() {
+			logger.Infof("Starting server on port %s", port)
+			if err := server.Router.Run(port); err != nil {
+				logger.Fatalf("Failed to start server: %v", err)
+			}
+		}()
+
+		// Wait for shutdown signal
+		<-sigChan
+		logger.Info("Shutdown signal received, starting graceful shutdown...")
+		// Close event bus
+		if err := eventBus.Close(); err != nil {
+			logger.Errorw("Failed to close event bus", "error", err)
 		}
+
+		// Perform graceful SQLite shutdown if using SQLite
+		if err := infra.GracefulSQLiteShutdown(db, internalCfg.DBType, logger); err != nil {
+			logger.Errorw("Failed to gracefully shutdown database", "error", err)
+		}
+
+		logger.Info("Server stopped gracefully")
+		return nil
 	})
 
 	if err != nil {

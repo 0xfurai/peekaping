@@ -270,16 +270,33 @@ func connectToDatabase(cfg *config.DBConfig) (*bun.DB, error) {
 		if dbPath == "" {
 			dbPath = "./data.db"
 		}
-		// Configure SQLite for concurrent access with WAL mode
-		sqldb, err = sql.Open(sqliteshim.ShimName, fmt.Sprintf("file:%s?cache=shared&mode=rwc&_journal_mode=WAL&_busy_timeout=5000", dbPath))
+		// Configure SQLite for concurrent access
+		// Use same settings as main application for consistency
+		sqldb, err = sql.Open(sqliteshim.ShimName, fmt.Sprintf("file:%s?cache=shared&mode=rwc", dbPath))
 		if err != nil {
 			return nil, fmt.Errorf("failed to open SQLite connection: %w", err)
 		}
+
 		// Set connection pool limits for SQLite
-		sqldb.SetMaxOpenConns(10)
-		sqldb.SetMaxIdleConns(5)
+		// Using same conservative limits as main app to prevent lock contention
+		sqldb.SetMaxOpenConns(1)
+		sqldb.SetMaxIdleConns(1)
 		sqldb.SetConnMaxLifetime(0)
+
 		db = bun.NewDB(sqldb, sqlitedialect.New())
+
+		// Configure SQLite PRAGMA settings for corruption prevention
+		// Must match main application settings for consistency
+		db.Exec("PRAGMA busy_timeout=5000")
+		db.Exec("PRAGMA journal_mode=WAL")
+		db.Exec("PRAGMA synchronous=NORMAL")
+		db.Exec("PRAGMA foreign_keys=ON")
+		db.Exec("PRAGMA temp_store=MEMORY")
+		db.Exec("PRAGMA wal_autocheckpoint=1000")
+		db.Exec("PRAGMA cache_size=-64000")
+		db.Exec("PRAGMA auto_vacuum=INCREMENTAL")
+
+		fmt.Printf("Connected to SQLite database: %s (WAL mode enabled)\n", dbPath)
 
 	default:
 		return nil, fmt.Errorf("unsupported database type: %s", cfg.DBType)

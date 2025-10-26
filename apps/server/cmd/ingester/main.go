@@ -22,6 +22,7 @@ import (
 	"syscall"
 
 	"github.com/hibiken/asynq"
+	"github.com/uptrace/bun"
 	"go.uber.org/dig"
 	"go.uber.org/zap"
 )
@@ -117,6 +118,7 @@ func main() {
 	// Start the ingester
 	err = container.Invoke(func(
 		ing *ingester.Ingester,
+		db *bun.DB,
 		eventBus events.EventBus,
 		logger *zap.SugaredLogger,
 	) error {
@@ -141,6 +143,11 @@ func main() {
 		// Close event bus
 		if err := eventBus.Close(); err != nil {
 			logger.Errorw("Failed to close event bus", "error", err)
+		}
+
+		// Perform graceful SQLite shutdown if using SQLite
+		if err := infra.GracefulSQLiteShutdown(db, internalCfg.DBType, logger); err != nil {
+			logger.Errorw("Failed to gracefully shutdown database", "error", err)
 		}
 
 		logger.Info("Ingester stopped gracefully")

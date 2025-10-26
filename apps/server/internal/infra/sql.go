@@ -74,7 +74,7 @@ func ProvideSQLDB(
 
 		db = bun.NewDB(sqldb, sqlitedialect.New())
 
-		// Configure SQLite using PRAGMA statements
+		// Configure SQLite using PRAGMA statements for corruption prevention
 		// Set busy_timeout FIRST so subsequent PRAGMA statements can wait for locks
 		if _, err := db.Exec("PRAGMA busy_timeout=5000"); err != nil {
 			logger.Warnf("Failed to set busy_timeout (non-fatal): %v", err)
@@ -99,11 +99,52 @@ func ProvideSQLDB(
 		}
 
 		// Enable synchronous mode for better reliability in multi-process scenarios
+		// NORMAL is a good balance between performance and safety
+		// For critical data, consider FULL, but it's slower
 		if _, err := db.Exec("PRAGMA synchronous=NORMAL"); err != nil {
 			logger.Warnf("Failed to set synchronous mode (non-fatal): %v", err)
 		}
 
-		logger.Infof("Connecting to SQLite database: %s (WAL mode enabled)", dbPath)
+		// Enable foreign key constraints (important for data integrity)
+		if _, err := db.Exec("PRAGMA foreign_keys=ON"); err != nil {
+			logger.Warnf("Failed to enable foreign keys (non-fatal): %v", err)
+		}
+
+		// Use memory for temporary tables to reduce disk I/O and corruption risk
+		if _, err := db.Exec("PRAGMA temp_store=MEMORY"); err != nil {
+			logger.Warnf("Failed to set temp_store (non-fatal): %v", err)
+		}
+
+		// Control WAL automatic checkpointing (default is 1000 pages)
+		// This prevents the WAL file from growing too large
+		if _, err := db.Exec("PRAGMA wal_autocheckpoint=1000"); err != nil {
+			logger.Warnf("Failed to set wal_autocheckpoint (non-fatal): %v", err)
+		}
+
+		// Set cache size (negative value means KB, positive means pages)
+		// -64000 = 64MB cache (good for most applications)
+		if _, err := db.Exec("PRAGMA cache_size=-64000"); err != nil {
+			logger.Warnf("Failed to set cache_size (non-fatal): %v", err)
+		}
+
+		// Enable auto_vacuum to prevent database file fragmentation
+		// INCREMENTAL allows gradual cleanup
+		if _, err := db.Exec("PRAGMA auto_vacuum=INCREMENTAL"); err != nil {
+			logger.Warnf("Failed to set auto_vacuum (non-fatal): %v", err)
+		}
+
+		// Run integrity check on startup to detect existing corruption
+		var integrityResult string
+		if err := db.QueryRow("PRAGMA integrity_check").Scan(&integrityResult); err != nil {
+			logger.Warnf("Failed to run integrity check (non-fatal): %v", err)
+		} else if integrityResult != "ok" {
+			logger.Errorf("Database integrity check FAILED: %s - database may be corrupted!", integrityResult)
+			logger.Error("Consider restoring from backup or running 'PRAGMA integrity_check' manually")
+		} else {
+			logger.Info("Database integrity check passed")
+		}
+
+		logger.Infof("Connecting to SQLite database: %s (WAL mode enabled, corruption prevention active)", dbPath)
 
 	default:
 		return nil, fmt.Errorf("unsupported database type: %s. Supported types: postgres, mysql, sqlite", cfg.DBType)
@@ -120,4 +161,45 @@ func ProvideSQLDB(
 
 	logger.Info("Successfully connected to SQL database")
 	return db, nil
+}
+
+// GracefulSQLiteShutdown performs a graceful shutdown of SQLite database
+// This checkpoints the WAL file and ensures data integrity
+func GracefulSQLiteShutdown(db *bun.DB, dbType string, logger *zap.SugaredLogger) error {
+	if dbType != "sqlite" {
+		return nil
+	}
+
+	logger.Info("Performing graceful SQLite shutdown...")
+
+	// Checkpoint the WAL file to ensure all changes are written to the main database
+	// TRUNCATE mode checkpoints and truncates the WAL file
+	if _, err := db.Exec("PRAGMA wal_checkpoint(TRUNCATE)"); err != nil {
+		logger.Warnf("Failed to checkpoint WAL (non-fatal): %v", err)
+	} else {
+		logger.Info("WAL checkpoint completed successfully")
+	}
+
+	// Perform incremental vacuum to clean up fragmented space
+	if _, err := db.Exec("PRAGMA incremental_vacuum"); err != nil {
+		logger.Warnf("Failed to perform incremental vacuum (non-fatal): %v", err)
+	}
+
+	// Run integrity check before shutdown
+	var integrityResult string
+	if err := db.QueryRow("PRAGMA integrity_check").Scan(&integrityResult); err != nil {
+		logger.Warnf("Failed to run shutdown integrity check (non-fatal): %v", err)
+	} else if integrityResult != "ok" {
+		logger.Errorf("Shutdown integrity check FAILED: %s", integrityResult)
+	} else {
+		logger.Info("Shutdown integrity check passed")
+	}
+
+	// Close the database connection
+	if err := db.Close(); err != nil {
+		return fmt.Errorf("failed to close database: %w", err)
+	}
+
+	logger.Info("SQLite database closed gracefully")
+	return nil
 }
