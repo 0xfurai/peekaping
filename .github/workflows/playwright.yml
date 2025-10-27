@@ -49,6 +49,11 @@ jobs:
         DB_USER=${{ matrix.database == 'postgres' && 'peekaping' || matrix.database == 'mongo' && 'root' || 'root' }}
         DB_PASS=password
 
+        REDIS_HOST="redis"
+        REDIS_PORT=6381
+        REDIS_PASSWORD=""
+        REDIS_DB=0
+
         # Server Configuration
         CLIENT_URL=http://localhost:8383
         SERVER_PORT=8034

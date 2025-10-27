@@ -27,7 +27,7 @@ services:
     image: redis:7
     restart: always
     ports:
-      - "6381:6379"
+      - "${REDIS_PORT:-6379}:6379"
     networks:
       - appnet
     healthcheck:
