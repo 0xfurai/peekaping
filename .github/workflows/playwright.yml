@@ -49,7 +49,7 @@ jobs:
         DB_USER=${{ matrix.database == 'postgres' && 'peekaping' || matrix.database == 'mongo' && 'root' || 'root' }}
         DB_PASS=password
 
-        REDIS_HOST="redis"
+        REDIS_HOST="localhost"
         REDIS_PORT=6381
         REDIS_PASSWORD=""
         REDIS_DB=0
