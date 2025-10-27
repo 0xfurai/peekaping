@@ -2,53 +2,51 @@ networks:
   appnet:
 
 services:
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    networks:
+      - appnet
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
   migrate:
     image: 0xfurai/peekaping-migrate:latest
     restart: "no"
     env_file:
       - .env
-    environment:
-      - DB_TYPE=sqlite
-      - DB_NAME=/app/data/peekaping.db
     volumes:
       - ./.data/sqlite:/app/data
 
   api:
     image: 0xfurai/peekaping-api:latest
     restart: unless-stopped
-    ports:
-      - "8034:8034"
     env_file:
       - .env
-    environment:
-      - DB_TYPE=sqlite
-      - DB_NAME=/app/data/peekaping.db
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=
-      - REDIS_DB=0
     volumes:
       - ./.data/sqlite:/app/data
     depends_on:
       redis:
-        condition: service_healthy
+        condition: service_started
       migrate:
         condition: service_completed_successfully
     networks:
       - appnet
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO - http://localhost:8034/api/v1/health || exit 1"]
+      interval: 1s
+      timeout: 3s
+      retries: 60
 
   producer:
     image: 0xfurai/peekaping-producer:latest
     restart: unless-stopped
     env_file:
       - .env
-    environment:
-      - DB_TYPE=sqlite
-      - DB_NAME=/app/data/peekaping.db
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=
-      - REDIS_DB=0
     volumes:
       - ./.data/sqlite:/app/data
     depends_on:
@@ -64,11 +62,6 @@ services:
     restart: unless-stopped
     env_file:
       - .env
-    environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=
-      - REDIS_DB=0
     depends_on:
       redis:
         condition: service_healthy
@@ -80,18 +73,11 @@ services:
     restart: unless-stopped
     env_file:
       - .env
-    environment:
-      - DB_TYPE=sqlite
-      - DB_NAME=/app/data/peekaping.db
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=
-      - REDIS_DB=0
     volumes:
       - ./.data/sqlite:/app/data
     depends_on:
       redis:
-        condition: service_healthy
+        condition: service_started
       migrate:
         condition: service_completed_successfully
     networks:
@@ -100,10 +86,15 @@ services:
   web:
     image: 0xfurai/peekaping-web:latest
     depends_on:
-      - api
-    restart: unless-stopped
+      api:
+        condition: service_healthy
     networks:
       - appnet
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
+      interval: 1s
+      timeout: 60s
+      retries: 60
 
   gateway:
     image: nginx:latest
@@ -112,19 +103,14 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      - api
-      - web
+      api:
+        condition: service_healthy
+      web:
+        condition: service_healthy
     networks:
       - appnet
-
-  redis:
-    image: redis:7
-    restart: always
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 3s
-      retries: 3
-      start_period: 5s
-    networks:
-      - appnet
+      test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
+      interval: 1s
+      timeout: 60s
+      retries: 60

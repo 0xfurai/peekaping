@@ -2,11 +2,9 @@ networks:
   appnet:
 
 services:
-  postgres:
+  database:
     image: postgres:17
     restart: unless-stopped
-    ports:
-      - "${DB_PORT:-5432}:5432"
     env_file:
       - .env
     environment:
@@ -23,15 +21,23 @@ services:
     networks:
       - appnet
 
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    networks:
+      - appnet
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
   migrate:
     image: 0xfurai/peekaping-migrate:latest
     restart: "no"
     env_file:
       - .env
-    environment:
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_TYPE=postgres
     depends_on:
       postgres:
         condition: service_healthy
@@ -39,63 +45,41 @@ services:
       - appnet
 
   api:
-    image: 0xfurai/peekaping-api:latest
+    image: 0xfurai/peekaping-api:0.0.43-rc.22
     restart: unless-stopped
-    ports:
-      - "8034:8034"
     env_file:
       - .env
-    environment:
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_TYPE=postgres
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=
-      - REDIS_DB=0
     depends_on:
-      postgres:
+      database:
         condition: service_healthy
       redis:
         condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
     networks:
       - appnet
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO - http://localhost:8034/api/v1/health || exit 1"]
+      interval: 1s
+      timeout: 3s
+      retries: 60
 
   producer:
-    image: 0xfurai/peekaping-producer:latest
+    image: 0xfurai/peekaping-producer:0.0.43-rc.22
     restart: unless-stopped
     env_file:
       - .env
-    environment:
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_TYPE=postgres
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=
-      - REDIS_DB=0
     depends_on:
-      postgres:
+      database:
         condition: service_healthy
       redis:
         condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
     networks:
       - appnet
 
   worker:
-    image: 0xfurai/peekaping-worker:latest
+    image: 0xfurai/peekaping-worker:0.0.43-rc.22
     restart: unless-stopped
     env_file:
       - .env
-    environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=
-      - REDIS_DB=0
     depends_on:
       redis:
         condition: service_healthy
@@ -103,34 +87,30 @@ services:
       - appnet
 
   ingester:
-    image: 0xfurai/peekaping-ingester:latest
+    image: 0xfurai/peekaping-ingester:0.0.43-rc.22
     restart: unless-stopped
     env_file:
       - .env
-    environment:
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_TYPE=postgres
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=
-      - REDIS_DB=0
     depends_on:
-      postgres:
+      database:
         condition: service_healthy
       redis:
         condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
     networks:
       - appnet
 
   web:
-    image: 0xfurai/peekaping-web:latest
+    image: 0xfurai/peekaping-web:0.0.43-rc.22
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     networks:
       - appnet
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
+      interval: 1s
+      timeout: 60s
+      retries: 60
 
   gateway:
     image: nginx:latest
@@ -139,19 +119,14 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      - api
-      - web
+      api:
+        condition: service_healthy
+      web:
+        condition: service_healthy
     networks:
       - appnet
-
-  redis:
-    image: redis:7
-    restart: always
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 3s
-      retries: 3
-      start_period: 5s
-    networks:
-      - appnet
+      test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
+      interval: 1s
+      timeout: 60s
+      retries: 60
