@@ -43,14 +43,14 @@ jobs:
         cat > .env << EOF
         # Database Configuration
         DB_TYPE=${{ matrix.database }}
-        DB_HOST=localhost
+        DB_HOST=database
         DB_PORT=${{ matrix.database == 'postgres' && '5433' || matrix.database == 'mongo' && '27018' }}
         DB_NAME=${{ matrix.database == 'sqlite' && '/app/data/peekaping.db' || 'peekaping' }}
         DB_USER=${{ matrix.database == 'postgres' && 'peekaping' || matrix.database == 'mongo' && 'root' || 'root' }}
         DB_PASS=password
 
-        REDIS_HOST="localhost"
-        REDIS_PORT=6381
+        REDIS_HOST="redis"
+        REDIS_PORT=6379
         REDIS_PASSWORD=""
         REDIS_DB=0
 
