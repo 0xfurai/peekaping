@@ -17,7 +17,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o main -ldflags="-s -w" ./cmd/ingester
 
 # Start a new stage from scratch
-FROM scratch
+FROM alpine
 
 WORKDIR /app
 
