@@ -34,7 +34,7 @@ services:
       start_period: 5s
 
   api:
-    image: 0xfurai/peekaping-api:0.0.43-rc.22
+    image: 0xfurai/peekaping-api:latest
     restart: unless-stopped
     env_file:
       - .env
@@ -52,7 +52,7 @@ services:
       retries: 60
 
   producer:
-    image: 0xfurai/peekaping-producer:0.0.43-rc.22
+    image: 0xfurai/peekaping-producer:latest
     restart: unless-stopped
     env_file:
       - .env
@@ -65,7 +65,7 @@ services:
       - appnet
 
   worker:
-    image: 0xfurai/peekaping-worker:0.0.43-rc.22
+    image: 0xfurai/peekaping-worker:latest
     restart: unless-stopped
     env_file:
       - .env
@@ -76,7 +76,7 @@ services:
       - appnet
 
   ingester:
-    image: 0xfurai/peekaping-ingester:0.0.43-rc.22
+    image: 0xfurai/peekaping-ingester:latest
     restart: unless-stopped
     env_file:
       - .env
@@ -89,7 +89,7 @@ services:
       - appnet
 
   web:
-    image: 0xfurai/peekaping-web:0.0.43-rc.22
+    image: 0xfurai/peekaping-web:latest
     depends_on:
       api:
         condition: service_healthy
