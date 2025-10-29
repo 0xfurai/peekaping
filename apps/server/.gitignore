@@ -2,3 +2,7 @@
 .data
 main
 node_modules
+
+./worker
+./ingester
+./server

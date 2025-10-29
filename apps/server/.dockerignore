@@ -5,3 +5,8 @@ Dockerfile
 .gitignore
 .turbo
 .vscode
+templates
+.asdfc
+README.md
+.data
+infra

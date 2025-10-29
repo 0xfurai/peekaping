@@ -8,8 +8,10 @@ WORKDIR /app/server
 COPY apps/server/go.mod apps/server/go.sum ./
 RUN go mod download
 COPY apps/server/ .
-RUN go build -o main ./src
-RUN go build -o bun ./cmd/bun
+RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o api -ldflags="-s -w" ./cmd/api
+RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o producer -ldflags="-s -w" ./cmd/producer
+RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o worker -ldflags="-s -w" ./cmd/worker
+RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o ingester -ldflags="-s -w" ./cmd/ingester
 
 # Stage 2: Build React web app
 FROM node:22-alpine AS web-builder
@@ -23,54 +25,69 @@ COPY apps/web/ ./apps/web/
 WORKDIR /app/apps/web
 RUN pnpm run build
 
-# Stage 3: Final runtime image with Ubuntu and MongoDB 7
-FROM ubuntu:22.04
+# Stage 3: Final runtime image with Debian bookworm-slim and MongoDB
+FROM debian:bookworm-slim
 
 # Set environment variables for non-interactive installation
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=UTC
 
-# Update system and install base dependencies
+# Install base dependencies
 RUN apt-get update && apt-get install -y \
-    wget \
-    gnupg \
-    lsb-release \
     supervisor \
     netcat-openbsd \
+    wget \
     curl \
     ca-certificates \
-    software-properties-common \
+    gnupg \
+    lsb-release \
+    locales \
+    procps \
     sudo \
     && rm -rf /var/lib/apt/lists/*
 
-# Install MongoDB 7 from official repository
-RUN wget -qO - https://www.mongodb.org/static/pgp/server-7.0.asc | apt-key add - && \
-    echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-7.0.list && \
-    apt-get update && \
-    apt-get install -y mongodb-org=7.0.* mongodb-org-database=7.0.* mongodb-org-server=7.0.* mongodb-org-mongos=7.0.* mongodb-org-tools=7.0.* && \
-    apt-mark hold mongodb-org mongodb-org-database mongodb-org-server mongodb-org-mongos mongodb-org-tools && \
-    rm -rf /var/lib/apt/lists/*
+# Set up proper locales
+RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
+ENV LANG=en_US.UTF-8 \
+    LANGUAGE=en_US:en \
+    LC_ALL=en_US.UTF-8
+
+# Install Redis 7 from Debian bookworm repositories
+RUN apt-get update \
+    && apt-get install -y redis-server \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Caddy web server
-RUN curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg && \
-    curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list && \
-    apt-get update && \
-    apt-get install -y caddy && \
-    rm -rf /var/lib/apt/lists/*
+RUN curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg \
+    && curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list \
+    && apt-get update \
+    && apt-get install -y caddy \
+    && rm -rf /var/lib/apt/lists/*
 
-# Create required directories with proper permissions
-RUN mkdir -p /app/server /app/data /var/log/supervisor /app/web /data/db && \
-    chown -R root:root /app && \
-    chmod -R 755 /app && \
-    chown -R mongodb:mongodb /data/db && \
-    chmod -R 750 /data/db
+# Install MongoDB 7 - using Ubuntu jammy repository as Debian bookworm packages may not be available
+RUN curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | gpg --dearmor -o /usr/share/keyrings/mongodb-server-7.0.gpg \
+    && echo "deb [arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-7.0.list \
+    && apt-get update \
+    && apt-get install -y mongodb-org \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy built artifacts from previous stages
-COPY --from=go-builder /app/server/main /app/server/main
-COPY --from=go-builder /app/server/bun /app/server/bun
-COPY --from=go-builder /app/server/cmd/bun/migrations /app/server/cmd/bun/migrations
-COPY --from=go-builder /app/server/src/config /app/server/src/config
+# Create necessary directories
+RUN mkdir -p /app/server /app/data /var/log/supervisor /app/web
+
+# Set proper permissions for MongoDB
+RUN mkdir -p /data/db \
+    && chown -R mongodb:mongodb /data/db \
+    && chmod -R 750 /data/db
+
+# Copy built Go binaries from go-builder
+COPY --from=go-builder /app/server/api /app/server/api
+COPY --from=go-builder /app/server/producer /app/server/producer
+COPY --from=go-builder /app/server/worker /app/server/worker
+COPY --from=go-builder /app/server/ingester /app/server/ingester
+COPY --from=go-builder /app/server/internal/config /app/server/internal/config
 COPY --from=go-builder /app/server/scripts/run-migrations.sh /app/server/run-migrations.sh
+
+# Copy built web assets from web-builder
 COPY --from=web-builder /app/apps/web/dist /app/web
 
 # Copy configuration files
@@ -78,16 +95,8 @@ COPY Caddyfile /etc/caddy/Caddyfile
 COPY supervisord.bundle.mongo.conf /etc/supervisor/conf.d/supervisord.conf
 COPY startup.bundle.mongo.sh /app/startup.sh
 
-# Set proper permissions for executables and sensitive files
-RUN chmod +x /app/server/run-migrations.sh /app/startup.sh /app/server/main /app/server/bun && \
-    chmod 644 /etc/caddy/Caddyfile && \
-    chmod 644 /etc/supervisor/conf.d/supervisord.conf && \
-    chown -R root:root /app/server && \
-    chown -R root:root /app/web
-
-# Create MongoDB configuration directory
-RUN mkdir -p /etc/mongod && \
-    chown -R mongodb:mongodb /etc/mongod
+# Set proper permissions for executables
+RUN chmod +x /app/server/run-migrations.sh /app/startup.sh /app/server/api /app/server/producer /app/server/worker /app/server/ingester
 
 # Expose port
 EXPOSE 8383

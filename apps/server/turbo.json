@@ -5,7 +5,19 @@
       "env": ["PORT"],
       "outputs": ["dist/**"]
     },
-    "dev:watch": {
+    "dev:api": {
+      "cache": false,
+      "persistent": true
+    },
+    "dev:producer": {
+      "cache": false,
+      "persistent": true
+    },
+    "dev:worker": {
+      "cache": false,
+      "persistent": true
+    },
+    "dev:ingester": {
       "cache": false,
       "persistent": true
     },

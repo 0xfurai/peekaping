@@ -3,86 +3,92 @@
 # Stage 1: Build Go server and migration tool
 FROM golang:1.24.3-alpine AS go-builder
 
-# Install build dependencies
 RUN apk add --no-cache git
-
-# Set the Current Working Directory inside the container
 WORKDIR /app/server
-
-# Copy go mod and sum files
 COPY apps/server/go.mod apps/server/go.sum ./
-
-# Download all dependencies
 RUN go mod download
-
-# Copy the source code into the container
 COPY apps/server/ .
-
-# Build the Go server
-RUN go build -o main ./src
-
-# Build the migration tool
-RUN go build -o bun ./cmd/bun
+RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o api -ldflags="-s -w" ./cmd/api
+RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o producer -ldflags="-s -w" ./cmd/producer
+RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o worker -ldflags="-s -w" ./cmd/worker
+RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o ingester -ldflags="-s -w" ./cmd/ingester
+RUN CGO_ENABLED=0 go build -o bun -ldflags="-s -w" ./cmd/bun
 
 # Stage 2: Build React web app
 FROM node:22-alpine AS web-builder
 
 WORKDIR /app
-
-# Copy workspace configuration files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-
-# Copy patches directory
 COPY patches/ ./patches/
-
-# Copy web app package.json
 COPY apps/web/package.json ./apps/web/package.json
-
-# Install dependencies using workspace (filter for web app only)
 RUN npm install -g pnpm && pnpm install --filter=web
-
-# Copy web app source code
 COPY apps/web/ ./apps/web/
-
-# Build the web app
 WORKDIR /app/apps/web
 RUN pnpm run build
 
-# Stage 3: Final runtime image
-FROM caddy:alpine
+# Stage 3: Final runtime image with Debian bookworm-slim
+FROM debian:bookworm-slim
 
-# Install supervisor to manage multiple processes
-RUN apk add --no-cache supervisor netcat-openbsd
+# Set environment variables for non-interactive installation
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+
+# Install base dependencies
+RUN apt-get update && apt-get install -y \
+    supervisor \
+    netcat-openbsd \
+    wget \
+    curl \
+    ca-certificates \
+    gnupg \
+    lsb-release \
+    locales \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set up proper locales
+RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
+ENV LANG=en_US.UTF-8 \
+    LANGUAGE=en_US:en \
+    LC_ALL=en_US.UTF-8
+
+# Install Redis 7 from Debian bookworm repositories
+RUN apt-get update \
+    && apt-get install -y redis-server \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Caddy web server
+RUN curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg \
+    && curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list \
+    && apt-get update \
+    && apt-get install -y caddy \
+    && rm -rf /var/lib/apt/lists/*
 
 # Create necessary directories
 RUN mkdir -p /app/server /app/data /var/log/supervisor /app/web
 
-# Copy Go server and migration tool from go-builder
-COPY --from=go-builder /app/server/main /app/server/main
+# Copy built Go binaries from go-builder
+COPY --from=go-builder /app/server/api /app/server/api
+COPY --from=go-builder /app/server/producer /app/server/producer
+COPY --from=go-builder /app/server/worker /app/server/worker
+COPY --from=go-builder /app/server/ingester /app/server/ingester
 COPY --from=go-builder /app/server/bun /app/server/bun
-
-# Copy migration files and scripts
 COPY --from=go-builder /app/server/cmd/bun/migrations /app/server/cmd/bun/migrations
-COPY --from=go-builder /app/server/src/config /app/server/src/config
+COPY --from=go-builder /app/server/internal/config /app/server/internal/config
 COPY --from=go-builder /app/server/scripts/run-migrations.sh /app/server/run-migrations.sh
 
-# Copy built web assets
+# Copy built web assets from web-builder
 COPY --from=web-builder /app/apps/web/dist /app/web
 
-# Copy Caddy configuration
+# Copy configuration files
 COPY Caddyfile /etc/caddy/Caddyfile
-
-# Copy supervisor configuration for SQLite
 COPY supervisord.bundle.sqlite.conf /etc/supervisor/conf.d/supervisord.conf
-
-# Copy startup script
 COPY startup.bundle.sqlite.sh /app/startup.sh
 
-# Make scripts executable
-RUN chmod +x /app/server/run-migrations.sh /app/startup.sh /app/server/main /app/server/bun
+# Set proper permissions for executables
+RUN chmod +x /app/server/run-migrations.sh /app/startup.sh /app/server/api /app/server/producer /app/server/worker /app/server/ingester /app/server/bun
 
-# Expose port 8383 (matches your current setup)
+# Expose port
 EXPOSE 8383
 
-# Use our startup script
+# Start the application
 CMD ["/app/startup.sh"]

@@ -53,7 +53,7 @@ Create a `.env` file with your configuration:
 DB_USER=root
 DB_PASS=your-secure-password-here
 DB_NAME=peekaping
-DB_HOST=postgres
+DB_HOST=database
 DB_PORT=5432
 DB_TYPE=postgres
 
@@ -77,7 +77,6 @@ JWT settings (access/refresh token expiration times and secret keys) are now aut
 :::warning Important Security Notes
 - **Change all default passwords and secret keys**
 - Use strong, unique passwords for the database
-- Generate secure JWT secret keys (use a password generator)
 - Consider using environment-specific secrets management
 :::
 
@@ -90,24 +89,41 @@ networks:
   appnet:
 
 services:
-  postgres:
+  database:
     image: postgres:17
     restart: unless-stopped
     env_file:
       - .env
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASS}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASS:-password}
+      POSTGRES_DB: ${DB_NAME:-peekaping}
     volumes:
       - ./.data/postgres:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
-      interval: 1s
-      timeout: 60s
-      retries: 60
     networks:
       - appnet
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-peekaping}",
+        ]
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
+
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    networks:
+      - appnet
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
 
   migrate:
     image: 0xfurai/peekaping-migrate:latest
@@ -115,49 +131,93 @@ services:
     env_file:
       - .env
     depends_on:
-      postgres:
+      database:
         condition: service_healthy
     networks:
       - appnet
 
-  server:
-    image: 0xfurai/peekaping-server:latest
+  api:
+    image: 0xfurai/peekaping-api:latest
     restart: unless-stopped
     env_file:
       - .env
     depends_on:
-      postgres:
+      database:
         condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
     networks:
       - appnet
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO - http://localhost:8034/api/v1/health || exit 1"]
-      interval: 1s
-      timeout: 60s
-      retries: 60
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO - http://localhost:8034/api/v1/health || exit 1",
+        ]
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
+
+  producer:
+    image: 0xfurai/peekaping-producer:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - appnet
+
+  worker:
+    image: 0xfurai/peekaping-worker:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - appnet
+
+  ingester:
+    image: 0xfurai/peekaping-ingester:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - appnet
 
   web:
     image: 0xfurai/peekaping-web:latest
-    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
     networks:
       - appnet
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
-      interval: 1s
-      timeout: 60s
-      retries: 60
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
 
   gateway:
     image: nginx:latest
-    restart: unless-stopped
     ports:
       - "8383:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      server:
+      api:
         condition: service_healthy
       web:
         condition: service_healthy
@@ -165,9 +225,10 @@ services:
       - appnet
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
-      interval: 1s
-      timeout: 60s
-      retries: 60
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
 ```
 
 #### `nginx.conf` file

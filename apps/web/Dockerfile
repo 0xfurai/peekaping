@@ -15,7 +15,7 @@ COPY patches ./patches/
 COPY apps/web/package.json ./apps/web/
 
 # Install dependencies from monorepo root
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --filter web
 
 # Copy web app source code
 COPY apps/web ./apps/web/

@@ -496,6 +496,10 @@ definitions:
         description: monitor interval in seconds to do request to url
         example: 60
         type: integer
+      last_heartbeat:
+        allOf:
+        - $ref: '#/definitions/shared.HeartBeatModel'
+        description: Last heartbeat for push monitors
       max_retries:
         description: Maximum retries before the service is marked as down and a notification
           is sent
@@ -821,6 +825,33 @@ definitions:
       updated_at:
         type: string
       value:
+        type: string
+    type: object
+  shared.HeartBeatModel:
+    properties:
+      down_count:
+        type: integer
+      duration:
+        type: integer
+      end_time:
+        type: string
+      id:
+        type: string
+      important:
+        type: boolean
+      monitor_id:
+        type: string
+      msg:
+        type: string
+      notified:
+        type: boolean
+      ping:
+        type: integer
+      retries:
+        type: integer
+      status:
+        $ref: '#/definitions/shared.MonitorStatus'
+      time:
         type: string
     type: object
   shared.MonitorStatus:

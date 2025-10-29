@@ -22,6 +22,7 @@ COMPOSE_PROD_MONGO = docker-compose.prod.mongo.yml
 COMPOSE_PROD_SQLITE = docker-compose.prod.sqlite.yml
 COMPOSE_POSTGRES = docker-compose.postgres.yml
 COMPOSE_MONGO = docker-compose.mongo.yml
+COMPOSE_SQLITE = docker-compose.sqlite.yml
 
 # Default configurations
 DEFAULT_DEV_DB = mongo
@@ -117,6 +118,11 @@ docker-mongo: ## Start MongoDB environment
 	@echo "Starting MongoDB environment..."
 	docker-compose -f $(COMPOSE_MONGO) up -d
 
+.PHONY: docker-sqlite
+docker-sqlite: ## Start SQLite environment
+	@echo "Starting SQLite environment..."
+	docker-compose -f $(COMPOSE_SQLITE) up -d
+
 # Docker targets - Service Management
 .PHONY: down-dev-postgres
 down-dev-postgres: ## Stop development PostgreSQL services
@@ -158,6 +164,11 @@ down-mongo: ## Stop MongoDB services
 	@echo "Stopping MongoDB services..."
 	docker-compose -f $(COMPOSE_MONGO) down
 
+.PHONY: down-sqlite
+down-sqlite: ## Stop SQLite services
+	@echo "Stopping SQLite services..."
+	docker-compose -f $(COMPOSE_SQLITE) down
+
 .PHONY: docker-down
 docker-down: down-dev-$(DEFAULT_DEV_DB) ## Stop default development services
 
@@ -172,6 +183,7 @@ docker-down-all: ## Stop all Docker Compose services
 	@docker-compose -f $(COMPOSE_PROD_SQLITE) down 2>/dev/null || true
 	@docker-compose -f $(COMPOSE_POSTGRES) down 2>/dev/null || true
 	@docker-compose -f $(COMPOSE_MONGO) down 2>/dev/null || true
+	@docker-compose -f $(COMPOSE_SQLITE) down 2>/dev/null || true
 
 # Database targets
 .PHONY: migrate-init
@@ -206,12 +218,34 @@ switch-to-sqlite: docker-down-all dev-sqlite ## Switch to SQLite development env
 .PHONY: test-server
 test-server: ## Test the server
 	@echo "Testing the server..."
-	cd apps/server && ../../scripts/tool.sh go test -v ./src/...
+	cd apps/server && ../../scripts/tool.sh go test -v ./internal/...
 
 .PHONY: lint-web
 lint-web: ## Test the web
 	@echo "Testing the web..."
 	cd apps/web && ../../scripts/tool.sh pnpm lint && ../../scripts/tool.sh pnpm build
+
+# Producer targets
+.PHONY: build-producer
+build-producer: ## Build the producer binary
+	@echo "Building producer..."
+	cd $(GO_SERVER_DIR) && ../../scripts/tool.sh go build -o ../../bin/producer ./cmd/producer
+
+.PHONY: run-producer
+run-producer: ## Run the producer service
+	@echo "Running producer..."
+	cd $(GO_SERVER_DIR) && ../../scripts/tool.sh go run ./cmd/producer/main.go
+
+# Ingester targets
+.PHONY: build-ingester
+build-ingester: ## Build the ingester binary
+	@echo "Building ingester..."
+	cd $(GO_SERVER_DIR) && ../../scripts/tool.sh go build -o ../../bin/ingester ./cmd/ingester
+
+.PHONY: run-ingester
+run-ingester: ## Run the ingester service
+	@echo "Running ingester..."
+	cd $(GO_SERVER_DIR) && ../../scripts/tool.sh go run ./cmd/ingester/main.go
 
 .PHONY: setup
 setup: ## Setup development environment (asdf or manual)
@@ -257,4 +291,4 @@ install: ## Install all dependencies (pnpm install + go mod tidy)
 
 .PHONY: dev
 dev: ## Start development environment
-	./scripts/tool.sh pnpm run dev
+	./scripts/tool.sh pnpm run dev dev:api dev:ingester dev:producer dev:worker docs:watch

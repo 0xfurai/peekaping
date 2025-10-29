@@ -4568,6 +4568,14 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 60
                 },
+                "last_heartbeat": {
+                    "description": "Last heartbeat for push monitors",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/shared.HeartBeatModel"
+                        }
+                    ]
+                },
                 "max_retries": {
                     "description": "Maximum retries before the service is marked as down and a notification is sent",
                     "type": "integer",
@@ -5030,6 +5038,47 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "shared.HeartBeatModel": {
+            "type": "object",
+            "properties": {
+                "down_count": {
+                    "type": "integer"
+                },
+                "duration": {
+                    "type": "integer"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "important": {
+                    "type": "boolean"
+                },
+                "monitor_id": {
+                    "type": "string"
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "notified": {
+                    "type": "boolean"
+                },
+                "ping": {
+                    "type": "integer"
+                },
+                "retries": {
+                    "type": "integer"
+                },
+                "status": {
+                    "$ref": "#/definitions/shared.MonitorStatus"
+                },
+                "time": {
                     "type": "string"
                 }
             }

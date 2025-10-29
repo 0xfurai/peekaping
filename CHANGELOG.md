@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### ⚠️ Breaking Changes
+- Major architectural overhaul to make the system highly available and horizontally scalable (#207) (thanks @0xfurai)
+- If you are running a microservices setup with Docker Compose, make sure to update your configuration — the app has now been split into multiple microservices, also update .env file from example
+- The bundled version should continue to work as before without any changes
+
 ### Added
 
 ### Changed

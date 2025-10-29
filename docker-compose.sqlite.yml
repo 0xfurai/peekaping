@@ -1,0 +1,21 @@
+services:
+  redis:
+    image: redis:7-alpine
+    command: [
+      "redis-server",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+    ]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+
+  asynqmon:
+    image: hibiken/asynqmon:latest
+    platform: linux/amd64
+    restart: always
+    ports:
+      - "8080:8080"
+    command:
+      - "--redis-addr=redis:6379"

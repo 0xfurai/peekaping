@@ -34,6 +34,15 @@
     # Enable logging
     log {
         output stdout
-        format console
+        format append {
+            fields {
+                svc peekaping:gateway
+            }
+            wrap json {
+                time_format iso8601
+                message_key msg
+            }
+        }
+        level info
     }
 }

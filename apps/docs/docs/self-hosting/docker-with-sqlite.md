@@ -73,7 +73,6 @@ JWT settings (access/refresh token expiration times and secret keys) are now aut
 :::warning Important Security Notes
 - **Change all default passwords and secret keys**
 - Use strong, unique passwords for the database
-- Generate secure JWT secret keys (use a password generator)
 - Consider using environment-specific secrets management
 :::
 
@@ -81,11 +80,23 @@ JWT settings (access/refresh token expiration times and secret keys) are now aut
 
 Create a `docker-compose.yml` file:
 
-```yaml
+```yml
 networks:
   appnet:
 
 services:
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    networks:
+      - appnet
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
+
   migrate:
     image: 0xfurai/peekaping-migrate:latest
     restart: "no"
@@ -94,44 +105,94 @@ services:
     volumes:
       - ./.data/sqlite:/app/data
 
-  server:
-    image: 0xfurai/peekaping-server:latest
+  api:
+    image: 0xfurai/peekaping-api:latest
     restart: unless-stopped
     env_file:
       - .env
     volumes:
       - ./.data/sqlite:/app/data
     depends_on:
+      redis:
+        condition: service_started
       migrate:
         condition: service_completed_successfully
     networks:
       - appnet
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO - http://localhost:8034/api/v1/health || exit 1"]
-      interval: 1s
-      timeout: 60s
-      retries: 60
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO - http://localhost:8034/api/v1/health || exit 1",
+        ]
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
+
+  producer:
+    image: 0xfurai/peekaping-producer:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./.data/sqlite:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      - appnet
+
+  worker:
+    image: 0xfurai/peekaping-worker:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - appnet
+
+  ingester:
+    image: 0xfurai/peekaping-ingester:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./.data/sqlite:/app/data
+    depends_on:
+      redis:
+        condition: service_started
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      - appnet
 
   web:
     image: 0xfurai/peekaping-web:latest
-    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
     networks:
       - appnet
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
-      interval: 1s
-      timeout: 60s
-      retries: 60
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
 
   gateway:
     image: nginx:latest
-    restart: unless-stopped
     ports:
       - "8383:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      server:
+      api:
         condition: service_healthy
       web:
         condition: service_healthy
@@ -139,9 +200,10 @@ services:
       - appnet
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
-      interval: 1s
-      timeout: 60s
-      retries: 60
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
 ```
 
 #### `nginx.conf` file

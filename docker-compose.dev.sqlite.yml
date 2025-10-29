@@ -1,34 +1,100 @@
+networks:
+  appnet:
+
 services:
+  redis:
+    image: redis:7
+    restart: always
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - appnet
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
+
   migrate:
     build:
       context: ./apps/server
-      dockerfile: Dockerfile.migrate
+      dockerfile: infra/Dockerfile.migrate
     restart: "no"
     env_file:
       - .env
-    environment:
-      - DB_TYPE=sqlite
-      - DB_NAME=/app/data/peekaping.db
     volumes:
       - ./.data/sqlite:/app/data
 
-  server:
+  api:
     build:
       context: ./apps/server
-      dockerfile: Dockerfile
+      dockerfile: infra/Dockerfile.api
     restart: unless-stopped
     ports:
       - "8034:8034"
     env_file:
       - .env
-    environment:
-      - DB_TYPE=sqlite
-      - DB_NAME=/app/data/peekaping.db
     volumes:
       - ./.data/sqlite:/app/data
     depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - appnet
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO - http://localhost:8034/api/v1/health || exit 1"]
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
+
+  producer:
+    build:
+      context: ./apps/server
+      dockerfile: infra/Dockerfile.producer
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./.data/sqlite:/app/data
+    depends_on:
+      redis:
+        condition: service_started
       migrate:
         condition: service_completed_successfully
+    networks:
+      - appnet
+
+  worker:
+    build:
+      context: ./apps/server
+      dockerfile: infra/Dockerfile.worker
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_started
+    networks:
+      - appnet
+
+  ingester:
+    build:
+      context: ./apps/server
+      dockerfile: infra/Dockerfile.ingester
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./.data/sqlite:/app/data
+    depends_on:
+      redis:
+        condition: service_started
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      - appnet
 
   web:
     build:
@@ -38,6 +104,15 @@ services:
     ports:
       - "8383:80"
     depends_on:
-      - server
+      api:
+        condition: service_healthy
     environment:
       - API_URL=http://localhost:8034
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
+
+

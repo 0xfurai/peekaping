@@ -2,7 +2,7 @@ networks:
   appnet:
 
 services:
-  postgres:
+  database:
     image: postgres:17
     restart: unless-stopped
     ports:
@@ -15,53 +15,105 @@ services:
       POSTGRES_DB: ${DB_NAME:-peekaping}
     volumes:
       - ./.data/postgres:/var/lib/postgresql/data
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-peekaping}",
-        ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
     networks:
       - appnet
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-peekaping}"]
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
+
+  redis:
+    image: redis:7
+    restart: always
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - appnet
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
 
   migrate:
     build:
       context: ./apps/server
-      dockerfile: Dockerfile.migrate
+      dockerfile: infra/Dockerfile.migrate
     restart: "no"
     env_file:
       - .env
-    environment:
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_TYPE=postgres
     depends_on:
-      postgres:
+      database:
         condition: service_healthy
     networks:
       - appnet
 
-  server:
+  api:
     build:
       context: ./apps/server
-      dockerfile: Dockerfile
+      dockerfile: infra/Dockerfile.api
     restart: unless-stopped
     ports:
       - "8034:8034"
     env_file:
       - .env
-    environment:
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_TYPE=postgres
     depends_on:
-      postgres:
+      database:
         condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    networks:
+      - appnet
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO - http://localhost:8034/api/v1/health || exit 1"]
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
+
+  producer:
+    build:
+      context: ./apps/server
+      dockerfile: infra/Dockerfile.producer
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - appnet
+
+  worker:
+    build:
+      context: ./apps/server
+      dockerfile: infra/Dockerfile.worker
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - appnet
+
+  ingester:
+    build:
+      context: ./apps/server
+      dockerfile: infra/Dockerfile.ingester
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - appnet
 
@@ -72,9 +124,16 @@ services:
     restart: unless-stopped
     ports:
       - "8383:80"
-    depends_on:
-      - server
     environment:
       - API_URL=http://localhost:8034
+    depends_on:
+      api:
+        condition: service_healthy
     networks:
       - appnet
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
