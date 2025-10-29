@@ -35,7 +35,7 @@ type Config struct {
 	RedisDB       int    `env:"REDIS_DB" validate:"min=0,max=15" default:"0"`
 
 	// Queue configuration
-	QueueConcurrency int `env:"QUEUE_CONCURRENCY" validate:"min=1" default:"1000"`
+	QueueConcurrency int `env:"QUEUE_CONCURRENCY" validate:"min=1" default:"128"`
 
 	// Producer configuration (for push endpoint)
 	ProducerConcurrency int `env:"PRODUCER_CONCURRENCY" validate:"min=1,max=128" default:"10"`

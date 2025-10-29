@@ -13,7 +13,7 @@ const (
 
 	// With high concurrency (128 workers), use smaller batches to reduce contention
 	// Smaller batches = more frequent claims = better work distribution
-	BatchClaim          = 50                    // max items to claim per tick (reduced from 1000 for better distribution)
+	BatchClaim          = 50                    // max items to claim per tick
 	LeaseTTL            = 10 * time.Second      // how long an item can sit in "lease" while enqueuing
 	ReclaimEvery        = 2 * time.Second       // how often to sweep expired leases
 	ClaimTick           = 50 * time.Millisecond // how often to check for due monitors (increased slightly for 128 workers)

@@ -37,7 +37,11 @@ services:
     networks:
       - appnet
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO - http://localhost:8034/api/v1/health || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO - http://localhost:8034/api/v1/health || exit 1",
+        ]
       interval: 30s
       timeout: 2s
       retries: 5

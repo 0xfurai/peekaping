@@ -77,7 +77,6 @@ JWT settings (access/refresh token expiration times and secret keys) are now aut
 :::warning Important Security Notes
 - **Change all default passwords and secret keys**
 - Use strong, unique passwords for the database
-- Generate secure JWT secret keys (use a password generator)
 - Consider using environment-specific secrets management
 :::
 
@@ -85,12 +84,12 @@ JWT settings (access/refresh token expiration times and secret keys) are now aut
 
 Create a `docker-compose.yml` file:
 
-```yaml
+```yml
 networks:
   appnet:
 
 services:
-  mongodb:
+  database:
     image: mongo:7
     restart: unless-stopped
     env_file:
@@ -100,51 +99,106 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${DB_PASS}
       MONGO_INITDB_DATABASE: ${DB_NAME}
     volumes:
-      - ./.data/mongodb:/data/db # mount folder or volume for persistent data
+      - ./.data/mongodb:/data/db
     networks:
       - appnet
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
-      interval: 1s
-      timeout: 60s
-      retries: 60
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
 
-  server:
-    image: 0xfurai/peekaping-server:latest
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    networks:
+      - appnet
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
+
+  api:
+    image: 0xfurai/peekaping-api:latest
     restart: unless-stopped
     env_file:
       - .env
     depends_on:
-      mongodb:
+      database:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - appnet
     healthcheck:
       test: ["CMD-SHELL", "wget -qO - http://localhost:8034/api/v1/health || exit 1"]
-      interval: 1s
-      timeout: 60s
-      retries: 60
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
+
+  producer:
+    image: 0xfurai/peekaping-producer:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - appnet
+
+  worker:
+    image: 0xfurai/peekaping-worker:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - appnet
+
+  ingester:
+    image: 0xfurai/peekaping-ingester:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - appnet
 
   web:
     image: 0xfurai/peekaping-web:latest
-    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
     networks:
       - appnet
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
-      interval: 1s
-      timeout: 60s
-      retries: 60
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
 
   gateway:
     image: nginx:latest
-    restart: unless-stopped
     ports:
       - "8383:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      server:
+      api:
         condition: service_healthy
       web:
         condition: service_healthy
@@ -152,9 +206,10 @@ services:
       - appnet
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
-      interval: 1s
-      timeout: 60s
-      retries: 60
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
 ```
 
 

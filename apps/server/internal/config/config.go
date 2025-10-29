@@ -45,7 +45,7 @@ type Config struct {
 
 	// Queue configuration
 	// Number of concurrent workers to process tasks
-	QueueConcurrency int `env:"QUEUE_CONCURRENCY" validate:"min=1" default:"1000"`
+	QueueConcurrency int `env:"QUEUE_CONCURRENCY" validate:"min=1" default:"128"`
 
 	// Producer configuration
 	// Number of concurrent producer goroutines for claiming and processing monitors

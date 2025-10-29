@@ -30,7 +30,7 @@ type Config struct {
 	RedisDB       int    `env:"REDIS_DB" validate:"min=0,max=15" default:"0"`
 
 	// Queue configuration
-	QueueConcurrency int `env:"QUEUE_CONCURRENCY" validate:"min=1" default:"1000"`
+	QueueConcurrency int `env:"QUEUE_CONCURRENCY" validate:"min=1" default:"128"`
 
 	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"peekaping:ingester"`
 }
