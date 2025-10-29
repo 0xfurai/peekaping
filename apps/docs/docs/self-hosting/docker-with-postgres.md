@@ -53,7 +53,7 @@ Create a `.env` file with your configuration:
 DB_USER=root
 DB_PASS=your-secure-password-here
 DB_NAME=peekaping
-DB_HOST=postgres
+DB_HOST=database
 DB_PORT=5432
 DB_TYPE=postgres
 
