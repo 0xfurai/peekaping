@@ -9,7 +9,7 @@ services:
       "no",
     ]
     ports:
-      - "6381:6379"
+      - "${REDIS_PORT:-6379}:6379"
 
   asynqmon:
     image: hibiken/asynqmon:latest
