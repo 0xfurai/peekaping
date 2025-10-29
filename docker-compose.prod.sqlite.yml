@@ -10,8 +10,8 @@ services:
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 30s
-      timeout: 3s
-      retries: 3
+      timeout: 2s
+      retries: 5
       start_period: 5s
 
   migrate:
@@ -38,9 +38,10 @@ services:
       - appnet
     healthcheck:
       test: ["CMD-SHELL", "wget -qO - http://localhost:8034/api/v1/health || exit 1"]
-      interval: 1s
-      timeout: 3s
-      retries: 60
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
 
   producer:
     image: 0xfurai/peekaping-producer:latest
@@ -92,9 +93,10 @@ services:
       - appnet
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
-      interval: 1s
-      timeout: 60s
-      retries: 60
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
 
   gateway:
     image: nginx:latest
@@ -111,6 +113,7 @@ services:
       - appnet
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
-      interval: 1s
-      timeout: 60s
-      retries: 60
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
