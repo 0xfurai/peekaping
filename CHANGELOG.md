@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Major architecture change in order to make system highly available and horizontally scalable (#207) (Thanks @0xfurai)
+
 ### Fixed
 
 ## [0.0.42] - 2025-10-14
