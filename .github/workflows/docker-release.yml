@@ -118,7 +118,7 @@ jobs:
         run: |
           sed -i.bak -E 's/(Version[[:space:]]*=[[:space:]]*")[^"]+(")/\1${{ github.event.inputs.version }}\2/' version.go
           rm version.go.bak
-        working-directory: ./apps/server/src/version
+        working-directory: ./apps/server/internal/version
 
       - name: Write version.ts for web
         run: |
@@ -244,7 +244,7 @@ jobs:
       - name: Commit and tag version bump (amd64 only)
         if: matrix.arch == 'amd64'
         run: |
-          git add apps/web/package.json apps/web/src/version.ts apps/server/src/version/version.go CHANGELOG.md
+          git add apps/web/package.json apps/web/src/version.ts apps/server/internal/version/version.go CHANGELOG.md
           git commit -m "chore: bump version to ${{ github.event.inputs.version }} and update changelog"
           git push origin HEAD:${{ github.ref_name }}
         env:
@@ -292,7 +292,7 @@ jobs:
         run: |
           sed -i.bak -E 's/(Version[[:space:]]*=[[:space:]]*")[^"]+(")/\1${{ github.event.inputs.version }}\2/' version.go
           rm version.go.bak
-        working-directory: ./apps/server/src/version
+        working-directory: ./apps/server/internal/version
 
       - name: Write version.ts for web
         run: |
