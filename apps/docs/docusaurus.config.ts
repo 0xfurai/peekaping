@@ -7,7 +7,7 @@ import type * as Preset from "@docusaurus/preset-classic";
 const config: Config = {
   title: "Peekaping Docs",
   tagline: "Peekaping is a monitoring tool for your servers",
-  favicon: 'img/favicon.ico',
+  favicon: "img/favicon.ico",
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
@@ -49,6 +49,10 @@ const config: Config = {
         blog: false,
         theme: {
           customCss: "./src/css/custom.css",
+        },
+        gtag: {
+          trackingID: "G-DRM5LCBFK6",
+          anonymizeIP: true,
         },
       } satisfies Preset.Options,
     ],
