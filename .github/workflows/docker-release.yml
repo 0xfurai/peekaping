@@ -126,6 +126,20 @@ jobs:
           echo "export const VERSION = \"${{ github.event.inputs.version }}\";" >> src/version.ts
         working-directory: ./apps/web
 
+      - name: Docker metadata for UI
+        id: meta_ui
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-web
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-web
+          flavor: |
+            latest=false
+          tags: |
+            type=raw,value=${{ github.event.inputs.version }}-${{ matrix.arch }}
+            type=raw,value=latest-${{ matrix.arch }}
+            type=raw,value=${{ github.event.inputs.version }},suffix=-${{ matrix.arch }}
+
       - name: Build and push UI image
         id: build_ui
         uses: docker/build-push-action@v6
@@ -136,13 +150,23 @@ jobs:
           platforms: ${{ matrix.platform }}
           provenance: false
           sbom: false
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-web:latest-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-web:latest-${{ matrix.arch }}
+          tags: ${{ steps.meta_ui.outputs.tags }}
+          labels: ${{ steps.meta_ui.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Docker metadata for API
+        id: meta_server
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-api
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-api
+          flavor: |
+            latest=false
+          tags: |
+            type=raw,value=${{ github.event.inputs.version }}-${{ matrix.arch }}
+            type=raw,value=latest-${{ matrix.arch }}
 
       - name: Build and push API image
         id: build_api
@@ -154,13 +178,23 @@ jobs:
           platforms: ${{ matrix.platform }}
           provenance: false
           sbom: false
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-api:latest-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-api:latest-${{ matrix.arch }}
+          tags: ${{ steps.meta_server.outputs.tags }}
+          labels: ${{ steps.meta_server.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Docker metadata for Worker
+        id: meta_worker
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker
+          flavor: |
+            latest=false
+          tags: |
+            type=raw,value=${{ github.event.inputs.version }}-${{ matrix.arch }}
+            type=raw,value=latest-${{ matrix.arch }}
 
       - name: Build and push Worker image
         id: build_worker
@@ -172,13 +206,23 @@ jobs:
           platforms: ${{ matrix.platform }}
           provenance: false
           sbom: false
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:latest-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:latest-${{ matrix.arch }}
+          tags: ${{ steps.meta_worker.outputs.tags }}
+          labels: ${{ steps.meta_worker.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Docker metadata for Producer
+        id: meta_producer
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer
+          flavor: |
+            latest=false
+          tags: |
+            type=raw,value=${{ github.event.inputs.version }}-${{ matrix.arch }}
+            type=raw,value=latest-${{ matrix.arch }}
 
       - name: Build and push Producer image
         id: build_producer
@@ -190,13 +234,23 @@ jobs:
           platforms: ${{ matrix.platform }}
           provenance: false
           sbom: false
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:latest-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:latest-${{ matrix.arch }}
+          tags: ${{ steps.meta_producer.outputs.tags }}
+          labels: ${{ steps.meta_producer.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Docker metadata for Ingester
+        id: meta_ingest
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester
+          flavor: |
+            latest=false
+          tags: |
+            type=raw,value=${{ github.event.inputs.version }}-${{ matrix.arch }}
+            type=raw,value=latest-${{ matrix.arch }}
 
       - name: Build and push Ingester image
         id: build_ingester
@@ -208,11 +262,8 @@ jobs:
           platforms: ${{ matrix.platform }}
           provenance: false
           sbom: false
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:latest-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:latest-${{ matrix.arch }}
+          tags: ${{ steps.meta_ingest.outputs.tags }}
+          labels: ${{ steps.meta_ingest.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -371,6 +422,19 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Docker metadata for Bundle - ${{ matrix.database }}
+        id: meta_bundle
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}
+          flavor: |
+            latest=false
+          tags: |
+            type=raw,value=${{ github.event.inputs.version }}-${{ matrix.arch }}
+            type=raw,value=latest-${{ matrix.arch }}
+
       - name: Build and push Bundle image - ${{ matrix.database }}
         id: build_bundle
         uses: docker/build-push-action@v6
@@ -381,11 +445,8 @@ jobs:
           platforms: ${{ matrix.platform }}
           provenance: false
           sbom: false
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}:latest-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}:latest-${{ matrix.arch }}
+          tags: ${{ steps.meta_bundle.outputs.tags }}
+          labels: ${{ steps.meta_bundle.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
