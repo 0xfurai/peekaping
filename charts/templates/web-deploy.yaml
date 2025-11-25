@@ -1,0 +1,140 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-web
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Release.Name }}-web
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/component: web
+spec:
+  replicas: {{ .Values.web.replicaCount }}
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-web
+
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-web
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/name: {{ .Release.Name }}
+        app.kubernetes.io/component: web
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/config.yaml") . | sha256sum }}
+        {{- if .Values.web.apparmor.enabled }}
+        # AppArmor annotation key must match container name
+        container.apparmor.security.beta.kubernetes.io/{{ .Release.Name }}-web: runtime/default
+        {{- end }}
+
+    spec:
+      serviceAccountName: {{ .Release.Name }}-sa
+      automountServiceAccountToken: false
+
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: {{ .Release.Name }}-web
+
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+
+      initContainers:
+        - name: seed-web-root
+          image: 0xfurai/peekaping-web:latest
+          command:
+            - sh
+            - -c
+            - |
+              set -e
+              cp -r /usr/share/nginx/html/. /seed/
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            privileged: false
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: web-root
+              mountPath: /seed
+
+      containers:
+        - name: {{ .Release.Name }}-web
+          image: {{ .Values.web.image.repository }}:{{ .Values.web.image.tag }}
+          imagePullPolicy: {{ .Values.web.image.pullPolicy }}
+
+          ports:
+            - name: http
+              containerPort: {{ .Values.web.service.port }}
+
+          envFrom:
+            - configMapRef:
+                name: {{ .Release.Name }}-config
+
+          resources:
+            requests:
+              cpu: {{ .Values.web.resources.requests.cpu }}
+              memory: {{ .Values.web.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.web.resources.limits.cpu }}
+              memory: {{ .Values.web.resources.limits.memory }}
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            privileged: false
+            capabilities:
+              drop: ["ALL"]
+
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.web.probes.path }}
+              port: {{ .Values.web.service.port }}
+            initialDelaySeconds: {{ .Values.web.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.web.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.web.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.web.probes.readiness.failureThreshold }}
+
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.web.probes.path }}
+              port: {{ .Values.web.service.port }}
+            initialDelaySeconds: {{ .Values.web.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.web.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.web.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.web.probes.liveness.failureThreshold }}
+      
+          volumeMounts:
+            - name: web-root
+              mountPath: /usr/share/nginx/html
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+            - name: nginx-run
+              mountPath: /var/run
+
+      volumes:
+        - name: web-root
+          emptyDir: {}
+        - name: nginx-cache
+          emptyDir: {}
+        - name: nginx-run
+          emptyDir: {}
+          

@@ -1,0 +1,184 @@
+postgresql:
+  enabled: false
+  # auth:
+  #   enablePostgresUser: false
+  #   username: peekaping
+  #   password: peekaping
+  #   database: peekaping
+
+redis:
+  enabled: false
+  # auth:
+  #   password: peekaping
+
+env:
+  # CLIENT_URL: "https://mydomain.com"
+  # DB_TYPE: "postgres"
+  # DB_HOST: "peekaping-postgresql.peekaping.svc.cluster.local"
+  # DB_PORT: "5432"
+  # DB_USER: "peekaping"
+  # DB_PASS: "peekaping"
+  # DB_NAME: "peekaping"
+  # REDIS_HOST: "peekaping-redis-master.peekaping.svc.cluster.local"
+  # REDIS_PORT: "6379"
+  # REDIS_PASSWORD: "peekaping"
+
+api:
+  replicaCount: 3
+  apparmor:
+    enabled: false
+  image:
+    repository: 0xfurai/peekaping-api
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    port: 8034
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+  probes:
+    path: /api/v1/health
+    readiness:
+      initialDelaySeconds: 5
+      periodSeconds: 30
+      timeoutSeconds: 2
+      failureThreshold: 5
+    liveness:
+      initialDelaySeconds: 30
+      periodSeconds: 30
+      timeoutSeconds: 2
+      failureThreshold: 5
+    startup:
+      failureThreshold: 30
+      periodSeconds: 2
+
+ingester:
+  replicaCount: 3
+  apparmor:
+    enabled: false
+  image:
+    repository: 0xfurai/peekaping-ingester
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+producer:
+  replicaCount: 3
+  apparmor:
+    enabled: false
+  image:
+    repository: 0xfurai/peekaping-producer
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+worker:
+  replicaCount: 3
+  apparmor:
+    enabled: false
+  image:
+    repository: 0xfurai/peekaping-worker
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+web:
+  replicaCount: 3
+  apparmor:
+    enabled: false
+  image:
+    repository: 0xfurai/peekaping-web
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    port: 80
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+    limits:
+      cpu: "250m"
+      memory: "256Mi"
+  probes:
+    path: /
+    readiness:
+      initialDelaySeconds: 5
+      periodSeconds: 30
+      timeoutSeconds: 2
+      failureThreshold: 5
+    liveness:
+      initialDelaySeconds: 30
+      periodSeconds: 30
+      timeoutSeconds: 2
+      failureThreshold: 5
+
+migrate:
+  backoffLimit: 3
+  activeDeadlineSeconds: 600
+  ttlSecondsAfterFinished: 3600
+  apparmor:
+    enabled: false
+  image:
+    repository: 0xfurai/peekaping-migrate
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+ingress:
+  enabled: false
+  # ingressClassName: "alb"
+  # namespace: "istio-system"
+  # host: "mydomain.com"
+  # backend:
+  #   path: "/"
+  #   pathType: "Prefix"
+  #   service:
+  #     name: "istio-ingressgateway"
+  #     port: 80
+  # annotations:
+  #   alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:000000000000:certificate/my-certificate-arn
+  #   alb.ingress.kubernetes.io/healthcheck-path: /healthz/ready
+  #   alb.ingress.kubernetes.io/healthcheck-port: status-port
+  #   alb.ingress.kubernetes.io/healthcheck-protocol: HTTP
+  #   alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
+  #   alb.ingress.kubernetes.io/load-balancer-attributes: deletion_protection.enabled=true,routing.http.drop_invalid_header_fields.enabled=true
+  #   alb.ingress.kubernetes.io/scheme: internal
+  #   alb.ingress.kubernetes.io/ssl-redirect: "443"
+  #   alb.ingress.kubernetes.io/target-type: ip
+
+istio:
+  gateway:
+    enabled: false
+    port: 80
+    protocol: HTTP
+    name: http
+  virtualservice:
+    enabled: false
