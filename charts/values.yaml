@@ -156,12 +156,6 @@ ingress:
   # ingressClassName: "alb"
   # namespace: "istio-system"
   # host: "mydomain.com"
-  # backend:
-  #   path: "/"
-  #   pathType: "Prefix"
-  #   service:
-  #     name: "istio-ingressgateway"
-  #     port: 80
   # annotations:
   #   alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:000000000000:certificate/my-certificate-arn
   #   alb.ingress.kubernetes.io/healthcheck-path: /healthz/ready
@@ -172,6 +166,7 @@ ingress:
   #   alb.ingress.kubernetes.io/scheme: internal
   #   alb.ingress.kubernetes.io/ssl-redirect: "443"
   #   alb.ingress.kubernetes.io/target-type: ip
+
 
 istio:
   gateway:

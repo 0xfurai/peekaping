@@ -19,13 +19,38 @@ spec:
   - host: {{ .Values.ingress.host }}
     http:
       paths:
-      - path: {{ .Values.ingress.backend.path }}
-        pathType: {{ .Values.ingress.backend.pathType }}
+      {{- if not .Values.istio.virtualservice.enabled }}
+      - path: /api
+        pathType: Prefix
         backend:
           service:
-            name: {{ .Values.ingress.backend.service.name }}
+            name: {{ .Release.Name }}-api
             port:
-              number: {{ .Values.ingress.backend.service.port }}
+              number: {{ .Values.api.service.port }}
+      - path: /socket.io
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Release.Name }}-api
+            port:
+              number: {{ .Values.api.service.port }}
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Release.Name }}-web
+            port:
+              number: {{ .Values.web.service.port }}
+      {{- end }}
+      {{- if .Values.istio.virtualservice.enabled }}
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: istio-ingressgateway
+            port:
+              number: 80
+      {{- end }}
   tls:
   - hosts:
     - {{ .Values.ingress.host }}
