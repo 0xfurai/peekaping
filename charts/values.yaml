@@ -11,17 +11,14 @@ redis:
   # auth:
   #   password: peekaping
 
-env:
-  # CLIENT_URL: "https://mydomain.com"
-  # DB_TYPE: "postgres"
-  # DB_HOST: "peekaping-postgresql.peekaping.svc.cluster.local"
-  # DB_PORT: "5432"
-  # DB_USER: "peekaping"
-  # DB_PASS: "peekaping"
-  # DB_NAME: "peekaping"
-  # REDIS_HOST: "peekaping-redis-master.peekaping.svc.cluster.local"
-  # REDIS_PORT: "6379"
-  # REDIS_PASSWORD: "peekaping"
+config:
+  existingSecret: "peekaping-config"
+  env:
+    DB_TYPE: "postgres"
+    DB_HOST: "peekaping-postgresql.peekaping.svc.cluster.local"
+    DB_PORT: "5432"
+    REDIS_HOST: "peekaping-redis-master.peekaping.svc.cluster.local"
+    REDIS_PORT: "6379"
 
 api:
   replicaCount: 3

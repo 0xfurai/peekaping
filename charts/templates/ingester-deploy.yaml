@@ -63,6 +63,10 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ .Release.Name }}-config
+            {{- if .Values.config.existingSecret }}
+            - secretRef:
+                name: {{ .Values.config.existingSecret }}
+            {{- end }}
 
           # Resource requests/limits to prevent noisy neighbor + OOM loops          
           resources:

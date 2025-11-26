@@ -4,6 +4,6 @@ metadata:
   name: {{ .Release.Name }}-config
   namespace: {{ .Release.Namespace }}
 data:
-  {{- range $k, $v := .Values.env }}
+  {{- range $k, $v := .Values.config.env }}
   {{ $k }}: {{ $v | quote }}
   {{- end }}
