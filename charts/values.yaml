@@ -11,6 +11,8 @@ redis:
   # auth:
   #   password: peekaping
 
+# See docs for configuration details
+# https://docs.peekaping.com/architecture/api-server
 config:
   existingSecret: "peekaping-config"
   env:
