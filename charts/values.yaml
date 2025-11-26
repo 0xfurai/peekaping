@@ -169,6 +169,9 @@ ingress:
 
 
 istio:
+  ingress:
+    name: istio-ingressgateway
+    port: 80
   gateway:
     enabled: false
     port: 80
