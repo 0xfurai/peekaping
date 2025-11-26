@@ -8,5 +8,5 @@ spec:
     app: {{ .Release.Name }}-web
   ports:
     - name: http
-      port: 80
-      targetPort: 80
+      port: {{ .Values.web.service.port }}
+      targetPort: {{ .Values.web.service.port }}

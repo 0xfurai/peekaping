@@ -6,7 +6,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   selector:
-    istio: ingressgateway   # must match labels on istio-ingressgateway pods
+    istio: {{ .Values.istio.gateway.selector }}   # must match labels on istio-ingressgateway pods
   servers:
   - port:
       number: {{ .Values.istio.gateway.port }}
