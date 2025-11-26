@@ -15,10 +15,10 @@ config:
   existingSecret: "peekaping-config"
   env:
     DB_TYPE: "postgres"
-    DB_HOST: "peekaping-postgresql.peekaping.svc.cluster.local"
-    DB_PORT: "5432"
-    REDIS_HOST: "peekaping-redis-master.peekaping.svc.cluster.local"
-    REDIS_PORT: "6379"
+    # DB_HOST: "peekaping-postgresql.peekaping.svc.cluster.local"
+    # DB_PORT: "5432"
+    # REDIS_HOST: "peekaping-redis-master.peekaping.svc.cluster.local"
+    # REDIS_PORT: "6379"
 
 api:
   replicaCount: 3
