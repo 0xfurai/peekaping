@@ -125,6 +125,61 @@ import faqItems from "../data/faq";
       <TechStack />
       <Testimonials />
       <FAQ />
+
+      <!-- SEO Content Section -->
+      <section class="max-w-screen-lg mx-auto px-4 sm:px-8 py-4">
+        <div class="flex justify-center mb-4">
+          <button
+            id="seo-toggle"
+            class="text-zinc-600 hover:text-zinc-900 font-semibold px-4 py-2 rounded-full border border-zinc-300 hover:border-zinc-400 transition-colors"
+            aria-expanded="false"
+            aria-controls="seo-content"
+          >
+            <span id="seo-toggle-text">Show More</span>
+            <span id="seo-toggle-icon" class="ml-2 inline-block">▼</span>
+          </button>
+        </div>
+        <div
+          id="seo-content"
+          class="seo-content-hidden prose prose-zinc max-w-none text-zinc-600 text-sm sm:text-base leading-relaxed"
+        >
+          <h2 class="text-2xl font-bold text-zinc-900 mb-4">Self hosted uptime monitor for service availability control</h2>
+
+          <p class="mb-4">
+            A self hosted uptime monitor is the foundation of a stable and predictable infrastructure. When websites, APIs, or internal services become unavailable, it is important to know about it immediately, not from users. Our service allows you to track the availability and operability of infrastructure in real time, fully within your environment and under your control.
+          </p>
+
+          <p class="mb-4">
+            The platform is deployed on your server or in your cloud and does not depend on external services. All monitoring data is stored with you, without being transferred to third parties. This approach is especially important for projects with increased requirements for security, privacy, and infrastructure management.
+          </p>
+
+          <p class="mb-4">
+            Our self hosted uptime monitor is suitable both for small teams and for growing projects with distributed architecture. The system scales easily, does not tie you to third-party providers, and provides a transparent understanding of the state of services at any moment in time.
+          </p>
+
+
+
+          <h3 class="text-xl font-semibold text-zinc-900 mt-6 mb-3">Capabilities of the self hosted uptime monitor          </h3>
+          <p class="mb-4">
+            The platform supports a wide range of checks required for modern availability monitoring. You can track HTTP and HTTPS websites, API endpoints, TCP ports, ICMP ping, DNS queries, Webhook checks in push mode, databases, and message brokers. Monitoring of Docker containers, gRPC services, and SNMP services is also supported, which allows you to control both the external perimeter and internal components of the infrastructure.
+          </p>
+          <p class="mb-4">
+            When problems occur, the service instantly sends notifications through convenient channels: Telegram, Slack, Email, WhatsApp, Discord, Webhook, and others. Notifications can be flexibly configured, separated by severity levels, and adapted to team processes so that responses are fast and without unnecessary noise.
+
+          </p>
+          <p class="mb-4">
+            For availability transparency, status pages are provided. They can be public for customers or private for internal use and display the current state of services in a clear and visual format. This helps reduce the number of support requests and increase trust in the service.
+          </p>
+
+          <p class="mb-4">
+            The platform is fully self-hosted: you choose the database — SQLite for an easy start or PostgreSQL and MongoDB for production workloads. You control data storage, access, and security. Two-factor authentication, protection against brute-force attacks, and monitoring of SSL certificate expiration dates are supported.
+          </p>
+
+          <p class="mb-4">
+            Our service is focused on teams that need a reliable self hosted uptime monitor without vendor lock-in, with flexible configuration, a modern interface, and the ability to fully control infrastructure. It helps detect failures in a timely manner, maintain service stability, and ensure transparency of their operation.
+          </p>
+        </div>
+      </section>
     </main>
     <Footer />
     <script>
@@ -152,9 +207,58 @@ import faqItems from "../data/faq";
           console.log(err);
         }
       })();
+
+      // SEO content toggle functionality
+      (() => {
+        const toggleButton = document.getElementById("seo-toggle");
+        const seoContent = document.getElementById("seo-content");
+        const toggleText = document.getElementById("seo-toggle-text");
+        const toggleIcon = document.getElementById("seo-toggle-icon");
+
+        if (!toggleButton || !seoContent) return;
+
+        toggleButton.addEventListener("click", () => {
+          const isExpanded = seoContent.classList.contains("seo-content-visible");
+
+          if (isExpanded) {
+            seoContent.classList.remove("seo-content-visible");
+            seoContent.classList.add("seo-content-hidden");
+            toggleText.textContent = "Show More";
+            toggleIcon.textContent = "▼";
+            toggleButton.setAttribute("aria-expanded", "false");
+          } else {
+            seoContent.classList.remove("seo-content-hidden");
+            seoContent.classList.add("seo-content-visible");
+            toggleText.textContent = "Show Less";
+            toggleIcon.textContent = "▲";
+            toggleButton.setAttribute("aria-expanded", "true");
+          }
+        });
+      })();
     </script>
   </body>
 </html>
+
+<style>
+  /* SEO content visibility - hidden by default but always in DOM for SEO */
+  .seo-content-hidden {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+  }
+
+  .seo-content-visible {
+    max-height: 5000px;
+    overflow: visible;
+    transition: max-height 0.5s ease-in;
+  }
+
+  /* Ensure content is readable by search engines even when hidden */
+  .seo-content-hidden * {
+    position: relative;
+    visibility: visible;
+  }
+</style>
 
 <svg
   xmlns="http://www.w3.org/2000/svg"
