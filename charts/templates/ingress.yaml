@@ -1,0 +1,57 @@
+{{ if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+{{- with .Values.ingress.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{- end }}
+  labels:
+    app: {{ .Release.Name }}-ingress
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/component: ingress
+  name: {{ .Release.Name }}-ingress
+  namespace: {{ .Values.ingress.namespace | default .Release.Namespace }}
+spec:
+  ingressClassName: {{ .Values.ingress.ingressClassName }}
+  rules:
+  - host: {{ .Values.ingress.host }}
+    http:
+      paths:
+      {{- if not .Values.istio.virtualservice.enabled }}
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Release.Name }}-api
+            port:
+              number: {{ .Values.api.service.port }}
+      - path: /socket.io
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Release.Name }}-api
+            port:
+              number: {{ .Values.api.service.port }}
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Release.Name }}-web
+            port:
+              number: {{ .Values.web.service.port }}
+      {{- end }}
+      {{- if .Values.istio.virtualservice.enabled }}
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Values.istio.ingress.name }}
+            port:
+              number: {{ .Values.istio.ingress.port }}
+      {{- end }}
+  tls:
+  - hosts:
+    - {{ .Values.ingress.host }}
+{{ end }}
