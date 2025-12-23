@@ -571,7 +571,38 @@
         "redis": "Redis-Datenbank-Monitor",
         "snmp": "SNMP-Monitor",
         "sqlserver": "Microsoft SQL Server-Überwachung",
-        "tcp": "TCP-Port-Überwachung"
+        "tcp": "TCP-Port-Überwachung",
+        "smtp": "SMTP-Mailserver-Monitor"
+      },
+      "smtp": {
+        "authentication_title": "Authentifizierung (Optional)",
+        "check_cert_expiry": "Zertifikatsablauf prüfen",
+        "check_cert_expiry_description": "SSL/TLS-Zertifikatsablauf überwachen und Benachrichtigungen senden",
+        "from_email": "Absender E-Mail",
+        "from_email_description": "Optional: MAIL FROM-Befehl mit dieser E-Mail-Adresse testen",
+        "host": "SMTP-Server Host",
+        "ignore_tls_errors": "TLS-Fehler ignorieren",
+        "ignore_tls_errors_description": "TLS-Zertifikatvalidierung überspringen (nützlich für selbstsignierte Zertifikate)",
+        "password": "Passwort",
+        "port": "Port",
+        "port_description": "Gängige Ports: 25 (SMTP), 465 (SMTPS), 587 (Submission mit STARTTLS)",
+        "title": "SMTP-Servereinstellungen",
+        "use_tls": "STARTTLS verwenden",
+        "use_tls_description": "STARTTLS für sichere Kommunikation aktivieren",
+        "username": "Benutzername",
+        "username_description": "Optional: SMTP-Authentifizierungs-Benutzername",
+        "expect_secure_relay": "Behandle Open Relay als Fehler",
+        "expect_secure_relay_description": "Wenn aktiviert, wird der Monitor als DOWN markiert, wenn ein offenes Relais erkannt wird (Sicherheitsrisiko). Wenn deaktiviert, wird ein offenes Relais als Erfolg behandelt.",
+        "open_relay_title": "Open-Relay-Test",
+        "read_timeout": "Lesezeitüberschreitung (Sekunden)",
+        "read_timeout_description": "Zeitlimit für das Lesen von SMTP-Serverantworten. Leer lassen, um den Monitor‑Timeout zu verwenden. Verhindert das Festhängen bei nicht reagierenden Servern.",
+        "rcpt_to_email": "RCPT TO E‑Mail",
+        "rcpt_to_email_description": "E‑Mail-Adresse, die beim Testen eines Open Relay für den RCPT TO‑Befehl verwendet wird. Leer lassen, um die Standardadresse (test@external-domain.com) zu benutzen.",
+        "test_open_relay": "Open Relay testen",
+        "test_open_relay_description": "Testen Sie, ob der SMTP-Server E-Mails an externe Domains ohne Authentifizierung weiterleiten kann.",
+        "use_direct_tls": "Direktes TLS (SMTPS) verwenden",
+        "use_direct_tls_description": "Direkte TLS-Verbindung (SMTPS) anstelle von STARTTLS verwenden. Erforderlich für Port 465. Wenn nicht aktiviert, wird STARTTLS (für Ports 587/25) verwendet.",
+        "port_465_warning": "Port 465 erfordert in der Regel direktes TLS (SMTPS). Bitte aktivieren Sie 'Use Direct TLS (SMTPS)' für sichere Verbindungen."
       }
     },
     "page": {
@@ -832,7 +863,7 @@
         "priority_critical": "Kritisch",
         "priority_description": "Der Schweregrad eines PagerDuty-Vorfalls. Standardmäßig 'Warnung'.",
         "priority_error": "Fehler",
-        "priority_info": "Info",
+        "priority_info": "Information",
         "priority_label": "Priorität",
         "priority_placeholder": "Priorität auswählen",
         "priority_warning": "Warnung"
@@ -1134,47 +1165,47 @@
       "title": "Passwort aktualisieren"
     },
     "api_keys": {
-      "title": "API Keys",
-      "description": "Manage your API keys for third-party integrations",
-      "create_button": "Create API Key",
-      "no_keys_title": "No API Keys",
-      "no_keys_description": "Create your first API key to start integrating with external services.",
+      "title": "API-Schlüssel",
+      "description": "API‑Schlüssel für Drittanbieter‑Integrationen verwalten",
+      "create_button": "API-Schlüssel erstellen",
+      "no_keys_title": "Keine API-Schlüssel",
+      "no_keys_description": "Erstellen Sie Ihren ersten API-Schlüssel, um mit externen Diensten zu integrieren.",
       "create_dialog": {
-        "title": "Create New API Key",
-        "description": "Create a new API key for third-party integrations. The key will be shown only once.",
+        "title": "Neuen API-Schlüssel erstellen",
+        "description": "Erstelle einen neuen API-Schlüssel für Drittanbieter-Integrationen. Der Schlüssel wird nur einmal angezeigt.",
         "form": {
           "name_label": "Name",
-          "name_placeholder": "e.g., Homepage Integration",
-          "expires_at_label": "Expiration Date (Optional)",
-          "max_usage_label": "Max Usage Count (Optional)",
-          "max_usage_placeholder": "e.g., 1000"
+          "name_placeholder": "z. B. Homepage-Integration",
+          "expires_at_label": "Ablaufdatum (optional)",
+          "max_usage_label": "Maximale Nutzungsanzahl (Optional)",
+          "max_usage_placeholder": "z. B. 1000"
         },
         "buttons": {
-          "cancel": "Cancel",
-          "create": "Create API Key",
-          "creating": "Creating..."
+          "cancel": "Abbrechen",
+          "create": "API-Schlüssel erstellen",
+          "creating": "Erstellen..."
         }
       },
       "success_alert": {
-        "title": "API Key Created Successfully",
-        "description": "Your API key has been created. Copy it now as it won't be shown again:"
+        "title": "API-Schlüssel erfolgreich erstellt",
+        "description": "Ihr API-Schlüssel wurde erstellt. Kopieren Sie ihn jetzt, da er nicht mehr angezeigt wird:"
       },
       "table": {
         "headers": {
           "name": "Name",
-          "key": "Key",
-          "usage": "Usage",
-          "last_used": "Last Used",
-          "expires": "Expires",
+          "key": "Schlüssel",
+          "usage": "Nutzung",
+          "last_used": "Zuletzt verwendet",
+          "expires": "Läuft ab",
           "status": "Status",
-          "actions": "Actions"
+          "actions": "Aktionen"
         },
         "status": {
-          "active": "Active",
-          "expired": "Expired",
-          "limit_exceeded": "Limit Exceeded"
+          "active": "Aktiv",
+          "expired": "Abgelaufen",
+          "limit_exceeded": "Limit überschritten"
         },
-        "never": "Never"
+        "never": "Nie"
       },
       "delete_dialog": {
         "title": "API-Schlüssel löschen",
@@ -1185,12 +1216,12 @@
         }
       },
       "messages": {
-        "created_successfully": "API key created successfully",
-        "deleted_successfully": "API key deleted successfully",
-        "failed_to_create": "Failed to create API key",
-        "failed_to_delete": "Failed to delete API key",
-        "copy_success": "Copied to clipboard",
-        "delete_confirm": "Are you sure you want to delete this API key? This action cannot be undone."
+        "created_successfully": "API-Schlüssel erfolgreich erstellt",
+        "deleted_successfully": "API-Schlüssel erfolgreich gelöscht",
+        "failed_to_create": "Fehler beim Erstellen des API-Schlüssels",
+        "failed_to_delete": "API-Schlüssel konnte nicht gelöscht werden",
+        "copy_success": "In die Zwischenablage kopiert",
+        "delete_confirm": "Möchten Sie diesen API-Schlüssel wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
       }
     }
   },

@@ -1,0 +1,26 @@
+services:
+  postfix:
+    build:
+      context: ./postfix
+      dockerfile: Dockerfile
+    container_name: peekaping-test-postfix
+    ports:
+      - "1027:25"    # SMTP (plain)
+      - "1028:587"   # Submission (STARTTLS)
+      - "1029:465"   # SMTPS (direct TLS)
+    environment:
+      - POSTFIX_HOSTNAME=test-smtp.local
+    networks:
+      - peekaping-test
+    cap_add:
+      - NET_BIND_SERVICE
+    volumes:
+      - postfix-data:/var/spool/postfix
+
+volumes:
+  postfix-data:
+
+networks:
+  peekaping-test:
+    name: peekaping-test-network
+

@@ -1,0 +1,47 @@
+# Basic Postfix configuration for testing
+myhostname = test-smtp.local
+mydomain = test.local
+myorigin = $mydomain
+inet_interfaces = all
+inet_protocols = ipv4
+
+# Network settings
+mydestination = $myhostname, localhost.$mydomain, localhost
+mynetworks = 127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16
+
+# TLS settings
+smtpd_tls_cert_file = /etc/postfix/certs/server.crt
+smtpd_tls_key_file = /etc/postfix/certs/server.key
+smtpd_tls_security_level = may
+smtpd_tls_auth_only = yes
+smtpd_tls_received_header = yes
+smtpd_tls_session_cache_timeout = 3600s
+tls_random_source = dev:/dev/urandom
+
+# SASL authentication
+smtpd_sasl_type = cyrus
+smtpd_sasl_path = smtpd
+smtpd_sasl_auth_enable = yes
+smtpd_sasl_security_options = noanonymous
+smtpd_sasl_local_domain = $myhostname
+broken_sasl_auth_clients = yes
+smtpd_sasl_authenticated_header = yes
+
+# Relay restrictions (prevent open relay)
+# Only allow relaying from local networks or authenticated users
+smtpd_recipient_restrictions = 
+    permit_mynetworks,
+    permit_sasl_authenticated,
+    reject_unauth_destination
+
+smtpd_relay_restrictions = 
+    permit_mynetworks,
+    permit_sasl_authenticated,
+    reject_unauth_destination
+
+# Logging
+maillog_file = /var/log/postfix.log
+
+# Compatibility
+compatibility_level = 2
+
