@@ -962,7 +962,10 @@
         "message_format_label": "Formato da mensagem",
         "username_description": "O nome de usuário que aparecerá como remetente da mensagem. Se não for especificado, o nome padrão do bot será usado.",
         "webhook_url_description": "O URL do webhook da sua integração Slack. Você pode encontrá‑lo na sua instância do Slack, em Integrações > Webhooks.",
-        "webhook_url_label": "URL do Webhook"
+        "webhook_url_label": "URL do Webhook",
+        "bot_token_label": "Token do bot",
+        "bot_token_description": "Seu token do bot Slack para autenticação. Você pode criar um token do bot nas configurações do seu aplicativo Slack",
+        "bot_token_note": "Nota: Ao usar um token do bot, o nome do canal é obrigatório."
       },
       "smtp": {
         "custom_body_label": "Corpo Personalizado",

@@ -962,7 +962,10 @@
         "message_format_label": "Oblika sporočila",
         "username_description": "Ime uporabnika, ki bo prikazano kot pošiljatelj sporočila. Če ni navedeno, bo uporabljen privzeti naziv bota.",
         "webhook_url_description": "URL webhooka iz vaše Slack integracije. Najdete ga lahko v vaši Slack instanci pod Integracije > Webhooki.",
-        "webhook_url_label": "URL webhooka"
+        "webhook_url_label": "URL webhooka",
+        "bot_token_label": "Bot žeton",
+        "bot_token_description": "Vaš Slack bot žeton za avtentikacijo. Ustvarite lahko bot žeton v nastavitvah vaše Slack aplikacije",
+        "bot_token_note": "Opomba: Pri uporabi bot žetona je ime kanala obvezno."
       },
       "smtp": {
         "custom_body_label": "Prilagojeno telo",

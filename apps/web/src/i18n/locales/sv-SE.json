@@ -962,7 +962,10 @@
         "message_format_label": "Meddelandeformat",
         "username_description": "Det användarnamnet som kommer att visas som avsändare av meddelandet. Om inget anges används standardbottnamnet.",
         "webhook_url_description": "Webhook-URL från din Slack-integration. Du hittar den i din Slack-instans under Integrationer &gt; Webhooks.",
-        "webhook_url_label": "Webhook‑URL"
+        "webhook_url_label": "Webhook‑URL",
+        "bot_token_label": "Bot-token",
+        "bot_token_description": "Din Slack bot-token för autentisering. Du kan skapa en bot-token i inställningarna för din Slack-app",
+        "bot_token_note": "Obs: När du använder en bot-token krävs kanalnamnet."
       },
       "smtp": {
         "custom_body_label": "Anpassad kropp",

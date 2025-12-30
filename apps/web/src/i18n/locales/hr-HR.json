@@ -962,7 +962,10 @@
         "message_format_label": "Format poruke",
         "username_description": "Korisničko ime koje će se prikazati kao pošiljatelj poruke. Ako nije zadano, koristi se zadano ime bota.",
         "webhook_url_description": "Webhook URL iz vaše Slack integracije. Možete ga pronaći u vašem Slack računu pod Integracije > Webhookovi.",
-        "webhook_url_label": "Webhook URL"
+        "webhook_url_label": "Webhook URL",
+        "bot_token_label": "Bot token",
+        "bot_token_description": "Vaš Slack bot token za autentifikaciju. Možete stvoriti bot token u postavkama vaše Slack aplikacije",
+        "bot_token_note": "Napomena: Kada koristite bot token, naziv kanala je obavezan."
       },
       "smtp": {
         "custom_body_label": "Prilagođeni sadržaj",

@@ -962,7 +962,10 @@
         "message_format_label": "รูปแบบข้อความ",
         "username_description": "ชื่อผู้ใช้ที่จะแสดงเป็นผู้ส่งข้อความ หากไม่ระบุ จะใช้ชื่อบอทเริ่มต้น",
         "webhook_url_description": "URL ของ webhook จากการผสานรวม Slack ของคุณ คุณสามารถค้นหาได้ในอินสแตนซ์ Slack ของคุณที่เมนู การผสานรวม > Webhooks.",
-        "webhook_url_label": "URL ของ Webhook"
+        "webhook_url_label": "URL ของ Webhook",
+        "bot_token_label": "โทเค็นบอท",
+        "bot_token_description": "โทเค็นบอท Slack ของคุณสำหรับการตรวจสอบสิทธิ์ คุณสามารถสร้างโทเค็นบอทในการตั้งค่าแอป Slack ของคุณ",
+        "bot_token_note": "หมายเหตุ: เมื่อใช้โทเค็นบอท ชื่อช่องจะต้องระบุ"
       },
       "smtp": {
         "custom_body_label": "เนื้อหาที่กำหนดเอง",

@@ -85,7 +85,7 @@ const notificationSchema = z
       SmtpForm.schema,
       TelegramForm.schema,
       WebhookForm.schema,
-      SlackForm.schema,
+      SlackForm.baseSchema,
       NtfyForm.schema,
       PagerDutyForm.schema,
       OpsgenieForm.schema,

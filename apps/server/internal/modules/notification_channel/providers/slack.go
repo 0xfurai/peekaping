@@ -19,7 +19,8 @@ import (
 )
 
 type SlackConfig struct {
-	WebhookURL    string `json:"slack_webhook_url" validate:"required,url"`
+	WebhookURL    string `json:"slack_webhook_url" validate:"omitempty,url"`
+	BotToken      string `json:"slack_bot_token"`
 	Username      string `json:"slack_username"`
 	IconEmoji     string `json:"slack_icon_emoji"`
 	Channel       string `json:"slack_channel"`
@@ -48,7 +49,19 @@ func (s *SlackSender) Validate(configJSON string) error {
 	if err != nil {
 		return err
 	}
-	return GenericValidator(cfg.(*SlackConfig))
+	slackCfg := cfg.(*SlackConfig)
+
+	// Ensure either WebhookURL or BotToken is provided
+	if slackCfg.WebhookURL == "" && slackCfg.BotToken == "" {
+		return fmt.Errorf("either slack_webhook_url or slack_bot_token must be provided")
+	}
+
+	// If using BotToken, Channel is required
+	if slackCfg.BotToken != "" && slackCfg.Channel == "" {
+		return fmt.Errorf("slack_channel is required when using slack_bot_token")
+	}
+
+	return GenericValidator(slackCfg)
 }
 
 // extractAddress extracts the URL from monitor for "Visit site" button
@@ -249,28 +262,48 @@ func (s *SlackSender) Send(
 
 	s.logger.Debugf("Slack payload: %s", string(jsonPayload))
 
-	// Create HTTP request
-	req, err := http.NewRequestWithContext(ctx, "POST", cfg.WebhookURL, bytes.NewBuffer(jsonPayload))
-	if err != nil {
-		return fmt.Errorf("failed to create HTTP request: %w", err)
+	var req *http.Request
+
+	// Use Slack API if BotToken is provided, otherwise use webhook
+	if cfg.BotToken != "" {
+		fmt.Println("cfg.BotToken", cfg.BotToken)
+		fmt.Println("jsonPayload", string(jsonPayload))
+
+		// Use Slack API chat.postMessage with Authorization header
+		apiURL := "https://slack.com/api/chat.postMessage"
+		req, err = http.NewRequestWithContext(ctx, "POST", apiURL, bytes.NewBuffer(jsonPayload))
+		if err != nil {
+			return fmt.Errorf("failed to create HTTP request: %w", err)
+		}
+		req.Header.Set("Authorization", "Bearer "+cfg.BotToken)
+		req.Header.Set("Content-Type", "application/json")
+
+		s.logger.Infof("Sending Slack message via API to channel: %s", cfg.Channel)
+	} else {
+		// Use webhook URL
+		req, err = http.NewRequestWithContext(ctx, "POST", cfg.WebhookURL, bytes.NewBuffer(jsonPayload))
+		if err != nil {
+			return fmt.Errorf("failed to create HTTP request: %w", err)
+		}
+		s.logger.Infof("Sending Slack message to webhook: %s", cfg.WebhookURL)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("User-Agent", "Peekaping-Slack/"+version.Version)
 
-	s.logger.Debugf("Sending Slack webhook request: %s", req.URL.String())
+	s.logger.Debugf("Sending Slack request: %s", req.URL.String())
 
 	// Send request
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return fmt.Errorf("failed to send Slack webhook: %w", err)
+		return fmt.Errorf("failed to send Slack message: %w", err)
 	}
 	defer resp.Body.Close()
 
 	// Check response status
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return fmt.Errorf("Slack webhook returned status: %s", resp.Status)
+		return fmt.Errorf("Slack API returned status: %s", resp.Status)
 	}
 
 	s.logger.Infof("Slack message sent successfully")
