@@ -139,8 +139,8 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }}-${{ matrix.arch }}
             ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-web:latest-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-web:latest-${{ matrix.arch }}
+            vigirun/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }}-${{ matrix.arch }}
+            vigirun/${{ github.event.repository.name }}-web:latest-${{ matrix.arch }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -157,8 +157,8 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}-${{ matrix.arch }}
             ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-api:latest-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-api:latest-${{ matrix.arch }}
+            vigirun/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}-${{ matrix.arch }}
+            vigirun/${{ github.event.repository.name }}-api:latest-${{ matrix.arch }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -175,8 +175,8 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-${{ matrix.arch }}
             ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:latest-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:latest-${{ matrix.arch }}
+            vigirun/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-${{ matrix.arch }}
+            vigirun/${{ github.event.repository.name }}-worker:latest-${{ matrix.arch }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -193,8 +193,8 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}-${{ matrix.arch }}
             ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:latest-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:latest-${{ matrix.arch }}
+            vigirun/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}-${{ matrix.arch }}
+            vigirun/${{ github.event.repository.name }}-producer:latest-${{ matrix.arch }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -211,8 +211,8 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}-${{ matrix.arch }}
             ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:latest-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:latest-${{ matrix.arch }}
+            vigirun/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}-${{ matrix.arch }}
+            vigirun/${{ github.event.repository.name }}-ingester:latest-${{ matrix.arch }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -229,8 +229,8 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}-${{ matrix.arch }}
             ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-migrate:latest-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:latest-${{ matrix.arch }}
+            vigirun/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}-${{ matrix.arch }}
+            vigirun/${{ github.event.repository.name }}-migrate:latest-${{ matrix.arch }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -384,8 +384,8 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}:${{ github.event.inputs.version }}-${{ matrix.arch }}
             ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}:latest-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}:latest-${{ matrix.arch }}
+            vigirun/${{ github.event.repository.name }}-bundle-${{ matrix.database }}:${{ github.event.inputs.version }}-${{ matrix.arch }}
+            vigirun/${{ github.event.repository.name }}-bundle-${{ matrix.database }}:latest-${{ matrix.arch }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -498,90 +498,90 @@ jobs:
       - name: Create and push multi-arch manifests for Docker Hub
         run: |
           # UI manifest - versioned
-          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }} \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }}-amd64 \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }}-arm64
-          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }}
+          docker manifest create --amend vigirun/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }} \
+            vigirun/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }}-amd64 \
+            vigirun/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }}-arm64
+          docker manifest push vigirun/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }}
 
           # UI manifest - latest
-          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-web:latest \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-web:latest-amd64 \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-web:latest-arm64
-          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-web:latest
+          docker manifest create --amend vigirun/${{ github.event.repository.name }}-web:latest \
+            vigirun/${{ github.event.repository.name }}-web:latest-amd64 \
+            vigirun/${{ github.event.repository.name }}-web:latest-arm64
+          docker manifest push vigirun/${{ github.event.repository.name }}-web:latest
 
           # API manifest - versioned
-          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }} \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}-amd64 \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}-arm64
-          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}
+          docker manifest create --amend vigirun/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }} \
+            vigirun/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}-amd64 \
+            vigirun/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}-arm64
+          docker manifest push vigirun/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}
 
           # API manifest - latest
-          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-api:latest \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-api:latest-amd64 \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-api:latest-arm64
-          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-api:latest
+          docker manifest create --amend vigirun/${{ github.event.repository.name }}-api:latest \
+            vigirun/${{ github.event.repository.name }}-api:latest-amd64 \
+            vigirun/${{ github.event.repository.name }}-api:latest-arm64
+          docker manifest push vigirun/${{ github.event.repository.name }}-api:latest
 
           # Worker manifest - versioned
-          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }} \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-amd64 \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-arm64
-          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}
+          docker manifest create --amend vigirun/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }} \
+            vigirun/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-amd64 \
+            vigirun/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-arm64
+          docker manifest push vigirun/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}
 
           # Worker manifest - latest
-          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:latest \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:latest-amd64 \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:latest-arm64
-          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:latest
+          docker manifest create --amend vigirun/${{ github.event.repository.name }}-worker:latest \
+            vigirun/${{ github.event.repository.name }}-worker:latest-amd64 \
+            vigirun/${{ github.event.repository.name }}-worker:latest-arm64
+          docker manifest push vigirun/${{ github.event.repository.name }}-worker:latest
 
           # Producer manifest - versioned
-          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }} \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}-amd64 \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}-arm64
-          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}
+          docker manifest create --amend vigirun/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }} \
+            vigirun/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}-amd64 \
+            vigirun/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}-arm64
+          docker manifest push vigirun/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}
 
           # Producer manifest - latest
-          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:latest \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:latest-amd64 \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:latest-arm64
-          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:latest
+          docker manifest create --amend vigirun/${{ github.event.repository.name }}-producer:latest \
+            vigirun/${{ github.event.repository.name }}-producer:latest-amd64 \
+            vigirun/${{ github.event.repository.name }}-producer:latest-arm64
+          docker manifest push vigirun/${{ github.event.repository.name }}-producer:latest
 
           # Ingester manifest - versioned
-          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }} \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}-amd64 \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}-arm64
-          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}
+          docker manifest create --amend vigirun/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }} \
+            vigirun/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}-amd64 \
+            vigirun/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}-arm64
+          docker manifest push vigirun/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}
 
           # Ingester manifest - latest
-          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:latest \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:latest-amd64 \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:latest-arm64
-          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:latest
+          docker manifest create --amend vigirun/${{ github.event.repository.name }}-ingester:latest \
+            vigirun/${{ github.event.repository.name }}-ingester:latest-amd64 \
+            vigirun/${{ github.event.repository.name }}-ingester:latest-arm64
+          docker manifest push vigirun/${{ github.event.repository.name }}-ingester:latest
 
           # Migrate manifest - versioned
-          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }} \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}-amd64 \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}-arm64
-          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}
+          docker manifest create --amend vigirun/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }} \
+            vigirun/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}-amd64 \
+            vigirun/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}-arm64
+          docker manifest push vigirun/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}
 
           # Migrate manifest - latest
-          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:latest \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:latest-amd64 \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:latest-arm64
-          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:latest
+          docker manifest create --amend vigirun/${{ github.event.repository.name }}-migrate:latest \
+            vigirun/${{ github.event.repository.name }}-migrate:latest-amd64 \
+            vigirun/${{ github.event.repository.name }}-migrate:latest-arm64
+          docker manifest push vigirun/${{ github.event.repository.name }}-migrate:latest
 
           # Bundle manifests
           for db in sqlite mongo postgres; do
             # Bundle manifest for each database - versioned
-            docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${db}:${{ github.event.inputs.version }} \
-              ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${db}:${{ github.event.inputs.version }}-amd64 \
-              ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${db}:${{ github.event.inputs.version }}-arm64
-            docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${db}:${{ github.event.inputs.version }}
+            docker manifest create --amend vigirun/${{ github.event.repository.name }}-bundle-${db}:${{ github.event.inputs.version }} \
+              vigirun/${{ github.event.repository.name }}-bundle-${db}:${{ github.event.inputs.version }}-amd64 \
+              vigirun/${{ github.event.repository.name }}-bundle-${db}:${{ github.event.inputs.version }}-arm64
+            docker manifest push vigirun/${{ github.event.repository.name }}-bundle-${db}:${{ github.event.inputs.version }}
 
             # Bundle manifest for each database - latest
-            docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${db}:latest \
-              ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${db}:latest-amd64 \
-              ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${db}:latest-arm64
-            docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${db}:latest
+            docker manifest create --amend vigirun/${{ github.event.repository.name }}-bundle-${db}:latest \
+              vigirun/${{ github.event.repository.name }}-bundle-${db}:latest-amd64 \
+              vigirun/${{ github.event.repository.name }}-bundle-${db}:latest-arm64
+            docker manifest push vigirun/${{ github.event.repository.name }}-bundle-${db}:latest
           done
 
   playwright-tests:
@@ -634,17 +634,17 @@ jobs:
             - PostgreSQL Bundle: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-postgres:${{ github.event.inputs.version }}` / `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-postgres:latest`
 
             ### Docker Hub
-            - UI: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-web:latest`
-            - API: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-api:latest`
-            - Worker: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:latest`
-            - Producer: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:latest`
-            - Ingester: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:latest`
-            - Migrate: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:latest`
+            - UI: `vigirun/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }}` / `vigirun/${{ github.event.repository.name }}-web:latest`
+            - API: `vigirun/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}` / `vigirun/${{ github.event.repository.name }}-api:latest`
+            - Worker: `vigirun/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}` / `vigirun/${{ github.event.repository.name }}-worker:latest`
+            - Producer: `vigirun/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}` / `vigirun/${{ github.event.repository.name }}-producer:latest`
+            - Ingester: `vigirun/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}` / `vigirun/${{ github.event.repository.name }}-ingester:latest`
+            - Migrate: `vigirun/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}` / `vigirun/${{ github.event.repository.name }}-migrate:latest`
 
             ### Bundle Containers (Docker Hub)
-            - SQLite Bundle: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite:latest`
-            - MongoDB Bundle: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-mongo:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-mongo:latest`
-            - PostgreSQL Bundle: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-postgres:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-postgres:latest`
+            - SQLite Bundle: `vigirun/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}` / `vigirun/${{ github.event.repository.name }}-bundle-sqlite:latest`
+            - MongoDB Bundle: `vigirun/${{ github.event.repository.name }}-bundle-mongo:${{ github.event.inputs.version }}` / `vigirun/${{ github.event.repository.name }}-bundle-mongo:latest`
+            - PostgreSQL Bundle: `vigirun/${{ github.event.repository.name }}-bundle-postgres:${{ github.event.inputs.version }}` / `vigirun/${{ github.event.repository.name }}-bundle-postgres:latest`
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
