@@ -694,7 +694,7 @@
         "custom_message_description": "Mukautettu viestimalli. Saatavilla olevat muuttujat.",
         "custom_message_description_2": "Jätä tyhjäksi, jolloin käytetään oletusviestiä.",
         "custom_message_label": "Mukautettu viesti",
-        "custom_title_description": "Mukautettu otsikko ilmoitukselle. Saatavilla olevat muuttujat: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Jätä tyhjäksi, jotta käytetään oletusotsikkoa \"Peekaping\".",
+        "custom_title_description": "Mukautettu otsikko ilmoitukselle. Saatavilla olevat muuttujat: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Jätä tyhjäksi, jotta käytetään oletusotsikkoa \"Vigi\".",
         "custom_title_label": "Mukautettu otsikko",
         "learn_more_label": "Lue lisää Gotifystä ja sen asennuksesta osoitteessa:",
         "note_description": "Sinun on käynnissä Gotify-palvelin, jotta voit käyttää tätä integraatiota.",

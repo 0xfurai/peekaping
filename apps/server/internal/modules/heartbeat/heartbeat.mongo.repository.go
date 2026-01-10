@@ -3,7 +3,7 @@ package heartbeat
 import (
 	"context"
 	"errors"
-	"peekaping/internal/config"
+	"vigi/internal/config"
 
 	"time"
 

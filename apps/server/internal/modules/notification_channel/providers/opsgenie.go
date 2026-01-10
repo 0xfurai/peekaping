@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/monitor"
-	"peekaping/internal/modules/shared"
-	"peekaping/internal/version"
+	"vigi/internal/modules/heartbeat"
+	"vigi/internal/modules/monitor"
+	"vigi/internal/modules/shared"
+	"vigi/internal/version"
 	"time"
 
 	"go.uber.org/zap"
@@ -109,7 +109,7 @@ func (o *OpsgenieSender) Send(
 func (o *OpsgenieSender) sendTestNotification(ctx context.Context, cfg *OpsgenieConfig, baseURL, message string) error {
 	data := map[string]any{
 		"message":  message,
-		"alias":    "peekaping-notification-test",
+		"alias":    "vigi-notification-test",
 		"source":   "Peekaping",
 		"priority": "P5",
 	}

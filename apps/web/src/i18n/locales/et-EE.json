@@ -694,7 +694,7 @@
         "custom_message_description": "Kohandatud sõnumimall. Saadaval olevad muutujad",
         "custom_message_description_2": "Jäta tühjaks, et kasutada vaikimisi sõnumit.",
         "custom_message_label": "Kohandatud sõnum",
-        "custom_title_description": "Teavituse kohandatud pealkiri. Saadaval olevad muutujad: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Jäta tühjaks, et kasutada vaikimisi \"Peekaping\" pealkirja.",
+        "custom_title_description": "Teavituse kohandatud pealkiri. Saadaval olevad muutujad: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Jäta tühjaks, et kasutada vaikimisi \"Vigi\" pealkirja.",
         "custom_title_label": "Kohandatud pealkiri",
         "learn_more_label": "Loe rohkem Gotify kohta ja selle seadistamise kohta aadressil:",
         "note_description": "Te peate Gotify serverit käima, et seda integratsiooni kasutada.",

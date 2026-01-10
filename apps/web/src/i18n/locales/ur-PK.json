@@ -694,7 +694,7 @@
         "custom_message_description": "اپنی مرضی کے مطابق پیغام ٹیمپلیٹ۔ دستیاب متغیرات",
         "custom_message_description_2": "خالی چھوڑیں تاکہ ڈیفالٹ پیغام استعمال ہو۔",
         "custom_message_label": "حسبِ ضرورت پیغام",
-        "custom_title_description": "نوٹیفکیشن کے لیے اپنی مرضی کا عنوان۔ دستیاب متغیرات: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}۔ خالی چھوڑیں تاکہ ڈیفالٹ \"Peekaping\" عنوان استعمال ہو۔",
+        "custom_title_description": "نوٹیفکیشن کے لیے اپنی مرضی کا عنوان۔ دستیاب متغیرات: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}۔ خالی چھوڑیں تاکہ ڈیفالٹ \"Vigi\" عنوان استعمال ہو۔",
         "custom_title_label": "اپنی مرضی کا عنوان",
         "learn_more_label": "گوتیفی اور اسے سیٹ اپ کرنے کے طریقے کے بارے میں مزید جانیں یہاں:",
         "note_description": "آپ کو اس انضمام کو استعمال کرنے کے لیے ایک چلتے ہوئے Gotify سرور کی ضرورت ہے۔",

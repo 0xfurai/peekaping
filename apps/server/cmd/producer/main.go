@@ -5,26 +5,26 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"peekaping/internal"
-	"peekaping/internal/config"
-	"peekaping/internal/infra"
-	"peekaping/internal/modules/certificate"
-	"peekaping/internal/modules/events"
-	"peekaping/internal/modules/healthcheck"
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/maintenance"
-	"peekaping/internal/modules/monitor"
-	"peekaping/internal/modules/monitor_maintenance"
-	"peekaping/internal/modules/monitor_notification"
-	"peekaping/internal/modules/monitor_tag"
-	"peekaping/internal/modules/monitor_tls_info"
-	"peekaping/internal/modules/notification_sent_history"
-	"peekaping/internal/modules/producer"
-	"peekaping/internal/modules/proxy"
-	"peekaping/internal/modules/setting"
-	"peekaping/internal/modules/stats"
-	"peekaping/internal/modules/tag"
-	"peekaping/internal/version"
+	"vigi/internal"
+	"vigi/internal/config"
+	"vigi/internal/infra"
+	"vigi/internal/modules/certificate"
+	"vigi/internal/modules/events"
+	"vigi/internal/modules/healthcheck"
+	"vigi/internal/modules/heartbeat"
+	"vigi/internal/modules/maintenance"
+	"vigi/internal/modules/monitor"
+	"vigi/internal/modules/monitor_maintenance"
+	"vigi/internal/modules/monitor_notification"
+	"vigi/internal/modules/monitor_tag"
+	"vigi/internal/modules/monitor_tls_info"
+	"vigi/internal/modules/notification_sent_history"
+	"vigi/internal/modules/producer"
+	"vigi/internal/modules/proxy"
+	"vigi/internal/modules/setting"
+	"vigi/internal/modules/stats"
+	"vigi/internal/modules/tag"
+	"vigi/internal/version"
 	"syscall"
 
 	"go.uber.org/dig"
@@ -32,7 +32,7 @@ import (
 )
 
 func main() {
-	log.Printf("Starting Peekaping Producer v%s", version.Version)
+	log.Printf("Starting Vigi Producer v%s", version.Version)
 
 	cfg, err := LoadAndValidate("../..")
 	if err != nil {

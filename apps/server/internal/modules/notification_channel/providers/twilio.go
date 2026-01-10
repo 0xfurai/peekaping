@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/monitor"
+	"vigi/internal/modules/heartbeat"
+	"vigi/internal/modules/monitor"
 	"strings"
 
 	"go.uber.org/zap"

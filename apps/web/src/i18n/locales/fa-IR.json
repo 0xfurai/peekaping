@@ -694,7 +694,7 @@
         "custom_message_description": "قالب پیام سفارشی. متغیرهای موجود",
         "custom_message_description_2": "اگر خالی بگذارید، پیام پیش‌فرض استفاده می‌شود.",
         "custom_message_label": "پیام سفارشی",
-        "custom_title_description": "عنوان سفارشی برای اعلان. متغیرهای موجود: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. اگر خالی بگذارید، عنوان پیش‌فرض \"Peekaping\" استفاده می‌شود.",
+        "custom_title_description": "عنوان سفارشی برای اعلان. متغیرهای موجود: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. اگر خالی بگذارید، عنوان پیش‌فرض \"Vigi\" استفاده می‌شود.",
         "custom_title_label": "عنوان سفارشی",
         "learn_more_label": "درباره گوتی و نحوه راه‌اندازی آن بیشتر بدانید در:",
         "note_description": "برای استفاده از این یکپارچه‌سازی، لازم است سرور Gotify در حال اجرا باشد.",

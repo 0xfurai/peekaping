@@ -3,8 +3,8 @@ package producer
 import (
 	"testing"
 
-	"peekaping/internal/config"
-	"peekaping/internal/modules/monitor"
+	"vigi/internal/config"
+	"vigi/internal/modules/monitor"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

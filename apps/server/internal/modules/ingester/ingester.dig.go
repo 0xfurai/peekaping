@@ -1,10 +1,10 @@
 package ingester
 
 import (
-	"peekaping/internal/modules/certificate"
-	"peekaping/internal/modules/events"
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/monitor_maintenance"
+	"vigi/internal/modules/certificate"
+	"vigi/internal/modules/events"
+	"vigi/internal/modules/heartbeat"
+	"vigi/internal/modules/monitor_maintenance"
 
 	"github.com/hibiken/asynq"
 	"go.uber.org/dig"

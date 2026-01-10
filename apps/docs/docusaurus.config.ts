@@ -5,8 +5,8 @@ import type * as Preset from "@docusaurus/preset-classic";
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
-  title: "Peekaping Docs",
-  tagline: "Peekaping is a monitoring tool for your servers",
+  title: "Vigi Docs",
+  tagline: "Vigi is a monitoring tool for your servers",
   favicon: "img/favicon.ico",
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
@@ -15,7 +15,7 @@ const config: Config = {
   },
 
   // Set the production url of your site here
-  url: "https://docs.peekaping.com",
+  url: "https://docs.vigi.run",
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: "/",
@@ -23,7 +23,7 @@ const config: Config = {
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   organizationName: "0xfurai", // Usually your GitHub org/user name.
-  projectName: "peekaping", // Usually your repo name.
+  projectName: "vigi", // Usually your repo name.
 
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
@@ -44,7 +44,7 @@ const config: Config = {
           routeBasePath: "/",
           sidebarPath: "./sidebars.ts",
           // Remove this to remove the "edit this page" links.
-          editUrl: "https://github.com/0xfurai/peekaping/tree/main/apps/docs",
+          editUrl: "https://github.com/0xfurai/vigi/tree/main/apps/docs",
         },
         blog: false,
         theme: {
@@ -62,9 +62,9 @@ const config: Config = {
     // Replace with your project's social card
     // image: "img/docusaurus-social-card.jpg",
     navbar: {
-      title: "Peekaping",
+      title: "Vigi",
       // logo: {
-      //   alt: 'Peekaping Docs Logo',
+      //   alt: 'Vigi Docs Logo',
       //   src: 'img/logo.svg',
       // },
       items: [
@@ -75,7 +75,7 @@ const config: Config = {
           label: "Docs",
         },
         {
-          href: "https://github.com/0xfurai/peekaping",
+          href: "https://github.com/0xfurai/vigi",
           label: "GitHub",
           position: "right",
         },
@@ -98,7 +98,7 @@ const config: Config = {
           items: [
             {
               label: "GitHub",
-              href: "https://github.com/0xfurai/peekaping",
+              href: "https://github.com/0xfurai/vigi",
             },
           ],
         },

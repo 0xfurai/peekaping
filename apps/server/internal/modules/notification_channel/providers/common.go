@@ -3,9 +3,9 @@ package providers
 import (
 	"encoding/json"
 	"fmt"
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/monitor"
-	"peekaping/internal/utils"
+	"vigi/internal/modules/heartbeat"
+	"vigi/internal/modules/monitor"
+	"vigi/internal/utils"
 )
 
 func GenericValidator[T any](cfg *T) error {

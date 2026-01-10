@@ -2,7 +2,7 @@ package executor
 
 import (
 	"context"
-	"peekaping/internal/modules/heartbeat"
+	"vigi/internal/modules/heartbeat"
 	"testing"
 	"time"
 

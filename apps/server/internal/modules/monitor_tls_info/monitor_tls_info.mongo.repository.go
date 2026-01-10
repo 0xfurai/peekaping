@@ -2,7 +2,7 @@ package monitor_tls_info
 
 import (
 	"context"
-	"peekaping/internal/config"
+	"vigi/internal/config"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"

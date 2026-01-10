@@ -1,6 +1,6 @@
 package proxy
 
-import "peekaping/internal/modules/shared"
+import "vigi/internal/modules/shared"
 
 type Model = shared.Proxy
 type UpdateModel = shared.UpdateProxy

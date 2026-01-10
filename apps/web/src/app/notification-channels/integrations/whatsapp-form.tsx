@@ -33,7 +33,7 @@ export const defaultValues: WhatsAppFormValues = {
   phone_number: "",
   session: "",
   use_template: false,
-  template: `🚨 Peekaping Alert
+  template: `🚨 Vigi Alert
 
 Monitor: {{ monitor.name }}
 Status: {{ status }}

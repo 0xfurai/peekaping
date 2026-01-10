@@ -1,7 +1,7 @@
 package queue
 
 import (
-	"peekaping/internal/config"
+	"vigi/internal/config"
 
 	"go.uber.org/dig"
 )

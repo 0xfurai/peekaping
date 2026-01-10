@@ -694,7 +694,7 @@
         "custom_message_description": "Predložak prilagođene poruke. Dostupne varijable",
         "custom_message_description_2": "Ostavite prazno kako biste koristili zadanu poruku.",
         "custom_message_label": "Prilagođena poruka",
-        "custom_title_description": "Prilagođeni naslov za obavijest. Dostupne varijable: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Ostavite prazno da biste koristili zadani naslov \"Peekaping\".",
+        "custom_title_description": "Prilagođeni naslov za obavijest. Dostupne varijable: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Ostavite prazno da biste koristili zadani naslov \"Vigi\".",
         "custom_title_label": "Prilagođeni naslov",
         "learn_more_label": "Saznajte više o Gotifyu i kako ga postaviti na:",
         "note_description": "Morate imati pokrenut Gotify server kako biste koristili ovu integraciju.",

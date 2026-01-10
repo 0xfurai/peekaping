@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
-	"peekaping/internal/modules/shared"
-	"peekaping/internal/utils"
+	"vigi/internal/modules/shared"
+	"vigi/internal/utils"
 	"time"
 )
 

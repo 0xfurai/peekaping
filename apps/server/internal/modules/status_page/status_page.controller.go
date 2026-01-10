@@ -2,9 +2,9 @@ package status_page
 
 import (
 	"net/http"
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/monitor"
-	"peekaping/internal/utils"
+	"vigi/internal/modules/heartbeat"
+	"vigi/internal/modules/monitor"
+	"vigi/internal/utils"
 	"time"
 
 	"github.com/gin-gonic/gin"

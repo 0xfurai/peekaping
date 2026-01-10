@@ -2,7 +2,7 @@ package tag
 
 import (
 	"net/http"
-	"peekaping/internal/utils"
+	"vigi/internal/utils"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"

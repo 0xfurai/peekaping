@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"peekaping/internal/modules/monitor"
+	"vigi/internal/modules/monitor"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"

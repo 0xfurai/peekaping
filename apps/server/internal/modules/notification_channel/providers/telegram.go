@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/monitor"
+	"vigi/internal/modules/heartbeat"
+	"vigi/internal/modules/monitor"
 
 	liquid "github.com/osteele/liquid"
 	"go.uber.org/zap"

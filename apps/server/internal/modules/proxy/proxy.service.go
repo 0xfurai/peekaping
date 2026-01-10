@@ -2,8 +2,8 @@ package proxy
 
 import (
 	"context"
-	"peekaping/internal/modules/events"
-	"peekaping/internal/modules/monitor"
+	"vigi/internal/modules/events"
+	"vigi/internal/modules/monitor"
 
 	"go.uber.org/dig"
 	"go.uber.org/zap"

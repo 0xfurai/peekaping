@@ -1,4 +1,4 @@
-module peekaping
+module vigi
 
 go 1.24.1
 

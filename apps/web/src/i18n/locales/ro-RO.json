@@ -694,7 +694,7 @@
         "custom_message_description": "Șablon de mesaj personalizat. Variabile disponibile",
         "custom_message_description_2": "Lăsați gol pentru a folosi mesajul implicit.",
         "custom_message_label": "Mesaj personalizat",
-        "custom_title_description": "Titlu personalizat pentru notificare. Variabile disponibile: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Lăsați necompletat pentru a folosi titlul implicit „Peekaping”.",
+        "custom_title_description": "Titlu personalizat pentru notificare. Variabile disponibile: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Lăsați necompletat pentru a folosi titlul implicit „Vigi”.",
         "custom_title_label": "Titlu personalizat",
         "learn_more_label": "Află mai multe despre Gotify și cum să îl configurezi la:",
         "note_description": "Trebuie să ai un server Gotify în funcțiune pentru a folosi această integrare.",

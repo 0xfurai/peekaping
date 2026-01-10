@@ -3,7 +3,7 @@ package infra
 import (
 	"context"
 	"fmt"
-	"peekaping/internal/config"
+	"vigi/internal/config"
 
 	"go.mongodb.org/mongo-driver/event"
 	"go.mongodb.org/mongo-driver/mongo"

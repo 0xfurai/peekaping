@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net"
 	"os/exec"
-	"peekaping/internal/modules/shared"
+	"vigi/internal/modules/shared"
 	"runtime"
 	"strconv"
 	"strings"

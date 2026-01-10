@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"peekaping/internal/modules/shared"
+	"vigi/internal/modules/shared"
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"

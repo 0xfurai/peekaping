@@ -694,7 +694,7 @@
         "custom_message_description": "Aangepast berichtsjabloon. Beschikbare variabelen",
         "custom_message_description_2": "Laat leeg om het standaardbericht te gebruiken.",
         "custom_message_label": "Aangepast bericht",
-        "custom_title_description": "Aangepaste titel voor de notificatie. Beschikbare variabelen: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Laat leeg om de standaardtitel \"Peekaping\" te gebruiken.",
+        "custom_title_description": "Aangepaste titel voor de notificatie. Beschikbare variabelen: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Laat leeg om de standaardtitel \"Vigi\" te gebruiken.",
         "custom_title_label": "Aangepaste titel",
         "learn_more_label": "Meer informatie over Gotify en hoe u dit instelt:",
         "note_description": "U moet een Gotify-server draaien om deze integratie te gebruiken.",

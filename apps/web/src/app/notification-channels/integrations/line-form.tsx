@@ -26,7 +26,7 @@ export const defaultValues: LineFormValues = {
   type: "line",
   channel_access_token: "",
   user_id: "",
-  template: `Peekaping Alert - {{ monitor.name }}
+  template: `Vigi Alert - {{ monitor.name }}
 
 Status: {{ status }}
 {{ msg }}`,

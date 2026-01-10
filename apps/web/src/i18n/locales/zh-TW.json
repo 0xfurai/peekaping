@@ -694,7 +694,7 @@
         "custom_message_description": "自訂訊息範本。可用變數",
         "custom_message_description_2": "留空以使用預設訊息。",
         "custom_message_label": "自訂訊息",
-        "custom_title_description": "自訂通知標題。可使用的變數：{{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}。留空則使用預設「Peekaping」標題。",
+        "custom_title_description": "自訂通知標題。可使用的變數：{{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}。留空則使用預設「Vigi」標題。",
         "custom_title_label": "自訂標題",
         "learn_more_label": "了解更多關於 Gotify 及其設定方式，請參閱：",
         "note_description": "您需要啟動 Gotify 伺服器才能使用此整合功能。",

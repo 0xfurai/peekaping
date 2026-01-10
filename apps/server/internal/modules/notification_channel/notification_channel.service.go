@@ -2,7 +2,7 @@ package notification_channel
 
 import (
 	"context"
-	"peekaping/internal/modules/monitor_notification"
+	"vigi/internal/modules/monitor_notification"
 
 	"go.uber.org/zap"
 )

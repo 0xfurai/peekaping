@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "title": "Peekaping API",
+        "title": "Vigi API",
         "contact": {}
     },
     "basePath": "/api/v1",

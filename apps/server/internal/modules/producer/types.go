@@ -8,13 +8,13 @@ import (
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/maintenance"
-	"peekaping/internal/modules/monitor"
-	"peekaping/internal/modules/monitor_notification"
-	"peekaping/internal/modules/proxy"
-	"peekaping/internal/modules/queue"
-	"peekaping/internal/modules/shared"
+	"vigi/internal/modules/heartbeat"
+	"vigi/internal/modules/maintenance"
+	"vigi/internal/modules/monitor"
+	"vigi/internal/modules/monitor_notification"
+	"vigi/internal/modules/proxy"
+	"vigi/internal/modules/queue"
+	"vigi/internal/modules/shared"
 )
 
 // Producer is responsible for scheduling monitor health checks

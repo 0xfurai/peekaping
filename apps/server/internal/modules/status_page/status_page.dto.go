@@ -1,7 +1,7 @@
 package status_page
 
 import (
-	"peekaping/internal/modules/shared"
+	"vigi/internal/modules/shared"
 	"time"
 )
 

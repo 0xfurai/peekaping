@@ -9,8 +9,8 @@ import (
 
 func TestConstants(t *testing.T) {
 	t.Run("Redis keys are defined", func(t *testing.T) {
-		assert.Equal(t, "peekaping:sched:due", SchedDueKey)
-		assert.Equal(t, "peekaping:sched:lease", SchedLeaseKey)
+		assert.Equal(t, "vigi:sched:due", SchedDueKey)
+		assert.Equal(t, "vigi:sched:lease", SchedLeaseKey)
 	})
 
 	t.Run("timing constants are reasonable", func(t *testing.T) {
@@ -26,7 +26,7 @@ func TestConstants(t *testing.T) {
 	})
 
 	t.Run("leader election constants", func(t *testing.T) {
-		assert.Equal(t, "peekaping:producer:leader", LeaderKey)
+		assert.Equal(t, "vigi:producer:leader", LeaderKey)
 		assert.Greater(t, LeaderTTL, time.Duration(0))
 		assert.Greater(t, LeaderRenewalInterval, time.Duration(0))
 		assert.Less(t, LeaderRenewalInterval, LeaderTTL, "Renewal interval should be less than TTL")

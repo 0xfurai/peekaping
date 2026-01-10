@@ -27,7 +27,7 @@ export const schema = z.object({
 export const defaultValues = {
   type: "mattermost" as const,
   webhook_url: "",
-  username: "Peekaping",
+  username: "Vigi",
   channel: "",
   icon_url: "",
   icon_emoji: "",
@@ -87,7 +87,7 @@ export default function MattermostForm() {
           <FormItem>
             <FormLabel>{t("forms.labels.username")}</FormLabel>
             <FormControl>
-              <Input placeholder="Peekaping" {...field} />
+              <Input placeholder="Vigi" {...field} />
             </FormControl>
             <FormDescription>
               {t("notifications.form.mattermost.username_description")}

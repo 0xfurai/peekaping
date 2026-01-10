@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"testing"
 
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/monitor"
-	"peekaping/internal/modules/shared"
+	"vigi/internal/modules/heartbeat"
+	"vigi/internal/modules/monitor"
+	"vigi/internal/modules/shared"
 
 	"go.uber.org/zap"
 )

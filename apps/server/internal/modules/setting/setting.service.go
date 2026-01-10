@@ -5,7 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
-	"peekaping/internal/modules/shared"
+	"vigi/internal/modules/shared"
 
 	"go.uber.org/zap"
 )

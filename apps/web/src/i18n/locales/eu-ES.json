@@ -694,7 +694,7 @@
         "custom_message_description": "Mezu pertsonalizatuaren txantiloia. Eskuragarri dauden aldagaiak.",
         "custom_message_description_2": "Utzi hutsik lehenetsitako mezua erabiltzeko.",
         "custom_message_label": "Mezu pertsonalizatua",
-        "custom_title_description": "Mezuaren titulua pertsonalizatua. Eskuragarri dauden aldagaiak: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Utzi hutsik lehenetsitako \"Peekaping\" titulua erabiltzeko.",
+        "custom_title_description": "Mezuaren titulua pertsonalizatua. Eskuragarri dauden aldagaiak: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Utzi hutsik lehenetsitako \"Vigi\" titulua erabiltzeko.",
         "custom_title_label": "Izenburua pertsonalizatua",
         "learn_more_label": "Gehiago ikasi Gotify-i buruz eta nola konfiguratu hemen:",
         "note_description": "Gotify zerbitzaria martxan izatea beharrezkoa da integrazioa erabiltzeko.",

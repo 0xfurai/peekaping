@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"time"
 
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/monitor"
-	"peekaping/internal/modules/shared"
+	"vigi/internal/modules/heartbeat"
+	"vigi/internal/modules/monitor"
+	"vigi/internal/modules/shared"
 
 	"go.uber.org/zap"
 )
@@ -113,7 +113,7 @@ func (p *PagerTreeSender) Send(ctx context.Context, configJSON, message string, 
 
 	// Add tags
 	payload.Tags = []string{
-		"peekaping",
+		"vigi",
 		fmt.Sprintf("monitor-type:%s", mon.Type),
 	}
 

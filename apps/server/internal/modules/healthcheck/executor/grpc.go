@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"peekaping/internal/modules/shared"
+	"vigi/internal/modules/shared"
 	"regexp"
 	"strings"
 	"time"

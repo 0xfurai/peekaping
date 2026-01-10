@@ -2,9 +2,9 @@ package middleware
 
 import (
 	"net/http"
-	"peekaping/internal/modules/api_key"
-	"peekaping/internal/modules/auth"
-	"peekaping/internal/utils"
+	"vigi/internal/modules/api_key"
+	"vigi/internal/modules/auth"
+	"vigi/internal/utils"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"

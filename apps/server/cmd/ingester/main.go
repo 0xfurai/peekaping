@@ -6,19 +6,19 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"peekaping/internal"
-	"peekaping/internal/config"
-	"peekaping/internal/infra"
-	"peekaping/internal/modules/certificate"
-	"peekaping/internal/modules/events"
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/ingester"
-	"peekaping/internal/modules/monitor_maintenance"
-	"peekaping/internal/modules/monitor_tls_info"
-	"peekaping/internal/modules/notification_sent_history"
-	"peekaping/internal/modules/setting"
-	"peekaping/internal/modules/stats"
-	"peekaping/internal/version"
+	"vigi/internal"
+	"vigi/internal/config"
+	"vigi/internal/infra"
+	"vigi/internal/modules/certificate"
+	"vigi/internal/modules/events"
+	"vigi/internal/modules/heartbeat"
+	"vigi/internal/modules/ingester"
+	"vigi/internal/modules/monitor_maintenance"
+	"vigi/internal/modules/monitor_tls_info"
+	"vigi/internal/modules/notification_sent_history"
+	"vigi/internal/modules/setting"
+	"vigi/internal/modules/stats"
+	"vigi/internal/version"
 	"syscall"
 
 	"github.com/hibiken/asynq"
@@ -27,7 +27,7 @@ import (
 )
 
 func main() {
-	log.Printf("Starting Peekaping Ingester v%s", version.Version)
+	log.Printf("Starting Vigi Ingester v%s", version.Version)
 
 	// Load and validate Ingester-specific config
 	cfg, err := LoadAndValidate("../..")

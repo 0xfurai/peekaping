@@ -3,9 +3,9 @@ package stats
 import (
 	"context"
 	"fmt"
-	"peekaping/internal/infra"
-	"peekaping/internal/modules/events"
-	"peekaping/internal/modules/shared"
+	"vigi/internal/infra"
+	"vigi/internal/modules/events"
+	"vigi/internal/modules/shared"
 	"time"
 
 	"go.uber.org/zap"

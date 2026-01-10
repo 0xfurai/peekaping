@@ -8,6 +8,6 @@
     "dev:ingester": "nodemon --watch './**/*' -e go,html --signal SIGTERM --delay 2 --exec \"../../scripts/tool.sh go run ./cmd/ingester\"",
     "docs:watch": "nodemon --watch './**/*' --ignore docs -e go --exec \"swag init -d cmd/api,internal\"",
     "build": "../../scripts/tool.sh go build -o dist/server ./cmd/server",
-    "build:docker": "docker build -t peekaping/server:latest ."
+    "build:docker": "docker build -t vigi/server:latest ."
   }
 }

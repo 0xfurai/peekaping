@@ -694,7 +694,7 @@
         "custom_message_description": "カスタムメッセージテンプレート。利用可能な変数",
         "custom_message_description_2": "空欄のままにすると、デフォルトのメッセージが使用されます。",
         "custom_message_label": "カスタムメッセージ",
-        "custom_title_description": "通知のカスタムタイトル。利用可能な変数: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}。空欄にすると、デフォルトの「Peekaping」タイトルが使用されます。",
+        "custom_title_description": "通知のカスタムタイトル。利用可能な変数: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}。空欄にすると、デフォルトの「Vigi」タイトルが使用されます。",
         "custom_title_label": "カスタムタイトル",
         "learn_more_label": "Gotify と設定方法についてはこちら:",
         "note_description": "この統合を利用するには、Gotifyサーバーが稼働している必要があります。",

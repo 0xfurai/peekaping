@@ -3,9 +3,9 @@ package status_page
 import (
 	"context"
 	"fmt"
-	"peekaping/internal/modules/domain_status_page"
-	"peekaping/internal/modules/events"
-	"peekaping/internal/modules/monitor_status_page"
+	"vigi/internal/modules/domain_status_page"
+	"vigi/internal/modules/events"
+	"vigi/internal/modules/monitor_status_page"
 
 	"go.uber.org/zap"
 )

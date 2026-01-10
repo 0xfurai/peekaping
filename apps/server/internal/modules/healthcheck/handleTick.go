@@ -2,9 +2,9 @@ package healthcheck
 
 import (
 	"context"
-	"peekaping/internal/modules/healthcheck/executor"
-	"peekaping/internal/modules/proxy"
-	"peekaping/internal/modules/shared"
+	"vigi/internal/modules/healthcheck/executor"
+	"vigi/internal/modules/proxy"
+	"vigi/internal/modules/shared"
 	"time"
 )
 

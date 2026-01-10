@@ -3,7 +3,7 @@ package executor
 import (
 	"context"
 	"net/url"
-	"peekaping/internal/modules/shared"
+	"vigi/internal/modules/shared"
 	"testing"
 
 	"github.com/redis/go-redis/v9"

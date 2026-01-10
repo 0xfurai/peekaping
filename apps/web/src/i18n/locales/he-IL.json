@@ -694,7 +694,7 @@
         "custom_message_description": "תבנית הודעה מותאמת אישית. משתנים זמינים",
         "custom_message_description_2": "השאר ריק כדי להשתמש במסר ברירת המחדל.",
         "custom_message_label": "הודעה מותאמת",
-        "custom_title_description": "שם מותאם אישית להודעה. משתנים זמינים: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. השאר ריק כדי להשתמש בשם ברירת המחדל \"Peekaping\".",
+        "custom_title_description": "שם מותאם אישית להודעה. משתנים זמינים: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. השאר ריק כדי להשתמש בשם ברירת המחדל \"Vigi\".",
         "custom_title_label": "כותרת מותאמת",
         "learn_more_label": "למידע נוסף על Gotify וכיצד להגדיר אותו ב:",
         "note_description": "עליך להפעיל שרת Gotify כדי להשתמש באינטגרציה זו.",

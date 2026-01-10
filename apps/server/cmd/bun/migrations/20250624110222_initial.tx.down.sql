@@ -1,4 +1,4 @@
--- Down migration for Peekaping monitoring system
+-- Down migration for Vigi monitoring system
 -- This migration drops all tables created in the initial migration
 -- Wrapped in a transaction for atomicity
 

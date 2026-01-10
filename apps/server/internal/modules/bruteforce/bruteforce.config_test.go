@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"peekaping/internal/config"
+	"vigi/internal/config"
 
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"

@@ -2,7 +2,7 @@ package heartbeat
 
 import (
 	"context"
-	"peekaping/internal/modules/events"
+	"vigi/internal/modules/events"
 	"time"
 
 	"go.uber.org/zap"

@@ -3,7 +3,7 @@ package setting
 import (
 	"fmt"
 	"net/http"
-	"peekaping/internal/utils"
+	"vigi/internal/utils"
 
 	"regexp"
 

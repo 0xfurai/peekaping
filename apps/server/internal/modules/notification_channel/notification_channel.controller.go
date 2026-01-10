@@ -2,10 +2,10 @@ package notification_channel
 
 import (
 	"net/http"
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/monitor"
-	"peekaping/internal/modules/shared"
-	"peekaping/internal/utils"
+	"vigi/internal/modules/heartbeat"
+	"vigi/internal/modules/monitor"
+	"vigi/internal/modules/shared"
+	"vigi/internal/utils"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"

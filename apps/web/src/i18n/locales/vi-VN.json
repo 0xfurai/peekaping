@@ -694,7 +694,7 @@
         "custom_message_description": "Mẫu tin nhắn tùy chỉnh. Các biến có sẵn",
         "custom_message_description_2": "Để trống để sử dụng tin nhắn mặc định.",
         "custom_message_label": "Thông điệp tùy chỉnh",
-        "custom_title_description": "Tiêu đề tùy chỉnh cho thông báo. Các biến có sẵn: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Để trống để sử dụng tiêu đề mặc định \"Peekaping\".",
+        "custom_title_description": "Tiêu đề tùy chỉnh cho thông báo. Các biến có sẵn: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Để trống để sử dụng tiêu đề mặc định \"Vigi\".",
         "custom_title_label": "Tiêu đề tùy chỉnh",
         "learn_more_label": "Tìm hiểu thêm về Gotify và cách cài đặt tại:",
         "note_description": "Bạn cần có một máy chủ Gotify đang chạy để sử dụng tích hợp này.",

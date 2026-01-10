@@ -694,7 +694,7 @@
         "custom_message_description": "Egyéni üzenetsablon. Elérhető változók.",
         "custom_message_description_2": "Hagyd üresen, hogy az alapértelmezett üzenet kerüljön használatra.",
         "custom_message_label": "Egyéni üzenet",
-        "custom_title_description": "Az értesítés egyéni címe. Elérhető változók: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Hagyja üresen a \"Peekaping\" alapértelmezett cím használatához.",
+        "custom_title_description": "Az értesítés egyéni címe. Elérhető változók: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Hagyja üresen a \"Vigi\" alapértelmezett cím használatához.",
         "custom_title_label": "Egyéni cím",
         "learn_more_label": "Tudjon meg többet a Gotify-ről, és arról, hogyan állítsa be:",
         "note_description": "Gotify szervernek futnia kell az integráció használatához.",

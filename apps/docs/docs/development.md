@@ -1,21 +1,21 @@
 # Development Setup
 
-Welcome to the Peekaping development guide! Follow these steps to get your local environment up and running.
+Welcome to the Vigi development guide! Follow these steps to get your local environment up and running.
 
 ---
 
 ## 1. Clone the Repository
 
 ```bash
-git clone https://github.com/0xfurai/peekaping.git
-cd peekaping
+git clone https://github.com/0xfurai/vigi.git
+cd vigi
 ```
 
 ---
 
 ## 2. Tool Management
 
-Peekaping supports both asdf and manual runtime installation:
+Vigi supports both asdf and manual runtime installation:
 
 ### Option A: Using asdf (Recommended)
 
@@ -45,7 +45,7 @@ pnpm --version
 
 ### How asdf Works in This Project
 
-Peekaping includes `.tool-versions` files that specify the exact tool versions:
+Vigi includes `.tool-versions` files that specify the exact tool versions:
 - Root `.tool-versions`: Contains all tools (golang, nodejs, pnpm)
 - `apps/server/.tool-versions`: Contains server-specific tools (golang, nodejs)
 
@@ -80,7 +80,7 @@ cp .env.prod.example .env
 ```env
 DB_USER=root
 DB_PASSWORD=your-secure-password
-DB_NAME=peekaping
+DB_NAME=vigi
 DB_HOST=localhost
 DB_PORT=6001
 DB_TYPE=mongo # or postgres | mysql | sqlite
@@ -130,7 +130,7 @@ pnpm run dev docs:watch
 
 ## 7. Wrapper Scripts & asdf Integration
 
-Peekaping includes a unified wrapper script that automatically detects if asdf is available and uses it, otherwise falling back to system binaries:
+Vigi includes a unified wrapper script that automatically detects if asdf is available and uses it, otherwise falling back to system binaries:
 
 - `scripts/tool.sh` - Universal wrapper for any command (go, pnpm, etc.)
 

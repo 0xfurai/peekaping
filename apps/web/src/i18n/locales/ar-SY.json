@@ -694,7 +694,7 @@
         "custom_message_description": "قالب رسالة مخصص. المتغيرات المتاحة",
         "custom_message_description_2": "اتركها فارغة لاستخدام الرسالة الافتراضية.",
         "custom_message_label": "رسالة مخصصة",
-        "custom_title_description": "عنوان مخصص للإشعار. المتغيرات المتاحة: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. اتركه فارغاً لاستخدام العنوان الافتراضي \"Peekaping\".",
+        "custom_title_description": "عنوان مخصص للإشعار. المتغيرات المتاحة: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. اتركه فارغاً لاستخدام العنوان الافتراضي \"Vigi\".",
         "custom_title_label": "عنوان مخصص",
         "learn_more_label": "تعرف على Gotify وكيفية إعداده في:",
         "note_description": "يجب تشغيل خادم Gotify لاستخدام هذا التكامل.",

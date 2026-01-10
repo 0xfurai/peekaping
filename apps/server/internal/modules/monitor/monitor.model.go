@@ -1,6 +1,6 @@
 package monitor
 
-import "peekaping/internal/modules/shared"
+import "vigi/internal/modules/shared"
 
 type Model = shared.Monitor
 type UpdateModel = shared.UpdateMonitor

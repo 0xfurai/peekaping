@@ -3,11 +3,11 @@ package proxy
 import (
 	"context"
 	"errors"
-	"peekaping/internal/infra"
-	"peekaping/internal/modules/events"
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/monitor"
-	"peekaping/internal/modules/shared"
+	"vigi/internal/infra"
+	"vigi/internal/modules/events"
+	"vigi/internal/modules/heartbeat"
+	"vigi/internal/modules/monitor"
+	"vigi/internal/modules/shared"
 	"testing"
 	"time"
 

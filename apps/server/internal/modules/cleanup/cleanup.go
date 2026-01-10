@@ -5,10 +5,10 @@ import (
 	"strconv"
 	"time"
 
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/monitor_tls_info"
-	"peekaping/internal/modules/notification_sent_history"
-	"peekaping/internal/modules/setting"
+	"vigi/internal/modules/heartbeat"
+	"vigi/internal/modules/monitor_tls_info"
+	"vigi/internal/modules/notification_sent_history"
+	"vigi/internal/modules/setting"
 
 	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"

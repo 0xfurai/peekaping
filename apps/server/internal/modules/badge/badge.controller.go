@@ -3,7 +3,7 @@ package badge
 import (
 	"fmt"
 	"net/http"
-	"peekaping/internal/utils"
+	"vigi/internal/utils"
 	"strconv"
 
 	"github.com/gin-gonic/gin"

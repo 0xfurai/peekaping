@@ -7,7 +7,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
-	"peekaping/internal/config"
+	"vigi/internal/config"
 	"testing"
 	"time"
 

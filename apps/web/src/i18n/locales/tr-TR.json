@@ -694,7 +694,7 @@
         "custom_message_description": "Özel mesaj şablonu. Kullanılabilir değişkenler",
         "custom_message_description_2": "Varsayılan mesajı kullanmak için boş bırakın.",
         "custom_message_label": "Özel Mesaj",
-        "custom_title_description": "Bildirim için özel başlık. Kullanılabilir değişkenler: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Boş bırakılırsa varsayılan \"Peekaping\" başlığı kullanılır.",
+        "custom_title_description": "Bildirim için özel başlık. Kullanılabilir değişkenler: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Boş bırakılırsa varsayılan \"Vigi\" başlığı kullanılır.",
         "custom_title_label": "Özel Başlık",
         "learn_more_label": "Gotify hakkında daha fazla bilgi edinin ve kurulumunu şu adreste yapın:",
         "note_description": "Bu entegrasyonu kullanmak için Gotify sunucusunun çalışıyor olması gerekir.",

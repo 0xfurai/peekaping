@@ -1,7 +1,7 @@
 package status_page
 
 import (
-	"peekaping/internal/modules/middleware"
+	"vigi/internal/modules/middleware"
 
 	"github.com/gin-gonic/gin"
 )

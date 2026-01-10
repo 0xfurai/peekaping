@@ -6,17 +6,17 @@ sidebar_position: 1
 
 ## Monolithic mode
 
-The simplest mode of operation is the monolithic deployment mode. This mode runs all of Peekaping microservice components (db + api + web + gateway) inside a single process as a single Docker image.
+The simplest mode of operation is the monolithic deployment mode. This mode runs all of Vigi microservice components (db + api + web + gateway) inside a single process as a single Docker image.
 
 ```bash
 docker run -d --restart=always \
   -p 8383:8383 \
-  -e DB_NAME=peekaping \
-  -e DB_USER=peekaping \
+  -e DB_NAME=vigi \
+  -e DB_USER=vigi \
   -e DB_PASS=secure_test_password_123 \
   -v $(pwd)/.data/postgres:/var/lib/postgresql/data \
-  --name peekaping \
-  0xfurai/peekaping-bundle-postgres:latest
+  --name vigi \
+  0xfurai/vigi-bundle-postgres:latest
 ```
 To add custom caddy file add
 ```
@@ -33,10 +33,10 @@ If you need more granular control on system components read [Microservice mode s
 
 ### 1. Create Project Structure
 
-Create a new directory for your Peekaping installation and set up the following structure:
+Create a new directory for your Vigi installation and set up the following structure:
 
 ```
-peekaping/
+vigi/
 ├── .env
 ├── docker-compose.yml
 └── nginx.conf
@@ -52,7 +52,7 @@ Create a `.env` file with your configuration:
 # Database Configuration
 DB_USER=root
 DB_PASS=your-secure-password-here
-DB_NAME=peekaping
+DB_NAME=vigi
 DB_HOST=database
 DB_PORT=5432
 DB_TYPE=postgres
@@ -97,7 +97,7 @@ services:
     environment:
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASS:-password}
-      POSTGRES_DB: ${DB_NAME:-peekaping}
+      POSTGRES_DB: ${DB_NAME:-vigi}
     volumes:
       - ./.data/postgres:/var/lib/postgresql/data
     networks:
@@ -106,7 +106,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-peekaping}",
+          "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-vigi}",
         ]
       interval: 30s
       timeout: 2s
@@ -126,7 +126,7 @@ services:
       start_period: 5s
 
   migrate:
-    image: 0xfurai/peekaping-migrate:latest
+    image: 0xfurai/vigi-migrate:latest
     restart: "no"
     env_file:
       - .env
@@ -137,7 +137,7 @@ services:
       - appnet
 
   api:
-    image: 0xfurai/peekaping-api:latest
+    image: 0xfurai/vigi-api:latest
     restart: unless-stopped
     env_file:
       - .env
@@ -160,7 +160,7 @@ services:
       start_period: 5s
 
   producer:
-    image: 0xfurai/peekaping-producer:latest
+    image: 0xfurai/vigi-producer:latest
     restart: unless-stopped
     env_file:
       - .env
@@ -173,7 +173,7 @@ services:
       - appnet
 
   worker:
-    image: 0xfurai/peekaping-worker:latest
+    image: 0xfurai/vigi-worker:latest
     restart: unless-stopped
     env_file:
       - .env
@@ -184,7 +184,7 @@ services:
       - appnet
 
   ingester:
-    image: 0xfurai/peekaping-ingester:latest
+    image: 0xfurai/vigi-ingester:latest
     restart: unless-stopped
     env_file:
       - .env
@@ -197,7 +197,7 @@ services:
       - appnet
 
   web:
-    image: 0xfurai/peekaping-web:latest
+    image: 0xfurai/vigi-web:latest
     depends_on:
       api:
         condition: service_healthy
@@ -270,11 +270,11 @@ http {
 
 
 
-### 3. Start Peekaping
+### 3. Start Vigi
 
 ```bash
 # Navigate to your project directory
-cd peekaping
+cd vigi
 
 # Start all services
 docker compose up -d
@@ -286,7 +286,7 @@ docker compose ps
 docker compose logs -f
 ```
 
-### 4. Access Peekaping
+### 4. Access Vigi
 
 Once all containers are running:
 
@@ -296,10 +296,10 @@ Once all containers are running:
 
 ## Docker Images
 
-Peekaping provides official Docker images:
+Vigi provides official Docker images:
 
-- **Server**: [`0xfurai/peekaping-server`](https://hub.docker.com/r/0xfurai/peekaping-server)
-- **Web**: [`0xfurai/peekaping-web`](https://hub.docker.com/r/0xfurai/peekaping-web)
+- **Server**: [`0xfurai/vigi-server`](https://hub.docker.com/r/0xfurai/vigi-server)
+- **Web**: [`0xfurai/vigi-web`](https://hub.docker.com/r/0xfurai/vigi-web)
 
 ### Image Tags
 
@@ -308,7 +308,7 @@ Peekaping provides official Docker images:
 
 ## Persistent Data
 
-Peekaping stores data in Postgres. The docker-compose setup uses a local folder mount `./.data/postgres:/var/lib/postgresql/data` to persist your monitoring data.
+Vigi stores data in Postgres. The docker-compose setup uses a local folder mount `./.data/postgres:/var/lib/postgresql/data` to persist your monitoring data.
 
 ### Storage Options
 
@@ -333,7 +333,7 @@ You have two options for persistent storage:
    ```
 
 
-### Updating Peekaping
+### Updating Vigi
 
 ```bash
 # Pull latest images

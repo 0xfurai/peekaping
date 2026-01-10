@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"peekaping/internal/modules/shared"
+	"vigi/internal/modules/shared"
 
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson"

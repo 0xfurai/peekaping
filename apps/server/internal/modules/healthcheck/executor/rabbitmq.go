@@ -7,7 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"peekaping/internal/modules/shared"
+	"vigi/internal/modules/shared"
 	"strings"
 	"time"
 

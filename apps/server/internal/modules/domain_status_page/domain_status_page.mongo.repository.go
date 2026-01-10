@@ -3,7 +3,7 @@ package domain_status_page
 import (
 	"context"
 	"fmt"
-	"peekaping/internal/config"
+	"vigi/internal/config"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"

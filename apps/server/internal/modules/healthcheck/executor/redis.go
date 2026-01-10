@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"net"
 	"net/url"
-	"peekaping/internal/modules/shared"
+	"vigi/internal/modules/shared"
 	"regexp"
 	"strconv"
 	"strings"

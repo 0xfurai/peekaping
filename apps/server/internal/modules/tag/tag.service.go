@@ -3,7 +3,7 @@ package tag
 import (
 	"context"
 	"errors"
-	"peekaping/internal/modules/monitor_tag"
+	"vigi/internal/modules/monitor_tag"
 
 	"go.uber.org/zap"
 )

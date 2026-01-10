@@ -2,7 +2,7 @@ package internal
 
 import (
 	"fmt"
-	"peekaping/internal/config"
+	"vigi/internal/config"
 	"strings"
 
 	"go.uber.org/zap"

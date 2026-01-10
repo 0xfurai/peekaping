@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"peekaping/internal/config"
-	"peekaping/internal/modules/queue"
+	"vigi/internal/config"
+	"vigi/internal/modules/queue"
 	"strings"
 	"time"
 

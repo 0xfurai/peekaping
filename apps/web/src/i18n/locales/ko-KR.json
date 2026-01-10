@@ -694,7 +694,7 @@
         "custom_message_description": "사용자 지정 메시지 템플릿. 사용 가능한 변수",
         "custom_message_description_2": "기본 메시지를 사용하려면 비워 두세요.",
         "custom_message_label": "사용자 정의 메시지",
-        "custom_title_description": "알림에 대한 사용자 정의 제목. 사용 가능한 변수: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. 비워 두면 기본 \"Peekaping\" 제목이 사용됩니다.",
+        "custom_title_description": "알림에 대한 사용자 정의 제목. 사용 가능한 변수: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. 비워 두면 기본 \"Vigi\" 제목이 사용됩니다.",
         "custom_title_label": "맞춤 제목",
         "learn_more_label": "Gotify에 대해 자세히 알아보려면, 설정 방법은 다음에서 확인하세요:",
         "note_description": "이 통합 기능을 사용하려면 Gotify 서버가 실행 중이어야 합니다.",

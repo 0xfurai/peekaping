@@ -9,9 +9,9 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/monitor"
-	"peekaping/internal/version"
+	"vigi/internal/modules/heartbeat"
+	"vigi/internal/modules/monitor"
+	"vigi/internal/version"
 	"time"
 
 	liquid "github.com/osteele/liquid"
@@ -58,7 +58,7 @@ func (m *MatrixSender) generateRandomString(size int) string {
 	if _, err := rand.Read(bytes); err != nil {
 		m.logger.Warnf("Failed to generate random bytes: %v", err)
 		// Fallback to timestamp-based string
-		return fmt.Sprintf("peekaping_%d", time.Now().UnixNano())
+		return fmt.Sprintf("vigi_%d", time.Now().UnixNano())
 	}
 
 	randomString := base64.URLEncoding.EncodeToString(bytes)

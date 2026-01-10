@@ -4,11 +4,11 @@ sidebar_position: 1
 
 # Architecture Overview
 
-Peekaping uses a distributed microservices architecture designed for scalability, high availability, and fault tolerance. The system is composed of five main server components that work together to provide comprehensive uptime monitoring.
+Vigi uses a distributed microservices architecture designed for scalability, high availability, and fault tolerance. The system is composed of five main server components that work together to provide comprehensive uptime monitoring.
 
 ## System Architecture
 
-![Peekaping system design](/img/schema.png)
+![Vigi system design](/img/schema.png)
 
 ## Component Overview
 
@@ -104,7 +104,7 @@ The system uses Redis pub/sub for real-time event communication:
 
 ## Supported Databases
 
-Peekaping supports three database backends:
+Vigi supports three database backends:
 
 | Database   | Use Case                     | Features                           |
 |------------|------------------------------|------------------------------------|

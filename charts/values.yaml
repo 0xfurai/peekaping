@@ -12,7 +12,7 @@ redis:
   #   password: vigi
 
 # See docs for configuration details
-# https://docs.vigi.com/architecture/api-server
+# https://docs.vigi.run/architecture/api-server
 config:
   existingSecret: "vigi-config"
   env:

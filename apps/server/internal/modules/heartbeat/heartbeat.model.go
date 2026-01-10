@@ -1,6 +1,6 @@
 package heartbeat
 
-import "peekaping/internal/modules/shared"
+import "vigi/internal/modules/shared"
 
 type Model = shared.HeartBeatModel
 type ChartPoint = shared.HeartBeatChartPoint

@@ -1,6 +1,6 @@
 # WhatsApp Notifications
 
-Peekaping supports WhatsApp notifications through the WAHA (WhatsApp HTTP API) integration.
+Vigi supports WhatsApp notifications through the WAHA (WhatsApp HTTP API) integration.
 
 ## Prerequisites
 
@@ -65,7 +65,7 @@ When using templates, you can include the following variables:
 ### Example Template
 
 ```
-🚨 Peekaping Alert
+🚨 Vigi Alert
 
 Monitor: {{ monitor.name }}
 Status: {{ status }}
@@ -76,7 +76,7 @@ Time: {{ heartbeat.created_at }}
 
 ## Testing
 
-1. Create a WhatsApp notification channel in Peekaping
+1. Create a WhatsApp notification channel in Vigi
 2. Configure the required fields
 3. Click "Test" to send a test message
 4. Check your WhatsApp for the received message
@@ -92,10 +92,10 @@ Time: {{ heartbeat.created_at }}
 
 ### Debug Logs
 
-Check the Peekaping server logs for detailed debugging information:
+Check the Vigi server logs for detailed debugging information:
 
 ```bash
-docker logs peekaping-server-1
+docker logs vigi-server-1
 ```
 
 The logs will show:

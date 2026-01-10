@@ -3,8 +3,8 @@ package providers
 import (
 	"context"
 	"fmt"
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/monitor"
+	"vigi/internal/modules/heartbeat"
+	"vigi/internal/modules/monitor"
 	"strings"
 
 	liquid "github.com/osteele/liquid"

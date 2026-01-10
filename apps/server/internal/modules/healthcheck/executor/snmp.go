@@ -3,7 +3,7 @@ package executor
 import (
 	"context"
 	"fmt"
-	"peekaping/internal/modules/shared"
+	"vigi/internal/modules/shared"
 	"strconv"
 	"time"
 

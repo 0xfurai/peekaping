@@ -11,7 +11,7 @@ import (
 
 const (
 	// LeaderKey is the Redis key used for leader election
-	LeaderKey = "peekaping:producer:leader"
+	LeaderKey = "vigi:producer:leader"
 	// LeaderTTL is how long the leader lock is valid
 	LeaderTTL = 10 * time.Second
 	// LeaderRenewalInterval is how often the leader renews its lock

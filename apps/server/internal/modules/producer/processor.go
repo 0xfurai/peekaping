@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"peekaping/internal/modules/queue"
-	"peekaping/internal/modules/shared"
-	"peekaping/internal/modules/worker"
+	"vigi/internal/modules/queue"
+	"vigi/internal/modules/shared"
+	"vigi/internal/modules/worker"
 )
 
 // claimDueMonitors atomically claims a batch of due monitors from the due queue
