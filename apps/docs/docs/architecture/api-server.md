@@ -4,7 +4,7 @@ sidebar_position: 2
 
 # API Server
 
-The API Server is the main entry point for all client interactions with Peekaping. It provides a RESTful API, WebSocket connections for real-time updates, and serves as the authentication gateway.
+The API Server is the main entry point for all client interactions with Vigi. It provides a RESTful API, WebSocket connections for real-time updates, and serves as the authentication gateway.
 
 ## Role & Responsibilities
 
@@ -38,7 +38,7 @@ The API server subscribes to Redis pub/sub events and broadcasts them to connect
 | `MODE` | string | Yes | `dev` | Runtime mode: `dev`, `prod`, or `test` |
 | `LOG_LEVEL` | string | No | `info` | Logging level: `debug`, `info`, `warn`, `error` |
 | `TZ` | string | Yes | `UTC` | Timezone for the server |
-| `SERVICE_NAME` | string | Yes | `peekaping:api` | Service identifier for logging and monitoring |
+| `SERVICE_NAME` | string | Yes | `vigi:api` | Service identifier for logging and monitoring |
 
 ### Database Configuration
 

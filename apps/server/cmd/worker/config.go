@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"peekaping/internal/config"
+	"vigi/internal/config"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -24,7 +24,7 @@ type Config struct {
 	// Queue configuration
 	QueueConcurrency int `env:"QUEUE_CONCURRENCY" validate:"min=1" default:"128"`
 
-	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"peekaping:worker"`
+	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"vigi:worker"`
 }
 
 // LoadAndValidate loads and validates the Worker service configuration

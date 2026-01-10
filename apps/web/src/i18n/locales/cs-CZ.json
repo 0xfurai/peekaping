@@ -694,7 +694,7 @@
         "custom_message_description": "Vlastní šablona zprávy. Dostupné proměnné",
         "custom_message_description_2": "Nechte prázdné pro použití výchozí zprávy.",
         "custom_message_label": "Vlastní zpráva",
-        "custom_title_description": "Vlastní název notifikace. Dostupné proměnné: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Nechte prázdné pro použití výchozího názvu \\\"Peekaping\\\".",
+        "custom_title_description": "Vlastní název notifikace. Dostupné proměnné: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Nechte prázdné pro použití výchozího názvu \\\"Vigi\\\".",
         "custom_title_label": "Vlastní titulek",
         "learn_more_label": "Další informace o Gotify a jak ho nastavit na:",
         "note_description": "Pro použití této integrace je třeba mít spuštěný server Gotify.",

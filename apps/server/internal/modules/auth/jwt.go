@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"peekaping/internal/modules/shared"
+	"vigi/internal/modules/shared"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"

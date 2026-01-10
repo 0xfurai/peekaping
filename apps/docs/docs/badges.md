@@ -4,7 +4,7 @@ sidebar_position: 4
 
 # Badges
 
-Peekaping provides real-time SVG badges that you can embed in your README files, websites, or dashboards to display the status and metrics of your monitored services.
+Vigi provides real-time SVG badges that you can embed in your README files, websites, or dashboards to display the status and metrics of your monitored services.
 
 ## Overview
 
@@ -22,7 +22,7 @@ Badges are dynamically generated SVG images that show current status information
 Shows the current operational status of your monitor.
 
 ```
-https://your-peekaping-instance.com/api/v1/badge/{monitorId}/status
+https://your-vigi-instance.com/api/v1/badge/{monitorId}/status
 ```
 
 **Possible values:**
@@ -37,8 +37,8 @@ https://your-peekaping-instance.com/api/v1/badge/{monitorId}/status
 Displays uptime percentage for a specific time period.
 
 ```
-https://your-peekaping-instance.com/api/v1/badge/{monitorId}/uptime
-https://your-peekaping-instance.com/api/v1/badge/{monitorId}/uptime/{duration}
+https://your-vigi-instance.com/api/v1/badge/{monitorId}/uptime
+https://your-vigi-instance.com/api/v1/badge/{monitorId}/uptime/{duration}
 ```
 
 **Duration options:**
@@ -53,8 +53,8 @@ https://your-peekaping-instance.com/api/v1/badge/{monitorId}/uptime/{duration}
 Shows average response time for your monitor.
 
 ```
-https://your-peekaping-instance.com/api/v1/badge/{monitorId}/ping
-https://your-peekaping-instance.com/api/v1/badge/{monitorId}/ping/{duration}
+https://your-vigi-instance.com/api/v1/badge/{monitorId}/ping
+https://your-vigi-instance.com/api/v1/badge/{monitorId}/ping/{duration}
 ```
 
 **Duration options:** Same as uptime badge
@@ -68,7 +68,7 @@ https://your-peekaping-instance.com/api/v1/badge/{monitorId}/ping/{duration}
 Shows SSL certificate expiration information for HTTPS monitors.
 
 ```
-https://your-peekaping-instance.com/api/v1/badge/{monitorId}/cert-exp
+https://your-vigi-instance.com/api/v1/badge/{monitorId}/cert-exp
 ```
 
 **Color coding:**
@@ -83,7 +83,7 @@ https://your-peekaping-instance.com/api/v1/badge/{monitorId}/cert-exp
 Shows the most recent response time measurement.
 
 ```
-https://your-peekaping-instance.com/api/v1/badge/{monitorId}/response
+https://your-vigi-instance.com/api/v1/badge/{monitorId}/response
 ```
 
 **Example:** `Response: 2ms`
@@ -136,34 +136,34 @@ All badges support query parameters for customization:
 ### Basic Status Badge
 
 ```html
-<img src="https://your-peekaping-instance.com/api/v1/badge/monitor-123/status" alt="Service Status">
+<img src="https://your-vigi-instance.com/api/v1/badge/monitor-123/status" alt="Service Status">
 ```
 
 ### Custom Styled Uptime Badge
 
 ```html
-<img src="https://your-peekaping-instance.com/api/v1/badge/monitor-123/uptime/720?style=flat-square&color=brightgreen" alt="30-day Uptime">
+<img src="https://your-vigi-instance.com/api/v1/badge/monitor-123/uptime/720?style=flat-square&color=brightgreen" alt="30-day Uptime">
 ```
 
 ### Markdown Usage
 
 ```markdown
-![API Status](https://your-peekaping-instance.com/api/v1/badge/monitor-123/status)
-![Uptime](https://your-peekaping-instance.com/api/v1/badge/monitor-123/uptime)
-![Response Time](https://your-peekaping-instance.com/api/v1/badge/monitor-123/ping)
+![API Status](https://your-vigi-instance.com/api/v1/badge/monitor-123/status)
+![Uptime](https://your-vigi-instance.com/api/v1/badge/monitor-123/uptime)
+![Response Time](https://your-vigi-instance.com/api/v1/badge/monitor-123/ping)
 ```
 
 ### Custom Labels
 
 ```html
 <!-- Custom status labels -->
-<img src="https://your-peekaping-instance.com/api/v1/badge/monitor-123/status?upLabel=Online&downLabel=Offline" alt="API Status">
+<img src="https://your-vigi-instance.com/api/v1/badge/monitor-123/status?upLabel=Online&downLabel=Offline" alt="API Status">
 
 <!-- Custom certificate warning threshold -->
-<img src="https://your-peekaping-instance.com/api/v1/badge/monitor-123/cert-exp?warnDays=30&downDays=14" alt="SSL Certificate">
+<img src="https://your-vigi-instance.com/api/v1/badge/monitor-123/cert-exp?warnDays=30&downDays=14" alt="SSL Certificate">
 
 <!-- Custom prefix/suffix -->
-<img src="https://your-peekaping-instance.com/api/v1/badge/monitor-123/ping?prefix=~&suffix=ms&label=Latency" alt="API Latency">
+<img src="https://your-vigi-instance.com/api/v1/badge/monitor-123/ping?prefix=~&suffix=ms&label=Latency" alt="API Latency">
 ```
 
 ## Integration Examples
@@ -173,10 +173,10 @@ All badges support query parameters for customization:
 ```markdown
 # My Service
 
-[![Service Status](https://your-peekaping-instance.com/api/v1/badge/monitor-123/status?style=flat-square)](https://status.yourservice.com)
-[![Uptime](https://your-peekaping-instance.com/api/v1/badge/monitor-123/uptime?style=flat-square)](https://status.yourservice.com)
-[![Response Time](https://your-peekaping-instance.com/api/v1/badge/monitor-123/ping?style=flat-square)](https://status.yourservice.com)
-[![SSL Cert](https://your-peekaping-instance.com/api/v1/badge/monitor-123/cert-exp?style=flat-square)](https://status.yourservice.com)
+[![Service Status](https://your-vigi-instance.com/api/v1/badge/monitor-123/status?style=flat-square)](https://status.yourservice.com)
+[![Uptime](https://your-vigi-instance.com/api/v1/badge/monitor-123/uptime?style=flat-square)](https://status.yourservice.com)
+[![Response Time](https://your-vigi-instance.com/api/v1/badge/monitor-123/ping?style=flat-square)](https://status.yourservice.com)
+[![SSL Cert](https://your-vigi-instance.com/api/v1/badge/monitor-123/cert-exp?style=flat-square)](https://status.yourservice.com)
 
 A reliable service with 99.9% uptime.
 ```
@@ -187,9 +187,9 @@ A reliable service with 99.9% uptime.
 <div class="service-status">
   <h3>Service Health</h3>
   <p>
-    <img src="https://your-peekaping-instance.com/api/v1/badge/api-monitor/status" alt="API Status" />
-    <img src="https://your-peekaping-instance.com/api/v1/badge/api-monitor/uptime/720" alt="30-day Uptime" />
-    <img src="https://your-peekaping-instance.com/api/v1/badge/api-monitor/ping/720" alt="Response Time" />
+    <img src="https://your-vigi-instance.com/api/v1/badge/api-monitor/status" alt="API Status" />
+    <img src="https://your-vigi-instance.com/api/v1/badge/api-monitor/uptime/720" alt="30-day Uptime" />
+    <img src="https://your-vigi-instance.com/api/v1/badge/api-monitor/ping/720" alt="Response Time" />
   </p>
 </div>
 ```
@@ -200,13 +200,13 @@ A reliable service with 99.9% uptime.
 <div class="status-grid">
   <div class="service">
     <h4>Web API</h4>
-    <img src="https://your-peekaping-instance.com/api/v1/badge/web-api/status" />
-    <img src="https://your-peekaping-instance.com/api/v1/badge/web-api/uptime" />
+    <img src="https://your-vigi-instance.com/api/v1/badge/web-api/status" />
+    <img src="https://your-vigi-instance.com/api/v1/badge/web-api/uptime" />
   </div>
   <div class="service">
     <h4>Database</h4>
-    <img src="https://your-peekaping-instance.com/api/v1/badge/database/status" />
-    <img src="https://your-peekaping-instance.com/api/v1/badge/database/ping" />
+    <img src="https://your-vigi-instance.com/api/v1/badge/database/status" />
+    <img src="https://your-vigi-instance.com/api/v1/badge/database/ping" />
   </div>
 </div>
 ```
@@ -261,7 +261,7 @@ A reliable service with 99.9% uptime.
 
 - Verify the monitor ID is correct
 - Check that the monitor has public badges enabled
-- Ensure your Peekaping instance is accessible from where you're viewing the badge
+- Ensure your Vigi instance is accessible from where you're viewing the badge
 
 ### Incorrect Data
 

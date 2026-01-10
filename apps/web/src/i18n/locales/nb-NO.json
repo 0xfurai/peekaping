@@ -694,7 +694,7 @@
         "custom_message_description": "Egendefinert meldingsmal. Tilgjengelige variabler",
         "custom_message_description_2": "La stå tomt for å bruke standardmeldingen.",
         "custom_message_label": "Tilpasset melding",
-        "custom_title_description": "Egendefinert tittel for varselet. Tilgjengelige variabler: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. La stå tomt for å bruke standard \"Peekaping\"-tittel.",
+        "custom_title_description": "Egendefinert tittel for varselet. Tilgjengelige variabler: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. La stå tomt for å bruke standard \"Vigi\"-tittel.",
         "custom_title_label": "Tilpasset tittel",
         "learn_more_label": "Lær mer om Gotify og hvordan du setter det opp på:",
         "note_description": "Du må ha en Gotify-server kjørende for å bruke denne integrasjonen.",

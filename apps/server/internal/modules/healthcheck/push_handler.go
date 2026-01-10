@@ -3,14 +3,14 @@ package healthcheck
 import (
 	"fmt"
 	"net/http"
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/monitor"
-	"peekaping/internal/modules/queue"
-	"peekaping/internal/utils"
+	"vigi/internal/modules/heartbeat"
+	"vigi/internal/modules/monitor"
+	"vigi/internal/modules/queue"
+	"vigi/internal/utils"
 	"strconv"
 	"time"
 
-	"peekaping/internal/modules/shared"
+	"vigi/internal/modules/shared"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"

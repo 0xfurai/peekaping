@@ -1,5 +1,5 @@
 package setting
 
-import "peekaping/internal/modules/shared"
+import "vigi/internal/modules/shared"
 
 type Model = shared.SettingModel

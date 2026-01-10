@@ -2,7 +2,7 @@ package executor
 
 import (
 	"context"
-	"peekaping/internal/modules/shared"
+	"vigi/internal/modules/shared"
 	"testing"
 	"time"
 

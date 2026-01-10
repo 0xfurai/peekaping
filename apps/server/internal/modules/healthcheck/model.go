@@ -1,5 +1,5 @@
 package healthcheck
 
-import "peekaping/internal/modules/shared"
+import "vigi/internal/modules/shared"
 
 type Monitor = shared.Monitor

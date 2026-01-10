@@ -1,7 +1,7 @@
 package monitor_tls_info
 
 import (
-	"peekaping/internal/modules/shared"
+	"vigi/internal/modules/shared"
 	"time"
 )
 

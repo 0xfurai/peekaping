@@ -1,8 +1,8 @@
 package healthcheck
 
 import (
-	"peekaping/internal/modules/events"
-	"peekaping/internal/modules/healthcheck/executor"
+	"vigi/internal/modules/events"
+	"vigi/internal/modules/healthcheck/executor"
 
 	"go.uber.org/zap"
 )

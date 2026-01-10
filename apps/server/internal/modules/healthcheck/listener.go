@@ -1,7 +1,7 @@
 package healthcheck
 
 import (
-	"peekaping/internal/modules/events"
+	"vigi/internal/modules/events"
 )
 
 // EventListener handles monitor events and manages health check polling

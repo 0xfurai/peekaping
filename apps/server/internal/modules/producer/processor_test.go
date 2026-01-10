@@ -5,11 +5,11 @@ import (
 	"errors"
 	"testing"
 
-	"peekaping/internal/modules/maintenance"
-	"peekaping/internal/modules/monitor"
-	"peekaping/internal/modules/proxy"
-	"peekaping/internal/modules/queue"
-	"peekaping/internal/modules/worker"
+	"vigi/internal/modules/maintenance"
+	"vigi/internal/modules/monitor"
+	"vigi/internal/modules/proxy"
+	"vigi/internal/modules/queue"
+	"vigi/internal/modules/worker"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

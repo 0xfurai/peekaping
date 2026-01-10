@@ -35,7 +35,7 @@ export type DiscordFormValues = z.infer<typeof schema>;
 export const defaultValues: DiscordFormValues = {
   type: "discord",
   webhook_url: "",
-  bot_display_name: "Peekaping",
+  bot_display_name: "Vigi",
   custom_message_prefix: "",
   message_type: "send_to_channel",
   thread_name: "",
@@ -90,7 +90,7 @@ export default function DiscordForm() {
             <FormLabel>{t("notifications.form.discord.bot_display_name_label")}</FormLabel>
             <FormControl>
               <Input
-                placeholder="Peekaping"
+                placeholder="Vigi"
                 required
                 {...field}
               />

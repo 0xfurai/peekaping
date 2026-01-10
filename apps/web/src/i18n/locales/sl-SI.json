@@ -694,7 +694,7 @@
         "custom_message_description": "Lastni predlog sporočila. Razpoložljive spremenljivke",
         "custom_message_description_2": "Pustite prazno, da uporabite privzeto sporočilo.",
         "custom_message_label": "Prilagojeno sporočilo",
-        "custom_title_description": "Prilagojen naslov za obvestilo. Razpoložljive spremenljivke: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Pustite prazno, da uporabite privzeti naslov \"Peekaping\".",
+        "custom_title_description": "Prilagojen naslov za obvestilo. Razpoložljive spremenljivke: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Pustite prazno, da uporabite privzeti naslov \"Vigi\".",
         "custom_title_label": "Prilagojen naslov",
         "learn_more_label": "Več o Gotify in o tem, kako ga nastaviti na:",
         "note_description": "Za uporabo te integracije morate imeti zagnan strežnik Gotify.",

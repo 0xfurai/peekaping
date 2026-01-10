@@ -1,7 +1,7 @@
 package bruteforce
 
 import (
-	"peekaping/internal/config"
+	"vigi/internal/config"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

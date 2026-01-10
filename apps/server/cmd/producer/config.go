@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"peekaping/internal/config"
+	"vigi/internal/config"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -32,7 +32,7 @@ type Config struct {
 	// Producer configuration
 	ProducerConcurrency int `env:"PRODUCER_CONCURRENCY" validate:"min=1,max=128" default:"10"`
 
-	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"peekaping:producer"`
+	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"vigi:producer"`
 }
 
 // LoadAndValidate loads and validates the Producer service configuration

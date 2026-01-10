@@ -1,7 +1,7 @@
 package healthcheck
 
 import (
-	"peekaping/internal/modules/healthcheck/executor"
+	"vigi/internal/modules/healthcheck/executor"
 )
 
 // TickResult is what HandleMonitorTick returns

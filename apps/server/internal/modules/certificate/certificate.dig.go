@@ -1,10 +1,10 @@
 package certificate
 
 import (
-	"peekaping/internal/modules/events"
-	"peekaping/internal/modules/monitor_tls_info"
-	"peekaping/internal/modules/notification_sent_history"
-	"peekaping/internal/modules/shared"
+	"vigi/internal/modules/events"
+	"vigi/internal/modules/monitor_tls_info"
+	"vigi/internal/modules/notification_sent_history"
+	"vigi/internal/modules/shared"
 
 	"go.uber.org/dig"
 	"go.uber.org/zap"

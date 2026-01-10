@@ -11,7 +11,7 @@ import (
 	"math/big"
 	"net/http"
 	"net/http/httptest"
-	"peekaping/internal/modules/shared"
+	"vigi/internal/modules/shared"
 	"strconv"
 	"strings"
 	"testing"

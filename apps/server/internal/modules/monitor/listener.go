@@ -2,9 +2,9 @@ package monitor
 
 import (
 	"context"
-	"peekaping/internal/infra"
-	"peekaping/internal/modules/events"
-	"peekaping/internal/modules/heartbeat"
+	"vigi/internal/infra"
+	"vigi/internal/modules/events"
+	"vigi/internal/modules/heartbeat"
 
 	"go.uber.org/dig"
 	"go.uber.org/zap"

@@ -694,7 +694,7 @@
         "custom_message_description": "自定义消息模板。可用变量",
         "custom_message_description_2": "留空以使用默认消息。",
         "custom_message_label": "自定义消息",
-        "custom_title_description": "自定义通知标题。可用变量：{{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}。留空则使用默认“Peekaping”标题。",
+        "custom_title_description": "自定义通知标题。可用变量：{{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}。留空则使用默认“Vigi”标题。",
         "custom_title_label": "自定义标题",
         "learn_more_label": "了解 Gotify 以及如何设置，更多信息请访问：",
         "note_description": "要使用此集成，您需要运行 Gotify 服务器。",

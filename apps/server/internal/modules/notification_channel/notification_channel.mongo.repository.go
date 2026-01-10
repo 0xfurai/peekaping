@@ -3,8 +3,8 @@ package notification_channel
 import (
 	"context"
 	"errors"
-	"peekaping/internal/config"
-	"peekaping/internal/utils"
+	"vigi/internal/config"
+	"vigi/internal/utils"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"

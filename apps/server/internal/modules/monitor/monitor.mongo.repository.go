@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"peekaping/internal/config"
-	"peekaping/internal/modules/heartbeat"
+	"vigi/internal/config"
+	"vigi/internal/modules/heartbeat"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"

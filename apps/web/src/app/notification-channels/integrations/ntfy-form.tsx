@@ -47,7 +47,7 @@ export const defaultValues: NtfyFormValues = {
   token: "",
   priority: 3,
   tags: "vigi,monitoring",
-  title: "Peekaping Alert - {{ name }}",
+  title: "Vigi Alert - {{ name }}",
   custom_message: "{{ msg }}",
 };
 
@@ -290,7 +290,7 @@ export default function NtfyForm() {
           <FormItem>
             <FormLabel>{t("notifications.form.ntfy.title_label")}</FormLabel>
             <FormControl>
-              <Input placeholder="Peekaping Alert - {{ name }}" {...field} />
+              <Input placeholder="Vigi Alert - {{ name }}" {...field} />
             </FormControl>
             <FormDescription>
               {t("notifications.form.ntfy.title_description")}:{" "}

@@ -694,7 +694,7 @@
         "custom_message_description": "Benutzerdefinierte Nachrichtenvorlage. Verfügbare Variablen",
         "custom_message_description_2": "Leer lassen, um die Standardnachricht zu verwenden.",
         "custom_message_label": "Benutzerdefinierte Nachricht",
-        "custom_title_description": "Benutzerdefinierter Titel der Benachrichtigung. Verfügbare Variablen: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Leer lassen, um den Standardtitel 'Peekaping' zu verwenden.",
+        "custom_title_description": "Benutzerdefinierter Titel der Benachrichtigung. Verfügbare Variablen: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Leer lassen, um den Standardtitel 'Vigi' zu verwenden.",
         "custom_title_label": "Benutzerdefinierter Titel",
         "learn_more_label": "Weitere Informationen zu Gotify und wie Sie es einrichten:",
         "note_description": "Um diese Integration zu verwenden, benötigen Sie einen laufenden Gotify-Server.",

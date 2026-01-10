@@ -3,7 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
-	"peekaping/internal/modules/shared"
+	"vigi/internal/modules/shared"
 	"testing"
 	"time"
 

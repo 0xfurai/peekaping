@@ -3,7 +3,7 @@ package tag
 import (
 	"context"
 	"errors"
-	"peekaping/internal/config"
+	"vigi/internal/config"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"

@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/monitor"
-	"peekaping/internal/version"
 	"strings"
 	"time"
+	"vigi/internal/modules/heartbeat"
+	"vigi/internal/modules/monitor"
+	"vigi/internal/version"
 
 	liquid "github.com/osteele/liquid"
 	"go.uber.org/zap"
@@ -82,7 +82,7 @@ func (e *NTFYSender) Send(
 	}
 
 	// Prepare title
-	finalTitle := "Peekaping Notification"
+	finalTitle := "Vigi Notification"
 	if cfg.Title != "" {
 		if rendered, err := engine.ParseAndRenderString(cfg.Title, bindings); err == nil {
 			finalTitle = rendered
@@ -122,7 +122,7 @@ func (e *NTFYSender) Send(
 
 	// Set headers
 	req.Header.Set("Content-Type", "text/plain")
-	req.Header.Set("User-Agent", "Peekaping-NTFY/"+version.Version)
+	req.Header.Set("User-Agent", "Vigi-NTFY/"+version.Version)
 
 	// Set title header if provided
 	if finalTitle != "" {

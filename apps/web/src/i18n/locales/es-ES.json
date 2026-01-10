@@ -694,7 +694,7 @@
         "custom_message_description": "Plantilla de mensaje personalizada. Variables disponibles",
         "custom_message_description_2": "Déjalo vacío para usar el mensaje predeterminado.",
         "custom_message_label": "Mensaje personalizado",
-        "custom_title_description": "Título personalizado para la notificación. Variables disponibles: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Dejarlo vacío para usar el título por defecto \"Peekaping\".",
+        "custom_title_description": "Título personalizado para la notificación. Variables disponibles: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Dejarlo vacío para usar el título por defecto \"Vigi\".",
         "custom_title_label": "Título personalizado",
         "learn_more_label": "Aprende más sobre Gotify y cómo configurarlo en:",
         "note_description": "Debes tener un servidor Gotify en ejecución para usar esta integración.",

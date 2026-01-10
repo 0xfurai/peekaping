@@ -3,13 +3,13 @@ sidebar_position: 2
 ---
 # Live Demo
 
-Try Peekaping with our interactive demo environment.
+Try Vigi with our interactive demo environment.
 
 ## ⚠️ **Sign Up Required**
 
 **You need to create an account with your own credentials to access the demo.**
 
-**[👉 Open Live Demo](https://demo.peekaping.com)**
+**[👉 Open Live Demo](https://demo.vigi.run)**
 
 ## ⏱️ Demo Details
 
@@ -26,4 +26,4 @@ Try Peekaping with our interactive demo environment.
 
 ---
 
-**Ready to try?** [Start your demo session](https://demo.peekaping.com) 🎉
+**Ready to try?** [Start your demo session](https://demo.vigi.run) 🎉

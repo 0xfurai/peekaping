@@ -4,7 +4,7 @@ sidebar_position: 3
 
 # Producer
 
-The Producer is the scheduling component of Peekaping, responsible for determining when monitors should be checked and enqueueing health check tasks for workers to execute.
+The Producer is the scheduling component of Vigi, responsible for determining when monitors should be checked and enqueueing health check tasks for workers to execute.
 
 ## Role & Responsibilities
 
@@ -84,7 +84,7 @@ The producer runs multiple concurrent goroutines:
 | `MODE` | string | Yes | `dev` | Runtime mode: `dev`, `prod`, or `test` |
 | `LOG_LEVEL` | string | No | `debug` | Logging level: `debug`, `info`, `warn`, `error` |
 | `TZ` | string | Yes | `UTC` | Timezone for the producer |
-| `SERVICE_NAME` | string | Yes | `peekaping:producer` | Service identifier for logging |
+| `SERVICE_NAME` | string | Yes | `vigi:producer` | Service identifier for logging |
 
 
 ## Leader Election

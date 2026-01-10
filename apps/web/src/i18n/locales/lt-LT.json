@@ -694,7 +694,7 @@
         "custom_message_description": "Pasirinktinio pranešimo šablonas. Galimi kintamieji",
         "custom_message_description_2": "Palikite tuščią, kad būtų naudojama numatytoji žinutė.",
         "custom_message_label": "Pasirinktinė žinutė",
-        "custom_title_description": "Pasirinktinė pranešimo antraštė. Galimi kintamieji: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Palikite tuščią, kad būtų naudojama numatytoji „Peekaping“ antraštė.",
+        "custom_title_description": "Pasirinktinė pranešimo antraštė. Galimi kintamieji: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Palikite tuščią, kad būtų naudojama numatytoji „Vigi“ antraštė.",
         "custom_title_label": "Pasirinktinė antraštė",
         "learn_more_label": "Sužinokite daugiau apie Gotify ir kaip jį įdiegti adresu:",
         "note_description": "Norint naudoti šią integraciją, turite veikiantį Gotify serverį.",

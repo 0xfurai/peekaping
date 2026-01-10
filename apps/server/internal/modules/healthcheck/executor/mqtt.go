@@ -5,7 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/json"
 	"fmt"
-	"peekaping/internal/modules/shared"
+	"vigi/internal/modules/shared"
 	"strings"
 	"time"
 
@@ -249,7 +249,7 @@ func (m *MQTTExecutor) mqttAsync(ctx context.Context, hostname, topic string, op
 	// Generate random client ID
 	randomBytes := make([]byte, 4)
 	rand.Read(randomBytes)
-	clientID := fmt.Sprintf("peekaping_%x", randomBytes)
+	clientID := fmt.Sprintf("vigi_%x", randomBytes)
 
 	mqttUrl := fmt.Sprintf("%s:%d", hostname, port)
 

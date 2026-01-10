@@ -8,8 +8,8 @@ import (
 
 // Redis keys for scheduler
 const (
-	SchedDueKey   = "peekaping:sched:due"   // ZSET: score=next_due_ms, member=monitor_id
-	SchedLeaseKey = "peekaping:sched:lease" // ZSET: score=lease_expire_ms, member=monitor_id
+	SchedDueKey   = "vigi:sched:due"   // ZSET: score=next_due_ms, member=monitor_id
+	SchedLeaseKey = "vigi:sched:lease" // ZSET: score=lease_expire_ms, member=monitor_id
 
 	// With high concurrency (128 workers), use smaller batches to reduce contention
 	// Smaller batches = more frequent claims = better work distribution

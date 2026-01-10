@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"peekaping/internal/modules/bruteforce"
+	"vigi/internal/modules/bruteforce"
 
 	"github.com/gin-gonic/gin"
 )

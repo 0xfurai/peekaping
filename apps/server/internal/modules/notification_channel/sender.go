@@ -2,8 +2,8 @@ package notification_channel
 
 import (
 	"context"
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/monitor"
+	"vigi/internal/modules/heartbeat"
+	"vigi/internal/modules/monitor"
 )
 
 type NotificationChannelProvider interface {

@@ -1,7 +1,7 @@
 package executor
 
 import (
-	"peekaping/internal/utils"
+	"vigi/internal/utils"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

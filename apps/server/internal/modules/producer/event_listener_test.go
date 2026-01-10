@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"peekaping/internal/modules/events"
-	"peekaping/internal/modules/monitor"
+	"vigi/internal/modules/events"
+	"vigi/internal/modules/monitor"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

@@ -694,7 +694,7 @@
         "custom_message_description": "Anpassad meddelandemall. Tillgängliga variabler",
         "custom_message_description_2": "Lämna tomt för att använda standardmeddelandet.",
         "custom_message_label": "Anpassat meddelande",
-        "custom_title_description": "Anpassad titel för meddelandet. Tillgängliga variabler: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Lämna tomt för att använda standardtiteln \"Peekaping\".",
+        "custom_title_description": "Anpassad titel för meddelandet. Tillgängliga variabler: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Lämna tomt för att använda standardtiteln \"Vigi\".",
         "custom_title_label": "Anpassad titel",
         "learn_more_label": "Läs mer om Gotify och hur du sätter upp den på:",
         "note_description": "Du behöver ha en Gotify-server igång för att använda den här integrationen.",

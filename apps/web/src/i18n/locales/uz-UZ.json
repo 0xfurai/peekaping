@@ -694,7 +694,7 @@
         "custom_message_description": "Maxsus xabar shabloni. Mavjud o'zgaruvchilar",
         "custom_message_description_2": "Standart xabarni qo‘llash uchun bo‘sh qoldiring.",
         "custom_message_label": "Maxsus Xabar",
-        "custom_title_description": "Bildirishnoma uchun maxsus sarlavha. Mavjud o'zgaruvchilar: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Ushbu maydonni bo‘sh qoldiring, shunda standart \"Peekaping\" sarlavhasi ishlatiladi.",
+        "custom_title_description": "Bildirishnoma uchun maxsus sarlavha. Mavjud o'zgaruvchilar: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Ushbu maydonni bo‘sh qoldiring, shunda standart \"Vigi\" sarlavhasi ishlatiladi.",
         "custom_title_label": "Maxsus sarlavha",
         "learn_more_label": "Gotify haqida va uni qanday sozlash bo'yicha ko'proq ma'lumot olish uchun:",
         "note_description": "Bu integratsiyani ishlatish uchun Gotify serveri ishga tushirilgan bo‘lishi kerak.",

@@ -694,7 +694,7 @@
         "custom_message_description": "Custom message template. Available variables",
         "custom_message_description_2": "Leave empty to use the default message.",
         "custom_message_label": "Custom Message",
-        "custom_title_description": "Custom title for the notification. Available variables: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Leave empty to use the default \"Peekaping\" title.",
+        "custom_title_description": "Custom title for the notification. Available variables: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Leave empty to use the default \"Vigi\" title.",
         "custom_title_label": "Custom Title",
         "learn_more_label": "Learn more about Gotify and how to set it up at:",
         "note_description": "You need to have a Gotify server running to use this integration.",

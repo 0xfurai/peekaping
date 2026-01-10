@@ -2,10 +2,10 @@ package notification_channel
 
 import (
 	"net/http"
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/monitor"
-	"peekaping/internal/modules/shared"
-	"peekaping/internal/utils"
+	"vigi/internal/modules/heartbeat"
+	"vigi/internal/modules/monitor"
+	"vigi/internal/modules/shared"
+	"vigi/internal/utils"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -270,7 +270,7 @@ func (ic *Controller) Test(ctx *gin.Context) {
 	}
 
 	// Create a test message and monitor for the notification
-	testMessage := "This is a test notification from Peekaping"
+	testMessage := "This is a test notification from Vigi"
 	testMonitor := &monitor.Model{
 		Name: "Test Monitor",
 		Type: "http",

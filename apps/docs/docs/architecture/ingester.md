@@ -4,7 +4,7 @@ sidebar_position: 5
 
 # Ingester
 
-The Ingester is the data persistence and event processing component of Peekaping. It consumes health check results from workers, stores them in the database, detects status changes, triggers notifications, and maintains statistics.
+The Ingester is the data persistence and event processing component of Vigi. It consumes health check results from workers, stores them in the database, detects status changes, triggers notifications, and maintains statistics.
 
 ## Role & Responsibilities
 
@@ -67,7 +67,7 @@ Ingesters can run multiple tasks concurrently based on `QUEUE_CONCURRENCY`:
 | `MODE` | string | Yes | `dev` | Runtime mode: `dev`, `prod`, or `test` |
 | `LOG_LEVEL` | string | No | `info` | Logging level: `debug`, `info`, `warn`, `error` |
 | `TZ` | string | Yes | `UTC` | Timezone for the ingester |
-| `SERVICE_NAME` | string | Yes | `peekaping:ingester` | Service identifier for logging |
+| `SERVICE_NAME` | string | Yes | `vigi:ingester` | Service identifier for logging |
 
 
 ## Scaling

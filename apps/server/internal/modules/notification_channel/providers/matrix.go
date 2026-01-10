@@ -9,10 +9,10 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/monitor"
-	"peekaping/internal/version"
 	"time"
+	"vigi/internal/modules/heartbeat"
+	"vigi/internal/modules/monitor"
+	"vigi/internal/version"
 
 	liquid "github.com/osteele/liquid"
 	"go.uber.org/zap"
@@ -58,7 +58,7 @@ func (m *MatrixSender) generateRandomString(size int) string {
 	if _, err := rand.Read(bytes); err != nil {
 		m.logger.Warnf("Failed to generate random bytes: %v", err)
 		// Fallback to timestamp-based string
-		return fmt.Sprintf("peekaping_%d", time.Now().UnixNano())
+		return fmt.Sprintf("vigi_%d", time.Now().UnixNano())
 	}
 
 	randomString := base64.URLEncoding.EncodeToString(bytes)
@@ -130,7 +130,7 @@ func (m *MatrixSender) Send(
 	// Set headers
 	req.Header.Set("Authorization", "Bearer "+cfg.AccessToken)
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "Peekaping-Matrix/"+version.Version)
+	req.Header.Set("User-Agent", "Vigi-Matrix/"+version.Version)
 
 	// Send the request
 	resp, err := m.client.Do(req)

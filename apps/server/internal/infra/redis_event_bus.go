@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"peekaping/internal/config"
-	"peekaping/internal/modules/events"
+	"vigi/internal/config"
+	"vigi/internal/modules/events"
 	"sync"
 
 	"github.com/redis/go-redis/v9"
@@ -14,7 +14,7 @@ import (
 
 const (
 	// RedisEventChannelPrefix is the prefix for Redis pub/sub channels
-	RedisEventChannelPrefix = "peekaping:events:"
+	RedisEventChannelPrefix = "vigi:events:"
 )
 
 // RedisEventBus is a distributed event bus implementation using Redis Pub/Sub

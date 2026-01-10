@@ -694,7 +694,7 @@
         "custom_message_description": "เทมเพลตข้อความกำหนดเอง. ตัวแปรที่ใช้ได้",
         "custom_message_description_2": "ปล่อยว่างเพื่อใช้ข้อความเริ่มต้น",
         "custom_message_label": "ข้อความกำหนดเอง",
-        "custom_title_description": "ตั้งชื่อกำหนดเองสำหรับการแจ้งเตือน ตัวแปรที่ใช้ได้: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. เว้นว่างไว้เพื่อใช้ชื่อเริ่มต้น \"Peekaping\"",
+        "custom_title_description": "ตั้งชื่อกำหนดเองสำหรับการแจ้งเตือน ตัวแปรที่ใช้ได้: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. เว้นว่างไว้เพื่อใช้ชื่อเริ่มต้น \"Vigi\"",
         "custom_title_label": "หัวข้อกำหนดเอง",
         "learn_more_label": "เรียนรู้เพิ่มเติมเกี่ยวกับ Gotify และวิธีตั้งค่าได้ที่:",
         "note_description": "คุณต้องมีเซิร์ฟเวอร์ Gotify ที่กำลังทำงานอยู่เพื่อใช้การบูรณาการนี้",

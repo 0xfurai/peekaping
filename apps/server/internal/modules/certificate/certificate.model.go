@@ -6,7 +6,7 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	"fmt"
-	"peekaping/internal/modules/shared"
+	"vigi/internal/modules/shared"
 	"strings"
 	"time"
 )

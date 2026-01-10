@@ -8,9 +8,9 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/monitor"
-	"peekaping/internal/version"
+	"vigi/internal/modules/heartbeat"
+	"vigi/internal/modules/monitor"
+	"vigi/internal/version"
 
 	liquid "github.com/osteele/liquid"
 	"go.uber.org/zap"
@@ -158,7 +158,7 @@ func (w *WebhookSender) Send(
 	}
 
 	// Set default user agent
-	req.Header.Set("User-Agent", "Peekaping-Webhook/"+version.Version)
+	req.Header.Set("User-Agent", "Vigi-Webhook/"+version.Version)
 
 	w.logger.Debugf("Sending webhook POST request to: %s", cfg.WebhookURL)
 

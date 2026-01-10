@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net/smtp"
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/monitor"
+	"vigi/internal/modules/heartbeat"
+	"vigi/internal/modules/monitor"
 
 	liquid "github.com/osteele/liquid"
 	"go.uber.org/zap"
@@ -66,7 +66,7 @@ func (e *EmailSender) Send(
 
 	bindings := PrepareTemplateBindings(m, heartbeat, message)
 
-	finalSubject := "Peekaping Notification"
+	finalSubject := "Vigi Notification"
 	if cfg.CustomSubject != "" {
 		if rendered, err := engine.ParseAndRenderString(cfg.CustomSubject, bindings); err == nil {
 			finalSubject = rendered

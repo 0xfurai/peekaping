@@ -6,13 +6,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"peekaping/internal/config"
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/monitor"
-	"peekaping/internal/modules/shared"
-	"peekaping/internal/version"
 	"strings"
 	"time"
+	"vigi/internal/config"
+	"vigi/internal/modules/heartbeat"
+	"vigi/internal/modules/monitor"
+	"vigi/internal/modules/shared"
+	"vigi/internal/version"
 
 	"go.uber.org/zap"
 )
@@ -67,7 +67,7 @@ func (g *GoogleChatSender) Send(
 
 	// Google Chat message formatting: https://developers.google.com/chat/api/guides/message-formats/basic
 	chatHeader := map[string]string{
-		"title": "Peekaping Alert",
+		"title": "Vigi Alert",
 	}
 
 	if m != nil && hb != nil {
@@ -106,7 +106,7 @@ func (g *GoogleChatSender) Send(
 			"buttonList": map[string][]map[string]any{
 				"buttons": {
 					{
-						"text": "Visit Peekaping",
+						"text": "Visit Vigi",
 						"onClick": map[string]any{
 							"openLink": map[string]string{
 								"url": buttonURL,
@@ -150,7 +150,7 @@ func (g *GoogleChatSender) Send(
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "Peekaping-GoogleChat/"+version.Version)
+	req.Header.Set("User-Agent", "Vigi-GoogleChat/"+version.Version)
 
 	// Send request
 	resp, err := g.client.Do(req)

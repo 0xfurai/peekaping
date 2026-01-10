@@ -694,7 +694,7 @@
         "custom_message_description": "Teimpléad teachtaireachta shaincheaptha. Athróga atá ar fáil",
         "custom_message_description_2": "Fág folamh chun úsáid a bhaint as an teachtaireacht réamhshocraithe.",
         "custom_message_label": "Teachtaireacht Saincheaptha",
-        "custom_title_description": "Teideal saincheaptha do an t-leanúint. Tá na hamháin ar fáil: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Fág bán chun an teideal réamhshocraithe \"Peekaping\" a úsáid.",
+        "custom_title_description": "Teideal saincheaptha do an t-leanúint. Tá na hamháin ar fáil: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Fág bán chun an teideal réamhshocraithe \"Vigi\" a úsáid.",
         "custom_title_label": "Teideal Saincheaptha",
         "learn_more_label": "Tuilleadh eolais faoi Gotify agus conas é a shocrú ag:",
         "note_description": "Tá sé riachtanach go bhfuil seirbhéir Gotify ag rith chun an inteagraíocht seo a úsáid.",

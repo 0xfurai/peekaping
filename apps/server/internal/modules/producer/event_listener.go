@@ -3,8 +3,8 @@ package producer
 import (
 	"context"
 	"encoding/json"
-	"peekaping/internal/modules/events"
-	"peekaping/internal/modules/monitor"
+	"vigi/internal/modules/events"
+	"vigi/internal/modules/monitor"
 
 	"go.uber.org/zap"
 )

@@ -3,7 +3,7 @@ package monitor
 import (
 	"context"
 	"database/sql"
-	"peekaping/internal/modules/shared"
+	"vigi/internal/modules/shared"
 	"testing"
 	"time"
 

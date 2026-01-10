@@ -6,8 +6,8 @@ import (
 
 	"go.uber.org/zap"
 
-	"peekaping/internal/modules/maintenance/utils"
-	"peekaping/internal/modules/monitor_maintenance"
+	"vigi/internal/modules/maintenance/utils"
+	"vigi/internal/modules/monitor_maintenance"
 )
 
 type Service interface {

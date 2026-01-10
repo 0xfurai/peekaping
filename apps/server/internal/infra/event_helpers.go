@@ -2,7 +2,7 @@ package infra
 
 import (
 	"encoding/json"
-	"peekaping/internal/modules/events"
+	"vigi/internal/modules/events"
 )
 
 // UnmarshalEventPayload attempts to unmarshal event payload from json.RawMessage

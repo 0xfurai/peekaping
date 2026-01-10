@@ -694,7 +694,7 @@
         "custom_message_description": "Niestandardowy szablon wiadomości. Dostępne zmienne.",
         "custom_message_description_2": "Pozostaw puste, aby użyć domyślnej wiadomości.",
         "custom_message_label": "Własna wiadomość",
-        "custom_title_description": "Niestandardowy tytuł powiadomienia. Dostępne zmienne: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Pozostaw puste, aby użyć domyślnego tytułu „Peekaping”.",
+        "custom_title_description": "Niestandardowy tytuł powiadomienia. Dostępne zmienne: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Pozostaw puste, aby użyć domyślnego tytułu „Vigi”.",
         "custom_title_label": "Niestandardowy tytuł",
         "learn_more_label": "Dowiedz się więcej o Gotify oraz jak go skonfigurować pod adresem:",
         "note_description": "Aby korzystać z tej integracji, musisz mieć uruchomiony serwer Gotify.",

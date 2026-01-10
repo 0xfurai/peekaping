@@ -4,7 +4,7 @@ sidebar_position: 4
 
 # Worker
 
-The Worker is the execution engine of Peekaping, responsible for performing actual health checks on monitored services and applications. It consumes tasks from the Redis queue, executes the appropriate health check, and enqueues results for the ingester to process.
+The Worker is the execution engine of Vigi, responsible for performing actual health checks on monitored services and applications. It consumes tasks from the Redis queue, executes the appropriate health check, and enqueues results for the ingester to process.
 
 ## Role & Responsibilities
 
@@ -73,7 +73,7 @@ Workers can run multiple tasks concurrently based on the `QUEUE_CONCURRENCY` set
 | `MODE` | string | Yes | `dev` | Runtime mode: `dev`, `prod`, or `test` |
 | `LOG_LEVEL` | string | No | `info` | Logging level: `debug`, `info`, `warn`, `error` |
 | `TZ` | string | Yes | `UTC` | Timezone for the worker |
-| `SERVICE_NAME` | string | Yes | `peekaping:worker` | Service identifier for logging |
+| `SERVICE_NAME` | string | Yes | `vigi:worker` | Service identifier for logging |
 
 ## Task Processing Flow
 

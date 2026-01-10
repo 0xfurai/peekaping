@@ -694,7 +694,7 @@
         "custom_message_description": "Template pesan kustom. Variabel yang tersedia",
         "custom_message_description_2": "Biarkan kosong untuk menggunakan pesan default.",
         "custom_message_label": "Pesan Khusus",
-        "custom_title_description": "Judul khusus untuk notifikasi. Variabel yang tersedia: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Kosongkan untuk menggunakan judul default \"Peekaping\".",
+        "custom_title_description": "Judul khusus untuk notifikasi. Variabel yang tersedia: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Kosongkan untuk menggunakan judul default \"Vigi\".",
         "custom_title_label": "Judul Kustom",
         "learn_more_label": "Pelajari lebih lanjut tentang Gotify dan cara mengaturnya di:",
         "note_description": "Anda perlu menjalankan server Gotify untuk menggunakan integrasi ini.",

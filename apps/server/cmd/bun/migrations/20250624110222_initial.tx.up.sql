@@ -1,4 +1,4 @@
--- Initial database migration for Peekaping monitoring system
+-- Initial database migration for Vigi monitoring system
 -- This migration creates all the necessary tables for the application
 -- Wrapped in a transaction for atomicity
 

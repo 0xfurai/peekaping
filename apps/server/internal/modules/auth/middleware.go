@@ -2,7 +2,7 @@ package auth
 
 import (
 	"net/http"
-	"peekaping/internal/utils"
+	"vigi/internal/utils"
 	"strings"
 
 	"github.com/gin-gonic/gin"

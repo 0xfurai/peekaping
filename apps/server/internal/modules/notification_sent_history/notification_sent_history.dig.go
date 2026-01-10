@@ -1,8 +1,8 @@
 package notification_sent_history
 
 import (
-	"peekaping/internal/config"
-	"peekaping/internal/utils"
+	"vigi/internal/config"
+	"vigi/internal/utils"
 
 	"github.com/uptrace/bun"
 	"go.mongodb.org/mongo-driver/mongo"

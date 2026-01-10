@@ -6,12 +6,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"peekaping/internal/config"
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/monitor"
-	"peekaping/internal/modules/shared"
-	"peekaping/internal/version"
 	"strings"
+	"vigi/internal/config"
+	"vigi/internal/modules/heartbeat"
+	"vigi/internal/modules/monitor"
+	"vigi/internal/modules/shared"
+	"vigi/internal/version"
 
 	"go.uber.org/zap"
 )
@@ -114,20 +114,20 @@ func (p *PagerDutySender) getEventAction(heartbeat *heartbeat.Model, cfg *PagerD
 // getTitle generates the title for the PagerDuty alert
 func (p *PagerDutySender) getTitle(heartbeat *heartbeat.Model) string {
 	if heartbeat == nil {
-		return "Peekaping Alert"
+		return "Vigi Alert"
 	}
 
 	switch heartbeat.Status {
 	case shared.MonitorStatusUp:
-		return "Peekaping Monitor ✅ Up"
+		return "Vigi Monitor ✅ Up"
 	case shared.MonitorStatusDown:
-		return "Peekaping Monitor 🔴 Down"
+		return "Vigi Monitor 🔴 Down"
 	case shared.MonitorStatusPending:
-		return "Peekaping Monitor ⏳ Pending"
+		return "Vigi Monitor ⏳ Pending"
 	case shared.MonitorStatusMaintenance:
-		return "Peekaping Monitor 🔧 Maintenance"
+		return "Vigi Monitor 🔧 Maintenance"
 	default:
-		return "Peekaping Alert"
+		return "Vigi Alert"
 	}
 }
 
@@ -183,12 +183,12 @@ func (p *PagerDutySender) Send(
 		},
 		"routing_key":  cfg.IntegrationKey,
 		"event_action": eventAction,
-		"dedup_key":    fmt.Sprintf("Peekaping/%s", monitor.ID),
+		"dedup_key":    fmt.Sprintf("Vigi/%s", monitor.ID),
 	}
 
 	// Add client information if base URL is available
 	if p.config.ClientURL != "" && monitor != nil {
-		payload["client"] = "Peekaping"
+		payload["client"] = "Vigi"
 		payload["client_url"] = fmt.Sprintf("%s/monitors/%s", strings.TrimRight(p.config.ClientURL, "/"), monitor.ID)
 	}
 
@@ -207,7 +207,7 @@ func (p *PagerDutySender) Send(
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "Peekaping-PagerDuty/"+version.Version)
+	req.Header.Set("User-Agent", "Vigi-PagerDuty/"+version.Version)
 
 	p.logger.Debugf("Sending PagerDuty request: %s", req.URL.String())
 

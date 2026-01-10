@@ -6,7 +6,7 @@ import (
 	"crypto/x509"
 	"fmt"
 	"net/http"
-	"peekaping/internal/modules/shared"
+	"vigi/internal/modules/shared"
 	"strings"
 	"time"
 

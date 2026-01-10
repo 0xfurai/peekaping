@@ -1,7 +1,7 @@
 package api_key
 
 import (
-	"peekaping/internal/modules/auth"
+	"vigi/internal/modules/auth"
 
 	"github.com/gin-gonic/gin"
 )

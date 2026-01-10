@@ -694,7 +694,7 @@
         "custom_message_description": "Brugerdefineret beskedskabelon. Tilgængelige variabler",
         "custom_message_description_2": "Efterlades tomt for at bruge standardbeskeden.",
         "custom_message_label": "Brugerdefineret besked",
-        "custom_title_description": "Brugerdefineret titel til notifikationen. Tilgængelige variabler: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Lad stå tomt for at bruge standardtitlen \"Peekaping\".",
+        "custom_title_description": "Brugerdefineret titel til notifikationen. Tilgængelige variabler: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Lad stå tomt for at bruge standardtitlen \"Vigi\".",
         "custom_title_label": "Tilpasset titel",
         "learn_more_label": "Lær mere om Gotify og hvordan du opsætter det på:",
         "note_description": "Du skal have en Gotify-server kørende for at bruge denne integration.",

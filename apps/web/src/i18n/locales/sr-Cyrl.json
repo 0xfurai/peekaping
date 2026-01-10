@@ -694,7 +694,7 @@
         "custom_message_description": "Прилагођени шаблон поруке. Доступне променљиве",
         "custom_message_description_2": "Оставите празно да бисте користили подразумевану поруку.",
         "custom_message_label": "Прилагођена порука",
-        "custom_title_description": "Прилагођени наслов за обавештење. Доступни променљиви: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Оставите празно да користите подразумевани наслов „Peekaping“.",
+        "custom_title_description": "Прилагођени наслов за обавештење. Доступни променљиви: {{ msg }}, {{ monitor.name }}, {{ status }}, {{ heartbeat.* }}. Оставите празно да користите подразумевани наслов „Vigi“.",
         "custom_title_label": "Прилагођени наслов",
         "learn_more_label": "Saznajte više o Gotify-u i kako ga postaviti na:",
         "note_description": "Потребно је да имате покренут Gotify сервер да бисте користили ову интеграцију.",

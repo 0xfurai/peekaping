@@ -3,11 +3,11 @@ package badge
 import (
 	"context"
 	"fmt"
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/monitor"
-	"peekaping/internal/modules/monitor_status_page"
-	"peekaping/internal/modules/monitor_tls_info"
-	"peekaping/internal/modules/stats"
+	"vigi/internal/modules/heartbeat"
+	"vigi/internal/modules/monitor"
+	"vigi/internal/modules/monitor_status_page"
+	"vigi/internal/modules/monitor_tls_info"
+	"vigi/internal/modules/stats"
 	"strconv"
 	"time"
 

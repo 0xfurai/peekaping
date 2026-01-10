@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"peekaping/cmd/bun/migrations"
-	"peekaping/internal/config"
+	"vigi/cmd/bun/migrations"
+	"vigi/internal/config"
 	"strings"
 
 	"github.com/uptrace/bun"

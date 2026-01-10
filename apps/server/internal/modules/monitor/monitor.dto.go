@@ -1,6 +1,6 @@
 package monitor
 
-import "peekaping/internal/modules/heartbeat"
+import "vigi/internal/modules/heartbeat"
 
 type CreateUpdateDto struct {
 	Type            string   `json:"type" validate:"required" example:"http"`

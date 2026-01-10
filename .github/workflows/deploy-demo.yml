@@ -38,9 +38,9 @@ jobs:
             echo "📝 Updating docker compose with new image tags..."
 
             # Update image tags to the new version
-            sed -i "s|0xfurai/peekaping-web:.*|0xfurai/vigi-web:${{ inputs.version }}|g" compose-demo.yaml
-            sed -i "s|0xfurai/peekaping-server:.*|0xfurai/vigi-server:${{ inputs.version }}|g" compose-demo.yaml
-            sed -i "s|0xfurai/peekaping-migrate:.*|0xfurai/vigi-migrate:${{ inputs.version }}|g" compose-demo.yaml
+            sed -i "s|vigirun/vigi-web:.*|vigirun/vigi-web:${{ inputs.version }}|g" compose-demo.yaml
+            sed -i "s|vigirun/vigi-server:.*|vigirun/vigi-server:${{ inputs.version }}|g" compose-demo.yaml
+            sed -i "s|vigirun/vigi-migrate:.*|vigirun/vigi-migrate:${{ inputs.version }}|g" compose-demo.yaml
 
             echo "📥 Pulling new Docker images..."
             docker compose -f compose-demo.yaml pull

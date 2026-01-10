@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"peekaping/internal/modules/monitor_notification"
+	"vigi/internal/modules/monitor_notification"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

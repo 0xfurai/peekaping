@@ -11,10 +11,10 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"peekaping/internal/modules/certificate"
-	"peekaping/internal/modules/shared"
-	"peekaping/internal/utils"
-	"peekaping/internal/version"
+	"vigi/internal/modules/certificate"
+	"vigi/internal/modules/shared"
+	"vigi/internal/utils"
+	"vigi/internal/version"
 	"strconv"
 	"strings"
 	"sync"
@@ -437,7 +437,7 @@ func buildProxyTransport(base *http.Transport, proxyModel *Proxy) http.RoundTrip
 }
 
 func setDefaultHeaders(req *http.Request) {
-	req.Header.Set("User-Agent", "peekaping/"+version.Version)
+	req.Header.Set("User-Agent", "vigi/"+version.Version)
 	req.Header.Set("Accept", "*/*")
 }
 

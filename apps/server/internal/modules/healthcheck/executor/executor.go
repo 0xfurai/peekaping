@@ -3,8 +3,8 @@ package executor
 import (
 	"context"
 	"fmt"
-	"peekaping/internal/modules/certificate"
-	"peekaping/internal/modules/shared"
+	"vigi/internal/modules/certificate"
+	"vigi/internal/modules/shared"
 	"time"
 
 	"go.uber.org/zap"

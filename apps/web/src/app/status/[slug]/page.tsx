@@ -387,7 +387,7 @@ const PublicStatusPage = ({ incomingSlug }: { incomingSlug?: string }) => {
           <p className="text-xs text-muted-foreground">
             {t("status.messages.powered_by")}{" "}
             <a
-              href="https://github.com/0xfurai/vigi"
+              href="https://github.com/vigi-run/vigi"
               className="underline hover:text-foreground"
             >
               Vigi

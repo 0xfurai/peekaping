@@ -6,11 +6,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/monitor"
-	"peekaping/internal/version"
 	"strings"
 	"time"
+	"vigi/internal/modules/heartbeat"
+	"vigi/internal/modules/monitor"
+	"vigi/internal/version"
 
 	liquid "github.com/osteele/liquid"
 	"go.uber.org/zap"
@@ -102,7 +102,7 @@ func (s *SignalSender) Send(
 
 	// Set headers
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "Peekaping-Signal/"+version.Version)
+	req.Header.Set("User-Agent", "Vigi-Signal/"+version.Version)
 
 	// Send the request
 	resp, err := s.client.Do(req)

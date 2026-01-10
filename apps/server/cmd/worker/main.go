@@ -6,22 +6,22 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"peekaping/internal"
-	"peekaping/internal/config"
-	"peekaping/internal/infra"
-	"peekaping/internal/modules/events"
-	"peekaping/internal/modules/healthcheck"
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/worker"
-	"peekaping/internal/version"
 	"syscall"
+	"vigi/internal"
+	"vigi/internal/config"
+	"vigi/internal/infra"
+	"vigi/internal/modules/events"
+	"vigi/internal/modules/healthcheck"
+	"vigi/internal/modules/heartbeat"
+	"vigi/internal/modules/worker"
+	"vigi/internal/version"
 
 	"go.uber.org/dig"
 	"go.uber.org/zap"
 )
 
 func main() {
-	log.Printf("Starting Peekaping Worker v%s", version.Version)
+	log.Printf("Starting Vigi Worker v%s", version.Version)
 
 	// Load and validate Worker-specific config
 	cfg, err := LoadAndValidate("../..")

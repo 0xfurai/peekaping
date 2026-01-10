@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"peekaping/internal/config"
+	"vigi/internal/config"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -45,7 +45,7 @@ type Config struct {
 	BruteforceWindow      time.Duration `env:"BRUTEFORCE_WINDOW" default:"1m"`
 	BruteforceLockout     time.Duration `env:"BRUTEFORCE_LOCKOUT" default:"1m"`
 
-	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"peekaping:api"`
+	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"vigi:api"`
 }
 
 // LoadAndValidate loads and validates the API service configuration

@@ -6,12 +6,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/monitor"
-	"peekaping/internal/modules/shared"
-	"peekaping/internal/version"
 	"strings"
 	"time"
+	"vigi/internal/modules/heartbeat"
+	"vigi/internal/modules/monitor"
+	"vigi/internal/modules/shared"
+	"vigi/internal/version"
 
 	liquid "github.com/osteele/liquid"
 	"go.uber.org/zap"
@@ -119,7 +119,7 @@ func (m *MattermostSender) sendTestMessage(ctx context.Context, cfg *MattermostC
 func (m *MattermostSender) sendSimpleMessage(ctx context.Context, cfg *MattermostConfig, message string) error {
 	username := cfg.Username
 	if username == "" {
-		username = "Peekaping"
+		username = "Vigi"
 	}
 
 	payload := map[string]any{
@@ -145,7 +145,7 @@ func (m *MattermostSender) sendSimpleMessage(ctx context.Context, cfg *Mattermos
 func (m *MattermostSender) buildRichMessage(cfg *MattermostConfig, message string, monitor *monitor.Model, heartbeat *heartbeat.Model) map[string]any {
 	username := cfg.Username
 	if username == "" {
-		username = "Peekaping"
+		username = "Vigi"
 	}
 
 	if monitor != nil && monitor.Name != "" {
@@ -276,7 +276,7 @@ func (m *MattermostSender) sendMessage(ctx context.Context, webhookURL string, p
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "Peekaping-Mattermost/"+version.Version)
+	req.Header.Set("User-Agent", "Vigi-Mattermost/"+version.Version)
 
 	resp, err := m.client.Do(req)
 	if err != nil {
