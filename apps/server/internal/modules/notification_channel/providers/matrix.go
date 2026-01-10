@@ -9,10 +9,10 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"time"
 	"vigi/internal/modules/heartbeat"
 	"vigi/internal/modules/monitor"
 	"vigi/internal/version"
-	"time"
 
 	liquid "github.com/osteele/liquid"
 	"go.uber.org/zap"
@@ -130,7 +130,7 @@ func (m *MatrixSender) Send(
 	// Set headers
 	req.Header.Set("Authorization", "Bearer "+cfg.AccessToken)
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "Peekaping-Matrix/"+version.Version)
+	req.Header.Set("User-Agent", "Vigi-Matrix/"+version.Version)
 
 	// Send the request
 	resp, err := m.client.Do(req)

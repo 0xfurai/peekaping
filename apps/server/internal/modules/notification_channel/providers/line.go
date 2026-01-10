@@ -6,9 +6,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 	"vigi/internal/modules/heartbeat"
 	"vigi/internal/modules/monitor"
-	"time"
 
 	liquid "github.com/osteele/liquid"
 	"go.uber.org/zap"
@@ -76,12 +76,12 @@ func (s *LineSender) Send(
 	} else if heartbeat != nil {
 		// Default message format when template is not used
 		if heartbeat.Status == 0 { // DOWN
-			messageText = fmt.Sprintf("Peekaping Alert: [🔴 Down]\nName: %s\n%s\nTime: %s",
+			messageText = fmt.Sprintf("Vigi Alert: [🔴 Down]\nName: %s\n%s\nTime: %s",
 				monitor.Name,
 				message,
 				heartbeat.Time.Format(time.RFC3339))
 		} else if heartbeat.Status == 1 { // UP
-			messageText = fmt.Sprintf("Peekaping Alert: [✅ Up]\nName: %s\n%s\nTime: %s",
+			messageText = fmt.Sprintf("Vigi Alert: [✅ Up]\nName: %s\n%s\nTime: %s",
 				monitor.Name,
 				message,
 				heartbeat.Time.Format(time.RFC3339))

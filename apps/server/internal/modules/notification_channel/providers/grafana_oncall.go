@@ -7,11 +7,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 	"vigi/internal/modules/heartbeat"
 	"vigi/internal/modules/monitor"
 	"vigi/internal/modules/shared"
 	"vigi/internal/version"
-	"time"
 
 	"go.uber.org/zap"
 )
@@ -112,7 +112,7 @@ func (g *GrafanaOncallSender) Send(
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", fmt.Sprintf("Peekaping/%s", version.Version))
+	req.Header.Set("User-Agent", fmt.Sprintf("Vigi/%s", version.Version))
 
 	resp, err := g.client.Do(req)
 	if err != nil {

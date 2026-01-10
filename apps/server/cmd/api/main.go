@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"syscall"
 	"vigi/docs"
 	"vigi/internal"
 	"vigi/internal/config"
@@ -39,13 +40,12 @@ import (
 	"vigi/internal/modules/websocket"
 	"vigi/internal/utils"
 	"vigi/internal/version"
-	"syscall"
 
 	"go.uber.org/dig"
 	"go.uber.org/zap"
 )
 
-// @title			Peekaping API
+// @title			Vigi API
 // @BasePath	/api/v1
 // @securityDefinitions.apikey JwtAuth
 // @in header

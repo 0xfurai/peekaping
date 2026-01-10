@@ -66,7 +66,7 @@ func (e *EmailSender) Send(
 
 	bindings := PrepareTemplateBindings(m, heartbeat, message)
 
-	finalSubject := "Peekaping Notification"
+	finalSubject := "Vigi Notification"
 	if cfg.CustomSubject != "" {
 		if rendered, err := engine.ParseAndRenderString(cfg.CustomSubject, bindings); err == nil {
 			finalSubject = rendered

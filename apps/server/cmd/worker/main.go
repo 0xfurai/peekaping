@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"syscall"
 	"vigi/internal"
 	"vigi/internal/config"
 	"vigi/internal/infra"
@@ -14,14 +15,13 @@ import (
 	"vigi/internal/modules/heartbeat"
 	"vigi/internal/modules/worker"
 	"vigi/internal/version"
-	"syscall"
 
 	"go.uber.org/dig"
 	"go.uber.org/zap"
 )
 
 func main() {
-	log.Printf("Starting Peekaping Worker v%s", version.Version)
+	log.Printf("Starting Vigi Worker v%s", version.Version)
 
 	// Load and validate Worker-specific config
 	cfg, err := LoadAndValidate("../..")

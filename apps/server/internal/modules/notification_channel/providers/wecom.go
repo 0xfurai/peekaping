@@ -6,11 +6,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 	"vigi/internal/modules/heartbeat"
 	"vigi/internal/modules/monitor"
 	"vigi/internal/modules/shared"
 	"vigi/internal/version"
-	"time"
 
 	"go.uber.org/zap"
 )
@@ -108,7 +108,7 @@ func (w *WeComSender) Send(
 
 	// Set request headers
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "Peekaping-WeCom/"+version.Version)
+	req.Header.Set("User-Agent", "Vigi-WeCom/"+version.Version)
 
 	// Send HTTP request
 	resp, err := w.client.Do(req)

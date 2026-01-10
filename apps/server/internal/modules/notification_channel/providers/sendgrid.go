@@ -3,9 +3,9 @@ package providers
 import (
 	"context"
 	"fmt"
+	"strings"
 	"vigi/internal/modules/heartbeat"
 	"vigi/internal/modules/monitor"
-	"strings"
 
 	liquid "github.com/osteele/liquid"
 	"github.com/sendgrid/sendgrid-go"
@@ -62,7 +62,7 @@ func (s *SendGridSender) Send(
 	bindings := PrepareTemplateBindings(m, heartbeat, message)
 
 	// Prepare subject with template support
-	finalSubject := "Peekaping Notification"
+	finalSubject := "Vigi Notification"
 	if cfg.Subject != "" {
 		if rendered, err := engine.ParseAndRenderString(cfg.Subject, bindings); err == nil {
 			finalSubject = rendered

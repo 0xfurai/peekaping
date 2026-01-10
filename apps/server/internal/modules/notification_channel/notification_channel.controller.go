@@ -270,7 +270,7 @@ func (ic *Controller) Test(ctx *gin.Context) {
 	}
 
 	// Create a test message and monitor for the notification
-	testMessage := "This is a test notification from Peekaping"
+	testMessage := "This is a test notification from Vigi"
 	testMonitor := &monitor.Model{
 		Name: "Test Monitor",
 		Type: "http",

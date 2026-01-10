@@ -16,7 +16,7 @@ docker run -d --restart=always \
   -e DB_PASS=secure_test_password_123 \
   -v $(pwd)/.data/mongodb:/data/db \
   --name vigi \
-  0xfurai/vigi-bundle-mongo:latest
+  vigirun/vigi-bundle-mongo:latest
 ```
 To add custom caddy file add
 ```
@@ -122,7 +122,7 @@ services:
       start_period: 5s
 
   api:
-    image: 0xfurai/vigi-api:latest
+    image: vigirun/vigi-api:latest
     restart: unless-stopped
     env_file:
       - .env
@@ -141,7 +141,7 @@ services:
       start_period: 5s
 
   producer:
-    image: 0xfurai/vigi-producer:latest
+    image: vigirun/vigi-producer:latest
     restart: unless-stopped
     env_file:
       - .env
@@ -154,7 +154,7 @@ services:
       - appnet
 
   worker:
-    image: 0xfurai/vigi-worker:latest
+    image: vigirun/vigi-worker:latest
     restart: unless-stopped
     env_file:
       - .env
@@ -165,7 +165,7 @@ services:
       - appnet
 
   ingester:
-    image: 0xfurai/vigi-ingester:latest
+    image: vigirun/vigi-ingester:latest
     restart: unless-stopped
     env_file:
       - .env
@@ -178,7 +178,7 @@ services:
       - appnet
 
   web:
-    image: 0xfurai/vigi-web:latest
+    image: vigirun/vigi-web:latest
     depends_on:
       api:
         condition: service_healthy
@@ -280,8 +280,8 @@ Once all containers are running:
 
 Vigi provides official Docker images:
 
-- **Server**: [`0xfurai/vigi-server`](https://hub.docker.com/r/0xfurai/vigi-server)
-- **Web**: [`0xfurai/vigi-web`](https://hub.docker.com/r/0xfurai/vigi-web)
+- **Server**: [`vigirun/vigi-server`](https://hub.docker.com/r/vigirun/vigi-server)
+- **Web**: [`vigirun/vigi-web`](https://hub.docker.com/r/vigirun/vigi-web)
 
 ### Image Tags
 

@@ -27,7 +27,7 @@ api:
   apparmor:
     enabled: false
   image:
-    repository: 0xfurai/vigi-api
+    repository: vigirun/vigi-api
     tag: latest
     pullPolicy: IfNotPresent
   service:
@@ -60,7 +60,7 @@ ingester:
   apparmor:
     enabled: false
   image:
-    repository: 0xfurai/vigi-ingester
+    repository: vigirun/vigi-ingester
     tag: latest
     pullPolicy: IfNotPresent
   resources:
@@ -76,7 +76,7 @@ producer:
   apparmor:
     enabled: false
   image:
-    repository: 0xfurai/vigi-producer
+    repository: vigirun/vigi-producer
     tag: latest
     pullPolicy: IfNotPresent
   resources:
@@ -92,7 +92,7 @@ worker:
   apparmor:
     enabled: false
   image:
-    repository: 0xfurai/vigi-worker
+    repository: vigirun/vigi-worker
     tag: latest
     pullPolicy: IfNotPresent
   resources:
@@ -108,7 +108,7 @@ web:
   apparmor:
     enabled: false
   image:
-    repository: 0xfurai/vigi-web
+    repository: vigirun/vigi-web
     tag: latest
     pullPolicy: IfNotPresent
   service:
@@ -140,7 +140,7 @@ migrate:
   apparmor:
     enabled: false
   image:
-    repository: 0xfurai/vigi-migrate
+    repository: vigirun/vigi-migrate
     tag: "latest"
     pullPolicy: IfNotPresent
   resources:

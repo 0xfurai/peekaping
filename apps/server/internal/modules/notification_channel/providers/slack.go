@@ -7,12 +7,12 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"vigi/internal/config"
 	"vigi/internal/modules/heartbeat"
 	"vigi/internal/modules/monitor"
 	"vigi/internal/modules/shared"
 	"vigi/internal/version"
-	"strings"
 
 	liquid "github.com/osteele/liquid"
 	"go.uber.org/zap"
@@ -75,9 +75,9 @@ func (s *SlackSender) buildActions(baseURL string, monitor *monitor.Model) []map
 			"type": "button",
 			"text": map[string]any{
 				"type": "plain_text",
-				"text": "Visit Peekaping",
+				"text": "Visit Vigi",
 			},
-			"value": "Peekaping",
+			"value": "Vigi",
 			"url":   monitorURL,
 		})
 	}
@@ -227,7 +227,7 @@ func (s *SlackSender) Send(
 
 	// Handle rich message format
 	if cfg.RichMessage && heartbeat != nil {
-		title := "Peekaping Alert"
+		title := "Vigi Alert"
 
 		// Use blocks for modern Slack message format
 		blocks := s.buildBlocks(s.config.ClientURL, monitor, heartbeat, title, messageText)
@@ -256,7 +256,7 @@ func (s *SlackSender) Send(
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "Peekaping-Slack/"+version.Version)
+	req.Header.Set("User-Agent", "Vigi-Slack/"+version.Version)
 
 	s.logger.Debugf("Sending Slack webhook request: %s", req.URL.String())
 

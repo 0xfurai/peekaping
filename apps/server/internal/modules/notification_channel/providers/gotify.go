@@ -6,11 +6,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
+	"time"
 	"vigi/internal/modules/heartbeat"
 	"vigi/internal/modules/monitor"
 	"vigi/internal/version"
-	"strings"
-	"time"
 
 	liquid "github.com/osteele/liquid"
 	"go.uber.org/zap"
@@ -75,7 +75,7 @@ func (g *GotifySender) Send(
 	engine := liquid.NewEngine()
 
 	// Set default title if not provided
-	title := "Peekaping"
+	title := "Vigi"
 	if cfg.Title != "" {
 		// Use liquid templating for title
 		if rendered, err := engine.ParseAndRenderString(cfg.Title, bindings); err == nil {
@@ -128,7 +128,7 @@ func (g *GotifySender) Send(
 
 	// Set headers
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "Peekaping-Gotify/"+version.Version)
+	req.Header.Set("User-Agent", "Vigi-Gotify/"+version.Version)
 
 	// Send request
 	g.logger.Infof("Sending Gotify notification to %s", serverURL)

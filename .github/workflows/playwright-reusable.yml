@@ -64,12 +64,12 @@ jobs:
         cp docker-compose.prod.${{ matrix.database }}.yml docker-compose.test.${{ matrix.database }}.yml
 
         # Replace container tags with the specified version
-        sed -i 's|0xfurai/vigi-api:latest|0xfurai/vigi-api:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
-        sed -i 's|0xfurai/vigi-producer:latest|0xfurai/vigi-producer:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
-        sed -i 's|0xfurai/vigi-worker:latest|0xfurai/vigi-worker:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
-        sed -i 's|0xfurai/vigi-ingester:latest|0xfurai/vigi-ingester:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
-        sed -i 's|0xfurai/vigi-web:latest|0xfurai/vigi-web:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
-        sed -i 's|0xfurai/vigi-migrate:latest|0xfurai/vigi-migrate:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
+        sed -i 's|vigirun/vigi-api:latest|vigirun/vigi-api:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
+        sed -i 's|vigirun/vigi-producer:latest|vigirun/vigi-producer:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
+        sed -i 's|vigirun/vigi-worker:latest|vigirun/vigi-worker:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
+        sed -i 's|vigirun/vigi-ingester:latest|vigirun/vigi-ingester:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
+        sed -i 's|vigirun/vigi-web:latest|vigirun/vigi-web:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
+        sed -i 's|vigirun/vigi-migrate:latest|vigirun/vigi-migrate:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
 
         echo "=== Modified docker-compose file ==="
         cat docker-compose.test.${{ matrix.database }}.yml

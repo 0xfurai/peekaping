@@ -158,7 +158,7 @@ func (w *WebhookSender) Send(
 	}
 
 	// Set default user agent
-	req.Header.Set("User-Agent", "Peekaping-Webhook/"+version.Version)
+	req.Header.Set("User-Agent", "Vigi-Webhook/"+version.Version)
 
 	w.logger.Debugf("Sending webhook POST request to: %s", cfg.WebhookURL)
 

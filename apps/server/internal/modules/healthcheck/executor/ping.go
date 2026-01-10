@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"net"
 	"os/exec"
-	"vigi/internal/modules/shared"
 	"runtime"
 	"strconv"
 	"strings"
 	"time"
+	"vigi/internal/modules/shared"
 
 	"go.uber.org/zap"
 	"golang.org/x/net/icmp"
@@ -125,7 +125,7 @@ func (p *PingExecutor) tryNativePing(ctx context.Context, host string, packetSiz
 		dataSize = 0
 	}
 	data := make([]byte, dataSize)
-	copy(data, []byte("Peekaping"))
+	copy(data, []byte("Vigi"))
 
 	p.logger.Debugf("Native ping: host=%s, dataSize=%d, totalPacketSize=%d", host, dataSize, dataSize+8)
 

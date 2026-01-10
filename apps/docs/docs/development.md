@@ -7,7 +7,7 @@ Welcome to the Vigi development guide! Follow these steps to get your local envi
 ## 1. Clone the Repository
 
 ```bash
-git clone https://github.com/0xfurai/vigi.git
+git clone https://github.com/vigi-run/vigi.git
 cd vigi
 ```
 

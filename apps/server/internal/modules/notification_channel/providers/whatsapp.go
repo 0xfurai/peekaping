@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
+	"time"
 	"vigi/internal/modules/heartbeat"
 	"vigi/internal/modules/monitor"
 	"vigi/internal/version"
-	"strings"
-	"time"
 
 	liquid "github.com/osteele/liquid"
 	"go.uber.org/zap"
@@ -135,7 +135,7 @@ func (w *WhatsAppSender) sendToPhoneNumber(
 
 	// Set headers
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "Peekaping-WhatsApp/"+version.Version)
+	req.Header.Set("User-Agent", "Vigi-WhatsApp/"+version.Version)
 	if cfg.APIKey != "" {
 		req.Header.Set("x-api-key", cfg.APIKey)
 	}

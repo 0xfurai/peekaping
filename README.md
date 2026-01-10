@@ -7,7 +7,7 @@
 ![MongoDB](https://img.shields.io/badge/mongodb-4ea94b.svg?style=flat&logo=mongodb&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/postgresql-%23336791.svg?style=flat&logo=postgresql&logoColor=white)
 ![SQLite](https://img.shields.io/badge/sqlite-%2307405e.svg?style=flat&logo=sqlite&logoColor=white)
-![Docker Pulls](https://img.shields.io/docker/pulls/0xfurai/vigi-web)
+![Docker Pulls](https://img.shields.io/docker/pulls/vigirun/vigi-web)
 
 **A modern, self-hosted uptime monitoring solution**
 
@@ -51,7 +51,7 @@ docker run -d --restart=always \
   -e DB_NAME=/app/data/vigi.db \
   -v $(pwd)/.data/sqlite:/app/data \
   --name vigi \
-  0xfurai/vigi-bundle-sqlite:latest
+  vigirun/vigi-bundle-sqlite:latest
 ```
 
 [Docker + SQLite Setup](https://docs.vigi.run/self-hosting/docker-with-sqlite)
@@ -126,8 +126,6 @@ Vigi an ideal choice for teams who need a reliable, customizable uptime monitori
 
 I share quick tips, dev-logs, and behind-the-scenes updates on&nbsp;Twitter.
 If you enjoy this project, come say hi &amp; follow along!
-
-[![Follow me on X](https://img.shields.io/twitter/follow/your_handle?label=Follow&style=social)](https://x.com/0xfurai)
 
 ## 🚧 Development roadmap
 

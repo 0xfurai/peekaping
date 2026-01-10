@@ -22,7 +22,7 @@ const config: Config = {
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: "0xfurai", // Usually your GitHub org/user name.
+  organizationName: "vigirun", // Usually your GitHub org/user name.
   projectName: "vigi", // Usually your repo name.
 
   onBrokenLinks: "throw",
@@ -44,7 +44,7 @@ const config: Config = {
           routeBasePath: "/",
           sidebarPath: "./sidebars.ts",
           // Remove this to remove the "edit this page" links.
-          editUrl: "https://github.com/0xfurai/vigi/tree/main/apps/docs",
+          editUrl: "https://github.com/vigi-run/vigi/tree/main/apps/docs",
         },
         blog: false,
         theme: {
@@ -75,7 +75,7 @@ const config: Config = {
           label: "Docs",
         },
         {
-          href: "https://github.com/0xfurai/vigi",
+          href: "https://github.com/vigi-run/vigi",
           label: "GitHub",
           position: "right",
         },
@@ -89,7 +89,7 @@ const config: Config = {
           items: [
             {
               label: "X",
-              href: "https://x.com/0xfurai",
+              href: "https://x.com/vigi-run",
             },
           ],
         },
@@ -98,7 +98,7 @@ const config: Config = {
           items: [
             {
               label: "GitHub",
-              href: "https://github.com/0xfurai/vigi",
+              href: "https://github.com/vigi-run/vigi",
             },
           ],
         },

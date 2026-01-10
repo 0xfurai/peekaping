@@ -57,7 +57,7 @@ spec:
 
       initContainers:
         - name: seed-web-root
-          image: 0xfurai/vigi-web:latest
+          image: vigirun/vigi-web:latest
           command:
             - sh
             - -c
