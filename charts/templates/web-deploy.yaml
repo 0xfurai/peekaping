@@ -57,7 +57,7 @@ spec:
 
       initContainers:
         - name: seed-web-root
-          image: 0xfurai/peekaping-web:latest
+          image: 0xfurai/vigi-web:latest
           command:
             - sh
             - -c

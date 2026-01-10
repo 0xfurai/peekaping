@@ -49,22 +49,22 @@ test_mssql_connection() {
 echo "Starting connection tests..."
 
 # Test standard SQL Server
-test_mssql_connection "peekaping-mssql-test" "1433" "sa" "TestPassword123!" "master"
+test_mssql_connection "vigi-mssql-test" "1433" "sa" "TestPassword123!" "master"
 
 # Test custom database SQL Server
-test_mssql_connection "peekaping-mssql-custom-db-test" "1434" "sa" "TestPassword123!" "TestDB"
+test_mssql_connection "vigi-mssql-custom-db-test" "1434" "sa" "TestPassword123!" "TestDB"
 
 # Test custom credentials SQL Server
-test_mssql_connection "peekaping-mssql-custom-creds-test" "1435" "sa" "CustomPassword456!" "master"
+test_mssql_connection "vigi-mssql-custom-creds-test" "1435" "sa" "CustomPassword456!" "master"
 
 # Test custom user SQL Server
-test_mssql_connection "peekaping-mssql-custom-user-test" "1436" "TestUser" "TestUserPass123!" "UserTestDB"
+test_mssql_connection "vigi-mssql-custom-user-test" "1436" "TestUser" "TestUserPass123!" "UserTestDB"
 
 echo -e "\n${GREEN}Connection tests completed!${NC}"
 
 # Show container status
 echo -e "\n${YELLOW}Container Status:${NC}"
-docker ps --filter "name=peekaping-mssql" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+docker ps --filter "name=vigi-mssql" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
 # Show connection strings for reference
 echo -e "\n${YELLOW}Connection Strings for Testing:${NC}"

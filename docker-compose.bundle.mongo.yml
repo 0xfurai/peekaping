@@ -1,5 +1,5 @@
 services:
-  peekaping:
+  vigi:
     build:
       context: .
       dockerfile: Dockerfile.bundle.mongo
@@ -20,4 +20,4 @@ services:
       - ./.data/logs:/var/log/supervisor
       # Optional: Custom Caddyfile override
       # - ./custom-Caddyfile:/etc/caddy/Caddyfile:ro
-    container_name: peekaping-bundle-mongo
+    container_name: vigi-bundle-mongo

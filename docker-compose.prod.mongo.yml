@@ -35,7 +35,7 @@ services:
       start_period: 5s
 
   api:
-    image: 0xfurai/peekaping-api:latest
+    image: 0xfurai/vigi-api:latest
     restart: unless-stopped
     env_file:
       - .env
@@ -58,7 +58,7 @@ services:
       start_period: 5s
 
   producer:
-    image: 0xfurai/peekaping-producer:latest
+    image: 0xfurai/vigi-producer:latest
     restart: unless-stopped
     env_file:
       - .env
@@ -71,7 +71,7 @@ services:
       - appnet
 
   worker:
-    image: 0xfurai/peekaping-worker:latest
+    image: 0xfurai/vigi-worker:latest
     restart: unless-stopped
     env_file:
       - .env
@@ -82,7 +82,7 @@ services:
       - appnet
 
   ingester:
-    image: 0xfurai/peekaping-ingester:latest
+    image: 0xfurai/vigi-ingester:latest
     restart: unless-stopped
     env_file:
       - .env
@@ -95,7 +95,7 @@ services:
       - appnet
 
   web:
-    image: 0xfurai/peekaping-web:latest
+    image: 0xfurai/vigi-web:latest
     depends_on:
       api:
         condition: service_healthy

@@ -36,7 +36,7 @@
         output stdout
         format append {
             fields {
-                svc peekaping:gateway
+                svc vigi:gateway
             }
             wrap json {
                 time_format iso8601

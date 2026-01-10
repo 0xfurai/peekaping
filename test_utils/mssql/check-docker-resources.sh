@@ -60,10 +60,10 @@ echo "Available disk space: $AVAILABLE_SPACE"
 
 # Check for existing SQL Server containers
 echo -e "\n${YELLOW}🐳 Existing SQL Server Containers:${NC}"
-EXISTING_CONTAINERS=$(docker ps -a --filter "name=peekaping-mssql" --format "{{.Names}}")
+EXISTING_CONTAINERS=$(docker ps -a --filter "name=vigi-mssql" --format "{{.Names}}")
 if [[ -n "$EXISTING_CONTAINERS" ]]; then
     echo "Found existing containers:"
-    docker ps -a --filter "name=peekaping-mssql" --format "table {{.Names}}\t{{.Status}}\t{{.Image}}"
+    docker ps -a --filter "name=vigi-mssql" --format "table {{.Names}}\t{{.Status}}\t{{.Image}}"
 else
     echo -e "${GREEN}✅ No existing SQL Server containers${NC}"
 fi

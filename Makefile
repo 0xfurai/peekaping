@@ -1,4 +1,4 @@
-# Makefile for Peekaping project
+# Makefile for Vigi project
 #
 # This Makefile supports multiple Docker Compose configurations:
 # - Development: dev-postgres, dev-mongo, dev-sqlite
@@ -11,7 +11,7 @@
 # Variables
 GO_SERVER_DIR = apps/server
 WEB_DIR = apps/web
-BINARY_NAME = peekaping-server
+BINARY_NAME = vigi-server
 
 # Docker Compose configurations
 COMPOSE_DEV_POSTGRES = docker-compose.dev.postgres.yml
@@ -249,7 +249,7 @@ run-ingester: ## Run the ingester service
 
 .PHONY: setup
 setup: ## Setup development environment (asdf or manual)
-	@echo "🚀 Setting up Peekaping development environment..."
+	@echo "🚀 Setting up Vigi development environment..."
 	@if command -v asdf >/dev/null 2>&1; then \
 		echo "✅ asdf found - using asdf for tool management"; \
 		echo "📦 Adding asdf plugins..."; \

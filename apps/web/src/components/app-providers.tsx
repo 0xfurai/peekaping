@@ -13,7 +13,7 @@ export const AppProviders = ({ children }: AppProvidersProps) => {
   const isDev = import.meta.env.MODE === "development";
 
   return (
-    <ThemeProvider defaultTheme="dark" storageKey="peekaping-ui-theme">
+    <ThemeProvider defaultTheme="dark" storageKey="vigi-ui-theme">
       <TimezoneProvider>
         <VersionMismatchAlert />
         <WebSocketProvider>

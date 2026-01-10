@@ -49,7 +49,7 @@ chmod 644 /app/web/env.js
 export DB_TYPE=${DB_TYPE:-postgres}
 export DB_HOST=${DB_HOST:-localhost}
 export DB_PORT=${DB_PORT:-5432}
-export DB_NAME=${DB_NAME:-peekaping}
+export DB_NAME=${DB_NAME:-vigi}
 export DB_USER=${DB_USER}
 export DB_PASS=${DB_PASS}
 

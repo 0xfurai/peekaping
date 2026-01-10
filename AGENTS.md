@@ -1,10 +1,10 @@
-# Guia do Agente para o Projeto Peekaping
+# Guia do Agente para o Projeto Vigi
 
-Este documento fornece uma visão geral do projeto Peekaping para ajudar no desenvolvimento e na manutenção contínua.
+Este documento fornece uma visão geral do projeto Vigi para ajudar no desenvolvimento e na manutenção contínua.
 
 ## 1. Visão Geral do Projeto
 
-Peekaping é uma solução de monitoramento de uptime auto-hospedada, projetada como uma alternativa moderna ao Uptime Kuma. Sua arquitetura "API first" garante flexibilidade e extensibilidade.
+Vigi é uma solução de monitoramento de uptime auto-hospedada, projetada como uma alternativa moderna ao Uptime Kuma. Sua arquitetura "API first" garante flexibilidade e extensibilidade.
 
 - **Backend:** Escrito em Go, proporcionando alta performance e baixo consumo de recursos.
 - **Frontend:** Desenvolvido com React e TypeScript, utilizando Vite para uma experiência de desenvolvimento rápida e moderna.

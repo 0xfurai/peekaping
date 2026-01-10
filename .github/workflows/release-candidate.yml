@@ -728,7 +728,7 @@ jobs:
             # - Migrate: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}
 
             # Using bundle containers (single container with everything):
-            docker run -d --name peekaping-sqlite \
+            docker run -d --name vigi-sqlite \
               -p 8383:8383 \
               -v ./data:/app/data \
               ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}

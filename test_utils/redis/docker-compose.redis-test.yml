@@ -4,7 +4,7 @@ services:
   # Redis container for testing
   redis:
     image: redis:7-alpine
-    container_name: peekaping-redis-test
+    container_name: vigi-redis-test
     ports:
       - "6388:6379"
     environment:
@@ -23,7 +23,7 @@ services:
   # Redis with TLS (for testing TLS connections)
   redis-tls:
     image: redis:7-alpine
-    container_name: peekaping-redis-tls-test
+    container_name: vigi-redis-tls-test
     ports:
       - "6389:6379"
     environment:
@@ -43,7 +43,7 @@ services:
   # Redis with TLS and client certificate authentication (for testing mutual TLS)
   redis-tls-mutual:
     image: redis:7-alpine
-    container_name: peekaping-redis-tls-mutual-test
+    container_name: vigi-redis-tls-mutual-test
     ports:
       - "6391:6379"
     environment:
@@ -63,7 +63,7 @@ services:
   # Redis without authentication (for simple testing)
   redis-simple:
     image: redis:7-alpine
-    container_name: peekaping-redis-simple-test
+    container_name: vigi-redis-simple-test
     ports:
       - "6390:6379"
     command: redis-server

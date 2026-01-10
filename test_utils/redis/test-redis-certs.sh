@@ -20,7 +20,7 @@ echo "✓ Certificates found"
 # Test 1: Simple Redis (no TLS)
 echo ""
 echo "Test 1: Simple Redis (no TLS)"
-if docker exec peekaping-redis-simple-test redis-cli ping > /dev/null 2>&1; then
+if docker exec vigi-redis-simple-test redis-cli ping > /dev/null 2>&1; then
     echo "✓ Simple Redis connection successful"
 else
     echo "✗ Simple Redis connection failed"
@@ -29,7 +29,7 @@ fi
 # Test 2: Redis with password (no TLS)
 echo ""
 echo "Test 2: Redis with password (no TLS)"
-if docker exec peekaping-redis-test redis-cli -a testpassword ping > /dev/null 2>&1; then
+if docker exec vigi-redis-test redis-cli -a testpassword ping > /dev/null 2>&1; then
     echo "✓ Redis with password connection successful"
 else
     echo "✗ Redis with password connection failed"
@@ -38,7 +38,7 @@ fi
 # Test 3: Redis with TLS (ignore certificate)
 echo ""
 echo "Test 3: Redis with TLS (ignore certificate)"
-if docker exec peekaping-redis-tls-test redis-cli --tls --insecure -a testpassword ping > /dev/null 2>&1; then
+if docker exec vigi-redis-tls-test redis-cli --tls --insecure -a testpassword ping > /dev/null 2>&1; then
     echo "✓ Redis TLS connection (ignore cert) successful"
 else
     echo "✗ Redis TLS connection (ignore cert) failed"
@@ -47,7 +47,7 @@ fi
 # Test 4: Redis with TLS + CA certificate
 echo ""
 echo "Test 4: Redis with TLS + CA certificate"
-if docker exec peekaping-redis-tls-test redis-cli --tls --cacert /etc/redis/certs/ca.crt -a testpassword ping > /dev/null 2>&1; then
+if docker exec vigi-redis-tls-test redis-cli --tls --cacert /etc/redis/certs/ca.crt -a testpassword ping > /dev/null 2>&1; then
     echo "✓ Redis TLS connection with CA cert successful"
 else
     echo "✗ Redis TLS connection with CA cert failed"
@@ -56,7 +56,7 @@ fi
 # Test 5: Redis with mutual TLS (client certificate)
 echo ""
 echo "Test 5: Redis with mutual TLS (client certificate)"
-if docker exec peekaping-redis-tls-mutual-test redis-cli --tls --cacert /etc/redis/certs/ca.crt --cert /etc/redis/certs/client.crt --key /etc/redis/certs/client.key -a testpassword ping > /dev/null 2>&1; then
+if docker exec vigi-redis-tls-mutual-test redis-cli --tls --cacert /etc/redis/certs/ca.crt --cert /etc/redis/certs/client.crt --key /etc/redis/certs/client.key -a testpassword ping > /dev/null 2>&1; then
     echo "✓ Redis mutual TLS connection successful"
 else
     echo "✗ Redis mutual TLS connection failed"
@@ -82,7 +82,7 @@ fi
 
 echo ""
 echo "Certificate test summary:"
-echo "Connection strings for Peekaping testing:"
+echo "Connection strings for Vigi testing:"
 echo ""
 echo "1. Simple Redis:"
 echo "   Connection String: redis://localhost:6390"

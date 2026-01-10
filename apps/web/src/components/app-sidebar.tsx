@@ -71,7 +71,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     navSecondary: [
       {
         title: "Get Help",
-        url: "https://docs.peekaping.com",
+        url: "https://docs.vigi.run",
         icon: HelpCircleIcon,
         target: "_blank",
       },
@@ -89,7 +89,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             >
               <a href="/">
                 <ArrowUpCircleIcon className="h-5 w-5" />
-                <span className="text-base font-semibold">Peekaping</span>
+                <span className="text-base font-semibold">Vigi</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
