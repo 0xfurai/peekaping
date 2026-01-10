@@ -53,7 +53,7 @@ docker-compose -f "$COMPOSE_FILE" ps
 
 # Show running containers
 echo -e "\n${BLUE}🐳 Running SQL Server containers:${NC}"
-docker ps --filter "name=peekaping-mssql" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+docker ps --filter "name=vigi-mssql" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
 # Show connection information
 echo -e "\n${GREEN}🔗 Connection Information:${NC}"

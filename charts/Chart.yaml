@@ -1,5 +1,5 @@
 apiVersion: v2
-name: peekaping
+name: vigi
 version: 1.0.0
 dependencies:
 - name: redis

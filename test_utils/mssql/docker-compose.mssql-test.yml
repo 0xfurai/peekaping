@@ -5,7 +5,7 @@ services:
   mssql:
     image: mcr.microsoft.com/mssql/server:2019-latest
     platform: linux/amd64
-    container_name: peekaping-mssql-test
+    container_name: vigi-mssql-test
     user: "0:0"
     ports:
       - "1433:1433"
@@ -27,7 +27,7 @@ services:
   mssql-custom-db:
     image: mcr.microsoft.com/mssql/server:2019-latest
     platform: linux/amd64
-    container_name: peekaping-mssql-custom-db-test
+    container_name: vigi-mssql-custom-db-test
     user: "0:0"
     ports:
       - "1434:1433"
@@ -50,7 +50,7 @@ services:
   mssql-custom-creds:
     image: mcr.microsoft.com/mssql/server:2019-latest
     platform: linux/amd64
-    container_name: peekaping-mssql-custom-creds-test
+    container_name: vigi-mssql-custom-creds-test
     user: "0:0"
     ports:
       - "1435:1433"
@@ -72,7 +72,7 @@ services:
   mssql-custom-user:
     image: mcr.microsoft.com/mssql/server:2019-latest
     platform: linux/amd64
-    container_name: peekaping-mssql-custom-user-test
+    container_name: vigi-mssql-custom-user-test
     user: "0:0"
     ports:
       - "1436:1433"

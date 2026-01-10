@@ -16,7 +16,7 @@ chmod 644 /app/web/env.js
 
 # Set environment variables for SQLite
 export DB_TYPE=sqlite
-export DB_NAME=/app/data/peekaping.db
+export DB_NAME=/app/data/vigi.db
 
 # Set server configuration environment variables
 export SERVER_PORT=${SERVER_PORT:-8034}

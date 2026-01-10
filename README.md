@@ -1,4 +1,4 @@
-# Peekaping - the best uptime kuma alternative
+# Vigi - the best uptime kuma alternative
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Go](https://img.shields.io/badge/go-%23007d9c.svg?style=flat&logo=go&logoColor=white)
@@ -7,21 +7,21 @@
 ![MongoDB](https://img.shields.io/badge/mongodb-4ea94b.svg?style=flat&logo=mongodb&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/postgresql-%23336791.svg?style=flat&logo=postgresql&logoColor=white)
 ![SQLite](https://img.shields.io/badge/sqlite-%2307405e.svg?style=flat&logo=sqlite&logoColor=white)
-![Docker Pulls](https://img.shields.io/docker/pulls/0xfurai/peekaping-web)
+![Docker Pulls](https://img.shields.io/docker/pulls/0xfurai/vigi-web)
 
 **A modern, self-hosted uptime monitoring solution**
 
-Peekaping is a uptime monitoring system built with Golang and React. You can monitor your websites, API and many more leveraging beautiful status pages, alert notifications.
+Vigi is a uptime monitoring system built with Golang and React. You can monitor your websites, API and many more leveraging beautiful status pages, alert notifications.
 
-🔗 Website **[peekaping.com](https://peekaping.com)**
+🔗 Website **[vigi.run](https://vigi.run)**
 
-🔗 Live Demo **[demo.peekaping.com](https://demo.peekaping.com)**
+🔗 Live Demo **[demo.vigi.run](https://demo.vigi.run)**
 
-🔗 Documentation **[docs.peekaping.com](https://docs.peekaping.com)**
+🔗 Documentation **[docs.vigi.run](https://docs.vigi.run)**
 
-🔗 Community terraform provider **[registry.terraform.io/providers/tafaust/peekaping](https://registry.terraform.io/providers/tafaust/peekaping/latest)**
+🔗 Community terraform provider **[registry.terraform.io/providers/tafaust/vigi](https://registry.terraform.io/providers/tafaust/vigi/latest)**
 
-## Why Peekaping Is the Best Alternative to Uptime Kuma
+## Why Vigi Is the Best Alternative to Uptime Kuma
 
 - API first architecture
 - easy to extend server architecture
@@ -33,7 +33,7 @@ Peekaping is a uptime monitoring system built with Golang and React. You can mon
 
 ## ⚠️ Beta Status
 
-**Peekaping is currently in beta and actively being developed.**
+**Vigi is currently in beta and actively being developed.**
 Please note:
 
 - The software is still under active development
@@ -41,22 +41,22 @@ Please note:
 - I recommend testing in non-production environments first
 - Please report any issues you encounter - your feedback helps us improve!
 
-Please try Peekaping and provide feedback, this is huge contribution for us! Let's make Peekaping production ready.
+Please try Vigi and provide feedback, this is huge contribution for us! Let's make Vigi production ready.
 
 ## Quick start (docker + SQLite)
 
 ```bash
 docker run -d --restart=always \
   -p 8383:8383 \
-  -e DB_NAME=/app/data/peekaping.db \
+  -e DB_NAME=/app/data/vigi.db \
   -v $(pwd)/.data/sqlite:/app/data \
-  --name peekaping \
-  0xfurai/peekaping-bundle-sqlite:latest
+  --name vigi \
+  0xfurai/vigi-bundle-sqlite:latest
 ```
 
-[Docker + SQLite Setup](https://docs.peekaping.com/self-hosting/docker-with-sqlite)
+[Docker + SQLite Setup](https://docs.vigi.run/self-hosting/docker-with-sqlite)
 
-Peekaping also support [PostgreSQL Setup](https://docs.peekaping.com/self-hosting/docker-with-postgres) and [MongoDB Setup](https://docs.peekaping.com/self-hosting/docker-with-mongo). Read docs for more guidance
+Vigi also support [PostgreSQL Setup](https://docs.vigi.run/self-hosting/docker-with-postgres) and [MongoDB Setup](https://docs.vigi.run/self-hosting/docker-with-mongo). Read docs for more guidance
 
 ## ⚡ Features
 
@@ -114,13 +114,13 @@ Peekaping also support [PostgreSQL Setup](https://docs.peekaping.com/self-hostin
 
 ## 💡 Motivation behind creating uptime kuma alternative
 
-Peekaping was deeply inspired by Uptime Kuma. We tried to cover all the fundamental flaws of Uptime Kuma. Alternative was to build new system with features community love and request but using typed approaches applying extendable architecture. First of all - we are API first. Our server side written in Golang, fast and efficient language that works with minimal RAM. Architecture allows easily extend system adding new notification channels, monitor types etc.
+Vigi was deeply inspired by Uptime Kuma. We tried to cover all the fundamental flaws of Uptime Kuma. Alternative was to build new system with features community love and request but using typed approaches applying extendable architecture. First of all - we are API first. Our server side written in Golang, fast and efficient language that works with minimal RAM. Architecture allows easily extend system adding new notification channels, monitor types etc.
 
 Client side written with React and typescript that makes it reliable and fast. Client side is also easily extensible.
 
-Peekaping an ideal choice for teams who need a reliable, customizable uptime monitoring solution.
+Vigi an ideal choice for teams who need a reliable, customizable uptime monitoring solution.
 
-![Peekaping Dashboard](./pictures/monitor.png)
+![Vigi Dashboard](./pictures/monitor.png)
 
 ## 📡 Stay in the Loop
 
@@ -185,4 +185,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Made with ❤️ by the Peekaping team**
+**Made with ❤️ by the Vigi team**

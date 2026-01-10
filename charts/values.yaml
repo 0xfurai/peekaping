@@ -2,24 +2,24 @@ postgresql:
   enabled: false
   # auth:
   #   enablePostgresUser: false
-  #   username: peekaping
-  #   password: peekaping
-  #   database: peekaping
+  #   username: vigi
+  #   password: vigi
+  #   database: vigi
 
 redis:
   enabled: false
   # auth:
-  #   password: peekaping
+  #   password: vigi
 
 # See docs for configuration details
-# https://docs.peekaping.com/architecture/api-server
+# https://docs.vigi.com/architecture/api-server
 config:
-  existingSecret: "peekaping-config"
+  existingSecret: "vigi-config"
   env:
     DB_TYPE: "postgres"
-    # DB_HOST: "peekaping-postgresql.peekaping.svc.cluster.local"
+    # DB_HOST: "vigi-postgresql.vigi.svc.cluster.local"
     # DB_PORT: "5432"
-    # REDIS_HOST: "peekaping-redis-master.peekaping.svc.cluster.local"
+    # REDIS_HOST: "vigi-redis-master.vigi.svc.cluster.local"
     # REDIS_PORT: "6379"
 
 api:
@@ -27,7 +27,7 @@ api:
   apparmor:
     enabled: false
   image:
-    repository: 0xfurai/peekaping-api
+    repository: 0xfurai/vigi-api
     tag: latest
     pullPolicy: IfNotPresent
   service:
@@ -60,7 +60,7 @@ ingester:
   apparmor:
     enabled: false
   image:
-    repository: 0xfurai/peekaping-ingester
+    repository: 0xfurai/vigi-ingester
     tag: latest
     pullPolicy: IfNotPresent
   resources:
@@ -76,7 +76,7 @@ producer:
   apparmor:
     enabled: false
   image:
-    repository: 0xfurai/peekaping-producer
+    repository: 0xfurai/vigi-producer
     tag: latest
     pullPolicy: IfNotPresent
   resources:
@@ -92,7 +92,7 @@ worker:
   apparmor:
     enabled: false
   image:
-    repository: 0xfurai/peekaping-worker
+    repository: 0xfurai/vigi-worker
     tag: latest
     pullPolicy: IfNotPresent
   resources:
@@ -108,7 +108,7 @@ web:
   apparmor:
     enabled: false
   image:
-    repository: 0xfurai/peekaping-web
+    repository: 0xfurai/vigi-web
     tag: latest
     pullPolicy: IfNotPresent
   service:
@@ -140,7 +140,7 @@ migrate:
   apparmor:
     enabled: false
   image:
-    repository: 0xfurai/peekaping-migrate
+    repository: 0xfurai/vigi-migrate
     tag: "latest"
     pullPolicy: IfNotPresent
   resources:

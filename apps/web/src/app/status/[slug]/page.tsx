@@ -387,10 +387,10 @@ const PublicStatusPage = ({ incomingSlug }: { incomingSlug?: string }) => {
           <p className="text-xs text-muted-foreground">
             {t("status.messages.powered_by")}{" "}
             <a
-              href="https://github.com/0xfurai/peekaping"
+              href="https://github.com/0xfurai/vigi"
               className="underline hover:text-foreground"
             >
-              Peekaping
+              Vigi
             </a>
           </p>
         </div>

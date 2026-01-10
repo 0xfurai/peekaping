@@ -10,7 +10,7 @@ services:
     environment:
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASS:-password}
-      POSTGRES_DB: ${DB_NAME:-peekaping}
+      POSTGRES_DB: ${DB_NAME:-vigi}
     volumes:
       - ./.data/postgres:/var/lib/postgresql/data
     networks:
@@ -19,7 +19,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-peekaping}",
+          "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-vigi}",
         ]
       interval: 30s
       timeout: 2s
@@ -39,7 +39,7 @@ services:
       start_period: 5s
 
   migrate:
-    image: 0xfurai/peekaping-migrate:latest
+    image: 0xfurai/vigi-migrate:latest
     restart: "no"
     env_file:
       - .env
@@ -50,7 +50,7 @@ services:
       - appnet
 
   api:
-    image: 0xfurai/peekaping-api:latest
+    image: 0xfurai/vigi-api:latest
     restart: unless-stopped
     env_file:
       - .env
@@ -73,7 +73,7 @@ services:
       start_period: 5s
 
   producer:
-    image: 0xfurai/peekaping-producer:latest
+    image: 0xfurai/vigi-producer:latest
     restart: unless-stopped
     env_file:
       - .env
@@ -86,7 +86,7 @@ services:
       - appnet
 
   worker:
-    image: 0xfurai/peekaping-worker:latest
+    image: 0xfurai/vigi-worker:latest
     restart: unless-stopped
     env_file:
       - .env
@@ -97,7 +97,7 @@ services:
       - appnet
 
   ingester:
-    image: 0xfurai/peekaping-ingester:latest
+    image: 0xfurai/vigi-ingester:latest
     restart: unless-stopped
     env_file:
       - .env
@@ -110,7 +110,7 @@ services:
       - appnet
 
   web:
-    image: 0xfurai/peekaping-web:latest
+    image: 0xfurai/vigi-web:latest
     depends_on:
       api:
         condition: service_healthy

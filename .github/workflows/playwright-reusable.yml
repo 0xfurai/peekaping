@@ -41,8 +41,8 @@ jobs:
         DB_TYPE=${{ matrix.database }}
         DB_HOST=database
         DB_PORT=${{ matrix.database == 'postgres' && '5432' || matrix.database == 'mongo' && '27017' }}
-        DB_NAME=${{ matrix.database == 'sqlite' && '/app/data/peekaping.db' || 'peekaping' }}
-        DB_USER=${{ matrix.database == 'postgres' && 'peekaping' || matrix.database == 'mongo' && 'root' || 'root' }}
+        DB_NAME=${{ matrix.database == 'sqlite' && '/app/data/vigi.db' || 'vigi' }}
+        DB_USER=${{ matrix.database == 'postgres' && 'vigi' || matrix.database == 'mongo' && 'root' || 'root' }}
         DB_PASS=password
 
         REDIS_HOST="redis"
@@ -64,12 +64,12 @@ jobs:
         cp docker-compose.prod.${{ matrix.database }}.yml docker-compose.test.${{ matrix.database }}.yml
 
         # Replace container tags with the specified version
-        sed -i 's|0xfurai/peekaping-api:latest|0xfurai/peekaping-api:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
-        sed -i 's|0xfurai/peekaping-producer:latest|0xfurai/peekaping-producer:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
-        sed -i 's|0xfurai/peekaping-worker:latest|0xfurai/peekaping-worker:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
-        sed -i 's|0xfurai/peekaping-ingester:latest|0xfurai/peekaping-ingester:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
-        sed -i 's|0xfurai/peekaping-web:latest|0xfurai/peekaping-web:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
-        sed -i 's|0xfurai/peekaping-migrate:latest|0xfurai/peekaping-migrate:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
+        sed -i 's|0xfurai/vigi-api:latest|0xfurai/vigi-api:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
+        sed -i 's|0xfurai/vigi-producer:latest|0xfurai/vigi-producer:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
+        sed -i 's|0xfurai/vigi-worker:latest|0xfurai/vigi-worker:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
+        sed -i 's|0xfurai/vigi-ingester:latest|0xfurai/vigi-ingester:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
+        sed -i 's|0xfurai/vigi-web:latest|0xfurai/vigi-web:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
+        sed -i 's|0xfurai/vigi-migrate:latest|0xfurai/vigi-migrate:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
 
         echo "=== Modified docker-compose file ==="
         cat docker-compose.test.${{ matrix.database }}.yml
@@ -222,32 +222,32 @@ jobs:
         case "${{ matrix.database }}" in
           sqlite)
             docker run -d \
-              --name peekaping-bundle-test-${{ matrix.database }} \
+              --name vigi-bundle-test-${{ matrix.database }} \
               -p 8383:8383 \
               -v $(pwd)/test-data/sqlite/app:/app/data \
               "${COMMON_ENV[@]}" \
-              -e DB_NAME=/app/data/peekaping.db \
+              -e DB_NAME=/app/data/vigi.db \
               ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}:${BUNDLE_TAG}
             ;;
           mongo)
             docker run -d \
-              --name peekaping-bundle-test-${{ matrix.database }} \
+              --name vigi-bundle-test-${{ matrix.database }} \
               -p 8383:8383 \
               -v $(pwd)/test-data/mongo/db:/data/db \
               "${COMMON_ENV[@]}" \
-              -e DB_NAME=peekaping \
-              -e DB_USER=peekaping \
+              -e DB_NAME=vigi \
+              -e DB_USER=vigi \
               -e DB_PASS=password \
               ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}:${BUNDLE_TAG}
             ;;
           postgres)
             docker run -d \
-              --name peekaping-bundle-test-${{ matrix.database }} \
+              --name vigi-bundle-test-${{ matrix.database }} \
               -p 8383:8383 \
               -v $(pwd)/test-data/postgres/data:/var/lib/postgresql/data \
               "${COMMON_ENV[@]}" \
-              -e DB_NAME=peekaping \
-              -e DB_USER=peekaping \
+              -e DB_NAME=vigi \
+              -e DB_USER=vigi \
               -e DB_PASS=password \
               ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}:${BUNDLE_TAG}
             ;;
@@ -256,15 +256,15 @@ jobs:
     - name: Show container logs
       run: |
         echo "=== Container Status ==="
-        docker ps --filter "name=peekaping-bundle-test-${{ matrix.database }}"
+        docker ps --filter "name=vigi-bundle-test-${{ matrix.database }}"
         echo "=== Container Logs ==="
-        docker logs peekaping-bundle-test-${{ matrix.database }}
+        docker logs vigi-bundle-test-${{ matrix.database }}
         echo "=== Container Environment ==="
-        docker exec peekaping-bundle-test-${{ matrix.database }} env | grep -E "(DB_|API_|JWT_|ACCESS_|REFRESH_|BUNDEBUG)" || echo "No relevant env vars found"
+        docker exec vigi-bundle-test-${{ matrix.database }} env | grep -E "(DB_|API_|JWT_|ACCESS_|REFRESH_|BUNDEBUG)" || echo "No relevant env vars found"
         echo "=== Container Processes ==="
-        docker exec peekaping-bundle-test-${{ matrix.database }} ps aux || echo "Could not list processes"
+        docker exec vigi-bundle-test-${{ matrix.database }} ps aux || echo "Could not list processes"
         echo "=== Testing internal connectivity ==="
-        docker exec peekaping-bundle-test-${{ matrix.database }} nc -zv localhost 8034 || echo "Go api not responding on port 8034"
+        docker exec vigi-bundle-test-${{ matrix.database }} nc -zv localhost 8034 || echo "Go api not responding on port 8034"
 
     - name: Wait for bundle service to be ready
       run: |
@@ -281,9 +281,9 @@ jobs:
             sleep 5
             if [ $attempt -gt 12 ]; then
               echo "=== Container Status ==="
-              docker ps --filter "name=peekaping-bundle-test-${{ matrix.database }}"
+              docker ps --filter "name=vigi-bundle-test-${{ matrix.database }}"
               echo "=== Container Logs ==="
-              docker logs peekaping-bundle-test-${{ matrix.database }}
+              docker logs vigi-bundle-test-${{ matrix.database }}
             fi
           done
         ' || echo "Health check timed out after 120 seconds"
@@ -297,21 +297,21 @@ jobs:
       if: failure()
       run: |
         echo "=== Final Container Status ==="
-        docker ps --filter "name=peekaping-bundle-test-${{ matrix.database }}"
+        docker ps --filter "name=vigi-bundle-test-${{ matrix.database }}"
         echo "=== Final Container Logs ==="
-        docker logs peekaping-bundle-test-${{ matrix.database }}
+        docker logs vigi-bundle-test-${{ matrix.database }}
         echo "=== Final Container Environment ==="
-        docker exec peekaping-bundle-test-${{ matrix.database }} env | grep -E "(DB_|API_|JWT_|ACCESS_|REFRESH_|BUNDEBUG)" || echo "No relevant env vars found"
+        docker exec vigi-bundle-test-${{ matrix.database }} env | grep -E "(DB_|API_|JWT_|ACCESS_|REFRESH_|BUNDEBUG)" || echo "No relevant env vars found"
         echo "=== Final Container Processes ==="
-        docker exec peekaping-bundle-test-${{ matrix.database }} ps aux || echo "Could not list processes"
+        docker exec vigi-bundle-test-${{ matrix.database }} ps aux || echo "Could not list processes"
         echo "=== Final internal connectivity test ==="
-        docker exec peekaping-bundle-test-${{ matrix.database }} nc -zv localhost 8034 || echo "Go api not responding on port 8034"
+        docker exec vigi-bundle-test-${{ matrix.database }} nc -zv localhost 8034 || echo "Go api not responding on port 8034"
 
     - name: Stop bundle container
       if: always()
       run: |
-        docker stop peekaping-bundle-test-${{ matrix.database }} || true
-        docker rm peekaping-bundle-test-${{ matrix.database }} || true
+        docker stop vigi-bundle-test-${{ matrix.database }} || true
+        docker rm vigi-bundle-test-${{ matrix.database }} || true
 
     - name: Cleanup test data
       if: always()

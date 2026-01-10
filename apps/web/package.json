@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "gen": "openapi-ts",
-    "build:docker": "docker build -t peekaping/web:latest .",
+    "build:docker": "docker build -t vigi/web:latest .",
     "i18n:parse": "i18next"
   },
   "dependencies": {

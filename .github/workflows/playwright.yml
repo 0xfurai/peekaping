@@ -45,8 +45,8 @@ jobs:
         DB_TYPE=${{ matrix.database }}
         DB_HOST=database
         DB_PORT=${{ matrix.database == 'postgres' && '5432' || matrix.database == 'mongo' && '27017' }}
-        DB_NAME=${{ matrix.database == 'sqlite' && '/app/data/peekaping.db' || 'peekaping' }}
-        DB_USER=${{ matrix.database == 'postgres' && 'peekaping' || matrix.database == 'mongo' && 'root' || 'root' }}
+        DB_NAME=${{ matrix.database == 'sqlite' && '/app/data/vigi.db' || 'vigi' }}
+        DB_USER=${{ matrix.database == 'postgres' && 'vigi' || matrix.database == 'mongo' && 'root' || 'root' }}
         DB_PASS=password
 
         REDIS_HOST="redis"

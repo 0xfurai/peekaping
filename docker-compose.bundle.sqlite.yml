@@ -1,5 +1,5 @@
 services:
-  peekaping:
+  vigi:
     build:
       context: .
       dockerfile: Dockerfile.bundle.sqlite
@@ -10,7 +10,7 @@ services:
       - .env
     environment:
       - DB_TYPE=sqlite
-      - DB_NAME=/app/data/peekaping.db
+      - DB_NAME=/app/data/vigi.db
     volumes:
       # Database data persistence
       - ./.data/sqlite:/app/data
@@ -18,4 +18,4 @@ services:
       - ./.data/logs:/var/log/supervisor
       # Optional: Custom Caddyfile override
       # - ./custom-Caddyfile:/etc/caddy/Caddyfile:ro
-    container_name: peekaping-bundle-sqlite
+    container_name: vigi-bundle-sqlite
