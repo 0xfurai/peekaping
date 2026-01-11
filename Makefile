@@ -77,97 +77,97 @@ docker-configs: ## Show all available Docker Compose configurations
 .PHONY: docker-dev-postgres
 docker-dev-postgres: ## Start development environment with PostgreSQL
 	@echo "Starting development environment with PostgreSQL..."
-	docker-compose -f $(COMPOSE_DEV_POSTGRES) up -d --build
+	docker compose -f $(COMPOSE_DEV_POSTGRES) up -d --build
 
 .PHONY: docker-dev-mongo
 docker-dev-mongo: ## Start development environment with MongoDB
 	@echo "Starting development environment with MongoDB..."
-	docker-compose -f $(COMPOSE_DEV_MONGO) up -d --build
+	docker compose -f $(COMPOSE_DEV_MONGO) up -d --build
 
 .PHONY: docker-dev-sqlite
 docker-dev-sqlite: ## Start development environment with SQLite
 	@echo "Starting development environment with SQLite..."
-	docker-compose -f $(COMPOSE_DEV_SQLITE) up -d --build
+	docker compose -f $(COMPOSE_DEV_SQLITE) up -d --build
 
 
 # Docker targets - Production Environment
 .PHONY: docker-prod-postgres
 docker-prod-postgres: ## Start production environment with PostgreSQL
 	@echo "Starting production environment with PostgreSQL..."
-	docker-compose -f $(COMPOSE_PROD_POSTGRES) up -d
+	docker compose -f $(COMPOSE_PROD_POSTGRES) up -d
 
 .PHONY: docker-prod-mongo
 docker-prod-mongo: ## Start production environment with MongoDB
 	@echo "Starting production environment with MongoDB..."
-	docker-compose -f $(COMPOSE_PROD_MONGO) up -d
+	docker compose -f $(COMPOSE_PROD_MONGO) up -d
 
 .PHONY: docker-prod-sqlite
 docker-prod-sqlite: ## Start production environment with SQLite
 	@echo "Starting production environment with SQLite..."
-	docker-compose -f $(COMPOSE_PROD_SQLITE) up -d
+	docker compose -f $(COMPOSE_PROD_SQLITE) up -d
 
 
 # Docker targets - Standard Configurations
 .PHONY: docker-postgres
 docker-postgres: ## Start PostgreSQL environment
 	@echo "Starting PostgreSQL environment..."
-	docker-compose -f $(COMPOSE_POSTGRES) up -d
+	docker compose -f $(COMPOSE_POSTGRES) up -d
 
 .PHONY: docker-mongo
 docker-mongo: ## Start MongoDB environment
 	@echo "Starting MongoDB environment..."
-	docker-compose -f $(COMPOSE_MONGO) up -d
+	docker compose -f $(COMPOSE_MONGO) up -d
 
 .PHONY: docker-sqlite
 docker-sqlite: ## Start SQLite environment
 	@echo "Starting SQLite environment..."
-	docker-compose -f $(COMPOSE_SQLITE) up -d
+	docker compose -f $(COMPOSE_SQLITE) up -d
 
 # Docker targets - Service Management
 .PHONY: down-dev-postgres
 down-dev-postgres: ## Stop development PostgreSQL services
 	@echo "Stopping development PostgreSQL services..."
-	docker-compose -f $(COMPOSE_DEV_POSTGRES) down
+	docker compose -f $(COMPOSE_DEV_POSTGRES) down
 
 .PHONY: down-dev-mongo
 down-dev-mongo: ## Stop development MongoDB services
 	@echo "Stopping development MongoDB services..."
-	docker-compose -f $(COMPOSE_DEV_MONGO) down
+	docker compose -f $(COMPOSE_DEV_MONGO) down
 
 .PHONY: down-dev-sqlite
 down-dev-sqlite: ## Stop development SQLite services
 	@echo "Stopping development SQLite services..."
-	docker-compose -f $(COMPOSE_DEV_SQLITE) down
+	docker compose -f $(COMPOSE_DEV_SQLITE) down
 
 .PHONY: down-prod-postgres
 down-prod-postgres: ## Stop production PostgreSQL services
 	@echo "Stopping production PostgreSQL services..."
-	docker-compose -f $(COMPOSE_PROD_POSTGRES) down
+	docker compose -f $(COMPOSE_PROD_POSTGRES) down
 
 .PHONY: down-prod-mongo
 down-prod-mongo: ## Stop production MongoDB services
 	@echo "Stopping production MongoDB services..."
-	docker-compose -f $(COMPOSE_PROD_MONGO) down
+	docker compose -f $(COMPOSE_PROD_MONGO) down
 
 .PHONY: down-prod-sqlite
 down-prod-sqlite: ## Stop production SQLite services
 	@echo "Stopping production SQLite services..."
-	docker-compose -f $(COMPOSE_PROD_SQLITE) down
+	docker compose -f $(COMPOSE_PROD_SQLITE) down
 
 .PHONY: down-postgres
 down-postgres: ## Stop PostgreSQL services
 	@echo "Stopping PostgreSQL services..."
-	docker-compose -f $(COMPOSE_POSTGRES) down
+	docker compose -f $(COMPOSE_POSTGRES) down
 
 .PHONY: down-mongo
 down-mongo: ## Stop MongoDB services
 	@echo "Stopping MongoDB services..."
-	docker-compose -f $(COMPOSE_MONGO) down
+	docker compose -f $(COMPOSE_MONGO) down
 
 .PHONY: down-sqlite
 down-sqlite: ## Stop SQLite services
 	@echo "Stopping SQLite services..."
-	docker-compose -f $(COMPOSE_SQLITE) down
+	docker compose -f $(COMPOSE_SQLITE) down
 
 .PHONY: docker-down
 docker-down: down-dev-$(DEFAULT_DEV_DB) ## Stop default development services
@@ -175,15 +175,15 @@ docker-down: down-dev-$(DEFAULT_DEV_DB) ## Stop default development services
 .PHONY: docker-down-all
 docker-down-all: ## Stop all Docker Compose services
 	@echo "Stopping all Docker services..."
-	@docker-compose -f $(COMPOSE_DEV_POSTGRES) down 2>/dev/null || true
-	@docker-compose -f $(COMPOSE_DEV_MONGO) down 2>/dev/null || true
-	@docker-compose -f $(COMPOSE_DEV_SQLITE) down 2>/dev/null || true
-	@docker-compose -f $(COMPOSE_PROD_POSTGRES) down 2>/dev/null || true
-	@docker-compose -f $(COMPOSE_PROD_MONGO) down 2>/dev/null || true
-	@docker-compose -f $(COMPOSE_PROD_SQLITE) down 2>/dev/null || true
-	@docker-compose -f $(COMPOSE_POSTGRES) down 2>/dev/null || true
-	@docker-compose -f $(COMPOSE_MONGO) down 2>/dev/null || true
-	@docker-compose -f $(COMPOSE_SQLITE) down 2>/dev/null || true
+	@docker compose -f $(COMPOSE_DEV_POSTGRES) down 2>/dev/null || true
+	@docker compose -f $(COMPOSE_DEV_MONGO) down 2>/dev/null || true
+	@docker compose -f $(COMPOSE_DEV_SQLITE) down 2>/dev/null || true
+	@docker compose -f $(COMPOSE_PROD_POSTGRES) down 2>/dev/null || true
+	@docker compose -f $(COMPOSE_PROD_MONGO) down 2>/dev/null || true
+	@docker compose -f $(COMPOSE_PROD_SQLITE) down 2>/dev/null || true
+	@docker compose -f $(COMPOSE_POSTGRES) down 2>/dev/null || true
+	@docker compose -f $(COMPOSE_MONGO) down 2>/dev/null || true
+	@docker compose -f $(COMPOSE_SQLITE) down 2>/dev/null || true
 
 # Database targets
 .PHONY: migrate-init

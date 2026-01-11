@@ -7,6 +7,7 @@ toolchain go1.24.3
 require (
 	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358
 	github.com/IBM/sarama v1.43.3
+	github.com/alicebob/miniredis/v2 v2.35.0
 	github.com/blues/jsonata-go v1.5.4
 	github.com/denisenkom/go-mssqldb v0.12.3
 	github.com/docker/docker v28.3.0+incompatible
@@ -55,7 +56,6 @@ require (
 	github.com/Microsoft/go-winio v0.4.14 // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
-	github.com/alicebob/miniredis/v2 v2.35.0 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
 	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc // indirect
 	github.com/bytedance/sonic v1.13.2 // indirect
@@ -181,5 +181,4 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
 	modernc.org/sqlite v1.38.0 // indirect
-	sigs.k8s.io/yaml v1.3.0 // indirect
 )
