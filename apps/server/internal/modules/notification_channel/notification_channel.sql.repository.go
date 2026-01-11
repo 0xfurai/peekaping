@@ -69,7 +69,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, entity *Model) (*Model, 
 	return toDomainModelFromSQL(sm), nil
 }
 
-func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, error) {
+func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string, orgID string) (*Model, error) {
 	sm := new(sqlModel)
 	err := r.db.NewSelect().Model(sm).Where("id = ?", id).Scan(ctx)
 	if err != nil {
@@ -81,7 +81,7 @@ func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, er
 	return toDomainModelFromSQL(sm), nil
 }
 
-func (r *SQLRepositoryImpl) FindAll(ctx context.Context, page int, limit int, q string) ([]*Model, error) {
+func (r *SQLRepositoryImpl) FindAll(ctx context.Context, page int, limit int, q string, orgID string) ([]*Model, error) {
 	query := r.db.NewSelect().Model((*sqlModel)(nil))
 
 	if q != "" {

@@ -4,6 +4,7 @@ import "time"
 
 type Model struct {
 	ID            string    `json:"id"`
+	OrgID         string    `json:"org_id"`
 	Title         string    `json:"title"`
 	Description   string    `json:"description"`
 	Active        bool      `json:"active"`

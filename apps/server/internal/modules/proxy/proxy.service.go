@@ -55,11 +55,11 @@ func (mr *ServiceImpl) Create(ctx context.Context, entity *CreateUpdateDto) (*Mo
 }
 
 func (mr *ServiceImpl) FindByID(ctx context.Context, id string) (*Model, error) {
-	return mr.repository.FindByID(ctx, id)
+	return mr.repository.FindByID(ctx, id, "")
 }
 
 func (mr *ServiceImpl) FindAll(ctx context.Context, page int, limit int, q string) ([]*Model, error) {
-	return mr.repository.FindAll(ctx, page, limit, q)
+	return mr.repository.FindAll(ctx, page, limit, q, "")
 }
 
 func (mr *ServiceImpl) UpdateFull(ctx context.Context, id string, entity *CreateUpdateDto) (*Model, error) {

@@ -51,7 +51,10 @@ func (c *Controller) FindAll(ctx *gin.Context) {
 
 	q := ctx.Query("q")
 
-	response, err := c.service.FindAll(ctx, page, limit, q)
+	// Extract orgID from context
+	orgID := ctx.GetString("orgID")
+
+	response, err := c.service.FindAll(ctx, page, limit, q, orgID)
 	if err != nil {
 		c.logger.Errorw("Failed to fetch tags", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -112,7 +115,10 @@ func (c *Controller) Create(ctx *gin.Context) {
 func (c *Controller) FindByID(ctx *gin.Context) {
 	id := ctx.Param("id")
 
-	tag, err := c.service.FindByID(ctx, id)
+	// Extract orgID from context
+	orgID := ctx.GetString("orgID")
+
+	tag, err := c.service.FindByID(ctx, id, orgID)
 	if err != nil {
 		c.logger.Errorw("Failed to fetch tag", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))

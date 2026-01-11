@@ -78,7 +78,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, statusPage *Model) (*Mod
 	return toDomainModelFromSQL(sm), nil
 }
 
-func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, error) {
+func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string, orgID string) (*Model, error) {
 	sm := new(sqlModel)
 	err := r.db.NewSelect().Model(sm).Where("id = ?", id).Scan(ctx)
 	if err != nil {
@@ -107,8 +107,13 @@ func (r *SQLRepositoryImpl) FindAll(
 	page int,
 	limit int,
 	q string,
+	orgID string,
 ) ([]*Model, error) {
 	query := r.db.NewSelect().Model((*sqlModel)(nil))
+
+	if orgID != "" {
+		query = query.Where("org_id = ?", orgID)
+	}
 
 	if q != "" {
 		query = query.Where("LOWER(title) LIKE ? OR LOWER(description) LIKE ?", "%"+q+"%", "%"+q+"%")

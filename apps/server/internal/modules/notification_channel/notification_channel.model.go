@@ -4,6 +4,7 @@ import "time"
 
 type Model struct {
 	ID        string    `json:"id"`
+OrgID     string    `json:"org_id"`
 	Name      string    `json:"name"`
 	Type      string    `json:"type"`
 	Active    bool      `json:"active"`
@@ -15,6 +16,7 @@ type Model struct {
 
 type UpdateModel struct {
 	ID        *string    `json:"id"`
+OrgID     string    `json:"org_id"`
 	Name      *string    `json:"name"`
 	Type      *string    `json:"type"`
 	Active    *bool      `json:"active"`

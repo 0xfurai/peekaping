@@ -3,8 +3,8 @@ package maintenance
 import (
 	"context"
 	"fmt"
-	"vigi/internal/config"
 	"time"
+	"vigi/internal/config"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -14,6 +14,7 @@ import (
 
 type mongoModel struct {
 	ID            primitive.ObjectID `bson:"_id"`
+	OrgID         string             `bson:"org_id"`
 	Title         string             `bson:"title"`
 	Description   string             `bson:"description"`
 	Active        bool               `bson:"active"`
@@ -53,6 +54,7 @@ type mongoUpdateModel struct {
 func toDomainModel(mm *mongoModel) *Model {
 	return &Model{
 		ID:            mm.ID.Hex(),
+		OrgID:         mm.OrgID,
 		Title:         mm.Title,
 		Description:   mm.Description,
 		Active:        mm.Active,
@@ -119,13 +121,16 @@ func (r *MongoRepositoryImpl) Create(ctx context.Context, entity *CreateUpdateDt
 	return toDomainModel(mm), nil
 }
 
-func (r *MongoRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, error) {
+func (r *MongoRepositoryImpl) FindByID(ctx context.Context, id string, orgID string) (*Model, error) {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, err
 	}
 
 	filter := bson.M{"_id": objectID}
+	if orgID != "" {
+		filter["org_id"] = orgID
+	}
 	var mm mongoModel
 	err = r.collection.FindOne(ctx, filter).Decode(&mm)
 	if err != nil {
@@ -137,7 +142,7 @@ func (r *MongoRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, 
 	return toDomainModel(&mm), nil
 }
 
-func (r *MongoRepositoryImpl) FindAll(ctx context.Context, page int, limit int, q string, strategy string) ([]*Model, error) {
+func (r *MongoRepositoryImpl) FindAll(ctx context.Context, page int, limit int, q string, strategy string, orgID string) ([]*Model, error) {
 	var entities []*Model
 
 	// Calculate the number of documents to skip
@@ -152,6 +157,9 @@ func (r *MongoRepositoryImpl) FindAll(ctx context.Context, page int, limit int, 
 	}
 
 	filter := bson.M{}
+	if orgID != "" {
+		filter["org_id"] = orgID
+	}
 	if q != "" {
 		filter["$or"] = bson.A{
 			bson.M{"title": bson.M{"$regex": q, "$options": "i"}},
@@ -288,7 +296,7 @@ func (r *MongoRepositoryImpl) SetActive(ctx context.Context, id string, active b
 	if err != nil {
 		return nil, err
 	}
-	return r.FindByID(ctx, id)
+	return r.FindByID(ctx, id, "")
 }
 
 // GetMaintenancesByMonitorID returns all active maintenances for a given monitor_id

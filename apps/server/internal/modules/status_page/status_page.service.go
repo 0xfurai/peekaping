@@ -12,11 +12,11 @@ import (
 
 type Service interface {
 	Create(ctx context.Context, dto *CreateStatusPageDTO) (*Model, error)
-	FindByID(ctx context.Context, id string) (*Model, error)
+	FindByID(ctx context.Context, id string, orgID string) (*Model, error)
 	FindByIDWithMonitors(ctx context.Context, id string) (*StatusPageWithMonitorsResponseDTO, error)
 	FindBySlug(ctx context.Context, slug string) (*Model, error)
 	FindByDomain(ctx context.Context, domain string) (*Model, error)
-	FindAll(ctx context.Context, page int, limit int, q string) ([]*Model, error)
+	FindAll(ctx context.Context, page int, limit int, q string, orgID string) ([]*Model, error)
 	Update(ctx context.Context, id string, dto *UpdateStatusPageDTO) (*Model, error)
 	Delete(ctx context.Context, id string) error
 
@@ -25,7 +25,7 @@ type Service interface {
 
 type ServiceImpl struct {
 	repository               Repository
-	eventBus events.EventBus
+	eventBus                 events.EventBus
 	monitorStatusPageService monitor_status_page.Service
 	domainStatusPageService  domain_status_page.Service
 	logger                   *zap.SugaredLogger
@@ -132,8 +132,8 @@ func (s *ServiceImpl) Create(ctx context.Context, dto *CreateStatusPageDTO) (*Mo
 	return created, nil
 }
 
-func (s *ServiceImpl) FindByID(ctx context.Context, id string) (*Model, error) {
-	return s.repository.FindByID(ctx, id)
+func (s *ServiceImpl) FindByID(ctx context.Context, id string, orgID string) (*Model, error) {
+	return s.repository.FindByID(ctx, id, orgID)
 }
 
 func (s *ServiceImpl) FindByIDWithMonitors(
@@ -142,7 +142,7 @@ func (s *ServiceImpl) FindByIDWithMonitors(
 	s.logger.Debugw("Finding status page by ID with monitors", "id", id)
 
 	// First, get the status page model
-	model, err := s.repository.FindByID(ctx, id)
+	model, err := s.repository.FindByID(ctx, id, "")
 	if err != nil {
 		s.logger.Errorw("Failed to find status page by ID", "error", err, "id", id)
 		return nil, err
@@ -205,11 +205,11 @@ func (s *ServiceImpl) FindByDomain(ctx context.Context, domain string) (*Model, 
 	}
 
 	// Get the status page
-	return s.repository.FindByID(ctx, domainStatusPage.StatusPageID)
+	return s.repository.FindByID(ctx, domainStatusPage.StatusPageID, "")
 }
 
-func (s *ServiceImpl) FindAll(ctx context.Context, page int, limit int, q string) ([]*Model, error) {
-	return s.repository.FindAll(ctx, page, limit, q)
+func (s *ServiceImpl) FindAll(ctx context.Context, page int, limit int, q string, orgID string) ([]*Model, error) {
+	return s.repository.FindAll(ctx, page, limit, q, orgID)
 }
 
 func (s *ServiceImpl) Update(ctx context.Context, id string, dto *UpdateStatusPageDTO) (*Model, error) {
@@ -315,7 +315,7 @@ func (s *ServiceImpl) Update(ctx context.Context, id string, dto *UpdateStatusPa
 		}
 	}
 
-	return s.repository.FindByID(ctx, id)
+	return s.repository.FindByID(ctx, id, "")
 }
 
 func (s *ServiceImpl) Delete(ctx context.Context, id string) error {

@@ -55,6 +55,9 @@ func (ic *Controller) FindAll(ctx *gin.Context) {
 	q := ctx.Query("q")
 	strategy := ctx.Query("strategy")
 
+	// Extract orgID from context (set by OrganizationMiddleware)
+	orgID := ctx.GetString("orgID")
+
 	filter := bson.M{}
 	if q != "" {
 		filter["$or"] = bson.A{
@@ -63,7 +66,7 @@ func (ic *Controller) FindAll(ctx *gin.Context) {
 		}
 	}
 
-	entities, err := ic.service.FindAll(ctx, page, limit, q, strategy)
+	entities, err := ic.service.FindAll(ctx, page, limit, q, strategy, orgID)
 	if err != nil {
 		ic.logger.Errorw("Failed to fetch maintenances", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -96,6 +99,10 @@ func (ic *Controller) Create(ctx *gin.Context) {
 		return
 	}
 
+	// Extract orgID from context and set it in the entity
+	orgID := ctx.GetString("orgID")
+	entity.OrgID = orgID
+
 	created, err := ic.service.Create(ctx, entity)
 	if err != nil {
 		ic.logger.Errorw("Failed to create maintenance", "error", err)
@@ -119,7 +126,10 @@ func (ic *Controller) Create(ctx *gin.Context) {
 func (ic *Controller) FindByID(ctx *gin.Context) {
 	id := ctx.Param("id")
 
-	entity, err := ic.service.FindByID(ctx, id)
+	// Extract orgID from context (set by OrganizationMiddleware)
+	orgID := ctx.GetString("orgID")
+
+	entity, err := ic.service.FindByID(ctx, id, orgID)
 	if err != nil {
 		ic.logger.Errorw("Failed to fetch maintenance", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))

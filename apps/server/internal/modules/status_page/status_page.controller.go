@@ -2,10 +2,10 @@ package status_page
 
 import (
 	"net/http"
+	"time"
 	"vigi/internal/modules/heartbeat"
 	"vigi/internal/modules/monitor"
 	"vigi/internal/utils"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -166,7 +166,10 @@ func (c *Controller) FindAll(ctx *gin.Context) {
 	}
 	q := ctx.Query("q")
 
-	pages, err := c.service.FindAll(ctx, page, limit, q)
+	// Extract orgID from context
+	orgID := ctx.GetString("orgID")
+
+	pages, err := c.service.FindAll(ctx, page, limit, q, orgID)
 	if err != nil {
 		c.logger.Errorw("Failed to get all status pages", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))

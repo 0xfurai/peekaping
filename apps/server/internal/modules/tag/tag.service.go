@@ -10,8 +10,8 @@ import (
 
 type Service interface {
 	Create(ctx context.Context, entity *CreateUpdateDto) (*Model, error)
-	FindByID(ctx context.Context, id string) (*Model, error)
-	FindAll(ctx context.Context, page int, limit int, q string) ([]*Model, error)
+	FindByID(ctx context.Context, id string, orgID string) (*Model, error)
+	FindAll(ctx context.Context, page int, limit int, q string, orgID string) ([]*Model, error)
 	UpdateFull(ctx context.Context, id string, entity *CreateUpdateDto) (*Model, error)
 	UpdatePartial(ctx context.Context, id string, entity *PartialUpdateDto) (*Model, error)
 	Delete(ctx context.Context, id string) error
@@ -55,8 +55,8 @@ func (s *ServiceImpl) Create(ctx context.Context, entity *CreateUpdateDto) (*Mod
 	return s.repository.Create(ctx, createModel)
 }
 
-func (s *ServiceImpl) FindByID(ctx context.Context, id string) (*Model, error) {
-	return s.repository.FindByID(ctx, id)
+func (s *ServiceImpl) FindByID(ctx context.Context, id string, orgID string) (*Model, error) {
+	return s.repository.FindByID(ctx, id, orgID)
 }
 
 func (s *ServiceImpl) FindByName(ctx context.Context, name string) (*Model, error) {
@@ -68,8 +68,9 @@ func (s *ServiceImpl) FindAll(
 	page int,
 	limit int,
 	q string,
+	orgID string,
 ) ([]*Model, error) {
-	return s.repository.FindAll(ctx, page, limit, q)
+	return s.repository.FindAll(ctx, page, limit, q, orgID)
 }
 
 func (s *ServiceImpl) UpdateFull(ctx context.Context, id string, entity *CreateUpdateDto) (*Model, error) {
@@ -121,7 +122,7 @@ func (s *ServiceImpl) UpdatePartial(ctx context.Context, id string, entity *Part
 		return nil, err
 	}
 
-	updatedModel, err := s.repository.FindByID(ctx, id)
+	updatedModel, err := s.repository.FindByID(ctx, id, "")
 	if err != nil {
 		return nil, err
 	}

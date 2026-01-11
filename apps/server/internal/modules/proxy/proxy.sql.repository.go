@@ -72,9 +72,15 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, entity *Model) (*Model, 
 	return toDomainModelFromSQL(sm), nil
 }
 
-func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, error) {
+func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string, orgID string) (*Model, error) {
 	sm := new(sqlModel)
-	err := r.db.NewSelect().Model(sm).Where("id = ?", id).Scan(ctx)
+	query := r.db.NewSelect().Model(sm).Where("id = ?", id)
+
+	if orgID != "" {
+		query = query.Where("org_id = ?", orgID)
+	}
+
+	err := query.Scan(ctx)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return nil, nil
@@ -84,8 +90,12 @@ func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, er
 	return toDomainModelFromSQL(sm), nil
 }
 
-func (r *SQLRepositoryImpl) FindAll(ctx context.Context, page int, limit int, q string) ([]*Model, error) {
+func (r *SQLRepositoryImpl) FindAll(ctx context.Context, page int, limit int, q string, orgID string) ([]*Model, error) {
 	query := r.db.NewSelect().Model((*sqlModel)(nil))
+
+	if orgID != "" {
+		query = query.Where("org_id = ?", orgID)
+	}
 
 	if q != "" {
 		query = query.Where("LOWER(host) LIKE ?", "%"+q+"%")
@@ -155,7 +165,7 @@ func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity
 	}
 
 	if !hasUpdates {
-		return r.FindByID(ctx, id)
+		return r.FindByID(ctx, id, "")
 	}
 
 	// Always set updated_at
@@ -166,7 +176,7 @@ func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity
 		return nil, err
 	}
 
-	return r.FindByID(ctx, id)
+	return r.FindByID(ctx, id, "")
 }
 
 func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string) error {

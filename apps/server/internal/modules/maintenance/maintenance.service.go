@@ -12,8 +12,8 @@ import (
 
 type Service interface {
 	Create(ctx context.Context, entity *CreateUpdateDto) (*Model, error)
-	FindByID(ctx context.Context, id string) (*Model, error)
-	FindAll(ctx context.Context, page int, limit int, q string, strategy string) ([]*Model, error)
+	FindByID(ctx context.Context, id string, orgID string) (*Model, error)
+	FindAll(ctx context.Context, page int, limit int, q string, strategy string, orgID string) ([]*Model, error)
 	UpdateFull(ctx context.Context, id string, entity *CreateUpdateDto) (*Model, error)
 	UpdatePartial(ctx context.Context, id string, entity *PartialUpdateDto) (*Model, error)
 	Delete(ctx context.Context, id string) error
@@ -106,8 +106,8 @@ func (mr *ServiceImpl) Create(ctx context.Context, entity *CreateUpdateDto) (*Mo
 	return created, nil
 }
 
-func (mr *ServiceImpl) FindByID(ctx context.Context, id string) (*Model, error) {
-	model, err := mr.repository.FindByID(ctx, id)
+func (mr *ServiceImpl) FindByID(ctx context.Context, id string, orgID string) (*Model, error) {
+	model, err := mr.repository.FindByID(ctx, id, orgID)
 	if err != nil {
 		return nil, err
 	}
@@ -115,8 +115,8 @@ func (mr *ServiceImpl) FindByID(ctx context.Context, id string) (*Model, error) 
 	return model, nil
 }
 
-func (mr *ServiceImpl) FindAll(ctx context.Context, page int, limit int, q string, strategy string) ([]*Model, error) {
-	models, err := mr.repository.FindAll(ctx, page, limit, q, strategy)
+func (mr *ServiceImpl) FindAll(ctx context.Context, page int, limit int, q string, strategy string, orgID string) ([]*Model, error) {
+	models, err := mr.repository.FindAll(ctx, page, limit, q, strategy, orgID)
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +178,7 @@ func (mr *ServiceImpl) UpdatePartial(ctx context.Context, id string, entity *Par
 	// If strategy is being updated, we might need to regenerate cron expression
 	if entity.Strategy != nil {
 		// Get the current maintenance to merge with partial update
-		current, err := mr.repository.FindByID(ctx, id)
+		current, err := mr.repository.FindByID(ctx, id, "")
 		if err != nil {
 			return nil, err
 		}
@@ -224,7 +224,7 @@ func (mr *ServiceImpl) UpdatePartial(ctx context.Context, id string, entity *Par
 	// Calculate duration from StartTime and EndTime if not provided
 	if entity.Duration == nil {
 		// Get current maintenance to merge with partial update
-		current, err := mr.repository.FindByID(ctx, id)
+		current, err := mr.repository.FindByID(ctx, id, "")
 		if err != nil {
 			return nil, err
 		}

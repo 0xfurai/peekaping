@@ -80,7 +80,7 @@ func (r *MongoRepositoryImpl) Create(ctx context.Context, entity *Model) (*Model
 	return toDomainModel(mm), nil
 }
 
-func (r *MongoRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, error) {
+func (r *MongoRepositoryImpl) FindByID(ctx context.Context, id string, orgID string) (*Model, error) {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, err
@@ -100,7 +100,7 @@ func (r *MongoRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, 
 	return toDomainModel(&mm), nil
 }
 
-func (r *MongoRepositoryImpl) FindAll(ctx context.Context, page int, limit int, q string) ([]*Model, error) {
+func (r *MongoRepositoryImpl) FindAll(ctx context.Context, page int, limit int, q string, orgID string) ([]*Model, error) {
 	var entities []*Model
 
 	// Calculate the number of documents to skip

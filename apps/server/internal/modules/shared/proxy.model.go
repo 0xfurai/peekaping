@@ -4,6 +4,7 @@ import "time"
 
 type Proxy struct {
 	ID        string    `json:"id" bson:"_id"`
+	OrgID     string    `json:"org_id" bson:"org_id"`
 	Protocol  string    `json:"protocol"`
 	Host      string    `json:"host"`
 	Port      int       `json:"port"`

@@ -1,0 +1,3 @@
+ALTER TABLE tags ADD COLUMN org_id VARCHAR(255);
+ALTER TABLE tags ADD CONSTRAINT fk_tags_org_id 
+  FOREIGN KEY (org_id) REFERENCES organizations(id) ON DELETE CASCADE;

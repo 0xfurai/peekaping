@@ -3,6 +3,7 @@ package maintenance
 import "time"
 
 type CreateUpdateDto struct {
+	OrgID         string   `json:"org_id,omitempty"`
 	Title         string   `json:"title" validate:"required"`
 	Description   string   `json:"description"`
 	Active        bool     `json:"active"`
@@ -21,6 +22,7 @@ type CreateUpdateDto struct {
 }
 
 type PartialUpdateDto struct {
+	OrgID         *string  `json:"org_id,omitempty"`
 	Title         *string  `json:"title,omitempty"`
 	Description   *string  `json:"description,omitempty"`
 	Active        *bool    `json:"active,omitempty"`

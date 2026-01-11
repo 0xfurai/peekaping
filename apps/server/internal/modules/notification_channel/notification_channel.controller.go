@@ -55,7 +55,10 @@ func (ic *Controller) FindAll(ctx *gin.Context) {
 
 	q := ctx.Query("q")
 
-	response, err := ic.service.FindAll(ctx, page, limit, q)
+	// Extract orgID from context
+	orgID := ctx.GetString("orgID")
+
+	response, err := ic.service.FindAll(ctx, page, limit, q, orgID)
 	if err != nil {
 		ic.logger.Errorw("Failed to fetch notifications", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -123,7 +126,10 @@ func (ic *Controller) Create(ctx *gin.Context) {
 func (ic *Controller) FindByID(ctx *gin.Context) {
 	id := ctx.Param("id")
 
-	notification, err := ic.service.FindByID(ctx, id)
+	// Extract orgID from context
+	orgID := ctx.GetString("orgID")
+
+	notification, err := ic.service.FindByID(ctx, id, orgID)
 	if err != nil {
 		ic.logger.Errorw("Failed to fetch notification", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))

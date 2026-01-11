@@ -3,6 +3,7 @@ package notification_channel
 import (
 	"context"
 	"fmt"
+	"strings"
 	"vigi/internal/config"
 	"vigi/internal/infra"
 	"vigi/internal/modules/certificate"
@@ -11,7 +12,6 @@ import (
 	"vigi/internal/modules/monitor"
 	"vigi/internal/modules/monitor_notification"
 	"vigi/internal/modules/notification_channel/providers"
-	"strings"
 
 	"go.uber.org/dig"
 	"go.uber.org/zap"
@@ -98,7 +98,7 @@ func (l *NotificationEventListener) handleNotifyEvent(event events.Event) {
 	var notificationChannels []*Model
 	for _, mn := range monitorNotifications {
 		l.logger.Infof("Monitor notification: %s", mn.NotificationID)
-		notification, err := l.service.FindByID(ctx, mn.NotificationID)
+		notification, err := l.service.FindByID(ctx, mn.NotificationID, "")
 		if err != nil {
 			l.logger.Errorf("Failed to get notification by ID: %s, error: %v", mn.NotificationID, err)
 			continue
@@ -170,7 +170,7 @@ func (l *NotificationEventListener) handleCertificateExpiryEvent(event events.Ev
 	var notificationChannels []*Model
 	for _, mn := range monitorNotifications {
 		l.logger.Infof("Monitor notification: %s", mn.NotificationID)
-		notification, err := l.service.FindByID(ctx, mn.NotificationID)
+		notification, err := l.service.FindByID(ctx, mn.NotificationID, "")
 		if err != nil {
 			l.logger.Errorf("Failed to get notification by ID: %s, error: %v", mn.NotificationID, err)
 			continue

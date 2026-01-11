@@ -87,7 +87,7 @@ func (r *MongoRepositoryImpl) Create(ctx context.Context, entity *Model) (*Model
 	return toDomainModelFromMongo(mm), nil
 }
 
-func (r *MongoRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, error) {
+func (r *MongoRepositoryImpl) FindByID(ctx context.Context, id string, orgID string) (*Model, error) {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, err
@@ -118,7 +118,7 @@ func (r *MongoRepositoryImpl) FindByName(ctx context.Context, name string) (*Mod
 	return toDomainModelFromMongo(&mm), nil
 }
 
-func (r *MongoRepositoryImpl) FindAll(ctx context.Context, page int, limit int, q string) ([]*Model, error) {
+func (r *MongoRepositoryImpl) FindAll(ctx context.Context, page int, limit int, q string, orgID string) ([]*Model, error) {
 	var models []*Model
 
 	skip := int64(page * limit)
