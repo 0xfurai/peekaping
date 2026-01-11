@@ -1,0 +1,71 @@
+---
+id: add-member-to-organization
+title: "Add member to organization"
+description: "Add member to organization"
+sidebar_label: "Add member to organization"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVktv2zgQ/ivCnBqAXrfF9qLTKtse3GCRIEm7CxjGYiyNbdaSyJKUE1fgfy+GlOR3C+SWk0hqXt/MN0O2oNFgRY6MhXTaQkE2N1I7qWpI4dYssZY/kLfJ5CMIkHys0a1AQI0VQQqyAAGGvjfSUAGpMw0JsPmKKoS0BbfVLGWdkfUSvJ9FYbLuWhVblshV7ah2vEStS5kHf+NvlmNo90xpozQZJ8nyjiqUZVg8Y6VLdtJYMn912z9yVYE4di/AKBZtAcvydhEwU91UkE4Bi0rWIKCiak4GZsfKAp5HLDvaoGHsnDG4VyVlnSKv/+mUGedlw7uQuzPv93M47cB10e4iUfNvlDvwLH5Yqug3KcihLO1JRYJ5q1VtY/Lev33Ln6Ny34B4aTUKdHzqGaW1uKRztT/EGFR28udQegF/nov0GovkPrLo5SFfDlSAdega+3sMvY1B4yKKd6covtTYuJUy8gcVrwPGh3PFmNSOTI1l8kBmQyb5ZIwyrwEPG6S8MdJtwyD4/OSyxq0gnc68aCHT8oa2wwmbwGVo+v25GGwfJiQriiT2deJUovaEA93dShU8RVUgbximKYz3xey4lYUfRxvczDZkNo7oxpQsj1qON++Aw+pBPHBGYxL3Yz+uV3Y3Sda0TZh8VLuuLskbvf4/0YYW8jlZKFOhu+oH/oqwILMb+f+NsrvJ6Ia2uwGLwSHXaMjisd/P/z4mTq2pPvF8TWhCsvjnb3xnXcv0+Tzy7wUwwe53V8ynftYOV8a5eyJeC8M4ZucL1d9OmLs425x0QeyrXMoku5uAAK5LxMdaXNQKA7/7eH9FhoMEDaR29OzGukRZs8lQ77bjyRQOeAIC0nD/9lSZCVgxr9IptO0cLX0xpfd8/L0hwzSfCdigkThnIHzjS8vrAtIFlpZOYhq6GN7cdx12lZw+DM6G3temZqJssGx4BwLWtI0PBz/zoq8wBxN//B1djh5Zfad4MkS4SaNGluek3S9lZ3utd3f78AgC5t0DpFIF6xh8YiLgUwxS6ZjitI1nLZRYL5swmiDaZLZhx/UdD9ehL7oFozqbhmMeRyDr0EMXVNo2stz7QT7+uqgxNE+Xcc6D9/4nu2pq2w==
+sidebar_class_name: "post api-method"
+info_path: api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Add member to organization"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/organizations/{id}/members"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Add member to organization
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Organization ID","in":"path","name":"id","required":true,"schema":{"type":"string"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"properties":{"email":{"example":"user@example.com","type":"string"},"role":{"allOf":[{"enum":["admin","member"],"type":"string","x-enum-varnames":["RoleAdmin","RoleMember"]}],"enum":["admin","member"],"example":"member"}},"required":["email","role"],"type":"object"}}},"description":"Member details","required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"401":{"description":"Unauthorized","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

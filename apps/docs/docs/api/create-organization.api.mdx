@@ -1,0 +1,71 @@
+---
+id: create-organization
+title: "Create organization"
+description: "Create organization"
+sidebar_label: "Create organization"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVU1v2zAM/SsGTxvgIu0+Lr6lQw9pNzToxzYgCArGZhM1tqTKclvP8H8fKNmu6zgr0AEDdrIskY/k45NYgaH7gnJ7rJISogpiJS1Jy0vUOhUxWqHk5C5XkvfyeEMZ8kobpclYQTn/ScyIv/SEmU4JIvhWBudmjVL8cggQQibkV5Jru4HoYwi21GyWWyPkGuo6dJkIQwlEC4+37KzU6o5iCzWbJZTHRmgHGkE/RtCY9aGsKchh51rJ3Cf74fCIPy+BvhhCSwmEb6UgQTuyG3vYG3R4g6JDEMnodkvnzkGhk/1w9Q5fIWSU57geAxsw7tJ/th/jvg7h0+HhLnXHmAQXXkZvp29/oiHkFm2Rv15Di9F57K1iRADXEgu7UUb8+hsV/MsyPo81YyYtGYlpcEnmgUxwYowy/0M9DEhxYYQtIVpUcPpopwU/FotlHVYw1eKMym6HIXCdM3z/CXDYYxc7UIPHiOxGJRCBVk61GhkYJuoFGKfELOYuo8KkbIJaTB6OgFNoE75k9jxh/TyHvZnOZ8GWyoCFRtI2PQje6e1NoA3diqfgVpkM7XsIQbDHhjAhbp9/EeDnwXQ+OzijEjoK0QXkfnSMDeOe/rgKrNqS3Il8TGjINIevxJ4216OlcBC/DoHFdPE8T07aYdDOh52hwC+gvFXt4MGY9cnPmLBuiHwXaxFM5zMIgbvgq2Ev7lqGsgc93uYXPHQ6tfRkJzpF4TJwba0aBSxADeW0YYVEC6iqFeZ0bdK65u37ggwrdRnCAxqBK86YtdoSx5LZUsm5+bt3cMXh2TwtPHODe8g69x7TOCZt/2i77Il4fn55BSGsmiGeqYR9DD7yLMRHJi0EpX1JUeX3KkhRrgt3u8FjchOxkdBze7dObs2Cq2qPZNnLcCgPX8jWSXOPS1V58dR1Z++P9np0mvTW3MBlXde/AVfuBwk=
+sidebar_class_name: "post api-method"
+info_path: api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Create organization"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/organizations"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Create organization
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"properties":{"name":{"example":"My Organization","minLength":3,"type":"string"}},"required":["name"],"type":"object"}}},"description":"Organization object","required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"201":{"description":"Created","content":{"application/json":{"schema":{"properties":{"data":{"properties":{"created_at":{"type":"string"},"id":{"type":"string"},"name":{"type":"string"},"updated_at":{"type":"string"}},"type":"object"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"401":{"description":"Unauthorized","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

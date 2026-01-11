@@ -31,6 +31,7 @@ import (
 	"vigi/internal/modules/monitor_tls_info"
 	"vigi/internal/modules/notification_channel"
 	"vigi/internal/modules/notification_sent_history"
+	"vigi/internal/modules/organization"
 	"vigi/internal/modules/proxy"
 	"vigi/internal/modules/queue"
 	"vigi/internal/modules/setting"
@@ -122,6 +123,7 @@ func main() {
 	badge.RegisterDependencies(container, internalCfg)
 	queue.RegisterDependencies(container, internalCfg)
 	api_key.RegisterDependencies(container, internalCfg)
+	organization.RegisterDependencies(container, internalCfg)
 	middleware.RegisterDependencies(container)
 
 	// Start the event healthcheck listener

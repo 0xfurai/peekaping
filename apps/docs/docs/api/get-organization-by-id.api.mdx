@@ -1,0 +1,71 @@
+---
+id: get-organization-by-id
+title: "Get organization by ID"
+description: "Get organization by ID"
+sidebar_label: "Get organization by ID"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVU1P20AQ/SvWnEBalFDRi2+pSlFAalGBtlIUoY09SZY4u8vuOMVY+9+rsR2TxI6QeuNke+frzczb5xKsdHKNhM5DPCkhRZ84ZUkZDTH8cAup1avkz2j8FQQoPraSliBAyzVCDCoFAQ6fc+UwhZhcjgJ8ssS1hLgEKix7eXJKLyCEKTt7a7RHz/ZPwyE/DgrfgIDEaEJNbJXWZiqpcAyePLuUOyWsMxYdqTphKqnnNHEoCdNHST2gBDfRd1y32GPIbXo8XRDbEzN7woQ4YI3ey0VfsrA7vUkN/81/2skVOOJieN6d2oOWOS2NU6+Y/v/8jiMV4ElS7t9vYpujjTjaxkW3je+Gom8m1x+kh899BB5rQqdlFt2h26CLLp0z7iP0wwkxyZ2iohKE6780ymkJ8WQaRAkjq26waE84hVywdOxpRZV7fyBXSJHZlZNZUSvKGmlpUohhgQSi1pYYBru+flCqNDDwapi1UuUuYz9p1WBzDoxki/uOh1jPbRfu4YpGt+NohUXEdwY1NauITuzqMbIO5+olmhu3lnS61b0lyhTdm/L9ORvdjs9usIB2krIqyGtpB3dY9/r3fURmhbpT+QtKh64xvlN71Nz0KrRbnyVNz02lfEaTTJhyrEuKMvb7pRYqGt2OQQBPtEbGsK3xtJYVGZtKRze311bLPsIXGthMKl3pJG+pbLY6gb2tgoBYpUyVpfHE5rKcSY8PLguBj59zdMzCqYCNdErOGDr/pJTn9xTiucw8dpC0lwxOfjYX4DTq/st6AW/nqHmpG5nl/AUCVljU/7owDWK7DQZTG0ZJgpZ2Qjq3mxnacv3q8h4EyIYfb7tbVVxqXjh7L5zD3dcQVhXvjoSUZc2MEFr/2nQ0oiVc0zl3EEL4By5FzaE=
+sidebar_class_name: "get api-method"
+info_path: api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get organization by ID"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/organizations/{id}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Get organization by ID
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Organization ID","in":"path","name":"id","required":true,"schema":{"type":"string"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{"properties":{"created_at":{"type":"string"},"id":{"type":"string"},"name":{"type":"string"},"updated_at":{"type":"string"}},"type":"object"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"401":{"description":"Unauthorized","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"404":{"description":"Not Found","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

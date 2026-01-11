@@ -1,0 +1,63 @@
+---
+id: list-user-organizations
+title: "List user organizations"
+description: "List user organizations"
+sidebar_label: "List user organizations"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVF1r2zAU/SvmPm3gkHZsL37LoIy0Gy1ruw1CCDf2baLGltQrOatr/N/HlR2n+Vphb3uyrPt1dM6RamBy1mhHDpIaPpydyScjl7KyXhkNCVxfQQyp0Z60lyham6sUJTp8dJJSg0uXVKCsLBtL7FXbMEMfdpWnwh2GUyb0lM0wNPaVJUjAeVZ6AU0Mhheo1UsYNVPZ0Rw2OUmAdFlAMgHMCqUhhoKKOTFM472SGJ4HkjtYI2ssBMcEvpucRl2hrL91xU0Mpc3+BrF0xMehNf1kM3+k1MN2A5mxkv+CnMMFHa9meioVUyYAA4/b/OlB70YqPp6dH8p3r7H0S8PqhbJ/F/I00hicR1+6tw+x6dFXnDjGp2MuHGtPrDGPbonXxNEFs+H/4TzSkNKSla8gmdRw+duPSr+EZDJt4hpGVl1R1e9IC1wEU16/cn/ovUvIV+V8JPaLzE6iuMQvTQYJLMhDDBalNwwld7if6wKbLiArOZc8tGq4PgeBsgF+Kyy2xL3Gu6/R6GYcraiKxHCkfadF9M6uZpFlelDP0YPhAv17iEFJxZIwI5FRriIk8GswuhkPrqiC7WUJA0WXnrn9uZc/7yJvVqQPJn8mZOIu+MbsUXdNQunh/EbKHkx4toz2mIrn5E4rLy8Q/FALFY1uxhCDMNoiE9jWOF9gcGM36bR0O+fq/efp2Q9tjkqHJ0dkqjtZJ+EFgt23MrhlaZyXeF3P0dE9500j208lsRhxGsMaWeFcwIsVN3yIE1ZUCSFpSlYctMa8bKnYu2Dikd5tXy7uIAbsFNqytwpqdgvpvgnp6lXvffZbCKug/ImSum61aZo+vw2drOglb7OFz2nTNH8ABIRpjQ==
+sidebar_class_name: "get api-method"
+info_path: api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"List user organizations"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/user/organizations"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+List user organizations
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{"items":{"properties":{"created_at":{"type":"string"},"organization_id":{"type":"string"},"role":{"enum":["admin","member"],"type":"string","x-enum-varnames":["RoleAdmin","RoleMember"]},"updated_at":{"type":"string"},"user_id":{"type":"string"}},"type":"object"},"type":"array"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"401":{"description":"Unauthorized","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

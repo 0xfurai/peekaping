@@ -12,6 +12,7 @@ import (
 	"vigi/internal/modules/maintenance"
 	"vigi/internal/modules/monitor"
 	"vigi/internal/modules/notification_channel"
+	"vigi/internal/modules/organization"
 	"vigi/internal/modules/proxy"
 	"vigi/internal/modules/queue"
 	"vigi/internal/modules/setting"
@@ -80,6 +81,8 @@ func ProvideServer(
 	badgeController *badge.Controller,
 	apiKeyRoute *api_key.Route,
 	apiKeyController *api_key.Controller,
+	organizationRoute *organization.OrganizationRoute,
+	organizationController *organization.OrganizationController,
 ) *Server {
 	// Initialize server based on mode
 	var server *gin.Engine
@@ -122,6 +125,7 @@ func ProvideServer(
 	tagRoute.ConnectRoute(router, tagController)
 	badgeRoute.ConnectRoute(router, badgeController)
 	apiKeyRoute.ConnectRoute(router, apiKeyController)
+	organizationRoute.ConnectRoute(router)
 
 	// Register push endpoint
 	healthcheck.RegisterPushEndpoint(router, monitorService, heartbeatService, queueService, logger)
