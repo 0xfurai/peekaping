@@ -120,14 +120,14 @@ func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *M
 
 	_, err := r.db.NewUpdate().
 		Model(sm).
-		Where("id = ?", id).
+		Where("id = ? AND org_id = ?", id, entity.OrgID).
 		ExcludeColumn("id", "created_at").
 		Exec(ctx)
 	return err
 }
 
 func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity *UpdateModel) error {
-	query := r.db.NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id)
+	query := r.db.NewUpdate().Model((*sqlModel)(nil)).Where("id = ? AND org_id = ?", id, entity.OrgID)
 
 	hasUpdates := false
 

@@ -86,6 +86,7 @@ func (s *ServiceImpl) UpdateFull(ctx context.Context, id string, entity *CreateU
 
 	updateModel := &Model{
 		ID:          id,
+		OrgID:       orgID,
 		Name:        entity.Name,
 		Color:       entity.Color,
 		Description: entity.Description,
@@ -113,6 +114,7 @@ func (s *ServiceImpl) UpdatePartial(ctx context.Context, id string, entity *Part
 
 	updateModel := &UpdateModel{
 		ID:          &id,
+		OrgID:       orgID,
 		Name:        entity.Name,
 		Color:       entity.Color,
 		Description: entity.Description,

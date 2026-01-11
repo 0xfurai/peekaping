@@ -164,7 +164,7 @@ func (r *MongoRepositoryImpl) UpdateFull(ctx context.Context, id string, entity 
 		return err
 	}
 
-	filter := bson.M{"_id": objectID}
+	filter := bson.M{"_id": objectID, "org_id": entity.OrgID}
 	mm := toMongoModel(entity)
 	mm.UpdatedAt = time.Now().UTC()
 
@@ -187,7 +187,7 @@ func (r *MongoRepositoryImpl) UpdatePartial(ctx context.Context, id string, enti
 		return err
 	}
 
-	filter := bson.M{"_id": objectID}
+	filter := bson.M{"_id": objectID, "org_id": entity.OrgID}
 	update := bson.M{"$set": bson.M{"updated_at": time.Now().UTC()}}
 
 	if entity.Name != nil {
