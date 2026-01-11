@@ -1,0 +1,70 @@
+---
+id: get-monitor-by-id
+title: "Get monitor by ID"
+description: "Get monitor by ID"
+sidebar_label: "Get monitor by ID"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVm2P2kYQ/ivWfEokn7A5jnL+RtQ0Iqe0p+T6oiKEBu8YNmd793bHBBf5v1drGw7KXtu0X9pP4J23Z56Zndk9aDRYEJOxkMz3IMimRmqWqoQEPqhSsjLB7FsIQboTjbyBEEosCBKQAkIw9FRJQwISNhWFYNMNFQjJHrjWTsuykeUammbhlK1WpSXr5MMocj/nMX+4gxBSVTKV7KSodS5TdNLBZ+tU9ichtFGaDMvOoUD2nGLKcktdpAyrnA9IaYeFzunw2cNdKZUTltC0MDK59qQSQmoImcQSW5BHTzCMhqOraHwVxQ/xMImiJIp+hfDSXopzu3GUfjNcDbPbVUyT1TiLswmNVjF6bUsms8X8zMM4Omo6+ZqMUy1wtzTEpqfiqH3tU+6qeorqQx30PeDDUSqWWV+bpRTnEeYwnlxHKEaTm+txnMW36c3tRIzFbQSLECRTYb3E9gdoDNbuWxu1q5cXdL3k2wNTV3azZPVIpTegIUulWHpJ9dLk+Kz9+rG3CJaRq3N2Yp8e4/praAxfEsVfxzDLglTFfyOR7uS0Dhtm7eO80uJfXI9nkGr1mVJuO5msxTX55srpDJp3Q+BZf3Hhq3EWI9/seYMi+EhPFVn+50PoZaCnnfDnORx8HC1ezGJ0mcX3ioPvVFWK/0cON75KzNztKjEPPpHZkgneGtPOoP98Ps4hpZWRXLcL9Q2hITOteAPJfOFWIOPa7drDcm39nCf/jjgo+tW7qrvtWxBvlIAE1uR6s93DCQx6NTvYS9E4aC1d3S6vTO5UUMvBNgYX+oDsk6OpY2aq5R3VHb4/FmF6PwseqQ6w4g2V3JMdvNKPy0AbyuQuyJQpkF8fngcbQkHm+YHwy9X0fnZ1R/XzHcc2oCP+/Rf2x33/80PQzuuLyB2bvfAvYjvfysjfWtPL+O0ezZSL7poKU9dU7TTkdlL9JNcymN7PIATHaIesXSfKcoFtu/WRfPU6y+jYWkw7HugcZfu8aAu072s5h0MtIYRECtcWG2XZSfb7FVr60eRN446fKjKuuxYhbNFIXLWLYg9CWvdfQJJhbukCxPHywKuPfWO/Ds7eeF6YB+JKV8Ut5pX7ghAeqe7egM2iCQ/0OxydYJqmpPnE5OLCupY89vW7tw/QNL8DUyaKgA==
+sidebar_class_name: "get api-method"
+info_path: docs/api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get monitor by ID"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/monitors/{id}"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+Get monitor by ID
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Monitor ID","in":"path","name":"id","required":true,"schema":{"type":"string"}}]}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{"properties":{"active":{"default":true,"example":true,"type":"boolean"},"config":{"type":"string"},"created_at":{"example":"2024-06-01T12:00:00Z","type":"string"},"id":{"example":"60c72b2f9b1e8b6f1f8e4b1a","type":"string"},"interval":{"example":60,"type":"integer"},"max_retries":{"example":3,"type":"integer"},"name":{"example":"My Monitor","type":"string"},"notification_ids":{"example":["6830ad485361f19c598d6d90"],"items":{"type":"string"},"type":"array"},"proxy_id":{"example":"6830ad485361f19c598d6d90","type":"string"},"push_token":{"type":"string"},"resend_interval":{"example":3,"type":"integer"},"retry_interval":{"example":10,"type":"integer"},"status":{"example":1,"type":"integer"},"tag_ids":{"example":["6830ad485361f19c598d6d90","6830ad485361f19c598d6d91"],"items":{"type":"string"},"type":"array"},"timeout":{"example":10,"type":"integer"},"type":{"example":"http","type":"string"},"updated_at":{"example":"2024-06-01T12:00:00Z","type":"string"}},"type":"object"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"404":{"description":"Not Found","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+
+</StatusCodes>
+
+

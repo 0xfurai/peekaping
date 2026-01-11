@@ -1,0 +1,70 @@
+---
+id: delete-monitor
+title: "Delete monitor"
+description: "Delete monitor"
+sidebar_label: "Delete monitor"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVdtO20AQ/ZXVPIG0KLSiL34LSioFekFAL1IUVYM9iZfYu8vuOCW1/O/V2HEgTRBS33iyvXM5Z87MrGvwGLAkphAhmdaQUUyD8WychQQ+O2vYBTUZgQYjJx45Bw0WS4IETAYaAj1UJlAGCYeKNMQ0pxIhqYHXXrwiB2MX0DQzcY7e2UhR7O9PT+Wxi/n1EjSkzjJZFit6X5gUxTq4j+JSP4PwwXkKbLqEGbKcNhpKihEXdIjFc8bTLuTJf6Z7f3d3TylD00jE2SGm55ipa3qoKPL/U36ZqIbIyFV8vYY+xzbixSrO9qv44lh9dJXN3kYNHw51YmKZgsVC3VBYUVDjEFx4C/VIQkqrYHjdrt85YaAwrDiHZDqThWFcyGb2q9jm2S1+RAUxqbJzaGeZc5dBAllrAd1tbQKDjU8c1CZrhForV7f5VSjEBb0ZrN6BQPfMbkSmTpmhN5e07vj924Th1UQtaa2w4pwsb8RWR375S/lAc/Oo5i6UyMf9ZZITZhSerpOfJ8OrycklrWGrFbaAIvzFbz6Me/HjVrFbkt1D7tTcGF/BltwumD9t6D5+I2FzJ+gyVJhyd8+w4UL8vpuFUcOrCWgQRTtmQtu7yCW247ZB2uvXTjnbuWJ65IEv0FhJ03an3jRyCn0jQUNiMpmJ3EUWS13fYaRvoWgaOX6oKMhozTSsMBi8E7Zyz5so7xkkcywi7ZHYbg4cXW+m+ljt/A4O0uxVs9LCFRaVfIGGJa2730Uza3SvvfDoDMM0Jc/PQva2VeZxO9ej8afx7Ria5i/rMU8B
+sidebar_class_name: "delete api-method"
+info_path: docs/api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Delete monitor"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"delete"}
+  path={"/monitors/{id}"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+Delete monitor
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Monitor ID","in":"path","name":"id","required":true,"schema":{"type":"string"}}]}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"404":{"description":"Not Found","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+
+</StatusCodes>
+
+

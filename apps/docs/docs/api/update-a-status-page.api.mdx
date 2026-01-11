@@ -1,0 +1,70 @@
+---
+id: update-a-status-page
+title: "Update a status page"
+description: "Update a status page"
+sidebar_label: "Update a status page"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVV19v2zYQ/yrCPbWAgmRD9+I3p+uwNMAWJOk2wDCEs3SWWEskS1JxPEHffThStmRbStB2L32SdHfk/f/dqQGNBityZCzMFg1kZFMjtBNKwgweHLraRneYU3TzK8QgmKrRFRCDxIpgBiKDGAx9qYWhDGbO1BSDTQuqEGYNuJ1mKeuMkDm07TIIk3XXKtuxRKqkI+n4FbUuRYqs/fKzZROawVXaKE3GCbJetnYqMbQ2ZItESEfmCcuBRiblZKCNIa2tU1WSWjtiUXzs8xhfVSikPyscVeOXdAQ0Bnf8vVbKkUkcPbtR+VypvKQEJZY7J1KbOMwTkY3KinTCskpJ4ZRJRPaV1mm0dqvMuDpdr0phCxpyV0qVhJLZltCkRUIyF5ISITN6nhAs1DZJOWNrTiol9KyF2b0grNWWDGXJ6iUhh7mdYJd1Pu5+QVyrYxzhyjFOHzO1+kypg7Y9rZSj7uikTjuhZYLVStpQtD9fXfHj+J4/byH+1i7I0H1nbxhCR1mC42X6Wm+8VuaTpTtR6q/V3v+X4RhqnU27fl4AMVRkLeYT5dInfhGy0ssvR4qpjeHdWDFcYxbdB4D89qqYNjQG66v2dR/2dxxOTHrx7tyLP5SLflO1zH4MH34Zy8QN943EMnog80Qm+mCMMj+CPx6j09oIt/Mz/ePWzWtXwGyxbOMG5lrc0u5A4Ss8oi6GgOavPo7HJ98uEUZBd6SDJRW5QmVhLUh5L/DrwQwug9gFi9nLRmQtm+1DGVaN2pQshlpcPv0EbMfe6gcOYYja0NjTBM3vbqIN7SKsXUHSdYmI3uhNEmlDa/EcrZWp0L3dby4FYUam313+uZjf3Vzc0g76EekVclIOYTvV+/Hvx8ipDckzzdeEhkzHfEU3362M+NcfPdffxsAVdd/vSh+esdIByibw/ep41dlX0Wkie/J+sVnsacsTRO9lJ/eVXiRgff99tJ0MVfTbRy88AP5uhRxbMzrW1GIxYA9XiQE5lHpH8MOkN6GbIQNCGB3DqSXXar+zYsoY0E8Y+EvkIprf3UAMXOQh2H6oKesq9OjQJX+il8anLafiUpco/Aj0bdN0XbaAYZdBDDORcYQLZR1zm2aFlj6Zsm2Z/KUmDtNiGcMTGoErtpu3fmH5PYPZGktLZ4YcIA/e3Hdw9DY6+zkYNXdf1pJ77AnLmr8ghg3tws9Du2zjfXOwLYHxPmi8eOTj/cEzwGVACyfmaUravSi7HKDV3fzx/e8Qw6r7C6lUxocMbnmJw22wUvkQeCTytAZKlHntcRzCpdyp2OFE38MbjyndC7s1GodTDAiebDz+TBxpmoAQbXuQD6zJEwfg6ULOgWjb9j99n9f/
+sidebar_class_name: "patch api-method"
+info_path: docs/api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Update a status page"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"patch"}
+  path={"/status-pages/{id}"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+Update a status page
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Status Page ID","in":"path","name":"id","required":true,"schema":{"type":"string"}}]}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"properties":{"auto_refresh_interval":{"type":"integer"},"custom_css":{"type":"string"},"description":{"type":"string"},"domains":{"items":{"type":"string"},"type":"array"},"footer_text":{"type":"string"},"google_analytics_tag_id":{"type":"string"},"icon":{"type":"string"},"monitor_ids":{"items":{"type":"string"},"type":"array"},"password":{"type":"string"},"published":{"type":"boolean"},"search_engine_index":{"type":"boolean"},"show_certificate_expiry":{"type":"boolean"},"show_powered_by":{"type":"boolean"},"show_tags":{"type":"boolean"},"slug":{"type":"string"},"theme":{"type":"string"},"title":{"type":"string"}},"type":"object"}}},"description":"Status Page object","required":true}}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{"properties":{"auto_refresh_interval":{"type":"integer"},"created_at":{"type":"string"},"description":{"type":"string"},"footer_text":{"type":"string"},"icon":{"type":"string"},"id":{"type":"string"},"published":{"type":"boolean"},"slug":{"type":"string"},"theme":{"type":"string"},"title":{"type":"string"},"updated_at":{"type":"string"}},"type":"object"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"404":{"description":"Not Found","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+
+</StatusCodes>
+
+

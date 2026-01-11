@@ -1,0 +1,70 @@
+---
+id: get-notification-channels
+title: "Get notification channels"
+description: "Get notification channels"
+sidebar_label: "Get notification channels"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVllP20AQ/ivWPLWSEVDRl7ylEkUBqY0KPaQoQhN7kiyxd5fdcUpq+b9X4yuHHWh54ynZOb5vrh1vDhYdpsTkPAwmOcTkI6csK6NhALeELloGjxm5DYSgRNYcNKYkRwjBR0tKEQY58MaK0LNTegFFER4ijnFBgc7SGbkjgBYX1IepNNOi9IppjlnCMDjvIRgxpT6w5IIaqI8jUanifyU5K4ppCI68NdqTF+sPZ2fys8/89QZCiIxm0ixatDZREYr29MGLSb5DaJ2x5FhVgDFyKVUSfVeNEas17cQ5MyYh1FCUjHO16Cl+CJEjZIrvkXvVKu4X+/s2+T7CqoY9jpWgR5HZ+HgcrSOY2QNFvEUCdA43ck7Je+lmr7ejx0w5imEwqeq4tZ92sAvxuOhr3yeMg2/0mJHn1/fxeKAheEbO/Ms5NBitx9EsLrpZfDEcfDaZjt9GDh/7OjHSTE5jEtySW5MLLp0z7i3kI4AUZU7xplym1795mPESBpOpLKqhVTe0aSUCgQtZu9I1Na/zCaIlak1JybFfmCviQPeaysjz0sQwgAXJ/FoUFjjdNT/ZMfdlaaudn7lETNGq0/U5SFxNFrdS0qqKu8EfNmw4HgUr2gSY8ZI0N9G9s6v7wDqaq6dgblyK/L7Zx0vCuFyz9UL+dTIcj05uSHZ0c/lLQmlSW8ZD3uufdwGbFekO8ydCR65WvsAt2MapP6Vrl182op4bYZcBxEgGUHaU4kTsfqiFCobjEYQgFa0ik7Ct8ZxiOZo103P928usHUemJz61Capy85aNyuveTqC/t9MQlsazGOT5DD19d0lRiLj6CJZfeeVxlshozzHx1GFvb9rhC6A3rBVt6ofAGpOMqvT/h2T/UfAMR/1JfyVN52nwDFPzQthSTeXglHBVF7oZJClo5TSMIrK7Xp01JSjtTb26vIMQsB7t7ditymtQ/xH0RqU3O9iHY1uFsCqvzBGXPK+Guiha+0p11KO9K5W1VGhaFMVf6U99gA==
+sidebar_class_name: "get api-method"
+info_path: docs/api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get notification channels"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/notification-channels"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+Get notification channels
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Search query","in":"query","name":"q","schema":{"type":"string"}},{"description":"Page number","in":"query","name":"page","schema":{"type":"integer","default":1}},{"description":"Items per page","in":"query","name":"limit","schema":{"type":"integer","default":10}}]}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{"items":{"properties":{"active":{"type":"boolean"},"config":{"type":"string"},"created_at":{"type":"string"},"id":{"type":"string"},"is_default":{"type":"boolean"},"name":{"type":"string"},"type":{"type":"string"},"updated_at":{"type":"string"}},"type":"object"},"type":"array"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"404":{"description":"Not Found","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+
+</StatusCodes>
+
+

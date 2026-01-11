@@ -1,0 +1,70 @@
+---
+id: get-setting-by-key
+title: "Get setting by key"
+description: "Get setting by key"
+sidebar_label: "Get setting by key"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVUtr20AQ/itiTgkoOC3pRTcX0uAE2tCkDzAirKWxtbG8u9kdpVHF/vcyWkm2Y7mB3nqSmPlm5pvnNmCEFRsktA6SeQM5usxKQ1IrSOAOiaRaRTdYQwySRUZQATEosUFIYN0qLD5V0mIOCdkKY3BZgRsBSQNUG4Y5slKtwPuUwc5o5dCx/v35OX/2o365gRgyrQgVsVYYU8pMsHby6BjS7IQwVhu0JIPDXNCINLMoCPMHQSOkYpD5qJiTG5MHwYiiMvnfwjyLshozHFyCXjxiRozdoHNidQS9rfc8JLzFpwe+PFtcnF8c1vmzpuiTrlT+7+U+TjMGR4Iq93YGvY/B4kgOH8ZmZaYIrRJldIf2GW10aa22/0M+7BCzykqq28W7/kXTigpI5qmPG5gaeYP1IGEXYsUr2u9k63a/FldIkes2dlFHYTc3SIXOIYEVEsRhfROYdDg3WWM9adZYe+bb1jAcgsqWjBNGTp7fARPo6d5x7UK5dlm+7sz0dsYUIlFRgYq6DkQnZv0QGYtL+RIttd0IOu1PS4EiR7s9Lj/Pprezs3B7ugKKNiB3Y6jX67jXP+4j0mtUB5E/orBoO+Ubsdm3tvJ3a3oYn4+GWur2tmhFIuNJ4z2WVDLuu1zJaHo7gxi4ooEZ0zba0Ua0M9hFGu3aXkrDwBG+0MSUQqr22nCHmq6jc+g7CnF3lRP+pDEU2hEDmmYhHH6zpfcsfqrQ8uilfJisFAsmzi+AdPyfQ7IUpcMDLsNmwcnXbupPo/2HYpRuX0HFiO4UQkc2PCQ+9XHfCGYSNNMsQ0M7Ngf7zMM5jPnV5T3EILrR2LYt1KT7Ye+jfF63fYdcfMSkacJQeD/gg+qoxTBrAc3lSb33fwBYu5H7
+sidebar_class_name: "get api-method"
+info_path: docs/api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get setting by key"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/settings/key/{key}"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+Get setting by key
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Setting Key","in":"path","name":"key","required":true,"schema":{"type":"string"}}]}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{"properties":{"created_at":{"type":"string"},"id":{"type":"string"},"key":{"type":"string"},"type":{"type":"string"},"updated_at":{"type":"string"},"value":{"type":"string"}},"type":"object"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"404":{"description":"Not Found","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+
+</StatusCodes>
+
+

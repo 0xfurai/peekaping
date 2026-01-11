@@ -1,0 +1,70 @@
+---
+id: get-certificate-expiry-badge
+title: "Get certificate expiry badge"
+description: "Get certificate expiry badge"
+sidebar_label: "Get certificate expiry badge"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVktv00AQ/iurOVHhKgWVi28pLVVagaq2FKQqQht74iyxd7e74yQm8n9HY8dO0riPIA5wirLz+L55ewlWOpkhofMQ3i8hRh85ZUkZDSF8NlqRcWJwCgEofrGSJhCAlhlCCFktH8QQgMOHXDmMISSXYwA+mmAmIVwCFZaVPTmlEyjL4DHMiYwTFJ6KFBuchxxdsQZqZHs4/Zh7MplI5QjTJ7w2sj28nsrCixGOjUOBC6tcIcgIPzFzMZdOs1U3FkvZuAtOacIE3Z540ovYzPUTeCx6GW/IdfPWaI+eFd4fHfHPNoebu3Mx4hJBAJHRhJpYSWUywZ6fJW8XWcoPT6exLAM47nJ9ImNxjQ85enq1c+uMRUeqZpyh9zLBDtQAPEnKfWddN9r1vvXRWgyDxsKMfmJEbQjHuyF8MSQ+mVzH/0EAH7pqMNCETstU3KCboRNnzhn3zwdTBkAy4aVVr49KbTuwcyQRMbexiiS189O0coY0MTGEkCA3X7XZQuhV4t6yXW1lj30c4sIyoypF9arMXcr60qre7B3wKHmMcqeouOHs1AnpW3WJRT9n348T378aiCkWQuY0QU1MUhkt3tjpD2EdjtVCjI3LJB00Mz5BGaNbD/n3w/7V4PASee5XKZIVIOf7Yk7duBffbgWZKeod5BOUDt1K+AI2+zZO/apMd/FLNhsbRudGkhE3EhdNUcp6dypRon81gAA4ozUzpm2Np0xqNlwhvVDHreDa5iJcUM+mUml2WtVquarxPTSm4eYBa8s8DGBiPLHicjmSHr+6tCz5ud6x1Z1UXo5SbtixTD3usGiH59Fx62Q3xWLjxs1kmmOdjH1wHt27Z4AalT8EetUJfAZ+4xL+fQbro/gMg43buGYw5D9OMYU9K/zmerW9DsTWB1Mng2ZMdLGJ3jBb92M5LINm5phOLe9HEVrasNzezBxEu9bOz26hLH8D2DRgNg==
+sidebar_class_name: "get api-method"
+info_path: docs/api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get certificate expiry badge"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/badge/{monitorId}/cert-exp"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+Get certificate expiry badge
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Monitor ID","in":"path","name":"monitorId","required":true,"schema":{"type":"string"}},{"description":"Badge style","in":"query","name":"style","schema":{"type":"string"}},{"description":"Custom label","in":"query","name":"label","schema":{"type":"string"}},{"description":"Days before expiry to show warning","in":"query","name":"warnDays","schema":{"type":"integer"}},{"description":"Days before expiry to show as down","in":"query","name":"downDays","schema":{"type":"integer"}}]}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"SVG badge","content":{"image/svg+xml":{"schema":{"type":"string"}}}},"400":{"description":"Bad Request","content":{"image/svg+xml":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"404":{"description":"Not Found","content":{"image/svg+xml":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"image/svg+xml":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+
+</StatusCodes>
+
+

@@ -1,0 +1,70 @@
+---
+id: get-proxies
+title: "Get proxies"
+description: "Get proxies"
+sidebar_label: "Get proxies"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVUtP20AQ/ivWnlrJCKjoJbegUhSQ2qjQhxRF1cSeJEts7zI7BlLL/70ar+087EDLjVPieX3z2m8KZYEgRUZyajApVIwuIm1Zm0wN1A0CRcvgPkdaq1BpkTUfGaQonypULlpiCmpQKF5bETomnS1UWYb7EcewwCDL0xnSgYAWFtgXU2eMi8orxjnkCavBaQ/AiDF1gUUK6kB9GIlONf8ryElZTkNF6KzJHDqx/nByIj+7yF+vVagikzFmLFqwNtERiPb4zolJsQVoyVgk1j5gDFxJtWTfVUPOy60sZ8YkCJkqQxURAmP8CRh7+h+qpXHcq9Bxr9iCc4+GDigNcU+zREOGTWSSXrfcxpLjsD+R3CH5sfSsTyMxszuMWG0EQARr+U7RORl0rzfhfa4JYzWY+BZv7Ked2KV4nPVN9hzi4Bve5+j49SM+nGioHAPn7uUamhitx8EqzrpVfDEcfDZ5Fr+NGj72TWKUsWxLEtwgPSAFF0SG3kI9EhCjnDSvK569euRh9agnU+GwodXXuG4lEgIWwshqTOZJsp2Ge624RA5srZS15qWJ1UAtUHbUgkRSxxsDVzXMk3xOiSjB6uOHUyVoTW430ijfm+2U9scwHI+CFa4D4SXMuG538M6ufgeWcK6fgrmhFPh9Q8BLhLji1ZqBfx0Nx6OjaxRSbp50BSitb5uzj3v18zZgs8Ksg3yOQEi18gVsiW1I/6lcu/hCjtncCLqsFUSyVsI8mhOx+6EXOhiORypU0lGfmadHxylUC1cj7c5op5Z2rRif+NgmoCs+r0ZT1PObKLuZvmfyiSqKGTj8TklZithftup0awezRJZyDonDDl77RvbPem8iK1zX1/0Bkhx9if8Dsnvpn8Go7/QrYTr3/hmk5uxvoKbyQVqw/FNslkUa6p2GUYR226tDMBKlfX+XF7cq3D/YYPWqWvX6j0RvVNl6K/b+avoUVtWzOOBSFH5xy7K196qDHu178NbSoWlZln8BKJRr9A==
+sidebar_class_name: "get api-method"
+info_path: docs/api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get proxies"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/proxies"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+Get proxies
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Search query","in":"query","name":"q","schema":{"type":"string"}},{"description":"Page number","in":"query","name":"page","schema":{"type":"integer","default":1}},{"description":"Items per page","in":"query","name":"limit","schema":{"type":"integer","default":10}}]}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{"items":{"properties":{"auth":{"type":"boolean"},"createdDate":{"type":"string"},"host":{"type":"string"},"id":{"type":"string"},"password":{"type":"string"},"port":{"type":"integer"},"protocol":{"type":"string"},"updatedAt":{"type":"string"},"username":{"type":"string"}},"type":"object"},"type":"array"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"404":{"description":"Not Found","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+
+</StatusCodes>
+
+

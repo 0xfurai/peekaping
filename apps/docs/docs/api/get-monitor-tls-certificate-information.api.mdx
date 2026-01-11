@@ -1,0 +1,70 @@
+---
+id: get-monitor-tls-certificate-information
+title: "Get monitor TLS certificate information"
+description: "Get monitor TLS certificate information"
+sidebar_label: "Get monitor TLS certificate information"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVdtOGzEQ/RVrnkAyCq3oy74FlaJALwgorRRFldmdZE02thnPpqSr/fdq9hIICaLqG0/ZeG7nzJmxKwiGzAIZKUIyriDDmJINbL2DBL54Z9mTGn0EDVZOguEcNDizQEjAZqCB8L60hBkkTCVqiGmOCwNJBbwK4hWZrJtBXU/EOQbvIkaxvz88lJ/Nmt/OQUPqHaNjsZoQCpsasQ7uorhUT0oE8gGJbZswMyyntYYFxmhmuAvFU8TjNuTRf6J7f397hylDXUvE0S6kxyZTl3hfYuT/h/wyUA2RDZfxdQ59jnXEiyyOtll89aw++dJlb4PDh11KjBwjOVOoK6Qlkjoh8vQW+EhCTEuyvGrW7xgNIQ1LziEZT2Rh2MxkM/tVbPJskj9FVotuUa8/X6lUiEyFKyrrpp4WDetmyDn3GSQwQ5nYZpcTGHTBcVDZrB5wEQV008j2TiipEDcT7GD5DgRUj/lKGtj2bBjsOa5a5M/lGV6M1BxXypSco+NOBrUX5r9UIJzaB9XC3O+vmRxNhvR40fw8GF6MDs5xBesumqagSHL2m3fXPftxrdjP0W1VbvvcGV+pLbk92T99F5/VryVs6qW6jJtJub2B2HIhfjd2ZtXwYgQapKMtMoEdfOSFaQaxq/TvSm7wXI8i4wMPQmGsk/yNbFWn8hh6lUFD0tzbIvREQ+4ji72qbk3E71TUtRzfl0gykxMNS0PW3AoZeSBslO8MkqkpIm5BWa8c7F1267CvNt6RnWD7pjpReGmKUv6Bhjmu2nemntS6l0ZwtIZhmmLgJyFbay7jup7705NrqOu/Go5i0g==
+sidebar_class_name: "get api-method"
+info_path: docs/api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get monitor TLS certificate information"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/monitors/{id}/tls"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+Get monitor TLS certificate information
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Monitor ID","in":"path","name":"id","required":true,"schema":{"type":"string"}}]}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"404":{"description":"Not Found","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+
+</StatusCodes>
+
+

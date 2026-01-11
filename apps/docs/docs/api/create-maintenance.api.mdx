@@ -1,0 +1,70 @@
+---
+id: create-maintenance
+title: "Create maintenance"
+description: "Create maintenance"
+sidebar_label: "Create maintenance"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVlFv2zgM/isGn+4AF02Hu5e8pcMeumG4Yu3dBgRBwNhsosWSPIlO6xn+7wfKduw5TocVB9z2ZIOkSEr8vk+qwNGXgjxf27SEeQWJNUyG5RfzPFMJsrLm8rO3Rmw+2ZFG+cudzcmxIh9iE1YHkj8uc4I5bKzNCA3UMSSuWdt6PDtltuJIsfRr+7DW1vBOIhST9oNQZZi25CS2taBzWIa15BOncmluOnfhsHNqZZQuNMyv4onMZNJ1ikxrVpomc0nEWadkcgfM1imW061raxRbt1apn9pkn2q8R8/o+Du9NTHPuB0ybcvpekrTV2umV7LibNrzSLSX0f3QxOo4IE05SmG+7PvqCq2OC+zmMyUMdT2eMrxHSW/QJBS1UcOs7AoKZXxujW9w+Wp2JZ9v87x2hEwpxC9Fe4r8wxwIJdfIk0f6v1Pkv6dF+kK2/KSgL/L0uQG+lBMjzMegyXvcTvUwYlDAYB8/xZ86hj9ms1P8X2MafWhk/+UcON9omA8XUxo32kOX47jizC7+nNrFjUDJYBbdkTuQi944Z92vsB9JSEnhFJcwX1bw9pEXhbB7uarjCha5ekfl0SIpcOsl/UD/QuopVYt0HxTgwTubwhxyG4ado6SFSz1MJf3IEfrQTuEyicBcXR6uQOp33d7J0TWnNWxyPJjF7U20pzLCgndkuB1A9Fu+X0e5owf1FD1Yp5F/BxEEmMOOMCWZnUGhNHy6WNzeXLyjcD20lAkFZRjH4xrXffvxPmK7J3NS+ZrQkWud36ktua1TXxtpPKlfxyBI+tC/mt48oc4b1ehuALmJOlHvsHKi5cvZyQj70KM0z06UuI/qBbi3fSuws9HrY9kFriaEtk8y1NehtZPV3tar6dAWRLQ39OK4nK3CJfBgu7cmJsLUXnrhH7VV0eL2BmIQSDYHI3MXBGsMHG5HNYn46VuP6Ykv8wxVuI0DxKuWDEvQI17thCvzJVTVBj397bK6FvOXgpwwdhXDAZ3CjfQrnO0wJOzZk5zP60aDLu6luoRnRQOikR4J35sViyShnJ+NXQ3ofPvX3T3EsGlf7dqmssbho7yI8FGOLAYbTiHwNdgqyNBsi6By0OQUPGPLph7p+8C89kd21blMOehwzJRmI/vA0jNLqqrhUV0f4xvX2RVHejbRMr9VXdf/AoGDZdk=
+sidebar_class_name: "post api-method"
+info_path: docs/api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Create maintenance"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/maintenances"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+Create maintenance
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"properties":{"active":{"type":"boolean"},"cron":{"type":"string"},"days_of_month":{"items":{"type":"integer"},"type":"array"},"description":{"type":"string"},"duration":{"minimum":1,"type":"integer"},"end_date_time":{"type":"string"},"end_time":{"type":"string"},"interval_day":{"type":"integer"},"monitor_ids":{"items":{"type":"string"},"type":"array"},"start_date_time":{"type":"string"},"start_time":{"type":"string"},"strategy":{"type":"string"},"timezone":{"type":"string"},"title":{"type":"string"},"weekdays":{"items":{"type":"integer"},"type":"array"}},"required":["strategy","title"],"type":"object"}}},"description":"Maintenance object","required":true}}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"201":{"description":"Created","content":{"application/json":{"schema":{"properties":{"data":{"properties":{"active":{"type":"boolean"},"created_at":{"type":"string"},"cron":{"type":"string"},"days_of_month":{"items":{"type":"integer"},"type":"array"},"description":{"type":"string"},"duration":{"type":"integer"},"end_date_time":{"type":"string"},"end_time":{"type":"string"},"id":{"type":"string"},"interval_day":{"type":"integer"},"start_date_time":{"type":"string"},"start_time":{"type":"string"},"strategy":{"type":"string"},"timezone":{"type":"string"},"title":{"type":"string"},"updated_at":{"type":"string"},"weekdays":{"items":{"type":"integer"},"type":"array"}},"type":"object"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+
+</StatusCodes>
+
+

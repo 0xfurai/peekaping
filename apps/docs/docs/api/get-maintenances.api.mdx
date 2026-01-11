@@ -1,0 +1,70 @@
+---
+id: get-maintenances
+title: "Get maintenances"
+description: "Get maintenances"
+sidebar_label: "Get maintenances"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVktv2zgQ/isCT7uAiqRF9+KbC7SFG3Q32HQfQGAYY2lss5ZIZjhyqwr674vRw1Yk2tnk1pOteXzfcB7kVMoBQY6M5NXsvlIp+oS0Y22Nmqk7BEp20UOBVKpYaZH1HwZylE8VK5/sMAc1qxSXToSeSZutqut4jPhBZ4wUrcvIMwHj9hzuQP0M+FvYYmSKfI10BtfBFkOY2jBuG68UN1BkrGavAwQLxtxHDinqgEIcmc41/1+S67pexorQO2s8erF+c30tP4+Z/7hRsUqsYTQsWnAu0wmI9uqrF5NqQOjIOiTWLWAK3Ei1RD9VQ8L6gIM419ZmCEbVsUoIgTFdAQcKIOqWeaJIofQru1nl1vDuEfcoF3XcS4AIysZ3ePAQdkEwUg7Q0KSrFBhXrHMM+ovFWaVOw2LDSAfIVimUYV7PQPwEc2tzQd01fUgpXj+sCXuy5iysKVx6qYDfEPdSq2eV6CSw66+YcKiIOXovIxIaW0X4UGjCVM3u2+Y82S8n2LV4vA3NxDtIoz/xoUDPLx+O84E29eLCP32GHuPocfYUb6en+N1y9MEWJv05zvBbqBILGQ8DWXSHdECK3hNZ+hnOI4CYFKS5bB7AT994XsiNdb+U23/u9A2WR4lAwFaeSvUZZDwMmAQb6Mf5+Igc5UMLaXDe2VTN1BalWx0IproaWfkmf+1jXFAmFuD01eG1EvI+1DvJW5uqYYTjqsxvF9EeywgK3qHhLvvRL26/ihzhRn+PNpZy4F/7l2yHkDYPVPeU/ftqfrt4dYPyuvUT3hBKJY65GvN++udLxHaPZsL8DoGQOuUT3IJtSf9o7/oJf3Mpb6ywS5dBIl12ugrV33qro/ntQsVKMtpGJmE76zmHpv86pkC1wm8Q43e+chno5m1s6lN1lbxX+agjdtazyKtqDR7/oqyuRdwuC82ypT2sM+nWDWQeJ6TH4RkvYsFo9lh2+9gBsgLbwz6HJLibXaAaWL2Q8fG6doGqW7ZeSDNZ2i4w9bvbiWopH6SFq70V+kaVErZO8yRBN/Sa3HWCcrwAPr7/omIF3eic2nrfjFn3R9B7lRnmeDwWbQj7ZiTPuFRVOzR1fbRvVWc9jrPYWkuGlnVd/wdG+SwE
+sidebar_class_name: "get api-method"
+info_path: docs/api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get maintenances"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/maintenances"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+Get maintenances
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Search query","in":"query","name":"q","schema":{"type":"string"}},{"description":"Filter by strategy","in":"query","name":"strategy","schema":{"type":"string"}},{"description":"Page number","in":"query","name":"page","schema":{"type":"integer","default":1}},{"description":"Items per page","in":"query","name":"limit","schema":{"type":"integer","default":10}}]}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{"items":{"properties":{"active":{"type":"boolean"},"created_at":{"type":"string"},"cron":{"type":"string"},"days_of_month":{"items":{"type":"integer"},"type":"array"},"description":{"type":"string"},"duration":{"type":"integer"},"end_date_time":{"type":"string"},"end_time":{"type":"string"},"id":{"type":"string"},"interval_day":{"type":"integer"},"start_date_time":{"type":"string"},"start_time":{"type":"string"},"strategy":{"type":"string"},"timezone":{"type":"string"},"title":{"type":"string"},"updated_at":{"type":"string"},"weekdays":{"items":{"type":"integer"},"type":"array"}},"type":"object"},"type":"array"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"404":{"description":"Not Found","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+
+</StatusCodes>
+
+

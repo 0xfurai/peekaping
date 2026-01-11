@@ -1,0 +1,70 @@
+---
+id: get-paginated-heartbeats-for-a-monitor
+title: "Get paginated heartbeats for a monitor"
+description: "Get paginated heartbeats for a monitor"
+sidebar_label: "Get paginated heartbeats for a monitor"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVV1tv2koQ/iureUolR6Q97QtvVL2IRm1R0vYcCaFosQfYxt7dzI6TuMj//WhsYwwY2uStT1Fmx/N9cx/W4DXpDBkpwHC6hgRDTMazcRaG8NlZw47U+B1EYETiNa8gAqszhCGYBCIgvMsNYQJDphwjCPEKMw3DNXDhRSswGbuEsoz27X/JszmScgu1Qk08R81BeSTl9RLVWYILnaes3ly82ODf5UjFlkBqMsPQg2ks4xKpD3Qitm2N3EIcRRAmTwT4YFJGUvNCmcw7Ym2565+zaXEErNXvQ5w7l6K2fYhXeI8UUPEKlaNkP6RH0Kj+6jTWTBIcvLMBgyi8uriQP7v4Xy8hgthZRsvyqr1PTazldfAziMq6g+HJeSQ2tcFEcyU1jFnoeXYP9iZ2eW14P/gRJDnpmkXfK9rkho14e1CNkVRvr7hNQk88Isjqnrg58nUWlr1y69gsDCb9Rr1o9XpAyNSE4vAxsOa8ekObZzCcXkQvo1fRP7NoXzmCx3PROb/XJOmXbt+093Vl5Z17sBDtyr77fckEbSJc98SftQBZbWOEWRnBkZiXLS83/4kxw1agiXRRBRBDkJ7r/Xo7a6Z14Wz1Zwe2S/nidV+9vtWJusK7HAM/v3CPE+0m5rQPGxvtF0e9eH3oxRfH6oPLbfJ3+PCmLxNjy0hWp+oa6R5JvSdy9Df4IwYxzslwUS3Ot6gJaZTzCobTmYxN1stul1V2dp3/iCybzljNmHRXxMKR0qqZNFWN88olMIQlSsFWS3gIg0YhDNYmKQc78z5U4ax3ek6paGtvBvcvQahtmF9LGOvIjby5xKLmv5+k0WSsbrFQOucVWm6Soc787Y3yhAvzKIwzze0SXaFOqqnTrJr/zkeT8fklyvbZNHwFKIn59MD9uJ/+/abY3aI9QK6j3Tz+BltsOzK/6jVxgC8T3y6coEvR6ViKrhphnIreD7M0ajQZQwQS0ZpZNbNd4ExX5dgg/XE+d9xs65HxkQc+1aZaCVXW1k2up5u1I7kdVmdXJ92zCFYusKit13Md8DulZSnieuNXh50Jep5KhS90GvCAQ9twTzvKeqnfYtG5ze51mmMds6fQOH6mncBsrrVnQv7Z4XYCvnu/PZPD70+5E/jbi26LPpN/yAj8Ewvh7KqZii/Uzg+BXgKbrrJFF70NTAKl3AVNbwqP+mEUx+i74TqY9uJAO/8+vv8GZfk/vf9dsg==
+sidebar_class_name: "get api-method"
+info_path: docs/api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get paginated heartbeats for a monitor"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/monitors/{id}/heartbeats"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+Get paginated heartbeats for a monitor
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Monitor ID","in":"path","name":"id","required":true,"schema":{"type":"string"}},{"description":"Number of heartbeats per page (default 50)","in":"query","name":"limit","schema":{"type":"integer"}},{"description":"Page number (default 0)","in":"query","name":"page","schema":{"type":"integer"}},{"description":"Filter by important heartbeats only","in":"query","name":"important","schema":{"type":"boolean"}},{"description":"Reverse the order of heartbeats","in":"query","name":"reverse","schema":{"type":"boolean"}}]}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{"items":{"properties":{"down_count":{"type":"integer"},"duration":{"type":"integer"},"end_time":{"type":"string"},"id":{"type":"string"},"important":{"type":"boolean"},"monitor_id":{"type":"string"},"msg":{"type":"string"},"notified":{"type":"boolean"},"ping":{"type":"integer"},"retries":{"type":"integer"},"status":{"enum":[0,1,2,3],"type":"integer","x-enum-varnames":["MonitorStatusDown","MonitorStatusUp","MonitorStatusPending","MonitorStatusMaintenance"]},"time":{"type":"string"}},"type":"object"},"type":"array"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"404":{"description":"Not Found","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+
+</StatusCodes>
+
+

@@ -1,0 +1,70 @@
+---
+id: get-maintenance-by-id
+title: "Get maintenance by ID"
+description: "Get maintenance by ID"
+sidebar_label: "Get maintenance by ID"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVl2P00oM/SuRn0AKKiDuS96K+FBZwV3xLa2qys247dBkZtbjFEKV/46ctNuwnQXBG0/bHXt8jn3scfYQkLEmIY5QXO3BUCzZBrHeQQGv0Tohh66kbPYMcrB6GlA2kIPDmqAAayAHpuvGMhkohBvKIZYbqhGKPUgb1CsKW7eGrpurcwzeRYpqf/zwof75Gff/C8ih9IotasUQKluiWidforrsRxCBfSAWOwQ0KIlTLMXuaERo6X1F6KDLoWRCIbNASRBW8wB4ZjDYxoVfLWrvZKMeVqiOI1ct3ppYfQ8nyIxtf3ecbyp2w3jLOIpGziwMCi3E1pS8rx53Gq1JHzsh3mG1MNimcWvvrHheWBNT+Z5C3U43CrL8hvLg8wszo9C6TePZmr57l74pVqq0pQnmV8p/JdqqyH+k7enAL79QKX3dKEZcpzh049m5Gpr35D8/i9XpjSepmXmKJntL1w1F+fvhuZtor480Kblv5XCMcXPjziyenGfxxkv2wjfO/Bs5/JdSYqZz5LDK3hHviLPnzJ7/hXw0IJUNW2n7ZfCUkImnjb5uV3N9ugXXuifGi6GP9XMBXpJk9Wh1LNthe9QkG2+ggDVpj/Z7pIDJyDVO9tZ0SrMv3bCTGq7UDYOd7B6B0jiyfKclG6o0DfaC2oHrbUGml7NsS22GjWzIyaHw2b2wXWSBaWW/ZSvPNcr944rbEBri05L7/GB6OXtwQS2cxr0HVBFefZU07qtP7zPxW3JnyENlD8bfYGtsz/b7sA/O8PuHe+UVXRsMS22w06sHH+3aZtPLGeSgFR2YKe3go9TYt94B6S7d0stK6JtMQoW2X6K9SPuDplcw1hRyKKzRNtn4KGrd75cY6QNXXafH1w2xdtw8hx2yxaUS148RG/W3gWKFVaQzIjcDBffeHpr9fnb2zZKkeyyiU0V3WDX6H+SwpXb4punmXX6UQrkMhmlZUpDRlbNB1va86fOXz99D1/0AmmY6yw==
+sidebar_class_name: "get api-method"
+info_path: docs/api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get maintenance by ID"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/maintenances/{id}"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+Get maintenance by ID
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Maintenance ID","in":"path","name":"id","required":true,"schema":{"type":"string"}}]}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{"properties":{"active":{"type":"boolean"},"created_at":{"type":"string"},"cron":{"type":"string"},"days_of_month":{"items":{"type":"integer"},"type":"array"},"description":{"type":"string"},"duration":{"type":"integer"},"end_date_time":{"type":"string"},"end_time":{"type":"string"},"id":{"type":"string"},"interval_day":{"type":"integer"},"monitor_ids":{"items":{"type":"string"},"type":"array"},"start_date_time":{"type":"string"},"start_time":{"type":"string"},"strategy":{"type":"string"},"timezone":{"type":"string"},"title":{"type":"string"},"updated_at":{"type":"string"},"weekdays":{"items":{"type":"integer"},"type":"array"}},"type":"object"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"404":{"description":"Not Found","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+
+</StatusCodes>
+
+

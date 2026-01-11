@@ -1,0 +1,70 @@
+---
+id: create-tag
+title: "Create tag"
+description: "Create tag"
+sidebar_label: "Create tag"
+hide_title: true
+hide_table_of_contents: true
+api: eJzNVdtu2zAM/RWDe9kAFUm7Cwa/JUMHpB2wYM0uQBAUjM0mamxJleW0nuF/Hyg7TuIkLdCnPVkWxUPy8IgqwdJDTpkb6riAsIRIK0fK8RKNSWSETmrVu8+04r0sWlKKvDJWG7JOUla7Jdrygp4wNQlBCG/eDz9ffP0EAlxheCNzVqoFVAJiyiIrDSPv+4ytjvOI9wNSa2m1Skm5INVKOm2zY1gKUzoFAgJSfPpGauGWEJ73+wJSqdr/A7RKeDqkpRjCaVNUE2LWntbze4ocVFW3EpjgImisu0jO5uShM6NVVhN20T/nz77/F0voKAbx2jbE6J5rzgF5UR3wFt1Rc6dPB3YZH93etOTAkJv4dLjqgGABKWUZLo6BdVrlC9+eP9asSsCHfv+Q9CHGwY/6Erye+NOJCsgcujx7uYYNRutxooqPx6oYKUdWYRLckF2TDS6t9dr97+thQIpyK10B4bSEq0c3yPl6TmeVKGFg5DUV7Q5D4CJj+Al/Z90rWF+hwOHCy8EtdQwhGO2ba5BhoOchOC5TlfmwuU3Ygkb21ufAcTZZ3TBFNSu7yXQbMBiPghUVAeZuSco1RAdvzeo2MJbu5FNwp22K7h0IkOyxJIypnS8h/DkbjEdn11Rsxxz6gEx6S0s37tXvSeD0itRB5CGhJdsYX4jN2NrKv9iMzU78SgAr5sf2rbjcjNt2vOwM/P0MXx7qTRI7g5uHi7rTmxcJI1YwTwjp/Iz/JRcyGIxHIIBbWAdiL+50il7bDeqeIo5PNEdPrmcSlD6wl0LZiGVa620mYMkaCqdQlnPM6KdNqoq3H3KyrNyZgDVaiXPOj7W74ZjVtaKCM6nv4tmEo/LxJK9J7txL1n3tMYgiMu7Zs7MdmY+/30xAwLx5y1Mds4/FR36O8JEpEqB99V7Pfq+EBNUi97cdakzuNzZq2yph5ZXZLLiqjUkVOxl2lVQXsvIqPuFSlrXOqqo9X5tOerTyrU9z32ZVVf0Dgn4DGw==
+sidebar_class_name: "post api-method"
+info_path: docs/api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Create tag"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/tags"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+Create tag
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"properties":{"color":{"example":"#3B82F6","type":"string"},"description":{"example":"Production environment monitors","type":"string"},"name":{"example":"Production","maxLength":100,"minLength":1,"type":"string"}},"required":["color","name"],"type":"object"}}},"description":"Tag object","required":true}}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"201":{"description":"Created","content":{"application/json":{"schema":{"properties":{"data":{"properties":{"color":{"type":"string"},"created_at":{"type":"string"},"description":{"type":"string"},"id":{"type":"string"},"name":{"type":"string"},"updated_at":{"type":"string"}},"type":"object"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+
+</StatusCodes>
+
+
