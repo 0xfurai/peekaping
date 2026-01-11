@@ -56,7 +56,7 @@ func (ic *Controller) FindAll(ctx *gin.Context) {
 	q := ctx.Query("q")
 
 	// Extract orgID from context
-	orgID := ctx.GetString("orgID")
+	orgID := ctx.GetString("orgId")
 
 	response, err := ic.service.FindAll(ctx, page, limit, q, orgID)
 	if err != nil {
@@ -127,7 +127,7 @@ func (ic *Controller) FindByID(ctx *gin.Context) {
 	id := ctx.Param("id")
 
 	// Extract orgID from context
-	orgID := ctx.GetString("orgID")
+	orgID := ctx.GetString("orgId")
 
 	notification, err := ic.service.FindByID(ctx, id, orgID)
 	if err != nil {

@@ -46,6 +46,7 @@ type organizationUserSQLModel struct {
 	CreatedAt      time.Time     `bun:"created_at,nullzero,notnull,default:current_timestamp"`
 	UpdatedAt      time.Time     `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
 	User           *userSQLModel `bun:"rel:belongs-to,join:user_id=id"`
+	Organization   *sqlModel     `bun:"rel:belongs-to,join:organization_id=id"`
 }
 
 func (r *SQLRepositoryImpl) FindMembers(ctx context.Context, orgID string) ([]*OrganizationUser, error) {
@@ -53,6 +54,7 @@ func (r *SQLRepositoryImpl) FindMembers(ctx context.Context, orgID string) ([]*O
 	err := r.db.NewSelect().
 		Model(&sms).
 		Relation("User").
+		Relation("Organization").
 		Where("organization_id = ?", orgID).
 		Scan(ctx)
 	if err != nil {
@@ -73,6 +75,9 @@ func (r *SQLRepositoryImpl) FindMembers(ctx context.Context, orgID string) ([]*O
 				ID:    sm.User.ID,
 				Email: sm.User.Email,
 			}
+		}
+		if sm.Organization != nil {
+			domainUser.Organization = toDomainModel(sm.Organization)
 		}
 		users = append(users, domainUser)
 	}
@@ -182,6 +187,7 @@ func (r *SQLRepositoryImpl) FindUserOrganizations(ctx context.Context, userID st
 	var sms []*organizationUserSQLModel
 	err := r.db.NewSelect().
 		Model(&sms).
+		Relation("Organization").
 		Where("user_id = ?", userID).
 		Scan(ctx)
 	if err != nil {
@@ -190,13 +196,17 @@ func (r *SQLRepositoryImpl) FindUserOrganizations(ctx context.Context, userID st
 
 	var users []*OrganizationUser
 	for _, sm := range sms {
-		users = append(users, &OrganizationUser{
+		domainUser := &OrganizationUser{
 			OrganizationID: sm.OrganizationID,
 			UserID:         sm.UserID,
 			Role:           Role(sm.Role),
 			CreatedAt:      sm.CreatedAt,
 			UpdatedAt:      sm.UpdatedAt,
-		})
+		}
+		if sm.Organization != nil {
+			domainUser.Organization = toDomainModel(sm.Organization)
+		}
+		users = append(users, domainUser)
 	}
 	return users, nil
 }

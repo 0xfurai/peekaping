@@ -56,7 +56,7 @@ func (ic *Controller) FindAll(ctx *gin.Context) {
 	strategy := ctx.Query("strategy")
 
 	// Extract orgID from context (set by OrganizationMiddleware)
-	orgID := ctx.GetString("orgID")
+	orgID := ctx.GetString("orgId")
 
 	filter := bson.M{}
 	if q != "" {
@@ -100,7 +100,7 @@ func (ic *Controller) Create(ctx *gin.Context) {
 	}
 
 	// Extract orgID from context and set it in the entity
-	orgID := ctx.GetString("orgID")
+	orgID := ctx.GetString("orgId")
 	entity.OrgID = orgID
 
 	created, err := ic.service.Create(ctx, entity)
@@ -127,7 +127,7 @@ func (ic *Controller) FindByID(ctx *gin.Context) {
 	id := ctx.Param("id")
 
 	// Extract orgID from context (set by OrganizationMiddleware)
-	orgID := ctx.GetString("orgID")
+	orgID := ctx.GetString("orgId")
 
 	entity, err := ic.service.FindByID(ctx, id, orgID)
 	if err != nil {

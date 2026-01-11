@@ -167,7 +167,7 @@ func (c *Controller) FindAll(ctx *gin.Context) {
 	q := ctx.Query("q")
 
 	// Extract orgID from context
-	orgID := ctx.GetString("orgID")
+	orgID := ctx.GetString("orgId")
 
 	pages, err := c.service.FindAll(ctx, page, limit, q, orgID)
 	if err != nil {

@@ -12,7 +12,8 @@ type sqlModel struct {
 	bun.BaseModel `bun:"table:tags,alias:t"`
 
 	ID          string    `bun:"id,pk"`
-	Name        string    `bun:"name,notnull,unique"`
+	OrgID       string    `bun:"org_id,notnull"`
+	Name        string    `bun:"name,notnull"`
 	Color       string    `bun:"color,notnull"`
 	Description *string   `bun:"description"`
 	CreatedAt   time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp"`
@@ -22,6 +23,7 @@ type sqlModel struct {
 func toDomainModelFromSQL(sm *sqlModel) *Model {
 	return &Model{
 		ID:          sm.ID,
+		OrgID:       sm.OrgID,
 		Name:        sm.Name,
 		Color:       sm.Color,
 		Description: sm.Description,
@@ -33,6 +35,7 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 func toSQLModel(m *Model) *sqlModel {
 	return &sqlModel{
 		ID:          m.ID,
+		OrgID:       m.OrgID,
 		Name:        m.Name,
 		Color:       m.Color,
 		Description: m.Description,
@@ -65,7 +68,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, entity *Model) (*Model, 
 
 func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string, orgID string) (*Model, error) {
 	sm := new(sqlModel)
-	err := r.db.NewSelect().Model(sm).Where("id = ?", id).Scan(ctx)
+	err := r.db.NewSelect().Model(sm).Where("id = ? AND org_id = ?", id, orgID).Scan(ctx)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return nil, nil
@@ -75,9 +78,9 @@ func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string, orgID strin
 	return toDomainModelFromSQL(sm), nil
 }
 
-func (r *SQLRepositoryImpl) FindByName(ctx context.Context, name string) (*Model, error) {
+func (r *SQLRepositoryImpl) FindByName(ctx context.Context, name string, orgID string) (*Model, error) {
 	sm := new(sqlModel)
-	err := r.db.NewSelect().Model(sm).Where("name = ?", name).Scan(ctx)
+	err := r.db.NewSelect().Model(sm).Where("name = ? AND org_id = ?", name, orgID).Scan(ctx)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return nil, nil
@@ -88,7 +91,7 @@ func (r *SQLRepositoryImpl) FindByName(ctx context.Context, name string) (*Model
 }
 
 func (r *SQLRepositoryImpl) FindAll(ctx context.Context, page int, limit int, q string, orgID string) ([]*Model, error) {
-	query := r.db.NewSelect().Model((*sqlModel)(nil))
+	query := r.db.NewSelect().Model((*sqlModel)(nil)).Where("org_id = ?", orgID)
 
 	if q != "" {
 		query = query.Where("LOWER(name) LIKE ?", "%"+q+"%")
@@ -152,7 +155,8 @@ func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity
 	return err
 }
 
-func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string) error {
-	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Exec(ctx)
+func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string, orgID string) error {
+	sm := &sqlModel{ID: id}
+	_, err := r.db.NewDelete().Model(sm).WherePK().Where("org_id = ?", orgID).Exec(ctx)
 	return err
 }

@@ -165,6 +165,9 @@ func (c *OrganizationController) FindMembers(ctx *gin.Context) {
 			Role:     member.Role,
 			JoinedAt: member.CreatedAt.Format(time.RFC3339),
 		}
+		if member.Organization != nil {
+			dto.OrganizationName = member.Organization.Name
+		}
 		if member.User != nil {
 			dto.User = &UserResponseDto{
 				ID:    member.User.ID,

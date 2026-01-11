@@ -10,6 +10,6 @@ type Repository interface {
 	FindAll(ctx context.Context, page int, limit int, q string, orgID string) ([]*Model, error)
 	UpdateFull(ctx context.Context, id string, entity *Model) error
 	UpdatePartial(ctx context.Context, id string, entity *UpdateModel) error
-	Delete(ctx context.Context, id string) error
-	FindByName(ctx context.Context, name string) (*Model, error)
+	Delete(ctx context.Context, id string, orgID string) error
+	FindByName(ctx context.Context, name string, orgID string) (*Model, error)
 }

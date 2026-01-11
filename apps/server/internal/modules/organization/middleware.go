@@ -44,6 +44,11 @@ func (m *Middleware) RequireOrganization() gin.HandlerFunc {
 		// Verify membership
 		membership, err := m.orgService.FindMembership(c.Request.Context(), orgID, userID)
 		if err != nil {
+			if err.Error() == "sql: no rows in result set" {
+				c.JSON(http.StatusForbidden, utils.NewFailResponse("You are not a member of this organization"))
+				c.Abort()
+				return
+			}
 			m.logger.Errorw("Failed to check organization membership", "orgID", orgID, "userID", userID, "error", err)
 			c.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 			c.Abort()

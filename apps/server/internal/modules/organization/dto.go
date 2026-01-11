@@ -25,10 +25,11 @@ type OrganizationResponseDto struct {
 }
 
 type OrganizationMemberResponseDto struct {
-	UserID   string           `json:"user_id"`
-	Role     Role             `json:"role"`
-	JoinedAt string           `json:"joined_at"`
-	User     *UserResponseDto `json:"user,omitempty"`
+	UserID           string           `json:"user_id"`
+	Role             Role             `json:"role"`
+	JoinedAt         string           `json:"joined_at"`
+	OrganizationName string           `json:"organization_name,omitempty"`
+	User             *UserResponseDto `json:"user,omitempty"`
 }
 
 type UserResponseDto struct {
