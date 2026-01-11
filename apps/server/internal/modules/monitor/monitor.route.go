@@ -2,6 +2,7 @@ package monitor
 
 import (
 	"vigi/internal/modules/middleware"
+	"vigi/internal/modules/organization"
 
 	"github.com/gin-gonic/gin"
 )
@@ -9,15 +10,18 @@ import (
 type MonitorRoute struct {
 	monitorController *MonitorController
 	middleware        *middleware.AuthChain
+	orgMiddleware     *organization.Middleware
 }
 
 func NewMonitorRoute(
 	monitorController *MonitorController,
 	middleware *middleware.AuthChain,
+	orgMiddleware *organization.Middleware,
 ) *MonitorRoute {
 	return &MonitorRoute{
-		monitorController,
-		middleware,
+		monitorController: monitorController,
+		middleware:        middleware,
+		orgMiddleware:     orgMiddleware,
 	}
 }
 
@@ -27,6 +31,7 @@ func (uc *MonitorRoute) ConnectRoute(
 ) {
 	router := rg.Group("monitors")
 	router.Use(uc.middleware.AllAuth())
+	router.Use(uc.orgMiddleware.RequireOrganization())
 
 	router.GET("", uc.monitorController.FindAll)
 	router.GET("batch", uc.monitorController.FindByIDs)

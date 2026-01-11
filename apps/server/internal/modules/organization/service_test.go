@@ -62,6 +62,14 @@ func (m *MockOrganizationRepository) FindUserOrganizations(ctx context.Context, 
 	return args.Get(0).([]*OrganizationUser), args.Error(1)
 }
 
+func (m *MockOrganizationRepository) FindMembership(ctx context.Context, orgID, userID string) (*OrganizationUser, error) {
+	args := m.Called(ctx, orgID, userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*OrganizationUser), args.Error(1)
+}
+
 func setupService() (*ServiceImpl, *MockOrganizationRepository) {
 	mockRepo := &MockOrganizationRepository{}
 	logger := zap.NewNop().Sugar()

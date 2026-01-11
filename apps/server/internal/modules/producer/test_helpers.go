@@ -60,8 +60,8 @@ func (m *MockMonitorService) FindByIDs(ctx context.Context, ids []string) ([]*mo
 	return args.Get(0).([]*monitor.Model), args.Error(1)
 }
 
-func (m *MockMonitorService) FindAll(ctx context.Context, page int, limit int, q string, active *bool, status *int, tagIds []string) ([]*monitor.Model, error) {
-	args := m.Called(ctx, page, limit, q, active, status, tagIds)
+func (m *MockMonitorService) FindAll(ctx context.Context, page int, limit int, q string, active *bool, status *int, tagIds []string, orgID string) ([]*monitor.Model, error) {
+	args := m.Called(ctx, page, limit, q, active, status, tagIds, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}

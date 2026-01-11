@@ -95,7 +95,7 @@ func TestSQLRepositoryImpl_FindAll_JoinAmbiguityFix(t *testing.T) {
 
 	t.Run("FindAll_WithTagsNoAmbiguousColumn", func(t *testing.T) {
 		// This should not fail with "ambiguous column name: created_at" error
-		monitors, err := repo.FindAll(ctx, 0, 10, "", nil, nil, []string{"test-tag"})
+		monitors, err := repo.FindAll(ctx, 0, 10, "", nil, nil, []string{"test-tag"}, "")
 
 		require.NoError(t, err)
 		assert.Len(t, monitors, 1)
@@ -115,7 +115,7 @@ func TestSQLRepositoryImpl_FindAll_JoinAmbiguityFix(t *testing.T) {
 			created2.ID, "test-tag", time.Now().Add(-2*time.Hour))
 		require.NoError(t, err)
 
-		monitors, err := repo.FindAll(ctx, 0, 10, "", nil, nil, []string{"test-tag"})
+		monitors, err := repo.FindAll(ctx, 0, 10, "", nil, nil, []string{"test-tag"}, "")
 
 		require.NoError(t, err)
 		assert.Len(t, monitors, 2)

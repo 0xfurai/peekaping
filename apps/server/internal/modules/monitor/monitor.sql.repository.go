@@ -163,8 +163,13 @@ func (r *SQLRepositoryImpl) FindAll(
 	active *bool,
 	status *int,
 	tagIds []string,
+	orgID string,
 ) ([]*Model, error) {
 	query := r.db.NewSelect().Model((*sqlModel)(nil))
+
+	if orgID != "" {
+		query = query.Where("org_id = ?", orgID)
+	}
 
 	// If tagIds filtering is requested, use JOIN
 	if len(tagIds) > 0 {

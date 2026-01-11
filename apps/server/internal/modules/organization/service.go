@@ -18,6 +18,7 @@ type Service interface {
 	UpdateMemberRole(ctx context.Context, orgID, userID string, dto *UpdateMemberRoleDto) error
 	FindMembers(ctx context.Context, orgID string) ([]*OrganizationUser, error)
 	FindUserOrganizations(ctx context.Context, userID string) ([]*OrganizationUser, error)
+	FindMembership(ctx context.Context, orgID, userID string) (*OrganizationUser, error)
 }
 
 type ServiceImpl struct {
@@ -125,4 +126,8 @@ func (s *ServiceImpl) FindMembers(ctx context.Context, orgID string) ([]*Organiz
 
 func (s *ServiceImpl) FindUserOrganizations(ctx context.Context, userID string) ([]*OrganizationUser, error) {
 	return s.repo.FindUserOrganizations(ctx, userID)
+}
+
+func (s *ServiceImpl) FindMembership(ctx context.Context, orgID, userID string) (*OrganizationUser, error) {
+	return s.repo.FindMembership(ctx, orgID, userID)
 }

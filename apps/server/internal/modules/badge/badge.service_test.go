@@ -3,6 +3,8 @@ package badge
 import (
 	"context"
 	"errors"
+	"testing"
+	"time"
 	"vigi/internal/modules/events"
 	"vigi/internal/modules/heartbeat"
 	"vigi/internal/modules/monitor"
@@ -10,8 +12,6 @@ import (
 	"vigi/internal/modules/monitor_tls_info"
 	"vigi/internal/modules/shared"
 	"vigi/internal/modules/stats"
-	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -45,8 +45,8 @@ func (m *MockMonitorService) FindByIDs(ctx context.Context, ids []string) ([]*sh
 	return args.Get(0).([]*shared.Monitor), args.Error(1)
 }
 
-func (m *MockMonitorService) FindAll(ctx context.Context, page int, limit int, q string, active *bool, status *int, tagIds []string) ([]*shared.Monitor, error) {
-	args := m.Called(ctx, page, limit, q, active, status, tagIds)
+func (m *MockMonitorService) FindAll(ctx context.Context, page int, limit int, q string, active *bool, status *int, tagIds []string, orgID string) ([]*shared.Monitor, error) {
+	args := m.Called(ctx, page, limit, q, active, status, tagIds, orgID)
 	return args.Get(0).([]*shared.Monitor), args.Error(1)
 }
 

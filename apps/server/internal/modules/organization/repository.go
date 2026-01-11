@@ -19,6 +19,7 @@ type OrganizationRepository interface {
 	UpdateMemberRole(ctx context.Context, orgID, userID string, role Role) error
 	FindMembers(ctx context.Context, orgID string) ([]*OrganizationUser, error)
 	FindUserOrganizations(ctx context.Context, userID string) ([]*OrganizationUser, error)
+	FindMembership(ctx context.Context, orgID, userID string) (*OrganizationUser, error)
 }
 
 type sqlModel struct {
@@ -183,4 +184,23 @@ func (r *SQLRepositoryImpl) FindUserOrganizations(ctx context.Context, userID st
 		})
 	}
 	return users, nil
+}
+
+func (r *SQLRepositoryImpl) FindMembership(ctx context.Context, orgID, userID string) (*OrganizationUser, error) {
+	sm := new(organizationUserSQLModel)
+	err := r.db.NewSelect().
+		Model(sm).
+		Where("organization_id = ? AND user_id = ?", orgID, userID).
+		Scan(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &OrganizationUser{
+		OrganizationID: sm.OrganizationID,
+		UserID:         sm.UserID,
+		Role:           Role(sm.Role),
+		CreatedAt:      sm.CreatedAt,
+		UpdatedAt:      sm.UpdatedAt,
+	}, nil
 }

@@ -14,6 +14,7 @@ type MonitorRepository interface {
 		active *bool,
 		status *int,
 		tagIds []string,
+		orgID string,
 	) ([]*Model, error)
 	FindActive(ctx context.Context) ([]*Model, error)
 	FindActivePaginated(ctx context.Context, page int, limit int) ([]*Model, error)

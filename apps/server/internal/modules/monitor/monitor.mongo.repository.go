@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 	"vigi/internal/config"
 	"vigi/internal/modules/heartbeat"
-	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -183,6 +183,7 @@ func (r *MonitorRepositoryImpl) FindAll(
 	active *bool,
 	status *int,
 	tagIds []string,
+	orgID string,
 ) ([]*Model, error) {
 	var monitors []*Model
 

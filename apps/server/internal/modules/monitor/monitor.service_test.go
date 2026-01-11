@@ -3,6 +3,8 @@ package monitor
 import (
 	"context"
 	"errors"
+	"testing"
+	"time"
 	"vigi/internal/infra"
 	"vigi/internal/modules/events"
 	"vigi/internal/modules/healthcheck/executor"
@@ -11,8 +13,6 @@ import (
 	"vigi/internal/modules/monitor_tag"
 	"vigi/internal/modules/shared"
 	"vigi/internal/modules/stats"
-	"testing"
-	"time"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
@@ -43,8 +43,8 @@ func (m *MockMonitorRepository) FindByIDs(ctx context.Context, ids []string) ([]
 	return args.Get(0).([]*Model), args.Error(1)
 }
 
-func (m *MockMonitorRepository) FindAll(ctx context.Context, page int, limit int, q string, active *bool, status *int, tagIds []string) ([]*Model, error) {
-	args := m.Called(ctx, page, limit, q, active, status, tagIds)
+func (m *MockMonitorRepository) FindAll(ctx context.Context, page int, limit int, q string, active *bool, status *int, tagIds []string, orgID string) ([]*Model, error) {
+	args := m.Called(ctx, page, limit, q, active, status, tagIds, orgID)
 	return args.Get(0).([]*Model), args.Error(1)
 }
 
@@ -1035,9 +1035,9 @@ func TestMonitorService_FindAll(t *testing.T) {
 			{ID: "monitor2", Name: "Monitor 2"},
 		}
 
-		mockRepo.On("FindAll", ctx, page, limit, q, &active, &status, tagIds).Return(expectedMonitors, nil)
+		mockRepo.On("FindAll", ctx, page, limit, q, &active, &status, tagIds, "").Return(expectedMonitors, nil)
 
-		result, err := service.FindAll(ctx, page, limit, q, &active, &status, tagIds)
+		result, err := service.FindAll(ctx, page, limit, q, &active, &status, tagIds, "")
 
 		assert.NoError(t, err)
 		assert.Equal(t, expectedMonitors, result)
@@ -1046,9 +1046,9 @@ func TestMonitorService_FindAll(t *testing.T) {
 
 	t.Run("repository error", func(t *testing.T) {
 		service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
-		mockRepo.On("FindAll", ctx, 1, 10, "", (*bool)(nil), (*int)(nil), []string(nil)).Return(([]*Model)(nil), errors.New("repository error"))
+		mockRepo.On("FindAll", ctx, 1, 10, "", (*bool)(nil), (*int)(nil), []string(nil), "").Return(([]*Model)(nil), errors.New("repository error"))
 
-		result, err := service.FindAll(ctx, 1, 10, "", nil, nil, nil)
+		result, err := service.FindAll(ctx, 1, 10, "", nil, nil, nil, "")
 
 		assert.Error(t, err)
 		assert.Nil(t, result)

@@ -53,3 +53,7 @@ storageState.json
 apps/web/src/i18n/progress
 e2e_results.log
 e2e_debug.log
+
+
+bun
+api

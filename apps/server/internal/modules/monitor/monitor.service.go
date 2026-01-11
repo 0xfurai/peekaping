@@ -19,7 +19,7 @@ type Service interface {
 	Create(ctx context.Context, monitor *CreateUpdateDto) (*Model, error)
 	FindByID(ctx context.Context, id string) (*Model, error)
 	FindByIDs(ctx context.Context, ids []string) ([]*Model, error)
-	FindAll(ctx context.Context, page int, limit int, q string, active *bool, status *int, tagIds []string) ([]*Model, error)
+	FindAll(ctx context.Context, page int, limit int, q string, active *bool, status *int, tagIds []string, orgID string) ([]*Model, error)
 	FindActive(ctx context.Context) ([]*Model, error)
 	FindActivePaginated(ctx context.Context, page int, limit int) ([]*Model, error)
 	UpdateFull(ctx context.Context, id string, monitor *CreateUpdateDto) (*Model, error)
@@ -122,8 +122,8 @@ func (mr *MonitorServiceImpl) FindByIDs(ctx context.Context, ids []string) ([]*M
 	return mr.monitorRepository.FindByIDs(ctx, ids)
 }
 
-func (mr *MonitorServiceImpl) FindAll(ctx context.Context, page int, limit int, q string, active *bool, status *int, tagIds []string) ([]*Model, error) {
-	monitors, err := mr.monitorRepository.FindAll(ctx, page, limit, q, active, status, tagIds)
+func (mr *MonitorServiceImpl) FindAll(ctx context.Context, page int, limit int, q string, active *bool, status *int, tagIds []string, orgID string) ([]*Model, error) {
+	monitors, err := mr.monitorRepository.FindAll(ctx, page, limit, q, active, status, tagIds, orgID)
 	if err != nil {
 		return nil, err
 	}

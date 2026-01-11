@@ -3,13 +3,13 @@ package proxy
 import (
 	"context"
 	"errors"
+	"testing"
+	"time"
 	"vigi/internal/infra"
 	"vigi/internal/modules/events"
 	"vigi/internal/modules/heartbeat"
 	"vigi/internal/modules/monitor"
 	"vigi/internal/modules/shared"
-	"testing"
-	"time"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
@@ -96,8 +96,8 @@ func (m *MockMonitorService) FindByIDs(ctx context.Context, ids []string) ([]*sh
 	return args.Get(0).([]*shared.Monitor), args.Error(1)
 }
 
-func (m *MockMonitorService) FindAll(ctx context.Context, page int, limit int, q string, active *bool, status *int, tagIds []string) ([]*shared.Monitor, error) {
-	args := m.Called(ctx, page, limit, q, active, status, tagIds)
+func (m *MockMonitorService) FindAll(ctx context.Context, page int, limit int, q string, active *bool, status *int, tagIds []string, orgID string) ([]*shared.Monitor, error) {
+	args := m.Called(ctx, page, limit, q, active, status, tagIds, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}

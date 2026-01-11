@@ -7,17 +7,20 @@ import (
 )
 
 type OrganizationRoute struct {
-	controller *OrganizationController
-	middleware *middleware.AuthChain
+	controller    *OrganizationController
+	middleware    *middleware.AuthChain
+	orgMiddleware *Middleware
 }
 
 func NewOrganizationRoute(
 	controller *OrganizationController,
 	middleware *middleware.AuthChain,
+	orgMiddleware *Middleware,
 ) *OrganizationRoute {
 	return &OrganizationRoute{
-		controller: controller,
-		middleware: middleware,
+		controller:    controller,
+		middleware:    middleware,
+		orgMiddleware: orgMiddleware,
 	}
 }
 
