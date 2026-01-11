@@ -49,7 +49,8 @@ func (l *MonitorEventListener) handleMonitorStatusChanged(event events.Event) {
 	l.logger.Infof("Monitor status changed event received for monitor: %s, new status: %d", monitorID, newStatus)
 
 	// Get the current monitor to check if status actually changed
-	currentMonitor, err := l.monitorService.FindByID(ctx, monitorID)
+	// Passing empty string for orgID as this is an internal listener updating system state
+	currentMonitor, err := l.monitorService.FindByID(ctx, monitorID, "")
 	if err != nil {
 		l.logger.Errorf("Failed to get monitor %s: %v", monitorID, err)
 		return
@@ -71,7 +72,7 @@ func (l *MonitorEventListener) handleMonitorStatusChanged(event events.Event) {
 		Status: &newStatus,
 	}
 
-	_, err = l.monitorService.UpdatePartial(ctx, monitorID, updateModel, true)
+	_, err = l.monitorService.UpdatePartial(ctx, monitorID, updateModel, true, "")
 	if err != nil {
 		l.logger.Errorf("Failed to update monitor %s status to %d: %v", monitorID, newStatus, err)
 		return

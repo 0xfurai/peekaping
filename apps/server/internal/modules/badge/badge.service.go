@@ -3,13 +3,13 @@ package badge
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"time"
 	"vigi/internal/modules/heartbeat"
 	"vigi/internal/modules/monitor"
 	"vigi/internal/modules/monitor_status_page"
 	"vigi/internal/modules/monitor_tls_info"
 	"vigi/internal/modules/stats"
-	"strconv"
-	"time"
 
 	"go.uber.org/zap"
 )
@@ -65,7 +65,7 @@ func getLabel(label, defaultLabel string) string {
 
 func (s *ServiceImpl) IsMonitorPublic(ctx context.Context, monitorID string) (bool, error) {
 	// Check if monitor exists and is active
-	monitor, err := s.monitorService.FindByID(ctx, monitorID)
+	monitor, err := s.monitorService.FindByID(ctx, monitorID, "")
 	if err != nil {
 		return false, err
 	}
@@ -87,7 +87,7 @@ func (s *ServiceImpl) IsMonitorPublic(ctx context.Context, monitorID string) (bo
 
 func (s *ServiceImpl) GetMonitorBadgeData(ctx context.Context, monitorID string) (*MonitorBadgeData, error) {
 	// Get monitor basic info
-	monitorModel, err := s.monitorService.FindByID(ctx, monitorID)
+	monitorModel, err := s.monitorService.FindByID(ctx, monitorID, "")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get monitor: %w", err)
 	}
@@ -170,7 +170,7 @@ func (s *ServiceImpl) GetMonitorBadgeData(ctx context.Context, monitorID string)
 
 // getMonitorBasicInfo gets only basic monitor information (for status badges)
 func (s *ServiceImpl) getMonitorBasicInfo(ctx context.Context, monitorID string) (*MonitorBadgeData, error) {
-	monitorModel, err := s.monitorService.FindByID(ctx, monitorID)
+	monitorModel, err := s.monitorService.FindByID(ctx, monitorID, "")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get monitor: %w", err)
 	}

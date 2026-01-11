@@ -357,7 +357,7 @@ func (p *Producer) UnscheduleMonitor(ctx context.Context, monitorID string) erro
 // AddMonitor adds a new monitor to the schedule
 func (p *Producer) AddMonitor(ctx context.Context, monitorID string) error {
 	// Fetch monitor from database
-	mon, err := p.monitorService.FindByID(ctx, monitorID)
+	mon, err := p.monitorService.FindByID(ctx, monitorID, "")
 	if err != nil {
 		return fmt.Errorf("failed to find monitor: %w", err)
 	}
@@ -374,7 +374,7 @@ func (p *Producer) AddMonitor(ctx context.Context, monitorID string) error {
 // UpdateMonitor updates an existing monitor in the schedule
 func (p *Producer) UpdateMonitor(ctx context.Context, monitorID string) error {
 	// Fetch monitor from database
-	mon, err := p.monitorService.FindByID(ctx, monitorID)
+	mon, err := p.monitorService.FindByID(ctx, monitorID, "")
 	if err != nil {
 		return fmt.Errorf("failed to find monitor: %w", err)
 	}

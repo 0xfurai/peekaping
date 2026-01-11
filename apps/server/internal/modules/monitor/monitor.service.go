@@ -17,26 +17,26 @@ import (
 
 type Service interface {
 	Create(ctx context.Context, monitor *CreateUpdateDto) (*Model, error)
-	FindByID(ctx context.Context, id string) (*Model, error)
-	FindByIDs(ctx context.Context, ids []string) ([]*Model, error)
+	FindByID(ctx context.Context, id string, orgID string) (*Model, error)
+	FindByIDs(ctx context.Context, ids []string, orgID string) ([]*Model, error)
 	FindAll(ctx context.Context, page int, limit int, q string, active *bool, status *int, tagIds []string, orgID string) ([]*Model, error)
 	FindActive(ctx context.Context) ([]*Model, error)
 	FindActivePaginated(ctx context.Context, page int, limit int) ([]*Model, error)
 	UpdateFull(ctx context.Context, id string, monitor *CreateUpdateDto) (*Model, error)
-	UpdatePartial(ctx context.Context, id string, monitor *PartialUpdateDto, noPublish bool) (*Model, error)
-	Delete(ctx context.Context, id string) error
+	UpdatePartial(ctx context.Context, id string, monitor *PartialUpdateDto, noPublish bool, orgID string) (*Model, error)
+	Delete(ctx context.Context, id string, orgID string) error
 	ValidateMonitorConfig(monitorType string, configJSON string) error
 
-	GetHeartbeats(ctx context.Context, id string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error)
+	GetHeartbeats(ctx context.Context, id string, limit, page int, important *bool, reverse bool, orgID string) ([]*heartbeat.Model, error)
 
 	RemoveProxyReference(ctx context.Context, proxyId string) error
 	FindByProxyId(ctx context.Context, proxyId string) ([]*Model, error)
 
-	GetStatPoints(ctx context.Context, id string, since, until time.Time, granularity string) (*StatPointsSummaryDto, error)
-	GetUptimeStats(ctx context.Context, id string) (*CustomUptimeStatsDto, error)
+	GetStatPoints(ctx context.Context, id string, since, until time.Time, granularity string, orgID string) (*StatPointsSummaryDto, error)
+	GetUptimeStats(ctx context.Context, id string, orgID string) (*CustomUptimeStatsDto, error)
 
 	FindOneByPushToken(ctx context.Context, pushToken string) (*Model, error)
-	ResetMonitorData(ctx context.Context, id string) error
+	ResetMonitorData(ctx context.Context, id string, orgID string) error
 }
 
 type StatPoint struct {
@@ -114,12 +114,12 @@ func (mr *MonitorServiceImpl) Create(ctx context.Context, monitorCreateDto *Crea
 	return createdModel, nil
 }
 
-func (mr *MonitorServiceImpl) FindByID(ctx context.Context, id string) (*Model, error) {
-	return mr.monitorRepository.FindByID(ctx, id)
+func (mr *MonitorServiceImpl) FindByID(ctx context.Context, id string, orgID string) (*Model, error) {
+	return mr.monitorRepository.FindByID(ctx, id, orgID)
 }
 
-func (mr *MonitorServiceImpl) FindByIDs(ctx context.Context, ids []string) ([]*Model, error) {
-	return mr.monitorRepository.FindByIDs(ctx, ids)
+func (mr *MonitorServiceImpl) FindByIDs(ctx context.Context, ids []string, orgID string) ([]*Model, error) {
+	return mr.monitorRepository.FindByIDs(ctx, ids, orgID)
 }
 
 func (mr *MonitorServiceImpl) FindAll(ctx context.Context, page int, limit int, q string, active *bool, status *int, tagIds []string, orgID string) ([]*Model, error) {
@@ -158,7 +158,7 @@ func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, id string, monitor
 		OrgID:          monitor.OrgID,
 	}
 
-	err := mr.monitorRepository.UpdateFull(ctx, id, model)
+	err := mr.monitorRepository.UpdateFull(ctx, id, model, monitor.OrgID)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +172,7 @@ func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, id string, monitor
 	return model, nil
 }
 
-func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, monitor *PartialUpdateDto, noPublish bool) (*Model, error) {
+func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, monitor *PartialUpdateDto, noPublish bool, orgID string) (*Model, error) {
 	model := &UpdateModel{
 		ID:             &id,
 		Type:           monitor.Type,
@@ -190,13 +190,13 @@ func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, moni
 		OrgID:          monitor.OrgID,
 	}
 
-	err := mr.monitorRepository.UpdatePartial(ctx, id, model)
+	err := mr.monitorRepository.UpdatePartial(ctx, id, model, orgID)
 	if err != nil {
 		return nil, err
 	}
 
 	// Get the updated monitor
-	updatedMonitor, err := mr.FindByID(ctx, id)
+	updatedMonitor, err := mr.FindByID(ctx, id, orgID)
 	if err != nil {
 		return nil, err
 	}
@@ -212,8 +212,8 @@ func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, moni
 	return updatedMonitor, nil
 }
 
-func (mr *MonitorServiceImpl) Delete(ctx context.Context, id string) error {
-	err := mr.monitorRepository.Delete(ctx, id)
+func (mr *MonitorServiceImpl) Delete(ctx context.Context, id string, orgID string) error {
+	err := mr.monitorRepository.Delete(ctx, id, orgID)
 	if err != nil {
 		return err
 	}
@@ -242,7 +242,13 @@ func (mr *MonitorServiceImpl) ValidateMonitorConfig(
 	return mr.executorRegistry.ValidateConfig(monitorType, configJSON)
 }
 
-func (mr *MonitorServiceImpl) GetHeartbeats(ctx context.Context, id string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error) {
+func (mr *MonitorServiceImpl) GetHeartbeats(ctx context.Context, id string, limit, page int, important *bool, reverse bool, orgID string) ([]*heartbeat.Model, error) {
+	// First check ownership
+	_, err := mr.FindByID(ctx, id, orgID)
+	if err != nil {
+		return nil, err
+	}
+
 	return mr.heartbeatService.FindByMonitorIDPaginated(ctx, id, limit, page, important, reverse)
 }
 
@@ -254,7 +260,7 @@ func (mr *MonitorServiceImpl) FindByProxyId(ctx context.Context, proxyId string)
 	return mr.monitorRepository.FindByProxyId(ctx, proxyId)
 }
 
-func (mr *MonitorServiceImpl) GetStatPoints(ctx context.Context, id string, since, until time.Time, granularity string) (*StatPointsSummaryDto, error) {
+func (mr *MonitorServiceImpl) GetStatPoints(ctx context.Context, id string, since, until time.Time, granularity string, orgID string) (*StatPointsSummaryDto, error) {
 	var period stats.StatPeriod
 	switch granularity {
 	case "minute":
@@ -268,7 +274,7 @@ func (mr *MonitorServiceImpl) GetStatPoints(ctx context.Context, id string, sinc
 	}
 
 	// Get monitor information to pass interval for minute-level grouping
-	monitor, err := mr.FindByID(ctx, id)
+	monitor, err := mr.FindByID(ctx, id, orgID)
 	if err != nil {
 		return nil, err
 	}
@@ -307,7 +313,13 @@ func (mr *MonitorServiceImpl) GetStatPoints(ctx context.Context, id string, sinc
 }
 
 // GetCustomUptimeStatsShort returns uptime percentages for 24h, 30d, 365d
-func (mr *MonitorServiceImpl) GetUptimeStats(ctx context.Context, id string) (*CustomUptimeStatsDto, error) {
+func (mr *MonitorServiceImpl) GetUptimeStats(ctx context.Context, id string, orgID string) (*CustomUptimeStatsDto, error) {
+	// Check ownership
+	_, err := mr.FindByID(ctx, id, orgID)
+	if err != nil {
+		return nil, err
+	}
+
 	now := time.Now().UTC()
 	periods := map[string]time.Duration{
 		"24h":  24 * time.Hour,
@@ -345,9 +357,9 @@ func (mr *MonitorServiceImpl) FindOneByPushToken(ctx context.Context, pushToken 
 	return mr.monitorRepository.FindOneByPushToken(ctx, pushToken)
 }
 
-func (mr *MonitorServiceImpl) ResetMonitorData(ctx context.Context, id string) error {
+func (mr *MonitorServiceImpl) ResetMonitorData(ctx context.Context, id string, orgID string) error {
 	// First check if monitor exists
-	monitor, err := mr.monitorRepository.FindByID(ctx, id)
+	monitor, err := mr.monitorRepository.FindByID(ctx, id, orgID)
 	if err != nil {
 		return err
 	}
@@ -374,7 +386,7 @@ func (mr *MonitorServiceImpl) ResetMonitorData(ctx context.Context, id string) e
 	err = mr.monitorRepository.UpdatePartial(ctx, id, &UpdateModel{
 		ID:     &id,
 		Status: &pendingStatus,
-	})
+	}, orgID)
 	if err != nil {
 		mr.logger.Errorw("Failed to reset monitor status", "monitorID", id, "error", err)
 		return fmt.Errorf("failed to reset monitor status: %w", err)
@@ -383,7 +395,7 @@ func (mr *MonitorServiceImpl) ResetMonitorData(ctx context.Context, id string) e
 	mr.logger.Infow("Successfully reset monitor data", "monitorID", id)
 
 	// Emit monitor updated event
-	updatedMonitor, _ := mr.FindByID(ctx, id)
+	updatedMonitor, _ := mr.FindByID(ctx, id, orgID)
 	if updatedMonitor != nil {
 		mr.eventBus.Publish(events.Event{
 			Type:    events.MonitorUpdated,

@@ -274,7 +274,7 @@ func (c *Controller) GetMonitorsBySlug(ctx *gin.Context) {
 	monitorModels := make([]*MonitorWithHeartbeatsAndUptimeDTO, 0, len(monitors))
 	for _, msp := range monitors {
 		// Get the actual monitor data
-		monitorModel, err := c.monitorService.FindByID(ctx, msp.MonitorID)
+		monitorModel, err := c.monitorService.FindByID(ctx, msp.MonitorID, "")
 		if err != nil {
 			c.logger.Errorw("Failed to get monitor by ID", "error", err, "monitorID", msp.MonitorID)
 			continue
@@ -376,7 +376,7 @@ func (c *Controller) GetMonitorsBySlugForHomepage(ctx *gin.Context) {
 	monitorModels := make([]*MonitorWithHeartbeatsAndUptimeDTO, 0, len(monitors))
 	for _, msp := range monitors {
 		// Get the actual monitor data
-		monitorModel, err := c.monitorService.FindByID(ctx, msp.MonitorID)
+		monitorModel, err := c.monitorService.FindByID(ctx, msp.MonitorID, "")
 		if err != nil {
 			c.logger.Errorw("Failed to get monitor by ID", "error", err, "monitorID", msp.MonitorID)
 			continue

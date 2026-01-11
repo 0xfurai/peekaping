@@ -111,7 +111,7 @@ func (l *NotificationEventListener) handleNotifyEvent(event events.Event) {
 	}
 
 	// Fetch monitor details for context
-	monitorModel, err := l.monitorSvc.FindByID(ctx, monitorID)
+	monitorModel, err := l.monitorSvc.FindByID(ctx, monitorID, "")
 	if err != nil || monitorModel == nil {
 		l.logger.Warn("Monitor not found for notification context")
 		return
@@ -183,7 +183,7 @@ func (l *NotificationEventListener) handleCertificateExpiryEvent(event events.Ev
 	}
 
 	// Fetch monitor details for context
-	monitorModel, err := l.monitorSvc.FindByID(ctx, certEvent.MonitorID)
+	monitorModel, err := l.monitorSvc.FindByID(ctx, certEvent.MonitorID, "")
 	if err != nil || monitorModel == nil {
 		l.logger.Warn("Monitor not found for certificate expiry notification context")
 		return

@@ -133,7 +133,7 @@ func TestProcessMonitor(t *testing.T) {
 			ResendInterval: 300,
 		}
 
-		mockMonitorSvc.On("FindByID", ctx, "mon-1").Return(mon, nil)
+		mockMonitorSvc.On("FindByID", ctx, "mon-1", "").Return(mon, nil)
 		mockMaintenanceSvc.On("GetMaintenancesByMonitorID", ctx, "mon-1").Return([]*maintenance.Model{}, nil)
 		mockQueueSvc.On("EnqueueUnique", ctx, worker.TaskTypeHealthCheck, mock.AnythingOfType("worker.HealthCheckTaskPayload"), "healthcheck:mon-1", mock.AnythingOfType("time.Duration"), mock.AnythingOfType("*queue.EnqueueOptions")).Return(&queue.TaskInfo{ID: "task-123"}, nil)
 
@@ -163,7 +163,7 @@ func TestProcessMonitor(t *testing.T) {
 			Interval: 60,
 		}
 
-		mockMonitorSvc.On("FindByID", ctx, "mon-1").Return(mon, nil)
+		mockMonitorSvc.On("FindByID", ctx, "mon-1", "").Return(mon, nil)
 
 		interval, err := producer.processMonitor(ctx, "mon-1", 1234567890)
 		assert.NoError(t, err)
@@ -182,7 +182,7 @@ func TestProcessMonitor(t *testing.T) {
 		}
 
 		ctx := context.Background()
-		mockMonitorSvc.On("FindByID", ctx, "mon-1").Return(nil, nil)
+		mockMonitorSvc.On("FindByID", ctx, "mon-1", "").Return(nil, nil)
 
 		interval, err := producer.processMonitor(ctx, "mon-1", 1234567890)
 		assert.NoError(t, err)
@@ -230,7 +230,7 @@ func TestProcessMonitor(t *testing.T) {
 			Password: "pass",
 		}
 
-		mockMonitorSvc.On("FindByID", ctx, "mon-1").Return(mon, nil)
+		mockMonitorSvc.On("FindByID", ctx, "mon-1", "").Return(mon, nil)
 		mockMaintenanceSvc.On("GetMaintenancesByMonitorID", ctx, "mon-1").Return([]*maintenance.Model{}, nil)
 		mockProxySvc.On("FindByID", ctx, "proxy-1").Return(proxyModel, nil)
 		mockQueueSvc.On("EnqueueUnique", ctx, worker.TaskTypeHealthCheck, mock.MatchedBy(func(payload worker.HealthCheckTaskPayload) bool {
@@ -273,7 +273,7 @@ func TestProcessMonitor(t *testing.T) {
 			{ID: "maint-1"},
 		}
 
-		mockMonitorSvc.On("FindByID", ctx, "mon-1").Return(mon, nil)
+		mockMonitorSvc.On("FindByID", ctx, "mon-1", "").Return(mon, nil)
 		mockMaintenanceSvc.On("GetMaintenancesByMonitorID", ctx, "mon-1").Return(maintenances, nil)
 		mockMaintenanceSvc.On("IsUnderMaintenance", ctx, maintenances[0]).Return(true, nil)
 		mockQueueSvc.On("EnqueueUnique", ctx, worker.TaskTypeHealthCheck, mock.MatchedBy(func(payload worker.HealthCheckTaskPayload) bool {
@@ -311,7 +311,7 @@ func TestProcessMonitor(t *testing.T) {
 			Interval: 60,
 		}
 
-		mockMonitorSvc.On("FindByID", ctx, "mon-1").Return(mon, nil)
+		mockMonitorSvc.On("FindByID", ctx, "mon-1", "").Return(mon, nil)
 		mockMaintenanceSvc.On("GetMaintenancesByMonitorID", ctx, "mon-1").Return([]*maintenance.Model{}, nil)
 		mockQueueSvc.On("EnqueueUnique", ctx, worker.TaskTypeHealthCheck, mock.AnythingOfType("worker.HealthCheckTaskPayload"), "healthcheck:mon-1", mock.AnythingOfType("time.Duration"), mock.AnythingOfType("*queue.EnqueueOptions")).Return(nil, errors.New("task ID conflicts with existing task"))
 
@@ -334,7 +334,7 @@ func TestProcessMonitor(t *testing.T) {
 		}
 
 		ctx := context.Background()
-		mockMonitorSvc.On("FindByID", ctx, "mon-1").Return(nil, errors.New("database error"))
+		mockMonitorSvc.On("FindByID", ctx, "mon-1", "").Return(nil, errors.New("database error"))
 
 		interval, err := producer.processMonitor(ctx, "mon-1", 1234567890)
 		assert.Error(t, err)
@@ -366,7 +366,7 @@ func TestProcessMonitor(t *testing.T) {
 			Config:   `{"check_cert_expiry": true}`,
 		}
 
-		mockMonitorSvc.On("FindByID", ctx, "mon-1").Return(mon, nil)
+		mockMonitorSvc.On("FindByID", ctx, "mon-1", "").Return(mon, nil)
 		mockMaintenanceSvc.On("GetMaintenancesByMonitorID", ctx, "mon-1").Return([]*maintenance.Model{}, nil)
 		mockQueueSvc.On("EnqueueUnique", ctx, worker.TaskTypeHealthCheck, mock.MatchedBy(func(payload worker.HealthCheckTaskPayload) bool {
 			return payload.CheckCertExpiry == true
@@ -404,7 +404,7 @@ func TestProcessMonitor(t *testing.T) {
 			Config:   `{"check_cert_expiry": true}`,
 		}
 
-		mockMonitorSvc.On("FindByID", ctx, "mon-1").Return(mon, nil)
+		mockMonitorSvc.On("FindByID", ctx, "mon-1", "").Return(mon, nil)
 		mockMaintenanceSvc.On("GetMaintenancesByMonitorID", ctx, "mon-1").Return([]*maintenance.Model{}, nil)
 		mockQueueSvc.On("EnqueueUnique", ctx, worker.TaskTypeHealthCheck, mock.MatchedBy(func(payload worker.HealthCheckTaskPayload) bool {
 			return payload.CheckCertExpiry == true
@@ -441,7 +441,7 @@ func TestProcessMonitor(t *testing.T) {
 			Interval: 60,
 		}
 
-		mockMonitorSvc.On("FindByID", ctx, "mon-1").Return(mon, nil)
+		mockMonitorSvc.On("FindByID", ctx, "mon-1", "").Return(mon, nil)
 		mockMaintenanceSvc.On("GetMaintenancesByMonitorID", ctx, "mon-1").Return([]*maintenance.Model{}, nil)
 		mockQueueSvc.On("EnqueueUnique", ctx, worker.TaskTypeHealthCheck, mock.MatchedBy(func(payload worker.HealthCheckTaskPayload) bool {
 			return payload.CheckCertExpiry == false

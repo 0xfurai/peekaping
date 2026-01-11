@@ -11,7 +11,7 @@ type CreateUpdateDto struct {
 	Timeout         int      `json:"timeout" validate:"min=16" example:"16"`
 	ResendInterval  int      `json:"resend_interval" validate:"min=0" example:"10"`
 	Active          bool     `json:"active" example:"true"`
-	NotificationIds []string `json:"notification_ids" validate:"required" example:"6830ad485361f19c598d6d90"`
+	NotificationIds []string `json:"notification_ids" example:"6830ad485361f19c598d6d90"`
 	TagIds          []string `json:"tag_ids" example:"6830ad485361f19c598d6d90,6830ad485361f19c598d6d91"`
 	ProxyId         string   `json:"proxy_id" example:"6830ad485361f19c598d6d90"`
 	Config          string   `json:"config"`

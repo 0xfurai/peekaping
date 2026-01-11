@@ -157,13 +157,16 @@ func (r *MonitorRepositoryImpl) Create(ctx context.Context, monitor *Model) (*Mo
 	return toDomainModel(mm), nil
 }
 
-func (r *MonitorRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, error) {
+func (r *MonitorRepositoryImpl) FindByID(ctx context.Context, id string, orgID string) (*Model, error) {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, err
 	}
 
 	filter := bson.M{"_id": objectID}
+	if orgID != "" {
+		filter["org_id"] = orgID
+	}
 	var mm mongoModel
 	err = r.collection.FindOne(ctx, filter).Decode(&mm)
 	if err != nil {
@@ -376,14 +379,14 @@ func buildSetMapFromUpdateModel(mu *mongoUpdateModel, includeProxyId bool, proxy
 	return set, nil
 }
 
-func (r *MonitorRepositoryImpl) UpdateFull(ctx context.Context, id string, monitor *Model) error {
+func (r *MonitorRepositoryImpl) UpdateFull(ctx context.Context, id string, monitor *Model, orgID string) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return err
 	}
 
 	// Fetch existing monitor to preserve created_at
-	existingMonitor, err := r.FindByID(ctx, id)
+	existingMonitor, err := r.FindByID(ctx, id, orgID)
 	if err != nil {
 		return err
 	}
@@ -392,6 +395,9 @@ func (r *MonitorRepositoryImpl) UpdateFull(ctx context.Context, id string, monit
 	}
 
 	filter := bson.M{"_id": objectID}
+	if orgID != "" {
+		filter["org_id"] = orgID
+	}
 	update := bson.M{}
 
 	if monitor.ProxyId == "" {
@@ -411,7 +417,7 @@ func (r *MonitorRepositoryImpl) UpdateFull(ctx context.Context, id string, monit
 	return err
 }
 
-func (r *MonitorRepositoryImpl) UpdatePartial(ctx context.Context, id string, monitor *UpdateModel) error {
+func (r *MonitorRepositoryImpl) UpdatePartial(ctx context.Context, id string, monitor *UpdateModel, orgID string) error {
 	var proxyObjectID *primitive.ObjectID
 	unsetProxyId := false
 
@@ -455,6 +461,9 @@ func (r *MonitorRepositoryImpl) UpdatePartial(ctx context.Context, id string, mo
 	}
 
 	filter := bson.M{"_id": objectID}
+	if orgID != "" {
+		filter["org_id"] = orgID
+	}
 	update := bson.M{}
 	if len(set) > 0 {
 		update["$set"] = set
@@ -472,13 +481,16 @@ func (r *MonitorRepositoryImpl) UpdatePartial(ctx context.Context, id string, mo
 }
 
 // Delete removes a monitor from the MongoDB collection by its ID.
-func (r *MonitorRepositoryImpl) Delete(ctx context.Context, id string) error {
+func (r *MonitorRepositoryImpl) Delete(ctx context.Context, id string, orgID string) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return err
 	}
 
 	filter := bson.M{"_id": objectID}
+	if orgID != "" {
+		filter["org_id"] = orgID
+	}
 	_, err = r.collection.DeleteOne(ctx, filter)
 	return err
 }
@@ -610,7 +622,7 @@ func (r *MonitorRepositoryImpl) FindOneByPushToken(ctx context.Context, pushToke
 	return toDomainModel(&mm), nil
 }
 
-func (r *MonitorRepositoryImpl) FindByIDs(ctx context.Context, ids []string) ([]*Model, error) {
+func (r *MonitorRepositoryImpl) FindByIDs(ctx context.Context, ids []string, orgID string) ([]*Model, error) {
 	var monitors []*Model
 	var objectIDs []primitive.ObjectID
 
@@ -625,6 +637,9 @@ func (r *MonitorRepositoryImpl) FindByIDs(ctx context.Context, ids []string) ([]
 
 	// Create filter for the IDs
 	filter := bson.M{"_id": bson.M{"$in": objectIDs}}
+	if orgID != "" {
+		filter["org_id"] = orgID
+	}
 
 	cursor, err := r.collection.Find(ctx, filter)
 	if err != nil {

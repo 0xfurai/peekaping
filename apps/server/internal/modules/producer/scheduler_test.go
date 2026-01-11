@@ -177,7 +177,7 @@ func TestAddMonitor(t *testing.T) {
 			Interval: 60,
 		}
 
-		mockMonitorSvc.On("FindByID", ctx, "monitor-123").Return(mon, nil)
+		mockMonitorSvc.On("FindByID", ctx, "monitor-123", "").Return(mon, nil)
 
 		err := producer.AddMonitor(ctx, "monitor-123")
 		assert.NoError(t, err)
@@ -212,7 +212,7 @@ func TestAddMonitor(t *testing.T) {
 			Interval: 60,
 		}
 
-		mockMonitorSvc.On("FindByID", ctx, "monitor-123").Return(mon, nil)
+		mockMonitorSvc.On("FindByID", ctx, "monitor-123", "").Return(mon, nil)
 
 		err := producer.AddMonitor(ctx, "monitor-123")
 		assert.NoError(t, err)
@@ -247,7 +247,7 @@ func TestAddMonitor(t *testing.T) {
 			Interval: 0,
 		}
 
-		mockMonitorSvc.On("FindByID", ctx, "monitor-123").Return(mon, nil)
+		mockMonitorSvc.On("FindByID", ctx, "monitor-123", "").Return(mon, nil)
 
 		err := producer.AddMonitor(ctx, "monitor-123")
 		assert.NoError(t, err)
@@ -275,7 +275,7 @@ func TestAddMonitor(t *testing.T) {
 		}
 
 		ctx := context.Background()
-		mockMonitorSvc.On("FindByID", ctx, "monitor-123").Return(nil, assert.AnError)
+		mockMonitorSvc.On("FindByID", ctx, "monitor-123", "").Return(nil, assert.AnError)
 
 		err := producer.AddMonitor(ctx, "monitor-123")
 		assert.Error(t, err)
@@ -314,7 +314,7 @@ func TestUpdateMonitor(t *testing.T) {
 			Interval: 120,
 		}
 
-		mockMonitorSvc.On("FindByID", ctx, "monitor-123").Return(mon, nil)
+		mockMonitorSvc.On("FindByID", ctx, "monitor-123", "").Return(mon, nil)
 
 		err = producer.UpdateMonitor(ctx, "monitor-123")
 		assert.NoError(t, err)
@@ -354,7 +354,7 @@ func TestUpdateMonitor(t *testing.T) {
 			Interval: 60,
 		}
 
-		mockMonitorSvc.On("FindByID", ctx, "monitor-123").Return(mon, nil)
+		mockMonitorSvc.On("FindByID", ctx, "monitor-123", "").Return(mon, nil)
 
 		err = producer.UpdateMonitor(ctx, "monitor-123")
 		assert.NoError(t, err)
@@ -395,7 +395,7 @@ func TestUpdateMonitor(t *testing.T) {
 			Interval: -10,
 		}
 
-		mockMonitorSvc.On("FindByID", ctx, "monitor-123").Return(mon, nil)
+		mockMonitorSvc.On("FindByID", ctx, "monitor-123", "").Return(mon, nil)
 
 		err = producer.UpdateMonitor(ctx, "monitor-123")
 		assert.NoError(t, err)

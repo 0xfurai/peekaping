@@ -131,7 +131,7 @@ func (p *Producer) isUnderMaintenance(ctx context.Context, monitorID string) (bo
 func (p *Producer) processMonitor(ctx context.Context, monitorID string, nowMs int64) (int, error) {
 	start := time.Now()
 	// Fetch monitor from database
-	mon, err := p.monitorService.FindByID(ctx, monitorID)
+	mon, err := p.monitorService.FindByID(ctx, monitorID, "")
 	if err != nil {
 		return 0, fmt.Errorf("failed to find monitor: %w", err)
 	}

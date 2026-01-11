@@ -30,16 +30,16 @@ func (m *MockRepository) Create(ctx context.Context, entity *Model) (*Model, err
 	return args.Get(0).(*Model), args.Error(1)
 }
 
-func (m *MockRepository) FindByID(ctx context.Context, id string) (*Model, error) {
-	args := m.Called(ctx, id)
+func (m *MockRepository) FindByID(ctx context.Context, id string, orgID string) (*Model, error) {
+	args := m.Called(ctx, id, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*Model), args.Error(1)
 }
 
-func (m *MockRepository) FindAll(ctx context.Context, page int, limit int, q string) ([]*Model, error) {
-	args := m.Called(ctx, page, limit, q)
+func (m *MockRepository) FindAll(ctx context.Context, page int, limit int, q string, orgID string) ([]*Model, error) {
+	args := m.Called(ctx, page, limit, q, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
@@ -80,16 +80,16 @@ func (m *MockMonitorService) Create(ctx context.Context, monitor *monitor.Create
 	return args.Get(0).(*shared.Monitor), args.Error(1)
 }
 
-func (m *MockMonitorService) FindByID(ctx context.Context, id string) (*shared.Monitor, error) {
-	args := m.Called(ctx, id)
+func (m *MockMonitorService) FindByID(ctx context.Context, id string, orgID string) (*shared.Monitor, error) {
+	args := m.Called(ctx, id, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*shared.Monitor), args.Error(1)
 }
 
-func (m *MockMonitorService) FindByIDs(ctx context.Context, ids []string) ([]*shared.Monitor, error) {
-	args := m.Called(ctx, ids)
+func (m *MockMonitorService) FindByIDs(ctx context.Context, ids []string, orgID string) ([]*shared.Monitor, error) {
+	args := m.Called(ctx, ids, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
@@ -120,16 +120,16 @@ func (m *MockMonitorService) UpdateFull(ctx context.Context, id string, monitor 
 	return args.Get(0).(*shared.Monitor), args.Error(1)
 }
 
-func (m *MockMonitorService) UpdatePartial(ctx context.Context, id string, monitor *monitor.PartialUpdateDto, noPublish bool) (*shared.Monitor, error) {
-	args := m.Called(ctx, id, monitor, noPublish)
+func (m *MockMonitorService) UpdatePartial(ctx context.Context, id string, monitor *monitor.PartialUpdateDto, noPublish bool, orgID string) (*shared.Monitor, error) {
+	args := m.Called(ctx, id, monitor, noPublish, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*shared.Monitor), args.Error(1)
 }
 
-func (m *MockMonitorService) Delete(ctx context.Context, id string) error {
-	args := m.Called(ctx, id)
+func (m *MockMonitorService) Delete(ctx context.Context, id string, orgID string) error {
+	args := m.Called(ctx, id, orgID)
 	return args.Error(0)
 }
 
@@ -138,8 +138,8 @@ func (m *MockMonitorService) ValidateMonitorConfig(monitorType string, configJSO
 	return args.Error(0)
 }
 
-func (m *MockMonitorService) GetHeartbeats(ctx context.Context, id string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error) {
-	args := m.Called(ctx, id, limit, page, important, reverse)
+func (m *MockMonitorService) GetHeartbeats(ctx context.Context, id string, limit, page int, important *bool, reverse bool, orgID string) ([]*heartbeat.Model, error) {
+	args := m.Called(ctx, id, limit, page, important, reverse, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
@@ -159,16 +159,16 @@ func (m *MockMonitorService) FindByProxyId(ctx context.Context, proxyId string) 
 	return args.Get(0).([]*shared.Monitor), args.Error(1)
 }
 
-func (m *MockMonitorService) GetStatPoints(ctx context.Context, id string, since, until time.Time, granularity string) (*monitor.StatPointsSummaryDto, error) {
-	args := m.Called(ctx, id, since, until, granularity)
+func (m *MockMonitorService) GetStatPoints(ctx context.Context, id string, since, until time.Time, granularity string, orgID string) (*monitor.StatPointsSummaryDto, error) {
+	args := m.Called(ctx, id, since, until, granularity, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*monitor.StatPointsSummaryDto), args.Error(1)
 }
 
-func (m *MockMonitorService) GetUptimeStats(ctx context.Context, id string) (*monitor.CustomUptimeStatsDto, error) {
-	args := m.Called(ctx, id)
+func (m *MockMonitorService) GetUptimeStats(ctx context.Context, id string, orgID string) (*monitor.CustomUptimeStatsDto, error) {
+	args := m.Called(ctx, id, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
@@ -183,8 +183,8 @@ func (m *MockMonitorService) FindOneByPushToken(ctx context.Context, pushToken s
 	return args.Get(0).(*shared.Monitor), args.Error(1)
 }
 
-func (m *MockMonitorService) ResetMonitorData(ctx context.Context, id string) error {
-	args := m.Called(ctx, id)
+func (m *MockMonitorService) ResetMonitorData(ctx context.Context, id string, orgID string) error {
+	args := m.Called(ctx, id, orgID)
 	return args.Error(0)
 }
 
@@ -396,7 +396,7 @@ func TestServiceImpl_FindByID(t *testing.T) {
 				logger:         logger,
 			}
 
-			mockRepo.On("FindByID", mock.Anything, tt.id).Return(tt.repoResponse, tt.repoError)
+			mockRepo.On("FindByID", mock.Anything, tt.id, "").Return(tt.repoResponse, tt.repoError)
 
 			// Execute
 			result, err := service.FindByID(context.Background(), tt.id)
@@ -502,7 +502,7 @@ func TestServiceImpl_FindAll(t *testing.T) {
 				logger:         logger,
 			}
 
-			mockRepo.On("FindAll", mock.Anything, tt.page, tt.limit, tt.query).Return(tt.repoResponse, tt.repoError)
+			mockRepo.On("FindAll", mock.Anything, tt.page, tt.limit, tt.query, "").Return(tt.repoResponse, tt.repoError)
 
 			// Execute
 			result, err := service.FindAll(context.Background(), tt.page, tt.limit, tt.query)

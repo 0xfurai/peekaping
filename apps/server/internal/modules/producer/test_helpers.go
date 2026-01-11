@@ -44,16 +44,16 @@ func (m *MockMonitorService) Create(ctx context.Context, dto *monitor.CreateUpda
 	return args.Get(0).(*monitor.Model), args.Error(1)
 }
 
-func (m *MockMonitorService) FindByID(ctx context.Context, id string) (*monitor.Model, error) {
-	args := m.Called(ctx, id)
+func (m *MockMonitorService) FindByID(ctx context.Context, id string, orgID string) (*monitor.Model, error) {
+	args := m.Called(ctx, id, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*monitor.Model), args.Error(1)
 }
 
-func (m *MockMonitorService) FindByIDs(ctx context.Context, ids []string) ([]*monitor.Model, error) {
-	args := m.Called(ctx, ids)
+func (m *MockMonitorService) FindByIDs(ctx context.Context, ids []string, orgID string) ([]*monitor.Model, error) {
+	args := m.Called(ctx, ids, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
@@ -104,16 +104,16 @@ func (m *MockMonitorService) UpdateFull(ctx context.Context, id string, dto *mon
 	return args.Get(0).(*monitor.Model), args.Error(1)
 }
 
-func (m *MockMonitorService) UpdatePartial(ctx context.Context, id string, dto *monitor.PartialUpdateDto, noPublish bool) (*monitor.Model, error) {
-	args := m.Called(ctx, id, dto, noPublish)
+func (m *MockMonitorService) UpdatePartial(ctx context.Context, id string, dto *monitor.PartialUpdateDto, noPublish bool, orgID string) (*monitor.Model, error) {
+	args := m.Called(ctx, id, dto, noPublish, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*monitor.Model), args.Error(1)
 }
 
-func (m *MockMonitorService) Delete(ctx context.Context, id string) error {
-	args := m.Called(ctx, id)
+func (m *MockMonitorService) Delete(ctx context.Context, id string, orgID string) error {
+	args := m.Called(ctx, id, orgID)
 	return args.Error(0)
 }
 
@@ -122,8 +122,8 @@ func (m *MockMonitorService) ValidateMonitorConfig(monitorType string, configJSO
 	return args.Error(0)
 }
 
-func (m *MockMonitorService) GetHeartbeats(ctx context.Context, id string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error) {
-	args := m.Called(ctx, id, limit, page, important, reverse)
+func (m *MockMonitorService) GetHeartbeats(ctx context.Context, id string, limit, page int, important *bool, reverse bool, orgID string) ([]*heartbeat.Model, error) {
+	args := m.Called(ctx, id, limit, page, important, reverse, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
@@ -143,16 +143,16 @@ func (m *MockMonitorService) FindByProxyId(ctx context.Context, proxyId string) 
 	return args.Get(0).([]*monitor.Model), args.Error(1)
 }
 
-func (m *MockMonitorService) GetStatPoints(ctx context.Context, id string, since, until time.Time, granularity string) (*monitor.StatPointsSummaryDto, error) {
-	args := m.Called(ctx, id, since, until, granularity)
+func (m *MockMonitorService) GetStatPoints(ctx context.Context, id string, since, until time.Time, granularity string, orgID string) (*monitor.StatPointsSummaryDto, error) {
+	args := m.Called(ctx, id, since, until, granularity, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*monitor.StatPointsSummaryDto), args.Error(1)
 }
 
-func (m *MockMonitorService) GetUptimeStats(ctx context.Context, id string) (*monitor.CustomUptimeStatsDto, error) {
-	args := m.Called(ctx, id)
+func (m *MockMonitorService) GetUptimeStats(ctx context.Context, id string, orgID string) (*monitor.CustomUptimeStatsDto, error) {
+	args := m.Called(ctx, id, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
@@ -167,8 +167,8 @@ func (m *MockMonitorService) FindOneByPushToken(ctx context.Context, pushToken s
 	return args.Get(0).(*monitor.Model), args.Error(1)
 }
 
-func (m *MockMonitorService) ResetMonitorData(ctx context.Context, id string) error {
-	args := m.Called(ctx, id)
+func (m *MockMonitorService) ResetMonitorData(ctx context.Context, id string, orgID string) error {
+	args := m.Called(ctx, id, orgID)
 	return args.Error(0)
 }
 
@@ -203,16 +203,16 @@ func (m *MockMaintenanceService) Delete(ctx context.Context, id string) error {
 	return args.Error(0)
 }
 
-func (m *MockMaintenanceService) FindByID(ctx context.Context, id string) (*maintenance.Model, error) {
-	args := m.Called(ctx, id)
+func (m *MockMaintenanceService) FindByID(ctx context.Context, id string, orgID string) (*maintenance.Model, error) {
+	args := m.Called(ctx, id, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*maintenance.Model), args.Error(1)
 }
 
-func (m *MockMaintenanceService) FindAll(ctx context.Context, page int, limit int, q string, strategy string) ([]*maintenance.Model, error) {
-	args := m.Called(ctx, page, limit, q, strategy)
+func (m *MockMaintenanceService) FindAll(ctx context.Context, page int, limit int, q string, strategy string, orgID string) ([]*maintenance.Model, error) {
+	args := m.Called(ctx, page, limit, q, strategy, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}

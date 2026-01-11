@@ -155,6 +155,9 @@ func (ic *MonitorController) Create(ctx *gin.Context) {
 		return
 	}
 
+	// Inject OrgID from middleware
+	monitor.OrgID = ctx.GetString("orgId")
+
 	if err := utils.Validate.Struct(monitor); err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		return
@@ -214,8 +217,9 @@ func (ic *MonitorController) Create(ctx *gin.Context) {
 // @Failure		500	{object}	utils.APIError[any]
 func (ic *MonitorController) FindByID(ctx *gin.Context) {
 	id := ctx.Param("id")
+	orgID := ctx.GetString("orgId")
 
-	monitor, err := ic.monitorService.FindByID(ctx, id)
+	monitor, err := ic.monitorService.FindByID(ctx, id, orgID)
 	if err != nil {
 		ic.logger.Errorw("Failed to fetch monitor", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -289,6 +293,7 @@ func (ic *MonitorController) FindByID(ctx *gin.Context) {
 // @Failure		500	{object}	utils.APIError[any]
 func (ic *MonitorController) UpdateFull(ctx *gin.Context) {
 	id := ctx.Param("id")
+	orgID := ctx.GetString("orgId")
 
 	var monitor CreateUpdateDto
 	if err := ctx.ShouldBindJSON(&monitor); err != nil {
@@ -307,6 +312,9 @@ func (ic *MonitorController) UpdateFull(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Invalid monitor configuration: %v", err)))
 		return
 	}
+
+	// Set OrgID in DTO to ensure it is passed down
+	monitor.OrgID = orgID
 
 	updatedMonitor, err := ic.monitorService.UpdateFull(ctx, id, &monitor)
 	if err != nil {
@@ -373,6 +381,7 @@ func (ic *MonitorController) UpdateFull(ctx *gin.Context) {
 // @Failure		500	{object}	utils.APIError[any]
 func (ic *MonitorController) UpdatePartial(ctx *gin.Context) {
 	id := ctx.Param("id")
+	orgID := ctx.GetString("orgId")
 
 	var monitor PartialUpdateDto
 	if err := ctx.ShouldBindJSON(&monitor); err != nil {
@@ -388,7 +397,10 @@ func (ic *MonitorController) UpdatePartial(ctx *gin.Context) {
 		}
 	}
 
-	updatedMonitor, err := ic.monitorService.UpdatePartial(ctx, id, &monitor, false)
+	// Set OrgID in DTO
+	monitor.OrgID = &orgID
+
+	updatedMonitor, err := ic.monitorService.UpdatePartial(ctx, id, &monitor, false, orgID)
 	if err != nil {
 		ic.logger.Errorw("Failed to update monitor", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -489,8 +501,9 @@ func (ic *MonitorController) UpdatePartial(ctx *gin.Context) {
 // @Failure		500	{object}	utils.APIError[any]
 func (ic *MonitorController) Delete(ctx *gin.Context) {
 	id := ctx.Param("id")
+	orgID := ctx.GetString("orgId")
 
-	err := ic.monitorService.Delete(ctx, id)
+	err := ic.monitorService.Delete(ctx, id, orgID)
 	if err != nil {
 		ic.logger.Errorw("Failed to delete monitor", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -517,6 +530,7 @@ func (ic *MonitorController) Delete(ctx *gin.Context) {
 // @Failure	500	{object}	utils.APIError[any]
 func (ic *MonitorController) FindByMonitorIDPaginated(ctx *gin.Context) {
 	id := ctx.Param("id")
+	orgID := ctx.GetString("orgId")
 
 	limit, err := utils.GetQueryInt(ctx, "limit", 50)
 	if err != nil || limit < 1 || limit > 1000 {
@@ -551,7 +565,7 @@ func (ic *MonitorController) FindByMonitorIDPaginated(ctx *gin.Context) {
 		}
 	}
 
-	results, err := ic.monitorService.GetHeartbeats(ctx, id, limit, page, importantPtr, reverse)
+	results, err := ic.monitorService.GetHeartbeats(ctx, id, limit, page, importantPtr, reverse, orgID)
 	if err != nil {
 		ic.logger.Errorw("Failed to get heartbeats", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -576,6 +590,7 @@ func (ic *MonitorController) FindByMonitorIDPaginated(ctx *gin.Context) {
 // @Failure 500 {object} utils.APIError[any]
 func (ic *MonitorController) GetStatPoints(ctx *gin.Context) {
 	id := ctx.Param("id")
+	orgID := ctx.GetString("orgId")
 
 	sinceStr := ctx.Query("since")
 	if sinceStr == "" {
@@ -627,7 +642,7 @@ func (ic *MonitorController) GetStatPoints(ctx *gin.Context) {
 		return
 	}
 
-	summary, err := ic.monitorService.GetStatPoints(ctx, id, since, until, granularity)
+	summary, err := ic.monitorService.GetStatPoints(ctx, id, since, until, granularity, orgID)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		return
@@ -648,8 +663,9 @@ func (ic *MonitorController) GetStatPoints(ctx *gin.Context) {
 // @Failure 500 {object} utils.APIError[any]
 func (ic *MonitorController) GetUptimeStats(ctx *gin.Context) {
 	id := ctx.Param("id")
+	orgID := ctx.GetString("orgId")
 
-	stats, err := ic.monitorService.GetUptimeStats(ctx, id)
+	stats, err := ic.monitorService.GetUptimeStats(ctx, id, orgID)
 	if err != nil {
 		ic.logger.Errorw("Failed to get uptime stats (short)", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -688,7 +704,8 @@ func (ic *MonitorController) FindByIDs(ctx *gin.Context) {
 		return
 	}
 
-	monitors, err := ic.monitorService.FindByIDs(ctx, ids)
+	orgID := ctx.GetString("orgId")
+	monitors, err := ic.monitorService.FindByIDs(ctx, ids, orgID)
 	if err != nil {
 		ic.logger.Errorw("Failed to fetch monitors", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -711,8 +728,9 @@ func (ic *MonitorController) FindByIDs(ctx *gin.Context) {
 // @Failure 500 {object} utils.APIError[any]
 func (ic *MonitorController) ResetMonitorData(ctx *gin.Context) {
 	id := ctx.Param("id")
+	orgID := ctx.GetString("orgId")
 
-	err := ic.monitorService.ResetMonitorData(ctx, id)
+	err := ic.monitorService.ResetMonitorData(ctx, id, orgID)
 	if err != nil {
 		if err.Error() == "monitor not found" {
 			ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Monitor not found"))
@@ -740,8 +758,9 @@ func (ic *MonitorController) ResetMonitorData(ctx *gin.Context) {
 func (ic *MonitorController) GetTLSInfo(ctx *gin.Context) {
 	id := ctx.Param("id")
 
+	orgID := ctx.GetString("orgId")
 	// First, verify the monitor exists
-	_, err := ic.monitorService.FindByID(ctx, id)
+	_, err := ic.monitorService.FindByID(ctx, id, orgID)
 	if err != nil {
 		if err.Error() == "monitor not found" {
 			ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Monitor not found"))
