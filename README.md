@@ -155,7 +155,7 @@ If you enjoy this project, come say hi &amp; follow along!
 - [ ] ClickSend SMS
 - [ ] Rocket.Chat
 
-![Alt](https://repobeats.axiom.co/api/embed/747c845fe0118082b51a1ab2fc6f8a4edd73c016.svg "Repobeats analytics image")
+![Alt](https://repobeats.axiom.co/api/embed/5841016566fe70434a88d63e6a9abd463404167f.svg "Repobeats analytics image")
 
 ## 🤝 Contributing
 
@@ -166,6 +166,10 @@ We welcome contributions! Please:
 3. Make your changes
 4. Add tests if applicable
 5. Submit a pull request
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=vigi-run/vivi&type=date&legend=top-left)](https://www.star-history.com/#vigi-run/vivi&type=date&legend=top-left)
 
 ## 📝 License
 
