@@ -13,6 +13,9 @@ type Monitor struct {
 	// monitor name
 	Name string `json:"name" example:"Monitor"`
 
+	// Organization ID
+	OrgID string `json:"org_id"`
+
 	// monitor url
 	// Url string `json:"url" example:"https://example.com"`
 
@@ -47,6 +50,7 @@ type Monitor struct {
 
 type UpdateMonitor struct {
 	ID             *string        `json:"id"`
+	OrgID          *string        `json:"org_id"`
 	Type           *string        `json:"type"`
 	Name           *string        `json:"name"`
 	Interval       *int           `json:"interval"`

@@ -29,6 +29,7 @@ type sqlModel struct {
 	Config         string               `bun:"config"`
 	ProxyId        *string              `bun:"proxy_id"`
 	PushToken      string               `bun:"push_token"`
+	OrgID          *string              `bun:"org_id,type:uuid"`
 }
 
 func toDomainModelFromSQL(sm *sqlModel) *Model {
@@ -54,7 +55,15 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 		Config:         sm.Config,
 		ProxyId:        proxyId,
 		PushToken:      sm.PushToken,
+		OrgID:          getStringFromPointer(sm.OrgID),
 	}
+}
+
+func getStringFromPointer(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
 }
 
 func toSQLModel(m *Model) *sqlModel {
@@ -80,7 +89,15 @@ func toSQLModel(m *Model) *sqlModel {
 		Config:         m.Config,
 		ProxyId:        proxyId,
 		PushToken:      m.PushToken,
+		OrgID:          getPointerFromString(m.OrgID),
 	}
+}
+
+func getPointerFromString(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
 }
 
 type SQLRepositoryImpl struct {
@@ -308,6 +325,14 @@ func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, monito
 	}
 	if monitor.PushToken != nil {
 		query = query.Set("push_token = ?", *monitor.PushToken)
+		hasUpdates = true
+	}
+	if monitor.OrgID != nil {
+		if *monitor.OrgID == "" {
+			query = query.Set("org_id = ?", nil)
+		} else {
+			query = query.Set("org_id = ?", *monitor.OrgID)
+		}
 		hasUpdates = true
 	}
 

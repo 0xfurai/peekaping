@@ -3,6 +3,7 @@ package monitor
 import (
 	"context"
 	"fmt"
+	"time"
 	"vigi/internal/modules/events"
 	"vigi/internal/modules/healthcheck/executor"
 	"vigi/internal/modules/heartbeat"
@@ -10,7 +11,6 @@ import (
 	"vigi/internal/modules/monitor_tag"
 	"vigi/internal/modules/shared"
 	"vigi/internal/modules/stats"
-	"time"
 
 	"go.uber.org/zap"
 )
@@ -97,6 +97,7 @@ func (mr *MonitorServiceImpl) Create(ctx context.Context, monitorCreateDto *Crea
 		Config:         monitorCreateDto.Config,
 		ProxyId:        monitorCreateDto.ProxyId,
 		PushToken:      monitorCreateDto.PushToken,
+		OrgID:          monitorCreateDto.OrgID,
 	}
 
 	createdModel, err := mr.monitorRepository.Create(ctx, createModel)
@@ -154,6 +155,7 @@ func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, id string, monitor
 		Config:         monitor.Config,
 		ProxyId:        monitor.ProxyId,
 		PushToken:      monitor.PushToken,
+		OrgID:          monitor.OrgID,
 	}
 
 	err := mr.monitorRepository.UpdateFull(ctx, id, model)
@@ -185,6 +187,7 @@ func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, moni
 		Config:         monitor.Config,
 		ProxyId:        monitor.ProxyId,
 		PushToken:      monitor.PushToken,
+		OrgID:          monitor.OrgID,
 	}
 
 	err := mr.monitorRepository.UpdatePartial(ctx, id, model)

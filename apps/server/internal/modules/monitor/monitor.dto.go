@@ -16,6 +16,7 @@ type CreateUpdateDto struct {
 	ProxyId         string   `json:"proxy_id" example:"6830ad485361f19c598d6d90"`
 	Config          string   `json:"config"`
 	PushToken       string   `json:"push_token"`
+	OrgID           string   `json:"org_id" validate:"required" example:"60c72b2f9b1e8b6f1f8e4b1a"`
 }
 
 type PartialUpdateDto struct {
@@ -33,6 +34,7 @@ type PartialUpdateDto struct {
 	Status          *heartbeat.MonitorStatus `json:"status,omitempty" example:"1"`
 	Config          *string                  `json:"config,omitempty"`
 	PushToken       *string                  `json:"push_token,omitempty"`
+	OrgID           *string                  `json:"org_id,omitempty" example:"60c72b2f9b1e8b6f1f8e4b1a"`
 }
 
 // UptimeStatsDto represents uptime percentages for various periods

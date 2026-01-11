@@ -3,9 +3,9 @@ package monitor
 import (
 	"context"
 	"database/sql"
-	"vigi/internal/modules/shared"
 	"testing"
 	"time"
+	"vigi/internal/modules/shared"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -37,7 +37,8 @@ func setupTestDB(t *testing.T) *bun.DB {
 			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			config TEXT,
 			proxy_id TEXT,
-			push_token TEXT
+			push_token TEXT,
+			org_id TEXT
 		)
 	`)
 	require.NoError(t, err)
