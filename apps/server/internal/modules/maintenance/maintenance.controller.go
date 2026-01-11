@@ -199,7 +199,10 @@ func (ic *Controller) UpdateFull(ctx *gin.Context) {
 		return
 	}
 
-	updated, err := ic.service.UpdateFull(ctx, id, &entity)
+	// Extract orgID from context (set by OrganizationMiddleware)
+	orgID := ctx.GetString("orgId")
+
+	updated, err := ic.service.UpdateFull(ctx, id, &entity, orgID)
 	if err != nil {
 		ic.logger.Errorw("Failed to update maintenance", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -230,7 +233,10 @@ func (ic *Controller) UpdatePartial(ctx *gin.Context) {
 		return
 	}
 
-	updated, err := ic.service.UpdatePartial(ctx, id, &entity)
+	// Extract orgID from context (set by OrganizationMiddleware)
+	orgID := ctx.GetString("orgId")
+
+	updated, err := ic.service.UpdatePartial(ctx, id, &entity, orgID)
 	if err != nil {
 		ic.logger.Errorw("Failed to update maintenance", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -253,7 +259,10 @@ func (ic *Controller) UpdatePartial(ctx *gin.Context) {
 func (ic *Controller) Delete(ctx *gin.Context) {
 	id := ctx.Param("id")
 
-	err := ic.service.Delete(ctx, id)
+	// Extract orgID from context (set by OrganizationMiddleware)
+	orgID := ctx.GetString("orgId")
+
+	err := ic.service.Delete(ctx, id, orgID)
 	if err != nil {
 		ic.logger.Errorw("Failed to delete maintenance", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -276,7 +285,10 @@ func (ic *Controller) Delete(ctx *gin.Context) {
 func (ic *Controller) Pause(ctx *gin.Context) {
 	fmt.Println("Pausing maintenance")
 	id := ctx.Param("id")
-	updated, err := ic.service.SetActive(ctx, id, false)
+	// Extract orgID from context (set by OrganizationMiddleware)
+	orgID := ctx.GetString("orgId")
+
+	updated, err := ic.service.SetActive(ctx, id, false, orgID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Failed to pause maintenance"))
 		return
@@ -296,7 +308,10 @@ func (ic *Controller) Pause(ctx *gin.Context) {
 // @Failure		500	{object}	utils.APIError[any]
 func (ic *Controller) Resume(ctx *gin.Context) {
 	id := ctx.Param("id")
-	updated, err := ic.service.SetActive(ctx, id, true)
+	// Extract orgID from context (set by OrganizationMiddleware)
+	orgID := ctx.GetString("orgId")
+
+	updated, err := ic.service.SetActive(ctx, id, true, orgID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Failed to resume maintenance"))
 		return

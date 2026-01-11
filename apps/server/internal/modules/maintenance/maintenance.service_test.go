@@ -27,42 +27,42 @@ func (m *MockRepository) Create(ctx context.Context, entity *CreateUpdateDto) (*
 	return args.Get(0).(*Model), args.Error(1)
 }
 
-func (m *MockRepository) FindByID(ctx context.Context, id string) (*Model, error) {
-	args := m.Called(ctx, id)
+func (m *MockRepository) FindByID(ctx context.Context, id string, orgID string) (*Model, error) {
+	args := m.Called(ctx, id, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*Model), args.Error(1)
 }
 
-func (m *MockRepository) FindAll(ctx context.Context, page int, limit int, q string, strategy string) ([]*Model, error) {
-	args := m.Called(ctx, page, limit, q, strategy)
+func (m *MockRepository) FindAll(ctx context.Context, page int, limit int, q string, strategy string, orgID string) ([]*Model, error) {
+	args := m.Called(ctx, page, limit, q, strategy, orgID)
 	return args.Get(0).([]*Model), args.Error(1)
 }
 
-func (m *MockRepository) UpdateFull(ctx context.Context, id string, entity *CreateUpdateDto) (*Model, error) {
-	args := m.Called(ctx, id, entity)
+func (m *MockRepository) UpdateFull(ctx context.Context, id string, entity *CreateUpdateDto, orgID string) (*Model, error) {
+	args := m.Called(ctx, id, entity, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*Model), args.Error(1)
 }
 
-func (m *MockRepository) UpdatePartial(ctx context.Context, id string, entity *PartialUpdateDto) (*Model, error) {
-	args := m.Called(ctx, id, entity)
+func (m *MockRepository) UpdatePartial(ctx context.Context, id string, entity *PartialUpdateDto, orgID string) (*Model, error) {
+	args := m.Called(ctx, id, entity, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*Model), args.Error(1)
 }
 
-func (m *MockRepository) Delete(ctx context.Context, id string) error {
-	args := m.Called(ctx, id)
+func (m *MockRepository) Delete(ctx context.Context, id string, orgID string) error {
+	args := m.Called(ctx, id, orgID)
 	return args.Error(0)
 }
 
-func (m *MockRepository) SetActive(ctx context.Context, id string, active bool) (*Model, error) {
-	args := m.Called(ctx, id, active)
+func (m *MockRepository) SetActive(ctx context.Context, id string, active bool, orgID string) (*Model, error) {
+	args := m.Called(ctx, id, active, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
@@ -357,9 +357,9 @@ func TestServiceImpl_FindByID_Success(t *testing.T) {
 
 	expectedModel := createTestModel()
 
-	mockRepo.On("FindByID", mock.Anything, "test-id").Return(expectedModel, nil)
+	mockRepo.On("FindByID", mock.Anything, "test-id", mock.Anything).Return(expectedModel, nil)
 
-	result, err := service.FindByID(context.Background(), "test-id")
+	result, err := service.FindByID(context.Background(), "test-id", "test-org")
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedModel, result)
@@ -371,9 +371,9 @@ func TestServiceImpl_FindByID_NotFound(t *testing.T) {
 
 	expectedError := errors.New("not found")
 
-	mockRepo.On("FindByID", mock.Anything, "nonexistent-id").Return(nil, expectedError)
+	mockRepo.On("FindByID", mock.Anything, "nonexistent-id", mock.Anything).Return(nil, expectedError)
 
-	result, err := service.FindByID(context.Background(), "nonexistent-id")
+	result, err := service.FindByID(context.Background(), "nonexistent-id", "test-org")
 
 	assert.Error(t, err)
 	assert.Nil(t, result)
@@ -387,9 +387,9 @@ func TestServiceImpl_FindAll_Success(t *testing.T) {
 
 	expectedModels := []*Model{createTestModel()}
 
-	mockRepo.On("FindAll", mock.Anything, 1, 10, "test", "single").Return(expectedModels, nil)
+	mockRepo.On("FindAll", mock.Anything, 1, 10, "test", "single", "test-org").Return(expectedModels, nil)
 
-	result, err := service.FindAll(context.Background(), 1, 10, "test", "single")
+	result, err := service.FindAll(context.Background(), 1, 10, "test", "single", "test-org")
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedModels, result)
@@ -406,10 +406,10 @@ func TestServiceImpl_UpdateFull_Success(t *testing.T) {
 	mockValidator.On("ValidateCronAndDuration", mock.AnythingOfType("*utils.ValidationParams")).Return(nil)
 	// For "single" strategy, cron generator returns nil
 	mockCronGenerator.On("GenerateCronExpression", dto.Strategy, mock.AnythingOfType("*utils.CronParams")).Return(nil, nil)
-	mockRepo.On("UpdateFull", mock.Anything, "test-id", dto).Return(expectedModel, nil)
+	mockRepo.On("UpdateFull", mock.Anything, "test-id", dto, "test-org").Return(expectedModel, nil)
 	mockMonitorMaintenanceService.On("SetMonitors", mock.Anything, "test-id", dto.MonitorIds).Return(nil)
 
-	result, err := service.UpdateFull(context.Background(), "test-id", dto)
+	result, err := service.UpdateFull(context.Background(), "test-id", dto, "test-org")
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedModel, result)
@@ -437,14 +437,14 @@ func TestServiceImpl_UpdatePartial_Success(t *testing.T) {
 	expectedModel.Active = active
 
 	// UpdatePartial calls FindByID to get current maintenance for duration calculation
-	mockRepo.On("FindByID", mock.Anything, "test-id").Return(currentModel, nil)
+	mockRepo.On("FindByID", mock.Anything, "test-id", "test-org").Return(currentModel, nil)
 	// UpdatePartial also calls CalculateDurationFromTimes since start and end times are available
 	mockTimeUtils.On("CalculateDurationFromTimes", *currentModel.StartTime, *currentModel.EndTime).Return(480, nil)
 	mockValidator.On("ValidateCronAndDuration", mock.AnythingOfType("*utils.ValidationParams")).Return(nil)
-	mockRepo.On("UpdatePartial", mock.Anything, "test-id", mock.AnythingOfType("*maintenance.PartialUpdateDto")).Return(expectedModel, nil)
+	mockRepo.On("UpdatePartial", mock.Anything, "test-id", mock.AnythingOfType("*maintenance.PartialUpdateDto"), "test-org").Return(expectedModel, nil)
 	mockMonitorMaintenanceService.On("SetMonitors", mock.Anything, "test-id", dto.MonitorIds).Return(nil)
 
-	result, err := service.UpdatePartial(context.Background(), "test-id", dto)
+	result, err := service.UpdatePartial(context.Background(), "test-id", dto, "test-org")
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedModel, result)
@@ -468,16 +468,16 @@ func TestServiceImpl_UpdatePartial_WithStrategyChange(t *testing.T) {
 
 	generatedCron := "0 9 * * 1-5"
 
-	mockRepo.On("FindByID", mock.Anything, "test-id").Return(currentModel, nil)
+	mockRepo.On("FindByID", mock.Anything, "test-id", "test-org").Return(currentModel, nil)
 	mockCronGenerator.On("GenerateCronExpression", newStrategy, mock.AnythingOfType("*utils.CronParams")).Return(&generatedCron, nil)
 	// UpdatePartial also calls CalculateDurationFromTimes since start and end times are available
 	mockTimeUtils.On("CalculateDurationFromTimes", *currentModel.StartTime, *currentModel.EndTime).Return(480, nil)
 	mockValidator.On("ValidateCronAndDuration", mock.AnythingOfType("*utils.ValidationParams")).Return(nil)
 	mockRepo.On("UpdatePartial", mock.Anything, "test-id", mock.MatchedBy(func(d *PartialUpdateDto) bool {
 		return d.Cron != nil && *d.Cron == generatedCron
-	})).Return(expectedModel, nil)
+	}), "test-org").Return(expectedModel, nil)
 
-	result, err := service.UpdatePartial(context.Background(), "test-id", dto)
+	result, err := service.UpdatePartial(context.Background(), "test-id", dto, "test-org")
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedModel, result)
@@ -489,9 +489,9 @@ func TestServiceImpl_UpdatePartial_WithStrategyChange(t *testing.T) {
 func TestServiceImpl_Delete_Success(t *testing.T) {
 	service, mockRepo, _, _, _, _, _ := createTestService()
 
-	mockRepo.On("Delete", mock.Anything, "test-id").Return(nil)
+	mockRepo.On("Delete", mock.Anything, "test-id", "test-org").Return(nil)
 
-	err := service.Delete(context.Background(), "test-id")
+	err := service.Delete(context.Background(), "test-id", "test-org")
 
 	assert.NoError(t, err)
 	mockRepo.AssertExpectations(t)
@@ -504,9 +504,9 @@ func TestServiceImpl_SetActive_Success(t *testing.T) {
 	expectedModel := createTestModel()
 	expectedModel.Active = false
 
-	mockRepo.On("SetActive", mock.Anything, "test-id", false).Return(expectedModel, nil)
+	mockRepo.On("SetActive", mock.Anything, "test-id", false, "test-org").Return(expectedModel, nil)
 
-	result, err := service.SetActive(context.Background(), "test-id", false)
+	result, err := service.SetActive(context.Background(), "test-id", false, "test-org")
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedModel, result)

@@ -14,11 +14,11 @@ type Service interface {
 	Create(ctx context.Context, entity *CreateUpdateDto) (*Model, error)
 	FindByID(ctx context.Context, id string, orgID string) (*Model, error)
 	FindAll(ctx context.Context, page int, limit int, q string, strategy string, orgID string) ([]*Model, error)
-	UpdateFull(ctx context.Context, id string, entity *CreateUpdateDto) (*Model, error)
-	UpdatePartial(ctx context.Context, id string, entity *PartialUpdateDto) (*Model, error)
-	Delete(ctx context.Context, id string) error
+	UpdateFull(ctx context.Context, id string, entity *CreateUpdateDto, orgID string) (*Model, error)
+	UpdatePartial(ctx context.Context, id string, entity *PartialUpdateDto, orgID string) (*Model, error)
+	Delete(ctx context.Context, id string, orgID string) error
 
-	SetActive(ctx context.Context, id string, active bool) (*Model, error)
+	SetActive(ctx context.Context, id string, active bool, orgID string) (*Model, error)
 
 	// GetStatus returns whether the maintenance is currently active
 	IsUnderMaintenance(ctx context.Context, maintenance *Model) (bool, error)
@@ -124,7 +124,7 @@ func (mr *ServiceImpl) FindAll(ctx context.Context, page int, limit int, q strin
 	return models, nil
 }
 
-func (mr *ServiceImpl) UpdateFull(ctx context.Context, id string, entity *CreateUpdateDto) (*Model, error) {
+func (mr *ServiceImpl) UpdateFull(ctx context.Context, id string, entity *CreateUpdateDto, orgID string) (*Model, error) {
 	// Validate cron and duration
 	if err := mr.validator.ValidateCronAndDuration(&utils.ValidationParams{
 		Cron:     entity.Cron,
@@ -158,7 +158,7 @@ func (mr *ServiceImpl) UpdateFull(ctx context.Context, id string, entity *Create
 	}
 
 	// Store times directly without timezone conversion
-	updated, err := mr.repository.UpdateFull(ctx, id, entity)
+	updated, err := mr.repository.UpdateFull(ctx, id, entity, orgID)
 	if err != nil {
 		return nil, err
 	}
@@ -174,11 +174,11 @@ func (mr *ServiceImpl) UpdateFull(ctx context.Context, id string, entity *Create
 	return updated, nil
 }
 
-func (mr *ServiceImpl) UpdatePartial(ctx context.Context, id string, entity *PartialUpdateDto) (*Model, error) {
+func (mr *ServiceImpl) UpdatePartial(ctx context.Context, id string, entity *PartialUpdateDto, orgID string) (*Model, error) {
 	// If strategy is being updated, we might need to regenerate cron expression
 	if entity.Strategy != nil {
 		// Get the current maintenance to merge with partial update
-		current, err := mr.repository.FindByID(ctx, id, "")
+		current, err := mr.repository.FindByID(ctx, id, orgID)
 		if err != nil {
 			return nil, err
 		}
@@ -224,7 +224,7 @@ func (mr *ServiceImpl) UpdatePartial(ctx context.Context, id string, entity *Par
 	// Calculate duration from StartTime and EndTime if not provided
 	if entity.Duration == nil {
 		// Get current maintenance to merge with partial update
-		current, err := mr.repository.FindByID(ctx, id, "")
+		current, err := mr.repository.FindByID(ctx, id, orgID)
 		if err != nil {
 			return nil, err
 		}
@@ -261,7 +261,7 @@ func (mr *ServiceImpl) UpdatePartial(ctx context.Context, id string, entity *Par
 	}
 
 	// Store times directly without timezone conversion
-	updated, err := mr.repository.UpdatePartial(ctx, id, entity)
+	updated, err := mr.repository.UpdatePartial(ctx, id, entity, orgID)
 	if err != nil {
 		return nil, err
 	}
@@ -277,12 +277,12 @@ func (mr *ServiceImpl) UpdatePartial(ctx context.Context, id string, entity *Par
 	return updated, nil
 }
 
-func (mr *ServiceImpl) Delete(ctx context.Context, id string) error {
-	return mr.repository.Delete(ctx, id)
+func (mr *ServiceImpl) Delete(ctx context.Context, id string, orgID string) error {
+	return mr.repository.Delete(ctx, id, orgID)
 }
 
-func (mr *ServiceImpl) SetActive(ctx context.Context, id string, active bool) (*Model, error) {
-	model, err := mr.repository.SetActive(ctx, id, active)
+func (mr *ServiceImpl) SetActive(ctx context.Context, id string, active bool, orgID string) (*Model, error) {
+	model, err := mr.repository.SetActive(ctx, id, active, orgID)
 	if err != nil {
 		return nil, err
 	}

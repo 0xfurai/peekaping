@@ -192,7 +192,7 @@ func (r *MongoRepositoryImpl) FindAll(ctx context.Context, page int, limit int, 
 	return entities, nil
 }
 
-func (r *MongoRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *CreateUpdateDto) (*Model, error) {
+func (r *MongoRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *CreateUpdateDto, orgID string) (*Model, error) {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, err
@@ -217,7 +217,7 @@ func (r *MongoRepositoryImpl) UpdateFull(ctx context.Context, id string, entity 
 		UpdatedAt:     time.Now(),
 	}
 
-	filter := bson.M{"_id": objectID}
+	filter := bson.M{"_id": objectID, "org_id": orgID}
 	update := bson.M{"$set": mm}
 
 	_, err = r.collection.UpdateOne(ctx, filter, update)
@@ -228,7 +228,7 @@ func (r *MongoRepositoryImpl) UpdateFull(ctx context.Context, id string, entity 
 	return toDomainModel(mm), nil
 }
 
-func (r *MongoRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity *PartialUpdateDto) (*Model, error) {
+func (r *MongoRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity *PartialUpdateDto, orgID string) (*Model, error) {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, err
@@ -255,7 +255,7 @@ func (r *MongoRepositoryImpl) UpdatePartial(ctx context.Context, id string, enti
 		UpdatedAt:     &nowStr,
 	}
 
-	filter := bson.M{"_id": objectID}
+	filter := bson.M{"_id": objectID, "org_id": orgID}
 	updateDoc := bson.M{"$set": update}
 
 	_, err = r.collection.UpdateOne(ctx, filter, updateDoc)
@@ -273,18 +273,18 @@ func (r *MongoRepositoryImpl) UpdatePartial(ctx context.Context, id string, enti
 	return toDomainModel(&mm), nil
 }
 
-func (r *MongoRepositoryImpl) Delete(ctx context.Context, id string) error {
+func (r *MongoRepositoryImpl) Delete(ctx context.Context, id string, orgID string) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return err
 	}
 
-	filter := bson.M{"_id": objectID}
+	filter := bson.M{"_id": objectID, "org_id": orgID}
 	_, err = r.collection.DeleteOne(ctx, filter)
 	return err
 }
 
-func (r *MongoRepositoryImpl) SetActive(ctx context.Context, id string, active bool) (*Model, error) {
+func (r *MongoRepositoryImpl) SetActive(ctx context.Context, id string, active bool, orgID string) (*Model, error) {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, err
@@ -292,11 +292,11 @@ func (r *MongoRepositoryImpl) SetActive(ctx context.Context, id string, active b
 	fmt.Println("Setting active to", active)
 	now := time.Now().UTC().Format(time.RFC3339)
 	update := bson.M{"$set": bson.M{"active": active, "updated_at": now}}
-	_, err = r.collection.UpdateOne(ctx, bson.M{"_id": objectID}, update)
+	_, err = r.collection.UpdateOne(ctx, bson.M{"_id": objectID, "org_id": orgID}, update)
 	if err != nil {
 		return nil, err
 	}
-	return r.FindByID(ctx, id, "")
+	return r.FindByID(ctx, id, orgID)
 }
 
 // GetMaintenancesByMonitorID returns all active maintenances for a given monitor_id

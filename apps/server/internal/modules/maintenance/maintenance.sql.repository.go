@@ -156,7 +156,7 @@ func (r *SQLRepositoryImpl) FindAll(ctx context.Context, page int, limit int, q 
 	return models, nil
 }
 
-func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *CreateUpdateDto) (*Model, error) {
+func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *CreateUpdateDto, orgID string) (*Model, error) {
 	// Marshal arrays to JSON strings
 	weekdaysJSON, _ := json.Marshal(entity.Weekdays)
 	daysOfMonthJSON, _ := json.Marshal(entity.DaysOfMonth)
@@ -183,7 +183,7 @@ func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *C
 
 	_, err := r.db.NewUpdate().
 		Model(sm).
-		Where("id = ?", id).
+		Where("id = ? AND org_id = ?", id, orgID).
 		OmitZero().
 		Exec(ctx)
 	if err != nil {
@@ -193,8 +193,8 @@ func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *C
 	return toDomainModelFromSQL(sm), nil
 }
 
-func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity *PartialUpdateDto) (*Model, error) {
-	query := r.db.NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id)
+func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity *PartialUpdateDto, orgID string) (*Model, error) {
+	query := r.db.NewUpdate().Model((*sqlModel)(nil)).Where("id = ? AND org_id = ?", id, orgID)
 
 	hasUpdates := false
 
@@ -269,25 +269,30 @@ func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity
 	// Always set updated_at
 	query = query.Set("updated_at = ?", time.Now())
 
-	_, err := query.Exec(ctx)
+	res, err := query.Exec(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return r.FindByID(ctx, id, "")
+	rowsAffected, _ := res.RowsAffected()
+	if rowsAffected == 0 {
+		return nil, nil // Or specific error "not found or access denied"
+	}
+
+	return r.FindByID(ctx, id, orgID)
 }
 
-func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string) error {
-	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Exec(ctx)
+func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string, orgID string) error {
+	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ? AND org_id = ?", id, orgID).Exec(ctx)
 	return err
 }
 
-func (r *SQLRepositoryImpl) SetActive(ctx context.Context, id string, active bool) (*Model, error) {
+func (r *SQLRepositoryImpl) SetActive(ctx context.Context, id string, active bool, orgID string) (*Model, error) {
 	_, err := r.db.NewUpdate().
 		Model((*sqlModel)(nil)).
 		Set("active = ?", active).
 		Set("updated_at = ?", time.Now()).
-		Where("id = ?", id).
+		Where("id = ? AND org_id = ?", id, orgID).
 		Exec(ctx)
 	if err != nil {
 		return nil, err

@@ -198,8 +198,8 @@ func (m *MockMaintenanceService) IsUnderMaintenance(ctx context.Context, maint *
 	return args.Bool(0), args.Error(1)
 }
 
-func (m *MockMaintenanceService) Delete(ctx context.Context, id string) error {
-	args := m.Called(ctx, id)
+func (m *MockMaintenanceService) Delete(ctx context.Context, id string, orgID string) error {
+	args := m.Called(ctx, id, orgID)
 	return args.Error(0)
 }
 
@@ -219,24 +219,24 @@ func (m *MockMaintenanceService) FindAll(ctx context.Context, page int, limit in
 	return args.Get(0).([]*maintenance.Model), args.Error(1)
 }
 
-func (m *MockMaintenanceService) UpdateFull(ctx context.Context, id string, dto *maintenance.CreateUpdateDto) (*maintenance.Model, error) {
-	args := m.Called(ctx, id, dto)
+func (m *MockMaintenanceService) UpdateFull(ctx context.Context, id string, dto *maintenance.CreateUpdateDto, orgID string) (*maintenance.Model, error) {
+	args := m.Called(ctx, id, dto, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*maintenance.Model), args.Error(1)
 }
 
-func (m *MockMaintenanceService) UpdatePartial(ctx context.Context, id string, dto *maintenance.PartialUpdateDto) (*maintenance.Model, error) {
-	args := m.Called(ctx, id, dto)
+func (m *MockMaintenanceService) UpdatePartial(ctx context.Context, id string, dto *maintenance.PartialUpdateDto, orgID string) (*maintenance.Model, error) {
+	args := m.Called(ctx, id, dto, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*maintenance.Model), args.Error(1)
 }
 
-func (m *MockMaintenanceService) SetActive(ctx context.Context, id string, active bool) (*maintenance.Model, error) {
-	args := m.Called(ctx, id, active)
+func (m *MockMaintenanceService) SetActive(ctx context.Context, id string, active bool, orgID string) (*maintenance.Model, error) {
+	args := m.Called(ctx, id, active, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
