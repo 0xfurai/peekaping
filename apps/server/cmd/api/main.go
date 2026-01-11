@@ -56,6 +56,10 @@ import (
 // @in header
 // @name X-API-Key
 // @description API key authentication (pk_ prefix format)
+// @securityDefinitions.apikey OrgIdAuth
+// @in header
+// @name X-Organization-ID
+// @description Organization ID authentication (header format)
 func main() {
 	docs.SwaggerInfo.Version = version.Version
 

@@ -21,10 +21,6 @@ import Export from "@theme/ApiExplorer/Export";
 >
 </Heading>
 
-
-
-
-
 <div
   style={{"marginBottom":"2rem"}}
 >
@@ -41,8 +37,6 @@ import Export from "@theme/ApiExplorer/Export";
       label={"API Key: ApiKeyAuth"}
       value={"ApiKeyAuth"}
     >
-
-
       API key authentication (pk_ prefix format)
 
       <div>
@@ -64,13 +58,12 @@ import Export from "@theme/ApiExplorer/Export";
           </tbody>
         </table>
       </div>
-    </TabItem><TabItem
-      label={"API Key: JwtAuth"}
-      value={"JwtAuth"}
+    </TabItem>
+    <TabItem
+      label={"API Key: OrgIdAuth"}
+      value={"OrgIdAuth"}
     >
-
-
-      JWT token authentication (Bearer token format)
+      Organization ID authentication (header format)
 
       <div>
         <table>
@@ -85,7 +78,7 @@ import Export from "@theme/ApiExplorer/Export";
               <th>
                 Header parameter name:
               </th><td>
-                Authorization
+                X-Organization-ID
               </td>
             </tr>
           </tbody>

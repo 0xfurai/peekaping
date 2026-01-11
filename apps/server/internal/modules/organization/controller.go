@@ -30,6 +30,7 @@ func NewOrganizationController(
 // @Accept		json
 // @Security  JwtAuth
 // @Security  ApiKeyAuth
+// @Security  OrgIdAuth
 // @Param     body body   CreateOrganizationDto  true  "Organization object"
 // @Success		201	{object}	utils.ApiResponse[Organization]
 // @Failure		400	{object}	utils.APIError[any]
@@ -76,6 +77,7 @@ func (c *OrganizationController) Create(ctx *gin.Context) {
 // @Produce		json
 // @Security  JwtAuth
 // @Security  ApiKeyAuth
+// @Security  OrgIdAuth
 // @Param     id   path    string  true  "Organization ID"
 // @Success		200	{object}	utils.ApiResponse[Organization]
 // @Failure		401	{object}	utils.APIError[any]

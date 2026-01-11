@@ -2434,6 +2434,11 @@ paths:
         in: query
         name: tag_ids
         type: string
+      - description: Organization ID
+        in: header
+        name: X-Organization-ID
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -2443,6 +2448,10 @@ paths:
             $ref: '#/definitions/utils.ApiResponse-array_monitor_Model'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/utils.APIError'
         "404":
@@ -2456,6 +2465,7 @@ paths:
       security:
       - JwtAuth: []
       - ApiKeyAuth: []
+      - OrgIdAuth: []
       summary: Get monitors
       tags:
       - Monitors
@@ -2487,6 +2497,7 @@ paths:
       security:
       - JwtAuth: []
       - ApiKeyAuth: []
+      - OrgIdAuth: []
       summary: Create monitor
       tags:
       - Monitors
@@ -2519,6 +2530,7 @@ paths:
             $ref: '#/definitions/utils.APIError'
       security:
       - BearerAuth: []
+      - OrgIdAuth: []
       summary: Delete monitor
       tags:
       - Monitors
@@ -2550,6 +2562,7 @@ paths:
             $ref: '#/definitions/utils.APIError'
       security:
       - BearerAuth: []
+      - OrgIdAuth: []
       summary: Get monitor by ID
       tags:
       - Monitors
@@ -2589,6 +2602,7 @@ paths:
             $ref: '#/definitions/utils.APIError'
       security:
       - BearerAuth: []
+      - OrgIdAuth: []
       summary: Update monitor
       tags:
       - Monitors
@@ -2628,6 +2642,7 @@ paths:
             $ref: '#/definitions/utils.APIError'
       security:
       - BearerAuth: []
+      - OrgIdAuth: []
       summary: Update monitor
       tags:
       - Monitors
@@ -2676,6 +2691,7 @@ paths:
             $ref: '#/definitions/utils.APIError'
       security:
       - BearerAuth: []
+      - OrgIdAuth: []
       summary: Get paginated heartbeats for a monitor
       tags:
       - Monitors
@@ -2708,6 +2724,7 @@ paths:
             $ref: '#/definitions/utils.APIError'
       security:
       - BearerAuth: []
+      - OrgIdAuth: []
       summary: Reset monitor data (heartbeats and stats)
       tags:
       - Monitors
@@ -2753,6 +2770,7 @@ paths:
             $ref: '#/definitions/utils.APIError'
       security:
       - BearerAuth: []
+      - OrgIdAuth: []
       summary: Get monitor stat points (ping/up/down) from stats tables
       tags:
       - Monitors
@@ -2785,6 +2803,7 @@ paths:
             $ref: '#/definitions/utils.APIError'
       security:
       - BearerAuth: []
+      - OrgIdAuth: []
       summary: Get monitor uptime stats (24h, 30d, 365d)
       tags:
       - Monitors
@@ -2817,6 +2836,7 @@ paths:
             $ref: '#/definitions/utils.APIError'
       security:
       - BearerAuth: []
+      - OrgIdAuth: []
       summary: Get monitor TLS certificate information
       tags:
       - Monitors
@@ -3128,6 +3148,7 @@ paths:
       security:
       - JwtAuth: []
       - ApiKeyAuth: []
+      - OrgIdAuth: []
       summary: Create organization
       tags:
       - Organizations
@@ -3161,6 +3182,7 @@ paths:
       security:
       - JwtAuth: []
       - ApiKeyAuth: []
+      - OrgIdAuth: []
       summary: Get organization by ID
       tags:
       - Organizations
@@ -4072,5 +4094,10 @@ securityDefinitions:
     description: JWT token authentication (Bearer token format)
     in: header
     name: Authorization
+    type: apiKey
+  OrgIdAuth:
+    description: Organization ID authentication (header format)
+    in: header
+    name: X-Organization-ID
     type: apiKey
 swagger: "2.0"

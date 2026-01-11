@@ -47,6 +47,7 @@ func NewMonitorController(
 // @Produce		json
 // @Security  JwtAuth
 // @Security  ApiKeyAuth
+// @Security  OrgIdAuth
 // @Param     q    query     string  false  "Search query"
 // @Param     page query     int     false  "Page number" default(1)
 // @Param     limit query    int     false  "Items per page" default(10)
@@ -142,6 +143,7 @@ func (ic *MonitorController) FindAll(ctx *gin.Context) {
 // @Accept		json
 // @Security  JwtAuth
 // @Security  ApiKeyAuth
+// @Security  OrgIdAuth
 // @Param     body body   CreateUpdateDto  true  "Monitor object"
 // @Success		201	{object}	utils.ApiResponse[Model]
 // @Failure		400	{object}	utils.APIError[any]
@@ -204,6 +206,7 @@ func (ic *MonitorController) Create(ctx *gin.Context) {
 // @Tags			Monitors
 // @Produce		json
 // @Security BearerAuth
+// @Security OrgIdAuth
 // @Param       id   path      string  true  "Monitor ID"
 // @Success		200	{object}	utils.ApiResponse[MonitorResponseDto]
 // @Failure		400	{object}	utils.APIError[any]
@@ -277,6 +280,7 @@ func (ic *MonitorController) FindByID(ctx *gin.Context) {
 // @Produce		json
 // @Accept		json
 // @Security BearerAuth
+// @Security OrgIdAuth
 // @Param       id   path      string  true  "Monitor ID"
 // @Param       monitor body     CreateUpdateDto  true  "Monitor object"
 // @Success		200	{object}	utils.ApiResponse[Model]
@@ -360,6 +364,7 @@ func (ic *MonitorController) UpdateFull(ctx *gin.Context) {
 // @Produce		json
 // @Accept		json
 // @Security BearerAuth
+// @Security OrgIdAuth
 // @Param       id   path      string  true  "Monitor ID"
 // @Param       monitor body     PartialUpdateDto  true  "Monitor object"
 // @Success		200	{object}	utils.ApiResponse[Model]
@@ -476,6 +481,7 @@ func (ic *MonitorController) UpdatePartial(ctx *gin.Context) {
 // @Tags			Monitors
 // @Produce		json
 // @Security BearerAuth
+// @Security OrgIdAuth
 // @Param       id   path      string  true  "Monitor ID"
 // @Success		200	{object}	utils.ApiResponse[any]
 // @Failure		400	{object}	utils.APIError[any]
@@ -499,6 +505,7 @@ func (ic *MonitorController) Delete(ctx *gin.Context) {
 // @Tags		Monitors
 // @Produce	json
 // @Security BearerAuth
+// @Security OrgIdAuth
 // @Param	id	path	string	true	"Monitor ID"
 // @Param	limit	query	int	false	"Number of heartbeats per page (default 50)"
 // @Param	page	query	int	false	"Page number (default 0)"
@@ -558,6 +565,7 @@ func (ic *MonitorController) FindByMonitorIDPaginated(ctx *gin.Context) {
 // @Tags Monitors
 // @Produce json
 // @Security BearerAuth
+// @Security OrgIdAuth
 // @Param id path string true "Monitor ID"
 // @Param since query string true "Start time (RFC3339)"
 // @Param until query string false "End time (RFC3339, default now)"
@@ -632,6 +640,7 @@ func (ic *MonitorController) GetStatPoints(ctx *gin.Context) {
 // @Tags Monitors
 // @Produce json
 // @Security BearerAuth
+// @Security OrgIdAuth
 // @Param id path string true "Monitor ID"
 // @Success 200 {object} utils.ApiResponse[CustomUptimeStatsDto]
 // @Failure 400 {object} utils.APIError[any]
@@ -694,6 +703,7 @@ func (ic *MonitorController) FindByIDs(ctx *gin.Context) {
 // @Tags Monitors
 // @Produce json
 // @Security BearerAuth
+// @Security OrgIdAuth
 // @Param id path string true "Monitor ID"
 // @Success 200 {object} utils.ApiResponse[any]
 // @Failure 400 {object} utils.APIError[any]
@@ -721,6 +731,7 @@ func (ic *MonitorController) ResetMonitorData(ctx *gin.Context) {
 // @Tags Monitors
 // @Produce json
 // @Security BearerAuth
+// @Security OrgIdAuth
 // @Param id path string true "Monitor ID"
 // @Success 200 {object} utils.ApiResponse[any]
 // @Failure 400 {object} utils.APIError[any]

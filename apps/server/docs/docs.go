@@ -1463,6 +1463,9 @@ const docTemplate = `{
                     },
                     {
                         "ApiKeyAuth": []
+                    },
+                    {
+                        "OrgIdAuth": []
                     }
                 ],
                 "produces": [
@@ -1510,6 +1513,13 @@ const docTemplate = `{
                         "description": "Comma-separated list of tag IDs to filter by",
                         "name": "tag_ids",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "X-Organization-ID",
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -1521,6 +1531,12 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/utils.APIError"
                         }
@@ -1546,6 +1562,9 @@ const docTemplate = `{
                     },
                     {
                         "ApiKeyAuth": []
+                    },
+                    {
+                        "OrgIdAuth": []
                     }
                 ],
                 "consumes": [
@@ -1644,6 +1663,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "OrgIdAuth": []
                     }
                 ],
                 "produces": [
@@ -1693,6 +1715,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "OrgIdAuth": []
                     }
                 ],
                 "consumes": [
@@ -1754,6 +1779,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "OrgIdAuth": []
                     }
                 ],
                 "produces": [
@@ -1803,6 +1831,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "OrgIdAuth": []
                     }
                 ],
                 "consumes": [
@@ -1866,6 +1897,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "OrgIdAuth": []
                     }
                 ],
                 "produces": [
@@ -1941,6 +1975,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "OrgIdAuth": []
                     }
                 ],
                 "produces": [
@@ -1992,6 +2029,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "OrgIdAuth": []
                     }
                 ],
                 "produces": [
@@ -2062,6 +2102,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "OrgIdAuth": []
                     }
                 ],
                 "produces": [
@@ -2113,6 +2156,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "OrgIdAuth": []
                     }
                 ],
                 "produces": [
@@ -2560,6 +2606,9 @@ const docTemplate = `{
                     },
                     {
                         "ApiKeyAuth": []
+                    },
+                    {
+                        "OrgIdAuth": []
                     }
                 ],
                 "consumes": [
@@ -2619,6 +2668,9 @@ const docTemplate = `{
                     },
                     {
                         "ApiKeyAuth": []
+                    },
+                    {
+                        "OrgIdAuth": []
                     }
                 ],
                 "produces": [
@@ -6291,6 +6343,12 @@ const docTemplate = `{
             "description": "JWT token authentication (Bearer token format)",
             "type": "apiKey",
             "name": "Authorization",
+            "in": "header"
+        },
+        "OrgIdAuth": {
+            "description": "Organization ID authentication (header format)",
+            "type": "apiKey",
+            "name": "X-Organization-ID",
             "in": "header"
         }
     }
