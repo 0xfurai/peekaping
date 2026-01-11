@@ -122,6 +122,33 @@ Vigi an ideal choice for teams who need a reliable, customizable uptime monitori
 
 ![Vigi Dashboard](./pictures/monitor.png)
 
+## Authentication Flow
+
+Below is a sequence diagram illustrating the complete authentication flow, from user login to accessing a protected page.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend (React)
+    participant Backend (Go)
+    participant Database
+
+    User->>Frontend (React): Submits login form (email, password)
+    Frontend (React)->>Backend (Go): POST /auth/login with credentials
+    Backend (Go)->>Database: Find user by email
+    Database-->>Backend (Go): Return user data (with hashed password)
+    Backend (Go)->>Backend (Go): Compare hashed password with provided password
+    alt Credentials are valid
+        Backend (Go)->>Backend (Go): Generate Access & Refresh Tokens (JWT)
+        Backend (Go)-->>Frontend (React): Return tokens and user info
+        Frontend (React)->>Frontend (React): Store tokens in Zustand (localStorage)
+        Frontend (React)->>User: Redirect to protected dashboard page
+    else Credentials are invalid
+        Backend (Go)-->>Frontend (React): Return 401 Unauthorized error
+        Frontend (React)->>User: Show "Invalid credentials" error
+    end
+```
+
 ## 📡 Stay in the Loop
 
 I share quick tips, dev-logs, and behind-the-scenes updates on&nbsp;Twitter.
