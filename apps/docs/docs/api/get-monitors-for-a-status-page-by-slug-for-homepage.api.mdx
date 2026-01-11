@@ -1,0 +1,70 @@
+---
+id: get-monitors-for-a-status-page-by-slug-for-homepage
+title: "Get monitors for a status page by slug for homepage"
+description: "Get monitors for a status page by slug for homepage"
+sidebar_label: "Get monitors for a status page by slug for homepage"
+hide_title: true
+hide_table_of_contents: true
+api: eJzNVktv20YQ/iuLOSXACnJc98KbiiaBY6QV6qQtIAjGiByLG5O7m92hYpbgfy9mKcm0KTtFTr2I1Lwf337LDjwGrIkpRMhWHRQU82A8G2chg2tGbqJa4pbUddVsQYMRuUcuQYPFmiCDOGgCfW1MoAIyDg1piHlJNULWAbc+2XEwdgt9vxbj6J2NFEV/fnYmj8e5f78CDbmzTJZFi95XJkfRzr9EMelGKXxwngKbIWCBnKSGqY5TNeZsdjSqbONcRWih11ASBt4QcnwhANnihk1NJ5rTYIqTYi/PB4WxTFsKoolpykPcpoZsdabf6HP901o/NdZwPxOb2Q6DDF92Bh+dNezCsKtf3TcL+rHss38qWZItpJwn4o8oiSzanGDda3imxf5Yl9t8oZzhQYAhYPvCEAbEdED3WPtKdPsCQE+NB8HYuGT2pywbL6XenF+Uo6y2qTcy4H4MzdWgXf+HFmqKEbfPDGAcMaHtwX4auxePi7OLKch/c6zeucYWP47158scI+vlDg4xjh7P9PDzqYN6aZmCxUpdU9hRUG9DSPv83/cjO8dtOkMjokvGjzt8T6zqAadR3bqgUA1xlRdm3LRKKDBpSleTH1LXxKUrIIMtMeiBMzOYD54zMYpz8Zt38tvPDxnmoxgxjXSg5iZU4o/ezHdvQEg0Ut4Ew+21jHKY3sKbK2oXDZfTRS2Wl+qOWoUNl2R5vxD1yt/dKB/o1txLCzXy6wPPl4RFop090/89WywvZ1fUPhxCTAllOR++8em8H/76pNjdkZ1k/oUwUNgrv5NbYrtg/kmu0/zCOfbWSXYBHuYCvMRhnKjjT7M1arG8BA0y0aGyxMsuco0JkvtMP7buRz0fAcp0z3NfoUmXS1pht4fCCsZQkGUP92i2fx5KAA3HNGt5jyzOXbfBSJ9D1fci/tpQaCFbrTXsMBjcSNdyoZso7wVkt1hFmtR5PKXw6o/9CXqtTtz7J/s57MAKIHZYNfIPNNxRe/gu6NfDpSq7lHoG1SLPyfPIacIQgu/jCXr/9hP0/b8aIPtT
+sidebar_class_name: "get api-method"
+info_path: docs/api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get monitors for a status page by slug for homepage"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/status-pages/slug/{slug}/monitors/homepage"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+Get monitors for a status page by slug for homepage
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Status Page Slug","in":"path","name":"slug","required":true,"schema":{"type":"string"}}]}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{"items":{"properties":{"active":{"type":"boolean"},"heartbeats":{"items":{"properties":{"end_time":{"type":"string"},"id":{"type":"string"},"ping":{"type":"integer"},"status":{"enum":[0,1,2,3],"type":"integer","x-enum-varnames":["MonitorStatusDown","MonitorStatusUp","MonitorStatusPending","MonitorStatusMaintenance"]},"time":{"type":"string"}},"type":"object"},"type":"array"},"id":{"type":"string"},"name":{"example":"Monitor","type":"string"},"type":{"example":"http","type":"string"},"uptime_24h":{"type":"number"}},"required":["type"],"type":"object"},"type":"array"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"404":{"description":"Not Found","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+
+</StatusCodes>
+
+

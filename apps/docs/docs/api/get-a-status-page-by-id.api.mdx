@@ -1,0 +1,70 @@
+---
+id: get-a-status-page-by-id
+title: "Get a status page by ID"
+description: "Get a status page by ID"
+sidebar_label: "Get a status page by ID"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVkuP20YM/isCTwmgxW6L9KKbi6aBs0C76KYPwDAEWqKliaWZCYfyrirovxeU/Nq1lKC99WR5+PpIfuRMBx4ZaxLiAMmqg5xCxsaLcRYSeBSUJkQPWFC0/AliMHrqUUqIwWJNkIDJIQamL41hyiERbiiGkJVUIyQdSOtVKwgbW0Dfr1U5eGcDBZV/f3enPy/j/noPMWTOCllRKXpfmQxVevs5qEp3EcKz88RiRoc5ysQpNuJSpi1TKFNjhXiP1QU+PSqIoY8hY0KhPEWZwB9D1gRxdZqFMCl+kciU3NVo7GBrhOppJ4cDZMZW/2+dE+JU6HkaU+FcUVGKFqtWTBZSwSI1+aSuyWaQzejXzhpxnJr8X4L2GMKT42mvvtlUJpR0Kd04VxFaFQdCzsqUbGEspcbm9DyjWLqnNNM+b5UglNKzN9x+Rdm7J2LK083XlASLMCOummI6/ZJ0HqYkRqppSePzeaqdS+o2nymToRkUAhZTzvrLIVyNU3DWX1/56tXi3d276+H7xUn0s2ts/t9ncB5mDGHYKd/O4OjjZDGTww9TC2SpE26xih6J98TRe2bH/4d8Bu5nDRtph3388UkWjZSQrNZ93MHCm3tqTyfqYmDq6nJVD65f1uMDSYTRGDjyus437bjRa5LS5ZBAQQLxuNsTuB1Vb1Q13HYm7xX3UMvxnmi4UjX05nb/HSiQI+xHreFYtku0rzu0eFhGO2ojbKQkK4dORG/8Lo0809Y8R1vHNcrb47VTEubE54vnr5vFw/Lmnlo4754hoHblVLfXcT/++SkStyN7FflHQiY+CL8RW307Nn8PptfxdZvardPoyjjMlHHnTQB/mMJEi4clxKAVHZENa9EFqXHg4iHSfOembxq9I259hWbYVkObukNXV3DZVYghMblSpXRBVNp1Gwz0O1d9r8dfGtJFulrHsEc2uFHo+kQwQb9zSLZYBboCcpoxePPbgf9vo6uXxCTcYxmt9nSPVaP/IIYdteNLo1/38bEZimUULLKMvFyYXM22EvTE9A/vP0GsL4Lyom7ozW6g0uFDvU/Ced36EcJuoN2MSdeNxOj7k/4omrU48e2QuWbQ9/0/rOJSHA==
+sidebar_class_name: "get api-method"
+info_path: docs/api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get a status page by ID"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/status-pages/{id}"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+Get a status page by ID
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Status Page ID","in":"path","name":"id","required":true,"schema":{"type":"string"}}]}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{"properties":{"auto_refresh_interval":{"type":"integer"},"created_at":{"type":"string"},"custom_css":{"type":"string"},"description":{"type":"string"},"domains":{"items":{"type":"string"},"type":"array"},"footer_text":{"type":"string"},"google_analytics_tag_id":{"type":"string"},"icon":{"type":"string"},"id":{"type":"string"},"monitor_ids":{"items":{"type":"string"},"type":"array"},"password":{"type":"string"},"published":{"type":"boolean"},"search_engine_index":{"type":"boolean"},"show_certificate_expiry":{"type":"boolean"},"show_powered_by":{"type":"boolean"},"show_tags":{"type":"boolean"},"slug":{"type":"string"},"theme":{"type":"string"},"title":{"type":"string"},"updated_at":{"type":"string"}},"type":"object"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"404":{"description":"Not Found","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+
+</StatusCodes>
+
+

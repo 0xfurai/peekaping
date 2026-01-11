@@ -1,0 +1,70 @@
+---
+id: resume-maintenance
+title: "Resume maintenance"
+description: "Resume maintenance"
+sidebar_label: "Resume maintenance"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVt9P20AM/lciPw0pqGxiL33rfmkFbUOwXxKqKpNz26PJ3eFzumVV/vfJSUsDDaDtjSfK+bP9nT+fnTUEZCxIiCMML9dgKGZsg1jvYAif0Dohhy6jZPwOUrB6GlAWkILDgmAI1kAKTDelZTIwFC4phZgtqEAYrkGqoKgobN0c6nqi4Bi8ixTV/uroSP/czfvlFFLIvOYWtWIIuc1QrYPrqJB1J0VgH4jFtgENSs8pZmJX1CF05X1O6KBOIWNCITNF6SGs5jbhnsFgFad+Ni28k4UirFARO1At3pxYsZsTZMaq8e3ety92yXjP2IlGzkwNCk3FFtTrr4gHjdb0HzshXmE+NVj1542CLE9kbjGPmBmF5lWvUb3+eNfvKVbyfksZzGMC/iJaqlb/JNHuwF9dUyaKKChGnPdxqLtP4LLtwR1+sherVo/jvtZ/gyY5p5uSovz/G3iYaKOPlPHpO2xj3Ho8eIvj/Vt89pJ88KUzz+MOr/uUGOtzcJgnF8Qr4uQ9s+fncB8NSFnJVqpmpr8hZOJRqUPqcqITWHCu474735tYdwtwTrEsKCl2oKanZeFNuwUyXQPNNhjCoAOLg7U19YAbfyXbFLBdMCXnisZgB6uXoGS2XC+0cG2tRsGeUtUyvi/L6GycLKlKsJQFOdmUP3kRltMkMM3s72TmuUA52O6rBaEh3m2sn4ejs/HhKVWwe/RNQpXi5Jf05z358TURvyS3l7mt78b4RG6N7dn+aYf7Xv5mCs+8Ztc2w0zbbDf74Lud22R0NoYUtKItM6UdfJQCmwbcZOpVr3/tCP2WQcjRNuuwUWi90fUSurpCCsPNvm+knaSw8FEUtl5fYaRvnNe1Ht+UxNp9kxRWyBavlL5+X9iovw0MZ5hH2mN0+7jgxfmm8Q+Svc+QXt7bUjrVdYV5qf9BCkuq2s+UelKnW0GUS2sYZRkF6bjsPWpt0tu2Pxt9ffsR6vovpw0tcw==
+sidebar_class_name: "patch api-method"
+info_path: docs/api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Resume maintenance"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"patch"}
+  path={"/maintenances/{id}/resume"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+Resume maintenance
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Maintenance ID","in":"path","name":"id","required":true,"schema":{"type":"string"}}]}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{"properties":{"active":{"type":"boolean"},"created_at":{"type":"string"},"cron":{"type":"string"},"days_of_month":{"items":{"type":"integer"},"type":"array"},"description":{"type":"string"},"duration":{"type":"integer"},"end_date_time":{"type":"string"},"end_time":{"type":"string"},"id":{"type":"string"},"interval_day":{"type":"integer"},"start_date_time":{"type":"string"},"start_time":{"type":"string"},"strategy":{"type":"string"},"timezone":{"type":"string"},"title":{"type":"string"},"updated_at":{"type":"string"},"weekdays":{"items":{"type":"integer"},"type":"array"}},"type":"object"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"404":{"description":"Not Found","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+
+</StatusCodes>
+
+

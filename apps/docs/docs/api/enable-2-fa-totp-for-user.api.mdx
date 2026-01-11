@@ -1,0 +1,70 @@
+---
+id: enable-2-fa-totp-for-user
+title: "Enable 2FA (TOTP) for user"
+description: "Enable 2FA (TOTP) for user"
+sidebar_label: "Enable 2FA (TOTP) for user"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVlU1v2zAMhv+KwFMLqEgXbBff3K0F0h4aNOk2IAgGxWYSNbakSnJTz/B/Hyh/NE3SdodddjMkkXz58pFcgcXHAp2/0GkJUQWJVh6Vp09hTCYT4aVWgwenFa25ZI25oK8UXWKloV2IYLrVV/EEfWHumnzfvGbSscJhyrxmbRU2vIqZo2PAwVht0HqJjvJhLmRGH740CBE4b6VaQc3BCOe22qZHNmse9EuLKUSzNsdOxJx3EXrxgImHmkJeS+8ldSJhN6m3BYYqzmjlGqnD8/NDB25vgP8L95o6B/bRcsq20q9fPGRSLfWBkcbqJ+mkVlKt7q08aqnDxKI/buiBYTWHz8c6vhApu+st++vWX6vN0TmxwuMqvfCF+3jsXY4+4tjYaw5fjnUxUh6tEhmboH1Cyy6t1fZ/6KcZY2GlLyGaVXC99XHh1xDN5jUFiJWjZGFtvg/9pRKLDANKJ9Pb6fiULbUl3Kj1HP1apxCB0WG0RlBaGIjCrwfDpRh0N9gFy1woX9gsnDFy8PQJSEGnbkJWNe7ERt5g2cjcH0Q8HrENloyqoPKt4ezEbH4xY3Epn0ljLvwpcJAUsUaRBsFK5GTOz7N4PDq7wRJ6v0QoSOb39uzXvf4xZV5vUB1UvkBh0babH9Sm3NrK3yH0sH7Ngci5e3lsL59FbjLcefo6HHZfvB16wmVvX2iREJh0WaWnHPBdriSLxyPgQBNpOguPp3Y+FwHZVum7o39lTc+px2c/MJmQilKGSVctFTMg14DDcCkCEUTGnMOa0IlmUFUL4fDeZnVNy48FWsJ1zuFJWElKArC8M5RQ2mAJEXxtLuDZlDTQ8axoHN27jDXvIuIkQePfPTvfoXt8O5kCh0X758t1SjFWbOkHILZkIAcdvAjwhrUKMqFWRbji0OSk4YoWrZexbwKG7Qd11W2pckfhPjZNI5uA7BshVdVAVdf9+WbrzYie1eY0TXFe1/Uf82y75A==
+sidebar_class_name: "post api-method"
+info_path: docs/api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Enable 2FA (TOTP) for user"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/auth/2fa/setup"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+Enable 2FA (TOTP) for user
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"description":"TwoFASetupRequestDto is used to request 2FA setup","properties":{"email":{"type":"string"},"password":{"type":"string"}},"required":["email","password"],"type":"object"}}},"description":"2FA setup request","required":true}}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"description":"TwoFASetupResponseDto is used to respond with 2FA setup info","properties":{"provisioningUri":{"type":"string"},"secret":{"type":"string"}},"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+
+</StatusCodes>
+
+

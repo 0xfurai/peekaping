@@ -1,0 +1,70 @@
+---
+id: delete-api-key
+title: "Delete API key"
+description: "Delete an API key"
+sidebar_label: "Delete API key"
+hide_title: true
+hide_table_of_contents: true
+api: eJzNVNtu2zAM/RWBT2uhIt3QvfgtWzMg7TAUa3cBimBQbSbWYksqRWfNDP37QNu5tE231z35Qh6eQ/JILRQYc7KBrXeQwTlWyKiMU+OrqVriGjQEQ6ZGRoqQ3bZPAEOamp6DBit/guESNDhTI2RgC9BAeN9YwgIypgY1xLzE2kDWAq+DZEUm6xaQ0kySY/AuYpT4m9MzeTzm/OTVe+8YHUPScHY4hdUH3zhhz4fcrIXj0bE8dvyBfEBi27PVGKNZ4AFhGiIbbuIhzfv93W5rbBEzvUH4u5+YM6QkmLenp89lTx0jOVOpa6QVkpoQefpPW5CCmDdked354uIXjxsuIbudyRrZLMQvYII9WeK6K1Ijl76ADIrOZp23BAGjTdaotUUS4q7/3nANVUPKaPUapPaG91qG0Pc9DvYS172AlzxqGi7Rsc2NBNSrsPyhAuHcPqi5p9rw0cbDJZoCaefi7yfjq+nJZXcchkmYjlDGum38Ke/FtxvFfonuGfM7NIQ0BP/BLbU92d8d9Dl/EtjcC7u4xOTikqSBLVeS99UurBxm0CAT7ZWJ7OAj18YJcGAaDv/u5D9qp9258OA1MehifOBRqIx1QtLtrh3WvGcGDZktxBKljyyRtr0zEb9QlZL8vm+QxFYzDStD1txJL3L52CjvBWRzU0X8i8RXnwdHH6lHd9RBmZuZOmlkZapGvkCDdNbdYWmW9GYzoqMPjPMcA+9B5HCmfaOfTz5ObiagwQwO2W2vn9rwIjUPini6/Z542TnvBUjb9t5IaZvfh15EbC039Ouk35T+AIv/CgE=
+sidebar_class_name: "delete api-method"
+info_path: docs/api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Delete API key"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"delete"}
+  path={"/api-keys/{id}"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+Delete an API key
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"API key ID","in":"path","name":"id","required":true,"schema":{"type":"string"}}]}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"204":{"description":"No Content"},"404":{"description":"Not Found","content":{"*/*":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"*/*":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+
+</StatusCodes>
+
+

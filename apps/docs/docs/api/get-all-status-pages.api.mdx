@@ -1,0 +1,70 @@
+---
+id: get-all-status-pages
+title: "Get all status pages"
+description: "Get all status pages"
+sidebar_label: "Get all status pages"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVU1v2zAM/SuCThvgot2wXXLLgGFIe1ixdB9AEQSMzcRqZEul6GyZ4f8+ULbTfDjrtttOiUnxPYqkHmvtgaBARgp6dF/rDENKxrNxpR7pKQKluXqskLY60UZs/UcJBcqnTnRIcyxAj2rNWy/GwGTKlW6a5BjxFlaoyqpYIJ0B9LDCIUxTMq5iVIZLqCzr0dUAwYSxCMojqQ5oiMOawvAfkry6appZogmDd2XAIKdfX13JzyHzxxud6NSVjCWLF7y3JgXxXj4EOVLvEXpyHolNC5gBR6uR7E/dULGbEy4JQz6XHGkDdiDtJtEpITBmc+CBfiSHKQ/4l84x0pzxx3C8Sc8EmmzQ7KuFNSHHfe/COYtQijvYajUYxzlKp4Y8hu2wp/LZ+atLZGtxiwdMWT8ZgAi28l1gCDI0g9GEj5Uhuch9266n87MT7EYi3gxNyTvI1Cd8rDDwv4/L+UQTHRi4Cs/focfYRZy5xduhW0xkBkuwaoq0QVLviRz9D/cRQEwrMryNenf9nccV53p0PxMtGXtzg9udRSBgJcqopxFUiX5F6MN6fEBWYK1qqaP0hDggnLtMj/QKpdseBFdftqcu+lMh1rDV34qsnABvLjevtCTQpzuV2rXl2s/yuDPj24la41ZBxTmW3HVAvfDrufKES/NDLR0VwC97bcwRsih5nTh+uxjfTi5uUPSyfyGRULqxq9cx7/XXO8VujeUJ8zsEQuqcz3ALtiPzM4ae8ovOlEsn7DJpkMqkPWmC/mJWRo1vJzrRUtE2syhDLnABcQY7pjMdG9ZHkcNLb8FE0Yo9qrtu3uuDbs4SnbvAYq/rBQT8TLZpxNyuoLhjTYCFlaldgg14Qrp7RMf7dzCbNW67NbwBW2F74b8hOVzJv+HoFuo/0pws5t8w9fv5iWomH2SEq32r/ehIQdugcZqi3486USBB2T3JD+/vdCKbNd9rNHizjoPf/RH03lVu97CPB7VNYR0fyZmQum7HuGl251vX2Yjd62hPS4VmTdP8AmTKTxw=
+sidebar_class_name: "get api-method"
+info_path: docs/api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get all status pages"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/status-pages"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+Get all status pages
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Search query","in":"query","name":"q","schema":{"type":"string"}},{"description":"Page number","in":"query","name":"page","schema":{"type":"integer","default":0}},{"description":"Items per page","in":"query","name":"limit","schema":{"type":"integer","default":10}}]}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{"items":{"properties":{"auto_refresh_interval":{"type":"integer"},"created_at":{"type":"string"},"description":{"type":"string"},"footer_text":{"type":"string"},"icon":{"type":"string"},"id":{"type":"string"},"published":{"type":"boolean"},"slug":{"type":"string"},"theme":{"type":"string"},"title":{"type":"string"},"updated_at":{"type":"string"}},"type":"object"},"type":"array"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+
+</StatusCodes>
+
+

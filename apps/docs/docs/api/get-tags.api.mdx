@@ -1,0 +1,70 @@
+---
+id: get-tags
+title: "Get tags"
+description: "Get tags"
+sidebar_label: "Get tags"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVUtv2zAM/isCTxvgou3QXXLLgK5IC2zB2j2AICgYm0nU2JIq0V0zw/99oB9JGjvt1ltPtvj6KJL6WIBDjxkx+QCDSQEJhdhrx9oaGMA1oY+X6j4nv4YItMjag8GM5AgRhHhJGcKgAF47EQb22iygLKP9iGNckDJ5NiN/IKDDBfXF1IZpUXklNMc8ZRic9gCMmLKgHHnVBOrDSHWm+V9BTspyGoGn4KwJFMT6w8mJfJ4if72CCGJrmAyLFp1LdYyiPb4LYlLsADpvHXnWdcAEuZJqyb6rjm1qfU99I4g9IVNyi9yrfpJhj14nveK6TD2K3CWH4cqoldjZHcUMWwF6j2s5ZxSC9KXX29N9rj0lMJjUFdnaTzuxS/E462vEJ0zUN7rPKfDrO3I40QgCI+fh5Tu0MTYeB29x1r3FF8vqs81N8jbu8LGvEyPD5A2m6pr8A3l17r31b+E+EpDi3GteV7R4+ZuHOS9hMJkK5QydvqL1RiIhcCEECjfyne49PLggVpWFDDQvbQIDWJBMp0OJAceNNlR1qqk496lo0Onjh1MQkDala6lPXZLdTParPxyP1IrWCnNekuGmyuqdW90q52muH9Xc+gz5fUuTS8KkYr+GJ38dDcejoysS6mxfcgUoFd/UZB/38ueNYrsi00H+ROjJN8oXsCW29fpP5drFF/Iyc1uzo2GMZZqEcDSnYvdDL7QajkcQgVS0zkzSdjZwhtWcNUg73ennS6ZHPnYpalNxoPSlaDo3qTs/jWBpA8u5KGYY6LtPy1LE9eapVqsOOEtlCueYBuqAbR7F/trtzWJF62b7PmCaU325/wF5uomfwWj26CthOvv4GaR2LW+hpnLwWrDqt9eOiRS0dhrGMbldrw6jSJTNs7s4v4EIsBnc7VCtqiFvfiR6qzLrndj7Q1mnsKoexAGXoqhHtiw39rXqoMfmJdTWUqFpWZZ/AeesSXU=
+sidebar_class_name: "get api-method"
+info_path: docs/api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get tags"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/tags"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+Get tags
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Search query","in":"query","name":"q","schema":{"type":"string"}},{"description":"Page number","in":"query","name":"page","schema":{"type":"integer","default":1}},{"description":"Items per page","in":"query","name":"limit","schema":{"type":"integer","default":10}}]}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{"items":{"properties":{"color":{"type":"string"},"created_at":{"type":"string"},"description":{"type":"string"},"id":{"type":"string"},"name":{"type":"string"},"updated_at":{"type":"string"}},"type":"object"},"type":"array"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"404":{"description":"Not Found","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+
+</StatusCodes>
+
+

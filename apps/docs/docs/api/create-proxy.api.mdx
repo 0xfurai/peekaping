@@ -1,0 +1,70 @@
+---
+id: create-proxy
+title: "Create proxy"
+description: "Create proxy"
+sidebar_label: "Create proxy"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVslu2zAQ/RVhTi3AwE4b9+Cb0+bg5FAjSRfAMApamtiMJZIhqdiuoH8vhpRkRV6S9taTaJKzvfdm6AIMPuVo3aVKtjAsIFbSoXS05FqnIuZOKNl7tErSno2XmHFaaaM0GifQ+ru5W9LXbTXCEOZKpcgllAyWyrrWiXVGyAUdaG7tWpnk8KEy3irjG5HlGQw/DQYfBwwyIcPvc1YbCelwgcZbGeVUrFKyREnXprB0TgPzHwsMrIpXzfeiXgyaxRJmbD+d3KKRPMMDuZbMQygMJj4clVvl30po51TNHzF2UJJhgjY2QhPCMISJUZttVJ23vTqTow9jtZI2AP6hf06flx4+G+QOE2D/SmPC3V+RG4eAX7g7BM0J8sUR2t+iidO873OnE8pxdDiR08x2OGOQobV88QYdeCR39w/xXzK46Pf3WbzkSXQbuvLfmTyeKAPruMvt6zXUPhqLI1UMDlUxlo6QTaM7NM9ooitjlPkf6iGHGOdGuC0MpwVcr93IN8B0VrICRlrc4LbZIRd8Yck99S9lO+s2dmjLSFN/e024pUpgCLqaFZx8QU9X9hSfILM+fG5SOuRa9J7PgeLV2d0RVAGddlJdIkaTcbTCbURdjNJVgEfv9OpXpA0+iE30oEzG3XtgIMhiiTxB4io0Bvw8G03GZzdIyVd4cR+QwG/g6ca9/nEfObVCuRf5ErlBUx2+Ept8KyN+e9P9+CUDUs7t7hG72vBMp7ibWzQ960lUK6M9aVp7fsD02/Okfj52Y6I9xOSDqt9MHpOkaWQIR9Hhu1iIaDQZAwPiMmASxph1Gfdirzx29PECxkbTDjeup1Mu/OD1qigq6UxB76QXCp1CUcy5xW8mLUvafsrRkJ5nDJ65EXxOSZKia8RJayvcUjqhQ8/uKTBdT/MAeadbqRuCxSiOUbuTd2ct3U++3t0Dg3n1lyNTCdkYvqZXj68JJwbKA+DV7fcKSLlc5H4GQPBJ7HfeJq7Fyuu0WlBV9ZHctjLs6ioUsvKaPmJSFEF1ZdncD0dHLRoxh9tE3awsyz8lDTyC
+sidebar_class_name: "post api-method"
+info_path: docs/api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Create proxy"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/proxies"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+Create proxy
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"properties":{"auth":{"type":"boolean"},"host":{"type":"string"},"password":{"type":"string"},"port":{"maximum":65535,"minimum":1,"type":"integer"},"protocol":{"enum":["http","https","socks","socks4","socks5","socks5h"],"type":"string"},"username":{"type":"string"}},"required":["host","port","protocol"],"type":"object"}}},"description":"Proxy object","required":true}}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"201":{"description":"Created","content":{"application/json":{"schema":{"properties":{"data":{"properties":{"auth":{"type":"boolean"},"createdDate":{"type":"string"},"host":{"type":"string"},"id":{"type":"string"},"password":{"type":"string"},"port":{"type":"integer"},"protocol":{"type":"string"},"updatedAt":{"type":"string"},"username":{"type":"string"}},"type":"object"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+
+</StatusCodes>
+
+

@@ -1,0 +1,70 @@
+---
+id: get-monitors
+title: "Get monitors"
+description: "Get monitors"
+sidebar_label: "Get monitors"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVV99v2zYQ/lcIPm2AgiRt1we/pWtXpFnaoGm3AoFhnKWzzVoiWfLkWDP8vw9HyYpsUW4T7KF7snU83nf87gd5G2nBQYGEzsvR3UZm6FOnLCmj5UjeIrh0Ib6V6CqZSMWy3YeGAvlTJtKnCyxAjjaSKstCT07pudxuk0OLNzBHoctiim7AoIU5xmwqTTgPuzKcQZmTHJ1HAC4JCy8sOtEYimHkqlD0oyBnEZSLlNQKhSeg0g+AQNCJoUyNyRF0jJ/bYxZbuEG/IxZ/N0UBJx450ISZyJUnYWaCYC4uX3tBRsxUTujEdCjGBPOJyqLAbaTHiXTordEePa8/Ozvjn31fPlzJRKZGE2riVbA2Vynw6ulXzyqbDoR1xqIjVRvMgIJUcYD7yw3bEZID4kzNI14nMnXIrEyAossqi4s1oVtB3j9hYbQi48ROQygtPKZGZ4HpzAiH30r0xF+ly2UicQ2FzVGOXp4lvXgmMgdPkwWCoynWXkKef5iFaj1gyNzrSWpKTbHMSGRWOqjdjK2iziakCnwUD4U1jmAPsMN7Q8ZkYHfh4zHRhtRMYRY3alkregKH5Boq+otN7Yw2EnVZyNHdWXKePEuej3ucJ3J9wjonK3BcANwY5XV9lLo8X5t7LZN92Wd7KLlBnbGvB+JrYCANOkU53iZygPNt65eZfsWUJFfYfq79CZ5EmxliZpywpV+IhnYfOIb1pMPLvoFrWKuiLESjIKY4Mw4FLVB4dCuVolBeFOCWmAnwghNMgM4EiDpGdemykueK7uTy81gq1+1kqGTCasfEjjaZ9FPEOrOuhvKKSZiQWaKOLjv0nOvDNfwxKIj3e0ecCY66+CI4Xl6k3OjSkntOXnW9Po8WMTNcHYUkV/2HTeOnznZT0nAWNArDFBhaoLtXnm9fY3fivRC8jFFSSw5hU6M1piHErDASCyKbCEptIrjTJAIp3ctKVoilZGmz4ZskpMC3Ujnuanf16rhX4a0AnIMqlC96z8+Y71oMt+ODft/2lne8iF3KryATH1sWn3g7DzvaTcbjZ9jZaHcMnuJF/xTvDYk/TKmz/8cZfotF4pLrX0MubtGt0Ik3zoX299Ofhw1iWjpFVXiXvLuni5IWcnQ35gfphVVXWLUSNgHzbqMJZve5eIv0cJFxYtPCZHIk58hZaoFtydOOhg+c1VMM98iRPAWrTlfn4ebcuXfLXNX0dL3qve9vLsUSKwElLVDT7hb4xS4nwjqcqTVftwXQr7sn8wIhC+20eTN/Obm4uTy5wuqhV0AAZPZbfg5x3/39SYSbq4f8CsGhaxa/g822jVP/1K+9Hn54wM4Mo3NmQcqZFXozhQ73l5orcXFzKRPJjNaehYvVeCog5FyDdBClvcO0qUW4plObgwrvtxCbTRPBO1l0MmBhPLFss5mCx88u325ZXE8jYTpVHqY5Z+YMco89wLZQDifXqCdLrJoBdgV5ifUhHwOyP8wewWhG0SfC9EbaI0i7yfaJUIdz7RGkdrx9ItTtD2C0fjwR45Gz7xFPHkbgB1fG/OEU+1J3ul0hcqrW2y7SFG03Hr3+zVba5vb2zSeZSGhaw0PZLkMbaf6w9d2Srjq2D8u+dmEZWs7Als2mbgrbbatfLw3uaHtNrc0cjbfb7b94O0y0
+sidebar_class_name: "get api-method"
+info_path: docs/api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get monitors"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/monitors"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+Get monitors
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Search query","in":"query","name":"q","schema":{"type":"string"}},{"description":"Page number","in":"query","name":"page","schema":{"type":"integer","default":1}},{"description":"Items per page","in":"query","name":"limit","schema":{"type":"integer","default":10}},{"description":"Active status","in":"query","name":"active","schema":{"type":"boolean"}},{"description":"Status","in":"query","name":"status","schema":{"type":"integer"}},{"description":"Comma-separated list of tag IDs to filter by","in":"query","name":"tag_ids","schema":{"type":"string"}}]}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{"items":{"properties":{"active":{"type":"boolean"},"config":{"type":"string"},"created_at":{"type":"string"},"id":{"type":"string"},"interval":{"description":"monitor interval in seconds to do request to url","example":60,"type":"integer"},"last_heartbeat":{"allOf":[{"properties":{"down_count":{"type":"integer"},"duration":{"type":"integer"},"end_time":{"type":"string"},"id":{"type":"string"},"important":{"type":"boolean"},"monitor_id":{"type":"string"},"msg":{"type":"string"},"notified":{"type":"boolean"},"ping":{"type":"integer"},"retries":{"type":"integer"},"status":{"enum":[0,1,2,3],"type":"integer","x-enum-varnames":["MonitorStatusDown","MonitorStatusUp","MonitorStatusPending","MonitorStatusMaintenance"]},"time":{"type":"string"}},"type":"object"}],"description":"Last heartbeat for push monitors"},"max_retries":{"description":"Maximum retries before the service is marked as down and a notification is sent","example":3,"type":"integer"},"name":{"description":"monitor name","example":"Monitor","type":"string"},"proxy_id":{"type":"string"},"push_token":{"type":"string"},"resend_interval":{"description":"Resend Notification if Down X times consecutively","example":10,"type":"integer"},"retry_interval":{"description":"Retry interval in seconds to do request to url","example":60,"type":"integer"},"status":{"enum":[0,1,2,3],"type":"integer","x-enum-varnames":["MonitorStatusDown","MonitorStatusUp","MonitorStatusPending","MonitorStatusMaintenance"]},"timeout":{"description":"monitor timeout in seconds to do request otherwise stop request","example":16,"type":"integer"},"type":{"description":"connection type: http, tcp, ping, etc","example":"http","type":"string"},"updated_at":{"type":"string"}},"required":["type"],"type":"object"},"type":"array"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"404":{"description":"Not Found","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+
+</StatusCodes>
+
+

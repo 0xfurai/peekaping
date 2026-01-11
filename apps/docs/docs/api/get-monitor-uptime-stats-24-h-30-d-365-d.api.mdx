@@ -1,0 +1,70 @@
+---
+id: get-monitor-uptime-stats-24-h-30-d-365-d
+title: "Get monitor uptime stats (24h, 30d, 365d)"
+description: "Get monitor uptime stats (24h, 30d, 365d)"
+sidebar_label: "Get monitor uptime stats (24h, 30d, 365d)"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVdtO20AQ/ZXVPIG0KCmEVvJbUCkKqC0CepGiqNrYk3iJvbvsjtOmlv+9Gl8CaYxQ+8ZTnLmemTMzW4JTXuVI6ANE0xISDLHXjrQ1EMFHazRZLybvQYJmiVOUggSjcoQIdAISPD4U2mMCEfkCJYQ4xVxBVAJtHFsF8tosoapmbBycNQED64+HQ/7Zzfn5CiTE1hAaYq1yLtOxYu3gPrBJ+SSF89ahJ90ETBT1SN8lT8CYIp+jh0rC8SjtlZ8M++1P3p72KSrZSez8HmNi0xxDUEvs68HTfk0bwI/2s71YFXuM+vp0phJxgw8FBvr/hj0PVEIgRUV4uYYuxtbj2SpG+1V8siQ+2MIkr6OG0z4mJobQG5WJW/Rr9OLce+tfQz0cEOPCa9rUy3+GyqMfF5RCNJ3xupJa8l3oDkEdZ7f4CySRt2eicKRzFJwyiIPjUSrFyTCRgjfnsB5zSm0CESyRZ7a+JREMWvcwKHVSDWrvQROK8dc9bY5T4TO2V04P1m+A8XXwb7mXTfvGTl/hpinib6bG1xOxwo1QBaVoqGVEHLjVD+E8LvQvsbA+V3TY3bsUVYL+8eJ9PxpfT46ucAPbhqo6IbNz+ZP6815+uxNkV2j2Mjctb5Uv5ObY1uvftet+/ordFpaz8+SpmCePr5OmjO2+6qUW4+sJSOCONsgYtrOBclXPZJvpX0jdqXQ7l4S/aOAypQ1nqIkrW8Kn0BEOEqL6CamDg4SW9ZmE1AZi07Kcq4BffFZVLH4o0POsziSslddqzpXxs6UDfycQLVQWcA/VdhXh4KZdk0Ox87r14u46bJjutcoK/gcSVrhpXr9qVsmOJ8bRKMZxjI6euOytP8/udhsuzu+gqv4AYO+PSw==
+sidebar_class_name: "get api-method"
+info_path: docs/api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get monitor uptime stats (24h, 30d, 365d)"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/monitors/{id}/stats/uptime"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+Get monitor uptime stats (24h, 30d, 365d)
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Monitor ID","in":"path","name":"id","required":true,"schema":{"type":"string"}}]}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{"properties":{"7d":{"type":"number"},"24h":{"type":"number"},"30d":{"type":"number"},"365d":{"type":"number"}},"type":"object"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"404":{"description":"Not Found","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+
+</StatusCodes>
+
+

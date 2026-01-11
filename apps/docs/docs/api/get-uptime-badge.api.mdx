@@ -1,0 +1,70 @@
+---
+id: get-uptime-badge
+title: "Get uptime badge"
+description: "Get uptime badge"
+sidebar_label: "Get uptime badge"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVlt1P2zAQwP8V655Ay9RSsU3KWxkMFbQJAWOTUDW5yTX1mtjBvnRkUf736ZIm/SBllKftqa3Pd7/78l0LSKWVCRJaB/59ASG6wKqUlNHgw2ejFRkrRqfggeKTVNIMPNAyQfAhqeWjEDyw+JApiyH4ZDP0wAUzTCT4BVCe8mVHVukIytLbxpxmVvJXobSYmcw6cTA49sSHQd8Tg6P3/cNuerhUewlcacIIbRf9RIYRCkd5jA3nIUObr0CNbI+QPmaOTCJiOcF4h9VGtofVOxlnKFw2narHXb42wj3M1hkITGzsDquNbLfRMRfBpUY7dCwf9Pv8sQm6uTsXE4aBB4HRhJr4kkpkhD23iN48JjEf7MaUpQfHXaZPZCiu8SFDRy82nlqToiVVe5ygczLCDqoHjiRlrjOZa71339poNcZeo2EmPzGgNoTjpyF8MSQ+mUyH/0EA77pqMNKEVstY3KBdoBVn1lZd828HU3pAMuLxVz+E6tpmYOdIIktJJdi2b4I0MyH4ECE3XDWZfOhV4l7RDsayV+v1imZalexOlZ964mY2ZkWZqt7iCPgdOQwyqyi/4dTU2Rim6hLzYcaQ7awPr0ZijrmQGc1QkwrqWXqQzn+I1OJUPYqpsYmkdozOUIZoV6/7+9vh1ejtJfKDX+ZHVkBO9sUv6uZefLsVZOaon5BPUFq0S+Ff2GzbWPW7meRb/JLVpobp3EUy4C7iiimK+d6dipQYXo3AA85o7Rm7nRpHidSsuCR1FHEjoLabCB+pl8ZSaTZU1adYFvgeGlV/fffVZvm03UljD2bGEasUxUQ6/GrjsuTjerRWy1Y5OYm5V6cydvjEn/bdbO2oTj/nmK+tqgVvijoV+3C21tYzoObKK0Fbm+y5iJo7ryRtLrdnQM2VFWfMP6xi0J71OrhejqFDsfEfqhPftLzO1+mNW6s+2y/uNRde8v/qFZ61vV6OS6952JynWjwMAkxpTXFz9nN22yF6fnYLZfkHbQaScg==
+sidebar_class_name: "get api-method"
+info_path: docs/api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get uptime badge"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/badge/{monitorId}/uptime/{duration}"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+Get uptime badge
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Monitor ID","in":"path","name":"monitorId","required":true,"schema":{"type":"string"}},{"description":"Duration in hours (24, 720, 2160)","in":"path","name":"duration","required":true,"schema":{"type":"integer"}},{"description":"Badge style","in":"query","name":"style","schema":{"type":"string"}},{"description":"Custom label","in":"query","name":"label","schema":{"type":"string"}},{"description":"Value suffix","in":"query","name":"suffix","schema":{"type":"string"}},{"description":"Badge color","in":"query","name":"color","schema":{"type":"string"}}]}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"SVG badge","content":{"image/svg+xml":{"schema":{"type":"string"}}}},"400":{"description":"Bad Request","content":{"image/svg+xml":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"404":{"description":"Not Found","content":{"image/svg+xml":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"image/svg+xml":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+
+</StatusCodes>
+
+

@@ -1,0 +1,70 @@
+---
+id: update-proxy
+title: "Update proxy"
+description: "Update proxy"
+sidebar_label: "Update proxy"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVstu2zoQ/RVhVi3AwGlv3IV2Sh+oG+DWSJP2AoZxQUsTm7VEsuQosSvo34shJduJlfSxqzaSyHmf4Rk2YKWTFRI6D+msgQJ97pQlZTSkMHVms00mb0CA4n8raQUCtKwQUlAFCHD4rVYOC0jJ1SjA5yusJKQN0NaylCen9BLadh6F0dO5KbYskRtNqIk/pbWlyiX7HX317Lw5MGWdsehIoQ+yNa0OHCyMKVFqaAWsjKcB1wKs9P7OuGJ407igVcmNquoK0lfj8T9jAZXS8f+F6JWUJlyiC1rOkMlNyZqoWWwGKyILIrw8CPAmX+/eZ/3HePexgrk4Dqf26GKFj2u4EzeLr5gTtLw0hFm3/xCflhe8NdrHUr48PeXXfQsfL0D8KTaFpN9CLHcoCYs3kobyfQJR9QiWvwL002AeA2ILjjEbDuS34BJQofdy+Yj0HqxZrORefj4AfSvgbAjAc1kkl/Go/TmSjwcqwJOk2v88h97GTuPRLM6Os/jXUPLO1Lr4O3IYDyEx0cTdUSaf0N2iS946Z9zfkA8bxLx2irZhLpyjdOiycI5nc+ZykkseGYFvOLz5QyK6DscmscxHoZFpZYo4RHKeImGYpDCy0cCoUUXLUYVKxWlUu5IlpFWj2xfAXvugPnGFYlEyqy5wm3UUcz+GbDpJ1rhNmIBQU1fn5Jld/59Yhzdqk9wYV0l63o+4FcoC3X7I/XeSTScnF8gpdGWSwSHX/MMdDfv98OUqIbNGfeQ5FrLb/Ilvtm2c+h5Uj/23ArhhLvdD9e1GVrbEPeXGmRxJtG+IQ5I8WAvceHpIhf042zPcIf/qG9PPcJlzJzPbKWLv8FktVZJNJyCAsYw1iQzsqZKhxzuLD7rkXhl3rUy4oZEtpQozI3RF0/XPDLr+AQGpKrgNY7ozaJqF9Hjtyrbl5W81Om7muYBb6ZRccKh85VGevwtIb2Tp8SiG3VmFZ5fdOXqeHNyMBmPsodKc1K0sa/4DAWvcxptTO+fpFgHnKOLG6+jr5IrV94pHHNGKXiPLc7T0pOz84PBNs6vX70HAoruCVaZgJSfv+K4g72KUJiQfTldYa6CUelkH6oFolJ8f1nWCCA==
+sidebar_class_name: "patch api-method"
+info_path: docs/api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Update proxy"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"patch"}
+  path={"/proxies/{id}"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+Update proxy
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Proxy ID","in":"path","name":"id","required":true,"schema":{"type":"string"}}]}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"properties":{"auth":{"type":"boolean"},"host":{"type":"string"},"password":{"type":"string"},"port":{"maximum":65535,"minimum":1,"type":"integer"},"protocol":{"enum":["http","https","socks","socks4","socks5","socks5h"],"type":"string"},"username":{"type":"string"}},"type":"object"}}},"description":"Proxy object","required":true}}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{"properties":{"auth":{"type":"boolean"},"createdDate":{"type":"string"},"host":{"type":"string"},"id":{"type":"string"},"password":{"type":"string"},"port":{"type":"integer"},"protocol":{"type":"string"},"updatedAt":{"type":"string"},"username":{"type":"string"}},"type":"object"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"404":{"description":"Not Found","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+
+</StatusCodes>
+
+

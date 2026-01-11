@@ -1,0 +1,70 @@
+---
+id: get-monitors-by-i-ds
+title: "Get monitors by IDs"
+description: "Get monitors by IDs"
+sidebar_label: "Get monitors by IDs"
+hide_title: true
+hide_table_of_contents: true
+api: eJzNV0tv2zgQ/isETy2gwEm724Nv7rYo0my2QdruFggMYyyNLdYSyZIjx1pD/30x1COyJXUf2ENPiTnDeXzzzQx1lBYc5EjovJw/HGWCPnbKkjJazuUvJs/hwiMrESYiU56E2YjcaEXGies3XkZSseq3Al0pI6khRzmXKmGJw2+FcpjIObkCI+njFHOQ86Ok0rKaJ6f0VlbVkpW9NdqjZ/mLy0v+cxrOhxsZydhoQk0sBWszFQNLZ189qxx7LqwzFh2p2mACFE4VYe6HYohJ7bEX2dqYDEHLKnjcqO1I1JGMHTIwK6BRsUrGjzWh20M2zLAFttUQSguPsdGJF2REYgRDip74V+EyGUk8QG4zlPNXl1Hriq9v0bGvDDytUgRHa6yjhCz7sAnFPkPIPOpVbArdz6VnKSkc1GGOSVEnK1I5/isccmscwYnDHu4NGKuJ27kfr4k2pDYKk3GjlrVGM3BIroFiKPQEVAQZ6iKX84fL6Cp6Eb1cDjCP5OGCdS724LgZuK/kbZ3Kx2DljXnUMjo9+2zPT+5QJxzr2fEtsCMNOka5rCI5gXnVxWXWXzEmyR12yrVfwZPomCE2xglb+LRtbh8whsOqh8upgVs4qLzIRaMg1rgxDgWlKDy6vYpRKC9ycDtMBHjBBBOgEwGirlHduqzkuaN7XH45RuV6tEy1TJD2TLSwyWhIEevMoZziFYOwIrNDPSp26Jnr0z18HxTEbycpbgRXXXwRXC8vYh50ccEzJyv7UV+NNjEjXH7XJbnyfxwaPzTbTUHTLGgUpiEwlKJ7VB6FJ2Pb45MSvBqDpD45dxsbrTEOJWaFuUiJbCQotpHgSRMJpPiElawwRsnCJtObpOqv0odauhx0eHcAzkEZ2he9h+3EfOhbDNvxSX9ou+IbP40t5deQiPsOxf+4nacD7ZPx+zm0NrobE1n8PJbFNfeOhkx8RLdHJ946F0bHD58PG8S4cIrKsNPfP9KioFTOH5ZVdJQLq26w7E7YBGz7TRrMnmLxDqlbAmJdNq+8HCk1iZzLLXKhLbBJOWsVZ2ugOOVgA4D1a5KHzVzOwKrZ/iqsoDbWjwxcjVU/xPOyLO6uxQ5LAQWlqKkdp8/sbiWsw4068N7KgZ6379AUIQlzqXmIfrlY3F1f3GD51HQQHHIpOrDO/b7/45MIK2Dg+TWCQ9cI/8Y32zZO/Vk/mwb+w0twY9g70wxiplkYchRGxe9qq8Ti7lpGkhGtIwsbynjKIRCw8TRespOcOroRHmhmM1DhPRRKdGzK+SC75R/JuqDLSKbGE8uOxzV4/OyyquLj+sUfPhqUh3XGrN1A5nHguGsi+ey+Ifhz8c++LUZj3mHZfWLsISsw4LLkH05xJDX723pwiPWVRRyjpd6tQU+zlY7p795+kpGEhiFP1dsFNjX/sPVWpMue7fPq1yHsAvMmrhyPNTeqqtOvRZM3Oso1mHAGVVX9Bd2ty10=
+sidebar_class_name: "get api-method"
+info_path: docs/api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get monitors by IDs"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/monitors/batch"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+Get monitors by IDs
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Comma-separated list of monitor IDs","in":"query","name":"ids","required":true,"schema":{"type":"string"}}]}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{"items":{"properties":{"active":{"type":"boolean"},"config":{"type":"string"},"created_at":{"type":"string"},"id":{"type":"string"},"interval":{"description":"monitor interval in seconds to do request to url","example":60,"type":"integer"},"last_heartbeat":{"allOf":[{"properties":{"down_count":{"type":"integer"},"duration":{"type":"integer"},"end_time":{"type":"string"},"id":{"type":"string"},"important":{"type":"boolean"},"monitor_id":{"type":"string"},"msg":{"type":"string"},"notified":{"type":"boolean"},"ping":{"type":"integer"},"retries":{"type":"integer"},"status":{"enum":[0,1,2,3],"type":"integer","x-enum-varnames":["MonitorStatusDown","MonitorStatusUp","MonitorStatusPending","MonitorStatusMaintenance"]},"time":{"type":"string"}},"type":"object"}],"description":"Last heartbeat for push monitors"},"max_retries":{"description":"Maximum retries before the service is marked as down and a notification is sent","example":3,"type":"integer"},"name":{"description":"monitor name","example":"Monitor","type":"string"},"proxy_id":{"type":"string"},"push_token":{"type":"string"},"resend_interval":{"description":"Resend Notification if Down X times consecutively","example":10,"type":"integer"},"retry_interval":{"description":"Retry interval in seconds to do request to url","example":60,"type":"integer"},"status":{"enum":[0,1,2,3],"type":"integer","x-enum-varnames":["MonitorStatusDown","MonitorStatusUp","MonitorStatusPending","MonitorStatusMaintenance"]},"timeout":{"description":"monitor timeout in seconds to do request otherwise stop request","example":16,"type":"integer"},"type":{"description":"connection type: http, tcp, ping, etc","example":"http","type":"string"},"updated_at":{"type":"string"}},"required":["type"],"type":"object"},"type":"array"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+
+</StatusCodes>
+
+

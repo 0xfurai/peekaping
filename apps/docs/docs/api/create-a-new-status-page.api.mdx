@@ -1,0 +1,70 @@
+---
+id: create-a-new-status-page
+title: "Create a new status page"
+description: "Create a new status page"
+sidebar_label: "Create a new status page"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVk1v4zYQ/SvCnFpAQbL9uPjmFHvIboEam/QDMAxhLI0lriWSS1JxVEH/vRhSthRbitH01JPlmeHMkPPeI1sw9K0m6+5V1sCihVRJR9LxJ2pdihSdUPL2q1WSbTYtqEL+0kZpMk6Q9bG1U4mhnSFbJEI6Ms9YssM1mmABbMrJQBdDWlunqiS1duS3zgiZszsjmxqhueq0X1UopF8rHFXTSXoDGoMN/98p5cgkjl7cZHyuVF5SghLLxonUJg7zRGSTsSKd6axSUjhlEpH9y+40WntQZrqcrrelsAWNvVulSkLJbkto0iIhmQtJiZAZvcwEFuqQpDyxHQ+VEnrRwjRvBGt1IENZsn0ryGFuZ9xlnbOnEvJXkrkrYPFjPHEYBVU0fUzClXQ1Qxd7CAvDJ7QOVY9rN6dotf1KqYOuO0cYPDp0tY1WmFPUR40zOlOTL2G1kjaA/Ye7D/zzOs8vhtBRBvF7KZSh+4/ECh0kOI3xa8S6xpFZ3M/w5Bpwe3i8BxAXnlpn81vvLlAQQ0XWYj6V7AxPfipD/BSiuhh+uru7RMQ9ZtGXoK7vR8V8ozFYD93rezjmOK2Y2cXPU7t4YMxJLKNHMs9koo/GKPN/2I8Xx7Q2wjWwWLfw6eCWNWvIetPFLSy1+EzNycIpvJStx4rgU0/xPMJI0iEK9SMduqnIFSqDBWjlR66Rk8NtiLrRPiF3xQdpfVO1KTkCtbh9/gDcxbHnRz7AcGbjVs/Hs1w9RHtqIqxdQdL1Y4i+0/sk0oZ24iXaKVOh+x5iELyiIMyIJyiReQZ/3SxXDzefqYHhZvIFeSSnQzuv++nPp8ipPcmLyveEhkzvvFKbcysj/vZLL+t3MTCevgxPlI8vWOkgAjPKePf6hXHE0PkYB/PxPbE+2jZnWjjEzj4ThpCgksP/V4+CcYnh0h+CR5LJ987M7d675u7zkXt8g4/MAei9wcvw0EKvviNDEN2x3sudOj4VMWUFGLQZ/hC5iJarB4iBQR4O218HyroKvTb0w3+DSdN3FY/jVpco/AXiqdP2JFvDK5JtYiiYg4s1tO0WLf1uyq5j87ea+JDWmxie0QjcctesCEdsMiv31HB/QeFunrg6h5d1AOeZ2rGahBXLNCXt3ozdjGRi9dvjE8Sw7Z/elcp4jcEDv0DwwAcXg/Kn4HXA21ooUea111AIOZkn2LN0YNDeM7r/4F0dXbIZdXjOwLCRvWf/zJK2DfzsulN8cM2uONE+RPP8Nl3X/QNyDlam
+sidebar_class_name: "post api-method"
+info_path: docs/api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Create a new status page"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/status-pages"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+Create a new status page
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"properties":{"auto_refresh_interval":{"type":"integer"},"custom_css":{"type":"string"},"description":{"type":"string"},"domains":{"items":{"type":"string"},"type":"array"},"footer_text":{"type":"string"},"google_analytics_tag_id":{"type":"string"},"icon":{"type":"string"},"monitor_ids":{"items":{"type":"string"},"type":"array"},"password":{"type":"string"},"published":{"type":"boolean"},"search_engine_index":{"type":"boolean"},"show_certificate_expiry":{"type":"boolean"},"show_powered_by":{"type":"boolean"},"show_tags":{"type":"boolean"},"slug":{"minLength":3,"type":"string"},"theme":{"type":"string"},"title":{"minLength":3,"type":"string"}},"required":["slug","title"],"type":"object"}}},"description":"Status Page object","required":true}}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"201":{"description":"Created","content":{"application/json":{"schema":{"properties":{"data":{"properties":{"auto_refresh_interval":{"type":"integer"},"created_at":{"type":"string"},"description":{"type":"string"},"footer_text":{"type":"string"},"icon":{"type":"string"},"id":{"type":"string"},"published":{"type":"boolean"},"slug":{"type":"string"},"theme":{"type":"string"},"title":{"type":"string"},"updated_at":{"type":"string"}},"type":"object"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+
+</StatusCodes>
+
+

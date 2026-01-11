@@ -1,0 +1,70 @@
+---
+id: get-a-status-page-by-slug
+title: "Get a status page by slug"
+description: "Get a status page by slug"
+sidebar_label: "Get a status page by slug"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVUtr20AQ/ivLnBpQcFrSi24upCEJtKZOH2CMGUtjaWNZu5kduVGN/nsZyXacWm6gt170mPfj22834JFxRUIcIJ5sIKWQsPViXQkxjAWlCmaEGZlxUWUQgVW5R8khghJXBDGETsP0WFmmFGLhiiIISU4rhHgDUvvWTtiWGTTNVI2Dd2WgoPp3Fxf6epn78x1EkLhSqBTVoveFTVC1g4egJpuDFJ6dJxbbBUxReqRYiZsxLZhCPrOlEK+xOKhPRRkxNBEkTCiUzlB66o9eVtqjXzgnxDOhp35/m5xwtGmv2FfzwoacDrVz5wrCUtXtAvr8JCfdUJ/GStGvqXx6unX17CRu/kCJqMOKQsCsL1hzCIpJt5Vn++lRrEY9Li8uj8HwyYn56Koy/XdMnC4zgtDi/PUOdjH2Hid6eN8H6BtFXImFGROvic0Vs+P/oR9dOmbKD4eE0Bq/7PCaxKDpQhmvpDGvzZYdViS5SyGGjASijkFiGHTG52ocBmo62Oiz0ZLaMXW0VHGh1ujtYP0WlEACJRVbqcc6nm4iQ2/vqB5WGvnP4Q9HN2ZJtcFKciplO2Tzxi9nxjMt7JNZOF6hnO04LidMiZ9Z7sf5cHRzfkc17GeEbUId+O1P6c97+/3eiFtSeZT5AyETb5Wv5NbYju2v1vU4vxJHuXCaXcGEiYLp+ZDDN5tZMxzdQAQ60a6ylldckBW2MNtm+tsK+1lPSW7gC7QtFbWL2mzXO4HD9UK0uyni9j2NIHdB1GyzmWOgr1w0jYofK+Ia4sk0gjWyxbl2oZeTDfqdQrzAItBRRfuTBG++bFF+ZnrusN7KdzMtdcFrLCr9gwiWVO/uuGbaRLvdaD2dapgk5OXA6egUK173+L++uoem+Q1R+ZBy
+sidebar_class_name: "get api-method"
+info_path: docs/api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get a status page by slug"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/status-pages/slug/{slug}"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+Get a status page by slug
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Status Page Slug","in":"path","name":"slug","required":true,"schema":{"type":"string"}}]}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{"properties":{"auto_refresh_interval":{"type":"integer"},"created_at":{"type":"string"},"description":{"type":"string"},"footer_text":{"type":"string"},"icon":{"type":"string"},"id":{"type":"string"},"published":{"type":"boolean"},"slug":{"type":"string"},"theme":{"type":"string"},"title":{"type":"string"},"updated_at":{"type":"string"}},"type":"object"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"404":{"description":"Not Found","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+
+</StatusCodes>
+
+
