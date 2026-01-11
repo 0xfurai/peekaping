@@ -2,6 +2,7 @@ package organization
 
 import (
 	"net/http"
+	"time"
 	"vigi/internal/utils"
 
 	"github.com/gin-gonic/gin"
@@ -157,7 +158,24 @@ func (c *OrganizationController) FindMembers(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", members))
+	var response []OrganizationMemberResponseDto
+	for _, member := range members {
+		dto := OrganizationMemberResponseDto{
+			UserID:   member.UserID,
+			Role:     member.Role,
+			JoinedAt: member.CreatedAt.Format(time.RFC3339),
+		}
+		if member.User != nil {
+			dto.User = &UserResponseDto{
+				ID:    member.User.ID,
+				Email: member.User.Email,
+				Name:  "", // Placeholder until User has Name field
+			}
+		}
+		response = append(response, dto)
+	}
+
+	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", response))
 }
 
 // @Router		/user/organizations [get]

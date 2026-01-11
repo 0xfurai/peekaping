@@ -204,15 +204,15 @@ migrate-down: ## Run database migrations down
 
 # Quick database environment switchers
 .PHONY: switch-to-postgres
-switch-to-postgres: docker-down-all dev-postgres ## Switch to PostgreSQL development environment
+switch-to-postgres: docker-down-all docker-dev-postgres ## Switch to PostgreSQL development environment
 	@echo "Switched to PostgreSQL development environment"
 
 .PHONY: switch-to-mongo
-switch-to-mongo: docker-down-all dev-mongo ## Switch to MongoDB development environment
+switch-to-mongo: docker-down-all docker-dev-mongo ## Switch to MongoDB development environment
 	@echo "Switched to MongoDB development environment"
 
 .PHONY: switch-to-sqlite
-switch-to-sqlite: docker-down-all dev-sqlite ## Switch to SQLite development environment
+switch-to-sqlite: docker-down-all docker-dev-sqlite ## Switch to SQLite development environment
 	@echo "Switched to SQLite development environment"
 
 .PHONY: test-server

@@ -2,22 +2,26 @@ package notification_channel
 
 import (
 	"vigi/internal/modules/middleware"
+	"vigi/internal/modules/organization"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Route struct {
-	controller *Controller
-	middleware *middleware.AuthChain
+	controller    *Controller
+	middleware    *middleware.AuthChain
+	orgMiddleware *organization.Middleware
 }
 
 func NewRoute(
 	controller *Controller,
 	middleware *middleware.AuthChain,
+	orgMiddleware *organization.Middleware,
 ) *Route {
 	return &Route{
 		controller,
 		middleware,
+		orgMiddleware,
 	}
 }
 
@@ -28,6 +32,7 @@ func (uc *Route) ConnectRoute(
 	router := rg.Group("notification-channels")
 
 	router.Use(uc.middleware.AllAuth())
+	router.Use(uc.orgMiddleware.RequireOrganization())
 
 	router.GET("", controller.FindAll)
 	router.POST("", controller.Create)

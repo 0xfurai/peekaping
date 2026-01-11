@@ -31,14 +31,52 @@ type sqlModel struct {
 	UpdatedAt time.Time `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
 }
 
+type userSQLModel struct {
+	bun.BaseModel `bun:"table:users,alias:u"`
+	ID            string `bun:"id,pk"`
+	Email         string `bun:"email"`
+}
+
 type organizationUserSQLModel struct {
 	bun.BaseModel `bun:"table:organization_users,alias:ou"`
 
-	OrganizationID string    `bun:"organization_id,pk"`
-	UserID         string    `bun:"user_id,pk"`
-	Role           string    `bun:"role,notnull"`
-	CreatedAt      time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp"`
-	UpdatedAt      time.Time `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
+	OrganizationID string        `bun:"organization_id,pk"`
+	UserID         string        `bun:"user_id,pk"`
+	Role           string        `bun:"role,notnull"`
+	CreatedAt      time.Time     `bun:"created_at,nullzero,notnull,default:current_timestamp"`
+	UpdatedAt      time.Time     `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
+	User           *userSQLModel `bun:"rel:belongs-to,join:user_id=id"`
+}
+
+func (r *SQLRepositoryImpl) FindMembers(ctx context.Context, orgID string) ([]*OrganizationUser, error) {
+	var sms []*organizationUserSQLModel
+	err := r.db.NewSelect().
+		Model(&sms).
+		Relation("User").
+		Where("organization_id = ?", orgID).
+		Scan(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var users []*OrganizationUser
+	for _, sm := range sms {
+		domainUser := &OrganizationUser{
+			OrganizationID: sm.OrganizationID,
+			UserID:         sm.UserID,
+			Role:           Role(sm.Role),
+			CreatedAt:      sm.CreatedAt,
+			UpdatedAt:      sm.UpdatedAt,
+		}
+		if sm.User != nil {
+			domainUser.User = &User{
+				ID:    sm.User.ID,
+				Email: sm.User.Email,
+			}
+		}
+		users = append(users, domainUser)
+	}
+	return users, nil
 }
 
 type SQLRepositoryImpl struct {
@@ -138,29 +176,6 @@ func (r *SQLRepositoryImpl) UpdateMemberRole(ctx context.Context, orgID, userID 
 		Where("organization_id = ? AND user_id = ?", orgID, userID).
 		Exec(ctx)
 	return err
-}
-
-func (r *SQLRepositoryImpl) FindMembers(ctx context.Context, orgID string) ([]*OrganizationUser, error) {
-	var sms []*organizationUserSQLModel
-	err := r.db.NewSelect().
-		Model(&sms).
-		Where("organization_id = ?", orgID).
-		Scan(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	var users []*OrganizationUser
-	for _, sm := range sms {
-		users = append(users, &OrganizationUser{
-			OrganizationID: sm.OrganizationID,
-			UserID:         sm.UserID,
-			Role:           Role(sm.Role),
-			CreatedAt:      sm.CreatedAt,
-			UpdatedAt:      sm.UpdatedAt,
-		})
-	}
-	return users, nil
 }
 
 func (r *SQLRepositoryImpl) FindUserOrganizations(ctx context.Context, userID string) ([]*OrganizationUser, error) {

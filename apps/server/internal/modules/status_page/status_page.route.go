@@ -2,19 +2,22 @@ package status_page
 
 import (
 	"vigi/internal/modules/middleware"
+	"vigi/internal/modules/organization"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Route struct {
-	controller *Controller
-	middleware *middleware.AuthChain
+	controller    *Controller
+	middleware    *middleware.AuthChain
+	orgMiddleware *organization.Middleware
 }
 
-func NewRoute(controller *Controller, middleware *middleware.AuthChain) *Route {
+func NewRoute(controller *Controller, middleware *middleware.AuthChain, orgMiddleware *organization.Middleware) *Route {
 	return &Route{
-		controller: controller,
-		middleware: middleware,
+		controller:    controller,
+		middleware:    middleware,
+		orgMiddleware: orgMiddleware,
 	}
 }
 
@@ -27,6 +30,7 @@ func (r *Route) ConnectRoute(rg *gin.RouterGroup, controller *Controller) {
 	sp.GET("/slug/:slug/monitors/homepage", r.controller.GetMonitorsBySlugForHomepage)
 
 	sp.Use(r.middleware.AllAuth())
+	sp.Use(r.orgMiddleware.RequireOrganization())
 	{
 		sp.POST("", r.controller.Create)
 		sp.GET("", r.controller.FindAll)
