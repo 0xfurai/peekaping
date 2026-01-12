@@ -2,6 +2,7 @@ package organization
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"regexp"
 	"strings"
@@ -197,6 +198,9 @@ func slugAlreadyUsedError(slug string) *SlugAlreadyUsedError {
 func (s *ServiceImpl) validateSlug(ctx context.Context, orgID string, slug string) error {
 	existing, err := s.repo.FindBySlug(ctx, slug)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil
+		}
 		return err
 	}
 	if existing != nil && existing.ID != orgID {

@@ -14,11 +14,10 @@ import { z } from "zod";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { postOrganizations } from "@/api/sdk.gen";
+import { client } from "@/api/client.gen";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { useOrganizationStore } from "@/store/organization";
-import { useAuthStore } from "@/store/auth";
 
 const organizationSchema = z.object({
     name: z.string().min(3, "Name must be at least 3 characters"),
@@ -91,14 +90,9 @@ export function OrganizationForm({
     const updateMutation = useMutation({
         mutationFn: async (values: OrganizationFormValues) => {
             if (!organizationId) throw new Error("Organization ID required for update");
-            const accessToken = useAuthStore.getState().accessToken;
-            const response = await axios.patch(`/api/v1/organizations/${organizationId}`, {
+            const response = await client.instance.patch(`/organizations/${organizationId}`, {
                 name: values.name,
                 slug: values.slug || undefined,
-            }, {
-                headers: {
-                    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})
-                }
             });
             return response.data;
         },

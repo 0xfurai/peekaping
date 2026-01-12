@@ -15,7 +15,10 @@ import {
     SidebarContent,
     SidebarFooter,
     SidebarHeader,
+    SidebarMenuButton,
+    SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { Link } from "react-router-dom";
 import { NavUser } from "./nav-user";
 import { NavMain } from "./nav-main";
 import { NavSecondary } from "./nav-secondary";
@@ -71,16 +74,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 url: `${prefix}/notification-channels`,
                 icon: Vibrate,
             },
-            {
-                title: t("navigation.members"),
-                url: `${prefix}/settings/members`,
-                icon: Users,
-            },
-            {
-                title: t("navigation.organization_settings"),
-                url: `${prefix}/settings/organization`,
-                icon: Building2,
-            },
         ],
         navSecondary: [
             {
@@ -92,6 +85,19 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         ],
     };
 
+    const menuItems = [
+        {
+            title: t("navigation.members"),
+            url: `${prefix}/settings/members`,
+            icon: Users,
+        },
+        {
+            title: t("navigation.organization_settings"),
+            url: `${prefix}/settings/organization`,
+            icon: Building2,
+        },
+    ]
+
     return (
         <Sidebar collapsible="offcanvas" {...props}>
             <SidebarHeader>
@@ -100,7 +106,18 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
 
             <SidebarContent>
                 <NavMain items={data.navMain} />
-                <NavSecondary items={data.navSecondary} className="mt-auto" />
+                <NavSecondary items={data.navSecondary} className="mt-auto">
+                    {menuItems.map((item) => (
+                        <SidebarMenuItem key={item.title}>
+                            <SidebarMenuButton asChild>
+                                <Link to={item.url}>
+                                    {item.icon && <item.icon />}
+                                    <span>{item.title}</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    ))}
+                </NavSecondary>
                 <div className="text-xs text-muted-foreground w-full mb-2 select-none px-4">
                     v{VERSION}
                 </div>

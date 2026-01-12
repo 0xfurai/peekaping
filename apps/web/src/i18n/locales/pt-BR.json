@@ -637,7 +637,7 @@
         "monitors": "Monitores",
         "notification_channels": "Canais de Notificação",
         "members": "Membros",
-        "organization_settings": "Configurações da Org.",
+        "organization_settings": "Configurações",
         "proxies": "Proxies",
         "settings": "Configurações",
         "status_pages": "Páginas de Status",
@@ -1251,7 +1251,7 @@
     },
     "organization": {
         "slug_already_used": "O slug '{{slug}}' já está em uso por outra organização.",
-        "settings_title": "Configurações da Organização",
+        "settings_title": "Configurações",
         "settings_description": "Gerencie os detalhes da sua organização e monitores.",
         "general_title": "Geral",
         "general_description": "Atualize o nome e o slug da sua organização.",
