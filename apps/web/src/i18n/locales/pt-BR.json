@@ -682,6 +682,14 @@
         "welcome_description": "Você tem convites pendentes. Aceite um para entrar em uma equipe ou crie sua própria organização.",
         "welcome_title": "Bem-vindo ao Vigi"
     },
+    "user_invitations": {
+        "accept": "Aceitar",
+        "description": "Gerencie seus convites pendentes para organizações.",
+        "invited_to_join_as": "Convidado para entrar como",
+        "no_invitations": "Nenhum convite pendente encontrado.",
+        "page_title": "Meus Convites",
+        "title": "Convites Pendentes"
+    },
     "invitation": {
         "create_account_button": "Criar Conta",
         "go_home": "Ir para o Início",

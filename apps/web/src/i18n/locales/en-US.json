@@ -682,6 +682,14 @@
         "welcome_description": "You have pending invitations. Accept one to join a team, or create your own organization.",
         "welcome_title": "Welcome to Vigi"
     },
+    "user_invitations": {
+        "accept": "Accept",
+        "description": "Manage your pending invitations to organizations.",
+        "invited_to_join_as": "Invited to join as",
+        "no_invitations": "No pending invitations found.",
+        "page_title": "My Invitations",
+        "title": "Pending Invitations"
+    },
     "invitation": {
         "create_account_button": "Create Account",
         "go_home": "Go Home",
