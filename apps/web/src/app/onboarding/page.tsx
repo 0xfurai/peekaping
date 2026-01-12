@@ -6,10 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Check, Plus, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { LanguageSelector } from "@/components/LanguageSelector";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export default function OnboardingPage() {
     const queryClient = useQueryClient();
     const navigate = useNavigate();
+    const { t } = useLocalizedTranslation();
 
     // Fetch Invitations
     const { data: invitationsData, isLoading: isLoadingInvites } = useQuery({
@@ -23,8 +26,8 @@ export default function OnboardingPage() {
         queryFn: () => getUserOrganizations(),
     });
 
-    const invitations = invitationsData?.data?.data || [];
-    const organizations = orgsData?.data || [];
+    const invitations = (invitationsData?.data?.data || []) as any[];
+    const organizations = (orgsData?.data || []) as any[];
     const isLoading = isLoadingInvites || isLoadingOrgs;
 
     const acceptMutation = useMutation({
@@ -32,7 +35,7 @@ export default function OnboardingPage() {
             return postInvitationsByTokenAccept({ path: { token: data.token } });
         },
         onSuccess: (_data, variables) => {
-            toast.success("Invitation accepted!");
+            toast.success(t("onboarding.invitation_accepted"));
             queryClient.invalidateQueries({ queryKey: ["user-invitations"] });
             queryClient.invalidateQueries({ queryKey: ["user-organizations"] });
 
@@ -40,7 +43,7 @@ export default function OnboardingPage() {
             window.location.href = `/${variables.slug}/monitors`;
         },
         onError: () => {
-            toast.error("Failed to accept invitation");
+            toast.error(t("onboarding.invitation_failed"));
         }
     });
 
@@ -66,9 +69,9 @@ export default function OnboardingPage() {
         <div className="min-h-screen bg-muted/50 flex flex-col items-center justify-center p-4">
             <div className="w-full max-w-4xl space-y-8">
                 <div className="text-center space-y-2">
-                    <h1 className="text-3xl font-bold tracking-tight">Welcome to Vigi</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">{t("onboarding.welcome_title")}</h1>
                     <p className="text-muted-foreground">
-                        You have pending invitations. Accept one to join a team, or create your own organization.
+                        {t("onboarding.welcome_description")}
                     </p>
                 </div>
 
@@ -76,14 +79,14 @@ export default function OnboardingPage() {
                     {/* Invitations Section */}
                     <div className="space-y-4">
                         <h2 className="text-xl font-semibold flex items-center gap-2">
-                            Pending Invitations
+                            {t("onboarding.pending_invitations")}
                             <Badge variant="secondary" className="rounded-full">{invitations.length}</Badge>
                         </h2>
                         <div className="grid gap-4">
                             {invitations.length === 0 ? (
                                 <Card>
                                     <CardContent className="pt-6 text-center text-muted-foreground">
-                                        No pending invitations.
+                                        {t("onboarding.no_invitations")}
                                     </CardContent>
                                 </Card>
                             ) : (
@@ -94,7 +97,7 @@ export default function OnboardingPage() {
                                         </div>
                                         <div className="space-y-1">
                                             <div className="font-semibold text-lg">{inv.organization?.name}</div>
-                                            <div className="text-sm text-muted-foreground">Invited as <span className="capitalize text-foreground font-medium">{inv.role}</span></div>
+                                            <div className="text-sm text-muted-foreground">{t("onboarding.invited_as")} <span className="capitalize text-foreground font-medium">{inv.role}</span></div>
                                         </div>
                                         <Button
                                             className="w-full"
@@ -106,7 +109,7 @@ export default function OnboardingPage() {
                                             disabled={acceptMutation.isPending}
                                         >
                                             {acceptMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Check className="h-4 w-4 mr-2" />}
-                                            Accept Invitation
+                                            {t("onboarding.accept_invitation")}
                                         </Button>
                                     </div>
                                 ))
@@ -116,20 +119,20 @@ export default function OnboardingPage() {
 
                     {/* Actions Section */}
                     <div className="space-y-6">
-                        <h2 className="text-xl font-semibold">Get Started</h2>
+                        <h2 className="text-xl font-semibold">{t("onboarding.get_started")}</h2>
 
                         <Card className="hover:border-primary/50 transition-colors cursor-pointer" onClick={handleCreateOrg}>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
                                     <Plus className="h-5 w-5 text-primary" />
-                                    Create New Organization
+                                    {t("onboarding.create_new_organization_title")}
                                 </CardTitle>
                                 <CardDescription>
-                                    Start fresh with a new organization for your team.
+                                    {t("onboarding.create_new_organization_desc")}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <Button variant="outline" className="w-full">Create Organization</Button>
+                                <Button variant="outline" className="w-full">{t("onboarding.create_organization_button")}</Button>
                             </CardContent>
                         </Card>
 
@@ -137,15 +140,22 @@ export default function OnboardingPage() {
                             <div className="pt-4 border-t">
                                 <div className="text-center space-y-4">
                                     <p className="text-sm text-muted-foreground">
-                                        You are already a member of {organizations.length} organization{organizations.length !== 1 ? 's' : ''}.
+                                        {organizations.length === 1
+                                            ? t("onboarding.already_member", { count: organizations.length })
+                                            : t("onboarding.already_member_plural", { count: organizations.length })}
                                     </p>
                                     <Button variant="ghost" className="group" onClick={handleSkipToDashboard}>
-                                        Skip to Dashboard
+                                        {t("onboarding.skip_to_dashboard")}
                                         <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                                     </Button>
                                 </div>
                             </div>
                         )}
+                    </div>
+                </div>
+                <div className="flex justify-center mt-6">
+                    <div className="w-[180px]">
+                        <LanguageSelector />
                     </div>
                 </div>
             </div>

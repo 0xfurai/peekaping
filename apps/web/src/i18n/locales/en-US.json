@@ -112,6 +112,7 @@
         "validation": {
             "email_invalid": "Please enter a valid email address",
             "password_min_length": "Password must be at least 8 characters",
+            "password_required": "Password is required",
             "passwords_mismatch": "Passwords don't match"
         }
     },
@@ -631,6 +632,67 @@
                 "up": "Up"
             }
         }
+    },
+    "organization": {
+        "create_button": "Create Organization",
+        "create_description": "Start by creating a new organization for your monitors.",
+        "create_title": "Create Organization",
+        "creation_error": "Failed to create organization",
+        "creation_success": "Organization created successfully",
+        "name_label": "Organization Name",
+        "placeholders": {
+            "name": "Acme Corp",
+            "slug": "acme-corp"
+        },
+        "slug_already_used": "Slug '{{slug}}' is already used",
+        "slug_label": "Slug (Optional)",
+        "update_button": "Update Organization",
+        "update_error": "Failed to update organization",
+        "update_success": "Organization updated successfully",
+        "validation": {
+            "name_min_length": "Name must be at least 3 characters",
+            "slug_format": "Slug must contain only lowercase letters, numbers, and hyphens",
+            "slug_min_length": "Slug must be at least 3 characters"
+        },
+        "settings_title": "Settings",
+        "settings_description": "Manage your organization details and monitors.",
+        "general_title": "General",
+        "general_description": "Update your organization's name and slug.",
+        "members_title": "Organization Members",
+        "members_description": "Manage members and invitations.",
+        "invite_member_title": "Invite Member",
+        "invite_member_description": "Invite a new member by email.",
+        "invite_button": "Invite",
+        "members_list_title": "Members"
+    },
+    "onboarding": {
+        "accept_invitation": "Accept Invitation",
+        "already_member": "You are already a member of {{count}} organization.",
+        "already_member_plural": "You are already a member of {{count}} organizations.",
+        "create_new_organization_desc": "Start fresh with a new organization for your team.",
+        "create_new_organization_title": "Create New Organization",
+        "create_organization_button": "Create Organization",
+        "get_started": "Get Started",
+        "invitation_accepted": "Invitation accepted!",
+        "invitation_failed": "Failed to accept invitation",
+        "invited_as": "Invited as",
+        "no_invitations": "No pending invitations.",
+        "pending_invitations": "Pending Invitations",
+        "skip_to_dashboard": "Skip to Dashboard",
+        "welcome_description": "You have pending invitations. Accept one to join a team, or create your own organization.",
+        "welcome_title": "Welcome to Vigi"
+    },
+    "invitation": {
+        "create_account_button": "Create Account",
+        "go_home": "Go Home",
+        "invalid_description": "This invitation link is invalid or has expired.",
+        "invalid_title": "Invalid Invitation",
+        "invited_title": "You've been invited!",
+        "join_description": "Join",
+        "logged_in_as": "Logged in as",
+        "login_button": "Login to Accept",
+        "login_to_accept_text": "Login or create an account to accept.",
+        "or": "Or"
     },
     "navigation": {
         "maintenance": "Maintenance",
@@ -1248,23 +1310,6 @@
             "under_maintenance": "Under Maintenance",
             "unknown": "Unknown"
         }
-    },
-    "organization": {
-        "slug_already_used": "Slug '{{slug}}' is already used by another organization.",
-        "settings_title": "Settings",
-        "settings_description": "Manage your organization details and monitors.",
-        "general_title": "General",
-        "general_description": "Update your organization's name and slug.",
-        "name_label": "Organization Name",
-        "slug_label": "Slug (Optional)",
-        "create_button": "Create Organization",
-        "update_button": "Update Organization",
-        "members_title": "Organization Members",
-        "members_description": "Manage members and invitations.",
-        "invite_member_title": "Invite Member",
-        "invite_member_description": "Invite a new member by email.",
-        "invite_button": "Invite",
-        "members_list_title": "Members"
     },
     "status_pages": {
         "affected_monitors": "Affected Monitors",

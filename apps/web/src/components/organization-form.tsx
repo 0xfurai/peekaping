@@ -19,17 +19,17 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useOrganizationStore } from "@/store/organization";
 
-const organizationSchema = z.object({
-    name: z.string().min(3, "Name must be at least 3 characters"),
+const organizationSchema = (t: (key: string, options?: any) => string) => z.object({
+    name: z.string().min(3, t("organization.validation.name_min_length")),
     slug: z
         .string()
-        .min(3, "Slug must be at least 3 characters")
-        .regex(/^[a-z0-9-]+$/, "Slug must contain only lowercase letters, numbers, and hyphens")
+        .min(3, t("organization.validation.slug_min_length"))
+        .regex(/^[a-z0-9-]+$/, t("organization.validation.slug_format"))
         .optional()
         .or(z.literal("")),
 });
 
-export type OrganizationFormValues = z.infer<typeof organizationSchema>;
+export type OrganizationFormValues = z.infer<ReturnType<typeof organizationSchema>>;
 
 interface OrganizationFormProps {
     mode?: "create" | "edit";
@@ -49,8 +49,10 @@ export function OrganizationForm({
     const queryClient = useQueryClient();
     const { setOrganizations, organizations, setCurrentOrganization } = useOrganizationStore();
 
+    const formSchema = organizationSchema(t);
+
     const form = useForm<OrganizationFormValues>({
-        resolver: zodResolver(organizationSchema),
+        resolver: zodResolver(formSchema),
         defaultValues: initialValues || {
             name: "",
             slug: "",
@@ -74,7 +76,7 @@ export function OrganizationForm({
                 setOrganizations([...organizations, newOrg]);
                 setCurrentOrganization(newOrg);
 
-                toast.success(t("messages.saved_successfully") || "Organization created successfully");
+                toast.success(t("organization.creation_success"));
 
                 if (onSuccess) {
                     onSuccess(newOrg);
@@ -97,7 +99,7 @@ export function OrganizationForm({
             return response.data;
         },
         onSuccess: (data) => {
-            toast.success("Organization updated successfully");
+            toast.success(t("organization.update_success"));
             queryClient.invalidateQueries({ queryKey: ["organizations", organizationId] });
             if (onSuccess) onSuccess(data);
         },
@@ -114,7 +116,9 @@ export function OrganizationForm({
             // Scroll to top to see error
             window.scrollTo({ top: 0, behavior: "smooth" });
         } else {
-            toast.error(mode === "create" ? "Failed to create organization" : "Failed to update organization");
+            const defaultMsg = mode === "create" ? "Failed to create organization" : "Failed to update organization";
+            const key = mode === "create" ? "organization.creation_error" : "organization.update_error";
+            toast.error(t(key) || defaultMsg);
         }
     }
 
@@ -134,9 +138,9 @@ export function OrganizationForm({
                     name="name"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>{t("organization.name_label") || "Organization Name"}</FormLabel>
+                            <FormLabel>{t("organization.name_label")}</FormLabel>
                             <FormControl>
-                                <Input placeholder="Acme Corp" {...field} />
+                                <Input placeholder={t("organization.placeholders.name")} {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -147,16 +151,16 @@ export function OrganizationForm({
                     name="slug"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>{t("organization.slug_label") || "Slug (Optional)"}</FormLabel>
+                            <FormLabel>{t("organization.slug_label")}</FormLabel>
                             <FormControl>
-                                <Input placeholder="acme-corp" {...field} />
+                                <Input placeholder={t("organization.placeholders.slug")} {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
                 <Button type="submit" className="w-full" disabled={createMutation.isPending || updateMutation.isPending}>
-                    {mode === "create" ? (t("organization.create_button") || "Create Organization") : (t("organization.update_button") || "Update Organization")}
+                    {mode === "create" ? t("organization.create_button") : t("organization.update_button")}
                 </Button>
             </form>
         </Form>

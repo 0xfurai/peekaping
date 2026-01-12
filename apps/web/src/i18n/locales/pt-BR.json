@@ -112,6 +112,7 @@
         "validation": {
             "email_invalid": "Por favor, insira um endereço de e‑mail válido",
             "password_min_length": "A senha deve ter pelo menos 8 caracteres",
+            "password_required": "A senha é obrigatória",
             "passwords_mismatch": "As senhas não coincidem"
         }
     },
@@ -631,6 +632,67 @@
                 "up": "Ativo"
             }
         }
+    },
+    "organization": {
+        "create_button": "Criar Organização",
+        "create_description": "Comece criando uma nova organização para seus monitores.",
+        "create_title": "Criar Organização",
+        "creation_error": "Falha ao criar organização",
+        "creation_success": "Organização criada com sucesso",
+        "name_label": "Nome da Organização",
+        "placeholders": {
+            "name": "Acme Corp",
+            "slug": "acme-corp"
+        },
+        "slug_already_used": "O slug '{{slug}}' já está em uso",
+        "slug_label": "Slug (Opcional)",
+        "update_button": "Atualizar Organização",
+        "update_error": "Falha ao atualizar organização",
+        "update_success": "Organização atualizada com sucesso",
+        "validation": {
+            "name_min_length": "O nome deve ter pelo menos 3 caracteres",
+            "slug_format": "O slug deve conter apenas letras minúsculas, números e hífens",
+            "slug_min_length": "O slug deve ter pelo menos 3 caracteres"
+        },
+        "settings_title": "Configurações",
+        "settings_description": "Gerencie os detalhes da sua organização e monitores.",
+        "general_title": "Geral",
+        "general_description": "Atualize o nome e o slug da sua organização.",
+        "members_title": "Membros da Organização",
+        "members_description": "Gerencie membros e convites.",
+        "invite_member_title": "Convidar Membro",
+        "invite_member_description": "Convide um novo membro por e-mail.",
+        "invite_button": "Convidar",
+        "members_list_title": "Membros"
+    },
+    "onboarding": {
+        "accept_invitation": "Aceitar Convite",
+        "already_member": "Você já é membro de {{count}} organização.",
+        "already_member_plural": "Você já é membro de {{count}} organizações.",
+        "create_new_organization_desc": "Comece do zero com uma nova organização para sua equipe.",
+        "create_new_organization_title": "Criar Nova Organização",
+        "create_organization_button": "Criar Organização",
+        "get_started": "Começar",
+        "invitation_accepted": "Convite aceito!",
+        "invitation_failed": "Falha ao aceitar convite",
+        "invited_as": "Convidado como",
+        "no_invitations": "Nenhum convite pendente.",
+        "pending_invitations": "Convites Pendentes",
+        "skip_to_dashboard": "Pular para o Painel",
+        "welcome_description": "Você tem convites pendentes. Aceite um para entrar em uma equipe ou crie sua própria organização.",
+        "welcome_title": "Bem-vindo ao Vigi"
+    },
+    "invitation": {
+        "create_account_button": "Criar Conta",
+        "go_home": "Ir para o Início",
+        "invalid_description": "Este link de convite é inválido ou expirou.",
+        "invalid_title": "Convite Inválido",
+        "invited_title": "Você foi convidado!",
+        "join_description": "Junte-se a",
+        "logged_in_as": "Logado como",
+        "login_button": "Entrar para Aceitar",
+        "login_to_accept_text": "Faça login ou crie uma conta para aceitar.",
+        "or": "Ou"
     },
     "navigation": {
         "maintenance": "Manutenção",
@@ -1248,23 +1310,6 @@
             "under_maintenance": "Em Manutenção",
             "unknown": "Desconhecido"
         }
-    },
-    "organization": {
-        "slug_already_used": "O slug '{{slug}}' já está em uso por outra organização.",
-        "settings_title": "Configurações",
-        "settings_description": "Gerencie os detalhes da sua organização e monitores.",
-        "general_title": "Geral",
-        "general_description": "Atualize o nome e o slug da sua organização.",
-        "name_label": "Nome da Organização",
-        "slug_label": "Slug (Opcional)",
-        "create_button": "Criar Organização",
-        "update_button": "Atualizar Organização",
-        "members_title": "Membros da Organização",
-        "members_description": "Gerencie membros e convites.",
-        "invite_member_title": "Convidar Membro",
-        "invite_member_description": "Convide um novo membro por e-mail.",
-        "invite_button": "Convidar",
-        "members_list_title": "Membros"
     },
     "status_pages": {
         "affected_monitors": "Monitores afetados",
