@@ -11,11 +11,11 @@ import (
 
 type Service interface {
 	Create(ctx context.Context, entity *CreateUpdateDto) (*Model, error)
-	FindByID(ctx context.Context, id string) (*Model, error)
-	FindAll(ctx context.Context, page int, limit int, q string) ([]*Model, error)
-	UpdateFull(ctx context.Context, id string, entity *CreateUpdateDto) (*Model, error)
-	UpdatePartial(ctx context.Context, id string, entity *PartialUpdateDto) (*Model, error)
-	Delete(ctx context.Context, id string) error
+	FindByID(ctx context.Context, id string, orgID string) (*Model, error)
+	FindAll(ctx context.Context, page int, limit int, q string, orgID string) ([]*Model, error)
+	UpdateFull(ctx context.Context, id string, entity *CreateUpdateDto, orgID string) (*Model, error)
+	UpdatePartial(ctx context.Context, id string, entity *PartialUpdateDto, orgID string) (*Model, error)
+	Delete(ctx context.Context, id string, orgID string) error
 }
 
 type ServiceImpl struct {
@@ -44,6 +44,7 @@ func NewService(params NewServiceParams) Service {
 
 func (mr *ServiceImpl) Create(ctx context.Context, entity *CreateUpdateDto) (*Model, error) {
 	model := &Model{
+		OrgID:    entity.OrgID,
 		Protocol: entity.Protocol,
 		Host:     entity.Host,
 		Port:     entity.Port,
@@ -54,16 +55,17 @@ func (mr *ServiceImpl) Create(ctx context.Context, entity *CreateUpdateDto) (*Mo
 	return mr.repository.Create(ctx, model)
 }
 
-func (mr *ServiceImpl) FindByID(ctx context.Context, id string) (*Model, error) {
-	return mr.repository.FindByID(ctx, id, "")
+func (mr *ServiceImpl) FindByID(ctx context.Context, id string, orgID string) (*Model, error) {
+	return mr.repository.FindByID(ctx, id, orgID)
 }
 
-func (mr *ServiceImpl) FindAll(ctx context.Context, page int, limit int, q string) ([]*Model, error) {
-	return mr.repository.FindAll(ctx, page, limit, q, "")
+func (mr *ServiceImpl) FindAll(ctx context.Context, page int, limit int, q string, orgID string) ([]*Model, error) {
+	return mr.repository.FindAll(ctx, page, limit, q, orgID)
 }
 
-func (mr *ServiceImpl) UpdateFull(ctx context.Context, id string, entity *CreateUpdateDto) (*Model, error) {
+func (mr *ServiceImpl) UpdateFull(ctx context.Context, id string, entity *CreateUpdateDto, orgID string) (*Model, error) {
 	model := &Model{
+		OrgID:    orgID,
 		Protocol: entity.Protocol,
 		Host:     entity.Host,
 		Port:     entity.Port,
@@ -71,7 +73,7 @@ func (mr *ServiceImpl) UpdateFull(ctx context.Context, id string, entity *Create
 		Username: entity.Username,
 		Password: entity.Password,
 	}
-	updated, err := mr.repository.UpdateFull(ctx, id, model)
+	updated, err := mr.repository.UpdateFull(ctx, id, model, orgID)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +88,7 @@ func (mr *ServiceImpl) UpdateFull(ctx context.Context, id string, entity *Create
 	return updated, nil
 }
 
-func (mr *ServiceImpl) UpdatePartial(ctx context.Context, id string, entity *PartialUpdateDto) (*Model, error) {
+func (mr *ServiceImpl) UpdatePartial(ctx context.Context, id string, entity *PartialUpdateDto, orgID string) (*Model, error) {
 	updateModel := &UpdateModel{
 		Protocol: entity.Protocol,
 		Host:     entity.Host,
@@ -95,7 +97,7 @@ func (mr *ServiceImpl) UpdatePartial(ctx context.Context, id string, entity *Par
 		Username: entity.Username,
 		Password: entity.Password,
 	}
-	updated, err := mr.repository.UpdatePartial(ctx, id, updateModel)
+	updated, err := mr.repository.UpdatePartial(ctx, id, updateModel, orgID)
 	if err != nil {
 		return nil, err
 	}
@@ -108,9 +110,9 @@ func (mr *ServiceImpl) UpdatePartial(ctx context.Context, id string, entity *Par
 	return updated, nil
 }
 
-func (mr *ServiceImpl) Delete(ctx context.Context, id string) error {
+func (mr *ServiceImpl) Delete(ctx context.Context, id string, orgID string) error {
 	_ = mr.monitorService.RemoveProxyReference(ctx, id)
-	err := mr.repository.Delete(ctx, id)
+	err := mr.repository.Delete(ctx, id, orgID)
 	if err != nil {
 		return err
 	}

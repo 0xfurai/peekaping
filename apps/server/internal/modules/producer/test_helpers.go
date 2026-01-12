@@ -264,37 +264,37 @@ func (m *MockProxyService) Create(ctx context.Context, dto *proxy.CreateUpdateDt
 	return args.Get(0).(*proxy.Model), args.Error(1)
 }
 
-func (m *MockProxyService) FindByID(ctx context.Context, id string) (*proxy.Model, error) {
-	args := m.Called(ctx, id)
+func (m *MockProxyService) FindByID(ctx context.Context, id string, orgID string) (*proxy.Model, error) {
+	args := m.Called(ctx, id, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*proxy.Model), args.Error(1)
 }
 
-func (m *MockProxyService) Delete(ctx context.Context, id string) error {
-	args := m.Called(ctx, id)
+func (m *MockProxyService) Delete(ctx context.Context, id string, orgID string) error {
+	args := m.Called(ctx, id, orgID)
 	return args.Error(0)
 }
 
-func (m *MockProxyService) FindAll(ctx context.Context, page int, limit int, q string) ([]*proxy.Model, error) {
-	args := m.Called(ctx, page, limit, q)
+func (m *MockProxyService) FindAll(ctx context.Context, page int, limit int, q string, orgID string) ([]*proxy.Model, error) {
+	args := m.Called(ctx, page, limit, q, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).([]*proxy.Model), args.Error(1)
 }
 
-func (m *MockProxyService) UpdateFull(ctx context.Context, id string, dto *proxy.CreateUpdateDto) (*proxy.Model, error) {
-	args := m.Called(ctx, id, dto)
+func (m *MockProxyService) UpdateFull(ctx context.Context, id string, dto *proxy.CreateUpdateDto, orgID string) (*proxy.Model, error) {
+	args := m.Called(ctx, id, dto, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*proxy.Model), args.Error(1)
 }
 
-func (m *MockProxyService) UpdatePartial(ctx context.Context, id string, dto *proxy.PartialUpdateDto) (*proxy.Model, error) {
-	args := m.Called(ctx, id, dto)
+func (m *MockProxyService) UpdatePartial(ctx context.Context, id string, dto *proxy.PartialUpdateDto, orgID string) (*proxy.Model, error) {
+	args := m.Called(ctx, id, dto, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}

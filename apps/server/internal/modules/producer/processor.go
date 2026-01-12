@@ -156,7 +156,7 @@ func (p *Producer) processMonitor(ctx context.Context, monitorID string, nowMs i
 	// Fetch proxy if configured
 	var proxyData *worker.ProxyData
 	if mon.ProxyId != "" {
-		proxyModel, err := p.proxyService.FindByID(ctx, mon.ProxyId)
+		proxyModel, err := p.proxyService.FindByID(ctx, mon.ProxyId, "")
 		if err != nil {
 			p.logger.Warnw("Failed to fetch proxy, continuing without it",
 				"monitor_id", monitorID,

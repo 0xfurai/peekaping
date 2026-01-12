@@ -46,24 +46,24 @@ func (m *MockRepository) FindAll(ctx context.Context, page int, limit int, q str
 	return args.Get(0).([]*Model), args.Error(1)
 }
 
-func (m *MockRepository) UpdateFull(ctx context.Context, id string, entity *Model) (*Model, error) {
-	args := m.Called(ctx, id, entity)
+func (m *MockRepository) UpdateFull(ctx context.Context, id string, entity *Model, orgID string) (*Model, error) {
+	args := m.Called(ctx, id, entity, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*Model), args.Error(1)
 }
 
-func (m *MockRepository) UpdatePartial(ctx context.Context, id string, entity *UpdateModel) (*Model, error) {
-	args := m.Called(ctx, id, entity)
+func (m *MockRepository) UpdatePartial(ctx context.Context, id string, entity *UpdateModel, orgID string) (*Model, error) {
+	args := m.Called(ctx, id, entity, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*Model), args.Error(1)
 }
 
-func (m *MockRepository) Delete(ctx context.Context, id string) error {
-	args := m.Called(ctx, id)
+func (m *MockRepository) Delete(ctx context.Context, id string, orgID string) error {
+	args := m.Called(ctx, id, orgID)
 	return args.Error(0)
 }
 
@@ -396,10 +396,10 @@ func TestServiceImpl_FindByID(t *testing.T) {
 				logger:         logger,
 			}
 
-			mockRepo.On("FindByID", mock.Anything, tt.id, "").Return(tt.repoResponse, tt.repoError)
+			mockRepo.On("FindByID", mock.Anything, tt.id, "test-org").Return(tt.repoResponse, tt.repoError)
 
 			// Execute
-			result, err := service.FindByID(context.Background(), tt.id)
+			result, err := service.FindByID(context.Background(), tt.id, "test-org")
 
 			// Assert
 			if tt.expectedError {
@@ -502,10 +502,10 @@ func TestServiceImpl_FindAll(t *testing.T) {
 				logger:         logger,
 			}
 
-			mockRepo.On("FindAll", mock.Anything, tt.page, tt.limit, tt.query, "").Return(tt.repoResponse, tt.repoError)
+			mockRepo.On("FindAll", mock.Anything, tt.page, tt.limit, tt.query, "test-org").Return(tt.repoResponse, tt.repoError)
 
 			// Execute
-			result, err := service.FindAll(context.Background(), tt.page, tt.limit, tt.query)
+			result, err := service.FindAll(context.Background(), tt.page, tt.limit, tt.query, "test-org")
 
 			// Assert
 			if tt.expectedError {
@@ -630,10 +630,10 @@ func TestServiceImpl_UpdateFull(t *testing.T) {
 					model.Auth == expectedModel.Auth &&
 					model.Username == expectedModel.Username &&
 					model.Password == expectedModel.Password
-			})).Return(tt.repoResponse, tt.repoError)
+			}), "test-org").Return(tt.repoResponse, tt.repoError)
 
 			// Execute
-			result, err := service.UpdateFull(context.Background(), tt.id, tt.entity)
+			result, err := service.UpdateFull(context.Background(), tt.id, tt.entity, "test-org")
 
 			// Assert
 			if tt.expectedError {
@@ -784,10 +784,10 @@ func TestServiceImpl_UpdatePartial(t *testing.T) {
 						(model.Username != nil && expectedUpdateModel.Username != nil && *model.Username == *expectedUpdateModel.Username)) &&
 					((model.Password == nil && expectedUpdateModel.Password == nil) ||
 						(model.Password != nil && expectedUpdateModel.Password != nil && *model.Password == *expectedUpdateModel.Password))
-			})).Return(tt.repoResponse, tt.repoError)
+			}), "test-org").Return(tt.repoResponse, tt.repoError)
 
 			// Execute
-			result, err := service.UpdatePartial(context.Background(), tt.id, tt.entity)
+			result, err := service.UpdatePartial(context.Background(), tt.id, tt.entity, "test-org")
 
 			// Assert
 			if tt.expectedError {
@@ -882,10 +882,10 @@ func TestServiceImpl_Delete(t *testing.T) {
 				mockMonitorService.On("RemoveProxyReference", mock.Anything, tt.id).Return(tt.monitorServiceError)
 			}
 
-			mockRepo.On("Delete", mock.Anything, tt.id).Return(tt.repoError)
+			mockRepo.On("Delete", mock.Anything, tt.id, "test-org").Return(tt.repoError)
 
 			// Execute
-			err := service.Delete(context.Background(), tt.id)
+			err := service.Delete(context.Background(), tt.id, "test-org")
 
 			// Assert
 			if tt.expectedError {

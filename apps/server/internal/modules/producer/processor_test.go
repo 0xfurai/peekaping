@@ -232,7 +232,7 @@ func TestProcessMonitor(t *testing.T) {
 
 		mockMonitorSvc.On("FindByID", ctx, "mon-1", "").Return(mon, nil)
 		mockMaintenanceSvc.On("GetMaintenancesByMonitorID", ctx, "mon-1").Return([]*maintenance.Model{}, nil)
-		mockProxySvc.On("FindByID", ctx, "proxy-1").Return(proxyModel, nil)
+		mockProxySvc.On("FindByID", ctx, "proxy-1", "").Return(proxyModel, nil)
 		mockQueueSvc.On("EnqueueUnique", ctx, worker.TaskTypeHealthCheck, mock.MatchedBy(func(payload worker.HealthCheckTaskPayload) bool {
 			return payload.Proxy != nil && payload.Proxy.ID == "proxy-1"
 		}), "healthcheck:mon-1", mock.AnythingOfType("time.Duration"), mock.AnythingOfType("*queue.EnqueueOptions")).Return(&queue.TaskInfo{ID: "task-123"}, nil)

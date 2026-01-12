@@ -12,6 +12,7 @@ type sqlModel struct {
 	bun.BaseModel `bun:"table:proxies,alias:p"`
 
 	ID        string    `bun:"id,pk"`
+	OrgID     string    `bun:"org_id,notnull"`
 	Protocol  string    `bun:"protocol,notnull"`
 	Host      string    `bun:"host,notnull"`
 	Port      int       `bun:"port,notnull"`
@@ -25,6 +26,7 @@ type sqlModel struct {
 func toDomainModelFromSQL(sm *sqlModel) *Model {
 	return &Model{
 		ID:        sm.ID,
+		OrgID:     sm.OrgID,
 		Protocol:  sm.Protocol,
 		Host:      sm.Host,
 		Port:      sm.Port,
@@ -39,6 +41,7 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 func toSQLModel(m *Model) *sqlModel {
 	return &sqlModel{
 		ID:        m.ID,
+		OrgID:     m.OrgID,
 		Protocol:  m.Protocol,
 		Host:      m.Host,
 		Port:      m.Port,
@@ -118,13 +121,14 @@ func (r *SQLRepositoryImpl) FindAll(ctx context.Context, page int, limit int, q 
 	return models, nil
 }
 
-func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *Model) (*Model, error) {
+func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *Model, orgID string) (*Model, error) {
 	sm := toSQLModel(entity)
 	sm.UpdatedAt = time.Now()
 
 	_, err := r.db.NewUpdate().
 		Model(sm).
 		Where("id = ?", id).
+		Where("org_id = ?", orgID).
 		OmitZero().
 		Exec(ctx)
 	if err != nil {
@@ -134,8 +138,8 @@ func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *M
 	return toDomainModelFromSQL(sm), nil
 }
 
-func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity *UpdateModel) (*Model, error) {
-	query := r.db.NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id)
+func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity *UpdateModel, orgID string) (*Model, error) {
+	query := r.db.NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id).Where("org_id = ?", orgID)
 
 	hasUpdates := false
 
@@ -179,7 +183,7 @@ func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity
 	return r.FindByID(ctx, id, "")
 }
 
-func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string) error {
-	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Exec(ctx)
+func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string, orgID string) error {
+	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Where("org_id = ?", orgID).Exec(ctx)
 	return err
 }

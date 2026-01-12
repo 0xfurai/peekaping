@@ -38,6 +38,7 @@ func NewController(
 // @Failure		400	{object}	utils.APIError[any]
 // @Failure		404	{object}	utils.APIError[any]
 // @Failure		500	{object}	utils.APIError[any]
+// @Failure		500	{object}	utils.APIError[any]
 func (ic *Controller) FindAll(ctx *gin.Context) {
 	page, err := utils.GetQueryInt(ctx, "page", 0)
 	if err != nil || page < 0 {
@@ -52,8 +53,9 @@ func (ic *Controller) FindAll(ctx *gin.Context) {
 	}
 
 	q := ctx.Query("q")
+	orgID := ctx.GetString("orgId")
 
-	entities, err := ic.service.FindAll(ctx, page, limit, q)
+	entities, err := ic.service.FindAll(ctx, page, limit, q, orgID)
 	if err != nil {
 		ic.logger.Errorw("Failed to fetch proxies", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -86,6 +88,8 @@ func (ic *Controller) Create(ctx *gin.Context) {
 		return
 	}
 
+	entity.OrgID = ctx.GetString("orgId")
+
 	created, err := ic.service.Create(ctx, entity)
 	if err != nil {
 		ic.logger.Errorw("Failed to create proxy", "error", err)
@@ -108,8 +112,9 @@ func (ic *Controller) Create(ctx *gin.Context) {
 // @Failure		500	{object}	utils.APIError[any]
 func (ic *Controller) FindByID(ctx *gin.Context) {
 	id := ctx.Param("id")
+	orgID := ctx.GetString("orgId")
 
-	entity, err := ic.service.FindByID(ctx, id)
+	entity, err := ic.service.FindByID(ctx, id, orgID)
 	if err != nil {
 		ic.logger.Errorw("Failed to fetch proxy", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -150,7 +155,10 @@ func (ic *Controller) UpdateFull(ctx *gin.Context) {
 		return
 	}
 
-	updated, err := ic.service.UpdateFull(ctx, id, &entity)
+	orgID := ctx.GetString("orgId")
+	entity.OrgID = orgID
+
+	updated, err := ic.service.UpdateFull(ctx, id, &entity, orgID)
 	if err != nil {
 		ic.logger.Errorw("Failed to update proxy", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -181,7 +189,7 @@ func (ic *Controller) UpdatePartial(ctx *gin.Context) {
 		return
 	}
 
-	updated, err := ic.service.UpdatePartial(ctx, id, &entity)
+	updated, err := ic.service.UpdatePartial(ctx, id, &entity, ctx.GetString("orgId"))
 	if err != nil {
 		ic.logger.Errorw("Failed to update proxy", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -204,7 +212,7 @@ func (ic *Controller) UpdatePartial(ctx *gin.Context) {
 func (ic *Controller) Delete(ctx *gin.Context) {
 	id := ctx.Param("id")
 
-	err := ic.service.Delete(ctx, id)
+	err := ic.service.Delete(ctx, id, ctx.GetString("orgId"))
 	if err != nil {
 		ic.logger.Errorw("Failed to delete proxy", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))

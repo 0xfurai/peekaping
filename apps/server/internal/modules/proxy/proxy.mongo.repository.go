@@ -2,8 +2,8 @@ package proxy
 
 import (
 	"context"
-	"vigi/internal/config"
 	"time"
+	"vigi/internal/config"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -13,6 +13,7 @@ import (
 
 type mongoModel struct {
 	ID        primitive.ObjectID `bson:"_id"`
+	OrgID     string             `bson:"org_id"`
 	Protocol  string             `bson:"protocol"`
 	Host      string             `bson:"host"`
 	Port      int                `bson:"port"`
@@ -36,6 +37,7 @@ type mongoUpdateModel struct {
 func toDomainModel(mm *mongoModel) *Model {
 	return &Model{
 		ID:        mm.ID.Hex(),
+		OrgID:     mm.OrgID,
 		Protocol:  mm.Protocol,
 		Host:      mm.Host,
 		Port:      mm.Port,
@@ -62,6 +64,7 @@ func NewMongoRepository(client *mongo.Client, cfg *config.Config) Repository {
 func (r *MongoRepositoryImpl) Create(ctx context.Context, entity *Model) (*Model, error) {
 	mm := &mongoModel{
 		ID:        primitive.NewObjectID(),
+		OrgID:     entity.OrgID,
 		Protocol:  entity.Protocol,
 		Host:      entity.Host,
 		Port:      entity.Port,
@@ -144,14 +147,15 @@ func (r *MongoRepositoryImpl) FindAll(ctx context.Context, page int, limit int, 
 	return entities, nil
 }
 
-func (r *MongoRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *Model) (*Model, error) {
+func (r *MongoRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *Model, orgID string) (*Model, error) {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, err
 	}
 
 	filter := bson.M{
-		"_id": objectID,
+		"_id":    objectID,
+		"org_id": orgID,
 	}
 
 	now := time.Now().UTC()
@@ -195,14 +199,15 @@ func (r *MongoRepositoryImpl) UpdateFull(ctx context.Context, id string, entity 
 	return toDomainModel(&updatedMM), nil
 }
 
-func (r *MongoRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity *UpdateModel) (*Model, error) {
+func (r *MongoRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity *UpdateModel, orgID string) (*Model, error) {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, err
 	}
 
 	filter := bson.M{
-		"_id": objectID,
+		"_id":    objectID,
+		"org_id": orgID,
 	}
 
 	now := time.Now().UTC()
@@ -241,14 +246,15 @@ func (r *MongoRepositoryImpl) UpdatePartial(ctx context.Context, id string, enti
 	return toDomainModel(&mm), nil
 }
 
-func (r *MongoRepositoryImpl) Delete(ctx context.Context, id string) error {
+func (r *MongoRepositoryImpl) Delete(ctx context.Context, id string, orgID string) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return err
 	}
 
 	filter := bson.M{
-		"_id": objectID,
+		"_id":    objectID,
+		"org_id": orgID,
 	}
 	_, err = r.collection.DeleteOne(ctx, filter)
 	return err
