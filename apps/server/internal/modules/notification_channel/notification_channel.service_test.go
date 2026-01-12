@@ -26,34 +26,34 @@ func (m *MockRepository) Create(ctx context.Context, entity *Model) (*Model, err
 	return args.Get(0).(*Model), args.Error(1)
 }
 
-func (m *MockRepository) FindByID(ctx context.Context, id string) (*Model, error) {
-	args := m.Called(ctx, id)
+func (m *MockRepository) FindByID(ctx context.Context, id string, orgID string) (*Model, error) {
+	args := m.Called(ctx, id, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*Model), args.Error(1)
 }
 
-func (m *MockRepository) FindAll(ctx context.Context, page int, limit int, q string) ([]*Model, error) {
-	args := m.Called(ctx, page, limit, q)
+func (m *MockRepository) FindAll(ctx context.Context, page int, limit int, q string, orgID string) ([]*Model, error) {
+	args := m.Called(ctx, page, limit, q, orgID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).([]*Model), args.Error(1)
 }
 
-func (m *MockRepository) UpdateFull(ctx context.Context, id string, entity *Model) error {
-	args := m.Called(ctx, id, entity)
+func (m *MockRepository) UpdateFull(ctx context.Context, id string, entity *Model, orgID string) error {
+	args := m.Called(ctx, id, entity, orgID)
 	return args.Error(0)
 }
 
-func (m *MockRepository) UpdatePartial(ctx context.Context, id string, entity *UpdateModel) error {
-	args := m.Called(ctx, id, entity)
+func (m *MockRepository) UpdatePartial(ctx context.Context, id string, entity *UpdateModel, orgID string) error {
+	args := m.Called(ctx, id, entity, orgID)
 	return args.Error(0)
 }
 
-func (m *MockRepository) Delete(ctx context.Context, id string) error {
-	args := m.Called(ctx, id)
+func (m *MockRepository) Delete(ctx context.Context, id string, orgID string) error {
+	args := m.Called(ctx, id, orgID)
 	return args.Error(0)
 }
 
@@ -140,6 +140,7 @@ func TestServiceImpl_Create(t *testing.T) {
 						model.Type == "email" &&
 						model.Active == true &&
 						model.IsDefault == false &&
+						model.OrgID == "org-1" &&
 						*model.Config == "config-string"
 				})).Return(expectedModel, nil)
 			},
@@ -181,7 +182,7 @@ func TestServiceImpl_Create(t *testing.T) {
 			tt.mockSetup(mockRepo)
 
 			ctx := context.Background()
-			result, err := service.Create(ctx, tt.input)
+			result, err := service.Create(ctx, tt.input, "org-1")
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
@@ -221,7 +222,7 @@ func TestServiceImpl_FindByID(t *testing.T) {
 					IsDefault: false,
 					Config:    stringPtr("config-string"),
 				}
-				mr.On("FindByID", mock.Anything, "test-id").Return(expectedModel, nil)
+				mr.On("FindByID", mock.Anything, "test-id", "org-1").Return(expectedModel, nil)
 			},
 			expectedModel: &Model{
 				ID:        "test-id",
@@ -237,7 +238,7 @@ func TestServiceImpl_FindByID(t *testing.T) {
 			name: "repository error",
 			id:   "test-id",
 			mockSetup: func(mr *MockRepository) {
-				mr.On("FindByID", mock.Anything, "test-id").Return(nil, errors.New("not found"))
+				mr.On("FindByID", mock.Anything, "test-id", "org-1").Return(nil, errors.New("not found"))
 			},
 			expectedModel: nil,
 			expectedError: errors.New("not found"),
@@ -253,7 +254,7 @@ func TestServiceImpl_FindByID(t *testing.T) {
 			tt.mockSetup(mockRepo)
 
 			ctx := context.Background()
-			result, err := service.FindByID(ctx, tt.id)
+			result, err := service.FindByID(ctx, tt.id, "org-1")
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
@@ -303,7 +304,7 @@ func TestServiceImpl_FindAll(t *testing.T) {
 						Config:    stringPtr("config-2"),
 					},
 				}
-				mr.On("FindAll", mock.Anything, 1, 10, "test").Return(expectedModels, nil)
+				mr.On("FindAll", mock.Anything, 1, 10, "test", "org-1").Return(expectedModels, nil)
 			},
 			expectedModels: []*Model{
 				{
@@ -331,7 +332,7 @@ func TestServiceImpl_FindAll(t *testing.T) {
 			limit: 10,
 			query: "test",
 			mockSetup: func(mr *MockRepository) {
-				mr.On("FindAll", mock.Anything, 1, 10, "test").Return(nil, errors.New("repository error"))
+				mr.On("FindAll", mock.Anything, 1, 10, "test", "org-1").Return(nil, errors.New("repository error"))
 			},
 			expectedModels: nil,
 			expectedError:  errors.New("repository error"),
@@ -347,7 +348,7 @@ func TestServiceImpl_FindAll(t *testing.T) {
 			tt.mockSetup(mockRepo)
 
 			ctx := context.Background()
-			result, err := service.FindAll(ctx, tt.page, tt.limit, tt.query)
+			result, err := service.FindAll(ctx, tt.page, tt.limit, tt.query, "org-1")
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
@@ -389,8 +390,9 @@ func TestServiceImpl_UpdateFull(t *testing.T) {
 						model.Type == "webhook" &&
 						model.Active == false &&
 						model.IsDefault == true &&
-						*model.Config == "updated-config"
-				})).Return(nil)
+						*model.Config == "updated-config" &&
+						model.OrgID == "org-1"
+				}), "org-1").Return(nil)
 			},
 			expectedModel: &Model{
 				ID:        "test-id",
@@ -413,7 +415,7 @@ func TestServiceImpl_UpdateFull(t *testing.T) {
 				Config:    "updated-config",
 			},
 			mockSetup: func(mr *MockRepository) {
-				mr.On("UpdateFull", mock.Anything, "test-id", mock.Anything).Return(errors.New("update failed"))
+				mr.On("UpdateFull", mock.Anything, "test-id", mock.Anything, "org-1").Return(errors.New("update failed"))
 			},
 			expectedModel: nil,
 			expectedError: errors.New("update failed"),
@@ -429,7 +431,7 @@ func TestServiceImpl_UpdateFull(t *testing.T) {
 			tt.mockSetup(mockRepo)
 
 			ctx := context.Background()
-			result, err := service.UpdateFull(ctx, tt.id, tt.input)
+			result, err := service.UpdateFull(ctx, tt.id, tt.input, "org-1")
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
@@ -477,7 +479,7 @@ func TestServiceImpl_UpdatePartial(t *testing.T) {
 						*model.Active == true &&
 						*model.IsDefault == false &&
 						*model.Config == "partial-config"
-				})).Return(nil)
+				}), "org-1").Return(nil)
 
 				updatedModel := &Model{
 					ID:        "test-id",
@@ -487,7 +489,7 @@ func TestServiceImpl_UpdatePartial(t *testing.T) {
 					IsDefault: false,
 					Config:    stringPtr("partial-config"),
 				}
-				mr.On("FindByID", mock.Anything, "test-id").Return(updatedModel, nil)
+				mr.On("FindByID", mock.Anything, "test-id", "org-1").Return(updatedModel, nil)
 			},
 			expectedModel: &Model{
 				ID:        "test-id",
@@ -510,7 +512,7 @@ func TestServiceImpl_UpdatePartial(t *testing.T) {
 				Config:    "partial-config",
 			},
 			mockSetup: func(mr *MockRepository) {
-				mr.On("UpdatePartial", mock.Anything, "test-id", mock.Anything).Return(errors.New("update failed"))
+				mr.On("UpdatePartial", mock.Anything, "test-id", mock.Anything, "org-1").Return(errors.New("update failed"))
 			},
 			expectedModel: nil,
 			expectedError: errors.New("update failed"),
@@ -526,8 +528,8 @@ func TestServiceImpl_UpdatePartial(t *testing.T) {
 				Config:    "partial-config",
 			},
 			mockSetup: func(mr *MockRepository) {
-				mr.On("UpdatePartial", mock.Anything, "test-id", mock.Anything).Return(nil)
-				mr.On("FindByID", mock.Anything, "test-id").Return(nil, errors.New("find failed"))
+				mr.On("UpdatePartial", mock.Anything, "test-id", mock.Anything, "org-1").Return(nil)
+				mr.On("FindByID", mock.Anything, "test-id", "org-1").Return(nil, errors.New("find failed"))
 			},
 			expectedModel: nil,
 			expectedError: errors.New("find failed"),
@@ -543,7 +545,7 @@ func TestServiceImpl_UpdatePartial(t *testing.T) {
 			tt.mockSetup(mockRepo)
 
 			ctx := context.Background()
-			result, err := service.UpdatePartial(ctx, tt.id, tt.input)
+			result, err := service.UpdatePartial(ctx, tt.id, tt.input, "org-1")
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
@@ -570,7 +572,7 @@ func TestServiceImpl_Delete(t *testing.T) {
 			name: "successful delete with cascade",
 			id:   "test-id",
 			mockSetup: func(mr *MockRepository, mns *MockMonitorNotificationService) {
-				mr.On("Delete", mock.Anything, "test-id").Return(nil)
+				mr.On("Delete", mock.Anything, "test-id", "org-1").Return(nil)
 				mns.On("DeleteByNotificationID", mock.Anything, "test-id").Return(nil)
 			},
 			expectedError: nil,
@@ -579,7 +581,7 @@ func TestServiceImpl_Delete(t *testing.T) {
 			name: "repository delete error",
 			id:   "test-id",
 			mockSetup: func(mr *MockRepository, mns *MockMonitorNotificationService) {
-				mr.On("Delete", mock.Anything, "test-id").Return(errors.New("delete failed"))
+				mr.On("Delete", mock.Anything, "test-id", "org-1").Return(errors.New("delete failed"))
 			},
 			expectedError: errors.New("delete failed"),
 		},
@@ -587,7 +589,7 @@ func TestServiceImpl_Delete(t *testing.T) {
 			name: "successful delete with cascade error (should not fail)",
 			id:   "test-id",
 			mockSetup: func(mr *MockRepository, mns *MockMonitorNotificationService) {
-				mr.On("Delete", mock.Anything, "test-id").Return(nil)
+				mr.On("Delete", mock.Anything, "test-id", "org-1").Return(nil)
 				mns.On("DeleteByNotificationID", mock.Anything, "test-id").Return(errors.New("cascade delete failed"))
 			},
 			expectedError: nil, // Service ignores cascade delete errors
@@ -603,7 +605,7 @@ func TestServiceImpl_Delete(t *testing.T) {
 			tt.mockSetup(mockRepo, mockMonitorNotificationService)
 
 			ctx := context.Background()
-			err := service.Delete(ctx, tt.id)
+			err := service.Delete(ctx, tt.id, "org-1")
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)

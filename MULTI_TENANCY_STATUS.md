@@ -6,5 +6,5 @@ Checklist of modules that need deep verification for multi-tenancy security (Org
 - [x] **Monitors** (Controller, Service, Repository validated)
 - [x] **Maintenance** (Controller, Service, Repository validated)
 - [x] **Proxy** (Controller, Service, Repository validated)
-- [ ] **NotificationChannel**
+- [x] **NotificationChannel** (Verified via unit tests)
 - [ ] **StatusPage**

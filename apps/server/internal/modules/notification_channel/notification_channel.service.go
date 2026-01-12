@@ -8,12 +8,12 @@ import (
 )
 
 type Service interface {
-	Create(ctx context.Context, entity *CreateUpdateDto) (*Model, error)
+	Create(ctx context.Context, entity *CreateUpdateDto, orgID string) (*Model, error)
 	FindByID(ctx context.Context, id string, orgID string) (*Model, error)
 	FindAll(ctx context.Context, page int, limit int, q string, orgID string) ([]*Model, error)
-	UpdateFull(ctx context.Context, id string, entity *CreateUpdateDto) (*Model, error)
-	UpdatePartial(ctx context.Context, id string, entity *PartialUpdateDto) (*Model, error)
-	Delete(ctx context.Context, id string) error
+	UpdateFull(ctx context.Context, id string, entity *CreateUpdateDto, orgID string) (*Model, error)
+	UpdatePartial(ctx context.Context, id string, entity *PartialUpdateDto, orgID string) (*Model, error)
+	Delete(ctx context.Context, id string, orgID string) error
 }
 
 type ServiceImpl struct {
@@ -34,8 +34,9 @@ func NewService(
 	}
 }
 
-func (mr *ServiceImpl) Create(ctx context.Context, entity *CreateUpdateDto) (*Model, error) {
+func (mr *ServiceImpl) Create(ctx context.Context, entity *CreateUpdateDto, orgID string) (*Model, error) {
 	createModel := &Model{
+		OrgID:     orgID,
 		Name:      entity.Name,
 		Type:      entity.Type,
 		Active:    entity.Active,
@@ -65,9 +66,10 @@ func (mr *ServiceImpl) FindAll(
 	return entities, nil
 }
 
-func (mr *ServiceImpl) UpdateFull(ctx context.Context, id string, entity *CreateUpdateDto) (*Model, error) {
+func (mr *ServiceImpl) UpdateFull(ctx context.Context, id string, entity *CreateUpdateDto, orgID string) (*Model, error) {
 	updateModel := &Model{
 		ID:        id,
+		OrgID:     orgID,
 		Name:      entity.Name,
 		Type:      entity.Type,
 		Active:    entity.Active,
@@ -75,7 +77,7 @@ func (mr *ServiceImpl) UpdateFull(ctx context.Context, id string, entity *Create
 		Config:    &entity.Config,
 	}
 
-	err := mr.repository.UpdateFull(ctx, id, updateModel)
+	err := mr.repository.UpdateFull(ctx, id, updateModel, orgID)
 	if err != nil {
 		return nil, err
 	}
@@ -83,9 +85,10 @@ func (mr *ServiceImpl) UpdateFull(ctx context.Context, id string, entity *Create
 	return updateModel, nil
 }
 
-func (mr *ServiceImpl) UpdatePartial(ctx context.Context, id string, entity *PartialUpdateDto) (*Model, error) {
+func (mr *ServiceImpl) UpdatePartial(ctx context.Context, id string, entity *PartialUpdateDto, orgID string) (*Model, error) {
 	updateModel := &UpdateModel{
 		ID:        &id,
+		OrgID:     orgID,
 		Name:      &entity.Name,
 		Type:      &entity.Type,
 		Active:    &entity.Active,
@@ -93,12 +96,12 @@ func (mr *ServiceImpl) UpdatePartial(ctx context.Context, id string, entity *Par
 		Config:    &entity.Config,
 	}
 
-	err := mr.repository.UpdatePartial(ctx, id, updateModel)
+	err := mr.repository.UpdatePartial(ctx, id, updateModel, orgID)
 	if err != nil {
 		return nil, err
 	}
 
-	updatedModel, err := mr.repository.FindByID(ctx, id, "")
+	updatedModel, err := mr.repository.FindByID(ctx, id, orgID)
 	if err != nil {
 		return nil, err
 	}
@@ -106,8 +109,8 @@ func (mr *ServiceImpl) UpdatePartial(ctx context.Context, id string, entity *Par
 	return updatedModel, nil
 }
 
-func (mr *ServiceImpl) Delete(ctx context.Context, id string) error {
-	err := mr.repository.Delete(ctx, id)
+func (mr *ServiceImpl) Delete(ctx context.Context, id string, orgID string) error {
+	err := mr.repository.Delete(ctx, id, orgID)
 	if err != nil {
 		return err
 	}

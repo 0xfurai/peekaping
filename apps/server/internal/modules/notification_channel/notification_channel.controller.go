@@ -103,7 +103,10 @@ func (ic *Controller) Create(ctx *gin.Context) {
 		return
 	}
 
-	createdNotification, err := ic.service.Create(ctx, notification_channel)
+	// Extract orgID from context
+	orgID := ctx.GetString("orgId")
+
+	createdNotification, err := ic.service.Create(ctx, notification_channel, orgID)
 	if err != nil {
 		ic.logger.Errorw("Failed to create notification", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -170,7 +173,10 @@ func (ic *Controller) UpdateFull(ctx *gin.Context) {
 		return
 	}
 
-	updatedNotification, err := ic.service.UpdateFull(ctx, id, &notification)
+	// Extract orgID from context
+	orgID := ctx.GetString("orgId")
+
+	updatedNotification, err := ic.service.UpdateFull(ctx, id, &notification, orgID)
 	if err != nil {
 		ic.logger.Errorw("Failed to update notification", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -207,7 +213,10 @@ func (ic *Controller) UpdatePartial(ctx *gin.Context) {
 		return
 	}
 
-	updatedNotification, err := ic.service.UpdatePartial(ctx, id, &notification)
+	// Extract orgID from context
+	orgID := ctx.GetString("orgId")
+
+	updatedNotification, err := ic.service.UpdatePartial(ctx, id, &notification, orgID)
 	if err != nil {
 		ic.logger.Errorw("Failed to update notification", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -230,7 +239,10 @@ func (ic *Controller) UpdatePartial(ctx *gin.Context) {
 func (ic *Controller) Delete(ctx *gin.Context) {
 	id := ctx.Param("id")
 
-	err := ic.service.Delete(ctx, id)
+	// Extract orgID from context
+	orgID := ctx.GetString("orgId")
+
+	err := ic.service.Delete(ctx, id, orgID)
 	if err != nil {
 		ic.logger.Errorw("Failed to delete notification", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))

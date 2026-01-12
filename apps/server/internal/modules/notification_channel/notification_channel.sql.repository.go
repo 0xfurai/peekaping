@@ -12,6 +12,7 @@ type sqlModel struct {
 	bun.BaseModel `bun:"table:notification_channels,alias:nc"`
 
 	ID        string    `bun:"id,pk"`
+	OrgID     string    `bun:"org_id,notnull"`
 	Name      string    `bun:"name,notnull"`
 	Type      string    `bun:"type,notnull"`
 	Active    bool      `bun:"active,notnull,default:true"`
@@ -24,6 +25,7 @@ type sqlModel struct {
 func toDomainModelFromSQL(sm *sqlModel) *Model {
 	return &Model{
 		ID:        sm.ID,
+		OrgID:     sm.OrgID,
 		Name:      sm.Name,
 		Type:      sm.Type,
 		Active:    sm.Active,
@@ -37,6 +39,7 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 func toSQLModel(m *Model) *sqlModel {
 	return &sqlModel{
 		ID:        m.ID,
+		OrgID:     m.OrgID,
 		Name:      m.Name,
 		Type:      m.Type,
 		Active:    m.Active,
@@ -71,7 +74,11 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, entity *Model) (*Model, 
 
 func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string, orgID string) (*Model, error) {
 	sm := new(sqlModel)
-	err := r.db.NewSelect().Model(sm).Where("id = ?", id).Scan(ctx)
+	query := r.db.NewSelect().Model(sm).Where("id = ?", id)
+	if orgID != "" {
+		query = query.Where("org_id = ?", orgID)
+	}
+	err := query.Scan(ctx)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return nil, nil
@@ -83,6 +90,10 @@ func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string, orgID strin
 
 func (r *SQLRepositoryImpl) FindAll(ctx context.Context, page int, limit int, q string, orgID string) ([]*Model, error) {
 	query := r.db.NewSelect().Model((*sqlModel)(nil))
+
+	if orgID != "" {
+		query = query.Where("org_id = ?", orgID)
+	}
 
 	if q != "" {
 		query = query.Where("LOWER(name) LIKE ?", "%"+q+"%")
@@ -105,20 +116,21 @@ func (r *SQLRepositoryImpl) FindAll(ctx context.Context, page int, limit int, q 
 	return models, nil
 }
 
-func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *Model) error {
+func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *Model, orgID string) error {
 	sm := toSQLModel(entity)
 	sm.UpdatedAt = time.Now()
 
 	_, err := r.db.NewUpdate().
 		Model(sm).
 		Where("id = ?", id).
+		Where("org_id = ?", orgID).
 		OmitZero().
 		Exec(ctx)
 	return err
 }
 
-func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity *UpdateModel) error {
-	query := r.db.NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id)
+func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity *UpdateModel, orgID string) error {
+	query := r.db.NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id).Where("org_id = ?", orgID)
 
 	hasUpdates := false
 
@@ -154,7 +166,7 @@ func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity
 	return err
 }
 
-func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string) error {
-	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Exec(ctx)
+func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string, orgID string) error {
+	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Where("org_id = ?", orgID).Exec(ctx)
 	return err
 }

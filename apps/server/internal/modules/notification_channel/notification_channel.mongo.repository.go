@@ -3,9 +3,9 @@ package notification_channel
 import (
 	"context"
 	"errors"
+	"time"
 	"vigi/internal/config"
 	"vigi/internal/utils"
-	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -15,6 +15,7 @@ import (
 
 type mongoModel struct {
 	ID        primitive.ObjectID `bson:"_id"`
+	OrgID     string             `bson:"org_id"`
 	Name      string             `bson:"name"`
 	Type      string             `bson:"type"`
 	Active    bool               `bson:"active"`
@@ -27,6 +28,7 @@ type mongoModel struct {
 func toDomainModel(mm *mongoModel) *Model {
 	return &Model{
 		ID:        mm.ID.Hex(),
+		OrgID:     mm.OrgID,
 		Name:      mm.Name,
 		Type:      mm.Type,
 		Active:    mm.Active,
@@ -51,6 +53,7 @@ func (r *RepositoryImpl) Create(ctx context.Context, entity *Model) (*Model, err
 	now := time.Now()
 	mm := &mongoModel{
 		ID:        primitive.NewObjectID(),
+		OrgID:     entity.OrgID,
 		Name:      entity.Name,
 		Type:      entity.Type,
 		Active:    entity.Active,
@@ -77,6 +80,9 @@ func (r *RepositoryImpl) FindByID(ctx context.Context, id string, orgID string) 
 	}
 
 	filter := bson.M{"_id": objectID}
+	if orgID != "" {
+		filter["org_id"] = orgID
+	}
 	err = r.collection.FindOne(ctx, filter).Decode(&mm)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -96,11 +102,18 @@ func (r *RepositoryImpl) FindAll(ctx context.Context, page int, limit int, q str
 
 	// Build filter
 	filter := bson.M{}
+	if orgID != "" {
+		filter["org_id"] = orgID
+	}
+
 	if q != "" {
-		filter = bson.M{"$or": []bson.M{
-			{"name": bson.M{"$regex": q, "$options": "i"}},
-			{"type": bson.M{"$regex": q, "$options": "i"}},
-		}}
+		filter["$and"] = []bson.M{
+			filter,
+			{"$or": []bson.M{
+				{"name": bson.M{"$regex": q, "$options": "i"}},
+				{"type": bson.M{"$regex": q, "$options": "i"}},
+			}},
+		}
 	}
 
 	// Define options for pagination
@@ -136,7 +149,7 @@ func (r *RepositoryImpl) FindAll(ctx context.Context, page int, limit int, q str
 }
 
 // UpdateFull modifies an existing entity in the MongoDB collection.
-func (r *RepositoryImpl) UpdateFull(ctx context.Context, id string, entity *Model) error {
+func (r *RepositoryImpl) UpdateFull(ctx context.Context, id string, entity *Model, orgID string) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return err // Return an error if the conversion fails
@@ -145,13 +158,13 @@ func (r *RepositoryImpl) UpdateFull(ctx context.Context, id string, entity *Mode
 	// Set UpdatedAt to current time
 	entity.UpdatedAt = time.Now()
 
-	filter := bson.M{"_id": objectID}
+	filter := bson.M{"_id": objectID, "org_id": orgID}
 	update := bson.M{"$set": entity}
 	_, err = r.collection.UpdateOne(ctx, filter, update)
 	return err
 }
 
-func (r *RepositoryImpl) UpdatePartial(ctx context.Context, id string, entity *UpdateModel) error {
+func (r *RepositoryImpl) UpdatePartial(ctx context.Context, id string, entity *UpdateModel, orgID string) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return err // Return an error if the conversion fails
@@ -169,20 +182,20 @@ func (r *RepositoryImpl) UpdatePartial(ctx context.Context, id string, entity *U
 	// Always set UpdatedAt to current time
 	set["updated_at"] = time.Now()
 
-	filter := bson.M{"_id": objectID}
+	filter := bson.M{"_id": objectID, "org_id": orgID}
 	update := bson.M{"$set": set}
 
 	_, err = r.collection.UpdateOne(ctx, filter, update)
 	return err
 }
 
-func (r *RepositoryImpl) Delete(ctx context.Context, id string) error {
+func (r *RepositoryImpl) Delete(ctx context.Context, id string, orgID string) error {
 	objectId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return err
 	}
 
-	filter := bson.M{"_id": objectId}
+	filter := bson.M{"_id": objectId, "org_id": orgID}
 	_, err = r.collection.DeleteOne(ctx, filter)
 	return err
 }
