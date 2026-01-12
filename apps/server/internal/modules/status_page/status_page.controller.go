@@ -50,7 +50,10 @@ func (c *Controller) Create(ctx *gin.Context) {
 		return
 	}
 
-	created, err := c.service.Create(ctx, &dto)
+	// Extract orgID from context
+	orgID := ctx.GetString("orgId")
+
+	created, err := c.service.Create(ctx, &dto, orgID)
 	if err != nil {
 		// Surface domain uniqueness validation errors as 400
 		if domainErr, ok := err.(*DomainAlreadyUsedError); ok {
@@ -82,7 +85,10 @@ func (c *Controller) Create(ctx *gin.Context) {
 // @Failure   500  {object}  utils.APIError[any]
 func (c *Controller) FindByID(ctx *gin.Context) {
 	id := ctx.Param("id")
-	page, err := c.service.FindByIDWithMonitors(ctx, id)
+	// Extract orgID from context
+	orgID := ctx.GetString("orgId")
+
+	page, err := c.service.FindByIDWithMonitors(ctx, id, orgID)
 	if err != nil {
 		c.logger.Errorw("Failed to get status page by id", "error", err, "id", id)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -199,7 +205,10 @@ func (c *Controller) Update(ctx *gin.Context) {
 		return
 	}
 
-	updated, err := c.service.Update(ctx, id, &dto)
+	// Extract orgID from context
+	orgID := ctx.GetString("orgId")
+
+	updated, err := c.service.Update(ctx, id, &dto, orgID)
 	if err != nil {
 		// Surface domain uniqueness validation errors as 400
 		if domainErr, ok := err.(*DomainAlreadyUsedError); ok {
@@ -230,7 +239,10 @@ func (c *Controller) Update(ctx *gin.Context) {
 // @Failure   500  {object}  utils.APIError[any]
 func (c *Controller) Delete(ctx *gin.Context) {
 	id := ctx.Param("id")
-	err := c.service.Delete(ctx, id)
+	// Extract orgID from context
+	orgID := ctx.GetString("orgId")
+
+	err := c.service.Delete(ctx, id, orgID)
 	if err != nil {
 		c.logger.Errorw("Failed to delete status page", "error", err, "id", id)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))

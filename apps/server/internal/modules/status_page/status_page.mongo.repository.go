@@ -3,8 +3,8 @@ package status_page
 import (
 	"context"
 	"errors"
-	"vigi/internal/config"
 	"time"
+	"vigi/internal/config"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -14,6 +14,7 @@ import (
 
 type mongoModel struct {
 	ID                   primitive.ObjectID `bson:"_id,omitempty"`
+	OrgID                string             `bson:"org_id"`
 	Slug                 string             `bson:"slug"`
 	Title                string             `bson:"title"`
 	Description          string             `bson:"description"`
@@ -33,6 +34,7 @@ type mongoModel struct {
 func toDomainModel(m *mongoModel) *Model {
 	return &Model{
 		ID:                  m.ID.Hex(),
+		OrgID:               m.OrgID,
 		Slug:                m.Slug,
 		Title:               m.Title,
 		Description:         m.Description,
@@ -78,6 +80,7 @@ func NewMongoRepository(client *mongo.Client, cfg *config.Config) Repository {
 func (r *MongoRepository) Create(ctx context.Context, statusPage *Model) (*Model, error) {
 	mm := &mongoModel{
 		ID:                  primitive.NewObjectID(),
+		OrgID:               statusPage.OrgID,
 		Slug:                statusPage.Slug,
 		Title:               statusPage.Title,
 		Description:         statusPage.Description,
@@ -104,8 +107,13 @@ func (r *MongoRepository) FindByID(ctx context.Context, id string, orgID string)
 		return nil, err
 	}
 
+	filter := bson.M{"_id": objectID}
+	if orgID != "" {
+		filter["org_id"] = orgID
+	}
+
 	var mm mongoModel
-	err = r.collection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&mm)
+	err = r.collection.FindOne(ctx, filter).Decode(&mm)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil // Not found
@@ -138,6 +146,10 @@ func (r *MongoRepository) FindAll(ctx context.Context, page int, limit int, q st
 	}
 
 	filter := bson.M{}
+	if orgID != "" {
+		filter["org_id"] = orgID
+	}
+
 	if q != "" {
 		filter["title"] = bson.M{"$regex": q, "$options": "i"}
 	}
@@ -161,7 +173,7 @@ func (r *MongoRepository) FindAll(ctx context.Context, page int, limit int, q st
 	return statusPages, nil
 }
 
-func (r *MongoRepository) Update(ctx context.Context, id string, statusPage *UpdateModel) error {
+func (r *MongoRepository) Update(ctx context.Context, id string, statusPage *UpdateModel, orgID string) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return err
@@ -204,16 +216,26 @@ func (r *MongoRepository) Update(ctx context.Context, id string, statusPage *Upd
 		"$set": updatePayload,
 	}
 
-	_, err = r.collection.UpdateOne(ctx, bson.M{"_id": objectID}, update)
+	filter := bson.M{"_id": objectID}
+	if orgID != "" {
+		filter["org_id"] = orgID
+	}
+
+	_, err = r.collection.UpdateOne(ctx, filter, update)
 	return err
 }
 
-func (r *MongoRepository) Delete(ctx context.Context, id string) error {
+func (r *MongoRepository) Delete(ctx context.Context, id string, orgID string) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return err
 	}
 
-	_, err = r.collection.DeleteOne(ctx, bson.M{"_id": objectID})
+	filter := bson.M{"_id": objectID}
+	if orgID != "" {
+		filter["org_id"] = orgID
+	}
+
+	_, err = r.collection.DeleteOne(ctx, filter)
 	return err
 }

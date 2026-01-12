@@ -13,6 +13,6 @@ type Repository interface {
 		q string,
 		orgID string,
 	) ([]*Model, error)
-	Update(ctx context.Context, id string, statusPage *UpdateModel) error
-	Delete(ctx context.Context, id string) error
+	Update(ctx context.Context, id string, statusPage *UpdateModel, orgID string) error
+	Delete(ctx context.Context, id string, orgID string) error
 }

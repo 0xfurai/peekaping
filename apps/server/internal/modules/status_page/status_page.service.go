@@ -11,14 +11,14 @@ import (
 )
 
 type Service interface {
-	Create(ctx context.Context, dto *CreateStatusPageDTO) (*Model, error)
+	Create(ctx context.Context, dto *CreateStatusPageDTO, orgID string) (*Model, error)
 	FindByID(ctx context.Context, id string, orgID string) (*Model, error)
-	FindByIDWithMonitors(ctx context.Context, id string) (*StatusPageWithMonitorsResponseDTO, error)
+	FindByIDWithMonitors(ctx context.Context, id string, orgID string) (*StatusPageWithMonitorsResponseDTO, error)
 	FindBySlug(ctx context.Context, slug string) (*Model, error)
 	FindByDomain(ctx context.Context, domain string) (*Model, error)
 	FindAll(ctx context.Context, page int, limit int, q string, orgID string) ([]*Model, error)
-	Update(ctx context.Context, id string, dto *UpdateStatusPageDTO) (*Model, error)
-	Delete(ctx context.Context, id string) error
+	Update(ctx context.Context, id string, dto *UpdateStatusPageDTO, orgID string) (*Model, error)
+	Delete(ctx context.Context, id string, orgID string) error
 
 	GetMonitorsForStatusPage(ctx context.Context, statusPageID string) ([]*monitor_status_page.Model, error)
 }
@@ -80,7 +80,7 @@ func (s *ServiceImpl) validateDomains(ctx context.Context, statusPageID string, 
 	return nil
 }
 
-func (s *ServiceImpl) Create(ctx context.Context, dto *CreateStatusPageDTO) (*Model, error) {
+func (s *ServiceImpl) Create(ctx context.Context, dto *CreateStatusPageDTO, orgID string) (*Model, error) {
 	// Pre-validate domain uniqueness before creating the status page to avoid
 	// partial creation without domains.
 	if len(dto.Domains) > 0 {
@@ -98,6 +98,7 @@ func (s *ServiceImpl) Create(ctx context.Context, dto *CreateStatusPageDTO) (*Mo
 		Published:           dto.Published,
 		FooterText:          dto.FooterText,
 		AutoRefreshInterval: dto.AutoRefreshInterval,
+		OrgID:               orgID,
 	}
 
 	created, err := s.repository.Create(ctx, model)
@@ -137,12 +138,12 @@ func (s *ServiceImpl) FindByID(ctx context.Context, id string, orgID string) (*M
 }
 
 func (s *ServiceImpl) FindByIDWithMonitors(
-	ctx context.Context, id string,
+	ctx context.Context, id string, orgID string,
 ) (*StatusPageWithMonitorsResponseDTO, error) {
 	s.logger.Debugw("Finding status page by ID with monitors", "id", id)
 
 	// First, get the status page model
-	model, err := s.repository.FindByID(ctx, id, "")
+	model, err := s.repository.FindByID(ctx, id, orgID)
 	if err != nil {
 		s.logger.Errorw("Failed to find status page by ID", "error", err, "id", id)
 		return nil, err
@@ -212,7 +213,7 @@ func (s *ServiceImpl) FindAll(ctx context.Context, page int, limit int, q string
 	return s.repository.FindAll(ctx, page, limit, q, orgID)
 }
 
-func (s *ServiceImpl) Update(ctx context.Context, id string, dto *UpdateStatusPageDTO) (*Model, error) {
+func (s *ServiceImpl) Update(ctx context.Context, id string, dto *UpdateStatusPageDTO, orgID string) (*Model, error) {
 	updateModel := &UpdateModel{
 		Slug:                dto.Slug,
 		Title:               dto.Title,
@@ -224,7 +225,7 @@ func (s *ServiceImpl) Update(ctx context.Context, id string, dto *UpdateStatusPa
 		AutoRefreshInterval: dto.AutoRefreshInterval,
 	}
 
-	err := s.repository.Update(ctx, id, updateModel)
+	err := s.repository.Update(ctx, id, updateModel, orgID)
 	if err != nil {
 		return nil, err
 	}
@@ -315,11 +316,11 @@ func (s *ServiceImpl) Update(ctx context.Context, id string, dto *UpdateStatusPa
 		}
 	}
 
-	return s.repository.FindByID(ctx, id, "")
+	return s.repository.FindByID(ctx, id, orgID)
 }
 
-func (s *ServiceImpl) Delete(ctx context.Context, id string) error {
-	err := s.repository.Delete(ctx, id)
+func (s *ServiceImpl) Delete(ctx context.Context, id string, orgID string) error {
+	err := s.repository.Delete(ctx, id, orgID)
 	if err != nil {
 		return err
 	}

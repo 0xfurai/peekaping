@@ -12,6 +12,7 @@ type sqlModel struct {
 	bun.BaseModel `bun:"table:status_pages,alias:sp"`
 
 	ID                  string    `bun:"id,pk"`
+	OrgID               string    `bun:"org_id"`
 	Slug                string    `bun:"slug,unique,notnull"`
 	Title               string    `bun:"title,notnull"`
 	Description         string    `bun:"description"`
@@ -27,6 +28,7 @@ type sqlModel struct {
 func toDomainModelFromSQL(sm *sqlModel) *Model {
 	return &Model{
 		ID:                  sm.ID,
+		OrgID:               sm.OrgID,
 		Title:               sm.Title,
 		Description:         sm.Description,
 		Slug:                sm.Slug,
@@ -43,6 +45,7 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 func toSQLModel(m *Model) *sqlModel {
 	return &sqlModel{
 		ID:                  m.ID,
+		OrgID:               m.OrgID,
 		Title:               m.Title,
 		Description:         m.Description,
 		Slug:                m.Slug,
@@ -80,7 +83,13 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, statusPage *Model) (*Mod
 
 func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string, orgID string) (*Model, error) {
 	sm := new(sqlModel)
-	err := r.db.NewSelect().Model(sm).Where("id = ?", id).Scan(ctx)
+	query := r.db.NewSelect().Model(sm).Where("id = ?", id)
+
+	if orgID != "" {
+		query = query.Where("org_id = ?", orgID)
+	}
+
+	err := query.Scan(ctx)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return nil, nil
@@ -136,8 +145,8 @@ func (r *SQLRepositoryImpl) FindAll(
 	return models, nil
 }
 
-func (r *SQLRepositoryImpl) Update(ctx context.Context, id string, statusPage *UpdateModel) error {
-	query := r.db.NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id)
+func (r *SQLRepositoryImpl) Update(ctx context.Context, id string, statusPage *UpdateModel, orgID string) error {
+	query := r.db.NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id).Where("org_id = ?", orgID)
 
 	hasUpdates := false
 
@@ -185,7 +194,7 @@ func (r *SQLRepositoryImpl) Update(ctx context.Context, id string, statusPage *U
 	return err
 }
 
-func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string) error {
-	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Exec(ctx)
+func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string, orgID string) error {
+	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Where("org_id = ?", orgID).Exec(ctx)
 	return err
 }
