@@ -654,6 +654,11 @@
             "slug_format": "Slug must contain only lowercase letters, numbers, and hyphens",
             "slug_min_length": "Slug must be at least 3 characters"
         },
+        "switcher": {
+            "add_organization": "Add organization",
+            "label": "Organization",
+            "organizations_label": "Organizations"
+        },
         "settings_title": "Settings",
         "settings_description": "Manage your organization details and monitors.",
         "general_title": "General",

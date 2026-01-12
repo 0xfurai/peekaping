@@ -654,6 +654,11 @@
             "slug_format": "O slug deve conter apenas letras minúsculas, números e hífens",
             "slug_min_length": "O slug deve ter pelo menos 3 caracteres"
         },
+        "switcher": {
+            "add_organization": "Adicionar organização",
+            "label": "Organização",
+            "organizations_label": "Organizações"
+        },
         "settings_title": "Configurações",
         "settings_description": "Gerencie os detalhes da sua organização e monitores.",
         "general_title": "Geral",

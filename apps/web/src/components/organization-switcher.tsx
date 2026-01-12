@@ -16,12 +16,14 @@ import {
 } from "@/components/ui/sidebar"
 import { useOrganizationStore } from "@/store/organization"
 import { useNavigate } from "react-router-dom"
+import { useLocalizedTranslation } from "@/hooks/useTranslation"
 
 
 export function OrganizationSwitcher() {
     const { isMobile } = useSidebar()
     const { currentOrganization, organizations } = useOrganizationStore()
     const navigate = useNavigate()
+    const { t } = useLocalizedTranslation()
 
     // Find the active organization object from the list to get any extra details if needed, 
     // or just use currentOrganization.
@@ -56,7 +58,7 @@ export function OrganizationSwitcher() {
                                 </span>
                                 <span className="truncate text-xs">
                                     {/* Plan or Role could go here */}
-                                    Organization
+                                    {t("organization.switcher.label")}
                                 </span>
                             </div>
                             <ChevronsUpDown className="ml-auto" />
@@ -69,7 +71,7 @@ export function OrganizationSwitcher() {
                         sideOffset={4}
                     >
                         <DropdownMenuLabel className="text-xs text-muted-foreground">
-                            Organizations
+                            {t("organization.switcher.organizations_label")}
                         </DropdownMenuLabel>
                         {organizations.map((orgUser) => {
                             // Ensure we have an organization object
@@ -95,7 +97,7 @@ export function OrganizationSwitcher() {
                             <div className="flex size-6 items-center justify-center rounded-md border bg-background">
                                 <Plus className="size-4" />
                             </div>
-                            <div className="font-medium text-muted-foreground">Add organization</div>
+                            <div className="font-medium text-muted-foreground">{t("organization.switcher.add_organization")}</div>
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
