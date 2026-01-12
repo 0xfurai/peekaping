@@ -2660,6 +2660,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/slug/{slug}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Organizations"
+                ],
+                "summary": "Get organization by Slug",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization Slug",
+                        "name": "slug",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ApiResponse-organization_Organization"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    }
+                }
+            }
+        },
         "/organizations/{id}": {
             "get": {
                 "security": [
@@ -4554,6 +4600,9 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "org_id": {
+                    "type": "string"
+                },
                 "start_date_time": {
                     "type": "string"
                 },
@@ -4681,6 +4730,9 @@ const docTemplate = `{
                 "interval_day": {
                     "type": "integer"
                 },
+                "org_id": {
+                    "type": "string"
+                },
                 "start_date_time": {
                     "type": "string"
                 },
@@ -4744,6 +4796,9 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "org_id": {
+                    "type": "string"
+                },
                 "start_date_time": {
                     "type": "string"
                 },
@@ -4771,7 +4826,6 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "name",
-                "notification_ids",
                 "org_id",
                 "type"
             ],
@@ -5197,6 +5251,9 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "org_id": {
+                    "type": "string"
+                },
                 "type": {
                     "type": "string"
                 },
@@ -5260,6 +5317,11 @@ const docTemplate = `{
                     "type": "string",
                     "minLength": 3,
                     "example": "My Organization"
+                },
+                "slug": {
+                    "type": "string",
+                    "minLength": 3,
+                    "example": "my-organization"
                 }
             }
         },
@@ -5275,6 +5337,9 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "slug": {
+                    "type": "string"
+                },
                 "updated_at": {
                     "type": "string"
                 }
@@ -5286,6 +5351,9 @@ const docTemplate = `{
                 "created_at": {
                     "type": "string"
                 },
+                "organization": {
+                    "$ref": "#/definitions/organization.Organization"
+                },
                 "organization_id": {
                     "type": "string"
                 },
@@ -5294,6 +5362,9 @@ const docTemplate = `{
                 },
                 "updated_at": {
                     "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/organization.User"
                 },
                 "user_id": {
                     "type": "string"
@@ -5311,6 +5382,17 @@ const docTemplate = `{
                 "RoleMember"
             ]
         },
+        "organization.User": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
         "proxy.CreateUpdateDto": {
             "type": "object",
             "required": [
@@ -5323,6 +5405,9 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "host": {
+                    "type": "string"
+                },
+                "org_id": {
                     "type": "string"
                 },
                 "password": {
@@ -5364,6 +5449,9 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
+                "org_id": {
+                    "type": "string"
+                },
                 "password": {
                     "type": "string"
                 },
@@ -5388,6 +5476,9 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "host": {
+                    "type": "string"
+                },
+                "org_id": {
                     "type": "string"
                 },
                 "password": {
@@ -5600,6 +5691,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
+                    "type": "string"
+                },
+                "org_id": {
                     "type": "string"
                 },
                 "published": {
@@ -5842,6 +5936,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "org_id": {
                     "type": "string"
                 },
                 "updated_at": {

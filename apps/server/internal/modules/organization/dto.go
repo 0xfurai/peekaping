@@ -2,6 +2,7 @@ package organization
 
 type CreateOrganizationDto struct {
 	Name string `json:"name" validate:"required,min=3" example:"My Organization"`
+	Slug string `json:"slug" validate:"omitempty,min=3" example:"my-organization"`
 }
 
 type UpdateOrganizationDto struct {
@@ -20,6 +21,7 @@ type UpdateMemberRoleDto struct {
 type OrganizationResponseDto struct {
 	ID        string `json:"id"`
 	Name      string `json:"name"`
+	Slug      string `json:"slug"`
 	CreatedAt string `json:"created_at"`
 	UpdatedAt string `json:"updated_at"`
 }

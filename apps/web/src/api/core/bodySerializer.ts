@@ -2,7 +2,7 @@ import type {
   ArrayStyle,
   ObjectStyle,
   SerializerOptions,
-} from "./pathSerializer";
+} from './pathSerializer';
 
 export type QuerySerializer = (query: Record<string, unknown>) => string;
 
@@ -15,7 +15,7 @@ export interface QuerySerializerOptions {
 }
 
 const serializeFormDataPair = (data: FormData, key: string, value: unknown) => {
-  if (typeof value === "string" || value instanceof Blob) {
+  if (typeof value === 'string' || value instanceof Blob) {
     data.append(key, value);
   } else {
     data.append(key, JSON.stringify(value));
@@ -27,7 +27,7 @@ const serializeUrlSearchParamsPair = (
   key: string,
   value: unknown,
 ) => {
-  if (typeof value === "string") {
+  if (typeof value === 'string') {
     data.append(key, value);
   } else {
     data.append(key, JSON.stringify(value));
@@ -58,7 +58,7 @@ export const formDataBodySerializer = {
 export const jsonBodySerializer = {
   bodySerializer: <T>(body: T) =>
     JSON.stringify(body, (_key, value) =>
-      typeof value === "bigint" ? value.toString() : value,
+      typeof value === 'bigint' ? value.toString() : value,
     ),
 };
 

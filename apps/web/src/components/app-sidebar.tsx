@@ -1,23 +1,18 @@
 import {
-  Home,
-  Network,
-  // Vibrate,
-  ArrowUpCircleIcon,
-  HelpCircleIcon,
-  SettingsIcon,
-  Vibrate,
-  ListCheckIcon,
-  Tag,
+    Home,
+    Network,
+    HelpCircleIcon,
+    SettingsIcon,
+    Vibrate,
+    ListCheckIcon,
+    Tag,
 } from "lucide-react";
 
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarHeader,
 } from "@/components/ui/sidebar";
 import { NavUser } from "./nav-user";
 import { NavMain } from "./nav-main";
@@ -26,94 +21,89 @@ import { useAuthStore } from "@/store/auth";
 import { VERSION } from "../version";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
+import { OrganizationSwitcher } from "./organization-switcher";
+import { useOrganizationStore } from "@/store/organization";
+
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
-  const user = useAuthStore((state) => state.user);
-  const { t } = useLocalizedTranslation();
+    const user = useAuthStore((state) => state.user);
+    const { currentOrganization, organizations } = useOrganizationStore();
+    const { t } = useLocalizedTranslation();
 
-  const data = {
-    user: {
-      name: "shadcn",
-      email: "m@example.com",
-      avatar: "/avatars/shadcn.jpg",
-    },
-    navMain: [
-      {
-        title: t("navigation.monitors"),
-        url: "/monitors",
-        icon: Home,
-      },
-      {
-        title: t("navigation.maintenance"),
-        url: "/maintenances",
-        icon: SettingsIcon,
-      },
-      {
-        title: t("navigation.status_pages"),
-        url: "/status-pages",
-        icon: ListCheckIcon,
-      },
-      {
-        title: "Tags",
-        url: "/tags",
-        icon: Tag,
-      },
-      {
-        title: t("navigation.proxies"),
-        url: "/proxies",
-        icon: Network,
-      },
-      {
-        title: t("navigation.notification_channels"),
-        url: "/notification-channels",
-        icon: Vibrate,
-      },
-    ],
-    navSecondary: [
-      {
-        title: "Get Help",
-        url: "https://docs.vigi.run",
-        icon: HelpCircleIcon,
-        target: "_blank",
-      },
-    ],
-  };
+    const slug = currentOrganization?.slug || organizations?.[0]?.organization?.slug;
+    const prefix = slug ? `/${slug}` : "";
 
-  return (
-    <Sidebar collapsible="offcanvas" {...props}>
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
-            >
-              <a href="/">
-                <ArrowUpCircleIcon className="h-5 w-5" />
-                <span className="text-base font-semibold">Vigi</span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
+    const data = {
+        user: {
+            name: "shadcn",
+            email: "m@example.com",
+            avatar: "/avatars/shadcn.jpg",
+        },
+        navMain: [
+            {
+                title: t("navigation.monitors"),
+                url: `${prefix}/monitors`,
+                icon: Home,
+            },
+            {
+                title: t("navigation.maintenance"),
+                url: `${prefix}/maintenances`,
+                icon: SettingsIcon,
+            },
+            {
+                title: t("navigation.status_pages"),
+                url: `${prefix}/status-pages`,
+                icon: ListCheckIcon,
+            },
+            {
+                title: "Tags",
+                url: `${prefix}/tags`,
+                icon: Tag,
+            },
+            {
+                title: t("navigation.proxies"),
+                url: `${prefix}/proxies`,
+                icon: Network,
+            },
+            {
+                title: t("navigation.notification_channels"),
+                url: `${prefix}/notification-channels`,
+                icon: Vibrate,
+            },
+        ],
+        navSecondary: [
+            {
+                title: "Get Help",
+                url: "https://docs.vigi.run",
+                icon: HelpCircleIcon,
+                target: "_blank",
+            },
+        ],
+    };
 
-      <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
-        <div className="text-xs text-muted-foreground w-full mb-2 select-none px-4">
-          v{VERSION}
-        </div>
-      </SidebarContent>
+    return (
+        <Sidebar collapsible="offcanvas" {...props}>
+            <SidebarHeader>
+                <OrganizationSwitcher />
+            </SidebarHeader>
 
-      <SidebarFooter>
-        {user && (
-          <NavUser
-            user={{
-              name: user.email!,
-              email: user.email!,
-            }}
-          />
-        )}
-      </SidebarFooter>
-    </Sidebar>
-  );
+            <SidebarContent>
+                <NavMain items={data.navMain} />
+                <NavSecondary items={data.navSecondary} className="mt-auto" />
+                <div className="text-xs text-muted-foreground w-full mb-2 select-none px-4">
+                    v{VERSION}
+                </div>
+            </SidebarContent>
+
+            <SidebarFooter>
+                {user && (
+                    <NavUser
+                        user={{
+                            name: user.email!,
+                            email: user.email!,
+                        }}
+                    />
+                )}
+            </SidebarFooter>
+        </Sidebar>
+    );
 }

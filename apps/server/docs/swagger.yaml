@@ -270,6 +270,8 @@ definitions:
         items:
           type: string
         type: array
+      org_id:
+        type: string
       start_date_time:
         type: string
       start_time:
@@ -357,6 +359,8 @@ definitions:
         type: string
       interval_day:
         type: integer
+      org_id:
+        type: string
       start_date_time:
         type: string
       start_time:
@@ -399,6 +403,8 @@ definitions:
         items:
           type: string
         type: array
+      org_id:
+        type: string
       start_date_time:
         type: string
       start_time:
@@ -471,7 +477,6 @@ definitions:
         type: string
     required:
     - name
-    - notification_ids
     - org_id
     - type
     type: object
@@ -717,6 +722,8 @@ definitions:
         type: boolean
       name:
         type: string
+      org_id:
+        type: string
       type:
         type: string
       updated_at:
@@ -757,6 +764,10 @@ definitions:
         example: My Organization
         minLength: 3
         type: string
+      slug:
+        example: my-organization
+        minLength: 3
+        type: string
     required:
     - name
     type: object
@@ -768,6 +779,8 @@ definitions:
         type: string
       name:
         type: string
+      slug:
+        type: string
       updated_at:
         type: string
     type: object
@@ -775,12 +788,16 @@ definitions:
     properties:
       created_at:
         type: string
+      organization:
+        $ref: '#/definitions/organization.Organization'
       organization_id:
         type: string
       role:
         $ref: '#/definitions/organization.Role'
       updated_at:
         type: string
+      user:
+        $ref: '#/definitions/organization.User'
       user_id:
         type: string
     type: object
@@ -792,11 +809,20 @@ definitions:
     x-enum-varnames:
     - RoleAdmin
     - RoleMember
+  organization.User:
+    properties:
+      email:
+        type: string
+      id:
+        type: string
+    type: object
   proxy.CreateUpdateDto:
     properties:
       auth:
         type: boolean
       host:
+        type: string
+      org_id:
         type: string
       password:
         type: string
@@ -830,6 +856,8 @@ definitions:
         type: string
       id:
         type: string
+      org_id:
+        type: string
       password:
         type: string
       port:
@@ -846,6 +874,8 @@ definitions:
       auth:
         type: boolean
       host:
+        type: string
+      org_id:
         type: string
       password:
         type: string
@@ -992,6 +1022,8 @@ definitions:
       icon:
         type: string
       id:
+        type: string
+      org_id:
         type: string
       published:
         type: boolean
@@ -1154,6 +1186,8 @@ definitions:
       id:
         type: string
       name:
+        type: string
+      org_id:
         type: string
       updated_at:
         type: string
@@ -3253,6 +3287,36 @@ paths:
       - JwtAuth: []
       - ApiKeyAuth: []
       summary: Add member to organization
+      tags:
+      - Organizations
+  /organizations/slug/{slug}:
+    get:
+      parameters:
+      - description: Organization Slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.ApiResponse-organization_Organization'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      summary: Get organization by Slug
       tags:
       - Organizations
   /proxies:

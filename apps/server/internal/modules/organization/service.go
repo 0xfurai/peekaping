@@ -3,6 +3,8 @@ package organization
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strings"
 
 	"go.uber.org/zap"
 )
@@ -10,6 +12,7 @@ import (
 type Service interface {
 	Create(ctx context.Context, dto *CreateOrganizationDto, creatorUserID string) (*Organization, error)
 	FindByID(ctx context.Context, id string) (*Organization, error)
+	FindBySlug(ctx context.Context, slug string) (*Organization, error)
 	Update(ctx context.Context, id string, dto *UpdateOrganizationDto) (*Organization, error)
 	Delete(ctx context.Context, id string) error
 
@@ -33,9 +36,36 @@ func NewService(repo OrganizationRepository, logger *zap.SugaredLogger) Service 
 	}
 }
 
+func slugify(s string) string {
+	// Convert to lowercase
+	slug := strings.ToLower(s)
+	// Replace spaces with dashes
+	slug = strings.ReplaceAll(slug, " ", "-")
+	// Remove non-alphanumeric characters (except dashes)
+	reg := regexp.MustCompile("[^a-z0-9-]+")
+	slug = reg.ReplaceAllString(slug, "")
+	// Remove multiple consecutive dashes
+	reg = regexp.MustCompile("-+")
+	slug = reg.ReplaceAllString(slug, "-")
+	// Trim dashes
+	slug = strings.Trim(slug, "-")
+	return slug
+}
+
 func (s *ServiceImpl) Create(ctx context.Context, dto *CreateOrganizationDto, creatorUserID string) (*Organization, error) {
+	// Generate slug if not provided
+	slug := dto.Slug
+	if slug == "" {
+		slug = slugify(dto.Name)
+	}
+	if slug == "" {
+		// Fallback if name is empty or un-sluggable (unlikely)
+		slug = "org-" + strings.ToLower(strings.ReplaceAll(dto.Name, " ", "-"))
+	}
+
 	org := &Organization{
 		Name: dto.Name,
+		Slug: slug,
 	}
 
 	createdOrg, err := s.repo.Create(ctx, org)
@@ -58,6 +88,10 @@ func (s *ServiceImpl) Create(ctx context.Context, dto *CreateOrganizationDto, cr
 	}
 
 	return createdOrg, nil
+}
+
+func (s *ServiceImpl) FindBySlug(ctx context.Context, slug string) (*Organization, error) {
+	return s.repo.FindBySlug(ctx, slug)
 }
 
 func (s *ServiceImpl) FindByID(ctx context.Context, id string) (*Organization, error) {

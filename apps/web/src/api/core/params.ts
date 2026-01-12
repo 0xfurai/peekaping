@@ -1,13 +1,13 @@
-type Slot = "body" | "headers" | "path" | "query";
+type Slot = 'body' | 'headers' | 'path' | 'query';
 
 export type Field =
   | {
-      in: Exclude<Slot, "body">;
+      in: Exclude<Slot, 'body'>;
       key: string;
       map?: string;
     }
   | {
-      in: Extract<Slot, "body">;
+      in: Extract<Slot, 'body'>;
       key?: string;
       map?: string;
     };
@@ -20,10 +20,10 @@ export interface Fields {
 export type FieldsConfig = ReadonlyArray<Field | Fields>;
 
 const extraPrefixesMap: Record<string, Slot> = {
-  $body_: "body",
-  $headers_: "headers",
-  $path_: "path",
-  $query_: "query",
+  $body_: 'body',
+  $headers_: 'headers',
+  $path_: 'path',
+  $query_: 'query',
 };
 const extraPrefixes = Object.entries(extraPrefixesMap);
 
@@ -41,7 +41,7 @@ const buildKeyMap = (fields: FieldsConfig, map?: KeyMap): KeyMap => {
   }
 
   for (const config of fields) {
-    if ("in" in config) {
+    if ('in' in config) {
       if (config.key) {
         map.set(config.key, {
           in: config.in,
@@ -65,7 +65,7 @@ interface Params {
 
 const stripEmptySlots = (params: Params) => {
   for (const [slot, value] of Object.entries(params)) {
-    if (value && typeof value === "object" && !Object.keys(value).length) {
+    if (value && typeof value === 'object' && !Object.keys(value).length) {
       delete params[slot as Slot];
     }
   }
@@ -95,7 +95,7 @@ export const buildClientParams = (
       continue;
     }
 
-    if ("in" in config) {
+    if ('in' in config) {
       if (config.key) {
         const field = map.get(config.key)!;
         const name = field.map || config.key;

@@ -2651,6 +2651,52 @@
                 }
             }
         },
+        "/organizations/slug/{slug}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Organizations"
+                ],
+                "summary": "Get organization by Slug",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization Slug",
+                        "name": "slug",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ApiResponse-organization_Organization"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    }
+                }
+            }
+        },
         "/organizations/{id}": {
             "get": {
                 "security": [
@@ -4545,6 +4591,9 @@
                         "type": "string"
                     }
                 },
+                "org_id": {
+                    "type": "string"
+                },
                 "start_date_time": {
                     "type": "string"
                 },
@@ -4672,6 +4721,9 @@
                 "interval_day": {
                     "type": "integer"
                 },
+                "org_id": {
+                    "type": "string"
+                },
                 "start_date_time": {
                     "type": "string"
                 },
@@ -4735,6 +4787,9 @@
                         "type": "string"
                     }
                 },
+                "org_id": {
+                    "type": "string"
+                },
                 "start_date_time": {
                     "type": "string"
                 },
@@ -4762,7 +4817,6 @@
             "type": "object",
             "required": [
                 "name",
-                "notification_ids",
                 "org_id",
                 "type"
             ],
@@ -5188,6 +5242,9 @@
                 "name": {
                     "type": "string"
                 },
+                "org_id": {
+                    "type": "string"
+                },
                 "type": {
                     "type": "string"
                 },
@@ -5251,6 +5308,11 @@
                     "type": "string",
                     "minLength": 3,
                     "example": "My Organization"
+                },
+                "slug": {
+                    "type": "string",
+                    "minLength": 3,
+                    "example": "my-organization"
                 }
             }
         },
@@ -5266,6 +5328,9 @@
                 "name": {
                     "type": "string"
                 },
+                "slug": {
+                    "type": "string"
+                },
                 "updated_at": {
                     "type": "string"
                 }
@@ -5277,6 +5342,9 @@
                 "created_at": {
                     "type": "string"
                 },
+                "organization": {
+                    "$ref": "#/definitions/organization.Organization"
+                },
                 "organization_id": {
                     "type": "string"
                 },
@@ -5285,6 +5353,9 @@
                 },
                 "updated_at": {
                     "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/organization.User"
                 },
                 "user_id": {
                     "type": "string"
@@ -5302,6 +5373,17 @@
                 "RoleMember"
             ]
         },
+        "organization.User": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
         "proxy.CreateUpdateDto": {
             "type": "object",
             "required": [
@@ -5314,6 +5396,9 @@
                     "type": "boolean"
                 },
                 "host": {
+                    "type": "string"
+                },
+                "org_id": {
                     "type": "string"
                 },
                 "password": {
@@ -5355,6 +5440,9 @@
                 "id": {
                     "type": "string"
                 },
+                "org_id": {
+                    "type": "string"
+                },
                 "password": {
                     "type": "string"
                 },
@@ -5379,6 +5467,9 @@
                     "type": "boolean"
                 },
                 "host": {
+                    "type": "string"
+                },
+                "org_id": {
                     "type": "string"
                 },
                 "password": {
@@ -5591,6 +5682,9 @@
                     "type": "string"
                 },
                 "id": {
+                    "type": "string"
+                },
+                "org_id": {
                     "type": "string"
                 },
                 "published": {
@@ -5833,6 +5927,9 @@
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "org_id": {
                     "type": "string"
                 },
                 "updated_at": {

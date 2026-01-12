@@ -31,6 +31,7 @@ func (r *OrganizationRoute) ConnectRoute(
 	router.Use(r.middleware.AllAuth())
 
 	router.POST("", r.controller.Create)
+	router.GET("slug/:slug", r.controller.FindBySlug)
 	router.GET(":id", r.controller.FindByID)
 	router.POST(":id/members", r.controller.AddMember)
 	router.GET(":id/members", r.controller.FindMembers)

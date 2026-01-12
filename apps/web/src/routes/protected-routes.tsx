@@ -20,43 +20,55 @@ import EditStatusPage from "@/app/status-pages/edit/page";
 import TagsPage from "@/app/tags/page";
 import NewTag from "@/app/tags/new/page";
 import EditTag from "@/app/tags/edit/page";
+import { OrganizationLayout } from "@/components/organization-layout";
+import CreateOrganizationPage from "@/app/create-organization/page";
+import { RootRedirect } from "@/components/root-redirect";
 
 export const protectedRoutes = [
-  // Monitor routes
-  <Route path="/monitors" element={<MonitorsPage />} />,
-  <Route path="/monitors/:id" element={<MonitorPage />} />,
-  <Route path="/monitors/new" element={<NewMonitor />} />,
-  <Route path="/monitors/:id/edit" element={<EditMonitor />} />,
+    <Route path="/" element={<RootRedirect />} />,
+    <Route path="/create-organization" element={<CreateOrganizationPage />} />,
+    // Account routes (Global)
+    <Route path="/account" element={<OrganizationLayout isGlobal={true} />}>
+        <Route path="settings" element={<SettingsPage />} />
+        <Route path="security" element={<SecurityPage />} />
+    </Route>,
+    <Route path="/:slug" element={<OrganizationLayout />}>
+        <Route index element={<Navigate to="monitors" replace />} />
 
-  // Status page routes
-  <Route path="/status-pages" element={<StatusPagesPage />} />,
-  <Route path="/status-pages/new" element={<NewStatusPage />} />,
-  <Route path="/status-pages/:id/edit" element={<EditStatusPage />} />,
+    // Monitor routes
+        <Route path="monitors" element={<MonitorsPage />} />
+        <Route path="monitors/:id" element={<MonitorPage />} />
+        <Route path="monitors/new" element={<NewMonitor />} />
+        <Route path="monitors/:id/edit" element={<EditMonitor />} />
 
-  // Proxy routes
-  <Route path="/proxies" element={<ProxiesPage />} />,
-  <Route path="/proxies/new" element={<NewProxy />} />,
-  <Route path="/proxies/:id/edit" element={<EditProxy />} />,
+    // Status page routes
+        <Route path="status-pages" element={<StatusPagesPage />} />
+        <Route path="status-pages/new" element={<NewStatusPage />} />
+        <Route path="status-pages/:id/edit" element={<EditStatusPage />} />
 
-  // Notification channel routes
-  <Route path="/notification-channels" element={<NotificationChannelsPage />} />,
-  <Route path="/notification-channels/new" element={<NewNotificationChannel />} />,
-  <Route path="/notification-channels/:id/edit" element={<EditNotificationChannel />} />,
+    // Proxy routes
+        <Route path="proxies" element={<ProxiesPage />} />
+        <Route path="proxies/new" element={<NewProxy />} />
+        <Route path="proxies/:id/edit" element={<EditProxy />} />
 
-  // Maintenance routes
-  <Route path="/maintenances" element={<MaintenancePage />} />,
-  <Route path="/maintenances/new" element={<NewMaintenance />} />,
-  <Route path="/maintenances/:id/edit" element={<EditMaintenance />} />,
+    // Notification channel routes
+        <Route path="notification-channels" element={<NotificationChannelsPage />} />
+        <Route path="notification-channels/new" element={<NewNotificationChannel />} />
+        <Route path="notification-channels/:id/edit" element={<EditNotificationChannel />} />
 
-  // Settings and security
-  <Route path="/settings" element={<SettingsPage />} />,
-  <Route path="/security" element={<SecurityPage />} />,
+    // Maintenance routes
+        <Route path="maintenances" element={<MaintenancePage />} />
+        <Route path="maintenances/new" element={<NewMaintenance />} />
+        <Route path="maintenances/:id/edit" element={<EditMaintenance />} />
 
-  // Tag routes
-  <Route path="/tags" element={<TagsPage />} />,
-  <Route path="/tags/new" element={<NewTag />} />,
-  <Route path="/tags/:id/edit" element={<EditTag />} />,
 
-  // Default redirect
-  <Route path="*" element={<Navigate to="/monitors" replace />} />
+
+    // Tag routes
+        <Route path="tags" element={<TagsPage />} />
+        <Route path="tags/new" element={<NewTag />} />
+        <Route path="tags/:id/edit" element={<EditTag />} />
+
+    // Default redirect
+        <Route path="*" element={<Navigate to="monitors" replace />} />
+    </Route>
 ]; 

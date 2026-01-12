@@ -54,7 +54,7 @@ func NewMonitorController(
 // @Param     active query   bool    false  "Active status"
 // @Param     status query   int     false  "Status"
 // @Param     tag_ids query  string  false  "Comma-separated list of tag IDs to filter by"
-// @Param     X-Organization-ID header string true "Organization ID"
+// @Param     X-Organization-ID header string false "Organization ID"
 // @Success		200	{object}	utils.ApiResponse[[]Model]
 // @Failure		400	{object}	utils.APIError[any]
 // @Failure		403	{object}	utils.APIError[any]

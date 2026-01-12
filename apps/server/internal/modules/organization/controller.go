@@ -102,6 +102,33 @@ func (c *OrganizationController) FindByID(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", org))
 }
 
+// @Router		/organizations/slug/{slug} [get]
+// @Summary		Get organization by Slug
+// @Tags			Organizations
+// @Produce		json
+// @Param     slug   path    string  true  "Organization Slug"
+// @Success		200	{object}	utils.ApiResponse[Organization]
+// @Failure		401	{object}	utils.APIError[any]
+// @Failure		404	{object}	utils.APIError[any]
+// @Failure		500	{object}	utils.APIError[any]
+func (c *OrganizationController) FindBySlug(ctx *gin.Context) {
+	slug := ctx.Param("slug")
+
+	org, err := c.orgService.FindBySlug(ctx, slug)
+	if err != nil {
+		c.logger.Errorw("Failed to fetch organization by slug", "slug", slug, "error", err)
+		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		return
+	}
+
+	if org == nil {
+		ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Organization not found"))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", org))
+}
+
 // @Router		/organizations/{id}/members [post]
 // @Summary		Add member to organization
 // @Tags			Organizations

@@ -11,6 +11,7 @@ import (
 type OrganizationRepository interface {
 	Create(ctx context.Context, organization *Organization) (*Organization, error)
 	FindByID(ctx context.Context, id string) (*Organization, error)
+	FindBySlug(ctx context.Context, slug string) (*Organization, error)
 	Update(ctx context.Context, id string, organization *Organization) error
 	Delete(ctx context.Context, id string) error
 
@@ -27,6 +28,7 @@ type sqlModel struct {
 
 	ID        string    `bun:"id,pk"`
 	Name      string    `bun:"name,notnull"`
+	Slug      string    `bun:"slug,unique,notnull"`
 	CreatedAt time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp"`
 	UpdatedAt time.Time `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
 }
@@ -96,6 +98,7 @@ func toDomainModel(sm *sqlModel) *Organization {
 	return &Organization{
 		ID:        sm.ID,
 		Name:      sm.Name,
+		Slug:      sm.Slug,
 		CreatedAt: sm.CreatedAt,
 		UpdatedAt: sm.UpdatedAt,
 	}
@@ -105,6 +108,7 @@ func toSQLModel(m *Organization) *sqlModel {
 	return &sqlModel{
 		ID:        m.ID,
 		Name:      m.Name,
+		Slug:      m.Slug,
 		CreatedAt: m.CreatedAt,
 		UpdatedAt: m.UpdatedAt,
 	}
@@ -129,6 +133,15 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, organization *Organizati
 func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Organization, error) {
 	sm := new(sqlModel)
 	err := r.db.NewSelect().Model(sm).Where("id = ?", id).Scan(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return toDomainModel(sm), nil
+}
+
+func (r *SQLRepositoryImpl) FindBySlug(ctx context.Context, slug string) (*Organization, error) {
+	sm := new(sqlModel)
+	err := r.db.NewSelect().Model(sm).Where("slug = ?", slug).Scan(ctx)
 	if err != nil {
 		return nil, err
 	}
