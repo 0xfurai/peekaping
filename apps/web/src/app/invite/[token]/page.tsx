@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { getInvitationsByToken, postInvitationsByTokenAccept } from "@/api/sdk.gen";
-import { Loader2 } from "lucide-react";
+import { Loader2, GalleryVerticalEnd } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/auth";
 
@@ -72,51 +72,63 @@ export default function InvitationPage() {
     const invitation = data.data?.data;
 
     return (
-        <div className="flex h-screen items-center justify-center bg-muted/40 p-4">
-            <Card className="w-full max-w-md">
-                <CardHeader>
-                    <CardTitle>You've been invited!</CardTitle>
-                    <CardDescription>
-                        You have been invited to join <strong>{invitation.organization?.name}</strong>.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="rounded-lg bg-muted p-4">
-                        <div className="text-sm font-medium text-muted-foreground">Organization</div>
-                        <div className="text-lg font-semibold">{invitation.organization?.name}</div>
-                        <div className="mt-2 text-sm font-medium text-muted-foreground">Role</div>
-                        <div className="capitalize">{invitation.role}</div>
+        <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
+            <div className="flex w-full max-w-sm flex-col gap-6">
+                <a href="#" className="flex items-center gap-2 self-center font-medium">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
+                        <GalleryVerticalEnd className="size-4" />
                     </div>
+                    Vigi
+                </a>
 
-                    {!isAuthenticated ? (
-                        <div className="space-y-2">
-                            <p className="text-sm text-muted-foreground text-center">
-                                You need to log in or create an account to accept this invitation.
-                            </p>
-                            <Button onClick={handleLogin} className="w-full">
-                                Login to Accept
-                            </Button>
-                            <Button onClick={() => navigate(`/register?returnUrl=/invite/${token}`)} variant="outline" className="w-full">
-                                Create Account
-                            </Button>
+                <Card>
+                    <CardHeader className="text-center pb-2">
+                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-xl bg-primary text-3xl font-bold text-primary-foreground">
+                            {invitation.organization?.name?.substring(0, 1).toUpperCase() || "O"}
                         </div>
-                    ) : (
-                        <div className="space-y-2">
-                            <div className="text-sm text-center text-muted-foreground mb-4">
-                                Logged in as <strong>{useAuthStore.getState().user?.email}</strong>
+                        <CardTitle className="text-xl">You've been invited!</CardTitle>
+                        <CardDescription>
+                            Join <strong>{invitation.organization?.name}</strong> as <span className="capitalize">{invitation.role}</span>
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4 pt-2">
+                        {!isAuthenticated ? (
+                            <div className="space-y-3">
+                                <p className="text-sm text-center text-muted-foreground">
+                                    Login or create an account to accept.
+                                </p>
+                                <Button onClick={handleLogin} className="w-full">
+                                    Login to Accept
+                                </Button>
+
+                                <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
+                                    <span className="relative z-10 bg-background px-2 text-muted-foreground">
+                                        Or
+                                    </span>
+                                </div>
+
+                                <Button onClick={() => navigate(`/register?returnUrl=/invite/${token}`)} variant="outline" className="w-full">
+                                    Create Account
+                                </Button>
                             </div>
-                            <Button
-                                onClick={handleAccept}
-                                disabled={acceptMutation.isPending}
-                                className="w-full"
-                            >
-                                {acceptMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Accept Invitation
-                            </Button>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+                        ) : (
+                            <div className="space-y-4">
+                                <div className="rounded-md bg-muted/50 p-3 text-center text-sm text-muted-foreground">
+                                    Logged in as <span className="font-medium text-foreground">{useAuthStore.getState().user?.email}</span>
+                                </div>
+                                <Button
+                                    onClick={handleAccept}
+                                    disabled={acceptMutation.isPending}
+                                    className="w-full"
+                                >
+                                    {acceptMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Accept Invitation
+                                </Button>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     );
 }

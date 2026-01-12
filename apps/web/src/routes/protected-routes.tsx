@@ -26,9 +26,11 @@ import OrganizationSettingsPage from "@/app/organization/settings/page";
 import OrganizationMembersPage from "@/app/organization/members/page";
 import { RootRedirect } from "@/components/root-redirect";
 import UserInvitationsPage from "@/app/user/invitations/page";
+import OnboardingPage from "@/app/onboarding/page";
 
 export const protectedRoutes = [
     <Route path="/" element={<RootRedirect />} />,
+    <Route path="/onboarding" element={<OnboardingPage />} />,
     <Route path="/create-organization" element={<CreateOrganizationPage />} />,
     // Account routes (Global)
     <Route path="/account" element={<OrganizationLayout isGlobal={true} />}>
