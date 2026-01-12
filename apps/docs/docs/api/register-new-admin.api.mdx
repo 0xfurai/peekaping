@@ -1,0 +1,71 @@
+---
+id: register-new-admin
+title: "Register new admin"
+description: "Register new admin"
+sidebar_label: "Register new admin"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVU1v2zAM/SsGTxugIO2wXXJL1x7SHhq02QcQBAVjM4kaW1IpOWkW+L8PlJ0unZ0V6G25RJZEPvLxUdwD01NJPlzYbAeDPaTWBDJBluhcrlMM2pr+o7dG9ny6ogJl5dg64qDJyxcVqHNZhJ0jGIAPrM0SKgUOvd9azjoOKxXRNVMGg2nj48hipg4Wdv5IaYBKTDLyKWsnYcEA7mipfeAYZZJhQDh2GrikiOKdNb4O9dPZufy9dvOVCQNloN5LQIRu7WKakvcTuybTSQ7TgsmvTl8oPXGX26A3dGQwtzYnNGKR1pkMQ6e/03XSXRVSELZ2gQ8+YCh9N2DpspOAVbuCrR0FBXmPS3pbIU19D/e79FEp+Hx21i7wBWbJXS319xf5dKAKWhSdyOHg48XiRBZfurIYmUBsME/uiTfEyRWz5f8hHyk7Lr0YDMuwkktdfUycGNommBXaxEKHlc1gAM7GsjkMKxhAH8uw6nNjIciRDfG+h5LzeMXp/uYcqpmcpiXrsLsXFurEh07f0C5G0uJ4OB4la9olAkImNFwmH9z6IXFMC/2cLCwXGD6CAi0WK8IsxmGwkLx/9objUe+GdvBCBUZA4fV6G7pxr39MkiAPQQv5gpCJm8M3sMW3Zf0rmnbh3/JylHVHcMtLNI1pMrpsxVFjvZ39sZ/e6LIdRaVApHn3Z/RcPWPhcjoaJQe9HU+Q4+fKLOxhXmEqyheJ6SA+4Lte6mQ4HoEC0UWdXRxG1ocCY0800Xbq7hUtLw0Q6Dn0XY66fvY4vqO1JKcgXMXR04hypmAloh1MYb+fo6dvnFeVbD+VxDsYTGcKNsga5xLydFapA5Oi4jXtZCrVbd2bSAByPS9rGv9q8UodLIZpSi788+7sqK/Gt/cTUDBvhn9hM7Fh3EoquBXWFNhIROybuLeHHM2yjA8H1D7l9xvcfNws
+sidebar_class_name: "post api-method"
+info_path: api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Register new admin"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/auth/register"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Register new admin
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"properties":{"email":{"type":"string"},"password":{"type":"string"}},"required":["email","password"],"type":"object"}}},"description":"Registration data","required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"201":{"description":"Created","content":{"application/json":{"schema":{"properties":{"data":{"properties":{"accessToken":{"type":"string"},"refreshToken":{"type":"string"},"user":{"properties":{"active":{"type":"boolean"},"createdAt":{"type":"string"},"email":{"type":"string"},"id":{"type":"string"},"twofa_status":{"type":"boolean"},"updatedAt":{"type":"string"}},"type":"object"}},"type":"object"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

@@ -1,0 +1,71 @@
+---
+id: delete-api-key
+title: "Delete API key"
+description: "Delete an API key"
+sidebar_label: "Delete API key"
+hide_title: true
+hide_table_of_contents: true
+api: eJzNVMtu2zAQ/BViT0lAw2mRXnRzaxdwUjRBkz4AwygYaW2xlkiFXLlxBf57sRL9iKM015704M7ODDncBjL0qdMVaWsggTEWSCiUEaObqVjhBiRUyqkSCZ2HZNYcAWKZmI5BguY/laIcJBhVIiSgM5Dg8KHWDjNIyNUowac5lgqSBmhTcZUnp80SQphzsa+s8eh5/e35BT+ecn624oM1hIYgSLjoLyHx0daG2dNYmzRwNjzjx56/crZCR7pjK9F7tcQeYRI8Kap9n+ZDf7Ndjx1iLrcIe/8LU4IQGPPu/Py57KkhdEYV4hbdGp2YOGfdf2qBG2JaO02bNheXv2lUUw7JbM7HSGrJeQFV6cEKN22TEim3GSSQtTFrs8UIGG6rho3OAhO3/rvA1a6IJcP1G+DeW95b3oTO96jSV7jpBLyUUVVTjoZ0qnhBnFSrn6JyuNCPYmFdqeh0m+EcVYZun+Ifg9HNdHDVXoe4E6ol5G3dGT/mvfx+J8iu0Dxjfo/KoYuLr3Bzb+v0nxbax3/tltOsX8G1WyoToWI6fqaj43rd/WGfQXvVj1QEhi4sK+CsqpSzGiSQpoLrvuml5pECEvhcO3UsvrKeSmUYGNniCNrPnyeWmv1d6B1WURfhIw2rQmnDJG2Cmhi2g0hKSHTGwcytJ15pmnvl8asrQuDfDzU6Dvdcwlo5re7ZC49A7fk9g2ShCo//kHjyJd6rU/FkUvbK3O6pYSNrVdT8BRLYWTtJwzzI7emwjm5hlKZY0QGER0Q4vG7jyafJ3QQkqJiS/el1uxZfuGeviOMMdsSrNn8vQJqmy0YIu/pu6UXELnbRr2G/IfwFmjg3mQ==
+sidebar_class_name: "delete api-method"
+info_path: api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Delete API key"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"delete"}
+  path={"/api-keys/{id}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Delete an API key
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"API key ID","in":"path","name":"id","required":true,"schema":{"type":"string"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"204":{"description":"No Content"},"404":{"description":"Not Found","content":{"*/*":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"*/*":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

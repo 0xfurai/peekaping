@@ -1,0 +1,71 @@
+---
+id: accept-invitation
+title: "Accept invitation"
+description: "Accept invitation"
+sidebar_label: "Accept invitation"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVclu2zAQ/RVhTgmgwEnRXnRTkB6UHGxkaQsYRkFLY4uxTDHkyI0r8N+LoRY7kYwAveVkmbO9mXmPrEELI7ZIaCxE8xoytKmRmmSpIIJE7SQJ/hM8lhtUEILkcy0ohxCU2CJEQK3J4EslDWYQkakwBJvmuBUQ1UB7zY6WjFRrcG7BzlaXyqJl+5fLS/55W3x6ByGkpSJUxFahdSFTj2bybNmlPiqhTanRkGwSZoL41IWwRWvFGsdQHCOeNyEH/0XY+ZfLZ0wJnOOIr2NIr0UW3ONLhZb+H/JpoCFYElTZj3vocvQRJ7u4GnbxpERFeWnkX8w+RxvfxpaRKEKjRBE8oNmhCb4bU5rP0A8nxLQykvZeird/KK4oh2i+cGENsZZ3uO9POIVYs2iPVOozvx1HnKaoKZC9j+c45WXGOi49Y72cI5gcnOyk9qp2E+HjGbofZ3NLVKZgf6HlZHcFjKVD/sBjbCZ3DPj9kuJZEmxwHzDjUFG7jOBMb34H2uBKvgar0mwFnXdXTo4iQ3O4dH5dxLPk4g730M9S+IK8mH507+ve/nwMfGODytcoDJrW+EHtuNVJN89B/alZJ9k4gqlZC9WGBsnNAEdT6+Puj/NcJDdDFI5DVyUjYOqLlJoLkSQV7PdDrmUQzxIIgffaoGPwTIqt8KLo+h3h0JuuegEQvtJEF0IqzuRpUrf0msMRvSCEqHs2WoYtQsiZjtEc6nopLD6Zwjk+fqnQsCQWIeyEkWLJ+Pmtkpa/M4hWorA4wNQrHs7uWzWeByNP2ij2bpqKCbYTRcX/IIQN7vsnzy1c2K2GATW2uFNMFzW4blgwvQZn04dHnkLLlsMWN57b7QenH4X0nosNho3n4YmQum444lzv35hORvT0a7ylb925fxnM07Q=
+sidebar_class_name: "post api-method"
+info_path: api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Accept invitation"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/invitations/{token}/accept"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Accept invitation
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Invitation Token","in":"path","name":"token","required":true,"schema":{"type":"string"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"401":{"description":"Unauthorized","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

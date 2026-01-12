@@ -1,0 +1,71 @@
+---
+id: get-tag-by-id
+title: "Get tag by ID"
+description: "Get tag by ID"
+sidebar_label: "Get tag by ID"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVU1P40AM/Ssjn0AKKrtiL7l1BYsK0oKA/ZCqCrmJmw5NZwaP06Vb5b+vnLTlo6mQ9sapjT22n589b1YQkHFOQhwhHa4gp5ixDWK9gxTusDCDU0jA6ldAmUICDucEKdgcEmB6rCxTDqlwRQnEbEpzhHQFsgx6KgpbV0Bdj/RwDN5Fiur/fHysP6/rXV1CApl3Qk7UiyGUNkP19h6iHlm9KBHYB2KxbcIcpcOa+dJzB54EMiYUyu9ROt2vgHX4bd5pbsnpcHgu7vfEVCHfj6RONhY/fqBMNGBOMWLRVad+OZJhy8nz+dFOrlojTrpG8RVzc0OPFUX5/5nsB5pAFJQqvt/DJsc2Ym8XJ7tdfPdivvnK5R+jhy9dkxg4IXZYmlviBbE5Y/b8EfrRhJRVbGXZaMtXQibuVzKFdDhSRRAsVHZUZ5ocrxs/JzGChRkvWxGak0x9DikUpDvZyFEKPU3SW9m8VjgNRa2UVVyqG4PtLT6BltuguVVqWjb6wV7SssX0lvj+9cDMaGmwkik5WRNsDsLs3gSmiX0yE89zlMONQk4Jc+Jnjfx91L8eHF3SErb8YFNQyb74I911L37dGfEzcjuVWwbXzndqa27P9m8T2lX/iotB3o3gigt061AzON3B0dZ6v/uXeY6aGb5BoULqJr5VaieY6Tqr5Fkp9dxPW1jTvx5AAjrXFp2CDz7KHJtFX1d7uy3dAi70JL1QonWN8uqKrNabNGzXMYHU5rqMUx9FravVGCP94LKu1fxYEes+jxJYIFscK1B9OW3U/zmkEywj7QDYXlc4uFlfpUOzfWA74W3Icro/Cywr/YIEZrRsH+B6VCcb2hVD6+hnGQV5EbIjD3oZtrfp/OwO6vofrfO8ng==
+sidebar_class_name: "get api-method"
+info_path: api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get tag by ID"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/tags/{id}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Get tag by ID
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Tag ID","in":"path","name":"id","required":true,"schema":{"type":"string"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{"properties":{"color":{"type":"string"},"created_at":{"type":"string"},"description":{"type":"string"},"id":{"type":"string"},"name":{"type":"string"},"org_id":{"type":"string"},"updated_at":{"type":"string"}},"type":"object"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"404":{"description":"Not Found","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

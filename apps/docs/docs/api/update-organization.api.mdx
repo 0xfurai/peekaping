@@ -1,0 +1,71 @@
+---
+id: update-organization
+title: "Update organization"
+description: "Update organization"
+sidebar_label: "Update organization"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVktv2zAM/isGTxugIHtefEv3wLIOW9G124AiGFSbdbTYkibJbVND/32gZTuO7TTAbj3Fofj8SOpTBZobXqBDYyG+qiBFmxihnVASYvhmMi7FA6e/0fI9MBAk1tytgYHkBUIMIgUGBv+WwmAKsTMlMrDJGgsOcQVuq0nLOiNkBt6vgjJad6LSLWkkSjqUjj651rlI6njzP5ZyqHqutFEajRNo6V8IXwHe80LnFONSp9xhGu2l/ZXUGBRCfkGZuTXEr9kwKQY2L7N9Z2VwNqtPjtj7TqKu/2DiwJPoESwbtSFungRWK2lDia9evKCfgaNTYP+LWcrdhDQxSKX+5m6iYYwaPCVu8T+I5eiggXQ6zhhDBgVay7OpKL4P3VWoa6e/muiHZ/BmCs4TnkbnYSD/H9fDiTKwjrvSHq+h9dFZHKzi5biKS8lLt1ZGPGD6VMp4My7jq3LRR1XKJ1LD26mBWkqHRvI8+o7mFk30wRhlnkI95BCT0gi3rbng851blHThXa08q2ChxSlu+5JvJlumnYB88oxoZO+uq4MNhrW+ByLV06qX161VGuglIX6paSaGeV/PziuReiqkBjeQVmly0uNazG9fAiXS1vGdQA049tMftmxxtow2uI1oh1C6pjXRM735HWmDN+I+ulGm4O55S4Fr5CmaHQn+mi3OlrNT3EKHLK8DUps6IIdxP/+8iJzaoBxFPkFu0DSHR2Ivms1vgRzF7/XpCMOP8gixjlff9zOrXwqDLDwDmvTzHfV/aKm2pfJH+TuQyj4rEzfJG9W+IXhCy0U8IlxN4T9EJqLF2RIY0KyEislKK+sKLkehhyO5h1W3ZA7v3VznXMia1Gj4qmZYr2BvWIFBLFJagLWyjo6r6ppbvDS59yT+W6KhZVsxuOVG8GvKm55hwtJ3CvENzy2OMunuEnh23uz582j8WptMuG2MpFm95XlJ/4DBBrfhNedXnrUtpmTCwbsQcnZB5jvD0VVGF0OwWCQJaveo7qq39meLi3efgMF18ywsVEpGht/RO4nfhSyVDsjGVZBVkHOZlfUNCcEpzRpvpn03hZt6N5sPKmsSh+EuhUo29R4dMKmqMOPed/rh6KBFtz4N5ASE9/4f4v34wQ==
+sidebar_class_name: "patch api-method"
+info_path: api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Update organization"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"patch"}
+  path={"/organizations/{id}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Update organization
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Organization ID","in":"path","name":"id","required":true,"schema":{"type":"string"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"properties":{"name":{"example":"Updated Organization Name","minLength":3,"type":"string"},"slug":{"example":"updated-slug","minLength":3,"type":"string"}},"type":"object"}}},"description":"Organization object","required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{"properties":{"created_at":{"type":"string"},"id":{"type":"string"},"name":{"type":"string"},"slug":{"type":"string"},"updated_at":{"type":"string"}},"type":"object"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"401":{"description":"Unauthorized","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"404":{"description":"Not Found","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

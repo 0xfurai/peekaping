@@ -1,0 +1,71 @@
+---
+id: get-invitation-details-public
+title: "Get invitation details (public)"
+description: "Get invitation details (public)"
+sidebar_label: "Get invitation details (public)"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVktP20AQ/ivWnEByFFrRi2+poCigFgT0IUURmthDsmDvLrPjlDTyf6/GzovEKbS3nmzvvL6Z+WbWc/DIWJAQB0gGc8gopGy8GGchgb6dGkH9iG7dI1mIwei5R5lADBYLggRkIWJ6Kg1TBolwSTGEdEIFQjIHmXlVDMLGjqGqhqocvLOBgsrfHx3p42XwywuIIXVWyIpK0fvcpDWa7kNQlflGCM/OE4tpHGYoLacpEwpldygtoGKgAk3eLnn2hinsMzRZ67HjMVrzC5t8/hLMHp9NyVsEIS/HrYLSZ/vjVPHyxI0eKJVt2Hd7YLDLaxhkywKSAWBWGKVAQcWIGIbxlkkMzx3V7UyRNQUlG1y7nHoLQ33/vDDWbASlDJsRPNms8YRpSl4og2VfsjfGW7P5pnZ/tXK5LemtQ2yLTpchtXQ18d9W1YJCwHFb76rNyRk01F3rD3d8VWpxfHS8OzFfnESfXGmzfx+c/TA3m/LnDJY+VhZ7cvjQNvV9K8QW8+iGeEocnTI7/h/y0abjeItote7LBM9IIrPeqxkJmjxEB74c5SY9rFsvE5dBAmMSiJtlm0B3bRS685p6lUKqy9Qs75JzVURvutN3oFs2UFqykdmNlqepSM+bC5r1SnW6XfzeVT96pFmEpUzIyqLI0YF/vIs80715ju4dFyiHy5tgQpgRr++CH53eVb9zQTNY1QjrgFrw85/SHvf8+21UZ7QT+SMhEy+Er8RW346XC7cl/iWP+1k7gsuNpRf1T3ZwNLFez37TT6d/sotCV7u9d/UN4KxgqpRW7hjRlQrfzNhEvas+xKB9bdApeO+CFFiTfRHtdSa9yHFFc6Fn6focja3vB67vvIZlA9hgGcSQNCtuGMPEBVH5fD7CQF85ryo9fiqJZ5AMhjFMkQ2ONAn9jzBB3zNI7jEPtANlNc5wcL0YtcOo5XejFfKypFZZNsW81C+I4ZFmq9+RShf0oj8KqJE1i33DameX6NSsBvDs9Baq6jc2nCcu
+sidebar_class_name: "get api-method"
+info_path: api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get invitation details (public)"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/invitations/{token}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Get invitation details (public)
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Invitation Token","in":"path","name":"token","required":true,"schema":{"type":"string"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{"properties":{"created_at":{"type":"string"},"email":{"type":"string"},"expires_at":{"type":"string"},"id":{"type":"string"},"organization":{"properties":{"created_at":{"type":"string"},"id":{"type":"string"},"name":{"type":"string"},"slug":{"type":"string"},"updated_at":{"type":"string"}},"type":"object"},"organization_id":{"type":"string"},"role":{"enum":["admin","member"],"type":"string","x-enum-varnames":["RoleAdmin","RoleMember"]},"status":{"enum":["pending","accepted","expired"],"type":"string","x-enum-varnames":["InvitationStatusPending","InvitationStatusAccepted","InvitationStatusExpired"]},"token":{"type":"string"}},"type":"object"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"404":{"description":"Not Found","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

@@ -1,0 +1,71 @@
+---
+id: disable-2-fa-totp-for-user
+title: "Disable 2FA (TOTP) for user"
+description: "Disable 2FA (TOTP) for user"
+sidebar_label: "Disable 2FA (TOTP) for user"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVctu2zAQ/BViTwnAwKnRXnRT6gRwcrCRuA/AMApaWtuMJZEhqTiqoH8vlpJsxY+46K03gdzHzHB2VYLBlxytu1FxAUEJkcocZo4+hdaJjISTKus9W5XRmY1WmAr6itFGRmq6hQAmG3UXDqQV8wQf64oDp5i0LLcYM6dY04f170IW14HAQRul0TiJlmpiKmRCH67QCAFYZ2S2hIqDFtZulImPXFbcc5AGYwimTY1Oxoy3GWr+jJGDilLew++AaoFCt6wzOfo+VqvM1mD719eHOowegP+9hu/Zx8LRacUhRWvFEs+T9Sm7+GNUKw6fjyG9ETF73FL9R8ingXKwTrjcnufQ1thmnGDx5RiLYebQZCJhT2he0bBbY5T5H/hQQYxyI10BwbSE+40Lc7eCYDqrKEEsLRXzZ7N9uzaD5mfpYjKajC/ZQhkaNePd4FYqhgC08m+rBdWFnsjdqtdfiN5u/KxXzXoEuUl8lJa9109AIFqAT6RWLVCo5QMWNdL9twjHQ7bGglEfzFyjObvQ619MG1zIN0KZCncJHCRlrFDEHnImUtLn51U4Hl49YAFbyYRvSPpvFdrve/9jwpxaY3bQ+QaFQdNcnulNtZWRv33qsf4jsxzGxxGMzFJkTSobDg5w1L3Os+/WuRoODlFUHMjCj7udffsmUp1gZ3u2vuwuzY6NZbZQ7aIXkasXjpOOasB3uZQsHA+BA/miZuf3r7IuFX52GrQfe/CdPtuJcfjmejoRMqOa3nBlY88pkGjAob+gjdZadMZhRS4OplCWc2Hxm0mqio5fcjQ0OjMOr8JIH03Dw1tdydNrLCCAr/UyuJoQCgpP8lrUvcVQ8TYjjCLU7sPYWWfQxqOnCXCYN//QVMWUY8SGfiJiQxpyUF4NP0X+rIREZMvcrxuoa9L7isZhu5df+3loPohVe5UVHYT7/q2JrL13T6SUZe2rqtrG11cnM7aWraPpHWdVVf0BVqjSaw==
+sidebar_class_name: "post api-method"
+info_path: api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Disable 2FA (TOTP) for user"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/auth/2fa/disable"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Disable 2FA (TOTP) for user
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"description":"TwoFADisableRequestDto is used to request 2FA disable","properties":{"email":{"type":"string"},"password":{"type":"string"}},"required":["email","password"],"type":"object"}}},"description":"2FA disable request","required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

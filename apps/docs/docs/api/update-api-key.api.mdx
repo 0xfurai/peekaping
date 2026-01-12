@@ -1,0 +1,71 @@
+---
+id: update-api-key
+title: "Update API key"
+description: "Update an API key"
+sidebar_label: "Update API key"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVktv2zgQ/ivCnFqAhtOiufjmbLuAm3YTpMnuAoFhTKSJzFoiWZJK7BX03xdDSn5JroHeerJMzsw33zw4U0NGLrXSeKkVTODBZOgpQZVMb2fJijYgwKDFkjxZB5PH+kihFUtmH0GA5BODfgkCFJYEE5AZCLD0o5KWMph4W5EAly6pRJjU4DeGpZy3UuXQNPMoTM5f6WzDEqlWnpTnTzSmkCky8vi7Y/h6z5Sx2pD1khz/o7WRltwC/QCMgBLXi8phTotUV9F6KZUsqxIm70QnL5WnnCwrRDo1K34hlfslTN5fXgrW6v7v9LZ0tif66TulHho+Gg5gFSOfocdexBo+cEYrF8m9v7jgn0NDN9cgfjVaAbV3mlpCT9mpGGbSmQI3C66Snjdf0a0oC8yetU1aWeiFSJzLlMwGjwt0flE5Gr4dSO/plPa0YypO8j5juNnP3uN+EA9DJmJvBC8OMA8R5r0aElCSY4mhBjoEb6upk+/bCgX5YaicrjBL7mIr/npdnXZUgPPoK3eeQ2djq3GSxYc+i7+0T/7Ulcp+Dw6XQ5mYKU9WYZF8I/tCNvlkrba/Ax82SGllpd+EyfH51U8rfikf5/zQe8x5ogAaOVrRJhgpyS91xlOk8mH0sDiMO5FxLbOGUUMk4jyqbNGKjF/eARvuQL9xBCLpqZHXtInop0YYVn5JyrdxTN6Y1SIxlp7lmp+wEv3bbsQtCTOyuyH372h6Oxtd0977hgGQY7plfYz7+Z/7xOsVqR7yFaEl216ewWbb2sr/guoQ/o3NZ9mwBzc2R9WqJrOPPT8i1nn2+3ZGYRM48qIRwGV5txvtn9ZYmoKOR3VXcANP+MUWcG84qGfdLQmYcivwyJWeDcPfMpe8xoAALpZImbWMdr7E0CStxXbt2e08B3HaW0IGF6SWrKe1H5sCpQpTgsuybit4r8gFTGTGpb7UzvNNXT+howdbNA0f/6jIcrvMBbyglfjEXHjtko6/M5g8Y+HoJy6+uWs79W1ysJ0NutklSjGRFywq/gcCwlDnCdXMG9GlnP2IF39EtNE9q+8Ue+9QIzqNaZqS8T+V3e//24d7EPDULoGlzljF4ivvRvgafdSBfOjvcFZDgSqvwuMG0SRXHra1v6vJmLb2g0kNRuG4syKPVeiqEyp1HSu+abby8eqkxraZ2oBzGJqm+R8QRvYM
+sidebar_class_name: "put api-method"
+info_path: api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Update API key"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"put"}
+  path={"/api-keys/{id}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Update an API key
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"API key ID","in":"path","name":"id","required":true,"schema":{"type":"string"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"properties":{"expires_at":{"type":"string"},"max_usage_count":{"minimum":1,"type":"integer"},"name":{"maxLength":255,"minLength":1,"type":"string"}},"type":"object"}}},"description":"API key update data","required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{"properties":{"created_at":{"type":"string"},"display_key":{"description":"Masked key for display","type":"string"},"expires_at":{"type":"string"},"id":{"type":"string"},"last_used":{"type":"string"},"max_usage_count":{"type":"integer"},"name":{"type":"string"},"updated_at":{"type":"string"},"usage_count":{"type":"integer"}},"required":["created_at","display_key","id","name","updated_at","usage_count"],"type":"object"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"404":{"description":"Not Found","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

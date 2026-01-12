@@ -1,0 +1,71 @@
+---
+id: refresh-access-token
+title: "Refresh access token"
+description: "Refresh access token"
+sidebar_label: "Refresh access token"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVsFu2zAM/RWDpw1QkHbYLr65aw9pDwnadBsQBAVjM7EaW1IlOakX+N8H2k6W1s4C7NZcYkskH/n4RHkHll4Kcv5KJyWEO4i18qQ8P6IxmYzRS62Gz04rXnNxSjnyk7HakPWSHL9ZWlpy6VSvqbbzpSEIwXkr1QqqStQ40lIC4eyt9VzsrfXimWIPFZsn5GIrDYNDCPeNQ+DZI0jQIxxH9LagGsIZrVyT0ZeLC/57G2d8B+J/S6xRO6sYx+TcqbrFOWIEFI5sX1gvN3TksNA6I1TsEVtCT0nke+NRjjLr3ZFJ77Lf6iU+OY++cP2AhUlOAlbd7nVWBOTkHK7ovDLa1u7t+7RRCfja19srTIL7Rsz/3+TTiQroUHSihn2Mg8fJKi67VTwqLHyqrfxNycco41tfM0bKk1WYBQ9kN2SDG2u1/Qj1sHpx5dghKnzKRv2jqDn4zUSqFetTnUAIRtf6M+hTCGHI3Ry2Q4Chazo4/A4Km9UWRg43l1DNeTcurPTlA9PQVB4ZeUdlnUqH5GgyCtZUBoxByrdkBp/M+ikwlpbyNVhqm6P/DAIke6SECXEfFOZc+K9BNBkN7qiEAxdYAzKxt1vfj3v7c9pO4vfIV4SWbLt5BjtqdV679uGP7WqU9GcwtitUrWswuu7k0WCdr/44zmB03c2iEsDavP97Sd68Ym4y6l56x5NWLfX+MsWY1c6ykp7d4IdcySCajEAAS6EpiL1YOTnW56BN8ITW3nBxkL2nVz80GcpmZtv6EmhkOAMmCA63Eas6ZZ2GM9jtFujo0WZVxcsvBdkSwtlcwAatxAXnPJtXYs8eK3dNJYTwvTnLgynjs3lWNNS9O9eV2HtEcUzG/9N2fnSUJuOHKQhYtJ8muU7Yx+KWK8Et0yZA1zw0HyG8toMM1aqopwU0Mfn3B1gfFF0=
+sidebar_class_name: "post api-method"
+info_path: api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Refresh access token"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/auth/refresh"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Refresh access token
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"properties":{"refreshToken":{"type":"string"}},"required":["refreshToken"],"type":"object"}}},"description":"Refresh token data","required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{"properties":{"accessToken":{"type":"string"},"refreshToken":{"type":"string"},"user":{"properties":{"active":{"type":"boolean"},"createdAt":{"type":"string"},"email":{"type":"string"},"id":{"type":"string"},"twofa_status":{"type":"boolean"},"updatedAt":{"type":"string"}},"type":"object"}},"type":"object"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"401":{"description":"Unauthorized","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

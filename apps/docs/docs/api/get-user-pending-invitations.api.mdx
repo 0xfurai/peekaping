@@ -1,0 +1,63 @@
+---
+id: get-user-pending-invitations
+title: "Get user pending invitations"
+description: "Get user pending invitations"
+sidebar_label: "Get user pending invitations"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVcFu2zAM/RWDpw1wkHbYLr55aFG4xdBgbbcBQVAoNuuosSVVkrN4hv99oOw4iWOv3W47xRHJx0fyUapAo1FSGDQQVPDh7Ix+EjSx5spyKSCA2xvwIZbCorBkZUplPGZknT4bcqnAxCvMGX0pLRVqyxvAhFl3yi3m5tQca2QWk0fmgG2pEAIwVnORQu0D5oxnw5at4hrNWCBPBo+lTpngv1hT2F+SGcEULMdBg8mKdNBQqGQ8T+3vTuTyGWPbp/04QkPLzNFAUeQQzIElORfgQ475EjUs/F6ID9sJ+U42TFMJhoK+ygzDNpC+v7TBVI1ltjCHGRSKpEFicYzKYgK7uSRvzBeJDbeurDsHP+sg+5Zwn6JvutylpNbJNYo3drU9YFqzkv7naAxLh2ZJ7cWXwmUJ5o2m9/6LE+yaIj6enZ+u0oNghV1JzX+5Uv5xqcaZHs7pz0XsMLqIkTI+Dd0IkbCoBcu8O9Qb1N6l1lL/D/UQIMaF5raEYF7B9U8bFnYFwXxR+xWEit9g2Z0QBEt7SnXIx+24QusVBrXXroTHD7xJKHYlEwggRQs+KEbwMKWI6bGnce00jlqhM/Jiik8350BcdszvqI1N5w4J94cUziJvjaVHikNh22F479T60VMan/jWe5I6Z/Y9+MApYoUsQZpjc6fBj0k4iyY3WMJ+W1xCGkzXun7e6+/3ntvDk8yfkWnUrfGV3GG7J81dPZD/VqdRMszg9uC+9KKLEx5NrterP8SZRBenLOhVEE/SPR5SWBaT9Olq4ZZuY/jGU+6Fswh8oLk27Ii8ksbmzC1Fm+0VDR0V2O2Cxa2dqoxx4d4V7d7KRl9zIDRX25FyV9JYslbVkhl80Fld0/FLgZpWYuHDhmnOlsSflmLXFpLkGkuajLuKqSSWFU03eqtOYu1Ef3V5T09EO6h9A9dOVu0Hoe9MojzA7sugobB2EhgJqapmPHXd+Tem0Yhu8o03dXNR1/VvirwjCQ==
+sidebar_class_name: "get api-method"
+info_path: api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get user pending invitations"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/user/invitations"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Get user pending invitations
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{"items":{"properties":{"created_at":{"type":"string"},"email":{"type":"string"},"expires_at":{"type":"string"},"id":{"type":"string"},"organization":{"properties":{"created_at":{"type":"string"},"id":{"type":"string"},"name":{"type":"string"},"slug":{"type":"string"},"updated_at":{"type":"string"}},"type":"object"},"organization_id":{"type":"string"},"role":{"enum":["admin","member"],"type":"string","x-enum-varnames":["RoleAdmin","RoleMember"]},"status":{"enum":["pending","accepted","expired"],"type":"string","x-enum-varnames":["InvitationStatusPending","InvitationStatusAccepted","InvitationStatusExpired"]},"token":{"type":"string"}},"type":"object"},"type":"array"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"401":{"description":"Unauthorized","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

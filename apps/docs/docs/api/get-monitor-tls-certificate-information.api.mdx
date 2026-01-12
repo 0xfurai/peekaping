@@ -1,0 +1,71 @@
+---
+id: get-monitor-tls-certificate-information
+title: "Get monitor TLS certificate information"
+description: "Get monitor TLS certificate information"
+sidebar_label: "Get monitor TLS certificate information"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVdtOGzEQ/RVrnkAyCq3oy76lgqJAWxDQixRFldmdJCYb29izKenK/17N3kjYRFR94ykbey7nzJwZl+CUV0sk9AGScQkZhtRrR9oaSOCLNZqsF6NTkKD5xCmagwSjlggJ6AwkeHwstMcMEvIFSgjpHJcKkhJo7dgqkNdmBjFO2Dg4awIGvn9/fMw/2zmvLkFCag2hIb5VzuU6VXw7eAhsUm6kcN469KTrgJkiPo0SlhiCmuEuFJuIx7XLs/1Etvb2/gFTghjZ42QX0o8qEzf4WGCg/4e8H6iEQIqK8DqHNkbnsZfFSZ/FV0viky1M9jY4fNjViZEh9Ebl4hb9Cr048976t8CHA2JaeE3ravw+ovLohwXNIRlPoizhys9GWXfAQdSMR7WdzSrwdjXOkcSymdy7z7ciZWZTJo9Cm6n1y6oMleppbjNIYIYs4Wq4Exg0zmFQ6iwOKA/MoqpsvSQKn7OZcnqwegcMqiVxyxWtizh0+hLXNfKX/Rpej8QC10IVNEdDTV/EgVv8Es7jVD+JGuZhu3fmqDL0z5vn59HwenR0iWvoyqqqhNyji9+0O+/FjztBdoGml7kufHP5Sm6Obb3+01axl3+jZ73t5mfKNK5idNrDUed6nf1mnKNqPb9AEdl1ahkBT4FKqV6MpClnu+96psXwegQSuK81OgbvbKClquajyfbvetri2k0I4RMNXK604fiVeMpGa2NotQYSkuo5YblNJMxtIL4vy3sV8JvPY+TjxwI9j8pEwkp5re6ZDL9bOvB3BslU5QF7ULpNAAc3zZQeiq3nbSfYtqiGdbZSecH/QMIC1/XzFydRtu1hHPXFME3R0YZLb/vw0HTTd352BxJUI5jnRi4qeTcfHH0nnF1iqGEsKjnucSvLWioxdvb11V6PToUNe2YRY/wLOgrSAg==
+sidebar_class_name: "get api-method"
+info_path: api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get monitor TLS certificate information"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/monitors/{id}/tls"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Get monitor TLS certificate information
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Monitor ID","in":"path","name":"id","required":true,"schema":{"type":"string"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"404":{"description":"Not Found","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

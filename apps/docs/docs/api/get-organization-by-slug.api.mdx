@@ -1,0 +1,71 @@
+---
+id: get-organization-by-slug
+title: "Get organization by Slug"
+description: "Get organization by Slug"
+sidebar_label: "Get organization by Slug"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVcFO20AQ/RVrTkUyClT04lsqKDJIBRVoK0UR2tgTZ4mzu8yOU4zlf6/GjkOCTZF64xLHO7M77z3PvK3AKVIrZCQP0aSCFH1C2rG2BiK4okwZ/azkNbjJiwxC0BJwihcQglErhAh8GyF8LDRhChFTgSH4ZIErBVEFXLomj0mbDOp6KsneWePRS/zz0ZE8XhW/hBASaxgNS1Q5l+ukwTJ68JJS7ZRwZB0S6/bAVPHAakKoGNN7xQOgQtDp4HJLciDQ0B4KFC59u04ddit29oAJy4YVeq+yoSr1rqyTltdL/rR3Vi07To6O+3LeGVXwwpJ+xvT/hX0baQieFRf+fRLdGdsdb9I46dP4bjn4ZgvzQTh8Gers2DCSUXlwg7RGCs6ILH0EPtK7KhOn2LOGJnuf4jlyYHfdY1Z2BrJCXtgUIsiQIWytJILRbrYfyWyNKvmtBVOjU+tQBeWSrpwerY9BrMRjUpDm8kb0aSUZO32J5biQo1+rP76OgyWWgYwDGt6oHHxyy/vAEc71UzC3tFJ80LndAlWK9OJ3vw/H1/HhJZawFUk1BUXxiz88XPfi123AdommV/krKkLaBN+pPd4McbN1qP4VZXE6jGDPzuPTHo621vvsd885jE/7KMRMzdw2nmsNq0R6WppHcy55P3Wmg/F1DCHId23RCXhnPa9U0+2bav9opD1y2wZnfOKRy5U2jRVLt1SbJpvAXpNB2N1cUfOchrCwniWvqmbK4x3ldS3LjwVSCdFkGsJakVYzYSG3pfbyP4VornKPPUjbgYZPPzbDdhAMXaqD2DtRjfTZWuWFvEEISyy7S7ee1mH3gQRQGxonCTre2dRzExmb7Ryen91CXf8F/PXEpA==
+sidebar_class_name: "get api-method"
+info_path: api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get organization by Slug"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/organizations/slug/{slug}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Get organization by Slug
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Organization Slug","in":"path","name":"slug","required":true,"schema":{"type":"string"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{"properties":{"created_at":{"type":"string"},"id":{"type":"string"},"name":{"type":"string"},"slug":{"type":"string"},"updated_at":{"type":"string"}},"type":"object"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"401":{"description":"Unauthorized","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"404":{"description":"Not Found","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

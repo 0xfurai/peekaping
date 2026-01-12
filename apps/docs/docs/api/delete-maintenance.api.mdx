@@ -1,0 +1,71 @@
+---
+id: delete-maintenance
+title: "Delete maintenance"
+description: "Delete maintenance"
+sidebar_label: "Delete maintenance"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVU1P20AQ/SurOYFkFFrRi29BSSVDWxDQDymKqsGexEvs3WV3nJJa/u/V2ElIiBFSb5zi7Hy8N7PzZmtw6LEkJh8gntSQUUi9dqytgRi+ojZMBk1KKhlBBFpOHXIOERgsCWLQGUTg6bHSnjKI2VcUQUhzKhHiGnjlxCuw12YOTTMV5+CsCRTE/vH0VH72ca8uIYLUCjaLFZ0rdIpiHTwEcal3IJy3jjzrLmGGLKdNBCWFgHPqY7HLeNKFPPtPo42/vX+glKFpJOKsj+k5ZuqGHisK/P+UXycaQWDkKrxdwybHNuLVKs4Oq/hmWX22lcneRw2f+m4iMUzeYKFuyS/Jq7H31r+HeiQhpZXXvGoleE7oyQ8rziGeTEUwjHNR564c21z7DRhRQUyqfHZqZ5pzm0EMWWuFqFNvDIMdvzCoddYIzbZ13SaofCFu6PRg+QGExoblrbSs69LQ6UtadVxfXsjwOlELWimsOCfD68arI7f4rZynmX5SM+tL5OPNYskJM/LPq+XXyfA6ObmkFWz7hi2gXMLFH+7Hvfh5p9guyBwgd51dG9/AltzW679taB/+lZ8nWT+DKz9Hsw5VyeiAR4f1dvW7eU7a/fuCRSOhMysMZMwx5W7zseZC/H7ouVbD6wQikHvt2Al5ZwOX2ApgjdY7PXtlbaed6YkHrkBtJFU7J/V6rCawO1YQQawzmdTcBhZrXd9joO++aBo5fqzIy9BPI1ii13gvrOUV0kG+M4hnWAQ6ILLVNBzdrPV2rA4eq166mw4aGaolFpX8gwgWtOoes2baRJu7EC6dYZim5Hgn5GCXiEK2ahuNv4zvxtA0/wC8eIb2
+sidebar_class_name: "delete api-method"
+info_path: api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Delete maintenance"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"delete"}
+  path={"/maintenances/{id}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Delete maintenance
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Maintenance ID","in":"path","name":"id","required":true,"schema":{"type":"string"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"404":{"description":"Not Found","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

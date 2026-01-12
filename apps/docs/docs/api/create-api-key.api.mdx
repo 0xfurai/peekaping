@@ -1,0 +1,71 @@
+---
+id: create-api-key
+title: "Create API key"
+description: "Create a new API key"
+sidebar_label: "Create API key"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVktv2zAM/isGTxvgoO2wXnxLH4fsgRZr9wCCIGBt1lFjS6okt8kM//eBkp0msbMAu+0UxyI/kh8/ka4hI5saoZ1QEhK4NISOIowkvUbj20m0pDXEYOi5IusuVLaGpIZUSUfS8SNqXYgU2f3kyTJGDTZdUIn8pI3SZJwgy/9opYUhO0fv6daaIAHrjJA5NDGUuJpXFnOap6oK6KWQoqxKSM7izl5IRzkZdpBYkrfC1ReSuVtA8uH8PGav7v+bXxenCdUIQxkk04Ax21iphydKHTRststMS0aUMkNCyShDh7AN5kxFHt1qJW0o+cPpGf8MkZxB/K9E+tC9t2mAPURvJqwucD3njvZS+op2SZkv8FGZqLWFHnvxsSaKbPB1gdbNK0vDpwOdP9ztnrdTS5KDJ5XO/sbIkZB7Stmid5dMX3SbX5fNTuzdSH2xxVCSZYuBLPeSaEXX2Q8Jt4nh4+lpv8UXmEXfwj3+d+UdTjQG69BV9ngNHcbG40AV50NVTKQjI7GI7si8kImujVHmf6iHASmtjHBrSKY1fHp144pH1HTWsAPmlsFQi9GS1h6kJLdQGSSgle+ZRraHk40NQzIL1iNWpmhPT17OgEG7gHdcfSh4rMVnWofI+9x2Iw4rtyDpWg6jd3o5j7ShR7Hi4VCie8+aZ48FYUamE38Cv0bj28noM21NDvQBmc9NxftxP/28j/y16UW+IDRk2sMjsRlbGfHbuw7FvzH5JBvO4MbkKFvXaHLVyyPEOl79Ns5octXPoomBJfntbZ9er7DUBe3vx05sA8PxdBNwa+zKR9VtZkz5GvBgFI6B4YfIBS9ziIHFEkpmL9ZVif6CtIjt/n/b/Ds8bW3+Q18Kbb2OVu5EFyikH7SszLrV767GFyztZAp1/YCWvpuiafj1c0WG78kshhc0Ah+4kOmsiTvSWfB+k8FlSGl0z5HZvKgC43tToIk7j3GaknZ/td2+fbc3d/cQw0P78VOqjH0MvvL2x1fmMgblKfJXzL+roUCZV362QMDk5mMrvzdZBNraB66qO5LrrQz3xR0KWXphH3Cp6yC6ptnYh6ODHhs9B2vu3axpmj+eU3lB
+sidebar_class_name: "post api-method"
+info_path: api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Create API key"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/api-keys"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Create a new API key
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"content":{"application/json":{"schema":{"properties":{"expires_at":{"type":"string"},"max_usage_count":{"minimum":1,"type":"integer"},"name":{"maxLength":255,"minLength":1,"type":"string"}},"required":["name"],"type":"object"}}},"description":"API key creation data","required":true}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"201":{"description":"Created","content":{"application/json":{"schema":{"properties":{"data":{"properties":{"created_at":{"type":"string"},"display_key":{"description":"Masked key for display","type":"string"},"expires_at":{"type":"string"},"id":{"type":"string"},"last_used":{"type":"string"},"max_usage_count":{"type":"integer"},"name":{"type":"string"},"token":{"type":"string"},"updated_at":{"type":"string"},"usage_count":{"type":"integer"}},"required":["created_at","display_key","id","name","token","updated_at","usage_count"],"type":"object"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

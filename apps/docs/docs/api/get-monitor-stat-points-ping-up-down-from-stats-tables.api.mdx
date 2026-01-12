@@ -1,0 +1,71 @@
+---
+id: get-monitor-stat-points-ping-up-down-from-stats-tables
+title: "Get monitor stat points (ping/up/down) from stats tables"
+description: "Get monitor stat points (ping/up/down) from stats tables"
+sidebar_label: "Get monitor stat points (ping/up/down) from stats tables"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVktv20YQ/iuLOckADaV1eqhuSuIEitHGsNM2gCEEY3JEbUTu0ruzthWC/70YPvSwSAtxTjlJ3NmZ75udZwkFOsyJyXmY3JSQkI+dLlhbAxP4yxrN1qnZO4hAy0mBvIQIDOYEE9AJRODoLmhHCUzYBYrAx0vKESYl8LqQW56dNilUVfTU/jWjY8U6JzW6ev/27Ozsz5MO6S6QW2+hvDYx/RzauUn2sSKV0AJDxsrYhyHgYFhn8ENAHxyakKHTvFajXJvAFKmlDS5SCa6HgNKt1rNwc3kEX1jjyYv891ev5GefwqcLiCC2hsmwSLEoMh2jSMffvFwpdyAKZwtyrBuDCTIeWrxmZFVYbdgrNInyIc/RrdXCOoWqIKetZMO+KbxPL4X11g0T8ltyUEWQ4+OwTJtBWcNBRJop9z387YPZ0dSGKe0g5cOgpFLvhWIQVJv0a46Pzwi16RVKxnnGvOhHDL3notcc2dtvFDNsD9A5XDeaYroHs085J+8xpd703ampmyb42/vzA1uVaLzuy7k3mKgrugvk+eXJN0w0As/IwR/3obOx0Rj04vWhF39bVu9tMMmv4cMffZGYGSZnMFPX5O7JqXPnrPsV/BGDFIe6B8o4ekPoyE0DL2FyM5dO+8mls2RzIEYwldHVzara8JN2TKzydpL5nS42krodh2IsDeNELZzNa7lXjLcZ+boMeGkTac4kOV1PvwmMW2t+XOqkGtc647YtiQPy5s04DS6T+1jo8f1vIHQ7967lrZvnnRb6gtaNT08jOb2cqRWtFQZekuE2YmpUrL6qwtFCP0oDzpE3U2VJmJDbjpUvp9PL2ekFyVDpWkgNKNH7+MD9uB//+6zYrsgcIDchaYVHsMW2dfp7rdqHvxPNgwnmUjStqpq9O+DRYB33ftfOab3IPGFRierCCgOpD4ylPurGzZnc+1enWk0vZxCBxLVh1wwizznWldOi/USm7Tm/KSamRx4XGWpTd3zJprLNwhvoshAimNSbWG0SNhNyHsHSeparZXmLnv5xWVXJcbN51Pue9sIggckCM08HPDYdA0ZXbTWfqIG1rZfzitY729s9ZoGa5/sR7OOb2zPY3QL3Quzjy9wz2Ps73ZbBXD6cFgovD8Pedt5Lost0s4fekdMJVPMq6mpGeDSCaRxTwTsqB8NCHNj0xg/nnyECbKt4W12ruue0f8R6L52+Cm1orOoeMaBWlk39VtXmfiMa1Ni0htZ78aKqqv8Bo+JuUA==
+sidebar_class_name: "get api-method"
+info_path: api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get monitor stat points (ping/up/down) from stats tables"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/monitors/{id}/stats/points"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Get monitor stat points (ping/up/down) from stats tables
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Monitor ID","in":"path","name":"id","required":true,"schema":{"type":"string"}},{"description":"Start time (RFC3339)","in":"query","name":"since","required":true,"schema":{"type":"string"}},{"description":"End time (RFC3339, default now)","in":"query","name":"until","schema":{"type":"string"}},{"description":"Granularity (minute, hour, day)","in":"query","name":"granularity","schema":{"type":"string"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{"description":"Stat points and summary for a period","properties":{"avgPing":{"type":"number"},"maxPing":{"type":"number"},"minPing":{"type":"number"},"points":{"items":{"properties":{"down":{"type":"integer"},"maintenance":{"type":"integer"},"ping":{"type":"number"},"ping_max":{"type":"number"},"ping_min":{"type":"number"},"timestamp":{"type":"integer"},"up":{"type":"integer"}},"type":"object"},"type":"array"},"uptime":{"type":"number"}},"type":"object"},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"404":{"description":"Not Found","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

@@ -1,0 +1,71 @@
+---
+id: reset-monitor-data-heartbeats-and-stats
+title: "Reset monitor data (heartbeats and stats)"
+description: "Reset monitor data (heartbeats and stats)"
+sidebar_label: "Reset monitor data (heartbeats and stats)"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVdtu2zAM/RWBTy2gIt3QvfgtQzcgLbYGbXcBgmBgbCZW48iuRGfNDP37QF/SpHFQbG99iiPxckieQ1VQoMMVMTkP0aSChHzsTMEmtxDBl9wazp0aXYIGIycFcgoaLK4IIjAJaHD0WBpHCUTsStLg45RWCFEFvCnEyrMzdgEhTMXYF7n15OX+/fm5/OznvLkGDXFumSzLLRZFZmKU28GDF5NqJ0Xh8oIcmyZggiynQcOKvMcF9aHYRTxpXJ7tp7qzz2cPFDOEIB4XfUg/YqJu6bEkz/8P+ThQDZ6RS/96DV2MrcfRKi4Oq/ias/qclzZ5GzV86JvEyDI5i5m6I7cmpz45l7u3UI8EpLh0hje1/D4SOnLDklOIJtOgK7hxi1GyPZAguBCpdtqsA+9345Y8sVq12hWCq5OU0PGMkL1CmyjB5E9r3nOaJyLsvGZxre8IBq23H1QmCQMnEaWUur3NpihdJoZYmMH6HQiyrpI7aWvTyWFhrmnTwH85tOF4pJa0UVhySpbb4aiTYvlLFY7m5knNc7dCPu2WT0qYkHtePz/PhuPR2TVtYNtbrBPKoK5+c3/eqx/3ivMl2YPMTffby1dyS+zcmT+1a1/+ncEdrDi3QNu6qtHlAY4m1+vV78Y5q3f0CxRBXOe5IBApYMzNdmTDmdh9NwujhuMRaJC5NugEvLBhhbVI2mz/Qqq9ardCYXriQZGhsZKhpk/V8m0CHd9AQ9S+KkK5qYZUiBlNoKpm6Omby0KQ48eSnGhmqmGNzuBMCpIHzHj5TiCaY+bpAMx2JcDJbSvXU7X3zvXC7RprhWtrzEr5BxqWtGnewTANuhuR4GguhnFMBe+4HKwhEc5WhOObu3vQgC1rnqe5rDnefkj4Xjx9jGhwLGtOHnGrqoYvIWztm6ujHlsqtuVLGSGEvyw81Tw=
+sidebar_class_name: "post api-method"
+info_path: api/vigi-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Reset monitor data (heartbeats and stats)"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/monitors/{id}/reset"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Reset monitor data (heartbeats and stats)
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"description":"Monitor ID","in":"path","name":"id","required":true,"schema":{"type":"string"}}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"OK","content":{"application/json":{"schema":{"properties":{"data":{},"message":{"type":"string"}},"required":["data","message"],"type":"object"}}}},"400":{"description":"Bad Request","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"404":{"description":"Not Found","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}},"500":{"description":"Internal Server Error","content":{"application/json":{"schema":{"properties":{"message":{"type":"string"},"status":{"type":"string"}},"required":["message","status"],"type":"object"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      
