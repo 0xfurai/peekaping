@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"time"
+	"vigi/internal/config"
 
 	"github.com/pquerna/otp/totp"
 	"go.uber.org/zap"
@@ -26,28 +27,33 @@ type ServiceImpl struct {
 	repo       Repository
 	tokenMaker *TokenMaker
 	logger     *zap.SugaredLogger
+	cfg        *config.Config
 }
 
 func NewService(
 	repo Repository,
 	tokenMaker *TokenMaker,
 	logger *zap.SugaredLogger,
+	cfg *config.Config,
 ) Service {
 	return &ServiceImpl{
 		repo:       repo,
 		tokenMaker: tokenMaker,
 		logger:     logger.Named("[auth-service]"),
+		cfg:        cfg,
 	}
 }
 
 func (s *ServiceImpl) Register(ctx context.Context, dto RegisterDto) (*LoginResponse, error) {
-	count, err := s.repo.FindAllCount(ctx)
-	if err != nil {
-		return nil, err
-	}
+	if s.cfg.EnableSingleAdmin {
+		count, err := s.repo.FindAllCount(ctx)
+		if err != nil {
+			return nil, err
+		}
 
-	if count > 0 {
-		return nil, errors.New("admin already exists")
+		if count > 0 {
+			return nil, errors.New("admin already exists")
+		}
 	}
 	// Check if admin with this email already exists
 	existingAdmin, err := s.repo.FindByEmail(ctx, dto.Email)

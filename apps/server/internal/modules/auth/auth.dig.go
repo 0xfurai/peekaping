@@ -5,6 +5,7 @@ import (
 	"vigi/internal/utils"
 
 	"go.uber.org/dig"
+	"go.uber.org/zap"
 )
 
 func RegisterDependencies(container *dig.Container, cfg *config.Config) {
@@ -12,7 +13,11 @@ func RegisterDependencies(container *dig.Container, cfg *config.Config) {
 
 	container.Provide(NewRoute)
 	container.Provide(NewTokenMaker)
-	container.Provide(NewService)
+
+	// Register service with config
+	container.Provide(func(repo Repository, tokenMaker *TokenMaker, logger *zap.SugaredLogger) Service {
+		return NewService(repo, tokenMaker, logger, cfg)
+	})
 	container.Provide(NewController)
 	container.Provide(NewMiddlewareProvider)
 }

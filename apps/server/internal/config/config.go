@@ -66,6 +66,10 @@ type Config struct {
 	// Examples: "5m", "30m", "1h", "24h"
 	BruteforceLockout time.Duration `env:"BRUTEFORCE_LOCKOUT" default:"1m"`
 
+	// Single admin mode configuration
+	// If set to true, only one admin user can be created
+	EnableSingleAdmin bool `env:"ENABLE_SINGLE_ADMIN" default:"false"`
+
 	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"vigi:api"`
 }
 

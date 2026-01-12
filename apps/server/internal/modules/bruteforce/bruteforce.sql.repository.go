@@ -132,7 +132,6 @@ func (r *SQLRepositoryImpl) OnFailure(ctx context.Context, key string, now time.
 		err := tx.NewSelect().
 			Model(&sm).
 			Where("key = ?", key).
-			For("UPDATE").
 			Scan(ctx)
 
 		windowStart := now.Add(-window)
