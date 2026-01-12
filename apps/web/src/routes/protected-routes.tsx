@@ -25,6 +25,7 @@ import CreateOrganizationPage from "@/app/create-organization/page";
 import OrganizationSettingsPage from "@/app/organization/settings/page";
 import OrganizationMembersPage from "@/app/organization/members/page";
 import { RootRedirect } from "@/components/root-redirect";
+import UserInvitationsPage from "@/app/user/invitations/page";
 
 export const protectedRoutes = [
     <Route path="/" element={<RootRedirect />} />,
@@ -33,6 +34,7 @@ export const protectedRoutes = [
     <Route path="/account" element={<OrganizationLayout isGlobal={true} />}>
         <Route path="settings" element={<SettingsPage />} />
         <Route path="security" element={<SecurityPage />} />
+        <Route path="invitations" element={<UserInvitationsPage />} />
     </Route>,
     <Route path="/:slug" element={<OrganizationLayout />}>
         <Route index element={<Navigate to="monitors" replace />} />

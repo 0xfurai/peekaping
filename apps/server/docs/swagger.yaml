@@ -445,9 +445,6 @@ definitions:
         items:
           type: string
         type: array
-      org_id:
-        example: 60c72b2f9b1e8b6f1f8e4b1a
-        type: string
       proxy_id:
         example: 6830ad485361f19c598d6d90
         type: string
@@ -477,7 +474,6 @@ definitions:
         type: string
     required:
     - name
-    - org_id
     - type
     type: object
   monitor.CustomUptimeStatsDto:
@@ -771,6 +767,37 @@ definitions:
     required:
     - name
     type: object
+  organization.Invitation:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      expires_at:
+        type: string
+      id:
+        type: string
+      organization:
+        $ref: '#/definitions/organization.Organization'
+      organization_id:
+        type: string
+      role:
+        $ref: '#/definitions/organization.Role'
+      status:
+        $ref: '#/definitions/organization.InvitationStatus'
+      token:
+        type: string
+    type: object
+  organization.InvitationStatus:
+    enum:
+    - pending
+    - accepted
+    - expired
+    type: string
+    x-enum-varnames:
+    - InvitationStatusPending
+    - InvitationStatusAccepted
+    - InvitationStatusExpired
   organization.Organization:
     properties:
       created_at:
@@ -809,6 +836,17 @@ definitions:
     x-enum-varnames:
     - RoleAdmin
     - RoleMember
+  organization.UpdateOrganizationDto:
+    properties:
+      name:
+        example: Updated Organization Name
+        minLength: 3
+        type: string
+      slug:
+        example: updated-slug
+        minLength: 3
+        type: string
+    type: object
   organization.User:
     properties:
       email:
@@ -1315,6 +1353,18 @@ definitions:
     - data
     - message
     type: object
+  utils.ApiResponse-array_organization_Invitation:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/organization.Invitation'
+        type: array
+      message:
+        type: string
+    required:
+    - data
+    - message
+    type: object
   utils.ApiResponse-array_organization_OrganizationUser:
     properties:
       data:
@@ -1449,6 +1499,16 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/notification_channel.Model'
+      message:
+        type: string
+    required:
+    - data
+    - message
+    type: object
+  utils.ApiResponse-organization_Invitation:
+    properties:
+      data:
+        $ref: '#/definitions/organization.Invitation'
       message:
         type: string
     required:
@@ -2157,6 +2217,65 @@ paths:
       summary: Get server health
       tags:
       - System
+  /invitations/{token}:
+    get:
+      parameters:
+      - description: Invitation Token
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.ApiResponse-organization_Invitation'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      summary: Get invitation details (public)
+      tags:
+      - Invitations
+  /invitations/{token}/accept:
+    post:
+      parameters:
+      - description: Invitation Token
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.ApiResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      security:
+      - JwtAuth: []
+      - ApiKeyAuth: []
+      summary: Accept invitation
+      tags:
+      - Invitations
   /maintenances:
     get:
       parameters:
@@ -2471,7 +2590,6 @@ paths:
       - description: Organization ID
         in: header
         name: X-Organization-ID
-        required: true
         type: string
       produces:
       - application/json
@@ -3220,6 +3338,51 @@ paths:
       summary: Get organization by ID
       tags:
       - Organizations
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Organization ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Organization object
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/organization.UpdateOrganizationDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.ApiResponse-organization_Organization'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      security:
+      - JwtAuth: []
+      - ApiKeyAuth: []
+      - OrgIdAuth: []
+      summary: Update organization
+      tags:
+      - Organizations
   /organizations/{id}/members:
     get:
       parameters:
@@ -3234,7 +3397,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/utils.ApiResponse-array_organization_OrganizationUser'
+            $ref: '#/definitions/utils.ApiResponse-any'
         "401":
           description: Unauthorized
           schema:
@@ -3246,7 +3409,7 @@ paths:
       security:
       - JwtAuth: []
       - ApiKeyAuth: []
-      summary: List organization members
+      summary: List organization members and pending invitations
       tags:
       - Organizations
     post:
@@ -4110,6 +4273,29 @@ paths:
       summary: Update tag
       tags:
       - Tags
+  /user/invitations:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.ApiResponse-array_organization_Invitation'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      security:
+      - JwtAuth: []
+      - ApiKeyAuth: []
+      summary: Get user pending invitations
+      tags:
+      - Invitations
   /user/organizations:
     get:
       produces:

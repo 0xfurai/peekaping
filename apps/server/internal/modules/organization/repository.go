@@ -21,6 +21,12 @@ type OrganizationRepository interface {
 	FindMembers(ctx context.Context, orgID string) ([]*OrganizationUser, error)
 	FindUserOrganizations(ctx context.Context, userID string) ([]*OrganizationUser, error)
 	FindMembership(ctx context.Context, orgID, userID string) (*OrganizationUser, error)
+
+	CreateInvitation(ctx context.Context, invitation *Invitation) error
+	FindInvitations(ctx context.Context, orgID string) ([]*Invitation, error)
+	FindInvitationByToken(ctx context.Context, token string) (*Invitation, error)
+	FindInvitationsByEmail(ctx context.Context, email string) ([]*Invitation, error)
+	UpdateInvitationStatus(ctx context.Context, id string, status InvitationStatus) error
 }
 
 type sqlModel struct {
@@ -49,6 +55,20 @@ type organizationUserSQLModel struct {
 	UpdatedAt      time.Time     `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
 	User           *userSQLModel `bun:"rel:belongs-to,join:user_id=id"`
 	Organization   *sqlModel     `bun:"rel:belongs-to,join:organization_id=id"`
+}
+
+type invitationSQLModel struct {
+	bun.BaseModel `bun:"table:invitations,alias:i"`
+
+	ID             string    `bun:"id,pk"`
+	OrganizationID string    `bun:"organization_id,notnull"`
+	Email          string    `bun:"email,notnull"`
+	Role           string    `bun:"role,notnull"`
+	Token          string    `bun:"token,unique,notnull"`
+	Status         string    `bun:"status,notnull"`
+	CreatedAt      time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp"`
+	ExpiresAt      time.Time `bun:"expires_at,notnull"`
+	Organization   *sqlModel `bun:"rel:belongs-to,join:organization_id=id"`
 }
 
 func (r *SQLRepositoryImpl) FindMembers(ctx context.Context, orgID string) ([]*OrganizationUser, error) {
@@ -241,4 +261,117 @@ func (r *SQLRepositoryImpl) FindMembership(ctx context.Context, orgID, userID st
 		CreatedAt:      sm.CreatedAt,
 		UpdatedAt:      sm.UpdatedAt,
 	}, nil
+}
+
+func (r *SQLRepositoryImpl) CreateInvitation(ctx context.Context, invitation *Invitation) error {
+	sm := &invitationSQLModel{
+		ID:             invitation.ID,
+		OrganizationID: invitation.OrganizationID,
+		Email:          invitation.Email,
+		Role:           string(invitation.Role),
+		Token:          invitation.Token,
+		Status:         string(invitation.Status),
+		CreatedAt:      invitation.CreatedAt,
+		ExpiresAt:      invitation.ExpiresAt,
+	}
+
+	_, err := r.db.NewInsert().Model(sm).Exec(ctx)
+	return err
+}
+
+func (r *SQLRepositoryImpl) FindInvitations(ctx context.Context, orgID string) ([]*Invitation, error) {
+	var sms []*invitationSQLModel
+	err := r.db.NewSelect().
+		Model(&sms).
+		Where("organization_id = ?", orgID).
+		Where("status = ?", "pending").
+		Scan(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var invitations []*Invitation
+	for _, sm := range sms {
+		invitations = append(invitations, &Invitation{
+			ID:             sm.ID,
+			OrganizationID: sm.OrganizationID,
+			Email:          sm.Email,
+			Role:           Role(sm.Role),
+			Token:          sm.Token,
+			Status:         InvitationStatus(sm.Status),
+			CreatedAt:      sm.CreatedAt,
+			ExpiresAt:      sm.ExpiresAt,
+		})
+	}
+	return invitations, nil
+}
+
+func (r *SQLRepositoryImpl) FindInvitationByToken(ctx context.Context, token string) (*Invitation, error) {
+	sm := new(invitationSQLModel)
+	err := r.db.NewSelect().
+		Model(sm).
+		Relation("Organization").
+		Where("token = ?", token).
+		Scan(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	inv := &Invitation{
+		ID:             sm.ID,
+		OrganizationID: sm.OrganizationID,
+		Email:          sm.Email,
+		Role:           Role(sm.Role),
+		Token:          sm.Token,
+		Status:         InvitationStatus(sm.Status),
+		CreatedAt:      sm.CreatedAt,
+		ExpiresAt:      sm.ExpiresAt,
+	}
+
+	if sm.Organization != nil {
+		inv.Organization = toDomainModel(sm.Organization)
+	}
+
+	return inv, nil
+}
+
+func (r *SQLRepositoryImpl) FindInvitationsByEmail(ctx context.Context, email string) ([]*Invitation, error) {
+	var sms []*invitationSQLModel
+	err := r.db.NewSelect().
+		Model(&sms).
+		Relation("Organization").
+		Where("email = ?", email).
+		Where("status = ?", "pending").
+		Scan(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var invitations []*Invitation
+	for _, sm := range sms {
+		inv := &Invitation{
+			ID:             sm.ID,
+			OrganizationID: sm.OrganizationID,
+			Email:          sm.Email,
+			Role:           Role(sm.Role),
+			Token:          sm.Token,
+			Status:         InvitationStatus(sm.Status),
+			CreatedAt:      sm.CreatedAt,
+			ExpiresAt:      sm.ExpiresAt,
+		}
+		if sm.Organization != nil {
+			inv.Organization = toDomainModel(sm.Organization)
+		}
+		invitations = append(invitations, inv)
+	}
+	return invitations, nil
+}
+
+func (r *SQLRepositoryImpl) UpdateInvitationStatus(ctx context.Context, id string, status InvitationStatus) error {
+	_, err := r.db.NewUpdate().
+		Model((*invitationSQLModel)(nil)).
+		Set("status = ?", string(status)).
+		Where("id = ?", id).
+		Exec(ctx)
+	return err
 }

@@ -226,7 +226,6 @@ export type MonitorCreateUpdateDto = {
     max_retries?: number;
     name: string;
     notification_ids?: Array<string>;
-    org_id: string;
     proxy_id?: string;
     push_token?: string;
     resend_interval?: number;
@@ -387,6 +386,20 @@ export type OrganizationCreateOrganizationDto = {
     slug?: string;
 };
 
+export type OrganizationInvitation = {
+    created_at?: string;
+    email?: string;
+    expires_at?: string;
+    id?: string;
+    organization?: OrganizationOrganization;
+    organization_id?: string;
+    role?: OrganizationRole;
+    status?: OrganizationInvitationStatus;
+    token?: string;
+};
+
+export type OrganizationInvitationStatus = 'pending' | 'accepted' | 'expired';
+
 export type OrganizationOrganization = {
     created_at?: string;
     id?: string;
@@ -406,6 +419,11 @@ export type OrganizationOrganizationUser = {
 };
 
 export type OrganizationRole = 'admin' | 'member';
+
+export type OrganizationUpdateOrganizationDto = {
+    name?: string;
+    slug?: string;
+};
 
 export type OrganizationUser = {
     email?: string;
@@ -643,6 +661,11 @@ export type UtilsApiResponseArrayNotificationChannelModel = {
     message: string;
 };
 
+export type UtilsApiResponseArrayOrganizationInvitation = {
+    data: Array<OrganizationInvitation>;
+    message: string;
+};
+
 export type UtilsApiResponseArrayOrganizationOrganizationUser = {
     data: Array<OrganizationOrganizationUser>;
     message: string;
@@ -705,6 +728,11 @@ export type UtilsApiResponseMonitorStatPointsSummaryDto = {
 
 export type UtilsApiResponseNotificationChannelModel = {
     data: NotificationChannelModel;
+    message: string;
+};
+
+export type UtilsApiResponseOrganizationInvitation = {
+    data: OrganizationInvitation;
     message: string;
 };
 
@@ -1459,6 +1487,78 @@ export type GetHealthResponses = {
 
 export type GetHealthResponse = GetHealthResponses[keyof GetHealthResponses];
 
+export type GetInvitationsByTokenData = {
+    body?: never;
+    path: {
+        /**
+         * Invitation Token
+         */
+        token: string;
+    };
+    query?: never;
+    url: '/invitations/{token}';
+};
+
+export type GetInvitationsByTokenErrors = {
+    /**
+     * Not Found
+     */
+    404: UtilsApiError;
+    /**
+     * Internal Server Error
+     */
+    500: UtilsApiError;
+};
+
+export type GetInvitationsByTokenError = GetInvitationsByTokenErrors[keyof GetInvitationsByTokenErrors];
+
+export type GetInvitationsByTokenResponses = {
+    /**
+     * OK
+     */
+    200: UtilsApiResponseOrganizationInvitation;
+};
+
+export type GetInvitationsByTokenResponse = GetInvitationsByTokenResponses[keyof GetInvitationsByTokenResponses];
+
+export type PostInvitationsByTokenAcceptData = {
+    body?: never;
+    path: {
+        /**
+         * Invitation Token
+         */
+        token: string;
+    };
+    query?: never;
+    url: '/invitations/{token}/accept';
+};
+
+export type PostInvitationsByTokenAcceptErrors = {
+    /**
+     * Bad Request
+     */
+    400: UtilsApiError;
+    /**
+     * Unauthorized
+     */
+    401: UtilsApiError;
+    /**
+     * Internal Server Error
+     */
+    500: UtilsApiError;
+};
+
+export type PostInvitationsByTokenAcceptError = PostInvitationsByTokenAcceptErrors[keyof PostInvitationsByTokenAcceptErrors];
+
+export type PostInvitationsByTokenAcceptResponses = {
+    /**
+     * OK
+     */
+    200: UtilsApiResponseAny;
+};
+
+export type PostInvitationsByTokenAcceptResponse = PostInvitationsByTokenAcceptResponses[keyof PostInvitationsByTokenAcceptResponses];
+
 export type GetMaintenancesData = {
     body?: never;
     path?: never;
@@ -1777,11 +1877,11 @@ export type PatchMaintenancesByIdResumeResponse = PatchMaintenancesByIdResumeRes
 
 export type GetMonitorsData = {
     body?: never;
-    headers: {
+    headers?: {
         /**
          * Organization ID
          */
-        'X-Organization-ID': string;
+        'X-Organization-ID'?: string;
     };
     path?: never;
     query?: {
@@ -2667,6 +2767,51 @@ export type GetOrganizationsByIdResponses = {
 
 export type GetOrganizationsByIdResponse = GetOrganizationsByIdResponses[keyof GetOrganizationsByIdResponses];
 
+export type PatchOrganizationsByIdData = {
+    /**
+     * Organization object
+     */
+    body: OrganizationUpdateOrganizationDto;
+    path: {
+        /**
+         * Organization ID
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/organizations/{id}';
+};
+
+export type PatchOrganizationsByIdErrors = {
+    /**
+     * Bad Request
+     */
+    400: UtilsApiError;
+    /**
+     * Unauthorized
+     */
+    401: UtilsApiError;
+    /**
+     * Not Found
+     */
+    404: UtilsApiError;
+    /**
+     * Internal Server Error
+     */
+    500: UtilsApiError;
+};
+
+export type PatchOrganizationsByIdError = PatchOrganizationsByIdErrors[keyof PatchOrganizationsByIdErrors];
+
+export type PatchOrganizationsByIdResponses = {
+    /**
+     * OK
+     */
+    200: UtilsApiResponseOrganizationOrganization;
+};
+
+export type PatchOrganizationsByIdResponse = PatchOrganizationsByIdResponses[keyof PatchOrganizationsByIdResponses];
+
 export type GetOrganizationsByIdMembersData = {
     body?: never;
     path: {
@@ -2696,7 +2841,7 @@ export type GetOrganizationsByIdMembersResponses = {
     /**
      * OK
      */
-    200: UtilsApiResponseArrayOrganizationOrganizationUser;
+    200: UtilsApiResponseAny;
 };
 
 export type GetOrganizationsByIdMembersResponse = GetOrganizationsByIdMembersResponses[keyof GetOrganizationsByIdMembersResponses];
@@ -3637,6 +3782,35 @@ export type PutTagsByIdResponses = {
 };
 
 export type PutTagsByIdResponse = PutTagsByIdResponses[keyof PutTagsByIdResponses];
+
+export type GetUserInvitationsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/user/invitations';
+};
+
+export type GetUserInvitationsErrors = {
+    /**
+     * Unauthorized
+     */
+    401: UtilsApiError;
+    /**
+     * Internal Server Error
+     */
+    500: UtilsApiError;
+};
+
+export type GetUserInvitationsError = GetUserInvitationsErrors[keyof GetUserInvitationsErrors];
+
+export type GetUserInvitationsResponses = {
+    /**
+     * OK
+     */
+    200: UtilsApiResponseArrayOrganizationInvitation;
+};
+
+export type GetUserInvitationsResponse = GetUserInvitationsResponses[keyof GetUserInvitationsResponses];
 
 export type GetUserOrganizationsData = {
     body?: never;

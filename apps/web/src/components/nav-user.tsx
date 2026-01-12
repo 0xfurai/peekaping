@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOutIcon, MoreVerticalIcon, SettingsIcon, ShieldCheckIcon } from "lucide-react";
+import { LogOutIcon, MoreVerticalIcon, SettingsIcon, ShieldCheckIcon, MailIcon } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -21,6 +21,8 @@ import {
 import { useAuthStore } from "@/store/auth";
 import { useNavigate } from "react-router-dom";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { useQuery } from "@tanstack/react-query";
+import { getUserInvitations } from "@/api/sdk.gen";
 
 export function NavUser({
     user,
@@ -34,6 +36,17 @@ export function NavUser({
     const clearTokens = useAuthStore((state) => state.clearTokens);
     const navigate = useNavigate();
     const { t } = useLocalizedTranslation();
+    const { accessToken } = useAuthStore();
+
+    const { data: invitationsResponse } = useQuery({
+        queryKey: ["user-invitations"],
+        queryFn: () => getUserInvitations(),
+        enabled: !!accessToken,
+        // Don't refetch too aggressively in sidebar
+        staleTime: 60 * 1000,
+    });
+
+    const invitationsCount = (invitationsResponse?.data?.data as any[])?.length || 0;
 
     const handleLogout = () => {
         clearTokens();
@@ -51,11 +64,14 @@ export function NavUser({
                             size="lg"
                             className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                         >
-                            <Avatar className="h-8 w-8 rounded-lg grayscale">
+                            <Avatar className="h-8 w-8 rounded-lg grayscale relative">
                                 {/* <AvatarImage src={user.avatar} alt={user.name} /> */}
                                 <AvatarFallback className="rounded-lg">
                                     {initial}
                                 </AvatarFallback>
+                                {invitationsCount > 0 && (
+                                    <span className="absolute -top-1 -right-1 flex h-3 w-3 rounded-full bg-red-500 border-2 border-sidebar-accent" />
+                                )}
                             </Avatar>
                             <div className="grid flex-1 text-left text-sm leading-tight">
                                 <span className="truncate font-medium">{user.name}</span>
@@ -63,6 +79,11 @@ export function NavUser({
                                     {user.email}
                                 </span>
                             </div>
+                            {invitationsCount > 0 && (
+                                <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] text-white font-bold mr-2">
+                                    {invitationsCount}
+                                </span>
+                            )}
                             <MoreVerticalIcon className="ml-auto size-4" />
                         </SidebarMenuButton>
                     </DropdownMenuTrigger>
@@ -100,6 +121,15 @@ export function NavUser({
                             <DropdownMenuItem onClick={() => navigate("/account/settings")}>
                                 <SettingsIcon />
                                 {t("common.settings")}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => navigate("/account/invitations")}>
+                                <MailIcon />
+                                Invitations
+                                {invitationsCount > 0 && (
+                                    <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] text-white font-bold">
+                                        {invitationsCount}
+                                    </span>
+                                )}
                             </DropdownMenuItem>
                         </DropdownMenuGroup>
 

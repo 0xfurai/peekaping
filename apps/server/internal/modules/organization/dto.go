@@ -33,6 +33,8 @@ type OrganizationMemberResponseDto struct {
 	JoinedAt         string           `json:"joined_at"`
 	OrganizationName string           `json:"organization_name,omitempty"`
 	User             *UserResponseDto `json:"user,omitempty"`
+	Status           string           `json:"status"`                     // "active" or "pending"
+	InvitationToken  string           `json:"invitation_token,omitempty"` // Only for pending
 }
 
 type UserResponseDto struct {

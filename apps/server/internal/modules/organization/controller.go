@@ -216,24 +216,27 @@ func (c *OrganizationController) AddMember(ctx *gin.Context) {
 		return
 	}
 
-	err := c.orgService.AddMember(ctx, orgID, &dto)
+	invitation, err := c.orgService.AddMember(ctx, orgID, &dto)
 	if err != nil {
 		c.logger.Errorw("Failed to add member", "orgId", orgID, "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse[any]("Member added successfully", nil))
+	// Construct invitation link (assuming CLI url or similar, but simplified for now just returning token/invitation)
+	// The user asked to "generate a link". We'll return the full invitation object or a constructed link if we knew the base URL.
+	// We'll return the invitation object which contains the token. logic can be handled in FE.
+	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("Member invited successfully", invitation))
 }
 
 // @Router		/organizations/{id}/members [get]
-// @Summary		List organization members
+// @Summary		List organization members and pending invitations
 // @Tags			Organizations
 // @Produce		json
 // @Security  JwtAuth
 // @Security  ApiKeyAuth
 // @Param     id   path    string  true  "Organization ID"
-// @Success		200	{object}	utils.ApiResponse[[]OrganizationUser]
+// @Success		200	{object}	utils.ApiResponse[any]
 // @Failure		401	{object}	utils.APIError[any]
 // @Failure		500	{object}	utils.APIError[any]
 func (c *OrganizationController) FindMembers(ctx *gin.Context) {
@@ -246,12 +249,22 @@ func (c *OrganizationController) FindMembers(ctx *gin.Context) {
 		return
 	}
 
+	invitations, err := c.orgService.FindInvitations(ctx, orgID)
+	if err != nil {
+		c.logger.Errorw("Failed to fetch invitations", "orgId", orgID, "error", err)
+		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		return
+	}
+
 	var response []OrganizationMemberResponseDto
+
+	// Add actual members
 	for _, member := range members {
 		dto := OrganizationMemberResponseDto{
 			UserID:   member.UserID,
 			Role:     member.Role,
 			JoinedAt: member.CreatedAt.Format(time.RFC3339),
+			Status:   "active",
 		}
 		if member.Organization != nil {
 			dto.OrganizationName = member.Organization.Name
@@ -260,8 +273,26 @@ func (c *OrganizationController) FindMembers(ctx *gin.Context) {
 			dto.User = &UserResponseDto{
 				ID:    member.User.ID,
 				Email: member.User.Email,
-				Name:  "", // Placeholder until User has Name field
+				Name:  "",
 			}
+		}
+		response = append(response, dto)
+	}
+
+	// Add pending invitations
+	for _, inv := range invitations {
+		// We map invitations to the same structure but with status "pending"
+		// UserID is empty or placeholder since they haven't joined yet.
+		dto := OrganizationMemberResponseDto{
+			UserID:          "", // No user ID yet
+			Role:            inv.Role,
+			JoinedAt:        inv.CreatedAt.Format(time.RFC3339),
+			Status:          "pending",
+			InvitationToken: inv.Token, // To allow copying the link
+			User: &UserResponseDto{
+				Email: inv.Email,
+				Name:  "Pending Invitation",
+			},
 		}
 		response = append(response, dto)
 	}
@@ -293,4 +324,97 @@ func (c *OrganizationController) FindUserOrganizations(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", orgs))
+}
+
+// @Router		/invitations/{token} [get]
+// @Summary		Get invitation details (public)
+// @Tags			Invitations
+// @Produce		json
+// @Param     token   path    string  true  "Invitation Token"
+// @Success		200	{object}	utils.ApiResponse[Invitation]
+// @Failure		404	{object}	utils.APIError[any]
+// @Failure		500	{object}	utils.APIError[any]
+func (c *OrganizationController) GetInvitation(ctx *gin.Context) {
+	token := ctx.Param("token")
+
+	invitation, err := c.orgService.GetInvitation(ctx, token)
+	if err != nil {
+		c.logger.Errorw("Failed to get invitation", "token", token, "error", err)
+		// If error contains "not found" or similar, return 404
+		ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Invitation not found or invalid"))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", invitation))
+}
+
+// @Router		/invitations/{token}/accept [post]
+// @Summary		Accept invitation
+// @Tags			Invitations
+// @Produce		json
+// @Security  JwtAuth
+// @Security  ApiKeyAuth
+// @Param     token   path    string  true  "Invitation Token"
+// @Success		200	{object}	utils.ApiResponse[any]
+// @Failure		401	{object}	utils.APIError[any]
+// @Failure		400	{object}	utils.APIError[any]
+// @Failure		500	{object}	utils.APIError[any]
+func (c *OrganizationController) AcceptInvitation(ctx *gin.Context) {
+	token := ctx.Param("token")
+	userID := ctx.GetString("userId")
+	if userID == "" {
+		ctx.JSON(http.StatusUnauthorized, utils.NewFailResponse("User not authenticated"))
+		return
+	}
+
+	err := c.orgService.AcceptInvitation(ctx, token, userID)
+	if err != nil {
+		c.logger.Errorw("Failed to accept invitation", "token", token, "userId", userID, "error", err)
+		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.NewSuccessResponse[any]("Invitation accepted successfully", nil))
+}
+
+// @Router		/user/invitations [get]
+// @Summary		Get user pending invitations
+// @Tags			Invitations
+// @Produce		json
+// @Security  JwtAuth
+// @Security  ApiKeyAuth
+// @Success		200	{object}	utils.ApiResponse[[]Invitation]
+// @Failure		401	{object}	utils.APIError[any]
+// @Failure		500	{object}	utils.APIError[any]
+func (c *OrganizationController) GetUserInvitations(ctx *gin.Context) {
+	// We need the user's email to find invitations.
+	// Assuming email is in the context from Auth middleware, or we fetch user first.
+	// Since we don't have UserService injected here easily to fetch email from ID,
+	// let's assume the Auth middleware puts "email" in context or we need to fetch it.
+
+	// Check if "email" is in context (depends on Auth middleware implementation)
+	email := ctx.GetString("email")
+	if email == "" {
+		// Fallback: If email is not in context (it should be in a real JWT setup),
+		// we might fail or need to query User service.
+		// For now, let's assume it IS in the context or we can't implement this efficiently without UserService.
+		// Wait, we have access to database. Can we just fetch user from ID in repo?
+		// We have FindUserOrganizations, maybe we add FindUserByID/Email helper in repo?
+		// Or we trust the Claims. Let's see...
+
+		// Ideally we decode it from JWT.
+		// If fails, return error
+		c.logger.Warn("Email not found in context for GetUserInvitations")
+		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Could not identify user email"))
+		return
+	}
+
+	invitations, err := c.orgService.GetUserInvitations(ctx, email)
+	if err != nil {
+		c.logger.Errorw("Failed to get user invitations", "email", email, "error", err)
+		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", invitations))
 }

@@ -41,4 +41,18 @@ func (r *OrganizationRoute) ConnectRoute(
 	userRouter := rg.Group("user/organizations")
 	userRouter.Use(r.middleware.AllAuth())
 	userRouter.GET("", r.controller.FindUserOrganizations)
+
+	// Invitations routes
+	// Public route for viewing invitation
+	rg.GET("invitations/:token", r.controller.GetInvitation)
+
+	// Authenticated routes for invitations
+	invRouter := rg.Group("invitations")
+	invRouter.Use(r.middleware.AllAuth())
+	invRouter.POST(":token/accept", r.controller.AcceptInvitation)
+
+	// User invitations route
+	userInvRouter := rg.Group("user/invitations")
+	userInvRouter.Use(r.middleware.AllAuth())
+	userInvRouter.GET("", r.controller.GetUserInvitations)
 }

@@ -1007,6 +1007,100 @@ const docTemplate = `{
                 }
             }
         },
+        "/invitations/{token}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Invitations"
+                ],
+                "summary": "Get invitation details (public)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Invitation Token",
+                        "name": "token",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ApiResponse-organization_Invitation"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/invitations/{token}/accept": {
+            "post": {
+                "security": [
+                    {
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Invitations"
+                ],
+                "summary": "Accept invitation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Invitation Token",
+                        "name": "token",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ApiResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    }
+                }
+            }
+        },
         "/maintenances": {
             "get": {
                 "security": [
@@ -1518,8 +1612,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Organization ID",
                         "name": "X-Organization-ID",
-                        "in": "header",
-                        "required": true
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -2761,6 +2854,79 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
+                    },
+                    {
+                        "OrgIdAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Organizations"
+                ],
+                "summary": "Update organization",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Organization object",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/organization.UpdateOrganizationDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ApiResponse-organization_Organization"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    }
+                }
             }
         },
         "/organizations/{id}/members": {
@@ -2779,7 +2945,7 @@ const docTemplate = `{
                 "tags": [
                     "Organizations"
                 ],
-                "summary": "List organization members",
+                "summary": "List organization members and pending invitations",
                 "parameters": [
                     {
                         "type": "string",
@@ -2793,7 +2959,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/utils.ApiResponse-array_organization_OrganizationUser"
+                            "$ref": "#/definitions/utils.ApiResponse-any"
                         }
                     },
                     "401": {
@@ -4137,6 +4303,45 @@ const docTemplate = `{
                 }
             }
         },
+        "/user/invitations": {
+            "get": {
+                "security": [
+                    {
+                        "JwtAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Invitations"
+                ],
+                "summary": "Get user pending invitations",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ApiResponse-array_organization_Invitation"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    }
+                }
+            }
+        },
         "/user/organizations": {
             "get": {
                 "security": [
@@ -4826,7 +5031,6 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "name",
-                "org_id",
                 "type"
             ],
             "properties": {
@@ -4860,10 +5064,6 @@ const docTemplate = `{
                     "example": [
                         "6830ad485361f19c598d6d90"
                     ]
-                },
-                "org_id": {
-                    "type": "string",
-                    "example": "60c72b2f9b1e8b6f1f8e4b1a"
                 },
                 "proxy_id": {
                     "type": "string",
@@ -5325,6 +5525,51 @@ const docTemplate = `{
                 }
             }
         },
+        "organization.Invitation": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "expires_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "organization": {
+                    "$ref": "#/definitions/organization.Organization"
+                },
+                "organization_id": {
+                    "type": "string"
+                },
+                "role": {
+                    "$ref": "#/definitions/organization.Role"
+                },
+                "status": {
+                    "$ref": "#/definitions/organization.InvitationStatus"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "organization.InvitationStatus": {
+            "type": "string",
+            "enum": [
+                "pending",
+                "accepted",
+                "expired"
+            ],
+            "x-enum-varnames": [
+                "InvitationStatusPending",
+                "InvitationStatusAccepted",
+                "InvitationStatusExpired"
+            ]
+        },
         "organization.Organization": {
             "type": "object",
             "properties": {
@@ -5381,6 +5626,21 @@ const docTemplate = `{
                 "RoleAdmin",
                 "RoleMember"
             ]
+        },
+        "organization.UpdateOrganizationDto": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "minLength": 3,
+                    "example": "Updated Organization Name"
+                },
+                "slug": {
+                    "type": "string",
+                    "minLength": 3,
+                    "example": "updated-slug"
+                }
+            }
         },
         "organization.User": {
             "type": "object",
@@ -6128,6 +6388,24 @@ const docTemplate = `{
                 }
             }
         },
+        "utils.ApiResponse-array_organization_Invitation": {
+            "type": "object",
+            "required": [
+                "data",
+                "message"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/organization.Invitation"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
         "utils.ApiResponse-array_organization_OrganizationUser": {
             "type": "object",
             "required": [
@@ -6332,6 +6610,21 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/notification_channel.Model"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "utils.ApiResponse-organization_Invitation": {
+            "type": "object",
+            "required": [
+                "data",
+                "message"
+            ],
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/organization.Invitation"
                 },
                 "message": {
                     "type": "string"

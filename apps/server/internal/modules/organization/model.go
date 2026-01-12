@@ -33,3 +33,23 @@ type User struct {
 	ID    string `json:"id"`
 	Email string `json:"email"`
 }
+
+type InvitationStatus string
+
+const (
+	InvitationStatusPending  InvitationStatus = "pending"
+	InvitationStatusAccepted InvitationStatus = "accepted"
+	InvitationStatusExpired  InvitationStatus = "expired"
+)
+
+type Invitation struct {
+	ID             string           `json:"id"`
+	OrganizationID string           `json:"organization_id"`
+	Email          string           `json:"email"`
+	Role           Role             `json:"role"`
+	Token          string           `json:"token"`
+	Status         InvitationStatus `json:"status"`
+	CreatedAt      time.Time        `json:"created_at"`
+	ExpiresAt      time.Time        `json:"expires_at"`
+	Organization   *Organization    `json:"organization,omitempty"`
+}
