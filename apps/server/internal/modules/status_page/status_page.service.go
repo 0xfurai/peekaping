@@ -65,6 +65,23 @@ func domainAlreadyUsedError(domain string) *DomainAlreadyUsedError {
 	}
 }
 
+// SlugAlreadyUsedError represents a validation error when a slug is already used
+type SlugAlreadyUsedError struct {
+	Code string `json:"code"`
+	Slug string `json:"slug"`
+}
+
+func (e *SlugAlreadyUsedError) Error() string {
+	return fmt.Sprintf(`{"code":"%s", "slug":"%s"}`, e.Code, e.Slug)
+}
+
+func slugAlreadyUsedError(slug string) *SlugAlreadyUsedError {
+	return &SlugAlreadyUsedError{
+		Code: "SLUG_EXISTS",
+		Slug: slug,
+	}
+}
+
 // validateDomains ensures that provided domains are not already used
 // by any existing status page.
 func (s *ServiceImpl) validateDomains(ctx context.Context, statusPageID string, domains []string) error {
@@ -80,6 +97,18 @@ func (s *ServiceImpl) validateDomains(ctx context.Context, statusPageID string, 
 	return nil
 }
 
+// validateSlug ensures that the provided slug is unique
+func (s *ServiceImpl) validateSlug(ctx context.Context, statusPageID string, slug string) error {
+	existing, err := s.repository.FindBySlug(ctx, slug)
+	if err != nil {
+		return err
+	}
+	if existing != nil && existing.ID != statusPageID {
+		return slugAlreadyUsedError(slug)
+	}
+	return nil
+}
+
 func (s *ServiceImpl) Create(ctx context.Context, dto *CreateStatusPageDTO, orgID string) (*Model, error) {
 	// Pre-validate domain uniqueness before creating the status page to avoid
 	// partial creation without domains.
@@ -87,6 +116,10 @@ func (s *ServiceImpl) Create(ctx context.Context, dto *CreateStatusPageDTO, orgI
 		if err := s.validateDomains(ctx, "", dto.Domains); err != nil {
 			return nil, err
 		}
+	}
+
+	if err := s.validateSlug(ctx, "", dto.Slug); err != nil {
+		return nil, err
 	}
 
 	model := &Model{
@@ -223,6 +256,12 @@ func (s *ServiceImpl) Update(ctx context.Context, id string, dto *UpdateStatusPa
 		Published:           dto.Published,
 		FooterText:          dto.FooterText,
 		AutoRefreshInterval: dto.AutoRefreshInterval,
+	}
+
+	if dto.Slug != nil {
+		if err := s.validateSlug(ctx, id, *dto.Slug); err != nil {
+			return nil, err
+		}
 	}
 
 	err := s.repository.Update(ctx, id, updateModel, orgID)

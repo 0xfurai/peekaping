@@ -65,6 +65,16 @@ func (c *Controller) Create(ctx *gin.Context) {
 			})
 			return
 		}
+		// Surface slug uniqueness validation errors as 400
+		if slugErr, ok := err.(*SlugAlreadyUsedError); ok {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"error": gin.H{
+					"code": slugErr.Code,
+					"slug": slugErr.Slug,
+				},
+			})
+			return
+		}
 		c.logger.Errorw("Failed to create status page", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
@@ -216,6 +226,16 @@ func (c *Controller) Update(ctx *gin.Context) {
 				"error": gin.H{
 					"code":   domainErr.Code,
 					"domain": domainErr.Domain,
+				},
+			})
+			return
+		}
+		// Surface slug uniqueness validation errors as 400
+		if slugErr, ok := err.(*SlugAlreadyUsedError); ok {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"error": gin.H{
+					"code": slugErr.Code,
+					"slug": slugErr.Slug,
 				},
 			})
 			return
