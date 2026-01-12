@@ -636,6 +636,8 @@
         "maintenance": "Maintenance",
         "monitors": "Monitors",
         "notification_channels": "Notification Channels",
+        "members": "Members",
+        "organization_settings": "Organization Settings",
         "proxies": "Proxies",
         "settings": "Settings",
         "status_pages": "Status Pages",
@@ -1246,6 +1248,23 @@
             "under_maintenance": "Under Maintenance",
             "unknown": "Unknown"
         }
+    },
+    "organization": {
+        "slug_already_used": "Slug '{{slug}}' is already used by another organization.",
+        "settings_title": "Organization Settings",
+        "settings_description": "Manage your organization details and monitors.",
+        "general_title": "General",
+        "general_description": "Update your organization's name and slug.",
+        "name_label": "Organization Name",
+        "slug_label": "Slug (Optional)",
+        "create_button": "Create Organization",
+        "update_button": "Update Organization",
+        "members_title": "Organization Members",
+        "members_description": "Manage members and invitations.",
+        "invite_member_title": "Invite Member",
+        "invite_member_description": "Invite a new member by email.",
+        "invite_button": "Invite",
+        "members_list_title": "Members"
     },
     "status_pages": {
         "affected_monitors": "Affected Monitors",

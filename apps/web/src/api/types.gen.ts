@@ -226,7 +226,7 @@ export type MonitorCreateUpdateDto = {
     max_retries?: number;
     name: string;
     notification_ids?: Array<string>;
-
+    org_id: string;
     proxy_id?: string;
     push_token?: string;
     resend_interval?: number;
@@ -1777,7 +1777,7 @@ export type PatchMaintenancesByIdResumeResponse = PatchMaintenancesByIdResumeRes
 
 export type GetMonitorsData = {
     body?: never;
-    headers?: {
+    headers: {
         /**
          * Organization ID
          */

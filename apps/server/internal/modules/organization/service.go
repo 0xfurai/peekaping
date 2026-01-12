@@ -68,6 +68,10 @@ func (s *ServiceImpl) Create(ctx context.Context, dto *CreateOrganizationDto, cr
 		Slug: slug,
 	}
 
+	if err := s.validateSlug(ctx, "", slug); err != nil {
+		return nil, err
+	}
+
 	createdOrg, err := s.repo.Create(ctx, org)
 	if err != nil {
 		s.logger.Errorw("failed to create organization", "error", err)
@@ -110,6 +114,12 @@ func (s *ServiceImpl) Update(ctx context.Context, id string, dto *UpdateOrganiza
 
 	if dto.Name != nil {
 		org.Name = *dto.Name
+	}
+	if dto.Slug != nil {
+		if err := s.validateSlug(ctx, id, *dto.Slug); err != nil {
+			return nil, err
+		}
+		org.Slug = *dto.Slug
 	}
 
 	err = s.repo.Update(ctx, id, org)
@@ -164,4 +174,33 @@ func (s *ServiceImpl) FindUserOrganizations(ctx context.Context, userID string) 
 
 func (s *ServiceImpl) FindMembership(ctx context.Context, orgID, userID string) (*OrganizationUser, error) {
 	return s.repo.FindMembership(ctx, orgID, userID)
+}
+
+// SlugAlreadyUsedError represents a validation error when a slug is already used
+type SlugAlreadyUsedError struct {
+	Code string `json:"code"`
+	Slug string `json:"slug"`
+}
+
+func (e *SlugAlreadyUsedError) Error() string {
+	return fmt.Sprintf(`{"code":"%s", "slug":"%s"}`, e.Code, e.Slug)
+}
+
+func slugAlreadyUsedError(slug string) *SlugAlreadyUsedError {
+	return &SlugAlreadyUsedError{
+		Code: "SLUG_EXISTS",
+		Slug: slug,
+	}
+}
+
+// validateSlug ensures that the provided slug is unique
+func (s *ServiceImpl) validateSlug(ctx context.Context, orgID string, slug string) error {
+	existing, err := s.repo.FindBySlug(ctx, slug)
+	if err != nil {
+		return err
+	}
+	if existing != nil && existing.ID != orgID {
+		return slugAlreadyUsedError(slug)
+	}
+	return nil
 }

@@ -6,6 +6,8 @@ import {
     Vibrate,
     ListCheckIcon,
     Tag,
+    Users,
+    Building2,
 } from "lucide-react";
 
 import {
@@ -68,6 +70,16 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 title: t("navigation.notification_channels"),
                 url: `${prefix}/notification-channels`,
                 icon: Vibrate,
+            },
+            {
+                title: t("navigation.members"),
+                url: `${prefix}/settings/members`,
+                icon: Users,
+            },
+            {
+                title: t("navigation.organization_settings"),
+                url: `${prefix}/settings/organization`,
+                icon: Building2,
             },
         ],
         navSecondary: [

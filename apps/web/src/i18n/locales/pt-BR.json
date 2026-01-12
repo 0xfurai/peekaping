@@ -636,6 +636,8 @@
         "maintenance": "Manutenção",
         "monitors": "Monitores",
         "notification_channels": "Canais de Notificação",
+        "members": "Membros",
+        "organization_settings": "Configurações da Org.",
         "proxies": "Proxies",
         "settings": "Configurações",
         "status_pages": "Páginas de Status",
@@ -1246,6 +1248,23 @@
             "under_maintenance": "Em Manutenção",
             "unknown": "Desconhecido"
         }
+    },
+    "organization": {
+        "slug_already_used": "O slug '{{slug}}' já está em uso por outra organização.",
+        "settings_title": "Configurações da Organização",
+        "settings_description": "Gerencie os detalhes da sua organização e monitores.",
+        "general_title": "Geral",
+        "general_description": "Atualize o nome e o slug da sua organização.",
+        "name_label": "Nome da Organização",
+        "slug_label": "Slug (Opcional)",
+        "create_button": "Criar Organização",
+        "update_button": "Atualizar Organização",
+        "members_title": "Membros da Organização",
+        "members_description": "Gerencie membros e convites.",
+        "invite_member_title": "Convidar Membro",
+        "invite_member_description": "Convide um novo membro por e-mail.",
+        "invite_button": "Convidar",
+        "members_list_title": "Membros"
     },
     "status_pages": {
         "affected_monitors": "Monitores afetados",

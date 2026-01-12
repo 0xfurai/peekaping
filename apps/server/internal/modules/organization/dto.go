@@ -7,6 +7,7 @@ type CreateOrganizationDto struct {
 
 type UpdateOrganizationDto struct {
 	Name *string `json:"name" validate:"min=3" example:"Updated Organization Name"`
+	Slug *string `json:"slug" validate:"omitempty,min=3" example:"updated-slug"`
 }
 
 type AddMemberDto struct {

@@ -64,6 +64,15 @@ func (c *OrganizationController) Create(ctx *gin.Context) {
 
 	org, err := c.orgService.Create(ctx, &dto, userID)
 	if err != nil {
+		if slugErr, ok := err.(*SlugAlreadyUsedError); ok {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"error": gin.H{
+					"code": slugErr.Code,
+					"slug": slugErr.Slug,
+				},
+			})
+			return
+		}
 		c.logger.Errorw("Failed to create organization", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
@@ -100,6 +109,58 @@ func (c *OrganizationController) FindByID(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", org))
+}
+
+// @Router		/organizations/{id} [patch]
+// @Summary		Update organization
+// @Tags			Organizations
+// @Produce		json
+// @Accept		json
+// @Security  JwtAuth
+// @Security  ApiKeyAuth
+// @Security  OrgIdAuth
+// @Param     id   path    string  true  "Organization ID"
+// @Param     body body   UpdateOrganizationDto  true  "Organization object"
+// @Success		200	{object}	utils.ApiResponse[Organization]
+// @Failure		400	{object}	utils.APIError[any]
+// @Failure		401	{object}	utils.APIError[any]
+// @Failure		500	{object}	utils.APIError[any]
+// @Failure		404	{object}	utils.APIError[any]
+func (c *OrganizationController) Update(ctx *gin.Context) {
+	id := ctx.Param("id")
+	var dto UpdateOrganizationDto
+	if err := ctx.ShouldBindJSON(&dto); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+		return
+	}
+
+	if err := utils.Validate.Struct(dto); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+		return
+	}
+
+	org, err := c.orgService.Update(ctx, id, &dto)
+	if err != nil {
+		if slugErr, ok := err.(*SlugAlreadyUsedError); ok {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"error": gin.H{
+					"code": slugErr.Code,
+					"slug": slugErr.Slug,
+				},
+			})
+			return
+		}
+		c.logger.Errorw("Failed to update organization", "id", id, "error", err)
+		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		return
+	}
+
+	if org == nil {
+		ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Organization not found"))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("Organization updated successfully", org))
 }
 
 // @Router		/organizations/slug/{slug} [get]

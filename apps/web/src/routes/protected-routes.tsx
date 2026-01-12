@@ -22,6 +22,8 @@ import NewTag from "@/app/tags/new/page";
 import EditTag from "@/app/tags/edit/page";
 import { OrganizationLayout } from "@/components/organization-layout";
 import CreateOrganizationPage from "@/app/create-organization/page";
+import OrganizationSettingsPage from "@/app/organization/settings/page";
+import OrganizationMembersPage from "@/app/organization/members/page";
 import { RootRedirect } from "@/components/root-redirect";
 
 export const protectedRoutes = [
@@ -60,6 +62,10 @@ export const protectedRoutes = [
         <Route path="maintenances" element={<MaintenancePage />} />
         <Route path="maintenances/new" element={<NewMaintenance />} />
         <Route path="maintenances/:id/edit" element={<EditMaintenance />} />
+
+    // Organization routes
+        <Route path="settings/organization" element={<OrganizationSettingsPage />} />
+        <Route path="settings/members" element={<OrganizationMembersPage />} />
 
 
 
