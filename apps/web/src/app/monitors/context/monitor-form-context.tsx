@@ -68,6 +68,7 @@ import {
 import { mqttSchema, type MQTTForm } from "../components/mqtt";
 import { rabbitMQSchema, type RabbitMQForm } from "../components/rabbitmq";
 import { kafkaProducerSchema, type KafkaProducerForm } from "../components/kafka-producer/schema";
+import { smtpSchema, type SMTPForm } from "../components/smtp/schema";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const formSchema = z.discriminatedUnion("type", [
@@ -89,6 +90,7 @@ const formSchema = z.discriminatedUnion("type", [
   mqttSchema,
   rabbitMQSchema,
   kafkaProducerSchema,
+  smtpSchema,
 ]);
 
 export type MonitorForm =
@@ -109,7 +111,8 @@ export type MonitorForm =
   | RedisForm
   | MQTTForm
   | RabbitMQForm
-  | KafkaProducerForm;
+  | KafkaProducerForm
+  | SMTPForm;
 
 export const formDefaultValues: MonitorForm = httpDefaultValues;
 
