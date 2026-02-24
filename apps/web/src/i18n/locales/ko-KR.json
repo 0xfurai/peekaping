@@ -962,7 +962,10 @@
         "message_format_label": "메시지 형식",
         "username_description": "메시지 전송 시 표시될 사용자 이름입니다. 지정하지 않으면 기본 봇 이름이 사용됩니다.",
         "webhook_url_description": "귀하의 Slack 통합에서 제공되는 웹훅 URL입니다. Slack 워크스페이스의 '통합 > 웹훅' 섹션에서 확인할 수 있습니다.",
-        "webhook_url_label": "웹후크 URL"
+        "webhook_url_label": "웹후크 URL",
+        "bot_token_label": "봇 토큰",
+        "bot_token_description": "인증을 위한 Slack 봇 토큰입니다. Slack 앱 설정에서 봇 토큰을 생성할 수 있습니다",
+        "bot_token_note": "참고: 봇 토큰을 사용할 때는 채널 이름이 필요합니다."
       },
       "smtp": {
         "custom_body_label": "사용자 정의 본문",

@@ -962,7 +962,10 @@
         "message_format_label": "メッセージ形式",
         "username_description": "メッセージの送信者として表示されるユーザー名です。指定しない場合は、デフォルトのボット名が使用されます。",
         "webhook_url_description": "Slack統合のWebhook URLです。Slackのインスタンス内の「Integrations > Webhooks」で確認できます。",
-        "webhook_url_label": "Webhook URL"
+        "webhook_url_label": "Webhook URL",
+        "bot_token_label": "ボットトークン",
+        "bot_token_description": "認証用のSlackボットトークンです。Slackアプリの設定でボットトークンを作成できます",
+        "bot_token_note": "注意: ボットトークンを使用する場合、チャンネル名は必須です。"
       },
       "smtp": {
         "custom_body_label": "カスタム本文",

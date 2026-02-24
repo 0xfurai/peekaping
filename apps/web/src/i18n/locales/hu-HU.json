@@ -962,7 +962,10 @@
         "message_format_label": "Üzenet formátuma",
         "username_description": "A felhasználónév, amely a küldőként jelenik meg az üzenetben. Ha nem ad meg, az alapértelmezett botnév lesz használva.",
         "webhook_url_description": "A webhook URL a Slack integrációdhoz. Ezt a Slack példányodban az Integrációk > Webhookok alatt találhatod.",
-        "webhook_url_label": "Webhook URL"
+        "webhook_url_label": "Webhook URL",
+        "bot_token_label": "Bot token",
+        "bot_token_description": "A Slack bot tokened a hitelesítéshez. Létrehozhatsz egy bot tokent a Slack alkalmazás beállításaiban",
+        "bot_token_note": "Megjegyzés: Bot token használatakor a csatornanév kötelező."
       },
       "smtp": {
         "custom_body_label": "Egyéni törzs",

@@ -962,7 +962,10 @@
         "message_format_label": "Định dạng tin nhắn",
         "username_description": "Tên người dùng sẽ xuất hiện làm người gửi tin nhắn. Nếu không được chỉ định, tên bot mặc định sẽ được sử dụng.",
         "webhook_url_description": "URL webhook từ tích hợp Slack của bạn. Bạn có thể tìm thấy nó trong tài khoản Slack của mình, vào mục Tích hợp > Webhooks.",
-        "webhook_url_label": "URL Webhook"
+        "webhook_url_label": "URL Webhook",
+        "bot_token_label": "Token bot",
+        "bot_token_description": "Token bot Slack của bạn để xác thực. Bạn có thể tạo token bot trong cài đặt ứng dụng Slack của mình",
+        "bot_token_note": "Lưu ý: Khi sử dụng token bot, tên kênh là bắt buộc."
       },
       "smtp": {
         "custom_body_label": "Nội dung tùy chỉnh",

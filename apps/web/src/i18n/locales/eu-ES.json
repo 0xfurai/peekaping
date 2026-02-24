@@ -962,7 +962,10 @@
         "message_format_label": "Mezuaren formatua",
         "username_description": "Erabiltzaile-izena, mezularen bidaltzaile bezala agertuko dena. Ez bada adierazita, lehenetsitako bot-izena erabiliko da.",
         "webhook_url_description": "Zure Slack integrazioaren webhook URLa. Hura zure Slack instantziaen Integrazioak > Webhooks atalean aurki dezakezu.",
-        "webhook_url_label": "Webhook URLa"
+        "webhook_url_label": "Webhook URLa",
+        "bot_token_label": "Bot tokena",
+        "bot_token_description": "Zure Slack bot tokena autentifikaziorako. Bot token bat sor dezakezu zure Slack aplikazioaren ezarpenetan",
+        "bot_token_note": "Oharra: Bot token bat erabiltzean, kanalaren izena beharrezkoa da."
       },
       "smtp": {
         "custom_body_label": "Iritzi pertsonalizatu",
