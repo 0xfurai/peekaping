@@ -1,0 +1,13 @@
+FROM golang:1.25.6-alpine3.23 AS builder
+
+WORKDIR /app
+COPY test_utils/test_http_failing/main.go test_utils/test_http_failing/go.mod /app/
+
+RUN go build -o /app/main /app/main.go
+
+FROM scratch
+
+COPY --from=builder /app/main /app/main
+EXPOSE 8080
+
+CMD ["/app/main"]

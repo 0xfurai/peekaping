@@ -252,6 +252,25 @@ func (p *Producer) processMonitor(ctx context.Context, monitorID string, nowMs i
 		if strings.Contains(errMsg, "task ID conflicts") ||
 			strings.Contains(errMsg, "duplicated") ||
 			strings.Contains(errMsg, "already exists") {
+			// try to check if task exists for a while and is archived
+			// if yes, then remove it if it sits longer than
+			// (mon.Timeout + mon.RetryInterval) * mon.MaxRetries
+			existing, exErr := p.queueService.GetTaskInfo(ctx, "healthcheck", uniqueKey)
+			if exErr != nil {
+				p.logger.Errorf("Error getting duplicate task info: %v", exErr)
+			} else {
+				tooLongThreshold := (mon.Timeout + mon.RetryInterval) * mon.MaxRetries
+				deadline := existing.LastFailedAt.Add(time.Second * time.Duration(tooLongThreshold))
+				now := time.Now().UTC()
+				p.logger.Debugf("now: %s, deadline: %s", now, deadline)
+				if now.After(deadline) && existing.State == "archived" {
+					p.logger.Warnf("Duplicate task exists for more than %d seconds, removing", tooLongThreshold)
+					if cancelErr := p.queueService.DeleteTask(ctx, "healthcheck", uniqueKey); cancelErr != nil {
+						p.logger.Errorf("Error removing duplicate task: %v", cancelErr)
+					}
+					return mon.Interval, nil
+				}
+			}
 			// This is not an error - the task is already queued, which is exactly what we want
 			// This commonly happens when multiple workers process monitors concurrently
 			p.logger.Debugw("Monitor task already queued (duplicate prevented)",
