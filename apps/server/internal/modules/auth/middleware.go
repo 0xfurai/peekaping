@@ -49,7 +49,7 @@ func (p *MiddlewareProvider) Auth() gin.HandlerFunc {
 		accessToken := fields[1]
 
 		// Verify the token
-		claims, err := p.tokenMaker.VerifyToken(c, accessToken, "access")
+		claims, err := p.tokenMaker.VerifyToken(c.Request.Context(), accessToken, "access")
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, utils.NewFailResponse("Invalid or expired token"))
 			c.Abort()

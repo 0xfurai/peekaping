@@ -314,6 +314,7 @@ func TestProcessMonitor(t *testing.T) {
 		mockMonitorSvc.On("FindByID", ctx, "mon-1").Return(mon, nil)
 		mockMaintenanceSvc.On("GetMaintenancesByMonitorID", ctx, "mon-1").Return([]*maintenance.Model{}, nil)
 		mockQueueSvc.On("EnqueueUnique", ctx, worker.TaskTypeHealthCheck, mock.AnythingOfType("worker.HealthCheckTaskPayload"), "healthcheck:mon-1", mock.AnythingOfType("time.Duration"), mock.AnythingOfType("*queue.EnqueueOptions")).Return(nil, errors.New("task ID conflicts with existing task"))
+		mockQueueSvc.On("GetTaskInfo", ctx, "healthcheck", "healthcheck:mon-1").Return(nil, errors.New("task not found"))
 
 		interval, err := producer.processMonitor(ctx, "mon-1", 1234567890)
 		assert.NoError(t, err) // Duplicate errors are not considered errors

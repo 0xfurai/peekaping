@@ -1,0 +1,31 @@
+#
+# Test stack for dangling healthcheck
+#
+services:
+  peekaping:
+    build:
+      context: .
+      dockerfile: Dockerfile.bundle.sqlite
+    restart: unless-stopped
+    ports:
+      - "8383:8383"
+    env_file:
+      - .env
+    environment:
+      - DB_TYPE=sqlite
+      - DB_NAME=/app/data/peekaping.db
+    volumes:
+      # Database data persistence
+      - ./.data/sqlite:/app/data
+      # Application logs persistence
+      - ./.data/logs:/var/log/supervisor
+      # Optional: Custom Caddyfile override
+      # - ./custom-Caddyfile:/etc/caddy/Caddyfile:ro
+    container_name: peekaping-bundle-sqlite
+  http:
+    build:
+      context: .
+      dockerfile: Dockerfile.test.failing.http
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
