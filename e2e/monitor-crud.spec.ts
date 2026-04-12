@@ -356,6 +356,31 @@ test.describe('Monitor CRUD Operations', () => {
     await deleteMonitor(page, updatedName);
   });
 
+  test('SMTP Monitor CRUD', async ({ page }) => {
+    const monitorName = randomMonitorName();
+    const typeSpecificData = {
+      host: 'smtp.gmail.com',
+      port: 587,
+      from_email: 'test@example.com',
+      to_email: 'recipient@example.com',
+      use_tls: true,
+      username: 'testuser',
+      password: 'testpass'
+    };
+
+    // Create SMTP monitor
+    await createMonitor(page, monitorName, 'smtp', typeSpecificData);
+
+    // Verify monitor in list
+    await verifyMonitorInList(page, monitorName);
+
+    // Edit monitor
+    const updatedName = await editMonitor(page, monitorName, randomMonitorName());
+
+    // Delete monitor
+    await deleteMonitor(page, updatedName);
+  });
+
   test.skip('GRPC-Keyword Monitor CRUD', async ({ page }) => {
     const monitorName = randomMonitorName();
     const typeSpecificData = {

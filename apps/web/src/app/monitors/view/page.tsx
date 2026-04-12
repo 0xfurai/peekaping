@@ -120,7 +120,11 @@ const MonitorPage = () => {
 
   const hasCertCheckExpire = useMemo(() => {
     if (!monitor) return false;
-    if (!monitor?.type?.toLowerCase().startsWith("http")) return false;
+    
+    const monitorType = monitor?.type?.toLowerCase();
+    const supportsTLS = monitorType?.startsWith("http") || monitorType === "smtp";
+    
+    if (!supportsTLS) return false;
 
     try {
       const config = JSON.parse(monitor?.config ?? "{}");
@@ -131,15 +135,15 @@ const MonitorPage = () => {
     }
   }, [monitor]);
 
-  // Fetch TLS info for HTTP monitors using React Query
+  // Fetch TLS info for HTTP and SMTP monitors using React Query
+  // Only fetch when certificate expiry checking is enabled
   const { data: tlsData, isLoading: tlsLoading } = useQuery({
     ...getMonitorsByIdTlsOptions({
       path: {
         id: id!,
       },
     }),
-    enabled:
-      !!id && !!monitor && monitor.type?.toLowerCase().startsWith("http"),
+    enabled: !!id && hasCertCheckExpire,
   });
 
   // Transform TLS data to match the expected format
@@ -565,7 +569,7 @@ const MonitorPage = () => {
               )}
             </Card>
 
-            {/* Certificate Information Card - Only show for HTTPS monitors */}
+            {/* Certificate Information Card - Show for HTTPS and SMTP monitors */}
             {hasCertCheckExpire && (
               <Card className="p-4 rounded-xl gap-1 col-span-4 lg:col-span-1">
                 <div className="font-semibold flex items-center gap-2">

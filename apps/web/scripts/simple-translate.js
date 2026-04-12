@@ -98,7 +98,7 @@ function setValue(obj, path, value) {
 // Simple translate function
 async function translate(text, targetLanguage) {
   try {
-    const prompt = `Translate this UI text from English to ${targetLanguage}. Return only the translation, no explanations:
+    const prompt = `Translate the following UI text from English into ${targetLanguage}. Return only the translated text, with no explanations. This translation is used by a web app monitoring tool to display health check results in a clean, modern UI. Health checks include ping, HTTP, SMTP, TCP, SSL, and similar checks:
 
 "${text}"`;
 

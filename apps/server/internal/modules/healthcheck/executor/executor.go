@@ -73,6 +73,7 @@ func NewExecutorRegistry(
 	registry["mqtt"] = NewMQTTExecutor(logger)
 	registry["rabbitmq"] = NewRabbitMQExecutor(logger)
 	registry["kafka-producer"] = NewKafkaProducerExecutor(logger)
+	registry["smtp"] = NewSMTPExecutor(logger)
 
 	return &ExecutorRegistry{
 		registry: registry,

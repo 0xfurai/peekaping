@@ -104,6 +104,10 @@ const General = () => {
       type: "kafka-producer",
       description: t("monitors.form.type.kafka"),
     },
+    {
+      type: "smtp",
+      description: t("monitors.form.type.smtp"),
+    },
   ], [t]);
 
   return (

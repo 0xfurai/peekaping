@@ -230,8 +230,10 @@ func (h *IngesterTaskHandler) processHeartbeat(ctx context.Context, payload *Ing
 		)
 	}
 
-	// Update TLS info and check certificate expiry for HTTPS monitors
-	if payload.TLSInfo != nil && strings.HasPrefix(strings.ToLower(payload.MonitorType), "http") {
+	// Update TLS info and check certificate expiry for HTTPS and SMTP monitors
+	monitorType := strings.ToLower(payload.MonitorType)
+	supportsTLS := strings.HasPrefix(monitorType, "http") || monitorType == "smtp"
+	if payload.TLSInfo != nil && supportsTLS {
 		// Update TLS info (this handles certificate change detection and notification history cleanup)
 		if err := h.certificateService.UpdateTLSInfo(ctx, payload.MonitorID, payload.TLSInfo); err != nil {
 			h.logger.Errorw("Failed to update TLS info for monitor",
