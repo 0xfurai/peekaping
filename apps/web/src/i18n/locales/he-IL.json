@@ -962,7 +962,10 @@
         "message_format_label": "פורמט הודעה",
         "username_description": "שם המשתמש שיופיע כמשתמש המשלח. אם לא צוין, ישמש שם הבוט כברירת מחדל.",
         "webhook_url_description": "כתובת ה‑Webhook מהאינטגרציה של Slack שלך. תוכל למצוא זאת ב‑Slack שלך תחת Integrations > Webhooks.",
-        "webhook_url_label": "כתובת Webhook"
+        "webhook_url_label": "כתובת Webhook",
+        "bot_token_label": "אסימון בוט",
+        "bot_token_description": "אסימון הבוט של Slack שלך לאימות. תוכל ליצור אסימון בוט בהגדרות אפליקציית Slack שלך",
+        "bot_token_note": "הערה: בעת שימוש באסימון בוט, שם הערוץ נדרש."
       },
       "smtp": {
         "custom_body_label": "גוף מותאם אישית",

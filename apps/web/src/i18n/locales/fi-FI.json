@@ -962,7 +962,10 @@
         "message_format_label": "Viestimuoto",
         "username_description": "Käyttäjänimi, joka näkyy viestin lähettäjänä. Jos se ei ole määritetty, käytetään oletusbotin nimeä.",
         "webhook_url_description": "Webhook‑URL Slack‑integraatiossasi. Löydät sen Slack‑tililtäsi kohdasta Integraatiot > Webhooks.",
-        "webhook_url_label": "Webhook-osoite"
+        "webhook_url_label": "Webhook-osoite",
+        "bot_token_label": "Bot-tunnus",
+        "bot_token_description": "Slack-botin tunnuksesi todennukseen. Voit luoda bot-tunnuksen Slack-sovelluksen asetuksista",
+        "bot_token_note": "Huom: Bot-tunnusta käytettäessä kanavan nimi on pakollinen."
       },
       "smtp": {
         "custom_body_label": "Mukautettu keho",

@@ -962,7 +962,10 @@
         "message_format_label": "消息格式",
         "username_description": "将作为消息发送者显示的用户名。如果未指定，将使用默认机器人名称。",
         "webhook_url_description": "来自您 Slack 集成的 webhook URL。您可以在 Slack 实例的 Integrations > Webhooks 中找到。",
-        "webhook_url_label": "Webhook 网址"
+        "webhook_url_label": "Webhook 网址",
+        "bot_token_label": "机器人令牌",
+        "bot_token_description": "用于身份验证的 Slack 机器人令牌。您可以在 Slack 应用设置中创建机器人令牌",
+        "bot_token_note": "注意：使用机器人令牌时，频道名称是必需的。"
       },
       "smtp": {
         "custom_body_label": "自定义正文",

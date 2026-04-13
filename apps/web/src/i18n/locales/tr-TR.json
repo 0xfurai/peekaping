@@ -962,7 +962,10 @@
         "message_format_label": "Mesaj Biçimi",
         "username_description": "Mesajın göndereni olarak görünecek kullanıcı adı. Belirtilmezse, varsayılan bot adı kullanılacaktır.",
         "webhook_url_description": "Slack entegrasyonunuzun webhook URL'si. Slack örneğinizde Entegrasyonlar > Webhook'lar bölümünde bulabilirsiniz.",
-        "webhook_url_label": "Webhook URL'si"
+        "webhook_url_label": "Webhook URL'si",
+        "bot_token_label": "Bot Token",
+        "bot_token_description": "Kimlik doğrulama için Slack bot token'ınız. Slack uygulama ayarlarınızda bir bot token oluşturabilirsiniz",
+        "bot_token_note": "Not: Bot token kullanırken kanal adı gereklidir."
       },
       "smtp": {
         "custom_body_label": "Özel Gövde",

@@ -962,7 +962,10 @@
         "message_format_label": "Sõnumi vorming",
         "username_description": "Kasutajanimi, mis kuvatakse sõnumi saatjana. Kui seda pole määratud, kasutatakse vaikimisi boti nime.",
         "webhook_url_description": "Sinu Slacki integreerimise webhooki URL. Seda leiad oma Slacki instantsist Integratsioonid > Webhooks.",
-        "webhook_url_label": "Webhooki URL"
+        "webhook_url_label": "Webhooki URL",
+        "bot_token_label": "Boti märgiksõna",
+        "bot_token_description": "Sinu Slack boti märgiksõna autentimiseks. Saad luua boti märgiksõna oma Slacki rakenduse seadetest",
+        "bot_token_note": "Märkus: Boti märgiksõna kasutamisel on kanali nimi kohustuslik."
       },
       "smtp": {
         "custom_body_label": "Kohandatud keha",

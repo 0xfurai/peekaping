@@ -962,7 +962,10 @@
         "message_format_label": "تنسيق الرسالة",
         "username_description": "اسم المستخدم الذي سيظهر كمرسل الرسالة. إذا لم يتم تحديده، فسيتم استخدام اسم البوت الافتراضي.",
         "webhook_url_description": "عنوان URL لويب هوك التكامل مع Slack الخاص بك. يمكنك العثور عليه ضمن مثيل Slack الخاص بك تحت التكاملات > ويب هوكات.",
-        "webhook_url_label": "عنوان URL للويب هوك"
+        "webhook_url_label": "عنوان URL للويب هوك",
+        "bot_token_label": "رمز البوت",
+        "bot_token_description": "رمز البوت الخاص بك في Slack للمصادقة. يمكنك إنشاء رمز بوت في إعدادات تطبيق Slack الخاص بك",
+        "bot_token_note": "ملاحظة: عند استخدام رمز البوت، اسم القناة مطلوب."
       },
       "smtp": {
         "custom_body_label": "المحتوى المخصص",

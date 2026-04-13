@@ -961,7 +961,10 @@
         "message_format_label": "შეტყობინების ფორმატი",
         "username_description": "სახელი, რომელიც გამოჩნდება შეტყობინების გამომგზავნად. თუ მითითებული არ იქნება, გამოყენებული იქნება ნაგულისხმევი ბოტის სახელი.",
         "webhook_url_description": "თქვენი Slack ინტეგრაციის webhook URL. შეგიძლიათ მოიძიოთ იგი თქვენს Slack instance‑ში Integrations > Webhooks ქვეშ.",
-        "webhook_url_label": "ვებჰუკ URL"
+        "webhook_url_label": "ვებჰუკ URL",
+        "bot_token_label": "ბოტის ტოკენი",
+        "bot_token_description": "თქვენი Slack ბოტის ტოკენი ავტენტიფიკაციისთვის. შეგიძლიათ შექმნათ ბოტის ტოკენი თქვენი Slack აპლიკაციის პარამეტრებში",
+        "bot_token_note": "შენიშვნა: ბოტის ტოკენის გამოყენებისას არხის სახელი აუცილებელია."
       },
       "smtp": {
         "custom_body_label": "ხელით მითითებული სხეული",

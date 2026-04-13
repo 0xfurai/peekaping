@@ -962,7 +962,10 @@
         "message_format_label": "Format wiadomości",
         "username_description": "Nazwa użytkownika, która pojawi się jako nadawca wiadomości. Jeśli nie zostanie podana, zostanie użyta domyślna nazwa bota.",
         "webhook_url_description": "Adres URL webhooka z integracji Slack. Możesz go znaleźć w swoim Slacku pod Integracje > Webhooki.",
-        "webhook_url_label": "URL webhooka"
+        "webhook_url_label": "URL webhooka",
+        "bot_token_label": "Token bota",
+        "bot_token_description": "Twój token bota Slack do uwierzytelniania. Możesz utworzyć token bota w ustawieniach swojej aplikacji Slack",
+        "bot_token_note": "Uwaga: Podczas używania tokenu bota nazwa kanału jest wymagana."
       },
       "smtp": {
         "custom_body_label": "Niestandardowa treść",
