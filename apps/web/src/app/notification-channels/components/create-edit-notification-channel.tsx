@@ -44,6 +44,7 @@ import * as SendGridForm from "../integrations/sendgrid-form";
 import * as PushbulletForm from "../integrations/pushbullet-form";
 import * as PagerTreeForm from "../integrations/pagertree";
 import * as LineForm from "../integrations/line-form";
+import * as TeamsForm from "../integrations/teams-form";
 
 import { useEffect } from "react";
 import { commonMutationErrorHandler } from "@/lib/utils";
@@ -72,6 +73,7 @@ const typeFormRegistry = {
   pushbullet: PushbulletForm,
   pagertree: PagerTreeForm,
   line: LineForm,
+  teams: TeamsForm,
 };
 
 const notificationSchema = z
@@ -104,6 +106,7 @@ const notificationSchema = z
       PushbulletForm.schema,
       PagerTreeForm.schema,
       LineForm.schema,
+      TeamsForm.schema,
     ] as const)
   );
 
@@ -232,6 +235,7 @@ export default function CreateEditNotificationChannel({
                     | "pushbullet"
                     | "pagertree"
                     | "line"
+                    | "teams"
                 );
               }}
               value={type}

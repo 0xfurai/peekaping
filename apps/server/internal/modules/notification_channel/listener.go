@@ -59,6 +59,7 @@ func NewNotificationEventListener(p NotificationEventListenerParams) *Notificati
 	RegisterNotificationChannelProvider("pushbullet", providers.NewPushbulletSender(p.Logger))
 	RegisterNotificationChannelProvider("pagertree", providers.NewPagerTreeSender(p.Logger))
 	RegisterNotificationChannelProvider("line", providers.NewLineSender(p.Logger))
+	RegisterNotificationChannelProvider("teams", providers.NewTeamsSender(p.Logger, p.Config))
 
 	return &NotificationEventListener{
 		service:                    p.Service,
