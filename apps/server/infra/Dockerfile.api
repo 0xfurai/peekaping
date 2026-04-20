@@ -18,6 +18,7 @@ RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o main -ldflags="-s -w" ./cmd/ap
 
 # Start a new stage from scratch
 FROM alpine
+RUN apk add --no-cache tzdata
 
 WORKDIR /app
 

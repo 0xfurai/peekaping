@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"os"
 	"time"
 )
 
@@ -48,7 +49,10 @@ func (tu *TimeUtils) CalculateDurationFromTimes(startTime, endTime string) (int,
 // LoadTimezone loads a timezone location, with fallback to UTC if invalid
 func (tu *TimeUtils) LoadTimezone(timezone string) *time.Location {
 	if timezone == "SAME_AS_SERVER" {
-		timezone = time.Now().Location().String()
+	    timezone = os.Getenv("TZ")
+	    if timezone == "" {
+	        timezone = time.Now().Location().String()
+	    }
 	}
 
 	loc, err := time.LoadLocation(timezone)
