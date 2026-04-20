@@ -100,44 +100,28 @@ func (r *SQLRepositoryImpl) UpsertStat(ctx context.Context, stat *Stat, period S
 	sm := toSQLModel(stat)
 	sm.UpdatedAt = time.Now()
 
-	// Try to update existing record first
-	result, err := r.db.NewUpdate().
+	// Generate new ID for insert if not set
+	if sm.ID == "" {
+		sm.ID = uuid.New().String()
+	}
+	sm.CreatedAt = time.Now()
+
+	// Use INSERT ... ON CONFLICT DO UPDATE to handle both insert and update atomically.
+	// This fixes an issue with PostgreSQL where RowsAffected() returns -1 for UPDATE
+	// without RETURNING clause, causing the fallback INSERT to never execute.
+	_, err := r.db.NewInsert().
 		Model(sm).
-		Where("monitor_id = ? AND timestamp = ?", sm.MonitorID, sm.Timestamp).
-		Set("ping = ?", sm.Ping).
-		Set("ping_min = ?", sm.PingMin).
-		Set("ping_max = ?", sm.PingMax).
-		Set("up = ?", sm.Up).
-		Set("down = ?", sm.Down).
-		Set("maintenance = ?", sm.Maintenance).
-		Set("updated_at = ?", sm.UpdatedAt).
+		On("CONFLICT (monitor_id, timestamp) DO UPDATE").
+		Set("ping = EXCLUDED.ping").
+		Set("ping_min = EXCLUDED.ping_min").
+		Set("ping_max = EXCLUDED.ping_max").
+		Set("up = EXCLUDED.up").
+		Set("down = EXCLUDED.down").
+		Set("maintenance = EXCLUDED.maintenance").
+		Set("updated_at = EXCLUDED.updated_at").
 		Exec(ctx)
 
-	if err != nil {
-		return err
-	}
-
-	// Check if any rows were affected by the update
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-
-	// If no rows were updated, insert a new record
-	if rowsAffected == 0 {
-		// Generate new ID for insert
-		if sm.ID == "" {
-			sm.ID = uuid.New().String()
-		}
-		sm.CreatedAt = time.Now()
-
-		_, err = r.db.NewInsert().Model(sm).Exec(ctx)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return err
 }
 
 func (r *SQLRepositoryImpl) FindStatsByMonitorIDAndTimeRange(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod) ([]*Stat, error) {
