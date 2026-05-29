@@ -49,6 +49,7 @@ import { BackButton } from "@/components/back-button";
 import dayjs from "dayjs";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import clsx from "clsx";
+import { formatMonitorTarget } from "./format-monitor-target";
 
 function formatDuration(ms: number, t: (key: string) => string): string {
   // Handle negative durations (clock skew) by returning empty string
@@ -117,6 +118,11 @@ const MonitorPage = () => {
   });
 
   const monitor = data?.data;
+  const monitorTarget = formatMonitorTarget(monitor);
+  const monitorTargetHref =
+    monitorTarget?.startsWith("http://") || monitorTarget?.startsWith("https://")
+      ? monitorTarget
+      : undefined;
 
   const hasCertCheckExpire = useMemo(() => {
     if (!monitor) return false;
@@ -163,16 +169,6 @@ const MonitorPage = () => {
         : undefined,
     };
   }, [tlsData]);
-
-  // Safe JSON parsing with error handling
-  const config = useMemo(() => {
-    try {
-      return JSON.parse(monitor?.config ?? "{}");
-    } catch (error) {
-      console.error("Failed to parse monitor config:", error);
-      return {};
-    }
-  }, [monitor?.config]);
 
   const deleteMutation = useMutation({
     ...deleteMonitorsByIdMutation({
@@ -425,16 +421,21 @@ const MonitorPage = () => {
         <BackButton to="/monitors" />
         <div className="pl-4">
           <span className="text-sm text-muted-foreground mr-2">
-            {monitor?.type} {t("monitors.view.monitor_for")}
+            {monitor?.type}
+            {monitorTarget ? ` ${t("monitors.view.monitor_for")}` : null}
           </span>
-          <a
-            href={config?.url ?? "#"}
-            className="text-blue-500 hover:underline"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {config?.url ?? ""}
-          </a>
+          {monitorTargetHref ? (
+            <a
+              href={monitorTargetHref}
+              className="text-blue-500 hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {monitorTarget}
+            </a>
+          ) : monitorTarget ? (
+            <span className="text-muted-foreground">{monitorTarget}</span>
+          ) : null}
         </div>
 
         <div className="mt-4 mb-4">
