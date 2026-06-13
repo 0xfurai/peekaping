@@ -13,6 +13,7 @@ import (
 	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/maintenance"
+	"peekaping/internal/modules/metrics"
 	"peekaping/internal/modules/middleware"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_maintenance"
@@ -89,6 +90,7 @@ func RegisterAPIDependencies(container *dig.Container, cfg *config.Config) error
 	queue.RegisterDependencies(container, cfg)
 	api_key.RegisterDependencies(container, cfg)
 	middleware.RegisterDependencies(container)
+	metrics.RegisterDependencies(container)
 
 	return nil
 }

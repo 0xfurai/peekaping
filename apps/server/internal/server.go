@@ -14,6 +14,7 @@ import (
 	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/maintenance"
+	"peekaping/internal/modules/metrics"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/proxy"
@@ -101,6 +102,7 @@ func ProvideServer(
 	apiKeyRoute *api_key.Route,
 	apiKeyController *api_key.Controller,
 	staleStore *stale.Store,
+	metricsCollector *metrics.Collector,
 ) *Server {
 	middleware := []httpx.Middleware{httpx.Recovery(logger), httpx.CORS}
 	if cfg.Mode == "dev" {
@@ -110,6 +112,12 @@ func ProvideServer(
 
 	healthHandler := newHealthHandler(staleStore, logger)
 	httpx.Register(server, "GET", "/health", huma.Operation{Summary: "Get server health", Tags: []string{"System"}}, healthHandler)
+
+	// Prometheus metrics endpoint (unauthenticated, like /health and /version)
+	if cfg.MetricsEnabled {
+		server.Handle("GET", "/metrics", metricsCollector.Handler())
+	}
+
 	router := server.Group("/api/v1")
 	httpx.Register(router, "GET", "/health", huma.Operation{Summary: "Get server health", Tags: []string{"System"}}, healthHandler)
 	httpx.Register(router, "GET", "/version", huma.Operation{Summary: "Get server version", Tags: []string{"System"}}, versionHandler)

@@ -18,6 +18,7 @@ The API Server handles:
 - **Security**: Brute force protection, rate limiting, CORS handling
 - **Push Endpoint**: Receives heartbeats from push-based monitors
 - **Cleanup Tasks**: Scheduled cleanup of old data
+- **Prometheus Metrics**: Exposes per-monitor metrics for scraping
 
 ## Architecture
 
@@ -74,6 +75,12 @@ The API server subscribes to Redis pub/sub events and broadcasts them to connect
 | `BRUTEFORCE_MAX_ATTEMPTS` | int | No | `20` | Maximum login attempts before lockout |
 | `BRUTEFORCE_WINDOW` | duration | No | `1m` | Time window for counting failed attempts |
 | `BRUTEFORCE_LOCKOUT` | duration | No | `1m` | Lockout duration after max attempts |
+
+### Metrics Configuration
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `METRICS_ENABLED` | bool | No | `false` | Expose the Prometheus `/metrics` endpoint |
 
 ## API Endpoints
 
@@ -143,6 +150,52 @@ Response:
   "status": "ok",
   "timestamp": "2024-01-01T00:00:00Z"
 }
+```
+
+## Prometheus Metrics
+
+The API server can expose a Prometheus-compatible metrics endpoint for direct scraping.
+It is disabled by default; set `METRICS_ENABLED=true` to turn it on:
+
+```http
+GET /metrics
+```
+
+The collector subscribes to heartbeat and monitor events on the Redis event bus and
+keeps a set of in-memory gauges up to date. Because the metrics are event-driven,
+scraping costs nothing at scrape time: there are no database round-trips and no
+polling of the worker. Metrics are seeded from the current state of all active
+monitors at startup, so they are populated immediately rather than only after the
+first heartbeat of each monitor.
+
+The endpoint is unauthenticated (like `/health` and `/version`) and exposes monitor
+names and statuses, so it is off by default. Enable it with `METRICS_ENABLED=true`
+once you are happy for that information to be available on `/metrics`.
+
+### Exposed Metrics
+
+All per-monitor metrics are labelled with `monitor_id`, `monitor_name`, and `monitor_type`.
+
+| Metric | Type | Description |
+|--------|------|-------------|
+| `peekaping_monitor_status` | gauge | Current status: `0`=down, `1`=up, `2`=pending, `3`=maintenance |
+| `peekaping_monitor_up` | gauge | `1` if the monitor is up, otherwise `0` |
+| `peekaping_monitor_response_seconds` | gauge | Response time of the most recent heartbeat, in seconds |
+| `peekaping_monitor_last_heartbeat_timestamp_seconds` | gauge | Unix timestamp of the most recent heartbeat (useful for staleness alerts) |
+| `peekaping_build_info` | gauge | Always `1`; the server version is carried in the `version` label |
+
+Standard Go runtime and process collectors (`go_*`, `process_*`) are also exposed.
+
+When a monitor is deleted its series are removed; when a monitor is renamed the
+stale series under the old name is dropped.
+
+### Example Prometheus scrape config
+
+```yaml
+scrape_configs:
+  - job_name: peekaping
+    static_configs:
+      - targets: ['peekaping:8034']
 ```
 
 ## Related Components

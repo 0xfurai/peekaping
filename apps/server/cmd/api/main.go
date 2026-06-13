@@ -13,6 +13,7 @@ import (
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/heartbeat"
+	"peekaping/internal/modules/metrics"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/notification_channel"
@@ -106,6 +107,17 @@ func main() {
 	})
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	// Start the Prometheus metrics collector
+	if internalCfg.MetricsEnabled {
+		err = container.Invoke(func(collector *metrics.Collector, eventBus events.EventBus) {
+			collector.Subscribe(eventBus)
+			collector.Seed(context.Background())
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	// Start the server with graceful shutdown

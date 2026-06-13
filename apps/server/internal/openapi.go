@@ -34,7 +34,7 @@ func OpenAPI() *huma.OpenAPI {
 		status_page.NewRoute(nil, nil), nil,
 		tag.NewRoute(nil, nil), nil,
 		badge.NewRoute(nil), nil,
-		api_key.NewRoute(nil, nil), nil, nil,
+		api_key.NewRoute(nil, nil), nil, nil, nil,
 	)
 	return server.Router.API().OpenAPI()
 }
