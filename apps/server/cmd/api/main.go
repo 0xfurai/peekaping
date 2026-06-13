@@ -21,6 +21,7 @@ import (
 	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/maintenance"
+	"peekaping/internal/modules/metrics"
 	"peekaping/internal/modules/middleware"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_maintenance"
@@ -123,6 +124,7 @@ func main() {
 	queue.RegisterDependencies(container, internalCfg)
 	api_key.RegisterDependencies(container, internalCfg)
 	middleware.RegisterDependencies(container)
+	metrics.RegisterDependencies(container)
 
 	// Start the event healthcheck listener
 	err = container.Invoke(func(listener *healthcheck.EventListener, eventBus events.EventBus) {
@@ -180,6 +182,17 @@ func main() {
 	})
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	// Start the Prometheus metrics collector
+	if internalCfg.MetricsEnabled {
+		err = container.Invoke(func(collector *metrics.Collector, eventBus events.EventBus) {
+			collector.Subscribe(eventBus)
+			collector.Seed(context.Background())
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	// Start the server with graceful shutdown

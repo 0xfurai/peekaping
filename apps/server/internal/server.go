@@ -10,6 +10,7 @@ import (
 	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/maintenance"
+	"peekaping/internal/modules/metrics"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/proxy"
@@ -80,6 +81,7 @@ func ProvideServer(
 	badgeController *badge.Controller,
 	apiKeyRoute *api_key.Route,
 	apiKeyController *api_key.Controller,
+	metricsCollector *metrics.Collector,
 ) *Server {
 	// Initialize server based on mode
 	var server *gin.Engine
@@ -107,6 +109,12 @@ func ProvideServer(
 	// server.Use(LogMiddleware(logger))
 
 	server.GET("/health", healthHandler)
+
+	// Prometheus metrics endpoint (unauthenticated, like /health and /version)
+	if cfg.MetricsEnabled {
+		server.GET("/metrics", metricsCollector.Handler())
+	}
+
 	router := server.Group("/api/v1")
 	router.GET("/health", healthHandler)
 	router.GET("/version", versionHandler)
