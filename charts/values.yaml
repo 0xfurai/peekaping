@@ -21,6 +21,8 @@ config:
     # DB_PORT: "5432"
     # REDIS_HOST: "peekaping-redis-master.peekaping.svc.cluster.local"
     # REDIS_PORT: "6379"
+    # REDIS_USERNAME: "peekaping" # Optional. Set for Redis ACL users; omit for password-only/default user auth.
+    # REDIS_PASSWORD: "peekaping"
 
 api:
   replicaCount: 3

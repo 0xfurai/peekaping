@@ -57,6 +57,7 @@ Workers can run multiple tasks concurrently based on the `QUEUE_CONCURRENCY` set
 |----------|------|----------|---------|-------------|
 | `REDIS_HOST` | string | Yes | `redis` | Redis server hostname |
 | `REDIS_PORT` | string | Yes | `6379` | Redis server port |
+| `REDIS_USERNAME` | string | No | `""` | Redis ACL username (omit for password-only/default user auth) |
 | `REDIS_PASSWORD` | string | No | `""` | Redis password (if authentication enabled) |
 | `REDIS_DB` | int | No | `0` | Redis database number (0-15) |
 
@@ -115,4 +116,3 @@ Asynq server configuration:
 - [Producer](./producer.md) - Enqueues health check tasks for workers
 - [Ingester](./ingester.md) - Processes health check results from workers
 - [API Server](./api-server.md) - Manages monitor configurations
-

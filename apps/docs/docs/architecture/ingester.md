@@ -51,6 +51,7 @@ Ingesters can run multiple tasks concurrently based on `QUEUE_CONCURRENCY`:
 |----------|------|----------|---------|-------------|
 | `REDIS_HOST` | string | Yes | `redis` | Redis server hostname |
 | `REDIS_PORT` | string | Yes | `6379` | Redis server port |
+| `REDIS_USERNAME` | string | No | `""` | Redis ACL username (omit for password-only/default user auth) |
 | `REDIS_PASSWORD` | string | No | `""` | Redis password (if authentication enabled) |
 | `REDIS_DB` | int | No | `0` | Redis database number (0-15) |
 
@@ -107,4 +108,3 @@ On receiving `SIGTERM` or `SIGINT`:
 - [Worker](./worker.md) - Enqueues health check results for ingester
 - [API Server](./api-server.md) - Provides notification channel configuration
 - [Producer](./producer.md) - Schedules monitors that generate heartbeats
-
