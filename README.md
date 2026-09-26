@@ -62,6 +62,10 @@ docker run -d --restart=always \
 
 Peekaping also support [PostgreSQL Setup](https://docs.peekaping.com/self-hosting/docker-with-postgres) and [MongoDB Setup](https://docs.peekaping.com/self-hosting/docker-with-mongo). Read docs for more guidance
 
+## ☁️ One-Click Deploy
+
+[![Deploy on RepoCloud](https://d16t0pc4846x52.cloudfront.net/deploylobe.svg)](https://repocloud.io/details/peekaping/)
+
 ## ⚡ Features
 
 ### Available Monitors
