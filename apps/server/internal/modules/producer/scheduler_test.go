@@ -2,6 +2,7 @@ package producer
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -291,12 +292,14 @@ func TestUpdateMonitor(t *testing.T) {
 
 		logger := zap.NewNop().Sugar()
 		mockMonitorSvc := new(MockMonitorService)
+		mockQueueSvc := new(MockQueueService)
 
 		producer := &Producer{
 			rdb:              client,
 			logger:           logger,
 			ctx:              context.Background(),
 			monitorService:   mockMonitorSvc,
+			queueService:     mockQueueSvc,
 			monitorIntervals: make(map[string]int),
 		}
 
@@ -315,6 +318,7 @@ func TestUpdateMonitor(t *testing.T) {
 		}
 
 		mockMonitorSvc.On("FindByID", ctx, "monitor-123").Return(mon, nil)
+		mockQueueSvc.On("DeleteTask", ctx, "healthcheck", "healthcheck:monitor-123").Return(nil)
 
 		err = producer.UpdateMonitor(ctx, "monitor-123")
 		assert.NoError(t, err)
@@ -322,7 +326,42 @@ func TestUpdateMonitor(t *testing.T) {
 		// Verify interval is updated
 		assert.Equal(t, 120, producer.monitorIntervals["monitor-123"])
 
+		// The queued check with the old config is dropped and a new one is due right away
+		score, err := client.ZScore(ctx, SchedDueKey, "monitor-123").Result()
+		require.NoError(t, err)
+		assert.LessOrEqual(t, score, float64(time.Now().UnixMilli()))
+
 		mockMonitorSvc.AssertExpectations(t)
+		mockQueueSvc.AssertExpectations(t)
+	})
+
+	t.Run("update succeeds when the queued check can't be purged", func(t *testing.T) {
+		client, mr := setupTestRedis(t)
+		defer mr.Close()
+
+		mockMonitorSvc := new(MockMonitorService)
+		mockQueueSvc := new(MockQueueService)
+		producer := &Producer{
+			rdb:              client,
+			logger:           zap.NewNop().Sugar(),
+			ctx:              context.Background(),
+			monitorService:   mockMonitorSvc,
+			queueService:     mockQueueSvc,
+			monitorIntervals: make(map[string]int),
+		}
+
+		ctx := context.Background()
+		mon := &monitor.Model{ID: "monitor-123", Active: true, Interval: 60}
+		mockMonitorSvc.On("FindByID", ctx, "monitor-123").Return(mon, nil)
+		// A running check can't be deleted; it is left to finish
+		mockQueueSvc.On("DeleteTask", ctx, "healthcheck", "healthcheck:monitor-123").Return(errors.New("cannot delete task in active state"))
+
+		err := producer.UpdateMonitor(ctx, "monitor-123")
+		assert.NoError(t, err)
+
+		_, err = client.ZScore(ctx, SchedDueKey, "monitor-123").Result()
+		assert.NoError(t, err)
+		mockQueueSvc.AssertExpectations(t)
 	})
 
 	t.Run("unschedule inactive monitor", func(t *testing.T) {
@@ -331,12 +370,14 @@ func TestUpdateMonitor(t *testing.T) {
 
 		logger := zap.NewNop().Sugar()
 		mockMonitorSvc := new(MockMonitorService)
+		mockQueueSvc := new(MockQueueService)
 
 		producer := &Producer{
 			rdb:              client,
 			logger:           logger,
 			ctx:              context.Background(),
 			monitorService:   mockMonitorSvc,
+			queueService:     mockQueueSvc,
 			monitorIntervals: make(map[string]int),
 		}
 
@@ -355,6 +396,7 @@ func TestUpdateMonitor(t *testing.T) {
 		}
 
 		mockMonitorSvc.On("FindByID", ctx, "monitor-123").Return(mon, nil)
+		mockQueueSvc.On("DeleteTask", ctx, "healthcheck", "healthcheck:monitor-123").Return(nil)
 
 		err = producer.UpdateMonitor(ctx, "monitor-123")
 		assert.NoError(t, err)
@@ -364,6 +406,7 @@ func TestUpdateMonitor(t *testing.T) {
 		assert.Equal(t, redis.Nil, err)
 
 		mockMonitorSvc.AssertExpectations(t)
+		mockQueueSvc.AssertExpectations(t)
 	})
 
 	t.Run("unschedule monitor with invalid interval", func(t *testing.T) {
@@ -372,12 +415,14 @@ func TestUpdateMonitor(t *testing.T) {
 
 		logger := zap.NewNop().Sugar()
 		mockMonitorSvc := new(MockMonitorService)
+		mockQueueSvc := new(MockQueueService)
 
 		producer := &Producer{
 			rdb:              client,
 			logger:           logger,
 			ctx:              context.Background(),
 			monitorService:   mockMonitorSvc,
+			queueService:     mockQueueSvc,
 			monitorIntervals: make(map[string]int),
 		}
 
@@ -396,6 +441,7 @@ func TestUpdateMonitor(t *testing.T) {
 		}
 
 		mockMonitorSvc.On("FindByID", ctx, "monitor-123").Return(mon, nil)
+		mockQueueSvc.On("DeleteTask", ctx, "healthcheck", "healthcheck:monitor-123").Return(nil)
 
 		err = producer.UpdateMonitor(ctx, "monitor-123")
 		assert.NoError(t, err)
@@ -414,10 +460,12 @@ func TestRemoveMonitor(t *testing.T) {
 		defer mr.Close()
 
 		logger := zap.NewNop().Sugar()
+		mockQueueSvc := new(MockQueueService)
 		producer := &Producer{
 			rdb:              client,
 			logger:           logger,
 			ctx:              context.Background(),
+			queueService:     mockQueueSvc,
 			monitorIntervals: make(map[string]int),
 		}
 
@@ -426,6 +474,8 @@ func TestRemoveMonitor(t *testing.T) {
 		// Schedule monitor first
 		err := producer.ScheduleMonitor(ctx, "monitor-123", 60)
 		require.NoError(t, err)
+
+		mockQueueSvc.On("DeleteTask", ctx, "healthcheck", "healthcheck:monitor-123").Return(nil)
 
 		// Remove it
 		err = producer.RemoveMonitor(ctx, "monitor-123")
@@ -438,6 +488,8 @@ func TestRemoveMonitor(t *testing.T) {
 		// Verify interval is removed
 		_, exists := producer.monitorIntervals["monitor-123"]
 		assert.False(t, exists)
+
+		mockQueueSvc.AssertExpectations(t)
 	})
 }
 
