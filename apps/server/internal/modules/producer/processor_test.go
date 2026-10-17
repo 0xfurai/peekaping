@@ -419,6 +419,44 @@ func TestProcessMonitor(t *testing.T) {
 		mockQueueSvc.AssertExpectations(t)
 	})
 
+	t.Run("check cert expiry for smtp monitor", func(t *testing.T) {
+		logger := zap.NewNop().Sugar()
+		mockMonitorSvc := new(MockMonitorService)
+		mockMaintenanceSvc := new(MockMaintenanceService)
+		mockQueueSvc := new(MockQueueService)
+
+		producer := &Producer{
+			logger:             logger,
+			monitorService:     mockMonitorSvc,
+			maintenanceService: mockMaintenanceSvc,
+			queueService:       mockQueueSvc,
+		}
+
+		ctx := context.Background()
+		mon := &monitor.Model{
+			ID:       "mon-1",
+			Name:     "SMTP Monitor",
+			Type:     "smtp",
+			Active:   true,
+			Interval: 60,
+			Config:   `{"check_cert_expiry": true}`,
+		}
+
+		mockMonitorSvc.On("FindByID", ctx, "mon-1").Return(mon, nil)
+		mockMaintenanceSvc.On("GetMaintenancesByMonitorID", ctx, "mon-1").Return([]*maintenance.Model{}, nil)
+		mockQueueSvc.On("EnqueueUnique", ctx, worker.TaskTypeHealthCheck, mock.MatchedBy(func(payload worker.HealthCheckTaskPayload) bool {
+			return payload.CheckCertExpiry == true
+		}), "healthcheck:mon-1", mock.AnythingOfType("time.Duration"), mock.AnythingOfType("*queue.EnqueueOptions")).Return(&queue.TaskInfo{ID: "task-123"}, nil)
+
+		interval, err := producer.processMonitor(ctx, "mon-1", 1234567890)
+		assert.NoError(t, err)
+		assert.Equal(t, 60, interval)
+
+		mockMonitorSvc.AssertExpectations(t)
+		mockMaintenanceSvc.AssertExpectations(t)
+		mockQueueSvc.AssertExpectations(t)
+	})
+
 	t.Run("don't check cert expiry for ping monitor", func(t *testing.T) {
 		logger := zap.NewNop().Sugar()
 		mockMonitorSvc := new(MockMonitorService)

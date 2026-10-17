@@ -176,29 +176,27 @@ func (p *Producer) processMonitor(ctx context.Context, monitorID string, nowMs i
 	}
 
 	// Check if certificate expiry checking is enabled in monitor configuration
-	// This applies to monitors that support TLS (http, tcp)
+	// Read it for every type, so a monitor that supports TLS (http, smtp)
+	// only has to put check_cert_expiry in its config
 	checkCertExpiry := false
-	monType := strings.ToLower(mon.Type)
-	if strings.HasPrefix(monType, "http") || monType == "tcp" {
-		if mon.Config != "" {
-			// Parse monitor configuration to check if certificate expiry checking is enabled
-			var config struct {
-				CheckCertExpiry bool `json:"check_cert_expiry"`
-			}
-			if err := json.Unmarshal([]byte(mon.Config), &config); err != nil {
-				p.logger.Warnw("Failed to parse monitor config for certificate expiry check",
-					"monitor_id", mon.ID,
-					"monitor_name", mon.Name,
-					"error", err)
-			} else {
-				checkCertExpiry = config.CheckCertExpiry
-			}
+	if mon.Config != "" {
+		// Parse monitor configuration to check if certificate expiry checking is enabled
+		var config struct {
+			CheckCertExpiry bool `json:"check_cert_expiry"`
 		}
-		p.logger.Debugw("Certificate expiry checking configured",
-			"monitor_id", mon.ID,
-			"monitor_name", mon.Name,
-			"check_cert_expiry", checkCertExpiry)
+		if err := json.Unmarshal([]byte(mon.Config), &config); err != nil {
+			p.logger.Warnw("Failed to parse monitor config for certificate expiry check",
+				"monitor_id", mon.ID,
+				"monitor_name", mon.Name,
+				"error", err)
+		} else {
+			checkCertExpiry = config.CheckCertExpiry
+		}
 	}
+	p.logger.Debugw("Certificate expiry checking configured",
+		"monitor_id", mon.ID,
+		"monitor_name", mon.Name,
+		"check_cert_expiry", checkCertExpiry)
 
 	// For push monitors, fetch the latest heartbeat to include in the payload
 	var lastHeartbeat *shared.HeartBeatModel

@@ -8,8 +8,11 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/base64"
 	"encoding/pem"
+	"errors"
 	"fmt"
+	"io"
 	"math/big"
 	"net"
 	"os"
@@ -454,11 +457,6 @@ func setupMockSMTPServerWithRelay(t *testing.T, useTLS bool, requireAuth bool, t
 //
 //	if false, uses STARTTLS (for ports 587/25)
 func setupMockSMTPServerWithRelayAndDirectTLS(t *testing.T, useTLS bool, useDirectTLS bool, requireAuth bool, testMailFrom bool, allowOpenRelay bool) (net.Listener, func()) {
-	listener, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatalf("Failed to create listener: %v", err)
-	}
-
 	// Generate self-signed certificate for TLS
 	var tlsConfig *tls.Config
 	if useTLS {
@@ -471,45 +469,74 @@ func setupMockSMTPServerWithRelayAndDirectTLS(t *testing.T, useTLS bool, useDire
 		}
 	}
 
-	stop := make(chan struct{})
+	return startMockSMTPServer(t, func(conn net.Conn) {
+		if useDirectTLS && tlsConfig != nil {
+			// For direct TLS (SMTPS), upgrade connection immediately
+			handleSMTPConnectionDirectTLS(conn, tlsConfig, requireAuth, testMailFrom, allowOpenRelay)
+		} else {
+			// For STARTTLS, send greeting first
+			handleSMTPConnection(conn, tlsConfig, requireAuth, testMailFrom, allowOpenRelay)
+		}
+	})
+}
+
+// startMockSMTPServer listens on a local port and serves each connection with handle
+func startMockSMTPServer(t *testing.T, handle func(net.Conn)) (net.Listener, func()) {
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("Failed to create listener: %v", err)
+	}
+
 	done := make(chan struct{})
 
 	go func() {
 		defer close(done)
 		for {
-			select {
-			case <-stop:
-				return
-			default:
-			}
-
 			conn, err := listener.Accept()
 			if err != nil {
-				select {
-				case <-stop:
+				if errors.Is(err, net.ErrClosed) {
 					return
-				default:
-					continue
 				}
+				continue
 			}
-
-			if useDirectTLS && tlsConfig != nil {
-				// For direct TLS (SMTPS), upgrade connection immediately
-				go handleSMTPConnectionDirectTLS(conn, tlsConfig, requireAuth, testMailFrom, allowOpenRelay)
-			} else {
-				// For STARTTLS, send greeting first
-				go handleSMTPConnection(conn, tlsConfig, requireAuth, testMailFrom, allowOpenRelay)
-			}
+			go handle(conn)
 		}
 	}()
 
 	cleanup := func() {
-		close(stop)
 		listener.Close()
 		<-done
 	}
 
 	return listener, cleanup
+}
+
+// mockAuthPlain answers an AUTH PLAIN command, with the credentials either on the
+// command line (initial response) or after a 334 prompt. Only testuser/testpass,
+// encoded as RFC 4616 requires, is accepted.
+func mockAuthPlain(line string, reader *bufio.Reader, writer *bufio.Writer) (bool, error) {
+	var encoded string
+	if fields := strings.Fields(line); len(fields) >= 3 {
+		encoded = fields[2]
+	} else {
+		writer.WriteString("334 \r\n")
+		writer.Flush()
+		response, err := reader.ReadString('\n')
+		if err != nil {
+			return false, err
+		}
+		encoded = strings.TrimSpace(response)
+	}
+
+	creds, err := base64.StdEncoding.DecodeString(encoded)
+	if err != nil || string(creds) != "\x00testuser\x00testpass" {
+		writer.WriteString("535 Authentication failed\r\n")
+		writer.Flush()
+		return false, nil
+	}
+	writer.WriteString("235 Authentication successful\r\n")
+	writer.Flush()
+	return true, nil
 }
 
 // handleSMTPConnectionDirectTLS handles a direct TLS connection (SMTPS)
@@ -557,17 +584,11 @@ func handleSMTPConnectionDirectTLS(conn net.Conn, tlsConfig *tls.Config, require
 				writer.Flush()
 				continue
 			}
-			writer.WriteString("334 \r\n")
-			writer.Flush()
-
-			// Read credentials (we don't validate them in this mock)
-			_, err := reader.ReadString('\n')
+			ok, err := mockAuthPlain(line, reader, writer)
 			if err != nil {
 				return
 			}
-			authenticated = true
-			writer.WriteString("235 Authentication successful\r\n")
-			writer.Flush()
+			authenticated = ok
 
 		case "MAIL":
 			// MAIL FROM is allowed before authentication (needed for open relay test)
@@ -670,17 +691,11 @@ func handleSMTPConnection(conn net.Conn, tlsConfig *tls.Config, requireAuth bool
 				writer.Flush()
 				continue
 			}
-			writer.WriteString("334 \r\n")
-			writer.Flush()
-
-			// Read credentials (we don't validate them in this mock)
-			_, err := reader.ReadString('\n')
+			ok, err := mockAuthPlain(line, reader, writer)
 			if err != nil {
 				return
 			}
-			authenticated = true
-			writer.WriteString("235 Authentication successful\r\n")
-			writer.Flush()
+			authenticated = ok
 
 		case "MAIL":
 			// MAIL FROM is allowed before authentication (needed for open relay test)
@@ -919,44 +934,7 @@ func TestSMTPExecutor_Execute_ErrorCases(t *testing.T) {
 
 // setupMockSMTPServerLegacy creates a legacy SMTP server that only supports HELO (not EHLO)
 func setupMockSMTPServerLegacy(t *testing.T, useTLS bool) (net.Listener, func()) {
-	listener, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatalf("Failed to create listener: %v", err)
-	}
-
-	stop := make(chan struct{})
-	done := make(chan struct{})
-
-	go func() {
-		defer close(done)
-		for {
-			select {
-			case <-stop:
-				return
-			default:
-			}
-
-			conn, err := listener.Accept()
-			if err != nil {
-				select {
-				case <-stop:
-					return
-				default:
-					continue
-				}
-			}
-
-			go handleSMTPConnectionLegacy(conn)
-		}
-	}()
-
-	cleanup := func() {
-		close(stop)
-		listener.Close()
-		<-done
-	}
-
-	return listener, cleanup
+	return startMockSMTPServer(t, handleSMTPConnectionLegacy)
 }
 
 // handleSMTPConnectionLegacy handles a legacy SMTP connection (only HELO, no EHLO)
@@ -1001,49 +979,14 @@ func handleSMTPConnectionLegacy(conn net.Conn) {
 
 // setupMockSMTPServerTLSFailure creates a server that fails TLS handshake
 func setupMockSMTPServerTLSFailure(t *testing.T, useDirectTLS bool) (net.Listener, func()) {
-	listener, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatalf("Failed to create listener: %v", err)
-	}
-
-	stop := make(chan struct{})
-	done := make(chan struct{})
-
-	go func() {
-		defer close(done)
-		for {
-			select {
-			case <-stop:
-				return
-			default:
-			}
-
-			conn, err := listener.Accept()
-			if err != nil {
-				select {
-				case <-stop:
-					return
-				default:
-					continue
-				}
-			}
-
-			if useDirectTLS {
-				// For direct TLS, close connection immediately to simulate handshake failure
-				conn.Close()
-			} else {
-				go handleSMTPConnectionTLSFailure(conn)
-			}
+	return startMockSMTPServer(t, func(conn net.Conn) {
+		if useDirectTLS {
+			// For direct TLS, close connection immediately to simulate handshake failure
+			conn.Close()
+			return
 		}
-	}()
-
-	cleanup := func() {
-		close(stop)
-		listener.Close()
-		<-done
-	}
-
-	return listener, cleanup
+		handleSMTPConnectionTLSFailure(conn)
+	})
 }
 
 // handleSMTPConnectionTLSFailure handles a connection that fails during STARTTLS
@@ -1091,44 +1034,7 @@ func handleSMTPConnectionTLSFailure(conn net.Conn) {
 
 // setupMockSMTPServerAuthFailure creates a server that rejects authentication
 func setupMockSMTPServerAuthFailure(t *testing.T) (net.Listener, func()) {
-	listener, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatalf("Failed to create listener: %v", err)
-	}
-
-	stop := make(chan struct{})
-	done := make(chan struct{})
-
-	go func() {
-		defer close(done)
-		for {
-			select {
-			case <-stop:
-				return
-			default:
-			}
-
-			conn, err := listener.Accept()
-			if err != nil {
-				select {
-				case <-stop:
-					return
-				default:
-					continue
-				}
-			}
-
-			go handleSMTPConnectionAuthFailure(conn)
-		}
-	}()
-
-	cleanup := func() {
-		close(stop)
-		listener.Close()
-		<-done
-	}
-
-	return listener, cleanup
+	return startMockSMTPServer(t, handleSMTPConnectionAuthFailure)
 }
 
 // handleSMTPConnectionAuthFailure handles a connection that rejects authentication
@@ -1158,17 +1064,10 @@ func handleSMTPConnectionAuthFailure(conn net.Conn) {
 			writer.WriteString("250 OK\r\n")
 			writer.Flush()
 		case "AUTH":
-			writer.WriteString("334 \r\n")
-			writer.Flush()
-
-			// Read credentials
-			_, err := reader.ReadString('\n')
-			if err != nil {
+			// The test sends a wrong password, so this always rejects
+			if _, err := mockAuthPlain(line, reader, writer); err != nil {
 				return
 			}
-			// Reject authentication
-			writer.WriteString("535 Authentication failed\r\n")
-			writer.Flush()
 		case "QUIT":
 			writer.WriteString("221 Bye\r\n")
 			writer.Flush()
@@ -1182,44 +1081,7 @@ func handleSMTPConnectionAuthFailure(conn net.Conn) {
 
 // setupMockSMTPServerMailFromFailure creates a server that rejects MAIL FROM
 func setupMockSMTPServerMailFromFailure(t *testing.T) (net.Listener, func()) {
-	listener, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatalf("Failed to create listener: %v", err)
-	}
-
-	stop := make(chan struct{})
-	done := make(chan struct{})
-
-	go func() {
-		defer close(done)
-		for {
-			select {
-			case <-stop:
-				return
-			default:
-			}
-
-			conn, err := listener.Accept()
-			if err != nil {
-				select {
-				case <-stop:
-					return
-				default:
-					continue
-				}
-			}
-
-			go handleSMTPConnectionMailFromFailure(conn)
-		}
-	}()
-
-	cleanup := func() {
-		close(stop)
-		listener.Close()
-		<-done
-	}
-
-	return listener, cleanup
+	return startMockSMTPServer(t, handleSMTPConnectionMailFromFailure)
 }
 
 // handleSMTPConnectionMailFromFailure handles a connection that rejects MAIL FROM
@@ -1264,44 +1126,7 @@ func handleSMTPConnectionMailFromFailure(conn net.Conn) {
 
 // setupMockSMTPServerEHLOFailure creates a server that fails EHLO
 func setupMockSMTPServerEHLOFailure(t *testing.T) (net.Listener, func()) {
-	listener, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatalf("Failed to create listener: %v", err)
-	}
-
-	stop := make(chan struct{})
-	done := make(chan struct{})
-
-	go func() {
-		defer close(done)
-		for {
-			select {
-			case <-stop:
-				return
-			default:
-			}
-
-			conn, err := listener.Accept()
-			if err != nil {
-				select {
-				case <-stop:
-					return
-				default:
-					continue
-				}
-			}
-
-			go handleSMTPConnectionEHLOFailure(conn)
-		}
-	}()
-
-	cleanup := func() {
-		close(stop)
-		listener.Close()
-		<-done
-	}
-
-	return listener, cleanup
+	return startMockSMTPServer(t, handleSMTPConnectionEHLOFailure)
 }
 
 // handleSMTPConnectionEHLOFailure handles a connection that fails EHLO
@@ -1346,11 +1171,6 @@ func handleSMTPConnectionEHLOFailure(conn net.Conn) {
 
 // setupMockSMTPServerDirectTLSGreetingFailure creates a server that fails to send greeting after direct TLS
 func setupMockSMTPServerDirectTLSGreetingFailure(t *testing.T) (net.Listener, func()) {
-	listener, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatalf("Failed to create listener: %v", err)
-	}
-
 	// Generate self-signed certificate
 	cert, err := generateSelfSignedCert()
 	if err != nil {
@@ -1360,39 +1180,9 @@ func setupMockSMTPServerDirectTLSGreetingFailure(t *testing.T) (net.Listener, fu
 		Certificates: []tls.Certificate{cert},
 	}
 
-	stop := make(chan struct{})
-	done := make(chan struct{})
-
-	go func() {
-		defer close(done)
-		for {
-			select {
-			case <-stop:
-				return
-			default:
-			}
-
-			conn, err := listener.Accept()
-			if err != nil {
-				select {
-				case <-stop:
-					return
-				default:
-					continue
-				}
-			}
-
-			go handleSMTPConnectionDirectTLSGreetingFailure(conn, tlsConfig)
-		}
-	}()
-
-	cleanup := func() {
-		close(stop)
-		listener.Close()
-		<-done
-	}
-
-	return listener, cleanup
+	return startMockSMTPServer(t, func(conn net.Conn) {
+		handleSMTPConnectionDirectTLSGreetingFailure(conn, tlsConfig)
+	})
 }
 
 // handleSMTPConnectionDirectTLSGreetingFailure handles direct TLS but fails to send greeting
@@ -1956,6 +1746,51 @@ func TestSMTPExecutor_Execute_OpenRelay(t *testing.T) {
 			expectMessage:  "expected open relay",
 		},
 		{
+			name: "MAIL FROM rejected - treated as secure (expect_secure_relay=true)",
+			setupServer: func() (net.Listener, func()) {
+				return setupMockSMTPServerMailFromFailure(t)
+			},
+			config: `{
+				"host": "127.0.0.1",
+				"port": %d,
+				"use_tls": false,
+				"test_open_relay": true,
+				"expect_secure_relay": true
+			}`,
+			expectedStatus: shared.MonitorStatusUp,
+			expectMessage:  "open relay rejected (secure)",
+		},
+		{
+			name: "connection dropped at RCPT TO - not treated as secure",
+			setupServer: func() (net.Listener, func()) {
+				return setupMockSMTPServerRcptReply(t, "")
+			},
+			config: `{
+				"host": "127.0.0.1",
+				"port": %d,
+				"use_tls": false,
+				"test_open_relay": true,
+				"expect_secure_relay": true
+			}`,
+			expectedStatus: shared.MonitorStatusDown,
+			expectMessage:  "open relay test failed",
+		},
+		{
+			name: "temporary RCPT TO failure - not treated as secure",
+			setupServer: func() (net.Listener, func()) {
+				return setupMockSMTPServerRcptReply(t, "451 Greylisted, try again later")
+			},
+			config: `{
+				"host": "127.0.0.1",
+				"port": %d,
+				"use_tls": false,
+				"test_open_relay": true,
+				"expect_secure_relay": true
+			}`,
+			expectedStatus: shared.MonitorStatusDown,
+			expectMessage:  "open relay test failed",
+		},
+		{
 			name: "open relay test disabled",
 			setupServer: func() (net.Listener, func()) {
 				return setupMockSMTPServerWithRelay(t, false, false, true, true)
@@ -2029,41 +1864,185 @@ func TestSMTPExecutor_Execute_ContextCancellation(t *testing.T) {
 	assert.Contains(t, result.Message, "cancelled")
 }
 
-// TestSMTPExecutor_Execute_RateLimiting tests that rate limiting prevents rapid consecutive requests
-func TestSMTPExecutor_Execute_RateLimiting(t *testing.T) {
+// setupMockSMTPServerRcptReply creates a server that answers RCPT TO with reply,
+// or drops the connection when reply is empty
+func setupMockSMTPServerRcptReply(t *testing.T, reply string) (net.Listener, func()) {
+	return startMockSMTPServer(t, func(conn net.Conn) {
+		defer conn.Close()
+
+		reader := bufio.NewReader(conn)
+		writer := bufio.NewWriter(conn)
+
+		writer.WriteString("220 test.example.com ESMTP\r\n")
+		writer.Flush()
+
+		for {
+			line, err := reader.ReadString('\n')
+			if err != nil {
+				return
+			}
+
+			cmd := strings.ToUpper(strings.Split(strings.TrimSpace(line), " ")[0])
+			switch cmd {
+			case "EHLO", "HELO", "MAIL", "RSET":
+				writer.WriteString("250 OK\r\n")
+			case "RCPT":
+				if reply == "" {
+					return
+				}
+				writer.WriteString(reply + "\r\n")
+			case "QUIT":
+				writer.WriteString("221 Bye\r\n")
+				writer.Flush()
+				return
+			default:
+				writer.WriteString("502 Command not implemented\r\n")
+			}
+			writer.Flush()
+		}
+	})
+}
+
+// TestSMTPExecutor_Execute_StopsAtCheckDeadline tests that a large read_timeout
+// cannot keep a check running past its context deadline
+func TestSMTPExecutor_Execute_StopsAtCheckDeadline(t *testing.T) {
 	logger := zap.NewNop().Sugar()
 	executor := NewSMTPExecutor(logger)
 
+	// Server sends the greeting, then never answers
+	listener, cleanup := startMockSMTPServer(t, func(conn net.Conn) {
+		defer conn.Close()
+		conn.Write([]byte("220 test.example.com ESMTP\r\n"))
+		io.Copy(io.Discard, conn)
+	})
+	defer cleanup()
+
+	port := listener.Addr().(*net.TCPAddr).Port
 	monitor := &Monitor{
-		ID:      "test-monitor",
-		Name:    "Test SMTP Monitor",
-		Type:    "smtp",
-		Timeout: 5,
-		Config: `{
-			"host": "smtp.example.com",
-			"port": 587,
-			"use_tls": false
-		}`,
+		ID:       "monitor1",
+		Type:     "smtp",
+		Name:     "Test SMTP Monitor",
+		Interval: 30,
+		Timeout:  1,
+		Config:   fmt.Sprintf(`{"host": "127.0.0.1", "port": %d, "use_tls": false, "read_timeout": 300}`, port),
 	}
 
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
 
-	// First request (will fail to connect, but that's OK)
-	result1 := executor.Execute(ctx, monitor, nil)
-	assert.NotNil(t, result1)
+	start := time.Now()
+	result := executor.Execute(ctx, monitor, nil)
 
-	// Second request immediately after (should be rate limited)
-	result2 := executor.Execute(ctx, monitor, nil)
-	assert.NotNil(t, result2)
-	assert.Equal(t, shared.MonitorStatusDown, result2.Status)
-	assert.Contains(t, result2.Message, "Rate limited")
+	assert.Equal(t, shared.MonitorStatusDown, result.Status)
+	assert.Contains(t, result.Message, "HELLO")
+	assert.Less(t, time.Since(start), 3*time.Second)
+}
 
-	// Wait for rate limit to expire
-	time.Sleep(600 * time.Millisecond)
+// TestSMTPExecutor_Execute_SameServerBackToBack tests that checks of the same server
+// in quick succession (e.g. two monitors on one host) all run
+func TestSMTPExecutor_Execute_SameServerBackToBack(t *testing.T) {
+	logger := zap.NewNop().Sugar()
+	executor := NewSMTPExecutor(logger)
 
-	// Third request after waiting (should not be rate limited)
-	result3 := executor.Execute(ctx, monitor, nil)
-	assert.NotNil(t, result3)
-	// Should get connection error, not rate limit error
-	assert.NotContains(t, result3.Message, "Rate limited")
+	listener, cleanup := setupMockSMTPServer(t, false, false, false)
+	defer cleanup()
+
+	port := listener.Addr().(*net.TCPAddr).Port
+	monitor := &Monitor{
+		ID:       "monitor1",
+		Type:     "smtp",
+		Name:     "Test SMTP Monitor",
+		Interval: 30,
+		Timeout:  5,
+		Config:   fmt.Sprintf(`{"host": "127.0.0.1", "port": %d, "use_tls": false}`, port),
+	}
+
+	for i := 1; i <= 2; i++ {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		result := executor.Execute(ctx, monitor, nil)
+		cancel()
+		assert.Equal(t, shared.MonitorStatusUp, result.Status, "check %d: %s", i, result.Message)
+	}
+}
+
+// TestSMTPExecutor_Execute_UsernameWithoutPassword tests that the result does not
+// claim authentication when no AUTH was sent
+func TestSMTPExecutor_Execute_UsernameWithoutPassword(t *testing.T) {
+	logger := zap.NewNop().Sugar()
+	executor := NewSMTPExecutor(logger)
+
+	listener, cleanup := setupMockSMTPServer(t, false, true, false)
+	defer cleanup()
+
+	port := listener.Addr().(*net.TCPAddr).Port
+	monitor := &Monitor{
+		ID:       "monitor1",
+		Type:     "smtp",
+		Name:     "Test SMTP Monitor",
+		Interval: 30,
+		Timeout:  5,
+		Config:   fmt.Sprintf(`{"host": "127.0.0.1", "port": %d, "use_tls": false, "username": "testuser"}`, port),
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	result := executor.Execute(ctx, monitor, nil)
+	assert.Equal(t, shared.MonitorStatusUp, result.Status)
+	assert.Equal(t, "SMTP server is reachable", result.Message)
+}
+
+// TestSMTPExecutor_Execute_EHLOName tests that the client introduces itself with its
+// own name, not the target server's hostname
+func TestSMTPExecutor_Execute_EHLOName(t *testing.T) {
+	logger := zap.NewNop().Sugar()
+	executor := NewSMTPExecutor(logger)
+
+	ehlo := make(chan string, 1)
+	listener, cleanup := startMockSMTPServer(t, func(conn net.Conn) {
+		defer conn.Close()
+
+		reader := bufio.NewReader(conn)
+		conn.Write([]byte("220 test.example.com ESMTP\r\n"))
+
+		for {
+			line, err := reader.ReadString('\n')
+			if err != nil {
+				return
+			}
+			line = strings.TrimSpace(line)
+			if strings.HasPrefix(line, "QUIT") {
+				conn.Write([]byte("221 Bye\r\n"))
+				return
+			}
+			if strings.HasPrefix(line, "EHLO") {
+				ehlo <- line
+			}
+			conn.Write([]byte("250 OK\r\n"))
+		}
+	})
+	defer cleanup()
+
+	port := listener.Addr().(*net.TCPAddr).Port
+	monitor := &Monitor{
+		ID:       "monitor1",
+		Type:     "smtp",
+		Name:     "Test SMTP Monitor",
+		Interval: 30,
+		Timeout:  5,
+		Config:   fmt.Sprintf(`{"host": "127.0.0.1", "port": %d, "use_tls": false}`, port),
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	result := executor.Execute(ctx, monitor, nil)
+	assert.Equal(t, shared.MonitorStatusUp, result.Status)
+
+	select {
+	case line := <-ehlo:
+		assert.Equal(t, "EHLO localhost", line)
+	default:
+		t.Fatal("server received no EHLO")
+	}
 }

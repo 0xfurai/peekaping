@@ -60,7 +60,7 @@ export const smtpDefaultValues: SMTPForm = {
   username: "",
   password: "",
   test_open_relay: false,
-  expect_secure_relay: false,
+  expect_secure_relay: true,
   ...generalDefaultValues,
   ...intervalsDefaultValues,
   ...notificationsDefaultValues,
@@ -68,18 +68,19 @@ export const smtpDefaultValues: SMTPForm = {
 };
 
 // Validation schema for backend config responses
+// Booleans are optional because the backend treats a missing one as false
 const smtpConfigSchema = z.object({
   host: z.string(),
   port: z.number().min(1).max(65535),
   from_email: z.string().optional(),
   rcpt_to_email: z.string().optional(),
-  use_tls: z.boolean(),
+  use_tls: z.boolean().optional(),
   use_direct_tls: z.boolean().optional(),
-  ignore_tls_errors: z.boolean(),
-  check_cert_expiry: z.boolean(),
+  ignore_tls_errors: z.boolean().optional(),
+  check_cert_expiry: z.boolean().optional(),
   read_timeout: z.number().optional(),
   username: z.string().optional(),
-  // password should never be returned from backend
+  password: z.string().optional(),
   test_open_relay: z.boolean().optional(),
   expect_secure_relay: z.boolean().optional(),
 });
@@ -105,13 +106,14 @@ export const deserialize = (data: MonitorMonitorResponseDto): SMTPForm => {
         port: validatedConfig.port ?? 587,
         from_email: validatedConfig.from_email || "",
         rcpt_to_email: validatedConfig.rcpt_to_email || "",
-        use_tls: validatedConfig.use_tls ?? true,
+        use_tls: validatedConfig.use_tls ?? false,
         use_direct_tls: validatedConfig.use_direct_tls ?? false,
         ignore_tls_errors: validatedConfig.ignore_tls_errors ?? false,
-        check_cert_expiry: validatedConfig.check_cert_expiry ?? true,
+        check_cert_expiry: validatedConfig.check_cert_expiry ?? false,
         read_timeout: validatedConfig.read_timeout,
         username: validatedConfig.username || "",
-        password: "", // Never return password from backend for security
+        // Keep the stored password: an update replaces the whole config
+        password: validatedConfig.password || "",
         test_open_relay: validatedConfig.test_open_relay ?? false,
         expect_secure_relay: validatedConfig.expect_secure_relay ?? false,
       };
@@ -171,7 +173,6 @@ export const serialize = (formData: SMTPForm): MonitorCreateUpdateDto => {
   if (formData.username) {
     config.username = formData.username;
   }
-  // Only send password if user has entered a new one (security: don't send empty string)
   if (formData.password && formData.password.trim() !== "") {
     config.password = formData.password;
   }

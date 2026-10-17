@@ -9,6 +9,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const Authentication = () => {
@@ -43,7 +44,7 @@ const Authentication = () => {
           <FormItem>
             <FormLabel>{t("monitors.form.smtp.password")}</FormLabel>
             <FormControl>
-              <Input type="password" placeholder="••••••••" {...field} />
+              <PasswordInput placeholder="••••••••" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>

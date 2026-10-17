@@ -565,7 +565,7 @@
         "ignore_tls_errors": "Ignore TLS Errors",
         "ignore_tls_errors_description": "Skip TLS certificate validation (useful for self-signed certificates)",
         "expect_secure_relay": "Expect Secure Relay",
-        "expect_secure_relay_description": "If enabled, the monitor will be marked as DOWN when an open relay is detected (security risk). If disabled, open relay will be treated as success.",
+        "expect_secure_relay_description": "If enabled, the monitor will be marked as DOWN when an open relay is detected (security risk). If disabled, the monitor expects an open relay and will be marked as DOWN when the server rejects relaying.",
         "open_relay_title": "Open Relay Testing",
         "password": "Password",
         "port": "Port",
