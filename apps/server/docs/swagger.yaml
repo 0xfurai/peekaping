@@ -2053,6 +2053,8 @@ paths:
       - default: 10
         description: Items per page
         in: query
+        maximum: 1000
+        minimum: 1
         name: limit
         type: integer
       produces:
@@ -2331,6 +2333,8 @@ paths:
       - default: 10
         description: Items per page
         in: query
+        maximum: 1000
+        minimum: 1
         name: limit
         type: integer
       - description: Active status
@@ -2550,8 +2554,11 @@ paths:
         name: id
         required: true
         type: string
-      - description: Number of heartbeats per page (default 50)
+      - default: 50
+        description: Number of heartbeats per page
         in: query
+        maximum: 1000
+        minimum: 1
         name: limit
         type: integer
       - description: Page number (default 0)
@@ -2775,6 +2782,8 @@ paths:
       - default: 10
         description: Items per page
         in: query
+        maximum: 1000
+        minimum: 1
         name: limit
         type: integer
       produces:
@@ -3021,6 +3030,8 @@ paths:
       - default: 10
         description: Items per page
         in: query
+        maximum: 1000
+        minimum: 1
         name: limit
         type: integer
       produces:
@@ -3328,6 +3339,8 @@ paths:
       - default: 10
         description: Items per page
         in: query
+        maximum: 1000
+        minimum: 1
         name: limit
         type: integer
       produces:
@@ -3598,6 +3611,8 @@ paths:
       - default: 10
         description: Items per page
         in: query
+        maximum: 1000
+        minimum: 1
         name: limit
         type: integer
       produces:
