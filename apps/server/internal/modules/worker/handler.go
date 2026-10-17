@@ -3,6 +3,7 @@ package worker
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/healthcheck"
@@ -23,6 +24,17 @@ const (
 	// TaskTypeIngester is the task type for ingesting health check results
 	TaskTypeIngester = "monitor:ingest"
 )
+
+// ingesterEnqueueGrace is the time left after a check gives up for its result
+// to be enqueued to the ingester before asynq cancels the task.
+const ingesterEnqueueGrace = 8 * time.Second
+
+// HealthCheckTaskTimeout returns the asynq task timeout for a check with the given
+// timeout in seconds. It must outlast the check itself: when asynq's deadline fires
+// first, the task fails and gets archived instead of reporting DOWN.
+func HealthCheckTaskTimeout(checkTimeoutSeconds int) time.Duration {
+	return time.Duration(checkTimeoutSeconds)*time.Second + healthcheck.ExecutorGrace + ingesterEnqueueGrace
+}
 
 // ProxyData contains proxy configuration for health checks
 type ProxyData struct {
@@ -173,6 +185,12 @@ func (h *HealthCheckTaskHandler) ProcessTask(ctx context.Context, task *asynq.Ta
 
 	// Execute the health check using the supervisor's method
 	tickResult := h.healthCheckService.HandleMonitorTick(ctx, m, exec, proxyModel, payload.IsUnderMaintenance)
+
+	// The task was cancelled (e.g. the worker is shutting down and asynq puts it
+	// back in the queue). A check cut short that way says nothing about the target.
+	if errors.Is(ctx.Err(), context.Canceled) {
+		return ctx.Err()
+	}
 
 	// Handle nil result (for monitors that return nil from executor)
 	if tickResult == nil {
