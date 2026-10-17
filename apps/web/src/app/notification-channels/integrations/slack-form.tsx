@@ -106,7 +106,11 @@ export default function SlackForm() {
               {t("notifications.form.slack.bot_token_label")}
             </FormLabel>
             <FormControl>
-              <PasswordInput placeholder="xoxb-..." {...field} />
+              <PasswordInput
+                placeholder="xoxb-..."
+                autoComplete="new-password"
+                {...field}
+              />
             </FormControl>
             <FormDescription>
               {t("notifications.form.slack.bot_token_description")}:{" "}
