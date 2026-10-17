@@ -85,7 +85,7 @@ func (ic *Controller) SetByKey(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		return
 	}
-	updated, err := ic.service.SetByKey(ctx, key, &entity)
+	updated, err := ic.service.SetByKey(ctx, key, &Model{Value: entity.Value, Type: entity.Type})
 	if err != nil {
 		ic.logger.Errorw("Failed to set setting by key", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))

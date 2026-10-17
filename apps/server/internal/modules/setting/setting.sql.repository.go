@@ -47,7 +47,7 @@ func (r *SQLRepositoryImpl) GetByKey(ctx context.Context, key string) (*Model, e
 	return toDomainModelFromSQL(sm), nil
 }
 
-func (r *SQLRepositoryImpl) SetByKey(ctx context.Context, key string, entity *CreateUpdateDto) (*Model, error) {
+func (r *SQLRepositoryImpl) SetByKey(ctx context.Context, key string, entity *Model) (*Model, error) {
 	// Try to update existing record first
 	result, err := r.db.NewUpdate().
 		Model((*sqlModel)(nil)).

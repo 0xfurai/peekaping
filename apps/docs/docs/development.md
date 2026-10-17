@@ -214,3 +214,9 @@ When using asdf:
 - Use `asdf current` to verify your tool versions match the project requirements
 
 Happy hacking! 🚀
+
+## Server model boundaries
+
+HTTP request DTOs belong at the controller boundary. Services use domain models, and repository interfaces accept domain models or partial-update models. Each SQL or Mongo repository maps these models to its own private persistence structs; database tags belong on those structs.
+
+Partial-update models preserve omitted fields separately from explicit zero values. A nil slice leaves an association unchanged, while an empty slice clears it. Maintenance monitor IDs are passed separately to the service so the maintenance repository only receives maintenance fields.

@@ -1036,6 +1036,8 @@
                         "in": "query"
                     },
                     {
+                        "maximum": 1000,
+                        "minimum": 1,
                         "type": "integer",
                         "default": 10,
                         "description": "Items per page",
@@ -1478,6 +1480,8 @@
                         "in": "query"
                     },
                     {
+                        "maximum": 1000,
+                        "minimum": 1,
                         "type": "integer",
                         "default": 10,
                         "description": "Items per page",
@@ -1875,8 +1879,11 @@
                         "required": true
                     },
                     {
+                        "maximum": 1000,
+                        "minimum": 1,
                         "type": "integer",
-                        "description": "Number of heartbeats per page (default 50)",
+                        "default": 50,
+                        "description": "Number of heartbeats per page",
                         "name": "limit",
                         "in": "query"
                     },
@@ -2182,6 +2189,8 @@
                         "in": "query"
                     },
                     {
+                        "maximum": 1000,
+                        "minimum": 1,
                         "type": "integer",
                         "default": 10,
                         "description": "Items per page",
@@ -2575,6 +2584,8 @@
                         "in": "query"
                     },
                     {
+                        "maximum": 1000,
+                        "minimum": 1,
                         "type": "integer",
                         "default": 10,
                         "description": "Items per page",
@@ -3067,6 +3078,8 @@
                         "in": "query"
                     },
                     {
+                        "maximum": 1000,
+                        "minimum": 1,
                         "type": "integer",
                         "default": 10,
                         "description": "Items per page",
@@ -3497,6 +3510,8 @@
                         "in": "query"
                     },
                     {
+                        "maximum": 1000,
+                        "minimum": 1,
                         "type": "integer",
                         "default": 10,
                         "description": "Items per page",

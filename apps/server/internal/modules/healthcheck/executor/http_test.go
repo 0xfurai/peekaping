@@ -9,11 +9,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"peekaping/internal/modules/shared"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -1794,4 +1796,60 @@ func TestHTTPExecutor_Execute_IgnoreTlsErrors_WithMTLS(t *testing.T) {
 	// Should fail because of invalid certificates, but test that the ignore_tls_errors flag is properly applied
 	assert.Equal(t, shared.MonitorStatusDown, result.Status)
 	assert.Contains(t, result.Message, "invalid mTLS cert/key")
+}
+
+func TestHTTPExecutor_Execute_DoesNotLeakConnections(t *testing.T) {
+	logger := zap.NewNop().Sugar()
+	executor := NewHTTPExecutor(logger)
+
+	var mu sync.Mutex
+	open := 0
+
+	server := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status":"ok"}`))
+	}))
+	// Count connections the server considers established (keep-alive idle
+	// connections stay New-but-not-Closed, which is exactly the leak signal).
+	server.Config.ConnState = func(_ net.Conn, state http.ConnState) {
+		mu.Lock()
+		defer mu.Unlock()
+		switch state {
+		case http.StateNew:
+			open++
+		case http.StateClosed, http.StateHijacked:
+			open--
+		}
+	}
+	server.Start()
+	defer server.Close()
+
+	monitor := &Monitor{
+		ID:       "monitor1",
+		Type:     "http",
+		Name:     "Leak Test Monitor",
+		Interval: 30,
+		Timeout:  5,
+		Config: `{
+			"url": "` + server.URL + `",
+			"method": "GET",
+			"encoding": "json",
+			"accepted_statuscodes": ["2XX"],
+			"authMethod": "none"
+		}`,
+	}
+
+	const checks = 5
+	for range checks {
+		result := executor.Execute(context.Background(), monitor, nil)
+		assert.Equal(t, shared.MonitorStatusUp, result.Status)
+	}
+
+	// After the checks complete, the server should observe its connections
+	// close (asynchronously). If they leak, open stays at ~checks forever.
+	assert.Eventually(t, func() bool {
+		mu.Lock()
+		defer mu.Unlock()
+		return open <= 1
+	}, 3*time.Second, 20*time.Millisecond, "established connections should not accumulate across checks")
 }

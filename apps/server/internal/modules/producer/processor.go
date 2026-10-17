@@ -3,6 +3,7 @@ package producer
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -11,6 +12,14 @@ import (
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/worker"
 )
+
+const healthCheckQueue = "healthcheck"
+
+// healthCheckTaskID is the asynq task ID of a monitor's health check. It is fixed
+// per monitor, so the monitor's queued check can be found and removed directly.
+func healthCheckTaskID(monitorID string) string {
+	return "healthcheck:" + monitorID
+}
 
 // claimDueMonitors atomically claims a batch of due monitors from the due queue
 // It moves monitors from the due set (where score <= nowMs) to the lease set with a lease expiry
@@ -231,34 +240,22 @@ func (p *Producer) processMonitor(ctx context.Context, monitorID string, nowMs i
 
 	// Enqueue task to worker queue
 	opts := &queue.EnqueueOptions{
-		Queue:     "healthcheck",
+		Queue:     healthCheckQueue,
 		MaxRetry:  0,
-		Timeout:   time.Duration(mon.Timeout) * time.Second,
+		Timeout:   worker.HealthCheckTaskTimeout(mon.Timeout),
 		Retention: 0,
+		TaskID:    healthCheckTaskID(mon.ID),
 	}
 
-	// Use EnqueueUnique to prevent duplicate tasks from being scheduled
-	// The unique key is based on monitor ID, and TTL is 2x the interval to ensure
-	// no duplicate tasks are created even if there are scheduling delays
-	uniqueKey := fmt.Sprintf("healthcheck:%s", mon.ID)
-	ttl := time.Duration(mon.Interval*2) * time.Second
-
-	_, err = p.queueService.EnqueueUnique(ctx, worker.TaskTypeHealthCheck, payload, uniqueKey, ttl, opts)
+	enqueued, err := p.enqueueHealthCheck(ctx, payload, opts)
 	if err != nil {
-		// Check if this is a duplicate task error (expected with high concurrency)
-		errMsg := err.Error()
-		if strings.Contains(errMsg, "task ID conflicts") ||
-			strings.Contains(errMsg, "duplicated") ||
-			strings.Contains(errMsg, "already exists") {
-			// This is not an error - the task is already queued, which is exactly what we want
-			// This commonly happens when multiple workers process monitors concurrently
-			p.logger.Debugw("Monitor task already queued (duplicate prevented)",
-				"monitor_id", mon.ID,
-				"duration", time.Since(start))
-			return mon.Interval, nil
-		}
-		// This is a real error
 		return 0, fmt.Errorf("failed to enqueue health check: %w", err)
+	}
+	if !enqueued {
+		p.logger.Debugw("Previous health check still in flight, skipping",
+			"monitor_id", mon.ID,
+			"duration", time.Since(start))
+		return mon.Interval, nil
 	}
 
 	p.logger.Infow("Enqueued health check",
@@ -268,4 +265,51 @@ func (p *Producer) processMonitor(ctx context.Context, monitorID string, nowMs i
 		"duration", time.Since(start))
 
 	return mon.Interval, nil
+}
+
+// enqueueHealthCheck enqueues a check under the monitor's fixed task ID, which keeps
+// at most one check per monitor in the queue. asynq rejects the ID while any task
+// holds it, archived ones included, so a leftover task is deleted and replaced
+// instead of blocking the monitor. It returns false when the previous check is
+// still in flight.
+func (p *Producer) enqueueHealthCheck(
+	ctx context.Context,
+	payload worker.HealthCheckTaskPayload,
+	opts *queue.EnqueueOptions,
+) (bool, error) {
+	_, err := p.queueService.Enqueue(ctx, worker.TaskTypeHealthCheck, payload, opts)
+	if !errors.Is(err, queue.ErrTaskIDConflict) {
+		return err == nil, err
+	}
+
+	existing, err := p.queueService.GetTaskInfo(ctx, healthCheckQueue, opts.TaskID)
+	if errors.Is(err, queue.ErrTaskNotFound) {
+		// It finished between the two calls; the next tick enqueues
+		return false, nil
+	}
+	if err != nil {
+		p.logger.Warnw("Failed to look up conflicting health check task", "task_id", opts.TaskID, "error", err)
+		return false, nil
+	}
+	// A pending or running check still reports on its own. Pending ones are not
+	// replaced even when old: that would send them to the back of a backlogged queue.
+	if existing.State == queue.TaskStateActive || existing.State == queue.TaskStatePending {
+		return false, nil
+	}
+
+	// DeleteTask refuses active tasks, so a check that has just started is left alone.
+	if err := p.queueService.DeleteTask(ctx, healthCheckQueue, opts.TaskID); err != nil {
+		p.logger.Warnw("Failed to remove leftover health check task", "task_id", opts.TaskID, "error", err)
+		return false, nil
+	}
+	p.logger.Warnw("Replaced leftover health check task",
+		"task_id", opts.TaskID,
+		"state", existing.State,
+		"last_error", existing.LastErr)
+
+	_, err = p.queueService.Enqueue(ctx, worker.TaskTypeHealthCheck, payload, opts)
+	if errors.Is(err, queue.ErrTaskIDConflict) {
+		return false, nil
+	}
+	return err == nil, err
 }

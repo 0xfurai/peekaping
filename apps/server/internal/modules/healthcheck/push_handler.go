@@ -2,12 +2,14 @@ package healthcheck
 
 import (
 	"fmt"
+	"math"
 	"net/http"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/queue"
 	"peekaping/internal/utils"
 	"strconv"
+	"strings"
 	"time"
 
 	"peekaping/internal/modules/shared"
@@ -15,13 +17,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
-
-type PushHeartbeatRequest struct {
-	PushToken string `json:"pushToken" binding:"required"`
-	Status    int    `json:"status" binding:"required"`
-	Msg       string `json:"msg"`
-	Ping      int    `json:"ping"`
-}
 
 type PushConfig struct {
 	PushToken string `json:"pushToken"`
@@ -58,8 +53,6 @@ func RegisterPushEndpoint(
 	router.GET("/push/:token", func(ctx *gin.Context) {
 		token := ctx.Param("token")
 
-		// pingStr := ctx.DefaultQuery("ping", "0")
-
 		monitor, err := monitorService.FindOneByPushToken(ctx, token)
 		if err != nil {
 			logger.Errorw("Failed to find monitor with push token", "error", err)
@@ -77,15 +70,16 @@ func RegisterPushEndpoint(
 			return
 		}
 
-		msg := ctx.DefaultQuery("msg", "OK")
-		statusStr := ctx.DefaultQuery("status", "1")
-
-		// Parse status
-		statusInt, err := strconv.Atoi(statusStr)
-		if err != nil {
-			statusInt = 1
+		status := parsePushStatus(ctx.Query("status"))
+		msg := ctx.Query("msg")
+		if msg == "" {
+			msg = defaultPushMessage(status)
 		}
-		status := shared.MonitorStatus(statusInt)
+		pingStr := ctx.Query("ping")
+		ping, ok := parsePushPing(pingStr)
+		if !ok {
+			logger.Warnw("Ignoring invalid push ping", "monitor_id", monitor.ID, "ping", pingStr)
+		}
 
 		now := time.Now().UTC()
 
@@ -102,7 +96,7 @@ func RegisterPushEndpoint(
 			MonitorConfig:      monitor.Config,
 			Status:             status,
 			Message:            msg,
-			PingMs:             0, // Push monitors don't have meaningful ping times
+			PingMs:             ping,
 			StartTime:          now,
 			EndTime:            now,
 			IsUnderMaintenance: false, // Push monitors don't have maintenance windows in the same way
@@ -134,4 +128,43 @@ func RegisterPushEndpoint(
 
 		ctx.JSON(http.StatusOK, gin.H{"ok": "true"})
 	})
+}
+
+// parsePushStatus maps the status query value to a monitor status. Like
+// Uptime Kuma, whose push URL format this follows, an empty value means up
+// and anything other than "up" or "1" means down, so a failure reported with
+// an unexpected word is never recorded as healthy.
+func parsePushStatus(value string) shared.MonitorStatus {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "", "up", "1":
+		return shared.MonitorStatusUp
+	default:
+		return shared.MonitorStatusDown
+	}
+}
+
+func defaultPushMessage(status shared.MonitorStatus) string {
+	if status == shared.MonitorStatusUp {
+		return "OK"
+	}
+	return "Down"
+}
+
+// maxPushPingMs keeps the ping inside the INTEGER heartbeats.ping column.
+const maxPushPingMs = math.MaxInt32
+
+// parsePushPing returns the ping in whole milliseconds, rounding decimals.
+// An empty value is 0. A malformed, negative or oversized value is dropped as
+// 0 and reported with ok=false, so a bad ping never costs the heartbeat.
+func parsePushPing(value string) (ping int, ok bool) {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return 0, true
+	}
+	ms, err := strconv.ParseFloat(value, 64)
+	// The range check is written so that NaN fails it too.
+	if err != nil || !(ms >= 0 && ms <= maxPushPingMs) {
+		return 0, false
+	}
+	return int(math.Round(ms)), true
 }

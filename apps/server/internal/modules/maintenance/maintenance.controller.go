@@ -34,7 +34,7 @@ func NewController(
 // @Param     q    query     string  false  "Search query"
 // @Param     strategy query string  false  "Filter by strategy"
 // @Param     page query     int     false  "Page number" default(1)
-// @Param     limit query    int     false  "Items per page" default(10)
+// @Param     limit query    int     false  "Items per page" default(10) minimum(1) maximum(1000)
 // @Success		200	{object}	utils.ApiResponse[[]Model]
 // @Failure		400	{object}	utils.APIError[any]
 // @Failure		404	{object}	utils.APIError[any]
@@ -47,7 +47,7 @@ func (ic *Controller) FindAll(ctx *gin.Context) {
 	}
 
 	limit, err := utils.GetQueryInt(ctx, "limit", 10)
-	if err != nil || limit < 1 {
+	if err != nil || limit < 1 || limit > utils.MaxPageSize {
 		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid limit parameter"))
 		return
 	}
@@ -96,7 +96,7 @@ func (ic *Controller) Create(ctx *gin.Context) {
 		return
 	}
 
-	created, err := ic.service.Create(ctx, entity)
+	created, err := ic.service.Create(ctx, entity.toModel(), entity.MonitorIds)
 	if err != nil {
 		ic.logger.Errorw("Failed to create maintenance", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -189,7 +189,7 @@ func (ic *Controller) UpdateFull(ctx *gin.Context) {
 		return
 	}
 
-	updated, err := ic.service.UpdateFull(ctx, id, &entity)
+	updated, err := ic.service.UpdateFull(ctx, id, entity.toModel(), entity.MonitorIds)
 	if err != nil {
 		ic.logger.Errorw("Failed to update maintenance", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -220,7 +220,7 @@ func (ic *Controller) UpdatePartial(ctx *gin.Context) {
 		return
 	}
 
-	updated, err := ic.service.UpdatePartial(ctx, id, &entity)
+	updated, err := ic.service.UpdatePartial(ctx, id, entity.toModel(), entity.MonitorIds)
 	if err != nil {
 		ic.logger.Errorw("Failed to update maintenance", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))

@@ -177,8 +177,8 @@ type MockMaintenanceService struct {
 	mock.Mock
 }
 
-func (m *MockMaintenanceService) Create(ctx context.Context, dto *maintenance.CreateUpdateDto) (*maintenance.Model, error) {
-	args := m.Called(ctx, dto)
+func (m *MockMaintenanceService) Create(ctx context.Context, model *maintenance.Model, monitorIDs []string) (*maintenance.Model, error) {
+	args := m.Called(ctx, model, monitorIDs)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
@@ -219,16 +219,16 @@ func (m *MockMaintenanceService) FindAll(ctx context.Context, page int, limit in
 	return args.Get(0).([]*maintenance.Model), args.Error(1)
 }
 
-func (m *MockMaintenanceService) UpdateFull(ctx context.Context, id string, dto *maintenance.CreateUpdateDto) (*maintenance.Model, error) {
-	args := m.Called(ctx, id, dto)
+func (m *MockMaintenanceService) UpdateFull(ctx context.Context, id string, model *maintenance.Model, monitorIDs []string) (*maintenance.Model, error) {
+	args := m.Called(ctx, id, model, monitorIDs)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*maintenance.Model), args.Error(1)
 }
 
-func (m *MockMaintenanceService) UpdatePartial(ctx context.Context, id string, dto *maintenance.PartialUpdateDto) (*maintenance.Model, error) {
-	args := m.Called(ctx, id, dto)
+func (m *MockMaintenanceService) UpdatePartial(ctx context.Context, id string, model *maintenance.UpdateModel, monitorIDs []string) (*maintenance.Model, error) {
+	args := m.Called(ctx, id, model, monitorIDs)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}

@@ -1045,6 +1045,8 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "maximum": 1000,
+                        "minimum": 1,
                         "type": "integer",
                         "default": 10,
                         "description": "Items per page",
@@ -1487,6 +1489,8 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "maximum": 1000,
+                        "minimum": 1,
                         "type": "integer",
                         "default": 10,
                         "description": "Items per page",
@@ -1884,8 +1888,11 @@ const docTemplate = `{
                         "required": true
                     },
                     {
+                        "maximum": 1000,
+                        "minimum": 1,
                         "type": "integer",
-                        "description": "Number of heartbeats per page (default 50)",
+                        "default": 50,
+                        "description": "Number of heartbeats per page",
                         "name": "limit",
                         "in": "query"
                     },
@@ -2191,6 +2198,8 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "maximum": 1000,
+                        "minimum": 1,
                         "type": "integer",
                         "default": 10,
                         "description": "Items per page",
@@ -2584,6 +2593,8 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "maximum": 1000,
+                        "minimum": 1,
                         "type": "integer",
                         "default": 10,
                         "description": "Items per page",
@@ -3076,6 +3087,8 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "maximum": 1000,
+                        "minimum": 1,
                         "type": "integer",
                         "default": 10,
                         "description": "Items per page",
@@ -3506,6 +3519,8 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "maximum": 1000,
+                        "minimum": 1,
                         "type": "integer",
                         "default": 10,
                         "description": "Items per page",

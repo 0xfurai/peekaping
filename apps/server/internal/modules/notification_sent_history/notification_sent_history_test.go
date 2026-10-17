@@ -20,8 +20,8 @@ func (m *MockRepository) CheckIfSent(ctx context.Context, notificationType strin
 	return args.Bool(0), args.Error(1)
 }
 
-func (m *MockRepository) RecordSent(ctx context.Context, dto *CreateDto) error {
-	args := m.Called(ctx, dto)
+func (m *MockRepository) RecordSent(ctx context.Context, model *Model) error {
+	args := m.Called(ctx, model)
 	return args.Error(0)
 }
 
@@ -73,15 +73,15 @@ func TestNotificationSentHistoryService(t *testing.T) {
 
 	t.Run("RecordNotificationSent", func(t *testing.T) {
 		mockRepo.ExpectedCalls = nil // Reset expectations
-		expectedDto := &CreateDto{
+		expectedDto := &Model{
 			Type:      notificationType,
 			MonitorID: monitorID,
 			Days:      targetDays,
 		}
-		mockRepo.On("RecordSent", ctx, mock.MatchedBy(func(dto *CreateDto) bool {
-			return dto.Type == expectedDto.Type &&
-				dto.MonitorID == expectedDto.MonitorID &&
-				dto.Days == expectedDto.Days
+		mockRepo.On("RecordSent", ctx, mock.MatchedBy(func(model *Model) bool {
+			return model.Type == expectedDto.Type &&
+				model.MonitorID == expectedDto.MonitorID &&
+				model.Days == expectedDto.Days
 		})).Return(nil)
 
 		err := service.RecordNotificationSent(ctx, notificationType, monitorID, targetDays)
@@ -150,7 +150,7 @@ func TestNotificationDeduplicationFlow(t *testing.T) {
 
 		// Check 21-day threshold (15 <= 21, so should notify)
 		mockRepo.On("CheckIfSent", ctx, notificationType, monitorID, 21).Return(false, nil)
-		mockRepo.On("RecordSent", ctx, mock.AnythingOfType("*notification_sent_history.CreateDto")).Return(nil)
+		mockRepo.On("RecordSent", ctx, mock.AnythingOfType("*notification_sent_history.Model")).Return(nil)
 
 		// Check 14-day threshold (15 <= 14 is false, so won't even check)
 		// Check 7-day threshold (15 <= 7 is false, so won't even check)
