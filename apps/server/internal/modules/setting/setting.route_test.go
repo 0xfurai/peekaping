@@ -99,19 +99,26 @@ func TestSettingsAPI_HidesInternalSettings(t *testing.T) {
 		"ACCESS_TOKEN_EXPIRED_IN",
 		"REFRESH_TOKEN_EXPIRED_IN",
 	}
+	// A PUT with a bad body must get 404 too, not the 400 a user-editable key
+	// would get.
+	requests := []struct {
+		name, method, body string
+	}{
+		{"GET", http.MethodGet, ""},
+		{"PUT", http.MethodPut, `{"value":"attacker-chosen","type":"string"}`},
+		{"PUT_malformed_body", http.MethodPut, `{`},
+		{"PUT_invalid_body", http.MethodPut, `{"value":"attacker-chosen"}`},
+		{"DELETE", http.MethodDelete, ""},
+	}
 	for _, as := range authMethods {
 		for _, key := range internalKeys {
-			for _, method := range []string{http.MethodGet, http.MethodPut, http.MethodDelete} {
-				t.Run(as.name+"/"+method+"/"+key, func(t *testing.T) {
+			for _, req := range requests {
+				t.Run(as.name+"/"+req.name+"/"+key, func(t *testing.T) {
 					api := newSettingsAPI(t)
 					before := api.stored(t, key)
 					require.NotEmpty(t, before)
 
-					body := ""
-					if method == http.MethodPut {
-						body = `{"value":"attacker-chosen","type":"string"}`
-					}
-					w := api.request(method, key, body, as.authorize)
+					w := api.request(req.method, key, req.body, as.authorize)
 
 					assert.Equal(t, http.StatusNotFound, w.Code)
 					assert.NotContains(t, w.Body.String(), before)
@@ -127,7 +134,10 @@ func TestSettingsAPI_ServesDataRetentionPeriod(t *testing.T) {
 		t.Run(as.name, func(t *testing.T) {
 			api := newSettingsAPI(t)
 
-			w := api.request(http.MethodPut, "KEEP_DATA_PERIOD_DAYS", `{"value":"30","type":"int"}`, as.authorize)
+			w := api.request(http.MethodPut, "KEEP_DATA_PERIOD_DAYS", `{`, as.authorize)
+			require.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+
+			w = api.request(http.MethodPut, "KEEP_DATA_PERIOD_DAYS", `{"value":"30","type":"int"}`, as.authorize)
 			require.Equal(t, http.StatusOK, w.Code, w.Body.String())
 
 			w = api.request(http.MethodGet, "KEEP_DATA_PERIOD_DAYS", "", as.authorize)

@@ -26,6 +26,7 @@ var ErrSettingNotFound = errors.New("setting not found")
 // APIService is the settings service as the settings API sees it: keys that
 // aren't user-editable behave as if they don't exist.
 type APIService interface {
+	IsUserEditable(key string) bool
 	GetByKey(ctx context.Context, key string) (*Model, error)
 	SetByKey(ctx context.Context, key string, entity *Model) (*Model, error)
 	DeleteByKey(ctx context.Context, key string) error
@@ -37,6 +38,11 @@ type APIServiceImpl struct {
 
 func NewAPIService(service Service) APIService {
 	return &APIServiceImpl{service}
+}
+
+// IsUserEditable reports whether the settings API can reach key.
+func (s *APIServiceImpl) IsUserEditable(key string) bool {
+	return userEditableKeys[key]
 }
 
 func (s *APIServiceImpl) GetByKey(ctx context.Context, key string) (*Model, error) {

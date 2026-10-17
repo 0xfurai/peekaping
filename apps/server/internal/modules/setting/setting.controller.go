@@ -66,6 +66,12 @@ func (ic *Controller) GetByKey(ctx *gin.Context) {
 // @Failure	500	{object}	utils.APIError[any]
 func (ic *Controller) SetByKey(ctx *gin.Context) {
 	key := ctx.Param("key")
+	// Check the key before the body, so an internal key answers 404 whatever
+	// the body holds.
+	if !ic.service.IsUserEditable(key) {
+		ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Setting not found"))
+		return
+	}
 	var entity CreateUpdateDto
 	if err := ctx.ShouldBindJSON(&entity); err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
