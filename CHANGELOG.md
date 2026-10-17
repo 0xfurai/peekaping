@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 ### Fixed
+- fix: monitors no longer stop checking after a check times out; existing stuck monitors recover on upgrade (#237, #254, #265, #266)
+- fix: editing, pausing or deleting a monitor drops its queued check, and an edit triggers a check with the new config right away (#266)
 
 - fix: close idle HTTP connections after each check, so HTTP monitors no longer leak one socket per check (#287) (thanks @jonfriesen)
 
