@@ -465,9 +465,9 @@ func TestProcessMonitor(t *testing.T) {
 
 		mockMonitorSvc.On("FindByID", ctx, "mon-1").Return(mon, nil)
 		mockMaintenanceSvc.On("GetMaintenancesByMonitorID", ctx, "mon-1").Return([]*maintenance.Model{}, nil)
-		mockQueueSvc.On("EnqueueUnique", ctx, worker.TaskTypeHealthCheck, mock.MatchedBy(func(payload worker.HealthCheckTaskPayload) bool {
+		mockQueueSvc.On("Enqueue", ctx, worker.TaskTypeHealthCheck, mock.MatchedBy(func(payload worker.HealthCheckTaskPayload) bool {
 			return payload.CheckCertExpiry == true
-		}), "healthcheck:mon-1", mock.AnythingOfType("time.Duration"), mock.AnythingOfType("*queue.EnqueueOptions")).Return(&queue.TaskInfo{ID: "task-123"}, nil)
+		}), healthCheckOpts("mon-1")).Return(&queue.TaskInfo{ID: "task-123"}, nil)
 
 		interval, err := producer.processMonitor(ctx, "mon-1", 1234567890)
 		assert.NoError(t, err)
