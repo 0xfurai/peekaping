@@ -247,6 +247,10 @@ run-ingester: ## Run the ingester service
 	@echo "Running ingester..."
 	cd $(GO_SERVER_DIR) && ../../scripts/tool.sh go run ./cmd/ingester/main.go
 
+.PHONY: sync-skills
+sync-skills: ## Link shared agent skills into Claude Code
+	./scripts/sync-skills.sh
+
 .PHONY: setup
 setup: ## Setup development environment (asdf or manual)
 	@echo "🚀 Setting up Peekaping development environment..."

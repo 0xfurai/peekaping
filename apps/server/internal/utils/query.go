@@ -6,6 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const MaxPageSize = 1000
+
 // GetQueryInt extracts an integer query parameter from the context.
 // If the parameter is not provided or invalid, it returns the default value.
 func GetQueryInt(ctx *gin.Context, key string, defaultValue int) (int, error) {

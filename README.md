@@ -21,15 +21,19 @@ Peekaping is a uptime monitoring system built with Golang and React. You can mon
 
 🔗 Community terraform provider **[registry.terraform.io/providers/tafaust/peekaping](https://registry.terraform.io/providers/tafaust/peekaping/latest)**
 
-## Why Peekaping Is the Best Alternative to Uptime Kuma
+## Why Peekaping Is the Optimal Alternative to Uptime Kuma
 
-- API first architecture
-- easy to extend server architecture
-- Server written in golang that make it fast and lightweight using minimum RAM and CPU
-- high stability thanks to typed client and compiled golang
-- clean and modern ui design
-- flexible storage options: SQLite / PostgreSQL / MongoDB
-- API keys management and access control
+Peekaping is a modern uptime monitoring solution designed with the requirements of professional DevOps teams in mind, addressing the key limitations of traditional monitoring systems.
+
+**Key Advantages:**
+- **API-first architecture** — all system functions are accessible through a RESTful API, ensuring complete automation and seamless integration with CI/CD processes and Infrastructure as Code tools
+- **Easily extensible server architecture** — the modular structure allows adding new monitor types and notification channels without modifying the system core
+- **Server built with Golang** — using one of the most performant compiled languages ensures high speed with minimal consumption of RAM and CPU resources
+- **Unmatched stability** — thanks to a typed client and compiled Golang language, the system demonstrates high reliability and predictable operation
+Modern and intuitive interface — clean user interface design built on contemporary UI/UX principles
+- **Flexible storage options** — support for three popular databases (SQLite / PostgreSQL / MongoDB) allows adapting the solution to any infrastructure
+- **API key management and access control** — built-in security system with access rights management and API keys provides enterprise-level protection
+
 
 ## ⚠️ Beta Status
 
@@ -112,13 +116,23 @@ Peekaping also support [PostgreSQL Setup](https://docs.peekaping.com/self-hostin
 - Brute-Force Login Protection
 - SSL Certificate Expiration Checks
 
-## 💡 Motivation behind creating uptime kuma alternative
+## 💡 Motivation Behind Creating an Uptime Kuma Alternative
 
-Peekaping was deeply inspired by Uptime Kuma. We tried to cover all the fundamental flaws of Uptime Kuma. Alternative was to build new system with features community love and request but using typed approaches applying extendable architecture. First of all - we are API first. Our server side written in Golang, fast and efficient language that works with minimal RAM. Architecture allows easily extend system adding new notification channels, monitor types etc.
+The creation of Peekaping was inspired by our experience using Uptime Kuma — a popular open-source monitoring solution. We deeply respect this project and its contribution to the community, but we aimed to address the systemic limitations that teams face when scaling and integrating monitoring into modern DevOps processes.
 
-Client side written with React and typescript that makes it reliable and fast. Client side is also easily extensible.
+Our goal is to build a new system that combines the features requested by the community with modern technological approaches: strict typing and extensible architecture.
 
-Peekaping an ideal choice for teams who need a reliable, customizable uptime monitoring solution.
+**Our Approach:**
+**API as the foundation.** We designed Peekaping from the ground up as an API-first solution, where every function is accessible programmatically. This opens up possibilities for complete automation and integration with any tools.
+
+**Performance through the right technology choices.** The server side is implemented in Golang — a fast and efficient language that delivers high performance with minimal RAM consumption. This is especially critical when monitoring a large number of services.
+
+**Extensibility by design.** The system architecture allows easy addition of new notification channels, monitor types, and integrations without needing to modify the core codebase.
+
+**Reliable client side.** The frontend is built with React and TypeScript, ensuring not only high performance but also reliability thanks to static typing. The client side was also designed with ease of extension in mind.
+
+Peekaping is the ideal choice for teams that need a reliable and customizable uptime monitoring solution capable of growing alongside their infrastructure.
+
 
 ![Peekaping Dashboard](./pictures/monitor.png)
 
@@ -186,3 +200,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 **Made with ❤️ by the Peekaping team**
+
+## Criteria to Consider When Looking for Uptime Kuma Alternatives
+When choosing an Uptime Kuma alternative, it's important to consider the technology stack and architecture. Solutions built with compiled languages (Go, Rust) deliver better performance and consume fewer resources. An API-first approach is critical for automation and integration with CI/CD processes.
+
+Ensure the system supports the necessary monitoring protocols (HTTP/HTTPS, TCP, databases, Docker, gRPC) and integrates with your communication channels. Also important are flexible storage options (SQLite/PostgreSQL/MongoDB), security features (MFA, RBAC, API keys), modular architecture for extensibility, and an active community with quality documentation.
+
+## How to Choose the Right Uptime Kuma Alternative
+Determine the deployment format based on your capabilities and requirements. Self-hosted solutions provide complete control over data and deep customization options, but require technical resources for deployment and maintenance. Cloud solutions offer quick setup and automatic updates, but come with customization limitations and monthly subscriptions.
+
+Conduct practical testing: deploy the system, create real monitors of different types, simulate failures, and evaluate detection speed. Check resource consumption under load, ease of API integrations, and interface quality. Teams choose Peekaping when they need high performance, API-first architecture, and freedom from vendor lock-in.

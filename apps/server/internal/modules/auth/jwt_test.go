@@ -26,7 +26,7 @@ func (m *MockSettingService) GetByKey(ctx context.Context, key string) (*shared.
 	return args.Get(0).(*shared.SettingModel), args.Error(1)
 }
 
-func (m *MockSettingService) SetByKey(ctx context.Context, key string, entity *shared.SettingCreateUpdateDto) (*shared.SettingModel, error) {
+func (m *MockSettingService) SetByKey(ctx context.Context, key string, entity *shared.SettingModel) (*shared.SettingModel, error) {
 	args := m.Called(ctx, key, entity)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)

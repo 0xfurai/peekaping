@@ -58,3 +58,41 @@ type MaintenanceResponseDto struct {
 	UpdatedAt     time.Time `json:"updated_at"`
 	MonitorIds    []string  `json:"monitor_ids"`
 }
+
+func (dto *CreateUpdateDto) toModel() *Model {
+	return &Model{
+		Title:         dto.Title,
+		Description:   dto.Description,
+		Active:        dto.Active,
+		Strategy:      dto.Strategy,
+		StartDateTime: dto.StartDateTime,
+		EndDateTime:   dto.EndDateTime,
+		StartTime:     dto.StartTime,
+		EndTime:       dto.EndTime,
+		Weekdays:      dto.Weekdays,
+		DaysOfMonth:   dto.DaysOfMonth,
+		IntervalDay:   dto.IntervalDay,
+		Cron:          dto.Cron,
+		Timezone:      dto.Timezone,
+		Duration:      dto.Duration,
+	}
+}
+
+func (dto *PartialUpdateDto) toModel() *UpdateModel {
+	return &UpdateModel{
+		Title:         dto.Title,
+		Description:   dto.Description,
+		Active:        dto.Active,
+		Strategy:      dto.Strategy,
+		StartDateTime: dto.StartDateTime,
+		EndDateTime:   dto.EndDateTime,
+		StartTime:     dto.StartTime,
+		EndTime:       dto.EndTime,
+		Weekdays:      dto.Weekdays,
+		DaysOfMonth:   dto.DaysOfMonth,
+		IntervalDay:   dto.IntervalDay,
+		Cron:          dto.Cron,
+		Timezone:      dto.Timezone,
+		Duration:      dto.Duration,
+	}
+}
