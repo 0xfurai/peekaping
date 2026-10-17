@@ -94,8 +94,11 @@ func (p *PingExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		nativeErr := err
 		startTime = time.Now().UTC() // reset start time
 		success, rtt, err = p.trySystemPing(ctx, cfg.Host, cfg.PacketSize, timeout)
-		if errors.Is(err, exec.ErrNotFound) {
-			err = fmt.Errorf("%w; allow unprivileged ICMP with the net.ipv4.ping_group_range sysctl, or run the worker as root with the NET_RAW capability", nativeErr)
+		switch {
+		case errors.Is(err, exec.ErrNotFound):
+			err = nativeErr
+		case err != nil:
+			err = fmt.Errorf("%w (system ping: %v)", nativeErr, err)
 		}
 	}
 
@@ -130,9 +133,18 @@ func (p *PingExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	}
 }
 
-// tryNativePing sends one ICMP echo request and waits for its reply until the
-// timeout or the context deadline, whichever comes first.
+// tryNativePing resolves host, sends one ICMP echo request and waits for its
+// reply. All of that has to fit in the timeout or the context deadline,
+// whichever comes first.
 func (p *PingExecutor) tryNativePing(ctx context.Context, host string, packetSize int, timeout time.Duration) (bool, time.Duration, error) {
+	start := time.Now()
+	deadline := start.Add(timeout)
+	if d, ok := ctx.Deadline(); ok && d.Before(deadline) {
+		deadline = d
+	}
+	ctx, cancel := context.WithDeadline(ctx, deadline)
+	defer cancel()
+
 	dst, err := resolvePingTarget(ctx, host)
 	if err != nil {
 		return false, 0, err
@@ -147,11 +159,7 @@ func (p *PingExecutor) tryNativePing(ctx context.Context, host string, packetSiz
 	stop := context.AfterFunc(ctx, func() { conn.Close() })
 	defer stop()
 
-	wait := timeout
-	if d, ok := ctx.Deadline(); ok && time.Until(d) < wait {
-		wait = time.Until(d)
-	}
-	if err := conn.SetDeadline(time.Now().Add(wait)); err != nil {
+	if err := conn.SetDeadline(deadline); err != nil {
 		return false, 0, fmt.Errorf("failed to set ICMP socket deadline: %v", err)
 	}
 
@@ -174,10 +182,10 @@ func (p *PingExecutor) tryNativePing(ctx context.Context, host string, packetSiz
 	switch {
 	case err == nil:
 		return true, rtt, nil
-	// The caller's context usually expires together with the socket deadline,
-	// so either one means the host didn't answer in time.
+	// The context expires together with the socket deadline, so either one
+	// means the host didn't answer in time.
 	case errors.Is(err, os.ErrDeadlineExceeded), errors.Is(ctx.Err(), context.DeadlineExceeded):
-		return false, 0, fmt.Errorf("no reply from %s within %v", dst, wait.Round(100*time.Millisecond))
+		return false, 0, fmt.Errorf("no reply from %s within %v", dst, deadline.Sub(start).Round(100*time.Millisecond))
 	case ctx.Err() != nil:
 		return false, 0, fmt.Errorf("no reply from %s: %v", dst, ctx.Err())
 	default:
@@ -219,7 +227,11 @@ func listenICMP(v6 bool) (*icmp.PacketConn, bool, error) {
 	if rawErr == nil {
 		return conn, false, nil
 	}
-	return nil, false, fmt.Errorf("%w: %s: %v, %v", errNoICMPSocket, dgramNetwork, dgramErr, rawErr)
+	err := fmt.Errorf("%w: %s: %v, %v", errNoICMPSocket, dgramNetwork, dgramErr, rawErr)
+	if errors.Is(rawErr, os.ErrPermission) {
+		err = fmt.Errorf("%w; allow unprivileged ICMP with the net.ipv4.ping_group_range sysctl, or run the worker as root with the NET_RAW capability", err)
+	}
+	return nil, false, err
 }
 
 // exchangeEcho sends req to dst and returns the round-trip time of its reply.
@@ -293,6 +305,15 @@ func (p *PingExecutor) trySystemPing(ctx context.Context, host string, packetSiz
 	output, err := cmd.Output()
 	rtt := time.Since(start)
 
+	var exitErr *exec.ExitError
+	if errors.As(err, &exitErr) {
+		// ping exits non-zero both when no reply arrives and when it can't
+		// run; only the second writes to stderr.
+		if stderr := strings.TrimSpace(string(exitErr.Stderr)); stderr != "" {
+			return false, 0, fmt.Errorf("ping command failed: %v: %s", err, stderr)
+		}
+		return false, rtt, nil
+	}
 	if err != nil {
 		return false, 0, fmt.Errorf("ping command failed: %w", err)
 	}

@@ -48,7 +48,7 @@ Ping monitors send ICMP echo requests from the worker. IPv4 and IPv6 targets are
 1. **Unprivileged ICMP socket** (tried first). Linux allows it for processes whose group is in the `net.ipv4.ping_group_range` sysctl, for IPv4 and IPv6 alike.
 2. **Raw ICMP socket**. Needs root with the `NET_RAW` capability.
 
-If neither socket can be opened, the worker runs the system `ping` command. The official images don't include one, so the monitor reports DOWN with `cannot open an ICMP socket`.
+If neither socket can be opened, the worker runs the system `ping` command. The bundle images don't include one, and the BusyBox `ping` in the `peekaping-worker` image needs the same permissions. Either way the monitor reports DOWN with `cannot open an ICMP socket` and a hint on how to fix it.
 
 What this means for each deployment:
 

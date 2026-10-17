@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"path/filepath"
 	"peekaping/internal/modules/shared"
+	"runtime"
 	"sync"
 	"testing"
 	"time"
@@ -124,12 +126,68 @@ func TestResolvePingTarget(t *testing.T) {
 	}
 }
 
+func TestTrySystemPing(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("uses a shell script as the ping command")
+	}
+
+	tests := []struct {
+		name        string
+		script      string
+		wantSuccess bool
+		wantErr     string
+	}{
+		{
+			name:        "reply",
+			script:      "echo '64 bytes from 192.0.2.1: icmp_seq=1 ttl=64 time=1.0 ms'",
+			wantSuccess: true,
+		},
+		{
+			name:   "no reply",
+			script: "echo '1 packets transmitted, 0 received, 100% packet loss'; exit 1",
+		},
+		{
+			name:    "cannot run",
+			script:  "echo 'ping: permission denied (are you root?)' >&2; exit 1",
+			wantErr: "ping command failed: exit status 1: ping: permission denied (are you root?)",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			dir := t.TempDir()
+			require.NoError(t, os.WriteFile(filepath.Join(dir, "ping"), []byte("#!/bin/sh\n"+tt.script+"\n"), 0o755))
+			t.Setenv("PATH", dir)
+
+			success, _, err := NewPingExecutor(zap.NewNop().Sugar()).trySystemPing(context.Background(), "192.0.2.1", 32, time.Second)
+
+			assert.Equal(t, tt.wantSuccess, success)
+			if tt.wantErr == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.EqualError(t, err, tt.wantErr)
+			}
+		})
+	}
+}
+
 // skipWithoutICMP skips live ping tests where no ICMP socket can be opened.
 func skipWithoutICMP(t *testing.T, v6 bool) {
 	t.Helper()
 	conn, _, err := listenICMP(v6)
 	if err != nil {
 		t.Skipf("no ICMP socket available: %v", err)
+	}
+	conn.Close()
+}
+
+// skipWithoutRouteToTestNet skips tests that expect pings to 192.0.2.0/24
+// (TEST-NET-1, RFC 5737) to leave the host and go unanswered.
+func skipWithoutRouteToTestNet(t *testing.T) {
+	t.Helper()
+	conn, err := net.Dial("udp4", "192.0.2.1:9")
+	if err != nil {
+		t.Skipf("no route to 192.0.2.1: %v", err)
 	}
 	conn.Close()
 }
@@ -168,6 +226,7 @@ func TestPingExecutor_Execute_ReachableIPv6Host(t *testing.T) {
 
 func TestPingExecutor_Execute_UnreachableHost(t *testing.T) {
 	skipWithoutICMP(t, false)
+	skipWithoutRouteToTestNet(t)
 	executor := NewPingExecutor(zap.NewNop().Sugar())
 
 	tests := []struct {
@@ -201,6 +260,7 @@ func TestPingExecutor_Execute_UnreachableHost(t *testing.T) {
 
 func TestPingExecutor_Execute_ContextCancelled(t *testing.T) {
 	skipWithoutICMP(t, false)
+	skipWithoutRouteToTestNet(t)
 	executor := NewPingExecutor(zap.NewNop().Sugar())
 	ctx, cancel := context.WithCancel(context.Background())
 	time.AfterFunc(200*time.Millisecond, cancel)
@@ -215,6 +275,7 @@ func TestPingExecutor_Execute_ContextCancelled(t *testing.T) {
 
 func TestPingExecutor_Execute_ContextDeadlineBeforeTimeout(t *testing.T) {
 	skipWithoutICMP(t, false)
+	skipWithoutRouteToTestNet(t)
 	executor := NewPingExecutor(zap.NewNop().Sugar())
 	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
 	defer cancel()
@@ -229,6 +290,7 @@ func TestPingExecutor_Execute_ContextDeadlineBeforeTimeout(t *testing.T) {
 
 func TestPingExecutor_Execute_ConcurrentPingsGetTheirOwnReplies(t *testing.T) {
 	skipWithoutICMP(t, false)
+	skipWithoutRouteToTestNet(t)
 	executor := NewPingExecutor(zap.NewNop().Sugar())
 
 	const monitors = 50
