@@ -3,6 +3,7 @@ package infra
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"peekaping/internal/config"
 	"peekaping/internal/modules/queue"
@@ -209,6 +210,10 @@ func (s *queueServiceImpl) Enqueue(ctx context.Context, taskType string, payload
 		info, err = s.client.Enqueue(task, asynqOpts...)
 	}
 
+	if errors.Is(err, asynq.ErrTaskIDConflict) {
+		s.logger.Debugw("Task ID already exists", "task_type", taskType, "task_id", opts.TaskID)
+		return nil, fmt.Errorf("%w: %s", queue.ErrTaskIDConflict, opts.TaskID)
+	}
 	if err != nil {
 		s.logger.Errorw("Failed to enqueue task", "task_type", taskType, "error", err)
 		return nil, fmt.Errorf("failed to enqueue task: %w", err)

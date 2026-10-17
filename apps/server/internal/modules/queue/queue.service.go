@@ -2,8 +2,13 @@ package queue
 
 import (
 	"context"
+	"errors"
 	"time"
 )
+
+// ErrTaskIDConflict is returned by Enqueue when a task with the same TaskID
+// already exists in the queue, in any state (including archived).
+var ErrTaskIDConflict = errors.New("task ID conflicts with another task")
 
 // Service provides an abstraction layer for queue operations
 type Service interface {
