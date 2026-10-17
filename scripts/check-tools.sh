@@ -10,7 +10,6 @@ cd "$repo_root"
 failed=0
 
 ok() { printf '  ✅ %s\n' "$1"; }
-warn() { printf '  ⚠️  %s\n' "$1"; }
 fail() { printf '  ❌ %s\n' "$1"; failed=1; }
 
 # version_ge A B succeeds when dotted version A >= B, e.g. version_ge 22.1.0 22
@@ -28,12 +27,11 @@ version_ge() {
 go_want=$(sed -n 's/^go \([0-9.]*\)$/\1/p' apps/server/go.mod)
 node_want=$(tr -d ' v\n' < .nvmrc)
 pnpm_want=$(sed -n 's/.*"packageManager": *"pnpm@\([^"]*\)".*/\1/p' package.json)
-swag_want=$(sed -n 's/^[[:space:]]*github.com\/swaggo\/swag \(v[^ ]*\)$/\1/p' apps/server/go.mod)
 
 echo "Checking development tools..."
 
-# Go 1.21+ reads the toolchain line in go.mod and downloads that version itself,
-# so running go inside apps/server reports the version the server actually builds with.
+# Go 1.21+ installed older than the toolchain line in go.mod switches to that version,
+# downloading it if needed, so running go inside apps/server reports the version that builds the server.
 if ! command -v go >/dev/null 2>&1; then
     fail "Go not found. Install Go 1.21 or newer: https://go.dev/doc/install"
 elif ! go_have=$(cd apps/server && go env GOVERSION); then
@@ -54,23 +52,15 @@ else
     ok "Node.js $node_have"
 fi
 
+# Corepack and pnpm 10+ switch to the packageManager version, so this reports the pnpm that will run.
 if ! command -v pnpm >/dev/null 2>&1; then
     fail "pnpm not found. Run 'corepack enable' (bundled with Node.js 24 and older) or 'npm install -g pnpm'"
 elif ! pnpm_have=$(COREPACK_ENABLE_DOWNLOAD_PROMPT=0 pnpm --version); then
     fail "pnpm is on PATH but failed to run (see the error above)"
 elif [ "$pnpm_have" != "$pnpm_want" ]; then
-    warn "pnpm $pnpm_have found; package.json pins pnpm $pnpm_want. 'corepack enable' switches to it automatically"
+    fail "pnpm $pnpm_have runs here, but package.json pins pnpm $pnpm_want. Run 'corepack enable', or 'npm install -g pnpm' for pnpm 10+, which switches to the pinned version"
 else
     ok "pnpm $pnpm_have"
-fi
-
-# Optional: 'make dev' regenerates the API docs with swag.
-if ! command -v swag >/dev/null 2>&1; then
-    warn "swag not found (optional, 'make dev' uses it for API docs): go install github.com/swaggo/swag/cmd/swag@$swag_want"
-elif ! swag_have=$(swag --version); then
-    warn "swag is on PATH but failed to run (see the error above)"
-else
-    ok "swag ${swag_have#swag version }"
 fi
 
 echo ""

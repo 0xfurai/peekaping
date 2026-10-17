@@ -19,15 +19,11 @@ You need Go, Node.js and pnpm. Install them however you like: Homebrew, the offi
 
 | Tool | What to install | Pinned in |
 |------|-----------------|-----------|
-| **Go** | 1.21 or newer ([Download Go](https://go.dev/dl/)) | `apps/server/go.mod`. Go downloads the exact toolchain listed there by itself. |
+| **Go** | 1.21 or newer ([Download Go](https://go.dev/dl/)) | `apps/server/go.mod`. If your Go is older than its `toolchain` line, Go switches to that version and downloads it if needed. |
 | **Node.js** | 22 ([Download Node.js](https://nodejs.org/en/download/)) | `.nvmrc`. `nvm install` and `fnm install` pick it up. |
-| **pnpm** | Run `corepack enable` ([other options](https://pnpm.io/installation)) | `packageManager` in `package.json`. Corepack uses that version. |
+| **pnpm** | Run `corepack enable`, or `npm install -g pnpm` ([other options](https://pnpm.io/installation)) | `packageManager` in `package.json`. Corepack and pnpm 10+ switch to that version. |
 
-Optionally, install [swag](https://github.com/swaggo/swag). `make dev` uses it to regenerate the API docs:
-
-```bash
-go install github.com/swaggo/swag/cmd/swag@v1.16.4
-```
+`make dev` also regenerates the API docs with [swag](https://github.com/swaggo/swag). It runs through `go run`, pinned to the same version as the swag library in `go.mod`, so there's nothing extra to install.
 
 Then check your setup:
 
