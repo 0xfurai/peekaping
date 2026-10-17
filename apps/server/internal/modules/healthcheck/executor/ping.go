@@ -85,15 +85,17 @@ func (p *PingExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 
 	startTime := time.Now().UTC()
 	timeout := time.Duration(m.Timeout) * time.Second
+	pingCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
 
 	// The system ping command is only a fallback for hosts where no ICMP socket
 	// can be opened. A timeout from the native ping is a real result.
-	success, rtt, err := p.tryNativePing(ctx, cfg.Host, cfg.PacketSize, timeout)
+	success, rtt, err := p.tryNativePing(pingCtx, cfg.Host, cfg.PacketSize, timeout)
 	if errors.Is(err, errNoICMPSocket) {
 		p.logger.Debugf("Ping failed: %s, %s, %s", m.Name, err.Error(), "trying system ping")
 		nativeErr := err
 		startTime = time.Now().UTC() // reset start time
-		success, rtt, err = p.trySystemPing(ctx, cfg.Host, cfg.PacketSize, timeout)
+		success, rtt, err = p.trySystemPing(pingCtx, cfg.Host, cfg.PacketSize, timeout)
 		switch {
 		case errors.Is(err, exec.ErrNotFound):
 			err = nativeErr
