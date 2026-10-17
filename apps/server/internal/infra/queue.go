@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"peekaping/internal/config"
 	"peekaping/internal/modules/queue"
-	"strings"
 	"time"
 
 	"github.com/hibiken/asynq"
@@ -272,10 +271,7 @@ func (s *queueServiceImpl) EnqueueUnique(
 
 	if err != nil {
 		// Check if this is a duplicate task error (expected behavior with unique constraint)
-		errMsg := err.Error()
-		if strings.Contains(errMsg, "task ID conflicts") ||
-			strings.Contains(errMsg, "duplicated") ||
-			strings.Contains(errMsg, "already exists") {
+		if errors.Is(err, asynq.ErrTaskIDConflict) || errors.Is(err, asynq.ErrDuplicateTask) {
 			// This is expected behavior - task is already queued (deduplication working)
 			// Log at debug level instead of error, but still return error for caller to handle
 			s.logger.Debugw("Task already queued (duplicate prevented by unique constraint)",
@@ -331,6 +327,9 @@ func (s *queueServiceImpl) ListQueues(ctx context.Context) ([]*queue.QueueInfo, 
 // GetTaskInfo returns information about a specific task
 func (s *queueServiceImpl) GetTaskInfo(ctx context.Context, queueName, taskID string) (*queue.TaskInfo, error) {
 	info, err := s.inspector.GetTaskInfo(queueName, taskID)
+	if errors.Is(err, asynq.ErrTaskNotFound) {
+		return nil, fmt.Errorf("%w: %s", queue.ErrTaskNotFound, taskID)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to get task info: %w", err)
 	}
@@ -340,6 +339,9 @@ func (s *queueServiceImpl) GetTaskInfo(ctx context.Context, queueName, taskID st
 // DeleteTask deletes a task from the queue
 func (s *queueServiceImpl) DeleteTask(ctx context.Context, queueName, taskID string) error {
 	err := s.inspector.DeleteTask(queueName, taskID)
+	if errors.Is(err, asynq.ErrTaskNotFound) {
+		return fmt.Errorf("%w: %s", queue.ErrTaskNotFound, taskID)
+	}
 	if err != nil {
 		return fmt.Errorf("failed to delete task: %w", err)
 	}

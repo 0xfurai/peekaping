@@ -3,6 +3,7 @@ package worker
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/healthcheck"
@@ -184,6 +185,12 @@ func (h *HealthCheckTaskHandler) ProcessTask(ctx context.Context, task *asynq.Ta
 
 	// Execute the health check using the supervisor's method
 	tickResult := h.healthCheckService.HandleMonitorTick(ctx, m, exec, proxyModel, payload.IsUnderMaintenance)
+
+	// The task was cancelled (e.g. the worker is shutting down and asynq puts it
+	// back in the queue). A check cut short that way says nothing about the target.
+	if errors.Is(ctx.Err(), context.Canceled) {
+		return ctx.Err()
+	}
 
 	// Handle nil result (for monitors that return nil from executor)
 	if tickResult == nil {

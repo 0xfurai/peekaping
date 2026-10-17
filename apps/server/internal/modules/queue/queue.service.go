@@ -10,6 +10,9 @@ import (
 // already exists in the queue, in any state (including archived).
 var ErrTaskIDConflict = errors.New("task ID conflicts with another task")
 
+// ErrTaskNotFound is returned when the requested task doesn't exist
+var ErrTaskNotFound = errors.New("task not found")
+
 // Service provides an abstraction layer for queue operations
 type Service interface {
 	// Enqueue adds a task to the queue

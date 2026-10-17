@@ -249,7 +249,7 @@ func (p *Producer) processMonitor(ctx context.Context, monitorID string, nowMs i
 		TaskID:    healthCheckTaskID(mon.ID),
 	}
 
-	enqueued, err := p.enqueueHealthCheck(ctx, mon.Interval, nowMs, payload, opts)
+	enqueued, err := p.enqueueHealthCheck(ctx, payload, opts)
 	if err != nil {
 		return 0, fmt.Errorf("failed to enqueue health check: %w", err)
 	}
@@ -276,8 +276,6 @@ func (p *Producer) processMonitor(ctx context.Context, monitorID string, nowMs i
 // still in flight.
 func (p *Producer) enqueueHealthCheck(
 	ctx context.Context,
-	interval int,
-	nowMs int64,
 	payload worker.HealthCheckTaskPayload,
 	opts *queue.EnqueueOptions,
 ) (bool, error) {
@@ -287,12 +285,17 @@ func (p *Producer) enqueueHealthCheck(
 	}
 
 	existing, err := p.queueService.GetTaskInfo(ctx, healthCheckQueue, opts.TaskID)
-	if err != nil {
-		// Most likely the task finished between the two calls; the next tick enqueues.
-		p.logger.Debugw("Failed to look up conflicting health check task", "task_id", opts.TaskID, "error", err)
+	if errors.Is(err, queue.ErrTaskNotFound) {
+		// It finished between the two calls; the next tick enqueues
 		return false, nil
 	}
-	if healthCheckInFlight(existing, interval, nowMs) {
+	if err != nil {
+		p.logger.Warnw("Failed to look up conflicting health check task", "task_id", opts.TaskID, "error", err)
+		return false, nil
+	}
+	// A pending or running check still reports on its own. Pending ones are not
+	// replaced even when old: that would send them to the back of a backlogged queue.
+	if existing.State == queue.TaskStateActive || existing.State == queue.TaskStatePending {
 		return false, nil
 	}
 
@@ -311,23 +314,4 @@ func (p *Producer) enqueueHealthCheck(
 		return false, nil
 	}
 	return err == nil, err
-}
-
-// healthCheckInFlight reports whether a task holding a monitor's task ID is a check
-// that is running or about to run. Anything else is a leftover: archived after a
-// failure, or pending for over an interval with a possibly outdated config.
-func healthCheckInFlight(task *queue.TaskInfo, interval int, nowMs int64) bool {
-	switch task.State {
-	case queue.TaskStateActive:
-		return true
-	case queue.TaskStatePending:
-		var payload worker.HealthCheckTaskPayload
-		if err := json.Unmarshal(task.Payload, &payload); err != nil {
-			return false
-		}
-		age := time.UnixMilli(nowMs).Sub(payload.ScheduledAt)
-		return age < time.Duration(interval)*time.Second
-	default:
-		return false
-	}
 }

@@ -2,7 +2,6 @@ package producer
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"testing"
@@ -17,7 +16,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
 
@@ -28,12 +26,6 @@ func healthCheckOpts(monitorID string) interface{} {
 	return mock.MatchedBy(func(opts *queue.EnqueueOptions) bool {
 		return opts.Queue == "healthcheck" && opts.TaskID == "healthcheck:"+monitorID
 	})
-}
-
-func pendingHealthCheckTask(t *testing.T, scheduledAt time.Time) *queue.TaskInfo {
-	payload, err := json.Marshal(worker.HealthCheckTaskPayload{MonitorID: "mon-1", ScheduledAt: scheduledAt})
-	require.NoError(t, err)
-	return &queue.TaskInfo{ID: "healthcheck:mon-1", State: "pending", Payload: payload}
 }
 
 func TestIsUnderMaintenance(t *testing.T) {
@@ -487,11 +479,8 @@ func TestProcessMonitor(t *testing.T) {
 }
 
 func TestEnqueueHealthCheck(t *testing.T) {
-	const interval = 60
 	ctx := context.Background()
-	now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
-	nowMs := now.UnixMilli()
-	payload := worker.HealthCheckTaskPayload{MonitorID: "mon-1", ScheduledAt: now}
+	payload := worker.HealthCheckTaskPayload{MonitorID: "mon-1", ScheduledAt: time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)}
 	opts := &queue.EnqueueOptions{Queue: "healthcheck", TaskID: "healthcheck:mon-1"}
 
 	newProducer := func() (*Producer, *MockQueueService) {
@@ -503,7 +492,7 @@ func TestEnqueueHealthCheck(t *testing.T) {
 		producer, mockQueueSvc := newProducer()
 		mockQueueSvc.On("Enqueue", ctx, worker.TaskTypeHealthCheck, payload, opts).Return(&queue.TaskInfo{}, nil)
 
-		enqueued, err := producer.enqueueHealthCheck(ctx, interval, nowMs, payload, opts)
+		enqueued, err := producer.enqueueHealthCheck(ctx, payload, opts)
 		assert.NoError(t, err)
 		assert.True(t, enqueued)
 		mockQueueSvc.AssertExpectations(t)
@@ -513,15 +502,15 @@ func TestEnqueueHealthCheck(t *testing.T) {
 		producer, mockQueueSvc := newProducer()
 		mockQueueSvc.On("Enqueue", ctx, worker.TaskTypeHealthCheck, payload, opts).Return(nil, errors.New("redis unavailable"))
 
-		enqueued, err := producer.enqueueHealthCheck(ctx, interval, nowMs, payload, opts)
+		enqueued, err := producer.enqueueHealthCheck(ctx, payload, opts)
 		assert.Error(t, err)
 		assert.False(t, enqueued)
 		mockQueueSvc.AssertNotCalled(t, "GetTaskInfo", mock.Anything, mock.Anything, mock.Anything)
 	})
 
 	inFlight := map[string]*queue.TaskInfo{
-		"running check":        {ID: "healthcheck:mon-1", State: "active"},
-		"recent pending check": pendingHealthCheckTask(t, now.Add(-10*time.Second)),
+		"running check": {ID: "healthcheck:mon-1", State: "active"},
+		"pending check": {ID: "healthcheck:mon-1", State: "pending"},
 	}
 	for name, existing := range inFlight {
 		t.Run("skips a "+name, func(t *testing.T) {
@@ -529,7 +518,7 @@ func TestEnqueueHealthCheck(t *testing.T) {
 			mockQueueSvc.On("Enqueue", ctx, worker.TaskTypeHealthCheck, payload, opts).Return(nil, errTaskIDConflict)
 			mockQueueSvc.On("GetTaskInfo", ctx, "healthcheck", "healthcheck:mon-1").Return(existing, nil)
 
-			enqueued, err := producer.enqueueHealthCheck(ctx, interval, nowMs, payload, opts)
+			enqueued, err := producer.enqueueHealthCheck(ctx, payload, opts)
 			assert.NoError(t, err)
 			assert.False(t, enqueued)
 			mockQueueSvc.AssertNotCalled(t, "DeleteTask", mock.Anything, mock.Anything, mock.Anything)
@@ -537,12 +526,21 @@ func TestEnqueueHealthCheck(t *testing.T) {
 		})
 	}
 
+	t.Run("skips when the task finished in the meantime", func(t *testing.T) {
+		producer, mockQueueSvc := newProducer()
+		mockQueueSvc.On("Enqueue", ctx, worker.TaskTypeHealthCheck, payload, opts).Return(nil, errTaskIDConflict)
+		mockQueueSvc.On("GetTaskInfo", ctx, "healthcheck", "healthcheck:mon-1").Return(nil, fmt.Errorf("%w: healthcheck:mon-1", queue.ErrTaskNotFound))
+
+		enqueued, err := producer.enqueueHealthCheck(ctx, payload, opts)
+		assert.NoError(t, err)
+		assert.False(t, enqueued)
+		mockQueueSvc.AssertNotCalled(t, "DeleteTask", mock.Anything, mock.Anything, mock.Anything)
+	})
+
 	leftovers := map[string]*queue.TaskInfo{
-		"archived task":      {ID: "healthcheck:mon-1", State: "archived", LastErr: "context deadline exceeded"},
-		"completed task":     {ID: "healthcheck:mon-1", State: "completed"},
-		"retry task":         {ID: "healthcheck:mon-1", State: "retry"},
-		"stale pending task": pendingHealthCheckTask(t, now.Add(-2*interval*time.Second)),
-		"unreadable pending": {ID: "healthcheck:mon-1", State: "pending", Payload: []byte("not json")},
+		"archived task":  {ID: "healthcheck:mon-1", State: "archived", LastErr: "context deadline exceeded"},
+		"completed task": {ID: "healthcheck:mon-1", State: "completed"},
+		"retry task":     {ID: "healthcheck:mon-1", State: "retry"},
 	}
 	for name, existing := range leftovers {
 		t.Run("replaces a "+name, func(t *testing.T) {
@@ -552,7 +550,7 @@ func TestEnqueueHealthCheck(t *testing.T) {
 			mockQueueSvc.On("DeleteTask", ctx, "healthcheck", "healthcheck:mon-1").Return(nil)
 			mockQueueSvc.On("Enqueue", ctx, worker.TaskTypeHealthCheck, payload, opts).Return(&queue.TaskInfo{}, nil).Once()
 
-			enqueued, err := producer.enqueueHealthCheck(ctx, interval, nowMs, payload, opts)
+			enqueued, err := producer.enqueueHealthCheck(ctx, payload, opts)
 			assert.NoError(t, err)
 			assert.True(t, enqueued)
 			mockQueueSvc.AssertExpectations(t)
@@ -562,11 +560,10 @@ func TestEnqueueHealthCheck(t *testing.T) {
 	t.Run("skips when the leftover task can't be deleted", func(t *testing.T) {
 		producer, mockQueueSvc := newProducer()
 		mockQueueSvc.On("Enqueue", ctx, worker.TaskTypeHealthCheck, payload, opts).Return(nil, errTaskIDConflict)
-		mockQueueSvc.On("GetTaskInfo", ctx, "healthcheck", "healthcheck:mon-1").Return(pendingHealthCheckTask(t, now.Add(-2*interval*time.Second)), nil)
-		// e.g. a worker picked the task up in the meantime
-		mockQueueSvc.On("DeleteTask", ctx, "healthcheck", "healthcheck:mon-1").Return(errors.New("cannot delete task in active state"))
+		mockQueueSvc.On("GetTaskInfo", ctx, "healthcheck", "healthcheck:mon-1").Return(&queue.TaskInfo{ID: "healthcheck:mon-1", State: "archived"}, nil)
+		mockQueueSvc.On("DeleteTask", ctx, "healthcheck", "healthcheck:mon-1").Return(errors.New("redis unavailable"))
 
-		enqueued, err := producer.enqueueHealthCheck(ctx, interval, nowMs, payload, opts)
+		enqueued, err := producer.enqueueHealthCheck(ctx, payload, opts)
 		assert.NoError(t, err)
 		assert.False(t, enqueued)
 		mockQueueSvc.AssertNumberOfCalls(t, "Enqueue", 1)
@@ -578,7 +575,7 @@ func TestEnqueueHealthCheck(t *testing.T) {
 		mockQueueSvc.On("GetTaskInfo", ctx, "healthcheck", "healthcheck:mon-1").Return(&queue.TaskInfo{ID: "healthcheck:mon-1", State: "archived"}, nil)
 		mockQueueSvc.On("DeleteTask", ctx, "healthcheck", "healthcheck:mon-1").Return(nil)
 
-		enqueued, err := producer.enqueueHealthCheck(ctx, interval, nowMs, payload, opts)
+		enqueued, err := producer.enqueueHealthCheck(ctx, payload, opts)
 		assert.NoError(t, err)
 		assert.False(t, enqueued)
 		mockQueueSvc.AssertNumberOfCalls(t, "Enqueue", 2)

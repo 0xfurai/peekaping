@@ -2,8 +2,11 @@ package producer
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
+
+	"peekaping/internal/modules/queue"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -399,8 +402,10 @@ func (p *Producer) UpdateMonitor(ctx context.Context, monitorID string) error {
 		return p.UnscheduleMonitor(ctx, monitorID)
 	}
 
-	// Check right away so the change shows up without waiting a full interval
-	return p.scheduleMonitor(ctx, monitorID, mon.Interval, true)
+	// Check right away so the change shows up without waiting a full interval.
+	// Not push monitors: they wait for pushes, and right after a data reset an
+	// immediate check would find none and report DOWN.
+	return p.scheduleMonitor(ctx, monitorID, mon.Interval, mon.Type != "push")
 }
 
 // RemoveMonitor removes a monitor from the schedule
@@ -414,10 +419,19 @@ func (p *Producer) RemoveMonitor(ctx context.Context, monitorID string) error {
 // cancelling it would report a DOWN the monitor never had.
 func (p *Producer) purgeHealthCheckTask(ctx context.Context, monitorID string) {
 	taskID := healthCheckTaskID(monitorID)
-	if err := p.queueService.DeleteTask(ctx, healthCheckQueue, taskID); err != nil {
-		// Usually there is no task, or it is running
-		p.logger.Debugw("Health check task not purged", "task_id", taskID, "error", err)
+	task, err := p.queueService.GetTaskInfo(ctx, healthCheckQueue, taskID)
+	if errors.Is(err, queue.ErrTaskNotFound) {
 		return
 	}
-	p.logger.Infow("Purged queued health check task", "monitor_id", monitorID)
+	if err != nil {
+		p.logger.Warnw("Failed to look up queued health check", "task_id", taskID, "error", err)
+		return
+	}
+	if task.State == queue.TaskStateActive {
+		p.logger.Debugw("Health check is running, leaving it to finish", "task_id", taskID)
+		return
+	}
+	if err := p.queueService.DeleteTask(ctx, healthCheckQueue, taskID); err != nil && !errors.Is(err, queue.ErrTaskNotFound) {
+		p.logger.Warnw("Failed to purge queued health check", "task_id", taskID, "error", err)
+	}
 }
