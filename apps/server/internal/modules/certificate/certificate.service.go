@@ -217,12 +217,12 @@ func (s *ServiceImpl) SetNotificationDays(ctx context.Context, days []int) error
 	}
 
 	// Save to settings
-	dto := &shared.SettingCreateUpdateDto{
+	model := &shared.SettingModel{
 		Value: string(jsonData),
 		Type:  "json",
 	}
 
-	_, err = s.settingService.SetByKey(ctx, settingKey, dto)
+	_, err = s.settingService.SetByKey(ctx, settingKey, model)
 	if err != nil {
 		return fmt.Errorf("failed to save notification days setting: %w", err)
 	}

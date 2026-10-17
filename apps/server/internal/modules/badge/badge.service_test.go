@@ -254,7 +254,7 @@ type MockMonitorStatusPageService struct {
 	mock.Mock
 }
 
-func (m *MockMonitorStatusPageService) Create(ctx context.Context, entity *monitor_status_page.CreateUpdateDto) (*monitor_status_page.Model, error) {
+func (m *MockMonitorStatusPageService) Create(ctx context.Context, entity *monitor_status_page.Model) (*monitor_status_page.Model, error) {
 	args := m.Called(ctx, entity)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -275,7 +275,7 @@ func (m *MockMonitorStatusPageService) FindAll(ctx context.Context, page int, li
 	return args.Get(0).([]*monitor_status_page.Model), args.Error(1)
 }
 
-func (m *MockMonitorStatusPageService) UpdateFull(ctx context.Context, id string, entity *monitor_status_page.CreateUpdateDto) (*monitor_status_page.Model, error) {
+func (m *MockMonitorStatusPageService) UpdateFull(ctx context.Context, id string, entity *monitor_status_page.Model) (*monitor_status_page.Model, error) {
 	args := m.Called(ctx, id, entity)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -283,7 +283,7 @@ func (m *MockMonitorStatusPageService) UpdateFull(ctx context.Context, id string
 	return args.Get(0).(*monitor_status_page.Model), args.Error(1)
 }
 
-func (m *MockMonitorStatusPageService) UpdatePartial(ctx context.Context, id string, entity *monitor_status_page.PartialUpdateDto) (*monitor_status_page.Model, error) {
+func (m *MockMonitorStatusPageService) UpdatePartial(ctx context.Context, id string, entity *monitor_status_page.UpdateModel) (*monitor_status_page.Model, error) {
 	args := m.Called(ctx, id, entity)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)

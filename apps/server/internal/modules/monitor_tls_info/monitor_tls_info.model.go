@@ -13,15 +13,6 @@ type Model struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-type CreateDto struct {
-	MonitorID string `json:"monitor_id" validate:"required"`
-	InfoJSON  string `json:"info_json" validate:"required"`
-}
-
-type UpdateDto struct {
-	InfoJSON string `json:"info_json" validate:"required"`
-}
-
 // Type aliases for shared types
 type CertificateInfo = shared.CertificateInfo
 type TLSInfo = shared.TLSInfo

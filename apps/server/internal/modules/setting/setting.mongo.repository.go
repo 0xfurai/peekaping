@@ -65,7 +65,7 @@ func (r *MongoRepositoryImpl) GetByKey(ctx context.Context, key string) (*Model,
 	return toDomainModel(&mm), nil
 }
 
-func (r *MongoRepositoryImpl) SetByKey(ctx context.Context, key string, entity *CreateUpdateDto) (*Model, error) {
+func (r *MongoRepositoryImpl) SetByKey(ctx context.Context, key string, entity *Model) (*Model, error) {
 	now := time.Now().UTC()
 	filter := bson.M{"key": key}
 	update := bson.M{"$set": bson.M{

@@ -31,7 +31,7 @@ func (mr *ServiceImpl) GetByKey(ctx context.Context, key string) (*Model, error)
 	return mr.repository.GetByKey(ctx, key)
 }
 
-func (mr *ServiceImpl) SetByKey(ctx context.Context, key string, entity *CreateUpdateDto) (*Model, error) {
+func (mr *ServiceImpl) SetByKey(ctx context.Context, key string, entity *Model) (*Model, error) {
 	return mr.repository.SetByKey(ctx, key, entity)
 }
 
@@ -79,7 +79,7 @@ func (mr *ServiceImpl) initializeDefaultSetting(ctx context.Context, key, defaul
 	}
 
 	if existing == nil {
-		_, err = mr.repository.SetByKey(ctx, key, &CreateUpdateDto{
+		_, err = mr.repository.SetByKey(ctx, key, &Model{
 			Value: defaultValue,
 			Type:  settingType,
 		})
@@ -105,7 +105,7 @@ func (mr *ServiceImpl) initializeSecretKey(ctx context.Context, key string) erro
 			return err
 		}
 
-		_, err = mr.repository.SetByKey(ctx, key, &CreateUpdateDto{
+		_, err = mr.repository.SetByKey(ctx, key, &Model{
 			Value: secretKey,
 			Type:  "string",
 		})
