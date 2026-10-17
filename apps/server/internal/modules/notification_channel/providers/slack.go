@@ -330,11 +330,13 @@ func (s *SlackSender) Send(
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
 		reason := strings.TrimSpace(string(body))
-		// Another endpoint could echo the secret webhook URL, so only Slack's error codes are kept
+		// Another endpoint could echo the secret webhook URL in its body or reason phrase,
+		// so only Slack's error codes and the standard status text are kept
+		status := strings.TrimSpace(fmt.Sprintf("%d %s", resp.StatusCode, http.StatusText(resp.StatusCode)))
 		if cfg.BotToken == "" && !slackErrorCode.MatchString(reason) {
-			return fmt.Errorf("Slack webhook returned status %s", resp.Status)
+			return fmt.Errorf("Slack webhook returned status %s", status)
 		}
-		return fmt.Errorf("Slack %s returned status %s: %s", target, resp.Status, reason)
+		return fmt.Errorf("Slack %s returned status %s: %s", target, status, reason)
 	}
 
 	if cfg.BotToken != "" {

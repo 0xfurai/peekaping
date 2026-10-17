@@ -3,6 +3,7 @@ package providers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -139,6 +140,29 @@ func TestSlackSender_SendWebhookErrorDropsUnknownBody(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "Slack webhook returned status 404")
 	assert.NotContains(t, err.Error(), "secret")
+}
+
+func TestSlackSender_SendWebhookErrorDropsReasonPhrase(t *testing.T) {
+	for _, body := range []string{"", "no_service"} {
+		t.Run("body "+body, func(t *testing.T) {
+			// net/http always writes the standard reason phrase, so the response is written raw
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				conn, buf, err := w.(http.Hijacker).Hijack()
+				require.NoError(t, err)
+				defer conn.Close()
+				_, _ = fmt.Fprintf(buf, "HTTP/1.1 404 %s\r\nContent-Length: %d\r\nConnection: close\r\n\r\n%s", r.URL.Path, len(body), body)
+				_ = buf.Flush()
+			}))
+			defer server.Close()
+
+			err := sendTestSlackMessage(newTestSlackSender(), `{"slack_webhook_url": "`+server.URL+`/services/T/B/secret"}`)
+
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "Slack webhook returned status 404 Not Found")
+			assert.Contains(t, err.Error(), body)
+			assert.NotContains(t, err.Error(), "secret")
+		})
+	}
 }
 
 func TestSlackSender_SendRejectsHTTPSDowngradeRedirect(t *testing.T) {
