@@ -1,25 +1,21 @@
 package setting
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 	"peekaping/internal/utils"
-
-	"regexp"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
 
-var screamingSnakeCase = regexp.MustCompile(`^[A-Z0-9_]+$`)
-
 type Controller struct {
-	service Service
+	service APIService
 	logger  *zap.SugaredLogger
 }
 
 func NewController(
-	service Service,
+	service APIService,
 	logger *zap.SugaredLogger,
 ) *Controller {
 	return &Controller{
@@ -30,6 +26,7 @@ func NewController(
 
 // @Router	/settings/key/{key} [get]
 // @Summary	Get setting by key
+// @Description	Only KEEP_DATA_PERIOD_DAYS can be read. Every other key returns 404.
 // @Tags		Settings
 // @Produce	json
 // @Security	JwtAuth
@@ -40,10 +37,6 @@ func NewController(
 // @Failure	500	{object}	utils.APIError[any]
 func (ic *Controller) GetByKey(ctx *gin.Context) {
 	key := ctx.Param("key")
-	if !screamingSnakeCase.MatchString(key) {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Key must be SCREAMING_SNAKE_CASE (A-Z, 0-9, _)."))
-		return
-	}
 	entity, err := ic.service.GetByKey(ctx, key)
 	if err != nil {
 		ic.logger.Errorw("Failed to fetch setting by key", "error", err)
@@ -59,6 +52,7 @@ func (ic *Controller) GetByKey(ctx *gin.Context) {
 
 // @Router	/settings/key/{key} [put]
 // @Summary	Set setting by key
+// @Description	Only KEEP_DATA_PERIOD_DAYS can be set. Every other key returns 404.
 // @Tags		Settings
 // @Produce	json
 // @Accept	json
@@ -68,14 +62,10 @@ func (ic *Controller) GetByKey(ctx *gin.Context) {
 // @Param	body	body	CreateUpdateDto	true	"Setting object"
 // @Success	200	{object}	utils.ApiResponse[Model]
 // @Failure	400	{object}	utils.APIError[any]
+// @Failure	404	{object}	utils.APIError[any]
 // @Failure	500	{object}	utils.APIError[any]
 func (ic *Controller) SetByKey(ctx *gin.Context) {
-	fmt.Println("SetByKey")
 	key := ctx.Param("key")
-	if !screamingSnakeCase.MatchString(key) {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Key must be SCREAMING_SNAKE_CASE (A-Z, 0-9, _)."))
-		return
-	}
 	var entity CreateUpdateDto
 	if err := ctx.ShouldBindJSON(&entity); err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
@@ -86,6 +76,10 @@ func (ic *Controller) SetByKey(ctx *gin.Context) {
 		return
 	}
 	updated, err := ic.service.SetByKey(ctx, key, &Model{Value: entity.Value, Type: entity.Type})
+	if errors.Is(err, ErrSettingNotFound) {
+		ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Setting not found"))
+		return
+	}
 	if err != nil {
 		ic.logger.Errorw("Failed to set setting by key", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -96,6 +90,7 @@ func (ic *Controller) SetByKey(ctx *gin.Context) {
 
 // @Router	/settings/key/{key} [delete]
 // @Summary	Delete setting by key
+// @Description	Only KEEP_DATA_PERIOD_DAYS can be deleted. Every other key returns 404.
 // @Tags		Settings
 // @Produce	json
 // @Security	JwtAuth
@@ -106,11 +101,11 @@ func (ic *Controller) SetByKey(ctx *gin.Context) {
 // @Failure	500	{object}	utils.APIError[any]
 func (ic *Controller) DeleteByKey(ctx *gin.Context) {
 	key := ctx.Param("key")
-	if !screamingSnakeCase.MatchString(key) {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Key must be SCREAMING_SNAKE_CASE (A-Z, 0-9, _)."))
+	err := ic.service.DeleteByKey(ctx, key)
+	if errors.Is(err, ErrSettingNotFound) {
+		ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Setting not found"))
 		return
 	}
-	err := ic.service.DeleteByKey(ctx, key)
 	if err != nil {
 		ic.logger.Errorw("Failed to delete setting by key", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))

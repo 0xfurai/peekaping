@@ -276,6 +276,12 @@ func TestServiceImpl_InitializeSettings(t *testing.T) {
 					return dto.Value == "720h" && dto.Type == "string"
 				})).Return(&Model{Key: "REFRESH_TOKEN_EXPIRED_IN", Value: "720h", Type: "string"}, nil)
 
+				// JWT_SECRET_KEYS_ROTATED - not exists
+				repo.On("GetByKey", mock.Anything, "JWT_SECRET_KEYS_ROTATED").Return(nil, nil)
+				repo.On("SetByKey", mock.Anything, "JWT_SECRET_KEYS_ROTATED", mock.MatchedBy(func(dto *Model) bool {
+					return dto.Value == "true" && dto.Type == "bool"
+				})).Return(&Model{Key: "JWT_SECRET_KEYS_ROTATED", Value: "true", Type: "bool"}, nil)
+
 				// ACCESS_TOKEN_SECRET_KEY - not exists
 				repo.On("GetByKey", mock.Anything, "ACCESS_TOKEN_SECRET_KEY").Return(nil, nil)
 				repo.On("SetByKey", mock.Anything, "ACCESS_TOKEN_SECRET_KEY", mock.MatchedBy(func(dto *Model) bool {
@@ -307,6 +313,9 @@ func TestServiceImpl_InitializeSettings(t *testing.T) {
 				repo.On("SetByKey", mock.Anything, "REFRESH_TOKEN_EXPIRED_IN", mock.MatchedBy(func(dto *Model) bool {
 					return dto.Value == "720h" && dto.Type == "string"
 				})).Return(&Model{Key: "REFRESH_TOKEN_EXPIRED_IN", Value: "720h", Type: "string"}, nil)
+
+				// JWT_SECRET_KEYS_ROTATED - exists
+				repo.On("GetByKey", mock.Anything, "JWT_SECRET_KEYS_ROTATED").Return(&Model{Key: "JWT_SECRET_KEYS_ROTATED", Value: "true"}, nil)
 
 				// ACCESS_TOKEN_SECRET_KEY - exists but empty
 				repo.On("GetByKey", mock.Anything, "ACCESS_TOKEN_SECRET_KEY").Return(&Model{Key: "ACCESS_TOKEN_SECRET_KEY", Value: ""}, nil)
@@ -350,12 +359,24 @@ func TestServiceImpl_InitializeSettings(t *testing.T) {
 			expectedError: errors.New("failed to initialize refresh token expiration: database error"),
 		},
 		{
+			name: "error checking secret key rotation",
+			mockSetup: func(repo *MockRepository) {
+				repo.On("GetByKey", mock.Anything, "ACCESS_TOKEN_EXPIRED_IN").Return(nil, nil)
+				repo.On("SetByKey", mock.Anything, "ACCESS_TOKEN_EXPIRED_IN", mock.Anything).Return(&Model{}, nil)
+				repo.On("GetByKey", mock.Anything, "REFRESH_TOKEN_EXPIRED_IN").Return(nil, nil)
+				repo.On("SetByKey", mock.Anything, "REFRESH_TOKEN_EXPIRED_IN", mock.Anything).Return(&Model{}, nil)
+				repo.On("GetByKey", mock.Anything, "JWT_SECRET_KEYS_ROTATED").Return(nil, errors.New("database error"))
+			},
+			expectedError: errors.New("failed to check secret key rotation: database error"),
+		},
+		{
 			name: "error getting access token secret key",
 			mockSetup: func(repo *MockRepository) {
 				repo.On("GetByKey", mock.Anything, "ACCESS_TOKEN_EXPIRED_IN").Return(nil, nil)
 				repo.On("SetByKey", mock.Anything, "ACCESS_TOKEN_EXPIRED_IN", mock.Anything).Return(&Model{}, nil)
 				repo.On("GetByKey", mock.Anything, "REFRESH_TOKEN_EXPIRED_IN").Return(nil, nil)
 				repo.On("SetByKey", mock.Anything, "REFRESH_TOKEN_EXPIRED_IN", mock.Anything).Return(&Model{}, nil)
+				repo.On("GetByKey", mock.Anything, "JWT_SECRET_KEYS_ROTATED").Return(&Model{Key: "JWT_SECRET_KEYS_ROTATED", Value: "true"}, nil)
 				repo.On("GetByKey", mock.Anything, "ACCESS_TOKEN_SECRET_KEY").Return(nil, errors.New("database error"))
 			},
 			expectedError: errors.New("failed to initialize access token secret key: database error"),
@@ -367,6 +388,7 @@ func TestServiceImpl_InitializeSettings(t *testing.T) {
 				repo.On("SetByKey", mock.Anything, "ACCESS_TOKEN_EXPIRED_IN", mock.Anything).Return(&Model{}, nil)
 				repo.On("GetByKey", mock.Anything, "REFRESH_TOKEN_EXPIRED_IN").Return(nil, nil)
 				repo.On("SetByKey", mock.Anything, "REFRESH_TOKEN_EXPIRED_IN", mock.Anything).Return(&Model{}, nil)
+				repo.On("GetByKey", mock.Anything, "JWT_SECRET_KEYS_ROTATED").Return(&Model{Key: "JWT_SECRET_KEYS_ROTATED", Value: "true"}, nil)
 				repo.On("GetByKey", mock.Anything, "ACCESS_TOKEN_SECRET_KEY").Return(nil, nil)
 				repo.On("SetByKey", mock.Anything, "ACCESS_TOKEN_SECRET_KEY", mock.Anything).Return(nil, errors.New("database error"))
 			},
@@ -379,6 +401,7 @@ func TestServiceImpl_InitializeSettings(t *testing.T) {
 				repo.On("SetByKey", mock.Anything, "ACCESS_TOKEN_EXPIRED_IN", mock.Anything).Return(&Model{}, nil)
 				repo.On("GetByKey", mock.Anything, "REFRESH_TOKEN_EXPIRED_IN").Return(nil, nil)
 				repo.On("SetByKey", mock.Anything, "REFRESH_TOKEN_EXPIRED_IN", mock.Anything).Return(&Model{}, nil)
+				repo.On("GetByKey", mock.Anything, "JWT_SECRET_KEYS_ROTATED").Return(&Model{Key: "JWT_SECRET_KEYS_ROTATED", Value: "true"}, nil)
 				repo.On("GetByKey", mock.Anything, "ACCESS_TOKEN_SECRET_KEY").Return(nil, nil)
 				repo.On("SetByKey", mock.Anything, "ACCESS_TOKEN_SECRET_KEY", mock.Anything).Return(&Model{}, nil)
 				repo.On("GetByKey", mock.Anything, "REFRESH_TOKEN_SECRET_KEY").Return(nil, errors.New("database error"))
@@ -392,12 +415,29 @@ func TestServiceImpl_InitializeSettings(t *testing.T) {
 				repo.On("SetByKey", mock.Anything, "ACCESS_TOKEN_EXPIRED_IN", mock.Anything).Return(&Model{}, nil)
 				repo.On("GetByKey", mock.Anything, "REFRESH_TOKEN_EXPIRED_IN").Return(nil, nil)
 				repo.On("SetByKey", mock.Anything, "REFRESH_TOKEN_EXPIRED_IN", mock.Anything).Return(&Model{}, nil)
+				repo.On("GetByKey", mock.Anything, "JWT_SECRET_KEYS_ROTATED").Return(&Model{Key: "JWT_SECRET_KEYS_ROTATED", Value: "true"}, nil)
 				repo.On("GetByKey", mock.Anything, "ACCESS_TOKEN_SECRET_KEY").Return(nil, nil)
 				repo.On("SetByKey", mock.Anything, "ACCESS_TOKEN_SECRET_KEY", mock.Anything).Return(&Model{}, nil)
 				repo.On("GetByKey", mock.Anything, "REFRESH_TOKEN_SECRET_KEY").Return(nil, nil)
 				repo.On("SetByKey", mock.Anything, "REFRESH_TOKEN_SECRET_KEY", mock.Anything).Return(nil, errors.New("database error"))
 			},
 			expectedError: errors.New("failed to initialize refresh token secret key: database error"),
+		},
+		{
+			name: "error recording secret key rotation",
+			mockSetup: func(repo *MockRepository) {
+				repo.On("GetByKey", mock.Anything, "ACCESS_TOKEN_EXPIRED_IN").Return(nil, nil)
+				repo.On("SetByKey", mock.Anything, "ACCESS_TOKEN_EXPIRED_IN", mock.Anything).Return(&Model{}, nil)
+				repo.On("GetByKey", mock.Anything, "REFRESH_TOKEN_EXPIRED_IN").Return(nil, nil)
+				repo.On("SetByKey", mock.Anything, "REFRESH_TOKEN_EXPIRED_IN", mock.Anything).Return(&Model{}, nil)
+				repo.On("GetByKey", mock.Anything, "JWT_SECRET_KEYS_ROTATED").Return(nil, nil)
+				repo.On("GetByKey", mock.Anything, "ACCESS_TOKEN_SECRET_KEY").Return(nil, nil)
+				repo.On("SetByKey", mock.Anything, "ACCESS_TOKEN_SECRET_KEY", mock.Anything).Return(&Model{}, nil)
+				repo.On("GetByKey", mock.Anything, "REFRESH_TOKEN_SECRET_KEY").Return(nil, nil)
+				repo.On("SetByKey", mock.Anything, "REFRESH_TOKEN_SECRET_KEY", mock.Anything).Return(&Model{}, nil)
+				repo.On("SetByKey", mock.Anything, "JWT_SECRET_KEYS_ROTATED", mock.Anything).Return(nil, errors.New("database error"))
+			},
+			expectedError: errors.New("failed to record secret key rotation: database error"),
 		},
 	}
 
@@ -568,7 +608,7 @@ func TestServiceImpl_initializeSecretKey(t *testing.T) {
 
 			// Cast to implementation to access private method
 			impl := service.(*ServiceImpl)
-			err := impl.initializeSecretKey(context.Background(), tt.key)
+			err := impl.initializeSecretKey(context.Background(), tt.key, false)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
