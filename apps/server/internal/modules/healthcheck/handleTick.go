@@ -2,6 +2,7 @@ package healthcheck
 
 import (
 	"context"
+	"fmt"
 	"peekaping/internal/modules/healthcheck/executor"
 	"peekaping/internal/modules/proxy"
 	"peekaping/internal/modules/shared"
@@ -59,7 +60,7 @@ func (s *HealthCheckSupervisor) HandleMonitorTick(
 	defer cCancel()
 
 	// Execute the health check
-	result := exec.Execute(callCtx, m, proxyModel)
+	result := executeWithDeadline(callCtx, m, exec, proxyModel)
 	if result == nil {
 		return nil
 	}
@@ -71,5 +72,42 @@ func (s *HealthCheckSupervisor) HandleMonitorTick(
 		Monitor:            m,
 		PingMs:             ping,
 		IsUnderMaintenance: false,
+	}
+}
+
+// ExecutorGrace is how long an executor may keep running after the check
+// timeout before the check is reported DOWN without waiting for it.
+const ExecutorGrace = 2 * time.Second
+
+// executeWithDeadline bounds a check by ctx even when the executor ignores it,
+// so the caller always gets a result shortly after the check timeout.
+func executeWithDeadline(
+	ctx context.Context,
+	m *Monitor,
+	exec executor.Executor,
+	proxyModel *proxy.Model,
+) *executor.Result {
+	startTime := time.Now().UTC()
+	done := make(chan *executor.Result, 1)
+	go func() {
+		done <- exec.Execute(ctx, m, proxyModel)
+	}()
+
+	select {
+	case result := <-done:
+		return result
+	case <-ctx.Done():
+	}
+
+	// Executors that honor ctx return right after it expires, with their own message.
+	select {
+	case result := <-done:
+		return result
+	case <-time.After(ExecutorGrace):
+		return executor.DownResult(
+			fmt.Errorf("check did not finish within the %ds timeout", m.Timeout),
+			startTime,
+			time.Now().UTC(),
+		)
 	}
 }

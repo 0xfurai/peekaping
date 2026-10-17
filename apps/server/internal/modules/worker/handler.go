@@ -24,6 +24,17 @@ const (
 	TaskTypeIngester = "monitor:ingest"
 )
 
+// ingesterEnqueueGrace is the time left after a check gives up for its result
+// to be enqueued to the ingester before asynq cancels the task.
+const ingesterEnqueueGrace = 8 * time.Second
+
+// HealthCheckTaskTimeout returns the asynq task timeout for a check with the given
+// timeout in seconds. It must outlast the check itself: when asynq's deadline fires
+// first, the task fails and gets archived instead of reporting DOWN.
+func HealthCheckTaskTimeout(checkTimeoutSeconds int) time.Duration {
+	return time.Duration(checkTimeoutSeconds)*time.Second + healthcheck.ExecutorGrace + ingesterEnqueueGrace
+}
+
 // ProxyData contains proxy configuration for health checks
 type ProxyData struct {
 	ID       string `json:"id"`
