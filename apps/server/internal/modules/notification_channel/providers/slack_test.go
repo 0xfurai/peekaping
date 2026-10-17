@@ -126,3 +126,41 @@ func TestSlackSender_SendErrorHidesWebhookURL(t *testing.T) {
 	require.Error(t, err)
 	assert.NotContains(t, err.Error(), "secret")
 }
+
+func TestSlackSender_SendWebhookErrorDropsUnknownBody(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = io.WriteString(w, "404 page not found: "+r.URL.Path)
+	}))
+	defer server.Close()
+
+	err := sendTestSlackMessage(newTestSlackSender(), `{"slack_webhook_url": "`+server.URL+`/services/T/B/secret"}`)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "Slack webhook returned status 404")
+	assert.NotContains(t, err.Error(), "secret")
+}
+
+func TestSlackSender_SendRejectsHTTPSDowngradeRedirect(t *testing.T) {
+	plainHit := false
+	plain := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		plainHit = true
+		_, _ = io.WriteString(w, `{"ok": true}`)
+	}))
+	defer plain.Close()
+
+	secure := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, plain.URL+"/api/chat.postMessage", http.StatusTemporaryRedirect)
+	}))
+	defer secure.Close()
+
+	sender := newTestSlackSender()
+	sender.apiURL = secure.URL
+	sender.client.Transport = secure.Client().Transport
+
+	err := sendTestSlackMessage(sender, `{"slack_bot_token": "xoxb-test", "slack_channel": "#alerts"}`)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "307")
+	assert.False(t, plainHit, "the bot token must not follow a redirect to plain HTTP")
+}

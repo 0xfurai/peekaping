@@ -14,6 +14,7 @@ import (
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/version"
+	"regexp"
 	"strings"
 	"time"
 
@@ -36,6 +37,9 @@ type SlackConfig struct {
 // slackPostMessageURL is the Web API endpoint used when a bot token is configured
 const slackPostMessageURL = "https://slack.com/api/chat.postMessage"
 
+// slackErrorCode matches the reasons Slack webhooks return, such as no_service
+var slackErrorCode = regexp.MustCompile(`^[a-z_]{1,64}$`)
+
 type SlackSender struct {
 	logger *zap.SugaredLogger
 	config *config.Config
@@ -49,10 +53,23 @@ func NewSlackSender(logger *zap.SugaredLogger, config *config.Config) *SlackSend
 		logger: logger,
 		config: config,
 		client: &http.Client{
-			Timeout: 30 * time.Second,
+			Timeout:       30 * time.Second,
+			CheckRedirect: rejectHTTPSDowngrade,
 		},
 		apiURL: slackPostMessageURL,
 	}
+}
+
+// rejectHTTPSDowngrade stops redirects from HTTPS to HTTP. net/http keeps the
+// Authorization header on same-host redirects, so the bot token would go out in cleartext.
+func rejectHTTPSDowngrade(req *http.Request, via []*http.Request) error {
+	if len(via) >= 10 {
+		return errors.New("stopped after 10 redirects")
+	}
+	if via[len(via)-1].URL.Scheme == "https" && req.URL.Scheme != "https" {
+		return http.ErrUseLastResponse
+	}
+	return nil
 }
 
 func (s *SlackSender) Unmarshal(configJSON string) (any, error) {
@@ -312,7 +329,12 @@ func (s *SlackSender) Send(
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
-		return fmt.Errorf("Slack %s returned status %s: %s", target, resp.Status, strings.TrimSpace(string(body)))
+		reason := strings.TrimSpace(string(body))
+		// Another endpoint could echo the secret webhook URL, so only Slack's error codes are kept
+		if cfg.BotToken == "" && !slackErrorCode.MatchString(reason) {
+			return fmt.Errorf("Slack webhook returned status %s", resp.Status)
+		}
+		return fmt.Errorf("Slack %s returned status %s: %s", target, resp.Status, reason)
 	}
 
 	if cfg.BotToken != "" {
