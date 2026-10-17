@@ -183,7 +183,7 @@ func (g *GRPCExecutor) tryReflectionCall(ctx context.Context, conn *grpc.ClientC
 // tryDirectCall attempts a direct gRPC call using common proto patterns
 func (g *GRPCExecutor) tryDirectCall(ctx context.Context, conn *grpc.ClientConn, cfg *GRPCConfig) (string, error) {
 	// Parse the proto content to extract method information
-	method := g.declaredMethodName(cfg.GrpcProtobuf, cfg.GrpcMethod)
+	method := g.declaredMethodName(cfg.GrpcProtobuf, cfg.GrpcServiceName, cfg.GrpcMethod)
 	requestTypeName := g.extractRequestMessageName(cfg.GrpcProtobuf, cfg.GrpcServiceName, method)
 	responseTypeName := g.extractResponseMessageName(cfg.GrpcProtobuf, cfg.GrpcServiceName, method)
 	packageName := g.extractPackageName(cfg.GrpcProtobuf)
@@ -483,12 +483,38 @@ func (g *GRPCExecutor) extractPackageName(protoContent string) string {
 	return ""
 }
 
-// declaredMethodName returns method spelled as the proto declares it, so a
+// serviceDefinition returns the body of the proto's declaration of
+// serviceName, or "" if the proto doesn't declare it, so that rpc lines of
+// another service are never read as this service's.
+func (g *GRPCExecutor) serviceDefinition(protoContent, serviceName string) string {
+	re := regexp.MustCompile(`\bservice\s+` + regexp.QuoteMeta(serviceName) + `\s*\{`)
+	loc := re.FindStringIndex(protoContent)
+	if loc == nil {
+		return ""
+	}
+	// An rpc can have its own { option ... } block, so match braces rather
+	// than stopping at the first "}".
+	depth := 1
+	for i := loc[1]; i < len(protoContent); i++ {
+		switch protoContent[i] {
+		case '{':
+			depth++
+		case '}':
+			depth--
+			if depth == 0 {
+				return protoContent[loc[1]:i]
+			}
+		}
+	}
+	return protoContent[loc[1]:]
+}
+
+// declaredMethodName returns method spelled as serviceName declares it, so a
 // monitor configured with "check" calls "Check": gRPC method names are
 // case-sensitive.
-func (g *GRPCExecutor) declaredMethodName(protoContent, method string) string {
+func (g *GRPCExecutor) declaredMethodName(protoContent, serviceName, method string) string {
 	re := regexp.MustCompile(`rpc\s+(\w+)\s*\(`)
-	for _, matches := range re.FindAllStringSubmatch(protoContent, -1) {
+	for _, matches := range re.FindAllStringSubmatch(g.serviceDefinition(protoContent, serviceName), -1) {
 		if strings.EqualFold(matches[1], method) {
 			return matches[1]
 		}
@@ -500,7 +526,7 @@ func (g *GRPCExecutor) extractRequestMessageName(protoContent, serviceName, meth
 	// Look for method definition pattern: rpc MethodName(RequestType) returns (ResponseType);
 	pattern := fmt.Sprintf(`rpc\s+%s\s*\(\s*([^)]+)\s*\)\s*returns`, regexp.QuoteMeta(methodName))
 	re := regexp.MustCompile(pattern)
-	matches := re.FindStringSubmatch(protoContent)
+	matches := re.FindStringSubmatch(g.serviceDefinition(protoContent, serviceName))
 	if len(matches) > 1 {
 		return strings.TrimSpace(matches[1])
 	}
@@ -511,7 +537,7 @@ func (g *GRPCExecutor) extractResponseMessageName(protoContent, serviceName, met
 	// Look for method definition pattern: rpc MethodName(RequestType) returns (ResponseType);
 	pattern := fmt.Sprintf(`rpc\s+%s\s*\([^)]+\)\s*returns\s*\(\s*([^)]+)\s*\)`, regexp.QuoteMeta(methodName))
 	re := regexp.MustCompile(pattern)
-	matches := re.FindStringSubmatch(protoContent)
+	matches := re.FindStringSubmatch(g.serviceDefinition(protoContent, serviceName))
 	if len(matches) > 1 {
 		return strings.TrimSpace(matches[1])
 	}

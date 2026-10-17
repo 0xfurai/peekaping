@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net"
 	"peekaping/internal/modules/shared"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -291,6 +292,33 @@ func TestGRPCExecutor_Execute(t *testing.T) {
 			}),
 			wantStatus:  shared.MonitorStatusDown,
 			wantMessage: "keyword [NOT_SERVING] is present",
+		},
+		{
+			name: "method spelled differently by another service",
+			monitor: healthMonitor(func(c *GRPCConfig) {
+				c.GrpcProtobuf = strings.Replace(healthProto, "service Health {", `service Legacy {
+  rpc check(HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+service Health {`, 1)
+			}),
+			wantStatus:  shared.MonitorStatusUp,
+			wantMessage: "SERVING",
+		},
+		{
+			name: "method declared after an rpc with options",
+			monitor: healthMonitor(func(c *GRPCConfig) {
+				c.GrpcProtobuf = `syntax = "proto3";
+
+package grpc.health.v1;
+
+service Health {
+  rpc Watch(HealthCheckRequest) returns (stream HealthCheckResponse) {}
+  rpc Check(HealthCheckRequest) returns (HealthCheckResponse);
+}`
+			}),
+			wantStatus:  shared.MonitorStatusUp,
+			wantMessage: "SERVING",
 		},
 		{
 			name:        "unknown method",
