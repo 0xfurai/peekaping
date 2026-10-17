@@ -2,12 +2,17 @@ package executor
 
 import (
 	"context"
+	"encoding/json"
+	"net"
 	"peekaping/internal/modules/shared"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 )
 
 func TestGRPCExecutor_Unmarshal(t *testing.T) {
@@ -198,124 +203,126 @@ func TestGRPCExecutor_Validate(t *testing.T) {
 	}
 }
 
+// healthProto is the proto that the monitor form fills in for a new gRPC monitor.
+const healthProto = `syntax = "proto3";
+
+package grpc.health.v1;
+
+service Health {
+  rpc Check(HealthCheckRequest) returns (HealthCheckResponse);
+  rpc Watch(HealthCheckRequest) returns (stream HealthCheckResponse);
+}`
+
+// startHealthServer serves the standard gRPC health service on a loopback port.
+func startHealthServer(t *testing.T) (string, *health.Server) {
+	t.Helper()
+	lis, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	srv := grpc.NewServer()
+	hs := health.NewServer()
+	healthpb.RegisterHealthServer(srv, hs)
+	go srv.Serve(lis)
+	t.Cleanup(srv.Stop)
+	return lis.Addr().String(), hs
+}
+
+func grpcMonitor(t *testing.T, cfg GRPCConfig) *Monitor {
+	t.Helper()
+	b, err := json.Marshal(cfg)
+	require.NoError(t, err)
+	return &Monitor{ID: "grpc", Type: "grpc-keyword", Name: "gRPC", Timeout: 2, Config: string(b)}
+}
+
 func TestGRPCExecutor_Execute(t *testing.T) {
-	// Setup
-	logger := zap.NewNop().Sugar()
-	executor := NewGRPCExecutor(logger)
+	executor := NewGRPCExecutor(zap.NewNop().Sugar())
+	addr, hs := startHealthServer(t)
+	hs.SetServingStatus("peekaping.Worker", healthpb.HealthCheckResponse_NOT_SERVING)
+
+	// healthMonitor starts from the monitor form's defaults: a lower-case method
+	// name and a body with no HealthCheckRequest fields, so the server reports
+	// its overall status.
+	healthMonitor := func(edit func(*GRPCConfig)) *Monitor {
+		cfg := GRPCConfig{
+			GrpcUrl:         addr,
+			GrpcProtobuf:    healthProto,
+			GrpcServiceName: "Health",
+			GrpcMethod:      "check",
+			GrpcBody:        `{"key": "value"}`,
+		}
+		edit(&cfg)
+		return grpcMonitor(t, cfg)
+	}
 
 	tests := []struct {
-		name           string
-		monitor        *Monitor
-		expectedStatus shared.MonitorStatus
-		expectMessage  string
-		description    string
+		name        string
+		monitor     *Monitor
+		wantStatus  shared.MonitorStatus
+		wantMessage string
 	}{
 		{
-			name: "valid gRPC config with keyword match",
-			monitor: &Monitor{
-				ID:       "monitor1",
-				Type:     "grpc-keyword",
-				Name:     "Test gRPC Monitor",
-				Interval: 30,
-				Timeout:  5,
-				Config: `{
-					"grpcUrl": "localhost:50051",
-					"grpcProtobuf": "syntax = \"proto3\";",
-					"grpcServiceName": "Health",
-					"grpcMethod": "check",
-					"keyword": "OK",
-					"invertKeyword": false
-				}`,
-			},
-			expectedStatus: shared.MonitorStatusUp,
-			expectMessage:  "keyword [OK] is found",
-			description:    "Valid gRPC config with keyword match should return UP status",
+			name:        "serving",
+			monitor:     healthMonitor(func(c *GRPCConfig) {}),
+			wantStatus:  shared.MonitorStatusUp,
+			wantMessage: "SERVING",
 		},
 		{
-			name: "valid gRPC config with keyword mismatch",
-			monitor: &Monitor{
-				ID:       "monitor2",
-				Type:     "grpc-keyword",
-				Name:     "Test gRPC Monitor",
-				Interval: 30,
-				Timeout:  5,
-				Config: `{
-					"grpcUrl": "localhost:50051",
-					"grpcProtobuf": "syntax = \"proto3\";",
-					"grpcServiceName": "Health",
-					"grpcMethod": "check",
-					"keyword": "FAIL",
-					"invertKeyword": false
-				}`,
-			},
-			expectedStatus: shared.MonitorStatusDown,
-			expectMessage:  "keyword [FAIL] is not in",
-			description:    "Valid gRPC config with keyword mismatch should return DOWN status",
+			name:        "keyword found",
+			monitor:     healthMonitor(func(c *GRPCConfig) { c.Keyword = "SERVING" }),
+			wantStatus:  shared.MonitorStatusUp,
+			wantMessage: "keyword [SERVING] is found",
 		},
 		{
-			name: "invalid json config",
-			monitor: &Monitor{
-				ID:       "monitor3",
-				Type:     "grpc-keyword",
-				Name:     "Test gRPC Monitor",
-				Interval: 30,
-				Timeout:  5,
-				Config:   `{invalid json}`,
-			},
-			expectedStatus: shared.MonitorStatusDown,
-			expectMessage:  "invalid config",
-			description:    "Invalid JSON configuration should return DOWN status",
+			name:        "keyword missing",
+			monitor:     healthMonitor(func(c *GRPCConfig) { c.Keyword = "NOT_SERVING" }),
+			wantStatus:  shared.MonitorStatusDown,
+			wantMessage: "keyword [NOT_SERVING] is not in",
 		},
 		{
-			name: "empty config",
-			monitor: &Monitor{
-				ID:       "monitor4",
-				Type:     "grpc-keyword",
-				Name:     "Test gRPC Monitor",
-				Interval: 30,
-				Timeout:  5,
-				Config:   `{}`,
-			},
-			expectedStatus: shared.MonitorStatusUp,
-			expectMessage:  "gRPC call successful",
-			description:    "Empty config uses mock response which succeeds",
+			name:        "inverted keyword absent",
+			monitor:     healthMonitor(func(c *GRPCConfig) { c.Keyword, c.InvertKeyword = "NOT_SERVING", true }),
+			wantStatus:  shared.MonitorStatusUp,
+			wantMessage: "keyword [NOT_SERVING] not found",
 		},
 		{
-			name: "inverted keyword match",
-			monitor: &Monitor{
-				ID:       "monitor5",
-				Type:     "grpc-keyword",
-				Name:     "Test gRPC Monitor",
-				Interval: 30,
-				Timeout:  5,
-				Config: `{
-					"grpcUrl": "localhost:50051",
-					"grpcProtobuf": "syntax = \"proto3\";",
-					"grpcServiceName": "Health",
-					"grpcMethod": "check",
-					"keyword": "ERROR",
-					"invertKeyword": true
-				}`,
-			},
-			expectedStatus: shared.MonitorStatusUp,
-			expectMessage:  "keyword [ERROR] not found",
-			description:    "Inverted keyword check (keyword not found) should return UP status",
+			name: "inverted keyword present for the service in the body",
+			monitor: healthMonitor(func(c *GRPCConfig) {
+				c.GrpcBody = `{"service": "peekaping.Worker"}`
+				c.Keyword, c.InvertKeyword = "NOT_SERVING", true
+			}),
+			wantStatus:  shared.MonitorStatusDown,
+			wantMessage: "keyword [NOT_SERVING] is present",
+		},
+		{
+			name:        "unknown method",
+			monitor:     healthMonitor(func(c *GRPCConfig) { c.GrpcMethod = "Ping" }),
+			wantStatus:  shared.MonitorStatusDown,
+			wantMessage: "code = Unimplemented",
+		},
+		{
+			name:        "method name with regexp metacharacters",
+			monitor:     healthMonitor(func(c *GRPCConfig) { c.GrpcMethod = "Check(" }),
+			wantStatus:  shared.MonitorStatusDown,
+			wantMessage: "code = Unimplemented",
+		},
+		{
+			name:        "unreachable target",
+			monitor:     healthMonitor(func(c *GRPCConfig) { c.GrpcUrl = closedAddr(t) }),
+			wantStatus:  shared.MonitorStatusDown,
+			wantMessage: "code = Unavailable",
+		},
+		{
+			name:        "invalid json config",
+			monitor:     &Monitor{ID: "grpc", Type: "grpc-keyword", Name: "gRPC", Timeout: 2, Config: `{invalid json}`},
+			wantStatus:  shared.MonitorStatusDown,
+			wantMessage: "invalid config",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
-			defer cancel()
-
-			result := executor.Execute(ctx, tt.monitor, nil)
-			assert.Equal(t, tt.expectedStatus, result.Status, tt.description)
-			if tt.expectMessage != "" {
-				assert.Contains(t, result.Message, tt.expectMessage, tt.description)
-			}
-			assert.NotZero(t, result.StartTime)
-			assert.NotZero(t, result.EndTime)
-			assert.True(t, result.EndTime.After(result.StartTime) || result.EndTime.Equal(result.StartTime))
+			result := executor.Execute(context.Background(), tt.monitor, nil)
+			assert.Equal(t, tt.wantStatus, result.Status, result.Message)
+			assert.Contains(t, result.Message, tt.wantMessage)
 		})
 	}
 }

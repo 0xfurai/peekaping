@@ -183,8 +183,9 @@ func (g *GRPCExecutor) tryReflectionCall(ctx context.Context, conn *grpc.ClientC
 // tryDirectCall attempts a direct gRPC call using common proto patterns
 func (g *GRPCExecutor) tryDirectCall(ctx context.Context, conn *grpc.ClientConn, cfg *GRPCConfig) (string, error) {
 	// Parse the proto content to extract method information
-	requestTypeName := g.extractRequestMessageName(cfg.GrpcProtobuf, cfg.GrpcServiceName, cfg.GrpcMethod)
-	responseTypeName := g.extractResponseMessageName(cfg.GrpcProtobuf, cfg.GrpcServiceName, cfg.GrpcMethod)
+	method := g.declaredMethodName(cfg.GrpcProtobuf, cfg.GrpcMethod)
+	requestTypeName := g.extractRequestMessageName(cfg.GrpcProtobuf, cfg.GrpcServiceName, method)
+	responseTypeName := g.extractResponseMessageName(cfg.GrpcProtobuf, cfg.GrpcServiceName, method)
 	packageName := g.extractPackageName(cfg.GrpcProtobuf)
 
 	g.logger.Debugf("Extracted types - Request: %s, Response: %s, Package: %s", requestTypeName, responseTypeName, packageName)
@@ -208,10 +209,7 @@ func (g *GRPCExecutor) tryDirectCall(ctx context.Context, conn *grpc.ClientConn,
 	// Try to create simplified descriptors for common patterns
 	requestDesc, responseDesc, err := g.createSimpleDescriptors(requestTypeName, responseTypeName, packageName)
 	if err != nil {
-		// If descriptor creation fails, fall back to mock response for testing
-		g.logger.Debugf("Descriptor creation failed, using mock response: %v", err)
-		mockResponse := g.createMockResponse(cfg)
-		return mockResponse, nil
+		return "", err
 	}
 
 	// Create dynamic messages
@@ -236,17 +234,14 @@ func (g *GRPCExecutor) tryDirectCall(ctx context.Context, conn *grpc.ClientConn,
 	if packageName != "" {
 		fullServiceName = packageName + "." + cfg.GrpcServiceName
 	}
-	methodName := fmt.Sprintf("/%s/%s", fullServiceName, cfg.GrpcMethod)
+	methodName := fmt.Sprintf("/%s/%s", fullServiceName, method)
 
 	g.logger.Debugf("Invoking method: %s", methodName)
 
 	// Invoke the method
 	err = conn.Invoke(ctx, methodName, requestMsg, responseMsg)
 	if err != nil {
-		// For testing purposes, when gRPC call fails (no server), return a mock response
-		g.logger.Debugf("gRPC call failed, returning mock response for testing: %v", err)
-		mockResponse := g.createMockResponse(cfg)
-		return mockResponse, nil
+		return "", err
 	}
 
 	// Convert response to JSON string
@@ -271,9 +266,7 @@ func (g *GRPCExecutor) createSimpleDescriptors(requestType, responseType, packag
 	g.logger.Debugf("Created descriptors - Request: %v, Response: %v", requestDesc != nil, responseDesc != nil)
 
 	if requestDesc == nil || responseDesc == nil {
-		// If descriptor creation fails, fall back to a simple approach
-		g.logger.Debugf("Descriptor creation failed, falling back to mock response")
-		return nil, nil, fmt.Errorf("falling back to mock response due to descriptor creation failure")
+		return nil, nil, fmt.Errorf("failed to create message descriptors for %s and %s", requestType, responseType)
 	}
 
 	return requestDesc, responseDesc, nil
@@ -353,9 +346,21 @@ func (g *GRPCExecutor) createHealthCheckResponseDescriptor() protoreflect.Messag
 				Name: proto.String("HealthCheckResponse"),
 				Field: []*descriptorpb.FieldDescriptorProto{
 					{
-						Name:   proto.String("status"),
-						Number: proto.Int32(1),
-						Type:   descriptorpb.FieldDescriptorProto_TYPE_ENUM.Enum(),
+						Name:     proto.String("status"),
+						Number:   proto.Int32(1),
+						Type:     descriptorpb.FieldDescriptorProto_TYPE_ENUM.Enum(),
+						TypeName: proto.String(".grpc.health.v1.HealthCheckResponse.ServingStatus"),
+					},
+				},
+				EnumType: []*descriptorpb.EnumDescriptorProto{
+					{
+						Name: proto.String("ServingStatus"),
+						Value: []*descriptorpb.EnumValueDescriptorProto{
+							{Name: proto.String("UNKNOWN"), Number: proto.Int32(0)},
+							{Name: proto.String("SERVING"), Number: proto.Int32(1)},
+							{Name: proto.String("NOT_SERVING"), Number: proto.Int32(2)},
+							{Name: proto.String("SERVICE_UNKNOWN"), Number: proto.Int32(3)},
+						},
 					},
 				},
 			},
@@ -468,15 +473,6 @@ func (g *GRPCExecutor) convertMessageToJSON(msg *dynamicpb.Message) string {
 	return string(jsonBytes)
 }
 
-// createMockResponse creates a mock response for testing when gRPC calls fail
-func (g *GRPCExecutor) createMockResponse(cfg *GRPCConfig) string {
-	// Create a response that contains keywords for testing
-	if cfg.GrpcServiceName == "Health" {
-		return `{"status": "SERVING", "message": "OK"}`
-	}
-	return fmt.Sprintf(`{"status": "OK", "service": "%s", "method": "%s", "message": "SUCCESS"}`, cfg.GrpcServiceName, cfg.GrpcMethod)
-}
-
 // Helper functions to extract information from proto content
 func (g *GRPCExecutor) extractPackageName(protoContent string) string {
 	re := regexp.MustCompile(`package\s+([^;]+);`)
@@ -487,9 +483,22 @@ func (g *GRPCExecutor) extractPackageName(protoContent string) string {
 	return ""
 }
 
+// declaredMethodName returns method spelled as the proto declares it, so a
+// monitor configured with "check" calls "Check": gRPC method names are
+// case-sensitive.
+func (g *GRPCExecutor) declaredMethodName(protoContent, method string) string {
+	re := regexp.MustCompile(`rpc\s+(\w+)\s*\(`)
+	for _, matches := range re.FindAllStringSubmatch(protoContent, -1) {
+		if strings.EqualFold(matches[1], method) {
+			return matches[1]
+		}
+	}
+	return method
+}
+
 func (g *GRPCExecutor) extractRequestMessageName(protoContent, serviceName, methodName string) string {
 	// Look for method definition pattern: rpc MethodName(RequestType) returns (ResponseType);
-	pattern := fmt.Sprintf(`rpc\s+%s\s*\(\s*([^)]+)\s*\)\s*returns`, methodName)
+	pattern := fmt.Sprintf(`rpc\s+%s\s*\(\s*([^)]+)\s*\)\s*returns`, regexp.QuoteMeta(methodName))
 	re := regexp.MustCompile(pattern)
 	matches := re.FindStringSubmatch(protoContent)
 	if len(matches) > 1 {
@@ -500,7 +509,7 @@ func (g *GRPCExecutor) extractRequestMessageName(protoContent, serviceName, meth
 
 func (g *GRPCExecutor) extractResponseMessageName(protoContent, serviceName, methodName string) string {
 	// Look for method definition pattern: rpc MethodName(RequestType) returns (ResponseType);
-	pattern := fmt.Sprintf(`rpc\s+%s\s*\([^)]+\)\s*returns\s*\(\s*([^)]+)\s*\)`, methodName)
+	pattern := fmt.Sprintf(`rpc\s+%s\s*\([^)]+\)\s*returns\s*\(\s*([^)]+)\s*\)`, regexp.QuoteMeta(methodName))
 	re := regexp.MustCompile(pattern)
 	matches := re.FindStringSubmatch(protoContent)
 	if len(matches) > 1 {
