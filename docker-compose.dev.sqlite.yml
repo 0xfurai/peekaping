@@ -14,7 +14,8 @@ services:
       interval: 30s
       timeout: 2s
       retries: 5
-      start_period: 5s
+      start_period: 30s
+      start_interval: 1s
 
   migrate:
     build:
@@ -47,7 +48,8 @@ services:
       interval: 30s
       timeout: 2s
       retries: 5
-      start_period: 5s
+      start_period: 30s
+      start_interval: 1s
 
   producer:
     build:
@@ -113,6 +115,7 @@ services:
       interval: 30s
       timeout: 2s
       retries: 5
-      start_period: 5s
+      start_period: 30s
+      start_interval: 1s
 
 
