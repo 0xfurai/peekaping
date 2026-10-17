@@ -1,0 +1,15 @@
+// Static-assets-only Worker serving peekaping.com, deployed by .github/workflows/deploy-landing.yml
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "peekaping-landing",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page"
+  },
+  // Production is served only on the custom domain; PR previews get pr-<number>-<name>.<subdomain>.workers.dev
+  "preview_urls": true,
+  "routes": [{ "pattern": "peekaping.com", "custom_domain": true }],
+  // Required by `wrangler preview`; PR previews need no settings of their own
+  "previews": {}
+}

@@ -1,0 +1,101 @@
+name: Reusable Site Deploy
+
+# Builds a static site in apps/<app> and deploys it to its Cloudflare Worker (apps/<app>/wrangler.jsonc).
+# Pushes to main deploy production. Pull requests get a preview named pr-<number>, deleted when the PR closes.
+# PRs from forks and Dependabot get no secrets, so they only build.
+
+on:
+  workflow_call:
+    inputs:
+      app:
+        description: 'Directory under apps/ and pnpm package name (docs or landing)'
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    if: github.event.action != 'closed' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-${{ inputs.app }}-${{ github.event.pull_request.number || github.ref }}
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+    env:
+      HAS_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+      PREVIEW_NAME: pr-${{ github.event.pull_request.number }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: apps/${{ inputs.app }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # A closed PR may have no merge ref left; cleanup only needs the Wrangler config
+          ref: ${{ github.event.action == 'closed' && github.event.repository.default_branch || '' }}
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --filter ${{ inputs.app }}
+
+      - name: Build
+        if: github.event.action != 'closed'
+        run: pnpm build
+
+      - name: Deploy to production
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: pnpm exec wrangler deploy
+
+      - name: Deploy preview
+        id: preview
+        if: github.event_name == 'pull_request' && github.event.action != 'closed' && env.HAS_TOKEN == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          url=$(pnpm exec wrangler preview --name "$PREVIEW_NAME" --json | jq -r '.preview.urls[0] // empty')
+          if [ -z "$url" ]; then
+            # preview_urls in wrangler.jsonc takes effect with the first production deploy
+            echo "::warning::Preview $PREVIEW_NAME deployed without a URL. Preview URLs turn on with the next production deploy."
+          else
+            echo "url=$url" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Comment preview URL
+        if: steps.preview.outputs.url
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APP: ${{ inputs.app }}
+          PR: ${{ github.event.pull_request.number }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+          URL: ${{ steps.preview.outputs.url }}
+        run: |
+          # One comment per site, updated on every push
+          marker="<!-- ${APP}-preview -->"
+          body=$(printf '%s\n**%s** preview for %s: %s' "$marker" "$APP" "$SHA" "$URL")
+          id=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --paginate \
+            --jq ".[] | select(.body | startswith(\"$marker\")) | .id" | head -n 1)
+          if [ -n "$id" ]; then
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$id" -f body="$body" > /dev/null
+          else
+            gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body "$body"
+          fi
+
+      - name: Delete preview
+        if: github.event.action == 'closed' && env.HAS_TOKEN == 'true'
+        # The PR may never have had a preview; a failed cleanup shouldn't mark it red
+        continue-on-error: true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: pnpm exec wrangler preview delete --name "$PREVIEW_NAME" --skip-confirmation

@@ -1,0 +1,27 @@
+name: Deploy Docs
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'apps/docs/**'
+      - '.github/workflows/deploy-docs.yml'
+      - '.github/workflows/deploy-site-reusable.yml'
+  pull_request:
+    types: [ opened, synchronize, reopened, closed ]
+    branches: [ main ]
+    paths:
+      - 'apps/docs/**'
+      - '.github/workflows/deploy-docs.yml'
+      - '.github/workflows/deploy-site-reusable.yml'
+  workflow_dispatch:
+
+jobs:
+  docs:
+    uses: ./.github/workflows/deploy-site-reusable.yml
+    with:
+      app: docs
+    permissions:
+      contents: read
+      pull-requests: write # preview URL comment
+    secrets: inherit

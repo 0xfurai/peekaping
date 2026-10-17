@@ -1,0 +1,27 @@
+name: Deploy Landing
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'apps/landing/**'
+      - '.github/workflows/deploy-landing.yml'
+      - '.github/workflows/deploy-site-reusable.yml'
+  pull_request:
+    types: [ opened, synchronize, reopened, closed ]
+    branches: [ main ]
+    paths:
+      - 'apps/landing/**'
+      - '.github/workflows/deploy-landing.yml'
+      - '.github/workflows/deploy-site-reusable.yml'
+  workflow_dispatch:
+
+jobs:
+  landing:
+    uses: ./.github/workflows/deploy-site-reusable.yml
+    with:
+      app: landing
+    permissions:
+      contents: read
+      pull-requests: write # preview URL comment
+    secrets: inherit

@@ -26,16 +26,4 @@ This command generates static content into the `build` directory and can be serv
 
 ## Deployment
 
-Using SSH:
-
-```bash
-USE_SSH=true yarn deploy
-```
-
-Not using SSH:
-
-```bash
-GIT_USER=<Your GitHub username> yarn deploy
-```
-
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
+The site is served from a Cloudflare Worker (`wrangler.jsonc`). `.github/workflows/deploy-docs.yml` deploys it to docs.peekaping.com on every push to `main` that changes `apps/docs`, and posts a preview link on pull requests.
