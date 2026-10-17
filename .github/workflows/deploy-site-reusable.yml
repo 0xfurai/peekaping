@@ -11,6 +11,11 @@ on:
         description: 'Directory under apps/ and pnpm package name (docs or landing)'
         required: true
         type: string
+    secrets:
+      CLOUDFLARE_API_TOKEN:
+        required: false
+      CLOUDFLARE_ACCOUNT_ID:
+        required: false
 
 jobs:
   deploy:
@@ -62,8 +67,11 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # Wrangler writes machine-readable results here, leaving its normal output in the log
+          WRANGLER_OUTPUT_FILE_PATH: ${{ runner.temp }}/wrangler-output.json
         run: |
-          url=$(pnpm exec wrangler preview --name "$PREVIEW_NAME" --json | jq -r '.preview.urls[0] // empty')
+          pnpm exec wrangler preview --name "$PREVIEW_NAME"
+          url=$(jq -r 'select(.type == "preview") | .preview_urls[0] // empty' "$WRANGLER_OUTPUT_FILE_PATH")
           if [ -z "$url" ]; then
             # preview_urls in wrangler.jsonc takes effect with the first production deploy
             echo "::warning::Preview $PREVIEW_NAME deployed without a URL. Preview URLs turn on with the next production deploy."
