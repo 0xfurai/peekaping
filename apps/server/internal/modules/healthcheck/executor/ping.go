@@ -185,7 +185,7 @@ func (p *PingExecutor) tryNativePing(ctx context.Context, host string, packetSiz
 	// The context expires together with the socket deadline, so either one
 	// means the host didn't answer in time.
 	case errors.Is(err, os.ErrDeadlineExceeded), errors.Is(ctx.Err(), context.DeadlineExceeded):
-		return false, 0, fmt.Errorf("no reply from %s within %v", dst, deadline.Sub(start).Round(100*time.Millisecond))
+		return false, 0, fmt.Errorf("no reply from %s within %v", dst, max(deadline.Sub(start), 0).Round(100*time.Millisecond))
 	case ctx.Err() != nil:
 		return false, 0, fmt.Errorf("no reply from %s: %v", dst, ctx.Err())
 	default:

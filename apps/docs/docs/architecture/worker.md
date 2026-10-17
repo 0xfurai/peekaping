@@ -52,8 +52,8 @@ If neither socket can be opened, the worker runs the system `ping` command. The 
 
 What this means for each deployment:
 
-- **Docker and Docker Compose**: works by default. Docker sets `net.ipv4.ping_group_range` to all groups in every container with its own network namespace. With `network_mode: host`, the host's setting applies.
-- **Podman**: allows only group 0 by default. The bundle image runs as root and works. For the split `peekaping-worker` image, which runs as a non-root user, add `--sysctl net.ipv4.ping_group_range="0 2147483647"`.
+- **Docker and Docker Compose**: works by default. Docker sets `net.ipv4.ping_group_range` to all groups in every container with its own network namespace. It doesn't with rootless Docker or `userns-remap`, and with `network_mode: host` the host's setting applies. In those cases, give the `peekaping-worker` service `sysctls: ["net.ipv4.ping_group_range=65532 65532"]`.
+- **Podman**: allows only group 0 by default. The bundle image runs as root and works. For the `peekaping-worker` image, which runs as group 65532, add `--sysctl net.ipv4.ping_group_range="65532 65532"`. Rootless Podman rejects ranges that include groups outside its user namespace, such as `0 2147483647`.
 - **Kubernetes**: the Helm chart sets `net.ipv4.ping_group_range` on worker pods through `worker.sysctls`. It is a safe sysctl, allowed under the baseline and restricted Pod Security Standards. If you deploy without the chart, set it in the pod's `securityContext.sysctls`.
 
 Adding `NET_RAW` (for example `cap_add: [NET_RAW]` in Compose) only helps a worker that runs as root, such as the bundle image. A non-root worker doesn't get the capability, so use `net.ipv4.ping_group_range` instead.
