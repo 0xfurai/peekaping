@@ -49,7 +49,7 @@ func NewMonitorController(
 // @Security  ApiKeyAuth
 // @Param     q    query     string  false  "Search query"
 // @Param     page query     int     false  "Page number" default(1)
-// @Param     limit query    int     false  "Items per page" default(10)
+// @Param     limit query    int     false  "Items per page" default(10) minimum(1) maximum(1000)
 // @Param     active query   bool    false  "Active status"
 // @Param     status query   int     false  "Status"
 // @Param     tag_ids query  string  false  "Comma-separated list of tag IDs to filter by"
@@ -65,7 +65,7 @@ func (ic *MonitorController) FindAll(ctx *gin.Context) {
 	}
 
 	limit, err := utils.GetQueryInt(ctx, "limit", 10)
-	if err != nil || limit < 1 {
+	if err != nil || limit < 1 || limit > utils.MaxPageSize {
 		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid limit parameter"))
 		return
 	}
@@ -481,7 +481,7 @@ func (ic *MonitorController) Delete(ctx *gin.Context) {
 // @Produce	json
 // @Security BearerAuth
 // @Param	id	path	string	true	"Monitor ID"
-// @Param	limit	query	int	false	"Number of heartbeats per page (default 50)"
+// @Param	limit	query	int	false	"Number of heartbeats per page" default(50) minimum(1) maximum(1000)
 // @Param	page	query	int	false	"Page number (default 0)"
 // @Param	important	query	bool	false	"Filter by important heartbeats only"
 // @Param	reverse	query	bool	false	"Reverse the order of heartbeats"
@@ -493,7 +493,7 @@ func (ic *MonitorController) FindByMonitorIDPaginated(ctx *gin.Context) {
 	id := ctx.Param("id")
 
 	limit, err := utils.GetQueryInt(ctx, "limit", 50)
-	if err != nil || limit < 1 || limit > 1000 {
+	if err != nil || limit < 1 || limit > utils.MaxPageSize {
 		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid limit parameter (1-1000)"))
 		return
 	}
