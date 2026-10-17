@@ -9,6 +9,7 @@ import (
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/middleware"
 	"peekaping/internal/modules/setting"
+	"peekaping/internal/modules/shared"
 	"peekaping/internal/utils"
 	"strings"
 	"testing"
@@ -28,7 +29,8 @@ func (acceptingAPIKeys) ValidateKey(context.Context, string) (*api_key.Model, er
 	return &api_key.Model{ID: "api-key-1"}, nil
 }
 
-// settingsAPI serves the settings routes behind the real auth chain.
+// settingsAPI serves the settings routes of an upgraded install behind the
+// real auth chain.
 type settingsAPI struct {
 	engine      *gin.Engine
 	settings    setting.Service
@@ -41,11 +43,11 @@ func newSettingsAPI(t *testing.T) *settingsAPI {
 	ctx := context.Background()
 	logger := zap.NewNop().Sugar()
 
-	settings := setting.NewService(newMemoryRepository(), logger)
+	settings, tokenMaker := newSettingsWithTokens()
+	seedEarlierRelease(t, settings)
 	require.NoError(t, settings.InitializeSettings(ctx))
 
-	tokenMaker := auth.NewTokenMaker(settings, logger)
-	accessToken, err := tokenMaker.CreateAccessToken(ctx, &auth.Model{ID: "user-1", Email: "admin@example.com"})
+	accessToken, err := tokenMaker.CreateAccessToken(ctx, testUser)
 	require.NoError(t, err)
 
 	authChain := middleware.NewAuthChain(
@@ -90,6 +92,8 @@ func (api *settingsAPI) stored(t *testing.T, key string) string {
 
 func TestSettingsAPI_HidesInternalSettings(t *testing.T) {
 	internalKeys := []string{
+		shared.AccessTokenSecretKey,
+		shared.RefreshTokenSecretKey,
 		"ACCESS_TOKEN_SECRET_KEY",
 		"REFRESH_TOKEN_SECRET_KEY",
 		"ACCESS_TOKEN_EXPIRED_IN",
@@ -118,7 +122,7 @@ func TestSettingsAPI_HidesInternalSettings(t *testing.T) {
 	}
 }
 
-func TestSettingsAPI_ServesKeepDataPeriod(t *testing.T) {
+func TestSettingsAPI_ServesDataRetentionPeriod(t *testing.T) {
 	for _, as := range authMethods {
 		t.Run(as.name, func(t *testing.T) {
 			api := newSettingsAPI(t)
