@@ -54,6 +54,10 @@ spec:
         fsGroup: 10001
         seccompProfile:
           type: RuntimeDefault
+        {{- with .Values.worker.sysctls }}
+        sysctls:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
 
       containers:
         - name: {{ .Release.Name }}-worker
