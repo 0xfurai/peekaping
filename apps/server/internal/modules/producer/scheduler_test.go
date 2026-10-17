@@ -2,6 +2,7 @@ package producer
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -367,6 +368,35 @@ func TestUpdateMonitor(t *testing.T) {
 		assert.NoError(t, err)
 		mockQueueSvc.AssertExpectations(t)
 		mockQueueSvc.AssertNotCalled(t, "DeleteTask", mock.Anything, mock.Anything, mock.Anything)
+	})
+
+	t.Run("update cancels a check that started during the purge", func(t *testing.T) {
+		client, mr := setupTestRedis(t)
+		defer mr.Close()
+
+		mockMonitorSvc := new(MockMonitorService)
+		mockQueueSvc := new(MockQueueService)
+		producer := &Producer{
+			rdb:              client,
+			logger:           zap.NewNop().Sugar(),
+			ctx:              context.Background(),
+			monitorService:   mockMonitorSvc,
+			queueService:     mockQueueSvc,
+			monitorIntervals: make(map[string]int),
+		}
+
+		ctx := context.Background()
+		mon := &monitor.Model{ID: "monitor-123", Active: true, Interval: 60}
+		mockMonitorSvc.On("FindByID", ctx, "monitor-123").Return(mon, nil)
+		mockQueueSvc.On("GetTaskInfo", ctx, "healthcheck", "healthcheck:monitor-123").Return(&queue.TaskInfo{State: "pending"}, nil).Once()
+		mockQueueSvc.On("DeleteTask", ctx, "healthcheck", "healthcheck:monitor-123").Return(errors.New("asynq: cannot delete task in active state")).Once()
+		mockQueueSvc.On("GetTaskInfo", ctx, "healthcheck", "healthcheck:monitor-123").Return(&queue.TaskInfo{State: "active"}, nil).Once()
+		mockQueueSvc.On("CancelTask", ctx, "healthcheck:monitor-123").Return(nil).Once()
+
+		err := producer.UpdateMonitor(ctx, "monitor-123")
+		assert.NoError(t, err)
+
+		mockQueueSvc.AssertExpectations(t)
 	})
 
 	t.Run("update of a push monitor waits for the next slot", func(t *testing.T) {

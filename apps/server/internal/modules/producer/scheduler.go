@@ -427,15 +427,21 @@ func (p *Producer) purgeHealthCheckTask(ctx context.Context, monitorID string) {
 		p.logger.Warnw("Failed to look up queued health check", "task_id", taskID, "error", err)
 		return
 	}
-	if task.State == queue.TaskStateActive {
-		// The worker drops the result of a cancelled check, and the task it leaves
-		// archived is replaced by the next enqueue
-		if err := p.queueService.CancelTask(ctx, taskID); err != nil {
-			p.logger.Warnw("Failed to cancel running health check", "task_id", taskID, "error", err)
+	if task.State != queue.TaskStateActive {
+		err := p.queueService.DeleteTask(ctx, healthCheckQueue, taskID)
+		if err == nil || errors.Is(err, queue.ErrTaskNotFound) {
+			return
 		}
-		return
+		// A worker may have picked the task up since the lookup
+		task, lookupErr := p.queueService.GetTaskInfo(ctx, healthCheckQueue, taskID)
+		if lookupErr != nil || task.State != queue.TaskStateActive {
+			p.logger.Warnw("Failed to purge queued health check", "task_id", taskID, "error", err)
+			return
+		}
 	}
-	if err := p.queueService.DeleteTask(ctx, healthCheckQueue, taskID); err != nil && !errors.Is(err, queue.ErrTaskNotFound) {
-		p.logger.Warnw("Failed to purge queued health check", "task_id", taskID, "error", err)
+	// The worker drops the result of a cancelled check, and the task it leaves
+	// archived is replaced by the next enqueue
+	if err := p.queueService.CancelTask(ctx, taskID); err != nil {
+		p.logger.Warnw("Failed to cancel running health check", "task_id", taskID, "error", err)
 	}
 }
