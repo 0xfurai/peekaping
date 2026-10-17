@@ -106,7 +106,8 @@ func TestControllerUpdatePartialMergesSavedChannel(t *testing.T) {
 		{"config checked against saved type", &Model{Type: "test-rejecting", Config: stringPtr("{}")}, `{"config": "{}"}`, http.StatusBadRequest, "Invalid config: bad config", false},
 		{"config accepted by saved type", &Model{Type: "test-valid", Config: stringPtr("{}")}, `{"config": "{}"}`, http.StatusOK, "notification updated successfully", true},
 		{"type checked with saved config", &Model{Type: "test-valid", Config: stringPtr("{}")}, `{"type": "test-missing"}`, http.StatusBadRequest, "Unsupported notification type", false},
-		{"channel not found", nil, `{"config": "{}"}`, http.StatusNotFound, "Notification not found", false},
+		{"channel not found", nil, `{"config": "{}"}`, http.StatusNotFound, "Notification channel not found", false},
+		{"name only on a missing channel", nil, `{"name": "Renamed"}`, http.StatusNotFound, "Notification channel not found", false},
 	}
 
 	for _, tc := range cases {
@@ -127,7 +128,7 @@ func TestControllerUpdatePartialMergesSavedChannel(t *testing.T) {
 	}
 
 	t.Run("omitted fields reach the service as nil", func(t *testing.T) {
-		service := &updateRecordingService{}
+		service := &updateRecordingService{saved: &Model{Type: "test-valid", Config: stringPtr("{}")}}
 		router := gin.New()
 		router.PATCH("/:id", NewController(service, zap.NewNop().Sugar()).UpdatePartial)
 

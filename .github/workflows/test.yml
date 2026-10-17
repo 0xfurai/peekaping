@@ -83,7 +83,9 @@ jobs:
         working-directory: apps/server
         run: |
           pwd
-          go test -v -coverprofile=coverage.txt ./internal/...
+          # -coverpkg credits code that tests in other packages reach, such as
+          # the controllers internal/apitest drives through the router
+          go test -v -coverprofile=coverage.txt -coverpkg=./internal/... ./internal/...
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5

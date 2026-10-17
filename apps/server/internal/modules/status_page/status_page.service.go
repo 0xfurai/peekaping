@@ -14,18 +14,19 @@ type Service interface {
 	Create(ctx context.Context, dto *CreateStatusPageDTO) (*Model, error)
 	FindByID(ctx context.Context, id string) (*Model, error)
 	FindByIDWithMonitors(ctx context.Context, id string) (*StatusPageWithMonitorsResponseDTO, error)
-	FindBySlug(ctx context.Context, slug string) (*Model, error)
-	FindByDomain(ctx context.Context, domain string) (*Model, error)
+	FindPublishedBySlug(ctx context.Context, slug string) (*Model, error)
+	FindPublishedByDomain(ctx context.Context, domain string) (*Model, error)
 	FindAll(ctx context.Context, page int, limit int, q string) ([]*Model, error)
 	Update(ctx context.Context, id string, dto *UpdateStatusPageDTO) (*Model, error)
 	Delete(ctx context.Context, id string) error
 
 	GetMonitorsForStatusPage(ctx context.Context, statusPageID string) ([]*monitor_status_page.Model, error)
+	IsMonitorPublished(ctx context.Context, monitorID string) (bool, error)
 }
 
 type ServiceImpl struct {
 	repository               Repository
-	eventBus events.EventBus
+	eventBus                 events.EventBus
 	monitorStatusPageService monitor_status_page.Service
 	domainStatusPageService  domain_status_page.Service
 	logger                   *zap.SugaredLogger
@@ -190,11 +191,16 @@ func (s *ServiceImpl) FindByIDWithMonitors(
 	return dto, nil
 }
 
-func (s *ServiceImpl) FindBySlug(ctx context.Context, slug string) (*Model, error) {
-	return s.repository.FindBySlug(ctx, slug)
+// FindPublishedBySlug returns the published status page at slug. A page that
+// doesn't exist or isn't published is nil, so public callers can't tell the
+// two apart.
+func (s *ServiceImpl) FindPublishedBySlug(ctx context.Context, slug string) (*Model, error) {
+	return publishedOnly(s.repository.FindBySlug(ctx, slug))
 }
 
-func (s *ServiceImpl) FindByDomain(ctx context.Context, domain string) (*Model, error) {
+// FindPublishedByDomain returns the published status page served at a custom
+// domain, or nil like FindPublishedBySlug.
+func (s *ServiceImpl) FindPublishedByDomain(ctx context.Context, domain string) (*Model, error) {
 	// Find the domain-status page relationship
 	domainStatusPage, err := s.domainStatusPageService.FindByDomain(ctx, domain)
 	if err != nil {
@@ -204,8 +210,14 @@ func (s *ServiceImpl) FindByDomain(ctx context.Context, domain string) (*Model, 
 		return nil, nil
 	}
 
-	// Get the status page
-	return s.repository.FindByID(ctx, domainStatusPage.StatusPageID)
+	return publishedOnly(s.repository.FindByID(ctx, domainStatusPage.StatusPageID))
+}
+
+func publishedOnly(page *Model, err error) (*Model, error) {
+	if err != nil || page == nil || !page.Published {
+		return nil, err
+	}
+	return page, nil
 }
 
 func (s *ServiceImpl) FindAll(ctx context.Context, page int, limit int, q string) ([]*Model, error) {
@@ -335,6 +347,25 @@ func (s *ServiceImpl) Delete(ctx context.Context, id string) error {
 
 func (s *ServiceImpl) GetMonitorsForStatusPage(ctx context.Context, statusPageID string) ([]*monitor_status_page.Model, error) {
 	return s.monitorStatusPageService.GetMonitorsForStatusPage(ctx, statusPageID)
+}
+
+// IsMonitorPublished reports whether the monitor is on at least one published
+// status page.
+func (s *ServiceImpl) IsMonitorPublished(ctx context.Context, monitorID string) (bool, error) {
+	links, err := s.monitorStatusPageService.GetStatusPagesForMonitor(ctx, monitorID)
+	if err != nil {
+		return false, err
+	}
+	for _, link := range links {
+		page, err := s.repository.FindByID(ctx, link.StatusPageID)
+		if err != nil {
+			return false, err
+		}
+		if page != nil && page.Published {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 // mapModelToStatusPageWithMonitorsDTO converts a Model to StatusPageWithMonitorsDTO
