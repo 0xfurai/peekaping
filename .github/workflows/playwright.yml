@@ -41,8 +41,53 @@ on:
       - '!**/*.md'
     branches: [ main, master ]
 
+env:
+  # Compose names the images it builds <project>-<service>. Pinning the project
+  # name makes the images from build-images match what the compose files expect.
+  COMPOSE_PROJECT_NAME: peekaping
+
 jobs:
+  # Build each image once, on its own runner, and share it with the test jobs.
+  # The dev images don't depend on the database, so all three dev jobs reuse them.
+  build-images:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: dev-api, tag: peekaping-api, context: apps/server, file: apps/server/infra/Dockerfile.api }
+          - { name: dev-producer, tag: peekaping-producer, context: apps/server, file: apps/server/infra/Dockerfile.producer }
+          - { name: dev-worker, tag: peekaping-worker, context: apps/server, file: apps/server/infra/Dockerfile.worker }
+          - { name: dev-ingester, tag: peekaping-ingester, context: apps/server, file: apps/server/infra/Dockerfile.ingester }
+          - { name: dev-migrate, tag: peekaping-migrate, context: apps/server, file: apps/server/infra/Dockerfile.migrate }
+          - { name: dev-web, tag: peekaping-web, context: ., file: apps/web/Dockerfile }
+          - { name: bundle-postgres, tag: peekaping-peekaping, context: ., file: Dockerfile.bundle.postgres }
+          - { name: bundle-mongo, tag: peekaping-peekaping, context: ., file: Dockerfile.bundle.mongo }
+          - { name: bundle-sqlite, tag: peekaping-peekaping, context: ., file: Dockerfile.bundle.sqlite }
+    steps:
+    - uses: actions/checkout@v4
+    - uses: docker/setup-buildx-action@v3
+    - name: Build ${{ matrix.name }} image
+      uses: docker/build-push-action@v6
+      with:
+        context: ${{ matrix.context }}
+        file: ${{ matrix.file }}
+        tags: ${{ matrix.tag }}
+        outputs: type=docker,dest=${{ runner.temp }}/${{ matrix.name }}.tar
+        cache-from: type=gha,scope=e2e-${{ matrix.name }}
+        cache-to: type=gha,scope=e2e-${{ matrix.name }},mode=max
+    - uses: actions/upload-artifact@v4
+      with:
+        name: image-${{ matrix.name }}
+        path: ${{ runner.temp }}/${{ matrix.name }}.tar
+        retention-days: 1
+        # Image layers are already compressed.
+        compression-level: 0
+
   playwright-tests:
+    needs: build-images
+    # Run every combination whose images built, even if another image failed.
+    if: ${{ !cancelled() }}
     timeout-minutes: 60
     runs-on: ubuntu-latest
     strategy:
@@ -60,6 +105,17 @@ jobs:
       run: npm install -g pnpm && pnpm install
     - name: Install Playwright Browsers
       run: pnpm exec playwright install --with-deps
+    - name: Download images
+      uses: actions/download-artifact@v4
+      with:
+        pattern: ${{ matrix.config == 'dev' && 'image-dev-*' || format('image-bundle-{0}', matrix.database) }}
+        path: ${{ runner.temp }}/images
+        merge-multiple: true
+    - name: Load images
+      run: |
+        for image in "$RUNNER_TEMP"/images/*.tar; do
+          docker load --input "$image"
+        done
 
     # Prepare environment file
     - name: Create .env file
@@ -96,9 +152,9 @@ jobs:
         ls -la .data/
         echo "Directory permissions set successfully"
 
-    # Build and start services using appropriate docker-compose file
+    # Start services from the prebuilt images using appropriate docker-compose file
     - name: Start services with docker-compose
-      run: docker compose -f docker-compose.${{ matrix.config }}.${{ matrix.database }}.yml up -d --build
+      run: docker compose -f docker-compose.${{ matrix.config }}.${{ matrix.database }}.yml up -d --no-build
 
     - name: Show container logs
       run: |
