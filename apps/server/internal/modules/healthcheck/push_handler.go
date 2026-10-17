@@ -2,6 +2,7 @@ package healthcheck
 
 import (
 	"fmt"
+	"math"
 	"net/http"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
@@ -16,13 +17,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
-
-type PushHeartbeatRequest struct {
-	PushToken string `json:"pushToken" binding:"required"`
-	Status    int    `json:"status" binding:"required"`
-	Msg       string `json:"msg"`
-	Ping      int    `json:"ping"`
-}
 
 type PushConfig struct {
 	PushToken string `json:"pushToken"`
@@ -76,11 +70,16 @@ func RegisterPushEndpoint(
 			return
 		}
 
-		msg := ctx.DefaultQuery("msg", "OK")
-		statusStr := ctx.DefaultQuery("status", "1")
-		pingStr := ctx.DefaultQuery("ping", "0")
-		status := parsePushStatus(statusStr)
-		ping := parsePushPing(pingStr)
+		status := parsePushStatus(ctx.Query("status"))
+		msg := ctx.Query("msg")
+		if msg == "" {
+			msg = defaultPushMessage(status)
+		}
+		pingStr := ctx.Query("ping")
+		ping, ok := parsePushPing(pingStr)
+		if !ok {
+			logger.Warnw("Ignoring invalid push ping", "monitor_id", monitor.ID, "ping", pingStr)
+		}
 
 		now := time.Now().UTC()
 
@@ -131,25 +130,41 @@ func RegisterPushEndpoint(
 	})
 }
 
+// parsePushStatus maps the status query value to a monitor status. Like
+// Uptime Kuma, whose push URL format this follows, an empty value means up
+// and anything other than "up" or "1" means down, so a failure reported with
+// an unexpected word is never recorded as healthy.
 func parsePushStatus(value string) shared.MonitorStatus {
 	switch strings.ToLower(strings.TrimSpace(value)) {
-	case "up":
+	case "", "up", "1":
 		return shared.MonitorStatusUp
-	case "down":
+	default:
 		return shared.MonitorStatusDown
 	}
-
-	status, err := strconv.Atoi(strings.TrimSpace(value))
-	if err != nil {
-		return shared.MonitorStatusUp
-	}
-	return shared.MonitorStatus(status)
 }
 
-func parsePushPing(value string) int {
-	ping, err := strconv.Atoi(strings.TrimSpace(value))
-	if err != nil {
-		return 0
+func defaultPushMessage(status shared.MonitorStatus) string {
+	if status == shared.MonitorStatusUp {
+		return "OK"
 	}
-	return ping
+	return "Down"
+}
+
+// maxPushPingMs keeps the ping inside the INTEGER heartbeats.ping column.
+const maxPushPingMs = math.MaxInt32
+
+// parsePushPing returns the ping in whole milliseconds, rounding decimals.
+// An empty value is 0. A malformed, negative or oversized value is dropped as
+// 0 and reported with ok=false, so a bad ping never costs the heartbeat.
+func parsePushPing(value string) (ping int, ok bool) {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return 0, true
+	}
+	ms, err := strconv.ParseFloat(value, 64)
+	// The range check is written so that NaN fails it too.
+	if err != nil || !(ms >= 0 && ms <= maxPushPingMs) {
+		return 0, false
+	}
+	return int(math.Round(ms)), true
 }
