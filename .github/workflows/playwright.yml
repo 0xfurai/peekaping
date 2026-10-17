@@ -2,19 +2,43 @@ name: Playwright Tests
 on:
   push:
     branches: [ main, master ]
-    paths-ignore:
-      - 'apps/docs/**'
-      - '*.md'
-      - 'README.md'
-      - 'CHANGELOG.md'
-      - 'LICENSE'
+    paths:
+      - 'apps/web/**'
+      - 'apps/server/**'
+      - 'e2e/**'
+      - 'playwright.config.ts'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'patches/**'
+      - '.dockerignore'
+      - 'docker-compose.dev.*.yml'
+      - 'docker-compose.bundle.*.yml'
+      - 'Dockerfile.bundle.*'
+      - 'startup.bundle.*.sh'
+      - 'supervisord.bundle.*.conf'
+      - 'Caddyfile'
+      - '.github/workflows/playwright.yml'
+      - '!**/*.md'
   pull_request:
-    paths-ignore:
-      - 'apps/docs/**'
-      - '*.md'
-      - 'README.md'
-      - 'CHANGELOG.md'
-      - 'LICENSE'
+    paths:
+      - 'apps/web/**'
+      - 'apps/server/**'
+      - 'e2e/**'
+      - 'playwright.config.ts'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'patches/**'
+      - '.dockerignore'
+      - 'docker-compose.dev.*.yml'
+      - 'docker-compose.bundle.*.yml'
+      - 'Dockerfile.bundle.*'
+      - 'startup.bundle.*.sh'
+      - 'supervisord.bundle.*.conf'
+      - 'Caddyfile'
+      - '.github/workflows/playwright.yml'
+      - '!**/*.md'
     branches: [ main, master ]
 
 jobs:
