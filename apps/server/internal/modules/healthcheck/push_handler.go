@@ -8,6 +8,7 @@ import (
 	"peekaping/internal/modules/queue"
 	"peekaping/internal/utils"
 	"strconv"
+	"strings"
 	"time"
 
 	"peekaping/internal/modules/shared"
@@ -58,8 +59,6 @@ func RegisterPushEndpoint(
 	router.GET("/push/:token", func(ctx *gin.Context) {
 		token := ctx.Param("token")
 
-		// pingStr := ctx.DefaultQuery("ping", "0")
-
 		monitor, err := monitorService.FindOneByPushToken(ctx, token)
 		if err != nil {
 			logger.Errorw("Failed to find monitor with push token", "error", err)
@@ -79,13 +78,9 @@ func RegisterPushEndpoint(
 
 		msg := ctx.DefaultQuery("msg", "OK")
 		statusStr := ctx.DefaultQuery("status", "1")
-
-		// Parse status
-		statusInt, err := strconv.Atoi(statusStr)
-		if err != nil {
-			statusInt = 1
-		}
-		status := shared.MonitorStatus(statusInt)
+		pingStr := ctx.DefaultQuery("ping", "0")
+		status := parsePushStatus(statusStr)
+		ping := parsePushPing(pingStr)
 
 		now := time.Now().UTC()
 
@@ -102,7 +97,7 @@ func RegisterPushEndpoint(
 			MonitorConfig:      monitor.Config,
 			Status:             status,
 			Message:            msg,
-			PingMs:             0, // Push monitors don't have meaningful ping times
+			PingMs:             ping,
 			StartTime:          now,
 			EndTime:            now,
 			IsUnderMaintenance: false, // Push monitors don't have maintenance windows in the same way
@@ -134,4 +129,27 @@ func RegisterPushEndpoint(
 
 		ctx.JSON(http.StatusOK, gin.H{"ok": "true"})
 	})
+}
+
+func parsePushStatus(value string) shared.MonitorStatus {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "up":
+		return shared.MonitorStatusUp
+	case "down":
+		return shared.MonitorStatusDown
+	}
+
+	status, err := strconv.Atoi(strings.TrimSpace(value))
+	if err != nil {
+		return shared.MonitorStatusUp
+	}
+	return shared.MonitorStatus(status)
+}
+
+func parsePushPing(value string) int {
+	ping, err := strconv.Atoi(strings.TrimSpace(value))
+	if err != nil {
+		return 0
+	}
+	return ping
 }
