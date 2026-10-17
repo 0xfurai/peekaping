@@ -9,10 +9,10 @@ type Repository interface {
 	GetByMonitorID(ctx context.Context, monitorID string) (*Model, error)
 
 	// Create creates a new TLS info record
-	Create(ctx context.Context, dto *CreateDto) (*Model, error)
+	Create(ctx context.Context, model *Model) (*Model, error)
 
 	// Update updates an existing TLS info record
-	Update(ctx context.Context, monitorID string, dto *UpdateDto) (*Model, error)
+	Update(ctx context.Context, monitorID string, model *Model) (*Model, error)
 
 	// Upsert creates or updates TLS info for a monitor
 	Upsert(ctx context.Context, monitorID string, infoJSON string) (*Model, error)

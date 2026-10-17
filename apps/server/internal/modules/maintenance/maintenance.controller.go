@@ -96,7 +96,7 @@ func (ic *Controller) Create(ctx *gin.Context) {
 		return
 	}
 
-	created, err := ic.service.Create(ctx, entity)
+	created, err := ic.service.Create(ctx, entity.toModel(), entity.MonitorIds)
 	if err != nil {
 		ic.logger.Errorw("Failed to create maintenance", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -189,7 +189,7 @@ func (ic *Controller) UpdateFull(ctx *gin.Context) {
 		return
 	}
 
-	updated, err := ic.service.UpdateFull(ctx, id, &entity)
+	updated, err := ic.service.UpdateFull(ctx, id, entity.toModel(), entity.MonitorIds)
 	if err != nil {
 		ic.logger.Errorw("Failed to update maintenance", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -220,7 +220,7 @@ func (ic *Controller) UpdatePartial(ctx *gin.Context) {
 		return
 	}
 
-	updated, err := ic.service.UpdatePartial(ctx, id, &entity)
+	updated, err := ic.service.UpdatePartial(ctx, id, entity.toModel(), entity.MonitorIds)
 	if err != nil {
 		ic.logger.Errorw("Failed to update maintenance", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))

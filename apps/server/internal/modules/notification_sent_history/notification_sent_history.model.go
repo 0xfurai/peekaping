@@ -11,9 +11,3 @@ type Model struct {
 	Days      int       `json:"days"` // Threshold days (e.g., 7, 14, 21)
 	CreatedAt time.Time `json:"created_at"`
 }
-
-type CreateDto struct {
-	Type      string `json:"type" validate:"required"`
-	MonitorID string `json:"monitor_id" validate:"required"`
-	Days      int    `json:"days" validate:"required,min=1"`
-}

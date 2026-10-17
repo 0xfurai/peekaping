@@ -9,7 +9,7 @@ type Repository interface {
 	CheckIfSent(ctx context.Context, notificationType string, monitorID string, days int) (bool, error)
 
 	// RecordSent records that a notification was sent
-	RecordSent(ctx context.Context, dto *CreateDto) error
+	RecordSent(ctx context.Context, model *Model) error
 
 	// ClearByMonitorAndType clears notification history for a specific monitor and type
 	ClearByMonitorAndType(ctx context.Context, monitorID string, notificationType string) error

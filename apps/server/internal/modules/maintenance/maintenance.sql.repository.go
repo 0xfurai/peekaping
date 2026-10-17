@@ -72,7 +72,7 @@ func NewSQLRepository(db *bun.DB) Repository {
 	return &SQLRepositoryImpl{db: db}
 }
 
-func (r *SQLRepositoryImpl) Create(ctx context.Context, entity *CreateUpdateDto) (*Model, error) {
+func (r *SQLRepositoryImpl) Create(ctx context.Context, entity *Model) (*Model, error) {
 	// Marshal arrays to JSON strings
 	weekdaysJSON, _ := json.Marshal(entity.Weekdays)
 	daysOfMonthJSON, _ := json.Marshal(entity.DaysOfMonth)
@@ -145,7 +145,7 @@ func (r *SQLRepositoryImpl) FindAll(ctx context.Context, page int, limit int, q 
 	return models, nil
 }
 
-func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *CreateUpdateDto) (*Model, error) {
+func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *Model) (*Model, error) {
 	// Marshal arrays to JSON strings
 	weekdaysJSON, _ := json.Marshal(entity.Weekdays)
 	daysOfMonthJSON, _ := json.Marshal(entity.DaysOfMonth)
@@ -181,7 +181,7 @@ func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *C
 	return toDomainModelFromSQL(sm), nil
 }
 
-func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity *PartialUpdateDto) (*Model, error) {
+func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity *UpdateModel) (*Model, error) {
 	query := r.db.NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id)
 
 	hasUpdates := false
