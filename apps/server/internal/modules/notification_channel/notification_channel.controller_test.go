@@ -32,7 +32,12 @@ func (s *updateRecordingService) UpdateFull(_ context.Context, _ string, _ *Crea
 	return &Model{}, nil
 }
 
-func TestControllerUpdateFullValidatesConfig(t *testing.T) {
+func (s *updateRecordingService) UpdatePartial(_ context.Context, _ string, _ *PartialUpdateDto) (*Model, error) {
+	s.updated = true
+	return &Model{}, nil
+}
+
+func TestControllerUpdateValidatesConfig(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	RegisterNotificationChannelProvider("test-valid", validatingProvider{})
 	RegisterNotificationChannelProvider("test-rejecting", validatingProvider{err: errors.New("bad config")})
@@ -51,21 +56,25 @@ func TestControllerUpdateFullValidatesConfig(t *testing.T) {
 		{"invalid config", "test-rejecting", http.StatusBadRequest, "Invalid config: bad config", false},
 	}
 
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			service := &updateRecordingService{}
-			router := gin.New()
-			router.PUT("/:id", NewController(service, zap.NewNop().Sugar()).UpdateFull)
+	for _, method := range []string{http.MethodPut, http.MethodPatch} {
+		for _, tc := range cases {
+			t.Run(method+" "+tc.name, func(t *testing.T) {
+				service := &updateRecordingService{}
+				controller := NewController(service, zap.NewNop().Sugar())
+				router := gin.New()
+				router.PUT("/:id", controller.UpdateFull)
+				router.PATCH("/:id", controller.UpdatePartial)
 
-			body := `{"name": "Alerts", "type": "` + tc.channelType + `", "config": "{}"}`
-			req := httptest.NewRequest(http.MethodPut, "/channel-1", strings.NewReader(body))
-			req.Header.Set("Content-Type", "application/json")
-			rec := httptest.NewRecorder()
-			router.ServeHTTP(rec, req)
+				body := `{"name": "Alerts", "type": "` + tc.channelType + `", "config": "{}"}`
+				req := httptest.NewRequest(method, "/channel-1", strings.NewReader(body))
+				req.Header.Set("Content-Type", "application/json")
+				rec := httptest.NewRecorder()
+				router.ServeHTTP(rec, req)
 
-			assert.Equal(t, tc.wantStatus, rec.Code)
-			assert.Contains(t, rec.Body.String(), tc.wantResponse)
-			assert.Equal(t, tc.wantSaved, service.updated)
-		})
+				assert.Equal(t, tc.wantStatus, rec.Code)
+				assert.Contains(t, rec.Body.String(), tc.wantResponse)
+				assert.Equal(t, tc.wantSaved, service.updated)
+			})
+		}
 	}
 }
