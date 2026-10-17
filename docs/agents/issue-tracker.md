@@ -1,16 +1,16 @@
 # Issue tracker: Linear
 
-Issues and specs for this repo live in Linear, in the **Peekaping** team (key `PEE`, identifiers like `PEE-123`). Use the Linear MCP tools (`mcp__linear-server__*`) for all operations. If the Linear MCP isn't connected, ask the user to connect it or paste the ticket. Don't fall back to GitHub Issues.
+Issues and specs for this repo live in Linear, in the **Peekaping** team (key `PP`, identifiers like `PP-123`). Use the Linear MCP tools (`mcp__linear-server__*`) for all operations. If the Linear MCP isn't connected, ask the user to connect it or paste the ticket. Don't fall back to GitHub Issues.
 
 Community reports arrive as GitHub issues on `0xfurai/peekaping`. They aren't the tracker: a Linear ticket links the GitHub issues it covers as attachments. Read a linked issue with `gh issue view <n> --comments`; it holds the reporter's logs, configs and repro steps.
 
 ## Conventions
 
 - **Create an issue**: `save_issue` with `team: "Peekaping"`, `title` and a Markdown `description`. Set `project` (and `milestone`) when the work belongs to one; `list_projects` shows them.
-- **Read an issue**: `get_issue` with `PEE-<n>`, then `list_comments` for the discussion.
+- **Read an issue**: `get_issue` with `PP-<n>`, then `list_comments` for the discussion.
 - **List issues**: `list_issues` with `team: "Peekaping"` and `label`, `state`, `project` or `parentId` filters. Text `query` search misses existing tickets, so for duplicate checks also list the backlog of the project the work belongs to.
-- **Make an issue a sub-issue of a parent**: `save_issue` with `parentId: "PEE-<parent>"`.
-- **Comment on an issue**: `save_comment` with `issueId: "PEE-<n>"`.
+- **Make an issue a sub-issue of a parent**: `save_issue` with `parentId: "PP-<parent>"`.
+- **Comment on an issue**: `save_comment` with `issueId: "PP-<n>"`.
 - **Apply / remove labels**: `save_issue` with `addLabels` / `removeLabels`. Never pass `labels`: it replaces the whole set.
 - **Link a GitHub issue or PR**: `save_issue` with `links: [{url, title}]`.
 - **Close**: comment first, then set `state` to `Done` (finished), `Canceled` (won't do), or `Duplicate` together with `duplicateOf`.
@@ -29,7 +29,7 @@ Statuses run Backlog → Todo → In Progress → In Review → Done, plus Cance
 
 ## Closing work
 
-Work closes through PRs. Name the branch `<type>/pee-<n>-<slug>` so Linear links the PR to the ticket. Move the ticket to In Review when the PR opens. Linear's GitHub integration moves it to Done on merge; if it doesn't, set Done yourself.
+Work closes through PRs. Name the branch `<type>/pp-<n>-<slug>` so Linear links the PR to the ticket. End the PR title with the ticket key after the conventional-commit summary: `fix(server): stop exposing JWT signing secrets (PP-48)`. When naming or renaming a Claude Code session for ticket work, lead with the key: `PP-48 stop exposing JWT secrets`. Move the ticket to In Review when the PR opens. Linear's GitHub integration moves it to Done on merge; if it doesn't, set Done yourself.
 
 ## When a skill says "publish to the issue tracker"
 
@@ -45,7 +45,7 @@ Used by `/wayfinder`. The **map** is a single issue with **child** issues as tic
 
 - **Map**: an issue labelled `wayfinder:map`, holding the Notes / Decisions-so-far / Fog body.
 - **Child ticket**: a sub-issue of the map (`parentId`), labelled `wayfinder:<type>` (`research`/`prototype`/`grilling`/`task`). Once claimed, the ticket is assigned to the driving dev.
-- **Blocking**: Linear's native "blocked by" relation: `save_issue` with `blockedBy: ["PEE-<n>"]`. It's append-only; `removeBlockedBy` drops an edge. A ticket is unblocked when every blocker is Done or Canceled.
-- **Frontier query**: `list_issues` with `parentId: "PEE-<map>"`, keep open unassigned tickets, drop any whose `get_issue` relations show an open blocker; first in map order wins.
+- **Blocking**: Linear's native "blocked by" relation: `save_issue` with `blockedBy: ["PP-<n>"]`. It's append-only; `removeBlockedBy` drops an edge. A ticket is unblocked when every blocker is Done or Canceled.
+- **Frontier query**: `list_issues` with `parentId: "PP-<map>"`, keep open unassigned tickets, drop any whose `get_issue` relations show an open blocker; first in map order wins.
 - **Claim**: `save_issue` with `assignee: "me"` and `state: "In Progress"`, the session's first write.
 - **Resolve**: `save_comment` with the answer, set `state: "Done"`, then append a context pointer (gist + link) to the map's Decisions-so-far with a `save_issue` `patch`.
