@@ -1,0 +1,163 @@
+name: Deploy Sites
+
+# Deploys the sites built by build-docs.yml and build-landing.yml to their Cloudflare Workers.
+# workflow_run and pull_request_target always run this file and Wrangler from main, never from a PR,
+# and the Cloudflare secrets live in the `cloudflare` environment, which only main may use.
+# A PR's build therefore only contributes static files: main builds deploy production,
+# PRs from this repo get a preview named pr-<number>, deleted when the PR closes.
+
+on:
+  workflow_run:
+    workflows: [ Build Docs, Build Landing ]
+    types: [ completed ]
+  pull_request_target:
+    types: [ closed ]
+    paths:
+      - 'apps/docs/**'
+      - 'apps/landing/**'
+
+jobs:
+  deploy:
+    if: >-
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      (github.event.workflow_run.event == 'pull_request' || github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    environment: cloudflare
+    permissions:
+      contents: read
+      actions: read # download the build run's artifact
+      pull-requests: write # preview URL comment
+    env:
+      APP: ${{ github.event.workflow_run.name == 'Build Docs' && 'docs' || 'landing' }}
+      PRODUCTION: ${{ github.event.workflow_run.event != 'pull_request' }}
+      PR: ${{ github.event.workflow_run.pull_requests[0].number }}
+    concurrency:
+      group: deploy-${{ github.event.workflow_run.name }}-${{ github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.head_branch || 'production' }}
+      cancel-in-progress: ${{ github.event.workflow_run.event == 'pull_request' }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Production uses the commit that was built; previews use main's config, not the PR's
+          ref: ${{ env.PRODUCTION == 'true' && github.event.workflow_run.head_sha || '' }}
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --filter "$APP"
+
+      - name: Resolve site directory
+        id: site
+        run: |
+          # Must match assets.directory in apps/<app>/wrangler.jsonc
+          case "$APP" in
+            docs) echo "dir=apps/docs/build" >> "$GITHUB_OUTPUT" ;;
+            landing) echo "dir=apps/landing/dist" >> "$GITHUB_OUTPUT" ;;
+          esac
+
+      - name: Download site
+        uses: actions/download-artifact@v8
+        with:
+          name: site
+          path: ${{ steps.site.outputs.dir }}
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy to production
+        if: env.PRODUCTION == 'true'
+        working-directory: apps/${{ env.APP }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: pnpm exec wrangler deploy
+
+      - name: Deploy preview
+        id: preview
+        if: env.PRODUCTION != 'true'
+        working-directory: apps/${{ env.APP }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # Wrangler writes machine-readable results here, leaving its normal output in the log
+          WRANGLER_OUTPUT_FILE_PATH: ${{ runner.temp }}/wrangler-output.json
+        run: |
+          if [ -z "$PR" ]; then
+            echo "::warning::No open pull request for this build, skipping the preview"
+            exit 0
+          fi
+          # The build may finish after the PR closed and its preview was deleted
+          if [ "$(gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json state --jq .state)" != OPEN ]; then
+            echo "PR #$PR is closed, skipping the preview"
+            exit 0
+          fi
+          pnpm exec wrangler preview --name "pr-$PR"
+          url=$(jq -r 'select(.type == "preview") | .preview_urls[0] // empty' "$WRANGLER_OUTPUT_FILE_PATH")
+          if [ -z "$url" ]; then
+            # preview_urls in wrangler.jsonc takes effect with the first production deploy
+            echo "::warning::Preview pr-$PR deployed without a URL. Preview URLs turn on with the next production deploy."
+          else
+            echo "url=$url" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Comment preview URL
+        if: steps.preview.outputs.url
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
+          URL: ${{ steps.preview.outputs.url }}
+        run: |
+          # One comment per site, updated on every push
+          marker="<!-- ${APP}-preview -->"
+          body=$(printf '%s\n**%s** preview for %s: %s' "$marker" "$APP" "$SHA" "$URL")
+          id=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --paginate \
+            --jq ".[] | select(.body | startswith(\"$marker\")) | .id" | head -n 1)
+          if [ -n "$id" ]; then
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$id" -f body="$body" > /dev/null
+          else
+            gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body "$body"
+          fi
+
+  cleanup:
+    if: github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    environment: cloudflare
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        app: [ docs, landing ]
+    steps:
+      # pull_request_target checks out main, never the PR
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --filter ${{ matrix.app }}
+
+      - name: Delete preview
+        # Not every PR has a preview for both sites; a failed cleanup shouldn't mark it red
+        continue-on-error: true
+        working-directory: apps/${{ matrix.app }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PREVIEW_NAME: pr-${{ github.event.pull_request.number }}
+        run: pnpm exec wrangler preview delete --name "$PREVIEW_NAME" --skip-confirmation

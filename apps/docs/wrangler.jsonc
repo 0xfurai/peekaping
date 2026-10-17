@@ -1,4 +1,4 @@
-// Static-assets-only Worker serving docs.peekaping.com, deployed by .github/workflows/deploy-docs.yml
+// Static-assets-only Worker serving docs.peekaping.com, built by .github/workflows/build-docs.yml, deployed by deploy-sites.yml
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "peekaping-docs",

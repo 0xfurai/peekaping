@@ -26,4 +26,4 @@ This command generates static content into the `build` directory and can be serv
 
 ## Deployment
 
-The site is served from a Cloudflare Worker (`wrangler.jsonc`). `.github/workflows/deploy-docs.yml` deploys it to docs.peekaping.com on every push to `main` that changes `apps/docs`, and posts a preview link on pull requests.
+The site is served from a Cloudflare Worker (`wrangler.jsonc`). `.github/workflows/build-docs.yml` builds it whenever `apps/docs` changes, and `.github/workflows/deploy-sites.yml` deploys the build to docs.peekaping.com from `main`, or posts a preview link on pull requests.
