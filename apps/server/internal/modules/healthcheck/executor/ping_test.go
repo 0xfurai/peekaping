@@ -170,26 +170,60 @@ func TestPingExecutor_Execute_UnreachableHost(t *testing.T) {
 	skipWithoutICMP(t, false)
 	executor := NewPingExecutor(zap.NewNop().Sugar())
 
-	start := time.Now()
-	// 192.0.2.0/24 is TEST-NET-1 (RFC 5737), so nothing answers there.
-	result := executor.Execute(context.Background(), pingMonitor("192.0.2.1", 1), nil)
+	tests := []struct {
+		name string
+		ctx  func() (context.Context, context.CancelFunc)
+	}{
+		{name: "no context deadline", ctx: func() (context.Context, context.CancelFunc) {
+			return context.WithCancel(context.Background())
+		}},
+		// HandleMonitorTick gives the executor a context that expires with the check timeout.
+		{name: "context deadline equals the timeout", ctx: func() (context.Context, context.CancelFunc) {
+			return context.WithTimeout(context.Background(), time.Second)
+		}},
+	}
 
-	assert.Equal(t, shared.MonitorStatusDown, result.Status)
-	assert.Equal(t, "Ping failed: no reply from 192.0.2.1 within 1s", result.Message)
-	assert.Less(t, time.Since(start), 1500*time.Millisecond, "should give up after one timeout")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx, cancel := tt.ctx()
+			defer cancel()
+
+			start := time.Now()
+			// 192.0.2.0/24 is TEST-NET-1 (RFC 5737), so nothing answers there.
+			result := executor.Execute(ctx, pingMonitor("192.0.2.1", 1), nil)
+
+			assert.Equal(t, shared.MonitorStatusDown, result.Status)
+			assert.Equal(t, "Ping failed: no reply from 192.0.2.1 within 1s", result.Message)
+			assert.Less(t, time.Since(start), 1500*time.Millisecond, "should give up after one timeout")
+		})
+	}
 }
 
 func TestPingExecutor_Execute_ContextCancelled(t *testing.T) {
 	skipWithoutICMP(t, false)
 	executor := NewPingExecutor(zap.NewNop().Sugar())
-	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	ctx, cancel := context.WithCancel(context.Background())
+	time.AfterFunc(200*time.Millisecond, cancel)
+
+	start := time.Now()
+	result := executor.Execute(ctx, pingMonitor("192.0.2.1", 20), nil)
+
+	assert.Equal(t, shared.MonitorStatusDown, result.Status)
+	assert.Equal(t, "Ping failed: no reply from 192.0.2.1: context canceled", result.Message)
+	assert.Less(t, time.Since(start), time.Second)
+}
+
+func TestPingExecutor_Execute_ContextDeadlineBeforeTimeout(t *testing.T) {
+	skipWithoutICMP(t, false)
+	executor := NewPingExecutor(zap.NewNop().Sugar())
+	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
 	defer cancel()
 
 	start := time.Now()
 	result := executor.Execute(ctx, pingMonitor("192.0.2.1", 20), nil)
 
 	assert.Equal(t, shared.MonitorStatusDown, result.Status)
-	assert.Contains(t, result.Message, "no reply from 192.0.2.1")
+	assert.Equal(t, "Ping failed: no reply from 192.0.2.1 within 300ms", result.Message)
 	assert.Less(t, time.Since(start), time.Second)
 }
 
