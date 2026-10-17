@@ -102,6 +102,12 @@ worker:
     limits:
       cpu: "500m"
       memory: "512Mi"
+  # Pod sysctls. ping_group_range lets the non-root worker send ICMP echo
+  # requests for ping monitors without the NET_RAW capability. Kubernetes
+  # allows it as a safe sysctl. Set to [] to leave the node default.
+  sysctls:
+    - name: net.ipv4.ping_group_range
+      value: "0 2147483647"
 
 web:
   replicaCount: 3
