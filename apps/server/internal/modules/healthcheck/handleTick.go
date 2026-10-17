@@ -6,6 +6,7 @@ import (
 	"peekaping/internal/modules/healthcheck/executor"
 	"peekaping/internal/modules/proxy"
 	"peekaping/internal/modules/shared"
+	"runtime/debug"
 	"time"
 )
 
@@ -60,7 +61,7 @@ func (s *HealthCheckSupervisor) HandleMonitorTick(
 	defer cCancel()
 
 	// Execute the health check
-	result := executeWithDeadline(callCtx, m, exec, proxyModel)
+	result := s.executeWithDeadline(callCtx, m, exec, proxyModel)
 	if result == nil {
 		return nil
 	}
@@ -81,7 +82,7 @@ const ExecutorGrace = 2 * time.Second
 
 // executeWithDeadline bounds a check by ctx even when the executor ignores it,
 // so the caller always gets a result shortly after the check timeout.
-func executeWithDeadline(
+func (s *HealthCheckSupervisor) executeWithDeadline(
 	ctx context.Context,
 	m *Monitor,
 	exec executor.Executor,
@@ -90,6 +91,17 @@ func executeWithDeadline(
 	startTime := time.Now().UTC()
 	done := make(chan *executor.Result, 1)
 	go func() {
+		// asynq only recovers panics in the handler goroutine, not this one
+		defer func() {
+			if r := recover(); r != nil {
+				s.logger.Errorw("Health check executor panicked",
+					"monitor_id", m.ID,
+					"monitor_type", m.Type,
+					"panic", r,
+					"stack", string(debug.Stack()))
+				done <- executor.DownResult(fmt.Errorf("check failed with an internal error: %v", r), startTime, time.Now().UTC())
+			}
+		}()
 		done <- exec.Execute(ctx, m, proxyModel)
 	}()
 

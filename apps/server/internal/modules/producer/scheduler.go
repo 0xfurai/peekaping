@@ -414,9 +414,9 @@ func (p *Producer) RemoveMonitor(ctx context.Context, monitorID string) error {
 	return p.UnscheduleMonitor(ctx, monitorID)
 }
 
-// purgeHealthCheckTask removes a monitor's queued health check so that the next
-// check runs with the monitor's current config. A running check is left to finish:
-// cancelling it would report a DOWN the monitor never had.
+// purgeHealthCheckTask removes a monitor's queued health check and cancels a
+// running one, so that no result of the old config is recorded and the next
+// check runs with the monitor's current config.
 func (p *Producer) purgeHealthCheckTask(ctx context.Context, monitorID string) {
 	taskID := healthCheckTaskID(monitorID)
 	task, err := p.queueService.GetTaskInfo(ctx, healthCheckQueue, taskID)
@@ -428,7 +428,11 @@ func (p *Producer) purgeHealthCheckTask(ctx context.Context, monitorID string) {
 		return
 	}
 	if task.State == queue.TaskStateActive {
-		p.logger.Debugw("Health check is running, leaving it to finish", "task_id", taskID)
+		// The worker drops the result of a cancelled check, and the task it leaves
+		// archived is replaced by the next enqueue
+		if err := p.queueService.CancelTask(ctx, taskID); err != nil {
+			p.logger.Warnw("Failed to cancel running health check", "task_id", taskID, "error", err)
+		}
 		return
 	}
 	if err := p.queueService.DeleteTask(ctx, healthCheckQueue, taskID); err != nil && !errors.Is(err, queue.ErrTaskNotFound) {

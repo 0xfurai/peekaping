@@ -338,7 +338,7 @@ func TestUpdateMonitor(t *testing.T) {
 		mockQueueSvc.AssertExpectations(t)
 	})
 
-	t.Run("update leaves a running check alone", func(t *testing.T) {
+	t.Run("update cancels a running check", func(t *testing.T) {
 		client, mr := setupTestRedis(t)
 		defer mr.Close()
 
@@ -357,12 +357,15 @@ func TestUpdateMonitor(t *testing.T) {
 		mon := &monitor.Model{ID: "monitor-123", Active: true, Interval: 60}
 		mockMonitorSvc.On("FindByID", ctx, "monitor-123").Return(mon, nil)
 		mockQueueSvc.On("GetTaskInfo", ctx, "healthcheck", "healthcheck:monitor-123").Return(&queue.TaskInfo{State: "active"}, nil)
+		// The check runs the old config; asynq won't delete an active task
+		mockQueueSvc.On("CancelTask", ctx, "healthcheck:monitor-123").Return(nil)
 
 		err := producer.UpdateMonitor(ctx, "monitor-123")
 		assert.NoError(t, err)
 
 		_, err = client.ZScore(ctx, SchedDueKey, "monitor-123").Result()
 		assert.NoError(t, err)
+		mockQueueSvc.AssertExpectations(t)
 		mockQueueSvc.AssertNotCalled(t, "DeleteTask", mock.Anything, mock.Anything, mock.Anything)
 	})
 

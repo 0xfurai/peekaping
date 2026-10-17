@@ -17,10 +17,14 @@ import (
 type stubExecutor struct {
 	delay    time.Duration
 	honorCtx bool
+	panics   bool
 	result   *executor.Result
 }
 
 func (e *stubExecutor) Execute(ctx context.Context, _ *Monitor, _ *executor.Proxy) *executor.Result {
+	if e.panics {
+		panic("executor bug")
+	}
 	if e.honorCtx {
 		select {
 		case <-time.After(e.delay):
@@ -65,5 +69,13 @@ func TestHandleMonitorTickDeadline(t *testing.T) {
 		assert.Equal(t, shared.MonitorStatusDown, tick.ExecutionResult.Status)
 		assert.Contains(t, tick.ExecutionResult.Message, "did not finish within the 1s timeout")
 		assert.Less(t, elapsed, time.Second+ExecutorGrace+time.Second)
+	})
+
+	t.Run("reports DOWN instead of crashing when the executor panics", func(t *testing.T) {
+		tick := supervisor.HandleMonitorTick(context.Background(), m, &stubExecutor{panics: true}, nil, false)
+
+		require.NotNil(t, tick)
+		assert.Equal(t, shared.MonitorStatusDown, tick.ExecutionResult.Status)
+		assert.Contains(t, tick.ExecutionResult.Message, "executor bug")
 	})
 }

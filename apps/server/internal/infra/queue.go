@@ -57,6 +57,11 @@ func ProvideAsynqServer(
 
 		// Error handler for logging failed tasks
 		ErrorHandler: asynq.ErrorHandlerFunc(func(ctx context.Context, task *asynq.Task, err error) {
+			// Health checks are cancelled on purpose when their monitor is edited, paused or deleted
+			if errors.Is(err, context.Canceled) {
+				logger.Infow("Task cancelled", "type", task.Type())
+				return
+			}
 			logger.Errorw("Task processing failed",
 				"type", task.Type(),
 				"payload", string(task.Payload()),

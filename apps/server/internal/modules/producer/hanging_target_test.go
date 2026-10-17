@@ -48,6 +48,15 @@ func TestHealthCheckAgainstHangingTarget(t *testing.T) {
 	queueSvc := infra.ProvideQueueService(asynq.NewClient(redisOpt), inspector, logger)
 	defer queueSvc.Close()
 
+	// An install upgraded from an affected version starts with an archived task
+	// holding the monitor's task ID; it must be replaced, not block the monitor
+	seedClient := asynq.NewClient(redisOpt)
+	_, err := seedClient.Enqueue(asynq.NewTask(worker.TaskTypeHealthCheck, []byte(`{}`)),
+		asynq.Queue(healthCheckQueue), asynq.TaskID(healthCheckTaskID("mon-hanging")), asynq.MaxRetry(0))
+	require.NoError(t, err)
+	require.NoError(t, seedClient.Close())
+	require.NoError(t, inspector.ArchiveTask(healthCheckQueue, healthCheckTaskID("mon-hanging")))
+
 	execRegistry := executor.NewExecutorRegistry(logger)
 	handler := worker.NewHealthCheckTaskHandler(
 		execRegistry,
