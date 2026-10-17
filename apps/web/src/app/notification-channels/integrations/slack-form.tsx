@@ -1,4 +1,5 @@
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import {
   FormField,
   FormItem,
@@ -12,32 +13,39 @@ import { Switch } from "@/components/ui/switch";
 import { useFormContext } from "react-hook-form";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
-// Base schema for discriminated union (without refinements)
-export const baseSchema = z.object({
+export const schema = z.object({
   type: z.literal("slack"),
   slack_webhook_url: z
     .union([z.string().url({ message: "Valid webhook URL is required" }), z.literal("")])
     .optional(),
-  slack_bot_token: z.string().optional(),
+  slack_bot_token: z.string().trim().optional(),
   slack_username: z.string().optional(),
   slack_icon_emoji: z.string().optional(),
-  slack_channel: z.string().optional(),
+  slack_channel: z.string().trim().optional(),
   slack_rich_message: z.boolean().optional(),
   slack_channel_notify: z.boolean().optional(),
 });
 
-// Full schema with refinements for validation
-export const schema = baseSchema
-  .refine((data) => data.slack_webhook_url || data.slack_bot_token, {
-    message: "Either Webhook URL or Bot Token must be provided",
-    path: ["slack_webhook_url"],
-  })
-  .refine((data) => !data.slack_bot_token || data.slack_channel, {
-    message: "Channel is required when using Bot Token",
-    path: ["slack_channel"],
-  });
-
 export type SlackFormValues = z.infer<typeof schema>;
+
+// Cross-field rules, applied by the notification form's superRefine: a refined
+// schema can't be a member of its discriminated union.
+export function refine(data: SlackFormValues, ctx: z.RefinementCtx) {
+  if (!data.slack_webhook_url && !data.slack_bot_token) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Either Webhook URL or Bot Token must be provided",
+      path: ["slack_webhook_url"],
+    });
+  }
+  if (data.slack_bot_token && !data.slack_channel) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Channel is required when using Bot Token",
+      path: ["slack_channel"],
+    });
+  }
+}
 
 export const defaultValues: SlackFormValues = {
   type: "slack",
@@ -98,7 +106,7 @@ export default function SlackForm() {
               {t("notifications.form.slack.bot_token_label")}
             </FormLabel>
             <FormControl>
-              <Input placeholder="xoxb-..." type="password" {...field} />
+              <PasswordInput placeholder="xoxb-..." {...field} />
             </FormControl>
             <FormDescription>
               {t("notifications.form.slack.bot_token_description")}:{" "}

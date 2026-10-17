@@ -164,6 +164,16 @@ func (ic *Controller) UpdateFull(ctx *gin.Context) {
 		return
 	}
 
+	integration, ok := GetNotificationChannelProvider(notification.Type)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Unsupported notification type"))
+		return
+	}
+	if err := integration.Validate(notification.Config); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid config: "+err.Error()))
+		return
+	}
+
 	updatedNotification, err := ic.service.UpdateFull(ctx, id, &notification)
 	if err != nil {
 		ic.logger.Errorw("Failed to update notification", "error", err)
