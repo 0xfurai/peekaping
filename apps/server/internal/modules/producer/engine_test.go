@@ -149,6 +149,21 @@ func (e *engine) startJobProcessing(t *testing.T) {
 	t.Cleanup(e.producer.Stop)
 }
 
+// waitForGoroutines waits until every goroutine the wait group tracks has exited.
+func waitForGoroutines(t *testing.T, wg *sync.WaitGroup) {
+	t.Helper()
+	stopped := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(stopped)
+	}()
+	select {
+	case <-stopped:
+	case <-time.After(5 * time.Second):
+		t.Fatal("goroutines kept running")
+	}
+}
+
 func (e *engine) addDue(t *testing.T, id string, at time.Time) {
 	t.Helper()
 	require.NoError(t, e.rdb.ZAdd(context.Background(), SchedDueKey, redis.Z{Score: ms(at), Member: id}).Err())
