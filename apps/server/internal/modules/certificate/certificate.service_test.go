@@ -3,6 +3,7 @@ package certificate_test
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"path/filepath"
 	"testing"
 
@@ -27,11 +28,12 @@ import (
 // threshold of every notice it was asked to send.
 type recordingNotifier struct {
 	targets []int
+	err     error // returned from every send when set
 }
 
 func (r *recordingNotifier) SendCertificateExpiryNotification(_ context.Context, _ string, _ string, _ *certificate.CertificateInfo, _ int, targetDays int) error {
 	r.targets = append(r.targets, targetDays)
-	return nil
+	return r.err
 }
 
 // harness is the certificate service over a migrated SQLite database, with
@@ -108,6 +110,19 @@ func TestCheckCertificateExpiry_FirstSeenInsideSeveralThresholdsNotifiesTheNeare
 
 	assert.Equal(t, []int{7}, h.check(t, certA, 5))
 	assert.Empty(t, h.check(t, certA, 4))
+}
+
+// A failed send is retried on the next check for the same threshold; it
+// doesn't fall back to the farther thresholds.
+func TestCheckCertificateExpiry_FailedSendDoesNotFallBackToFartherThresholds(t *testing.T) {
+	h := newHarness(t)
+	h.notifier.err = errors.New("channel unreachable")
+
+	assert.Equal(t, []int{7}, h.check(t, certA, 5), "only the nearest threshold is attempted")
+
+	h.notifier.err = nil
+	assert.Equal(t, []int{7}, h.check(t, certA, 5), "the next check retries it")
+	assert.Empty(t, h.check(t, certA, 5))
 }
 
 // The thresholds setting can hold the days in any order.
