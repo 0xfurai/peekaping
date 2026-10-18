@@ -46,6 +46,10 @@ _Avoid_: Availability, SLA
 A monitor that's switched off. It runs no checks until it's resumed.
 _Avoid_: Inactive, disabled, stopped
 
+**Stale monitor**:
+An active monitor Peekaping has stopped checking: its latest heartbeat is older than max(3 × check interval, check interval + timeout + 60s). The producer's watchdog looks for them every minute, enqueues a check, and notifies the monitor's channels if that doesn't help.
+_Avoid_: Stuck monitor, dead monitor, overdue
+
 ### Status
 
 **Status**:
@@ -87,7 +91,7 @@ A configured destination for notifications, such as an email address, a Slack we
 _Avoid_: Notifier, notification provider, integration
 
 **Notification**:
-A message sent to a monitor's notification channels when the monitor goes Down or comes back Up.
+A message sent to a monitor's notification channels when the monitor goes Down or comes back Up. Its certificate expiry notifications, and a stale monitor's "not checked since" and "checking again" messages, go to the same channels.
 _Avoid_: Alert
 
 **Resend interval**:

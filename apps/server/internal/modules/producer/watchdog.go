@@ -67,10 +67,19 @@ func (p *Producer) checkStaleMonitors(ctx context.Context) error {
 		}
 	}
 
-	// Paused and deleted monitors aren't stale
+	// Paused and deleted monitors aren't stale. A monitor paused during the scan shifts
+	// the pages, so check each unseen one before forgetting it.
 	var gone []string
 	for id := range known {
-		if !seen[id] {
+		if seen[id] {
+			continue
+		}
+		mon, err := p.monitorService.FindByID(ctx, id)
+		if err != nil {
+			p.logger.Errorw("Failed to find stale monitor", "monitor_id", id, "error", err)
+			continue
+		}
+		if mon == nil || !mon.Active {
 			gone = append(gone, id)
 		}
 	}
@@ -82,14 +91,27 @@ func (p *Producer) checkStaleMonitors(ctx context.Context) error {
 }
 
 func (p *Producer) checkStaleMonitor(ctx context.Context, mon *monitor.Model, now time.Time, entry stale.Entry, wasStale bool) error {
-	since, err := p.lastCheckedAt(ctx, mon)
+	heartbeatAt, err := p.latestHeartbeatAt(ctx, mon.ID)
 	if err != nil {
 		return err
+	}
+	// A monitor that was just saved or resumed isn't stale yet
+	since := mon.UpdatedAt.UTC()
+	if heartbeatAt.After(since) {
+		since = heartbeatAt
 	}
 
 	if now.Sub(since) <= stale.Threshold(mon.Interval, mon.Timeout) {
 		if !wasStale {
 			return nil
+		}
+		if !heartbeatAt.After(entry.Since) {
+			// Saved or resumed, but still not checked. After a notification it's the
+			// same stale period; before one, the save starts the wait over.
+			if entry.Notified {
+				return nil
+			}
+			return p.staleStore.Delete(ctx, mon.ID)
 		}
 		p.logger.Infow("Monitor is being checked again", "monitor_id", mon.ID, "monitor_name", mon.Name)
 		if err := p.staleStore.Delete(ctx, mon.ID); err != nil {
@@ -128,18 +150,16 @@ func (p *Producer) checkStaleMonitor(ctx context.Context, mon *monitor.Model, no
 	return nil
 }
 
-// lastCheckedAt is the time of the monitor's latest heartbeat, or of its last save or
-// resume if that's later, so a monitor that was just resumed isn't stale
-func (p *Producer) lastCheckedAt(ctx context.Context, mon *monitor.Model) (time.Time, error) {
-	since := mon.UpdatedAt
-	latest, err := p.heartbeatService.FindByMonitorIDPaginated(ctx, mon.ID, 1, 0, nil, false)
+// latestHeartbeatAt is the time of the monitor's latest heartbeat, zero if it has none
+func (p *Producer) latestHeartbeatAt(ctx context.Context, monitorID string) (time.Time, error) {
+	latest, err := p.heartbeatService.FindByMonitorIDPaginated(ctx, monitorID, 1, 0, nil, false)
 	if err != nil {
 		return time.Time{}, fmt.Errorf("failed to find latest heartbeat: %w", err)
 	}
-	if len(latest) > 0 && latest[0].Time.After(since) {
-		since = latest[0].Time
+	if len(latest) == 0 {
+		return time.Time{}, nil
 	}
-	return since.UTC(), nil
+	return latest[0].Time.UTC(), nil
 }
 
 func (p *Producer) publishStale(eventType events.EventType, mon *monitor.Model, since time.Time) {

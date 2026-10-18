@@ -259,6 +259,9 @@ func TestWatchdog_RecoveryBeforeANotificationIsQuiet(t *testing.T) {
 func TestWatchdog_ForgetsMonitorsThatWerePausedOrDeleted(t *testing.T) {
 	now := time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
 	f := newWatchdogFixture(t)
+	paused := testMonitor("gone", 60, 10, now.Add(-time.Hour))
+	paused.Active = false
+	f.monitors.On("FindByID", mock.Anything, "gone").Return(paused, nil)
 	require.NoError(t, f.store.Put(context.Background(), stale.Entry{MonitorID: "gone", Since: now.Add(-time.Hour), DetectedAt: now.Add(-time.Minute), Notified: true}))
 
 	f.run(t)
@@ -267,6 +270,54 @@ func TestWatchdog_ForgetsMonitorsThatWerePausedOrDeleted(t *testing.T) {
 	require.NoError(t, err)
 	assert.Zero(t, count)
 	assert.Empty(t, f.published(events.MonitorStaleRecovered), "a paused monitor wasn't checked again")
+}
+
+func TestWatchdog_SavingANotifiedMonitorIsNotARecovery(t *testing.T) {
+	now := time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
+	mon := testMonitor("silent", 60, 10, now.Add(-time.Hour))
+	f := newWatchdogFixture(t, mon)
+	f.heartbeats.setLatest("silent", now.Add(-4*time.Minute))
+
+	f.run(t)
+	f.at(time.Minute)
+	f.run(t)
+	require.Len(t, f.published(events.MonitorStale), 1)
+
+	// Renamed while still broken: updated_at moves, no heartbeat arrives
+	mon.UpdatedAt = now.Add(90 * time.Second)
+	for _, offset := range []time.Duration{2 * time.Minute, 5 * time.Minute, 10 * time.Minute} {
+		f.at(offset)
+		f.run(t)
+	}
+	assert.Empty(t, f.published(events.MonitorStaleRecovered), "no check ran, so it isn't checked again")
+	assert.Len(t, f.published(events.MonitorStale), 1, "still the same stale period")
+	entries, err := f.store.All(context.Background())
+	require.NoError(t, err)
+	assert.Equal(t, now.Add(-4*time.Minute), entries["silent"].Since.UTC())
+
+	f.heartbeats.setLatest("silent", now.Add(10*time.Minute+30*time.Second))
+	f.at(11 * time.Minute)
+	f.run(t)
+	assert.Len(t, f.published(events.MonitorStaleRecovered), 1)
+}
+
+func TestWatchdog_KeepsRecordsOfActiveMonitorsMissedByTheScan(t *testing.T) {
+	// A monitor paused mid-scan shifts the pages, so an active monitor can be missed
+	now := time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
+	missed := testMonitor("missed", 60, 10, now.Add(-time.Hour))
+	f := newWatchdogFixture(t)
+	f.monitors.On("FindByID", mock.Anything, "missed").Return(missed, nil)
+	f.monitors.On("FindByID", mock.Anything, "deleted").Return(nil, nil)
+	ctx := context.Background()
+	require.NoError(t, f.store.Put(ctx, stale.Entry{MonitorID: "missed", Since: now.Add(-time.Hour), DetectedAt: now.Add(-time.Minute), Notified: true}))
+	require.NoError(t, f.store.Put(ctx, stale.Entry{MonitorID: "deleted", Since: now.Add(-time.Hour), DetectedAt: now.Add(-time.Minute)}))
+
+	f.run(t)
+
+	entries, err := f.store.All(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"missed"}, keys(entries))
+	assert.True(t, entries["missed"].Notified)
 }
 
 func TestWatchdog_RunsOnlyWhileLeader(t *testing.T) {
