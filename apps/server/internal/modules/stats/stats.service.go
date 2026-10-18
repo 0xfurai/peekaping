@@ -391,9 +391,9 @@ func (s *ServiceImpl) DeleteByMonitorID(ctx context.Context, monitorID string) e
 	return s.repo.DeleteByMonitorID(ctx, monitorID)
 }
 
-// retention is how long each period's stats are kept. Charts read minute stats
-// for up to 6h and hour stats for up to a week, so both keep a margin. Day stats
-// are kept forever.
+// retention is how long each period's stats are kept. Day stats are kept forever.
+// Summarize reads minute stats for up to 24h and hour stats for up to 90 days,
+// and charts read less, so neither may be kept for less than that.
 var retention = []struct {
 	Period StatPeriod
 	Bucket time.Duration

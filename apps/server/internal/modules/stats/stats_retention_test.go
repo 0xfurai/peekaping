@@ -59,6 +59,32 @@ func TestDeleteExpiredKeepsEachPeriodForItsRetention(t *testing.T) {
 	})
 }
 
+func TestDeleteExpiredKeepsEveryStatUptimeAndBadgesRead(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, svc stats.Service, monitorID string) {
+		// At midnight, so each window starts on a minute, hour and day bucket, and the
+		// oldest bucket it reads holds its first check.
+		now := time.Date(2026, 10, 18, 0, 0, 0, 0, time.UTC)
+		// The uptime % and badge windows, shortest first.
+		windows := []time.Duration{24 * time.Hour, 7 * 24 * time.Hour, 30 * 24 * time.Hour, 90 * 24 * time.Hour, 365 * 24 * time.Hour}
+		// A Down check 30 seconds into each window, and one Up check at the end.
+		for _, window := range windows {
+			aggregate(t, svc, monitorID, shared.MonitorStatusDown, 100, now.Add(-window+30*time.Second))
+		}
+		aggregate(t, svc, monitorID, shared.MonitorStatusUp, 100, now.Add(-30*time.Second))
+
+		_, err := svc.DeleteExpired(context.Background(), now)
+		require.NoError(t, err)
+
+		// Each window still counts its own Down check, the shorter windows' ones and the Up check.
+		for i, window := range windows {
+			summary, err := svc.Summarize(context.Background(), monitorID, now.Add(-window), now)
+			require.NoError(t, err)
+			require.NotNil(t, summary.Uptime, window)
+			assert.InDelta(t, 100/float64(i+2), *summary.Uptime, 1e-9, window)
+		}
+	})
+}
+
 // deleteCounter records how many rows each DELETE statement removed.
 type deleteCounter struct{ rows []int64 }
 
