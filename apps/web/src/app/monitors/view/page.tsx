@@ -49,7 +49,8 @@ import { BackButton } from "@/components/back-button";
 import dayjs from "dayjs";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import clsx from "clsx";
-import { formatMonitorTarget } from "./format-monitor-target";
+import { formatMonitorTarget } from "../components/monitor-registry";
+import { parseMonitorConfig } from "../components/monitor-target";
 
 function formatDuration(ms: number, t: (key: string) => string): string {
   // Handle negative durations (clock skew) by returning empty string
@@ -118,24 +119,20 @@ const MonitorPage = () => {
   });
 
   const monitor = data?.data;
-  const monitorTarget = formatMonitorTarget(monitor);
-  const monitorTargetHref =
-    monitorTarget?.startsWith("http://") || monitorTarget?.startsWith("https://")
-      ? monitorTarget
-      : undefined;
+  // Parsed once here, since the page re-renders on every heartbeat
+  const config = useMemo(
+    () => parseMonitorConfig(monitor?.config),
+    [monitor?.config]
+  );
+  const monitorTarget = useMemo(
+    () => formatMonitorTarget(monitor?.type, config),
+    [monitor?.type, config]
+  );
 
   const hasCertCheckExpire = useMemo(() => {
-    if (!monitor) return false;
     if (!monitor?.type?.toLowerCase().startsWith("http")) return false;
-
-    try {
-      const config = JSON.parse(monitor?.config ?? "{}");
-      return config?.check_cert_expiry ?? false;
-    } catch (err) {
-      console.error("Failed to parse monitor config:", err);
-      return false;
-    }
-  }, [monitor]);
+    return config.check_cert_expiry === true;
+  }, [monitor?.type, config]);
 
   // Fetch TLS info for HTTP monitors using React Query
   const { data: tlsData, isLoading: tlsLoading } = useQuery({
@@ -424,17 +421,19 @@ const MonitorPage = () => {
             {monitor?.type}
             {monitorTarget ? ` ${t("monitors.view.monitor_for")}` : null}
           </span>
-          {monitorTargetHref ? (
+          {monitorTarget?.href ? (
             <a
-              href={monitorTargetHref}
-              className="text-blue-500 hover:underline"
+              href={monitorTarget.href}
+              className="text-blue-500 hover:underline break-words"
               target="_blank"
               rel="noopener noreferrer"
             >
-              {monitorTarget}
+              {monitorTarget.label}
             </a>
           ) : monitorTarget ? (
-            <span className="text-muted-foreground">{monitorTarget}</span>
+            <span className="text-muted-foreground break-words">
+              {monitorTarget.label}
+            </span>
           ) : null}
         </div>
 

@@ -37,6 +37,13 @@ import {
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 import type { MonitorCreateUpdateDto, MonitorMonitorResponseDto } from "@/api";
+import {
+  formatHostPort,
+  getNumber,
+  getString,
+  type MonitorConfig,
+  type MonitorTarget,
+} from "../monitor-target";
 import { useEffect } from "react";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
@@ -83,6 +90,18 @@ export const dnsDefaultValues: DNSForm = {
   ...intervalsDefaultValues,
   ...notificationsDefaultValues,
   ...tagsDefaultValues,
+};
+
+// Shows the record, then the record type and resolver, as "example.com (A @ 1.1.1.1:53)"
+export const formatTarget = (config: MonitorConfig): MonitorTarget | null => {
+  const host = getString(config, "host");
+  if (!host) return null;
+
+  const resolveType = getString(config, "resolve_type");
+  const resolver = formatHostPort(getString(config, "resolver_server"), getNumber(config, "port"));
+  const details = [resolveType, resolver && `@ ${resolver}`].filter(Boolean).join(" ");
+
+  return { label: details ? `${host} (${details})` : host };
 };
 
 export const deserialize = (data: MonitorMonitorResponseDto): DNSForm => {

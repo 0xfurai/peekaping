@@ -4,6 +4,14 @@ import { intervalsDefaultValues, intervalsSchema } from "../shared/intervals";
 import { notificationsSchema } from "../shared/notifications";
 import { tagsSchema } from "../shared/tags";
 import type { MonitorMonitorResponseDto } from "@/api";
+import {
+  formatOnServer,
+  getString,
+  getStrings,
+  textTarget,
+  type MonitorConfig,
+  type MonitorTarget,
+} from "../monitor-target";
 
 export const kafkaProducerSchema = z
   .object({
@@ -80,6 +88,11 @@ export const serialize = (data: KafkaProducerForm) => {
     config: JSON.stringify(config),
   };
 };
+
+export const formatTarget = (config: MonitorConfig): MonitorTarget | null =>
+  textTarget(
+    formatOnServer(getString(config, "topic"), getStrings(config, "brokers").join(", ") || null)
+  );
 
 export const deserialize = (
   monitor: MonitorMonitorResponseDto

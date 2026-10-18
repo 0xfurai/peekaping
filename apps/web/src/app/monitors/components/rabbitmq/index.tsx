@@ -33,6 +33,7 @@ import { Input } from "@/components/ui/input";
 
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import type { MonitorCreateUpdateDto, MonitorMonitorResponseDto } from "@/api";
+import { getStrings, textTarget, type MonitorConfig, type MonitorTarget } from "../monitor-target";
 import { useEffect } from "react";
 import { useFieldArray } from "react-hook-form";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
@@ -91,6 +92,9 @@ export const serialize = (data: RabbitMQForm): MonitorCreateUpdateDto => {
     config: JSON.stringify(config),
   };
 };
+
+export const formatTarget = (config: MonitorConfig): MonitorTarget | null =>
+  textTarget(getStrings(config, "nodes").join(", ") || null);
 
 export const deserialize = (data: MonitorMonitorResponseDto): RabbitMQForm => {
   const config: RabbitMQConfig = data.config ? JSON.parse(data.config) : {};
