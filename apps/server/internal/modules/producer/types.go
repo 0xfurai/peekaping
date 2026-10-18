@@ -36,6 +36,7 @@ type Producer struct {
 	mu                      sync.RWMutex
 	monitorIntervals        map[string]int // monitor_id -> interval in seconds
 	scheduleRefreshInterval time.Duration
+	reclaimInterval         time.Duration // how often expired leases are swept back to the due set
 	leaderElection          *LeaderElection
 	concurrency             int // number of concurrent producer goroutines
 }
