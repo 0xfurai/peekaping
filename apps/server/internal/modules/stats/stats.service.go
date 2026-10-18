@@ -73,26 +73,13 @@ func (s *ServiceImpl) AggregateHeartbeat(ctx context.Context, hb *HeartbeatPaylo
 			// Only update ping stats for true UP
 			if hb.Status == 1 { // MonitorStatusUp
 				fPing := float64(hb.Ping)
-				if stat.Up == 0 {
+				statToUpsert.PingCount = stat.PingCount + 1
+				statToUpsert.Ping = (stat.Ping*float64(stat.PingCount) + fPing) / float64(statToUpsert.PingCount)
+				if stat.PingCount == 0 || fPing < stat.PingMin {
 					statToUpsert.PingMin = fPing
-					statToUpsert.Ping = fPing
+				}
+				if stat.PingCount == 0 || fPing > stat.PingMax {
 					statToUpsert.PingMax = fPing
-				} else {
-					statToUpsert.Ping = (stat.Ping*float64(stat.Up) + fPing) / float64(stat.Up+1)
-
-					// Update ping min if new ping is lower
-					if fPing < stat.PingMin || stat.PingMin == 0 {
-						statToUpsert.PingMin = fPing
-					} else {
-						statToUpsert.PingMin = stat.PingMin
-					}
-
-					// Update ping max if new ping is higher
-					if fPing > stat.PingMax {
-						statToUpsert.PingMax = fPing
-					} else {
-						statToUpsert.PingMax = stat.PingMax
-					}
 				}
 			}
 		} else if s.flatStatus(hb.Status) == 0 { // MonitorStatusDown
@@ -276,17 +263,17 @@ func (s *ServiceImpl) aggregateStats(stats []*Stat, timestamp time.Time, monitor
 		totalDown += stat.Down
 		totalMaintenance += stat.Maintenance
 
-		// Only include stats with valid ping values (> 0) for ping calculations
-		if stat.Up > 0 && stat.Ping > 0 {
-			totalPing += stat.Ping * float64(stat.Up)
-			pingCount += stat.Up
+		// Only buckets with response times count toward the response time stats
+		if stat.PingCount > 0 {
+			totalPing += stat.Ping * float64(stat.PingCount)
+			pingCount += stat.PingCount
 
 			if !hasValidPing {
 				minPing = stat.PingMin
 				maxPing = stat.PingMax
 				hasValidPing = true
 			} else {
-				if stat.PingMin > 0 && stat.PingMin < minPing {
+				if stat.PingMin < minPing {
 					minPing = stat.PingMin
 				}
 				if stat.PingMax > maxPing {
@@ -315,6 +302,7 @@ func (s *ServiceImpl) aggregateStats(stats []*Stat, timestamp time.Time, monitor
 		Ping:        avgPing,
 		PingMin:     minPing,
 		PingMax:     maxPing,
+		PingCount:   pingCount,
 		Up:          totalUp,
 		Down:        totalDown,
 		Maintenance: totalMaintenance,
@@ -335,21 +323,21 @@ func (s *ServiceImpl) StatPointsSummary(statsList []*Stat) *Stats {
 	var maxPing *float64
 	var minPing *float64
 	var sumPing float64
-	var upCount int
+	var pingCount int
 	var totalUp, totalDown, totalMaintenance int
 
 	for _, s := range statsList {
-		if s.Up > 0 {
+		if s.PingCount > 0 {
 			if maxPing == nil || s.PingMax > *maxPing {
 				v := s.PingMax
 				maxPing = &v
 			}
-			if s.PingMin > 0 && (minPing == nil || s.PingMin < *minPing) {
+			if minPing == nil || s.PingMin < *minPing {
 				v := s.PingMin
 				minPing = &v
 			}
-			sumPing += s.Ping * float64(s.Up)
-			upCount += s.Up
+			sumPing += s.Ping * float64(s.PingCount)
+			pingCount += s.PingCount
 		}
 		totalUp += s.Up
 		totalDown += s.Down
@@ -357,8 +345,8 @@ func (s *ServiceImpl) StatPointsSummary(statsList []*Stat) *Stats {
 	}
 
 	var avgPing *float64
-	if upCount > 0 {
-		v := sumPing / float64(upCount)
+	if pingCount > 0 {
+		v := sumPing / float64(pingCount)
 		avgPing = &v
 	}
 
