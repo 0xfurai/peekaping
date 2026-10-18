@@ -30,6 +30,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import type { MonitorCreateUpdateDto, MonitorMonitorResponseDto } from "@/api";
+import {
+  formatHostPort,
+  getNumber,
+  getString,
+  textTarget,
+  type MonitorConfig,
+  type MonitorTarget,
+} from "../monitor-target";
 import { useEffect } from "react";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
@@ -60,6 +68,9 @@ export const tcpDefaultValues: TCPForm = {
   ...notificationsDefaultValues,
   ...tagsDefaultValues,
 };
+
+export const formatTarget = (config: MonitorConfig): MonitorTarget | null =>
+  textTarget(formatHostPort(getString(config, "host"), getNumber(config, "port")));
 
 export const deserialize = (data: MonitorMonitorResponseDto): TCPForm => {
   let config: TCPConfig = {
