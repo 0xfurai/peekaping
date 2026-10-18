@@ -5,10 +5,12 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 func TestTimeUtils_CalculateDurationFromTimes(t *testing.T) {
-	utils := NewTimeUtils()
+	utils := NewTimeUtils(zap.NewNop().Sugar())
 
 	tests := []struct {
 		name        string
@@ -69,7 +71,7 @@ func TestTimeUtils_CalculateDurationFromTimes(t *testing.T) {
 }
 
 func TestTimeUtils_LoadTimezone(t *testing.T) {
-	utils := NewTimeUtils()
+	utils := NewTimeUtils(zap.NewNop().Sugar())
 
 	tests := []struct {
 		name     string
@@ -106,8 +108,29 @@ func TestTimeUtils_LoadTimezone(t *testing.T) {
 	}
 }
 
+// SAME_AS_SERVER is the zone the process runs in, so maintenance windows agree
+// with logs and everything else on time.Local even if TZ changes later.
+func TestTimeUtils_LoadTimezone_SameAsServerIsProcessZone(t *testing.T) {
+	utils := NewTimeUtils(zap.NewNop().Sugar())
+
+	_ = time.Local.String() // initialize time.Local before TZ changes
+	t.Setenv("TZ", "Europe/Kyiv")
+
+	assert.Same(t, time.Local, utils.LoadTimezone("SAME_AS_SERVER"))
+}
+
+func TestTimeUtils_LoadTimezone_WarnsWhenZoneFailsToLoad(t *testing.T) {
+	core, logs := observer.New(zap.WarnLevel)
+	utils := NewTimeUtils(zap.New(core).Sugar())
+
+	loc := utils.LoadTimezone("Europe/Kiev2")
+
+	assert.Equal(t, "UTC", loc.String())
+	assert.Equal(t, 1, logs.FilterField(zap.String("timezone", "Europe/Kiev2")).Len())
+}
+
 func TestTimeUtils_ValidateTimeFormat(t *testing.T) {
-	utils := NewTimeUtils()
+	utils := NewTimeUtils(zap.NewNop().Sugar())
 
 	tests := []struct {
 		name        string
@@ -155,7 +178,7 @@ func TestTimeUtils_ValidateTimeFormat(t *testing.T) {
 }
 
 func TestTimeUtils_IsCrossDayWindow(t *testing.T) {
-	utils := NewTimeUtils()
+	utils := NewTimeUtils(zap.NewNop().Sugar())
 
 	tests := []struct {
 		name        string

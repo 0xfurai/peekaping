@@ -51,7 +51,7 @@ func NewService(
 		logger:                    logger.Named("[maintenance-service]"),
 		cronGenerator:             utils.NewCronGenerator(),
 		timeWindowChecker:         utils.NewTimeWindowChecker(logger),
-		timeUtils:                 utils.NewTimeUtils(),
+		timeUtils:                 utils.NewTimeUtils(logger),
 		validator:                 utils.NewValidator(),
 	}
 }
