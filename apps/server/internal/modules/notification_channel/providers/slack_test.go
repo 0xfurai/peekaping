@@ -20,7 +20,7 @@ import (
 )
 
 func newTestSlackSender() *SlackSender {
-	return NewSlackSender(zap.NewNop().Sugar(), &config.Config{})
+	return NewSlackSender(zap.NewNop().Sugar(), &config.Config{}, NewHTTPClient())
 }
 
 func sendTestSlackMessage(sender *SlackSender, configJSON string) error {

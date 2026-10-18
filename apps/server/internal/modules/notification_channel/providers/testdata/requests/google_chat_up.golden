@@ -1,0 +1,46 @@
+POST https://chat.googleapis.com/v1/spaces/AAA/messages?key=k&token=t
+Content-Type: application/json
+User-Agent: Peekaping-GoogleChat/<version>
+
+{
+  "cardsV2": [
+    {
+      "card": {
+        "header": {
+          "title": "✅ Public API is back online"
+        },
+        "sections": [
+          {
+            "widgets": [
+              {
+                "textParagraph": {
+                  "text": "\u003cb\u003eMessage:\u003c/b\u003e\n200 - OK"
+                }
+              },
+              {
+                "textParagraph": {
+                  "text": "\u003cb\u003eTime:\u003c/b\u003e\n2026-10-17 09:35:00"
+                }
+              },
+              {
+                "buttonList": {
+                  "buttons": [
+                    {
+                      "onClick": {
+                        "openLink": {
+                          "url": "https://peekaping.example.com/monitors/mon-1"
+                        }
+                      },
+                      "text": "Visit Peekaping"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "fallbackText": "✅ Public API is back online"
+}

@@ -1,6 +1,7 @@
 package notification_channel
 
 import (
+	"context"
 	"net/http"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
@@ -303,8 +304,10 @@ func (ic *Controller) Test(ctx *gin.Context) {
 		Msg:    testMessage,
 	}
 
-	// Send the test notification
-	err := integration.Send(ctx, notificationChannel.Config, testMessage, testMonitor, testHeartbeat)
+	// Send the test notification, with the deadline the listener gives each send
+	sendCtx, cancel := context.WithTimeout(ctx.Request.Context(), sendTimeout)
+	defer cancel()
+	err := integration.Send(sendCtx, notificationChannel.Config, testMessage, testMonitor, testHeartbeat)
 	if err != nil {
 		ic.logger.Errorw("Failed to send test notification", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Failed to send test notification: "+err.Error()))

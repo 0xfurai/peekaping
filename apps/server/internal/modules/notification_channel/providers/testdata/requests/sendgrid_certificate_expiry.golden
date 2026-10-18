@@ -1,0 +1,27 @@
+POST https://api.sendgrid.com/v3/mail/send
+Accept: application/json
+Authorization: Bearer SG.key
+Content-Type: application/json
+User-Agent: sendgrid/3.16.1;go
+
+{
+  "from": {
+    "email": "alerts@example.com"
+  },
+  "subject": "Peekaping Notification",
+  "personalizations": [
+    {
+      "to": [
+        {
+          "email": "oncall@example.com"
+        }
+      ]
+    }
+  ],
+  "content": [
+    {
+      "type": "text/plain",
+      "value": "🚨 Certificate Expiry Warning\n\nMonitor: Public API\nCertificate: api.example.com (server)\nExpires in: 7 days\nValid until: 2026-10-24 09:30:00\nNotification threshold: 7 days\nValid for: api.example.com\nIssuer: CN=R11,O=Let's Encrypt,C=US"
+    }
+  ]
+}

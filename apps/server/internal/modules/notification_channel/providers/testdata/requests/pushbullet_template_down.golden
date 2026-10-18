@@ -1,0 +1,9 @@
+POST https://api.pushbullet.com/v2/pushes
+Access-Token: o.pushbullet
+Content-Type: application/json
+
+{
+  "body": "Public API: connection refused",
+  "title": "[PeekaPing] Public API is DOWN",
+  "type": "note"
+}

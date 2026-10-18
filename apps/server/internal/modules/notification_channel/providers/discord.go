@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
+	"peekaping/internal/modules/shared"
 	"time"
 
 	"go.uber.org/zap"
@@ -25,11 +26,12 @@ type DiscordConfig struct {
 
 type DiscordSender struct {
 	logger *zap.SugaredLogger
+	client *http.Client
 }
 
 // NewDiscordSender creates a DiscordSender
-func NewDiscordSender(logger *zap.SugaredLogger) *DiscordSender {
-	return &DiscordSender{logger: logger}
+func NewDiscordSender(logger *zap.SugaredLogger, client *http.Client) *DiscordSender {
+	return &DiscordSender{logger: logger, client: client}
 }
 
 func (s *DiscordSender) Unmarshal(configJSON string) (any, error) {
@@ -64,7 +66,7 @@ func (s *DiscordSender) Send(
 
 	var finalMessage string
 
-	finalEmbed := createDiscordEmbed(bindings)
+	finalEmbed := createDiscordEmbed(bindings, heartbeat != nil)
 
 	s.logger.Debug(finalEmbed)
 
@@ -117,7 +119,6 @@ func (s *DiscordSender) Send(
 	}
 
 	// Create HTTP request
-	client := &http.Client{}
 	req, err := http.NewRequestWithContext(ctx, "POST", cfg.WebhookURL, bytes.NewBuffer(jsonPayload))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
@@ -128,7 +129,7 @@ func (s *DiscordSender) Send(
 	s.logger.Debugf("Sending Discord webhook: %s", string(jsonPayload))
 
 	// Send the request
-	resp, err := client.Do(req)
+	resp, err := s.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to send Discord webhook: %w", err)
 	}
@@ -142,7 +143,7 @@ func (s *DiscordSender) Send(
 	return nil
 }
 
-func createDiscordEmbed(bindings map[string]any) map[string]interface{} {
+func createDiscordEmbed(bindings map[string]any, hasHeartbeat bool) map[string]interface{} {
 	var fields []*map[string]interface{}
 
 	fields = append(fields, &map[string]interface{}{
@@ -150,34 +151,44 @@ func createDiscordEmbed(bindings map[string]any) map[string]interface{} {
 		"value":  bindings["name"],
 		"inline": true,
 	})
-	fields = append(fields, &map[string]interface{}{
-		"name":   "Status",
-		"value":  bindings["status"],
-		"inline": true,
-	})
-	if bindings["ping"] != nil && bindings["ping"] != 0 {
+	// Certificate expiry notifications carry no heartbeat, so they have no status, ping or time
+	if hasHeartbeat {
 		fields = append(fields, &map[string]interface{}{
-			"name":   "Ping",
-			"value":  fmt.Sprintf("%d ms", bindings["ping"]),
+			"name":   "Status",
+			"value":  bindings["status"],
 			"inline": true,
 		})
-	}
-	if bindings["time"].(time.Time).IsZero() == false {
-		fields = append(fields, &map[string]interface{}{
-			"name":  "Time",
-			"value": bindings["time"].(time.Time).Format("2006-01-02 15:04:05"),
-		})
+		if bindings["ping"] != 0 {
+			fields = append(fields, &map[string]interface{}{
+				"name":   "Ping",
+				"value":  fmt.Sprintf("%d ms", bindings["ping"]),
+				"inline": true,
+			})
+		}
+		if t := bindings["time"].(time.Time); !t.IsZero() {
+			fields = append(fields, &map[string]interface{}{
+				"name":  "Time",
+				"value": t.Format("2006-01-02 15:04:05"),
+			})
+		}
 	}
 	fields = append(fields, &map[string]interface{}{
 		"name":  "Message",
 		"value": bindings["msg"],
 	})
 
-	payload := map[string]interface{}{
+	if !hasHeartbeat {
+		return map[string]interface{}{
+			"title": bindings["name"],
+			// Pending's yellow, as a warning
+			"color":  humanReadableStatusColor(int(shared.MonitorStatusPending)),
+			"fields": fields,
+		}
+	}
+
+	return map[string]interface{}{
 		"title":  fmt.Sprintf("%s Your service %s is %s %s", bindings["status_icon"], bindings["name"], bindings["status"], bindings["status_icon"]),
 		"color":  bindings["status_color"],
 		"fields": fields,
 	}
-
-	return payload
 }

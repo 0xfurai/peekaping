@@ -25,11 +25,12 @@ type WebhookConfig struct {
 
 type WebhookSender struct {
 	logger *zap.SugaredLogger
+	client *http.Client
 }
 
 // NewWebhookSender creates a WebhookSender
-func NewWebhookSender(logger *zap.SugaredLogger) *WebhookSender {
-	return &WebhookSender{logger: logger}
+func NewWebhookSender(logger *zap.SugaredLogger, client *http.Client) *WebhookSender {
+	return &WebhookSender{logger: logger, client: client}
 }
 
 func (w *WebhookSender) Unmarshal(configJSON string) (any, error) {
@@ -162,9 +163,7 @@ func (w *WebhookSender) Send(
 
 	w.logger.Debugf("Sending webhook POST request to: %s", cfg.WebhookURL)
 
-	// Send request with default HTTP client
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := w.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to send webhook request: %w", err)
 	}

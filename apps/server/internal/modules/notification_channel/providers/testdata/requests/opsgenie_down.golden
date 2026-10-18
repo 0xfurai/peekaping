@@ -1,0 +1,12 @@
+POST https://api.opsgenie.com/v2/alerts
+Authorization: GenieKey genie-key
+Content-Type: application/json
+User-Agent: Peekaping-Opsgenie/<version>
+
+{
+  "alias": "Public API",
+  "description": "connection refused",
+  "message": "Peekaping Alert: Public API",
+  "priority": "P2",
+  "source": "Peekaping"
+}
