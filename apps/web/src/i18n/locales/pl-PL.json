@@ -592,7 +592,7 @@
         "username": "Nazwa użytkownika",
         "username_description": "Opcjonalnie: Nazwa użytkownika do uwierzytelniania SMTP",
         "expect_secure_relay": "Uznaj otwarty relay za błąd",
-        "expect_secure_relay_description": "Jeśli włączone, monitor zostanie oznaczony jako NIEDOSTĘPNY, gdy wykryty zostanie otwarty relay (zagrożenie bezpieczeństwa). Jeśli wyłączone, otwarty relay zostanie potraktowany jako sukces.",
+        "expect_secure_relay_description": "Jeśli włączone, monitor zostanie oznaczony jako NIEDOSTĘPNY po wykryciu otwartego przekaźnika (zagrożenie bezpieczeństwa). Jeśli wyłączone, monitor oczekuje otwartego przekaźnika i zostanie oznaczony jako NIEDOSTĘPNY, gdy serwer odmówi przekazywania.",
         "open_relay_title": "Test otwartego relaj",
         "read_timeout": "Limit czasu odczytu (sekundy)",
         "read_timeout_description": "Czas oczekiwania na odpowiedzi serwera SMTP. Pozostaw puste, aby użyć limitu czasu monitora. Pomaga zapobiegać zawieszaniu się przy nieodpowiadających serwerach.",

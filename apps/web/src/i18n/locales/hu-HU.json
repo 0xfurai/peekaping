@@ -592,7 +592,7 @@
         "username": "Felhasználónév",
         "username_description": "Opcionális: SMTP hitelesítési felhasználónév",
         "expect_secure_relay": "Az Open Relay hibaként kezelése",
-        "expect_secure_relay_description": "Ha engedélyezett, a monitor DOWN állapotba kerül, ha nyitott relay‑t észlel (biztonsági kockázat). Ha letiltott, a nyitott relay sikerként kerül értékelésre.",
+        "expect_secure_relay_description": "Ha engedélyezett, a monitor DOWN állapotba kerül, ha nyílt relay-t észlel (biztonsági kockázat). Ha le van tiltva, a monitor nyílt relay-t vár, és DOWN állapotba kerül, ha a szerver elutasítja a továbbítást.",
         "open_relay_title": "Nyitott relay tesztelés",
         "read_timeout": "Olvasási időtúllépés (másodperc)",
         "read_timeout_description": "SMTP szerver válaszainak olvasási időtúllépés. Hagyja üresen a monitor időtúllépésének használatához. Segít megelőzni a leállást nem reagáló szervereknél.",

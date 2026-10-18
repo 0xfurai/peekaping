@@ -592,7 +592,7 @@
         "username": "用户名",
         "username_description": "可选：SMTP 身份验证用户名",
         "expect_secure_relay": "将开放中继视为失败",
-        "expect_secure_relay_description": "启用时，若检测到开放中继（安全风险），监视器将被标记为 DOWN。禁用时，开放中继将被视为成功。",
+        "expect_secure_relay_description": "启用时，若检测到开放中继（安全风险），监视器将被标记为 DOWN。禁用时，监视器预期服务器为开放中继，并在服务器拒绝中继时标记为 DOWN。",
         "open_relay_title": "开放中继测试",
         "read_timeout": "读取超时（秒）",
         "read_timeout_description": "读取 SMTP 服务器响应的超时时间。留空则使用监视器超时。有助于防止在无响应的服务器上挂起。",

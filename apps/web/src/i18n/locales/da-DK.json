@@ -592,7 +592,7 @@
         "username": "Brugernavn",
         "username_description": "Valgfrit: SMTP-godkendelsesbrugernavn",
         "expect_secure_relay": "Behandle Open Relay som fejl",
-        "expect_secure_relay_description": "Hvis aktiv, vil monitoren blive markeret som NED, når et åbent relay detekteres (sikkerhedsrisiko). Hvis inaktiv, behandles åbent relay som succes.",
+        "expect_secure_relay_description": "Hvis aktiveret, markeres monitoren som NED, når et åbent relæ registreres (sikkerhedsrisiko). Hvis deaktiveret, forventer monitoren et åbent relæ og markeres som NED, når serveren afviser videresendelse.",
         "open_relay_title": "Test af åben relay",
         "read_timeout": "Læsetime‑out (sekunder)",
         "read_timeout_description": "Timeout for læsning af SMTP-serverrespons. Lad tomt for at bruge overvågnings‑timeout. Hjælper med at forhindre hangning på ikke‑reaktive servere.",

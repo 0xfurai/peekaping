@@ -592,7 +592,7 @@
         "username": "Foydalanuvchi nomi",
         "username_description": "Ixtiyoriy: SMTP autentifikatsiya foydalanuvchi nomi",
         "expect_secure_relay": "Open Relay ni Xatolik deb qabul qiling",
-        "expect_secure_relay_description": "Agar yoqilgan bo'lsa, monitor ochiq relay aniqlanganda (xavfsizlik xavfi) DOWN deb belgilanadi. Agar o'chirilgan bo'lsa, ochiq relay muvaffaqiyat sifatida qabul qilinadi.",
+        "expect_secure_relay_description": "Agar yoqilgan bo'lsa, ochiq relay aniqlanganda monitor DOWN deb belgilanadi (xavfsizlik xavfi). Agar o'chirilgan bo'lsa, monitor ochiq relayni kutadi va server uzatishni rad etganda DOWN deb belgilanadi.",
         "open_relay_title": "Ochiq relay sinovi",
         "read_timeout": "O'qish kutish vaqti (soniya)",
         "read_timeout_description": "SMTP server javoblarini o'qish uchun vaqt chegarasi. Monitor timeoutdan foydalanish uchun bo'sh qoldiring. Javob bermaydigan serverlarda to'xtashni oldini olishga yordam beradi.",
@@ -602,7 +602,7 @@
         "test_open_relay_description": "SMTP server tasdiqlashsiz tashqi domenlarga e-pochta uzatishni ruxsat etadimi, sinab ko'ring",
         "use_direct_tls": "Direct TLS (SMTPS) ni ishlatish",
         "use_direct_tls_description": "Direct TLS bog‘lanishini (SMTPS) STARTTLS o‘rniga ishlating. Port 465 uchun majburiy. Agar belgilangan bo‘lmasa, STARTTLS (587/25 portlari uchun) ishlatiladi.",
-        "port_465_warning": "Port 465 odatda to'g'ridan-to'g'ri TLS (SMTPS) talab qiladi. Xavfsiz ulanishlar uchun 'Use Direct TLS (SMTPS)' ni yoqing."
+        "port_465_warning": "Port 465 odatda to'g'ridan-to'g'ri TLS (SMTPS) talab qiladi. Xavfsiz ulanishlar uchun 'Direct TLS (SMTPS) ni ishlatish' ni yoqing."
       }
     },
     "page": {

@@ -592,7 +592,7 @@
         "username": "Nome utente",
         "username_description": "Opzionale: Nome utente per autenticazione SMTP",
         "expect_secure_relay": "Considera il relay aperto come fallimento",
-        "expect_secure_relay_description": "Se abilitato, il monitor verrà marcato come DOWN quando viene rilevato un relay aperto (pericolo di sicurezza). Se disabilitato, il relay aperto verrà considerato un successo.",
+        "expect_secure_relay_description": "Se abilitato, il monitor verrà contrassegnato come DOWN quando viene rilevato un relay aperto (rischio di sicurezza). Se disabilitato, il monitor si aspetta un relay aperto e verrà contrassegnato come DOWN quando il server rifiuta l'inoltro.",
         "open_relay_title": "Test relay aperto",
         "read_timeout": "Timeout di lettura (secondi)",
         "read_timeout_description": "Timeout per la lettura delle risposte del server SMTP. Lascia vuoto per usare il timeout del monitor. Aiuta a prevenire il blocco su server non responsivi.",

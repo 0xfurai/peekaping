@@ -592,7 +592,7 @@
         "username": "사용자 이름",
         "username_description": "선택사항: SMTP 인증 사용자 이름",
         "expect_secure_relay": "오픈 릴레이를 실패로 처리",
-        "expect_secure_relay_description": "활성화 시, 오픈 릴레이가 감지되면 모니터가 DOWN 상태로 표시됩니다 (보안 위험). 비활성화 시, 오픈 릴레이는 성공으로 처리됩니다.",
+        "expect_secure_relay_description": "활성화하면 오픈 릴레이가 감지될 때 모니터가 DOWN으로 표시됩니다(보안 위험). 비활성화하면 모니터는 오픈 릴레이를 예상하며, 서버가 릴레이를 거부하면 DOWN으로 표시됩니다.",
         "open_relay_title": "오픈 릴레이 테스트",
         "read_timeout": "읽기 타임아웃 (초)",
         "read_timeout_description": "SMTP 서버 응답을 읽는 타임아웃. 비워 두면 모니터 타임아웃을 사용합니다. 응답이 없는 서버에서 정지되는 것을 방지합니다.",
@@ -602,7 +602,7 @@
         "test_open_relay_description": "SMTP 서버가 인증 없이 외부 도메인으로 이메일을 중계할 수 있는지 테스트합니다",
         "use_direct_tls": "직접 TLS 사용 (SMTPS)",
         "use_direct_tls_description": "STARTTLS 대신 직접 TLS 연결(SMTPS)을 사용합니다. 포트 465에 필요합니다. 선택 해제 시 STARTTLS(포트 587/25)를 사용합니다.",
-        "port_465_warning": "포트 465는 일반적으로 직접 TLS (SMTPS)를 필요로 합니다. 안전한 연결을 위해 'Use Direct TLS (SMTPS)'를 활성화하십시오."
+        "port_465_warning": "포트 465는 일반적으로 직접 TLS (SMTPS)를 필요로 합니다. 안전한 연결을 위해 '직접 TLS 사용 (SMTPS)'를 활성화하십시오."
       }
     },
     "page": {

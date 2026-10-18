@@ -592,7 +592,7 @@
         "username": "Nama pengguna",
         "username_description": "Opsional: Nama pengguna autentikasi SMTP",
         "expect_secure_relay": "Anggap Relay Terbuka Sebagai Kegagalan",
-        "expect_secure_relay_description": "Jika diaktifkan, monitor akan ditandai sebagai DOWN ketika relay terbuka terdeteksi (risiko keamanan). Jika dinonaktifkan, relay terbuka akan dianggap berhasil.",
+        "expect_secure_relay_description": "Jika diaktifkan, monitor akan ditandai sebagai DOWN ketika relay terbuka terdeteksi (risiko keamanan). Jika dinonaktifkan, monitor mengharapkan relay terbuka dan akan ditandai sebagai DOWN ketika server menolak relay.",
         "open_relay_title": "Pengujian Relay Terbuka",
         "read_timeout": "Batas Waktu Baca (detik)",
         "read_timeout_description": "Timeout untuk membaca respons server SMTP. Biarkan kosong untuk menggunakan timeout monitor. Membantu mencegah terhenti pada server yang tidak responsif.",

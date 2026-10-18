@@ -592,7 +592,7 @@
         "username": "Nome de utilizador",
         "username_description": "Opcional: Nome de utilizador para autenticação SMTP",
         "expect_secure_relay": "Tratar Relé Aberto como Falha",
-        "expect_secure_relay_description": "Se ativado, o monitor será marcado como DOWN quando um relay aberto for detectado (risco de segurança). Se desativado, relay aberto será tratado como sucesso.",
+        "expect_secure_relay_description": "Se ativado, o monitor será marcado como DOWN quando for detetado um relay aberto (risco de segurança). Se desativado, o monitor espera um relay aberto e será marcado como DOWN quando o servidor recusar o reencaminhamento.",
         "open_relay_title": "Teste de Relay Aberto",
         "read_timeout": "Tempo limite de leitura (segundos)",
         "read_timeout_description": "Tempo limite para leitura de respostas do servidor SMTP. Deixe vazio para usar o tempo limite do monitor. Ajuda a evitar bloqueios em servidores que não respondem.",
@@ -602,7 +602,7 @@
         "test_open_relay_description": "Testar se o servidor SMTP permite retransmissão de e-mails para domínios externos sem autenticação",
         "use_direct_tls": "Use TLS direto (SMTPS)",
         "use_direct_tls_description": "Use a conexão TLS direta (SMTPS) em vez de STARTTLS. Necessário para a porta 465. Se desmarcado, usa STARTTLS (para as portas 587/25).",
-        "port_465_warning": "A porta 465 normalmente requer TLS direto (SMTPS). Por favor, habilite 'Use Direct TLS (SMTPS)' para conexões seguras."
+        "port_465_warning": "A porta 465 normalmente requer TLS direto (SMTPS). Por favor, habilite 'Use TLS direto (SMTPS)' para conexões seguras."
       }
     },
     "page": {

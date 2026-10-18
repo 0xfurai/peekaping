@@ -592,7 +592,7 @@
         "username": "Kullanıcı Adı",
         "username_description": "İsteğe bağlı: SMTP kimlik doğrulama kullanıcı adı",
         "expect_secure_relay": "Açık Relay'i Hata Olarak İşle",
-        "expect_secure_relay_description": "Etkinse, izleyici açık relay tespit edildiğinde DOWN olarak işaretlenecektir (güvenlik riski). Devre dışı bırakıldığında, açık relay başarı olarak kabul edilecektir.",
+        "expect_secure_relay_description": "Etkinleştirilirse, açık relay tespit edildiğinde izleyici DOWN olarak işaretlenir (güvenlik riski). Devre dışı bırakılırsa, izleyici açık relay bekler ve sunucu aktarmayı reddettiğinde DOWN olarak işaretlenir.",
         "open_relay_title": "Açık Relay Testi",
         "read_timeout": "Okuma Zaman Aşımı (saniye)",
         "read_timeout_description": "SMTP sunucu yanıtlarını okuma zaman aşımı. İzleme zaman aşımı kullanılacaksa boş bırakın. Yanıt vermeyen sunucularda takılı kalmayı önlemeye yardımcı olur.",
@@ -601,7 +601,7 @@
         "test_open_relay": "Açık Relay'i Test Et",
         "test_open_relay_description": "SMTP sunucusunun kimlik doğrulama olmadan dış alanlara e-posta iletimi (relaying) yapmasına izin verip vermediğini test edin.",
         "use_direct_tls": "Doğrudan TLS kullanın (SMTPS)",
-        "use_direct_tls_description": "STARTTLS yerine doğrudan TLS bağlantısı (SMTPS) kullanın.  \nPort 465 için gereklidir.  \nİşaretlenmezse STARTTLS kullanılır (587/25 portları için).",
+        "use_direct_tls_description": "STARTTLS yerine doğrudan TLS bağlantısı (SMTPS) kullanın. Port 465 için gereklidir. İşaretlenmezse STARTTLS kullanılır (587/25 portları için).",
         "port_465_warning": "Port 465 genellikle doğrudan TLS (SMTPS) gerektirir. Güvenli bağlantılar için “Doğrudan TLS (SMTPS) Kullan”ı etkinleştirin."
       }
     },

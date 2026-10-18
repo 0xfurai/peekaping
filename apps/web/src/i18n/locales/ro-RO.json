@@ -592,7 +592,7 @@
         "username": "Nume utilizator",
         "username_description": "Opțional: Nume utilizator pentru autentificare SMTP",
         "expect_secure_relay": "Tratează relay deschis ca eșec",
-        "expect_secure_relay_description": "Dacă este activat, monitorul va fi marcat ca DOWN când se detectează un relay deschis (riesă de securitate). Dacă este dezactivat, relay-ul deschis va fi tratat ca reuşită.",
+        "expect_secure_relay_description": "Dacă este activat, monitorul va fi marcat ca DOWN când este detectat un relay deschis (risc de securitate). Dacă este dezactivat, monitorul se așteaptă la un relay deschis și va fi marcat ca DOWN când serverul refuză redirecționarea.",
         "open_relay_title": "Testare Open Relay",
         "read_timeout": "Timp de așteptare la citire (secunde)",
         "read_timeout_description": "Timeout pentru citirea răspunsurilor serverului SMTP. Lăsați gol pentru a folosi timeout‑ul monitorului. Ajută la prevenirea blocării în cazul în care serverul nu răspunde.",

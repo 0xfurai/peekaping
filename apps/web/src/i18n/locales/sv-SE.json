@@ -592,7 +592,7 @@
         "username": "Användarnamn",
         "username_description": "Valfritt: SMTP-autentiseringsanvändarnamn",
         "expect_secure_relay": "Behandla öppen relay som fel",
-        "expect_secure_relay_description": "Om aktiverat kommer övervakaren att markeras som NER när en öppen relay upptäcks (säkerhetsrisk). Om inaktiverat behandlas öppen relay som framgång.",
+        "expect_secure_relay_description": "Om aktiverat markeras övervakaren som NER när ett öppet relä upptäcks (säkerhetsrisk). Om inaktiverat förväntar sig övervakaren ett öppet relä och markeras som NER när servern nekar vidarebefordran.",
         "open_relay_title": "Öppen relaytestning",
         "read_timeout": "Läs timeout (sekunder)",
         "read_timeout_description": "Tidsgräns för att läsa SMTP-serverns svar. Lämna tomt för att använda monitor‑tidsgränsen. Hjälper att förhindra att systemet hänger på osvarande servrar.",

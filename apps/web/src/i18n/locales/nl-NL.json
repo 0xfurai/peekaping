@@ -592,7 +592,7 @@
         "username": "Gebruikersnaam",
         "username_description": "Optioneel: SMTP-authenticatiegebruikersnaam",
         "expect_secure_relay": "Open Relay als fout behandelen",
-        "expect_secure_relay_description": "Indien ingeschakeld, wordt de monitor gemarkeerd als DOWN wanneer een open relay wordt gedetecteerd (beveiligingsrisico). Indien uitgeschakeld, wordt een open relay als succesvol beschouwd.",
+        "expect_secure_relay_description": "Indien ingeschakeld, wordt de monitor gemarkeerd als DOWN wanneer een open relay wordt gedetecteerd (beveiligingsrisico). Indien uitgeschakeld, verwacht de monitor een open relay en wordt hij gemarkeerd als DOWN wanneer de server het doorsturen weigert.",
         "open_relay_title": "Open Relay testen",
         "read_timeout": "Lees time-out (seconden)",
         "read_timeout_description": "Timeout voor het lezen van SMTP-serverreacties. Laat leeg om de monitor‑timeout te gebruiken. Helpt voorkomen dat het vastloopt bij servers die niet reageren.",

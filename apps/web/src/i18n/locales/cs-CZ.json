@@ -592,7 +592,7 @@
         "username": "Uživatelské jméno",
         "username_description": "Volitelné: Uživatelské jméno pro SMTP autentizaci",
         "expect_secure_relay": "Považovat otevřený relay za selhání",
-        "expect_secure_relay_description": "Pokud je povoleno, bude monitor označen jako DOWN při zjištění otevřeného relay (bezpečnostní riziko). Pokud je zakázáno, otevřený relay bude považován za úspěch.",
+        "expect_secure_relay_description": "Pokud je povoleno, bude monitor označen jako DOWN při zjištění otevřeného relé (bezpečnostní riziko). Pokud je zakázáno, monitor očekává otevřené relé a bude označen jako DOWN, když server přeposílání odmítne.",
         "open_relay_title": "Test otevřeného relé",
         "read_timeout": "Časový limit čtení (v sekundách)",
         "read_timeout_description": "Časový limit pro čtení odpovědí SMTP serveru. Nechte prázdné, aby se použil časový limit monitoru. Pomáhá předcházet zablokování na neodpovídajících serverech.",

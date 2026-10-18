@@ -592,7 +592,7 @@
         "username": "Käyttäjänimi",
         "username_description": "Valinnainen: SMTP-todennuksen käyttäjänimi",
         "expect_secure_relay": "Käsittele avoin välitysposti epäonnistumisena",
-        "expect_secure_relay_description": "Jos otettu käyttöön, monitoreita merkitään DOWN-tilaan, kun avointa välitystä havaitaan (turvallisuusriski). Jos pois käytöstä, avointa välitystä käsitellään onnistuneena.",
+        "expect_secure_relay_description": "Jos käytössä, valvonta merkitään tilaan DOWN, kun avoin välityspalvelin havaitaan (tietoturvariski). Jos pois käytöstä, valvonta odottaa avointa välityspalvelinta ja merkitään tilaan DOWN, kun palvelin hylkää välityksen.",
         "open_relay_title": "Avoimen välityspalvelimen testaus",
         "read_timeout": "Lukemisen aikakatkaisu (sekunteja)",
         "read_timeout_description": "Aikakatkaisu SMTP‑palvelimen vastausten lukemiselle. Jätä tyhjäksi, jolloin käytetään valvonnan aikakatkaisua. Auttaa estämään pysähtymisen vastaamattomissa palvelimissa.",

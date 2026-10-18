@@ -592,7 +592,7 @@
         "username": "使用者名稱",
         "username_description": "可選：SMTP 身份驗證使用者名稱",
         "expect_secure_relay": "將開放中繼視為失敗",
-        "expect_secure_relay_description": "如果啟用，當偵測到開放中繼（安全風險）時，監控將被標記為 DOWN。若停用，開放中繼將被視為成功。",
+        "expect_secure_relay_description": "如果啟用，偵測到開放中繼（安全風險）時，監控會被標記為 DOWN。如果停用，監控會預期伺服器係開放中繼，伺服器拒絕中繼時會被標記為 DOWN。",
         "open_relay_title": "開放中繼測試",
         "read_timeout": "讀取逾時（秒）",
         "read_timeout_description": "SMTP 伺服器回覆讀取逾時。留空即使用監控逾時。可防止無回應伺服器卡頓。",

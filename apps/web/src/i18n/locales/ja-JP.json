@@ -592,17 +592,17 @@
         "username": "ユーザー名",
         "username_description": "オプション：SMTP認証のユーザー名",
         "expect_secure_relay": "オープンリレーを失敗とみなす",
-        "expect_secure_relay_description": "有効にすると、オープンリレーが検知された際にモニターを DOWN（セキュリティリスク）とマークします。無効にすると、オープンリレーは成功とみなされます。",
+        "expect_secure_relay_description": "有効にすると、オープンリレーが検出された場合（セキュリティリスク）にモニターを DOWN とマークします。無効にすると、モニターはオープンリレーを想定し、サーバーがリレーを拒否した場合に DOWN とマークします。",
         "open_relay_title": "オープンリレー テスト",
         "read_timeout": "読み込みタイムアウト（秒）",
-        "read_timeout_description": "SMTPサーバ応答の読み取りタイムアウト。  \n空欄にすると監視タイムアウトが使用されます。  \n応答しないサーバでのハングアップを防止します。",
+        "read_timeout_description": "SMTPサーバ応答の読み取りタイムアウト。空欄にすると監視タイムアウトが使用されます。応答しないサーバでのハングアップを防止します。",
         "rcpt_to_email": "RCPT TO メール",
         "rcpt_to_email_description": "オープンリレーをテストする際に RCPT TO コマンドで使用するメールアドレス。空欄にするとデフォルト (test@external-domain.com) が使用されます。",
         "test_open_relay": "オープンリレーをテスト",
         "test_open_relay_description": "SMTPサーバが認証なしで外部ドメインにメールをリレーできるか確認する",
         "use_direct_tls": "直接TLS（SMTPS）を使用",
         "use_direct_tls_description": "STARTTLS の代わりに直接 TLS 接続（SMTPS）を使用します。ポート 465 で必須です。チェックを外すと STARTTLS（ポート 587/25）を使用します。",
-        "port_465_warning": "ポート465は通常、直接TLS（SMTPS）が必要です。安全な接続のために「Use Direct TLS (SMTPS)」を有効にしてください。"
+        "port_465_warning": "ポート465は通常、直接TLS（SMTPS）が必要です。安全な接続のために「直接TLS（SMTPS）を使用」を有効にしてください。"
       }
     },
     "page": {

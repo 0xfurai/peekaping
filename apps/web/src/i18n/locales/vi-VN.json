@@ -592,7 +592,7 @@
         "username": "Tên người dùng",
         "username_description": "Tùy chọn: Tên người dùng xác thực SMTP",
         "expect_secure_relay": "Xử lý Relay Mở như Thất Bại",
-        "expect_secure_relay_description": "Nếu bật, trình giám sát sẽ được đánh dấu là DOWN khi phát hiện relay mở (rủi ro bảo mật). Nếu tắt, relay mở sẽ được coi là thành công.",
+        "expect_secure_relay_description": "Nếu bật, trình giám sát sẽ được đánh dấu là DOWN khi phát hiện relay mở (rủi ro bảo mật). Nếu tắt, trình giám sát mong đợi relay mở và sẽ được đánh dấu là DOWN khi máy chủ từ chối chuyển tiếp.",
         "open_relay_title": "Kiểm tra Relay mở",
         "read_timeout": "Thời gian chờ đọc (giây)",
         "read_timeout_description": "Thời gian chờ khi đọc phản hồi từ máy chủ SMTP. Để trống để dùng thời gian chờ của bộ giám sát. Giúp ngăn chặn treo khi máy chủ không phản hồi.",

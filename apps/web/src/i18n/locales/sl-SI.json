@@ -592,7 +592,7 @@
         "username": "Uporabniško ime",
         "username_description": "Izbirno: Uporabniško ime za SMTP preverjanje",
         "expect_secure_relay": "Obravnavaj odprt relaj kot neuspeh",
-        "expect_secure_relay_description": "Če je omogočeno, bo monitor označen kot DOWN, ko bo zaznan odprti prehod (varnostni tveganje). Če je onemogočeno, bo odprti prehod obravnavan kot uspeh.",
+        "expect_secure_relay_description": "Če je omogočeno, bo monitor označen kot DOWN, ko bo zaznan odprt rele (varnostno tveganje). Če je onemogočeno, monitor pričakuje odprt rele in bo označen kot DOWN, ko strežnik zavrne posredovanje.",
         "open_relay_title": "Preizkušanje odprtega relaja",
         "read_timeout": "Časovna omejitev branja (sekund)",
         "read_timeout_description": "Časovna omejitev za branje odgovorov strežnika SMTP. Pustite prazno, da uporabite časovno omejitev monitorja. Pomaga preprečiti zastoje pri neodzivnih strežnikih.",
@@ -601,7 +601,7 @@
         "test_open_relay": "Preizkus odprtega releja",
         "test_open_relay_description": "Preverite, ali SMTP strežnik omogoča preusmerjanje e-poštnih sporočil na zunanje domene brez overjanja.",
         "use_direct_tls": "Uporabi neposredno TLS (SMTPS)",
-        "use_direct_tls_description": "Uporabi neposredno TLS povezavo (SMTPS) namesto STARTTLS.  \nZahtevano za vrata 465.  \nČe ni izbrano, se uporablja STARTTLS (za vrata 587/25).",
+        "use_direct_tls_description": "Uporabi neposredno TLS povezavo (SMTPS) namesto STARTTLS. Zahtevano za vrata 465. Če ni izbrano, se uporablja STARTTLS (za vrata 587/25).",
         "port_465_warning": "Vrata 465 običajno zahteva neposredno TLS (SMTPS). Prosimo, omogočite 'Uporaba neposrednega TLS (SMTPS)' za varne povezave."
       }
     },

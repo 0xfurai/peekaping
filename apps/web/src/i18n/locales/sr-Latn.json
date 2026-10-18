@@ -592,7 +592,7 @@
         "username": "Korisničko ime",
         "username_description": "Opciono: Korisničko ime za SMTP autentifikaciju",
         "expect_secure_relay": "Smatraj otvoreni relay kao neuspeh",
-        "expect_secure_relay_description": "Ako je omogućeno, monitor će biti označen kao DOWN kada se otkrije otvoreni relaj (bezbednosni rizik). Ako je onemogućeno, otvoreni relaj će se tretirati kao uspeh.",
+        "expect_secure_relay_description": "Ako je omogućeno, monitor će biti označen kao DOWN kada se otkrije otvoreni relej (bezbednosni rizik). Ako je onemogućeno, monitor očekuje otvoreni relej i biće označen kao DOWN kada server odbije prosleđivanje.",
         "open_relay_title": "Testiranje otvorenog relajera",
         "read_timeout": "Vreme isteka čitanja (sekundi)",
         "read_timeout_description": "Vreme isteka za čitanje odgovora SMTP servera. Ostavite prazno da se koristi vremensko ograničenje monitora. Pomaže u sprečavanju zaglavljivanja na neodgovorivim serverima.",
@@ -602,7 +602,7 @@
         "test_open_relay_description": "Testiraj da li SMTP server dozvoljava prosljeđivanje e‑mailova eksternim domenima bez autentifikacije",
         "use_direct_tls": "Koristi direktni TLS (SMTPS)",
         "use_direct_tls_description": "Koristite direktnu TLS vezu (SMTPS) umesto STARTTLS. Potrebno za port 465. Ako nije označeno, koristi se STARTTLS (za portove 587/25).",
-        "port_465_warning": "Port 465 obično zahteva direktni TLS (SMTPS). Molimo omogući „Use Direct TLS (SMTPS)” za sigurne veze."
+        "port_465_warning": "Port 465 obično zahteva direktni TLS (SMTPS). Molimo omogući „Koristi direktni TLS (SMTPS)” za sigurne veze."
       }
     },
     "page": {

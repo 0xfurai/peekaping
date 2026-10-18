@@ -592,7 +592,7 @@
         "username": "Naudotojo vardas",
         "username_description": "Neprivaloma: SMTP autentifikacijos naudotojo vardas",
         "expect_secure_relay": "Traktuok atvirą perdavimą kaip nesėkmę",
-        "expect_secure_relay_description": "Jei įjungta, monitorius bus pažymėtas kaip nepasiekiamas (DOWN), kai aptinkamas atviras perdavimas (saugumo rizika). Jei išjungta, atviras perdavimas bus laikomas sėkme.",
+        "expect_secure_relay_description": "Jei įjungta, monitorius bus pažymėtas kaip DOWN, kai aptinkamas atviras perdavimas (saugumo rizika). Jei išjungta, monitorius tikisi atviro perdavimo ir bus pažymėtas kaip DOWN, kai serveris atsisako persiųsti laiškus.",
         "open_relay_title": "Atvirų relayų testavimas",
         "read_timeout": "Skaitymo laikas (sekundės)",
         "read_timeout_description": "SMTP serverio atsakymų skaitymo laiko limitas. Palikite tuščią, norėdami naudoti stebėtojo laiko limitą. Padeda išvengti užstrigimo, kai serveriai nereaguoja.",
