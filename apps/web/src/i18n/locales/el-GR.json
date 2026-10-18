@@ -1019,6 +1019,15 @@
         "use_template_description": "Ενεργοποιήστε τη χρήση προσαρμοσμένου προτύπου μηνύματος και μορφοποίησης.",
         "use_template_label": "Χρήση προτύπου μηνύματος"
       },
+      "teams": {
+        "more_info_about_webhooks": "Περισσότερες πληροφορίες για τα webhooks του Workflows",
+        "server_url_description": "Η βασική διεύθυνση URL της εγκατάστασης Peekaping, που χρησιμοποιείται για το κουμπί \"View in Peekaping\". Αν μείνει κενό, χρησιμοποιείται το CLIENT_URL του διακομιστή.",
+        "server_url_label": "URL διακομιστή",
+        "setup_webhook_description_1": "Στο Teams, ανοίξτε το Workflows και επιλέξτε το πρότυπο \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Επιλέξτε την ομάδα και το κανάλι, πατήστε Αποθήκευση και αντιγράψτε το URL του webhook από τις λεπτομέρειες της ροής εργασίας.",
+        "setup_webhook_title": "Δημιουργήστε ένα webhook με το Teams Workflows",
+        "webhook_url_label": "URL Webhook του Workflows"
+      },
       "webhook": {
         "additional_headers_description": "Προσθήκη προσαρμοσμένων κεφαλίδων HTTP στην αίτηση webhook.",
         "additional_headers_label": "Πρόσθετες κεφαλίδες",

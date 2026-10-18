@@ -1019,6 +1019,15 @@
         "use_template_description": "Aktivieren Sie, um eine benutzerdefinierte Nachrichten-Vorlage zu verwenden und zu formatieren.",
         "use_template_label": "Nachrichten-Vorlage verwenden"
       },
+      "teams": {
+        "more_info_about_webhooks": "Weitere Informationen zu Workflows-Webhooks",
+        "server_url_description": "Die Basis-URL Ihrer Peekaping-Instanz, die für die Schaltfläche \"View in Peekaping\" verwendet wird. Wenn leer, wird die CLIENT_URL des Servers verwendet.",
+        "server_url_label": "Server-URL",
+        "setup_webhook_description_1": "Öffnen Sie in Teams Workflows und wählen Sie die Vorlage \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Wählen Sie Team und Kanal, klicken Sie auf Speichern und kopieren Sie dann die Webhook-URL aus den Workflow-Details.",
+        "setup_webhook_title": "Webhook mit Teams Workflows erstellen",
+        "webhook_url_label": "Workflows Webhook-URL"
+      },
       "webhook": {
         "additional_headers_description": "Benutzerdefinierte HTTP-Header zur Webhook-Anfrage hinzufügen.",
         "additional_headers_label": "Zusätzliche Header",

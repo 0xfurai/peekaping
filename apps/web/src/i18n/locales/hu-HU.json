@@ -1019,6 +1019,15 @@
         "use_template_description": "Lehetővé teszi egy egyéni üzenet sablon és formátum használatát.",
         "use_template_label": "Üzenetsablon használata"
       },
+      "teams": {
+        "more_info_about_webhooks": "További információ a Workflows webhookokról",
+        "server_url_description": "A Peekaping-példányod alap URL-je, amelyet a(z) \"View in Peekaping\" gomb használ. Ha üres, a szerver CLIENT_URL értéke lesz használva.",
+        "server_url_label": "Szerver URL",
+        "setup_webhook_description_1": "A Teamsben nyisd meg a Workflows alkalmazást, és válaszd a(z) \"Send webhook alerts to a channel\" sablont.",
+        "setup_webhook_description_2": "Válaszd ki a csapatot és a csatornát, kattints a Mentés gombra, majd másold ki a webhook URL-t a munkafolyamat részleteiből.",
+        "setup_webhook_title": "Webhook létrehozása a Teams Workflows segítségével",
+        "webhook_url_label": "Workflows Webhook URL"
+      },
       "webhook": {
         "additional_headers_description": "Adjon hozzá egyéni HTTP fejléceket a webhook kérésehez.",
         "additional_headers_label": "További fejlécek",

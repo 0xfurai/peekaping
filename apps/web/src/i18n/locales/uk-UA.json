@@ -1019,6 +1019,15 @@
         "use_template_description": "Увімкніть для використання користувацького шаблону повідомлення та формату.",
         "use_template_label": "Використовувати шаблон повідомлення"
       },
+      "teams": {
+        "more_info_about_webhooks": "Більше інформації про вебхуки Workflows",
+        "server_url_description": "Базовий URL вашого екземпляра Peekaping, який використовується для кнопки \"View in Peekaping\". Якщо поле порожнє, використовується CLIENT_URL сервера.",
+        "server_url_label": "URL сервера",
+        "setup_webhook_description_1": "У Teams відкрийте Workflows і виберіть шаблон \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Виберіть команду й канал, натисніть «Зберегти», а потім скопіюйте URL вебхука з відомостей робочого процесу.",
+        "setup_webhook_title": "Створіть вебхук за допомогою Teams Workflows",
+        "webhook_url_label": "URL вебхука Workflows"
+      },
       "webhook": {
         "additional_headers_description": "Додайте користувацькі HTTP заголовки до запиту вебхука.",
         "additional_headers_label": "Додаткові заголовки",

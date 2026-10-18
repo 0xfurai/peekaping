@@ -1019,6 +1019,15 @@
         "use_template_description": "Aktiver for å bruke en egendefinert meldingsmal og format.",
         "use_template_label": "Bruk meldingsmal"
       },
+      "teams": {
+        "more_info_about_webhooks": "Mer informasjon om Workflows-webhooks",
+        "server_url_description": "Basis-URL-en til Peekaping-instansen din, brukt for knappen \"View in Peekaping\". Hvis feltet er tomt, brukes serverens CLIENT_URL.",
+        "server_url_label": "Server-URL",
+        "setup_webhook_description_1": "Åpne Workflows i Teams, og velg malen \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Velg team og kanal, velg Lagre, og kopier deretter webhook-URL-en fra arbeidsflytdetaljene.",
+        "setup_webhook_title": "Opprett en webhook med Teams Workflows",
+        "webhook_url_label": "Workflows Webhook‑URL"
+      },
       "webhook": {
         "additional_headers_description": "Legg til egendefinerte HTTP‑overskrifter i webhook‑forespørselen.",
         "additional_headers_label": "Ekstra overskrifter",

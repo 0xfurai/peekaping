@@ -1019,6 +1019,15 @@
         "use_template_description": "Umożliw użycie własnego szablonu wiadomości i formatowania.",
         "use_template_label": "Użyj szablonu wiadomości"
       },
+      "teams": {
+        "more_info_about_webhooks": "Więcej informacji o webhookach Workflows",
+        "server_url_description": "Bazowy adres URL Twojej instancji Peekaping, używany przez przycisk \"View in Peekaping\". Jeśli pole jest puste, używany jest CLIENT_URL serwera.",
+        "server_url_label": "Adres URL serwera",
+        "setup_webhook_description_1": "W Teams otwórz Workflows i wybierz szablon \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Wybierz zespół i kanał, kliknij Zapisz, a następnie skopiuj adres URL webhooka ze szczegółów przepływu pracy.",
+        "setup_webhook_title": "Utwórz webhook w Teams Workflows",
+        "webhook_url_label": "Adres URL webhooka Workflows"
+      },
       "webhook": {
         "additional_headers_description": "Dodaj niestandardowe nagłówki HTTP do żądania webhooka.",
         "additional_headers_label": "Dodatkowe nagłówki",

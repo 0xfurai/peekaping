@@ -1018,6 +1018,15 @@
         "use_template_description": "Permiteți utilizarea unui șablon personalizat de mesaj și format.",
         "use_template_label": "Folosește șablonul de mesaj"
       },
+      "teams": {
+        "more_info_about_webhooks": "Mai multe informații despre webhook-urile Workflows",
+        "server_url_description": "URL-ul de bază al instanței tale Peekaping, folosit pentru butonul \"View in Peekaping\". Dacă este gol, se folosește CLIENT_URL al serverului.",
+        "server_url_label": "URL server",
+        "setup_webhook_description_1": "În Teams, deschide Workflows și alege șablonul \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Alege echipa și canalul, selectează Salvare, apoi copiază URL-ul webhook-ului din detaliile fluxului de lucru.",
+        "setup_webhook_title": "Creează un webhook cu Teams Workflows",
+        "webhook_url_label": "URL Webhook Workflows"
+      },
       "webhook": {
         "additional_headers_description": "Adaugă antete HTTP personalizate la solicitarea webhook-ului.",
         "additional_headers_label": "Antete suplimentare",

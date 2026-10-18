@@ -1019,6 +1019,15 @@
         "use_template_description": "Ativar o uso de um modelo de mensagem personalizado e formatação.",
         "use_template_label": "Usar modelo de mensagem"
       },
+      "teams": {
+        "more_info_about_webhooks": "Mais informações sobre webhooks do Workflows",
+        "server_url_description": "O URL base da sua instância do Peekaping, usado no botão \"View in Peekaping\". Se ficar vazio, é usado o CLIENT_URL do servidor.",
+        "server_url_label": "URL do servidor",
+        "setup_webhook_description_1": "No Teams, abra o Workflows e escolha o modelo \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Escolha a equipa e o canal, selecione Guardar e copie o URL do webhook a partir dos detalhes do fluxo de trabalho.",
+        "setup_webhook_title": "Crie um webhook com o Teams Workflows",
+        "webhook_url_label": "URL do Webhook do Workflows"
+      },
       "webhook": {
         "additional_headers_description": "Adicionar cabeçalhos HTTP personalizados ao pedido do webhook.",
         "additional_headers_label": "Cabeçalhos adicionais",

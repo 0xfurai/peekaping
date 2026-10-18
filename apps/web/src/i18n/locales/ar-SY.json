@@ -1019,6 +1019,15 @@
         "use_template_description": "تمكين استخدام قالب رسالة مخصص وتنسيقه",
         "use_template_label": "استخدم قالب الرسالة"
       },
+      "teams": {
+        "more_info_about_webhooks": "مزيد من المعلومات حول Webhooks في Workflows",
+        "server_url_description": "عنوان URL الأساسي لنسخة Peekaping الخاصة بك، ويُستخدم لزر \"View in Peekaping\". إذا تُرك فارغًا، يُستخدم CLIENT_URL الخاص بالخادم.",
+        "server_url_label": "عنوان URL للخادم",
+        "setup_webhook_description_1": "في Teams، افتح Workflows واختر القالب \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "اختر الفريق والقناة، ثم اختر حفظ، وانسخ عنوان URL لـ Webhook من تفاصيل سير العمل.",
+        "setup_webhook_title": "إنشاء Webhook باستخدام Teams Workflows",
+        "webhook_url_label": "عنوان URL لـ Webhook في Workflows"
+      },
       "webhook": {
         "additional_headers_description": "أضف رؤوس HTTP مخصصة إلى طلب ويب هوك.",
         "additional_headers_label": "رؤوس إضافية",

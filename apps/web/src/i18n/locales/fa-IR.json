@@ -1019,6 +1019,15 @@
         "use_template_description": "فعال‌سازی استفاده از الگوی پیام سفارشی و قالب‌بندی",
         "use_template_label": "استفاده از الگوی پیام"
       },
+      "teams": {
+        "more_info_about_webhooks": "اطلاعات بیشتر در مورد وب‌هوک‌های Workflows",
+        "server_url_description": "آدرس پایه نمونه Peekaping شما که برای دکمه \"View in Peekaping\" استفاده می‌شود. اگر خالی باشد، CLIENT_URL سرور استفاده می‌شود.",
+        "server_url_label": "آدرس سرور",
+        "setup_webhook_description_1": "در Teams، برنامه Workflows را باز کنید و الگوی \"Send webhook alerts to a channel\" را انتخاب کنید.",
+        "setup_webhook_description_2": "تیم و کانال را انتخاب کنید، روی ذخیره بزنید و سپس آدرس وب‌هوک را از جزئیات گردش کار کپی کنید.",
+        "setup_webhook_title": "ساخت وب‌هوک با Teams Workflows",
+        "webhook_url_label": "آدرس وب‌هوک Workflows"
+      },
       "webhook": {
         "additional_headers_description": "افزودن هدرهای HTTP سفارشی به درخواست وب‌هوک.",
         "additional_headers_label": "سرآیندهای اضافی",

@@ -1019,6 +1019,15 @@
         "use_template_description": "Özel mesaj şablonu ve biçimini kullanmayı etkinleştir.",
         "use_template_label": "Mesaj Şablonunu Kullan"
       },
+      "teams": {
+        "more_info_about_webhooks": "Workflows webhook'ları hakkında daha fazla bilgi",
+        "server_url_description": "\"View in Peekaping\" düğmesi için kullanılan Peekaping örneğinizin temel URL'si. Boş bırakılırsa sunucunun CLIENT_URL değeri kullanılır.",
+        "server_url_label": "Sunucu URL'si",
+        "setup_webhook_description_1": "Teams'te Workflows'u açın ve \"Send webhook alerts to a channel\" şablonunu seçin.",
+        "setup_webhook_description_2": "Ekibi ve kanalı seçin, Kaydet'e tıklayın, ardından iş akışı ayrıntılarından webhook URL'sini kopyalayın.",
+        "setup_webhook_title": "Teams Workflows ile webhook oluşturun",
+        "webhook_url_label": "Workflows Webhook URL'si"
+      },
       "webhook": {
         "additional_headers_description": "Webkancı isteğine özel HTTP başlıkları ekleyin.",
         "additional_headers_label": "Ek Başlıklar",
