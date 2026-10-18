@@ -200,7 +200,18 @@ func (w *WebhookSender) Send(
 
 	w.logger.Debugf("Sending webhook POST request to: %s", cfg.WebhookURL)
 
-	resp, err := w.client.Do(req)
+	client := w.client
+	if cfg.WebhookSigningSecret != "" {
+		// A redirect would hand the signed request to another endpoint, which could
+		// replay it here while the timestamp is fresh, so a 3xx fails the send instead
+		noRedirects := *w.client
+		noRedirects.CheckRedirect = func(*http.Request, []*http.Request) error {
+			return http.ErrUseLastResponse
+		}
+		client = &noRedirects
+	}
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to send webhook request: %w", err)
 	}

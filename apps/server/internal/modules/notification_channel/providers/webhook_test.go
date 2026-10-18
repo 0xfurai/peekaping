@@ -143,6 +143,63 @@ func TestWebhookSend_NoSecretNoSignatureOrTimestamp(t *testing.T) {
 	}
 }
 
+// A signed request isn't sent on to a redirect target, which could replay it.
+// Unsigned requests still follow redirects.
+func TestWebhookSend_SignedRequestsDontFollowRedirects(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		secret   string
+		redirect int
+		wantSent bool
+	}{
+		{"signed 307", "shh", http.StatusTemporaryRedirect, false},
+		{"signed 308", "shh", http.StatusPermanentRedirect, false},
+		{"unsigned 307", "", http.StatusTemporaryRedirect, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var targetHits int
+			target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				targetHits++
+				w.WriteHeader(http.StatusOK)
+			}))
+			defer target.Close()
+			origin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				http.Redirect(w, r, target.URL, tc.redirect)
+			}))
+			defer origin.Close()
+
+			cfgJSON, err := json.Marshal(WebhookConfig{
+				WebhookURL:           origin.URL,
+				WebhookContentType:   "json",
+				WebhookSigningSecret: tc.secret,
+			})
+			if err != nil {
+				t.Fatalf("failed to marshal config: %v", err)
+			}
+			err = NewWebhookSender(zap.NewNop().Sugar(), NewHTTPClient()).Send(
+				context.Background(),
+				string(cfgJSON),
+				"test message",
+				&monitor.Model{ID: "m1", Name: "Test Monitor"},
+				&heartbeat.Model{Msg: "down"},
+			)
+
+			if tc.wantSent {
+				if err != nil || targetHits != 1 {
+					t.Errorf("Send = %v with %d target hits, want success and 1 hit", err, targetHits)
+				}
+				return
+			}
+			if err == nil {
+				t.Errorf("Send succeeded, want an error for the %d redirect", tc.redirect)
+			}
+			if targetHits != 0 {
+				t.Errorf("redirect target got %d signed requests, want 0", targetHits)
+			}
+		})
+	}
+}
+
 // Additional headers are applied before signing, so they can't replace the
 // signature or the timestamp it covers.
 func TestWebhookSend_AdditionalHeadersCannotReplaceSignature(t *testing.T) {
