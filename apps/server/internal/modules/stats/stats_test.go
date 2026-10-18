@@ -418,3 +418,26 @@ func TestSummarizeCountsDownHeartbeats20HoursAgoIn24HourUptime(t *testing.T) {
 		assert.InDelta(t, 100*22.0/24, *summary.Uptime, 1e-9)
 	})
 }
+
+func TestSummarizeCountsDownHeartbeatsAtTheStartOf7DayUptime(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, svc stats.Service, monitorID string) {
+		// Off midnight, so reading day buckets would drop the checks before the first midnight.
+		now := time.Date(2026, 10, 17, 10, 30, 0, 0, time.UTC)
+		since := now.Add(-7 * 24 * time.Hour)
+		// A check at a quarter past every hour over the last 8 days, the last at 10:15 today.
+		for k := range 8*24 + 1 {
+			at := now.Add(-8 * 24 * time.Hour).Truncate(time.Hour).Add(time.Duration(k)*time.Hour + 15*time.Minute)
+			status := shared.MonitorStatusUp
+			// 09:15 is before the window; 11:15 and 12:15 are its first two checks.
+			if at.Equal(since.Add(-75*time.Minute)) || at.Equal(since.Add(45*time.Minute)) || at.Equal(since.Add(105*time.Minute)) {
+				status = shared.MonitorStatusDown
+			}
+			aggregate(t, svc, monitorID, status, 100, at)
+		}
+
+		summary, err := svc.Summarize(context.Background(), monitorID, since, now)
+		require.NoError(t, err)
+		require.NotNil(t, summary.Uptime)
+		assert.InDelta(t, 100*166.0/168, *summary.Uptime, 1e-9)
+	})
+}
