@@ -3233,6 +3233,8 @@ paths:
       - Proxies
   /settings/key/{key}:
     delete:
+      description: Only KEEP_DATA_PERIOD_DAYS can be deleted. Every other key returns
+        404.
       parameters:
       - description: Setting Key
         in: path
@@ -3261,6 +3263,8 @@ paths:
       tags:
       - Settings
     get:
+      description: Only KEEP_DATA_PERIOD_DAYS can be read. Every other key returns
+        404.
       parameters:
       - description: Setting Key
         in: path
@@ -3291,6 +3295,8 @@ paths:
     put:
       consumes:
       - application/json
+      description: Only KEEP_DATA_PERIOD_DAYS can be set. Every other key returns
+        404.
       parameters:
       - description: Setting Key
         in: path
@@ -3312,6 +3318,10 @@ paths:
             $ref: '#/definitions/utils.ApiResponse-setting_Model'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "404":
+          description: Not Found
           schema:
             $ref: '#/definitions/utils.APIError'
         "500":

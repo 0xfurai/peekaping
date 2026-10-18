@@ -5,6 +5,17 @@ import (
 	"time"
 )
 
+// Keys of the JWT signing secrets. Releases before the settings API was
+// limited to user-editable keys served any key matching ^[A-Z0-9_]+$, so these
+// contain a dot to stay out of reach of a pod from such a release, even on a
+// case-insensitive database. They replace ACCESS_TOKEN_SECRET_KEY and
+// REFRESH_TOKEN_SECRET_KEY, which those releases served and which may have
+// been read; those rows are left unused.
+const (
+	AccessTokenSecretKey  = "auth.access_token_secret"
+	RefreshTokenSecretKey = "auth.refresh_token_secret"
+)
+
 type SettingService interface {
 	GetByKey(ctx context.Context, key string) (*SettingModel, error)
 	SetByKey(ctx context.Context, key string, entity *SettingModel) (*SettingModel, error)

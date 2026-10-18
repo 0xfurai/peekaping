@@ -2905,6 +2905,10 @@ export type PutSettingsKeyByKeyErrors = {
    */
   400: UtilsApiError;
   /**
+   * Not Found
+   */
+  404: UtilsApiError;
+  /**
    * Internal Server Error
    */
   500: UtilsApiError;

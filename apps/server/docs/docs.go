@@ -2913,6 +2913,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
+                "description": "Only KEEP_DATA_PERIOD_DAYS can be read. Every other key returns 404.",
                 "produces": [
                     "application/json"
                 ],
@@ -2959,6 +2960,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
+                "description": "Only KEEP_DATA_PERIOD_DAYS can be set. Every other key returns 404.",
                 "consumes": [
                     "application/json"
                 ],
@@ -3000,6 +3002,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/utils.APIError"
                         }
                     },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -3017,6 +3025,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
+                "description": "Only KEEP_DATA_PERIOD_DAYS can be deleted. Every other key returns 404.",
                 "produces": [
                     "application/json"
                 ],
