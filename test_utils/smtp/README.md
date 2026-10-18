@@ -127,7 +127,7 @@ Once you have Peekaping running locally, you can create SMTP monitors with these
   "use_tls": false,
   "from_email": "test@example.com",
   "test_open_relay": true,
-  "open_relay_failure": true
+  "expect_secure_relay": true
 }
 ```
 
@@ -271,7 +271,7 @@ When `check_cert_expiry` is enabled, Peekaping will:
 
 ### Authentication
 
-Test servers accept any username/password. For real servers, use valid credentials.
+The Postfix test server accepts only `testuser` / `testpass`. For real servers, use valid credentials.
 
 ### STARTTLS and Direct TLS
 
@@ -288,12 +288,12 @@ The SMTP monitor supports testing for open relay vulnerabilities:
   "use_tls": false,
   "from_email": "test@example.com",
   "test_open_relay": true,
-  "open_relay_failure": true
+  "expect_secure_relay": true
 }
 ```
 
 - `test_open_relay`: Enable open relay testing
-- `open_relay_failure`: If `true`, treat open relay as failure (security risk). If `false`, treat open relay as success (expected behavior)
+- `expect_secure_relay`: If `true` (the default), the monitor goes DOWN when the server relays (security risk). If `false`, it goes DOWN when the server refuses to relay (intentional open relay)
 
-Integration tests verify that Postfix correctly rejects relay attempts on all ports (1027, 1028, 1029) when not authenticated, and allows relay for authenticated users.
+Port 1027 trusts Docker's private networks, so it relays without authentication; the integration tests use it as the open relay. Ports 1028 and 1029 reject relaying until the client authenticates. The test server discards relayed mail instead of delivering it.
 

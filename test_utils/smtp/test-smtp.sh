@@ -77,6 +77,7 @@ test_connection() {
             echo -e "${GREEN}✅ Connection successful${NC}"
         else
             echo -e "${RED}❌ Connection failed${NC}"
+            return 1
         fi
     else
         echo -e "${YELLOW}⚠️  netcat (nc) not found. Install it to test connections.${NC}"
@@ -144,7 +145,7 @@ show_examples() {
      "use_tls": false,
      "from_email": "test@example.com",
      "test_open_relay": true,
-     "open_relay_failure": true
+     "expect_secure_relay": true
    }'
 }
 
@@ -204,7 +205,7 @@ main() {
                 1) start_servers ;;
                 2) stop_servers ;;
                 3) show_status ;;
-                4) test_connection ;;
+                4) test_connection || true ;;
                 5) show_examples ;;
                 6) run_tests ;;
                 7) run_integration_tests ;;

@@ -5,7 +5,7 @@ This directory contains a Postfix SMTP server configured for testing SMTP health
 - **Direct TLS (SMTPS)** on port 465
 - **Authentication** with test user credentials
 - **Self-signed certificates** for TLS testing
-- **Open relay protection** (rejects unauthorized relaying)
+- **Open relay protection** on ports 587 and 465 (port 25 relays for Docker clients, so tests can detect an open relay)
 
 ## Configuration
 

@@ -5,9 +5,9 @@ services:
       dockerfile: Dockerfile
     container_name: peekaping-test-postfix
     ports:
-      - "1027:25"    # SMTP (plain)
-      - "1028:587"   # Submission (STARTTLS)
-      - "1029:465"   # SMTPS (direct TLS)
+      - "127.0.0.1:1027:25"    # SMTP (plain)
+      - "127.0.0.1:1028:587"   # Submission (STARTTLS)
+      - "127.0.0.1:1029:465"   # SMTPS (direct TLS)
     environment:
       - POSTFIX_HOSTNAME=test-smtp.local
     networks:

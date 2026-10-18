@@ -141,8 +141,8 @@ All examples assume the Postfix test server from step 1 is running.
   "use_tls": true,
   "use_direct_tls": true,
   "ignore_tls_errors": true,
-  "username": "test",
-  "password": "test123"
+  "username": "testuser",
+  "password": "testpass"
 }
 ```
 
@@ -164,9 +164,11 @@ All examples assume the Postfix test server from step 1 is running.
   "use_tls": false,
   "from_email": "test@example.com",
   "test_open_relay": true,
-  "open_relay_failure": true
+  "expect_secure_relay": true
 }
 ```
+
+Port 1027 relays for Docker clients on purpose, so this monitor goes DOWN with "Server allows open relay".
 
 ## 5. View Results
 

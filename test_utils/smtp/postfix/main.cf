@@ -7,7 +7,13 @@ inet_protocols = ipv4
 
 # Network settings
 mydestination = $myhostname, localhost.$mydomain, localhost
+# Trusting the private ranges makes plain SMTP (port 25) an open relay for
+# clients coming through Docker's port mapping, so tests can check that the
+# monitor detects one. Submission and SMTPS still require authentication.
 mynetworks = 127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16
+
+# Never deliver relayed mail: anything for another domain is discarded
+default_transport = discard:outbound delivery is disabled on the test server
 
 # TLS settings
 smtpd_tls_cert_file = /etc/postfix/certs/server.crt
