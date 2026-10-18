@@ -277,7 +277,9 @@ func (s *ServiceImpl) VerifyTwoFA(ctx context.Context, userId, code string) (boo
 		updateModel := &UpdateModel{
 			TwoFAStatus: &status,
 		}
-		s.repo.Update(ctx, userId, updateModel)
+		if err := s.repo.Update(ctx, userId, updateModel); err != nil {
+			return false, errors.New("failed to enable 2FA")
+		}
 	}
 	return valid, nil
 }

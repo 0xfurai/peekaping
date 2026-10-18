@@ -34,6 +34,7 @@ const (
 // harness is the auth service over a migrated SQLite database, with the
 // settings the server creates at startup.
 type harness struct {
+	db       *bun.DB
 	svc      auth.Service
 	tokens   *auth.TokenMaker
 	settings shared.SettingService
@@ -55,7 +56,7 @@ func newHarness(t *testing.T) *harness {
 	settings := setting.NewService(setting.NewSQLRepository(db), logger)
 	require.NoError(t, settings.InitializeSettings(ctx))
 	tokens := auth.NewTokenMaker(settings, logger)
-	return &harness{auth.NewService(auth.NewSQLRepository(db), tokens, logger), tokens, settings}
+	return &harness{db, auth.NewService(auth.NewSQLRepository(db), tokens, logger), tokens, settings}
 }
 
 // register creates the admin and returns its first session.
@@ -227,6 +228,22 @@ func TestService_VerifyTwoFA(t *testing.T) {
 	assert.False(t, verified)
 	_, err = h.login(adminPassword, "")
 	assert.NoError(t, err, "a wrong code leaves 2FA off")
+}
+
+func TestService_VerifyTwoFA_ReportsAFailedSave(t *testing.T) {
+	h := newHarness(t)
+	admin := h.register(t).User
+	ctx := context.Background()
+	secret, _, err := h.svc.SetupTwoFA(ctx, admin.ID, adminPassword)
+	require.NoError(t, err)
+	_, err = h.db.Exec(`CREATE TRIGGER users_read_only BEFORE UPDATE ON users BEGIN SELECT RAISE(ABORT, 'users are read-only'); END`)
+	require.NoError(t, err)
+
+	verified, err := h.svc.VerifyTwoFA(ctx, admin.ID, currentCode(t, secret))
+	assert.EqualError(t, err, "failed to enable 2FA")
+	assert.False(t, verified)
+	_, err = h.login(adminPassword, "")
+	assert.NoError(t, err, "2FA stayed off")
 }
 
 func TestService_DisableTwoFA(t *testing.T) {
