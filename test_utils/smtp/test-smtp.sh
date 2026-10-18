@@ -194,22 +194,21 @@ show_menu() {
 
 # Main script
 main() {
-    check_docker
-    
+    # Only the commands that drive the Postfix container need Docker
     if [ $# -eq 0 ]; then
         # Interactive mode
         while true; do
             show_menu
             read -p "Select option (1-9): " choice
             case $choice in
-                1) start_servers ;;
-                2) stop_servers ;;
-                3) show_status ;;
+                1) check_docker; start_servers ;;
+                2) check_docker; stop_servers ;;
+                3) check_docker; show_status ;;
                 4) test_connection || true ;;
                 5) show_examples ;;
                 6) run_tests ;;
-                7) run_integration_tests ;;
-                8) show_logs ;;
+                7) check_docker; run_integration_tests ;;
+                8) check_docker; show_logs ;;
                 9) echo "👋 Goodbye!"; exit 0 ;;
                 *) echo -e "${RED}Invalid option${NC}" ;;
             esac
@@ -217,14 +216,14 @@ main() {
     else
         # Command-line mode
         case "$1" in
-            start) start_servers ;;
-            stop) stop_servers ;;
-            status) show_status ;;
+            start) check_docker; start_servers ;;
+            stop) check_docker; stop_servers ;;
+            status) check_docker; show_status ;;
             test) test_connection "$2" "$3" ;;
             examples) show_examples ;;
-            logs) show_logs ;;
+            logs) check_docker; show_logs ;;
             run-tests) run_tests ;;
-            run-integration-tests) run_integration_tests ;;
+            run-integration-tests) check_docker; run_integration_tests ;;
             *)
                 echo "Usage: $0 {start|stop|status|test|examples|logs|run-tests|run-integration-tests}"
                 echo ""
