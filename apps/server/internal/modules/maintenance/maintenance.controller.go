@@ -34,7 +34,7 @@ func NewController(
 // @Param     q    query     string  false  "Search query"
 // @Param     strategy query string  false  "Filter by strategy"
 // @Param     page query     int     false  "Page number" default(1)
-// @Param     limit query    int     false  "Items per page" default(10)
+// @Param     limit query    int     false  "Items per page" default(10) minimum(1) maximum(1000)
 // @Success		200	{object}	utils.ApiResponse[[]Model]
 // @Failure		400	{object}	utils.APIError[any]
 // @Failure		404	{object}	utils.APIError[any]
@@ -47,7 +47,7 @@ func (ic *Controller) FindAll(ctx *gin.Context) {
 	}
 
 	limit, err := utils.GetQueryInt(ctx, "limit", 10)
-	if err != nil || limit < 1 {
+	if err != nil || limit < 1 || limit > utils.MaxPageSize {
 		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid limit parameter"))
 		return
 	}
@@ -96,7 +96,7 @@ func (ic *Controller) Create(ctx *gin.Context) {
 		return
 	}
 
-	created, err := ic.service.Create(ctx, entity)
+	created, err := ic.service.Create(ctx, entity.toModel(), entity.MonitorIds)
 	if err != nil {
 		ic.logger.Errorw("Failed to create maintenance", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -127,7 +127,7 @@ func (ic *Controller) FindByID(ctx *gin.Context) {
 	}
 
 	if entity == nil {
-		ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Maintenance not found"))
+		ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Maintenance window not found"))
 		return
 	}
 
@@ -189,7 +189,11 @@ func (ic *Controller) UpdateFull(ctx *gin.Context) {
 		return
 	}
 
-	updated, err := ic.service.UpdateFull(ctx, id, &entity)
+	if _, ok := utils.FindOr404(ctx, ic.logger, "Maintenance window", ic.service.FindByID, id); !ok {
+		return
+	}
+
+	updated, err := ic.service.UpdateFull(ctx, id, entity.toModel(), entity.MonitorIds)
 	if err != nil {
 		ic.logger.Errorw("Failed to update maintenance", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -220,7 +224,16 @@ func (ic *Controller) UpdatePartial(ctx *gin.Context) {
 		return
 	}
 
-	updated, err := ic.service.UpdatePartial(ctx, id, &entity)
+	if err := utils.Validate.Struct(entity); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+		return
+	}
+
+	if _, ok := utils.FindOr404(ctx, ic.logger, "Maintenance window", ic.service.FindByID, id); !ok {
+		return
+	}
+
+	updated, err := ic.service.UpdatePartial(ctx, id, entity.toModel(), entity.MonitorIds)
 	if err != nil {
 		ic.logger.Errorw("Failed to update maintenance", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -242,6 +255,10 @@ func (ic *Controller) UpdatePartial(ctx *gin.Context) {
 // @Failure		500	{object}	utils.APIError[any]
 func (ic *Controller) Delete(ctx *gin.Context) {
 	id := ctx.Param("id")
+
+	if _, ok := utils.FindOr404(ctx, ic.logger, "Maintenance window", ic.service.FindByID, id); !ok {
+		return
+	}
 
 	err := ic.service.Delete(ctx, id)
 	if err != nil {
@@ -266,6 +283,9 @@ func (ic *Controller) Delete(ctx *gin.Context) {
 func (ic *Controller) Pause(ctx *gin.Context) {
 	fmt.Println("Pausing maintenance")
 	id := ctx.Param("id")
+	if _, ok := utils.FindOr404(ctx, ic.logger, "Maintenance window", ic.service.FindByID, id); !ok {
+		return
+	}
 	updated, err := ic.service.SetActive(ctx, id, false)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Failed to pause maintenance"))
@@ -286,6 +306,9 @@ func (ic *Controller) Pause(ctx *gin.Context) {
 // @Failure		500	{object}	utils.APIError[any]
 func (ic *Controller) Resume(ctx *gin.Context) {
 	id := ctx.Param("id")
+	if _, ok := utils.FindOr404(ctx, ic.logger, "Maintenance window", ic.service.FindByID, id); !ok {
+		return
+	}
 	updated, err := ic.service.SetActive(ctx, id, true)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Failed to resume maintenance"))

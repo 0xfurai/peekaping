@@ -105,7 +105,7 @@ func (c *Controller) FindByID(ctx *gin.Context) {
 // @Failure   500  {object}  utils.APIError[any]
 func (c *Controller) FindBySlug(ctx *gin.Context) {
 	slug := ctx.Param("slug")
-	page, err := c.service.FindBySlug(ctx, slug)
+	page, err := c.service.FindPublishedBySlug(ctx, slug)
 	if err != nil {
 		c.logger.Errorw("Failed to get status page by slug", "error", err, "slug", slug)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -128,7 +128,7 @@ func (c *Controller) FindBySlug(ctx *gin.Context) {
 // @Failure   500  {object}  utils.APIError[any]
 func (c *Controller) FindByDomain(ctx *gin.Context) {
 	domain := ctx.Param("domain")
-	page, err := c.service.FindByDomain(ctx, domain)
+	page, err := c.service.FindPublishedByDomain(ctx, domain)
 	if err != nil {
 		c.logger.Errorw("Failed to get status page by domain", "error", err, "domain", domain)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -149,7 +149,7 @@ func (c *Controller) FindByDomain(ctx *gin.Context) {
 // @Security  ApiKeyAuth
 // @Param     q    query     string  false  "Search query"
 // @Param     page query     int     false  "Page number" default(0)
-// @Param     limit query    int     false  "Items per page" default(10)
+// @Param     limit query    int     false  "Items per page" default(10) minimum(1) maximum(1000)
 // @Success   200  {object}  utils.ApiResponse[[]Model]
 // @Failure   400  {object}  utils.APIError[any]
 // @Failure   500  {object}  utils.APIError[any]
@@ -160,7 +160,7 @@ func (c *Controller) FindAll(ctx *gin.Context) {
 		return
 	}
 	limit, err := utils.GetQueryInt(ctx, "limit", 10)
-	if err != nil || limit < 1 {
+	if err != nil || limit < 1 || limit > utils.MaxPageSize {
 		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid limit parameter"))
 		return
 	}
@@ -196,6 +196,10 @@ func (c *Controller) Update(ctx *gin.Context) {
 		return
 	}
 
+	if _, ok := utils.FindOr404(ctx, c.logger, "Status page", c.service.FindByID, id); !ok {
+		return
+	}
+
 	updated, err := c.service.Update(ctx, id, &dto)
 	if err != nil {
 		// Surface domain uniqueness validation errors as 400
@@ -227,6 +231,10 @@ func (c *Controller) Update(ctx *gin.Context) {
 // @Failure   500  {object}  utils.APIError[any]
 func (c *Controller) Delete(ctx *gin.Context) {
 	id := ctx.Param("id")
+	if _, ok := utils.FindOr404(ctx, c.logger, "Status page", c.service.FindByID, id); !ok {
+		return
+	}
+
 	err := c.service.Delete(ctx, id)
 	if err != nil {
 		c.logger.Errorw("Failed to delete status page", "error", err, "id", id)
@@ -248,7 +256,7 @@ func (c *Controller) GetMonitorsBySlug(ctx *gin.Context) {
 	slug := ctx.Param("slug")
 
 	// First get the status page
-	page, err := c.service.FindBySlug(ctx, slug)
+	page, err := c.service.FindPublishedBySlug(ctx, slug)
 	if err != nil {
 		c.logger.Errorw("Failed to get status page by slug", "error", err, "slug", slug)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -350,7 +358,7 @@ func (c *Controller) GetMonitorsBySlugForHomepage(ctx *gin.Context) {
 	slug := ctx.Param("slug")
 
 	// First get the status page
-	page, err := c.service.FindBySlug(ctx, slug)
+	page, err := c.service.FindPublishedBySlug(ctx, slug)
 	if err != nil {
 		c.logger.Errorw("Failed to get status page by slug", "error", err, "slug", slug)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))

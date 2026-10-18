@@ -7,15 +7,18 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"go.uber.org/zap"
 )
 
 type Controller struct {
 	service Service
+	logger  *zap.SugaredLogger
 }
 
-func NewController(service Service) *Controller {
+func NewController(service Service, logger *zap.SugaredLogger) *Controller {
 	return &Controller{
 		service: service,
+		logger:  logger.Named("[api-key-controller]"),
 	}
 }
 
@@ -206,6 +209,10 @@ func (c *Controller) DeleteAPIKey(ctx *gin.Context) {
 	// MARK: DeleteAPIKey
 
 	id := ctx.Param("id")
+	if _, ok := utils.FindOr404(ctx, c.logger, "API key", c.service.FindByID, id); !ok {
+		return
+	}
+
 	err := c.service.Delete(ctx, id)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse(err.Error()))

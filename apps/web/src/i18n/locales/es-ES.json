@@ -962,7 +962,10 @@
         "message_format_label": "Formato del mensaje",
         "username_description": "El nombre de usuario que aparecerá como remitente del mensaje. Si no se especifica, se usará el nombre predeterminado del bot.",
         "webhook_url_description": "La URL del webhook de tu integración con Slack. Puedes encontrarla en tu instancia de Slack bajo Integraciones > Webhooks.",
-        "webhook_url_label": "URL del Webhook"
+        "webhook_url_label": "URL del Webhook",
+        "bot_token_label": "Token del bot",
+        "bot_token_description": "Tu token de bot de Slack para autenticación. Puedes crear un token de bot en la configuración de tu aplicación de Slack",
+        "bot_token_note": "Nota: Al usar un token de bot, el nombre del canal es obligatorio."
       },
       "smtp": {
         "custom_body_label": "Cuerpo personalizado",
@@ -1015,6 +1018,15 @@
         "template_placeholder": "Introduce tu plantilla de mensaje personalizada",
         "use_template_description": "Habilita el uso de una plantilla de mensaje personalizada y formato.",
         "use_template_label": "Usar plantilla de mensaje"
+      },
+      "teams": {
+        "more_info_about_webhooks": "Más información sobre los webhooks de Workflows",
+        "server_url_description": "La URL base de tu instancia de Peekaping, usada para el botón \"View in Peekaping\". Si se deja vacía, se usa la CLIENT_URL del servidor.",
+        "server_url_label": "URL del servidor",
+        "setup_webhook_description_1": "En Teams, abre Workflows y elige la plantilla \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Elige el equipo y el canal, selecciona Guardar y copia la URL del webhook desde los detalles del flujo de trabajo.",
+        "setup_webhook_title": "Crea un webhook con Teams Workflows",
+        "webhook_url_label": "URL del webhook de Workflows"
       },
       "webhook": {
         "additional_headers_description": "Añadir cabeceras HTTP personalizadas a la solicitud del webhook.",

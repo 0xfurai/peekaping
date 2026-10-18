@@ -92,7 +92,7 @@ func NewMongoRepository(client *mongo.Client, cfg *config.Config) Repository {
 	return &MongoRepositoryImpl{client, db, collection}
 }
 
-func (r *MongoRepositoryImpl) Create(ctx context.Context, entity *CreateUpdateDto) (*Model, error) {
+func (r *MongoRepositoryImpl) Create(ctx context.Context, entity *Model) (*Model, error) {
 	mm := &mongoModel{
 		ID:            primitive.NewObjectID(),
 		Title:         entity.Title,
@@ -184,7 +184,7 @@ func (r *MongoRepositoryImpl) FindAll(ctx context.Context, page int, limit int, 
 	return entities, nil
 }
 
-func (r *MongoRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *CreateUpdateDto) (*Model, error) {
+func (r *MongoRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *Model) (*Model, error) {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, err
@@ -220,7 +220,7 @@ func (r *MongoRepositoryImpl) UpdateFull(ctx context.Context, id string, entity 
 	return toDomainModel(mm), nil
 }
 
-func (r *MongoRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity *PartialUpdateDto) (*Model, error) {
+func (r *MongoRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity *UpdateModel) (*Model, error) {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, err

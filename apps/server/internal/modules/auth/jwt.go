@@ -51,7 +51,7 @@ func (maker *TokenMaker) CreateAccessToken(ctx context.Context, user *Model) (st
 	}
 
 	// Get access token secret key
-	secretSetting, err := maker.settingService.GetByKey(ctx, "ACCESS_TOKEN_SECRET_KEY")
+	secretSetting, err := maker.settingService.GetByKey(ctx, shared.AccessTokenSecretKey)
 	if err != nil {
 		return "", fmt.Errorf("failed to get access token secret key: %w", err)
 	}
@@ -78,7 +78,7 @@ func (maker *TokenMaker) CreateRefreshToken(ctx context.Context, user *Model) (s
 	}
 
 	// Get refresh token secret key
-	secretSetting, err := maker.settingService.GetByKey(ctx, "REFRESH_TOKEN_SECRET_KEY")
+	secretSetting, err := maker.settingService.GetByKey(ctx, shared.RefreshTokenSecretKey)
 	if err != nil {
 		return "", fmt.Errorf("failed to get refresh token secret key: %w", err)
 	}
@@ -112,7 +112,7 @@ func (maker *TokenMaker) VerifyToken(ctx context.Context, tokenString string, to
 	// Get the appropriate secret key based on token type
 	switch tokenType {
 	case "access":
-		secretSetting, err := maker.settingService.GetByKey(ctx, "ACCESS_TOKEN_SECRET_KEY")
+		secretSetting, err := maker.settingService.GetByKey(ctx, shared.AccessTokenSecretKey)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get access token secret key: %w", err)
 		}
@@ -121,7 +121,7 @@ func (maker *TokenMaker) VerifyToken(ctx context.Context, tokenString string, to
 		}
 		secretKey = secretSetting.Value
 	case "refresh":
-		secretSetting, err := maker.settingService.GetByKey(ctx, "REFRESH_TOKEN_SECRET_KEY")
+		secretSetting, err := maker.settingService.GetByKey(ctx, shared.RefreshTokenSecretKey)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get refresh token secret key: %w", err)
 		}

@@ -962,7 +962,10 @@
         "message_format_label": "Формат на съобщението",
         "username_description": "Потребителското име, което ще се покаже като подател на съобщението. Ако не е посочено, ще се използва името по подразбиране на бота.",
         "webhook_url_description": "URL адресът на webhook от Slack интеграцията ви. Можете да го намерите във вашата Slack инстанция под Интеграции > Уебхукове.",
-        "webhook_url_label": "URL на уебхука"
+        "webhook_url_label": "URL на уебхука",
+        "bot_token_label": "Токен на бот",
+        "bot_token_description": "Вашият Slack бот токен за удостоверяване. Можете да създадете бот токен в настройките на вашето Slack приложение",
+        "bot_token_note": "Забележка: Когато използвате бот токен, името на канала е задължително."
       },
       "smtp": {
         "custom_body_label": "Персонализирано съдържание",
@@ -1015,6 +1018,15 @@
         "template_placeholder": "Въведете вашия персонализиран шаблон за съобщение",
         "use_template_description": "Активирайте, за да използвате потребителски шаблон за съобщение и форматиране.",
         "use_template_label": "Използвай шаблон за съобщение"
+      },
+      "teams": {
+        "more_info_about_webhooks": "Повече информация за уебхуковете на Workflows",
+        "server_url_description": "Базовият URL адрес на вашата инсталация на Peekaping, използван за бутона \"View in Peekaping\". Ако е празно, се използва CLIENT_URL на сървъра.",
+        "server_url_label": "URL адрес на сървъра",
+        "setup_webhook_description_1": "В Teams отворете Workflows и изберете шаблона \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Изберете екипа и канала, натиснете „Запиши“, след което копирайте URL адреса на уебхука от подробностите на работния поток.",
+        "setup_webhook_title": "Създайте уебхук с Teams Workflows",
+        "webhook_url_label": "URL за уебхук на Workflows"
       },
       "webhook": {
         "additional_headers_description": "Добавете персонализирани HTTP заглавки към заявката за уебхук.",

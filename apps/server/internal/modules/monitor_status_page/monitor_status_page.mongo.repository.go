@@ -53,7 +53,7 @@ func NewMongoRepository(client *mongo.Client, cfg *config.Config) Repository {
 	return &MongoRepositoryImpl{client, db, collection}
 }
 
-func (r *MongoRepositoryImpl) Create(ctx context.Context, entity *CreateUpdateDto) (*Model, error) {
+func (r *MongoRepositoryImpl) Create(ctx context.Context, entity *Model) (*Model, error) {
 	statusPageObjectID, err := primitive.ObjectIDFromHex(entity.StatusPageID)
 	if err != nil {
 		return nil, err
@@ -142,7 +142,7 @@ func (r *MongoRepositoryImpl) FindAll(ctx context.Context, page int, limit int, 
 	return entities, nil
 }
 
-func (r *MongoRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *CreateUpdateDto) (*Model, error) {
+func (r *MongoRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *Model) (*Model, error) {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, err
@@ -176,7 +176,7 @@ func (r *MongoRepositoryImpl) UpdateFull(ctx context.Context, id string, entity 
 	return toDomainModel(mm), nil
 }
 
-func (r *MongoRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity *PartialUpdateDto) (*Model, error) {
+func (r *MongoRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity *UpdateModel) (*Model, error) {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, err
@@ -250,7 +250,7 @@ func (r *MongoRepositoryImpl) AddMonitorToStatusPage(ctx context.Context, status
 	}
 	if existing != nil {
 		// Update existing relationship
-		return r.UpdatePartial(ctx, existing.ID, &PartialUpdateDto{
+		return r.UpdatePartial(ctx, existing.ID, &UpdateModel{
 			Order:  &order,
 			Active: &active,
 		})

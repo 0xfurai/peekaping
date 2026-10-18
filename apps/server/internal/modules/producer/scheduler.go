@@ -2,8 +2,11 @@ package producer
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
+
+	"peekaping/internal/modules/queue"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -295,6 +298,10 @@ func (p *Producer) refreshSchedule() error {
 
 // ScheduleMonitor adds or updates a monitor in the schedule
 func (p *Producer) ScheduleMonitor(ctx context.Context, monitorID string, intervalSeconds int) error {
+	return p.scheduleMonitor(ctx, monitorID, intervalSeconds, false)
+}
+
+func (p *Producer) scheduleMonitor(ctx context.Context, monitorID string, intervalSeconds int, runNow bool) error {
 	if intervalSeconds <= 0 {
 		return fmt.Errorf("invalid interval: %d", intervalSeconds)
 	}
@@ -308,9 +315,9 @@ func (p *Producer) ScheduleMonitor(ctx context.Context, monitorID string, interv
 	now := time.UnixMilli(nowMs).UTC()
 	var scheduleTime time.Time
 
-	// For new monitors, schedule immediately for first check
+	// For new monitors (or when asked to), schedule immediately
 	// For existing monitors, use next aligned time
-	if !exists {
+	if !exists || runNow {
 		scheduleTime = now
 	} else {
 		scheduleTime = nextAligned(now, time.Duration(intervalSeconds)*time.Second)
@@ -330,6 +337,8 @@ func (p *Producer) ScheduleMonitor(ctx context.Context, monitorID string, interv
 
 	if !exists {
 		p.logger.Infow("Scheduled new monitor for immediate first check", "monitor_id", monitorID, "interval", intervalSeconds, "scheduled_at", scheduleTime)
+	} else if runNow {
+		p.logger.Infow("Rescheduled monitor for immediate check", "monitor_id", monitorID, "interval", intervalSeconds, "scheduled_at", scheduleTime)
 	} else {
 		p.logger.Infow("Rescheduled monitor", "monitor_id", monitorID, "interval", intervalSeconds, "next_run", scheduleTime)
 	}
@@ -379,6 +388,9 @@ func (p *Producer) UpdateMonitor(ctx context.Context, monitorID string) error {
 		return fmt.Errorf("failed to find monitor: %w", err)
 	}
 
+	// A queued check carries the config from before this update
+	p.purgeHealthCheckTask(ctx, monitorID)
+
 	if !mon.Active {
 		// If monitor is no longer active, unschedule it
 		p.logger.Infow("Monitor became inactive, unscheduling", "monitor_id", monitorID)
@@ -390,11 +402,46 @@ func (p *Producer) UpdateMonitor(ctx context.Context, monitorID string) error {
 		return p.UnscheduleMonitor(ctx, monitorID)
 	}
 
-	// Reschedule the monitor with updated interval
-	return p.ScheduleMonitor(ctx, monitorID, mon.Interval)
+	// Check right away so the change shows up without waiting a full interval.
+	// Not push monitors: they wait for pushes, and right after a data reset an
+	// immediate check would find none and report DOWN.
+	return p.scheduleMonitor(ctx, monitorID, mon.Interval, mon.Type != "push")
 }
 
 // RemoveMonitor removes a monitor from the schedule
 func (p *Producer) RemoveMonitor(ctx context.Context, monitorID string) error {
+	p.purgeHealthCheckTask(ctx, monitorID)
 	return p.UnscheduleMonitor(ctx, monitorID)
+}
+
+// purgeHealthCheckTask removes a monitor's queued health check and cancels a
+// running one, so that no result of the old config is recorded and the next
+// check runs with the monitor's current config.
+func (p *Producer) purgeHealthCheckTask(ctx context.Context, monitorID string) {
+	taskID := healthCheckTaskID(monitorID)
+	task, err := p.queueService.GetTaskInfo(ctx, healthCheckQueue, taskID)
+	if errors.Is(err, queue.ErrTaskNotFound) {
+		return
+	}
+	if err != nil {
+		p.logger.Warnw("Failed to look up queued health check", "task_id", taskID, "error", err)
+		return
+	}
+	if task.State != queue.TaskStateActive {
+		err := p.queueService.DeleteTask(ctx, healthCheckQueue, taskID)
+		if err == nil || errors.Is(err, queue.ErrTaskNotFound) {
+			return
+		}
+		// A worker may have picked the task up since the lookup
+		task, lookupErr := p.queueService.GetTaskInfo(ctx, healthCheckQueue, taskID)
+		if lookupErr != nil || task.State != queue.TaskStateActive {
+			p.logger.Warnw("Failed to purge queued health check", "task_id", taskID, "error", err)
+			return
+		}
+	}
+	// The worker drops the result of a cancelled check, and the task it leaves
+	// archived is replaced by the next enqueue
+	if err := p.queueService.CancelTask(ctx, taskID); err != nil {
+		p.logger.Warnw("Failed to cancel running health check", "task_id", taskID, "error", err)
+	}
 }

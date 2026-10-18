@@ -962,7 +962,10 @@
         "message_format_label": "Mezuaren formatua",
         "username_description": "Erabiltzaile-izena, mezularen bidaltzaile bezala agertuko dena. Ez bada adierazita, lehenetsitako bot-izena erabiliko da.",
         "webhook_url_description": "Zure Slack integrazioaren webhook URLa. Hura zure Slack instantziaen Integrazioak > Webhooks atalean aurki dezakezu.",
-        "webhook_url_label": "Webhook URLa"
+        "webhook_url_label": "Webhook URLa",
+        "bot_token_label": "Bot tokena",
+        "bot_token_description": "Zure Slack bot tokena autentifikaziorako. Bot token bat sor dezakezu zure Slack aplikazioaren ezarpenetan",
+        "bot_token_note": "Oharra: Bot token bat erabiltzean, kanalaren izena beharrezkoa da."
       },
       "smtp": {
         "custom_body_label": "Iritzi pertsonalizatu",
@@ -1015,6 +1018,15 @@
         "template_placeholder": "Sartu zure mezua pertsonalizatzeko txantiloia",
         "use_template_description": "Gaitu pertsonalizatutako mezu txantiloia eta formatua erabiltzea.",
         "use_template_label": "Erabili mezua txantiloia"
+      },
+      "teams": {
+        "more_info_about_webhooks": "Workflows webhook-ei buruzko informazio gehiago",
+        "server_url_description": "Zure Peekaping instantziaren oinarrizko URLa, \"View in Peekaping\" botoirako erabiltzen dena. Hutsik badago, zerbitzariaren CLIENT_URL erabiltzen da.",
+        "server_url_label": "Zerbitzariaren URLa",
+        "setup_webhook_description_1": "Teams-en, ireki Workflows eta aukeratu \"Send webhook alerts to a channel\" txantiloia.",
+        "setup_webhook_description_2": "Aukeratu taldea eta kanala, hautatu Gorde, eta kopiatu webhook URLa lan-fluxuaren xehetasunetatik.",
+        "setup_webhook_title": "Sortu webhook bat Teams Workflows-ekin",
+        "webhook_url_label": "Workflows webhook URLa"
       },
       "webhook": {
         "additional_headers_description": "Gehitu HTTP izenburu pertsonalizatuak webhook eskaerari.",

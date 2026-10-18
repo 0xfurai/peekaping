@@ -962,7 +962,10 @@
         "message_format_label": "Format du message",
         "username_description": "Le nom d'utilisateur qui apparaîtra comme expéditeur du message. S'il n'est pas spécifié, le nom par défaut du bot sera utilisé.",
         "webhook_url_description": "L'URL du webhook de votre intégration Slack. Vous pouvez la trouver dans votre instance Slack sous Intégrations > Webhooks.",
-        "webhook_url_label": "URL du webhook"
+        "webhook_url_label": "URL du webhook",
+        "bot_token_label": "Jeton de bot",
+        "bot_token_description": "Votre jeton de bot Slack pour l'authentification. Vous pouvez créer un jeton de bot dans les paramètres de votre application Slack",
+        "bot_token_note": "Note : Lors de l'utilisation d'un jeton de bot, le nom du canal est requis."
       },
       "smtp": {
         "custom_body_label": "Corps personnalisé",
@@ -1015,6 +1018,15 @@
         "template_placeholder": "Entrez votre modèle de message personnalisé",
         "use_template_description": "Activer l'utilisation d'un modèle de message personnalisé et de mise en forme.",
         "use_template_label": "Utiliser le modèle de message"
+      },
+      "teams": {
+        "more_info_about_webhooks": "Plus d'infos sur les webhooks Workflows",
+        "server_url_description": "L'URL de base de votre instance Peekaping, utilisée pour le bouton \"View in Peekaping\". Si elle est vide, la CLIENT_URL du serveur est utilisée.",
+        "server_url_label": "URL du serveur",
+        "setup_webhook_description_1": "Dans Teams, ouvrez Workflows et choisissez le modèle \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Choisissez l'équipe et le canal, sélectionnez Enregistrer, puis copiez l'URL du webhook depuis les détails du workflow.",
+        "setup_webhook_title": "Créer un webhook avec Teams Workflows",
+        "webhook_url_label": "URL du webhook Workflows"
       },
       "webhook": {
         "additional_headers_description": "Ajoutez des en-têtes HTTP personnalisés à la requête webhook.",

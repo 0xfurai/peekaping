@@ -962,7 +962,10 @@
         "message_format_label": "Μορφή Μηνύματος",
         "username_description": "Το όνομα χρήστη που θα εμφανίζεται ως αποστολέας του μηνύματος. Αν δεν οριστεί, θα χρησιμοποιηθεί το προεπιλεγμένο όνομα του bot.",
         "webhook_url_description": "Η διεύθυνση URL του webhook από την ενσωμάτωση Slack. Μπορείτε να τη βρείτε στη δική σας εγκατάσταση Slack κάτω από Integrations > Webhooks.",
-        "webhook_url_label": "URL Webhook"
+        "webhook_url_label": "URL Webhook",
+        "bot_token_label": "Token Bot",
+        "bot_token_description": "Το token bot του Slack σας για τον έλεγχο ταυτότητας. Μπορείτε να δημιουργήσετε ένα token bot στις ρυθμίσεις της εφαρμογής Slack σας",
+        "bot_token_note": "Σημείωση: Όταν χρησιμοποιείτε token bot, το όνομα καναλιού είναι υποχρεωτικό."
       },
       "smtp": {
         "custom_body_label": "Προσαρμοσμένο σώμα",
@@ -1015,6 +1018,15 @@
         "template_placeholder": "Εισάγετε το προσαρμοσμένο πρότυπο μηνύματος",
         "use_template_description": "Ενεργοποιήστε τη χρήση προσαρμοσμένου προτύπου μηνύματος και μορφοποίησης.",
         "use_template_label": "Χρήση προτύπου μηνύματος"
+      },
+      "teams": {
+        "more_info_about_webhooks": "Περισσότερες πληροφορίες για τα webhooks του Workflows",
+        "server_url_description": "Η βασική διεύθυνση URL της εγκατάστασης Peekaping, που χρησιμοποιείται για το κουμπί \"View in Peekaping\". Αν μείνει κενό, χρησιμοποιείται το CLIENT_URL του διακομιστή.",
+        "server_url_label": "URL διακομιστή",
+        "setup_webhook_description_1": "Στο Teams, ανοίξτε το Workflows και επιλέξτε το πρότυπο \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Επιλέξτε την ομάδα και το κανάλι, πατήστε Αποθήκευση και αντιγράψτε το URL του webhook από τις λεπτομέρειες της ροής εργασίας.",
+        "setup_webhook_title": "Δημιουργήστε ένα webhook με το Teams Workflows",
+        "webhook_url_label": "URL Webhook του Workflows"
       },
       "webhook": {
         "additional_headers_description": "Προσθήκη προσαρμοσμένων κεφαλίδων HTTP στην αίτηση webhook.",

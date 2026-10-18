@@ -90,6 +90,7 @@ Peekaping also support [PostgreSQL Setup](https://docs.peekaping.com/self-hostin
 - Telegram
 - Slack
 - Google Chat
+- Microsoft Teams
 - Signal
 - Mattermost
 - Matrix
@@ -163,7 +164,6 @@ If you enjoy this project, come say hi &amp; follow along!
 
 ### Notification channels
 
-- [ ] Microsoft Teams
 - [ ] WhatsApp (Whapi)
 - [ ] CallMeBot (WhatsApp, Telegram Call, Facebook Messanger)
 - [ ] AliyunSMS (阿里云短信服务)
@@ -178,10 +178,11 @@ If you enjoy this project, come say hi &amp; follow along!
 We welcome contributions! Please:
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+2. Set up your environment with the [development guide](https://docs.peekaping.com/development). You need Go, Node.js and pnpm, installed any way you like; `make setup` checks them.
+3. Create a feature branch
+4. Make your changes
+5. Add tests if applicable
+6. Submit a pull request
 
 ## 📝 License
 

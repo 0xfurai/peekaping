@@ -87,13 +87,17 @@ The API server exposes the following endpoint groups:
 - `/api/v1/notification-channels` - Notification channel configuration
 - `/api/v1/status-pages` - Status page management
 - `/api/v1/proxies` - Proxy configuration
-- `/api/v1/settings` - System settings
+- `/api/v1/settings` - User-editable settings (only `KEEP_DATA_PERIOD_DAYS`; other keys return 404)
 - `/api/v1/stats` - Statistics and analytics
 - `/api/v1/api-keys` - API key management
 - `/api/v1/tags` - Monitor tagging
 - `/api/v1/maintenances` - Maintenance window management
 - `/api/v1/health` - Health check endpoint
 - `/api/v1/push/:id` - Push monitor heartbeat receiver
+
+### Pagination
+
+The monitors, tags, proxies, notification channels, status pages, maintenances, and monitor heartbeat list endpoints accept a zero-based `page` and a `limit` from 1 to 1,000. Limits outside this range return HTTP 400. The default limit is 10 items, or 50 for monitor heartbeats.
 
 ### Swagger Documentation
 

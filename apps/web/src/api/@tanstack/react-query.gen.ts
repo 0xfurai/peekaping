@@ -2202,6 +2202,7 @@ export const putProxiesByIdMutation = (
 
 /**
  * Delete setting by key
+ * Only KEEP_DATA_PERIOD_DAYS can be deleted. Every other key returns 404.
  */
 export const deleteSettingsKeyByKeyMutation = (
   options?: Partial<Options<DeleteSettingsKeyByKeyData>>
@@ -2233,6 +2234,7 @@ export const getSettingsKeyByKeyQueryKey = (
 
 /**
  * Get setting by key
+ * Only KEEP_DATA_PERIOD_DAYS can be read. Every other key returns 404.
  */
 export const getSettingsKeyByKeyOptions = (
   options: Options<GetSettingsKeyByKeyData>
@@ -2253,6 +2255,7 @@ export const getSettingsKeyByKeyOptions = (
 
 /**
  * Set setting by key
+ * Only KEEP_DATA_PERIOD_DAYS can be set. Every other key returns 404.
  */
 export const putSettingsKeyByKeyMutation = (
   options?: Partial<Options<PutSettingsKeyByKeyData>>

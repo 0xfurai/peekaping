@@ -2,6 +2,8 @@ package monitor_tls_info
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -43,6 +45,9 @@ func (r *SQLRepositoryImpl) GetByMonitorID(ctx context.Context, monitorID string
 		Where("monitor_id = ?", monitorID).
 		Scan(ctx)
 
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -50,11 +55,11 @@ func (r *SQLRepositoryImpl) GetByMonitorID(ctx context.Context, monitorID string
 	return toDomainModelFromSQL(&sm), nil
 }
 
-func (r *SQLRepositoryImpl) Create(ctx context.Context, dto *CreateDto) (*Model, error) {
+func (r *SQLRepositoryImpl) Create(ctx context.Context, model *Model) (*Model, error) {
 	sm := &sqlModel{
 		ID:        uuid.New().String(),
-		MonitorID: dto.MonitorID,
-		InfoJSON:  dto.InfoJSON,
+		MonitorID: model.MonitorID,
+		InfoJSON:  model.InfoJSON,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
@@ -70,9 +75,9 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, dto *CreateDto) (*Model,
 	return toDomainModelFromSQL(sm), nil
 }
 
-func (r *SQLRepositoryImpl) Update(ctx context.Context, monitorID string, dto *UpdateDto) (*Model, error) {
+func (r *SQLRepositoryImpl) Update(ctx context.Context, monitorID string, model *Model) (*Model, error) {
 	sm := &sqlModel{
-		InfoJSON:  dto.InfoJSON,
+		InfoJSON:  model.InfoJSON,
 		UpdatedAt: time.Now(),
 	}
 

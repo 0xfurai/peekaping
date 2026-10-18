@@ -501,6 +501,9 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 
 	// Default transport with proxy if needed
 	baseTransport := &http.Transport{}
+	// A fresh transport is built per execution; close its idle keep-alive
+	// connections before returning so checks don't leak one socket each.
+	defer baseTransport.CloseIdleConnections()
 
 	// Configure TLS settings if needed
 	if cfg.IgnoreTlsErrors {
@@ -594,6 +597,7 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 				InsecureSkipVerify: cfg.IgnoreTlsErrors,
 			},
 		}
+		defer mtlsTransport.CloseIdleConnections()
 		mtlsTransportWithProxy := buildProxyTransport(mtlsTransport, proxyModel)
 		mtlsTLSInterceptor := NewTLSInterceptor(mtlsTransportWithProxy)
 		activeTLSInterceptor = mtlsTLSInterceptor // Update the active interceptor for mTLS

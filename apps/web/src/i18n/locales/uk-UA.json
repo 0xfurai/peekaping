@@ -962,7 +962,10 @@
         "message_format_label": "Формат повідомлення",
         "username_description": "Ім'я користувача, яке буде відображатися як відправник повідомлення. Якщо не вказано, буде використано ім'я бота за замовчуванням.",
         "webhook_url_description": "URL вебхука з вашої інтеграції Slack. Ви можете знайти його у вашому екземплярі Slack в розділі Інтеграції &gt; Вебхуки.",
-        "webhook_url_label": "URL Webhook"
+        "webhook_url_label": "URL Webhook",
+        "bot_token_label": "Токен бота",
+        "bot_token_description": "Ваш токен бота Slack для автентифікації. Ви можете створити токен бота в налаштуваннях вашої програми Slack",
+        "bot_token_note": "Примітка: При використанні токена бота назва каналу є обов'язковою."
       },
       "smtp": {
         "custom_body_label": "Користувацьке тіло",
@@ -1015,6 +1018,15 @@
         "template_placeholder": "Введіть ваш користувацький шаблон повідомлення",
         "use_template_description": "Увімкніть для використання користувацького шаблону повідомлення та формату.",
         "use_template_label": "Використовувати шаблон повідомлення"
+      },
+      "teams": {
+        "more_info_about_webhooks": "Більше інформації про вебхуки Workflows",
+        "server_url_description": "Базовий URL вашого екземпляра Peekaping, який використовується для кнопки \"View in Peekaping\". Якщо поле порожнє, використовується CLIENT_URL сервера.",
+        "server_url_label": "URL сервера",
+        "setup_webhook_description_1": "У Teams відкрийте Workflows і виберіть шаблон \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Виберіть команду й канал, натисніть «Зберегти», а потім скопіюйте URL вебхука з відомостей робочого процесу.",
+        "setup_webhook_title": "Створіть вебхук за допомогою Teams Workflows",
+        "webhook_url_label": "URL вебхука Workflows"
       },
       "webhook": {
         "additional_headers_description": "Додайте користувацькі HTTP заголовки до запиту вебхука.",

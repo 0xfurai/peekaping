@@ -962,7 +962,10 @@
         "message_format_label": "訊息格式",
         "username_description": "用於訊息發送者的使用者名稱。若未設定，將使用預設機器人名稱。",
         "webhook_url_description": "Slack 整合的 webhook URL。您可以在 Slack 服務的 Integrations > Webhooks 找到。",
-        "webhook_url_label": "Webhook 地址"
+        "webhook_url_label": "Webhook 地址",
+        "bot_token_label": "機器人令牌",
+        "bot_token_description": "用於身份驗證的 Slack 機器人令牌。您可以在 Slack 應用程式設定中建立機器人令牌",
+        "bot_token_note": "注意：使用機器人令牌時，頻道名稱是必需的。"
       },
       "smtp": {
         "custom_body_label": "自訂內容",
@@ -1015,6 +1018,15 @@
         "template_placeholder": "輸入自訂訊息範本",
         "use_template_description": "啟用以使用自訂訊息模板與格式。",
         "use_template_label": "使用訊息範本"
+      },
+      "teams": {
+        "more_info_about_webhooks": "更多關於 Workflows Webhook 的資訊",
+        "server_url_description": "您的 Peekaping 執行個體的基礎網址，用於「View in Peekaping」按鈕。若留空，將使用伺服器的 CLIENT_URL。",
+        "server_url_label": "伺服器網址",
+        "setup_webhook_description_1": "在 Teams 中開啟 Workflows，然後選擇「Send webhook alerts to a channel」範本。",
+        "setup_webhook_description_2": "選擇團隊和頻道，按一下儲存，然後從工作流程詳細資料中複製 Webhook 網址。",
+        "setup_webhook_title": "使用 Teams Workflows 建立 Webhook",
+        "webhook_url_label": "Workflows Webhook 網址"
       },
       "webhook": {
         "additional_headers_description": "為 webhook 請求添加自定義 HTTP 標頭。",

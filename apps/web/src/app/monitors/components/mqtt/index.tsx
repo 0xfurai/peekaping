@@ -38,6 +38,15 @@ import {
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 import type { MonitorCreateUpdateDto, MonitorMonitorResponseDto } from "@/api";
+import {
+  formatHostPort,
+  formatOnServer,
+  getNumber,
+  getString,
+  textTarget,
+  type MonitorConfig,
+  type MonitorTarget,
+} from "../monitor-target";
 import { useEffect } from "react";
 
 import { PasswordInput } from "@/components/ui/password-input";
@@ -117,6 +126,14 @@ const serialize = (data: MQTTForm): MonitorCreateUpdateDto => {
     tag_ids: data.tag_ids,
   };
 };
+
+export const formatTarget = (config: MonitorConfig): MonitorTarget | null =>
+  textTarget(
+    formatOnServer(
+      getString(config, "topic"),
+      formatHostPort(getString(config, "hostname"), getNumber(config, "port"))
+    )
+  );
 
 export const deserialize = (data: MonitorMonitorResponseDto): MQTTForm => {
   const config: MQTTConfig = data.config ? JSON.parse(data.config) : {};
