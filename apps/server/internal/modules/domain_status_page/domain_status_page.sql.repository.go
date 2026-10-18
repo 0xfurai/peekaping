@@ -36,7 +36,7 @@ func NewSQLRepository(db *bun.DB) Repository {
 	return &SQLRepositoryImpl{db: db}
 }
 
-func (r *SQLRepositoryImpl) Create(ctx context.Context, entity *CreateUpdateDto) (*Model, error) {
+func (r *SQLRepositoryImpl) Create(ctx context.Context, entity *Model) (*Model, error) {
 	sm := &sqlModel{
 		ID:           uuid.New().String(),
 		StatusPageID: entity.StatusPageID,
@@ -89,7 +89,7 @@ func (r *SQLRepositoryImpl) FindAll(ctx context.Context, page int, limit int, q 
 	return models, nil
 }
 
-func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *CreateUpdateDto) (*Model, error) {
+func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *Model) (*Model, error) {
 	sm := &sqlModel{
 		ID:           id,
 		StatusPageID: entity.StatusPageID,
@@ -109,7 +109,7 @@ func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *C
 	return r.FindByID(ctx, id)
 }
 
-func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity *PartialUpdateDto) (*Model, error) {
+func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity *UpdateModel) (*Model, error) {
 	query := r.db.NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id)
 
 	query = query.Set("updated_at = ?", time.Now())
@@ -143,11 +143,11 @@ func (r *SQLRepositoryImpl) AddDomainToStatusPage(ctx context.Context, statusPag
 	}
 	if existing != nil {
 		// Update existing relationship
-		return r.UpdatePartial(ctx, existing.ID, &PartialUpdateDto{})
+		return r.UpdatePartial(ctx, existing.ID, &UpdateModel{})
 	}
 
 	// Create new relationship
-	entity := &CreateUpdateDto{
+	entity := &Model{
 		StatusPageID: statusPageID,
 		Domain:       domain,
 	}

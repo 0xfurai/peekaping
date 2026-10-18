@@ -249,6 +249,10 @@ export type MonitorModel = {
    */
   interval?: number;
   /**
+   * Last heartbeat for push monitors
+   */
+  last_heartbeat?: SharedHeartBeatModel;
+  /**
    * Maximum retries before the service is marked as down and a notification is sent
    */
   max_retries?: number;
@@ -405,6 +409,21 @@ export type SettingModel = {
   type?: string;
   updated_at?: string;
   value?: string;
+};
+
+export type SharedHeartBeatModel = {
+  down_count?: number;
+  duration?: number;
+  end_time?: string;
+  id?: string;
+  important?: boolean;
+  monitor_id?: string;
+  msg?: string;
+  notified?: boolean;
+  ping?: number;
+  retries?: number;
+  status?: SharedMonitorStatus;
+  time?: string;
 };
 
 export type SharedMonitorStatus = 0 | 1 | 2 | 3;
@@ -2046,7 +2065,7 @@ export type GetMonitorsByIdHeartbeatsData = {
   };
   query?: {
     /**
-     * Number of heartbeats per page (default 50)
+     * Number of heartbeats per page
      */
     limit?: number;
     /**
@@ -2885,6 +2904,10 @@ export type PutSettingsKeyByKeyErrors = {
    * Bad Request
    */
   400: UtilsApiError;
+  /**
+   * Not Found
+   */
+  404: UtilsApiError;
   /**
    * Internal Server Error
    */

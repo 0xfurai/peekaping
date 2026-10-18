@@ -10,7 +10,10 @@ import (
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_notification"
+	"peekaping/internal/modules/monitor_tag"
 	"peekaping/internal/modules/notification_channel/providers"
+	"peekaping/internal/modules/tag"
+	"sort"
 	"strings"
 
 	"go.uber.org/dig"
@@ -23,6 +26,8 @@ type NotificationEventListener struct {
 	monitorSvc                 monitor.Service
 	heartbeatService           heartbeat.Service
 	monitorNotificationService monitor_notification.Service
+	monitorTagService          monitor_tag.Service
+	tagService                 tag.Service
 	logger                     *zap.SugaredLogger
 }
 
@@ -32,6 +37,8 @@ type NotificationEventListenerParams struct {
 	MonitorSvc                 monitor.Service
 	HeartbeatService           heartbeat.Service
 	MonitorNotificationService monitor_notification.Service
+	MonitorTagService          monitor_tag.Service
+	TagService                 tag.Service
 	Logger                     *zap.SugaredLogger
 	Config                     *config.Config
 }
@@ -59,12 +66,15 @@ func NewNotificationEventListener(p NotificationEventListenerParams) *Notificati
 	RegisterNotificationChannelProvider("pushbullet", providers.NewPushbulletSender(p.Logger))
 	RegisterNotificationChannelProvider("pagertree", providers.NewPagerTreeSender(p.Logger))
 	RegisterNotificationChannelProvider("line", providers.NewLineSender(p.Logger))
+	RegisterNotificationChannelProvider("teams", providers.NewTeamsSender(p.Logger, p.Config))
 
 	return &NotificationEventListener{
 		service:                    p.Service,
 		monitorSvc:                 p.MonitorSvc,
 		heartbeatService:           p.HeartbeatService,
 		monitorNotificationService: p.MonitorNotificationService,
+		monitorTagService:          p.MonitorTagService,
+		tagService:                 p.TagService,
 		logger:                     p.Logger,
 	}
 }
@@ -116,6 +126,7 @@ func (l *NotificationEventListener) handleNotifyEvent(event events.Event) {
 		l.logger.Warn("Monitor not found for notification context")
 		return
 	}
+	l.loadMonitorTags(ctx, monitorModel)
 
 	for _, notificationChannel := range notificationChannels {
 		integration, ok := GetNotificationChannelProvider(notificationChannel.Type)
@@ -188,6 +199,7 @@ func (l *NotificationEventListener) handleCertificateExpiryEvent(event events.Ev
 		l.logger.Warn("Monitor not found for certificate expiry notification context")
 		return
 	}
+	l.loadMonitorTags(ctx, monitorModel)
 
 	// Send notifications through all configured channels
 	for _, notificationChannel := range notificationChannels {
@@ -218,6 +230,31 @@ func (l *NotificationEventListener) handleCertificateExpiryEvent(event events.Ev
 			l.logger.Infof("Certificate expiry notification sent to: %s for monitor: %s", notificationChannel.Name, certEvent.MonitorID)
 		}
 	}
+}
+
+// loadMonitorTags sets the names of the monitor's tags on it, sorted so that every
+// notification for the monitor lists them in the same order. If the lookup fails, it logs
+// the error and leaves the tags empty: the notification is still worth sending.
+func (l *NotificationEventListener) loadMonitorTags(ctx context.Context, m *monitor.Model) {
+	rels, err := l.monitorTagService.FindByMonitorID(ctx, m.ID)
+	if err != nil {
+		l.logger.Errorf("Failed to get tags for monitor %s, notifying without them: %v", m.ID, err)
+		return
+	}
+
+	names := make([]string, 0, len(rels))
+	for _, rel := range rels {
+		t, err := l.tagService.FindByID(ctx, rel.TagID)
+		if err != nil {
+			l.logger.Errorf("Failed to get tag %s for monitor %s, notifying without tags: %v", rel.TagID, m.ID, err)
+			return
+		}
+		if t != nil {
+			names = append(names, t.Name)
+		}
+	}
+	sort.Strings(names)
+	m.Tags = names
 }
 
 // formatCertificateExpiryMessage creates a formatted message for certificate expiry notifications

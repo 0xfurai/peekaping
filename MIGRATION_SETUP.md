@@ -55,6 +55,7 @@ For creating new migrations, use the bun tool:
 Migrations are stored in `apps/server/cmd/bun/migrations/` and follow the naming convention:
 - `YYYYMMDDHHMMSS_description.tx.up.sql` - Migration to apply
 - `YYYYMMDDHHMMSS_description.tx.down.sql` - Migration to rollback
+- `YYYYMMDDHHMMSS_description.go` - Go migration (`./bun db create_go`), for data changes that should behave the same on every database, such as rebuilding stats from heartbeats
 
 ## Migration Container Details
 

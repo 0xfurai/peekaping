@@ -1393,6 +1393,7 @@ export const putProxiesById = <ThrowOnError extends boolean = false>(
 
 /**
  * Delete setting by key
+ * Only KEEP_DATA_PERIOD_DAYS can be deleted. Every other key returns 404.
  */
 export const deleteSettingsKeyByKey = <ThrowOnError extends boolean = false>(
   options: Options<DeleteSettingsKeyByKeyData, ThrowOnError>
@@ -1420,6 +1421,7 @@ export const deleteSettingsKeyByKey = <ThrowOnError extends boolean = false>(
 
 /**
  * Get setting by key
+ * Only KEEP_DATA_PERIOD_DAYS can be read. Every other key returns 404.
  */
 export const getSettingsKeyByKey = <ThrowOnError extends boolean = false>(
   options: Options<GetSettingsKeyByKeyData, ThrowOnError>
@@ -1447,6 +1449,7 @@ export const getSettingsKeyByKey = <ThrowOnError extends boolean = false>(
 
 /**
  * Set setting by key
+ * Only KEEP_DATA_PERIOD_DAYS can be set. Every other key returns 404.
  */
 export const putSettingsKeyByKey = <ThrowOnError extends boolean = false>(
   options: Options<PutSettingsKeyByKeyData, ThrowOnError>

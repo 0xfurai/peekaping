@@ -962,7 +962,10 @@
         "message_format_label": "Oblika sporočila",
         "username_description": "Ime uporabnika, ki bo prikazano kot pošiljatelj sporočila. Če ni navedeno, bo uporabljen privzeti naziv bota.",
         "webhook_url_description": "URL webhooka iz vaše Slack integracije. Najdete ga lahko v vaši Slack instanci pod Integracije > Webhooki.",
-        "webhook_url_label": "URL webhooka"
+        "webhook_url_label": "URL webhooka",
+        "bot_token_label": "Bot žeton",
+        "bot_token_description": "Vaš Slack bot žeton za avtentikacijo. Ustvarite lahko bot žeton v nastavitvah vaše Slack aplikacije",
+        "bot_token_note": "Opomba: Pri uporabi bot žetona je ime kanala obvezno."
       },
       "smtp": {
         "custom_body_label": "Prilagojeno telo",
@@ -1015,6 +1018,15 @@
         "template_placeholder": "Vnesite svojo predlogo sporočila",
         "use_template_description": "Omogoči uporabo po meri predloga sporočila in oblikovanja.",
         "use_template_label": "Uporabi predlogo sporočila"
+      },
+      "teams": {
+        "more_info_about_webhooks": "Več informacij o Workflows webhookih",
+        "server_url_description": "Osnovni URL vaše Peekaping instance, ki se uporablja za gumb \"View in Peekaping\". Če je prazno, se uporabi CLIENT_URL strežnika.",
+        "server_url_label": "URL strežnika",
+        "setup_webhook_description_1": "V Teams odprite Workflows in izberite predlogo \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Izberite ekipo in kanal, kliknite Shrani, nato kopirajte URL webhooka iz podrobnosti poteka dela.",
+        "setup_webhook_title": "Ustvarite webhook s Teams Workflows",
+        "webhook_url_label": "URL za Workflows webhook"
       },
       "webhook": {
         "additional_headers_description": "Dodaj po meri HTTP glave v zahtevo webhooka.",

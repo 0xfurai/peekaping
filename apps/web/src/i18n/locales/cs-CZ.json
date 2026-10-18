@@ -962,7 +962,10 @@
         "message_format_label": "Formát zprávy",
         "username_description": "Uživatelské jméno, které se zobrazí jako odesílatel zprávy. Pokud není zadáno, bude použito výchozí jméno bota.",
         "webhook_url_description": "URL webhooku ze Slack integrace. Najdete ji ve vaší instanci Slacku v sekci Integrace > Webhooky.",
-        "webhook_url_label": "URL webhooku"
+        "webhook_url_label": "URL webhooku",
+        "bot_token_label": "Token bota",
+        "bot_token_description": "Váš token bota Slack pro ověření identity. Můžete vytvořit token bota v nastavení vaší aplikace Slack",
+        "bot_token_note": "Poznámka: Při použití tokenu bota je název kanálu povinný."
       },
       "smtp": {
         "custom_body_label": "Vlastní tělo zprávy",
@@ -1015,6 +1018,15 @@
         "template_placeholder": "Zadejte svou vlastní šablonu zprávy",
         "use_template_description": "Povolte použití vlastní šablony zprávy a jejího formátu.",
         "use_template_label": "Použít šablonu zprávy"
+      },
+      "teams": {
+        "more_info_about_webhooks": "Více informací o webhoocích Workflows",
+        "server_url_description": "Základní URL vaší instance Peekaping, použitá pro tlačítko \"View in Peekaping\". Pokud je prázdná, použije se CLIENT_URL serveru.",
+        "server_url_label": "URL serveru",
+        "setup_webhook_description_1": "V Teams otevřete Workflows a vyberte šablonu \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Zvolte tým a kanál, klikněte na Uložit a poté zkopírujte URL webhooku z podrobností pracovního postupu.",
+        "setup_webhook_title": "Vytvořte webhook pomocí Teams Workflows",
+        "webhook_url_label": "URL webhooku Workflows"
       },
       "webhook": {
         "additional_headers_description": "Přidejte vlastní HTTP hlavičky do požadavku webhooku.",

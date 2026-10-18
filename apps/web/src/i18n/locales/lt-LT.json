@@ -962,7 +962,10 @@
         "message_format_label": "Žinutės formatas",
         "username_description": "Vartotojo vardas, kuris bus rodomas kaip žinutės siuntėjas. Jei neįrašytas, bus naudojamas numatytasis botas.",
         "webhook_url_description": "Jūsų Slack integracijos webhook URL. Jūs galite jį rasti savo Slack instancijoje skiltyje Integracijos &gt; Webhook'ai.",
-        "webhook_url_label": "Webhook nuoroda"
+        "webhook_url_label": "Webhook nuoroda",
+        "bot_token_label": "Boto žetonas",
+        "bot_token_description": "Jūsų Slack boto žetonas autentifikacijai. Galite sukurti boto žetoną savo Slack programos nustatymuose",
+        "bot_token_note": "Pastaba: Naudojant boto žetoną, kanalo pavadinimas yra privalomas."
       },
       "smtp": {
         "custom_body_label": "Pasirinktinis turinys",
@@ -1015,6 +1018,15 @@
         "template_placeholder": "Įveskite savo pritaikytą pranešimo šabloną",
         "use_template_description": "Įgalinti naudoti individualų žinutės šabloną ir formatą.",
         "use_template_label": "Naudoti pranešimo šabloną"
+      },
+      "teams": {
+        "more_info_about_webhooks": "Daugiau informacijos apie Workflows webhook",
+        "server_url_description": "Jūsų Peekaping instancijos bazinis URL, naudojamas mygtukui \"View in Peekaping\". Jei laukas tuščias, naudojamas serverio CLIENT_URL.",
+        "server_url_label": "Serverio URL",
+        "setup_webhook_description_1": "Teams programoje atidarykite Workflows ir pasirinkite šabloną \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Pasirinkite komandą ir kanalą, spustelėkite Įrašyti, tada nukopijuokite webhook URL iš darbo eigos informacijos.",
+        "setup_webhook_title": "Sukurkite webhook naudodami Teams Workflows",
+        "webhook_url_label": "Workflows Webhook URL"
       },
       "webhook": {
         "additional_headers_description": "Pridėti pasirinktines HTTP antraštes prie webhook užklausos.",

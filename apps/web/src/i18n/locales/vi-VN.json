@@ -962,7 +962,10 @@
         "message_format_label": "Định dạng tin nhắn",
         "username_description": "Tên người dùng sẽ xuất hiện làm người gửi tin nhắn. Nếu không được chỉ định, tên bot mặc định sẽ được sử dụng.",
         "webhook_url_description": "URL webhook từ tích hợp Slack của bạn. Bạn có thể tìm thấy nó trong tài khoản Slack của mình, vào mục Tích hợp > Webhooks.",
-        "webhook_url_label": "URL Webhook"
+        "webhook_url_label": "URL Webhook",
+        "bot_token_label": "Token bot",
+        "bot_token_description": "Token bot Slack của bạn để xác thực. Bạn có thể tạo token bot trong cài đặt ứng dụng Slack của mình",
+        "bot_token_note": "Lưu ý: Khi sử dụng token bot, tên kênh là bắt buộc."
       },
       "smtp": {
         "custom_body_label": "Nội dung tùy chỉnh",
@@ -1015,6 +1018,15 @@
         "template_placeholder": "Nhập mẫu tin nhắn tùy chỉnh",
         "use_template_description": "Bật để sử dụng mẫu tin nhắn tùy chỉnh và định dạng.",
         "use_template_label": "Sử dụng mẫu tin nhắn"
+      },
+      "teams": {
+        "more_info_about_webhooks": "Thêm thông tin về webhook của Workflows",
+        "server_url_description": "URL gốc của phiên bản Peekaping của bạn, dùng cho nút \"View in Peekaping\". Nếu để trống, CLIENT_URL của máy chủ sẽ được dùng.",
+        "server_url_label": "URL máy chủ",
+        "setup_webhook_description_1": "Trong Teams, mở Workflows và chọn mẫu \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Chọn nhóm và kênh, chọn Lưu, sau đó sao chép URL webhook từ phần chi tiết của quy trình làm việc.",
+        "setup_webhook_title": "Tạo webhook bằng Teams Workflows",
+        "webhook_url_label": "URL Webhook Workflows"
       },
       "webhook": {
         "additional_headers_description": "Thêm tiêu đề HTTP tùy chỉnh vào yêu cầu webhook.",

@@ -31,7 +31,7 @@ func NewController(
 // @Security  ApiKeyAuth
 // @Param     q    query     string  false  "Search query"
 // @Param     page query     int     false  "Page number" default(1)
-// @Param     limit query    int     false  "Items per page" default(10)
+// @Param     limit query    int     false  "Items per page" default(10) minimum(1) maximum(1000)
 // @Success		200	{object}	utils.ApiResponse[[]Model]
 // @Failure		400	{object}	utils.APIError[any]
 // @Failure		404	{object}	utils.APIError[any]
@@ -44,7 +44,7 @@ func (c *Controller) FindAll(ctx *gin.Context) {
 	}
 
 	limit, err := utils.GetQueryInt(ctx, "limit", 10)
-	if err != nil || limit < 1 {
+	if err != nil || limit < 1 || limit > utils.MaxPageSize {
 		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid limit parameter"))
 		return
 	}
@@ -153,6 +153,10 @@ func (c *Controller) UpdateFull(ctx *gin.Context) {
 		return
 	}
 
+	if _, ok := utils.FindOr404(ctx, c.logger, "Tag", c.service.FindByID, id); !ok {
+		return
+	}
+
 	updatedTag, err := c.service.UpdateFull(ctx, id, &tag)
 	if err != nil {
 		c.logger.Errorw("Failed to update tag", "error", err)
@@ -193,6 +197,10 @@ func (c *Controller) UpdatePartial(ctx *gin.Context) {
 		return
 	}
 
+	if _, ok := utils.FindOr404(ctx, c.logger, "Tag", c.service.FindByID, id); !ok {
+		return
+	}
+
 	updatedTag, err := c.service.UpdatePartial(ctx, id, &tag)
 	if err != nil {
 		c.logger.Errorw("Failed to update tag", "error", err)
@@ -219,6 +227,10 @@ func (c *Controller) UpdatePartial(ctx *gin.Context) {
 // @Failure		500	{object}	utils.APIError[any]
 func (c *Controller) Delete(ctx *gin.Context) {
 	id := ctx.Param("id")
+
+	if _, ok := utils.FindOr404(ctx, c.logger, "Tag", c.service.FindByID, id); !ok {
+		return
+	}
 
 	err := c.service.Delete(ctx, id)
 	if err != nil {

@@ -962,7 +962,10 @@
         "message_format_label": "فرمت پیام",
         "username_description": "نام کاربری که به عنوان فرستنده پیام نمایش داده می‌شود. اگر مشخص نشود، از نام پیش‌فرض ربات استفاده خواهد شد.",
         "webhook_url_description": "آدرس وب‌هوک از یکپارچه‌سازی Slack شما. می‌توانید این آدرس را در نمونه Slack خود در بخش ادغام‌ها > وب‌هوک‌ها پیدا کنید.",
-        "webhook_url_label": "آدرس وب‌هوک"
+        "webhook_url_label": "آدرس وب‌هوک",
+        "bot_token_label": "توکن ربات",
+        "bot_token_description": "توکن ربات Slack شما برای احراز هویت. می‌توانید یک توکن ربات در تنظیمات برنامه Slack خود ایجاد کنید",
+        "bot_token_note": "توجه: هنگام استفاده از توکن ربات، نام کانال الزامی است."
       },
       "smtp": {
         "custom_body_label": "بدنه سفارشی",
@@ -1015,6 +1018,15 @@
         "template_placeholder": "قالب پیام سفارشی خود را وارد کنید",
         "use_template_description": "فعال‌سازی استفاده از الگوی پیام سفارشی و قالب‌بندی",
         "use_template_label": "استفاده از الگوی پیام"
+      },
+      "teams": {
+        "more_info_about_webhooks": "اطلاعات بیشتر در مورد وب‌هوک‌های Workflows",
+        "server_url_description": "آدرس پایه نمونه Peekaping شما که برای دکمه \"View in Peekaping\" استفاده می‌شود. اگر خالی باشد، CLIENT_URL سرور استفاده می‌شود.",
+        "server_url_label": "آدرس سرور",
+        "setup_webhook_description_1": "در Teams، برنامه Workflows را باز کنید و الگوی \"Send webhook alerts to a channel\" را انتخاب کنید.",
+        "setup_webhook_description_2": "تیم و کانال را انتخاب کنید، روی ذخیره بزنید و سپس آدرس وب‌هوک را از جزئیات گردش کار کپی کنید.",
+        "setup_webhook_title": "ساخت وب‌هوک با Teams Workflows",
+        "webhook_url_label": "آدرس وب‌هوک Workflows"
       },
       "webhook": {
         "additional_headers_description": "افزودن هدرهای HTTP سفارشی به درخواست وب‌هوک.",

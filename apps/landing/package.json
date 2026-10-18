@@ -16,5 +16,8 @@
     "astro": "^5.12.4",
     "sharp": "^0.34.2",
     "tailwindcss": "4.1.6"
+  },
+  "devDependencies": {
+    "wrangler": "^4.151.1"
   }
 }

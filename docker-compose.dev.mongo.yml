@@ -18,11 +18,13 @@ services:
     networks:
       - appnet
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      # Check via the container hostname: the temporary server the image runs during first-time init only binds 127.0.0.1.
+      test: echo 'db.runCommand("ping").ok' | mongosh "$$(hostname):27017/test" --quiet
       interval: 30s
       timeout: 2s
       retries: 5
-      start_period: 5s
+      start_period: 30s
+      start_interval: 1s
 
   redis:
     image: redis:7
@@ -36,7 +38,8 @@ services:
       interval: 30s
       timeout: 2s
       retries: 5
-      start_period: 5s
+      start_period: 30s
+      start_interval: 1s
 
   api:
     build:
@@ -59,7 +62,8 @@ services:
       interval: 30s
       timeout: 2s
       retries: 5
-      start_period: 5s
+      start_period: 30s
+      start_interval: 1s
 
   producer:
     build:
@@ -123,6 +127,7 @@ services:
       interval: 30s
       timeout: 2s
       retries: 5
-      start_period: 5s
+      start_period: 30s
+      start_interval: 1s
 
 

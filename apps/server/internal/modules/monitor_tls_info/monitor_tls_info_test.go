@@ -20,13 +20,13 @@ func (m *MockRepository) GetByMonitorID(ctx context.Context, monitorID string) (
 	return args.Get(0).(*Model), args.Error(1)
 }
 
-func (m *MockRepository) Create(ctx context.Context, dto *CreateDto) (*Model, error) {
-	args := m.Called(ctx, dto)
+func (m *MockRepository) Create(ctx context.Context, model *Model) (*Model, error) {
+	args := m.Called(ctx, model)
 	return args.Get(0).(*Model), args.Error(1)
 }
 
-func (m *MockRepository) Update(ctx context.Context, monitorID string, dto *UpdateDto) (*Model, error) {
-	args := m.Called(ctx, monitorID, dto)
+func (m *MockRepository) Update(ctx context.Context, monitorID string, model *Model) (*Model, error) {
+	args := m.Called(ctx, monitorID, model)
 	return args.Get(0).(*Model), args.Error(1)
 }
 

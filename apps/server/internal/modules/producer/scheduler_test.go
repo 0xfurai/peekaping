@@ -2,13 +2,17 @@ package producer
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"testing"
 	"time"
 
 	"peekaping/internal/modules/monitor"
+	"peekaping/internal/modules/queue"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
@@ -291,12 +295,14 @@ func TestUpdateMonitor(t *testing.T) {
 
 		logger := zap.NewNop().Sugar()
 		mockMonitorSvc := new(MockMonitorService)
+		mockQueueSvc := new(MockQueueService)
 
 		producer := &Producer{
 			rdb:              client,
 			logger:           logger,
 			ctx:              context.Background(),
 			monitorService:   mockMonitorSvc,
+			queueService:     mockQueueSvc,
 			monitorIntervals: make(map[string]int),
 		}
 
@@ -315,6 +321,8 @@ func TestUpdateMonitor(t *testing.T) {
 		}
 
 		mockMonitorSvc.On("FindByID", ctx, "monitor-123").Return(mon, nil)
+		mockQueueSvc.On("GetTaskInfo", ctx, "healthcheck", "healthcheck:monitor-123").Return(&queue.TaskInfo{State: "pending"}, nil)
+		mockQueueSvc.On("DeleteTask", ctx, "healthcheck", "healthcheck:monitor-123").Return(nil)
 
 		err = producer.UpdateMonitor(ctx, "monitor-123")
 		assert.NoError(t, err)
@@ -322,7 +330,106 @@ func TestUpdateMonitor(t *testing.T) {
 		// Verify interval is updated
 		assert.Equal(t, 120, producer.monitorIntervals["monitor-123"])
 
+		// The queued check with the old config is dropped and a new one is due right away
+		score, err := client.ZScore(ctx, SchedDueKey, "monitor-123").Result()
+		require.NoError(t, err)
+		assert.LessOrEqual(t, score, float64(time.Now().UnixMilli()))
+
 		mockMonitorSvc.AssertExpectations(t)
+		mockQueueSvc.AssertExpectations(t)
+	})
+
+	t.Run("update cancels a running check", func(t *testing.T) {
+		client, mr := setupTestRedis(t)
+		defer mr.Close()
+
+		mockMonitorSvc := new(MockMonitorService)
+		mockQueueSvc := new(MockQueueService)
+		producer := &Producer{
+			rdb:              client,
+			logger:           zap.NewNop().Sugar(),
+			ctx:              context.Background(),
+			monitorService:   mockMonitorSvc,
+			queueService:     mockQueueSvc,
+			monitorIntervals: make(map[string]int),
+		}
+
+		ctx := context.Background()
+		mon := &monitor.Model{ID: "monitor-123", Active: true, Interval: 60}
+		mockMonitorSvc.On("FindByID", ctx, "monitor-123").Return(mon, nil)
+		mockQueueSvc.On("GetTaskInfo", ctx, "healthcheck", "healthcheck:monitor-123").Return(&queue.TaskInfo{State: "active"}, nil)
+		// The check runs the old config; asynq won't delete an active task
+		mockQueueSvc.On("CancelTask", ctx, "healthcheck:monitor-123").Return(nil)
+
+		err := producer.UpdateMonitor(ctx, "monitor-123")
+		assert.NoError(t, err)
+
+		_, err = client.ZScore(ctx, SchedDueKey, "monitor-123").Result()
+		assert.NoError(t, err)
+		mockQueueSvc.AssertExpectations(t)
+		mockQueueSvc.AssertNotCalled(t, "DeleteTask", mock.Anything, mock.Anything, mock.Anything)
+	})
+
+	t.Run("update cancels a check that started during the purge", func(t *testing.T) {
+		client, mr := setupTestRedis(t)
+		defer mr.Close()
+
+		mockMonitorSvc := new(MockMonitorService)
+		mockQueueSvc := new(MockQueueService)
+		producer := &Producer{
+			rdb:              client,
+			logger:           zap.NewNop().Sugar(),
+			ctx:              context.Background(),
+			monitorService:   mockMonitorSvc,
+			queueService:     mockQueueSvc,
+			monitorIntervals: make(map[string]int),
+		}
+
+		ctx := context.Background()
+		mon := &monitor.Model{ID: "monitor-123", Active: true, Interval: 60}
+		mockMonitorSvc.On("FindByID", ctx, "monitor-123").Return(mon, nil)
+		mockQueueSvc.On("GetTaskInfo", ctx, "healthcheck", "healthcheck:monitor-123").Return(&queue.TaskInfo{State: "pending"}, nil).Once()
+		mockQueueSvc.On("DeleteTask", ctx, "healthcheck", "healthcheck:monitor-123").Return(errors.New("asynq: cannot delete task in active state")).Once()
+		mockQueueSvc.On("GetTaskInfo", ctx, "healthcheck", "healthcheck:monitor-123").Return(&queue.TaskInfo{State: "active"}, nil).Once()
+		mockQueueSvc.On("CancelTask", ctx, "healthcheck:monitor-123").Return(nil).Once()
+
+		err := producer.UpdateMonitor(ctx, "monitor-123")
+		assert.NoError(t, err)
+
+		mockQueueSvc.AssertExpectations(t)
+	})
+
+	t.Run("update of a push monitor waits for the next slot", func(t *testing.T) {
+		client, mr := setupTestRedis(t)
+		defer mr.Close()
+
+		mockMonitorSvc := new(MockMonitorService)
+		mockQueueSvc := new(MockQueueService)
+		producer := &Producer{
+			rdb:              client,
+			logger:           zap.NewNop().Sugar(),
+			ctx:              context.Background(),
+			monitorService:   mockMonitorSvc,
+			queueService:     mockQueueSvc,
+			monitorIntervals: make(map[string]int),
+		}
+
+		ctx := context.Background()
+		require.NoError(t, producer.ScheduleMonitor(ctx, "monitor-123", 60))
+
+		mon := &monitor.Model{ID: "monitor-123", Type: "push", Active: true, Interval: 60}
+		mockMonitorSvc.On("FindByID", ctx, "monitor-123").Return(mon, nil)
+		mockQueueSvc.On("GetTaskInfo", ctx, "healthcheck", "healthcheck:monitor-123").Return(nil, fmt.Errorf("%w: healthcheck:monitor-123", queue.ErrTaskNotFound))
+
+		before := time.Now().UnixMilli()
+		err := producer.UpdateMonitor(ctx, "monitor-123")
+		assert.NoError(t, err)
+
+		// Checking a push monitor right after a data reset would report DOWN before any push arrives
+		score, err := client.ZScore(ctx, SchedDueKey, "monitor-123").Result()
+		require.NoError(t, err)
+		assert.Greater(t, score, float64(before))
+		mockQueueSvc.AssertNotCalled(t, "DeleteTask", mock.Anything, mock.Anything, mock.Anything)
 	})
 
 	t.Run("unschedule inactive monitor", func(t *testing.T) {
@@ -331,12 +438,14 @@ func TestUpdateMonitor(t *testing.T) {
 
 		logger := zap.NewNop().Sugar()
 		mockMonitorSvc := new(MockMonitorService)
+		mockQueueSvc := new(MockQueueService)
 
 		producer := &Producer{
 			rdb:              client,
 			logger:           logger,
 			ctx:              context.Background(),
 			monitorService:   mockMonitorSvc,
+			queueService:     mockQueueSvc,
 			monitorIntervals: make(map[string]int),
 		}
 
@@ -355,6 +464,8 @@ func TestUpdateMonitor(t *testing.T) {
 		}
 
 		mockMonitorSvc.On("FindByID", ctx, "monitor-123").Return(mon, nil)
+		mockQueueSvc.On("GetTaskInfo", ctx, "healthcheck", "healthcheck:monitor-123").Return(&queue.TaskInfo{State: "pending"}, nil)
+		mockQueueSvc.On("DeleteTask", ctx, "healthcheck", "healthcheck:monitor-123").Return(nil)
 
 		err = producer.UpdateMonitor(ctx, "monitor-123")
 		assert.NoError(t, err)
@@ -364,6 +475,7 @@ func TestUpdateMonitor(t *testing.T) {
 		assert.Equal(t, redis.Nil, err)
 
 		mockMonitorSvc.AssertExpectations(t)
+		mockQueueSvc.AssertExpectations(t)
 	})
 
 	t.Run("unschedule monitor with invalid interval", func(t *testing.T) {
@@ -372,12 +484,14 @@ func TestUpdateMonitor(t *testing.T) {
 
 		logger := zap.NewNop().Sugar()
 		mockMonitorSvc := new(MockMonitorService)
+		mockQueueSvc := new(MockQueueService)
 
 		producer := &Producer{
 			rdb:              client,
 			logger:           logger,
 			ctx:              context.Background(),
 			monitorService:   mockMonitorSvc,
+			queueService:     mockQueueSvc,
 			monitorIntervals: make(map[string]int),
 		}
 
@@ -396,6 +510,8 @@ func TestUpdateMonitor(t *testing.T) {
 		}
 
 		mockMonitorSvc.On("FindByID", ctx, "monitor-123").Return(mon, nil)
+		mockQueueSvc.On("GetTaskInfo", ctx, "healthcheck", "healthcheck:monitor-123").Return(&queue.TaskInfo{State: "pending"}, nil)
+		mockQueueSvc.On("DeleteTask", ctx, "healthcheck", "healthcheck:monitor-123").Return(nil)
 
 		err = producer.UpdateMonitor(ctx, "monitor-123")
 		assert.NoError(t, err)
@@ -414,10 +530,12 @@ func TestRemoveMonitor(t *testing.T) {
 		defer mr.Close()
 
 		logger := zap.NewNop().Sugar()
+		mockQueueSvc := new(MockQueueService)
 		producer := &Producer{
 			rdb:              client,
 			logger:           logger,
 			ctx:              context.Background(),
+			queueService:     mockQueueSvc,
 			monitorIntervals: make(map[string]int),
 		}
 
@@ -426,6 +544,9 @@ func TestRemoveMonitor(t *testing.T) {
 		// Schedule monitor first
 		err := producer.ScheduleMonitor(ctx, "monitor-123", 60)
 		require.NoError(t, err)
+
+		mockQueueSvc.On("GetTaskInfo", ctx, "healthcheck", "healthcheck:monitor-123").Return(&queue.TaskInfo{State: "pending"}, nil)
+		mockQueueSvc.On("DeleteTask", ctx, "healthcheck", "healthcheck:monitor-123").Return(nil)
 
 		// Remove it
 		err = producer.RemoveMonitor(ctx, "monitor-123")
@@ -438,6 +559,8 @@ func TestRemoveMonitor(t *testing.T) {
 		// Verify interval is removed
 		_, exists := producer.monitorIntervals["monitor-123"]
 		assert.False(t, exists)
+
+		mockQueueSvc.AssertExpectations(t)
 	})
 }
 
