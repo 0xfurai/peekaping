@@ -283,7 +283,8 @@ export type MonitorModel = {
    */
   retry_interval?: number;
   /**
-   * When Peekaping last checked the monitor, set only while the stale-monitor
+   * The later of the latest heartbeat and the monitor's last save or resume (so
+   * its updated_at when it has no heartbeat), set only while the stale-monitor
    * watchdog counts it as stale. The API fills it in; it isn't stored.
    */
   stale_since?: string;
@@ -313,7 +314,8 @@ export type MonitorMonitorResponseDto = {
   resend_interval?: number;
   retry_interval?: number;
   /**
-   * When Peekaping last checked the monitor, set only while it counts as stale
+   * The later of the latest heartbeat and the monitor's last save or resume,
+   * set only while the stale-monitor watchdog counts it as stale
    */
   stale_since?: string;
   status?: number;

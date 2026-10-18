@@ -539,7 +539,8 @@ definitions:
         type: integer
       stale_since:
         description: |-
-          When Peekaping last checked the monitor, set only while the stale-monitor
+          The later of the latest heartbeat and the monitor's last save or resume (so
+          its updated_at when it has no heartbeat), set only while the stale-monitor
           watchdog counts it as stale. The API fills it in; it isn't stored.
         type: string
       status:
@@ -598,8 +599,9 @@ definitions:
         example: 10
         type: integer
       stale_since:
-        description: When Peekaping last checked the monitor, set only while it counts
-          as stale
+        description: |-
+          The later of the latest heartbeat and the monitor's last save or resume,
+          set only while the stale-monitor watchdog counts it as stale
         type: string
       status:
         example: 1
