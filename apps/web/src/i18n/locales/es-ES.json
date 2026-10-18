@@ -592,7 +592,7 @@
         "username": "Nombre de usuario",
         "username_description": "Opcional: Nombre de usuario para autenticación SMTP",
         "expect_secure_relay": "Tratar el relé abierto como fallo",
-        "expect_secure_relay_description": "Si está habilitado, el monitor se marcará como BAJO cuando se detecte un relé abierto (riesgo de seguridad). Si está deshabilitado, el monitor espera un relé abierto y se marcará como BAJO cuando el servidor rechace el reenvío.",
+        "expect_secure_relay_description": "Si está habilitado, el monitor se marcará como CAÍDO cuando se detecte un relé abierto (riesgo de seguridad). Si está deshabilitado, el monitor espera un relé abierto y se marcará como CAÍDO cuando el servidor rechace el reenvío.",
         "open_relay_title": "Pruebas de Relé Abierto",
         "read_timeout": "Tiempo de espera de lectura (segundos)",
         "read_timeout_description": "Tiempo de espera para leer respuestas del servidor SMTP. Dejar vacío para usar el tiempo de espera del monitor. Ayuda a evitar el bloqueo con servidores que no responden.",
