@@ -37,7 +37,7 @@ func captureWebhook(t *testing.T, cfg WebhookConfig) (body []byte, headers http.
 		t.Fatalf("failed to marshal config: %v", err)
 	}
 
-	sender := NewWebhookSender(zap.NewNop().Sugar())
+	sender := NewWebhookSender(zap.NewNop().Sugar(), NewHTTPClient())
 	err = sender.Send(
 		context.Background(),
 		string(cfgJSON),
