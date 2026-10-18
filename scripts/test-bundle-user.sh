@@ -171,6 +171,7 @@ check "PGID=staff exits non-zero" ne "$(docker inspect -f '{{.State.ExitCode}}' 
 check "PGID=staff is named in the error" logs_mention "$prefix-bad-gid" "PGID must be a number"
 start "$prefix-taken-gid" -e PGID=0
 check "PGID=0 (root's group) stops the container" wait_exited "$prefix-taken-gid"
+check "PGID=0 exits non-zero" ne "$(docker inspect -f '{{.State.ExitCode}}' "$prefix-taken-gid")" 0
 check "PGID=0 is named in the error" logs_mention "$prefix-taken-gid" "PGID 0 is already used"
 
 echo "# A Docker socket its group can't use"
