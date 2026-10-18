@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 	"time"
 
@@ -66,6 +67,29 @@ func TestAuthAPI_RequiresSecondFactorOnceEnabled(t *testing.T) {
 
 	decode[any](t, a.request(t, http.MethodPost, "/api/v1/auth/2fa/disable", account, a.asAdmin), http.StatusOK)
 	assert.Equal(t, http.StatusOK, a.login(t, account).Code)
+}
+
+func TestAuthAPI_LocksOutRepeatedFailedLogins(t *testing.T) {
+	a := newAppWithAdmin(t)
+	right := map[string]any{"email": adminEmail, "password": adminPassword}
+	wrong := map[string]any{"email": adminEmail, "password": "Wrong-password-1"}
+
+	for range maxFailedLogins - 1 {
+		require.Equal(t, http.StatusUnauthorized, a.login(t, wrong).Code)
+	}
+	require.Equal(t, http.StatusOK, a.login(t, right).Code, "one failure short of the limit")
+
+	for range maxFailedLogins {
+		require.Equal(t, http.StatusUnauthorized, a.login(t, wrong).Code, "the successful login reset the count")
+	}
+	w := a.login(t, right)
+	assert.Equal(t, http.StatusTooManyRequests, w.Code, "locked even with the right password: %s", w.Body.String())
+	retryAfter, err := strconv.Atoi(w.Header().Get("Retry-After"))
+	require.NoError(t, err)
+	assert.InDelta(t, 60, retryAfter, 1, "the lockout lasts a minute")
+
+	assert.Equal(t, http.StatusUnauthorized, a.login(t, map[string]any{"email": "other@example.com", "password": adminPassword}).Code,
+		"another email from the same IP isn't locked")
 }
 
 func TestAuthAPI_RejectsInvalidInput(t *testing.T) {

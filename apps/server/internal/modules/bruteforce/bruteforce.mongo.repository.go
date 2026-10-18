@@ -143,61 +143,37 @@ func (r *MongoRepositoryImpl) IsLocked(ctx context.Context, key string) (bool, t
 	return false, time.Time{}, nil
 }
 
-// OnFailure atomically handles failure logic with window and locking
+// OnFailure atomically handles failure logic with window and locking. It is
+// one update rather than a transaction, because a standalone server (as the
+// bundle runs it) has no transactions.
 func (r *MongoRepositoryImpl) OnFailure(ctx context.Context, key string, now time.Time, window time.Duration, max int, lockout time.Duration) (bool, time.Time, error) {
-	var locked bool
-	var until time.Time
+	// The first failure for this key, or the first outside the window, starts over
+	startOver := bson.M{"$or": bson.A{
+		bson.M{"$eq": bson.A{bson.M{"$type": "$first_fail_at"}, "missing"}},
+		bson.M{"$lt": bson.A{"$first_fail_at", now.Add(-window)}},
+	}}
+	update := mongo.Pipeline{
+		{{Key: "$set", Value: bson.M{
+			"fail_count":    bson.M{"$cond": bson.A{startOver, 1, bson.M{"$add": bson.A{"$fail_count", 1}}}},
+			"first_fail_at": bson.M{"$cond": bson.A{startOver, now, "$first_fail_at"}},
+			"locked_until":  bson.M{"$cond": bson.A{startOver, "$$REMOVE", "$locked_until"}},
+		}}},
+		// Lock once the new count reaches max
+		{{Key: "$set", Value: bson.M{
+			"locked_until": bson.M{"$cond": bson.A{bson.M{"$gte": bson.A{"$fail_count", max}}, now.Add(lockout), "$locked_until"}},
+		}}},
+	}
 
-	session, err := r.client.StartSession()
+	var mm mongoModel
+	err := r.loginStateCollection.FindOneAndUpdate(ctx, bson.M{"_id": key}, update,
+		options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After),
+	).Decode(&mm)
 	if err != nil {
 		return false, time.Time{}, err
 	}
-	defer session.EndSession(ctx)
 
-	_, err = session.WithTransaction(ctx, func(sc mongo.SessionContext) (interface{}, error) {
-		var mm mongoModel
-		filter := bson.M{"_id": key}
-
-		err := r.loginStateCollection.FindOne(sc, filter).Decode(&mm)
-		windowStart := now.Add(-window)
-
-		if err != nil {
-			if err == mongo.ErrNoDocuments {
-				// First failure for this key
-				mm = mongoModel{
-					Key:         key,
-					FailCount:   1,
-					FirstFailAt: now,
-					LockedUntil: nil,
-				}
-				_, err = r.loginStateCollection.InsertOne(sc, mm)
-				return nil, err
-			}
-			return nil, err
-		}
-
-		// Check if we're outside the window - reset if so
-		if mm.FirstFailAt.Before(windowStart) {
-			mm.FailCount = 1
-			mm.FirstFailAt = now
-			mm.LockedUntil = nil
-		} else {
-			// Within window, increment counter
-			mm.FailCount++
-
-			// Check if we need to lock
-			if mm.FailCount >= max {
-				lockUntil := now.Add(lockout)
-				mm.LockedUntil = &lockUntil
-				locked = true
-				until = lockUntil
-			}
-		}
-
-		update := bson.M{"$set": mm}
-		_, err = r.loginStateCollection.UpdateOne(sc, filter, update)
-		return nil, err
-	})
-
-	return locked, until, err
+	if mm.FailCount < max {
+		return false, time.Time{}, nil
+	}
+	return true, now.Add(lockout), nil
 }
