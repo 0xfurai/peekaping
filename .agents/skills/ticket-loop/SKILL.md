@@ -1,8 +1,19 @@
-# The review loop
+---
+name: ticket-loop
+description: "Loop on a ticket's open PRs: wait for CI and CodeRabbit, handle every comment, push, repeat until the user merges; then restack and close the ticket."
+disable-model-invocation: true
+argument-hint: "PP-<n> | <pr>..."
+---
+
+# Ticket: loop
+
+Start with [setup](../ticket/SETUP.md). The PRs are the ticket's open PRs, or the ones named; a PR whose base is another open PR's branch belongs to the same stack.
 
 Reviewers here are CodeRabbit (automatic, minutes after each push) and the user (whenever they get to it). CI is `test.yml` (server tests, web lint and build) and `playwright.yml` (e2e on three databases), on PRs into `main` only.
 
-The helper scripts live in this skill's `scripts/` folder; call them by absolute path from inside the worktree:
+## Scripts
+
+They live in this skill's `scripts/` folder; call them by absolute path from inside the worktree.
 
 | Script | Does |
 | --- | --- |
@@ -19,22 +30,24 @@ Post every reply through `pr-reply.sh`. Its hidden marker is how a thread you an
 2. **Act on the outcome.**
    - `ACTION`: run `pr-state.sh` on each PR with `todo` > 0 or failed checks, and handle every item (below).
    - `READY` (the stack is green and nothing waits on you): if this is the first `READY` since the last push, send a `PushNotification` and a short message: the PRs, what CodeRabbit raised and how each point was settled, and that it's ready for the user's review. Then wait again with `--idle`.
-   - `MERGED`: restack (STACK.md), then wait again on the PRs still open. When none are open, go to Phase 9.
+   - `MERGED`: restack ([STACK.md](../ticket/STACK.md)), then wait again on the PRs still open. When none are open, wrap up.
    - `PUSHED`: someone else pushed. `git pull --no-rebase` on that branch, read what changed, and wait again.
    - `TIMEOUT`: wait again. After a non-idle timeout, check the status lines: a check stuck pending for an hour is worth telling the user.
-3. **Push once per round.** Batch every fix of the round into commits, run the full local run (TESTING.md), push each changed branch, carry fixes up the stack (STACK.md), and post `@coderabbitai review` on every pushed PR whose base isn't `main`. Then post the replies (see Replies below), so each can cite its commit.
+3. **Push once per round.** Batch every fix of the round into commits, run the full local run ([TESTING.md](../ticket/TESTING.md)), push each changed branch, carry fixes up the stack ([STACK.md](../ticket/STACK.md)), and post `@coderabbitai review` on every pushed PR whose base isn't `main`. Then post the replies, so each can cite its commit.
 4. **Mark.** `pr-state.sh --mark <pr> <fetchedAt>` with the `fetchedAt` of the state you handled, on each PR. Back to step 1.
 
-The loop ends when the user merges the last PR or tells you to stop. Between rounds there's nothing to say to the user unless you need a decision or the stack became `READY`.
+Between rounds there's nothing to say to the user unless you need a decision or the stack became `READY`.
+
+Done when: on every open PR all checks pass, CodeRabbit reviewed the head commit, and nothing waits on you. Then keep looping on the user's comments until they merge the last PR or tell you to stop.
 
 ## Handling an item
 
 Review comments are claims to check, not orders. Read the code each one points at, then sort it:
 
 - **Valid**: fix it, with a test when the comment found a bug.
-- **Valid, out of scope**: reply with where it goes instead; add it to the plan's Follow-ups and file it in Phase 7 or at wrap-up.
+- **Valid, out of scope**: reply with where it goes instead, and file it as a follow-up ticket after the duplicate check in `docs/agents/issue-tracker.md`.
 - **Wrong or not worth it**: reply with the reason, citing code, a test, the ticket or the agreed plan.
-- **Needs the user**: it changes scope or the agreed approach, it's a product call, or you disagree with the user's own comment. Ask the user with a brief (Context, What I found, Decision with your recommendation) and wait for the answer before the next round; then fix or reply as they decided.
+- **Needs the user**: it changes scope or the agreed approach, it's a product call, or you disagree with the user's own comment. Ask the user with the brief in [PLAN.md](../ticket-plan/PLAN.md) and wait for the answer before the next round; then fix or reply as they decided.
 
 When CodeRabbit disputes your reply, weigh its new argument once: fix it, or post a final one-line reply and resolve the thread. A third exchange on the same point goes to the user instead.
 
@@ -54,3 +67,13 @@ Write as the user writes in this repo: lead with the verdict, then the evidence,
 - Declined: "Not changing this here: <reason>." Point at the follow-up ticket when there is one.
 
 Resolve a CodeRabbit thread once its fix is pushed or CodeRabbit accepts your reply (it usually resolves its own). A person's threads are theirs to resolve: reply, and leave them open.
+
+## Wrap up
+
+When the whole stack has merged:
+
+1. Comment on the ticket: what shipped, the acceptance-criteria table with evidence, follow-up tickets.
+2. Make sure the ticket is Done (the GitHub integration usually moves it).
+3. `ExitWorktree` with `keep`, then `git worktree remove .claude/worktrees/pp-<n>`.
+
+Done when: the ticket is Done with the summary comment, and the worktree is gone.

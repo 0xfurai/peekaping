@@ -6,7 +6,7 @@ A **stack** is a chain of PRs where each PR's base is the branch of the PR below
 
 - Name each branch `<type>/pp-<n>-<slug>`, with its own slug per PR. The `pp-<n>` lets Linear link the PR to the ticket.
 - Types: `fix`, `feat`, `refactor`, `chore`, `docs`, `ci`. For test-only work use `fix/` or `chore/`: the remote has a branch named `test`, so a `test/...` branch can't be pushed. The PR title can still start with `test(...)`.
-- The bottom branch is the one Phase 0 created in the worktree. Start each next branch from the one below it, in the same worktree: `git switch -c <next branch> <branch below>`.
+- The bottom branch is the one setup created in the worktree. Start each next branch from the one below it, in the same worktree: `git switch -c <next branch> <branch below>`.
 
 ## Opening the PRs
 
@@ -88,4 +88,4 @@ Then for each branch further up, rebase it onto the branch below, cutting at tha
 git rebase --onto <branch below> <old tip of branch below> <branch> && git push --force-with-lease
 ```
 
-Then wait on the restacked PRs as in REVIEW-LOOP.md: the new bottom PR now gets CI and CodeRabbit on its own.
+Then wait on the restacked PRs as in [the loop](../ticket-loop/SKILL.md): the new bottom PR now gets CI and CodeRabbit on its own.
