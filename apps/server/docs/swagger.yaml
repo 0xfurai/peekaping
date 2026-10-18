@@ -245,6 +245,22 @@ definitions:
     - MonitorStatusUp
     - MonitorStatusPending
     - MonitorStatusMaintenance
+  internal.HealthResponse:
+    properties:
+      stale_monitors:
+        description: StaleMonitors is how many active monitors Peekaping has stopped
+          checking; null if Redis can't be read
+        type: integer
+        x-nullable: true
+      status:
+        example: success
+        type: string
+      watchdog_ran_at:
+        description: WatchdogRanAt is when the stale-monitor watchdog last ran; null
+          if it never has or Redis can't be read
+        type: string
+        x-nullable: true
+    type: object
   maintenance.CreateUpdateDto:
     properties:
       active:
@@ -2021,16 +2037,15 @@ paths:
       - Badges
   /health:
     get:
-      description: Returns the current server health
+      description: Returns the server health and how many monitors Peekaping has stopped
+        checking
       produces:
       - application/json
       responses:
         "200":
-          description: '{"status": "success"}'
+          description: OK
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal.HealthResponse'
       summary: Get server health
       tags:
       - System

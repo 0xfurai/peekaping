@@ -139,6 +139,18 @@ export type HeartbeatModel = {
 
 export type HeartbeatMonitorStatus = 0 | 1 | 2 | 3;
 
+export type InternalHealthResponse = {
+  /**
+   * StaleMonitors is how many active monitors Peekaping has stopped checking; null if Redis can't be read
+   */
+  stale_monitors?: number | null;
+  status?: string;
+  /**
+   * WatchdogRanAt is when the stale-monitor watchdog last ran; null if it never has or Redis can't be read
+   */
+  watchdog_ran_at?: string | null;
+};
+
 export type MaintenanceCreateUpdateDto = {
   active?: boolean;
   cron?: string;
@@ -1420,11 +1432,9 @@ export type GetHealthData = {
 
 export type GetHealthResponses = {
   /**
-   * {"status": "success"}
+   * OK
    */
-  200: {
-    [key: string]: string;
-  };
+  200: InternalHealthResponse;
 };
 
 export type GetHealthResponse = GetHealthResponses[keyof GetHealthResponses];

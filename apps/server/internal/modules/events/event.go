@@ -22,6 +22,10 @@ const (
 	CertificateExpiry EventType = "certificate.expiry"
 	// ImportantHeartbeat is emitted when a heartbeat is important for notification purposes
 	ImportantHeartbeat EventType = "important.heartbeat"
+	// MonitorStale is emitted when the watchdog finds a monitor Peekaping has stopped checking
+	MonitorStale EventType = "monitor.stale"
+	// MonitorStaleRecovered is emitted when a monitor that was reported stale is checked again
+	MonitorStaleRecovered EventType = "monitor.stale.recovered"
 )
 
 // Event represents a generic event with a type and payload

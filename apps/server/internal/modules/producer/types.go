@@ -8,6 +8,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 
+	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/monitor"
@@ -15,6 +16,7 @@ import (
 	"peekaping/internal/modules/proxy"
 	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/stale"
 )
 
 // Producer is responsible for scheduling monitor health checks
@@ -40,4 +42,7 @@ type Producer struct {
 	leadershipCheckInterval time.Duration // how often syncing is started or stopped to follow leadership
 	leaderElection          *LeaderElection
 	concurrency             int // number of concurrent producer goroutines
+	eventBus                events.EventBus
+	staleStore              *stale.Store
+	watchdogInterval        time.Duration
 }

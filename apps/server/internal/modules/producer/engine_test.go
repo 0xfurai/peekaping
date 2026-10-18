@@ -135,7 +135,7 @@ func newEngine(t *testing.T, monitors ...*monitor.Model) *engine {
 
 	store := newMonitorStore(monitors...)
 	p := NewProducer(rdb, queueSvc, store, new(MockProxyService), maintenanceSvc,
-		nil, nil, nil, nil, &config.Config{ProducerConcurrency: 1}, logger)
+		nil, nil, nil, nil, nil, &config.Config{ProducerConcurrency: 1}, logger)
 	p.reclaimInterval = 5 * time.Millisecond
 
 	return &engine{mr: mr, rdb: rdb, inspector: inspector, monitors: store, producer: p}

@@ -98,7 +98,7 @@ func TestRunScheduleRefresher(t *testing.T) {
 	p.scheduleRefreshInterval = 5 * time.Millisecond
 	p.syncCtx, p.syncCancel = context.WithCancel(p.ctx)
 	p.wg.Add(1)
-	go p.runScheduleRefresher()
+	go p.runScheduleRefresher(p.syncCtx)
 	t.Cleanup(p.Stop)
 
 	// A monitor that reached the database without an event shows up on the next refresh

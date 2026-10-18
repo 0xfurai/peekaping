@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"peekaping/internal/config"
+	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/monitor"
@@ -13,6 +14,7 @@ import (
 	"peekaping/internal/modules/proxy"
 	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/stale"
 
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
@@ -28,6 +30,7 @@ func NewProducer(
 	monitorNotificationSvc monitor_notification.Service,
 	settingService shared.SettingService,
 	heartbeatService heartbeat.Service,
+	eventBus events.EventBus,
 	leaderElection *LeaderElection,
 	cfg *config.Config,
 	logger *zap.SugaredLogger,
@@ -58,6 +61,9 @@ func NewProducer(
 		leadershipCheckInterval: 1 * time.Second,
 		leaderElection:          leaderElection,
 		concurrency:             concurrency,
+		eventBus:                eventBus,
+		staleStore:              stale.NewStore(rdb),
+		watchdogInterval:        WatchdogInterval,
 	}
 }
 
