@@ -2,7 +2,6 @@ package utils
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/robfig/cron/v3"
@@ -74,7 +73,6 @@ func (twc *TimeWindowChecker) IsInCronMaintenanceWindow(params *TimeWindowParams
 	searchStart := now.Add(-duration)
 
 	lastRun := schedule.Next(searchStart)
-	fmt.Println("lastRun", lastRun)
 	if lastRun.After(now) {
 		// The next run is in the future, so no run happened within the window
 		twc.logger.Debugf("lastRun is after now", now)
@@ -156,138 +154,6 @@ func calendarDate(t time.Time) time.Time {
 // wallClock returns the moment when the clock in loc shows clock's time on day's date.
 func wallClock(day time.Time, clock time.Time, loc *time.Location) time.Time {
 	return time.Date(day.Year(), day.Month(), day.Day(), clock.Hour(), clock.Minute(), 0, 0, loc)
-}
-
-// IsInRecurringWeekdayWindow checks if the current time falls within a recurring weekday maintenance window
-func (twc *TimeWindowChecker) IsInRecurringWeekdayWindow(params *TimeWindowParams, now time.Time, loc *time.Location) (bool, error) {
-	if params.StartTime == nil || params.EndTime == nil {
-		return false, errors.New("maintenance has no start or end time for daily window")
-	}
-
-	if len(params.Weekdays) == 0 {
-		return false, errors.New("maintenance has no weekdays specified")
-	}
-
-	// Parse start and end times from string format (HH:MM)
-	startTime, err := time.Parse("15:04", *params.StartTime)
-	if err != nil {
-		return false, errors.New("invalid start time format")
-	}
-
-	endTime, err := time.Parse("15:04", *params.EndTime)
-	if err != nil {
-		return false, errors.New("invalid end time format")
-	}
-
-	// Check if today is a maintenance day (weekday)
-	todayWeekday := int(now.Weekday())
-	isMaintenanceDay := false
-	for _, weekday := range params.Weekdays {
-		if weekday == todayWeekday {
-			isMaintenanceDay = true
-			break
-		}
-	}
-
-	if !isMaintenanceDay {
-		return false, nil
-	}
-
-	// Today is a maintenance day, now check if we're within the daily time window
-	// Create today's start and end times in the maintenance timezone
-	todayStart := time.Date(now.Year(), now.Month(), now.Day(),
-		startTime.Hour(), startTime.Minute(), 0, 0, loc)
-	todayEnd := time.Date(now.Year(), now.Month(), now.Day(),
-		endTime.Hour(), endTime.Minute(), 0, 0, loc)
-
-	// Handle case where end time is next day (e.g., 23:00 - 01:00)
-	if endTime.Before(startTime) {
-		// For cross-day windows, we need to check two possible windows:
-		// 1. Window starting today: todayStart to tomorrow's endTime
-		todayEnd = todayEnd.Add(24 * time.Hour)
-		if now.After(todayStart) && now.Before(todayEnd) {
-			return true, nil
-		}
-
-		// 2. Window starting yesterday: yesterdayStart to today's endTime
-		yesterdayStart := todayStart.Add(-24 * time.Hour)
-		todayEndOriginal := time.Date(now.Year(), now.Month(), now.Day(),
-			endTime.Hour(), endTime.Minute(), 0, 0, loc)
-		if now.After(yesterdayStart) && now.Before(todayEndOriginal) {
-			return true, nil
-		}
-
-		return false, nil
-	}
-
-	// Check if we're within the daily time window
-	return now.After(todayStart) && now.Before(todayEnd), nil
-}
-
-// IsInRecurringDayOfMonthWindow checks if the current time falls within a recurring day of month maintenance window
-func (twc *TimeWindowChecker) IsInRecurringDayOfMonthWindow(params *TimeWindowParams, now time.Time, loc *time.Location) (bool, error) {
-	if params.StartTime == nil || params.EndTime == nil {
-		return false, errors.New("maintenance has no start or end time for daily window")
-	}
-
-	if len(params.DaysOfMonth) == 0 {
-		return false, errors.New("maintenance has no days of month specified")
-	}
-
-	// Parse start and end times from string format (HH:MM)
-	startTime, err := time.Parse("15:04", *params.StartTime)
-	if err != nil {
-		return false, errors.New("invalid start time format")
-	}
-
-	endTime, err := time.Parse("15:04", *params.EndTime)
-	if err != nil {
-		return false, errors.New("invalid end time format")
-	}
-
-	// Check if today is a maintenance day (day of month)
-	todayDay := now.Day()
-	isMaintenanceDay := false
-	for _, day := range params.DaysOfMonth {
-		if day == todayDay {
-			isMaintenanceDay = true
-			break
-		}
-	}
-
-	if !isMaintenanceDay {
-		return false, nil
-	}
-
-	// Today is a maintenance day, now check if we're within the daily time window
-	// Create today's start and end times in the maintenance timezone
-	todayStart := time.Date(now.Year(), now.Month(), now.Day(),
-		startTime.Hour(), startTime.Minute(), 0, 0, loc)
-	todayEnd := time.Date(now.Year(), now.Month(), now.Day(),
-		endTime.Hour(), endTime.Minute(), 0, 0, loc)
-
-	// Handle case where end time is next day (e.g., 23:00 - 01:00)
-	if endTime.Before(startTime) {
-		// For cross-day windows, we need to check two possible windows:
-		// 1. Window starting today: todayStart to tomorrow's endTime
-		todayEnd = todayEnd.Add(24 * time.Hour)
-		if now.After(todayStart) && now.Before(todayEnd) {
-			return true, nil
-		}
-
-		// 2. Window starting yesterday: yesterdayStart to today's endTime
-		yesterdayStart := todayStart.Add(-24 * time.Hour)
-		todayEndOriginal := time.Date(now.Year(), now.Month(), now.Day(),
-			endTime.Hour(), endTime.Minute(), 0, 0, loc)
-		if now.After(yesterdayStart) && now.Before(todayEndOriginal) {
-			return true, nil
-		}
-
-		return false, nil
-	}
-
-	// Check if we're within the daily time window
-	return now.After(todayStart) && now.Before(todayEnd), nil
 }
 
 // convertToTimezone constructs a time in the specified timezone from the components of another time
