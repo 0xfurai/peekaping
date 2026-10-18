@@ -190,6 +190,12 @@ jobs:
       env:
         PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report-rerun
 
+    - name: Show container logs on failure
+      if: failure()
+      run: |
+        docker compose ps
+        docker compose logs
+
     - name: Stop services
       if: always()
       run: docker compose down
