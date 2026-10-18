@@ -54,6 +54,11 @@ func PrepareTemplateBindings(monitor *monitor.Model, heartbeat *heartbeat.Model,
 		json.Unmarshal(heartbeatBytes, &heartbeatJSON)
 		bindings["heartbeat"] = heartbeatJSON
 		bindings["status"] = humanReadableStatus(int(heartbeat.Status))
+		bindings["status_icon"] = humanReadableStatusIcons(int(heartbeat.Status))
+		bindings["status_color"] = humanReadableStatusColor(int(heartbeat.Status))
+		bindings["ping"] = heartbeat.Ping
+		bindings["time"] = heartbeat.Time
+
 	}
 
 	bindings["msg"] = message
@@ -73,5 +78,35 @@ func humanReadableStatus(status int) string {
 		return "MAINTENANCE"
 	default:
 		return fmt.Sprintf("Unknown (%d)", status)
+	}
+}
+
+func humanReadableStatusIcons(status int) string {
+	switch status {
+	case 0:
+		return "❌"
+	case 1:
+		return "✅"
+	case 2:
+		return "⏳"
+	case 3:
+		return "🚧"
+	default:
+		return "❔"
+	}
+}
+
+func humanReadableStatusColor(status int) int {
+	switch status {
+	case 0:
+		return 15680580
+	case 1:
+		return 2278750
+	case 2:
+		return 11032055
+	case 3:
+		return 3900150
+	default:
+		return 7041664
 	}
 }

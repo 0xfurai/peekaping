@@ -2,12 +2,16 @@ package executor
 
 import (
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"peekaping/internal/modules/heartbeat"
+	"peekaping/internal/modules/shared"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
 
@@ -273,136 +277,81 @@ func TestExecutorRegistry_ValidateConfig_Error_Logging(t *testing.T) {
 }
 
 func TestExecutorRegistry_Execute(t *testing.T) {
-	// Setup
-	logger := zap.NewNop().Sugar()
-	registry := NewExecutorRegistry(logger)
+	registry := NewExecutorRegistry(zap.NewNop().Sugar())
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	defer server.Close()
+	closed := closedAddr(t)
 
 	tests := []struct {
-		name            string
-		monitor         *Monitor
-		expectedError   bool
-		expectNilResult bool
+		name        string
+		monitorType string
+		config      string
+		wantStatus  shared.MonitorStatus
 	}{
 		{
-			name: "execute http monitor",
-			monitor: &Monitor{
-				ID:       "monitor1",
-				Type:     "http",
-				Name:     "Test Monitor",
-				Interval: 30,
-				Config: `{
-					"url": "http://example.com",
-					"method": "GET",
-					"encoding": "json",
-					"accepted_statuscodes": ["2XX"],
-					"authMethod": "none"
-				}`,
-			},
-			expectedError:   false,
-			expectNilResult: false,
+			name:        "http monitor",
+			monitorType: "http",
+			config: `{
+				"url": "` + server.URL + `",
+				"method": "GET",
+				"encoding": "json",
+				"accepted_statuscodes": ["2XX"],
+				"authMethod": "none"
+			}`,
+			wantStatus: shared.MonitorStatusUp,
 		},
 		{
-			name: "execute push monitor",
-			monitor: &Monitor{
-				ID:       "monitor1",
-				Type:     "push",
-				Name:     "Test Monitor",
-				Interval: 30,
-				Config: `{
-					"pushToken": "valid-token"
-				}`,
-			},
-			expectedError:   false,
-			expectNilResult: false, // Push monitors return DOWN status when no heartbeat exists
+			name:        "push monitor without a heartbeat",
+			monitorType: "push",
+			config:      `{"pushToken": "valid-token"}`,
+			wantStatus:  shared.MonitorStatusDown,
 		},
 		{
-			name: "execute postgres monitor",
-			monitor: &Monitor{
-				ID:       "monitor1",
-				Type:     "postgres",
-				Name:     "Test Monitor",
-				Interval: 30,
-				Config: `{
-					"database_connection_string": "postgres://user:password@localhost:5432/testdb",
-					"database_query": "SELECT 1"
-				}`,
-			},
-			expectedError:   false,
-			expectNilResult: false,
+			name:        "postgres monitor with nothing listening",
+			monitorType: "postgres",
+			config: `{
+				"database_connection_string": "postgres://user:password@` + closed + `/testdb",
+				"database_query": "SELECT 1"
+			}`,
+			wantStatus: shared.MonitorStatusDown,
 		},
 		{
-			name: "execute mysql monitor",
-			monitor: &Monitor{
-				ID:       "monitor1",
-				Type:     "mysql",
-				Name:     "Test Monitor",
-				Interval: 30,
-				Config: `{
-					"connection_string": "mysql://user:password@localhost:3306/testdb",
-					"query": "SELECT 1"
-				}`,
-			},
-			expectedError:   false,
-			expectNilResult: false,
+			name:        "mysql monitor with nothing listening",
+			monitorType: "mysql",
+			config: `{
+				"connection_string": "mysql://user:password@` + closed + `/testdb",
+				"query": "SELECT 1"
+			}`,
+			wantStatus: shared.MonitorStatusDown,
 		},
 		{
-			name: "execute rabbitmq monitor",
-			monitor: &Monitor{
-				ID:       "monitor1",
-				Type:     "rabbitmq",
-				Name:     "Test Monitor",
-				Interval: 30,
-				Config: `{
-					"nodes": ["https://localhost:15672"],
-					"username": "admin",
-					"password": "password"
-				}`,
-			},
-			expectedError:   false,
-			expectNilResult: false,
+			name:        "rabbitmq monitor with nothing listening",
+			monitorType: "rabbitmq",
+			config: `{
+				"nodes": ["http://` + closed + `"],
+				"username": "admin",
+				"password": "password"
+			}`,
+			wantStatus: shared.MonitorStatusDown,
 		},
 		{
-			name: "execute invalid monitor type",
-			monitor: &Monitor{
-				ID:       "monitor1",
-				Type:     "invalid",
-				Name:     "Test Monitor",
-				Interval: 30,
-				Config:   `{}`,
-			},
-			expectedError:   true,
-			expectNilResult: false,
-		},
-		{
-			name: "execute monitor with nil config",
-			monitor: &Monitor{
-				ID:       "monitor1",
-				Type:     "http",
-				Name:     "Test Monitor",
-				Interval: 30,
-				Config:   "",
-			},
-			expectedError:   false, // Should not error in getting executor, but execution will fail
-			expectNilResult: false,
+			name:        "http monitor with empty config",
+			monitorType: "http",
+			config:      "",
+			wantStatus:  shared.MonitorStatusDown,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			executor, found := registry.GetExecutor(tt.monitor.Type)
-			if tt.expectedError {
-				assert.False(t, found)
-				assert.Nil(t, executor)
-			} else {
-				assert.True(t, found)
-				assert.NotNil(t, executor)
-				result := executor.Execute(context.Background(), tt.monitor, nil)
-				if tt.expectNilResult {
-					assert.Nil(t, result, "Expected nil result for %s monitor", tt.monitor.Type)
-				} else {
-					assert.NotNil(t, result, "Expected non-nil result for %s monitor", tt.monitor.Type)
-				}
-			}
+			executor, found := registry.GetExecutor(tt.monitorType)
+			require.True(t, found)
+
+			monitor := &Monitor{ID: "monitor1", Type: tt.monitorType, Name: "Test Monitor", Interval: 30, Timeout: 2, Config: tt.config}
+			result := executor.Execute(context.Background(), monitor, nil)
+
+			require.NotNil(t, result)
+			assert.Equal(t, tt.wantStatus, result.Status, result.Message)
 		})
 	}
 }

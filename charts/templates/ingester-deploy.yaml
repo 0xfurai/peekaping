@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-ingester
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Release.Name }}-ingester
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/component: ingester
+spec:
+  replicas: {{ .Values.ingester.replicaCount }}
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-ingester
+
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-ingester
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/name: {{ .Release.Name }}
+        app.kubernetes.io/component: ingester
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/config.yaml") . | sha256sum }}
+        {{- if .Values.ingester.apparmor.enabled }}
+        container.apparmor.security.beta.kubernetes.io/{{ .Release.Name }}-ingester: runtime/default
+        {{- end }}
+
+    spec:
+      serviceAccountName: {{ .Release.Name }}-sa
+      automountServiceAccountToken: false
+
+      # Spread replicas across nodes/azs if possible
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: {{ .Release.Name }}-ingester
+
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+
+      containers:
+        - name: {{ .Release.Name }}-ingester
+          image: {{ .Values.ingester.image.repository }}:{{ .Values.ingester.image.tag }}
+          imagePullPolicy: {{ .Values.ingester.image.pullPolicy }}
+
+          envFrom:
+            - configMapRef:
+                name: {{ .Release.Name }}-config
+            {{- if .Values.config.existingSecret }}
+            - secretRef:
+                name: {{ .Values.config.existingSecret }}
+            {{- end }}
+
+          # Resource requests/limits to prevent noisy neighbor + OOM loops          
+          resources:
+            requests:
+              cpu: {{ .Values.ingester.resources.requests.cpu }}
+              memory: {{ .Values.ingester.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.ingester.resources.limits.cpu }}
+              memory: {{ .Values.ingester.resources.limits.memory }}
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            privileged: false
+            capabilities:
+              drop: ["ALL"]

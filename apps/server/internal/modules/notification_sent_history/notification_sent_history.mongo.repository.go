@@ -77,20 +77,20 @@ func (r *MongoRepositoryImpl) CheckIfSent(ctx context.Context, notificationType 
 	return count > 0, nil
 }
 
-func (r *MongoRepositoryImpl) RecordSent(ctx context.Context, dto *CreateDto) error {
+func (r *MongoRepositoryImpl) RecordSent(ctx context.Context, model *Model) error {
 	mm := &mongoModel{
 		ID:        primitive.NewObjectID(),
-		Type:      dto.Type,
-		MonitorID: dto.MonitorID,
-		Days:      dto.Days,
+		Type:      model.Type,
+		MonitorID: model.MonitorID,
+		Days:      model.Days,
 		CreatedAt: time.Now(),
 	}
 
 	// Use upsert to handle duplicates gracefully
 	filter := bson.M{
-		"type":       dto.Type,
-		"monitor_id": dto.MonitorID,
-		"days":       dto.Days,
+		"type":       model.Type,
+		"monitor_id": model.MonitorID,
+		"days":       model.Days,
 	}
 
 	update := bson.M{

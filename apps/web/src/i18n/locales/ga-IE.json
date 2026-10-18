@@ -961,7 +961,10 @@
         "message_format_label": "Formáid Teachtaireachta",
         "username_description": "An t-ainm úsáideora a tharlóidh mar thosaitheoir an teachtaireachta. Mura bhfuil sé sainiúnaithe, úsáidfear ainm réamhshocraithe an bota.",
         "webhook_url_description": "URL an webhook ó do chomhtháthú Slack. Is féidir leat é a aimsiú i do shlúit Slack faoi Integrations > Webhooks.",
-        "webhook_url_label": "URL Bhuailéim"
+        "webhook_url_label": "URL Bhuailéim",
+        "bot_token_label": "Comhartha Bot",
+        "bot_token_description": "Do chomhartha bot Slack le haghaidh fíordheimhnithe. Is féidir leat comhartha bot a chruthú i suíomhanna d'aip Slack",
+        "bot_token_note": "Nóta: Nuair a úsáideann tú comhartha bot, tá ainm an chainéil ag teastáil."
       },
       "smtp": {
         "custom_body_label": "Corpa Sainiúcháin",

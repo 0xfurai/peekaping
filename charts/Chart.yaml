@@ -1,0 +1,13 @@
+apiVersion: v2
+name: peekaping
+version: 1.0.0
+dependencies:
+- name: redis
+  version: 24.0.0
+  repository: oci://registry-1.docker.io/bitnamicharts
+  condition: redis.enabled
+
+- name: postgresql
+  version: 18.1.13
+  repository: oci://registry-1.docker.io/bitnamicharts
+  condition: postgresql.enabled

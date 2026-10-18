@@ -962,7 +962,10 @@
         "message_format_label": "Format Pesan",
         "username_description": "Nama pengguna yang akan muncul sebagai pengirim pesan. Jika tidak ditentukan, nama bot default akan digunakan.",
         "webhook_url_description": "URL webhook dari integrasi Slack Anda. Anda dapat menemukan URL ini di instance Slack Anda di bagian Integrasi > Webhook.",
-        "webhook_url_label": "URL Webhook"
+        "webhook_url_label": "URL Webhook",
+        "bot_token_label": "Token Bot",
+        "bot_token_description": "Token bot Slack Anda untuk autentikasi. Anda dapat membuat token bot di pengaturan aplikasi Slack Anda",
+        "bot_token_note": "Catatan: Saat menggunakan token bot, nama saluran wajib diisi."
       },
       "smtp": {
         "custom_body_label": "Teks Kustom",

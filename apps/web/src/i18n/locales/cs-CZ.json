@@ -962,7 +962,10 @@
         "message_format_label": "Formát zprávy",
         "username_description": "Uživatelské jméno, které se zobrazí jako odesílatel zprávy. Pokud není zadáno, bude použito výchozí jméno bota.",
         "webhook_url_description": "URL webhooku ze Slack integrace. Najdete ji ve vaší instanci Slacku v sekci Integrace > Webhooky.",
-        "webhook_url_label": "URL webhooku"
+        "webhook_url_label": "URL webhooku",
+        "bot_token_label": "Token bota",
+        "bot_token_description": "Váš token bota Slack pro ověření identity. Můžete vytvořit token bota v nastavení vaší aplikace Slack",
+        "bot_token_note": "Poznámka: Při použití tokenu bota je název kanálu povinný."
       },
       "smtp": {
         "custom_body_label": "Vlastní tělo zprávy",

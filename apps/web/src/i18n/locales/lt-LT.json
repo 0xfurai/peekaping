@@ -962,7 +962,10 @@
         "message_format_label": "Žinutės formatas",
         "username_description": "Vartotojo vardas, kuris bus rodomas kaip žinutės siuntėjas. Jei neįrašytas, bus naudojamas numatytasis botas.",
         "webhook_url_description": "Jūsų Slack integracijos webhook URL. Jūs galite jį rasti savo Slack instancijoje skiltyje Integracijos &gt; Webhook'ai.",
-        "webhook_url_label": "Webhook nuoroda"
+        "webhook_url_label": "Webhook nuoroda",
+        "bot_token_label": "Boto žetonas",
+        "bot_token_description": "Jūsų Slack boto žetonas autentifikacijai. Galite sukurti boto žetoną savo Slack programos nustatymuose",
+        "bot_token_note": "Pastaba: Naudojant boto žetoną, kanalo pavadinimas yra privalomas."
       },
       "smtp": {
         "custom_body_label": "Pasirinktinis turinys",

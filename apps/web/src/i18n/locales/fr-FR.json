@@ -962,7 +962,10 @@
         "message_format_label": "Format du message",
         "username_description": "Le nom d'utilisateur qui apparaîtra comme expéditeur du message. S'il n'est pas spécifié, le nom par défaut du bot sera utilisé.",
         "webhook_url_description": "L'URL du webhook de votre intégration Slack. Vous pouvez la trouver dans votre instance Slack sous Intégrations > Webhooks.",
-        "webhook_url_label": "URL du webhook"
+        "webhook_url_label": "URL du webhook",
+        "bot_token_label": "Jeton de bot",
+        "bot_token_description": "Votre jeton de bot Slack pour l'authentification. Vous pouvez créer un jeton de bot dans les paramètres de votre application Slack",
+        "bot_token_note": "Note : Lors de l'utilisation d'un jeton de bot, le nom du canal est requis."
       },
       "smtp": {
         "custom_body_label": "Corps personnalisé",

@@ -7,11 +7,11 @@ import (
 )
 
 type Service interface {
-	Create(ctx context.Context, entity *CreateUpdateDto) (*Model, error)
+	Create(ctx context.Context, entity *Model) (*Model, error)
 	FindByID(ctx context.Context, id string) (*Model, error)
 	FindAll(ctx context.Context, page int, limit int, q string) ([]*Model, error)
-	UpdateFull(ctx context.Context, id string, entity *CreateUpdateDto) (*Model, error)
-	UpdatePartial(ctx context.Context, id string, entity *PartialUpdateDto) (*Model, error)
+	UpdateFull(ctx context.Context, id string, entity *Model) (*Model, error)
+	UpdatePartial(ctx context.Context, id string, entity *UpdateModel) (*Model, error)
 	Delete(ctx context.Context, id string) error
 
 	// Additional methods for managing relationships
@@ -38,7 +38,7 @@ func NewService(
 	}
 }
 
-func (dr *ServiceImpl) Create(ctx context.Context, entity *CreateUpdateDto) (*Model, error) {
+func (dr *ServiceImpl) Create(ctx context.Context, entity *Model) (*Model, error) {
 	return dr.repository.Create(ctx, entity)
 }
 
@@ -50,11 +50,11 @@ func (dr *ServiceImpl) FindAll(ctx context.Context, page int, limit int, q strin
 	return dr.repository.FindAll(ctx, page, limit, q)
 }
 
-func (dr *ServiceImpl) UpdateFull(ctx context.Context, id string, entity *CreateUpdateDto) (*Model, error) {
+func (dr *ServiceImpl) UpdateFull(ctx context.Context, id string, entity *Model) (*Model, error) {
 	return dr.repository.UpdateFull(ctx, id, entity)
 }
 
-func (dr *ServiceImpl) UpdatePartial(ctx context.Context, id string, entity *PartialUpdateDto) (*Model, error) {
+func (dr *ServiceImpl) UpdatePartial(ctx context.Context, id string, entity *UpdateModel) (*Model, error) {
 	return dr.repository.UpdatePartial(ctx, id, entity)
 }
 

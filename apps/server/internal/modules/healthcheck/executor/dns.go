@@ -50,6 +50,11 @@ func (d *DNSExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy
 
 	d.logger.Debugf("execute dns cfg: %+v", cfg)
 
+	// The resolver's own timeouts come from resolv.conf, so bound the lookup
+	// by the monitor timeout here.
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(m.Timeout)*time.Second)
+	defer cancel()
+
 	// Create custom resolver with specified DNS server
 	r := &net.Resolver{
 		PreferGo: true,

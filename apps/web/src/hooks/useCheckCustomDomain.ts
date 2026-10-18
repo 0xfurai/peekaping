@@ -15,6 +15,7 @@ export const useCheckCustomDomain = (domain: string) => {
         domain,
       },
     }),
+    refetchOnWindowFocus: false,
   });
 
   useEffect(() => {
