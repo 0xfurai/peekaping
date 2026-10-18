@@ -77,8 +77,10 @@ func postgresDB(t *testing.T) *bun.DB {
 	}
 	admin := bun.NewDB(sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn))), pgdialect.New())
 	schema := "heartbeat_" + strings.ReplaceAll(uuid.NewString(), "-", "")
-	_, err := admin.Exec("CREATE SCHEMA ?", bun.Ident(schema))
-	require.NoError(t, err)
+	if _, err := admin.Exec("CREATE SCHEMA ?", bun.Ident(schema)); err != nil {
+		_ = admin.Close()
+		require.NoError(t, err)
+	}
 	connector := pgdriver.NewConnector(pgdriver.WithDSN(dsn), pgdriver.WithConnParams(map[string]any{"search_path": schema}))
 	db := bun.NewDB(sql.OpenDB(connector), pgdialect.New())
 	t.Cleanup(func() {
@@ -91,7 +93,7 @@ func postgresDB(t *testing.T) *bun.DB {
 }
 
 // forEachBackend runs fn against a heartbeat service on every database
-// backend, with two monitors to record beats for.
+// backend, with two monitors to record heartbeats for.
 func forEachBackend(t *testing.T, fn func(t *testing.T, b backend)) {
 	sqlBackend := func(open func(*testing.T) *bun.DB) func(*testing.T) {
 		return func(t *testing.T) {
@@ -132,10 +134,10 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, b backend)) {
 	})
 }
 
-// beat records a heartbeat now. The SQL repository stamps beats with the
-// insert time and Mongo keeps the given one, so beats can't be backdated; the
-// pause keeps their times apart on every backend.
-func (b backend) beat(t *testing.T, monitorID string, status shared.MonitorStatus, msg string, important bool) *heartbeat.Model {
+// heartbeat records a heartbeat now. The SQL repository stamps heartbeats with
+// the insert time and Mongo keeps the given one, so they can't be backdated;
+// the pause keeps their times apart on every backend.
+func (b backend) heartbeat(t *testing.T, monitorID string, status shared.MonitorStatus, msg string, important bool) *heartbeat.Model {
 	t.Helper()
 	created, err := b.svc.Create(context.Background(), &heartbeat.CreateUpdateDto{
 		MonitorID: monitorID,
@@ -149,15 +151,15 @@ func (b backend) beat(t *testing.T, monitorID string, status shared.MonitorStatu
 	return created
 }
 
-func msgs(beats []*heartbeat.Model) []string {
+func msgs(heartbeats []*heartbeat.Model) []string {
 	out := []string{}
-	for _, hb := range beats {
+	for _, hb := range heartbeats {
 		out = append(out, hb.Msg)
 	}
 	return out
 }
 
-func TestCreateStoresTheBeatAndPublishesIt(t *testing.T) {
+func TestCreateStoresTheHeartbeatAndPublishesIt(t *testing.T) {
 	forEachBackend(t, func(t *testing.T, b backend) {
 		ctx := context.Background()
 		created, err := b.svc.Create(ctx, &heartbeat.CreateUpdateDto{
@@ -190,36 +192,36 @@ func TestFindByMonitorIDPaginatedReturnsTheNewestPageInTimeOrder(t *testing.T) {
 	forEachBackend(t, func(t *testing.T, b backend) {
 		ctx := context.Background()
 		for _, msg := range []string{"a1", "a2", "a3"} {
-			b.beat(t, b.monitorA, shared.MonitorStatusUp, msg, false)
+			b.heartbeat(t, b.monitorA, shared.MonitorStatusUp, msg, false)
 		}
-		b.beat(t, b.monitorB, shared.MonitorStatusUp, "b1", false)
+		b.heartbeat(t, b.monitorB, shared.MonitorStatusUp, "b1", false)
 		for _, msg := range []string{"a4", "a5"} {
-			b.beat(t, b.monitorA, shared.MonitorStatusUp, msg, false)
+			b.heartbeat(t, b.monitorA, shared.MonitorStatusUp, msg, false)
 		}
 
 		pages := [][]string{}
 		for page := range 3 {
-			beats, err := b.svc.FindByMonitorIDPaginated(ctx, b.monitorA, 2, page, nil, true)
+			heartbeats, err := b.svc.FindByMonitorIDPaginated(ctx, b.monitorA, 2, page, nil, true)
 			require.NoError(t, err)
-			pages = append(pages, msgs(beats))
+			pages = append(pages, msgs(heartbeats))
 		}
 		assert.Equal(t, [][]string{{"a4", "a5"}, {"a2", "a3"}, {"a1"}}, pages)
 
-		// Without reverse, the newest beat comes first: the ingester reads the
-		// previous beat this way.
+		// Without reverse, the newest heartbeat comes first: the ingester reads
+		// the previous heartbeat this way.
 		latest, err := b.svc.FindByMonitorIDPaginated(ctx, b.monitorA, 2, 0, nil, false)
 		require.NoError(t, err)
 		assert.Equal(t, []string{"a5", "a4"}, msgs(latest))
 	})
 }
 
-func TestFindByMonitorIDPaginatedFiltersImportantBeats(t *testing.T) {
+func TestFindByMonitorIDPaginatedFiltersImportantHeartbeats(t *testing.T) {
 	forEachBackend(t, func(t *testing.T, b backend) {
 		ctx := context.Background()
-		b.beat(t, b.monitorA, shared.MonitorStatusDown, "went down", true)
-		b.beat(t, b.monitorA, shared.MonitorStatusDown, "still down", false)
-		b.beat(t, b.monitorA, shared.MonitorStatusUp, "came back", true)
-		b.beat(t, b.monitorA, shared.MonitorStatusUp, "still up", false)
+		b.heartbeat(t, b.monitorA, shared.MonitorStatusDown, "went down", true)
+		b.heartbeat(t, b.monitorA, shared.MonitorStatusDown, "still down", false)
+		b.heartbeat(t, b.monitorA, shared.MonitorStatusUp, "came back", true)
+		b.heartbeat(t, b.monitorA, shared.MonitorStatusUp, "still up", false)
 
 		yes, no := true, false
 		important, err := b.svc.FindByMonitorIDPaginated(ctx, b.monitorA, 10, 0, &yes, true)
@@ -236,46 +238,55 @@ func TestFindByMonitorIDPaginatedFiltersImportantBeats(t *testing.T) {
 	})
 }
 
-// Only Up and Down beats here: the backends disagree on Pending and
-// Maintenance, which is a separate bug.
-func TestUptimeIsUpBeatsOverUpAndDownBeatsInEachPeriod(t *testing.T) {
+// Only Up and Down heartbeats here: how Pending and Maintenance count is
+// PP-183.
+func TestUptimeIsTheShareOfUpHeartbeatsInEachPeriod(t *testing.T) {
 	forEachBackend(t, func(t *testing.T, b backend) {
 		ctx := context.Background()
-		periods := map[string]time.Duration{"1h": time.Hour, "30s": 30 * time.Second}
 
-		empty, err := b.svc.FindUptimeStatsByMonitorID(ctx, b.monitorA, periods, time.Now())
+		empty, err := b.svc.FindUptimeStatsByMonitorID(ctx, b.monitorA, map[string]time.Duration{"1h": time.Hour}, time.Now())
 		require.NoError(t, err)
-		assert.Equal(t, map[string]float64{"1h": 0, "30s": 0}, empty)
+		assert.Equal(t, map[string]float64{"1h": 0}, empty)
 
-		for _, status := range []shared.MonitorStatus{shared.MonitorStatusUp, shared.MonitorStatusUp, shared.MonitorStatusDown, shared.MonitorStatusUp} {
-			b.beat(t, b.monitorA, status, "", false)
-		}
-		b.beat(t, b.monitorB, shared.MonitorStatusUp, "", false)
-		b.beat(t, b.monitorB, shared.MonitorStatusDown, "", false)
-
-		// A minute from now, every beat is inside the last hour and none is
-		// inside the last 30 seconds.
-		now := time.Now().Add(time.Minute)
-		statsA, err := b.svc.FindUptimeStatsByMonitorID(ctx, b.monitorA, periods, now)
-		require.NoError(t, err)
-		assert.Equal(t, map[string]float64{"1h": 75, "30s": 0}, statsA)
-
-		statsB, err := b.svc.FindUptimeStatsByMonitorID(ctx, b.monitorB, periods, now)
-		require.NoError(t, err)
-		assert.Equal(t, map[string]float64{"1h": 50, "30s": 0}, statsB)
-	})
-}
-
-func TestDeleteOlderThanKeepsNewerBeats(t *testing.T) {
-	forEachBackend(t, func(t *testing.T, b backend) {
-		ctx := context.Background()
-		b.beat(t, b.monitorA, shared.MonitorStatusUp, "old 1", false)
-		b.beat(t, b.monitorB, shared.MonitorStatusUp, "old 2", false)
+		b.heartbeat(t, b.monitorA, shared.MonitorStatusDown, "", false)
+		b.heartbeat(t, b.monitorA, shared.MonitorStatusDown, "", false)
+		b.heartbeat(t, b.monitorB, shared.MonitorStatusUp, "", false)
+		b.heartbeat(t, b.monitorB, shared.MonitorStatusDown, "", false)
 		time.Sleep(10 * time.Millisecond)
 		cutoff := time.Now()
 		time.Sleep(10 * time.Millisecond)
-		b.beat(t, b.monitorA, shared.MonitorStatusUp, "new 1", false)
-		b.beat(t, b.monitorB, shared.MonitorStatusUp, "new 2", false)
+		for _, status := range []shared.MonitorStatus{shared.MonitorStatusUp, shared.MonitorStatusUp, shared.MonitorStatusDown, shared.MonitorStatusUp} {
+			b.heartbeat(t, b.monitorA, status, "", false)
+		}
+		now := time.Now()
+
+		// "half" starts at the cutoff, so it holds only the newer heartbeats.
+		periods := map[string]time.Duration{"1h": time.Hour, "half": now.Sub(cutoff)}
+		statsA, err := b.svc.FindUptimeStatsByMonitorID(ctx, b.monitorA, periods, now)
+		require.NoError(t, err)
+		assert.Equal(t, map[string]float64{"1h": 50, "half": 75}, statsA)
+
+		statsB, err := b.svc.FindUptimeStatsByMonitorID(ctx, b.monitorB, periods, now)
+		require.NoError(t, err)
+		assert.Equal(t, map[string]float64{"1h": 50, "half": 0}, statsB)
+
+		// A minute on, the last 30 seconds hold no heartbeats.
+		later, err := b.svc.FindUptimeStatsByMonitorID(ctx, b.monitorA, map[string]time.Duration{"30s": 30 * time.Second}, now.Add(time.Minute))
+		require.NoError(t, err)
+		assert.Equal(t, map[string]float64{"30s": 0}, later)
+	})
+}
+
+func TestDeleteOlderThanKeepsNewerHeartbeats(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, b backend) {
+		ctx := context.Background()
+		b.heartbeat(t, b.monitorA, shared.MonitorStatusUp, "old 1", false)
+		b.heartbeat(t, b.monitorB, shared.MonitorStatusUp, "old 2", false)
+		time.Sleep(10 * time.Millisecond)
+		cutoff := time.Now()
+		time.Sleep(10 * time.Millisecond)
+		b.heartbeat(t, b.monitorA, shared.MonitorStatusUp, "new 1", false)
+		b.heartbeat(t, b.monitorB, shared.MonitorStatusUp, "new 2", false)
 
 		deleted, err := b.svc.DeleteOlderThan(ctx, cutoff)
 		require.NoError(t, err)

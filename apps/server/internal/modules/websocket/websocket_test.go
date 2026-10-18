@@ -65,7 +65,7 @@ func (b *fakeBus) Publish(event events.Event) {
 
 func (b *fakeBus) Close() error { return nil }
 
-func (b *fakeBus) beat(monitorID, msg string) {
+func (b *fakeBus) heartbeat(monitorID, msg string) {
 	b.Publish(events.Event{Type: events.HeartbeatEvent, Payload: &heartbeat.Model{MonitorID: monitorID, Msg: msg}})
 }
 
@@ -247,19 +247,26 @@ func (c *client) until(t *testing.T, msg string) []event {
 	}
 }
 
-// join enters a room and waits until it delivers. Socket.io runs each event
-// handler in its own goroutine, so the room isn't joined when the POST returns.
-func (c *client) join(t *testing.T, bus *fakeBus, room, probeMonitor string) {
+// join enters a room and waits until it delivers.
+func (c *client) join(t *testing.T, bus *fakeBus, room, monitorID string) {
 	t.Helper()
 	c.emit(t, "join_room", room)
-	probe := "joined " + room
+	c.waitUntilJoined(t, bus, room, monitorID)
+}
+
+// waitUntilJoined publishes test heartbeats for monitorID until one arrives.
+// Socket.io runs each event handler in its own goroutine, so the room isn't
+// joined when the POST returns.
+func (c *client) waitUntilJoined(t *testing.T, bus *fakeBus, room, monitorID string) {
+	t.Helper()
+	msg := "joined " + room
 	deadline := time.Now().Add(wait)
 	for {
-		bus.beat(probeMonitor, probe)
+		bus.heartbeat(monitorID, msg)
 		select {
 		case packet, ok := <-c.packets:
 			require.True(t, ok, "session closed")
-			if strings.Contains(packet, probe) {
+			if strings.Contains(packet, msg) {
 				return
 			}
 		case <-time.After(20 * time.Millisecond):
@@ -299,8 +306,8 @@ func TestMonitorRoomGetsOnlyThatMonitorsHeartbeats(t *testing.T) {
 	c := h.connect(t)
 	c.join(t, h.bus, "monitor:"+monitorA, monitorA)
 
-	h.bus.beat(monitorB, "b-1")
-	h.bus.beat(monitorA, "a-1")
+	h.bus.heartbeat(monitorB, "b-1")
+	h.bus.heartbeat(monitorA, "a-1")
 
 	seen := c.until(t, "a-1")
 	assert.NotContains(t, messages(seen), "b-1")
@@ -314,8 +321,8 @@ func TestAllRoomGetsEveryHeartbeat(t *testing.T) {
 	c := h.connect(t)
 	c.join(t, h.bus, "monitor:all", monitorA)
 
-	h.bus.beat(monitorB, "b-1")
-	h.bus.beat(monitorA, "a-1")
+	h.bus.heartbeat(monitorB, "b-1")
+	h.bus.heartbeat(monitorA, "a-1")
 
 	seen := c.until(t, "a-1")
 	byMsg := map[string]event{}
@@ -338,15 +345,19 @@ func TestLeaveRoomStopsDelivery(t *testing.T) {
 	c.emit(t, "leave_room", "monitor:"+monitorA)
 
 	// The leave runs in its own goroutine too, so publish rounds until A's
-	// beat stops arriving. B's beat, still subscribed, closes each round.
-	deadline := time.Now().Add(wait)
-	for round := 0; ; round++ {
+	// heartbeat stops arriving. B's heartbeat, still subscribed, closes each
+	// round.
+	deliversA := func(round int) bool {
 		a, b := fmt.Sprintf("a-%d", round), fmt.Sprintf("b-%d", round)
-		h.bus.beat(monitorA, a)
-		h.bus.beat(monitorB, b)
-		if !slices.Contains(messages(c.until(t, b)), a) {
-			return
-		}
-		require.True(t, time.Now().Before(deadline), "monitor:%s still delivers after leave_room", monitorA)
+		h.bus.heartbeat(monitorA, a)
+		h.bus.heartbeat(monitorB, b)
+		return slices.Contains(messages(c.until(t, b)), a)
 	}
+	deadline := time.Now().Add(wait)
+	round := 0
+	for deliversA(round) {
+		require.True(t, time.Now().Before(deadline), "monitor:%s still delivers after leave_room", monitorA)
+		round++
+	}
+	assert.False(t, deliversA(round+1), "monitor:%s delivered again after leave_room", monitorA)
 }
