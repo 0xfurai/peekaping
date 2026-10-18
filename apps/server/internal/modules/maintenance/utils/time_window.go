@@ -46,8 +46,8 @@ func (twc *TimeWindowChecker) IsInDateTimePeriod(params *TimeWindowParams, now t
 	startDateInTz := twc.convertToTimezone(*params.StartDateTime, loc)
 	endDateInTz := twc.convertToTimezone(*params.EndDateTime, loc)
 
-	// Check if we're within the date time window
-	return now.After(startDateInTz) && now.Before(endDateInTz), nil
+	// now is within [start, end), like the recurring windows
+	return !now.Before(startDateInTz) && now.Before(endDateInTz), nil
 }
 
 // IsInCronMaintenanceWindow checks if the current time falls within a cron-based maintenance window
@@ -69,6 +69,8 @@ func (twc *TimeWindowChecker) IsInCronMaintenanceWindow(params *TimeWindowParams
 		return false, err
 	}
 
+	// The schedule fires in now's location, so read now in the maintenance's.
+	now = now.In(loc)
 	duration := time.Duration(*params.Duration) * time.Minute
 	searchStart := now.Add(-duration)
 
@@ -119,6 +121,9 @@ func (twc *TimeWindowChecker) IsInRecurringIntervalWindow(params *TimeWindowPara
 	// Days are counted on calendar dates, not elapsed hours, so a DST change
 	// doesn't shift the schedule.
 	startDateInTz := twc.convertToTimezone(*params.StartDateTime, loc)
+	if startDateInTz.IsZero() {
+		return false, errors.New("invalid start date time format")
+	}
 	firstDay := calendarDate(startDateInTz)
 	if wallClock(firstDay, startTime, loc).Before(startDateInTz) {
 		firstDay = firstDay.AddDate(0, 0, 1)

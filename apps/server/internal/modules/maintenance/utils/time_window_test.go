@@ -80,6 +80,7 @@ func TestDateTimePeriod_IsReadInTheMaintenanceTimeZone(t *testing.T) {
 
 	checkWindow(t, check, []windowCase{
 		{time.Date(2026, 5, 10, 1, 59, 0, 0, tokyo), false},
+		{time.Date(2026, 5, 10, 2, 0, 0, 0, tokyo), true},
 		{time.Date(2026, 5, 10, 3, 0, 0, 0, tokyo), true},
 		{time.Date(2026, 5, 10, 4, 0, 0, 0, tokyo), false},
 		{time.Date(2026, 5, 10, 3, 0, 0, 0, time.UTC), false}, // 12:00 in Tokyo
@@ -126,6 +127,13 @@ func TestCronWindow_CustomCronInTheMaintenanceTimeZone(t *testing.T) {
 		{time.Date(2026, 6, 2, 0, 59, 0, 0, newYork), true},
 		{time.Date(2026, 6, 2, 1, 0, 0, 0, newYork), false},
 		{time.Date(2026, 6, 1, 22, 30, 0, 0, time.UTC), false}, // 18:30 in New York
+	})
+
+	t.Run("now in another zone is read in the maintenance zone", func(t *testing.T) {
+		inWindow := time.Date(2026, 6, 1, 22, 30, 0, 0, newYork).UTC()
+		got, err := twc.IsInCronMaintenanceWindow(params, inWindow, newYork)
+		require.NoError(t, err)
+		assert.True(t, got)
 	})
 }
 
@@ -231,13 +239,14 @@ func TestRecurringInterval_RejectsIncompleteSchedules(t *testing.T) {
 	}
 
 	for name, breakIt := range map[string]func(p *TimeWindowParams){
-		"no start date-time": func(p *TimeWindowParams) { p.StartDateTime = nil },
-		"no interval":        func(p *TimeWindowParams) { p.IntervalDay = nil },
-		"zero interval":      func(p *TimeWindowParams) { p.IntervalDay = intPtr(0) },
-		"no start time":      func(p *TimeWindowParams) { p.StartTime = nil },
-		"no end time":        func(p *TimeWindowParams) { p.EndTime = nil },
-		"bad start time":     func(p *TimeWindowParams) { p.StartTime = stringPtr("25:00") },
-		"bad end time":       func(p *TimeWindowParams) { p.EndTime = stringPtr("4am") },
+		"no start date-time":  func(p *TimeWindowParams) { p.StartDateTime = nil },
+		"bad start date-time": func(p *TimeWindowParams) { p.StartDateTime = stringPtr("01/01/2026") },
+		"no interval":         func(p *TimeWindowParams) { p.IntervalDay = nil },
+		"zero interval":       func(p *TimeWindowParams) { p.IntervalDay = intPtr(0) },
+		"no start time":       func(p *TimeWindowParams) { p.StartTime = nil },
+		"no end time":         func(p *TimeWindowParams) { p.EndTime = nil },
+		"bad start time":      func(p *TimeWindowParams) { p.StartTime = stringPtr("25:00") },
+		"bad end time":        func(p *TimeWindowParams) { p.EndTime = stringPtr("4am") },
 	} {
 		t.Run(name, func(t *testing.T) {
 			params := valid()
