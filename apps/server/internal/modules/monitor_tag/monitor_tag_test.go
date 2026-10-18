@@ -1,0 +1,195 @@
+package monitor_tag_test
+
+import (
+	"context"
+	"database/sql"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+	"time"
+
+	"peekaping/cmd/bun/migrations"
+	"peekaping/internal/config"
+	"peekaping/internal/infra"
+	"peekaping/internal/modules/monitor_tag"
+
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect/pgdialect"
+	"github.com/uptrace/bun/driver/pgdriver"
+	"github.com/uptrace/bun/migrate"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.uber.org/zap"
+)
+
+// sqliteDB opens a SQLite database the way the app does, with foreign keys on.
+func sqliteDB(t *testing.T) *bun.DB {
+	t.Helper()
+	db, err := infra.ProvideSQLDB(&config.Config{DBType: "sqlite", DBName: filepath.Join(t.TempDir(), "monitor_tag.db")}, zap.NewNop().Sugar())
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, db.Close()) })
+	return db
+}
+
+// postgresDB opens an empty schema in the database at PEE_TEST_POSTGRES_DSN.
+func postgresDB(t *testing.T) *bun.DB {
+	t.Helper()
+	dsn := os.Getenv("PEE_TEST_POSTGRES_DSN")
+	if dsn == "" {
+		t.Skip("set PEE_TEST_POSTGRES_DSN to run the PostgreSQL tests")
+	}
+	admin := bun.NewDB(sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn))), pgdialect.New())
+	schema := "monitor_tag_" + strings.ReplaceAll(uuid.NewString(), "-", "")
+	_, err := admin.Exec("CREATE SCHEMA ?", bun.Ident(schema))
+	require.NoError(t, err)
+	connector := pgdriver.NewConnector(pgdriver.WithDSN(dsn), pgdriver.WithConnParams(map[string]any{"search_path": schema}))
+	db := bun.NewDB(sql.OpenDB(connector), pgdialect.New())
+	t.Cleanup(func() {
+		require.NoError(t, db.Close())
+		_, err := admin.Exec("DROP SCHEMA ? CASCADE", bun.Ident(schema))
+		require.NoError(t, err)
+		require.NoError(t, admin.Close())
+	})
+	return db
+}
+
+// fixture is a monitor-tag service plus constructors for the rows a link points at.
+type fixture struct {
+	svc     monitor_tag.Service
+	monitor func() string
+	tag     func() string
+}
+
+// forEachBackend runs fn against a monitor-tag service on every database backend.
+func forEachBackend(t *testing.T, fn func(t *testing.T, f fixture)) {
+	sqlBackend := func(open func(*testing.T) *bun.DB) func(*testing.T) {
+		return func(t *testing.T) {
+			db := open(t)
+			ctx := context.Background()
+			migrator := migrate.NewMigrator(db, migrations.Migrations)
+			require.NoError(t, migrator.Init(ctx))
+			_, err := migrator.Migrate(ctx)
+			require.NoError(t, err)
+			fn(t, fixture{
+				svc: monitor_tag.NewService(monitor_tag.NewSQLRepository(db), zap.NewNop().Sugar()),
+				monitor: func() string {
+					id := uuid.NewString()
+					_, err := db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0)`, id)
+					require.NoError(t, err)
+					return id
+				},
+				tag: func() string {
+					id := uuid.NewString()
+					_, err := db.Exec("INSERT INTO tags (id, name, color) VALUES (?, ?, '#3B82F6')", id, "tag-"+id)
+					require.NoError(t, err)
+					return id
+				},
+			})
+		}
+	}
+	t.Run("SQLite", sqlBackend(sqliteDB))
+	t.Run("Postgres", sqlBackend(postgresDB))
+	t.Run("Mongo", func(t *testing.T) {
+		uri := os.Getenv("PEE_TEST_MONGO_URI")
+		if uri == "" {
+			t.Skip("set PEE_TEST_MONGO_URI to run the MongoDB tests")
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
+		require.NoError(t, err)
+		require.NoError(t, client.Ping(ctx, nil))
+		cfg := &config.Config{DBName: "monitor_tag_" + primitive.NewObjectID().Hex()}
+		t.Cleanup(func() {
+			require.NoError(t, client.Database(cfg.DBName).Drop(context.Background()))
+			require.NoError(t, client.Disconnect(context.Background()))
+		})
+		newID := func() string { return primitive.NewObjectID().Hex() }
+		fn(t, fixture{monitor_tag.NewService(monitor_tag.NewMongoRepository(client, cfg), zap.NewNop().Sugar()), newID, newID})
+	})
+}
+
+func link(t *testing.T, svc monitor_tag.Service, monitorID, tagID string) *monitor_tag.Model {
+	t.Helper()
+	created, err := svc.Create(context.Background(), monitorID, tagID)
+	require.NoError(t, err)
+	return created
+}
+
+func tagsOf(t *testing.T, svc monitor_tag.Service, monitorID string) []string {
+	t.Helper()
+	links, err := svc.FindByMonitorID(context.Background(), monitorID)
+	require.NoError(t, err)
+	ids := []string{}
+	for _, l := range links {
+		ids = append(ids, l.TagID)
+	}
+	return ids
+}
+
+func monitorsOf(t *testing.T, svc monitor_tag.Service, tagID string) []string {
+	t.Helper()
+	links, err := svc.FindByTagID(context.Background(), tagID)
+	require.NoError(t, err)
+	ids := []string{}
+	for _, l := range links {
+		ids = append(ids, l.MonitorID)
+	}
+	return ids
+}
+
+func TestMonitorTags_LinksAreListedFromBothSides(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, f fixture) {
+		web, db := f.monitor(), f.monitor()
+		prod, eu := f.tag(), f.tag()
+		created := link(t, f.svc, web, prod)
+		link(t, f.svc, web, eu)
+		link(t, f.svc, db, prod)
+
+		found, err := f.svc.FindByID(context.Background(), created.ID)
+		require.NoError(t, err)
+		require.NotNil(t, found)
+		assert.Equal(t, web, found.MonitorID)
+		assert.Equal(t, prod, found.TagID)
+
+		assert.ElementsMatch(t, []string{prod, eu}, tagsOf(t, f.svc, web))
+		assert.ElementsMatch(t, []string{prod}, tagsOf(t, f.svc, db))
+		assert.ElementsMatch(t, []string{web, db}, monitorsOf(t, f.svc, prod))
+		assert.ElementsMatch(t, []string{web}, monitorsOf(t, f.svc, eu))
+	})
+}
+
+func TestMonitorTags_DeletesRemoveOnlyTheLinksTheyName(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, f fixture) {
+		ctx := context.Background()
+		web, db, api := f.monitor(), f.monitor(), f.monitor()
+		prod, eu, staging := f.tag(), f.tag(), f.tag()
+		webProd := link(t, f.svc, web, prod)
+		for _, pair := range [][2]string{{web, eu}, {web, staging}, {db, prod}, {db, eu}, {db, staging}, {api, prod}, {api, eu}} {
+			link(t, f.svc, pair[0], pair[1])
+		}
+
+		require.NoError(t, f.svc.Delete(ctx, webProd.ID))
+		assert.ElementsMatch(t, []string{eu, staging}, tagsOf(t, f.svc, web), "Delete removes that one link")
+		gone, err := f.svc.FindByID(ctx, webProd.ID)
+		require.NoError(t, err)
+		assert.Nil(t, gone)
+
+		require.NoError(t, f.svc.DeleteByMonitorAndTag(ctx, db, eu))
+		assert.ElementsMatch(t, []string{prod, staging}, tagsOf(t, f.svc, db), "DeleteByMonitorAndTag removes that pair")
+
+		require.NoError(t, f.svc.DeleteByMonitorID(ctx, api))
+		assert.Empty(t, tagsOf(t, f.svc, api))
+		assert.ElementsMatch(t, []string{db}, monitorsOf(t, f.svc, prod), "DeleteByMonitorID keeps other monitors' links")
+
+		require.NoError(t, f.svc.DeleteByTagID(ctx, staging))
+		assert.Empty(t, monitorsOf(t, f.svc, staging))
+		assert.ElementsMatch(t, []string{eu}, tagsOf(t, f.svc, web), "DeleteByTagID keeps other tags' links")
+		assert.ElementsMatch(t, []string{prod}, tagsOf(t, f.svc, db))
+	})
+}
