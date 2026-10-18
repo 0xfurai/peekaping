@@ -139,7 +139,7 @@ func (o *OpsgenieSender) sendUpAlert(ctx context.Context, cfg *OpsgenieConfig, b
 	}
 
 	// Create close URL
-	closeURL := fmt.Sprintf("%s/%s/close?identifierType=alias", baseURL, url.QueryEscape(monitor.Name))
+	closeURL := fmt.Sprintf("%s/%s/close?identifierType=alias", baseURL, url.PathEscape(monitor.Name))
 
 	data := map[string]any{
 		"source": "Peekaping",

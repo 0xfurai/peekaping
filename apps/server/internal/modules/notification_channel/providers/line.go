@@ -87,9 +87,6 @@ func (s *LineSender) Send(
 				message,
 				heartbeat.Time.Format(time.RFC3339))
 		}
-	} else {
-		// Test message
-		messageText = "Test Successful!"
 	}
 
 	// Prepare LINE message payload
