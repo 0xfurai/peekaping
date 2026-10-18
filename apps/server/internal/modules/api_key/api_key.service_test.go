@@ -3,6 +3,8 @@ package api_key
 import (
 	"context"
 	"database/sql"
+	"encoding/base64"
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -157,13 +159,23 @@ func TestServiceImpl_ValidateKey_InvalidHash(t *testing.T) {
 	require.NotNil(t, result)
 
 	// Create a fake token with the same ID but different key
-	fakeToken := ApiKeyPrefix + "eyJpZCI6InRlc3Qta2V5LWlkIiwia2V5Ijoid3Jvbmcta2V5In0="
+	payload, err := json.Marshal(map[string]string{
+		"id":  result.ID,
+		"key": base64.URLEncoding.EncodeToString(make([]byte, ApiKeyRandomBytes)),
+	})
+	require.NoError(t, err)
+	fakeToken := ApiKeyPrefix + base64.URLEncoding.EncodeToString(payload)
 
 	// Try to validate with wrong key
 	validated, err := service.ValidateKey(ctx, fakeToken)
 	assert.Error(t, err)
 	assert.Nil(t, validated)
 	assert.Contains(t, err.Error(), "invalid API key")
+
+	// The same ID with the right key validates, so the key is what failed
+	validated, err = service.ValidateKey(ctx, result.Token)
+	require.NoError(t, err)
+	assert.Equal(t, result.ID, validated.ID)
 }
 
 func TestServiceImpl_ValidateKey_NotFound(t *testing.T) {
