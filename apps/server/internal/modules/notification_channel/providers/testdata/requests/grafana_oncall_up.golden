@@ -1,0 +1,20 @@
+POST https://oncall.example.com/integrations/v1/formatted_webhook/abc/
+Content-Type: application/json
+User-Agent: Peekaping/<version>
+
+{
+  "message": "200 - OK",
+  "monitor_id": "mon-1",
+  "monitor_type": "http",
+  "monitor_url": "https://api.example.com/health",
+  "ping_ms": 42,
+  "retries": 0,
+  "state": "ok",
+  "status": "UP",
+  "tags": [
+    "severity:critical",
+    "team:core"
+  ],
+  "time": "2026-10-17T09:35:00Z",
+  "title": "Public API is up"
+}

@@ -27,12 +27,13 @@ type PagerDutyConfig struct {
 // PagerDutySender handles sending notifications to PagerDuty
 type PagerDutySender struct {
 	logger *zap.SugaredLogger
+	client *http.Client
 	config *config.Config
 }
 
 // NewPagerDutySender creates a new PagerDutySender
-func NewPagerDutySender(logger *zap.SugaredLogger, config *config.Config) *PagerDutySender {
-	return &PagerDutySender{logger: logger, config: config}
+func NewPagerDutySender(logger *zap.SugaredLogger, config *config.Config, client *http.Client) *PagerDutySender {
+	return &PagerDutySender{logger: logger, config: config, client: client}
 }
 
 func (p *PagerDutySender) Unmarshal(configJSON string) (any, error) {
@@ -180,8 +181,7 @@ func (p *PagerDutySender) Send(
 	p.logger.Debugf("Sending PagerDuty request: %s", req.URL.String())
 
 	// Send request
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := p.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to send PagerDuty notification: %w", err)
 	}

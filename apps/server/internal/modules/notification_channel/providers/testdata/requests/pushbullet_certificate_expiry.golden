@@ -1,0 +1,9 @@
+POST https://api.pushbullet.com/v2/pushes
+Access-Token: o.pushbullet
+Content-Type: application/json
+
+{
+  "body": "🚨 Certificate Expiry Warning\n\nMonitor: Public API\nCertificate: api.example.com (server)\nExpires in: 7 days\nValid until: 2026-10-24 09:30:00\nNotification threshold: 7 days\nValid for: api.example.com\nIssuer: CN=R11,O=Let's Encrypt,C=US\n\nMonitor: Public API\n",
+  "title": "[PeekaPing] Public API is UNKNOWN",
+  "type": "note"
+}

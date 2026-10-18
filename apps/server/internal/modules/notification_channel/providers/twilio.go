@@ -23,11 +23,12 @@ type TwilioConfig struct {
 
 type TwilioSender struct {
 	logger *zap.SugaredLogger
+	client *http.Client
 }
 
 // NewTwilioSender creates a TwilioSender
-func NewTwilioSender(logger *zap.SugaredLogger) *TwilioSender {
-	return &TwilioSender{logger: logger}
+func NewTwilioSender(logger *zap.SugaredLogger, client *http.Client) *TwilioSender {
+	return &TwilioSender{logger: logger, client: client}
 }
 
 func (s *TwilioSender) Unmarshal(configJSON string) (any, error) {
@@ -82,8 +83,7 @@ func (s *TwilioSender) Send(
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	// Send the request
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := s.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to send Twilio SMS: %w", err)
 	}

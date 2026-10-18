@@ -21,7 +21,7 @@ import (
 )
 
 func newTestTeamsSender() *TeamsSender {
-	return NewTeamsSender(zap.NewNop().Sugar(), &config.Config{ClientURL: "https://peekaping.example.com/"})
+	return NewTeamsSender(zap.NewNop().Sugar(), &config.Config{ClientURL: "https://peekaping.example.com/"}, NewHTTPClient())
 }
 
 func sendTestTeamsMessage(sender *TeamsSender, configJSON string) error {

@@ -28,12 +28,10 @@ type GrafanaOncallSender struct {
 }
 
 // NewGrafanaOncallSender creates a GrafanaOncallSender
-func NewGrafanaOncallSender(logger *zap.SugaredLogger) *GrafanaOncallSender {
+func NewGrafanaOncallSender(logger *zap.SugaredLogger, client *http.Client) *GrafanaOncallSender {
 	return &GrafanaOncallSender{
 		logger: logger,
-		client: &http.Client{
-			Timeout: 30 * time.Second,
-		},
+		client: client,
 	}
 }
 

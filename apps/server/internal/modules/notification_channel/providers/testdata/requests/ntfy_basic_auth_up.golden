@@ -1,0 +1,9 @@
+POST https://ntfy.example.com/peekaping
+Authorization: Basic bnRmeS11c2VyOm50ZnktcGFzcw==
+Content-Type: text/plain
+User-Agent: Peekaping-NTFY/<version>
+X-Priority: 3
+X-Tags: UP,peekaping
+X-Title: Public API is UP
+
+200 - OK

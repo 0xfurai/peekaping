@@ -1,0 +1,41 @@
+POST https://chat.googleapis.com/v1/spaces/AAA/messages?key=k&token=t
+Content-Type: application/json
+User-Agent: Peekaping-GoogleChat/<version>
+
+{
+  "cardsV2": [
+    {
+      "card": {
+        "header": {
+          "title": "Peekaping Alert"
+        },
+        "sections": [
+          {
+            "widgets": [
+              {
+                "textParagraph": {
+                  "text": "\u003cb\u003eMessage:\u003c/b\u003e\n🚨 Certificate Expiry Warning\n\nMonitor: Public API\nCertificate: api.example.com (server)\nExpires in: 7 days\nValid until: 2026-10-24 09:30:00\nNotification threshold: 7 days\nValid for: api.example.com\nIssuer: CN=R11,O=Let's Encrypt,C=US"
+                }
+              },
+              {
+                "buttonList": {
+                  "buttons": [
+                    {
+                      "onClick": {
+                        "openLink": {
+                          "url": "https://peekaping.example.com/monitors/mon-1"
+                        }
+                      },
+                      "text": "Visit Peekaping"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "fallbackText": "Peekaping Alert"
+}

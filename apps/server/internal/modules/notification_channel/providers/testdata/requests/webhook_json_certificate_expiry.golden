@@ -1,0 +1,25 @@
+POST https://hooks.example.com/peekaping
+Content-Type: application/json
+User-Agent: Peekaping-Webhook/<version>
+
+{
+  "heartbeat": null,
+  "monitor": {
+    "id": "mon-1",
+    "type": "http",
+    "name": "Public API",
+    "interval": 60,
+    "timeout": 16,
+    "max_retries": 3,
+    "retry_interval": 0,
+    "resend_interval": 0,
+    "active": true,
+    "status": 0,
+    "config": "{\"url\":\"https://api.example.com/health\",\"method\":\"GET\"}",
+    "proxy_id": "",
+    "push_token": "",
+    "created_at": "2026-01-02T03:04:05Z",
+    "updated_at": "2026-01-02T03:04:05Z"
+  },
+  "msg": "🚨 Certificate Expiry Warning\n\nMonitor: Public API\nCertificate: api.example.com (server)\nExpires in: 7 days\nValid until: 2026-10-24 09:30:00\nNotification threshold: 7 days\nValid for: api.example.com\nIssuer: CN=R11,O=Let's Encrypt,C=US"
+}

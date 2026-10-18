@@ -1,0 +1,12 @@
+EHLO localhost
+AUTH PLAIN AGFsZXJ0c0BleGFtcGxlLmNvbQBzbXRwLXBhc3M=
+MAIL FROM:<alerts@example.com>
+RCPT TO:<oncall@example.com>
+DATA
+To: oncall@example.com
+Subject: Peekaping Notification
+From: alerts@example.com
+
+connection refused
+.
+QUIT

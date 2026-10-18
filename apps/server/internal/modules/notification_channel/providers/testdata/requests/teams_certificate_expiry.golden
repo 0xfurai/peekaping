@@ -1,0 +1,94 @@
+POST https://example.powerplatform.com/workflows/1?sig=s
+Content-Type: application/json
+User-Agent: Peekaping-Teams/<version>
+
+{
+  "attachments": [
+    {
+      "content": {
+        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+        "actions": [
+          {
+            "title": "View in Peekaping",
+            "type": "Action.OpenUrl",
+            "url": "https://status.example.com/monitors/mon-1"
+          },
+          {
+            "title": "Visit site",
+            "type": "Action.OpenUrl",
+            "url": "https://api.example.com/health"
+          }
+        ],
+        "body": [
+          {
+            "bleed": true,
+            "items": [
+              {
+                "columns": [
+                  {
+                    "items": [
+                      {
+                        "altText": "Peekaping",
+                        "size": "Small",
+                        "style": "Person",
+                        "type": "Image",
+                        "url": "https://peekaping.com/logo-mascot.png"
+                      }
+                    ],
+                    "type": "Column",
+                    "width": "auto"
+                  },
+                  {
+                    "items": [
+                      {
+                        "size": "Medium",
+                        "text": "Public API",
+                        "type": "TextBlock",
+                        "weight": "Bolder",
+                        "wrap": true
+                      },
+                      {
+                        "isSubtle": true,
+                        "spacing": "None",
+                        "text": "Peekaping Alert",
+                        "type": "TextBlock"
+                      }
+                    ],
+                    "type": "Column",
+                    "width": "stretch"
+                  }
+                ],
+                "type": "ColumnSet"
+              }
+            ],
+            "style": "warning",
+            "type": "Container"
+          },
+          {
+            "text": "🚨 Certificate Expiry Warning\n\nMonitor: Public API\n\nCertificate: api.example.com (server)\n\nExpires in: 7 days\n\nValid until: 2026-10-24 09:30:00\n\nNotification threshold: 7 days\n\nValid for: api.example.com\n\nIssuer: CN=R11,O=Let's Encrypt,C=US",
+            "type": "TextBlock",
+            "wrap": true
+          },
+          {
+            "facts": [
+              {
+                "title": "Monitor",
+                "value": "Public API"
+              },
+              {
+                "title": "URL",
+                "value": "https://api.example.com/health"
+              }
+            ],
+            "type": "FactSet"
+          }
+        ],
+        "fallbackText": "Public API",
+        "type": "AdaptiveCard",
+        "version": "1.4"
+      },
+      "contentType": "application/vnd.microsoft.card.adaptive"
+    }
+  ],
+  "type": "message"
+}

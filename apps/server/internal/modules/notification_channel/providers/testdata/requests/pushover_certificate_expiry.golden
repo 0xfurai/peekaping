@@ -1,0 +1,14 @@
+POST https://api.pushover.net/1/messages.json
+Content-Type: application/json
+User-Agent: Peekaping-Pushover/<version>
+
+{
+  "expire": "3600",
+  "html": 1,
+  "message": "\u003cb\u003ePublic API\u003c/b\u003e\n🚨 Certificate Expiry Warning\n\nMonitor: Public API\nCertificate: api.example.com (server)\nExpires in: 7 days\nValid until: 2026-10-24 09:30:00\nNotification threshold: 7 days\nValid for: api.example.com\nIssuer: CN=R11,O=Let's Encrypt,C=US",
+  "priority": 0,
+  "retry": "30",
+  "title": "Peekaping Notification",
+  "token": "app-token",
+  "user": "user-key"
+}
