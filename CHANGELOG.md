@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: editing, pausing or deleting a monitor drops its queued check and cancels a running one, so no result of the old config is recorded and the next check uses the current config, right away after an edit (#266)
 - fix: close idle HTTP connections after each check, so HTTP monitors no longer leak one socket per check (#287) (thanks @jonfriesen)
 - fix: ping monitors report an unreachable host as DOWN instead of "ping: executable file not found", no longer pick up other monitors' replies, work without root where unprivileged ICMP is allowed, and support IPv6 targets (#226)
+- fix: maintenance windows set to "Same as Server Timezone" follow the `TZ` setting (UTC when it's unset), and the API, producer, worker and ingester images ship the time zone database, so `TZ=Europe/Kyiv` or a window's own time zone no longer falls back to UTC (#261, #262) (thanks @brewle)
 
 ## [0.0.46] - 2026-04-10
 
