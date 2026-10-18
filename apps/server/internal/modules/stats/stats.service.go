@@ -57,42 +57,30 @@ func (s *ServiceImpl) AggregateHeartbeat(ctx context.Context, hb *HeartbeatPaylo
 		{StatDaily, 24 * time.Hour},
 	}
 
+	// The heartbeat's checks, which the repository adds to each period's stat
+	add := Stat{MonitorID: hb.MonitorID}
+
+	// Up/Down logic (flattened)
+	if s.flatStatus(hb.Status) == 1 { // MonitorStatusUp
+		add.Up = 1
+		// Only update ping stats for true UP
+		if hb.Status == 1 { // MonitorStatusUp
+			add.PingCount = 1
+			add.Ping = float64(hb.Ping)
+			add.PingMin, add.PingMax = add.Ping, add.Ping
+		}
+	} else if s.flatStatus(hb.Status) == 0 { // MonitorStatusDown
+		add.Down = 1
+	}
+
+	// Aggregate maintenance status separately
+	if hb.Status == 3 { // MonitorStatusMaintenance
+		add.Maintenance = 1
+	}
+
 	for _, p := range periods {
-		bucketTime := time.Unix(hb.Time, 0).Truncate(p.Bucket)
-
-		stat, err := s.repo.GetOrCreateStat(ctx, hb.MonitorID, bucketTime, p.Period)
-		if err != nil {
-			return err
-		}
-
-		statToUpsert := *stat // copy
-
-		// Up/Down logic (flattened)
-		if s.flatStatus(hb.Status) == 1 { // MonitorStatusUp
-			statToUpsert.Up = stat.Up + 1
-			// Only update ping stats for true UP
-			if hb.Status == 1 { // MonitorStatusUp
-				fPing := float64(hb.Ping)
-				statToUpsert.PingCount = stat.PingCount + 1
-				statToUpsert.Ping = (stat.Ping*float64(stat.PingCount) + fPing) / float64(statToUpsert.PingCount)
-				if stat.PingCount == 0 || fPing < stat.PingMin {
-					statToUpsert.PingMin = fPing
-				}
-				if stat.PingCount == 0 || fPing > stat.PingMax {
-					statToUpsert.PingMax = fPing
-				}
-			}
-		} else if s.flatStatus(hb.Status) == 0 { // MonitorStatusDown
-			statToUpsert.Down = stat.Down + 1
-		}
-
-		// Aggregate maintenance status separately
-		if hb.Status == 3 { // MonitorStatusMaintenance
-			statToUpsert.Maintenance = stat.Maintenance + 1
-		}
-
-		// Upsert stat
-		if err := s.repo.UpsertStat(ctx, &statToUpsert, p.Period); err != nil {
+		add.Timestamp = time.Unix(hb.Time, 0).Truncate(p.Bucket)
+		if err := s.repo.AddToStat(ctx, &add, p.Period); err != nil {
 			return err
 		}
 	}
