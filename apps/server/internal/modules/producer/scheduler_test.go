@@ -66,42 +66,29 @@ func TestScheduleMonitor(t *testing.T) {
 	})
 
 	t.Run("reschedule existing monitor", func(t *testing.T) {
-		client, mr := setupTestRedis(t)
-		defer mr.Close()
-
-		logger := zap.NewNop().Sugar()
-		producer := &Producer{
-			rdb:              client,
-			logger:           logger,
-			ctx:              context.Background(),
-			monitorIntervals: make(map[string]int),
-		}
-
+		e := newEngine(t)
 		ctx := context.Background()
 
-		// Schedule with interval 60
-		err := producer.ScheduleMonitor(ctx, "monitor-123", 60)
-		assert.NoError(t, err)
+		// A new monitor is due right away
+		require.NoError(t, e.producer.ScheduleMonitor(ctx, "monitor-123", 60))
+		score, _ := e.score(SchedDueKey, "monitor-123")
+		assert.Equal(t, ms(t0), score)
 
-		_, err = client.ZScore(ctx, SchedDueKey, "monitor-123").Result()
-		assert.NoError(t, err)
+		// A scheduled one moves to the next slot of its new interval: 12:00:30 → 12:02:00
+		require.NoError(t, e.producer.ScheduleMonitor(ctx, "monitor-123", 120))
+		score, _ = e.score(SchedDueKey, "monitor-123")
+		assert.Equal(t, ms(time.Date(2026, 1, 1, 12, 2, 0, 0, time.UTC)), score)
+		assert.Equal(t, 120, e.producer.monitorIntervals["monitor-123"])
+	})
 
-		// Wait enough time for the next scheduling time to be different
-		// Since the interval changes from 60 to 120, the next scheduled time should be different
-		time.Sleep(200 * time.Millisecond)
+	t.Run("removes the monitor's lease", func(t *testing.T) {
+		e := newEngine(t)
+		e.addLease(t, "monitor-123", t0.Add(LeaseTTL))
 
-		// Reschedule with interval 120
-		err = producer.ScheduleMonitor(ctx, "monitor-123", 120)
-		assert.NoError(t, err)
+		require.NoError(t, e.producer.ScheduleMonitor(context.Background(), "monitor-123", 60))
 
-		score2, err := client.ZScore(ctx, SchedDueKey, "monitor-123").Result()
-		assert.NoError(t, err)
-
-		// Verify the monitor was rescheduled successfully
-		assert.True(t, score2 > 0, "Monitor should be scheduled")
-
-		// Interval should be updated
-		assert.Equal(t, 120, producer.monitorIntervals["monitor-123"])
+		assert.Empty(t, e.members(t, SchedLeaseKey))
+		assert.Equal(t, map[string]float64{"monitor-123": ms(t0)}, e.members(t, SchedDueKey))
 	})
 }
 
@@ -135,6 +122,18 @@ func TestUnscheduleMonitor(t *testing.T) {
 		// Verify interval is removed
 		_, exists := producer.monitorIntervals["monitor-123"]
 		assert.False(t, exists)
+	})
+
+	t.Run("removes the monitor from both sets", func(t *testing.T) {
+		e := newEngine(t)
+		e.addDue(t, "monitor-123", t0)
+		e.addLease(t, "monitor-123", t0.Add(LeaseTTL))
+		e.addDue(t, "monitor-other", t0)
+
+		require.NoError(t, e.producer.UnscheduleMonitor(context.Background(), "monitor-123"))
+
+		assert.Equal(t, map[string]float64{"monitor-other": ms(t0)}, e.members(t, SchedDueKey))
+		assert.Empty(t, e.members(t, SchedLeaseKey))
 	})
 
 	t.Run("unschedule non-existent monitor", func(t *testing.T) {
