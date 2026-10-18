@@ -11,10 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- feat: new installs keep heartbeats for 180 days instead of 365. Upgrading changes nothing: an install that never saved a data retention period keeps 365 days, and a saved period stays as it is. Charts and uptime % come from stats, so only the recent heartbeats list and a monitor's event history reach back less far on new installs
 - refactor: SQL databases write a stats row with one `INSERT ... ON CONFLICT` statement instead of an UPDATE followed by an INSERT. What is stored doesn't change (#260) (thanks @brewle)
 
 ### Fixed
 
+- fix: a data retention period of 0, a negative number or a very large number no longer makes the hourly cleanup delete every heartbeat. The settings API returns 400 unless `KEEP_DATA_PERIOD_DAYS` is a whole number of days from 1 to 36,500 with type `int`. If an invalid value was stored before, or the setting can't be read, the cleanup logs an error and deletes no heartbeats instead of falling back to 365 days
 - fix: the hourly cleanup deletes expired heartbeats 5,000 at a time on SQL databases instead of in one statement, so a large backlog, such as the first run after lowering the data retention period, no longer blocks the API. On SQLite, deleting a million heartbeats used to hold the database for about 13 seconds; now no request waits more than about 0.4 seconds. A migration drops three heartbeat indexes that no query uses, which makes each heartbeat about a quarter smaller on SQLite and a monitor's event list faster. On SQLite the database file stops growing but doesn't shrink on its own
 - fix: stats no longer grow forever. Every hour, minute stats older than 48 hours and hour stats older than 90 days are deleted, and day stats are kept. Nothing reads them: uptime % and badges read minute stats for up to 24 hours and hour stats for up to 90 days, and charts read less. On SQL databases the rows are deleted 5,000 at a time, so the first run after upgrading clears a year of backlog without blocking the API. On SQLite the database file then stops growing, but it doesn't shrink on its own (#315)
 - fix: heartbeats for the same monitor that the ingester handles at the same time no longer overwrite each other's counts in the stats behind the response time chart and uptime %, and no longer fail with a unique-key error. On MongoDB they no longer create a second stats document for the same minute, hour or day. Each heartbeat now updates its stats with 3 statements instead of 6 to 9 (#312)
