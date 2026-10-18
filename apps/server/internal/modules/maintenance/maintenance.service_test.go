@@ -3,6 +3,7 @@ package maintenance
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -538,97 +539,55 @@ func TestServiceImpl_IsUnderMaintenance_InactiveManual(t *testing.T) {
 	assert.False(t, result)
 }
 
-func TestServiceImpl_IsUnderMaintenance_SingleStrategy(t *testing.T) {
-	service, _, _, _, _, mockTimeUtils, _ := createTestService()
-
-	maintenance := createTestModel()
-	maintenance.Strategy = "single"
-	maintenance.Active = true
-
-	startDateTime := "2024-01-01T09:00"
-	endDateTime := "2024-01-01T17:00"
-	maintenance.StartDateTime = &startDateTime
-	maintenance.EndDateTime = &endDateTime
-
-	loc := time.UTC
-	mockTimeUtils.On("GetDefaultTimezone").Return("UTC")
-	mockTimeUtils.On("LoadTimezone", "UTC").Return(loc)
-
-	// Create a new mock time window checker for this test
-	mockTimeWindowChecker := &MockTimeWindowChecker{}
-	service.timeWindowChecker = mockTimeWindowChecker
-	mockTimeWindowChecker.On("IsInDateTimePeriod", mock.AnythingOfType("*utils.TimeWindowParams"), mock.AnythingOfType("time.Time"), loc).Return(true, nil)
-
-	result, err := service.IsUnderMaintenance(context.Background(), maintenance)
-
-	assert.NoError(t, err)
-	assert.True(t, result)
-	mockTimeUtils.AssertExpectations(t)
-	mockTimeWindowChecker.AssertExpectations(t)
-}
-
-func TestServiceImpl_IsUnderMaintenance_RecurringIntervalStrategy(t *testing.T) {
-	service, _, _, _, _, mockTimeUtils, _ := createTestService()
-
-	maintenance := createTestModel()
-	maintenance.Strategy = "recurring-interval"
-	maintenance.Active = true
-
-	startDateTime := "2024-01-01T09:00"
-	endDateTime := "2024-12-31T17:00"
+// A single window follows its date period. The recurring strategies need both
+// the date period and their own window, so the checker answers every
+// combination.
+func TestServiceImpl_IsUnderMaintenance_TimedStrategies(t *testing.T) {
 	intervalDay := 7
-	maintenance.StartDateTime = &startDateTime
-	maintenance.EndDateTime = &endDateTime
-	maintenance.IntervalDay = &intervalDay
-
-	loc := time.UTC
-	mockTimeUtils.On("GetDefaultTimezone").Return("UTC")
-	mockTimeUtils.On("LoadTimezone", "UTC").Return(loc)
-
-	// Create a new mock time window checker for this test
-	mockTimeWindowChecker := &MockTimeWindowChecker{}
-	service.timeWindowChecker = mockTimeWindowChecker
-	mockTimeWindowChecker.On("IsInDateTimePeriod", mock.AnythingOfType("*utils.TimeWindowParams"), mock.AnythingOfType("time.Time"), loc).Return(true, nil)
-	mockTimeWindowChecker.On("IsInRecurringIntervalWindow", mock.AnythingOfType("*utils.TimeWindowParams"), mock.AnythingOfType("time.Time"), loc).Return(true, nil)
-
-	result, err := service.IsUnderMaintenance(context.Background(), maintenance)
-
-	assert.NoError(t, err)
-	assert.True(t, result)
-	mockTimeUtils.AssertExpectations(t)
-	mockTimeWindowChecker.AssertExpectations(t)
-}
-
-func TestServiceImpl_IsUnderMaintenance_CronStrategy(t *testing.T) {
-	service, _, _, _, _, mockTimeUtils, _ := createTestService()
-
-	maintenance := createTestModel()
-	maintenance.Strategy = "recurring-weekday"
-	maintenance.Active = true
-
-	startDateTime := "2024-01-01T09:00"
-	endDateTime := "2024-12-31T17:00"
 	cron := "0 9 * * 1-5"
-	maintenance.StartDateTime = &startDateTime
-	maintenance.EndDateTime = &endDateTime
-	maintenance.Cron = &cron
+	strategies := []struct {
+		strategy string
+		cron     *string
+		window   string // the checker method for the strategy's own window
+	}{
+		{"single", nil, ""},
+		{"recurring-interval", nil, "IsInRecurringIntervalWindow"},
+		{"recurring-weekday", &cron, "IsInCronMaintenanceWindow"},
+		{"recurring-day-of-month", &cron, "IsInCronMaintenanceWindow"},
+		{"cron", &cron, "IsInCronMaintenanceWindow"},
+	}
+	for _, s := range strategies {
+		for _, inPeriod := range []bool{true, false} {
+			for _, inWindow := range []bool{true, false} {
+				name := fmt.Sprintf("%s/period=%t/window=%t", s.strategy, inPeriod, inWindow)
+				if s.window == "" {
+					if !inWindow {
+						continue // a single window has no window of its own
+					}
+					name = fmt.Sprintf("%s/period=%t", s.strategy, inPeriod)
+				}
+				t.Run(name, func(t *testing.T) {
+					service, _, _, _, mockTimeWindowChecker, mockTimeUtils, _ := createTestService()
+					mockTimeUtils.On("GetDefaultTimezone").Return("UTC")
+					mockTimeUtils.On("LoadTimezone", "UTC").Return(time.UTC)
+					mockTimeWindowChecker.On("IsInDateTimePeriod", mock.Anything, mock.Anything, time.UTC).Return(inPeriod, nil)
+					if s.window != "" {
+						mockTimeWindowChecker.On(s.window, mock.Anything, mock.Anything, time.UTC).Return(inWindow, nil)
+					}
 
-	loc := time.UTC
-	mockTimeUtils.On("GetDefaultTimezone").Return("UTC")
-	mockTimeUtils.On("LoadTimezone", "UTC").Return(loc)
+					maintenance := createTestModel()
+					maintenance.Strategy = s.strategy
+					maintenance.IntervalDay = &intervalDay
+					maintenance.Cron = s.cron
 
-	// Create a new mock time window checker for this test
-	mockTimeWindowChecker := &MockTimeWindowChecker{}
-	service.timeWindowChecker = mockTimeWindowChecker
-	mockTimeWindowChecker.On("IsInDateTimePeriod", mock.AnythingOfType("*utils.TimeWindowParams"), mock.AnythingOfType("time.Time"), loc).Return(true, nil)
-	mockTimeWindowChecker.On("IsInCronMaintenanceWindow", mock.AnythingOfType("*utils.TimeWindowParams"), mock.AnythingOfType("time.Time"), loc).Return(true, nil)
+					result, err := service.IsUnderMaintenance(context.Background(), maintenance)
 
-	result, err := service.IsUnderMaintenance(context.Background(), maintenance)
-
-	assert.NoError(t, err)
-	assert.True(t, result)
-	mockTimeUtils.AssertExpectations(t)
-	mockTimeWindowChecker.AssertExpectations(t)
+					assert.NoError(t, err)
+					assert.Equal(t, inPeriod && inWindow, result)
+				})
+			}
+		}
+	}
 }
 
 // Test GetMaintenancesByMonitorID method
