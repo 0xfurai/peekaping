@@ -297,6 +297,10 @@ func (r *SQLRepositoryImpl) deleteOlderThanByRowid(ctx context.Context, cutoff t
 	}
 }
 
+func (r *SQLRepositoryImpl) HasAny(ctx context.Context) (bool, error) {
+	return r.db.NewSelect().Model((*sqlModel)(nil)).Limit(1).Exists(ctx)
+}
+
 func (r *SQLRepositoryImpl) DeleteByMonitorID(ctx context.Context, monitorID string) error {
 	_, err := r.db.NewDelete().
 		Model((*sqlModel)(nil)).

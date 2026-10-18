@@ -301,6 +301,20 @@ func TestDeleteOlderThanKeepsNewerHeartbeats(t *testing.T) {
 	})
 }
 
+func TestHasAnyReportsWhetherAHeartbeatExists(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, b backend) {
+		ctx := context.Background()
+		has, err := b.svc.HasAny(ctx)
+		require.NoError(t, err)
+		assert.False(t, has, "before the first heartbeat")
+
+		b.heartbeat(t, b.monitorA, shared.MonitorStatusUp, "first", false)
+		has, err = b.svc.HasAny(ctx)
+		require.NoError(t, err)
+		assert.True(t, has, "after the first heartbeat")
+	})
+}
+
 // dropHeartbeatIndexesMigration is the migration that dropped the heartbeat
 // indexes no query needs.
 const dropHeartbeatIndexesMigration = "20261018120000"

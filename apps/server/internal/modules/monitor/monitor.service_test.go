@@ -126,6 +126,11 @@ func (m *MockHeartbeatService) DeleteOlderThan(ctx context.Context, cutoff time.
 	return args.Get(0).(int64), args.Error(1)
 }
 
+func (m *MockHeartbeatService) HasAny(ctx context.Context) (bool, error) {
+	args := m.Called(ctx)
+	return args.Bool(0), args.Error(1)
+}
+
 func (m *MockHeartbeatService) FindByMonitorIDPaginated(ctx context.Context, monitorID string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error) {
 	args := m.Called(ctx, monitorID, limit, page, important, reverse)
 	return args.Get(0).([]*heartbeat.Model), args.Error(1)
