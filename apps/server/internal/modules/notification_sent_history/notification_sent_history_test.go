@@ -51,11 +51,12 @@ func postgresDB(t *testing.T) *bun.DB {
 	require.NoError(t, err)
 	connector := pgdriver.NewConnector(pgdriver.WithDSN(dsn), pgdriver.WithConnParams(map[string]any{"search_path": schema}))
 	db := bun.NewDB(sql.OpenDB(connector), pgdialect.New())
+	// assert, not require, so a failed close still drops the schema.
 	t.Cleanup(func() {
-		require.NoError(t, db.Close())
+		assert.NoError(t, db.Close())
 		_, err := admin.Exec("DROP SCHEMA ? CASCADE", bun.Ident(schema))
-		require.NoError(t, err)
-		require.NoError(t, admin.Close())
+		assert.NoError(t, err)
+		assert.NoError(t, admin.Close())
 	})
 	return db
 }
@@ -87,8 +88,8 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, svc notification_sent_hi
 		require.NoError(t, client.Ping(ctx, nil))
 		cfg := &config.Config{DBName: "history_" + primitive.NewObjectID().Hex()}
 		t.Cleanup(func() {
-			require.NoError(t, client.Database(cfg.DBName).Drop(context.Background()))
-			require.NoError(t, client.Disconnect(context.Background()))
+			assert.NoError(t, client.Database(cfg.DBName).Drop(context.Background()))
+			assert.NoError(t, client.Disconnect(context.Background()))
 		})
 		fn(t, notification_sent_history.NewService(notification_sent_history.NewMongoRepository(client, cfg), zap.NewNop().Sugar()))
 	})
