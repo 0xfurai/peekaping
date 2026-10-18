@@ -90,10 +90,9 @@ func TestDeleteExpiredClearsABacklogLargerThanOneBatch(t *testing.T) {
 			migrateUp(t, db, migrations.Migrations)
 			monitorID := insertMonitor(t, db)
 
-			// 100 days of history with one row per bucket, like a monitor that ran
-			// before stats had retention.
 			now := time.Date(2026, 10, 18, 15, 30, 0, 0, time.UTC)
-			insertHistory := func(table string, bucket time.Duration, n int) {
+			// insertHistory writes the monitor's n latest buckets before now, newest first.
+			insertHistory := func(table, monitorID string, bucket time.Duration, n int) {
 				rows := make([]statRow, 0, n)
 				for i := 1; i <= n; i++ {
 					rows = append(rows, statRow{MonitorID: monitorID, Timestamp: now.Add(-time.Duration(i) * bucket), Up: 1})
@@ -105,8 +104,17 @@ func TestDeleteExpiredClearsABacklogLargerThanOneBatch(t *testing.T) {
 					rows = rows[len(chunk):]
 				}
 			}
-			insertHistory("stat_minutely", time.Minute, 100*24*60)
-			insertHistory("stat_hourly", time.Hour, 100*24)
+			// Two monitors' last 48 hours come first, so the first batch has nothing to delete.
+			for range 2 {
+				insertHistory("stat_minutely", insertMonitor(t, db), time.Minute, 48*60)
+			}
+			// 100 days of history with one row per bucket, like a monitor that ran
+			// before stats had retention.
+			insertHistory("stat_minutely", monitorID, time.Minute, 100*24*60)
+			insertHistory("stat_hourly", monitorID, time.Hour, 100*24)
+			// A hole of 20,000 expired rows, wider than a batch, like the gap a deleted monitor leaves.
+			_, err := db.ExecContext(ctx, "DELETE FROM stat_minutely WHERE timestamp >= ? AND timestamp < ?", now.Add(-70_000*time.Minute), now.Add(-50_000*time.Minute))
+			require.NoError(t, err)
 
 			deletes := &deleteCounter{}
 			db.AddQueryHook(deletes)
@@ -114,7 +122,7 @@ func TestDeleteExpiredClearsABacklogLargerThanOneBatch(t *testing.T) {
 			deleted, err := svc.DeleteExpired(ctx, now)
 			require.NoError(t, err)
 
-			assert.Equal(t, map[stats.StatPeriod]int64{stats.StatMinutely: 141_120, stats.StatHourly: 240}, deleted)
+			assert.Equal(t, map[stats.StatPeriod]int64{stats.StatMinutely: 121_120, stats.StatHourly: 240}, deleted)
 			assert.Len(t, bucketStarts(t, svc, monitorID, stats.StatMinutely, now), 48*60)
 			assert.Len(t, bucketStarts(t, svc, monitorID, stats.StatHourly, now), 90*24)
 			var total int64
@@ -122,7 +130,7 @@ func TestDeleteExpiredClearsABacklogLargerThanOneBatch(t *testing.T) {
 				assert.LessOrEqual(t, n, int64(5000), "rows deleted by one statement")
 				total += n
 			}
-			assert.Equal(t, int64(141_120+240), total)
+			assert.Equal(t, int64(121_120+240), total)
 		})
 	}
 }
