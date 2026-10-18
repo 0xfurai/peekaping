@@ -21,6 +21,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
 	"github.com/uptrace/bun/migrate"
@@ -298,6 +299,61 @@ func TestDeleteOlderThanKeepsNewerHeartbeats(t *testing.T) {
 			assert.Equal(t, []string{want}, msgs(left))
 		}
 	})
+}
+
+// dropHeartbeatIndexesMigration is the migration that dropped the heartbeat
+// indexes no query needs.
+const dropHeartbeatIndexesMigration = "20261018120000"
+
+// heartbeatIndexes returns the names of the indexes the migrations created on heartbeats.
+func heartbeatIndexes(t *testing.T, db *bun.DB) []string {
+	t.Helper()
+	query := "SELECT name FROM sqlite_master WHERE type = 'index' AND tbl_name = 'heartbeats' AND name LIKE 'idx_%' ORDER BY name"
+	if db.Dialect().Name() == dialect.PG {
+		query = "SELECT indexname FROM pg_indexes WHERE schemaname = current_schema() AND tablename = 'heartbeats' AND indexname LIKE 'idx_%' ORDER BY indexname"
+	}
+	var names []string
+	require.NoError(t, db.NewRaw(query).Scan(context.Background(), &names))
+	return names
+}
+
+func TestMigrationsKeepOnlyTheHeartbeatIndexesQueriesUse(t *testing.T) {
+	for _, backend := range []struct {
+		name string
+		open func(*testing.T) *bun.DB
+	}{{"SQLite", sqliteDB}, {"Postgres", postgresDB}} {
+		t.Run(backend.name, func(t *testing.T) {
+			ctx := context.Background()
+			db := backend.open(t)
+			before := migrate.NewMigrations()
+			for _, m := range migrations.Migrations.Sorted() {
+				if m.Name < dropHeartbeatIndexesMigration {
+					before.Add(m)
+				}
+			}
+			old := migrate.NewMigrator(db, before)
+			require.NoError(t, old.Init(ctx))
+			_, err := old.Migrate(ctx)
+			require.NoError(t, err)
+			all := []string{
+				"idx_heartbeats_important",
+				"idx_heartbeats_monitor_important",
+				"idx_heartbeats_monitor_time",
+				"idx_heartbeats_monitor_time_important",
+				"idx_heartbeats_status",
+			}
+			require.Equal(t, all, heartbeatIndexes(t, db))
+
+			migrator := migrate.NewMigrator(db, migrations.Migrations)
+			_, err = migrator.Migrate(ctx)
+			require.NoError(t, err)
+			assert.Equal(t, []string{"idx_heartbeats_monitor_important", "idx_heartbeats_monitor_time_important"}, heartbeatIndexes(t, db))
+
+			_, err = migrator.Rollback(ctx)
+			require.NoError(t, err)
+			assert.Equal(t, all, heartbeatIndexes(t, db))
+		})
+	}
 }
 
 // heartbeatRow writes heartbeats with a chosen time, which the repository's
