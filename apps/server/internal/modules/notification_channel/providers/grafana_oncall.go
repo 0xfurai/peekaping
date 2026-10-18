@@ -12,6 +12,7 @@ import (
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/version"
+	"strings"
 	"time"
 
 	"go.uber.org/zap"
@@ -179,8 +180,8 @@ func addGrafanaOncallMonitorFields(payload map[string]interface{}, m *monitor.Mo
 			payload["monitor_host"] = cfg.Host
 		}
 	case "grpc-keyword":
-		if cfg.GrpcURL != "" {
-			payload["monitor_host"] = cfg.GrpcURL
+		if target := grpcTargetWithoutSecrets(cfg.GrpcURL); target != "" {
+			payload["monitor_host"] = target
 		}
 	}
 }
@@ -192,6 +193,24 @@ func urlWithoutSecrets(rawURL string) string {
 	if err != nil || u.Host == "" {
 		return ""
 	}
+	return stripURLSecrets(u)
+}
+
+// grpcTargetWithoutSecrets returns a gRPC target without the userinfo, query and fragment of
+// a URI-form target such as dns://user:pass@1.1.1.1/example.com:443. A plain host:port target
+// is returned as is. It returns "" if a URI-form target doesn't parse.
+func grpcTargetWithoutSecrets(target string) string {
+	if !strings.Contains(target, "://") {
+		return target
+	}
+	u, err := url.Parse(target)
+	if err != nil {
+		return ""
+	}
+	return stripURLSecrets(u)
+}
+
+func stripURLSecrets(u *url.URL) string {
 	u.User = nil
 	u.RawQuery = ""
 	u.ForceQuery = false

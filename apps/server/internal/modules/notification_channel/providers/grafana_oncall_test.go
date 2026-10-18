@@ -109,6 +109,12 @@ func TestGrafanaOncallSender_Send_MonitorFields(t *testing.T) {
 			want:        map[string]any{"monitor_host": "grpc.example.com:50051"},
 		},
 		{
+			name:        "grpc URI target without credentials or query",
+			monitorType: "grpc-keyword",
+			config:      `{"grpcUrl": "dns://user:s3cret@1.1.1.1/grpc.example.com:443?token=abc"}`,
+			want:        map[string]any{"monitor_host": "dns://1.1.1.1/grpc.example.com:443"},
+		},
+		{
 			name:        "database DSN is left out",
 			monitorType: "postgres",
 			config:      `{"database_connection_string": "postgres://user:s3cret@db.example.com:5432/app", "host": "db.example.com"}`,
@@ -244,6 +250,29 @@ func TestURLWithoutSecrets(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.raw, func(t *testing.T) {
 			assert.Equal(t, tc.want, urlWithoutSecrets(tc.raw))
+		})
+	}
+}
+
+func TestGRPCTargetWithoutSecrets(t *testing.T) {
+	cases := []struct {
+		raw  string
+		want string
+	}{
+		{"grpc.example.com:50051", "grpc.example.com:50051"},
+		{"10.0.0.1:50051", "10.0.0.1:50051"},
+		{"[::1]:50051", "[::1]:50051"},
+		{"dns:///grpc.example.com:443", "dns:///grpc.example.com:443"},
+		{"unix:///run/grpc.sock", "unix:///run/grpc.sock"},
+		{"dns://user:pass@1.1.1.1/grpc.example.com:443", "dns://1.1.1.1/grpc.example.com:443"},
+		{"dns:///grpc.example.com:443?token=abc#x", "dns:///grpc.example.com:443"},
+		{"", ""},
+		{"dns://exa mple.com/x", ""},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.raw, func(t *testing.T) {
+			assert.Equal(t, tc.want, grpcTargetWithoutSecrets(tc.raw))
 		})
 	}
 }
