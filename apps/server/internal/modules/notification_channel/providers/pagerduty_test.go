@@ -173,6 +173,7 @@ func TestPagerDutySender_getMonitorURL(t *testing.T) {
 		{"nil monitor", nil, ""},
 		{"http keyword url", &monitor.Model{Name: "API", Type: "http-keyword", Config: `{"url": "https://api.example.com/health"}`}, "https://api.example.com/health"},
 		{"tcp host and port", &monitor.Model{Name: "DB", Type: "tcp", Config: `{"host": "2001:db8::1", "port": 5432}`}, "[2001:db8::1]:5432"},
+		{"ping host", &monitor.Model{Name: "Ping", Type: "ping", Config: `{"host": "192.0.2.1"}`}, "192.0.2.1"},
 		{"falls back to the name", &monitor.Model{Name: "Push", Type: "push", Config: `{"pushToken": "x"}`}, "Push"},
 		{"invalid config", &monitor.Model{Name: "Broken", Type: "http", Config: `not json`}, "Broken"},
 	}
