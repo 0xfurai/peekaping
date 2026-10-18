@@ -76,7 +76,8 @@ export const smtpDefaultValues: SMTPForm = {
 };
 
 // Validation schema for backend config responses
-// Booleans are optional because the backend treats a missing one as false
+// Booleans are optional because the backend treats a missing one as false,
+// except expect_secure_relay, which defaults to true
 const smtpConfigSchema = z.object({
   host: z.string(),
   port: z.number().min(1).max(65535),
@@ -126,7 +127,7 @@ export const deserialize = (data: MonitorMonitorResponseDto): SMTPForm => {
         // Keep the stored password: an update replaces the whole config
         password: validatedConfig.password || "",
         test_open_relay: validatedConfig.test_open_relay ?? false,
-        expect_secure_relay: validatedConfig.expect_secure_relay ?? false,
+        expect_secure_relay: validatedConfig.expect_secure_relay ?? true,
       };
     } catch (error) {
       console.error("Failed to parse or validate SMTP monitor config:", error);
@@ -151,7 +152,7 @@ export const deserialize = (data: MonitorMonitorResponseDto): SMTPForm => {
     username: config.username || "",
     password: config.password || "",
     test_open_relay: config.test_open_relay ?? false,
-    expect_secure_relay: config.expect_secure_relay ?? false,
+    expect_secure_relay: config.expect_secure_relay ?? true,
     interval: data.interval || 60,
     timeout: data.timeout || 10,
     max_retries: data.max_retries ?? 3,
@@ -190,7 +191,7 @@ export const serialize = (formData: SMTPForm): MonitorCreateUpdateDto => {
   // Always include boolean values explicitly to avoid ambiguity
   config.use_direct_tls = formData.use_direct_tls ?? false;
   config.test_open_relay = formData.test_open_relay ?? false;
-  config.expect_secure_relay = formData.expect_secure_relay ?? false;
+  config.expect_secure_relay = formData.expect_secure_relay ?? true;
 
   return {
     type: "smtp",

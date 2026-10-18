@@ -93,6 +93,30 @@ func TestSMTPExecutor_Unmarshal(t *testing.T) {
 	}
 }
 
+// A config without expect_secure_relay (e.g. created through the API) expects
+// the server to refuse relaying, the same default as the form
+func TestSMTPExecutor_Unmarshal_ExpectSecureRelayDefault(t *testing.T) {
+	executor := NewSMTPExecutor(zap.NewNop().Sugar())
+
+	tests := []struct {
+		name     string
+		config   string
+		expected bool
+	}{
+		{"omitted", `{"host": "smtp.example.com", "port": 25, "test_open_relay": true}`, true},
+		{"explicit true", `{"host": "smtp.example.com", "port": 25, "test_open_relay": true, "expect_secure_relay": true}`, true},
+		{"explicit false", `{"host": "smtp.example.com", "port": 25, "test_open_relay": true, "expect_secure_relay": false}`, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := executor.Unmarshal(tt.config)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expected, result.(*SMTPConfig).ExpectSecureRelay)
+		})
+	}
+}
+
 func TestSMTPExecutor_Validate(t *testing.T) {
 	// Setup
 	logger := zap.NewNop().Sugar()

@@ -3,6 +3,7 @@ package executor
 import (
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
@@ -44,7 +45,8 @@ type SMTPConfig struct {
 	TestOpenRelay bool `json:"test_open_relay"`
 	// ExpectSecureRelay: If true, monitor expects relay to be REJECTED (secure configuration)
 	// If false, monitor expects relay to be ALLOWED (intentional open relay)
-	// Only used when TestOpenRelay is true
+	// Only used when TestOpenRelay is true. Defaults to true when omitted
+	// (see Unmarshal)
 	ExpectSecureRelay bool `json:"expect_secure_relay"`
 }
 
@@ -59,7 +61,20 @@ func NewSMTPExecutor(logger *zap.SugaredLogger) *SMTPExecutor {
 }
 
 func (s *SMTPExecutor) Unmarshal(configJSON string) (any, error) {
-	return GenericUnmarshal[SMTPConfig](configJSON)
+	config, err := GenericUnmarshal[SMTPConfig](configJSON)
+	if err != nil {
+		return nil, err
+	}
+
+	// A config without expect_secure_relay expects the server to refuse
+	// relaying, the same default as the form
+	var relay struct {
+		ExpectSecureRelay *bool `json:"expect_secure_relay"`
+	}
+	if err := json.Unmarshal([]byte(configJSON), &relay); err == nil && relay.ExpectSecureRelay == nil {
+		config.ExpectSecureRelay = true
+	}
+	return config, nil
 }
 
 func (s *SMTPExecutor) Validate(configJSON string) error {
