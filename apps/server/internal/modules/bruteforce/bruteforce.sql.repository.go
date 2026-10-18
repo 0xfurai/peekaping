@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect"
 )
 
 // sqlModel represents the database model for login state
@@ -129,11 +130,15 @@ func (r *SQLRepositoryImpl) OnFailure(ctx context.Context, key string, now time.
 
 	err := r.db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
 		var sm sqlModel
-		err := tx.NewSelect().
+		query := tx.NewSelect().
 			Model(&sm).
-			Where("key = ?", key).
-			For("UPDATE").
-			Scan(ctx)
+			Where("key = ?", key)
+		// SQLite has no FOR UPDATE. It doesn't need one: the app opens SQLite
+		// with a single connection, so this transaction already runs alone.
+		if r.db.Dialect().Name() != dialect.SQLite {
+			query = query.For("UPDATE")
+		}
+		err := query.Scan(ctx)
 
 		windowStart := now.Add(-window)
 
