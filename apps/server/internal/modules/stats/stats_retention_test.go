@@ -31,11 +31,11 @@ func TestDeleteExpiredKeepsEachPeriodForItsRetention(t *testing.T) {
 	forEachBackend(t, func(t *testing.T, svc stats.Service, monitorID string) {
 		now := time.Date(2026, 10, 18, 15, 30, 20, 0, time.UTC)
 		checks := []time.Time{
-			now.Add(-48 * time.Hour),                // minute bucket 15:30 on Oct 16: the oldest one kept
-			now.Add(-48*time.Hour - time.Minute),    // minute bucket 15:29 on Oct 16: expired
-			now.AddDate(0, 0, -90),                  // hour bucket 15:00 on Jul 20: the oldest one kept
-			now.AddDate(0, 0, -90).Add(-time.Hour),  // hour bucket 14:00 on Jul 20: expired
-			now.AddDate(-2, 0, 0),                   // day bucket Oct 18, 2024: kept forever
+			now.Add(-48 * time.Hour),               // minute bucket 15:30 on Oct 16: the oldest one kept
+			now.Add(-48*time.Hour - time.Minute),   // minute bucket 15:29 on Oct 16: expired
+			now.AddDate(0, 0, -90),                 // hour bucket 15:00 on Jul 20: the oldest one kept
+			now.AddDate(0, 0, -90).Add(-time.Hour), // hour bucket 14:00 on Jul 20: expired
+			now.AddDate(-2, 0, 0),                  // day bucket Oct 18, 2024: kept forever
 		}
 		for _, at := range checks {
 			aggregate(t, svc, monitorID, shared.MonitorStatusUp, 100, at)
