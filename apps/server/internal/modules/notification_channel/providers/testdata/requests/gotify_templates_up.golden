@@ -1,0 +1,9 @@
+POST https://gotify.example.com/message?token=app-token
+Content-Type: application/json
+User-Agent: Peekaping-Gotify/<version>
+
+{
+  "message": "✅ 200 - OK in 42 ms",
+  "priority": 3,
+  "title": "Public API is UP"
+}

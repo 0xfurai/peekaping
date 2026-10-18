@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
-	"time"
 
 	liquid "github.com/osteele/liquid"
 	"go.uber.org/zap"
@@ -25,11 +24,12 @@ type PushbulletConfig struct {
 // PushbulletSender handles sending notifications via Pushbullet
 type PushbulletSender struct {
 	logger *zap.SugaredLogger
+	client *http.Client
 }
 
 // NewPushbulletSender creates a new PushbulletSender instance
-func NewPushbulletSender(logger *zap.SugaredLogger) *PushbulletSender {
-	return &PushbulletSender{logger: logger}
+func NewPushbulletSender(logger *zap.SugaredLogger, client *http.Client) *PushbulletSender {
+	return &PushbulletSender{logger: logger, client: client}
 }
 
 // Unmarshal parses the JSON configuration
@@ -98,8 +98,7 @@ func (s *PushbulletSender) Send(
 	req.Header.Set("Content-Type", "application/json")
 
 	// Send the request
-	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
+	resp, err := s.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to send Pushbullet notification: %w", err)
 	}

@@ -1,0 +1,10 @@
+POST https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=k
+Content-Type: application/json
+User-Agent: Peekaping-WeCom/<version>
+
+{
+  "markdown": {
+    "content": "🚨 Certificate Expiry Warning\n\nMonitor: Public API\nCertificate: api.example.com (server)\nExpires in: 7 days\nValid until: 2026-10-24 09:30:00\nNotification threshold: 7 days\nValid for: api.example.com\nIssuer: CN=R11,O=Let's Encrypt,C=US"
+  },
+  "msgtype": "markdown"
+}

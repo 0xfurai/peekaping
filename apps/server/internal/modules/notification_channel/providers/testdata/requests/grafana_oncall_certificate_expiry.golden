@@ -1,0 +1,16 @@
+POST https://oncall.example.com/integrations/v1/formatted_webhook/abc/
+Content-Type: application/json
+User-Agent: Peekaping/<version>
+
+{
+  "message": "🚨 Certificate Expiry Warning\n\nMonitor: Public API\nCertificate: api.example.com (server)\nExpires in: 7 days\nValid until: 2026-10-24 09:30:00\nNotification threshold: 7 days\nValid for: api.example.com\nIssuer: CN=R11,O=Let's Encrypt,C=US",
+  "monitor_id": "mon-1",
+  "monitor_type": "http",
+  "monitor_url": "https://api.example.com/health",
+  "state": "alerting",
+  "tags": [
+    "severity:critical",
+    "team:core"
+  ],
+  "title": "General notification"
+}

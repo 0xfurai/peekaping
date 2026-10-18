@@ -31,12 +31,10 @@ type MatrixSender struct {
 }
 
 // NewMatrixSender creates a new MatrixSender
-func NewMatrixSender(logger *zap.SugaredLogger) *MatrixSender {
+func NewMatrixSender(logger *zap.SugaredLogger, client *http.Client) *MatrixSender {
 	return &MatrixSender{
 		logger: logger,
-		client: &http.Client{
-			Timeout: 30 * time.Second,
-		},
+		client: client,
 	}
 }
 

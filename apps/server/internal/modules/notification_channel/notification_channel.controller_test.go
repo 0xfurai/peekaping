@@ -145,3 +145,22 @@ func TestControllerUpdatePartialMergesSavedChannel(t *testing.T) {
 		}
 	})
 }
+
+func TestControllerTestSendsWithADeadline(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	var hasDeadline bool
+	registerTestProvider(t, "test-valid", &recordingProvider{send: func(ctx context.Context) error {
+		_, hasDeadline = ctx.Deadline()
+		return nil
+	}})
+	router := gin.New()
+	router.POST("/test", NewController(nil, zap.NewNop().Sugar()).Test)
+
+	req := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader(`{"name": "Alerts", "type": "test-valid", "config": "{}"}`))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+	assert.True(t, hasDeadline, "a test notification must stop at a deadline, like any other send")
+}

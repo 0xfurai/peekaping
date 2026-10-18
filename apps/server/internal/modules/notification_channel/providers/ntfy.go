@@ -9,7 +9,6 @@ import (
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/version"
 	"strings"
-	"time"
 
 	liquid "github.com/osteele/liquid"
 	"go.uber.org/zap"
@@ -34,12 +33,10 @@ type NTFYSender struct {
 }
 
 // NewNTFYSender creates an NTFYSender
-func NewNTFYSender(logger *zap.SugaredLogger) *NTFYSender {
+func NewNTFYSender(logger *zap.SugaredLogger, client *http.Client) *NTFYSender {
 	return &NTFYSender{
 		logger: logger,
-		client: &http.Client{
-			Timeout: 30 * time.Second,
-		},
+		client: client,
 	}
 }
 

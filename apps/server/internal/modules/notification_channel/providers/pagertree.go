@@ -34,11 +34,13 @@ type PagerTreePayload struct {
 
 type PagerTreeSender struct {
 	logger *zap.SugaredLogger
+	client *http.Client
 }
 
-func NewPagerTreeSender(logger *zap.SugaredLogger) *PagerTreeSender {
+func NewPagerTreeSender(logger *zap.SugaredLogger, client *http.Client) *PagerTreeSender {
 	return &PagerTreeSender{
 		logger: logger,
+		client: client,
 	}
 }
 
@@ -163,11 +165,7 @@ func (p *PagerTreeSender) Send(ctx context.Context, configJSON, message string, 
 	}
 
 	// Send the request
-	client := &http.Client{
-		Timeout: 10 * time.Second,
-	}
-
-	resp, err := client.Do(req)
+	resp, err := p.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to send PagerTree notification: %w", err)
 	}

@@ -1,0 +1,10 @@
+POST https://waha.example.com/api/sendText
+Content-Type: application/json
+User-Agent: Peekaping-WhatsApp/<version>
+X-Api-Key: waha-key
+
+{
+  "chatId": "15550000002",
+  "session": "default",
+  "text": "connection refused"
+}

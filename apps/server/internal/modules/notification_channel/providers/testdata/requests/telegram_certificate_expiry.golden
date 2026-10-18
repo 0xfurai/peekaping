@@ -1,0 +1,2 @@
+GET https://api.telegram.org/bot123456:bot-token/sendMessage?chat_id=-1001234&disable_notification=false&protect_content=false&text=%F0%9F%9A%A8+Certificate+Expiry+Warning%0A%0AMonitor%3A+Public+API%0ACertificate%3A+api.example.com+%28server%29%0AExpires+in%3A+7+days%0AValid+until%3A+2026-10-24+09%3A30%3A00%0ANotification+threshold%3A+7+days%0AValid+for%3A+api.example.com%0AIssuer%3A+CN%3DR11%2CO%3DLet%27s+Encrypt%2CC%3DUS
+
