@@ -1449,7 +1449,7 @@ export const getSettingsKeyByKey = <ThrowOnError extends boolean = false>(
 
 /**
  * Set setting by key
- * Only KEEP_DATA_PERIOD_DAYS can be set. Every other key returns 404.
+ * Only KEEP_DATA_PERIOD_DAYS can be set, with type int and a whole number of days from 1 to 36500. Every other key returns 404.
  */
 export const putSettingsKeyByKey = <ThrowOnError extends boolean = false>(
   options: Options<PutSettingsKeyByKeyData, ThrowOnError>
