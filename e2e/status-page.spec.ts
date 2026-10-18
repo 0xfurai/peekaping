@@ -13,8 +13,8 @@ test('A published status page shows visitors its own monitors, and a draft shows
     for (const name of [onPublished, onDraft]) {
       created.push(`monitors/${(await createHTTPMonitor(api, name, targetURL(id))).id}`);
     }
-    created.push(`status-pages/${await createStatusPage(page, `Published ${id}`, `published-${id}`, onPublished, true)}`);
-    created.push(`status-pages/${await createStatusPage(page, `Draft ${id}`, `draft-${id}`, onDraft, false)}`);
+    await createStatusPage(page, created, `Published ${id}`, `published-${id}`, onPublished, true);
+    await createStatusPage(page, created, `Draft ${id}`, `draft-${id}`, onDraft, false);
 
     const visitor = await browser.newContext({
       baseURL: test.info().project.use.baseURL,
@@ -24,8 +24,9 @@ test('A published status page shows visitors its own monitors, and a draft shows
 
     await visitorPage.goto(`/status/published-${id}`);
     await expect(visitorPage.getByRole('heading', { level: 1, name: `Published ${id}` })).toBeVisible();
-    await expect(visitorPage.getByRole('heading', { level: 3, name: onPublished })).toBeVisible();
-    await expect(visitorPage.getByText(onDraft)).toHaveCount(0);
+    // Each monitor on the page is a card headed by its name.
+    const monitorCards = visitorPage.getByRole('heading', { level: 3 });
+    await expect(monitorCards).toHaveText([onPublished]);
 
     await visitorPage.goto(`/status/draft-${id}`);
     await expect(visitorPage.getByText('Status page not found or is not published.')).toBeVisible();
@@ -38,13 +39,20 @@ test('A published status page shows visitors its own monitors, and a draft shows
   }
 });
 
-async function createStatusPage(page: Page, title: string, slug: string, monitorName: string, published: boolean) {
+async function createStatusPage(
+  page: Page,
+  created: string[],
+  title: string,
+  slug: string,
+  monitorName: string,
+  published: boolean,
+) {
   await page.goto('/status-pages/new');
   await page.locator('input[name="title"]').fill(title);
   await page.locator('input[name="slug"]').fill(slug);
 
-  const monitorPicker = page.getByPlaceholder('Select monitors...');
-  await monitorPicker.fill(monitorName);
+  // The picker searches the server, which on Postgres matches only a lowercase term (PP-72).
+  await page.getByPlaceholder('Select monitors...').fill(monitorName.toLowerCase());
   await page.getByRole('option', { name: monitorName, exact: true }).click();
 
   await page.getByRole('switch', { name: 'Published' }).setChecked(published);
@@ -55,6 +63,6 @@ async function createStatusPage(page: Page, title: string, slug: string, monitor
   await page.getByRole('button', { name: 'Create Status Page' }).click();
   const response = await saved;
   expect(response.status(), await response.text()).toBe(201);
+  created.push(`status-pages/${(await response.json()).data.id}`);
   await expect(page).toHaveURL(/\/status-pages$/);
-  return (await response.json()).data.id;
 }
