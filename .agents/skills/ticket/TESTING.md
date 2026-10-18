@@ -64,7 +64,7 @@ git diff --stat   # only the endpoints you changed should move
 
 `pnpm gen` asks for prettier, which isn't installed, so without the second command the whole client comes out reformatted.
 
-E2E, from the worktree root. The dev stack binds fixed host ports (6379, 8034, 8383), so only one runs per machine: if `docker ps` shows another session's stack, wait for it. The stack reads a gitignored `.env`, and a leftover SQLite database makes `auth.spec` fail with "admin already exists":
+E2E, from the worktree root. The dev stack binds fixed host ports (6379, 8034, 8383), so only one runs per machine: if `docker ps` shows another session's stack, wait for it. `docker-compose.e2e.yml` adds `e2e-target` on port 3033, the local service the tests' monitors check and notify. The stack reads a gitignored `.env`. A leftover SQLite database is fine: the setup logs in as the e2e admin (`test@test.com`) instead of registering, and fails with a message if the database has an admin with other credentials.
 
 ```sh
 cat > .env <<'ENV'
@@ -75,13 +75,15 @@ REDIS_PORT=6379
 SERVER_PORT=8034
 CLIENT_URL=http://localhost:8383
 ENV
-rm -rf .data/sqlite
-docker compose -f docker-compose.dev.sqlite.yml up -d --build
-until curl -sf localhost:8383/api/v1/health; do sleep 2; done
+export COMPOSE_FILE=docker-compose.dev.sqlite.yml:docker-compose.e2e.yml
+docker compose up -d --build
+until curl -sf localhost:8034/api/v1/health && curl -sf localhost:8383/ && curl -sf localhost:3033/health; do sleep 2; done
 pnpm exec playwright install chromium
 PW_TEST_HTML_REPORT_OPEN=never pnpm e2e
-docker compose -f docker-compose.dev.sqlite.yml down
+docker compose down
 ```
+
+CI runs the suite twice against the same database, so a test must leave nothing behind that breaks its next run.
 
 UI text: every new string gets a key in `apps/web/src/i18n/locales/en-US.json` and a real translation in all 45 locale files. i18next returns the raw key for a missing entry, so `t("key") || "fallback"` shows the key to users. The files round-trip through Python `json.dumps(data, ensure_ascii=False, indent=2) + "\n"`, so a script can insert keys; check that `git diff` shows only additions.
 
