@@ -3,6 +3,7 @@ package stats_test
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,6 +15,7 @@ import (
 	"peekaping/cmd/bun/migrations"
 	"peekaping/internal/config"
 	"peekaping/internal/infra"
+	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stats"
 
@@ -30,6 +32,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 // sqliteDB opens an empty SQLite database in a temp dir, with the settings the server uses.
@@ -348,4 +351,43 @@ func TestMongoStatWrittenBeforeUpgradeKeepsCounting(t *testing.T) {
 	assert.Equal(t, bucket{Up: 4, Down: 1, Maintenance: 1, Ping: 200, PingMin: 100, PingMax: 300}, got(rows[0]))
 	assert.Equal(t, downOnly.Hex(), rows[1].ID)
 	assert.Equal(t, bucket{Up: 1, Down: 1, Ping: 50, PingMin: 50, PingMax: 50}, got(rows[1]))
+}
+
+// fakeBus delivers each published event to its subscribers right away.
+type fakeBus struct {
+	handlers map[events.EventType][]events.EventHandler
+}
+
+func (b *fakeBus) Subscribe(eventType events.EventType, handler events.EventHandler) {
+	if b.handlers == nil {
+		b.handlers = map[events.EventType][]events.EventHandler{}
+	}
+	b.handlers[eventType] = append(b.handlers[eventType], handler)
+}
+
+func (b *fakeBus) Publish(event events.Event) {
+	for _, handler := range b.handlers[event.Type] {
+		handler(event)
+	}
+}
+
+func (b *fakeBus) Close() error { return nil }
+
+func TestFailedStatsAggregationForAHeartbeatIsLogged(t *testing.T) {
+	core, logs := observer.New(zap.ErrorLevel)
+	// No migrations, so there are no stats tables and aggregating fails.
+	svc := stats.NewService(stats.NewSQLRepository(sqliteDB(t)), zap.New(core).Sugar())
+	bus := &fakeBus{}
+	svc.RegisterEventHandlers(bus)
+
+	monitorID := uuid.NewString()
+	// Redis delivers the payload as raw JSON.
+	payload, err := json.Marshal(shared.HeartBeatModel{MonitorID: monitorID, Status: shared.MonitorStatusUp, Ping: 100, Time: time.Now()})
+	require.NoError(t, err)
+	bus.Publish(events.Event{Type: events.HeartbeatEvent, Payload: json.RawMessage(payload)})
+
+	require.Equal(t, 1, logs.Len())
+	fields := logs.All()[0].ContextMap()
+	assert.Equal(t, monitorID, fields["monitor_id"])
+	assert.Contains(t, fields["error"], "no such table")
 }

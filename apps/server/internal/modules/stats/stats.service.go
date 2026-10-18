@@ -100,7 +100,9 @@ func (s *ServiceImpl) RegisterEventHandlers(eventBus events.EventBus) {
 			Ping:      payload.Ping,
 			Time:      payload.Time.Unix(),
 		}
-		_ = s.AggregateHeartbeat(context.Background(), hb)
+		if err := s.AggregateHeartbeat(context.Background(), hb); err != nil {
+			s.logger.Errorw("Failed to aggregate heartbeat into stats", "monitor_id", hb.MonitorID, "error", err)
+		}
 	})
 }
 

@@ -11,9 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- refactor: SQL databases write a stats row with one `INSERT ... ON CONFLICT` statement instead of an UPDATE followed by an INSERT. What is stored doesn't change (#260) (thanks @brewle)
+
 ### Fixed
 
 - fix: heartbeats for the same monitor that the ingester handles at the same time no longer overwrite each other's counts in the stats behind the response time chart and uptime %, and no longer fail with a unique-key error on SQLite. On MongoDB they no longer create a second stats document for the same minute, hour or day. Each heartbeat now updates its stats with 3 statements instead of 6 to 9
+- fix: the ingester logs an error with the monitor ID when it can't aggregate a heartbeat into the stats behind the response time chart and uptime %, instead of dropping the error (#260)
 - fix: the API, producer, worker and ingester binaries embed the time zone database, so `TZ=Europe/Kyiv` and maintenance windows with their own time zone work in any image instead of falling back to UTC, and a time zone that fails to load logs a warning. "Same as Server Timezone" is the zone the process runs in. Upgrade note: the separate API, producer, worker and ingester images (Docker Compose, Helm) used to ignore `TZ` and run in UTC; after upgrading they run in the `TZ` you set (the example `.env` files set `America/New_York`), so "Same as Server Timezone" windows, log timestamps and times in notification messages move to that zone. Set `TZ=UTC` to keep the old behavior. The bundle images already honored `TZ` (#261, #262) (thanks @brewle)
 - fix: the monitor page header shows the target of TCP, DNS, ping, Docker, gRPC, SNMP, MQTT, Kafka and RabbitMQ monitors, such as `1.1.1.1:443` or `example.com (A @ 8.8.8.8:53)`, instead of only the monitor type. Monitors whose target holds credentials or a token (database, Redis and push monitors) still show only the type. Only `http(s)` URLs are links (#269, #270) (thanks @HartD92)
 - fix: a status page that isn't published returns 404 on its public slug, custom domain and monitor routes, instead of serving its title and monitors. The View button on a draft status page therefore shows a 404 until the page is published (#305)
