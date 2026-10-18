@@ -11,6 +11,7 @@ import (
 	"peekaping/internal/modules/shared"
 	"slices"
 	"strings"
+	"time"
 
 	"go.uber.org/zap"
 )
@@ -92,7 +93,9 @@ func (s *ServiceImpl) checkSingleCertificate(ctx context.Context, certInfo *Cert
 
 	subjectCN := extractCommonName(certInfo.Subject)
 
-	if certInfo.DaysRemaining < 0 {
+	// Days remaining are truncated toward zero, so a certificate that expired
+	// less than a day ago still has 0. ValidTo catches it when it's known.
+	if certInfo.DaysRemaining < 0 || (!certInfo.ValidTo.IsZero() && !certInfo.ValidTo.After(time.Now())) {
 		return nil
 	}
 

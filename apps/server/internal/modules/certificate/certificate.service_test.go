@@ -6,6 +6,7 @@ import (
 	"errors"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"peekaping/cmd/bun/migrations"
 	"peekaping/internal/modules/certificate"
@@ -78,11 +79,18 @@ func newHarness(t *testing.T) *harness {
 // then check expiry. It returns the thresholds notified by this check.
 func (h *harness) check(t *testing.T, fingerprint string, daysRemaining int) []int {
 	t.Helper()
+	return h.checkValidTo(t, fingerprint, daysRemaining, time.Time{})
+}
+
+// checkValidTo is check for a certificate whose expiry time is known.
+func (h *harness) checkValidTo(t *testing.T, fingerprint string, daysRemaining int, validTo time.Time) []int {
+	t.Helper()
 	ctx := context.Background()
 	tlsInfo := &certificate.TLSInfo{Valid: true, CertInfo: &certificate.CertificateInfo{
 		Subject:        "CN=example.com",
 		Fingerprint256: fingerprint,
 		DaysRemaining:  daysRemaining,
+		ValidTo:        validTo,
 		CertType:       "server",
 	}}
 	before := len(h.notifications.targets)
@@ -149,8 +157,11 @@ func TestCheckCertificateExpiry_SendsNothing(t *testing.T) {
 		name          string
 		notifyDays    []int
 		daysRemaining int
+		validTo       time.Time
 	}{
 		{name: "expired certificate", notifyDays: []int{7, 14, 21}, daysRemaining: -1},
+		// Days remaining are truncated toward zero, so this one still has 0.
+		{name: "expired less than a day ago", notifyDays: []int{7, 14, 21}, daysRemaining: 0, validTo: time.Now().Add(-time.Hour)},
 		{name: "outside every threshold", notifyDays: []int{7, 14, 21}, daysRemaining: 22},
 		{name: "no thresholds configured", notifyDays: []int{}, daysRemaining: 5},
 	}
@@ -159,9 +170,15 @@ func TestCheckCertificateExpiry_SendsNothing(t *testing.T) {
 			h := newHarness(t)
 			require.NoError(t, h.svc.SetNotificationDays(context.Background(), tt.notifyDays))
 
-			assert.Empty(t, h.check(t, certA, tt.daysRemaining))
+			assert.Empty(t, h.checkValidTo(t, certA, tt.daysRemaining, tt.validTo))
 		})
 	}
+}
+
+func TestCheckCertificateExpiry_NotifiesForACertificateExpiringLaterToday(t *testing.T) {
+	h := newHarness(t)
+
+	assert.Equal(t, []int{7}, h.checkValidTo(t, certA, 0, time.Now().Add(time.Hour)))
 }
 
 func TestCheckCertificateExpiry_IgnoresMissingCertificateInfo(t *testing.T) {
