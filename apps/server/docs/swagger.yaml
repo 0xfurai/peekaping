@@ -535,6 +535,11 @@ definitions:
         description: Retry interval in seconds to do request to url
         example: 60
         type: integer
+      stale_since:
+        description: |-
+          When Peekaping last checked the monitor, set only while the stale-monitor
+          watchdog counts it as stale. The API fills it in; it isn't stored.
+        type: string
       status:
         $ref: '#/definitions/shared.MonitorStatus'
       timeout:
@@ -590,6 +595,10 @@ definitions:
       retry_interval:
         example: 10
         type: integer
+      stale_since:
+        description: When Peekaping last checked the monitor, set only while it counts
+          as stale
+        type: string
       status:
         example: 1
         type: integer

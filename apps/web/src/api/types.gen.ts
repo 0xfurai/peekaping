@@ -282,6 +282,11 @@ export type MonitorModel = {
    * Retry interval in seconds to do request to url
    */
   retry_interval?: number;
+  /**
+   * When Peekaping last checked the monitor, set only while the stale-monitor
+   * watchdog counts it as stale. The API fills it in; it isn't stored.
+   */
+  stale_since?: string;
   status?: SharedMonitorStatus;
   /**
    * monitor timeout in seconds to do request otherwise stop request
@@ -307,6 +312,10 @@ export type MonitorMonitorResponseDto = {
   push_token?: string;
   resend_interval?: number;
   retry_interval?: number;
+  /**
+   * When Peekaping last checked the monitor, set only while it counts as stale
+   */
+  stale_since?: string;
   status?: number;
   tag_ids?: Array<string>;
   timeout?: number;

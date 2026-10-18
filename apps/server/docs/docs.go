@@ -4640,6 +4640,10 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 60
                 },
+                "stale_since": {
+                    "description": "When Peekaping last checked the monitor, set only while the stale-monitor\nwatchdog counts it as stale. The API fills it in; it isn't stored.",
+                    "type": "string"
+                },
                 "status": {
                     "$ref": "#/definitions/shared.MonitorStatus"
                 },
@@ -4712,6 +4716,10 @@ const docTemplate = `{
                 "retry_interval": {
                     "type": "integer",
                     "example": 10
+                },
+                "stale_since": {
+                    "description": "When Peekaping last checked the monitor, set only while it counts as stale",
+                    "type": "string"
                 },
                 "status": {
                     "type": "integer",

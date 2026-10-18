@@ -45,6 +45,10 @@ type Monitor struct {
 	// Last heartbeat for push monitors
 	LastHeartbeat *HeartBeatModel `json:"last_heartbeat,omitempty"`
 
+	// When Peekaping last checked the monitor, set only while the stale-monitor
+	// watchdog counts it as stale. The API fills it in; it isn't stored.
+	StaleSince *time.Time `json:"stale_since,omitempty"`
+
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
