@@ -7,7 +7,7 @@ export const targetHost = process.env.E2E_TARGET_HOST ?? 'e2e-target';
 export const targetPort = 3033;
 const targetControlURL = process.env.E2E_TARGET_URL ?? 'http://localhost:3033';
 
-// A URL a monitor can check: it answers 200 until setTargetStatus changes it.
+// A URL a monitor can check: it answers 200 until a test sets another status.
 export const targetURL = (id: string) => `http://${targetHost}:${targetPort}/targets/${id}`;
 
 // A URL a webhook notification channel can post to; receivedWebhooks reads it back.
