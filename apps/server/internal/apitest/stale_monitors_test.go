@@ -58,11 +58,15 @@ func TestMonitorsAPI_ListsMonitorsWhenStaleRecordsCannotBeRead(t *testing.T) {
 		return rdb.Set(context.Background(), stale.MonitorsKey, "not a hash", 0).Err()
 	}))
 
-	got := decode[staleMonitorResponse](t, a.request(t, http.MethodGet, "/api/v1/monitors/"+id, nil, a.asAdmin), http.StatusOK)
+	response := a.request(t, http.MethodGet, "/api/v1/monitors/"+id, nil, a.asAdmin)
+	got := decode[staleMonitorResponse](t, response, http.StatusOK)
 	assert.Equal(t, id, got.ID)
 	assert.Nil(t, got.StaleSince)
+	assert.NotContains(t, response.Body.String(), `"stale_since"`)
 
-	list := decode[[]staleMonitorResponse](t, a.request(t, http.MethodGet, "/api/v1/monitors", nil, a.asAdmin), http.StatusOK)
+	listResponse := a.request(t, http.MethodGet, "/api/v1/monitors", nil, a.asAdmin)
+	list := decode[[]staleMonitorResponse](t, listResponse, http.StatusOK)
 	require.Len(t, list, 1)
 	assert.Nil(t, list[0].StaleSince)
+	assert.NotContains(t, listResponse.Body.String(), `"stale_since"`)
 }
