@@ -90,6 +90,7 @@ Peekaping also support [PostgreSQL Setup](https://docs.peekaping.com/self-hostin
 - Telegram
 - Slack
 - Google Chat
+- Microsoft Teams
 - Signal
 - Mattermost
 - Matrix
@@ -163,7 +164,6 @@ If you enjoy this project, come say hi &amp; follow along!
 
 ### Notification channels
 
-- [ ] Microsoft Teams
 - [ ] WhatsApp (Whapi)
 - [ ] CallMeBot (WhatsApp, Telegram Call, Facebook Messanger)
 - [ ] AliyunSMS (阿里云短信服务)
