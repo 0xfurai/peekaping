@@ -9,7 +9,9 @@ import (
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/notification_sent_history"
 	"peekaping/internal/modules/shared"
+	"slices"
 	"strings"
+	"time"
 
 	"go.uber.org/zap"
 )
@@ -91,36 +93,48 @@ func (s *ServiceImpl) checkSingleCertificate(ctx context.Context, certInfo *Cert
 
 	subjectCN := extractCommonName(certInfo.Subject)
 
-	// Check each notification threshold with deduplication
-	for _, targetDays := range notifyDays {
-		if certInfo.DaysRemaining <= targetDays && certInfo.DaysRemaining >= 0 {
-			// Check if we already sent a notification for this threshold
-			alreadySent, err := s.notificationHistoryService.CheckIfNotificationSent(ctx, "certificate", monitorID, targetDays)
-			if err != nil {
-				s.logger.Errorf("Failed to check notification history: %v", err)
-				continue
-			}
+	// Days remaining are truncated toward zero, so a certificate that expired
+	// less than a day ago still has 0. ValidTo catches it when it's known.
+	if certInfo.DaysRemaining < 0 || (!certInfo.ValidTo.IsZero() && !certInfo.ValidTo.After(time.Now())) {
+		return nil
+	}
 
-			if alreadySent {
-				s.logger.Debugf("Certificate notification already sent for monitor %s, threshold %d days", monitorID, targetDays)
-				continue
-			}
-
-			s.logger.Infof("Sending certificate expiry notification: %s expires in %d days (threshold: %d)", subjectCN, certInfo.DaysRemaining, targetDays)
-
-			// Send notification
-			if err := s.notificationService.SendCertificateExpiryNotification(
-				ctx, monitorID, monitorName, certInfo, certInfo.DaysRemaining, targetDays,
-			); err != nil {
-				s.logger.Errorf("Failed to send certificate expiry notification: %v", err)
-				continue
-			}
-
-			// Record that we sent the notification
-			if err := s.notificationHistoryService.RecordNotificationSent(ctx, "certificate", monitorID, targetDays); err != nil {
-				s.logger.Errorf("Failed to record notification sent: %v", err)
-			}
+	// Only the nearest threshold the certificate is inside matters. A sent
+	// threshold also covers the farther ones, so a certificate first seen
+	// inside several thresholds gets one certificate expiry notification, for
+	// the nearest. If that notification fails, the next check retries it.
+	for _, targetDays := range slices.Sorted(slices.Values(notifyDays)) {
+		if certInfo.DaysRemaining > targetDays {
+			continue
 		}
+
+		// Check if we already sent a notification for this threshold or a nearer one
+		alreadySent, err := s.notificationHistoryService.CheckIfNotificationSent(ctx, "certificate", monitorID, targetDays)
+		if err != nil {
+			s.logger.Errorf("Failed to check notification history: %v", err)
+			return nil
+		}
+
+		if alreadySent {
+			s.logger.Debugf("Certificate notification already sent for monitor %s, threshold %d days", monitorID, targetDays)
+			return nil
+		}
+
+		s.logger.Infof("Sending certificate expiry notification: %s expires in %d days (threshold: %d)", subjectCN, certInfo.DaysRemaining, targetDays)
+
+		// Send notification
+		if err := s.notificationService.SendCertificateExpiryNotification(
+			ctx, monitorID, monitorName, certInfo, certInfo.DaysRemaining, targetDays,
+		); err != nil {
+			s.logger.Errorf("Failed to send certificate expiry notification: %v", err)
+			return nil
+		}
+
+		// Record that we sent the notification
+		if err := s.notificationHistoryService.RecordNotificationSent(ctx, "certificate", monitorID, targetDays); err != nil {
+			s.logger.Errorf("Failed to record notification sent: %v", err)
+		}
+		return nil
 	}
 
 	return nil
