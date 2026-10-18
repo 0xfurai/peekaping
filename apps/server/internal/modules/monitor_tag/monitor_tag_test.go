@@ -103,7 +103,10 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, f fixture)) {
 		defer cancel()
 		client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
 		require.NoError(t, err)
-		require.NoError(t, client.Ping(ctx, nil))
+		if err := client.Ping(ctx, nil); err != nil {
+			_ = client.Disconnect(context.Background())
+			require.NoError(t, err)
+		}
 		cfg := &config.Config{DBName: "monitor_tag_" + primitive.NewObjectID().Hex()}
 		t.Cleanup(func() {
 			require.NoError(t, client.Database(cfg.DBName).Drop(context.Background()))

@@ -58,14 +58,14 @@ func postgresDB(t *testing.T) *bun.DB {
 	return db
 }
 
-// fixture is a monitor-maintenance service plus constructors for the rows a link points at.
+// fixture is the service linking monitors to maintenance windows, plus constructors for the rows a link points at.
 type fixture struct {
-	svc         monitor_maintenance.Service
-	monitor     func() string
-	maintenance func() string
+	svc     monitor_maintenance.Service
+	monitor func() string
+	window  func() string
 }
 
-// forEachBackend runs fn against a monitor-maintenance service on every database backend.
+// forEachBackend runs fn against that service on every database backend.
 func forEachBackend(t *testing.T, fn func(t *testing.T, f fixture)) {
 	sqlBackend := func(open func(*testing.T) *bun.DB) func(*testing.T) {
 		return func(t *testing.T) {
@@ -83,7 +83,7 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, f fixture)) {
 					require.NoError(t, err)
 					return id
 				},
-				maintenance: func() string {
+				window: func() string {
 					id := uuid.NewString()
 					_, err := db.Exec("INSERT INTO maintenances (id, title, strategy) VALUES (?, 'Upgrade', 'manual')", id)
 					require.NoError(t, err)
@@ -103,7 +103,10 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, f fixture)) {
 		defer cancel()
 		client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
 		require.NoError(t, err)
-		require.NoError(t, client.Ping(ctx, nil))
+		if err := client.Ping(ctx, nil); err != nil {
+			_ = client.Disconnect(context.Background())
+			require.NoError(t, err)
+		}
 		cfg := &config.Config{DBName: "monitor_maintenance_" + primitive.NewObjectID().Hex()}
 		t.Cleanup(func() {
 			require.NoError(t, client.Database(cfg.DBName).Drop(context.Background()))
@@ -114,14 +117,14 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, f fixture)) {
 	})
 }
 
-func monitorsOf(t *testing.T, svc monitor_maintenance.Service, maintenanceID string) []string {
+func monitorsOf(t *testing.T, svc monitor_maintenance.Service, windowID string) []string {
 	t.Helper()
-	ids, err := svc.GetMonitors(context.Background(), maintenanceID)
+	ids, err := svc.GetMonitors(context.Background(), windowID)
 	require.NoError(t, err)
 	return ids
 }
 
-func maintenancesOf(t *testing.T, svc monitor_maintenance.Service, monitorID string) []string {
+func windowsOf(t *testing.T, svc monitor_maintenance.Service, monitorID string) []string {
 	t.Helper()
 	links, err := svc.FindByMonitorID(context.Background(), monitorID)
 	require.NoError(t, err)
@@ -132,10 +135,10 @@ func maintenancesOf(t *testing.T, svc monitor_maintenance.Service, monitorID str
 	return ids
 }
 
-func TestMonitorMaintenances_SetMonitorsReplacesTheWholeSet(t *testing.T) {
+func TestMaintenanceWindowMonitors_SetMonitorsReplacesTheWholeSet(t *testing.T) {
 	forEachBackend(t, func(t *testing.T, f fixture) {
 		ctx := context.Background()
-		upgrade, backup := f.maintenance(), f.maintenance()
+		upgrade, backup := f.window(), f.window()
 		web, db, api := f.monitor(), f.monitor(), f.monitor()
 		require.NoError(t, f.svc.SetMonitors(ctx, backup, []string{db}))
 
@@ -144,7 +147,7 @@ func TestMonitorMaintenances_SetMonitorsReplacesTheWholeSet(t *testing.T) {
 
 		require.NoError(t, f.svc.SetMonitors(ctx, upgrade, []string{db, api}))
 		assert.ElementsMatch(t, []string{db, api}, monitorsOf(t, f.svc, upgrade), "web is dropped and api added")
-		assert.ElementsMatch(t, []string{db}, monitorsOf(t, f.svc, backup), "another maintenance keeps its monitors")
+		assert.ElementsMatch(t, []string{db}, monitorsOf(t, f.svc, backup), "another maintenance window keeps its monitors")
 
 		require.NoError(t, f.svc.SetMonitors(ctx, upgrade, []string{}))
 		assert.Empty(t, monitorsOf(t, f.svc, upgrade))
@@ -152,10 +155,10 @@ func TestMonitorMaintenances_SetMonitorsReplacesTheWholeSet(t *testing.T) {
 	})
 }
 
-func TestMonitorMaintenances_LinksAreListedAndDeletedFromBothSides(t *testing.T) {
+func TestMaintenanceWindowMonitors_LinksAreListedAndDeletedFromBothSides(t *testing.T) {
 	forEachBackend(t, func(t *testing.T, f fixture) {
 		ctx := context.Background()
-		upgrade, backup, audit := f.maintenance(), f.maintenance(), f.maintenance()
+		upgrade, backup, audit := f.window(), f.window(), f.window()
 		web, db, api := f.monitor(), f.monitor(), f.monitor()
 		webUpgrade, err := f.svc.Create(ctx, web, upgrade)
 		require.NoError(t, err)
@@ -169,17 +172,17 @@ func TestMonitorMaintenances_LinksAreListedAndDeletedFromBothSides(t *testing.T)
 		require.NotNil(t, found)
 		assert.Equal(t, web, found.MonitorID)
 		assert.Equal(t, upgrade, found.MaintenanceID)
-		assert.ElementsMatch(t, []string{upgrade, backup, audit}, maintenancesOf(t, f.svc, web))
+		assert.ElementsMatch(t, []string{upgrade, backup, audit}, windowsOf(t, f.svc, web))
 
 		require.NoError(t, f.svc.Delete(ctx, webUpgrade.ID))
-		assert.ElementsMatch(t, []string{backup, audit}, maintenancesOf(t, f.svc, web), "Delete removes that one link")
+		assert.ElementsMatch(t, []string{backup, audit}, windowsOf(t, f.svc, web), "Delete removes that one link")
 
 		require.NoError(t, f.svc.DeleteByMonitorID(ctx, web))
-		assert.Empty(t, maintenancesOf(t, f.svc, web))
+		assert.Empty(t, windowsOf(t, f.svc, web))
 		assert.ElementsMatch(t, []string{db}, monitorsOf(t, f.svc, backup), "DeleteByMonitorID keeps other monitors' links")
 
 		require.NoError(t, f.svc.DeleteByMaintenanceID(ctx, upgrade))
 		assert.Empty(t, monitorsOf(t, f.svc, upgrade))
-		assert.ElementsMatch(t, []string{backup}, maintenancesOf(t, f.svc, db), "DeleteByMaintenanceID keeps other maintenances' links")
+		assert.ElementsMatch(t, []string{backup}, windowsOf(t, f.svc, db), "DeleteByMaintenanceID keeps other maintenance windows' links")
 	})
 }

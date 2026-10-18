@@ -83,6 +83,7 @@ func TestStatusPageService_RejectsADomainAnotherPageOwns(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, all, 2, "the rejected page isn't created")
 
+	// Domains only: this holds whether or not Update saves other fields before checking domains.
 	_, err = h.svc.Update(ctx, internal.ID, &status_page.UpdateStatusPageDTO{Domains: &[]string{"status.example.com"}})
 	require.ErrorAs(t, err, &used)
 	assert.Empty(t, h.withMonitors(t, internal.ID).Domains)

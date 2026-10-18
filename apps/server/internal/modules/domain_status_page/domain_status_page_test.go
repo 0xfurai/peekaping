@@ -58,13 +58,13 @@ func postgresDB(t *testing.T) *bun.DB {
 	return db
 }
 
-// fixture is a domain-status-page service plus a constructor for the status pages a domain points at.
+// fixture is the custom domain service plus a constructor for the status pages a domain points at.
 type fixture struct {
 	svc  domain_status_page.Service
 	page func() string
 }
 
-// forEachBackend runs fn against a domain-status-page service on every database backend.
+// forEachBackend runs fn against the custom domain service on every database backend.
 func forEachBackend(t *testing.T, fn func(t *testing.T, f fixture)) {
 	sqlBackend := func(open func(*testing.T) *bun.DB) func(*testing.T) {
 		return func(t *testing.T) {
@@ -96,7 +96,10 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, f fixture)) {
 		defer cancel()
 		client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
 		require.NoError(t, err)
-		require.NoError(t, client.Ping(ctx, nil))
+		if err := client.Ping(ctx, nil); err != nil {
+			_ = client.Disconnect(context.Background())
+			require.NoError(t, err)
+		}
 		cfg := &config.Config{DBName: "domain_status_page_" + primitive.NewObjectID().Hex()}
 		t.Cleanup(func() {
 			require.NoError(t, client.Database(cfg.DBName).Drop(context.Background()))
@@ -128,7 +131,7 @@ func domainsOf(t *testing.T, svc domain_status_page.Service, pageID string) []st
 	return domains
 }
 
-func TestDomainStatusPages_AddingADomainTwiceKeepsOneRow(t *testing.T) {
+func TestCustomDomains_AddingADomainTwiceKeepsOneRow(t *testing.T) {
 	forEachBackend(t, func(t *testing.T, f fixture) {
 		page := f.page()
 		first := add(t, f.svc, page, "status.example.com")
@@ -139,7 +142,7 @@ func TestDomainStatusPages_AddingADomainTwiceKeepsOneRow(t *testing.T) {
 	})
 }
 
-func TestDomainStatusPages_FindsThePageServedAtADomain(t *testing.T) {
+func TestCustomDomains_FindsThePageServedAtADomain(t *testing.T) {
 	forEachBackend(t, func(t *testing.T, f fixture) {
 		ctx := context.Background()
 		public, internal := f.page(), f.page()
@@ -172,7 +175,7 @@ func TestDomainStatusPages_FindsThePageServedAtADomain(t *testing.T) {
 	})
 }
 
-func TestDomainStatusPages_RemovesOnlyTheDomainsTheyName(t *testing.T) {
+func TestCustomDomains_RemovesOnlyTheDomainsTheyName(t *testing.T) {
 	forEachBackend(t, func(t *testing.T, f fixture) {
 		ctx := context.Background()
 		public, internal := f.page(), f.page()
