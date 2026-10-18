@@ -2,8 +2,6 @@ package stats
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"time"
 
 	"github.com/uptrace/bun"
@@ -84,47 +82,24 @@ func statTable(period StatPeriod) string {
 	return table + " AS s"
 }
 
-func (r *SQLRepositoryImpl) GetOrCreateStat(ctx context.Context, monitorID string, timestamp time.Time, period StatPeriod) (*Stat, error) {
-	sm := new(sqlModel)
-
-	// Try to find existing stat
-	err := r.db.NewSelect().
-		Model(sm).
-		ModelTableExpr(statTable(period)).
-		Where("monitor_id = ? AND timestamp = ?", monitorID, timestamp).
-		Scan(ctx)
-
-	if errors.Is(err, sql.ErrNoRows) {
-		// Create new stat if not found
-		sm = &sqlModel{MonitorID: monitorID, Timestamp: timestamp}
-
-		_, err = r.db.NewInsert().Model(sm).ModelTableExpr(statTable(period)).Exec(ctx)
-		if err != nil {
-			return nil, err
-		}
-	} else if err != nil {
-		return nil, err
-	}
-
-	return toDomainModelFromSQL(sm), nil
-}
-
-func (r *SQLRepositoryImpl) UpsertStat(ctx context.Context, stat *Stat, period StatPeriod) error {
-	// Insert the row, or overwrite the totals of the row that already holds this
-	// monitor and timestamp, in one statement on both SQLite and PostgreSQL.
+// AddToStat adds stat's counts and response times to the row for its monitor and
+// timestamp, and creates the row if there isn't one, in one statement. Concurrent
+// heartbeats in the same bucket therefore can't overwrite each other's counts.
+func (r *SQLRepositoryImpl) AddToStat(ctx context.Context, stat *Stat, period StatPeriod) error {
 	_, err := r.db.NewInsert().
 		Model(toSQLModel(stat)).
 		ModelTableExpr(statTable(period)).
 		On("CONFLICT (monitor_id, timestamp) DO UPDATE").
-		Set("up = EXCLUDED.up").
-		Set("down = EXCLUDED.down").
-		Set("maintenance = EXCLUDED.maintenance").
-		Set("ping_sum = EXCLUDED.ping_sum").
-		Set("ping_count = EXCLUDED.ping_count").
-		Set("ping_min = EXCLUDED.ping_min").
-		Set("ping_max = EXCLUDED.ping_max").
+		Set("up = s.up + EXCLUDED.up").
+		Set("down = s.down + EXCLUDED.down").
+		Set("maintenance = s.maintenance + EXCLUDED.maintenance").
+		Set("ping_sum = s.ping_sum + EXCLUDED.ping_sum").
+		Set("ping_count = s.ping_count + EXCLUDED.ping_count").
+		// ping_min and ping_max are NULL until the row has a response time, and a
+		// comparison with NULL is never true, so a NULL never replaces a value.
+		Set("ping_min = CASE WHEN EXCLUDED.ping_min < s.ping_min OR s.ping_min IS NULL THEN EXCLUDED.ping_min ELSE s.ping_min END").
+		Set("ping_max = CASE WHEN EXCLUDED.ping_max > s.ping_max OR s.ping_max IS NULL THEN EXCLUDED.ping_max ELSE s.ping_max END").
 		Exec(ctx)
-
 	return err
 }
 

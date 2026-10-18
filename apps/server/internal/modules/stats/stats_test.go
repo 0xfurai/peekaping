@@ -7,11 +7,14 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
 	"peekaping/cmd/bun/migrations"
 	"peekaping/internal/config"
+	"peekaping/internal/infra"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stats"
@@ -21,23 +24,22 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
-	"github.com/uptrace/bun/dialect/sqlitedialect"
 	"github.com/uptrace/bun/driver/pgdriver"
-	"github.com/uptrace/bun/driver/sqliteshim"
 	"github.com/uptrace/bun/migrate"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/event"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
 )
 
-// sqliteDB opens an empty SQLite database in a temp dir.
+// sqliteDB opens an empty SQLite database in a temp dir, with the settings the server uses.
 func sqliteDB(t *testing.T) *bun.DB {
 	t.Helper()
-	sqlDB, err := sql.Open(sqliteshim.ShimName, filepath.Join(t.TempDir(), "stats.db"))
+	db, err := infra.ProvideSQLDB(&config.Config{DBType: "sqlite", DBName: filepath.Join(t.TempDir(), "stats.db")}, zap.NewNop().Sugar())
 	require.NoError(t, err)
-	db := bun.NewDB(sqlDB, sqlitedialect.New())
 	t.Cleanup(func() { require.NoError(t, db.Close()) })
 	return db
 }
@@ -84,32 +86,68 @@ func insertMonitor(t *testing.T, db *bun.DB) string {
 // forEachBackend runs fn against a stats service on every database backend,
 // with one monitor to aggregate heartbeats for.
 func forEachBackend(t *testing.T, fn func(t *testing.T, svc stats.Service, monitorID string)) {
+	forEachBackendCounting(t, func(t *testing.T, svc stats.Service, monitorID string, _ *atomic.Int64) {
+		fn(t, svc, monitorID)
+	})
+}
+
+// statementCounter counts the SQL statements a bun.DB runs.
+type statementCounter struct{ n *atomic.Int64 }
+
+func (c statementCounter) BeforeQuery(ctx context.Context, _ *bun.QueryEvent) context.Context {
+	return ctx
+}
+
+func (c statementCounter) AfterQuery(context.Context, *bun.QueryEvent) { c.n.Add(1) }
+
+// forEachBackendCounting is forEachBackend that also counts the statements, or
+// Mongo commands, the service sends to the database once fn starts.
+func forEachBackendCounting(t *testing.T, fn func(t *testing.T, svc stats.Service, monitorID string, statements *atomic.Int64)) {
 	sqlBackend := func(open func(*testing.T) *bun.DB) func(*testing.T) {
 		return func(t *testing.T) {
 			db := open(t)
 			migrateUp(t, db, migrations.Migrations)
-			fn(t, stats.NewService(stats.NewSQLRepository(db), zap.NewNop().Sugar()), insertMonitor(t, db))
+			monitorID := insertMonitor(t, db)
+			statements := new(atomic.Int64)
+			db.AddQueryHook(statementCounter{statements})
+			fn(t, stats.NewService(stats.NewSQLRepository(db), zap.NewNop().Sugar()), monitorID, statements)
 		}
 	}
 	t.Run("SQLite", sqlBackend(sqliteDB))
 	t.Run("Postgres", sqlBackend(postgresDB))
 	t.Run("Mongo", func(t *testing.T) {
-		uri := os.Getenv("PEE_TEST_MONGO_URI")
-		if uri == "" {
-			t.Skip("set PEE_TEST_MONGO_URI to run MongoDB integration checks")
-		}
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer cancel()
-		client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
-		require.NoError(t, err)
-		require.NoError(t, client.Ping(ctx, nil))
-		cfg := &config.Config{DBName: "stats_" + primitive.NewObjectID().Hex()}
-		t.Cleanup(func() {
-			require.NoError(t, client.Database(cfg.DBName).Drop(context.Background()))
-			require.NoError(t, client.Disconnect(context.Background()))
-		})
-		fn(t, stats.NewService(stats.NewMongoRepository(client, cfg), zap.NewNop().Sugar()), primitive.NewObjectID().Hex())
+		var counting atomic.Bool
+		statements := new(atomic.Int64)
+		client, cfg := mongoDB(t, &event.CommandMonitor{Started: func(context.Context, *event.CommandStartedEvent) {
+			if counting.Load() {
+				statements.Add(1)
+			}
+		}})
+		svc := stats.NewService(stats.NewMongoRepository(client, cfg), zap.NewNop().Sugar())
+		counting.Store(true)
+		fn(t, svc, primitive.NewObjectID().Hex(), statements)
 	})
+}
+
+// mongoDB connects to PEE_TEST_MONGO_URI and returns the client and a config
+// naming an empty database there, which is dropped when the test ends.
+func mongoDB(t *testing.T, monitor *event.CommandMonitor) (*mongo.Client, *config.Config) {
+	t.Helper()
+	uri := os.Getenv("PEE_TEST_MONGO_URI")
+	if uri == "" {
+		t.Skip("set PEE_TEST_MONGO_URI to run MongoDB integration checks")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri).SetMonitor(monitor))
+	require.NoError(t, err)
+	require.NoError(t, client.Ping(ctx, nil))
+	cfg := &config.Config{DBName: "stats_" + primitive.NewObjectID().Hex()}
+	t.Cleanup(func() {
+		require.NoError(t, client.Database(cfg.DBName).Drop(context.Background()))
+		require.NoError(t, client.Disconnect(context.Background()))
+	})
+	return client, cfg
 }
 
 // bucket is the part of a stat row a chart shows.
@@ -222,6 +260,97 @@ func TestSummaryKeepsA0msMinimumResponseTime(t *testing.T) {
 		require.Len(t, grouped, 1)
 		assert.Equal(t, 0.0, grouped[0].PingMin)
 	})
+}
+
+func TestConcurrentHeartbeatsInOneBucketAreAllCounted(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, svc stats.Service, monitorID string) {
+		minute := time.Date(2026, 10, 16, 14, 0, 0, 0, time.UTC)
+		// 50 checks land in the same minute at once, as when several ingester workers
+		// handle them together: 10 down, 10 in maintenance, and 30 up with response
+		// times 2, 3, 4, 7, 8, 9, ... 47, 48, 49 ms (sum 765).
+		errs := make([]error, 50)
+		var wg sync.WaitGroup
+		for i := range 50 {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				hb := &stats.HeartbeatPayload{MonitorID: monitorID, Status: int(shared.MonitorStatusUp), Ping: i, Time: minute.Add(time.Duration(i) * time.Second).Unix()}
+				switch i % 5 {
+				case 0:
+					hb.Status, hb.Ping = int(shared.MonitorStatusDown), 0
+				case 1:
+					hb.Status, hb.Ping = int(shared.MonitorStatusMaintenance), 0
+				}
+				errs[i] = svc.AggregateHeartbeat(context.Background(), hb)
+			}()
+		}
+		wg.Wait()
+		for _, err := range errs {
+			require.NoError(t, err)
+		}
+
+		want := bucket{Up: 40, Down: 10, Maintenance: 10, Ping: 25.5, PingMin: 2, PingMax: 49}
+		for period, start := range map[stats.StatPeriod]time.Time{
+			stats.StatMinutely: minute,
+			stats.StatHourly:   minute,
+			stats.StatDaily:    minute.Truncate(24 * time.Hour),
+		} {
+			got := findBucket(t, svc, monitorID, start, period)
+			// Mongo keeps a running average, which can be off in the last bits.
+			assert.InDelta(t, want.Ping, got.Ping, 1e-9, period)
+			got.Ping = want.Ping
+			assert.Equal(t, want, got, period)
+		}
+	})
+}
+
+func TestEachCheckWritesStatsWithOneStatementPerPeriod(t *testing.T) {
+	forEachBackendCounting(t, func(t *testing.T, svc stats.Service, monitorID string, statements *atomic.Int64) {
+		minute := time.Date(2026, 10, 16, 14, 0, 0, 0, time.UTC)
+		for _, hb := range []struct {
+			name   string
+			status shared.MonitorStatus
+			at     time.Time
+		}{
+			{"new buckets", shared.MonitorStatusUp, minute},
+			{"existing buckets", shared.MonitorStatusDown, minute.Add(10 * time.Second)},
+		} {
+			before := statements.Load()
+			aggregate(t, svc, monitorID, hb.status, 100, hb.at)
+			assert.Equal(t, int64(3), statements.Load()-before, hb.name)
+		}
+	})
+}
+
+func TestMongoStatWrittenBeforeUpgradeKeepsCounting(t *testing.T) {
+	client, cfg := mongoDB(t, nil)
+	svc := stats.NewService(stats.NewMongoRepository(client, cfg), zap.NewNop().Sugar())
+	ctx := context.Background()
+	monitorID := primitive.NewObjectID()
+	minute := time.Date(2026, 10, 16, 14, 0, 0, 0, time.UTC)
+
+	// Documents as the old code wrote them: a random _id, the average response
+	// time, and zeros in ping_min and ping_max while there's no response time.
+	// The first minute had checks of 100 and 200 ms, a maintenance check and a
+	// down check; the second minute only a down check.
+	withPings, downOnly := primitive.NewObjectID(), primitive.NewObjectID()
+	_, err := client.Database(cfg.DBName).Collection("stat_minutely").InsertMany(ctx, []any{
+		bson.M{"_id": withPings, "monitor_id": monitorID, "timestamp": minute, "ping": 150.0, "ping_min": 100.0, "ping_max": 200.0, "up": 3, "down": 1, "maintenance": 1},
+		bson.M{"_id": downOnly, "monitor_id": monitorID, "timestamp": minute.Add(time.Minute), "ping": 0.0, "ping_min": 0.0, "ping_max": 0.0, "up": 0, "down": 1, "maintenance": 0},
+	})
+	require.NoError(t, err)
+
+	aggregate(t, svc, monitorID.Hex(), shared.MonitorStatusUp, 300, minute.Add(30*time.Second))
+	aggregate(t, svc, monitorID.Hex(), shared.MonitorStatusUp, 50, minute.Add(time.Minute+30*time.Second))
+
+	rows, err := svc.FindStatsByMonitorIDAndTimeRange(ctx, monitorID.Hex(), minute, minute.Add(time.Minute), stats.StatMinutely)
+	require.NoError(t, err)
+	require.Len(t, rows, 2)
+	got := func(s *stats.Stat) bucket { return bucket{s.Up, s.Down, s.Maintenance, s.Ping, s.PingMin, s.PingMax} }
+	assert.Equal(t, withPings.Hex(), rows[0].ID)
+	assert.Equal(t, bucket{Up: 4, Down: 1, Maintenance: 1, Ping: 200, PingMin: 100, PingMax: 300}, got(rows[0]))
+	assert.Equal(t, downOnly.Hex(), rows[1].ID)
+	assert.Equal(t, bucket{Up: 1, Down: 1, Ping: 50, PingMin: 50, PingMax: 50}, got(rows[1]))
 }
 
 // fakeBus delivers each published event to its subscribers right away.

@@ -2,6 +2,8 @@ package stats
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/binary"
 	"fmt"
 	"peekaping/internal/config"
 	"time"
@@ -107,76 +109,57 @@ func toDomainModel(mm *mongoModel) *Stat {
 	}
 }
 
-func (r *MongoRepository) GetOrCreateStat(
-	ctx context.Context,
-	monitorID string,
-	timestamp time.Time,
-	period StatPeriod,
-) (*Stat, error) {
-	objectID, err := primitive.ObjectIDFromHex(monitorID)
-	if err != nil {
-		return nil, fmt.Errorf("invalid monitorID: %w", err)
-	}
-	coll := r.getStatCollection(period)
-	filter := bson.M{"monitor_id": objectID, "timestamp": timestamp}
-	var mm mongoModel
-	err = coll.FindOne(ctx, filter).Decode(&mm)
-
-	if err == mongo.ErrNoDocuments {
-		mm = mongoModel{
-			ID:        primitive.NewObjectID(),
-			MonitorID: objectID,
-			Timestamp: timestamp,
-			Ping:      0,
-			PingMin:   0,
-			PingMax:   0,
-			Up:        0,
-			Down:      0,
-		}
-		return toDomainModel(&mm), nil
-	} else if err != nil {
-		return nil, err
-	}
-	return toDomainModel(&mm), nil
+// statDocumentID derives the _id of a new stat document from its monitor and timestamp.
+func statDocumentID(monitorID primitive.ObjectID, timestamp time.Time) primitive.ObjectID {
+	h := sha256.New()
+	h.Write(monitorID[:])
+	_ = binary.Write(h, binary.BigEndian, timestamp.UnixMilli()) // BSON dates keep milliseconds
+	var id primitive.ObjectID
+	copy(id[:], h.Sum(nil))
+	return id
 }
 
-func (r *MongoRepository) UpsertStat(ctx context.Context, stat *Stat, period StatPeriod) error {
-	coll := r.getStatCollection(period)
-
-	objectID, err := primitive.ObjectIDFromHex(stat.ID)
-	if err != nil {
-		return fmt.Errorf("invalid statID: %w", err)
-	}
+// AddToStat adds stat's counts and response times to the document for its
+// monitor and timestamp, and creates the document if there isn't one, in one
+// update. Concurrent heartbeats in the same bucket therefore can't overwrite
+// each other's counts.
+func (r *MongoRepository) AddToStat(ctx context.Context, stat *Stat, period StatPeriod) error {
 	monitorID, err := primitive.ObjectIDFromHex(stat.MonitorID)
 	if err != nil {
 		return fmt.Errorf("invalid monitorID: %w", err)
 	}
 
-	mm := mongoModel{
-		ID:          objectID,
-		MonitorID:   monitorID,
-		Timestamp:   stat.Timestamp,
-		Ping:        stat.Ping,
-		PingMin:     stat.PingMin,
-		PingMax:     stat.PingMax,
-		Up:          stat.Up,
-		Down:        stat.Down,
-		Maintenance: stat.Maintenance,
+	// Each field reads the document as it was before this update; a new
+	// document has none of them yet, so they count as 0.
+	old := func(field string) bson.M { return bson.M{"$ifNull": bson.A{"$" + field, 0}} }
+	set := bson.M{
+		// Two concurrent first writes to a bucket both try to insert this _id, so
+		// the second fails instead of creating a second document for the bucket.
+		"_id":         bson.M{"$ifNull": bson.A{"$_id", statDocumentID(monitorID, stat.Timestamp)}},
+		"up":          bson.M{"$add": bson.A{old("up"), stat.Up}},
+		"down":        bson.M{"$add": bson.A{old("down"), stat.Down}},
+		"maintenance": bson.M{"$add": bson.A{old("maintenance"), stat.Maintenance}},
+	}
+	if stat.PingCount > 0 {
+		// ping is the average response time; up also counts maintenance checks, which have none.
+		oldPingCount := bson.M{"$subtract": bson.A{old("up"), old("maintenance")}}
+		hadPing := bson.M{"$gt": bson.A{oldPingCount, 0}}
+		set["ping"] = bson.M{"$divide": bson.A{
+			bson.M{"$add": bson.A{bson.M{"$multiply": bson.A{old("ping"), oldPingCount}}, stat.Ping * float64(stat.PingCount)}},
+			bson.M{"$add": bson.A{oldPingCount, stat.PingCount}},
+		}}
+		set["ping_min"] = bson.M{"$cond": bson.A{hadPing, bson.M{"$min": bson.A{"$ping_min", stat.PingMin}}, stat.PingMin}}
+		set["ping_max"] = bson.M{"$cond": bson.A{hadPing, bson.M{"$max": bson.A{"$ping_max", stat.PingMax}}, stat.PingMax}}
 	}
 
-	filter := bson.M{"monitor_id": mm.MonitorID, "timestamp": mm.Timestamp}
-	update :=
-		bson.M{
-			"$set": bson.M{
-				"ping":        mm.Ping,
-				"ping_min":    mm.PingMin,
-				"ping_max":    mm.PingMax,
-				"up":          mm.Up,
-				"down":        mm.Down,
-				"maintenance": mm.Maintenance,
-			},
-		}
+	coll := r.getStatCollection(period)
+	filter := bson.M{"monitor_id": monitorID, "timestamp": stat.Timestamp}
+	update := mongo.Pipeline{{{Key: "$set", Value: set}}}
 	_, err = coll.UpdateOne(ctx, filter, update, options.Update().SetUpsert(true))
+	if mongo.IsDuplicateKeyError(err) {
+		// Another write created the document first; now the filter finds it.
+		_, err = coll.UpdateOne(ctx, filter, update, options.Update().SetUpsert(true))
+	}
 	return err
 }
 
