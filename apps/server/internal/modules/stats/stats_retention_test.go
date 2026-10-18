@@ -59,12 +59,6 @@ func TestDeleteExpiredKeepsEachPeriodForItsRetention(t *testing.T) {
 	})
 }
 
-type statRow struct {
-	MonitorID string    `bun:"monitor_id"`
-	Timestamp time.Time `bun:"timestamp"`
-	Up        int       `bun:"up"`
-}
-
 // deleteCounter records how many rows each DELETE statement removed.
 type deleteCounter struct{ rows []int64 }
 
