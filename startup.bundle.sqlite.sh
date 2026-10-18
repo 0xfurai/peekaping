@@ -37,6 +37,9 @@ else
     exit 1
 fi
 
+# Set up the user the services run as (PUID/PGID, Docker socket, /app/data)
+. /app/startup.user.sh
+
 # Start supervisor to manage both server and Caddy
 echo "Starting supervisor to manage server and Caddy..."
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
