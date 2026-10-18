@@ -321,7 +321,7 @@ export default function TelegramForm() {
                 </FormControl>
                 <FormDescription>
                   {t("notifications.form.telegram.template_description")}:{" "}
-                  <code>{"{{ msg }}"}</code>, <code>{"{{ monitor }}"}</code>
+                  <code>{"{{ msg }}"}</code>, <code>{"{{ monitor.name }}"}</code>
                 </FormDescription>
                 <FormMessage />
               </FormItem>
