@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -390,4 +391,139 @@ func TestFailedStatsAggregationForAHeartbeatIsLogged(t *testing.T) {
 	fields := logs.All()[0].ContextMap()
 	assert.Equal(t, monitorID, fields["monitor_id"])
 	assert.Contains(t, fields["error"], "no such table")
+}
+
+func TestSummarizeCountsDownHeartbeats20HoursAgoIn24HourUptime(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, svc stats.Service, monitorID string) {
+		// Off the hour, so reading hour buckets would drop the checks from 10:30 to 11:00.
+		now := time.Date(2026, 10, 17, 10, 30, 0, 0, time.UTC)
+		downSpans := [][2]time.Time{
+			{now.Add(-28 * time.Hour), now.Add(-26 * time.Hour)}, // before the window
+			{now.Add(-20 * time.Hour), now.Add(-18 * time.Hour)},
+		}
+		// A check every 10 minutes over the last 30 hours.
+		for k := range 180 {
+			at := now.Add(-30*time.Hour + time.Duration(k)*10*time.Minute + 30*time.Second)
+			status := shared.MonitorStatusUp
+			for _, span := range downSpans {
+				if !at.Before(span[0]) && at.Before(span[1]) {
+					status = shared.MonitorStatusDown
+				}
+			}
+			aggregate(t, svc, monitorID, status, 100, at)
+		}
+
+		summary, err := svc.Summarize(context.Background(), monitorID, now.Add(-24*time.Hour), now)
+		require.NoError(t, err)
+		require.NotNil(t, summary.Uptime)
+		assert.InDelta(t, 100*22.0/24, *summary.Uptime, 1e-9)
+	})
+}
+
+func TestSummarizeCountsDownHeartbeatsAtTheStartOf7And30DayUptime(t *testing.T) {
+	for _, days := range []int{7, 30} {
+		t.Run(fmt.Sprintf("%dd", days), func(t *testing.T) {
+			forEachBackend(t, func(t *testing.T, svc stats.Service, monitorID string) {
+				// Off midnight, so reading day buckets would drop the checks before the first midnight.
+				now := time.Date(2026, 10, 17, 10, 30, 0, 0, time.UTC)
+				since := now.AddDate(0, 0, -days)
+				// A check at a quarter past every hour from a day before the window, the last at 10:15 today.
+				for k := range (days+1)*24 + 1 {
+					at := since.AddDate(0, 0, -1).Truncate(time.Hour).Add(time.Duration(k)*time.Hour + 15*time.Minute)
+					status := shared.MonitorStatusUp
+					// 09:15 is before the window; 11:15 and 12:15 are its first two checks.
+					if at.Equal(since.Add(-75*time.Minute)) || at.Equal(since.Add(45*time.Minute)) || at.Equal(since.Add(105*time.Minute)) {
+						status = shared.MonitorStatusDown
+					}
+					aggregate(t, svc, monitorID, status, 100, at)
+				}
+
+				summary, err := svc.Summarize(context.Background(), monitorID, since, now)
+				require.NoError(t, err)
+				require.NotNil(t, summary.Uptime)
+				checks := float64(days * 24)
+				assert.InDelta(t, 100*(checks-2)/checks, *summary.Uptime, 1e-9)
+			})
+		})
+	}
+}
+
+// rowCounter records how many rows each SELECT the database runs returns.
+type rowCounter struct {
+	db   *bun.DB
+	rows *[]int
+}
+
+func (c rowCounter) BeforeQuery(ctx context.Context, _ *bun.QueryEvent) context.Context {
+	return ctx
+}
+
+func (c rowCounter) AfterQuery(ctx context.Context, e *bun.QueryEvent) {
+	if !strings.HasPrefix(e.Query, "SELECT") || strings.HasPrefix(e.Query, "SELECT count(*) FROM (") {
+		return
+	}
+	var n int
+	if err := c.db.NewRaw("SELECT count(*) FROM ("+e.Query+") AS q").Scan(ctx, &n); err == nil {
+		*c.rows = append(*c.rows, n)
+	}
+}
+
+// statRow is one row of a stat_minutely, stat_hourly or stat_daily table.
+type statRow struct {
+	MonitorID string    `bun:"monitor_id"`
+	Timestamp time.Time `bun:"timestamp"`
+	Up        int       `bun:"up"`
+	PingSum   float64   `bun:"ping_sum"`
+	PingCount int       `bun:"ping_count"`
+}
+
+func TestUptimeForOneMonitorReadsAtMost2700StatsRows(t *testing.T) {
+	for name, open := range map[string]func(*testing.T) *bun.DB{"SQLite": sqliteDB, "Postgres": postgresDB} {
+		t.Run(name, func(t *testing.T) {
+			db := open(t)
+			migrateUp(t, db, migrations.Migrations)
+			monitorID := insertMonitor(t, db)
+			ctx := context.Background()
+			now := time.Now().UTC()
+			// More rows than any window reads: 48h of minute stats, 91 days of hour
+			// stats and 366 days of day stats.
+			for _, p := range []struct {
+				table string
+				step  time.Duration
+				keep  time.Duration
+			}{
+				{"stat_minutely", time.Minute, 48 * time.Hour},
+				{"stat_hourly", time.Hour, 91 * 24 * time.Hour},
+				{"stat_daily", 24 * time.Hour, 366 * 24 * time.Hour},
+			} {
+				var rows []statRow
+				for at := now.Add(-p.keep).Truncate(p.step); !at.After(now); at = at.Add(p.step) {
+					rows = append(rows, statRow{MonitorID: monitorID, Timestamp: at, Up: 1, PingSum: 100, PingCount: 1})
+				}
+				for len(rows) > 0 {
+					batch := rows[:min(len(rows), 500)]
+					rows = rows[len(batch):]
+					_, err := db.NewInsert().Model(&batch).ModelTableExpr(p.table).Exec(ctx)
+					require.NoError(t, err)
+				}
+			}
+
+			var read []int
+			db.AddQueryHook(rowCounter{db, &read})
+			svc := stats.NewService(stats.NewSQLRepository(db), zap.NewNop().Sugar())
+			for _, window := range []time.Duration{24 * time.Hour, 7 * 24 * time.Hour, 30 * 24 * time.Hour, 365 * 24 * time.Hour} {
+				_, err := svc.Summarize(ctx, monitorID, now.Add(-window), now)
+				require.NoError(t, err)
+			}
+
+			// 1,440 minute rows for 24h, 168 and 720 hour rows for 7d and 30d, 365 day rows for 365d.
+			require.Len(t, read, 4)
+			total := 0
+			for _, n := range read {
+				total += n
+			}
+			assert.LessOrEqual(t, total, 2700)
+			assert.InDeltaSlice(t, []float64{1440, 168, 720, 365}, []float64{float64(read[0]), float64(read[1]), float64(read[2]), float64(read[3])}, 1)
+		})
+	}
 }
