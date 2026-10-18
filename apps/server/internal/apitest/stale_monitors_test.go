@@ -31,10 +31,15 @@ func TestMonitorsAPI_MarksStaleMonitors(t *testing.T) {
 	require.NotNil(t, got.StaleSince)
 	assert.Equal(t, since, got.StaleSince.UTC())
 
-	got = decode[staleMonitorResponse](t, a.request(t, http.MethodGet, "/api/v1/monitors/"+freshID, nil, a.asAdmin), http.StatusOK)
+	// A monitor that isn't stale leaves the field out rather than sending null
+	fresh := a.request(t, http.MethodGet, "/api/v1/monitors/"+freshID, nil, a.asAdmin)
+	got = decode[staleMonitorResponse](t, fresh, http.StatusOK)
 	assert.Nil(t, got.StaleSince)
+	assert.NotContains(t, fresh.Body.String(), `"stale_since"`)
 
-	list := decode[[]staleMonitorResponse](t, a.request(t, http.MethodGet, "/api/v1/monitors", nil, a.asAdmin), http.StatusOK)
+	listResponse := a.request(t, http.MethodGet, "/api/v1/monitors", nil, a.asAdmin)
+	assert.NotContains(t, listResponse.Body.String(), `"stale_since":null`)
+	list := decode[[]staleMonitorResponse](t, listResponse, http.StatusOK)
 	byID := map[string]*time.Time{}
 	for _, m := range list {
 		byID[m.ID] = m.StaleSince
