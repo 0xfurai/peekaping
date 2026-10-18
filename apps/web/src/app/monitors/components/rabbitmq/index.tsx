@@ -93,17 +93,24 @@ export const serialize = (data: RabbitMQForm): MonitorCreateUpdateDto => {
   };
 };
 
-// Only the host and port, so credentials in a node URL stay out of the header
-const formatNode = (node: string): string => {
+// Only the host and port, so credentials in a node URL stay out of the header.
+// A node the browser can't parse, such as one with port 99999 that the server
+// accepts, is left out rather than shown whole.
+const formatNode = (node: string): string | null => {
   try {
     return new URL(node).host;
   } catch {
-    return node;
+    return null;
   }
 };
 
 export const formatTarget = (config: MonitorConfig): MonitorTarget | null =>
-  textTarget(getStrings(config, "nodes").map(formatNode).join(", ") || null);
+  textTarget(
+    getStrings(config, "nodes")
+      .map(formatNode)
+      .filter((host): host is string => !!host)
+      .join(", ") || null
+  );
 
 export const deserialize = (data: MonitorMonitorResponseDto): RabbitMQForm => {
   const config: RabbitMQConfig = data.config ? JSON.parse(data.config) : {};
