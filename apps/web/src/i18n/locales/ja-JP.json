@@ -1039,7 +1039,11 @@
         "request_body_description_form_data": "コンテンツは multipart/form-data 形式で送信されます。PHP で <strong>json_decode($_POST['data'])</strong> を使用してデコードできます。",
         "request_body_description_json": "Content は \"application/json\" ヘッダー付きで JSON 形式で送信されます。",
         "request_body_label": "リクエスト本文",
-        "request_body_placeholder": "コンテンツタイプを選択"
+        "request_body_placeholder": "コンテンツタイプを選択",
+        "signing_secret_description": "任意。設定すると、各リクエストは HMAC-SHA256 で署名されます。X-Webhook-Signature ヘッダーには sha256= と \"{timestamp}.{body}\" の 16 進 HMAC が含まれます。{timestamp} は X-Webhook-Timestamp ヘッダーの値（Unix 秒）です。multipart/form-data の場合、{body} は data フィールドです。",
+        "signing_secret_docs_link": "署名の検証方法",
+        "signing_secret_label": "署名シークレット",
+        "signing_secret_placeholder": "空欄の場合、署名なしでリクエストを送信します"
       }
     },
     "important": "重要通知",

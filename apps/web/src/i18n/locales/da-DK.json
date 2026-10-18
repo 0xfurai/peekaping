@@ -1039,7 +1039,11 @@
         "request_body_description_form_data": "Indholdet vil blive sendt som multipart/form-data. Du kan dekode det ved hjælp af <strong>json_decode($_POST['data'])</strong> i PHP.",
         "request_body_description_json": "Indholdet sendes som JSON med headeren \"application/json\".",
         "request_body_label": "Anmodningskrop",
-        "request_body_placeholder": "Vælg indholdstype"
+        "request_body_placeholder": "Vælg indholdstype",
+        "signing_secret_description": "Valgfri. Når den er angivet, signeres hver anmodning med HMAC-SHA256: headeren X-Webhook-Signature indeholder sha256= og den hexadecimale HMAC af \"{timestamp}.{body}\", hvor {timestamp} er headeren X-Webhook-Timestamp i Unix-sekunder. For multipart/form-data er {body} feltet data.",
+        "signing_secret_docs_link": "Sådan verificerer du signaturen",
+        "signing_secret_label": "Signeringshemmelighed",
+        "signing_secret_placeholder": "Lad feltet stå tomt for at sende usignerede anmodninger"
       }
     },
     "important": "Vigtige meddelelser",

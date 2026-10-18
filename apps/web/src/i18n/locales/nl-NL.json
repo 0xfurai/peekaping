@@ -1039,7 +1039,11 @@
         "request_body_description_form_data": "De inhoud wordt verzonden als multipart/form-data. Je kunt het decoderen met <strong>json_decode($_POST['data'])</strong> in PHP.",
         "request_body_description_json": "De inhoud wordt verzonden als JSON met de header 'application/json'.",
         "request_body_label": "Inhoud van het verzoek",
-        "request_body_placeholder": "Inhoudstype kiezen"
+        "request_body_placeholder": "Inhoudstype kiezen",
+        "signing_secret_description": "Optioneel. Indien ingesteld, wordt elk verzoek ondertekend met HMAC-SHA256: de header X-Webhook-Signature bevat sha256= en de hexadecimale HMAC van \"{timestamp}.{body}\", waarbij {timestamp} de header X-Webhook-Timestamp in Unix-seconden is. Bij multipart/form-data is {body} het veld data.",
+        "signing_secret_docs_link": "De handtekening verifiëren",
+        "signing_secret_label": "Ondertekeningsgeheim",
+        "signing_secret_placeholder": "Laat leeg om niet-ondertekende verzoeken te verzenden"
       }
     },
     "important": "Belangrijke meldingen",

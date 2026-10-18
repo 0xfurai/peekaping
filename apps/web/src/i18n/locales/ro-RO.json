@@ -1038,7 +1038,11 @@
         "request_body_description_form_data": "Conținutul va fi trimis ca multipart/form-data. Poți decodifica folosind <strong>json_decode($_POST['data'])</strong> în PHP.",
         "request_body_description_json": "Conținutul va fi trimis ca JSON cu antetul “application/json”.",
         "request_body_label": "Corpul cererii",
-        "request_body_placeholder": "Selectați tipul de conținut"
+        "request_body_placeholder": "Selectați tipul de conținut",
+        "signing_secret_description": "Opțional. Când este setat, fiecare solicitare este semnată cu HMAC-SHA256: antetul X-Webhook-Signature conține sha256= și HMAC-ul hexazecimal al \"{timestamp}.{body}\", unde {timestamp} este antetul X-Webhook-Timestamp în secunde Unix. Pentru multipart/form-data, {body} este câmpul data.",
+        "signing_secret_docs_link": "Cum se verifică semnătura",
+        "signing_secret_label": "Secret de semnare",
+        "signing_secret_placeholder": "Lăsați gol pentru a trimite solicitări nesemnate"
       }
     },
     "important": "Notificări importante",

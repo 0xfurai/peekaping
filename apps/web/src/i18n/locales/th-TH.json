@@ -1039,7 +1039,11 @@
         "request_body_description_form_data": "เนื้อหาจะถูกส่งเป็น multipart/form-data คุณสามารถถอดรหัสได้โดยใช้ <strong>json_decode($_POST['data'])</strong> ใน PHP.",
         "request_body_description_json": "เนื้อหาจะถูกส่งเป็น JSON พร้อมหัวข้อ \"application/json\".",
         "request_body_label": "ร่างคำขอ",
-        "request_body_placeholder": "เลือกประเภทเนื้อหา"
+        "request_body_placeholder": "เลือกประเภทเนื้อหา",
+        "signing_secret_description": "ไม่บังคับ เมื่อตั้งค่าแล้ว ทุกคำขอจะถูกลงนามด้วย HMAC-SHA256: ส่วนหัว X-Webhook-Signature มี sha256= ตามด้วย HMAC แบบเลขฐานสิบหกของ \"{timestamp}.{body}\" โดย {timestamp} คือส่วนหัว X-Webhook-Timestamp ในหน่วยวินาที Unix สำหรับ multipart/form-data {body} คือฟิลด์ data",
+        "signing_secret_docs_link": "วิธีตรวจสอบลายเซ็น",
+        "signing_secret_label": "ความลับสำหรับลงนาม",
+        "signing_secret_placeholder": "เว้นว่างไว้เพื่อส่งคำขอโดยไม่ลงนาม"
       }
     },
     "important": "การแจ้งเตือนสำคัญ",

@@ -1038,7 +1038,11 @@
         "request_body_description_form_data": "შემცველობა multipart/form-data-ით გაიგზავნება. მისი დეკოდირება შეგიძლიათ გამოიყენოთ <strong>json_decode($_POST['data'])</strong> PHP‑ში.",
         "request_body_description_json": "შინაარსი JSON-ით გაიგზავნება \"application/json\" სათაურით.",
         "request_body_label": "მოთხოვნის სხეული",
-        "request_body_placeholder": "აირჩიეთ შიგთავსის ტიპი"
+        "request_body_placeholder": "აირჩიეთ შიგთავსის ტიპი",
+        "signing_secret_description": "არასავალდებულო. თუ მითითებულია, ყოველი მოთხოვნა ხელმოწერილია HMAC-SHA256-ით: სათაური X-Webhook-Signature შეიცავს sha256=-ს და \"{timestamp}.{body}\"-ის თექვსმეტობით HMAC-ს, სადაც {timestamp} არის სათაური X-Webhook-Timestamp Unix წამებში. multipart/form-data-სთვის {body} არის ველი data.",
+        "signing_secret_docs_link": "როგორ შევამოწმოთ ხელმოწერა",
+        "signing_secret_label": "ხელმოწერის საიდუმლო",
+        "signing_secret_placeholder": "დატოვეთ ცარიელი ხელმოუწერელი მოთხოვნების გასაგზავნად"
       }
     },
     "important": "მნიშვნელოვანი შეტყობინებები",

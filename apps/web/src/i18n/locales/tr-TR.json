@@ -1039,7 +1039,11 @@
         "request_body_description_form_data": "İçerik multipart/form-data olarak gönderilecektir. PHP'de <strong>json_decode($_POST['data'])</strong> kullanarak çözebilirsiniz.",
         "request_body_description_json": "İçerik, \"application/json\" başlığıyla JSON olarak gönderilecektir.",
         "request_body_label": "İstek Gövdesi",
-        "request_body_placeholder": "İçerik türünü seçin"
+        "request_body_placeholder": "İçerik türünü seçin",
+        "signing_secret_description": "İsteğe bağlı. Ayarlandığında her istek HMAC-SHA256 ile imzalanır: X-Webhook-Signature başlığı sha256= ve \"{timestamp}.{body}\" için onaltılık HMAC değerini içerir; {timestamp}, Unix saniyesi cinsinden X-Webhook-Timestamp başlığıdır. multipart/form-data için {body}, data alanıdır.",
+        "signing_secret_docs_link": "İmza nasıl doğrulanır",
+        "signing_secret_label": "İmzalama Gizli Anahtarı",
+        "signing_secret_placeholder": "İmzasız istek göndermek için boş bırakın"
       }
     },
     "important": "Önemli Bildirimler",

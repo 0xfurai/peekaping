@@ -1039,7 +1039,11 @@
         "request_body_description_form_data": "콘텐츠는 multipart/form-data 형식으로 전송됩니다. PHP에서 <strong>json_decode($_POST['data'])</strong>를 사용해 디코딩할 수 있습니다.",
         "request_body_description_json": "콘텐츠는 \"application/json\" 헤더를 사용해 JSON 형식으로 전송됩니다.",
         "request_body_label": "요청 본문",
-        "request_body_placeholder": "콘텐츠 유형 선택"
+        "request_body_placeholder": "콘텐츠 유형 선택",
+        "signing_secret_description": "선택 사항입니다. 설정하면 각 요청이 HMAC-SHA256으로 서명됩니다. X-Webhook-Signature 헤더에는 sha256=와 \"{timestamp}.{body}\"의 16진수 HMAC가 담기며, {timestamp}는 X-Webhook-Timestamp 헤더 값(Unix 초)입니다. multipart/form-data의 경우 {body}는 data 필드입니다.",
+        "signing_secret_docs_link": "서명 확인 방법",
+        "signing_secret_label": "서명 시크릿",
+        "signing_secret_placeholder": "비워 두면 서명 없이 요청을 보냅니다"
       }
     },
     "important": "중요 알림",

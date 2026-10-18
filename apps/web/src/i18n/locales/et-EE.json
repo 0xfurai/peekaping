@@ -1039,7 +1039,11 @@
         "request_body_description_form_data": "Sisu saadetakse multipart/form-data vormingus. Saate selle dekodeerida kasutades <strong>json_decode($_POST['data'])</strong> PHP-is.",
         "request_body_description_json": "Sisu saadetakse JSONina koos päisega 'application/json'.",
         "request_body_label": "Taotluse keha",
-        "request_body_placeholder": "Vali sisu tüüp"
+        "request_body_placeholder": "Vali sisu tüüp",
+        "signing_secret_description": "Valikuline. Kui see on määratud, allkirjastatakse iga päring HMAC-SHA256-ga: päis X-Webhook-Signature sisaldab sha256= ja kuueteistkümnendsüsteemis HMAC-i väärtusest \"{timestamp}.{body}\", kus {timestamp} on päis X-Webhook-Timestamp Unixi sekundites. multipart/form-data puhul on {body} väli data.",
+        "signing_secret_docs_link": "Kuidas allkirja kontrollida",
+        "signing_secret_label": "Allkirjastamise saladus",
+        "signing_secret_placeholder": "Jäta tühjaks, et saata allkirjastamata päringuid"
       }
     },
     "important": "Olulised teated",

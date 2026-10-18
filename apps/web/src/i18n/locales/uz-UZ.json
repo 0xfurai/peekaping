@@ -1038,7 +1038,11 @@
         "request_body_description_form_data": "Kontent multipart/form-data sifatida yuboriladi. PHP da <strong>json_decode($_POST['data'])</strong> yordamida uni dekodlash mumkin.",
         "request_body_description_json": "Kontent JSON formatida \"application/json\" sarlavhasi bilan yuboriladi.",
         "request_body_label": "So'rov tanasi",
-        "request_body_placeholder": "Kontent turini tanlang"
+        "request_body_placeholder": "Kontent turini tanlang",
+        "signing_secret_description": "Ixtiyoriy. O‘rnatilganda har bir so‘rov HMAC-SHA256 bilan imzolanadi: X-Webhook-Signature sarlavhasida sha256= va \"{timestamp}.{body}\" ning o‘n oltilik HMAC qiymati bo‘ladi, bunda {timestamp} — Unix soniyalaridagi X-Webhook-Timestamp sarlavhasi. multipart/form-data uchun {body} — data maydoni.",
+        "signing_secret_docs_link": "Imzoni qanday tekshirish mumkin",
+        "signing_secret_label": "Imzolash siri",
+        "signing_secret_placeholder": "Imzosiz so‘rovlar yuborish uchun bo‘sh qoldiring"
       }
     },
     "important": "Muhim Xabarnomalar",

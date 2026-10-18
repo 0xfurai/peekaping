@@ -1039,7 +1039,11 @@
         "request_body_description_form_data": "Το περιεχόμενο θα σταλεί ως multipart/form-data. Μπορείτε να το αποκωδικοποιήσετε χρησιμοποιώντας <strong>json_decode($_POST['data'])</strong> στη PHP.",
         "request_body_description_json": "Το περιεχόμενο θα σταλεί ως JSON με την κεφαλίδα \"application/json\".",
         "request_body_label": "Σώμα Αίτησης",
-        "request_body_placeholder": "Επιλέξτε τύπο περιεχομένου"
+        "request_body_placeholder": "Επιλέξτε τύπο περιεχομένου",
+        "signing_secret_description": "Προαιρετικό. Όταν οριστεί, κάθε αίτημα υπογράφεται με HMAC-SHA256: η κεφαλίδα X-Webhook-Signature περιέχει sha256= και το δεκαεξαδικό HMAC του \"{timestamp}.{body}\", όπου {timestamp} είναι η κεφαλίδα X-Webhook-Timestamp σε δευτερόλεπτα Unix. Για multipart/form-data, το {body} είναι το πεδίο data.",
+        "signing_secret_docs_link": "Πώς να επαληθεύσετε την υπογραφή",
+        "signing_secret_label": "Μυστικό υπογραφής",
+        "signing_secret_placeholder": "Αφήστε το κενό για αποστολή μη υπογεγραμμένων αιτημάτων"
       }
     },
     "important": "Σημαντικές ειδοποιήσεις",
