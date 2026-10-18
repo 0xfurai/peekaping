@@ -539,16 +539,16 @@ func TestServiceImpl_IsUnderMaintenance_InactiveManual(t *testing.T) {
 	assert.False(t, result)
 }
 
-// A single window follows its date period. The recurring strategies need both
-// the date period and their own window, so the checker answers every
-// combination.
+// A single maintenance window follows its date period. A recurring one also
+// needs now to fall in one of its slots (every N days, or the slots its cron
+// expression opens), so the checker answers every combination.
 func TestServiceImpl_IsUnderMaintenance_TimedStrategies(t *testing.T) {
 	intervalDay := 7
 	cron := "0 9 * * 1-5"
 	strategies := []struct {
 		strategy string
 		cron     *string
-		window   string // the checker method for the strategy's own window
+		slot     string // the checker method for the strategy's recurring slots
 	}{
 		{"single", nil, ""},
 		{"recurring-interval", nil, "IsInRecurringIntervalWindow"},
@@ -558,11 +558,11 @@ func TestServiceImpl_IsUnderMaintenance_TimedStrategies(t *testing.T) {
 	}
 	for _, s := range strategies {
 		for _, inPeriod := range []bool{true, false} {
-			for _, inWindow := range []bool{true, false} {
-				name := fmt.Sprintf("%s/period=%t/window=%t", s.strategy, inPeriod, inWindow)
-				if s.window == "" {
-					if !inWindow {
-						continue // a single window has no window of its own
+			for _, inSlot := range []bool{true, false} {
+				name := fmt.Sprintf("%s/period=%t/slot=%t", s.strategy, inPeriod, inSlot)
+				if s.slot == "" {
+					if !inSlot {
+						continue // a single maintenance window has no slots
 					}
 					name = fmt.Sprintf("%s/period=%t", s.strategy, inPeriod)
 				}
@@ -571,8 +571,8 @@ func TestServiceImpl_IsUnderMaintenance_TimedStrategies(t *testing.T) {
 					mockTimeUtils.On("GetDefaultTimezone").Return("UTC")
 					mockTimeUtils.On("LoadTimezone", "UTC").Return(time.UTC)
 					mockTimeWindowChecker.On("IsInDateTimePeriod", mock.Anything, mock.Anything, time.UTC).Return(inPeriod, nil)
-					if s.window != "" {
-						mockTimeWindowChecker.On(s.window, mock.Anything, mock.Anything, time.UTC).Return(inWindow, nil)
+					if s.slot != "" {
+						mockTimeWindowChecker.On(s.slot, mock.Anything, mock.Anything, time.UTC).Return(inSlot, nil)
 					}
 
 					maintenance := createTestModel()
@@ -583,7 +583,7 @@ func TestServiceImpl_IsUnderMaintenance_TimedStrategies(t *testing.T) {
 					result, err := service.IsUnderMaintenance(context.Background(), maintenance)
 
 					assert.NoError(t, err)
-					assert.Equal(t, inPeriod && inWindow, result)
+					assert.Equal(t, inPeriod && inSlot, result)
 				})
 			}
 		}
