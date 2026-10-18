@@ -110,6 +110,15 @@ func TestCheckCertificateExpiry_FirstSeenInsideSeveralThresholdsNotifiesTheNeare
 	assert.Empty(t, h.check(t, certA, 4))
 }
 
+// The thresholds setting can hold the days in any order.
+func TestCheckCertificateExpiry_NearestThresholdWinsInAnySettingOrder(t *testing.T) {
+	h := newHarness(t)
+	require.NoError(t, h.svc.SetNotificationDays(context.Background(), []int{21, 14, 7}))
+
+	assert.Equal(t, []int{7}, h.check(t, certA, 5))
+	assert.Empty(t, h.check(t, certA, 4))
+}
+
 func TestUpdateTLSInfo_NewCertificateClearsTheSentHistory(t *testing.T) {
 	h := newHarness(t)
 

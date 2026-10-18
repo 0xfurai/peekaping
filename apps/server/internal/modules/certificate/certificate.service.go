@@ -9,6 +9,7 @@ import (
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/notification_sent_history"
 	"peekaping/internal/modules/shared"
+	"slices"
 	"strings"
 
 	"go.uber.org/zap"
@@ -91,8 +92,10 @@ func (s *ServiceImpl) checkSingleCertificate(ctx context.Context, certInfo *Cert
 
 	subjectCN := extractCommonName(certInfo.Subject)
 
-	// Check each notification threshold with deduplication
-	for _, targetDays := range notifyDays {
+	// Check each notification threshold with deduplication, nearest first: a
+	// sent threshold also covers the farther ones, so a certificate first seen
+	// inside several thresholds gets one notice, for the nearest.
+	for _, targetDays := range slices.Sorted(slices.Values(notifyDays)) {
 		if certInfo.DaysRemaining <= targetDays && certInfo.DaysRemaining >= 0 {
 			// Check if we already sent a notification for this threshold
 			alreadySent, err := s.notificationHistoryService.CheckIfNotificationSent(ctx, "certificate", monitorID, targetDays)
