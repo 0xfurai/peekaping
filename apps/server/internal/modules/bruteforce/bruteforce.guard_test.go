@@ -153,6 +153,20 @@ func TestNew_defaults(t *testing.T) {
 	assert.Equal(t, []int{401, 403}, guard.cfg.FailureStatuses)
 }
 
+// serveLogin sends one request through the guard to a login handler that
+// succeeds, and reports whether the handler ran.
+func serveLogin(guard *Guard) (*httptest.ResponseRecorder, bool) {
+	ran := false
+	router := gin.New()
+	router.POST("/login", guard.Middleware(), func(c *gin.Context) {
+		ran = true
+		c.Status(http.StatusOK)
+	})
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, httptest.NewRequest(http.MethodPost, "/login", nil))
+	return w, ran
+}
+
 func TestGuard_Middleware(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	mockSvc := &MockService{}
@@ -216,24 +230,19 @@ func TestGuard_Middleware(t *testing.T) {
 	mockSvc = &MockService{}
 	guard = New(cfg, mockSvc, func(c *gin.Context) (string, error) { return key, nil }, logger)
 	mockSvc.On("IsLocked", mock.Anything, key).Return(true, time.Now().Add(-time.Second), nil) // Expired lock
-	w = httptest.NewRecorder()
-	c, _ = gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("POST", "/", nil)
-	c.Request = c.Request.WithContext(context.Background())
-	c.Writer.WriteHeader(200)
-	guard.Middleware()(c)
-	assert.Equal(t, 200, w.Code) // Should allow request to proceed
+	mockSvc.On("Reset", mock.Anything, key).Return(nil).Maybe()
+	w, ran := serveLogin(guard)
+	assert.True(t, ran, "the login handler runs")
+	assert.Equal(t, http.StatusOK, w.Code)
 
 	// IsLocked error, should log and continue
 	mockSvc = &MockService{}
 	guard = New(cfg, mockSvc, func(c *gin.Context) (string, error) { return key, nil }, logger)
 	mockSvc.On("IsLocked", mock.Anything, key).Return(false, time.Time{}, errors.New("fail"))
-	w = httptest.NewRecorder()
-	c, _ = gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("POST", "/", nil)
-	c.Request = c.Request.WithContext(context.Background())
-	guard.Middleware()(c)
-	assert.Equal(t, 200, w.Code)
+	mockSvc.On("Reset", mock.Anything, key).Return(nil).Maybe()
+	w, ran = serveLogin(guard)
+	assert.True(t, ran, "the login handler runs")
+	assert.Equal(t, http.StatusOK, w.Code)
 
 	// Failure status, should call OnFailure
 	mockSvc = &MockService{}
