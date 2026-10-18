@@ -114,20 +114,7 @@ func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, er
 		}
 		return nil, err
 	}
-
-	model := toDomainModelFromSQL(sm)
-
-	// Load tag names via monitor_tags join
-	var tagNames []string
-	_ = r.db.NewSelect().
-		TableExpr("tags t").
-		ColumnExpr("t.name").
-		Join("INNER JOIN monitor_tags mt ON mt.tag_id = t.id").
-		Where("mt.monitor_id = ?", id).
-		Scan(ctx, &tagNames)
-	model.Tags = tagNames
-
-	return model, nil
+	return toDomainModelFromSQL(sm), nil
 }
 
 func (r *SQLRepositoryImpl) FindByIDs(ctx context.Context, ids []string) ([]*Model, error) {

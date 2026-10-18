@@ -38,8 +38,9 @@ type Monitor struct {
 	ProxyId   string `json:"proxy_id"`
 	PushToken string `json:"push_token"`
 
-	// Tags associated with this monitor (names only)
-	Tags []string `json:"tags,omitempty"`
+	// Names of the monitor's tags. Only the notification listener fills them in,
+	// for the providers to send; the API returns tag IDs instead.
+	Tags []string `json:"-"`
 
 	// Last heartbeat for push monitors
 	LastHeartbeat *HeartBeatModel `json:"last_heartbeat,omitempty"`

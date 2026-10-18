@@ -7,11 +7,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/version"
-	"regexp"
 	"time"
 
 	"go.uber.org/zap"
@@ -25,8 +25,6 @@ type GrafanaOncallSender struct {
 	logger *zap.SugaredLogger
 	client *http.Client
 }
-
-var httpStatusRe = regexp.MustCompile(`\b(\d{3})\b`)
 
 // NewGrafanaOncallSender creates a GrafanaOncallSender
 func NewGrafanaOncallSender(logger *zap.SugaredLogger) *GrafanaOncallSender {
@@ -64,22 +62,6 @@ func (g *GrafanaOncallSender) Send(
 	cfg := cfgAny.(*GrafanaOncallConfig)
 
 	g.logger.Infof("Sending Grafana OnCall notification to: %s", cfg.GrafanaOncallURL)
-
-	bindings := PrepareTemplateBindings(monitor, heartbeat, message)
-
-	// extract URL or host from parsed config
-	monitorURL := ""
-	monitorHost := ""
-	if m, ok := bindings["monitor"].(map[string]any); ok {
-		if c, ok := m["config"].(map[string]any); ok {
-			if u, ok := c["url"].(string); ok {
-				monitorURL = u
-			}
-			if h, ok := c["host"].(string); ok {
-				monitorHost = h
-			}
-		}
-	}
 
 	var payload map[string]interface{}
 
@@ -119,32 +101,18 @@ func (g *GrafanaOncallSender) Send(
 			}
 		}
 
-		// Enrich payload with common heartbeat details
-		payload["status"]  = bindings["status"]
+		payload["status"] = humanReadableStatus(int(heartbeat.Status))
 		payload["ping_ms"] = heartbeat.Ping
 		payload["retries"] = heartbeat.Retries
-		payload["time"]    = heartbeat.Time.Format(time.RFC3339)
-
-		if monitor != nil {
-			payload["monitor_id"]   = monitor.ID
-			payload["monitor_type"] = monitor.Type
-			payload["tags"]         = monitor.Tags
-
-			// type-specific enrichment
-			switch monitor.Type {
-			case "http", "http-keyword", "http-json-query":
-				// HTTP monitors: expose URL and extract status code from message
-				payload["monitor_url"] = monitorURL
-				if matches := httpStatusRe.FindStringSubmatch(heartbeat.Msg); len(matches) > 1 {
-					payload["http_status_code"] = matches[1]
-				}
-			case "tcp", "ping", "dns", "grpc-keyword":
-				// Host-based monitors: expose host only
-				payload["monitor_host"] = monitorHost
-			// DB and infra monitors (mysql, postgres, redis, mongodb, etc.):
-			// DSN may contain credentials — do not expose config fields
-			}
+		// A test notification's heartbeat has no time
+		if !heartbeat.Time.IsZero() {
+			payload["time"] = heartbeat.Time.Format(time.RFC3339)
 		}
+	}
+
+	// Certificate expiry notifications come with the monitor but no heartbeat
+	if monitor != nil {
+		addGrafanaOncallMonitorFields(payload, monitor)
 	}
 
 	jsonPayload, err := json.Marshal(payload)
@@ -173,4 +141,61 @@ func (g *GrafanaOncallSender) Send(
 
 	g.logger.Infof("Grafana OnCall notification sent successfully")
 	return nil
+}
+
+// addGrafanaOncallMonitorFields adds the monitor's ID, type, tags and target to the payload,
+// for OnCall to route and group alerts by.
+func addGrafanaOncallMonitorFields(payload map[string]interface{}, m *monitor.Model) {
+	// A test notification's monitor has no ID
+	if m.ID != "" {
+		payload["monitor_id"] = m.ID
+	}
+	payload["monitor_type"] = m.Type
+
+	// Send [] rather than null for an untagged monitor, so OnCall templates can treat it as a list
+	tags := m.Tags
+	if tags == nil {
+		tags = []string{}
+	}
+	payload["tags"] = tags
+
+	var cfg struct {
+		URL     string `json:"url"`
+		Host    string `json:"host"`
+		GrpcURL string `json:"grpcUrl"`
+	}
+	if m.Config == "" || json.Unmarshal([]byte(m.Config), &cfg) != nil {
+		return
+	}
+
+	// Other monitor types are left out: their config, such as a database DSN, can hold credentials
+	switch m.Type {
+	case "http", "http-keyword", "http-json-query":
+		if u := urlWithoutSecrets(cfg.URL); u != "" {
+			payload["monitor_url"] = u
+		}
+	case "tcp", "ping", "dns":
+		if cfg.Host != "" {
+			payload["monitor_host"] = cfg.Host
+		}
+	case "grpc-keyword":
+		if cfg.GrpcURL != "" {
+			payload["monitor_host"] = cfg.GrpcURL
+		}
+	}
+}
+
+// urlWithoutSecrets returns rawURL without its userinfo, query and fragment, which can hold
+// credentials or API keys. It returns "" if rawURL isn't an absolute URL with a host.
+func urlWithoutSecrets(rawURL string) string {
+	u, err := url.Parse(rawURL)
+	if err != nil || u.Host == "" {
+		return ""
+	}
+	u.User = nil
+	u.RawQuery = ""
+	u.ForceQuery = false
+	u.Fragment = ""
+	u.RawFragment = ""
+	return u.String()
 }
