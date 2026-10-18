@@ -34,6 +34,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import type { MonitorCreateUpdateDto, MonitorMonitorResponseDto } from "@/api";
+import { getString, textTarget, type MonitorConfig, type MonitorTarget } from "../monitor-target";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 interface GRPCConfig {
@@ -90,6 +91,9 @@ service Health {
   ...notificationsDefaultValues,
   ...tagsDefaultValues,
 };
+
+export const formatTarget = (config: MonitorConfig): MonitorTarget | null =>
+  textTarget(getString(config, "grpcUrl"));
 
 export const deserialize = (
   data: MonitorMonitorResponseDto
