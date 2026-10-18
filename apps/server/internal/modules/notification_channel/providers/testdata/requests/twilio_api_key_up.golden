@@ -1,0 +1,5 @@
+POST https://api.twilio.com/2010-04-01/Accounts/AC123/Messages.json
+Authorization: Basic U0sxMjM6YXBpLXNlY3JldA==
+Content-Type: application/x-www-form-urlencoded
+
+Body=200+-+OK&From=%2B15550000001&To=%2B15550000002

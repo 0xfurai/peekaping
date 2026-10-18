@@ -1,0 +1,10 @@
+POST https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=k
+Content-Type: application/json
+User-Agent: Peekaping-WeCom/<version>
+
+{
+  "markdown": {
+    "content": "❌ **Public API**\n\u003e connection refused\n\nTime: 2026-10-17 09:30:00"
+  },
+  "msgtype": "markdown"
+}

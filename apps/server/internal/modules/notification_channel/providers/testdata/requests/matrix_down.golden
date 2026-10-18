@@ -1,0 +1,9 @@
+PUT https://matrix.example.com/_matrix/client/r0/rooms/%21room:example.com/send/m.room.message/<txn-id>
+Authorization: Bearer matrix-token
+Content-Type: application/json
+User-Agent: Peekaping-Matrix/<version>
+
+{
+  "body": "connection refused",
+  "msgtype": "m.text"
+}

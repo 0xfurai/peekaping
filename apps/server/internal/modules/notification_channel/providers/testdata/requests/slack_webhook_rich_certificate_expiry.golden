@@ -1,0 +1,7 @@
+POST https://hooks.slack.com/services/T/B/X
+Content-Type: application/json
+User-Agent: Peekaping-Slack/<version>
+
+{
+  "text": "🚨 Certificate Expiry Warning\n\nMonitor: Public API\nCertificate: api.example.com (server)\nExpires in: 7 days\nValid until: 2026-10-24 09:30:00\nNotification threshold: 7 days\nValid for: api.example.com\nIssuer: CN=R11,O=Let's Encrypt,C=US"
+}

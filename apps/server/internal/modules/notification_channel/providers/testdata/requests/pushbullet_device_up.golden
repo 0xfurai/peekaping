@@ -1,0 +1,11 @@
+POST https://api.pushbullet.com/v2/pushes
+Access-Token: o.pushbullet
+Content-Type: application/json
+
+{
+  "body": "200 - OK\n\nMonitor: Public API\nStatus: UP\nResponse Time: 42ms\nTime: 2026-10-17 09:35:00 UTC",
+  "channel_tag": "ops",
+  "device_iden": "device-1",
+  "title": "[PeekaPing] Public API is UP",
+  "type": "note"
+}

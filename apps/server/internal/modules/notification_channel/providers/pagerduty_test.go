@@ -1,7 +1,6 @@
 package providers
 
 import (
-	"encoding/json"
 	"testing"
 
 	"peekaping/internal/modules/heartbeat"
@@ -202,83 +201,5 @@ func TestPagerDutySender_getSeverity(t *testing.T) {
 	severity = sender.getSeverity(cfg)
 	if severity != "critical" {
 		t.Errorf("Expected severity 'critical', got '%s'", severity)
-	}
-}
-
-func TestPagerDutyPayload_Structure(t *testing.T) {
-	sender := NewPagerDutySender(zap.NewNop().Sugar(), nil, NewHTTPClient())
-
-	// Create test data
-	monitor := &monitor.Model{
-		ID:   "test-monitor-123",
-		Name: "Test Monitor",
-	}
-
-	heartbeat := &heartbeat.Model{
-		Status: shared.MonitorStatusDown,
-		Msg:    "Connection timeout",
-	}
-
-	cfg := &PagerDutyConfig{
-		IntegrationKey: "test-key-123",
-		Priority:       "warning",
-	}
-
-	// Get event action
-	eventAction := sender.getEventAction(heartbeat, cfg)
-
-	// Build expected payload structure
-	expectedPayload := map[string]any{
-		"payload": map[string]any{
-			"summary":  "[Peekaping Monitor 🔴 Down] [Test Monitor] Connection timeout",
-			"severity": "warning",
-			"source":   monitor.Name, // Fallback to monitor name
-		},
-		"routing_key":  cfg.IntegrationKey,
-		"event_action": eventAction,
-		"dedup_key":    "Peekaping/test-monitor-123",
-	}
-
-	// Marshal expected payload
-	expectedJSON, err := json.Marshal(expectedPayload)
-	if err != nil {
-		t.Fatalf("Failed to marshal expected payload: %v", err)
-	}
-
-	// Verify the structure is valid JSON
-	var parsedPayload map[string]any
-	err = json.Unmarshal(expectedJSON, &parsedPayload)
-	if err != nil {
-		t.Fatalf("Failed to parse expected payload JSON: %v", err)
-	}
-
-	// Verify required fields exist
-	payload, ok := parsedPayload["payload"].(map[string]any)
-	if !ok {
-		t.Fatal("Payload field should be a map")
-	}
-
-	if _, ok := payload["summary"]; !ok {
-		t.Error("Payload should contain 'summary' field")
-	}
-
-	if _, ok := payload["severity"]; !ok {
-		t.Error("Payload should contain 'severity' field")
-	}
-
-	if _, ok := payload["source"]; !ok {
-		t.Error("Payload should contain 'source' field")
-	}
-
-	if _, ok := parsedPayload["routing_key"]; !ok {
-		t.Error("Root should contain 'routing_key' field")
-	}
-
-	if _, ok := parsedPayload["event_action"]; !ok {
-		t.Error("Root should contain 'event_action' field")
-	}
-
-	if _, ok := parsedPayload["dedup_key"]; !ok {
-		t.Error("Root should contain 'dedup_key' field")
 	}
 }

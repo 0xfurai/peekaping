@@ -1,0 +1,10 @@
+POST https://hooks.example.com/peekaping
+Authorization: Bearer hook-token
+Content-Type: text/plain
+User-Agent: Peekaping-Webhook/<version>
+X-Priority: 1
+
+{
+  "text": "Public API is DOWN: connection refused",
+  "url": "https://api.example.com/health"
+}
