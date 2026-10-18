@@ -23,6 +23,7 @@ func TestLeaderElection_NewLeaderElection(t *testing.T) {
 	assert.NotNil(t, le)
 	assert.Equal(t, nodeID, le.nodeID)
 	assert.False(t, le.isLeader)
+	assert.Equal(t, LeaderRenewalInterval, le.renewalInterval)
 	assert.NotNil(t, le.stopChan)
 	assert.NotNil(t, le.doneChan)
 }
@@ -184,8 +185,6 @@ func TestLeaderElection_WaitForLeadership(t *testing.T) {
 			errChan <- le.WaitForLeadership(ctx)
 		}()
 
-		// Wait a bit, then make it leader
-		time.Sleep(100 * time.Millisecond)
 		le.tryBecomeLeader(ctx)
 
 		// Should complete without error
@@ -198,95 +197,93 @@ func TestLeaderElection_WaitForLeadership(t *testing.T) {
 	})
 }
 
+// newElection is a node's leader election, renewing every few milliseconds.
+func newElection(client *redis.Client, nodeID string) *LeaderElection {
+	le := NewLeaderElection(client, nodeID, zap.NewNop().Sugar())
+	le.renewalInterval = 2 * time.Millisecond
+	return le
+}
+
+func leaderHolder(t *testing.T, client *redis.Client) string {
+	t.Helper()
+	holder, err := client.Get(context.Background(), LeaderKey).Result()
+	require.NoError(t, err)
+	return holder
+}
+
 func TestLeaderElection_StartStop(t *testing.T) {
+	ctx := context.Background()
+
 	t.Run("start and stop leader election", func(t *testing.T) {
 		client, mr := setupTestRedis(t)
 		defer mr.Close()
+		le := newElection(client, "node1")
 
-		logger := zap.NewNop().Sugar()
-		le := NewLeaderElection(client, "node1", logger)
-
-		ctx := context.Background()
 		le.Start(ctx)
+		require.Eventually(t, le.IsLeader, time.Second, time.Millisecond)
 
-		// Wait for it to potentially become leader
-		time.Sleep(100 * time.Millisecond)
-
-		// Stop the election
 		le.Stop()
 
-		// Verify it's no longer leader
+		// Stopping releases the lock
 		assert.False(t, le.IsLeader())
+		assert.False(t, mr.Exists(LeaderKey))
 	})
 
 	t.Run("multiple nodes competing for leadership", func(t *testing.T) {
 		client, mr := setupTestRedis(t)
 		defer mr.Close()
+		le1 := newElection(client, "node1")
+		le2 := newElection(client, "node2")
 
-		logger := zap.NewNop().Sugar()
-
-		le1 := NewLeaderElection(client, "node1", logger)
-		le2 := NewLeaderElection(client, "node2", logger)
-
-		ctx := context.Background()
-
-		// Start both
 		le1.Start(ctx)
 		le2.Start(ctx)
+		defer le1.Stop()
+		defer le2.Stop()
 
-		// Wait for election
-		time.Sleep(200 * time.Millisecond)
-
-		// One should be leader, the other should not
-		leaders := 0
+		require.Eventually(t, func() bool { return le1.IsLeader() || le2.IsLeader() }, time.Second, time.Millisecond)
+		// Renewals later there's still exactly one leader, and it holds the lock
+		assert.Never(t, func() bool { return le1.IsLeader() == le2.IsLeader() }, 20*time.Millisecond, time.Millisecond)
 		if le1.IsLeader() {
-			leaders++
+			assert.Equal(t, "node1", leaderHolder(t, client))
+		} else {
+			assert.Equal(t, "node2", leaderHolder(t, client))
 		}
-		if le2.IsLeader() {
-			leaders++
-		}
-
-		assert.Equal(t, 1, leaders, "Exactly one node should be leader")
-
-		// Stop both
-		le1.Stop()
-		le2.Stop()
 	})
 
 	t.Run("leadership transfer on stop", func(t *testing.T) {
-		t.Skip("Skipping leadership transfer test - timing dependent")
 		client, mr := setupTestRedis(t)
 		defer mr.Close()
+		le1 := newElection(client, "node1")
+		le2 := newElection(client, "node2")
 
-		logger := zap.NewNop().Sugar()
-
-		le1 := NewLeaderElection(client, "node1", logger)
-		le2 := NewLeaderElection(client, "node2", logger)
-
-		ctx := context.Background()
-
-		// Start node1 first
 		le1.Start(ctx)
-		time.Sleep(100 * time.Millisecond)
-		assert.True(t, le1.IsLeader())
-
-		// Start node2
+		require.Eventually(t, le1.IsLeader, time.Second, time.Millisecond)
 		le2.Start(ctx)
-		time.Sleep(100 * time.Millisecond)
-		assert.False(t, le2.IsLeader())
+		defer le2.Stop()
+		assert.Never(t, le2.IsLeader, 20*time.Millisecond, time.Millisecond)
 
-		// Stop node1
+		// node1 releases the lock as it stops, so node2 takes it on its next renewal
 		le1.Stop()
 
-		// Give node2 time to detect leadership is available and claim it
-		// Leader renewal interval is 5 seconds
-		time.Sleep(7 * time.Second)
+		require.Eventually(t, le2.IsLeader, time.Second, time.Millisecond)
+		assert.Equal(t, "node2", leaderHolder(t, client))
+	})
 
-		// Node2 should become leader
-		assert.True(t, le2.IsLeader())
+	t.Run("leadership transfer when the leader's lock expires", func(t *testing.T) {
+		client, mr := setupTestRedis(t)
+		defer mr.Close()
+		// A leader that crashed keeps the lock until it expires
+		require.NoError(t, client.Set(ctx, LeaderKey, "node-crashed", LeaderTTL).Err())
+		le := newElection(client, "node1")
 
-		// Cleanup
-		le2.Stop()
+		le.Start(ctx)
+		defer le.Stop()
+		assert.Never(t, le.IsLeader, 20*time.Millisecond, time.Millisecond)
+
+		mr.FastForward(LeaderTTL)
+
+		require.Eventually(t, le.IsLeader, time.Second, time.Millisecond)
+		assert.Equal(t, "node1", leaderHolder(t, client))
 	})
 }
 

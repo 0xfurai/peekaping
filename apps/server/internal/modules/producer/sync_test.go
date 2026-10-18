@@ -106,17 +106,8 @@ func TestRunScheduleRefresher(t *testing.T) {
 	e.eventuallyDueAt(t, "mon-new", t0)
 
 	// When syncing stops, the refresher exits while the producer runs on
-	stopped := make(chan struct{})
-	go func() {
-		p.wg.Wait()
-		close(stopped)
-	}()
 	p.syncCancel()
-	select {
-	case <-stopped:
-	case <-time.After(5 * time.Second):
-		t.Fatal("refresher kept running after syncing stopped")
-	}
+	waitForGoroutines(t, &p.wg)
 }
 
 // PP-63: sync pages through active monitors by offset. Pausing a monitor on a

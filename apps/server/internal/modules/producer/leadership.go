@@ -11,7 +11,7 @@ import (
 func (p *Producer) runLeadershipMonitor() {
 	defer p.wg.Done()
 
-	ticker := time.NewTicker(1 * time.Second)
+	ticker := time.NewTicker(p.leadershipCheckInterval)
 	defer ticker.Stop()
 
 	var isSyncing bool
