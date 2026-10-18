@@ -986,7 +986,7 @@ const docTemplate = `{
         },
         "/health": {
             "get": {
-                "description": "Returns the current server health",
+                "description": "Returns the server health and how many monitors Peekaping has stopped checking",
                 "produces": [
                     "application/json"
                 ],
@@ -996,12 +996,9 @@ const docTemplate = `{
                 "summary": "Get server health",
                 "responses": {
                     "200": {
-                        "description": "{\"status\": \"success\"}",
+                        "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal.HealthResponse"
                         }
                     }
                 }
@@ -4220,6 +4217,23 @@ const docTemplate = `{
                 "MonitorStatusPending",
                 "MonitorStatusMaintenance"
             ]
+        },
+        "internal.HealthResponse": {
+            "type": "object",
+            "properties": {
+                "stale_monitors": {
+                    "description": "StaleMonitors is how many active monitors Peekaping has stopped checking; null if Redis can't be read",
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                },
+                "watchdog_ran_at": {
+                    "description": "WatchdogRanAt is when the stale-monitor watchdog last ran; null if it never has",
+                    "type": "string"
+                }
+            }
         },
         "maintenance.CreateUpdateDto": {
             "type": "object",

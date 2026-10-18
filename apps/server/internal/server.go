@@ -1,7 +1,10 @@
 package internal
 
 import (
+	"context"
 	"net/http"
+	"time"
+
 	_ "peekaping/docs"
 	"peekaping/internal/config"
 	"peekaping/internal/modules/api_key"
@@ -15,6 +18,7 @@ import (
 	"peekaping/internal/modules/proxy"
 	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/setting"
+	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/status_page"
 	"peekaping/internal/modules/tag"
 	"peekaping/internal/modules/websocket"
@@ -22,6 +26,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -38,14 +43,42 @@ func versionHandler(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"version": version.Version})
 }
 
+// HealthResponse is the server health
+type HealthResponse struct {
+	Status string `json:"status" example:"success"`
+	// StaleMonitors is how many active monitors Peekaping has stopped checking; null if Redis can't be read
+	StaleMonitors *int64 `json:"stale_monitors"`
+	// WatchdogRanAt is when the stale-monitor watchdog last ran; null if it never has
+	WatchdogRanAt *time.Time `json:"watchdog_ran_at"`
+}
+
+// newHealthHandler answers 200 while the server is up, so the docker healthcheck only
+// watches the API. An external watcher alerts on stale_monitors or an old watchdog_ran_at.
+//
 // @Summary      Get server health
-// @Description  Returns the current server health
+// @Description  Returns the server health and how many monitors Peekaping has stopped checking
 // @Tags         System
 // @Produce      json
-// @Success      200  {object}  map[string]string  "{"status": "success"}"
+// @Success      200  {object}  HealthResponse
 // @Router       /health [get]
-func healthHandler(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, gin.H{"status": "success"})
+func newHealthHandler(store *stale.Store, logger *zap.SugaredLogger) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		reqCtx, cancel := context.WithTimeout(ctx.Request.Context(), 2*time.Second)
+		defer cancel()
+
+		resp := HealthResponse{Status: "success"}
+		if count, err := store.Count(reqCtx); err != nil {
+			logger.Warnw("Failed to read the stale monitor count", "error", err)
+		} else {
+			resp.StaleMonitors = &count
+		}
+		if ranAt, err := store.RanAt(reqCtx); err != nil {
+			logger.Warnw("Failed to read when the stale-monitor watchdog last ran", "error", err)
+		} else {
+			resp.WatchdogRanAt = ranAt
+		}
+		ctx.JSON(http.StatusOK, resp)
+	}
 }
 
 type Server struct {
@@ -80,6 +113,7 @@ func ProvideServer(
 	badgeController *badge.Controller,
 	apiKeyRoute *api_key.Route,
 	apiKeyController *api_key.Controller,
+	rdb *redis.Client,
 ) *Server {
 	// Initialize server based on mode
 	var server *gin.Engine
@@ -106,6 +140,7 @@ func ProvideServer(
 
 	// server.Use(LogMiddleware(logger))
 
+	healthHandler := newHealthHandler(stale.NewStore(rdb), logger)
 	server.GET("/health", healthHandler)
 	router := server.Group("/api/v1")
 	router.GET("/health", healthHandler)
