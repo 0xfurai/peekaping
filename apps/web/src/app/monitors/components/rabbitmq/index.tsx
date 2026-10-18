@@ -93,8 +93,17 @@ export const serialize = (data: RabbitMQForm): MonitorCreateUpdateDto => {
   };
 };
 
+// Only the host and port, so credentials in a node URL stay out of the header
+const formatNode = (node: string): string => {
+  try {
+    return new URL(node).host;
+  } catch {
+    return node;
+  }
+};
+
 export const formatTarget = (config: MonitorConfig): MonitorTarget | null =>
-  textTarget(getStrings(config, "nodes").join(", ") || null);
+  textTarget(getStrings(config, "nodes").map(formatNode).join(", ") || null);
 
 export const deserialize = (data: MonitorMonitorResponseDto): RabbitMQForm => {
   const config: RabbitMQConfig = data.config ? JSON.parse(data.config) : {};
