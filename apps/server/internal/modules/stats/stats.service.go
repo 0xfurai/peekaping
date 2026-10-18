@@ -25,6 +25,7 @@ type Service interface {
 	FindStatsByMonitorIDAndTimeRangeWithInterval(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod, monitorInterval int) ([]*Stat, error)
 	StatPointsSummary(statsList []*Stat) *Stats
 	DeleteByMonitorID(ctx context.Context, monitorID string) error
+	DeleteExpired(ctx context.Context, now time.Time) (map[StatPeriod]int64, error)
 }
 
 type ServiceImpl struct {
@@ -362,4 +363,30 @@ func (s *ServiceImpl) StatPointsSummary(statsList []*Stat) *Stats {
 
 func (s *ServiceImpl) DeleteByMonitorID(ctx context.Context, monitorID string) error {
 	return s.repo.DeleteByMonitorID(ctx, monitorID)
+}
+
+// retention is how long each period's stats are kept. Charts read minute stats
+// for up to 6h and hour stats for up to a week, so both keep a margin. Day stats
+// are kept forever.
+var retention = []struct {
+	Period StatPeriod
+	Bucket time.Duration
+	Keep   time.Duration
+}{
+	{StatMinutely, time.Minute, 48 * time.Hour},
+	{StatHourly, time.Hour, 90 * 24 * time.Hour},
+}
+
+// DeleteExpired deletes the stats whose bucket started more than their period's
+// retention before now, and returns how many rows it deleted per period.
+func (s *ServiceImpl) DeleteExpired(ctx context.Context, now time.Time) (map[StatPeriod]int64, error) {
+	deleted := make(map[StatPeriod]int64, len(retention))
+	for _, r := range retention {
+		n, err := s.repo.DeleteOlderThan(ctx, r.Period, now.Add(-r.Keep).Truncate(r.Bucket))
+		if err != nil {
+			return deleted, fmt.Errorf("delete expired %s stats: %w", r.Period, err)
+		}
+		deleted[r.Period] = n
+	}
+	return deleted, nil
 }

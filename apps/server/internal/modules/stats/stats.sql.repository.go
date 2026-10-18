@@ -122,6 +122,38 @@ func (r *SQLRepositoryImpl) FindStatsByMonitorIDAndTimeRange(ctx context.Context
 	return stats, nil
 }
 
+// deleteBatchSize is how many rows one DELETE removes, so a cleanup with a large
+// backlog never holds SQLite's single connection for long.
+const deleteBatchSize = 5000
+
+func (r *SQLRepositoryImpl) DeleteOlderThan(ctx context.Context, period StatPeriod, cutoff time.Time) (int64, error) {
+	var deleted int64
+	for {
+		batch := r.db.NewSelect().
+			Model((*sqlModel)(nil)).
+			ModelTableExpr(statTable(period)).
+			Column("monitor_id", "timestamp").
+			Where("timestamp < ?", cutoff).
+			Limit(deleteBatchSize)
+		result, err := r.db.NewDelete().
+			Model((*sqlModel)(nil)).
+			ModelTableExpr(statTable(period)).
+			Where("(monitor_id, timestamp) IN (?)", batch).
+			Exec(ctx)
+		if err != nil {
+			return deleted, err
+		}
+		n, err := result.RowsAffected()
+		if err != nil {
+			return deleted, err
+		}
+		deleted += n
+		if n < deleteBatchSize {
+			return deleted, nil
+		}
+	}
+}
+
 func (r *SQLRepositoryImpl) DeleteByMonitorID(ctx context.Context, monitorID string) error {
 	for period := range statTables {
 		_, err := r.db.NewDelete().

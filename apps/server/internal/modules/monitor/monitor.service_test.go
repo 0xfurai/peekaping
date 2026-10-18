@@ -248,6 +248,14 @@ func (m *MockStatsService) DeleteByMonitorID(ctx context.Context, monitorID stri
 	return args.Error(0)
 }
 
+func (m *MockStatsService) DeleteExpired(ctx context.Context, now time.Time) (map[stats.StatPeriod]int64, error) {
+	args := m.Called(ctx, now)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(map[stats.StatPeriod]int64), args.Error(1)
+}
+
 func (m *MockStatsService) FindStatsByMonitorIDAndTimeRangeWithInterval(ctx context.Context, monitorID string, since, until time.Time, period stats.StatPeriod, interval int) ([]*stats.Stat, error) {
 	args := m.Called(ctx, monitorID, since, until, period, interval)
 	return args.Get(0).([]*stats.Stat), args.Error(1)
