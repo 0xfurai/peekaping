@@ -50,7 +50,7 @@ func postgresDB(t *testing.T) *bun.DB {
 	t.Helper()
 	dsn := os.Getenv("PEE_TEST_POSTGRES_DSN")
 	if dsn == "" {
-		t.Skip("set PEE_TEST_POSTGRES_DSN to run PostgreSQL integration checks")
+		t.Skip("set PEE_TEST_POSTGRES_DSN to run the PostgreSQL tests")
 	}
 	admin := bun.NewDB(sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn))), pgdialect.New())
 	schema := "lockout_" + strings.ReplaceAll(uuid.NewString(), "-", "")
@@ -86,7 +86,7 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, svc bruteforce.Service))
 	t.Run("Mongo", func(t *testing.T) {
 		uri := os.Getenv("PEE_TEST_MONGO_URI")
 		if uri == "" {
-			t.Skip("set PEE_TEST_MONGO_URI to run MongoDB integration checks")
+			t.Skip("set PEE_TEST_MONGO_URI to run the MongoDB tests")
 		}
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
@@ -139,8 +139,23 @@ func TestLockout_LocksAKeyAfterMaxFailuresInTheWindow(t *testing.T) {
 		assert.True(t, locked)
 		assert.WithinDuration(t, now.Add(lockout), until, time.Millisecond)
 
+		locked, _ = fail(t, svc, otherKey, now, maxAttempts-1)
+		assert.False(t, locked, "another account from the same IP keeps its own count")
 		locked, _ = isLocked(t, svc, otherKey)
-		assert.False(t, locked, "another account from the same IP isn't locked")
+		assert.False(t, locked)
+	})
+}
+
+func TestLockout_ALimitOfOneLocksOnTheFirstFailure(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, svc bruteforce.Service) {
+		now := time.Now()
+
+		locked, until, err := svc.OnFailure(context.Background(), key, now, window, 1, lockout)
+		require.NoError(t, err)
+		assert.True(t, locked)
+		assert.WithinDuration(t, now.Add(lockout), until, time.Millisecond)
+		locked, _ = isLocked(t, svc, key)
+		assert.True(t, locked)
 	})
 }
 
