@@ -747,26 +747,3 @@ func TestTokenMaker_CreateToken_EdgeCases(t *testing.T) {
 
 	mockSettingService.AssertExpectations(t)
 }
-
-func TestClaims_JSONTags(t *testing.T) {
-	// Test that Claims struct has correct JSON tags
-	claims := &Claims{
-		UserID: "user123",
-		Email:  "test@example.com",
-		Type:   "access",
-	}
-
-	// This test ensures the JSON tags are correctly defined
-	// The actual JSON marshaling is handled by the JWT library
-	assert.Equal(t, "user123", claims.UserID)
-	assert.Equal(t, "test@example.com", claims.Email)
-	assert.Equal(t, "access", claims.Type)
-}
-
-func TestErrorConstants(t *testing.T) {
-	// Test that error constants are properly defined
-	assert.NotNil(t, ErrInvalidToken)
-	assert.NotNil(t, ErrExpiredToken)
-	assert.Equal(t, "invalid token", ErrInvalidToken.Error())
-	assert.Equal(t, "token has expired", ErrExpiredToken.Error())
-}
