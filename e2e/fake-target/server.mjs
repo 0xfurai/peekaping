@@ -34,7 +34,7 @@ const send = (res, status, body) => {
   res.end(JSON.stringify(body));
 };
 
-const server = createServer(async (req, res) => {
+const handle = async (req, res) => {
   const [, resource, id, ...rest] = new URL(req.url, "http://localhost").pathname.split("/");
   const body = await readBody(req);
 
@@ -43,7 +43,7 @@ const server = createServer(async (req, res) => {
 
   if (resource === "targets") {
     if (req.method === "PUT") {
-      const { status } = parseJSON(body);
+      const { status } = parseJSON(body) ?? {};
       if (!Number.isInteger(status) || status < 100 || status > 599) {
         return send(res, 400, { error: "status must be an HTTP status code" });
       }
@@ -69,7 +69,15 @@ const server = createServer(async (req, res) => {
   }
 
   return send(res, 404, { error: "not found" });
-});
+};
+
+// A bad request must not crash the server: a restart would lose every test's state.
+const server = createServer((req, res) =>
+  handle(req, res).catch((err) => {
+    console.error(err);
+    if (!res.headersSent) send(res, 500, { error: String(err) });
+  }),
+);
 
 server.listen(port, () => console.log(`e2e target listening on :${port}`));
 
