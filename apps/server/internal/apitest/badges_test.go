@@ -29,6 +29,8 @@ func TestBadges_ServeMonitorOnPublishedPage(t *testing.T) {
 	a := newAppWithAdmin(t)
 	monitorID := a.createMonitor(t, "Checkout", "checkout-push-token")
 	a.createStatusPage(t, statusPage{slug: "shop", published: true, monitors: []string{monitorID}})
+	// A draft page listing the monitor too doesn't hide it
+	a.createStatusPage(t, statusPage{slug: "draft", monitors: []string{monitorID}})
 
 	for path, title := range badgePaths(monitorID) {
 		t.Run(path, func(t *testing.T) {

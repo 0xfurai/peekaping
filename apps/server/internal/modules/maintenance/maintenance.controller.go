@@ -224,6 +224,11 @@ func (ic *Controller) UpdatePartial(ctx *gin.Context) {
 		return
 	}
 
+	if err := utils.Validate.Struct(entity); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+		return
+	}
+
 	if _, ok := utils.FindOr404(ctx, ic.logger, "Maintenance window", ic.service.FindByID, id); !ok {
 		return
 	}

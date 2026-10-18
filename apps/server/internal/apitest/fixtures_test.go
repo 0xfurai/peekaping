@@ -44,7 +44,7 @@ func (a *app) createMonitor(t *testing.T, name, pushToken string) string {
 	return decode[created](t, a.request(t, http.MethodPost, "/api/v1/monitors", pushMonitorBody(name, pushToken), a.asAdmin), http.StatusCreated).ID
 }
 
-// pauseMonitor pauses a monitor the way the dashboard does.
+// pauseMonitor pauses a monitor the way the web app does.
 func (a *app) pauseMonitor(t *testing.T, monitorID string) {
 	t.Helper()
 	w := a.request(t, http.MethodPatch, "/api/v1/monitors/"+monitorID, map[string]any{"active": false}, a.asAdmin)
@@ -72,6 +72,18 @@ func (a *app) createStatusPage(t *testing.T, page statusPage) string {
 
 func maintenanceBody(title string) map[string]any {
 	return map[string]any{"title": title, "strategy": "manual", "active": true}
+}
+
+// weeklyMaintenanceBody is a maintenance window every Monday and Wednesday
+// from start to end, in HH:MM.
+func weeklyMaintenanceBody(title, start, end string) map[string]any {
+	body := maintenanceBody(title)
+	body["strategy"] = "recurring-weekday"
+	body["weekdays"] = []int{1, 3}
+	body["start_time"] = start
+	body["end_time"] = end
+	body["timezone"] = "UTC"
+	return body
 }
 
 func webhookChannelBody(name string) map[string]any {
