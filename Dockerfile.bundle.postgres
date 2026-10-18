@@ -79,6 +79,10 @@ ENV PGDATA="/var/lib/postgresql/data"
 # Create necessary directories
 RUN mkdir -p /app/server /app/data /var/log/supervisor /app/web
 
+# Service user for api, producer, worker and ingester; startup.user.sh applies PUID/PGID
+RUN groupadd -g 1000 peekaping \
+    && useradd -u 1000 -g peekaping -M -d /nonexistent -s /usr/sbin/nologin peekaping
+
 # Set proper permissions for PostgreSQL
 RUN mkdir -p /var/lib/postgresql/data \
     && chown -R postgres:postgres /var/lib/postgresql \
@@ -101,6 +105,7 @@ COPY --from=web-builder /app/apps/web/dist /app/web
 COPY Caddyfile /etc/caddy/Caddyfile
 COPY supervisord.bundle.postgres.conf /etc/supervisor/conf.d/supervisord.conf
 COPY startup.bundle.postgres.sh /app/startup.sh
+COPY startup.bundle.user.sh /app/startup.user.sh
 
 # Set proper permissions for executables
 RUN chmod +x /app/server/run-migrations.sh /app/startup.sh /app/server/api /app/server/producer /app/server/worker /app/server/ingester /app/server/bun

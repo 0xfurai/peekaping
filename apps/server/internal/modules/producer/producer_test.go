@@ -2,6 +2,7 @@ package producer
 
 import (
 	"testing"
+	"time"
 
 	"peekaping/internal/config"
 	"peekaping/internal/modules/monitor"
@@ -45,6 +46,8 @@ func TestNewProducer(t *testing.T) {
 
 		assert.NotNil(t, producer)
 		assert.Equal(t, ConcurrentProducers, producer.concurrency)
+		assert.Equal(t, ReclaimEvery, producer.reclaimInterval)
+		assert.Equal(t, time.Second, producer.leadershipCheckInterval)
 		assert.NotNil(t, producer.monitorIntervals)
 		assert.NotNil(t, producer.ctx)
 		assert.NotNil(t, producer.cancel)
