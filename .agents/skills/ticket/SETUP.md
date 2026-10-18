@@ -6,7 +6,7 @@ Every `ticket-*` step starts here. When `/ticket` runs several steps in one sess
 
 The target is a ticket key (`PP-<n>`), a PR number, or nothing for the current branch. Resolve the rest from it:
 
-- From a PR: `gh pr view <pr> --json number,title,headRefName,baseRefName,state`. The ticket key is the `pp-<n>` in the branch name or the `(PP-<n>)` in the title.
+- From a PR: `gh pr view <pr> --json number,title,headRefName,baseRefName,state`. The ticket key is the `pp-<n>` in the branch name or the `PP-<n>` that starts the title (older PRs end the title with `(PP-<n>)`).
 - From a ticket: its worktree, branches and PRs: `git worktree list`, `git branch -a --list '*pp-<n>-*'`, `gh pr list --state all --search "pp-<n>"`.
 - From nothing: the current branch, then as from a PR or ticket.
 
