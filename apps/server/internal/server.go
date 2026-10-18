@@ -47,9 +47,9 @@ func versionHandler(ctx *gin.Context) {
 type HealthResponse struct {
 	Status string `json:"status" example:"success"`
 	// StaleMonitors is how many active monitors Peekaping has stopped checking; null if Redis can't be read
-	StaleMonitors *int64 `json:"stale_monitors"`
+	StaleMonitors *int64 `json:"stale_monitors" extensions:"x-nullable"`
 	// WatchdogRanAt is when the stale-monitor watchdog last ran; null if it never has
-	WatchdogRanAt *time.Time `json:"watchdog_ran_at"`
+	WatchdogRanAt *time.Time `json:"watchdog_ran_at" extensions:"x-nullable"`
 }
 
 // newHealthHandler answers 200 while the server is up, so the docker healthcheck only

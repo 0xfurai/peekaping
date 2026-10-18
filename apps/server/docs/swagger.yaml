@@ -251,6 +251,7 @@ definitions:
         description: StaleMonitors is how many active monitors Peekaping has stopped
           checking; null if Redis can't be read
         type: integer
+        x-nullable: true
       status:
         example: success
         type: string
@@ -258,6 +259,7 @@ definitions:
         description: WatchdogRanAt is when the stale-monitor watchdog last ran; null
           if it never has
         type: string
+        x-nullable: true
     type: object
   maintenance.CreateUpdateDto:
     properties:

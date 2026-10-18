@@ -143,12 +143,12 @@ export type InternalHealthResponse = {
   /**
    * StaleMonitors is how many active monitors Peekaping has stopped checking; null if Redis can't be read
    */
-  stale_monitors?: number;
+  stale_monitors?: number | null;
   status?: string;
   /**
    * WatchdogRanAt is when the stale-monitor watchdog last ran; null if it never has
    */
-  watchdog_ran_at?: string;
+  watchdog_ran_at?: string | null;
 };
 
 export type MaintenanceCreateUpdateDto = {

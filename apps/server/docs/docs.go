@@ -4223,7 +4223,8 @@ const docTemplate = `{
             "properties": {
                 "stale_monitors": {
                     "description": "StaleMonitors is how many active monitors Peekaping has stopped checking; null if Redis can't be read",
-                    "type": "integer"
+                    "type": "integer",
+                    "x-nullable": true
                 },
                 "status": {
                     "type": "string",
@@ -4231,7 +4232,8 @@ const docTemplate = `{
                 },
                 "watchdog_ran_at": {
                     "description": "WatchdogRanAt is when the stale-monitor watchdog last ran; null if it never has",
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 }
             }
         },
