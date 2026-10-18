@@ -36,6 +36,8 @@ X-Webhook-Signature: sha256=4d583a269f4f276a3fa80ff31b5a01879a848096983222a17893
 
 Additional Headers can't replace `X-Webhook-Signature` or `X-Webhook-Timestamp`.
 
+Signed requests don't follow redirects, since the redirect target could replay them. A `3xx` response counts as a failed send, so set the webhook URL to the final address.
+
 ## Verify the signature
 
 1. Read `X-Webhook-Timestamp` and reject the request if it's more than a few minutes old.
@@ -138,5 +140,7 @@ if (!hash_equals($expected, $signature)) {
     exit('Invalid signature');
 }
 
-$notification = json_decode($payload, true);
+// $payload is verified. It's JSON for application/json and multipart/form-data;
+// a Custom body that isn't JSON stays as text.
+$notification = json_decode($payload, true) ?? $payload;
 ```
