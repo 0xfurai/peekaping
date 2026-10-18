@@ -185,6 +185,9 @@ func TestLeaderElection_WaitForLeadership(t *testing.T) {
 			errChan <- le.WaitForLeadership(ctx)
 		}()
 
+		// It waits while this node is a follower
+		assert.Never(t, func() bool { return len(errChan) > 0 }, 20*time.Millisecond, time.Millisecond)
+
 		le.tryBecomeLeader(ctx)
 
 		// Should complete without error
