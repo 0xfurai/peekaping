@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- fix: a status page that isn't published returns 404 on its public slug, custom domain and monitor routes, instead of serving its title and monitors. The View button on a draft status page therefore shows a 404 until the page is published (#305)
+- fix: badges are served only for monitors on a published status page. A monitor that is only on a draft page gets no badge, and a failed status page lookup returns 500 instead of serving the badge (#305)
+- fix: updating, pausing, resuming or deleting a monitor, maintenance window, notification channel, proxy, tag, status page or API key that doesn't exist returns 404 instead of reporting success, and so do the heartbeat, stats and TLS routes of a monitor that doesn't exist (#305)
+- fix: the certificate expiry badge and the monitor TLS endpoint no longer fail with 500 on SQL databases for a monitor without certificate info, and the response time badge shows "N/A" instead of "N/Ams" before the first heartbeat (#305)
+- fix: invalid updates return 400: a proxy's port or protocol in a partial update, a monitor's config in a partial update (checked against its type), and a maintenance window's partial update. A maintenance window's start and end time must be a valid HH:MM time; they weren't checked before (#305)
 - fix: the settings API serves only `KEEP_DATA_PERIOD_DAYS` and returns 404 for every other key, so callers can no longer read, change or delete the JWT signing secrets. Upgrading generates new signing secrets, which signs everyone out once. With more than one API replica, old and new pods reject each other's tokens until the rolling update finishes, so users can be signed out again during it; to avoid that, run `kubectl scale deployment <release>-api --replicas=0` before `helm upgrade`, which scales it back up (#302)
 - fix: reject page sizes above 1,000 on paginated list endpoints (#295) (thanks @0xfurai)
 - fix: monitors no longer stop checking after a check times out; existing stuck monitors recover on upgrade (#237, #254, #265, #266)

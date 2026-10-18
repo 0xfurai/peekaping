@@ -153,6 +153,10 @@ func (c *Controller) UpdateFull(ctx *gin.Context) {
 		return
 	}
 
+	if _, ok := utils.FindOr404(ctx, c.logger, "Tag", c.service.FindByID, id); !ok {
+		return
+	}
+
 	updatedTag, err := c.service.UpdateFull(ctx, id, &tag)
 	if err != nil {
 		c.logger.Errorw("Failed to update tag", "error", err)
@@ -193,6 +197,10 @@ func (c *Controller) UpdatePartial(ctx *gin.Context) {
 		return
 	}
 
+	if _, ok := utils.FindOr404(ctx, c.logger, "Tag", c.service.FindByID, id); !ok {
+		return
+	}
+
 	updatedTag, err := c.service.UpdatePartial(ctx, id, &tag)
 	if err != nil {
 		c.logger.Errorw("Failed to update tag", "error", err)
@@ -219,6 +227,10 @@ func (c *Controller) UpdatePartial(ctx *gin.Context) {
 // @Failure		500	{object}	utils.APIError[any]
 func (c *Controller) Delete(ctx *gin.Context) {
 	id := ctx.Param("id")
+
+	if _, ok := utils.FindOr404(ctx, c.logger, "Tag", c.service.FindByID, id); !ok {
+		return
+	}
 
 	err := c.service.Delete(ctx, id)
 	if err != nil {

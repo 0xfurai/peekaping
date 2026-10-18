@@ -9,8 +9,8 @@ type CreateUpdateDto struct {
 	Strategy      string   `json:"strategy" validate:"required"`
 	StartDateTime *string  `json:"start_date_time,omitempty" validate:"omitempty,datetime=2006-01-02T15:04"`
 	EndDateTime   *string  `json:"end_date_time,omitempty" validate:"omitempty,datetime=2006-01-02T15:04"`
-	StartTime     *string  `json:"start_time,omitempty" validate:"regexp=^(?:[01]\d|2[0-3]):[0-5]\d$"`
-	EndTime       *string  `json:"end_time,omitempty" validate:"regexp=^(?:[01]\d|2[0-3]):[0-5]\d$"`
+	StartTime     *string  `json:"start_time,omitempty" validate:"omitempty,datetime=15:04"`
+	EndTime       *string  `json:"end_time,omitempty" validate:"omitempty,datetime=15:04"`
 	Weekdays      []int    `json:"weekdays,omitempty" validate:"dive,min=0,max=6"`
 	DaysOfMonth   []int    `json:"days_of_month,omitempty"`
 	IntervalDay   *int     `json:"interval_day,omitempty"`
@@ -27,8 +27,8 @@ type PartialUpdateDto struct {
 	Strategy      *string  `json:"strategy,omitempty"`
 	StartDateTime *string  `json:"start_date_time,omitempty" validate:"omitempty,datetime=2006-01-02T15:04"`
 	EndDateTime   *string  `json:"end_date_time,omitempty" validate:"omitempty,datetime=2006-01-02T15:04"`
-	StartTime     *string  `json:"start_time,omitempty" validate:"regexp=^(?:[01]\d|2[0-3]):[0-5]\d$"`
-	EndTime       *string  `json:"end_time,omitempty" validate:"regexp=^(?:[01]\d|2[0-3]):[0-5]\d$"`
+	StartTime     *string  `json:"start_time,omitempty" validate:"omitempty,datetime=15:04"`
+	EndTime       *string  `json:"end_time,omitempty" validate:"omitempty,datetime=15:04"`
 	Weekdays      []int    `json:"weekdays,omitempty" validate:"dive,min=0,max=6"`
 	DaysOfMonth   []int    `json:"days_of_month,omitempty"`
 	IntervalDay   *int     `json:"interval_day,omitempty"`
@@ -46,8 +46,8 @@ type MaintenanceResponseDto struct {
 	Strategy      string    `json:"strategy"`
 	StartDateTime *string   `json:"start_date_time,omitempty" validate:"omitempty,datetime=2006-01-02T15:04"`
 	EndDateTime   *string   `json:"end_date_time,omitempty" validate:"omitempty,datetime=2006-01-02T15:04"`
-	StartTime     *string   `json:"start_time,omitempty" validate:"regexp=^(?:[01]\d|2[0-3]):[0-5]\d$"`
-	EndTime       *string   `json:"end_time,omitempty" validate:"regexp=^(?:[01]\d|2[0-3]):[0-5]\d$"`
+	StartTime     *string   `json:"start_time,omitempty" validate:"omitempty,datetime=15:04"`
+	EndTime       *string   `json:"end_time,omitempty" validate:"omitempty,datetime=15:04"`
 	Weekdays      []int     `json:"weekdays,omitempty"`
 	DaysOfMonth   []int     `json:"days_of_month,omitempty"`
 	IntervalDay   *int      `json:"interval_day,omitempty"`
