@@ -198,9 +198,34 @@ func (ic *Controller) UpdatePartial(ctx *gin.Context) {
 		return
 	}
 
-	// UpdatePartial writes type and config even when they are empty, so they are checked like a full update
-	if _, ok := validateConfig(ctx, notification.Type, notification.Config); !ok {
-		return
+	// Validate the type and config the channel will have after the update; omitted fields keep their saved values
+	if notification.Type != nil || notification.Config != nil {
+		existing, err := ic.service.FindByID(ctx, id)
+		if err != nil {
+			ic.logger.Errorw("Failed to fetch notification", "error", err)
+			ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+			return
+		}
+		if existing == nil {
+			ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Notification not found"))
+			return
+		}
+
+		channelType := existing.Type
+		if notification.Type != nil {
+			channelType = *notification.Type
+		}
+		config := ""
+		if existing.Config != nil {
+			config = *existing.Config
+		}
+		if notification.Config != nil {
+			config = *notification.Config
+		}
+
+		if _, ok := validateConfig(ctx, channelType, config); !ok {
+			return
+		}
 	}
 
 	updatedNotification, err := ic.service.UpdatePartial(ctx, id, &notification)
