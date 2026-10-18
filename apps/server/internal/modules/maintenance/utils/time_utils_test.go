@@ -87,11 +87,6 @@ func TestTimeUtils_LoadTimezone(t *testing.T) {
 			expected: "America/New_York",
 		},
 		{
-			name:     "same as server",
-			timezone: "SAME_AS_SERVER",
-			expected: time.Now().Location().String(),
-		},
-		{
 			name:     "invalid timezone falls back to UTC",
 			timezone: "Invalid/Timezone",
 			expected: "UTC",
@@ -101,6 +96,40 @@ func TestTimeUtils_LoadTimezone(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			loc := utils.LoadTimezone(tt.timezone)
+			assert.Equal(t, tt.expected, loc.String())
+		})
+	}
+}
+
+// Each binary's main sets TZ from the config after time.Local has already been
+// initialised, so SAME_AS_SERVER must follow TZ rather than time.Local.
+func TestTimeUtils_LoadTimezone_SameAsServer(t *testing.T) {
+	utils := NewTimeUtils()
+
+	// Initialise time.Local before TZ changes, as the startup log line in main does
+	_ = time.Local.String()
+
+	tests := []struct {
+		name     string
+		tz       string
+		expected string
+	}{
+		{
+			name:     "uses the TZ env var",
+			tz:       "Europe/Kyiv",
+			expected: "Europe/Kyiv",
+		},
+		{
+			name:     "falls back to the process timezone when TZ is empty",
+			tz:       "",
+			expected: time.Local.String(),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv("TZ", tt.tz)
+			loc := utils.LoadTimezone("SAME_AS_SERVER")
 			assert.Equal(t, tt.expected, loc.String())
 		})
 	}

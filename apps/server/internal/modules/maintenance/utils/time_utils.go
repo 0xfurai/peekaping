@@ -49,10 +49,11 @@ func (tu *TimeUtils) CalculateDurationFromTimes(startTime, endTime string) (int,
 // LoadTimezone loads a timezone location, with fallback to UTC if invalid
 func (tu *TimeUtils) LoadTimezone(timezone string) *time.Location {
 	if timezone == "SAME_AS_SERVER" {
-	    timezone = os.Getenv("TZ")
-	    if timezone == "" {
-	        timezone = time.Now().Location().String()
-	    }
+		// main sets TZ from the config after time.Local is initialised, so read TZ itself
+		timezone = os.Getenv("TZ")
+		if timezone == "" {
+			timezone = time.Now().Location().String()
+		}
 	}
 
 	loc, err := time.LoadLocation(timezone)
