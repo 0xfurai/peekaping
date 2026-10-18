@@ -5,7 +5,8 @@ import (
 )
 
 type Repository interface {
-	// CheckIfSent checks if a notification was already sent for the given criteria
+	// CheckIfSent reports whether a notification was already sent for this
+	// threshold or a nearer one (days at most the given days)
 	CheckIfSent(ctx context.Context, notificationType string, monitorID string, days int) (bool, error)
 
 	// RecordSent records that a notification was sent
