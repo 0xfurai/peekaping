@@ -11,4 +11,7 @@ type Repository interface {
 	AddToStat(ctx context.Context, stat *Stat, period StatPeriod) error
 	FindStatsByMonitorIDAndTimeRange(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod) ([]*Stat, error)
 	DeleteByMonitorID(ctx context.Context, monitorID string) error
+	// DeleteOlderThan deletes the period's stats whose bucket started before cutoff
+	// and returns how many it deleted.
+	DeleteOlderThan(ctx context.Context, period StatPeriod, cutoff time.Time) (int64, error)
 }

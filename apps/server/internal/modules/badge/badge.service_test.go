@@ -224,6 +224,14 @@ func (m *MockStatsService) DeleteByMonitorID(ctx context.Context, monitorID stri
 	return args.Error(0)
 }
 
+func (m *MockStatsService) DeleteExpired(ctx context.Context, now time.Time) (map[stats.StatPeriod]int64, error) {
+	args := m.Called(ctx, now)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(map[stats.StatPeriod]int64), args.Error(1)
+}
+
 type MockTLSInfoService struct {
 	mock.Mock
 }
