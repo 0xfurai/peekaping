@@ -18,6 +18,8 @@ RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o main -ldflags="-s -w" ./cmd/wo
 
 # Start a new stage from scratch
 FROM alpine
+
+# Install tzdata so named time zones (TZ, maintenance windows) resolve instead of falling back to UTC
 RUN apk add --no-cache tzdata
 
 USER 65532:65532

@@ -102,11 +102,11 @@ func TestTimeUtils_LoadTimezone(t *testing.T) {
 }
 
 // Each binary's main sets TZ from the config after time.Local has already been
-// initialised, so SAME_AS_SERVER must follow TZ rather than time.Local.
+// initialized, so SAME_AS_SERVER must follow TZ rather than time.Local.
 func TestTimeUtils_LoadTimezone_SameAsServer(t *testing.T) {
 	utils := NewTimeUtils()
 
-	// Initialise time.Local before TZ changes, as the startup log line in main does
+	// Initialize time.Local before TZ changes, as the startup log line in main does
 	_ = time.Local.String()
 
 	tests := []struct {
