@@ -17,6 +17,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
 
@@ -329,9 +330,9 @@ func TestMonitorService_Create(t *testing.T) {
 			Type:           "http",
 			Name:           "Test Monitor",
 			Interval:       60,
-			Timeout:        30,
+			Timeout:        16,
 			MaxRetries:     3,
-			RetryInterval:  30,
+			RetryInterval:  45,
 			ResendInterval: 10,
 			Active:         true,
 			Config:         "{}",
@@ -339,34 +340,35 @@ func TestMonitorService_Create(t *testing.T) {
 			PushToken:      "token123",
 		}
 
-		expectedModel := &Model{
-			ID:             "monitor123",
-			Type:           createDto.Type,
-			Name:           createDto.Name,
-			Interval:       createDto.Interval,
-			Timeout:        createDto.Timeout,
-			MaxRetries:     createDto.MaxRetries,
-			RetryInterval:  createDto.RetryInterval,
-			ResendInterval: createDto.ResendInterval,
-			Active:         createDto.Active,
-			Status:         shared.MonitorStatusUp,
-			Config:         createDto.Config,
-			ProxyId:        createDto.ProxyId,
-			PushToken:      createDto.PushToken,
-			CreatedAt:      time.Now().UTC(),
-		}
+		var saved *Model
+		created := &Model{ID: "monitor123"}
+		mockRepo.On("Create", ctx, mock.Anything).Run(func(args mock.Arguments) {
+			saved = args.Get(1).(*Model)
+		}).Return(created, nil).Once()
 
-		mockRepo.On("Create", ctx, mock.MatchedBy(func(m *Model) bool {
-			return m.Type == createDto.Type &&
-				m.Name == createDto.Name &&
-				m.Interval == createDto.Interval &&
-				m.Status == shared.MonitorStatusUp
-		})).Return(expectedModel, nil)
-
+		before := time.Now().UTC()
 		result, err := service.Create(ctx, createDto)
 
-		assert.NoError(t, err)
-		assert.Equal(t, expectedModel, result)
+		require.NoError(t, err)
+		assert.Same(t, created, result)
+		require.NotNil(t, saved)
+		assert.WithinRange(t, saved.CreatedAt, before, time.Now().UTC())
+		assert.Equal(t, time.UTC, saved.CreatedAt.Location())
+		saved.CreatedAt = time.Time{}
+		assert.Equal(t, &Model{
+			Type:           "http",
+			Name:           "Test Monitor",
+			Interval:       60,
+			Timeout:        16,
+			MaxRetries:     3,
+			RetryInterval:  45,
+			ResendInterval: 10,
+			Active:         true,
+			Status:         shared.MonitorStatusUp,
+			Config:         "{}",
+			ProxyId:        "proxy123",
+			PushToken:      "token123",
+		}, saved, "the repository gets every field of the request, and the monitor starts Up")
 		mockRepo.AssertExpectations(t)
 	})
 
