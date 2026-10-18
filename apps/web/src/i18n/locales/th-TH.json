@@ -661,6 +661,9 @@
         "paused": "หยุดชั่วคราว",
         "up": "ออนไลน์"
       }
+    },
+    "stale": {
+      "not_checked_since": "ไม่ได้ตรวจสอบตั้งแต่ {{time}}"
     }
   },
   "navigation": {

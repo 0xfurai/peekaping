@@ -661,6 +661,9 @@
         "paused": "معلق",
         "up": "فعال"
       }
+    },
+    "stale": {
+      "not_checked_since": "از {{time}} بررسی نشده است"
     }
   },
   "navigation": {

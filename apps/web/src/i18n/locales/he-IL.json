@@ -661,6 +661,9 @@
         "paused": "השהיה",
         "up": "מופעל"
       }
+    },
+    "stale": {
+      "not_checked_since": "לא נבדק מאז {{time}}"
     }
   },
   "navigation": {

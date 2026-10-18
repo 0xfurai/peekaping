@@ -661,6 +661,9 @@
         "paused": "Tạm dừng",
         "up": "Hoạt động"
       }
+    },
+    "stale": {
+      "not_checked_since": "Chưa được kiểm tra kể từ {{time}}"
     }
   },
   "navigation": {

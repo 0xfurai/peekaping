@@ -661,6 +661,9 @@
         "paused": "일시 중지됨",
         "up": "가동 중"
       }
+    },
+    "stale": {
+      "not_checked_since": "{{time}} 이후 확인되지 않음"
     }
   },
   "navigation": {

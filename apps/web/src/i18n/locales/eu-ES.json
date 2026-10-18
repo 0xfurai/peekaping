@@ -661,6 +661,9 @@
         "paused": "Pausatuta",
         "up": "Alaba"
       }
+    },
+    "stale": {
+      "not_checked_since": "Egiaztatu gabe {{time}}(e)tik"
     }
   },
   "navigation": {

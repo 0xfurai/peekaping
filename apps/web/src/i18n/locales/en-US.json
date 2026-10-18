@@ -661,6 +661,9 @@
         "paused": "Paused",
         "up": "Up"
       }
+    },
+    "stale": {
+      "not_checked_since": "Not checked since {{time}}"
     }
   },
   "navigation": {

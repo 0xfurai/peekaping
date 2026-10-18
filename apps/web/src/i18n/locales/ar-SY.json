@@ -661,6 +661,9 @@
         "paused": "متوقف",
         "up": "قيد التشغيل"
       }
+    },
+    "stale": {
+      "not_checked_since": "لم يتم الفحص منذ {{time}}"
     }
   },
   "navigation": {

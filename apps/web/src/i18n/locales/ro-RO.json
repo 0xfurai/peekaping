@@ -661,6 +661,9 @@
         "paused": "Pauză",
         "up": "Funcționează"
       }
+    },
+    "stale": {
+      "not_checked_since": "Neverificat din {{time}}"
     }
   },
   "navigation": {

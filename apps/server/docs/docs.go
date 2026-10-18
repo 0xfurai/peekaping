@@ -4642,6 +4642,10 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 60
                 },
+                "stale_since": {
+                    "description": "The later of the latest heartbeat and the monitor's last save or resume (so\nits updated_at when it has no heartbeat), set only while the stale-monitor\nwatchdog counts it as stale. The API fills it in; it isn't stored.",
+                    "type": "string"
+                },
                 "status": {
                     "$ref": "#/definitions/shared.MonitorStatus"
                 },
@@ -4714,6 +4718,10 @@ const docTemplate = `{
                 "retry_interval": {
                     "type": "integer",
                     "example": 10
+                },
+                "stale_since": {
+                    "description": "The later of the latest heartbeat and the monitor's last save or resume,\nset only while the stale-monitor watchdog counts it as stale",
+                    "type": "string"
                 },
                 "status": {
                     "type": "integer",

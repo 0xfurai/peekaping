@@ -26,7 +26,6 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/redis/go-redis/v9"
 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -113,7 +112,7 @@ func ProvideServer(
 	badgeController *badge.Controller,
 	apiKeyRoute *api_key.Route,
 	apiKeyController *api_key.Controller,
-	rdb *redis.Client,
+	staleStore *stale.Store,
 ) *Server {
 	// Initialize server based on mode
 	var server *gin.Engine
@@ -140,7 +139,7 @@ func ProvideServer(
 
 	// server.Use(LogMiddleware(logger))
 
-	healthHandler := newHealthHandler(stale.NewStore(rdb), logger)
+	healthHandler := newHealthHandler(staleStore, logger)
 	server.GET("/health", healthHandler)
 	router := server.Group("/api/v1")
 	router.GET("/health", healthHandler)

@@ -661,6 +661,9 @@
         "paused": "In pausa",
         "up": "Online"
       }
+    },
+    "stale": {
+      "not_checked_since": "Non controllato dal {{time}}"
     }
   },
   "navigation": {

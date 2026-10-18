@@ -1,6 +1,10 @@
 package monitor
 
-import "peekaping/internal/modules/heartbeat"
+import (
+	"time"
+
+	"peekaping/internal/modules/heartbeat"
+)
 
 type CreateUpdateDto struct {
 	Type            string   `json:"type" validate:"required" example:"http"`
@@ -62,6 +66,9 @@ type MonitorResponseDto struct {
 	ProxyId         string   `json:"proxy_id" example:"6830ad485361f19c598d6d90"`
 	Config          string   `json:"config"`
 	PushToken       string   `json:"push_token"`
+	// The later of the latest heartbeat and the monitor's last save or resume,
+	// set only while the stale-monitor watchdog counts it as stale
+	StaleSince *time.Time `json:"stale_since,omitempty"`
 }
 
 // StatPointsSummaryDto represents stat points and summary for a period

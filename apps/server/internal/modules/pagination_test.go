@@ -124,10 +124,10 @@ func TestListEndpointsPagination(t *testing.T) {
 			return status_page.NewController(&statusPagePaginationService{paginationCall: call}, nil, nil, logger).FindAll
 		}},
 		{"monitors", 10, func(call *paginationCall) gin.HandlerFunc {
-			return monitor.NewMonitorController(&monitorPaginationService{paginationCall: call}, logger, nil, nil, nil).FindAll
+			return monitor.NewMonitorController(&monitorPaginationService{paginationCall: call}, logger, nil, nil, nil, nil).FindAll
 		}},
 		{"heartbeats", 50, func(call *paginationCall) gin.HandlerFunc {
-			return monitor.NewMonitorController(&monitorPaginationService{paginationCall: call}, logger, nil, nil, nil).FindByMonitorIDPaginated
+			return monitor.NewMonitorController(&monitorPaginationService{paginationCall: call}, logger, nil, nil, nil, nil).FindByMonitorIDPaginated
 		}},
 	}
 	cases := []struct {

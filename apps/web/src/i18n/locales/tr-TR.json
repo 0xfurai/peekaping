@@ -661,6 +661,9 @@
         "paused": "Duraklatıldı",
         "up": "Çalışıyor"
       }
+    },
+    "stale": {
+      "not_checked_since": "{{time}} tarihinden beri kontrol edilmedi"
     }
   },
   "navigation": {

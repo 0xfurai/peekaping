@@ -661,6 +661,9 @@
         "paused": "Pauzirano",
         "up": "Radi"
       }
+    },
+    "stale": {
+      "not_checked_since": "Nije provereno od {{time}}"
     }
   },
   "navigation": {

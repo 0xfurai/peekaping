@@ -661,6 +661,9 @@
         "paused": "Pause",
         "up": "Op"
       }
+    },
+    "stale": {
+      "not_checked_since": "Ikke tjekket siden {{time}}"
     }
   },
   "navigation": {

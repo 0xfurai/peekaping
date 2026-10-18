@@ -7,6 +7,7 @@ import (
 	"peekaping/internal/modules/monitor_notification"
 	"peekaping/internal/modules/monitor_tag"
 	"peekaping/internal/modules/monitor_tls_info"
+	"peekaping/internal/modules/stale"
 	"peekaping/internal/utils"
 	"strings"
 	"time"
@@ -21,6 +22,7 @@ type MonitorController struct {
 	monitorNotificationService monitor_notification.Service
 	monitorTagService          monitor_tag.Service
 	tlsInfoService             monitor_tls_info.Service
+	staleStore                 *stale.Store
 }
 
 func NewMonitorController(
@@ -29,6 +31,7 @@ func NewMonitorController(
 	monitorNotificationService monitor_notification.Service,
 	monitorTagService monitor_tag.Service,
 	tlsInfoService monitor_tls_info.Service,
+	staleStore *stale.Store,
 ) *MonitorController {
 	utils.Validate.RegisterStructValidation(CreateUpdateDtoStructLevelValidation, CreateUpdateDto{})
 
@@ -38,7 +41,22 @@ func NewMonitorController(
 		monitorNotificationService,
 		monitorTagService,
 		tlsInfoService,
+		staleStore,
 	}
+}
+
+// staleMonitors returns when each stale monitor was last checked. If Redis can't be read
+// it logs and returns none: the monitors are still worth showing.
+func (ic *MonitorController) staleMonitors(ctx *gin.Context) map[string]stale.Entry {
+	if ic.staleStore == nil {
+		return nil
+	}
+	entries, err := ic.staleStore.All(ctx)
+	if err != nil {
+		ic.logger.Warnw("Failed to read stale monitors", "error", err)
+		return nil
+	}
+	return entries
 }
 
 // @Router		/monitors [get]
@@ -111,6 +129,13 @@ func (ic *MonitorController) FindAll(ctx *gin.Context) {
 		ic.logger.Errorw("Failed to fetch monitors", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
+	}
+
+	staleMonitors := ic.staleMonitors(ctx)
+	for _, m := range response {
+		if entry, ok := staleMonitors[m.ID]; ok {
+			m.StaleSince = &entry.Since
+		}
 	}
 
 	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", response))
@@ -247,6 +272,9 @@ func (ic *MonitorController) FindByID(ctx *gin.Context) {
 		TagIds:          tagIds,
 		ProxyId:         monitor.ProxyId,
 		Config:          monitor.Config,
+	}
+	if entry, ok := ic.staleMonitors(ctx)[monitor.ID]; ok {
+		response.StaleSince = &entry.Since
 	}
 
 	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", response))

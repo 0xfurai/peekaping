@@ -537,6 +537,12 @@ definitions:
         description: Retry interval in seconds to do request to url
         example: 60
         type: integer
+      stale_since:
+        description: |-
+          The later of the latest heartbeat and the monitor's last save or resume (so
+          its updated_at when it has no heartbeat), set only while the stale-monitor
+          watchdog counts it as stale. The API fills it in; it isn't stored.
+        type: string
       status:
         $ref: '#/definitions/shared.MonitorStatus'
       timeout:
@@ -592,6 +598,11 @@ definitions:
       retry_interval:
         example: 10
         type: integer
+      stale_since:
+        description: |-
+          The later of the latest heartbeat and the monitor's last save or resume,
+          set only while the stale-monitor watchdog counts it as stale
+        type: string
       status:
         example: 1
         type: integer

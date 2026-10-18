@@ -661,6 +661,9 @@
         "paused": "Pauzirano",
         "up": "Dostupno"
       }
+    },
+    "stale": {
+      "not_checked_since": "Nije provjereno od {{time}}"
     }
   },
   "navigation": {

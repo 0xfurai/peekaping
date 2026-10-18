@@ -282,6 +282,12 @@ export type MonitorModel = {
    * Retry interval in seconds to do request to url
    */
   retry_interval?: number;
+  /**
+   * The later of the latest heartbeat and the monitor's last save or resume (so
+   * its updated_at when it has no heartbeat), set only while the stale-monitor
+   * watchdog counts it as stale. The API fills it in; it isn't stored.
+   */
+  stale_since?: string;
   status?: SharedMonitorStatus;
   /**
    * monitor timeout in seconds to do request otherwise stop request
@@ -307,6 +313,11 @@ export type MonitorMonitorResponseDto = {
   push_token?: string;
   resend_interval?: number;
   retry_interval?: number;
+  /**
+   * The later of the latest heartbeat and the monitor's last save or resume,
+   * set only while the stale-monitor watchdog counts it as stale
+   */
+  stale_since?: string;
   status?: number;
   tag_ids?: Array<string>;
   timeout?: number;
