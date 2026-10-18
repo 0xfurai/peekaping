@@ -146,7 +146,7 @@ export type InternalHealthResponse = {
   stale_monitors?: number | null;
   status?: string;
   /**
-   * WatchdogRanAt is when the stale-monitor watchdog last ran; null if it never has
+   * WatchdogRanAt is when the stale-monitor watchdog last ran; null if it never has or Redis can't be read
    */
   watchdog_ran_at?: string | null;
 };

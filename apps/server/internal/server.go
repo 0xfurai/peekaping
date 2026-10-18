@@ -47,7 +47,7 @@ type HealthResponse struct {
 	Status string `json:"status" example:"success"`
 	// StaleMonitors is how many active monitors Peekaping has stopped checking; null if Redis can't be read
 	StaleMonitors *int64 `json:"stale_monitors" extensions:"x-nullable"`
-	// WatchdogRanAt is when the stale-monitor watchdog last ran; null if it never has
+	// WatchdogRanAt is when the stale-monitor watchdog last ran; null if it never has or Redis can't be read
 	WatchdogRanAt *time.Time `json:"watchdog_ran_at" extensions:"x-nullable"`
 }
 

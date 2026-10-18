@@ -4231,7 +4231,7 @@ const docTemplate = `{
                     "example": "success"
                 },
                 "watchdog_ran_at": {
-                    "description": "WatchdogRanAt is when the stale-monitor watchdog last ran; null if it never has",
+                    "description": "WatchdogRanAt is when the stale-monitor watchdog last ran; null if it never has or Redis can't be read",
                     "type": "string",
                     "x-nullable": true
                 }
