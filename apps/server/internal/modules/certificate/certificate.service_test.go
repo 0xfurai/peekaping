@@ -24,14 +24,15 @@ import (
 	"go.uber.org/zap"
 )
 
-// recordingNotifier stands in for the notification channels and keeps the
-// threshold of every notice it was asked to send.
-type recordingNotifier struct {
+// recordingNotificationService stands in for the notification channels. It
+// keeps the threshold of every certificate expiry notification it was asked
+// to send.
+type recordingNotificationService struct {
 	targets []int
 	err     error // returned from every send when set
 }
 
-func (r *recordingNotifier) SendCertificateExpiryNotification(_ context.Context, _ string, _ string, _ *certificate.CertificateInfo, _ int, targetDays int) error {
+func (r *recordingNotificationService) SendCertificateExpiryNotification(_ context.Context, _ string, _ string, _ *certificate.CertificateInfo, _ int, targetDays int) error {
 	r.targets = append(r.targets, targetDays)
 	return r.err
 }
@@ -39,10 +40,10 @@ func (r *recordingNotifier) SendCertificateExpiryNotification(_ context.Context,
 // harness is the certificate service over a migrated SQLite database, with
 // real settings, sent-history and TLS info services.
 type harness struct {
-	svc       certificate.Service
-	notifier  *recordingNotifier
-	settings  shared.SettingService
-	monitorID string
+	svc           certificate.Service
+	notifications *recordingNotificationService
+	settings      shared.SettingService
+	monitorID     string
 }
 
 func newHarness(t *testing.T) *harness {
@@ -62,15 +63,15 @@ func newHarness(t *testing.T) *harness {
 
 	logger := zap.NewNop().Sugar()
 	settings := setting.NewService(setting.NewSQLRepository(db), logger)
-	notifier := &recordingNotifier{}
+	notifications := &recordingNotificationService{}
 	svc := certificate.NewService(
 		settings,
-		notifier,
+		notifications,
 		notification_sent_history.NewService(notification_sent_history.NewSQLRepository(db), logger),
 		monitor_tls_info.NewService(monitor_tls_info.NewSQLRepository(db), logger),
 		logger,
 	)
-	return &harness{svc, notifier, settings, monitorID}
+	return &harness{svc, notifications, settings, monitorID}
 }
 
 // check does what the ingester does after a TLS check: store the TLS info,
@@ -84,10 +85,10 @@ func (h *harness) check(t *testing.T, fingerprint string, daysRemaining int) []i
 		DaysRemaining:  daysRemaining,
 		CertType:       "server",
 	}}
-	before := len(h.notifier.targets)
+	before := len(h.notifications.targets)
 	require.NoError(t, h.svc.UpdateTLSInfo(ctx, h.monitorID, tlsInfo))
 	require.NoError(t, h.svc.CheckCertificateExpiry(ctx, tlsInfo, h.monitorID, "Monitor"))
-	return h.notifier.targets[before:]
+	return h.notifications.targets[before:]
 }
 
 const certA, certB = "AA:AA", "BB:BB"
@@ -102,7 +103,7 @@ func TestCheckCertificateExpiry_NotifiesOnceAtEachThreshold(t *testing.T) {
 	assert.Empty(t, h.check(t, certA, 13), "14 was already sent")
 	assert.Equal(t, []int{7}, h.check(t, certA, 6))
 	assert.Empty(t, h.check(t, certA, 5), "7 was already sent")
-	assert.Equal(t, []int{21, 14, 7}, h.notifier.targets)
+	assert.Equal(t, []int{21, 14, 7}, h.notifications.targets)
 }
 
 func TestCheckCertificateExpiry_FirstSeenInsideSeveralThresholdsNotifiesTheNearest(t *testing.T) {
@@ -116,11 +117,11 @@ func TestCheckCertificateExpiry_FirstSeenInsideSeveralThresholdsNotifiesTheNeare
 // doesn't fall back to the farther thresholds.
 func TestCheckCertificateExpiry_FailedSendDoesNotFallBackToFartherThresholds(t *testing.T) {
 	h := newHarness(t)
-	h.notifier.err = errors.New("channel unreachable")
+	h.notifications.err = errors.New("channel unreachable")
 
 	assert.Equal(t, []int{7}, h.check(t, certA, 5), "only the nearest threshold is attempted")
 
-	h.notifier.err = nil
+	h.notifications.err = nil
 	assert.Equal(t, []int{7}, h.check(t, certA, 5), "the next check retries it")
 	assert.Empty(t, h.check(t, certA, 5))
 }
@@ -169,7 +170,7 @@ func TestCheckCertificateExpiry_IgnoresMissingCertificateInfo(t *testing.T) {
 
 	require.NoError(t, h.svc.CheckCertificateExpiry(ctx, nil, h.monitorID, "Monitor"))
 	require.NoError(t, h.svc.CheckCertificateExpiry(ctx, &certificate.TLSInfo{Valid: false}, h.monitorID, "Monitor"))
-	assert.Empty(t, h.notifier.targets)
+	assert.Empty(t, h.notifications.targets)
 }
 
 func TestGetNotificationDays_SeedsTheDefaultsWhenTheSettingIsMissing(t *testing.T) {

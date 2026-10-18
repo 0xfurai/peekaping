@@ -231,7 +231,8 @@ func exerciseRepositories(t *testing.T, repos repositories) {
 		assert.Equal(t, input.MonitorID, actual[0].MonitorID)
 	})
 	// A threshold counts as sent once it or a nearer threshold has been sent,
-	// so a certificate counting down still gets its 14- and 7-day notices.
+	// so a certificate counting down still gets its 14- and 7-day certificate
+	// expiry notifications.
 	t.Run("NotificationHistoryThresholds", func(t *testing.T) {
 		sent := func(days int) bool {
 			t.Helper()
