@@ -11,7 +11,6 @@ import (
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/version"
-	"time"
 
 	"go.uber.org/zap"
 )
@@ -30,12 +29,10 @@ type OpsgenieSender struct {
 }
 
 // NewOpsgenieSender creates a new OpsgenieSender
-func NewOpsgenieSender(logger *zap.SugaredLogger) *OpsgenieSender {
+func NewOpsgenieSender(logger *zap.SugaredLogger, client *http.Client) *OpsgenieSender {
 	return &OpsgenieSender{
 		logger: logger,
-		client: &http.Client{
-			Timeout: 30 * time.Second,
-		},
+		client: client,
 	}
 }
 

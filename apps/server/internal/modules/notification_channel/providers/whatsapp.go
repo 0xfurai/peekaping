@@ -10,7 +10,6 @@ import (
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/version"
 	"strings"
-	"time"
 
 	liquid "github.com/osteele/liquid"
 	"go.uber.org/zap"
@@ -32,12 +31,10 @@ type WhatsAppSender struct {
 }
 
 // NewWhatsAppSender creates a WhatsAppSender
-func NewWhatsAppSender(logger *zap.SugaredLogger) *WhatsAppSender {
+func NewWhatsAppSender(logger *zap.SugaredLogger, client *http.Client) *WhatsAppSender {
 	return &WhatsAppSender{
 		logger: logger,
-		client: &http.Client{
-			Timeout: 30 * time.Second,
-		},
+		client: client,
 	}
 }
 

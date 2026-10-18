@@ -25,11 +25,12 @@ type DiscordConfig struct {
 
 type DiscordSender struct {
 	logger *zap.SugaredLogger
+	client *http.Client
 }
 
 // NewDiscordSender creates a DiscordSender
-func NewDiscordSender(logger *zap.SugaredLogger) *DiscordSender {
-	return &DiscordSender{logger: logger}
+func NewDiscordSender(logger *zap.SugaredLogger, client *http.Client) *DiscordSender {
+	return &DiscordSender{logger: logger, client: client}
 }
 
 func (s *DiscordSender) Unmarshal(configJSON string) (any, error) {
@@ -117,7 +118,6 @@ func (s *DiscordSender) Send(
 	}
 
 	// Create HTTP request
-	client := &http.Client{}
 	req, err := http.NewRequestWithContext(ctx, "POST", cfg.WebhookURL, bytes.NewBuffer(jsonPayload))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
@@ -128,7 +128,7 @@ func (s *DiscordSender) Send(
 	s.logger.Debugf("Sending Discord webhook: %s", string(jsonPayload))
 
 	// Send the request
-	resp, err := client.Do(req)
+	resp, err := s.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to send Discord webhook: %w", err)
 	}

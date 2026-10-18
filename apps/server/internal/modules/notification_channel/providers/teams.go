@@ -16,7 +16,6 @@ import (
 	"peekaping/internal/version"
 	"regexp"
 	"strings"
-	"time"
 
 	"go.uber.org/zap"
 )
@@ -39,13 +38,11 @@ type TeamsSender struct {
 }
 
 // NewTeamsSender creates a TeamsSender
-func NewTeamsSender(logger *zap.SugaredLogger, config *config.Config) *TeamsSender {
+func NewTeamsSender(logger *zap.SugaredLogger, config *config.Config, client *http.Client) *TeamsSender {
 	return &TeamsSender{
 		logger: logger,
 		config: config,
-		client: &http.Client{
-			Timeout: 10 * time.Second,
-		},
+		client: client,
 	}
 }
 

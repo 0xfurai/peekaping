@@ -27,7 +27,7 @@ func sendTestGrafanaOncallPayload(t *testing.T, message string, m *monitor.Model
 	}))
 	defer server.Close()
 
-	sender := NewGrafanaOncallSender(zap.NewNop().Sugar())
+	sender := NewGrafanaOncallSender(zap.NewNop().Sugar(), NewHTTPClient())
 	err := sender.Send(context.Background(), `{"grafana_oncall_url": "`+server.URL+`"}`, message, m, hb)
 	require.NoError(t, err)
 	return payload

@@ -12,7 +12,6 @@ import (
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/version"
 	"strings"
-	"time"
 
 	"go.uber.org/zap"
 )
@@ -28,13 +27,11 @@ type GoogleChatSender struct {
 }
 
 // NewGoogleChatSender creates a GoogleChatSender
-func NewGoogleChatSender(logger *zap.SugaredLogger, config *config.Config) *GoogleChatSender {
+func NewGoogleChatSender(logger *zap.SugaredLogger, config *config.Config, client *http.Client) *GoogleChatSender {
 	return &GoogleChatSender{
 		logger: logger,
 		config: config,
-		client: &http.Client{
-			Timeout: 30 * time.Second,
-		},
+		client: client,
 	}
 }
 

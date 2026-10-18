@@ -3,11 +3,13 @@ package providers
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"strings"
 
 	liquid "github.com/osteele/liquid"
+	"github.com/sendgrid/rest"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"go.uber.org/zap"
@@ -26,11 +28,12 @@ type SendGridConfig struct {
 
 type SendGridSender struct {
 	logger *zap.SugaredLogger
+	client *http.Client
 }
 
 // NewSendGridSender creates a SendGridSender
-func NewSendGridSender(logger *zap.SugaredLogger) *SendGridSender {
-	return &SendGridSender{logger: logger}
+func NewSendGridSender(logger *zap.SugaredLogger, client *http.Client) *SendGridSender {
+	return &SendGridSender{logger: logger, client: client}
 }
 
 func (s *SendGridSender) Unmarshal(configJSON string) (any, error) {
@@ -100,9 +103,11 @@ func (s *SendGridSender) Send(
 		}
 	}
 
-	// Create SendGrid client and send
-	client := sendgrid.NewSendClient(cfg.APIKey)
-	response, err := client.Send(sgMessage)
+	// Send through the shared client; the SDK's own client has no timeout
+	request := sendgrid.GetRequest(cfg.APIKey, "/v3/mail/send", "")
+	request.Method = rest.Post
+	request.Body = mail.GetRequestBody(sgMessage)
+	response, err := (&rest.Client{HTTPClient: s.client}).SendWithContext(ctx, request)
 
 	if err != nil {
 		s.logger.Errorw("Failed to send SendGrid email", "error", err)

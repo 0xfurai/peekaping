@@ -16,7 +16,6 @@ import (
 	"peekaping/internal/version"
 	"regexp"
 	"strings"
-	"time"
 
 	liquid "github.com/osteele/liquid"
 	"go.uber.org/zap"
@@ -48,28 +47,13 @@ type SlackSender struct {
 }
 
 // NewSlackSender creates a SlackSender
-func NewSlackSender(logger *zap.SugaredLogger, config *config.Config) *SlackSender {
+func NewSlackSender(logger *zap.SugaredLogger, config *config.Config, client *http.Client) *SlackSender {
 	return &SlackSender{
 		logger: logger,
 		config: config,
-		client: &http.Client{
-			Timeout:       30 * time.Second,
-			CheckRedirect: rejectHTTPSDowngrade,
-		},
+		client: client,
 		apiURL: slackPostMessageURL,
 	}
-}
-
-// rejectHTTPSDowngrade stops redirects from HTTPS to HTTP. net/http keeps the
-// Authorization header on same-host redirects, so the bot token would go out in cleartext.
-func rejectHTTPSDowngrade(req *http.Request, via []*http.Request) error {
-	if len(via) >= 10 {
-		return errors.New("stopped after 10 redirects")
-	}
-	if via[len(via)-1].URL.Scheme == "https" && req.URL.Scheme != "https" {
-		return http.ErrUseLastResponse
-	}
-	return nil
 }
 
 func (s *SlackSender) Unmarshal(configJSON string) (any, error) {

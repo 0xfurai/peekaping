@@ -26,11 +26,12 @@ type TelegramConfig struct {
 
 type TelegramSender struct {
 	logger *zap.SugaredLogger
+	client *http.Client
 }
 
 // NewTelegramSender creates an TelegramSender
-func NewTelegramSender(logger *zap.SugaredLogger) *TelegramSender {
-	return &TelegramSender{logger: logger}
+func NewTelegramSender(logger *zap.SugaredLogger, client *http.Client) *TelegramSender {
+	return &TelegramSender{logger: logger, client: client}
 }
 
 func (s *TelegramSender) Unmarshal(configJSON string) (any, error) {
@@ -103,8 +104,7 @@ func (s *TelegramSender) Send(
 	apiUrl := fmt.Sprintf("%s/bot%s/sendMessage", url, cfg.BotToken)
 
 	// Prepare request
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", apiUrl, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", apiUrl, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
@@ -118,7 +118,7 @@ func (s *TelegramSender) Send(
 
 	s.logger.Debugf("Sending telegram message: %s", req.URL.String())
 
-	resp, err := client.Do(req)
+	resp, err := s.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to send telegram message: %w", err)
 	}

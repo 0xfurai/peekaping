@@ -10,7 +10,6 @@ import (
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/version"
 	"strings"
-	"time"
 
 	liquid "github.com/osteele/liquid"
 	"go.uber.org/zap"
@@ -29,12 +28,10 @@ type SignalSender struct {
 }
 
 // NewSignalSender creates a SignalSender
-func NewSignalSender(logger *zap.SugaredLogger) *SignalSender {
+func NewSignalSender(logger *zap.SugaredLogger, client *http.Client) *SignalSender {
 	return &SignalSender{
 		logger: logger,
-		client: &http.Client{
-			Timeout: 30 * time.Second,
-		},
+		client: client,
 	}
 }
 

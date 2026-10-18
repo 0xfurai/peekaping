@@ -12,7 +12,7 @@ import (
 )
 
 func TestPagerDutyConfig_Unmarshal(t *testing.T) {
-	sender := NewPagerDutySender(zap.NewNop().Sugar(), nil)
+	sender := NewPagerDutySender(zap.NewNop().Sugar(), nil, NewHTTPClient())
 
 	// Test valid config
 	validConfig := `{
@@ -50,7 +50,7 @@ func TestPagerDutyConfig_Unmarshal(t *testing.T) {
 }
 
 func TestPagerDutyConfig_Validate(t *testing.T) {
-	sender := NewPagerDutySender(zap.NewNop().Sugar(), nil)
+	sender := NewPagerDutySender(zap.NewNop().Sugar(), nil, NewHTTPClient())
 
 	// Test valid config
 	validConfig := `{
@@ -86,7 +86,7 @@ func TestPagerDutyConfig_Validate(t *testing.T) {
 }
 
 func TestPagerDutySender_getEventAction(t *testing.T) {
-	sender := NewPagerDutySender(zap.NewNop().Sugar(), nil)
+	sender := NewPagerDutySender(zap.NewNop().Sugar(), nil, NewHTTPClient())
 
 	// Test DOWN status
 	downHeartbeat := &heartbeat.Model{Status: shared.MonitorStatusDown}
@@ -120,7 +120,7 @@ func TestPagerDutySender_getEventAction(t *testing.T) {
 }
 
 func TestPagerDutySender_getTitle(t *testing.T) {
-	sender := NewPagerDutySender(zap.NewNop().Sugar(), nil)
+	sender := NewPagerDutySender(zap.NewNop().Sugar(), nil, NewHTTPClient())
 
 	// Test DOWN status
 	downHeartbeat := &heartbeat.Model{Status: shared.MonitorStatusDown}
@@ -163,7 +163,7 @@ func TestPagerDutySender_getTitle(t *testing.T) {
 }
 
 func TestPagerDutySender_getMonitorURL(t *testing.T) {
-	sender := NewPagerDutySender(zap.NewNop().Sugar(), nil)
+	sender := NewPagerDutySender(zap.NewNop().Sugar(), nil, NewHTTPClient())
 
 	cases := []struct {
 		name     string
@@ -188,7 +188,7 @@ func TestPagerDutySender_getMonitorURL(t *testing.T) {
 }
 
 func TestPagerDutySender_getSeverity(t *testing.T) {
-	sender := NewPagerDutySender(zap.NewNop().Sugar(), nil)
+	sender := NewPagerDutySender(zap.NewNop().Sugar(), nil, NewHTTPClient())
 
 	// Test default severity
 	cfg := &PagerDutyConfig{}
@@ -206,7 +206,7 @@ func TestPagerDutySender_getSeverity(t *testing.T) {
 }
 
 func TestPagerDutyPayload_Structure(t *testing.T) {
-	sender := NewPagerDutySender(zap.NewNop().Sugar(), nil)
+	sender := NewPagerDutySender(zap.NewNop().Sugar(), nil, NewHTTPClient())
 
 	// Create test data
 	monitor := &monitor.Model{
