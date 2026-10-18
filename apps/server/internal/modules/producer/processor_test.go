@@ -459,7 +459,13 @@ func TestProcessMonitor(t *testing.T) {
 
 		mockMonitorSvc.On("FindByID", ctx, "mon-1").Return(mon, nil)
 		mockMaintenanceSvc.On("GetMaintenancesByMonitorID", ctx, "mon-1").Return([]*maintenance.Model{}, nil)
-		mockQueueSvc.On("Enqueue", ctx, worker.TaskTypeHealthCheck, mock.AnythingOfType("worker.HealthCheckTaskPayload"), healthCheckOpts("mon-1")).Return(nil, errTaskIDConflict)
+		mockQueueSvc.On("Enqueue", ctx, worker.TaskTypeHealthCheck, worker.HealthCheckTaskPayload{
+			MonitorID:   "mon-1",
+			MonitorName: "Test Monitor",
+			MonitorType: "http",
+			Interval:    60,
+			ScheduledAt: scheduledAt,
+		}, healthCheckOpts("mon-1")).Return(nil, errTaskIDConflict)
 		mockQueueSvc.On("GetTaskInfo", ctx, "healthcheck", "healthcheck:mon-1").Return(nil, errors.New("task not found"))
 
 		interval, err := producer.processMonitor(ctx, "mon-1", 1234567890)

@@ -130,7 +130,7 @@ func TestSync_PausingAMonitorMidSyncKeepsTheOthers(t *testing.T) {
 		"refresh": (*Producer).refreshSchedule,
 	} {
 		t.Run(name, func(t *testing.T) {
-			// Newest ID first: page 0 is mon-149..mon-050, page 1 is mon-049..mon-000
+			// Highest ID first: page 0 is mon-149..mon-050, page 1 is mon-049..mon-000
 			e := newEngine(t, activeMonitors(150)...)
 			slot := time.Date(2026, 1, 1, 12, 1, 0, 0, time.UTC)
 			for i := range 150 {

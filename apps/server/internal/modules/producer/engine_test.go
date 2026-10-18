@@ -30,7 +30,7 @@ var t0 = time.Date(2026, 1, 1, 12, 0, 30, 0, time.UTC)
 func ms(t time.Time) float64 { return float64(t.UnixMilli()) }
 
 // monitorStore is an in-memory monitor database. Like both repositories, it
-// pages active monitors by offset, newest ID first.
+// pages active monitors by offset, highest ID first (ORDER BY id DESC).
 type monitorStore struct {
 	MockMonitorService // methods the producer doesn't call
 
@@ -185,11 +185,11 @@ func (e *engine) eventuallyDueAt(t *testing.T, id string, at time.Time) {
 	}, 5*time.Second, 2*time.Millisecond, "%s never became due at %s", id, at)
 }
 
-// queuedCheck returns the monitor's health check task in the queue.
+// queuedCheck returns the monitor's queued check task and its payload.
 func (e *engine) queuedCheck(t *testing.T, monitorID string) (*asynq.TaskInfo, worker.HealthCheckTaskPayload) {
 	t.Helper()
 	info, err := e.inspector.GetTaskInfo(healthCheckQueue, healthCheckTaskID(monitorID))
-	require.NoError(t, err, "no health check queued for %s", monitorID)
+	require.NoError(t, err, "no check queued for %s", monitorID)
 	var payload worker.HealthCheckTaskPayload
 	require.NoError(t, json.Unmarshal(info.Payload, &payload))
 	return info, payload
@@ -206,5 +206,5 @@ func (e *engine) noQueuedCheck(t *testing.T, monitorID string) {
 	_, err := e.inspector.GetTaskInfo(healthCheckQueue, healthCheckTaskID(monitorID))
 	// A queue that was never written to doesn't exist yet
 	require.Truef(t, errors.Is(err, asynq.ErrTaskNotFound) || errors.Is(err, asynq.ErrQueueNotFound),
-		"%s has a queued health check (err: %v)", monitorID, err)
+		"%s has a queued check (err: %v)", monitorID, err)
 }
