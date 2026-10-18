@@ -23,21 +23,18 @@ import (
 
 // Header names used when webhook signing is enabled.
 const (
-	webhookSignatureHeader = "X-Webhook-Signature-V2"
+	webhookSignatureHeader = "X-Webhook-Signature"
 	webhookTimestampHeader = "X-Webhook-Timestamp"
 )
 
-// signBody returns the lowercase hex HMAC-SHA256 of body using secret.
-func signBody(body []byte, secret string) string {
+// signWebhookPayload returns "sha256=" and the lowercase hex HMAC-SHA256 of
+// "{timestamp}.{payload}" keyed with secret. Receivers rebuild the same string
+// from the X-Webhook-Timestamp header and the payload to verify it.
+func signWebhookPayload(timestamp string, payload []byte, secret string) string {
 	mac := hmac.New(sha256.New, []byte(secret))
-	mac.Write(body)
-	return hex.EncodeToString(mac.Sum(nil))
-}
-
-// signWebhookPayload signs the V2 payload "{timestamp}.{body}" so the timestamp
-// is bound into the signature. Receivers reconstruct the same string to verify.
-func signWebhookPayload(timestamp string, body []byte, secret string) string {
-	return signBody(append([]byte(timestamp+"."), body...), secret)
+	mac.Write([]byte(timestamp + "."))
+	mac.Write(payload)
+	return "sha256=" + hex.EncodeToString(mac.Sum(nil))
 }
 
 type WebhookConfig struct {
@@ -101,6 +98,8 @@ func (w *WebhookSender) Send(
 
 	// Prepare request body and headers based on content type
 	var bodyBytes []byte
+	// signedPayload is what the signature covers: the body, except for form-data
+	var signedPayload []byte
 	headers := make(map[string]string)
 
 	switch cfg.WebhookContentType {
@@ -111,6 +110,7 @@ func (w *WebhookSender) Send(
 			return fmt.Errorf("failed to marshal JSON body: %w", err)
 		}
 		bodyBytes = jsonBytes
+		signedPayload = jsonBytes
 		headers["Content-Type"] = "application/json"
 
 	case "form-data":
@@ -132,6 +132,9 @@ func (w *WebhookSender) Send(
 		writer.Close()
 
 		bodyBytes = buf.Bytes()
+		// Sign the data field: receivers that parse multipart (PHP's $_POST) never
+		// see the raw body with its random boundary
+		signedPayload = jsonBytes
 		headers["Content-Type"] = writer.FormDataContentType()
 
 		// Debug logging
@@ -152,18 +155,11 @@ func (w *WebhookSender) Send(
 		}
 
 		bodyBytes = []byte(rendered)
+		signedPayload = bodyBytes
 		headers["Content-Type"] = "text/plain"
 
 	default:
 		return fmt.Errorf("unsupported content type: %s", cfg.WebhookContentType)
-	}
-
-	// Sign "{timestamp}.{body}" with HMAC-SHA256 when a signing secret is configured.
-	// Binding the timestamp into the signature lets receivers reject replayed requests.
-	if cfg.WebhookSigningSecret != "" {
-		timestamp := strconv.FormatInt(time.Now().Unix(), 10)
-		headers[webhookSignatureHeader] = signWebhookPayload(timestamp, bodyBytes, cfg.WebhookSigningSecret)
-		headers[webhookTimestampHeader] = timestamp
 	}
 
 	// Create HTTP request (always POST)
@@ -188,6 +184,14 @@ func (w *WebhookSender) Send(
 		for key, value := range additionalHeaders {
 			req.Header.Set(key, fmt.Sprintf("%v", value))
 		}
+	}
+
+	// Sign after the additional headers so they can't replace the signature.
+	// The timestamp is signed too, so receivers can reject old requests.
+	if cfg.WebhookSigningSecret != "" {
+		timestamp := strconv.FormatInt(time.Now().Unix(), 10)
+		req.Header.Set(webhookSignatureHeader, signWebhookPayload(timestamp, signedPayload, cfg.WebhookSigningSecret))
+		req.Header.Set(webhookTimestampHeader, timestamp)
 	}
 
 	// Set default user agent
