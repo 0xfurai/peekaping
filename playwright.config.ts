@@ -30,6 +30,9 @@ export default defineConfig({
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
+
+    /* Fail fast when a locator matches nothing, e.g. a renamed form field. */
+    actionTimeout: 10_000,
   },
 
   /* Configure projects for major browsers */
