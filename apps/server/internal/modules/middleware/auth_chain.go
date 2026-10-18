@@ -2,8 +2,6 @@ package middleware
 
 import (
 	"net/http"
-	"peekaping/internal/modules/api_key"
-	"peekaping/internal/modules/auth"
 	"peekaping/internal/utils"
 
 	"github.com/gin-gonic/gin"
@@ -12,17 +10,23 @@ import (
 
 // MARK: Types and Constructor
 
+// authenticator is a middleware that checks one kind of credential,
+// such as the JWT or API key middleware
+type authenticator interface {
+	Auth() gin.HandlerFunc
+}
+
 // AuthChain provides a chained authentication middleware
 type AuthChain struct {
-	jwtMiddleware    *auth.MiddlewareProvider
-	apiKeyMiddleware *api_key.MiddlewareProvider
+	jwtMiddleware    authenticator
+	apiKeyMiddleware authenticator
 	logger           *zap.SugaredLogger
 }
 
 // NewAuthChain creates a new authentication chain
 func NewAuthChain(
-	jwtMiddleware *auth.MiddlewareProvider,
-	apiKeyMiddleware *api_key.MiddlewareProvider,
+	jwtMiddleware authenticator,
+	apiKeyMiddleware authenticator,
 	logger *zap.SugaredLogger,
 ) *AuthChain {
 	return &AuthChain{

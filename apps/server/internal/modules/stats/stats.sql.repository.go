@@ -2,9 +2,12 @@ package stats
 
 import (
 	"context"
+	"database/sql"
+	"math"
 	"time"
 
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect"
 )
 
 // sqlModel is a row of stat_minutely, stat_hourly or stat_daily; each query names its table.
@@ -120,6 +123,78 @@ func (r *SQLRepositoryImpl) FindStatsByMonitorIDAndTimeRange(ctx context.Context
 		stats = append(stats, toDomainModelFromSQL(sm))
 	}
 	return stats, nil
+}
+
+// deleteBatchSize is how many rows one DELETE removes, so a cleanup with a large
+// backlog never holds SQLite's single connection for long.
+const deleteBatchSize = 5000
+
+func (r *SQLRepositoryImpl) DeleteOlderThan(ctx context.Context, period StatPeriod, cutoff time.Time) (int64, error) {
+	if r.db.Dialect().Name() == dialect.SQLite {
+		return r.deleteOlderThanByRowid(ctx, period, cutoff)
+	}
+	var deleted int64
+	for {
+		batch := r.db.NewSelect().
+			Model((*sqlModel)(nil)).
+			ModelTableExpr(statTable(period)).
+			Column("monitor_id", "timestamp").
+			Where("timestamp < ?", cutoff).
+			Limit(deleteBatchSize)
+		result, err := r.db.NewDelete().
+			Model((*sqlModel)(nil)).
+			ModelTableExpr(statTable(period)).
+			Where("(monitor_id, timestamp) IN (?)", batch).
+			Exec(ctx)
+		if err != nil {
+			return deleted, err
+		}
+		n, err := result.RowsAffected()
+		if err != nil {
+			return deleted, err
+		}
+		deleted += n
+		if n < deleteBatchSize {
+			return deleted, nil
+		}
+	}
+}
+
+// deleteOlderThanByRowid walks SQLite's rowids in windows of deleteBatchSize, so each
+// statement reads and deletes at most that many rows. SQLite keeps rows in rowid
+// order, which puts a window's rows on a few neighbouring pages. Deleting one
+// monitor's oldest rows at a time instead touches a page per row, because each
+// minute's rows for all monitors are written side by side, and holds the single
+// connection for about a second per batch.
+func (r *SQLRepositoryImpl) deleteOlderThanByRowid(ctx context.Context, period StatPeriod, cutoff time.Time) (int64, error) {
+	var deleted int64
+	var next sql.NullInt64
+	from := int64(math.MinInt64)
+	for {
+		err := r.db.NewSelect().
+			Model((*sqlModel)(nil)).
+			ModelTableExpr(statTable(period)).
+			ColumnExpr("min(rowid)").
+			Where("rowid >= ?", from).
+			Scan(ctx, &next)
+		if err != nil || !next.Valid {
+			return deleted, err
+		}
+		from = next.Int64 + deleteBatchSize
+		result, err := r.db.NewDelete().
+			Model((*sqlModel)(nil)).
+			ModelTableExpr(statTable(period)).
+			Where("rowid >= ? AND rowid < ? AND timestamp < ?", next.Int64, from, cutoff).
+			Exec(ctx)
+		if err != nil {
+			return deleted, err
+		}
+		n, err := result.RowsAffected()
+		if err != nil {
+			return deleted, err
+		}
+		deleted += n
+	}
 }
 
 func (r *SQLRepositoryImpl) DeleteByMonitorID(ctx context.Context, monitorID string) error {

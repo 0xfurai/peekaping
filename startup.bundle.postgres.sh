@@ -186,6 +186,9 @@ fi
 echo "Stopping PostgreSQL after migrations..."
 gosu postgres pg_ctl -D /var/lib/postgresql/data stop
 
+# Set up the user the services run as (PUID/PGID, Docker socket, /app/data)
+. /app/startup.user.sh
+
 # Start supervisor to manage PostgreSQL, server, and Caddy
 echo "Starting supervisor to manage PostgreSQL, server, and Caddy..."
 

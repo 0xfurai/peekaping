@@ -57,6 +57,8 @@ func NewProducer(
 		cancel:                  cancel,
 		monitorIntervals:        make(map[string]int),
 		scheduleRefreshInterval: 30 * time.Second, // Refresh schedule every 30 seconds
+		reclaimInterval:         ReclaimEvery,
+		leadershipCheckInterval: 1 * time.Second,
 		leaderElection:          leaderElection,
 		concurrency:             concurrency,
 		eventBus:                eventBus,

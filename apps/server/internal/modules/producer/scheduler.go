@@ -151,7 +151,7 @@ func (p *Producer) reclaimExpiredLeases(ctx context.Context, nowMs int64, maxIte
 // runReclaimer periodically reclaims expired leases
 func (p *Producer) runReclaimer() {
 	defer p.wg.Done()
-	ticker := time.NewTicker(ReclaimEvery)
+	ticker := time.NewTicker(p.reclaimInterval)
 	defer ticker.Stop()
 
 	const maxReclaimItems = 5000 // maximum number of expired leases to reclaim per iteration

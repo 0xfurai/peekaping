@@ -17,6 +17,7 @@ import (
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/notification_sent_history"
 	"peekaping/internal/modules/setting"
+	"peekaping/internal/modules/stats"
 	"peekaping/internal/utils"
 	"peekaping/internal/version"
 	"syscall"
@@ -71,11 +72,12 @@ func main() {
 	err = container.Invoke(func(
 		heartbeatService heartbeat.Service,
 		settingService setting.Service,
+		statsService stats.Service,
 		notificationHistoryService notification_sent_history.Service,
 		tlsInfoService monitor_tls_info.Service,
 		logger *zap.SugaredLogger,
 	) {
-		cleanup.StartCleanupCron(heartbeatService, settingService, notificationHistoryService, tlsInfoService, logger)
+		cleanup.StartCleanupCron(heartbeatService, settingService, statsService, notificationHistoryService, tlsInfoService, logger)
 	})
 	if err != nil {
 		log.Fatal(err)

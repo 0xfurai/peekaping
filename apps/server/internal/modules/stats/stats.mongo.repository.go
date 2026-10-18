@@ -200,6 +200,14 @@ func (r *MongoRepository) FindStatsByMonitorIDAndTimeRange(
 	return stats, nil
 }
 
+func (r *MongoRepository) DeleteOlderThan(ctx context.Context, period StatPeriod, cutoff time.Time) (int64, error) {
+	result, err := r.getStatCollection(period).DeleteMany(ctx, bson.M{"timestamp": bson.M{"$lt": cutoff}})
+	if err != nil {
+		return 0, err
+	}
+	return result.DeletedCount, nil
+}
+
 func (r *MongoRepository) DeleteByMonitorID(ctx context.Context, monitorID string) error {
 	objectID, err := primitive.ObjectIDFromHex(monitorID)
 	if err != nil {
