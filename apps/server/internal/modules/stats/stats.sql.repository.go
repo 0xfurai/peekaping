@@ -110,41 +110,22 @@ func (r *SQLRepositoryImpl) GetOrCreateStat(ctx context.Context, monitorID strin
 }
 
 func (r *SQLRepositoryImpl) UpsertStat(ctx context.Context, stat *Stat, period StatPeriod) error {
-	sm := toSQLModel(stat)
-
-	// Try to update existing record first
-	result, err := r.db.NewUpdate().
-		Model(sm).
+	// Insert the row, or overwrite the totals of the row that already holds this
+	// monitor and timestamp, in one statement on both SQLite and PostgreSQL.
+	_, err := r.db.NewInsert().
+		Model(toSQLModel(stat)).
 		ModelTableExpr(statTable(period)).
-		Where("monitor_id = ? AND timestamp = ?", sm.MonitorID, sm.Timestamp).
-		Set("up = ?", sm.Up).
-		Set("down = ?", sm.Down).
-		Set("maintenance = ?", sm.Maintenance).
-		Set("ping_sum = ?", sm.PingSum).
-		Set("ping_count = ?", sm.PingCount).
-		Set("ping_min = ?", sm.PingMin).
-		Set("ping_max = ?", sm.PingMax).
+		On("CONFLICT (monitor_id, timestamp) DO UPDATE").
+		Set("up = EXCLUDED.up").
+		Set("down = EXCLUDED.down").
+		Set("maintenance = EXCLUDED.maintenance").
+		Set("ping_sum = EXCLUDED.ping_sum").
+		Set("ping_count = EXCLUDED.ping_count").
+		Set("ping_min = EXCLUDED.ping_min").
+		Set("ping_max = EXCLUDED.ping_max").
 		Exec(ctx)
 
-	if err != nil {
-		return err
-	}
-
-	// Check if any rows were affected by the update
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-
-	// If no rows were updated, insert a new record
-	if rowsAffected == 0 {
-		_, err = r.db.NewInsert().Model(sm).ModelTableExpr(statTable(period)).Exec(ctx)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return err
 }
 
 func (r *SQLRepositoryImpl) FindStatsByMonitorIDAndTimeRange(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod) ([]*Stat, error) {
