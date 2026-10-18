@@ -1019,6 +1019,15 @@
         "use_template_description": "Gaitu pertsonalizatutako mezu txantiloia eta formatua erabiltzea.",
         "use_template_label": "Erabili mezua txantiloia"
       },
+      "teams": {
+        "more_info_about_webhooks": "Workflows webhook-ei buruzko informazio gehiago",
+        "server_url_description": "Zure Peekaping instantziaren oinarrizko URLa, \"View in Peekaping\" botoirako erabiltzen dena. Hutsik badago, zerbitzariaren CLIENT_URL erabiltzen da.",
+        "server_url_label": "Zerbitzariaren URLa",
+        "setup_webhook_description_1": "Teams-en, ireki Workflows eta aukeratu \"Send webhook alerts to a channel\" txantiloia.",
+        "setup_webhook_description_2": "Aukeratu taldea eta kanala, hautatu Gorde, eta kopiatu webhook URLa lan-fluxuaren xehetasunetatik.",
+        "setup_webhook_title": "Sortu webhook bat Teams Workflows-ekin",
+        "webhook_url_label": "Workflows webhook URLa"
+      },
       "webhook": {
         "additional_headers_description": "Gehitu HTTP izenburu pertsonalizatuak webhook eskaerari.",
         "additional_headers_label": "Goiburu gehigarriak",

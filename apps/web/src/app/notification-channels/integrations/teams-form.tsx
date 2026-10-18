@@ -45,37 +45,43 @@ export default function TeamsForm() {
         render={({ field }) => (
           <FormItem>
             <FormLabel>
-              {t("notifications.form.teams.webhook_url_label") || "Webhook URL"}
+              {t("notifications.form.teams.webhook_url_label")} <span className="text-red-500">*</span>
             </FormLabel>
             <FormControl>
               <Input
-                placeholder="https://outlook.office.com/webhook/..."
+                placeholder="https://…powerplatform.com/powerautomate/automations/direct/workflows/…"
                 type="url"
                 required
                 {...field}
               />
             </FormControl>
             <FormDescription>
-              <Alert>
-                <InfoIcon className="mr-2 h-4 w-4" />
-                <AlertTitle className="font-bold">
-                  {t("notifications.form.teams.setup_webhook_title") || "Setup Microsoft Teams Webhook"}
-                </AlertTitle>
-                <AlertDescription>
-                  <ul className="list-inside list-disc text-sm mt-2">
-                    <li>
-                      {t("notifications.form.teams.setup_webhook_description_1") ||
-                        "Go to your Microsoft Teams channel and click on the three dots (⋯) next to the channel name"}
-                    </li>
-                    <li>
-                      {t("notifications.form.teams.setup_webhook_description_2") ||
-                        "Select 'Connectors' → 'Incoming Webhook' → 'Configure' → Copy the webhook URL"}
-                    </li>
-                  </ul>
-                </AlertDescription>
-              </Alert>
+              <span className="text-red-500">*</span> {t("common.required")}
             </FormDescription>
             <FormMessage />
+            <Alert>
+              <InfoIcon className="mr-2 h-4 w-4" />
+              <AlertTitle className="font-bold">
+                {t("notifications.form.teams.setup_webhook_title")}
+              </AlertTitle>
+              <AlertDescription>
+                <ul className="list-inside list-disc text-sm mt-2">
+                  <li>{t("notifications.form.teams.setup_webhook_description_1")}</li>
+                  <li>{t("notifications.form.teams.setup_webhook_description_2")}</li>
+                </ul>
+                <span className="mt-2 block">
+                  {t("notifications.form.teams.more_info_about_webhooks")}:{" "}
+                  <a
+                    href="https://support.microsoft.com/en-us/office/create-incoming-webhooks-with-workflows-for-microsoft-teams-8ae491c7-0394-4861-ba59-055e33f75498"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline text-blue-600"
+                  >
+                    support.microsoft.com
+                  </a>
+                </span>
+              </AlertDescription>
+            </Alert>
           </FormItem>
         )}
       />
@@ -84,9 +90,7 @@ export default function TeamsForm() {
         name="server_url"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>
-              {t("notifications.form.teams.server_url_label") || "Server URL (Optional)"}
-            </FormLabel>
+            <FormLabel>{t("notifications.form.teams.server_url_label")}</FormLabel>
             <FormControl>
               <Input
                 placeholder="https://peekaping.example.com"
@@ -95,8 +99,7 @@ export default function TeamsForm() {
               />
             </FormControl>
             <FormDescription>
-              {t("notifications.form.teams.server_url_description") ||
-                "The base URL of your Peekaping instance. Used for links in notifications. If not provided, CLIENT_URL from server config will be used."}
+              {t("notifications.form.teams.server_url_description")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -105,4 +108,3 @@ export default function TeamsForm() {
     </>
   );
 }
-

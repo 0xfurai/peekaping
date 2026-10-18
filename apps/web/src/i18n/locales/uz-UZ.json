@@ -1018,6 +1018,15 @@
         "use_template_description": "Maxsus xabar shablonidan va formatdan foydalanishni yoqish.",
         "use_template_label": "Xabar shablonidan foydalanish"
       },
+      "teams": {
+        "more_info_about_webhooks": "Workflows webhooklari haqida qo'shimcha ma'lumot",
+        "server_url_description": "Peekaping nusxangizning asosiy URL manzili, \"View in Peekaping\" tugmasi uchun ishlatiladi. Bo'sh bo'lsa, serverning CLIENT_URL qiymati ishlatiladi.",
+        "server_url_label": "Server URL manzili",
+        "setup_webhook_description_1": "Teams'da Workflows'ni oching va \"Send webhook alerts to a channel\" shablonini tanlang.",
+        "setup_webhook_description_2": "Jamoa va kanalni tanlang, Saqlash tugmasini bosing, so'ng ish jarayoni tafsilotlaridan webhook URL manzilini nusxalang.",
+        "setup_webhook_title": "Teams Workflows yordamida webhook yarating",
+        "webhook_url_label": "Workflows Webhook manzili"
+      },
       "webhook": {
         "additional_headers_description": "Webhook so‘rofiga maxsus HTTP sarlavhalar qo‘shing.",
         "additional_headers_label": "Qo‘shimcha sarlavhalar",

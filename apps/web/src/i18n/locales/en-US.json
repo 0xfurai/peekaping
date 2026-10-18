@@ -1019,6 +1019,15 @@
         "use_template_description": "Enable to use a custom message template and format.",
         "use_template_label": "Use Message Template"
       },
+      "teams": {
+        "more_info_about_webhooks": "More info about Workflows webhooks",
+        "server_url_description": "The base URL of your Peekaping instance, used for the \"View in Peekaping\" button. If empty, the server's CLIENT_URL is used.",
+        "server_url_label": "Server URL",
+        "setup_webhook_description_1": "In Teams, open Workflows and pick the \"Send webhook alerts to a channel\" template.",
+        "setup_webhook_description_2": "Choose the team and channel, select Save, then copy the webhook URL from the workflow details.",
+        "setup_webhook_title": "Create a webhook with Teams Workflows",
+        "webhook_url_label": "Workflows Webhook URL"
+      },
       "webhook": {
         "additional_headers_description": "Add custom HTTP headers to the webhook request.",
         "additional_headers_label": "Additional Headers",

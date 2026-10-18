@@ -1019,6 +1019,15 @@
         "use_template_description": "Luba kasutada kohandatud sõnumimalli ja vormingut.",
         "use_template_label": "Kasutage sõnumimalli"
       },
+      "teams": {
+        "more_info_about_webhooks": "Lisateave Workflowsi webhookide kohta",
+        "server_url_description": "Sinu Peekapingi instantsi baas-URL, mida kasutatakse nupu \"View in Peekaping\" jaoks. Kui see on tühi, kasutatakse serveri CLIENT_URL-i.",
+        "server_url_label": "Serveri URL",
+        "setup_webhook_description_1": "Ava Teamsis Workflows ja vali mall \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Vali meeskond ja kanal, klõpsa Salvesta ning kopeeri webhooki URL töövoo üksikasjadest.",
+        "setup_webhook_title": "Loo webhook Teams Workflowsiga",
+        "webhook_url_label": "Workflowsi webhooki URL"
+      },
       "webhook": {
         "additional_headers_description": "Lisage webhooki päringusse kohandatud HTTP-päised.",
         "additional_headers_label": "Lisapäised",

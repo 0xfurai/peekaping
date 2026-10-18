@@ -1018,6 +1018,15 @@
         "use_template_description": "Omogući korišćenje prilagođenog šablona poruke i formata.",
         "use_template_label": "Користи шаблон поруке"
       },
+      "teams": {
+        "more_info_about_webhooks": "Више о Workflows веб-хуковима",
+        "server_url_description": "Основни URL ваше Peekaping инстанце, користи се за дугме \"View in Peekaping\". Ако је празно, користи се CLIENT_URL сервера.",
+        "server_url_label": "URL сервера",
+        "setup_webhook_description_1": "У Teams-у отворите Workflows и изаберите шаблон \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Изаберите тим и канал, кликните на Сачувај, а затим копирајте URL вебхука из детаља тока посла.",
+        "setup_webhook_title": "Направите вебхук помоћу Teams Workflows",
+        "webhook_url_label": "URL вебхука за Workflows"
+      },
       "webhook": {
         "additional_headers_description": "Додајте прилагођене HTTP заглавља у вебхук захтев.",
         "additional_headers_label": "Додатни заглавци",

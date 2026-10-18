@@ -1018,6 +1018,15 @@
         "use_template_description": "مخصوص پیغام ٹیمپلیٹ اور فارمیٹ کے استعمال کو فعال کریں",
         "use_template_label": "پیغام ٹیمپلیٹ استعمال کریں"
       },
+      "teams": {
+        "more_info_about_webhooks": "Workflows ویب ہکس کے بارے میں مزید معلومات",
+        "server_url_description": "آپ کے Peekaping انسٹینس کا بنیادی URL، جو \"View in Peekaping\" بٹن کے لیے استعمال ہوتا ہے۔ اگر خالی ہو تو سرور کا CLIENT_URL استعمال ہوتا ہے۔",
+        "server_url_label": "سرور URL",
+        "setup_webhook_description_1": "Teams میں Workflows کھولیں اور \"Send webhook alerts to a channel\" ٹیمپلیٹ منتخب کریں۔",
+        "setup_webhook_description_2": "ٹیم اور چینل منتخب کریں، محفوظ کریں پر کلک کریں، پھر ورک فلو کی تفصیلات سے ویب ہک URL کاپی کریں۔",
+        "setup_webhook_title": "Teams Workflows کے ساتھ ویب ہک بنائیں",
+        "webhook_url_label": "Workflows ویب ہک URL"
+      },
       "webhook": {
         "additional_headers_description": "ویب ہُک درخواست میں اپنی مرضی کے HTTP ہیڈر شامل کریں۔",
         "additional_headers_label": "اضافی ہیڈرز",

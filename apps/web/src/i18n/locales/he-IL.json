@@ -1019,6 +1019,15 @@
         "use_template_description": "אפשר להשתמש בתבנית הודעה מותאמת אישית ובפורמט.",
         "use_template_label": "השתמש בתבנית הודעה"
       },
+      "teams": {
+        "more_info_about_webhooks": "מידע נוסף על Webhooks של Workflows",
+        "server_url_description": "כתובת הבסיס של מופע Peekaping שלכם, המשמשת לכפתור \"View in Peekaping\". אם השדה ריק, נעשה שימוש ב-CLIENT_URL של השרת.",
+        "server_url_label": "כתובת השרת",
+        "setup_webhook_description_1": "ב-Teams, פתחו את Workflows ובחרו בתבנית \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "בחרו את הצוות והערוץ, לחצו על שמירה ולאחר מכן העתיקו את כתובת ה-Webhook מפרטי זרימת העבודה.",
+        "setup_webhook_title": "יצירת Webhook באמצעות Teams Workflows",
+        "webhook_url_label": "כתובת Webhook של Workflows"
+      },
       "webhook": {
         "additional_headers_description": "הוסף כותרות HTTP מותאמות אישית לבקשת ה‑Webhook",
         "additional_headers_label": "כותרות נוספות",

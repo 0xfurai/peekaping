@@ -1019,6 +1019,15 @@
         "use_template_description": "Schakel in om een aangepast berichtsjabloon te gebruiken en de opmaak toe te passen.",
         "use_template_label": "Berichtsjabloon gebruiken"
       },
+      "teams": {
+        "more_info_about_webhooks": "Meer informatie over Workflows-webhooks",
+        "server_url_description": "De basis-URL van je Peekaping-omgeving, gebruikt voor de knop \"View in Peekaping\". Als dit leeg is, wordt de CLIENT_URL van de server gebruikt.",
+        "server_url_label": "Server-URL",
+        "setup_webhook_description_1": "Open in Teams Workflows en kies de sjabloon \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Kies het team en het kanaal, selecteer Opslaan en kopieer daarna de webhook-URL uit de details van de werkstroom.",
+        "setup_webhook_title": "Maak een webhook met Teams Workflows",
+        "webhook_url_label": "Workflows Webhook-URL"
+      },
       "webhook": {
         "additional_headers_description": "Voeg aangepaste HTTP-headers toe aan het webhook-verzoek.",
         "additional_headers_label": "Aanvullende headers",

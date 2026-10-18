@@ -1019,6 +1019,15 @@
         "use_template_description": "Įgalinti naudoti individualų žinutės šabloną ir formatą.",
         "use_template_label": "Naudoti pranešimo šabloną"
       },
+      "teams": {
+        "more_info_about_webhooks": "Daugiau informacijos apie Workflows webhook",
+        "server_url_description": "Jūsų Peekaping instancijos bazinis URL, naudojamas mygtukui \"View in Peekaping\". Jei laukas tuščias, naudojamas serverio CLIENT_URL.",
+        "server_url_label": "Serverio URL",
+        "setup_webhook_description_1": "Teams programoje atidarykite Workflows ir pasirinkite šabloną \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Pasirinkite komandą ir kanalą, spustelėkite Įrašyti, tada nukopijuokite webhook URL iš darbo eigos informacijos.",
+        "setup_webhook_title": "Sukurkite webhook naudodami Teams Workflows",
+        "webhook_url_label": "Workflows Webhook URL"
+      },
       "webhook": {
         "additional_headers_description": "Pridėti pasirinktines HTTP antraštes prie webhook užklausos.",
         "additional_headers_label": "Papildomos antraštės",
