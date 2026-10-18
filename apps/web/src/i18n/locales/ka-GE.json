@@ -1018,6 +1018,15 @@
         "use_template_description": "ჩართეთ, რომ გამოიყენოთ მორგებული შეტყობინების შაბლონი და ფორმატი.",
         "use_template_label": "გამოიყენე შეტყობინების შაბლონი"
       },
+      "teams": {
+        "more_info_about_webhooks": "მეტი ინფორმაცია Workflows ვებჰუკების შესახებ",
+        "server_url_description": "თქვენი Peekaping ინსტანციის საბაზისო URL, რომელიც გამოიყენება ღილაკისთვის \"View in Peekaping\". თუ ცარიელია, გამოიყენება სერვერის CLIENT_URL.",
+        "server_url_label": "სერვერის URL",
+        "setup_webhook_description_1": "Teams-ში გახსენით Workflows და აირჩიეთ შაბლონი \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "აირჩიეთ გუნდი და არხი, დააჭირეთ შენახვას, შემდეგ დააკოპირეთ ვებჰუკის URL სამუშაო პროცესის დეტალებიდან.",
+        "setup_webhook_title": "შექმენით ვებჰუკი Teams Workflows-ით",
+        "webhook_url_label": "Workflows ვებჰუკის URL"
+      },
       "webhook": {
         "additional_headers_description": "დაამატეთ მორგებული HTTP-Headers webhook‑ის მოთხოვნაში.",
         "additional_headers_label": "დამატებითი სათაურები",

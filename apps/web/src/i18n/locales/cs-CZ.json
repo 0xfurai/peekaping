@@ -1019,6 +1019,15 @@
         "use_template_description": "Povolte použití vlastní šablony zprávy a jejího formátu.",
         "use_template_label": "Použít šablonu zprávy"
       },
+      "teams": {
+        "more_info_about_webhooks": "Více informací o webhoocích Workflows",
+        "server_url_description": "Základní URL vaší instance Peekaping, použitá pro tlačítko \"View in Peekaping\". Pokud je prázdná, použije se CLIENT_URL serveru.",
+        "server_url_label": "URL serveru",
+        "setup_webhook_description_1": "V Teams otevřete Workflows a vyberte šablonu \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Zvolte tým a kanál, klikněte na Uložit a poté zkopírujte URL webhooku z podrobností pracovního postupu.",
+        "setup_webhook_title": "Vytvořte webhook pomocí Teams Workflows",
+        "webhook_url_label": "URL webhooku Workflows"
+      },
       "webhook": {
         "additional_headers_description": "Přidejte vlastní HTTP hlavičky do požadavku webhooku.",
         "additional_headers_label": "Další hlavičky",

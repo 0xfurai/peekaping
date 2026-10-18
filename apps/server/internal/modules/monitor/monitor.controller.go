@@ -356,9 +356,21 @@ func (ic *MonitorController) UpdatePartial(ctx *gin.Context) {
 		return
 	}
 
-	// Validate monitor type and config if they are being updated
-	if monitor.Type != nil && monitor.Config != nil {
-		if err := ic.monitorService.ValidateMonitorConfig(*monitor.Type, *monitor.Config); err != nil {
+	current, ok := utils.FindOr404(ctx, ic.logger, "Monitor", ic.monitorService.FindByID, id)
+	if !ok {
+		return
+	}
+
+	// Validate the config against the type the monitor has after the update
+	if monitor.Type != nil || monitor.Config != nil {
+		monitorType, config := current.Type, current.Config
+		if monitor.Type != nil {
+			monitorType = *monitor.Type
+		}
+		if monitor.Config != nil {
+			config = *monitor.Config
+		}
+		if err := ic.monitorService.ValidateMonitorConfig(monitorType, config); err != nil {
 			ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Invalid monitor configuration: %v", err)))
 			return
 		}
@@ -465,6 +477,10 @@ func (ic *MonitorController) UpdatePartial(ctx *gin.Context) {
 func (ic *MonitorController) Delete(ctx *gin.Context) {
 	id := ctx.Param("id")
 
+	if _, ok := utils.FindOr404(ctx, ic.logger, "Monitor", ic.monitorService.FindByID, id); !ok {
+		return
+	}
+
 	err := ic.monitorService.Delete(ctx, id)
 	if err != nil {
 		ic.logger.Errorw("Failed to delete monitor", "error", err)
@@ -523,6 +539,10 @@ func (ic *MonitorController) FindByMonitorIDPaginated(ctx *gin.Context) {
 		if reversePtr != nil {
 			reverse = *reversePtr
 		}
+	}
+
+	if _, ok := utils.FindOr404(ctx, ic.logger, "Monitor", ic.monitorService.FindByID, id); !ok {
+		return
 	}
 
 	results, err := ic.monitorService.GetHeartbeats(ctx, id, limit, page, importantPtr, reverse)
@@ -600,6 +620,10 @@ func (ic *MonitorController) GetStatPoints(ctx *gin.Context) {
 		return
 	}
 
+	if _, ok := utils.FindOr404(ctx, ic.logger, "Monitor", ic.monitorService.FindByID, id); !ok {
+		return
+	}
+
 	summary, err := ic.monitorService.GetStatPoints(ctx, id, since, until, granularity)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
@@ -620,6 +644,10 @@ func (ic *MonitorController) GetStatPoints(ctx *gin.Context) {
 // @Failure 500 {object} utils.APIError[any]
 func (ic *MonitorController) GetUptimeStats(ctx *gin.Context) {
 	id := ctx.Param("id")
+
+	if _, ok := utils.FindOr404(ctx, ic.logger, "Monitor", ic.monitorService.FindByID, id); !ok {
+		return
+	}
 
 	stats, err := ic.monitorService.GetUptimeStats(ctx, id)
 	if err != nil {
@@ -710,22 +738,14 @@ func (ic *MonitorController) ResetMonitorData(ctx *gin.Context) {
 func (ic *MonitorController) GetTLSInfo(ctx *gin.Context) {
 	id := ctx.Param("id")
 
-	// First, verify the monitor exists
-	_, err := ic.monitorService.FindByID(ctx, id)
-	if err != nil {
-		if err.Error() == "monitor not found" {
-			ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Monitor not found"))
-			return
-		}
-		ic.logger.Errorw("Failed to fetch monitor", "monitorID", id, "error", err)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+	if _, ok := utils.FindOr404(ctx, ic.logger, "Monitor", ic.monitorService.FindByID, id); !ok {
 		return
 	}
 
 	// Get TLS info for the monitor
 	tlsInfo, err := ic.tlsInfoService.GetTLSInfo(ctx, id)
 	if err != nil {
-		ic.logger.Errorw("Failed to get TLS info", "monitorID", id, "error", err) // TODO: fix 500 when no rows in a set
+		ic.logger.Errorw("Failed to get TLS info", "monitorID", id, "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
 	}

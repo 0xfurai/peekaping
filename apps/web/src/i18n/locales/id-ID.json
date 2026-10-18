@@ -1019,6 +1019,15 @@
         "use_template_description": "Aktifkan agar dapat menggunakan template pesan kustom dan format.",
         "use_template_label": "Gunakan Template Pesan"
       },
+      "teams": {
+        "more_info_about_webhooks": "Info lebih lanjut tentang webhook Workflows",
+        "server_url_description": "URL dasar instance Peekaping Anda, digunakan untuk tombol \"View in Peekaping\". Jika kosong, CLIENT_URL server akan digunakan.",
+        "server_url_label": "URL Server",
+        "setup_webhook_description_1": "Di Teams, buka Workflows lalu pilih templat \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Pilih tim dan saluran, pilih Simpan, lalu salin URL webhook dari detail alur kerja.",
+        "setup_webhook_title": "Buat webhook dengan Teams Workflows",
+        "webhook_url_label": "URL Webhook Workflows"
+      },
       "webhook": {
         "additional_headers_description": "Tambahkan header HTTP kustom ke permintaan webhook.",
         "additional_headers_label": "Header Tambahan",

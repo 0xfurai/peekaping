@@ -124,7 +124,7 @@ func (ic *Controller) FindByID(ctx *gin.Context) {
 	}
 
 	if notification == nil {
-		ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Notification not found"))
+		ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Notification channel not found"))
 		return
 	}
 
@@ -158,6 +158,10 @@ func (ic *Controller) UpdateFull(ctx *gin.Context) {
 	}
 
 	if _, ok := validateConfig(ctx, notification.Type, notification.Config); !ok {
+		return
+	}
+
+	if _, ok := utils.FindOr404(ctx, ic.logger, "Notification channel", ic.service.FindByID, id); !ok {
 		return
 	}
 
@@ -198,26 +202,20 @@ func (ic *Controller) UpdatePartial(ctx *gin.Context) {
 		return
 	}
 
+	current, ok := utils.FindOr404(ctx, ic.logger, "Notification channel", ic.service.FindByID, id)
+	if !ok {
+		return
+	}
+
 	// Validate the type and config the channel will have after the update; omitted fields keep their saved values
 	if notification.Type != nil || notification.Config != nil {
-		existing, err := ic.service.FindByID(ctx, id)
-		if err != nil {
-			ic.logger.Errorw("Failed to fetch notification", "error", err)
-			ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-			return
-		}
-		if existing == nil {
-			ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Notification not found"))
-			return
-		}
-
-		channelType := existing.Type
+		channelType := current.Type
 		if notification.Type != nil {
 			channelType = *notification.Type
 		}
 		config := ""
-		if existing.Config != nil {
-			config = *existing.Config
+		if current.Config != nil {
+			config = *current.Config
 		}
 		if notification.Config != nil {
 			config = *notification.Config
@@ -250,6 +248,10 @@ func (ic *Controller) UpdatePartial(ctx *gin.Context) {
 // @Failure		500	{object}	utils.APIError[any]
 func (ic *Controller) Delete(ctx *gin.Context) {
 	id := ctx.Param("id")
+
+	if _, ok := utils.FindOr404(ctx, ic.logger, "Notification channel", ic.service.FindByID, id); !ok {
+		return
+	}
 
 	err := ic.service.Delete(ctx, id)
 	if err != nil {

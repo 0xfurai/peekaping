@@ -1018,6 +1018,15 @@
         "use_template_description": "Cumasaigh úsáid teimpléad agus formáid teachtaireachta saincheaptha.",
         "use_template_label": "Bain úsáid as teimpléad teachtaireachta"
       },
+      "teams": {
+        "more_info_about_webhooks": "Tuilleadh eolais faoi webhooks Workflows",
+        "server_url_description": "Bun-URL do chóip de Peekaping, a úsáidtear don chnaipe \"View in Peekaping\". Má tá sé folamh, úsáidtear CLIENT_URL an fhreastalaí.",
+        "server_url_label": "URL an fhreastalaí",
+        "setup_webhook_description_1": "In Teams, oscail Workflows agus roghnaigh an teimpléad \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Roghnaigh an fhoireann agus an cainéal, roghnaigh Sábháil, agus ansin cóipeáil URL an webhook ó shonraí an tsreafa oibre.",
+        "setup_webhook_title": "Cruthaigh webhook le Teams Workflows",
+        "webhook_url_label": "URL an webhook Workflows"
+      },
       "webhook": {
         "additional_headers_description": "Cuir tiotalacha HTTP saincheaptha leis an t-iarratas webhook.",
         "additional_headers_label": "Ceanntáscanna Breise",

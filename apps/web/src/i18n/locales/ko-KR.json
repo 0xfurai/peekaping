@@ -1019,6 +1019,15 @@
         "use_template_description": "맞춤 메시지 템플릿 및 서식을 사용하도록 활성화합니다.",
         "use_template_label": "메시지 템플릿 사용"
       },
+      "teams": {
+        "more_info_about_webhooks": "Workflows 웹훅에 대한 자세한 정보",
+        "server_url_description": "\"View in Peekaping\" 버튼에 사용되는 Peekaping 인스턴스의 기본 URL입니다. 비워 두면 서버의 CLIENT_URL이 사용됩니다.",
+        "server_url_label": "서버 URL",
+        "setup_webhook_description_1": "Teams에서 Workflows를 열고 \"Send webhook alerts to a channel\" 템플릿을 선택하세요.",
+        "setup_webhook_description_2": "팀과 채널을 선택하고 저장을 누른 다음, 워크플로 세부 정보에서 웹훅 URL을 복사하세요.",
+        "setup_webhook_title": "Teams Workflows로 웹훅 만들기",
+        "webhook_url_label": "Workflows 웹훅 URL"
+      },
       "webhook": {
         "additional_headers_description": "웹훅 요청에 사용자 정의 HTTP 헤더를 추가하세요.",
         "additional_headers_label": "추가 헤더",

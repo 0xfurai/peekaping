@@ -1019,6 +1019,15 @@
         "use_template_description": "啟用以使用自訂訊息模板與格式。",
         "use_template_label": "使用訊息範本"
       },
+      "teams": {
+        "more_info_about_webhooks": "更多關於 Workflows Webhook 的資訊",
+        "server_url_description": "您的 Peekaping 執行個體的基礎網址，用於「View in Peekaping」按鈕。若留空，將使用伺服器的 CLIENT_URL。",
+        "server_url_label": "伺服器網址",
+        "setup_webhook_description_1": "在 Teams 中開啟 Workflows，然後選擇「Send webhook alerts to a channel」範本。",
+        "setup_webhook_description_2": "選擇團隊和頻道，按一下儲存，然後從工作流程詳細資料中複製 Webhook 網址。",
+        "setup_webhook_title": "使用 Teams Workflows 建立 Webhook",
+        "webhook_url_label": "Workflows Webhook 網址"
+      },
       "webhook": {
         "additional_headers_description": "為 webhook 請求添加自定義 HTTP 標頭。",
         "additional_headers_label": "附加標頭",
