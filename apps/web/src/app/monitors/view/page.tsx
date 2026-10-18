@@ -51,6 +51,7 @@ import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import clsx from "clsx";
 import { formatMonitorTarget } from "../components/monitor-registry";
 import { parseMonitorConfig } from "../components/monitor-target";
+import StaleMarker from "../components/stale-marker";
 
 function formatDuration(ms: number, t: (key: string) => string): string {
   // Handle negative durations (clock skew) by returning empty string
@@ -130,19 +131,20 @@ const MonitorPage = () => {
   );
 
   const hasCertCheckExpire = useMemo(() => {
-    if (!monitor?.type?.toLowerCase().startsWith("http")) return false;
+    const monitorType = monitor?.type?.toLowerCase();
+    if (!monitorType?.startsWith("http") && monitorType !== "smtp") return false;
     return config.check_cert_expiry === true;
   }, [monitor?.type, config]);
 
-  // Fetch TLS info for HTTP monitors using React Query
+  // Fetch TLS info for HTTP and SMTP monitors using React Query
+  // Only fetch when certificate expiry checking is enabled
   const { data: tlsData, isLoading: tlsLoading } = useQuery({
     ...getMonitorsByIdTlsOptions({
       path: {
         id: id!,
       },
     }),
-    enabled:
-      !!id && !!monitor && monitor.type?.toLowerCase().startsWith("http"),
+    enabled: !!id && hasCertCheckExpire,
   });
 
   // Transform TLS data to match the expected format
@@ -555,6 +557,12 @@ const MonitorPage = () => {
               {monitor?.active && lastImportantHeartbeatDuration > 0 && (
                 <div className="text-sm text-gray-400">{lihText}</div>
               )}
+              {monitor?.active && (
+                <StaleMarker
+                  staleSince={monitor?.stale_since}
+                  lastHeartbeatTime={lastHeartbeat?.time}
+                />
+              )}
               {!monitor?.active && lastHeartbeat?.time && (
                 <div className="text-sm text-gray-400">
                   {formatDuration(
@@ -565,7 +573,7 @@ const MonitorPage = () => {
               )}
             </Card>
 
-            {/* Certificate Information Card - Only show for HTTPS monitors */}
+            {/* Certificate Information Card - Show for HTTPS and SMTP monitors */}
             {hasCertCheckExpire && (
               <Card className="p-4 rounded-xl gap-1 col-span-4 lg:col-span-1">
                 <div className="font-semibold flex items-center gap-2">

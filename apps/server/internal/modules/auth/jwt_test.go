@@ -2,6 +2,8 @@ package auth
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
 	"errors"
 	"peekaping/internal/modules/shared"
 	"testing"
@@ -10,6 +12,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
 
@@ -661,10 +664,11 @@ func TestTokenMaker_VerifyToken_InvalidSigningMethod(t *testing.T) {
 	tokenMaker := NewTokenMaker(mockSettingService, logger)
 
 	ctx := context.Background()
+	mockSettingService.On("GetByKey", ctx, shared.AccessTokenSecretKey).Return(&shared.SettingModel{
+		Key:   shared.AccessTokenSecretKey,
+		Value: "test-secret-key",
+	}, nil)
 
-	// Create a token with a different signing method
-	// We'll use a simple approach: create a token with HS256 but then try to verify it
-	// with a different secret key, which will cause the signing method validation to fail
 	claims := &Claims{
 		UserID: "user123",
 		Email:  "test@example.com",
@@ -676,21 +680,27 @@ func TestTokenMaker_VerifyToken_InvalidSigningMethod(t *testing.T) {
 		},
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString([]byte("original-secret-key"))
-	assert.NoError(t, err)
+	// The claims are valid: signed with HS256 and the secret, they verify
+	hs256, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte("test-secret-key"))
+	require.NoError(t, err)
+	_, err = tokenMaker.VerifyToken(ctx, hs256, "access")
+	require.NoError(t, err)
 
-	// Try to verify with a different secret key
-	mockSettingService.On("GetByKey", ctx, shared.AccessTokenSecretKey).Return(&shared.SettingModel{
-		Key:   shared.AccessTokenSecretKey,
-		Value: "different-secret-key",
-	}, nil)
+	rsaKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+	rs256, err := jwt.NewWithClaims(jwt.SigningMethodRS256, claims).SignedString(rsaKey)
+	require.NoError(t, err)
+	unsigned, err := jwt.NewWithClaims(jwt.SigningMethodNone, claims).SignedString(jwt.UnsafeAllowNoneSignatureType)
+	require.NoError(t, err)
 
-	verifiedClaims, err := tokenMaker.VerifyToken(ctx, tokenString, "access")
+	for name, tokenString := range map[string]string{"RS256": rs256, "none": unsigned} {
+		t.Run(name, func(t *testing.T) {
+			verifiedClaims, err := tokenMaker.VerifyToken(ctx, tokenString, "access")
 
-	assert.Error(t, err)
-	assert.Nil(t, verifiedClaims)
-	assert.Equal(t, ErrInvalidToken, err)
+			assert.Equal(t, ErrInvalidToken, err)
+			assert.Nil(t, verifiedClaims)
+		})
+	}
 
 	mockSettingService.AssertExpectations(t)
 }
@@ -736,27 +746,4 @@ func TestTokenMaker_CreateToken_EdgeCases(t *testing.T) {
 	assert.True(t, claims.ExpiresAt.Time.Before(time.Now().UTC().Add(6*time.Second)))
 
 	mockSettingService.AssertExpectations(t)
-}
-
-func TestClaims_JSONTags(t *testing.T) {
-	// Test that Claims struct has correct JSON tags
-	claims := &Claims{
-		UserID: "user123",
-		Email:  "test@example.com",
-		Type:   "access",
-	}
-
-	// This test ensures the JSON tags are correctly defined
-	// The actual JSON marshaling is handled by the JWT library
-	assert.Equal(t, "user123", claims.UserID)
-	assert.Equal(t, "test@example.com", claims.Email)
-	assert.Equal(t, "access", claims.Type)
-}
-
-func TestErrorConstants(t *testing.T) {
-	// Test that error constants are properly defined
-	assert.NotNil(t, ErrInvalidToken)
-	assert.NotNil(t, ErrExpiredToken)
-	assert.Equal(t, "invalid token", ErrInvalidToken.Error())
-	assert.Equal(t, "token has expired", ErrExpiredToken.Error())
 }

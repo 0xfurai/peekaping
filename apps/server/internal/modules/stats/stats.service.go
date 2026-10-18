@@ -24,7 +24,9 @@ type Service interface {
 	FindStatsByMonitorIDAndTimeRange(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod) ([]*Stat, error)
 	FindStatsByMonitorIDAndTimeRangeWithInterval(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod, monitorInterval int) ([]*Stat, error)
 	StatPointsSummary(statsList []*Stat) *Stats
+	Summarize(ctx context.Context, monitorID string, since, until time.Time) (*Stats, error)
 	DeleteByMonitorID(ctx context.Context, monitorID string) error
+	DeleteExpired(ctx context.Context, now time.Time) (map[StatPeriod]int64, error)
 }
 
 type ServiceImpl struct {
@@ -57,42 +59,30 @@ func (s *ServiceImpl) AggregateHeartbeat(ctx context.Context, hb *HeartbeatPaylo
 		{StatDaily, 24 * time.Hour},
 	}
 
+	// The heartbeat's counts and response time, which the repository adds to each period's stat
+	add := Stat{MonitorID: hb.MonitorID}
+
+	// Up/Down logic (flattened)
+	if s.flatStatus(hb.Status) == 1 { // MonitorStatusUp
+		add.Up = 1
+		// Only update ping stats for true UP
+		if hb.Status == 1 { // MonitorStatusUp
+			add.PingCount = 1
+			add.Ping = float64(hb.Ping)
+			add.PingMin, add.PingMax = add.Ping, add.Ping
+		}
+	} else if s.flatStatus(hb.Status) == 0 { // MonitorStatusDown
+		add.Down = 1
+	}
+
+	// Aggregate maintenance status separately
+	if hb.Status == 3 { // MonitorStatusMaintenance
+		add.Maintenance = 1
+	}
+
 	for _, p := range periods {
-		bucketTime := time.Unix(hb.Time, 0).Truncate(p.Bucket)
-
-		stat, err := s.repo.GetOrCreateStat(ctx, hb.MonitorID, bucketTime, p.Period)
-		if err != nil {
-			return err
-		}
-
-		statToUpsert := *stat // copy
-
-		// Up/Down logic (flattened)
-		if s.flatStatus(hb.Status) == 1 { // MonitorStatusUp
-			statToUpsert.Up = stat.Up + 1
-			// Only update ping stats for true UP
-			if hb.Status == 1 { // MonitorStatusUp
-				fPing := float64(hb.Ping)
-				statToUpsert.PingCount = stat.PingCount + 1
-				statToUpsert.Ping = (stat.Ping*float64(stat.PingCount) + fPing) / float64(statToUpsert.PingCount)
-				if stat.PingCount == 0 || fPing < stat.PingMin {
-					statToUpsert.PingMin = fPing
-				}
-				if stat.PingCount == 0 || fPing > stat.PingMax {
-					statToUpsert.PingMax = fPing
-				}
-			}
-		} else if s.flatStatus(hb.Status) == 0 { // MonitorStatusDown
-			statToUpsert.Down = stat.Down + 1
-		}
-
-		// Aggregate maintenance status separately
-		if hb.Status == 3 { // MonitorStatusMaintenance
-			statToUpsert.Maintenance = stat.Maintenance + 1
-		}
-
-		// Upsert stat
-		if err := s.repo.UpsertStat(ctx, &statToUpsert, p.Period); err != nil {
+		add.Timestamp = time.Unix(hb.Time, 0).Truncate(p.Bucket)
+		if err := s.repo.AddToStat(ctx, &add, p.Period); err != nil {
 			return err
 		}
 	}
@@ -372,6 +362,57 @@ func (s *ServiceImpl) StatPointsSummary(statsList []*Stat) *Stats {
 	}
 }
 
+// summaryPeriod picks the buckets to read for a window. A bucket counts only when
+// it starts inside the window, so the window's start is off by up to one bucket:
+// a minute for windows up to 24h, an hour up to 90 days, a day beyond that.
+// Stats retention must keep minute rows for at least 24h and hour rows for 90 days.
+func summaryPeriod(window time.Duration) StatPeriod {
+	switch {
+	case window <= 24*time.Hour:
+		return StatMinutely
+	case window <= 90*24*time.Hour:
+		return StatHourly
+	default:
+		return StatDaily
+	}
+}
+
+// Summarize returns uptime and response times for the monitor's heartbeats from
+// since to until, read from the buckets that suit the window length.
+func (s *ServiceImpl) Summarize(ctx context.Context, monitorID string, since, until time.Time) (*Stats, error) {
+	statsList, err := s.repo.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, since, until, summaryPeriod(until.Sub(since)))
+	if err != nil {
+		return nil, err
+	}
+	return s.StatPointsSummary(statsList), nil
+}
+
 func (s *ServiceImpl) DeleteByMonitorID(ctx context.Context, monitorID string) error {
 	return s.repo.DeleteByMonitorID(ctx, monitorID)
+}
+
+// retention is how long each period's stats are kept. Day stats are kept forever.
+// Summarize reads minute stats for up to 24h and hour stats for up to 90 days,
+// and charts read less, so neither may be kept for less than that.
+var retention = []struct {
+	Period StatPeriod
+	Bucket time.Duration
+	Keep   time.Duration
+}{
+	{StatMinutely, time.Minute, 48 * time.Hour},
+	{StatHourly, time.Hour, 90 * 24 * time.Hour},
+}
+
+// DeleteExpired deletes the stats whose bucket started more than their period's
+// retention before now, and returns how many rows it deleted per period.
+func (s *ServiceImpl) DeleteExpired(ctx context.Context, now time.Time) (map[StatPeriod]int64, error) {
+	deleted := make(map[StatPeriod]int64, len(retention))
+	for _, r := range retention {
+		n, err := s.repo.DeleteOlderThan(ctx, r.Period, now.Add(-r.Keep).Truncate(r.Bucket))
+		if err != nil {
+			return deleted, fmt.Errorf("delete expired %s stats: %w", r.Period, err)
+		}
+		deleted[r.Period] = n
+	}
+	return deleted, nil
 }

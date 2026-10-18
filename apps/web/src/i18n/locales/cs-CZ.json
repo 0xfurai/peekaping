@@ -571,7 +571,38 @@
         "redis": "Redis databázový monitor",
         "snmp": "Monitor SNMP",
         "sqlserver": "Monitor Microsoft SQL Server",
-        "tcp": "TCP portový monitor"
+        "tcp": "TCP portový monitor",
+        "smtp": "Monitor SMTP poštovního serveru"
+      },
+      "smtp": {
+        "authentication_title": "Autentizace (Volitelné)",
+        "check_cert_expiry": "Kontrolovat platnost certifikátu",
+        "check_cert_expiry_description": "Monitorovat vypršení platnosti SSL/TLS certifikátu a odesílat upozornění",
+        "from_email": "E-mail odesílatele",
+        "from_email_description": "Volitelné: Testovat příkaz MAIL FROM s touto e-mailovou adresou",
+        "host": "SMTP server host",
+        "ignore_tls_errors": "Ignorovat TLS chyby",
+        "ignore_tls_errors_description": "Přeskočit validaci TLS certifikátu (užitečné pro samopodepsané certifikáty)",
+        "password": "Heslo",
+        "port": "Port",
+        "port_description": "Běžné porty: 25 (SMTP), 465 (SMTPS), 587 (Submission s STARTTLS)",
+        "title": "Nastavení SMTP serveru",
+        "use_tls": "Použít STARTTLS",
+        "use_tls_description": "Povolit STARTTLS pro zabezpečenou komunikaci",
+        "username": "Uživatelské jméno",
+        "username_description": "Volitelné: Uživatelské jméno pro SMTP autentizaci",
+        "expect_secure_relay": "Považovat otevřený relay za selhání",
+        "expect_secure_relay_description": "Pokud je povoleno, bude monitor označen jako DOWN při zjištění otevřeného relé (bezpečnostní riziko). Pokud je zakázáno, monitor očekává otevřené relé a bude označen jako DOWN, když server přeposílání odmítne.",
+        "open_relay_title": "Test otevřeného relé",
+        "read_timeout": "Časový limit čtení (v sekundách)",
+        "read_timeout_description": "Časový limit pro čtení odpovědí SMTP serveru. Nechte prázdné, aby se použil časový limit monitoru. Pomáhá předcházet zablokování na neodpovídajících serverech.",
+        "rcpt_to_email": "Příjemce e‑mail",
+        "rcpt_to_email_description": "E-mailová adresa, kterou použít pro příkaz RCPT TO při testování otevřeného relé. Nechte prázdné, aby se použila výchozí (test@external-domain.com)",
+        "test_open_relay": "Otestovat otevřené relé",
+        "test_open_relay_description": "Otestujte, zda SMTP server umožňuje předávání e‑mailů na externí domény bez ověření.",
+        "use_direct_tls": "Použít přímý TLS (SMTPS)",
+        "use_direct_tls_description": "Použít přímé TLS spojení (SMTPS) místo STARTTLS. Požadováno pro port 465. Pokud není zaškrtnuto, použije se STARTTLS (pro porty 587/25).",
+        "port_465_warning": "Port 465 obvykle vyžaduje přímý TLS (SMTPS). Prosím povolte „Použít přímý TLS (SMTPS)“ pro zabezpečené připojení."
       }
     },
     "page": {
@@ -630,6 +661,9 @@
         "paused": "Pozastaveno",
         "up": "V provozu"
       }
+    },
+    "stale": {
+      "not_checked_since": "Nekontrolováno od {{time}}"
     }
   },
   "navigation": {
@@ -1039,7 +1073,11 @@
         "request_body_description_form_data": "Obsah bude odeslán jako multipart/form-data. Můžete jej dekódovat pomocí <strong>json_decode($_POST['data'])</strong> v PHP.",
         "request_body_description_json": "Obsah bude odeslán jako JSON s hlavičkou 'application/json'.",
         "request_body_label": "Tělo požadavku",
-        "request_body_placeholder": "Vyberte typ obsahu"
+        "request_body_placeholder": "Vyberte typ obsahu",
+        "signing_secret_description": "Volitelné. Pokud je nastaven, každý požadavek se podepíše pomocí HMAC-SHA256: hlavička X-Webhook-Signature obsahuje sha256= a hexadecimální HMAC z \"{timestamp}.{body}\", kde {timestamp} je hlavička X-Webhook-Timestamp v sekundách Unix. U multipart/form-data je {body} pole data.",
+        "signing_secret_docs_link": "Jak ověřit podpis",
+        "signing_secret_label": "Tajný klíč pro podpis",
+        "signing_secret_placeholder": "Ponechte prázdné pro odesílání nepodepsaných požadavků"
       }
     },
     "important": "Důležité notifikace",

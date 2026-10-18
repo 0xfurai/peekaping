@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"encoding/base32"
 	"errors"
 	"time"
 
@@ -243,11 +244,16 @@ func (s *ServiceImpl) SetupTwoFA(ctx context.Context, userId, password string) (
 	} else {
 		// If already set, just return existing
 		secretStr = user.TwoFASecret
-		// Recreate the provisioning URI
+		// Recreate the provisioning URI. Generate base32-encodes the raw
+		// secret, so decode the stored one first.
+		rawSecret, err := base32.StdEncoding.WithPadding(base32.NoPadding).DecodeString(user.TwoFASecret)
+		if err != nil {
+			return "", "", err
+		}
 		key, err := totp.Generate(totp.GenerateOpts{
 			Issuer:      "peekaping",
 			AccountName: user.Email,
-			Secret:      []byte(user.TwoFASecret),
+			Secret:      rawSecret,
 		})
 		if err != nil {
 			return "", "", err
@@ -271,7 +277,9 @@ func (s *ServiceImpl) VerifyTwoFA(ctx context.Context, userId, code string) (boo
 		updateModel := &UpdateModel{
 			TwoFAStatus: &status,
 		}
-		s.repo.Update(ctx, userId, updateModel)
+		if err := s.repo.Update(ctx, userId, updateModel); err != nil {
+			return false, errors.New("failed to enable 2FA")
+		}
 	}
 	return valid, nil
 }

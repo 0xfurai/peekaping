@@ -25,6 +25,7 @@ import (
 	"peekaping/internal/modules/proxy"
 	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/setting"
+	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/stats"
 	"peekaping/internal/modules/status_page"
 	"peekaping/internal/modules/tag"
@@ -54,6 +55,9 @@ func RegisterAPIDependencies(container *dig.Container, cfg *config.Config) error
 	// Provide Redis event bus
 	container.Provide(infra.ProvideRedisClient)
 	container.Provide(infra.ProvideRedisEventBus)
+
+	// The stale monitors the producer's watchdog records
+	container.Provide(stale.NewStore)
 
 	// Provide queue infrastructure (for push endpoint)
 	container.Provide(infra.ProvideAsynqClient)

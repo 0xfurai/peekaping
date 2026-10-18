@@ -25,6 +25,8 @@ To add custom caddy file add
 
 If you need more granular control on system components read [Microservice mode section](#microservice-mode)
 
+The bundle runs Peekaping's api, producer, worker and ingester processes as a non-root user. See [Bundle user and permissions](./bundle-user.md) to set `PUID`/`PGID` and for what Docker and ping monitors need.
+
 ## Microservice mode
 
 ### Prerequisites

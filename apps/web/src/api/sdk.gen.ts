@@ -644,7 +644,7 @@ export const getBadgeByMonitorIdUptimeByDuration = <
 
 /**
  * Get server health
- * Returns the current server health
+ * Returns the server health and how many monitors Peekaping has stopped checking
  */
 export const getHealth = <ThrowOnError extends boolean = false>(
   options?: Options<GetHealthData, ThrowOnError>

@@ -474,7 +474,23 @@ func (m *MockStatsService) StatPointsSummary(statsList []*stats.Stat) *stats.Sta
 	return args.Get(0).(*stats.Stats)
 }
 
+func (m *MockStatsService) Summarize(ctx context.Context, monitorID string, since, until time.Time) (*stats.Stats, error) {
+	args := m.Called(ctx, monitorID, since, until)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*stats.Stats), args.Error(1)
+}
+
 func (m *MockStatsService) DeleteByMonitorID(ctx context.Context, monitorID string) error {
 	args := m.Called(ctx, monitorID)
 	return args.Error(0)
+}
+
+func (m *MockStatsService) DeleteExpired(ctx context.Context, now time.Time) (map[stats.StatPeriod]int64, error) {
+	args := m.Called(ctx, now)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(map[stats.StatPeriod]int64), args.Error(1)
 }

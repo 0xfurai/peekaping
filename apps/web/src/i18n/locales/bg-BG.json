@@ -571,7 +571,38 @@
         "redis": "Монитор за база данни Redis",
         "snmp": "SNMP монитор",
         "sqlserver": "Монитор на Microsoft SQL Server",
-        "tcp": "Монитор за TCP порт"
+        "tcp": "Монитор за TCP порт",
+        "smtp": "Монитор на SMTP пощенски сървър"
+      },
+      "smtp": {
+        "authentication_title": "Удостоверяване (По избор)",
+        "check_cert_expiry": "Проверка на изтичане на сертификат",
+        "check_cert_expiry_description": "Наблюдавайте изтичането на SSL/TLS сертификат и изпращайте известия",
+        "from_email": "Имейл на подателя",
+        "from_email_description": "По избор: Тествайте MAIL FROM команда с този имейл адрес",
+        "host": "Хост на SMTP сървър",
+        "ignore_tls_errors": "Игнорирай TLS грешки",
+        "ignore_tls_errors_description": "Пропусни валидацията на TLS сертификат (полезно за самоподписани сертификати)",
+        "password": "Парола",
+        "port": "Порт",
+        "port_description": "Често използвани портове: 25 (SMTP), 465 (SMTPS), 587 (Submission със STARTTLS)",
+        "title": "Настройки на SMTP сървър",
+        "use_tls": "Използвай STARTTLS",
+        "use_tls_description": "Активирай STARTTLS за сигурна комуникация",
+        "username": "Потребителско име",
+        "username_description": "По избор: Потребителско име за SMTP удостоверяване",
+        "expect_secure_relay": "Третирай отворения ретен като провал",
+        "expect_secure_relay_description": "Ако е включено, мониторът ще бъде маркиран като DOWN, когато бъде открит отворен релей (риск за сигурността). Ако е изключено, мониторът очаква отворен релей и ще бъде маркиран като DOWN, когато сървърът откаже препращането.",
+        "open_relay_title": "Тест за отворен релей",
+        "read_timeout": "Време за изчакване (секунди)",
+        "read_timeout_description": "Време за изчакване при четене на отговори от SMTP сървъра. Оставете празно, за да се използва таймаут на монитора. Помага за предотвратяване на блокиране при безотговорни сървъри.",
+        "rcpt_to_email": "RCPT TO Имейл",
+        "rcpt_to_email_description": "Имейл адрес, който да се използва за командата RCPT TO при тестване на отворен реле. Оставете празно, за да използвате по подразбиране (test@external-domain.com)",
+        "test_open_relay": "Тест на отворения релей",
+        "test_open_relay_description": "Тествайте дали SMTP сървърът позволява препращане на имейли към външни домейни без удостоверяване.",
+        "use_direct_tls": "Използвай директен TLS (SMTPS)",
+        "use_direct_tls_description": "Използвайте директна TLS връзка (SMTPS) вместо STARTTLS. Изисква се за порт 465. Ако не е избрано, използва STARTTLS (за портове 587/25).",
+        "port_465_warning": "Порт 465 обикновено изисква директен TLS (SMTPS). Моля, включете „Използвай директен TLS (SMTPS)“ за сигурни връзки."
       }
     },
     "page": {
@@ -630,6 +661,9 @@
         "paused": "Паузирано",
         "up": "Работи"
       }
+    },
+    "stale": {
+      "not_checked_since": "Не е проверяван от {{time}}"
     }
   },
   "navigation": {
@@ -1039,7 +1073,11 @@
         "request_body_description_form_data": "Съдържанието ще се изпраща като multipart/form-data. Можете да го декодирате с помощта на <strong>json_decode($_POST['data'])</strong> в PHP.",
         "request_body_description_json": "Съдържанието ще бъде изпратено като JSON с HTTP заглавка \"application/json\".",
         "request_body_label": "Тяло на заявката",
-        "request_body_placeholder": "Изберете тип съдържание"
+        "request_body_placeholder": "Изберете тип съдържание",
+        "signing_secret_description": "По избор. Когато е зададен, всяка заявка се подписва с HMAC-SHA256: заглавката X-Webhook-Signature съдържа sha256= и шестнадесетичния HMAC на \"{timestamp}.{body}\", където {timestamp} е заглавката X-Webhook-Timestamp в секунди Unix. При multipart/form-data {body} е полето data.",
+        "signing_secret_docs_link": "Как да проверите подписа",
+        "signing_secret_label": "Таен ключ за подписване",
+        "signing_secret_placeholder": "Оставете празно, за да изпращате неподписани заявки"
       }
     },
     "important": "Важни уведомления",

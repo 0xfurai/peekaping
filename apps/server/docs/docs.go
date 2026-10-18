@@ -986,7 +986,7 @@ const docTemplate = `{
         },
         "/health": {
             "get": {
-                "description": "Returns the current server health",
+                "description": "Returns the server health and how many monitors Peekaping has stopped checking",
                 "produces": [
                     "application/json"
                 ],
@@ -996,12 +996,9 @@ const docTemplate = `{
                 "summary": "Get server health",
                 "responses": {
                     "200": {
-                        "description": "{\"status\": \"success\"}",
+                        "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal.HealthResponse"
                         }
                     }
                 }
@@ -4221,6 +4218,25 @@ const docTemplate = `{
                 "MonitorStatusMaintenance"
             ]
         },
+        "internal.HealthResponse": {
+            "type": "object",
+            "properties": {
+                "stale_monitors": {
+                    "description": "StaleMonitors is how many active monitors Peekaping has stopped checking; null if Redis can't be read",
+                    "type": "integer",
+                    "x-nullable": true
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                },
+                "watchdog_ran_at": {
+                    "description": "WatchdogRanAt is when the stale-monitor watchdog last ran; null if it never has or Redis can't be read",
+                    "type": "string",
+                    "x-nullable": true
+                }
+            }
+        },
         "maintenance.CreateUpdateDto": {
             "type": "object",
             "required": [
@@ -4626,6 +4642,10 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 60
                 },
+                "stale_since": {
+                    "description": "The later of the latest heartbeat and the monitor's last save or resume (so\nits updated_at when it has no heartbeat), set only while the stale-monitor\nwatchdog counts it as stale. The API fills it in; it isn't stored.",
+                    "type": "string"
+                },
                 "status": {
                     "$ref": "#/definitions/shared.MonitorStatus"
                 },
@@ -4698,6 +4718,10 @@ const docTemplate = `{
                 "retry_interval": {
                     "type": "integer",
                     "example": 10
+                },
+                "stale_since": {
+                    "description": "The later of the latest heartbeat and the monitor's last save or resume,\nset only while the stale-monitor watchdog counts it as stale",
+                    "type": "string"
                 },
                 "status": {
                     "type": "integer",

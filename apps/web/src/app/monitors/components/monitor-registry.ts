@@ -19,6 +19,7 @@ import { deserialize as redisDeserialize } from "./redis";
 import { deserialize as mqttDeserialize, formatTarget as mqttFormatTarget } from "./mqtt";
 import { deserialize as rabbitmqDeserialize, formatTarget as rabbitmqFormatTarget } from "./rabbitmq";
 import { deserialize as kafkaProducerDeserialize, formatTarget as kafkaProducerFormatTarget } from "./kafka-producer/schema";
+import { deserialize as smtpDeserialize, formatTarget as smtpFormatTarget } from "./smtp/schema";
 import TCPForm from "./tcp";
 import PingForm from "./ping";
 import DNSForm from "./dns";
@@ -37,6 +38,7 @@ import RedisForm from "./redis";
 import MQTTForm from "./mqtt";
 import RabbitMQForm from "./rabbitmq";
 import KafkaProducerForm from "./kafka-producer";
+import SMTPForm from "./smtp";
 
 import type { ComponentType } from "react";
 
@@ -145,6 +147,11 @@ const monitorTypeRegistry: Record<string, MonitorTypeConfig> = {
     deserialize: kafkaProducerDeserialize,
     component: KafkaProducerForm,
     formatTarget: kafkaProducerFormatTarget,
+  },
+  smtp: {
+    deserialize: smtpDeserialize,
+    component: SMTPForm,
+    formatTarget: smtpFormatTarget,
   },
 };
 

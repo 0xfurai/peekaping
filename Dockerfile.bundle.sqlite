@@ -66,6 +66,10 @@ RUN curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --de
 # Create necessary directories
 RUN mkdir -p /app/server /app/data /var/log/supervisor /app/web
 
+# Service user for api, producer, worker and ingester; startup.user.sh applies PUID/PGID
+RUN groupadd -g 1000 peekaping \
+    && useradd -u 1000 -g peekaping -M -d /nonexistent -s /usr/sbin/nologin peekaping
+
 # Copy built Go binaries from go-builder
 COPY --from=go-builder /app/server/api /app/server/api
 COPY --from=go-builder /app/server/producer /app/server/producer
@@ -83,6 +87,7 @@ COPY --from=web-builder /app/apps/web/dist /app/web
 COPY Caddyfile /etc/caddy/Caddyfile
 COPY supervisord.bundle.sqlite.conf /etc/supervisor/conf.d/supervisord.conf
 COPY startup.bundle.sqlite.sh /app/startup.sh
+COPY startup.bundle.user.sh /app/startup.user.sh
 
 # Set proper permissions for executables
 RUN chmod +x /app/server/run-migrations.sh /app/startup.sh /app/server/api /app/server/producer /app/server/worker /app/server/ingester /app/server/bun

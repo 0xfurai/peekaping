@@ -571,7 +571,38 @@
         "redis": "Redis 資料庫監控",
         "snmp": "SNMP 監控",
         "sqlserver": "Microsoft SQL Server 監控",
-        "tcp": "TCP 端口監控"
+        "tcp": "TCP 端口監控",
+        "smtp": "SMTP 郵件伺服器監控"
+      },
+      "smtp": {
+        "authentication_title": "身份驗證（選填）",
+        "check_cert_expiry": "檢查憑證到期",
+        "check_cert_expiry_description": "監控 SSL/TLS 憑證到期並發送通知",
+        "from_email": "寄件者電子郵件",
+        "from_email_description": "選填：使用此電子郵件地址測試 MAIL FROM 命令",
+        "host": "SMTP 伺服器主機",
+        "ignore_tls_errors": "忽略 TLS 錯誤",
+        "ignore_tls_errors_description": "跳過 TLS 憑證驗證（對自簽憑證有用）",
+        "password": "密碼",
+        "port": "連接埠",
+        "port_description": "常用連接埠：25 (SMTP), 465 (SMTPS), 587 (帶 STARTTLS 的 Submission)",
+        "title": "SMTP 伺服器設定",
+        "use_tls": "使用 STARTTLS",
+        "use_tls_description": "啟用 STARTTLS 進行安全通訊",
+        "username": "使用者名稱",
+        "username_description": "選填：SMTP 身份驗證使用者名稱",
+        "expect_secure_relay": "預期伺服器拒絕中繼",
+        "expect_secure_relay_description": "啟用時，若偵測到開放中繼（安全風險），監控將被標記為 DOWN。停用時，監控會預期伺服器為開放中繼，並在伺服器拒絕中繼時標記為 DOWN。",
+        "open_relay_title": "開放中繼測試",
+        "read_timeout": "讀取逾時（秒）",
+        "read_timeout_description": "讀取 SMTP 伺服器回應的逾時時間。留空則使用監控的逾時設定。可避免在無回應的伺服器上停滯。",
+        "rcpt_to_email": "收件者電子郵件（RCPT TO）",
+        "rcpt_to_email_description": "測試開放中繼時 RCPT TO 命令所使用的電子郵件地址。留空則使用預設值（test@external-domain.com）",
+        "test_open_relay": "測試開放中繼",
+        "test_open_relay_description": "測試 SMTP 伺服器是否允許未經驗證即將郵件中繼至外部網域",
+        "use_direct_tls": "使用直接 TLS (SMTPS)",
+        "use_direct_tls_description": "使用直接 TLS 連線（SMTPS）而非 STARTTLS。連接埠 465 必須使用此選項。若未勾選，則使用 STARTTLS（適用於連接埠 587/25）。",
+        "port_465_warning": "連接埠 465 通常需要直接 TLS（SMTPS）。請啟用「使用直接 TLS (SMTPS)」以建立安全連線。"
       }
     },
     "page": {
@@ -630,6 +661,9 @@
         "paused": "暫停",
         "up": "正常"
       }
+    },
+    "stale": {
+      "not_checked_since": "自 {{time}} 起未檢查"
     }
   },
   "navigation": {
@@ -1039,7 +1073,11 @@
         "request_body_description_form_data": "內容將以 multipart/form-data 形式傳送。您可以使用 PHP 的 <strong>json_decode($_POST['data'])</strong> 進行解碼。",
         "request_body_description_json": "內容將以 JSON 格式發送，標頭為 'application/json'。",
         "request_body_label": "請求正文",
-        "request_body_placeholder": "選擇內容類型"
+        "request_body_placeholder": "選擇內容類型",
+        "signing_secret_description": "選填。設定後，每個請求都會使用 HMAC-SHA256 簽章：X-Webhook-Signature 標頭包含 sha256= 及 \"{timestamp}.{body}\" 的十六進位 HMAC，其中 {timestamp} 為 X-Webhook-Timestamp 標頭的值（Unix 秒）。使用 multipart/form-data 時，{body} 為 data 欄位。",
+        "signing_secret_docs_link": "如何驗證簽章",
+        "signing_secret_label": "簽章密鑰",
+        "signing_secret_placeholder": "留空則傳送未簽章的請求"
       }
     },
     "important": "重要通知",

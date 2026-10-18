@@ -9,6 +9,7 @@ import (
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/notification_sent_history"
 	"peekaping/internal/modules/setting"
+	"peekaping/internal/modules/stats"
 
 	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
@@ -33,6 +34,15 @@ func cleanupHeartbeats(heartbeatService heartbeat.Service, settingService settin
 		return
 	}
 	logger.Infow("Deleted old heartbeats", "count", deleted, "cutoff", cutoff)
+}
+
+func cleanupStats(statsService stats.Service, logger *zap.SugaredLogger) {
+	deleted, err := statsService.DeleteExpired(context.Background(), time.Now().UTC())
+	if err != nil {
+		logger.Errorw("Failed to delete expired stats", "count", deleted, "error", err)
+		return
+	}
+	logger.Infow("Deleted expired stats", "count", deleted)
 }
 
 func cleanupNotificationHistory(notificationHistoryService notification_sent_history.Service, logger *zap.SugaredLogger) {
@@ -67,6 +77,7 @@ func cleanupMonitorTLSInfo(tlsInfoService monitor_tls_info.Service, logger *zap.
 func StartCleanupCron(
 	heartbeatService heartbeat.Service,
 	settingService setting.Service,
+	statsService stats.Service,
 	notificationHistoryService notification_sent_history.Service,
 	tlsInfoService monitor_tls_info.Service,
 	logger *zap.SugaredLogger,
@@ -75,6 +86,10 @@ func StartCleanupCron(
 
 	c.AddFunc("0 * * * *", func() {
 		cleanupHeartbeats(heartbeatService, settingService, logger)
+	})
+
+	c.AddFunc("0 * * * *", func() {
+		cleanupStats(statsService, logger)
 	})
 
 	c.AddFunc("0 * * * *", func() {

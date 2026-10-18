@@ -20,6 +20,7 @@ import (
 	"peekaping/internal/modules/monitor_notification"
 	"peekaping/internal/modules/monitor_tag"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/tag"
 
 	"github.com/stretchr/testify/assert"
@@ -420,6 +421,38 @@ func TestListener_CertificateExpirySendsNotificationToTheMonitorsChannels(t *tes
 	assert.Equal(t, "Public API", sent.monitor.Name)
 	assert.Equal(t, []string{"team:core"}, sent.monitor.Tags)
 	assert.Nil(t, sent.heartbeat, "a certificate expiry notification carries no heartbeat")
+}
+
+func TestListener_StaleMonitorSendsNotificationToTheMonitorsChannels(t *testing.T) {
+	cases := []struct {
+		eventType events.EventType
+		message   string
+	}{
+		{events.MonitorStale, "Peekaping has not checked Public API since 2026-10-18 11:56:00 UTC"},
+		{events.MonitorStaleRecovered, "Peekaping is checking Public API again. It was not checked from 2026-10-18 11:56:00 UTC"},
+	}
+	for _, tc := range cases {
+		t.Run(string(tc.eventType), func(t *testing.T) {
+			f := newListenerFixture(t)
+			slack := &recordingProvider{}
+			registerTestProvider(t, "test-slack", slack)
+			f.addMonitor("mon-1", "Public API")
+			f.addMonitor("mon-2", "Billing")
+			f.attach("mon-1", testChannel("a", "test-slack"))
+			f.attach("mon-2", testChannel("c", "test-slack"))
+			// The producer publishes it, so it arrives as JSON
+			payload, err := json.Marshal(stale.Event{MonitorID: "mon-1", MonitorName: "Public API", Since: time.Date(2026, 10, 18, 11, 56, 0, 0, time.UTC)})
+			require.NoError(t, err)
+
+			f.bus.Publish(events.Event{Type: tc.eventType, Payload: json.RawMessage(payload)})
+
+			require.Equal(t, []string{channelConfig("a")}, slack.sentConfigs())
+			sent := slack.sent[0]
+			assert.Equal(t, tc.message, sent.message)
+			assert.Equal(t, "Public API", sent.monitor.Name)
+			assert.Nil(t, sent.heartbeat, "a stale-monitor notification carries no heartbeat")
+		})
+	}
 }
 
 func TestListener_HungChannelDoesNotHoldUpOtherChannels(t *testing.T) {
