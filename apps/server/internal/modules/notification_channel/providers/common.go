@@ -3,9 +3,11 @@ package providers
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/utils"
+	"strconv"
 )
 
 func GenericValidator[T any](cfg *T) error {
@@ -18,6 +20,38 @@ func GenericUnmarshal[T any](configJSON string) (*T, error) {
 		return nil, fmt.Errorf("failed to parse config: %w", err)
 	}
 	return &cfg, nil
+}
+
+// monitorAddress returns what a monitor checks: the URL of an HTTP monitor, or the host of a
+// TCP, ping or DNS monitor (with the port for TCP). It returns "" for other monitor types.
+func monitorAddress(m *monitor.Model) string {
+	if m == nil || m.Config == "" {
+		return ""
+	}
+
+	var cfg struct {
+		URL  string `json:"url"`
+		Host string `json:"host"`
+		Port int    `json:"port"`
+	}
+	if err := json.Unmarshal([]byte(m.Config), &cfg); err != nil {
+		return ""
+	}
+
+	switch m.Type {
+	case "http", "http-keyword", "http-json-query":
+		return cfg.URL
+	case "tcp":
+		if cfg.Host != "" && cfg.Port > 0 {
+			return net.JoinHostPort(cfg.Host, strconv.Itoa(cfg.Port))
+		}
+		return cfg.Host
+	case "ping", "dns":
+		// A DNS monitor's port belongs to its resolver, not the host
+		return cfg.Host
+	default:
+		return ""
+	}
 }
 
 // PrepareTemplateBindings converts monitor and heartbeat objects to JSON representation
