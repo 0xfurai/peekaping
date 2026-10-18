@@ -86,7 +86,7 @@ func newApp(t *testing.T) *app {
 	require.NoError(t, container.Invoke(func(settings setting.Service) error {
 		return settings.InitializeSettings(ctx)
 	}))
-	// Notification providers register when the listener is built, as cmd/api does at startup.
+	// Notification channel providers register when the listener is built, as cmd/api does at startup.
 	require.NoError(t, container.Invoke(func(listener *notification_channel.NotificationEventListener, bus events.EventBus) {
 		listener.Subscribe(bus)
 	}))

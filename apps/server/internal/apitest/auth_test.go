@@ -45,9 +45,9 @@ func TestAuthAPI_SignsAdminIn(t *testing.T) {
 
 func TestAuthAPI_RequiresSecondFactorOnceEnabled(t *testing.T) {
 	a := newAppWithAdmin(t)
-	credentials := map[string]any{"email": adminEmail, "password": adminPassword}
+	account := map[string]any{"email": adminEmail, "password": adminPassword}
 
-	w := a.request(t, http.MethodPost, "/api/v1/auth/2fa/setup", credentials, a.asAdmin)
+	w := a.request(t, http.MethodPost, "/api/v1/auth/2fa/setup", account, a.asAdmin)
 	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
 	var setup struct {
 		Secret string `json:"secret"`
@@ -58,14 +58,14 @@ func TestAuthAPI_RequiresSecondFactorOnceEnabled(t *testing.T) {
 	w = a.request(t, http.MethodPost, "/api/v1/auth/2fa/verify", map[string]any{"email": adminEmail, "code": code}, a.asAdmin)
 	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
 
-	assert.Equal(t, http.StatusUnauthorized, a.login(t, credentials).Code)
+	assert.Equal(t, http.StatusUnauthorized, a.login(t, account).Code)
 	assert.Equal(t, http.StatusUnauthorized, a.login(t, map[string]any{"email": adminEmail, "password": adminPassword, "token": "000000"}).Code)
 	code, err = totp.GenerateCode(setup.Secret, time.Now())
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusOK, a.login(t, map[string]any{"email": adminEmail, "password": adminPassword, "token": code}).Code)
 
-	decode[any](t, a.request(t, http.MethodPost, "/api/v1/auth/2fa/disable", credentials, a.asAdmin), http.StatusOK)
-	assert.Equal(t, http.StatusOK, a.login(t, credentials).Code)
+	decode[any](t, a.request(t, http.MethodPost, "/api/v1/auth/2fa/disable", account, a.asAdmin), http.StatusOK)
+	assert.Equal(t, http.StatusOK, a.login(t, account).Code)
 }
 
 func TestAuthAPI_RejectsInvalidInput(t *testing.T) {

@@ -356,14 +356,14 @@ func (ic *MonitorController) UpdatePartial(ctx *gin.Context) {
 		return
 	}
 
-	existing, ok := utils.FindOr404(ctx, ic.logger, "Monitor", ic.monitorService.FindByID, id)
+	current, ok := utils.FindOr404(ctx, ic.logger, "Monitor", ic.monitorService.FindByID, id)
 	if !ok {
 		return
 	}
 
 	// Validate the config against the type the monitor has after the update
 	if monitor.Type != nil || monitor.Config != nil {
-		monitorType, config := existing.Type, existing.Config
+		monitorType, config := current.Type, current.Config
 		if monitor.Type != nil {
 			monitorType = *monitor.Type
 		}

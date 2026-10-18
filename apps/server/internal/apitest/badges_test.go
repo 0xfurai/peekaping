@@ -2,6 +2,7 @@ package apitest
 
 import (
 	"net/http"
+	"net/http/httptest"
 	"regexp"
 	"testing"
 
@@ -9,6 +10,16 @@ import (
 )
 
 var badgeTitle = regexp.MustCompile(`<title>(.*?)</title>`)
+
+// assertBadge checks that the response is an SVG badge reading title.
+func assertBadge(t *testing.T, w *httptest.ResponseRecorder, title string) {
+	t.Helper()
+	assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
+	assert.Equal(t, "image/svg+xml", w.Header().Get("Content-Type"))
+	if match := badgeTitle.FindStringSubmatch(w.Body.String()); assert.NotNil(t, match, w.Body.String()) {
+		assert.Equal(t, title, match[1])
+	}
+}
 
 // badgePaths are every badge route for a monitor, with the badge each one
 // renders for a monitor that's Up and has no heartbeats yet.
@@ -34,12 +45,7 @@ func TestBadges_ServeMonitorOnPublishedPage(t *testing.T) {
 
 	for path, title := range badgePaths(monitorID) {
 		t.Run(path, func(t *testing.T) {
-			w := a.request(t, http.MethodGet, path, nil)
-			assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
-			assert.Equal(t, "image/svg+xml", w.Header().Get("Content-Type"))
-			if match := badgeTitle.FindStringSubmatch(w.Body.String()); assert.NotNil(t, match, w.Body.String()) {
-				assert.Equal(t, title, match[1])
-			}
+			assertBadge(t, a.request(t, http.MethodGet, path, nil), title)
 		})
 	}
 }
@@ -83,11 +89,7 @@ func TestBadges_FallBackOnInvalidOptions(t *testing.T) {
 		base + "/cert-exp?warnDays=soon&downDays=-1": "cert exp: N/A",
 	} {
 		t.Run(path, func(t *testing.T) {
-			w := a.request(t, http.MethodGet, path, nil)
-			assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
-			if match := badgeTitle.FindStringSubmatch(w.Body.String()); assert.NotNil(t, match, w.Body.String()) {
-				assert.Equal(t, title, match[1])
-			}
+			assertBadge(t, a.request(t, http.MethodGet, path, nil), title)
 		})
 	}
 }

@@ -456,7 +456,7 @@ func TestServiceImpl_IsMonitorPublic(t *testing.T) {
 		mockStatusPageService.AssertNotCalled(t, "IsMonitorPublished", mock.Anything, mock.Anything)
 	})
 
-	t.Run("status page check fails", func(t *testing.T) {
+	t.Run("status page lookup fails", func(t *testing.T) {
 		service, mockMonitorService, _, _, _, mockStatusPageService := setupBadgeService()
 
 		mockMonitorService.On("FindByID", ctx, "monitor123").Return(activeMonitor, nil)

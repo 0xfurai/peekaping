@@ -11,8 +11,8 @@ import (
 
 // publicRoutes answer without credentials. Every other route must return 401.
 var publicRoutes = map[string]string{
-	"GET /health":                 "liveness probe",
-	"GET /api/v1/health":          "liveness probe",
+	"GET /health":                 "server liveness",
+	"GET /api/v1/health":          "server liveness",
 	"GET /api/v1/version":         "server version",
 	"GET /swagger/*any":           "API docs",
 	"GET /socket.io/*f":           "socket.io checks the access token when the socket connects",
