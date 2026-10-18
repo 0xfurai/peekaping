@@ -20,6 +20,7 @@ import (
 	"peekaping/internal/modules/stats"
 	"peekaping/internal/version"
 	"syscall"
+	_ "time/tzdata" // embed the zone database so TZ works in images without tzdata
 
 	"github.com/hibiken/asynq"
 	"go.uber.org/dig"

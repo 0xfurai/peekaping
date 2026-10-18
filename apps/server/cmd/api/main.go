@@ -20,6 +20,7 @@ import (
 	"peekaping/internal/utils"
 	"peekaping/internal/version"
 	"syscall"
+	_ "time/tzdata" // embed the zone database so TZ works in images without tzdata
 
 	"go.uber.org/dig"
 	"go.uber.org/zap"
