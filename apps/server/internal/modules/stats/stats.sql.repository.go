@@ -2,54 +2,63 @@ package stats
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 )
 
+// sqlModel is a row of stat_minutely, stat_hourly or stat_daily; each query names its table.
 type sqlModel struct {
-	bun.BaseModel `bun:"table:stats,alias:s"`
+	bun.BaseModel `bun:"alias:s"`
 
-	ID          string    `bun:"id,pk"`
-	MonitorID   string    `bun:"monitor_id,notnull"`
-	Timestamp   time.Time `bun:"timestamp,notnull"`
-	Ping        float64   `bun:"ping,notnull,default:0"`
-	PingMin     float64   `bun:"ping_min,notnull,default:0"`
-	PingMax     float64   `bun:"ping_max,notnull,default:0"`
-	Up          int       `bun:"up,notnull,default:0"`
-	Down        int       `bun:"down,notnull,default:0"`
-	Maintenance int       `bun:"maintenance,notnull,default:0"`
-	CreatedAt   time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp"`
-	UpdatedAt   time.Time `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
+	MonitorID   string    `bun:"monitor_id,pk"`
+	Timestamp   time.Time `bun:"timestamp,pk"`
+	Up          int       `bun:"up,notnull"`
+	Down        int       `bun:"down,notnull"`
+	Maintenance int       `bun:"maintenance,notnull"`
+	PingSum     float64   `bun:"ping_sum,notnull"`
+	PingCount   int       `bun:"ping_count,notnull"`
+	PingMin     *float64  `bun:"ping_min"`
+	PingMax     *float64  `bun:"ping_max"`
 }
 
 func toDomainModelFromSQL(sm *sqlModel) *Stat {
-	return &Stat{
-		ID:          sm.ID,
+	s := &Stat{
 		MonitorID:   sm.MonitorID,
 		Timestamp:   sm.Timestamp,
-		Ping:        sm.Ping,
-		PingMin:     sm.PingMin,
-		PingMax:     sm.PingMax,
+		PingCount:   sm.PingCount,
 		Up:          sm.Up,
 		Down:        sm.Down,
 		Maintenance: sm.Maintenance,
 	}
+	if sm.PingCount > 0 {
+		s.Ping = sm.PingSum / float64(sm.PingCount)
+	}
+	if sm.PingMin != nil {
+		s.PingMin = *sm.PingMin
+	}
+	if sm.PingMax != nil {
+		s.PingMax = *sm.PingMax
+	}
+	return s
 }
 
 func toSQLModel(s *Stat) *sqlModel {
-	return &sqlModel{
-		ID:          s.ID,
+	sm := &sqlModel{
 		MonitorID:   s.MonitorID,
 		Timestamp:   s.Timestamp,
-		Ping:        s.Ping,
-		PingMin:     s.PingMin,
-		PingMax:     s.PingMax,
 		Up:          s.Up,
 		Down:        s.Down,
 		Maintenance: s.Maintenance,
+		PingSum:     s.Ping * float64(s.PingCount),
+		PingCount:   s.PingCount,
 	}
+	if s.PingCount > 0 {
+		sm.PingMin, sm.PingMax = &s.PingMin, &s.PingMax
+	}
+	return sm
 }
 
 type SQLRepositoryImpl struct {
@@ -60,32 +69,36 @@ func NewSQLRepository(db *bun.DB) Repository {
 	return &SQLRepositoryImpl{db: db}
 }
 
+var statTables = map[StatPeriod]string{
+	StatMinutely: "stat_minutely",
+	StatHourly:   "stat_hourly",
+	StatDaily:    "stat_daily",
+}
+
+// statTable returns the table expression for period, like the Mongo repository's getStatCollection.
+func statTable(period StatPeriod) string {
+	table, ok := statTables[period]
+	if !ok {
+		table = statTables[StatMinutely]
+	}
+	return table + " AS s"
+}
+
 func (r *SQLRepositoryImpl) GetOrCreateStat(ctx context.Context, monitorID string, timestamp time.Time, period StatPeriod) (*Stat, error) {
 	sm := new(sqlModel)
 
 	// Try to find existing stat
 	err := r.db.NewSelect().
 		Model(sm).
+		ModelTableExpr(statTable(period)).
 		Where("monitor_id = ? AND timestamp = ?", monitorID, timestamp).
 		Scan(ctx)
 
-	if err != nil && err.Error() == "sql: no rows in result set" {
+	if errors.Is(err, sql.ErrNoRows) {
 		// Create new stat if not found
-		sm = &sqlModel{
-			ID:          uuid.New().String(),
-			MonitorID:   monitorID,
-			Timestamp:   timestamp,
-			Ping:        0,
-			PingMin:     0,
-			PingMax:     0,
-			Up:          0,
-			Down:        0,
-			Maintenance: 0,
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
-		}
+		sm = &sqlModel{MonitorID: monitorID, Timestamp: timestamp}
 
-		_, err = r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
+		_, err = r.db.NewInsert().Model(sm).ModelTableExpr(statTable(period)).Exec(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -98,19 +111,19 @@ func (r *SQLRepositoryImpl) GetOrCreateStat(ctx context.Context, monitorID strin
 
 func (r *SQLRepositoryImpl) UpsertStat(ctx context.Context, stat *Stat, period StatPeriod) error {
 	sm := toSQLModel(stat)
-	sm.UpdatedAt = time.Now()
 
 	// Try to update existing record first
 	result, err := r.db.NewUpdate().
 		Model(sm).
+		ModelTableExpr(statTable(period)).
 		Where("monitor_id = ? AND timestamp = ?", sm.MonitorID, sm.Timestamp).
-		Set("ping = ?", sm.Ping).
-		Set("ping_min = ?", sm.PingMin).
-		Set("ping_max = ?", sm.PingMax).
 		Set("up = ?", sm.Up).
 		Set("down = ?", sm.Down).
 		Set("maintenance = ?", sm.Maintenance).
-		Set("updated_at = ?", sm.UpdatedAt).
+		Set("ping_sum = ?", sm.PingSum).
+		Set("ping_count = ?", sm.PingCount).
+		Set("ping_min = ?", sm.PingMin).
+		Set("ping_max = ?", sm.PingMax).
 		Exec(ctx)
 
 	if err != nil {
@@ -125,13 +138,7 @@ func (r *SQLRepositoryImpl) UpsertStat(ctx context.Context, stat *Stat, period S
 
 	// If no rows were updated, insert a new record
 	if rowsAffected == 0 {
-		// Generate new ID for insert
-		if sm.ID == "" {
-			sm.ID = uuid.New().String()
-		}
-		sm.CreatedAt = time.Now()
-
-		_, err = r.db.NewInsert().Model(sm).Exec(ctx)
+		_, err = r.db.NewInsert().Model(sm).ModelTableExpr(statTable(period)).Exec(ctx)
 		if err != nil {
 			return err
 		}
@@ -144,6 +151,7 @@ func (r *SQLRepositoryImpl) FindStatsByMonitorIDAndTimeRange(ctx context.Context
 	var sms []*sqlModel
 	err := r.db.NewSelect().
 		Model(&sms).
+		ModelTableExpr(statTable(period)).
 		Where("monitor_id = ? AND timestamp BETWEEN ? AND ?", monitorID, since, until).
 		Order("timestamp ASC").
 		Scan(ctx)
@@ -159,9 +167,15 @@ func (r *SQLRepositoryImpl) FindStatsByMonitorIDAndTimeRange(ctx context.Context
 }
 
 func (r *SQLRepositoryImpl) DeleteByMonitorID(ctx context.Context, monitorID string) error {
-	_, err := r.db.NewDelete().
-		Model((*sqlModel)(nil)).
-		Where("monitor_id = ?", monitorID).
-		Exec(ctx)
-	return err
+	for period := range statTables {
+		_, err := r.db.NewDelete().
+			Model((*sqlModel)(nil)).
+			ModelTableExpr(statTable(period)).
+			Where("monitor_id = ?", monitorID).
+			Exec(ctx)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

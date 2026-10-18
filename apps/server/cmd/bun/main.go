@@ -56,7 +56,9 @@ func newDBCommand() *cli.Command {
 				Usage: "migrate database",
 				Action: func(c *cli.Context) error {
 					return runWithDB(func(db *bun.DB) error {
-						migrator := migrate.NewMigrator(db, migrations.Migrations)
+						// Mark a migration applied only once it succeeds, so one that fails
+						// or is killed halfway runs again on the next migrate.
+						migrator := migrate.NewMigrator(db, migrations.Migrations, migrate.WithMarkAppliedOnSuccess(true))
 						if err := migrator.Lock(c.Context); err != nil {
 							return err
 						}
