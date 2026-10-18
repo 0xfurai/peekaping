@@ -1226,7 +1226,7 @@ func handleSMTPConnectionDirectTLSGreetingFailure(conn net.Conn, tlsConfig *tls.
 // TestSMTPExecutor_Execute_Postfix_Integration tests comprehensive scenarios against the Postfix test container.
 // These tests require the Postfix container to be running:
 //
-//	docker-compose -f test_utils/smtp/docker-compose.smtp-test.yml up -d postfix
+//	docker compose -f test_utils/smtp/docker-compose.smtp-test.yml up -d postfix
 //
 // Run with: POSTFIX_TESTS=1 go test -v ./internal/modules/healthcheck/executor -run TestSMTPExecutor_Execute_Postfix_Integration
 //

@@ -23,7 +23,7 @@ make setup
 make install
 
 # Start database
-docker-compose -f docker-compose.dev.mongo.yml up -d
+docker compose -f docker-compose.dev.mongo.yml up -d
 
 # Start application
 make dev

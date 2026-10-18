@@ -31,7 +31,7 @@ start_servers() {
     echo ""
     echo "🚀 Starting Postfix test server..."
     cd "$SCRIPT_DIR"
-    docker-compose -f docker-compose.smtp-test.yml up -d postfix
+    docker compose -f docker-compose.smtp-test.yml up -d postfix
     
     echo ""
     echo "⏳ Waiting for server to be ready..."
@@ -52,7 +52,7 @@ stop_servers() {
     echo ""
     echo "🛑 Stopping Postfix test server..."
     cd "$SCRIPT_DIR"
-    docker-compose -f docker-compose.smtp-test.yml down
+    docker compose -f docker-compose.smtp-test.yml down
     echo -e "${GREEN}✅ Server stopped${NC}"
 }
 
@@ -81,6 +81,7 @@ test_connection() {
         fi
     else
         echo -e "${YELLOW}⚠️  netcat (nc) not found. Install it to test connections.${NC}"
+        return 1
     fi
 }
 
@@ -173,7 +174,7 @@ show_logs() {
     echo "📋 Postfix Server Logs (Press Ctrl+C to exit):"
     echo ""
     cd "$SCRIPT_DIR"
-    docker-compose -f docker-compose.smtp-test.yml logs -f postfix
+    docker compose -f docker-compose.smtp-test.yml logs -f postfix
 }
 
 # Main menu

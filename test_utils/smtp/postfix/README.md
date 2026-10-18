@@ -31,7 +31,7 @@ The Postfix container is automatically started with the other test servers:
 
 ```bash
 cd test_utils/smtp
-docker-compose -f docker-compose.smtp-test.yml up -d
+docker compose -f docker-compose.smtp-test.yml up -d
 ```
 
 ## Test Examples

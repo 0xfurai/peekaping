@@ -8,7 +8,7 @@ This directory contains tools for testing the SMTP health check implementation u
 
 ```bash
 cd test_utils/smtp
-docker-compose -f docker-compose.smtp-test.yml up -d postfix
+docker compose -f docker-compose.smtp-test.yml up -d postfix
 ```
 
 This will start a Postfix SMTP server with:
@@ -180,7 +180,7 @@ You can also test with real SMTP servers:
 To stop and remove the Postfix test server:
 
 ```bash
-docker-compose -f docker-compose.smtp-test.yml down
+docker compose -f docker-compose.smtp-test.yml down
 ```
 
 ## Troubleshooting
@@ -207,7 +207,7 @@ docker ps
 If the container is not running, start it again:
 
 ```bash
-docker-compose -f docker-compose.smtp-test.yml up -d postfix
+docker compose -f docker-compose.smtp-test.yml up -d postfix
 ```
 
 ### View Logs
@@ -215,7 +215,7 @@ docker-compose -f docker-compose.smtp-test.yml up -d postfix
 To see what's happening in the Postfix server:
 
 ```bash
-docker-compose -f docker-compose.smtp-test.yml logs -f postfix
+docker compose -f docker-compose.smtp-test.yml logs -f postfix
 ```
 
 ## Running Tests
