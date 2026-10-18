@@ -80,7 +80,7 @@ func (p *Producer) startMonitorSyncing() error {
 
 	// Start schedule refresher to keep Redis in sync with database
 	p.wg.Add(1)
-	go p.runScheduleRefresher()
+	go p.runScheduleRefresher(p.syncCtx)
 
 	// Start the stale-monitor watchdog
 	p.wg.Add(1)

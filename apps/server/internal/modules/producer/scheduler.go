@@ -172,8 +172,9 @@ func (p *Producer) runReclaimer() {
 	}
 }
 
-// runScheduleRefresher periodically refreshes the schedule with new/updated monitors
-func (p *Producer) runScheduleRefresher() {
+// runScheduleRefresher periodically refreshes the schedule with new/updated monitors.
+// syncCtx is passed in because stopMonitorSyncing clears p.syncCtx while this runs.
+func (p *Producer) runScheduleRefresher(syncCtx context.Context) {
 	defer p.wg.Done()
 	ticker := time.NewTicker(p.scheduleRefreshInterval)
 	defer ticker.Stop()
@@ -183,7 +184,7 @@ func (p *Producer) runScheduleRefresher() {
 		case <-p.ctx.Done():
 			// Main producer context cancelled (shutdown)
 			return
-		case <-p.syncCtx.Done():
+		case <-syncCtx.Done():
 			// Sync context cancelled (lost leadership)
 			p.logger.Info("Schedule refresher stopped due to leadership loss")
 			return
