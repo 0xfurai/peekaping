@@ -6,12 +6,14 @@ import { receivedWebhooks, setTargetStatus, targetURL, webhookURL } from './supp
 const DOWN = 0;
 const UP = 1;
 
-// The next check comes at most one 20-second check interval later, then the
-// heartbeat still has to reach the page and the notification channel.
-const nextCheck = { timeout: 45_000 };
+// A new monitor is checked at once and then every 20 seconds, the minimum
+// check interval. If the producer misses the create event, its 30-second
+// refresh picks the monitor up. The heartbeat then still has to reach the page
+// and the notification channel.
+const nextCheck = { timeout: 60_000 };
 
-test('An HTTP monitor goes Down, notifies its webhook, and comes back Up', async ({ page, request }) => {
-  test.setTimeout(180_000);
+test('An HTTP monitor goes Down, sends a webhook notification, and comes back Up', async ({ page, request }) => {
+  test.setTimeout(240_000);
   const id = randomID();
   const monitorName = `Monitoring ${id}`;
   const channelName = `Webhook ${id}`;
@@ -19,8 +21,8 @@ test('An HTTP monitor goes Down, notifies its webhook, and comes back Up', async
 
   await setTargetStatus(request, id, 200);
   try {
-    created.push(`notification-channels/${await createWebhookChannel(page, channelName, webhookURL(id))}`);
-    created.push(`monitors/${await createMonitor(page, monitorName, targetURL(id), channelName)}`);
+    await createWebhookChannel(page, created, channelName, webhookURL(id));
+    await createMonitor(page, created, monitorName, targetURL(id), channelName);
 
     const currentStatus = page.locator('[data-slot="card"]').filter({ hasText: 'Current status' }).locator('.text-2xl');
     // Start Up, so the channel is attached well before the Down that's notified.
@@ -53,7 +55,7 @@ async function notifiedStatuses(request: APIRequestContext, id: string, monitorN
     .map((webhook) => webhook.body.heartbeat.status);
 }
 
-async function createWebhookChannel(page: Page, name: string, url: string): Promise<string> {
+async function createWebhookChannel(page: Page, created: string[], name: string, url: string) {
   await page.goto('/notification-channels/new');
   await page.getByRole('combobox', { name: 'Notifier Type' }).click();
   await page.getByRole('option', { name: 'Webhook', exact: true }).click();
@@ -68,11 +70,11 @@ async function createWebhookChannel(page: Page, name: string, url: string): Prom
   await page.getByRole('button', { name: 'Save', exact: true }).click();
   const response = await saved;
   expect(response.status(), await response.text()).toBe(201);
+  created.push(`notification-channels/${(await response.json()).data.id}`);
   await expect(page).toHaveURL(/\/notification-channels$/);
-  return (await response.json()).data.id;
 }
 
-async function createMonitor(page: Page, name: string, url: string, channelName: string): Promise<string> {
+async function createMonitor(page: Page, created: string[], name: string, url: string, channelName: string) {
   await page.goto('/monitors/new');
   await page.locator('input[name="name"]').fill(name);
   await page.locator('input[name="url"]').fill(url);
@@ -86,13 +88,13 @@ async function createMonitor(page: Page, name: string, url: string, channelName:
   await page.getByRole('option', { name: channelName, exact: true }).click();
   await expect(page.getByRole('button', { name: `Remove ${channelName}` })).toBeVisible();
 
-  const created = page.waitForResponse(
+  const saved = page.waitForResponse(
     (response) => response.url().endsWith('/monitors') && response.request().method() === 'POST',
   );
   await page.getByRole('button', { name: 'Create', exact: true }).click();
-  const response = await created;
+  const response = await saved;
   expect(response.status(), await response.text()).toBe(201);
   const { id } = (await response.json()).data;
+  created.push(`monitors/${id}`);
   await expect(page).toHaveURL(new RegExp(`/monitors/${id}$`));
-  return id;
 }
