@@ -44,6 +44,7 @@ func TestNewProducer(t *testing.T) {
 
 		assert.NotNil(t, producer)
 		assert.Equal(t, ConcurrentProducers, producer.concurrency)
+		assert.Equal(t, ReclaimEvery, producer.reclaimInterval)
 		assert.NotNil(t, producer.monitorIntervals)
 		assert.NotNil(t, producer.ctx)
 		assert.NotNil(t, producer.cancel)
