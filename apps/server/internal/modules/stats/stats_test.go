@@ -24,6 +24,7 @@ import (
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
 	"github.com/uptrace/bun/migrate"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/event"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -112,31 +113,38 @@ func forEachBackendCounting(t *testing.T, fn func(t *testing.T, svc stats.Servic
 	t.Run("SQLite", sqlBackend(sqliteDB))
 	t.Run("Postgres", sqlBackend(postgresDB))
 	t.Run("Mongo", func(t *testing.T) {
-		uri := os.Getenv("PEE_TEST_MONGO_URI")
-		if uri == "" {
-			t.Skip("set PEE_TEST_MONGO_URI to run MongoDB integration checks")
-		}
 		var counting atomic.Bool
 		statements := new(atomic.Int64)
-		monitor := &event.CommandMonitor{Started: func(context.Context, *event.CommandStartedEvent) {
+		client, cfg := mongoDB(t, &event.CommandMonitor{Started: func(context.Context, *event.CommandStartedEvent) {
 			if counting.Load() {
 				statements.Add(1)
 			}
-		}}
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer cancel()
-		client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri).SetMonitor(monitor))
-		require.NoError(t, err)
-		require.NoError(t, client.Ping(ctx, nil))
-		cfg := &config.Config{DBName: "stats_" + primitive.NewObjectID().Hex()}
-		t.Cleanup(func() {
-			require.NoError(t, client.Database(cfg.DBName).Drop(context.Background()))
-			require.NoError(t, client.Disconnect(context.Background()))
-		})
+		}})
 		svc := stats.NewService(stats.NewMongoRepository(client, cfg), zap.NewNop().Sugar())
 		counting.Store(true)
 		fn(t, svc, primitive.NewObjectID().Hex(), statements)
 	})
+}
+
+// mongoDB connects to PEE_TEST_MONGO_URI and returns the client and a config
+// naming an empty database there, which is dropped when the test ends.
+func mongoDB(t *testing.T, monitor *event.CommandMonitor) (*mongo.Client, *config.Config) {
+	t.Helper()
+	uri := os.Getenv("PEE_TEST_MONGO_URI")
+	if uri == "" {
+		t.Skip("set PEE_TEST_MONGO_URI to run MongoDB integration checks")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri).SetMonitor(monitor))
+	require.NoError(t, err)
+	require.NoError(t, client.Ping(ctx, nil))
+	cfg := &config.Config{DBName: "stats_" + primitive.NewObjectID().Hex()}
+	t.Cleanup(func() {
+		require.NoError(t, client.Database(cfg.DBName).Drop(context.Background()))
+		require.NoError(t, client.Disconnect(context.Background()))
+	})
+	return client, cfg
 }
 
 // bucket is the part of a stat row a chart shows.
@@ -309,4 +317,35 @@ func TestEachCheckWritesStatsWithOneStatementPerPeriod(t *testing.T) {
 			assert.Equal(t, int64(3), statements.Load()-before, hb.name)
 		}
 	})
+}
+
+func TestMongoStatWrittenBeforeUpgradeKeepsCounting(t *testing.T) {
+	client, cfg := mongoDB(t, nil)
+	svc := stats.NewService(stats.NewMongoRepository(client, cfg), zap.NewNop().Sugar())
+	ctx := context.Background()
+	monitorID := primitive.NewObjectID()
+	minute := time.Date(2026, 10, 16, 14, 0, 0, 0, time.UTC)
+
+	// Documents as the old code wrote them: a random _id, the average response
+	// time, and zeros in ping_min and ping_max while there's no response time.
+	// The first minute had checks of 100 and 200 ms, a maintenance check and a
+	// down check; the second minute only a down check.
+	withPings, downOnly := primitive.NewObjectID(), primitive.NewObjectID()
+	_, err := client.Database(cfg.DBName).Collection("stat_minutely").InsertMany(ctx, []any{
+		bson.M{"_id": withPings, "monitor_id": monitorID, "timestamp": minute, "ping": 150.0, "ping_min": 100.0, "ping_max": 200.0, "up": 3, "down": 1, "maintenance": 1},
+		bson.M{"_id": downOnly, "monitor_id": monitorID, "timestamp": minute.Add(time.Minute), "ping": 0.0, "ping_min": 0.0, "ping_max": 0.0, "up": 0, "down": 1, "maintenance": 0},
+	})
+	require.NoError(t, err)
+
+	aggregate(t, svc, monitorID.Hex(), shared.MonitorStatusUp, 300, minute.Add(30*time.Second))
+	aggregate(t, svc, monitorID.Hex(), shared.MonitorStatusUp, 50, minute.Add(time.Minute+30*time.Second))
+
+	rows, err := svc.FindStatsByMonitorIDAndTimeRange(ctx, monitorID.Hex(), minute, minute.Add(time.Minute), stats.StatMinutely)
+	require.NoError(t, err)
+	require.Len(t, rows, 2)
+	got := func(s *stats.Stat) bucket { return bucket{s.Up, s.Down, s.Maintenance, s.Ping, s.PingMin, s.PingMax} }
+	assert.Equal(t, withPings.Hex(), rows[0].ID)
+	assert.Equal(t, bucket{Up: 4, Down: 1, Maintenance: 1, Ping: 200, PingMin: 100, PingMax: 300}, got(rows[0]))
+	assert.Equal(t, downOnly.Hex(), rows[1].ID)
+	assert.Equal(t, bucket{Up: 1, Down: 1, Ping: 50, PingMin: 50, PingMax: 50}, got(rows[1]))
 }
