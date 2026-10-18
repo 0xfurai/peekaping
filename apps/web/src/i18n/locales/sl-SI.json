@@ -661,6 +661,9 @@
         "paused": "Ustavljeno",
         "up": "Dostupno"
       }
+    },
+    "stale": {
+      "not_checked_since": "Ni preverjeno od {{time}}"
     }
   },
   "navigation": {

@@ -51,6 +51,7 @@ import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import clsx from "clsx";
 import { formatMonitorTarget } from "../components/monitor-registry";
 import { parseMonitorConfig } from "../components/monitor-target";
+import StaleMarker from "../components/stale-marker";
 
 function formatDuration(ms: number, t: (key: string) => string): string {
   // Handle negative durations (clock skew) by returning empty string
@@ -555,6 +556,12 @@ const MonitorPage = () => {
 
               {monitor?.active && lastImportantHeartbeatDuration > 0 && (
                 <div className="text-sm text-gray-400">{lihText}</div>
+              )}
+              {monitor?.active && (
+                <StaleMarker
+                  staleSince={monitor?.stale_since}
+                  lastHeartbeatTime={lastHeartbeat?.time}
+                />
               )}
               {!monitor?.active && lastHeartbeat?.time && (
                 <div className="text-sm text-gray-400">

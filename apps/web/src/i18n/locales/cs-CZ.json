@@ -661,6 +661,9 @@
         "paused": "Pozastaveno",
         "up": "V provozu"
       }
+    },
+    "stale": {
+      "not_checked_since": "Nekontrolováno od {{time}}"
     }
   },
   "navigation": {

@@ -661,6 +661,9 @@
         "paused": "Gepauzeerd",
         "up": "Online"
       }
+    },
+    "stale": {
+      "not_checked_since": "Niet gecontroleerd sinds {{time}}"
     }
   },
   "navigation": {

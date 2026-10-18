@@ -661,6 +661,9 @@
         "paused": "Peatatud",
         "up": "Ülal"
       }
+    },
+    "stale": {
+      "not_checked_since": "Pole kontrollitud alates {{time}}"
     }
   },
   "navigation": {

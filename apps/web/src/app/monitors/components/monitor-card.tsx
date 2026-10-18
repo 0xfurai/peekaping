@@ -7,6 +7,7 @@ import BarHistory from "@/components/bars";
 import { useQuery } from "@tanstack/react-query";
 import { getMonitorsByIdHeartbeatsOptions } from "@/api/@tanstack/react-query.gen";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import StaleMarker from "./stale-marker";
 
 const MonitorCard = ({ monitor }: { monitor: MonitorModel }) => {
   const navigate = useNavigate();
@@ -73,6 +74,15 @@ const MonitorCard = ({ monitor }: { monitor: MonitorModel }) => {
             <div className="text-sm text-gray-500 mb-1">
               {t("monitors.card.check_interval")} {monitor.interval}s
             </div>
+            {monitor.active !== false && (
+              <StaleMarker
+                className="mb-1"
+                staleSince={monitor.stale_since}
+                lastHeartbeatTime={
+                  heartbeats?.data?.[heartbeats.data.length - 1]?.time
+                }
+              />
+            )}
 
             <BarHistory
               segmentWidth={6}

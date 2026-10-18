@@ -661,6 +661,9 @@
         "paused": "Pausado",
         "up": "Ativo"
       }
+    },
+    "stale": {
+      "not_checked_since": "Não verificado desde {{time}}"
     }
   },
   "navigation": {

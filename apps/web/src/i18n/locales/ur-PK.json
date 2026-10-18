@@ -661,6 +661,9 @@
         "paused": "رکا ہوا",
         "up": "چل رہا ہے"
       }
+    },
+    "stale": {
+      "not_checked_since": "{{time}} سے چیک نہیں کیا گیا"
     }
   },
   "navigation": {

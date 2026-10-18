@@ -661,6 +661,9 @@
         "paused": "Pausad",
         "up": "Upp"
       }
+    },
+    "stale": {
+      "not_checked_since": "Inte kontrollerad sedan {{time}}"
     }
   },
   "navigation": {

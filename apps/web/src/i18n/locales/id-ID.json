@@ -661,6 +661,9 @@
         "paused": "Berhenti",
         "up": "Berjalan"
       }
+    },
+    "stale": {
+      "not_checked_since": "Tidak diperiksa sejak {{time}}"
     }
   },
   "navigation": {

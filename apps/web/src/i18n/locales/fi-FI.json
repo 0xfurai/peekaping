@@ -661,6 +661,9 @@
         "paused": "Pysäytetty",
         "up": "Käynnissä"
       }
+    },
+    "stale": {
+      "not_checked_since": "Ei tarkistettu {{time}} jälkeen"
     }
   },
   "navigation": {

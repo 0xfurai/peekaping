@@ -661,6 +661,9 @@
         "paused": "Приостанован",
         "up": "Ради"
       }
+    },
+    "stale": {
+      "not_checked_since": "Није проверено од {{time}}"
     }
   },
   "navigation": {

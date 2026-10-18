@@ -661,6 +661,9 @@
         "paused": "暫停",
         "up": "正常"
       }
+    },
+    "stale": {
+      "not_checked_since": "自 {{time}} 起未檢查"
     }
   },
   "navigation": {

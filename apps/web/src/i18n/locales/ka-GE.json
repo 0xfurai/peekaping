@@ -661,6 +661,9 @@
         "paused": "შეჩერებულია",
         "up": "მუშაობს"
       }
+    },
+    "stale": {
+      "not_checked_since": "არ შემოწმებულა {{time}}-დან"
     }
   },
   "navigation": {

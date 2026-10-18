@@ -661,6 +661,9 @@
         "paused": "Pristabdytas",
         "up": "Veikia"
       }
+    },
+    "stale": {
+      "not_checked_since": "Netikrinta nuo {{time}}"
     }
   },
   "navigation": {

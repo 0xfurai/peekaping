@@ -661,6 +661,9 @@
         "paused": "Паузирано",
         "up": "Работи"
       }
+    },
+    "stale": {
+      "not_checked_since": "Не е проверяван от {{time}}"
     }
   },
   "navigation": {
