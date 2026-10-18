@@ -1039,7 +1039,11 @@
         "request_body_description_form_data": "התוכן יישלח כ-multipart/form-data. ניתן לפענח אותו באמצעות <strong>json_decode($_POST['data'])</strong> ב-PHP.",
         "request_body_description_json": "התוכן יישלח בפורמט JSON עם כותרת 'application/json'.",
         "request_body_label": "גוף הבקשה",
-        "request_body_placeholder": "בחר סוג תוכן"
+        "request_body_placeholder": "בחר סוג תוכן",
+        "signing_secret_description": "אופציונלי. כאשר מוגדר, כל בקשה נחתמת באמצעות HMAC-SHA256: הכותרת X-Webhook-Signature מכילה sha256= ואת ה-HMAC ההקסדצימלי של \"{timestamp}.{body}\", כאשר {timestamp} הוא הכותרת X-Webhook-Timestamp בשניות Unix. עבור multipart/form-data, {body} הוא השדה data.",
+        "signing_secret_docs_link": "כיצד לאמת את החתימה",
+        "signing_secret_label": "סוד חתימה",
+        "signing_secret_placeholder": "השאר ריק כדי לשלוח בקשות לא חתומות"
       }
     },
     "important": "התראות חשובות",

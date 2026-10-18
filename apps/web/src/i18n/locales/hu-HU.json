@@ -1039,7 +1039,11 @@
         "request_body_description_form_data": "A tartalom multipart/form-data formátumban lesz elküldve. PHP-ben dekódolhatod a <strong>json_decode($_POST['data'])</strong> használatával.",
         "request_body_description_json": "A tartalom JSON-ként kerül elküldésre az \"application/json\" fejléccel.",
         "request_body_label": "Kérelem törzs",
-        "request_body_placeholder": "Tartalomtípus kiválasztása"
+        "request_body_placeholder": "Tartalomtípus kiválasztása",
+        "signing_secret_description": "Opcionális. Ha meg van adva, minden kérés HMAC-SHA256-tal lesz aláírva: az X-Webhook-Signature fejléc a sha256= előtagot és a \"{timestamp}.{body}\" hexadecimális HMAC-értékét tartalmazza, ahol {timestamp} az X-Webhook-Timestamp fejléc Unix-másodpercben. multipart/form-data esetén a {body} a data mező.",
+        "signing_secret_docs_link": "Az aláírás ellenőrzése",
+        "signing_secret_label": "Aláírási titok",
+        "signing_secret_placeholder": "Hagyja üresen, ha aláíratlan kéréseket szeretne küldeni"
       }
     },
     "important": "Fontos értesítések",

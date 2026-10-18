@@ -1039,7 +1039,11 @@
         "request_body_description_form_data": "Вміст буде надіслано як multipart/form-data. Ви можете розкодувати його за допомогою <strong>json_decode($_POST['data'])</strong> в PHP.",
         "request_body_description_json": "Вміст буде надіслано як JSON з заголовком \"application/json\".",
         "request_body_label": "Тіло запиту",
-        "request_body_placeholder": "Виберіть тип вмісту"
+        "request_body_placeholder": "Виберіть тип вмісту",
+        "signing_secret_description": "Необов'язково. Якщо задано, кожен запит підписується HMAC-SHA256: заголовок X-Webhook-Signature містить sha256= і шістнадцятковий HMAC від \"{timestamp}.{body}\", де {timestamp} — заголовок X-Webhook-Timestamp у секундах Unix. Для multipart/form-data {body} — це поле data.",
+        "signing_secret_docs_link": "Як перевірити підпис",
+        "signing_secret_label": "Секрет підпису",
+        "signing_secret_placeholder": "Залиште порожнім, щоб надсилати непідписані запити"
       }
     },
     "important": "Важливі сповіщення",

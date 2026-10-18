@@ -1039,7 +1039,11 @@
         "request_body_description_form_data": "محتوا به صورت multipart/form-data ارسال می‌شود. می‌توانید آن را با استفاده از <strong>json_decode($_POST['data'])</strong> در PHP رمزگشایی کنید.",
         "request_body_description_json": "محتوا به صورت JSON با هدر \"application/json\" ارسال خواهد شد.",
         "request_body_label": "بدنه درخواست",
-        "request_body_placeholder": "نوع محتوا را انتخاب کنید"
+        "request_body_placeholder": "نوع محتوا را انتخاب کنید",
+        "signing_secret_description": "اختیاری. در صورت تنظیم، هر درخواست با HMAC-SHA256 امضا می‌شود: هدر X-Webhook-Signature شامل sha256= و HMAC هگزادسیمال \"{timestamp}.{body}\" است که در آن {timestamp} هدر X-Webhook-Timestamp به ثانیه‌های Unix است. برای multipart/form-data، {body} همان فیلد data است.",
+        "signing_secret_docs_link": "نحوه تأیید امضا",
+        "signing_secret_label": "رمز امضا",
+        "signing_secret_placeholder": "برای ارسال درخواست‌های بدون امضا خالی بگذارید"
       }
     },
     "important": "اطلاعیه‌های مهم",

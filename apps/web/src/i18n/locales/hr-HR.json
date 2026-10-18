@@ -1039,7 +1039,11 @@
         "request_body_description_form_data": "Sadržaj će se slati kao multipart/form-data. Možete ga dekodirati koristeći <strong>json_decode($_POST['data'])</strong> u PHP-u.",
         "request_body_description_json": "Sadržaj bit će poslan kao JSON s zaglavljem \"application/json\".",
         "request_body_label": "Tijelo zahtjeva",
-        "request_body_placeholder": "Odaberi tip sadržaja"
+        "request_body_placeholder": "Odaberi tip sadržaja",
+        "signing_secret_description": "Neobavezno. Ako je postavljen, svaki se zahtjev potpisuje s HMAC-SHA256: zaglavlje X-Webhook-Signature sadrži sha256= i heksadecimalni HMAC od \"{timestamp}.{body}\", gdje je {timestamp} zaglavlje X-Webhook-Timestamp u Unix sekundama. Za multipart/form-data, {body} je polje data.",
+        "signing_secret_docs_link": "Kako provjeriti potpis",
+        "signing_secret_label": "Tajni ključ za potpis",
+        "signing_secret_placeholder": "Ostavite prazno za slanje nepotpisanih zahtjeva"
       }
     },
     "important": "Važne obavijesti",

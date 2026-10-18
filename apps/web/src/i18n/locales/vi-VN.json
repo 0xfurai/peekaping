@@ -1039,7 +1039,11 @@
         "request_body_description_form_data": "Nội dung sẽ được gửi dưới dạng multipart/form-data. Bạn có thể giải mã nó bằng <strong>json_decode($_POST['data'])</strong> trong PHP.",
         "request_body_description_json": "Nội dung sẽ được gửi dưới dạng JSON với header \"application/json\".",
         "request_body_label": "Nội dung Yêu Cầu",
-        "request_body_placeholder": "Chọn kiểu nội dung"
+        "request_body_placeholder": "Chọn kiểu nội dung",
+        "signing_secret_description": "Tùy chọn. Khi được đặt, mỗi yêu cầu được ký bằng HMAC-SHA256: header X-Webhook-Signature chứa sha256= và HMAC dạng thập lục phân của \"{timestamp}.{body}\", trong đó {timestamp} là header X-Webhook-Timestamp tính bằng giây Unix. Với multipart/form-data, {body} là trường data.",
+        "signing_secret_docs_link": "Cách xác minh chữ ký",
+        "signing_secret_label": "Khóa bí mật ký",
+        "signing_secret_placeholder": "Để trống để gửi yêu cầu không ký"
       }
     },
     "important": "Thông báo quan trọng",

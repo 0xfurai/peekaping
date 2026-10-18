@@ -1039,7 +1039,11 @@
         "request_body_description_form_data": "內容將以 multipart/form-data 形式發送。您可以在 PHP 中使用 <strong>json_decode($_POST['data'])</strong> 進行解碼。",
         "request_body_description_json": "內容將以 JSON 形式發送，並附上「application/json」標頭。",
         "request_body_label": "請求主體",
-        "request_body_placeholder": "選擇內容類型"
+        "request_body_placeholder": "選擇內容類型",
+        "signing_secret_description": "可選。設定後，每個請求都會使用 HMAC-SHA256 簽名：X-Webhook-Signature 標頭包含 sha256= 及 \"{timestamp}.{body}\" 的十六進位 HMAC，其中 {timestamp} 為 X-Webhook-Timestamp 標頭的值（Unix 秒）。使用 multipart/form-data 時，{body} 為 data 欄位。",
+        "signing_secret_docs_link": "如何驗證簽名",
+        "signing_secret_label": "簽名密鑰",
+        "signing_secret_placeholder": "留空則發送未簽名的請求"
       }
     },
     "important": "重要通知",

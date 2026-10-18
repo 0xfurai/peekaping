@@ -1039,7 +1039,11 @@
         "request_body_description_form_data": "Der Inhalt wird als multipart/form-data gesendet. Sie können ihn mit <strong>json_decode($_POST['data'])</strong> in PHP dekodieren.",
         "request_body_description_json": "Der Inhalt wird als JSON gesendet und der Header lautet 'application/json'.",
         "request_body_label": "Anfragedaten",
-        "request_body_placeholder": "Inhaltstyp auswählen"
+        "request_body_placeholder": "Inhaltstyp auswählen",
+        "signing_secret_description": "Optional. Wenn gesetzt, wird jede Anfrage mit HMAC-SHA256 signiert: Der Header X-Webhook-Signature enthält sha256= und den hexadezimalen HMAC von \"{timestamp}.{body}\", wobei {timestamp} der Header X-Webhook-Timestamp in Unix-Sekunden ist. Bei multipart/form-data ist {body} das Feld data.",
+        "signing_secret_docs_link": "So prüfen Sie die Signatur",
+        "signing_secret_label": "Signaturschlüssel",
+        "signing_secret_placeholder": "Leer lassen, um unsignierte Anfragen zu senden"
       }
     },
     "important": "Wichtige Benachrichtigungen",

@@ -1039,7 +1039,11 @@
         "request_body_description_form_data": "Konten akan dikirim sebagai multipart/form-data. Anda dapat mendekodekannya menggunakan <strong>json_decode($_POST['data'])</strong> di PHP.",
         "request_body_description_json": "Konten akan dikirim sebagai JSON dengan header \"application/json\".",
         "request_body_label": "Body Permintaan",
-        "request_body_placeholder": "Pilih jenis konten"
+        "request_body_placeholder": "Pilih jenis konten",
+        "signing_secret_description": "Opsional. Jika diisi, setiap permintaan ditandatangani dengan HMAC-SHA256: header X-Webhook-Signature berisi sha256= dan HMAC heksadesimal dari \"{timestamp}.{body}\", dengan {timestamp} adalah header X-Webhook-Timestamp dalam detik Unix. Untuk multipart/form-data, {body} adalah field data.",
+        "signing_secret_docs_link": "Cara memverifikasi tanda tangan",
+        "signing_secret_label": "Rahasia Penandatanganan",
+        "signing_secret_placeholder": "Biarkan kosong untuk mengirim permintaan tanpa tanda tangan"
       }
     },
     "important": "Notifikasi Penting",

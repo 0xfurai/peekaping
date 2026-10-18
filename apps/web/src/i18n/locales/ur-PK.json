@@ -1038,7 +1038,11 @@
         "request_body_description_form_data": "مواد multipart/form-data کے طور پر بھیجا جائے گا۔ آپ اسے PHP میں <strong>json_decode($_POST['data'])</strong> استعمال کر کے ڈیکوڈ کر سکتے ہیں۔",
         "request_body_description_json": "مواد JSON کے طور پر بھیجا جائے گا، \"application/json\" ہیڈر کے ساتھ۔",
         "request_body_label": "درخواست کا مواد",
-        "request_body_placeholder": "مواد کی قسم منتخب کریں"
+        "request_body_placeholder": "مواد کی قسم منتخب کریں",
+        "signing_secret_description": "اختیاری۔ سیٹ ہونے پر ہر درخواست پر HMAC-SHA256 سے دستخط کیے جاتے ہیں: X-Webhook-Signature ہیڈر میں sha256= اور \"{timestamp}.{body}\" کا ہیکساڈیسیمل HMAC ہوتا ہے، جہاں {timestamp} Unix سیکنڈز میں X-Webhook-Timestamp ہیڈر ہے۔ multipart/form-data کے لیے {body} فیلڈ data ہے۔",
+        "signing_secret_docs_link": "دستخط کی تصدیق کیسے کریں",
+        "signing_secret_label": "دستخطی راز",
+        "signing_secret_placeholder": "بغیر دستخط کی درخواستیں بھیجنے کے لیے خالی چھوڑ دیں"
       }
     },
     "important": "اہم نوٹیفیکیشنز",

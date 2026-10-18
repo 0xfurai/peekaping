@@ -48,21 +48,12 @@ export default function WebhookForm() {
   const [showAdditionalHeaders, setShowAdditionalHeaders] = React.useState(
     !!form.getValues("webhook_additional_headers")
   );
-  const [showSigning, setShowSigning] = React.useState(
-    !!form.getValues("webhook_signing_secret")
-  );
 
   React.useEffect(() => {
     if (!showAdditionalHeaders) {
       form.setValue("webhook_additional_headers", "");
     }
   }, [showAdditionalHeaders, form]);
-
-  React.useEffect(() => {
-    if (!showSigning) {
-      form.setValue("webhook_signing_secret", "");
-    }
-  }, [showSigning, form]);
 
   const headersPlaceholder = `Example:
 {
@@ -200,25 +191,25 @@ export default function WebhookForm() {
         name="webhook_signing_secret"
         render={({ field }) => (
           <FormItem>
-            <div className="flex items-center gap-2 mb-2">
-              <Switch checked={showSigning} onCheckedChange={setShowSigning} />
-              <FormLabel>{t("notifications.form.webhook.signing_label")}</FormLabel>
-            </div>
+            <FormLabel>{t("notifications.form.webhook.signing_secret_label")}</FormLabel>
+            <FormControl>
+              <PasswordInput
+                placeholder={t("notifications.form.webhook.signing_secret_placeholder")}
+                autoComplete="new-password"
+                {...field}
+              />
+            </FormControl>
             <FormDescription>
-              {t("notifications.form.webhook.signing_description")}
+              {t("notifications.form.webhook.signing_secret_description")}{" "}
+              <a
+                href="https://docs.peekaping.com/notifications/webhook#verify-the-signature"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline text-blue-600"
+              >
+                {t("notifications.form.webhook.signing_secret_docs_link")}
+              </a>
             </FormDescription>
-            {showSigning && (
-              <>
-                <FormLabel>{t("notifications.form.webhook.signing_secret_label")}</FormLabel>
-                <FormControl>
-                  <PasswordInput
-                    placeholder={t("notifications.form.webhook.signing_secret_placeholder")}
-                    required
-                    {...field}
-                  />
-                </FormControl>
-              </>
-            )}
             <FormMessage />
           </FormItem>
         )}

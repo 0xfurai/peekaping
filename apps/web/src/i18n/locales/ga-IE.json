@@ -1038,7 +1038,11 @@
         "request_body_description_form_data": "Seoltar an t-ábhar mar multipart/form-data. Is féidir leat é a dhíchódú ag úsáid <strong>json_decode($_POST['data'])</strong> i PHP.",
         "request_body_description_json": "Cuirfear an t-ábhar i bhfoirm JSON le teideal \"application/json\".",
         "request_body_label": "Corparáid Iarratais",
-        "request_body_placeholder": "Roghnaigh cineál ábhair"
+        "request_body_placeholder": "Roghnaigh cineál ábhair",
+        "signing_secret_description": "Roghnach. Nuair a shocraítear é, sínítear gach iarratas le HMAC-SHA256: tá sha256= agus HMAC heicsidheachúil de \"{timestamp}.{body}\" sa cheanntásc X-Webhook-Signature, áit a bhfuil {timestamp} sa cheanntásc X-Webhook-Timestamp i soicindí Unix. Do multipart/form-data, is é {body} an réimse data.",
+        "signing_secret_docs_link": "Conas an síniú a fhíorú",
+        "signing_secret_label": "Rún sínithe",
+        "signing_secret_placeholder": "Fág folamh chun iarratais gan síniú a sheoladh"
       }
     },
     "important": "Fógraí tábhachtacha",

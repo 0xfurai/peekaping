@@ -1039,7 +1039,11 @@
         "request_body_description_form_data": "سيتم إرسال المحتوى كـ multipart/form-data. يمكنك فك ترميزه باستخدام <strong>json_decode($_POST['data'])</strong> في PHP.",
         "request_body_description_json": "سيتم إرسال المحتوى كـ JSON مع رأس \"application/json\".",
         "request_body_label": "جسم الطلب",
-        "request_body_placeholder": "اختر نوع المحتوى"
+        "request_body_placeholder": "اختر نوع المحتوى",
+        "signing_secret_description": "اختياري. عند تعيينه، يُوقَّع كل طلب باستخدام HMAC-SHA256: يحتوي رأس X-Webhook-Signature على sha256= متبوعًا بقيمة HMAC الست عشرية لـ \"{timestamp}.{body}\"، حيث {timestamp} هو رأس X-Webhook-Timestamp بثواني Unix. في multipart/form-data يكون {body} هو الحقل data.",
+        "signing_secret_docs_link": "كيفية التحقق من التوقيع",
+        "signing_secret_label": "سر التوقيع",
+        "signing_secret_placeholder": "اتركه فارغًا لإرسال طلبات غير موقّعة"
       }
     },
     "important": "إشعارات مهمة",

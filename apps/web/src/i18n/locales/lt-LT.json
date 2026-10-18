@@ -1039,7 +1039,11 @@
         "request_body_description_form_data": "Turinys bus siunčiamas kaip multipart/form-data. Jį galite dekoduoti naudodami <strong>json_decode($_POST['data'])</strong> PHP.",
         "request_body_description_json": "Turinys bus siunčiamas kaip JSON su „application/json“ antrašte.",
         "request_body_label": "Užklausos kūnas",
-        "request_body_placeholder": "Pasirinkite turinio tipą"
+        "request_body_placeholder": "Pasirinkite turinio tipą",
+        "signing_secret_description": "Neprivaloma. Jei nustatyta, kiekviena užklausa pasirašoma HMAC-SHA256: antraštėje X-Webhook-Signature yra sha256= ir šešioliktainis \"{timestamp}.{body}\" HMAC, kur {timestamp} yra antraštė X-Webhook-Timestamp Unix sekundėmis. Naudojant multipart/form-data, {body} yra laukas data.",
+        "signing_secret_docs_link": "Kaip patikrinti parašą",
+        "signing_secret_label": "Pasirašymo paslaptis",
+        "signing_secret_placeholder": "Palikite tuščią, kad būtų siunčiamos nepasirašytos užklausos"
       }
     },
     "important": "Svarbūs pranešimai",

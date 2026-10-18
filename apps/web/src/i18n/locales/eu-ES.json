@@ -1039,7 +1039,11 @@
         "request_body_description_form_data": "Edukia multipart/form-data gisa bidaliko da. PHP-en <strong>json_decode($_POST['data'])</strong> erabiliz deskodetu dezakezu.",
         "request_body_description_json": "Edukia JSON gisa bidaliko da \"application/json\" goiburuz.",
         "request_body_label": "Eskaeraren gorputza",
-        "request_body_placeholder": "Hautatu eduki mota"
+        "request_body_placeholder": "Hautatu eduki mota",
+        "signing_secret_description": "Aukerakoa. Ezartzen bada, eskaera bakoitza HMAC-SHA256 bidez sinatzen da: X-Webhook-Signature goiburuak sha256= eta \"{timestamp}.{body}\"-ren HMAC hamaseitarra ditu, non {timestamp} X-Webhook-Timestamp goiburua den, Unix segundotan. multipart/form-data denean, {body} data eremua da.",
+        "signing_secret_docs_link": "Nola egiaztatu sinadura",
+        "signing_secret_label": "Sinadura-sekretua",
+        "signing_secret_placeholder": "Utzi hutsik sinatu gabeko eskaerak bidaltzeko"
       }
     },
     "important": "Jakinarazpen garrantzitsuak",
