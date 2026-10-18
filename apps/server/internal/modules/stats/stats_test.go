@@ -220,3 +220,30 @@ func TestSummaryKeepsA0msMinimumResponseTime(t *testing.T) {
 		assert.Equal(t, 0.0, grouped[0].PingMin)
 	})
 }
+
+func TestSummarizeCountsDownHeartbeats20HoursAgoIn24HourUptime(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, svc stats.Service, monitorID string) {
+		// Off the hour, so reading hour buckets would drop the checks from 10:30 to 11:00.
+		now := time.Date(2026, 10, 17, 10, 30, 0, 0, time.UTC)
+		downSpans := [][2]time.Time{
+			{now.Add(-28 * time.Hour), now.Add(-26 * time.Hour)}, // before the window
+			{now.Add(-20 * time.Hour), now.Add(-18 * time.Hour)},
+		}
+		// A check every 10 minutes over the last 30 hours.
+		for k := range 180 {
+			at := now.Add(-30*time.Hour + time.Duration(k)*10*time.Minute + 30*time.Second)
+			status := shared.MonitorStatusUp
+			for _, span := range downSpans {
+				if !at.Before(span[0]) && at.Before(span[1]) {
+					status = shared.MonitorStatusDown
+				}
+			}
+			aggregate(t, svc, monitorID, status, 100, at)
+		}
+
+		summary, err := svc.Summarize(context.Background(), monitorID, now.Add(-24*time.Hour), now)
+		require.NoError(t, err)
+		require.NotNil(t, summary.Uptime)
+		assert.InDelta(t, 100*22.0/24, *summary.Uptime, 1e-9)
+	})
+}

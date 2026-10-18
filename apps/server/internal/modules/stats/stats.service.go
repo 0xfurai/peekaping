@@ -24,6 +24,7 @@ type Service interface {
 	FindStatsByMonitorIDAndTimeRange(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod) ([]*Stat, error)
 	FindStatsByMonitorIDAndTimeRangeWithInterval(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod, monitorInterval int) ([]*Stat, error)
 	StatPointsSummary(statsList []*Stat) *Stats
+	Summarize(ctx context.Context, monitorID string, since, until time.Time) (*Stats, error)
 	DeleteByMonitorID(ctx context.Context, monitorID string) error
 }
 
@@ -368,6 +369,31 @@ func (s *ServiceImpl) StatPointsSummary(statsList []*Stat) *Stats {
 		Uptime:      uptime,
 		Maintenance: maintenance,
 	}
+}
+
+// summaryPeriod picks the buckets to read for a window. A bucket counts only when
+// it starts inside the window, so the window's start is off by up to one bucket:
+// a minute for windows up to 24h, an hour up to 90 days, a day beyond that.
+// Stats retention must keep minute rows for at least 24h and hour rows for 90 days.
+func summaryPeriod(window time.Duration) StatPeriod {
+	switch {
+	case window <= 24*time.Hour:
+		return StatMinutely
+	case window <= 90*24*time.Hour:
+		return StatHourly
+	default:
+		return StatDaily
+	}
+}
+
+// Summarize returns uptime and response times for the monitor's heartbeats from
+// since to until, read from the buckets that suit the window length.
+func (s *ServiceImpl) Summarize(ctx context.Context, monitorID string, since, until time.Time) (*Stats, error) {
+	statsList, err := s.repo.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, since, until, summaryPeriod(until.Sub(since)))
+	if err != nil {
+		return nil, err
+	}
+	return s.StatPointsSummary(statsList), nil
 }
 
 func (s *ServiceImpl) DeleteByMonitorID(ctx context.Context, monitorID string) error {

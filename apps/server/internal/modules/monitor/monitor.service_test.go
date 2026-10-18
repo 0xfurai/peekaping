@@ -263,6 +263,19 @@ func (m *MockStatsService) StatPointsSummary(statsList []*stats.Stat) *stats.Sta
 	return args.Get(0).(*stats.Stats)
 }
 
+func (m *MockStatsService) Summarize(ctx context.Context, monitorID string, since, until time.Time) (*stats.Stats, error) {
+	args := m.Called(ctx, monitorID, since, until)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*stats.Stats), args.Error(1)
+}
+
+// sinceAgo matches a window start about d before now.
+func sinceAgo(d time.Duration) any {
+	return mock.MatchedBy(func(since time.Time) bool { return time.Since(since).Round(time.Hour) == d })
+}
+
 // Test setup helper
 func setupMonitorService() (*MonitorServiceImpl, *MockMonitorRepository, *MockHeartbeatService, *MockEventBus, *MockMonitorNotificationService, *MockMonitorTagService, *MockExecutorRegistry, *MockStatsService) {
 	mockRepo := &MockMonitorRepository{}
@@ -832,27 +845,24 @@ func TestMonitorService_GetUptimeStats(t *testing.T) {
 		service, _, _, _, _, _, _, mockStatsService := setupMonitorService()
 		monitorID := "monitor123"
 
-		statsList := []*stats.Stat{
-			{Up: 80, Down: 20},
-		}
-
-		uptime := 80.0
-		summary := &stats.Stats{
-			Uptime: &uptime,
-		}
-
 		// Mock calls for each time period
-		mockStatsService.On("FindStatsByMonitorIDAndTimeRange", ctx, monitorID, mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time"), stats.StatDaily).Return(statsList, nil).Times(4)
-		mockStatsService.On("StatPointsSummary", statsList).Return(summary).Times(4)
+		for window, uptime := range map[time.Duration]float64{
+			24 * time.Hour:       99,
+			7 * 24 * time.Hour:   98,
+			30 * 24 * time.Hour:  97,
+			365 * 24 * time.Hour: 96,
+		} {
+			mockStatsService.On("Summarize", ctx, monitorID, sinceAgo(window), mock.AnythingOfType("time.Time")).Return(&stats.Stats{Uptime: &uptime}, nil).Once()
+		}
 
 		result, err := service.GetUptimeStats(ctx, monitorID)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, result)
-		assert.Equal(t, 80.0, result.Uptime24h)
-		assert.Equal(t, 80.0, result.Uptime7d)
-		assert.Equal(t, 80.0, result.Uptime30d)
-		assert.Equal(t, 80.0, result.Uptime365d)
+		assert.Equal(t, 99.0, result.Uptime24h)
+		assert.Equal(t, 98.0, result.Uptime7d)
+		assert.Equal(t, 97.0, result.Uptime30d)
+		assert.Equal(t, 96.0, result.Uptime365d)
 
 		mockStatsService.AssertExpectations(t)
 	})
@@ -861,13 +871,11 @@ func TestMonitorService_GetUptimeStats(t *testing.T) {
 		service, _, _, _, _, _, _, mockStatsService := setupMonitorService()
 		monitorID := "monitor123"
 
-		statsList := []*stats.Stat{}
 		summary := &stats.Stats{
 			Uptime: nil,
 		}
 
-		mockStatsService.On("FindStatsByMonitorIDAndTimeRange", ctx, monitorID, mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time"), stats.StatDaily).Return(statsList, nil).Times(4)
-		mockStatsService.On("StatPointsSummary", statsList).Return(summary).Times(4)
+		mockStatsService.On("Summarize", ctx, monitorID, mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time")).Return(summary, nil).Times(4)
 
 		result, err := service.GetUptimeStats(ctx, monitorID)
 
@@ -885,7 +893,7 @@ func TestMonitorService_GetUptimeStats(t *testing.T) {
 		service, _, _, _, _, _, _, mockStatsService := setupMonitorService()
 		monitorID := "monitor123"
 
-		mockStatsService.On("FindStatsByMonitorIDAndTimeRange", ctx, monitorID, mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time"), stats.StatDaily).Return(([]*stats.Stat)(nil), errors.New("stats error"))
+		mockStatsService.On("Summarize", ctx, monitorID, mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time")).Return(nil, errors.New("stats error"))
 
 		result, err := service.GetUptimeStats(ctx, monitorID)
 

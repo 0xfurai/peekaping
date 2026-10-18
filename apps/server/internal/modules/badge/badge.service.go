@@ -105,15 +105,14 @@ func (s *ServiceImpl) GetMonitorBadgeData(ctx context.Context, monitorID string)
 	// Get uptime statistics
 	now := time.Now().UTC()
 
-	// Get ping statistics using stats service
+	// Get uptime and response time from the stats service
 	since24h := now.Add(-24 * time.Hour)
 	since30d := now.Add(-30 * 24 * time.Hour)
 	since90d := now.Add(-90 * 24 * time.Hour)
 
-	// Get 24h ping stats
-	stats24h, err := s.statsService.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, since24h, now, stats.StatHourly)
-	if err == nil && len(stats24h) > 0 {
-		summary24h := s.statsService.StatPointsSummary(stats24h)
+	// Get 24h uptime and response time
+	summary24h, err := s.statsService.Summarize(ctx, monitorID, since24h, now)
+	if err == nil {
 		if summary24h.AvgPing != nil {
 			data.AvgPing24h = summary24h.AvgPing
 		}
@@ -122,10 +121,9 @@ func (s *ServiceImpl) GetMonitorBadgeData(ctx context.Context, monitorID string)
 		}
 	}
 
-	// Get 30d ping stats
-	stats30d, err := s.statsService.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, since30d, now, stats.StatDaily)
-	if err == nil && len(stats30d) > 0 {
-		summary30d := s.statsService.StatPointsSummary(stats30d)
+	// Get 30d uptime and response time
+	summary30d, err := s.statsService.Summarize(ctx, monitorID, since30d, now)
+	if err == nil {
 		if summary30d.AvgPing != nil {
 			data.AvgPing30d = summary30d.AvgPing
 		}
@@ -134,10 +132,9 @@ func (s *ServiceImpl) GetMonitorBadgeData(ctx context.Context, monitorID string)
 		}
 	}
 
-	// Get 90d ping stats
-	stats90d, err := s.statsService.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, since90d, now, stats.StatDaily)
-	if err == nil && len(stats90d) > 0 {
-		summary90d := s.statsService.StatPointsSummary(stats90d)
+	// Get 90d uptime and response time
+	summary90d, err := s.statsService.Summarize(ctx, monitorID, since90d, now)
+	if err == nil {
 		if summary90d.AvgPing != nil {
 			data.AvgPing90d = summary90d.AvgPing
 		}
@@ -199,9 +196,8 @@ func (s *ServiceImpl) getMonitorWithStats(ctx context.Context, monitorID string,
 	if duration <= 24 {
 		// Get 24h stats only
 		since24h := now.Add(-24 * time.Hour)
-		stats24h, err := s.statsService.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, since24h, now, stats.StatHourly)
-		if err == nil && len(stats24h) > 0 {
-			summary24h := s.statsService.StatPointsSummary(stats24h)
+		summary24h, err := s.statsService.Summarize(ctx, monitorID, since24h, now)
+		if err == nil {
 			if summary24h.AvgPing != nil {
 				data.AvgPing24h = summary24h.AvgPing
 			}
@@ -212,9 +208,8 @@ func (s *ServiceImpl) getMonitorWithStats(ctx context.Context, monitorID string,
 	} else if duration <= 720 { // 30 days
 		// Get 30d stats only
 		since30d := now.Add(-30 * 24 * time.Hour)
-		stats30d, err := s.statsService.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, since30d, now, stats.StatDaily)
-		if err == nil && len(stats30d) > 0 {
-			summary30d := s.statsService.StatPointsSummary(stats30d)
+		summary30d, err := s.statsService.Summarize(ctx, monitorID, since30d, now)
+		if err == nil {
 			if summary30d.AvgPing != nil {
 				data.AvgPing30d = summary30d.AvgPing
 			}
@@ -225,9 +220,8 @@ func (s *ServiceImpl) getMonitorWithStats(ctx context.Context, monitorID string,
 	} else {
 		// Get 90d stats only
 		since90d := now.Add(-90 * 24 * time.Hour)
-		stats90d, err := s.statsService.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, since90d, now, stats.StatDaily)
-		if err == nil && len(stats90d) > 0 {
-			summary90d := s.statsService.StatPointsSummary(stats90d)
+		summary90d, err := s.statsService.Summarize(ctx, monitorID, since90d, now)
+		if err == nil {
 			if summary90d.AvgPing != nil {
 				data.AvgPing90d = summary90d.AvgPing
 			}

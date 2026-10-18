@@ -316,11 +316,10 @@ func (mr *MonitorServiceImpl) GetUptimeStats(ctx context.Context, id string) (*C
 	uptimes := make(map[string]float64)
 	for key, duration := range periods {
 		since := now.Add(-duration)
-		statsList, err := mr.statPointsService.FindStatsByMonitorIDAndTimeRange(ctx, id, since, now, stats.StatDaily)
+		summary, err := mr.statPointsService.Summarize(ctx, id, since, now)
 		if err != nil {
 			return nil, err
 		}
-		summary := mr.statPointsService.StatPointsSummary(statsList)
 		uptime := 0.0
 		if summary.Uptime != nil {
 			uptime = *summary.Uptime
