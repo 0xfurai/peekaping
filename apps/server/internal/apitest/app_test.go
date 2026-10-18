@@ -34,6 +34,10 @@ import (
 const (
 	adminEmail    = "admin@example.com"
 	adminPassword = "Correct-horse-1"
+
+	// maxFailedLogins is how many failed logins lock an email from one IP,
+	// the same as the BRUTEFORCE_MAX_ATTEMPTS default.
+	maxFailedLogins = 20
 )
 
 // app is one API server with its own database and Redis.
@@ -61,7 +65,7 @@ func newApp(t *testing.T) *app {
 		Timezone:              "UTC",
 		RedisHost:             redisHost,
 		RedisPort:             redisPort,
-		BruteforceMaxAttempts: 20,
+		BruteforceMaxAttempts: maxFailedLogins,
 		BruteforceWindow:      time.Minute,
 		BruteforceLockout:     time.Minute,
 		ServiceName:           "peekaping:apitest",
