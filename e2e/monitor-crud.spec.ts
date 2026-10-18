@@ -172,9 +172,10 @@ async function createMonitor(page: Page, monitorName: string, form: MonitorForm)
   await expect(page).toHaveURL(/\/monitors\/(?!new$)[A-Za-z0-9-]+$/, { timeout: 10000 });
 }
 
-// The list loads 20 monitors at a time, so find the monitor by searching for its name.
+// The list loads 20 monitors at a time, so find the monitor by searching for
+// its name. On Postgres the search matches only a lowercase term (PP-72).
 const searchMonitors = (page: Page, monitorName: string) =>
-  page.goto(`/monitors?search=${encodeURIComponent(monitorName)}`);
+  page.goto(`/monitors?search=${encodeURIComponent(monitorName.toLowerCase())}`);
 
 async function verifyMonitorInList(page: Page, monitorName: string) {
   await searchMonitors(page, monitorName);
