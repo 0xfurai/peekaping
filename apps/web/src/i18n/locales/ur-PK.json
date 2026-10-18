@@ -961,7 +961,10 @@
         "message_format_label": "پیغام کا فارمیٹ",
         "username_description": "پیغام کے بھیجنے والے کے طور پر ظاہر ہونے والا صارف نام۔ اگر واضح نہ کیا جائے تو ڈیفالٹ بوٹ کا نام استعمال ہوگا۔",
         "webhook_url_description": "آپ کے Slack انٹیگریشن کا ویب ہک URL۔ آپ اسے اپنے Slack instance میں انٹیگریشنز > ویب ہکس کے تحت تلاش کر سکتے ہیں۔",
-        "webhook_url_label": "ویب ہُک URL"
+        "webhook_url_label": "ویب ہُک URL",
+        "bot_token_label": "بوٹ ٹوکن",
+        "bot_token_description": "تصدیق کے لیے آپ کا Slack بوٹ ٹوکن۔ آپ اپنی Slack ایپ کی ترتیبات میں بوٹ ٹوکن بنا سکتے ہیں",
+        "bot_token_note": "نوٹ: بوٹ ٹوکن استعمال کرتے وقت، چینل کا نام ضروری ہے۔"
       },
       "smtp": {
         "custom_body_label": "مخصوص متن",

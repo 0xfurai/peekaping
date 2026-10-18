@@ -1,4 +1,5 @@
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import {
   FormField,
   FormItem,
@@ -14,19 +15,42 @@ import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const schema = z.object({
   type: z.literal("slack"),
-  slack_webhook_url: z.string().url({ message: "Valid webhook URL is required" }),
+  slack_webhook_url: z
+    .union([z.string().url({ message: "Valid webhook URL is required" }), z.literal("")])
+    .optional(),
+  slack_bot_token: z.string().trim().optional(),
   slack_username: z.string().optional(),
   slack_icon_emoji: z.string().optional(),
-  slack_channel: z.string().optional(),
+  slack_channel: z.string().trim().optional(),
   slack_rich_message: z.boolean().optional(),
   slack_channel_notify: z.boolean().optional(),
 });
 
 export type SlackFormValues = z.infer<typeof schema>;
 
+// Cross-field rules, applied by the notification form's superRefine: a refined
+// schema can't be a member of its discriminated union.
+export function refine(data: SlackFormValues, ctx: z.RefinementCtx) {
+  if (!data.slack_webhook_url && !data.slack_bot_token) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Either Webhook URL or Bot Token must be provided",
+      path: ["slack_webhook_url"],
+    });
+  }
+  if (data.slack_bot_token && !data.slack_channel) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Channel is required when using Bot Token",
+      path: ["slack_channel"],
+    });
+  }
+}
+
 export const defaultValues: SlackFormValues = {
   type: "slack",
   slack_webhook_url: "",
+  slack_bot_token: "",
   slack_username: "",
   slack_icon_emoji: "",
   slack_channel: "",
@@ -48,29 +72,59 @@ export default function SlackForm() {
         render={({ field }) => (
           <FormItem>
             <FormLabel>
-              {t("notifications.form.slack.webhook_url_label")} <span className="text-red-500">*</span>
+              {t("notifications.form.slack.webhook_url_label")}
             </FormLabel>
             <FormControl>
               <Input
                 placeholder="https://hooks.slack.com/services/..."
                 type="url"
-                required
                 {...field}
               />
             </FormControl>
             <FormDescription>
-              <span className="text-red-500">*</span> {t("common.required")}
+              {t("notifications.form.slack.webhook_url_description")}:{" "}
+              <a
+                href="https://api.slack.com/messaging/webhooks"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline text-blue-600"
+              >
+                https://api.slack.com/messaging/webhooks
+              </a>
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="slack_bot_token"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>
+              {t("notifications.form.slack.bot_token_label")}
+            </FormLabel>
+            <FormControl>
+              <PasswordInput
+                placeholder="xoxb-..."
+                autoComplete="new-password"
+                {...field}
+              />
+            </FormControl>
+            <FormDescription>
+              {t("notifications.form.slack.bot_token_description")}:{" "}
+              <a
+                href="https://api.slack.com/authentication/token-types#bot"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline text-blue-600"
+              >
+                https://api.slack.com/authentication/token-types#bot
+              </a>
               <br />
-              <span className="mt-2 block">
-                {t("notifications.form.slack.webhook_url_description")}:{" "}
-                <a
-                  href="https://api.slack.com/messaging/webhooks"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline text-blue-600"
-                >
-                  https://api.slack.com/messaging/webhooks
-                </a>
+              <span className="mt-2 block text-amber-600">
+                {t("notifications.form.slack.bot_token_note")}
               </span>
             </FormDescription>
             <FormMessage />
@@ -100,7 +154,9 @@ export default function SlackForm() {
         name="slack_icon_emoji"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>{t("notifications.form.slack.icon_emoji_label")}</FormLabel>
+            <FormLabel>
+              {t("notifications.form.slack.icon_emoji_label")}
+            </FormLabel>
             <FormControl>
               <Input placeholder=":warning:" {...field} />
             </FormControl>
@@ -129,7 +185,9 @@ export default function SlackForm() {
         name="slack_channel"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>{t("notifications.form.slack.channel_name_label")}</FormLabel>
+            <FormLabel>
+              {t("notifications.form.slack.channel_name_label")}
+            </FormLabel>
             <FormControl>
               <Input placeholder="#general" {...field} />
             </FormControl>
@@ -150,7 +208,9 @@ export default function SlackForm() {
         name="slack_rich_message"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>{t("notifications.form.slack.message_format_label")}</FormLabel>
+            <FormLabel>
+              {t("notifications.form.slack.message_format_label")}
+            </FormLabel>
             <div className="flex items-center gap-2 mt-2">
               <FormControl>
                 <Switch
@@ -158,7 +218,9 @@ export default function SlackForm() {
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
-              <FormLabel className="text-sm font-normal">{t("notifications.form.slack.message_format_description")}</FormLabel>
+              <FormLabel className="text-sm font-normal">
+                {t("notifications.form.slack.message_format_description")}
+              </FormLabel>
             </div>
             <FormDescription>
               {t("notifications.form.slack.message_format_description_2")}
@@ -180,7 +242,9 @@ export default function SlackForm() {
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
-              <FormLabel>{t("notifications.form.slack.channel_notify_label")}</FormLabel>
+              <FormLabel>
+                {t("notifications.form.slack.channel_notify_label")}
+              </FormLabel>
             </div>
             <FormDescription>
               {t("notifications.form.slack.channel_notify_description")}

@@ -1,0 +1,133 @@
+# Peekaping
+
+Self-hosted uptime monitoring. Peekaping checks services on a schedule, records each result, tells people when a service goes down or recovers, and shows the state on public status pages.
+
+## Language
+
+### Monitoring
+
+**Monitor**:
+A target Peekaping watches (a URL, host, container or other service), with the settings for how it's checked.
+_Avoid_: Check (that's one run), probe, service
+
+**Monitor type**:
+The kind of check a monitor runs, such as HTTP, TCP, ping, DNS, Docker or push.
+_Avoid_: Connection type, check type
+
+**Check**:
+One attempt by a monitor to reach its target and judge whether it's healthy.
+_Avoid_: Health check, probe, ping
+
+**Heartbeat**:
+The recorded result of one check, or of one push to a push monitor: a status, a message and a response time.
+_Avoid_: Beat, ping, health check result
+
+**Push monitor**:
+A monitor that runs no checks of its own. The monitored service sends heartbeats to the monitor's push URL, and a push that doesn't arrive in time counts as Down.
+_Avoid_: Passive monitor, heartbeat monitor
+
+**Push URL**:
+The unique URL a push monitor receives heartbeats on. Its secret part is the push token.
+_Avoid_: Webhook, push endpoint
+
+**Check interval**:
+The time between a monitor's checks. For a push monitor, it's how long the monitor waits for the next push.
+_Avoid_: Heartbeat interval, frequency
+
+**Response time**:
+How long a check took to get its answer, in milliseconds.
+_Avoid_: Ping (that's a monitor type), latency
+
+**Uptime**:
+The share of a monitor's heartbeats in a period that were Up.
+_Avoid_: Availability, SLA
+
+**Paused**:
+A monitor that's switched off. It runs no checks until it's resumed.
+_Avoid_: Inactive, disabled, stopped
+
+### Status
+
+**Status**:
+A monitor's current state: Up, Down, Pending or Maintenance. Each heartbeat records one.
+_Avoid_: State, health
+
+**Up**:
+The monitor's latest check succeeded.
+_Avoid_: Online, healthy
+
+**Down**:
+The monitor's checks are failing and its max retries are used up.
+_Avoid_: Offline, failed
+
+**Pending**:
+The monitor's latest check failed, but it still has retries left before it counts as Down.
+_Avoid_: Degraded, warning, retrying
+
+**Maintenance**:
+The status of a monitor inside an active maintenance window. Its checks count as neither Up nor Down.
+_Avoid_: Paused (that's a monitor switched off)
+
+**Important heartbeat**:
+A heartbeat that moves its monitor to Up or Down from a different status. A monitor's event history and notifications come from its important heartbeats.
+_Avoid_: Event, incident, status change
+
+**Max retries**:
+How many consecutive failed checks a monitor spends in Pending before it becomes Down. Zero means the first failure is Down.
+_Avoid_: Retries, retry count
+
+**Retry interval**:
+The time between checks while a monitor is Pending.
+_Avoid_: Heartbeat retry interval
+
+### Notifications
+
+**Notification channel**:
+A configured destination for notifications, such as an email address, a Slack webhook or a Telegram chat. A monitor sends to the channels attached to it.
+_Avoid_: Notifier, notification provider, integration
+
+**Notification**:
+A message sent to a monitor's notification channels when the monitor goes Down or comes back Up.
+_Avoid_: Alert
+
+**Resend interval**:
+How many consecutive Down heartbeats a monitor waits before sending its Down notification again. It counts heartbeats, not seconds; zero turns resending off.
+_Avoid_: Reminder interval, repeat alert
+
+**Certificate expiry notification**:
+A notification sent when a monitor's TLS certificate is close to expiring, once for each configured threshold (for example 21, 14 and 7 days before).
+_Avoid_: TLS alert, cert warning
+
+### Maintenance
+
+**Maintenance window**:
+A scheduled period during which its affected monitors report Maintenance, so planned downtime raises no notifications.
+_Avoid_: Maintenance (that's the status), downtime, scheduled outage
+
+**Maintenance strategy**:
+How a maintenance window's timing is defined: switched on and off by hand, a single period, recurring (every N days, on chosen weekdays, or on chosen days of the month), or a cron expression.
+_Avoid_: Schedule type
+
+### Sharing
+
+**Status page**:
+A public page showing the status and uptime of a chosen set of monitors. Once published, it's served at its slug and at any custom domains.
+_Avoid_: Dashboard, public page
+
+**Custom domain**:
+A domain name that serves a status page, such as `status.example.com`.
+_Avoid_: Domain status page, CNAME
+
+**Badge**:
+An embeddable image showing one live figure about a monitor: its status, uptime, response time or certificate expiry.
+_Avoid_: Shield, widget
+
+### Organizing
+
+**Tag**:
+A named, colored label attached to monitors for filtering.
+_Avoid_: Label, group, category
+
+**Data retention period**:
+How many days heartbeats are kept before they're deleted.
+_Avoid_: Keep-data period, history limit

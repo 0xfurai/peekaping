@@ -463,11 +463,11 @@ func TestServiceImpl_UpdatePartial(t *testing.T) {
 			name: "successful partial update",
 			id:   "test-id",
 			input: &PartialUpdateDto{
-				Name:      "Partially Updated Channel",
-				Type:      "email",
-				Active:    true,
-				IsDefault: false,
-				Config:    "partial-config",
+				Name:      stringPtr("Partially Updated Channel"),
+				Type:      stringPtr("email"),
+				Active:    boolPtr(true),
+				IsDefault: boolPtr(false),
+				Config:    stringPtr("partial-config"),
 			},
 			mockSetup: func(mr *MockRepository) {
 				mr.On("UpdatePartial", mock.Anything, "test-id", mock.MatchedBy(func(model *UpdateModel) bool {
@@ -500,14 +500,34 @@ func TestServiceImpl_UpdatePartial(t *testing.T) {
 			expectedError: nil,
 		},
 		{
+			name: "omitted fields are not updated",
+			id:   "test-id",
+			input: &PartialUpdateDto{
+				Name: stringPtr("Renamed Channel"),
+			},
+			mockSetup: func(mr *MockRepository) {
+				mr.On("UpdatePartial", mock.Anything, "test-id", mock.MatchedBy(func(model *UpdateModel) bool {
+					return *model.Name == "Renamed Channel" &&
+						model.Type == nil &&
+						model.Active == nil &&
+						model.IsDefault == nil &&
+						model.Config == nil
+				})).Return(nil)
+
+				mr.On("FindByID", mock.Anything, "test-id").Return(&Model{ID: "test-id", Name: "Renamed Channel"}, nil)
+			},
+			expectedModel: &Model{ID: "test-id", Name: "Renamed Channel"},
+			expectedError: nil,
+		},
+		{
 			name: "update error",
 			id:   "test-id",
 			input: &PartialUpdateDto{
-				Name:      "Partially Updated Channel",
-				Type:      "email",
-				Active:    true,
-				IsDefault: false,
-				Config:    "partial-config",
+				Name:      stringPtr("Partially Updated Channel"),
+				Type:      stringPtr("email"),
+				Active:    boolPtr(true),
+				IsDefault: boolPtr(false),
+				Config:    stringPtr("partial-config"),
 			},
 			mockSetup: func(mr *MockRepository) {
 				mr.On("UpdatePartial", mock.Anything, "test-id", mock.Anything).Return(errors.New("update failed"))
@@ -519,11 +539,11 @@ func TestServiceImpl_UpdatePartial(t *testing.T) {
 			name: "find after update error",
 			id:   "test-id",
 			input: &PartialUpdateDto{
-				Name:      "Partially Updated Channel",
-				Type:      "email",
-				Active:    true,
-				IsDefault: false,
-				Config:    "partial-config",
+				Name:      stringPtr("Partially Updated Channel"),
+				Type:      stringPtr("email"),
+				Active:    boolPtr(true),
+				IsDefault: boolPtr(false),
+				Config:    stringPtr("partial-config"),
 			},
 			mockSetup: func(mr *MockRepository) {
 				mr.On("UpdatePartial", mock.Anything, "test-id", mock.Anything).Return(nil)
@@ -637,4 +657,9 @@ func TestNewService(t *testing.T) {
 // Helper function to create string pointers
 func stringPtr(s string) *string {
 	return &s
+}
+
+// Helper function to create bool pointers
+func boolPtr(b bool) *bool {
+	return &b
 }

@@ -962,7 +962,10 @@
         "message_format_label": "Berichtopmaak",
         "username_description": "De gebruikersnaam die als afzender van het bericht zal verschijnen. Als deze niet is opgegeven, wordt de standaard botnaam gebruikt.",
         "webhook_url_description": "De webhook-URL van je Slack-integratie. Je vindt deze in je Slack-omgeving onder Integraties > Webhooks.",
-        "webhook_url_label": "Webhook-URL"
+        "webhook_url_label": "Webhook-URL",
+        "bot_token_label": "Bot-token",
+        "bot_token_description": "Je Slack bot-token voor authenticatie. Je kunt een bot-token aanmaken in de instellingen van je Slack-app",
+        "bot_token_note": "Opmerking: Bij gebruik van een bot-token is de kanaalnaam verplicht."
       },
       "smtp": {
         "custom_body_label": "Aangepaste inhoud",

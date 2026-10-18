@@ -56,13 +56,13 @@ func (s *ServiceImpl) CheckIfNotificationSent(ctx context.Context, notificationT
 func (s *ServiceImpl) RecordNotificationSent(ctx context.Context, notificationType string, monitorID string, targetDays int) error {
 	s.logger.Infof("Recording notification sent for monitor %s, type %s, days %d", monitorID, notificationType, targetDays)
 
-	dto := &CreateDto{
+	model := &Model{
 		Type:      notificationType,
 		MonitorID: monitorID,
 		Days:      targetDays,
 	}
 
-	err := s.repository.RecordSent(ctx, dto)
+	err := s.repository.RecordSent(ctx, model)
 	if err != nil {
 		return fmt.Errorf("failed to record notification sent: %w", err)
 	}

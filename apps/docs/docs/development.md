@@ -13,46 +13,25 @@ cd peekaping
 
 ---
 
-## 2. Tool Management
+## 2. Install the Tools
 
-Peekaping supports both asdf and manual runtime installation:
+You need Go, Node.js and pnpm. Install them however you like: Homebrew, the official installers, nvm, fnm, mise or asdf all work. The repository pins each version in the file that tool reads on its own:
 
-### Option A: Using asdf (Recommended)
+| Tool | What to install | Pinned in |
+|------|-----------------|-----------|
+| **Go** | 1.21 or newer ([Download Go](https://go.dev/dl/)) | `apps/server/go.mod`. If your Go is older than its `toolchain` line, Go switches to that version and downloads it if needed. |
+| **Node.js** | 22 ([Download Node.js](https://nodejs.org/en/download/)) | `.nvmrc`. `nvm install` and `fnm install` pick it up. |
+| **pnpm** | Run `corepack enable`, or `npm install -g pnpm` ([other options](https://pnpm.io/installation)) | `packageManager` in `package.json`. Corepack and pnpm 10+ switch to that version. |
 
-If you have [asdf](https://asdf-vm.com/) installed, you can use our automated setup:
+`make dev` also regenerates the API docs with [swag](https://github.com/swaggo/swag). It runs through `go run`, pinned to the same version as the swag library in `go.mod`, so there's nothing extra to install.
+
+Then check your setup:
 
 ```bash
-# Run the setup target
 make setup
 ```
 
-This will automatically install the correct versions of Go and Node.js using asdf.
-
-### Option B: Manual Installation
-
-If you prefer to install tools manually:
-
-- **Node.js**: Version **20.18.0** ([Download Node.js](https://nodejs.org/en/download/))
-- **Go**: Version **1.24.1** ([Download Go](https://go.dev/dl/))
-- **pnpm**: Version **9.0.0** ([Install pnpm](https://pnpm.io/installation))
-
-Check your versions:
-```bash
-node -v
-go version
-pnpm --version
-```
-
-### How asdf Works in This Project
-
-Peekaping includes `.tool-versions` files that specify the exact tool versions:
-- Root `.tool-versions`: Contains all tools (golang, nodejs, pnpm)
-- `apps/server/.tool-versions`: Contains server-specific tools (golang, nodejs)
-
-The project uses a universal wrapper script (`scripts/tool.sh`) that automatically:
-- Uses asdf-managed tools when asdf is available
-- Falls back to system tools when asdf is not installed
-- Ensures consistent tool usage across all development commands
+It prints the version of each tool and how to fix anything missing or too old.
 
 ---
 
@@ -125,92 +104,32 @@ pnpm run dev docs:watch
 
 - The web UI will be available at [http://localhost:8383](http://localhost:8383)
 - The backend API will be at [http://localhost:8034](http://localhost:8034)
-
----
-
-## 7. Wrapper Scripts & asdf Integration
-
-Peekaping includes a unified wrapper script that automatically detects if asdf is available and uses it, otherwise falling back to system binaries:
-
-- `scripts/tool.sh` - Universal wrapper for any command (go, pnpm, etc.)
-
-This script is used throughout the project's Makefile and package.json files to ensure consistent tool usage regardless of your setup.
-
-### How the Wrapper Works
-
-The wrapper script (`scripts/tool.sh`) provides seamless integration between asdf and system tools:
-
-1. **With asdf**: Automatically uses the versions specified in `.tool-versions`
-2. **Without asdf**: Falls back to system-installed tools
-3. **Error handling**: Provides clear error messages if tools are missing
-
-### Example Usage
-
-```bash
-# Using the universal wrapper
-./scripts/tool.sh go test ./src/...
-./scripts/tool.sh pnpm install
-./scripts/tool.sh node --version
-```
-
 - API docs will be available at [http://localhost:8034/swagger/index.html](http://localhost:8034/swagger/index.html)
 - Documentation will be available at [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## 8. Troubleshooting
+## 7. Troubleshooting
 
-### Common asdf Issues
+**Problem**: `make setup` says Go is on PATH but failed to run in `apps/server`
 
-**Problem**: `asdf: command not found`
-```bash
-# Solution: Make sure asdf is in your PATH
-echo '. "$HOME/.asdf/asdf.sh"' >> ~/.zshrc  # or ~/.bashrc
-source ~/.zshrc  # or ~/.bashrc
-```
+A version manager's `go` shim usually causes this when no Go version is selected for the directory, for example asdf's `No version is set for command go`. Select a Go version in your version manager, or put a regular Go install first on your `PATH`.
 
-**Problem**: Tools not found after asdf installation
-```bash
-# Solution: Reshim asdf
-asdf reshim golang
-asdf reshim nodejs
-asdf reshim pnpm
-```
+**Problem**: Go can't download the toolchain from `go.mod`
 
-**Problem**: Wrong tool versions being used
-```bash
-# Solution: Check which version is active
-asdf current
+This happens offline, or when `GOTOOLCHAIN=local` is set. Install the version on the `toolchain` line of `apps/server/go.mod` directly from [go.dev/dl](https://go.dev/dl/).
 
-# Set the correct version
-asdf local golang 1.24.1
-asdf local nodejs 20.18.0
-```
+**Problem**: `pnpm install` warns `Unsupported engine`
 
-**Problem**: `make setup` fails
-```bash
-# Solution: Install asdf plugins manually
-asdf plugin add golang
-asdf plugin add nodejs
-asdf plugin add pnpm
-asdf install
-```
-
-### Manual Tool Installation Issues
+Your Node.js is older than the one in `.nvmrc`. Run `nvm install` or `fnm install` in the repository root, or install Node.js 22.
 
 - For Go development, make sure your `GOPATH` and `PATH` are set up correctly ([Go install instructions](https://go.dev/doc/install))
 - Ensure Node.js and pnpm are in your system PATH
-- Check that all required tools are installed with correct versions
-
-## 9. Additional Tips
-
-When using binaries:
-- For Go development, make sure your `GOPATH` and `PATH` are set up correctly ([Go install instructions](https://go.dev/doc/install)).
-
-When using asdf:
-- Use `make setup` to automatically configure your development environment
-- The wrapper script (`scripts/tool.sh`) ensures consistent tool usage across the project
-- Check `.tool-versions` files to see the exact versions used in this project
-- Use `asdf current` to verify your tool versions match the project requirements
 
 Happy hacking! 🚀
+
+## Server model boundaries
+
+HTTP request DTOs belong at the controller boundary. Services use domain models, and repository interfaces accept domain models or partial-update models. Each SQL or Mongo repository maps these models to its own private persistence structs; database tags belong on those structs.
+
+Partial-update models preserve omitted fields separately from explicit zero values. A nil slice leaves an association unchanged, while an empty slice clears it. Maintenance monitor IDs are passed separately to the service so the maintenance repository only receives maintenance fields.

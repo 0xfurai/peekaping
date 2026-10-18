@@ -31,7 +31,7 @@ func NewController(
 // @Security  ApiKeyAuth
 // @Param     q    query     string  false  "Search query"
 // @Param     page query     int     false  "Page number" default(1)
-// @Param     limit query    int     false  "Items per page" default(10)
+// @Param     limit query    int     false  "Items per page" default(10) minimum(1) maximum(1000)
 // @Success		200	{object}	utils.ApiResponse[[]Model]
 // @Failure		400	{object}	utils.APIError[any]
 // @Failure		404	{object}	utils.APIError[any]
@@ -44,7 +44,7 @@ func (c *Controller) FindAll(ctx *gin.Context) {
 	}
 
 	limit, err := utils.GetQueryInt(ctx, "limit", 10)
-	if err != nil || limit < 1 {
+	if err != nil || limit < 1 || limit > utils.MaxPageSize {
 		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid limit parameter"))
 		return
 	}

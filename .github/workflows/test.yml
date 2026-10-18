@@ -2,20 +2,28 @@ name: Test and Lint
 
 on:
   pull_request:
-    paths-ignore:
-      - 'apps/docs/**'
-      - '*.md'
-      - 'README.md'
-      - 'CHANGELOG.md'
-      - 'LICENSE'
+    paths:
+      - 'apps/web/**'
+      - 'apps/server/**'
+      - 'package.json'
+      - '.nvmrc'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'patches/**'
+      - '.github/workflows/test.yml'
+      - '!**/*.md'
     branches: [ main, master ]
   push:
-    paths-ignore:
-      - 'apps/docs/**'
-      - '*.md'
-      - 'README.md'
-      - 'CHANGELOG.md'
-      - 'LICENSE'
+    paths:
+      - 'apps/web/**'
+      - 'apps/server/**'
+      - 'package.json'
+      - '.nvmrc'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'patches/**'
+      - '.github/workflows/test.yml'
+      - '!**/*.md'
     branches: [ main, master ]
     tags:
       - 'v*'
@@ -30,7 +38,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version-file: .nvmrc
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v2

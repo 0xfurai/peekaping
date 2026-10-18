@@ -1,0 +1,24 @@
+name: Build Docs
+
+# Deployed by deploy-sites.yml once this workflow succeeds
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'apps/docs/**'
+      - '.github/workflows/build-docs.yml'
+      - '.github/workflows/build-site-reusable.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'apps/docs/**'
+      - '.github/workflows/build-docs.yml'
+      - '.github/workflows/build-site-reusable.yml'
+  workflow_dispatch:
+
+jobs:
+  docs:
+    uses: ./.github/workflows/build-site-reusable.yml
+    with:
+      app: docs
+      output-dir: build
