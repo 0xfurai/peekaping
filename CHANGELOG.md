@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- fix: the monitor page header shows the target of TCP, DNS, ping, Docker, gRPC, SNMP, MQTT, Kafka and RabbitMQ monitors, such as `1.1.1.1:443` or `example.com (A @ 8.8.8.8:53)`, instead of only the monitor type. Monitors whose target holds credentials or a token (database, Redis and push monitors) still show only the type. Only `http(s)` URLs are links (#269, #270) (thanks @HartD92)
 - fix: a status page that isn't published returns 404 on its public slug, custom domain and monitor routes, instead of serving its title and monitors. The View button on a draft status page therefore shows a 404 until the page is published (#305)
 - fix: badges are served only for monitors on a published status page. A monitor that is only on a draft page gets no badge, and a failed status page lookup returns 500 instead of serving the badge (#305)
 - fix: updating, pausing, resuming or deleting a monitor, maintenance window, notification channel, proxy, tag, status page or API key that doesn't exist returns 404 instead of reporting success, and so do the heartbeat, stats and TLS routes of a monitor that doesn't exist (#305)
