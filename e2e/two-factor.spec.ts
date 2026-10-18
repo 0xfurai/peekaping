@@ -1,0 +1,56 @@
+import { test, expect } from '@playwright/test';
+import { admin, apiBaseURL } from './support/admin';
+import { adminAPI } from './support/api';
+import { totp } from './support/totp';
+
+test('With 2FA on, login asks for the authenticator code', async ({ page, browser }) => {
+  // 2FA is on the one admin every spec shares, so it must be off again even if
+  // this test fails, or the next run's setup can't log in.
+  const api = await adminAPI(page);
+  try {
+    await page.goto('/security');
+    await page.getByLabel('Current Password', { exact: true }).fill(admin.password);
+    await page.getByRole('button', { name: 'Continue' }).click();
+    const secret = (
+      await page.getByText('Or enter this secret manually').locator('xpath=following-sibling::div').textContent()
+    )?.trim();
+    expect(secret, 'the 2FA secret shown for manual entry').toBeTruthy();
+    await page.locator('input[name="code"]').fill(totp(secret!));
+    await page.getByRole('button', { name: 'Enable 2FA' }).click();
+    await expect(page.getByText('Two-Factor Authentication Enabled')).toBeVisible();
+
+    const visitor = await browser.newContext({
+      baseURL: test.info().project.use.baseURL,
+      storageState: { cookies: [], origins: [] },
+    });
+    const loginPage = await visitor.newPage();
+    await loginPage.goto('/login');
+    await loginPage.getByRole('textbox', { name: 'Email' }).fill(admin.email);
+    await loginPage.locator('input[name="password"]').fill(admin.password);
+    await loginPage.getByRole('button', { name: 'Login' }).click();
+    await expect(loginPage.getByText('Two-Factor Authentication Required')).toBeVisible();
+
+    // A code from five minutes ahead is outside the window the server accepts.
+    const code = loginPage.locator('input[name="code"]');
+    await code.fill(totp(secret!, Date.now() + 5 * 60_000));
+    await loginPage.getByRole('button', { name: 'Verify 2FA' }).click();
+    await expect(loginPage.getByRole('alert').filter({ hasText: 'invalid 2FA token' })).toBeVisible();
+
+    await code.fill(totp(secret!));
+    await loginPage.getByRole('button', { name: 'Verify 2FA' }).click();
+    await expect(loginPage).toHaveURL(/\/monitors$/);
+    await visitor.close();
+
+    await page.reload();
+    await page.getByRole('button', { name: 'Disable 2FA' }).click();
+    await page.getByPlaceholder('Enter your password to disable 2FA').fill(admin.password);
+    await page.getByRole('button', { name: 'Disable 2FA' }).click();
+    await expect(page.getByText('2FA disabled successfully')).toBeVisible();
+
+    const login = await page.request.post(`${await apiBaseURL(page)}/auth/login`, { data: admin });
+    expect(login.ok(), 'password-only login works again').toBeTruthy();
+  } finally {
+    await api.post('auth/2fa/disable', { data: admin });
+    await api.dispose();
+  }
+});
