@@ -64,9 +64,11 @@ func newDBCommand() *cli.Command {
 						}
 						defer migrator.Unlock(c.Context) // nolint:errcheck
 
+						// No rollback on failure: the failed migration isn't recorded, so
+						// Rollback would undo the last recorded group, possibly an earlier
+						// release. The migrations before it stay applied; fix and rerun.
 						group, err := migrator.Migrate(c.Context)
 						if err != nil {
-							migrator.Rollback(c.Context)
 							return err
 						}
 						if group.IsZero() {
