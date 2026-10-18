@@ -119,9 +119,10 @@ func statDocumentID(monitorID primitive.ObjectID, timestamp time.Time) primitive
 	return id
 }
 
-// AddToStat adds stat's checks to the document for its monitor and timestamp,
-// and creates the document if there isn't one, in one update. Concurrent
-// heartbeats in the same bucket therefore can't overwrite each other's counts.
+// AddToStat adds stat's counts and response times to the document for its
+// monitor and timestamp, and creates the document if there isn't one, in one
+// update. Concurrent heartbeats in the same bucket therefore can't overwrite
+// each other's counts.
 func (r *MongoRepository) AddToStat(ctx context.Context, stat *Stat, period StatPeriod) error {
 	monitorID, err := primitive.ObjectIDFromHex(stat.MonitorID)
 	if err != nil {

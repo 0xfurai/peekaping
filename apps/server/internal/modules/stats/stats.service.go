@@ -57,7 +57,7 @@ func (s *ServiceImpl) AggregateHeartbeat(ctx context.Context, hb *HeartbeatPaylo
 		{StatDaily, 24 * time.Hour},
 	}
 
-	// The heartbeat's checks, which the repository adds to each period's stat
+	// The heartbeat's counts and response time, which the repository adds to each period's stat
 	add := Stat{MonitorID: hb.MonitorID}
 
 	// Up/Down logic (flattened)

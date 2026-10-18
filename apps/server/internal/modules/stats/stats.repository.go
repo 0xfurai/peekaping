@@ -6,8 +6,8 @@ import (
 )
 
 type Repository interface {
-	// AddToStat adds stat's checks to the stat for its monitor and timestamp, and
-	// creates that stat if it doesn't exist, in one atomic write.
+	// AddToStat adds stat's counts and response times to the stat for its monitor
+	// and timestamp, and creates that stat if it doesn't exist, in one atomic write.
 	AddToStat(ctx context.Context, stat *Stat, period StatPeriod) error
 	FindStatsByMonitorIDAndTimeRange(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod) ([]*Stat, error)
 	DeleteByMonitorID(ctx context.Context, monitorID string) error

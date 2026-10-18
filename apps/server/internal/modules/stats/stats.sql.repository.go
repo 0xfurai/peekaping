@@ -82,9 +82,9 @@ func statTable(period StatPeriod) string {
 	return table + " AS s"
 }
 
-// AddToStat adds stat's checks to the row for its monitor and timestamp, and
-// creates the row if there isn't one, in one statement. Concurrent heartbeats in
-// the same bucket therefore can't overwrite each other's counts.
+// AddToStat adds stat's counts and response times to the row for its monitor and
+// timestamp, and creates the row if there isn't one, in one statement. Concurrent
+// heartbeats in the same bucket therefore can't overwrite each other's counts.
 func (r *SQLRepositoryImpl) AddToStat(ctx context.Context, stat *Stat, period StatPeriod) error {
 	_, err := r.db.NewInsert().
 		Model(toSQLModel(stat)).
