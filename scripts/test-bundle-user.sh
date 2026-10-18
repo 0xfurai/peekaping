@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Smoke-tests the service user in a bundle image: which user each process runs
-# as, what it can write, PUID/PGID, the Docker socket and the ping warning.
+# Smoke-tests the user a bundle image runs api, producer, worker and ingester
+# as: which user each process runs as, what it can write, PUID/PGID, the
+# Docker socket and the startup warnings.
 #
 # Usage: scripts/test-bundle-user.sh <sqlite|mongo|postgres> [image]
 # Without an image, it builds Dockerfile.bundle.<db> from the repo root.
@@ -20,7 +21,8 @@ if [ -z "$image" ]; then
 fi
 
 cleanup() {
-  docker rm -f "$prefix-default" "$prefix-ids" "$prefix-bad-uid" "$prefix-bad-gid" "$prefix-ping" >/dev/null 2>&1
+  docker rm -f "$prefix-default" "$prefix-ids" "$prefix-bad-uid" "$prefix-bad-gid" "$prefix-taken-gid" \
+    "$prefix-socket" "$prefix-ro-data" "$prefix-ping" >/dev/null 2>&1
 }
 trap cleanup EXIT
 cleanup
@@ -108,7 +110,8 @@ services="api producer worker ingester"
 echo "# Default run"
 socket_args=()
 [ -S "$socket" ] && socket_args=(-v "$socket:$socket")
-start "$prefix-default" "${socket_args[@]}"
+# The ${a[@]+...} form keeps bash 3.2 (macOS) from failing on an empty array under set -u.
+start "$prefix-default" ${socket_args[@]+"${socket_args[@]}"}
 if check "starts and reports healthy" wait_healthy "$prefix-default"; then
   for svc in $services; do
     check "$svc runs as 1000:1000" eq "$(ids "$prefix-default" "$svc")" 1000:1000
@@ -116,6 +119,15 @@ if check "starts and reports healthy" wait_healthy "$prefix-default"; then
   for proc in supervisord caddy redis-server; do
     check "$proc keeps running as root" eq "$(ids "$prefix-default" "$proc" | cut -d: -f1)" 0
   done
+  case "$db" in
+    mongo) db_proc=mongod db_user=mongodb ;;
+    postgres) db_proc=postgres db_user=postgres ;;
+    *) db_proc= ;;
+  esac
+  if [ -n "$db_proc" ]; then
+    check "$db_proc keeps running as $db_user" eq \
+      "$(ids "$prefix-default" "$db_proc" | cut -d: -f1)" "$(docker exec "$prefix-default" id -u "$db_user")"
+  fi
   check "peekaping can't write the api binary" cant_write "$prefix-default" /app/server/api
   check "peekaping can't write the web assets" cant_write "$prefix-default" /app/web/index.html
   check "peekaping owns /app/data" eq "$(owner "$prefix-default" /app/data)" 1000:1000
@@ -128,6 +140,7 @@ if check "starts and reports healthy" wait_healthy "$prefix-default"; then
     check "worker has the Docker socket's group ($socket_gid)" has_word "$(groups_of "$prefix-default" worker)" "$socket_gid"
     check "peekaping can use the Docker socket" eq \
       "$(docker exec -u peekaping "$prefix-default" curl -s -o /dev/null -w '%{http_code}' --unix-socket "$socket" http://docker/_ping)" 200
+    check "no Docker socket warning" logs_lack "$prefix-default" "Docker monitors can't use"
   else
     echo "skip - no $socket on this host, so the Docker socket checks didn't run"
   fi
@@ -154,7 +167,29 @@ check "PUID=0 exits non-zero" ne "$(docker inspect -f '{{.State.ExitCode}}' "$pr
 check "PUID=0 is named in the error" logs_mention "$prefix-bad-uid" "PUID 0"
 start "$prefix-bad-gid" -e PGID=staff
 check "PGID=staff (not a number) stops the container" wait_exited "$prefix-bad-gid"
+check "PGID=staff exits non-zero" ne "$(docker inspect -f '{{.State.ExitCode}}' "$prefix-bad-gid")" 0
 check "PGID=staff is named in the error" logs_mention "$prefix-bad-gid" "PGID must be a number"
+start "$prefix-taken-gid" -e PGID=0
+check "PGID=0 (root's group) stops the container" wait_exited "$prefix-taken-gid"
+check "PGID=0 is named in the error" logs_mention "$prefix-taken-gid" "PGID 0 is already used"
+
+echo "# A Docker socket its group can't use"
+# A stand-in socket, mode 600, so the user's new group gives no access.
+docker run -d --name "$prefix-socket" -e DB_USER=peekaping -e DB_PASS=bundle-test --entrypoint /bin/sh "$image" \
+  -c "nc -lU $socket & sleep 1; chmod 600 $socket; exec /app/startup.sh" >/dev/null
+if check "starts and reports healthy" wait_healthy "$prefix-socket"; then
+  check "startup warns that Docker monitors can't use the socket" logs_mention "$prefix-socket" "Docker monitors can't use"
+fi
+
+echo "# /app/data where root can't change owners"
+if [ "$db" = sqlite ]; then
+  echo "skip - the SQLite bundle writes its database there before this step"
+else
+  start "$prefix-ro-data" --tmpfs /app/data:ro
+  if check "starts and reports healthy" wait_healthy "$prefix-ro-data"; then
+    check "startup warns that it couldn't give /app/data away" logs_mention "$prefix-ro-data" "couldn't give /app/data"
+  fi
+fi
 
 echo "# ping_group_range without the service group"
 start "$prefix-ping" --sysctl 'net.ipv4.ping_group_range=0 0'

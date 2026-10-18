@@ -1,8 +1,8 @@
 # Sourced as root by the bundle startup scripts, just before supervisord starts.
 #
-# supervisord runs api, producer, worker and ingester as the peekaping user, with
-# only the groups /etc/group gives it: --group-add and cap_add don't reach them.
-# So the user's IDs and groups are settled here.
+# supervisord runs the api, producer, worker and ingester processes as the
+# peekaping user, with only the groups /etc/group gives it: --group-add and
+# cap_add don't reach them. So the user's IDs and groups are settled here.
 
 require_number() {
     case "$2" in
@@ -46,6 +46,11 @@ if [ -S "$docker_socket" ]; then
         groupadd -g "$socket_gid" "$socket_group"
     fi
     usermod -aG "$socket_group" peekaping
+
+    socket_mode=$(stat -c %a "$docker_socket")
+    if [ $(((0$socket_mode >> 3) & 6)) -ne 6 ]; then
+        echo "WARNING: Docker monitors can't use $docker_socket: its group can't read and write it (mode $socket_mode)."
+    fi
 fi
 
 # Ping monitors open unprivileged ICMP sockets, which Linux allows only for
@@ -68,4 +73,8 @@ if [ -r "$ping_range" ]; then
 fi
 
 mkdir -p /app/data
-chown -R peekaping:peekaping /app/data
+# Some volumes (NFS with root_squash, CIFS) don't let root change owners. The
+# files may already belong to PUID/PGID there, so carry on.
+if ! chown -R peekaping:peekaping /app/data; then
+    echo "WARNING: couldn't give /app/data to $PUID:$PGID. If the database can't be written, give the folder to $PUID:$PGID on the host, or set PUID/PGID to its owner."
+fi
