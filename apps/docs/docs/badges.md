@@ -215,7 +215,7 @@ A reliable service with 99.9% uptime.
 
 - **Public Access**: Badge endpoints are publicly accessible and don't require authentication
 - **No Sensitive Data**: Badges only expose uptime metrics and status information
-- **Monitor IDs**: Only monitors with public badges enabled will respond to badge requests
+- **Monitor IDs**: Only a monitor that is not paused and is on at least one published status page has badges. Any other monitor ID returns 404
 - **Rate Limiting**: Badge endpoints may be rate-limited to prevent abuse
 
 ## Badge Styles
@@ -248,7 +248,7 @@ A reliable service with 99.9% uptime.
 
 ## Best Practices
 
-1. **Monitor Visibility**: Only enable public badges for monitors you want to be publicly visible
+1. **Monitor Visibility**: Adding a monitor to a published status page also makes its badges public
 2. **Meaningful Names**: Use descriptive monitor names as they may appear in badge labels
 3. **Appropriate Duration**: Choose duration periods that make sense for your service (24h for real-time, 30d for trends)
 4. **Style Consistency**: Use consistent badge styles across your documentation
@@ -260,7 +260,7 @@ A reliable service with 99.9% uptime.
 ### Badge Not Loading
 
 - Verify the monitor ID is correct
-- Check that the monitor has public badges enabled
+- Check that the monitor is not paused and is on a published status page
 - Ensure your Peekaping instance is accessible from where you're viewing the badge
 
 ### Incorrect Data

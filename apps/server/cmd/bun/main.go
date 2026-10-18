@@ -56,15 +56,19 @@ func newDBCommand() *cli.Command {
 				Usage: "migrate database",
 				Action: func(c *cli.Context) error {
 					return runWithDB(func(db *bun.DB) error {
-						migrator := migrate.NewMigrator(db, migrations.Migrations)
+						// Mark a migration applied only once it succeeds, so one that fails
+						// or is killed halfway runs again on the next migrate.
+						migrator := migrate.NewMigrator(db, migrations.Migrations, migrate.WithMarkAppliedOnSuccess(true))
 						if err := migrator.Lock(c.Context); err != nil {
 							return err
 						}
 						defer migrator.Unlock(c.Context) // nolint:errcheck
 
+						// No rollback on failure: the failed migration isn't recorded, so
+						// Rollback would undo the last recorded group, possibly an earlier
+						// release. The migrations before it stay applied; fix and rerun.
 						group, err := migrator.Migrate(c.Context)
 						if err != nil {
-							migrator.Rollback(c.Context)
 							return err
 						}
 						if group.IsZero() {

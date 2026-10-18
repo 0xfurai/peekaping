@@ -1,0 +1,147 @@
+package notification_channel
+
+import (
+	"context"
+	"errors"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
+)
+
+type validatingProvider struct {
+	NotificationChannelProvider
+	err error
+}
+
+func (p validatingProvider) Validate(string) error {
+	return p.err
+}
+
+type updateRecordingService struct {
+	Service
+	saved   *Model
+	updated bool
+	patch   *PartialUpdateDto
+}
+
+func (s *updateRecordingService) FindByID(_ context.Context, _ string) (*Model, error) {
+	return s.saved, nil
+}
+
+func (s *updateRecordingService) UpdateFull(_ context.Context, _ string, _ *CreateUpdateDto) (*Model, error) {
+	s.updated = true
+	return &Model{}, nil
+}
+
+func (s *updateRecordingService) UpdatePartial(_ context.Context, _ string, dto *PartialUpdateDto) (*Model, error) {
+	s.updated = true
+	s.patch = dto
+	return &Model{}, nil
+}
+
+func TestControllerUpdateValidatesConfig(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	RegisterNotificationChannelProvider("test-valid", validatingProvider{})
+	RegisterNotificationChannelProvider("test-rejecting", validatingProvider{err: errors.New("bad config")})
+	defer delete(NotificationChannelProviderRegistry, "test-valid")
+	defer delete(NotificationChannelProviderRegistry, "test-rejecting")
+
+	cases := []struct {
+		name         string
+		channelType  string
+		wantStatus   int
+		wantResponse string
+		wantSaved    bool
+	}{
+		{"valid config", "test-valid", http.StatusOK, "notification updated successfully", true},
+		{"unsupported type", "test-missing", http.StatusBadRequest, "Unsupported notification type", false},
+		{"invalid config", "test-rejecting", http.StatusBadRequest, "Invalid config: bad config", false},
+	}
+
+	for _, method := range []string{http.MethodPut, http.MethodPatch} {
+		for _, tc := range cases {
+			t.Run(method+" "+tc.name, func(t *testing.T) {
+				service := &updateRecordingService{saved: &Model{Type: "test-valid", Config: stringPtr("{}")}}
+				controller := NewController(service, zap.NewNop().Sugar())
+				router := gin.New()
+				router.PUT("/:id", controller.UpdateFull)
+				router.PATCH("/:id", controller.UpdatePartial)
+
+				body := `{"name": "Alerts", "type": "` + tc.channelType + `", "config": "{}"}`
+				req := httptest.NewRequest(method, "/channel-1", strings.NewReader(body))
+				req.Header.Set("Content-Type", "application/json")
+				rec := httptest.NewRecorder()
+				router.ServeHTTP(rec, req)
+
+				assert.Equal(t, tc.wantStatus, rec.Code)
+				assert.Contains(t, rec.Body.String(), tc.wantResponse)
+				assert.Equal(t, tc.wantSaved, service.updated)
+			})
+		}
+	}
+}
+
+func TestControllerUpdatePartialMergesSavedChannel(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	RegisterNotificationChannelProvider("test-valid", validatingProvider{})
+	RegisterNotificationChannelProvider("test-rejecting", validatingProvider{err: errors.New("bad config")})
+	defer delete(NotificationChannelProviderRegistry, "test-valid")
+	defer delete(NotificationChannelProviderRegistry, "test-rejecting")
+
+	cases := []struct {
+		name         string
+		saved        *Model
+		body         string
+		wantStatus   int
+		wantResponse string
+		wantSaved    bool
+	}{
+		{"name only skips validation", &Model{Type: "test-rejecting", Config: stringPtr("{}")}, `{"name": "Renamed"}`, http.StatusOK, "notification updated successfully", true},
+		{"active only skips validation", &Model{Type: "test-rejecting", Config: stringPtr("{}")}, `{"active": false}`, http.StatusOK, "notification updated successfully", true},
+		{"config checked against saved type", &Model{Type: "test-rejecting", Config: stringPtr("{}")}, `{"config": "{}"}`, http.StatusBadRequest, "Invalid config: bad config", false},
+		{"config accepted by saved type", &Model{Type: "test-valid", Config: stringPtr("{}")}, `{"config": "{}"}`, http.StatusOK, "notification updated successfully", true},
+		{"type checked with saved config", &Model{Type: "test-valid", Config: stringPtr("{}")}, `{"type": "test-missing"}`, http.StatusBadRequest, "Unsupported notification type", false},
+		{"channel not found", nil, `{"config": "{}"}`, http.StatusNotFound, "Notification channel not found", false},
+		{"name only on a missing channel", nil, `{"name": "Renamed"}`, http.StatusNotFound, "Notification channel not found", false},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			service := &updateRecordingService{saved: tc.saved}
+			router := gin.New()
+			router.PATCH("/:id", NewController(service, zap.NewNop().Sugar()).UpdatePartial)
+
+			req := httptest.NewRequest(http.MethodPatch, "/channel-1", strings.NewReader(tc.body))
+			req.Header.Set("Content-Type", "application/json")
+			rec := httptest.NewRecorder()
+			router.ServeHTTP(rec, req)
+
+			assert.Equal(t, tc.wantStatus, rec.Code)
+			assert.Contains(t, rec.Body.String(), tc.wantResponse)
+			assert.Equal(t, tc.wantSaved, service.updated)
+		})
+	}
+
+	t.Run("omitted fields reach the service as nil", func(t *testing.T) {
+		service := &updateRecordingService{saved: &Model{Type: "test-valid", Config: stringPtr("{}")}}
+		router := gin.New()
+		router.PATCH("/:id", NewController(service, zap.NewNop().Sugar()).UpdatePartial)
+
+		req := httptest.NewRequest(http.MethodPatch, "/channel-1", strings.NewReader(`{"name": "Renamed"}`))
+		req.Header.Set("Content-Type", "application/json")
+		router.ServeHTTP(httptest.NewRecorder(), req)
+
+		if assert.NotNil(t, service.patch) {
+			assert.Equal(t, "Renamed", *service.patch.Name)
+			assert.Nil(t, service.patch.Type)
+			assert.Nil(t, service.patch.Active)
+			assert.Nil(t, service.patch.IsDefault)
+			assert.Nil(t, service.patch.Config)
+		}
+	})
+}

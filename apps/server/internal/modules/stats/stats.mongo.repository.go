@@ -100,6 +100,7 @@ func toDomainModel(mm *mongoModel) *Stat {
 		Ping:        mm.Ping,
 		PingMin:     mm.PingMin,
 		PingMax:     mm.PingMax,
+		PingCount:   mm.Up - mm.Maintenance, // up also counts maintenance checks, which have no response time
 		Up:          mm.Up,
 		Down:        mm.Down,
 		Maintenance: mm.Maintenance,

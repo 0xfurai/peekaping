@@ -993,7 +993,10 @@
         "message_format_label": "メッセージ形式",
         "username_description": "メッセージの送信者として表示されるユーザー名です。指定しない場合は、デフォルトのボット名が使用されます。",
         "webhook_url_description": "Slack統合のWebhook URLです。Slackのインスタンス内の「Integrations > Webhooks」で確認できます。",
-        "webhook_url_label": "Webhook URL"
+        "webhook_url_label": "Webhook URL",
+        "bot_token_label": "ボットトークン",
+        "bot_token_description": "認証用のSlackボットトークンです。Slackアプリの設定でボットトークンを作成できます",
+        "bot_token_note": "注意: ボットトークンを使用する場合、チャンネル名は必須です。"
       },
       "smtp": {
         "custom_body_label": "カスタム本文",
@@ -1046,6 +1049,15 @@
         "template_placeholder": "カスタムメッセージテンプレートを入力してください",
         "use_template_description": "カスタムメッセージテンプレートとフォーマットを使用できるようにする。",
         "use_template_label": "メッセージテンプレートを使用"
+      },
+      "teams": {
+        "more_info_about_webhooks": "Workflows の Webhook の詳細情報",
+        "server_url_description": "Peekaping インスタンスのベース URL で、「View in Peekaping」ボタンに使用されます。空の場合はサーバーの CLIENT_URL が使用されます。",
+        "server_url_label": "サーバー URL",
+        "setup_webhook_description_1": "Teams で Workflows を開き、「Send webhook alerts to a channel」テンプレートを選択します。",
+        "setup_webhook_description_2": "チームとチャネルを選択して保存し、ワークフローの詳細から Webhook URL をコピーします。",
+        "setup_webhook_title": "Teams Workflows で Webhook を作成",
+        "webhook_url_label": "Workflows の Webhook URL"
       },
       "webhook": {
         "additional_headers_description": "WebhookリクエストにカスタムHTTPヘッダーを追加します。",

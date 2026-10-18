@@ -150,6 +150,10 @@ func (ic *Controller) UpdateFull(ctx *gin.Context) {
 		return
 	}
 
+	if _, ok := utils.FindOr404(ctx, ic.logger, "Proxy", ic.service.FindByID, id); !ok {
+		return
+	}
+
 	updated, err := ic.service.UpdateFull(ctx, id, &entity)
 	if err != nil {
 		ic.logger.Errorw("Failed to update proxy", "error", err)
@@ -181,6 +185,15 @@ func (ic *Controller) UpdatePartial(ctx *gin.Context) {
 		return
 	}
 
+	if err := utils.Validate.Struct(entity); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+		return
+	}
+
+	if _, ok := utils.FindOr404(ctx, ic.logger, "Proxy", ic.service.FindByID, id); !ok {
+		return
+	}
+
 	updated, err := ic.service.UpdatePartial(ctx, id, &entity)
 	if err != nil {
 		ic.logger.Errorw("Failed to update proxy", "error", err)
@@ -203,6 +216,10 @@ func (ic *Controller) UpdatePartial(ctx *gin.Context) {
 // @Failure		500	{object}	utils.APIError[any]
 func (ic *Controller) Delete(ctx *gin.Context) {
 	id := ctx.Param("id")
+
+	if _, ok := utils.FindOr404(ctx, ic.logger, "Proxy", ic.service.FindByID, id); !ok {
+		return
+	}
 
 	err := ic.service.Delete(ctx, id)
 	if err != nil {

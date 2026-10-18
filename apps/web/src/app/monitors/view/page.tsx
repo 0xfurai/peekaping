@@ -49,6 +49,8 @@ import { BackButton } from "@/components/back-button";
 import dayjs from "dayjs";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import clsx from "clsx";
+import { formatMonitorTarget } from "../components/monitor-registry";
+import { parseMonitorConfig } from "../components/monitor-target";
 
 function formatDuration(ms: number, t: (key: string) => string): string {
   // Handle negative durations (clock skew) by returning empty string
@@ -117,23 +119,21 @@ const MonitorPage = () => {
   });
 
   const monitor = data?.data;
+  // Parsed once here, since the page re-renders on every heartbeat
+  const config = useMemo(
+    () => parseMonitorConfig(monitor?.config),
+    [monitor?.config]
+  );
+  const monitorTarget = useMemo(
+    () => formatMonitorTarget(monitor?.type, config),
+    [monitor?.type, config]
+  );
 
   const hasCertCheckExpire = useMemo(() => {
-    if (!monitor) return false;
-    
     const monitorType = monitor?.type?.toLowerCase();
-    const supportsTLS = monitorType?.startsWith("http") || monitorType === "smtp";
-    
-    if (!supportsTLS) return false;
-
-    try {
-      const config = JSON.parse(monitor?.config ?? "{}");
-      return config?.check_cert_expiry ?? false;
-    } catch (err) {
-      console.error("Failed to parse monitor config:", err);
-      return false;
-    }
-  }, [monitor]);
+    if (!monitorType?.startsWith("http") && monitorType !== "smtp") return false;
+    return config.check_cert_expiry === true;
+  }, [monitor?.type, config]);
 
   // Fetch TLS info for HTTP and SMTP monitors using React Query
   // Only fetch when certificate expiry checking is enabled
@@ -167,16 +167,6 @@ const MonitorPage = () => {
         : undefined,
     };
   }, [tlsData]);
-
-  // Safe JSON parsing with error handling
-  const config = useMemo(() => {
-    try {
-      return JSON.parse(monitor?.config ?? "{}");
-    } catch (error) {
-      console.error("Failed to parse monitor config:", error);
-      return {};
-    }
-  }, [monitor?.config]);
 
   const deleteMutation = useMutation({
     ...deleteMonitorsByIdMutation({
@@ -429,16 +419,23 @@ const MonitorPage = () => {
         <BackButton to="/monitors" />
         <div className="pl-4">
           <span className="text-sm text-muted-foreground mr-2">
-            {monitor?.type} {t("monitors.view.monitor_for")}
+            {monitor?.type}
+            {monitorTarget ? ` ${t("monitors.view.monitor_for")}` : null}
           </span>
-          <a
-            href={config?.url ?? "#"}
-            className="text-blue-500 hover:underline"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {config?.url ?? ""}
-          </a>
+          {monitorTarget?.href ? (
+            <a
+              href={monitorTarget.href}
+              className="text-blue-500 hover:underline break-words"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {monitorTarget.label}
+            </a>
+          ) : monitorTarget ? (
+            <span className="text-muted-foreground break-words">
+              {monitorTarget.label}
+            </span>
+          ) : null}
         </div>
 
         <div className="mt-4 mb-4">

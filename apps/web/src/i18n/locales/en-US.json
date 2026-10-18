@@ -993,7 +993,10 @@
         "message_format_label": "Message Format",
         "username_description": "The username that will appear as the sender of the message. If not specified, the default bot name will be used.",
         "webhook_url_description": "The webhook URL from your Slack integration. You can find this in your Slack instance under Integrations &gt; Webhooks.",
-        "webhook_url_label": "Webhook URL"
+        "webhook_url_label": "Webhook URL",
+        "bot_token_label": "Bot Token",
+        "bot_token_description": "Your Slack bot token for authentication. You can create a bot token in your Slack app settings",
+        "bot_token_note": "Note: When using a bot token, the channel name is required."
       },
       "smtp": {
         "custom_body_label": "Custom Body",
@@ -1046,6 +1049,15 @@
         "template_placeholder": "Enter your custom message template",
         "use_template_description": "Enable to use a custom message template and format.",
         "use_template_label": "Use Message Template"
+      },
+      "teams": {
+        "more_info_about_webhooks": "More info about Workflows webhooks",
+        "server_url_description": "The base URL of your Peekaping instance, used for the \"View in Peekaping\" button. If empty, the server's CLIENT_URL is used.",
+        "server_url_label": "Server URL",
+        "setup_webhook_description_1": "In Teams, open Workflows and pick the \"Send webhook alerts to a channel\" template.",
+        "setup_webhook_description_2": "Choose the team and channel, select Save, then copy the webhook URL from the workflow details.",
+        "setup_webhook_title": "Create a webhook with Teams Workflows",
+        "webhook_url_label": "Workflows Webhook URL"
       },
       "webhook": {
         "additional_headers_description": "Add custom HTTP headers to the webhook request.",

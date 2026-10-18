@@ -993,7 +993,10 @@
         "message_format_label": "Nachrichtenformat",
         "username_description": "Der Benutzername, der als Absender der Nachricht angezeigt wird. Falls er nicht angegeben wird, wird der Standard-Bot-Name verwendet.",
         "webhook_url_description": "Die Webhook-URL Ihrer Slack-Integration. Sie finden diese in Ihrer Slack-Instanz unter Integrationen > Webhooks.",
-        "webhook_url_label": "Webhook-URL"
+        "webhook_url_label": "Webhook-URL",
+        "bot_token_label": "Bot-Token",
+        "bot_token_description": "Ihr Slack-Bot-Token zur Authentifizierung. Sie können einen Bot-Token in den Einstellungen Ihrer Slack-App erstellen",
+        "bot_token_note": "Hinweis: Bei Verwendung eines Bot-Tokens ist der Kanalname erforderlich."
       },
       "smtp": {
         "custom_body_label": "Benutzerdefinierter Text",
@@ -1046,6 +1049,15 @@
         "template_placeholder": "Geben Sie Ihre benutzerdefinierte Nachrichtenvorlage ein",
         "use_template_description": "Aktivieren Sie, um eine benutzerdefinierte Nachrichtenvorlage zu verwenden und zu formatieren.",
         "use_template_label": "Nachrichten-Vorlage verwenden"
+      },
+      "teams": {
+        "more_info_about_webhooks": "Weitere Informationen zu Workflows-Webhooks",
+        "server_url_description": "Die Basis-URL Ihrer Peekaping-Instanz, die für die Schaltfläche \"View in Peekaping\" verwendet wird. Wenn leer, wird die CLIENT_URL des Servers verwendet.",
+        "server_url_label": "Server-URL",
+        "setup_webhook_description_1": "Öffnen Sie in Teams Workflows und wählen Sie die Vorlage \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Wählen Sie Team und Kanal, klicken Sie auf Speichern und kopieren Sie dann die Webhook-URL aus den Workflow-Details.",
+        "setup_webhook_title": "Webhook mit Teams Workflows erstellen",
+        "webhook_url_label": "Workflows Webhook-URL"
       },
       "webhook": {
         "additional_headers_description": "Benutzerdefinierte HTTP-Header zur Webhook-Anforderung hinzufügen.",

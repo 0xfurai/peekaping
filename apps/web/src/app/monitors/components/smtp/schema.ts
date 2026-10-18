@@ -5,6 +5,14 @@ import { generalSchema, generalDefaultValues } from "../shared/general";
 import { intervalsSchema, intervalsDefaultValues } from "../shared/intervals";
 import { notificationsSchema, notificationsDefaultValues } from "../shared/notifications";
 import { tagsSchema, tagsDefaultValues } from "../shared/tags";
+import {
+  formatHostPort,
+  getNumber,
+  getString,
+  textTarget,
+  type MonitorConfig,
+  type MonitorTarget,
+} from "../monitor-target";
 
 interface SMTPConfig {
   host: string;
@@ -84,6 +92,9 @@ const smtpConfigSchema = z.object({
   test_open_relay: z.boolean().optional(),
   expect_secure_relay: z.boolean().optional(),
 });
+
+export const formatTarget = (config: MonitorConfig): MonitorTarget | null =>
+  textTarget(formatHostPort(getString(config, "host"), getNumber(config, "port")));
 
 export const deserialize = (data: MonitorMonitorResponseDto): SMTPForm => {
   let config: Partial<SMTPConfig> = {

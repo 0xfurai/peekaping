@@ -992,7 +992,10 @@
         "message_format_label": "Format mesaj",
         "username_description": "Numele de utilizator care va apărea ca expeditor al mesajului. Dacă nu este specificat, va fi folosit numele implicit al botului.",
         "webhook_url_description": "URL-ul webhook-ului din integrarea Slack. Îl poți găsi în instanța ta Slack sub Integrații > Webhook-uri.",
-        "webhook_url_label": "URL webhook"
+        "webhook_url_label": "URL webhook",
+        "bot_token_label": "Token bot",
+        "bot_token_description": "Token-ul bot Slack pentru autentificare. Poți crea un token bot în setările aplicației Slack",
+        "bot_token_note": "Notă: Când folosești un token bot, numele canalului este obligatoriu."
       },
       "smtp": {
         "custom_body_label": "Corp personalizat",
@@ -1045,6 +1048,15 @@
         "template_placeholder": "Introduceți șablonul personalizat de mesaj",
         "use_template_description": "Permiteți utilizarea unui șablon personalizat de mesaj și format.",
         "use_template_label": "Folosește șablonul de mesaj"
+      },
+      "teams": {
+        "more_info_about_webhooks": "Mai multe informații despre webhook-urile Workflows",
+        "server_url_description": "URL-ul de bază al instanței tale Peekaping, folosit pentru butonul \"View in Peekaping\". Dacă este gol, se folosește CLIENT_URL al serverului.",
+        "server_url_label": "URL server",
+        "setup_webhook_description_1": "În Teams, deschide Workflows și alege șablonul \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Alege echipa și canalul, selectează Salvare, apoi copiază URL-ul webhook-ului din detaliile fluxului de lucru.",
+        "setup_webhook_title": "Creează un webhook cu Teams Workflows",
+        "webhook_url_label": "URL Webhook Workflows"
       },
       "webhook": {
         "additional_headers_description": "Adaugă antete HTTP personalizate la solicitarea webhook-ului.",

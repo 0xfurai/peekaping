@@ -2,11 +2,16 @@ package executor
 
 import (
 	"context"
+	"fmt"
+	"net"
 	"peekaping/internal/modules/shared"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/miekg/dns"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
 
@@ -188,220 +193,174 @@ func TestDNSExecutor_Validate(t *testing.T) {
 	}
 }
 
-func TestDNSExecutor_Execute(t *testing.T) {
-	// Setup
-	logger := zap.NewNop().Sugar()
-	executor := NewDNSExecutor(logger)
+// testZone is what startDNSServer answers from. The names are under .test
+// (RFC 2606) and the addresses in documentation ranges, so /etc/hosts never
+// answers for them first.
+var testZone = []string{
+	"peekaping.test. 300 IN A 192.0.2.10",
+	"peekaping.test. 300 IN AAAA 2001:db8::10",
+	"peekaping.test. 300 IN MX 10 mail.peekaping.test.",
+	"peekaping.test. 300 IN NS ns1.peekaping.test.",
+	`peekaping.test. 300 IN TXT "v=spf1 -all"`,
+	`peekaping.test. 300 IN CAA 0 issue "letsencrypt.org"`,
+	"peekaping.test. 300 IN SOA ns1.peekaping.test. hostmaster.peekaping.test. 2026101701 7200 3600 1209600 300",
+	"mail.peekaping.test. 300 IN A 192.0.2.25",
+	"www.peekaping.test. 300 IN CNAME peekaping.test.",
+	"_http._tcp.peekaping.test. 300 IN SRV 10 5 8080 peekaping.test.",
+	"10.2.0.192.in-addr.arpa. 300 IN PTR peekaping.test.",
+}
+
+// startDNSServer serves testZone over UDP on a loopback port and returns the port.
+func startDNSServer(t *testing.T) int {
+	t.Helper()
+	var zone []dns.RR
+	for _, record := range testZone {
+		rr, err := dns.NewRR(record)
+		require.NoError(t, err)
+		zone = append(zone, rr)
+	}
+	lookup := func(name string, qtype uint16) []dns.RR {
+		var answer []dns.RR
+		for _, rr := range zone {
+			h := rr.Header()
+			if strings.EqualFold(h.Name, name) && (h.Rrtype == qtype || h.Rrtype == dns.TypeCNAME) {
+				answer = append(answer, rr)
+			}
+		}
+		return answer
+	}
+
+	handler := dns.HandlerFunc(func(w dns.ResponseWriter, req *dns.Msg) {
+		resp := new(dns.Msg)
+		resp.SetReply(req)
+		resp.Authoritative = true
+		resp.RecursionAvailable = true
+		q := req.Question[0]
+		resp.Answer = lookup(q.Name, q.Qtype)
+		// Follow a CNAME to its target's records, like a recursive resolver.
+		if len(resp.Answer) == 1 && q.Qtype != dns.TypeCNAME {
+			if cname, ok := resp.Answer[0].(*dns.CNAME); ok {
+				resp.Answer = append(resp.Answer, lookup(cname.Target, q.Qtype)...)
+			}
+		}
+		if len(resp.Answer) == 0 && len(lookup(q.Name, dns.TypeANY)) == 0 {
+			resp.Rcode = dns.RcodeNameError
+		}
+		_ = w.WriteMsg(resp)
+	})
+
+	pc, err := net.ListenPacket("udp", "127.0.0.1:0")
+	require.NoError(t, err)
+	started := make(chan struct{})
+	srv := &dns.Server{PacketConn: pc, Handler: handler, NotifyStartedFunc: func() { close(started) }}
+	go srv.ActivateAndServe()
+	<-started
+	t.Cleanup(func() { _ = srv.Shutdown() })
+	return pc.LocalAddr().(*net.UDPAddr).Port
+}
+
+func dnsMonitor(port int, host, resolveType string, timeout int) *Monitor {
+	return &Monitor{
+		ID:      "dns",
+		Type:    "dns",
+		Name:    host,
+		Timeout: timeout,
+		Config:  fmt.Sprintf(`{"host": %q, "resolver_server": "127.0.0.1", "port": %d, "resolve_type": %q}`, host, port, resolveType),
+	}
+}
+
+func TestDNSExecutor_Execute_RecordTypes(t *testing.T) {
+	executor := NewDNSExecutor(zap.NewNop().Sugar())
+	port := startDNSServer(t)
 
 	tests := []struct {
-		name           string
-		monitor        *Monitor
-		expectedStatus shared.MonitorStatus
-		expectMessage  string
+		resolveType string
+		host        string
+		wantMessage string
 	}{
-		{
-			name: "successful A record lookup",
-			monitor: &Monitor{
-				ID:       "monitor1",
-				Type:     "dns",
-				Name:     "Test DNS Monitor",
-				Interval: 30,
-				Timeout:  5,
-				Config: `{
-					"host": "google.com",
-					"resolver_server": "8.8.8.8",
-					"port": 53,
-					"resolve_type": "A"
-				}`,
-			},
-			expectedStatus: shared.MonitorStatusUp,
-			expectMessage:  "A records:",
-		},
-		{
-			name: "failed lookup with non-existent domain",
-			monitor: &Monitor{
-				ID:       "monitor2",
-				Type:     "dns",
-				Name:     "Test DNS Monitor",
-				Interval: 30,
-				Timeout:  5,
-				Config: `{
-					"host": "this-domain-definitely-does-not-exist-12345.com",
-					"resolver_server": "8.8.8.8",
-					"port": 53,
-					"resolve_type": "A"
-				}`,
-			},
-			expectedStatus: shared.MonitorStatusDown,
-			expectMessage:  "DNS lookup failed",
-		},
-		{
-			name: "invalid config",
-			monitor: &Monitor{
-				ID:       "monitor3",
-				Type:     "dns",
-				Name:     "Test DNS Monitor",
-				Interval: 30,
-				Timeout:  5,
-				Config:   `{invalid json}`,
-			},
-			expectedStatus: shared.MonitorStatusDown,
-		},
-		{
-			name: "timeout with very short timeout",
-			monitor: &Monitor{
-				ID:       "monitor4",
-				Type:     "dns",
-				Name:     "Test DNS Monitor",
-				Interval: 30,
-				Timeout:  1, // Very short timeout
-				Config: `{
-					"host": "google.com",
-					"resolver_server": "1.2.3.4",
-					"port": 53,
-					"resolve_type": "A"
-				}`,
-			},
-			expectedStatus: shared.MonitorStatusDown,
-		},
-		{
-			name: "successful CNAME lookup",
-			monitor: &Monitor{
-				ID:       "monitor5",
-				Type:     "dns",
-				Name:     "Test DNS Monitor",
-				Interval: 30,
-				Timeout:  5,
-				Config: `{
-					"host": "www.google.com",
-					"resolver_server": "8.8.8.8",
-					"port": 53,
-					"resolve_type": "CNAME"
-				}`,
-			},
-			expectedStatus: shared.MonitorStatusUp,
-			expectMessage:  "CNAME:",
-		},
-		{
-			name: "successful CAA record lookup",
-			monitor: &Monitor{
-				ID:       "monitor6",
-				Type:     "dns",
-				Name:     "Test DNS Monitor",
-				Interval: 30,
-				Timeout:  5,
-				Config: `{
-					"host": "cloudflare.com",
-					"resolver_server": "8.8.8.8",
-					"port": 53,
-					"resolve_type": "CAA"
-				}`,
-			},
-			expectedStatus: shared.MonitorStatusUp,
-			expectMessage:  "CAA records:",
-		},
-		{
-			name: "successful SOA record lookup",
-			monitor: &Monitor{
-				ID:       "monitor7",
-				Type:     "dns",
-				Name:     "Test DNS Monitor",
-				Interval: 30,
-				Timeout:  5,
-				Config: `{
-					"host": "example.com",
-					"resolver_server": "8.8.8.8",
-					"port": 53,
-					"resolve_type": "SOA"
-				}`,
-			},
-			expectedStatus: shared.MonitorStatusUp,
-			expectMessage:  "SOA:",
-		},
+		{"A", "peekaping.test", "A records: 192.0.2.10"},
+		{"AAAA", "peekaping.test", "AAAA records: 2001:db8::10"},
+		{"CNAME", "www.peekaping.test", "CNAME: peekaping.test."},
+		{"MX", "peekaping.test", "MX records: mail.peekaping.test. (priority: 10)"},
+		{"NS", "peekaping.test", "NS records: ns1.peekaping.test."},
+		{"TXT", "peekaping.test", "TXT records: v=spf1 -all"},
+		{"PTR", "192.0.2.10", "PTR records: peekaping.test."},
+		{"SRV", "_http._tcp.peekaping.test", "SRV records (cname: _http._tcp.peekaping.test.): peekaping.test.:8080 (priority: 10, weight: 5)"},
+		{"CAA", "peekaping.test", `CAA records: 0 issue "letsencrypt.org"`},
+		{"SOA", "peekaping.test", "SOA: Primary NS: ns1.peekaping.test., Admin: hostmaster.peekaping.test., Serial: 2026101701, Refresh: 7200, Retry: 3600, Expire: 1209600, Min TTL: 300"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.resolveType, func(t *testing.T) {
+			result := executor.Execute(context.Background(), dnsMonitor(port, tt.host, tt.resolveType, 2), nil)
+
+			assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
+			assert.Equal(t, tt.wantMessage, result.Message)
+		})
+	}
+}
+
+func TestDNSExecutor_Execute_NoRecords(t *testing.T) {
+	executor := NewDNSExecutor(zap.NewNop().Sugar())
+	port := startDNSServer(t)
+
+	tests := []struct {
+		name        string
+		host        string
+		resolveType string
+		wantMessage string
+	}{
+		{name: "non-existent domain", host: "missing.peekaping.test", resolveType: "A", wantMessage: "DNS lookup failed"},
+		{name: "no record of the type", host: "mail.peekaping.test", resolveType: "CAA", wantMessage: "No CAA records found for mail.peekaping.test"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-			defer cancel()
+			result := executor.Execute(context.Background(), dnsMonitor(port, tt.host, tt.resolveType, 2), nil)
 
-			result := executor.Execute(ctx, tt.monitor, nil)
-			assert.Equal(t, tt.expectedStatus, result.Status)
-			if tt.expectMessage != "" {
-				assert.Contains(t, result.Message, tt.expectMessage)
-			}
+			assert.Equal(t, shared.MonitorStatusDown, result.Status)
+			assert.Contains(t, result.Message, tt.wantMessage)
 		})
 	}
 }
 
-func TestDNSExecutor_Execute_DifferentRecordTypes(t *testing.T) {
-	// Setup
-	logger := zap.NewNop().Sugar()
-	executor := NewDNSExecutor(logger)
+func TestDNSExecutor_Execute_Timeout(t *testing.T) {
+	executor := NewDNSExecutor(zap.NewNop().Sugar())
+	// A UDP socket that is never read from, so no query gets an answer.
+	silent, err := net.ListenPacket("udp", "127.0.0.1:0")
+	require.NoError(t, err)
+	defer silent.Close()
+	port := silent.LocalAddr().(*net.UDPAddr).Port
 
-	// Test different record types with a known domain
-	recordTypes := []string{"A", "AAAA", "MX", "NS", "TXT"}
+	// A goes through net.Resolver, SOA through miekg/dns.
+	for _, resolveType := range []string{"A", "SOA"} {
+		t.Run(resolveType, func(t *testing.T) {
+			start := time.Now()
+			result := executor.Execute(context.Background(), dnsMonitor(port, "peekaping.test", resolveType, 1), nil)
 
-	for _, recordType := range recordTypes {
-		t.Run("record_type_"+recordType, func(t *testing.T) {
-			monitor := &Monitor{
-				ID:       "monitor1",
-				Type:     "dns",
-				Name:     "Test DNS Monitor",
-				Interval: 30,
-				Timeout:  5,
-				Config: `{
-					"host": "google.com",
-					"resolver_server": "8.8.8.8",
-					"port": 53,
-					"resolve_type": "` + recordType + `"
-				}`,
-			}
-
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-			defer cancel()
-
-			result := executor.Execute(ctx, monitor, nil)
-			// Most of these should succeed for google.com
-			assert.NotNil(t, result)
-			assert.NotEmpty(t, result.Message)
+			assert.Equal(t, shared.MonitorStatusDown, result.Status)
+			assert.Contains(t, result.Message, "DNS lookup failed")
+			assert.Less(t, time.Since(start), 1500*time.Millisecond, "should give up after the 1s monitor timeout")
 		})
 	}
 }
 
-func TestDNSExecutor_Execute_WithProxy(t *testing.T) {
-	// Setup
-	logger := zap.NewNop().Sugar()
-	executor := NewDNSExecutor(logger)
+func TestDNSExecutor_Execute_InvalidConfig(t *testing.T) {
+	monitor := &Monitor{ID: "dns", Type: "dns", Name: "dns", Timeout: 2, Config: `{invalid json}`}
 
-	monitor := &Monitor{
-		ID:       "monitor1",
-		Type:     "dns",
-		Name:     "Test DNS Monitor",
-		Interval: 30,
-		Timeout:  5,
-		Config: `{
-			"host": "example.com",
-			"resolver_server": "8.8.8.8",
-			"port": 53,
-			"resolve_type": "A"
-		}`,
-	}
+	result := NewDNSExecutor(zap.NewNop().Sugar()).Execute(context.Background(), monitor, nil)
 
-	// DNS executor should ignore proxy
-	proxy := &Proxy{
-		ID:       "proxy1",
-		Host:     "proxy.example.com",
-		Port:     8080,
-		Protocol: "http",
-	}
+	assert.Equal(t, shared.MonitorStatusDown, result.Status)
+	assert.Contains(t, result.Message, "failed to parse config")
+}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+func TestDNSExecutor_Execute_IgnoresProxy(t *testing.T) {
+	port := startDNSServer(t)
+	proxy := &Proxy{ID: "proxy1", Host: "127.0.0.1", Port: closedPort(t), Protocol: "http"}
 
-	result := executor.Execute(ctx, monitor, proxy)
-	assert.NotNil(t, result)
-	// Proxy should not affect DNS execution
+	result := NewDNSExecutor(zap.NewNop().Sugar()).Execute(context.Background(), dnsMonitor(port, "peekaping.test", "A", 2), proxy)
+
+	assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
 }
 
 func TestNewDNSExecutor(t *testing.T) {

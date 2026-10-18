@@ -993,7 +993,10 @@
         "message_format_label": "รูปแบบข้อความ",
         "username_description": "ชื่อผู้ใช้ที่จะแสดงเป็นผู้ส่งข้อความ หากไม่ระบุ จะใช้ชื่อบอทเริ่มต้น",
         "webhook_url_description": "URL ของ webhook จากการผสานรวม Slack ของคุณ คุณสามารถค้นหาได้ในอินสแตนซ์ Slack ของคุณที่เมนู การผสานรวม > Webhooks.",
-        "webhook_url_label": "URL ของ Webhook"
+        "webhook_url_label": "URL ของ Webhook",
+        "bot_token_label": "โทเค็นบอท",
+        "bot_token_description": "โทเค็นบอท Slack ของคุณสำหรับการตรวจสอบสิทธิ์ คุณสามารถสร้างโทเค็นบอทในการตั้งค่าแอป Slack ของคุณ",
+        "bot_token_note": "หมายเหตุ: เมื่อใช้โทเค็นบอท ชื่อช่องจะต้องระบุ"
       },
       "smtp": {
         "custom_body_label": "เนื้อหาที่กำหนดเอง",
@@ -1046,6 +1049,15 @@
         "template_placeholder": "ใส่เทมเพลตข้อความของคุณ",
         "use_template_description": "เปิดใช้งานเพื่อใช้เทมเพลตข้อความและรูปแบบที่กำหนดเอง",
         "use_template_label": "ใช้เทมเพลตข้อความ"
+      },
+      "teams": {
+        "more_info_about_webhooks": "ข้อมูลเพิ่มเติมเกี่ยวกับ Webhook ของ Workflows",
+        "server_url_description": "URL พื้นฐานของอินสแตนซ์ Peekaping ของคุณ ใช้สำหรับปุ่ม \"View in Peekaping\" หากเว้นว่างไว้ จะใช้ CLIENT_URL ของเซิร์ฟเวอร์",
+        "server_url_label": "URL ของเซิร์ฟเวอร์",
+        "setup_webhook_description_1": "ใน Teams ให้เปิด Workflows แล้วเลือกเทมเพลต \"Send webhook alerts to a channel\"",
+        "setup_webhook_description_2": "เลือกทีมและช่อง กดบันทึก จากนั้นคัดลอก URL ของ Webhook จากรายละเอียดเวิร์กโฟลว์",
+        "setup_webhook_title": "สร้าง Webhook ด้วย Teams Workflows",
+        "webhook_url_label": "URL ของ Webhook ใน Workflows"
       },
       "webhook": {
         "additional_headers_description": "เพิ่มหัวข้อ HTTP ที่กำหนดเองในคำขอ webhook.",

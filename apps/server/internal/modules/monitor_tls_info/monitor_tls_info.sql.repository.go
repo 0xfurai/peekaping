@@ -2,6 +2,8 @@ package monitor_tls_info
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -43,6 +45,9 @@ func (r *SQLRepositoryImpl) GetByMonitorID(ctx context.Context, monitorID string
 		Where("monitor_id = ?", monitorID).
 		Scan(ctx)
 
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
 	if err != nil {
 		return nil, err
 	}

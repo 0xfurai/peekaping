@@ -993,7 +993,10 @@
         "message_format_label": "消息格式",
         "username_description": "将作为消息发送者显示的用户名。如果未指定，将使用默认机器人名称。",
         "webhook_url_description": "来自您 Slack 集成的 webhook URL。您可以在 Slack 实例的 Integrations > Webhooks 中找到。",
-        "webhook_url_label": "Webhook 网址"
+        "webhook_url_label": "Webhook 网址",
+        "bot_token_label": "机器人令牌",
+        "bot_token_description": "用于身份验证的 Slack 机器人令牌。您可以在 Slack 应用设置中创建机器人令牌",
+        "bot_token_note": "注意：使用机器人令牌时，频道名称是必需的。"
       },
       "smtp": {
         "custom_body_label": "自定义正文",
@@ -1046,6 +1049,15 @@
         "template_placeholder": "请输入自定义消息模板",
         "use_template_description": "启用自定义消息模板和格式",
         "use_template_label": "使用消息模板"
+      },
+      "teams": {
+        "more_info_about_webhooks": "更多关于 Workflows Webhook 的信息",
+        "server_url_description": "您的 Peekaping 实例的基础地址，用于“View in Peekaping”按钮。如果留空，将使用服务器的 CLIENT_URL。",
+        "server_url_label": "服务器地址",
+        "setup_webhook_description_1": "在 Teams 中打开 Workflows，选择“Send webhook alerts to a channel”模板。",
+        "setup_webhook_description_2": "选择团队和频道，点击保存，然后从工作流详细信息中复制 Webhook 地址。",
+        "setup_webhook_title": "使用 Teams Workflows 创建 Webhook",
+        "webhook_url_label": "Workflows Webhook 地址"
       },
       "webhook": {
         "additional_headers_description": "为 webhook 请求添加自定义 HTTP 头部。",

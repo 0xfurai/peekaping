@@ -992,7 +992,10 @@
         "message_format_label": "შეტყობინების ფორმატი",
         "username_description": "სახელი, რომელიც გამოჩნდება შეტყობინების გამომგზავნად. თუ მითითებული არ იქნება, გამოყენებული იქნება ნაგულისხმევი ბოტის სახელი.",
         "webhook_url_description": "თქვენი Slack ინტეგრაციის webhook URL. შეგიძლიათ მოიძიოთ იგი თქვენს Slack instance‑ში Integrations > Webhooks ქვეშ.",
-        "webhook_url_label": "ვებჰუკ URL"
+        "webhook_url_label": "ვებჰუკ URL",
+        "bot_token_label": "ბოტის ტოკენი",
+        "bot_token_description": "თქვენი Slack ბოტის ტოკენი ავტენტიფიკაციისთვის. შეგიძლიათ შექმნათ ბოტის ტოკენი თქვენი Slack აპლიკაციის პარამეტრებში",
+        "bot_token_note": "შენიშვნა: ბოტის ტოკენის გამოყენებისას არხის სახელი აუცილებელია."
       },
       "smtp": {
         "custom_body_label": "ხელით მითითებული სხეული",
@@ -1045,6 +1048,15 @@
         "template_placeholder": "შეიყვანეთ თქვენი ხელით შექმნილი შეტყობინების შაბლონი",
         "use_template_description": "ჩართეთ, რომ გამოიყენოთ მორგებული შეტყობინების შაბლონი და ფორმატი.",
         "use_template_label": "გამოიყენე შეტყობინების შაბლონი"
+      },
+      "teams": {
+        "more_info_about_webhooks": "მეტი ინფორმაცია Workflows ვებჰუკების შესახებ",
+        "server_url_description": "თქვენი Peekaping ინსტანციის საბაზისო URL, რომელიც გამოიყენება ღილაკისთვის \"View in Peekaping\". თუ ცარიელია, გამოიყენება სერვერის CLIENT_URL.",
+        "server_url_label": "სერვერის URL",
+        "setup_webhook_description_1": "Teams-ში გახსენით Workflows და აირჩიეთ შაბლონი \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "აირჩიეთ გუნდი და არხი, დააჭირეთ შენახვას, შემდეგ დააკოპირეთ ვებჰუკის URL სამუშაო პროცესის დეტალებიდან.",
+        "setup_webhook_title": "შექმენით ვებჰუკი Teams Workflows-ით",
+        "webhook_url_label": "Workflows ვებჰუკის URL"
       },
       "webhook": {
         "additional_headers_description": "დაამატეთ მორგებული HTTP-Headers webhook‑ის მოთხოვნაში.",

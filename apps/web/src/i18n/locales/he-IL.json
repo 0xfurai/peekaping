@@ -993,7 +993,10 @@
         "message_format_label": "פורמט הודעה",
         "username_description": "שם המשתמש שיופיע כמשתמש המשלח. אם לא צוין, ישמש שם הבוט כברירת מחדל.",
         "webhook_url_description": "כתובת ה‑Webhook מהאינטגרציה של Slack שלך. תוכל למצוא זאת ב‑Slack שלך תחת Integrations > Webhooks.",
-        "webhook_url_label": "כתובת Webhook"
+        "webhook_url_label": "כתובת Webhook",
+        "bot_token_label": "אסימון בוט",
+        "bot_token_description": "אסימון הבוט של Slack שלך לאימות. תוכל ליצור אסימון בוט בהגדרות אפליקציית Slack שלך",
+        "bot_token_note": "הערה: בעת שימוש באסימון בוט, שם הערוץ נדרש."
       },
       "smtp": {
         "custom_body_label": "גוף מותאם אישית",
@@ -1046,6 +1049,15 @@
         "template_placeholder": "הזן תבנית הודעה מותאמת אישית",
         "use_template_description": "אפשר להשתמש בתבנית הודעה מותאמת אישית ובפורמט.",
         "use_template_label": "השתמש בתבנית הודעה"
+      },
+      "teams": {
+        "more_info_about_webhooks": "מידע נוסף על Webhooks של Workflows",
+        "server_url_description": "כתובת הבסיס של מופע Peekaping שלכם, המשמשת לכפתור \"View in Peekaping\". אם השדה ריק, נעשה שימוש ב-CLIENT_URL של השרת.",
+        "server_url_label": "כתובת השרת",
+        "setup_webhook_description_1": "ב-Teams, פתחו את Workflows ובחרו בתבנית \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "בחרו את הצוות והערוץ, לחצו על שמירה ולאחר מכן העתיקו את כתובת ה-Webhook מפרטי זרימת העבודה.",
+        "setup_webhook_title": "יצירת Webhook באמצעות Teams Workflows",
+        "webhook_url_label": "כתובת Webhook של Workflows"
       },
       "webhook": {
         "additional_headers_description": "הוסף כותרות HTTP מותאמות אישית לבקשת ה‑Webhook",

@@ -6,6 +6,7 @@ on:
       - 'apps/web/**'
       - 'apps/server/**'
       - 'package.json'
+      - '.nvmrc'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
       - 'patches/**'
@@ -17,6 +18,7 @@ on:
       - 'apps/web/**'
       - 'apps/server/**'
       - 'package.json'
+      - '.nvmrc'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
       - 'patches/**'
@@ -36,7 +38,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version-file: .nvmrc
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
@@ -81,7 +83,9 @@ jobs:
         working-directory: apps/server
         run: |
           pwd
-          go test -v -coverprofile=coverage.txt ./internal/...
+          # -coverpkg credits code that tests in other packages reach, such as
+          # the controllers internal/apitest drives through the router
+          go test -v -coverprofile=coverage.txt -coverpkg=./internal/... ./internal/...
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5

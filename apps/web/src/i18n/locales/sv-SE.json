@@ -993,7 +993,10 @@
         "message_format_label": "Meddelandeformat",
         "username_description": "Det användarnamnet som kommer att visas som avsändare av meddelandet. Om inget anges används standardbottnamnet.",
         "webhook_url_description": "Webhook-URL från din Slack-integration. Du hittar den i din Slack-instans under Integrationer &gt; Webhooks.",
-        "webhook_url_label": "Webhook‑URL"
+        "webhook_url_label": "Webhook‑URL",
+        "bot_token_label": "Bot-token",
+        "bot_token_description": "Din Slack bot-token för autentisering. Du kan skapa en bot-token i inställningarna för din Slack-app",
+        "bot_token_note": "Obs: När du använder en bot-token krävs kanalnamnet."
       },
       "smtp": {
         "custom_body_label": "Anpassad kropp",
@@ -1046,6 +1049,15 @@
         "template_placeholder": "Ange din anpassade meddelandemall",
         "use_template_description": "Aktivera för att använda en anpassad meddelandemall och format.",
         "use_template_label": "Använd meddelandemall"
+      },
+      "teams": {
+        "more_info_about_webhooks": "Mer information om Workflows-webhooks",
+        "server_url_description": "Bas-URL:en för din Peekaping-instans, som används för knappen \"View in Peekaping\". Om fältet är tomt används serverns CLIENT_URL.",
+        "server_url_label": "Server-URL",
+        "setup_webhook_description_1": "Öppna Workflows i Teams och välj mallen \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Välj team och kanal, välj Spara och kopiera sedan webhook-URL:en från arbetsflödets information.",
+        "setup_webhook_title": "Skapa en webhook med Teams Workflows",
+        "webhook_url_label": "Workflows Webhook-URL"
       },
       "webhook": {
         "additional_headers_description": "Lägg till anpassade HTTP‑huvuden i webhook‑förfrågan.",

@@ -3,6 +3,7 @@ package setting
 import (
 	"context"
 	"errors"
+	"peekaping/internal/modules/shared"
 	"testing"
 	"time"
 
@@ -276,17 +277,17 @@ func TestServiceImpl_InitializeSettings(t *testing.T) {
 					return dto.Value == "720h" && dto.Type == "string"
 				})).Return(&Model{Key: "REFRESH_TOKEN_EXPIRED_IN", Value: "720h", Type: "string"}, nil)
 
-				// ACCESS_TOKEN_SECRET_KEY - not exists
-				repo.On("GetByKey", mock.Anything, "ACCESS_TOKEN_SECRET_KEY").Return(nil, nil)
-				repo.On("SetByKey", mock.Anything, "ACCESS_TOKEN_SECRET_KEY", mock.MatchedBy(func(dto *Model) bool {
+				// access token secret key - not exists
+				repo.On("GetByKey", mock.Anything, shared.AccessTokenSecretKey).Return(nil, nil)
+				repo.On("SetByKey", mock.Anything, shared.AccessTokenSecretKey, mock.MatchedBy(func(dto *Model) bool {
 					return len(dto.Value) == 64 && dto.Type == "string" // 32 bytes = 64 hex chars
-				})).Return(&Model{Key: "ACCESS_TOKEN_SECRET_KEY", Value: "test_secret", Type: "string"}, nil)
+				})).Return(&Model{Key: shared.AccessTokenSecretKey, Value: "test_secret", Type: "string"}, nil)
 
-				// REFRESH_TOKEN_SECRET_KEY - not exists
-				repo.On("GetByKey", mock.Anything, "REFRESH_TOKEN_SECRET_KEY").Return(nil, nil)
-				repo.On("SetByKey", mock.Anything, "REFRESH_TOKEN_SECRET_KEY", mock.MatchedBy(func(dto *Model) bool {
+				// refresh token secret key - not exists
+				repo.On("GetByKey", mock.Anything, shared.RefreshTokenSecretKey).Return(nil, nil)
+				repo.On("SetByKey", mock.Anything, shared.RefreshTokenSecretKey, mock.MatchedBy(func(dto *Model) bool {
 					return len(dto.Value) == 64 && dto.Type == "string"
-				})).Return(&Model{Key: "REFRESH_TOKEN_SECRET_KEY", Value: "test_secret", Type: "string"}, nil)
+				})).Return(&Model{Key: shared.RefreshTokenSecretKey, Value: "test_secret", Type: "string"}, nil)
 
 				// cert_expiry_notify_days - not exists
 				repo.On("GetByKey", mock.Anything, "cert_expiry_notify_days").Return(nil, nil)
@@ -308,14 +309,14 @@ func TestServiceImpl_InitializeSettings(t *testing.T) {
 					return dto.Value == "720h" && dto.Type == "string"
 				})).Return(&Model{Key: "REFRESH_TOKEN_EXPIRED_IN", Value: "720h", Type: "string"}, nil)
 
-				// ACCESS_TOKEN_SECRET_KEY - exists but empty
-				repo.On("GetByKey", mock.Anything, "ACCESS_TOKEN_SECRET_KEY").Return(&Model{Key: "ACCESS_TOKEN_SECRET_KEY", Value: ""}, nil)
-				repo.On("SetByKey", mock.Anything, "ACCESS_TOKEN_SECRET_KEY", mock.MatchedBy(func(dto *Model) bool {
+				// access token secret key - exists but empty
+				repo.On("GetByKey", mock.Anything, shared.AccessTokenSecretKey).Return(&Model{Key: shared.AccessTokenSecretKey, Value: ""}, nil)
+				repo.On("SetByKey", mock.Anything, shared.AccessTokenSecretKey, mock.MatchedBy(func(dto *Model) bool {
 					return len(dto.Value) == 64 && dto.Type == "string"
-				})).Return(&Model{Key: "ACCESS_TOKEN_SECRET_KEY", Value: "test_secret", Type: "string"}, nil)
+				})).Return(&Model{Key: shared.AccessTokenSecretKey, Value: "test_secret", Type: "string"}, nil)
 
-				// REFRESH_TOKEN_SECRET_KEY - exists
-				repo.On("GetByKey", mock.Anything, "REFRESH_TOKEN_SECRET_KEY").Return(&Model{Key: "REFRESH_TOKEN_SECRET_KEY", Value: "existing_secret"}, nil)
+				// refresh token secret key - exists
+				repo.On("GetByKey", mock.Anything, shared.RefreshTokenSecretKey).Return(&Model{Key: shared.RefreshTokenSecretKey, Value: "existing_secret"}, nil)
 
 				// cert_expiry_notify_days - not exists
 				repo.On("GetByKey", mock.Anything, "cert_expiry_notify_days").Return(nil, nil)
@@ -356,7 +357,7 @@ func TestServiceImpl_InitializeSettings(t *testing.T) {
 				repo.On("SetByKey", mock.Anything, "ACCESS_TOKEN_EXPIRED_IN", mock.Anything).Return(&Model{}, nil)
 				repo.On("GetByKey", mock.Anything, "REFRESH_TOKEN_EXPIRED_IN").Return(nil, nil)
 				repo.On("SetByKey", mock.Anything, "REFRESH_TOKEN_EXPIRED_IN", mock.Anything).Return(&Model{}, nil)
-				repo.On("GetByKey", mock.Anything, "ACCESS_TOKEN_SECRET_KEY").Return(nil, errors.New("database error"))
+				repo.On("GetByKey", mock.Anything, shared.AccessTokenSecretKey).Return(nil, errors.New("database error"))
 			},
 			expectedError: errors.New("failed to initialize access token secret key: database error"),
 		},
@@ -367,8 +368,8 @@ func TestServiceImpl_InitializeSettings(t *testing.T) {
 				repo.On("SetByKey", mock.Anything, "ACCESS_TOKEN_EXPIRED_IN", mock.Anything).Return(&Model{}, nil)
 				repo.On("GetByKey", mock.Anything, "REFRESH_TOKEN_EXPIRED_IN").Return(nil, nil)
 				repo.On("SetByKey", mock.Anything, "REFRESH_TOKEN_EXPIRED_IN", mock.Anything).Return(&Model{}, nil)
-				repo.On("GetByKey", mock.Anything, "ACCESS_TOKEN_SECRET_KEY").Return(nil, nil)
-				repo.On("SetByKey", mock.Anything, "ACCESS_TOKEN_SECRET_KEY", mock.Anything).Return(nil, errors.New("database error"))
+				repo.On("GetByKey", mock.Anything, shared.AccessTokenSecretKey).Return(nil, nil)
+				repo.On("SetByKey", mock.Anything, shared.AccessTokenSecretKey, mock.Anything).Return(nil, errors.New("database error"))
 			},
 			expectedError: errors.New("failed to initialize access token secret key: database error"),
 		},
@@ -379,9 +380,9 @@ func TestServiceImpl_InitializeSettings(t *testing.T) {
 				repo.On("SetByKey", mock.Anything, "ACCESS_TOKEN_EXPIRED_IN", mock.Anything).Return(&Model{}, nil)
 				repo.On("GetByKey", mock.Anything, "REFRESH_TOKEN_EXPIRED_IN").Return(nil, nil)
 				repo.On("SetByKey", mock.Anything, "REFRESH_TOKEN_EXPIRED_IN", mock.Anything).Return(&Model{}, nil)
-				repo.On("GetByKey", mock.Anything, "ACCESS_TOKEN_SECRET_KEY").Return(nil, nil)
-				repo.On("SetByKey", mock.Anything, "ACCESS_TOKEN_SECRET_KEY", mock.Anything).Return(&Model{}, nil)
-				repo.On("GetByKey", mock.Anything, "REFRESH_TOKEN_SECRET_KEY").Return(nil, errors.New("database error"))
+				repo.On("GetByKey", mock.Anything, shared.AccessTokenSecretKey).Return(nil, nil)
+				repo.On("SetByKey", mock.Anything, shared.AccessTokenSecretKey, mock.Anything).Return(&Model{}, nil)
+				repo.On("GetByKey", mock.Anything, shared.RefreshTokenSecretKey).Return(nil, errors.New("database error"))
 			},
 			expectedError: errors.New("failed to initialize refresh token secret key: database error"),
 		},
@@ -392,10 +393,10 @@ func TestServiceImpl_InitializeSettings(t *testing.T) {
 				repo.On("SetByKey", mock.Anything, "ACCESS_TOKEN_EXPIRED_IN", mock.Anything).Return(&Model{}, nil)
 				repo.On("GetByKey", mock.Anything, "REFRESH_TOKEN_EXPIRED_IN").Return(nil, nil)
 				repo.On("SetByKey", mock.Anything, "REFRESH_TOKEN_EXPIRED_IN", mock.Anything).Return(&Model{}, nil)
-				repo.On("GetByKey", mock.Anything, "ACCESS_TOKEN_SECRET_KEY").Return(nil, nil)
-				repo.On("SetByKey", mock.Anything, "ACCESS_TOKEN_SECRET_KEY", mock.Anything).Return(&Model{}, nil)
-				repo.On("GetByKey", mock.Anything, "REFRESH_TOKEN_SECRET_KEY").Return(nil, nil)
-				repo.On("SetByKey", mock.Anything, "REFRESH_TOKEN_SECRET_KEY", mock.Anything).Return(nil, errors.New("database error"))
+				repo.On("GetByKey", mock.Anything, shared.AccessTokenSecretKey).Return(nil, nil)
+				repo.On("SetByKey", mock.Anything, shared.AccessTokenSecretKey, mock.Anything).Return(&Model{}, nil)
+				repo.On("GetByKey", mock.Anything, shared.RefreshTokenSecretKey).Return(nil, nil)
+				repo.On("SetByKey", mock.Anything, shared.RefreshTokenSecretKey, mock.Anything).Return(nil, errors.New("database error"))
 			},
 			expectedError: errors.New("failed to initialize refresh token secret key: database error"),
 		},

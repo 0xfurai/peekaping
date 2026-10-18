@@ -993,7 +993,10 @@
         "message_format_label": "Viestimuoto",
         "username_description": "Käyttäjänimi, joka näkyy viestin lähettäjänä. Jos se ei ole määritetty, käytetään oletusbotin nimeä.",
         "webhook_url_description": "Webhook‑URL Slack‑integraatiossasi. Löydät sen Slack‑tililtäsi kohdasta Integraatiot > Webhooks.",
-        "webhook_url_label": "Webhook-osoite"
+        "webhook_url_label": "Webhook-osoite",
+        "bot_token_label": "Bot-tunnus",
+        "bot_token_description": "Slack-botin tunnuksesi todennukseen. Voit luoda bot-tunnuksen Slack-sovelluksen asetuksista",
+        "bot_token_note": "Huom: Bot-tunnusta käytettäessä kanavan nimi on pakollinen."
       },
       "smtp": {
         "custom_body_label": "Mukautettu keho",
@@ -1046,6 +1049,15 @@
         "template_placeholder": "Syötä mukautettu viestimalli",
         "use_template_description": "Ota käyttöön mukautettu viestimalli ja muotoilu.",
         "use_template_label": "Käytä viestimallia"
+      },
+      "teams": {
+        "more_info_about_webhooks": "Lisätietoja Workflows-webhookeista",
+        "server_url_description": "Peekaping-instanssisi perus-URL, jota käytetään \"View in Peekaping\" -painikkeessa. Jos kenttä on tyhjä, käytetään palvelimen CLIENT_URL-arvoa.",
+        "server_url_label": "Palvelimen URL",
+        "setup_webhook_description_1": "Avaa Teamsissa Workflows ja valitse malli \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Valitse tiimi ja kanava, valitse Tallenna ja kopioi sitten webhook-URL työnkulun tiedoista.",
+        "setup_webhook_title": "Luo webhook Teams Workflowsilla",
+        "webhook_url_label": "Workflows-webhook-URL"
       },
       "webhook": {
         "additional_headers_description": "Lisää mukautetut HTTP-otsikot webhook-pyyntöön.",

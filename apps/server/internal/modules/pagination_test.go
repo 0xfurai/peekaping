@@ -91,6 +91,10 @@ func (s *monitorPaginationService) FindAll(_ context.Context, page, limit int, _
 	return nil, nil
 }
 
+func (s *monitorPaginationService) FindByID(_ context.Context, id string) (*monitor.Model, error) {
+	return &monitor.Model{ID: id}, nil
+}
+
 func (s *monitorPaginationService) GetHeartbeats(_ context.Context, _ string, limit, page int, _ *bool, _ bool) ([]*heartbeat.Model, error) {
 	s.record(page, limit)
 	return nil, nil

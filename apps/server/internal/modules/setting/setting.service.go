@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"peekaping/internal/modules/shared"
 
@@ -11,6 +12,59 @@ import (
 )
 
 type Service = shared.SettingService
+
+// userEditableKeys are the only settings the settings API can reach. Every
+// other key, such as the JWT signing secrets, is internal to the server.
+var userEditableKeys = map[string]bool{
+	"KEEP_DATA_PERIOD_DAYS": true,
+}
+
+// ErrSettingNotFound is returned when the settings API asks to change or
+// delete a key that isn't user-editable.
+var ErrSettingNotFound = errors.New("setting not found")
+
+// APIService is the settings service as the settings API sees it: keys that
+// aren't user-editable behave as if they don't exist.
+type APIService interface {
+	IsUserEditable(key string) bool
+	GetByKey(ctx context.Context, key string) (*Model, error)
+	SetByKey(ctx context.Context, key string, entity *Model) (*Model, error)
+	DeleteByKey(ctx context.Context, key string) error
+}
+
+type APIServiceImpl struct {
+	service Service
+}
+
+func NewAPIService(service Service) APIService {
+	return &APIServiceImpl{service}
+}
+
+// IsUserEditable reports whether the settings API can reach key.
+func (s *APIServiceImpl) IsUserEditable(key string) bool {
+	return userEditableKeys[key]
+}
+
+func (s *APIServiceImpl) GetByKey(ctx context.Context, key string) (*Model, error) {
+	if !userEditableKeys[key] {
+		return nil, nil
+	}
+	return s.service.GetByKey(ctx, key)
+}
+
+func (s *APIServiceImpl) SetByKey(ctx context.Context, key string, entity *Model) (*Model, error) {
+	if !userEditableKeys[key] {
+		return nil, ErrSettingNotFound
+	}
+	return s.service.SetByKey(ctx, key, entity)
+}
+
+func (s *APIServiceImpl) DeleteByKey(ctx context.Context, key string) error {
+	if !userEditableKeys[key] {
+		return ErrSettingNotFound
+	}
+	return s.service.DeleteByKey(ctx, key)
+}
 
 type ServiceImpl struct {
 	repository Repository
@@ -53,12 +107,12 @@ func (mr *ServiceImpl) InitializeSettings(ctx context.Context) error {
 	}
 
 	// Initialize access token secret key
-	if err := mr.initializeSecretKey(ctx, "ACCESS_TOKEN_SECRET_KEY"); err != nil {
+	if err := mr.initializeSecretKey(ctx, shared.AccessTokenSecretKey); err != nil {
 		return fmt.Errorf("failed to initialize access token secret key: %w", err)
 	}
 
 	// Initialize refresh token secret key
-	if err := mr.initializeSecretKey(ctx, "REFRESH_TOKEN_SECRET_KEY"); err != nil {
+	if err := mr.initializeSecretKey(ctx, shared.RefreshTokenSecretKey); err != nil {
 		return fmt.Errorf("failed to initialize refresh token secret key: %w", err)
 	}
 

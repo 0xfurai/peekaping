@@ -993,7 +993,10 @@
         "message_format_label": "Beskedformat",
         "username_description": "Det brugernavn, der vises som afsender af beskeden. Hvis ikke angivet, bruges standard botnavn.",
         "webhook_url_description": "Webhook-URL'en fra din Slack-integration. Du kan finde den i din Slack-forekomst under Integrationer > Webhooks.",
-        "webhook_url_label": "Webhook-URL"
+        "webhook_url_label": "Webhook-URL",
+        "bot_token_label": "Bot-token",
+        "bot_token_description": "Din Slack bot-token til godkendelse. Du kan oprette en bot-token i indstillingerne for din Slack-app",
+        "bot_token_note": "Bemærk: Når du bruger en bot-token, er kanalnavnet påkrævet."
       },
       "smtp": {
         "custom_body_label": "Brugerdefineret krop",
@@ -1046,6 +1049,15 @@
         "template_placeholder": "Indtast din brugerdefinerede beskedskabelon",
         "use_template_description": "Aktiver muligheden for at bruge en brugerdefineret beskedskabelon og format.",
         "use_template_label": "Brug beskedskabelon"
+      },
+      "teams": {
+        "more_info_about_webhooks": "Yderligere info om Workflows-webhooks",
+        "server_url_description": "Basis-URL'en for din Peekaping-instans, som bruges til knappen \"View in Peekaping\". Hvis feltet er tomt, bruges serverens CLIENT_URL.",
+        "server_url_label": "Server-URL",
+        "setup_webhook_description_1": "Åbn Workflows i Teams, og vælg skabelonen \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Vælg team og kanal, vælg Gem, og kopiér derefter webhook-URL'en fra workflowets detaljer.",
+        "setup_webhook_title": "Opret en webhook med Teams Workflows",
+        "webhook_url_label": "Workflows Webhook-URL"
       },
       "webhook": {
         "additional_headers_description": "Tilføj tilpassede HTTP-overskrifter til webhook‑anmodningen.",

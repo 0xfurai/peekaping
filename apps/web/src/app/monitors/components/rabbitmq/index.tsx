@@ -33,6 +33,7 @@ import { Input } from "@/components/ui/input";
 
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import type { MonitorCreateUpdateDto, MonitorMonitorResponseDto } from "@/api";
+import { getStrings, textTarget, type MonitorConfig, type MonitorTarget } from "../monitor-target";
 import { useEffect } from "react";
 import { useFieldArray } from "react-hook-form";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
@@ -91,6 +92,25 @@ export const serialize = (data: RabbitMQForm): MonitorCreateUpdateDto => {
     config: JSON.stringify(config),
   };
 };
+
+// Only the host and port, so credentials in a node URL stay out of the header.
+// A node the browser can't parse, such as one with port 99999 that the server
+// accepts, is left out rather than shown whole.
+const formatNode = (node: string): string | null => {
+  try {
+    return new URL(node).host;
+  } catch {
+    return null;
+  }
+};
+
+export const formatTarget = (config: MonitorConfig): MonitorTarget | null =>
+  textTarget(
+    getStrings(config, "nodes")
+      .map(formatNode)
+      .filter((host): host is string => !!host)
+      .join(", ") || null
+  );
 
 export const deserialize = (data: MonitorMonitorResponseDto): RabbitMQForm => {
   const config: RabbitMQConfig = data.config ? JSON.parse(data.config) : {};

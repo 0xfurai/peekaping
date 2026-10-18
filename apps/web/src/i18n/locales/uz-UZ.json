@@ -992,7 +992,10 @@
         "message_format_label": "Xabar formati",
         "username_description": "Xabar yuboruvchisiga ko'rsatiladigan foydalanuvchi nomi. Agar belgilansa, standart bot nomi ishlatiladi.",
         "webhook_url_description": "Slack integratsiyangizdagi webhook URLsi. Uni Slack nusxangizda Integratsiyalar > Webhooks bo‘limida topishingiz mumkin.",
-        "webhook_url_label": "Webhook URL"
+        "webhook_url_label": "Webhook URL",
+        "bot_token_label": "Bot token",
+        "bot_token_description": "Autentifikatsiya uchun Slack bot tokeningiz. Bot token yaratishingiz mumkin Slack ilovangiz sozlamalarida",
+        "bot_token_note": "Eslatma: Bot tokendan foydalanganda kanal nomi talab qilinadi."
       },
       "smtp": {
         "custom_body_label": "Maxsus matn",
@@ -1045,6 +1048,15 @@
         "template_placeholder": "Maxsus xabar shablonini kiriting",
         "use_template_description": "Maxsus xabar shablonidan va formatdan foydalanishni yoqish.",
         "use_template_label": "Xabar shablonidan foydalanish"
+      },
+      "teams": {
+        "more_info_about_webhooks": "Workflows webhooklari haqida qo'shimcha ma'lumot",
+        "server_url_description": "Peekaping nusxangizning asosiy URL manzili, \"View in Peekaping\" tugmasi uchun ishlatiladi. Bo'sh bo'lsa, serverning CLIENT_URL qiymati ishlatiladi.",
+        "server_url_label": "Server URL manzili",
+        "setup_webhook_description_1": "Teams'da Workflows'ni oching va \"Send webhook alerts to a channel\" shablonini tanlang.",
+        "setup_webhook_description_2": "Jamoa va kanalni tanlang, Saqlash tugmasini bosing, so'ng ish jarayoni tafsilotlaridan webhook URL manzilini nusxalang.",
+        "setup_webhook_title": "Teams Workflows yordamida webhook yarating",
+        "webhook_url_label": "Workflows Webhook manzili"
       },
       "webhook": {
         "additional_headers_description": "Webhook so‘rofiga maxsus HTTP sarlavhalar qo‘shing.",

@@ -24,6 +24,15 @@ type mongoModel struct {
 	UpdatedAt time.Time          `bson:"updated_at"`
 }
 
+// mongoUpdateModel holds the fields a partial update may set; nil fields are left out of $set
+type mongoUpdateModel struct {
+	Name      *string `bson:"name,omitempty"`
+	Type      *string `bson:"type,omitempty"`
+	Active    *bool   `bson:"active,omitempty"`
+	IsDefault *bool   `bson:"is_default,omitempty"`
+	Config    *string `bson:"config,omitempty"`
+}
+
 func toDomainModel(mm *mongoModel) *Model {
 	return &Model{
 		ID:        mm.ID.Hex(),
@@ -157,13 +166,20 @@ func (r *RepositoryImpl) UpdatePartial(ctx context.Context, id string, entity *U
 		return err // Return an error if the conversion fails
 	}
 
-	set, err := utils.ToBsonSet(entity)
+	set, err := utils.ToBsonSet(&mongoUpdateModel{
+		Name:      entity.Name,
+		Type:      entity.Type,
+		Active:    entity.Active,
+		IsDefault: entity.IsDefault,
+		Config:    entity.Config,
+	})
 	if err != nil {
 		return err
 	}
 
+	// Nothing to update, like the SQL repository
 	if len(set) == 0 {
-		return errors.New("Nothing to update")
+		return nil
 	}
 
 	// Always set UpdatedAt to current time

@@ -44,6 +44,7 @@ import * as SendGridForm from "../integrations/sendgrid-form";
 import * as PushbulletForm from "../integrations/pushbullet-form";
 import * as PagerTreeForm from "../integrations/pagertree";
 import * as LineForm from "../integrations/line-form";
+import * as TeamsForm from "../integrations/teams-form";
 
 import { useEffect } from "react";
 import { commonMutationErrorHandler } from "@/lib/utils";
@@ -72,6 +73,7 @@ const typeFormRegistry = {
   pushbullet: PushbulletForm,
   pagertree: PagerTreeForm,
   line: LineForm,
+  teams: TeamsForm,
 };
 
 const notificationSchema = z
@@ -104,8 +106,12 @@ const notificationSchema = z
       PushbulletForm.schema,
       PagerTreeForm.schema,
       LineForm.schema,
+      TeamsForm.schema,
     ] as const)
-  );
+  )
+  .superRefine((data, ctx) => {
+    if (data.type === "slack") SlackForm.refine(data, ctx);
+  });
 
 export type NotificationForm = z.infer<typeof notificationSchema>;
 
@@ -147,7 +153,11 @@ export default function CreateEditNotificationChannel({
   const { t } = useLocalizedTranslation();
   const baseForm = useForm<NotificationForm>({
     resolver: zodResolver(notificationSchema),
-    defaultValues: initialValues,
+    // A saved config lacks any field added to its type since it was stored
+    defaultValues: {
+      ...typeFormRegistry[initialValues.type]?.defaultValues,
+      ...initialValues,
+    },
   });
 
   const type = baseForm.watch("type");
@@ -232,6 +242,7 @@ export default function CreateEditNotificationChannel({
                     | "pushbullet"
                     | "pagertree"
                     | "line"
+                    | "teams"
                 );
               }}
               value={type}
