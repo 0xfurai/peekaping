@@ -111,8 +111,11 @@ func (mr *ServiceImpl) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
-	// Cascade delete monitor_notification relations
-	_ = mr.monitorNotificationService.DeleteByNotificationID(ctx, id)
+	// Cascade delete monitor_notification relations. The channel is already gone, so a
+	// failure here doesn't fail the delete: links left behind are skipped when sending.
+	if err := mr.monitorNotificationService.DeleteByNotificationID(ctx, id); err != nil {
+		mr.logger.Warnw("Failed to delete the deleted notification channel's monitor links", "id", id, "error", err)
+	}
 
 	return nil
 }
