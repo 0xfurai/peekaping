@@ -105,7 +105,10 @@ const notificationSchema = z
       PagerTreeForm.schema,
       LineForm.schema,
     ] as const)
-  );
+  )
+  .superRefine((data, ctx) => {
+    if (data.type === "slack") SlackForm.refine(data, ctx);
+  });
 
 export type NotificationForm = z.infer<typeof notificationSchema>;
 
@@ -147,7 +150,11 @@ export default function CreateEditNotificationChannel({
   const { t } = useLocalizedTranslation();
   const baseForm = useForm<NotificationForm>({
     resolver: zodResolver(notificationSchema),
-    defaultValues: initialValues,
+    // A saved config lacks any field added to its type since it was stored
+    defaultValues: {
+      ...typeFormRegistry[initialValues.type]?.defaultValues,
+      ...initialValues,
+    },
   });
 
   const type = baseForm.watch("type");

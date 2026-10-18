@@ -962,7 +962,10 @@
         "message_format_label": "Μορφή Μηνύματος",
         "username_description": "Το όνομα χρήστη που θα εμφανίζεται ως αποστολέας του μηνύματος. Αν δεν οριστεί, θα χρησιμοποιηθεί το προεπιλεγμένο όνομα του bot.",
         "webhook_url_description": "Η διεύθυνση URL του webhook από την ενσωμάτωση Slack. Μπορείτε να τη βρείτε στη δική σας εγκατάσταση Slack κάτω από Integrations > Webhooks.",
-        "webhook_url_label": "URL Webhook"
+        "webhook_url_label": "URL Webhook",
+        "bot_token_label": "Token Bot",
+        "bot_token_description": "Το token bot του Slack σας για τον έλεγχο ταυτότητας. Μπορείτε να δημιουργήσετε ένα token bot στις ρυθμίσεις της εφαρμογής Slack σας",
+        "bot_token_note": "Σημείωση: Όταν χρησιμοποιείτε token bot, το όνομα καναλιού είναι υποχρεωτικό."
       },
       "smtp": {
         "custom_body_label": "Προσαρμοσμένο σώμα",

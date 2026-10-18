@@ -962,7 +962,10 @@
         "message_format_label": "訊息格式",
         "username_description": "將作為訊息發件人顯示的使用者名稱。若未指定，將使用預設的機器人名稱。",
         "webhook_url_description": "來自您 Slack 整合的 Webhook URL。您可以在 Slack 實例的 Integrations > Webhooks 下找到它。",
-        "webhook_url_label": "Webhook 網址"
+        "webhook_url_label": "Webhook 網址",
+        "bot_token_label": "機器人令牌",
+        "bot_token_description": "用於身份驗證的 Slack 機器人令牌。您可以在 Slack 應用程式設定中建立機器人令牌",
+        "bot_token_note": "注意：使用機器人令牌時，頻道名稱是必需的。"
       },
       "smtp": {
         "custom_body_label": "自訂內容",

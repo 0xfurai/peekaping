@@ -85,11 +85,11 @@ func (mr *ServiceImpl) UpdateFull(ctx context.Context, id string, entity *Create
 func (mr *ServiceImpl) UpdatePartial(ctx context.Context, id string, entity *PartialUpdateDto) (*Model, error) {
 	updateModel := &UpdateModel{
 		ID:        &id,
-		Name:      &entity.Name,
-		Type:      &entity.Type,
-		Active:    &entity.Active,
-		IsDefault: &entity.IsDefault,
-		Config:    &entity.Config,
+		Name:      entity.Name,
+		Type:      entity.Type,
+		Active:    entity.Active,
+		IsDefault: entity.IsDefault,
+		Config:    entity.Config,
 	}
 
 	err := mr.repository.UpdatePartial(ctx, id, updateModel)

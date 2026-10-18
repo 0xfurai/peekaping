@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"peekaping/internal/config"
@@ -12,14 +14,17 @@ import (
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/version"
+	"regexp"
 	"strings"
+	"time"
 
 	liquid "github.com/osteele/liquid"
 	"go.uber.org/zap"
 )
 
 type SlackConfig struct {
-	WebhookURL    string `json:"slack_webhook_url" validate:"required,url"`
+	WebhookURL    string `json:"slack_webhook_url" validate:"omitempty,url"`
+	BotToken      string `json:"slack_bot_token"`
 	Username      string `json:"slack_username"`
 	IconEmoji     string `json:"slack_icon_emoji"`
 	Channel       string `json:"slack_channel"`
@@ -29,18 +34,53 @@ type SlackConfig struct {
 	Template      string `json:"template"`
 }
 
+// slackPostMessageURL is the Web API endpoint used when a bot token is configured
+const slackPostMessageURL = "https://slack.com/api/chat.postMessage"
+
+// slackErrorCode matches the reasons Slack webhooks return, such as no_service
+var slackErrorCode = regexp.MustCompile(`^[a-z_]{1,64}$`)
+
 type SlackSender struct {
 	logger *zap.SugaredLogger
 	config *config.Config
+	client *http.Client
+	apiURL string
 }
 
 // NewSlackSender creates a SlackSender
 func NewSlackSender(logger *zap.SugaredLogger, config *config.Config) *SlackSender {
-	return &SlackSender{logger: logger, config: config}
+	return &SlackSender{
+		logger: logger,
+		config: config,
+		client: &http.Client{
+			Timeout:       30 * time.Second,
+			CheckRedirect: rejectHTTPSDowngrade,
+		},
+		apiURL: slackPostMessageURL,
+	}
+}
+
+// rejectHTTPSDowngrade stops redirects from HTTPS to HTTP. net/http keeps the
+// Authorization header on same-host redirects, so the bot token would go out in cleartext.
+func rejectHTTPSDowngrade(req *http.Request, via []*http.Request) error {
+	if len(via) >= 10 {
+		return errors.New("stopped after 10 redirects")
+	}
+	if via[len(via)-1].URL.Scheme == "https" && req.URL.Scheme != "https" {
+		return http.ErrUseLastResponse
+	}
+	return nil
 }
 
 func (s *SlackSender) Unmarshal(configJSON string) (any, error) {
-	return GenericUnmarshal[SlackConfig](configJSON)
+	cfg, err := GenericUnmarshal[SlackConfig](configJSON)
+	if err != nil {
+		return nil, err
+	}
+	// Pasted tokens often end with a newline, which net/http rejects in a header
+	cfg.BotToken = strings.TrimSpace(cfg.BotToken)
+	cfg.Channel = strings.TrimSpace(cfg.Channel)
+	return cfg, nil
 }
 
 func (s *SlackSender) Validate(configJSON string) error {
@@ -48,7 +88,19 @@ func (s *SlackSender) Validate(configJSON string) error {
 	if err != nil {
 		return err
 	}
-	return GenericValidator(cfg.(*SlackConfig))
+	slackCfg := cfg.(*SlackConfig)
+
+	// Ensure either WebhookURL or BotToken is provided
+	if slackCfg.WebhookURL == "" && slackCfg.BotToken == "" {
+		return fmt.Errorf("either slack_webhook_url or slack_bot_token must be provided")
+	}
+
+	// If using BotToken, Channel is required
+	if slackCfg.BotToken != "" && slackCfg.Channel == "" {
+		return fmt.Errorf("slack_channel is required when using slack_bot_token")
+	}
+
+	return GenericValidator(slackCfg)
 }
 
 // extractAddress extracts the URL from monitor for "Visit site" button
@@ -177,11 +229,6 @@ func (s *SlackSender) Send(
 	}
 	cfg := cfgAny.(*SlackConfig)
 
-	// Debug logging
-	jsonDebug, _ := json.MarshalIndent(cfg, "", "  ")
-	s.logger.Debugf("Slack config: %s", string(jsonDebug))
-	s.logger.Infof("Sending Slack message to webhook: %s", cfg.WebhookURL)
-
 	// Prepare template bindings
 	bindings := PrepareTemplateBindings(monitor, heartbeat, message)
 
@@ -249,28 +296,61 @@ func (s *SlackSender) Send(
 
 	s.logger.Debugf("Slack payload: %s", string(jsonPayload))
 
-	// Create HTTP request
-	req, err := http.NewRequestWithContext(ctx, "POST", cfg.WebhookURL, bytes.NewBuffer(jsonPayload))
+	// Use Slack API if BotToken is provided, otherwise use webhook.
+	// The webhook URL is a secret, so it is never logged.
+	targetURL, target := cfg.WebhookURL, "webhook"
+	if cfg.BotToken != "" {
+		targetURL, target = s.apiURL, "API"
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, targetURL, bytes.NewBuffer(jsonPayload))
 	if err != nil {
 		return fmt.Errorf("failed to create HTTP request: %w", err)
 	}
-
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("User-Agent", "Peekaping-Slack/"+version.Version)
+	if cfg.BotToken != "" {
+		req.Header.Set("Authorization", "Bearer "+cfg.BotToken)
+		s.logger.Infof("Sending Slack message via API to channel: %s", cfg.Channel)
+	} else {
+		s.logger.Infof("Sending Slack message via webhook")
+	}
 
-	s.logger.Debugf("Sending Slack webhook request: %s", req.URL.String())
-
-	// Send request
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := s.client.Do(req)
 	if err != nil {
-		return fmt.Errorf("failed to send Slack webhook: %w", err)
+		// url.Error repeats the request URL, which would leak the webhook URL
+		var urlErr *url.Error
+		if errors.As(err, &urlErr) {
+			err = urlErr.Err
+		}
+		return fmt.Errorf("failed to send Slack message: %w", err)
 	}
 	defer resp.Body.Close()
 
-	// Check response status
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return fmt.Errorf("Slack webhook returned status: %s", resp.Status)
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
+		reason := strings.TrimSpace(string(body))
+		// Another endpoint could echo the secret webhook URL in its body or reason phrase,
+		// so only Slack's error codes and the standard status text are kept
+		status := strings.TrimSpace(fmt.Sprintf("%d %s", resp.StatusCode, http.StatusText(resp.StatusCode)))
+		if cfg.BotToken == "" && !slackErrorCode.MatchString(reason) {
+			return fmt.Errorf("Slack webhook returned status %s", status)
+		}
+		return fmt.Errorf("Slack %s returned status %s: %s", target, status, reason)
+	}
+
+	if cfg.BotToken != "" {
+		// chat.postMessage reports failures as HTTP 200 with ok=false
+		var apiResp struct {
+			OK    bool   `json:"ok"`
+			Error string `json:"error"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&apiResp); err != nil {
+			return fmt.Errorf("failed to decode Slack API response: %w", err)
+		}
+		if !apiResp.OK {
+			return fmt.Errorf("Slack API error: %s", apiResp.Error)
+		}
 	}
 
 	s.logger.Infof("Slack message sent successfully")

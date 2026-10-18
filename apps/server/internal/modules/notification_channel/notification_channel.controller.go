@@ -89,14 +89,7 @@ func (ic *Controller) Create(ctx *gin.Context) {
 		return
 	}
 
-	integration, ok := GetNotificationChannelProvider(notification_channel.Type)
-	if !ok {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Unsupported notification type"))
-		return
-	}
-	err := integration.Validate(notification_channel.Config)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid config: "+err.Error()))
+	if _, ok := validateConfig(ctx, notification_channel.Type, notification_channel.Config); !ok {
 		return
 	}
 
@@ -164,6 +157,10 @@ func (ic *Controller) UpdateFull(ctx *gin.Context) {
 		return
 	}
 
+	if _, ok := validateConfig(ctx, notification.Type, notification.Config); !ok {
+		return
+	}
+
 	updatedNotification, err := ic.service.UpdateFull(ctx, id, &notification)
 	if err != nil {
 		ic.logger.Errorw("Failed to update notification", "error", err)
@@ -199,6 +196,36 @@ func (ic *Controller) UpdatePartial(ctx *gin.Context) {
 	if err := utils.Validate.Struct(notification); err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		return
+	}
+
+	// Validate the type and config the channel will have after the update; omitted fields keep their saved values
+	if notification.Type != nil || notification.Config != nil {
+		existing, err := ic.service.FindByID(ctx, id)
+		if err != nil {
+			ic.logger.Errorw("Failed to fetch notification", "error", err)
+			ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+			return
+		}
+		if existing == nil {
+			ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Notification not found"))
+			return
+		}
+
+		channelType := existing.Type
+		if notification.Type != nil {
+			channelType = *notification.Type
+		}
+		config := ""
+		if existing.Config != nil {
+			config = *existing.Config
+		}
+		if notification.Config != nil {
+			config = *notification.Config
+		}
+
+		if _, ok := validateConfig(ctx, channelType, config); !ok {
+			return
+		}
 	}
 
 	updatedNotification, err := ic.service.UpdatePartial(ctx, id, &notification)
@@ -258,14 +285,8 @@ func (ic *Controller) Test(ctx *gin.Context) {
 		return
 	}
 
-	integration, ok := GetNotificationChannelProvider(notificationChannel.Type)
+	integration, ok := validateConfig(ctx, notificationChannel.Type, notificationChannel.Config)
 	if !ok {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Unsupported notification type"))
-		return
-	}
-	err := integration.Validate(notificationChannel.Config)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid config: "+err.Error()))
 		return
 	}
 
@@ -281,7 +302,7 @@ func (ic *Controller) Test(ctx *gin.Context) {
 	}
 
 	// Send the test notification
-	err = integration.Send(ctx, notificationChannel.Config, testMessage, testMonitor, testHeartbeat)
+	err := integration.Send(ctx, notificationChannel.Config, testMessage, testMonitor, testHeartbeat)
 	if err != nil {
 		ic.logger.Errorw("Failed to send test notification", "error", err)
 		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Failed to send test notification: "+err.Error()))
@@ -289,4 +310,19 @@ func (ic *Controller) Test(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, utils.NewSuccessResponse[any]("Test notification sent successfully", nil))
+}
+
+// validateConfig looks up the provider for channelType and checks config with it.
+// On failure it writes the 400 response and returns false.
+func validateConfig(ctx *gin.Context, channelType, config string) (NotificationChannelProvider, bool) {
+	integration, ok := GetNotificationChannelProvider(channelType)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Unsupported notification type"))
+		return nil, false
+	}
+	if err := integration.Validate(config); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid config: "+err.Error()))
+		return nil, false
+	}
+	return integration, true
 }

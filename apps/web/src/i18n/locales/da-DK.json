@@ -962,7 +962,10 @@
         "message_format_label": "Beskedformat",
         "username_description": "Det brugernavn, der vises som afsender af beskeden. Hvis ikke angivet, bruges standard botnavn.",
         "webhook_url_description": "Webhook-URL'en fra din Slack-integration. Du kan finde den i din Slack-forekomst under Integrationer > Webhooks.",
-        "webhook_url_label": "Webhook-URL"
+        "webhook_url_label": "Webhook-URL",
+        "bot_token_label": "Bot-token",
+        "bot_token_description": "Din Slack bot-token til godkendelse. Du kan oprette en bot-token i indstillingerne for din Slack-app",
+        "bot_token_note": "Bemærk: Når du bruger en bot-token, er kanalnavnet påkrævet."
       },
       "smtp": {
         "custom_body_label": "Brugerdefineret krop",
