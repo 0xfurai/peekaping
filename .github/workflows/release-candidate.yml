@@ -95,7 +95,7 @@ jobs:
 
       - name: Update version in package.json (web) - temp
         run: |
-          npm version ${{ github.event.inputs.version }} --no-git-tag-version
+          npm pkg set version=${{ github.event.inputs.version }}
         working-directory: ./apps/web
 
       - name: Write version.ts for web - temp
@@ -476,7 +476,7 @@ jobs:
 
       - name: Update version in package.json (web) - temp
         run: |
-          npm version ${{ github.event.inputs.version }} --no-git-tag-version
+          npm pkg set version=${{ github.event.inputs.version }}
         working-directory: ./apps/web
 
       - name: Update version in main.go (server) - temp
