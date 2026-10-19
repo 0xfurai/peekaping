@@ -69,6 +69,7 @@ func main() {
 	container.Provide(func(cfg *config.Config, logger *zap.SugaredLogger) (*asynq.Server, error) {
 		redisOpt := asynq.RedisClientOpt{
 			Addr:     fmt.Sprintf("%s:%s", cfg.RedisHost, cfg.RedisPort),
+			Username: cfg.RedisUsername,
 			Password: cfg.RedisPassword,
 			DB:       cfg.RedisDB,
 		}

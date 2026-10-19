@@ -255,6 +255,7 @@ func (b *RedisEventBus) GetStats() map[string]interface{} {
 func ProvideRedisClient(cfg *config.Config, logger *zap.SugaredLogger) (*redis.Client, error) {
 	client := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%s", cfg.RedisHost, cfg.RedisPort),
+		Username: cfg.RedisUsername,
 		Password: cfg.RedisPassword,
 		DB:       cfg.RedisDB,
 	})

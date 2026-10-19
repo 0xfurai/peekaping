@@ -58,6 +58,7 @@ The API server subscribes to Redis pub/sub events and broadcasts them to connect
 |----------|------|----------|---------|-------------|
 | `REDIS_HOST` | string | Yes | `redis` | Redis server hostname |
 | `REDIS_PORT` | string | Yes | `6379` | Redis server port |
+| `REDIS_USERNAME` | string | No | `""` | Redis ACL username (omit for password-only/default user auth) |
 | `REDIS_PASSWORD` | string | No | `""` | Redis password (if authentication enabled) |
 | `REDIS_DB` | int | No | `0` | Redis database number (0-15) |
 
@@ -222,4 +223,3 @@ The second rule fires for a monitor whose latest heartbeat is more than 5 minute
 - [Producer](./producer.md) - Schedules monitor health checks
 - [Worker](./worker.md) - Executes health checks
 - [Ingester](./ingester.md) - Processes health check results
-

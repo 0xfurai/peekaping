@@ -21,6 +21,9 @@ config:
     # DB_PORT: "5432"
     # REDIS_HOST: "peekaping-redis-master.peekaping.svc.cluster.local"
     # REDIS_PORT: "6379"
+    # Redis ACL username. Optional: set it for a Redis ACL user, omit it for password-only/default user auth.
+    # Keep REDIS_PASSWORD in the existingSecret, not here: this map is rendered into a ConfigMap.
+    # REDIS_USERNAME: "peekaping"
     # Serve the unauthenticated Prometheus /metrics endpoint on the API port (off by default).
     # METRICS_ENABLED: "true"
 

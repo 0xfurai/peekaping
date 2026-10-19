@@ -20,3 +20,17 @@ func TestMetricsAreEnabledOnlyByMetricsEnabled(t *testing.T) {
 	require.NoError(t, err)
 	assert.True(t, cfg.ToInternalConfig().MetricsEnabled)
 }
+
+func TestRedisUsernameIsLoadedFromEnv(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("REDIS_USERNAME", "peekaping")
+	t.Setenv("REDIS_PASSWORD", "secret")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+
+	internalCfg := cfg.ToInternalConfig()
+	assert.Equal(t, "peekaping", internalCfg.RedisUsername)
+	assert.Equal(t, "secret", internalCfg.RedisPassword)
+}
