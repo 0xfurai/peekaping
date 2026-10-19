@@ -18,8 +18,7 @@ test.use({ storageState: { cookies: [], origins: [] } });
 
 // Answers the lookup with a 404, and can hold requests open so a test can look at the app
 // while one is in flight. `release` opens the gate for good: requests that arrive afterwards
-// are answered straight away, which matters because a page load can send the lookup twice
-// while the app is starting up.
+// are answered straight away.
 async function stubDomainLookup(page: Page) {
   let holding = false;
   let held = 0;
