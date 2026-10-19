@@ -109,6 +109,22 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// Repair monitors whose stored status differs from their latest heartbeat. It runs beside
+	// startup and only logs, so a failure never keeps the API from serving.
+	err = container.Invoke(func(monitorService monitor.Service, logger *zap.SugaredLogger) {
+		go func() {
+			repaired, err := monitorService.RepairStoredStatuses(context.Background())
+			if err != nil {
+				logger.Errorw("Failed to repair some monitor statuses", "repaired", repaired, "error", err)
+				return
+			}
+			logger.Infow("Repaired monitor statuses", "repaired", repaired)
+		}()
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Start the Prometheus metrics collector
 	metricsCtx, stopMetrics := context.WithCancel(context.Background())
 	defer stopMetrics()
