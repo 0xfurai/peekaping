@@ -8,11 +8,19 @@ import { setTargetStatus, targetURL } from './support/fake-target';
 const nextCheck = { timeout: 60_000 };
 
 // A page that has joined its websocket room shows a heartbeat within moments of
-// another page showing it. Pending itself lasts one 20-second retry interval.
+// another page showing it. Pending itself lasts one 20-second check: the server
+// still schedules it at the check interval, not the retry interval (PP-65).
 const sameHeartbeat = { timeout: 10_000 };
 
+// The monitor list narrowed to one test's monitors. The id is lowercase on
+// purpose: on Postgres the list search matches only a lowercase term (PP-72).
+const listFor = (id: string) => `/monitors?search=${id}`;
+
 test('a failing target shows Pending, then Down, on the card and the page', async ({ page, context, request }) => {
-  test.setTimeout(240_000);
+  // If every wait runs out they add up to 280 seconds: 2 x 10 to join the rooms,
+  // then 60, 60, 60, 10, 60 and 10 for the statuses. The timeout has to be longer,
+  // so a failing wait fails on its own assertion and the finally block still runs.
+  test.setTimeout(300_000);
   const id = randomID();
   const name = `Flaky ${id}`;
   const created: string[] = [];
@@ -28,7 +36,7 @@ test('a failing target shows Pending, then Down, on the card and the page', asyn
     // Both pages join their rooms before the target fails and stay put until
     // Down: Pending is too short to reload for, and they update live.
     const monitorPage = await context.newPage();
-    await openLive(page, `/monitors?search=${id}`, 'monitor:all');
+    await openLive(page, listFor(id), 'monitor:all');
     await openLive(monitorPage, `/monitors/${monitor.id}`, `monitor:${monitor.id}`);
     const onCard = cardStatusOf(page, name);
     const onPage = pageStatusOf(monitorPage);
@@ -49,6 +57,8 @@ test('a failing target shows Pending, then Down, on the card and the page', asyn
 });
 
 test('a monitor in a maintenance window shows Maintenance on the card and the page', async ({ page, context }) => {
+  // If every wait runs out they add up to 140 seconds: 2 x 10 to join the rooms
+  // and 2 x 60 for the statuses, well inside the timeout.
   test.setTimeout(240_000);
   const id = randomID();
   const name = `Planned ${id}`;
@@ -63,8 +73,8 @@ test('a monitor in a maintenance window shows Maintenance on the card and the pa
     created.push(`maintenances/${await createManualMaintenance(api, `Window ${id}`, [monitor.id])}`);
 
     const monitorPage = await context.newPage();
-    await page.goto(`/monitors?search=${id}`);
-    await monitorPage.goto(`/monitors/${monitor.id}`);
+    await openLive(page, listFor(id), 'monitor:all');
+    await openLive(monitorPage, `/monitors/${monitor.id}`, `monitor:${monitor.id}`);
 
     await expect(cardStatusOf(page, name)).toHaveText('Maintenance', nextCheck);
     await expect(pageStatusOf(monitorPage)).toHaveText('Maintenance', nextCheck);

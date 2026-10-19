@@ -20,9 +20,10 @@ export async function adminAPI(page: Page): Promise<APIRequestContext> {
   return request.newContext({ baseURL, extraHTTPHeaders: { Authorization: `Bearer ${accessToken}` } });
 }
 
-// Creates an HTTP monitor checked every 20 seconds, the minimum. By default the
-// first failed check is Down; with max retries it spends them in Pending first,
-// retrying every 20 seconds.
+// Creates an HTTP monitor checked every 20 seconds, the minimum. A monitor that
+// is Up and then starts failing spends its max retries in Pending, one failed
+// check each, before it is Down. One whose first check fails is Down at once, and
+// that failure already counts as one of its retries (PP-135).
 export async function createHTTPMonitor(
   api: APIRequestContext,
   name: string,
