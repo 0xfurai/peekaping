@@ -22,11 +22,11 @@ func assertBadge(t *testing.T, w *httptest.ResponseRecorder, title string) {
 }
 
 // badgePaths are every badge route for a monitor, with the badge each one
-// renders for a monitor that's Up and has no heartbeats yet.
+// renders for a monitor that's Pending and has no heartbeats yet.
 func badgePaths(monitorID string) map[string]string {
 	base := "/api/v1/badge/" + monitorID
 	return map[string]string{
-		base + "/status":     "status: Up",
+		base + "/status":     "status: Pending",
 		base + "/uptime":     "uptime (24h): 0.0%",
 		base + "/uptime/720": "uptime (30d): 0.0%",
 		base + "/ping":       "ping (24h): 0ms",
@@ -85,7 +85,7 @@ func TestBadges_FallBackOnInvalidOptions(t *testing.T) {
 	for path, title := range map[string]string{
 		base + "/uptime/not-a-number":                "uptime (24h): 0.0%",
 		base + "/ping/-720":                          "ping (24h): 0ms",
-		base + "/status?style=unknown":               "status: Up",
+		base + "/status?style=unknown":               "status: Pending",
 		base + "/cert-exp?warnDays=soon&downDays=-1": "cert exp: N/A",
 	} {
 		t.Run(path, func(t *testing.T) {

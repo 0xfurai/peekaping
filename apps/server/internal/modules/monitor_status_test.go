@@ -101,3 +101,17 @@ func TestMonitorFullUpdateKeepsStoredStatus(t *testing.T) {
 		assert.Equal(t, shared.MonitorStatusMaintenance, stored.Status)
 	})
 }
+
+func TestMonitorCreateStoresTheGivenStatus(t *testing.T) {
+	onEveryMonitorBackend(t, func(t *testing.T, repo monitor.MonitorRepository) {
+		ctx := context.Background()
+
+		created, err := repo.Create(ctx, &monitor.Model{Type: "http", Name: "Monitor", Interval: 60, Timeout: 10, Active: true, Config: "{}", Status: shared.MonitorStatusPending})
+		require.NoError(t, err)
+
+		assert.Equal(t, shared.MonitorStatusPending, created.Status)
+		stored, err := repo.FindByID(ctx, created.ID)
+		require.NoError(t, err)
+		assert.Equal(t, shared.MonitorStatusPending, stored.Status)
+	})
+}

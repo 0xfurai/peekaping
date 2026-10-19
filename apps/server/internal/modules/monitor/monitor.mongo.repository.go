@@ -141,7 +141,7 @@ func (r *MonitorRepositoryImpl) Create(ctx context.Context, monitor *Model) (*Mo
 		RetryInterval:  monitor.RetryInterval,
 		ResendInterval: monitor.ResendInterval,
 		Active:         monitor.Active,
-		Status:         0,
+		Status:         monitor.Status,
 		CreatedAt:      time.Now().UTC(),
 		UpdatedAt:      time.Now().UTC(),
 		Config:         monitor.Config,

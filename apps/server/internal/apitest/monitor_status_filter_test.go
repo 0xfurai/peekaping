@@ -94,6 +94,20 @@ func TestMonitorStatusFilter_DownMonitorChangedWithPatchStaysUnderDown(t *testin
 	assert.Empty(t, a.monitorIDsWithStatus(t, shared.MonitorStatusUp))
 }
 
+func TestMonitorStatusFilter_NewMonitorIsPendingUntilItsFirstHeartbeat(t *testing.T) {
+	a := newAppWithMonitorListener(t)
+
+	createdMonitor := decode[monitorStatusResponse](t, a.request(t, http.MethodPost, "/api/v1/monitors", pushMonitorBody("Checkout", "checkout-push-token"), a.asAdmin), http.StatusCreated)
+
+	assert.Equal(t, int(shared.MonitorStatusPending), createdMonitor.Status)
+	assert.Empty(t, a.monitorIDsWithStatus(t, shared.MonitorStatusUp))
+	assert.Empty(t, a.monitorIDsWithStatus(t, shared.MonitorStatusDown))
+
+	a.reportStatus(t, createdMonitor.ID, shared.MonitorStatusUp)
+	assert.Equal(t, []string{createdMonitor.ID}, a.monitorIDsWithStatus(t, shared.MonitorStatusUp))
+	assert.Empty(t, a.monitorIDsWithStatus(t, shared.MonitorStatusDown))
+}
+
 func TestMonitorStatusFilter_PutResponseShowsTheStoredMonitor(t *testing.T) {
 	a := newAppWithMonitorListener(t)
 	id := a.createMonitor(t, "Checkout", "checkout-push-token")

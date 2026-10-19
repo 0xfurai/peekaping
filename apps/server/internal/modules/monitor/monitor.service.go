@@ -92,7 +92,7 @@ func (mr *MonitorServiceImpl) Create(ctx context.Context, monitorCreateDto *Crea
 		RetryInterval:  monitorCreateDto.RetryInterval,
 		ResendInterval: monitorCreateDto.ResendInterval,
 		Active:         monitorCreateDto.Active,
-		Status:         shared.MonitorStatusUp,
+		Status:         shared.MonitorStatusPending,
 		CreatedAt:      time.Now().UTC(),
 		Config:         monitorCreateDto.Config,
 		ProxyId:        monitorCreateDto.ProxyId,

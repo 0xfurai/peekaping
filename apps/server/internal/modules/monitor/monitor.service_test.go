@@ -369,11 +369,11 @@ func TestMonitorService_Create(t *testing.T) {
 			RetryInterval:  45,
 			ResendInterval: 10,
 			Active:         true,
-			Status:         shared.MonitorStatusUp,
+			Status:         shared.MonitorStatusPending,
 			Config:         "{}",
 			ProxyId:        "proxy123",
 			PushToken:      "token123",
-		}, saved, "the repository gets every field of the request, and the monitor starts Up")
+		}, saved, "the repository gets every field of the request, and the monitor starts Pending")
 		mockRepo.AssertExpectations(t)
 	})
 
