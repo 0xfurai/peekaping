@@ -154,7 +154,7 @@ Response:
 
 ## Prometheus Metrics
 
-The API server can serve the state of your monitors in the Prometheus text format, so a Prometheus and Grafana stack can scrape it without polling the REST API or wiring up notification channels. It is off by default. Set `METRICS_ENABLED=true` to turn it on:
+The API server can serve the status of your monitors in the Prometheus text format, so a Prometheus and Grafana stack can scrape it without polling the REST API or wiring up notification channels. It is off by default. Set `METRICS_ENABLED=true` to turn it on:
 
 ```http
 GET /metrics
@@ -172,9 +172,10 @@ The API server keeps the latest heartbeat of each active monitor in memory, fed 
 
 - After a restart, the metrics come back from each monitor's latest heartbeat without waiting for its next check.
 - Every 5 minutes the API server re-checks the active monitors. A pause, rename or delete whose event was missed is corrected, and a monitor with no metrics gets its latest heartbeat loaded.
-- A monitor that is paused or deleted has no metrics. A resumed monitor is back with its next heartbeat, or at the next re-check.
+- A monitor that is paused or deleted has no metrics.
+- A resumed monitor comes back with its next heartbeat. If the 5-minute re-check runs first, it comes back with its last heartbeat from before the pause, so its timestamp is old until the monitor is checked. An alert on that timestamp, like the second example below, can fire for a moment.
 - A renamed monitor, or one whose type changed, moves to its new labels at once with the same values.
-- A monitor with no heartbeat yet has no metrics.
+- A new monitor has no metrics until its first heartbeat. Resetting a monitor's data deletes its heartbeats but keeps its old metrics until its next check.
 
 ### Exposed metrics
 
@@ -184,7 +185,7 @@ Each monitor metric carries the labels `monitor_id`, `monitor_name` and `monitor
 |--------|------|-------------|
 | `peekaping_monitor_status` | gauge | Status: `0` Down, `1` Up, `2` Pending, `3` Maintenance |
 | `peekaping_monitor_response_seconds` | gauge | Response time, in seconds. Only present while the status is Up |
-| `peekaping_monitor_last_heartbeat_timestamp_seconds` | gauge | Unix time of the heartbeat. Use it to catch a monitor that stopped being checked |
+| `peekaping_monitor_last_heartbeat_timestamp_seconds` | gauge | Unix time of the heartbeat. Use it to catch a stale monitor, one Peekaping has stopped checking |
 | `peekaping_build_info` | gauge | Always `1`; the server version is in the `version` label |
 
 The standard Go runtime and process metrics (`go_*`, `process_*`) are also exposed.
@@ -209,7 +210,7 @@ groups:
       - alert: PeekapingMonitorDown
         expr: peekaping_monitor_status == 0
         for: 1m
-      - alert: PeekapingMonitorNotChecked
+      - alert: PeekapingMonitorStale
         expr: time() - peekaping_monitor_last_heartbeat_timestamp_seconds > 300
         for: 1m
 ```
