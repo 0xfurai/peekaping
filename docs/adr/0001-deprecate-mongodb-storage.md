@@ -52,6 +52,5 @@ Waiting tickets:
 - **PP-207**: move the SQL code. Touch Mongo only to compile.
 - **PP-148, PP-149, PP-150** (organization scoping): written for the SQL repositories. Mongo behaviour is decided in PP-142.
 - **PP-24** (single-container mode): SQLite and PostgreSQL only.
-- **PP-70, PP-184, PP-183**: judged case by case against the Mongo-only bug rule above.
-
-Follow-up to file: `DB_TYPE=mongodb` passes config validation, but `dig.go` only matches `mongo`. So `mongodb` registers no repositories and the app won't start. A bug that stops the app starting is one the Mongo-only bug rule allows us to fix. Removal deletes the `mongodb` value anyway.
+- **PP-70, PP-184, PP-183, PP-72**: judged case by case against the Mongo-only bug rule above.
+- **PP-67**: `DB_TYPE=mongodb` passes config validation, but `dig.go` only matches `mongo`. So `mongodb` registers no repositories and the app won't start. A bug that stops the app starting is one the Mongo-only bug rule allows us to fix. Removal deletes the `mongodb` value anyway.
