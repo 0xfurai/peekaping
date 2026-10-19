@@ -2,8 +2,8 @@ package httpx
 
 import (
 	"net/http"
-	"time"
 
+	"github.com/felixge/httpsnoop"
 	"go.uber.org/zap"
 )
 
@@ -23,9 +23,14 @@ func Recovery(logger *zap.SugaredLogger) Middleware {
 func Logger(logger *zap.SugaredLogger) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			started := time.Now()
-			next.ServeHTTP(w, r)
-			logger.Infow("HTTP request", "method", r.Method, "path", r.URL.Path, "duration", time.Since(started))
+			// Preserve optional ResponseWriter interfaces for streaming and upgrades.
+			metrics := httpsnoop.CaptureMetrics(next, w, r)
+			path := r.URL.Path
+			if r.URL.RawQuery != "" {
+				path += "?" + r.URL.RawQuery
+			}
+			logger.Infow("HTTP request", "method", r.Method, "path", path,
+				"status", metrics.Code, "client_ip", ClientIP(r), "size", metrics.Written, "duration", metrics.Duration)
 		})
 	}
 }

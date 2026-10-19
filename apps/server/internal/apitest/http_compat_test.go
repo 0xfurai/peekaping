@@ -10,9 +10,12 @@ import (
 	"testing"
 	"time"
 
+	"peekaping/internal/httpx"
+
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
 
 func TestHTTPRoutingCompatibility(t *testing.T) {
@@ -63,7 +66,8 @@ func TestSwaggerHTTP(t *testing.T) {
 
 func TestSocketIOThroughAPIRouter(t *testing.T) {
 	a := newAppWithAdmin(t)
-	srv := httptest.NewServer(a.router)
+	// Development logging must retain the writer's upgrade interfaces too.
+	srv := httptest.NewServer(httpx.Logger(zap.NewNop().Sugar())(a.router))
 	t.Cleanup(func() { srv.CloseClientConnections(); srv.Close() })
 	client := &http.Client{Timeout: 3 * time.Second}
 	base := srv.URL + "/socket.io/?EIO=4&transport=polling&token=" + url.QueryEscape(a.accessToken)
@@ -91,8 +95,19 @@ func TestSocketIOThroughAPIRouter(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, strings.HasPrefix(string(data), "40"), string(data))
 
-	wsURL := "ws" + strings.TrimPrefix(srv.URL, "http") + "/socket.io/?EIO=4&transport=websocket&token=" + url.QueryEscape(a.accessToken)
+	upgradeURL := strings.Replace("ws"+strings.TrimPrefix(base, "http"), "transport=polling", "transport=websocket", 1)
 	dialer := websocket.Dialer{HandshakeTimeout: 3 * time.Second}
+	upgraded, _, err := dialer.Dial(upgradeURL, nil)
+	require.NoError(t, err)
+	defer upgraded.Close()
+	require.NoError(t, upgraded.SetReadDeadline(time.Now().Add(3*time.Second)))
+	require.NoError(t, upgraded.WriteMessage(websocket.TextMessage, []byte("2probe")))
+	_, data, err = upgraded.ReadMessage()
+	require.NoError(t, err)
+	require.Equal(t, "3probe", string(data))
+	require.NoError(t, upgraded.WriteMessage(websocket.TextMessage, []byte("5")))
+
+	wsURL := "ws" + strings.TrimPrefix(srv.URL, "http") + "/socket.io/?EIO=4&transport=websocket&token=" + url.QueryEscape(a.accessToken)
 	conn, _, err := dialer.Dial(wsURL, nil)
 	require.NoError(t, err)
 	defer conn.Close()

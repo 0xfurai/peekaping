@@ -86,4 +86,21 @@ func TestRecoveryAndLogging(t *testing.T) {
 	assert.Empty(t, w.Body.String())
 	assert.Equal(t, 1, logs.FilterMessage("HTTP handler panic").Len())
 	assert.Equal(t, 1, logs.FilterMessage("HTTP request").Len())
+	entry := logs.FilterMessage("HTTP request").All()[0].ContextMap()
+	assert.EqualValues(t, 500, entry["status"])
+	assert.Equal(t, "192.0.2.1", entry["client_ip"])
+	assert.EqualValues(t, 0, entry["size"])
+}
+
+func TestAccessLogIncludesResponseAndQuery(t *testing.T) {
+	core, logs := observer.New(zap.DebugLevel)
+	handler := httpx.Logger(zap.New(core).Sugar())(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		httpx.Text(w, 418, "teapot")
+	}))
+	handler.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest("GET", "/items?page=2", nil))
+	entry := logs.FilterMessage("HTTP request").All()[0].ContextMap()
+	assert.EqualValues(t, 418, entry["status"])
+	assert.Equal(t, "/items?page=2", entry["path"])
+	assert.EqualValues(t, 6, entry["size"])
+	assert.Equal(t, "GET", entry["method"])
 }
