@@ -20,15 +20,23 @@ export async function adminAPI(page: Page): Promise<APIRequestContext> {
   return request.newContext({ baseURL, extraHTTPHeaders: { Authorization: `Bearer ${accessToken}` } });
 }
 
-// Creates an HTTP monitor checked every 20 seconds, the minimum.
-export async function createHTTPMonitor(api: APIRequestContext, name: string, url: string): Promise<{ id: string }> {
+// Creates an HTTP monitor checked every 20 seconds, the minimum. A monitor that
+// is Up and then starts failing spends its max retries in Pending, one failed
+// check each, before it is Down. One whose first check fails is Down at once, and
+// that failure already counts as one of its retries (PP-135).
+export async function createHTTPMonitor(
+  api: APIRequestContext,
+  name: string,
+  url: string,
+  { maxRetries = 0 } = {},
+): Promise<{ id: string }> {
   const response = await api.post('monitors', {
     data: {
       type: 'http',
       name,
       interval: 20,
       timeout: 16,
-      max_retries: 0,
+      max_retries: maxRetries,
       retry_interval: 20,
       resend_interval: 0,
       active: true,
