@@ -76,7 +76,10 @@ The system uses Redis pub/sub for real-time event communication:
 
 ## Data Stores
 
-### Database (PostgreSQL / MongoDB / SQLite)
+### Database (PostgreSQL / SQLite)
+
+MongoDB storage is [deprecated](../self-hosting/docker-with-mongo.md) but still works.
+
 - **User accounts** and authentication
 - **Monitor configurations**
 - **Heartbeat history**
@@ -104,19 +107,20 @@ The system uses Redis pub/sub for real-time event communication:
 
 ## Supported Databases
 
-Peekaping supports three database backends:
+Peekaping supports two database backends for new installs:
 
 | Database   | Use Case                     | Features                           |
 |------------|------------------------------|------------------------------------|
 | PostgreSQL | Production deployments       | Full feature support, best performance |
-| MongoDB    | NoSQL requirements           | Document-based storage             |
 | SQLite     | Development & small setups   | Single file, no server required    |
+
+MongoDB storage is deprecated. Existing installs keep working, but it gets no new features and will be removed in a future release. See [Docker + MongoDB](../self-hosting/docker-with-mongo.md).
 
 ## Technology Stack
 
 - **Language**: Go 1.26+
 - **HTTP Server and Router**: Go `net/http` and `http.ServeMux`
-- **Database**: Bun ORM (SQL) / MongoDB Driver
+- **Database**: Bun ORM (SQL) / MongoDB Driver (MongoDB storage is deprecated)
 - **Queue**: Asynq (Redis-based)
 - **Event Bus**: Redis Pub/Sub
 - **Logging**: Zap

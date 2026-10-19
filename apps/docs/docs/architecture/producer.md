@@ -60,7 +60,7 @@ The producer runs multiple concurrent goroutines:
 
 | Variable | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|
-| `DB_TYPE` | string | Yes | - | Database type: `postgres`, `mysql`, `sqlite`, `mongo`, `mongodb` |
+| `DB_TYPE` | string | Yes | - | Database type: `postgres`, `mysql`, `sqlite`, `mongo`, `mongodb` (`mongo` and `mongodb` select MongoDB storage, which is [deprecated](../self-hosting/docker-with-mongo.md)) |
 | `DB_HOST` | string | Conditional | - | Database host (not required for SQLite) |
 | `DB_PORT` | string | Conditional | - | Database port (not required for SQLite) |
 | `DB_NAME` | string | Yes | - | Database name or SQLite file path |
