@@ -50,8 +50,10 @@ async function createMonitor(page: any, monitorName: string, monitorType: string
 
   // Submit the form
   await page.getByRole('button', { name: 'Create' }).click();
-  // await page.waitForURL(/.*\/monitors/, { timeout: 10000 });
-  await page.waitForURL(/.*\/monitors\/[A-Za-z0-9-]+$/, { timeout: 10000 });
+  // Wait for the redirect to the new monitor. `/monitors/new` also matches an
+  // id pattern, so without the lookahead this returns at once and the goto below
+  // aborts the in-flight create request.
+  await page.waitForURL(/.*\/monitors\/(?!new$)[A-Za-z0-9-]+$/, { timeout: 10000 });
 
   // Go back to monitors list if we're on the detail page
   if (!page.url().endsWith('/monitors')) {
