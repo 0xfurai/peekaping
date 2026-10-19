@@ -111,6 +111,7 @@
     },
     "validation": {
       "email_invalid": "请输入有效的电子邮件地址",
+      "password_required": "密码为必填项",
       "password_min_length": "密码必须至少包含8个字符",
       "passwords_mismatch": "密码不匹配"
     }

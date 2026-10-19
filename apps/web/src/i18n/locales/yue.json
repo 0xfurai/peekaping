@@ -111,6 +111,7 @@
     },
     "validation": {
       "email_invalid": "請輸入有效電郵地址",
+      "password_required": "必須輸入密碼",
       "password_min_length": "密碼必須至少 8 個字元",
       "passwords_mismatch": "兩個密碼唔同"
     }

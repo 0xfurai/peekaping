@@ -111,6 +111,7 @@
     },
     "validation": {
       "email_invalid": "Por favor, insira um endereço de e‑mail válido",
+      "password_required": "A senha é obrigatória",
       "password_min_length": "A senha deve ter pelo menos 8 caracteres",
       "passwords_mismatch": "As senhas não coincidem"
     }

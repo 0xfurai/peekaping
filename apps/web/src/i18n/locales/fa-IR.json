@@ -111,6 +111,7 @@
     },
     "validation": {
       "email_invalid": "لطفاً یک آدرس ایمیل معتبر وارد کنید",
+      "password_required": "رمز عبور الزامی است",
       "password_min_length": "رمز عبور باید حداقل 8 کاراکتر باشد",
       "passwords_mismatch": "گذرواژه‌ها مطابقت ندارند"
     }

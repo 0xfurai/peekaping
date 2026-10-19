@@ -111,6 +111,7 @@
     },
     "validation": {
       "email_invalid": "Silakan masukkan alamat email yang valid",
+      "password_required": "Kata sandi wajib diisi",
       "password_min_length": "Kata sandi harus minimal 8 karakter",
       "passwords_mismatch": "Kata sandi tidak cocok"
     }

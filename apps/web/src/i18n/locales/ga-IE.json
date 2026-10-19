@@ -111,6 +111,7 @@
     },
     "validation": {
       "email_invalid": "Cuir isteach seoladh ríomhphost bailí le do thoil",
+      "password_required": "Tá an focal faire riachtanach",
       "password_min_length": "Caithfidh an focal faire a bheith ar a laghad 8 carachtar.",
       "passwords_mismatch": "Ní ionann na pasfhocail"
     }

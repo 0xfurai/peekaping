@@ -111,6 +111,7 @@
     },
     "validation": {
       "email_invalid": "يرجى إدخال عنوان بريد إلكتروني صالح",
+      "password_required": "كلمة المرور مطلوبة",
       "password_min_length": "يجب أن تكون كلمة المرور مكونة من 8 أحرف على الأقل",
       "passwords_mismatch": "كلمات المرور غير متطابقة"
     }
