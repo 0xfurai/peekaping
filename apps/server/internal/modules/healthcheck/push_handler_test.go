@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"peekaping/internal/httpx"
+	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/shared"
@@ -97,6 +98,14 @@ func (q *capturingQueue) EnqueueUnique(_ context.Context, _ string, payload inte
 	return &queue.TaskInfo{}, nil
 }
 
+// noMaintenance is a maintenance service with no windows, so a pushed
+// heartbeat keeps the status it reports.
+type noMaintenance struct{ maintenance.Service }
+
+func (noMaintenance) GetMaintenancesByMonitorID(context.Context, string) ([]*maintenance.Model, error) {
+	return nil, nil
+}
+
 func TestPushEndpoint(t *testing.T) {
 
 	push := func(t *testing.T, query string) PushIngesterPayload {
@@ -104,7 +113,7 @@ func TestPushEndpoint(t *testing.T) {
 		monitors := &pushMonitorService{monitor: &monitor.Model{ID: "mon-1", Type: "push", Active: true, PushToken: "token"}}
 		q := &capturingQueue{}
 		router := httpx.NewRouter()
-		RegisterPushEndpoint(router.Group("/api/v1"), monitors, nil, q, zap.NewNop().Sugar())
+		RegisterPushEndpoint(router.Group("/api/v1"), monitors, nil, q, noMaintenance{}, zap.NewNop().Sugar())
 
 		rec := httptest.NewRecorder()
 		router.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/api/v1/push/token?"+query, nil))

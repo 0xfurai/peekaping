@@ -30,7 +30,7 @@ func OpenAPI() *huma.OpenAPI {
 		proxy.NewRoute(nil, nil), nil,
 		setting.NewRoute(nil, nil), nil,
 		nil, nil, nil,
-		maintenance.NewRoute(nil, nil), nil,
+		maintenance.NewRoute(nil, nil), nil, nil,
 		status_page.NewRoute(nil, nil), nil,
 		tag.NewRoute(nil, nil), nil,
 		badge.NewRoute(nil), nil,

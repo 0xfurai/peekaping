@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/heartbeat"
+	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/queue"
 	"peekaping/internal/utils"
@@ -50,6 +51,7 @@ func RegisterPushEndpoint(
 	monitorService monitor.Service,
 	heartbeatService heartbeat.Service,
 	queueService queue.Service,
+	maintenanceService maintenance.Service,
 	logger *zap.SugaredLogger,
 ) {
 	httpx.Register(router, "GET", "/push/{token}", huma.Operation{Summary: "Send a heartbeat to a push monitor", Tags: []string{"Push"}, Errors: []int{400, 404, 500}}, func(ctx context.Context, input *PushInput) (*httpx.Output[PushResponse], error) {
@@ -75,10 +77,29 @@ func RegisterPushEndpoint(
 		if msg == "" {
 			msg = defaultPushMessage(status)
 		}
-		pingStr := r.URL.Query().Get("ping")
-		ping, ok := parsePushPing(pingStr)
-		if !ok {
-			logger.Warnw("Ignoring invalid push ping", "monitor_id", monitor.ID, "ping", pingStr)
+		ping := 0
+
+		// A push monitor inside an active maintenance window reports
+		// Maintenance, like a scheduled check, so planned downtime neither
+		// shows as Down nor sends notifications.
+		underMaintenance, err := monitorUnderMaintenance(ctx, maintenanceService, monitor.ID)
+		if err != nil {
+			// Keep the heartbeat the service pushed rather than lose it.
+			logger.Errorw("Failed to check if push monitor is under maintenance",
+				"monitor_id", monitor.ID,
+				"error", err,
+			)
+		}
+		if underMaintenance {
+			status = shared.MonitorStatusMaintenance
+			msg = maintenanceMessage
+		} else {
+			pingStr := r.URL.Query().Get("ping")
+			var ok bool
+			ping, ok = parsePushPing(pingStr)
+			if !ok {
+				logger.Warnw("Ignoring invalid push ping", "monitor_id", monitor.ID, "ping", pingStr)
+			}
 		}
 
 		now := time.Now().UTC()
@@ -99,7 +120,7 @@ func RegisterPushEndpoint(
 			PingMs:             ping,
 			StartTime:          now,
 			EndTime:            now,
-			IsUnderMaintenance: false, // Push monitors don't have maintenance windows in the same way
+			IsUnderMaintenance: underMaintenance,
 			TLSInfo:            nil,
 			CheckCertExpiry:    false,
 		}
@@ -127,6 +148,34 @@ func RegisterPushEndpoint(
 
 		return httpx.Reply(http.StatusOK, PushResponse{OK: "true"})
 	})
+}
+
+// maintenanceMessage matches the message a scheduled check records while the
+// monitor is inside a maintenance window.
+const maintenanceMessage = "Monitor under maintenance"
+
+// monitorUnderMaintenance reports whether any maintenance window attached to
+// the monitor is active. A window that can't be read doesn't hide another
+// active window; the caller keeps the pushed heartbeat rather than drop it.
+func monitorUnderMaintenance(ctx context.Context, service maintenance.Service, monitorID string) (bool, error) {
+	maintenances, err := service.GetMaintenancesByMonitorID(ctx, monitorID)
+	if err != nil {
+		return false, err
+	}
+	var firstErr error
+	for _, m := range maintenances {
+		underMaintenance, err := service.IsUnderMaintenance(ctx, m)
+		if err != nil {
+			if firstErr == nil {
+				firstErr = err
+			}
+			continue
+		}
+		if underMaintenance {
+			return true, nil
+		}
+	}
+	return false, firstErr
 }
 
 // parsePushStatus maps the status query value to a monitor status. Like
