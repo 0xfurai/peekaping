@@ -52,7 +52,7 @@ func TestProvideSQLDB_WriteAfterCancelledRead(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	for i := range 5000 {
+	for i := range 20000 {
 		// Cancel somewhere between before the first row and after the last one.
 		// Whether the read finishes or not doesn't matter here, only that the
 		// API connection is usable afterwards.
