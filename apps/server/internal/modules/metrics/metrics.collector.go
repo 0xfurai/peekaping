@@ -82,6 +82,8 @@ func NewCollector(monitorService monitor.Service, heartbeatService heartbeat.Ser
 
 // Handler returns an http handler serving the Prometheus exposition format from a registry
 // of its own: the Monitors, the build info, and the Go runtime and process collectors.
+// It strips the CORS headers the router adds, since Prometheus doesn't need them and they
+// would let a page on any origin read the Monitors' names.
 func (c *Collector) Handler() http.HandlerFunc {
 	registry := prometheus.NewRegistry()
 	registry.MustRegister(
@@ -94,9 +96,17 @@ func (c *Collector) Handler() http.HandlerFunc {
 		collectors.NewGoCollector(),
 		collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}),
 	)
-	return promhttp.HandlerFor(registry, promhttp.HandlerOpts{
+	exposition := promhttp.HandlerFor(registry, promhttp.HandlerOpts{
 		ErrorHandling: promhttp.ContinueOnError,
-	}).ServeHTTP
+	})
+	return func(w http.ResponseWriter, r *http.Request) {
+		for name := range w.Header() {
+			if strings.HasPrefix(name, "Access-Control-") {
+				w.Header().Del(name)
+			}
+		}
+		exposition.ServeHTTP(w, r)
+	}
 }
 
 func (c *Collector) Describe(ch chan<- *prometheus.Desc) {

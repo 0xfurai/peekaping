@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"strconv"
 	"strings"
 	"testing"
@@ -92,6 +93,20 @@ func TestMetrics_ServeThePrometheusFormatWithoutCredentials(t *testing.T) {
 	assert.Contains(t, w.Body.String(), "# TYPE peekaping_build_info gauge")
 	assert.Contains(t, w.Body.String(), "# TYPE go_goroutines gauge")
 	assert.NotContains(t, a.request(t, http.MethodGet, "/openapi.json", nil).Body.String(), "/metrics")
+}
+
+func TestMetrics_AreNotReadableByAPageOnAnotherOrigin(t *testing.T) {
+	a := newApp(t, withMetrics)
+	req := httptest.NewRequest(http.MethodGet, "/metrics", nil)
+	req.Header.Set("Origin", "http://evil.example")
+	w := httptest.NewRecorder()
+
+	a.router.ServeHTTP(w, req)
+
+	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+	for name := range w.Header() {
+		assert.False(t, strings.HasPrefix(name, "Access-Control-"), "unexpected header %s", name)
+	}
 }
 
 func TestMetrics_FollowAMonitorThroughItsLife(t *testing.T) {
