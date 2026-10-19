@@ -362,19 +362,27 @@ func (s *ServiceImpl) StatPointsSummary(statsList []*Stat) *Stats {
 	}
 }
 
+// summaryWindows lists the longest window served by each finite-resolution period.
+// Retention must cover the whole window; day stats serve longer windows indefinitely.
+var summaryWindows = []struct {
+	Period StatPeriod
+	Window time.Duration
+}{
+	{StatMinutely, 24 * time.Hour},
+	{StatHourly, 90 * 24 * time.Hour},
+}
+
 // summaryPeriod picks the buckets to read for a window. A bucket counts only when
 // it starts inside the window, so the window's start is off by up to one bucket:
 // a minute for windows up to 24h, an hour up to 90 days, a day beyond that.
 // Stats retention must keep minute rows for at least 24h and hour rows for 90 days.
 func summaryPeriod(window time.Duration) StatPeriod {
-	switch {
-	case window <= 24*time.Hour:
-		return StatMinutely
-	case window <= 90*24*time.Hour:
-		return StatHourly
-	default:
-		return StatDaily
+	for _, summary := range summaryWindows {
+		if window <= summary.Window {
+			return summary.Period
+		}
 	}
+	return StatDaily
 }
 
 // Summarize returns uptime and response times for the monitor's heartbeats from
