@@ -22,7 +22,8 @@ export type ReceivedWebhook = {
   receivedAt: string;
   headers: Record<string, string>;
   // Webhook channels with the JSON body send {heartbeat, monitor, msg}.
-  body: { heartbeat: { status: number; msg: string }; monitor: { name: string }; msg: string };
+  // heartbeat.time is an RFC 3339 timestamp with up to nanosecond precision.
+  body: { heartbeat: { status: number; msg: string; time: string }; monitor: { name: string }; msg: string };
 };
 
 export async function receivedWebhooks(request: APIRequestContext, id: string): Promise<ReceivedWebhook[]> {

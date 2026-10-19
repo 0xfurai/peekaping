@@ -30,16 +30,22 @@ test('An HTTP monitor goes Down, sends a webhook notification, and comes back Up
 
     await setTargetStatus(request, id, 500);
     await expect(currentStatus).toHaveText('Down', nextCheck);
-    await expect.poll(() => notifiedStatuses(request, id, monitorName), nextCheck).toContain(DOWN);
+    // The first check's Up notification can arrive before this one, after the
+    // recovery's, or never, so notifications are matched by heartbeat time, not order.
+    let downAt = 0;
+    await expect
+      .poll(async () => {
+        downAt = (await notifiedTimes(request, id, monitorName, DOWN))[0] ?? 0;
+        return downAt;
+      }, nextCheck)
+      .toBeGreaterThan(0);
 
     await setTargetStatus(request, id, 200);
     await expect(currentStatus).toHaveText('Up', nextCheck);
+    // The recovery's Up is the one from a heartbeat after the Down. The first check's is older.
     await expect
-      .poll(async () => {
-        const statuses = await notifiedStatuses(request, id, monitorName);
-        return statuses.slice(statuses.indexOf(DOWN));
-      }, nextCheck)
-      .toEqual([DOWN, UP]);
+      .poll(async () => (await notifiedTimes(request, id, monitorName, UP)).some((time) => time > downAt), nextCheck)
+      .toBe(true);
   } finally {
     const api = await adminAPI(page);
     for (const path of created.reverse()) await deleteCreated(api, path);
@@ -47,12 +53,17 @@ test('An HTTP monitor goes Down, sends a webhook notification, and comes back Up
   }
 });
 
-// The heartbeat statuses the channel delivered for this monitor, oldest first.
-// The first check's own notification (Up) may or may not be among them.
-async function notifiedStatuses(request: APIRequestContext, id: string, monitorName: string) {
+// The times of the heartbeats behind this monitor's notifications with the given
+// status, oldest first, in ms since the epoch.
+async function notifiedTimes(request: APIRequestContext, id: string, monitorName: string, status: number) {
   return (await receivedWebhooks(request, id))
-    .filter((webhook) => webhook.body.monitor?.name === monitorName)
-    .map((webhook) => webhook.body.heartbeat.status);
+    .filter((webhook) => webhook.body.monitor?.name === monitorName && webhook.body.heartbeat.status === status)
+    .map((webhook) => {
+      const time = Date.parse(webhook.body.heartbeat.time);
+      expect(time, `heartbeat time ${webhook.body.heartbeat.time} of a webhook`).not.toBeNaN();
+      return time;
+    })
+    .sort((a, b) => a - b);
 }
 
 async function createWebhookChannel(page: Page, created: string[], name: string, url: string) {
