@@ -160,13 +160,22 @@ func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, id string, monitor
 		return nil, err
 	}
 
+	// Read the monitor back: the response and the event carry what is stored, including its status and created_at
+	updatedMonitor, err := mr.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if updatedMonitor == nil {
+		return nil, fmt.Errorf("%w: monitor %s", ErrMonitorNotFound, id)
+	}
+
 	// Emit monitor updated event
 	mr.eventBus.Publish(events.Event{
 		Type:    events.MonitorUpdated,
-		Payload: model,
+		Payload: updatedMonitor,
 	})
 
-	return model, nil
+	return updatedMonitor, nil
 }
 
 func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, monitor *PartialUpdateDto, noPublish bool) (*Model, error) {

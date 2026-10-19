@@ -49,9 +49,12 @@ func (a *app) reportStatus(t *testing.T, monitorID string, status shared.Monitor
 	}, 5*time.Second, 20*time.Millisecond)
 }
 
+// getMonitor reads a Monitor in the shape a PUT returns it, so created_at compares exactly.
 func (a *app) getMonitor(t *testing.T, monitorID string) monitorStatusResponse {
 	t.Helper()
-	return decode[monitorStatusResponse](t, a.request(t, http.MethodGet, "/api/v1/monitors/"+monitorID, nil, a.asAdmin), http.StatusOK)
+	monitors := decode[[]monitorStatusResponse](t, a.request(t, http.MethodGet, "/api/v1/monitors/batch?ids="+monitorID, nil, a.asAdmin), http.StatusOK)
+	require.Len(t, monitors, 1)
+	return monitors[0]
 }
 
 // monitorIDsWithStatus returns the IDs the monitor list shows under a status filter.
@@ -75,4 +78,17 @@ func TestMonitorStatusFilter_DownMonitorEditedWithPutStaysUnderDown(t *testing.T
 	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
 	assert.Equal(t, []string{id}, a.monitorIDsWithStatus(t, shared.MonitorStatusDown))
 	assert.Empty(t, a.monitorIDsWithStatus(t, shared.MonitorStatusUp))
+}
+
+func TestMonitorStatusFilter_PutResponseShowsTheStoredMonitor(t *testing.T) {
+	a := newAppWithMonitorListener(t)
+	id := a.createMonitor(t, "Checkout", "checkout-push-token")
+	a.reportStatus(t, id, shared.MonitorStatusMaintenance)
+	before := a.getMonitor(t, id)
+	require.False(t, before.CreatedAt.IsZero())
+
+	got := decode[monitorStatusResponse](t, a.request(t, http.MethodPut, "/api/v1/monitors/"+id, pushMonitorBody("Checkout API", "checkout-push-token"), a.asAdmin), http.StatusOK)
+
+	assert.Equal(t, int(shared.MonitorStatusMaintenance), got.Status)
+	assert.True(t, got.CreatedAt.Equal(before.CreatedAt), "created_at %v should stay %v", got.CreatedAt, before.CreatedAt)
 }
