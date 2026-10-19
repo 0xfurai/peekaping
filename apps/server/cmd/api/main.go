@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"peekaping/docs"
@@ -141,7 +142,7 @@ func main() {
 		// Start server in a goroutine
 		go func() {
 			logger.Infof("Starting server on port %s", port)
-			if err := server.Router.Run(port); err != nil {
+			if err := http.ListenAndServe(port, server.Router); err != nil {
 				logger.Fatalf("Failed to start server: %v", err)
 			}
 		}()

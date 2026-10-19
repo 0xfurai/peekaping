@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"peekaping/internal/httpx"
 	"peekaping/internal/modules/api_key"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/middleware"
@@ -14,7 +15,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -32,14 +32,14 @@ func (acceptingAPIKeys) ValidateKey(context.Context, string) (*api_key.Model, er
 // settingsAPI serves the settings routes of an upgraded install behind the
 // real auth chain.
 type settingsAPI struct {
-	engine      *gin.Engine
+	engine      *httpx.Router
 	settings    setting.Service
 	accessToken string
 }
 
 func newSettingsAPI(t *testing.T) *settingsAPI {
 	t.Helper()
-	gin.SetMode(gin.TestMode)
+
 	ctx := context.Background()
 	logger := zap.NewNop().Sugar()
 
@@ -56,7 +56,7 @@ func newSettingsAPI(t *testing.T) *settingsAPI {
 		logger,
 	)
 	controller := setting.NewController(setting.NewAPIService(settings), logger)
-	engine := gin.New()
+	engine := httpx.NewRouter()
 	setting.NewRoute(controller, authChain).ConnectRoute(engine.Group("/api/v1"), controller)
 
 	return &settingsAPI{engine: engine, settings: settings, accessToken: accessToken}

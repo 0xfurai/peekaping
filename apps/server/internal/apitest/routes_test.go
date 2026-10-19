@@ -14,28 +14,28 @@ var publicRoutes = map[string]string{
 	"GET /health":                 "server liveness",
 	"GET /api/v1/health":          "server liveness",
 	"GET /api/v1/version":         "server version",
-	"GET /swagger/*any":           "API docs",
-	"GET /socket.io/*f":           "socket.io checks the access token when the socket connects",
-	"POST /socket.io/*f":          "socket.io checks the access token when the socket connects",
+	"GET /swagger/{any...}":       "API docs",
+	"GET /socket.io/{f...}":       "socket.io checks the access token when the socket connects",
+	"POST /socket.io/{f...}":      "socket.io checks the access token when the socket connects",
 	"POST /api/v1/auth/register":  "creates the first admin and refuses once one exists",
 	"POST /api/v1/auth/login":     "login",
 	"POST /api/v1/auth/refresh":   "authenticated by the refresh token in the body",
 	"GET /api/v1/api-keys/config": "the API key prefix",
 
-	"GET /api/v1/status-pages/slug/:slug":                   "published status page",
-	"GET /api/v1/status-pages/domain/:domain":               "published status page on a custom domain",
-	"GET /api/v1/status-pages/slug/:slug/monitors":          "monitors on a published status page",
-	"GET /api/v1/status-pages/slug/:slug/monitors/homepage": "monitors on a published status page",
+	"GET /api/v1/status-pages/slug/{slug}":                   "published status page",
+	"GET /api/v1/status-pages/domain/{domain}":               "published status page on a custom domain",
+	"GET /api/v1/status-pages/slug/{slug}/monitors":          "monitors on a published status page",
+	"GET /api/v1/status-pages/slug/{slug}/monitors/homepage": "monitors on a published status page",
 
-	"GET /api/v1/badge/:monitorId/status":           "badge for a monitor on a published status page",
-	"GET /api/v1/badge/:monitorId/uptime":           "badge for a monitor on a published status page",
-	"GET /api/v1/badge/:monitorId/uptime/:duration": "badge for a monitor on a published status page",
-	"GET /api/v1/badge/:monitorId/ping":             "badge for a monitor on a published status page",
-	"GET /api/v1/badge/:monitorId/ping/:duration":   "badge for a monitor on a published status page",
-	"GET /api/v1/badge/:monitorId/cert-exp":         "badge for a monitor on a published status page",
-	"GET /api/v1/badge/:monitorId/response":         "badge for a monitor on a published status page",
+	"GET /api/v1/badge/{monitorId}/status":            "badge for a monitor on a published status page",
+	"GET /api/v1/badge/{monitorId}/uptime":            "badge for a monitor on a published status page",
+	"GET /api/v1/badge/{monitorId}/uptime/{duration}": "badge for a monitor on a published status page",
+	"GET /api/v1/badge/{monitorId}/ping":              "badge for a monitor on a published status page",
+	"GET /api/v1/badge/{monitorId}/ping/{duration}":   "badge for a monitor on a published status page",
+	"GET /api/v1/badge/{monitorId}/cert-exp":          "badge for a monitor on a published status page",
+	"GET /api/v1/badge/{monitorId}/response":          "badge for a monitor on a published status page",
 
-	"GET /api/v1/push/:token": "push URL, authenticated by its push token",
+	"GET /api/v1/push/{token}": "push URL, authenticated by its push token",
 }
 
 // jwtOnlyRoutes manage the account and its API keys, so an API key must not
@@ -47,12 +47,12 @@ var jwtOnlyRoutes = map[string]bool{
 	"PUT /api/v1/auth/password":     true,
 	"POST /api/v1/api-keys":         true,
 	"GET /api/v1/api-keys":          true,
-	"GET /api/v1/api-keys/:id":      true,
-	"PUT /api/v1/api-keys/:id":      true,
-	"DELETE /api/v1/api-keys/:id":   true,
+	"GET /api/v1/api-keys/{id}":     true,
+	"PUT /api/v1/api-keys/{id}":     true,
+	"DELETE /api/v1/api-keys/{id}":  true,
 }
 
-var pathParam = regexp.MustCompile(`[:*][^/]+`)
+var pathParam = regexp.MustCompile(`\{[^}]+\}`)
 
 type route struct{ method, path string }
 

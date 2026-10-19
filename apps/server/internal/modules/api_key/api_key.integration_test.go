@@ -5,10 +5,10 @@ import (
 	"database/sql"
 	"net/http"
 	"net/http/httptest"
+	"peekaping/internal/httpx"
 	"testing"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
@@ -154,7 +154,7 @@ func TestIntegration_UsageLimitEnforcement(t *testing.T) {
 }
 
 func TestIntegration_MiddlewareWithRealDB(t *testing.T) {
-	gin.SetMode(gin.TestMode)
+
 	db := setupTestDB(t)
 	repo := NewSQLRepository(db)
 	logger := zap.NewNop().Sugar()
@@ -175,22 +175,23 @@ func TestIntegration_MiddlewareWithRealDB(t *testing.T) {
 
 	// Test middleware with real HTTP request
 	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("GET", "/protected", nil)
-	c.Request.Header.Set("X-API-Key", result.Token)
+	var seen *http.Request
+	ran := false
+	httpReq := httptest.NewRequest("GET", "/protected", nil)
+	httpReq.Header.Set("X-API-Key", result.Token)
 
-	middleware.Auth()(c)
+	middleware.Auth()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { ran = true; seen = r })).ServeHTTP(w, httpReq)
 
 	// Verify middleware succeeded
 	assert.Equal(t, http.StatusOK, w.Code)
-	assert.False(t, c.IsAborted())
+	assert.True(t, ran)
 
 	// Verify context values
-	apiKeyId, exists := c.Get("apiKeyId")
+	apiKeyId, exists := httpx.Lookup(seen.Context(), "apiKeyId")
 	assert.True(t, exists)
 	assert.Equal(t, result.ID, apiKeyId)
 
-	authType, exists := c.Get("authType")
+	authType, exists := httpx.Lookup(seen.Context(), "authType")
 	assert.True(t, exists)
 	assert.Equal(t, "api_key", authType)
 

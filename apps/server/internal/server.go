@@ -7,6 +7,7 @@ import (
 
 	_ "peekaping/docs"
 	"peekaping/internal/config"
+	"peekaping/internal/httpx"
 	"peekaping/internal/modules/api_key"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/badge"
@@ -24,11 +25,6 @@ import (
 	"peekaping/internal/modules/websocket"
 	"peekaping/internal/version"
 
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
-
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
 )
 
@@ -38,8 +34,8 @@ import (
 // @Produce      json
 // @Success      200  {object}  map[string]string  "{"version": "1.2.3"}"
 // @Router       /version [get]
-func versionHandler(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, gin.H{"version": version.Version})
+func versionHandler(w http.ResponseWriter, r *http.Request) {
+	httpx.JSON(w, http.StatusOK, map[string]any{"version": version.Version})
 }
 
 // HealthResponse is the server health
@@ -60,9 +56,9 @@ type HealthResponse struct {
 // @Produce      json
 // @Success      200  {object}  HealthResponse
 // @Router       /health [get]
-func newHealthHandler(store *stale.Store, logger *zap.SugaredLogger) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		reqCtx, cancel := context.WithTimeout(ctx.Request.Context(), 2*time.Second)
+func newHealthHandler(store *stale.Store, logger *zap.SugaredLogger) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		reqCtx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
 		defer cancel()
 
 		resp := HealthResponse{Status: "success"}
@@ -76,12 +72,12 @@ func newHealthHandler(store *stale.Store, logger *zap.SugaredLogger) gin.Handler
 		} else {
 			resp.WatchdogRanAt = ranAt
 		}
-		ctx.JSON(http.StatusOK, resp)
+		httpx.JSON(w, http.StatusOK, resp)
 	}
 }
 
 type Server struct {
-	Router *gin.Engine
+	Router *httpx.Router
 	Cfg    *config.Config
 }
 
@@ -114,36 +110,17 @@ func ProvideServer(
 	apiKeyController *api_key.Controller,
 	staleStore *stale.Store,
 ) *Server {
-	// Initialize server based on mode
-	var server *gin.Engine
+	middleware := []httpx.Middleware{httpx.Recovery(logger), httpx.CORS}
 	if cfg.Mode == "dev" {
-		// Development: use default with logger and recovery middleware
-		server = gin.Default()
-	} else {
-		// Production/Test: use clean instance with only recovery middleware
-		gin.SetMode(gin.ReleaseMode)
-		server = gin.New()
-		server.Use(gin.Recovery()) // Always use recovery middleware to prevent crashes
+		middleware = append([]httpx.Middleware{httpx.Logger(logger)}, middleware...)
 	}
-
-	server.RedirectTrailingSlash = false
-
-	// CORS configuration
-	server.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
-		AllowHeaders:     []string{"Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"},
-		ExposeHeaders:    []string{"Authorization"},
-		AllowCredentials: true,
-	}))
-
-	// server.Use(LogMiddleware(logger))
+	server := httpx.NewRouter(middleware...)
 
 	healthHandler := newHealthHandler(staleStore, logger)
-	server.GET("/health", healthHandler)
+	server.Handle("GET", "/health", healthHandler)
 	router := server.Group("/api/v1")
-	router.GET("/health", healthHandler)
-	router.GET("/version", versionHandler)
+	router.Handle("GET", "/health", healthHandler)
+	router.Handle("GET", "/version", versionHandler)
 
 	// Connect routes
 	monitorRoute.ConnectRoute(router, monitorController)
@@ -160,17 +137,10 @@ func ProvideServer(
 	// Register push endpoint
 	healthcheck.RegisterPushEndpoint(router, monitorService, heartbeatService, queueService, logger)
 
-	// Swagger routes
-	url := ginSwagger.URL("/swagger/doc.json")
-	server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
-
-	// WebSocket route
-	server.GET("/socket.io/*f", func(c *gin.Context) {
-		wsServer.ServeHTTP(c.Writer, c.Request)
-	})
-	server.POST("/socket.io/*f", func(c *gin.Context) {
-		wsServer.ServeHTTP(c.Writer, c.Request)
-	})
+	// Documentation uses the existing generated Swag specification until PP-199.
+	server.Handle("GET", "/swagger/{any...}", swaggerHandler())
+	server.Handle("GET", "/socket.io/{f...}", wsServer.ServeHTTP)
+	server.Handle("POST", "/socket.io/{f...}", wsServer.ServeHTTP)
 
 	return &Server{Router: server, Cfg: cfg}
 }

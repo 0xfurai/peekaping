@@ -16,13 +16,13 @@ import (
 	"peekaping/cmd/bun/migrations"
 	"peekaping/internal"
 	"peekaping/internal/config"
+	"peekaping/internal/httpx"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/utils"
 
 	"github.com/alicebob/miniredis/v2"
-	"github.com/gin-gonic/gin"
 	"github.com/hibiken/asynq"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -42,7 +42,7 @@ const (
 
 // app is one API server with its own database and Redis.
 type app struct {
-	router    *gin.Engine
+	router    *httpx.Router
 	container *dig.Container
 
 	accessToken string

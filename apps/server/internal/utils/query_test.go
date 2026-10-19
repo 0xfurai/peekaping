@@ -7,16 +7,12 @@ import (
 
 	"peekaping/internal/utils"
 
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func contextWithQuery(rawQuery string) *gin.Context {
-	gin.SetMode(gin.TestMode)
-	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
-	ctx.Request = httptest.NewRequest(http.MethodGet, "/items?"+rawQuery, nil)
-	return ctx
+func contextWithQuery(rawQuery string) *http.Request {
+	return httptest.NewRequest(http.MethodGet, "/items?"+rawQuery, nil)
 }
 
 func TestGetQueryInt(t *testing.T) {
