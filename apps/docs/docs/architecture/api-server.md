@@ -80,7 +80,7 @@ The API server subscribes to Redis pub/sub events and broadcasts them to connect
 
 | Variable | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|
-| `METRICS_ENABLED` | bool | No | `false` | Expose the Prometheus `/metrics` endpoint |
+| `METRICS_ENABLED` | bool | No | `false` | Serve the unauthenticated Prometheus `/metrics` endpoint, see [Prometheus Metrics](#prometheus-metrics) |
 
 ## API Endpoints
 
@@ -154,49 +154,67 @@ Response:
 
 ## Prometheus Metrics
 
-The API server can expose a Prometheus-compatible metrics endpoint for direct scraping.
-It is disabled by default; set `METRICS_ENABLED=true` to turn it on:
+The API server can serve the state of your monitors in the Prometheus text format, so a Prometheus and Grafana stack can scrape it without polling the REST API or wiring up notification channels. It is off by default. Set `METRICS_ENABLED=true` to turn it on:
 
 ```http
 GET /metrics
 ```
 
-The collector subscribes to heartbeat and monitor events on the Redis event bus and
-keeps a set of in-memory gauges up to date. Because the metrics are event-driven,
-scraping costs nothing at scrape time: there are no database round-trips and no
-polling of the worker. Metrics are seeded from the current state of all active
-monitors at startup, so they are populated immediately rather than only after the
-first heartbeat of each monitor.
+:::warning
+`/metrics` needs no credentials, and it lists the name and type of every active monitor. Scrape it over a private network, and leave `METRICS_ENABLED` off if that information shouldn't be readable by whoever can reach the API port.
 
-The endpoint is unauthenticated (like `/health` and `/version`) and exposes monitor
-names and statuses, so it is off by default. Enable it with `METRICS_ENABLED=true`
-once you are happy for that information to be available on `/metrics`.
+The gateway (Caddy in the bundle image, nginx in front of the separate web image) doesn't forward `/metrics`, so it isn't served on the web address. Scrape the API port (`8034` by default) directly, for example `api:8034` on the Docker Compose network or `<release>-api:8034` in Kubernetes. The development Compose files publish that port; the production ones and the bundle image don't, so publish it or run Prometheus on the same network.
+:::
 
-### Exposed Metrics
+### How it works
 
-All per-monitor metrics are labelled with `monitor_id`, `monitor_name`, and `monitor_type`.
+The API server keeps the latest heartbeat of each active monitor in memory, fed by the heartbeat and monitor events on the Redis event bus. It sees heartbeats whichever process ran the check, and a scrape reads that memory only: no database queries and no calls to the worker.
+
+- After a restart, the metrics come back from each monitor's latest heartbeat without waiting for its next check.
+- Every 5 minutes the API server re-checks the active monitors. A pause, rename or delete whose event was missed is corrected, and a monitor with no metrics gets its latest heartbeat loaded.
+- A monitor that is paused or deleted has no metrics. A resumed monitor is back with its next heartbeat, or at the next re-check.
+- A renamed monitor, or one whose type changed, moves to its new labels at once with the same values.
+- A monitor with no heartbeat yet has no metrics.
+
+### Exposed metrics
+
+Each monitor metric carries the labels `monitor_id`, `monitor_name` and `monitor_type`, and describes the monitor's latest heartbeat.
 
 | Metric | Type | Description |
 |--------|------|-------------|
-| `peekaping_monitor_status` | gauge | Current status: `0`=down, `1`=up, `2`=pending, `3`=maintenance |
-| `peekaping_monitor_up` | gauge | `1` if the monitor is up, otherwise `0` |
-| `peekaping_monitor_response_seconds` | gauge | Response time of the most recent heartbeat, in seconds |
-| `peekaping_monitor_last_heartbeat_timestamp_seconds` | gauge | Unix timestamp of the most recent heartbeat (useful for staleness alerts) |
-| `peekaping_build_info` | gauge | Always `1`; the server version is carried in the `version` label |
+| `peekaping_monitor_status` | gauge | Status: `0` Down, `1` Up, `2` Pending, `3` Maintenance |
+| `peekaping_monitor_response_seconds` | gauge | Response time, in seconds. Only present while the status is Up |
+| `peekaping_monitor_last_heartbeat_timestamp_seconds` | gauge | Unix time of the heartbeat. Use it to catch a monitor that stopped being checked |
+| `peekaping_build_info` | gauge | Always `1`; the server version is in the `version` label |
 
-Standard Go runtime and process collectors (`go_*`, `process_*`) are also exposed.
+The standard Go runtime and process metrics (`go_*`, `process_*`) are also exposed.
 
-When a monitor is deleted its series are removed; when a monitor is renamed the
-stale series under the old name is dropped.
+Pending means the latest check failed but the monitor still has retries left, and Maintenance counts as neither Up nor Down. To alert on a monitor that is down, use `peekaping_monitor_status == 0`, not "status is not `1`".
 
-### Example Prometheus scrape config
+### Example Prometheus configuration
 
 ```yaml
 scrape_configs:
   - job_name: peekaping
     static_configs:
-      - targets: ['peekaping:8034']
+      - targets: ['api:8034']
 ```
+
+Example alert rules:
+
+```yaml
+groups:
+  - name: peekaping
+    rules:
+      - alert: PeekapingMonitorDown
+        expr: peekaping_monitor_status == 0
+        for: 1m
+      - alert: PeekapingMonitorNotChecked
+        expr: time() - peekaping_monitor_last_heartbeat_timestamp_seconds > 300
+        for: 1m
+```
+
+The second rule fires for a monitor whose latest heartbeat is more than 5 minutes old. Raise `300` above the check interval of your slowest monitor.
 
 ## Related Components
 
