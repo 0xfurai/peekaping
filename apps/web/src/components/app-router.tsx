@@ -7,11 +7,9 @@ import { protectedRoutes } from "@/routes/protected-routes";
 
 export const AppRouter = () => {
   const accessToken = useAuthStore((state) => state.accessToken);
-  const {
-    customDomain,
-    isCustomDomainLoading,
-    isFetched,
-  } = useCheckCustomDomain(window.location.hostname);
+  const { customDomain, isFetched } = useCheckCustomDomain(
+    window.location.hostname
+  );
 
   // Routing rules:
   // - If the user has an accessToken: render the main app (ignore custom-domain logic).
@@ -21,8 +19,14 @@ export const AppRouter = () => {
   // Why we check accessToken:
   // Visitors coming via a custom domain won’t have an access token. If someone points the custom domain at the app host,
   // this guard prevents the dashboard from taking over and ensures unauthenticated users see the public status page instead.
-  const shouldShowCustomDomainRoute = !isCustomDomainLoading && isFetched && customDomain && customDomain.data?.slug && !accessToken;
-  const shouldRenderAuthRoutes = !isCustomDomainLoading && isFetched && (!customDomain || accessToken);
+  //
+  // Why we wait for the first lookup only:
+  // The lookup settles once per page load: with a status page on a custom-domain host, with a 404 on any other host.
+  // `isFetched` turns true when it settles and stays true, so a later refetch — a reconnect after a laptop wakes, say —
+  // leaves the routes below mounted. Gating on the hook's loading flag instead unmounted them for the length of every
+  // background refetch, which wiped whatever was being typed into an open form (see issues #161 and #228).
+  const shouldShowCustomDomainRoute = isFetched && customDomain && customDomain.data?.slug && !accessToken;
+  const shouldRenderAuthRoutes = isFetched && (!customDomain || accessToken);
 
   return (
     <Routes>
