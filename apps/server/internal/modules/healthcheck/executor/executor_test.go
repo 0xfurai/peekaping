@@ -50,6 +50,11 @@ func (m *ExecutorMockHeartbeatService) DeleteOlderThan(ctx context.Context, cuto
 	return args.Get(0).(int64), args.Error(1)
 }
 
+func (m *ExecutorMockHeartbeatService) HasAny(ctx context.Context) (bool, error) {
+	args := m.Called(ctx)
+	return args.Bool(0), args.Error(1)
+}
+
 func (m *ExecutorMockHeartbeatService) FindByMonitorIDPaginated(ctx context.Context, monitorID string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error) {
 	args := m.Called(ctx, monitorID, limit, page, important, reverse)
 	return args.Get(0).([]*heartbeat.Model), args.Error(1)

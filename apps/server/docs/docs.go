@@ -2957,7 +2957,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Only KEEP_DATA_PERIOD_DAYS can be set. Every other key returns 404.",
+                "description": "Only KEEP_DATA_PERIOD_DAYS can be set, with type int and a whole number of days from 1 to 36500. Every other key returns 404.",
                 "consumes": [
                     "application/json"
                 ],

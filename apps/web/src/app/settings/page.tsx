@@ -105,6 +105,7 @@ const KeepDataPeriodSetting = () => {
                       <Input
                         type="number"
                         min={1}
+                        max={36500}
                         {...field}
                         disabled={isLoading}
                       />
