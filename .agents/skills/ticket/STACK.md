@@ -17,7 +17,8 @@ git push -u origin <branch>
 gh pr create --base <main or branch below> --head <branch> --title "<title>" --body-file <file>
 ```
 
-- Title: `<type>(<scope>): <summary> (PP-<n>)`, scope `server`, `web`, or omitted for both. Summary in plain words, lower case, imperative.
+- Title: `PP-<n> [<i>/<total>] <type>(<scope>): <summary>`, e.g. `PP-16 [1/2] feat(server): add a stale-monitor watchdog`. The ticket key comes first. `[<i>/<total>]` is the PR's place in the stack, counted from the bottom; a stack of one leaves it out: `PP-48 fix(server): stop exposing JWT signing secrets`. Scope `server`, `web`, or omitted for both. Summary in plain words, lower case, imperative.
+- If the stack gains or loses a PR before it merges, retitle every open PR in it: `gh pr edit <pr> --title "<title>"`. A merge changes nothing: the PRs above keep their numbers.
 - Open as ready for review, not draft: CodeRabbit skips drafts.
 - CodeRabbit reviews PRs into `main` on its own. A PR into another branch needs a trigger after it opens and after each push: `gh pr comment <pr> --body "@coderabbitai review"`.
 - Write the body to a file in the scratchpad, not inline.

@@ -659,8 +659,12 @@
         "down": "离线",
         "maintenance": "维护",
         "paused": "暂停",
+        "pending": "等待中",
         "up": "正常"
       }
+    },
+    "stale": {
+      "not_checked_since": "自 {{time}} 起未检查"
     }
   },
   "navigation": {

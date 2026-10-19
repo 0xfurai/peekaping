@@ -659,8 +659,12 @@
         "down": "Неработещ",
         "maintenance": "Поддръжка",
         "paused": "Паузирано",
+        "pending": "В изчакване",
         "up": "Работи"
       }
+    },
+    "stale": {
+      "not_checked_since": "Не е проверяван от {{time}}"
     }
   },
   "navigation": {

@@ -659,8 +659,12 @@
         "down": "O‘chirilgan",
         "maintenance": "Texnik xizmat",
         "paused": "To'xtatildi",
+        "pending": "Kutilmoqda",
         "up": "Onlayn"
       }
+    },
+    "stale": {
+      "not_checked_since": "{{time}} dan beri tekshirilmagan"
     }
   },
   "navigation": {

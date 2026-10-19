@@ -659,8 +659,12 @@
         "down": "Nefuncțional",
         "maintenance": "Întreținere",
         "paused": "Pauză",
+        "pending": "În așteptare",
         "up": "Funcționează"
       }
+    },
+    "stale": {
+      "not_checked_since": "Neverificat din {{time}}"
     }
   },
   "navigation": {

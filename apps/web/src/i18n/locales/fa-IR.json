@@ -659,8 +659,12 @@
         "down": "خاموش",
         "maintenance": "نگهداری",
         "paused": "معلق",
+        "pending": "در انتظار",
         "up": "فعال"
       }
+    },
+    "stale": {
+      "not_checked_since": "از {{time}} بررسی نشده است"
     }
   },
   "navigation": {

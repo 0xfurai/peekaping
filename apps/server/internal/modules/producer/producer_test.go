@@ -2,6 +2,7 @@ package producer
 
 import (
 	"testing"
+	"time"
 
 	"peekaping/internal/config"
 	"peekaping/internal/modules/monitor"
@@ -37,6 +38,7 @@ func TestNewProducer(t *testing.T) {
 			nil,
 			nil,
 			nil,
+			nil,
 			le,
 			cfg,
 			logger,
@@ -45,6 +47,7 @@ func TestNewProducer(t *testing.T) {
 		assert.NotNil(t, producer)
 		assert.Equal(t, ConcurrentProducers, producer.concurrency)
 		assert.Equal(t, ReclaimEvery, producer.reclaimInterval)
+		assert.Equal(t, time.Second, producer.leadershipCheckInterval)
 		assert.NotNil(t, producer.monitorIntervals)
 		assert.NotNil(t, producer.ctx)
 		assert.NotNil(t, producer.cancel)
@@ -72,6 +75,7 @@ func TestNewProducer(t *testing.T) {
 			mockMonitorSvc,
 			mockProxySvc,
 			mockMaintenanceSvc,
+			nil,
 			nil,
 			nil,
 			nil,
@@ -108,6 +112,7 @@ func TestProducerStartStop(t *testing.T) {
 			mockMonitorSvc,
 			mockProxySvc,
 			mockMaintenanceSvc,
+			nil,
 			nil,
 			nil,
 			nil,
@@ -151,6 +156,7 @@ func TestProducerContext(t *testing.T) {
 			mockMonitorSvc,
 			mockProxySvc,
 			mockMaintenanceSvc,
+			nil,
 			nil,
 			nil,
 			nil,
@@ -206,6 +212,7 @@ func TestProducerMonitorIntervals(t *testing.T) {
 			nil,
 			nil,
 			nil,
+			nil,
 			le,
 			cfg,
 			logger,
@@ -237,6 +244,7 @@ func TestProducerMonitorIntervals(t *testing.T) {
 			mockMonitorSvc,
 			mockProxySvc,
 			mockMaintenanceSvc,
+			nil,
 			nil,
 			nil,
 			nil,

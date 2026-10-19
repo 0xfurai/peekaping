@@ -659,8 +659,12 @@
         "down": "Non operativo",
         "maintenance": "Manutenzione",
         "paused": "In pausa",
+        "pending": "In attesa",
         "up": "Online"
       }
+    },
+    "stale": {
+      "not_checked_since": "Non controllato dal {{time}}"
     }
   },
   "navigation": {

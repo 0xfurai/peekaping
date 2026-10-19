@@ -659,8 +659,12 @@
         "down": "Ne radi",
         "maintenance": "Održavanje",
         "paused": "Pauzirano",
+        "pending": "Na čekanju",
         "up": "Radi"
       }
+    },
+    "stale": {
+      "not_checked_since": "Nije provereno od {{time}}"
     }
   },
   "navigation": {

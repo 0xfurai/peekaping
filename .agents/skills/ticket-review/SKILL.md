@@ -19,17 +19,17 @@ Done when: you have a numbered list of criteria, the branch list, and a clean or
 
 ## 2. Check
 
-Spawn a fresh `general-purpose` subagent with only pointers: the ticket key, the criteria, the branch list, and `git diff origin/main...<top branch>`. Its brief:
+Brief an agent ([DELEGATE.md](../ticket/DELEGATE.md)) with only pointers: the ticket key, the criteria, the branch list, and `git diff origin/main...<top branch>`. Its task:
 
 > For each acceptance criterion, report: implemented (file:line), tested (test name), or missing. Then list: changes outside the criteria; likely bugs; GLOSSARY terms misused; UI strings missing from any of the 45 locale files; SQL/Mongo repository behaviour that differs. Quote the criterion for each finding. Under 400 words.
 
 ## 3. Fix
 
-Fix every real finding: missing or weak tests (red first, as in [TESTING.md](../ticket/TESTING.md)), missing translations, bugs, backend drift. Commit fixes on the branch they belong to.
+Sort the findings, then brief one agent ([DELEGATE.md](../ticket/DELEGATE.md)) with every real one: missing or weak tests (red first, as in [TESTING.md](../ticket/TESTING.md)), missing translations, bugs, backend drift. It commits each fix on the branch it belongs to and carries it up the stack ([STACK.md](../ticket/STACK.md)).
 
-When the branch is the user's own work, fix it the way they built it. A finding whose fix would change their approach or scope goes to them first, with the brief in [PLAN.md](../ticket-plan/PLAN.md).
+When the branch is the user's own work, the brief says to fix it the way they built it. A finding whose fix would change their approach or scope goes to the user first, with the brief in [PLAN.md](../ticket-plan/PLAN.md).
 
-Then run the full local run in [TESTING.md](../ticket/TESTING.md) on each branch merged with `origin/main`, and repeat the check until it comes back clean.
+The same agent then runs the full local run in [TESTING.md](../ticket/TESTING.md) on each branch merged with `origin/main`. Repeat the check until it comes back clean.
 
 Done when: every criterion has code and test evidence in a table, no finding is open, and the full local run passes.
 

@@ -4,12 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"testing"
+	"time"
 
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/monitor"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
 
@@ -49,194 +51,107 @@ func TestEventListener_Subscribe(t *testing.T) {
 	eventBus.AssertNumberOfCalls(t, "Subscribe", 3)
 }
 
-func TestEventListener_HandleMonitorCreated(t *testing.T) {
-	t.Run("handles monitor created when leader", func(t *testing.T) {
-		client, mr := setupTestRedis(t)
-		defer mr.Close()
+// newListener subscribes an event listener on a producer that is the leader,
+// or a follower of node2, and returns the bus it listens on.
+func newListener(t *testing.T, leader bool, monitors ...*monitor.Model) (*engine, *MockEventBus) {
+	t.Helper()
+	ctx := context.Background()
+	e := newEngine(t, monitors...)
+	if !leader {
+		require.NoError(t, e.rdb.Set(ctx, LeaderKey, "node2", LeaderTTL).Err())
+	}
+	le := NewLeaderElection(e.rdb, "node1", zap.NewNop().Sugar())
+	le.tryBecomeLeader(ctx)
+	require.Equal(t, leader, le.IsLeader())
+	e.producer.leaderElection = le
 
-		logger := zap.NewNop().Sugar()
-		le := NewLeaderElection(client, "node1", logger)
+	bus := NewMockEventBus()
+	bus.On("Subscribe", mock.Anything, mock.Anything).Return()
+	NewEventListener(e.producer, zap.NewNop().Sugar()).Subscribe(bus)
+	return e, bus
+}
 
-		// Make this node the leader
-		ctx := context.Background()
-		le.tryBecomeLeader(ctx)
+func TestEventListener_OnTheLeader(t *testing.T) {
+	slot := time.Date(2026, 1, 1, 12, 1, 0, 0, time.UTC)
 
-		producer := &Producer{leaderElection: le}
-		eventListener := NewEventListener(producer, logger)
+	t.Run("a created monitor is due now", func(t *testing.T) {
+		mon := &monitor.Model{ID: "mon-1", Type: "http", Active: true, Interval: 60}
+		e, bus := newListener(t, true, mon)
 
-		mon := monitor.Model{
-			ID:       "monitor-123",
-			Name:     "Test Monitor",
-			Active:   true,
-			Interval: 60,
-		}
+		bus.TriggerEvent(events.MonitorCreated, events.Event{Type: events.MonitorCreated, Payload: mon})
 
-		payload, err := json.Marshal(mon)
-		assert.NoError(t, err)
-
-		event := events.Event{
-			Type:    events.MonitorCreated,
-			Payload: payload,
-		}
-
-		// Can't easily test the actual AddMonitor call without more mocking
-		// but we can test that the unmarshal works
-		var unmarshaled monitor.Model
-		err = eventListener.unmarshalPayload(event.Payload, &unmarshaled)
-		assert.NoError(t, err)
-		assert.Equal(t, mon.ID, unmarshaled.ID)
+		assert.Equal(t, map[string]float64{"mon-1": ms(t0)}, e.members(t, SchedDueKey))
+		assert.Equal(t, 60, e.producer.monitorIntervals["mon-1"])
 	})
 
-	t.Run("ignores monitor created when not leader", func(t *testing.T) {
-		client, mr := setupTestRedis(t)
-		defer mr.Close()
+	t.Run("an updated monitor is due now with its new interval", func(t *testing.T) {
+		mon := &monitor.Model{ID: "mon-1", Type: "http", Active: true, Interval: 120}
+		e, bus := newListener(t, true, mon)
+		e.producer.monitorIntervals["mon-1"] = 60
+		e.addDue(t, "mon-1", slot)
 
-		logger := zap.NewNop().Sugar()
-		le := NewLeaderElection(client, "node1", logger)
+		bus.TriggerEvent(events.MonitorUpdated, events.Event{Type: events.MonitorUpdated, Payload: mon})
 
-		// Don't make this node the leader
-		producer := &Producer{leaderElection: le}
-		eventListener := NewEventListener(producer, logger)
+		assert.Equal(t, map[string]float64{"mon-1": ms(t0)}, e.members(t, SchedDueKey))
+		assert.Equal(t, 120, e.producer.monitorIntervals["mon-1"])
+	})
 
-		mon := monitor.Model{
-			ID:       "monitor-123",
-			Name:     "Test Monitor",
-			Active:   true,
-			Interval: 60,
-		}
+	t.Run("a monitor paused by an update leaves the schedule", func(t *testing.T) {
+		mon := &monitor.Model{ID: "mon-1", Type: "http", Active: false, Interval: 60}
+		e, bus := newListener(t, true, mon)
+		e.producer.monitorIntervals["mon-1"] = 60
+		e.addDue(t, "mon-1", slot)
+		e.addLease(t, "mon-1", t0.Add(LeaseTTL))
 
-		payload, err := json.Marshal(mon)
-		assert.NoError(t, err)
+		bus.TriggerEvent(events.MonitorUpdated, events.Event{Type: events.MonitorUpdated, Payload: mon})
 
-		event := events.Event{
-			Type:    events.MonitorCreated,
-			Payload: payload,
-		}
+		assert.Empty(t, e.members(t, SchedDueKey))
+		assert.Empty(t, e.members(t, SchedLeaseKey))
+		assert.NotContains(t, e.producer.monitorIntervals, "mon-1")
+	})
 
-		// Should not panic or error, just ignore
-		eventListener.handleMonitorCreated(event)
+	t.Run("a deleted monitor leaves the schedule", func(t *testing.T) {
+		e, bus := newListener(t, true)
+		e.producer.monitorIntervals["mon-1"] = 60
+		e.addDue(t, "mon-1", slot)
+		e.addLease(t, "mon-1", t0.Add(LeaseTTL))
+
+		bus.TriggerEvent(events.MonitorDeleted, events.Event{Type: events.MonitorDeleted, Payload: "mon-1"})
+
+		assert.Empty(t, e.members(t, SchedDueKey))
+		assert.Empty(t, e.members(t, SchedLeaseKey))
+		assert.NotContains(t, e.producer.monitorIntervals, "mon-1")
 	})
 }
 
-func TestEventListener_HandleMonitorUpdated(t *testing.T) {
-	t.Run("handles monitor updated when leader", func(t *testing.T) {
-		client, mr := setupTestRedis(t)
-		defer mr.Close()
+func TestEventListener_OnAFollower(t *testing.T) {
+	slot := time.Date(2026, 1, 1, 12, 1, 0, 0, time.UTC)
+	mon := &monitor.Model{ID: "mon-1", Type: "http", Active: true, Interval: 120}
 
-		logger := zap.NewNop().Sugar()
-		le := NewLeaderElection(client, "node1", logger)
+	for name, event := range map[string]events.Event{
+		"created": {Type: events.MonitorCreated, Payload: &monitor.Model{ID: "mon-new", Type: "http", Active: true, Interval: 60}},
+		"updated": {Type: events.MonitorUpdated, Payload: mon},
+		"deleted": {Type: events.MonitorDeleted, Payload: "mon-1"},
+	} {
+		t.Run("ignores a monitor "+name+" event", func(t *testing.T) {
+			e, bus := newListener(t, false)
+			// The leader handles the event: this node reads nothing and changes nothing
+			monitorSvc := new(MockMonitorService)
+			queueSvc := new(MockQueueService)
+			e.producer.monitorService = monitorSvc
+			e.producer.queueService = queueSvc
+			e.producer.monitorIntervals["mon-1"] = 60
+			e.addDue(t, "mon-1", slot)
 
-		// Make this node the leader
-		ctx := context.Background()
-		le.tryBecomeLeader(ctx)
+			bus.TriggerEvent(event.Type, event)
 
-		producer := &Producer{leaderElection: le}
-		eventListener := NewEventListener(producer, logger)
-
-		mon := monitor.Model{
-			ID:       "monitor-123",
-			Name:     "Updated Monitor",
-			Active:   true,
-			Interval: 120,
-		}
-
-		payload, err := json.Marshal(mon)
-		assert.NoError(t, err)
-
-		event := events.Event{
-			Type:    events.MonitorUpdated,
-			Payload: payload,
-		}
-
-		var unmarshaled monitor.Model
-		err = eventListener.unmarshalPayload(event.Payload, &unmarshaled)
-		assert.NoError(t, err)
-		assert.Equal(t, mon.ID, unmarshaled.ID)
-		assert.Equal(t, 120, unmarshaled.Interval)
-	})
-
-	t.Run("ignores monitor updated when not leader", func(t *testing.T) {
-		client, mr := setupTestRedis(t)
-		defer mr.Close()
-
-		logger := zap.NewNop().Sugar()
-		le := NewLeaderElection(client, "node1", logger)
-
-		producer := &Producer{leaderElection: le}
-		eventListener := NewEventListener(producer, logger)
-
-		mon := monitor.Model{
-			ID:       "monitor-123",
-			Name:     "Updated Monitor",
-			Active:   true,
-			Interval: 120,
-		}
-
-		payload, err := json.Marshal(mon)
-		assert.NoError(t, err)
-
-		event := events.Event{
-			Type:    events.MonitorUpdated,
-			Payload: payload,
-		}
-
-		// Should not panic or error, just ignore
-		eventListener.handleMonitorUpdated(event)
-	})
-}
-
-func TestEventListener_HandleMonitorDeleted(t *testing.T) {
-	t.Run("handles monitor deleted when leader", func(t *testing.T) {
-		client, mr := setupTestRedis(t)
-		defer mr.Close()
-
-		logger := zap.NewNop().Sugar()
-		le := NewLeaderElection(client, "node1", logger)
-
-		// Make this node the leader
-		ctx := context.Background()
-		le.tryBecomeLeader(ctx)
-
-		producer := &Producer{leaderElection: le}
-		eventListener := NewEventListener(producer, logger)
-
-		monitorID := "monitor-123"
-		payload, err := json.Marshal(monitorID)
-		assert.NoError(t, err)
-
-		event := events.Event{
-			Type:    events.MonitorDeleted,
-			Payload: payload,
-		}
-
-		var unmarshaled string
-		err = eventListener.unmarshalPayload(event.Payload, &unmarshaled)
-		assert.NoError(t, err)
-		assert.Equal(t, monitorID, unmarshaled)
-	})
-
-	t.Run("ignores monitor deleted when not leader", func(t *testing.T) {
-		client, mr := setupTestRedis(t)
-		defer mr.Close()
-
-		logger := zap.NewNop().Sugar()
-		le := NewLeaderElection(client, "node1", logger)
-
-		producer := &Producer{leaderElection: le}
-		eventListener := NewEventListener(producer, logger)
-
-		monitorID := "monitor-123"
-		payload, err := json.Marshal(monitorID)
-		assert.NoError(t, err)
-
-		event := events.Event{
-			Type:    events.MonitorDeleted,
-			Payload: payload,
-		}
-
-		// Should not panic or error, just ignore
-		eventListener.handleMonitorDeleted(event)
-	})
+			assert.Equal(t, map[string]float64{"mon-1": ms(slot)}, e.members(t, SchedDueKey))
+			assert.Empty(t, e.members(t, SchedLeaseKey))
+			assert.Equal(t, map[string]int{"mon-1": 60}, e.producer.monitorIntervals)
+			monitorSvc.AssertNotCalled(t, "FindByID", mock.Anything, mock.Anything)
+			queueSvc.AssertNotCalled(t, "GetTaskInfo", mock.Anything, mock.Anything, mock.Anything)
+		})
+	}
 }
 
 func TestEventListener_UnmarshalPayload(t *testing.T) {

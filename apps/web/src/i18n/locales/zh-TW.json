@@ -659,8 +659,12 @@
         "down": "停機",
         "maintenance": "維護",
         "paused": "暫停",
+        "pending": "等待中",
         "up": "正常"
       }
+    },
+    "stale": {
+      "not_checked_since": "自 {{time}} 起未檢查"
     }
   },
   "navigation": {

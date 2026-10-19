@@ -3,6 +3,7 @@ package utils
 import (
 	"testing"
 	"time"
+	_ "time/tzdata" // the tests load named zones; don't depend on the system's zone database
 
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"

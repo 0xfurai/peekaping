@@ -173,6 +173,11 @@ func (m *MockHeartbeatService) DeleteOlderThan(ctx context.Context, cutoff time.
 	return args.Get(0).(int64), args.Error(1)
 }
 
+func (m *MockHeartbeatService) HasAny(ctx context.Context) (bool, error) {
+	args := m.Called(ctx)
+	return args.Bool(0), args.Error(1)
+}
+
 func (m *MockHeartbeatService) FindByMonitorIDPaginated(ctx context.Context, monitorID string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error) {
 	args := m.Called(ctx, monitorID, limit, page, important, reverse)
 	return args.Get(0).([]*heartbeat.Model), args.Error(1)
@@ -222,6 +227,14 @@ func (m *MockStatsService) Summarize(ctx context.Context, monitorID string, sinc
 func (m *MockStatsService) DeleteByMonitorID(ctx context.Context, monitorID string) error {
 	args := m.Called(ctx, monitorID)
 	return args.Error(0)
+}
+
+func (m *MockStatsService) DeleteExpired(ctx context.Context, now time.Time) (map[stats.StatPeriod]int64, error) {
+	args := m.Called(ctx, now)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(map[stats.StatPeriod]int64), args.Error(1)
 }
 
 type MockTLSInfoService struct {

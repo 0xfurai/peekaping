@@ -50,19 +50,19 @@ CI sets neither variable, so only the SQLite subtests run there; a repository ch
 Web, from the worktree root then `apps/web`:
 
 ```sh
-pnpm install --frozen-lockfile    # a fresh worktree has no node_modules
-cd apps/web && pnpm lint && pnpm build
+bun install --frozen-lockfile    # a fresh worktree has no node_modules
+cd apps/web && bun run lint && bun run build
 ```
 
-API contract changes (handler annotations, DTOs) need both generated layers, committed with the change:
+API contract changes (typed registrations, DTOs) need both generated layers committed with the change. From the worktree root:
 
 ```sh
-cd apps/server && go run github.com/swaggo/swag/cmd/swag@v1.16.4 init -d cmd/api,internal
-cd ../web && pnpm gen && pnpm dlx prettier@3 --trailing-comma es5 --write src/api
-git diff --stat   # only the endpoints you changed should move
+bun run api:generate
+bun run api:validate
+bun run api:check   # verifies committed spec and client freshness
 ```
 
-`pnpm gen` asks for prettier, which isn't installed, so without the second command the whole client comes out reformatted.
+The server exporter uses production Huma registrations without starting databases or Redis. The pinned formatter runs as part of client generation. See `apps/server/docs/README.md` for route coverage and compatibility details.
 
 E2E, from the worktree root. The dev stack binds fixed host ports (6379, 8034, 8383), so only one runs per machine: if `docker ps` shows another session's stack, wait for it. `docker-compose.e2e.yml` adds `e2e-target` on port 3033, the local service the tests' monitors check and notify. The stack reads a gitignored `.env`. A leftover SQLite database is fine: the setup logs in as the e2e admin (`test@test.com`) instead of registering, and fails with a message if the database has an admin with other credentials.
 
@@ -78,8 +78,8 @@ ENV
 export COMPOSE_FILE=docker-compose.dev.sqlite.yml:docker-compose.e2e.yml
 docker compose up -d --build
 until curl -sf localhost:8034/api/v1/health && curl -sf localhost:8383/ && curl -sf localhost:3033/health; do sleep 2; done
-pnpm exec playwright install chromium
-PW_TEST_HTML_REPORT_OPEN=never pnpm e2e
+bunx playwright install chromium
+PW_TEST_HTML_REPORT_OPEN=never bun run e2e
 docker compose down
 ```
 

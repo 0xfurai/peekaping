@@ -659,8 +659,12 @@
         "down": "לא זמין",
         "maintenance": "תחזוקה",
         "paused": "השהיה",
+        "pending": "ממתין",
         "up": "מופעל"
       }
+    },
+    "stale": {
+      "not_checked_since": "לא נבדק מאז {{time}}"
     }
   },
   "navigation": {

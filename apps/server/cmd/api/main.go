@@ -3,11 +3,12 @@ package main
 import (
 	"context"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
-	"peekaping/docs"
 	"peekaping/internal"
 	"peekaping/internal/infra"
+	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/cleanup"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/healthcheck"
@@ -17,8 +18,8 @@ import (
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/notification_sent_history"
 	"peekaping/internal/modules/setting"
+	"peekaping/internal/modules/stats"
 	"peekaping/internal/utils"
-	"peekaping/internal/version"
 	"syscall"
 	_ "time/tzdata" // embed the zone database so TZ works in images without tzdata
 
@@ -26,18 +27,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// @title			Peekaping API
-// @BasePath	/api/v1
-// @securityDefinitions.apikey JwtAuth
-// @in header
-// @name Authorization
-// @description JWT token authentication (Bearer token format)
-// @securityDefinitions.apikey ApiKeyAuth
-// @in header
-// @name X-API-Key
-// @description API key authentication (pk_ prefix format)
 func main() {
-	docs.SwaggerInfo.Version = version.Version
 
 	utils.RegisterCustomValidators()
 
@@ -70,12 +60,14 @@ func main() {
 	// Start cleanup cron job(s)
 	err = container.Invoke(func(
 		heartbeatService heartbeat.Service,
+		userRepository auth.Repository,
 		settingService setting.Service,
+		statsService stats.Service,
 		notificationHistoryService notification_sent_history.Service,
 		tlsInfoService monitor_tls_info.Service,
 		logger *zap.SugaredLogger,
 	) {
-		cleanup.StartCleanupCron(heartbeatService, settingService, notificationHistoryService, tlsInfoService, logger)
+		cleanup.StartCleanupCron(heartbeatService, userRepository, settingService, statsService, notificationHistoryService, tlsInfoService, logger)
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -122,7 +114,6 @@ func main() {
 		eventBus events.EventBus,
 		logger *zap.SugaredLogger,
 	) error {
-		docs.SwaggerInfo.Host = "localhost:" + server.Cfg.Port
 
 		port := server.Cfg.Port
 		if port == "" {
@@ -139,7 +130,7 @@ func main() {
 		// Start server in a goroutine
 		go func() {
 			logger.Infof("Starting server on port %s", port)
-			if err := server.Router.Run(port); err != nil {
+			if err := http.ListenAndServe(port, server.Router); err != nil {
 				logger.Fatalf("Failed to start server: %v", err)
 			}
 		}()

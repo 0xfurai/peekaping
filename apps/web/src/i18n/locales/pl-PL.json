@@ -659,8 +659,12 @@
         "down": "W dół",
         "maintenance": "Konserwacja",
         "paused": "Wstrzymany",
+        "pending": "Oczekuje",
         "up": "Działa"
       }
+    },
+    "stale": {
+      "not_checked_since": "Nie sprawdzano od {{time}}"
     }
   },
   "navigation": {

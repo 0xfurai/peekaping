@@ -659,8 +659,12 @@
         "down": "Alla",
         "maintenance": "Hooldus",
         "paused": "Peatatud",
+        "pending": "Ootel",
         "up": "Ülal"
       }
+    },
+    "stale": {
+      "not_checked_since": "Pole kontrollitud alates {{time}}"
     }
   },
   "navigation": {

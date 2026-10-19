@@ -3,15 +3,15 @@ package utils
 import (
 	"strconv"
 
-	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 const MaxPageSize = 1000
 
 // GetQueryInt extracts an integer query parameter from the context.
 // If the parameter is not provided or invalid, it returns the default value.
-func GetQueryInt(ctx *gin.Context, key string, defaultValue int) (int, error) {
-	valueStr := ctx.Query(key)
+func GetQueryInt(r *http.Request, key string, defaultValue int) (int, error) {
+	valueStr := r.URL.Query().Get(key)
 	if valueStr == "" {
 		return defaultValue, nil
 	}
@@ -26,8 +26,8 @@ func GetQueryInt(ctx *gin.Context, key string, defaultValue int) (int, error) {
 
 // GetQueryBool extracts a boolean query parameter from the context.
 // If the parameter is not provided, it returns nil.
-func GetQueryBool(ctx *gin.Context, key string) (*bool, error) {
-	valueStr := ctx.Query(key)
+func GetQueryBool(r *http.Request, key string) (*bool, error) {
+	valueStr := r.URL.Query().Get(key)
 	if valueStr == "" {
 		return nil, nil
 	}

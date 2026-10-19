@@ -15,15 +15,27 @@ cd peekaping
 
 ## 2. Install the Tools
 
-You need Go, Node.js and pnpm. Install them however you like: Homebrew, the official installers, nvm, fnm, mise or asdf all work. The repository pins each version in the file that tool reads on its own:
+You need Go, Node.js and Bun. Install them however you like: Homebrew, the official installers, nvm, fnm, mise or asdf all work. The repository pins each version in the file that tool reads on its own:
 
 | Tool | What to install | Pinned in |
 |------|-----------------|-----------|
 | **Go** | 1.21 or newer ([Download Go](https://go.dev/dl/)) | `apps/server/go.mod`. If your Go is older than its `toolchain` line, Go switches to that version and downloads it if needed. |
 | **Node.js** | 22 ([Download Node.js](https://nodejs.org/en/download/)) | `.nvmrc`. `nvm install` and `fnm install` pick it up. |
-| **pnpm** | Run `corepack enable`, or `npm install -g pnpm` ([other options](https://pnpm.io/installation)) | `packageManager` in `package.json`. Corepack and pnpm 10+ switch to that version. |
+| **Bun** | The version in `packageManager` ([install options](https://bun.sh/docs/installation)) | `packageManager` in `package.json`. Bun doesn't switch to that version on its own, so `make setup` fails if yours differs. |
 
-`make dev` also regenerates the API docs with [swag](https://github.com/swaggo/swag). It runs through `go run`, pinned to the same version as the swag library in `go.mod`, so there's nothing extra to install.
+Bun installs the packages and runs the package scripts. Node.js still runs the tools those scripts start, such as Vite and Docusaurus. Install Bun with one of these:
+
+```bash
+curl -fsSL https://bun.sh/install | bash   # macOS and Linux
+brew install oven-sh/bun/bun               # Homebrew
+npm install -g bun                         # any system with Node.js
+```
+
+These install the latest release. To get the pinned version, run `npm install -g bun@<version>`. `bun upgrade` updates an existing install.
+
+This Bun has nothing to do with `apps/server/cmd/bun`. That one is the database migration tool, built on the [uptrace/bun](https://github.com/uptrace/bun) Go library.
+
+`make dev` also runs `docs:watch`, which exports OpenAPI from the typed Huma registrations when the server source changes. There is no separate documentation annotation generator.
 
 Then check your setup:
 
@@ -98,13 +110,13 @@ Run the full stack (backend, frontend, docs) in development mode:
 # Option 1: Using the Makefile (recommended)
 make dev
 
-# Option 2: Using pnpm directly
-pnpm run dev docs:watch
+# Option 2: Using Bun directly
+bun run dev docs:watch
 ```
 
 - The web UI will be available at [http://localhost:8383](http://localhost:8383)
 - The backend API will be at [http://localhost:8034](http://localhost:8034)
-- API docs will be available at [http://localhost:8034/swagger/index.html](http://localhost:8034/swagger/index.html)
+- API docs will be available at [http://localhost:8034/docs](http://localhost:8034/docs)
 - Documentation will be available at [http://localhost:3000](http://localhost:3000)
 
 ---
@@ -119,12 +131,12 @@ A version manager's `go` shim usually causes this when no Go version is selected
 
 This happens offline, or when `GOTOOLCHAIN=local` is set. Install the version on the `toolchain` line of `apps/server/go.mod` directly from [go.dev/dl](https://go.dev/dl/).
 
-**Problem**: `pnpm install` warns `Unsupported engine`
+**Problem**: `make setup` says Bun runs here, but `package.json` pins another version
 
-Your Node.js is older than the one in `.nvmrc`. Run `nvm install` or `fnm install` in the repository root, or install Node.js 22.
+Install the version from `packageManager` in `package.json`: `npm install -g bun@<version>`. `bun upgrade` only moves to the latest release.
 
 - For Go development, make sure your `GOPATH` and `PATH` are set up correctly ([Go install instructions](https://go.dev/doc/install))
-- Ensure Node.js and pnpm are in your system PATH
+- Ensure Node.js and Bun are in your system PATH
 
 Happy hacking! 🚀
 
@@ -133,3 +145,9 @@ Happy hacking! 🚀
 HTTP request DTOs belong at the controller boundary. Services use domain models, and repository interfaces accept domain models or partial-update models. Each SQL or Mongo repository maps these models to its own private persistence structs; database tags belong on those structs.
 
 Partial-update models preserve omitted fields separately from explicit zero values. A nil slice leaves an association unchanged, while an empty slice clears it. Maintenance monitor IDs are passed separately to the service so the maintenance repository only receives maintenance fields.
+
+### Updating the API contract
+
+REST operations use typed Huma registrations on the standard HTTP router. After changing an operation or DTO, run `bun run api:generate` and `bun run api:validate` from the repository root, then commit `apps/server/docs/openapi.json`, `openapi.yaml`, and the regenerated `apps/web/src/api` files. `bun run api:check` runs the same generation/validation and fails if committed artifacts are stale. No database or Redis process is needed for export.
+
+`docs:watch` watches the server source and exports the spec; run `bun run --filter web gen` after contract changes to update the client. The server serves `/openapi.json`, `/openapi.yaml`, and `/docs`. `/swagger/index.html` redirects to `/docs`; `/swagger/doc.json` now serves the same OpenAPI 3.1 document. Old Swagger UI assets are removed.

@@ -6,12 +6,16 @@ on:
     branches: [ main ]
     paths:
       - 'apps/landing/**'
+      - 'package.json'
+      - 'bun.lock'
       - '.github/workflows/build-landing.yml'
       - '.github/workflows/build-site-reusable.yml'
   pull_request:
     branches: [ main ]
     paths:
       - 'apps/landing/**'
+      - 'package.json'
+      - 'bun.lock'
       - '.github/workflows/build-landing.yml'
       - '.github/workflows/build-site-reusable.yml'
   workflow_dispatch:

@@ -659,8 +659,12 @@
         "down": "ڈاؤن",
         "maintenance": "رکھ رکھاؤ",
         "paused": "رکا ہوا",
+        "pending": "زیر التواء",
         "up": "چل رہا ہے"
       }
+    },
+    "stale": {
+      "not_checked_since": "{{time}} سے چیک نہیں کیا گیا"
     }
   },
   "navigation": {

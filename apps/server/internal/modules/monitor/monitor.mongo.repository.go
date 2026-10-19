@@ -452,6 +452,10 @@ func (r *MonitorRepositoryImpl) UpdatePartial(ctx context.Context, id string, mo
 	if err != nil {
 		return err
 	}
+	// Always set updated_at, like the SQL repository
+	if mu.UpdatedAt == nil && (len(set) > 0 || unsetProxyId) {
+		set["updated_at"] = time.Now().UTC()
+	}
 
 	filter := bson.M{"_id": objectID}
 	update := bson.M{}

@@ -659,8 +659,12 @@
         "down": "Κατεβασμένο",
         "maintenance": "Συντήρηση",
         "paused": "Σε παύση",
+        "pending": "Σε εκκρεμότητα",
         "up": "Ενεργός"
       }
+    },
+    "stale": {
+      "not_checked_since": "Δεν έχει ελεγχθεί από {{time}}"
     }
   },
   "navigation": {
