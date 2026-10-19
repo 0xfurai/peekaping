@@ -64,6 +64,8 @@ type fakeMonitors struct {
 	monitors map[string]monitor.Model
 	findErr  error
 	calls    atomic.Int32
+	// activeCalls counts the FindActive calls that returned
+	activeCalls atomic.Int32
 	// activeGate, when set before Start, holds FindActive until it's closed
 	activeGate chan struct{}
 }
@@ -98,20 +100,22 @@ func (f *fakeMonitors) FindByID(_ context.Context, id string) (*monitor.Model, e
 }
 
 func (f *fakeMonitors) FindActive(ctx context.Context) ([]*monitor.Model, error) {
+	defer f.activeCalls.Add(1)
+	// The result is as of the call, however long the gate holds it
+	f.mu.Lock()
+	var active []*monitor.Model
+	for _, m := range f.monitors {
+		if m.Active {
+			active = append(active, &m)
+		}
+	}
+	f.mu.Unlock()
 	f.calls.Add(1)
 	if f.activeGate != nil {
 		select {
 		case <-f.activeGate:
 		case <-ctx.Done():
 			return nil, ctx.Err()
-		}
-	}
-	f.mu.Lock()
-	defer f.mu.Unlock()
-	var active []*monitor.Model
-	for _, m := range f.monitors {
-		if m.Active {
-			active = append(active, &m)
 		}
 	}
 	return active, nil
@@ -436,6 +440,21 @@ peekaping_monitor_response_seconds{` + renamed + `} 0.25
 `)
 }
 
+func TestHeartbeatDeliveredOutOfOrderDoesNotOverwriteANewerOne(t *testing.T) {
+	r := newRig(t)
+	r.activeMonitor("m1", "API", "http")
+	r.start()
+
+	r.publishHeartbeat("m1", shared.MonitorStatusUp, 120, at200)
+	r.publishHeartbeat("m1", shared.MonitorStatusDown, 0, at100)
+
+	r.requireSeries(`
+peekaping_monitor_status{` + api + `} 1
+peekaping_monitor_last_heartbeat_timestamp_seconds{` + api + `} 1700000200
+peekaping_monitor_response_seconds{` + api + `} 0.12
+`)
+}
+
 func TestUpdateOfAMonitorWithoutAHeartbeatCreatesNoSeries(t *testing.T) {
 	r := newRig(t)
 	m := r.activeMonitor("m1", "API", "http")
@@ -444,4 +463,144 @@ func TestUpdateOfAMonitorWithoutAHeartbeatCreatesNoSeries(t *testing.T) {
 	r.publishMonitorUpdated(m)
 
 	r.requireSeries("")
+}
+
+func (r *rig) setLatest(monitorID string, status shared.MonitorStatus, pingMs int, at int64) {
+	r.heartbeats.setLatest(heartbeat.Model{MonitorID: monitorID, Status: status, Ping: pingMs, Time: time.Unix(at, 0)})
+}
+
+func TestStartupLoadsTheLatestHeartbeatOfActiveMonitorsInTheBackground(t *testing.T) {
+	r := newRig(t)
+	r.activeMonitor("m1", "API", "http")
+	r.activeMonitor("m2", "DB", "tcp")
+	r.activeMonitor("no-heartbeat", "New", "http")
+	r.monitors.set(monitor.Model{ID: "paused", Name: "Paused", Type: "http", Active: false})
+	r.setLatest("m1", shared.MonitorStatusUp, 250, at100)
+	r.setLatest("m2", shared.MonitorStatusDown, 0, at200)
+	r.setLatest("paused", shared.MonitorStatusUp, 100, at100)
+	gate := make(chan struct{})
+	r.monitors.activeGate = gate
+
+	// Start returns while the active Monitors are still being read
+	r.start()
+	r.requireSeries("")
+
+	close(gate)
+	r.eventuallySeries(`
+peekaping_monitor_status{` + api + `} 1
+peekaping_monitor_last_heartbeat_timestamp_seconds{` + api + `} 1700000100
+peekaping_monitor_response_seconds{` + api + `} 0.25
+peekaping_monitor_status{monitor_id="m2",monitor_name="DB",monitor_type="tcp"} 0
+peekaping_monitor_last_heartbeat_timestamp_seconds{monitor_id="m2",monitor_name="DB",monitor_type="tcp"} 1700000200
+`)
+}
+
+func TestStartupLoadDoesNotOverwriteAHeartbeatThatArrivedMeanwhile(t *testing.T) {
+	r := newRig(t)
+	r.collector.syncInterval = 10 * time.Millisecond
+	r.activeMonitor("m1", "API", "http")
+	r.setLatest("m1", shared.MonitorStatusUp, 250, at100)
+	gate := make(chan struct{})
+	r.heartbeats.gate = gate
+	r.start()
+	require.Eventually(t, func() bool { return r.heartbeats.calls.Load() == 1 }, 2*time.Second, time.Millisecond)
+
+	// A newer Heartbeat arrives while the older one is being read from the database
+	r.publishHeartbeat("m1", shared.MonitorStatusDown, 0, at200)
+	close(gate)
+
+	// Once the next pass has read the Monitors, the first has recorded what it read
+	require.Eventually(t, func() bool { return r.monitors.activeCalls.Load() >= 2 }, 2*time.Second, time.Millisecond)
+	r.requireSeries(`
+peekaping_monitor_status{` + api + `} 0
+peekaping_monitor_last_heartbeat_timestamp_seconds{` + api + `} 1700000200
+`)
+}
+
+func TestSyncKeepsAMonitorThatGotItsFirstHeartbeatWhileTheActiveOnesWereRead(t *testing.T) {
+	r := newRig(t)
+	r.collector.syncInterval = 10 * time.Millisecond
+	gate := make(chan struct{})
+	r.monitors.activeGate = gate
+	r.start()
+	require.Eventually(t, func() bool { return r.monitors.calls.Load() == 1 }, 2*time.Second, time.Millisecond)
+
+	// The Monitor is created and checked after the first pass read the active ones
+	r.activeMonitor("m1", "API", "http")
+	r.publishHeartbeat("m1", shared.MonitorStatusUp, 250, at100)
+	close(gate)
+
+	// Once the next pass has read the Monitors, the first has finished
+	require.Eventually(t, func() bool { return r.monitors.activeCalls.Load() >= 2 }, 2*time.Second, time.Millisecond)
+	r.requireSeries(`
+peekaping_monitor_status{` + api + `} 1
+peekaping_monitor_last_heartbeat_timestamp_seconds{` + api + `} 1700000100
+peekaping_monitor_response_seconds{` + api + `} 0.25
+`)
+}
+
+func TestSyncRepairsMissedEvents(t *testing.T) {
+	r := newRig(t)
+	r.collector.syncInterval = 10 * time.Millisecond
+	paused := r.activeMonitor("paused", "Paused", "http")
+	renamed := r.activeMonitor("renamed", "DB", "tcp")
+	r.activeMonitor("deleted", "Cache", "tcp")
+	r.activeMonitor("unchanged", "API", "http")
+	r.start()
+	r.publishHeartbeat("paused", shared.MonitorStatusUp, 100, at100)
+	r.publishHeartbeat("renamed", shared.MonitorStatusDown, 0, at100)
+	r.publishHeartbeat("deleted", shared.MonitorStatusUp, 100, at100)
+	r.publishHeartbeat("unchanged", shared.MonitorStatusUp, 250, at100)
+
+	// None of these publish an event. "new" gets a Heartbeat no event announced.
+	paused.Active = false
+	r.monitors.set(paused)
+	renamed.Name = "DB primary"
+	renamed.Type = "postgres"
+	r.monitors.set(renamed)
+	r.monitors.remove("deleted")
+	r.activeMonitor("new", "Search", "http")
+	r.setLatest("new", shared.MonitorStatusPending, 0, at200)
+
+	r.eventuallySeries(`
+peekaping_monitor_status{monitor_id="renamed",monitor_name="DB primary",monitor_type="postgres"} 0
+peekaping_monitor_last_heartbeat_timestamp_seconds{monitor_id="renamed",monitor_name="DB primary",monitor_type="postgres"} 1700000100
+peekaping_monitor_status{monitor_id="unchanged",monitor_name="API",monitor_type="http"} 1
+peekaping_monitor_last_heartbeat_timestamp_seconds{monitor_id="unchanged",monitor_name="API",monitor_type="http"} 1700000100
+peekaping_monitor_response_seconds{monitor_id="unchanged",monitor_name="API",monitor_type="http"} 0.25
+peekaping_monitor_status{monitor_id="new",monitor_name="Search",monitor_type="http"} 2
+peekaping_monitor_last_heartbeat_timestamp_seconds{monitor_id="new",monitor_name="Search",monitor_type="http"} 1700000200
+`)
+}
+
+func TestSyncStopsWhenTheContextIsCancelled(t *testing.T) {
+	r := newRig(t)
+	r.collector.syncInterval = 10 * time.Millisecond
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	r.collector.Start(ctx, r.bus)
+	require.Eventually(t, func() bool { return r.monitors.activeCalls.Load() >= 3 }, 2*time.Second, time.Millisecond)
+
+	cancel()
+	time.Sleep(50 * time.Millisecond) // a pass under way may still finish
+	stopped := r.monitors.activeCalls.Load()
+	time.Sleep(100 * time.Millisecond)
+
+	assert.Equal(t, stopped, r.monitors.activeCalls.Load())
+}
+
+func TestScrapeReadsMemoryOnly(t *testing.T) {
+	r := newRig(t)
+	r.activeMonitor("m1", "API", "http")
+	r.start()
+	require.Eventually(t, func() bool { return r.monitors.activeCalls.Load() == 1 }, 2*time.Second, time.Millisecond)
+	r.publishHeartbeat("m1", shared.MonitorStatusUp, 250, at100)
+	monitorCalls, heartbeatCalls := r.monitors.calls.Load(), r.heartbeats.calls.Load()
+
+	for range 5 {
+		r.body()
+	}
+
+	assert.Equal(t, monitorCalls, r.monitors.calls.Load())
+	assert.Equal(t, heartbeatCalls, r.heartbeats.calls.Load())
 }

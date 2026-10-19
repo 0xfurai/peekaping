@@ -10,6 +10,7 @@ import (
 	"context"
 	"maps"
 	"net/http"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -129,11 +130,84 @@ func send(ch chan<- prometheus.Metric, desc *prometheus.Desc, value float64, lab
 	ch <- metric
 }
 
-// Start subscribes to the event bus.
+// Start subscribes to the event bus and, in the background, syncs with the active Monitors
+// now and every SyncInterval until ctx is done.
 func (c *Collector) Start(ctx context.Context, eventBus events.EventBus) {
 	eventBus.Subscribe(events.HeartbeatEvent, c.handleHeartbeat)
 	eventBus.Subscribe(events.MonitorUpdated, c.handleMonitorUpdated)
 	eventBus.Subscribe(events.MonitorDeleted, c.handleMonitorDeleted)
+
+	go c.runSync(ctx)
+}
+
+func (c *Collector) runSync(ctx context.Context) {
+	ticker := time.NewTicker(c.syncInterval)
+	defer ticker.Stop()
+
+	for {
+		c.sync(ctx)
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+		}
+	}
+}
+
+// sync checks the state against the active Monitors, which repairs a pause, rename or delete
+// whose event never arrived, and loads the latest Heartbeat of a Monitor with no state, which is
+// all of them after a restart. It only drops state that was there before it read the Monitors,
+// so a Monitor that got its first Heartbeat meanwhile keeps it.
+func (c *Collector) sync(ctx context.Context) {
+	c.mu.RLock()
+	tracked := slices.Collect(maps.Keys(c.monitors))
+	c.mu.RUnlock()
+
+	active, err := c.monitorService.FindActive(ctx)
+	if err != nil {
+		c.logger.Errorw("Failed to find the active monitors", "error", err)
+		return
+	}
+
+	isActive := make(map[string]bool, len(active))
+	for _, mon := range active {
+		if ctx.Err() != nil {
+			return
+		}
+		isActive[mon.ID] = true
+		if c.rename(mon) {
+			continue
+		}
+		latest, err := c.heartbeatService.FindByMonitorIDPaginated(ctx, mon.ID, 1, 0, nil, false)
+		if err != nil {
+			c.logger.Errorw("Failed to find the latest heartbeat of a monitor", "monitor_id", mon.ID, "error", err)
+			continue
+		}
+		if len(latest) > 0 {
+			c.record(latest[0], mon)
+		}
+	}
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	for _, id := range tracked {
+		if !isActive[id] {
+			delete(c.monitors, id)
+		}
+	}
+}
+
+// rename gives a Monitor with state the name and type in mon and reports whether it has state.
+func (c *Collector) rename(mon *monitor.Model) bool {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	s, tracked := c.monitors[mon.ID]
+	if tracked {
+		s.name = mon.Name
+		s.monitorType = mon.Type
+		c.monitors[mon.ID] = s
+	}
+	return tracked
 }
 
 // handleMonitorUpdated drops a Monitor that was paused and moves one that was renamed to its new labels.
@@ -144,19 +218,11 @@ func (c *Collector) handleMonitorUpdated(event events.Event) {
 		return
 	}
 
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	s, tracked := c.monitors[mon.ID]
-	if !tracked {
-		return
-	}
 	if !mon.Active {
-		delete(c.monitors, mon.ID)
+		c.drop(mon.ID)
 		return
 	}
-	s.name = mon.Name
-	s.monitorType = mon.Type
-	c.monitors[mon.ID] = s
+	c.rename(mon)
 }
 
 func (c *Collector) handleMonitorDeleted(event events.Event) {
@@ -165,7 +231,10 @@ func (c *Collector) handleMonitorDeleted(event events.Event) {
 		c.logger.Errorf("Failed to unmarshal monitor deleted event payload")
 		return
 	}
+	c.drop(monitorID)
+}
 
+func (c *Collector) drop(monitorID string) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	delete(c.monitors, monitorID)
