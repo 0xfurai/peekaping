@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"peekaping/internal/httpx"
 	"strings"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
 
@@ -25,7 +25,7 @@ type Service interface {
 	Reset(ctx context.Context, key string) error
 }
 
-type KeyExtractor func(*gin.Context) (string, error)
+type KeyExtractor func(*http.Request) (string, error)
 
 type Config struct {
 	MaxAttempts int
@@ -34,7 +34,7 @@ type Config struct {
 	// Which HTTP statuses of the wrapped handler mean "authentication failed"
 	FailureStatuses []int
 	// Optional custom blocked response (otherwise 429 with Retry-After)
-	OnBlocked func(c *gin.Context, retryAfter time.Duration)
+	OnBlocked func(w http.ResponseWriter, r *http.Request, retryAfter time.Duration)
 }
 
 type Guard struct {
@@ -66,61 +66,64 @@ func New(cfg Config, service Service, ke KeyExtractor, logger *zap.SugaredLogger
 	}
 }
 
-func (g *Guard) Middleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		key, err := g.keyExtractor(c)
-		if err != nil || key == "" {
-			// If we cannot extract key, we fallback to IP only.
-			key = c.ClientIP()
-		}
+func (g *Guard) Middleware() httpx.Middleware {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			key, err := g.keyExtractor(r)
+			if err != nil || key == "" {
+				// If we cannot extract key, we fallback to IP only.
+				key = httpx.ClientIP(r)
+			}
 
-		ctx := c.Request.Context()
+			ctx := r.Context()
 
-		locked, until, err := g.service.IsLocked(ctx, key)
-		if err != nil {
-			// Fail safe: pass, log/monitor
-			g.logger.Errorw("failed to check if locked", "error", err)
-			c.Next()
-			return
-		}
-		if locked {
-			// Fix race condition: recalculate retry time to avoid negative values
-			retryAfter := time.Until(until)
-			if retryAfter <= 0 {
-				// Lock expired between check and now, allow request to proceed
-				g.logger.Debugw("lock expired, allowing request", "key", key)
-				c.Next()
+			locked, until, err := g.service.IsLocked(ctx, key)
+			if err != nil {
+				// Fail safe: pass, log/monitor
+				g.logger.Errorw("failed to check if locked", "error", err)
+				next.ServeHTTP(w, r)
 				return
 			}
-			g.block(c, retryAfter)
-			return
-		}
-
-		c.Next()
-
-		// After handler runs, decide success/failure by status
-		status := c.Writer.Status()
-		if g.isFailure(status) {
-			now := time.Now()
-			// OnFailure atomically handles counting and locking
-			locked, until, err := g.service.OnFailure(ctx, key, now, g.cfg.Window, g.cfg.MaxAttempts, g.cfg.Lockout)
-			if err != nil {
-				// Log error but don't fail the request - the auth failure should still be returned
-				g.logger.Errorw("failed to record failure", "key", key, "error", err)
-			} else if locked {
-				// If we just got locked, we could optionally notify the client
-				// For now, just let the request complete normally
-				g.logger.Infow("account locked due to too many failures", "key", key, "until", until)
+			if locked {
+				// Fix race condition: recalculate retry time to avoid negative values
+				retryAfter := time.Until(until)
+				if retryAfter <= 0 {
+					// Lock expired between check and now, allow request to proceed
+					g.logger.Debugw("lock expired, allowing request", "key", key)
+					next.ServeHTTP(w, r)
+					return
+				}
+				g.block(w, r, retryAfter)
+				return
 			}
-			return
-		}
 
-		// Only reset on explicit success statuses (200-299), not on other statuses like 400, 500
-		if status >= 200 && status < 300 {
-			if err := g.service.Reset(ctx, key); err != nil {
-				g.logger.Errorw("failed to reset bruteforce state", "key", key, "error", err)
+			recorder := &statusWriter{ResponseWriter: w, status: http.StatusOK}
+			next.ServeHTTP(recorder, r)
+
+			// After handler runs, decide success/failure by status
+			status := recorder.status
+			if g.isFailure(status) {
+				now := time.Now()
+				// OnFailure atomically handles counting and locking
+				locked, until, err := g.service.OnFailure(ctx, key, now, g.cfg.Window, g.cfg.MaxAttempts, g.cfg.Lockout)
+				if err != nil {
+					// Log error but don't fail the request - the auth failure should still be returned
+					g.logger.Errorw("failed to record failure", "key", key, "error", err)
+				} else if locked {
+					// If we just got locked, we could optionally notify the client
+					// For now, just let the request complete normally
+					g.logger.Infow("account locked due to too many failures", "key", key, "until", until)
+				}
+				return
 			}
-		}
+
+			// Only reset on explicit success statuses (200-299), not on other statuses like 400, 500
+			if status >= 200 && status < 300 {
+				if err := g.service.Reset(ctx, key); err != nil {
+					g.logger.Errorw("failed to reset bruteforce state", "key", key, "error", err)
+				}
+			}
+		})
 	}
 }
 
@@ -133,9 +136,9 @@ func (g *Guard) isFailure(status int) bool {
 	return false
 }
 
-func (g *Guard) block(c *gin.Context, retryAfter time.Duration) {
+func (g *Guard) block(w http.ResponseWriter, r *http.Request, retryAfter time.Duration) {
 	if g.cfg.OnBlocked != nil {
-		g.cfg.OnBlocked(c, retryAfter)
+		g.cfg.OnBlocked(w, r, retryAfter)
 		return
 	}
 
@@ -144,8 +147,8 @@ func (g *Guard) block(c *gin.Context, retryAfter time.Duration) {
 		retryAfter = 0
 	}
 
-	c.Header("Retry-After", fmt.Sprintf("%.0f", retryAfter.Seconds()))
-	c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{
+	w.Header().Set("Retry-After", fmt.Sprintf("%.0f", retryAfter.Seconds()))
+	httpx.JSON(w, http.StatusTooManyRequests, map[string]any{
 		"success":     false,
 		"message":     "too many attempts, try later",
 		"retry_after": int(retryAfter.Seconds()),
@@ -155,21 +158,21 @@ func (g *Guard) block(c *gin.Context, retryAfter time.Duration) {
 // KeyByIPAndBodyField makes a key "<ip>:<lower(username)>"
 // It safely reads the field from JSON body without consuming it by preserving the original body.
 func KeyByIPAndBodyField(field string) KeyExtractor {
-	return func(c *gin.Context) (string, error) {
-		ip := c.ClientIP()
+	return func(r *http.Request) (string, error) {
+		ip := httpx.ClientIP(r)
 
 		// Only process JSON requests
-		if c.GetHeader("Content-Type") == "application/json" || strings.Contains(c.GetHeader("Content-Type"), "application/json") {
+		if r.Header.Get("Content-Type") == "application/json" || strings.Contains(r.Header.Get("Content-Type"), "application/json") {
 			// Read body safely without consuming it
-			if c.Request.Body != nil {
-				bodyBytes, err := io.ReadAll(c.Request.Body)
+			if r.Body != nil {
+				bodyBytes, err := io.ReadAll(r.Body)
 				if err != nil {
 					// On error, fallback to IP only
 					return ip, nil
 				}
 
 				// Restore the body for subsequent handlers
-				c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+				r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 
 				// Try to parse JSON and extract field
 				var m map[string]any
@@ -184,8 +187,8 @@ func KeyByIPAndBodyField(field string) KeyExtractor {
 		}
 
 		// For form requests, try PostForm (this doesn't interfere with JSON parsing)
-		if c.Request.Header.Get("Content-Type") == "application/x-www-form-urlencoded" {
-			if v := c.PostForm(field); v != "" {
+		if r.Header.Get("Content-Type") == "application/x-www-form-urlencoded" {
+			if v := r.PostFormValue(field); v != "" {
 				return fmt.Sprintf("%s:%s", ip, strings.ToLower(v)), nil
 			}
 		}
@@ -194,3 +197,25 @@ func KeyByIPAndBodyField(field string) KeyExtractor {
 		return ip, nil
 	}
 }
+
+// This wrapper is only used around the login handler, which does not stream or upgrade.
+type statusWriter struct {
+	http.ResponseWriter
+	status int
+	wrote  bool
+}
+
+func (w *statusWriter) WriteHeader(status int) {
+	if !w.wrote {
+		w.status = status
+		w.wrote = true
+		w.ResponseWriter.WriteHeader(status)
+	}
+}
+func (w *statusWriter) Write(p []byte) (int, error) {
+	if !w.wrote {
+		w.WriteHeader(http.StatusOK)
+	}
+	return w.ResponseWriter.Write(p)
+}
+func (w *statusWriter) Unwrap() http.ResponseWriter { return w.ResponseWriter }

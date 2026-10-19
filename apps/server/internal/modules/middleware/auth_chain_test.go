@@ -5,9 +5,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"peekaping/internal/httpx"
 	"peekaping/internal/modules/middleware"
 
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 )
@@ -16,10 +16,12 @@ import (
 // request through and marks it with its own auth type.
 type authenticator string
 
-func (a authenticator) Auth() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Set("authType", string(a))
-		c.Next()
+func (a authenticator) Auth() httpx.Middleware {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			r = httpx.WithValue(r, "authType", string(a))
+			next.ServeHTTP(w, r)
+		})
 	}
 }
 
@@ -34,11 +36,11 @@ type caller struct {
 func serve(headers map[string]string) (*httptest.ResponseRecorder, caller) {
 	chain := middleware.NewAuthChain(authenticator("jwt"), authenticator("api_key"), zap.NewNop().Sugar())
 	var seen caller
-	router := gin.New()
-	router.GET("/protected", chain.AllAuth(), func(c *gin.Context) {
-		seen = caller{true, c.Value("authType")}
-		c.Status(http.StatusOK)
-	})
+	router := httpx.NewRouter()
+	router.Handle("GET", "/protected", func(w http.ResponseWriter, r *http.Request) {
+		seen = caller{true, httpx.Value(r.Context(), "authType")}
+		w.WriteHeader(http.StatusOK)
+	}, chain.AllAuth())
 	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
 	for name, value := range headers {
 		req.Header.Set(name, value)

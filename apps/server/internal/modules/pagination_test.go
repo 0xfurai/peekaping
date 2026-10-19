@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"peekaping/internal/httpx"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/monitor"
@@ -13,7 +14,6 @@ import (
 	"peekaping/internal/modules/tag"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -101,32 +101,32 @@ func (s *monitorPaginationService) GetHeartbeats(_ context.Context, _ string, li
 }
 
 func TestListEndpointsPagination(t *testing.T) {
-	gin.SetMode(gin.TestMode)
+
 	logger := zap.NewNop().Sugar()
 	endpoints := []struct {
 		name         string
 		defaultLimit int
-		handler      func(*paginationCall) gin.HandlerFunc
+		handler      func(*paginationCall) http.HandlerFunc
 	}{
-		{"tags", 10, func(call *paginationCall) gin.HandlerFunc {
+		{"tags", 10, func(call *paginationCall) http.HandlerFunc {
 			return tag.NewController(&tagPaginationService{paginationCall: call}, logger).FindAll
 		}},
-		{"proxies", 10, func(call *paginationCall) gin.HandlerFunc {
+		{"proxies", 10, func(call *paginationCall) http.HandlerFunc {
 			return proxy.NewController(&proxyPaginationService{paginationCall: call}, logger).FindAll
 		}},
-		{"notification-channels", 10, func(call *paginationCall) gin.HandlerFunc {
+		{"notification-channels", 10, func(call *paginationCall) http.HandlerFunc {
 			return notification_channel.NewController(&notificationPaginationService{paginationCall: call}, logger).FindAll
 		}},
-		{"maintenances", 10, func(call *paginationCall) gin.HandlerFunc {
+		{"maintenances", 10, func(call *paginationCall) http.HandlerFunc {
 			return maintenance.NewController(&maintenancePaginationService{paginationCall: call}, logger).FindAll
 		}},
-		{"status-pages", 10, func(call *paginationCall) gin.HandlerFunc {
+		{"status-pages", 10, func(call *paginationCall) http.HandlerFunc {
 			return status_page.NewController(&statusPagePaginationService{paginationCall: call}, nil, nil, logger).FindAll
 		}},
-		{"monitors", 10, func(call *paginationCall) gin.HandlerFunc {
+		{"monitors", 10, func(call *paginationCall) http.HandlerFunc {
 			return monitor.NewMonitorController(&monitorPaginationService{paginationCall: call}, logger, nil, nil, nil, nil).FindAll
 		}},
-		{"heartbeats", 50, func(call *paginationCall) gin.HandlerFunc {
+		{"heartbeats", 50, func(call *paginationCall) http.HandlerFunc {
 			return monitor.NewMonitorController(&monitorPaginationService{paginationCall: call}, logger, nil, nil, nil, nil).FindByMonitorIDPaginated
 		}},
 	}
@@ -157,8 +157,8 @@ func TestListEndpointsPagination(t *testing.T) {
 			for _, tc := range cases {
 				t.Run(tc.name, func(t *testing.T) {
 					call := &paginationCall{}
-					router := gin.New()
-					router.GET("/", endpoint.handler(call))
+					router := httpx.NewRouter()
+					router.Handle("GET", "/", endpoint.handler(call))
 					response := httptest.NewRecorder()
 					router.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/"+tc.query, nil))
 					require.Equal(t, tc.status, response.Code, response.Body.String())

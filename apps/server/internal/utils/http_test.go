@@ -10,7 +10,6 @@ import (
 
 	"peekaping/internal/utils"
 
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -20,11 +19,9 @@ type record struct{ Name string }
 
 func findOr404(t *testing.T, find func(context.Context, string) (*record, error)) (*record, bool, *httptest.ResponseRecorder) {
 	t.Helper()
-	gin.SetMode(gin.TestMode)
 	rec := httptest.NewRecorder()
-	ctx, _ := gin.CreateTestContext(rec)
-	ctx.Request = httptest.NewRequest(http.MethodGet, "/tags/42", nil)
-	found, ok := utils.FindOr404(ctx, zap.NewNop().Sugar(), "Tag", find, "42")
+	req := httptest.NewRequest(http.MethodGet, "/tags/42", nil)
+	found, ok := utils.FindOr404(req.Context(), rec, zap.NewNop().Sugar(), "Tag", find, "42")
 	return found, ok, rec
 }
 

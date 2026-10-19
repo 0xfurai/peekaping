@@ -30,7 +30,7 @@ Post every reply through `pr-reply.sh`. Its hidden marker is how a thread you an
 2. **Act on the outcome.**
    - `ACTION`: run `pr-state.sh` on each PR with `todo` > 0 or failed checks, and handle every item (below).
    - `READY` (the stack is green and nothing waits on you): if this is the first `READY` since the last push, send a `PushNotification` and a short message: the PRs, what CodeRabbit raised and how each point was settled, and that it's ready for the user's review. Then wait again with `--idle`.
-   - `MERGED`: restack ([STACK.md](../ticket/STACK.md)), then wait again on the PRs still open. When none are open, wrap up.
+   - `MERGED`: an agent restacks ([STACK.md](../ticket/STACK.md), [DELEGATE.md](../ticket/DELEGATE.md)), briefed with the merged PR and every open branch; then wait again on the PRs still open. When none are open, wrap up.
    - `PUSHED`: someone else pushed. `git pull --no-rebase` on that branch, read what changed, and wait again.
    - `TIMEOUT`: wait again. After a non-idle timeout, check the status lines: a check stuck pending for an hour is worth telling the user.
 3. **Push once per round.** Batch every fix of the round into commits, run the full local run ([TESTING.md](../ticket/TESTING.md)), push each changed branch, carry fixes up the stack ([STACK.md](../ticket/STACK.md)), and post `@coderabbitai review` on every pushed PR whose base isn't `main`. Then post the replies, so each can cite its commit.
@@ -56,7 +56,7 @@ Where items live in `pr-state.sh` output:
 - `threads`: inline comments still unresolved where the last word isn't yours. Reply with the thread's `replyTo` id (its first comment); GitHub rejects a reply to a reply.
 - `reviews`: review bodies. CodeRabbit puts nitpicks and "outside diff range" comments here, not in threads; each one still gets handled. Answer them in one PR comment that lists each point and what you did.
 - `comments`: top-level PR comments. Answer them with a PR comment.
-- `checks.failed`: open the run (`gh run view <id> --log-failed`) and fix the cause. A failure unrelated to this PR (a known flake, an outage) gets one rerun (`gh run rerun <id> --failed`); if it fails again the same way, tell the user and pass `--ignore <check>` to `pr-wait.sh` from then on.
+- `checks.failed`: an agent ([DELEGATE.md](../ticket/DELEGATE.md)) reads the run (`gh run view <id> --log-failed`) and commits a fix for the cause, or reports that the failure is unrelated to this PR. Brief it first in the round and handle the comments once it reports, since both change the same worktree. A failure unrelated to this PR (a known flake, an outage) gets one rerun (`gh run rerun <id> --failed`); if it fails again the same way, tell the user and pass `--ignore <check>` to `pr-wait.sh` from then on.
 - `coderabbit` not `SUCCESS` after the wait: post `@coderabbitai review` on that PR. If it still doesn't review (it allows 10 reviews an hour), tell the user and continue with `--ignore CodeRabbit`.
 
 ## Replies

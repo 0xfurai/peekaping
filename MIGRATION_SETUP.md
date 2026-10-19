@@ -2,6 +2,8 @@
 
 This project includes a separate migration container that gives you full control over when database migrations run.
 
+Before the SQL stats upgrade, read [Upgrading stats storage](apps/docs/docs/self-hosting/upgrading-stats.md). Stats are rebuilt from retained heartbeats, the mixed legacy table is dropped, and rollback does not recover its history. The guide covers backups and optional SQLite disk-space reclamation.
+
 ## How it works
 
 1. **Migration Container**: The project uses a dedicated migration container built from `Dockerfile.migrate`

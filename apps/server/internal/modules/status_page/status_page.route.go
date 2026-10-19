@@ -1,9 +1,8 @@
 package status_page
 
 import (
+	"peekaping/internal/httpx"
 	"peekaping/internal/modules/middleware"
-
-	"github.com/gin-gonic/gin"
 )
 
 type Route struct {
@@ -18,20 +17,20 @@ func NewRoute(controller *Controller, middleware *middleware.AuthChain) *Route {
 	}
 }
 
-func (r *Route) ConnectRoute(rg *gin.RouterGroup, controller *Controller) {
+func (r *Route) ConnectRoute(rg *httpx.Router, controller *Controller) {
 	// Public routes
 	sp := rg.Group("status-pages")
-	sp.GET("/slug/:slug", r.controller.FindBySlug)
-	sp.GET("/domain/:domain", r.controller.FindByDomain)
-	sp.GET("/slug/:slug/monitors", r.controller.GetMonitorsBySlug)
-	sp.GET("/slug/:slug/monitors/homepage", r.controller.GetMonitorsBySlugForHomepage)
+	sp.Handle("GET", "/slug/{slug}", r.controller.FindBySlug)
+	sp.Handle("GET", "/domain/{domain}", r.controller.FindByDomain)
+	sp.Handle("GET", "/slug/{slug}/monitors", r.controller.GetMonitorsBySlug)
+	sp.Handle("GET", "/slug/{slug}/monitors/homepage", r.controller.GetMonitorsBySlugForHomepage)
 
 	sp.Use(r.middleware.AllAuth())
 	{
-		sp.POST("", r.controller.Create)
-		sp.GET("", r.controller.FindAll)
-		sp.GET("/:id", r.controller.FindByID)
-		sp.PATCH("/:id", r.controller.Update)
-		sp.DELETE("/:id", r.controller.Delete)
+		sp.Handle("POST", "", r.controller.Create)
+		sp.Handle("GET", "", r.controller.FindAll)
+		sp.Handle("GET", "/{id}", r.controller.FindByID)
+		sp.Handle("PATCH", "/{id}", r.controller.Update)
+		sp.Handle("DELETE", "/{id}", r.controller.Delete)
 	}
 }

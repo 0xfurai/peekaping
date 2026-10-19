@@ -1,9 +1,8 @@
 package tag
 
 import (
+	"peekaping/internal/httpx"
 	"peekaping/internal/modules/middleware"
-
-	"github.com/gin-gonic/gin"
 )
 
 type Route struct {
@@ -22,17 +21,17 @@ func NewRoute(
 }
 
 func (r *Route) ConnectRoute(
-	rg *gin.RouterGroup,
+	rg *httpx.Router,
 	controller *Controller,
 ) {
 	router := rg.Group("tags")
 
 	router.Use(r.middleware.AllAuth())
 
-	router.GET("", controller.FindAll)
-	router.POST("", controller.Create)
-	router.GET("/:id", controller.FindByID)
-	router.PUT("/:id", controller.UpdateFull)
-	router.PATCH("/:id", controller.UpdatePartial)
-	router.DELETE("/:id", controller.Delete)
+	router.Handle("GET", "", controller.FindAll)
+	router.Handle("POST", "", controller.Create)
+	router.Handle("GET", "/{id}", controller.FindByID)
+	router.Handle("PUT", "/{id}", controller.UpdateFull)
+	router.Handle("PATCH", "/{id}", controller.UpdatePartial)
+	router.Handle("DELETE", "/{id}", controller.Delete)
 }
