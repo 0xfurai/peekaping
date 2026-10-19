@@ -1,9 +1,9 @@
 # Makefile for Peekaping project
 #
 # This Makefile supports multiple Docker Compose configurations:
-# - Development: dev-postgres, dev-mongo, dev-sqlite
-# - Production:  prod-postgres, prod-mongo, prod-sqlite
-# - Standalone:  postgres, mongo
+# - Development: dev-postgres, dev-mongo (deprecated), dev-sqlite
+# - Production:  prod-postgres, prod-mongo (deprecated), prod-sqlite
+# - Standalone:  postgres, mongo (deprecated)
 #
 # To change the default database, modify DEFAULT_DEV_DB or DEFAULT_PROD_DB below
 # Example: make dev (uses default) vs make dev-mongo (specific database)
@@ -25,8 +25,8 @@ COMPOSE_MONGO = docker-compose.mongo.yml
 COMPOSE_SQLITE = docker-compose.sqlite.yml
 
 # Default configurations (MongoDB storage is deprecated: docs/adr/0001-deprecate-mongodb-storage.md)
-DEFAULT_DEV_DB = sqlite
-DEFAULT_PROD_DB = sqlite
+DEFAULT_DEV_DB = postgres
+DEFAULT_PROD_DB = postgres
 
 # Default target
 .DEFAULT_GOAL := help
@@ -35,10 +35,10 @@ DEFAULT_PROD_DB = sqlite
 .PHONY: help
 help: ## Show this help message
 	@echo "🐳 DOCKER CONFIGURATIONS QUICK REFERENCE:"
-	@echo "  \033[32mDevelopment:\033[0m   dev-postgres, dev-mongo, dev-sqlite"
-	@echo "  \033[33mProduction:\033[0m    prod-postgres, prod-mongo, prod-sqlite"
-	@echo "  \033[36mStandalone:\033[0m    postgres, mongo"
-	@echo "  \033[35mSwitchers:\033[0m     switch-to-postgres, switch-to-mongo, switch-to-sqlite"
+	@echo "  \033[32mDevelopment:\033[0m   dev-postgres, dev-mongo (deprecated), dev-sqlite"
+	@echo "  \033[33mProduction:\033[0m    prod-postgres, prod-mongo (deprecated), prod-sqlite"
+	@echo "  \033[36mStandalone:\033[0m    postgres, mongo (deprecated)"
+	@echo "  \033[35mSwitchers:\033[0m     switch-to-postgres, switch-to-mongo (deprecated), switch-to-sqlite"
 	@echo "  \033[31mStop All:\033[0m      docker-down-all"
 	@echo ""
 	@echo "📋 Available targets:"
@@ -50,21 +50,21 @@ docker-configs: ## Show all available Docker Compose configurations
 	@echo ""
 	@echo "🔧 \033[32mDEVELOPMENT ENVIRONMENTS:\033[0m"
 	@echo "  make dev-postgres    # $(COMPOSE_DEV_POSTGRES)"
-	@echo "  make dev-mongo       # $(COMPOSE_DEV_MONGO)"
+	@echo "  make dev-mongo       # $(COMPOSE_DEV_MONGO) (deprecated)"
 	@echo "  make dev-sqlite      # $(COMPOSE_DEV_SQLITE)"
 	@echo ""
 	@echo "🚀 \033[33mPRODUCTION ENVIRONMENTS:\033[0m"
 	@echo "  make prod-postgres   # $(COMPOSE_PROD_POSTGRES)"
-	@echo "  make prod-mongo      # $(COMPOSE_PROD_MONGO)"
+	@echo "  make prod-mongo      # $(COMPOSE_PROD_MONGO) (deprecated)"
 	@echo "  make prod-sqlite     # $(COMPOSE_PROD_SQLITE)"
 	@echo ""
 	@echo "🎯 \033[36mSTANDALONE ENVIRONMENTS:\033[0m"
 	@echo "  make postgres        # $(COMPOSE_POSTGRES)"
-	@echo "  make mongo           # $(COMPOSE_MONGO)"
+	@echo "  make mongo           # $(COMPOSE_MONGO) (deprecated)"
 	@echo ""
 	@echo "⚡ \033[35mQUICK SWITCHERS:\033[0m"
 	@echo "  make switch-to-postgres   # Stop all → Start PostgreSQL dev"
-	@echo "  make switch-to-mongo      # Stop all → Start MongoDB dev"
+	@echo "  make switch-to-mongo      # Stop all → Start MongoDB dev (deprecated)"
 	@echo "  make switch-to-sqlite     # Stop all → Start SQLite dev"
 	@echo ""
 	@echo "🔍 \033[34mUTILITY COMMANDS:\033[0m"
