@@ -98,7 +98,7 @@ docker compose -f docker-compose.postgres.yml up -d
 ```
 
 Other options:
-- `docker-compose.sqlite.yml` for SQLite (it starts only Redis, since SQLite needs no database server)
+- `docker-compose.sqlite.yml` for SQLite (it starts Redis and asynqmon, a queue dashboard, and no database server, since SQLite needs none)
 - `docker-compose.mongo.yml` for MongoDB. MongoDB storage is [deprecated](./self-hosting/docker-with-mongo.md), so use it only to work on existing Mongo installs
 
 ---
