@@ -8,10 +8,10 @@ import {
   type Page,
 } from '@playwright/test';
 
-// The monitor list subscribes to the `monitor:all` room once, behind a ref, and its cleanup
-// removes the heartbeat listener whenever the socket drops. After a reconnect the effect runs
-// again but the ref says it has already subscribed, so it never joins the room again and the
-// cards stop updating until the page is reloaded (PP-205).
+// The monitor list used to subscribe to the `monitor:all` room once, behind a ref, and its
+// cleanup removed the heartbeat listener whenever the socket dropped. After a reconnect the
+// effect ran again but the ref said it had already subscribed, so it never joined the room
+// again and the cards stopped updating until the page was reloaded (PP-205).
 //
 // The test opens the monitor list, drops the page's socket the way a restarting API would, lets
 // socket.io-client reconnect by itself, and then pushes a heartbeat to a push monitor. The
