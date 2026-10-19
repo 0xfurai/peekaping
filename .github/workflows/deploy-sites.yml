@@ -43,8 +43,10 @@ jobs:
           ref: ${{ env.PRODUCTION == 'true' && github.event.workflow_run.head_sha || '' }}
           persist-credentials: false
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
 
       - name: Setup Node.js
         uses: actions/setup-node@v7
@@ -52,7 +54,7 @@ jobs:
           node-version-file: .nvmrc
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile --filter "$APP"
+        run: bun install --frozen-lockfile --filter "$APP"
 
       - name: Resolve site directory
         id: site
@@ -77,7 +79,7 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: pnpm exec wrangler deploy
+        run: bunx wrangler deploy
 
       - name: Deploy preview
         id: preview
@@ -99,7 +101,7 @@ jobs:
             echo "PR #$PR is closed, skipping the preview"
             exit 0
           fi
-          pnpm exec wrangler preview --name "pr-$PR"
+          bunx wrangler preview --name "pr-$PR"
           url=$(jq -r 'select(.type == "preview") | .preview_urls[0] // empty' "$WRANGLER_OUTPUT_FILE_PATH")
           if [ -z "$url" ]; then
             # preview_urls in wrangler.jsonc takes effect with the first production deploy
@@ -141,8 +143,10 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
 
       - name: Setup Node.js
         uses: actions/setup-node@v7
@@ -150,7 +154,7 @@ jobs:
           node-version-file: .nvmrc
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile --filter ${{ matrix.app }}
+        run: bun install --frozen-lockfile --filter ${{ matrix.app }}
 
       - name: Delete preview
         # Not every PR has a preview for both sites; a failed cleanup shouldn't mark it red
@@ -160,4 +164,4 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           PREVIEW_NAME: pr-${{ github.event.pull_request.number }}
-        run: pnpm exec wrangler preview delete --name "$PREVIEW_NAME" --skip-confirmation
+        run: bunx wrangler preview delete --name "$PREVIEW_NAME" --skip-confirmation
