@@ -227,7 +227,7 @@ func (r *rig) body() string {
 func series(t *testing.T, exposition string) map[string]float64 {
 	t.Helper()
 	parsed := map[string]float64{}
-	for _, line := range strings.Split(exposition, "\n") {
+	for line := range strings.SplitSeq(exposition, "\n") {
 		if !strings.HasPrefix(line, "peekaping_monitor_") {
 			continue
 		}
