@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Fixed
+
+## [0.0.47] - 2026-10-19
+
+### Added
+
 - feat: the API serves Prometheus metrics at `/metrics` on its own port when `METRICS_ENABLED=true` (off by default). Each active monitor has `peekaping_monitor_status` (0 Down, 1 Up, 2 Pending, 3 Maintenance), `peekaping_monitor_last_heartbeat_timestamp_seconds`, and `peekaping_monitor_response_seconds` while it is Up, labelled with the monitor's ID, name and type; a paused or deleted monitor has none. The endpoint needs no credentials and lists monitor names, so scrape it over a private network; the gateway doesn't forward it. See [Prometheus Metrics](apps/docs/docs/architecture/api-server.md#prometheus-metrics) (#267, #277, #350) (thanks @SiteRelEnby)
 - feat: SMTP monitor type. It connects over plain SMTP, STARTTLS or direct TLS, can log in with PLAIN authentication, can test whether the server is an open relay, and tracks the TLS certificate's expiry (#250) (thanks @czimnick)
 - feat: Microsoft Teams notification channel. Point it at a Workflows webhook to get alerts with the monitor's status, details and links (#245) (thanks @mtb77)
