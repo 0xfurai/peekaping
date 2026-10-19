@@ -1,6 +1,7 @@
 {
   "name": "mono",
   "private": true,
+  "workspaces": ["apps/*"],
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
@@ -10,7 +11,7 @@
     "dev:ingester": "turbo run dev:ingester",
     "lint": "turbo run lint",
     "check-types": "turbo run check-types",
-    "e2e": "pnpm exec playwright test"
+    "e2e": "bunx playwright test"
   },
   "devDependencies": {
     "@playwright/test": "^1.53.1",
@@ -18,7 +19,7 @@
     "turbo": "^2.5.4",
     "nodemon": "^3.1.10"
   },
-  "packageManager": "pnpm@9.0.0",
+  "packageManager": "bun@1.4.3",
   "engines": {
     "node": ">=22"
   }
