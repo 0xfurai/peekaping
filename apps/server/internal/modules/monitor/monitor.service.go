@@ -149,7 +149,6 @@ func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, id string, monitor
 		RetryInterval:  monitor.RetryInterval,
 		ResendInterval: monitor.ResendInterval,
 		Active:         monitor.Active,
-		Status:         shared.MonitorStatusUp,
 		UpdatedAt:      time.Now().UTC(),
 		Config:         monitor.Config,
 		ProxyId:        monitor.ProxyId,

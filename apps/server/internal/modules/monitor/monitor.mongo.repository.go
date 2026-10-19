@@ -320,7 +320,6 @@ func buildSetMapFromModelForUpdate(m *Model, preserveCreatedAt time.Time, includ
 		"retry_interval":  m.RetryInterval,
 		"resend_interval": m.ResendInterval,
 		"active":          m.Active,
-		"status":          0,                 // or m.Status if available
 		"created_at":      preserveCreatedAt, // Preserve original created_at
 		"updated_at":      time.Now().UTC(),
 		"config":          m.Config,

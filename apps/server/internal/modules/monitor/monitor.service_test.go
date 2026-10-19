@@ -451,8 +451,7 @@ func TestMonitorService_UpdateFull(t *testing.T) {
 			return m.ID == monitorID &&
 				m.Type == updateDto.Type &&
 				m.Name == updateDto.Name &&
-				m.Interval == updateDto.Interval &&
-				m.Status == shared.MonitorStatusUp
+				m.Interval == updateDto.Interval
 		})).Return(nil)
 
 		result, err := service.UpdateFull(ctx, monitorID, updateDto)
