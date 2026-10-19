@@ -223,7 +223,7 @@ test-server: ## Test the server
 .PHONY: lint-web
 lint-web: ## Test the web
 	@echo "Testing the web..."
-	cd apps/web && pnpm lint && pnpm build
+	cd apps/web && bun run lint && bun run build
 
 # Producer targets
 .PHONY: build-producer
@@ -252,18 +252,18 @@ sync-skills: ## Link shared agent skills into Claude Code
 	./scripts/sync-skills.sh
 
 .PHONY: setup
-setup: ## Check that Go, Node.js and pnpm are installed
+setup: ## Check that Go, Node.js and Bun are installed
 	@./scripts/check-tools.sh
 
 .PHONY: install
-install: ## Install all dependencies (pnpm install + go mod tidy)
+install: ## Install all dependencies (bun install + go mod tidy)
 	@echo "📦 Installing all project dependencies..."
 	@echo "Installing Node.js dependencies..."
-	pnpm install
+	bun install
 	@echo "Tidying Go modules..."
 	cd apps/server && go mod tidy
 	@echo "✅ All dependencies installed successfully!"
 
 .PHONY: dev
 dev: ## Start development environment
-	pnpm run dev dev:api dev:ingester dev:producer dev:worker docs:watch
+	bun run dev dev:api dev:ingester dev:producer dev:worker docs:watch
