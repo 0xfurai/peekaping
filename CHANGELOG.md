@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+### Deprecated
+
+- chore: MongoDB as a storage backend (the database Peekaping keeps its data in) is deprecated: `DB_TYPE=mongo`, the `peekaping-bundle-mongo` image and the Mongo Docker Compose setup. Existing Mongo installs keep working, and the API, producer and ingester log a warning at startup. Until removal, Mongo gets no new features and only fixes for data loss, startup failures and security problems. A command to move your data to SQLite or PostgreSQL will ship before removal, and Mongo is removed no earlier than the second release after the one that ships it. New installs should use SQLite or PostgreSQL. The MongoDB monitor type, which checks other MongoDB servers, is not affected. See [Docker + MongoDB](apps/docs/docs/self-hosting/docker-with-mongo.md) (PP-23)
+
 ### Fixed
 
 ## [0.0.47] - 2026-10-19
@@ -32,10 +36,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: Grafana OnCall alerts also carry the heartbeat's `status`, `ping_ms`, `retries` and `time`, and the monitor's `monitor_id`, `monitor_type` and `tags`, so OnCall can route and group them. HTTP monitors add `monitor_url` (without credentials, query or fragment); TCP, ping, DNS and gRPC keyword monitors add `monitor_host`; other types send no target (#263) (thanks @brewle)
 - feat: the bundle images run the API, producer, worker and ingester as a non-root user, `peekaping` (UID/GID 1000); `PUID` and `PGID` change the IDs. Caddy, Redis, the database and supervisord keep their users. Upgrade note: on start, `/app/data` is chowned to that user, which changes the owner of files an older image wrote as root; where root can't change owners, such as NFS with `root_squash`, startup warns and carries on. A Docker socket at `/var/run/docker.sock` keeps working, and ping monitors need `net.ipv4.ping_group_range` to include the user's groups (Docker allows it by default; startup warns where it doesn't). See [Bundle user and permissions](apps/docs/docs/self-hosting/bundle-user.md) (#163, #209, #316) (thanks @tafaust)
 - refactor: the API server runs on Go's standard HTTP router instead of Gin, and its 75 operations are typed Huma operations instead of Swag annotations. Paths, response formats, authentication and validation stay the same. The API reference is now OpenAPI 3.1 instead of Swagger 2, served as an interactive page at `/docs`; `/swagger/index.html` redirects there and `/swagger/doc.json` stays as an alias (#329, #332)
-
-### Deprecated
-
-- chore: MongoDB as a storage backend (the database Peekaping keeps its data in) is deprecated: `DB_TYPE=mongo`, the `peekaping-bundle-mongo` image and the Mongo Docker Compose setup. Existing Mongo installs keep working, and the API, producer and ingester log a warning at startup. Until removal, Mongo gets no new features and only fixes for data loss, startup failures and security problems. A command to move your data to SQLite or PostgreSQL will ship before removal, and Mongo is removed no earlier than the second release after the one that ships it. New installs should use SQLite or PostgreSQL. The MongoDB monitor type, which checks other MongoDB servers, is not affected. See [Docker + MongoDB](apps/docs/docs/self-hosting/docker-with-mongo.md) (PP-23)
 
 ### Fixed
 
