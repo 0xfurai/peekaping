@@ -80,7 +80,7 @@ Find the cause: `gh run view <id> --log-failed`. Then see whether the bump lande
 
 Don't report the release out until each of these is checked:
 
-- **Run.** `gh run view <id>` shows success. `deploy-demo` doesn't count: its deploy step is `continue-on-error`, so read that job's log.
+- **Run.** `gh run view <id>` shows success. `deploy-demo` doesn't count: its deploy step is `continue-on-error`, so a failure shows only as a "Demo not updated" warning on the run. Read that job's log: it prints the demo's `image:` lines, which should end in `<X.Y.Z>`.
 - **Main.** `git log origin/main --author=github-actions -1` is the bump commit. `git show origin/main:CHANGELOG.md | head -30` shows an empty `[Unreleased]` and `## [<X.Y.Z>] - <today>` under it.
 - **Tag and release.** `gh release view <X.Y.Z> --json tagName,isPrerelease,url,body`: not a pre-release, the body starts with the notes you reviewed. `git rev-parse <X.Y.Z>^{commit}` is the bump commit; if not, say which commits landed after it.
 - **Images.** For each of `web api worker producer ingester migrate bundle-sqlite bundle-mongo bundle-postgres`, `docker buildx imagetools inspect 0xfurai/peekaping-<name>:<X.Y.Z>` lists `linux/amd64` and `linux/arm64`. For one of them, `--format '{{.Manifest.Digest}}'` is the same for `:<X.Y.Z>` and `:latest`. This checks Docker Hub; GHCR pushes come from the same green `create-manifest` job, and an anonymous inspect of GHCR can answer 403.
