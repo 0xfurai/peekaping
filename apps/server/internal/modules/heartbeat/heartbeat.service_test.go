@@ -446,6 +446,16 @@ func TestDeleteOlderThanClearsABacklogLargerThanOneBatch(t *testing.T) {
 				require.NoError(t, err)
 				assert.Equal(t, []string{"new", "new"}, msgs(left))
 			}
+
+			// Once every heartbeat is older than the cutoff, one run deletes them all.
+			deleted, err = svc.DeleteOlderThan(ctx, now.Add(time.Minute))
+			require.NoError(t, err)
+			assert.Equal(t, int64(4), deleted)
+			for _, monitorID := range []string{monitorA, monitorB} {
+				left, err := svc.FindByMonitorIDPaginated(ctx, monitorID, 10, 0, nil, true)
+				require.NoError(t, err)
+				assert.Empty(t, left)
+			}
 		})
 	}
 }
