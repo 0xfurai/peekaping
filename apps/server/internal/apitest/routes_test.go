@@ -11,6 +11,11 @@ import (
 
 // publicRoutes answer without credentials. Every other route must return 401.
 var publicRoutes = map[string]string{
+	"GET /openapi.json":           "OpenAPI spec",
+	"GET /openapi.yaml":           "OpenAPI spec",
+	"GET /openapi-3.0.json":       "OpenAPI 3.0 spec",
+	"GET /openapi-3.0.yaml":       "OpenAPI 3.0 spec",
+	"GET /docs":                   "API reference",
 	"GET /health":                 "server liveness",
 	"GET /api/v1/health":          "server liveness",
 	"GET /api/v1/version":         "server version",

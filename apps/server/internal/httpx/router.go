@@ -5,10 +5,13 @@ import (
 	"net/url"
 	"slices"
 	"strings"
+
+	"github.com/danielgtaylor/huma/v2"
 )
 
 type Route struct{ Method, Path string }
 type registry struct {
+	api              huma.API
 	mux              *http.ServeMux
 	routes           []Route
 	middleware       []Middleware

@@ -1,0 +1,6072 @@
+components:
+  schemas:
+    api_key.APIKeyConfigResponse:
+      additionalProperties: false
+      properties:
+        prefix:
+          type: string
+      required:
+        - prefix
+      type: object
+    api_key.APIKeyResponse:
+      additionalProperties: false
+      properties:
+        created_at:
+          format: date-time
+          type: string
+        display_key:
+          type: string
+        expires_at:
+          format: date-time
+          type:
+            - string
+            - "null"
+        id:
+          type: string
+        last_used:
+          format: date-time
+          type:
+            - string
+            - "null"
+        max_usage_count:
+          format: int64
+          type:
+            - integer
+            - "null"
+        name:
+          type: string
+        updated_at:
+          format: date-time
+          type: string
+        usage_count:
+          format: int64
+          type: integer
+      required:
+        - id
+        - name
+        - display_key
+        - last_used
+        - expires_at
+        - usage_count
+        - max_usage_count
+        - created_at
+        - updated_at
+      type: object
+    api_key.APIKeyWithTokenResponse:
+      additionalProperties: false
+      properties:
+        created_at:
+          format: date-time
+          type: string
+        display_key:
+          type: string
+        expires_at:
+          format: date-time
+          type:
+            - string
+            - "null"
+        id:
+          type: string
+        last_used:
+          format: date-time
+          type:
+            - string
+            - "null"
+        max_usage_count:
+          format: int64
+          type:
+            - integer
+            - "null"
+        name:
+          type: string
+        token:
+          type: string
+        updated_at:
+          format: date-time
+          type: string
+        usage_count:
+          format: int64
+          type: integer
+      required:
+        - token
+        - id
+        - name
+        - display_key
+        - last_used
+        - expires_at
+        - usage_count
+        - max_usage_count
+        - created_at
+        - updated_at
+      type: object
+    api_key.CreateAPIKeyDto:
+      additionalProperties: true
+      properties:
+        expires_at:
+          format: date-time
+          type:
+            - string
+            - "null"
+        max_usage_count:
+          format: int64
+          minimum: 1
+          type:
+            - integer
+            - "null"
+        name:
+          maxLength: 255
+          minLength: 1
+          type: string
+      required:
+        - name
+      type: object
+    api_key.UpdateAPIKeyDto:
+      additionalProperties: true
+      properties:
+        expires_at:
+          format: date-time
+          type:
+            - string
+            - "null"
+        max_usage_count:
+          format: int64
+          minimum: 1
+          type:
+            - integer
+            - "null"
+        name:
+          maxLength: 255
+          minLength: 1
+          type:
+            - string
+            - "null"
+      type: object
+    auth.LoginDto:
+      additionalProperties: true
+      properties:
+        email:
+          format: email
+          type: string
+        password:
+          type: string
+        token:
+          type: string
+      required:
+        - email
+        - password
+      type: object
+    auth.LoginResponse:
+      additionalProperties: false
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        user:
+          $ref: "#/components/schemas/auth.Model"
+      required:
+        - user
+        - accessToken
+        - refreshToken
+      type: object
+    auth.Model:
+      additionalProperties: false
+      properties:
+        active:
+          type: boolean
+        createdAt:
+          format: date-time
+          type: string
+        email:
+          type: string
+        id:
+          type: string
+        twofa_status:
+          type: boolean
+        updatedAt:
+          format: date-time
+          type: string
+      required:
+        - id
+        - email
+        - active
+        - twofa_status
+        - createdAt
+        - updatedAt
+      type: object
+    auth.RefreshTokenDto:
+      additionalProperties: true
+      properties:
+        refreshToken:
+          type: string
+      required:
+        - refreshToken
+      type: object
+    auth.RegisterDto:
+      additionalProperties: true
+      properties:
+        email:
+          format: email
+          type: string
+        password:
+          type: string
+      required:
+        - email
+        - password
+      type: object
+    auth.TwoFADisableRequestDto:
+      additionalProperties: true
+      properties:
+        email:
+          format: email
+          type: string
+        password:
+          type: string
+      required:
+        - email
+        - password
+      type: object
+    auth.TwoFASetupRequestDto:
+      additionalProperties: true
+      properties:
+        email:
+          format: email
+          type: string
+        password:
+          type: string
+      required:
+        - email
+        - password
+      type: object
+    auth.TwoFASetupResponseDto:
+      additionalProperties: false
+      properties:
+        provisioningUri:
+          type: string
+        secret:
+          type: string
+      required:
+        - secret
+        - provisioningUri
+      type: object
+    auth.TwoFAVerifyRequestDto:
+      additionalProperties: true
+      properties:
+        code:
+          type: string
+        email:
+          format: email
+          type: string
+      required:
+        - email
+        - code
+      type: object
+    auth.TwoFAVerifyResponseDto:
+      additionalProperties: false
+      properties:
+        message:
+          type: string
+        success:
+          type: boolean
+      required:
+        - success
+        - message
+      type: object
+    auth.UpdatePasswordDto:
+      additionalProperties: true
+      properties:
+        currentPassword:
+          type: string
+        newPassword:
+          type: string
+      required:
+        - currentPassword
+        - newPassword
+      type: object
+    bruteforce.BlockResponse:
+      additionalProperties: false
+      properties:
+        message:
+          type: string
+        retry_after:
+          format: int64
+          type: integer
+        success:
+          type: boolean
+      required:
+        - success
+        - message
+        - retry_after
+      type: object
+    healthcheck.PushResponse:
+      additionalProperties: false
+      properties:
+        ok:
+          type: string
+      required:
+        - ok
+      type: object
+    heartbeat.Model:
+      additionalProperties: false
+      properties:
+        down_count:
+          format: int64
+          type: integer
+        duration:
+          format: int64
+          type: integer
+        end_time:
+          format: date-time
+          type: string
+        id:
+          type: string
+        important:
+          type: boolean
+        monitor_id:
+          type: string
+        msg:
+          type: string
+        notified:
+          type: boolean
+        ping:
+          format: int64
+          type: integer
+        retries:
+          format: int64
+          type: integer
+        status:
+          format: int64
+          type: integer
+        time:
+          format: date-time
+          type: string
+      required:
+        - id
+        - monitor_id
+        - status
+        - msg
+        - ping
+        - duration
+        - down_count
+        - retries
+        - important
+        - time
+        - end_time
+        - notified
+      type: object
+    httpx.ErrorBody:
+      additionalProperties: false
+      properties:
+        data:
+          type: "null"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    httpx.NoBody:
+      additionalProperties: false
+      type: object
+    huma.ErrorDetail:
+      additionalProperties: false
+      properties:
+        location:
+          description: Where the error occurred, e.g. 'body.items[3].tags' or 'path.thing-id'
+          type: string
+        message:
+          description: Error message text
+          type: string
+        value:
+          description: The value at the given location
+      type: object
+    huma.ErrorModel:
+      additionalProperties: false
+      properties:
+        detail:
+          description: A human-readable explanation specific to this occurrence of the problem.
+          examples:
+            - Property foo is required but is missing.
+          type: string
+        errors:
+          description: Optional list of individual error details
+          items:
+            $ref: "#/components/schemas/huma.ErrorDetail"
+          type:
+            - array
+            - "null"
+        instance:
+          description: A URI reference that identifies the specific occurrence of the problem.
+          examples:
+            - https://example.com/error-log/abc123
+          format: uri
+          type: string
+        status:
+          description: HTTP status code
+          examples:
+            - 400
+          format: int64
+          type: integer
+        title:
+          description: A short, human-readable summary of the problem type. This value should not change between occurrences of the error.
+          examples:
+            - Bad Request
+          type: string
+        type:
+          default: about:blank
+          description: A URI reference to human-readable documentation for the error.
+          examples:
+            - https://example.com/errors/example
+          format: uri
+          type: string
+      type: object
+    internal.HealthResponse:
+      additionalProperties: false
+      properties:
+        stale_monitors:
+          format: int64
+          type:
+            - integer
+            - "null"
+        status:
+          examples:
+            - success
+          type: string
+        watchdog_ran_at:
+          format: date-time
+          type:
+            - string
+            - "null"
+      required:
+        - status
+        - stale_monitors
+        - watchdog_ran_at
+      type: object
+    internal.VersionResponse:
+      additionalProperties: false
+      properties:
+        version:
+          type: string
+      required:
+        - version
+      type: object
+    maintenance.CreateUpdateDto:
+      additionalProperties: true
+      properties:
+        active:
+          type: boolean
+        cron:
+          type:
+            - string
+            - "null"
+        days_of_month:
+          items:
+            format: int64
+            type: integer
+          type:
+            - array
+            - "null"
+        description:
+          type: string
+        duration:
+          format: int64
+          minimum: 1
+          type:
+            - integer
+            - "null"
+        end_date_time:
+          type:
+            - string
+            - "null"
+        end_time:
+          type:
+            - string
+            - "null"
+        interval_day:
+          format: int64
+          type:
+            - integer
+            - "null"
+        monitor_ids:
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+        start_date_time:
+          type:
+            - string
+            - "null"
+        start_time:
+          type:
+            - string
+            - "null"
+        strategy:
+          type: string
+        timezone:
+          type:
+            - string
+            - "null"
+        title:
+          type: string
+        weekdays:
+          items:
+            format: int64
+            type: integer
+          maxItems: 6
+          minItems: 0
+          type:
+            - array
+            - "null"
+      required:
+        - title
+        - strategy
+      type: object
+    maintenance.MaintenanceResponseDto:
+      additionalProperties: false
+      properties:
+        active:
+          type: boolean
+        created_at:
+          format: date-time
+          type: string
+        cron:
+          type: string
+        days_of_month:
+          items:
+            format: int64
+            type: integer
+          type:
+            - array
+            - "null"
+        description:
+          type: string
+        duration:
+          format: int64
+          type: integer
+        end_date_time:
+          type: string
+        end_time:
+          type: string
+        id:
+          type: string
+        interval_day:
+          format: int64
+          type: integer
+        monitor_ids:
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+        start_date_time:
+          type: string
+        start_time:
+          type: string
+        strategy:
+          type: string
+        timezone:
+          type: string
+        title:
+          type: string
+        updated_at:
+          format: date-time
+          type: string
+        weekdays:
+          items:
+            format: int64
+            type: integer
+          type:
+            - array
+            - "null"
+      required:
+        - id
+        - title
+        - description
+        - active
+        - strategy
+        - created_at
+        - updated_at
+        - monitor_ids
+      type: object
+    maintenance.Model:
+      additionalProperties: false
+      properties:
+        active:
+          type: boolean
+        created_at:
+          format: date-time
+          type: string
+        cron:
+          type: string
+        days_of_month:
+          items:
+            format: int64
+            type: integer
+          type:
+            - array
+            - "null"
+        description:
+          type: string
+        duration:
+          format: int64
+          type: integer
+        end_date_time:
+          type: string
+        end_time:
+          type: string
+        id:
+          type: string
+        interval_day:
+          format: int64
+          type: integer
+        start_date_time:
+          type: string
+        start_time:
+          type: string
+        strategy:
+          type: string
+        timezone:
+          type: string
+        title:
+          type: string
+        updated_at:
+          format: date-time
+          type: string
+        weekdays:
+          items:
+            format: int64
+            type: integer
+          type:
+            - array
+            - "null"
+      required:
+        - id
+        - title
+        - description
+        - active
+        - strategy
+        - created_at
+        - updated_at
+      type: object
+    maintenance.PartialUpdateDto:
+      additionalProperties: true
+      properties:
+        active:
+          type:
+            - boolean
+            - "null"
+        cron:
+          type:
+            - string
+            - "null"
+        days_of_month:
+          items:
+            format: int64
+            type: integer
+          type:
+            - array
+            - "null"
+        description:
+          type:
+            - string
+            - "null"
+        duration:
+          format: int64
+          minimum: 1
+          type:
+            - integer
+            - "null"
+        end_date_time:
+          type:
+            - string
+            - "null"
+        end_time:
+          type:
+            - string
+            - "null"
+        interval_day:
+          format: int64
+          type:
+            - integer
+            - "null"
+        monitor_ids:
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+        start_date_time:
+          type:
+            - string
+            - "null"
+        start_time:
+          type:
+            - string
+            - "null"
+        strategy:
+          type:
+            - string
+            - "null"
+        timezone:
+          type:
+            - string
+            - "null"
+        title:
+          type:
+            - string
+            - "null"
+        weekdays:
+          items:
+            format: int64
+            type: integer
+          maxItems: 6
+          minItems: 0
+          type:
+            - array
+            - "null"
+      type: object
+    monitor.CreateUpdateDto:
+      additionalProperties: true
+      properties:
+        active:
+          examples:
+            - true
+          type: boolean
+        config:
+          type: string
+        interval:
+          examples:
+            - 60
+          format: int64
+          minimum: 20
+          type: integer
+        max_retries:
+          examples:
+            - 3
+          format: int64
+          minimum: 0
+          type: integer
+        name:
+          examples:
+            - My Monitor
+          minLength: 3
+          type: string
+        notification_ids:
+          examples:
+            - - 6830ad485361f19c598d6d90
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+        proxy_id:
+          examples:
+            - 6830ad485361f19c598d6d90
+          type: string
+        push_token:
+          type: string
+        resend_interval:
+          examples:
+            - 10
+          format: int64
+          minimum: 0
+          type: integer
+        retry_interval:
+          examples:
+            - 60
+          format: int64
+          minimum: 20
+          type: integer
+        tag_ids:
+          examples:
+            - - 6830ad485361f19c598d6d90
+              - 6830ad485361f19c598d6d91
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+        timeout:
+          examples:
+            - 16
+          format: int64
+          minimum: 16
+          type: integer
+        type:
+          examples:
+            - http
+          type: string
+      required:
+        - type
+        - name
+        - interval
+        - retry_interval
+        - timeout
+        - notification_ids
+      type: object
+    monitor.CustomUptimeStatsDto:
+      additionalProperties: false
+      properties:
+        24h:
+          format: double
+          type: number
+        30d:
+          format: double
+          type: number
+        365d:
+          format: double
+          type: number
+        7d:
+          format: double
+          type: number
+      required:
+        - 24h
+        - 7d
+        - 30d
+        - 365d
+      type: object
+    monitor.Model:
+      additionalProperties: false
+      properties:
+        active:
+          type: boolean
+        config:
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        id:
+          type: string
+        interval:
+          examples:
+            - 60
+          format: int64
+          type: integer
+        last_heartbeat:
+          $ref: "#/components/schemas/heartbeat.Model"
+        max_retries:
+          examples:
+            - 3
+          format: int64
+          type: integer
+        name:
+          examples:
+            - Monitor
+          type: string
+        proxy_id:
+          type: string
+        push_token:
+          type: string
+        resend_interval:
+          examples:
+            - 10
+          format: int64
+          type: integer
+        retry_interval:
+          examples:
+            - 60
+          format: int64
+          type: integer
+        stale_since:
+          format: date-time
+          type: string
+        status:
+          format: int64
+          type: integer
+        timeout:
+          examples:
+            - 16
+          format: int64
+          type: integer
+        type:
+          examples:
+            - http
+          type: string
+        updated_at:
+          format: date-time
+          type: string
+      required:
+        - id
+        - type
+        - name
+        - interval
+        - timeout
+        - max_retries
+        - retry_interval
+        - resend_interval
+        - active
+        - status
+        - config
+        - proxy_id
+        - push_token
+        - created_at
+        - updated_at
+      type: object
+    monitor.MonitorResponseDto:
+      additionalProperties: false
+      properties:
+        active:
+          default: true
+          examples:
+            - true
+          type: boolean
+        config:
+          type: string
+        created_at:
+          examples:
+            - "2024-06-01T12:00:00Z"
+          type: string
+        id:
+          examples:
+            - 60c72b2f9b1e8b6f1f8e4b1a
+          type: string
+        interval:
+          examples:
+            - 60
+          format: int64
+          type: integer
+        max_retries:
+          examples:
+            - 3
+          format: int64
+          type: integer
+        name:
+          examples:
+            - My Monitor
+          type: string
+        notification_ids:
+          examples:
+            - - 6830ad485361f19c598d6d90
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+        proxy_id:
+          examples:
+            - 6830ad485361f19c598d6d90
+          type: string
+        push_token:
+          type: string
+        resend_interval:
+          examples:
+            - 3
+          format: int64
+          type: integer
+        retry_interval:
+          examples:
+            - 10
+          format: int64
+          type: integer
+        stale_since:
+          format: date-time
+          type: string
+        status:
+          examples:
+            - 1
+          format: int64
+          type: integer
+        tag_ids:
+          examples:
+            - - 6830ad485361f19c598d6d90
+              - 6830ad485361f19c598d6d91
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+        timeout:
+          examples:
+            - 10
+          format: int64
+          type: integer
+        type:
+          examples:
+            - http
+          type: string
+        updated_at:
+          examples:
+            - "2024-06-01T12:00:00Z"
+          type: string
+      required:
+        - id
+        - name
+        - interval
+        - timeout
+        - type
+        - active
+        - status
+        - max_retries
+        - retry_interval
+        - resend_interval
+        - created_at
+        - updated_at
+        - notification_ids
+        - tag_ids
+        - proxy_id
+        - config
+        - push_token
+      type: object
+    monitor.PartialUpdateDto:
+      additionalProperties: true
+      properties:
+        active:
+          examples:
+            - true
+          type:
+            - boolean
+            - "null"
+        config:
+          type:
+            - string
+            - "null"
+        interval:
+          examples:
+            - 60
+          format: int64
+          type:
+            - integer
+            - "null"
+        max_retries:
+          examples:
+            - 3
+          format: int64
+          type:
+            - integer
+            - "null"
+        name:
+          examples:
+            - My Monitor
+          type:
+            - string
+            - "null"
+        notification_ids:
+          examples:
+            - - 6830ad485361f19c598d6d90
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+        proxy_id:
+          examples:
+            - 6830ad485361f19c598d6d90
+          type:
+            - string
+            - "null"
+        push_token:
+          type:
+            - string
+            - "null"
+        resend_interval:
+          examples:
+            - 10
+          format: int64
+          type:
+            - integer
+            - "null"
+        retry_interval:
+          examples:
+            - 60
+          format: int64
+          type:
+            - integer
+            - "null"
+        status:
+          examples:
+            - 1
+          format: int64
+          type:
+            - integer
+            - "null"
+        tag_ids:
+          examples:
+            - - 6830ad485361f19c598d6d90
+              - 6830ad485361f19c598d6d91
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+        timeout:
+          examples:
+            - 16
+          format: int64
+          type:
+            - integer
+            - "null"
+        type:
+          examples:
+            - http
+          type:
+            - string
+            - "null"
+      type: object
+    monitor.StatPoint:
+      additionalProperties: false
+      properties:
+        down:
+          format: int64
+          type: integer
+        maintenance:
+          format: int64
+          type: integer
+        ping:
+          format: double
+          type: number
+        ping_max:
+          format: double
+          type: number
+        ping_min:
+          format: double
+          type: number
+        timestamp:
+          format: int64
+          type: integer
+        up:
+          format: int64
+          type: integer
+      required:
+        - up
+        - down
+        - maintenance
+        - ping
+        - ping_min
+        - ping_max
+        - timestamp
+      type: object
+    monitor.StatPointsSummaryDto:
+      additionalProperties: false
+      properties:
+        avgPing:
+          format: double
+          type:
+            - number
+            - "null"
+        maxPing:
+          format: double
+          type:
+            - number
+            - "null"
+        minPing:
+          format: double
+          type:
+            - number
+            - "null"
+        points:
+          items:
+            $ref: "#/components/schemas/monitor.StatPoint"
+          type:
+            - array
+            - "null"
+        uptime:
+          format: double
+          type:
+            - number
+            - "null"
+      required:
+        - points
+        - maxPing
+        - minPing
+        - avgPing
+        - uptime
+      type: object
+    notification_channel.CreateUpdateDto:
+      additionalProperties: true
+      properties:
+        active:
+          type: boolean
+        config:
+          type: string
+        is_default:
+          type: boolean
+        name:
+          type: string
+        type:
+          type: string
+      type: object
+    notification_channel.Model:
+      additionalProperties: false
+      properties:
+        active:
+          type: boolean
+        config:
+          type:
+            - string
+            - "null"
+        created_at:
+          format: date-time
+          type: string
+        id:
+          type: string
+        is_default:
+          type: boolean
+        name:
+          type: string
+        type:
+          type: string
+        updated_at:
+          format: date-time
+          type: string
+      required:
+        - id
+        - name
+        - type
+        - active
+        - is_default
+        - config
+        - created_at
+        - updated_at
+      type: object
+    notification_channel.PartialUpdateDto:
+      additionalProperties: true
+      properties:
+        active:
+          type:
+            - boolean
+            - "null"
+        config:
+          type:
+            - string
+            - "null"
+        is_default:
+          type:
+            - boolean
+            - "null"
+        name:
+          type:
+            - string
+            - "null"
+        type:
+          type:
+            - string
+            - "null"
+      type: object
+    proxy.CreateUpdateDto:
+      additionalProperties: true
+      properties:
+        auth:
+          type: boolean
+        host:
+          type: string
+        password:
+          type: string
+        port:
+          format: int64
+          maximum: 65535
+          minimum: 1
+          type: integer
+        protocol:
+          type: string
+        username:
+          type: string
+      required:
+        - protocol
+        - host
+        - port
+      type: object
+    proxy.Model:
+      additionalProperties: false
+      properties:
+        auth:
+          type: boolean
+        createdDate:
+          format: date-time
+          type: string
+        host:
+          type: string
+        id:
+          type: string
+        password:
+          type: string
+        port:
+          format: int64
+          type: integer
+        protocol:
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+        username:
+          type: string
+      required:
+        - id
+        - protocol
+        - host
+        - port
+        - auth
+        - createdDate
+        - updatedAt
+      type: object
+    proxy.PartialUpdateDto:
+      additionalProperties: true
+      properties:
+        auth:
+          type:
+            - boolean
+            - "null"
+        host:
+          type:
+            - string
+            - "null"
+        password:
+          type:
+            - string
+            - "null"
+        port:
+          format: int64
+          maximum: 65535
+          minimum: 1
+          type:
+            - integer
+            - "null"
+        protocol:
+          type:
+            - string
+            - "null"
+        username:
+          type:
+            - string
+            - "null"
+      type: object
+    setting.CreateUpdateDto:
+      additionalProperties: true
+      properties:
+        type:
+          type: string
+        value:
+          type: string
+      required:
+        - type
+      type: object
+    shared.CertificateInfo:
+      additionalProperties: false
+      properties:
+        certType:
+          type: string
+        daysRemaining:
+          format: int64
+          type: integer
+        fingerprint:
+          type: string
+        fingerprint256:
+          type: string
+        issuer:
+          type: string
+        issuerCertificate:
+          $ref: "#/components/schemas/shared.CertificateInfo"
+        keySize:
+          format: int64
+          type: integer
+        publicKeyAlgorithm:
+          type: string
+        serialNumber:
+          type: string
+        signatureAlgorithm:
+          type: string
+        subject:
+          type: string
+        validFor:
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+        validFrom:
+          format: date-time
+          type: string
+        validTo:
+          format: date-time
+          type: string
+        version:
+          format: int64
+          type: integer
+      required:
+        - subject
+        - issuer
+        - fingerprint
+        - fingerprint256
+        - serialNumber
+        - validFrom
+        - validTo
+        - daysRemaining
+        - certType
+        - signatureAlgorithm
+        - publicKeyAlgorithm
+        - version
+      type: object
+    shared.SettingModel:
+      additionalProperties: false
+      properties:
+        created_at:
+          format: date-time
+          type: string
+        id:
+          type: string
+        key:
+          type: string
+        type:
+          type: string
+        updated_at:
+          format: date-time
+          type: string
+        value:
+          type: string
+      required:
+        - id
+        - key
+        - value
+        - type
+        - created_at
+        - updated_at
+      type: object
+    shared.TLSInfo:
+      additionalProperties: false
+      properties:
+        certInfo:
+          $ref: "#/components/schemas/shared.CertificateInfo"
+        valid:
+          type: boolean
+      required:
+        - valid
+      type: object
+    status_page.CreateStatusPageDTO:
+      additionalProperties: true
+      properties:
+        auto_refresh_interval:
+          format: int64
+          type: integer
+        custom_css:
+          type: string
+        description:
+          type: string
+        domains:
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+        footer_text:
+          type: string
+        google_analytics_tag_id:
+          type: string
+        icon:
+          type: string
+        monitor_ids:
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+        password:
+          type: string
+        published:
+          type: boolean
+        search_engine_index:
+          type: boolean
+        show_certificate_expiry:
+          type: boolean
+        show_powered_by:
+          type: boolean
+        show_tags:
+          type: boolean
+        slug:
+          minLength: 3
+          type: string
+        theme:
+          type: string
+        title:
+          minLength: 3
+          type: string
+      required:
+        - slug
+        - title
+      type: object
+    status_page.DomainAlreadyUsedError:
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+        domain:
+          type: string
+      required:
+        - code
+        - domain
+      type: object
+    status_page.DomainErrorResponse:
+      additionalProperties: false
+      properties:
+        error:
+          $ref: "#/components/schemas/status_page.DomainAlreadyUsedError"
+      required:
+        - error
+      type: object
+    status_page.Model:
+      additionalProperties: false
+      properties:
+        auto_refresh_interval:
+          format: int64
+          type: integer
+        created_at:
+          format: date-time
+          type: string
+        description:
+          type: string
+        footer_text:
+          type: string
+        icon:
+          type: string
+        id:
+          type: string
+        published:
+          type: boolean
+        slug:
+          type: string
+        theme:
+          type: string
+        title:
+          type: string
+        updated_at:
+          format: date-time
+          type: string
+      required:
+        - id
+        - slug
+        - title
+        - description
+        - icon
+        - theme
+        - published
+        - footer_text
+        - auto_refresh_interval
+        - created_at
+        - updated_at
+      type: object
+    status_page.MonitorWithHeartbeatsAndUptimeDTO:
+      additionalProperties: false
+      properties:
+        active:
+          type: boolean
+        heartbeats:
+          items:
+            $ref: "#/components/schemas/status_page.PublicHeartbeatDTO"
+          type:
+            - array
+            - "null"
+        id:
+          type: string
+        name:
+          examples:
+            - Monitor
+          type: string
+        type:
+          examples:
+            - http
+          type: string
+        uptime_24h:
+          format: double
+          type: number
+      required:
+        - heartbeats
+        - uptime_24h
+        - id
+        - type
+        - name
+        - active
+      type: object
+    status_page.PublicHeartbeatDTO:
+      additionalProperties: false
+      properties:
+        end_time:
+          format: date-time
+          type: string
+        id:
+          type: string
+        ping:
+          format: int64
+          type: integer
+        status:
+          format: int64
+          type: integer
+        time:
+          format: date-time
+          type: string
+      required:
+        - id
+        - status
+        - time
+        - end_time
+        - ping
+      type: object
+    status_page.StatusPageWithMonitorsResponseDTO:
+      additionalProperties: false
+      properties:
+        auto_refresh_interval:
+          format: int64
+          type: integer
+        created_at:
+          format: date-time
+          type: string
+        custom_css:
+          type: string
+        description:
+          type: string
+        domains:
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+        footer_text:
+          type: string
+        google_analytics_tag_id:
+          type: string
+        icon:
+          type: string
+        id:
+          type: string
+        monitor_ids:
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+        password:
+          type: string
+        published:
+          type: boolean
+        search_engine_index:
+          type: boolean
+        show_certificate_expiry:
+          type: boolean
+        show_powered_by:
+          type: boolean
+        show_tags:
+          type: boolean
+        slug:
+          type: string
+        theme:
+          type: string
+        title:
+          type: string
+        updated_at:
+          format: date-time
+          type: string
+      required:
+        - id
+        - slug
+        - title
+        - description
+        - icon
+        - theme
+        - published
+        - search_engine_index
+        - show_tags
+        - created_at
+        - updated_at
+        - footer_text
+        - custom_css
+        - show_powered_by
+        - google_analytics_tag_id
+        - show_certificate_expiry
+        - auto_refresh_interval
+        - monitor_ids
+        - domains
+      type: object
+    status_page.UpdateStatusPageDTO:
+      additionalProperties: true
+      properties:
+        auto_refresh_interval:
+          format: int64
+          type:
+            - integer
+            - "null"
+        custom_css:
+          type:
+            - string
+            - "null"
+        description:
+          type:
+            - string
+            - "null"
+        domains:
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+        footer_text:
+          type:
+            - string
+            - "null"
+        google_analytics_tag_id:
+          type:
+            - string
+            - "null"
+        icon:
+          type:
+            - string
+            - "null"
+        monitor_ids:
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+        password:
+          type:
+            - string
+            - "null"
+        published:
+          type:
+            - boolean
+            - "null"
+        search_engine_index:
+          type:
+            - boolean
+            - "null"
+        show_certificate_expiry:
+          type:
+            - boolean
+            - "null"
+        show_powered_by:
+          type:
+            - boolean
+            - "null"
+        show_tags:
+          type:
+            - boolean
+            - "null"
+        slug:
+          type:
+            - string
+            - "null"
+        theme:
+          type:
+            - string
+            - "null"
+        title:
+          type:
+            - string
+            - "null"
+      type: object
+    tag.CreateUpdateDto:
+      additionalProperties: true
+      properties:
+        color:
+          examples:
+            - "#3B82F6"
+          pattern: ^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$
+          type: string
+        description:
+          examples:
+            - Production environment monitors
+          type:
+            - string
+            - "null"
+        name:
+          examples:
+            - Production
+          maxLength: 100
+          minLength: 1
+          type: string
+      required:
+        - name
+        - color
+      type: object
+    tag.Model:
+      additionalProperties: false
+      properties:
+        color:
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        description:
+          type:
+            - string
+            - "null"
+        id:
+          type: string
+        name:
+          type: string
+        updated_at:
+          format: date-time
+          type: string
+      required:
+        - id
+        - name
+        - color
+        - description
+        - created_at
+        - updated_at
+      type: object
+    tag.PartialUpdateDto:
+      additionalProperties: true
+      properties:
+        color:
+          examples:
+            - "#3B82F6"
+          pattern: ^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$
+          type:
+            - string
+            - "null"
+        description:
+          examples:
+            - Production environment monitors
+          type:
+            - string
+            - "null"
+        name:
+          examples:
+            - Production
+          maxLength: 100
+          minLength: 1
+          type:
+            - string
+            - "null"
+      type: object
+    utils.ApiResponse_Any:
+      additionalProperties: false
+      properties:
+        data: {}
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_Array_api_key.APIKeyResponse:
+      additionalProperties: false
+      properties:
+        data:
+          items:
+            $ref: "#/components/schemas/api_key.APIKeyResponse"
+          type:
+            - array
+            - "null"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_Array_heartbeat.Model:
+      additionalProperties: false
+      properties:
+        data:
+          items:
+            $ref: "#/components/schemas/heartbeat.Model"
+          type:
+            - array
+            - "null"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_Array_maintenance.Model:
+      additionalProperties: false
+      properties:
+        data:
+          items:
+            $ref: "#/components/schemas/maintenance.Model"
+          type:
+            - array
+            - "null"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_Array_monitor.Model:
+      additionalProperties: false
+      properties:
+        data:
+          items:
+            $ref: "#/components/schemas/monitor.Model"
+          type:
+            - array
+            - "null"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_Array_notification_channel.Model:
+      additionalProperties: false
+      properties:
+        data:
+          items:
+            $ref: "#/components/schemas/notification_channel.Model"
+          type:
+            - array
+            - "null"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_Array_proxy.Model:
+      additionalProperties: false
+      properties:
+        data:
+          items:
+            $ref: "#/components/schemas/proxy.Model"
+          type:
+            - array
+            - "null"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_Array_status_page.Model:
+      additionalProperties: false
+      properties:
+        data:
+          items:
+            $ref: "#/components/schemas/status_page.Model"
+          type:
+            - array
+            - "null"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_Array_status_page.MonitorWithHeartbeatsAndUptimeDTO:
+      additionalProperties: false
+      properties:
+        data:
+          items:
+            $ref: "#/components/schemas/status_page.MonitorWithHeartbeatsAndUptimeDTO"
+          type:
+            - array
+            - "null"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_Array_tag.Model:
+      additionalProperties: false
+      properties:
+        data:
+          items:
+            $ref: "#/components/schemas/tag.Model"
+          type:
+            - array
+            - "null"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_api_key.APIKeyConfigResponse:
+      additionalProperties: false
+      properties:
+        data:
+          $ref: "#/components/schemas/api_key.APIKeyConfigResponse"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_api_key.APIKeyResponse:
+      additionalProperties: false
+      properties:
+        data:
+          $ref: "#/components/schemas/api_key.APIKeyResponse"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_api_key.APIKeyWithTokenResponse:
+      additionalProperties: false
+      properties:
+        data:
+          $ref: "#/components/schemas/api_key.APIKeyWithTokenResponse"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_auth.LoginResponse:
+      additionalProperties: false
+      properties:
+        data:
+          $ref: "#/components/schemas/auth.LoginResponse"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_maintenance.MaintenanceResponseDto:
+      additionalProperties: false
+      properties:
+        data:
+          $ref: "#/components/schemas/maintenance.MaintenanceResponseDto"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_maintenance.Model:
+      additionalProperties: false
+      properties:
+        data:
+          $ref: "#/components/schemas/maintenance.Model"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_monitor.CustomUptimeStatsDto:
+      additionalProperties: false
+      properties:
+        data:
+          $ref: "#/components/schemas/monitor.CustomUptimeStatsDto"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_monitor.Model:
+      additionalProperties: false
+      properties:
+        data:
+          $ref: "#/components/schemas/monitor.Model"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_monitor.MonitorResponseDto:
+      additionalProperties: false
+      properties:
+        data:
+          $ref: "#/components/schemas/monitor.MonitorResponseDto"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_monitor.StatPointsSummaryDto:
+      additionalProperties: false
+      properties:
+        data:
+          $ref: "#/components/schemas/monitor.StatPointsSummaryDto"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_notification_channel.Model:
+      additionalProperties: false
+      properties:
+        data:
+          $ref: "#/components/schemas/notification_channel.Model"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_proxy.Model:
+      additionalProperties: false
+      properties:
+        data:
+          $ref: "#/components/schemas/proxy.Model"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_shared.SettingModel:
+      additionalProperties: false
+      properties:
+        data:
+          $ref: "#/components/schemas/shared.SettingModel"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_status_page.Model:
+      additionalProperties: false
+      properties:
+        data:
+          $ref: "#/components/schemas/status_page.Model"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_status_page.StatusPageWithMonitorsResponseDTO:
+      additionalProperties: false
+      properties:
+        data:
+          $ref: "#/components/schemas/status_page.StatusPageWithMonitorsResponseDTO"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_tag.Model:
+      additionalProperties: false
+      properties:
+        data:
+          $ref: "#/components/schemas/tag.Model"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.NullableApiResponse_shared.TLSInfo:
+      additionalProperties: false
+      properties:
+        data:
+          anyOf:
+            - $ref: "#/components/schemas/shared.TLSInfo"
+            - type: "null"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+  securitySchemes:
+    ApiKeyAuth:
+      in: header
+      name: X-API-Key
+      type: apiKey
+    JwtAuth:
+      bearerFormat: JWT
+      scheme: bearer
+      type: http
+info:
+  title: Peekaping API
+  version: 0.0.46
+openapi: 3.1.0
+paths:
+  /api/v1/api-keys:
+    get:
+      operationId: getApiKeys
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_Array_api_key.APIKeyResponse"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+      summary: Get API keys
+      tags:
+        - api_key
+    post:
+      operationId: postApiKeys
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/api_key.CreateAPIKeyDto"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_api_key.APIKeyWithTokenResponse"
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+      summary: Create API key
+      tags:
+        - api_key
+  /api/v1/api-keys/config:
+    get:
+      operationId: getApiKeysConfig
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_api_key.APIKeyConfigResponse"
+          description: OK
+      summary: Get API key configuration
+      tags:
+        - api_key
+  /api/v1/api-keys/{id}:
+    delete:
+      operationId: deleteApiKeysById
+      parameters:
+        - description: API key ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: API key ID
+            type: string
+      responses:
+        "204":
+          description: No Content
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+      summary: Delete API key
+      tags:
+        - api_key
+    get:
+      operationId: getApiKeysById
+      parameters:
+        - description: API key ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: API key ID
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_api_key.APIKeyResponse"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+      summary: Get API key
+      tags:
+        - api_key
+    put:
+      operationId: putApiKeysById
+      parameters:
+        - description: API key ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: API key ID
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/api_key.UpdateAPIKeyDto"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_api_key.APIKeyResponse"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+      summary: Update API key
+      tags:
+        - api_key
+  /api/v1/auth/2fa/disable:
+    post:
+      operationId: postAuth2faDisable
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/auth.TwoFADisableRequestDto"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_Any"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+      security:
+        - JwtAuth: []
+      summary: Disable 2FA (TOTP) for user
+      tags:
+        - auth
+  /api/v1/auth/2fa/setup:
+    post:
+      operationId: postAuth2faSetup
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/auth.TwoFASetupRequestDto"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/auth.TwoFASetupResponseDto"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+      security:
+        - JwtAuth: []
+      summary: Enable 2FA (TOTP) for user
+      tags:
+        - auth
+  /api/v1/auth/2fa/verify:
+    post:
+      operationId: postAuth2faVerify
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/auth.TwoFAVerifyRequestDto"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/auth.TwoFAVerifyResponseDto"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: "#/components/schemas/auth.TwoFAVerifyResponseDto"
+                  - $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+      security:
+        - JwtAuth: []
+      summary: Verify 2FA (TOTP) code for user
+      tags:
+        - auth
+  /api/v1/auth/login:
+    post:
+      operationId: postAuthLogin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/auth.LoginDto"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_auth.LoginResponse"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/bruteforce.BlockResponse"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds until the login lockout expires.
+              schema:
+                type: integer
+      summary: Login admin
+      tags:
+        - auth
+  /api/v1/auth/password:
+    put:
+      operationId: putAuthPassword
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/auth.UpdatePasswordDto"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_Any"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+      summary: Update user password
+      tags:
+        - auth
+  /api/v1/auth/refresh:
+    post:
+      operationId: postAuthRefresh
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/auth.RefreshTokenDto"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_auth.LoginResponse"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+      summary: Refresh access token
+      tags:
+        - auth
+  /api/v1/auth/register:
+    post:
+      operationId: postAuthRegister
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/auth.RegisterDto"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_auth.LoginResponse"
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      summary: Register new admin
+      tags:
+        - auth
+  /api/v1/badge/{monitorId}/cert-exp:
+    get:
+      operationId: getBadgeByMonitorIdCertExp
+      parameters:
+        - description: Monitor ID
+          in: path
+          name: monitorId
+          required: true
+          schema:
+            description: Monitor ID
+            type: string
+        - description: Badge style
+          in: query
+          name: style
+          schema:
+            description: Badge style
+            type: string
+        - description: Custom label
+          in: query
+          name: label
+          schema:
+            description: Custom label
+            type: string
+        - description: Days before expiry to show warning
+          in: query
+          name: warnDays
+          schema:
+            description: Days before expiry to show warning
+            format: int64
+            type: integer
+        - description: Days before expiry to show as down
+          in: query
+          name: downDays
+          schema:
+            description: Days before expiry to show as down
+            format: int64
+            type: integer
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: color
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: labelColor
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: upLabel
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: downLabel
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: upColor
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: downColor
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: labelPrefix
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: labelSuffix
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: prefix
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: suffix
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+      responses:
+        "200":
+          content:
+            image/svg+xml:
+              schema:
+                type: string
+          description: OK
+          headers:
+            Cache-Control:
+              schema:
+                type:
+                  - string
+                  - "null"
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      summary: Get certificate expiry badge
+      tags:
+        - badge
+  /api/v1/badge/{monitorId}/ping:
+    get:
+      operationId: getBadgeByMonitorIdPing
+      parameters:
+        - description: Monitor ID
+          in: path
+          name: monitorId
+          required: true
+          schema:
+            description: Monitor ID
+            type: string
+        - description: Badge style
+          in: query
+          name: style
+          schema:
+            description: Badge style
+            type: string
+        - description: Custom label
+          in: query
+          name: label
+          schema:
+            description: Custom label
+            type: string
+        - description: Value suffix
+          in: query
+          name: suffix
+          schema:
+            description: Value suffix
+            type: string
+        - description: Badge color
+          in: query
+          name: color
+          schema:
+            description: Badge color
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: labelColor
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: upLabel
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: downLabel
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: upColor
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: downColor
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: labelPrefix
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: labelSuffix
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: prefix
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: warnDays
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: downDays
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+      responses:
+        "200":
+          content:
+            image/svg+xml:
+              schema:
+                type: string
+          description: OK
+          headers:
+            Cache-Control:
+              schema:
+                type:
+                  - string
+                  - "null"
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      summary: Get ping badge
+      tags:
+        - badge
+  /api/v1/badge/{monitorId}/ping/{duration}:
+    get:
+      operationId: getBadgeByMonitorIdPingByDuration
+      parameters:
+        - description: Monitor ID
+          in: path
+          name: monitorId
+          required: true
+          schema:
+            description: Monitor ID
+            type: string
+        - description: Hours; absent or invalid values use 24.
+          in: path
+          name: duration
+          required: true
+          schema:
+            description: Hours; absent or invalid values use 24.
+            type: string
+        - description: Badge style
+          in: query
+          name: style
+          schema:
+            description: Badge style
+            type: string
+        - description: Custom label
+          in: query
+          name: label
+          schema:
+            description: Custom label
+            type: string
+        - description: Value suffix
+          in: query
+          name: suffix
+          schema:
+            description: Value suffix
+            type: string
+        - description: Badge color
+          in: query
+          name: color
+          schema:
+            description: Badge color
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: labelColor
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: upLabel
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: downLabel
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: upColor
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: downColor
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: labelPrefix
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: labelSuffix
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: prefix
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: warnDays
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: downDays
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+      responses:
+        "200":
+          content:
+            image/svg+xml:
+              schema:
+                type: string
+          description: OK
+          headers:
+            Cache-Control:
+              schema:
+                type:
+                  - string
+                  - "null"
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      summary: Get ping badge
+      tags:
+        - badge
+  /api/v1/badge/{monitorId}/response:
+    get:
+      operationId: getBadgeByMonitorIdResponse
+      parameters:
+        - description: Monitor ID
+          in: path
+          name: monitorId
+          required: true
+          schema:
+            description: Monitor ID
+            type: string
+        - description: Badge style
+          in: query
+          name: style
+          schema:
+            description: Badge style
+            type: string
+        - description: Custom label
+          in: query
+          name: label
+          schema:
+            description: Custom label
+            type: string
+        - description: Value suffix
+          in: query
+          name: suffix
+          schema:
+            description: Value suffix
+            type: string
+        - description: Badge color
+          in: query
+          name: color
+          schema:
+            description: Badge color
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: labelColor
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: upLabel
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: downLabel
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: upColor
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: downColor
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: labelPrefix
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: labelSuffix
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: prefix
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: warnDays
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: downDays
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+      responses:
+        "200":
+          content:
+            image/svg+xml:
+              schema:
+                type: string
+          description: OK
+          headers:
+            Cache-Control:
+              schema:
+                type:
+                  - string
+                  - "null"
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      summary: Get response time badge
+      tags:
+        - badge
+  /api/v1/badge/{monitorId}/status:
+    get:
+      operationId: getBadgeByMonitorIdStatus
+      parameters:
+        - description: Monitor ID
+          in: path
+          name: monitorId
+          required: true
+          schema:
+            description: Monitor ID
+            type: string
+        - description: Badge style (flat, flat-square, plastic, for-the-badge, social)
+          in: query
+          name: style
+          schema:
+            description: Badge style (flat, flat-square, plastic, for-the-badge, social)
+            type: string
+        - description: Label when monitor is up
+          in: query
+          name: upLabel
+          schema:
+            description: Label when monitor is up
+            type: string
+        - description: Label when monitor is down
+          in: query
+          name: downLabel
+          schema:
+            description: Label when monitor is down
+            type: string
+        - description: Color when monitor is up
+          in: query
+          name: upColor
+          schema:
+            description: Color when monitor is up
+            type: string
+        - description: Color when monitor is down
+          in: query
+          name: downColor
+          schema:
+            description: Color when monitor is down
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: color
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: labelColor
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: labelPrefix
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: label
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: labelSuffix
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: prefix
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: suffix
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: warnDays
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: downDays
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+      responses:
+        "200":
+          content:
+            image/svg+xml:
+              schema:
+                type: string
+          description: OK
+          headers:
+            Cache-Control:
+              schema:
+                type:
+                  - string
+                  - "null"
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      summary: Get status badge
+      tags:
+        - badge
+  /api/v1/badge/{monitorId}/uptime:
+    get:
+      operationId: getBadgeByMonitorIdUptime
+      parameters:
+        - description: Monitor ID
+          in: path
+          name: monitorId
+          required: true
+          schema:
+            description: Monitor ID
+            type: string
+        - description: Badge style
+          in: query
+          name: style
+          schema:
+            description: Badge style
+            type: string
+        - description: Custom label
+          in: query
+          name: label
+          schema:
+            description: Custom label
+            type: string
+        - description: Value suffix
+          in: query
+          name: suffix
+          schema:
+            description: Value suffix
+            type: string
+        - description: Badge color
+          in: query
+          name: color
+          schema:
+            description: Badge color
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: labelColor
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: upLabel
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: downLabel
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: upColor
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: downColor
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: labelPrefix
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: labelSuffix
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: prefix
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: warnDays
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: downDays
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+      responses:
+        "200":
+          content:
+            image/svg+xml:
+              schema:
+                type: string
+          description: OK
+          headers:
+            Cache-Control:
+              schema:
+                type:
+                  - string
+                  - "null"
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      summary: Get uptime badge
+      tags:
+        - badge
+  /api/v1/badge/{monitorId}/uptime/{duration}:
+    get:
+      operationId: getBadgeByMonitorIdUptimeByDuration
+      parameters:
+        - description: Monitor ID
+          in: path
+          name: monitorId
+          required: true
+          schema:
+            description: Monitor ID
+            type: string
+        - description: Hours; absent or invalid values use 24.
+          in: path
+          name: duration
+          required: true
+          schema:
+            description: Hours; absent or invalid values use 24.
+            type: string
+        - description: Badge style
+          in: query
+          name: style
+          schema:
+            description: Badge style
+            type: string
+        - description: Custom label
+          in: query
+          name: label
+          schema:
+            description: Custom label
+            type: string
+        - description: Value suffix
+          in: query
+          name: suffix
+          schema:
+            description: Value suffix
+            type: string
+        - description: Badge color
+          in: query
+          name: color
+          schema:
+            description: Badge color
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: labelColor
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: upLabel
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: downLabel
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: upColor
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: downColor
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: labelPrefix
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: labelSuffix
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: prefix
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: warnDays
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+        - description: Invalid options fall back to defaults.
+          in: query
+          name: downDays
+          schema:
+            description: Invalid options fall back to defaults.
+            type: string
+      responses:
+        "200":
+          content:
+            image/svg+xml:
+              schema:
+                type: string
+          description: OK
+          headers:
+            Cache-Control:
+              schema:
+                type:
+                  - string
+                  - "null"
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      summary: Get uptime badge
+      tags:
+        - badge
+  /api/v1/health:
+    get:
+      operationId: getHealth
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/internal.HealthResponse"
+          description: OK
+      summary: Get server health
+      tags:
+        - System
+  /api/v1/maintenances:
+    get:
+      operationId: getMaintenances
+      parameters:
+        - description: Search query
+          in: query
+          name: q
+          schema:
+            description: Search query
+            type: string
+        - description: Filter by strategy
+          in: query
+          name: strategy
+          schema:
+            description: Filter by strategy
+            type: string
+        - description: Page number
+          in: query
+          name: page
+          schema:
+            default: 0
+            description: Page number
+            format: int64
+            minimum: 0
+            type: integer
+        - description: Items per page
+          in: query
+          name: limit
+          schema:
+            default: 10
+            description: Items per page
+            format: int64
+            maximum: 1000
+            minimum: 1
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_Array_maintenance.Model"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Get maintenances
+      tags:
+        - maintenance
+    post:
+      operationId: postMaintenances
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/maintenance.CreateUpdateDto"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_maintenance.Model"
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Create maintenance
+      tags:
+        - maintenance
+  /api/v1/maintenances/{id}:
+    delete:
+      operationId: deleteMaintenancesById
+      parameters:
+        - description: Maintenance ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Maintenance ID
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_Any"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Delete maintenance
+      tags:
+        - maintenance
+    get:
+      operationId: getMaintenancesById
+      parameters:
+        - description: Maintenance ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Maintenance ID
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_maintenance.MaintenanceResponseDto"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Get maintenance by ID
+      tags:
+        - maintenance
+    patch:
+      operationId: patchMaintenancesById
+      parameters:
+        - description: Maintenance ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Maintenance ID
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/maintenance.PartialUpdateDto"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_maintenance.Model"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Update maintenance
+      tags:
+        - maintenance
+    put:
+      operationId: putMaintenancesById
+      parameters:
+        - description: Maintenance ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Maintenance ID
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/maintenance.CreateUpdateDto"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_maintenance.Model"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Update maintenance
+      tags:
+        - maintenance
+  /api/v1/maintenances/{id}/pause:
+    patch:
+      operationId: patchMaintenancesByIdPause
+      parameters:
+        - description: Maintenance ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Maintenance ID
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_maintenance.Model"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Pause maintenance
+      tags:
+        - maintenance
+  /api/v1/maintenances/{id}/resume:
+    patch:
+      operationId: patchMaintenancesByIdResume
+      parameters:
+        - description: Maintenance ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Maintenance ID
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_maintenance.Model"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Resume maintenance
+      tags:
+        - maintenance
+  /api/v1/monitors:
+    get:
+      operationId: getMonitors
+      parameters:
+        - description: Search query
+          in: query
+          name: q
+          schema:
+            description: Search query
+            type: string
+        - description: Page number
+          in: query
+          name: page
+          schema:
+            default: 0
+            description: Page number
+            format: int64
+            minimum: 0
+            type: integer
+        - description: Items per page
+          in: query
+          name: limit
+          schema:
+            default: 10
+            description: Items per page
+            format: int64
+            maximum: 1000
+            minimum: 1
+            type: integer
+        - description: Active status
+          in: query
+          name: active
+          schema:
+            description: Active status
+            type: boolean
+        - description: Status
+          in: query
+          name: status
+          schema:
+            description: Status
+            format: int64
+            type: integer
+        - description: Comma-separated list of tag IDs to filter by
+          in: query
+          name: tag_ids
+          schema:
+            description: Comma-separated list of tag IDs to filter by
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_Array_monitor.Model"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Get monitors
+      tags:
+        - monitor
+    post:
+      operationId: postMonitors
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/monitor.CreateUpdateDto"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_monitor.Model"
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Create monitor
+      tags:
+        - monitor
+  /api/v1/monitors/batch:
+    get:
+      operationId: getMonitorsBatch
+      parameters:
+        - description: Comma-separated list of monitor IDs
+          in: query
+          name: ids
+          required: true
+          schema:
+            description: Comma-separated list of monitor IDs
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_Array_monitor.Model"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Get monitors by IDs
+      tags:
+        - monitor
+  /api/v1/monitors/{id}:
+    delete:
+      operationId: deleteMonitorsById
+      parameters:
+        - description: Monitor ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Monitor ID
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_Any"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Delete monitor
+      tags:
+        - monitor
+    get:
+      operationId: getMonitorsById
+      parameters:
+        - description: Monitor ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Monitor ID
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_monitor.MonitorResponseDto"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Get monitor by ID
+      tags:
+        - monitor
+    patch:
+      operationId: patchMonitorsById
+      parameters:
+        - description: Monitor ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Monitor ID
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/monitor.PartialUpdateDto"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_monitor.Model"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Update monitor
+      tags:
+        - monitor
+    put:
+      operationId: putMonitorsById
+      parameters:
+        - description: Monitor ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Monitor ID
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/monitor.CreateUpdateDto"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_monitor.Model"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Update monitor
+      tags:
+        - monitor
+  /api/v1/monitors/{id}/heartbeats:
+    get:
+      operationId: getMonitorsByIdHeartbeats
+      parameters:
+        - description: Monitor ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Monitor ID
+            type: string
+        - description: Number of heartbeats per page
+          in: query
+          name: limit
+          schema:
+            default: 50
+            description: Number of heartbeats per page
+            format: int64
+            maximum: 1000
+            minimum: 1
+            type: integer
+        - description: Page number (default 0)
+          in: query
+          name: page
+          schema:
+            default: 0
+            description: Page number (default 0)
+            format: int64
+            minimum: 0
+            type: integer
+        - description: Filter by important heartbeats only
+          in: query
+          name: important
+          schema:
+            description: Filter by important heartbeats only
+            type: boolean
+        - description: Reverse the order of heartbeats
+          in: query
+          name: reverse
+          schema:
+            description: Reverse the order of heartbeats
+            type: boolean
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_Array_heartbeat.Model"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Get paginated heartbeats for a monitor
+      tags:
+        - monitor
+  /api/v1/monitors/{id}/reset:
+    post:
+      operationId: postMonitorsByIdReset
+      parameters:
+        - description: Monitor ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Monitor ID
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_Any"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Reset monitor data (heartbeats and stats)
+      tags:
+        - monitor
+  /api/v1/monitors/{id}/stats/points:
+    get:
+      operationId: getMonitorsByIdStatsPoints
+      parameters:
+        - description: Monitor ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Monitor ID
+            type: string
+        - description: Start time (RFC3339)
+          in: query
+          name: since
+          required: true
+          schema:
+            description: Start time (RFC3339)
+            format: date-time
+            type: string
+        - description: End time (RFC3339, default now)
+          in: query
+          name: until
+          schema:
+            description: End time (RFC3339, default now)
+            format: date-time
+            type: string
+        - description: Granularity (minute, hour, day)
+          in: query
+          name: granularity
+          schema:
+            description: Granularity (minute, hour, day)
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_monitor.StatPointsSummaryDto"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Get monitor stat points (ping/up/down) from stats tables
+      tags:
+        - monitor
+  /api/v1/monitors/{id}/stats/uptime:
+    get:
+      operationId: getMonitorsByIdStatsUptime
+      parameters:
+        - description: Monitor ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Monitor ID
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_monitor.CustomUptimeStatsDto"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Get monitor uptime stats (24h, 30d, 365d)
+      tags:
+        - monitor
+  /api/v1/monitors/{id}/tls:
+    get:
+      operationId: getMonitorsByIdTls
+      parameters:
+        - description: Monitor ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Monitor ID
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.NullableApiResponse_shared.TLSInfo"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Get monitor TLS certificate information
+      tags:
+        - monitor
+  /api/v1/notification-channels:
+    get:
+      operationId: getNotificationChannels
+      parameters:
+        - description: Search query
+          in: query
+          name: q
+          schema:
+            description: Search query
+            type: string
+        - description: Page number
+          in: query
+          name: page
+          schema:
+            default: 0
+            description: Page number
+            format: int64
+            minimum: 0
+            type: integer
+        - description: Items per page
+          in: query
+          name: limit
+          schema:
+            default: 10
+            description: Items per page
+            format: int64
+            maximum: 1000
+            minimum: 1
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_Array_notification_channel.Model"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Get notification channels
+      tags:
+        - notification_channel
+    post:
+      operationId: postNotificationChannels
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/notification_channel.CreateUpdateDto"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_notification_channel.Model"
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Create notification channel
+      tags:
+        - notification_channel
+  /api/v1/notification-channels/test:
+    post:
+      operationId: postNotificationChannelsTest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/notification_channel.CreateUpdateDto"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_Any"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Test notification channel
+      tags:
+        - notification_channel
+  /api/v1/notification-channels/{id}:
+    delete:
+      operationId: deleteNotificationChannelsById
+      parameters:
+        - description: Notification ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Notification ID
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_Any"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Delete notification channel
+      tags:
+        - notification_channel
+    get:
+      operationId: getNotificationChannelsById
+      parameters:
+        - description: Notification ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Notification ID
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_notification_channel.Model"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Get notification channel by ID
+      tags:
+        - notification_channel
+    patch:
+      operationId: patchNotificationChannelsById
+      parameters:
+        - description: Notification ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Notification ID
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/notification_channel.PartialUpdateDto"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_notification_channel.Model"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Update notification channel
+      tags:
+        - notification_channel
+    put:
+      operationId: putNotificationChannelsById
+      parameters:
+        - description: Notification ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Notification ID
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/notification_channel.CreateUpdateDto"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_notification_channel.Model"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Update notification channel
+      tags:
+        - notification_channel
+  /api/v1/proxies:
+    get:
+      operationId: getProxies
+      parameters:
+        - description: Search query
+          in: query
+          name: q
+          schema:
+            description: Search query
+            type: string
+        - description: Page number
+          in: query
+          name: page
+          schema:
+            default: 0
+            description: Page number
+            format: int64
+            minimum: 0
+            type: integer
+        - description: Items per page
+          in: query
+          name: limit
+          schema:
+            default: 10
+            description: Items per page
+            format: int64
+            maximum: 1000
+            minimum: 1
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_Array_proxy.Model"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Get proxies
+      tags:
+        - proxy
+    post:
+      operationId: postProxies
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/proxy.CreateUpdateDto"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_proxy.Model"
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Create proxy
+      tags:
+        - proxy
+  /api/v1/proxies/{id}:
+    delete:
+      operationId: deleteProxiesById
+      parameters:
+        - description: Proxy ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Proxy ID
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_Any"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Delete proxy
+      tags:
+        - proxy
+    get:
+      operationId: getProxiesById
+      parameters:
+        - description: Proxy ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Proxy ID
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_proxy.Model"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Get proxy by ID
+      tags:
+        - proxy
+    patch:
+      operationId: patchProxiesById
+      parameters:
+        - description: Proxy ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Proxy ID
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/proxy.PartialUpdateDto"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_proxy.Model"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Update proxy
+      tags:
+        - proxy
+    put:
+      operationId: putProxiesById
+      parameters:
+        - description: Proxy ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Proxy ID
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/proxy.CreateUpdateDto"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_proxy.Model"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Update proxy
+      tags:
+        - proxy
+  /api/v1/push/{token}:
+    get:
+      operationId: getPushByToken
+      parameters:
+        - description: Secret push token, authenticating the monitor.
+          in: path
+          name: token
+          required: true
+          schema:
+            description: Secret push token, authenticating the monitor.
+            type: string
+        - description: Empty, up, or 1 means Up; other values mean Down.
+          in: query
+          name: status
+          schema:
+            description: Empty, up, or 1 means Up; other values mean Down.
+            type: string
+        - description: Heartbeat message; defaults to OK or Down.
+          in: query
+          name: msg
+          schema:
+            description: Heartbeat message; defaults to OK or Down.
+            type: string
+        - description: Response time in milliseconds; malformed values are ignored.
+          in: query
+          name: ping
+          schema:
+            description: Response time in milliseconds; malformed values are ignored.
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/healthcheck.PushResponse"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      summary: Send a heartbeat to a push monitor
+      tags:
+        - Push
+  /api/v1/settings/key/{key}:
+    delete:
+      operationId: deleteSettingsKeyByKey
+      parameters:
+        - description: Setting Key
+          in: path
+          name: key
+          required: true
+          schema:
+            description: Setting Key
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_Any"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Delete setting by key
+      tags:
+        - setting
+    get:
+      operationId: getSettingsKeyByKey
+      parameters:
+        - description: Setting Key
+          in: path
+          name: key
+          required: true
+          schema:
+            description: Setting Key
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_shared.SettingModel"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Get setting by key
+      tags:
+        - setting
+    put:
+      description: Only KEEP_DATA_PERIOD_DAYS can be set, with type int and a whole number of days from 1 to 36500. Every other key returns 404.
+      operationId: putSettingsKeyByKey
+      parameters:
+        - description: Setting Key
+          in: path
+          name: key
+          required: true
+          schema:
+            description: Setting Key
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/setting.CreateUpdateDto"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_shared.SettingModel"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Set setting by key
+      tags:
+        - setting
+  /api/v1/status-pages:
+    get:
+      operationId: getStatusPages
+      parameters:
+        - description: Search query
+          in: query
+          name: q
+          schema:
+            description: Search query
+            type: string
+        - description: Page number
+          in: query
+          name: page
+          schema:
+            default: 0
+            description: Page number
+            format: int64
+            minimum: 0
+            type: integer
+        - description: Items per page
+          in: query
+          name: limit
+          schema:
+            default: 10
+            description: Items per page
+            format: int64
+            maximum: 1000
+            minimum: 1
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_Array_status_page.Model"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Get all status pages
+      tags:
+        - status_page
+    post:
+      operationId: postStatusPages
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/status_page.CreateStatusPageDTO"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_status_page.Model"
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: "#/components/schemas/status_page.DomainErrorResponse"
+                  - $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Create a new status page
+      tags:
+        - status_page
+  /api/v1/status-pages/domain/{domain}:
+    get:
+      operationId: getStatusPagesDomainByDomain
+      parameters:
+        - description: Domain Name
+          in: path
+          name: domain
+          required: true
+          schema:
+            description: Domain Name
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_status_page.Model"
+          description: OK
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      summary: Get a status page by domain name
+      tags:
+        - status_page
+  /api/v1/status-pages/slug/{slug}:
+    get:
+      operationId: getStatusPagesSlugBySlug
+      parameters:
+        - description: Status Page Slug
+          in: path
+          name: slug
+          required: true
+          schema:
+            description: Status Page Slug
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_status_page.Model"
+          description: OK
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      summary: Get a status page by slug
+      tags:
+        - status_page
+  /api/v1/status-pages/slug/{slug}/monitors:
+    get:
+      operationId: getStatusPagesSlugBySlugMonitors
+      parameters:
+        - description: Status Page Slug
+          in: path
+          name: slug
+          required: true
+          schema:
+            description: Status Page Slug
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_Array_status_page.MonitorWithHeartbeatsAndUptimeDTO"
+          description: OK
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      summary: Get monitors for a status page by slug with heartbeats and uptime
+      tags:
+        - status_page
+  /api/v1/status-pages/slug/{slug}/monitors/homepage:
+    get:
+      operationId: getStatusPagesSlugBySlugMonitorsHomepage
+      parameters:
+        - description: Status Page Slug
+          in: path
+          name: slug
+          required: true
+          schema:
+            description: Status Page Slug
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_Array_status_page.MonitorWithHeartbeatsAndUptimeDTO"
+          description: OK
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      summary: Get monitors for a status page by slug for homepage
+      tags:
+        - status_page
+  /api/v1/status-pages/{id}:
+    delete:
+      operationId: deleteStatusPagesById
+      parameters:
+        - description: Status Page ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Status Page ID
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_Any"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Delete a status page
+      tags:
+        - status_page
+    get:
+      operationId: getStatusPagesById
+      parameters:
+        - description: Status Page ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Status Page ID
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_status_page.StatusPageWithMonitorsResponseDTO"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Get a status page by ID
+      tags:
+        - status_page
+    patch:
+      operationId: patchStatusPagesById
+      parameters:
+        - description: Status Page ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Status Page ID
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/status_page.UpdateStatusPageDTO"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_status_page.Model"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: "#/components/schemas/status_page.DomainErrorResponse"
+                  - $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Update a status page
+      tags:
+        - status_page
+  /api/v1/tags:
+    get:
+      operationId: getTags
+      parameters:
+        - description: Search query
+          in: query
+          name: q
+          schema:
+            description: Search query
+            type: string
+        - description: Page number
+          in: query
+          name: page
+          schema:
+            default: 0
+            description: Page number
+            format: int64
+            minimum: 0
+            type: integer
+        - description: Items per page
+          in: query
+          name: limit
+          schema:
+            default: 10
+            description: Items per page
+            format: int64
+            maximum: 1000
+            minimum: 1
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_Array_tag.Model"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Get tags
+      tags:
+        - tag
+    post:
+      operationId: postTags
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/tag.CreateUpdateDto"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_tag.Model"
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Conflict
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Create tag
+      tags:
+        - tag
+  /api/v1/tags/{id}:
+    delete:
+      operationId: deleteTagsById
+      parameters:
+        - description: Tag ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Tag ID
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_Any"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Delete tag
+      tags:
+        - tag
+    get:
+      operationId: getTagsById
+      parameters:
+        - description: Tag ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Tag ID
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_tag.Model"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Get tag by ID
+      tags:
+        - tag
+    patch:
+      operationId: patchTagsById
+      parameters:
+        - description: Tag ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Tag ID
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/tag.PartialUpdateDto"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_tag.Model"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Conflict
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Update tag
+      tags:
+        - tag
+    put:
+      operationId: putTagsById
+      parameters:
+        - description: Tag ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Tag ID
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/tag.CreateUpdateDto"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_tag.Model"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Conflict
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Update tag
+      tags:
+        - tag
+  /api/v1/version:
+    get:
+      operationId: getVersion
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/internal.VersionResponse"
+          description: OK
+      summary: Get server version
+      tags:
+        - System
+  /health:
+    get:
+      operationId: getHealthRoot
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/internal.HealthResponse"
+          description: OK
+      summary: Get server health
+      tags:
+        - System
+security: []
+servers:
+  - url: /
+

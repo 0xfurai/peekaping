@@ -86,10 +86,9 @@ const Enable2FA = () => {
       setQr(null);
       passwordForm.reset();
       setupForm.reset();
-      setUser({
-        ...user,
-        twofa_status: true,
-      });
+      if (user) {
+        setUser({ ...user, twofa_status: true });
+      }
     },
     onError: commonMutationErrorHandler(t("security.enable_2fa.messages.failed_to_verify_2fa_code")),
   });

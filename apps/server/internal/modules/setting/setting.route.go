@@ -1,6 +1,8 @@
 package setting
 
 import (
+	"github.com/danielgtaylor/huma/v2"
+	"net/http"
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/middleware"
 )
@@ -27,7 +29,7 @@ func (uc *Route) ConnectRoute(
 
 	router.Use(uc.middleware.AllAuth())
 
-	router.Handle("GET", "key/{key}", uc.controller.GetByKey)
-	router.Handle("PUT", "key/{key}", uc.controller.SetByKey)
-	router.Handle("DELETE", "key/{key}", uc.controller.DeleteByKey)
+	httpx.Register(router, "GET", "key/{key}", huma.Operation{Summary: "Get setting by key", Tags: []string{"setting"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusInternalServerError, http.StatusNotFound, http.StatusUnauthorized}}, uc.controller.GetByKey)
+	httpx.Register(router, "PUT", "key/{key}", huma.Operation{Summary: "Set setting by key", Description: "Only KEEP_DATA_PERIOD_DAYS can be set, with type int and a whole number of days from 1 to 36500. Every other key returns 404.", Tags: []string{"setting"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusNotFound, http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, uc.controller.SetByKey)
+	httpx.Register(router, "DELETE", "key/{key}", huma.Operation{Summary: "Delete setting by key", Tags: []string{"setting"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusNotFound, http.StatusInternalServerError, http.StatusUnauthorized}}, uc.controller.DeleteByKey)
 }

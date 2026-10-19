@@ -44,24 +44,22 @@ func TestHTTPRoutingCompatibility(t *testing.T) {
 	}
 }
 
-func TestSwaggerHTTP(t *testing.T) {
+func TestDocumentationHTTP(t *testing.T) {
 	a := newApp(t)
-	for _, tc := range []struct{ path, contentType, contains string }{
-		{"/swagger/index.html", "text/html", "/swagger/doc.json"},
-		{"/swagger/doc.json", "application/json", `"swagger": "2.0"`},
-		{"/swagger/swagger-ui.css", "text/css", "swagger-ui"},
-		{"/swagger/swagger-ui-bundle.js", "javascript", "SwaggerUIBundle"},
-	} {
-		t.Run(tc.path, func(t *testing.T) {
-			w := a.request(t, "GET", tc.path, nil)
-			require.Equal(t, 200, w.Code, w.Body.String())
-			assert.Contains(t, w.Header().Get("Content-Type"), tc.contentType)
-			assert.Contains(t, w.Body.String(), tc.contains)
-			if tc.path == "/swagger/doc.json" {
-				assert.True(t, json.Valid(w.Body.Bytes()))
-			}
-		})
+	for _, path := range []string{"/openapi.json", "/swagger/doc.json"} {
+		w := a.request(t, "GET", path, nil)
+		require.Equal(t, 200, w.Code)
+		assert.True(t, json.Valid(w.Body.Bytes()))
+		assert.Contains(t, w.Body.String(), `"openapi":"3.1.0"`)
 	}
+	w := a.request(t, "GET", "/swagger/index.html", nil)
+	assert.Equal(t, 307, w.Code)
+	assert.Equal(t, "/docs", w.Header().Get("Location"))
+	w = a.request(t, "GET", "/docs", nil)
+	assert.Equal(t, 200, w.Code)
+	assert.Contains(t, w.Header().Get("Content-Type"), "text/html")
+	assert.Contains(t, w.Body.String(), "/openapi")
+	assert.Equal(t, 404, a.request(t, "GET", "/swagger/swagger-ui.css", nil).Code)
 }
 
 func TestSocketIOThroughAPIRouter(t *testing.T) {

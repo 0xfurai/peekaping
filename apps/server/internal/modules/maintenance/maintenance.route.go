@@ -1,6 +1,8 @@
 package maintenance
 
 import (
+	"github.com/danielgtaylor/huma/v2"
+	"net/http"
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/middleware"
 )
@@ -27,13 +29,13 @@ func (uc *Route) ConnectRoute(
 	router := rg.Group("maintenances")
 
 	router.Use(uc.middleware.AllAuth())
-	router.Handle("GET", "", uc.controller.FindAll)
-	router.Handle("POST", "", uc.controller.Create)
-	router.Handle("GET", "{id}", uc.controller.FindByID)
-	router.Handle("PUT", "{id}", uc.controller.UpdateFull)
-	router.Handle("PATCH", "{id}", uc.controller.UpdatePartial)
-	router.Handle("DELETE", "{id}", uc.controller.Delete)
+	httpx.Register(router, "GET", "", huma.Operation{Summary: "Get maintenances", Tags: []string{"maintenance"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, uc.controller.FindAll)
+	httpx.Register(router, "POST", "", huma.Operation{Summary: "Create maintenance", Tags: []string{"maintenance"}, DefaultStatus: http.StatusCreated, Security: httpx.SharedAuth, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, uc.controller.Create)
+	httpx.Register(router, "GET", "{id}", huma.Operation{Summary: "Get maintenance by ID", Tags: []string{"maintenance"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusInternalServerError, http.StatusNotFound, http.StatusUnauthorized}}, uc.controller.FindByID)
+	httpx.Register(router, "PUT", "{id}", huma.Operation{Summary: "Update maintenance", Tags: []string{"maintenance"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusNotFound, http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, uc.controller.UpdateFull)
+	httpx.Register(router, "PATCH", "{id}", huma.Operation{Summary: "Update maintenance", Tags: []string{"maintenance"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusNotFound, http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, uc.controller.UpdatePartial)
+	httpx.Register(router, "DELETE", "{id}", huma.Operation{Summary: "Delete maintenance", Tags: []string{"maintenance"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusNotFound, http.StatusInternalServerError, http.StatusUnauthorized}}, uc.controller.Delete)
 
-	router.Handle("PATCH", "{id}/pause", uc.controller.Pause)
-	router.Handle("PATCH", "{id}/resume", uc.controller.Resume)
+	httpx.Register(router, "PATCH", "{id}/pause", huma.Operation{Summary: "Pause maintenance", Tags: []string{"maintenance"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusNotFound, http.StatusInternalServerError, http.StatusUnauthorized}}, uc.controller.Pause)
+	httpx.Register(router, "PATCH", "{id}/resume", huma.Operation{Summary: "Resume maintenance", Tags: []string{"maintenance"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusNotFound, http.StatusInternalServerError, http.StatusUnauthorized}}, uc.controller.Resume)
 }

@@ -5,7 +5,8 @@ import { setupInterceptors } from "@/interceptors";
 
 const configureClient = (accessToken: string | null) => {
   client.setConfig({
-    baseURL: getConfig().API_URL + "/api/v1",
+    // The generated paths already start with /api/v1.
+    baseURL: getConfig().API_URL,
     headers: accessToken
       ? {
           Authorization: `Bearer ${accessToken}`,

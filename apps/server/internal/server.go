@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	_ "peekaping/docs"
+	"github.com/danielgtaylor/huma/v2"
 	"peekaping/internal/config"
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/api_key"
@@ -28,14 +28,13 @@ import (
 	"go.uber.org/zap"
 )
 
-// @Summary      Get server version
-// @Description  Returns the current server version
-// @Tags         System
-// @Produce      json
-// @Success      200  {object}  map[string]string  "{"version": "1.2.3"}"
-// @Router       /version [get]
-func versionHandler(w http.ResponseWriter, r *http.Request) {
-	httpx.JSON(w, http.StatusOK, map[string]any{"version": version.Version})
+type SystemInput = httpx.Input[httpx.NoBody, struct{}]
+type VersionResponse struct {
+	Version string `json:"version"`
+}
+
+func versionHandler(ctx context.Context, input *SystemInput) (*httpx.Output[VersionResponse], error) {
+	return httpx.Reply(http.StatusOK, VersionResponse{Version: version.Version})
 }
 
 // HealthResponse is the server health
@@ -49,16 +48,9 @@ type HealthResponse struct {
 
 // newHealthHandler answers 200 while the server is up, so the docker healthcheck only
 // watches the API. An external watcher alerts on stale_monitors or an old watchdog_ran_at.
-//
-// @Summary      Get server health
-// @Description  Returns the server health and how many monitors Peekaping has stopped checking
-// @Tags         System
-// @Produce      json
-// @Success      200  {object}  HealthResponse
-// @Router       /health [get]
-func newHealthHandler(store *stale.Store, logger *zap.SugaredLogger) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		reqCtx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+func newHealthHandler(store *stale.Store, logger *zap.SugaredLogger) func(context.Context, *SystemInput) (*httpx.Output[HealthResponse], error) {
+	return func(ctx context.Context, input *SystemInput) (*httpx.Output[HealthResponse], error) {
+		reqCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
 		defer cancel()
 
 		resp := HealthResponse{Status: "success"}
@@ -72,7 +64,7 @@ func newHealthHandler(store *stale.Store, logger *zap.SugaredLogger) http.Handle
 		} else {
 			resp.WatchdogRanAt = ranAt
 		}
-		httpx.JSON(w, http.StatusOK, resp)
+		return httpx.Reply(http.StatusOK, resp)
 	}
 }
 
@@ -117,10 +109,10 @@ func ProvideServer(
 	server := httpx.NewRouter(middleware...)
 
 	healthHandler := newHealthHandler(staleStore, logger)
-	server.Handle("GET", "/health", healthHandler)
+	httpx.Register(server, "GET", "/health", huma.Operation{Summary: "Get server health", Tags: []string{"System"}}, healthHandler)
 	router := server.Group("/api/v1")
-	router.Handle("GET", "/health", healthHandler)
-	router.Handle("GET", "/version", versionHandler)
+	httpx.Register(router, "GET", "/health", huma.Operation{Summary: "Get server health", Tags: []string{"System"}}, healthHandler)
+	httpx.Register(router, "GET", "/version", huma.Operation{Summary: "Get server version", Tags: []string{"System"}}, versionHandler)
 
 	// Connect routes
 	monitorRoute.ConnectRoute(router, monitorController)
@@ -137,8 +129,8 @@ func ProvideServer(
 	// Register push endpoint
 	healthcheck.RegisterPushEndpoint(router, monitorService, heartbeatService, queueService, logger)
 
-	// Documentation uses the existing generated Swag specification until PP-199.
-	server.Handle("GET", "/swagger/{any...}", swaggerHandler())
+	// Compatibility entry points; generated documentation lives at /docs.
+	server.Handle("GET", "/swagger/{any...}", swaggerHandler(server.API()))
 	server.Handle("GET", "/socket.io/{f...}", wsServer.ServeHTTP)
 	server.Handle("POST", "/socket.io/{f...}", wsServer.ServeHTTP)
 

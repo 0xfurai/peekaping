@@ -43,6 +43,9 @@ import type {
   GetBadgeByMonitorIdCertExpData,
   GetBadgeByMonitorIdCertExpResponses,
   GetBadgeByMonitorIdCertExpErrors,
+  GetBadgeByMonitorIdPingData,
+  GetBadgeByMonitorIdPingResponses,
+  GetBadgeByMonitorIdPingErrors,
   GetBadgeByMonitorIdPingByDurationData,
   GetBadgeByMonitorIdPingByDurationResponses,
   GetBadgeByMonitorIdPingByDurationErrors,
@@ -52,6 +55,9 @@ import type {
   GetBadgeByMonitorIdStatusData,
   GetBadgeByMonitorIdStatusResponses,
   GetBadgeByMonitorIdStatusErrors,
+  GetBadgeByMonitorIdUptimeData,
+  GetBadgeByMonitorIdUptimeResponses,
+  GetBadgeByMonitorIdUptimeErrors,
   GetBadgeByMonitorIdUptimeByDurationData,
   GetBadgeByMonitorIdUptimeByDurationResponses,
   GetBadgeByMonitorIdUptimeByDurationErrors,
@@ -156,6 +162,9 @@ import type {
   PutProxiesByIdData,
   PutProxiesByIdResponses,
   PutProxiesByIdErrors,
+  GetPushByTokenData,
+  GetPushByTokenResponses,
+  GetPushByTokenErrors,
   DeleteSettingsKeyByKeyData,
   DeleteSettingsKeyByKeyResponses,
   DeleteSettingsKeyByKeyErrors,
@@ -212,12 +221,14 @@ import type {
   PutTagsByIdErrors,
   GetVersionData,
   GetVersionResponses,
+  GetHealthRootData,
+  GetHealthRootResponses,
 } from "./types.gen";
 import { client as _heyApiClient } from "./client.gen";
 
 export type Options<
   TData extends TDataShape = TDataShape,
-  ThrowOnError extends boolean = boolean
+  ThrowOnError extends boolean = boolean,
 > = ClientOptions<TData, ThrowOnError> & {
   /**
    * You can provide a client instance returned by `createClient()` instead of
@@ -234,7 +245,6 @@ export type Options<
 
 /**
  * Get API keys
- * Get all API keys
  */
 export const getApiKeys = <ThrowOnError extends boolean = false>(
   options?: Options<GetApiKeysData, ThrowOnError>
@@ -247,18 +257,17 @@ export const getApiKeys = <ThrowOnError extends boolean = false>(
     responseType: "json",
     security: [
       {
-        name: "Authorization",
-        type: "apiKey",
+        scheme: "bearer",
+        type: "http",
       },
     ],
-    url: "/api-keys",
+    url: "/api/v1/api-keys",
     ...options,
   });
 };
 
 /**
  * Create API key
- * Create a new API key
  */
 export const postApiKeys = <ThrowOnError extends boolean = false>(
   options: Options<PostApiKeysData, ThrowOnError>
@@ -271,11 +280,11 @@ export const postApiKeys = <ThrowOnError extends boolean = false>(
     responseType: "json",
     security: [
       {
-        name: "Authorization",
-        type: "apiKey",
+        scheme: "bearer",
+        type: "http",
       },
     ],
-    url: "/api-keys",
+    url: "/api/v1/api-keys",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -286,7 +295,6 @@ export const postApiKeys = <ThrowOnError extends boolean = false>(
 
 /**
  * Get API key configuration
- * Get API key configuration including prefix
  */
 export const getApiKeysConfig = <ThrowOnError extends boolean = false>(
   options?: Options<GetApiKeysConfigData, ThrowOnError>
@@ -297,14 +305,13 @@ export const getApiKeysConfig = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    url: "/api-keys/config",
+    url: "/api/v1/api-keys/config",
     ...options,
   });
 };
 
 /**
  * Delete API key
- * Delete an API key
  */
 export const deleteApiKeysById = <ThrowOnError extends boolean = false>(
   options: Options<DeleteApiKeysByIdData, ThrowOnError>
@@ -314,21 +321,19 @@ export const deleteApiKeysById = <ThrowOnError extends boolean = false>(
     DeleteApiKeysByIdErrors,
     ThrowOnError
   >({
-    responseType: "json",
     security: [
       {
-        name: "Authorization",
-        type: "apiKey",
+        scheme: "bearer",
+        type: "http",
       },
     ],
-    url: "/api-keys/{id}",
+    url: "/api/v1/api-keys/{id}",
     ...options,
   });
 };
 
 /**
  * Get API key
- * Get a specific API key by ID
  */
 export const getApiKeysById = <ThrowOnError extends boolean = false>(
   options: Options<GetApiKeysByIdData, ThrowOnError>
@@ -341,18 +346,17 @@ export const getApiKeysById = <ThrowOnError extends boolean = false>(
     responseType: "json",
     security: [
       {
-        name: "Authorization",
-        type: "apiKey",
+        scheme: "bearer",
+        type: "http",
       },
     ],
-    url: "/api-keys/{id}",
+    url: "/api/v1/api-keys/{id}",
     ...options,
   });
 };
 
 /**
  * Update API key
- * Update an API key
  */
 export const putApiKeysById = <ThrowOnError extends boolean = false>(
   options: Options<PutApiKeysByIdData, ThrowOnError>
@@ -365,11 +369,11 @@ export const putApiKeysById = <ThrowOnError extends boolean = false>(
     responseType: "json",
     security: [
       {
-        name: "Authorization",
-        type: "apiKey",
+        scheme: "bearer",
+        type: "http",
       },
     ],
-    url: "/api-keys/{id}",
+    url: "/api/v1/api-keys/{id}",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -392,11 +396,11 @@ export const postAuth2FaDisable = <ThrowOnError extends boolean = false>(
     responseType: "json",
     security: [
       {
-        name: "Authorization",
-        type: "apiKey",
+        scheme: "bearer",
+        type: "http",
       },
     ],
-    url: "/auth/2fa/disable",
+    url: "/api/v1/auth/2fa/disable",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -419,11 +423,11 @@ export const postAuth2FaSetup = <ThrowOnError extends boolean = false>(
     responseType: "json",
     security: [
       {
-        name: "Authorization",
-        type: "apiKey",
+        scheme: "bearer",
+        type: "http",
       },
     ],
-    url: "/auth/2fa/setup",
+    url: "/api/v1/auth/2fa/setup",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -446,11 +450,11 @@ export const postAuth2FaVerify = <ThrowOnError extends boolean = false>(
     responseType: "json",
     security: [
       {
-        name: "Authorization",
-        type: "apiKey",
+        scheme: "bearer",
+        type: "http",
       },
     ],
-    url: "/auth/2fa/verify",
+    url: "/api/v1/auth/2fa/verify",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -471,7 +475,7 @@ export const postAuthLogin = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    url: "/auth/login",
+    url: "/api/v1/auth/login",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -494,11 +498,11 @@ export const putAuthPassword = <ThrowOnError extends boolean = false>(
     responseType: "json",
     security: [
       {
-        name: "Authorization",
-        type: "apiKey",
+        scheme: "bearer",
+        type: "http",
       },
     ],
-    url: "/auth/password",
+    url: "/api/v1/auth/password",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -519,7 +523,7 @@ export const postAuthRefresh = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    url: "/auth/refresh",
+    url: "/api/v1/auth/refresh",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -540,7 +544,7 @@ export const postAuthRegister = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    url: "/auth/register",
+    url: "/api/v1/auth/register",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -553,7 +557,7 @@ export const postAuthRegister = <ThrowOnError extends boolean = false>(
  * Get certificate expiry badge
  */
 export const getBadgeByMonitorIdCertExp = <
-  ThrowOnError extends boolean = false
+  ThrowOnError extends boolean = false,
 >(
   options: Options<GetBadgeByMonitorIdCertExpData, ThrowOnError>
 ) => {
@@ -563,7 +567,24 @@ export const getBadgeByMonitorIdCertExp = <
     ThrowOnError
   >({
     responseType: "blob",
-    url: "/badge/{monitorId}/cert-exp",
+    url: "/api/v1/badge/{monitorId}/cert-exp",
+    ...options,
+  });
+};
+
+/**
+ * Get ping badge
+ */
+export const getBadgeByMonitorIdPing = <ThrowOnError extends boolean = false>(
+  options: Options<GetBadgeByMonitorIdPingData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetBadgeByMonitorIdPingResponses,
+    GetBadgeByMonitorIdPingErrors,
+    ThrowOnError
+  >({
+    responseType: "blob",
+    url: "/api/v1/badge/{monitorId}/ping",
     ...options,
   });
 };
@@ -572,7 +593,7 @@ export const getBadgeByMonitorIdCertExp = <
  * Get ping badge
  */
 export const getBadgeByMonitorIdPingByDuration = <
-  ThrowOnError extends boolean = false
+  ThrowOnError extends boolean = false,
 >(
   options: Options<GetBadgeByMonitorIdPingByDurationData, ThrowOnError>
 ) => {
@@ -582,7 +603,7 @@ export const getBadgeByMonitorIdPingByDuration = <
     ThrowOnError
   >({
     responseType: "blob",
-    url: "/badge/{monitorId}/ping/{duration}",
+    url: "/api/v1/badge/{monitorId}/ping/{duration}",
     ...options,
   });
 };
@@ -591,7 +612,7 @@ export const getBadgeByMonitorIdPingByDuration = <
  * Get response time badge
  */
 export const getBadgeByMonitorIdResponse = <
-  ThrowOnError extends boolean = false
+  ThrowOnError extends boolean = false,
 >(
   options: Options<GetBadgeByMonitorIdResponseData, ThrowOnError>
 ) => {
@@ -601,7 +622,7 @@ export const getBadgeByMonitorIdResponse = <
     ThrowOnError
   >({
     responseType: "blob",
-    url: "/badge/{monitorId}/response",
+    url: "/api/v1/badge/{monitorId}/response",
     ...options,
   });
 };
@@ -618,7 +639,24 @@ export const getBadgeByMonitorIdStatus = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "blob",
-    url: "/badge/{monitorId}/status",
+    url: "/api/v1/badge/{monitorId}/status",
+    ...options,
+  });
+};
+
+/**
+ * Get uptime badge
+ */
+export const getBadgeByMonitorIdUptime = <ThrowOnError extends boolean = false>(
+  options: Options<GetBadgeByMonitorIdUptimeData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetBadgeByMonitorIdUptimeResponses,
+    GetBadgeByMonitorIdUptimeErrors,
+    ThrowOnError
+  >({
+    responseType: "blob",
+    url: "/api/v1/badge/{monitorId}/uptime",
     ...options,
   });
 };
@@ -627,7 +665,7 @@ export const getBadgeByMonitorIdStatus = <ThrowOnError extends boolean = false>(
  * Get uptime badge
  */
 export const getBadgeByMonitorIdUptimeByDuration = <
-  ThrowOnError extends boolean = false
+  ThrowOnError extends boolean = false,
 >(
   options: Options<GetBadgeByMonitorIdUptimeByDurationData, ThrowOnError>
 ) => {
@@ -637,14 +675,13 @@ export const getBadgeByMonitorIdUptimeByDuration = <
     ThrowOnError
   >({
     responseType: "blob",
-    url: "/badge/{monitorId}/uptime/{duration}",
+    url: "/api/v1/badge/{monitorId}/uptime/{duration}",
     ...options,
   });
 };
 
 /**
  * Get server health
- * Returns the server health and how many monitors Peekaping has stopped checking
  */
 export const getHealth = <ThrowOnError extends boolean = false>(
   options?: Options<GetHealthData, ThrowOnError>
@@ -655,7 +692,7 @@ export const getHealth = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    url: "/health",
+    url: "/api/v1/health",
     ...options,
   });
 };
@@ -674,15 +711,15 @@ export const getMaintenances = <ThrowOnError extends boolean = false>(
     responseType: "json",
     security: [
       {
-        name: "Authorization",
-        type: "apiKey",
+        scheme: "bearer",
+        type: "http",
       },
       {
         name: "X-API-Key",
         type: "apiKey",
       },
     ],
-    url: "/maintenances",
+    url: "/api/v1/maintenances",
     ...options,
   });
 };
@@ -701,15 +738,15 @@ export const postMaintenances = <ThrowOnError extends boolean = false>(
     responseType: "json",
     security: [
       {
-        name: "Authorization",
-        type: "apiKey",
+        scheme: "bearer",
+        type: "http",
       },
       {
         name: "X-API-Key",
         type: "apiKey",
       },
     ],
-    url: "/maintenances",
+    url: "/api/v1/maintenances",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -730,7 +767,17 @@ export const deleteMaintenancesById = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    url: "/maintenances/{id}",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/maintenances/{id}",
     ...options,
   });
 };
@@ -747,7 +794,17 @@ export const getMaintenancesById = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    url: "/maintenances/{id}",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/maintenances/{id}",
     ...options,
   });
 };
@@ -764,7 +821,17 @@ export const patchMaintenancesById = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    url: "/maintenances/{id}",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/maintenances/{id}",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -785,7 +852,17 @@ export const putMaintenancesById = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    url: "/maintenances/{id}",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/maintenances/{id}",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -798,7 +875,7 @@ export const putMaintenancesById = <ThrowOnError extends boolean = false>(
  * Pause maintenance
  */
 export const patchMaintenancesByIdPause = <
-  ThrowOnError extends boolean = false
+  ThrowOnError extends boolean = false,
 >(
   options: Options<PatchMaintenancesByIdPauseData, ThrowOnError>
 ) => {
@@ -808,7 +885,17 @@ export const patchMaintenancesByIdPause = <
     ThrowOnError
   >({
     responseType: "json",
-    url: "/maintenances/{id}/pause",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/maintenances/{id}/pause",
     ...options,
   });
 };
@@ -817,7 +904,7 @@ export const patchMaintenancesByIdPause = <
  * Resume maintenance
  */
 export const patchMaintenancesByIdResume = <
-  ThrowOnError extends boolean = false
+  ThrowOnError extends boolean = false,
 >(
   options: Options<PatchMaintenancesByIdResumeData, ThrowOnError>
 ) => {
@@ -827,7 +914,17 @@ export const patchMaintenancesByIdResume = <
     ThrowOnError
   >({
     responseType: "json",
-    url: "/maintenances/{id}/resume",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/maintenances/{id}/resume",
     ...options,
   });
 };
@@ -846,15 +943,15 @@ export const getMonitors = <ThrowOnError extends boolean = false>(
     responseType: "json",
     security: [
       {
-        name: "Authorization",
-        type: "apiKey",
+        scheme: "bearer",
+        type: "http",
       },
       {
         name: "X-API-Key",
         type: "apiKey",
       },
     ],
-    url: "/monitors",
+    url: "/api/v1/monitors",
     ...options,
   });
 };
@@ -873,15 +970,15 @@ export const postMonitors = <ThrowOnError extends boolean = false>(
     responseType: "json",
     security: [
       {
-        name: "Authorization",
-        type: "apiKey",
+        scheme: "bearer",
+        type: "http",
       },
       {
         name: "X-API-Key",
         type: "apiKey",
       },
     ],
-    url: "/monitors",
+    url: "/api/v1/monitors",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -904,15 +1001,15 @@ export const getMonitorsBatch = <ThrowOnError extends boolean = false>(
     responseType: "json",
     security: [
       {
-        name: "Authorization",
-        type: "apiKey",
+        scheme: "bearer",
+        type: "http",
       },
       {
         name: "X-API-Key",
         type: "apiKey",
       },
     ],
-    url: "/monitors/batch",
+    url: "/api/v1/monitors/batch",
     ...options,
   });
 };
@@ -929,7 +1026,17 @@ export const deleteMonitorsById = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    url: "/monitors/{id}",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/monitors/{id}",
     ...options,
   });
 };
@@ -946,7 +1053,17 @@ export const getMonitorsById = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    url: "/monitors/{id}",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/monitors/{id}",
     ...options,
   });
 };
@@ -963,7 +1080,17 @@ export const patchMonitorsById = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    url: "/monitors/{id}",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/monitors/{id}",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -984,7 +1111,17 @@ export const putMonitorsById = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    url: "/monitors/{id}",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/monitors/{id}",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -1005,7 +1142,17 @@ export const getMonitorsByIdHeartbeats = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    url: "/monitors/{id}/heartbeats",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/monitors/{id}/heartbeats",
     ...options,
   });
 };
@@ -1022,7 +1169,17 @@ export const postMonitorsByIdReset = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    url: "/monitors/{id}/reset",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/monitors/{id}/reset",
     ...options,
   });
 };
@@ -1031,7 +1188,7 @@ export const postMonitorsByIdReset = <ThrowOnError extends boolean = false>(
  * Get monitor stat points (ping/up/down) from stats tables
  */
 export const getMonitorsByIdStatsPoints = <
-  ThrowOnError extends boolean = false
+  ThrowOnError extends boolean = false,
 >(
   options: Options<GetMonitorsByIdStatsPointsData, ThrowOnError>
 ) => {
@@ -1041,7 +1198,17 @@ export const getMonitorsByIdStatsPoints = <
     ThrowOnError
   >({
     responseType: "json",
-    url: "/monitors/{id}/stats/points",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/monitors/{id}/stats/points",
     ...options,
   });
 };
@@ -1050,7 +1217,7 @@ export const getMonitorsByIdStatsPoints = <
  * Get monitor uptime stats (24h, 30d, 365d)
  */
 export const getMonitorsByIdStatsUptime = <
-  ThrowOnError extends boolean = false
+  ThrowOnError extends boolean = false,
 >(
   options: Options<GetMonitorsByIdStatsUptimeData, ThrowOnError>
 ) => {
@@ -1060,7 +1227,17 @@ export const getMonitorsByIdStatsUptime = <
     ThrowOnError
   >({
     responseType: "json",
-    url: "/monitors/{id}/stats/uptime",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/monitors/{id}/stats/uptime",
     ...options,
   });
 };
@@ -1077,7 +1254,17 @@ export const getMonitorsByIdTls = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    url: "/monitors/{id}/tls",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/monitors/{id}/tls",
     ...options,
   });
 };
@@ -1096,15 +1283,15 @@ export const getNotificationChannels = <ThrowOnError extends boolean = false>(
     responseType: "json",
     security: [
       {
-        name: "Authorization",
-        type: "apiKey",
+        scheme: "bearer",
+        type: "http",
       },
       {
         name: "X-API-Key",
         type: "apiKey",
       },
     ],
-    url: "/notification-channels",
+    url: "/api/v1/notification-channels",
     ...options,
   });
 };
@@ -1123,15 +1310,15 @@ export const postNotificationChannels = <ThrowOnError extends boolean = false>(
     responseType: "json",
     security: [
       {
-        name: "Authorization",
-        type: "apiKey",
+        scheme: "bearer",
+        type: "http",
       },
       {
         name: "X-API-Key",
         type: "apiKey",
       },
     ],
-    url: "/notification-channels",
+    url: "/api/v1/notification-channels",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -1144,7 +1331,7 @@ export const postNotificationChannels = <ThrowOnError extends boolean = false>(
  * Test notification channel
  */
 export const postNotificationChannelsTest = <
-  ThrowOnError extends boolean = false
+  ThrowOnError extends boolean = false,
 >(
   options: Options<PostNotificationChannelsTestData, ThrowOnError>
 ) => {
@@ -1156,15 +1343,15 @@ export const postNotificationChannelsTest = <
     responseType: "json",
     security: [
       {
-        name: "Authorization",
-        type: "apiKey",
+        scheme: "bearer",
+        type: "http",
       },
       {
         name: "X-API-Key",
         type: "apiKey",
       },
     ],
-    url: "/notification-channels/test",
+    url: "/api/v1/notification-channels/test",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -1177,7 +1364,7 @@ export const postNotificationChannelsTest = <
  * Delete notification channel
  */
 export const deleteNotificationChannelsById = <
-  ThrowOnError extends boolean = false
+  ThrowOnError extends boolean = false,
 >(
   options: Options<DeleteNotificationChannelsByIdData, ThrowOnError>
 ) => {
@@ -1187,7 +1374,17 @@ export const deleteNotificationChannelsById = <
     ThrowOnError
   >({
     responseType: "json",
-    url: "/notification-channels/{id}",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/notification-channels/{id}",
     ...options,
   });
 };
@@ -1196,7 +1393,7 @@ export const deleteNotificationChannelsById = <
  * Get notification channel by ID
  */
 export const getNotificationChannelsById = <
-  ThrowOnError extends boolean = false
+  ThrowOnError extends boolean = false,
 >(
   options: Options<GetNotificationChannelsByIdData, ThrowOnError>
 ) => {
@@ -1206,7 +1403,17 @@ export const getNotificationChannelsById = <
     ThrowOnError
   >({
     responseType: "json",
-    url: "/notification-channels/{id}",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/notification-channels/{id}",
     ...options,
   });
 };
@@ -1215,7 +1422,7 @@ export const getNotificationChannelsById = <
  * Update notification channel
  */
 export const patchNotificationChannelsById = <
-  ThrowOnError extends boolean = false
+  ThrowOnError extends boolean = false,
 >(
   options: Options<PatchNotificationChannelsByIdData, ThrowOnError>
 ) => {
@@ -1225,7 +1432,17 @@ export const patchNotificationChannelsById = <
     ThrowOnError
   >({
     responseType: "json",
-    url: "/notification-channels/{id}",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/notification-channels/{id}",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -1238,7 +1455,7 @@ export const patchNotificationChannelsById = <
  * Update notification channel
  */
 export const putNotificationChannelsById = <
-  ThrowOnError extends boolean = false
+  ThrowOnError extends boolean = false,
 >(
   options: Options<PutNotificationChannelsByIdData, ThrowOnError>
 ) => {
@@ -1248,7 +1465,17 @@ export const putNotificationChannelsById = <
     ThrowOnError
   >({
     responseType: "json",
-    url: "/notification-channels/{id}",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/notification-channels/{id}",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -1271,15 +1498,15 @@ export const getProxies = <ThrowOnError extends boolean = false>(
     responseType: "json",
     security: [
       {
-        name: "Authorization",
-        type: "apiKey",
+        scheme: "bearer",
+        type: "http",
       },
       {
         name: "X-API-Key",
         type: "apiKey",
       },
     ],
-    url: "/proxies",
+    url: "/api/v1/proxies",
     ...options,
   });
 };
@@ -1298,15 +1525,15 @@ export const postProxies = <ThrowOnError extends boolean = false>(
     responseType: "json",
     security: [
       {
-        name: "Authorization",
-        type: "apiKey",
+        scheme: "bearer",
+        type: "http",
       },
       {
         name: "X-API-Key",
         type: "apiKey",
       },
     ],
-    url: "/proxies",
+    url: "/api/v1/proxies",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -1327,7 +1554,17 @@ export const deleteProxiesById = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    url: "/proxies/{id}",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/proxies/{id}",
     ...options,
   });
 };
@@ -1344,7 +1581,17 @@ export const getProxiesById = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    url: "/proxies/{id}",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/proxies/{id}",
     ...options,
   });
 };
@@ -1361,7 +1608,17 @@ export const patchProxiesById = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    url: "/proxies/{id}",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/proxies/{id}",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -1382,7 +1639,17 @@ export const putProxiesById = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    url: "/proxies/{id}",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/proxies/{id}",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -1392,8 +1659,24 @@ export const putProxiesById = <ThrowOnError extends boolean = false>(
 };
 
 /**
+ * Send a heartbeat to a push monitor
+ */
+export const getPushByToken = <ThrowOnError extends boolean = false>(
+  options: Options<GetPushByTokenData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetPushByTokenResponses,
+    GetPushByTokenErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    url: "/api/v1/push/{token}",
+    ...options,
+  });
+};
+
+/**
  * Delete setting by key
- * Only KEEP_DATA_PERIOD_DAYS can be deleted. Every other key returns 404.
  */
 export const deleteSettingsKeyByKey = <ThrowOnError extends boolean = false>(
   options: Options<DeleteSettingsKeyByKeyData, ThrowOnError>
@@ -1406,22 +1689,21 @@ export const deleteSettingsKeyByKey = <ThrowOnError extends boolean = false>(
     responseType: "json",
     security: [
       {
-        name: "Authorization",
-        type: "apiKey",
+        scheme: "bearer",
+        type: "http",
       },
       {
         name: "X-API-Key",
         type: "apiKey",
       },
     ],
-    url: "/settings/key/{key}",
+    url: "/api/v1/settings/key/{key}",
     ...options,
   });
 };
 
 /**
  * Get setting by key
- * Only KEEP_DATA_PERIOD_DAYS can be read. Every other key returns 404.
  */
 export const getSettingsKeyByKey = <ThrowOnError extends boolean = false>(
   options: Options<GetSettingsKeyByKeyData, ThrowOnError>
@@ -1434,15 +1716,15 @@ export const getSettingsKeyByKey = <ThrowOnError extends boolean = false>(
     responseType: "json",
     security: [
       {
-        name: "Authorization",
-        type: "apiKey",
+        scheme: "bearer",
+        type: "http",
       },
       {
         name: "X-API-Key",
         type: "apiKey",
       },
     ],
-    url: "/settings/key/{key}",
+    url: "/api/v1/settings/key/{key}",
     ...options,
   });
 };
@@ -1462,15 +1744,15 @@ export const putSettingsKeyByKey = <ThrowOnError extends boolean = false>(
     responseType: "json",
     security: [
       {
-        name: "Authorization",
-        type: "apiKey",
+        scheme: "bearer",
+        type: "http",
       },
       {
         name: "X-API-Key",
         type: "apiKey",
       },
     ],
-    url: "/settings/key/{key}",
+    url: "/api/v1/settings/key/{key}",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -1493,15 +1775,15 @@ export const getStatusPages = <ThrowOnError extends boolean = false>(
     responseType: "json",
     security: [
       {
-        name: "Authorization",
-        type: "apiKey",
+        scheme: "bearer",
+        type: "http",
       },
       {
         name: "X-API-Key",
         type: "apiKey",
       },
     ],
-    url: "/status-pages",
+    url: "/api/v1/status-pages",
     ...options,
   });
 };
@@ -1520,15 +1802,15 @@ export const postStatusPages = <ThrowOnError extends boolean = false>(
     responseType: "json",
     security: [
       {
-        name: "Authorization",
-        type: "apiKey",
+        scheme: "bearer",
+        type: "http",
       },
       {
         name: "X-API-Key",
         type: "apiKey",
       },
     ],
-    url: "/status-pages",
+    url: "/api/v1/status-pages",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -1541,7 +1823,7 @@ export const postStatusPages = <ThrowOnError extends boolean = false>(
  * Get a status page by domain name
  */
 export const getStatusPagesDomainByDomain = <
-  ThrowOnError extends boolean = false
+  ThrowOnError extends boolean = false,
 >(
   options: Options<GetStatusPagesDomainByDomainData, ThrowOnError>
 ) => {
@@ -1551,7 +1833,7 @@ export const getStatusPagesDomainByDomain = <
     ThrowOnError
   >({
     responseType: "json",
-    url: "/status-pages/domain/{domain}",
+    url: "/api/v1/status-pages/domain/{domain}",
     ...options,
   });
 };
@@ -1568,7 +1850,7 @@ export const getStatusPagesSlugBySlug = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    url: "/status-pages/slug/{slug}",
+    url: "/api/v1/status-pages/slug/{slug}",
     ...options,
   });
 };
@@ -1577,7 +1859,7 @@ export const getStatusPagesSlugBySlug = <ThrowOnError extends boolean = false>(
  * Get monitors for a status page by slug with heartbeats and uptime
  */
 export const getStatusPagesSlugBySlugMonitors = <
-  ThrowOnError extends boolean = false
+  ThrowOnError extends boolean = false,
 >(
   options: Options<GetStatusPagesSlugBySlugMonitorsData, ThrowOnError>
 ) => {
@@ -1587,7 +1869,7 @@ export const getStatusPagesSlugBySlugMonitors = <
     ThrowOnError
   >({
     responseType: "json",
-    url: "/status-pages/slug/{slug}/monitors",
+    url: "/api/v1/status-pages/slug/{slug}/monitors",
     ...options,
   });
 };
@@ -1596,7 +1878,7 @@ export const getStatusPagesSlugBySlugMonitors = <
  * Get monitors for a status page by slug for homepage
  */
 export const getStatusPagesSlugBySlugMonitorsHomepage = <
-  ThrowOnError extends boolean = false
+  ThrowOnError extends boolean = false,
 >(
   options: Options<GetStatusPagesSlugBySlugMonitorsHomepageData, ThrowOnError>
 ) => {
@@ -1606,7 +1888,7 @@ export const getStatusPagesSlugBySlugMonitorsHomepage = <
     ThrowOnError
   >({
     responseType: "json",
-    url: "/status-pages/slug/{slug}/monitors/homepage",
+    url: "/api/v1/status-pages/slug/{slug}/monitors/homepage",
     ...options,
   });
 };
@@ -1625,15 +1907,15 @@ export const deleteStatusPagesById = <ThrowOnError extends boolean = false>(
     responseType: "json",
     security: [
       {
-        name: "Authorization",
-        type: "apiKey",
+        scheme: "bearer",
+        type: "http",
       },
       {
         name: "X-API-Key",
         type: "apiKey",
       },
     ],
-    url: "/status-pages/{id}",
+    url: "/api/v1/status-pages/{id}",
     ...options,
   });
 };
@@ -1652,15 +1934,15 @@ export const getStatusPagesById = <ThrowOnError extends boolean = false>(
     responseType: "json",
     security: [
       {
-        name: "Authorization",
-        type: "apiKey",
+        scheme: "bearer",
+        type: "http",
       },
       {
         name: "X-API-Key",
         type: "apiKey",
       },
     ],
-    url: "/status-pages/{id}",
+    url: "/api/v1/status-pages/{id}",
     ...options,
   });
 };
@@ -1679,15 +1961,15 @@ export const patchStatusPagesById = <ThrowOnError extends boolean = false>(
     responseType: "json",
     security: [
       {
-        name: "Authorization",
-        type: "apiKey",
+        scheme: "bearer",
+        type: "http",
       },
       {
         name: "X-API-Key",
         type: "apiKey",
       },
     ],
-    url: "/status-pages/{id}",
+    url: "/api/v1/status-pages/{id}",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -1710,15 +1992,15 @@ export const getTags = <ThrowOnError extends boolean = false>(
     responseType: "json",
     security: [
       {
-        name: "Authorization",
-        type: "apiKey",
+        scheme: "bearer",
+        type: "http",
       },
       {
         name: "X-API-Key",
         type: "apiKey",
       },
     ],
-    url: "/tags",
+    url: "/api/v1/tags",
     ...options,
   });
 };
@@ -1737,15 +2019,15 @@ export const postTags = <ThrowOnError extends boolean = false>(
     responseType: "json",
     security: [
       {
-        name: "Authorization",
-        type: "apiKey",
+        scheme: "bearer",
+        type: "http",
       },
       {
         name: "X-API-Key",
         type: "apiKey",
       },
     ],
-    url: "/tags",
+    url: "/api/v1/tags",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -1766,7 +2048,17 @@ export const deleteTagsById = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    url: "/tags/{id}",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/tags/{id}",
     ...options,
   });
 };
@@ -1783,7 +2075,17 @@ export const getTagsById = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    url: "/tags/{id}",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/tags/{id}",
     ...options,
   });
 };
@@ -1800,7 +2102,17 @@ export const patchTagsById = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    url: "/tags/{id}",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/tags/{id}",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -1821,7 +2133,17 @@ export const putTagsById = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    url: "/tags/{id}",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/tags/{id}",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -1832,7 +2154,6 @@ export const putTagsById = <ThrowOnError extends boolean = false>(
 
 /**
  * Get server version
- * Returns the current server version
  */
 export const getVersion = <ThrowOnError extends boolean = false>(
   options?: Options<GetVersionData, ThrowOnError>
@@ -1843,7 +2164,24 @@ export const getVersion = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     responseType: "json",
-    url: "/version",
+    url: "/api/v1/version",
+    ...options,
+  });
+};
+
+/**
+ * Get server health
+ */
+export const getHealthRoot = <ThrowOnError extends boolean = false>(
+  options?: Options<GetHealthRootData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetHealthRootResponses,
+    unknown,
+    ThrowOnError
+  >({
+    responseType: "json",
+    url: "/health",
     ...options,
   });
 };

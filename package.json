@@ -11,13 +11,18 @@
     "dev:ingester": "turbo run dev:ingester",
     "lint": "turbo run lint",
     "check-types": "turbo run check-types",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "api:generate": "bun run --filter server docs:generate && bun run --filter web gen",
+    "api:validate": "redocly lint apps/server/docs/openapi.json",
+    "api:check": "bun run api:generate && bun run api:validate && sh scripts/check-api-artifacts.sh"
   },
   "devDependencies": {
     "@playwright/test": "^1.53.1",
+    "@redocly/cli": "1.34.3",
     "@types/node": "22.15.17",
-    "turbo": "^2.5.4",
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "prettier": "3.6.2",
+    "turbo": "^2.5.4"
   },
   "packageManager": "bun@1.4.3",
   "engines": {

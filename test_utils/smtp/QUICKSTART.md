@@ -32,7 +32,7 @@ make dev
 Access:
 - Frontend: http://localhost:8383
 - API: http://localhost:8034
-- API Docs: http://localhost:8034/swagger/index.html
+- API Docs: http://localhost:8034/docs
 
 ## 3. Create SMTP Monitor
 

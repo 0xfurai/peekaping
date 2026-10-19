@@ -1,7 +1,9 @@
 package healthcheck
 
 import (
+	"context"
 	"fmt"
+	"github.com/danielgtaylor/huma/v2"
 	"math"
 	"net/http"
 	"peekaping/internal/httpx"
@@ -50,25 +52,22 @@ func RegisterPushEndpoint(
 	queueService queue.Service,
 	logger *zap.SugaredLogger,
 ) {
-	router.Handle("GET", "/push/{token}", func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
+	httpx.Register(router, "GET", "/push/{token}", huma.Operation{Summary: "Send a heartbeat to a push monitor", Tags: []string{"Push"}, Errors: []int{400, 404, 500}}, func(ctx context.Context, input *PushInput) (*httpx.Output[PushResponse], error) {
+		r := input.Request
 		token := r.PathValue("token")
 
 		monitor, err := monitorService.FindOneByPushToken(ctx, token)
 		if err != nil {
 			logger.Errorw("Failed to find monitor with push token", "error", err)
-			httpx.JSON(w, http.StatusNotFound, utils.NewFailResponse("Monitor not found for pushToken"))
-			return
+			return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found for pushToken"))
 		}
 		if monitor == nil {
 			logger.Errorw("Monitor not found for push token", "pushToken", token)
-			httpx.JSON(w, http.StatusNotFound, utils.NewFailResponse("Monitor not found for pushToken"))
-			return
+			return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found for pushToken"))
 		}
 		if !monitor.Active {
 			logger.Errorw("Monitor is not active", "monitor", monitor)
-			httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("Monitor is not active"))
-			return
+			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Monitor is not active"))
 		}
 
 		status := parsePushStatus(r.URL.Query().Get("status"))
@@ -123,11 +122,10 @@ func RegisterPushEndpoint(
 				"monitor_id", monitor.ID,
 				"error", err,
 			)
-			httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Failed to process push heartbeat"))
-			return
+			return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Failed to process push heartbeat"))
 		}
 
-		httpx.JSON(w, http.StatusOK, map[string]any{"ok": "true"})
+		return httpx.Reply(http.StatusOK, PushResponse{OK: "true"})
 	})
 }
 
@@ -168,4 +166,15 @@ func parsePushPing(value string) (ping int, ok bool) {
 		return 0, false
 	}
 	return int(math.Round(ms)), true
+}
+
+type PushInput = httpx.Input[httpx.NoBody, PushParams]
+type PushParams struct {
+	Token  string `path:"token" doc:"Secret push token, authenticating the monitor."`
+	Status string `query:"status" doc:"Empty, up, or 1 means Up; other values mean Down."`
+	Msg    string `query:"msg" doc:"Heartbeat message; defaults to OK or Down."`
+	Ping   string `query:"ping" doc:"Response time in milliseconds; malformed values are ignored."`
+}
+type PushResponse struct {
+	OK string `json:"ok"`
 }

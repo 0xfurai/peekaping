@@ -35,7 +35,7 @@ These install the latest release. To get the pinned version, run `npm install -g
 
 This Bun has nothing to do with `apps/server/cmd/bun`. That one is the database migration tool, built on the [uptrace/bun](https://github.com/uptrace/bun) Go library.
 
-`make dev` also regenerates the API docs with [swag](https://github.com/swaggo/swag). It runs through `go run`, pinned to the same version as the swag library in `go.mod`, so there's nothing extra to install.
+`make dev` also runs `docs:watch`, which exports OpenAPI from the typed Huma registrations when the server source changes. There is no separate documentation annotation generator.
 
 Then check your setup:
 
@@ -116,7 +116,7 @@ bun run dev docs:watch
 
 - The web UI will be available at [http://localhost:8383](http://localhost:8383)
 - The backend API will be at [http://localhost:8034](http://localhost:8034)
-- API docs will be available at [http://localhost:8034/swagger/index.html](http://localhost:8034/swagger/index.html)
+- API docs will be available at [http://localhost:8034/docs](http://localhost:8034/docs)
 - Documentation will be available at [http://localhost:3000](http://localhost:3000)
 
 ---
@@ -145,3 +145,9 @@ Happy hacking! 🚀
 HTTP request DTOs belong at the controller boundary. Services use domain models, and repository interfaces accept domain models or partial-update models. Each SQL or Mongo repository maps these models to its own private persistence structs; database tags belong on those structs.
 
 Partial-update models preserve omitted fields separately from explicit zero values. A nil slice leaves an association unchanged, while an empty slice clears it. Maintenance monitor IDs are passed separately to the service so the maintenance repository only receives maintenance fields.
+
+### Updating the API contract
+
+REST operations use typed Huma registrations on the standard HTTP router. After changing an operation or DTO, run `bun run api:generate` and `bun run api:validate` from the repository root, then commit `apps/server/docs/openapi.json`, `openapi.yaml`, and the regenerated `apps/web/src/api` files. `bun run api:check` runs the same generation/validation and fails if committed artifacts are stale. No database or Redis process is needed for export.
+
+`docs:watch` watches the server source and exports the spec; run `bun run --filter web gen` after contract changes to update the client. The server serves `/openapi.json`, `/openapi.yaml`, and `/docs`. `/swagger/index.html` redirects to `/docs`; `/swagger/doc.json` now serves the same OpenAPI 3.1 document. Old Swagger UI assets are removed.
