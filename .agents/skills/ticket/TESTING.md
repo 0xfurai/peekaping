@@ -76,8 +76,7 @@ SERVER_PORT=8034
 CLIENT_URL=http://localhost:8383
 ENV
 export COMPOSE_FILE=docker-compose.dev.sqlite.yml:docker-compose.e2e.yml
-docker compose up -d --build
-until curl -sf localhost:8034/api/v1/health && curl -sf localhost:8383/ && curl -sf localhost:3033/health; do sleep 2; done
+docker compose up -d --build --wait --wait-timeout 120   # fails if a healthcheck doesn't pass in time
 bunx playwright install chromium
 PW_TEST_HTML_REPORT_OPEN=never bun run e2e
 docker compose down
