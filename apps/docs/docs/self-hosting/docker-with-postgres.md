@@ -200,6 +200,7 @@ services:
 
   web:
     image: 0xfurai/peekaping-web:latest
+    restart: unless-stopped
     depends_on:
       api:
         condition: service_healthy
@@ -214,6 +215,7 @@ services:
 
   gateway:
     image: nginx:latest
+    restart: unless-stopped
     ports:
       - "8383:80"
     volumes:
