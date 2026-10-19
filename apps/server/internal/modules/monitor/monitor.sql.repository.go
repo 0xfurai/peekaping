@@ -233,7 +233,7 @@ func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, monitor *
 	result, err := r.db.NewUpdate().
 		Model(sm).
 		Where("id = ?", id).
-		ExcludeColumn("id", "created_at").
+		ExcludeColumn("id", "created_at", "status").
 		Exec(ctx)
 
 	if err != nil {

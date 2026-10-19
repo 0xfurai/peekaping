@@ -369,11 +369,11 @@ func TestMonitorService_Create(t *testing.T) {
 			RetryInterval:  45,
 			ResendInterval: 10,
 			Active:         true,
-			Status:         shared.MonitorStatusUp,
+			Status:         shared.MonitorStatusPending,
 			Config:         "{}",
 			ProxyId:        "proxy123",
 			PushToken:      "token123",
-		}, saved, "the repository gets every field of the request, and the monitor starts Up")
+		}, saved, "the repository gets every field of the request, and the monitor starts Pending")
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -447,20 +447,38 @@ func TestMonitorService_UpdateFull(t *testing.T) {
 			PushToken:      "token456",
 		}
 
+		stored := &Model{
+			ID:        monitorID,
+			Type:      updateDto.Type,
+			Name:      updateDto.Name,
+			Status:    shared.MonitorStatusDown,
+			CreatedAt: time.Date(2026, 10, 1, 9, 0, 0, 0, time.UTC),
+		}
 		mockRepo.On("UpdateFull", ctx, monitorID, mock.MatchedBy(func(m *Model) bool {
 			return m.ID == monitorID &&
 				m.Type == updateDto.Type &&
 				m.Name == updateDto.Name &&
-				m.Interval == updateDto.Interval &&
-				m.Status == shared.MonitorStatusUp
+				m.Interval == updateDto.Interval
 		})).Return(nil)
+		mockRepo.On("FindByID", ctx, monitorID).Return(stored, nil)
 
 		result, err := service.UpdateFull(ctx, monitorID, updateDto)
 
 		assert.NoError(t, err)
-		assert.Equal(t, monitorID, result.ID)
-		assert.Equal(t, updateDto.Name, result.Name)
-		assert.Equal(t, updateDto.Type, result.Type)
+		assert.Same(t, stored, result, "the response is the monitor as stored, with its status and created_at")
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("monitor removed before it is read back", func(t *testing.T) {
+		service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
+		monitorID := "removed123"
+		mockRepo.On("UpdateFull", ctx, monitorID, mock.Anything).Return(nil)
+		mockRepo.On("FindByID", ctx, monitorID).Return(nil, nil)
+
+		result, err := service.UpdateFull(ctx, monitorID, &CreateUpdateDto{Type: "tcp", Name: "Updated Monitor"})
+
+		assert.ErrorIs(t, err, ErrMonitorNotFound)
+		assert.Nil(t, result)
 		mockRepo.AssertExpectations(t)
 	})
 

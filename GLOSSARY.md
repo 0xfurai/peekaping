@@ -65,7 +65,7 @@ The monitor's checks are failing and its max retries are used up.
 _Avoid_: Offline, failed
 
 **Pending**:
-The monitor's latest check failed, but it still has retries left before it counts as Down.
+The monitor's latest check failed, but it still has retries left before it counts as Down. Pending is also the status of a new monitor before its first check.
 _Avoid_: Degraded, warning, retrying
 
 **Maintenance**:

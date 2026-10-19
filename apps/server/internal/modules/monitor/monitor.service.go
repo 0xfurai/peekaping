@@ -92,7 +92,7 @@ func (mr *MonitorServiceImpl) Create(ctx context.Context, monitorCreateDto *Crea
 		RetryInterval:  monitorCreateDto.RetryInterval,
 		ResendInterval: monitorCreateDto.ResendInterval,
 		Active:         monitorCreateDto.Active,
-		Status:         shared.MonitorStatusUp,
+		Status:         shared.MonitorStatusPending,
 		CreatedAt:      time.Now().UTC(),
 		Config:         monitorCreateDto.Config,
 		ProxyId:        monitorCreateDto.ProxyId,
@@ -149,7 +149,6 @@ func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, id string, monitor
 		RetryInterval:  monitor.RetryInterval,
 		ResendInterval: monitor.ResendInterval,
 		Active:         monitor.Active,
-		Status:         shared.MonitorStatusUp,
 		UpdatedAt:      time.Now().UTC(),
 		Config:         monitor.Config,
 		ProxyId:        monitor.ProxyId,
@@ -161,13 +160,22 @@ func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, id string, monitor
 		return nil, err
 	}
 
+	// Read the monitor back: the response and the event carry what is stored, including its status and created_at
+	updatedMonitor, err := mr.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if updatedMonitor == nil {
+		return nil, fmt.Errorf("%w: monitor %s", ErrMonitorNotFound, id)
+	}
+
 	// Emit monitor updated event
 	mr.eventBus.Publish(events.Event{
 		Type:    events.MonitorUpdated,
-		Payload: model,
+		Payload: updatedMonitor,
 	})
 
-	return model, nil
+	return updatedMonitor, nil
 }
 
 func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, monitor *PartialUpdateDto, noPublish bool) (*Model, error) {

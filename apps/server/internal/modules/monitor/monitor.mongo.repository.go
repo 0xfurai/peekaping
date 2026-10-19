@@ -141,7 +141,7 @@ func (r *MonitorRepositoryImpl) Create(ctx context.Context, monitor *Model) (*Mo
 		RetryInterval:  monitor.RetryInterval,
 		ResendInterval: monitor.ResendInterval,
 		Active:         monitor.Active,
-		Status:         0,
+		Status:         monitor.Status,
 		CreatedAt:      time.Now().UTC(),
 		UpdatedAt:      time.Now().UTC(),
 		Config:         monitor.Config,
@@ -320,7 +320,6 @@ func buildSetMapFromModelForUpdate(m *Model, preserveCreatedAt time.Time, includ
 		"retry_interval":  m.RetryInterval,
 		"resend_interval": m.ResendInterval,
 		"active":          m.Active,
-		"status":          0,                 // or m.Status if available
 		"created_at":      preserveCreatedAt, // Preserve original created_at
 		"updated_at":      time.Now().UTC(),
 		"config":          m.Config,

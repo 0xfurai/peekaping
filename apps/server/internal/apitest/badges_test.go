@@ -6,7 +6,10 @@ import (
 	"regexp"
 	"testing"
 
+	"peekaping/internal/modules/shared"
+
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var badgeTitle = regexp.MustCompile(`<title>(.*?)</title>`)
@@ -22,11 +25,11 @@ func assertBadge(t *testing.T, w *httptest.ResponseRecorder, title string) {
 }
 
 // badgePaths are every badge route for a monitor, with the badge each one
-// renders for a monitor that's Up and has no heartbeats yet.
+// renders for a monitor that's Pending and has no heartbeats yet.
 func badgePaths(monitorID string) map[string]string {
 	base := "/api/v1/badge/" + monitorID
 	return map[string]string{
-		base + "/status":     "status: Up",
+		base + "/status":     "status: Pending",
 		base + "/uptime":     "uptime (24h): 0.0%",
 		base + "/uptime/720": "uptime (30d): 0.0%",
 		base + "/ping":       "ping (24h): 0ms",
@@ -48,6 +51,18 @@ func TestBadges_ServeMonitorOnPublishedPage(t *testing.T) {
 			assertBadge(t, a.request(t, http.MethodGet, path, nil), title)
 		})
 	}
+}
+
+func TestBadges_StatusStaysDownAfterTheMonitorIsEdited(t *testing.T) {
+	a := newAppWithMonitorListener(t)
+	monitorID := a.createMonitor(t, "Checkout", "checkout-push-token")
+	a.createStatusPage(t, statusPage{slug: "shop", published: true, monitors: []string{monitorID}})
+	a.reportStatus(t, monitorID, shared.MonitorStatusDown)
+
+	w := a.request(t, http.MethodPut, "/api/v1/monitors/"+monitorID, pushMonitorBody("Checkout API", "checkout-push-token"), a.asAdmin)
+	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+
+	assertBadge(t, a.request(t, http.MethodGet, "/api/v1/badge/"+monitorID+"/status", nil), "status: Down")
 }
 
 func TestBadges_HideMonitorsOffPublishedPages(t *testing.T) {
@@ -85,7 +100,7 @@ func TestBadges_FallBackOnInvalidOptions(t *testing.T) {
 	for path, title := range map[string]string{
 		base + "/uptime/not-a-number":                "uptime (24h): 0.0%",
 		base + "/ping/-720":                          "ping (24h): 0ms",
-		base + "/status?style=unknown":               "status: Up",
+		base + "/status?style=unknown":               "status: Pending",
 		base + "/cert-exp?warnDays=soon&downDays=-1": "cert exp: N/A",
 	} {
 		t.Run(path, func(t *testing.T) {
