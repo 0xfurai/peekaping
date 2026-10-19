@@ -30,29 +30,45 @@ export async function createHTTPMonitor(
   url: string,
   { maxRetries = 0 } = {},
 ): Promise<{ id: string }> {
-  const response = await api.post('monitors', {
-    data: {
-      type: 'http',
-      name,
-      interval: 20,
-      timeout: 16,
-      max_retries: maxRetries,
-      retry_interval: 20,
-      resend_interval: 0,
-      active: true,
-      notification_ids: [],
-      config: JSON.stringify({
-        url,
-        method: 'GET',
-        encoding: 'json',
-        accepted_statuscodes: ['2XX'],
-        max_redirects: 10,
-        authMethod: 'none',
-      }),
-    },
-  });
+  const response = await api.post('monitors', { data: httpMonitorBody(name, url, maxRetries) });
   expect(response.status(), await response.text()).toBe(201);
   return (await response.json()).data;
+}
+
+// Replaces a monitor createHTTPMonitor made with a full update (PUT), the way
+// the web edit form and API syncs do. It sends the whole body, so pass the same
+// url and max retries the monitor was created with to change only the name.
+export async function updateHTTPMonitor(
+  api: APIRequestContext,
+  id: string,
+  name: string,
+  url: string,
+  { maxRetries = 0 } = {},
+) {
+  const response = await api.put(`monitors/${id}`, { data: httpMonitorBody(name, url, maxRetries) });
+  expect(response.status(), await response.text()).toBe(200);
+}
+
+function httpMonitorBody(name: string, url: string, maxRetries: number) {
+  return {
+    type: 'http',
+    name,
+    interval: 20,
+    timeout: 16,
+    max_retries: maxRetries,
+    retry_interval: 20,
+    resend_interval: 0,
+    active: true,
+    notification_ids: [],
+    config: JSON.stringify({
+      url,
+      method: 'GET',
+      encoding: 'json',
+      accepted_statuscodes: ['2XX'],
+      max_redirects: 10,
+      authMethod: 'none',
+    }),
+  };
 }
 
 // Deletes what a spec created, e.g. "monitors/<id>", so reruns start clean.

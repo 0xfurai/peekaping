@@ -1,6 +1,7 @@
 import { test, expect, type APIRequestContext, type Page } from '@playwright/test';
 import { adminAPI, createHTTPMonitor, deleteCreated, randomID } from './support/api';
 import { setTargetStatus, targetURL } from './support/fake-target';
+import { cardStatusOf, listFor, openLive } from './support/monitor-list';
 
 // A new monitor is checked at once and then every 20 seconds, the minimum
 // check interval. If the producer misses the create event, its 30-second
@@ -11,10 +12,6 @@ const nextCheck = { timeout: 60_000 };
 // another page showing it. Pending itself lasts one 20-second check: the server
 // still schedules it at the check interval, not the retry interval (PP-65).
 const sameHeartbeat = { timeout: 10_000 };
-
-// The monitor list narrowed to one test's monitors. The id is lowercase on
-// purpose: on Postgres the list search matches only a lowercase term (PP-72).
-const listFor = (id: string) => `/monitors?search=${id}`;
 
 test('a failing target shows Pending, then Down, on the card and the page', async ({ page, context, request }) => {
   // If every wait runs out they add up to 280 seconds: 2 x 10 to join the rooms,
@@ -83,21 +80,6 @@ test('a monitor in a maintenance window shows Maintenance on the card and the pa
     await api.dispose();
   }
 });
-
-// Opens the page and waits until the app has joined the websocket room, so a
-// heartbeat recorded from then on reaches the page without a reload.
-async function openLive(page: Page, url: string, room: string) {
-  const joined = page.waitForEvent('console', (message) => message.text() === `Subscribed to heartbeat ${room}`);
-  await Promise.all([joined, page.goto(url)]);
-}
-
-// The status name beside the icon on the monitor's card in the list. It's matched
-// as an element of its own, since the card's text runs on from the status into the name.
-const cardStatusOf = (page: Page, name: string) =>
-  page
-    .getByTestId('monitor-card')
-    .filter({ hasText: name })
-    .getByText(/^\s*(Up|Down|Pending|Maintenance|Paused)\s*$/);
 
 // The "Current status" on the monitor page.
 const pageStatusOf = (page: Page) =>
