@@ -2,12 +2,14 @@ import type { MonitorModel } from "@/api";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle, Pause, XCircle } from "lucide-react";
+import { Pause } from "lucide-react";
 import BarHistory from "@/components/bars";
 import { useQuery } from "@tanstack/react-query";
 import { getMonitorsByIdHeartbeatsOptions } from "@/api/@tanstack/react-query.gen";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { cn } from "@/lib/utils";
 import StaleMarker from "./stale-marker";
+import { getMonitorStatusView } from "./monitor-status";
 
 const MonitorCard = ({ monitor }: { monitor: MonitorModel }) => {
   const navigate = useNavigate();
@@ -41,26 +43,27 @@ const MonitorCard = ({ monitor }: { monitor: MonitorModel }) => {
                 if (monitor.active === false) {
                   return (
                     <span className="flex items-center text-yellow-500 font-semibold">
-                      <Pause className="w-5 h-5 mr-1" /> Paused
+                      <Pause className="w-5 h-5 mr-1" />{" "}
+                      {t("monitors.view.status.paused")}
                     </span>
                   );
                 }
                 const lastHeartbeat =
                   heartbeats?.data?.[heartbeats.data.length - 1];
-                if (!lastHeartbeat) return null;
-                if (lastHeartbeat.status) {
-                  return (
-                    <span className="flex items-center text-green-500 font-semibold">
-                      <CheckCircle className="w-5 h-5 mr-1" /> Up
-                    </span>
-                  );
-                } else {
-                  return (
-                    <span className="flex items-center text-red-500 font-semibold">
-                      <XCircle className="w-5 h-5 mr-1" /> Down
-                    </span>
-                  );
-                }
+                const statusView = getMonitorStatusView(lastHeartbeat?.status);
+                if (!statusView) return null;
+                const StatusIcon = statusView.icon;
+                return (
+                  <span
+                    className={cn(
+                      "flex items-center font-semibold",
+                      statusView.cardColor
+                    )}
+                  >
+                    <StatusIcon className="w-5 h-5 mr-1" />{" "}
+                    {t(statusView.nameKey)}
+                  </span>
+                );
               })()}
             </div>
 
