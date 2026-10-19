@@ -1,8 +1,8 @@
 module peekaping
 
-go 1.24.1
+go 1.26.0
 
-toolchain go1.24.3
+toolchain go1.26.4
 
 require (
 	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358

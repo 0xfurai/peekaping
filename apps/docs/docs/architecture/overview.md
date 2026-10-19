@@ -114,7 +114,7 @@ Peekaping supports three database backends:
 
 ## Technology Stack
 
-- **Language**: Go 1.24+
+- **Language**: Go 1.26+
 - **HTTP Server and Router**: Go `net/http` and `http.ServeMux`
 - **Database**: Bun ORM (SQL) / MongoDB Driver
 - **Queue**: Asynq (Redis-based)
