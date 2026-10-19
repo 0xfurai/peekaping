@@ -11,6 +11,7 @@ import (
 	"peekaping/cmd/bun/migrations"
 	"peekaping/internal/config"
 	"peekaping/internal/infra"
+	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/stats"
@@ -24,11 +25,12 @@ import (
 	"go.uber.org/zap/zaptest/observer"
 )
 
-// install is a SQLite database with the heartbeat and setting services the
+// install is a SQLite database with the heartbeat, user and setting stores the
 // cleanup runs on, and one monitor to record heartbeats for.
 type install struct {
 	db         *bun.DB
 	heartbeats heartbeat.Service
+	users      auth.Repository
 	settings   setting.Service
 	monitorID  string
 }
@@ -49,9 +51,17 @@ func newInstall(t *testing.T) install {
 	return install{
 		db:         db,
 		heartbeats: heartbeat.NewService(heartbeat.NewSQLRepository(db), nil, zap.NewNop().Sugar()),
+		users:      auth.NewSQLRepository(db),
 		settings:   setting.NewService(setting.NewSQLRepository(db), zap.NewNop().Sugar()),
 		monitorID:  monitorID,
 	}
+}
+
+// registerAdmin creates the install's admin, as its first setup does.
+func (in install) registerAdmin(t *testing.T) {
+	t.Helper()
+	_, err := in.users.Create(context.Background(), &auth.Model{Email: "admin@example.com", Password: "hash", Active: true})
+	require.NoError(t, err)
 }
 
 type heartbeatRow struct {
@@ -111,22 +121,33 @@ func TestUpgradedInstallKeepsAYearOfHeartbeats(t *testing.T) {
 	in.recordHeartbeats(t, 400, 300, 1)
 	logger := zap.NewNop().Sugar()
 
-	initDataRetentionPeriod(in.heartbeats, in.settings, logger)
+	initDataRetentionPeriod(in.heartbeats, in.users, in.settings, logger)
 	cleanupHeartbeats(in.heartbeats, in.settings, logger)
 
 	assert.Equal(t, "", in.storedPeriod(t), "an install that never saved a period keeps none")
 	assert.Equal(t, []string{"300d", "1d"}, in.heartbeatsLeft(t))
 }
 
+func TestUpgradedInstallWithNoHeartbeatsLeftKeepsAYearOfHeartbeats(t *testing.T) {
+	// Every monitor was deleted, which deleted its heartbeats, but the install
+	// was set up before 180 days became the default.
+	in := newInstall(t)
+	in.registerAdmin(t)
+
+	initDataRetentionPeriod(in.heartbeats, in.users, in.settings, zap.NewNop().Sugar())
+
+	assert.Equal(t, "", in.storedPeriod(t))
+}
+
 func TestNewInstallStoresA180DayRetentionPeriod(t *testing.T) {
 	in := newInstall(t)
 	logger := zap.NewNop().Sugar()
 
-	initDataRetentionPeriod(in.heartbeats, in.settings, logger)
+	initDataRetentionPeriod(in.heartbeats, in.users, in.settings, logger)
 	require.Equal(t, "180", in.storedPeriod(t))
 
 	in.recordHeartbeats(t, 200, 179, 1)
-	initDataRetentionPeriod(in.heartbeats, in.settings, logger)
+	initDataRetentionPeriod(in.heartbeats, in.users, in.settings, logger)
 	cleanupHeartbeats(in.heartbeats, in.settings, logger)
 	assert.Equal(t, "180", in.storedPeriod(t))
 	assert.Equal(t, []string{"179d", "1d"}, in.heartbeatsLeft(t))
@@ -139,7 +160,7 @@ func TestInitDataRetentionPeriodKeepsAStoredPeriod(t *testing.T) {
 			in.recordHeartbeats(t, heartbeats...)
 			in.storePeriod(t, "30")
 
-			initDataRetentionPeriod(in.heartbeats, in.settings, zap.NewNop().Sugar())
+			initDataRetentionPeriod(in.heartbeats, in.users, in.settings, zap.NewNop().Sugar())
 
 			assert.Equal(t, "30", in.storedPeriod(t))
 		})
@@ -157,7 +178,24 @@ func TestInitDataRetentionPeriodStoresNothingWhenItCantCheckForHeartbeats(t *tes
 	in := newInstall(t)
 	core, logs := observer.New(zap.InfoLevel)
 
-	initDataRetentionPeriod(brokenHeartbeats{in.heartbeats}, in.settings, zap.New(core).Sugar())
+	initDataRetentionPeriod(brokenHeartbeats{in.heartbeats}, in.users, in.settings, zap.New(core).Sugar())
+
+	assert.Equal(t, "", in.storedPeriod(t))
+	require.Len(t, logs.FilterLevelExact(zap.ErrorLevel).All(), 1)
+}
+
+// uncountableUsers is a user repository that can't count users.
+type uncountableUsers struct{ auth.Repository }
+
+func (uncountableUsers) FindAllCount(context.Context) (int64, error) {
+	return 0, errors.New("database is locked")
+}
+
+func TestInitDataRetentionPeriodStoresNothingWhenItCantCountUsers(t *testing.T) {
+	in := newInstall(t)
+	core, logs := observer.New(zap.InfoLevel)
+
+	initDataRetentionPeriod(in.heartbeats, uncountableUsers{in.users}, in.settings, zap.New(core).Sugar())
 
 	assert.Equal(t, "", in.storedPeriod(t))
 	require.Len(t, logs.FilterLevelExact(zap.ErrorLevel).All(), 1)
@@ -174,7 +212,7 @@ func TestInitDataRetentionPeriodStoresNothingWhenItCantReadThePeriod(t *testing.
 	in := newInstall(t)
 	core, logs := observer.New(zap.InfoLevel)
 
-	initDataRetentionPeriod(in.heartbeats, unreadableSettings{in.settings}, zap.New(core).Sugar())
+	initDataRetentionPeriod(in.heartbeats, in.users, unreadableSettings{in.settings}, zap.New(core).Sugar())
 
 	assert.Equal(t, "", in.storedPeriod(t))
 	require.Len(t, logs.FilterLevelExact(zap.ErrorLevel).All(), 1)

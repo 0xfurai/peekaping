@@ -9,6 +9,7 @@ import (
 	"peekaping/docs"
 	"peekaping/internal"
 	"peekaping/internal/infra"
+	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/cleanup"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/healthcheck"
@@ -72,13 +73,14 @@ func main() {
 	// Start cleanup cron job(s)
 	err = container.Invoke(func(
 		heartbeatService heartbeat.Service,
+		userRepository auth.Repository,
 		settingService setting.Service,
 		statsService stats.Service,
 		notificationHistoryService notification_sent_history.Service,
 		tlsInfoService monitor_tls_info.Service,
 		logger *zap.SugaredLogger,
 	) {
-		cleanup.StartCleanupCron(heartbeatService, settingService, statsService, notificationHistoryService, tlsInfoService, logger)
+		cleanup.StartCleanupCron(heartbeatService, userRepository, settingService, statsService, notificationHistoryService, tlsInfoService, logger)
 	})
 	if err != nil {
 		log.Fatal(err)

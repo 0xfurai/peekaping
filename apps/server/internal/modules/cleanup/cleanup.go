@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/notification_sent_history"
@@ -24,9 +25,10 @@ const unsetDataRetentionDays = 365
 const newInstallDataRetentionDays = 180
 
 // initDataRetentionPeriod stores newInstallDataRetentionDays when no period is
-// stored and no heartbeat exists yet, which is only true on a new install. An
-// install that has heartbeats and no stored period keeps unsetDataRetentionDays.
-func initDataRetentionPeriod(heartbeatService heartbeat.Service, settingService setting.Service, logger *zap.SugaredLogger) {
+// stored and the install has neither an admin nor a heartbeat yet, which is
+// only true before its first setup. An install set up before that default, even
+// one whose heartbeats were all deleted since, keeps unsetDataRetentionDays.
+func initDataRetentionPeriod(heartbeatService heartbeat.Service, userRepository auth.Repository, settingService setting.Service, logger *zap.SugaredLogger) {
 	ctx := context.Background()
 	stored, err := settingService.GetByKey(ctx, setting.DataRetentionPeriodKey)
 	if err != nil {
@@ -34,6 +36,14 @@ func initDataRetentionPeriod(heartbeatService heartbeat.Service, settingService 
 		return
 	}
 	if stored != nil {
+		return
+	}
+	users, err := userRepository.FindAllCount(ctx)
+	if err != nil {
+		logger.Errorw("Failed to count users, not storing a data retention period", "error", err)
+		return
+	}
+	if users > 0 {
 		return
 	}
 	hasHeartbeats, err := heartbeatService.HasAny(ctx)
@@ -120,13 +130,14 @@ func cleanupMonitorTLSInfo(tlsInfoService monitor_tls_info.Service, logger *zap.
 // StartCleanupCron starts the general cleanup cron job(s).
 func StartCleanupCron(
 	heartbeatService heartbeat.Service,
+	userRepository auth.Repository,
 	settingService setting.Service,
 	statsService stats.Service,
 	notificationHistoryService notification_sent_history.Service,
 	tlsInfoService monitor_tls_info.Service,
 	logger *zap.SugaredLogger,
 ) {
-	initDataRetentionPeriod(heartbeatService, settingService, logger)
+	initDataRetentionPeriod(heartbeatService, userRepository, settingService, logger)
 
 	c := cron.New()
 

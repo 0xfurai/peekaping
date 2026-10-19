@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- feat: new installs keep heartbeats for 180 days instead of 365. Upgrading changes nothing: an install that never saved a data retention period keeps 365 days, and a saved period stays as it is. Charts and uptime % come from stats, so only the recent heartbeats list and a monitor's event history reach back less far on new installs
+- feat: new installs keep heartbeats for 180 days instead of 365. An install counts as new when the API starts with no admin and no heartbeats yet. Upgrading changes nothing: an install that never saved a data retention period keeps 365 days, and a saved period stays as it is. Charts and uptime % come from stats, so only the recent heartbeats list and a monitor's event history reach back less far on new installs
 - refactor: SQL databases write a stats row with one `INSERT ... ON CONFLICT` statement instead of an UPDATE followed by an INSERT. What is stored doesn't change (#260) (thanks @brewle)
 
 ### Fixed
