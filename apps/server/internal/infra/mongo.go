@@ -41,6 +41,17 @@ func NewMongoCommandMonitor(logger *zap.SugaredLogger) *event.CommandMonitor {
 	}
 }
 
+const mongoDeprecationDocsURL = "https://docs.peekaping.com/self-hosting/docker-with-mongo"
+
+// warnMongoDeprecated tells the operator that MongoDB storage is on its way
+// out. The API, producer and ingester all connect through ProvideMongoDB, so
+// each logs it once at startup.
+func warnMongoDeprecated(logger *zap.SugaredLogger) {
+	logger.Warnf("MongoDB storage is deprecated. DB_TYPE=mongo keeps working but gets no new features, "+
+		"and it will be removed in a future release. A command to move your data to SQLite or PostgreSQL "+
+		"will ship before removal. See %s.", mongoDeprecationDocsURL)
+}
+
 func ProvideMongoDB(
 	cfg *config.Config,
 	logger *zap.SugaredLogger,
@@ -53,6 +64,7 @@ func ProvideMongoDB(
 		cfg.DBName,
 	)
 	logger.Infof("Connecting to MongoDB: %s:%s/%s", cfg.DBHost, cfg.DBPort, cfg.DBName)
+	warnMongoDeprecated(logger)
 	ctx := context.Background()
 
 	clientOpts := options.Client().ApplyURI(DBUri)
