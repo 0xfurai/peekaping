@@ -24,12 +24,12 @@ import (
 // createHeartbeat records a Heartbeat the way a check does, which publishes it on the event bus,
 // and returns its time in Unix seconds. The SQL repository stamps a Heartbeat with the time it's created
 // (the Mongo one keeps the time of the check), so the time comes from the Heartbeat that was created.
-func (a *app) createHeartbeat(t *testing.T, monitorID string, status shared.MonitorStatus, pingMs int) int64 {
+func (a *app) createHeartbeat(t *testing.T, monitorID string, status shared.MonitorStatus, responseMs int) int64 {
 	t.Helper()
 	var unixSeconds int64
 	require.NoError(t, a.container.Invoke(func(heartbeats heartbeat.Service) error {
 		created, err := heartbeats.Create(context.Background(), &heartbeat.CreateUpdateDto{
-			MonitorID: monitorID, Status: status, Ping: pingMs,
+			MonitorID: monitorID, Status: status, Ping: responseMs,
 		})
 		if err == nil {
 			unixSeconds = created.Time.Unix()

@@ -1,4 +1,4 @@
-// Package metrics exposes Peekaping monitor state as Prometheus metrics.
+// Package metrics exposes the Status of Peekaping's Monitors as Prometheus metrics.
 //
 // The collector keeps the latest Heartbeat of every active Monitor in memory, fed
 // by the event bus (Redis pub/sub in a multi-process deployment), so it sees
@@ -28,7 +28,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// SyncInterval is how often the collector checks its state against the active Monitors
+// SyncInterval is how often the collector re-checks the Monitors it exports against the active ones
 const SyncInterval = 5 * time.Minute
 
 // LookupTimeout is how long a Heartbeat event waits to find its Monitor
@@ -43,7 +43,7 @@ var (
 		monitorLabels, nil)
 	heartbeatTimeDesc = prometheus.NewDesc(
 		"peekaping_monitor_last_heartbeat_timestamp_seconds",
-		"Unix time of the Monitor's latest Heartbeat. Alert on it to catch a Monitor that stopped being checked.",
+		"Unix time of the Monitor's latest Heartbeat. Alert on it to catch a Stale monitor.",
 		monitorLabels, nil)
 	responseDesc = prometheus.NewDesc(
 		"peekaping_monitor_response_seconds",
@@ -51,17 +51,17 @@ var (
 		monitorLabels, nil)
 )
 
-// monitorState is what the latest Heartbeat of an active Monitor exports
-type monitorState struct {
+// latestHeartbeat is what an active Monitor exports: its latest Heartbeat, and the name and type to label it with
+type latestHeartbeat struct {
 	name        string
 	monitorType string
 	status      shared.MonitorStatus
-	ping        int // Response time in milliseconds
+	responseMs  int // Response time in milliseconds
 	heartbeatAt time.Time
 }
 
 // Collector is a prometheus.Collector over the latest Heartbeat of each active Monitor.
-// A series exists exactly while its Monitor has state.
+// A series exists exactly while its Monitor has one in memory.
 type Collector struct {
 	monitorService   monitor.Service
 	heartbeatService heartbeat.Service
@@ -70,7 +70,7 @@ type Collector struct {
 	lookupTimeout    time.Duration
 
 	mu       sync.RWMutex
-	monitors map[string]monitorState
+	monitors map[string]latestHeartbeat
 }
 
 // NewCollector builds a Collector. It does not touch the event bus until Start is called.
@@ -81,7 +81,7 @@ func NewCollector(monitorService monitor.Service, heartbeatService heartbeat.Ser
 		logger:           logger.Named("[metrics-collector]"),
 		syncInterval:     SyncInterval,
 		lookupTimeout:    LookupTimeout,
-		monitors:        make(map[string]monitorState),
+		monitors:         make(map[string]latestHeartbeat),
 	}
 }
 
@@ -127,12 +127,12 @@ func (c *Collector) Collect(ch chan<- prometheus.Metric) {
 	snapshot := maps.Clone(c.monitors)
 	c.mu.RUnlock()
 
-	for id, s := range snapshot {
-		labels := []string{id, strings.ToValidUTF8(s.name, "\uFFFD"), strings.ToValidUTF8(s.monitorType, "\uFFFD")}
-		send(ch, statusDesc, float64(s.status), labels)
-		send(ch, heartbeatTimeDesc, float64(s.heartbeatAt.Unix()), labels)
-		if s.status == shared.MonitorStatusUp {
-			send(ch, responseDesc, float64(s.ping)/1000, labels)
+	for id, hb := range snapshot {
+		labels := []string{id, strings.ToValidUTF8(hb.name, "\uFFFD"), strings.ToValidUTF8(hb.monitorType, "\uFFFD")}
+		send(ch, statusDesc, float64(hb.status), labels)
+		send(ch, heartbeatTimeDesc, float64(hb.heartbeatAt.Unix()), labels)
+		if hb.status == shared.MonitorStatusUp {
+			send(ch, responseDesc, float64(hb.responseMs)/1000, labels)
 		}
 	}
 }
@@ -169,10 +169,10 @@ func (c *Collector) runSync(ctx context.Context) {
 	}
 }
 
-// sync checks the state against the active Monitors, which repairs a pause, rename or delete
-// whose event never arrived, and loads the latest Heartbeat of a Monitor with no state, which is
-// all of them after a restart. It only drops state that was there before it read the Monitors,
-// so a Monitor that got its first Heartbeat meanwhile keeps it.
+// sync checks the Monitors the collector exports against the active ones, which repairs a pause,
+// rename or delete whose event never arrived, and loads the latest Heartbeat of an active Monitor
+// that has none in memory, which is all of them after a restart. It only drops Monitors that were
+// exported before it read the active ones, so a Monitor that got its first Heartbeat meanwhile stays.
 func (c *Collector) sync(ctx context.Context) {
 	c.mu.RLock()
 	tracked := slices.Collect(maps.Keys(c.monitors))
@@ -193,13 +193,13 @@ func (c *Collector) sync(ctx context.Context) {
 		if c.rename(mon) {
 			continue
 		}
-		latest, err := c.heartbeatService.FindByMonitorIDPaginated(ctx, mon.ID, 1, 0, nil, false)
+		newest, err := c.heartbeatService.FindByMonitorIDPaginated(ctx, mon.ID, 1, 0, nil, false)
 		if err != nil {
 			c.logger.Errorw("Failed to find the latest heartbeat of a monitor", "monitor_id", mon.ID, "error", err)
 			continue
 		}
-		if len(latest) > 0 {
-			c.record(latest[0], mon)
+		if len(newest) > 0 {
+			c.record(newest[0], mon)
 		}
 	}
 
@@ -212,15 +212,15 @@ func (c *Collector) sync(ctx context.Context) {
 	}
 }
 
-// rename gives a Monitor with state the name and type in mon and reports whether it has state.
+// rename gives an exported Monitor the name and type in mon and reports whether it is exported.
 func (c *Collector) rename(mon *monitor.Model) bool {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	s, tracked := c.monitors[mon.ID]
+	latest, tracked := c.monitors[mon.ID]
 	if tracked {
-		s.name = mon.Name
-		s.monitorType = mon.Type
-		c.monitors[mon.ID] = s
+		latest.name = mon.Name
+		latest.monitorType = mon.Type
+		c.monitors[mon.ID] = latest
 	}
 	return tracked
 }
@@ -286,23 +286,23 @@ func (c *Collector) handleHeartbeat(event events.Event) {
 }
 
 // record makes hb the Monitor's latest Heartbeat, unless the Monitor has a newer one already.
-// A Monitor with no state starts with the name and type in mon; without mon it gets none, as
-// it was dropped since the caller looked.
+// A Monitor that isn't exported yet starts with the name and type in mon; without mon it isn't
+// exported, as it was dropped since the caller looked.
 func (c *Collector) record(hb *heartbeat.Model, mon *monitor.Model) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	s, tracked := c.monitors[hb.MonitorID]
+	latest, tracked := c.monitors[hb.MonitorID]
 	switch {
-	case tracked && hb.Time.Before(s.heartbeatAt):
+	case tracked && hb.Time.Before(latest.heartbeatAt):
 		return
 	case !tracked && mon == nil:
 		return
 	case !tracked:
-		s = monitorState{name: mon.Name, monitorType: mon.Type}
+		latest = latestHeartbeat{name: mon.Name, monitorType: mon.Type}
 	}
-	s.status = hb.Status
-	s.ping = hb.Ping
-	s.heartbeatAt = hb.Time
-	c.monitors[hb.MonitorID] = s
+	latest.status = hb.Status
+	latest.responseMs = hb.Ping
+	latest.heartbeatAt = hb.Time
+	c.monitors[hb.MonitorID] = latest
 }

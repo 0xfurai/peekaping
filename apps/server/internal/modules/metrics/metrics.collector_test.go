@@ -200,9 +200,9 @@ func (r *rig) activeMonitor(id, name, monitorType string) monitor.Model {
 	return m
 }
 
-func (r *rig) publishHeartbeat(monitorID string, status shared.MonitorStatus, pingMs int, at int64) {
+func (r *rig) publishHeartbeat(monitorID string, status shared.MonitorStatus, responseMs int, at int64) {
 	r.bus.Publish(events.Event{Type: events.HeartbeatEvent, Payload: &heartbeat.Model{
-		MonitorID: monitorID, Status: status, Ping: pingMs, Time: time.Unix(at, 0),
+		MonitorID: monitorID, Status: status, Ping: responseMs, Time: time.Unix(at, 0),
 	}})
 }
 
@@ -494,8 +494,8 @@ func TestUpdateOfAMonitorWithoutAHeartbeatCreatesNoSeries(t *testing.T) {
 	r.requireSeries("")
 }
 
-func (r *rig) setLatest(monitorID string, status shared.MonitorStatus, pingMs int, at int64) {
-	r.heartbeats.setLatest(heartbeat.Model{MonitorID: monitorID, Status: status, Ping: pingMs, Time: time.Unix(at, 0)})
+func (r *rig) setLatest(monitorID string, status shared.MonitorStatus, responseMs int, at int64) {
+	r.heartbeats.setLatest(heartbeat.Model{MonitorID: monitorID, Status: status, Ping: responseMs, Time: time.Unix(at, 0)})
 }
 
 func TestStartupLoadsTheLatestHeartbeatOfActiveMonitorsInTheBackground(t *testing.T) {
