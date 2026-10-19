@@ -31,6 +31,9 @@ import (
 // SyncInterval is how often the collector checks its state against the active Monitors
 const SyncInterval = 5 * time.Minute
 
+// LookupTimeout is how long a Heartbeat event waits to find its Monitor
+const LookupTimeout = 10 * time.Second
+
 var monitorLabels = []string{"monitor_id", "monitor_name", "monitor_type"}
 
 var (
@@ -64,6 +67,7 @@ type Collector struct {
 	heartbeatService heartbeat.Service
 	logger           *zap.SugaredLogger
 	syncInterval     time.Duration
+	lookupTimeout    time.Duration
 
 	mu       sync.RWMutex
 	monitors map[string]monitorState
@@ -76,7 +80,8 @@ func NewCollector(monitorService monitor.Service, heartbeatService heartbeat.Ser
 		heartbeatService: heartbeatService,
 		logger:           logger.Named("[metrics-collector]"),
 		syncInterval:     SyncInterval,
-		monitors:         make(map[string]monitorState),
+		lookupTimeout:    LookupTimeout,
+		monitors:        make(map[string]monitorState),
 	}
 }
 
@@ -266,7 +271,9 @@ func (c *Collector) handleHeartbeat(event events.Event) {
 	}
 
 	// The first Heartbeat of a Monitor has to name it
-	mon, err := c.monitorService.FindByID(context.Background(), hb.MonitorID)
+	ctx, cancel := context.WithTimeout(context.Background(), c.lookupTimeout)
+	defer cancel()
+	mon, err := c.monitorService.FindByID(ctx, hb.MonitorID)
 	if err != nil {
 		c.logger.Errorw("Failed to find the monitor of a heartbeat", "monitor_id", hb.MonitorID, "error", err)
 		return

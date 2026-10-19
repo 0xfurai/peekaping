@@ -63,6 +63,8 @@ type fakeMonitors struct {
 	mu       sync.Mutex
 	monitors map[string]monitor.Model
 	findErr  error
+	// findGate, when set before Start, holds FindByID until the context is done
+	findGate chan struct{}
 	calls    atomic.Int32
 	// activeCalls counts the FindActive calls that returned
 	activeCalls atomic.Int32
@@ -85,8 +87,15 @@ func (f *fakeMonitors) remove(id string) {
 	delete(f.monitors, id)
 }
 
-func (f *fakeMonitors) FindByID(_ context.Context, id string) (*monitor.Model, error) {
+func (f *fakeMonitors) FindByID(ctx context.Context, id string) (*monitor.Model, error) {
 	f.calls.Add(1)
+	if f.findGate != nil {
+		select {
+		case <-f.findGate:
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
+	}
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	if f.findErr != nil {
@@ -334,6 +343,27 @@ func TestHeartbeatOfAMonitorThatCannotBeReadCreatesNoSeries(t *testing.T) {
 
 	r.publishHeartbeat("m1", shared.MonitorStatusUp, 100, at100)
 
+	r.requireSeries("")
+}
+
+func TestHeartbeatGivesUpOnAMonitorLookupThatHangs(t *testing.T) {
+	r := newRig(t)
+	r.collector.lookupTimeout = 20 * time.Millisecond
+	r.activeMonitor("m1", "API", "http")
+	r.monitors.findGate = make(chan struct{}) // never opens
+	r.start()
+
+	handled := make(chan struct{})
+	go func() {
+		r.publishHeartbeat("m1", shared.MonitorStatusUp, 100, at100)
+		close(handled)
+	}()
+
+	select {
+	case <-handled:
+	case <-time.After(2 * time.Second):
+		t.Fatal("the heartbeat handler is stuck on the monitor lookup")
+	}
 	r.requireSeries("")
 }
 
