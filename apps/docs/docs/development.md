@@ -15,13 +15,25 @@ cd peekaping
 
 ## 2. Install the Tools
 
-You need Go, Node.js and pnpm. Install them however you like: Homebrew, the official installers, nvm, fnm, mise or asdf all work. The repository pins each version in the file that tool reads on its own:
+You need Go, Node.js and Bun. Install them however you like: Homebrew, the official installers, nvm, fnm, mise or asdf all work. The repository pins each version in the file that tool reads on its own:
 
 | Tool | What to install | Pinned in |
 |------|-----------------|-----------|
 | **Go** | 1.21 or newer ([Download Go](https://go.dev/dl/)) | `apps/server/go.mod`. If your Go is older than its `toolchain` line, Go switches to that version and downloads it if needed. |
 | **Node.js** | 22 ([Download Node.js](https://nodejs.org/en/download/)) | `.nvmrc`. `nvm install` and `fnm install` pick it up. |
-| **pnpm** | Run `corepack enable`, or `npm install -g pnpm` ([other options](https://pnpm.io/installation)) | `packageManager` in `package.json`. Corepack and pnpm 10+ switch to that version. |
+| **Bun** | The version in `packageManager` ([install options](https://bun.sh/docs/installation)) | `packageManager` in `package.json`. Bun doesn't switch to that version on its own, so `make setup` fails if yours differs. |
+
+Bun installs the packages and runs the package scripts. Node.js still runs the tools those scripts start, such as Vite and Docusaurus. Install Bun with one of these:
+
+```bash
+curl -fsSL https://bun.sh/install | bash   # macOS and Linux
+brew install oven-sh/bun/bun               # Homebrew
+npm install -g bun                         # any system with Node.js
+```
+
+These install the latest release. To get the pinned version, run `npm install -g bun@<version>`. `bun upgrade` updates an existing install.
+
+This Bun has nothing to do with `apps/server/cmd/bun`. That one is the database migration tool, built on the [uptrace/bun](https://github.com/uptrace/bun) Go library.
 
 `make dev` also regenerates the API docs with [swag](https://github.com/swaggo/swag). It runs through `go run`, pinned to the same version as the swag library in `go.mod`, so there's nothing extra to install.
 
@@ -98,8 +110,8 @@ Run the full stack (backend, frontend, docs) in development mode:
 # Option 1: Using the Makefile (recommended)
 make dev
 
-# Option 2: Using pnpm directly
-pnpm run dev docs:watch
+# Option 2: Using Bun directly
+bun run dev docs:watch
 ```
 
 - The web UI will be available at [http://localhost:8383](http://localhost:8383)
@@ -119,12 +131,12 @@ A version manager's `go` shim usually causes this when no Go version is selected
 
 This happens offline, or when `GOTOOLCHAIN=local` is set. Install the version on the `toolchain` line of `apps/server/go.mod` directly from [go.dev/dl](https://go.dev/dl/).
 
-**Problem**: `pnpm install` warns `Unsupported engine`
+**Problem**: `make setup` says Bun runs here, but `package.json` pins another version
 
-Your Node.js is older than the one in `.nvmrc`. Run `nvm install` or `fnm install` in the repository root, or install Node.js 22.
+Install the version from `packageManager` in `package.json`: `npm install -g bun@<version>`. `bun upgrade` only moves to the latest release.
 
 - For Go development, make sure your `GOPATH` and `PATH` are set up correctly ([Go install instructions](https://go.dev/doc/install))
-- Ensure Node.js and pnpm are in your system PATH
+- Ensure Node.js and Bun are in your system PATH
 
 Happy hacking! 🚀
 

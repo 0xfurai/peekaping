@@ -9,9 +9,7 @@ on:
       - 'playwright.config.ts'
       - 'package.json'
       - '.nvmrc'
-      - 'pnpm-lock.yaml'
-      - 'pnpm-workspace.yaml'
-      - 'patches/**'
+      - 'bun.lock'
       - '.dockerignore'
       - 'docker-compose.dev.*.yml'
       - 'docker-compose.bundle.*.yml'
@@ -29,9 +27,7 @@ on:
       - 'playwright.config.ts'
       - 'package.json'
       - '.nvmrc'
-      - 'pnpm-lock.yaml'
-      - 'pnpm-workspace.yaml'
-      - 'patches/**'
+      - 'bun.lock'
       - '.dockerignore'
       - 'docker-compose.dev.*.yml'
       - 'docker-compose.bundle.*.yml'
@@ -103,10 +99,13 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version-file: .nvmrc
+    - uses: oven-sh/setup-bun@v2
+      with:
+        bun-version-file: package.json
     - name: Install dependencies
-      run: npm install -g pnpm && pnpm install
+      run: bun install --frozen-lockfile
     - name: Install Playwright Browsers
-      run: pnpm exec playwright install --with-deps chromium
+      run: bunx playwright install --with-deps chromium
     - name: Download images
       uses: actions/download-artifact@v4
       with:
@@ -191,7 +190,7 @@ jobs:
         sleep 5
 
     - name: Run Playwright tests
-      run: pnpm exec playwright test
+      run: bunx playwright test
 
     - name: Stop services
       if: always()

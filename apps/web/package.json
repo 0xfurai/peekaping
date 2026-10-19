@@ -43,7 +43,6 @@
     "i18next-browser-languagedetector": "^8.2.0",
     "lucide-react": "0.509.0",
     "next-themes": "0.4.6",
-    "patch-package": "8.0.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-hook-form": "7.56.3",
@@ -59,8 +58,8 @@
     "zustand": "5.0.4"
   },
   "devDependencies": {
-    "@langchain/ollama": "^0.2.4",
     "@eslint/js": "9.25.0",
+    "@langchain/ollama": "^0.2.4",
     "@types/node": "22.15.17",
     "@types/react": "19.1.2",
     "@types/react-dom": "19.1.2",

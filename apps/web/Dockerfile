@@ -2,26 +2,23 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Install pnpm globally
-RUN npm install -g pnpm
+# Install Bun, at the version pinned in package.json
+COPY --from=oven/bun:1.4.3-alpine /usr/local/bin/bun /usr/local/bin/bun
 
 # Copy workspace configuration and lock file from monorepo root
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-
-# Copy patches directory if it exists
-COPY patches ./patches/
+COPY package.json bun.lock ./
 
 # Copy package.json files from all apps for dependency resolution
 COPY apps/web/package.json ./apps/web/
 
 # Install dependencies from monorepo root
-RUN pnpm install --frozen-lockfile --filter web
+RUN bun install --frozen-lockfile --filter web
 
 # Copy web app source code
 COPY apps/web ./apps/web/
 
 # Build the web app
-RUN pnpm --filter web run build
+RUN bun run --filter web build
 
 # Stage 2: Serve with Nginx
 FROM nginx:alpine
