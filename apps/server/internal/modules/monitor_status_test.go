@@ -11,6 +11,7 @@ import (
 
 	"peekaping/cmd/bun/migrations"
 	"peekaping/internal/config"
+	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
 
@@ -32,19 +33,28 @@ import (
 // MongoDB when their test variables are set.
 func onEveryMonitorBackend(t *testing.T, exercise func(t *testing.T, repo monitor.MonitorRepository)) {
 	t.Helper()
-	sqlRepo := func(t *testing.T, db *bun.DB) monitor.MonitorRepository {
+	onEveryMonitorAndHeartbeatBackend(t, func(t *testing.T, repo monitor.MonitorRepository, _ heartbeat.Repository) {
+		exercise(t, repo)
+	})
+}
+
+// onEveryMonitorAndHeartbeatBackend is onEveryMonitorBackend with the heartbeat repository of the same database.
+func onEveryMonitorAndHeartbeatBackend(t *testing.T, exercise func(t *testing.T, repo monitor.MonitorRepository, heartbeats heartbeat.Repository)) {
+	t.Helper()
+	sqlRepos := func(t *testing.T, db *bun.DB) (monitor.MonitorRepository, heartbeat.Repository) {
 		t.Cleanup(func() { require.NoError(t, db.Close()) })
 		migrator := migrate.NewMigrator(db, migrations.Migrations)
 		require.NoError(t, migrator.Init(context.Background()))
 		_, err := migrator.Migrate(context.Background())
 		require.NoError(t, err)
-		return monitor.NewSQLRepository(db)
+		return monitor.NewSQLRepository(db), heartbeat.NewSQLRepository(db)
 	}
 
 	t.Run("SQLite", func(t *testing.T) {
 		sqlDB, err := sql.Open(sqliteshim.ShimName, filepath.Join(t.TempDir(), "monitor-status.db"))
 		require.NoError(t, err)
-		exercise(t, sqlRepo(t, bun.NewDB(sqlDB, sqlitedialect.New())))
+		monitors, heartbeats := sqlRepos(t, bun.NewDB(sqlDB, sqlitedialect.New()))
+		exercise(t, monitors, heartbeats)
 	})
 	t.Run("Postgres", func(t *testing.T) {
 		dsn := os.Getenv("PEE_TEST_POSTGRES_DSN")
@@ -61,7 +71,8 @@ func onEveryMonitorBackend(t *testing.T, exercise func(t *testing.T, repo monito
 			require.NoError(t, admin.Close())
 		})
 		connector := pgdriver.NewConnector(pgdriver.WithDSN(dsn), pgdriver.WithConnParams(map[string]any{"search_path": schema}))
-		exercise(t, sqlRepo(t, bun.NewDB(sql.OpenDB(connector), pgdialect.New())))
+		monitors, heartbeats := sqlRepos(t, bun.NewDB(sql.OpenDB(connector), pgdialect.New()))
+		exercise(t, monitors, heartbeats)
 	})
 	t.Run("Mongo", func(t *testing.T) {
 		uri := os.Getenv("PEE_TEST_MONGO_URI")
@@ -78,7 +89,7 @@ func onEveryMonitorBackend(t *testing.T, exercise func(t *testing.T, repo monito
 			require.NoError(t, client.Database(cfg.DBName).Drop(context.Background()))
 			require.NoError(t, client.Disconnect(context.Background()))
 		})
-		exercise(t, monitor.NewMongoRepository(client, cfg))
+		exercise(t, monitor.NewMongoRepository(client, cfg), heartbeat.NewMongoRepository(client, cfg))
 	})
 }
 

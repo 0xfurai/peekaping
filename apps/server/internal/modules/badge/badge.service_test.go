@@ -128,6 +128,11 @@ func (m *MockMonitorService) ResetMonitorData(ctx context.Context, id string) er
 	return args.Error(0)
 }
 
+func (m *MockMonitorService) RepairStoredStatuses(ctx context.Context) (int, error) {
+	args := m.Called(ctx)
+	return args.Int(0), args.Error(1)
+}
+
 func (m *MockMonitorService) FindActivePaginated(ctx context.Context, page int, limit int) ([]*shared.Monitor, error) {
 	args := m.Called(ctx, page, limit)
 	return args.Get(0).([]*shared.Monitor), args.Error(1)
