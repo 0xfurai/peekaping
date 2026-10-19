@@ -362,7 +362,7 @@ func (s *ServiceImpl) StatPointsSummary(statsList []*Stat) *Stats {
 	}
 }
 
-// summaryWindows lists the longest window served by each finite-resolution period.
+// summaryWindows lists the longest window served by minute and hour stats.
 // Retention must cover the whole window; day stats serve longer windows indefinitely.
 var summaryWindows = []struct {
 	Period StatPeriod
