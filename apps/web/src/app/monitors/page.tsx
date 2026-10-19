@@ -13,7 +13,7 @@ import {
   type TagModel,
 } from "@/api";
 import { useWebSocket, WebSocketStatus } from "@/context/websocket-context";
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useSearchParams } from "@/hooks/useSearchParams";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
@@ -143,12 +143,9 @@ const MonitorsPage = () => {
   const monitors = allMonitors;
 
   const { socket, status: socketStatus } = useWebSocket();
-  const subscribedRef = useRef(false);
 
   useEffect(() => {
     if (!socket || socketStatus !== WebSocketStatus.CONNECTED) return;
-    if (subscribedRef.current) return;
-    subscribedRef.current = true;
 
     const roomName = "monitor:all";
 
@@ -181,7 +178,7 @@ const MonitorsPage = () => {
       socket.off(`${roomName}:heartbeat`, handleHeartbeat);
       console.log("Unsubscribed from heartbeat", `${roomName}:heartbeat`);
 
-      if (socketStatus === WebSocketStatus.CONNECTED) {
+      if (socket.connected) {
         socket.emit("leave_room", roomName);
       }
     };
