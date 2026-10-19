@@ -62,6 +62,10 @@ type latestHeartbeat struct {
 
 // Collector is a prometheus.Collector over the latest Heartbeat of each active Monitor.
 // A series exists exactly while its Monitor has one in memory.
+//
+// Events race a sync pass, and the event bus handles events in separate goroutines. A pause, rename
+// or delete that lands while a pass runs, or two MonitorUpdated events handled out of order, can
+// leave a Monitor's old series or name until the next pass, which repairs it.
 type Collector struct {
 	monitorService   monitor.Service
 	heartbeatService heartbeat.Service
