@@ -24,9 +24,9 @@ COMPOSE_POSTGRES = docker-compose.postgres.yml
 COMPOSE_MONGO = docker-compose.mongo.yml
 COMPOSE_SQLITE = docker-compose.sqlite.yml
 
-# Default configurations
-DEFAULT_DEV_DB = mongo
-DEFAULT_PROD_DB = mongo
+# Default configurations (MongoDB storage is deprecated: docs/adr/0001-deprecate-mongodb-storage.md)
+DEFAULT_DEV_DB = sqlite
+DEFAULT_PROD_DB = sqlite
 
 # Default target
 .DEFAULT_GOAL := help
