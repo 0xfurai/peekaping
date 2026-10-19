@@ -35,21 +35,21 @@ type CreateParams struct {
 type CreateInput = httpx.Input[*CreateUpdateDto, CreateParams]
 
 type FindByIDParams struct {
-	Id string `path:"id" doc:"Tag ID" required:"true"`
+	Id string `path:"id" doc:"{{.ModuleName | pascal}} ID" required:"true"`
 }
 type FindByIDInput = httpx.Input[httpx.NoBody, FindByIDParams]
 
 type UpdateFullParams struct {
-	Id string `path:"id" doc:"Tag ID" required:"true"`
+	Id string `path:"id" doc:"{{.ModuleName | pascal}} ID" required:"true"`
 }
 type UpdateFullInput = httpx.Input[CreateUpdateDto, UpdateFullParams]
 
 type UpdatePartialParams struct {
-	Id string `path:"id" doc:"Tag ID" required:"true"`
+	Id string `path:"id" doc:"{{.ModuleName | pascal}} ID" required:"true"`
 }
 type UpdatePartialInput = httpx.Input[PartialUpdateDto, UpdatePartialParams]
 
 type DeleteParams struct {
-	Id string `path:"id" doc:"Tag ID" required:"true"`
+	Id string `path:"id" doc:"{{.ModuleName | pascal}} ID" required:"true"`
 }
 type DeleteInput = httpx.Input[httpx.NoBody, DeleteParams]

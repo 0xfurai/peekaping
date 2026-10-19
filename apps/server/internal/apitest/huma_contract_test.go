@@ -14,6 +14,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/uptrace/bun"
 )
 
 // These cases pin behavior that automatic binding and validation can change.
@@ -295,4 +296,26 @@ func TestOpenAPI_RequiredValuesMatchValidation(t *testing.T) {
 			check(false)
 		})
 	}
+}
+
+func TestOpenAPI_StatPointsDatabaseErrorMatchesSchema(t *testing.T) {
+	a := newAppWithAdmin(t)
+	id := a.createMonitor(t, "Database failure", "database-failure")
+	doc, err := jsonschema.UnmarshalJSON(a.request(t, "GET", "/openapi.json", nil).Body)
+	require.NoError(t, err)
+	// Make the record lookup fail while leaving authentication available.
+	require.NoError(t, a.container.Invoke(func(db *bun.DB) error {
+		_, err := db.Exec("DROP TABLE monitors")
+		return err
+	}))
+	w := a.request(t, "GET", "/api/v1/monitors/"+id+"/stats/points?since=2026-01-01T00:00:00Z&until=2026-01-01T01:00:00Z", nil, a.asAdmin)
+	require.Equal(t, 500, w.Code, w.Body.String())
+	compiler := jsonschema.NewCompiler()
+	compiler.DefaultDraft(jsonschema.Draft2020)
+	require.NoError(t, compiler.AddResource("https://peekaping.test/openapi.json", doc))
+	schema, err := compiler.Compile("https://peekaping.test/openapi.json#/paths/~1api~1v1~1monitors~1{id}~1stats~1points/get/responses/500/content/application~1json/schema")
+	require.NoError(t, err)
+	value, err := jsonschema.UnmarshalJSON(w.Body)
+	require.NoError(t, err)
+	assert.NoError(t, schema.Validate(value))
 }

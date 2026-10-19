@@ -4501,6 +4501,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
       security:
         - JwtAuth: []
         - ApiKeyAuth: []

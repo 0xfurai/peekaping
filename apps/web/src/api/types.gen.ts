@@ -2772,6 +2772,10 @@ export type GetMonitorsByIdStatsPointsErrors = {
    * Not Found
    */
   404: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
 };
 
 export type GetMonitorsByIdStatsPointsError =
