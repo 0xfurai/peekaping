@@ -5,11 +5,7 @@ import { useEffect } from "react";
 export const useCheckCustomDomain = (domain: string) => {
   const queryClient = useQueryClient();
 
-  const {
-    data: customDomain,
-    isLoading: isCustomDomainLoading,
-    isFetched,
-  } = useQuery({
+  const { data: customDomain, isFetched } = useQuery({
     ...getStatusPagesDomainByDomainOptions({
       path: {
         domain,
@@ -33,7 +29,6 @@ export const useCheckCustomDomain = (domain: string) => {
 
   return {
     customDomain,
-    isCustomDomainLoading,
     isFetched,
   };
 };
