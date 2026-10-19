@@ -571,7 +571,38 @@
         "redis": "ตัวตรวจสอบฐานข้อมูล Redis",
         "snmp": "ตัวตรวจสอบ SNMP",
         "sqlserver": "ตัวตรวจสอบ Microsoft SQL Server",
-        "tcp": "ตัวตรวจสอบพอร์ต TCP"
+        "tcp": "ตัวตรวจสอบพอร์ต TCP",
+        "smtp": "ตัวตรวจสอบเซิร์ฟเวอร์อีเมล SMTP"
+      },
+      "smtp": {
+        "authentication_title": "การยืนยันตัวตน (ไม่บังคับ)",
+        "check_cert_expiry": "ตรวจสอบการหมดอายุใบรับรอง",
+        "check_cert_expiry_description": "ตรวจสอบการหมดอายุใบรับรอง SSL/TLS และส่งการแจ้งเตือน",
+        "from_email": "อีเมลผู้ส่ง",
+        "from_email_description": "ไม่บังคับ: ทดสอบคำสั่ง MAIL FROM ด้วยที่อยู่อีเมลนี้",
+        "host": "โฮสต์เซิร์ฟเวอร์ SMTP",
+        "ignore_tls_errors": "ละเว้นข้อผิดพลาด TLS",
+        "ignore_tls_errors_description": "ข้ามการตรวจสอบใบรับรอง TLS (มีประโยชน์สำหรับใบรับรองที่ลงนามเอง)",
+        "password": "รหัสผ่าน",
+        "port": "พอร์ต",
+        "port_description": "พอร์ตทั่วไป: 25 (SMTP), 465 (SMTPS), 587 (Submission พร้อม STARTTLS)",
+        "title": "การตั้งค่าเซิร์ฟเวอร์ SMTP",
+        "use_tls": "ใช้ STARTTLS",
+        "use_tls_description": "เปิดใช้งาน STARTTLS สำหรับการสื่อสารที่ปลอดภัย",
+        "username": "ชื่อผู้ใช้",
+        "username_description": "ไม่บังคับ: ชื่อผู้ใช้สำหรับการยืนยันตัวตน SMTP",
+        "expect_secure_relay": "พิจารณา Open Relay เป็นความล้มเหลว",
+        "expect_secure_relay_description": "หากเปิดใช้งาน มอนิเตอร์จะถูกทำเครื่องหมายเป็น DOWN เมื่อตรวจพบ Open Relay (ความเสี่ยงด้านความปลอดภัย) หากปิดใช้งาน มอนิเตอร์จะคาดหวังว่าเซิร์ฟเวอร์เป็น Open Relay และจะถูกทำเครื่องหมายเป็น DOWN เมื่อเซิร์ฟเวอร์ปฏิเสธการส่งต่อ",
+        "open_relay_title": "ทดสอบ Open Relay",
+        "read_timeout": "หมดเวลาอ่าน (วินาที)",
+        "read_timeout_description": "หมดเวลาในการอ่านการตอบสนองจากเซิร์ฟเวอร์ SMTP. ทิ้งว่างเพื่อใช้ค่า Timeout ของโปรแกรมมอนิเตอร์. ช่วยป้องกันการค้างเมื่อเซิร์ฟเวอร์ไม่ตอบสนอง.",
+        "rcpt_to_email": "RCPT TO อีเมล",
+        "rcpt_to_email_description": "ที่อยู่อีเมลที่ใช้สำหรับคำสั่ง RCPT TO เมื่อทดสอบการเปิดริล กรุณาปล่อยว่างไว้เพื่อใช้ค่าเริ่มต้น (test@external-domain.com)",
+        "test_open_relay": "ทดสอบ Open Relay",
+        "test_open_relay_description": "ทดสอบว่าเซิร์ฟเวอร์ SMTP อนุญาตให้ส่งอีเมลไปยังโดเมนภายนอกโดยไม่ต้องยืนยันตัวตน",
+        "use_direct_tls": "ใช้ TLS ตรง (SMTPS)",
+        "use_direct_tls_description": "ใช้การเชื่อมต่อ TLS แบบตรง (SMTPS) แทน STARTTLS. จำเป็นสำหรับพอร์ต 465. ถ้าไม่เลือก จะใช้ STARTTLS (สำหรับพอร์ต 587/25).",
+        "port_465_warning": "พอร์ต 465 มักต้องการ TLS ตรง (SMTPS) กรุณาเปิดใช้งาน 'ใช้ TLS ตรง (SMTPS)' เพื่อการเชื่อมต่อที่ปลอดภัย."
       }
     },
     "page": {
@@ -628,8 +659,12 @@
         "down": "หยุดทำงาน",
         "maintenance": "บำรุงรักษา",
         "paused": "หยุดชั่วคราว",
+        "pending": "รอดำเนินการ",
         "up": "ออนไลน์"
       }
+    },
+    "stale": {
+      "not_checked_since": "ไม่ได้ตรวจสอบตั้งแต่ {{time}}"
     }
   },
   "navigation": {
@@ -962,7 +997,10 @@
         "message_format_label": "รูปแบบข้อความ",
         "username_description": "ชื่อผู้ใช้ที่จะแสดงเป็นผู้ส่งข้อความ หากไม่ระบุ จะใช้ชื่อบอทเริ่มต้น",
         "webhook_url_description": "URL ของ webhook จากการผสานรวม Slack ของคุณ คุณสามารถค้นหาได้ในอินสแตนซ์ Slack ของคุณที่เมนู การผสานรวม > Webhooks.",
-        "webhook_url_label": "URL ของ Webhook"
+        "webhook_url_label": "URL ของ Webhook",
+        "bot_token_label": "โทเค็นบอท",
+        "bot_token_description": "โทเค็นบอท Slack ของคุณสำหรับการตรวจสอบสิทธิ์ คุณสามารถสร้างโทเค็นบอทในการตั้งค่าแอป Slack ของคุณ",
+        "bot_token_note": "หมายเหตุ: เมื่อใช้โทเค็นบอท ชื่อช่องจะต้องระบุ"
       },
       "smtp": {
         "custom_body_label": "เนื้อหาที่กำหนดเอง",
@@ -1016,6 +1054,15 @@
         "use_template_description": "เปิดใช้งานเพื่อใช้เทมเพลตข้อความและรูปแบบที่กำหนดเอง",
         "use_template_label": "ใช้เทมเพลตข้อความ"
       },
+      "teams": {
+        "more_info_about_webhooks": "ข้อมูลเพิ่มเติมเกี่ยวกับ Webhook ของ Workflows",
+        "server_url_description": "URL พื้นฐานของอินสแตนซ์ Peekaping ของคุณ ใช้สำหรับปุ่ม \"View in Peekaping\" หากเว้นว่างไว้ จะใช้ CLIENT_URL ของเซิร์ฟเวอร์",
+        "server_url_label": "URL ของเซิร์ฟเวอร์",
+        "setup_webhook_description_1": "ใน Teams ให้เปิด Workflows แล้วเลือกเทมเพลต \"Send webhook alerts to a channel\"",
+        "setup_webhook_description_2": "เลือกทีมและช่อง กดบันทึก จากนั้นคัดลอก URL ของ Webhook จากรายละเอียดเวิร์กโฟลว์",
+        "setup_webhook_title": "สร้าง Webhook ด้วย Teams Workflows",
+        "webhook_url_label": "URL ของ Webhook ใน Workflows"
+      },
       "webhook": {
         "additional_headers_description": "เพิ่มหัวข้อ HTTP ที่กำหนดเองในคำขอ webhook.",
         "additional_headers_label": "หัวข้อเพิ่มเติม",
@@ -1027,7 +1074,11 @@
         "request_body_description_form_data": "เนื้อหาจะถูกส่งเป็น multipart/form-data คุณสามารถถอดรหัสได้โดยใช้ <strong>json_decode($_POST['data'])</strong> ใน PHP.",
         "request_body_description_json": "เนื้อหาจะถูกส่งเป็น JSON พร้อมหัวข้อ \"application/json\".",
         "request_body_label": "ร่างคำขอ",
-        "request_body_placeholder": "เลือกประเภทเนื้อหา"
+        "request_body_placeholder": "เลือกประเภทเนื้อหา",
+        "signing_secret_description": "ไม่บังคับ เมื่อตั้งค่าแล้ว ทุกคำขอจะถูกลงนามด้วย HMAC-SHA256: ส่วนหัว X-Webhook-Signature มี sha256= ตามด้วย HMAC แบบเลขฐานสิบหกของ \"{timestamp}.{body}\" โดย {timestamp} คือส่วนหัว X-Webhook-Timestamp ในหน่วยวินาที Unix สำหรับ multipart/form-data {body} คือฟิลด์ data",
+        "signing_secret_docs_link": "วิธีตรวจสอบลายเซ็น",
+        "signing_secret_label": "ความลับสำหรับลงนาม",
+        "signing_secret_placeholder": "เว้นว่างไว้เพื่อส่งคำขอโดยไม่ลงนาม"
       }
     },
     "important": "การแจ้งเตือนสำคัญ",

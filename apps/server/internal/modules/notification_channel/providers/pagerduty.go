@@ -27,12 +27,13 @@ type PagerDutyConfig struct {
 // PagerDutySender handles sending notifications to PagerDuty
 type PagerDutySender struct {
 	logger *zap.SugaredLogger
+	client *http.Client
 	config *config.Config
 }
 
 // NewPagerDutySender creates a new PagerDutySender
-func NewPagerDutySender(logger *zap.SugaredLogger, config *config.Config) *PagerDutySender {
-	return &PagerDutySender{logger: logger, config: config}
+func NewPagerDutySender(logger *zap.SugaredLogger, config *config.Config, client *http.Client) *PagerDutySender {
+	return &PagerDutySender{logger: logger, config: config, client: client}
 }
 
 func (p *PagerDutySender) Unmarshal(configJSON string) (any, error) {
@@ -47,46 +48,14 @@ func (p *PagerDutySender) Validate(configJSON string) error {
 	return GenericValidator(cfg.(*PagerDutyConfig))
 }
 
-// getMonitorURL extracts the URL from monitor for PagerDuty source field
+// getMonitorURL returns what the monitor checks for the PagerDuty source field, or its name
 func (p *PagerDutySender) getMonitorURL(monitor *monitor.Model) string {
 	if monitor == nil {
 		return ""
 	}
-
-	// Try to extract URL from monitor config JSON
-	if monitor.Config != "" {
-		var config map[string]any
-		if err := json.Unmarshal([]byte(monitor.Config), &config); err == nil {
-			// Handle different monitor types
-			switch monitor.Type {
-			case "http":
-				// HTTP monitors have a 'url' field
-				if url, ok := config["url"].(string); ok && url != "" {
-					return url
-				}
-			case "tcp":
-				// TCP monitors have 'host' and 'port' fields
-				if hostname, ok := config["host"].(string); ok && hostname != "" {
-					if port, ok := config["port"].(float64); ok && port > 0 {
-						return fmt.Sprintf("%s:%.0f", hostname, port)
-					}
-					return hostname
-				}
-			case "ping":
-				// Ping monitors have a 'host' field
-				if hostname, ok := config["host"].(string); ok && hostname != "" {
-					return hostname
-				}
-			case "dns":
-				// DNS monitors have a 'host' field
-				if hostname, ok := config["host"].(string); ok && hostname != "" {
-					return hostname
-				}
-			}
-		}
+	if address := monitorAddress(monitor); address != "" {
+		return address
 	}
-
-	// Fallback to monitor name if no URL/hostname found
 	return monitor.Name
 }
 
@@ -212,8 +181,7 @@ func (p *PagerDutySender) Send(
 	p.logger.Debugf("Sending PagerDuty request: %s", req.URL.String())
 
 	// Send request
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := p.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to send PagerDuty notification: %w", err)
 	}

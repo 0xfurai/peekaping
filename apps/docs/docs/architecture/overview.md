@@ -19,7 +19,7 @@ The main HTTP API server that handles all client requests, authentication, and W
 - RESTful API endpoints
 - User authentication and authorization
 - WebSocket real-time updates
-- Swagger API documentation
+- OpenAPI documentation
 - Brute force protection
 
 ### 2. **Producer**
@@ -114,8 +114,8 @@ Peekaping supports three database backends:
 
 ## Technology Stack
 
-- **Language**: Go 1.24+
-- **Web Framework**: Gin
+- **Language**: Go 1.26+
+- **HTTP Server and Router**: Go `net/http` and `http.ServeMux`
 - **Database**: Bun ORM (SQL) / MongoDB Driver
 - **Queue**: Asynq (Redis-based)
 - **Event Bus**: Redis Pub/Sub

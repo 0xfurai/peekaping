@@ -7,10 +7,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/version"
+	"strings"
 	"time"
 
 	"go.uber.org/zap"
@@ -26,12 +28,10 @@ type GrafanaOncallSender struct {
 }
 
 // NewGrafanaOncallSender creates a GrafanaOncallSender
-func NewGrafanaOncallSender(logger *zap.SugaredLogger) *GrafanaOncallSender {
+func NewGrafanaOncallSender(logger *zap.SugaredLogger, client *http.Client) *GrafanaOncallSender {
 	return &GrafanaOncallSender{
 		logger: logger,
-		client: &http.Client{
-			Timeout: 30 * time.Second,
-		},
+		client: client,
 	}
 }
 
@@ -99,6 +99,19 @@ func (g *GrafanaOncallSender) Send(
 				"state":   "alerting",
 			}
 		}
+
+		payload["status"] = humanReadableStatus(int(heartbeat.Status))
+		payload["ping_ms"] = heartbeat.Ping
+		payload["retries"] = heartbeat.Retries
+		// A test notification's heartbeat has no time
+		if !heartbeat.Time.IsZero() {
+			payload["time"] = heartbeat.Time.Format(time.RFC3339)
+		}
+	}
+
+	// Certificate expiry notifications come with the monitor but no heartbeat
+	if monitor != nil {
+		addGrafanaOncallMonitorFields(payload, monitor)
 	}
 
 	jsonPayload, err := json.Marshal(payload)
@@ -127,4 +140,79 @@ func (g *GrafanaOncallSender) Send(
 
 	g.logger.Infof("Grafana OnCall notification sent successfully")
 	return nil
+}
+
+// addGrafanaOncallMonitorFields adds the monitor's ID, type, tags and target to the payload,
+// for OnCall to route and group alerts by.
+func addGrafanaOncallMonitorFields(payload map[string]interface{}, m *monitor.Model) {
+	// A test notification's monitor has no ID
+	if m.ID != "" {
+		payload["monitor_id"] = m.ID
+	}
+	payload["monitor_type"] = m.Type
+
+	// Send [] rather than null for an untagged monitor, so OnCall templates can treat it as a list
+	tags := m.Tags
+	if tags == nil {
+		tags = []string{}
+	}
+	payload["tags"] = tags
+
+	var cfg struct {
+		URL     string `json:"url"`
+		Host    string `json:"host"`
+		GrpcURL string `json:"grpcUrl"`
+	}
+	if m.Config == "" || json.Unmarshal([]byte(m.Config), &cfg) != nil {
+		return
+	}
+
+	// Other monitor types are left out: their config, such as a database DSN, can hold credentials
+	switch m.Type {
+	case "http", "http-keyword", "http-json-query":
+		if u := urlWithoutSecrets(cfg.URL); u != "" {
+			payload["monitor_url"] = u
+		}
+	case "tcp", "ping", "dns":
+		if cfg.Host != "" {
+			payload["monitor_host"] = cfg.Host
+		}
+	case "grpc-keyword":
+		if target := grpcTargetWithoutSecrets(cfg.GrpcURL); target != "" {
+			payload["monitor_host"] = target
+		}
+	}
+}
+
+// urlWithoutSecrets returns rawURL without its userinfo, query and fragment, which can hold
+// credentials or API keys. It returns "" if rawURL isn't an absolute URL with a host.
+func urlWithoutSecrets(rawURL string) string {
+	u, err := url.Parse(rawURL)
+	if err != nil || u.Host == "" {
+		return ""
+	}
+	return stripURLSecrets(u)
+}
+
+// grpcTargetWithoutSecrets returns a gRPC target without the userinfo, query and fragment of
+// a URI-form target such as dns://user:pass@1.1.1.1/example.com:443. A plain host:port target
+// is returned as is. It returns "" if a URI-form target doesn't parse.
+func grpcTargetWithoutSecrets(target string) string {
+	if !strings.Contains(target, "://") {
+		return target
+	}
+	u, err := url.Parse(target)
+	if err != nil {
+		return ""
+	}
+	return stripURLSecrets(u)
+}
+
+func stripURLSecrets(u *url.URL) string {
+	u.User = nil
+	u.RawQuery = ""
+	u.ForceQuery = false
+	u.Fragment = ""
+	u.RawFragment = ""
+	return u.String()
 }

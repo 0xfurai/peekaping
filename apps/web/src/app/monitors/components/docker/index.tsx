@@ -39,6 +39,13 @@ import {
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 import type { MonitorCreateUpdateDto, MonitorMonitorResponseDto } from "@/api";
+import {
+  formatOnServer,
+  getString,
+  textTarget,
+  type MonitorConfig,
+  type MonitorTarget,
+} from "../monitor-target";
 import { useEffect } from "react";
 import { useWatch } from "react-hook-form";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
@@ -92,6 +99,13 @@ export const dockerDefaultValues: DockerForm = {
   ...intervalsDefaultValues,
   ...notificationsDefaultValues,
   ...tagsDefaultValues,
+};
+
+// Names the daemon too, so the same container on two daemons can be told apart
+export const formatTarget = (config: MonitorConfig): MonitorTarget | null => {
+  const container = getString(config, "container_id");
+  if (!container) return null;
+  return textTarget(formatOnServer(container, getString(config, "docker_daemon")));
 };
 
 export const deserialize = (data: MonitorMonitorResponseDto): DockerForm => {

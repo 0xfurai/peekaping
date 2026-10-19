@@ -39,7 +39,7 @@ func NewSQLRepository(db *bun.DB) Repository {
 func (r *SQLRepositoryImpl) CheckIfSent(ctx context.Context, notificationType string, monitorID string, days int) (bool, error) {
 	count, err := r.db.NewSelect().
 		Model((*sqlModel)(nil)).
-		Where("type = ? AND monitor_id = ? AND days >= ?", notificationType, monitorID, days).
+		Where("type = ? AND monitor_id = ? AND days <= ?", notificationType, monitorID, days).
 		Count(ctx)
 
 	if err != nil {
@@ -49,12 +49,12 @@ func (r *SQLRepositoryImpl) CheckIfSent(ctx context.Context, notificationType st
 	return count > 0, nil
 }
 
-func (r *SQLRepositoryImpl) RecordSent(ctx context.Context, dto *CreateDto) error {
+func (r *SQLRepositoryImpl) RecordSent(ctx context.Context, model *Model) error {
 	sm := &sqlModel{
 		ID:        uuid.New().String(),
-		Type:      dto.Type,
-		MonitorID: dto.MonitorID,
-		Days:      dto.Days,
+		Type:      model.Type,
+		MonitorID: model.MonitorID,
+		Days:      model.Days,
 		CreatedAt: time.Now(),
 	}
 

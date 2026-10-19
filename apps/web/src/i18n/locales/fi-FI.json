@@ -571,7 +571,38 @@
         "redis": "Redis-tietokannan seuranta",
         "snmp": "SNMP-valvonta",
         "sqlserver": "Microsoft SQL Server -seurantatyökalu",
-        "tcp": "TCP-portin valvonta"
+        "tcp": "TCP-portin valvonta",
+        "smtp": "SMTP-postipalvelinmonitori"
+      },
+      "smtp": {
+        "authentication_title": "Todennus (Valinnainen)",
+        "check_cert_expiry": "Tarkista varmenteen vanheneminen",
+        "check_cert_expiry_description": "Seuraa SSL/TLS-varmenteen vanhenemista ja lähetä ilmoituksia",
+        "from_email": "Lähettäjän sähköposti",
+        "from_email_description": "Valinnainen: Testaa MAIL FROM -komentoa tällä sähköpostiosoitteella",
+        "host": "SMTP-palvelimen isäntänimi",
+        "ignore_tls_errors": "Ohita TLS-virheet",
+        "ignore_tls_errors_description": "Ohita TLS-varmenteen vahvistus (hyödyllinen itse-allekirjoitetuille varmenteille)",
+        "password": "Salasana",
+        "port": "Portti",
+        "port_description": "Yleiset portit: 25 (SMTP), 465 (SMTPS), 587 (Submission STARTTLSillä)",
+        "title": "SMTP-palvelimen asetukset",
+        "use_tls": "Käytä STARTTLSää",
+        "use_tls_description": "Ota STARTTLS käyttöön turvalliseen viestintään",
+        "username": "Käyttäjänimi",
+        "username_description": "Valinnainen: SMTP-todennuksen käyttäjänimi",
+        "expect_secure_relay": "Käsittele avoin välitysposti epäonnistumisena",
+        "expect_secure_relay_description": "Jos käytössä, valvonta merkitään tilaan DOWN, kun avoin välityspalvelin havaitaan (tietoturvariski). Jos pois käytöstä, valvonta odottaa avointa välityspalvelinta ja merkitään tilaan DOWN, kun palvelin hylkää välityksen.",
+        "open_relay_title": "Avoimen välityspalvelimen testaus",
+        "read_timeout": "Lukemisen aikakatkaisu (sekunteja)",
+        "read_timeout_description": "Aikakatkaisu SMTP‑palvelimen vastausten lukemiselle. Jätä tyhjäksi, jolloin käytetään valvonnan aikakatkaisua. Auttaa estämään pysähtymisen vastaamattomissa palvelimissa.",
+        "rcpt_to_email": "RCPT TO Sähköposti",
+        "rcpt_to_email_description": "Sähköpostiosoite, jota käytetään RCPT TO -komennossa avoimen välityksen testaamisessa. Jätä tyhjäksi, jolloin käytetään oletusta (test@external-domain.com).",
+        "test_open_relay": "Testaa avoin välityspalvelin",
+        "test_open_relay_description": "Testaa, sallitaanko SMTP-palvelin välittää sähköposteja ulkoisiin domeineihin ilman tunnistautumista.",
+        "use_direct_tls": "Käytä suoraa TLS:ää (SMTPS)",
+        "use_direct_tls_description": "Käytä suoraa TLS-yhteyttä (SMTPS) STARTTLS:n sijaan. Pakollinen portille 465. Jos valintaruutu on pois päältä, käytetään STARTTLS:ää (portit 587/25).",
+        "port_465_warning": "Portti 465 vaatii yleensä suoran TLS:n (SMTPS). Ota käyttöön 'Käytä suoraa TLS:ää (SMTPS)' turvallisten yhteyksien varmistamiseksi."
       }
     },
     "page": {
@@ -628,8 +659,12 @@
         "down": "Poissa",
         "maintenance": "Huolto",
         "paused": "Pysäytetty",
+        "pending": "Odottaa",
         "up": "Käynnissä"
       }
+    },
+    "stale": {
+      "not_checked_since": "Ei tarkistettu {{time}} jälkeen"
     }
   },
   "navigation": {
@@ -962,7 +997,10 @@
         "message_format_label": "Viestimuoto",
         "username_description": "Käyttäjänimi, joka näkyy viestin lähettäjänä. Jos se ei ole määritetty, käytetään oletusbotin nimeä.",
         "webhook_url_description": "Webhook‑URL Slack‑integraatiossasi. Löydät sen Slack‑tililtäsi kohdasta Integraatiot > Webhooks.",
-        "webhook_url_label": "Webhook-osoite"
+        "webhook_url_label": "Webhook-osoite",
+        "bot_token_label": "Bot-tunnus",
+        "bot_token_description": "Slack-botin tunnuksesi todennukseen. Voit luoda bot-tunnuksen Slack-sovelluksen asetuksista",
+        "bot_token_note": "Huom: Bot-tunnusta käytettäessä kanavan nimi on pakollinen."
       },
       "smtp": {
         "custom_body_label": "Mukautettu keho",
@@ -1016,6 +1054,15 @@
         "use_template_description": "Ota käyttöön mukautettu viestimalli ja muotoilu.",
         "use_template_label": "Käytä viestimallia"
       },
+      "teams": {
+        "more_info_about_webhooks": "Lisätietoja Workflows-webhookeista",
+        "server_url_description": "Peekaping-instanssisi perus-URL, jota käytetään \"View in Peekaping\" -painikkeessa. Jos kenttä on tyhjä, käytetään palvelimen CLIENT_URL-arvoa.",
+        "server_url_label": "Palvelimen URL",
+        "setup_webhook_description_1": "Avaa Teamsissa Workflows ja valitse malli \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Valitse tiimi ja kanava, valitse Tallenna ja kopioi sitten webhook-URL työnkulun tiedoista.",
+        "setup_webhook_title": "Luo webhook Teams Workflowsilla",
+        "webhook_url_label": "Workflows-webhook-URL"
+      },
       "webhook": {
         "additional_headers_description": "Lisää mukautetut HTTP-otsikot webhook-pyyntöön.",
         "additional_headers_label": "Lisäotsikot",
@@ -1027,7 +1074,11 @@
         "request_body_description_form_data": "Sisältö lähetetään multipart/form-data -muodossa. Voit purkaa sen käyttämällä <strong>json_decode($_POST['data'])</strong> PHP:ssä.",
         "request_body_description_json": "Sisältö lähetetään JSON-muodossa otsikolla \"application/json\".",
         "request_body_label": "Pyynnön sisältö",
-        "request_body_placeholder": "Valitse sisältötyyppi"
+        "request_body_placeholder": "Valitse sisältötyyppi",
+        "signing_secret_description": "Valinnainen. Kun se on asetettu, jokainen pyyntö allekirjoitetaan HMAC-SHA256:lla: X-Webhook-Signature-otsake sisältää sha256= ja heksadesimaalisen HMAC:n merkkijonosta \"{timestamp}.{body}\", jossa {timestamp} on X-Webhook-Timestamp-otsake Unix-sekunteina. multipart/form-data-muodossa {body} on data-kenttä.",
+        "signing_secret_docs_link": "Allekirjoituksen tarkistaminen",
+        "signing_secret_label": "Allekirjoitussalaisuus",
+        "signing_secret_placeholder": "Jätä tyhjäksi, jos haluat lähettää allekirjoittamattomia pyyntöjä"
       }
     },
     "important": "Tärkeät ilmoitukset",

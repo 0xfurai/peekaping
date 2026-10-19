@@ -8,7 +8,8 @@ import (
 )
 
 type Service interface {
-	// CheckIfNotificationSent checks if a notification was already sent for the given criteria
+	// CheckIfNotificationSent reports whether a notification was already sent
+	// for this threshold or a nearer one (days at most targetDays)
 	CheckIfNotificationSent(ctx context.Context, notificationType string, monitorID string, targetDays int) (bool, error)
 
 	// RecordNotificationSent records that a notification was sent
@@ -56,13 +57,13 @@ func (s *ServiceImpl) CheckIfNotificationSent(ctx context.Context, notificationT
 func (s *ServiceImpl) RecordNotificationSent(ctx context.Context, notificationType string, monitorID string, targetDays int) error {
 	s.logger.Infof("Recording notification sent for monitor %s, type %s, days %d", monitorID, notificationType, targetDays)
 
-	dto := &CreateDto{
+	model := &Model{
 		Type:      notificationType,
 		MonitorID: monitorID,
 		Days:      targetDays,
 	}
 
-	err := s.repository.RecordSent(ctx, dto)
+	err := s.repository.RecordSent(ctx, model)
 	if err != nil {
 		return fmt.Errorf("failed to record notification sent: %w", err)
 	}

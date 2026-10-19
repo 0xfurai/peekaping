@@ -571,7 +571,38 @@
         "redis": "Redis adatbázis monitor",
         "snmp": "SNMP-figyelő",
         "sqlserver": "Microsoft SQL Server figyelő",
-        "tcp": "TCP port figyelő"
+        "tcp": "TCP port figyelő",
+        "smtp": "SMTP levelezőszerver monitor"
+      },
+      "smtp": {
+        "authentication_title": "Hitelesítés (Opcionális)",
+        "check_cert_expiry": "Tanúsítvány lejárat ellenőrzése",
+        "check_cert_expiry_description": "SSL/TLS tanúsítvány lejáratának figyelése és értesítések küldése",
+        "from_email": "Feladó e-mail",
+        "from_email_description": "Opcionális: MAIL FROM parancs tesztelése ezzel az e-mail címmel",
+        "host": "SMTP szerver címe",
+        "ignore_tls_errors": "TLS hibák figyelmen kívül hagyása",
+        "ignore_tls_errors_description": "TLS tanúsítvány ellenőrzésének kihagyása (hasznos önaláírt tanúsítványokhoz)",
+        "password": "Jelszó",
+        "port": "Port",
+        "port_description": "Gyakori portok: 25 (SMTP), 465 (SMTPS), 587 (Submission STARTTLS-sel)",
+        "title": "SMTP szerver beállítások",
+        "use_tls": "STARTTLS használata",
+        "use_tls_description": "STARTTLS engedélyezése biztonságos kommunikációhoz",
+        "username": "Felhasználónév",
+        "username_description": "Opcionális: SMTP hitelesítési felhasználónév",
+        "expect_secure_relay": "Az Open Relay hibaként kezelése",
+        "expect_secure_relay_description": "Ha engedélyezett, a monitor DOWN állapotba kerül, ha nyílt relay-t észlel (biztonsági kockázat). Ha le van tiltva, a monitor nyílt relay-t vár, és DOWN állapotba kerül, ha a szerver elutasítja a továbbítást.",
+        "open_relay_title": "Nyitott relay tesztelés",
+        "read_timeout": "Olvasási időtúllépés (másodperc)",
+        "read_timeout_description": "SMTP szerver válaszainak olvasási időtúllépés. Hagyja üresen a monitor időtúllépésének használatához. Segít megelőzni a leállást nem reagáló szervereknél.",
+        "rcpt_to_email": "RCPT TO E-mail",
+        "rcpt_to_email_description": "E-mail cím a RCPT TO parancshoz, amikor nyílt relay-t tesztelünk. Hagyja üresen az alapértelmezett (test@external-domain.com) használatához.",
+        "test_open_relay": "Teszteld a nyílt átjárót",
+        "test_open_relay_description": "Tesztelje, hogy az SMTP‑kiszolgáló engedélyezi-e a levelek küldését külső tartományokba hitelesítés nélkül",
+        "use_direct_tls": "Használja a közvetlen TLS-t (SMTPS)",
+        "use_direct_tls_description": "Használjon közvetlen TLS kapcsolatot (SMTPS) a STARTTLS helyett. Kötelező a 465-ös porton. Ha nincs bejelölve, STARTTLS kerül használatba (587/25 portok esetén).",
+        "port_465_warning": "A 465-es port általában közvetlen TLS-t (SMTPS) igényel. Kérjük, engedélyezze a „Közvetlen TLS (SMTPS)” opciót a biztonságos kapcsolatokhoz."
       }
     },
     "page": {
@@ -628,8 +659,12 @@
         "down": "Leáll",
         "maintenance": "Karbantartás",
         "paused": "Szünetelve",
+        "pending": "Függőben",
         "up": "Elérhető"
       }
+    },
+    "stale": {
+      "not_checked_since": "Nincs ellenőrizve {{time}} óta"
     }
   },
   "navigation": {
@@ -962,7 +997,10 @@
         "message_format_label": "Üzenet formátuma",
         "username_description": "A felhasználónév, amely a küldőként jelenik meg az üzenetben. Ha nem ad meg, az alapértelmezett botnév lesz használva.",
         "webhook_url_description": "A webhook URL a Slack integrációdhoz. Ezt a Slack példányodban az Integrációk > Webhookok alatt találhatod.",
-        "webhook_url_label": "Webhook URL"
+        "webhook_url_label": "Webhook URL",
+        "bot_token_label": "Bot token",
+        "bot_token_description": "A Slack bot tokened a hitelesítéshez. Létrehozhatsz egy bot tokent a Slack alkalmazás beállításaiban",
+        "bot_token_note": "Megjegyzés: Bot token használatakor a csatornanév kötelező."
       },
       "smtp": {
         "custom_body_label": "Egyéni törzs",
@@ -1016,6 +1054,15 @@
         "use_template_description": "Lehetővé teszi egy egyéni üzenet sablon és formátum használatát.",
         "use_template_label": "Üzenetsablon használata"
       },
+      "teams": {
+        "more_info_about_webhooks": "További információ a Workflows webhookokról",
+        "server_url_description": "A Peekaping-példányod alap URL-je, amelyet a(z) \"View in Peekaping\" gomb használ. Ha üres, a szerver CLIENT_URL értéke lesz használva.",
+        "server_url_label": "Szerver URL",
+        "setup_webhook_description_1": "A Teamsben nyisd meg a Workflows alkalmazást, és válaszd a(z) \"Send webhook alerts to a channel\" sablont.",
+        "setup_webhook_description_2": "Válaszd ki a csapatot és a csatornát, kattints a Mentés gombra, majd másold ki a webhook URL-t a munkafolyamat részleteiből.",
+        "setup_webhook_title": "Webhook létrehozása a Teams Workflows segítségével",
+        "webhook_url_label": "Workflows Webhook URL"
+      },
       "webhook": {
         "additional_headers_description": "Adjon hozzá egyéni HTTP fejléceket a webhook kérésehez.",
         "additional_headers_label": "További fejlécek",
@@ -1027,7 +1074,11 @@
         "request_body_description_form_data": "A tartalom multipart/form-data formátumban lesz elküldve. PHP-ben dekódolhatod a <strong>json_decode($_POST['data'])</strong> használatával.",
         "request_body_description_json": "A tartalom JSON-ként kerül elküldésre az \"application/json\" fejléccel.",
         "request_body_label": "Kérelem törzs",
-        "request_body_placeholder": "Tartalomtípus kiválasztása"
+        "request_body_placeholder": "Tartalomtípus kiválasztása",
+        "signing_secret_description": "Opcionális. Ha meg van adva, minden kérés HMAC-SHA256-tal lesz aláírva: az X-Webhook-Signature fejléc a sha256= előtagot és a \"{timestamp}.{body}\" hexadecimális HMAC-értékét tartalmazza, ahol {timestamp} az X-Webhook-Timestamp fejléc Unix-másodpercben. multipart/form-data esetén a {body} a data mező.",
+        "signing_secret_docs_link": "Az aláírás ellenőrzése",
+        "signing_secret_label": "Aláírási titok",
+        "signing_secret_placeholder": "Hagyja üresen, ha aláíratlan kéréseket szeretne küldeni"
       }
     },
     "important": "Fontos értesítések",

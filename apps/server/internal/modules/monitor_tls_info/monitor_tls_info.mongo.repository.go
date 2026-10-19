@@ -71,11 +71,11 @@ func (r *MongoRepositoryImpl) GetByMonitorID(ctx context.Context, monitorID stri
 	return toDomainModelFromMongo(&mm), nil
 }
 
-func (r *MongoRepositoryImpl) Create(ctx context.Context, dto *CreateDto) (*Model, error) {
+func (r *MongoRepositoryImpl) Create(ctx context.Context, model *Model) (*Model, error) {
 	mm := &mongoModel{
 		ID:        primitive.NewObjectID(),
-		MonitorID: dto.MonitorID,
-		InfoJSON:  dto.InfoJSON,
+		MonitorID: model.MonitorID,
+		InfoJSON:  model.InfoJSON,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
@@ -88,11 +88,11 @@ func (r *MongoRepositoryImpl) Create(ctx context.Context, dto *CreateDto) (*Mode
 	return toDomainModelFromMongo(mm), nil
 }
 
-func (r *MongoRepositoryImpl) Update(ctx context.Context, monitorID string, dto *UpdateDto) (*Model, error) {
+func (r *MongoRepositoryImpl) Update(ctx context.Context, monitorID string, model *Model) (*Model, error) {
 	filter := bson.M{"monitor_id": monitorID}
 	update := bson.M{
 		"$set": bson.M{
-			"info_json":  dto.InfoJSON,
+			"info_json":  model.InfoJSON,
 			"updated_at": time.Now(),
 		},
 	}

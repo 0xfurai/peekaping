@@ -1,0 +1,28 @@
+name: Build Landing
+
+# Deployed by deploy-sites.yml once this workflow succeeds
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'apps/landing/**'
+      - 'package.json'
+      - 'bun.lock'
+      - '.github/workflows/build-landing.yml'
+      - '.github/workflows/build-site-reusable.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'apps/landing/**'
+      - 'package.json'
+      - 'bun.lock'
+      - '.github/workflows/build-landing.yml'
+      - '.github/workflows/build-site-reusable.yml'
+  workflow_dispatch:
+
+jobs:
+  landing:
+    uses: ./.github/workflows/build-site-reusable.yml
+    with:
+      app: landing
+      output-dir: dist

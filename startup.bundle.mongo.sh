@@ -197,6 +197,9 @@ if [ ! -f /data/db/.mongodb_initialized ]; then
     echo "MongoDB initialization completed!"
 fi
 
+# Set up the user the services run as (PUID/PGID, Docker socket, /app/data)
+. /app/startup.user.sh
+
 # Start supervisor first to manage MongoDB
 echo "Starting supervisor to manage MongoDB..."
 /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf &

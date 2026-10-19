@@ -1,10 +1,13 @@
 package executor
 
 import (
+	"net"
 	"peekaping/internal/utils"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // Test the global validator instance
@@ -486,4 +489,20 @@ func TestGenericUnmarshal_VariousTypes(t *testing.T) {
 // Helper function to create string pointer
 func stringPtr(s string) *string {
 	return &s
+}
+
+// closedPort returns a port on 127.0.0.1 that nothing listens on.
+func closedPort(t *testing.T) int {
+	t.Helper()
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	port := l.Addr().(*net.TCPAddr).Port
+	require.NoError(t, l.Close())
+	return port
+}
+
+// closedAddr returns a loopback address that nothing listens on.
+func closedAddr(t *testing.T) string {
+	t.Helper()
+	return net.JoinHostPort("127.0.0.1", strconv.Itoa(closedPort(t)))
 }

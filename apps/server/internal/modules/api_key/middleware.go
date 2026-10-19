@@ -2,10 +2,9 @@ package api_key
 
 import (
 	"net/http"
+	"peekaping/internal/httpx"
 	"peekaping/internal/utils"
 	"strings"
-
-	"github.com/gin-gonic/gin"
 )
 
 // MiddlewareProvider holds API key middleware functions
@@ -22,35 +21,37 @@ func NewMiddlewareProvider(service Service) *MiddlewareProvider {
 
 // Auth is a middleware that verifies API key authentication
 // This should be used as the final middleware in a chain for API key-only endpoints
-func (p *MiddlewareProvider) Auth() gin.HandlerFunc {
-	return func(c *gin.Context) {
-	// Get the X-API-Key header
-	authHeader := c.GetHeader("X-API-Key")
-	if authHeader == "" {
-		c.JSON(http.StatusUnauthorized, utils.NewFailResponse("X-API-Key header is required"))
-		c.Abort()
-		return
-	}
+func (p *MiddlewareProvider) Auth() httpx.Middleware {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Get the X-API-Key header
+			authHeader := r.Header.Get("X-API-Key")
+			if authHeader == "" {
+				httpx.JSON(w, http.StatusUnauthorized, utils.NewFailResponse("X-API-Key header is required"))
 
-		// Only accept API keys
-		if !strings.HasPrefix(authHeader, ApiKeyPrefix) {
-			c.JSON(http.StatusUnauthorized, utils.NewFailResponse("API key required"))
-			c.Abort()
-			return
-		}
+				return
+			}
 
-		// Validate the API key
-		apiKey, err := p.service.ValidateKey(c.Request.Context(), authHeader)
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, utils.NewFailResponse("Invalid or expired API key"))
-			c.Abort()
-			return
-		}
+			// Only accept API keys
+			if !strings.HasPrefix(authHeader, ApiKeyPrefix) {
+				httpx.JSON(w, http.StatusUnauthorized, utils.NewFailResponse("API key required"))
 
-		// Set API key information in the context
-		c.Set("apiKeyId", apiKey.ID)
-		c.Set("authType", "api_key")
+				return
+			}
 
-		c.Next()
+			// Validate the API key
+			apiKey, err := p.service.ValidateKey(r.Context(), authHeader)
+			if err != nil {
+				httpx.JSON(w, http.StatusUnauthorized, utils.NewFailResponse("Invalid or expired API key"))
+
+				return
+			}
+
+			// Set API key information in the context
+			r = httpx.WithValue(r, "apiKeyId", apiKey.ID)
+			r = httpx.WithValue(r, "authType", "api_key")
+
+			next.ServeHTTP(w, r)
+		})
 	}
 }

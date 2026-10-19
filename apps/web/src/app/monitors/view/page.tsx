@@ -49,6 +49,10 @@ import { BackButton } from "@/components/back-button";
 import dayjs from "dayjs";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import clsx from "clsx";
+import { formatMonitorTarget } from "../components/monitor-registry";
+import { parseMonitorConfig } from "../components/monitor-target";
+import StaleMarker from "../components/stale-marker";
+import { getMonitorStatusView } from "../components/monitor-status";
 
 function formatDuration(ms: number, t: (key: string) => string): string {
   // Handle negative durations (clock skew) by returning empty string
@@ -117,29 +121,31 @@ const MonitorPage = () => {
   });
 
   const monitor = data?.data;
+  // Parsed once here, since the page re-renders on every heartbeat
+  const config = useMemo(
+    () => parseMonitorConfig(monitor?.config),
+    [monitor?.config]
+  );
+  const monitorTarget = useMemo(
+    () => formatMonitorTarget(monitor?.type, config),
+    [monitor?.type, config]
+  );
 
   const hasCertCheckExpire = useMemo(() => {
-    if (!monitor) return false;
-    if (!monitor?.type?.toLowerCase().startsWith("http")) return false;
+    const monitorType = monitor?.type?.toLowerCase();
+    if (!monitorType?.startsWith("http") && monitorType !== "smtp") return false;
+    return config.check_cert_expiry === true;
+  }, [monitor?.type, config]);
 
-    try {
-      const config = JSON.parse(monitor?.config ?? "{}");
-      return config?.check_cert_expiry ?? false;
-    } catch (err) {
-      console.error("Failed to parse monitor config:", err);
-      return false;
-    }
-  }, [monitor]);
-
-  // Fetch TLS info for HTTP monitors using React Query
+  // Fetch TLS info for HTTP and SMTP monitors using React Query
+  // Only fetch when certificate expiry checking is enabled
   const { data: tlsData, isLoading: tlsLoading } = useQuery({
     ...getMonitorsByIdTlsOptions({
       path: {
         id: id!,
       },
     }),
-    enabled:
-      !!id && !!monitor && monitor.type?.toLowerCase().startsWith("http"),
+    enabled: !!id && hasCertCheckExpire,
   });
 
   // Transform TLS data to match the expected format
@@ -163,16 +169,6 @@ const MonitorPage = () => {
         : undefined,
     };
   }, [tlsData]);
-
-  // Safe JSON parsing with error handling
-  const config = useMemo(() => {
-    try {
-      return JSON.parse(monitor?.config ?? "{}");
-    } catch (error) {
-      console.error("Failed to parse monitor config:", error);
-      return {};
-    }
-  }, [monitor?.config]);
 
   const deleteMutation = useMutation({
     ...deleteMonitorsByIdMutation({
@@ -245,6 +241,7 @@ const MonitorPage = () => {
 
   const lastHeartbeat =
     heartbeatData?.length > 0 ? heartbeatData[heartbeatData.length - 1] : null;
+  const lastStatusView = getMonitorStatusView(lastHeartbeat?.status);
 
   const { data: stats, refetch: refetchUptimeStats } = useQuery({
     ...getMonitorsByIdStatsUptimeOptions({
@@ -425,16 +422,23 @@ const MonitorPage = () => {
         <BackButton to="/monitors" />
         <div className="pl-4">
           <span className="text-sm text-muted-foreground mr-2">
-            {monitor?.type} {t("monitors.view.monitor_for")}
+            {monitor?.type}
+            {monitorTarget ? ` ${t("monitors.view.monitor_for")}` : null}
           </span>
-          <a
-            href={config?.url ?? "#"}
-            className="text-blue-500 hover:underline"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {config?.url ?? ""}
-          </a>
+          {monitorTarget?.href ? (
+            <a
+              href={monitorTarget.href}
+              className="text-blue-500 hover:underline break-words"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {monitorTarget.label}
+            </a>
+          ) : monitorTarget ? (
+            <span className="text-muted-foreground break-words">
+              {monitorTarget.label}
+            </span>
+          ) : null}
         </div>
 
         <div className="mt-4 mb-4">
@@ -537,16 +541,10 @@ const MonitorPage = () => {
                 <div
                   className={cn(
                     "font-semibold text-2xl",
-                    lastHeartbeat?.status === 1 && "text-green-400",
-                    lastHeartbeat?.status === 0 && "text-red-400",
-                    lastHeartbeat?.status === 2 && "text-red-400",
-                    lastHeartbeat?.status === 3 && "text-blue-400"
+                    lastStatusView?.pageColor
                   )}
                 >
-                  {lastHeartbeat?.status === 1 && t("monitors.view.status.up")}
-                  {lastHeartbeat?.status === 0 && t("monitors.view.status.down")}
-                  {lastHeartbeat?.status === 2 && t("monitors.view.status.down")}
-                  {lastHeartbeat?.status === 3 && t("monitors.view.status.maintenance")}
+                  {lastStatusView?.name(t)}
                 </div>
               ) : (
                 <div className="font-semibold text-2xl">{t("monitors.view.status.paused")}</div>
@@ -554,6 +552,12 @@ const MonitorPage = () => {
 
               {monitor?.active && lastImportantHeartbeatDuration > 0 && (
                 <div className="text-sm text-gray-400">{lihText}</div>
+              )}
+              {monitor?.active && (
+                <StaleMarker
+                  staleSince={monitor?.stale_since}
+                  lastHeartbeatTime={lastHeartbeat?.time}
+                />
               )}
               {!monitor?.active && lastHeartbeat?.time && (
                 <div className="text-sm text-gray-400">
@@ -565,7 +569,7 @@ const MonitorPage = () => {
               )}
             </Card>
 
-            {/* Certificate Information Card - Only show for HTTPS monitors */}
+            {/* Certificate Information Card - Show for HTTPS and SMTP monitors */}
             {hasCertCheckExpire && (
               <Card className="p-4 rounded-xl gap-1 col-span-4 lg:col-span-1">
                 <div className="font-semibold flex items-center gap-2">

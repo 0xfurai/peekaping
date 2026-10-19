@@ -321,3 +321,14 @@ func (r *RepositoryImpl) DeleteByMonitorID(ctx context.Context, monitorID string
 	_, err = r.collection.DeleteMany(ctx, filter)
 	return err
 }
+
+func (r *RepositoryImpl) HasAny(ctx context.Context) (bool, error) {
+	err := r.collection.FindOne(ctx, bson.M{}, options.FindOne().SetProjection(bson.M{"_id": 1})).Err()
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}

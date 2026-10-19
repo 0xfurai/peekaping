@@ -21,8 +21,11 @@ config:
     # DB_PORT: "5432"
     # REDIS_HOST: "peekaping-redis-master.peekaping.svc.cluster.local"
     # REDIS_PORT: "6379"
-    # REDIS_USERNAME: "peekaping" # Optional. Set for Redis ACL users; omit for password-only/default user auth.
-    # REDIS_PASSWORD: "peekaping"
+    # Redis ACL username. Optional: set it for a Redis ACL user, omit it for password-only/default user auth.
+    # Keep REDIS_PASSWORD in the existingSecret, not here: this map is rendered into a ConfigMap.
+    # REDIS_USERNAME: "peekaping"
+    # Serve the unauthenticated Prometheus /metrics endpoint on the API port (off by default).
+    # METRICS_ENABLED: "true"
 
 api:
   replicaCount: 3
@@ -104,6 +107,12 @@ worker:
     limits:
       cpu: "500m"
       memory: "512Mi"
+  # Pod sysctls. ping_group_range lets the non-root worker send ICMP echo
+  # requests for ping monitors without the NET_RAW capability. Kubernetes
+  # allows it as a safe sysctl. Set to [] to leave the node default.
+  sysctls:
+    - name: net.ipv4.ping_group_range
+      value: "0 2147483647"
 
 web:
   replicaCount: 3

@@ -571,7 +571,38 @@
         "redis": "Redis-databaseovervågning",
         "snmp": "SNMP-overvågning",
         "sqlserver": "Microsoft SQL Server-overvågning",
-        "tcp": "TCP-portovervågning"
+        "tcp": "TCP-portovervågning",
+        "smtp": "SMTP-mailserverovervågning"
+      },
+      "smtp": {
+        "authentication_title": "Godkendelse (Valgfrit)",
+        "check_cert_expiry": "Kontroller certifikatudløb",
+        "check_cert_expiry_description": "Overvåg SSL/TLS-certifikatudløb og send notifikationer",
+        "from_email": "Fra-email",
+        "from_email_description": "Valgfrit: Test MAIL FROM-kommando med denne emailadresse",
+        "host": "SMTP-serverværtsnavn",
+        "ignore_tls_errors": "Ignorer TLS-fejl",
+        "ignore_tls_errors_description": "Spring TLS-certifikatvalidering over (nyttigt til selvsignerede certifikater)",
+        "password": "Adgangskode",
+        "port": "Port",
+        "port_description": "Almindelige porte: 25 (SMTP), 465 (SMTPS), 587 (Submission med STARTTLS)",
+        "title": "SMTP-serverindstillinger",
+        "use_tls": "Brug STARTTLS",
+        "use_tls_description": "Aktivér STARTTLS til sikker kommunikation",
+        "username": "Brugernavn",
+        "username_description": "Valgfrit: SMTP-godkendelsesbrugernavn",
+        "expect_secure_relay": "Behandle Open Relay som fejl",
+        "expect_secure_relay_description": "Hvis aktiveret, markeres monitoren som NED, når et åbent relæ registreres (sikkerhedsrisiko). Hvis deaktiveret, forventer monitoren et åbent relæ og markeres som NED, når serveren afviser videresendelse.",
+        "open_relay_title": "Test af åben relay",
+        "read_timeout": "Læsetime‑out (sekunder)",
+        "read_timeout_description": "Timeout for læsning af SMTP-serverrespons. Lad tomt for at bruge overvågnings‑timeout. Hjælper med at forhindre hangning på ikke‑reaktive servere.",
+        "rcpt_to_email": "Modtager e-mail",
+        "rcpt_to_email_description": "E‑mailadresse, der skal bruges i RCPT TO‑kommandoen, når du tester åben relay. Lad stå tom for at bruge standard (test@external-domain.com)",
+        "test_open_relay": "Test åben relæ",
+        "test_open_relay_description": "Test, om SMTP-serveren tillader relaying af e-mails til eksterne domæner uden autentificering.",
+        "use_direct_tls": "Brug direkte TLS (SMTPS)",
+        "use_direct_tls_description": "Brug direkte TLS-forbindelse (SMTPS) i stedet for STARTTLS. Påkrævet for port 465. Hvis ikke afkrydset, anvendes STARTTLS (for porte 587/25).",
+        "port_465_warning": "Port 465 kræver typisk direkte TLS (SMTPS). Aktivér “Brug direkte TLS (SMTPS)” for sikre forbindelser."
       }
     },
     "page": {
@@ -628,8 +659,12 @@
         "down": "Nede",
         "maintenance": "Vedligeholdelse",
         "paused": "Pause",
+        "pending": "Afventer",
         "up": "Op"
       }
+    },
+    "stale": {
+      "not_checked_since": "Ikke tjekket siden {{time}}"
     }
   },
   "navigation": {
@@ -962,7 +997,10 @@
         "message_format_label": "Beskedformat",
         "username_description": "Det brugernavn, der vises som afsender af beskeden. Hvis ikke angivet, bruges standard botnavn.",
         "webhook_url_description": "Webhook-URL'en fra din Slack-integration. Du kan finde den i din Slack-forekomst under Integrationer > Webhooks.",
-        "webhook_url_label": "Webhook-URL"
+        "webhook_url_label": "Webhook-URL",
+        "bot_token_label": "Bot-token",
+        "bot_token_description": "Din Slack bot-token til godkendelse. Du kan oprette en bot-token i indstillingerne for din Slack-app",
+        "bot_token_note": "Bemærk: Når du bruger en bot-token, er kanalnavnet påkrævet."
       },
       "smtp": {
         "custom_body_label": "Brugerdefineret krop",
@@ -1016,6 +1054,15 @@
         "use_template_description": "Aktiver muligheden for at bruge en brugerdefineret beskedskabelon og format.",
         "use_template_label": "Brug beskedskabelon"
       },
+      "teams": {
+        "more_info_about_webhooks": "Yderligere info om Workflows-webhooks",
+        "server_url_description": "Basis-URL'en for din Peekaping-instans, som bruges til knappen \"View in Peekaping\". Hvis feltet er tomt, bruges serverens CLIENT_URL.",
+        "server_url_label": "Server-URL",
+        "setup_webhook_description_1": "Åbn Workflows i Teams, og vælg skabelonen \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Vælg team og kanal, vælg Gem, og kopiér derefter webhook-URL'en fra workflowets detaljer.",
+        "setup_webhook_title": "Opret en webhook med Teams Workflows",
+        "webhook_url_label": "Workflows Webhook-URL"
+      },
       "webhook": {
         "additional_headers_description": "Tilføj tilpassede HTTP-overskrifter til webhook‑anmodningen.",
         "additional_headers_label": "Yderligere overskrifter",
@@ -1027,7 +1074,11 @@
         "request_body_description_form_data": "Indholdet vil blive sendt som multipart/form-data. Du kan dekode det ved hjælp af <strong>json_decode($_POST['data'])</strong> i PHP.",
         "request_body_description_json": "Indholdet sendes som JSON med headeren \"application/json\".",
         "request_body_label": "Anmodningskrop",
-        "request_body_placeholder": "Vælg indholdstype"
+        "request_body_placeholder": "Vælg indholdstype",
+        "signing_secret_description": "Valgfri. Når den er angivet, signeres hver anmodning med HMAC-SHA256: headeren X-Webhook-Signature indeholder sha256= og den hexadecimale HMAC af \"{timestamp}.{body}\", hvor {timestamp} er headeren X-Webhook-Timestamp i Unix-sekunder. For multipart/form-data er {body} feltet data.",
+        "signing_secret_docs_link": "Sådan verificerer du signaturen",
+        "signing_secret_label": "Signeringshemmelighed",
+        "signing_secret_placeholder": "Lad feltet stå tomt for at sende usignerede anmodninger"
       }
     },
     "important": "Vigtige meddelelser",

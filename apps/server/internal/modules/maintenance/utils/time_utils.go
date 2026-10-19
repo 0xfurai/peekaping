@@ -3,14 +3,22 @@ package utils
 import (
 	"errors"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 // TimeUtils handles time-related operations like duration calculation and timezone handling
-type TimeUtils struct{}
+type TimeUtils struct {
+	logger *zap.SugaredLogger
+}
 
 // NewTimeUtils creates a new time utils instance
-func NewTimeUtils() *TimeUtils {
-	return &TimeUtils{}
+func NewTimeUtils(
+	logger *zap.SugaredLogger,
+) *TimeUtils {
+	return &TimeUtils{
+		logger: logger.Named("[time-utils]"),
+	}
 }
 
 // CalculateDurationFromTimes calculates duration in minutes from start and end time strings
@@ -48,12 +56,12 @@ func (tu *TimeUtils) CalculateDurationFromTimes(startTime, endTime string) (int,
 // LoadTimezone loads a timezone location, with fallback to UTC if invalid
 func (tu *TimeUtils) LoadTimezone(timezone string) *time.Location {
 	if timezone == "SAME_AS_SERVER" {
-		timezone = time.Now().Location().String()
+		return time.Local
 	}
 
 	loc, err := time.LoadLocation(timezone)
 	if err != nil {
-		// Fallback to UTC if timezone is invalid
+		tu.logger.Warnw("Failed to load timezone, using UTC", "timezone", timezone, "error", err)
 		return time.UTC
 	}
 	return loc

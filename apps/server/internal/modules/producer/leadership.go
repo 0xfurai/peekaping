@@ -11,7 +11,7 @@ import (
 func (p *Producer) runLeadershipMonitor() {
 	defer p.wg.Done()
 
-	ticker := time.NewTicker(1 * time.Second)
+	ticker := time.NewTicker(p.leadershipCheckInterval)
 	defer ticker.Stop()
 
 	var isSyncing bool
@@ -80,7 +80,11 @@ func (p *Producer) startMonitorSyncing() error {
 
 	// Start schedule refresher to keep Redis in sync with database
 	p.wg.Add(1)
-	go p.runScheduleRefresher()
+	go p.runScheduleRefresher(p.syncCtx)
+
+	// Start the stale-monitor watchdog
+	p.wg.Add(1)
+	go p.runWatchdog(p.syncCtx)
 
 	p.logger.Info("Monitor syncing started successfully")
 	return nil

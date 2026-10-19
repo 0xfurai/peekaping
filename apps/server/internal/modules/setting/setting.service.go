@@ -4,13 +4,103 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"peekaping/internal/modules/shared"
+	"strconv"
 
 	"go.uber.org/zap"
 )
 
 type Service = shared.SettingService
+
+// DataRetentionPeriodKey holds the data retention period: how many days
+// heartbeats are kept.
+const DataRetentionPeriodKey = "KEEP_DATA_PERIOD_DAYS"
+
+// The data retention periods the settings API accepts. Zero or less would
+// delete every heartbeat, and so would a period so long that the cutoff date
+// overflows into the future.
+const (
+	MinDataRetentionDays = 1
+	MaxDataRetentionDays = 36500
+)
+
+// userEditableKeys are the only settings the settings API can reach. Every
+// other key, such as the JWT signing secrets, is internal to the server.
+var userEditableKeys = map[string]bool{
+	DataRetentionPeriodKey: true,
+}
+
+// ErrSettingNotFound is returned when the settings API asks to change or
+// delete a key that isn't user-editable.
+var ErrSettingNotFound = errors.New("setting not found")
+
+// ErrInvalidValue is returned when the settings API asks to store a value its
+// key can't hold.
+var ErrInvalidValue = errors.New("invalid setting value")
+
+// ParseDataRetentionPeriod returns the days a data retention period value holds,
+// or ErrInvalidValue if it isn't a whole number from MinDataRetentionDays to
+// MaxDataRetentionDays.
+func ParseDataRetentionPeriod(value string) (int, error) {
+	days, err := strconv.Atoi(value)
+	if err != nil || days < MinDataRetentionDays || days > MaxDataRetentionDays {
+		return 0, fmt.Errorf("%w: %s must be a whole number of days from %d to %d", ErrInvalidValue, DataRetentionPeriodKey, MinDataRetentionDays, MaxDataRetentionDays)
+	}
+	return days, nil
+}
+
+// APIService is the settings service as the settings API sees it: keys that
+// aren't user-editable behave as if they don't exist.
+type APIService interface {
+	IsUserEditable(key string) bool
+	GetByKey(ctx context.Context, key string) (*Model, error)
+	SetByKey(ctx context.Context, key string, entity *Model) (*Model, error)
+	DeleteByKey(ctx context.Context, key string) error
+}
+
+type APIServiceImpl struct {
+	service Service
+}
+
+func NewAPIService(service Service) APIService {
+	return &APIServiceImpl{service}
+}
+
+// IsUserEditable reports whether the settings API can reach key.
+func (s *APIServiceImpl) IsUserEditable(key string) bool {
+	return userEditableKeys[key]
+}
+
+func (s *APIServiceImpl) GetByKey(ctx context.Context, key string) (*Model, error) {
+	if !userEditableKeys[key] {
+		return nil, nil
+	}
+	return s.service.GetByKey(ctx, key)
+}
+
+func (s *APIServiceImpl) SetByKey(ctx context.Context, key string, entity *Model) (*Model, error) {
+	if !userEditableKeys[key] {
+		return nil, ErrSettingNotFound
+	}
+	if key == DataRetentionPeriodKey {
+		if entity.Type != "int" {
+			return nil, fmt.Errorf("%w: %s must have type int", ErrInvalidValue, key)
+		}
+		if _, err := ParseDataRetentionPeriod(entity.Value); err != nil {
+			return nil, err
+		}
+	}
+	return s.service.SetByKey(ctx, key, entity)
+}
+
+func (s *APIServiceImpl) DeleteByKey(ctx context.Context, key string) error {
+	if !userEditableKeys[key] {
+		return ErrSettingNotFound
+	}
+	return s.service.DeleteByKey(ctx, key)
+}
 
 type ServiceImpl struct {
 	repository Repository
@@ -31,7 +121,7 @@ func (mr *ServiceImpl) GetByKey(ctx context.Context, key string) (*Model, error)
 	return mr.repository.GetByKey(ctx, key)
 }
 
-func (mr *ServiceImpl) SetByKey(ctx context.Context, key string, entity *CreateUpdateDto) (*Model, error) {
+func (mr *ServiceImpl) SetByKey(ctx context.Context, key string, entity *Model) (*Model, error) {
 	return mr.repository.SetByKey(ctx, key, entity)
 }
 
@@ -53,12 +143,12 @@ func (mr *ServiceImpl) InitializeSettings(ctx context.Context) error {
 	}
 
 	// Initialize access token secret key
-	if err := mr.initializeSecretKey(ctx, "ACCESS_TOKEN_SECRET_KEY"); err != nil {
+	if err := mr.initializeSecretKey(ctx, shared.AccessTokenSecretKey); err != nil {
 		return fmt.Errorf("failed to initialize access token secret key: %w", err)
 	}
 
 	// Initialize refresh token secret key
-	if err := mr.initializeSecretKey(ctx, "REFRESH_TOKEN_SECRET_KEY"); err != nil {
+	if err := mr.initializeSecretKey(ctx, shared.RefreshTokenSecretKey); err != nil {
 		return fmt.Errorf("failed to initialize refresh token secret key: %w", err)
 	}
 
@@ -79,7 +169,7 @@ func (mr *ServiceImpl) initializeDefaultSetting(ctx context.Context, key, defaul
 	}
 
 	if existing == nil {
-		_, err = mr.repository.SetByKey(ctx, key, &CreateUpdateDto{
+		_, err = mr.repository.SetByKey(ctx, key, &Model{
 			Value: defaultValue,
 			Type:  settingType,
 		})
@@ -105,7 +195,7 @@ func (mr *ServiceImpl) initializeSecretKey(ctx context.Context, key string) erro
 			return err
 		}
 
-		_, err = mr.repository.SetByKey(ctx, key, &CreateUpdateDto{
+		_, err = mr.repository.SetByKey(ctx, key, &Model{
 			Value: secretKey,
 			Type:  "string",
 		})

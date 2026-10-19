@@ -571,7 +571,38 @@
         "redis": "Redis datu-base monitorea",
         "snmp": "SNMP Monitorea",
         "sqlserver": "Microsoft SQL Server Monitorea",
-        "tcp": "TCP atalearen monitorea"
+        "tcp": "TCP atalearen monitorea",
+        "smtp": "SMTP posta zerbitzariaren monitorea"
+      },
+      "smtp": {
+        "authentication_title": "Autentifikazioa (Aukerakoa)",
+        "check_cert_expiry": "Egiaztatu ziurtagiriaren iraungitzea",
+        "check_cert_expiry_description": "SSL/TLS ziurtagiriaren iraungitzea monitorizatu eta jakinarazpenak bidali",
+        "from_email": "Bidaltzailearen emaila",
+        "from_email_description": "Aukerakoa: Probatu MAIL FROM komandoa email helbide honekin",
+        "host": "SMTP zerbitzariaren hostalaria",
+        "ignore_tls_errors": "Ezikusi TLS erroreak",
+        "ignore_tls_errors_description": "Saltatu TLS ziurtagiriaren balidazioa (erabilgarria auto-sinatutako ziurtagirientzat)",
+        "password": "Pasahitza",
+        "port": "Ataka",
+        "port_description": "Ataka arruntak: 25 (SMTP), 465 (SMTPS), 587 (Submission STARTTLSrekin)",
+        "title": "SMTP zerbitzariaren ezarpenak",
+        "use_tls": "Erabili STARTTLS",
+        "use_tls_description": "Gaitu STARTTLS komunikazio seguruaren",
+        "username": "Erabiltzaile-izena",
+        "username_description": "Aukerakoa: SMTP autentifikaziorako erabiltzaile-izena",
+        "expect_secure_relay": "Tratatu Open Relay hutsuna bezala",
+        "expect_secure_relay_description": "Gaituta badago, monitorea DOWN gisa markatuko da relay ireki bat detektatzen denean (segurtasun-arriskua). Desgaituta badago, monitoreak relay irekia espero du eta DOWN gisa markatuko da zerbitzariak birbidalketa ukatzen duenean.",
+        "open_relay_title": "Ireki Relé Azterketa",
+        "read_timeout": "Irakurketa denbora-muga (segundoak)",
+        "read_timeout_description": "SMTP zerbitzariaren erantzunak irakurtzeko denbora-mugua. Utzi hutsik monitorearen denbora-mugua erabiltzeko. Erantzun ez duten zerbitzarietan izatena saihesten laguntzen du.",
+        "rcpt_to_email": "Jasotzaile e-posta",
+        "rcpt_to_email_description": "E-posta helbidea, RCPT TO komandoa erabiltzeari, irekiko adabegia testatzean. Utzi hutsik lehenetsia erabili daiteke (test@external-domain.com).",
+        "test_open_relay": "Probatu Ireki Relé",
+        "test_open_relay_description": "Testiatu SMTP zerbitzariak kanpoko domeinuetara posta errealdi ahalbidetzen duela, autentifikazioik gabe",
+        "use_direct_tls": "Erabili Direct TLS (SMTPS)",
+        "use_direct_tls_description": "Erabili zuzena TLS konexioa (SMTPS), STARTTLSen ordez. Porta 465-reko beharrezkoa. Markatu gabe badago, STARTTLS erabiltzen du (587/25 portetarako).",
+        "port_465_warning": "Port 465-k arrunta zuzenean TLS (SMTPS) eskatzen du. Mesedez, gaitu 'Erabili zuzenean TLS (SMTPS)' aukera seguruko konexioentzako."
       }
     },
     "page": {
@@ -628,8 +659,12 @@
         "down": "Behera",
         "maintenance": "Mantentze",
         "paused": "Pausatuta",
+        "pending": "Zain",
         "up": "Alaba"
       }
+    },
+    "stale": {
+      "not_checked_since": "Egiaztatu gabe {{time}}(e)tik"
     }
   },
   "navigation": {
@@ -962,7 +997,10 @@
         "message_format_label": "Mezuaren formatua",
         "username_description": "Erabiltzaile-izena, mezularen bidaltzaile bezala agertuko dena. Ez bada adierazita, lehenetsitako bot-izena erabiliko da.",
         "webhook_url_description": "Zure Slack integrazioaren webhook URLa. Hura zure Slack instantziaen Integrazioak > Webhooks atalean aurki dezakezu.",
-        "webhook_url_label": "Webhook URLa"
+        "webhook_url_label": "Webhook URLa",
+        "bot_token_label": "Bot tokena",
+        "bot_token_description": "Zure Slack bot tokena autentifikaziorako. Bot token bat sor dezakezu zure Slack aplikazioaren ezarpenetan",
+        "bot_token_note": "Oharra: Bot token bat erabiltzean, kanalaren izena beharrezkoa da."
       },
       "smtp": {
         "custom_body_label": "Iritzi pertsonalizatu",
@@ -1016,6 +1054,15 @@
         "use_template_description": "Gaitu pertsonalizatutako mezu txantiloia eta formatua erabiltzea.",
         "use_template_label": "Erabili mezua txantiloia"
       },
+      "teams": {
+        "more_info_about_webhooks": "Workflows webhook-ei buruzko informazio gehiago",
+        "server_url_description": "Zure Peekaping instantziaren oinarrizko URLa, \"View in Peekaping\" botoirako erabiltzen dena. Hutsik badago, zerbitzariaren CLIENT_URL erabiltzen da.",
+        "server_url_label": "Zerbitzariaren URLa",
+        "setup_webhook_description_1": "Teams-en, ireki Workflows eta aukeratu \"Send webhook alerts to a channel\" txantiloia.",
+        "setup_webhook_description_2": "Aukeratu taldea eta kanala, hautatu Gorde, eta kopiatu webhook URLa lan-fluxuaren xehetasunetatik.",
+        "setup_webhook_title": "Sortu webhook bat Teams Workflows-ekin",
+        "webhook_url_label": "Workflows webhook URLa"
+      },
       "webhook": {
         "additional_headers_description": "Gehitu HTTP izenburu pertsonalizatuak webhook eskaerari.",
         "additional_headers_label": "Goiburu gehigarriak",
@@ -1027,7 +1074,11 @@
         "request_body_description_form_data": "Edukia multipart/form-data gisa bidaliko da. PHP-en <strong>json_decode($_POST['data'])</strong> erabiliz deskodetu dezakezu.",
         "request_body_description_json": "Edukia JSON gisa bidaliko da \"application/json\" goiburuz.",
         "request_body_label": "Eskaeraren gorputza",
-        "request_body_placeholder": "Hautatu eduki mota"
+        "request_body_placeholder": "Hautatu eduki mota",
+        "signing_secret_description": "Aukerakoa. Ezartzen bada, eskaera bakoitza HMAC-SHA256 bidez sinatzen da: X-Webhook-Signature goiburuak sha256= eta \"{timestamp}.{body}\"-ren HMAC hamaseitarra ditu, non {timestamp} X-Webhook-Timestamp goiburua den, Unix segundotan. multipart/form-data denean, {body} data eremua da.",
+        "signing_secret_docs_link": "Nola egiaztatu sinadura",
+        "signing_secret_label": "Sinadura-sekretua",
+        "signing_secret_placeholder": "Utzi hutsik sinatu gabeko eskaerak bidaltzeko"
       }
     },
     "important": "Jakinarazpen garrantzitsuak",

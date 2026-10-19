@@ -1,7 +1,6 @@
 package providers
 
 import (
-	"encoding/json"
 	"testing"
 
 	"peekaping/internal/modules/heartbeat"
@@ -12,7 +11,7 @@ import (
 )
 
 func TestPagerDutyConfig_Unmarshal(t *testing.T) {
-	sender := NewPagerDutySender(zap.NewNop().Sugar(), nil)
+	sender := NewPagerDutySender(zap.NewNop().Sugar(), nil, NewHTTPClient())
 
 	// Test valid config
 	validConfig := `{
@@ -50,7 +49,7 @@ func TestPagerDutyConfig_Unmarshal(t *testing.T) {
 }
 
 func TestPagerDutyConfig_Validate(t *testing.T) {
-	sender := NewPagerDutySender(zap.NewNop().Sugar(), nil)
+	sender := NewPagerDutySender(zap.NewNop().Sugar(), nil, NewHTTPClient())
 
 	// Test valid config
 	validConfig := `{
@@ -86,7 +85,7 @@ func TestPagerDutyConfig_Validate(t *testing.T) {
 }
 
 func TestPagerDutySender_getEventAction(t *testing.T) {
-	sender := NewPagerDutySender(zap.NewNop().Sugar(), nil)
+	sender := NewPagerDutySender(zap.NewNop().Sugar(), nil, NewHTTPClient())
 
 	// Test DOWN status
 	downHeartbeat := &heartbeat.Model{Status: shared.MonitorStatusDown}
@@ -120,7 +119,7 @@ func TestPagerDutySender_getEventAction(t *testing.T) {
 }
 
 func TestPagerDutySender_getTitle(t *testing.T) {
-	sender := NewPagerDutySender(zap.NewNop().Sugar(), nil)
+	sender := NewPagerDutySender(zap.NewNop().Sugar(), nil, NewHTTPClient())
 
 	// Test DOWN status
 	downHeartbeat := &heartbeat.Model{Status: shared.MonitorStatusDown}
@@ -162,8 +161,33 @@ func TestPagerDutySender_getTitle(t *testing.T) {
 	}
 }
 
+func TestPagerDutySender_getMonitorURL(t *testing.T) {
+	sender := NewPagerDutySender(zap.NewNop().Sugar(), nil, NewHTTPClient())
+
+	cases := []struct {
+		name     string
+		monitor  *monitor.Model
+		expected string
+	}{
+		{"nil monitor", nil, ""},
+		{"http keyword url", &monitor.Model{Name: "API", Type: "http-keyword", Config: `{"url": "https://api.example.com/health"}`}, "https://api.example.com/health"},
+		{"tcp host and port", &monitor.Model{Name: "DB", Type: "tcp", Config: `{"host": "2001:db8::1", "port": 5432}`}, "[2001:db8::1]:5432"},
+		{"ping host", &monitor.Model{Name: "Ping", Type: "ping", Config: `{"host": "192.0.2.1"}`}, "192.0.2.1"},
+		{"falls back to the name", &monitor.Model{Name: "Push", Type: "push", Config: `{"pushToken": "x"}`}, "Push"},
+		{"invalid config", &monitor.Model{Name: "Broken", Type: "http", Config: `not json`}, "Broken"},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := sender.getMonitorURL(tc.monitor); got != tc.expected {
+				t.Errorf("Expected '%s', got '%s'", tc.expected, got)
+			}
+		})
+	}
+}
+
 func TestPagerDutySender_getSeverity(t *testing.T) {
-	sender := NewPagerDutySender(zap.NewNop().Sugar(), nil)
+	sender := NewPagerDutySender(zap.NewNop().Sugar(), nil, NewHTTPClient())
 
 	// Test default severity
 	cfg := &PagerDutyConfig{}
@@ -177,83 +201,5 @@ func TestPagerDutySender_getSeverity(t *testing.T) {
 	severity = sender.getSeverity(cfg)
 	if severity != "critical" {
 		t.Errorf("Expected severity 'critical', got '%s'", severity)
-	}
-}
-
-func TestPagerDutyPayload_Structure(t *testing.T) {
-	sender := NewPagerDutySender(zap.NewNop().Sugar(), nil)
-
-	// Create test data
-	monitor := &monitor.Model{
-		ID:   "test-monitor-123",
-		Name: "Test Monitor",
-	}
-
-	heartbeat := &heartbeat.Model{
-		Status: shared.MonitorStatusDown,
-		Msg:    "Connection timeout",
-	}
-
-	cfg := &PagerDutyConfig{
-		IntegrationKey: "test-key-123",
-		Priority:       "warning",
-	}
-
-	// Get event action
-	eventAction := sender.getEventAction(heartbeat, cfg)
-
-	// Build expected payload structure
-	expectedPayload := map[string]any{
-		"payload": map[string]any{
-			"summary":  "[Peekaping Monitor 🔴 Down] [Test Monitor] Connection timeout",
-			"severity": "warning",
-			"source":   monitor.Name, // Fallback to monitor name
-		},
-		"routing_key":  cfg.IntegrationKey,
-		"event_action": eventAction,
-		"dedup_key":    "Peekaping/test-monitor-123",
-	}
-
-	// Marshal expected payload
-	expectedJSON, err := json.Marshal(expectedPayload)
-	if err != nil {
-		t.Fatalf("Failed to marshal expected payload: %v", err)
-	}
-
-	// Verify the structure is valid JSON
-	var parsedPayload map[string]any
-	err = json.Unmarshal(expectedJSON, &parsedPayload)
-	if err != nil {
-		t.Fatalf("Failed to parse expected payload JSON: %v", err)
-	}
-
-	// Verify required fields exist
-	payload, ok := parsedPayload["payload"].(map[string]any)
-	if !ok {
-		t.Fatal("Payload field should be a map")
-	}
-
-	if _, ok := payload["summary"]; !ok {
-		t.Error("Payload should contain 'summary' field")
-	}
-
-	if _, ok := payload["severity"]; !ok {
-		t.Error("Payload should contain 'severity' field")
-	}
-
-	if _, ok := payload["source"]; !ok {
-		t.Error("Payload should contain 'source' field")
-	}
-
-	if _, ok := parsedPayload["routing_key"]; !ok {
-		t.Error("Root should contain 'routing_key' field")
-	}
-
-	if _, ok := parsedPayload["event_action"]; !ok {
-		t.Error("Root should contain 'event_action' field")
-	}
-
-	if _, ok := parsedPayload["dedup_key"]; !ok {
-		t.Error("Root should contain 'dedup_key' field")
 	}
 }

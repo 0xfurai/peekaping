@@ -10,7 +10,6 @@ import (
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/version"
 	"strings"
-	"time"
 
 	liquid "github.com/osteele/liquid"
 	"go.uber.org/zap"
@@ -32,12 +31,10 @@ type GotifySender struct {
 }
 
 // NewGotifySender creates a new GotifySender
-func NewGotifySender(logger *zap.SugaredLogger) *GotifySender {
+func NewGotifySender(logger *zap.SugaredLogger, client *http.Client) *GotifySender {
 	return &GotifySender{
 		logger: logger,
-		client: &http.Client{
-			Timeout: 30 * time.Second,
-		},
+		client: client,
 	}
 }
 

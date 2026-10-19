@@ -2,6 +2,8 @@
 
 This project includes a separate migration container that gives you full control over when database migrations run.
 
+Before the SQL stats upgrade, read [Upgrading stats storage](apps/docs/docs/self-hosting/upgrading-stats.md). Stats are rebuilt from retained heartbeats, the mixed legacy table is dropped, and rollback does not recover its history. The guide covers backups and optional SQLite disk-space reclamation.
+
 ## How it works
 
 1. **Migration Container**: The project uses a dedicated migration container built from `Dockerfile.migrate`
@@ -55,6 +57,7 @@ For creating new migrations, use the bun tool:
 Migrations are stored in `apps/server/cmd/bun/migrations/` and follow the naming convention:
 - `YYYYMMDDHHMMSS_description.tx.up.sql` - Migration to apply
 - `YYYYMMDDHHMMSS_description.tx.down.sql` - Migration to rollback
+- `YYYYMMDDHHMMSS_description.go` - Go migration (`./bun db create_go`), for data changes that should behave the same on every database, such as rebuilding stats from heartbeats
 
 ## Migration Container Details
 

@@ -6,14 +6,11 @@ export type ApiKeyApiKeyConfigResponse = {
 
 export type ApiKeyApiKeyResponse = {
   created_at: string;
-  /**
-   * Masked key for display
-   */
   display_key: string;
-  expires_at?: string;
+  expires_at: string | null;
   id: string;
-  last_used?: string;
-  max_usage_count?: number;
+  last_used: string | null;
+  max_usage_count: number | null;
   name: string;
   updated_at: string;
   usage_count: number;
@@ -21,14 +18,11 @@ export type ApiKeyApiKeyResponse = {
 
 export type ApiKeyApiKeyWithTokenResponse = {
   created_at: string;
-  /**
-   * Masked key for display
-   */
   display_key: string;
-  expires_at?: string;
+  expires_at: string | null;
   id: string;
-  last_used?: string;
-  max_usage_count?: number;
+  last_used: string | null;
+  max_usage_count: number | null;
   name: string;
   token: string;
   updated_at: string;
@@ -36,304 +30,415 @@ export type ApiKeyApiKeyWithTokenResponse = {
 };
 
 export type ApiKeyCreateApiKeyDto = {
-  expires_at?: string;
-  max_usage_count?: number;
+  expires_at?: string | null;
+  max_usage_count?: number | null;
   name: string;
+  [key: string]:
+    | unknown
+    | (string | null)
+    | (number | null)
+    | string
+    | undefined;
 };
 
 export type ApiKeyUpdateApiKeyDto = {
-  expires_at?: string;
-  max_usage_count?: number;
-  name?: string;
+  expires_at?: string | null;
+  max_usage_count?: number | null;
+  name?: string | null;
+  [key: string]:
+    | unknown
+    | (string | null)
+    | (number | null)
+    | (string | null)
+    | undefined;
 };
 
 export type AuthLoginDto = {
   email: string;
   password: string;
   token?: string;
+  [key: string]: unknown | string | undefined;
 };
 
 export type AuthLoginResponse = {
-  accessToken?: string;
-  refreshToken?: string;
-  user?: AuthModel;
+  accessToken: string;
+  refreshToken: string;
+  user: AuthModel;
 };
 
 export type AuthModel = {
-  active?: boolean;
-  createdAt?: string;
-  email?: string;
-  id?: string;
-  twofa_status?: boolean;
-  updatedAt?: string;
+  active: boolean;
+  createdAt: string;
+  email: string;
+  id: string;
+  twofa_status: boolean;
+  updatedAt: string;
 };
 
 export type AuthRefreshTokenDto = {
   refreshToken: string;
+  [key: string]: unknown | string;
 };
 
 export type AuthRegisterDto = {
   email: string;
   password: string;
+  [key: string]: unknown | string;
 };
 
-/**
- * TwoFADisableRequestDto is used to request 2FA disable
- */
 export type AuthTwoFaDisableRequestDto = {
   email: string;
   password: string;
+  [key: string]: unknown | string;
 };
 
-/**
- * TwoFASetupRequestDto is used to request 2FA setup
- */
 export type AuthTwoFaSetupRequestDto = {
   email: string;
   password: string;
+  [key: string]: unknown | string;
 };
 
-/**
- * TwoFASetupResponseDto is used to respond with 2FA setup info
- */
 export type AuthTwoFaSetupResponseDto = {
-  provisioningUri?: string;
-  secret?: string;
+  provisioningUri: string;
+  secret: string;
 };
 
-/**
- * TwoFAVerifyRequestDto is used to verify a TOTP code
- */
 export type AuthTwoFaVerifyRequestDto = {
   code: string;
   email: string;
+  [key: string]: unknown | string;
 };
 
 export type AuthTwoFaVerifyResponseDto = {
-  message?: string;
-  success?: boolean;
+  message: string;
+  success: boolean;
 };
 
-/**
- * UpdatePasswordDto is used for updating user password
- */
 export type AuthUpdatePasswordDto = {
   currentPassword: string;
   newPassword: string;
+  [key: string]: unknown | string;
+};
+
+export type BruteforceBlockResponse = {
+  message: string;
+  retry_after: number;
+  success: boolean;
+};
+
+export type HealthcheckPushResponse = {
+  ok: string;
 };
 
 export type HeartbeatModel = {
-  down_count?: number;
-  duration?: number;
-  end_time?: string;
-  id?: string;
-  important?: boolean;
-  monitor_id?: string;
-  msg?: string;
-  notified?: boolean;
-  ping?: number;
-  retries?: number;
-  status?: SharedMonitorStatus;
-  time?: string;
+  down_count: number;
+  duration: number;
+  end_time: string;
+  id: string;
+  important: boolean;
+  monitor_id: string;
+  msg: string;
+  notified: boolean;
+  ping: number;
+  retries: number;
+  status: number;
+  time: string;
 };
 
-export type HeartbeatMonitorStatus = 0 | 1 | 2 | 3;
+export type HttpxErrorBody = {
+  data: null;
+  message: string;
+};
+
+export type HttpxNoBody = {
+  [key: string]: never;
+};
+
+export type HumaErrorDetail = {
+  /**
+   * Where the error occurred, e.g. 'body.items[3].tags' or 'path.thing-id'
+   */
+  location?: string;
+  /**
+   * Error message text
+   */
+  message?: string;
+  /**
+   * The value at the given location
+   */
+  value?: unknown;
+};
+
+export type HumaErrorModel = {
+  /**
+   * A human-readable explanation specific to this occurrence of the problem.
+   */
+  detail?: string;
+  /**
+   * Optional list of individual error details
+   */
+  errors?: Array<HumaErrorDetail> | null;
+  /**
+   * A URI reference that identifies the specific occurrence of the problem.
+   */
+  instance?: string;
+  /**
+   * HTTP status code
+   */
+  status?: number;
+  /**
+   * A short, human-readable summary of the problem type. This value should not change between occurrences of the error.
+   */
+  title?: string;
+  /**
+   * A URI reference to human-readable documentation for the error.
+   */
+  type?: string;
+};
+
+export type InternalHealthResponse = {
+  stale_monitors: number | null;
+  status: string;
+  watchdog_ran_at: string | null;
+};
+
+export type InternalVersionResponse = {
+  version: string;
+};
 
 export type MaintenanceCreateUpdateDto = {
   active?: boolean;
-  cron?: string;
-  days_of_month?: Array<number>;
+  cron?: string | null;
+  days_of_month?: Array<number> | null;
   description?: string;
+  duration?: number | null;
+  end_date_time?: string | null;
+  end_time?: string | null;
+  interval_day?: number | null;
+  monitor_ids?: Array<string> | null;
+  start_date_time?: string | null;
+  start_time?: string | null;
+  strategy: string;
+  timezone?: string | null;
+  title: string;
+  weekdays?: Array<number> | null;
+  [key: string]:
+    | unknown
+    | boolean
+    | (string | null)
+    | (Array<number> | null)
+    | string
+    | (number | null)
+    | (string | null)
+    | (string | null)
+    | (number | null)
+    | (Array<string> | null)
+    | (string | null)
+    | (string | null)
+    | (string | null)
+    | (Array<number> | null)
+    | undefined;
+};
+
+export type MaintenanceMaintenanceResponseDto = {
+  active: boolean;
+  created_at: string;
+  cron?: string;
+  days_of_month?: Array<number> | null;
+  description: string;
   duration?: number;
   end_date_time?: string;
   end_time?: string;
+  id: string;
   interval_day?: number;
-  monitor_ids?: Array<string>;
+  monitor_ids: Array<string> | null;
   start_date_time?: string;
   start_time?: string;
   strategy: string;
   timezone?: string;
   title: string;
-  weekdays?: Array<number>;
-};
-
-export type MaintenanceMaintenanceResponseDto = {
-  active?: boolean;
-  created_at?: string;
-  cron?: string;
-  days_of_month?: Array<number>;
-  description?: string;
-  duration?: number;
-  end_date_time?: string;
-  end_time?: string;
-  id?: string;
-  interval_day?: number;
-  monitor_ids?: Array<string>;
-  start_date_time?: string;
-  start_time?: string;
-  strategy?: string;
-  timezone?: string;
-  title?: string;
-  updated_at?: string;
-  weekdays?: Array<number>;
+  updated_at: string;
+  weekdays?: Array<number> | null;
 };
 
 export type MaintenanceModel = {
-  active?: boolean;
-  created_at?: string;
+  active: boolean;
+  created_at: string;
   cron?: string;
-  days_of_month?: Array<number>;
-  description?: string;
+  days_of_month?: Array<number> | null;
+  description: string;
   duration?: number;
   end_date_time?: string;
   end_time?: string;
-  id?: string;
+  id: string;
   interval_day?: number;
   start_date_time?: string;
   start_time?: string;
-  strategy?: string;
+  strategy: string;
   timezone?: string;
-  title?: string;
-  updated_at?: string;
-  weekdays?: Array<number>;
+  title: string;
+  updated_at: string;
+  weekdays?: Array<number> | null;
 };
 
 export type MaintenancePartialUpdateDto = {
-  active?: boolean;
-  cron?: string;
-  days_of_month?: Array<number>;
-  description?: string;
-  duration?: number;
-  end_date_time?: string;
-  end_time?: string;
-  interval_day?: number;
-  monitor_ids?: Array<string>;
-  start_date_time?: string;
-  start_time?: string;
-  strategy?: string;
-  timezone?: string;
-  title?: string;
-  weekdays?: Array<number>;
+  active?: boolean | null;
+  cron?: string | null;
+  days_of_month?: Array<number> | null;
+  description?: string | null;
+  duration?: number | null;
+  end_date_time?: string | null;
+  end_time?: string | null;
+  interval_day?: number | null;
+  monitor_ids?: Array<string> | null;
+  start_date_time?: string | null;
+  start_time?: string | null;
+  strategy?: string | null;
+  timezone?: string | null;
+  title?: string | null;
+  weekdays?: Array<number> | null;
+  [key: string]:
+    | unknown
+    | (boolean | null)
+    | (string | null)
+    | (Array<number> | null)
+    | (string | null)
+    | (number | null)
+    | (string | null)
+    | (string | null)
+    | (number | null)
+    | (Array<string> | null)
+    | (string | null)
+    | (string | null)
+    | (string | null)
+    | (string | null)
+    | (string | null)
+    | (Array<number> | null)
+    | undefined;
 };
 
 export type MonitorCreateUpdateDto = {
   active?: boolean;
   config?: string;
-  interval?: number;
+  interval: number;
   max_retries?: number;
   name: string;
   notification_ids: Array<string>;
   proxy_id?: string;
   push_token?: string;
   resend_interval?: number;
-  retry_interval?: number;
-  tag_ids?: Array<string>;
-  timeout?: number;
+  retry_interval: number;
+  tag_ids?: Array<string> | null;
+  timeout: number;
   type: string;
+  [key: string]:
+    | unknown
+    | boolean
+    | string
+    | number
+    | Array<string>
+    | (Array<string> | null)
+    | undefined;
 };
 
 export type MonitorCustomUptimeStatsDto = {
-  "24h"?: number;
-  "30d"?: number;
-  "365d"?: number;
-  "7d"?: number;
+  "24h": number;
+  "30d": number;
+  "365d": number;
+  "7d": number;
 };
 
 export type MonitorModel = {
-  active?: boolean;
-  config?: string;
-  created_at?: string;
-  id?: string;
-  /**
-   * monitor interval in seconds to do request to url
-   */
-  interval?: number;
-  /**
-   * Maximum retries before the service is marked as down and a notification is sent
-   */
-  max_retries?: number;
-  /**
-   * monitor name
-   */
-  name?: string;
-  proxy_id?: string;
-  push_token?: string;
-  /**
-   * Resend Notification if Down X times consecutively
-   */
-  resend_interval?: number;
-  /**
-   * Retry interval in seconds to do request to url
-   */
-  retry_interval?: number;
-  status?: SharedMonitorStatus;
-  /**
-   * monitor timeout in seconds to do request otherwise stop request
-   */
-  timeout?: number;
-  /**
-   * connection type: http, tcp, ping, etc
-   */
+  active: boolean;
+  config: string;
+  created_at: string;
+  id: string;
+  interval: number;
+  last_heartbeat?: HeartbeatModel;
+  max_retries: number;
+  name: string;
+  proxy_id: string;
+  push_token: string;
+  resend_interval: number;
+  retry_interval: number;
+  stale_since?: string;
+  status: number;
+  timeout: number;
   type: string;
-  updated_at?: string;
+  updated_at: string;
 };
 
 export type MonitorMonitorResponseDto = {
-  active?: boolean;
-  config?: string;
-  created_at?: string;
-  id?: string;
-  interval?: number;
-  max_retries?: number;
-  name?: string;
-  notification_ids?: Array<string>;
-  proxy_id?: string;
-  push_token?: string;
-  resend_interval?: number;
-  retry_interval?: number;
-  status?: number;
-  tag_ids?: Array<string>;
-  timeout?: number;
-  type?: string;
-  updated_at?: string;
+  active: boolean;
+  config: string;
+  created_at: string;
+  id: string;
+  interval: number;
+  max_retries: number;
+  name: string;
+  notification_ids: Array<string> | null;
+  proxy_id: string;
+  push_token: string;
+  resend_interval: number;
+  retry_interval: number;
+  stale_since?: string;
+  status: number;
+  tag_ids: Array<string> | null;
+  timeout: number;
+  type: string;
+  updated_at: string;
 };
 
 export type MonitorPartialUpdateDto = {
-  active?: boolean;
-  config?: string;
-  interval?: number;
-  max_retries?: number;
-  name?: string;
-  notification_ids?: Array<string>;
-  proxy_id?: string;
-  push_token?: string;
-  resend_interval?: number;
-  retry_interval?: number;
-  status?: HeartbeatMonitorStatus;
-  tag_ids?: Array<string>;
-  timeout?: number;
-  type?: string;
+  active?: boolean | null;
+  config?: string | null;
+  interval?: number | null;
+  max_retries?: number | null;
+  name?: string | null;
+  notification_ids?: Array<string> | null;
+  proxy_id?: string | null;
+  push_token?: string | null;
+  resend_interval?: number | null;
+  retry_interval?: number | null;
+  status?: number | null;
+  tag_ids?: Array<string> | null;
+  timeout?: number | null;
+  type?: string | null;
+  [key: string]:
+    | unknown
+    | (boolean | null)
+    | (string | null)
+    | (number | null)
+    | (number | null)
+    | (string | null)
+    | (Array<string> | null)
+    | (string | null)
+    | (string | null)
+    | (number | null)
+    | (number | null)
+    | (number | null)
+    | (Array<string> | null)
+    | (number | null)
+    | (string | null)
+    | undefined;
 };
 
 export type MonitorStatPoint = {
-  down?: number;
-  maintenance?: number;
-  ping?: number;
-  ping_max?: number;
-  ping_min?: number;
-  timestamp?: number;
-  up?: number;
+  down: number;
+  maintenance: number;
+  ping: number;
+  ping_max: number;
+  ping_min: number;
+  timestamp: number;
+  up: number;
 };
 
-/**
- * Stat points and summary for a period
- */
 export type MonitorStatPointsSummaryDto = {
-  avgPing?: number;
-  maxPing?: number;
-  minPing?: number;
-  points?: Array<MonitorStatPoint>;
-  uptime?: number;
+  avgPing: number | null;
+  maxPing: number | null;
+  minPing: number | null;
+  points: Array<MonitorStatPoint> | null;
+  uptime: number | null;
 };
 
 export type NotificationChannelCreateUpdateDto = {
@@ -342,25 +447,34 @@ export type NotificationChannelCreateUpdateDto = {
   is_default?: boolean;
   name?: string;
   type?: string;
+  [key: string]: unknown | boolean | string | undefined;
 };
 
 export type NotificationChannelModel = {
-  active?: boolean;
-  config?: string;
-  created_at?: string;
-  id?: string;
-  is_default?: boolean;
-  name?: string;
-  type?: string;
-  updated_at?: string;
+  active: boolean;
+  config: string | null;
+  created_at: string;
+  id: string;
+  is_default: boolean;
+  name: string;
+  type: string;
+  updated_at: string;
 };
 
 export type NotificationChannelPartialUpdateDto = {
-  active?: boolean;
-  config?: string;
-  is_default?: boolean;
-  name?: string;
-  type?: string;
+  active?: boolean | null;
+  config?: string | null;
+  is_default?: boolean | null;
+  name?: string | null;
+  type?: string | null;
+  [key: string]:
+    | unknown
+    | (boolean | null)
+    | (string | null)
+    | (boolean | null)
+    | (string | null)
+    | (string | null)
+    | undefined;
 };
 
 export type ProxyCreateUpdateDto = {
@@ -370,54 +484,103 @@ export type ProxyCreateUpdateDto = {
   port: number;
   protocol: "http" | "https" | "socks" | "socks4" | "socks5" | "socks5h";
   username?: string;
+  [key: string]:
+    | unknown
+    | boolean
+    | string
+    | number
+    | ("http" | "https" | "socks" | "socks4" | "socks5" | "socks5h")
+    | undefined;
 };
 
 export type ProxyModel = {
-  auth?: boolean;
-  createdDate?: string;
-  host?: string;
-  id?: string;
+  auth: boolean;
+  createdDate: string;
+  host: string;
+  id: string;
   password?: string;
-  port?: number;
-  protocol?: string;
-  updatedAt?: string;
+  port: number;
+  protocol: string;
+  updatedAt: string;
   username?: string;
 };
 
 export type ProxyPartialUpdateDto = {
-  auth?: boolean;
-  host?: string;
-  password?: string;
-  port?: number;
-  protocol?: "http" | "https" | "socks" | "socks4" | "socks5" | "socks5h";
-  username?: string;
+  auth?: boolean | null;
+  host?: string | null;
+  password?: string | null;
+  port?: number | null;
+  protocol?:
+    | "http"
+    | "https"
+    | "socks"
+    | "socks4"
+    | "socks5"
+    | "socks5h"
+    | null;
+  username?: string | null;
+  [key: string]:
+    | unknown
+    | (boolean | null)
+    | (string | null)
+    | (string | null)
+    | (number | null)
+    | ("http" | "https" | "socks" | "socks4" | "socks5" | "socks5h" | null)
+    | (string | null)
+    | undefined;
 };
 
 export type SettingCreateUpdateDto = {
   type: "string" | "int" | "bool" | "json";
   value?: string;
+  [key: string]:
+    | unknown
+    | ("string" | "int" | "bool" | "json")
+    | string
+    | undefined;
 };
 
-export type SettingModel = {
-  created_at?: string;
-  id?: string;
-  key?: string;
-  type?: string;
-  updated_at?: string;
-  value?: string;
+export type SharedCertificateInfo = {
+  certType: string;
+  daysRemaining: number;
+  fingerprint: string;
+  fingerprint256: string;
+  issuer: string;
+  issuerCertificate?: SharedCertificateInfo;
+  keySize?: number;
+  publicKeyAlgorithm: string;
+  serialNumber: string;
+  signatureAlgorithm: string;
+  subject: string;
+  validFor?: Array<string> | null;
+  validFrom: string;
+  validTo: string;
+  version: number;
 };
 
-export type SharedMonitorStatus = 0 | 1 | 2 | 3;
+export type SharedSettingModel = {
+  created_at: string;
+  id: string;
+  key: string;
+  type: string;
+  updated_at: string;
+  value: string;
+};
+
+export type SharedTlsInfo = {
+  certInfo?: SharedCertificateInfo;
+  valid: boolean;
+};
 
 export type StatusPageCreateStatusPageDto = {
   auto_refresh_interval?: number;
   custom_css?: string;
   description?: string;
-  domains?: Array<string>;
+  domains?: Array<string> | null;
   footer_text?: string;
   google_analytics_tag_id?: string;
   icon?: string;
-  monitor_ids?: Array<string>;
+  monitor_ids?: Array<string> | null;
   password?: string;
   published?: boolean;
   search_engine_index?: boolean;
@@ -427,110 +590,194 @@ export type StatusPageCreateStatusPageDto = {
   slug: string;
   theme?: string;
   title: string;
+  [key: string]:
+    | unknown
+    | number
+    | string
+    | (Array<string> | null)
+    | (Array<string> | null)
+    | boolean
+    | undefined;
+};
+
+export type StatusPageDomainAlreadyUsedError = {
+  code: string;
+  domain: string;
+};
+
+export type StatusPageDomainErrorResponse = {
+  error: StatusPageDomainAlreadyUsedError;
 };
 
 export type StatusPageModel = {
-  auto_refresh_interval?: number;
-  created_at?: string;
-  description?: string;
-  footer_text?: string;
-  icon?: string;
-  id?: string;
-  published?: boolean;
-  slug?: string;
-  theme?: string;
-  title?: string;
-  updated_at?: string;
+  auto_refresh_interval: number;
+  created_at: string;
+  description: string;
+  footer_text: string;
+  icon: string;
+  id: string;
+  published: boolean;
+  slug: string;
+  theme: string;
+  title: string;
+  updated_at: string;
 };
 
 export type StatusPageMonitorWithHeartbeatsAndUptimeDto = {
-  active?: boolean;
-  heartbeats?: Array<StatusPagePublicHeartbeatDto>;
-  id?: string;
-  name?: string;
+  active: boolean;
+  heartbeats: Array<StatusPagePublicHeartbeatDto> | null;
+  id: string;
+  name: string;
   type: string;
-  uptime_24h?: number;
+  uptime_24h: number;
 };
 
 export type StatusPagePublicHeartbeatDto = {
-  end_time?: string;
-  id?: string;
-  ping?: number;
-  status?: SharedMonitorStatus;
-  time?: string;
+  end_time: string;
+  id: string;
+  ping: number;
+  status: number;
+  time: string;
 };
 
 export type StatusPageStatusPageWithMonitorsResponseDto = {
-  auto_refresh_interval?: number;
-  created_at?: string;
-  custom_css?: string;
-  description?: string;
-  domains?: Array<string>;
-  footer_text?: string;
-  google_analytics_tag_id?: string;
-  icon?: string;
-  id?: string;
-  monitor_ids?: Array<string>;
+  auto_refresh_interval: number;
+  created_at: string;
+  custom_css: string;
+  description: string;
+  domains: Array<string> | null;
+  footer_text: string;
+  google_analytics_tag_id: string;
+  icon: string;
+  id: string;
+  monitor_ids: Array<string> | null;
   password?: string;
-  published?: boolean;
-  search_engine_index?: boolean;
-  show_certificate_expiry?: boolean;
-  show_powered_by?: boolean;
-  show_tags?: boolean;
-  slug?: string;
-  theme?: string;
-  title?: string;
-  updated_at?: string;
+  published: boolean;
+  search_engine_index: boolean;
+  show_certificate_expiry: boolean;
+  show_powered_by: boolean;
+  show_tags: boolean;
+  slug: string;
+  theme: string;
+  title: string;
+  updated_at: string;
 };
 
 export type StatusPageUpdateStatusPageDto = {
-  auto_refresh_interval?: number;
-  custom_css?: string;
-  description?: string;
-  domains?: Array<string>;
-  footer_text?: string;
-  google_analytics_tag_id?: string;
-  icon?: string;
-  monitor_ids?: Array<string>;
-  password?: string;
-  published?: boolean;
-  search_engine_index?: boolean;
-  show_certificate_expiry?: boolean;
-  show_powered_by?: boolean;
-  show_tags?: boolean;
-  slug?: string;
-  theme?: string;
-  title?: string;
+  auto_refresh_interval?: number | null;
+  custom_css?: string | null;
+  description?: string | null;
+  domains?: Array<string> | null;
+  footer_text?: string | null;
+  google_analytics_tag_id?: string | null;
+  icon?: string | null;
+  monitor_ids?: Array<string> | null;
+  password?: string | null;
+  published?: boolean | null;
+  search_engine_index?: boolean | null;
+  show_certificate_expiry?: boolean | null;
+  show_powered_by?: boolean | null;
+  show_tags?: boolean | null;
+  slug?: string | null;
+  theme?: string | null;
+  title?: string | null;
+  [key: string]:
+    | unknown
+    | (number | null)
+    | (string | null)
+    | (string | null)
+    | (Array<string> | null)
+    | (string | null)
+    | (string | null)
+    | (string | null)
+    | (Array<string> | null)
+    | (string | null)
+    | (boolean | null)
+    | (boolean | null)
+    | (boolean | null)
+    | (boolean | null)
+    | (boolean | null)
+    | (string | null)
+    | (string | null)
+    | (string | null)
+    | undefined;
 };
 
 export type TagCreateUpdateDto = {
   color: string;
-  description?: string;
+  description?: string | null;
   name: string;
+  [key: string]: unknown | string | (string | null) | undefined;
 };
 
 export type TagModel = {
-  color?: string;
-  created_at?: string;
-  description?: string;
-  id?: string;
-  name?: string;
-  updated_at?: string;
+  color: string;
+  created_at: string;
+  description: string | null;
+  id: string;
+  name: string;
+  updated_at: string;
 };
 
 export type TagPartialUpdateDto = {
-  color?: string;
-  description?: string;
-  name?: string;
-};
-
-export type UtilsApiError = {
-  message: string;
-  status: string;
+  color?: string | null;
+  description?: string | null;
+  name?: string | null;
+  [key: string]:
+    | unknown
+    | (string | null)
+    | (string | null)
+    | (string | null)
+    | undefined;
 };
 
 export type UtilsApiResponseAny = {
   data: unknown;
+  message: string;
+};
+
+export type UtilsApiResponseArrayApiKeyApiKeyResponse = {
+  data: Array<ApiKeyApiKeyResponse> | null;
+  message: string;
+};
+
+export type UtilsApiResponseArrayHeartbeatModel = {
+  data: Array<HeartbeatModel> | null;
+  message: string;
+};
+
+export type UtilsApiResponseArrayMaintenanceModel = {
+  data: Array<MaintenanceModel> | null;
+  message: string;
+};
+
+export type UtilsApiResponseArrayMonitorModel = {
+  data: Array<MonitorModel> | null;
+  message: string;
+};
+
+export type UtilsApiResponseArrayNotificationChannelModel = {
+  data: Array<NotificationChannelModel> | null;
+  message: string;
+};
+
+export type UtilsApiResponseArrayProxyModel = {
+  data: Array<ProxyModel> | null;
+  message: string;
+};
+
+export type UtilsApiResponseArrayStatusPageModel = {
+  data: Array<StatusPageModel> | null;
+  message: string;
+};
+
+export type UtilsApiResponseArrayStatusPageMonitorWithHeartbeatsAndUptimeDto = {
+  data: Array<StatusPageMonitorWithHeartbeatsAndUptimeDto> | null;
+  message: string;
+};
+
+export type UtilsApiResponseArrayTagModel = {
+  data: Array<TagModel> | null;
   message: string;
 };
 
@@ -546,51 +793,6 @@ export type UtilsApiResponseApiKeyApiKeyResponse = {
 
 export type UtilsApiResponseApiKeyApiKeyWithTokenResponse = {
   data: ApiKeyApiKeyWithTokenResponse;
-  message: string;
-};
-
-export type UtilsApiResponseArrayApiKeyApiKeyResponse = {
-  data: Array<ApiKeyApiKeyResponse>;
-  message: string;
-};
-
-export type UtilsApiResponseArrayHeartbeatModel = {
-  data: Array<HeartbeatModel>;
-  message: string;
-};
-
-export type UtilsApiResponseArrayMaintenanceModel = {
-  data: Array<MaintenanceModel>;
-  message: string;
-};
-
-export type UtilsApiResponseArrayMonitorModel = {
-  data: Array<MonitorModel>;
-  message: string;
-};
-
-export type UtilsApiResponseArrayNotificationChannelModel = {
-  data: Array<NotificationChannelModel>;
-  message: string;
-};
-
-export type UtilsApiResponseArrayProxyModel = {
-  data: Array<ProxyModel>;
-  message: string;
-};
-
-export type UtilsApiResponseArrayStatusPageModel = {
-  data: Array<StatusPageModel>;
-  message: string;
-};
-
-export type UtilsApiResponseArrayStatusPageMonitorWithHeartbeatsAndUptimeDto = {
-  data: Array<StatusPageMonitorWithHeartbeatsAndUptimeDto>;
-  message: string;
-};
-
-export type UtilsApiResponseArrayTagModel = {
-  data: Array<TagModel>;
   message: string;
 };
 
@@ -639,8 +841,8 @@ export type UtilsApiResponseProxyModel = {
   message: string;
 };
 
-export type UtilsApiResponseSettingModel = {
-  data: SettingModel;
+export type UtilsApiResponseSharedSettingModel = {
+  data: SharedSettingModel;
   message: string;
 };
 
@@ -659,18 +861,27 @@ export type UtilsApiResponseTagModel = {
   message: string;
 };
 
+export type UtilsNullableApiResponseSharedTlsInfo = {
+  data: SharedTlsInfo | null;
+  message: string;
+};
+
 export type GetApiKeysData = {
   body?: never;
   path?: never;
   query?: never;
-  url: "/api-keys";
+  url: "/api/v1/api-keys";
 };
 
 export type GetApiKeysErrors = {
   /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type GetApiKeysError = GetApiKeysErrors[keyof GetApiKeysErrors];
@@ -685,24 +896,25 @@ export type GetApiKeysResponses = {
 export type GetApiKeysResponse = GetApiKeysResponses[keyof GetApiKeysResponses];
 
 export type PostApiKeysData = {
-  /**
-   * API key creation data
-   */
   body: ApiKeyCreateApiKeyDto;
   path?: never;
   query?: never;
-  url: "/api-keys";
+  url: "/api/v1/api-keys";
 };
 
 export type PostApiKeysErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type PostApiKeysError = PostApiKeysErrors[keyof PostApiKeysErrors];
@@ -721,7 +933,7 @@ export type GetApiKeysConfigData = {
   body?: never;
   path?: never;
   query?: never;
-  url: "/api-keys/config";
+  url: "/api/v1/api-keys/config";
 };
 
 export type GetApiKeysConfigResponses = {
@@ -743,18 +955,22 @@ export type DeleteApiKeysByIdData = {
     id: string;
   };
   query?: never;
-  url: "/api-keys/{id}";
+  url: "/api/v1/api-keys/{id}";
 };
 
 export type DeleteApiKeysByIdErrors = {
   /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type DeleteApiKeysByIdError =
@@ -764,8 +980,11 @@ export type DeleteApiKeysByIdResponses = {
   /**
    * No Content
    */
-  204: unknown;
+  204: void;
 };
+
+export type DeleteApiKeysByIdResponse =
+  DeleteApiKeysByIdResponses[keyof DeleteApiKeysByIdResponses];
 
 export type GetApiKeysByIdData = {
   body?: never;
@@ -776,18 +995,22 @@ export type GetApiKeysByIdData = {
     id: string;
   };
   query?: never;
-  url: "/api-keys/{id}";
+  url: "/api/v1/api-keys/{id}";
 };
 
 export type GetApiKeysByIdErrors = {
   /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type GetApiKeysByIdError =
@@ -804,9 +1027,6 @@ export type GetApiKeysByIdResponse =
   GetApiKeysByIdResponses[keyof GetApiKeysByIdResponses];
 
 export type PutApiKeysByIdData = {
-  /**
-   * API key update data
-   */
   body: ApiKeyUpdateApiKeyDto;
   path: {
     /**
@@ -815,22 +1035,26 @@ export type PutApiKeysByIdData = {
     id: string;
   };
   query?: never;
-  url: "/api-keys/{id}";
+  url: "/api/v1/api-keys/{id}";
 };
 
 export type PutApiKeysByIdErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type PutApiKeysByIdError =
@@ -847,24 +1071,21 @@ export type PutApiKeysByIdResponse =
   PutApiKeysByIdResponses[keyof PutApiKeysByIdResponses];
 
 export type PostAuth2FaDisableData = {
-  /**
-   * 2FA disable request
-   */
   body: AuthTwoFaDisableRequestDto;
   path?: never;
   query?: never;
-  url: "/auth/2fa/disable";
+  url: "/api/v1/auth/2fa/disable";
 };
 
 export type PostAuth2FaDisableErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
   /**
-   * Internal Server Error
+   * Unauthorized
    */
-  500: UtilsApiError;
+  401: HttpxErrorBody;
 };
 
 export type PostAuth2FaDisableError =
@@ -881,24 +1102,21 @@ export type PostAuth2FaDisableResponse =
   PostAuth2FaDisableResponses[keyof PostAuth2FaDisableResponses];
 
 export type PostAuth2FaSetupData = {
-  /**
-   * 2FA setup request
-   */
   body: AuthTwoFaSetupRequestDto;
   path?: never;
   query?: never;
-  url: "/auth/2fa/setup";
+  url: "/api/v1/auth/2fa/setup";
 };
 
 export type PostAuth2FaSetupErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
   /**
-   * Internal Server Error
+   * Unauthorized
    */
-  500: UtilsApiError;
+  401: HttpxErrorBody;
 };
 
 export type PostAuth2FaSetupError =
@@ -915,24 +1133,21 @@ export type PostAuth2FaSetupResponse =
   PostAuth2FaSetupResponses[keyof PostAuth2FaSetupResponses];
 
 export type PostAuth2FaVerifyData = {
-  /**
-   * 2FA verify request
-   */
   body: AuthTwoFaVerifyRequestDto;
   path?: never;
   query?: never;
-  url: "/auth/2fa/verify";
+  url: "/api/v1/auth/2fa/verify";
 };
 
 export type PostAuth2FaVerifyErrors = {
   /**
    * Bad Request
    */
-  400: AuthTwoFaVerifyResponseDto;
+  400: AuthTwoFaVerifyResponseDto | HttpxErrorBody;
   /**
-   * Internal Server Error
+   * Unauthorized
    */
-  500: UtilsApiError;
+  401: HttpxErrorBody;
 };
 
 export type PostAuth2FaVerifyError =
@@ -949,28 +1164,25 @@ export type PostAuth2FaVerifyResponse =
   PostAuth2FaVerifyResponses[keyof PostAuth2FaVerifyResponses];
 
 export type PostAuthLoginData = {
-  /**
-   * Login data
-   */
   body: AuthLoginDto;
   path?: never;
   query?: never;
-  url: "/auth/login";
+  url: "/api/v1/auth/login";
 };
 
 export type PostAuthLoginErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
   /**
    * Unauthorized
    */
-  401: UtilsApiError;
+  401: HttpxErrorBody;
   /**
-   * Internal Server Error
+   * Too Many Requests
    */
-  500: UtilsApiError;
+  429: BruteforceBlockResponse;
 };
 
 export type PostAuthLoginError = PostAuthLoginErrors[keyof PostAuthLoginErrors];
@@ -986,28 +1198,25 @@ export type PostAuthLoginResponse =
   PostAuthLoginResponses[keyof PostAuthLoginResponses];
 
 export type PutAuthPasswordData = {
-  /**
-   * Password update data
-   */
   body: AuthUpdatePasswordDto;
   path?: never;
   query?: never;
-  url: "/auth/password";
+  url: "/api/v1/auth/password";
 };
 
 export type PutAuthPasswordErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
   /**
    * Unauthorized
    */
-  401: UtilsApiError;
+  401: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type PutAuthPasswordError =
@@ -1024,28 +1233,21 @@ export type PutAuthPasswordResponse =
   PutAuthPasswordResponses[keyof PutAuthPasswordResponses];
 
 export type PostAuthRefreshData = {
-  /**
-   * Refresh token data
-   */
   body: AuthRefreshTokenDto;
   path?: never;
   query?: never;
-  url: "/auth/refresh";
+  url: "/api/v1/auth/refresh";
 };
 
 export type PostAuthRefreshErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
   /**
    * Unauthorized
    */
-  401: UtilsApiError;
-  /**
-   * Internal Server Error
-   */
-  500: UtilsApiError;
+  401: HttpxErrorBody;
 };
 
 export type PostAuthRefreshError =
@@ -1062,24 +1264,21 @@ export type PostAuthRefreshResponse =
   PostAuthRefreshResponses[keyof PostAuthRefreshResponses];
 
 export type PostAuthRegisterData = {
-  /**
-   * Registration data
-   */
   body: AuthRegisterDto;
   path?: never;
   query?: never;
-  url: "/auth/register";
+  url: "/api/v1/auth/register";
 };
 
 export type PostAuthRegisterErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type PostAuthRegisterError =
@@ -1120,23 +1319,63 @@ export type GetBadgeByMonitorIdCertExpData = {
      * Days before expiry to show as down
      */
     downDays?: number;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    color?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    labelColor?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    upLabel?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    downLabel?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    upColor?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    downColor?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    labelPrefix?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    labelSuffix?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    prefix?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    suffix?: string;
   };
-  url: "/badge/{monitorId}/cert-exp";
+  url: "/api/v1/badge/{monitorId}/cert-exp";
 };
 
 export type GetBadgeByMonitorIdCertExpErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type GetBadgeByMonitorIdCertExpError =
@@ -1144,7 +1383,7 @@ export type GetBadgeByMonitorIdCertExpError =
 
 export type GetBadgeByMonitorIdCertExpResponses = {
   /**
-   * SVG badge
+   * OK
    */
   200: Blob | File;
 };
@@ -1152,17 +1391,13 @@ export type GetBadgeByMonitorIdCertExpResponses = {
 export type GetBadgeByMonitorIdCertExpResponse =
   GetBadgeByMonitorIdCertExpResponses[keyof GetBadgeByMonitorIdCertExpResponses];
 
-export type GetBadgeByMonitorIdPingByDurationData = {
+export type GetBadgeByMonitorIdPingData = {
   body?: never;
   path: {
     /**
      * Monitor ID
      */
     monitorId: string;
-    /**
-     * Duration in hours
-     */
-    duration: number;
   };
   query?: {
     /**
@@ -1181,23 +1416,164 @@ export type GetBadgeByMonitorIdPingByDurationData = {
      * Badge color
      */
     color?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    labelColor?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    upLabel?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    downLabel?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    upColor?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    downColor?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    labelPrefix?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    labelSuffix?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    prefix?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    warnDays?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    downDays?: string;
   };
-  url: "/badge/{monitorId}/ping/{duration}";
+  url: "/api/v1/badge/{monitorId}/ping";
+};
+
+export type GetBadgeByMonitorIdPingErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type GetBadgeByMonitorIdPingError =
+  GetBadgeByMonitorIdPingErrors[keyof GetBadgeByMonitorIdPingErrors];
+
+export type GetBadgeByMonitorIdPingResponses = {
+  /**
+   * OK
+   */
+  200: Blob | File;
+};
+
+export type GetBadgeByMonitorIdPingResponse =
+  GetBadgeByMonitorIdPingResponses[keyof GetBadgeByMonitorIdPingResponses];
+
+export type GetBadgeByMonitorIdPingByDurationData = {
+  body?: never;
+  path: {
+    /**
+     * Monitor ID
+     */
+    monitorId: string;
+    /**
+     * Hours; absent or invalid values use 24.
+     */
+    duration: string;
+  };
+  query?: {
+    /**
+     * Badge style
+     */
+    style?: string;
+    /**
+     * Custom label
+     */
+    label?: string;
+    /**
+     * Value suffix
+     */
+    suffix?: string;
+    /**
+     * Badge color
+     */
+    color?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    labelColor?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    upLabel?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    downLabel?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    upColor?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    downColor?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    labelPrefix?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    labelSuffix?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    prefix?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    warnDays?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    downDays?: string;
+  };
+  url: "/api/v1/badge/{monitorId}/ping/{duration}";
 };
 
 export type GetBadgeByMonitorIdPingByDurationErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type GetBadgeByMonitorIdPingByDurationError =
@@ -1205,7 +1581,7 @@ export type GetBadgeByMonitorIdPingByDurationError =
 
 export type GetBadgeByMonitorIdPingByDurationResponses = {
   /**
-   * SVG badge
+   * OK
    */
   200: Blob | File;
 };
@@ -1238,23 +1614,63 @@ export type GetBadgeByMonitorIdResponseData = {
      * Badge color
      */
     color?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    labelColor?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    upLabel?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    downLabel?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    upColor?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    downColor?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    labelPrefix?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    labelSuffix?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    prefix?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    warnDays?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    downDays?: string;
   };
-  url: "/badge/{monitorId}/response";
+  url: "/api/v1/badge/{monitorId}/response";
 };
 
 export type GetBadgeByMonitorIdResponseErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type GetBadgeByMonitorIdResponseError =
@@ -1262,7 +1678,7 @@ export type GetBadgeByMonitorIdResponseError =
 
 export type GetBadgeByMonitorIdResponseResponses = {
   /**
-   * SVG badge
+   * OK
    */
   200: Blob | File;
 };
@@ -1299,23 +1715,59 @@ export type GetBadgeByMonitorIdStatusData = {
      * Color when monitor is down
      */
     downColor?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    color?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    labelColor?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    labelPrefix?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    label?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    labelSuffix?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    prefix?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    suffix?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    warnDays?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    downDays?: string;
   };
-  url: "/badge/{monitorId}/status";
+  url: "/api/v1/badge/{monitorId}/status";
 };
 
 export type GetBadgeByMonitorIdStatusErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type GetBadgeByMonitorIdStatusError =
@@ -1323,7 +1775,7 @@ export type GetBadgeByMonitorIdStatusError =
 
 export type GetBadgeByMonitorIdStatusResponses = {
   /**
-   * SVG badge
+   * OK
    */
   200: Blob | File;
 };
@@ -1331,17 +1783,13 @@ export type GetBadgeByMonitorIdStatusResponses = {
 export type GetBadgeByMonitorIdStatusResponse =
   GetBadgeByMonitorIdStatusResponses[keyof GetBadgeByMonitorIdStatusResponses];
 
-export type GetBadgeByMonitorIdUptimeByDurationData = {
+export type GetBadgeByMonitorIdUptimeData = {
   body?: never;
   path: {
     /**
      * Monitor ID
      */
     monitorId: string;
-    /**
-     * Duration in hours (24, 720, 2160)
-     */
-    duration: number;
   };
   query?: {
     /**
@@ -1360,23 +1808,164 @@ export type GetBadgeByMonitorIdUptimeByDurationData = {
      * Badge color
      */
     color?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    labelColor?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    upLabel?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    downLabel?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    upColor?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    downColor?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    labelPrefix?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    labelSuffix?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    prefix?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    warnDays?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    downDays?: string;
   };
-  url: "/badge/{monitorId}/uptime/{duration}";
+  url: "/api/v1/badge/{monitorId}/uptime";
+};
+
+export type GetBadgeByMonitorIdUptimeErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type GetBadgeByMonitorIdUptimeError =
+  GetBadgeByMonitorIdUptimeErrors[keyof GetBadgeByMonitorIdUptimeErrors];
+
+export type GetBadgeByMonitorIdUptimeResponses = {
+  /**
+   * OK
+   */
+  200: Blob | File;
+};
+
+export type GetBadgeByMonitorIdUptimeResponse =
+  GetBadgeByMonitorIdUptimeResponses[keyof GetBadgeByMonitorIdUptimeResponses];
+
+export type GetBadgeByMonitorIdUptimeByDurationData = {
+  body?: never;
+  path: {
+    /**
+     * Monitor ID
+     */
+    monitorId: string;
+    /**
+     * Hours; absent or invalid values use 24.
+     */
+    duration: string;
+  };
+  query?: {
+    /**
+     * Badge style
+     */
+    style?: string;
+    /**
+     * Custom label
+     */
+    label?: string;
+    /**
+     * Value suffix
+     */
+    suffix?: string;
+    /**
+     * Badge color
+     */
+    color?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    labelColor?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    upLabel?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    downLabel?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    upColor?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    downColor?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    labelPrefix?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    labelSuffix?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    prefix?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    warnDays?: string;
+    /**
+     * Invalid options fall back to defaults.
+     */
+    downDays?: string;
+  };
+  url: "/api/v1/badge/{monitorId}/uptime/{duration}";
 };
 
 export type GetBadgeByMonitorIdUptimeByDurationErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type GetBadgeByMonitorIdUptimeByDurationError =
@@ -1384,7 +1973,7 @@ export type GetBadgeByMonitorIdUptimeByDurationError =
 
 export type GetBadgeByMonitorIdUptimeByDurationResponses = {
   /**
-   * SVG badge
+   * OK
    */
   200: Blob | File;
 };
@@ -1396,16 +1985,14 @@ export type GetHealthData = {
   body?: never;
   path?: never;
   query?: never;
-  url: "/health";
+  url: "/api/v1/health";
 };
 
 export type GetHealthResponses = {
   /**
-   * {"status": "success"}
+   * OK
    */
-  200: {
-    [key: string]: string;
-  };
+  200: InternalHealthResponse;
 };
 
 export type GetHealthResponse = GetHealthResponses[keyof GetHealthResponses];
@@ -1431,22 +2018,22 @@ export type GetMaintenancesData = {
      */
     limit?: number;
   };
-  url: "/maintenances";
+  url: "/api/v1/maintenances";
 };
 
 export type GetMaintenancesErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
   /**
-   * Not Found
+   * Unauthorized
    */
-  404: UtilsApiError;
+  401: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type GetMaintenancesError =
@@ -1463,24 +2050,25 @@ export type GetMaintenancesResponse =
   GetMaintenancesResponses[keyof GetMaintenancesResponses];
 
 export type PostMaintenancesData = {
-  /**
-   * Maintenance object
-   */
   body: MaintenanceCreateUpdateDto;
   path?: never;
   query?: never;
-  url: "/maintenances";
+  url: "/api/v1/maintenances";
 };
 
 export type PostMaintenancesErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type PostMaintenancesError =
@@ -1505,22 +2093,22 @@ export type DeleteMaintenancesByIdData = {
     id: string;
   };
   query?: never;
-  url: "/maintenances/{id}";
+  url: "/api/v1/maintenances/{id}";
 };
 
 export type DeleteMaintenancesByIdErrors = {
   /**
-   * Bad Request
+   * Unauthorized
    */
-  400: UtilsApiError;
+  401: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type DeleteMaintenancesByIdError =
@@ -1545,22 +2133,22 @@ export type GetMaintenancesByIdData = {
     id: string;
   };
   query?: never;
-  url: "/maintenances/{id}";
+  url: "/api/v1/maintenances/{id}";
 };
 
 export type GetMaintenancesByIdErrors = {
   /**
-   * Bad Request
+   * Unauthorized
    */
-  400: UtilsApiError;
+  401: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type GetMaintenancesByIdError =
@@ -1577,9 +2165,6 @@ export type GetMaintenancesByIdResponse =
   GetMaintenancesByIdResponses[keyof GetMaintenancesByIdResponses];
 
 export type PatchMaintenancesByIdData = {
-  /**
-   * Maintenance object
-   */
   body: MaintenancePartialUpdateDto;
   path: {
     /**
@@ -1588,22 +2173,26 @@ export type PatchMaintenancesByIdData = {
     id: string;
   };
   query?: never;
-  url: "/maintenances/{id}";
+  url: "/api/v1/maintenances/{id}";
 };
 
 export type PatchMaintenancesByIdErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type PatchMaintenancesByIdError =
@@ -1620,9 +2209,6 @@ export type PatchMaintenancesByIdResponse =
   PatchMaintenancesByIdResponses[keyof PatchMaintenancesByIdResponses];
 
 export type PutMaintenancesByIdData = {
-  /**
-   * Maintenance object
-   */
   body: MaintenanceCreateUpdateDto;
   path: {
     /**
@@ -1631,22 +2217,26 @@ export type PutMaintenancesByIdData = {
     id: string;
   };
   query?: never;
-  url: "/maintenances/{id}";
+  url: "/api/v1/maintenances/{id}";
 };
 
 export type PutMaintenancesByIdErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type PutMaintenancesByIdError =
@@ -1671,22 +2261,22 @@ export type PatchMaintenancesByIdPauseData = {
     id: string;
   };
   query?: never;
-  url: "/maintenances/{id}/pause";
+  url: "/api/v1/maintenances/{id}/pause";
 };
 
 export type PatchMaintenancesByIdPauseErrors = {
   /**
-   * Bad Request
+   * Unauthorized
    */
-  400: UtilsApiError;
+  401: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type PatchMaintenancesByIdPauseError =
@@ -1711,22 +2301,22 @@ export type PatchMaintenancesByIdResumeData = {
     id: string;
   };
   query?: never;
-  url: "/maintenances/{id}/resume";
+  url: "/api/v1/maintenances/{id}/resume";
 };
 
 export type PatchMaintenancesByIdResumeErrors = {
   /**
-   * Bad Request
+   * Unauthorized
    */
-  400: UtilsApiError;
+  401: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type PatchMaintenancesByIdResumeError =
@@ -1771,22 +2361,22 @@ export type GetMonitorsData = {
      */
     tag_ids?: string;
   };
-  url: "/monitors";
+  url: "/api/v1/monitors";
 };
 
 export type GetMonitorsErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
   /**
-   * Not Found
+   * Unauthorized
    */
-  404: UtilsApiError;
+  401: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type GetMonitorsError = GetMonitorsErrors[keyof GetMonitorsErrors];
@@ -1802,24 +2392,25 @@ export type GetMonitorsResponse =
   GetMonitorsResponses[keyof GetMonitorsResponses];
 
 export type PostMonitorsData = {
-  /**
-   * Monitor object
-   */
   body: MonitorCreateUpdateDto;
   path?: never;
   query?: never;
-  url: "/monitors";
+  url: "/api/v1/monitors";
 };
 
 export type PostMonitorsErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type PostMonitorsError = PostMonitorsErrors[keyof PostMonitorsErrors];
@@ -1843,18 +2434,22 @@ export type GetMonitorsBatchData = {
      */
     ids: string;
   };
-  url: "/monitors/batch";
+  url: "/api/v1/monitors/batch";
 };
 
 export type GetMonitorsBatchErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type GetMonitorsBatchError =
@@ -1879,22 +2474,22 @@ export type DeleteMonitorsByIdData = {
     id: string;
   };
   query?: never;
-  url: "/monitors/{id}";
+  url: "/api/v1/monitors/{id}";
 };
 
 export type DeleteMonitorsByIdErrors = {
   /**
-   * Bad Request
+   * Unauthorized
    */
-  400: UtilsApiError;
+  401: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type DeleteMonitorsByIdError =
@@ -1919,22 +2514,22 @@ export type GetMonitorsByIdData = {
     id: string;
   };
   query?: never;
-  url: "/monitors/{id}";
+  url: "/api/v1/monitors/{id}";
 };
 
 export type GetMonitorsByIdErrors = {
   /**
-   * Bad Request
+   * Unauthorized
    */
-  400: UtilsApiError;
+  401: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type GetMonitorsByIdError =
@@ -1951,9 +2546,6 @@ export type GetMonitorsByIdResponse =
   GetMonitorsByIdResponses[keyof GetMonitorsByIdResponses];
 
 export type PatchMonitorsByIdData = {
-  /**
-   * Monitor object
-   */
   body: MonitorPartialUpdateDto;
   path: {
     /**
@@ -1962,22 +2554,26 @@ export type PatchMonitorsByIdData = {
     id: string;
   };
   query?: never;
-  url: "/monitors/{id}";
+  url: "/api/v1/monitors/{id}";
 };
 
 export type PatchMonitorsByIdErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type PatchMonitorsByIdError =
@@ -1994,9 +2590,6 @@ export type PatchMonitorsByIdResponse =
   PatchMonitorsByIdResponses[keyof PatchMonitorsByIdResponses];
 
 export type PutMonitorsByIdData = {
-  /**
-   * Monitor object
-   */
   body: MonitorCreateUpdateDto;
   path: {
     /**
@@ -2005,22 +2598,26 @@ export type PutMonitorsByIdData = {
     id: string;
   };
   query?: never;
-  url: "/monitors/{id}";
+  url: "/api/v1/monitors/{id}";
 };
 
 export type PutMonitorsByIdErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type PutMonitorsByIdError =
@@ -2046,7 +2643,7 @@ export type GetMonitorsByIdHeartbeatsData = {
   };
   query?: {
     /**
-     * Number of heartbeats per page (default 50)
+     * Number of heartbeats per page
      */
     limit?: number;
     /**
@@ -2062,22 +2659,26 @@ export type GetMonitorsByIdHeartbeatsData = {
      */
     reverse?: boolean;
   };
-  url: "/monitors/{id}/heartbeats";
+  url: "/api/v1/monitors/{id}/heartbeats";
 };
 
 export type GetMonitorsByIdHeartbeatsErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type GetMonitorsByIdHeartbeatsError =
@@ -2102,22 +2703,22 @@ export type PostMonitorsByIdResetData = {
     id: string;
   };
   query?: never;
-  url: "/monitors/{id}/reset";
+  url: "/api/v1/monitors/{id}/reset";
 };
 
 export type PostMonitorsByIdResetErrors = {
   /**
-   * Bad Request
+   * Unauthorized
    */
-  400: UtilsApiError;
+  401: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type PostMonitorsByIdResetError =
@@ -2155,22 +2756,26 @@ export type GetMonitorsByIdStatsPointsData = {
      */
     granularity?: string;
   };
-  url: "/monitors/{id}/stats/points";
+  url: "/api/v1/monitors/{id}/stats/points";
 };
 
 export type GetMonitorsByIdStatsPointsErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type GetMonitorsByIdStatsPointsError =
@@ -2195,22 +2800,22 @@ export type GetMonitorsByIdStatsUptimeData = {
     id: string;
   };
   query?: never;
-  url: "/monitors/{id}/stats/uptime";
+  url: "/api/v1/monitors/{id}/stats/uptime";
 };
 
 export type GetMonitorsByIdStatsUptimeErrors = {
   /**
-   * Bad Request
+   * Unauthorized
    */
-  400: UtilsApiError;
+  401: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type GetMonitorsByIdStatsUptimeError =
@@ -2235,22 +2840,22 @@ export type GetMonitorsByIdTlsData = {
     id: string;
   };
   query?: never;
-  url: "/monitors/{id}/tls";
+  url: "/api/v1/monitors/{id}/tls";
 };
 
 export type GetMonitorsByIdTlsErrors = {
   /**
-   * Bad Request
+   * Unauthorized
    */
-  400: UtilsApiError;
+  401: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type GetMonitorsByIdTlsError =
@@ -2260,7 +2865,7 @@ export type GetMonitorsByIdTlsResponses = {
   /**
    * OK
    */
-  200: UtilsApiResponseAny;
+  200: UtilsNullableApiResponseSharedTlsInfo;
 };
 
 export type GetMonitorsByIdTlsResponse =
@@ -2283,22 +2888,22 @@ export type GetNotificationChannelsData = {
      */
     limit?: number;
   };
-  url: "/notification-channels";
+  url: "/api/v1/notification-channels";
 };
 
 export type GetNotificationChannelsErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
   /**
-   * Not Found
+   * Unauthorized
    */
-  404: UtilsApiError;
+  401: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type GetNotificationChannelsError =
@@ -2315,24 +2920,25 @@ export type GetNotificationChannelsResponse =
   GetNotificationChannelsResponses[keyof GetNotificationChannelsResponses];
 
 export type PostNotificationChannelsData = {
-  /**
-   * Notification object
-   */
   body: NotificationChannelCreateUpdateDto;
   path?: never;
   query?: never;
-  url: "/notification-channels";
+  url: "/api/v1/notification-channels";
 };
 
 export type PostNotificationChannelsErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type PostNotificationChannelsError =
@@ -2349,24 +2955,25 @@ export type PostNotificationChannelsResponse =
   PostNotificationChannelsResponses[keyof PostNotificationChannelsResponses];
 
 export type PostNotificationChannelsTestData = {
-  /**
-   * Notification object
-   */
   body: NotificationChannelCreateUpdateDto;
   path?: never;
   query?: never;
-  url: "/notification-channels/test";
+  url: "/api/v1/notification-channels/test";
 };
 
 export type PostNotificationChannelsTestErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type PostNotificationChannelsTestError =
@@ -2391,22 +2998,22 @@ export type DeleteNotificationChannelsByIdData = {
     id: string;
   };
   query?: never;
-  url: "/notification-channels/{id}";
+  url: "/api/v1/notification-channels/{id}";
 };
 
 export type DeleteNotificationChannelsByIdErrors = {
   /**
-   * Bad Request
+   * Unauthorized
    */
-  400: UtilsApiError;
+  401: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type DeleteNotificationChannelsByIdError =
@@ -2431,22 +3038,22 @@ export type GetNotificationChannelsByIdData = {
     id: string;
   };
   query?: never;
-  url: "/notification-channels/{id}";
+  url: "/api/v1/notification-channels/{id}";
 };
 
 export type GetNotificationChannelsByIdErrors = {
   /**
-   * Bad Request
+   * Unauthorized
    */
-  400: UtilsApiError;
+  401: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type GetNotificationChannelsByIdError =
@@ -2463,9 +3070,6 @@ export type GetNotificationChannelsByIdResponse =
   GetNotificationChannelsByIdResponses[keyof GetNotificationChannelsByIdResponses];
 
 export type PatchNotificationChannelsByIdData = {
-  /**
-   * Notification object
-   */
   body: NotificationChannelPartialUpdateDto;
   path: {
     /**
@@ -2474,22 +3078,26 @@ export type PatchNotificationChannelsByIdData = {
     id: string;
   };
   query?: never;
-  url: "/notification-channels/{id}";
+  url: "/api/v1/notification-channels/{id}";
 };
 
 export type PatchNotificationChannelsByIdErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type PatchNotificationChannelsByIdError =
@@ -2506,9 +3114,6 @@ export type PatchNotificationChannelsByIdResponse =
   PatchNotificationChannelsByIdResponses[keyof PatchNotificationChannelsByIdResponses];
 
 export type PutNotificationChannelsByIdData = {
-  /**
-   * Notification object
-   */
   body: NotificationChannelCreateUpdateDto;
   path: {
     /**
@@ -2517,22 +3122,26 @@ export type PutNotificationChannelsByIdData = {
     id: string;
   };
   query?: never;
-  url: "/notification-channels/{id}";
+  url: "/api/v1/notification-channels/{id}";
 };
 
 export type PutNotificationChannelsByIdErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type PutNotificationChannelsByIdError =
@@ -2565,22 +3174,22 @@ export type GetProxiesData = {
      */
     limit?: number;
   };
-  url: "/proxies";
+  url: "/api/v1/proxies";
 };
 
 export type GetProxiesErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
   /**
-   * Not Found
+   * Unauthorized
    */
-  404: UtilsApiError;
+  401: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type GetProxiesError = GetProxiesErrors[keyof GetProxiesErrors];
@@ -2595,24 +3204,25 @@ export type GetProxiesResponses = {
 export type GetProxiesResponse = GetProxiesResponses[keyof GetProxiesResponses];
 
 export type PostProxiesData = {
-  /**
-   * Proxy object
-   */
   body: ProxyCreateUpdateDto;
   path?: never;
   query?: never;
-  url: "/proxies";
+  url: "/api/v1/proxies";
 };
 
 export type PostProxiesErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type PostProxiesError = PostProxiesErrors[keyof PostProxiesErrors];
@@ -2636,22 +3246,22 @@ export type DeleteProxiesByIdData = {
     id: string;
   };
   query?: never;
-  url: "/proxies/{id}";
+  url: "/api/v1/proxies/{id}";
 };
 
 export type DeleteProxiesByIdErrors = {
   /**
-   * Bad Request
+   * Unauthorized
    */
-  400: UtilsApiError;
+  401: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type DeleteProxiesByIdError =
@@ -2676,22 +3286,22 @@ export type GetProxiesByIdData = {
     id: string;
   };
   query?: never;
-  url: "/proxies/{id}";
+  url: "/api/v1/proxies/{id}";
 };
 
 export type GetProxiesByIdErrors = {
   /**
-   * Bad Request
+   * Unauthorized
    */
-  400: UtilsApiError;
+  401: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type GetProxiesByIdError =
@@ -2708,9 +3318,6 @@ export type GetProxiesByIdResponse =
   GetProxiesByIdResponses[keyof GetProxiesByIdResponses];
 
 export type PatchProxiesByIdData = {
-  /**
-   * Proxy object
-   */
   body: ProxyPartialUpdateDto;
   path: {
     /**
@@ -2719,22 +3326,26 @@ export type PatchProxiesByIdData = {
     id: string;
   };
   query?: never;
-  url: "/proxies/{id}";
+  url: "/api/v1/proxies/{id}";
 };
 
 export type PatchProxiesByIdErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type PatchProxiesByIdError =
@@ -2751,9 +3362,6 @@ export type PatchProxiesByIdResponse =
   PatchProxiesByIdResponses[keyof PatchProxiesByIdResponses];
 
 export type PutProxiesByIdData = {
-  /**
-   * Proxy object
-   */
   body: ProxyCreateUpdateDto;
   path: {
     /**
@@ -2762,22 +3370,26 @@ export type PutProxiesByIdData = {
     id: string;
   };
   query?: never;
-  url: "/proxies/{id}";
+  url: "/api/v1/proxies/{id}";
 };
 
 export type PutProxiesByIdErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type PutProxiesByIdError =
@@ -2793,6 +3405,59 @@ export type PutProxiesByIdResponses = {
 export type PutProxiesByIdResponse =
   PutProxiesByIdResponses[keyof PutProxiesByIdResponses];
 
+export type GetPushByTokenData = {
+  body?: never;
+  path: {
+    /**
+     * Secret push token, authenticating the monitor.
+     */
+    token: string;
+  };
+  query?: {
+    /**
+     * Empty, up, or 1 means Up; other values mean Down.
+     */
+    status?: string;
+    /**
+     * Heartbeat message; defaults to OK or Down.
+     */
+    msg?: string;
+    /**
+     * Response time in milliseconds; malformed values are ignored.
+     */
+    ping?: string;
+  };
+  url: "/api/v1/push/{token}";
+};
+
+export type GetPushByTokenErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type GetPushByTokenError =
+  GetPushByTokenErrors[keyof GetPushByTokenErrors];
+
+export type GetPushByTokenResponses = {
+  /**
+   * OK
+   */
+  200: HealthcheckPushResponse;
+};
+
+export type GetPushByTokenResponse =
+  GetPushByTokenResponses[keyof GetPushByTokenResponses];
+
 export type DeleteSettingsKeyByKeyData = {
   body?: never;
   path: {
@@ -2802,18 +3467,22 @@ export type DeleteSettingsKeyByKeyData = {
     key: string;
   };
   query?: never;
-  url: "/settings/key/{key}";
+  url: "/api/v1/settings/key/{key}";
 };
 
 export type DeleteSettingsKeyByKeyErrors = {
   /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type DeleteSettingsKeyByKeyError =
@@ -2838,18 +3507,22 @@ export type GetSettingsKeyByKeyData = {
     key: string;
   };
   query?: never;
-  url: "/settings/key/{key}";
+  url: "/api/v1/settings/key/{key}";
 };
 
 export type GetSettingsKeyByKeyErrors = {
   /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type GetSettingsKeyByKeyError =
@@ -2859,16 +3532,13 @@ export type GetSettingsKeyByKeyResponses = {
   /**
    * OK
    */
-  200: UtilsApiResponseSettingModel;
+  200: UtilsApiResponseSharedSettingModel;
 };
 
 export type GetSettingsKeyByKeyResponse =
   GetSettingsKeyByKeyResponses[keyof GetSettingsKeyByKeyResponses];
 
 export type PutSettingsKeyByKeyData = {
-  /**
-   * Setting object
-   */
   body: SettingCreateUpdateDto;
   path: {
     /**
@@ -2877,18 +3547,26 @@ export type PutSettingsKeyByKeyData = {
     key: string;
   };
   query?: never;
-  url: "/settings/key/{key}";
+  url: "/api/v1/settings/key/{key}";
 };
 
 export type PutSettingsKeyByKeyErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type PutSettingsKeyByKeyError =
@@ -2898,7 +3576,7 @@ export type PutSettingsKeyByKeyResponses = {
   /**
    * OK
    */
-  200: UtilsApiResponseSettingModel;
+  200: UtilsApiResponseSharedSettingModel;
 };
 
 export type PutSettingsKeyByKeyResponse =
@@ -2921,18 +3599,22 @@ export type GetStatusPagesData = {
      */
     limit?: number;
   };
-  url: "/status-pages";
+  url: "/api/v1/status-pages";
 };
 
 export type GetStatusPagesErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type GetStatusPagesError =
@@ -2949,24 +3631,25 @@ export type GetStatusPagesResponse =
   GetStatusPagesResponses[keyof GetStatusPagesResponses];
 
 export type PostStatusPagesData = {
-  /**
-   * Status Page object
-   */
   body: StatusPageCreateStatusPageDto;
   path?: never;
   query?: never;
-  url: "/status-pages";
+  url: "/api/v1/status-pages";
 };
 
 export type PostStatusPagesErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: StatusPageDomainErrorResponse | HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type PostStatusPagesError =
@@ -2991,18 +3674,18 @@ export type GetStatusPagesDomainByDomainData = {
     domain: string;
   };
   query?: never;
-  url: "/status-pages/domain/{domain}";
+  url: "/api/v1/status-pages/domain/{domain}";
 };
 
 export type GetStatusPagesDomainByDomainErrors = {
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type GetStatusPagesDomainByDomainError =
@@ -3027,18 +3710,18 @@ export type GetStatusPagesSlugBySlugData = {
     slug: string;
   };
   query?: never;
-  url: "/status-pages/slug/{slug}";
+  url: "/api/v1/status-pages/slug/{slug}";
 };
 
 export type GetStatusPagesSlugBySlugErrors = {
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type GetStatusPagesSlugBySlugError =
@@ -3063,18 +3746,18 @@ export type GetStatusPagesSlugBySlugMonitorsData = {
     slug: string;
   };
   query?: never;
-  url: "/status-pages/slug/{slug}/monitors";
+  url: "/api/v1/status-pages/slug/{slug}/monitors";
 };
 
 export type GetStatusPagesSlugBySlugMonitorsErrors = {
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type GetStatusPagesSlugBySlugMonitorsError =
@@ -3099,18 +3782,18 @@ export type GetStatusPagesSlugBySlugMonitorsHomepageData = {
     slug: string;
   };
   query?: never;
-  url: "/status-pages/slug/{slug}/monitors/homepage";
+  url: "/api/v1/status-pages/slug/{slug}/monitors/homepage";
 };
 
 export type GetStatusPagesSlugBySlugMonitorsHomepageErrors = {
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type GetStatusPagesSlugBySlugMonitorsHomepageError =
@@ -3135,18 +3818,22 @@ export type DeleteStatusPagesByIdData = {
     id: string;
   };
   query?: never;
-  url: "/status-pages/{id}";
+  url: "/api/v1/status-pages/{id}";
 };
 
 export type DeleteStatusPagesByIdErrors = {
   /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type DeleteStatusPagesByIdError =
@@ -3171,18 +3858,22 @@ export type GetStatusPagesByIdData = {
     id: string;
   };
   query?: never;
-  url: "/status-pages/{id}";
+  url: "/api/v1/status-pages/{id}";
 };
 
 export type GetStatusPagesByIdErrors = {
   /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type GetStatusPagesByIdError =
@@ -3199,9 +3890,6 @@ export type GetStatusPagesByIdResponse =
   GetStatusPagesByIdResponses[keyof GetStatusPagesByIdResponses];
 
 export type PatchStatusPagesByIdData = {
-  /**
-   * Status Page object
-   */
   body: StatusPageUpdateStatusPageDto;
   path: {
     /**
@@ -3210,22 +3898,26 @@ export type PatchStatusPagesByIdData = {
     id: string;
   };
   query?: never;
-  url: "/status-pages/{id}";
+  url: "/api/v1/status-pages/{id}";
 };
 
 export type PatchStatusPagesByIdErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: StatusPageDomainErrorResponse | HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type PatchStatusPagesByIdError =
@@ -3258,22 +3950,22 @@ export type GetTagsData = {
      */
     limit?: number;
   };
-  url: "/tags";
+  url: "/api/v1/tags";
 };
 
 export type GetTagsErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
   /**
-   * Not Found
+   * Unauthorized
    */
-  404: UtilsApiError;
+  401: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type GetTagsError = GetTagsErrors[keyof GetTagsErrors];
@@ -3288,24 +3980,29 @@ export type GetTagsResponses = {
 export type GetTagsResponse = GetTagsResponses[keyof GetTagsResponses];
 
 export type PostTagsData = {
-  /**
-   * Tag object
-   */
   body: TagCreateUpdateDto;
   path?: never;
   query?: never;
-  url: "/tags";
+  url: "/api/v1/tags";
 };
 
 export type PostTagsErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Conflict
+   */
+  409: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type PostTagsError = PostTagsErrors[keyof PostTagsErrors];
@@ -3328,22 +4025,22 @@ export type DeleteTagsByIdData = {
     id: string;
   };
   query?: never;
-  url: "/tags/{id}";
+  url: "/api/v1/tags/{id}";
 };
 
 export type DeleteTagsByIdErrors = {
   /**
-   * Bad Request
+   * Unauthorized
    */
-  400: UtilsApiError;
+  401: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type DeleteTagsByIdError =
@@ -3368,22 +4065,22 @@ export type GetTagsByIdData = {
     id: string;
   };
   query?: never;
-  url: "/tags/{id}";
+  url: "/api/v1/tags/{id}";
 };
 
 export type GetTagsByIdErrors = {
   /**
-   * Bad Request
+   * Unauthorized
    */
-  400: UtilsApiError;
+  401: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type GetTagsByIdError = GetTagsByIdErrors[keyof GetTagsByIdErrors];
@@ -3399,9 +4096,6 @@ export type GetTagsByIdResponse =
   GetTagsByIdResponses[keyof GetTagsByIdResponses];
 
 export type PatchTagsByIdData = {
-  /**
-   * Tag object
-   */
   body: TagPartialUpdateDto;
   path: {
     /**
@@ -3410,22 +4104,30 @@ export type PatchTagsByIdData = {
     id: string;
   };
   query?: never;
-  url: "/tags/{id}";
+  url: "/api/v1/tags/{id}";
 };
 
 export type PatchTagsByIdErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
+  /**
+   * Conflict
+   */
+  409: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type PatchTagsByIdError = PatchTagsByIdErrors[keyof PatchTagsByIdErrors];
@@ -3441,9 +4143,6 @@ export type PatchTagsByIdResponse =
   PatchTagsByIdResponses[keyof PatchTagsByIdResponses];
 
 export type PutTagsByIdData = {
-  /**
-   * Tag object
-   */
   body: TagCreateUpdateDto;
   path: {
     /**
@@ -3452,22 +4151,30 @@ export type PutTagsByIdData = {
     id: string;
   };
   query?: never;
-  url: "/tags/{id}";
+  url: "/api/v1/tags/{id}";
 };
 
 export type PutTagsByIdErrors = {
   /**
    * Bad Request
    */
-  400: UtilsApiError;
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
   /**
    * Not Found
    */
-  404: UtilsApiError;
+  404: HttpxErrorBody;
+  /**
+   * Conflict
+   */
+  409: HttpxErrorBody;
   /**
    * Internal Server Error
    */
-  500: UtilsApiError;
+  500: HttpxErrorBody;
 };
 
 export type PutTagsByIdError = PutTagsByIdErrors[keyof PutTagsByIdErrors];
@@ -3486,20 +4193,35 @@ export type GetVersionData = {
   body?: never;
   path?: never;
   query?: never;
-  url: "/version";
+  url: "/api/v1/version";
 };
 
 export type GetVersionResponses = {
   /**
-   * {"version": "1.2.3"}
+   * OK
    */
-  200: {
-    [key: string]: string;
-  };
+  200: InternalVersionResponse;
 };
 
 export type GetVersionResponse = GetVersionResponses[keyof GetVersionResponses];
 
+export type GetHealthRootData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/health";
+};
+
+export type GetHealthRootResponses = {
+  /**
+   * OK
+   */
+  200: InternalHealthResponse;
+};
+
+export type GetHealthRootResponse =
+  GetHealthRootResponses[keyof GetHealthRootResponses];
+
 export type ClientOptions = {
-  baseURL: `${string}://${string}/api/v1` | (string & {});
+  baseURL: `${string}://${string}` | (string & {});
 };

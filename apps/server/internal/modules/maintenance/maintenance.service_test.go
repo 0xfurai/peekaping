@@ -3,6 +3,7 @@ package maintenance
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -19,7 +20,7 @@ type MockRepository struct {
 	mock.Mock
 }
 
-func (m *MockRepository) Create(ctx context.Context, entity *CreateUpdateDto) (*Model, error) {
+func (m *MockRepository) Create(ctx context.Context, entity *Model) (*Model, error) {
 	args := m.Called(ctx, entity)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -40,7 +41,7 @@ func (m *MockRepository) FindAll(ctx context.Context, page int, limit int, q str
 	return args.Get(0).([]*Model), args.Error(1)
 }
 
-func (m *MockRepository) UpdateFull(ctx context.Context, id string, entity *CreateUpdateDto) (*Model, error) {
+func (m *MockRepository) UpdateFull(ctx context.Context, id string, entity *Model) (*Model, error) {
 	args := m.Called(ctx, id, entity)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -48,7 +49,7 @@ func (m *MockRepository) UpdateFull(ctx context.Context, id string, entity *Crea
 	return args.Get(0).(*Model), args.Error(1)
 }
 
-func (m *MockRepository) UpdatePartial(ctx context.Context, id string, entity *PartialUpdateDto) (*Model, error) {
+func (m *MockRepository) UpdatePartial(ctx context.Context, id string, entity *UpdateModel) (*Model, error) {
 	args := m.Called(ctx, id, entity)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -221,13 +222,13 @@ func createTestService() (*ServiceImpl, *MockRepository, *MockMonitorMaintenance
 	return service, mockRepo, mockMonitorMaintenanceService, mockCronGenerator, mockTimeWindowChecker, mockTimeUtils, mockValidator
 }
 
-func createTestCreateUpdateDto() *CreateUpdateDto {
+func createTestCreateModel() *Model {
 	startTime := "09:00"
 	endTime := "17:00"
 	duration := 480
 	timezone := "UTC"
 
-	return &CreateUpdateDto{
+	return &Model{
 		Title:       "Test Maintenance",
 		Description: "Test Description",
 		Active:      true,
@@ -236,7 +237,6 @@ func createTestCreateUpdateDto() *CreateUpdateDto {
 		EndTime:     &endTime,
 		Duration:    &duration,
 		Timezone:    &timezone,
-		MonitorIds:  []string{"monitor1", "monitor2"},
 	}
 }
 
@@ -265,16 +265,16 @@ func createTestModel() *Model {
 func TestServiceImpl_Create_Success(t *testing.T) {
 	service, mockRepo, mockMonitorMaintenanceService, mockCronGenerator, _, _, mockValidator := createTestService()
 
-	dto := createTestCreateUpdateDto()
+	model := createTestCreateModel()
 	expectedModel := createTestModel()
 
 	mockValidator.On("ValidateCronAndDuration", mock.AnythingOfType("*utils.ValidationParams")).Return(nil)
 	// For "single" strategy, cron generator returns nil
-	mockCronGenerator.On("GenerateCronExpression", dto.Strategy, mock.AnythingOfType("*utils.CronParams")).Return(nil, nil)
-	mockRepo.On("Create", mock.Anything, dto).Return(expectedModel, nil)
-	mockMonitorMaintenanceService.On("SetMonitors", mock.Anything, expectedModel.ID, dto.MonitorIds).Return(nil)
+	mockCronGenerator.On("GenerateCronExpression", model.Strategy, mock.AnythingOfType("*utils.CronParams")).Return(nil, nil)
+	mockRepo.On("Create", mock.Anything, model).Return(expectedModel, nil)
+	mockMonitorMaintenanceService.On("SetMonitors", mock.Anything, expectedModel.ID, []string{"monitor1", "monitor2"}).Return(nil)
 
-	result, err := service.Create(context.Background(), dto)
+	result, err := service.Create(context.Background(), model, []string{"monitor1", "monitor2"})
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedModel, result)
@@ -287,12 +287,12 @@ func TestServiceImpl_Create_Success(t *testing.T) {
 func TestServiceImpl_Create_ValidationError(t *testing.T) {
 	service, _, _, _, _, _, mockValidator := createTestService()
 
-	dto := createTestCreateUpdateDto()
+	model := createTestCreateModel()
 	expectedError := errors.New("validation error")
 
 	mockValidator.On("ValidateCronAndDuration", mock.AnythingOfType("*utils.ValidationParams")).Return(expectedError)
 
-	result, err := service.Create(context.Background(), dto)
+	result, err := service.Create(context.Background(), model, []string{"monitor1", "monitor2"})
 
 	assert.Error(t, err)
 	assert.Nil(t, result)
@@ -303,22 +303,22 @@ func TestServiceImpl_Create_ValidationError(t *testing.T) {
 func TestServiceImpl_Create_WithCronGeneration(t *testing.T) {
 	service, mockRepo, mockMonitorMaintenanceService, mockCronGenerator, _, _, mockValidator := createTestService()
 
-	dto := createTestCreateUpdateDto()
-	dto.Strategy = "recurring-weekday"
-	dto.Cron = nil // Will trigger cron generation
-	dto.Weekdays = []int{1, 2, 3, 4, 5}
+	model := createTestCreateModel()
+	model.Strategy = "recurring-weekday"
+	model.Cron = nil // Will trigger cron generation
+	model.Weekdays = []int{1, 2, 3, 4, 5}
 
 	expectedModel := createTestModel()
 	generatedCron := "0 9 * * 1-5"
 
 	mockValidator.On("ValidateCronAndDuration", mock.AnythingOfType("*utils.ValidationParams")).Return(nil)
-	mockCronGenerator.On("GenerateCronExpression", dto.Strategy, mock.AnythingOfType("*utils.CronParams")).Return(&generatedCron, nil)
-	mockRepo.On("Create", mock.Anything, mock.MatchedBy(func(d *CreateUpdateDto) bool {
+	mockCronGenerator.On("GenerateCronExpression", model.Strategy, mock.AnythingOfType("*utils.CronParams")).Return(&generatedCron, nil)
+	mockRepo.On("Create", mock.Anything, mock.MatchedBy(func(d *Model) bool {
 		return d.Cron != nil && *d.Cron == generatedCron
 	})).Return(expectedModel, nil)
-	mockMonitorMaintenanceService.On("SetMonitors", mock.Anything, expectedModel.ID, dto.MonitorIds).Return(nil)
+	mockMonitorMaintenanceService.On("SetMonitors", mock.Anything, expectedModel.ID, []string{"monitor1", "monitor2"}).Return(nil)
 
-	result, err := service.Create(context.Background(), dto)
+	result, err := service.Create(context.Background(), model, []string{"monitor1", "monitor2"})
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedModel, result)
@@ -328,22 +328,22 @@ func TestServiceImpl_Create_WithCronGeneration(t *testing.T) {
 func TestServiceImpl_Create_WithDurationCalculation(t *testing.T) {
 	service, mockRepo, mockMonitorMaintenanceService, mockCronGenerator, _, mockTimeUtils, mockValidator := createTestService()
 
-	dto := createTestCreateUpdateDto()
-	dto.Duration = nil // Will trigger duration calculation
+	model := createTestCreateModel()
+	model.Duration = nil // Will trigger duration calculation
 	expectedDuration := 480
 
 	expectedModel := createTestModel()
 
 	mockValidator.On("ValidateCronAndDuration", mock.AnythingOfType("*utils.ValidationParams")).Return(nil)
 	// For "single" strategy, cron generator returns nil
-	mockCronGenerator.On("GenerateCronExpression", dto.Strategy, mock.AnythingOfType("*utils.CronParams")).Return(nil, nil)
-	mockTimeUtils.On("CalculateDurationFromTimes", *dto.StartTime, *dto.EndTime).Return(expectedDuration, nil)
-	mockRepo.On("Create", mock.Anything, mock.MatchedBy(func(d *CreateUpdateDto) bool {
+	mockCronGenerator.On("GenerateCronExpression", model.Strategy, mock.AnythingOfType("*utils.CronParams")).Return(nil, nil)
+	mockTimeUtils.On("CalculateDurationFromTimes", *model.StartTime, *model.EndTime).Return(expectedDuration, nil)
+	mockRepo.On("Create", mock.Anything, mock.MatchedBy(func(d *Model) bool {
 		return d.Duration != nil && *d.Duration == expectedDuration
 	})).Return(expectedModel, nil)
-	mockMonitorMaintenanceService.On("SetMonitors", mock.Anything, expectedModel.ID, dto.MonitorIds).Return(nil)
+	mockMonitorMaintenanceService.On("SetMonitors", mock.Anything, expectedModel.ID, []string{"monitor1", "monitor2"}).Return(nil)
 
-	result, err := service.Create(context.Background(), dto)
+	result, err := service.Create(context.Background(), model, []string{"monitor1", "monitor2"})
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedModel, result)
@@ -400,16 +400,16 @@ func TestServiceImpl_FindAll_Success(t *testing.T) {
 func TestServiceImpl_UpdateFull_Success(t *testing.T) {
 	service, mockRepo, mockMonitorMaintenanceService, mockCronGenerator, _, _, mockValidator := createTestService()
 
-	dto := createTestCreateUpdateDto()
+	model := createTestCreateModel()
 	expectedModel := createTestModel()
 
 	mockValidator.On("ValidateCronAndDuration", mock.AnythingOfType("*utils.ValidationParams")).Return(nil)
 	// For "single" strategy, cron generator returns nil
-	mockCronGenerator.On("GenerateCronExpression", dto.Strategy, mock.AnythingOfType("*utils.CronParams")).Return(nil, nil)
-	mockRepo.On("UpdateFull", mock.Anything, "test-id", dto).Return(expectedModel, nil)
-	mockMonitorMaintenanceService.On("SetMonitors", mock.Anything, "test-id", dto.MonitorIds).Return(nil)
+	mockCronGenerator.On("GenerateCronExpression", model.Strategy, mock.AnythingOfType("*utils.CronParams")).Return(nil, nil)
+	mockRepo.On("UpdateFull", mock.Anything, "test-id", model).Return(expectedModel, nil)
+	mockMonitorMaintenanceService.On("SetMonitors", mock.Anything, "test-id", []string{"monitor1", "monitor2"}).Return(nil)
 
-	result, err := service.UpdateFull(context.Background(), "test-id", dto)
+	result, err := service.UpdateFull(context.Background(), "test-id", model, []string{"monitor1", "monitor2"})
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedModel, result)
@@ -425,10 +425,9 @@ func TestServiceImpl_UpdatePartial_Success(t *testing.T) {
 
 	title := "Updated Title"
 	active := false
-	dto := &PartialUpdateDto{
-		Title:      &title,
-		Active:     &active,
-		MonitorIds: []string{"monitor1"},
+	model := &UpdateModel{
+		Title:  &title,
+		Active: &active,
 	}
 
 	currentModel := createTestModel()
@@ -441,10 +440,10 @@ func TestServiceImpl_UpdatePartial_Success(t *testing.T) {
 	// UpdatePartial also calls CalculateDurationFromTimes since start and end times are available
 	mockTimeUtils.On("CalculateDurationFromTimes", *currentModel.StartTime, *currentModel.EndTime).Return(480, nil)
 	mockValidator.On("ValidateCronAndDuration", mock.AnythingOfType("*utils.ValidationParams")).Return(nil)
-	mockRepo.On("UpdatePartial", mock.Anything, "test-id", mock.AnythingOfType("*maintenance.PartialUpdateDto")).Return(expectedModel, nil)
-	mockMonitorMaintenanceService.On("SetMonitors", mock.Anything, "test-id", dto.MonitorIds).Return(nil)
+	mockRepo.On("UpdatePartial", mock.Anything, "test-id", mock.AnythingOfType("*maintenance.UpdateModel")).Return(expectedModel, nil)
+	mockMonitorMaintenanceService.On("SetMonitors", mock.Anything, "test-id", []string{"monitor1"}).Return(nil)
 
-	result, err := service.UpdatePartial(context.Background(), "test-id", dto)
+	result, err := service.UpdatePartial(context.Background(), "test-id", model, []string{"monitor1"})
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedModel, result)
@@ -458,7 +457,7 @@ func TestServiceImpl_UpdatePartial_WithStrategyChange(t *testing.T) {
 	service, mockRepo, _, mockCronGenerator, _, mockTimeUtils, mockValidator := createTestService()
 
 	newStrategy := "recurring-weekday"
-	dto := &PartialUpdateDto{
+	model := &UpdateModel{
 		Strategy: &newStrategy,
 	}
 
@@ -473,11 +472,11 @@ func TestServiceImpl_UpdatePartial_WithStrategyChange(t *testing.T) {
 	// UpdatePartial also calls CalculateDurationFromTimes since start and end times are available
 	mockTimeUtils.On("CalculateDurationFromTimes", *currentModel.StartTime, *currentModel.EndTime).Return(480, nil)
 	mockValidator.On("ValidateCronAndDuration", mock.AnythingOfType("*utils.ValidationParams")).Return(nil)
-	mockRepo.On("UpdatePartial", mock.Anything, "test-id", mock.MatchedBy(func(d *PartialUpdateDto) bool {
+	mockRepo.On("UpdatePartial", mock.Anything, "test-id", mock.MatchedBy(func(d *UpdateModel) bool {
 		return d.Cron != nil && *d.Cron == generatedCron
 	})).Return(expectedModel, nil)
 
-	result, err := service.UpdatePartial(context.Background(), "test-id", dto)
+	result, err := service.UpdatePartial(context.Background(), "test-id", model, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedModel, result)
@@ -540,97 +539,55 @@ func TestServiceImpl_IsUnderMaintenance_InactiveManual(t *testing.T) {
 	assert.False(t, result)
 }
 
-func TestServiceImpl_IsUnderMaintenance_SingleStrategy(t *testing.T) {
-	service, _, _, _, _, mockTimeUtils, _ := createTestService()
-
-	maintenance := createTestModel()
-	maintenance.Strategy = "single"
-	maintenance.Active = true
-
-	startDateTime := "2024-01-01T09:00"
-	endDateTime := "2024-01-01T17:00"
-	maintenance.StartDateTime = &startDateTime
-	maintenance.EndDateTime = &endDateTime
-
-	loc := time.UTC
-	mockTimeUtils.On("GetDefaultTimezone").Return("UTC")
-	mockTimeUtils.On("LoadTimezone", "UTC").Return(loc)
-
-	// Create a new mock time window checker for this test
-	mockTimeWindowChecker := &MockTimeWindowChecker{}
-	service.timeWindowChecker = mockTimeWindowChecker
-	mockTimeWindowChecker.On("IsInDateTimePeriod", mock.AnythingOfType("*utils.TimeWindowParams"), mock.AnythingOfType("time.Time"), loc).Return(true, nil)
-
-	result, err := service.IsUnderMaintenance(context.Background(), maintenance)
-
-	assert.NoError(t, err)
-	assert.True(t, result)
-	mockTimeUtils.AssertExpectations(t)
-	mockTimeWindowChecker.AssertExpectations(t)
-}
-
-func TestServiceImpl_IsUnderMaintenance_RecurringIntervalStrategy(t *testing.T) {
-	service, _, _, _, _, mockTimeUtils, _ := createTestService()
-
-	maintenance := createTestModel()
-	maintenance.Strategy = "recurring-interval"
-	maintenance.Active = true
-
-	startDateTime := "2024-01-01T09:00"
-	endDateTime := "2024-12-31T17:00"
+// A single maintenance window follows its date period. A recurring one also
+// needs now to fall in one of its slots (every N days, or the slots its cron
+// expression opens), so the checker answers every combination.
+func TestServiceImpl_IsUnderMaintenance_TimedStrategies(t *testing.T) {
 	intervalDay := 7
-	maintenance.StartDateTime = &startDateTime
-	maintenance.EndDateTime = &endDateTime
-	maintenance.IntervalDay = &intervalDay
-
-	loc := time.UTC
-	mockTimeUtils.On("GetDefaultTimezone").Return("UTC")
-	mockTimeUtils.On("LoadTimezone", "UTC").Return(loc)
-
-	// Create a new mock time window checker for this test
-	mockTimeWindowChecker := &MockTimeWindowChecker{}
-	service.timeWindowChecker = mockTimeWindowChecker
-	mockTimeWindowChecker.On("IsInDateTimePeriod", mock.AnythingOfType("*utils.TimeWindowParams"), mock.AnythingOfType("time.Time"), loc).Return(true, nil)
-	mockTimeWindowChecker.On("IsInRecurringIntervalWindow", mock.AnythingOfType("*utils.TimeWindowParams"), mock.AnythingOfType("time.Time"), loc).Return(true, nil)
-
-	result, err := service.IsUnderMaintenance(context.Background(), maintenance)
-
-	assert.NoError(t, err)
-	assert.True(t, result)
-	mockTimeUtils.AssertExpectations(t)
-	mockTimeWindowChecker.AssertExpectations(t)
-}
-
-func TestServiceImpl_IsUnderMaintenance_CronStrategy(t *testing.T) {
-	service, _, _, _, _, mockTimeUtils, _ := createTestService()
-
-	maintenance := createTestModel()
-	maintenance.Strategy = "recurring-weekday"
-	maintenance.Active = true
-
-	startDateTime := "2024-01-01T09:00"
-	endDateTime := "2024-12-31T17:00"
 	cron := "0 9 * * 1-5"
-	maintenance.StartDateTime = &startDateTime
-	maintenance.EndDateTime = &endDateTime
-	maintenance.Cron = &cron
+	strategies := []struct {
+		strategy string
+		cron     *string
+		slot     string // the checker method for the strategy's recurring slots
+	}{
+		{"single", nil, ""},
+		{"recurring-interval", nil, "IsInRecurringIntervalWindow"},
+		{"recurring-weekday", &cron, "IsInCronMaintenanceWindow"},
+		{"recurring-day-of-month", &cron, "IsInCronMaintenanceWindow"},
+		{"cron", &cron, "IsInCronMaintenanceWindow"},
+	}
+	for _, s := range strategies {
+		for _, inPeriod := range []bool{true, false} {
+			for _, inSlot := range []bool{true, false} {
+				name := fmt.Sprintf("%s/period=%t/slot=%t", s.strategy, inPeriod, inSlot)
+				if s.slot == "" {
+					if !inSlot {
+						continue // a single maintenance window has no slots
+					}
+					name = fmt.Sprintf("%s/period=%t", s.strategy, inPeriod)
+				}
+				t.Run(name, func(t *testing.T) {
+					service, _, _, _, mockTimeWindowChecker, mockTimeUtils, _ := createTestService()
+					mockTimeUtils.On("GetDefaultTimezone").Return("UTC")
+					mockTimeUtils.On("LoadTimezone", "UTC").Return(time.UTC)
+					mockTimeWindowChecker.On("IsInDateTimePeriod", mock.Anything, mock.Anything, time.UTC).Return(inPeriod, nil)
+					if s.slot != "" {
+						mockTimeWindowChecker.On(s.slot, mock.Anything, mock.Anything, time.UTC).Return(inSlot, nil)
+					}
 
-	loc := time.UTC
-	mockTimeUtils.On("GetDefaultTimezone").Return("UTC")
-	mockTimeUtils.On("LoadTimezone", "UTC").Return(loc)
+					maintenance := createTestModel()
+					maintenance.Strategy = s.strategy
+					maintenance.IntervalDay = &intervalDay
+					maintenance.Cron = s.cron
 
-	// Create a new mock time window checker for this test
-	mockTimeWindowChecker := &MockTimeWindowChecker{}
-	service.timeWindowChecker = mockTimeWindowChecker
-	mockTimeWindowChecker.On("IsInDateTimePeriod", mock.AnythingOfType("*utils.TimeWindowParams"), mock.AnythingOfType("time.Time"), loc).Return(true, nil)
-	mockTimeWindowChecker.On("IsInCronMaintenanceWindow", mock.AnythingOfType("*utils.TimeWindowParams"), mock.AnythingOfType("time.Time"), loc).Return(true, nil)
+					result, err := service.IsUnderMaintenance(context.Background(), maintenance)
 
-	result, err := service.IsUnderMaintenance(context.Background(), maintenance)
-
-	assert.NoError(t, err)
-	assert.True(t, result)
-	mockTimeUtils.AssertExpectations(t)
-	mockTimeWindowChecker.AssertExpectations(t)
+					assert.NoError(t, err)
+					assert.Equal(t, inPeriod && inSlot, result)
+				})
+			}
+		}
+	}
 }
 
 // Test GetMaintenancesByMonitorID method
@@ -667,15 +624,15 @@ func TestServiceImpl_GetMonitors_Success(t *testing.T) {
 func TestServiceImpl_Create_RepositoryError(t *testing.T) {
 	service, mockRepo, _, mockCronGenerator, _, _, mockValidator := createTestService()
 
-	dto := createTestCreateUpdateDto()
+	model := createTestCreateModel()
 	expectedError := errors.New("repository error")
 
 	mockValidator.On("ValidateCronAndDuration", mock.AnythingOfType("*utils.ValidationParams")).Return(nil)
 	// For "single" strategy, cron generator returns nil
-	mockCronGenerator.On("GenerateCronExpression", dto.Strategy, mock.AnythingOfType("*utils.CronParams")).Return(nil, nil)
-	mockRepo.On("Create", mock.Anything, dto).Return(nil, expectedError)
+	mockCronGenerator.On("GenerateCronExpression", model.Strategy, mock.AnythingOfType("*utils.CronParams")).Return(nil, nil)
+	mockRepo.On("Create", mock.Anything, model).Return(nil, expectedError)
 
-	result, err := service.Create(context.Background(), dto)
+	result, err := service.Create(context.Background(), model, []string{"monitor1", "monitor2"})
 
 	assert.Error(t, err)
 	assert.Nil(t, result)
@@ -688,17 +645,17 @@ func TestServiceImpl_Create_RepositoryError(t *testing.T) {
 func TestServiceImpl_Create_MonitorMaintenanceServiceError(t *testing.T) {
 	service, mockRepo, mockMonitorMaintenanceService, mockCronGenerator, _, _, mockValidator := createTestService()
 
-	dto := createTestCreateUpdateDto()
+	model := createTestCreateModel()
 	expectedModel := createTestModel()
 	expectedError := errors.New("monitor maintenance service error")
 
 	mockValidator.On("ValidateCronAndDuration", mock.AnythingOfType("*utils.ValidationParams")).Return(nil)
 	// For "single" strategy, cron generator returns nil
-	mockCronGenerator.On("GenerateCronExpression", dto.Strategy, mock.AnythingOfType("*utils.CronParams")).Return(nil, nil)
-	mockRepo.On("Create", mock.Anything, dto).Return(expectedModel, nil)
-	mockMonitorMaintenanceService.On("SetMonitors", mock.Anything, expectedModel.ID, dto.MonitorIds).Return(expectedError)
+	mockCronGenerator.On("GenerateCronExpression", model.Strategy, mock.AnythingOfType("*utils.CronParams")).Return(nil, nil)
+	mockRepo.On("Create", mock.Anything, model).Return(expectedModel, nil)
+	mockMonitorMaintenanceService.On("SetMonitors", mock.Anything, expectedModel.ID, []string{"monitor1", "monitor2"}).Return(expectedError)
 
-	result, err := service.Create(context.Background(), dto)
+	result, err := service.Create(context.Background(), model, []string{"monitor1", "monitor2"})
 
 	assert.Error(t, err)
 	assert.Nil(t, result)
@@ -712,17 +669,17 @@ func TestServiceImpl_Create_MonitorMaintenanceServiceError(t *testing.T) {
 func TestServiceImpl_Create_CronGenerationError(t *testing.T) {
 	service, _, _, mockCronGenerator, _, _, mockValidator := createTestService()
 
-	dto := createTestCreateUpdateDto()
-	dto.Strategy = "recurring-weekday"
-	dto.Cron = nil
-	dto.Weekdays = []int{1, 2, 3, 4, 5}
+	model := createTestCreateModel()
+	model.Strategy = "recurring-weekday"
+	model.Cron = nil
+	model.Weekdays = []int{1, 2, 3, 4, 5}
 
 	expectedError := errors.New("cron generation error")
 
 	mockValidator.On("ValidateCronAndDuration", mock.AnythingOfType("*utils.ValidationParams")).Return(nil)
-	mockCronGenerator.On("GenerateCronExpression", dto.Strategy, mock.AnythingOfType("*utils.CronParams")).Return(nil, expectedError)
+	mockCronGenerator.On("GenerateCronExpression", model.Strategy, mock.AnythingOfType("*utils.CronParams")).Return(nil, expectedError)
 
-	result, err := service.Create(context.Background(), dto)
+	result, err := service.Create(context.Background(), model, []string{"monitor1", "monitor2"})
 
 	assert.Error(t, err)
 	assert.Nil(t, result)
@@ -770,4 +727,30 @@ func TestServiceImpl_IsUnderMaintenance_UnknownStrategy(t *testing.T) {
 	assert.False(t, result) // Unknown strategy should return false
 	mockTimeUtils.AssertExpectations(t)
 	mockTimeWindowChecker.AssertExpectations(t)
+}
+
+func TestServiceImpl_UpdatePartial_MonitorPresence(t *testing.T) {
+	for _, monitorIDs := range [][]string{nil, {}} {
+		name := "omitted"
+		if monitorIDs != nil {
+			name = "clear"
+		}
+		t.Run(name, func(t *testing.T) {
+			service, repo, monitors, _, _, _, validator := createTestService()
+			duration := 90
+			patch := &UpdateModel{Duration: &duration}
+			repo.On("UpdatePartial", mock.Anything, "maintenance", patch).Return(&Model{ID: "maintenance"}, nil)
+			validator.On("ValidateCronAndDuration", mock.Anything).Return(nil)
+			if monitorIDs != nil {
+				monitors.On("SetMonitors", mock.Anything, "maintenance", monitorIDs).Return(nil).Once()
+			}
+			_, err := service.UpdatePartial(context.Background(), "maintenance", patch, monitorIDs)
+			assert.NoError(t, err)
+			repo.AssertExpectations(t)
+			monitors.AssertExpectations(t)
+			if monitorIDs == nil {
+				monitors.AssertNotCalled(t, "SetMonitors", mock.Anything, mock.Anything, mock.Anything)
+			}
+		})
+	}
 }

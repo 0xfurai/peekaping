@@ -1,0 +1,11 @@
+POST https://signal.example.com/v2/send
+Content-Type: application/json
+User-Agent: Peekaping-Signal/<version>
+
+{
+  "message": "✅ Public API is UP",
+  "number": "+15550000001",
+  "recipients": [
+    "+15550000002"
+  ]
+}

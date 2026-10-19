@@ -1,0 +1,9 @@
+POST https://hooks.slack.com/services/T/B/X
+Content-Type: application/json
+User-Agent: Peekaping-Slack/<version>
+
+{
+  "icon_emoji": ":rotating_light:",
+  "text": "connection refused \u003c!channel\u003e",
+  "username": "Peekaping"
+}

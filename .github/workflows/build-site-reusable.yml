@@ -1,0 +1,62 @@
+name: Reusable Site Build
+
+# Builds the static site in apps/<app> and uploads it as the `site` artifact.
+# Runs without secrets, so PR code never sees the Cloudflare token. deploy-sites.yml deploys the artifact.
+
+on:
+  workflow_call:
+    inputs:
+      app:
+        description: 'Directory under apps/ and Bun workspace name (docs or landing)'
+        required: true
+        type: string
+      output-dir:
+        description: 'Build output directory inside apps/<app>, the assets.directory in its wrangler.jsonc'
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: apps/${{ inputs.app }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      - name: Cache Bun packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile --filter ${{ inputs.app }}
+
+      - name: Build
+        run: bun run build
+
+      - name: Upload site
+        uses: actions/upload-artifact@v7
+        with:
+          name: site
+          path: apps/${{ inputs.app }}/${{ inputs.output-dir }}
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7

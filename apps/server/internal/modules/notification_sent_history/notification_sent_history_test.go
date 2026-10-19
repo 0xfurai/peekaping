@@ -1,168 +1,188 @@
-package notification_sent_history
+package notification_sent_history_test
 
 import (
 	"context"
+	"database/sql"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
+	"peekaping/cmd/bun/migrations"
+	"peekaping/internal/config"
+	"peekaping/internal/infra"
+	"peekaping/internal/modules/notification_sent_history"
+
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect/pgdialect"
+	"github.com/uptrace/bun/driver/pgdriver"
+	"github.com/uptrace/bun/migrate"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 )
 
-// MockRepository is a mock implementation of Repository for testing
-type MockRepository struct {
-	mock.Mock
+const certificate = "certificate"
+
+// sqliteDB opens a SQLite database the way the app does.
+func sqliteDB(t *testing.T) *bun.DB {
+	t.Helper()
+	db, err := infra.ProvideSQLDB(&config.Config{DBType: "sqlite", DBName: filepath.Join(t.TempDir(), "history.db")}, zap.NewNop().Sugar())
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, db.Close()) })
+	return db
 }
 
-func (m *MockRepository) CheckIfSent(ctx context.Context, notificationType string, monitorID string, days int) (bool, error) {
-	args := m.Called(ctx, notificationType, monitorID, days)
-	return args.Bool(0), args.Error(1)
-}
-
-func (m *MockRepository) RecordSent(ctx context.Context, dto *CreateDto) error {
-	args := m.Called(ctx, dto)
-	return args.Error(0)
-}
-
-func (m *MockRepository) ClearByMonitorAndType(ctx context.Context, monitorID string, notificationType string) error {
-	args := m.Called(ctx, monitorID, notificationType)
-	return args.Error(0)
-}
-
-func (m *MockRepository) CleanupOldRecords(ctx context.Context, olderThanDays int) error {
-	args := m.Called(ctx, olderThanDays)
-	return args.Error(0)
-}
-
-func (m *MockRepository) GetByMonitorAndType(ctx context.Context, monitorID string, notificationType string) ([]*Model, error) {
-	args := m.Called(ctx, monitorID, notificationType)
-	return args.Get(0).([]*Model), args.Error(1)
-}
-
-func TestNotificationSentHistoryService(t *testing.T) {
-	logger := zap.NewNop().Sugar()
-	mockRepo := new(MockRepository)
-	service := NewService(mockRepo, logger)
-
-	ctx := context.Background()
-	monitorID := "test-monitor-123"
-	notificationType := "certificate"
-	targetDays := 7
-
-	t.Run("CheckIfNotificationSent - not sent yet", func(t *testing.T) {
-		mockRepo.On("CheckIfSent", ctx, notificationType, monitorID, targetDays).Return(false, nil)
-
-		sent, err := service.CheckIfNotificationSent(ctx, notificationType, monitorID, targetDays)
-
+// postgresDB opens an empty schema in the database at PEE_TEST_POSTGRES_DSN.
+func postgresDB(t *testing.T) *bun.DB {
+	t.Helper()
+	dsn := os.Getenv("PEE_TEST_POSTGRES_DSN")
+	if dsn == "" {
+		t.Skip("set PEE_TEST_POSTGRES_DSN to run the PostgreSQL tests")
+	}
+	admin := bun.NewDB(sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn))), pgdialect.New())
+	schema := "history_" + strings.ReplaceAll(uuid.NewString(), "-", "")
+	_, err := admin.Exec("CREATE SCHEMA ?", bun.Ident(schema))
+	require.NoError(t, err)
+	connector := pgdriver.NewConnector(pgdriver.WithDSN(dsn), pgdriver.WithConnParams(map[string]any{"search_path": schema}))
+	db := bun.NewDB(sql.OpenDB(connector), pgdialect.New())
+	// assert, not require, so a failed close still drops the schema.
+	t.Cleanup(func() {
+		assert.NoError(t, db.Close())
+		_, err := admin.Exec("DROP SCHEMA ? CASCADE", bun.Ident(schema))
 		assert.NoError(t, err)
-		assert.False(t, sent)
-		mockRepo.AssertExpectations(t)
+		assert.NoError(t, admin.Close())
 	})
+	return db
+}
 
-	t.Run("CheckIfNotificationSent - already sent", func(t *testing.T) {
-		mockRepo.ExpectedCalls = nil // Reset expectations
-		mockRepo.On("CheckIfSent", ctx, notificationType, monitorID, targetDays).Return(true, nil)
-
-		sent, err := service.CheckIfNotificationSent(ctx, notificationType, monitorID, targetDays)
-
-		assert.NoError(t, err)
-		assert.True(t, sent)
-		mockRepo.AssertExpectations(t)
-	})
-
-	t.Run("RecordNotificationSent", func(t *testing.T) {
-		mockRepo.ExpectedCalls = nil // Reset expectations
-		expectedDto := &CreateDto{
-			Type:      notificationType,
-			MonitorID: monitorID,
-			Days:      targetDays,
+// forEachBackend runs fn against a sent-history service on every database backend.
+func forEachBackend(t *testing.T, fn func(t *testing.T, svc notification_sent_history.Service)) {
+	sqlBackend := func(open func(*testing.T) *bun.DB) func(*testing.T) {
+		return func(t *testing.T) {
+			db := open(t)
+			ctx := context.Background()
+			migrator := migrate.NewMigrator(db, migrations.Migrations)
+			require.NoError(t, migrator.Init(ctx))
+			_, err := migrator.Migrate(ctx)
+			require.NoError(t, err)
+			fn(t, notification_sent_history.NewService(notification_sent_history.NewSQLRepository(db), zap.NewNop().Sugar()))
 		}
-		mockRepo.On("RecordSent", ctx, mock.MatchedBy(func(dto *CreateDto) bool {
-			return dto.Type == expectedDto.Type &&
-				dto.MonitorID == expectedDto.MonitorID &&
-				dto.Days == expectedDto.Days
-		})).Return(nil)
-
-		err := service.RecordNotificationSent(ctx, notificationType, monitorID, targetDays)
-
-		assert.NoError(t, err)
-		mockRepo.AssertExpectations(t)
-	})
-
-	t.Run("ClearNotificationHistory", func(t *testing.T) {
-		mockRepo.ExpectedCalls = nil // Reset expectations
-		mockRepo.On("ClearByMonitorAndType", ctx, monitorID, notificationType).Return(nil)
-
-		err := service.ClearNotificationHistory(ctx, monitorID, notificationType)
-
-		assert.NoError(t, err)
-		mockRepo.AssertExpectations(t)
-	})
-
-	t.Run("GetNotificationHistory", func(t *testing.T) {
-		mockRepo.ExpectedCalls = nil // Reset expectations
-		expectedHistory := []*Model{
-			{
-				ID:        "test-id-1",
-				Type:      notificationType,
-				MonitorID: monitorID,
-				Days:      7,
-				CreatedAt: time.Now(),
-			},
-			{
-				ID:        "test-id-2",
-				Type:      notificationType,
-				MonitorID: monitorID,
-				Days:      14,
-				CreatedAt: time.Now(),
-			},
+	}
+	t.Run("SQLite", sqlBackend(sqliteDB))
+	t.Run("Postgres", sqlBackend(postgresDB))
+	t.Run("Mongo", func(t *testing.T) {
+		uri := os.Getenv("PEE_TEST_MONGO_URI")
+		if uri == "" {
+			t.Skip("set PEE_TEST_MONGO_URI to run the MongoDB tests")
 		}
-		mockRepo.On("GetByMonitorAndType", ctx, monitorID, notificationType).Return(expectedHistory, nil)
-
-		history, err := service.GetNotificationHistory(ctx, monitorID, notificationType)
-
-		assert.NoError(t, err)
-		assert.Len(t, history, 2)
-		assert.Equal(t, 7, history[0].Days)
-		assert.Equal(t, 14, history[1].Days)
-		mockRepo.AssertExpectations(t)
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
+		require.NoError(t, err)
+		require.NoError(t, client.Ping(ctx, nil))
+		cfg := &config.Config{DBName: "history_" + primitive.NewObjectID().Hex()}
+		t.Cleanup(func() {
+			assert.NoError(t, client.Database(cfg.DBName).Drop(context.Background()))
+			assert.NoError(t, client.Disconnect(context.Background()))
+		})
+		fn(t, notification_sent_history.NewService(notification_sent_history.NewMongoRepository(client, cfg), zap.NewNop().Sugar()))
 	})
 }
 
-func TestNotificationDeduplicationFlow(t *testing.T) {
-	logger := zap.NewNop().Sugar()
-	mockRepo := new(MockRepository)
-	service := NewService(mockRepo, logger)
+func record(t *testing.T, svc notification_sent_history.Service, notificationType, monitorID string, days int) {
+	t.Helper()
+	require.NoError(t, svc.RecordNotificationSent(context.Background(), notificationType, monitorID, days))
+}
 
-	ctx := context.Background()
-	monitorID := "test-monitor-456"
-	notificationType := "certificate"
+func sent(t *testing.T, svc notification_sent_history.Service, notificationType, monitorID string, days int) bool {
+	t.Helper()
+	ok, err := svc.CheckIfNotificationSent(context.Background(), notificationType, monitorID, days)
+	require.NoError(t, err)
+	return ok
+}
 
-	// Simulate the flow from uptime-kuma:
-	// 1. Check if 21-day notification was sent
-	// 2. If not sent, record it
-	// 3. Check if 14-day notification was sent
-	// 4. Should not send 14-day if 21-day was already sent
+// history returns the days recorded for monitorID and notificationType.
+func history(t *testing.T, svc notification_sent_history.Service, monitorID, notificationType string) []int {
+	t.Helper()
+	models, err := svc.GetNotificationHistory(context.Background(), monitorID, notificationType)
+	require.NoError(t, err)
+	days := []int{}
+	for _, m := range models {
+		days = append(days, m.Days)
+	}
+	return days
+}
 
-	t.Run("Certificate expiry notification flow", func(t *testing.T) {
-		// Certificate expires in 15 days, check thresholds [7, 14, 21]
+func TestRecordNotificationSent_IsIdempotent(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, svc notification_sent_history.Service) {
+		monitorID := uuid.NewString()
 
-		// Check 21-day threshold (15 <= 21, so should notify)
-		mockRepo.On("CheckIfSent", ctx, notificationType, monitorID, 21).Return(false, nil)
-		mockRepo.On("RecordSent", ctx, mock.AnythingOfType("*notification_sent_history.CreateDto")).Return(nil)
+		record(t, svc, certificate, monitorID, 7)
+		record(t, svc, certificate, monitorID, 7)
 
-		// Check 14-day threshold (15 <= 14 is false, so won't even check)
-		// Check 7-day threshold (15 <= 7 is false, so won't even check)
+		assert.Equal(t, []int{7}, history(t, svc, monitorID, certificate))
+	})
+}
 
-		// Test 21-day notification
-		sent21, err := service.CheckIfNotificationSent(ctx, notificationType, monitorID, 21)
-		assert.NoError(t, err)
-		assert.False(t, sent21) // Should send notification
+func TestCheckIfNotificationSent_ThresholdOrANearerOne(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, svc notification_sent_history.Service) {
+		monitorID, otherMonitorID := uuid.NewString(), uuid.NewString()
 
-		err = service.RecordNotificationSent(ctx, notificationType, monitorID, 21)
-		assert.NoError(t, err)
+		record(t, svc, certificate, monitorID, 21)
+		assert.True(t, sent(t, svc, certificate, monitorID, 21))
+		assert.False(t, sent(t, svc, certificate, monitorID, 14), "14 is still due after 21")
+		assert.False(t, sent(t, svc, certificate, monitorID, 7), "7 is still due after 21")
+		assert.False(t, sent(t, svc, certificate, otherMonitorID, 21), "another monitor has its own history")
+		assert.False(t, sent(t, svc, "monitor", monitorID, 21), "another type has its own history")
 
-		mockRepo.AssertExpectations(t)
+		record(t, svc, certificate, monitorID, 7)
+		assert.True(t, sent(t, svc, certificate, monitorID, 14), "7 covers the farther 14")
+		assert.True(t, sent(t, svc, certificate, monitorID, 7))
+	})
+}
+
+func TestClearNotificationHistory_ClearsOnlyThatMonitorAndType(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, svc notification_sent_history.Service) {
+		monitorID, otherMonitorID := uuid.NewString(), uuid.NewString()
+		record(t, svc, certificate, monitorID, 7)
+		record(t, svc, certificate, monitorID, 14)
+		record(t, svc, certificate, otherMonitorID, 7)
+		record(t, svc, "monitor", monitorID, 7)
+
+		require.NoError(t, svc.ClearNotificationHistory(context.Background(), monitorID, certificate))
+
+		assert.Empty(t, history(t, svc, monitorID, certificate))
+		assert.Equal(t, []int{7}, history(t, svc, otherMonitorID, certificate))
+		assert.Equal(t, []int{7}, history(t, svc, monitorID, "monitor"))
+	})
+}
+
+func TestCleanupOldRecords_KeepsRecentRows(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, svc notification_sent_history.Service) {
+		monitorID := uuid.NewString()
+		record(t, svc, certificate, monitorID, 7)
+
+		require.NoError(t, svc.CleanupOldRecords(context.Background(), 90))
+
+		assert.Equal(t, []int{7}, history(t, svc, monitorID, certificate))
+	})
+}
+
+// A cutoff a day in the future makes every row old, which tests the delete
+// without backdating rows.
+func TestCleanupOldRecords_RemovesRowsCreatedBeforeTheCutoff(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, svc notification_sent_history.Service) {
+		monitorID := uuid.NewString()
+		record(t, svc, certificate, monitorID, 7)
+
+		require.NoError(t, svc.CleanupOldRecords(context.Background(), -1))
+
+		assert.Empty(t, history(t, svc, monitorID, certificate))
 	})
 }

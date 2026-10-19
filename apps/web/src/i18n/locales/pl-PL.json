@@ -571,7 +571,38 @@
         "redis": "Monitor bazy danych Redis",
         "snmp": "Monitor SNMP",
         "sqlserver": "Monitor Microsoft SQL Server",
-        "tcp": "Monitor portu TCP"
+        "tcp": "Monitor portu TCP",
+        "smtp": "Monitor serwera pocztowego SMTP"
+      },
+      "smtp": {
+        "authentication_title": "Uwierzytelnianie (Opcjonalne)",
+        "check_cert_expiry": "Sprawdź wygaśnięcie certyfikatu",
+        "check_cert_expiry_description": "Monitoruj wygaśnięcie certyfikatu SSL/TLS i wysyłaj powiadomienia",
+        "from_email": "E-mail nadawcy",
+        "from_email_description": "Opcjonalnie: Testuj polecenie MAIL FROM z tym adresem e-mail",
+        "host": "Host serwera SMTP",
+        "ignore_tls_errors": "Ignoruj błędy TLS",
+        "ignore_tls_errors_description": "Pomiń walidację certyfikatu TLS (przydatne dla certyfikatów samopodpisanych)",
+        "password": "Hasło",
+        "port": "Port",
+        "port_description": "Typowe porty: 25 (SMTP), 465 (SMTPS), 587 (Submission z STARTTLS)",
+        "title": "Ustawienia serwera SMTP",
+        "use_tls": "Użyj STARTTLS",
+        "use_tls_description": "Włącz STARTTLS dla bezpiecznej komunikacji",
+        "username": "Nazwa użytkownika",
+        "username_description": "Opcjonalnie: Nazwa użytkownika do uwierzytelniania SMTP",
+        "expect_secure_relay": "Uznaj otwarty relay za błąd",
+        "expect_secure_relay_description": "Jeśli włączone, monitor zostanie oznaczony jako NIEDOSTĘPNY po wykryciu otwartego przekaźnika (zagrożenie bezpieczeństwa). Jeśli wyłączone, monitor oczekuje otwartego przekaźnika i zostanie oznaczony jako NIEDOSTĘPNY, gdy serwer odmówi przekazywania.",
+        "open_relay_title": "Test otwartego relaj",
+        "read_timeout": "Limit czasu odczytu (sekundy)",
+        "read_timeout_description": "Czas oczekiwania na odpowiedzi serwera SMTP. Pozostaw puste, aby użyć limitu czasu monitora. Pomaga zapobiegać zawieszaniu się przy nieodpowiadających serwerach.",
+        "rcpt_to_email": "RCPT DO e‑mail",
+        "rcpt_to_email_description": "Adres e‑mail do użycia w poleceniu RCPT TO podczas testowania otwartego relay. Pozostaw pusty, aby użyć domyślnego (test@external-domain.com)",
+        "test_open_relay": "Przetestuj otwarty pośrednik",
+        "test_open_relay_description": "Przetestuj, czy serwer SMTP zezwala na przekazywanie e‑maili do domen zewnętrznych bez uwierzytelnienia",
+        "use_direct_tls": "Użyj bezpośredniego TLS (SMTPS)",
+        "use_direct_tls_description": "Użyj bezpośredniego połączenia TLS (SMTPS) zamiast STARTTLS. Wymagane dla portu 465. Jeśli nie zaznaczone, używa STARTTLS (dla portów 587/25).",
+        "port_465_warning": "Port 465 zwykle wymaga bezpośredniego TLS (SMTPS). Proszę włączyć „Użyj bezpośredniego TLS (SMTPS)” dla bezpiecznych połączeń."
       }
     },
     "page": {
@@ -628,8 +659,12 @@
         "down": "W dół",
         "maintenance": "Konserwacja",
         "paused": "Wstrzymany",
+        "pending": "Oczekuje",
         "up": "Działa"
       }
+    },
+    "stale": {
+      "not_checked_since": "Nie sprawdzano od {{time}}"
     }
   },
   "navigation": {
@@ -962,7 +997,10 @@
         "message_format_label": "Format wiadomości",
         "username_description": "Nazwa użytkownika, która pojawi się jako nadawca wiadomości. Jeśli nie zostanie podana, zostanie użyta domyślna nazwa bota.",
         "webhook_url_description": "Adres URL webhooka z integracji Slack. Możesz go znaleźć w swoim Slacku pod Integracje > Webhooki.",
-        "webhook_url_label": "URL webhooka"
+        "webhook_url_label": "URL webhooka",
+        "bot_token_label": "Token bota",
+        "bot_token_description": "Twój token bota Slack do uwierzytelniania. Możesz utworzyć token bota w ustawieniach swojej aplikacji Slack",
+        "bot_token_note": "Uwaga: Podczas używania tokenu bota nazwa kanału jest wymagana."
       },
       "smtp": {
         "custom_body_label": "Niestandardowa treść",
@@ -1016,6 +1054,15 @@
         "use_template_description": "Umożliw użycie własnego szablonu wiadomości i formatowania.",
         "use_template_label": "Użyj szablonu wiadomości"
       },
+      "teams": {
+        "more_info_about_webhooks": "Więcej informacji o webhookach Workflows",
+        "server_url_description": "Bazowy adres URL Twojej instancji Peekaping, używany przez przycisk \"View in Peekaping\". Jeśli pole jest puste, używany jest CLIENT_URL serwera.",
+        "server_url_label": "Adres URL serwera",
+        "setup_webhook_description_1": "W Teams otwórz Workflows i wybierz szablon \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Wybierz zespół i kanał, kliknij Zapisz, a następnie skopiuj adres URL webhooka ze szczegółów przepływu pracy.",
+        "setup_webhook_title": "Utwórz webhook w Teams Workflows",
+        "webhook_url_label": "Adres URL webhooka Workflows"
+      },
       "webhook": {
         "additional_headers_description": "Dodaj niestandardowe nagłówki HTTP do żądania webhooka.",
         "additional_headers_label": "Dodatkowe nagłówki",
@@ -1027,7 +1074,11 @@
         "request_body_description_form_data": "Treść zostanie wysłana jako multipart/form-data. Możesz ją zdekodować przy pomocy <strong>json_decode($_POST['data'])</strong> w PHP.",
         "request_body_description_json": "Treść zostanie wysłana jako JSON z nagłówkiem \"application/json\".",
         "request_body_label": "Treść żądania",
-        "request_body_placeholder": "Wybierz typ treści"
+        "request_body_placeholder": "Wybierz typ treści",
+        "signing_secret_description": "Opcjonalne. Jeśli jest ustawiony, każde żądanie jest podpisywane za pomocą HMAC-SHA256: nagłówek X-Webhook-Signature zawiera sha256= i szesnastkowy HMAC z \"{timestamp}.{body}\", gdzie {timestamp} to nagłówek X-Webhook-Timestamp w sekundach Unix. Dla multipart/form-data {body} to pole data.",
+        "signing_secret_docs_link": "Jak zweryfikować podpis",
+        "signing_secret_label": "Sekret podpisu",
+        "signing_secret_placeholder": "Pozostaw puste, aby wysyłać niepodpisane żądania"
       }
     },
     "important": "Ważne powiadomienia",

@@ -47,6 +47,11 @@ type Config struct {
 	BruteforceLockout     time.Duration `env:"BRUTEFORCE_LOCKOUT" default:"1m"`
 
 	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"peekaping:api"`
+
+	// Prometheus metrics
+	// Set to true to expose an unauthenticated /metrics endpoint for Prometheus
+	// to scrape. Off by default since it exposes monitor names and status.
+	MetricsEnabled bool `env:"METRICS_ENABLED" default:"false"`
 }
 
 // LoadAndValidate loads and validates the API service configuration
@@ -127,5 +132,6 @@ func (c *Config) ToInternalConfig() *config.Config {
 		BruteforceWindow:      c.BruteforceWindow,
 		BruteforceLockout:     c.BruteforceLockout,
 		ServiceName:           c.ServiceName,
+		MetricsEnabled:        c.MetricsEnabled,
 	}
 }

@@ -1,4 +1,5 @@
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import {
   FormField,
   FormItem,
@@ -21,6 +22,7 @@ export const schema = z.object({
   webhook_content_type: z.enum(["json", "form-data", "custom"]),
   webhook_custom_body: z.string().optional(),
   webhook_additional_headers: z.string().optional(),
+  webhook_signing_secret: z.string().optional(),
 });
 
 export type WebhookFormValues = z.infer<typeof schema>;
@@ -34,6 +36,7 @@ export const defaultValues: WebhookFormValues = {
     "Body": "{{ msg }}"
 }`,
   webhook_additional_headers: "",
+  webhook_signing_secret: "",
 };
 
 export const displayName = "Webhook";
@@ -178,6 +181,35 @@ export default function WebhookForm() {
                 />
               </FormControl>
             )}
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="webhook_signing_secret"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>{t("notifications.form.webhook.signing_secret_label")}</FormLabel>
+            <FormControl>
+              <PasswordInput
+                placeholder={t("notifications.form.webhook.signing_secret_placeholder")}
+                autoComplete="new-password"
+                {...field}
+              />
+            </FormControl>
+            <FormDescription>
+              {t("notifications.form.webhook.signing_secret_description")}{" "}
+              <a
+                href="https://docs.peekaping.com/notifications/webhook#verify-the-signature"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline text-blue-600"
+              >
+                {t("notifications.form.webhook.signing_secret_docs_link")}
+              </a>
+            </FormDescription>
             <FormMessage />
           </FormItem>
         )}

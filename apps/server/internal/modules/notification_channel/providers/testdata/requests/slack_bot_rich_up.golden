@@ -1,0 +1,50 @@
+POST https://slack.com/api/chat.postMessage
+Authorization: Bearer xoxb-token
+Content-Type: application/json
+User-Agent: Peekaping-Slack/<version>
+
+{
+  "attachments": [
+    {
+      "blocks": [
+        {
+          "text": {
+            "text": "Peekaping Alert",
+            "type": "plain_text"
+          },
+          "type": "header"
+        },
+        {
+          "fields": [
+            {
+              "text": "*Message*\n200 - OK",
+              "type": "mrkdwn"
+            },
+            {
+              "text": "*Time*\n2026-10-17 09:35:00",
+              "type": "mrkdwn"
+            }
+          ],
+          "type": "section"
+        },
+        {
+          "elements": [
+            {
+              "text": {
+                "text": "Visit Peekaping",
+                "type": "plain_text"
+              },
+              "type": "button",
+              "url": "https://peekaping.example.com/monitors/mon-1",
+              "value": "Peekaping"
+            }
+          ],
+          "type": "actions"
+        }
+      ],
+      "color": "#2eb886"
+    }
+  ],
+  "channel": "#alerts",
+  "text": "Peekaping Alert"
+}

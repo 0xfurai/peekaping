@@ -177,8 +177,8 @@ type MockMaintenanceService struct {
 	mock.Mock
 }
 
-func (m *MockMaintenanceService) Create(ctx context.Context, dto *maintenance.CreateUpdateDto) (*maintenance.Model, error) {
-	args := m.Called(ctx, dto)
+func (m *MockMaintenanceService) Create(ctx context.Context, model *maintenance.Model, monitorIDs []string) (*maintenance.Model, error) {
+	args := m.Called(ctx, model, monitorIDs)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
@@ -219,16 +219,16 @@ func (m *MockMaintenanceService) FindAll(ctx context.Context, page int, limit in
 	return args.Get(0).([]*maintenance.Model), args.Error(1)
 }
 
-func (m *MockMaintenanceService) UpdateFull(ctx context.Context, id string, dto *maintenance.CreateUpdateDto) (*maintenance.Model, error) {
-	args := m.Called(ctx, id, dto)
+func (m *MockMaintenanceService) UpdateFull(ctx context.Context, id string, model *maintenance.Model, monitorIDs []string) (*maintenance.Model, error) {
+	args := m.Called(ctx, id, model, monitorIDs)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*maintenance.Model), args.Error(1)
 }
 
-func (m *MockMaintenanceService) UpdatePartial(ctx context.Context, id string, dto *maintenance.PartialUpdateDto) (*maintenance.Model, error) {
-	args := m.Called(ctx, id, dto)
+func (m *MockMaintenanceService) UpdatePartial(ctx context.Context, id string, model *maintenance.UpdateModel, monitorIDs []string) (*maintenance.Model, error) {
+	args := m.Called(ctx, id, model, monitorIDs)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
@@ -474,7 +474,23 @@ func (m *MockStatsService) StatPointsSummary(statsList []*stats.Stat) *stats.Sta
 	return args.Get(0).(*stats.Stats)
 }
 
+func (m *MockStatsService) Summarize(ctx context.Context, monitorID string, since, until time.Time) (*stats.Stats, error) {
+	args := m.Called(ctx, monitorID, since, until)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*stats.Stats), args.Error(1)
+}
+
 func (m *MockStatsService) DeleteByMonitorID(ctx context.Context, monitorID string) error {
 	args := m.Called(ctx, monitorID)
 	return args.Error(0)
+}
+
+func (m *MockStatsService) DeleteExpired(ctx context.Context, now time.Time) (map[stats.StatPeriod]int64, error) {
+	args := m.Called(ctx, now)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(map[stats.StatPeriod]int64), args.Error(1)
 }

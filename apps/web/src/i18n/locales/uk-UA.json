@@ -571,7 +571,38 @@
         "redis": "Монітор бази даних Redis",
         "snmp": "Монітор SNMP",
         "sqlserver": "Монітор Microsoft SQL Server",
-        "tcp": "Монітор TCP‑портів"
+        "tcp": "Монітор TCP‑портів",
+        "smtp": "Монітор поштового сервера SMTP"
+      },
+      "smtp": {
+        "authentication_title": "Автентифікація (Необов'язково)",
+        "check_cert_expiry": "Перевірити термін дії сертифіката",
+        "check_cert_expiry_description": "Відстежувати термін дії SSL/TLS сертифіката та надсилати сповіщення",
+        "from_email": "Електронна пошта відправника",
+        "from_email_description": "Необов'язково: Тестувати команду MAIL FROM з цією адресою електронної пошти",
+        "host": "Хост SMTP-сервера",
+        "ignore_tls_errors": "Ігнорувати помилки TLS",
+        "ignore_tls_errors_description": "Пропустити перевірку сертифіката TLS (корисно для самопідписаних сертифікатів)",
+        "password": "Пароль",
+        "port": "Порт",
+        "port_description": "Поширені порти: 25 (SMTP), 465 (SMTPS), 587 (Submission з STARTTLS)",
+        "title": "Налаштування SMTP-сервера",
+        "use_tls": "Використовувати STARTTLS",
+        "use_tls_description": "Увімкнути STARTTLS для безпечного з'єднання",
+        "username": "Ім'я користувача",
+        "username_description": "Необов'язково: Ім'я користувача для автентифікації SMTP",
+        "expect_secure_relay": "Розглядати відкритий реле як невдачу",
+        "expect_secure_relay_description": "Якщо увімкнено, монітор буде позначено як DOWN, коли виявлено відкритий ретранслятор (ризик безпеки). Якщо вимкнено, монітор очікує відкритий ретранслятор і буде позначений як DOWN, коли сервер відмовить у пересиланні.",
+        "open_relay_title": "Тестування відкритого ретранслятора",
+        "read_timeout": "Таймаут читання (секунди)",
+        "read_timeout_description": "Таймаут читання відповідей SMTP сервера. Залиште поле порожнім, щоб використовувати таймаут монітора. Допомагає уникнути зависання на неактивних серверах.",
+        "rcpt_to_email": "RCPT TO Електронна адреса",
+        "rcpt_to_email_description": "Електронна адреса, яку слід використати для команди RCPT TO під час тестування відкритого ретранслятора. Залиште порожнім, щоб використовувати значення за замовчуванням (test@external-domain.com)",
+        "test_open_relay": "Перевірити відкритий ретранслятор",
+        "test_open_relay_description": "Перевірити, чи сервер SMTP дозволяє пересилати листи на зовнішні домени без автентифікації",
+        "use_direct_tls": "Використовувати прямий TLS (SMTPS)",
+        "use_direct_tls_description": "Використовувати прямий TLS‑зв'язок (SMTPS) замість STARTTLS. Потрібно для порту 465. Якщо не вибрано, використовується STARTTLS (для портів 587/25).",
+        "port_465_warning": "Порт 465 зазвичай потребує прямого TLS (SMTPS). Будь ласка, увімкніть «Використовувати прямий TLS (SMTPS)» для безпечних з'єднань."
       }
     },
     "page": {
@@ -628,8 +659,12 @@
         "down": "Не працює",
         "maintenance": "Обслуговування",
         "paused": "Призупинено",
+        "pending": "Очікує",
         "up": "Працює"
       }
+    },
+    "stale": {
+      "not_checked_since": "Не перевірявся з {{time}}"
     }
   },
   "navigation": {
@@ -962,7 +997,10 @@
         "message_format_label": "Формат повідомлення",
         "username_description": "Ім'я користувача, яке буде відображатися як відправник повідомлення. Якщо не вказано, буде використано ім'я бота за замовчуванням.",
         "webhook_url_description": "URL вебхука з вашої інтеграції Slack. Ви можете знайти його у вашому екземплярі Slack в розділі Інтеграції &gt; Вебхуки.",
-        "webhook_url_label": "URL Webhook"
+        "webhook_url_label": "URL Webhook",
+        "bot_token_label": "Токен бота",
+        "bot_token_description": "Ваш токен бота Slack для автентифікації. Ви можете створити токен бота в налаштуваннях вашої програми Slack",
+        "bot_token_note": "Примітка: При використанні токена бота назва каналу є обов'язковою."
       },
       "smtp": {
         "custom_body_label": "Користувацьке тіло",
@@ -1016,6 +1054,15 @@
         "use_template_description": "Увімкніть для використання користувацького шаблону повідомлення та формату.",
         "use_template_label": "Використовувати шаблон повідомлення"
       },
+      "teams": {
+        "more_info_about_webhooks": "Більше інформації про вебхуки Workflows",
+        "server_url_description": "Базовий URL вашого екземпляра Peekaping, який використовується для кнопки \"View in Peekaping\". Якщо поле порожнє, використовується CLIENT_URL сервера.",
+        "server_url_label": "URL сервера",
+        "setup_webhook_description_1": "У Teams відкрийте Workflows і виберіть шаблон \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Виберіть команду й канал, натисніть «Зберегти», а потім скопіюйте URL вебхука з відомостей робочого процесу.",
+        "setup_webhook_title": "Створіть вебхук за допомогою Teams Workflows",
+        "webhook_url_label": "URL вебхука Workflows"
+      },
       "webhook": {
         "additional_headers_description": "Додайте користувацькі HTTP заголовки до запиту вебхука.",
         "additional_headers_label": "Додаткові заголовки",
@@ -1027,7 +1074,11 @@
         "request_body_description_form_data": "Вміст буде надіслано як multipart/form-data. Ви можете розкодувати його за допомогою <strong>json_decode($_POST['data'])</strong> в PHP.",
         "request_body_description_json": "Вміст буде надіслано як JSON з заголовком \"application/json\".",
         "request_body_label": "Тіло запиту",
-        "request_body_placeholder": "Виберіть тип вмісту"
+        "request_body_placeholder": "Виберіть тип вмісту",
+        "signing_secret_description": "Необов'язково. Якщо задано, кожен запит підписується HMAC-SHA256: заголовок X-Webhook-Signature містить sha256= і шістнадцятковий HMAC від \"{timestamp}.{body}\", де {timestamp} — заголовок X-Webhook-Timestamp у секундах Unix. Для multipart/form-data {body} — це поле data.",
+        "signing_secret_docs_link": "Як перевірити підпис",
+        "signing_secret_label": "Секрет підпису",
+        "signing_secret_placeholder": "Залиште порожнім, щоб надсилати непідписані запити"
       }
     },
     "important": "Важливі сповіщення",

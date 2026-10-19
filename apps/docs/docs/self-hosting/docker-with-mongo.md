@@ -25,6 +25,8 @@ To add custom caddy file add
 
 If you need more granular control on system components read [Microservice mode section](#microservice-mode)
 
+The bundle runs Peekaping's api, producer, worker and ingester processes as a non-root user. See [Bundle user and permissions](./bundle-user.md) to set `PUID`/`PGID` and for what Docker and ping monitors need.
+
 ## Microservice mode
 
 ### Prerequisites
@@ -134,7 +136,11 @@ services:
     networks:
       - appnet
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO - http://localhost:8034/api/v1/health || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO - http://localhost:8034/api/v1/health || exit 1",
+        ]
       interval: 30s
       timeout: 2s
       retries: 5
@@ -179,6 +185,7 @@ services:
 
   web:
     image: 0xfurai/peekaping-web:latest
+    restart: unless-stopped
     depends_on:
       api:
         condition: service_healthy
@@ -193,6 +200,7 @@ services:
 
   gateway:
     image: nginx:latest
+    restart: unless-stopped
     ports:
       - "8383:80"
     volumes:

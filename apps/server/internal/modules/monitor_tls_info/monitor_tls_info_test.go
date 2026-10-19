@@ -1,133 +1,110 @@
-package monitor_tls_info
+package monitor_tls_info_test
 
 import (
 	"context"
+	"path/filepath"
 	"testing"
 	"time"
 
+	"peekaping/cmd/bun/migrations"
+	"peekaping/internal/config"
+	"peekaping/internal/infra"
+	"peekaping/internal/modules/monitor_tls_info"
+	"peekaping/internal/modules/shared"
+
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+	"github.com/uptrace/bun/migrate"
 	"go.uber.org/zap"
 )
 
-// MockRepository is a mock implementation for testing
-type MockRepository struct {
-	mock.Mock
-}
-
-func (m *MockRepository) GetByMonitorID(ctx context.Context, monitorID string) (*Model, error) {
-	args := m.Called(ctx, monitorID)
-	return args.Get(0).(*Model), args.Error(1)
-}
-
-func (m *MockRepository) Create(ctx context.Context, dto *CreateDto) (*Model, error) {
-	args := m.Called(ctx, dto)
-	return args.Get(0).(*Model), args.Error(1)
-}
-
-func (m *MockRepository) Update(ctx context.Context, monitorID string, dto *UpdateDto) (*Model, error) {
-	args := m.Called(ctx, monitorID, dto)
-	return args.Get(0).(*Model), args.Error(1)
-}
-
-func (m *MockRepository) Upsert(ctx context.Context, monitorID string, infoJSON string) (*Model, error) {
-	args := m.Called(ctx, monitorID, infoJSON)
-	return args.Get(0).(*Model), args.Error(1)
-}
-
-func (m *MockRepository) Delete(ctx context.Context, monitorID string) error {
-	args := m.Called(ctx, monitorID)
-	return args.Error(0)
-}
-
-func (m *MockRepository) CleanupOldRecords(ctx context.Context, olderThanDays int) error {
-	args := m.Called(ctx, olderThanDays)
-	return args.Error(0)
-}
-
-type TestTLSInfo struct {
-	Valid    bool   `json:"valid"`
-	CertInfo string `json:"cert_info"`
-}
-
-func TestMonitorTLSInfoService(t *testing.T) {
-	logger := zap.NewNop().Sugar()
-	mockRepo := new(MockRepository)
-	service := NewService(mockRepo, logger)
-
+// newService returns a TLS info service on an empty SQLite database, and the
+// ID of a monitor in it.
+func newService(t *testing.T) (monitor_tls_info.Service, string) {
+	t.Helper()
 	ctx := context.Background()
-	monitorID := "test-monitor-123"
+	db, err := infra.ProvideSQLDB(&config.Config{DBType: "sqlite", DBName: filepath.Join(t.TempDir(), "tls.db")}, zap.NewNop().Sugar())
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, db.Close()) })
+	migrator := migrate.NewMigrator(db, migrations.Migrations)
+	require.NoError(t, migrator.Init(ctx))
+	_, err = migrator.Migrate(ctx)
+	require.NoError(t, err)
+	monitorID := uuid.NewString()
+	_, err = db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0)`, monitorID)
+	require.NoError(t, err)
+	return monitor_tls_info.NewService(monitor_tls_info.NewSQLRepository(db), zap.NewNop().Sugar()), monitorID
+}
 
-	t.Run("StoreTLSInfoObject and GetTLSInfoObject", func(t *testing.T) {
-		testInfo := TestTLSInfo{
-			Valid:    true,
-			CertInfo: "test-certificate-info",
-		}
+// tlsInfo is a server certificate signed by an intermediate.
+func tlsInfo(subject string, daysRemaining int) *shared.TLSInfo {
+	validFrom := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+	return &shared.TLSInfo{
+		Valid: true,
+		CertInfo: &shared.CertificateInfo{
+			Subject:        "CN=" + subject,
+			Issuer:         "CN=Example Intermediate",
+			Fingerprint256: "AA:BB:" + subject,
+			ValidFrom:      validFrom,
+			ValidTo:        validFrom.AddDate(0, 3, 0),
+			DaysRemaining:  daysRemaining,
+			CertType:       "server",
+			ValidFor:       []string{subject, "www." + subject},
+			IssuerCertificate: &shared.CertificateInfo{
+				Subject:       "CN=Example Intermediate",
+				Issuer:        "CN=Example Root",
+				ValidFrom:     validFrom,
+				ValidTo:       validFrom.AddDate(5, 0, 0),
+				DaysRemaining: 1500,
+				CertType:      "intermediate CA",
+			},
+		},
+	}
+}
 
-		expectedJSON := `{"valid":true,"cert_info":"test-certificate-info"}`
-		mockRepo.On("Upsert", ctx, monitorID, expectedJSON).Return(&Model{
-			ID:        "test-id-1",
-			MonitorID: monitorID,
-			InfoJSON:  expectedJSON,
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-		}, nil)
+func TestService_ReadsBackTheTLSInfoItStored(t *testing.T) {
+	svc, monitorID := newService(t)
+	ctx := context.Background()
+	stored := tlsInfo("example.com", 30)
 
-		// Store TLS info object
-		err := service.StoreTLSInfoObject(ctx, monitorID, testInfo)
-		assert.NoError(t, err)
+	require.NoError(t, svc.StoreTLSInfoObject(ctx, monitorID, stored))
 
-		// Get TLS info object
-		mockRepo.ExpectedCalls = nil // Reset expectations
-		mockRepo.On("GetByMonitorID", ctx, monitorID).Return(&Model{
-			ID:        "test-id-1",
-			MonitorID: monitorID,
-			InfoJSON:  expectedJSON,
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-		}, nil)
+	var read shared.TLSInfo
+	require.NoError(t, svc.GetTLSInfoObject(ctx, monitorID, &read))
+	assert.Equal(t, stored, &read)
+	got, err := svc.GetTLSInfo(ctx, monitorID)
+	require.NoError(t, err)
+	assert.Equal(t, stored, got)
+}
 
-		var retrievedInfo TestTLSInfo
-		err = service.GetTLSInfoObject(ctx, monitorID, &retrievedInfo)
-		assert.NoError(t, err)
-		assert.Equal(t, testInfo.Valid, retrievedInfo.Valid)
-		assert.Equal(t, testInfo.CertInfo, retrievedInfo.CertInfo)
+func TestService_ReplacesStoredTLSInfo(t *testing.T) {
+	svc, monitorID := newService(t)
+	ctx := context.Background()
 
-		mockRepo.AssertExpectations(t)
-	})
+	require.NoError(t, svc.StoreTLSInfoObject(ctx, monitorID, tlsInfo("old.example.com", 30)))
+	require.NoError(t, svc.StoreTLSInfoObject(ctx, monitorID, tlsInfo("new.example.com", 90)))
 
-	t.Run("GetTLSInfoObject - no data found", func(t *testing.T) {
-		mockRepo.ExpectedCalls = nil // Reset expectations
-		mockRepo.On("GetByMonitorID", ctx, monitorID).Return((*Model)(nil), nil)
+	got, err := svc.GetTLSInfo(ctx, monitorID)
+	require.NoError(t, err)
+	assert.Equal(t, tlsInfo("new.example.com", 90), got)
+}
 
-		var retrievedInfo TestTLSInfo
-		err := service.GetTLSInfoObject(ctx, monitorID, &retrievedInfo)
-		assert.NoError(t, err)
-		// Should return zero values when no data found
-		assert.False(t, retrievedInfo.Valid)
-		assert.Empty(t, retrievedInfo.CertInfo)
+func TestService_FindsNothingForAMonitorWithoutTLSInfo(t *testing.T) {
+	svc, monitorID := newService(t)
+	ctx := context.Background()
+	require.NoError(t, svc.StoreTLSInfoObject(ctx, monitorID, tlsInfo("example.com", 30)))
+	require.NoError(t, svc.DeleteTLSInfo(ctx, monitorID))
 
-		mockRepo.AssertExpectations(t)
-	})
+	for name, id := range map[string]string{"deleted": monitorID, "never stored": uuid.NewString()} {
+		t.Run(name, func(t *testing.T) {
+			got, err := svc.GetTLSInfo(ctx, id)
+			require.NoError(t, err)
+			assert.Nil(t, got)
 
-	t.Run("DeleteTLSInfo", func(t *testing.T) {
-		mockRepo.ExpectedCalls = nil // Reset expectations
-		mockRepo.On("Delete", ctx, monitorID).Return(nil)
-
-		err := service.DeleteTLSInfo(ctx, monitorID)
-		assert.NoError(t, err)
-
-		mockRepo.AssertExpectations(t)
-	})
-
-	t.Run("CleanupOldRecords", func(t *testing.T) {
-		mockRepo.ExpectedCalls = nil // Reset expectations
-		olderThanDays := 30
-		mockRepo.On("CleanupOldRecords", ctx, olderThanDays).Return(nil)
-
-		err := service.CleanupOldRecords(ctx, olderThanDays)
-		assert.NoError(t, err)
-
-		mockRepo.AssertExpectations(t)
-	})
+			read := shared.TLSInfo{Valid: true}
+			require.NoError(t, svc.GetTLSInfoObject(ctx, id, &read))
+			assert.Equal(t, shared.TLSInfo{Valid: true}, read, "the target is left as it was")
+		})
+	}
 }

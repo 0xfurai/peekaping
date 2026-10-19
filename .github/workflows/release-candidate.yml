@@ -53,24 +53,23 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version-file: .nvmrc
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          version: 9.0.0
-          run_install: false
+          bun-version-file: package.json
 
       - name: Run web tests
         run: |
-          pnpm install --frozen-lockfile
-          pnpm --filter web lint
-          pnpm --filter web build
+          bun install --frozen-lockfile
+          bun run --filter web lint
+          bun run --filter web build
 
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.21'
+          go-version: '1.26.4'
 
       - name: Run server tests
         working-directory: apps/server
@@ -96,7 +95,7 @@ jobs:
 
       - name: Update version in package.json (web) - temp
         run: |
-          npm version ${{ github.event.inputs.version }} --no-git-tag-version
+          npm pkg set version=${{ github.event.inputs.version }}
         working-directory: ./apps/web
 
       - name: Write version.ts for web - temp
@@ -477,7 +476,7 @@ jobs:
 
       - name: Update version in package.json (web) - temp
         run: |
-          npm version ${{ github.event.inputs.version }} --no-git-tag-version
+          npm pkg set version=${{ github.event.inputs.version }}
         working-directory: ./apps/web
 
       - name: Update version in main.go (server) - temp

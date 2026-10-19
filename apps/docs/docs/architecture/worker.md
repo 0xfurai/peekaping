@@ -41,6 +41,23 @@ The worker uses a registry of executors for different monitor types:
 | `websocket` | WebSocket Executor | WebSocket connection checks |
 | And more... | | Extensible executor registry |
 
+### Ping Monitors and ICMP Permissions
+
+Ping monitors send ICMP echo requests from the worker. IPv4 and IPv6 targets are supported; a hostname with both kinds of address is pinged over IPv4. The worker opens one of two kinds of socket:
+
+1. **Unprivileged ICMP socket** (tried first). Linux allows it for processes whose group is in the `net.ipv4.ping_group_range` sysctl, for IPv4 and IPv6 alike.
+2. **Raw ICMP socket**. Needs root with the `NET_RAW` capability.
+
+If neither socket can be opened, the worker runs the system `ping` command. The bundle images don't include one, and the BusyBox `ping` in the `peekaping-worker` image needs the same permissions. Either way the monitor reports DOWN with `cannot open an ICMP socket` and a hint on how to fix it.
+
+What this means for each deployment:
+
+- **Docker and Docker Compose**: works by default. Docker sets `net.ipv4.ping_group_range` to all groups in every container with its own network namespace. It doesn't with rootless Docker or `userns-remap`, and with `network_mode: host` the host's setting applies. In those cases, give the `peekaping-worker` service `sysctls: ["net.ipv4.ping_group_range=65532 65532"]`.
+- **Podman**: allows only group 0 by default. The bundle image runs as root and works. For the `peekaping-worker` image, which runs as group 65532, add `--sysctl net.ipv4.ping_group_range="65532 65532"`. Rootless Podman rejects ranges that include groups outside its user namespace, such as `0 2147483647`.
+- **Kubernetes**: the Helm chart sets `net.ipv4.ping_group_range` on worker pods through `worker.sysctls`. It is a safe sysctl, allowed under the baseline and restricted Pod Security Standards. If you deploy without the chart, set it in the pod's `securityContext.sysctls`.
+
+Adding `NET_RAW` (for example `cap_add: [NET_RAW]` in Compose) only helps a worker that runs as root, such as the bundle image. A non-root worker doesn't get the capability, so use `net.ipv4.ping_group_range` instead.
+
 ### Concurrency Model
 
 Workers can run multiple tasks concurrently based on the `QUEUE_CONCURRENCY` setting:

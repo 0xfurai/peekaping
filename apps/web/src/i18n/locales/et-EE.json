@@ -571,7 +571,38 @@
         "redis": "Redis andmebaasi monitor",
         "snmp": "SNMP jälgimine",
         "sqlserver": "Microsoft SQL Serveri jälgija",
-        "tcp": "TCP-porti jälgija"
+        "tcp": "TCP-porti jälgija",
+        "smtp": "SMTP meiliserveri monitor"
+      },
+      "smtp": {
+        "authentication_title": "Autentimine (Valikuline)",
+        "check_cert_expiry": "Kontrolli sertifikaadi aegumist",
+        "check_cert_expiry_description": "Jälgi SSL/TLS sertifikaadi aegumist ja saada teavitusi",
+        "from_email": "Saatja e-post",
+        "from_email_description": "Valikuline: Testi MAIL FROM käsku selle e-posti aadressiga",
+        "host": "SMTP serveri host",
+        "ignore_tls_errors": "Ignoreeri TLS vigu",
+        "ignore_tls_errors_description": "Jäta vahele TLS sertifikaadi valideerimine (kasulik iseallkirjastatud sertifikaatide puhul)",
+        "password": "Parool",
+        "port": "Port",
+        "port_description": "Tavalised pordid: 25 (SMTP), 465 (SMTPS), 587 (Submission koos STARTTLS-ga)",
+        "title": "SMTP serveri seaded",
+        "use_tls": "Kasuta STARTTLS",
+        "use_tls_description": "Luba STARTTLS turvalise side jaoks",
+        "username": "Kasutajanimi",
+        "username_description": "Valikuline: SMTP autentimise kasutajanimi",
+        "expect_secure_relay": "Käsitle avatud relay't tõrkena",
+        "expect_secure_relay_description": "Kui lubatud, märgitakse monitor olekuga DOWN, kui tuvastatakse avatud relay (turvarisk). Kui keelatud, eeldab monitor avatud relay't ja märgitakse olekuga DOWN, kui server keeldub edastamisest.",
+        "open_relay_title": "Avatud relay testimine",
+        "read_timeout": "Lugemistea (sekundites)",
+        "read_timeout_description": "SMTP-serveri vastuste lugemise aegumine. Jäta tühjaks, et kasutada monitori aegumist. Aitab vältida lukustumist vastuseteta serveritega.",
+        "rcpt_to_email": "RCPT TO E-post",
+        "rcpt_to_email_description": "RCPT TO käsu puhul avatud relay'i testimisel kasutatav e-posti aadress. Jäta tühjaks, et kasutada vaikimisi (test@external-domain.com).",
+        "test_open_relay": "Testi avatud relay",
+        "test_open_relay_description": "Testi, kas SMTP-server lubab e-kirjade relay'i välistele domeenidele autentimata.",
+        "use_direct_tls": "Kasuta otsest TLS (SMTPS)",
+        "use_direct_tls_description": "Kasuta otse TLS-ühendust (SMTPS) STARTTLS-i asemel. See on vajalik pordi 465 puhul. Kui valikut ei märgi, kasutatakse STARTTLS-i (portidel 587/25).",
+        "port_465_warning": "Port 465 nõuab tavaliselt otse TLS (SMTPS). Palun aktiveerige 'Kasutage otse TLS (SMTPS)' turvaliste ühenduste jaoks."
       }
     },
     "page": {
@@ -628,8 +659,12 @@
         "down": "Alla",
         "maintenance": "Hooldus",
         "paused": "Peatatud",
+        "pending": "Ootel",
         "up": "Ülal"
       }
+    },
+    "stale": {
+      "not_checked_since": "Pole kontrollitud alates {{time}}"
     }
   },
   "navigation": {
@@ -962,7 +997,10 @@
         "message_format_label": "Sõnumi vorming",
         "username_description": "Kasutajanimi, mis kuvatakse sõnumi saatjana. Kui seda pole määratud, kasutatakse vaikimisi boti nime.",
         "webhook_url_description": "Sinu Slacki integreerimise webhooki URL. Seda leiad oma Slacki instantsist Integratsioonid > Webhooks.",
-        "webhook_url_label": "Webhooki URL"
+        "webhook_url_label": "Webhooki URL",
+        "bot_token_label": "Boti märgiksõna",
+        "bot_token_description": "Sinu Slack boti märgiksõna autentimiseks. Saad luua boti märgiksõna oma Slacki rakenduse seadetest",
+        "bot_token_note": "Märkus: Boti märgiksõna kasutamisel on kanali nimi kohustuslik."
       },
       "smtp": {
         "custom_body_label": "Kohandatud keha",
@@ -1016,6 +1054,15 @@
         "use_template_description": "Luba kasutada kohandatud sõnumimalli ja vormingut.",
         "use_template_label": "Kasutage sõnumimalli"
       },
+      "teams": {
+        "more_info_about_webhooks": "Lisateave Workflowsi webhookide kohta",
+        "server_url_description": "Sinu Peekapingi instantsi baas-URL, mida kasutatakse nupu \"View in Peekaping\" jaoks. Kui see on tühi, kasutatakse serveri CLIENT_URL-i.",
+        "server_url_label": "Serveri URL",
+        "setup_webhook_description_1": "Ava Teamsis Workflows ja vali mall \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Vali meeskond ja kanal, klõpsa Salvesta ning kopeeri webhooki URL töövoo üksikasjadest.",
+        "setup_webhook_title": "Loo webhook Teams Workflowsiga",
+        "webhook_url_label": "Workflowsi webhooki URL"
+      },
       "webhook": {
         "additional_headers_description": "Lisage webhooki päringusse kohandatud HTTP-päised.",
         "additional_headers_label": "Lisapäised",
@@ -1027,7 +1074,11 @@
         "request_body_description_form_data": "Sisu saadetakse multipart/form-data vormingus. Saate selle dekodeerida kasutades <strong>json_decode($_POST['data'])</strong> PHP-is.",
         "request_body_description_json": "Sisu saadetakse JSONina koos päisega 'application/json'.",
         "request_body_label": "Taotluse keha",
-        "request_body_placeholder": "Vali sisu tüüp"
+        "request_body_placeholder": "Vali sisu tüüp",
+        "signing_secret_description": "Valikuline. Kui see on määratud, allkirjastatakse iga päring HMAC-SHA256-ga: päis X-Webhook-Signature sisaldab sha256= ja kuueteistkümnendsüsteemis HMAC-i väärtusest \"{timestamp}.{body}\", kus {timestamp} on päis X-Webhook-Timestamp Unixi sekundites. multipart/form-data puhul on {body} väli data.",
+        "signing_secret_docs_link": "Kuidas allkirja kontrollida",
+        "signing_secret_label": "Allkirjastamise saladus",
+        "signing_secret_placeholder": "Jäta tühjaks, et saata allkirjastamata päringuid"
       }
     },
     "important": "Olulised teated",

@@ -571,7 +571,38 @@
         "redis": "Monitor de base de dados Redis",
         "snmp": "Monitor SNMP",
         "sqlserver": "Monitor Microsoft SQL Server",
-        "tcp": "Monitor de Porta TCP"
+        "tcp": "Monitor de Porta TCP",
+        "smtp": "Monitor de servidor de e-mail SMTP"
+      },
+      "smtp": {
+        "authentication_title": "Autenticação (Opcional)",
+        "check_cert_expiry": "Verificar expiração do certificado",
+        "check_cert_expiry_description": "Monitorizar expiração do certificado SSL/TLS e enviar notificações",
+        "from_email": "E-mail do remetente",
+        "from_email_description": "Opcional: Testar comando MAIL FROM com este endereço de e-mail",
+        "host": "Host do servidor SMTP",
+        "ignore_tls_errors": "Ignorar erros TLS",
+        "ignore_tls_errors_description": "Ignorar validação de certificado TLS (útil para certificados auto-assinados)",
+        "password": "Palavra-passe",
+        "port": "Porta",
+        "port_description": "Portas comuns: 25 (SMTP), 465 (SMTPS), 587 (Submission com STARTTLS)",
+        "title": "Definições do servidor SMTP",
+        "use_tls": "Usar STARTTLS",
+        "use_tls_description": "Ativar STARTTLS para comunicação segura",
+        "username": "Nome de utilizador",
+        "username_description": "Opcional: Nome de utilizador para autenticação SMTP",
+        "expect_secure_relay": "Tratar Relé Aberto como Falha",
+        "expect_secure_relay_description": "Se ativado, o monitor será marcado como DOWN quando for detetado um relay aberto (risco de segurança). Se desativado, o monitor espera um relay aberto e será marcado como DOWN quando o servidor recusar o reencaminhamento.",
+        "open_relay_title": "Teste de Relay Aberto",
+        "read_timeout": "Tempo limite de leitura (segundos)",
+        "read_timeout_description": "Tempo limite para leitura de respostas do servidor SMTP. Deixe vazio para usar o tempo limite do monitor. Ajuda a evitar bloqueios em servidores que não respondem.",
+        "rcpt_to_email": "RCPT TO E‑mail",
+        "rcpt_to_email_description": "Endereço de e‑mail a ser usado para o comando RCPT TO ao testar um relay aberto. Deixe em branco para usar o padrão (test@external-domain.com)",
+        "test_open_relay": "Testar Relé Aberto",
+        "test_open_relay_description": "Testar se o servidor SMTP permite retransmissão de e-mails para domínios externos sem autenticação",
+        "use_direct_tls": "Use TLS direto (SMTPS)",
+        "use_direct_tls_description": "Use a conexão TLS direta (SMTPS) em vez de STARTTLS. Necessário para a porta 465. Se desmarcado, usa STARTTLS (para as portas 587/25).",
+        "port_465_warning": "A porta 465 normalmente requer TLS direto (SMTPS). Por favor, habilite 'Use TLS direto (SMTPS)' para conexões seguras."
       }
     },
     "page": {
@@ -628,8 +659,12 @@
         "down": "Offline",
         "maintenance": "Manutenção",
         "paused": "Pausado",
+        "pending": "Pendente",
         "up": "Ativo"
       }
+    },
+    "stale": {
+      "not_checked_since": "Não verificado desde {{time}}"
     }
   },
   "navigation": {
@@ -962,7 +997,10 @@
         "message_format_label": "Formato da mensagem",
         "username_description": "O nome de utilizador que aparecerá como remetente da mensagem. Se não for especificado, será utilizado o nome do bot padrão.",
         "webhook_url_description": "O URL do webhook da sua integração Slack. Pode encontrar este na sua instância Slack, em Integrações > Webhooks.",
-        "webhook_url_label": "URL do webhook"
+        "webhook_url_label": "URL do webhook",
+        "bot_token_label": "Token do bot",
+        "bot_token_description": "O seu token do bot Slack para autenticação. Pode criar um token do bot nas definições da sua aplicação Slack",
+        "bot_token_note": "Nota: Ao usar um token do bot, o nome do canal é obrigatório."
       },
       "smtp": {
         "custom_body_label": "Corpo Personalizado",
@@ -1016,6 +1054,15 @@
         "use_template_description": "Ativar o uso de um modelo de mensagem personalizado e formatação.",
         "use_template_label": "Usar modelo de mensagem"
       },
+      "teams": {
+        "more_info_about_webhooks": "Mais informações sobre webhooks do Workflows",
+        "server_url_description": "O URL base da sua instância do Peekaping, usado no botão \"View in Peekaping\". Se ficar vazio, é usado o CLIENT_URL do servidor.",
+        "server_url_label": "URL do servidor",
+        "setup_webhook_description_1": "No Teams, abra o Workflows e escolha o modelo \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Escolha a equipa e o canal, selecione Guardar e copie o URL do webhook a partir dos detalhes do fluxo de trabalho.",
+        "setup_webhook_title": "Crie um webhook com o Teams Workflows",
+        "webhook_url_label": "URL do Webhook do Workflows"
+      },
       "webhook": {
         "additional_headers_description": "Adicionar cabeçalhos HTTP personalizados ao pedido do webhook.",
         "additional_headers_label": "Cabeçalhos adicionais",
@@ -1027,7 +1074,11 @@
         "request_body_description_form_data": "O conteúdo será enviado como multipart/form-data. Pode decodificar-o usando <strong>json_decode($_POST['data'])</strong> em PHP.",
         "request_body_description_json": "O conteúdo será enviado como JSON com o cabeçalho \"application/json\".",
         "request_body_label": "Corpo da requisição",
-        "request_body_placeholder": "Selecionar tipo de conteúdo"
+        "request_body_placeholder": "Selecionar tipo de conteúdo",
+        "signing_secret_description": "Opcional. Quando definido, cada pedido é assinado com HMAC-SHA256: o cabeçalho X-Webhook-Signature contém sha256= e o HMAC hexadecimal de \"{timestamp}.{body}\", em que {timestamp} é o cabeçalho X-Webhook-Timestamp em segundos Unix. Para multipart/form-data, {body} é o campo data.",
+        "signing_secret_docs_link": "Como verificar a assinatura",
+        "signing_secret_label": "Segredo de assinatura",
+        "signing_secret_placeholder": "Deixe vazio para enviar pedidos sem assinatura"
       }
     },
     "important": "Notificações importantes",

@@ -2,22 +2,30 @@ package executor
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
 	"crypto/rand"
-	"crypto/rsa"
+	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
+	"io"
+	"log"
 	"math/big"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"peekaping/internal/modules/shared"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
 
@@ -582,14 +590,6 @@ func TestHTTPExecutor_Execute(t *testing.T) {
 
 	// Create test server
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Test basic auth
-		if username, password, ok := r.BasicAuth(); ok {
-			if username != "user" || password != "pass" {
-				w.WriteHeader(http.StatusUnauthorized)
-				return
-			}
-		}
-
 		// Test headers
 		if r.Header.Get("Content-Type") != "application/json" {
 			w.WriteHeader(http.StatusBadRequest)
@@ -654,46 +654,6 @@ func TestHTTPExecutor_Execute(t *testing.T) {
 			expectedStatus: shared.MonitorStatusUp,
 		},
 		{
-			name: "successful request with basic auth",
-			monitor: &Monitor{
-				ID:       "monitor1",
-				Type:     "http",
-				Name:     "Test Monitor",
-				Interval: 30,
-				Timeout:  5,
-			},
-			config: `{
-				"url": "` + server.URL + `",
-				"method": "GET",
-				"encoding": "json",
-				"accepted_statuscodes": ["2XX"],
-				"authMethod": "basic",
-				"basic_auth_user": "user",
-				"basic_auth_pass": "pass"
-			}`,
-			expectedStatus: shared.MonitorStatusUp,
-		},
-		{
-			name: "failed request with invalid basic auth",
-			monitor: &Monitor{
-				ID:       "monitor1",
-				Type:     "http",
-				Name:     "Test Monitor",
-				Interval: 30,
-				Timeout:  5,
-			},
-			config: `{
-				"url": "` + server.URL + `",
-				"method": "GET",
-				"encoding": "json",
-				"accepted_statuscodes": ["2XX"],
-				"authMethod": "basic",
-				"basic_auth_user": "wrong",
-				"basic_auth_pass": "wrong"
-			}`,
-			expectedStatus: shared.MonitorStatusDown,
-		},
-		{
 			name: "failed request with invalid status code",
 			monitor: &Monitor{
 				ID:       "monitor1",
@@ -718,6 +678,181 @@ func TestHTTPExecutor_Execute(t *testing.T) {
 			tt.monitor.Config = tt.config
 			result := executor.Execute(context.Background(), tt.monitor, nil)
 			assert.Equal(t, tt.expectedStatus, result.Status)
+		})
+	}
+}
+
+// httpMonitor builds a monitor that GETs cfg.Url and accepts 2XX responses.
+func httpMonitor(t *testing.T, monitorType string, cfg HTTPConfig) *Monitor {
+	t.Helper()
+	cfg.Method, cfg.Encoding, cfg.AcceptedStatusCodes = "GET", "json", []string{"2XX"}
+	b, err := json.Marshal(cfg)
+	require.NoError(t, err)
+	return &Monitor{ID: "monitor1", Type: monitorType, Name: "Test Monitor", Timeout: 5, Config: string(b)}
+}
+
+func TestHTTPExecutor_Execute_BasicAuth(t *testing.T) {
+	executor := NewHTTPExecutor(zap.NewNop().Sugar())
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if user, pass, ok := r.BasicAuth(); !ok || user != "user" || pass != "pass" {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	tests := []struct {
+		name        string
+		cfg         HTTPConfig
+		wantStatus  shared.MonitorStatus
+		wantMessage string
+	}{
+		{
+			name:        "valid credentials",
+			cfg:         HTTPConfig{AuthMethod: "basic", BasicAuthUser: "user", BasicAuthPass: "pass"},
+			wantStatus:  shared.MonitorStatusUp,
+			wantMessage: "200 - 200 OK",
+		},
+		{
+			name:        "wrong credentials",
+			cfg:         HTTPConfig{AuthMethod: "basic", BasicAuthUser: "user", BasicAuthPass: "wrong"},
+			wantStatus:  shared.MonitorStatusDown,
+			wantMessage: "HTTP request failed with status: 401",
+		},
+		{
+			name:        "no credentials",
+			cfg:         HTTPConfig{AuthMethod: "none"},
+			wantStatus:  shared.MonitorStatusDown,
+			wantMessage: "HTTP request failed with status: 401",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.cfg.Url = server.URL
+			result := executor.Execute(context.Background(), httpMonitor(t, "http", tt.cfg), nil)
+			assert.Equal(t, tt.wantStatus, result.Status)
+			assert.Equal(t, tt.wantMessage, result.Message)
+		})
+	}
+}
+
+func TestHTTPExecutor_Execute_Keyword(t *testing.T) {
+	executor := NewHTTPExecutor(zap.NewNop().Sugar())
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("<html><body>All systems operational</body></html>"))
+	}))
+	defer server.Close()
+
+	tests := []struct {
+		name        string
+		keyword     string
+		invert      bool
+		wantStatus  shared.MonitorStatus
+		wantMessage string
+	}{
+		{
+			name:        "keyword present",
+			keyword:     "operational",
+			wantStatus:  shared.MonitorStatusUp,
+			wantMessage: "200 - 200 OK",
+		},
+		{
+			name:        "keyword absent",
+			keyword:     "outage",
+			wantStatus:  shared.MonitorStatusDown,
+			wantMessage: "Keyword check failed: keyword 'outage' not found in response",
+		},
+		{
+			name:        "inverted keyword absent",
+			keyword:     "outage",
+			invert:      true,
+			wantStatus:  shared.MonitorStatusUp,
+			wantMessage: "200 - 200 OK",
+		},
+		{
+			name:        "inverted keyword present",
+			keyword:     "operational",
+			invert:      true,
+			wantStatus:  shared.MonitorStatusDown,
+			wantMessage: "Keyword check failed: keyword 'operational' found in response (expected absent)",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			monitor := httpMonitor(t, "http-keyword", HTTPConfig{
+				Url:           server.URL,
+				AuthMethod:    "none",
+				Keyword:       tt.keyword,
+				InvertKeyword: tt.invert,
+			})
+
+			result := executor.Execute(context.Background(), monitor, nil)
+			assert.Equal(t, tt.wantStatus, result.Status)
+			assert.Equal(t, tt.wantMessage, result.Message)
+		})
+	}
+}
+
+func TestHTTPExecutor_Execute_JsonQuery(t *testing.T) {
+	executor := NewHTTPExecutor(zap.NewNop().Sugar())
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`{"queue": {"depth": 12}}`))
+	}))
+	defer server.Close()
+
+	tests := []struct {
+		name        string
+		query       string
+		condition   string
+		expected    string
+		wantStatus  shared.MonitorStatus
+		wantMessage string
+	}{
+		{
+			name:        "condition holds",
+			query:       "queue.depth",
+			condition:   "<",
+			expected:    "100",
+			wantStatus:  shared.MonitorStatusUp,
+			wantMessage: "200 - 200 OK",
+		},
+		{
+			name:        "condition fails",
+			query:       "queue.depth",
+			condition:   ">",
+			expected:    "100",
+			wantStatus:  shared.MonitorStatusDown,
+			wantMessage: "JSON query validation failed: query 'queue.depth' with condition '>' and expected value '100'",
+		},
+		{
+			name:        "path missing",
+			query:       "queue.size",
+			condition:   "==",
+			expected:    "0",
+			wantStatus:  shared.MonitorStatusDown,
+			wantMessage: "JSON query validation error: JSON query path not found: queue.size",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			monitor := httpMonitor(t, "http-json-query", HTTPConfig{
+				Url:           server.URL,
+				AuthMethod:    "none",
+				JsonQuery:     tt.query,
+				JsonCondition: tt.condition,
+				ExpectedValue: tt.expected,
+			})
+
+			result := executor.Execute(context.Background(), monitor, nil)
+			assert.Equal(t, tt.wantStatus, result.Status)
+			assert.Equal(t, tt.wantMessage, result.Message)
 		})
 	}
 }
@@ -832,13 +967,15 @@ func TestHTTPExecutor_Execute_InvalidConfig(t *testing.T) {
 	executor := NewHTTPExecutor(logger)
 
 	tests := []struct {
-		name    string
-		config  string
-		monitor *Monitor
+		name        string
+		config      string
+		monitor     *Monitor
+		wantMessage string
 	}{
 		{
-			name:   "invalid JSON config",
-			config: `{invalid json}`,
+			name:        "invalid JSON config",
+			config:      `{invalid json}`,
+			wantMessage: "failed to parse config",
 			monitor: &Monitor{
 				ID:       "monitor1",
 				Type:     "http",
@@ -857,6 +994,7 @@ func TestHTTPExecutor_Execute_InvalidConfig(t *testing.T) {
 				"accepted_statuscodes": ["2XX"],
 				"authMethod": "none"
 			}`,
+			wantMessage: "invalid headers json",
 			monitor: &Monitor{
 				ID:       "monitor1",
 				Type:     "http",
@@ -874,6 +1012,7 @@ func TestHTTPExecutor_Execute_InvalidConfig(t *testing.T) {
 				"accepted_statuscodes": ["2XX"],
 				"authMethod": "none"
 			}`,
+			wantMessage: "unsupported protocol scheme",
 			monitor: &Monitor{
 				ID:       "monitor1",
 				Type:     "http",
@@ -889,7 +1028,7 @@ func TestHTTPExecutor_Execute_InvalidConfig(t *testing.T) {
 			tt.monitor.Config = tt.config
 			result := executor.Execute(context.Background(), tt.monitor, nil)
 			assert.Equal(t, shared.MonitorStatusDown, result.Status)
-			assert.Contains(t, result.Message, "")
+			assert.Contains(t, result.Message, tt.wantMessage)
 		})
 	}
 }
@@ -1099,7 +1238,7 @@ func TestHTTPExecutor_Execute_Proxy(t *testing.T) {
 	proxy := &Proxy{
 		ID:       "proxy1",
 		Host:     "127.0.0.1",
-		Port:     9999, // Use a port that's definitely not in use
+		Port:     closedPort(t),
 		Protocol: "http",
 		Auth:     true,
 		Username: "proxyuser",
@@ -1384,70 +1523,154 @@ func TestHTTPExecutor_Execute_MTLS_InvalidCert(t *testing.T) {
 	assert.Contains(t, result.Message, "invalid mTLS cert/key")
 }
 
-// Helper function to generate test certificates
-func generateTestCerts() (cert, key, ca string, err error) {
-	// Generate CA key
-	caKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	if err != nil {
-		return "", "", "", err
+// testPKI holds PEM-encoded test certificates: a CA, a server certificate
+// for 127.0.0.1 and a client certificate, both signed by the CA.
+type testPKI struct {
+	caPEM, serverCertPEM, serverKeyPEM, clientCertPEM, clientKeyPEM string
+}
+
+// generateTestCerts creates a testPKI whose server certificate expires at serverNotAfter.
+func generateTestCerts(t *testing.T, serverNotAfter time.Time) testPKI {
+	t.Helper()
+	encode := func(blockType string, der []byte) string {
+		return string(pem.EncodeToMemory(&pem.Block{Type: blockType, Bytes: der}))
 	}
 
-	// Create CA certificate template
-	caTemplate := x509.Certificate{
-		SerialNumber: big.NewInt(1),
-		Subject: pkix.Name{
-			Organization: []string{"Test CA"},
-		},
-		NotBefore:             time.Now(),
-		NotAfter:              time.Now().Add(time.Hour),
-		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
-		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+	caKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	require.NoError(t, err)
+	caTemplate := &x509.Certificate{
+		SerialNumber:          big.NewInt(1),
+		Subject:               pkix.Name{CommonName: "Peekaping Test CA"},
+		NotBefore:             time.Now().Add(-365 * 24 * time.Hour),
+		NotAfter:              time.Now().Add(365 * 24 * time.Hour),
+		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageDigitalSignature,
 		BasicConstraintsValid: true,
 		IsCA:                  true,
 	}
+	caDER, err := x509.CreateCertificate(rand.Reader, caTemplate, caTemplate, &caKey.PublicKey, caKey)
+	require.NoError(t, err)
+	caCert, err := x509.ParseCertificate(caDER)
+	require.NoError(t, err)
 
-	// Create CA certificate
-	caCertDER, err := x509.CreateCertificate(rand.Reader, &caTemplate, &caTemplate, &caKey.PublicKey, caKey)
-	if err != nil {
-		return "", "", "", err
+	issue := func(template *x509.Certificate) (certPEM, keyPEM string) {
+		key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		require.NoError(t, err)
+		template.KeyUsage = x509.KeyUsageDigitalSignature
+		der, err := x509.CreateCertificate(rand.Reader, template, caCert, &key.PublicKey, caKey)
+		require.NoError(t, err)
+		keyDER, err := x509.MarshalPKCS8PrivateKey(key)
+		require.NoError(t, err)
+		return encode("CERTIFICATE", der), encode("PRIVATE KEY", keyDER)
 	}
 
-	// Generate client key
-	clientKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	if err != nil {
-		return "", "", "", err
-	}
-
-	// Create client certificate template
-	clientTemplate := x509.Certificate{
+	pki := testPKI{caPEM: encode("CERTIFICATE", caDER)}
+	pki.serverCertPEM, pki.serverKeyPEM = issue(&x509.Certificate{
 		SerialNumber: big.NewInt(2),
-		Subject: pkix.Name{
-			Organization: []string{"Test Client"},
-		},
-		NotBefore:   time.Now(),
-		NotAfter:    time.Now().Add(time.Hour),
-		KeyUsage:    x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
-		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
+		Subject:      pkix.Name{CommonName: "127.0.0.1"},
+		IPAddresses:  []net.IP{net.IPv4(127, 0, 0, 1)},
+		NotBefore:    serverNotAfter.Add(-90 * 24 * time.Hour),
+		NotAfter:     serverNotAfter,
+		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+	})
+	pki.clientCertPEM, pki.clientKeyPEM = issue(&x509.Certificate{
+		SerialNumber: big.NewInt(3),
+		Subject:      pkix.Name{CommonName: "peekaping"},
+		NotBefore:    time.Now().Add(-time.Hour),
+		NotAfter:     time.Now().Add(24 * time.Hour),
+		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
+	})
+	return pki
+}
+
+// startTLSServer serves handler with the PKI's server certificate. With
+// requireClientCert, it only accepts clients with a certificate from the PKI's CA.
+func startTLSServer(t *testing.T, pki testPKI, requireClientCert bool, handler http.Handler) *httptest.Server {
+	t.Helper()
+	cert, err := tls.X509KeyPair([]byte(pki.serverCertPEM), []byte(pki.serverKeyPEM))
+	require.NoError(t, err)
+	server := httptest.NewUnstartedServer(handler)
+	// Tests that expect a failed handshake would otherwise log it.
+	server.Config.ErrorLog = log.New(io.Discard, "", 0)
+	server.TLS = &tls.Config{Certificates: []tls.Certificate{cert}}
+	if requireClientCert {
+		clientCAs := x509.NewCertPool()
+		require.True(t, clientCAs.AppendCertsFromPEM([]byte(pki.caPEM)))
+		server.TLS.ClientAuth = tls.RequireAndVerifyClientCert
+		server.TLS.ClientCAs = clientCAs
+	}
+	server.StartTLS()
+	t.Cleanup(server.Close)
+	return server
+}
+
+func TestHTTPExecutor_Execute_ReportsServerCertificate(t *testing.T) {
+	executor := NewHTTPExecutor(zap.NewNop().Sugar())
+	okHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
+
+	tests := []struct {
+		name              string
+		notAfter          time.Time
+		wantDaysRemaining int
+	}{
+		// Each expiry is an hour past whole days so DaysRemaining doesn't
+		// truncate to the next day while the test runs.
+		{name: "expires in 10 days", notAfter: time.Now().Add(10*24*time.Hour + time.Hour), wantDaysRemaining: 10},
+		{name: "expired 2 days ago", notAfter: time.Now().Add(-2*24*time.Hour - time.Hour), wantDaysRemaining: -2},
 	}
 
-	// Parse CA certificate
-	caCert, err := x509.ParseCertificate(caCertDER)
-	if err != nil {
-		return "", "", "", err
-	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			notAfter := tt.notAfter.UTC().Truncate(time.Second)
+			server := startTLSServer(t, generateTestCerts(t, notAfter), false, okHandler)
 
-	// Create client certificate
-	_, err = x509.CreateCertificate(rand.Reader, &clientTemplate, caCert, &clientKey.PublicKey, caKey)
-	if err != nil {
-		return "", "", "", err
-	}
+			result := executor.Execute(context.Background(), httpMonitor(t, "http", HTTPConfig{
+				Url:             server.URL,
+				AuthMethod:      "none",
+				IgnoreTlsErrors: true,
+			}), nil)
 
-	// Convert to PEM format
-	// Note: This is a simplified implementation for testing
-	return "-----BEGIN CERTIFICATE-----\nTEST\n-----END CERTIFICATE-----",
-		"-----BEGIN PRIVATE KEY-----\nTEST\n-----END PRIVATE KEY-----",
-		"-----BEGIN CERTIFICATE-----\nTEST\n-----END CERTIFICATE-----",
-		nil
+			assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
+			require.NotNil(t, result.TLSInfo)
+			assert.False(t, result.TLSInfo.Valid, "the chain wasn't verified")
+			cert := result.TLSInfo.CertInfo
+			require.NotNil(t, cert)
+			assert.Equal(t, "CN=127.0.0.1", cert.Subject)
+			assert.Equal(t, "CN=Peekaping Test CA", cert.Issuer)
+			assert.WithinDuration(t, notAfter, cert.ValidTo, 0)
+			assert.Equal(t, tt.wantDaysRemaining, cert.DaysRemaining)
+		})
+	}
+}
+
+func TestHTTPExecutor_Execute_MTLS(t *testing.T) {
+	executor := NewHTTPExecutor(zap.NewNop().Sugar())
+	pki := generateTestCerts(t, time.Now().Add(24*time.Hour))
+	server := startTLSServer(t, pki, true, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+
+	t.Run("with a client certificate", func(t *testing.T) {
+		result := executor.Execute(context.Background(), httpMonitor(t, "http", HTTPConfig{
+			Url:        server.URL,
+			AuthMethod: "mtls",
+			TlsCert:    pki.clientCertPEM,
+			TlsKey:     pki.clientKeyPEM,
+			TlsCa:      pki.caPEM,
+		}), nil)
+
+		assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
+		require.NotNil(t, result.TLSInfo)
+		assert.True(t, result.TLSInfo.Valid, "the chain verifies against the configured CA")
+	})
+
+	t.Run("without a client certificate", func(t *testing.T) {
+		result := executor.Execute(context.Background(), httpMonitor(t, "http", HTTPConfig{
+			Url:             server.URL,
+			AuthMethod:      "none",
+			IgnoreTlsErrors: true,
+		}), nil)
+
+		assert.Equal(t, shared.MonitorStatusDown, result.Status)
+		assert.Contains(t, result.Message, "certificate required")
+	})
 }
 
 func TestHTTPExecutor_Execute_IgnoreTlsErrors(t *testing.T) {
@@ -1646,6 +1869,40 @@ func TestCheckJsonQuery(t *testing.T) {
 	}
 }
 
+func TestCheckJsonQuery_Comparisons(t *testing.T) {
+	responseBody := `{"count": 10, "name": "beta"}`
+
+	tests := []struct {
+		query     string
+		condition string
+		expected  string
+		want      bool
+	}{
+		// Numbers compare as numbers: as strings, "10" sorts before "9".
+		{"count", ">", "9", true},
+		{"count", ">", "10", false},
+		{"count", "<", "11", true},
+		{"count", "<", "9", false},
+		{"count", ">=", "10", true},
+		{"count", ">=", "10.5", false},
+		{"count", "<=", "10", true},
+		{"count", "<=", "9.5", false},
+		// Anything else compares as strings.
+		{"name", ">", "alpha", true},
+		{"name", "<", "alpha", false},
+		{"name", ">=", "beta", true},
+		{"name", "<=", "alpha", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("%s %s %s", tt.query, tt.condition, tt.expected), func(t *testing.T) {
+			got, err := checkJsonQuery(responseBody, tt.query, tt.condition, tt.expected)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
 func TestCheckJsonQueryNonJsonResponse(t *testing.T) {
 	nonJsonResponse := "This is not a JSON response"
 
@@ -1794,4 +2051,60 @@ func TestHTTPExecutor_Execute_IgnoreTlsErrors_WithMTLS(t *testing.T) {
 	// Should fail because of invalid certificates, but test that the ignore_tls_errors flag is properly applied
 	assert.Equal(t, shared.MonitorStatusDown, result.Status)
 	assert.Contains(t, result.Message, "invalid mTLS cert/key")
+}
+
+func TestHTTPExecutor_Execute_DoesNotLeakConnections(t *testing.T) {
+	logger := zap.NewNop().Sugar()
+	executor := NewHTTPExecutor(logger)
+
+	var mu sync.Mutex
+	open := 0
+
+	server := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status":"ok"}`))
+	}))
+	// Count connections the server considers established (keep-alive idle
+	// connections stay New-but-not-Closed, which is exactly the leak signal).
+	server.Config.ConnState = func(_ net.Conn, state http.ConnState) {
+		mu.Lock()
+		defer mu.Unlock()
+		switch state {
+		case http.StateNew:
+			open++
+		case http.StateClosed, http.StateHijacked:
+			open--
+		}
+	}
+	server.Start()
+	defer server.Close()
+
+	monitor := &Monitor{
+		ID:       "monitor1",
+		Type:     "http",
+		Name:     "Leak Test Monitor",
+		Interval: 30,
+		Timeout:  5,
+		Config: `{
+			"url": "` + server.URL + `",
+			"method": "GET",
+			"encoding": "json",
+			"accepted_statuscodes": ["2XX"],
+			"authMethod": "none"
+		}`,
+	}
+
+	const checks = 5
+	for range checks {
+		result := executor.Execute(context.Background(), monitor, nil)
+		assert.Equal(t, shared.MonitorStatusUp, result.Status)
+	}
+
+	// After the checks complete, the server should observe its connections
+	// close (asynchronously). If they leak, open stays at ~checks forever.
+	assert.Eventually(t, func() bool {
+		mu.Lock()
+		defer mu.Unlock()
+		return open <= 1
+	}, 3*time.Second, 20*time.Millisecond, "established connections should not accumulate across checks")
 }

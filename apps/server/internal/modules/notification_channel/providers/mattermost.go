@@ -11,7 +11,6 @@ import (
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/version"
 	"strings"
-	"time"
 
 	liquid "github.com/osteele/liquid"
 	"go.uber.org/zap"
@@ -33,12 +32,10 @@ type MattermostSender struct {
 }
 
 // NewMattermostSender creates a MattermostSender
-func NewMattermostSender(logger *zap.SugaredLogger) *MattermostSender {
+func NewMattermostSender(logger *zap.SugaredLogger, client *http.Client) *MattermostSender {
 	return &MattermostSender{
 		logger: logger,
-		client: &http.Client{
-			Timeout: 30 * time.Second,
-		},
+		client: client,
 	}
 }
 

@@ -2,6 +2,8 @@ package auth
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
 	"errors"
 	"peekaping/internal/modules/shared"
 	"testing"
@@ -10,6 +12,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
 
@@ -26,7 +29,7 @@ func (m *MockSettingService) GetByKey(ctx context.Context, key string) (*shared.
 	return args.Get(0).(*shared.SettingModel), args.Error(1)
 }
 
-func (m *MockSettingService) SetByKey(ctx context.Context, key string, entity *shared.SettingCreateUpdateDto) (*shared.SettingModel, error) {
+func (m *MockSettingService) SetByKey(ctx context.Context, key string, entity *shared.SettingModel) (*shared.SettingModel, error) {
 	args := m.Called(ctx, key, entity)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -71,8 +74,8 @@ func TestTokenMaker_CreateAccessToken_Success(t *testing.T) {
 		Key:   "ACCESS_TOKEN_EXPIRED_IN",
 		Value: "15m",
 	}, nil)
-	mockSettingService.On("GetByKey", ctx, "ACCESS_TOKEN_SECRET_KEY").Return(&shared.SettingModel{
-		Key:   "ACCESS_TOKEN_SECRET_KEY",
+	mockSettingService.On("GetByKey", ctx, shared.AccessTokenSecretKey).Return(&shared.SettingModel{
+		Key:   shared.AccessTokenSecretKey,
 		Value: "test-secret-key",
 	}, nil)
 
@@ -185,7 +188,7 @@ func TestTokenMaker_CreateAccessToken_SecretKeyNotFound(t *testing.T) {
 		Value: "15m",
 	}, nil)
 	// Mock the secret key setting not found
-	mockSettingService.On("GetByKey", ctx, "ACCESS_TOKEN_SECRET_KEY").Return(nil, nil)
+	mockSettingService.On("GetByKey", ctx, shared.AccessTokenSecretKey).Return(nil, nil)
 
 	token, err := tokenMaker.CreateAccessToken(ctx, user)
 
@@ -213,7 +216,7 @@ func TestTokenMaker_CreateAccessToken_SecretKeyError(t *testing.T) {
 		Value: "15m",
 	}, nil)
 	// Mock the secret key setting error
-	mockSettingService.On("GetByKey", ctx, "ACCESS_TOKEN_SECRET_KEY").Return(nil, errors.New("database error"))
+	mockSettingService.On("GetByKey", ctx, shared.AccessTokenSecretKey).Return(nil, errors.New("database error"))
 
 	token, err := tokenMaker.CreateAccessToken(ctx, user)
 
@@ -240,8 +243,8 @@ func TestTokenMaker_CreateRefreshToken_Success(t *testing.T) {
 		Key:   "REFRESH_TOKEN_EXPIRED_IN",
 		Value: "168h", // 7 days in hours
 	}, nil)
-	mockSettingService.On("GetByKey", ctx, "REFRESH_TOKEN_SECRET_KEY").Return(&shared.SettingModel{
-		Key:   "REFRESH_TOKEN_SECRET_KEY",
+	mockSettingService.On("GetByKey", ctx, shared.RefreshTokenSecretKey).Return(&shared.SettingModel{
+		Key:   shared.RefreshTokenSecretKey,
 		Value: "refresh-secret-key",
 	}, nil)
 
@@ -331,7 +334,7 @@ func TestTokenMaker_CreateRefreshToken_SecretKeyNotFound(t *testing.T) {
 		Value: "168h",
 	}, nil)
 	// Mock the secret key setting not found
-	mockSettingService.On("GetByKey", ctx, "REFRESH_TOKEN_SECRET_KEY").Return(nil, nil)
+	mockSettingService.On("GetByKey", ctx, shared.RefreshTokenSecretKey).Return(nil, nil)
 
 	token, err := tokenMaker.CreateRefreshToken(ctx, user)
 
@@ -359,7 +362,7 @@ func TestTokenMaker_CreateRefreshToken_SecretKeyError(t *testing.T) {
 		Value: "168h",
 	}, nil)
 	// Mock the secret key setting error
-	mockSettingService.On("GetByKey", ctx, "REFRESH_TOKEN_SECRET_KEY").Return(nil, errors.New("database error"))
+	mockSettingService.On("GetByKey", ctx, shared.RefreshTokenSecretKey).Return(nil, errors.New("database error"))
 
 	token, err := tokenMaker.CreateRefreshToken(ctx, user)
 
@@ -386,8 +389,8 @@ func TestTokenMaker_VerifyToken_AccessTokenSuccess(t *testing.T) {
 		Key:   "ACCESS_TOKEN_EXPIRED_IN",
 		Value: "15m",
 	}, nil)
-	mockSettingService.On("GetByKey", ctx, "ACCESS_TOKEN_SECRET_KEY").Return(&shared.SettingModel{
-		Key:   "ACCESS_TOKEN_SECRET_KEY",
+	mockSettingService.On("GetByKey", ctx, shared.AccessTokenSecretKey).Return(&shared.SettingModel{
+		Key:   shared.AccessTokenSecretKey,
 		Value: "test-secret-key",
 	}, nil)
 
@@ -396,8 +399,8 @@ func TestTokenMaker_VerifyToken_AccessTokenSuccess(t *testing.T) {
 
 	// Reset mock expectations for verification
 	mockSettingService.ExpectedCalls = nil
-	mockSettingService.On("GetByKey", ctx, "ACCESS_TOKEN_SECRET_KEY").Return(&shared.SettingModel{
-		Key:   "ACCESS_TOKEN_SECRET_KEY",
+	mockSettingService.On("GetByKey", ctx, shared.AccessTokenSecretKey).Return(&shared.SettingModel{
+		Key:   shared.AccessTokenSecretKey,
 		Value: "test-secret-key",
 	}, nil)
 
@@ -429,8 +432,8 @@ func TestTokenMaker_VerifyToken_RefreshTokenSuccess(t *testing.T) {
 		Key:   "REFRESH_TOKEN_EXPIRED_IN",
 		Value: "168h", // 7 days in hours
 	}, nil)
-	mockSettingService.On("GetByKey", ctx, "REFRESH_TOKEN_SECRET_KEY").Return(&shared.SettingModel{
-		Key:   "REFRESH_TOKEN_SECRET_KEY",
+	mockSettingService.On("GetByKey", ctx, shared.RefreshTokenSecretKey).Return(&shared.SettingModel{
+		Key:   shared.RefreshTokenSecretKey,
 		Value: "refresh-secret-key",
 	}, nil)
 
@@ -439,8 +442,8 @@ func TestTokenMaker_VerifyToken_RefreshTokenSuccess(t *testing.T) {
 
 	// Reset mock expectations for verification
 	mockSettingService.ExpectedCalls = nil
-	mockSettingService.On("GetByKey", ctx, "REFRESH_TOKEN_SECRET_KEY").Return(&shared.SettingModel{
-		Key:   "REFRESH_TOKEN_SECRET_KEY",
+	mockSettingService.On("GetByKey", ctx, shared.RefreshTokenSecretKey).Return(&shared.SettingModel{
+		Key:   shared.RefreshTokenSecretKey,
 		Value: "refresh-secret-key",
 	}, nil)
 
@@ -479,7 +482,7 @@ func TestTokenMaker_VerifyToken_SecretKeyNotFound(t *testing.T) {
 	ctx := context.Background()
 	token := "some-token"
 
-	mockSettingService.On("GetByKey", ctx, "ACCESS_TOKEN_SECRET_KEY").Return(nil, nil)
+	mockSettingService.On("GetByKey", ctx, shared.AccessTokenSecretKey).Return(nil, nil)
 
 	claims, err := tokenMaker.VerifyToken(ctx, token, "access")
 
@@ -498,7 +501,7 @@ func TestTokenMaker_VerifyToken_SecretKeyError(t *testing.T) {
 	ctx := context.Background()
 	token := "some-token"
 
-	mockSettingService.On("GetByKey", ctx, "ACCESS_TOKEN_SECRET_KEY").Return(nil, errors.New("database error"))
+	mockSettingService.On("GetByKey", ctx, shared.AccessTokenSecretKey).Return(nil, errors.New("database error"))
 
 	claims, err := tokenMaker.VerifyToken(ctx, token, "access")
 
@@ -517,8 +520,8 @@ func TestTokenMaker_VerifyToken_InvalidTokenString(t *testing.T) {
 	ctx := context.Background()
 	invalidToken := "invalid.token.string"
 
-	mockSettingService.On("GetByKey", ctx, "ACCESS_TOKEN_SECRET_KEY").Return(&shared.SettingModel{
-		Key:   "ACCESS_TOKEN_SECRET_KEY",
+	mockSettingService.On("GetByKey", ctx, shared.AccessTokenSecretKey).Return(&shared.SettingModel{
+		Key:   shared.AccessTokenSecretKey,
 		Value: "test-secret-key",
 	}, nil)
 
@@ -558,8 +561,8 @@ func TestTokenMaker_VerifyToken_ExpiredToken(t *testing.T) {
 	tokenString, err := token.SignedString([]byte("test-secret-key"))
 	assert.NoError(t, err)
 
-	mockSettingService.On("GetByKey", ctx, "ACCESS_TOKEN_SECRET_KEY").Return(&shared.SettingModel{
-		Key:   "ACCESS_TOKEN_SECRET_KEY",
+	mockSettingService.On("GetByKey", ctx, shared.AccessTokenSecretKey).Return(&shared.SettingModel{
+		Key:   shared.AccessTokenSecretKey,
 		Value: "test-secret-key",
 	}, nil)
 
@@ -600,8 +603,8 @@ func TestTokenMaker_VerifyToken_WrongSecretKey(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Try to verify with different secret key
-	mockSettingService.On("GetByKey", ctx, "ACCESS_TOKEN_SECRET_KEY").Return(&shared.SettingModel{
-		Key:   "ACCESS_TOKEN_SECRET_KEY",
+	mockSettingService.On("GetByKey", ctx, shared.AccessTokenSecretKey).Return(&shared.SettingModel{
+		Key:   shared.AccessTokenSecretKey,
 		Value: "correct-secret-key",
 	}, nil)
 
@@ -630,8 +633,8 @@ func TestTokenMaker_VerifyToken_WrongTokenType(t *testing.T) {
 		Key:   "ACCESS_TOKEN_EXPIRED_IN",
 		Value: "15m",
 	}, nil)
-	mockSettingService.On("GetByKey", ctx, "ACCESS_TOKEN_SECRET_KEY").Return(&shared.SettingModel{
-		Key:   "ACCESS_TOKEN_SECRET_KEY",
+	mockSettingService.On("GetByKey", ctx, shared.AccessTokenSecretKey).Return(&shared.SettingModel{
+		Key:   shared.AccessTokenSecretKey,
 		Value: "test-secret-key",
 	}, nil)
 
@@ -640,8 +643,8 @@ func TestTokenMaker_VerifyToken_WrongTokenType(t *testing.T) {
 
 	// Reset mock expectations for verification
 	mockSettingService.ExpectedCalls = nil
-	mockSettingService.On("GetByKey", ctx, "REFRESH_TOKEN_SECRET_KEY").Return(&shared.SettingModel{
-		Key:   "REFRESH_TOKEN_SECRET_KEY",
+	mockSettingService.On("GetByKey", ctx, shared.RefreshTokenSecretKey).Return(&shared.SettingModel{
+		Key:   shared.RefreshTokenSecretKey,
 		Value: "refresh-secret-key",
 	}, nil)
 
@@ -661,10 +664,11 @@ func TestTokenMaker_VerifyToken_InvalidSigningMethod(t *testing.T) {
 	tokenMaker := NewTokenMaker(mockSettingService, logger)
 
 	ctx := context.Background()
+	mockSettingService.On("GetByKey", ctx, shared.AccessTokenSecretKey).Return(&shared.SettingModel{
+		Key:   shared.AccessTokenSecretKey,
+		Value: "test-secret-key",
+	}, nil)
 
-	// Create a token with a different signing method
-	// We'll use a simple approach: create a token with HS256 but then try to verify it
-	// with a different secret key, which will cause the signing method validation to fail
 	claims := &Claims{
 		UserID: "user123",
 		Email:  "test@example.com",
@@ -676,21 +680,27 @@ func TestTokenMaker_VerifyToken_InvalidSigningMethod(t *testing.T) {
 		},
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString([]byte("original-secret-key"))
-	assert.NoError(t, err)
+	// The claims are valid: signed with HS256 and the secret, they verify
+	hs256, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte("test-secret-key"))
+	require.NoError(t, err)
+	_, err = tokenMaker.VerifyToken(ctx, hs256, "access")
+	require.NoError(t, err)
 
-	// Try to verify with a different secret key
-	mockSettingService.On("GetByKey", ctx, "ACCESS_TOKEN_SECRET_KEY").Return(&shared.SettingModel{
-		Key:   "ACCESS_TOKEN_SECRET_KEY",
-		Value: "different-secret-key",
-	}, nil)
+	rsaKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+	rs256, err := jwt.NewWithClaims(jwt.SigningMethodRS256, claims).SignedString(rsaKey)
+	require.NoError(t, err)
+	unsigned, err := jwt.NewWithClaims(jwt.SigningMethodNone, claims).SignedString(jwt.UnsafeAllowNoneSignatureType)
+	require.NoError(t, err)
 
-	verifiedClaims, err := tokenMaker.VerifyToken(ctx, tokenString, "access")
+	for name, tokenString := range map[string]string{"RS256": rs256, "none": unsigned} {
+		t.Run(name, func(t *testing.T) {
+			verifiedClaims, err := tokenMaker.VerifyToken(ctx, tokenString, "access")
 
-	assert.Error(t, err)
-	assert.Nil(t, verifiedClaims)
-	assert.Equal(t, ErrInvalidToken, err)
+			assert.Equal(t, ErrInvalidToken, err)
+			assert.Nil(t, verifiedClaims)
+		})
+	}
 
 	mockSettingService.AssertExpectations(t)
 }
@@ -711,8 +721,8 @@ func TestTokenMaker_CreateToken_EdgeCases(t *testing.T) {
 		Key:   "ACCESS_TOKEN_EXPIRED_IN",
 		Value: "5s",
 	}, nil)
-	mockSettingService.On("GetByKey", ctx, "ACCESS_TOKEN_SECRET_KEY").Return(&shared.SettingModel{
-		Key:   "ACCESS_TOKEN_SECRET_KEY",
+	mockSettingService.On("GetByKey", ctx, shared.AccessTokenSecretKey).Return(&shared.SettingModel{
+		Key:   shared.AccessTokenSecretKey,
 		Value: "test-secret-key",
 	}, nil)
 
@@ -722,8 +732,8 @@ func TestTokenMaker_CreateToken_EdgeCases(t *testing.T) {
 
 	// Verify the token can be parsed immediately
 	mockSettingService.ExpectedCalls = nil
-	mockSettingService.On("GetByKey", ctx, "ACCESS_TOKEN_SECRET_KEY").Return(&shared.SettingModel{
-		Key:   "ACCESS_TOKEN_SECRET_KEY",
+	mockSettingService.On("GetByKey", ctx, shared.AccessTokenSecretKey).Return(&shared.SettingModel{
+		Key:   shared.AccessTokenSecretKey,
 		Value: "test-secret-key",
 	}, nil)
 
@@ -736,27 +746,4 @@ func TestTokenMaker_CreateToken_EdgeCases(t *testing.T) {
 	assert.True(t, claims.ExpiresAt.Time.Before(time.Now().UTC().Add(6*time.Second)))
 
 	mockSettingService.AssertExpectations(t)
-}
-
-func TestClaims_JSONTags(t *testing.T) {
-	// Test that Claims struct has correct JSON tags
-	claims := &Claims{
-		UserID: "user123",
-		Email:  "test@example.com",
-		Type:   "access",
-	}
-
-	// This test ensures the JSON tags are correctly defined
-	// The actual JSON marshaling is handled by the JWT library
-	assert.Equal(t, "user123", claims.UserID)
-	assert.Equal(t, "test@example.com", claims.Email)
-	assert.Equal(t, "access", claims.Type)
-}
-
-func TestErrorConstants(t *testing.T) {
-	// Test that error constants are properly defined
-	assert.NotNil(t, ErrInvalidToken)
-	assert.NotNil(t, ErrExpiredToken)
-	assert.Equal(t, "invalid token", ErrInvalidToken.Error())
-	assert.Equal(t, "token has expired", ErrExpiredToken.Error())
 }

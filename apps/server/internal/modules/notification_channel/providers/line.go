@@ -22,10 +22,11 @@ type LineConfig struct {
 
 type LineSender struct {
 	logger *zap.SugaredLogger
+	client *http.Client
 }
 
-func NewLineSender(logger *zap.SugaredLogger) *LineSender {
-	return &LineSender{logger: logger}
+func NewLineSender(logger *zap.SugaredLogger, client *http.Client) *LineSender {
+	return &LineSender{logger: logger, client: client}
 }
 
 func (s *LineSender) Unmarshal(configJSON string) (any, error) {
@@ -86,9 +87,6 @@ func (s *LineSender) Send(
 				message,
 				heartbeat.Time.Format(time.RFC3339))
 		}
-	} else {
-		// Test message
-		messageText = "Test Successful!"
 	}
 
 	// Prepare LINE message payload
@@ -108,7 +106,6 @@ func (s *LineSender) Send(
 	}
 
 	// Prepare request
-	client := &http.Client{Timeout: 10 * time.Second}
 	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(jsonPayload))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
@@ -119,7 +116,7 @@ func (s *LineSender) Send(
 
 	s.logger.Debugf("Sending LINE message to user: %s", cfg.UserID)
 
-	resp, err := client.Do(req)
+	resp, err := s.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to send LINE message: %w", err)
 	}

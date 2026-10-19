@@ -571,7 +571,38 @@
         "redis": "مراقب قاعدة بيانات ريديس",
         "snmp": "مراقب SNMP",
         "sqlserver": "مراقب Microsoft SQL Server",
-        "tcp": "مراقبة منفذ TCP"
+        "tcp": "مراقبة منفذ TCP",
+        "smtp": "مراقب خادم البريد SMTP"
+      },
+      "smtp": {
+        "authentication_title": "المصادقة (اختياري)",
+        "check_cert_expiry": "التحقق من انتهاء الشهادة",
+        "check_cert_expiry_description": "مراقبة انتهاء شهادة SSL/TLS وإرسال الإشعارات",
+        "from_email": "بريد المرسل",
+        "from_email_description": "اختياري: اختبار أمر MAIL FROM بهذا العنوان البريدي",
+        "host": "مضيف خادم SMTP",
+        "ignore_tls_errors": "تجاهل أخطاء TLS",
+        "ignore_tls_errors_description": "تخطي التحقق من شهادة TLS (مفيد للشهادات الموقعة ذاتيًا)",
+        "password": "كلمة المرور",
+        "port": "المنفذ",
+        "port_description": "المنافذ الشائعة: 25 (SMTP)، 465 (SMTPS)، 587 (Submission مع STARTTLS)",
+        "title": "إعدادات خادم SMTP",
+        "use_tls": "استخدام STARTTLS",
+        "use_tls_description": "تفعيل STARTTLS للاتصال الآمن",
+        "username": "اسم المستخدم",
+        "username_description": "اختياري: اسم مستخدم مصادقة SMTP",
+        "expect_secure_relay": "اعتبر القناة المفتوحة كفشل",
+        "expect_secure_relay_description": "إذا كان مفعّلًا، ستُعلَّم المراقبة على أنها DOWN عند اكتشاف ترحيل مفتوح (خطر أمني). إذا كان معطّلًا، تتوقع المراقبة ترحيلًا مفتوحًا وستُعلَّم على أنها DOWN عندما يرفض الخادم الترحيل.",
+        "open_relay_title": "اختبار الموزع المفتوح",
+        "read_timeout": "مهلة القراءة (ثوانٍ)",
+        "read_timeout_description": "مدة انتظار لقراءة استجابات خادم SMTP. اتركها فارغة لاستخدام مهلة المراقبة. يساعد على منع التوقف عند الخوادم غير المستجيبة.",
+        "rcpt_to_email": "RCPT TO البريد الإلكتروني",
+        "rcpt_to_email_description": "عنوان البريد الإلكتروني لاستخدامه في أمر RCPT TO عند اختبار خادم البريد المفتوح. اتركه فارغاً لاستخدام القيمة الافتراضية (test@external-domain.com)",
+        "test_open_relay": "اختبار القناة المفتوحة",
+        "test_open_relay_description": "اختبار ما إذا كان خادم SMTP يسمح بتوجيه رسائل البريد الإلكتروني إلى نطاقات خارجية بدون مصادقة",
+        "use_direct_tls": "استخدم TLS مباشر (SMTPS)",
+        "use_direct_tls_description": "استخدم اتصال TLS مباشر (SMTPS) بدلاً من STARTTLS. مطلوب للمنفذ 465. إذا لم يتم تحديده، يستخدم STARTTLS (للمنافذ 587/25).",
+        "port_465_warning": "المنفذ 465 عادةً ما يتطلب TLS مباشر (SMTPS). يرجى تفعيل \"استخدام TLS مباشر (SMTPS)\" للاتصالات الآمنة."
       }
     },
     "page": {
@@ -628,8 +659,12 @@
         "down": "خارج الخدمة",
         "maintenance": "صيانة",
         "paused": "متوقف",
+        "pending": "قيد الانتظار",
         "up": "قيد التشغيل"
       }
+    },
+    "stale": {
+      "not_checked_since": "لم يتم الفحص منذ {{time}}"
     }
   },
   "navigation": {
@@ -962,7 +997,10 @@
         "message_format_label": "تنسيق الرسالة",
         "username_description": "اسم المستخدم الذي سيظهر كمرسل الرسالة. إذا لم يتم تحديده، فسيتم استخدام اسم البوت الافتراضي.",
         "webhook_url_description": "عنوان URL لويب هوك التكامل مع Slack الخاص بك. يمكنك العثور عليه ضمن مثيل Slack الخاص بك تحت التكاملات > ويب هوكات.",
-        "webhook_url_label": "عنوان URL للويب هوك"
+        "webhook_url_label": "عنوان URL للويب هوك",
+        "bot_token_label": "رمز البوت",
+        "bot_token_description": "رمز البوت الخاص بك في Slack للمصادقة. يمكنك إنشاء رمز بوت في إعدادات تطبيق Slack الخاص بك",
+        "bot_token_note": "ملاحظة: عند استخدام رمز البوت، اسم القناة مطلوب."
       },
       "smtp": {
         "custom_body_label": "المحتوى المخصص",
@@ -1016,6 +1054,15 @@
         "use_template_description": "تمكين استخدام قالب رسالة مخصص وتنسيقه",
         "use_template_label": "استخدم قالب الرسالة"
       },
+      "teams": {
+        "more_info_about_webhooks": "مزيد من المعلومات حول Webhooks في Workflows",
+        "server_url_description": "عنوان URL الأساسي لنسخة Peekaping الخاصة بك، ويُستخدم لزر \"View in Peekaping\". إذا تُرك فارغًا، يُستخدم CLIENT_URL الخاص بالخادم.",
+        "server_url_label": "عنوان URL للخادم",
+        "setup_webhook_description_1": "في Teams، افتح Workflows واختر القالب \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "اختر الفريق والقناة، ثم اختر حفظ، وانسخ عنوان URL لـ Webhook من تفاصيل سير العمل.",
+        "setup_webhook_title": "إنشاء Webhook باستخدام Teams Workflows",
+        "webhook_url_label": "عنوان URL لـ Webhook في Workflows"
+      },
       "webhook": {
         "additional_headers_description": "أضف رؤوس HTTP مخصصة إلى طلب ويب هوك.",
         "additional_headers_label": "رؤوس إضافية",
@@ -1027,7 +1074,11 @@
         "request_body_description_form_data": "سيتم إرسال المحتوى كـ multipart/form-data. يمكنك فك ترميزه باستخدام <strong>json_decode($_POST['data'])</strong> في PHP.",
         "request_body_description_json": "سيتم إرسال المحتوى كـ JSON مع رأس \"application/json\".",
         "request_body_label": "جسم الطلب",
-        "request_body_placeholder": "اختر نوع المحتوى"
+        "request_body_placeholder": "اختر نوع المحتوى",
+        "signing_secret_description": "اختياري. عند تعيينه، يُوقَّع كل طلب باستخدام HMAC-SHA256: يحتوي رأس X-Webhook-Signature على sha256= متبوعًا بقيمة HMAC الست عشرية لـ \"{timestamp}.{body}\"، حيث {timestamp} هو رأس X-Webhook-Timestamp بثواني Unix. في multipart/form-data يكون {body} هو الحقل data.",
+        "signing_secret_docs_link": "كيفية التحقق من التوقيع",
+        "signing_secret_label": "سر التوقيع",
+        "signing_secret_placeholder": "اتركه فارغًا لإرسال طلبات غير موقّعة"
       }
     },
     "important": "إشعارات مهمة",

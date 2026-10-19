@@ -10,11 +10,24 @@ import (
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_notification"
+	"peekaping/internal/modules/monitor_tag"
 	"peekaping/internal/modules/notification_channel/providers"
+	"peekaping/internal/modules/stale"
+	"peekaping/internal/modules/tag"
+	"sort"
 	"strings"
+	"sync"
+	"time"
 
 	"go.uber.org/dig"
 	"go.uber.org/zap"
+)
+
+const (
+	// maxConcurrentSends bounds how many channels one event sends to at once
+	maxConcurrentSends = 8
+	// sendTimeout bounds each channel's send, so a channel that never answers can't hold up an event
+	sendTimeout = 15 * time.Second
 )
 
 // NotificationEventListener handles notification events
@@ -23,7 +36,10 @@ type NotificationEventListener struct {
 	monitorSvc                 monitor.Service
 	heartbeatService           heartbeat.Service
 	monitorNotificationService monitor_notification.Service
+	monitorTagService          monitor_tag.Service
+	tagService                 tag.Service
 	logger                     *zap.SugaredLogger
+	sendTimeout                time.Duration
 }
 
 type NotificationEventListenerParams struct {
@@ -32,40 +48,47 @@ type NotificationEventListenerParams struct {
 	MonitorSvc                 monitor.Service
 	HeartbeatService           heartbeat.Service
 	MonitorNotificationService monitor_notification.Service
+	MonitorTagService          monitor_tag.Service
+	TagService                 tag.Service
 	Logger                     *zap.SugaredLogger
 	Config                     *config.Config
 }
 
 func NewNotificationEventListener(p NotificationEventListenerParams) *NotificationEventListener {
+	client := providers.NewHTTPClient()
 	RegisterNotificationChannelProvider("smtp", providers.NewEmailSender(p.Logger))
-	RegisterNotificationChannelProvider("telegram", providers.NewTelegramSender(p.Logger))
-	RegisterNotificationChannelProvider("webhook", providers.NewWebhookSender(p.Logger))
-	RegisterNotificationChannelProvider("slack", providers.NewSlackSender(p.Logger, p.Config))
-	RegisterNotificationChannelProvider("ntfy", providers.NewNTFYSender(p.Logger))
-	RegisterNotificationChannelProvider("pagerduty", providers.NewPagerDutySender(p.Logger, p.Config))
-	RegisterNotificationChannelProvider("opsgenie", providers.NewOpsgenieSender(p.Logger))
-	RegisterNotificationChannelProvider("google_chat", providers.NewGoogleChatSender(p.Logger, p.Config))
-	RegisterNotificationChannelProvider("grafana_oncall", providers.NewGrafanaOncallSender(p.Logger))
-	RegisterNotificationChannelProvider("signal", providers.NewSignalSender(p.Logger))
-	RegisterNotificationChannelProvider("gotify", providers.NewGotifySender(p.Logger))
-	RegisterNotificationChannelProvider("pushover", providers.NewPushoverSender(p.Logger))
-	RegisterNotificationChannelProvider("mattermost", providers.NewMattermostSender(p.Logger))
-	RegisterNotificationChannelProvider("matrix", providers.NewMatrixSender(p.Logger))
-	RegisterNotificationChannelProvider("discord", providers.NewDiscordSender(p.Logger))
-	RegisterNotificationChannelProvider("wecom", providers.NewWeComSender(p.Logger))
-	RegisterNotificationChannelProvider("whatsapp", providers.NewWhatsAppSender(p.Logger))
-	RegisterNotificationChannelProvider("twilio", providers.NewTwilioSender(p.Logger))
-	RegisterNotificationChannelProvider("sendgrid", providers.NewSendGridSender(p.Logger))
-	RegisterNotificationChannelProvider("pushbullet", providers.NewPushbulletSender(p.Logger))
-	RegisterNotificationChannelProvider("pagertree", providers.NewPagerTreeSender(p.Logger))
-	RegisterNotificationChannelProvider("line", providers.NewLineSender(p.Logger))
+	RegisterNotificationChannelProvider("telegram", providers.NewTelegramSender(p.Logger, client))
+	RegisterNotificationChannelProvider("webhook", providers.NewWebhookSender(p.Logger, client))
+	RegisterNotificationChannelProvider("slack", providers.NewSlackSender(p.Logger, p.Config, client))
+	RegisterNotificationChannelProvider("ntfy", providers.NewNTFYSender(p.Logger, client))
+	RegisterNotificationChannelProvider("pagerduty", providers.NewPagerDutySender(p.Logger, p.Config, client))
+	RegisterNotificationChannelProvider("opsgenie", providers.NewOpsgenieSender(p.Logger, client))
+	RegisterNotificationChannelProvider("google_chat", providers.NewGoogleChatSender(p.Logger, p.Config, client))
+	RegisterNotificationChannelProvider("grafana_oncall", providers.NewGrafanaOncallSender(p.Logger, client))
+	RegisterNotificationChannelProvider("signal", providers.NewSignalSender(p.Logger, client))
+	RegisterNotificationChannelProvider("gotify", providers.NewGotifySender(p.Logger, client))
+	RegisterNotificationChannelProvider("pushover", providers.NewPushoverSender(p.Logger, client))
+	RegisterNotificationChannelProvider("mattermost", providers.NewMattermostSender(p.Logger, client))
+	RegisterNotificationChannelProvider("matrix", providers.NewMatrixSender(p.Logger, client))
+	RegisterNotificationChannelProvider("discord", providers.NewDiscordSender(p.Logger, client))
+	RegisterNotificationChannelProvider("wecom", providers.NewWeComSender(p.Logger, client))
+	RegisterNotificationChannelProvider("whatsapp", providers.NewWhatsAppSender(p.Logger, client))
+	RegisterNotificationChannelProvider("twilio", providers.NewTwilioSender(p.Logger, client))
+	RegisterNotificationChannelProvider("sendgrid", providers.NewSendGridSender(p.Logger, client))
+	RegisterNotificationChannelProvider("pushbullet", providers.NewPushbulletSender(p.Logger, client))
+	RegisterNotificationChannelProvider("pagertree", providers.NewPagerTreeSender(p.Logger, client))
+	RegisterNotificationChannelProvider("line", providers.NewLineSender(p.Logger, client))
+	RegisterNotificationChannelProvider("teams", providers.NewTeamsSender(p.Logger, p.Config, client))
 
 	return &NotificationEventListener{
 		service:                    p.Service,
 		monitorSvc:                 p.MonitorSvc,
 		heartbeatService:           p.HeartbeatService,
 		monitorNotificationService: p.MonitorNotificationService,
+		monitorTagService:          p.MonitorTagService,
+		tagService:                 p.TagService,
 		logger:                     p.Logger,
+		sendTimeout:                sendTimeout,
 	}
 }
 
@@ -73,6 +96,36 @@ func NewNotificationEventListener(p NotificationEventListenerParams) *Notificati
 func (l *NotificationEventListener) Subscribe(eventBus events.EventBus) {
 	eventBus.Subscribe(events.ImportantHeartbeat, l.handleNotifyEvent)
 	eventBus.Subscribe(events.CertificateExpiry, l.handleCertificateExpiryEvent)
+	eventBus.Subscribe(events.MonitorStale, l.handleStaleMonitorEvent)
+	eventBus.Subscribe(events.MonitorStaleRecovered, l.handleStaleMonitorEvent)
+}
+
+// staleTimeFormat is how stale-monitor notifications show the time of the last check
+const staleTimeFormat = "2006-01-02 15:04:05 UTC"
+
+func (l *NotificationEventListener) handleStaleMonitorEvent(event events.Event) {
+	ctx := context.Background()
+
+	staleEvent, ok := infra.UnmarshalEventPayload[stale.Event](event)
+	if !ok {
+		l.logger.Errorf("Failed to unmarshal stale monitor event payload")
+		return
+	}
+
+	l.logger.Infof("Stale monitor event %s received for monitor: %s", event.Type, staleEvent.MonitorID)
+
+	notificationChannels, monitorModel := l.findChannels(ctx, staleEvent.MonitorID)
+	if monitorModel == nil {
+		return
+	}
+
+	since := staleEvent.Since.UTC().Format(staleTimeFormat)
+	message := fmt.Sprintf("Peekaping has not checked %s since %s", monitorModel.Name, since)
+	if event.Type == events.MonitorStaleRecovered {
+		message = fmt.Sprintf("Peekaping is checking %s again. It was not checked from %s", monitorModel.Name, since)
+	}
+	// A stale-monitor notification carries no heartbeat
+	l.sendToChannels(ctx, notificationChannels, message, monitorModel, nil)
 }
 
 func (l *NotificationEventListener) handleNotifyEvent(event events.Event) {
@@ -84,15 +137,49 @@ func (l *NotificationEventListener) handleNotifyEvent(event events.Event) {
 		return
 	}
 
-	monitorID := hb.MonitorID
+	l.logger.Infof("Notification event received for monitor: %s", hb.MonitorID)
 
-	l.logger.Infof("Notification event received for monitor: %s", monitorID)
+	notificationChannels, monitorModel := l.findChannels(ctx, hb.MonitorID)
+	if monitorModel == nil {
+		return
+	}
 
-	// Get monitor-notification records
+	l.sendToChannels(ctx, notificationChannels, hb.Msg, monitorModel, hb)
+}
+
+func (l *NotificationEventListener) handleCertificateExpiryEvent(event events.Event) {
+	ctx := context.Background()
+
+	certEvent, ok := infra.UnmarshalEventPayload[certificate.CertificateExpiryEvent](event)
+	if !ok {
+		l.logger.Errorf("Failed to unmarshal certificate expiry event payload")
+		return
+	}
+
+	l.logger.Infof("Certificate expiry event received for monitor: %s", certEvent.MonitorID)
+
+	notificationChannels, monitorModel := l.findChannels(ctx, certEvent.MonitorID)
+	if monitorModel == nil {
+		return
+	}
+
+	// A certificate expiry notification carries no heartbeat
+	message := l.formatCertificateExpiryMessage(certEvent, monitorModel)
+	l.sendToChannels(ctx, notificationChannels, message, monitorModel, nil)
+}
+
+// findChannels returns the notification channels attached to a monitor, and the monitor
+// with its tags. The monitor is nil when there's nothing to send.
+func (l *NotificationEventListener) findChannels(ctx context.Context, monitorID string) ([]*Model, *monitor.Model) {
 	monitorNotifications, err := l.monitorNotificationService.FindByMonitorID(ctx, monitorID)
 	if err != nil {
 		l.logger.Errorf("Failed to get monitor-notification records: %v", err)
-		return
+		return nil, nil
+	}
+
+	if len(monitorNotifications) == 0 {
+		l.logger.Debugf("No notification channels configured for monitor %s", monitorID)
+		return nil, nil
 	}
 
 	var notificationChannels []*Model
@@ -113,14 +200,31 @@ func (l *NotificationEventListener) handleNotifyEvent(event events.Event) {
 	// Fetch monitor details for context
 	monitorModel, err := l.monitorSvc.FindByID(ctx, monitorID)
 	if err != nil || monitorModel == nil {
-		l.logger.Warn("Monitor not found for notification context")
-		return
+		l.logger.Warnf("Monitor not found for notification context: %s", monitorID)
+		return nil, nil
 	}
+	l.loadMonitorTags(ctx, monitorModel)
+
+	return notificationChannels, monitorModel
+}
+
+// sendToChannels sends a notification to each channel that can take it. Channels are sent
+// to concurrently, each with its own deadline, so a slow channel doesn't hold up the others.
+// It returns once every send has finished.
+func (l *NotificationEventListener) sendToChannels(
+	ctx context.Context,
+	notificationChannels []*Model,
+	message string,
+	monitorModel *monitor.Model,
+	hb *heartbeat.Model,
+) {
+	var wg sync.WaitGroup
+	slots := make(chan struct{}, maxConcurrentSends)
 
 	for _, notificationChannel := range notificationChannels {
-		integration, ok := GetNotificationChannelProvider(notificationChannel.Type)
+		provider, ok := GetNotificationChannelProvider(notificationChannel.Type)
 		if !ok {
-			l.logger.Warnf("No integration registered for notification type: %s", notificationChannel.Type)
+			l.logger.Warnf("No provider registered for notification type: %s", notificationChannel.Type)
 			continue
 		}
 		if notificationChannel.Config == nil {
@@ -129,95 +233,71 @@ func (l *NotificationEventListener) handleNotifyEvent(event events.Event) {
 		}
 
 		// validate config
-		if err := integration.Validate(*notificationChannel.Config); err != nil {
+		if err := provider.Validate(*notificationChannel.Config); err != nil {
 			l.logger.Errorf("Failed to validate notification config: %s, error: %v", notificationChannel.Name, err)
 			continue
 		}
 
-		err := integration.Send(ctx, *notificationChannel.Config, hb.Msg, monitorModel, hb)
-		if err != nil {
-			l.logger.Errorf("Failed to send notification: %s, error: %v", notificationChannel.Name, err)
-		} else {
-			l.logger.Infof("Notification sent to: %s for monitor: %s", notificationChannel.Name, monitorID)
-		}
+		slots <- struct{}{}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			defer func() { <-slots }()
+			l.send(ctx, provider, notificationChannel, message, monitorModel, hb)
+		}()
 	}
+
+	wg.Wait()
 }
 
-func (l *NotificationEventListener) handleCertificateExpiryEvent(event events.Event) {
-	ctx := context.Background()
+func (l *NotificationEventListener) send(
+	ctx context.Context,
+	provider NotificationChannelProvider,
+	notificationChannel *Model,
+	message string,
+	monitorModel *monitor.Model,
+	hb *heartbeat.Model,
+) {
+	// Sends run in their own goroutines, out of reach of the event bus's recover
+	defer func() {
+		if r := recover(); r != nil {
+			l.logger.Errorf("Notification channel panicked: %s, panic: %v", notificationChannel.Name, r)
+		}
+	}()
 
-	certEvent, ok := infra.UnmarshalEventPayload[certificate.CertificateExpiryEvent](event)
-	if !ok {
-		l.logger.Errorf("Failed to unmarshal certificate expiry event payload")
+	ctx, cancel := context.WithTimeout(ctx, l.sendTimeout)
+	defer cancel()
+
+	if err := provider.Send(ctx, *notificationChannel.Config, message, monitorModel, hb); err != nil {
+		l.logger.Errorf("Failed to send notification: %s, error: %v", notificationChannel.Name, err)
 		return
 	}
+	l.logger.Infof("Notification sent to: %s for monitor: %s", notificationChannel.Name, monitorModel.ID)
+}
 
-	l.logger.Infof("Certificate expiry event received for monitor: %s", certEvent.MonitorID)
-
-	// Get monitor-notification records
-	monitorNotifications, err := l.monitorNotificationService.FindByMonitorID(ctx, certEvent.MonitorID)
+// loadMonitorTags sets the names of the monitor's tags on it, sorted so that every
+// notification for the monitor lists them in the same order. If the lookup fails, it logs
+// the error and leaves the tags empty: the notification is still worth sending.
+func (l *NotificationEventListener) loadMonitorTags(ctx context.Context, m *monitor.Model) {
+	rels, err := l.monitorTagService.FindByMonitorID(ctx, m.ID)
 	if err != nil {
-		l.logger.Errorf("Failed to get monitor-notification records: %v", err)
+		l.logger.Errorf("Failed to get tags for monitor %s, notifying without them: %v", m.ID, err)
 		return
 	}
 
-	if len(monitorNotifications) == 0 {
-		l.logger.Debugf("No notification channels configured for monitor %s", certEvent.MonitorID)
-		return
-	}
-
-	// Get notification channels
-	var notificationChannels []*Model
-	for _, mn := range monitorNotifications {
-		l.logger.Infof("Monitor notification: %s", mn.NotificationID)
-		notification, err := l.service.FindByID(ctx, mn.NotificationID)
+	names := make([]string, 0, len(rels))
+	for _, rel := range rels {
+		t, err := l.tagService.FindByID(ctx, rel.TagID)
 		if err != nil {
-			l.logger.Errorf("Failed to get notification by ID: %s, error: %v", mn.NotificationID, err)
-			continue
+			l.logger.Errorf("Failed to get tag %s for monitor %s, notifying without tags: %v", rel.TagID, m.ID, err)
+			return
 		}
-		if notification != nil {
-			notificationChannels = append(notificationChannels, notification)
-		} else {
-			l.logger.Warnf("Notification not found for monitor-notification: %s", mn.NotificationID)
+		if t != nil {
+			names = append(names, t.Name)
 		}
 	}
-
-	// Fetch monitor details for context
-	monitorModel, err := l.monitorSvc.FindByID(ctx, certEvent.MonitorID)
-	if err != nil || monitorModel == nil {
-		l.logger.Warn("Monitor not found for certificate expiry notification context")
-		return
-	}
-
-	// Send notifications through all configured channels
-	for _, notificationChannel := range notificationChannels {
-		integration, ok := GetNotificationChannelProvider(notificationChannel.Type)
-		if !ok {
-			l.logger.Warnf("No integration registered for notification type: %s", notificationChannel.Type)
-			continue
-		}
-		if notificationChannel.Config == nil {
-			l.logger.Warnf("No config for notification: %s", notificationChannel.Name)
-			continue
-		}
-
-		// Validate config
-		if err := integration.Validate(*notificationChannel.Config); err != nil {
-			l.logger.Errorf("Failed to validate notification config: %s, error: %v", notificationChannel.Name, err)
-			continue
-		}
-
-		// Create a formatted message for certificate expiry
-		message := l.formatCertificateExpiryMessage(certEvent, monitorModel)
-
-		// Send notification (we pass nil for heartbeat since this is a certificate expiry notification)
-		err := integration.Send(ctx, *notificationChannel.Config, message, monitorModel, nil)
-		if err != nil {
-			l.logger.Errorf("Failed to send certificate expiry notification: %s, error: %v", notificationChannel.Name, err)
-		} else {
-			l.logger.Infof("Certificate expiry notification sent to: %s for monitor: %s", notificationChannel.Name, certEvent.MonitorID)
-		}
-	}
+	sort.Strings(names)
+	m.Tags = names
 }
 
 // formatCertificateExpiryMessage creates a formatted message for certificate expiry notifications

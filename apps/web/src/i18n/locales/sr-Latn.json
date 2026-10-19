@@ -571,7 +571,38 @@
         "redis": "Redis monitor baze podataka",
         "snmp": "SNMP monitor",
         "sqlserver": "Monitor Microsoft SQL Servera",
-        "tcp": "Praćenje TCP portova"
+        "tcp": "Praćenje TCP portova",
+        "smtp": "SMTP monitor servera elektronske pošte"
+      },
+      "smtp": {
+        "authentication_title": "Autentifikacija (Opciono)",
+        "check_cert_expiry": "Proveri istek sertifikata",
+        "check_cert_expiry_description": "Praćenje isteka SSL/TLS sertifikata i slanje obaveštenja",
+        "from_email": "Email pošiljaoca",
+        "from_email_description": "Opciono: Testirajte MAIL FROM komandu sa ovom email adresom",
+        "host": "SMTP server host",
+        "ignore_tls_errors": "Ignoriši TLS greške",
+        "ignore_tls_errors_description": "Preskoči proveru TLS sertifikata (korisno za samo-potpisane sertifikate)",
+        "password": "Lozinka",
+        "port": "Port",
+        "port_description": "Uobičajeni portovi: 25 (SMTP), 465 (SMTPS), 587 (Submission sa STARTTLS)",
+        "title": "SMTP postavke servera",
+        "use_tls": "Koristi STARTTLS",
+        "use_tls_description": "Omogući STARTTLS za sigurnu komunikaciju",
+        "username": "Korisničko ime",
+        "username_description": "Opciono: Korisničko ime za SMTP autentifikaciju",
+        "expect_secure_relay": "Smatraj otvoreni relay kao neuspeh",
+        "expect_secure_relay_description": "Ako je omogućeno, monitor će biti označen kao DOWN kada se otkrije otvoreni relej (bezbednosni rizik). Ako je onemogućeno, monitor očekuje otvoreni relej i biće označen kao DOWN kada server odbije prosleđivanje.",
+        "open_relay_title": "Testiranje otvorenog relajera",
+        "read_timeout": "Vreme isteka čitanja (sekundi)",
+        "read_timeout_description": "Vreme isteka za čitanje odgovora SMTP servera. Ostavite prazno da se koristi vremensko ograničenje monitora. Pomaže u sprečavanju zaglavljivanja na neodgovorivim serverima.",
+        "rcpt_to_email": "RCPT TO e‑mail",
+        "rcpt_to_email_description": "Email adresa koja se koristi za RCPT TO komandu prilikom testiranja otvorenog relija. Ostavite prazno da bi se koristila podrazumevana (test@external-domain.com).",
+        "test_open_relay": "Testiraj otvoreni relej",
+        "test_open_relay_description": "Testiraj da li SMTP server dozvoljava prosljeđivanje e‑mailova eksternim domenima bez autentifikacije",
+        "use_direct_tls": "Koristi direktni TLS (SMTPS)",
+        "use_direct_tls_description": "Koristite direktnu TLS vezu (SMTPS) umesto STARTTLS. Potrebno za port 465. Ako nije označeno, koristi se STARTTLS (za portove 587/25).",
+        "port_465_warning": "Port 465 obično zahteva direktni TLS (SMTPS). Molimo omogući „Koristi direktni TLS (SMTPS)” za sigurne veze."
       }
     },
     "page": {
@@ -628,8 +659,12 @@
         "down": "Ne radi",
         "maintenance": "Održavanje",
         "paused": "Pauzirano",
+        "pending": "Na čekanju",
         "up": "Radi"
       }
+    },
+    "stale": {
+      "not_checked_since": "Nije provereno od {{time}}"
     }
   },
   "navigation": {
@@ -962,7 +997,10 @@
         "message_format_label": "Format poruke",
         "username_description": "Korisničko ime koje će se pojaviti kao pošiljalac poruke. Ako nije navedeno, koristiće se podrazumevano ime bota.",
         "webhook_url_description": "URL webhook-a iz vaše Slack integracije. Možete ga pronaći u vašoj Slack instanci pod Integrations > Webhooks.",
-        "webhook_url_label": "Webhook URL"
+        "webhook_url_label": "Webhook URL",
+        "bot_token_label": "Bot token",
+        "bot_token_description": "Vaš Slack bot token za autentifikaciju. Možete kreirati bot token u postavkama vaše Slack aplikacije",
+        "bot_token_note": "Napomena: Kada koristite bot token, naziv kanala je obavezan."
       },
       "smtp": {
         "custom_body_label": "Prilagođeni tel",
@@ -1016,6 +1054,15 @@
         "use_template_description": "Omogući korišćenje prilagođenog predloška poruke i formata.",
         "use_template_label": "Koristi predložak poruke"
       },
+      "teams": {
+        "more_info_about_webhooks": "Više informacija o Workflows webhook-ovima",
+        "server_url_description": "Osnovni URL vaše Peekaping instance, koristi se za dugme \"View in Peekaping\". Ako je prazno, koristi se CLIENT_URL servera.",
+        "server_url_label": "URL servera",
+        "setup_webhook_description_1": "U Teams-u otvorite Workflows i izaberite šablon \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Izaberite tim i kanal, kliknite na Sačuvaj, a zatim kopirajte URL webhook-a iz detalja toka posla.",
+        "setup_webhook_title": "Napravite webhook pomoću Teams Workflows",
+        "webhook_url_label": "URL webhook-a za Workflows"
+      },
       "webhook": {
         "additional_headers_description": "Dodajte prilagođena HTTP zaglavlja u webhook zahtev.",
         "additional_headers_label": "Dodatna zaglavlja",
@@ -1027,7 +1074,11 @@
         "request_body_description_form_data": "Sadržaj će se slati kao multipart/form-data. Možete ga dekodirati pomoću <strong>json_decode($_POST['data'])</strong> u PHP.",
         "request_body_description_json": "Sadržaj će se slati kao JSON sa zaglavljem \"application/json\".",
         "request_body_label": "Telo zahteva",
-        "request_body_placeholder": "Izaberite tip sadržaja"
+        "request_body_placeholder": "Izaberite tip sadržaja",
+        "signing_secret_description": "Opciono. Ako je postavljen, svaki zahtev se potpisuje pomoću HMAC-SHA256: zaglavlje X-Webhook-Signature sadrži sha256= i heksadecimalni HMAC od \"{timestamp}.{body}\", gde je {timestamp} zaglavlje X-Webhook-Timestamp u Unix sekundama. Za multipart/form-data, {body} je polje data.",
+        "signing_secret_docs_link": "Kako proveriti potpis",
+        "signing_secret_label": "Tajni ključ za potpis",
+        "signing_secret_placeholder": "Ostavite prazno za slanje nepotpisanih zahteva"
       }
     },
     "important": "Važne obaveštenja",

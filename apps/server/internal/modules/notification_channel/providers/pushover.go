@@ -10,7 +10,6 @@ import (
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/version"
-	"time"
 
 	"go.uber.org/zap"
 )
@@ -32,12 +31,10 @@ type PushoverSender struct {
 }
 
 // NewPushoverSender creates a new PushoverSender
-func NewPushoverSender(logger *zap.SugaredLogger) *PushoverSender {
+func NewPushoverSender(logger *zap.SugaredLogger, client *http.Client) *PushoverSender {
 	return &PushoverSender{
 		logger: logger,
-		client: &http.Client{
-			Timeout: 30 * time.Second,
-		},
+		client: client,
 	}
 }
 

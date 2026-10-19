@@ -11,11 +11,11 @@ import (
 )
 
 type Service interface {
-	Create(ctx context.Context, entity *CreateUpdateDto) (*Model, error)
+	Create(ctx context.Context, entity *Model, monitorIDs []string) (*Model, error)
 	FindByID(ctx context.Context, id string) (*Model, error)
 	FindAll(ctx context.Context, page int, limit int, q string, strategy string) ([]*Model, error)
-	UpdateFull(ctx context.Context, id string, entity *CreateUpdateDto) (*Model, error)
-	UpdatePartial(ctx context.Context, id string, entity *PartialUpdateDto) (*Model, error)
+	UpdateFull(ctx context.Context, id string, entity *Model, monitorIDs []string) (*Model, error)
+	UpdatePartial(ctx context.Context, id string, entity *UpdateModel, monitorIDs []string) (*Model, error)
 	Delete(ctx context.Context, id string) error
 
 	SetActive(ctx context.Context, id string, active bool) (*Model, error)
@@ -51,12 +51,12 @@ func NewService(
 		logger:                    logger.Named("[maintenance-service]"),
 		cronGenerator:             utils.NewCronGenerator(),
 		timeWindowChecker:         utils.NewTimeWindowChecker(logger),
-		timeUtils:                 utils.NewTimeUtils(),
+		timeUtils:                 utils.NewTimeUtils(logger),
 		validator:                 utils.NewValidator(),
 	}
 }
 
-func (mr *ServiceImpl) Create(ctx context.Context, entity *CreateUpdateDto) (*Model, error) {
+func (mr *ServiceImpl) Create(ctx context.Context, entity *Model, monitorIDs []string) (*Model, error) {
 	// Validate cron and duration
 	if err := mr.validator.ValidateCronAndDuration(&utils.ValidationParams{
 		Cron:     entity.Cron,
@@ -96,8 +96,8 @@ func (mr *ServiceImpl) Create(ctx context.Context, entity *CreateUpdateDto) (*Mo
 	}
 
 	// Handle monitor IDs if provided
-	if entity.MonitorIds != nil {
-		err = mr.monitorMaintenanceService.SetMonitors(ctx, created.ID, entity.MonitorIds)
+	if monitorIDs != nil {
+		err = mr.monitorMaintenanceService.SetMonitors(ctx, created.ID, monitorIDs)
 		if err != nil {
 			return nil, err
 		}
@@ -124,7 +124,7 @@ func (mr *ServiceImpl) FindAll(ctx context.Context, page int, limit int, q strin
 	return models, nil
 }
 
-func (mr *ServiceImpl) UpdateFull(ctx context.Context, id string, entity *CreateUpdateDto) (*Model, error) {
+func (mr *ServiceImpl) UpdateFull(ctx context.Context, id string, entity *Model, monitorIDs []string) (*Model, error) {
 	// Validate cron and duration
 	if err := mr.validator.ValidateCronAndDuration(&utils.ValidationParams{
 		Cron:     entity.Cron,
@@ -164,8 +164,8 @@ func (mr *ServiceImpl) UpdateFull(ctx context.Context, id string, entity *Create
 	}
 
 	// Handle monitor IDs if provided
-	if entity.MonitorIds != nil {
-		err = mr.monitorMaintenanceService.SetMonitors(ctx, id, entity.MonitorIds)
+	if monitorIDs != nil {
+		err = mr.monitorMaintenanceService.SetMonitors(ctx, id, monitorIDs)
 		if err != nil {
 			return nil, err
 		}
@@ -174,7 +174,7 @@ func (mr *ServiceImpl) UpdateFull(ctx context.Context, id string, entity *Create
 	return updated, nil
 }
 
-func (mr *ServiceImpl) UpdatePartial(ctx context.Context, id string, entity *PartialUpdateDto) (*Model, error) {
+func (mr *ServiceImpl) UpdatePartial(ctx context.Context, id string, entity *UpdateModel, monitorIDs []string) (*Model, error) {
 	// If strategy is being updated, we might need to regenerate cron expression
 	if entity.Strategy != nil {
 		// Get the current maintenance to merge with partial update
@@ -183,8 +183,7 @@ func (mr *ServiceImpl) UpdatePartial(ctx context.Context, id string, entity *Par
 			return nil, err
 		}
 
-		// Create a temporary DTO to check if we need to generate cron
-		tempDto := &CreateUpdateDto{
+		schedule := &Model{
 			Strategy:    *entity.Strategy,
 			StartTime:   entity.StartTime,
 			EndTime:     entity.EndTime,
@@ -194,22 +193,22 @@ func (mr *ServiceImpl) UpdatePartial(ctx context.Context, id string, entity *Par
 		}
 
 		// Use current values if not provided in partial update
-		if tempDto.StartTime == nil {
-			tempDto.StartTime = current.StartTime
+		if schedule.StartTime == nil {
+			schedule.StartTime = current.StartTime
 		}
-		if tempDto.Weekdays == nil {
-			tempDto.Weekdays = current.Weekdays
+		if schedule.Weekdays == nil {
+			schedule.Weekdays = current.Weekdays
 		}
-		if tempDto.DaysOfMonth == nil {
-			tempDto.DaysOfMonth = current.DaysOfMonth
+		if schedule.DaysOfMonth == nil {
+			schedule.DaysOfMonth = current.DaysOfMonth
 		}
-		if tempDto.IntervalDay == nil {
-			tempDto.IntervalDay = current.IntervalDay
+		if schedule.IntervalDay == nil {
+			schedule.IntervalDay = current.IntervalDay
 		}
 
 		// Generate cron expression for recurring strategies if not provided
 		if entity.Cron == nil || *entity.Cron == "" {
-			generatedCron, err := mr.generateCronExpression(tempDto)
+			generatedCron, err := mr.generateCronExpression(schedule)
 			if err != nil {
 				mr.logger.Errorf("Failed to generate cron expression for maintenance: %v", err)
 				return nil, err
@@ -267,8 +266,8 @@ func (mr *ServiceImpl) UpdatePartial(ctx context.Context, id string, entity *Par
 	}
 
 	// Handle monitor IDs if provided
-	if entity.MonitorIds != nil {
-		err = mr.monitorMaintenanceService.SetMonitors(ctx, id, entity.MonitorIds)
+	if monitorIDs != nil {
+		err = mr.monitorMaintenanceService.SetMonitors(ctx, id, monitorIDs)
 		if err != nil {
 			return nil, err
 		}
@@ -370,16 +369,16 @@ func (mr *ServiceImpl) IsUnderMaintenance(ctx context.Context, maintenance *Mode
 }
 
 // generateCronExpression generates a cron expression based on the maintenance strategy and parameters
-func (mr *ServiceImpl) generateCronExpression(dto *CreateUpdateDto) (*string, error) {
+func (mr *ServiceImpl) generateCronExpression(model *Model) (*string, error) {
 	params := &utils.CronParams{
-		StartTime:   dto.StartTime,
-		EndTime:     dto.EndTime,
-		Weekdays:    dto.Weekdays,
-		DaysOfMonth: dto.DaysOfMonth,
-		IntervalDay: dto.IntervalDay,
+		StartTime:   model.StartTime,
+		EndTime:     model.EndTime,
+		Weekdays:    model.Weekdays,
+		DaysOfMonth: model.DaysOfMonth,
+		IntervalDay: model.IntervalDay,
 	}
 
-	return mr.cronGenerator.GenerateCronExpression(dto.Strategy, params)
+	return mr.cronGenerator.GenerateCronExpression(model.Strategy, params)
 }
 
 // GetMaintenancesByMonitorID returns all active maintenances for a given monitor_id

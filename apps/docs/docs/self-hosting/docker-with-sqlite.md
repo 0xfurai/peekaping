@@ -4,6 +4,8 @@ sidebar_position: 1
 
 # Docker + SQLite
 
+For the stats storage upgrade, backups and optional disk-space reclamation, see [Upgrading stats storage](./upgrading-stats.md).
+
 ## Monolithic mode
 
 The simplest mode of operation is the monolithic deployment mode. This mode runs all of Peekaping microservice components (db + api + web + gateway) inside a single process as a single Docker image.
@@ -22,6 +24,8 @@ To add custom caddy file add
 ```
 
 If you need more granular control on system components read [Microservice mode section](#microservice-mode)
+
+The bundle runs Peekaping's api, producer, worker and ingester processes as a non-root user. See [Bundle user and permissions](./bundle-user.md) to set `PUID`/`PGID` and for what Docker and ping monitors need.
 
 ## Microservice mode
 
@@ -173,6 +177,7 @@ services:
 
   web:
     image: 0xfurai/peekaping-web:latest
+    restart: unless-stopped
     depends_on:
       api:
         condition: service_healthy
@@ -187,6 +192,7 @@ services:
 
   gateway:
     image: nginx:latest
+    restart: unless-stopped
     ports:
       - "8383:80"
     volumes:

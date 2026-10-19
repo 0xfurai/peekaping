@@ -10,7 +10,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 // MockRepository implements the Repository interface for testing
@@ -463,11 +465,11 @@ func TestServiceImpl_UpdatePartial(t *testing.T) {
 			name: "successful partial update",
 			id:   "test-id",
 			input: &PartialUpdateDto{
-				Name:      "Partially Updated Channel",
-				Type:      "email",
-				Active:    true,
-				IsDefault: false,
-				Config:    "partial-config",
+				Name:      stringPtr("Partially Updated Channel"),
+				Type:      stringPtr("email"),
+				Active:    boolPtr(true),
+				IsDefault: boolPtr(false),
+				Config:    stringPtr("partial-config"),
 			},
 			mockSetup: func(mr *MockRepository) {
 				mr.On("UpdatePartial", mock.Anything, "test-id", mock.MatchedBy(func(model *UpdateModel) bool {
@@ -500,14 +502,34 @@ func TestServiceImpl_UpdatePartial(t *testing.T) {
 			expectedError: nil,
 		},
 		{
+			name: "omitted fields are not updated",
+			id:   "test-id",
+			input: &PartialUpdateDto{
+				Name: stringPtr("Renamed Channel"),
+			},
+			mockSetup: func(mr *MockRepository) {
+				mr.On("UpdatePartial", mock.Anything, "test-id", mock.MatchedBy(func(model *UpdateModel) bool {
+					return *model.Name == "Renamed Channel" &&
+						model.Type == nil &&
+						model.Active == nil &&
+						model.IsDefault == nil &&
+						model.Config == nil
+				})).Return(nil)
+
+				mr.On("FindByID", mock.Anything, "test-id").Return(&Model{ID: "test-id", Name: "Renamed Channel"}, nil)
+			},
+			expectedModel: &Model{ID: "test-id", Name: "Renamed Channel"},
+			expectedError: nil,
+		},
+		{
 			name: "update error",
 			id:   "test-id",
 			input: &PartialUpdateDto{
-				Name:      "Partially Updated Channel",
-				Type:      "email",
-				Active:    true,
-				IsDefault: false,
-				Config:    "partial-config",
+				Name:      stringPtr("Partially Updated Channel"),
+				Type:      stringPtr("email"),
+				Active:    boolPtr(true),
+				IsDefault: boolPtr(false),
+				Config:    stringPtr("partial-config"),
 			},
 			mockSetup: func(mr *MockRepository) {
 				mr.On("UpdatePartial", mock.Anything, "test-id", mock.Anything).Return(errors.New("update failed"))
@@ -519,11 +541,11 @@ func TestServiceImpl_UpdatePartial(t *testing.T) {
 			name: "find after update error",
 			id:   "test-id",
 			input: &PartialUpdateDto{
-				Name:      "Partially Updated Channel",
-				Type:      "email",
-				Active:    true,
-				IsDefault: false,
-				Config:    "partial-config",
+				Name:      stringPtr("Partially Updated Channel"),
+				Type:      stringPtr("email"),
+				Active:    boolPtr(true),
+				IsDefault: boolPtr(false),
+				Config:    stringPtr("partial-config"),
 			},
 			mockSetup: func(mr *MockRepository) {
 				mr.On("UpdatePartial", mock.Anything, "test-id", mock.Anything).Return(nil)
@@ -590,7 +612,7 @@ func TestServiceImpl_Delete(t *testing.T) {
 				mr.On("Delete", mock.Anything, "test-id").Return(nil)
 				mns.On("DeleteByNotificationID", mock.Anything, "test-id").Return(errors.New("cascade delete failed"))
 			},
-			expectedError: nil, // Service ignores cascade delete errors
+			expectedError: nil, // The channel is gone, so the failure is only logged
 		},
 	}
 
@@ -618,6 +640,24 @@ func TestServiceImpl_Delete(t *testing.T) {
 	}
 }
 
+func TestServiceImpl_DeleteLogsCascadeFailure(t *testing.T) {
+	mockRepo := &MockRepository{}
+	mockMonitorNotificationService := &MockMonitorNotificationService{}
+	mockRepo.On("Delete", mock.Anything, "test-id").Return(nil)
+	mockMonitorNotificationService.On("DeleteByNotificationID", mock.Anything, "test-id").Return(errors.New("cascade delete failed"))
+	core, logs := observer.New(zap.WarnLevel)
+	service := NewService(mockRepo, mockMonitorNotificationService, zap.New(core).Sugar())
+
+	err := service.Delete(context.Background(), "test-id")
+
+	// Links left behind are skipped when notifications are sent
+	assert.NoError(t, err)
+	require.Equal(t, 1, logs.Len())
+	entry := logs.All()[0]
+	assert.Equal(t, "Failed to delete the deleted notification channel's monitor links", entry.Message)
+	assert.Equal(t, map[string]any{"id": "test-id", "error": "cascade delete failed"}, entry.ContextMap())
+}
+
 func TestNewService(t *testing.T) {
 	mockRepo := &MockRepository{}
 	mockMonitorNotificationService := &MockMonitorNotificationService{}
@@ -637,4 +677,9 @@ func TestNewService(t *testing.T) {
 // Helper function to create string pointers
 func stringPtr(s string) *string {
 	return &s
+}
+
+// Helper function to create bool pointers
+func boolPtr(b bool) *bool {
+	return &b
 }

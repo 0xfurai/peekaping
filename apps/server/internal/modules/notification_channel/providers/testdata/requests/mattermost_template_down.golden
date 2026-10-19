@@ -1,0 +1,8 @@
+POST https://mattermost.example.com/hooks/abc
+Content-Type: application/json
+User-Agent: Peekaping-Mattermost/<version>
+
+{
+  "text": "Public API is DOWN: connection refused",
+  "username": "Peekaping"
+}

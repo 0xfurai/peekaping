@@ -571,7 +571,38 @@
         "redis": "Monitor del database Redis",
         "snmp": "Monitor SNMP",
         "sqlserver": "Monitor Microsoft SQL Server",
-        "tcp": "Monitor porta TCP"
+        "tcp": "Monitor porta TCP",
+        "smtp": "Monitor server email SMTP"
+      },
+      "smtp": {
+        "authentication_title": "Autenticazione (Opzionale)",
+        "check_cert_expiry": "Verifica scadenza certificato",
+        "check_cert_expiry_description": "Monitorare la scadenza del certificato SSL/TLS e inviare notifiche",
+        "from_email": "Email mittente",
+        "from_email_description": "Opzionale: Testare il comando MAIL FROM con questo indirizzo email",
+        "host": "Host server SMTP",
+        "ignore_tls_errors": "Ignora errori TLS",
+        "ignore_tls_errors_description": "Saltare la convalida del certificato TLS (utile per certificati auto-firmati)",
+        "password": "Password",
+        "port": "Porta",
+        "port_description": "Porte comuni: 25 (SMTP), 465 (SMTPS), 587 (Submission con STARTTLS)",
+        "title": "Impostazioni server SMTP",
+        "use_tls": "Usa STARTTLS",
+        "use_tls_description": "Abilitare STARTTLS per comunicazione sicura",
+        "username": "Nome utente",
+        "username_description": "Opzionale: Nome utente per autenticazione SMTP",
+        "expect_secure_relay": "Considera il relay aperto come fallimento",
+        "expect_secure_relay_description": "Se abilitato, il monitor verrà contrassegnato come DOWN quando viene rilevato un relay aperto (rischio di sicurezza). Se disabilitato, il monitor si aspetta un relay aperto e verrà contrassegnato come DOWN quando il server rifiuta l'inoltro.",
+        "open_relay_title": "Test relay aperto",
+        "read_timeout": "Timeout di lettura (secondi)",
+        "read_timeout_description": "Timeout per la lettura delle risposte del server SMTP. Lascia vuoto per usare il timeout del monitor. Aiuta a prevenire il blocco su server non responsivi.",
+        "rcpt_to_email": "Email destinatario",
+        "rcpt_to_email_description": "Indirizzo e‑mail da utilizzare per il comando RCPT TO durante il test di relay aperto. Lascia vuoto per utilizzare quello predefinito (test@external-domain.com)",
+        "test_open_relay": "Test del relay aperto",
+        "test_open_relay_description": "Verifica se il server SMTP consente il reindirizzamento di email a domini esterni senza autenticazione.",
+        "use_direct_tls": "Usa TLS diretto (SMTPS)",
+        "use_direct_tls_description": "Usa connessione TLS diretta (SMTPS) invece di STARTTLS. Necessario per la porta 465. Se non selezionato, viene usato STARTTLS (per le porte 587/25).",
+        "port_465_warning": "La porta 465 richiede tipicamente TLS diretto (SMTPS). Attiva “Usa TLS diretto (SMTPS)” per le connessioni sicure."
       }
     },
     "page": {
@@ -628,8 +659,12 @@
         "down": "Non operativo",
         "maintenance": "Manutenzione",
         "paused": "In pausa",
+        "pending": "In attesa",
         "up": "Online"
       }
+    },
+    "stale": {
+      "not_checked_since": "Non controllato dal {{time}}"
     }
   },
   "navigation": {
@@ -962,7 +997,10 @@
         "message_format_label": "Formato del messaggio",
         "username_description": "Il nome utente che apparirà come mittente del messaggio. Se non specificato, verrà utilizzato il nome predefinito del bot.",
         "webhook_url_description": "L'URL del webhook della tua integrazione Slack. Puoi trovarlo nella tua istanza Slack sotto Integrazioni > Webhook.",
-        "webhook_url_label": "URL Webhook"
+        "webhook_url_label": "URL Webhook",
+        "bot_token_label": "Token del bot",
+        "bot_token_description": "Il tuo token del bot Slack per l'autenticazione. Puoi creare un token del bot nelle impostazioni della tua app Slack",
+        "bot_token_note": "Nota: Quando si utilizza un token del bot, il nome del canale è obbligatorio."
       },
       "smtp": {
         "custom_body_label": "Corpo personalizzato",
@@ -1016,6 +1054,15 @@
         "use_template_description": "Abilita l'uso di un modello di messaggio personalizzato e formattazione.",
         "use_template_label": "Usa modello di messaggio"
       },
+      "teams": {
+        "more_info_about_webhooks": "Ulteriori informazioni sui webhook di Workflows",
+        "server_url_description": "L'URL di base della tua istanza Peekaping, usato per il pulsante \"View in Peekaping\". Se vuoto, viene usato il CLIENT_URL del server.",
+        "server_url_label": "URL del server",
+        "setup_webhook_description_1": "In Teams, apri Workflows e scegli il modello \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Scegli il team e il canale, seleziona Salva, quindi copia l'URL del webhook dai dettagli del flusso di lavoro.",
+        "setup_webhook_title": "Crea un webhook con Teams Workflows",
+        "webhook_url_label": "URL Webhook di Workflows"
+      },
       "webhook": {
         "additional_headers_description": "Aggiungi intestazioni HTTP personalizzate alla richiesta webhook.",
         "additional_headers_label": "Headers aggiuntivi",
@@ -1027,7 +1074,11 @@
         "request_body_description_form_data": "Il contenuto verrà inviato come multipart/form-data. È possibile decodificarlo usando <strong>json_decode($_POST['data'])</strong> in PHP.",
         "request_body_description_json": "Il contenuto sarà inviato come JSON con l'intestazione \"application/json\".",
         "request_body_label": "Corpo della richiesta",
-        "request_body_placeholder": "Seleziona il tipo di contenuto"
+        "request_body_placeholder": "Seleziona il tipo di contenuto",
+        "signing_secret_description": "Facoltativo. Se impostato, ogni richiesta viene firmata con HMAC-SHA256: l'intestazione X-Webhook-Signature contiene sha256= e l'HMAC esadecimale di \"{timestamp}.{body}\", dove {timestamp} è l'intestazione X-Webhook-Timestamp in secondi Unix. Per multipart/form-data, {body} è il campo data.",
+        "signing_secret_docs_link": "Come verificare la firma",
+        "signing_secret_label": "Segreto di firma",
+        "signing_secret_placeholder": "Lascia vuoto per inviare richieste non firmate"
       }
     },
     "important": "Notifiche importanti",

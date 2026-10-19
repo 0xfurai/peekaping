@@ -571,7 +571,38 @@
         "redis": "Redis Veritabanı İzleyicisi",
         "snmp": "SNMP İzleyici",
         "sqlserver": "Microsoft SQL Server İzleyicisi",
-        "tcp": "TCP Port İzleyici"
+        "tcp": "TCP Port İzleyici",
+        "smtp": "SMTP Posta Sunucusu Monitörü"
+      },
+      "smtp": {
+        "authentication_title": "Kimlik Doğrulama (İsteğe Bağlı)",
+        "check_cert_expiry": "Sertifika süresini kontrol et",
+        "check_cert_expiry_description": "SSL/TLS sertifika süresini izleyin ve bildirim gönderin",
+        "from_email": "Gönderen E-posta",
+        "from_email_description": "İsteğe bağlı: Bu e-posta adresiyle MAIL FROM komutunu test edin",
+        "host": "SMTP Sunucu Adresi",
+        "ignore_tls_errors": "TLS Hatalarını Yoksay",
+        "ignore_tls_errors_description": "TLS sertifika doğrulamasını atla (kendi imzalı sertifikalar için faydalıdır)",
+        "password": "Şifre",
+        "port": "Port",
+        "port_description": "Yaygın portlar: 25 (SMTP), 465 (SMTPS), 587 (STARTTLS ile Submission)",
+        "title": "SMTP Sunucu Ayarları",
+        "use_tls": "STARTTLS Kullan",
+        "use_tls_description": "Güvenli iletişim için STARTTLS'yi etkinleştir",
+        "username": "Kullanıcı Adı",
+        "username_description": "İsteğe bağlı: SMTP kimlik doğrulama kullanıcı adı",
+        "expect_secure_relay": "Açık Relay'i Hata Olarak İşle",
+        "expect_secure_relay_description": "Etkinleştirilirse, açık relay tespit edildiğinde izleyici DOWN olarak işaretlenir (güvenlik riski). Devre dışı bırakılırsa, izleyici açık relay bekler ve sunucu aktarmayı reddettiğinde DOWN olarak işaretlenir.",
+        "open_relay_title": "Açık Relay Testi",
+        "read_timeout": "Okuma Zaman Aşımı (saniye)",
+        "read_timeout_description": "SMTP sunucu yanıtlarını okuma zaman aşımı. İzleme zaman aşımı kullanılacaksa boş bırakın. Yanıt vermeyen sunucularda takılı kalmayı önlemeye yardımcı olur.",
+        "rcpt_to_email": "RCPT TO E-posta",
+        "rcpt_to_email_description": "RCPT TO komutunda açık relay testinde kullanılacak e-posta adresi. Varsayılanı kullanmak için boş bırakın (test@external-domain.com)",
+        "test_open_relay": "Açık Relay'i Test Et",
+        "test_open_relay_description": "SMTP sunucusunun kimlik doğrulama olmadan dış alanlara e-posta iletimi (relaying) yapmasına izin verip vermediğini test edin.",
+        "use_direct_tls": "Doğrudan TLS kullanın (SMTPS)",
+        "use_direct_tls_description": "STARTTLS yerine doğrudan TLS bağlantısı (SMTPS) kullanın. Port 465 için gereklidir. İşaretlenmezse STARTTLS kullanılır (587/25 portları için).",
+        "port_465_warning": "Port 465 genellikle doğrudan TLS (SMTPS) gerektirir. Güvenli bağlantılar için “Doğrudan TLS (SMTPS) Kullan”ı etkinleştirin."
       }
     },
     "page": {
@@ -628,8 +659,12 @@
         "down": "Çalışmıyor",
         "maintenance": "Bakım",
         "paused": "Duraklatıldı",
+        "pending": "Beklemede",
         "up": "Çalışıyor"
       }
+    },
+    "stale": {
+      "not_checked_since": "{{time}} tarihinden beri kontrol edilmedi"
     }
   },
   "navigation": {
@@ -962,7 +997,10 @@
         "message_format_label": "Mesaj Biçimi",
         "username_description": "Mesajın göndereni olarak görünecek kullanıcı adı. Belirtilmezse, varsayılan bot adı kullanılacaktır.",
         "webhook_url_description": "Slack entegrasyonunuzun webhook URL'si. Slack örneğinizde Entegrasyonlar > Webhook'lar bölümünde bulabilirsiniz.",
-        "webhook_url_label": "Webhook URL'si"
+        "webhook_url_label": "Webhook URL'si",
+        "bot_token_label": "Bot Token",
+        "bot_token_description": "Kimlik doğrulama için Slack bot token'ınız. Slack uygulama ayarlarınızda bir bot token oluşturabilirsiniz",
+        "bot_token_note": "Not: Bot token kullanırken kanal adı gereklidir."
       },
       "smtp": {
         "custom_body_label": "Özel Gövde",
@@ -1016,6 +1054,15 @@
         "use_template_description": "Özel mesaj şablonu ve biçimini kullanmayı etkinleştir.",
         "use_template_label": "Mesaj Şablonunu Kullan"
       },
+      "teams": {
+        "more_info_about_webhooks": "Workflows webhook'ları hakkında daha fazla bilgi",
+        "server_url_description": "\"View in Peekaping\" düğmesi için kullanılan Peekaping örneğinizin temel URL'si. Boş bırakılırsa sunucunun CLIENT_URL değeri kullanılır.",
+        "server_url_label": "Sunucu URL'si",
+        "setup_webhook_description_1": "Teams'te Workflows'u açın ve \"Send webhook alerts to a channel\" şablonunu seçin.",
+        "setup_webhook_description_2": "Ekibi ve kanalı seçin, Kaydet'e tıklayın, ardından iş akışı ayrıntılarından webhook URL'sini kopyalayın.",
+        "setup_webhook_title": "Teams Workflows ile webhook oluşturun",
+        "webhook_url_label": "Workflows Webhook URL'si"
+      },
       "webhook": {
         "additional_headers_description": "Webkancı isteğine özel HTTP başlıkları ekleyin.",
         "additional_headers_label": "Ek Başlıklar",
@@ -1027,7 +1074,11 @@
         "request_body_description_form_data": "İçerik multipart/form-data olarak gönderilecektir. PHP'de <strong>json_decode($_POST['data'])</strong> kullanarak çözebilirsiniz.",
         "request_body_description_json": "İçerik, \"application/json\" başlığıyla JSON olarak gönderilecektir.",
         "request_body_label": "İstek Gövdesi",
-        "request_body_placeholder": "İçerik türünü seçin"
+        "request_body_placeholder": "İçerik türünü seçin",
+        "signing_secret_description": "İsteğe bağlı. Ayarlandığında her istek HMAC-SHA256 ile imzalanır: X-Webhook-Signature başlığı sha256= ve \"{timestamp}.{body}\" için onaltılık HMAC değerini içerir; {timestamp}, Unix saniyesi cinsinden X-Webhook-Timestamp başlığıdır. multipart/form-data için {body}, data alanıdır.",
+        "signing_secret_docs_link": "İmza nasıl doğrulanır",
+        "signing_secret_label": "İmzalama Gizli Anahtarı",
+        "signing_secret_placeholder": "İmzasız istek göndermek için boş bırakın"
       }
     },
     "important": "Önemli Bildirimler",

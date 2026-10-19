@@ -14,10 +14,11 @@ The API Server handles:
 - **Authentication**: User login, registration, JWT token management, and 2FA
 - **Authorization**: Role-based access control and API key validation
 - **WebSocket Server**: Real-time bidirectional communication with web clients
-- **API Documentation**: Auto-generated Swagger/OpenAPI documentation
+- **API Documentation**: Auto-generated OpenAPI documentation
 - **Security**: Brute force protection, rate limiting, CORS handling
 - **Push Endpoint**: Receives heartbeats from push-based monitors
 - **Cleanup Tasks**: Scheduled cleanup of old data
+- **Prometheus Metrics**: Exposes per-monitor metrics for scraping
 
 ## Architecture
 
@@ -76,6 +77,12 @@ The API server subscribes to Redis pub/sub events and broadcasts them to connect
 | `BRUTEFORCE_WINDOW` | duration | No | `1m` | Time window for counting failed attempts |
 | `BRUTEFORCE_LOCKOUT` | duration | No | `1m` | Lockout duration after max attempts |
 
+### Metrics Configuration
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `METRICS_ENABLED` | bool | No | `false` | Serve the unauthenticated Prometheus `/metrics` endpoint, see [Prometheus Metrics](#prometheus-metrics) |
+
 ## API Endpoints
 
 ### Core Resources
@@ -88,7 +95,7 @@ The API server exposes the following endpoint groups:
 - `/api/v1/notification-channels` - Notification channel configuration
 - `/api/v1/status-pages` - Status page management
 - `/api/v1/proxies` - Proxy configuration
-- `/api/v1/settings` - System settings
+- `/api/v1/settings` - User-editable settings (only `KEEP_DATA_PERIOD_DAYS`; other keys return 404)
 - `/api/v1/stats` - Statistics and analytics
 - `/api/v1/api-keys` - API key management
 - `/api/v1/tags` - Monitor tagging
@@ -96,11 +103,17 @@ The API server exposes the following endpoint groups:
 - `/api/v1/health` - Health check endpoint
 - `/api/v1/push/:id` - Push monitor heartbeat receiver
 
-### Swagger Documentation
+### Pagination
 
-API documentation is automatically generated and available at:
+The monitors, tags, proxies, notification channels, status pages, maintenances, and monitor heartbeat list endpoints accept a zero-based `page` and a `limit` from 1 to 1,000. Limits outside this range return HTTP 400. The default limit is 10 items, or 50 for monitor heartbeats.
+
+### OpenAPI Documentation
+
+REST controllers use typed Huma inputs and outputs, registered through the standard HTTP router. These registrations also define the OpenAPI contract. Export and regenerate the client with `bun run api:generate`; `bun run api:check` validates the spec and checks committed artifacts without databases or Redis.
+
+The interactive reference is available at:
 ```
-http://localhost:8034/swagger/index.html
+http://localhost:8034/docs
 ```
 
 ## WebSocket Connection
@@ -139,6 +152,71 @@ Response:
   "timestamp": "2024-01-01T00:00:00Z"
 }
 ```
+
+## Prometheus Metrics
+
+The API server can serve the status of your monitors in the Prometheus text format, so a Prometheus and Grafana stack can scrape it without polling the REST API or wiring up notification channels. It is off by default. Set `METRICS_ENABLED=true` to turn it on:
+
+```http
+GET /metrics
+```
+
+:::warning
+`/metrics` needs no credentials, and it lists the name and type of every active monitor. Scrape it over a private network, and leave `METRICS_ENABLED` off if that information shouldn't be readable by whoever can reach the API port.
+
+The gateway (Caddy in the bundle image, nginx in front of the separate web image) doesn't forward `/metrics`, so it isn't served on the web address. Scrape the API port (`8034` by default) directly, for example `api:8034` on the Docker Compose network or `<release>-api:8034` in Kubernetes. The development Compose files publish that port; the production ones and the bundle image don't, so publish it or run Prometheus on the same network.
+:::
+
+### How it works
+
+The API server keeps the latest heartbeat of each active monitor in memory, fed by the heartbeat and monitor events on the Redis event bus. It sees heartbeats whichever process ran the check, and a scrape reads that memory only: no database queries and no calls to the worker.
+
+- After a restart, the metrics come back from each monitor's latest heartbeat without waiting for its next check.
+- Every 5 minutes the API server re-checks the active monitors. A pause, rename or delete whose event was missed is corrected, and a monitor with no metrics gets its latest heartbeat loaded.
+- A monitor that is paused or deleted has no metrics.
+- A resumed monitor comes back with its next heartbeat. If the 5-minute re-check runs first, it comes back with its last heartbeat from before the pause, so its timestamp is old until the monitor is checked. An alert on that timestamp, like the second example below, can fire for a moment.
+- A renamed monitor, or one whose type changed, moves to its new labels at once with the same values.
+- A new monitor has no metrics until its first heartbeat. Resetting a monitor's data deletes its heartbeats but keeps its old metrics until its next check.
+
+### Exposed metrics
+
+Each monitor metric carries the labels `monitor_id`, `monitor_name` and `monitor_type`, and describes the monitor's latest heartbeat.
+
+| Metric | Type | Description |
+|--------|------|-------------|
+| `peekaping_monitor_status` | gauge | Status: `0` Down, `1` Up, `2` Pending, `3` Maintenance |
+| `peekaping_monitor_response_seconds` | gauge | Response time, in seconds. Only present while the status is Up |
+| `peekaping_monitor_last_heartbeat_timestamp_seconds` | gauge | Unix time of the heartbeat. Use it to catch a stale monitor, one Peekaping has stopped checking |
+| `peekaping_build_info` | gauge | Always `1`; the server version is in the `version` label |
+
+The standard Go runtime and process metrics (`go_*`, `process_*`) are also exposed.
+
+Pending means the latest check failed but the monitor still has retries left, and Maintenance counts as neither Up nor Down. To alert on a monitor that is down, use `peekaping_monitor_status == 0`, not "status is not `1`".
+
+### Example Prometheus configuration
+
+```yaml
+scrape_configs:
+  - job_name: peekaping
+    static_configs:
+      - targets: ['api:8034']
+```
+
+Example alert rules:
+
+```yaml
+groups:
+  - name: peekaping
+    rules:
+      - alert: PeekapingMonitorDown
+        expr: peekaping_monitor_status == 0
+        for: 1m
+      - alert: PeekapingMonitorStale
+        expr: time() - peekaping_monitor_last_heartbeat_timestamp_seconds > 300
+        for: 1m
+```
+
+The second rule fires for a monitor whose latest heartbeat is more than 5 minutes old. Raise `300` above the check interval of your slowest monitor.
 
 ## Related Components
 

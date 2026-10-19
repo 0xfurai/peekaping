@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
-	"peekaping/internal/modules/monitor_status_page"
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/stats"
+	"peekaping/internal/modules/status_page"
 	"strconv"
 	"time"
 
@@ -27,13 +27,13 @@ type Service interface {
 }
 
 type ServiceImpl struct {
-	monitorService           monitor.Service
-	heartbeatService         heartbeat.Service
-	statsService             stats.Service
-	tlsInfoService           monitor_tls_info.Service
-	monitorStatusPageService monitor_status_page.Service
-	svgGenerator             *SVGBadgeGenerator
-	logger                   *zap.SugaredLogger
+	monitorService    monitor.Service
+	heartbeatService  heartbeat.Service
+	statsService      stats.Service
+	tlsInfoService    monitor_tls_info.Service
+	statusPageService status_page.Service
+	svgGenerator      *SVGBadgeGenerator
+	logger            *zap.SugaredLogger
 }
 
 func NewService(
@@ -41,17 +41,17 @@ func NewService(
 	heartbeatService heartbeat.Service,
 	statsService stats.Service,
 	tlsInfoService monitor_tls_info.Service,
-	monitorStatusPageService monitor_status_page.Service,
+	statusPageService status_page.Service,
 	logger *zap.SugaredLogger,
 ) Service {
 	return &ServiceImpl{
-		monitorService:           monitorService,
-		heartbeatService:         heartbeatService,
-		statsService:             statsService,
-		tlsInfoService:           tlsInfoService,
-		monitorStatusPageService: monitorStatusPageService,
-		svgGenerator:             NewSVGBadgeGenerator(),
-		logger:                   logger.Named("[badge-service]"),
+		monitorService:    monitorService,
+		heartbeatService:  heartbeatService,
+		statsService:      statsService,
+		tlsInfoService:    tlsInfoService,
+		statusPageService: statusPageService,
+		svgGenerator:      NewSVGBadgeGenerator(),
+		logger:            logger.Named("[badge-service]"),
 	}
 }
 
@@ -73,16 +73,8 @@ func (s *ServiceImpl) IsMonitorPublic(ctx context.Context, monitorID string) (bo
 		return false, nil
 	}
 
-	// Check if monitor is published on any status page
-	statusPages, err := s.monitorStatusPageService.GetStatusPagesForMonitor(ctx, monitorID)
-	if err != nil {
-		s.logger.Warnw("Failed to check status pages for monitor", "monitorID", monitorID, "error", err)
-		// If we can't check status pages, allow badge generation for now
-		return true, nil
-	}
-
-	// Monitor is public if it's on at least one status page
-	return len(statusPages) > 0, nil
+	// Monitor is public if it's on at least one published status page
+	return s.statusPageService.IsMonitorPublished(ctx, monitorID)
 }
 
 func (s *ServiceImpl) GetMonitorBadgeData(ctx context.Context, monitorID string) (*MonitorBadgeData, error) {
@@ -105,15 +97,14 @@ func (s *ServiceImpl) GetMonitorBadgeData(ctx context.Context, monitorID string)
 	// Get uptime statistics
 	now := time.Now().UTC()
 
-	// Get ping statistics using stats service
+	// Get uptime and response time from the stats service
 	since24h := now.Add(-24 * time.Hour)
 	since30d := now.Add(-30 * 24 * time.Hour)
 	since90d := now.Add(-90 * 24 * time.Hour)
 
-	// Get 24h ping stats
-	stats24h, err := s.statsService.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, since24h, now, stats.StatHourly)
-	if err == nil && len(stats24h) > 0 {
-		summary24h := s.statsService.StatPointsSummary(stats24h)
+	// Get 24h uptime and response time
+	summary24h, err := s.statsService.Summarize(ctx, monitorID, since24h, now)
+	if err == nil {
 		if summary24h.AvgPing != nil {
 			data.AvgPing24h = summary24h.AvgPing
 		}
@@ -122,10 +113,9 @@ func (s *ServiceImpl) GetMonitorBadgeData(ctx context.Context, monitorID string)
 		}
 	}
 
-	// Get 30d ping stats
-	stats30d, err := s.statsService.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, since30d, now, stats.StatDaily)
-	if err == nil && len(stats30d) > 0 {
-		summary30d := s.statsService.StatPointsSummary(stats30d)
+	// Get 30d uptime and response time
+	summary30d, err := s.statsService.Summarize(ctx, monitorID, since30d, now)
+	if err == nil {
 		if summary30d.AvgPing != nil {
 			data.AvgPing30d = summary30d.AvgPing
 		}
@@ -134,10 +124,9 @@ func (s *ServiceImpl) GetMonitorBadgeData(ctx context.Context, monitorID string)
 		}
 	}
 
-	// Get 90d ping stats
-	stats90d, err := s.statsService.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, since90d, now, stats.StatDaily)
-	if err == nil && len(stats90d) > 0 {
-		summary90d := s.statsService.StatPointsSummary(stats90d)
+	// Get 90d uptime and response time
+	summary90d, err := s.statsService.Summarize(ctx, monitorID, since90d, now)
+	if err == nil {
 		if summary90d.AvgPing != nil {
 			data.AvgPing90d = summary90d.AvgPing
 		}
@@ -199,9 +188,8 @@ func (s *ServiceImpl) getMonitorWithStats(ctx context.Context, monitorID string,
 	if duration <= 24 {
 		// Get 24h stats only
 		since24h := now.Add(-24 * time.Hour)
-		stats24h, err := s.statsService.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, since24h, now, stats.StatHourly)
-		if err == nil && len(stats24h) > 0 {
-			summary24h := s.statsService.StatPointsSummary(stats24h)
+		summary24h, err := s.statsService.Summarize(ctx, monitorID, since24h, now)
+		if err == nil {
 			if summary24h.AvgPing != nil {
 				data.AvgPing24h = summary24h.AvgPing
 			}
@@ -212,9 +200,8 @@ func (s *ServiceImpl) getMonitorWithStats(ctx context.Context, monitorID string,
 	} else if duration <= 720 { // 30 days
 		// Get 30d stats only
 		since30d := now.Add(-30 * 24 * time.Hour)
-		stats30d, err := s.statsService.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, since30d, now, stats.StatDaily)
-		if err == nil && len(stats30d) > 0 {
-			summary30d := s.statsService.StatPointsSummary(stats30d)
+		summary30d, err := s.statsService.Summarize(ctx, monitorID, since30d, now)
+		if err == nil {
 			if summary30d.AvgPing != nil {
 				data.AvgPing30d = summary30d.AvgPing
 			}
@@ -225,9 +212,8 @@ func (s *ServiceImpl) getMonitorWithStats(ctx context.Context, monitorID string,
 	} else {
 		// Get 90d stats only
 		since90d := now.Add(-90 * 24 * time.Hour)
-		stats90d, err := s.statsService.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, since90d, now, stats.StatDaily)
-		if err == nil && len(stats90d) > 0 {
-			summary90d := s.statsService.StatPointsSummary(stats90d)
+		summary90d, err := s.statsService.Summarize(ctx, monitorID, since90d, now)
+		if err == nil {
 			if summary90d.AvgPing != nil {
 				data.AvgPing90d = summary90d.AvgPing
 			}
@@ -458,17 +444,18 @@ func (s *ServiceImpl) GenerateResponseBadge(ctx context.Context, monitorID strin
 		return "", err
 	}
 
-	var value string
-	if data.LastPing != nil {
-		value = strconv.Itoa(*data.LastPing)
-	} else {
-		value = "N/A"
-	}
-
 	// Use custom suffix if provided, otherwise use default
 	suffix := options.Suffix
 	if suffix == "" {
 		suffix = "ms"
+	}
+
+	var value string
+	if data.LastPing != nil {
+		value = strconv.Itoa(*data.LastPing)
+	} else {
+		// A missing figure takes no unit
+		value, suffix = "N/A", ""
 	}
 
 	label := getLabel(options.Label, "response")

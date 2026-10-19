@@ -17,6 +17,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
 
@@ -123,6 +124,11 @@ func (m *MockHeartbeatService) FindUptimeStatsByMonitorID(ctx context.Context, m
 func (m *MockHeartbeatService) DeleteOlderThan(ctx context.Context, cutoff time.Time) (int64, error) {
 	args := m.Called(ctx, cutoff)
 	return args.Get(0).(int64), args.Error(1)
+}
+
+func (m *MockHeartbeatService) HasAny(ctx context.Context) (bool, error) {
+	args := m.Called(ctx)
+	return args.Bool(0), args.Error(1)
 }
 
 func (m *MockHeartbeatService) FindByMonitorIDPaginated(ctx context.Context, monitorID string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error) {
@@ -248,6 +254,14 @@ func (m *MockStatsService) DeleteByMonitorID(ctx context.Context, monitorID stri
 	return args.Error(0)
 }
 
+func (m *MockStatsService) DeleteExpired(ctx context.Context, now time.Time) (map[stats.StatPeriod]int64, error) {
+	args := m.Called(ctx, now)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(map[stats.StatPeriod]int64), args.Error(1)
+}
+
 func (m *MockStatsService) FindStatsByMonitorIDAndTimeRangeWithInterval(ctx context.Context, monitorID string, since, until time.Time, period stats.StatPeriod, interval int) ([]*stats.Stat, error) {
 	args := m.Called(ctx, monitorID, since, until, period, interval)
 	return args.Get(0).([]*stats.Stat), args.Error(1)
@@ -261,6 +275,19 @@ func (m *MockStatsService) FindStatsByMonitorIDAndTimeRange(ctx context.Context,
 func (m *MockStatsService) StatPointsSummary(statsList []*stats.Stat) *stats.Stats {
 	args := m.Called(statsList)
 	return args.Get(0).(*stats.Stats)
+}
+
+func (m *MockStatsService) Summarize(ctx context.Context, monitorID string, since, until time.Time) (*stats.Stats, error) {
+	args := m.Called(ctx, monitorID, since, until)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*stats.Stats), args.Error(1)
+}
+
+// sinceAgo matches a window start about d before now.
+func sinceAgo(d time.Duration) any {
+	return mock.MatchedBy(func(since time.Time) bool { return time.Since(since).Round(time.Hour) == d })
 }
 
 // Test setup helper
@@ -308,9 +335,9 @@ func TestMonitorService_Create(t *testing.T) {
 			Type:           "http",
 			Name:           "Test Monitor",
 			Interval:       60,
-			Timeout:        30,
+			Timeout:        16,
 			MaxRetries:     3,
-			RetryInterval:  30,
+			RetryInterval:  45,
 			ResendInterval: 10,
 			Active:         true,
 			Config:         "{}",
@@ -318,34 +345,35 @@ func TestMonitorService_Create(t *testing.T) {
 			PushToken:      "token123",
 		}
 
-		expectedModel := &Model{
-			ID:             "monitor123",
-			Type:           createDto.Type,
-			Name:           createDto.Name,
-			Interval:       createDto.Interval,
-			Timeout:        createDto.Timeout,
-			MaxRetries:     createDto.MaxRetries,
-			RetryInterval:  createDto.RetryInterval,
-			ResendInterval: createDto.ResendInterval,
-			Active:         createDto.Active,
-			Status:         shared.MonitorStatusUp,
-			Config:         createDto.Config,
-			ProxyId:        createDto.ProxyId,
-			PushToken:      createDto.PushToken,
-			CreatedAt:      time.Now().UTC(),
-		}
+		var saved *Model
+		created := &Model{ID: "monitor123"}
+		mockRepo.On("Create", ctx, mock.Anything).Run(func(args mock.Arguments) {
+			saved = args.Get(1).(*Model)
+		}).Return(created, nil).Once()
 
-		mockRepo.On("Create", ctx, mock.MatchedBy(func(m *Model) bool {
-			return m.Type == createDto.Type &&
-				m.Name == createDto.Name &&
-				m.Interval == createDto.Interval &&
-				m.Status == shared.MonitorStatusUp
-		})).Return(expectedModel, nil)
-
+		before := time.Now().UTC()
 		result, err := service.Create(ctx, createDto)
 
-		assert.NoError(t, err)
-		assert.Equal(t, expectedModel, result)
+		require.NoError(t, err)
+		assert.Same(t, created, result)
+		require.NotNil(t, saved)
+		assert.WithinRange(t, saved.CreatedAt, before, time.Now().UTC())
+		assert.Equal(t, time.UTC, saved.CreatedAt.Location())
+		saved.CreatedAt = time.Time{}
+		assert.Equal(t, &Model{
+			Type:           "http",
+			Name:           "Test Monitor",
+			Interval:       60,
+			Timeout:        16,
+			MaxRetries:     3,
+			RetryInterval:  45,
+			ResendInterval: 10,
+			Active:         true,
+			Status:         shared.MonitorStatusUp,
+			Config:         "{}",
+			ProxyId:        "proxy123",
+			PushToken:      "token123",
+		}, saved, "the repository gets every field of the request, and the monitor starts Up")
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -832,27 +860,24 @@ func TestMonitorService_GetUptimeStats(t *testing.T) {
 		service, _, _, _, _, _, _, mockStatsService := setupMonitorService()
 		monitorID := "monitor123"
 
-		statsList := []*stats.Stat{
-			{Up: 80, Down: 20},
-		}
-
-		uptime := 80.0
-		summary := &stats.Stats{
-			Uptime: &uptime,
-		}
-
 		// Mock calls for each time period
-		mockStatsService.On("FindStatsByMonitorIDAndTimeRange", ctx, monitorID, mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time"), stats.StatDaily).Return(statsList, nil).Times(4)
-		mockStatsService.On("StatPointsSummary", statsList).Return(summary).Times(4)
+		for window, uptime := range map[time.Duration]float64{
+			24 * time.Hour:       99,
+			7 * 24 * time.Hour:   98,
+			30 * 24 * time.Hour:  97,
+			365 * 24 * time.Hour: 96,
+		} {
+			mockStatsService.On("Summarize", ctx, monitorID, sinceAgo(window), mock.AnythingOfType("time.Time")).Return(&stats.Stats{Uptime: &uptime}, nil).Once()
+		}
 
 		result, err := service.GetUptimeStats(ctx, monitorID)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, result)
-		assert.Equal(t, 80.0, result.Uptime24h)
-		assert.Equal(t, 80.0, result.Uptime7d)
-		assert.Equal(t, 80.0, result.Uptime30d)
-		assert.Equal(t, 80.0, result.Uptime365d)
+		assert.Equal(t, 99.0, result.Uptime24h)
+		assert.Equal(t, 98.0, result.Uptime7d)
+		assert.Equal(t, 97.0, result.Uptime30d)
+		assert.Equal(t, 96.0, result.Uptime365d)
 
 		mockStatsService.AssertExpectations(t)
 	})
@@ -861,13 +886,11 @@ func TestMonitorService_GetUptimeStats(t *testing.T) {
 		service, _, _, _, _, _, _, mockStatsService := setupMonitorService()
 		monitorID := "monitor123"
 
-		statsList := []*stats.Stat{}
 		summary := &stats.Stats{
 			Uptime: nil,
 		}
 
-		mockStatsService.On("FindStatsByMonitorIDAndTimeRange", ctx, monitorID, mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time"), stats.StatDaily).Return(statsList, nil).Times(4)
-		mockStatsService.On("StatPointsSummary", statsList).Return(summary).Times(4)
+		mockStatsService.On("Summarize", ctx, monitorID, mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time")).Return(summary, nil).Times(4)
 
 		result, err := service.GetUptimeStats(ctx, monitorID)
 
@@ -885,7 +908,7 @@ func TestMonitorService_GetUptimeStats(t *testing.T) {
 		service, _, _, _, _, _, _, mockStatsService := setupMonitorService()
 		monitorID := "monitor123"
 
-		mockStatsService.On("FindStatsByMonitorIDAndTimeRange", ctx, monitorID, mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time"), stats.StatDaily).Return(([]*stats.Stat)(nil), errors.New("stats error"))
+		mockStatsService.On("Summarize", ctx, monitorID, mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time")).Return(nil, errors.New("stats error"))
 
 		result, err := service.GetUptimeStats(ctx, monitorID)
 

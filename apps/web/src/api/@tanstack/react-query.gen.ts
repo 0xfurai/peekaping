@@ -16,9 +16,11 @@ import {
   postAuthRefresh,
   postAuthRegister,
   getBadgeByMonitorIdCertExp,
+  getBadgeByMonitorIdPing,
   getBadgeByMonitorIdPingByDuration,
   getBadgeByMonitorIdResponse,
   getBadgeByMonitorIdStatus,
+  getBadgeByMonitorIdUptime,
   getBadgeByMonitorIdUptimeByDuration,
   getHealth,
   getMaintenances,
@@ -54,6 +56,7 @@ import {
   getProxiesById,
   patchProxiesById,
   putProxiesById,
+  getPushByToken,
   deleteSettingsKeyByKey,
   getSettingsKeyByKey,
   putSettingsKeyByKey,
@@ -73,6 +76,7 @@ import {
   patchTagsById,
   putTagsById,
   getVersion,
+  getHealthRoot,
 } from "../sdk.gen";
 import {
   queryOptions,
@@ -88,6 +92,7 @@ import type {
   GetApiKeysConfigData,
   DeleteApiKeysByIdData,
   DeleteApiKeysByIdError,
+  DeleteApiKeysByIdResponse,
   GetApiKeysByIdData,
   PutApiKeysByIdData,
   PutApiKeysByIdError,
@@ -114,9 +119,11 @@ import type {
   PostAuthRegisterError,
   PostAuthRegisterResponse,
   GetBadgeByMonitorIdCertExpData,
+  GetBadgeByMonitorIdPingData,
   GetBadgeByMonitorIdPingByDurationData,
   GetBadgeByMonitorIdResponseData,
   GetBadgeByMonitorIdStatusData,
+  GetBadgeByMonitorIdUptimeData,
   GetBadgeByMonitorIdUptimeByDurationData,
   GetHealthData,
   GetMaintenancesData,
@@ -202,6 +209,7 @@ import type {
   PutProxiesByIdData,
   PutProxiesByIdError,
   PutProxiesByIdResponse,
+  GetPushByTokenData,
   DeleteSettingsKeyByKeyData,
   DeleteSettingsKeyByKeyError,
   DeleteSettingsKeyByKeyResponse,
@@ -243,6 +251,7 @@ import type {
   PutTagsByIdError,
   PutTagsByIdResponse,
   GetVersionData,
+  GetHealthRootData,
 } from "../types.gen";
 import type { AxiosError } from "axios";
 import { client as _heyApiClient } from "../client.gen";
@@ -251,7 +260,7 @@ export type QueryKey<TOptions extends Options> = [
   Pick<TOptions, "baseURL" | "body" | "headers" | "path" | "query"> & {
     _id: string;
     _infinite?: boolean;
-  }
+  },
 ];
 
 const createQueryKey = <TOptions extends Options>(
@@ -286,7 +295,6 @@ export const getApiKeysQueryKey = (options?: Options<GetApiKeysData>) =>
 
 /**
  * Get API keys
- * Get all API keys
  */
 export const getApiKeysOptions = (options?: Options<GetApiKeysData>) => {
   return queryOptions({
@@ -308,7 +316,6 @@ export const postApiKeysQueryKey = (options: Options<PostApiKeysData>) =>
 
 /**
  * Create API key
- * Create a new API key
  */
 export const postApiKeysOptions = (options: Options<PostApiKeysData>) => {
   return queryOptions({
@@ -327,7 +334,6 @@ export const postApiKeysOptions = (options: Options<PostApiKeysData>) => {
 
 /**
  * Create API key
- * Create a new API key
  */
 export const postApiKeysMutation = (
   options?: Partial<Options<PostApiKeysData>>
@@ -359,7 +365,6 @@ export const getApiKeysConfigQueryKey = (
 
 /**
  * Get API key configuration
- * Get API key configuration including prefix
  */
 export const getApiKeysConfigOptions = (
   options?: Options<GetApiKeysConfigData>
@@ -380,17 +385,16 @@ export const getApiKeysConfigOptions = (
 
 /**
  * Delete API key
- * Delete an API key
  */
 export const deleteApiKeysByIdMutation = (
   options?: Partial<Options<DeleteApiKeysByIdData>>
 ): UseMutationOptions<
-  unknown,
+  DeleteApiKeysByIdResponse,
   AxiosError<DeleteApiKeysByIdError>,
   Options<DeleteApiKeysByIdData>
 > => {
   const mutationOptions: UseMutationOptions<
-    unknown,
+    DeleteApiKeysByIdResponse,
     AxiosError<DeleteApiKeysByIdError>,
     Options<DeleteApiKeysByIdData>
   > = {
@@ -411,7 +415,6 @@ export const getApiKeysByIdQueryKey = (options: Options<GetApiKeysByIdData>) =>
 
 /**
  * Get API key
- * Get a specific API key by ID
  */
 export const getApiKeysByIdOptions = (options: Options<GetApiKeysByIdData>) => {
   return queryOptions({
@@ -430,7 +433,6 @@ export const getApiKeysByIdOptions = (options: Options<GetApiKeysByIdData>) => {
 
 /**
  * Update API key
- * Update an API key
  */
 export const putApiKeysByIdMutation = (
   options?: Partial<Options<PutApiKeysByIdData>>
@@ -810,6 +812,30 @@ export const getBadgeByMonitorIdCertExpOptions = (
   });
 };
 
+export const getBadgeByMonitorIdPingQueryKey = (
+  options: Options<GetBadgeByMonitorIdPingData>
+) => createQueryKey("getBadgeByMonitorIdPing", options);
+
+/**
+ * Get ping badge
+ */
+export const getBadgeByMonitorIdPingOptions = (
+  options: Options<GetBadgeByMonitorIdPingData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getBadgeByMonitorIdPing({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getBadgeByMonitorIdPingQueryKey(options),
+  });
+};
+
 export const getBadgeByMonitorIdPingByDurationQueryKey = (
   options: Options<GetBadgeByMonitorIdPingByDurationData>
 ) => createQueryKey("getBadgeByMonitorIdPingByDuration", options);
@@ -882,6 +908,30 @@ export const getBadgeByMonitorIdStatusOptions = (
   });
 };
 
+export const getBadgeByMonitorIdUptimeQueryKey = (
+  options: Options<GetBadgeByMonitorIdUptimeData>
+) => createQueryKey("getBadgeByMonitorIdUptime", options);
+
+/**
+ * Get uptime badge
+ */
+export const getBadgeByMonitorIdUptimeOptions = (
+  options: Options<GetBadgeByMonitorIdUptimeData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getBadgeByMonitorIdUptime({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getBadgeByMonitorIdUptimeQueryKey(options),
+  });
+};
+
 export const getBadgeByMonitorIdUptimeByDurationQueryKey = (
   options: Options<GetBadgeByMonitorIdUptimeByDurationData>
 ) => createQueryKey("getBadgeByMonitorIdUptimeByDuration", options);
@@ -911,7 +961,6 @@ export const getHealthQueryKey = (options?: Options<GetHealthData>) =>
 
 /**
  * Get server health
- * Returns the current server health
  */
 export const getHealthOptions = (options?: Options<GetHealthData>) => {
   return queryOptions({
@@ -953,7 +1002,7 @@ export const getMaintenancesOptions = (
 };
 
 const createInfiniteParams = <
-  K extends Pick<QueryKey<Options>[0], "body" | "headers" | "path" | "query">
+  K extends Pick<QueryKey<Options>[0], "body" | "headers" | "path" | "query">,
 >(
   queryKey: QueryKey<Options>,
   page: K
@@ -2200,6 +2249,27 @@ export const putProxiesByIdMutation = (
   return mutationOptions;
 };
 
+export const getPushByTokenQueryKey = (options: Options<GetPushByTokenData>) =>
+  createQueryKey("getPushByToken", options);
+
+/**
+ * Send a heartbeat to a push monitor
+ */
+export const getPushByTokenOptions = (options: Options<GetPushByTokenData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getPushByToken({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getPushByTokenQueryKey(options),
+  });
+};
+
 /**
  * Delete setting by key
  */
@@ -2253,6 +2323,7 @@ export const getSettingsKeyByKeyOptions = (
 
 /**
  * Set setting by key
+ * Only KEEP_DATA_PERIOD_DAYS can be set, with type int and a whole number of days from 1 to 36500. Every other key returns 404.
  */
 export const putSettingsKeyByKeyMutation = (
   options?: Partial<Options<PutSettingsKeyByKeyData>>
@@ -2801,7 +2872,6 @@ export const getVersionQueryKey = (options?: Options<GetVersionData>) =>
 
 /**
  * Get server version
- * Returns the current server version
  */
 export const getVersionOptions = (options?: Options<GetVersionData>) => {
   return queryOptions({
@@ -2815,5 +2885,26 @@ export const getVersionOptions = (options?: Options<GetVersionData>) => {
       return data;
     },
     queryKey: getVersionQueryKey(options),
+  });
+};
+
+export const getHealthRootQueryKey = (options?: Options<GetHealthRootData>) =>
+  createQueryKey("getHealthRoot", options);
+
+/**
+ * Get server health
+ */
+export const getHealthRootOptions = (options?: Options<GetHealthRootData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getHealthRoot({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getHealthRootQueryKey(options),
   });
 };

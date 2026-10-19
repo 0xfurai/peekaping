@@ -1,0 +1,6 @@
+extends:
+  - minimal
+rules:
+  info-license: off
+  no-unused-components: off
+  operation-4xx-response: off

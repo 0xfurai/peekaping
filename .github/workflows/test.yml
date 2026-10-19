@@ -2,20 +2,28 @@ name: Test and Lint
 
 on:
   pull_request:
-    paths-ignore:
-      - 'apps/docs/**'
-      - '*.md'
-      - 'README.md'
-      - 'CHANGELOG.md'
-      - 'LICENSE'
+    paths:
+      - 'apps/web/**'
+      - 'apps/server/**'
+      - 'package.json'
+      - '.nvmrc'
+      - 'bun.lock'
+      - '.github/workflows/test.yml'
+      - 'scripts/check-api-artifacts.sh'
+      - 'redocly.yaml'
+      - '!**/*.md'
     branches: [ main, master ]
   push:
-    paths-ignore:
-      - 'apps/docs/**'
-      - '*.md'
-      - 'README.md'
-      - 'CHANGELOG.md'
-      - 'LICENSE'
+    paths:
+      - 'apps/web/**'
+      - 'apps/server/**'
+      - 'package.json'
+      - '.nvmrc'
+      - 'bun.lock'
+      - '.github/workflows/test.yml'
+      - 'scripts/check-api-artifacts.sh'
+      - 'redocly.yaml'
+      - '!**/*.md'
     branches: [ main, master ]
     tags:
       - 'v*'
@@ -30,52 +38,51 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version-file: .nvmrc
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          version: 9.0.0
-          run_install: false
+          bun-version-file: package.json
 
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v3
+      - name: Setup Bun cache
+        uses: actions/cache@v6
         with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
           restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+            ${{ runner.os }}-bun-
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run web lint
-        working-directory: apps/web
-        run: pnpm lint
-
-      - name: Run web build
-        working-directory: apps/web
-        run: pnpm build
+        run: bun install --frozen-lockfile
 
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24.3'
+          go-version: '1.26.4'
 
       - name: Install dependencies
         working-directory: apps/server
         run: go mod download
 
+      - name: Check OpenAPI and generated client
+        run: bun run api:check
+
+      - name: Run web lint
+        working-directory: apps/web
+        run: bun run lint
+
+      - name: Run web build
+        working-directory: apps/web
+        run: bun run build
+
       - name: Run server tests with coverage
         working-directory: apps/server
         run: |
           pwd
-          go test -v -coverprofile=coverage.txt ./internal/...
+          # -coverpkg credits code that tests in other packages reach, such as
+          # the controllers internal/apitest drives through the router
+          go test -timeout 120s -v -coverprofile=coverage.txt -coverpkg=./internal/... ./internal/...
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5

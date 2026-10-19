@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect"
 )
 
 // sqlModel represents the database model for login state
@@ -129,47 +130,47 @@ func (r *SQLRepositoryImpl) OnFailure(ctx context.Context, key string, now time.
 
 	err := r.db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
 		var sm sqlModel
-		err := tx.NewSelect().
+		query := tx.NewSelect().
 			Model(&sm).
-			Where("key = ?", key).
-			For("UPDATE").
-			Scan(ctx)
-
-		windowStart := now.Add(-window)
-
-		if err != nil {
-			if err.Error() == "sql: no rows in result set" {
-				// First failure for this key
-				sm = sqlModel{
-					Key:         key,
-					FailCount:   1,
-					FirstFailAt: now,
-					LockedUntil: nil,
-				}
-				_, err = tx.NewInsert().Model(&sm).Exec(ctx)
-				return err
-			}
+			Where("key = ?", key)
+		// SQLite has no FOR UPDATE. It doesn't need one: the app opens SQLite
+		// with a single connection, so this transaction already runs alone.
+		if r.db.Dialect().Name() != dialect.SQLite {
+			query = query.For("UPDATE")
+		}
+		err := query.Scan(ctx)
+		found := err == nil
+		if err != nil && err.Error() != "sql: no rows in result set" {
 			return err
 		}
 
-		// Check if we're outside the window - reset if so
-		if sm.FirstFailAt.Before(windowStart) {
-			sm.FailCount = 1
-			sm.FirstFailAt = now
-			sm.LockedUntil = nil
+		windowStart := now.Add(-window)
+
+		// The first failure for this key, or the first outside the window, starts over
+		if !found || sm.FirstFailAt.Before(windowStart) {
+			sm = sqlModel{
+				Key:         key,
+				FailCount:   1,
+				FirstFailAt: now,
+				LockedUntil: nil,
+			}
 		} else {
 			// Within window, increment counter
 			sm.FailCount++
-
-			// Check if we need to lock
-			if sm.FailCount >= max {
-				lockUntil := now.Add(lockout)
-				sm.LockedUntil = &lockUntil
-				locked = true
-				until = lockUntil
-			}
 		}
 
+		// Check if we need to lock
+		if sm.FailCount >= max {
+			lockUntil := now.Add(lockout)
+			sm.LockedUntil = &lockUntil
+			locked = true
+			until = lockUntil
+		}
+
+		if !found {
+			_, err = tx.NewInsert().Model(&sm).Exec(ctx)
+			return err
+		}
 		_, err = tx.NewUpdate().
 			Model(&sm).
 			Where("key = ?", key).

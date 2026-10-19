@@ -41,6 +41,12 @@ func DefaultEnqueueOptions() *EnqueueOptions {
 	}
 }
 
+// Task states, as reported in TaskInfo.State
+const (
+	TaskStatePending = "pending"
+	TaskStateActive  = "active"
+)
+
 // TaskInfo represents information about a task
 type TaskInfo struct {
 	ID            string

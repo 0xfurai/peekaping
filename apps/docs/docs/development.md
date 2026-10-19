@@ -13,46 +13,37 @@ cd peekaping
 
 ---
 
-## 2. Tool Management
+## 2. Install the Tools
 
-Peekaping supports both asdf and manual runtime installation:
+You need Go, Node.js and Bun. Install them however you like: Homebrew, the official installers, nvm, fnm, mise or asdf all work. The repository pins each version in the file that tool reads on its own:
 
-### Option A: Using asdf (Recommended)
+| Tool | What to install | Pinned in |
+|------|-----------------|-----------|
+| **Go** | 1.21 or newer ([Download Go](https://go.dev/dl/)) | `apps/server/go.mod`. If your Go is older than its `toolchain` line, Go switches to that version and downloads it if needed. |
+| **Node.js** | 22 ([Download Node.js](https://nodejs.org/en/download/)) | `.nvmrc`. `nvm install` and `fnm install` pick it up. |
+| **Bun** | The version in `packageManager` ([install options](https://bun.sh/docs/installation)) | `packageManager` in `package.json`. Bun doesn't switch to that version on its own, so `make setup` fails if yours differs. |
 
-If you have [asdf](https://asdf-vm.com/) installed, you can use our automated setup:
+Bun installs the packages and runs the package scripts. Node.js still runs the tools those scripts start, such as Vite and Docusaurus. Install Bun with one of these:
 
 ```bash
-# Run the setup target
+curl -fsSL https://bun.sh/install | bash   # macOS and Linux
+brew install oven-sh/bun/bun               # Homebrew
+npm install -g bun                         # any system with Node.js
+```
+
+These install the latest release. To get the pinned version, run `npm install -g bun@<version>`. `bun upgrade` updates an existing install.
+
+This Bun has nothing to do with `apps/server/cmd/bun`. That one is the database migration tool, built on the [uptrace/bun](https://github.com/uptrace/bun) Go library.
+
+`make dev` also runs `docs:watch`, which exports OpenAPI from the typed Huma registrations when the server source changes. There is no separate documentation annotation generator.
+
+Then check your setup:
+
+```bash
 make setup
 ```
 
-This will automatically install the correct versions of Go and Node.js using asdf.
-
-### Option B: Manual Installation
-
-If you prefer to install tools manually:
-
-- **Node.js**: Version **20.18.0** ([Download Node.js](https://nodejs.org/en/download/))
-- **Go**: Version **1.24.1** ([Download Go](https://go.dev/dl/))
-- **pnpm**: Version **9.0.0** ([Install pnpm](https://pnpm.io/installation))
-
-Check your versions:
-```bash
-node -v
-go version
-pnpm --version
-```
-
-### How asdf Works in This Project
-
-Peekaping includes `.tool-versions` files that specify the exact tool versions:
-- Root `.tool-versions`: Contains all tools (golang, nodejs, pnpm)
-- `apps/server/.tool-versions`: Contains server-specific tools (golang, nodejs)
-
-The project uses a universal wrapper script (`scripts/tool.sh`) that automatically:
-- Uses asdf-managed tools when asdf is available
-- Falls back to system tools when asdf is not installed
-- Ensures consistent tool usage across all development commands
+It prints the version of each tool and how to fix anything missing or too old.
 
 ---
 
@@ -119,98 +110,44 @@ Run the full stack (backend, frontend, docs) in development mode:
 # Option 1: Using the Makefile (recommended)
 make dev
 
-# Option 2: Using pnpm directly
-pnpm run dev docs:watch
+# Option 2: Using Bun directly
+bun run dev docs:watch
 ```
 
 - The web UI will be available at [http://localhost:8383](http://localhost:8383)
 - The backend API will be at [http://localhost:8034](http://localhost:8034)
-
----
-
-## 7. Wrapper Scripts & asdf Integration
-
-Peekaping includes a unified wrapper script that automatically detects if asdf is available and uses it, otherwise falling back to system binaries:
-
-- `scripts/tool.sh` - Universal wrapper for any command (go, pnpm, etc.)
-
-This script is used throughout the project's Makefile and package.json files to ensure consistent tool usage regardless of your setup.
-
-### How the Wrapper Works
-
-The wrapper script (`scripts/tool.sh`) provides seamless integration between asdf and system tools:
-
-1. **With asdf**: Automatically uses the versions specified in `.tool-versions`
-2. **Without asdf**: Falls back to system-installed tools
-3. **Error handling**: Provides clear error messages if tools are missing
-
-### Example Usage
-
-```bash
-# Using the universal wrapper
-./scripts/tool.sh go test ./src/...
-./scripts/tool.sh pnpm install
-./scripts/tool.sh node --version
-```
-
-- API docs will be available at [http://localhost:8034/swagger/index.html](http://localhost:8034/swagger/index.html)
+- API docs will be available at [http://localhost:8034/docs](http://localhost:8034/docs)
 - Documentation will be available at [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## 8. Troubleshooting
+## 7. Troubleshooting
 
-### Common asdf Issues
+**Problem**: `make setup` says Go is on PATH but failed to run in `apps/server`
 
-**Problem**: `asdf: command not found`
-```bash
-# Solution: Make sure asdf is in your PATH
-echo '. "$HOME/.asdf/asdf.sh"' >> ~/.zshrc  # or ~/.bashrc
-source ~/.zshrc  # or ~/.bashrc
-```
+A version manager's `go` shim usually causes this when no Go version is selected for the directory, for example asdf's `No version is set for command go`. Select a Go version in your version manager, or put a regular Go install first on your `PATH`.
 
-**Problem**: Tools not found after asdf installation
-```bash
-# Solution: Reshim asdf
-asdf reshim golang
-asdf reshim nodejs
-asdf reshim pnpm
-```
+**Problem**: Go can't download the toolchain from `go.mod`
 
-**Problem**: Wrong tool versions being used
-```bash
-# Solution: Check which version is active
-asdf current
+This happens offline, or when `GOTOOLCHAIN=local` is set. Install the version on the `toolchain` line of `apps/server/go.mod` directly from [go.dev/dl](https://go.dev/dl/).
 
-# Set the correct version
-asdf local golang 1.24.1
-asdf local nodejs 20.18.0
-```
+**Problem**: `make setup` says Bun runs here, but `package.json` pins another version
 
-**Problem**: `make setup` fails
-```bash
-# Solution: Install asdf plugins manually
-asdf plugin add golang
-asdf plugin add nodejs
-asdf plugin add pnpm
-asdf install
-```
-
-### Manual Tool Installation Issues
+Install the version from `packageManager` in `package.json`: `npm install -g bun@<version>`. `bun upgrade` only moves to the latest release.
 
 - For Go development, make sure your `GOPATH` and `PATH` are set up correctly ([Go install instructions](https://go.dev/doc/install))
-- Ensure Node.js and pnpm are in your system PATH
-- Check that all required tools are installed with correct versions
-
-## 9. Additional Tips
-
-When using binaries:
-- For Go development, make sure your `GOPATH` and `PATH` are set up correctly ([Go install instructions](https://go.dev/doc/install)).
-
-When using asdf:
-- Use `make setup` to automatically configure your development environment
-- The wrapper script (`scripts/tool.sh`) ensures consistent tool usage across the project
-- Check `.tool-versions` files to see the exact versions used in this project
-- Use `asdf current` to verify your tool versions match the project requirements
+- Ensure Node.js and Bun are in your system PATH
 
 Happy hacking! 🚀
+
+## Server model boundaries
+
+HTTP request DTOs belong at the controller boundary. Services use domain models, and repository interfaces accept domain models or partial-update models. Each SQL or Mongo repository maps these models to its own private persistence structs; database tags belong on those structs.
+
+Partial-update models preserve omitted fields separately from explicit zero values. A nil slice leaves an association unchanged, while an empty slice clears it. Maintenance monitor IDs are passed separately to the service so the maintenance repository only receives maintenance fields.
+
+### Updating the API contract
+
+REST operations use typed Huma registrations on the standard HTTP router. After changing an operation or DTO, run `bun run api:generate` and `bun run api:validate` from the repository root, then commit `apps/server/docs/openapi.json`, `openapi.yaml`, and the regenerated `apps/web/src/api` files. `bun run api:check` runs the same generation/validation and fails if committed artifacts are stale. No database or Redis process is needed for export.
+
+`docs:watch` watches the server source and exports the spec; run `bun run --filter web gen` after contract changes to update the client. The server serves `/openapi.json`, `/openapi.yaml`, and `/docs`. `/swagger/index.html` redirects to `/docs`; `/swagger/doc.json` now serves the same OpenAPI 3.1 document. Old Swagger UI assets are removed.

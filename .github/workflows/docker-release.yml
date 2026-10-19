@@ -111,7 +111,7 @@ jobs:
 
       - name: Update version in package.json (web)
         run: |
-          npm version ${{ github.event.inputs.version }} --no-git-tag-version
+          npm pkg set version=${{ github.event.inputs.version }}
         working-directory: ./apps/web
 
       - name: Update version in go files (server)
@@ -340,7 +340,7 @@ jobs:
 
       - name: Update version in package.json (web)
         run: |
-          npm version ${{ github.event.inputs.version }} --no-git-tag-version
+          npm pkg set version=${{ github.event.inputs.version }}
         working-directory: ./apps/web
 
       - name: Update version in go files (server)

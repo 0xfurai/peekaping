@@ -1,55 +1,76 @@
 package internal
 
 import (
+	"context"
 	"net/http"
-	_ "peekaping/docs"
+	"time"
+
+	"github.com/danielgtaylor/huma/v2"
 	"peekaping/internal/config"
+	"peekaping/internal/httpx"
 	"peekaping/internal/modules/api_key"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/badge"
 	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/maintenance"
+	"peekaping/internal/modules/metrics"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/proxy"
 	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/setting"
+	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/status_page"
 	"peekaping/internal/modules/tag"
 	"peekaping/internal/modules/websocket"
 	"peekaping/internal/version"
 
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
-
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
 )
 
-// @Summary      Get server version
-// @Description  Returns the current server version
-// @Tags         System
-// @Produce      json
-// @Success      200  {object}  map[string]string  "{"version": "1.2.3"}"
-// @Router       /version [get]
-func versionHandler(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, gin.H{"version": version.Version})
+type SystemInput = httpx.Input[httpx.NoBody, struct{}]
+type VersionResponse struct {
+	Version string `json:"version"`
 }
 
-// @Summary      Get server health
-// @Description  Returns the current server health
-// @Tags         System
-// @Produce      json
-// @Success      200  {object}  map[string]string  "{"status": "success"}"
-// @Router       /health [get]
-func healthHandler(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, gin.H{"status": "success"})
+func versionHandler(ctx context.Context, input *SystemInput) (*httpx.Output[VersionResponse], error) {
+	return httpx.Reply(http.StatusOK, VersionResponse{Version: version.Version})
+}
+
+// HealthResponse is the server health
+type HealthResponse struct {
+	Status string `json:"status" example:"success"`
+	// StaleMonitors is how many active monitors Peekaping has stopped checking; null if Redis can't be read
+	StaleMonitors *int64 `json:"stale_monitors" extensions:"x-nullable"`
+	// WatchdogRanAt is when the stale-monitor watchdog last ran; null if it never has or Redis can't be read
+	WatchdogRanAt *time.Time `json:"watchdog_ran_at" extensions:"x-nullable"`
+}
+
+// newHealthHandler answers 200 while the server is up, so the docker healthcheck only
+// watches the API. An external watcher alerts on stale_monitors or an old watchdog_ran_at.
+func newHealthHandler(store *stale.Store, logger *zap.SugaredLogger) func(context.Context, *SystemInput) (*httpx.Output[HealthResponse], error) {
+	return func(ctx context.Context, input *SystemInput) (*httpx.Output[HealthResponse], error) {
+		reqCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+		defer cancel()
+
+		resp := HealthResponse{Status: "success"}
+		if count, err := store.Count(reqCtx); err != nil {
+			logger.Warnw("Failed to read the stale monitor count", "error", err)
+		} else {
+			resp.StaleMonitors = &count
+		}
+		if ranAt, err := store.RanAt(reqCtx); err != nil {
+			logger.Warnw("Failed to read when the stale-monitor watchdog last ran", "error", err)
+		} else {
+			resp.WatchdogRanAt = ranAt
+		}
+		return httpx.Reply(http.StatusOK, resp)
+	}
 }
 
 type Server struct {
-	Router *gin.Engine
+	Router *httpx.Router
 	Cfg    *config.Config
 }
 
@@ -72,6 +93,7 @@ func ProvideServer(
 	queueService queue.Service,
 	maintenanceRoute *maintenance.Route,
 	maintenanceController *maintenance.Controller,
+	maintenanceService maintenance.Service,
 	statusPageRoute *status_page.Route,
 	statusPageController *status_page.Controller,
 	tagRoute *tag.Route,
@@ -80,36 +102,26 @@ func ProvideServer(
 	badgeController *badge.Controller,
 	apiKeyRoute *api_key.Route,
 	apiKeyController *api_key.Controller,
+	staleStore *stale.Store,
+	metricsCollector *metrics.Collector,
 ) *Server {
-	// Initialize server based on mode
-	var server *gin.Engine
+	middleware := []httpx.Middleware{httpx.Recovery(logger), httpx.CORS}
 	if cfg.Mode == "dev" {
-		// Development: use default with logger and recovery middleware
-		server = gin.Default()
-	} else {
-		// Production/Test: use clean instance with only recovery middleware
-		gin.SetMode(gin.ReleaseMode)
-		server = gin.New()
-		server.Use(gin.Recovery()) // Always use recovery middleware to prevent crashes
+		middleware = append([]httpx.Middleware{httpx.Logger(logger)}, middleware...)
+	}
+	server := httpx.NewRouter(middleware...)
+
+	healthHandler := newHealthHandler(staleStore, logger)
+	httpx.Register(server, "GET", "/health", huma.Operation{Summary: "Get server health", Tags: []string{"System"}}, healthHandler)
+
+	// Prometheus metrics endpoint (unauthenticated, like /health and /version)
+	if cfg.MetricsEnabled {
+		server.Handle("GET", "/metrics", metricsCollector.Handler())
 	}
 
-	server.RedirectTrailingSlash = false
-
-	// CORS configuration
-	server.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
-		AllowHeaders:     []string{"Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"},
-		ExposeHeaders:    []string{"Authorization"},
-		AllowCredentials: true,
-	}))
-
-	// server.Use(LogMiddleware(logger))
-
-	server.GET("/health", healthHandler)
 	router := server.Group("/api/v1")
-	router.GET("/health", healthHandler)
-	router.GET("/version", versionHandler)
+	httpx.Register(router, "GET", "/health", huma.Operation{Summary: "Get server health", Tags: []string{"System"}}, healthHandler)
+	httpx.Register(router, "GET", "/version", huma.Operation{Summary: "Get server version", Tags: []string{"System"}}, versionHandler)
 
 	// Connect routes
 	monitorRoute.ConnectRoute(router, monitorController)
@@ -124,19 +136,12 @@ func ProvideServer(
 	apiKeyRoute.ConnectRoute(router, apiKeyController)
 
 	// Register push endpoint
-	healthcheck.RegisterPushEndpoint(router, monitorService, heartbeatService, queueService, logger)
+	healthcheck.RegisterPushEndpoint(router, monitorService, heartbeatService, queueService, maintenanceService, logger)
 
-	// Swagger routes
-	url := ginSwagger.URL("/swagger/doc.json")
-	server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
-
-	// WebSocket route
-	server.GET("/socket.io/*f", func(c *gin.Context) {
-		wsServer.ServeHTTP(c.Writer, c.Request)
-	})
-	server.POST("/socket.io/*f", func(c *gin.Context) {
-		wsServer.ServeHTTP(c.Writer, c.Request)
-	})
+	// Compatibility entry points; generated documentation lives at /docs.
+	server.Handle("GET", "/swagger/{any...}", swaggerHandler(server.API()))
+	server.Handle("GET", "/socket.io/{f...}", wsServer.ServeHTTP)
+	server.Handle("POST", "/socket.io/{f...}", wsServer.ServeHTTP)
 
 	return &Server{Router: server, Cfg: cfg}
 }

@@ -38,8 +38,17 @@ type Monitor struct {
 	ProxyId   string `json:"proxy_id"`
 	PushToken string `json:"push_token"`
 
+	// Names of the monitor's tags. Only the notification listener fills them in,
+	// for the providers to send; the API returns tag IDs instead.
+	Tags []string `json:"-"`
+
 	// Last heartbeat for push monitors
 	LastHeartbeat *HeartBeatModel `json:"last_heartbeat,omitempty"`
+
+	// The later of the latest heartbeat and the monitor's last save or resume (so
+	// its updated_at when it has no heartbeat), set only while the stale-monitor
+	// watchdog counts it as stale. The API fills it in; it isn't stored.
+	StaleSince *time.Time `json:"stale_since,omitempty"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`

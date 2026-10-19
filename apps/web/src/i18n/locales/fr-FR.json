@@ -571,7 +571,38 @@
         "redis": "Moniteur de base de données Redis",
         "snmp": "Moniteur SNMP",
         "sqlserver": "Moniteur Microsoft SQL Server",
-        "tcp": "Moniteur de port TCP"
+        "tcp": "Moniteur de port TCP",
+        "smtp": "Moniteur de serveur de messagerie SMTP"
+      },
+      "smtp": {
+        "authentication_title": "Authentification (Optionnel)",
+        "check_cert_expiry": "Vérifier l'expiration du certificat",
+        "check_cert_expiry_description": "Surveiller l'expiration du certificat SSL/TLS et envoyer des notifications",
+        "from_email": "E-mail de l'expéditeur",
+        "from_email_description": "Optionnel : Tester la commande MAIL FROM avec cette adresse e-mail",
+        "host": "Hôte du serveur SMTP",
+        "ignore_tls_errors": "Ignorer les erreurs TLS",
+        "ignore_tls_errors_description": "Ignorer la validation du certificat TLS (utile pour les certificats auto-signés)",
+        "password": "Mot de passe",
+        "port": "Port",
+        "port_description": "Ports courants : 25 (SMTP), 465 (SMTPS), 587 (Submission avec STARTTLS)",
+        "title": "Paramètres du serveur SMTP",
+        "use_tls": "Utiliser STARTTLS",
+        "use_tls_description": "Activer STARTTLS pour une communication sécurisée",
+        "username": "Nom d'utilisateur",
+        "username_description": "Optionnel : Nom d'utilisateur pour l'authentification SMTP",
+        "expect_secure_relay": "Traiter le relais ouvert comme une défaillance",
+        "expect_secure_relay_description": "Si activé, le moniteur sera marqué comme INDISPONIBLE lorsqu’un relais ouvert est détecté (risque de sécurité). Si désactivé, le moniteur attend un relais ouvert et sera marqué comme INDISPONIBLE lorsque le serveur refuse le relais.",
+        "open_relay_title": "Test de relais ouvert",
+        "read_timeout": "Délai d'attente de lecture (secondes)",
+        "read_timeout_description": "Délai d'attente pour la lecture des réponses du serveur SMTP. Laissez vide pour utiliser le délai d'attente du moniteur. Aide à éviter les blocages sur les serveurs non réactifs.",
+        "rcpt_to_email": "RCPT À Courriel",
+        "rcpt_to_email_description": "Adresse e-mail à utiliser pour la commande RCPT TO lors du test d'un relais ouvert. Laissez vide pour utiliser l'adresse par défaut (test@external-domain.com)",
+        "test_open_relay": "Tester le relais ouvert",
+        "test_open_relay_description": "Testez si le serveur SMTP autorise le relais d'e-mails vers des domaines externes sans authentification.",
+        "use_direct_tls": "Utiliser TLS direct (SMTPS)",
+        "use_direct_tls_description": "Utiliser une connexion TLS directe (SMTPS) à la place de STARTTLS. Nécessaire pour le port 465. Si non coché, utilise STARTTLS (pour les ports 587/25).",
+        "port_465_warning": "Le port 465 nécessite généralement le TLS direct (SMTPS). Veuillez activer « Utiliser TLS direct (SMTPS) » pour des connexions sécurisées."
       }
     },
     "page": {
@@ -628,8 +659,12 @@
         "down": "Hors ligne",
         "maintenance": "Entretien",
         "paused": "En pause",
+        "pending": "En attente",
         "up": "En ligne"
       }
+    },
+    "stale": {
+      "not_checked_since": "Non vérifié depuis {{time}}"
     }
   },
   "navigation": {
@@ -962,7 +997,10 @@
         "message_format_label": "Format du message",
         "username_description": "Le nom d'utilisateur qui apparaîtra comme expéditeur du message. S'il n'est pas spécifié, le nom par défaut du bot sera utilisé.",
         "webhook_url_description": "L'URL du webhook de votre intégration Slack. Vous pouvez la trouver dans votre instance Slack sous Intégrations > Webhooks.",
-        "webhook_url_label": "URL du webhook"
+        "webhook_url_label": "URL du webhook",
+        "bot_token_label": "Jeton de bot",
+        "bot_token_description": "Votre jeton de bot Slack pour l'authentification. Vous pouvez créer un jeton de bot dans les paramètres de votre application Slack",
+        "bot_token_note": "Note : Lors de l'utilisation d'un jeton de bot, le nom du canal est requis."
       },
       "smtp": {
         "custom_body_label": "Corps personnalisé",
@@ -1016,6 +1054,15 @@
         "use_template_description": "Activer l'utilisation d'un modèle de message personnalisé et de mise en forme.",
         "use_template_label": "Utiliser le modèle de message"
       },
+      "teams": {
+        "more_info_about_webhooks": "Plus d'infos sur les webhooks Workflows",
+        "server_url_description": "L'URL de base de votre instance Peekaping, utilisée pour le bouton \"View in Peekaping\". Si elle est vide, la CLIENT_URL du serveur est utilisée.",
+        "server_url_label": "URL du serveur",
+        "setup_webhook_description_1": "Dans Teams, ouvrez Workflows et choisissez le modèle \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Choisissez l'équipe et le canal, sélectionnez Enregistrer, puis copiez l'URL du webhook depuis les détails du workflow.",
+        "setup_webhook_title": "Créer un webhook avec Teams Workflows",
+        "webhook_url_label": "URL du webhook Workflows"
+      },
       "webhook": {
         "additional_headers_description": "Ajoutez des en-têtes HTTP personnalisés à la requête webhook.",
         "additional_headers_label": "En-têtes supplémentaires",
@@ -1027,7 +1074,11 @@
         "request_body_description_form_data": "Le contenu sera envoyé en format multipart/form-data. Vous pouvez le décoder en utilisant <strong>json_decode($_POST['data'])</strong> en PHP.",
         "request_body_description_json": "Le contenu sera envoyé en JSON avec l'en-tête \"application/json\".",
         "request_body_label": "Corps de la requête",
-        "request_body_placeholder": "Sélectionnez le type de contenu"
+        "request_body_placeholder": "Sélectionnez le type de contenu",
+        "signing_secret_description": "Facultatif. S'il est défini, chaque requête est signée avec HMAC-SHA256 : l'en-tête X-Webhook-Signature contient sha256= suivi du HMAC hexadécimal de \"{timestamp}.{body}\", où {timestamp} est l'en-tête X-Webhook-Timestamp en secondes Unix. Pour multipart/form-data, {body} est le champ data.",
+        "signing_secret_docs_link": "Comment vérifier la signature",
+        "signing_secret_label": "Secret de signature",
+        "signing_secret_placeholder": "Laissez vide pour envoyer des requêtes non signées"
       }
     },
     "important": "Notifications importantes",

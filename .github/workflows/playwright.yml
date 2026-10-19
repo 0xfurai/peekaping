@@ -2,23 +2,92 @@ name: Playwright Tests
 on:
   push:
     branches: [ main, master ]
-    paths-ignore:
-      - 'apps/docs/**'
-      - '*.md'
-      - 'README.md'
-      - 'CHANGELOG.md'
-      - 'LICENSE'
+    paths:
+      - 'apps/web/**'
+      - 'apps/server/**'
+      - 'e2e/**'
+      - 'playwright.config.ts'
+      - 'package.json'
+      - '.nvmrc'
+      - 'bun.lock'
+      - '.dockerignore'
+      - 'docker-compose.dev.*.yml'
+      - 'docker-compose.bundle.*.yml'
+      - 'docker-compose.e2e.yml'
+      - 'Dockerfile.bundle.*'
+      - 'startup.bundle.*.sh'
+      - 'supervisord.bundle.*.conf'
+      - 'Caddyfile'
+      - '.github/workflows/playwright.yml'
+      - '!**/*.md'
   pull_request:
-    paths-ignore:
-      - 'apps/docs/**'
-      - '*.md'
-      - 'README.md'
-      - 'CHANGELOG.md'
-      - 'LICENSE'
+    paths:
+      - 'apps/web/**'
+      - 'apps/server/**'
+      - 'e2e/**'
+      - 'playwright.config.ts'
+      - 'package.json'
+      - '.nvmrc'
+      - 'bun.lock'
+      - '.dockerignore'
+      - 'docker-compose.dev.*.yml'
+      - 'docker-compose.bundle.*.yml'
+      - 'docker-compose.e2e.yml'
+      - 'Dockerfile.bundle.*'
+      - 'startup.bundle.*.sh'
+      - 'supervisord.bundle.*.conf'
+      - 'Caddyfile'
+      - '.github/workflows/playwright.yml'
+      - '!**/*.md'
     branches: [ main, master ]
 
+env:
+  # Compose names the images it builds <project>-<service>. Pinning the project
+  # name makes the images from build-images match what the compose files expect.
+  COMPOSE_PROJECT_NAME: peekaping
+
 jobs:
+  # Build each image once, on its own runner, and share it with the test jobs.
+  # The dev images don't depend on the database, so all three dev jobs reuse them.
+  build-images:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: dev-api, tag: peekaping-api, context: apps/server, file: apps/server/infra/Dockerfile.api }
+          - { name: dev-producer, tag: peekaping-producer, context: apps/server, file: apps/server/infra/Dockerfile.producer }
+          - { name: dev-worker, tag: peekaping-worker, context: apps/server, file: apps/server/infra/Dockerfile.worker }
+          - { name: dev-ingester, tag: peekaping-ingester, context: apps/server, file: apps/server/infra/Dockerfile.ingester }
+          - { name: dev-migrate, tag: peekaping-migrate, context: apps/server, file: apps/server/infra/Dockerfile.migrate }
+          - { name: dev-web, tag: peekaping-web, context: ., file: apps/web/Dockerfile }
+          - { name: bundle-postgres, tag: peekaping-peekaping, context: ., file: Dockerfile.bundle.postgres }
+          - { name: bundle-mongo, tag: peekaping-peekaping, context: ., file: Dockerfile.bundle.mongo }
+          - { name: bundle-sqlite, tag: peekaping-peekaping, context: ., file: Dockerfile.bundle.sqlite }
+    steps:
+    - uses: actions/checkout@v4
+    - uses: docker/setup-buildx-action@v3
+    - name: Build ${{ matrix.name }} image
+      uses: docker/build-push-action@v6
+      with:
+        context: ${{ matrix.context }}
+        file: ${{ matrix.file }}
+        tags: ${{ matrix.tag }}
+        outputs: type=docker,dest=${{ runner.temp }}/${{ matrix.name }}.tar
+        cache-from: type=gha,scope=e2e-${{ matrix.name }}
+        cache-to: type=gha,scope=e2e-${{ matrix.name }},mode=max
+    - uses: actions/upload-artifact@v4
+      with:
+        name: image-${{ matrix.name }}
+        path: ${{ runner.temp }}/${{ matrix.name }}.tar
+        retention-days: 1
+        # Image layers are already compressed.
+        compression-level: 0
+
   playwright-tests:
+    needs: build-images
+    # Run every combination whose images built, even if another image failed.
+    if: ${{ !cancelled() }}
     timeout-minutes: 60
     runs-on: ubuntu-latest
     strategy:
@@ -26,16 +95,33 @@ jobs:
       matrix:
         database: [postgres, mongo, sqlite]
         config: [dev, bundle]
+    env:
+      # Every docker compose command below runs the stack plus the e2e target.
+      COMPOSE_FILE: docker-compose.${{ matrix.config }}.${{ matrix.database }}.yml:docker-compose.e2e.yml
     steps:
     # Prepare environment and dependencies
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
       with:
-        node-version: lts/*
+        node-version-file: .nvmrc
+    - uses: oven-sh/setup-bun@v2
+      with:
+        bun-version-file: package.json
     - name: Install dependencies
-      run: npm install -g pnpm && pnpm install
+      run: bun install --frozen-lockfile
     - name: Install Playwright Browsers
-      run: pnpm exec playwright install --with-deps
+      run: bunx playwright install --with-deps chromium
+    - name: Download images
+      uses: actions/download-artifact@v4
+      with:
+        pattern: ${{ matrix.config == 'dev' && 'image-dev-*' || format('image-bundle-{0}', matrix.database) }}
+        path: ${{ runner.temp }}/images
+        merge-multiple: true
+    - name: Load images
+      run: |
+        for image in "$RUNNER_TEMP"/images/*.tar; do
+          docker load --input "$image"
+        done
 
     # Prepare environment file
     - name: Create .env file
@@ -72,52 +158,52 @@ jobs:
         ls -la .data/
         echo "Directory permissions set successfully"
 
-    # Build and start services using appropriate docker-compose file
+    # Start services from the prebuilt images using appropriate docker-compose file
     - name: Start services with docker-compose
-      run: docker compose -f docker-compose.${{ matrix.config }}.${{ matrix.database }}.yml up -d --build
+      run: docker compose up -d --no-build
 
     - name: Show container logs
       run: |
         echo "=== Container Status ==="
-        docker compose -f docker-compose.${{ matrix.config }}.${{ matrix.database }}.yml ps
+        docker compose ps
         echo "=== Container Logs ==="
-        docker compose -f docker-compose.${{ matrix.config }}.${{ matrix.database }}.yml logs
+        docker compose logs
 
     - name: Wait for services to be ready
       run: |
-        echo "Waiting for services to be healthy..."
         HEALTH_URL="http://localhost:${{ matrix.config == 'bundle' && '8383' || '8034' }}/api/v1/health"
-        timeout 120 bash -c '
-          attempt=1
-          until curl -f '"$HEALTH_URL"'; do
-            echo "Attempt $attempt: Health check failed, retrying in 5 seconds..."
-            response=$(curl -s '"$HEALTH_URL"' || echo "connection failed")
-            status_code=$(curl -s -o /dev/null -w "%{http_code}" '"$HEALTH_URL"' || echo "000")
-            echo "  Status Code: $status_code"
-            echo "  Response Body: $response"
-            attempt=$((attempt + 1))
-            sleep 5
-            if [ $attempt -gt 20 ]; then
-              echo "=== Container Status ==="
-              docker compose -f docker-compose.${{ matrix.config }}.${{ matrix.database }}.yml ps
-              echo "===  Logs ==="
-              docker compose -f docker-compose.${{ matrix.config }}.${{ matrix.database }}.yml logs
-            fi
-          done
-        ' || echo "Health check timed out after 120 seconds"
-        echo "Health check succeeded! Waiting additional 5 seconds for stability..."
-        sleep 5
+        if ! timeout 120 bash -c "until curl -sf $HEALTH_URL && curl -sf http://localhost:8383/ && curl -sf http://localhost:3033/health; do sleep 2; done" >/dev/null; then
+          echo "::error::The stack wasn't healthy after 120 seconds"
+          docker compose ps
+          docker compose logs
+          exit 1
+        fi
+        echo "The stack is healthy"
 
     - name: Run Playwright tests
-      run: pnpm exec playwright test
+      run: bunx playwright test
+
+    # The suite must also pass on the database the first run left behind.
+    - name: Run Playwright tests again on the same database
+      run: bunx playwright test
+      env:
+        PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report-rerun
+
+    - name: Show container logs on failure
+      if: failure()
+      run: |
+        docker compose ps
+        docker compose logs
 
     - name: Stop services
       if: always()
-      run: docker compose -f docker-compose.${{ matrix.config }}.${{ matrix.database }}.yml down
+      run: docker compose down
 
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
         name: playwright-report-${{ matrix.config }}-${{ matrix.database }}
-        path: playwright-report/
+        path: |
+          playwright-report/
+          playwright-report-rerun/
         retention-days: 30

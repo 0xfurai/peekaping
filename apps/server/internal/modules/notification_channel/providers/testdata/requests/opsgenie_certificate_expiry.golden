@@ -1,0 +1,11 @@
+POST https://api.opsgenie.com/v2/alerts
+Authorization: GenieKey genie-key
+Content-Type: application/json
+User-Agent: Peekaping-Opsgenie/<version>
+
+{
+  "alias": "peekaping-notification-test",
+  "message": "🚨 Certificate Expiry Warning\n\nMonitor: Public API\nCertificate: api.example.com (server)\nExpires in: 7 days\nValid until: 2026-10-24 09:30:00\nNotification threshold: 7 days\nValid for: api.example.com\nIssuer: CN=R11,O=Let's Encrypt,C=US",
+  "priority": "P5",
+  "source": "Peekaping"
+}

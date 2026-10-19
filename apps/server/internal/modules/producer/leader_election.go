@@ -20,23 +20,25 @@ const (
 
 // LeaderElection handles distributed leader election using Redis
 type LeaderElection struct {
-	client   *redis.Client
-	logger   *zap.SugaredLogger
-	nodeID   string
-	isLeader bool
-	stopChan chan struct{}
-	doneChan chan struct{}
+	client          *redis.Client
+	logger          *zap.SugaredLogger
+	nodeID          string
+	isLeader        bool
+	renewalInterval time.Duration // how often the lock is taken or renewed
+	stopChan        chan struct{}
+	doneChan        chan struct{}
 }
 
 // NewLeaderElection creates a new leader election instance
 func NewLeaderElection(client *redis.Client, nodeID string, logger *zap.SugaredLogger) *LeaderElection {
 	return &LeaderElection{
-		client:   client,
-		logger:   logger.With("component", "leader_election"),
-		nodeID:   nodeID,
-		isLeader: false,
-		stopChan: make(chan struct{}),
-		doneChan: make(chan struct{}),
+		client:          client,
+		logger:          logger.With("component", "leader_election"),
+		nodeID:          nodeID,
+		isLeader:        false,
+		renewalInterval: LeaderRenewalInterval,
+		stopChan:        make(chan struct{}),
+		doneChan:        make(chan struct{}),
 	}
 }
 
@@ -47,7 +49,7 @@ func (le *LeaderElection) Start(ctx context.Context) {
 	go func() {
 		defer close(le.doneChan)
 
-		ticker := time.NewTicker(LeaderRenewalInterval)
+		ticker := time.NewTicker(le.renewalInterval)
 		defer ticker.Stop()
 
 		// Try to become leader immediately

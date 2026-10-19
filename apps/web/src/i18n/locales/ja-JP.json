@@ -571,7 +571,38 @@
         "redis": "Redis データベース監視",
         "snmp": "SNMP監視",
         "sqlserver": "Microsoft SQL Server 監視",
-        "tcp": "TCPポートモニター"
+        "tcp": "TCPポートモニター",
+        "smtp": "SMTPメールサーバー監視"
+      },
+      "smtp": {
+        "authentication_title": "認証（オプション）",
+        "check_cert_expiry": "証明書の有効期限を確認",
+        "check_cert_expiry_description": "SSL/TLS証明書の有効期限を監視し、通知を送信",
+        "from_email": "送信者メール",
+        "from_email_description": "オプション：このメールアドレスでMAIL FROMコマンドをテスト",
+        "host": "SMTPサーバーホスト",
+        "ignore_tls_errors": "TLSエラーを無視",
+        "ignore_tls_errors_description": "TLS証明書の検証をスキップ（自己署名証明書に便利）",
+        "password": "パスワード",
+        "port": "ポート",
+        "port_description": "一般的なポート：25 (SMTP), 465 (SMTPS), 587 (STARTTLSを使用したSubmission)",
+        "title": "SMTPサーバー設定",
+        "use_tls": "STARTTLSを使用",
+        "use_tls_description": "安全な通信のためにSTARTTLSを有効化",
+        "username": "ユーザー名",
+        "username_description": "オプション：SMTP認証のユーザー名",
+        "expect_secure_relay": "オープンリレーを失敗とみなす",
+        "expect_secure_relay_description": "有効にすると、オープンリレーが検出された場合（セキュリティリスク）にモニターを DOWN とマークします。無効にすると、モニターはオープンリレーを想定し、サーバーがリレーを拒否した場合に DOWN とマークします。",
+        "open_relay_title": "オープンリレー テスト",
+        "read_timeout": "読み込みタイムアウト（秒）",
+        "read_timeout_description": "SMTPサーバ応答の読み取りタイムアウト。空欄にすると監視タイムアウトが使用されます。応答しないサーバでのハングアップを防止します。",
+        "rcpt_to_email": "RCPT TO メール",
+        "rcpt_to_email_description": "オープンリレーをテストする際に RCPT TO コマンドで使用するメールアドレス。空欄にするとデフォルト (test@external-domain.com) が使用されます。",
+        "test_open_relay": "オープンリレーをテスト",
+        "test_open_relay_description": "SMTPサーバが認証なしで外部ドメインにメールをリレーできるか確認する",
+        "use_direct_tls": "直接TLS（SMTPS）を使用",
+        "use_direct_tls_description": "STARTTLS の代わりに直接 TLS 接続（SMTPS）を使用します。ポート 465 で必須です。チェックを外すと STARTTLS（ポート 587/25）を使用します。",
+        "port_465_warning": "ポート465は通常、直接TLS（SMTPS）が必要です。安全な接続のために「直接TLS（SMTPS）を使用」を有効にしてください。"
       }
     },
     "page": {
@@ -628,8 +659,12 @@
         "down": "停止",
         "maintenance": "メンテナンス",
         "paused": "停止中",
+        "pending": "保留中",
         "up": "稼働中"
       }
+    },
+    "stale": {
+      "not_checked_since": "{{time}} 以降チェックされていません"
     }
   },
   "navigation": {
@@ -962,7 +997,10 @@
         "message_format_label": "メッセージ形式",
         "username_description": "メッセージの送信者として表示されるユーザー名です。指定しない場合は、デフォルトのボット名が使用されます。",
         "webhook_url_description": "Slack統合のWebhook URLです。Slackのインスタンス内の「Integrations > Webhooks」で確認できます。",
-        "webhook_url_label": "Webhook URL"
+        "webhook_url_label": "Webhook URL",
+        "bot_token_label": "ボットトークン",
+        "bot_token_description": "認証用のSlackボットトークンです。Slackアプリの設定でボットトークンを作成できます",
+        "bot_token_note": "注意: ボットトークンを使用する場合、チャンネル名は必須です。"
       },
       "smtp": {
         "custom_body_label": "カスタム本文",
@@ -1016,6 +1054,15 @@
         "use_template_description": "カスタムメッセージテンプレートとフォーマットを使用できるようにする。",
         "use_template_label": "メッセージテンプレートを使用"
       },
+      "teams": {
+        "more_info_about_webhooks": "Workflows の Webhook の詳細情報",
+        "server_url_description": "Peekaping インスタンスのベース URL で、「View in Peekaping」ボタンに使用されます。空の場合はサーバーの CLIENT_URL が使用されます。",
+        "server_url_label": "サーバー URL",
+        "setup_webhook_description_1": "Teams で Workflows を開き、「Send webhook alerts to a channel」テンプレートを選択します。",
+        "setup_webhook_description_2": "チームとチャネルを選択して保存し、ワークフローの詳細から Webhook URL をコピーします。",
+        "setup_webhook_title": "Teams Workflows で Webhook を作成",
+        "webhook_url_label": "Workflows の Webhook URL"
+      },
       "webhook": {
         "additional_headers_description": "WebhookリクエストにカスタムHTTPヘッダーを追加します。",
         "additional_headers_label": "追加ヘッダー",
@@ -1027,7 +1074,11 @@
         "request_body_description_form_data": "コンテンツは multipart/form-data 形式で送信されます。PHP で <strong>json_decode($_POST['data'])</strong> を使用してデコードできます。",
         "request_body_description_json": "Content は \"application/json\" ヘッダー付きで JSON 形式で送信されます。",
         "request_body_label": "リクエスト本文",
-        "request_body_placeholder": "コンテンツタイプを選択"
+        "request_body_placeholder": "コンテンツタイプを選択",
+        "signing_secret_description": "任意。設定すると、各リクエストは HMAC-SHA256 で署名されます。X-Webhook-Signature ヘッダーには sha256= と \"{timestamp}.{body}\" の 16 進 HMAC が含まれます。{timestamp} は X-Webhook-Timestamp ヘッダーの値（Unix 秒）です。multipart/form-data の場合、{body} は data フィールドです。",
+        "signing_secret_docs_link": "署名の検証方法",
+        "signing_secret_label": "署名シークレット",
+        "signing_secret_placeholder": "空欄の場合、署名なしでリクエストを送信します"
       }
     },
     "important": "重要通知",

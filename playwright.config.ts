@@ -30,19 +30,22 @@ export default defineConfig({
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
+
+    /* Fail fast when a locator matches nothing, e.g. a renamed form field. */
+    actionTimeout: 10_000,
   },
 
   /* Configure projects for major browsers */
   projects: [
     {
-      name: 'auth',
-      testMatch: /auth\.spec\.ts/,
+      name: 'setup',
+      testMatch: /auth\.setup\.ts/,
       use: { ...devices['Desktop Chrome'] },
     },
     {
       name: 'chromium',
-      testMatch: /^(?!.*auth\.spec\.ts$).*/,
-      dependencies: ['auth'],
+      testMatch: /\.spec\.ts$/,
+      dependencies: ['setup'],
       use: { ...devices['Desktop Chrome'], storageState: 'storageState.json' },
     },
 

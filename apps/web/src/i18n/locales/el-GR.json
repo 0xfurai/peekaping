@@ -571,7 +571,38 @@
         "redis": "Εποπτεία Βάσης Δεδομένων Redis",
         "snmp": "Παρακολούθηση SNMP",
         "sqlserver": "Παρακολούθηση Microsoft SQL Server",
-        "tcp": "Παρακολούθηση θύρας TCP"
+        "tcp": "Παρακολούθηση θύρας TCP",
+        "smtp": "Παρακολούθηση διακομιστή email SMTP"
+      },
+      "smtp": {
+        "authentication_title": "Επαλήθευση (Προαιρετικό)",
+        "check_cert_expiry": "Έλεγχος λήξης πιστοποιητικού",
+        "check_cert_expiry_description": "Παρακολούθηση λήξης πιστοποιητικού SSL/TLS και αποστολή ειδοποιήσεων",
+        "from_email": "Email αποστολέα",
+        "from_email_description": "Προαιρετικό: Δοκιμή εντολής MAIL FROM με αυτήν τη διεύθυνση email",
+        "host": "Διεύθυνση διακομιστή SMTP",
+        "ignore_tls_errors": "Αγνόηση σφαλμάτων TLS",
+        "ignore_tls_errors_description": "Παράλειψη επαλήθευσης πιστοποιητικού TLS (χρήσιμο για αυτο-υπογεγραμμένα πιστοποιητικά)",
+        "password": "Κωδικός πρόσβασης",
+        "port": "Θύρα",
+        "port_description": "Κοινές θύρες: 25 (SMTP), 465 (SMTPS), 587 (Submission με STARTTLS)",
+        "title": "Ρυθμίσεις διακομιστή SMTP",
+        "use_tls": "Χρήση STARTTLS",
+        "use_tls_description": "Ενεργοποίηση STARTTLS για ασφαλή επικοινωνία",
+        "username": "Όνομα χρήστη",
+        "username_description": "Προαιρετικό: Όνομα χρήστη για επαλήθευση SMTP",
+        "expect_secure_relay": "Θέσε το Open Relay ως αποτυχία",
+        "expect_secure_relay_description": "Εάν είναι ενεργοποιημένο, η παρακολούθηση θα σημειωθεί ως DOWN όταν ανιχνευθεί ανοιχτό relay (κίνδυνος ασφαλείας). Εάν είναι απενεργοποιημένο, η παρακολούθηση αναμένει ανοιχτό relay και θα σημειωθεί ως DOWN όταν ο διακομιστής απορρίψει την αναμετάδοση.",
+        "open_relay_title": "Δοκιμή ανοιχτού relay",
+        "read_timeout": "Περιορισμός ανάγνωσης (δευτερόλεπτα)",
+        "read_timeout_description": "Χρονικό όριο ανάγνωσης απαντήσεων SMTP διακομιστή. Αφήστε κενό για χρήση του χρονικού ορίου παρακολούθησης. Βοηθά στην αποφυγή παγώσεων σε μη ανταποκρινόμενους διακομιστές.",
+        "rcpt_to_email": "RCPT TO Ηλεκτρονική Διεύθυνση",
+        "rcpt_to_email_description": "Διεύθυνση email που θα χρησιμοποιηθεί για την εντολή RCPT TO κατά τη δοκιμή ανοιχτού relay. Αφήστε κενό για να χρησιμοποιήσετε την προεπιλογή (test@external-domain.com)",
+        "test_open_relay": "Δοκιμή Ανοιχτού Μεταδότη",
+        "test_open_relay_description": "Δοκιμάστε αν ο διακομιστής SMTP επιτρέπει την αναμετάδοση e-mails σε εξωτερικούς τομείς χωρίς πιστοποίηση",
+        "use_direct_tls": "Χρήση άμεσης TLS (SMTPS)",
+        "use_direct_tls_description": "Χρησιμοποιήστε άμεση σύνδεση TLS (SMTPS) αντί για STARTTLS. Απαιτείται για την θύρα 465. Αν δεν επιλεγεί, χρησιμοποιείται STARTTLS (για τις θύρες 587/25).",
+        "port_465_warning": "Η θύρα 465 απαιτεί συνήθως απευθείας TLS (SMTPS). Ενεργοποιήστε το «Χρήση Απευθείας TLS (SMTPS)» για ασφαλείς συνδέσεις."
       }
     },
     "page": {
@@ -628,8 +659,12 @@
         "down": "Κατεβασμένο",
         "maintenance": "Συντήρηση",
         "paused": "Σε παύση",
+        "pending": "Σε εκκρεμότητα",
         "up": "Ενεργός"
       }
+    },
+    "stale": {
+      "not_checked_since": "Δεν έχει ελεγχθεί από {{time}}"
     }
   },
   "navigation": {
@@ -962,7 +997,10 @@
         "message_format_label": "Μορφή Μηνύματος",
         "username_description": "Το όνομα χρήστη που θα εμφανίζεται ως αποστολέας του μηνύματος. Αν δεν οριστεί, θα χρησιμοποιηθεί το προεπιλεγμένο όνομα του bot.",
         "webhook_url_description": "Η διεύθυνση URL του webhook από την ενσωμάτωση Slack. Μπορείτε να τη βρείτε στη δική σας εγκατάσταση Slack κάτω από Integrations > Webhooks.",
-        "webhook_url_label": "URL Webhook"
+        "webhook_url_label": "URL Webhook",
+        "bot_token_label": "Token Bot",
+        "bot_token_description": "Το token bot του Slack σας για τον έλεγχο ταυτότητας. Μπορείτε να δημιουργήσετε ένα token bot στις ρυθμίσεις της εφαρμογής Slack σας",
+        "bot_token_note": "Σημείωση: Όταν χρησιμοποιείτε token bot, το όνομα καναλιού είναι υποχρεωτικό."
       },
       "smtp": {
         "custom_body_label": "Προσαρμοσμένο σώμα",
@@ -1016,6 +1054,15 @@
         "use_template_description": "Ενεργοποιήστε τη χρήση προσαρμοσμένου προτύπου μηνύματος και μορφοποίησης.",
         "use_template_label": "Χρήση προτύπου μηνύματος"
       },
+      "teams": {
+        "more_info_about_webhooks": "Περισσότερες πληροφορίες για τα webhooks του Workflows",
+        "server_url_description": "Η βασική διεύθυνση URL της εγκατάστασης Peekaping, που χρησιμοποιείται για το κουμπί \"View in Peekaping\". Αν μείνει κενό, χρησιμοποιείται το CLIENT_URL του διακομιστή.",
+        "server_url_label": "URL διακομιστή",
+        "setup_webhook_description_1": "Στο Teams, ανοίξτε το Workflows και επιλέξτε το πρότυπο \"Send webhook alerts to a channel\".",
+        "setup_webhook_description_2": "Επιλέξτε την ομάδα και το κανάλι, πατήστε Αποθήκευση και αντιγράψτε το URL του webhook από τις λεπτομέρειες της ροής εργασίας.",
+        "setup_webhook_title": "Δημιουργήστε ένα webhook με το Teams Workflows",
+        "webhook_url_label": "URL Webhook του Workflows"
+      },
       "webhook": {
         "additional_headers_description": "Προσθήκη προσαρμοσμένων κεφαλίδων HTTP στην αίτηση webhook.",
         "additional_headers_label": "Πρόσθετες κεφαλίδες",
@@ -1027,7 +1074,11 @@
         "request_body_description_form_data": "Το περιεχόμενο θα σταλεί ως multipart/form-data. Μπορείτε να το αποκωδικοποιήσετε χρησιμοποιώντας <strong>json_decode($_POST['data'])</strong> στη PHP.",
         "request_body_description_json": "Το περιεχόμενο θα σταλεί ως JSON με την κεφαλίδα \"application/json\".",
         "request_body_label": "Σώμα Αίτησης",
-        "request_body_placeholder": "Επιλέξτε τύπο περιεχομένου"
+        "request_body_placeholder": "Επιλέξτε τύπο περιεχομένου",
+        "signing_secret_description": "Προαιρετικό. Όταν οριστεί, κάθε αίτημα υπογράφεται με HMAC-SHA256: η κεφαλίδα X-Webhook-Signature περιέχει sha256= και το δεκαεξαδικό HMAC του \"{timestamp}.{body}\", όπου {timestamp} είναι η κεφαλίδα X-Webhook-Timestamp σε δευτερόλεπτα Unix. Για multipart/form-data, το {body} είναι το πεδίο data.",
+        "signing_secret_docs_link": "Πώς να επαληθεύσετε την υπογραφή",
+        "signing_secret_label": "Μυστικό υπογραφής",
+        "signing_secret_placeholder": "Αφήστε το κενό για αποστολή μη υπογεγραμμένων αιτημάτων"
       }
     },
     "important": "Σημαντικές ειδοποιήσεις",

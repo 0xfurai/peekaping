@@ -10,7 +10,6 @@ import (
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/version"
-	"time"
 
 	"go.uber.org/zap"
 )
@@ -25,12 +24,10 @@ type WeComSender struct {
 }
 
 // NewWeComSender creates a new WeComSender instance
-func NewWeComSender(logger *zap.SugaredLogger) *WeComSender {
+func NewWeComSender(logger *zap.SugaredLogger, client *http.Client) *WeComSender {
 	return &WeComSender{
 		logger: logger,
-		client: &http.Client{
-			Timeout: 30 * time.Second,
-		},
+		client: client,
 	}
 }
 

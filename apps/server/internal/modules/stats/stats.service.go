@@ -24,7 +24,9 @@ type Service interface {
 	FindStatsByMonitorIDAndTimeRange(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod) ([]*Stat, error)
 	FindStatsByMonitorIDAndTimeRangeWithInterval(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod, monitorInterval int) ([]*Stat, error)
 	StatPointsSummary(statsList []*Stat) *Stats
+	Summarize(ctx context.Context, monitorID string, since, until time.Time) (*Stats, error)
 	DeleteByMonitorID(ctx context.Context, monitorID string) error
+	DeleteExpired(ctx context.Context, now time.Time) (map[StatPeriod]int64, error)
 }
 
 type ServiceImpl struct {
@@ -57,55 +59,30 @@ func (s *ServiceImpl) AggregateHeartbeat(ctx context.Context, hb *HeartbeatPaylo
 		{StatDaily, 24 * time.Hour},
 	}
 
+	// The heartbeat's counts and response time, which the repository adds to each period's stat
+	add := Stat{MonitorID: hb.MonitorID}
+
+	// Up/Down logic (flattened)
+	if s.flatStatus(hb.Status) == 1 { // MonitorStatusUp
+		add.Up = 1
+		// Only update ping stats for true UP
+		if hb.Status == 1 { // MonitorStatusUp
+			add.PingCount = 1
+			add.Ping = float64(hb.Ping)
+			add.PingMin, add.PingMax = add.Ping, add.Ping
+		}
+	} else if s.flatStatus(hb.Status) == 0 { // MonitorStatusDown
+		add.Down = 1
+	}
+
+	// Aggregate maintenance status separately
+	if hb.Status == 3 { // MonitorStatusMaintenance
+		add.Maintenance = 1
+	}
+
 	for _, p := range periods {
-		bucketTime := time.Unix(hb.Time, 0).Truncate(p.Bucket)
-
-		stat, err := s.repo.GetOrCreateStat(ctx, hb.MonitorID, bucketTime, p.Period)
-		if err != nil {
-			return err
-		}
-
-		statToUpsert := *stat // copy
-
-		// Up/Down logic (flattened)
-		if s.flatStatus(hb.Status) == 1 { // MonitorStatusUp
-			statToUpsert.Up = stat.Up + 1
-			// Only update ping stats for true UP
-			if hb.Status == 1 { // MonitorStatusUp
-				fPing := float64(hb.Ping)
-				if stat.Up == 0 {
-					statToUpsert.PingMin = fPing
-					statToUpsert.Ping = fPing
-					statToUpsert.PingMax = fPing
-				} else {
-					statToUpsert.Ping = (stat.Ping*float64(stat.Up) + fPing) / float64(stat.Up+1)
-
-					// Update ping min if new ping is lower
-					if fPing < stat.PingMin || stat.PingMin == 0 {
-						statToUpsert.PingMin = fPing
-					} else {
-						statToUpsert.PingMin = stat.PingMin
-					}
-
-					// Update ping max if new ping is higher
-					if fPing > stat.PingMax {
-						statToUpsert.PingMax = fPing
-					} else {
-						statToUpsert.PingMax = stat.PingMax
-					}
-				}
-			}
-		} else if s.flatStatus(hb.Status) == 0 { // MonitorStatusDown
-			statToUpsert.Down = stat.Down + 1
-		}
-
-		// Aggregate maintenance status separately
-		if hb.Status == 3 { // MonitorStatusMaintenance
-			statToUpsert.Maintenance = stat.Maintenance + 1
-		}
-
-		// Upsert stat
-		if err := s.repo.UpsertStat(ctx, &statToUpsert, p.Period); err != nil {
+		add.Timestamp = time.Unix(hb.Time, 0).Truncate(p.Bucket)
+		if err := s.repo.AddToStat(ctx, &add, p.Period); err != nil {
 			return err
 		}
 	}
@@ -125,7 +102,9 @@ func (s *ServiceImpl) RegisterEventHandlers(eventBus events.EventBus) {
 			Ping:      payload.Ping,
 			Time:      payload.Time.Unix(),
 		}
-		_ = s.AggregateHeartbeat(context.Background(), hb)
+		if err := s.AggregateHeartbeat(context.Background(), hb); err != nil {
+			s.logger.Errorw("Failed to aggregate heartbeat into stats", "monitor_id", hb.MonitorID, "error", err)
+		}
 	})
 }
 
@@ -276,17 +255,17 @@ func (s *ServiceImpl) aggregateStats(stats []*Stat, timestamp time.Time, monitor
 		totalDown += stat.Down
 		totalMaintenance += stat.Maintenance
 
-		// Only include stats with valid ping values (> 0) for ping calculations
-		if stat.Up > 0 && stat.Ping > 0 {
-			totalPing += stat.Ping * float64(stat.Up)
-			pingCount += stat.Up
+		// Only buckets with response times count toward the response time stats
+		if stat.PingCount > 0 {
+			totalPing += stat.Ping * float64(stat.PingCount)
+			pingCount += stat.PingCount
 
 			if !hasValidPing {
 				minPing = stat.PingMin
 				maxPing = stat.PingMax
 				hasValidPing = true
 			} else {
-				if stat.PingMin > 0 && stat.PingMin < minPing {
+				if stat.PingMin < minPing {
 					minPing = stat.PingMin
 				}
 				if stat.PingMax > maxPing {
@@ -315,6 +294,7 @@ func (s *ServiceImpl) aggregateStats(stats []*Stat, timestamp time.Time, monitor
 		Ping:        avgPing,
 		PingMin:     minPing,
 		PingMax:     maxPing,
+		PingCount:   pingCount,
 		Up:          totalUp,
 		Down:        totalDown,
 		Maintenance: totalMaintenance,
@@ -335,21 +315,21 @@ func (s *ServiceImpl) StatPointsSummary(statsList []*Stat) *Stats {
 	var maxPing *float64
 	var minPing *float64
 	var sumPing float64
-	var upCount int
+	var pingCount int
 	var totalUp, totalDown, totalMaintenance int
 
 	for _, s := range statsList {
-		if s.Up > 0 {
+		if s.PingCount > 0 {
 			if maxPing == nil || s.PingMax > *maxPing {
 				v := s.PingMax
 				maxPing = &v
 			}
-			if s.PingMin > 0 && (minPing == nil || s.PingMin < *minPing) {
+			if minPing == nil || s.PingMin < *minPing {
 				v := s.PingMin
 				minPing = &v
 			}
-			sumPing += s.Ping * float64(s.Up)
-			upCount += s.Up
+			sumPing += s.Ping * float64(s.PingCount)
+			pingCount += s.PingCount
 		}
 		totalUp += s.Up
 		totalDown += s.Down
@@ -357,8 +337,8 @@ func (s *ServiceImpl) StatPointsSummary(statsList []*Stat) *Stats {
 	}
 
 	var avgPing *float64
-	if upCount > 0 {
-		v := sumPing / float64(upCount)
+	if pingCount > 0 {
+		v := sumPing / float64(pingCount)
 		avgPing = &v
 	}
 
@@ -382,6 +362,65 @@ func (s *ServiceImpl) StatPointsSummary(statsList []*Stat) *Stats {
 	}
 }
 
+// summaryWindows lists the longest window served by minute and hour stats.
+// Retention must cover the whole window; day stats serve longer windows indefinitely.
+var summaryWindows = []struct {
+	Period StatPeriod
+	Window time.Duration
+}{
+	{StatMinutely, 24 * time.Hour},
+	{StatHourly, 90 * 24 * time.Hour},
+}
+
+// summaryPeriod picks the buckets to read for a window. A bucket counts only when
+// it starts inside the window, so the window's start is off by up to one bucket:
+// a minute for windows up to 24h, an hour up to 90 days, a day beyond that.
+// Stats retention must keep minute rows for at least 24h and hour rows for 90 days.
+func summaryPeriod(window time.Duration) StatPeriod {
+	for _, summary := range summaryWindows {
+		if window <= summary.Window {
+			return summary.Period
+		}
+	}
+	return StatDaily
+}
+
+// Summarize returns uptime and response times for the monitor's heartbeats from
+// since to until, read from the buckets that suit the window length.
+func (s *ServiceImpl) Summarize(ctx context.Context, monitorID string, since, until time.Time) (*Stats, error) {
+	statsList, err := s.repo.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, since, until, summaryPeriod(until.Sub(since)))
+	if err != nil {
+		return nil, err
+	}
+	return s.StatPointsSummary(statsList), nil
+}
+
 func (s *ServiceImpl) DeleteByMonitorID(ctx context.Context, monitorID string) error {
 	return s.repo.DeleteByMonitorID(ctx, monitorID)
+}
+
+// retention is how long each period's stats are kept. Day stats are kept forever.
+// Summarize reads minute stats for up to 24h and hour stats for up to 90 days,
+// and charts read less, so neither may be kept for less than that.
+var retention = []struct {
+	Period StatPeriod
+	Bucket time.Duration
+	Keep   time.Duration
+}{
+	{StatMinutely, time.Minute, 48 * time.Hour},
+	{StatHourly, time.Hour, 90 * 24 * time.Hour},
+}
+
+// DeleteExpired deletes the stats whose bucket started more than their period's
+// retention before now, and returns how many rows it deleted per period.
+func (s *ServiceImpl) DeleteExpired(ctx context.Context, now time.Time) (map[StatPeriod]int64, error) {
+	deleted := make(map[StatPeriod]int64, len(retention))
+	for _, r := range retention {
+		n, err := s.repo.DeleteOlderThan(ctx, r.Period, now.Add(-r.Keep).Truncate(r.Bucket))
+		if err != nil {
+			return deleted, fmt.Errorf("delete expired %s stats: %w", r.Period, err)
+		}
+		deleted[r.Period] = n
+	}
+	return deleted, nil
 }

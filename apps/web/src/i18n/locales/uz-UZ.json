@@ -571,7 +571,38 @@
         "redis": "Redis ma'lumotlar bazasini kuzatuvchi",
         "snmp": "SNMP nazorati",
         "sqlserver": "Microsoft SQL Server nazorati",
-        "tcp": "TCP Port monitori"
+        "tcp": "TCP Port monitori",
+        "smtp": "SMTP pochta serveri monitor"
+      },
+      "smtp": {
+        "authentication_title": "Autentifikatsiya (Ixtiyoriy)",
+        "check_cert_expiry": "Sertifikat muddatini tekshirish",
+        "check_cert_expiry_description": "SSL/TLS sertifikat muddatini kuzatish va bildirishnomalar yuborish",
+        "from_email": "Jo'natuvchi email",
+        "from_email_description": "Ixtiyoriy: Ushbu email manzili bilan MAIL FROM buyrug'ini sinash",
+        "host": "SMTP server hosti",
+        "ignore_tls_errors": "TLS xatolarini e'tiborsiz qoldirish",
+        "ignore_tls_errors_description": "TLS sertifikat tekshiruvini o'tkazib yuborish (o'z-o'zidan imzolangan sertifikatlar uchun foydali)",
+        "password": "Parol",
+        "port": "Port",
+        "port_description": "Umumiy portlar: 25 (SMTP), 465 (SMTPS), 587 (STARTTLS bilan Submission)",
+        "title": "SMTP server sozlamalari",
+        "use_tls": "STARTTLS dan foydalanish",
+        "use_tls_description": "Xavfsiz aloqa uchun STARTTLS ni yoqish",
+        "username": "Foydalanuvchi nomi",
+        "username_description": "Ixtiyoriy: SMTP autentifikatsiya foydalanuvchi nomi",
+        "expect_secure_relay": "Open Relay ni Xatolik deb qabul qiling",
+        "expect_secure_relay_description": "Agar yoqilgan bo'lsa, ochiq relay aniqlanganda monitor DOWN deb belgilanadi (xavfsizlik xavfi). Agar o'chirilgan bo'lsa, monitor ochiq relayni kutadi va server uzatishni rad etganda DOWN deb belgilanadi.",
+        "open_relay_title": "Ochiq relay sinovi",
+        "read_timeout": "O'qish kutish vaqti (soniya)",
+        "read_timeout_description": "SMTP server javoblarini o'qish uchun vaqt chegarasi. Monitor timeoutdan foydalanish uchun bo'sh qoldiring. Javob bermaydigan serverlarda to'xtashni oldini olishga yordam beradi.",
+        "rcpt_to_email": "RCPT TO E-pochta",
+        "rcpt_to_email_description": "Open relay sinovida RCPT TO komandasi uchun foydalaniladigan elektron pochta manzili. Standart (test@external-domain.com) dan foydalanish uchun bo'sh qoldiring.",
+        "test_open_relay": "Ochiq relayni sinash",
+        "test_open_relay_description": "SMTP server tasdiqlashsiz tashqi domenlarga e-pochta uzatishni ruxsat etadimi, sinab ko'ring",
+        "use_direct_tls": "Direct TLS (SMTPS) ni ishlatish",
+        "use_direct_tls_description": "Direct TLS bog‘lanishini (SMTPS) STARTTLS o‘rniga ishlating. Port 465 uchun majburiy. Agar belgilangan bo‘lmasa, STARTTLS (587/25 portlari uchun) ishlatiladi.",
+        "port_465_warning": "Port 465 odatda to'g'ridan-to'g'ri TLS (SMTPS) talab qiladi. Xavfsiz ulanishlar uchun 'Direct TLS (SMTPS) ni ishlatish' ni yoqing."
       }
     },
     "page": {
@@ -628,8 +659,12 @@
         "down": "O‘chirilgan",
         "maintenance": "Texnik xizmat",
         "paused": "To'xtatildi",
+        "pending": "Kutilmoqda",
         "up": "Onlayn"
       }
+    },
+    "stale": {
+      "not_checked_since": "{{time}} dan beri tekshirilmagan"
     }
   },
   "navigation": {
@@ -961,7 +996,10 @@
         "message_format_label": "Xabar formati",
         "username_description": "Xabar yuboruvchisiga ko'rsatiladigan foydalanuvchi nomi. Agar belgilansa, standart bot nomi ishlatiladi.",
         "webhook_url_description": "Slack integratsiyangizdagi webhook URLsi. Uni Slack nusxangizda Integratsiyalar > Webhooks bo‘limida topishingiz mumkin.",
-        "webhook_url_label": "Webhook URL"
+        "webhook_url_label": "Webhook URL",
+        "bot_token_label": "Bot token",
+        "bot_token_description": "Autentifikatsiya uchun Slack bot tokeningiz. Bot token yaratishingiz mumkin Slack ilovangiz sozlamalarida",
+        "bot_token_note": "Eslatma: Bot tokendan foydalanganda kanal nomi talab qilinadi."
       },
       "smtp": {
         "custom_body_label": "Maxsus matn",
@@ -1015,6 +1053,15 @@
         "use_template_description": "Maxsus xabar shablonidan va formatdan foydalanishni yoqish.",
         "use_template_label": "Xabar shablonidan foydalanish"
       },
+      "teams": {
+        "more_info_about_webhooks": "Workflows webhooklari haqida qo'shimcha ma'lumot",
+        "server_url_description": "Peekaping nusxangizning asosiy URL manzili, \"View in Peekaping\" tugmasi uchun ishlatiladi. Bo'sh bo'lsa, serverning CLIENT_URL qiymati ishlatiladi.",
+        "server_url_label": "Server URL manzili",
+        "setup_webhook_description_1": "Teams'da Workflows'ni oching va \"Send webhook alerts to a channel\" shablonini tanlang.",
+        "setup_webhook_description_2": "Jamoa va kanalni tanlang, Saqlash tugmasini bosing, so'ng ish jarayoni tafsilotlaridan webhook URL manzilini nusxalang.",
+        "setup_webhook_title": "Teams Workflows yordamida webhook yarating",
+        "webhook_url_label": "Workflows Webhook manzili"
+      },
       "webhook": {
         "additional_headers_description": "Webhook so‘rofiga maxsus HTTP sarlavhalar qo‘shing.",
         "additional_headers_label": "Qo‘shimcha sarlavhalar",
@@ -1026,7 +1073,11 @@
         "request_body_description_form_data": "Kontent multipart/form-data sifatida yuboriladi. PHP da <strong>json_decode($_POST['data'])</strong> yordamida uni dekodlash mumkin.",
         "request_body_description_json": "Kontent JSON formatida \"application/json\" sarlavhasi bilan yuboriladi.",
         "request_body_label": "So'rov tanasi",
-        "request_body_placeholder": "Kontent turini tanlang"
+        "request_body_placeholder": "Kontent turini tanlang",
+        "signing_secret_description": "Ixtiyoriy. O‘rnatilganda har bir so‘rov HMAC-SHA256 bilan imzolanadi: X-Webhook-Signature sarlavhasida sha256= va \"{timestamp}.{body}\" ning o‘n oltilik HMAC qiymati bo‘ladi, bunda {timestamp} — Unix soniyalaridagi X-Webhook-Timestamp sarlavhasi. multipart/form-data uchun {body} — data maydoni.",
+        "signing_secret_docs_link": "Imzoni qanday tekshirish mumkin",
+        "signing_secret_label": "Imzolash siri",
+        "signing_secret_placeholder": "Imzosiz so‘rovlar yuborish uchun bo‘sh qoldiring"
       }
     },
     "important": "Muhim Xabarnomalar",

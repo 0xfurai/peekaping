@@ -73,7 +73,7 @@ const stripEmptySlots = (params: Params) => {
 
 export const buildClientParams = (
   args: ReadonlyArray<unknown>,
-  fields: FieldsConfig,
+  fields: FieldsConfig
 ) => {
   const params: Params = {
     body: {},
@@ -112,7 +112,7 @@ export const buildClientParams = (
           (params[field.in] as Record<string, unknown>)[name] = value;
         } else {
           const extra = extraPrefixes.find(([prefix]) =>
-            key.startsWith(prefix),
+            key.startsWith(prefix)
           );
 
           if (extra) {
@@ -122,7 +122,7 @@ export const buildClientParams = (
             ] = value;
           } else {
             for (const [slot, allowed] of Object.entries(
-              config.allowExtra ?? {},
+              config.allowExtra ?? {}
             )) {
               if (allowed) {
                 (params[slot as Slot] as Record<string, unknown>)[key] = value;

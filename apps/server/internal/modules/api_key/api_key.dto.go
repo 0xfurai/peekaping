@@ -5,7 +5,6 @@ import (
 )
 
 // CreateAPIKeyDto represents the request to create an API key
-// swagger:model
 type CreateAPIKeyDto struct {
 	Name          string     `json:"name" validate:"required,min=1,max=255"`
 	ExpiresAt     *time.Time `json:"expires_at,omitempty" validate:"omitempty"`
@@ -13,15 +12,13 @@ type CreateAPIKeyDto struct {
 }
 
 // UpdateAPIKeyDto represents the request to update an API key
-// swagger:model
 type UpdateAPIKeyDto struct {
-	Name          *string     `json:"name,omitempty" validate:"omitempty,min=1,max=255"`
-	ExpiresAt     *time.Time  `json:"expires_at,omitempty" validate:"omitempty"`
-	MaxUsageCount *int64      `json:"max_usage_count,omitempty" validate:"omitempty,min=1"`
+	Name          *string    `json:"name,omitempty" validate:"omitempty,min=1,max=255"`
+	ExpiresAt     *time.Time `json:"expires_at,omitempty" validate:"omitempty"`
+	MaxUsageCount *int64     `json:"max_usage_count,omitempty" validate:"omitempty,min=1"`
 }
 
 // APIKeyResponse represents the response for API key operations
-// swagger:model
 type APIKeyResponse struct {
 	ID            string     `json:"id" validate:"required"`
 	Name          string     `json:"name" validate:"required"`
@@ -35,13 +32,11 @@ type APIKeyResponse struct {
 }
 
 // APIKeyConfigResponse represents the API key configuration
-// swagger:model
 type APIKeyConfigResponse struct {
 	Prefix string `json:"prefix" validate:"required"`
 }
 
 // APIKeyWithTokenResponse represents the response when creating an API key (includes the token)
-// swagger:model
 type APIKeyWithTokenResponse struct {
 	APIKeyResponse
 	Token string `json:"token" validate:"required"`
