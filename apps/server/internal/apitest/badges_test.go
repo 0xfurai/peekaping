@@ -6,7 +6,10 @@ import (
 	"regexp"
 	"testing"
 
+	"peekaping/internal/modules/shared"
+
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var badgeTitle = regexp.MustCompile(`<title>(.*?)</title>`)
@@ -48,6 +51,18 @@ func TestBadges_ServeMonitorOnPublishedPage(t *testing.T) {
 			assertBadge(t, a.request(t, http.MethodGet, path, nil), title)
 		})
 	}
+}
+
+func TestBadges_StatusStaysDownAfterTheMonitorIsEdited(t *testing.T) {
+	a := newAppWithMonitorListener(t)
+	monitorID := a.createMonitor(t, "Checkout", "checkout-push-token")
+	a.createStatusPage(t, statusPage{slug: "shop", published: true, monitors: []string{monitorID}})
+	a.reportStatus(t, monitorID, shared.MonitorStatusDown)
+
+	w := a.request(t, http.MethodPut, "/api/v1/monitors/"+monitorID, pushMonitorBody("Checkout API", "checkout-push-token"), a.asAdmin)
+	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+
+	assertBadge(t, a.request(t, http.MethodGet, "/api/v1/badge/"+monitorID+"/status", nil), "status: Down")
 }
 
 func TestBadges_HideMonitorsOffPublishedPages(t *testing.T) {
