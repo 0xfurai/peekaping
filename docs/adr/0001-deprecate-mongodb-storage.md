@@ -6,7 +6,7 @@ Ticket: PP-23
 
 ## Context
 
-Peekaping has three **storage backends**: SQLite, PostgreSQL and MongoDB. `DB_TYPE=mysql` is also accepted, but its migrations are Postgres-only; PP-76 decides what to do about it. The storage backend is the database an install keeps its data in, set with `DB_TYPE`. It is not the **MongoDB monitor type**, which checks someone else's MongoDB server. That monitor type stays.
+Peekaping has three **storage backends**: SQLite, PostgreSQL and MongoDB. The storage backend is the database an install keeps its data in, set with `DB_TYPE`. It is not the **MongoDB monitor type**, which checks someone else's MongoDB server. That monitor type stays. (`DB_TYPE=mysql` is also accepted, but its migrations are Postgres-only; PP-76 decides what to do about it.)
 
 Each module reads and writes its data through a repository (Go code for one storage backend). SQLite and PostgreSQL share one set of SQL repositories. MongoDB has its own. So every feature that stores data is built twice.
 
@@ -41,7 +41,7 @@ New installs are pointed at SQLite or PostgreSQL. The README, docs site, landing
 
 - Features ship once, on the SQL repositories. Reviews flag Mongo changes beyond what this ADR allows. The ticket skills (plan, review, testing) say so.
 - Mongo users get no new features. Some may want one and have to move. That is the point of the migration command.
-- A SQL-only feature must not stop a Mongo install from starting. Today it would, because a module with no Mongo repository leaves the app unable to build its services. So the first SQL-only feature has to give Mongo a way to start without its repository, and says how in its own ticket.
+- A SQL-only feature must not stop a Mongo install from starting. Today it would, because a module with no Mongo repository leaves the app unable to build its services. So the first SQL-only feature has to give Mongo a way to start without its repository, and say how in its own ticket.
 - The Mongo bundle, compose files, images and tests cost upkeep until removal. We accept that for the notice period.
 
 Waiting tickets:

@@ -6,7 +6,7 @@
 # - Standalone:  postgres, mongo (deprecated)
 #
 # To change the default database, modify DEFAULT_DEV_DB or DEFAULT_PROD_DB below
-# Example: make dev (uses default) vs make dev-mongo (specific database)
+# Example: make dev (uses default) vs make dev-sqlite (specific database)
 
 # Variables
 GO_SERVER_DIR = apps/server
