@@ -241,9 +241,9 @@ func (r *MonitorRepositoryImpl) FindAll(
 			pipeline = append(pipeline, bson.M{"$match": matchStage})
 		}
 
-		// Add sorting, skip, and limit
+		// Add sorting, skip, and limit. _id breaks created_at ties so offset paging is stable.
 		pipeline = append(pipeline,
-			bson.M{"$sort": bson.M{"created_at": -1}},
+			bson.M{"$sort": bson.D{{Key: "created_at", Value: -1}, {Key: "_id", Value: -1}}},
 			bson.M{"$skip": skip},
 			bson.M{"$limit": limit64},
 		)
@@ -271,7 +271,7 @@ func (r *MonitorRepositoryImpl) FindAll(
 		options := &options.FindOptions{
 			Skip:  &skip,
 			Limit: &limit64,
-			Sort:  bson.D{{Key: "created_at", Value: -1}},
+			Sort:  bson.D{{Key: "created_at", Value: -1}, {Key: "_id", Value: -1}},
 		}
 
 		filter := bson.M{}

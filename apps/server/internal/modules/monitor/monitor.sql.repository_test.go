@@ -124,3 +124,38 @@ func TestSQLRepositoryImpl_FindAll_JoinAmbiguityFix(t *testing.T) {
 		assert.Equal(t, created.ID, monitors[1].ID)
 	})
 }
+
+// Offset paging only visits every monitor once if the order never changes between pages, so
+// monitors created at the same time have to come back in a fixed order. Create stamps the
+// time itself, so the tie is inserted directly.
+func TestSQLRepositoryImpl_FindAll_PagesMonitorsCreatedAtTheSameTimeByID(t *testing.T) {
+	db := setupTestDB(t)
+	repo := NewSQLRepository(db)
+	ctx := context.Background()
+
+	createdAt := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+	for _, id := range []string{"monitor-1", "monitor-2", "monitor-3", "monitor-4", "monitor-5"} {
+		_, err := db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, created_at) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0, ?)`, id, createdAt)
+		require.NoError(t, err)
+		_, err = db.Exec("INSERT INTO monitor_tags (monitor_id, tag_id) VALUES (?, 'tie')", id)
+		require.NoError(t, err)
+	}
+
+	for name, tagIds := range map[string][]string{"all monitors": nil, "filtered by tag": {"tie"}} {
+		t.Run(name, func(t *testing.T) {
+			var paged []string
+			for page := 0; ; page++ {
+				monitors, err := repo.FindAll(ctx, page, 2, "", nil, nil, tagIds)
+				require.NoError(t, err)
+				for _, m := range monitors {
+					paged = append(paged, m.ID)
+				}
+				if len(monitors) < 2 {
+					break
+				}
+			}
+
+			assert.Equal(t, []string{"monitor-5", "monitor-4", "monitor-3", "monitor-2", "monitor-1"}, paged)
+		})
+	}
+}

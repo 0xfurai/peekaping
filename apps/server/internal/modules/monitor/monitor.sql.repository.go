@@ -171,7 +171,8 @@ func (r *SQLRepositoryImpl) FindAll(
 		query = query.Where("status = ?", *status)
 	}
 
-	query = query.Order("m.created_at DESC").
+	// id breaks ties, so offset paging neither skips nor repeats monitors created at the same time
+	query = query.Order("m.created_at DESC", "m.id DESC").
 		Limit(limit).
 		Offset(page * limit)
 
