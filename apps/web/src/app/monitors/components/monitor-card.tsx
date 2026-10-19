@@ -61,7 +61,7 @@ const MonitorCard = ({ monitor }: { monitor: MonitorModel }) => {
                     )}
                   >
                     <StatusIcon className="w-5 h-5 mr-1" />{" "}
-                    {t(statusView.nameKey)}
+                    {statusView.name(t)}
                   </span>
                 );
               })()}

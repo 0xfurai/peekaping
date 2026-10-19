@@ -544,7 +544,7 @@ const MonitorPage = () => {
                     lastStatusView?.pageColor
                   )}
                 >
-                  {lastStatusView && t(lastStatusView.nameKey)}
+                  {lastStatusView?.name(t)}
                 </div>
               ) : (
                 <div className="font-semibold text-2xl">{t("monitors.view.status.paused")}</div>
