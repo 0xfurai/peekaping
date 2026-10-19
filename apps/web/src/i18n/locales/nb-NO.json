@@ -659,6 +659,7 @@
         "down": "Ned",
         "maintenance": "Vedlikehold",
         "paused": "Pauset",
+        "pending": "Venter",
         "up": "Opp"
       }
     },

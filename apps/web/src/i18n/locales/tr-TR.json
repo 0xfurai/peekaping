@@ -659,6 +659,7 @@
         "down": "Çalışmıyor",
         "maintenance": "Bakım",
         "paused": "Duraklatıldı",
+        "pending": "Beklemede",
         "up": "Çalışıyor"
       }
     },

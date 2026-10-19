@@ -659,6 +659,7 @@
         "down": "Poissa",
         "maintenance": "Huolto",
         "paused": "Pysäytetty",
+        "pending": "Odottaa",
         "up": "Käynnissä"
       }
     },

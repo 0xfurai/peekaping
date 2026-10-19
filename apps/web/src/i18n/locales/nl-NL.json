@@ -659,6 +659,7 @@
         "down": "Uitgevallen",
         "maintenance": "Onderhoud",
         "paused": "Gepauzeerd",
+        "pending": "In afwachting",
         "up": "Online"
       }
     },

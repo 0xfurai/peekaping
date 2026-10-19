@@ -659,6 +659,7 @@
         "down": "停止",
         "maintenance": "メンテナンス",
         "paused": "停止中",
+        "pending": "保留中",
         "up": "稼働中"
       }
     },
