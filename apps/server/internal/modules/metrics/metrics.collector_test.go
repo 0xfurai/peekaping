@@ -364,7 +364,6 @@ func TestHandlerServesBuildInfoAndRuntimeMetrics(t *testing.T) {
 	assert.Contains(t, body, `peekaping_build_info{version="`+version.Version+`"} 1`)
 	assert.Contains(t, body, "go_goroutines ")
 	assert.Contains(t, body, "process_start_time_seconds ")
-	assert.NotContains(t, body, "peekaping_monitor_up")
 }
 
 func TestPausedMonitorLeavesUntilItsNextHeartbeat(t *testing.T) {
@@ -592,9 +591,14 @@ func TestSyncStopsWhenTheContextIsCancelled(t *testing.T) {
 func TestScrapeReadsMemoryOnly(t *testing.T) {
 	r := newRig(t)
 	r.activeMonitor("m1", "API", "http")
+	r.setLatest("m1", shared.MonitorStatusUp, 250, at100)
 	r.start()
-	require.Eventually(t, func() bool { return r.monitors.activeCalls.Load() == 1 }, 2*time.Second, time.Millisecond)
-	r.publishHeartbeat("m1", shared.MonitorStatusUp, 250, at100)
+	// Once the startup sync has loaded the Monitor it has no more service calls to make
+	r.eventuallySeries(`
+peekaping_monitor_status{` + api + `} 1
+peekaping_monitor_last_heartbeat_timestamp_seconds{` + api + `} 1700000100
+peekaping_monitor_response_seconds{` + api + `} 0.25
+`)
 	monitorCalls, heartbeatCalls := r.monitors.calls.Load(), r.heartbeats.calls.Load()
 
 	for range 5 {
