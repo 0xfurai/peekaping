@@ -10,11 +10,15 @@ import (
 	"testing"
 	"time"
 
+	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
+	"peekaping/internal/modules/metrics"
+	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
 
 // createHeartbeat records a Heartbeat the way a check does, which publishes it on the event bus,
@@ -106,6 +110,39 @@ func TestMetrics_AreNotReadableByAPageOnAnotherOrigin(t *testing.T) {
 	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
 	for name := range w.Header() {
 		assert.False(t, strings.HasPrefix(name, "Access-Control-"), "unexpected header %s", name)
+	}
+}
+
+func TestMetrics_StartupLoadsTheNewestHeartbeatOfARealRepository(t *testing.T) {
+	a := newAppWithAdmin(t)
+	id := a.createMonitor(t, "Checkout", "checkout-push-token")
+	labels := `monitor_id="` + id + `",monitor_name="Checkout",monitor_type="push"`
+	a.createHeartbeat(t, id, shared.MonitorStatusDown, 0)
+	time.Sleep(10 * time.Millisecond) // the SQL repository stamps a Heartbeat with the time it's created
+	newest := a.createHeartbeat(t, id, shared.MonitorStatusUp, 250)
+
+	// A collector started now missed both events, so what it shows comes from the repository
+	var handler http.HandlerFunc
+	require.NoError(t, a.container.Invoke(func(monitors monitor.Service, heartbeats heartbeat.Service, bus events.EventBus, logger *zap.SugaredLogger) {
+		ctx, stop := context.WithCancel(context.Background())
+		t.Cleanup(stop)
+		collector := metrics.NewCollector(monitors, heartbeats, logger)
+		collector.Start(ctx, bus)
+		handler = collector.Handler()
+	}))
+
+	want := parseSeries(t, fmt.Sprintf(`
+peekaping_monitor_status{%[1]s} 1
+peekaping_monitor_last_heartbeat_timestamp_seconds{%[1]s} %[2]d
+peekaping_monitor_response_seconds{%[1]s} 0.25
+`, labels, newest))
+	scrape := func() map[string]float64 {
+		w := httptest.NewRecorder()
+		handler(w, httptest.NewRequest(http.MethodGet, "/metrics", nil))
+		return parseSeries(t, w.Body.String())
+	}
+	if !assert.Eventually(t, func() bool { return assert.ObjectsAreEqual(want, scrape()) }, 5*time.Second, 20*time.Millisecond) {
+		require.Equal(t, want, scrape())
 	}
 }
 
