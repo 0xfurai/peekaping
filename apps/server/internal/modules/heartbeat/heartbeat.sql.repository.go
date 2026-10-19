@@ -213,17 +213,38 @@ func (r *SQLRepositoryImpl) FindUptimeStatsByMonitorID(
 	return stats, nil
 }
 
-func (r *SQLRepositoryImpl) DeleteOlderThan(ctx context.Context, cutoff time.Time) (int64, error) {
-	result, err := r.db.NewDelete().
-		Model((*sqlModel)(nil)).
-		Where("time < ?", cutoff).
-		Exec(ctx)
-	if err != nil {
-		return 0, err
-	}
+// deleteBatchSize is how many heartbeats one DELETE removes, so a cleanup with a
+// large backlog never holds SQLite's single connection for long.
+const deleteBatchSize = 5000
 
-	rowsAffected, _ := result.RowsAffected()
-	return rowsAffected, nil
+// DeleteOlderThan deletes the oldest heartbeats in batches through
+// idx_heartbeats_time, so each batch reads only the rows it deletes, whatever
+// order they were written in.
+func (r *SQLRepositoryImpl) DeleteOlderThan(ctx context.Context, cutoff time.Time) (int64, error) {
+	var deleted int64
+	for {
+		batch := r.db.NewSelect().
+			Model((*sqlModel)(nil)).
+			Column("id").
+			Where("time < ?", cutoff).
+			OrderExpr("time").
+			Limit(deleteBatchSize)
+		result, err := r.db.NewDelete().
+			Model((*sqlModel)(nil)).
+			Where("id IN (?)", batch).
+			Exec(ctx)
+		if err != nil {
+			return deleted, err
+		}
+		n, err := result.RowsAffected()
+		if err != nil {
+			return deleted, err
+		}
+		deleted += n
+		if n < deleteBatchSize {
+			return deleted, nil
+		}
+	}
 }
 
 func (r *SQLRepositoryImpl) DeleteByMonitorID(ctx context.Context, monitorID string) error {

@@ -21,6 +21,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
 	"github.com/uptrace/bun/migrate"
@@ -298,4 +299,208 @@ func TestDeleteOlderThanKeepsNewerHeartbeats(t *testing.T) {
 			assert.Equal(t, []string{want}, msgs(left))
 		}
 	})
+}
+
+func TestDeleteOlderThanDeletesHeartbeatsWrittenOutOfTimeOrder(t *testing.T) {
+	for _, backend := range []struct {
+		name string
+		open func(*testing.T) *bun.DB
+	}{{"SQLite", sqliteDB}, {"Postgres", postgresDB}} {
+		t.Run(backend.name, func(t *testing.T) {
+			ctx := context.Background()
+			db := backend.open(t)
+			migrator := migrate.NewMigrator(db, migrations.Migrations)
+			require.NoError(t, migrator.Init(ctx))
+			_, err := migrator.Migrate(ctx)
+			require.NoError(t, err)
+			monitorID := uuid.NewString()
+			_, err = db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0)`, monitorID)
+			require.NoError(t, err)
+
+			// The first heartbeat was stamped while the server's clock ran a
+			// year ahead; the clock was then fixed.
+			now := time.Now().UTC()
+			cutoff := now.Add(-30 * 24 * time.Hour)
+			rows := []heartbeatRow{{ID: uuid.NewString(), MonitorID: monitorID, Status: 1, Msg: "ahead", Time: now.AddDate(1, 0, 0)}}
+			for minute := 6000; minute > 0; minute-- {
+				rows = append(rows, heartbeatRow{ID: uuid.NewString(), MonitorID: monitorID, Status: 1, Msg: "old", Time: cutoff.Add(-time.Duration(minute) * time.Minute)})
+			}
+			rows = append(rows, heartbeatRow{ID: uuid.NewString(), MonitorID: monitorID, Status: 1, Msg: "new", Time: now})
+			for len(rows) > 0 {
+				chunk := rows[:min(len(rows), 1000)]
+				_, err := db.NewInsert().Model(&chunk).Exec(ctx)
+				require.NoError(t, err)
+				rows = rows[len(chunk):]
+			}
+
+			svc := heartbeat.NewService(heartbeat.NewSQLRepository(db), &recordingBus{}, zap.NewNop().Sugar())
+			deleted, err := svc.DeleteOlderThan(ctx, cutoff)
+			require.NoError(t, err)
+
+			assert.Equal(t, int64(6000), deleted)
+			left, err := svc.FindByMonitorIDPaginated(ctx, monitorID, 10, 0, nil, true)
+			require.NoError(t, err)
+			assert.Equal(t, []string{"new", "ahead"}, msgs(left))
+		})
+	}
+}
+
+// reworkHeartbeatIndexesMigration is the first of the two migrations that
+// dropped the heartbeat indexes no query needs and added the one the cleanup
+// deletes through.
+const reworkHeartbeatIndexesMigration = "20261018120000"
+
+// heartbeatIndexes returns the names of the indexes the migrations created on heartbeats.
+func heartbeatIndexes(t *testing.T, db *bun.DB) []string {
+	t.Helper()
+	query := "SELECT name FROM sqlite_master WHERE type = 'index' AND tbl_name = 'heartbeats' AND name LIKE 'idx_%' ORDER BY name"
+	if db.Dialect().Name() == dialect.PG {
+		query = "SELECT indexname FROM pg_indexes WHERE schemaname = current_schema() AND tablename = 'heartbeats' AND indexname LIKE 'idx_%' ORDER BY indexname"
+	}
+	var names []string
+	require.NoError(t, db.NewRaw(query).Scan(context.Background(), &names))
+	return names
+}
+
+func TestMigrationsKeepOnlyTheHeartbeatIndexesQueriesUse(t *testing.T) {
+	for _, backend := range []struct {
+		name string
+		open func(*testing.T) *bun.DB
+	}{{"SQLite", sqliteDB}, {"Postgres", postgresDB}} {
+		t.Run(backend.name, func(t *testing.T) {
+			ctx := context.Background()
+			db := backend.open(t)
+			before := migrate.NewMigrations()
+			for _, m := range migrations.Migrations.Sorted() {
+				if m.Name < reworkHeartbeatIndexesMigration {
+					before.Add(m)
+				}
+			}
+			old := migrate.NewMigrator(db, before)
+			require.NoError(t, old.Init(ctx))
+			_, err := old.Migrate(ctx)
+			require.NoError(t, err)
+			all := []string{
+				"idx_heartbeats_important",
+				"idx_heartbeats_monitor_important",
+				"idx_heartbeats_monitor_time",
+				"idx_heartbeats_monitor_time_important",
+				"idx_heartbeats_status",
+			}
+			require.Equal(t, all, heartbeatIndexes(t, db))
+
+			migrator := migrate.NewMigrator(db, migrations.Migrations)
+			_, err = migrator.Migrate(ctx)
+			require.NoError(t, err)
+			assert.Equal(t, []string{"idx_heartbeats_monitor_important", "idx_heartbeats_monitor_time_important", "idx_heartbeats_time"}, heartbeatIndexes(t, db))
+
+			_, err = migrator.Rollback(ctx)
+			require.NoError(t, err)
+			assert.Equal(t, all, heartbeatIndexes(t, db))
+		})
+	}
+}
+
+// heartbeatRow writes heartbeats with a chosen time, which the repository's
+// Create doesn't allow.
+type heartbeatRow struct {
+	bun.BaseModel `bun:"table:heartbeats"`
+
+	ID        string    `bun:"id,pk"`
+	MonitorID string    `bun:"monitor_id"`
+	Status    int       `bun:"status"`
+	Msg       string    `bun:"msg"`
+	Time      time.Time `bun:"time"`
+}
+
+// deleteCounter records how many rows each DELETE statement removed.
+type deleteCounter struct{ rows []int64 }
+
+func (*deleteCounter) BeforeQuery(ctx context.Context, _ *bun.QueryEvent) context.Context { return ctx }
+
+func (h *deleteCounter) AfterQuery(_ context.Context, event *bun.QueryEvent) {
+	if event.Operation() == "DELETE" && event.Err == nil {
+		n, err := event.Result.RowsAffected()
+		if err == nil {
+			h.rows = append(h.rows, n)
+		}
+	}
+}
+
+func TestDeleteOlderThanClearsABacklogLargerThanOneBatch(t *testing.T) {
+	for _, backend := range []struct {
+		name string
+		open func(*testing.T) *bun.DB
+	}{{"SQLite", sqliteDB}, {"Postgres", postgresDB}} {
+		t.Run(backend.name, func(t *testing.T) {
+			ctx := context.Background()
+			db := backend.open(t)
+			migrator := migrate.NewMigrator(db, migrations.Migrations)
+			require.NoError(t, migrator.Init(ctx))
+			_, err := migrator.Migrate(ctx)
+			require.NoError(t, err)
+			monitorA, monitorB := uuid.NewString(), uuid.NewString()
+			for _, id := range []string{monitorA, monitorB} {
+				_, err = db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0)`, id)
+				require.NoError(t, err)
+			}
+
+			// Two monitors checked every minute for 9,000 minutes before a
+			// 30-day cutoff, and twice after it, written in time order like the
+			// ingester writes them.
+			now := time.Now().UTC()
+			cutoff := now.Add(-30 * 24 * time.Hour)
+			var rows []heartbeatRow
+			for minute := 9000; minute > 0; minute-- {
+				at := cutoff.Add(-time.Duration(minute) * time.Minute)
+				for _, id := range []string{monitorA, monitorB} {
+					rows = append(rows, heartbeatRow{ID: uuid.NewString(), MonitorID: id, Status: 1, Msg: "old", Time: at})
+				}
+			}
+			for _, at := range []time.Time{cutoff.Add(time.Minute), now.Add(-time.Minute)} {
+				for _, id := range []string{monitorA, monitorB} {
+					rows = append(rows, heartbeatRow{ID: uuid.NewString(), MonitorID: id, Status: 1, Msg: "new", Time: at})
+				}
+			}
+			for len(rows) > 0 {
+				chunk := rows[:min(len(rows), 1000)]
+				_, err := db.NewInsert().Model(&chunk).Exec(ctx)
+				require.NoError(t, err)
+				rows = rows[len(chunk):]
+			}
+			// A hole of 6,000 old heartbeats, wider than a batch, like the gap a
+			// deleted monitor leaves.
+			_, err = db.ExecContext(ctx, "DELETE FROM heartbeats WHERE time >= ? AND time < ?", cutoff.Add(-6000*time.Minute), cutoff.Add(-3000*time.Minute))
+			require.NoError(t, err)
+
+			deletes := &deleteCounter{}
+			db.AddQueryHook(deletes)
+			svc := heartbeat.NewService(heartbeat.NewSQLRepository(db), &recordingBus{}, zap.NewNop().Sugar())
+			deleted, err := svc.DeleteOlderThan(ctx, cutoff)
+			require.NoError(t, err)
+
+			assert.Equal(t, int64(12_000), deleted)
+			var total int64
+			for _, n := range deletes.rows {
+				assert.LessOrEqual(t, n, int64(5000), "heartbeats deleted by one statement")
+				total += n
+			}
+			assert.Equal(t, int64(12_000), total)
+			for _, monitorID := range []string{monitorA, monitorB} {
+				left, err := svc.FindByMonitorIDPaginated(ctx, monitorID, 10, 0, nil, true)
+				require.NoError(t, err)
+				assert.Equal(t, []string{"new", "new"}, msgs(left))
+			}
+
+			// Once every heartbeat is older than the cutoff, one run deletes them all.
+			deleted, err = svc.DeleteOlderThan(ctx, now.Add(time.Minute))
+			require.NoError(t, err)
+			assert.Equal(t, int64(4), deleted)
+			for _, monitorID := range []string{monitorA, monitorB} {
+				left, err := svc.FindByMonitorIDPaginated(ctx, monitorID, 10, 0, nil, true)
+				require.NoError(t, err)
+				assert.Empty(t, left)
+			}
+		})
+	}
 }
