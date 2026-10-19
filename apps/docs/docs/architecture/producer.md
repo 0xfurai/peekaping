@@ -73,6 +73,7 @@ The producer runs multiple concurrent goroutines:
 |----------|------|----------|---------|-------------|
 | `REDIS_HOST` | string | Yes | `redis` | Redis server hostname |
 | `REDIS_PORT` | string | Yes | `6379` | Redis server port |
+| `REDIS_USERNAME` | string | No | `""` | Redis ACL username (omit for password-only/default user auth) |
 | `REDIS_PASSWORD` | string | No | `""` | Redis password (if authentication enabled) |
 | `REDIS_DB` | int | No | `0` | Redis database number (0-15) |
 
@@ -171,4 +172,3 @@ Run multiple producer instances for high availability and load distribution.
 - [API Server](./api-server.md) - Manages monitor configurations
 - [Worker](./worker.md) - Executes health checks enqueued by producer
 - [Ingester](./ingester.md) - Processes health check results
-
