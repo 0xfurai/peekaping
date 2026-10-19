@@ -659,6 +659,7 @@
         "down": "离线",
         "maintenance": "维护",
         "paused": "暂停",
+        "pending": "等待中",
         "up": "正常"
       }
     },

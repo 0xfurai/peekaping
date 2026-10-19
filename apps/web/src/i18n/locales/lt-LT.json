@@ -659,6 +659,7 @@
         "down": "Neveikia",
         "maintenance": "Priežiūra",
         "paused": "Pristabdytas",
+        "pending": "Laukiama",
         "up": "Veikia"
       }
     },

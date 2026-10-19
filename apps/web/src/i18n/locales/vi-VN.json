@@ -659,6 +659,7 @@
         "down": "Ngừng",
         "maintenance": "Bảo trì",
         "paused": "Tạm dừng",
+        "pending": "Đang chờ",
         "up": "Hoạt động"
       }
     },

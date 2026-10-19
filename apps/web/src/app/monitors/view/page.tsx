@@ -52,6 +52,7 @@ import clsx from "clsx";
 import { formatMonitorTarget } from "../components/monitor-registry";
 import { parseMonitorConfig } from "../components/monitor-target";
 import StaleMarker from "../components/stale-marker";
+import { getMonitorStatusView } from "../components/monitor-status";
 
 function formatDuration(ms: number, t: (key: string) => string): string {
   // Handle negative durations (clock skew) by returning empty string
@@ -240,6 +241,7 @@ const MonitorPage = () => {
 
   const lastHeartbeat =
     heartbeatData?.length > 0 ? heartbeatData[heartbeatData.length - 1] : null;
+  const lastStatusView = getMonitorStatusView(lastHeartbeat?.status);
 
   const { data: stats, refetch: refetchUptimeStats } = useQuery({
     ...getMonitorsByIdStatsUptimeOptions({
@@ -539,16 +541,10 @@ const MonitorPage = () => {
                 <div
                   className={cn(
                     "font-semibold text-2xl",
-                    lastHeartbeat?.status === 1 && "text-green-400",
-                    lastHeartbeat?.status === 0 && "text-red-400",
-                    lastHeartbeat?.status === 2 && "text-red-400",
-                    lastHeartbeat?.status === 3 && "text-blue-400"
+                    lastStatusView?.pageColor
                   )}
                 >
-                  {lastHeartbeat?.status === 1 && t("monitors.view.status.up")}
-                  {lastHeartbeat?.status === 0 && t("monitors.view.status.down")}
-                  {lastHeartbeat?.status === 2 && t("monitors.view.status.down")}
-                  {lastHeartbeat?.status === 3 && t("monitors.view.status.maintenance")}
+                  {lastStatusView?.name(t)}
                 </div>
               ) : (
                 <div className="font-semibold text-2xl">{t("monitors.view.status.paused")}</div>

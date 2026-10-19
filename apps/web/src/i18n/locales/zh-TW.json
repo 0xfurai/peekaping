@@ -659,6 +659,7 @@
         "down": "停機",
         "maintenance": "維護",
         "paused": "暫停",
+        "pending": "等待中",
         "up": "正常"
       }
     },

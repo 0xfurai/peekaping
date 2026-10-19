@@ -659,6 +659,7 @@
         "down": "Non operativo",
         "maintenance": "Manutenzione",
         "paused": "In pausa",
+        "pending": "In attesa",
         "up": "Online"
       }
     },
