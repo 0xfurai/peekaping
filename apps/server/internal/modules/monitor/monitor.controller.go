@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"peekaping/internal/httpx"
+	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor_notification"
 	"peekaping/internal/modules/monitor_tag"
 	"peekaping/internal/modules/monitor_tls_info"
@@ -59,51 +60,30 @@ func (ic *MonitorController) staleMonitors(ctx context.Context) map[string]stale
 	}
 	return entries
 }
-
-// @Router		/monitors [get]
-// @Summary		Get monitors
-// @Tags			Monitors
-// @Produce		json
-// @Security  JwtAuth
-// @Security  ApiKeyAuth
-// @Param     q    query     string  false  "Search query"
-// @Param     page query     int     false  "Page number" default(1)
-// @Param     limit query    int     false  "Items per page" default(10) minimum(1) maximum(1000)
-// @Param     active query   bool    false  "Active status"
-// @Param     status query   int     false  "Status"
-// @Param     tag_ids query  string  false  "Comma-separated list of tag IDs to filter by"
-// @Success		200	{object}	utils.ApiResponse[[]Model]
-// @Failure		400	{object}	utils.APIError[any]
-// @Failure		404	{object}	utils.APIError[any]
-// @Failure		500	{object}	utils.APIError[any]
-func (ic *MonitorController) FindAll(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+func (ic *MonitorController) FindAll(ctx context.Context, input *FindAllInput) (*httpx.Output[utils.ApiResponse[[]*Model]], error) {
+	r := input.Request
 	page, err := utils.GetQueryInt(r, "page", 0)
 	if err != nil || page < 0 {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("Invalid page parameter"))
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid page parameter"))
 	}
 
 	limit, err := utils.GetQueryInt(r, "limit", 10)
 	if err != nil || limit < 1 || limit > utils.MaxPageSize {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("Invalid limit parameter"))
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid limit parameter"))
 	}
 
 	q := r.URL.Query().Get("q")
 
 	active, err := utils.GetQueryBool(r, "active")
 	if err != nil {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("Invalid active parameter (must be true or false)"))
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid active parameter (must be true or false)"))
 	}
 
 	var statusPtr *int
 	if statusStr := r.URL.Query().Get("status"); statusStr != "" {
 		statusVal, err := utils.GetQueryInt(r, "status", 0)
 		if err != nil {
-			httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("Invalid status parameter (must be int)"))
-			return
+			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid status parameter (must be int)"))
 		}
 		statusPtr = &statusVal
 	}
@@ -129,8 +109,7 @@ func (ic *MonitorController) FindAll(w http.ResponseWriter, r *http.Request) {
 	response, err := ic.monitorService.FindAll(ctx, page, limit, q, active, statusPtr, tagIds)
 	if err != nil {
 		ic.logger.Errorw("Failed to fetch monitors", "error", err)
-		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
 	staleMonitors := ic.staleMonitors(ctx)
@@ -140,44 +119,27 @@ func (ic *MonitorController) FindAll(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("success", response))
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", response))
 }
-
-// @Router		/monitors [post]
-// @Summary		Create monitor
-// @Tags			Monitors
-// @Produce		json
-// @Accept		json
-// @Security  JwtAuth
-// @Security  ApiKeyAuth
-// @Param     body body   CreateUpdateDto  true  "Monitor object"
-// @Success		201	{object}	utils.ApiResponse[Model]
-// @Failure		400	{object}	utils.APIError[any]
-// @Failure		500	{object}	utils.APIError[any]
-func (ic *MonitorController) Create(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	var monitor *CreateUpdateDto
-	if err := httpx.DecodeJSON(r, &monitor); err != nil {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		return
+func (ic *MonitorController) Create(ctx context.Context, input *CreateInput) (*httpx.Output[utils.ApiResponse[*Model]], error) {
+	monitor, decodeErr := input.Decode()
+	if err := decodeErr; err != nil {
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
 	if err := utils.Validate.Struct(monitor); err != nil {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
 	// Validate monitor type and config
 	if err := ic.monitorService.ValidateMonitorConfig(monitor.Type, monitor.Config); err != nil {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Invalid monitor configuration: %v", err)))
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Invalid monitor configuration: %v", err)))
 	}
 
 	createdMonitor, err := ic.monitorService.Create(ctx, monitor)
 	if err != nil {
 		ic.logger.Errorw("Failed to create monitor", "error", err)
-		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 	ic.logger.Infof("Created monitor: %+v\n", createdMonitor)
 
@@ -187,8 +149,7 @@ func (ic *MonitorController) Create(w http.ResponseWriter, r *http.Request) {
 			_, err = ic.monitorNotificationService.Create(ctx, createdMonitor.ID, notificationId)
 			if err != nil {
 				ic.logger.Errorw("Failed to create monitor-notification record", "error", err)
-				httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-				return
+				return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 			}
 		}
 	}
@@ -199,47 +160,32 @@ func (ic *MonitorController) Create(w http.ResponseWriter, r *http.Request) {
 			_, err = ic.monitorTagService.Create(ctx, createdMonitor.ID, tagId)
 			if err != nil {
 				ic.logger.Errorw("Failed to create monitor-tag record", "error", err)
-				httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-				return
+				return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 			}
 		}
 	}
 
-	httpx.JSON(w, http.StatusCreated, utils.NewSuccessResponse("Monitor created successfully", createdMonitor))
+	return httpx.Reply(http.StatusCreated, utils.NewSuccessResponse("Monitor created successfully", createdMonitor))
 }
-
-// @Router		/monitors/{id} [get]
-// @Summary		Get monitor by ID
-// @Tags			Monitors
-// @Produce		json
-// @Security BearerAuth
-// @Param       id   path      string  true  "Monitor ID"
-// @Success		200	{object}	utils.ApiResponse[MonitorResponseDto]
-// @Failure		400	{object}	utils.APIError[any]
-// @Failure		404	{object}	utils.APIError[any]
-// @Failure		500	{object}	utils.APIError[any]
-func (ic *MonitorController) FindByID(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+func (ic *MonitorController) FindByID(ctx context.Context, input *FindByIDInput) (*httpx.Output[utils.ApiResponse[MonitorResponseDto]], error) {
+	r := input.Request
 	id := r.PathValue("id")
 
 	monitor, err := ic.monitorService.FindByID(ctx, id)
 	if err != nil {
 		ic.logger.Errorw("Failed to fetch monitor", "error", err)
-		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
 	if monitor == nil {
-		httpx.JSON(w, http.StatusNotFound, utils.NewFailResponse("Monitor not found"))
-		return
+		return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found"))
 	}
 
 	// Fetch notification_ids
 	notificationRels, err := ic.monitorNotificationService.FindByMonitorID(ctx, id)
 	if err != nil {
 		ic.logger.Errorw("Failed to fetch monitor-notification relations", "error", err)
-		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 	notificationIds := make([]string, 0, len(notificationRels))
 	for _, rel := range notificationRels {
@@ -250,8 +196,7 @@ func (ic *MonitorController) FindByID(w http.ResponseWriter, r *http.Request) {
 	tagRels, err := ic.monitorTagService.FindByMonitorID(ctx, id)
 	if err != nil {
 		ic.logger.Errorw("Failed to fetch monitor-tag relations", "error", err)
-		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 	tagIds := make([]string, 0, len(tagRels))
 	for _, rel := range tagRels {
@@ -281,60 +226,41 @@ func (ic *MonitorController) FindByID(w http.ResponseWriter, r *http.Request) {
 		response.StaleSince = &entry.Since
 	}
 
-	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("success", response))
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", response))
 }
-
-// @Router		/monitors/{id} [put]
-// @Summary		Update monitor
-// @Tags			Monitors
-// @Produce		json
-// @Accept		json
-// @Security BearerAuth
-// @Param       id   path      string  true  "Monitor ID"
-// @Param       monitor body     CreateUpdateDto  true  "Monitor object"
-// @Success		200	{object}	utils.ApiResponse[Model]
-// @Failure		400	{object}	utils.APIError[any]
-// @Failure		404	{object}	utils.APIError[any]
-// @Failure		500	{object}	utils.APIError[any]
-func (ic *MonitorController) UpdateFull(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+func (ic *MonitorController) UpdateFull(ctx context.Context, input *UpdateFullInput) (*httpx.Output[utils.ApiResponse[*Model]], error) {
+	r := input.Request
 	id := r.PathValue("id")
 
-	var monitor CreateUpdateDto
-	if err := httpx.DecodeJSON(r, &monitor); err != nil {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		return
+	monitor, decodeErr := input.Decode()
+	if err := decodeErr; err != nil {
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
 	// validate
 	if err := utils.Validate.Struct(monitor); err != nil {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
 	// Validate monitor type and config
 	if err := ic.monitorService.ValidateMonitorConfig(monitor.Type, monitor.Config); err != nil {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Invalid monitor configuration: %v", err)))
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Invalid monitor configuration: %v", err)))
 	}
 
 	updatedMonitor, err := ic.monitorService.UpdateFull(ctx, id, &monitor)
 	if err != nil {
 		ic.logger.Errorw("Failed to update monitor", "error", err)
 		if errors.Is(err, ErrMonitorNotFound) {
-			httpx.JSON(w, http.StatusNotFound, utils.NewFailResponse(err.Error()))
-			return
+			return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse(err.Error()))
 		}
-		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
 	// Delete all existing notification relations and create new ones
 	err = ic.monitorNotificationService.DeleteByMonitorID(ctx, id)
 	if err != nil {
 		ic.logger.Errorw("Failed to delete existing monitor-notification relations", "error", err)
-		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
 	// Create new notification relations
@@ -342,8 +268,7 @@ func (ic *MonitorController) UpdateFull(w http.ResponseWriter, r *http.Request) 
 		_, err = ic.monitorNotificationService.Create(ctx, id, notificationId)
 		if err != nil {
 			ic.logger.Errorw("Failed to create monitor-notification record", "error", err)
-			httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-			return
+			return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		}
 	}
 
@@ -351,8 +276,7 @@ func (ic *MonitorController) UpdateFull(w http.ResponseWriter, r *http.Request) 
 	err = ic.monitorTagService.DeleteByMonitorID(ctx, id)
 	if err != nil {
 		ic.logger.Errorw("Failed to delete existing monitor-tag relations", "error", err)
-		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
 	// Create new tag relations
@@ -360,39 +284,24 @@ func (ic *MonitorController) UpdateFull(w http.ResponseWriter, r *http.Request) 
 		_, err = ic.monitorTagService.Create(ctx, id, tagId)
 		if err != nil {
 			ic.logger.Errorw("Failed to create monitor-tag record", "error", err)
-			httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-			return
+			return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		}
 	}
 
-	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("Monitor updated successfully", updatedMonitor))
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Monitor updated successfully", updatedMonitor))
 }
-
-// @Router		/monitors/{id} [patch]
-// @Summary		Update monitor
-// @Tags			Monitors
-// @Produce		json
-// @Accept		json
-// @Security BearerAuth
-// @Param       id   path      string  true  "Monitor ID"
-// @Param       monitor body     PartialUpdateDto  true  "Monitor object"
-// @Success		200	{object}	utils.ApiResponse[Model]
-// @Failure		400	{object}	utils.APIError[any]
-// @Failure		404	{object}	utils.APIError[any]
-// @Failure		500	{object}	utils.APIError[any]
-func (ic *MonitorController) UpdatePartial(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+func (ic *MonitorController) UpdatePartial(ctx context.Context, input *UpdatePartialInput) (*httpx.Output[utils.ApiResponse[*Model]], error) {
+	r := input.Request
 	id := r.PathValue("id")
 
-	var monitor PartialUpdateDto
-	if err := httpx.DecodeJSON(r, &monitor); err != nil {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		return
+	monitor, decodeErr := input.Decode()
+	if err := decodeErr; err != nil {
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
-	current, ok := utils.FindOr404(ctx, w, ic.logger, "Monitor", ic.monitorService.FindByID, id)
-	if !ok {
-		return
+	current, lookupErr := utils.RequireRecord(ctx, ic.logger, "Monitor", ic.monitorService.FindByID, id)
+	if lookupErr != nil {
+		return nil, lookupErr
 	}
 
 	// Validate the config against the type the monitor has after the update
@@ -405,16 +314,14 @@ func (ic *MonitorController) UpdatePartial(w http.ResponseWriter, r *http.Reques
 			config = *monitor.Config
 		}
 		if err := ic.monitorService.ValidateMonitorConfig(monitorType, config); err != nil {
-			httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Invalid monitor configuration: %v", err)))
-			return
+			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Invalid monitor configuration: %v", err)))
 		}
 	}
 
 	updatedMonitor, err := ic.monitorService.UpdatePartial(ctx, id, &monitor, false)
 	if err != nil {
 		ic.logger.Errorw("Failed to update monitor", "error", err)
-		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
 	// Handle notification IDs if they are being updated
@@ -423,8 +330,7 @@ func (ic *MonitorController) UpdatePartial(w http.ResponseWriter, r *http.Reques
 		existing, err := ic.monitorNotificationService.FindByMonitorID(ctx, id)
 		if err != nil {
 			ic.logger.Errorw("Failed to fetch monitor-notification relations", "error", err)
-			httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-			return
+			return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		}
 
 		// Build sets for comparison
@@ -462,8 +368,7 @@ func (ic *MonitorController) UpdatePartial(w http.ResponseWriter, r *http.Reques
 		existing, err := ic.monitorTagService.FindByMonitorID(ctx, id)
 		if err != nil {
 			ic.logger.Errorw("Failed to fetch monitor-tag relations", "error", err)
-			httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-			return
+			return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		}
 
 		// Build sets for comparison
@@ -495,73 +400,43 @@ func (ic *MonitorController) UpdatePartial(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("Monitor updated successfully", updatedMonitor))
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Monitor updated successfully", updatedMonitor))
 }
-
-// @Router		/monitors/{id} [delete]
-// @Summary		Delete monitor
-// @Tags			Monitors
-// @Produce		json
-// @Security BearerAuth
-// @Param       id   path      string  true  "Monitor ID"
-// @Success		200	{object}	utils.ApiResponse[any]
-// @Failure		400	{object}	utils.APIError[any]
-// @Failure		404	{object}	utils.APIError[any]
-// @Failure		500	{object}	utils.APIError[any]
-func (ic *MonitorController) Delete(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+func (ic *MonitorController) Delete(ctx context.Context, input *DeleteInput) (*httpx.Output[utils.ApiResponse[any]], error) {
+	r := input.Request
 	id := r.PathValue("id")
 
-	if _, ok := utils.FindOr404(ctx, w, ic.logger, "Monitor", ic.monitorService.FindByID, id); !ok {
-		return
+	if _, err := utils.RequireRecord(ctx, ic.logger, "Monitor", ic.monitorService.FindByID, id); err != nil {
+		return nil, err
 	}
 
 	err := ic.monitorService.Delete(ctx, id)
 	if err != nil {
 		ic.logger.Errorw("Failed to delete monitor", "error", err)
-		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
-	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse[any]("Monitor deleted successfully", nil))
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse[any]("Monitor deleted successfully", nil))
 }
-
-// @Router	/monitors/{id}/heartbeats [get]
-// @Summary	Get paginated heartbeats for a monitor
-// @Tags		Monitors
-// @Produce	json
-// @Security BearerAuth
-// @Param	id	path	string	true	"Monitor ID"
-// @Param	limit	query	int	false	"Number of heartbeats per page" default(50) minimum(1) maximum(1000)
-// @Param	page	query	int	false	"Page number (default 0)"
-// @Param	important	query	bool	false	"Filter by important heartbeats only"
-// @Param	reverse	query	bool	false	"Reverse the order of heartbeats"
-// @Success	200	{object}	utils.ApiResponse[[]heartbeat.Model]
-// @Failure	400	{object}	utils.APIError[any]
-// @Failure	404	{object}	utils.APIError[any]
-// @Failure	500	{object}	utils.APIError[any]
-func (ic *MonitorController) FindByMonitorIDPaginated(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+func (ic *MonitorController) FindByMonitorIDPaginated(ctx context.Context, input *FindByMonitorIDPaginatedInput) (*httpx.Output[utils.ApiResponse[[]*heartbeat.Model]], error) {
+	r := input.Request
 	id := r.PathValue("id")
 
 	limit, err := utils.GetQueryInt(r, "limit", 50)
 	if err != nil || limit < 1 || limit > utils.MaxPageSize {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("Invalid limit parameter (1-1000)"))
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid limit parameter (1-1000)"))
 	}
 
 	page, err := utils.GetQueryInt(r, "page", 0)
 	if err != nil || page < 0 {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("Invalid page parameter (>=0)"))
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid page parameter (>=0)"))
 	}
 
 	var importantPtr *bool
 	if r.URL.Query().Get("important") != "" {
 		importantPtr, err = utils.GetQueryBool(r, "important")
 		if err != nil {
-			httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("Invalid important parameter (must be true or false)"))
-			return
+			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid important parameter (must be true or false)"))
 		}
 	}
 
@@ -569,53 +444,35 @@ func (ic *MonitorController) FindByMonitorIDPaginated(w http.ResponseWriter, r *
 	if r.URL.Query().Get("reverse") != "" {
 		reversePtr, err := utils.GetQueryBool(r, "reverse")
 		if err != nil {
-			httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("Invalid reverse parameter (must be true or false)"))
-			return
+			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid reverse parameter (must be true or false)"))
 		}
 		if reversePtr != nil {
 			reverse = *reversePtr
 		}
 	}
 
-	if _, ok := utils.FindOr404(ctx, w, ic.logger, "Monitor", ic.monitorService.FindByID, id); !ok {
-		return
+	if _, err := utils.RequireRecord(ctx, ic.logger, "Monitor", ic.monitorService.FindByID, id); err != nil {
+		return nil, err
 	}
 
 	results, err := ic.monitorService.GetHeartbeats(ctx, id, limit, page, importantPtr, reverse)
 	if err != nil {
 		ic.logger.Errorw("Failed to get heartbeats", "error", err)
-		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
-	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("success", results))
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", results))
 }
-
-// @Router /monitors/{id}/stats/points [get]
-// @Summary Get monitor stat points (ping/up/down) from stats tables
-// @Tags Monitors
-// @Produce json
-// @Security BearerAuth
-// @Param id path string true "Monitor ID"
-// @Param since query string true "Start time (RFC3339)"
-// @Param until query string false "End time (RFC3339, default now)"
-// @Param granularity query string false "Granularity (minute, hour, day)"
-// @Success 200 {object} utils.ApiResponse[StatPointsSummaryDto]
-// @Failure 400 {object} utils.APIError[any]
-// @Failure 404 {object} utils.APIError[any]
-// @Failure 500 {object} utils.APIError[any]
-func (ic *MonitorController) GetStatPoints(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+func (ic *MonitorController) GetStatPoints(ctx context.Context, input *GetStatPointsInput) (*httpx.Output[utils.ApiResponse[*StatPointsSummaryDto]], error) {
+	r := input.Request
 	id := r.PathValue("id")
 
 	sinceStr := r.URL.Query().Get("since")
 	if sinceStr == "" {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("Missing required 'since' parameter"))
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Missing required 'since' parameter"))
 	}
 	since, err := time.Parse(time.RFC3339, sinceStr)
 	if err != nil {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("Invalid 'since' parameter (must be RFC3339)"))
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid 'since' parameter (must be RFC3339)"))
 	}
 
 	untilStr := r.URL.Query().Get("until")
@@ -625,8 +482,7 @@ func (ic *MonitorController) GetStatPoints(w http.ResponseWriter, r *http.Reques
 	} else {
 		until, err = time.Parse(time.RFC3339, untilStr)
 		if err != nil {
-			httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("Invalid 'until' parameter (must be RFC3339)"))
-			return
+			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid 'until' parameter (must be RFC3339)"))
 		}
 	}
 
@@ -641,161 +497,104 @@ func (ic *MonitorController) GetStatPoints(w http.ResponseWriter, r *http.Reques
 	case "day":
 		interval = 24 * time.Hour
 	default:
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("Invalid 'granularity' parameter (must be minute, hour, or day)"))
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid 'granularity' parameter (must be minute, hour, or day)"))
 	}
 
 	if until.Before(since) {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("'until' must be after 'since'"))
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("'until' must be after 'since'"))
 	}
 
 	diff := until.Sub(since)
 	estPoints := int(diff/interval) + 1
 	if estPoints > 1441 {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Too many points requested: %d (max 1441)", estPoints)))
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Too many points requested: %d (max 1441)", estPoints)))
 	}
 
-	if _, ok := utils.FindOr404(ctx, w, ic.logger, "Monitor", ic.monitorService.FindByID, id); !ok {
-		return
+	if _, err := utils.RequireRecord(ctx, ic.logger, "Monitor", ic.monitorService.FindByID, id); err != nil {
+		return nil, err
 	}
 
 	summary, err := ic.monitorService.GetStatPoints(ctx, id, since, until, granularity)
 	if err != nil {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
-	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("success", summary))
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", summary))
 }
-
-// @Router /monitors/{id}/stats/uptime [get]
-// @Summary Get monitor uptime stats (24h, 30d, 365d)
-// @Tags Monitors
-// @Produce json
-// @Security BearerAuth
-// @Param id path string true "Monitor ID"
-// @Success 200 {object} utils.ApiResponse[CustomUptimeStatsDto]
-// @Failure 400 {object} utils.APIError[any]
-// @Failure 404 {object} utils.APIError[any]
-// @Failure 500 {object} utils.APIError[any]
-func (ic *MonitorController) GetUptimeStats(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+func (ic *MonitorController) GetUptimeStats(ctx context.Context, input *GetUptimeStatsInput) (*httpx.Output[utils.ApiResponse[*CustomUptimeStatsDto]], error) {
+	r := input.Request
 	id := r.PathValue("id")
 
-	if _, ok := utils.FindOr404(ctx, w, ic.logger, "Monitor", ic.monitorService.FindByID, id); !ok {
-		return
+	if _, err := utils.RequireRecord(ctx, ic.logger, "Monitor", ic.monitorService.FindByID, id); err != nil {
+		return nil, err
 	}
 
 	stats, err := ic.monitorService.GetUptimeStats(ctx, id)
 	if err != nil {
 		ic.logger.Errorw("Failed to get uptime stats (short)", "error", err)
-		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
-	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("success", stats))
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", stats))
 }
-
-// @Router		/monitors/batch [get]
-// @Summary		Get monitors by IDs
-// @Tags			Monitors
-// @Produce		json
-// @Security  JwtAuth
-// @Security  ApiKeyAuth
-// @Param     ids    query     string  true  "Comma-separated list of monitor IDs"
-// @Success		200	{object}	utils.ApiResponse[[]Model]
-// @Failure		400	{object}	utils.APIError[any]
-// @Failure		500	{object}	utils.APIError[any]
-func (ic *MonitorController) FindByIDs(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+func (ic *MonitorController) FindByIDs(ctx context.Context, input *FindByIDsInput) (*httpx.Output[utils.ApiResponse[[]*Model]], error) {
+	r := input.Request
 	idsStr := r.URL.Query().Get("ids")
 	if idsStr == "" {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("ids parameter is required"))
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("ids parameter is required"))
 	}
 
 	// Split the comma-separated string into an array
 	ids := strings.Split(idsStr, ",")
 	if len(ids) == 0 {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("at least one monitor ID is required"))
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("at least one monitor ID is required"))
 	}
 
 	// Limit the number of IDs to prevent abuse
 	if len(ids) > 100 {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("maximum 100 monitor IDs allowed"))
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("maximum 100 monitor IDs allowed"))
 	}
 
 	monitors, err := ic.monitorService.FindByIDs(ctx, ids)
 	if err != nil {
 		ic.logger.Errorw("Failed to fetch monitors", "error", err)
-		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
-	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("success", monitors))
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", monitors))
 }
-
-// @Router /monitors/{id}/reset [post]
-// @Summary Reset monitor data (heartbeats and stats)
-// @Tags Monitors
-// @Produce json
-// @Security BearerAuth
-// @Param id path string true "Monitor ID"
-// @Success 200 {object} utils.ApiResponse[any]
-// @Failure 400 {object} utils.APIError[any]
-// @Failure 404 {object} utils.APIError[any]
-// @Failure 500 {object} utils.APIError[any]
-func (ic *MonitorController) ResetMonitorData(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+func (ic *MonitorController) ResetMonitorData(ctx context.Context, input *ResetMonitorDataInput) (*httpx.Output[utils.ApiResponse[any]], error) {
+	r := input.Request
 	id := r.PathValue("id")
 
 	err := ic.monitorService.ResetMonitorData(ctx, id)
 	if err != nil {
 		if err.Error() == "monitor not found" {
-			httpx.JSON(w, http.StatusNotFound, utils.NewFailResponse("Monitor not found"))
-			return
+			return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found"))
 		}
 		ic.logger.Errorw("Failed to reset monitor data", "monitorID", id, "error", err)
-		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
-	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse[any]("Monitor data reset successfully", nil))
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse[any]("Monitor data reset successfully", nil))
 }
-
-// @Router /monitors/{id}/tls [get]
-// @Summary Get monitor TLS certificate information
-// @Tags Monitors
-// @Produce json
-// @Security BearerAuth
-// @Param id path string true "Monitor ID"
-// @Success 200 {object} utils.ApiResponse[any]
-// @Failure 400 {object} utils.APIError[any]
-// @Failure 404 {object} utils.APIError[any]
-// @Failure 500 {object} utils.APIError[any]
-func (ic *MonitorController) GetTLSInfo(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+func (ic *MonitorController) GetTLSInfo(ctx context.Context, input *GetTLSInfoInput) (*httpx.Output[utils.NullableApiResponse[*monitor_tls_info.TLSInfo]], error) {
+	r := input.Request
 	id := r.PathValue("id")
 
-	if _, ok := utils.FindOr404(ctx, w, ic.logger, "Monitor", ic.monitorService.FindByID, id); !ok {
-		return
+	if _, err := utils.RequireRecord(ctx, ic.logger, "Monitor", ic.monitorService.FindByID, id); err != nil {
+		return nil, err
 	}
 
 	// Get TLS info for the monitor
 	tlsInfo, err := ic.tlsInfoService.GetTLSInfo(ctx, id)
 	if err != nil {
 		ic.logger.Errorw("Failed to get TLS info", "monitorID", id, "error", err)
-		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
 	// If no TLS info found, return null/empty
 	if tlsInfo == nil {
-		httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse[any]("success", nil))
-		return
+		return httpx.Reply(http.StatusOK, utils.NewNullableSuccessResponse[*monitor_tls_info.TLSInfo]("success", nil))
 	}
 
-	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("success", tlsInfo))
+	return httpx.Reply(http.StatusOK, utils.NewNullableSuccessResponse("success", tlsInfo))
 }

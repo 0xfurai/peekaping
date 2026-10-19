@@ -6,17 +6,29 @@ import (
 	"peekaping/internal/httpx"
 	"strings"
 
+	"github.com/danielgtaylor/huma/v2"
+
 	"go.uber.org/zap"
 )
-
-type APIError struct {
-	Status  string `json:"status" binding:"required"`
-	Message string `json:"message" binding:"required"`
-}
 
 type ApiResponse[T any] struct {
 	Message string `json:"message" binding:"required"`
 	Data    T      `json:"data" binding:"required"`
+}
+
+// NullableApiResponse describes endpoints that successfully return null data,
+// such as a monitor without TLS information. Its wire envelope is unchanged.
+type NullableApiResponse[T any] ApiResponse[T]
+
+func (NullableApiResponse[T]) TransformSchema(_ huma.Registry, schema *huma.Schema) *huma.Schema {
+	if data := schema.Properties["data"]; data != nil {
+		schema.Properties["data"] = &huma.Schema{AnyOf: []*huma.Schema{data, {Type: "null"}}}
+	}
+	return schema
+}
+
+func NewNullableSuccessResponse[T any](message string, data T) NullableApiResponse[T] {
+	return NullableApiResponse[T](NewSuccessResponse(message, data))
 }
 
 // NewSuccessResponse creates a successful API response.
@@ -59,4 +71,17 @@ func FindOr404[T any](ctx context.Context, w http.ResponseWriter, logger *zap.Su
 		return nil, false
 	}
 	return record, true
+}
+
+// RequireRecord is the typed handler equivalent of FindOr404.
+func RequireRecord[T any](ctx context.Context, logger *zap.SugaredLogger, name string, find func(context.Context, string) (*T, error), id string) (*T, error) {
+	record, err := find(ctx, id)
+	if err != nil {
+		logger.Errorw("Failed to find "+strings.ToLower(name), "id", id, "error", err)
+		return nil, httpx.Fail(http.StatusInternalServerError, NewFailResponse("Internal server error"))
+	}
+	if record == nil {
+		return nil, httpx.Fail(http.StatusNotFound, NewFailResponse(name+" not found"))
+	}
+	return record, nil
 }

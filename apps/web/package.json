@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "gen": "openapi-ts",
+    "gen": "openapi-ts && prettier --trailing-comma es5 --write src/api",
     "build:docker": "docker build -t peekaping/web:latest .",
     "i18n:parse": "i18next"
   },

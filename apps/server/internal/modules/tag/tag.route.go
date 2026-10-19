@@ -1,6 +1,8 @@
 package tag
 
 import (
+	"github.com/danielgtaylor/huma/v2"
+	"net/http"
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/middleware"
 )
@@ -28,10 +30,10 @@ func (r *Route) ConnectRoute(
 
 	router.Use(r.middleware.AllAuth())
 
-	router.Handle("GET", "", controller.FindAll)
-	router.Handle("POST", "", controller.Create)
-	router.Handle("GET", "/{id}", controller.FindByID)
-	router.Handle("PUT", "/{id}", controller.UpdateFull)
-	router.Handle("PATCH", "/{id}", controller.UpdatePartial)
-	router.Handle("DELETE", "/{id}", controller.Delete)
+	httpx.Register(router, "GET", "", huma.Operation{Summary: "Get tags", Tags: []string{"tag"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, controller.FindAll)
+	httpx.Register(router, "POST", "", huma.Operation{Summary: "Create tag", Tags: []string{"tag"}, DefaultStatus: http.StatusCreated, Security: httpx.SharedAuth, Errors: []int{http.StatusBadRequest, http.StatusConflict, http.StatusInternalServerError, http.StatusUnauthorized}}, controller.Create)
+	httpx.Register(router, "GET", "/{id}", huma.Operation{Summary: "Get tag by ID", Tags: []string{"tag"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusInternalServerError, http.StatusNotFound, http.StatusUnauthorized}}, controller.FindByID)
+	httpx.Register(router, "PUT", "/{id}", huma.Operation{Summary: "Update tag", Tags: []string{"tag"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusNotFound, http.StatusBadRequest, http.StatusConflict, http.StatusInternalServerError, http.StatusUnauthorized}}, controller.UpdateFull)
+	httpx.Register(router, "PATCH", "/{id}", huma.Operation{Summary: "Update tag", Tags: []string{"tag"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusNotFound, http.StatusBadRequest, http.StatusConflict, http.StatusInternalServerError, http.StatusUnauthorized}}, controller.UpdatePartial)
+	httpx.Register(router, "DELETE", "/{id}", huma.Operation{Summary: "Delete tag", Tags: []string{"tag"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusNotFound, http.StatusInternalServerError, http.StatusUnauthorized}}, controller.Delete)
 }

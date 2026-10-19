@@ -3,6 +3,7 @@ package notification_channel
 import (
 	"context"
 	"errors"
+	"github.com/danielgtaylor/huma/v2"
 	"net/http"
 	"net/http/httptest"
 	"peekaping/internal/httpx"
@@ -69,8 +70,8 @@ func TestControllerUpdateValidatesConfig(t *testing.T) {
 				service := &updateRecordingService{saved: &Model{Type: "test-valid", Config: stringPtr("{}")}}
 				controller := NewController(service, zap.NewNop().Sugar())
 				router := httpx.NewRouter()
-				router.Handle("PUT", "/{id}", controller.UpdateFull)
-				router.Handle("PATCH", "/{id}", controller.UpdatePartial)
+				httpx.Register(router, "PUT", "/{id}", huma.Operation{Errors: []int{400, 404, 500}}, controller.UpdateFull)
+				httpx.Register(router, "PATCH", "/{id}", huma.Operation{Errors: []int{400, 404, 500}}, controller.UpdatePartial)
 
 				body := `{"name": "Alerts", "type": "` + tc.channelType + `", "config": "{}"}`
 				req := httptest.NewRequest(method, "/channel-1", strings.NewReader(body))
@@ -114,7 +115,7 @@ func TestControllerUpdatePartialMergesSavedChannel(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			service := &updateRecordingService{saved: tc.saved}
 			router := httpx.NewRouter()
-			router.Handle("PATCH", "/{id}", NewController(service, zap.NewNop().Sugar()).UpdatePartial)
+			httpx.Register(router, "PATCH", "/{id}", huma.Operation{Errors: []int{400, 404, 500}}, NewController(service, zap.NewNop().Sugar()).UpdatePartial)
 
 			req := httptest.NewRequest(http.MethodPatch, "/channel-1", strings.NewReader(tc.body))
 			req.Header.Set("Content-Type", "application/json")
@@ -130,7 +131,7 @@ func TestControllerUpdatePartialMergesSavedChannel(t *testing.T) {
 	t.Run("omitted fields reach the service as nil", func(t *testing.T) {
 		service := &updateRecordingService{saved: &Model{Type: "test-valid", Config: stringPtr("{}")}}
 		router := httpx.NewRouter()
-		router.Handle("PATCH", "/{id}", NewController(service, zap.NewNop().Sugar()).UpdatePartial)
+		httpx.Register(router, "PATCH", "/{id}", huma.Operation{Errors: []int{400, 404, 500}}, NewController(service, zap.NewNop().Sugar()).UpdatePartial)
 
 		req := httptest.NewRequest(http.MethodPatch, "/channel-1", strings.NewReader(`{"name": "Renamed"}`))
 		req.Header.Set("Content-Type", "application/json")
@@ -154,7 +155,7 @@ func TestControllerTestSendsWithADeadline(t *testing.T) {
 		return nil
 	}})
 	router := httpx.NewRouter()
-	router.Handle("POST", "/test", NewController(nil, zap.NewNop().Sugar()).Test)
+	httpx.Register(router, "POST", "/test", huma.Operation{Errors: []int{400, 404, 500}}, NewController(nil, zap.NewNop().Sugar()).Test)
 
 	req := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader(`{"name": "Alerts", "type": "test-valid", "config": "{}"}`))
 	req.Header.Set("Content-Type", "application/json")

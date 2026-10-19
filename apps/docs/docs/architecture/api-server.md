@@ -14,7 +14,7 @@ The API Server handles:
 - **Authentication**: User login, registration, JWT token management, and 2FA
 - **Authorization**: Role-based access control and API key validation
 - **WebSocket Server**: Real-time bidirectional communication with web clients
-- **API Documentation**: Auto-generated Swagger/OpenAPI documentation
+- **API Documentation**: Auto-generated OpenAPI documentation
 - **Security**: Brute force protection, rate limiting, CORS handling
 - **Push Endpoint**: Receives heartbeats from push-based monitors
 - **Cleanup Tasks**: Scheduled cleanup of old data
@@ -99,11 +99,13 @@ The API server exposes the following endpoint groups:
 
 The monitors, tags, proxies, notification channels, status pages, maintenances, and monitor heartbeat list endpoints accept a zero-based `page` and a `limit` from 1 to 1,000. Limits outside this range return HTTP 400. The default limit is 10 items, or 50 for monitor heartbeats.
 
-### Swagger Documentation
+### OpenAPI Documentation
 
-API documentation is automatically generated and available at:
+REST controllers use typed Huma inputs and outputs, registered through the standard HTTP router. These registrations also define the OpenAPI contract. Export and regenerate the client with `bun run api:generate`; `bun run api:check` validates the spec and checks committed artifacts without databases or Redis.
+
+The interactive reference is available at:
 ```
-http://localhost:8034/swagger/index.html
+http://localhost:8034/docs
 ```
 
 ## WebSocket Connection

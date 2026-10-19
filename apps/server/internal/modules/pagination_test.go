@@ -2,6 +2,7 @@ package modules_test
 
 import (
 	"context"
+	"github.com/danielgtaylor/huma/v2"
 	"net/http"
 	"net/http/httptest"
 	"peekaping/internal/httpx"
@@ -106,28 +107,28 @@ func TestListEndpointsPagination(t *testing.T) {
 	endpoints := []struct {
 		name         string
 		defaultLimit int
-		handler      func(*paginationCall) http.HandlerFunc
+		register     func(*httpx.Router, *paginationCall)
 	}{
-		{"tags", 10, func(call *paginationCall) http.HandlerFunc {
-			return tag.NewController(&tagPaginationService{paginationCall: call}, logger).FindAll
+		{"tags", 10, func(router *httpx.Router, call *paginationCall) {
+			httpx.Register(router, "GET", "/", huma.Operation{Errors: []int{400, 500}}, tag.NewController(&tagPaginationService{paginationCall: call}, logger).FindAll)
 		}},
-		{"proxies", 10, func(call *paginationCall) http.HandlerFunc {
-			return proxy.NewController(&proxyPaginationService{paginationCall: call}, logger).FindAll
+		{"proxies", 10, func(router *httpx.Router, call *paginationCall) {
+			httpx.Register(router, "GET", "/", huma.Operation{Errors: []int{400, 500}}, proxy.NewController(&proxyPaginationService{paginationCall: call}, logger).FindAll)
 		}},
-		{"notification-channels", 10, func(call *paginationCall) http.HandlerFunc {
-			return notification_channel.NewController(&notificationPaginationService{paginationCall: call}, logger).FindAll
+		{"notification-channels", 10, func(router *httpx.Router, call *paginationCall) {
+			httpx.Register(router, "GET", "/", huma.Operation{Errors: []int{400, 500}}, notification_channel.NewController(&notificationPaginationService{paginationCall: call}, logger).FindAll)
 		}},
-		{"maintenances", 10, func(call *paginationCall) http.HandlerFunc {
-			return maintenance.NewController(&maintenancePaginationService{paginationCall: call}, logger).FindAll
+		{"maintenances", 10, func(router *httpx.Router, call *paginationCall) {
+			httpx.Register(router, "GET", "/", huma.Operation{Errors: []int{400, 500}}, maintenance.NewController(&maintenancePaginationService{paginationCall: call}, logger).FindAll)
 		}},
-		{"status-pages", 10, func(call *paginationCall) http.HandlerFunc {
-			return status_page.NewController(&statusPagePaginationService{paginationCall: call}, nil, nil, logger).FindAll
+		{"status-pages", 10, func(router *httpx.Router, call *paginationCall) {
+			httpx.Register(router, "GET", "/", huma.Operation{Errors: []int{400, 500}}, status_page.NewController(&statusPagePaginationService{paginationCall: call}, nil, nil, logger).FindAll)
 		}},
-		{"monitors", 10, func(call *paginationCall) http.HandlerFunc {
-			return monitor.NewMonitorController(&monitorPaginationService{paginationCall: call}, logger, nil, nil, nil, nil).FindAll
+		{"monitors", 10, func(router *httpx.Router, call *paginationCall) {
+			httpx.Register(router, "GET", "/", huma.Operation{Errors: []int{400, 500}}, monitor.NewMonitorController(&monitorPaginationService{paginationCall: call}, logger, nil, nil, nil, nil).FindAll)
 		}},
-		{"heartbeats", 50, func(call *paginationCall) http.HandlerFunc {
-			return monitor.NewMonitorController(&monitorPaginationService{paginationCall: call}, logger, nil, nil, nil, nil).FindByMonitorIDPaginated
+		{"heartbeats", 50, func(router *httpx.Router, call *paginationCall) {
+			httpx.Register(router, "GET", "/", huma.Operation{Errors: []int{400, 500}}, monitor.NewMonitorController(&monitorPaginationService{paginationCall: call}, logger, nil, nil, nil, nil).FindByMonitorIDPaginated)
 		}},
 	}
 	cases := []struct {
@@ -158,7 +159,7 @@ func TestListEndpointsPagination(t *testing.T) {
 				t.Run(tc.name, func(t *testing.T) {
 					call := &paginationCall{}
 					router := httpx.NewRouter()
-					router.Handle("GET", "/", endpoint.handler(call))
+					endpoint.register(router, call)
 					response := httptest.NewRecorder()
 					router.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/"+tc.query, nil))
 					require.Equal(t, tc.status, response.Code, response.Body.String())

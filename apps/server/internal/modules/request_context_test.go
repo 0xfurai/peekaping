@@ -2,6 +2,7 @@ package modules_test
 
 import (
 	"context"
+	"github.com/danielgtaylor/huma/v2"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -31,7 +32,7 @@ func TestControllerPropagatesRequestContext(t *testing.T) {
 	cancel()
 	service := &contextTagService{}
 	router := httpx.NewRouter()
-	router.Handle("GET", "/tags", tag.NewController(service, zap.NewNop().Sugar()).FindAll,
+	httpx.Register(router, "GET", "/tags", huma.Operation{Errors: []int{400, 500}}, tag.NewController(service, zap.NewNop().Sugar()).FindAll,
 		func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				next.ServeHTTP(w, httpx.WithValue(r, "authType", "jwt"))

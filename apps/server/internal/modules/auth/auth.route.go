@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"github.com/danielgtaylor/huma/v2"
+	"net/http"
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/bruteforce"
 )
@@ -25,15 +27,17 @@ func NewRoute(
 
 func (r *Route) ConnectRoute(router *httpx.Router, controller *Controller) {
 	auth := router.Group("/auth")
-	auth.Handle("POST", "/register", controller.Register)
+	lockout := httpx.ErrorResponse[bruteforce.BlockResponse](auth, http.StatusTooManyRequests)
+	lockout.Headers = map[string]*huma.Param{"Retry-After": {Description: "Seconds until the login lockout expires.", Schema: &huma.Schema{Type: "integer"}}}
+	httpx.Register(auth, "POST", "/register", huma.Operation{Summary: "Register new admin", Tags: []string{"auth"}, DefaultStatus: http.StatusCreated, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError}}, controller.Register)
 
-	auth.Handle("POST", "/login", controller.Login, r.bruteforceGuard.Middleware())
+	httpx.Register(auth, "POST", "/login", huma.Operation{Summary: "Login admin", Responses: map[string]*huma.Response{"429": lockout}, Tags: []string{"auth"}, DefaultStatus: http.StatusOK, Errors: []int{http.StatusBadRequest, http.StatusUnauthorized, http.StatusTooManyRequests}}, controller.Login, r.bruteforceGuard.Middleware())
 
-	auth.Handle("POST", "/refresh", controller.RefreshToken)
+	httpx.Register(auth, "POST", "/refresh", huma.Operation{Summary: "Refresh access token", Tags: []string{"auth"}, DefaultStatus: http.StatusOK, Errors: []int{http.StatusBadRequest, http.StatusUnauthorized}}, controller.RefreshToken)
 
 	auth.Use(r.middleware.Auth())
-	auth.Handle("POST", "/2fa/setup", controller.SetupTwoFA)
-	auth.Handle("POST", "/2fa/verify", controller.VerifyTwoFA)
-	auth.Handle("POST", "/2fa/disable", controller.DisableTwoFA)
-	auth.Handle("PUT", "/password", controller.UpdatePassword)
+	httpx.Register(auth, "POST", "/2fa/setup", huma.Operation{Summary: "Enable 2FA (TOTP) for user", Tags: []string{"auth"}, DefaultStatus: http.StatusOK, Security: httpx.JWTOnly, Errors: []int{http.StatusBadRequest, http.StatusUnauthorized}}, controller.SetupTwoFA)
+	httpx.Register(auth, "POST", "/2fa/verify", huma.Operation{Summary: "Verify 2FA (TOTP) code for user", Responses: map[string]*huma.Response{"400": httpx.ErrorVariants[TwoFAVerifyResponseDto](auth, 400)}, Tags: []string{"auth"}, DefaultStatus: http.StatusOK, Security: httpx.JWTOnly, Errors: []int{http.StatusBadRequest, http.StatusUnauthorized}}, controller.VerifyTwoFA)
+	httpx.Register(auth, "POST", "/2fa/disable", huma.Operation{Summary: "Disable 2FA (TOTP) for user", Tags: []string{"auth"}, DefaultStatus: http.StatusOK, Security: httpx.JWTOnly, Errors: []int{http.StatusBadRequest, http.StatusUnauthorized}}, controller.DisableTwoFA)
+	httpx.Register(auth, "PUT", "/password", huma.Operation{Summary: "Update user password", Tags: []string{"auth"}, DefaultStatus: http.StatusOK, Security: httpx.JWTOnly, Errors: []int{http.StatusUnauthorized, http.StatusBadRequest, http.StatusInternalServerError}}, controller.UpdatePassword)
 }

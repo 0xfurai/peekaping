@@ -19,7 +19,7 @@ The main HTTP API server that handles all client requests, authentication, and W
 - RESTful API endpoints
 - User authentication and authorization
 - WebSocket real-time updates
-- Swagger API documentation
+- OpenAPI documentation
 - Brute force protection
 
 ### 2. **Producer**

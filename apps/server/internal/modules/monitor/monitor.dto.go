@@ -72,13 +72,6 @@ type MonitorResponseDto struct {
 }
 
 // StatPointsSummaryDto represents stat points and summary for a period
-// swagger:model
-// @Description Stat points and summary for a period
-// @Property points array monitor.StatPoint "Stat points array"
-// @Property maxPing number "Maximum ping in the period"
-// @Property minPing number "Minimum ping in the period"
-// @Property avgPing number "Average ping in the period"
-// @Property uptime number "Uptime percentage (0-100) in the period"
 type StatPointsSummaryDto struct {
 	Points  []*StatPoint `json:"points"`
 	MaxPing *float64     `json:"maxPing"`

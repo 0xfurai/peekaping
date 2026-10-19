@@ -1,6 +1,8 @@
 package monitor
 
 import (
+	"github.com/danielgtaylor/huma/v2"
+	"net/http"
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/middleware"
 )
@@ -27,16 +29,16 @@ func (uc *MonitorRoute) ConnectRoute(
 	router := rg.Group("monitors")
 	router.Use(uc.middleware.AllAuth())
 
-	router.Handle("GET", "", uc.monitorController.FindAll)
-	router.Handle("GET", "batch", uc.monitorController.FindByIDs)
-	router.Handle("POST", "", uc.monitorController.Create)
-	router.Handle("GET", "{id}", uc.monitorController.FindByID)
-	router.Handle("PUT", "{id}", uc.monitorController.UpdateFull)
-	router.Handle("PATCH", "{id}", uc.monitorController.UpdatePartial)
-	router.Handle("DELETE", "{id}", uc.monitorController.Delete)
-	router.Handle("POST", "{id}/reset", uc.monitorController.ResetMonitorData)
-	router.Handle("GET", "{id}/heartbeats", uc.monitorController.FindByMonitorIDPaginated)
-	router.Handle("GET", "{id}/stats/uptime", uc.monitorController.GetUptimeStats)
-	router.Handle("GET", "{id}/stats/points", uc.monitorController.GetStatPoints)
-	router.Handle("GET", "{id}/tls", uc.monitorController.GetTLSInfo)
+	httpx.Register(router, "GET", "", huma.Operation{Summary: "Get monitors", Tags: []string{"monitor"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, uc.monitorController.FindAll)
+	httpx.Register(router, "GET", "batch", huma.Operation{Summary: "Get monitors by IDs", Tags: []string{"monitor"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, uc.monitorController.FindByIDs)
+	httpx.Register(router, "POST", "", huma.Operation{Summary: "Create monitor", Tags: []string{"monitor"}, DefaultStatus: http.StatusCreated, Security: httpx.SharedAuth, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, uc.monitorController.Create)
+	httpx.Register(router, "GET", "{id}", huma.Operation{Summary: "Get monitor by ID", Tags: []string{"monitor"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusInternalServerError, http.StatusNotFound, http.StatusUnauthorized}}, uc.monitorController.FindByID)
+	httpx.Register(router, "PUT", "{id}", huma.Operation{Summary: "Update monitor", Tags: []string{"monitor"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusBadRequest, http.StatusNotFound, http.StatusInternalServerError, http.StatusUnauthorized}}, uc.monitorController.UpdateFull)
+	httpx.Register(router, "PATCH", "{id}", huma.Operation{Summary: "Update monitor", Tags: []string{"monitor"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusNotFound, http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, uc.monitorController.UpdatePartial)
+	httpx.Register(router, "DELETE", "{id}", huma.Operation{Summary: "Delete monitor", Tags: []string{"monitor"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusNotFound, http.StatusInternalServerError, http.StatusUnauthorized}}, uc.monitorController.Delete)
+	httpx.Register(router, "POST", "{id}/reset", huma.Operation{Summary: "Reset monitor data (heartbeats and stats)", Tags: []string{"monitor"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusNotFound, http.StatusInternalServerError, http.StatusUnauthorized}}, uc.monitorController.ResetMonitorData)
+	httpx.Register(router, "GET", "{id}/heartbeats", huma.Operation{Summary: "Get paginated heartbeats for a monitor", Tags: []string{"monitor"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusNotFound, http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, uc.monitorController.FindByMonitorIDPaginated)
+	httpx.Register(router, "GET", "{id}/stats/uptime", huma.Operation{Summary: "Get monitor uptime stats (24h, 30d, 365d)", Tags: []string{"monitor"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusNotFound, http.StatusInternalServerError, http.StatusUnauthorized}}, uc.monitorController.GetUptimeStats)
+	httpx.Register(router, "GET", "{id}/stats/points", huma.Operation{Summary: "Get monitor stat points (ping/up/down) from stats tables", Tags: []string{"monitor"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusNotFound, http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, uc.monitorController.GetStatPoints)
+	httpx.Register(router, "GET", "{id}/tls", huma.Operation{Summary: "Get monitor TLS certificate information", Tags: []string{"monitor"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusNotFound, http.StatusInternalServerError, http.StatusUnauthorized}}, uc.monitorController.GetTLSInfo)
 }

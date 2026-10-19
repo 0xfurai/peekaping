@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -55,253 +56,145 @@ func (c *Controller) validateWithDetails(dto interface{}) error {
 	}
 	return nil
 }
-
-// @Router		/auth/register [post]
-// @Summary		Register new admin
-// @Tags			Auth
-// @Produce		json
-// @Accept		json
-// @Param       body body     RegisterDto  true  "Registration data"
-// @Success		201	{object}	utils.ApiResponse[LoginResponse]
-// @Failure		400	{object}	utils.APIError[any]
-// @Failure		500	{object}	utils.APIError[any]
-func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	var dto RegisterDto
-	if err := httpx.DecodeJSON(r, &dto); err != nil {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		return
+func (c *Controller) Register(ctx context.Context, input *RegisterInput) (*httpx.Output[utils.ApiResponse[*LoginResponse]], error) {
+	dto, decodeErr := input.Decode()
+	if err := decodeErr; err != nil {
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
 	// validate with detailed error messages
 	if err := c.validateWithDetails(dto); err != nil {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
 	response, err := c.service.Register(ctx, dto)
 	if err != nil {
 		c.logger.Errorw("Failed to register admin", "error", err)
 		if err.Error() == "admin already exists" {
-			httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-			return
+			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		}
-		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse(err.Error()))
-		return
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse(err.Error()))
 	}
 
-	httpx.JSON(w, http.StatusCreated, utils.NewSuccessResponse("User registered successfully", response))
+	return httpx.Reply(http.StatusCreated, utils.NewSuccessResponse("User registered successfully", response))
 }
-
-// @Router		/auth/login [post]
-// @Summary		Login admin
-// @Tags			Auth
-// @Produce		json
-// @Accept		json
-// @Param       body body     LoginDto  true  "Login data"
-// @Success		200	{object}	utils.ApiResponse[LoginResponse]
-// @Failure		400	{object}	utils.APIError[any]
-// @Failure		401	{object}	utils.APIError[any]
-// @Failure		500	{object}	utils.APIError[any]
-func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	var dto LoginDto
-	if err := httpx.DecodeJSON(r, &dto); err != nil {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		return
+func (c *Controller) Login(ctx context.Context, input *LoginInput) (*httpx.Output[utils.ApiResponse[*LoginResponse]], error) {
+	dto, decodeErr := input.Decode()
+	if err := decodeErr; err != nil {
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
 	if err := c.validateWithDetails(dto); err != nil {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
 	response, err := c.service.Login(ctx, dto)
 	if err != nil {
 		c.logger.Errorw("Failed to login admin", "error", err)
-		httpx.JSON(w, http.StatusUnauthorized, utils.NewFailResponse(err.Error()))
-		return
+		return nil, httpx.Fail(http.StatusUnauthorized, utils.NewFailResponse(err.Error()))
 	}
 
-	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("Login successful", response))
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Login successful", response))
 }
-
-// @Router		/auth/refresh [post]
-// @Summary		Refresh access token
-// @Tags			Auth
-// @Produce		json
-// @Accept		json
-// @Param       body body     RefreshTokenDto  true  "Refresh token data"
-// @Success		200	{object}	utils.ApiResponse[LoginResponse]
-// @Failure		400	{object}	utils.APIError[any]
-// @Failure		401	{object}	utils.APIError[any]
-// @Failure		500	{object}	utils.APIError[any]
-func (c *Controller) RefreshToken(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	var dto RefreshTokenDto
-	if err := httpx.DecodeJSON(r, &dto); err != nil {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		return
+func (c *Controller) RefreshToken(ctx context.Context, input *RefreshTokenInput) (*httpx.Output[utils.ApiResponse[*LoginResponse]], error) {
+	dto, decodeErr := input.Decode()
+	if err := decodeErr; err != nil {
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
 	if err := c.validateWithDetails(dto); err != nil {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
 	response, err := c.service.RefreshToken(ctx, dto.RefreshToken)
 	if err != nil {
 		c.logger.Errorw("Failed to refresh token", "error", err)
-		httpx.JSON(w, http.StatusUnauthorized, utils.NewFailResponse(err.Error()))
-		return
+		return nil, httpx.Fail(http.StatusUnauthorized, utils.NewFailResponse(err.Error()))
 	}
 
-	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("Token refreshed successfully", response))
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Token refreshed successfully", response))
 }
-
-// @Router	/auth/password [put]
-// @Summary	Update user password
-// @Tags		Auth
-// @Produce	json
-// @Accept	json
-// @Security JwtAuth
-// @Param	body body     UpdatePasswordDto  true  "Password update data"
-// @Success	200	{object}	utils.ApiResponse[any]
-// @Failure	400	{object}	utils.APIError[any]
-// @Failure	401	{object}	utils.APIError[any]
-// @Failure	500	{object}	utils.APIError[any]
-func (c *Controller) UpdatePassword(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+func (c *Controller) UpdatePassword(ctx context.Context, input *UpdatePasswordInput) (*httpx.Output[utils.ApiResponse[any]], error) {
 	userId, exists := httpx.Lookup(ctx, "userId")
 	if !exists {
-		httpx.JSON(w, http.StatusUnauthorized, utils.NewFailResponse("Unauthorized"))
-		return
+		return nil, httpx.Fail(http.StatusUnauthorized, utils.NewFailResponse("Unauthorized"))
 	}
 
-	var dto UpdatePasswordDto
-	if err := httpx.DecodeJSON(r, &dto); err != nil {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		return
+	dto, decodeErr := input.Decode()
+	if err := decodeErr; err != nil {
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
 	if err := c.validateWithDetails(dto); err != nil {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
 	err := c.service.UpdatePassword(ctx, userId.(string), dto)
 	if err != nil {
 		if err.Error() == "current password is incorrect" {
-			httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-			return
+			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		}
 		c.logger.Errorw("Failed to update password", "error", err)
-		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse(err.Error()))
-		return
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse(err.Error()))
 	}
 
-	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse[any]("Password updated successfully", nil))
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse[any]("Password updated successfully", nil))
 }
-
-// @Router	/auth/2fa/setup [post]
-// @Summary	Enable 2FA (TOTP) for user
-// @Tags		Auth
-// @Produce	json
-// @Accept	json
-// @Security JwtAuth
-// @Param	body body     TwoFASetupRequestDto  true  "2FA setup request"
-// @Success	200 {object} TwoFASetupResponseDto
-// @Failure	400 {object} utils.APIError[any]
-// @Failure	500 {object} utils.APIError[any]
-func (c *Controller) SetupTwoFA(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+func (c *Controller) SetupTwoFA(ctx context.Context, input *SetupTwoFAInput) (*httpx.Output[TwoFASetupResponseDto], error) {
 	userId, _ := httpx.Lookup(ctx, "userId")
 
-	var dto TwoFASetupRequestDto
-	if err := httpx.DecodeJSON(r, &dto); err != nil {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		return
+	dto, decodeErr := input.Decode()
+	if err := decodeErr; err != nil {
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
 	if err := c.validateWithDetails(dto); err != nil {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
 	secret, provisioningURI, err := c.service.SetupTwoFA(ctx, userId.(string), dto.Password)
 	if err != nil {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
-	httpx.JSON(w, http.StatusOK, TwoFASetupResponseDto{
+	return httpx.Reply(http.StatusOK, TwoFASetupResponseDto{
 		Secret:          secret,
 		ProvisioningURI: provisioningURI,
 	})
 }
-
-// @Router	/auth/2fa/verify [post]
-// @Summary	Verify 2FA (TOTP) code for user
-// @Tags		Auth
-// @Produce	json
-// @Accept	json
-// @Security JwtAuth
-// @Param	body body     TwoFAVerifyRequestDto  true  "2FA verify request"
-// @Success	200 {object} TwoFAVerifyResponseDto
-// @Failure	400 {object} TwoFAVerifyResponseDto
-// @Failure	500 {object} utils.APIError[any]
-func (c *Controller) VerifyTwoFA(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+func (c *Controller) VerifyTwoFA(ctx context.Context, input *VerifyTwoFAInput) (*httpx.Output[TwoFAVerifyResponseDto], error) {
 	userId, _ := httpx.Lookup(ctx, "userId")
 
-	var dto TwoFAVerifyRequestDto
-	if err := httpx.DecodeJSON(r, &dto); err != nil {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		return
+	dto, decodeErr := input.Decode()
+	if err := decodeErr; err != nil {
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
 	if err := c.validateWithDetails(dto); err != nil {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
 	success, err := c.service.VerifyTwoFA(ctx, userId.(string), dto.Code)
 	if err != nil {
-		httpx.JSON(w, http.StatusBadRequest, TwoFAVerifyResponseDto{Success: false, Message: err.Error()})
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, TwoFAVerifyResponseDto{Success: false, Message: err.Error()})
 	}
 
-	httpx.JSON(w, http.StatusOK, TwoFAVerifyResponseDto{Success: success, Message: "2FA verification successful"})
+	return httpx.Reply(http.StatusOK, TwoFAVerifyResponseDto{Success: success, Message: "2FA verification successful"})
 }
-
-// @Router	/auth/2fa/disable [post]
-// @Summary	Disable 2FA (TOTP) for user
-// @Tags		Auth
-// @Produce	json
-// @Accept	json
-// @Security JwtAuth
-// @Param	body body     TwoFADisableRequestDto  true  "2FA disable request"
-// @Success	200 {object} utils.ApiResponse[any]
-// @Failure	400 {object} utils.APIError[any]
-// @Failure	500 {object} utils.APIError[any]
-func (c *Controller) DisableTwoFA(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+func (c *Controller) DisableTwoFA(ctx context.Context, input *DisableTwoFAInput) (*httpx.Output[utils.ApiResponse[any]], error) {
 	userId, _ := httpx.Lookup(ctx, "userId")
 
-	var dto TwoFADisableRequestDto
-	if err := httpx.DecodeJSON(r, &dto); err != nil {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
-		return
+	dto, decodeErr := input.Decode()
+	if err := decodeErr; err != nil {
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
 	}
 
 	if err := c.validateWithDetails(dto); err != nil {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
 	err := c.service.DisableTwoFA(ctx, userId.(string), dto.Password)
 	if err != nil {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
-	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse[any]("2FA disabled successfully", nil))
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse[any]("2FA disabled successfully", nil))
 }

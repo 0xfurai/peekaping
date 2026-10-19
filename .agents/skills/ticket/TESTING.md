@@ -54,15 +54,15 @@ bun install --frozen-lockfile    # a fresh worktree has no node_modules
 cd apps/web && bun run lint && bun run build
 ```
 
-API contract changes (handler annotations, DTOs) need both generated layers, committed with the change:
+API contract changes (typed registrations, DTOs) need both generated layers committed with the change. From the worktree root:
 
 ```sh
-cd apps/server && go run github.com/swaggo/swag/cmd/swag@v1.16.4 init -d cmd/api,internal
-cd ../web && bun run gen && bunx prettier@3 --trailing-comma es5 --write src/api
-git diff --stat   # only the endpoints you changed should move
+bun run api:generate
+bun run api:validate
+bun run api:check   # verifies committed spec and client freshness
 ```
 
-`bun run gen` asks for prettier, which isn't installed, so without the second command the whole client comes out reformatted.
+The server exporter uses production Huma registrations without starting databases or Redis. The pinned formatter runs as part of client generation. See `apps/server/docs/README.md` for route coverage and compatibility details.
 
 E2E, from the worktree root. The dev stack binds fixed host ports (6379, 8034, 8383), so only one runs per machine: if `docker ps` shows another session's stack, wait for it. The stack reads a gitignored `.env`, and a leftover SQLite database makes `auth.spec` fail with "admin already exists":
 

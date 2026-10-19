@@ -148,11 +148,7 @@ func (g *Guard) block(w http.ResponseWriter, r *http.Request, retryAfter time.Du
 	}
 
 	w.Header().Set("Retry-After", fmt.Sprintf("%.0f", retryAfter.Seconds()))
-	httpx.JSON(w, http.StatusTooManyRequests, map[string]any{
-		"success":     false,
-		"message":     "too many attempts, try later",
-		"retry_after": int(retryAfter.Seconds()),
-	})
+	httpx.JSON(w, http.StatusTooManyRequests, BlockResponse{Success: false, Message: "too many attempts, try later", RetryAfter: int(retryAfter.Seconds())})
 }
 
 // KeyByIPAndBodyField makes a key "<ip>:<lower(username)>"
@@ -219,3 +215,10 @@ func (w *statusWriter) Write(p []byte) (int, error) {
 	return w.ResponseWriter.Write(p)
 }
 func (w *statusWriter) Unwrap() http.ResponseWriter { return w.ResponseWriter }
+
+// BlockResponse is the existing login lockout response.
+type BlockResponse struct {
+	Success    bool   `json:"success"`
+	Message    string `json:"message"`
+	RetryAfter int    `json:"retry_after"`
+}

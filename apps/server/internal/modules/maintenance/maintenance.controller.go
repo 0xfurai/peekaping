@@ -1,6 +1,7 @@
 package maintenance
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"peekaping/internal/httpx"
@@ -24,33 +25,16 @@ func NewController(
 		logger,
 	}
 }
-
-// @Router		/maintenances [get]
-// @Summary		Get maintenances
-// @Tags			Maintenances
-// @Produce		json
-// @Security  JwtAuth
-// @Security  ApiKeyAuth
-// @Param     q    query     string  false  "Search query"
-// @Param     strategy query string  false  "Filter by strategy"
-// @Param     page query     int     false  "Page number" default(1)
-// @Param     limit query    int     false  "Items per page" default(10) minimum(1) maximum(1000)
-// @Success		200	{object}	utils.ApiResponse[[]Model]
-// @Failure		400	{object}	utils.APIError[any]
-// @Failure		404	{object}	utils.APIError[any]
-// @Failure		500	{object}	utils.APIError[any]
-func (ic *Controller) FindAll(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+func (ic *Controller) FindAll(ctx context.Context, input *FindAllInput) (*httpx.Output[utils.ApiResponse[[]*Model]], error) {
+	r := input.Request
 	page, err := utils.GetQueryInt(r, "page", 0)
 	if err != nil || page < 0 {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("Invalid page parameter"))
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid page parameter"))
 	}
 
 	limit, err := utils.GetQueryInt(r, "limit", 10)
 	if err != nil || limit < 1 || limit > utils.MaxPageSize {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("Invalid limit parameter"))
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid limit parameter"))
 	}
 
 	q := r.URL.Query().Get("q")
@@ -67,79 +51,48 @@ func (ic *Controller) FindAll(w http.ResponseWriter, r *http.Request) {
 	entities, err := ic.service.FindAll(ctx, page, limit, q, strategy)
 	if err != nil {
 		ic.logger.Errorw("Failed to fetch maintenances", "error", err)
-		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
-	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("success", entities))
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", entities))
 }
-
-// @Router		/maintenances [post]
-// @Summary		Create maintenance
-// @Tags			Maintenances
-// @Produce		json
-// @Accept		json
-// @Security  JwtAuth
-// @Security  ApiKeyAuth
-// @Param     body body   CreateUpdateDto  true  "Maintenance object"
-// @Success		201	{object}	utils.ApiResponse[Model]
-// @Failure		400	{object}	utils.APIError[any]
-// @Failure		500	{object}	utils.APIError[any]
-func (ic *Controller) Create(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	var entity *CreateUpdateDto
-	if err := httpx.DecodeJSON(r, &entity); err != nil {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		return
+func (ic *Controller) Create(ctx context.Context, input *CreateInput) (*httpx.Output[utils.ApiResponse[*Model]], error) {
+	entity, decodeErr := input.Decode()
+	if err := decodeErr; err != nil {
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
 	if err := utils.Validate.Struct(entity); err != nil {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
 	created, err := ic.service.Create(ctx, entity.toModel(), entity.MonitorIds)
 	if err != nil {
 		ic.logger.Errorw("Failed to create maintenance", "error", err)
-		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
-	httpx.JSON(w, http.StatusCreated, utils.NewSuccessResponse("Maintenance created successfully", created))
+	return httpx.Reply(http.StatusCreated, utils.NewSuccessResponse("Maintenance created successfully", created))
 }
-
-// @Router		/maintenances/{id} [get]
-// @Summary		Get maintenance by ID
-// @Tags			Maintenances
-// @Produce		json
-// @Security BearerAuth
-// @Param       id   path      string  true  "Maintenance ID"
-// @Success		200	{object}	utils.ApiResponse[MaintenanceResponseDto]
-// @Failure		400	{object}	utils.APIError[any]
-// @Failure		404	{object}	utils.APIError[any]
-// @Failure		500	{object}	utils.APIError[any]
-func (ic *Controller) FindByID(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+func (ic *Controller) FindByID(ctx context.Context, input *FindByIDInput) (*httpx.Output[utils.ApiResponse[*MaintenanceResponseDto]], error) {
+	r := input.Request
 	id := r.PathValue("id")
 
 	entity, err := ic.service.FindByID(ctx, id)
 	if err != nil {
 		ic.logger.Errorw("Failed to fetch maintenance", "error", err)
-		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
 	if entity == nil {
-		httpx.JSON(w, http.StatusNotFound, utils.NewFailResponse("Maintenance window not found"))
-		return
+		return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Maintenance window not found"))
 	}
 
 	// Get monitor IDs
 	monitorIds, err := ic.service.GetMonitors(ctx, id)
 	if err != nil {
 		ic.logger.Errorw("Failed to fetch monitor IDs", "error", err)
-		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
 	response := &MaintenanceResponseDto{
@@ -163,164 +116,96 @@ func (ic *Controller) FindByID(w http.ResponseWriter, r *http.Request) {
 		MonitorIds:    monitorIds,
 	}
 
-	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("success", response))
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", response))
 }
-
-// @Router		/maintenances/{id} [put]
-// @Summary		Update maintenance
-// @Tags			Maintenances
-// @Produce		json
-// @Accept		json
-// @Security BearerAuth
-// @Param       id   path      string  true  "Maintenance ID"
-// @Param       body body     CreateUpdateDto  true  "Maintenance object"
-// @Success		200	{object}	utils.ApiResponse[Model]
-// @Failure		400	{object}	utils.APIError[any]
-// @Failure		404	{object}	utils.APIError[any]
-// @Failure		500	{object}	utils.APIError[any]
-func (ic *Controller) UpdateFull(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+func (ic *Controller) UpdateFull(ctx context.Context, input *UpdateFullInput) (*httpx.Output[utils.ApiResponse[*Model]], error) {
+	r := input.Request
 	id := r.PathValue("id")
 
-	var entity CreateUpdateDto
-	if err := httpx.DecodeJSON(r, &entity); err != nil {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		return
+	entity, decodeErr := input.Decode()
+	if err := decodeErr; err != nil {
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
 	if err := utils.Validate.Struct(entity); err != nil {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
-	if _, ok := utils.FindOr404(ctx, w, ic.logger, "Maintenance window", ic.service.FindByID, id); !ok {
-		return
+	if _, err := utils.RequireRecord(ctx, ic.logger, "Maintenance window", ic.service.FindByID, id); err != nil {
+		return nil, err
 	}
 
 	updated, err := ic.service.UpdateFull(ctx, id, entity.toModel(), entity.MonitorIds)
 	if err != nil {
 		ic.logger.Errorw("Failed to update maintenance", "error", err)
-		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
-	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("maintenance updated successfully", updated))
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("maintenance updated successfully", updated))
 }
-
-// @Router		/maintenances/{id} [patch]
-// @Summary		Update maintenance
-// @Tags			Maintenances
-// @Produce		json
-// @Accept		json
-// @Security BearerAuth
-// @Param       id   path      string  true  "Maintenance ID"
-// @Param       body body     PartialUpdateDto  true  "Maintenance object"
-// @Success		200	{object}	utils.ApiResponse[Model]
-// @Failure		400	{object}	utils.APIError[any]
-// @Failure		404	{object}	utils.APIError[any]
-// @Failure		500	{object}	utils.APIError[any]
-func (ic *Controller) UpdatePartial(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+func (ic *Controller) UpdatePartial(ctx context.Context, input *UpdatePartialInput) (*httpx.Output[utils.ApiResponse[*Model]], error) {
+	r := input.Request
 	id := r.PathValue("id")
 
-	var entity PartialUpdateDto
-	if err := httpx.DecodeJSON(r, &entity); err != nil {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		return
+	entity, decodeErr := input.Decode()
+	if err := decodeErr; err != nil {
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
 	if err := utils.Validate.Struct(entity); err != nil {
-		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		return
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
-	if _, ok := utils.FindOr404(ctx, w, ic.logger, "Maintenance window", ic.service.FindByID, id); !ok {
-		return
+	if _, err := utils.RequireRecord(ctx, ic.logger, "Maintenance window", ic.service.FindByID, id); err != nil {
+		return nil, err
 	}
 
 	updated, err := ic.service.UpdatePartial(ctx, id, entity.toModel(), entity.MonitorIds)
 	if err != nil {
 		ic.logger.Errorw("Failed to update maintenance", "error", err)
-		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
-	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("maintenance updated successfully", updated))
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("maintenance updated successfully", updated))
 }
-
-// @Router		/maintenances/{id} [delete]
-// @Summary		Delete maintenance
-// @Tags			Maintenances
-// @Produce		json
-// @Security BearerAuth
-// @Param       id   path      string  true  "Maintenance ID"
-// @Success		200	{object}	utils.ApiResponse[any]
-// @Failure		400	{object}	utils.APIError[any]
-// @Failure		404	{object}	utils.APIError[any]
-// @Failure		500	{object}	utils.APIError[any]
-func (ic *Controller) Delete(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+func (ic *Controller) Delete(ctx context.Context, input *DeleteInput) (*httpx.Output[utils.ApiResponse[any]], error) {
+	r := input.Request
 	id := r.PathValue("id")
 
-	if _, ok := utils.FindOr404(ctx, w, ic.logger, "Maintenance window", ic.service.FindByID, id); !ok {
-		return
+	if _, err := utils.RequireRecord(ctx, ic.logger, "Maintenance window", ic.service.FindByID, id); err != nil {
+		return nil, err
 	}
 
 	err := ic.service.Delete(ctx, id)
 	if err != nil {
 		ic.logger.Errorw("Failed to delete maintenance", "error", err)
-		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
-	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse[any]("Maintenance deleted successfully", nil))
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse[any]("Maintenance deleted successfully", nil))
 }
-
-// @Router		/maintenances/{id}/pause [patch]
-// @Summary		Pause maintenance
-// @Tags			Maintenances
-// @Produce		json
-// @Security BearerAuth
-// @Param       id   path      string  true  "Maintenance ID"
-// @Success		200	{object}	utils.ApiResponse[Model]
-// @Failure		400	{object}	utils.APIError[any]
-// @Failure		404	{object}	utils.APIError[any]
-// @Failure		500	{object}	utils.APIError[any]
-func (ic *Controller) Pause(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+func (ic *Controller) Pause(ctx context.Context, input *PauseInput) (*httpx.Output[utils.ApiResponse[*Model]], error) {
+	r := input.Request
 	fmt.Println("Pausing maintenance")
 	id := r.PathValue("id")
-	if _, ok := utils.FindOr404(ctx, w, ic.logger, "Maintenance window", ic.service.FindByID, id); !ok {
-		return
+	if _, err := utils.RequireRecord(ctx, ic.logger, "Maintenance window", ic.service.FindByID, id); err != nil {
+		return nil, err
 	}
 	updated, err := ic.service.SetActive(ctx, id, false)
 	if err != nil {
-		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Failed to pause maintenance"))
-		return
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Failed to pause maintenance"))
 	}
-	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("Paused", updated))
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Paused", updated))
 }
-
-// @Router		/maintenances/{id}/resume [patch]
-// @Summary		Resume maintenance
-// @Tags			Maintenances
-// @Produce		json
-// @Security BearerAuth
-// @Param       id   path      string  true  "Maintenance ID"
-// @Success		200	{object}	utils.ApiResponse[Model]
-// @Failure		400	{object}	utils.APIError[any]
-// @Failure		404	{object}	utils.APIError[any]
-// @Failure		500	{object}	utils.APIError[any]
-func (ic *Controller) Resume(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+func (ic *Controller) Resume(ctx context.Context, input *ResumeInput) (*httpx.Output[utils.ApiResponse[*Model]], error) {
+	r := input.Request
 	id := r.PathValue("id")
-	if _, ok := utils.FindOr404(ctx, w, ic.logger, "Maintenance window", ic.service.FindByID, id); !ok {
-		return
+	if _, err := utils.RequireRecord(ctx, ic.logger, "Maintenance window", ic.service.FindByID, id); err != nil {
+		return nil, err
 	}
 	updated, err := ic.service.SetActive(ctx, id, true)
 	if err != nil {
-		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Failed to resume maintenance"))
-		return
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Failed to resume maintenance"))
 	}
-	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("Resumed", updated))
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Resumed", updated))
 }

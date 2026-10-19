@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"peekaping/docs"
 	"peekaping/internal"
 	"peekaping/internal/infra"
 	"peekaping/internal/modules/auth"
@@ -21,7 +20,6 @@ import (
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/stats"
 	"peekaping/internal/utils"
-	"peekaping/internal/version"
 	"syscall"
 	_ "time/tzdata" // embed the zone database so TZ works in images without tzdata
 
@@ -29,18 +27,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// @title			Peekaping API
-// @BasePath	/api/v1
-// @securityDefinitions.apikey JwtAuth
-// @in header
-// @name Authorization
-// @description JWT token authentication (Bearer token format)
-// @securityDefinitions.apikey ApiKeyAuth
-// @in header
-// @name X-API-Key
-// @description API key authentication (pk_ prefix format)
 func main() {
-	docs.SwaggerInfo.Version = version.Version
 
 	utils.RegisterCustomValidators()
 
@@ -127,7 +114,6 @@ func main() {
 		eventBus events.EventBus,
 		logger *zap.SugaredLogger,
 	) error {
-		docs.SwaggerInfo.Host = "localhost:" + server.Cfg.Port
 
 		port := server.Cfg.Port
 		if port == "" {
