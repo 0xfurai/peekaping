@@ -80,6 +80,20 @@ func TestMonitorStatusFilter_DownMonitorEditedWithPutStaysUnderDown(t *testing.T
 	assert.Empty(t, a.monitorIDsWithStatus(t, shared.MonitorStatusUp))
 }
 
+func TestMonitorStatusFilter_DownMonitorChangedWithPatchStaysUnderDown(t *testing.T) {
+	a := newAppWithMonitorListener(t)
+	id := a.createMonitor(t, "Checkout", "checkout-push-token")
+	a.reportStatus(t, id, shared.MonitorStatusDown)
+
+	a.pauseMonitor(t, id)
+	assert.Equal(t, []string{id}, a.monitorIDsWithStatus(t, shared.MonitorStatusDown))
+
+	w := a.request(t, http.MethodPatch, "/api/v1/monitors/"+id, map[string]any{"active": true, "name": "Checkout API"}, a.asAdmin)
+	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+	assert.Equal(t, []string{id}, a.monitorIDsWithStatus(t, shared.MonitorStatusDown))
+	assert.Empty(t, a.monitorIDsWithStatus(t, shared.MonitorStatusUp))
+}
+
 func TestMonitorStatusFilter_PutResponseShowsTheStoredMonitor(t *testing.T) {
 	a := newAppWithMonitorListener(t)
 	id := a.createMonitor(t, "Checkout", "checkout-push-token")
