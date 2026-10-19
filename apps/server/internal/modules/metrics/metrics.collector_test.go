@@ -362,3 +362,86 @@ func TestHandlerServesBuildInfoAndRuntimeMetrics(t *testing.T) {
 	assert.Contains(t, body, "process_start_time_seconds ")
 	assert.NotContains(t, body, "peekaping_monitor_up")
 }
+
+func TestPausedMonitorLeavesUntilItsNextHeartbeat(t *testing.T) {
+	r := newRig(t)
+	m := r.activeMonitor("m1", "API", "http")
+	r.activeMonitor("m2", "DB", "tcp")
+	r.start()
+	r.publishHeartbeat("m1", shared.MonitorStatusUp, 250, at100)
+	r.publishHeartbeat("m2", shared.MonitorStatusDown, 0, at100)
+
+	m.Active = false
+	r.monitors.set(m)
+	r.publishMonitorUpdated(m)
+
+	// Only the paused Monitor's series are gone
+	r.requireSeries(`
+peekaping_monitor_status{monitor_id="m2",monitor_name="DB",monitor_type="tcp"} 0
+peekaping_monitor_last_heartbeat_timestamp_seconds{monitor_id="m2",monitor_name="DB",monitor_type="tcp"} 1700000100
+`)
+
+	// Resuming brings nothing back until the Monitor is checked
+	m.Active = true
+	r.monitors.set(m)
+	r.publishMonitorUpdated(m)
+	r.requireSeries(`
+peekaping_monitor_status{monitor_id="m2",monitor_name="DB",monitor_type="tcp"} 0
+peekaping_monitor_last_heartbeat_timestamp_seconds{monitor_id="m2",monitor_name="DB",monitor_type="tcp"} 1700000100
+`)
+
+	r.publishHeartbeat("m1", shared.MonitorStatusUp, 120, at200)
+	r.requireSeries(`
+peekaping_monitor_status{` + api + `} 1
+peekaping_monitor_last_heartbeat_timestamp_seconds{` + api + `} 1700000200
+peekaping_monitor_response_seconds{` + api + `} 0.12
+peekaping_monitor_status{monitor_id="m2",monitor_name="DB",monitor_type="tcp"} 0
+peekaping_monitor_last_heartbeat_timestamp_seconds{monitor_id="m2",monitor_name="DB",monitor_type="tcp"} 1700000100
+`)
+}
+
+func TestDeletedMonitorLeaves(t *testing.T) {
+	r := newRig(t)
+	r.activeMonitor("m1", "API", "http")
+	r.activeMonitor("m2", "DB", "tcp")
+	r.start()
+	r.publishHeartbeat("m1", shared.MonitorStatusUp, 250, at100)
+	r.publishHeartbeat("m2", shared.MonitorStatusDown, 0, at100)
+
+	r.monitors.remove("m1")
+	r.publishMonitorDeleted("m1")
+
+	r.requireSeries(`
+peekaping_monitor_status{monitor_id="m2",monitor_name="DB",monitor_type="tcp"} 0
+peekaping_monitor_last_heartbeat_timestamp_seconds{monitor_id="m2",monitor_name="DB",monitor_type="tcp"} 1700000100
+`)
+}
+
+func TestRenamedMonitorMovesToItsNewLabelsWithTheSameValues(t *testing.T) {
+	r := newRig(t)
+	m := r.activeMonitor("m1", "API", "http")
+	r.start()
+	r.publishHeartbeat("m1", shared.MonitorStatusUp, 250, at100)
+
+	m.Name = "Checkout API"
+	m.Type = "tcp"
+	r.monitors.set(m)
+	r.publishMonitorUpdated(m)
+
+	const renamed = `monitor_id="m1",monitor_name="Checkout API",monitor_type="tcp"`
+	r.requireSeries(`
+peekaping_monitor_status{` + renamed + `} 1
+peekaping_monitor_last_heartbeat_timestamp_seconds{` + renamed + `} 1700000100
+peekaping_monitor_response_seconds{` + renamed + `} 0.25
+`)
+}
+
+func TestUpdateOfAMonitorWithoutAHeartbeatCreatesNoSeries(t *testing.T) {
+	r := newRig(t)
+	m := r.activeMonitor("m1", "API", "http")
+	r.start()
+
+	r.publishMonitorUpdated(m)
+
+	r.requireSeries("")
+}

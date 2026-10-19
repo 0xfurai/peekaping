@@ -132,6 +132,43 @@ func send(ch chan<- prometheus.Metric, desc *prometheus.Desc, value float64, lab
 // Start subscribes to the event bus.
 func (c *Collector) Start(ctx context.Context, eventBus events.EventBus) {
 	eventBus.Subscribe(events.HeartbeatEvent, c.handleHeartbeat)
+	eventBus.Subscribe(events.MonitorUpdated, c.handleMonitorUpdated)
+	eventBus.Subscribe(events.MonitorDeleted, c.handleMonitorDeleted)
+}
+
+// handleMonitorUpdated drops a Monitor that was paused and moves one that was renamed to its new labels.
+func (c *Collector) handleMonitorUpdated(event events.Event) {
+	mon, ok := infra.UnmarshalEventPayload[monitor.Model](event)
+	if !ok {
+		c.logger.Errorf("Failed to unmarshal monitor updated event payload")
+		return
+	}
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	s, tracked := c.monitors[mon.ID]
+	if !tracked {
+		return
+	}
+	if !mon.Active {
+		delete(c.monitors, mon.ID)
+		return
+	}
+	s.name = mon.Name
+	s.monitorType = mon.Type
+	c.monitors[mon.ID] = s
+}
+
+func (c *Collector) handleMonitorDeleted(event events.Event) {
+	monitorID, ok := infra.UnmarshalEventPayloadValue[string](event)
+	if !ok {
+		c.logger.Errorf("Failed to unmarshal monitor deleted event payload")
+		return
+	}
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	delete(c.monitors, monitorID)
 }
 
 func (c *Collector) handleHeartbeat(event events.Event) {
