@@ -18,6 +18,7 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/metrics"
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/utils"
@@ -49,7 +50,11 @@ type app struct {
 	apiKey      string
 }
 
-func newApp(t *testing.T) *app {
+// withMetrics turns on the /metrics endpoint, which is off by default.
+func withMetrics(cfg *config.Config) { cfg.MetricsEnabled = true }
+
+// newApp builds an API server on the default config, changed by options.
+func newApp(t *testing.T, options ...func(*config.Config)) *app {
 	t.Helper()
 	ctx := context.Background()
 	utils.RegisterCustomValidators()
@@ -69,6 +74,9 @@ func newApp(t *testing.T) *app {
 		BruteforceWindow:      time.Minute,
 		BruteforceLockout:     time.Minute,
 		ServiceName:           "peekaping:apitest",
+	}
+	for _, option := range options {
+		option(cfg)
 	}
 
 	container := dig.New()
@@ -95,6 +103,15 @@ func newApp(t *testing.T) *app {
 		listener.Subscribe(bus)
 	}))
 
+	// The metrics collector starts when the config asks for it, as cmd/api does. It stops before the event bus closes.
+	if cfg.MetricsEnabled {
+		require.NoError(t, container.Invoke(func(collector *metrics.Collector, bus events.EventBus) {
+			metricsCtx, stopMetrics := context.WithCancel(ctx)
+			t.Cleanup(stopMetrics)
+			collector.Start(metricsCtx, bus)
+		}))
+	}
+
 	a := &app{container: container}
 	require.NoError(t, container.Invoke(func(server *internal.Server) { a.router = server.Router }))
 	return a
@@ -102,9 +119,9 @@ func newApp(t *testing.T) *app {
 
 // newAppWithAdmin registers the admin and issues an API key, the way a new
 // install is set up.
-func newAppWithAdmin(t *testing.T) *app {
+func newAppWithAdmin(t *testing.T, options ...func(*config.Config)) *app {
 	t.Helper()
-	a := newApp(t)
+	a := newApp(t, options...)
 
 	registered := decode[struct {
 		AccessToken string `json:"accessToken"`
