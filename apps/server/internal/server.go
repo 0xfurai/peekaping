@@ -92,6 +92,7 @@ func ProvideServer(
 	queueService queue.Service,
 	maintenanceRoute *maintenance.Route,
 	maintenanceController *maintenance.Controller,
+	maintenanceService maintenance.Service,
 	statusPageRoute *status_page.Route,
 	statusPageController *status_page.Controller,
 	tagRoute *tag.Route,
@@ -127,7 +128,7 @@ func ProvideServer(
 	apiKeyRoute.ConnectRoute(router, apiKeyController)
 
 	// Register push endpoint
-	healthcheck.RegisterPushEndpoint(router, monitorService, heartbeatService, queueService, logger)
+	healthcheck.RegisterPushEndpoint(router, monitorService, heartbeatService, queueService, maintenanceService, logger)
 
 	// Compatibility entry points; generated documentation lives at /docs.
 	server.Handle("GET", "/swagger/{any...}", swaggerHandler(server.API()))
