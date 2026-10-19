@@ -8,7 +8,8 @@ import { totp } from './support/totp';
 // hook still runs when the test times out.
 test.afterEach(async ({ page }) => {
   const api = await adminAPI(page);
-  await api.post('auth/2fa/disable', { data: admin });
+  const disabled = await api.post('auth/2fa/disable', { data: admin });
+  expect(disabled.ok(), `turn 2FA off: ${await disabled.text()}`).toBeTruthy();
   await api.dispose();
 });
 
