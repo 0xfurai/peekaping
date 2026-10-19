@@ -10,9 +10,10 @@ argument-hint: "[X.Y.Z | X.Y.Z-rc.N]"
 The `Release` workflow (`.github/workflows/docker-release.yml`) is started by hand with a version. In 15 to 40 minutes it:
 
 1. builds every image for amd64 and arm64 and pushes them to GHCR and Docker Hub;
-2. bumps `version.go`, `package.json` and `version.ts`, moves `[Unreleased]` in `CHANGELOG.md` under the new version, and pushes that commit straight to `main`;
-3. merges the multi-arch manifests (and `latest`), runs the e2e suite against the pushed images, and creates the GitHub Release;
-4. deploys the demo.
+2. merges the multi-arch manifests (and `latest`) and runs the e2e suite against the pushed images;
+3. bumps `version.go`, `package.json` and `version.ts`, moves `[Unreleased]` in `CHANGELOG.md` under the new version, and pushes that commit straight to `main`;
+4. creates the GitHub Release, with its tag on that commit;
+5. deploys the demo.
 
 It runs no unit tests, and none of it can be taken back cleanly: the images and the release are public and the commit is on `main`. So the work is in the steps before the dispatch.
 
@@ -20,7 +21,7 @@ It runs no unit tests, and none of it can be taken back cleanly: the images and 
 
 - The user decides. You prepare, check, and dispatch only after their explicit go-ahead on the exact version.
 - Never pass the workflow's `changelog` input. It is pasted into a shell script, and the entries are full of backticks, which the shell would run. Left empty, the workflow reads `[Unreleased]` itself.
-- From the dispatch until the GitHub Release exists, nothing merges into `main`. The bump step pushes to `main` and fails if it moved; a merge after that lands in the tag, because the release step cuts the tag at the head of `main`.
+- From the dispatch until the GitHub Release exists, nothing merges into `main`. The bump job pushes to `main` after the e2e suite, from the commit the run started on, and fails if `main` moved since; a merge after that lands in the tag, because the release job cuts the tag at the head of `main`.
 - Tags have no `v` prefix: `0.0.47`.
 - Other sessions share the main checkout. Files change in a worktree under `.claude/worktrees/`, as in [setup](../ticket/SETUP.md); `git fetch`, never switch branches in the main checkout.
 
@@ -67,14 +68,14 @@ gh workflow run docker-release.yml --ref main -f version=<X.Y.Z>
 gh run list --workflow=docker-release.yml --limit 1 --json databaseId,headSha,status
 ```
 
-The run takes a few seconds to appear. Check that its `headSha` is the commit the user approved. Then watch with `gh run watch <id> --exit-status` as a Bash `run_in_background`; its exit wakes you. The jobs run in this order: build (per architecture, with the bump commit), bundle builds, `create-manifest`, `playwright-tests`, `release`, `deploy-demo`.
+The run takes a few seconds to appear. Check that its `headSha` is the commit the user approved. Then watch with `gh run watch <id> --exit-status` as a Bash `run_in_background`; its exit wakes you. The jobs run in this order: `build-images` (per architecture) and `build-bundle-containers`, `create-manifest`, `playwright-tests`, `bump-version`, `release`, `deploy-demo`.
 
 ## 6. If the run fails
 
 Find the cause: `gh run view <id> --log-failed`. Then see whether the bump landed: `git fetch origin && git log origin/main --author=github-actions -3 --format='%h %s'`, looking for `chore: bump version to <X.Y.Z> and update changelog`.
 
-- **No bump commit.** `main` is untouched. A flake or an outage gets one `gh run rerun <id> --failed`. A real failure stops here: tell the user the cause. The fix is a normal PR; then preflight and dispatch again.
-- **Bump commit on `main`.** Never dispatch the same version again: the changelog step would roll an empty `[Unreleased]` into a second `## [<X.Y.Z>]` heading. A flake in a later job gets one `gh run rerun <id> --failed`. A real failure goes to the user with the brief in [PLAN.md](../ticket-plan/PLAN.md): the images and the rolled changelog exist, the release doesn't, and the way out is to fix forward and release the next patch.
+- **No bump commit.** `main` is untouched, but once `create-manifest` has passed the version tags and `latest` are public. A flake or an outage gets one `gh run rerun <id> --failed`, which reruns the failed jobs and the ones after them on the same commit. A real failure stops here: tell the user the cause. The fix is a normal PR; then preflight and dispatch the same version again, which overwrites the manifests (nothing rolled `[Unreleased]`). If `bump-version` failed because `main` moved, a rerun fails the same way, since the job starts from the commit the run started on; dispatch again from the new head, after the go-ahead of step 4.
+- **Bump commit on `main`.** Only `release` and `deploy-demo` run after it. Never dispatch the same version again: the changelog step would roll an empty `[Unreleased]` into a second `## [<X.Y.Z>]` heading. A flake gets one `gh run rerun <id> --failed`. A real failure goes to the user with the brief in [PLAN.md](../ticket-plan/PLAN.md): the images and the rolled changelog exist, the release doesn't, and the way out is to fix forward and release the next patch.
 
 ## 7. Verify
 
