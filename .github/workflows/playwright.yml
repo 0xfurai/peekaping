@@ -13,6 +13,7 @@ on:
       - '.dockerignore'
       - 'docker-compose.dev.*.yml'
       - 'docker-compose.bundle.*.yml'
+      - 'docker-compose.e2e.yml'
       - 'Dockerfile.bundle.*'
       - 'startup.bundle.*.sh'
       - 'supervisord.bundle.*.conf'
@@ -31,6 +32,7 @@ on:
       - '.dockerignore'
       - 'docker-compose.dev.*.yml'
       - 'docker-compose.bundle.*.yml'
+      - 'docker-compose.e2e.yml'
       - 'Dockerfile.bundle.*'
       - 'startup.bundle.*.sh'
       - 'supervisord.bundle.*.conf'
@@ -93,6 +95,9 @@ jobs:
       matrix:
         database: [postgres, mongo, sqlite]
         config: [dev, bundle]
+    env:
+      # Every docker compose command below runs the stack plus the e2e target.
+      COMPOSE_FILE: docker-compose.${{ matrix.config }}.${{ matrix.database }}.yml:docker-compose.e2e.yml
     steps:
     # Prepare environment and dependencies
     - uses: actions/checkout@v4
@@ -155,50 +160,50 @@ jobs:
 
     # Start services from the prebuilt images using appropriate docker-compose file
     - name: Start services with docker-compose
-      run: docker compose -f docker-compose.${{ matrix.config }}.${{ matrix.database }}.yml up -d --no-build
+      run: docker compose up -d --no-build
 
     - name: Show container logs
       run: |
         echo "=== Container Status ==="
-        docker compose -f docker-compose.${{ matrix.config }}.${{ matrix.database }}.yml ps
+        docker compose ps
         echo "=== Container Logs ==="
-        docker compose -f docker-compose.${{ matrix.config }}.${{ matrix.database }}.yml logs
+        docker compose logs
 
     - name: Wait for services to be ready
       run: |
-        echo "Waiting for services to be healthy..."
         HEALTH_URL="http://localhost:${{ matrix.config == 'bundle' && '8383' || '8034' }}/api/v1/health"
-        timeout 120 bash -c '
-          attempt=1
-          until curl -f '"$HEALTH_URL"'; do
-            echo "Attempt $attempt: Health check failed, retrying in 5 seconds..."
-            response=$(curl -s '"$HEALTH_URL"' || echo "connection failed")
-            status_code=$(curl -s -o /dev/null -w "%{http_code}" '"$HEALTH_URL"' || echo "000")
-            echo "  Status Code: $status_code"
-            echo "  Response Body: $response"
-            attempt=$((attempt + 1))
-            sleep 5
-            if [ $attempt -gt 20 ]; then
-              echo "=== Container Status ==="
-              docker compose -f docker-compose.${{ matrix.config }}.${{ matrix.database }}.yml ps
-              echo "===  Logs ==="
-              docker compose -f docker-compose.${{ matrix.config }}.${{ matrix.database }}.yml logs
-            fi
-          done
-        ' || echo "Health check timed out after 120 seconds"
-        echo "Health check succeeded! Waiting additional 5 seconds for stability..."
-        sleep 5
+        if ! timeout 120 bash -c "until curl -sf $HEALTH_URL && curl -sf http://localhost:8383/ && curl -sf http://localhost:3033/health; do sleep 2; done" >/dev/null; then
+          echo "::error::The stack wasn't healthy after 120 seconds"
+          docker compose ps
+          docker compose logs
+          exit 1
+        fi
+        echo "The stack is healthy"
 
     - name: Run Playwright tests
       run: bunx playwright test
 
+    # The suite must also pass on the database the first run left behind.
+    - name: Run Playwright tests again on the same database
+      run: bunx playwright test
+      env:
+        PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report-rerun
+
+    - name: Show container logs on failure
+      if: failure()
+      run: |
+        docker compose ps
+        docker compose logs
+
     - name: Stop services
       if: always()
-      run: docker compose -f docker-compose.${{ matrix.config }}.${{ matrix.database }}.yml down
+      run: docker compose down
 
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
         name: playwright-report-${{ matrix.config }}-${{ matrix.database }}
-        path: playwright-report/
+        path: |
+          playwright-report/
+          playwright-report-rerun/
         retention-days: 30
