@@ -198,9 +198,11 @@
         "properties": {
           "email": {
             "format": "email",
+            "minLength": 1,
             "type": "string"
           },
           "password": {
+            "minLength": 1,
             "type": "string"
           },
           "token": {
@@ -271,6 +273,7 @@
         "additionalProperties": true,
         "properties": {
           "refreshToken": {
+            "minLength": 1,
             "type": "string"
           }
         },
@@ -284,9 +287,11 @@
         "properties": {
           "email": {
             "format": "email",
+            "minLength": 1,
             "type": "string"
           },
           "password": {
+            "minLength": 1,
             "type": "string"
           }
         },
@@ -301,9 +306,11 @@
         "properties": {
           "email": {
             "format": "email",
+            "minLength": 1,
             "type": "string"
           },
           "password": {
+            "minLength": 1,
             "type": "string"
           }
         },
@@ -318,9 +325,11 @@
         "properties": {
           "email": {
             "format": "email",
+            "minLength": 1,
             "type": "string"
           },
           "password": {
+            "minLength": 1,
             "type": "string"
           }
         },
@@ -350,10 +359,12 @@
         "additionalProperties": true,
         "properties": {
           "code": {
+            "minLength": 1,
             "type": "string"
           },
           "email": {
             "format": "email",
+            "minLength": 1,
             "type": "string"
           }
         },
@@ -383,9 +394,11 @@
         "additionalProperties": true,
         "properties": {
           "currentPassword": {
+            "minLength": 1,
             "type": "string"
           },
           "newPassword": {
+            "minLength": 1,
             "type": "string"
           }
         },
@@ -700,6 +713,7 @@
             ]
           },
           "strategy": {
+            "minLength": 1,
             "type": "string"
           },
           "timezone": {
@@ -709,15 +723,16 @@
             ]
           },
           "title": {
+            "minLength": 1,
             "type": "string"
           },
           "weekdays": {
             "items": {
               "format": "int64",
+              "maximum": 6,
+              "minimum": 0,
               "type": "integer"
             },
-            "maxItems": 6,
-            "minItems": 0,
             "type": [
               "array",
               "null"
@@ -1008,10 +1023,10 @@
           "weekdays": {
             "items": {
               "format": "int64",
+              "maximum": 6,
+              "minimum": 0,
               "type": "integer"
             },
-            "maxItems": 6,
-            "minItems": 0,
             "type": [
               "array",
               "null"
@@ -1064,10 +1079,7 @@
             "items": {
               "type": "string"
             },
-            "type": [
-              "array",
-              "null"
-            ]
+            "type": "array"
           },
           "proxy_id": {
             "examples": [
@@ -1121,6 +1133,7 @@
             "examples": [
               "http"
             ],
+            "minLength": 1,
             "type": "string"
           }
         },
@@ -1760,6 +1773,7 @@
             "type": "boolean"
           },
           "host": {
+            "minLength": 1,
             "type": "string"
           },
           "password": {
@@ -1772,6 +1786,15 @@
             "type": "integer"
           },
           "protocol": {
+            "enum": [
+              "http",
+              "https",
+              "socks",
+              "socks4",
+              "socks5",
+              "socks5h"
+            ],
+            "minLength": 1,
             "type": "string"
           },
           "username": {
@@ -1861,6 +1884,15 @@
             ]
           },
           "protocol": {
+            "enum": [
+              "http",
+              "https",
+              "socks",
+              "socks4",
+              "socks5",
+              "socks5h",
+              null
+            ],
             "type": [
               "string",
               "null"
@@ -1879,6 +1911,13 @@
         "additionalProperties": true,
         "properties": {
           "type": {
+            "enum": [
+              "string",
+              "int",
+              "bool",
+              "json"
+            ],
+            "minLength": 1,
             "type": "string"
           },
           "value": {
@@ -2475,6 +2514,7 @@
             "examples": [
               "#3B82F6"
             ],
+            "minLength": 1,
             "pattern": "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
             "type": "string"
           },

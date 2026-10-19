@@ -146,8 +146,10 @@ components:
       properties:
         email:
           format: email
+          minLength: 1
           type: string
         password:
+          minLength: 1
           type: string
         token:
           type: string
@@ -198,6 +200,7 @@ components:
       additionalProperties: true
       properties:
         refreshToken:
+          minLength: 1
           type: string
       required:
         - refreshToken
@@ -207,8 +210,10 @@ components:
       properties:
         email:
           format: email
+          minLength: 1
           type: string
         password:
+          minLength: 1
           type: string
       required:
         - email
@@ -219,8 +224,10 @@ components:
       properties:
         email:
           format: email
+          minLength: 1
           type: string
         password:
+          minLength: 1
           type: string
       required:
         - email
@@ -231,8 +238,10 @@ components:
       properties:
         email:
           format: email
+          minLength: 1
           type: string
         password:
+          minLength: 1
           type: string
       required:
         - email
@@ -253,9 +262,11 @@ components:
       additionalProperties: true
       properties:
         code:
+          minLength: 1
           type: string
         email:
           format: email
+          minLength: 1
           type: string
       required:
         - email
@@ -276,8 +287,10 @@ components:
       additionalProperties: true
       properties:
         currentPassword:
+          minLength: 1
           type: string
         newPassword:
+          minLength: 1
           type: string
       required:
         - currentPassword
@@ -502,19 +515,21 @@ components:
             - string
             - "null"
         strategy:
+          minLength: 1
           type: string
         timezone:
           type:
             - string
             - "null"
         title:
+          minLength: 1
           type: string
         weekdays:
           items:
             format: int64
+            maximum: 6
+            minimum: 0
             type: integer
-          maxItems: 6
-          minItems: 0
           type:
             - array
             - "null"
@@ -719,9 +734,9 @@ components:
         weekdays:
           items:
             format: int64
+            maximum: 6
+            minimum: 0
             type: integer
-          maxItems: 6
-          minItems: 0
           type:
             - array
             - "null"
@@ -757,9 +772,7 @@ components:
             - - 6830ad485361f19c598d6d90
           items:
             type: string
-          type:
-            - array
-            - "null"
+          type: array
         proxy_id:
           examples:
             - 6830ad485361f19c598d6d90
@@ -796,6 +809,7 @@ components:
         type:
           examples:
             - http
+          minLength: 1
           type: string
       required:
         - type
@@ -1249,6 +1263,7 @@ components:
         auth:
           type: boolean
         host:
+          minLength: 1
           type: string
         password:
           type: string
@@ -1258,6 +1273,14 @@ components:
           minimum: 1
           type: integer
         protocol:
+          enum:
+            - http
+            - https
+            - socks
+            - socks4
+            - socks5
+            - socks5h
+          minLength: 1
           type: string
         username:
           type: string
@@ -1322,6 +1345,14 @@ components:
             - integer
             - "null"
         protocol:
+          enum:
+            - http
+            - https
+            - socks
+            - socks4
+            - socks5
+            - socks5h
+            - null
           type:
             - string
             - "null"
@@ -1334,6 +1365,12 @@ components:
       additionalProperties: true
       properties:
         type:
+          enum:
+            - string
+            - int
+            - bool
+            - json
+          minLength: 1
           type: string
         value:
           type: string
@@ -1757,6 +1794,7 @@ components:
         color:
           examples:
             - "#3B82F6"
+          minLength: 1
           pattern: ^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$
           type: string
         description:
@@ -6069,4 +6107,3 @@ paths:
 security: []
 servers:
   - url: /
-

@@ -323,7 +323,7 @@ export type MonitorCreateUpdateDto = {
   interval: number;
   max_retries?: number;
   name: string;
-  notification_ids: Array<string> | null;
+  notification_ids: Array<string>;
   proxy_id?: string;
   push_token?: string;
   resend_interval?: number;
@@ -336,7 +336,7 @@ export type MonitorCreateUpdateDto = {
     | boolean
     | string
     | number
-    | (Array<string> | null)
+    | Array<string>
     | (Array<string> | null)
     | undefined;
 };
@@ -482,9 +482,15 @@ export type ProxyCreateUpdateDto = {
   host: string;
   password?: string;
   port: number;
-  protocol: string;
+  protocol: "http" | "https" | "socks" | "socks4" | "socks5" | "socks5h";
   username?: string;
-  [key: string]: unknown | boolean | string | number | undefined;
+  [key: string]:
+    | unknown
+    | boolean
+    | string
+    | number
+    | ("http" | "https" | "socks" | "socks4" | "socks5" | "socks5h")
+    | undefined;
 };
 
 export type ProxyModel = {
@@ -504,7 +510,14 @@ export type ProxyPartialUpdateDto = {
   host?: string | null;
   password?: string | null;
   port?: number | null;
-  protocol?: string | null;
+  protocol?:
+    | "http"
+    | "https"
+    | "socks"
+    | "socks4"
+    | "socks5"
+    | "socks5h"
+    | null;
   username?: string | null;
   [key: string]:
     | unknown
@@ -512,15 +525,19 @@ export type ProxyPartialUpdateDto = {
     | (string | null)
     | (string | null)
     | (number | null)
-    | (string | null)
+    | ("http" | "https" | "socks" | "socks4" | "socks5" | "socks5h" | null)
     | (string | null)
     | undefined;
 };
 
 export type SettingCreateUpdateDto = {
-  type: string;
+  type: "string" | "int" | "bool" | "json";
   value?: string;
-  [key: string]: unknown | string | undefined;
+  [key: string]:
+    | unknown
+    | ("string" | "int" | "bool" | "json")
+    | string
+    | undefined;
 };
 
 export type SharedCertificateInfo = {

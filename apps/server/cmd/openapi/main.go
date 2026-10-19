@@ -2,6 +2,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -27,7 +28,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-	if _, err := os.Stdout.Write(append(data, '\n')); err != nil {
+	if _, err := os.Stdout.Write(append(bytes.TrimRight(data, "\n"), '\n')); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}

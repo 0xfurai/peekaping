@@ -256,6 +256,9 @@ func normalizeRequest(registry huma.Registry, t reflect.Type) {
 		rules := strings.Split(f.Tag.Get("validate"), ",")
 		optional, required := false, false
 		for _, rule := range rules {
+			if rule == "dive" {
+				break
+			}
 			if rule == "omitempty" {
 				optional = true
 			}
@@ -263,14 +266,32 @@ func normalizeRequest(registry huma.Registry, t reflect.Type) {
 				required = true
 			}
 		}
-		kind := f.Type.Kind()
-		for kind == reflect.Pointer {
-			kind = f.Type.Elem().Kind()
-			break
+		valueType := f.Type
+		for valueType.Kind() == reflect.Pointer {
+			valueType = valueType.Elem()
 		}
+		kind := valueType.Kind()
+		diving := false
 		for _, rule := range rules {
 			key, value, _ := strings.Cut(rule, "=")
 			switch key {
+			case "dive":
+				if property.Items != nil && (kind == reflect.Slice || kind == reflect.Array) {
+					property = property.Items
+					valueType = valueType.Elem()
+					for valueType.Kind() == reflect.Pointer {
+						valueType = valueType.Elem()
+					}
+					kind, diving = valueType.Kind(), true
+				}
+			case "oneof":
+				property.Enum = nil
+				for _, choice := range strings.Fields(value) {
+					property.Enum = append(property.Enum, choice)
+				}
+				if property.Nullable {
+					property.Enum = append(property.Enum, nil)
+				}
 			case "email":
 				property.Format = "email"
 			case "hexcolor":
@@ -280,7 +301,7 @@ func normalizeRequest(registry huma.Registry, t reflect.Type) {
 				if err != nil {
 					continue
 				}
-				if key == "min" && limit > 0 && !optional {
+				if key == "min" && limit > 0 && !optional && !diving {
 					required = true
 				}
 				if kind == reflect.String {
@@ -309,6 +330,16 @@ func normalizeRequest(registry huma.Registry, t reflect.Type) {
 		}
 		if required {
 			schema.Required = append(schema.Required, name)
+			// Validator's required rejects nil slices and empty value strings,
+			// but permits allocated empty slices and non-nil string pointers.
+			parent := schema.Properties[name]
+			if f.Type.Kind() == reflect.Slice {
+				parent.Nullable = false
+			}
+			if f.Type.Kind() == reflect.String && (parent.MinLength == nil || *parent.MinLength < 1) {
+				minimum := 1
+				parent.MinLength = &minimum
+			}
 		}
 	}
 }

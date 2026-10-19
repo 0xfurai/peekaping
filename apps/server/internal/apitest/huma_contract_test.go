@@ -224,3 +224,75 @@ func TestOpenAPI_ResponsesMatchSchemas(t *testing.T) {
 	require.NoError(t, err)
 	check(t, "POST", "/api/v1/auth/login", "application/json", w)
 }
+
+func TestOpenAPI_WeekdayItemsMatchValidation(t *testing.T) {
+	a := newAppWithAdmin(t)
+	doc, err := jsonschema.UnmarshalJSON(a.request(t, "GET", "/openapi.json", nil).Body)
+	require.NoError(t, err)
+	compiler := jsonschema.NewCompiler()
+	compiler.DefaultDraft(jsonschema.Draft2020)
+	require.NoError(t, compiler.AddResource("https://peekaping.test/openapi.json", doc))
+	for _, dto := range []string{"CreateUpdateDto", "PartialUpdateDto"} {
+		schema, err := compiler.Compile("https://peekaping.test/openapi.json#/components/schemas/maintenance." + dto)
+		require.NoError(t, err)
+		body := weeklyMaintenanceBody("Every day", "09:00", "17:00")
+		body["weekdays"] = []int{0, 1, 2, 3, 4, 5, 6}
+		encoded, err := json.Marshal(body)
+		require.NoError(t, err)
+		value, err := jsonschema.UnmarshalJSON(strings.NewReader(string(encoded)))
+		require.NoError(t, err)
+		assert.NoError(t, schema.Validate(value), dto+" accepts all seven weekdays")
+		body["weekdays"] = []int{7}
+		encoded, err = json.Marshal(body)
+		require.NoError(t, err)
+		value, err = jsonschema.UnmarshalJSON(strings.NewReader(string(encoded)))
+		require.NoError(t, err)
+		assert.Error(t, schema.Validate(value), dto+" rejects weekday 7")
+	}
+	body := weeklyMaintenanceBody("Every day", "09:00", "17:00")
+	body["weekdays"] = []int{0, 1, 2, 3, 4, 5, 6}
+	w := a.request(t, "POST", "/api/v1/maintenances", body, a.asAdmin)
+	require.Equal(t, 201, w.Code, w.Body.String())
+	body["weekdays"] = []int{7}
+	assert.Equal(t, 400, a.request(t, "POST", "/api/v1/maintenances", body, a.asAdmin).Code)
+}
+
+func TestOpenAPI_RequiredValuesMatchValidation(t *testing.T) {
+	a := newAppWithAdmin(t)
+	doc, err := jsonschema.UnmarshalJSON(a.request(t, "GET", "/openapi.json", nil).Body)
+	require.NoError(t, err)
+	compiler := jsonschema.NewCompiler()
+	compiler.DefaultDraft(jsonschema.Draft2020)
+	require.NoError(t, compiler.AddResource("https://peekaping.test/openapi.json", doc))
+	for _, tc := range []struct {
+		name, dto, path, field string
+		body                   map[string]any
+		invalid                any
+	}{
+		{"required list", "monitor.CreateUpdateDto", "/api/v1/monitors", "notification_ids", pushMonitorBody("Required list", "required-list"), nil},
+		{"required string", "proxy.CreateUpdateDto", "/api/v1/proxies", "host", proxyBody("required.example"), ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			schema, err := compiler.Compile("https://peekaping.test/openapi.json#/components/schemas/" + tc.dto)
+			require.NoError(t, err)
+			check := func(valid bool) {
+				t.Helper()
+				encoded, err := json.Marshal(tc.body)
+				require.NoError(t, err)
+				value, err := jsonschema.UnmarshalJSON(strings.NewReader(string(encoded)))
+				require.NoError(t, err)
+				w := a.request(t, "POST", tc.path, tc.body, a.asAdmin)
+				if valid {
+					assert.NoError(t, schema.Validate(value))
+					assert.Equal(t, 201, w.Code, w.Body.String())
+				} else {
+					assert.Error(t, schema.Validate(value))
+					assert.Equal(t, 400, w.Code, w.Body.String())
+				}
+			}
+			check(true)
+			tc.body[tc.field] = tc.invalid
+			check(false)
+		})
+	}
+}
