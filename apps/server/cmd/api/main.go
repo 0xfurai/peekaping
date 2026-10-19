@@ -13,6 +13,7 @@ import (
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/heartbeat"
+	"peekaping/internal/modules/metrics"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/notification_channel"
@@ -108,6 +109,18 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// Start the Prometheus metrics collector
+	metricsCtx, stopMetrics := context.WithCancel(context.Background())
+	defer stopMetrics()
+	if internalCfg.MetricsEnabled {
+		err = container.Invoke(func(collector *metrics.Collector, eventBus events.EventBus) {
+			collector.Start(metricsCtx, eventBus)
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
 	// Start the server with graceful shutdown
 	err = container.Invoke(func(
 		server *internal.Server,
@@ -138,6 +151,7 @@ func main() {
 		// Wait for shutdown signal
 		<-sigChan
 		logger.Info("Shutdown signal received, starting graceful shutdown...")
+		stopMetrics()
 		// Close event bus
 		if err := eventBus.Close(); err != nil {
 			logger.Errorw("Failed to close event bus", "error", err)

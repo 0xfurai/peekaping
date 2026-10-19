@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- feat: the API serves Prometheus metrics at `/metrics` on its own port when `METRICS_ENABLED=true` (off by default). Each active monitor has `peekaping_monitor_status` (0 Down, 1 Up, 2 Pending, 3 Maintenance), `peekaping_monitor_last_heartbeat_timestamp_seconds`, and `peekaping_monitor_response_seconds` while it is Up, labelled with the monitor's ID, name and type; a paused or deleted monitor has none. The endpoint needs no credentials and lists monitor names, so scrape it over a private network; the gateway doesn't forward it. See [Prometheus Metrics](apps/docs/docs/architecture/api-server.md#prometheus-metrics) (#267, #277) (thanks @SiteRelEnby)
+
 ### Changed
 
 - feat: new installs keep heartbeats for 180 days instead of 365. An install counts as new when the API starts with no admin and no heartbeats yet. Upgrading changes nothing: an install that never saved a data retention period keeps 365 days, and a saved period stays as it is. Charts and uptime % come from stats, so only the recent heartbeats list and a monitor's event history reach back less far on new installs

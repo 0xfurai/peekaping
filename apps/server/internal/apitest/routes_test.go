@@ -17,6 +17,7 @@ var publicRoutes = map[string]string{
 	"GET /openapi-3.0.yaml":       "OpenAPI 3.0 spec",
 	"GET /docs":                   "API reference",
 	"GET /health":                 "server liveness",
+	"GET /metrics":                "Prometheus scrape target, served only when METRICS_ENABLED is set",
 	"GET /api/v1/health":          "server liveness",
 	"GET /api/v1/version":         "server version",
 	"GET /swagger/{any...}":       "API docs",
@@ -76,7 +77,7 @@ func (a *app) routes() []route {
 
 func TestRouteTable_AllowlistsOnlyRegisteredRoutes(t *testing.T) {
 	registered := map[string]bool{}
-	for _, r := range newApp(t).routes() {
+	for _, r := range newApp(t, withMetrics).routes() {
 		registered[r.key()] = true
 	}
 	for key := range publicRoutes {
@@ -89,7 +90,7 @@ func TestRouteTable_AllowlistsOnlyRegisteredRoutes(t *testing.T) {
 }
 
 func TestRouteTable_ProtectedRoutesRequireCredentials(t *testing.T) {
-	a := newAppWithAdmin(t)
+	a := newAppWithAdmin(t, withMetrics)
 	invalid := map[string]credentials{
 		"no credentials": func(*http.Request) {},
 		"invalid JWT":    func(req *http.Request) { req.Header.Set("Authorization", "Bearer not-a-token") },
@@ -113,7 +114,7 @@ func TestRouteTable_ProtectedRoutesRequireCredentials(t *testing.T) {
 }
 
 func TestRouteTable_APIKeysReachOnlySharedRoutes(t *testing.T) {
-	a := newAppWithAdmin(t)
+	a := newAppWithAdmin(t, withMetrics)
 	for _, r := range a.routes() {
 		if _, public := publicRoutes[r.key()]; public {
 			continue

@@ -21,6 +21,8 @@ config:
     # DB_PORT: "5432"
     # REDIS_HOST: "peekaping-redis-master.peekaping.svc.cluster.local"
     # REDIS_PORT: "6379"
+    # Serve the unauthenticated Prometheus /metrics endpoint on the API port (off by default).
+    # METRICS_ENABLED: "true"
 
 api:
   replicaCount: 3
