@@ -170,6 +170,16 @@ func (unreadableSettings) GetByKey(context.Context, string) (*setting.Model, err
 	return nil, errors.New("database is locked")
 }
 
+func TestInitDataRetentionPeriodStoresNothingWhenItCantReadThePeriod(t *testing.T) {
+	in := newInstall(t)
+	core, logs := observer.New(zap.InfoLevel)
+
+	initDataRetentionPeriod(in.heartbeats, unreadableSettings{in.settings}, zap.New(core).Sugar())
+
+	assert.Equal(t, "", in.storedPeriod(t))
+	require.Len(t, logs.FilterLevelExact(zap.ErrorLevel).All(), 1)
+}
+
 func TestCleanupHeartbeatsSkipsAnUnusablePeriod(t *testing.T) {
 	for name, value := range map[string]string{
 		"zero":        "0",
