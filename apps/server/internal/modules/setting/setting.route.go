@@ -1,9 +1,8 @@
 package setting
 
 import (
+	"peekaping/internal/httpx"
 	"peekaping/internal/modules/middleware"
-
-	"github.com/gin-gonic/gin"
 )
 
 type Route struct {
@@ -21,14 +20,14 @@ func NewRoute(
 }
 
 func (uc *Route) ConnectRoute(
-	rg *gin.RouterGroup,
+	rg *httpx.Router,
 	controller *Controller,
 ) {
 	router := rg.Group("/settings")
 
 	router.Use(uc.middleware.AllAuth())
 
-	router.GET("key/:key", uc.controller.GetByKey)
-	router.PUT("key/:key", uc.controller.SetByKey)
-	router.DELETE("key/:key", uc.controller.DeleteByKey)
+	router.Handle("GET", "key/{key}", uc.controller.GetByKey)
+	router.Handle("PUT", "key/{key}", uc.controller.SetByKey)
+	router.Handle("DELETE", "key/{key}", uc.controller.DeleteByKey)
 }

@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"peekaping/internal/httpx"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/shared"
 
-	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -26,11 +26,11 @@ type caller struct {
 // middleware to a handler, and returns the response and what the handler saw.
 func serve(h *harness, authorization string) (*httptest.ResponseRecorder, caller) {
 	var seen caller
-	router := gin.New()
-	router.GET("/protected", auth.NewMiddlewareProvider(h.tokens).Auth(), func(c *gin.Context) {
-		seen = caller{true, c.Value("userId"), c.Value("email"), c.Value("authType")}
-		c.Status(http.StatusOK)
-	})
+	router := httpx.NewRouter()
+	router.Handle("GET", "/protected", func(w http.ResponseWriter, r *http.Request) {
+		seen = caller{true, httpx.Value(r.Context(), "userId"), httpx.Value(r.Context(), "email"), httpx.Value(r.Context(), "authType")}
+		w.WriteHeader(http.StatusOK)
+	}, auth.NewMiddlewareProvider(h.tokens).Auth())
 	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
 	if authorization != "" {
 		req.Header.Set("Authorization", authorization)

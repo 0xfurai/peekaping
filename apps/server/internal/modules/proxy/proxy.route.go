@@ -1,9 +1,8 @@
 package proxy
 
 import (
+	"peekaping/internal/httpx"
 	"peekaping/internal/modules/middleware"
-
-	"github.com/gin-gonic/gin"
 )
 
 type Route struct {
@@ -22,16 +21,16 @@ func NewRoute(
 }
 
 func (uc *Route) ConnectRoute(
-	rg *gin.RouterGroup,
+	rg *httpx.Router,
 	controller *Controller,
 ) {
 	router := rg.Group("proxies")
 
 	router.Use(uc.middleware.AllAuth())
-	router.GET("", uc.controller.FindAll)
-	router.POST("", uc.controller.Create)
-	router.GET(":id", uc.controller.FindByID)
-	router.PUT(":id", uc.controller.UpdateFull)
-	router.PATCH(":id", uc.controller.UpdatePartial)
-	router.DELETE(":id", uc.controller.Delete)
+	router.Handle("GET", "", uc.controller.FindAll)
+	router.Handle("POST", "", uc.controller.Create)
+	router.Handle("GET", "{id}", uc.controller.FindByID)
+	router.Handle("PUT", "{id}", uc.controller.UpdateFull)
+	router.Handle("PATCH", "{id}", uc.controller.UpdatePartial)
+	router.Handle("DELETE", "{id}", uc.controller.Delete)
 }
