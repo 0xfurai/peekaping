@@ -53,7 +53,7 @@ func (ic *Controller) GetByKey(w http.ResponseWriter, r *http.Request) {
 
 // @Router	/settings/key/{key} [put]
 // @Summary	Set setting by key
-// @Description	Only KEEP_DATA_PERIOD_DAYS can be set. Every other key returns 404.
+// @Description	Only KEEP_DATA_PERIOD_DAYS can be set, with type int and a whole number of days from 1 to 36500. Every other key returns 404.
 // @Tags		Settings
 // @Produce	json
 // @Accept	json
@@ -86,6 +86,10 @@ func (ic *Controller) SetByKey(w http.ResponseWriter, r *http.Request) {
 	updated, err := ic.service.SetByKey(ctx, key, &Model{Value: entity.Value, Type: entity.Type})
 	if errors.Is(err, ErrSettingNotFound) {
 		httpx.JSON(w, http.StatusNotFound, utils.NewFailResponse("Setting not found"))
+		return
+	}
+	if errors.Is(err, ErrInvalidValue) {
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		return
 	}
 	if err != nil {

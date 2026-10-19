@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/notification_sent_history"
@@ -15,16 +16,69 @@ import (
 	"go.uber.org/zap"
 )
 
-func cleanupHeartbeats(heartbeatService heartbeat.Service, settingService setting.Service, logger *zap.SugaredLogger) {
-	keepDays := 365 // default fallback
-	settingModel, err := settingService.GetByKey(context.Background(), "KEEP_DATA_PERIOD_DAYS")
+// unsetDataRetentionDays is the data retention period of an install that never
+// stored one. It was the default for every install before newInstallDataRetentionDays,
+// so upgrading keeps their heartbeats as long as before.
+const unsetDataRetentionDays = 365
+
+// newInstallDataRetentionDays is the data retention period a new install starts with.
+const newInstallDataRetentionDays = 180
+
+// initDataRetentionPeriod stores newInstallDataRetentionDays when no period is
+// stored and the install has neither an admin nor a heartbeat yet, which is
+// only true before its first setup. An install set up before that default, even
+// one whose heartbeats were all deleted since, keeps unsetDataRetentionDays.
+func initDataRetentionPeriod(heartbeatService heartbeat.Service, userRepository auth.Repository, settingService setting.Service, logger *zap.SugaredLogger) {
+	ctx := context.Background()
+	stored, err := settingService.GetByKey(ctx, setting.DataRetentionPeriodKey)
 	if err != nil {
-		logger.Errorw("Failed to fetch KEEP_DATA_PERIOD_DAYS setting", "error", err)
-	} else if settingModel != nil {
-		if v, err := strconv.Atoi(settingModel.Value); err == nil {
-			keepDays = v
-		} else {
-			logger.Errorw("Invalid KEEP_DATA_PERIOD_DAYS value", "value", settingModel.Value, "error", err)
+		logger.Errorw("Failed to read the data retention period", "error", err)
+		return
+	}
+	if stored != nil {
+		return
+	}
+	users, err := userRepository.FindAllCount(ctx)
+	if err != nil {
+		logger.Errorw("Failed to count users, not storing a data retention period", "error", err)
+		return
+	}
+	if users > 0 {
+		return
+	}
+	hasHeartbeats, err := heartbeatService.HasAny(ctx)
+	if err != nil {
+		logger.Errorw("Failed to check for heartbeats, not storing a data retention period", "error", err)
+		return
+	}
+	if hasHeartbeats {
+		return
+	}
+	_, err = settingService.SetByKey(ctx, setting.DataRetentionPeriodKey, &setting.Model{
+		Value: strconv.Itoa(newInstallDataRetentionDays),
+		Type:  "int",
+	})
+	if err != nil {
+		logger.Errorw("Failed to store the data retention period", "error", err)
+		return
+	}
+	logger.Infow("Stored the data retention period for a new install", "days", newInstallDataRetentionDays)
+}
+
+func cleanupHeartbeats(heartbeatService heartbeat.Service, settingService setting.Service, logger *zap.SugaredLogger) {
+	keepDays := unsetDataRetentionDays
+	settingModel, err := settingService.GetByKey(context.Background(), setting.DataRetentionPeriodKey)
+	if err != nil {
+		logger.Errorw("Failed to fetch KEEP_DATA_PERIOD_DAYS setting, not deleting heartbeats", "error", err)
+		return
+	}
+	if settingModel != nil {
+		keepDays, err = setting.ParseDataRetentionPeriod(settingModel.Value)
+		if err != nil {
+			// A value stored before the settings API checked it. Falling back to
+			// a default could delete heartbeats the user meant to keep.
+			logger.Errorw("Invalid KEEP_DATA_PERIOD_DAYS value, not deleting heartbeats", "value", settingModel.Value, "error", err)
+			return
 		}
 	}
 	cutoff := time.Now().UTC().AddDate(0, 0, -keepDays)
@@ -76,12 +130,15 @@ func cleanupMonitorTLSInfo(tlsInfoService monitor_tls_info.Service, logger *zap.
 // StartCleanupCron starts the general cleanup cron job(s).
 func StartCleanupCron(
 	heartbeatService heartbeat.Service,
+	userRepository auth.Repository,
 	settingService setting.Service,
 	statsService stats.Service,
 	notificationHistoryService notification_sent_history.Service,
 	tlsInfoService monitor_tls_info.Service,
 	logger *zap.SugaredLogger,
 ) {
+	initDataRetentionPeriod(heartbeatService, userRepository, settingService, logger)
+
 	c := cron.New()
 
 	c.AddFunc("0 * * * *", func() {

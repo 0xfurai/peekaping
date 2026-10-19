@@ -7,21 +7,49 @@ import (
 	"errors"
 	"fmt"
 	"peekaping/internal/modules/shared"
+	"strconv"
 
 	"go.uber.org/zap"
 )
 
 type Service = shared.SettingService
 
+// DataRetentionPeriodKey holds the data retention period: how many days
+// heartbeats are kept.
+const DataRetentionPeriodKey = "KEEP_DATA_PERIOD_DAYS"
+
+// The data retention periods the settings API accepts. Zero or less would
+// delete every heartbeat, and so would a period so long that the cutoff date
+// overflows into the future.
+const (
+	MinDataRetentionDays = 1
+	MaxDataRetentionDays = 36500
+)
+
 // userEditableKeys are the only settings the settings API can reach. Every
 // other key, such as the JWT signing secrets, is internal to the server.
 var userEditableKeys = map[string]bool{
-	"KEEP_DATA_PERIOD_DAYS": true,
+	DataRetentionPeriodKey: true,
 }
 
 // ErrSettingNotFound is returned when the settings API asks to change or
 // delete a key that isn't user-editable.
 var ErrSettingNotFound = errors.New("setting not found")
+
+// ErrInvalidValue is returned when the settings API asks to store a value its
+// key can't hold.
+var ErrInvalidValue = errors.New("invalid setting value")
+
+// ParseDataRetentionPeriod returns the days a data retention period value holds,
+// or ErrInvalidValue if it isn't a whole number from MinDataRetentionDays to
+// MaxDataRetentionDays.
+func ParseDataRetentionPeriod(value string) (int, error) {
+	days, err := strconv.Atoi(value)
+	if err != nil || days < MinDataRetentionDays || days > MaxDataRetentionDays {
+		return 0, fmt.Errorf("%w: %s must be a whole number of days from %d to %d", ErrInvalidValue, DataRetentionPeriodKey, MinDataRetentionDays, MaxDataRetentionDays)
+	}
+	return days, nil
+}
 
 // APIService is the settings service as the settings API sees it: keys that
 // aren't user-editable behave as if they don't exist.
@@ -55,6 +83,14 @@ func (s *APIServiceImpl) GetByKey(ctx context.Context, key string) (*Model, erro
 func (s *APIServiceImpl) SetByKey(ctx context.Context, key string, entity *Model) (*Model, error) {
 	if !userEditableKeys[key] {
 		return nil, ErrSettingNotFound
+	}
+	if key == DataRetentionPeriodKey {
+		if entity.Type != "int" {
+			return nil, fmt.Errorf("%w: %s must have type int", ErrInvalidValue, key)
+		}
+		if _, err := ParseDataRetentionPeriod(entity.Value); err != nil {
+			return nil, err
+		}
 	}
 	return s.service.SetByKey(ctx, key, entity)
 }

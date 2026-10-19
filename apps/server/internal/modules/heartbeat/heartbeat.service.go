@@ -18,6 +18,7 @@ type Service interface {
 	DeleteOlderThan(ctx context.Context, cutoff time.Time) (int64, error)
 	FindByMonitorIDPaginated(ctx context.Context, monitorID string, limit, page int, important *bool, reverse bool) ([]*Model, error)
 	DeleteByMonitorID(ctx context.Context, monitorID string) error
+	HasAny(ctx context.Context) (bool, error)
 }
 
 type ServiceImpl struct {
@@ -101,4 +102,8 @@ func (mr *ServiceImpl) FindByMonitorIDPaginated(ctx context.Context, monitorID s
 
 func (mr *ServiceImpl) DeleteByMonitorID(ctx context.Context, monitorID string) error {
 	return mr.repository.DeleteByMonitorID(ctx, monitorID)
+}
+
+func (mr *ServiceImpl) HasAny(ctx context.Context) (bool, error) {
+	return mr.repository.HasAny(ctx)
 }
