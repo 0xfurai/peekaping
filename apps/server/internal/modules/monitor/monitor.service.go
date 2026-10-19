@@ -2,6 +2,7 @@ package monitor
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/healthcheck/executor"
@@ -37,7 +38,11 @@ type Service interface {
 
 	FindOneByPushToken(ctx context.Context, pushToken string) (*Model, error)
 	ResetMonitorData(ctx context.Context, id string) error
+	RepairStoredStatuses(ctx context.Context) (int, error)
 }
+
+// StatusRepairPageSize is how many monitors RepairStoredStatuses reads at a time.
+const StatusRepairPageSize = 100
 
 type StatPoint struct {
 	Up          int     `json:"up"`
@@ -398,4 +403,62 @@ func (mr *MonitorServiceImpl) ResetMonitorData(ctx context.Context, id string) e
 	}
 
 	return nil
+}
+
+// RepairStoredStatuses gives every monitor, paused ones too, the status of its latest heartbeat,
+// and returns how many it changed. A monitor without heartbeats is left alone. A monitor that
+// fails is logged and skipped, and the errors come back joined. A cancelled ctx ends the sweep
+// at once with ctx.Err() among them.
+func (mr *MonitorServiceImpl) RepairStoredStatuses(ctx context.Context) (int, error) {
+	repaired := 0
+	var failures []error
+
+	for page := 0; ; page++ {
+		if err := ctx.Err(); err != nil {
+			return repaired, errors.Join(append(failures, err)...)
+		}
+		monitors, err := mr.monitorRepository.FindAll(ctx, page, StatusRepairPageSize, "", nil, nil, nil)
+		if err != nil {
+			mr.logger.Errorw("Failed to list monitors to repair their status", "page", page, "error", err)
+			return repaired, errors.Join(append(failures, fmt.Errorf("list monitors, page %d: %w", page, err))...)
+		}
+
+		for _, m := range monitors {
+			if err := ctx.Err(); err != nil {
+				return repaired, errors.Join(append(failures, err)...)
+			}
+			changed, err := mr.repairStoredStatus(ctx, m)
+			if err != nil {
+				mr.logger.Errorw("Failed to repair monitor status", "monitorID", m.ID, "error", err)
+				failures = append(failures, fmt.Errorf("monitor %s: %w", m.ID, err))
+				continue
+			}
+			if changed {
+				repaired++
+			}
+		}
+
+		if len(monitors) < StatusRepairPageSize {
+			return repaired, errors.Join(failures...)
+		}
+	}
+}
+
+// repairStoredStatus stores the status of the monitor's latest heartbeat when it differs. It writes
+// through the repository so no event is published: the monitor did not just change status.
+func (mr *MonitorServiceImpl) repairStoredStatus(ctx context.Context, m *Model) (bool, error) {
+	latest, err := mr.heartbeatService.FindByMonitorIDPaginated(ctx, m.ID, 1, 0, nil, false)
+	if err != nil {
+		return false, err
+	}
+	if len(latest) == 0 || latest[0].Status == m.Status {
+		return false, nil
+	}
+
+	status := latest[0].Status
+	if err := mr.monitorRepository.UpdatePartial(ctx, m.ID, &UpdateModel{ID: &m.ID, Status: &status}); err != nil {
+		return false, err
+	}
+	mr.logger.Infow("Repaired monitor status", "monitorID", m.ID, "from", m.Status, "to", status)
+	return true, nil
 }

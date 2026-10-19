@@ -1305,3 +1305,96 @@ func TestNewMonitorService(t *testing.T) {
 	assert.Equal(t, mockStatsService, serviceImpl.statPointsService)
 	assert.NotNil(t, serviceImpl.logger)
 }
+
+func TestMonitorService_RepairStoredStatuses(t *testing.T) {
+	ctx := context.Background()
+	unset, noStatus, noTags := (*bool)(nil), (*int)(nil), []string(nil)
+
+	t.Run("a monitor that fails does not stop the others", func(t *testing.T) {
+		service, mockRepo, mockHeartbeatService, _, _, _, _, _ := setupMonitorService()
+		mockRepo.On("FindAll", ctx, 0, StatusRepairPageSize, "", unset, noStatus, noTags).Return([]*Model{
+			{ID: "unreadable", Status: shared.MonitorStatusUp},
+			{ID: "unwritable", Status: shared.MonitorStatusUp},
+			{ID: "stale", Status: shared.MonitorStatusUp},
+		}, nil)
+		mockHeartbeatService.On("FindByMonitorIDPaginated", ctx, "unreadable", 1, 0, unset, false).Return([]*heartbeat.Model(nil), errors.New("heartbeats unavailable"))
+		mockHeartbeatService.On("FindByMonitorIDPaginated", ctx, "unwritable", 1, 0, unset, false).Return([]*heartbeat.Model{{Status: shared.MonitorStatusDown}}, nil)
+		mockHeartbeatService.On("FindByMonitorIDPaginated", ctx, "stale", 1, 0, unset, false).Return([]*heartbeat.Model{{Status: shared.MonitorStatusDown}}, nil)
+		isDown := mock.MatchedBy(func(m *UpdateModel) bool { return *m.Status == shared.MonitorStatusDown })
+		mockRepo.On("UpdatePartial", ctx, "unwritable", isDown).Return(errors.New("database is read-only"))
+		mockRepo.On("UpdatePartial", ctx, "stale", isDown).Return(nil)
+
+		repaired, err := service.RepairStoredStatuses(ctx)
+
+		assert.Equal(t, 1, repaired)
+		require.Error(t, err)
+		assert.ErrorContains(t, err, "heartbeats unavailable")
+		assert.ErrorContains(t, err, "database is read-only")
+		mockRepo.AssertExpectations(t)
+		mockHeartbeatService.AssertExpectations(t)
+	})
+
+	t.Run("a failed listing ends the walk with the count so far", func(t *testing.T) {
+		service, mockRepo, mockHeartbeatService, _, _, _, _, _ := setupMonitorService()
+		fullPage := []*Model{{ID: "stale", Status: shared.MonitorStatusUp}}
+		for len(fullPage) < StatusRepairPageSize {
+			fullPage = append(fullPage, &Model{ID: "silent", Status: shared.MonitorStatusUp})
+		}
+		mockRepo.On("FindAll", ctx, 0, StatusRepairPageSize, "", unset, noStatus, noTags).Return(fullPage, nil)
+		mockRepo.On("FindAll", ctx, 1, StatusRepairPageSize, "", unset, noStatus, noTags).Return([]*Model(nil), errors.New("connection lost"))
+		mockHeartbeatService.On("FindByMonitorIDPaginated", ctx, "stale", 1, 0, unset, false).Return([]*heartbeat.Model{{Status: shared.MonitorStatusDown}}, nil)
+		mockHeartbeatService.On("FindByMonitorIDPaginated", ctx, "silent", 1, 0, unset, false).Return([]*heartbeat.Model(nil), nil)
+		mockRepo.On("UpdatePartial", ctx, "stale", mock.Anything).Return(nil)
+
+		repaired, err := service.RepairStoredStatuses(ctx)
+
+		assert.Equal(t, 1, repaired)
+		assert.ErrorContains(t, err, "connection lost")
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("a cancelled context ends the sweep with the count so far", func(t *testing.T) {
+		service, mockRepo, mockHeartbeatService, _, _, _, _, _ := setupMonitorService()
+		mockRepo.Test(t)
+		mockHeartbeatService.Test(t)
+		cancelled, cancel := context.WithCancel(ctx)
+		defer cancel()
+		// "after" has no expectations, so reading or writing it fails the test
+		mockRepo.On("FindAll", cancelled, 0, StatusRepairPageSize, "", unset, noStatus, noTags).Return([]*Model{
+			{ID: "stale", Status: shared.MonitorStatusUp},
+			{ID: "after", Status: shared.MonitorStatusUp},
+		}, nil)
+		mockHeartbeatService.On("FindByMonitorIDPaginated", cancelled, "stale", 1, 0, unset, false).Return([]*heartbeat.Model{{Status: shared.MonitorStatusDown}}, nil)
+		mockRepo.On("UpdatePartial", cancelled, "stale", mock.Anything).Run(func(mock.Arguments) { cancel() }).Return(nil)
+
+		repaired, err := service.RepairStoredStatuses(cancelled)
+
+		assert.Equal(t, 1, repaired)
+		assert.ErrorIs(t, err, context.Canceled)
+		mockRepo.AssertExpectations(t)
+		mockHeartbeatService.AssertExpectations(t)
+	})
+
+	t.Run("a cancelled context does not list the next page", func(t *testing.T) {
+		service, mockRepo, mockHeartbeatService, _, _, _, _, _ := setupMonitorService()
+		mockRepo.Test(t)
+		mockHeartbeatService.Test(t)
+		cancelled, cancel := context.WithCancel(ctx)
+		defer cancel()
+		fullPage := []*Model{}
+		for len(fullPage) < StatusRepairPageSize-1 {
+			fullPage = append(fullPage, &Model{ID: "silent", Status: shared.MonitorStatusUp})
+		}
+		fullPage = append(fullPage, &Model{ID: "stale", Status: shared.MonitorStatusUp})
+		mockRepo.On("FindAll", cancelled, 0, StatusRepairPageSize, "", unset, noStatus, noTags).Return(fullPage, nil)
+		mockHeartbeatService.On("FindByMonitorIDPaginated", cancelled, "silent", 1, 0, unset, false).Return([]*heartbeat.Model(nil), nil)
+		mockHeartbeatService.On("FindByMonitorIDPaginated", cancelled, "stale", 1, 0, unset, false).Return([]*heartbeat.Model{{Status: shared.MonitorStatusDown}}, nil)
+		mockRepo.On("UpdatePartial", cancelled, "stale", mock.Anything).Run(func(mock.Arguments) { cancel() }).Return(nil)
+
+		repaired, err := service.RepairStoredStatuses(cancelled)
+
+		assert.Equal(t, 1, repaired)
+		assert.ErrorIs(t, err, context.Canceled)
+		mockRepo.AssertNotCalled(t, "FindAll", cancelled, 1, StatusRepairPageSize, "", unset, noStatus, noTags)
+	})
+}
