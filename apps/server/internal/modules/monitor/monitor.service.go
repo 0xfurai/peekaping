@@ -407,12 +407,16 @@ func (mr *MonitorServiceImpl) ResetMonitorData(ctx context.Context, id string) e
 
 // RepairStoredStatuses gives every monitor, paused ones too, the status of its latest heartbeat,
 // and returns how many it changed. A monitor without heartbeats is left alone. A monitor that
-// fails is logged and skipped, and the errors come back joined.
+// fails is logged and skipped, and the errors come back joined. A cancelled ctx ends the sweep
+// at once with ctx.Err() among them.
 func (mr *MonitorServiceImpl) RepairStoredStatuses(ctx context.Context) (int, error) {
 	repaired := 0
 	var failures []error
 
 	for page := 0; ; page++ {
+		if err := ctx.Err(); err != nil {
+			return repaired, errors.Join(append(failures, err)...)
+		}
 		monitors, err := mr.monitorRepository.FindAll(ctx, page, StatusRepairPageSize, "", nil, nil, nil)
 		if err != nil {
 			mr.logger.Errorw("Failed to list monitors to repair their status", "page", page, "error", err)
@@ -420,6 +424,9 @@ func (mr *MonitorServiceImpl) RepairStoredStatuses(ctx context.Context) (int, er
 		}
 
 		for _, m := range monitors {
+			if err := ctx.Err(); err != nil {
+				return repaired, errors.Join(append(failures, err)...)
+			}
 			changed, err := mr.repairStoredStatus(ctx, m)
 			if err != nil {
 				mr.logger.Errorw("Failed to repair monitor status", "monitorID", m.ID, "error", err)

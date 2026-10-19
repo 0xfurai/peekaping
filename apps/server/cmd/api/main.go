@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -110,10 +111,17 @@ func main() {
 	}
 
 	// Repair monitors whose stored status differs from their latest heartbeat. It runs beside
-	// startup and only logs, so a failure never keeps the API from serving.
+	// startup and only logs, so a failure never keeps the API from serving. Shutdown stops it
+	// before the database closes.
+	repairCtx, stopRepair := context.WithCancel(context.Background())
+	defer stopRepair()
 	err = container.Invoke(func(monitorService monitor.Service, logger *zap.SugaredLogger) {
 		go func() {
-			repaired, err := monitorService.RepairStoredStatuses(context.Background())
+			repaired, err := monitorService.RepairStoredStatuses(repairCtx)
+			if errors.Is(err, context.Canceled) {
+				logger.Infow("Stopped repairing monitor statuses on shutdown", "repaired", repaired)
+				return
+			}
 			if err != nil {
 				logger.Errorw("Failed to repair some monitor statuses", "repaired", repaired, "error", err)
 				return
@@ -168,6 +176,7 @@ func main() {
 		<-sigChan
 		logger.Info("Shutdown signal received, starting graceful shutdown...")
 		stopMetrics()
+		stopRepair()
 		// Close event bus
 		if err := eventBus.Close(); err != nil {
 			logger.Errorw("Failed to close event bus", "error", err)
