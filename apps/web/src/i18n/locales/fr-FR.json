@@ -659,6 +659,7 @@
         "down": "Hors ligne",
         "maintenance": "Entretien",
         "paused": "En pause",
+        "pending": "En attente",
         "up": "En ligne"
       }
     },

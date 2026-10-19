@@ -659,6 +659,7 @@
         "down": "Ned",
         "maintenance": "Underhåll",
         "paused": "Pausad",
+        "pending": "Väntar",
         "up": "Upp"
       }
     },
