@@ -659,8 +659,12 @@
         "down": "გათიშულია",
         "maintenance": "რემონტი",
         "paused": "შეჩერებულია",
+        "pending": "მოლოდინში",
         "up": "მუშაობს"
       }
+    },
+    "stale": {
+      "not_checked_since": "არ შემოწმებულა {{time}}-დან"
     }
   },
   "navigation": {

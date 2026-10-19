@@ -98,7 +98,7 @@ func TestRunScheduleRefresher(t *testing.T) {
 	p.scheduleRefreshInterval = 5 * time.Millisecond
 	p.syncCtx, p.syncCancel = context.WithCancel(p.ctx)
 	p.wg.Add(1)
-	go p.runScheduleRefresher()
+	go p.runScheduleRefresher(p.syncCtx)
 	t.Cleanup(p.Stop)
 
 	// A monitor that reached the database without an event shows up on the next refresh
@@ -106,17 +106,8 @@ func TestRunScheduleRefresher(t *testing.T) {
 	e.eventuallyDueAt(t, "mon-new", t0)
 
 	// When syncing stops, the refresher exits while the producer runs on
-	stopped := make(chan struct{})
-	go func() {
-		p.wg.Wait()
-		close(stopped)
-	}()
 	p.syncCancel()
-	select {
-	case <-stopped:
-	case <-time.After(5 * time.Second):
-		t.Fatal("refresher kept running after syncing stopped")
-	}
+	waitForGoroutines(t, &p.wg)
 }
 
 // PP-63: sync pages through active monitors by offset. Pausing a monitor on a

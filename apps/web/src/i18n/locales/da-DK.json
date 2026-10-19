@@ -659,8 +659,12 @@
         "down": "Nede",
         "maintenance": "Vedligeholdelse",
         "paused": "Pause",
+        "pending": "Afventer",
         "up": "Op"
       }
+    },
+    "stale": {
+      "not_checked_since": "Ikke tjekket siden {{time}}"
     }
   },
   "navigation": {

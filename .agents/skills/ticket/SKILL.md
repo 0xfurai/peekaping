@@ -18,6 +18,8 @@ The flow has five steps. Each is its own skill the user can run alone:
 
 `/ticket <target>` runs all five in order. `/ticket <target> from <step>` starts at that step and runs to the end: `from review` after the user implemented it themselves, `from loop` once the PRs are open. Without `from`, when work already exists, start at the first step whose done-when doesn't hold.
 
+Setup marks the ticket In Progress when work on it starts; only the pr step moves it on, to In Review.
+
 Run [SETUP.md](SETUP.md) once. Then for each step, read its skill file, `../ticket-<step>/SKILL.md` next to this skill's folder, and follow it, skipping its setup line and its closing "run alone" line. Move on when its done-when holds.
 
 The plan step's checkpoint is the one place the flow waits for the user, besides a later step that breaks the plan.

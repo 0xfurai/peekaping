@@ -659,8 +659,12 @@
         "down": "Ausfall",
         "maintenance": "Wartung",
         "paused": "Pausiert",
+        "pending": "Ausstehend",
         "up": "Online"
       }
+    },
+    "stale": {
+      "not_checked_since": "Nicht geprüft seit {{time}}"
     }
   },
   "navigation": {

@@ -3,7 +3,7 @@ set -u
 
 # Check that the tools needed to develop Peekaping are installed.
 # Versions come from the files each ecosystem reads on its own, so any installer works:
-# apps/server/go.mod (Go), .nvmrc (Node.js) and the packageManager field in package.json (pnpm).
+# apps/server/go.mod (Go), .nvmrc (Node.js) and the packageManager field in package.json (Bun).
 repo_root=$(CDPATH= cd "$(dirname "$0")/.." && pwd)
 cd "$repo_root"
 
@@ -26,7 +26,7 @@ version_ge() {
 
 go_want=$(sed -n 's/^go \([0-9.]*\)$/\1/p' apps/server/go.mod)
 node_want=$(tr -d ' v\n' < .nvmrc)
-pnpm_want=$(sed -n 's/.*"packageManager": *"pnpm@\([^"]*\)".*/\1/p' package.json)
+bun_want=$(sed -n 's/.*"packageManager": *"bun@\([^"]*\)".*/\1/p' package.json)
 
 echo "Checking development tools..."
 
@@ -52,15 +52,15 @@ else
     ok "Node.js $node_have"
 fi
 
-# Corepack and pnpm 10+ switch to the packageManager version, so this reports the pnpm that will run.
-if ! command -v pnpm >/dev/null 2>&1; then
-    fail "pnpm not found. Run 'corepack enable' (bundled with Node.js 24 and older) or 'npm install -g pnpm'"
-elif ! pnpm_have=$(COREPACK_ENABLE_DOWNLOAD_PROMPT=0 pnpm --version); then
-    fail "pnpm is on PATH but failed to run (see the error above)"
-elif [ "$pnpm_have" != "$pnpm_want" ]; then
-    fail "pnpm $pnpm_have runs here, but package.json pins pnpm $pnpm_want. Run 'corepack enable', or 'npm install -g pnpm' for pnpm 10+, which switches to the pinned version"
+# Bun runs whichever version is installed, so it has to match the packageManager pin.
+if ! command -v bun >/dev/null 2>&1; then
+    fail "Bun not found. Install Bun $bun_want: 'curl -fsSL https://bun.sh/install | bash', 'brew install oven-sh/bun/bun' or 'npm install -g bun@$bun_want' (https://bun.sh/docs/installation)"
+elif ! bun_have=$(bun --version); then
+    fail "Bun is on PATH but failed to run (see the error above)"
+elif [ "$bun_have" != "$bun_want" ]; then
+    fail "Bun $bun_have runs here, but package.json pins Bun $bun_want. Run 'bun upgrade' if yours is older, or install that version: 'npm install -g bun@$bun_want'"
 else
-    ok "pnpm $pnpm_have"
+    ok "Bun $bun_have"
 fi
 
 echo ""

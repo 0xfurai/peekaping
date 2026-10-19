@@ -659,8 +659,12 @@
         "down": "다운",
         "maintenance": "점검",
         "paused": "일시 중지됨",
+        "pending": "대기 중",
         "up": "가동 중"
       }
+    },
+    "stale": {
+      "not_checked_since": "{{time}} 이후 확인되지 않음"
     }
   },
   "navigation": {

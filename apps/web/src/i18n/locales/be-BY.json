@@ -659,8 +659,12 @@
         "down": "Недаступна",
         "maintenance": "Тэхнічнае абслугоўванне",
         "paused": "Прыпынены",
+        "pending": "У чаканні",
         "up": "Даступны"
       }
+    },
+    "stale": {
+      "not_checked_since": "Не правяраўся з {{time}}"
     }
   },
   "navigation": {

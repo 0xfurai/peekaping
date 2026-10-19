@@ -135,7 +135,7 @@ func newEngine(t *testing.T, monitors ...*monitor.Model) *engine {
 
 	store := newMonitorStore(monitors...)
 	p := NewProducer(rdb, queueSvc, store, new(MockProxyService), maintenanceSvc,
-		nil, nil, nil, nil, &config.Config{ProducerConcurrency: 1}, logger)
+		nil, nil, nil, nil, nil, &config.Config{ProducerConcurrency: 1}, logger)
 	p.reclaimInterval = 5 * time.Millisecond
 
 	return &engine{mr: mr, rdb: rdb, inspector: inspector, monitors: store, producer: p}
@@ -147,6 +147,21 @@ func (e *engine) startJobProcessing(t *testing.T) {
 	t.Helper()
 	require.NoError(t, e.producer.startJobProcessing())
 	t.Cleanup(e.producer.Stop)
+}
+
+// waitForGoroutines waits until every goroutine the wait group tracks has exited.
+func waitForGoroutines(t *testing.T, wg *sync.WaitGroup) {
+	t.Helper()
+	stopped := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(stopped)
+	}()
+	select {
+	case <-stopped:
+	case <-time.After(5 * time.Second):
+		t.Fatal("goroutines kept running")
+	}
 }
 
 func (e *engine) addDue(t *testing.T, id string, at time.Time) {

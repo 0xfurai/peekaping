@@ -230,4 +230,23 @@ func exerciseRepositories(t *testing.T, repos repositories) {
 		assert.Equal(t, 7, actual[0].Days)
 		assert.Equal(t, input.MonitorID, actual[0].MonitorID)
 	})
+	// A threshold counts as sent once it or a nearer threshold has been sent,
+	// so a certificate counting down still gets its 14- and 7-day certificate
+	// expiry notifications.
+	t.Run("NotificationHistoryThresholds", func(t *testing.T) {
+		sent := func(days int) bool {
+			t.Helper()
+			ok, err := repos.history.CheckIfSent(ctx, "certificate", repos.replacementID, days)
+			require.NoError(t, err)
+			return ok
+		}
+		require.NoError(t, repos.history.RecordSent(ctx, &notification_sent_history.Model{Type: "certificate", MonitorID: repos.replacementID, Days: 21}))
+		assert.True(t, sent(21), "21 was sent")
+		assert.False(t, sent(14), "14 is still due after 21")
+		assert.False(t, sent(7), "7 is still due after 21")
+
+		require.NoError(t, repos.history.RecordSent(ctx, &notification_sent_history.Model{Type: "certificate", MonitorID: repos.replacementID, Days: 7}))
+		assert.True(t, sent(14), "7 covers the farther 14")
+		assert.True(t, sent(7))
+	})
 }

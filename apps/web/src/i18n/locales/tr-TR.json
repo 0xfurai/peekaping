@@ -659,8 +659,12 @@
         "down": "Çalışmıyor",
         "maintenance": "Bakım",
         "paused": "Duraklatıldı",
+        "pending": "Beklemede",
         "up": "Çalışıyor"
       }
+    },
+    "stale": {
+      "not_checked_since": "{{time}} tarihinden beri kontrol edilmedi"
     }
   },
   "navigation": {

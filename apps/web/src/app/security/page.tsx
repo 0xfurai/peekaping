@@ -35,12 +35,9 @@ const SecurityPage = () => {
       toast.success(
         t("security.enable_2fa.messages.2fa_disabled_successfully")
       );
-      setUser({
-        ...user,
-        email: user?.email || "",
-        id: user?.id || "",
-        twofa_status: false,
-      });
+      if (user) {
+        setUser({ ...user, twofa_status: false });
+      }
       setShowDisable(false);
       setPassword("");
     },

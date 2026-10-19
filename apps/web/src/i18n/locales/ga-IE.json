@@ -659,8 +659,12 @@
         "down": "Síos",
         "maintenance": "Cothromaíocht",
         "paused": "Sosadh",
+        "pending": "Ar feitheamh",
         "up": "Ar Fáil"
       }
+    },
+    "stale": {
+      "not_checked_since": "Gan seiceáil ó {{time}}"
     }
   },
   "navigation": {

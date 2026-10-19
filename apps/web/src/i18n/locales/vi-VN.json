@@ -659,8 +659,12 @@
         "down": "Ngừng",
         "maintenance": "Bảo trì",
         "paused": "Tạm dừng",
+        "pending": "Đang chờ",
         "up": "Hoạt động"
       }
+    },
+    "stale": {
+      "not_checked_since": "Chưa được kiểm tra kể từ {{time}}"
     }
   },
   "navigation": {

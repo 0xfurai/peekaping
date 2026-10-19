@@ -659,8 +659,12 @@
         "down": "Не працює",
         "maintenance": "Обслуговування",
         "paused": "Призупинено",
+        "pending": "Очікує",
         "up": "Працює"
       }
+    },
+    "stale": {
+      "not_checked_since": "Не перевірявся з {{time}}"
     }
   },
   "navigation": {

@@ -11,8 +11,11 @@ import { formatDateToTimezone } from "../lib/formatDateToTimezone";
 import { cn } from "@/lib/utils";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
+type HistoryHeartbeat = Pick<HeartbeatModel, "id" | "time" | "end_time" | "ping" | "status"> &
+  Partial<HeartbeatModel>;
+
 type BarHistoryProps = {
-  data: HeartbeatModel[];
+  data: HistoryHeartbeat[];
   segmentWidth?: number;
   gap?: number;
   barHeight?: number;
@@ -58,7 +61,7 @@ const BarHistory: React.FC<BarHistoryProps> = ({
     length: Math.max(0, visibleCount - trimmedData.length),
   })
     .fill(null)
-    .concat(trimmedData) as (HeartbeatModel | null)[];
+    .concat(trimmedData) as (HistoryHeartbeat | null)[];
 
   return (
     <div

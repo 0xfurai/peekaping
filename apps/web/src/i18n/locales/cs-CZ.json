@@ -659,8 +659,12 @@
         "down": "Nedostupný",
         "maintenance": "Údržba",
         "paused": "Pozastaveno",
+        "pending": "Čekající",
         "up": "V provozu"
       }
+    },
+    "stale": {
+      "not_checked_since": "Nekontrolováno od {{time}}"
     }
   },
   "navigation": {

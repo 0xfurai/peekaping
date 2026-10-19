@@ -1,9 +1,10 @@
 package api_key
 
 import (
+	"github.com/danielgtaylor/huma/v2"
+	"net/http"
+	"peekaping/internal/httpx"
 	"peekaping/internal/modules/auth"
-
-	"github.com/gin-gonic/gin"
 )
 
 type Route struct {
@@ -21,19 +22,19 @@ func NewRoute(
 	}
 }
 
-func (r *Route) ConnectRoute(router *gin.RouterGroup, controller *Controller) {
+func (r *Route) ConnectRoute(router *httpx.Router, controller *Controller) {
 	apiKeys := router.Group("api-keys")
 
 	// Config endpoint doesn't require authentication
-	apiKeys.GET("config", controller.GetAPIKeyConfig)
+	httpx.Register(apiKeys, "GET", "config", huma.Operation{Summary: "Get API key configuration", Tags: []string{"api_key"}, DefaultStatus: http.StatusOK, Errors: []int{}}, controller.GetAPIKeyConfig)
 
 	// All other API key management endpoints require JWT authentication
 	apiKeys.Use(r.middleware.Auth())
 	{
-		apiKeys.POST("", controller.CreateAPIKey)
-		apiKeys.GET("", controller.GetAPIKeys)
-		apiKeys.GET(":id", controller.GetAPIKey)
-		apiKeys.PUT(":id", controller.UpdateAPIKey)
-		apiKeys.DELETE(":id", controller.DeleteAPIKey)
+		httpx.Register(apiKeys, "POST", "", huma.Operation{Summary: "Create API key", Tags: []string{"api_key"}, DefaultStatus: http.StatusCreated, Security: httpx.JWTOnly, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, controller.CreateAPIKey)
+		httpx.Register(apiKeys, "GET", "", huma.Operation{Summary: "Get API keys", Tags: []string{"api_key"}, DefaultStatus: http.StatusOK, Security: httpx.JWTOnly, Errors: []int{http.StatusInternalServerError, http.StatusUnauthorized}}, controller.GetAPIKeys)
+		httpx.Register(apiKeys, "GET", "{id}", huma.Operation{Summary: "Get API key", Tags: []string{"api_key"}, DefaultStatus: http.StatusOK, Security: httpx.JWTOnly, Errors: []int{http.StatusInternalServerError, http.StatusNotFound, http.StatusUnauthorized}}, controller.GetAPIKey)
+		httpx.Register(apiKeys, "PUT", "{id}", huma.Operation{Summary: "Update API key", Tags: []string{"api_key"}, DefaultStatus: http.StatusOK, Security: httpx.JWTOnly, Errors: []int{http.StatusBadRequest, http.StatusNotFound, http.StatusInternalServerError, http.StatusUnauthorized}}, controller.UpdateAPIKey)
+		httpx.Register(apiKeys, "DELETE", "{id}", huma.Operation{Summary: "Delete API key", Tags: []string{"api_key"}, DefaultStatus: http.StatusNoContent, Security: httpx.JWTOnly, Errors: []int{http.StatusNotFound, http.StatusInternalServerError, http.StatusUnauthorized}}, controller.DeleteAPIKey)
 	}
 }

@@ -28,7 +28,7 @@ import { pushSchema, type PushForm } from "../components/push";
 import type {
   Options,
   PostMonitorsData,
-  UtilsApiError,
+  HttpxErrorBody,
   UtilsApiResponseMonitorModel,
   PutMonitorsByIdResponse,
   PutMonitorsByIdError,
@@ -123,7 +123,7 @@ interface MonitorFormContextType {
   mutation:
     | UseMutationResult<
         UtilsApiResponseMonitorModel,
-        AxiosError<UtilsApiError, unknown>,
+        AxiosError<HttpxErrorBody, unknown>,
         Options<PostMonitorsData>,
         unknown
       >
@@ -142,7 +142,7 @@ interface MonitorFormContextType {
   isPending: boolean;
   createMonitorMutation: UseMutationResult<
     UtilsApiResponseMonitorModel,
-    AxiosError<UtilsApiError, unknown>,
+    AxiosError<HttpxErrorBody, unknown>,
     Options<PostMonitorsData>,
     unknown
   >;

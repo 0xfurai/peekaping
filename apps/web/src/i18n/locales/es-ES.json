@@ -659,8 +659,12 @@
         "down": "Caído",
         "maintenance": "Mantenimiento",
         "paused": "Pausado",
+        "pending": "Pendiente",
         "up": "En línea"
       }
+    },
+    "stale": {
+      "not_checked_since": "Sin comprobar desde {{time}}"
     }
   },
   "navigation": {

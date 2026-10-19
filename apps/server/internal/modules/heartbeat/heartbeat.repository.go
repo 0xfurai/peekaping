@@ -28,4 +28,5 @@ type Repository interface {
 	) (map[string]float64, error)
 	DeleteOlderThan(ctx context.Context, cutoff time.Time) (int64, error)
 	DeleteByMonitorID(ctx context.Context, monitorID string) error
+	HasAny(ctx context.Context) (bool, error)
 }

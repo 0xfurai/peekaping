@@ -659,8 +659,12 @@
         "down": "Poissa",
         "maintenance": "Huolto",
         "paused": "Pysäytetty",
+        "pending": "Odottaa",
         "up": "Käynnissä"
       }
+    },
+    "stale": {
+      "not_checked_since": "Ei tarkistettu {{time}} jälkeen"
     }
   },
   "navigation": {

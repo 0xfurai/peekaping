@@ -659,8 +659,12 @@
         "down": "Leáll",
         "maintenance": "Karbantartás",
         "paused": "Szünetelve",
+        "pending": "Függőben",
         "up": "Elérhető"
       }
+    },
+    "stale": {
+      "not_checked_since": "Nincs ellenőrizve {{time}} óta"
     }
   },
   "navigation": {

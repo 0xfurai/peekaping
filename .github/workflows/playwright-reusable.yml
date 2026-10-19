@@ -31,10 +31,13 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version-file: .nvmrc
+    - uses: oven-sh/setup-bun@v2
+      with:
+        bun-version-file: package.json
     - name: Install dependencies
-      run: npm install -g pnpm && pnpm install
+      run: bun install --frozen-lockfile
     - name: Install Playwright Browsers
-      run: pnpm exec playwright install --with-deps chromium
+      run: bunx playwright install --with-deps chromium
 
     # prepare services
     - name: Create .env file
@@ -113,7 +116,7 @@ jobs:
         echo "The stack is healthy"
 
     - name: Run Playwright tests
-      run: pnpm exec playwright test
+      run: bunx playwright test
 
     - name: Stop services
       if: always()
@@ -143,10 +146,13 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version-file: .nvmrc
+    - uses: oven-sh/setup-bun@v2
+      with:
+        bun-version-file: package.json
     - name: Install dependencies
-      run: npm install -g pnpm && pnpm install
+      run: bun install --frozen-lockfile
     - name: Install Playwright Browsers
-      run: pnpm exec playwright install --with-deps chromium
+      run: bunx playwright install --with-deps chromium
 
     # prepare data directories
     - name: Create data directories
@@ -268,7 +274,7 @@ jobs:
         echo "The bundle is healthy"
 
     - name: Run Playwright tests against bundle
-      run: PLAYWRIGHT_BASE_URL=http://localhost:8383 pnpm exec playwright test
+      run: PLAYWRIGHT_BASE_URL=http://localhost:8383 bunx playwright test
 
     - name: Show final container logs on failure
       if: failure()

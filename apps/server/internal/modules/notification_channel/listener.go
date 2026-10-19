@@ -12,6 +12,7 @@ import (
 	"peekaping/internal/modules/monitor_notification"
 	"peekaping/internal/modules/monitor_tag"
 	"peekaping/internal/modules/notification_channel/providers"
+	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/tag"
 	"sort"
 	"strings"
@@ -95,6 +96,36 @@ func NewNotificationEventListener(p NotificationEventListenerParams) *Notificati
 func (l *NotificationEventListener) Subscribe(eventBus events.EventBus) {
 	eventBus.Subscribe(events.ImportantHeartbeat, l.handleNotifyEvent)
 	eventBus.Subscribe(events.CertificateExpiry, l.handleCertificateExpiryEvent)
+	eventBus.Subscribe(events.MonitorStale, l.handleStaleMonitorEvent)
+	eventBus.Subscribe(events.MonitorStaleRecovered, l.handleStaleMonitorEvent)
+}
+
+// staleTimeFormat is how stale-monitor notifications show the time of the last check
+const staleTimeFormat = "2006-01-02 15:04:05 UTC"
+
+func (l *NotificationEventListener) handleStaleMonitorEvent(event events.Event) {
+	ctx := context.Background()
+
+	staleEvent, ok := infra.UnmarshalEventPayload[stale.Event](event)
+	if !ok {
+		l.logger.Errorf("Failed to unmarshal stale monitor event payload")
+		return
+	}
+
+	l.logger.Infof("Stale monitor event %s received for monitor: %s", event.Type, staleEvent.MonitorID)
+
+	notificationChannels, monitorModel := l.findChannels(ctx, staleEvent.MonitorID)
+	if monitorModel == nil {
+		return
+	}
+
+	since := staleEvent.Since.UTC().Format(staleTimeFormat)
+	message := fmt.Sprintf("Peekaping has not checked %s since %s", monitorModel.Name, since)
+	if event.Type == events.MonitorStaleRecovered {
+		message = fmt.Sprintf("Peekaping is checking %s again. It was not checked from %s", monitorModel.Name, since)
+	}
+	// A stale-monitor notification carries no heartbeat
+	l.sendToChannels(ctx, notificationChannels, message, monitorModel, nil)
 }
 
 func (l *NotificationEventListener) handleNotifyEvent(event events.Event) {

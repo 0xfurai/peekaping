@@ -659,8 +659,12 @@
         "down": "หยุดทำงาน",
         "maintenance": "บำรุงรักษา",
         "paused": "หยุดชั่วคราว",
+        "pending": "รอดำเนินการ",
         "up": "ออนไลน์"
       }
+    },
+    "stale": {
+      "not_checked_since": "ไม่ได้ตรวจสอบตั้งแต่ {{time}}"
     }
   },
   "navigation": {

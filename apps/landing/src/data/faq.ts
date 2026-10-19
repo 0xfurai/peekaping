@@ -12,7 +12,7 @@ export const faqItems: FaqItem[] = [
   {
     question: "How does Peekaping compare to Uptime Kuma?",
     answer:
-      "Peekaping offers a similar experience with a focus on strongly typed code (Go + TypeScript), an API-first design with Swagger, and a modular architecture that makes it easy to extend and swap storage backends.",
+      "Peekaping offers a similar experience with a focus on strongly typed code (Go + TypeScript), an API-first design with OpenAPI, and a modular architecture that makes it easy to extend and swap storage backends.",
   },
   {
     question: "Does Peekaping have public status pages?",
@@ -32,7 +32,7 @@ export const faqItems: FaqItem[] = [
   {
     question: "Is there a REST API?",
     answer:
-      "Yes. Peekaping is API-first and includes Swagger/OpenAPI documentation for automation and integrations.",
+      "Yes. Peekaping is API-first and includes OpenAPI documentation for automation and integrations.",
   },
   {
     question: "Can I migrate from Uptime Kuma?",

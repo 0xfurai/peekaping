@@ -659,8 +659,12 @@
         "down": "خارج الخدمة",
         "maintenance": "صيانة",
         "paused": "متوقف",
+        "pending": "قيد الانتظار",
         "up": "قيد التشغيل"
       }
+    },
+    "stale": {
+      "not_checked_since": "لم يتم الفحص منذ {{time}}"
     }
   },
   "navigation": {
