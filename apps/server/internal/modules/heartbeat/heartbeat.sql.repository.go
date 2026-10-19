@@ -2,16 +2,12 @@ package heartbeat
 
 import (
 	"context"
-	"database/sql"
-	"errors"
-	"math"
 	"time"
 
 	"peekaping/internal/modules/shared"
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
-	"github.com/uptrace/bun/dialect"
 )
 
 type sqlModel struct {
@@ -221,16 +217,17 @@ func (r *SQLRepositoryImpl) FindUptimeStatsByMonitorID(
 // large backlog never holds SQLite's single connection for long.
 const deleteBatchSize = 5000
 
+// DeleteOlderThan deletes the oldest heartbeats in batches through
+// idx_heartbeats_time, so each batch reads only the rows it deletes, whatever
+// order they were written in.
 func (r *SQLRepositoryImpl) DeleteOlderThan(ctx context.Context, cutoff time.Time) (int64, error) {
-	if r.db.Dialect().Name() == dialect.SQLite {
-		return r.deleteOlderThanByRowid(ctx, cutoff)
-	}
 	var deleted int64
 	for {
 		batch := r.db.NewSelect().
 			Model((*sqlModel)(nil)).
 			Column("id").
 			Where("time < ?", cutoff).
+			OrderExpr("time").
 			Limit(deleteBatchSize)
 		result, err := r.db.NewDelete().
 			Model((*sqlModel)(nil)).
@@ -247,53 +244,6 @@ func (r *SQLRepositoryImpl) DeleteOlderThan(ctx context.Context, cutoff time.Tim
 		if n < deleteBatchSize {
 			return deleted, nil
 		}
-	}
-}
-
-// deleteOlderThanByRowid walks SQLite's rowids in windows of deleteBatchSize,
-// oldest first, so each statement reads and deletes at most that many
-// heartbeats from a few neighbouring pages. Create stamps each heartbeat with
-// its insert time, so rowid order is time order, and the walk stops at the
-// first window that starts after the cutoff instead of reading the whole table
-// every hour. A heartbeat written out of that order is kept longer, never
-// deleted early.
-func (r *SQLRepositoryImpl) deleteOlderThanByRowid(ctx context.Context, cutoff time.Time) (int64, error) {
-	var deleted int64
-	from := int64(math.MinInt64)
-	for {
-		var first struct {
-			Rowid int64     `bun:"rowid"`
-			Time  time.Time `bun:"time"`
-		}
-		err := r.db.NewSelect().
-			Model((*sqlModel)(nil)).
-			ColumnExpr("rowid, time").
-			Where("rowid >= ?", from).
-			OrderExpr("rowid").
-			Limit(1).
-			Scan(ctx, &first)
-		if errors.Is(err, sql.ErrNoRows) {
-			return deleted, nil
-		}
-		if err != nil {
-			return deleted, err
-		}
-		if !first.Time.Before(cutoff) {
-			return deleted, nil
-		}
-		from = first.Rowid + deleteBatchSize
-		result, err := r.db.NewDelete().
-			Model((*sqlModel)(nil)).
-			Where("rowid >= ? AND rowid < ? AND time < ?", first.Rowid, from, cutoff).
-			Exec(ctx)
-		if err != nil {
-			return deleted, err
-		}
-		n, err := result.RowsAffected()
-		if err != nil {
-			return deleted, err
-		}
-		deleted += n
 	}
 }
 

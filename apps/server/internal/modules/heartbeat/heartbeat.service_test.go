@@ -315,9 +315,53 @@ func TestHasAnyReportsWhetherAHeartbeatExists(t *testing.T) {
 	})
 }
 
-// dropHeartbeatIndexesMigration is the migration that dropped the heartbeat
-// indexes no query needs.
-const dropHeartbeatIndexesMigration = "20261018120000"
+func TestDeleteOlderThanDeletesHeartbeatsWrittenOutOfTimeOrder(t *testing.T) {
+	for _, backend := range []struct {
+		name string
+		open func(*testing.T) *bun.DB
+	}{{"SQLite", sqliteDB}, {"Postgres", postgresDB}} {
+		t.Run(backend.name, func(t *testing.T) {
+			ctx := context.Background()
+			db := backend.open(t)
+			migrator := migrate.NewMigrator(db, migrations.Migrations)
+			require.NoError(t, migrator.Init(ctx))
+			_, err := migrator.Migrate(ctx)
+			require.NoError(t, err)
+			monitorID := uuid.NewString()
+			_, err = db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0)`, monitorID)
+			require.NoError(t, err)
+
+			// The first heartbeat was stamped while the server's clock ran a
+			// year ahead; the clock was then fixed.
+			now := time.Now().UTC()
+			cutoff := now.Add(-30 * 24 * time.Hour)
+			rows := []heartbeatRow{{ID: uuid.NewString(), MonitorID: monitorID, Status: 1, Msg: "ahead", Time: now.AddDate(1, 0, 0)}}
+			for minute := 6000; minute > 0; minute-- {
+				rows = append(rows, heartbeatRow{ID: uuid.NewString(), MonitorID: monitorID, Status: 1, Msg: "old", Time: cutoff.Add(-time.Duration(minute) * time.Minute)})
+			}
+			rows = append(rows, heartbeatRow{ID: uuid.NewString(), MonitorID: monitorID, Status: 1, Msg: "new", Time: now})
+			for len(rows) > 0 {
+				chunk := rows[:min(len(rows), 1000)]
+				_, err := db.NewInsert().Model(&chunk).Exec(ctx)
+				require.NoError(t, err)
+				rows = rows[len(chunk):]
+			}
+
+			svc := heartbeat.NewService(heartbeat.NewSQLRepository(db), &recordingBus{}, zap.NewNop().Sugar())
+			deleted, err := svc.DeleteOlderThan(ctx, cutoff)
+			require.NoError(t, err)
+
+			assert.Equal(t, int64(6000), deleted)
+			left, err := svc.FindByMonitorIDPaginated(ctx, monitorID, 10, 0, nil, true)
+			require.NoError(t, err)
+			assert.Equal(t, []string{"new", "ahead"}, msgs(left))
+		})
+	}
+}
+
+// reworkHeartbeatIndexesMigration is the migration that dropped the heartbeat
+// indexes no query needs and added the one the cleanup deletes through.
+const reworkHeartbeatIndexesMigration = "20261018120000"
 
 // heartbeatIndexes returns the names of the indexes the migrations created on heartbeats.
 func heartbeatIndexes(t *testing.T, db *bun.DB) []string {
@@ -341,7 +385,7 @@ func TestMigrationsKeepOnlyTheHeartbeatIndexesQueriesUse(t *testing.T) {
 			db := backend.open(t)
 			before := migrate.NewMigrations()
 			for _, m := range migrations.Migrations.Sorted() {
-				if m.Name < dropHeartbeatIndexesMigration {
+				if m.Name < reworkHeartbeatIndexesMigration {
 					before.Add(m)
 				}
 			}
@@ -361,7 +405,7 @@ func TestMigrationsKeepOnlyTheHeartbeatIndexesQueriesUse(t *testing.T) {
 			migrator := migrate.NewMigrator(db, migrations.Migrations)
 			_, err = migrator.Migrate(ctx)
 			require.NoError(t, err)
-			assert.Equal(t, []string{"idx_heartbeats_monitor_important", "idx_heartbeats_monitor_time_important"}, heartbeatIndexes(t, db))
+			assert.Equal(t, []string{"idx_heartbeats_monitor_important", "idx_heartbeats_monitor_time_important", "idx_heartbeats_time"}, heartbeatIndexes(t, db))
 
 			_, err = migrator.Rollback(ctx)
 			require.NoError(t, err)
