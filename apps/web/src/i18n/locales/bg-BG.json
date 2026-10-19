@@ -111,6 +111,7 @@
     },
     "validation": {
       "email_invalid": "Моля, въведете валиден имейл адрес.",
+      "password_required": "Паролата е задължителна",
       "password_min_length": "Паролата трябва да е най-малко 8 символа.",
       "passwords_mismatch": "Паролите не съвпадат"
     }

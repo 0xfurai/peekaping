@@ -111,6 +111,7 @@
     },
     "validation": {
       "email_invalid": "Ange en giltig e-postadress",
+      "password_required": "Lösenord krävs",
       "password_min_length": "Lösenord måste vara minst 8 tecken",
       "passwords_mismatch": "Lösenorden matchar inte"
     }

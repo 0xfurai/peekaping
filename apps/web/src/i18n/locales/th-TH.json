@@ -111,6 +111,7 @@
     },
     "validation": {
       "email_invalid": "กรุณาใส่อีเมลที่ถูกต้อง",
+      "password_required": "กรุณากรอกรหัสผ่าน",
       "password_min_length": "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร",
       "passwords_mismatch": "รหัสผ่านไม่ตรงกัน"
     }

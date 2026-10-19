@@ -111,6 +111,7 @@
     },
     "validation": {
       "email_invalid": "براہ کرم ایک درست ای میل ایڈریس درج کریں",
+      "password_required": "پاس ورڈ ضروری ہے",
       "password_min_length": "پاس ورڈ کم از کم 8 حروف کا ہونا ضروری ہے",
       "passwords_mismatch": "پاس ورڈز مطابقت نہیں رکھتے"
     }

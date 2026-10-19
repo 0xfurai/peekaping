@@ -111,6 +111,7 @@
     },
     "validation": {
       "email_invalid": "Vă rugăm să introduceți o adresă de e-mail validă",
+      "password_required": "Parola este obligatorie",
       "password_min_length": "Parola trebuie să aibă cel puțin 8 caractere",
       "passwords_mismatch": "Parolele nu se potrivesc"
     }
