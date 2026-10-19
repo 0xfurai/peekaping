@@ -53,16 +53,16 @@ func TestRepairStoredStatusesFollowsTheLatestHeartbeat(t *testing.T) {
 			return created.ID
 		}
 		// SQL repositories time a heartbeat when they save it, so record the older one first
-		beat := func(monitorID string, status shared.MonitorStatus, ago time.Duration) {
+		recordHeartbeat := func(monitorID string, status shared.MonitorStatus, ago time.Duration) {
 			_, err := heartbeats.Create(ctx, &heartbeat.Model{MonitorID: monitorID, Status: status, Time: time.Now().UTC().Add(-ago)})
 			require.NoError(t, err)
 		}
 
 		stale := create("Stale", shared.MonitorStatusUp)
-		beat(stale, shared.MonitorStatusUp, 2*time.Minute)
-		beat(stale, shared.MonitorStatusDown, time.Minute)
+		recordHeartbeat(stale, shared.MonitorStatusUp, 2*time.Minute)
+		recordHeartbeat(stale, shared.MonitorStatusDown, time.Minute)
 		matching := create("Matching", shared.MonitorStatusUp)
-		beat(matching, shared.MonitorStatusUp, time.Minute)
+		recordHeartbeat(matching, shared.MonitorStatusUp, time.Minute)
 		silent := create("Silent", shared.MonitorStatusDown)
 		saved := func(id string) *monitor.Model {
 			m, err := monitors.FindByID(ctx, id)
