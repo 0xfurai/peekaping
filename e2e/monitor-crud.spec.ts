@@ -111,8 +111,8 @@ const monitorForms: Record<string, MonitorForm> = {
       grpcBody: '{"message": "ping"}',
       keyword: 'success',
     },
-    // The gRPC form sets no defaults when the type changes, so both checkboxes
-    // start unset and the form won't submit until each one is clicked.
+    // The gRPC form sets no defaults when the type changes (PP-206), so both
+    // checkboxes start unset and the form won't submit until each one is clicked.
     checkboxes: { 'Enable TLS': true, 'Invert Keyword': true },
   },
   MQTT: {
