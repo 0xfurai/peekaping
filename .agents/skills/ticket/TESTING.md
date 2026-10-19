@@ -50,19 +50,19 @@ CI sets neither variable, so only the SQLite subtests run there; a repository ch
 Web, from the worktree root then `apps/web`:
 
 ```sh
-pnpm install --frozen-lockfile    # a fresh worktree has no node_modules
-cd apps/web && pnpm lint && pnpm build
+bun install --frozen-lockfile    # a fresh worktree has no node_modules
+cd apps/web && bun run lint && bun run build
 ```
 
 API contract changes (handler annotations, DTOs) need both generated layers, committed with the change:
 
 ```sh
 cd apps/server && go run github.com/swaggo/swag/cmd/swag@v1.16.4 init -d cmd/api,internal
-cd ../web && pnpm gen && pnpm dlx prettier@3 --trailing-comma es5 --write src/api
+cd ../web && bun run gen && bunx prettier@3 --trailing-comma es5 --write src/api
 git diff --stat   # only the endpoints you changed should move
 ```
 
-`pnpm gen` asks for prettier, which isn't installed, so without the second command the whole client comes out reformatted.
+`bun run gen` asks for prettier, which isn't installed, so without the second command the whole client comes out reformatted.
 
 E2E, from the worktree root. The dev stack binds fixed host ports (6379, 8034, 8383), so only one runs per machine: if `docker ps` shows another session's stack, wait for it. The stack reads a gitignored `.env`, and a leftover SQLite database makes `auth.spec` fail with "admin already exists":
 
@@ -78,8 +78,8 @@ ENV
 rm -rf .data/sqlite
 docker compose -f docker-compose.dev.sqlite.yml up -d --build
 until curl -sf localhost:8383/api/v1/health; do sleep 2; done
-pnpm exec playwright install chromium
-PW_TEST_HTML_REPORT_OPEN=never pnpm e2e
+bunx playwright install chromium
+PW_TEST_HTML_REPORT_OPEN=never bun run e2e
 docker compose -f docker-compose.dev.sqlite.yml down
 ```
 
