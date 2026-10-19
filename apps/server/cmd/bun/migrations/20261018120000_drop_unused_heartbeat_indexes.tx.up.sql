@@ -3,12 +3,11 @@
 -- idx_heartbeats_monitor_time is a prefix of idx_heartbeats_monitor_time_important,
 -- which serves the same queries; idx_heartbeats_status only served FindActive,
 -- which nothing calls; no query filters on important without monitor_id.
+--
+-- The next migration adds idx_heartbeats_time. It's a migration of its own so
+-- this one commits first: on PostgreSQL, DROP INDEX locks heartbeats against
+-- reads until the transaction ends, which would otherwise last the whole build.
 
 DROP INDEX IF EXISTS idx_heartbeats_monitor_time;
 DROP INDEX IF EXISTS idx_heartbeats_status;
 DROP INDEX IF EXISTS idx_heartbeats_important;
-
--- The hourly cleanup deletes the oldest heartbeats in batches through this
--- index, whatever order they were written in. Created after the drops, so
--- SQLite builds it in the pages they freed instead of growing the file.
-CREATE INDEX IF NOT EXISTS idx_heartbeats_time ON heartbeats(time);

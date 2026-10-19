@@ -359,8 +359,9 @@ func TestDeleteOlderThanDeletesHeartbeatsWrittenOutOfTimeOrder(t *testing.T) {
 	}
 }
 
-// reworkHeartbeatIndexesMigration is the migration that dropped the heartbeat
-// indexes no query needs and added the one the cleanup deletes through.
+// reworkHeartbeatIndexesMigration is the first of the two migrations that
+// dropped the heartbeat indexes no query needs and added the one the cleanup
+// deletes through.
 const reworkHeartbeatIndexesMigration = "20261018120000"
 
 // heartbeatIndexes returns the names of the indexes the migrations created on heartbeats.
