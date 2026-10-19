@@ -3,6 +3,7 @@ package httpx
 import (
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 )
 
@@ -23,7 +24,10 @@ type Router struct {
 }
 
 func NewRouter(middleware ...Middleware) *Router {
-	return &Router{registry: &registry{mux: http.NewServeMux(), middleware: middleware}}
+	mux := http.NewServeMux()
+	// The fallback preserves the existing 404 response for unsupported methods.
+	mux.HandleFunc("/", NotFound)
+	return &Router{registry: &registry{mux: mux, middleware: middleware}}
 }
 func (r *Router) Group(prefix string) *Router {
 	return &Router{registry: r.registry, prefix: join(r.prefix, prefix), middleware: append([]Middleware(nil), r.middleware...)}
@@ -47,9 +51,20 @@ func (r *Router) Handle(method, path string, handler http.HandlerFunc, middlewar
 	r.registry.routes = append(r.registry.routes, Route{method, pattern})
 	if strings.HasSuffix(pattern, "...}") {
 		prefix := pattern[:strings.LastIndex(pattern, "/{")+1]
-		r.registry.catchAllPrefixes = append(r.registry.catchAllPrefixes, prefix)
+		if !slices.Contains(r.registry.catchAllPrefixes, prefix) {
+			r.registry.catchAllPrefixes = append(r.registry.catchAllPrefixes, prefix)
+			// Exact bare-prefix fallbacks suppress subtree redirects in every Go
+			// version. A later explicit method-specific route still takes precedence.
+			if prefix != "/" {
+				r.registry.mux.HandleFunc(strings.TrimSuffix(prefix, "/"), NotFound)
+			}
+		}
 	}
-	r.registry.mux.Handle(method+" "+pattern, http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+	muxPattern := pattern
+	if strings.HasSuffix(muxPattern, "/") {
+		muxPattern += "{$}"
+	}
+	r.registry.mux.Handle(method+" "+muxPattern, http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		// ServeMux GET also accepts HEAD; the push URL must never write on HEAD.
 		if req.Method != method {
 			NotFound(w, req)
@@ -98,22 +113,6 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			}
 			copyReq.URL.RawPath = catchAllPrefix + escapedTail
 		}
-		_, pattern := r.registry.mux.Handler(copyReq)
-		if pattern == "" {
-			NotFound(w, req)
-			return
-		}
-		// ServeMux redirects a bare catch-all prefix to its slash form.
-		routePath := pattern[strings.Index(pattern, " ")+1:]
-		if strings.HasSuffix(routePath, "...}") {
-			prefix := routePath[:strings.LastIndex(routePath, "/{")]
-			if req.URL.Path == prefix {
-				NotFound(w, req)
-				return
-			}
-		}
-
-		// ServeHTTP installs PathValue; Handler alone does not.
 		r.registry.mux.ServeHTTP(w, copyReq)
 	})
 	Chain(handler, r.registry.middleware...).ServeHTTP(w, req)
