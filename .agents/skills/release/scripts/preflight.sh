@@ -85,20 +85,30 @@ echo
 echo "Merged since $last, not mentioned in [Unreleased] by PR number or PP key:"
 skipped=0
 unmentioned=0
+# Walk every commit, not the first parent only: a "Merge branch 'main'" that joined a local main
+# to origin/main hides the squash-merged PRs it brought in. A "Merge pull request #N" is one PR,
+# so its own commits are left out and the merge commit stands for them.
+hidden=$(git log "$last..origin/main" --merges --grep='^Merge pull request #' --format='%H' |
+    while read -r merge; do git rev-list "$merge^1..$merge^2"; done)
 while IFS='|' read -r sha subject; do
-    case $subject in "chore: bump version"* | "Merge "*) continue ;; esac
+    case $subject in
+        "chore: bump version"*) continue ;;
+        "Merge pull request #"*) ;;
+        "Merge "*) continue ;;
+    esac
+    if printf '%s\n' "$hidden" | grep -qx "$sha"; then continue; fi
     # Nothing a user of Peekaping sees: tests, CI, chores, builds and the agent skills (scope ticket)
-    if printf '%s' "$subject" | grep -Eq '(^|[] ])(test|ci|chore|build)(\([^)]*\))?:|\(ticket\):'; then
+    if printf '%s' "$subject" | grep -Eq '(^|[] ])(test|ci|chore|build)(\([^)]*\))?:|\(ticket\):|^Merge pull request #[0-9]+ from [^/]+/(test|ci|chore|build)/'; then
         skipped=$((skipped + 1))
         continue
     fi
-    pr=$(printf '%s' "$subject" | sed -n 's/.*(#\([0-9][0-9]*\))$/\1/p')
+    pr=$(printf '%s' "$subject" | sed -n -e 's/.*(#\([0-9][0-9]*\))$/\1/p' -e 's/^Merge pull request #\([0-9][0-9]*\) from .*/\1/p')
     key=$(printf '%s' "$subject" | grep -oE 'PP-[0-9]+' | head -1 || true)
     if [ -n "$pr" ] && printf '%s\n' "$unreleased" | grep -qE "#$pr([^0-9]|\$)"; then continue; fi
     if [ -n "$key" ] && printf '%s\n' "$unreleased" | grep -qE "$key([^0-9]|\$)"; then continue; fi
-    printf '  %s  %s\n' "$sha" "$subject"
+    printf '  %s  %s\n' "${sha:0:8}" "$subject"
     unmentioned=$((unmentioned + 1))
-done < <(git log "$last..origin/main" --first-parent --format='%h|%s')
+done < <(git log "$last..origin/main" --format='%H|%s')
 [ "$unmentioned" -gt 0 ] || echo '  none'
 echo "  ($skipped test/ci/chore/build commits not checked)"
 
