@@ -2,12 +2,12 @@ package status_page
 
 import (
 	"net/http"
+	"peekaping/internal/httpx"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/utils"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
 
@@ -38,15 +38,16 @@ func NewController(service Service, monitorService monitor.Service, heartbeatSer
 // @Success   201  {object} utils.ApiResponse[Model]
 // @Failure   400  {object} utils.APIError[any]
 // @Failure   500  {object} utils.APIError[any]
-func (c *Controller) Create(ctx *gin.Context) {
+func (c *Controller) Create(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	var dto CreateStatusPageDTO
-	if err := ctx.ShouldBindJSON(&dto); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+	if err := httpx.DecodeJSON(r, &dto); err != nil {
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		return
 	}
 
 	if err := utils.Validate.Struct(&dto); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		return
 	}
 
@@ -54,8 +55,8 @@ func (c *Controller) Create(ctx *gin.Context) {
 	if err != nil {
 		// Surface domain uniqueness validation errors as 400
 		if domainErr, ok := err.(*DomainAlreadyUsedError); ok {
-			ctx.JSON(http.StatusBadRequest, gin.H{
-				"error": gin.H{
+			httpx.JSON(w, http.StatusBadRequest, map[string]any{
+				"error": map[string]any{
 					"code":   domainErr.Code,
 					"domain": domainErr.Domain,
 				},
@@ -63,11 +64,11 @@ func (c *Controller) Create(ctx *gin.Context) {
 			return
 		}
 		c.logger.Errorw("Failed to create status page", "error", err)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, utils.NewSuccessResponse("Status page created successfully", created))
+	httpx.JSON(w, http.StatusCreated, utils.NewSuccessResponse("Status page created successfully", created))
 }
 
 // @Router    /status-pages/{id} [get]
@@ -80,19 +81,20 @@ func (c *Controller) Create(ctx *gin.Context) {
 // @Success   200  {object}  utils.ApiResponse[StatusPageWithMonitorsResponseDTO]
 // @Failure   404  {object}  utils.APIError[any]
 // @Failure   500  {object}  utils.APIError[any]
-func (c *Controller) FindByID(ctx *gin.Context) {
-	id := ctx.Param("id")
+func (c *Controller) FindByID(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	id := r.PathValue("id")
 	page, err := c.service.FindByIDWithMonitors(ctx, id)
 	if err != nil {
 		c.logger.Errorw("Failed to get status page by id", "error", err, "id", id)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
 	}
 	if page == nil {
-		ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Status page not found"))
+		httpx.JSON(w, http.StatusNotFound, utils.NewFailResponse("Status page not found"))
 		return
 	}
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", page))
+	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("success", page))
 }
 
 // @Router    /status-pages/slug/{slug} [get]
@@ -103,19 +105,20 @@ func (c *Controller) FindByID(ctx *gin.Context) {
 // @Success   200  {object}  utils.ApiResponse[Model]
 // @Failure   404  {object}  utils.APIError[any]
 // @Failure   500  {object}  utils.APIError[any]
-func (c *Controller) FindBySlug(ctx *gin.Context) {
-	slug := ctx.Param("slug")
+func (c *Controller) FindBySlug(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	slug := r.PathValue("slug")
 	page, err := c.service.FindPublishedBySlug(ctx, slug)
 	if err != nil {
 		c.logger.Errorw("Failed to get status page by slug", "error", err, "slug", slug)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
 	}
 	if page == nil {
-		ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Status page not found"))
+		httpx.JSON(w, http.StatusNotFound, utils.NewFailResponse("Status page not found"))
 		return
 	}
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", page))
+	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("success", page))
 }
 
 // @Router    /status-pages/domain/{domain} [get]
@@ -126,19 +129,20 @@ func (c *Controller) FindBySlug(ctx *gin.Context) {
 // @Success   200  {object}  utils.ApiResponse[Model]
 // @Failure   404  {object}  utils.APIError[any]
 // @Failure   500  {object}  utils.APIError[any]
-func (c *Controller) FindByDomain(ctx *gin.Context) {
-	domain := ctx.Param("domain")
+func (c *Controller) FindByDomain(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	domain := r.PathValue("domain")
 	page, err := c.service.FindPublishedByDomain(ctx, domain)
 	if err != nil {
 		c.logger.Errorw("Failed to get status page by domain", "error", err, "domain", domain)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
 	}
 	if page == nil {
-		ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Status page not found"))
+		httpx.JSON(w, http.StatusNotFound, utils.NewFailResponse("Status page not found"))
 		return
 	}
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", page))
+	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("success", page))
 }
 
 // @Router    /status-pages [get]
@@ -153,26 +157,27 @@ func (c *Controller) FindByDomain(ctx *gin.Context) {
 // @Success   200  {object}  utils.ApiResponse[[]Model]
 // @Failure   400  {object}  utils.APIError[any]
 // @Failure   500  {object}  utils.APIError[any]
-func (c *Controller) FindAll(ctx *gin.Context) {
-	page, err := utils.GetQueryInt(ctx, "page", 0)
+func (c *Controller) FindAll(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	page, err := utils.GetQueryInt(r, "page", 0)
 	if err != nil || page < 0 {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid page parameter"))
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("Invalid page parameter"))
 		return
 	}
-	limit, err := utils.GetQueryInt(ctx, "limit", 10)
+	limit, err := utils.GetQueryInt(r, "limit", 10)
 	if err != nil || limit < 1 || limit > utils.MaxPageSize {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid limit parameter"))
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("Invalid limit parameter"))
 		return
 	}
-	q := ctx.Query("q")
+	q := r.URL.Query().Get("q")
 
 	pages, err := c.service.FindAll(ctx, page, limit, q)
 	if err != nil {
 		c.logger.Errorw("Failed to get all status pages", "error", err)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
 	}
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", pages))
+	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("success", pages))
 }
 
 // @Router    /status-pages/{id} [patch]
@@ -188,15 +193,16 @@ func (c *Controller) FindAll(ctx *gin.Context) {
 // @Failure   400  {object}  utils.APIError[any]
 // @Failure   404  {object}  utils.APIError[any]
 // @Failure   500  {object}  utils.APIError[any]
-func (c *Controller) Update(ctx *gin.Context) {
-	id := ctx.Param("id")
+func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	id := r.PathValue("id")
 	var dto UpdateStatusPageDTO
-	if err := ctx.ShouldBindJSON(&dto); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+	if err := httpx.DecodeJSON(r, &dto); err != nil {
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		return
 	}
 
-	if _, ok := utils.FindOr404(ctx, c.logger, "Status page", c.service.FindByID, id); !ok {
+	if _, ok := utils.FindOr404(ctx, w, c.logger, "Status page", c.service.FindByID, id); !ok {
 		return
 	}
 
@@ -204,8 +210,8 @@ func (c *Controller) Update(ctx *gin.Context) {
 	if err != nil {
 		// Surface domain uniqueness validation errors as 400
 		if domainErr, ok := err.(*DomainAlreadyUsedError); ok {
-			ctx.JSON(http.StatusBadRequest, gin.H{
-				"error": gin.H{
+			httpx.JSON(w, http.StatusBadRequest, map[string]any{
+				"error": map[string]any{
 					"code":   domainErr.Code,
 					"domain": domainErr.Domain,
 				},
@@ -213,10 +219,10 @@ func (c *Controller) Update(ctx *gin.Context) {
 			return
 		}
 		c.logger.Errorw("Failed to update status page", "error", err, "id", id)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
 	}
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("Status page updated successfully", updated))
+	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("Status page updated successfully", updated))
 }
 
 // @Router    /status-pages/{id} [delete]
@@ -229,19 +235,20 @@ func (c *Controller) Update(ctx *gin.Context) {
 // @Success   200  {object}  utils.ApiResponse[any]
 // @Failure   404  {object}  utils.APIError[any]
 // @Failure   500  {object}  utils.APIError[any]
-func (c *Controller) Delete(ctx *gin.Context) {
-	id := ctx.Param("id")
-	if _, ok := utils.FindOr404(ctx, c.logger, "Status page", c.service.FindByID, id); !ok {
+func (c *Controller) Delete(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	id := r.PathValue("id")
+	if _, ok := utils.FindOr404(ctx, w, c.logger, "Status page", c.service.FindByID, id); !ok {
 		return
 	}
 
 	err := c.service.Delete(ctx, id)
 	if err != nil {
 		c.logger.Errorw("Failed to delete status page", "error", err, "id", id)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
 	}
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse[any]("Status page deleted successfully", nil))
+	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse[any]("Status page deleted successfully", nil))
 }
 
 // @Router    /status-pages/slug/{slug}/monitors [get]
@@ -252,18 +259,19 @@ func (c *Controller) Delete(ctx *gin.Context) {
 // @Success   200  {object}  utils.ApiResponse[[]MonitorWithHeartbeatsAndUptimeDTO]
 // @Failure   404  {object}  utils.APIError[any]
 // @Failure   500  {object}  utils.APIError[any]
-func (c *Controller) GetMonitorsBySlug(ctx *gin.Context) {
-	slug := ctx.Param("slug")
+func (c *Controller) GetMonitorsBySlug(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	slug := r.PathValue("slug")
 
 	// First get the status page
 	page, err := c.service.FindPublishedBySlug(ctx, slug)
 	if err != nil {
 		c.logger.Errorw("Failed to get status page by slug", "error", err, "slug", slug)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
 	}
 	if page == nil {
-		ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Status page not found"))
+		httpx.JSON(w, http.StatusNotFound, utils.NewFailResponse("Status page not found"))
 		return
 	}
 
@@ -271,7 +279,7 @@ func (c *Controller) GetMonitorsBySlug(ctx *gin.Context) {
 	monitors, err := c.service.GetMonitorsForStatusPage(ctx, page.ID)
 	if err != nil {
 		c.logger.Errorw("Failed to get monitors for status page", "error", err, "statusPageID", page.ID)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
 	}
 
@@ -316,7 +324,7 @@ func (c *Controller) GetMonitorsBySlug(ctx *gin.Context) {
 		uptimeStats, err := c.heartbeatService.FindUptimeStatsByMonitorID(ctx, msp.MonitorID, periods, now)
 		if err != nil {
 			c.logger.Errorw("Failed to get uptime stats for monitor", "error", err, "monitorID", msp.MonitorID)
-			ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("failed to get uptime stats for monitor"))
+			httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("failed to get uptime stats for monitor"))
 			return
 		}
 
@@ -343,7 +351,7 @@ func (c *Controller) GetMonitorsBySlug(ctx *gin.Context) {
 		monitorModels = append(monitorModels, monitorWithData)
 	}
 
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", monitorModels))
+	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("success", monitorModels))
 }
 
 // @Router    /status-pages/slug/{slug}/monitors/homepage [get]
@@ -354,18 +362,19 @@ func (c *Controller) GetMonitorsBySlug(ctx *gin.Context) {
 // @Success   200  {object}  utils.ApiResponse[[]MonitorWithHeartbeatsAndUptimeDTO]
 // @Failure   404  {object}  utils.APIError[any]
 // @Failure   500  {object}  utils.APIError[any]
-func (c *Controller) GetMonitorsBySlugForHomepage(ctx *gin.Context) {
-	slug := ctx.Param("slug")
+func (c *Controller) GetMonitorsBySlugForHomepage(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	slug := r.PathValue("slug")
 
 	// First get the status page
 	page, err := c.service.FindPublishedBySlug(ctx, slug)
 	if err != nil {
 		c.logger.Errorw("Failed to get status page by slug", "error", err, "slug", slug)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
 	}
 	if page == nil {
-		ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Status page not found"))
+		httpx.JSON(w, http.StatusNotFound, utils.NewFailResponse("Status page not found"))
 		return
 	}
 
@@ -373,7 +382,7 @@ func (c *Controller) GetMonitorsBySlugForHomepage(ctx *gin.Context) {
 	monitors, err := c.service.GetMonitorsForStatusPage(ctx, page.ID)
 	if err != nil {
 		c.logger.Errorw("Failed to get monitors for status page", "error", err, "statusPageID", page.ID)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
 	}
 
@@ -418,7 +427,7 @@ func (c *Controller) GetMonitorsBySlugForHomepage(ctx *gin.Context) {
 		uptimeStats, err := c.heartbeatService.FindUptimeStatsByMonitorID(ctx, msp.MonitorID, periods, now)
 		if err != nil {
 			c.logger.Errorw("Failed to get uptime stats for monitor", "error", err, "monitorID", msp.MonitorID)
-			ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("failed to get uptime stats for monitor"))
+			httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("failed to get uptime stats for monitor"))
 			return
 		}
 
@@ -445,5 +454,5 @@ func (c *Controller) GetMonitorsBySlugForHomepage(ctx *gin.Context) {
 		monitorModels = append(monitorModels, monitorWithData)
 	}
 
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", monitorModels))
+	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("success", monitorModels))
 }

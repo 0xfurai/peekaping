@@ -5,10 +5,10 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"peekaping/internal/httpx"
 	"strings"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 )
@@ -45,7 +45,7 @@ func (s *updateRecordingService) UpdatePartial(_ context.Context, _ string, dto 
 }
 
 func TestControllerUpdateValidatesConfig(t *testing.T) {
-	gin.SetMode(gin.TestMode)
+
 	RegisterNotificationChannelProvider("test-valid", validatingProvider{})
 	RegisterNotificationChannelProvider("test-rejecting", validatingProvider{err: errors.New("bad config")})
 	defer delete(NotificationChannelProviderRegistry, "test-valid")
@@ -68,9 +68,9 @@ func TestControllerUpdateValidatesConfig(t *testing.T) {
 			t.Run(method+" "+tc.name, func(t *testing.T) {
 				service := &updateRecordingService{saved: &Model{Type: "test-valid", Config: stringPtr("{}")}}
 				controller := NewController(service, zap.NewNop().Sugar())
-				router := gin.New()
-				router.PUT("/:id", controller.UpdateFull)
-				router.PATCH("/:id", controller.UpdatePartial)
+				router := httpx.NewRouter()
+				router.Handle("PUT", "/{id}", controller.UpdateFull)
+				router.Handle("PATCH", "/{id}", controller.UpdatePartial)
 
 				body := `{"name": "Alerts", "type": "` + tc.channelType + `", "config": "{}"}`
 				req := httptest.NewRequest(method, "/channel-1", strings.NewReader(body))
@@ -87,7 +87,7 @@ func TestControllerUpdateValidatesConfig(t *testing.T) {
 }
 
 func TestControllerUpdatePartialMergesSavedChannel(t *testing.T) {
-	gin.SetMode(gin.TestMode)
+
 	RegisterNotificationChannelProvider("test-valid", validatingProvider{})
 	RegisterNotificationChannelProvider("test-rejecting", validatingProvider{err: errors.New("bad config")})
 	defer delete(NotificationChannelProviderRegistry, "test-valid")
@@ -113,8 +113,8 @@ func TestControllerUpdatePartialMergesSavedChannel(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			service := &updateRecordingService{saved: tc.saved}
-			router := gin.New()
-			router.PATCH("/:id", NewController(service, zap.NewNop().Sugar()).UpdatePartial)
+			router := httpx.NewRouter()
+			router.Handle("PATCH", "/{id}", NewController(service, zap.NewNop().Sugar()).UpdatePartial)
 
 			req := httptest.NewRequest(http.MethodPatch, "/channel-1", strings.NewReader(tc.body))
 			req.Header.Set("Content-Type", "application/json")
@@ -129,8 +129,8 @@ func TestControllerUpdatePartialMergesSavedChannel(t *testing.T) {
 
 	t.Run("omitted fields reach the service as nil", func(t *testing.T) {
 		service := &updateRecordingService{saved: &Model{Type: "test-valid", Config: stringPtr("{}")}}
-		router := gin.New()
-		router.PATCH("/:id", NewController(service, zap.NewNop().Sugar()).UpdatePartial)
+		router := httpx.NewRouter()
+		router.Handle("PATCH", "/{id}", NewController(service, zap.NewNop().Sugar()).UpdatePartial)
 
 		req := httptest.NewRequest(http.MethodPatch, "/channel-1", strings.NewReader(`{"name": "Renamed"}`))
 		req.Header.Set("Content-Type", "application/json")
@@ -147,14 +147,14 @@ func TestControllerUpdatePartialMergesSavedChannel(t *testing.T) {
 }
 
 func TestControllerTestSendsWithADeadline(t *testing.T) {
-	gin.SetMode(gin.TestMode)
+
 	var hasDeadline bool
 	registerTestProvider(t, "test-valid", &recordingProvider{send: func(ctx context.Context) error {
 		_, hasDeadline = ctx.Deadline()
 		return nil
 	}})
-	router := gin.New()
-	router.POST("/test", NewController(nil, zap.NewNop().Sugar()).Test)
+	router := httpx.NewRouter()
+	router.Handle("POST", "/test", NewController(nil, zap.NewNop().Sugar()).Test)
 
 	req := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader(`{"name": "Alerts", "type": "test-valid", "config": "{}"}`))
 	req.Header.Set("Content-Type", "application/json")

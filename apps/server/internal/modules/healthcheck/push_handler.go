@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"peekaping/internal/httpx"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/queue"
@@ -14,7 +15,6 @@ import (
 
 	"peekaping/internal/modules/shared"
 
-	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
 
@@ -44,38 +44,39 @@ type PushIngesterPayload struct {
 }
 
 func RegisterPushEndpoint(
-	router *gin.RouterGroup,
+	router *httpx.Router,
 	monitorService monitor.Service,
 	heartbeatService heartbeat.Service,
 	queueService queue.Service,
 	logger *zap.SugaredLogger,
 ) {
-	router.GET("/push/:token", func(ctx *gin.Context) {
-		token := ctx.Param("token")
+	router.Handle("GET", "/push/{token}", func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		token := r.PathValue("token")
 
 		monitor, err := monitorService.FindOneByPushToken(ctx, token)
 		if err != nil {
 			logger.Errorw("Failed to find monitor with push token", "error", err)
-			ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Monitor not found for pushToken"))
+			httpx.JSON(w, http.StatusNotFound, utils.NewFailResponse("Monitor not found for pushToken"))
 			return
 		}
 		if monitor == nil {
 			logger.Errorw("Monitor not found for push token", "pushToken", token)
-			ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Monitor not found for pushToken"))
+			httpx.JSON(w, http.StatusNotFound, utils.NewFailResponse("Monitor not found for pushToken"))
 			return
 		}
 		if !monitor.Active {
 			logger.Errorw("Monitor is not active", "monitor", monitor)
-			ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Monitor is not active"))
+			httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("Monitor is not active"))
 			return
 		}
 
-		status := parsePushStatus(ctx.Query("status"))
-		msg := ctx.Query("msg")
+		status := parsePushStatus(r.URL.Query().Get("status"))
+		msg := r.URL.Query().Get("msg")
 		if msg == "" {
 			msg = defaultPushMessage(status)
 		}
-		pingStr := ctx.Query("ping")
+		pingStr := r.URL.Query().Get("ping")
 		ping, ok := parsePushPing(pingStr)
 		if !ok {
 			logger.Warnw("Ignoring invalid push ping", "monitor_id", monitor.ID, "ping", pingStr)
@@ -122,11 +123,11 @@ func RegisterPushEndpoint(
 				"monitor_id", monitor.ID,
 				"error", err,
 			)
-			ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Failed to process push heartbeat"))
+			httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Failed to process push heartbeat"))
 			return
 		}
 
-		ctx.JSON(http.StatusOK, gin.H{"ok": "true"})
+		httpx.JSON(w, http.StatusOK, map[string]any{"ok": "true"})
 	})
 }
 

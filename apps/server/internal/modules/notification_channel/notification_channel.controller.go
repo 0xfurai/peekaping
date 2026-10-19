@@ -3,12 +3,12 @@ package notification_channel
 import (
 	"context"
 	"net/http"
+	"peekaping/internal/httpx"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/utils"
 
-	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
 
@@ -40,30 +40,31 @@ func NewController(
 // @Failure		400	{object}	utils.APIError[any]
 // @Failure		404	{object}	utils.APIError[any]
 // @Failure		500	{object}	utils.APIError[any]
-func (ic *Controller) FindAll(ctx *gin.Context) {
+func (ic *Controller) FindAll(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	// Extract query parameters for pagination and search
-	page, err := utils.GetQueryInt(ctx, "page", 0)
+	page, err := utils.GetQueryInt(r, "page", 0)
 	if err != nil || page < 0 {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid page parameter"))
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("Invalid page parameter"))
 		return
 	}
 
-	limit, err := utils.GetQueryInt(ctx, "limit", 10)
+	limit, err := utils.GetQueryInt(r, "limit", 10)
 	if err != nil || limit < 1 || limit > utils.MaxPageSize {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid limit parameter"))
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("Invalid limit parameter"))
 		return
 	}
 
-	q := ctx.Query("q")
+	q := r.URL.Query().Get("q")
 
 	response, err := ic.service.FindAll(ctx, page, limit, q)
 	if err != nil {
 		ic.logger.Errorw("Failed to fetch notifications", "error", err)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", response))
+	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("success", response))
 }
 
 // @Router		/notification-channels [post]
@@ -77,31 +78,32 @@ func (ic *Controller) FindAll(ctx *gin.Context) {
 // @Success		201	{object}	utils.ApiResponse[Model]
 // @Failure		400	{object}	utils.APIError[any]
 // @Failure		500	{object}	utils.APIError[any]
-func (ic *Controller) Create(ctx *gin.Context) {
+func (ic *Controller) Create(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	var notification_channel *CreateUpdateDto
-	if err := ctx.ShouldBindJSON(&notification_channel); err != nil {
+	if err := httpx.DecodeJSON(r, &notification_channel); err != nil {
 		ic.logger.Errorw("Invalid request body", "error", err)
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
 		return
 	}
 
 	if err := utils.Validate.Struct(notification_channel); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
 		return
 	}
 
-	if _, ok := validateConfig(ctx, notification_channel.Type, notification_channel.Config); !ok {
+	if _, ok := validateConfig(w, notification_channel.Type, notification_channel.Config); !ok {
 		return
 	}
 
 	createdNotification, err := ic.service.Create(ctx, notification_channel)
 	if err != nil {
 		ic.logger.Errorw("Failed to create notification", "error", err)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, utils.NewSuccessResponse("Notification created successfully", createdNotification))
+	httpx.JSON(w, http.StatusCreated, utils.NewSuccessResponse("Notification created successfully", createdNotification))
 }
 
 // @Router		/notification-channels/{id} [get]
@@ -114,22 +116,23 @@ func (ic *Controller) Create(ctx *gin.Context) {
 // @Failure		400	{object}	utils.APIError[any]
 // @Failure		404	{object}	utils.APIError[any]
 // @Failure		500	{object}	utils.APIError[any]
-func (ic *Controller) FindByID(ctx *gin.Context) {
-	id := ctx.Param("id")
+func (ic *Controller) FindByID(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	id := r.PathValue("id")
 
 	notification, err := ic.service.FindByID(ctx, id)
 	if err != nil {
 		ic.logger.Errorw("Failed to fetch notification", "error", err)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
 	}
 
 	if notification == nil {
-		ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Notification channel not found"))
+		httpx.JSON(w, http.StatusNotFound, utils.NewFailResponse("Notification channel not found"))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", notification))
+	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("success", notification))
 }
 
 // @Router		/notification-channels/{id} [put]
@@ -144,36 +147,37 @@ func (ic *Controller) FindByID(ctx *gin.Context) {
 // @Failure		400	{object}	utils.APIError[any]
 // @Failure		404	{object}	utils.APIError[any]
 // @Failure		500	{object}	utils.APIError[any]
-func (ic *Controller) UpdateFull(ctx *gin.Context) {
-	id := ctx.Param("id")
+func (ic *Controller) UpdateFull(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	id := r.PathValue("id")
 
 	var notification CreateUpdateDto
-	if err := ctx.ShouldBindJSON(&notification); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+	if err := httpx.DecodeJSON(r, &notification); err != nil {
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		return
 	}
 
 	if err := utils.Validate.Struct(notification); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		return
 	}
 
-	if _, ok := validateConfig(ctx, notification.Type, notification.Config); !ok {
+	if _, ok := validateConfig(w, notification.Type, notification.Config); !ok {
 		return
 	}
 
-	if _, ok := utils.FindOr404(ctx, ic.logger, "Notification channel", ic.service.FindByID, id); !ok {
+	if _, ok := utils.FindOr404(ctx, w, ic.logger, "Notification channel", ic.service.FindByID, id); !ok {
 		return
 	}
 
 	updatedNotification, err := ic.service.UpdateFull(ctx, id, &notification)
 	if err != nil {
 		ic.logger.Errorw("Failed to update notification", "error", err)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("notification updated successfully", updatedNotification))
+	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("notification updated successfully", updatedNotification))
 }
 
 // @Router		/notification-channels/{id} [patch]
@@ -188,22 +192,23 @@ func (ic *Controller) UpdateFull(ctx *gin.Context) {
 // @Failure		400	{object}	utils.APIError[any]
 // @Failure		404	{object}	utils.APIError[any]
 // @Failure		500	{object}	utils.APIError[any]
-func (ic *Controller) UpdatePartial(ctx *gin.Context) {
-	id := ctx.Param("id")
+func (ic *Controller) UpdatePartial(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	id := r.PathValue("id")
 
 	var notification PartialUpdateDto
-	if err := ctx.ShouldBindJSON(&notification); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+	if err := httpx.DecodeJSON(r, &notification); err != nil {
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		return
 	}
 
 	// validate
 	if err := utils.Validate.Struct(notification); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		return
 	}
 
-	current, ok := utils.FindOr404(ctx, ic.logger, "Notification channel", ic.service.FindByID, id)
+	current, ok := utils.FindOr404(ctx, w, ic.logger, "Notification channel", ic.service.FindByID, id)
 	if !ok {
 		return
 	}
@@ -222,7 +227,7 @@ func (ic *Controller) UpdatePartial(ctx *gin.Context) {
 			config = *notification.Config
 		}
 
-		if _, ok := validateConfig(ctx, channelType, config); !ok {
+		if _, ok := validateConfig(w, channelType, config); !ok {
 			return
 		}
 	}
@@ -230,11 +235,11 @@ func (ic *Controller) UpdatePartial(ctx *gin.Context) {
 	updatedNotification, err := ic.service.UpdatePartial(ctx, id, &notification)
 	if err != nil {
 		ic.logger.Errorw("Failed to update notification", "error", err)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("notification updated successfully", updatedNotification))
+	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("notification updated successfully", updatedNotification))
 }
 
 // @Router		/notification-channels/{id} [delete]
@@ -247,21 +252,22 @@ func (ic *Controller) UpdatePartial(ctx *gin.Context) {
 // @Failure		400	{object}	utils.APIError[any]
 // @Failure		404	{object}	utils.APIError[any]
 // @Failure		500	{object}	utils.APIError[any]
-func (ic *Controller) Delete(ctx *gin.Context) {
-	id := ctx.Param("id")
+func (ic *Controller) Delete(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	id := r.PathValue("id")
 
-	if _, ok := utils.FindOr404(ctx, ic.logger, "Notification channel", ic.service.FindByID, id); !ok {
+	if _, ok := utils.FindOr404(ctx, w, ic.logger, "Notification channel", ic.service.FindByID, id); !ok {
 		return
 	}
 
 	err := ic.service.Delete(ctx, id)
 	if err != nil {
 		ic.logger.Errorw("Failed to delete notification", "error", err)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse[any]("Notification deleted successfully", nil))
+	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse[any]("Notification deleted successfully", nil))
 }
 
 // @Router		/notification-channels/test [post]
@@ -275,20 +281,21 @@ func (ic *Controller) Delete(ctx *gin.Context) {
 // @Success		200	{object}	utils.ApiResponse[any]
 // @Failure		400	{object}	utils.APIError[any]
 // @Failure		500	{object}	utils.APIError[any]
-func (ic *Controller) Test(ctx *gin.Context) {
+func (ic *Controller) Test(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	var notificationChannel *CreateUpdateDto
-	if err := ctx.ShouldBindJSON(&notificationChannel); err != nil {
+	if err := httpx.DecodeJSON(r, &notificationChannel); err != nil {
 		ic.logger.Errorw("Invalid request body", "error", err)
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
 		return
 	}
 
 	if err := utils.Validate.Struct(notificationChannel); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
 		return
 	}
 
-	integration, ok := validateConfig(ctx, notificationChannel.Type, notificationChannel.Config)
+	integration, ok := validateConfig(w, notificationChannel.Type, notificationChannel.Config)
 	if !ok {
 		return
 	}
@@ -305,28 +312,28 @@ func (ic *Controller) Test(ctx *gin.Context) {
 	}
 
 	// Send the test notification, with the deadline the listener gives each send
-	sendCtx, cancel := context.WithTimeout(ctx.Request.Context(), sendTimeout)
+	sendCtx, cancel := context.WithTimeout(ctx, sendTimeout)
 	defer cancel()
 	err := integration.Send(sendCtx, notificationChannel.Config, testMessage, testMonitor, testHeartbeat)
 	if err != nil {
 		ic.logger.Errorw("Failed to send test notification", "error", err)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Failed to send test notification: "+err.Error()))
+		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Failed to send test notification: "+err.Error()))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse[any]("Test notification sent successfully", nil))
+	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse[any]("Test notification sent successfully", nil))
 }
 
 // validateConfig looks up the provider for channelType and checks config with it.
 // On failure it writes the 400 response and returns false.
-func validateConfig(ctx *gin.Context, channelType, config string) (NotificationChannelProvider, bool) {
+func validateConfig(w http.ResponseWriter, channelType, config string) (NotificationChannelProvider, bool) {
 	integration, ok := GetNotificationChannelProvider(channelType)
 	if !ok {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Unsupported notification type"))
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("Unsupported notification type"))
 		return nil, false
 	}
 	if err := integration.Validate(config); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid config: "+err.Error()))
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("Invalid config: "+err.Error()))
 		return nil, false
 	}
 	return integration, true

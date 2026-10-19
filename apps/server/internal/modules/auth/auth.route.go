@@ -1,9 +1,8 @@
 package auth
 
 import (
+	"peekaping/internal/httpx"
 	"peekaping/internal/modules/bruteforce"
-
-	"github.com/gin-gonic/gin"
 )
 
 type Route struct {
@@ -24,17 +23,17 @@ func NewRoute(
 	}
 }
 
-func (r *Route) ConnectRoute(router *gin.RouterGroup, controller *Controller) {
+func (r *Route) ConnectRoute(router *httpx.Router, controller *Controller) {
 	auth := router.Group("/auth")
-	auth.POST("/register", controller.Register)
+	auth.Handle("POST", "/register", controller.Register)
 
-	auth.POST("/login", r.bruteforceGuard.Middleware(), controller.Login)
+	auth.Handle("POST", "/login", controller.Login, r.bruteforceGuard.Middleware())
 
-	auth.POST("/refresh", controller.RefreshToken)
+	auth.Handle("POST", "/refresh", controller.RefreshToken)
 
 	auth.Use(r.middleware.Auth())
-	auth.POST("/2fa/setup", controller.SetupTwoFA)
-	auth.POST("/2fa/verify", controller.VerifyTwoFA)
-	auth.POST("/2fa/disable", controller.DisableTwoFA)
-	auth.PUT("/password", controller.UpdatePassword)
+	auth.Handle("POST", "/2fa/setup", controller.SetupTwoFA)
+	auth.Handle("POST", "/2fa/verify", controller.VerifyTwoFA)
+	auth.Handle("POST", "/2fa/disable", controller.DisableTwoFA)
+	auth.Handle("PUT", "/password", controller.UpdatePassword)
 }

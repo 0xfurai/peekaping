@@ -2,9 +2,9 @@ package tag
 
 import (
 	"net/http"
+	"peekaping/internal/httpx"
 	"peekaping/internal/utils"
 
-	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
 
@@ -36,29 +36,30 @@ func NewController(
 // @Failure		400	{object}	utils.APIError[any]
 // @Failure		404	{object}	utils.APIError[any]
 // @Failure		500	{object}	utils.APIError[any]
-func (c *Controller) FindAll(ctx *gin.Context) {
-	page, err := utils.GetQueryInt(ctx, "page", 0)
+func (c *Controller) FindAll(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	page, err := utils.GetQueryInt(r, "page", 0)
 	if err != nil || page < 0 {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid page parameter"))
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("Invalid page parameter"))
 		return
 	}
 
-	limit, err := utils.GetQueryInt(ctx, "limit", 10)
+	limit, err := utils.GetQueryInt(r, "limit", 10)
 	if err != nil || limit < 1 || limit > utils.MaxPageSize {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid limit parameter"))
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("Invalid limit parameter"))
 		return
 	}
 
-	q := ctx.Query("q")
+	q := r.URL.Query().Get("q")
 
 	response, err := c.service.FindAll(ctx, page, limit, q)
 	if err != nil {
 		c.logger.Errorw("Failed to fetch tags", "error", err)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", response))
+	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("success", response))
 }
 
 // @Router		/tags [post]
@@ -72,16 +73,17 @@ func (c *Controller) FindAll(ctx *gin.Context) {
 // @Success		201	{object}	utils.ApiResponse[Model]
 // @Failure		400	{object}	utils.APIError[any]
 // @Failure		500	{object}	utils.APIError[any]
-func (c *Controller) Create(ctx *gin.Context) {
+func (c *Controller) Create(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	var tag *CreateUpdateDto
-	if err := ctx.ShouldBindJSON(&tag); err != nil {
+	if err := httpx.DecodeJSON(r, &tag); err != nil {
 		c.logger.Errorw("Invalid request body", "error", err)
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
 		return
 	}
 
 	if err := utils.Validate.Struct(tag); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		return
 	}
 
@@ -89,14 +91,14 @@ func (c *Controller) Create(ctx *gin.Context) {
 	if err != nil {
 		c.logger.Errorw("Failed to create tag", "error", err)
 		if err.Error() == "tag with this name already exists" {
-			ctx.JSON(http.StatusConflict, utils.NewFailResponse("Tag with this name already exists"))
+			httpx.JSON(w, http.StatusConflict, utils.NewFailResponse("Tag with this name already exists"))
 			return
 		}
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, utils.NewSuccessResponse("Tag created successfully", createdTag))
+	httpx.JSON(w, http.StatusCreated, utils.NewSuccessResponse("Tag created successfully", createdTag))
 }
 
 // @Router		/tags/{id} [get]
@@ -109,22 +111,23 @@ func (c *Controller) Create(ctx *gin.Context) {
 // @Failure		400	{object}	utils.APIError[any]
 // @Failure		404	{object}	utils.APIError[any]
 // @Failure		500	{object}	utils.APIError[any]
-func (c *Controller) FindByID(ctx *gin.Context) {
-	id := ctx.Param("id")
+func (c *Controller) FindByID(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	id := r.PathValue("id")
 
 	tag, err := c.service.FindByID(ctx, id)
 	if err != nil {
 		c.logger.Errorw("Failed to fetch tag", "error", err)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
 	}
 
 	if tag == nil {
-		ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Tag not found"))
+		httpx.JSON(w, http.StatusNotFound, utils.NewFailResponse("Tag not found"))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", tag))
+	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("success", tag))
 }
 
 // @Router		/tags/{id} [put]
@@ -139,21 +142,22 @@ func (c *Controller) FindByID(ctx *gin.Context) {
 // @Failure		400	{object}	utils.APIError[any]
 // @Failure		404	{object}	utils.APIError[any]
 // @Failure		500	{object}	utils.APIError[any]
-func (c *Controller) UpdateFull(ctx *gin.Context) {
-	id := ctx.Param("id")
+func (c *Controller) UpdateFull(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	id := r.PathValue("id")
 
 	var tag CreateUpdateDto
-	if err := ctx.ShouldBindJSON(&tag); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+	if err := httpx.DecodeJSON(r, &tag); err != nil {
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		return
 	}
 
 	if err := utils.Validate.Struct(tag); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		return
 	}
 
-	if _, ok := utils.FindOr404(ctx, c.logger, "Tag", c.service.FindByID, id); !ok {
+	if _, ok := utils.FindOr404(ctx, w, c.logger, "Tag", c.service.FindByID, id); !ok {
 		return
 	}
 
@@ -161,14 +165,14 @@ func (c *Controller) UpdateFull(ctx *gin.Context) {
 	if err != nil {
 		c.logger.Errorw("Failed to update tag", "error", err)
 		if err.Error() == "tag with this name already exists" {
-			ctx.JSON(http.StatusConflict, utils.NewFailResponse("Tag with this name already exists"))
+			httpx.JSON(w, http.StatusConflict, utils.NewFailResponse("Tag with this name already exists"))
 			return
 		}
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("Tag updated successfully", updatedTag))
+	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("Tag updated successfully", updatedTag))
 }
 
 // @Router		/tags/{id} [patch]
@@ -183,21 +187,22 @@ func (c *Controller) UpdateFull(ctx *gin.Context) {
 // @Failure		400	{object}	utils.APIError[any]
 // @Failure		404	{object}	utils.APIError[any]
 // @Failure		500	{object}	utils.APIError[any]
-func (c *Controller) UpdatePartial(ctx *gin.Context) {
-	id := ctx.Param("id")
+func (c *Controller) UpdatePartial(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	id := r.PathValue("id")
 
 	var tag PartialUpdateDto
-	if err := ctx.ShouldBindJSON(&tag); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+	if err := httpx.DecodeJSON(r, &tag); err != nil {
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		return
 	}
 
 	if err := utils.Validate.Struct(tag); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		return
 	}
 
-	if _, ok := utils.FindOr404(ctx, c.logger, "Tag", c.service.FindByID, id); !ok {
+	if _, ok := utils.FindOr404(ctx, w, c.logger, "Tag", c.service.FindByID, id); !ok {
 		return
 	}
 
@@ -205,14 +210,14 @@ func (c *Controller) UpdatePartial(ctx *gin.Context) {
 	if err != nil {
 		c.logger.Errorw("Failed to update tag", "error", err)
 		if err.Error() == "tag with this name already exists" {
-			ctx.JSON(http.StatusConflict, utils.NewFailResponse("Tag with this name already exists"))
+			httpx.JSON(w, http.StatusConflict, utils.NewFailResponse("Tag with this name already exists"))
 			return
 		}
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("Tag updated successfully", updatedTag))
+	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("Tag updated successfully", updatedTag))
 }
 
 // @Router		/tags/{id} [delete]
@@ -225,19 +230,20 @@ func (c *Controller) UpdatePartial(ctx *gin.Context) {
 // @Failure		400	{object}	utils.APIError[any]
 // @Failure		404	{object}	utils.APIError[any]
 // @Failure		500	{object}	utils.APIError[any]
-func (c *Controller) Delete(ctx *gin.Context) {
-	id := ctx.Param("id")
+func (c *Controller) Delete(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	id := r.PathValue("id")
 
-	if _, ok := utils.FindOr404(ctx, c.logger, "Tag", c.service.FindByID, id); !ok {
+	if _, ok := utils.FindOr404(ctx, w, c.logger, "Tag", c.service.FindByID, id); !ok {
 		return
 	}
 
 	err := c.service.Delete(ctx, id)
 	if err != nil {
 		c.logger.Errorw("Failed to delete tag", "error", err)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse[any]("Tag deleted successfully", nil))
+	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse[any]("Tag deleted successfully", nil))
 }

@@ -2,10 +2,10 @@ package api_key
 
 import (
 	"net/http"
+	"peekaping/internal/httpx"
 	"peekaping/internal/utils"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
 )
@@ -34,31 +34,32 @@ func NewController(service Service, logger *zap.SugaredLogger) *Controller {
 // @Failure 400 {object} utils.APIError
 // @Failure 500 {object} utils.APIError
 // @Router /api-keys [post]
-func (c *Controller) CreateAPIKey(ctx *gin.Context) {
+func (c *Controller) CreateAPIKey(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	// MARK: CreateAPIKey
 
 	var req CreateAPIKeyDto
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+	if err := httpx.DecodeJSON(r, &req); err != nil {
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		return
 	}
 
 	// Validate the request
 	validate := validator.New()
 	if err := validate.Struct(req); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		return
 	}
 
 	// Validate expiration date
 	if req.ExpiresAt != nil && req.ExpiresAt.Before(time.Now()) {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("expiration date cannot be in the past"))
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("expiration date cannot be in the past"))
 		return
 	}
 
 	// Validate max usage count
 	if req.MaxUsageCount != nil && *req.MaxUsageCount <= 0 {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("max usage count must be greater than 0"))
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("max usage count must be greater than 0"))
 		return
 	}
 
@@ -71,11 +72,11 @@ func (c *Controller) CreateAPIKey(ctx *gin.Context) {
 
 	apiKey, err := c.service.Create(ctx, serviceReq)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse(err.Error()))
+		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse(err.Error()))
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, utils.NewSuccessResponse("API key created successfully", apiKey.ToAPIKeyWithTokenResponse()))
+	httpx.JSON(w, http.StatusCreated, utils.NewSuccessResponse("API key created successfully", apiKey.ToAPIKeyWithTokenResponse()))
 }
 
 // GetAPIKeys gets all API keys
@@ -87,12 +88,13 @@ func (c *Controller) CreateAPIKey(ctx *gin.Context) {
 // @Success 200 {object} utils.ApiResponse[[]APIKeyResponse]
 // @Failure 500 {object} utils.APIError
 // @Router /api-keys [get]
-func (c *Controller) GetAPIKeys(ctx *gin.Context) {
+func (c *Controller) GetAPIKeys(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	// MARK: GetAPIKeys
 
 	apiKeys, err := c.service.FindAll(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse(err.Error()))
+		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse(err.Error()))
 		return
 	}
 
@@ -101,7 +103,7 @@ func (c *Controller) GetAPIKeys(ctx *gin.Context) {
 		responses[i] = apiKey.ToAPIKeyResponse()
 	}
 
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("API keys retrieved successfully", responses))
+	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("API keys retrieved successfully", responses))
 }
 
 // GetAPIKey gets a specific API key by ID
@@ -115,21 +117,22 @@ func (c *Controller) GetAPIKeys(ctx *gin.Context) {
 // @Failure 404 {object} utils.APIError
 // @Failure 500 {object} utils.APIError
 // @Router /api-keys/{id} [get]
-func (c *Controller) GetAPIKey(ctx *gin.Context) {
+func (c *Controller) GetAPIKey(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	// MARK: GetAPIKey
 
-	id := ctx.Param("id")
+	id := r.PathValue("id")
 	apiKey, err := c.service.FindByID(ctx, id)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse(err.Error()))
+		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse(err.Error()))
 		return
 	}
 	if apiKey == nil {
-		ctx.JSON(http.StatusNotFound, utils.NewFailResponse("API key not found"))
+		httpx.JSON(w, http.StatusNotFound, utils.NewFailResponse("API key not found"))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("API key retrieved successfully", apiKey.ToAPIKeyResponse()))
+	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("API key retrieved successfully", apiKey.ToAPIKeyResponse()))
 }
 
 // UpdateAPIKey updates an API key
@@ -146,32 +149,33 @@ func (c *Controller) GetAPIKey(ctx *gin.Context) {
 // @Failure 404 {object} utils.APIError
 // @Failure 500 {object} utils.APIError
 // @Router /api-keys/{id} [put]
-func (c *Controller) UpdateAPIKey(ctx *gin.Context) {
+func (c *Controller) UpdateAPIKey(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	// MARK: UpdateAPIKey
 
-	id := ctx.Param("id")
+	id := r.PathValue("id")
 	var req UpdateAPIKeyDto
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+	if err := httpx.DecodeJSON(r, &req); err != nil {
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		return
 	}
 
 	// Validate the request
 	validate := validator.New()
 	if err := validate.Struct(req); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		return
 	}
 
 	// Validate expiration date if provided
 	if req.ExpiresAt != nil && req.ExpiresAt.Before(time.Now()) {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("expiration date cannot be in the past"))
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("expiration date cannot be in the past"))
 		return
 	}
 
 	// Validate max usage count if provided
 	if req.MaxUsageCount != nil && *req.MaxUsageCount <= 0 {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("max usage count must be greater than 0"))
+		httpx.JSON(w, http.StatusBadRequest, utils.NewFailResponse("max usage count must be greater than 0"))
 		return
 	}
 
@@ -185,14 +189,14 @@ func (c *Controller) UpdateAPIKey(ctx *gin.Context) {
 	apiKey, err := c.service.Update(ctx, id, serviceReq)
 	if err != nil {
 		if err.Error() == "API key not found" {
-			ctx.JSON(http.StatusNotFound, utils.NewFailResponse("API key not found"))
+			httpx.JSON(w, http.StatusNotFound, utils.NewFailResponse("API key not found"))
 			return
 		}
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse(err.Error()))
+		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse(err.Error()))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("API key updated successfully", apiKey.ToAPIKeyResponse()))
+	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("API key updated successfully", apiKey.ToAPIKeyResponse()))
 }
 
 // DeleteAPIKey deletes an API key
@@ -205,21 +209,22 @@ func (c *Controller) UpdateAPIKey(ctx *gin.Context) {
 // @Failure 404 {object} utils.APIError
 // @Failure 500 {object} utils.APIError
 // @Router /api-keys/{id} [delete]
-func (c *Controller) DeleteAPIKey(ctx *gin.Context) {
+func (c *Controller) DeleteAPIKey(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	// MARK: DeleteAPIKey
 
-	id := ctx.Param("id")
-	if _, ok := utils.FindOr404(ctx, c.logger, "API key", c.service.FindByID, id); !ok {
+	id := r.PathValue("id")
+	if _, ok := utils.FindOr404(ctx, w, c.logger, "API key", c.service.FindByID, id); !ok {
 		return
 	}
 
 	err := c.service.Delete(ctx, id)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse(err.Error()))
+		httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse(err.Error()))
 		return
 	}
 
-	ctx.Status(http.StatusNoContent)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // GetAPIKeyConfig gets API key configuration
@@ -229,11 +234,12 @@ func (c *Controller) DeleteAPIKey(ctx *gin.Context) {
 // @Produce json
 // @Success 200 {object} utils.ApiResponse[APIKeyConfigResponse]
 // @Router /api-keys/config [get]
-func (c *Controller) GetAPIKeyConfig(ctx *gin.Context) {
+func (c *Controller) GetAPIKeyConfig(w http.ResponseWriter, r *http.Request) {
+
 	// MARK: GetAPIKeyConfig
 
 	config := &APIKeyConfigResponse{
 		Prefix: ApiKeyPrefix,
 	}
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("API key configuration retrieved successfully", config))
+	httpx.JSON(w, http.StatusOK, utils.NewSuccessResponse("API key configuration retrieved successfully", config))
 }

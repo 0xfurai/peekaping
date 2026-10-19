@@ -49,3 +49,24 @@ func TestMonitorsAPI_MarksStaleMonitors(t *testing.T) {
 	assert.Equal(t, since, byID[staleID].UTC())
 	assert.Nil(t, byID[freshID])
 }
+
+func TestMonitorsAPI_ListsMonitorsWhenStaleRecordsCannotBeRead(t *testing.T) {
+	a := newAppWithAdmin(t)
+	id := a.createMonitor(t, "Checkout", "checkout-push-token")
+	// A string under the hash's key makes every read of it fail with WRONGTYPE
+	require.NoError(t, a.container.Invoke(func(rdb *redis.Client) error {
+		return rdb.Set(context.Background(), stale.MonitorsKey, "not a hash", 0).Err()
+	}))
+
+	response := a.request(t, http.MethodGet, "/api/v1/monitors/"+id, nil, a.asAdmin)
+	got := decode[staleMonitorResponse](t, response, http.StatusOK)
+	assert.Equal(t, id, got.ID)
+	assert.Nil(t, got.StaleSince)
+	assert.NotContains(t, response.Body.String(), `"stale_since"`)
+
+	listResponse := a.request(t, http.MethodGet, "/api/v1/monitors", nil, a.asAdmin)
+	list := decode[[]staleMonitorResponse](t, listResponse, http.StatusOK)
+	require.Len(t, list, 1)
+	assert.Nil(t, list[0].StaleSince)
+	assert.NotContains(t, listResponse.Body.String(), `"stale_since"`)
+}

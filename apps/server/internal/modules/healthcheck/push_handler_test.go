@@ -7,11 +7,11 @@ import (
 	"testing"
 	"time"
 
+	"peekaping/internal/httpx"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/shared"
 
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -98,13 +98,12 @@ func (q *capturingQueue) EnqueueUnique(_ context.Context, _ string, payload inte
 }
 
 func TestPushEndpoint(t *testing.T) {
-	gin.SetMode(gin.TestMode)
 
 	push := func(t *testing.T, query string) PushIngesterPayload {
 		t.Helper()
 		monitors := &pushMonitorService{monitor: &monitor.Model{ID: "mon-1", Type: "push", Active: true, PushToken: "token"}}
 		q := &capturingQueue{}
-		router := gin.New()
+		router := httpx.NewRouter()
 		RegisterPushEndpoint(router.Group("/api/v1"), monitors, nil, q, zap.NewNop().Sugar())
 
 		rec := httptest.NewRecorder()
