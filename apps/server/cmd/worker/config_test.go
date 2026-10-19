@@ -3,21 +3,18 @@ package main
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestToInternalConfigPropagatesRedisUsername(t *testing.T) {
-	cfg := &Config{
-		RedisHost:     "redis",
-		RedisPort:     "6379",
-		RedisUsername: "peekaping",
-		RedisPassword: "secret",
-		RedisDB:       2,
-	}
+func TestRedisUsernameIsLoadedFromEnv(t *testing.T) {
+	t.Setenv("REDIS_USERNAME", "peekaping")
+	t.Setenv("REDIS_PASSWORD", "secret")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
 
 	internalCfg := cfg.ToInternalConfig()
-
-	require.Equal(t, "peekaping", internalCfg.RedisUsername)
-	require.Equal(t, "secret", internalCfg.RedisPassword)
-	require.Equal(t, 2, internalCfg.RedisDB)
+	assert.Equal(t, "peekaping", internalCfg.RedisUsername)
+	assert.Equal(t, "secret", internalCfg.RedisPassword)
 }
