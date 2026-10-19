@@ -110,10 +110,11 @@ func main() {
 	}
 
 	// Start the Prometheus metrics collector
+	metricsCtx, stopMetrics := context.WithCancel(context.Background())
+	defer stopMetrics()
 	if internalCfg.MetricsEnabled {
 		err = container.Invoke(func(collector *metrics.Collector, eventBus events.EventBus) {
-			collector.Subscribe(eventBus)
-			collector.Seed(context.Background())
+			collector.Start(metricsCtx, eventBus)
 		})
 		if err != nil {
 			log.Fatal(err)
@@ -150,6 +151,7 @@ func main() {
 		// Wait for shutdown signal
 		<-sigChan
 		logger.Info("Shutdown signal received, starting graceful shutdown...")
+		stopMetrics()
 		// Close event bus
 		if err := eventBus.Close(); err != nil {
 			logger.Errorw("Failed to close event bus", "error", err)

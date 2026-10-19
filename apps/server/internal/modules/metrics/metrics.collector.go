@@ -1,294 +1,185 @@
 // Package metrics exposes Peekaping monitor state as Prometheus metrics.
 //
-// The collector subscribes to the heartbeat/monitor events on the shared event
-// bus and keeps a set of in-memory gauges up to date. Because it is fed from the
-// event bus (Redis pub/sub in a multi-process deployment) it sees heartbeats
-// regardless of which process actually ran the check, and scraping costs nothing
-// at scrape time - no database round-trips, no polling of the worker.
+// The collector keeps the latest Heartbeat of every active Monitor in memory, fed
+// by the event bus (Redis pub/sub in a multi-process deployment), so it sees
+// Heartbeats whichever process ran the check. A scrape reads that memory only:
+// no database round-trips, no polling of the worker.
 package metrics
 
 import (
 	"context"
-	"encoding/json"
+	"maps"
 	"net/http"
+	"strings"
+	"sync"
+	"time"
 
+	"peekaping/internal/infra"
 	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/version"
-	"sync"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-
 	"go.uber.org/zap"
 )
 
-// Label names applied to every per-monitor metric.
-const (
-	labelMonitorID   = "monitor_id"
-	labelMonitorName = "monitor_name"
-	labelMonitorType = "monitor_type"
+// SyncInterval is how often the collector checks its state against the active Monitors
+const SyncInterval = 5 * time.Minute
+
+var monitorLabels = []string{"monitor_id", "monitor_name", "monitor_type"}
+
+var (
+	statusDesc = prometheus.NewDesc(
+		"peekaping_monitor_status",
+		"Status of the Monitor's latest Heartbeat (0=Down, 1=Up, 2=Pending, 3=Maintenance).",
+		monitorLabels, nil)
+	heartbeatTimeDesc = prometheus.NewDesc(
+		"peekaping_monitor_last_heartbeat_timestamp_seconds",
+		"Unix time of the Monitor's latest Heartbeat. Alert on it to catch a Monitor that stopped being checked.",
+		monitorLabels, nil)
+	responseDesc = prometheus.NewDesc(
+		"peekaping_monitor_response_seconds",
+		"Response time of the Monitor's latest Heartbeat, in seconds. Only present while that Heartbeat is Up.",
+		monitorLabels, nil)
 )
 
-// monitorMeta is the bit of monitor metadata we need to label its metrics.
-// We cache it so a heartbeat event does not require a database lookup once a
-// monitor has been seen.
-type monitorMeta struct {
+// monitorState is what the latest Heartbeat of an active Monitor exports
+type monitorState struct {
 	name        string
 	monitorType string
+	status      shared.MonitorStatus
+	ping        int // Response time in milliseconds
+	heartbeatAt time.Time
 }
 
-func (m monitorMeta) labels(monitorID string) prometheus.Labels {
-	return prometheus.Labels{
-		labelMonitorID:   monitorID,
-		labelMonitorName: m.name,
-		labelMonitorType: m.monitorType,
-	}
-}
-
-// Collector holds the Prometheus registry and the per-monitor gauges.
+// Collector is a prometheus.Collector over the latest Heartbeat of each active Monitor.
+// A series exists exactly while its Monitor has state.
 type Collector struct {
-	monitorService monitor.Service
-	logger         *zap.SugaredLogger
+	monitorService   monitor.Service
+	heartbeatService heartbeat.Service
+	logger           *zap.SugaredLogger
+	syncInterval     time.Duration
 
-	registry *prometheus.Registry
-
-	status        *prometheus.GaugeVec
-	up            *prometheus.GaugeVec
-	responseTime  *prometheus.GaugeVec
-	lastHeartbeat *prometheus.GaugeVec
-
-	mu    sync.RWMutex
-	cache map[string]monitorMeta
+	mu       sync.RWMutex
+	monitors map[string]monitorState
 }
 
-// NewCollector builds a Collector with its own dedicated registry. It does not
-// touch the event bus until Subscribe is called.
-func NewCollector(monitorService monitor.Service, logger *zap.SugaredLogger) *Collector {
-	registry := prometheus.NewRegistry()
-
-	c := &Collector{
-		monitorService: monitorService,
-		logger:         logger.Named("[metrics-collector]"),
-		registry:       registry,
-		cache:          make(map[string]monitorMeta),
-		status: prometheus.NewGaugeVec(prometheus.GaugeOpts{
-			Name: "peekaping_monitor_status",
-			Help: "Current monitor status (0=down, 1=up, 2=pending, 3=maintenance).",
-		}, []string{labelMonitorID, labelMonitorName, labelMonitorType}),
-		up: prometheus.NewGaugeVec(prometheus.GaugeOpts{
-			Name: "peekaping_monitor_up",
-			Help: "Whether the monitor is up (1) or not (0). Anything other than the up state reports 0.",
-		}, []string{labelMonitorID, labelMonitorName, labelMonitorType}),
-		responseTime: prometheus.NewGaugeVec(prometheus.GaugeOpts{
-			Name: "peekaping_monitor_response_seconds",
-			Help: "Response time of the most recent heartbeat, in seconds.",
-		}, []string{labelMonitorID, labelMonitorName, labelMonitorType}),
-		lastHeartbeat: prometheus.NewGaugeVec(prometheus.GaugeOpts{
-			Name: "peekaping_monitor_last_heartbeat_timestamp_seconds",
-			Help: "Unix timestamp of the most recent heartbeat. Useful for detecting stale monitors.",
-		}, []string{labelMonitorID, labelMonitorName, labelMonitorType}),
+// NewCollector builds a Collector. It does not touch the event bus until Start is called.
+func NewCollector(monitorService monitor.Service, heartbeatService heartbeat.Service, logger *zap.SugaredLogger) *Collector {
+	return &Collector{
+		monitorService:   monitorService,
+		heartbeatService: heartbeatService,
+		logger:           logger.Named("[metrics-collector]"),
+		syncInterval:     SyncInterval,
+		monitors:         make(map[string]monitorState),
 	}
+}
 
-	buildInfo := prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "peekaping_build_info",
-		Help: "Peekaping build information. Always 1; the version is carried in the label.",
-	}, []string{"version"})
-	buildInfo.WithLabelValues(version.Version).Set(1)
-
+// Handler returns an http handler serving the Prometheus exposition format from a registry
+// of its own: the Monitors, the build info, and the Go runtime and process collectors.
+func (c *Collector) Handler() http.HandlerFunc {
+	registry := prometheus.NewRegistry()
 	registry.MustRegister(
-		c.status,
-		c.up,
-		c.responseTime,
-		c.lastHeartbeat,
-		buildInfo,
+		c,
+		prometheus.NewGaugeFunc(prometheus.GaugeOpts{
+			Name:        "peekaping_build_info",
+			Help:        "Peekaping build information. Always 1; the version is carried in the label.",
+			ConstLabels: prometheus.Labels{"version": version.Version},
+		}, func() float64 { return 1 }),
 		collectors.NewGoCollector(),
 		collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}),
 	)
-
-	return c
-}
-
-// Handler returns an http handler serving the Prometheus exposition format.
-func (c *Collector) Handler() http.HandlerFunc {
-	h := promhttp.HandlerFor(c.registry, promhttp.HandlerOpts{
+	return promhttp.HandlerFor(registry, promhttp.HandlerOpts{
 		ErrorHandling: promhttp.ContinueOnError,
-	})
-	return h.ServeHTTP
+	}).ServeHTTP
 }
 
-// Subscribe wires the collector up to the event bus. Call once at startup.
-func (c *Collector) Subscribe(eventBus events.EventBus) {
-	c.logger.Info("Subscribing to heartbeat and monitor events")
-
-	eventBus.Subscribe(events.HeartbeatEvent, func(event events.Event) {
-		c.handleHeartbeat(event)
-	})
-	eventBus.Subscribe(events.MonitorUpdated, func(event events.Event) {
-		c.handleMonitorUpdated(event)
-	})
-	eventBus.Subscribe(events.MonitorDeleted, func(event events.Event) {
-		c.handleMonitorDeleted(event)
-	})
+func (c *Collector) Describe(ch chan<- *prometheus.Desc) {
+	ch <- statusDesc
+	ch <- heartbeatTimeDesc
+	ch <- responseDesc
 }
 
-// Seed primes the gauges from the current state of every active monitor so the
-// metrics are populated immediately on startup rather than only after the first
-// heartbeat of each monitor. Failures here are non-fatal - the event stream will
-// fill the gauges in regardless.
-func (c *Collector) Seed(ctx context.Context) {
-	monitors, err := c.monitorService.FindActive(ctx)
-	if err != nil {
-		c.logger.Warnw("Failed to seed metrics from active monitors", "error", err)
-		return
-	}
+// Collect reads memory only. Label values are made valid UTF-8, since one bad name
+// would otherwise fail the whole scrape.
+func (c *Collector) Collect(ch chan<- prometheus.Metric) {
+	c.mu.RLock()
+	snapshot := maps.Clone(c.monitors)
+	c.mu.RUnlock()
 
-	for _, m := range monitors {
-		meta := monitorMeta{name: m.Name, monitorType: m.Type}
-		c.putMeta(m.ID, meta)
-		c.setStatus(m.ID, meta, m.Status)
-		if m.LastHeartbeat != nil {
-			c.setHeartbeat(m.ID, meta, m.LastHeartbeat)
+	for id, s := range snapshot {
+		labels := []string{id, strings.ToValidUTF8(s.name, "\uFFFD"), strings.ToValidUTF8(s.monitorType, "\uFFFD")}
+		send(ch, statusDesc, float64(s.status), labels)
+		send(ch, heartbeatTimeDesc, float64(s.heartbeatAt.Unix()), labels)
+		if s.status == shared.MonitorStatusUp {
+			send(ch, responseDesc, float64(s.ping)/1000, labels)
 		}
 	}
-	c.logger.Infof("Seeded metrics for %d active monitors", len(monitors))
+}
+
+func send(ch chan<- prometheus.Metric, desc *prometheus.Desc, value float64, labels []string) {
+	metric, err := prometheus.NewConstMetric(desc, prometheus.GaugeValue, value, labels...)
+	if err != nil {
+		metric = prometheus.NewInvalidMetric(desc, err)
+	}
+	ch <- metric
+}
+
+// Start subscribes to the event bus.
+func (c *Collector) Start(ctx context.Context, eventBus events.EventBus) {
+	eventBus.Subscribe(events.HeartbeatEvent, c.handleHeartbeat)
 }
 
 func (c *Collector) handleHeartbeat(event events.Event) {
-	var hb shared.HeartBeatModel
-	if err := unmarshalPayload(event.Payload, &hb); err != nil {
-		c.logger.Errorw("Failed to unmarshal heartbeat event", "error", err)
-		return
-	}
-	if hb.MonitorID == "" {
+	hb, ok := infra.UnmarshalEventPayload[heartbeat.Model](event)
+	if !ok {
+		c.logger.Errorf("Failed to unmarshal heartbeat event payload")
 		return
 	}
 
-	meta := c.getMeta(hb.MonitorID)
-	c.setStatus(hb.MonitorID, meta, hb.Status)
-	c.setHeartbeat(hb.MonitorID, meta, &hb)
-}
-
-func (c *Collector) handleMonitorUpdated(event events.Event) {
-	var m monitor.Model
-	if err := unmarshalPayload(event.Payload, &m); err != nil {
-		c.logger.Errorw("Failed to unmarshal monitor updated event", "error", err)
-		return
-	}
-	if m.ID == "" {
-		return
-	}
-
-	newMeta := monitorMeta{name: m.Name, monitorType: m.Type}
-
-	// If the labels changed (e.g. a rename), drop the old series so we don't
-	// leave a stale time series hanging around under the previous name.
 	c.mu.RLock()
-	old, existed := c.cache[m.ID]
+	_, tracked := c.monitors[hb.MonitorID]
 	c.mu.RUnlock()
-	if existed && old != newMeta {
-		c.deleteSeries(m.ID, old)
-	}
-
-	c.putMeta(m.ID, newMeta)
-}
-
-func (c *Collector) handleMonitorDeleted(event events.Event) {
-	var monitorID string
-	if err := unmarshalPayload(event.Payload, &monitorID); err != nil {
-		c.logger.Errorw("Failed to unmarshal monitor deleted event", "error", err)
-		return
-	}
-	if monitorID == "" {
+	if tracked {
+		c.record(hb, nil)
 		return
 	}
 
+	// The first Heartbeat of a Monitor has to name it
+	mon, err := c.monitorService.FindByID(context.Background(), hb.MonitorID)
+	if err != nil {
+		c.logger.Errorw("Failed to find the monitor of a heartbeat", "monitor_id", hb.MonitorID, "error", err)
+		return
+	}
+	if mon == nil || !mon.Active {
+		c.logger.Debugw("Ignoring a heartbeat of a monitor that is missing or paused", "monitor_id", hb.MonitorID)
+		return
+	}
+	c.record(hb, mon)
+}
+
+// record makes hb the Monitor's latest Heartbeat, unless the Monitor has a newer one already.
+// A Monitor with no state starts with the name and type in mon; without mon it gets none, as
+// it was dropped since the caller looked.
+func (c *Collector) record(hb *heartbeat.Model, mon *monitor.Model) {
 	c.mu.Lock()
-	meta, ok := c.cache[monitorID]
-	delete(c.cache, monitorID)
-	c.mu.Unlock()
+	defer c.mu.Unlock()
 
-	if ok {
-		c.deleteSeries(monitorID, meta)
+	s, tracked := c.monitors[hb.MonitorID]
+	switch {
+	case tracked && hb.Time.Before(s.heartbeatAt):
+		return
+	case !tracked && mon == nil:
+		return
+	case !tracked:
+		s = monitorState{name: mon.Name, monitorType: mon.Type}
 	}
-}
-
-func (c *Collector) setStatus(monitorID string, meta monitorMeta, status shared.MonitorStatus) {
-	labels := meta.labels(monitorID)
-	c.status.With(labels).Set(float64(status))
-
-	upVal := 0.0
-	if status == shared.MonitorStatusUp {
-		upVal = 1.0
-	}
-	c.up.With(labels).Set(upVal)
-}
-
-func (c *Collector) setHeartbeat(monitorID string, meta monitorMeta, hb *shared.HeartBeatModel) {
-	labels := meta.labels(monitorID)
-	// Ping is recorded in milliseconds; Prometheus convention is base units.
-	c.responseTime.With(labels).Set(float64(hb.Ping) / 1000.0)
-	if !hb.Time.IsZero() {
-		c.lastHeartbeat.With(labels).Set(float64(hb.Time.Unix()))
-	}
-}
-
-func (c *Collector) deleteSeries(monitorID string, meta monitorMeta) {
-	labels := meta.labels(monitorID)
-	c.status.Delete(labels)
-	c.up.Delete(labels)
-	c.responseTime.Delete(labels)
-	c.lastHeartbeat.Delete(labels)
-}
-
-// getMeta returns the cached metadata for a monitor, falling back to a database
-// lookup (and caching the result) on a miss. Lookups happen at event time, never
-// at scrape time.
-func (c *Collector) getMeta(monitorID string) monitorMeta {
-	c.mu.RLock()
-	meta, ok := c.cache[monitorID]
-	c.mu.RUnlock()
-	if ok {
-		return meta
-	}
-
-	m, err := c.monitorService.FindByID(context.Background(), monitorID)
-	if err != nil || m == nil {
-		// Fall back to labelling by ID only so we still emit a metric.
-		if err != nil {
-			c.logger.Debugw("Failed to look up monitor for metrics labels", "monitor_id", monitorID, "error", err)
-		}
-		return monitorMeta{name: "", monitorType: ""}
-	}
-
-	meta = monitorMeta{name: m.Name, monitorType: m.Type}
-	c.putMeta(monitorID, meta)
-	return meta
-}
-
-func (c *Collector) putMeta(monitorID string, meta monitorMeta) {
-	c.mu.Lock()
-	c.cache[monitorID] = meta
-	c.mu.Unlock()
-}
-
-// unmarshalPayload decodes an event payload that may arrive either as raw JSON
-// (when it crossed the Redis bus) or as an already-constructed Go value (when it
-// was published in-process). This mirrors the helper used by the other event
-// listeners.
-func unmarshalPayload(payload interface{}, target interface{}) error {
-	switch p := payload.(type) {
-	case json.RawMessage:
-		return json.Unmarshal(p, target)
-	case []byte:
-		return json.Unmarshal(p, target)
-	default:
-		data, err := json.Marshal(payload)
-		if err != nil {
-			return err
-		}
-		return json.Unmarshal(data, target)
-	}
+	s.status = hb.Status
+	s.ping = hb.Ping
+	s.heartbeatAt = hb.Time
+	c.monitors[hb.MonitorID] = s
 }
