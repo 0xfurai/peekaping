@@ -54,18 +54,31 @@ func newDBCommand() *cli.Command {
 			{
 				Name:  "migrate",
 				Usage: "migrate database",
+				Description: "On PostgreSQL, migrate holds a lock while it runs, and a second migrate waits for it to finish, " +
+					"up to --lock-timeout (default 10m). A migrate that is killed loses the lock with its connection.",
+				Flags: []cli.Flag{lockTimeoutFlag()},
 				Action: func(c *cli.Context) error {
+					wait, err := lockTimeout(c)
+					if err != nil {
+						return err
+					}
 					return runWithDB(func(db *bun.DB) error {
-						return migrateUp(c.Context, db)
+						return migrateUp(c.Context, db, wait)
 					})
 				},
 			},
 			{
-				Name:  "rollback",
-				Usage: "rollback the last migration group",
+				Name:        "rollback",
+				Usage:       "rollback the last migration group",
+				Description: "Takes the same lock as migrate and waits for it the same way.",
+				Flags:       []cli.Flag{lockTimeoutFlag()},
 				Action: func(c *cli.Context) error {
+					wait, err := lockTimeout(c)
+					if err != nil {
+						return err
+					}
 					return runWithDB(func(db *bun.DB) error {
-						return migrateDown(c.Context, db)
+						return migrateDown(c.Context, db, wait)
 					})
 				},
 			},
