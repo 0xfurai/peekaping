@@ -1197,6 +1197,8 @@ components:
           type: boolean
         name:
           type: string
+        secret:
+          type: string
         type:
           type: string
       type: object
@@ -1249,6 +1251,10 @@ components:
             - boolean
             - "null"
         name:
+          type:
+            - string
+            - "null"
+        secret:
           type:
             - string
             - "null"

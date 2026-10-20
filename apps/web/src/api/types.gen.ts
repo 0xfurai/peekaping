@@ -446,6 +446,7 @@ export type NotificationChannelCreateUpdateDto = {
   config?: string;
   is_default?: boolean;
   name?: string;
+  secret?: string;
   type?: string;
   [key: string]: unknown | boolean | string | undefined;
 };
@@ -466,12 +467,14 @@ export type NotificationChannelPartialUpdateDto = {
   config?: string | null;
   is_default?: boolean | null;
   name?: string | null;
+  secret?: string | null;
   type?: string | null;
   [key: string]:
     | unknown
     | (boolean | null)
     | (string | null)
     | (boolean | null)
+    | (string | null)
     | (string | null)
     | (string | null)
     | undefined;
