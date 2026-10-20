@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "Authorization Header",
+          "ca": "CA (optional)",
+          "ca_description": "Leave empty to verify the server's certificate against the system's trusted CAs.",
           "certificate": "Certificate",
           "certificate_placeholder": "Certificate",
           "client_id": "Client ID",
