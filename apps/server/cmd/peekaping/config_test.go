@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -60,6 +62,52 @@ func TestLoadAndValidate_RefusesMongoStorage(t *testing.T) {
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), "DB_TYPE="+dbType+" isn't supported by peekaping (single mode)")
 			assert.Contains(t, err.Error(), "SQLite or PostgreSQL")
+		})
+	}
+}
+
+func TestLoadAndValidate_ServesNoWebAppByDefault(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("WEB_DIR", "")
+	t.Setenv("API_URL", "")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+
+	assert.Empty(t, cfg.WebDir, "the API alone, as today")
+	assert.Empty(t, cfg.APIURL, "the web app reaches the API on its own origin")
+}
+
+func TestLoadAndValidate_KeepsWebDirAndAPIURLFromTheEnvironment(t *testing.T) {
+	webDir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(webDir, "index.html"), []byte("<!doctype html>"), 0o644))
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("WEB_DIR", webDir)
+	t.Setenv("API_URL", "https://api.example.com")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+
+	assert.Equal(t, webDir, cfg.WebDir)
+	assert.Equal(t, "https://api.example.com", cfg.APIURL)
+}
+
+func TestLoadAndValidate_RefusesAWebDirWithoutAWebBuild(t *testing.T) {
+	for name, webDir := range map[string]string{
+		"missing":          filepath.Join(t.TempDir(), "missing"),
+		"no index.html in": t.TempDir(),
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Setenv("DB_TYPE", "sqlite")
+			t.Setenv("DB_NAME", "peekaping.db")
+			t.Setenv("WEB_DIR", webDir)
+
+			_, err := LoadAndValidate(t.TempDir())
+
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "WEB_DIR="+webDir)
 		})
 	}
 }

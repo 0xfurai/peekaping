@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"peekaping/internal/config"
+	"peekaping/internal/web"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -54,6 +55,13 @@ type Config struct {
 	// Set to true to expose an unauthenticated /metrics endpoint for Prometheus
 	// to scrape. Off by default since it exposes monitor names and status.
 	MetricsEnabled bool `env:"METRICS_ENABLED" default:"false"`
+
+	// The web app (ADR 0002, section 7). With WEB_DIR set to the web build, peekaping serves it
+	// on SERVER_PORT beside the API. Unset, it serves the API alone.
+	WebDir string `env:"WEB_DIR"` // validated in Validate()
+	// Where the web app reaches the API, written to the /env.js peekaping generates. Empty means
+	// the origin the web app is served from.
+	APIURL string `env:"API_URL"`
 }
 
 // LoadAndValidate loads and validates peekaping's configuration
@@ -110,6 +118,13 @@ func Validate(cfg *Config) error {
 	}
 	if cfg.BruteforceLockout <= 0 {
 		return fmt.Errorf("BRUTEFORCE_LOCKOUT must be a positive duration")
+	}
+
+	// A WEB_DIR without a web build fails at startup, not on every page load
+	if cfg.WebDir != "" {
+		if err := web.CheckDir(cfg.WebDir); err != nil {
+			return fmt.Errorf("WEB_DIR=%s can't be served: %w. Set it to the web app's build, or unset it to serve the API alone", cfg.WebDir, err)
+		}
 	}
 
 	return nil
