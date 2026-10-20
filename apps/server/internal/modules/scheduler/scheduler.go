@@ -405,8 +405,12 @@ func (s *Scheduler) takeSlot(ctx context.Context) bool {
 	case <-ctx.Done():
 		return false
 	}
-	if ctx.Err() != nil {
-		// Both were ready and the slot won
+	// The slot can win over a cancel that was ready too, or come free while a stop is
+	// still cancelling the checks one by one and hasn't reached this one
+	s.mu.Lock()
+	cancelled := ctx.Err() != nil || !s.running()
+	s.mu.Unlock()
+	if cancelled {
 		s.freeSlot()
 		return false
 	}
