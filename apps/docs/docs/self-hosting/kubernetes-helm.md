@@ -9,7 +9,7 @@ The Helm chart in the `charts/` folder of the [Peekaping repository](https://git
 The chart installs:
 
 - Deployments for the API (`<release>-api`), the producer, the worker, the ingester and the web app (`<release>-web`). Each runs 3 replicas by default. The API, producer, worker and ingester pods start with an init container, `wait-for-migrations`, that holds them until the migrations are applied.
-- A Job, `<release>-migrate-<revision>`, that runs the database migrations.
+- A Job, `<release>-migrate-<revision>`, that runs the database migrations. A release name longer than 44 characters is shortened in the Job's name, so that the name stays within Kubernetes' limit of 63 characters.
 - Services for the API (port 8034) and the web app (port 80).
 - A ConfigMap, `<release>-config`, built from `config.env`.
 - Optionally, an Ingress, or an Istio Gateway and VirtualService.
