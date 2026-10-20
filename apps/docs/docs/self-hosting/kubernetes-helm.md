@@ -9,12 +9,12 @@ The Helm chart in the `charts/` folder of the [Peekaping repository](https://git
 The chart installs:
 
 - Deployments for the API (`<release>-api`), the producer, the worker, the ingester and the web app (`<release>-web`). Each runs 3 replicas by default. The API, producer, worker and ingester pods start with an init container, `wait-for-migrations`, that holds them until the migrations are applied.
-- A Job, `<release>-migrate`, that runs the database migrations.
+- A Job, `<release>-migrate-<revision>`, that runs the database migrations. A release name longer than 44 characters is shortened in the Job's name, so that the name stays within Kubernetes' limit of 63 characters.
 - Services for the API (port 8034) and the web app (port 80).
 - A ConfigMap, `<release>-config`, built from `config.env`.
 - Optionally, an Ingress, or an Istio Gateway and VirtualService.
 
-`<release>` is the name you give `helm install`.
+`<release>` is the name you give `helm install`. `<revision>` is the release revision the Job belongs to: 1 for the install, 2 for the first upgrade, and so on. `helm history` lists the revisions. A rollback applies the manifest of the revision it goes back to, so the Job it creates has that revision's number, not a new one.
 
 :::note PostgreSQL only
 The chart supports PostgreSQL only. SQLite doesn't work with it: the chart has no volume for the database file, and several pods would have to share it. MongoDB storage is [deprecated](./docker-with-mongo.md) and the chart doesn't support it. For SQLite, use the [single-mode bundle](./docker-with-sqlite.md).
@@ -101,8 +101,10 @@ Check that the migrate Job finished and the pods are running:
 
 ```bash
 kubectl get job,pods --namespace peekaping
-kubectl logs --namespace peekaping job/peekaping-migrate
+kubectl logs --namespace peekaping --selector app.kubernetes.io/instance=peekaping,app.kubernetes.io/component=migrate --tail=-1
 ```
+
+The selector finds the migrate Job's pod whatever the revision, and `--tail=-1` prints the whole log.
 
 The Job is an ordinary resource of the release, not a Helm hook, so Helm creates it and the Deployments at the same time. The API, producer, worker and ingester pods wait in `Init` until the Job has applied every migration, and then start. The web pods don't use the database and start right away.
 
@@ -244,13 +246,7 @@ Each component has a `replicaCount`, which is 3 by default, and `resources` with
 
 1. Back up your PostgreSQL database. If you upgrade from 0.0.46 or earlier, also read [Upgrading stats storage](./upgrading-stats.md).
 2. Update your checkout of the repository, and set the new release in every `image.tag`.
-3. Delete the migrate Job of the last install or upgrade, if it is still there. Kubernetes can't change a Job's pods once it exists, so `helm upgrade` fails on it for an hour after it finished:
-
-   ```bash
-   kubectl delete job --namespace peekaping peekaping-migrate --ignore-not-found
-   ```
-
-4. Upgrade the release:
+3. Upgrade the release:
 
    ```bash
    helm upgrade peekaping charts \
@@ -258,6 +254,6 @@ Each component has a `replicaCount`, which is 3 by default, and `resources` with
      --values peekaping-values.yaml
    ```
 
-The migrate Job runs the migrations of the new release. The new API, producer, worker and ingester pods wait in `Init` until it has applied them, and the old pods keep serving until then. Check that it finished with `kubectl logs --namespace peekaping job/peekaping-migrate`. The Job is removed an hour after it finishes (`migrate.ttlSecondsAfterFinished`).
+The upgrade creates a new migrate Job, `peekaping-migrate-<revision>`, that runs the migrations of the new release, and Helm removes the previous one. Every install, upgrade and rollback creates a Job, so there is nothing to delete by hand. The new API, producer, worker and ingester pods wait in `Init` until the Job has applied the migrations, and the old pods keep serving until then. Check that it finished with `kubectl logs --namespace peekaping --selector app.kubernetes.io/instance=peekaping,app.kubernetes.io/component=migrate --tail=-1`. The Job is removed an hour after it finishes (`migrate.ttlSecondsAfterFinished`).
 
-`helm rollback` returns the Kubernetes objects to an earlier revision, but it doesn't undo database migrations. If a migration has changed your database, restore the backup too.
+`helm rollback` returns the Kubernetes objects to an earlier revision, but it doesn't undo database migrations. It applies the manifest of the revision you roll back to, so it creates that revision's migrate Job again: rolling back to revision 1 creates `peekaping-migrate-1`, not a Job with a new number. If a migration has changed your database, restore the backup too.

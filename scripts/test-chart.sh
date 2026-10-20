@@ -8,7 +8,9 @@
 # Deployment has none, an enabled AppArmor profile covers that init container as
 # well as the main container, the init container's script ends at once for a
 # MongoDB install, which has no SQL migrations to wait for, and keeps waiting
-# for a PostgreSQL one until `./bun db status` reports none unapplied, and the
+# for a PostgreSQL one until `./bun db status` reports none unapplied, the
+# migrate Job is named after the release revision (and its name fits Kubernetes'
+# limit of 63 characters for the longest release name Helm allows), and the
 # install notes say Peekaping runs in cluster mode and link to the Helm docs
 # page.
 #
@@ -85,6 +87,62 @@ env_from_of() {
       print
     }
   '
+}
+
+# job_name_of <rendered file> <template>: the metadata name of the Job that
+# <template> renders (such as migrate-job)
+job_name_of() {
+  awk -v template="$2" '
+    /^# Source: / { in_template = ($0 ~ "/" template "\\.yaml$"); next }
+    /^---$/ { in_template = 0 }
+    in_template && /^kind: / && $2 != "Job" { exit }
+    in_template && /^  name: / { print $2; exit }
+  ' "$1"
+}
+
+# job_named <rendered file> <template> <expected name>: the Job that <template>
+# renders (such as migrate-job) has that metadata name
+job_named() {
+  local name
+  name=$(job_name_of "$1" "$2")
+  if [ "$name" != "$3" ]; then
+    echo "       the Job in $2 is named '${name:-<none>}', expected $3"
+    return 1
+  fi
+}
+
+# job_name_fits <release name>: for a release of that name, the migrate Job is
+# named <release>-migrate cut to 52 characters, then -<revision>, so a revision
+# of up to 10 digits keeps the name within the 63 characters Kubernetes allows.
+# Helm allows release names of 53 characters, which <release>-migrate-<revision>
+# would exceed from revision 10 on. A name that fits is left as it is, and the
+# cut never leaves a hyphen in front of the revision's.
+job_name_fits() {
+  local name prefix
+  helm template "$1" "$chart" >"$work/job-name.yaml" 2>"$work/job-name.log" ||
+    { sed 's/^/       /' "$work/job-name.log"; return 1; }
+  name=$(job_name_of "$work/job-name.yaml" migrate-job)
+  prefix=${name%-1}
+  if [ -z "$name" ] || [ "$prefix" = "$name" ]; then
+    echo "       the Job is named '${name:-<none>}', expected a name ending in -1 (helm template renders revision 1)"
+    return 1
+  fi
+  if [ "${#prefix}" -gt 52 ]; then
+    echo "       the Job is named $name: with a 10 digit revision that is $((${#prefix} + 11)) characters, more than 63"
+    return 1
+  fi
+  if [[ $name == *--* ]]; then
+    echo "       the Job is named $name, with a double hyphen where the release name was cut"
+    return 1
+  fi
+  if [[ $1-migrate != "$prefix"* ]]; then
+    echo "       the Job is named $name, which doesn't start like $1-migrate"
+    return 1
+  fi
+  if [ "$((${#1} + 8))" -le 52 ] && [ "$name" != "$1-migrate-1" ]; then
+    echo "       the Job is named $name, expected $1-migrate-1: a name that fits is left as it is"
+    return 1
+  fi
 }
 
 # web_matches_seed <rendered file> [expected image]: the init container that
@@ -310,6 +368,20 @@ if check "helm dependency build fetches PostgreSQL and Redis" run dependency hel
       wait_script_run "$work/default.yaml" postgres applied ends || true
     check "default values: the api's wait-for-migrations script keeps waiting with DB_TYPE=postgres while ./bun db status fails" \
       wait_script_run "$work/default.yaml" postgres fails waits || true
+    # helm template renders revision 1. An upgrade or a rollback has a higher
+    # one, so each revision creates its own Job instead of changing the last.
+    check "default values: the migrate Job is named after the release revision" \
+      job_named "$work/default.yaml" migrate-job "$release-migrate-1" || true
+    # Helm allows release names of up to 53 characters. A Job's name is at most
+    # 63, so the name is cut to 52 characters before the revision, which leaves
+    # room for 10 digits.
+    long_release=abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz1
+    check "a release name of 53 characters: the migrate Job's name fits 63 characters up to a 10 digit revision" \
+      job_name_fits "$long_release" || true
+    check "a release name of 53 characters, cut at a hyphen: the migrate Job's name fits and has no double hyphen" \
+      job_name_fits "${long_release:0:51}-z" || true
+    check "a release name of 44 characters: the migrate Job's name is <release>-migrate-1" \
+      job_name_fits "${long_release:0:44}" || true
   fi
   if check "bundled PostgreSQL and Redis render" render bundled --set postgresql.enabled=true --set redis.enabled=true; then
     check "bundled PostgreSQL and Redis: the seed init container runs the web image" \
