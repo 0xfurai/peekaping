@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "Autorizacijski zaglavlje",
+          "ca": "CA (opcionalno)",
+          "ca_description": "Ostavite prazno da biste provjerili certifikat poslužitelja pomoću pouzdanih CA-ova sustava.",
           "certificate": "Certifikat",
           "certificate_placeholder": "Certifikat",
           "client_id": "ID klijenta",

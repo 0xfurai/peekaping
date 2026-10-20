@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "Autoriseerimise päis",
+          "ca": "CA (valikuline)",
+          "ca_description": "Jäta tühjaks, et kontrollida serveri sertifikaati süsteemi usaldusväärsete CA-de vastu.",
           "certificate": "Sertifikaat",
           "certificate_placeholder": "Sertifikaat",
           "client_id": "Kliendi ID",

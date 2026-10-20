@@ -288,6 +288,9 @@ func (s *ServiceImpl) IsExpiryNotificationEnabled(ctx context.Context) bool {
 	return len(days) > 0
 }
 
+// CertificateExpiry is published when a monitor's certificate is close to expiring
+var CertificateExpiry = events.NewTopic("certificate.expiry", func(e CertificateExpiryEvent) string { return e.MonitorID })
+
 // CertificateExpiryEvent represents a certificate expiry event payload
 type CertificateExpiryEvent struct {
 	MonitorID     string           `json:"monitor_id"`
@@ -328,7 +331,7 @@ func (s *EventBasedNotificationService) SendCertificateExpiryNotification(
 	)
 
 	// Create certificate expiry event
-	event := &CertificateExpiryEvent{
+	event := CertificateExpiryEvent{
 		MonitorID:     monitorID,
 		MonitorName:   monitorName,
 		CertInfo:      certInfo,
@@ -337,11 +340,11 @@ func (s *EventBasedNotificationService) SendCertificateExpiryNotification(
 		Message:       message,
 	}
 
-	// Publish the event
-	s.eventBus.Publish(events.Event{
-		Type:    events.CertificateExpiry,
-		Payload: event,
-	})
+	// A failed publish is returned, so the caller doesn't record the notification as sent and
+	// the next check tries again.
+	if err := events.Publish(ctx, s.eventBus, CertificateExpiry, event); err != nil {
+		return fmt.Errorf("failed to publish certificate expiry event: %w", err)
+	}
 
 	s.logger.Infof("Published certificate expiry event for monitor %s: %s", monitorName, message)
 	return nil

@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "Valtuutusotsikko",
+          "ca": "CA (valinnainen)",
+          "ca_description": "Jätä tyhjäksi, jolloin palvelimen varmenne vahvistetaan järjestelmän luotettujen varmentajien (CA) avulla.",
           "certificate": "Varmenne",
           "certificate_placeholder": "Varmenne",
           "client_id": "Asiakas-ID",

@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "授權標頭",
+          "ca": "CA (可選)",
+          "ca_description": "留空即用系統信任嘅 CA 嚟驗證伺服器嘅證書。",
           "certificate": "證書",
           "certificate_placeholder": "證書",
           "client_id": "客戶端 ID",

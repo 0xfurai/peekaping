@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "هدر احراز هویت",
+          "ca": "CA (اختیاری)",
+          "ca_description": "اگر خالی بگذارید، گواهی‌نامه سرور با CAهای مورد اعتماد سیستم تأیید می‌شود.",
           "certificate": "گواهی",
           "certificate_placeholder": "گواهی",
           "client_id": "شناسه مشتری",

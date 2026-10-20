@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "Hitelesítési fejléc",
+          "ca": "CA (opcionális)",
+          "ca_description": "Hagyja üresen, ha a szerver tanúsítványát a rendszer megbízható CA-i alapján szeretné ellenőrizni.",
           "certificate": "Tanúsítvány",
           "certificate_placeholder": "Tanúsítvány",
           "client_id": "Ügyfélazonosító",

@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "Autorisierungs-Header",
+          "ca": "CA (optional)",
+          "ca_description": "Leer lassen, um das Serverzertifikat anhand der vertrauenswürdigen CAs des Systems zu überprüfen.",
           "certificate": "Zertifikat",
           "certificate_placeholder": "Zertifikat",
           "client_id": "Client-ID",

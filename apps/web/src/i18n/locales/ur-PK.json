@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "آتھارائزیشن ہیڈر",
+          "ca": "CA (اختیاری)",
+          "ca_description": "خالی چھوڑیں تاکہ سرور کے سرٹیفکیٹ کی توثیق سسٹم کے قابلِ اعتماد CA سے کی جائے۔",
           "certificate": "سرٹیفکیٹ",
           "certificate_placeholder": "سرٹیفیکٹ",
           "client_id": "کلائنٹ آئی ڈی",

@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "Autorisatie-header",
+          "ca": "CA (optioneel)",
+          "ca_description": "Laat leeg om het certificaat van de server te verifiëren aan de hand van de vertrouwde CA's van het systeem.",
           "certificate": "Certificaat",
           "certificate_placeholder": "Certificaat",
           "client_id": "Client-ID",

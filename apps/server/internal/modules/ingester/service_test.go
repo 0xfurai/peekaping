@@ -27,7 +27,7 @@ func TestService_IngestStoresTheResultAndPublishesItsEvents(t *testing.T) {
 	assert.Equal(t, 12, got.Ping)
 	assert.Equal(t, result.StartTime, got.Time)
 	assert.Equal(t, result.EndTime, got.EndTime)
-	assert.Equal(t, []events.EventType{events.MonitorStatusChanged, events.ImportantHeartbeat}, ti.bus.take())
+	assert.Equal(t, []string{events.MonitorStatusChanged.Name(), events.ImportantHeartbeat.Name()}, ti.bus.TakeTopics())
 }
 
 func TestService_IngestSeesThePreviousResult(t *testing.T) {
@@ -48,7 +48,7 @@ func TestService_IngestReturnsAFailedWrite(t *testing.T) {
 	result := checkResult(monitorSettings{}, up)
 
 	assert.ErrorIs(t, ti.service.Ingest(context.Background(), &result), assert.AnError)
-	assert.Empty(t, ti.bus.take())
+	assert.Empty(t, ti.bus.TakeTopics())
 }
 
 func TestResult_DecodesTheIngesterTaskJSON(t *testing.T) {

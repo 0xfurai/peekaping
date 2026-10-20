@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -28,6 +29,7 @@ import (
 	"peekaping/internal/modules/tag"
 	"peekaping/internal/version"
 	"syscall"
+	"time"
 	_ "time/tzdata" // embed the zone database so TZ works in images without tzdata
 
 	"go.uber.org/dig"
@@ -120,10 +122,12 @@ func main() {
 		logger.Info("Shutdown signal received, stopping producer...")
 		prod.Stop()
 
-		// Close event bus
-		if err := eventBus.Close(); err != nil {
+		// Close event bus: queued events get a few seconds to finish
+		closeCtx, cancelClose := context.WithTimeout(context.Background(), 10*time.Second)
+		if err := eventBus.Close(closeCtx); err != nil {
 			logger.Errorw("Failed to close event bus", "error", err)
 		}
+		cancelClose()
 
 		// Perform graceful database shutdown
 		if err := infra.GracefulDatabaseShutdown(container, internalCfg, logger); err != nil {

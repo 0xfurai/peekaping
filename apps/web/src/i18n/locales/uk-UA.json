@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "Заголовок авторизації",
+          "ca": "CA (необов'язково)",
+          "ca_description": "Залиште порожнім для перевірки сертифіката сервера за допомогою довірених CA системи.",
           "certificate": "Сертифікат",
           "certificate_placeholder": "Сертифікат",
           "client_id": "ID клієнта",

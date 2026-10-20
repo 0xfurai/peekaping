@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "ავტორიზაციის ჰედერი",
+          "ca": "CA (არჩევითი)",
+          "ca_description": "დატოვეთ ცარიელი, რათა სერვერის სერტიფიკატი დაამოწმოთ სისტემის სანდო CA-ებით.",
           "certificate": "სერტიფიკატი",
           "certificate_placeholder": "სერტიფიკატი",
           "client_id": "კლიენტის ID",

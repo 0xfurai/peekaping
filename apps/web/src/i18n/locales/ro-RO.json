@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "Antet de autorizare",
+          "ca": "CA (opțional)",
+          "ca_description": "Lăsați gol pentru a verifica certificatul serverului pe baza CA-urilor de încredere ale sistemului.",
           "certificate": "Certificat",
           "certificate_placeholder": "Certificat",
           "client_id": "ID client",

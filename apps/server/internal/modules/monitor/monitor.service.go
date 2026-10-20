@@ -110,10 +110,7 @@ func (mr *MonitorServiceImpl) Create(ctx context.Context, monitorCreateDto *Crea
 	}
 
 	// Emit monitor created event
-	mr.eventBus.Publish(events.Event{
-		Type:    events.MonitorCreated,
-		Payload: createdModel,
-	})
+	mr.publishMonitor(ctx, events.MonitorCreated, createdModel)
 
 	return createdModel, nil
 }
@@ -175,10 +172,7 @@ func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, id string, monitor
 	}
 
 	// Emit monitor updated event
-	mr.eventBus.Publish(events.Event{
-		Type:    events.MonitorUpdated,
-		Payload: updatedMonitor,
-	})
+	mr.publishMonitor(ctx, events.MonitorUpdated, updatedMonitor)
 
 	return updatedMonitor, nil
 }
@@ -213,10 +207,7 @@ func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, moni
 
 	// Emit monitor updated event
 	if !noPublish {
-		mr.eventBus.Publish(events.Event{
-			Type:    events.MonitorUpdated,
-			Payload: updatedMonitor,
-		})
+		mr.publishMonitor(ctx, events.MonitorUpdated, updatedMonitor)
 	}
 
 	return updatedMonitor, nil
@@ -234,12 +225,22 @@ func (mr *MonitorServiceImpl) Delete(ctx context.Context, id string) error {
 	_ = mr.statPointsService.DeleteByMonitorID(ctx, id)
 
 	// Emit monitor deleted event
-	mr.eventBus.Publish(events.Event{
-		Type:    events.MonitorDeleted,
-		Payload: id,
-	})
+	if err := events.Publish(ctx, mr.eventBus, events.MonitorDeleted, id); err != nil {
+		mr.logger.Errorw("Failed to publish monitor deleted event", "monitor_id", id, "error", err)
+	}
 
 	return nil
+}
+
+// publishMonitor tells the other parts of the program, in this process and the others,
+// that a monitor was created or changed. A failure is logged: the change is already stored.
+func (mr *MonitorServiceImpl) publishMonitor(ctx context.Context, topic events.Topic[shared.Monitor], mon *Model) {
+	if mon == nil {
+		return
+	}
+	if err := events.Publish(ctx, mr.eventBus, topic, *mon); err != nil {
+		mr.logger.Errorw("Failed to publish monitor event", "topic", topic.Name(), "monitor_id", mon.ID, "error", err)
+	}
 }
 
 func (mr *MonitorServiceImpl) ValidateMonitorConfig(
@@ -394,10 +395,7 @@ func (mr *MonitorServiceImpl) ResetMonitorData(ctx context.Context, id string) e
 	// Emit monitor updated event
 	updatedMonitor, _ := mr.FindByID(ctx, id)
 	if updatedMonitor != nil {
-		mr.eventBus.Publish(events.Event{
-			Type:    events.MonitorUpdated,
-			Payload: updatedMonitor,
-		})
+		mr.publishMonitor(ctx, events.MonitorUpdated, updatedMonitor)
 	} else {
 		mr.logger.Errorw("Failed to find updated monitor", "monitorID", id)
 	}

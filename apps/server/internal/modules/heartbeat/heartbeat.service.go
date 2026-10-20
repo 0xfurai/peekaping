@@ -59,10 +59,9 @@ func (mr *ServiceImpl) Create(ctx context.Context, entity *CreateUpdateDto) (*Mo
 		return nil, err
 	}
 	// Emit HeartbeatCreated event
-	mr.eventBus.Publish(events.Event{
-		Type:    events.HeartbeatEvent,
-		Payload: created,
-	})
+	if err := events.Publish(ctx, mr.eventBus, events.HeartbeatEvent, *created); err != nil {
+		mr.logger.Errorw("Failed to publish heartbeat event", "monitor_id", created.MonitorID, "error", err)
+	}
 	return created, nil
 }
 

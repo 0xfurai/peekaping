@@ -15,7 +15,6 @@ import (
 	"sync"
 	"time"
 
-	"peekaping/internal/infra"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
@@ -152,9 +151,10 @@ func send(ch chan<- prometheus.Metric, desc *prometheus.Desc, value float64, lab
 // Start subscribes to the event bus and, in the background, syncs with the active Monitors
 // now and every SyncInterval until ctx is done.
 func (c *Collector) Start(ctx context.Context, eventBus events.EventBus) {
-	eventBus.Subscribe(events.HeartbeatEvent, c.handleHeartbeat)
-	eventBus.Subscribe(events.MonitorUpdated, c.handleMonitorUpdated)
-	eventBus.Subscribe(events.MonitorDeleted, c.handleMonitorDeleted)
+	subscriber := events.NewSubscriber(eventBus, "metrics")
+	events.Subscribe(subscriber, events.HeartbeatEvent, c.handleHeartbeat)
+	events.Subscribe(subscriber, events.MonitorUpdated, c.handleMonitorUpdated)
+	events.Subscribe(subscriber, events.MonitorDeleted, c.handleMonitorDeleted)
 
 	go c.runSync(ctx)
 }
@@ -230,26 +230,15 @@ func (c *Collector) rename(mon *monitor.Model) bool {
 }
 
 // handleMonitorUpdated drops a Monitor that was paused and moves one that was renamed to its new labels.
-func (c *Collector) handleMonitorUpdated(event events.Event) {
-	mon, ok := infra.UnmarshalEventPayload[monitor.Model](event)
-	if !ok {
-		c.logger.Errorf("Failed to unmarshal monitor updated event payload")
-		return
-	}
-
+func (c *Collector) handleMonitorUpdated(_ context.Context, mon monitor.Model) {
 	if !mon.Active {
 		c.drop(mon.ID)
 		return
 	}
-	c.rename(mon)
+	c.rename(&mon)
 }
 
-func (c *Collector) handleMonitorDeleted(event events.Event) {
-	monitorID, ok := infra.UnmarshalEventPayloadValue[string](event)
-	if !ok {
-		c.logger.Errorf("Failed to unmarshal monitor deleted event payload")
-		return
-	}
+func (c *Collector) handleMonitorDeleted(_ context.Context, monitorID string) {
 	c.drop(monitorID)
 }
 
@@ -259,23 +248,17 @@ func (c *Collector) drop(monitorID string) {
 	delete(c.monitors, monitorID)
 }
 
-func (c *Collector) handleHeartbeat(event events.Event) {
-	hb, ok := infra.UnmarshalEventPayload[heartbeat.Model](event)
-	if !ok {
-		c.logger.Errorf("Failed to unmarshal heartbeat event payload")
-		return
-	}
-
+func (c *Collector) handleHeartbeat(ctx context.Context, hb heartbeat.Model) {
 	c.mu.RLock()
 	_, tracked := c.monitors[hb.MonitorID]
 	c.mu.RUnlock()
 	if tracked {
-		c.record(hb, nil)
+		c.record(&hb, nil)
 		return
 	}
 
 	// The first Heartbeat of a Monitor has to name it
-	ctx, cancel := context.WithTimeout(context.Background(), c.lookupTimeout)
+	ctx, cancel := context.WithTimeout(ctx, c.lookupTimeout)
 	defer cancel()
 	mon, err := c.monitorService.FindByID(ctx, hb.MonitorID)
 	if err != nil {
@@ -286,7 +269,7 @@ func (c *Collector) handleHeartbeat(event events.Event) {
 		c.logger.Debugw("Ignoring a heartbeat of a monitor that is missing or paused", "monitor_id", hb.MonitorID)
 		return
 	}
-	c.record(hb, mon)
+	c.record(&hb, mon)
 }
 
 // record makes hb the Monitor's latest Heartbeat, unless the Monitor has a newer one already.

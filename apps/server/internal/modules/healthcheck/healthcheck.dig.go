@@ -8,6 +8,5 @@ import (
 
 func RegisterDependencies(container *dig.Container) {
 	container.Provide(NewHealthCheck)
-	container.Provide(NewEventListener)
 	container.Provide(executor.NewExecutorRegistry)
 }
