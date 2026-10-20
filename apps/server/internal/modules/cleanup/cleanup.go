@@ -127,7 +127,8 @@ func cleanupMonitorTLSInfo(tlsInfoService monitor_tls_info.Service, logger *zap.
 	logger.Infow("Successfully cleaned up monitor TLS info records", "older_than_days", olderThanDays)
 }
 
-// StartCleanupCron starts the general cleanup cron job(s).
+// StartCleanupCron starts the general cleanup cron job(s). Stop the returned cron to stop them:
+// its Stop returns a context that is done once the jobs running then have finished.
 func StartCleanupCron(
 	heartbeatService heartbeat.Service,
 	userRepository auth.Repository,
@@ -136,7 +137,7 @@ func StartCleanupCron(
 	notificationHistoryService notification_sent_history.Service,
 	tlsInfoService monitor_tls_info.Service,
 	logger *zap.SugaredLogger,
-) {
+) *cron.Cron {
 	initDataRetentionPeriod(heartbeatService, userRepository, settingService, logger)
 
 	c := cron.New()
@@ -158,4 +159,5 @@ func StartCleanupCron(
 	})
 
 	c.Start()
+	return c
 }

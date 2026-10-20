@@ -54,6 +54,10 @@ The API server subscribes to Redis pub/sub events and broadcasts them to connect
 
 ### Redis Configuration
 
+:::note Single mode
+These are required in cluster mode, where the API reaches the producer, worker and ingester through Redis. In single mode, the `peekaping` binary runs the API and the other services in one process with no Redis, so it doesn't need `REDIS_HOST`. It ignores the `REDIS_*` variables and logs once when one is set.
+:::
+
 | Variable | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|
 | `REDIS_HOST` | string | Yes | `redis` | Redis server hostname |
