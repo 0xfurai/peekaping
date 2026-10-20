@@ -774,6 +774,56 @@ func TestNotificationListener_ThreeAPIReplicasSendAStaleMonitorsCheckingAgainNot
 	assert.Equal(t, []string{"Peekaping is checking Public API again. It was not checked from 2026-10-17 09:30:00 UTC"}, provider.sentMessages())
 }
 
+// The queue keeps a notification raised while no api replica runs, which a pub/sub message
+// published to no subscriber would not
+func TestNotificationListener_ANotificationRaisedWithoutAnAPIReplicaIsSentOnceOneStarts(t *testing.T) {
+	provider := &recordingProvider{}
+	registerTestProvider(t, "test-slack", provider)
+	redisServer := miniredis.RunT(t)
+	replicas := newAPIReplicas(t, redisServer.Addr(), 3)
+	ingester := newClusterBus(t, redisConfig(t, redisServer.Addr()))
+
+	require.NoError(t, events.Publish(context.Background(), ingester, events.ImportantHeartbeat, *downHeartbeat("mon-1")))
+	assert.Never(t, func() bool { return len(provider.sentConfigs()) > 0 }, 300*time.Millisecond, 10*time.Millisecond,
+		"nothing is sent while no api replica takes tasks")
+	replicas[0].start(t)
+
+	assert.Equal(t, 1, settledSends(t, provider), "notifications sent once the first api replica started")
+	replicas[1].start(t)
+	replicas[2].start(t)
+	assert.Equal(t, 1, settledSends(t, provider), "notifications sent once all three api replicas started")
+}
+
+// Only the notification topics go through the queue. The websocket in every api replica pushes
+// each heartbeat to its own clients, so every api replica must get it.
+func TestNotificationListener_EveryAPIReplicaStillGetsAHeartbeat(t *testing.T) {
+	registerTestProvider(t, "test-slack", &recordingProvider{})
+	redisServer := miniredis.RunT(t)
+	replicas := startAPIReplicas(t, redisServer.Addr(), 3)
+	received := make([]chan heartbeat.Model, len(replicas))
+	for i, replica := range replicas {
+		received[i] = make(chan heartbeat.Model, 2)
+		events.Subscribe(events.NewSubscriber(replica.bus, "websocket"), events.HeartbeatEvent, func(_ context.Context, hb heartbeat.Model) {
+			received[i] <- hb
+		})
+	}
+	ingester := newClusterBus(t, redisConfig(t, redisServer.Addr()))
+
+	require.NoError(t, events.Publish(context.Background(), ingester, events.HeartbeatEvent, *downHeartbeat("mon-1")))
+
+	for i := range replicas {
+		select {
+		case hb := <-received[i]:
+			assert.Equal(t, downHeartbeat("mon-1"), &hb, "heartbeat received by api replica %d", i)
+		case <-time.After(5 * time.Second):
+			t.Fatalf("api replica %d got no heartbeat", i)
+		}
+	}
+	for i := range replicas {
+		assert.Empty(t, received[i], "api replica %d got the heartbeat more than once", i)
+	}
+}
+
 func TestEveryChannelTypeHasGoldenRequests(t *testing.T) {
 	// Building the listener registers the providers, as at startup
 	newListenerFixture(t)
