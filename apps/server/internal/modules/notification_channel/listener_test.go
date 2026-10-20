@@ -718,16 +718,23 @@ func startAPIReplicas(t *testing.T, redisAddr string, n int, channelIDs ...strin
 	return replicas
 }
 
+const (
+	// settle is how long the provider's send count holds still before settledSends takes it as final
+	settle = 500 * time.Millisecond
+	// asynqPoll is how long asynq waits before it looks at an empty queue again. A window shorter
+	// than this can pass with no replica having polled.
+	asynqPoll = time.Second
+)
+
 // settledSends waits for the provider to send want notifications, then for its send count to
-// hold still, and returns the count. Waiting for the count to settle, not for a number, catches
-// replicas that send a moment after the first.
-func settledSends(t *testing.T, provider *recordingProvider, want int) int {
+// hold still for the hold time, and returns the count. Waiting for the count to settle, not for
+// a number, catches replicas that send a moment after the first.
+func settledSends(t *testing.T, provider *recordingProvider, want int, hold time.Duration) int {
 	t.Helper()
-	const settle = 500 * time.Millisecond
 	require.Eventually(t, func() bool { return len(provider.sentConfigs()) >= want }, 5*time.Second, 5*time.Millisecond,
 		"the api replicas sent fewer notifications than expected")
 	count, stableSince := len(provider.sentConfigs()), time.Now()
-	for time.Since(stableSince) < settle {
+	for time.Since(stableSince) < hold {
 		time.Sleep(10 * time.Millisecond)
 		if n := len(provider.sentConfigs()); n != count {
 			count, stableSince = n, time.Now()
@@ -752,7 +759,7 @@ func TestNotificationListener_ThreeAPIReplicasSendEachImportantHeartbeatOncePerC
 	require.NoError(t, events.Publish(context.Background(), ingester, events.ImportantHeartbeat, *up))
 
 	// Two channels, two heartbeats: four notifications. The replicas don't agree on an order.
-	assert.Equal(t, 4, settledSends(t, provider, 4), "notifications sent for a Down and an Up heartbeat to 2 channels, with 3 api replicas")
+	assert.Equal(t, 4, settledSends(t, provider, 4, settle), "notifications sent for a Down and an Up heartbeat to 2 channels, with 3 api replicas")
 	byChannel := provider.sentMessagesByChannel()
 	assert.Len(t, byChannel, 2, "channels that got a notification")
 	assert.ElementsMatch(t, []string{"went down", "back up"}, byChannel[channelConfig("a")], "notifications sent to channel a")
@@ -768,7 +775,7 @@ func TestNotificationListener_ThreeAPIReplicasSendACertificateExpiryNotification
 
 	require.NoError(t, events.Publish(context.Background(), ingester, certificate.CertificateExpiry, *certificateExpiry("mon-1")))
 
-	assert.Equal(t, 1, settledSends(t, provider, 1), "notifications sent for one certificate expiry, with 3 api replicas")
+	assert.Equal(t, 1, settledSends(t, provider, 1, settle), "notifications sent for one certificate expiry, with 3 api replicas")
 }
 
 func TestNotificationListener_ThreeAPIReplicasSendAStaleMonitorsNotCheckedSinceNotificationOnce(t *testing.T) {
@@ -780,7 +787,7 @@ func TestNotificationListener_ThreeAPIReplicasSendAStaleMonitorsNotCheckedSinceN
 
 	require.NoError(t, events.Publish(context.Background(), producer, stale.MonitorStale, staleMonitor("mon-1")))
 
-	assert.Equal(t, 1, settledSends(t, provider, 1), "notifications sent for one stale monitor, with 3 api replicas")
+	assert.Equal(t, 1, settledSends(t, provider, 1, settle), "notifications sent for one stale monitor, with 3 api replicas")
 	assert.Equal(t, []string{"Peekaping has not checked Public API since 2026-10-17 09:30:00 UTC"}, provider.sentMessages())
 }
 
@@ -793,7 +800,7 @@ func TestNotificationListener_ThreeAPIReplicasSendAStaleMonitorsCheckingAgainNot
 
 	require.NoError(t, events.Publish(context.Background(), producer, stale.MonitorStaleRecovered, staleMonitor("mon-1")))
 
-	assert.Equal(t, 1, settledSends(t, provider, 1), "notifications sent for one recovered stale monitor, with 3 api replicas")
+	assert.Equal(t, 1, settledSends(t, provider, 1, settle), "notifications sent for one recovered stale monitor, with 3 api replicas")
 	assert.Equal(t, []string{"Peekaping is checking Public API again. It was not checked from 2026-10-17 09:30:00 UTC"}, provider.sentMessages())
 }
 
@@ -807,14 +814,16 @@ func TestNotificationListener_ANotificationRaisedWithoutAnAPIReplicaIsSentOnceOn
 	ingester := newClusterBus(t, redisConfig(t, redisServer.Addr()))
 
 	require.NoError(t, events.Publish(context.Background(), ingester, events.ImportantHeartbeat, *downHeartbeat("mon-1")))
-	assert.Never(t, func() bool { return len(provider.sentConfigs()) > 0 }, 300*time.Millisecond, 10*time.Millisecond,
+	// Longer than asynq's poll of an empty queue, so a send that waits for a poll would show
+	assert.Never(t, func() bool { return len(provider.sentConfigs()) > 0 }, 2*asynqPoll, 10*time.Millisecond,
 		"nothing is sent while no api replica takes tasks")
 	replicas[0].start(t)
 
-	assert.Equal(t, 1, settledSends(t, provider, 1), "notifications sent once the first api replica started")
+	// The count holds still past a further poll, so a second send of the task would show
+	assert.Equal(t, 1, settledSends(t, provider, 1, 2*asynqPoll), "notifications sent once the first api replica started")
 	replicas[1].start(t)
 	replicas[2].start(t)
-	assert.Equal(t, 1, settledSends(t, provider, 1), "notifications sent once all three api replicas started")
+	assert.Equal(t, 1, settledSends(t, provider, 1, 2*asynqPoll), "notifications sent once all three api replicas started")
 }
 
 // Only the notification topics go through the queue. The websocket in every api replica pushes
