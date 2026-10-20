@@ -271,3 +271,60 @@ func TestBusReceiveRefusesAMessageOnceClosed(t *testing.T) {
 	assert.ErrorIs(t, err, events.ErrClosed)
 	assert.Empty(t, called)
 }
+
+// gatedPayload is an event payload that stops while the bus decodes it, so a test can hold a
+// message partway through its delivery. It uses decodeGate, which a test sets before it
+// delivers a message.
+type gatedPayload struct{}
+
+var decodeGate struct {
+	started chan struct{} // closed when a payload begins to decode
+	release chan struct{} // the payload finishes decoding once this is closed
+}
+
+func (*gatedPayload) UnmarshalJSON([]byte) error {
+	close(decodeGate.started)
+	<-decodeGate.release
+	return nil
+}
+
+// Close can run at any point of a Receive that got past the closed check. Receive either hands
+// the message to the handlers, which Close then lets finish, or tells the caller that the bus is
+// closed. It must not return nil and drop the message: the caller would take the message as
+// delivered, and the queue task it came from as done.
+func TestBusReceiveDeliversOrReturnsErrClosedWhenCloseRunsDuringIt(t *testing.T) {
+	gated := events.NewTopic[gatedPayload]("eventstest.gated", nil)
+	decodeGate.started, decodeGate.release = make(chan struct{}), make(chan struct{})
+	bus := events.NewBus(&silentTransport{})
+	var handled atomic.Int32
+	events.Subscribe(events.NewSubscriber(bus, "gated"), gated, func(context.Context, gatedPayload) { handled.Add(1) })
+
+	received := make(chan error, 1)
+	go func() { received <- bus.Receive(events.Message{Topic: gated.Name(), JSON: json.RawMessage(`{}`)}) }()
+	<-decodeGate.started // Receive is past the closed check, decoding the message for the handler
+	closeCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	var closeErr error
+	closed := make(chan struct{})
+	go func() {
+		closeErr = bus.Close(closeCtx)
+		close(closed)
+	}()
+	select {
+	case <-closed:
+		// Close didn't wait for the Receive in progress
+	case <-time.After(250 * time.Millisecond):
+		// Close is waiting for it
+	}
+	close(decodeGate.release)
+
+	receiveErr := <-received
+	<-closed
+	require.NoError(t, closeErr)
+	if receiveErr == nil {
+		assert.EqualValues(t, 1, handled.Load(), "Receive returned nil, but the handler never got the message")
+	} else {
+		assert.ErrorIs(t, receiveErr, events.ErrClosed)
+		assert.Zero(t, handled.Load(), "Receive returned an error, but the handler got the message")
+	}
+}
