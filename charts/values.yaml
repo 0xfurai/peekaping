@@ -13,10 +13,14 @@
 # To move to newer images and subcharts, run scripts/update-chart-deps.sh. It
 # lists what is behind, and --write updates the versions in Chart.yaml and the
 # two digests below. It refuses a new major version of a subchart or an image.
-# To pin images of your own, set postgresql.image.digest and
-# redis.image.digest in your values file. A major version change needs a dump
-# and restore: the data of an older PostgreSQL does not start on a newer major
-# version.
+# A major version change needs a dump and restore: the data of an older
+# PostgreSQL does not start on a newer major version.
+#
+# To run images of your own, set postgresql.image.digest and redis.image.digest
+# in your values file. A digest from another repository also needs
+# image.registry and image.repository, or it is pulled from the bitnami/
+# repository above and the pull fails. Bitnami's charts also refuse an image
+# they don't recognize, so set global.security.allowInsecureImages: true.
 #
 # helm uninstall keeps the PersistentVolumeClaims data-<release>-postgresql-0
 # and redis-data-<release>-redis-master-0. Delete them to start with empty data.

@@ -168,7 +168,22 @@ scripts/update-chart-deps.sh           # lists what is behind
 scripts/update-chart-deps.sh --write   # updates Chart.yaml and values.yaml
 ```
 
-The script needs `helm`, `curl` and `jq`. To run an image of your own, set `postgresql.image.digest` and `redis.image.digest` in your values file.
+The script needs `helm`, `curl` and `jq`.
+
+To run an image of your own, set `postgresql.image.digest` and `redis.image.digest` in your values file. A digest from another repository also needs `image.registry` and `image.repository`. Without them the pod pulls the digest from Bitnami's repository, `registry-1.docker.io/bitnami/postgresql`, and the pull fails. Bitnami's charts also refuse an image they don't recognize, so set `global.security.allowInsecureImages` to `true`:
+
+```yaml
+global:
+  security:
+    allowInsecureImages: true
+postgresql:
+  image:
+    registry: registry.example.com
+    repository: mirror/postgresql
+    digest: sha256:<the digest of your image>
+```
+
+`redis.image` takes the same three values.
 
 A new digest or subchart version restarts the bundled PostgreSQL. The migrate Job retries until the database is back, up to `migrate.backoffLimit` tries (6 by default). If it still fails, run `helm upgrade` again. Your data is intact.
 
