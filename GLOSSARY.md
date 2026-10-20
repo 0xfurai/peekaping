@@ -145,3 +145,11 @@ _Avoid_: Database type, DB driver
 **MongoDB monitor type**:
 A monitor type that checks someone else's MongoDB server. It has nothing to do with the storage backend and isn't deprecated.
 _Avoid_: Mongo storage, MongoDB database
+
+**Single mode**:
+Peekaping running as one process (the `peekaping` binary) with every role inside it (api, producer, worker and ingester) and no Redis. The SQLite and PostgreSQL bundle images run it. It supports those two storage backends only. See [ADR 0002](docs/adr/0002-single-process-runtime.md).
+_Avoid_: Monolithic mode, standalone, all-in-one
+
+**Cluster mode**:
+Peekaping running as separate api, producer, worker and ingester processes that talk through Redis. Helm, the compose stacks and the Mongo bundle run it.
+_Avoid_: Microservice mode, distributed mode, HA mode
