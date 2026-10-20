@@ -14,10 +14,12 @@
 // at the same time, up to a limit of workers. A slow or panicking handler never holds up
 // Publish or another subscriber, and holds up another monitor only by occupying one of the
 // subscriber's workers. Bus implements all of that over a Transport, which only has to carry
-// messages: the Redis bus in package infra is Bus over a Redis transport.
+// messages. The Redis bus in package infra (cluster mode) is Bus over a Redis transport, and
+// NewMemoryBus (single mode) is Bus over a transport that never leaves the process.
 //
-// Handlers must not change the payload they are given when it holds a slice, map or
-// pointer: an in-process transport hands every handler the same value.
+// A payload that holds a slice, map or pointer is read-only once published: the memory bus
+// hands every handler the very value the publisher passed, while the publisher carries on.
+// Handlers must not change it, and the publisher must not either; publish a copy instead.
 package events
 
 import "peekaping/internal/modules/shared"
