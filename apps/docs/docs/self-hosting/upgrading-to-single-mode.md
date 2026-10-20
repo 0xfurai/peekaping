@@ -64,7 +64,13 @@ Skip this section if you run 0.0.47. From 0.0.44, 0.0.45 or 0.0.46, the upgrade 
 
 ## Pull the new image and start it
 
-Use the same volume and the same environment variables as before. If you pinned a tag such as `0.0.47`, use the tag of the single-mode release in place of `latest`. For the SQLite bundle:
+Use the same volume and the same environment variables as before. The commands below show the defaults from the setup pages: replace every `-e` value and the volume path with your own. If you don't have them written down, read them from the old container before you remove it:
+
+```bash
+docker inspect peekaping --format '{{range .Config.Env}}{{println .}}{{end}}{{range .Mounts}}{{.Source}} -> {{.Destination}}{{println}}{{end}}'
+```
+
+If you pinned a tag such as `0.0.47`, use the tag of the single-mode release in place of `latest`. For the SQLite bundle:
 
 ```bash
 docker rm peekaping
@@ -157,6 +163,32 @@ mv .data/sqlite .data/sqlite-after-upgrade
 cp -a .data/sqlite-before-upgrade .data/sqlite
 ```
 
-For the PostgreSQL bundle, use the `.data/postgres` directories. Then start the release you came from with the same volume, as above, for example `0xfurai/peekaping-bundle-sqlite:0.0.46`.
+For the PostgreSQL bundle, swap the PostgreSQL directories instead:
+
+```bash
+docker stop -t 35 peekaping
+docker rm peekaping
+sudo mv .data/postgres .data/postgres-after-upgrade
+sudo cp -a .data/postgres-before-upgrade .data/postgres
+```
+
+With a named volume, empty it and unpack the archive from [Back up](#back-up) into it with a throwaway container. Replace `peekaping_data` with the volume's name:
+
+```bash
+docker run --rm -v peekaping_data:/data -v "$PWD":/backup alpine sh -c 'find /data -mindepth 1 -delete && tar xzf /backup/peekaping-before-upgrade.tar.gz -C /data'
+```
+
+Then start the release you came from with the same volume and your own variables. For the SQLite bundle, use the `docker run` command above with, for example, `0xfurai/peekaping-bundle-sqlite:0.0.46`. For the PostgreSQL bundle:
+
+```bash
+docker run -d --restart=always \
+  -p 8383:8383 \
+  -e DB_NAME=peekaping \
+  -e DB_USER=peekaping \
+  -e DB_PASS=secure_test_password_123 \
+  -v $(pwd)/.data/postgres:/var/lib/postgresql/data \
+  --name peekaping \
+  0xfurai/peekaping-bundle-postgres:0.0.46
+```
 
 Restore the directory copy, not the `pg_dump`. The old bundle starts Peekaping's processes as soon as PostgreSQL is up, so a `pg_restore` into it would run while they use the database. Keep the dump as an extra copy.

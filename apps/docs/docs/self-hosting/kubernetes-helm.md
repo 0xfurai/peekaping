@@ -139,7 +139,7 @@ kubectl rollout restart deployment --namespace peekaping \
 
 Point the chart at a PostgreSQL and a Redis that run outside the release, such as managed services or your own. Put the hosts, ports, database name and user in `config.env`, and the passwords in the secret, as in the values file above.
 
-The pods open their connections from inside the cluster, so make sure the cluster's network can reach both servers. Both must accept connections without TLS.
+The pods open their connections from inside the cluster, so make sure the cluster's network can reach both servers. Both must accept connections without TLS, so passwords and data cross that network unencrypted: keep both servers on a network you trust, such as inside the cluster or a private network, or reach them through an encrypted tunnel.
 
 The chart also lists Bitnami's PostgreSQL and Redis charts as dependencies. They are off by default. `postgresql.enabled` and `redis.enabled` turn them on, and the other values under `postgresql` and `redis` are the Bitnami charts' own. If you enable them, point `config.env` at the services they create. For a release named `peekaping` in the namespace `peekaping`, those are `peekaping-postgresql.peekaping.svc.cluster.local` and `peekaping-redis-master.peekaping.svc.cluster.local`.
 
