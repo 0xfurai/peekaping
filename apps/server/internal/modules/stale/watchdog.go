@@ -197,7 +197,7 @@ func (w *Watchdog) checkStaleMonitor(ctx context.Context, mon *shared.Monitor, n
 	}
 
 	if !wasStale {
-		w.logger.Warnw("Monitor has not been checked in too long, enqueueing a check",
+		w.logger.Warnw("Monitor has not been checked in too long, checking it again",
 			"monitor_id", mon.ID,
 			"monitor_name", mon.Name,
 			"last_checked_at", since)
@@ -207,11 +207,11 @@ func (w *Watchdog) checkStaleMonitor(ctx context.Context, mon *shared.Monitor, n
 		return w.store.Put(ctx, Entry{MonitorID: mon.ID, Since: since, DetectedAt: now})
 	}
 
-	// Give the re-enqueued check the time it's allowed before notifying
+	// Give that check the time it's allowed before notifying
 	if entry.Notified || now.Sub(entry.DetectedAt) < w.checkTimeout(mon.Timeout) {
 		return nil
 	}
-	w.logger.Warnw("Monitor is still not checked after a re-enqueue, notifying",
+	w.logger.Warnw("Monitor is still not checked after checking it again, notifying",
 		"monitor_id", mon.ID,
 		"monitor_name", mon.Name,
 		"last_checked_at", entry.Since)

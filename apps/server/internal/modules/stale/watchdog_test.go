@@ -183,7 +183,7 @@ func TestWatchdog_FindsMonitorsThatStoppedBeingChecked(t *testing.T) {
 	// A stale monitor gets a check right away; one that's being checked doesn't
 	assert.ElementsMatch(t, []string{"silent", "never", "push"}, f.rechecker.calls)
 
-	assert.Empty(t, f.published(MonitorStale), "no notification before the re-enqueued check had its chance")
+	assert.Empty(t, f.published(MonitorStale), "no notification before the check it asked for had its chance")
 
 	ranAt, err := f.store.RanAt(context.Background())
 	require.NoError(t, err)
@@ -191,7 +191,7 @@ func TestWatchdog_FindsMonitorsThatStoppedBeingChecked(t *testing.T) {
 	assert.Equal(t, now, *ranAt)
 }
 
-func TestWatchdog_NotifiesOnceWhenStillStaleAfterTheReenqueue(t *testing.T) {
+func TestWatchdog_NotifiesOnceWhenStillStaleAfterTheRecheck(t *testing.T) {
 	now := time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
 	f := newWatchdogFixture(t, testMonitor("silent", 60, 10, now.Add(-time.Hour)))
 	f.heartbeats.setLatest("silent", now.Add(-4*time.Minute))
@@ -209,12 +209,12 @@ func TestWatchdog_NotifiesOnceWhenStillStaleAfterTheReenqueue(t *testing.T) {
 	f.at(3 * time.Minute)
 	f.run(t)
 	assert.Len(t, f.published(MonitorStale), 1, "one notification per stale period")
-	assert.Equal(t, []string{"silent"}, f.rechecker.calls, "one re-enqueue per stale period")
+	assert.Equal(t, []string{"silent"}, f.rechecker.calls, "one recheck per stale period")
 }
 
-func TestWatchdog_WaitsForASlowReenqueuedCheck(t *testing.T) {
+func TestWatchdog_WaitsForASlowRecheck(t *testing.T) {
 	now := time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
-	// The re-enqueued check can take up to 50s + 10s = 60s, plus the ingest
+	// The recheck can take up to 50s + 10s = 60s, plus the ingest
 	f := newWatchdogFixture(t, testMonitor("slow", 60, 50, now.Add(-time.Hour)))
 	f.heartbeats.setLatest("slow", now.Add(-5*time.Minute))
 
@@ -256,7 +256,7 @@ func TestWatchdog_RecoveryBeforeANotificationIsQuiet(t *testing.T) {
 	f.heartbeats.setLatest("silent", now.Add(-4*time.Minute))
 
 	f.run(t)
-	f.heartbeats.setLatest("silent", now.Add(5*time.Second)) // the re-enqueued check worked
+	f.heartbeats.setLatest("silent", now.Add(5*time.Second)) // the recheck worked
 	f.at(time.Minute)
 	f.run(t)
 

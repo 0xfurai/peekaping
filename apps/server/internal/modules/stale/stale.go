@@ -25,7 +25,7 @@ type Entry struct {
 	MonitorID string `json:"monitor_id"`
 	// Since is when the monitor was last checked, or last saved or resumed if that's later
 	Since time.Time `json:"since"`
-	// DetectedAt is when the watchdog found the monitor stale and re-enqueued a check
+	// DetectedAt is when the watchdog found the monitor stale and asked for a check right away
 	DetectedAt time.Time `json:"detected_at"`
 	// Notified is set once the stale notification has been sent
 	Notified bool `json:"notified"`
@@ -40,7 +40,7 @@ type Event struct {
 
 // The topics of Event. The watchdog publishes them and the notification channels listen.
 var (
-	// MonitorStale is published when a monitor is still not checked after the watchdog enqueued a check
+	// MonitorStale is published when a monitor is still not checked after the watchdog asked for a check
 	MonitorStale = events.NewTopic("monitor.stale", func(e Event) string { return e.MonitorID })
 	// MonitorStaleRecovered is published when a monitor that was reported stale is checked again
 	MonitorStaleRecovered = events.NewTopic("monitor.stale.recovered", func(e Event) string { return e.MonitorID })
