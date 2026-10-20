@@ -2,7 +2,7 @@
 name: ticket-pr
 description: "Open a ticket's reviewed branches as a PR stack and move the ticket to In Review."
 disable-model-invocation: true
-argument-hint: "PP-<n>"
+argument-hint: "#<n>"
 ---
 
 # Ticket: PR
@@ -19,4 +19,4 @@ Then in the tracker: file the follow-ups from the plan or the review as tickets,
 
 Done when: every PR is open with the right base, title and body, and the ticket is In Review with the PRs linked.
 
-Run alone, end by telling the user the next step: `/ticket-loop <PP-n>`.
+Run alone, end by telling the user the next step: `/ticket-loop #<n>`.
