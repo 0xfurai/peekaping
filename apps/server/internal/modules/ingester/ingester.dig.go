@@ -1,11 +1,6 @@
 package ingester
 
 import (
-	"peekaping/internal/modules/certificate"
-	"peekaping/internal/modules/events"
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/monitor_maintenance"
-
 	"github.com/hibiken/asynq"
 	"go.uber.org/dig"
 	"go.uber.org/zap"
@@ -13,6 +8,9 @@ import (
 
 // RegisterDependencies registers ingester dependencies in the DI container
 func RegisterDependencies(container *dig.Container) {
+	// Provide the service that stores check results
+	container.Provide(NewService)
+
 	// Provide ingester task handler
 	container.Provide(ProvideIngesterTaskHandler)
 
@@ -22,19 +20,10 @@ func RegisterDependencies(container *dig.Container) {
 
 // ProvideIngesterTaskHandler provides an ingester task handler
 func ProvideIngesterTaskHandler(
-	heartbeatService heartbeat.Service,
-	certificateService certificate.Service,
-	monitorMaintenanceService monitor_maintenance.Service,
-	eventBus events.EventBus,
+	service Service,
 	logger *zap.SugaredLogger,
 ) *IngesterTaskHandler {
-	return NewIngesterTaskHandler(
-		heartbeatService,
-		certificateService,
-		monitorMaintenanceService,
-		eventBus,
-		logger,
-	)
+	return NewIngesterTaskHandler(service, logger)
 }
 
 // ProvideIngester provides an ingester
