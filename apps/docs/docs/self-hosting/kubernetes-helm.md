@@ -34,7 +34,7 @@ You need:
 
 ## Install
 
-You install the published chart with `--version`, the Peekaping release you want. The examples use `0.0.48`, the first release that publishes the chart. Use the latest release instead. You need no checkout of the repository and no `helm dependency build`: the chart carries its optional PostgreSQL and Redis charts.
+You install the published chart with `--version`, the Peekaping release you want. The chart is published from release 0.0.48 on, so the examples use `0.0.48`. Use the latest release instead. You need no checkout of the repository and no `helm dependency build`: the chart carries its optional PostgreSQL and Redis charts. Until release 0.0.48 is out, [install from a checkout](#install-from-a-checkout).
 
 ### 1. Create the namespace and the config secret
 
