@@ -358,7 +358,10 @@ func (s *Scheduler) onUpdated(monitorID string) {
 		s.unschedule(monitorID)
 		return
 	}
-	s.set(mon, true)
+	// Check right away so the change shows up without waiting a full interval. Not a push
+	// monitor: it waits for pushes, and right after a data reset an immediate check would
+	// find none and report DOWN. The next timer is at the next multiple of the (new) interval.
+	s.set(mon, mon.Type != "push")
 }
 
 // onDeleted stops scheduling a deleted monitor
