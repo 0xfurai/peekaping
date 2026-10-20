@@ -29,6 +29,7 @@ func RegisterClusterAPI(container *dig.Container, cfg *config.Config) error {
 func RegisterClusterProducer(container *dig.Container, cfg *config.Config) error {
 	return errors.Join(
 		registerCluster(container, cfg),
+		utils.Provide(container, producer.NewQueueRunner),
 		producer.RegisterDependencies(container),
 	)
 }

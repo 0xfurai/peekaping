@@ -11,7 +11,6 @@ import (
 	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_notification"
-	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stale"
 )
@@ -19,7 +18,7 @@ import (
 // Producer is responsible for scheduling monitor health checks
 type Producer struct {
 	rdb                     *redis.Client
-	queueService            queue.Service
+	runner                  check.Runner // enqueues the checks for the worker
 	monitorService          monitor.Service
 	loader                  *check.Loader
 	monitorNotificationSvc  monitor_notification.Service

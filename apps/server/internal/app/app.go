@@ -4,10 +4,14 @@
 // routes. A transport then provides how the parts reach each other.
 //
 // Cluster mode's transport is in cluster.go: Redis, the event bus over it, the stale.Store in
-// it, asynq and the leader election, and the cluster side of ADR 0002's seam "ingest a result"
-// (ingester.Service), which enqueues results for the ingester. Its RegisterCluster functions
-// build each cluster binary's graph. Single mode's transport goes beside it: the in-memory
-// event bus and stale.Store, the scheduler and its pool, and ingester.NewInOrderService.
+// it, asynq and the leader election, and the cluster side of ADR 0002's two seams. "Run a
+// check" (check.Runner) enqueues the producer's checks for the worker, and "ingest a result"
+// (ingester.Service) enqueues the worker's and the push URL's results for the ingester. Its
+// RegisterCluster functions build each cluster binary's graph.
+//
+// Single mode's transport goes beside it, in single.go: Register, then the in-memory event
+// bus and stale.Store, the scheduler and its watchdog, and one ingester.NewInOrderService as
+// the ingester.Service that both the scheduler and the push URL ingest through.
 //
 // Every provide is checked, so a refused one stops startup with an error that names its
 // constructor.

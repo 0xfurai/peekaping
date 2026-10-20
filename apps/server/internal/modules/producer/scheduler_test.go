@@ -301,7 +301,7 @@ func TestUpdateMonitor(t *testing.T) {
 			logger:           logger,
 			ctx:              context.Background(),
 			monitorService:   mockMonitorSvc,
-			queueService:     mockQueueSvc,
+			runner:           NewQueueRunner(mockQueueSvc, zap.NewNop().Sugar()),
 			monitorIntervals: make(map[string]int),
 		}
 
@@ -349,7 +349,7 @@ func TestUpdateMonitor(t *testing.T) {
 			logger:           zap.NewNop().Sugar(),
 			ctx:              context.Background(),
 			monitorService:   mockMonitorSvc,
-			queueService:     mockQueueSvc,
+			runner:           NewQueueRunner(mockQueueSvc, zap.NewNop().Sugar()),
 			monitorIntervals: make(map[string]int),
 		}
 
@@ -380,7 +380,7 @@ func TestUpdateMonitor(t *testing.T) {
 			logger:           zap.NewNop().Sugar(),
 			ctx:              context.Background(),
 			monitorService:   mockMonitorSvc,
-			queueService:     mockQueueSvc,
+			runner:           NewQueueRunner(mockQueueSvc, zap.NewNop().Sugar()),
 			monitorIntervals: make(map[string]int),
 		}
 
@@ -409,7 +409,7 @@ func TestUpdateMonitor(t *testing.T) {
 			logger:           zap.NewNop().Sugar(),
 			ctx:              context.Background(),
 			monitorService:   mockMonitorSvc,
-			queueService:     mockQueueSvc,
+			runner:           NewQueueRunner(mockQueueSvc, zap.NewNop().Sugar()),
 			monitorIntervals: make(map[string]int),
 		}
 
@@ -444,7 +444,7 @@ func TestUpdateMonitor(t *testing.T) {
 			logger:           logger,
 			ctx:              context.Background(),
 			monitorService:   mockMonitorSvc,
-			queueService:     mockQueueSvc,
+			runner:           NewQueueRunner(mockQueueSvc, zap.NewNop().Sugar()),
 			monitorIntervals: make(map[string]int),
 		}
 
@@ -490,7 +490,7 @@ func TestUpdateMonitor(t *testing.T) {
 			logger:           logger,
 			ctx:              context.Background(),
 			monitorService:   mockMonitorSvc,
-			queueService:     mockQueueSvc,
+			runner:           NewQueueRunner(mockQueueSvc, zap.NewNop().Sugar()),
 			monitorIntervals: make(map[string]int),
 		}
 
@@ -534,7 +534,7 @@ func TestRemoveMonitor(t *testing.T) {
 			rdb:              client,
 			logger:           logger,
 			ctx:              context.Background(),
-			queueService:     mockQueueSvc,
+			runner:           NewQueueRunner(mockQueueSvc, zap.NewNop().Sugar()),
 			monitorIntervals: make(map[string]int),
 		}
 

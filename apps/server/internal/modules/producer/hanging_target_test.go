@@ -92,9 +92,9 @@ func TestHealthCheckAgainstHangingTarget(t *testing.T) {
 	mockMaintenanceSvc.On("GetMaintenancesByMonitorID", mock.Anything, mon.ID).Return([]*maintenance.Model{}, nil)
 
 	producer := &Producer{
-		logger:       logger,
-		loader:       check.NewLoader(mockMonitorSvc, nil, mockMaintenanceSvc, nil, logger),
-		queueService: queueSvc,
+		logger: logger,
+		loader: check.NewLoader(mockMonitorSvc, nil, mockMaintenanceSvc, nil, logger),
+		runner: NewQueueRunner(queueSvc, logger),
 	}
 
 	// A queue that was never written to doesn't exist yet and reports as empty
