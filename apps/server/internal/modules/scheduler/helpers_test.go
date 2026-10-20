@@ -287,6 +287,22 @@ func (r *recordingIngester) messages() []string {
 	return messages
 }
 
+// ingestedFor counts the monitor's ingested results
+func (h *harness) ingestedFor(monitorID string) int {
+	return len(h.ingestedMessagesFor(monitorID))
+}
+
+// ingestedMessagesFor is what the monitor's ingested results say, oldest first
+func (h *harness) ingestedMessagesFor(monitorID string) []string {
+	var messages []string
+	for _, r := range h.ingest.ingested() {
+		if r.MonitorID == monitorID {
+			messages = append(messages, r.Message)
+		}
+	}
+	return messages
+}
+
 // harness is a scheduler over fakes
 type harness struct {
 	t      *testing.T

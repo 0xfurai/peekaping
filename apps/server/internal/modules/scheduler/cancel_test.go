@@ -218,14 +218,3 @@ func TestScheduler_DropsTheResultOfACheckThatEndsWhileAnUpdatePauseOrDeleteWaits
 		})
 	}
 }
-
-// ingestedMessagesFor is what the monitor's ingested results say
-func (h *harness) ingestedMessagesFor(monitorID string) []string {
-	var messages []string
-	for _, r := range h.ingest.ingested() {
-		if r.MonitorID == monitorID {
-			messages = append(messages, r.Message)
-		}
-	}
-	return messages
-}

@@ -14,11 +14,6 @@ import (
 	"go.uber.org/zap/zaptest/observer"
 )
 
-// ingesterFunc is an ingester.Service made of a function
-type ingesterFunc func(ctx context.Context, r *ingester.Result) error
-
-func (f ingesterFunc) Ingest(ctx context.Context, r *ingester.Result) error { return f(ctx, r) }
-
 func TestScheduler_APanicEndsOnlyTheCheckItHappensIn(t *testing.T) {
 	t.Parallel()
 	// Each panics in the first check of monitor "bad" and works from then on. They reach the
@@ -36,7 +31,7 @@ func TestScheduler_APanicEndsOnlyTheCheckItHappensIn(t *testing.T) {
 		},
 		"in the ingest": func(h **harness, panicked *atomic.Bool) func(*Config) {
 			return func(cfg *Config) {
-				cfg.Ingester = ingesterFunc(func(ctx context.Context, r *ingester.Result) error {
+				cfg.Ingester = ingestFunc(func(ctx context.Context, r *ingester.Result) error {
 					if r.MonitorID == "bad" && panicked.CompareAndSwap(false, true) {
 						panic("ingest bug")
 					}
@@ -68,15 +63,4 @@ func TestScheduler_APanicEndsOnlyTheCheckItHappensIn(t *testing.T) {
 			assert.Equal(t, 1, logs.FilterMessage("Check panicked").FilterField(zap.String("monitor_id", "bad")).Len(), "the panic is logged with its monitor")
 		})
 	}
-}
-
-// ingestedFor counts the monitor's ingested results
-func (h *harness) ingestedFor(monitorID string) int {
-	n := 0
-	for _, r := range h.ingest.ingested() {
-		if r.MonitorID == monitorID {
-			n++
-		}
-	}
-	return n
 }
