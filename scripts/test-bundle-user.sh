@@ -34,7 +34,7 @@ if [ -z "$image" ]; then
   docker build -q -f "$root/Dockerfile.bundle.$db" -t "$image" "$root" >/dev/null || exit 1
 fi
 
-containers="default ids bad-uid bad-gid taken-gid socket socket-maker ro-data ping user"
+containers="default ids bad-uid bad-gid taken-gid shadow-gid free-ids socket socket-maker ro-data ping user"
 cleanup() {
   for name in $containers; do
     docker rm -f "$prefix-$name" >/dev/null 2>&1
@@ -44,13 +44,15 @@ cleanup() {
 trap cleanup EXIT
 cleanup
 
-# check <description> <command...>: runs the command and records the result.
+# check <description> <command...>: runs the command, records the result and
+# returns it, so that `if check ...` skips the checks that depend on it.
 check() {
   if "${@:2}"; then
     echo "ok   - $1"
   else
     echo "FAIL - $1"
     failures=$((failures + 1))
+    return 1
   fi
 }
 
@@ -321,6 +323,20 @@ start "$prefix-taken-gid" -e PGID=0
 check "PGID=0 (root's group) stops the container" wait_exited "$prefix-taken-gid"
 check "PGID=0 exits non-zero" ne "$(docker inspect -f '{{.State.ExitCode}}' "$prefix-taken-gid")" 0
 check "PGID=0 is named in the error" logs_mention "$prefix-taken-gid" "PGID 0 is already used"
+start "$prefix-shadow-gid" -e PGID=42
+check "PGID=42 (the shadow group, which can read /etc/shadow) stops the container" wait_exited "$prefix-shadow-gid"
+check "PGID=42 is named in the error" logs_mention "$prefix-shadow-gid" "PGID 42 is already used"
+
+if [ "$single" = true ]; then
+  echo "# PUID=405 PGID=999, IDs Alpine gives users and groups nothing in the image uses"
+  # Alpine's guest user and ping group, which nothing in the image uses. Debian,
+  # which earlier bundles and the PostgreSQL bundle run on, has neither ID.
+  start "$prefix-free-ids" -e PUID=405 -e PGID=999
+  if check "starts and reports healthy" wait_healthy "$prefix-free-ids"; then
+    check "peekaping runs as 405:999" eq "$(ids "$prefix-free-ids" peekaping)" 405:999
+  fi
+  docker rm -f "$prefix-free-ids" >/dev/null
+fi
 
 echo "# A Docker socket its group can't use"
 # A stand-in socket, mode 600, so the user's new group gives no access.
