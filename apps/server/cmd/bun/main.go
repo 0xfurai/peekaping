@@ -56,27 +56,7 @@ func newDBCommand() *cli.Command {
 				Usage: "migrate database",
 				Action: func(c *cli.Context) error {
 					return runWithDB(func(db *bun.DB) error {
-						// Mark a migration applied only once it succeeds, so one that fails
-						// or is killed halfway runs again on the next migrate.
-						migrator := migrate.NewMigrator(db, migrations.Migrations, migrate.WithMarkAppliedOnSuccess(true))
-						if err := migrator.Lock(c.Context); err != nil {
-							return err
-						}
-						defer migrator.Unlock(c.Context) // nolint:errcheck
-
-						// No rollback on failure: the failed migration isn't recorded, so
-						// Rollback would undo the last recorded group, possibly an earlier
-						// release. The migrations before it stay applied; fix and rerun.
-						group, err := migrator.Migrate(c.Context)
-						if err != nil {
-							return err
-						}
-						if group.IsZero() {
-							fmt.Printf("there are no new migrations to run (database is up to date)\n")
-							return nil
-						}
-						fmt.Printf("migrated to %s\n", group)
-						return nil
+						return migrateUp(c.Context, db)
 					})
 				},
 			},
@@ -85,22 +65,7 @@ func newDBCommand() *cli.Command {
 				Usage: "rollback the last migration group",
 				Action: func(c *cli.Context) error {
 					return runWithDB(func(db *bun.DB) error {
-						migrator := migrate.NewMigrator(db, migrations.Migrations)
-						if err := migrator.Lock(c.Context); err != nil {
-							return err
-						}
-						defer migrator.Unlock(c.Context) //nolint:errcheck
-
-						group, err := migrator.Rollback(c.Context)
-						if err != nil {
-							return err
-						}
-						if group.IsZero() {
-							fmt.Printf("there are no groups to roll back\n")
-							return nil
-						}
-						fmt.Printf("rolled back %s\n", group)
-						return nil
+						return migrateDown(c.Context, db)
 					})
 				},
 			},
