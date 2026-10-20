@@ -318,6 +318,8 @@ func (s *Scheduler) runCheck(ctx context.Context, monitorID string) {
 		return
 	}
 	mon := job.Monitor
+	// A push monitor's check judges its latest push, as the worker's does
+	mon.LastHeartbeat = job.LastHeartbeat
 
 	exec, ok := s.executors.GetExecutor(mon.Type)
 	if !ok {

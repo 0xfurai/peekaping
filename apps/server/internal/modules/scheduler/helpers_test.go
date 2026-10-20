@@ -31,10 +31,18 @@ type fakeDB struct {
 	byID       map[string]*shared.Monitor
 	maintained bool
 	certExpiry bool
+	// lastHeartbeats are the push monitors' latest heartbeats
+	lastHeartbeats map[string]*shared.HeartBeatModel
 }
 
 func newFakeDB() *fakeDB {
-	return &fakeDB{byID: map[string]*shared.Monitor{}}
+	return &fakeDB{byID: map[string]*shared.Monitor{}, lastHeartbeats: map[string]*shared.HeartBeatModel{}}
+}
+
+func (db *fakeDB) setLastHeartbeat(hb shared.HeartBeatModel) {
+	db.mu.Lock()
+	defer db.mu.Unlock()
+	db.lastHeartbeats[hb.MonitorID] = &hb
 }
 
 func (db *fakeDB) put(m shared.Monitor) {
@@ -92,7 +100,11 @@ func (db *fakeDB) Load(ctx context.Context, id string) (*check.Job, error) {
 	}
 	db.mu.Lock()
 	defer db.mu.Unlock()
-	return &check.Job{Monitor: m, IsUnderMaintenance: db.maintained, CheckCertExpiry: db.certExpiry}, nil
+	job := &check.Job{Monitor: m, IsUnderMaintenance: db.maintained, CheckCertExpiry: db.certExpiry}
+	if m.Type == "push" {
+		job.LastHeartbeat = db.lastHeartbeats[id]
+	}
+	return job, nil
 }
 
 // checkCall is one run of the executor
@@ -142,6 +154,14 @@ func (e *fakeExecutor) Execute(ctx context.Context, m *executor.Monitor, _ *exec
 func (e *fakeExecutor) Validate(string) error                        { return nil }
 func (e *fakeExecutor) Unmarshal(string) (any, error)                { return nil, nil }
 func (e *fakeExecutor) GetExecutor(string) (executor.Executor, bool) { return e, true }
+
+// executorsByType finds the executor for a monitor type in a map, as executor.ExecutorRegistry does
+type executorsByType map[string]executor.Executor
+
+func (e executorsByType) GetExecutor(monitorType string) (executor.Executor, bool) {
+	exec, ok := e[monitorType]
+	return exec, ok
+}
 
 func up(message string) *executor.Result {
 	now := time.Now()
