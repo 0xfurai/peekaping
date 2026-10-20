@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"peekaping/internal/config"
+	"peekaping/internal/httpx"
 	"peekaping/internal/web"
 
 	"github.com/go-playground/validator/v10"
@@ -48,6 +49,10 @@ type Config struct {
 	BruteforceMaxAttempts int           `env:"BRUTEFORCE_MAX_ATTEMPTS" default:"20"`
 	BruteforceWindow      time.Duration `env:"BRUTEFORCE_WINDOW" default:"1m"`
 	BruteforceLockout     time.Duration `env:"BRUTEFORCE_LOCKOUT" default:"1m"`
+
+	// Proxies whose X-Forwarded-For and X-Real-IP headers count: IP addresses and CIDR
+	// ranges, comma-separated. Empty trusts nobody. Validated in Validate().
+	TrustedProxies string `env:"TRUSTED_PROXIES"`
 
 	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"peekaping"`
 
@@ -120,6 +125,12 @@ func Validate(cfg *Config) error {
 		return fmt.Errorf("BRUTEFORCE_LOCKOUT must be a positive duration")
 	}
 
+	// A mistyped TRUSTED_PROXIES stops startup: ignoring it would hide a setup that doesn't
+	// protect the login lockout the way its operator thinks it does.
+	if _, err := httpx.ParseTrustedProxies(cfg.TrustedProxies); err != nil {
+		return err
+	}
+
 	// A WEB_DIR without a web build fails at startup, not on every page load
 	if cfg.WebDir != "" {
 		if err := web.CheckDir(cfg.WebDir); err != nil {
@@ -167,6 +178,7 @@ func (c *Config) ToInternalConfig() *config.Config {
 		BruteforceMaxAttempts: c.BruteforceMaxAttempts,
 		BruteforceWindow:      c.BruteforceWindow,
 		BruteforceLockout:     c.BruteforceLockout,
+		TrustedProxies:        c.TrustedProxies,
 		ServiceName:           c.ServiceName,
 		MetricsEnabled:        c.MetricsEnabled,
 	}

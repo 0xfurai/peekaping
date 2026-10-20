@@ -74,9 +74,15 @@ type Server struct {
 	Cfg    *config.Config
 }
 
+// ProvideTrustedProxies parses TRUSTED_PROXIES, which stops startup when an entry is invalid.
+func ProvideTrustedProxies(cfg *config.Config) (*httpx.TrustedProxies, error) {
+	return httpx.ParseTrustedProxies(cfg.TrustedProxies)
+}
+
 func ProvideServer(
 	logger *zap.SugaredLogger,
 	cfg *config.Config,
+	trustedProxies *httpx.TrustedProxies,
 	monitorRoute *monitor.MonitorRoute,
 	monitorController *monitor.MonitorController,
 	authRoute *auth.Route,
@@ -107,7 +113,7 @@ func ProvideServer(
 ) *Server {
 	middleware := []httpx.Middleware{httpx.Recovery(logger), httpx.CORS}
 	if cfg.Mode == "dev" {
-		middleware = append([]httpx.Middleware{httpx.Logger(logger)}, middleware...)
+		middleware = append([]httpx.Middleware{httpx.Logger(logger, trustedProxies)}, middleware...)
 	}
 	server := httpx.NewRouter(middleware...)
 

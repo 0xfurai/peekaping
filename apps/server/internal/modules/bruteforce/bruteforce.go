@@ -35,6 +35,9 @@ type Config struct {
 	FailureStatuses []int
 	// Optional custom blocked response (otherwise 429 with Retry-After)
 	OnBlocked func(w http.ResponseWriter, r *http.Request, retryAfter time.Duration)
+	// TrustedProxies decide whose forwarding headers count when the guard falls back to
+	// counting by the client's IP address. Nil trusts nobody.
+	TrustedProxies *httpx.TrustedProxies
 }
 
 type Guard struct {
@@ -72,7 +75,7 @@ func (g *Guard) Middleware() httpx.Middleware {
 			key, err := g.keyExtractor(r)
 			if err != nil || key == "" {
 				// If we cannot extract key, we fallback to IP only.
-				key = httpx.ClientIP(r)
+				key = g.cfg.TrustedProxies.ClientIP(r)
 			}
 
 			ctx := r.Context()
@@ -151,11 +154,12 @@ func (g *Guard) block(w http.ResponseWriter, r *http.Request, retryAfter time.Du
 	httpx.JSON(w, http.StatusTooManyRequests, BlockResponse{Success: false, Message: "too many attempts, try later", RetryAfter: int(retryAfter.Seconds())})
 }
 
-// KeyByIPAndBodyField makes a key "<ip>:<lower(username)>"
+// KeyByIPAndBodyField makes a key "<ip>:<lower(username)>", where <ip> is the client address
+// that proxies resolves (nil trusts no forwarding headers).
 // It safely reads the field from JSON body without consuming it by preserving the original body.
-func KeyByIPAndBodyField(field string) KeyExtractor {
+func KeyByIPAndBodyField(field string, proxies *httpx.TrustedProxies) KeyExtractor {
 	return func(r *http.Request) (string, error) {
-		ip := httpx.ClientIP(r)
+		ip := proxies.ClientIP(r)
 
 		// Only process JSON requests
 		if r.Header.Get("Content-Type") == "application/json" || strings.Contains(r.Header.Get("Content-Type"), "application/json") {

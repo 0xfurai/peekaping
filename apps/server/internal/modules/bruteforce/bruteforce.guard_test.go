@@ -90,7 +90,7 @@ func TestKeyByIPAndBodyField_JSON(t *testing.T) {
 	r := httptest.NewRequest("POST", "/", bytes.NewReader(b))
 	r.Header.Set("Content-Type", "application/json")
 	r.RemoteAddr = "1.2.3.4:5678"
-	key, err := KeyByIPAndBodyField("email")(r)
+	key, err := KeyByIPAndBodyField("email", nil)(r)
 	assert.NoError(t, err)
 	assert.Equal(t, "1.2.3.4:user@example.com", key)
 }
@@ -102,7 +102,7 @@ func TestKeyByIPAndBodyField_JSON_no_field(t *testing.T) {
 	r := httptest.NewRequest("POST", "/", bytes.NewReader(b))
 	r.Header.Set("Content-Type", "application/json")
 	r.RemoteAddr = "5.6.7.8:1234"
-	key, err := KeyByIPAndBodyField("email")(r)
+	key, err := KeyByIPAndBodyField("email", nil)(r)
 	assert.NoError(t, err)
 	assert.Equal(t, "5.6.7.8", key)
 }
@@ -114,9 +114,33 @@ func TestKeyByIPAndBodyField_Form(t *testing.T) {
 	r.RemoteAddr = "9.8.7.6:4321"
 	r.ParseForm()
 	r.PostForm.Set("email", "TestUser")
-	key, err := KeyByIPAndBodyField("email")(r)
+	key, err := KeyByIPAndBodyField("email", nil)(r)
 	assert.NoError(t, err)
 	assert.Equal(t, "9.8.7.6:testuser", key)
+}
+
+func TestKeyByIPAndBodyField_ForwardedFor(t *testing.T) {
+	trusted, err := httpx.ParseTrustedProxies("10.0.0.0/8")
+	assert.NoError(t, err)
+
+	for _, tc := range []struct {
+		name, remote, want string
+		proxies            *httpx.TrustedProxies
+	}{
+		{"a client's forged header is ignored when no proxy is trusted", "1.2.3.4:5678", "1.2.3.4:user@example.com", nil},
+		{"a client's forged header is ignored from outside the trusted proxies", "1.2.3.4:5678", "1.2.3.4:user@example.com", trusted},
+		{"a trusted proxy's client is the key", "10.0.0.1:5678", "198.51.100.7:user@example.com", trusted},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			r := httptest.NewRequest("POST", "/", bytes.NewReader([]byte(`{"email":"User@EXAMPLE.com"}`)))
+			r.Header.Set("Content-Type", "application/json")
+			r.Header.Set("X-Forwarded-For", "203.0.113.9, 198.51.100.7")
+			r.RemoteAddr = tc.remote
+			key, err := KeyByIPAndBodyField("email", tc.proxies)(r)
+			assert.NoError(t, err)
+			assert.Equal(t, tc.want, key)
+		})
+	}
 }
 
 func TestKeyByIPAndBodyField_Error(t *testing.T) {
@@ -124,7 +148,7 @@ func TestKeyByIPAndBodyField_Error(t *testing.T) {
 	r := httptest.NewRequest("POST", "/", &errReader{})
 	r.Header.Set("Content-Type", "application/json")
 	r.RemoteAddr = "1.1.1.1:1111"
-	key, err := KeyByIPAndBodyField("email")(r)
+	key, err := KeyByIPAndBodyField("email", nil)(r)
 	assert.NoError(t, err)
 	assert.Equal(t, "1.1.1.1", key)
 }
@@ -251,7 +275,7 @@ func TestNewGuard(t *testing.T) {
 		BruteforceLockout:     30 * time.Minute,
 	}
 
-	guard := NewGuard(mockService, logger, cfg)
+	guard := NewGuard(mockService, logger, cfg, nil)
 	assert.NotNil(t, guard)
 	assert.Equal(t, 10, guard.cfg.MaxAttempts)
 	assert.Equal(t, 2*time.Minute, guard.cfg.Window)

@@ -2,6 +2,7 @@ package bruteforce
 
 import (
 	"peekaping/internal/config"
+	"peekaping/internal/httpx"
 	"peekaping/internal/utils"
 
 	"go.uber.org/dig"
@@ -20,16 +21,18 @@ func NewGuard(
 	Service Service,
 	Logger *zap.SugaredLogger,
 	config *config.Config,
+	trustedProxies *httpx.TrustedProxies,
 ) *Guard {
 	cfg := Config{
 		MaxAttempts:     config.BruteforceMaxAttempts,
 		Window:          config.BruteforceWindow,
 		Lockout:         config.BruteforceLockout,
 		FailureStatuses: []int{401, 403},
+		TrustedProxies:  trustedProxies,
 	}
 
 	// Use IP + email for key extraction to track per user per IP
-	keyExtractor := KeyByIPAndBodyField("email")
+	keyExtractor := KeyByIPAndBodyField("email", trustedProxies)
 
 	guard := New(cfg, Service, keyExtractor, Logger)
 

@@ -71,6 +71,13 @@ type Config struct {
 	// Examples: "5m", "30m", "1h", "24h"
 	BruteforceLockout time.Duration `env:"BRUTEFORCE_LOCKOUT" default:"1m"`
 
+	// Proxies whose X-Forwarded-For and X-Real-IP headers the server believes: a
+	// comma-separated list of IP addresses and CIDR ranges, such as "127.0.0.1,10.0.0.0/8".
+	// A request from any other address is attributed to the address it connected from, since a
+	// client can send those headers itself. The login lockout counts failures per client
+	// address. Empty (the default) trusts nobody.
+	TrustedProxies string `env:"TRUSTED_PROXIES"` // parsed by httpx.ParseTrustedProxies
+
 	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"peekaping:api"`
 
 	// Prometheus metrics

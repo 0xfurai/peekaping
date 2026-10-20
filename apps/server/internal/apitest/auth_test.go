@@ -2,6 +2,7 @@ package apitest
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -90,6 +91,27 @@ func TestAuthAPI_LocksOutRepeatedFailedLogins(t *testing.T) {
 
 	assert.Equal(t, http.StatusUnauthorized, a.login(t, map[string]any{"email": "other@example.com", "password": adminPassword}).Code,
 		"another email from the same IP isn't locked")
+}
+
+// forwardedFor sets X-Forwarded-For to a different address for each n, the way a client that
+// spoofs the header to look like a new visitor on every request does.
+func forwardedFor(n int) credentials {
+	return func(req *http.Request) {
+		req.Header.Set("X-Forwarded-For", fmt.Sprintf("198.51.%d.%d", n/256, n%256))
+	}
+}
+
+func TestAuthAPI_LockoutIgnoresSpoofedForwardedFor(t *testing.T) {
+	a := newAppWithAdmin(t)
+	wrong := map[string]any{"email": adminEmail, "password": "Wrong-password-1"}
+
+	for n := range maxFailedLogins {
+		w := a.request(t, http.MethodPost, "/api/v1/auth/login", wrong, forwardedFor(n))
+		require.Equal(t, http.StatusUnauthorized, w.Code, "failed login %d", n+1)
+	}
+	w := a.request(t, http.MethodPost, "/api/v1/auth/login", wrong, forwardedFor(maxFailedLogins))
+	assert.Equal(t, http.StatusTooManyRequests, w.Code, "the next login is locked out: %s", w.Body.String())
+	assert.NotEmpty(t, w.Header().Get("Retry-After"))
 }
 
 func TestAuthAPI_RejectsInvalidInput(t *testing.T) {
