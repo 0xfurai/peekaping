@@ -16,7 +16,7 @@ The Migrate component handles:
 - **Multi-Database Support**: Works with PostgreSQL, MySQL, and SQLite
 - **Migration Tracking**: Maintains migration history and status
 - **Transactional Migrations**: Ensures atomic schema changes
-- **Migration Locking**: Prevents concurrent migrations
+- **Migration Locking**: Keeps two migrations from changing the database at once, without leaving a lock behind when a migration is killed
 
 ## Architecture
 
@@ -28,6 +28,20 @@ The migrate component is a CLI tool that runs as a one-off process:
 - No persistent service or daemon
 
 **Note**: MongoDB migrations are not used as MongoDB is schema-less.
+
+### Migration Locking
+
+`migrate` and `rollback` take a lock while they change the database. What the lock is depends on the database:
+
+| Database | Lock | When a migration is killed |
+|----------|------|----------------------------|
+| PostgreSQL | A session advisory lock, held on a connection of its own | PostgreSQL drops the lock when the connection closes, so the next migration starts at once |
+| SQLite | None. One process migrates at startup | Nothing is left behind |
+| MySQL | A row in the `bun_migration_locks` table | The row stays. `bun db unlock` clears it |
+
+A migration that starts while another one holds the PostgreSQL lock waits for it, up to `--lock-timeout` (default 10 minutes), then applies what is left, usually nothing. If the lock is still held when the time is up, it fails with `another migration still holds the database lock`. A killed migration, whether by `docker stop`, an out-of-memory kill or a lost node, doesn't block the next one.
+
+PostgreSQL and SQLite ignore a row that an older version left in `bun_migration_locks`. `bun db lock` and `bun db unlock` still add and remove that row.
 
 ### Migration Files
 
@@ -57,6 +71,12 @@ YYYYMMDDHHMMSS_description.tx.{up|down}.sql
 
 **Note**: No Redis or other services are required for migrations.
 
+### Locking
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `MIGRATE_LOCK_TIMEOUT` | duration | No | `10m` | How long `db migrate` and `db rollback` wait for another migration's lock on PostgreSQL, such as `30s` or `1h`. The `--lock-timeout` flag overrides it |
+
 ## Key Commands
 
 ### Apply Migrations
@@ -65,6 +85,12 @@ Applies all pending migrations:
 
 ```bash
 go run cmd/bun/main.go db migrate
+```
+
+To wait longer or shorter than 10 minutes for another migration to finish on PostgreSQL:
+
+```bash
+go run cmd/bun/main.go db migrate --lock-timeout 30m
 ```
 
 ### Rollback Migrations
