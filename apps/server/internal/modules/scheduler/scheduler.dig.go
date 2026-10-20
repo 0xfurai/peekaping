@@ -17,9 +17,9 @@ import (
 
 // RegisterDependencies registers single mode's scheduler and its stale-monitor watchdog. The
 // binary provides the stale.Store they share with the API (stale.ProvideMemoryStore) and the
-// ingester.Service. Pushes are ordered with a monitor's checks only when the push endpoint
-// ingests through the same ingester.NewInOrderService as the scheduler, so the binary should
-// provide that one to both.
+// ingester.Service. Pushes to a push URL are ordered with the monitor's checks only when they
+// are ingested through the same ingester.NewInOrderService as the scheduler's, so the binary
+// should provide that one to both.
 func RegisterDependencies(container *dig.Container) {
 	container.Provide(ProvideScheduler)
 	container.Provide(ProvideWatchdog)

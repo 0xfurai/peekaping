@@ -99,7 +99,7 @@ func TestScheduler_IngestsAMonitorsChecksInOrderWithItsPushes(t *testing.T) {
 	var ingested []string
 	pushing := make(chan struct{})
 	release := make(chan struct{})
-	// The push endpoint and the scheduler share one in-order ingester, as single mode wires them
+	// Pushes and the scheduler's checks share one in-order ingester, as single mode wires them
 	ordered := ingester.NewInOrderService(ingestFunc(func(_ context.Context, r *ingester.Result) error {
 		mu.Lock()
 		ingested = append(ingested, r.Message)

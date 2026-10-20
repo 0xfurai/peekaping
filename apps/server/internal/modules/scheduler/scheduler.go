@@ -465,7 +465,7 @@ func (s *Scheduler) runCheck(ctx context.Context, monitorID string) {
 		s.logger.Warnw("Monitor not found, skipping its check", "monitor_id", monitorID)
 		return
 	case errors.Is(err, check.ErrMonitorPaused):
-		s.logger.Infow("Monitor is inactive, skipping its check", "monitor_id", monitorID)
+		s.logger.Infow("Monitor is paused, skipping its check", "monitor_id", monitorID)
 		return
 	case err != nil && ctx.Err() != nil:
 		// An update, pause, delete or stop cancelled the check while it loaded
@@ -595,7 +595,7 @@ func (s *Scheduler) RunNow(ctx context.Context, monitorID string) error {
 		return fmt.Errorf("monitor %s not found", monitorID)
 	}
 	if !schedulable(mon) {
-		return fmt.Errorf("monitor %s is not active", monitorID)
+		return fmt.Errorf("monitor %s is paused or has no check interval", monitorID)
 	}
 	if !s.set(mon, true) {
 		return errors.New("scheduler is not running")
