@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -22,7 +23,9 @@ import (
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/utils"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/uptrace/bun/driver/sqliteshim"
 	"github.com/uptrace/bun/migrate"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
@@ -130,14 +133,69 @@ func (in *instance) stop(t testing.TB) error {
 	t.Helper()
 	in.stopOnce.Do(func() {
 		in.cancel()
+		limit := shutdownTimeouts.total() + 5*time.Second
 		select {
 		case in.stopErr = <-in.done:
-		case <-time.After(shutdownTimeout + 5*time.Second):
-			in.stopErr = fmt.Errorf("run didn't return within %s", shutdownTimeout+5*time.Second)
+		case <-time.After(limit):
+			in.stopErr = fmt.Errorf("run didn't return within %s", limit)
 			t.Error(in.stopErr)
 		}
 	})
 	return in.stopErr
+}
+
+// sendHalfALogin sends the admin's login with only part of its body, and returns the connection
+// and the rest of the body. The server answers once the rest arrives.
+func (in *instance) sendHalfALogin(t *testing.T) (net.Conn, string) {
+	t.Helper()
+	login := fmt.Sprintf(`{"email":%q,"password":%q}`, adminEmail, adminPassword)
+	conn, err := net.Dial("tcp", strings.TrimPrefix(in.url, "http://"))
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = conn.Close() })
+	_, err = fmt.Fprintf(conn, "POST /api/v1/auth/login HTTP/1.1\r\nHost: peekaping\r\nContent-Type: application/json\r\nContent-Length: %d\r\n\r\n%s",
+		len(login), login[:10])
+	require.NoError(t, err)
+	time.Sleep(200 * time.Millisecond) // the server reads the headers and waits for the rest
+	return conn, login[10:]
+}
+
+// lockDatabase holds the SQLite database's write lock from a connection of its own, as another
+// writer would, until unlock is called. The app's writes wait for it.
+func lockDatabase(t *testing.T, path string) (unlock func()) {
+	t.Helper()
+	ctx := context.Background()
+	// Without the app's shared cache, so that the two connections lock each other out
+	db, err := sql.Open(sqliteshim.ShimName, "file:"+path+"?mode=rw")
+	require.NoError(t, err)
+	conn, err := db.Conn(ctx)
+	require.NoError(t, err)
+	_, err = conn.ExecContext(ctx, "PRAGMA busy_timeout=5000")
+	require.NoError(t, err)
+	_, err = conn.ExecContext(ctx, "BEGIN IMMEDIATE")
+	require.NoError(t, err)
+
+	var once sync.Once
+	unlock = func() {
+		once.Do(func() {
+			_, err := conn.ExecContext(ctx, "ROLLBACK")
+			assert.NoError(t, err)
+			assert.NoError(t, conn.Close())
+			assert.NoError(t, db.Close())
+		})
+	}
+	t.Cleanup(unlock)
+	return unlock
+}
+
+// countHeartbeats counts the monitor's heartbeats in the database, once peekaping has closed it
+func countHeartbeats(t *testing.T, path, monitorID string) int {
+	t.Helper()
+	db, err := sql.Open(sqliteshim.ShimName, "file:"+path+"?mode=ro")
+	require.NoError(t, err)
+	defer db.Close()
+	var count int
+	require.NoError(t, db.QueryRow("SELECT COUNT(*) FROM heartbeats WHERE monitor_id = ?", monitorID).Scan(&count))
+	return count
 }
 
 // request sends body as JSON with the admin's access token, if any, and returns the response's
@@ -266,7 +324,7 @@ type socketEvent struct {
 }
 
 // dialSocket opens a socket.io session with the admin's access token. The test's cleanup closes
-// it, so that its long poll doesn't hold up the HTTP server's shutdown.
+// it.
 func (in *instance) dialSocket(t *testing.T) *socketClient {
 	t.Helper()
 	query := url.Values{"EIO": {"4"}, "transport": {"polling"}, "token": {in.accessToken}}

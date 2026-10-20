@@ -4,12 +4,10 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"slices"
-	"strings"
 	"testing"
 	"time"
 
@@ -74,8 +72,6 @@ func TestRun_ChecksAMonitorCreatedThroughTheAPIAndIngestsPushesWithoutRedis(t *t
 		assert.Equal(t, 12, stored[i].Ping)
 	})
 
-	// The long poll would hold up the HTTP server's shutdown until its next ping
-	socket.close()
 	require.NoError(t, in.stop(t))
 
 	assert.Zero(t, redisConnections(), "peekaping never connects to Redis")
@@ -85,20 +81,14 @@ func TestRun_ChecksAMonitorCreatedThroughTheAPIAndIngestsPushesWithoutRedis(t *t
 }
 
 func TestRun_ShutsDownInOrderOnceTheRequestsInFlightAreAnswered(t *testing.T) {
-	cfg := loadConfig(t, nil)
+	// With the metrics collector too, whose sync the shutdown waits for
+	cfg := loadConfig(t, map[string]string{"METRICS_ENABLED": "true"})
 	logger, logs := observedLogger()
 	in := startPeekaping(t, cfg, logger, logs)
 	in.registerAdmin(t)
 
 	// A login whose body is still on its way when the shutdown starts
-	login := fmt.Sprintf(`{"email":%q,"password":%q}`, adminEmail, adminPassword)
-	conn, err := net.Dial("tcp", strings.TrimPrefix(in.url, "http://"))
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = conn.Close() })
-	_, err = fmt.Fprintf(conn, "POST /api/v1/auth/login HTTP/1.1\r\nHost: peekaping\r\nContent-Type: application/json\r\nContent-Length: %d\r\n\r\n%s",
-		len(login), login[:10])
-	require.NoError(t, err)
-	time.Sleep(200 * time.Millisecond) // the server reads the headers and waits for the rest
+	conn, rest := in.sendHalfALogin(t)
 
 	startedAt := time.Now()
 	stopped := make(chan error, 1)
@@ -112,7 +102,7 @@ func TestRun_ShutsDownInOrderOnceTheRequestsInFlightAreAnswered(t *testing.T) {
 	}
 	assert.Empty(t, logs.FilterMessage("Stopped the HTTP server").All(), "the HTTP server waits for the request in flight")
 
-	_, err = io.WriteString(conn, login[10:])
+	_, err := io.WriteString(conn, rest)
 	require.NoError(t, err)
 	resp, err := http.ReadResponse(bufio.NewReader(conn), nil)
 	require.NoError(t, err)
@@ -122,25 +112,151 @@ func TestRun_ShutsDownInOrderOnceTheRequestsInFlightAreAnswered(t *testing.T) {
 	select {
 	case err := <-stopped:
 		require.NoError(t, err, "run returns nil, so peekaping exits 0")
-	case <-time.After(shutdownTimeout):
+	case <-time.After(shutdownTimeouts.total()):
 		require.FailNow(t, "run didn't return within the shutdown deadline")
 	}
 	t.Logf("shut down in %s", time.Since(startedAt).Round(time.Millisecond))
 
+	assert.Equal(t, shutdownOrder, logged(logs, shutdownOrder), "the shutdown's steps, in the order logged")
+	assert.Empty(t, logs.FilterMessage(ignoringRedis).All(), "no REDIS_* variable is set")
+}
+
+func TestRun_ShutsDownWithinSecondsWhileAWebsocketClientLongPolls(t *testing.T) {
+	cfg := loadConfig(t, nil)
+	logger, logs := observedLogger()
+	in := startPeekaping(t, cfg, logger, logs)
+	in.registerAdmin(t)
+	// Its reader keeps a long poll open, which the server answers at the latest with the next
+	// ping, 25 seconds away: past Docker's default stop grace of 10 seconds
+	socket := in.dialSocket(t)
+	time.Sleep(200 * time.Millisecond) // the reader sends its next long poll
+
+	startedAt := time.Now()
+	require.NoError(t, in.stop(t), "run returns nil, so peekaping exits 0")
+	took := time.Since(startedAt)
+	t.Logf("shut down in %s", took.Round(time.Millisecond))
+
+	assert.Less(t, took, 5*time.Second, "the long poll doesn't hold up the shutdown")
+	select {
+	case _, open := <-socket.packets:
+		assert.False(t, open, "the websocket server ended the client's session")
+	case <-time.After(wait):
+		assert.Fail(t, "the client's session is still open")
+	}
+	// The websocket closes from the HTTP server's Shutdown, once it takes no new connections, and
+	// is logged once the HTTP server has stopped: the order of ADR 0002, section 3
+	assert.Equal(t, shutdownOrder, logged(logs, shutdownOrder), "the shutdown's steps, in the order logged")
+}
+
+// ingestWaitingForTheDatabase checks a new monitor, whose result's ingest then waits for the
+// database's write lock, held by another connection until unlock is called. The scheduler stops
+// only once that ingest is done.
+func (in *instance) ingestWaitingForTheDatabase(t *testing.T, cfg *Config) (monitorID string, unlock func()) {
+	t.Helper()
+	reached, answer := make(chan struct{}, 1), make(chan struct{})
+	target := httptest.NewServer(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+		select {
+		case reached <- struct{}{}:
+		default:
+		}
+		select {
+		case <-answer:
+		case <-r.Context().Done():
+		}
+	}))
+	t.Cleanup(target.Close)
+
+	monitorID = in.createMonitor(t, httpMonitor("Target", target.URL, 20))
+	select {
+	case <-reached:
+	case <-time.After(wait):
+		require.FailNow(t, "the monitor wasn't checked within "+wait.String())
+	}
+	unlock = lockDatabase(t, cfg.DBName)
+	close(answer)
+	time.Sleep(500 * time.Millisecond) // the ingest gets to its first write
+	return monitorID, unlock
+}
+
+func TestRun_ClosesTheDatabaseOnlyOnceTheSchedulerHasStoppedEvenAfterTheHTTPServerRanLate(t *testing.T) {
+	// A request in flight uses up the HTTP server's share of the shutdown
+	defer func(saved timeouts) { shutdownTimeouts = saved }(shutdownTimeouts)
+	shutdownTimeouts.HTTP = 300 * time.Millisecond
+	cfg := loadConfig(t, nil)
+	logger, logs := observedLogger()
+	in := startPeekaping(t, cfg, logger, logs)
+	in.registerAdmin(t)
+	monitorID, unlock := in.ingestWaitingForTheDatabase(t, cfg)
+	in.sendHalfALogin(t)
+
+	stopped := make(chan error, 1)
+	go func() { stopped <- in.stop(t) }()
+	require.Eventually(t, func() bool { return logs.FilterMessage("Stopped the HTTP server").Len() == 1 },
+		wait, 10*time.Millisecond, "the HTTP server's share runs out")
+	time.Sleep(500 * time.Millisecond)
+	assert.Zero(t, logs.FilterMessage("Scheduler stopped").Len(), "the scheduler waits for the ingest under way")
+	assert.Zero(t, logs.FilterMessage("Performing graceful SQLite shutdown...").Len(), "the database stays open meanwhile")
+
+	unlock()
+	var err error
+	select {
+	case err = <-stopped:
+	case <-time.After(shutdownTimeouts.total()):
+		require.FailNow(t, "run didn't return within the shutdown deadline")
+	}
+	require.Error(t, err, "the HTTP server didn't stop in time")
+	assert.Contains(t, err.Error(), "failed to shut down the HTTP server")
+
 	order := []string{
-		"Shutdown signal received, shutting down",
 		"Stopped the HTTP server",
 		"Closed the websocket server",
-		"Stale-monitor watchdog stopped",
 		"Scheduler stopped",
 		"Stopped the scheduler, the watchdog and the other background jobs",
 		"Closed the event bus",
-		"SQLite database closed gracefully",
+		"Performing graceful SQLite shutdown...",
 		"Closed the database",
-		"Peekaping stopped",
 	}
 	assert.Equal(t, order, logged(logs, order), "the shutdown's steps, in the order logged")
-	assert.Empty(t, logs.FilterMessage(ignoringRedis).All(), "no REDIS_* variable is set")
+	assert.Zero(t, logs.FilterMessage("Failed to ingest the result of a check").Len())
+	assert.Equal(t, 1, countHeartbeats(t, cfg.DBName, monitorID), "the check's result is stored")
+}
+
+func TestRun_LeavesTheDatabaseOpenWhenTheSchedulerDoesntStopInTime(t *testing.T) {
+	defer func(saved timeouts) { shutdownTimeouts = saved }(shutdownTimeouts)
+	shutdownTimeouts.Jobs = 300 * time.Millisecond
+	cfg := loadConfig(t, nil)
+	logger, logs := observedLogger()
+	in := startPeekaping(t, cfg, logger, logs)
+	in.registerAdmin(t)
+	monitorID, unlock := in.ingestWaitingForTheDatabase(t, cfg)
+
+	err := in.stop(t)
+	require.Error(t, err, "peekaping exits 1")
+	assert.Contains(t, err.Error(), "the scheduler didn't stop in time")
+	left := logs.FilterMessage("Left the database open, since some of what uses it is still running").All()
+	require.Len(t, left, 1)
+	assert.Equal(t, []any{"background jobs"}, left[0].ContextMap()["running"])
+	assert.Zero(t, logs.FilterMessage("Performing graceful SQLite shutdown...").Len(), "the database isn't closed under the ingest")
+
+	// The ingest finishes on the database left open
+	unlock()
+	require.Eventually(t, func() bool { return logs.FilterMessage("Scheduler stopped").Len() == 1 }, wait, 10*time.Millisecond)
+	assert.Zero(t, logs.FilterMessage("Failed to ingest the result of a check").Len())
+	assert.Equal(t, 1, countHeartbeats(t, cfg.DBName, monitorID), "the check's result is stored")
+}
+
+// shutdownOrder is what a shutdown that stops everything in time logs, in this order
+var shutdownOrder = []string{
+	"Shutdown signal received, shutting down",
+	"Stopped the HTTP server",
+	"Closed the websocket server",
+	"Stale-monitor watchdog stopped",
+	"Scheduler stopped",
+	"Stopped the scheduler, the watchdog and the other background jobs",
+	"Closed the event bus",
+	"SQLite database closed gracefully",
+	"Closed the database",
+	"Peekaping stopped",
 }
 
 // logged returns the messages logged that are among messages, in the order they were logged

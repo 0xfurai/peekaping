@@ -149,14 +149,20 @@ func send(ch chan<- prometheus.Metric, desc *prometheus.Desc, value float64, lab
 }
 
 // Start subscribes to the event bus and, in the background, syncs with the active Monitors
-// now and every SyncInterval until ctx is done.
-func (c *Collector) Start(ctx context.Context, eventBus events.EventBus) {
+// now and every SyncInterval until ctx is done. The channel it returns is closed once the
+// background sync has stopped, so that the database can close after it.
+func (c *Collector) Start(ctx context.Context, eventBus events.EventBus) <-chan struct{} {
 	subscriber := events.NewSubscriber(eventBus, "metrics")
 	events.Subscribe(subscriber, events.HeartbeatEvent, c.handleHeartbeat)
 	events.Subscribe(subscriber, events.MonitorUpdated, c.handleMonitorUpdated)
 	events.Subscribe(subscriber, events.MonitorDeleted, c.handleMonitorDeleted)
 
-	go c.runSync(ctx)
+	stopped := make(chan struct{})
+	go func() {
+		defer close(stopped)
+		c.runSync(ctx)
+	}()
+	return stopped
 }
 
 func (c *Collector) runSync(ctx context.Context) {

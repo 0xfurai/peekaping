@@ -586,6 +586,32 @@ func TestSyncStopsWhenTheContextIsCancelled(t *testing.T) {
 	assert.Equal(t, stopped, r.monitors.activeCalls.Load())
 }
 
+func TestStartReportsWhenTheSyncHasStopped(t *testing.T) {
+	r := newRig(t)
+	r.activeMonitor("m1", "API", "http")
+	r.heartbeats.gate = make(chan struct{}) // holds the sync's read until ctx is done
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	stopped := r.collector.Start(ctx, r.bus)
+	require.Eventually(t, func() bool { return r.heartbeats.calls.Load() == 1 }, 2*time.Second, time.Millisecond)
+
+	select {
+	case <-stopped:
+		require.FailNow(t, "reported stopped while the sync was reading")
+	case <-time.After(50 * time.Millisecond):
+	}
+
+	cancel()
+	select {
+	case <-stopped:
+	case <-time.After(2 * time.Second):
+		require.FailNow(t, "the sync didn't stop once ctx was done")
+	}
+	calls := r.monitors.calls.Load() + r.heartbeats.calls.Load()
+	time.Sleep(50 * time.Millisecond)
+	assert.Equal(t, calls, r.monitors.calls.Load()+r.heartbeats.calls.Load(), "no reads once it reported stopped")
+}
+
 func TestScrapeReadsMemoryOnly(t *testing.T) {
 	r := newRig(t)
 	r.activeMonitor("m1", "API", "http")

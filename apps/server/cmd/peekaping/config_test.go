@@ -47,7 +47,8 @@ func TestLoadAndValidate_ListsTheRedisSettingsItIgnores(t *testing.T) {
 }
 
 func TestLoadAndValidate_RefusesMongoStorage(t *testing.T) {
-	for _, dbType := range []string{"mongo", "mongodb"} {
+	// The DB_TYPE validator ignores case, so the refusal does too
+	for _, dbType := range []string{"mongo", "mongodb", "MONGO", "MongoDB"} {
 		t.Run(dbType, func(t *testing.T) {
 			t.Setenv("DB_TYPE", dbType)
 			t.Setenv("DB_NAME", "peekaping")
