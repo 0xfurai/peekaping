@@ -70,7 +70,7 @@ cp .env.prod.example .env
 
 ```env
 DB_USER=root
-DB_PASSWORD=your-secure-password
+DB_PASS=your-secure-password
 DB_NAME=peekaping
 DB_HOST=localhost
 DB_PORT=5432

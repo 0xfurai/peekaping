@@ -42,13 +42,12 @@ PEE_TEST_POSTGRES_DSN='postgres://postgres:pg@127.0.0.1:<pg port>/postgres?sslmo
 docker stop pp-<n>-pg
 ```
 
-Mongo storage is frozen under `docs/adr/0001-deprecate-mongodb-storage.md`. Start Mongo only to test a Mongo fix the ADR allows (data loss, a failed startup, a security leak). Run it next to Postgres and set both variables:
+Mongo storage is frozen under `docs/adr/0001-deprecate-mongodb-storage.md`. Start Mongo only to test a Mongo fix the ADR allows (data loss, a failed startup, a security leak). With only `PEE_TEST_MONGO_URI` set, the Postgres subtests are skipped:
 
 ```sh
 docker run -d --rm --name pp-<n>-mongo -p 127.0.0.1::27017 mongo:7
 until docker exec pp-<n>-mongo mongosh --quiet --eval 'db.runCommand({ping: 1})'; do sleep 1; done
 docker port pp-<n>-mongo 27017      # the host port
-PEE_TEST_POSTGRES_DSN='postgres://postgres:pg@127.0.0.1:<pg port>/postgres?sslmode=disable' \
 PEE_TEST_MONGO_URI='mongodb://127.0.0.1:<mongo port>' go test -timeout 300s ./internal/...
 docker stop pp-<n>-mongo
 ```
