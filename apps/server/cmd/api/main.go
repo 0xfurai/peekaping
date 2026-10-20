@@ -12,7 +12,6 @@ import (
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/cleanup"
 	"peekaping/internal/modules/events"
-	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/metrics"
 	"peekaping/internal/modules/monitor"
@@ -47,15 +46,6 @@ func main() {
 	internalCfg := cfg.ToInternalConfig()
 
 	if err := internal.RegisterAPIDependencies(container, internalCfg); err != nil {
-		log.Fatal(err)
-	}
-
-	// Start the event healthcheck listener
-	err = container.Invoke(func(listener *healthcheck.EventListener, eventBus events.EventBus) {
-		listener.Start(eventBus)
-	})
-
-	if err != nil {
 		log.Fatal(err)
 	}
 

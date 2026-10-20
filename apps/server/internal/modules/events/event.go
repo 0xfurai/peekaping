@@ -14,10 +14,6 @@ const (
 	HeartbeatEvent EventType = "heartbeat"
 	// NotifyEvent is emitted when a monitor status changes (up <-> down)
 	MonitorStatusChanged EventType = "monitor.status.changed"
-	// ProxyUpdated is emitted when a proxy is updated
-	ProxyUpdated EventType = "proxy.updated"
-	// ProxyDeleted is emitted when a proxy is deleted
-	ProxyDeleted EventType = "proxy.deleted"
 	// CertificateExpiry is emitted when a certificate is expiring
 	CertificateExpiry EventType = "certificate.expiry"
 	// ImportantHeartbeat is emitted when a heartbeat is important for notification purposes
