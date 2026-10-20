@@ -607,6 +607,67 @@ func TestListener_LimitsConcurrentSends(t *testing.T) {
 	assert.Len(t, provider.sentConfigs(), channels)
 }
 
+// newRedisBus returns an event bus on its own Redis client, as each process of a cluster has
+func newRedisBus(t *testing.T, redisAddr string) events.EventBus {
+	t.Helper()
+	client := redis.NewClient(&redis.Options{Addr: redisAddr})
+	t.Cleanup(func() { _ = client.Close() })
+	bus := infra.NewRedisEventBus(client, zap.NewNop().Sugar())
+	t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		assert.NoError(t, bus.Close(ctx))
+	})
+	return bus
+}
+
+// startAPIReplicas starts n api replicas the way cluster mode does: each has its own services,
+// its own Redis event bus and its own notification listener, all over the same Redis. Monitor
+// "mon-1" has one channel, "a" of type "test-slack", and the replicas send through whatever
+// provider is registered for that type.
+func startAPIReplicas(t *testing.T, redisAddr string, n int) {
+	t.Helper()
+	for range n {
+		f := newListenerFixture(t)
+		f.addMonitor("mon-1", "Public API")
+		f.attach("mon-1", testChannel("a", "test-slack"))
+		f.listener.Subscribe(newRedisBus(t, redisAddr))
+	}
+}
+
+// settledSends waits for the provider's first send, then for its send count to hold still, and
+// returns the count. Waiting for the count to settle, not for a number, catches replicas that
+// send a moment after the first.
+func settledSends(t *testing.T, provider *recordingProvider) int {
+	t.Helper()
+	const settle = 500 * time.Millisecond
+	require.Eventually(t, func() bool { return len(provider.sentConfigs()) > 0 }, 5*time.Second, 5*time.Millisecond,
+		"no replica sent the notification")
+	count, stableSince := len(provider.sentConfigs()), time.Now()
+	for time.Since(stableSince) < settle {
+		time.Sleep(10 * time.Millisecond)
+		if n := len(provider.sentConfigs()); n != count {
+			count, stableSince = n, time.Now()
+		}
+	}
+	return count
+}
+
+// Every api replica gets each event, since Redis pub/sub delivers a published event to all
+// subscribed buses. The ingester publishes the important heartbeat once, and the monitor's
+// channel must get one notification.
+func TestNotificationListener_ThreeAPIReplicasSendAnImportantHeartbeatOnce(t *testing.T) {
+	provider := &recordingProvider{}
+	registerTestProvider(t, "test-slack", provider)
+	redisServer := miniredis.RunT(t)
+	startAPIReplicas(t, redisServer.Addr(), 3)
+	ingester := newRedisBus(t, redisServer.Addr())
+
+	require.NoError(t, events.Publish(context.Background(), ingester, events.ImportantHeartbeat, *downHeartbeat("mon-1")))
+
+	assert.Equal(t, 1, settledSends(t, provider), "notifications sent for one important heartbeat, with 3 api replicas")
+}
+
 func TestEveryChannelTypeHasGoldenRequests(t *testing.T) {
 	// Building the listener registers the providers, as at startup
 	newListenerFixture(t)
