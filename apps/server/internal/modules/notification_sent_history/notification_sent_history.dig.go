@@ -10,9 +10,9 @@ import (
 	"go.uber.org/zap"
 )
 
-func RegisterDependencies(container *dig.Container, cfg *config.Config) {
+func RegisterDependencies(container *dig.Container, cfg *config.Config) error {
 	// Register repository based on database type
-	utils.RegisterRepositoryByDBType(
+	err := utils.RegisterRepositoryByDBType(
 		container,
 		cfg,
 		func(db *bun.DB) Repository {
@@ -22,9 +22,12 @@ func RegisterDependencies(container *dig.Container, cfg *config.Config) {
 			return NewMongoRepository(client, cfg)
 		},
 	)
+	if err != nil {
+		return err
+	}
 
 	// Register service
-	container.Provide(func(
+	return utils.Provide(container, func(
 		repository Repository,
 		logger *zap.SugaredLogger,
 	) Service {

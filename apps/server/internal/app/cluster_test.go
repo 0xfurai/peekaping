@@ -1,0 +1,173 @@
+package app
+
+import (
+	"context"
+	"net"
+	"path/filepath"
+	"testing"
+	"time"
+
+	"peekaping/internal"
+	"peekaping/internal/config"
+	"peekaping/internal/modules/auth"
+	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/heartbeat"
+	"peekaping/internal/modules/ingester"
+	"peekaping/internal/modules/metrics"
+	"peekaping/internal/modules/monitor"
+	"peekaping/internal/modules/monitor_tls_info"
+	"peekaping/internal/modules/notification_channel"
+	"peekaping/internal/modules/notification_sent_history"
+	"peekaping/internal/modules/producer"
+	"peekaping/internal/modules/setting"
+	"peekaping/internal/modules/stats"
+	"peekaping/internal/modules/worker"
+
+	"github.com/alicebob/miniredis/v2"
+	"github.com/hibiken/asynq"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/uptrace/bun"
+	"go.uber.org/dig"
+	"go.uber.org/zap"
+)
+
+// clusterConfig is a cluster binary's config, with its own SQLite database and in-process Redis
+func clusterConfig(t *testing.T) *config.Config {
+	t.Helper()
+	redis := miniredis.RunT(t)
+	redisHost, redisPort, err := net.SplitHostPort(redis.Addr())
+	require.NoError(t, err)
+	return &config.Config{
+		DBType:                "sqlite",
+		DBName:                filepath.Join(t.TempDir(), "peekaping.db"),
+		Mode:                  "test",
+		LogLevel:              "fatal",
+		Timezone:              "UTC",
+		RedisHost:             redisHost,
+		RedisPort:             redisPort,
+		QueueConcurrency:      1,
+		ProducerConcurrency:   1,
+		BruteforceMaxAttempts: 20,
+		BruteforceWindow:      time.Minute,
+		BruteforceLockout:     time.Minute,
+		ServiceName:           "peekaping:apptest",
+	}
+}
+
+// closeEventBus closes the event bus when the test ends
+func closeEventBus(t *testing.T, bus events.EventBus) {
+	t.Cleanup(func() { assert.NoError(t, bus.Close(context.Background())) })
+}
+
+func closeDB(t *testing.T, db *bun.DB) {
+	t.Cleanup(func() { assert.NoError(t, db.Close()) })
+}
+
+func TestRegisterClusterAPI_ResolvesWhatCmdAPIRuns(t *testing.T) {
+	container := dig.New()
+	require.NoError(t, RegisterClusterAPI(container, clusterConfig(t)))
+
+	// What cmd/api invokes: the cleanup cron, the settings, the listeners, the status repair,
+	// the metrics collector, the server, and the database it closes on shutdown
+	require.NoError(t, container.Invoke(func(
+		_ heartbeat.Service,
+		_ auth.Repository,
+		_ setting.Service,
+		_ stats.Service,
+		_ notification_sent_history.Service,
+		_ monitor_tls_info.Service,
+		_ *zap.SugaredLogger,
+		_ *notification_channel.NotificationEventListener,
+		_ *monitor.MonitorEventListener,
+		_ monitor.Service,
+		_ *metrics.Collector,
+		_ *internal.Server,
+		bus events.EventBus,
+		db *bun.DB,
+		client *asynq.Client,
+		inspector *asynq.Inspector,
+	) {
+		closeEventBus(t, bus)
+		closeDB(t, db)
+		t.Cleanup(func() { assert.NoError(t, client.Close()) })
+		t.Cleanup(func() { assert.NoError(t, inspector.Close()) })
+	}))
+}
+
+func TestRegisterClusterProducer_ResolvesWhatCmdProducerRuns(t *testing.T) {
+	container := dig.New()
+	require.NoError(t, RegisterClusterProducer(container, clusterConfig(t)))
+
+	require.NoError(t, container.Invoke(func(
+		_ *producer.Producer,
+		_ *producer.EventListener,
+		_ *zap.SugaredLogger,
+		bus events.EventBus,
+		db *bun.DB,
+		client *asynq.Client,
+		inspector *asynq.Inspector,
+	) {
+		closeEventBus(t, bus)
+		closeDB(t, db)
+		t.Cleanup(func() { assert.NoError(t, client.Close()) })
+		t.Cleanup(func() { assert.NoError(t, inspector.Close()) })
+	}))
+}
+
+func TestRegisterClusterWorker_ResolvesWhatCmdWorkerRunsWithoutADatabase(t *testing.T) {
+	// cmd/worker reads no database settings
+	cfg := clusterConfig(t)
+	cfg.DBType, cfg.DBName = "", ""
+	container := dig.New()
+	require.NoError(t, RegisterClusterWorker(container, cfg))
+
+	require.NoError(t, container.Invoke(func(
+		_ *worker.Worker,
+		_ *zap.SugaredLogger,
+		bus events.EventBus,
+		client *asynq.Client,
+		inspector *asynq.Inspector,
+	) {
+		closeEventBus(t, bus)
+		t.Cleanup(func() { assert.NoError(t, client.Close()) })
+		t.Cleanup(func() { assert.NoError(t, inspector.Close()) })
+	}))
+	assert.Error(t, container.Invoke(func(*bun.DB) {}), "the worker has no database")
+}
+
+func TestRegisterClusterIngester_ResolvesWhatCmdIngesterRuns(t *testing.T) {
+	container := dig.New()
+	require.NoError(t, RegisterClusterIngester(container, clusterConfig(t)))
+
+	require.NoError(t, container.Invoke(func(
+		_ stats.Service,
+		_ *ingester.Ingester,
+		_ *zap.SugaredLogger,
+		bus events.EventBus,
+		db *bun.DB,
+	) {
+		closeEventBus(t, bus)
+		closeDB(t, db)
+	}))
+}
+
+// A provide that dig refuses used to be dropped, and the first provider of the type won
+func TestRegisterClusterAPI_FailsNamingTheConstructorDigRefuses(t *testing.T) {
+	container := dig.New()
+	require.NoError(t, container.Provide(func() *zap.SugaredLogger { return zap.NewNop().Sugar() }))
+
+	err := RegisterClusterAPI(container, clusterConfig(t))
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to provide peekaping/internal.ProvideLogger:")
+}
+
+func TestRegister_RefusesAnUnsupportedDBType(t *testing.T) {
+	cfg := clusterConfig(t)
+	cfg.DBType = "oracle"
+
+	err := Register(dig.New(), cfg)
+
+	assert.EqualError(t, err, `unsupported DB_TYPE "oracle"`)
+}

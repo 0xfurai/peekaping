@@ -2,6 +2,7 @@ package scheduler
 
 import (
 	"context"
+	"errors"
 	"path/filepath"
 	"testing"
 	"time"
@@ -56,23 +57,25 @@ func newSQLiteContainer(t testing.TB, cfg *config.Config, logger *zap.SugaredLog
 	provide(func() events.EventBus { return newBus(t) })
 	provide(stale.ProvideMemoryStore)
 
-	heartbeat.RegisterDependencies(container, cfg)
-	healthcheck.RegisterDependencies(container)
-	tag.RegisterDependencies(container, cfg)
-	monitor_tag.RegisterDependencies(container, cfg)
-	monitor.RegisterDependencies(container, cfg)
-	proxy.RegisterDependencies(container, cfg)
-	maintenance.RegisterDependencies(container, cfg)
-	monitor_maintenance.RegisterDependencies(container, cfg)
-	monitor_notification.RegisterDependencies(container, cfg)
-	setting.RegisterDependencies(container, cfg)
-	notification_sent_history.RegisterDependencies(container, cfg)
-	monitor_tls_info.RegisterDependencies(container, cfg)
-	certificate.RegisterDependencies(container)
-	stats.RegisterDependencies(container, cfg)
-	check.RegisterDependencies(container)
-	ingester.RegisterDependencies(container)
-	RegisterDependencies(container)
+	require.NoError(t, errors.Join(
+		heartbeat.RegisterDependencies(container, cfg),
+		healthcheck.RegisterDependencies(container),
+		tag.RegisterDependencies(container, cfg),
+		monitor_tag.RegisterDependencies(container, cfg),
+		monitor.RegisterDependencies(container, cfg),
+		proxy.RegisterDependencies(container, cfg),
+		maintenance.RegisterDependencies(container, cfg),
+		monitor_maintenance.RegisterDependencies(container, cfg),
+		monitor_notification.RegisterDependencies(container, cfg),
+		setting.RegisterDependencies(container, cfg),
+		notification_sent_history.RegisterDependencies(container, cfg),
+		monitor_tls_info.RegisterDependencies(container, cfg),
+		certificate.RegisterDependencies(container),
+		stats.RegisterDependencies(container, cfg),
+		check.RegisterDependencies(container),
+		ingester.RegisterDependencies(container),
+		RegisterDependencies(container),
+	))
 
 	require.NoError(t, container.Invoke(func(db *bun.DB) error {
 		t.Cleanup(func() { _ = db.Close() })

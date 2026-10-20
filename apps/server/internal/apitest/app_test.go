@@ -15,6 +15,7 @@ import (
 
 	"peekaping/cmd/bun/migrations"
 	"peekaping/internal"
+	wiring "peekaping/internal/app" // app is this package's server under test
 	"peekaping/internal/config"
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/events"
@@ -88,7 +89,7 @@ func newAppDecorated(t *testing.T, decorate func(*dig.Container) error, options 
 	}
 
 	container := dig.New()
-	require.NoError(t, internal.RegisterAPIDependencies(container, cfg))
+	require.NoError(t, wiring.RegisterClusterAPI(container, cfg))
 	if decorate != nil {
 		require.NoError(t, decorate(container))
 	}

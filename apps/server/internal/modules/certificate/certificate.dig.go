@@ -5,13 +5,14 @@ import (
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/notification_sent_history"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/utils"
 
 	"go.uber.org/dig"
 	"go.uber.org/zap"
 )
 
-func RegisterDependencies(container *dig.Container) {
-	container.Provide(func(
+func RegisterDependencies(container *dig.Container) error {
+	return utils.Provide(container, func(
 		settingService shared.SettingService,
 		eventBus events.EventBus,
 		notificationHistoryService notification_sent_history.Service,
@@ -22,5 +23,4 @@ func RegisterDependencies(container *dig.Container) {
 		notificationService := NewEventBasedNotificationService(eventBus, logger)
 		return NewService(settingService, notificationService, notificationHistoryService, tlsInfoService, logger)
 	})
-
 }

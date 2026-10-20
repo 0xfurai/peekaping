@@ -13,6 +13,7 @@ import (
 	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/stale"
+	"peekaping/internal/utils"
 )
 
 // RegisterDependencies registers single mode's scheduler and its stale-monitor watchdog. The
@@ -20,9 +21,8 @@ import (
 // ingester.Service. Pushes to a push URL are ordered with the monitor's checks only when they
 // are ingested through the same ingester.NewInOrderService as the scheduler's, so the binary
 // should provide that one to both.
-func RegisterDependencies(container *dig.Container) {
-	container.Provide(ProvideScheduler)
-	container.Provide(ProvideWatchdog)
+func RegisterDependencies(container *dig.Container) error {
+	return utils.Provide(container, ProvideScheduler, ProvideWatchdog)
 }
 
 // ProvideScheduler provides the scheduler. Its pool runs CHECK_CONCURRENCY checks at a time.
