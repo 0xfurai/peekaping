@@ -91,15 +91,31 @@ TZ="America/New_York"
 
 ## 5. Run a Database for Development
 
-You can use Docker Compose to run a local database. Example for **Postgres**:
+The Go binaries you run on your machine need Redis and, for PostgreSQL or MongoDB, a database server. `docker-compose.deps.yml` runs them with Docker Compose. It always starts Redis and asynqmon, a queue dashboard, and a profile adds the database. Example for **PostgreSQL**:
 
 ```bash
-docker compose -f docker-compose.postgres.yml up -d
+docker compose -f docker-compose.deps.yml --profile postgres up -d
 ```
 
 Other options:
-- `docker-compose.sqlite.yml` for SQLite (it starts Redis and asynqmon, a queue dashboard, and no database server, since SQLite needs none)
-- `docker-compose.mongo.yml` for MongoDB. MongoDB storage is [deprecated](./self-hosting/docker-with-mongo.md), so use it only to work on existing Mongo installs
+- No profile for SQLite. It starts Redis and asynqmon and no database server, since SQLite needs none
+- `--profile mongo` for MongoDB. MongoDB storage is [deprecated](./self-hosting/docker-with-mongo.md), so use it only to work on existing Mongo installs
+
+`make docker-sqlite`, `make docker-postgres` and `make docker-mongo` run the same commands, and `make down-sqlite`, `make down-postgres` and `make down-mongo` stop them.
+
+### Compose files
+
+The repository root has these Docker Compose files. Each one comes in a variant per storage backend: `sqlite`, `postgres` and `mongo`, except `deps` and `e2e`.
+
+| File | What it is for |
+|------|----------------|
+| `docker-compose.dev.<backend>.yml` | The whole stack in cluster mode, built from source. `make docker-dev-<backend>` starts it. |
+| `docker-compose.prod.<backend>.yml` | The whole stack in cluster mode, from the published `0xfurai/peekaping-*` images, behind an nginx gateway. |
+| `docker-compose.bundle.<backend>.yml` | One bundle image, built from source. The SQLite and PostgreSQL bundles run single mode; the MongoDB bundle runs cluster mode inside the image. |
+| `docker-compose.deps.yml` | Redis, asynqmon and, with a profile, PostgreSQL or MongoDB, for running the Go binaries on your machine. |
+| `docker-compose.e2e.yml` | The test target overlay for the Playwright suite. It adds `e2e-target` on top of a dev, prod or bundle file. |
+
+The `mongo` files are for the deprecated MongoDB storage backend.
 
 ---
 
