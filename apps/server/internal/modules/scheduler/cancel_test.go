@@ -2,15 +2,19 @@ package scheduler
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"testing"
 	"time"
 
+	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/healthcheck/executor"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 // holdFirstCheck makes a monitor's first check wait until it is cancelled, then report Up, as a check
@@ -93,6 +97,51 @@ func TestScheduler_StopCancelsTheRunningChecksAndWaitsForThem(t *testing.T) {
 	}
 	assert.Empty(t, h.ingest.ingested(), "the result of a check cancelled by Stop is dropped")
 	assert.Zero(t, h.exec.runningNow())
+}
+
+// loaderFunc is a Loader made of a function
+type loaderFunc func(ctx context.Context, monitorID string) (*check.Job, error)
+
+func (f loaderFunc) Load(ctx context.Context, monitorID string) (*check.Job, error) {
+	return f(ctx, monitorID)
+}
+
+func TestScheduler_LogsNoErrorForACheckCancelledWhileItLoads(t *testing.T) {
+	t.Parallel()
+	tests := map[string]func(h *harness){
+		"by an update": func(h *harness) { h.edit("mon") },
+		"by a stop":    func(h *harness) { h.s.Stop() },
+	}
+	for name, cancel := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			core, logs := observer.New(zap.WarnLevel)
+			loading := make(chan struct{}, 1)
+			var h *harness
+			h = newHarness(t, func(cfg *Config) {
+				cfg.Logger = zap.New(core).Sugar()
+				// The first load waits for its check to be cancelled, then fails as the
+				// database does on a cancelled context
+				cfg.Loader = loaderFunc(func(ctx context.Context, monitorID string) (*check.Job, error) {
+					select {
+					case loading <- struct{}{}:
+						<-ctx.Done()
+						return nil, fmt.Errorf("failed to find monitor: %w", ctx.Err())
+					default:
+						return h.db.Load(ctx, monitorID)
+					}
+				})
+			})
+			h.db.put(monitorWith("mon", withInterval(day)))
+			h.start()
+			<-loading
+
+			cancel(h)
+
+			time.Sleep(200 * time.Millisecond)
+			assert.Empty(t, logs.All(), "a cancelled check is no failure")
+		})
+	}
 }
 
 func TestScheduler_StopsWhenItsContextIsDone(t *testing.T) {

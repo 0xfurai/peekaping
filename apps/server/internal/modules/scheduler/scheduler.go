@@ -454,6 +454,10 @@ func (s *Scheduler) runCheck(ctx context.Context, monitorID string) {
 	case errors.Is(err, check.ErrMonitorInactive):
 		s.logger.Infow("Monitor is inactive, skipping its check", "monitor_id", monitorID)
 		return
+	case err != nil && ctx.Err() != nil:
+		// An update, pause, delete or stop cancelled the check while it loaded
+		s.logger.Debugw("Check was cancelled while it loaded", "monitor_id", monitorID)
+		return
 	case err != nil:
 		s.logger.Errorw("Failed to load the monitor's check", "monitor_id", monitorID, "error", err)
 		return
