@@ -5,8 +5,9 @@
 # web container (also when web.image.tag is set), the api, producer, worker and
 # ingester Deployments wait for the migrations in an init container that runs
 # the migrate image (also when migrate.image.tag is set) while the web
-# Deployment has none, and the install notes say Peekaping runs in cluster mode
-# and link to the Helm docs page.
+# Deployment has none, the migrate Job is named after the release revision, and
+# the install notes say Peekaping runs in cluster mode and link to the Helm docs
+# page.
 #
 # Usage: scripts/test-chart.sh
 # Needs helm (3.13 or later) and network access to registry-1.docker.io, where
@@ -81,6 +82,22 @@ env_from_of() {
       print
     }
   '
+}
+
+# job_named <rendered file> <template> <expected name>: the Job that <template>
+# renders (such as migrate-job) has that metadata name
+job_named() {
+  local name
+  name=$(awk -v template="$2" '
+    /^# Source: / { in_template = ($0 ~ "/" template "\\.yaml$"); next }
+    /^---$/ { in_template = 0 }
+    in_template && /^kind: / && $2 != "Job" { exit }
+    in_template && /^  name: / { print $2; exit }
+  ' "$1")
+  if [ "$name" != "$3" ]; then
+    echo "       the Job in $2 is named '${name:-<none>}', expected $3"
+    return 1
+  fi
 }
 
 # web_matches_seed <rendered file> [expected image]: the init container that
@@ -168,6 +185,10 @@ if check "helm dependency build fetches PostgreSQL and Redis" run dependency hel
     check "default values: the seed init container runs the web image" web_matches_seed "$work/default.yaml" || true
     check "default values: api, producer, worker and ingester wait for the migrations, web doesn't" \
       backend_components_wait "$work/default.yaml" 0xfurai/peekaping-migrate:latest || true
+    # helm template renders revision 1. An upgrade or a rollback has a higher
+    # one, so each revision creates its own Job instead of changing the last.
+    check "default values: the migrate Job is named after the release revision" \
+      job_named "$work/default.yaml" migrate-job "$release-migrate-1" || true
   fi
   if check "bundled PostgreSQL and Redis render" render bundled --set postgresql.enabled=true --set redis.enabled=true; then
     check "bundled PostgreSQL and Redis: the seed init container runs the web image" \

@@ -1,7 +1,15 @@
+{{- /*
+A Job's pod template can't change once the Job exists, and this one changes on
+every upgrade (the image tag, checksum/config). So each release revision gets
+its own Job, <release>-migrate-<revision>. An install and an upgrade create a
+new one, and Helm removes the previous revision's Job because it left the
+manifest. A rollback re-applies the manifest of the revision it goes back to, so
+it creates that revision's Job again.
+*/ -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ .Release.Name }}-migrate
+  name: {{ .Release.Name }}-migrate-{{ .Release.Revision }}
   namespace: {{ .Release.Namespace }}
   labels:
     app: migrate
