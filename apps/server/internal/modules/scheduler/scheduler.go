@@ -79,6 +79,9 @@ type Scheduler struct {
 	reconcileInterval time.Duration
 	logger            *zap.SugaredLogger
 
+	// slots is the check pool: a check holds one of its slots while it runs
+	slots chan struct{}
+
 	// syncMu serializes reading a monitor from the database and changing its schedule, so
 	// that events handled at the same time leave the schedule as the last read found the monitor
 	syncMu sync.Mutex
@@ -109,6 +112,10 @@ type checkRun struct {
 
 // New creates a scheduler
 func New(cfg Config) *Scheduler {
+	concurrency := cfg.Concurrency
+	if concurrency <= 0 {
+		concurrency = DefaultConcurrency
+	}
 	reconcileInterval := cfg.ReconcileInterval
 	if reconcileInterval <= 0 {
 		reconcileInterval = DefaultReconcileInterval
@@ -121,6 +128,7 @@ func New(cfg Config) *Scheduler {
 		ingester:          ingester.NewInOrderService(cfg.Ingester),
 		reconcileInterval: reconcileInterval,
 		logger:            cfg.Logger.With("component", "scheduler"),
+		slots:             make(chan struct{}, concurrency),
 		schedules:         make(map[string]*schedule),
 		checks:            make(map[string]*checkRun),
 	}
@@ -255,10 +263,10 @@ func (s *Scheduler) running() bool {
 	return s.ctx != nil && !s.stopped && s.ctx.Err() == nil
 }
 
-// startCheck runs a check of the monitor in the background, unless one is already running:
-// a monitor runs at most one check at a time, and the check that fell due is skipped. A
-// running check that was cancelled doesn't count: the monitor is checked again once it
-// has ended. The caller holds mu.
+// startCheck runs a check of the monitor in the pool, unless one is already running: a
+// monitor runs at most one check at a time, and the check that fell due is skipped. A check
+// waiting for a slot in the pool counts as running. A running check that was cancelled
+// doesn't count: the monitor is checked again once it has ended. The caller holds mu.
 func (s *Scheduler) startCheck(monitorID string) {
 	if run := s.checks[monitorID]; run != nil {
 		if run.cancelled {
@@ -276,8 +284,32 @@ func (s *Scheduler) startCheck(monitorID string) {
 	go func() {
 		defer s.wg.Done()
 		defer s.endCheck(monitorID, run)
+		if !s.takeSlot(ctx) {
+			return // cancelled or stopped while it waited
+		}
+		defer s.freeSlot()
 		s.runCheck(ctx, monitorID)
 	}()
+}
+
+// takeSlot waits for a free slot in the pool. It gives up and reports false when the check
+// is cancelled or the scheduler stops first.
+func (s *Scheduler) takeSlot(ctx context.Context) bool {
+	select {
+	case s.slots <- struct{}{}:
+	case <-ctx.Done():
+		return false
+	}
+	if ctx.Err() != nil {
+		// Both were ready and the slot won
+		s.freeSlot()
+		return false
+	}
+	return true
+}
+
+func (s *Scheduler) freeSlot() {
+	<-s.slots
 }
 
 // endCheck forgets the monitor's finished check, and starts the check that was waiting for it
