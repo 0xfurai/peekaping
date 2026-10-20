@@ -91,7 +91,7 @@ TZ="America/New_York"
 
 ## 5. Run a Database for Development
 
-The Go binaries you run on your machine need Redis and, for PostgreSQL or MongoDB, a database server. `docker-compose.deps.yml` runs them with Docker Compose. It always starts Redis and asynqmon, a queue dashboard, and a profile adds the database. Example for **PostgreSQL**:
+The cluster-mode binaries you run on your machine (`api`, `producer`, `worker` and `ingester`) need Redis, and with PostgreSQL or MongoDB a database server. The single-mode `peekaping` binary needs no Redis, only the database server. `docker-compose.deps.yml` runs them with Docker Compose. It always starts Redis and asynqmon, a queue dashboard, and a profile adds the database. Example for **PostgreSQL**:
 
 ```bash
 docker compose -f docker-compose.deps.yml --profile postgres up -d

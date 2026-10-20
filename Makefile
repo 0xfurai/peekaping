@@ -3,7 +3,7 @@
 # This Makefile supports multiple Docker Compose configurations:
 # - Development: dev-postgres, dev-mongo (deprecated), dev-sqlite
 # - Production:  prod-postgres, prod-mongo (deprecated), prod-sqlite
-# - Standalone:  postgres, mongo (deprecated)
+# - Dependencies: sqlite, postgres, mongo (deprecated)
 #
 # To change the default database, modify DEFAULT_DEV_DB or DEFAULT_PROD_DB below
 # Example: make dev (uses default) vs make dev-sqlite (specific database)
@@ -35,7 +35,7 @@ help: ## Show this help message
 	@echo "🐳 DOCKER CONFIGURATIONS QUICK REFERENCE:"
 	@echo "  \033[32mDevelopment:\033[0m   dev-postgres, dev-mongo (deprecated), dev-sqlite"
 	@echo "  \033[33mProduction:\033[0m    prod-postgres, prod-mongo (deprecated), prod-sqlite"
-	@echo "  \033[36mStandalone:\033[0m    postgres, mongo (deprecated)"
+	@echo "  \033[36mDependencies:\033[0m  sqlite, postgres, mongo (deprecated)"
 	@echo "  \033[35mSwitchers:\033[0m     switch-to-postgres, switch-to-mongo (deprecated), switch-to-sqlite"
 	@echo "  \033[31mStop All:\033[0m      docker-down-all"
 	@echo ""
@@ -56,7 +56,7 @@ docker-configs: ## Show all available Docker Compose configurations
 	@echo "  make prod-mongo      # $(COMPOSE_PROD_MONGO) (deprecated)"
 	@echo "  make prod-sqlite     # $(COMPOSE_PROD_SQLITE)"
 	@echo ""
-	@echo "🎯 \033[36mSTANDALONE ENVIRONMENTS:\033[0m"
+	@echo "🎯 \033[36mDEPENDENCIES:\033[0m"
 	@echo "  make docker-sqlite   # $(COMPOSE_DEPS)"
 	@echo "  make docker-postgres # $(COMPOSE_DEPS) --profile postgres"
 	@echo "  make docker-mongo    # $(COMPOSE_DEPS) --profile mongo (deprecated)"
