@@ -30,6 +30,7 @@ func NewProducer(
 	monitorNotificationSvc monitor_notification.Service,
 	settingService shared.SettingService,
 	heartbeatService heartbeat.Service,
+	staleStore stale.Store,
 	eventBus events.EventBus,
 	leaderElection *LeaderElection,
 	cfg *config.Config,
@@ -62,7 +63,7 @@ func NewProducer(
 		leaderElection:          leaderElection,
 		concurrency:             concurrency,
 		eventBus:                eventBus,
-		staleStore:              stale.NewStore(rdb),
+		staleStore:              staleStore,
 		watchdogInterval:        WatchdogInterval,
 	}
 }

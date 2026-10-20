@@ -44,17 +44,41 @@ func Threshold(intervalSeconds, timeoutSeconds int) time.Duration {
 	return max(3*interval, interval+timeout+time.Minute)
 }
 
-// Store reads and writes the stale monitors in Redis
-type Store struct {
+// Store holds the stale monitors the watchdog finds and when it last ran. The watchdog
+// writes it; the API reads it for the health endpoint and the monitor list.
+type Store interface {
+	// All returns every stale monitor, keyed by monitor ID
+	All(ctx context.Context) (map[string]Entry, error)
+	// Put records a stale monitor, replacing any earlier record for it
+	Put(ctx context.Context, e Entry) error
+	// Delete removes the records of monitors that are no longer stale
+	Delete(ctx context.Context, monitorIDs ...string) error
+	// Count returns how many monitors are stale
+	Count(ctx context.Context) (int64, error)
+	// SetRanAt records when the watchdog last ran
+	SetRanAt(ctx context.Context, t time.Time) error
+	// RanAt returns when the watchdog last ran, or nil if it never has
+	RanAt(ctx context.Context) (*time.Time, error)
+}
+
+// RedisStore keeps the stale monitors in Redis, so the producer and the API share them
+type RedisStore struct {
 	rdb *redis.Client
 }
 
-func NewStore(rdb *redis.Client) *Store {
-	return &Store{rdb: rdb}
+var _ Store = (*RedisStore)(nil)
+
+func NewRedisStore(rdb *redis.Client) *RedisStore {
+	return &RedisStore{rdb: rdb}
+}
+
+// ProvideRedisStore provides the Redis store as the Store that the producer and the API take
+func ProvideRedisStore(rdb *redis.Client) Store {
+	return NewRedisStore(rdb)
 }
 
 // All returns every stale monitor, keyed by monitor ID
-func (s *Store) All(ctx context.Context) (map[string]Entry, error) {
+func (s *RedisStore) All(ctx context.Context) (map[string]Entry, error) {
 	raw, err := s.rdb.HGetAll(ctx, MonitorsKey).Result()
 	if err != nil {
 		return nil, fmt.Errorf("failed to read stale monitors: %w", err)
@@ -71,7 +95,7 @@ func (s *Store) All(ctx context.Context) (map[string]Entry, error) {
 }
 
 // Put records a stale monitor, replacing any earlier record for it
-func (s *Store) Put(ctx context.Context, e Entry) error {
+func (s *RedisStore) Put(ctx context.Context, e Entry) error {
 	b, err := json.Marshal(e)
 	if err != nil {
 		return err
@@ -80,7 +104,7 @@ func (s *Store) Put(ctx context.Context, e Entry) error {
 }
 
 // Delete removes the records of monitors that are no longer stale
-func (s *Store) Delete(ctx context.Context, monitorIDs ...string) error {
+func (s *RedisStore) Delete(ctx context.Context, monitorIDs ...string) error {
 	if len(monitorIDs) == 0 {
 		return nil
 	}
@@ -88,17 +112,17 @@ func (s *Store) Delete(ctx context.Context, monitorIDs ...string) error {
 }
 
 // Count returns how many monitors are stale
-func (s *Store) Count(ctx context.Context) (int64, error) {
+func (s *RedisStore) Count(ctx context.Context) (int64, error) {
 	return s.rdb.HLen(ctx, MonitorsKey).Result()
 }
 
 // SetRanAt records when the watchdog last ran
-func (s *Store) SetRanAt(ctx context.Context, t time.Time) error {
+func (s *RedisStore) SetRanAt(ctx context.Context, t time.Time) error {
 	return s.rdb.Set(ctx, RanAtKey, t.UnixMilli(), 0).Err()
 }
 
 // RanAt returns when the watchdog last ran, or nil if it never has
-func (s *Store) RanAt(ctx context.Context) (*time.Time, error) {
+func (s *RedisStore) RanAt(ctx context.Context) (*time.Time, error) {
 	ms, err := s.rdb.Get(ctx, RanAtKey).Int64()
 	if errors.Is(err, redis.Nil) {
 		return nil, nil

@@ -22,6 +22,7 @@ import (
 	"peekaping/internal/modules/producer"
 	"peekaping/internal/modules/proxy"
 	"peekaping/internal/modules/setting"
+	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/stats"
 	"peekaping/internal/modules/tag"
 	"peekaping/internal/version"
@@ -62,6 +63,9 @@ func main() {
 	// Provide Redis infrastructure
 	container.Provide(infra.ProvideRedisClient)
 	container.Provide(infra.ProvideRedisEventBus)
+
+	// The stale monitors the watchdog records
+	container.Provide(stale.ProvideRedisStore)
 
 	// Provide queue infrastructure
 	container.Provide(infra.ProvideAsynqClient)

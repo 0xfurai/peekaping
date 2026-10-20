@@ -49,7 +49,7 @@ type watchdogFixture struct {
 	monitors   *MockMonitorService
 	heartbeats *fakeHeartbeatService
 	bus        *MockEventBus
-	store      *stale.Store
+	store      stale.Store
 	now        time.Time
 }
 
@@ -65,7 +65,7 @@ func newWatchdogFixture(t *testing.T, monitors ...*monitor.Model) *watchdogFixtu
 		monitors:   new(MockMonitorService),
 		heartbeats: &fakeHeartbeatService{latest: map[string]time.Time{}},
 		bus:        NewMockEventBus(),
-		store:      stale.NewStore(rdb),
+		store:      stale.NewRedisStore(rdb),
 		now:        time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC),
 	}
 	f.monitors.On("FindActivePaginated", mock.Anything, 0, mock.Anything).Return(monitors, nil)

@@ -24,7 +24,7 @@ type MonitorController struct {
 	monitorNotificationService monitor_notification.Service
 	monitorTagService          monitor_tag.Service
 	tlsInfoService             monitor_tls_info.Service
-	staleStore                 *stale.Store
+	staleStore                 stale.Store
 }
 
 func NewMonitorController(
@@ -33,7 +33,7 @@ func NewMonitorController(
 	monitorNotificationService monitor_notification.Service,
 	monitorTagService monitor_tag.Service,
 	tlsInfoService monitor_tls_info.Service,
-	staleStore *stale.Store,
+	staleStore stale.Store,
 ) *MonitorController {
 	utils.Validate.RegisterStructValidation(CreateUpdateDtoStructLevelValidation, CreateUpdateDto{})
 

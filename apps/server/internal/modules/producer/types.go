@@ -43,6 +43,6 @@ type Producer struct {
 	leaderElection          *LeaderElection
 	concurrency             int // number of concurrent producer goroutines
 	eventBus                events.EventBus
-	staleStore              *stale.Store
+	staleStore              stale.Store
 	watchdogInterval        time.Duration
 }
