@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "授權標頭",
+          "ca": "CA（選填）",
+          "ca_description": "若留空，將使用系統信任的 CA 驗證伺服器的憑證。",
           "certificate": "證書",
           "certificate_placeholder": "憑證",
           "client_id": "客戶端識別碼",

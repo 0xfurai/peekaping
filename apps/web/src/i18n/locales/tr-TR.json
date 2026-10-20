@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "Yetkilendirme Başlığı",
+          "ca": "CA (isteğe bağlı)",
+          "ca_description": "Sunucunun sertifikasını sistemin güvenilen CA'larıyla doğrulamak için boş bırakın.",
           "certificate": "Sertifika",
           "certificate_placeholder": "Sertifika",
           "client_id": "İstemci Kimliği",

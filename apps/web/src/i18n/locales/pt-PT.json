@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "Cabeçalho de Autorização",
+          "ca": "CA (opcional)",
+          "ca_description": "Deixe em branco para verificar o certificado do servidor com as CA de confiança do sistema.",
           "certificate": "Certificado",
           "certificate_placeholder": "Certificado",
           "client_id": "ID do cliente",

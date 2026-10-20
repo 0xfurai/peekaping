@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "Header Otorisasi",
+          "ca": "CA (opsional)",
+          "ca_description": "Biarkan kosong untuk memverifikasi sertifikat server terhadap CA tepercaya sistem.",
           "certificate": "Sertifikat",
           "certificate_placeholder": "Sertifikat",
           "client_id": "ID Klien",
