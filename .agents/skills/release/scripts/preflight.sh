@@ -6,7 +6,9 @@
 #   preflight.sh <X.Y.Z>
 #
 # Reads origin/main, not the checkout, so it works from any worktree. Run from
-# inside the repository, with `gh` signed in.
+# inside the repository, with `gh` signed in. The check of the Helm chart's
+# dependencies also needs helm, curl and jq, and network access to Docker Hub;
+# without them it warns.
 set -euo pipefail
 
 version=${1:?usage: preflight.sh X.Y.Z}
@@ -121,6 +123,40 @@ if [ -n "$migrations" ]; then
     printf '%s\n' "$migrations" | sed 's/^/         /'
 else
     ok "no migrations added since $last"
+fi
+
+# The Helm chart's bundled PostgreSQL and Redis: scripts/update-chart-deps.sh, from
+# origin/main like the files it checks, says whether the subcharts and the pinned
+# image digests are behind the latest. Behind, a new major version, or unable to
+# tell, is a warning.
+chart_dir=$(mktemp -d)
+trap 'rm -rf "$chart_dir"' EXIT
+chart_script=$chart_dir/update-chart-deps.sh
+if git show origin/main:scripts/update-chart-deps.sh >"$chart_script" 2>/dev/null &&
+    git show origin/main:charts/Chart.yaml >"$chart_dir/Chart.yaml" &&
+    git show origin/main:charts/values.yaml >"$chart_dir/values.yaml"; then
+    chmod +x "$chart_script"
+    chart_status=0
+    chart_report=$("$chart_script" --dir "$chart_dir" 2>&1) || chart_status=$?
+    case $chart_status in
+        0) ok "Helm chart: the bundled PostgreSQL and Redis subcharts and image digests are the latest" ;;
+        1)
+            # A new major version of an image is reported on its own line, and
+            # --write refuses it and writes nothing, so it doesn't fix this.
+            if grep -q ' new major ' <<<"$chart_report"; then
+                warn "Helm chart: the bundled PostgreSQL or Redis has a new major version; scripts/update-chart-deps.sh --write refuses it, so it needs a ticket of its own"
+            else
+                warn "Helm chart: the bundled PostgreSQL and Redis are behind the latest; scripts/update-chart-deps.sh --write updates them"
+            fi
+            printf '%s\n' "$chart_report" | sed 's/^/         /'
+            ;;
+        *)
+            warn "Helm chart: couldn't check the bundled PostgreSQL and Redis:"
+            printf '%s\n' "$chart_report" | sed 's/^/         /'
+            ;;
+    esac
+else
+    warn "Helm chart: origin/main has no scripts/update-chart-deps.sh or chart files, so the bundled PostgreSQL and Redis weren't checked"
 fi
 
 echo

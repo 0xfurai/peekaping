@@ -153,7 +153,41 @@ Point the chart at a PostgreSQL and a Redis that run outside the release, such a
 
 The pods open their connections from inside the cluster, so make sure the cluster's network can reach both servers. Both must accept connections without TLS, so passwords and data cross that network unencrypted: keep both servers on a network you trust, such as inside the cluster or a private network, or reach them through an encrypted tunnel.
 
-The chart also lists Bitnami's PostgreSQL and Redis charts as dependencies. They are off by default. `postgresql.enabled` and `redis.enabled` turn them on, and the other values under `postgresql` and `redis` are the Bitnami charts' own. If you enable them, point `config.env` at the services they create. For a release named `peekaping` in the namespace `peekaping`, those are `peekaping-postgresql.peekaping.svc.cluster.local` and `peekaping-redis-master.peekaping.svc.cluster.local`.
+The chart also lists Bitnami's PostgreSQL and Redis charts as dependencies. They are off by default. `postgresql.enabled` and `redis.enabled` turn them on, and the other values under `postgresql` and `redis` are the Bitnami charts' own. If you enable them, point `config.env` at the services they create. For a release named `peekaping` in the namespace `peekaping`, those are `peekaping-postgresql.peekaping.svc.cluster.local` and `peekaping-redis-master.peekaping.svc.cluster.local`. [Bundled PostgreSQL and Redis images](#bundled-postgresql-and-redis-images) says which images they run.
+
+## Bundled PostgreSQL and Redis images
+
+The bundled PostgreSQL and Redis run Bitnami's free `latest` images, `bitnami/postgresql` and `bitnami/redis` on Docker Hub. Bitnami's free repository has no version tags: the tagged images moved to `bitnamilegacy/`, which gets no updates. `latest` floats. When it turns into a new major version, a pod that Kubernetes reschedules would start it on the data of the old one, and PostgreSQL refuses to.
+
+So the chart pins each image by digest, in `postgresql.image.digest` and `redis.image.digest` in `values.yaml`. They are PostgreSQL 18 and Redis 8, and each digest covers amd64 and arm64. A digest wins over the tag.
+
+The digests and the subchart versions in `Chart.yaml` are updated by hand, around each release. To move to newer ones yourself, run this in a checkout of the repository, then `helm dependency build charts` and `helm upgrade`:
+
+```bash
+scripts/update-chart-deps.sh           # lists what is behind
+scripts/update-chart-deps.sh --write   # updates Chart.yaml and values.yaml
+```
+
+The script needs `helm`, `curl` and `jq`.
+
+To run an image of your own, set `postgresql.image.digest` and `redis.image.digest` in your values file. A digest from another repository also needs `image.registry` and `image.repository`. Without them the pod pulls the digest from Bitnami's repository, `registry-1.docker.io/bitnami/postgresql`, and the pull fails. Bitnami's charts also refuse an image they don't recognize, so set `global.security.allowInsecureImages` to `true`:
+
+```yaml
+global:
+  security:
+    allowInsecureImages: true
+postgresql:
+  image:
+    registry: registry.example.com
+    repository: mirror/postgresql
+    digest: sha256:<the digest of your image>
+```
+
+`redis.image` takes the same three values.
+
+A new digest or subchart version restarts the bundled PostgreSQL. The migrate Job retries until the database is back, up to `migrate.backoffLimit` tries (6 by default). If it still fails, run `helm upgrade` again. Your data is intact.
+
+The script refuses a new major version of a subchart or an image, because a major version can change the values and the data layout. Move to one by hand. For PostgreSQL that needs a dump and restore: PostgreSQL doesn't start on the data of an older major version. Dump the database with `pg_dump`, delete the PersistentVolumeClaim `data-<release>-postgresql-0` (`helm uninstall` keeps it), install the new version, and restore the dump.
 
 ## Ingress or Istio
 

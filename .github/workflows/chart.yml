@@ -5,12 +5,14 @@ on:
     paths:
       - 'charts/**'
       - 'scripts/test-chart.sh'
+      - 'scripts/update-chart-deps.sh'
       - '.github/workflows/chart.yml'
     branches: [ main ]
   push:
     paths:
       - 'charts/**'
       - 'scripts/test-chart.sh'
+      - 'scripts/update-chart-deps.sh'
       - '.github/workflows/chart.yml'
     branches: [ main ]
 

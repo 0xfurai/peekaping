@@ -1,23 +1,28 @@
 #!/usr/bin/env bash
 # Renders the Helm chart the way an install does and checks the result: the
 # chart lints, it renders with default values and with the bundled PostgreSQL
-# and Redis, the web Deployment's seed init container runs the same image as the
-# web container (also when web.image.tag is set), the api, producer, worker and
-# ingester Deployments wait for the migrations in an init container that runs
-# the migrate image (also when migrate.image.tag is set) while the web
-# Deployment has none, an enabled AppArmor profile covers that init container as
-# well as the main container, the init container's script ends at once for a
-# MongoDB install, which has no SQL migrations to wait for, and keeps waiting
-# for a PostgreSQL one until `./bun db status` reports none unapplied, the
-# migrate Job is named after the release revision (and its name fits Kubernetes'
-# limit of 63 characters for the longest release name Helm allows), and the
-# install notes say Peekaping runs in cluster mode and link to the Helm docs
-# page.
+# and Redis, the bundled PostgreSQL and Redis run images pinned by digest, the
+# web Deployment's seed init container runs the same image as the web container
+# (also when web.image.tag is set), the api, producer, worker and ingester
+# Deployments wait for the migrations in an init container that runs the migrate
+# image (also when migrate.image.tag is set) while the web Deployment has none,
+# an enabled AppArmor profile covers that init container as well as the main
+# container, the init container's script ends at once for a MongoDB install,
+# which has no SQL migrations to wait for, and keeps waiting for a PostgreSQL
+# one until `./bun db status` reports none unapplied, the migrate Job is named
+# after the release revision (and its name fits Kubernetes' limit of 63
+# characters for the longest release name Helm allows) and retries 6 times, so
+# it outlasts a restart of the bundled PostgreSQL, and the install notes say
+# Peekaping runs in cluster mode and link to the Helm docs page.
+#
+# It also runs scripts/update-chart-deps.sh against a fake Docker Hub: a new
+# major version of a subchart is reported as such and refused by --write, a
+# minor version is written, and current subcharts and images are current.
 #
 # Usage: scripts/test-chart.sh
-# Needs helm (3.13 or later) and network access to registry-1.docker.io, where
-# the chart's PostgreSQL and Redis dependencies live. It works on a copy of
-# charts/ in a temp directory, so the repo gets no charts/charts/*.tgz and no
+# Needs helm (3.13 or later), jq, and network access to registry-1.docker.io,
+# where the chart's PostgreSQL and Redis dependencies live. It works on a copy
+# of charts/ in a temp directory, so the repo gets no charts/charts/*.tgz and no
 # Chart.lock.
 set -euo pipefail
 
@@ -107,6 +112,40 @@ job_named() {
   name=$(job_name_of "$1" "$2")
   if [ "$name" != "$3" ]; then
     echo "       the Job in $2 is named '${name:-<none>}', expected $3"
+    return 1
+  fi
+}
+
+# job_retries <rendered file> <template> <expected>: the Job that <template>
+# renders (such as migrate-job) has that backoffLimit
+job_retries() {
+  local limit
+  limit=$(awk -v template="$2" '
+    /^# Source: / { in_template = ($0 ~ "/" template "\\.yaml$"); next }
+    /^---$/ { in_template = 0 }
+    in_template && /^  backoffLimit: / { print $2; exit }
+  ' "$1")
+  if [ "$limit" != "$3" ]; then
+    echo "       the Job in $2 has backoffLimit ${limit:-<none>}, expected $3"
+    return 1
+  fi
+}
+
+# pinned_by_digest <rendered file> <subchart>: every image the subchart
+# (postgresql or redis) renders is pinned by digest, repository@sha256:..., so a
+# rescheduled pod can't pull a newer major version onto the data of an old one
+pinned_by_digest() {
+  local unpinned
+  unpinned=$(awk -v subchart="$2" '
+    /^# Source: / { in_subchart = ($0 ~ "^# Source: [^/]+/charts/" subchart "/"); next }
+    in_subchart && /^ *image: / {
+      image = $2; gsub(/"/, "", image); found++
+      if (image !~ /@sha256:[0-9a-f]+$/) print image
+    }
+    END { if (!found) print "<no image rendered>" }
+  ' "$1")
+  if [ -n "$unpinned" ]; then
+    echo "       $2 runs without a digest: $(paste -sd ' ' - <<<"$unpinned")"
     return 1
   fi
 }
@@ -332,6 +371,197 @@ wait_script_run() {
   esac
 }
 
+# The checks of scripts/update-chart-deps.sh run it against a fake Docker Hub, so
+# that CI doesn't spend anonymous pulls on it and the answers are known. The
+# stubs for helm and curl, the fake registry (one file for each URL) and a small
+# chart (Chart.yaml and values.yaml) live in $work/deps. The latest PostgreSQL
+# and Redis images are 18.6.0 and 8.10.2, and the chart pins their digests, so
+# the images are current. What a scenario sets is the version of each subchart
+# in the chart and the latest version of it.
+
+# hex64 <character>: a 64 character hex string made of that character
+hex64() { printf '%064d' 0 | tr 0 "$1"; }
+
+# fake_image <repository> <latest> <amd64> <arm64> <config> <version>: adds the
+# repository to the fake registry, with a multi-arch `latest` image of that
+# version. The digests are 64 character hex strings, without the sha256: prefix.
+fake_image() {
+  local dir=$work/deps/registry/registry-1.docker.io/v2/$1
+  mkdir -p "$dir/manifests" "$dir/blobs"
+  printf '{"manifests":[{"digest":"sha256:%s","platform":{"os":"linux","architecture":"amd64"}},{"digest":"sha256:%s","platform":{"os":"linux","architecture":"arm64"}}]}' \
+    "$3" "$4" >"$dir/manifests/latest"
+  cp "$dir/manifests/latest" "$dir/manifests/sha256:$2"
+  printf 'Docker-Content-Digest: sha256:%s\r\n' "$2" >"$dir/manifests/latest.headers"
+  printf '{"config":{"digest":"sha256:%s"}}' "$5" >"$dir/manifests/sha256:$3"
+  printf '{"config":{"Labels":{"org.opencontainers.image.version":"%s"}}}' "$6" >"$dir/blobs/sha256:$5"
+}
+
+# deps_setup <postgresql chart in the repo> <latest postgresql chart> <redis
+# chart in the repo> <latest redis chart>: builds $work/deps from scratch
+deps_setup() {
+  local dir=$work/deps latest_postgresql latest_redis
+  rm -rf "$dir"
+  mkdir -p "$dir/bin" "$dir/helm" "$dir/chart" "$dir/before" "$dir/registry/auth.docker.io"
+
+  # curl: answers a GET of https://<host>/<path> with the file
+  # $FAKE_REGISTRY/<host>/<path>, without the query, and writes the headers
+  # stored beside it where curl is told to with -D
+  cat >"$dir/bin/curl" <<'STUB'
+#!/bin/sh
+prev=
+dump=
+url=
+for arg in "$@"; do
+  if [ "$prev" = -D ]; then dump=$arg; fi
+  prev=$arg
+  url=$arg
+done
+path=${url#https://}
+path=${path%%\?*}
+file=$FAKE_REGISTRY/$path
+if [ ! -f "$file" ]; then
+  echo "curl: (22) The requested URL returned error: 404 $url" >&2
+  exit 22
+fi
+if [ -n "$dump" ] && [ -f "$file.headers" ]; then cp "$file.headers" "$dump"; fi
+cat "$file"
+STUB
+  # helm: answers `helm show chart oci://<repository>/<name>` with the version
+  # in $FAKE_HELM/<name>
+  cat >"$dir/bin/helm" <<'STUB'
+#!/bin/sh
+for arg in "$@"; do chart=$arg; done
+name=${chart##*/}
+printf 'apiVersion: v2\nname: %s\nversion: %s\n' "$name" "$(cat "$FAKE_HELM/$name")"
+STUB
+  chmod +x "$dir/bin/curl" "$dir/bin/helm"
+  printf '{"token":"stub"}' >"$dir/registry/auth.docker.io/token"
+  printf '%s\n' "$2" >"$dir/helm/postgresql"
+  printf '%s\n' "$4" >"$dir/helm/redis"
+
+  latest_postgresql=$(hex64 a)
+  latest_redis=$(hex64 1)
+  fake_image bitnami/postgresql "$latest_postgresql" "$(hex64 b)" "$(hex64 c)" "$(hex64 d)" 18.6.0
+  fake_image bitnami/redis "$latest_redis" "$(hex64 2)" "$(hex64 3)" "$(hex64 4)" 8.10.2
+
+  cat >"$dir/chart/Chart.yaml" <<CHART
+apiVersion: v2
+name: peekaping
+version: 1.0.0
+dependencies:
+- name: redis
+  version: $3
+  repository: oci://registry-1.docker.io/bitnamicharts
+  condition: redis.enabled
+
+- name: postgresql
+  version: $1
+  repository: oci://registry-1.docker.io/bitnamicharts
+  condition: postgresql.enabled
+CHART
+  cat >"$dir/chart/values.yaml" <<VALUES
+postgresql:
+  enabled: false
+  image:
+    digest: sha256:$latest_postgresql # PostgreSQL 18.6.0
+
+redis:
+  enabled: false
+  image:
+    digest: sha256:$latest_redis # Redis 8.10.2
+VALUES
+  cp "$dir/chart/Chart.yaml" "$dir/chart/values.yaml" "$dir/before/"
+}
+
+# update_deps [args...]: runs update-chart-deps.sh on the chart in $work/deps
+# against the fake registry. Its output goes to $work/deps/out and its exit
+# status to $deps_status.
+update_deps() {
+  deps_status=0
+  PATH="$work/deps/bin:$PATH" FAKE_REGISTRY="$work/deps/registry" FAKE_HELM="$work/deps/helm" \
+    "$root/scripts/update-chart-deps.sh" --dir "$work/deps/chart" "$@" >"$work/deps/out" 2>&1 || deps_status=$?
+}
+
+# deps_outcome <exit status> [pattern...]: the last update_deps run exited with
+# that status, and its output has a line matching each pattern (grep -E)
+deps_outcome() {
+  local status=$1 pattern
+  shift
+  if [ "$deps_status" != "$status" ]; then
+    echo "       update-chart-deps.sh exited with status $deps_status, expected $status:"
+    sed 's/^/       /' "$work/deps/out"
+    return 1
+  fi
+  for pattern in "$@"; do
+    if ! grep -Eq -- "$pattern" "$work/deps/out"; then
+      echo "       no line matching '$pattern' in the output:"
+      sed 's/^/       /' "$work/deps/out"
+      return 1
+    fi
+  done
+}
+
+# deps_chart_version <name>: the version of that dependency in the chart's Chart.yaml
+deps_chart_version() {
+  awk -v name="$1" '
+    $1 == "-" && $2 == "name:" { current = $3; next }
+    /^  version:/ && current == name { print $2; exit }
+  ' "$work/deps/chart/Chart.yaml"
+}
+
+# deps_unchanged: Chart.yaml and values.yaml are as deps_setup wrote them
+deps_unchanged() {
+  local file status=0
+  for file in Chart.yaml values.yaml; do
+    if ! cmp -s "$work/deps/before/$file" "$work/deps/chart/$file"; then
+      echo "       $file changed:"
+      diff "$work/deps/before/$file" "$work/deps/chart/$file" | sed 's/^/       /' || true
+      status=1
+    fi
+  done
+  return $status
+}
+
+# deps_refuses_new_major_chart: with postgresql 19.0.0 out and the chart on
+# 18.12.14, the report calls it a new major version, not behind, and exits 1,
+# like it does for an image. --write exits 2 and writes nothing, not even the
+# redis chart that is only a minor version behind.
+deps_refuses_new_major_chart() {
+  deps_setup 18.12.14 19.0.0 28.3.1 28.4.0
+  update_deps
+  deps_outcome 1 '^postgresql chart: +new major 19 \(pinned 18\)' '^redis chart: +behind' || return 1
+  update_deps --write
+  deps_outcome 2 'new major' || return 1
+  deps_unchanged
+}
+
+# deps_updates_minor_chart: a subchart that is behind by a minor version is
+# reported as behind, and --write sets its version
+deps_updates_minor_chart() {
+  deps_setup 18.12.14 18.13.0 28.3.1 28.3.1
+  update_deps
+  deps_outcome 1 '^postgresql chart: +behind \(repo 18\.12\.14, latest 18\.13\.0\)' '^redis chart: +current' || return 1
+  if grep -q ' new major ' "$work/deps/out"; then
+    echo "       the report calls a minor version a new major version:"
+    sed 's/^/       /' "$work/deps/out"
+    return 1
+  fi
+  update_deps --write
+  deps_outcome 0 'Set the postgresql chart' || return 1
+  if [ "$(deps_chart_version postgresql)" != 18.13.0 ] || [ "$(deps_chart_version redis)" != 28.3.1 ]; then
+    echo "       Chart.yaml has postgresql $(deps_chart_version postgresql) and redis $(deps_chart_version redis), expected 18.13.0 and 28.3.1"
+    return 1
+  fi
+}
+
+# deps_all_current: when the subcharts and the images are the latest, the
+# report exits 0
+deps_all_current() {
+  deps_setup 18.12.14 18.12.14 28.3.1 28.3.1
+  update_deps
+  deps_outcome 0 '^postgresql chart: +current' '^redis chart: +current' '^postgresql image: +current' '^redis image: +current'
+}
+
 # notes_say <text>: the notes an install prints have the text. A client-side
 # dry run prints them and needs no cluster.
 notes_say() {
@@ -344,6 +574,13 @@ notes_say() {
   fi
   grep -qiF -- "$1" <<<"$notes" || { echo "       no '$1' in the notes:"; sed 's/^/       /' <<<"$notes"; return 1; }
 }
+
+echo "# Updating the dependencies"
+check "update-chart-deps.sh calls a new major version of a subchart a new major version, and --write refuses it" \
+  deps_refuses_new_major_chart || true
+check "update-chart-deps.sh --write updates a subchart that is behind by a minor version" \
+  deps_updates_minor_chart || true
+check "update-chart-deps.sh reports current subcharts and images as current" deps_all_current || true
 
 echo "# Dependencies"
 if check "helm dependency build fetches PostgreSQL and Redis" run dependency helm dependency build "$chart"; then
@@ -382,8 +619,14 @@ if check "helm dependency build fetches PostgreSQL and Redis" run dependency hel
       job_name_fits "${long_release:0:51}-z" || true
     check "a release name of 44 characters: the migrate Job's name is <release>-migrate-1" \
       job_name_fits "${long_release:0:44}" || true
+    # Failed tries back off 10 s, 20 s, 40 s and so on, so 6 tries last long
+    # enough for the bundled PostgreSQL to come back from a restart that the
+    # same upgrade causes.
+    check "default values: the migrate Job retries 6 times" job_retries "$work/default.yaml" migrate-job 6 || true
   fi
   if check "bundled PostgreSQL and Redis render" render bundled --set postgresql.enabled=true --set redis.enabled=true; then
+    check "bundled PostgreSQL runs an image pinned by digest" pinned_by_digest "$work/bundled.yaml" postgresql || true
+    check "bundled Redis runs an image pinned by digest" pinned_by_digest "$work/bundled.yaml" redis || true
     check "bundled PostgreSQL and Redis: the seed init container runs the web image" \
       web_matches_seed "$work/bundled.yaml" || true
     check "bundled PostgreSQL and Redis: api, producer, worker and ingester wait for the migrations, web doesn't" \

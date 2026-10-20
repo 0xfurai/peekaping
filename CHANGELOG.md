@@ -31,6 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Upgrade note: with `METRICS_ENABLED=true`, port 8383 now serves `/metrics`, so anyone who can open the web app can read it. Before, Caddy didn't forward it.
   - Upgrade note: logs go to the container's output (`docker logs`). Nothing writes to `/var/log/supervisor` now, so a volume mounted there can go.
 - chore: for development, `docker-compose.deps.yml` with `--profile postgres` or `--profile mongo` replaces `docker-compose.sqlite.yml`, `docker-compose.postgres.yml` and `docker-compose.mongo.yml`. `make docker-sqlite`, `make docker-postgres` and `make docker-mongo` keep working
+- chore: the Helm chart's bundled PostgreSQL and Redis (off by default) run pinned images, PostgreSQL 18.6 and Redis 8.10.2, instead of Bitnami's floating `latest`, so a rescheduled pod can't start a new major version on old data. The Bitnami subcharts move to `postgresql` 18.12.14 and `redis` 28.3.1, and `scripts/update-chart-deps.sh` checks and updates both. The migrate Job now tries up to 6 times (`migrate.backoffLimit`), enough to outlast a restart of the bundled PostgreSQL during an upgrade
+  - Upgrade note: with the bundled databases on, the upgrade restarts PostgreSQL and Redis on the pinned images. The data stays, since the major versions stay 18 and 8.
 
 ### Deprecated
 
