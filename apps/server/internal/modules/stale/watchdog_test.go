@@ -79,7 +79,7 @@ func (r *fakeRechecker) RunNow(_ context.Context, monitorID string) error {
 
 type watchdogFixture struct {
 	w          *Watchdog
-	rdb        *redis.Client
+	rdb        *redis.Client // set when the store is Redis
 	monitors   *fakeMonitors
 	heartbeats *fakeHeartbeats
 	bus        *fakeEventBus
@@ -95,14 +95,20 @@ func newWatchdogFixture(t *testing.T, monitors ...*shared.Monitor) *watchdogFixt
 	rdb := redis.NewClient(&redis.Options{Addr: mr.Addr()})
 	t.Cleanup(func() { _ = rdb.Close() })
 
+	f := newWatchdogFixtureOn(t, NewRedisStore(rdb), monitors...)
+	f.rdb = rdb
+	return f
+}
+
+func newWatchdogFixtureOn(t *testing.T, store Store, monitors ...*shared.Monitor) *watchdogFixture {
+	t.Helper()
 	start := time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
 	f := &watchdogFixture{
-		rdb:        rdb,
 		monitors:   &fakeMonitors{active: monitors, byID: map[string]*shared.Monitor{}},
 		heartbeats: &fakeHeartbeats{latest: map[string]time.Time{}},
 		bus:        &fakeEventBus{},
 		rechecker:  &fakeRechecker{},
-		store:      NewRedisStore(rdb),
+		store:      store,
 		start:      start,
 		clock:      start,
 	}
@@ -394,6 +400,42 @@ func TestWatchdog_RunLooksEveryIntervalUntilTheContextIsDone(t *testing.T) {
 	ranAt, err := f.store.RanAt(context.Background())
 	require.NoError(t, err)
 	assert.Nil(t, ranAt, "the watchdog stopped with its context")
+}
+
+func TestWatchdog_KeepsItsStaleMonitorsInAMemoryStore(t *testing.T) {
+	now := time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
+	store := NewMemoryStore()
+	f := newWatchdogFixtureOn(t, store, testMonitor("silent", 60, 10, now.Add(-time.Hour)), testMonitor("fine", 60, 10, now.Add(-time.Hour)))
+	f.heartbeats.setLatest("silent", now.Add(-4*time.Minute))
+	f.heartbeats.setLatest("fine", now.Add(-time.Minute))
+	ctx := context.Background()
+
+	f.run(t)
+
+	entries, err := store.All(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"silent"}, keys(entries))
+	assert.Equal(t, []string{"silent"}, f.rechecker.calls, "the stale monitor is asked to be checked again")
+	ranAt, err := store.RanAt(ctx)
+	require.NoError(t, err)
+	require.NotNil(t, ranAt)
+	assert.Equal(t, now, *ranAt)
+
+	f.at(time.Minute)
+	f.run(t)
+	require.Len(t, f.published(events.MonitorStale), 1)
+	entries, err = store.All(ctx)
+	require.NoError(t, err)
+	assert.True(t, entries["silent"].Notified)
+
+	f.heartbeats.setLatest("silent", now.Add(90*time.Second))
+	f.at(2 * time.Minute)
+	f.run(t)
+
+	assert.Len(t, f.published(events.MonitorStaleRecovered), 1)
+	count, err := store.Count(ctx)
+	require.NoError(t, err)
+	assert.Zero(t, count)
 }
 
 func keys(m map[string]Entry) []string {
