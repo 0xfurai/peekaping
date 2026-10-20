@@ -209,25 +209,9 @@ func (h *HealthCheckTaskHandler) ProcessTask(ctx context.Context, task *asynq.Ta
 	)
 
 	// Enqueue the result to the ingester queue
-	ingesterPayload := IngesterTaskPayload{
-		MonitorID:          m.ID,
-		MonitorName:        m.Name,
-		MonitorType:        m.Type,
-		MonitorInterval:    m.Interval,
-		MonitorTimeout:     m.Timeout,
-		MonitorMaxRetries:  m.MaxRetries,
-		MonitorRetryInt:    m.RetryInterval,
-		MonitorResendInt:   m.ResendInterval,
-		MonitorConfig:      m.Config,
-		Status:             tickResult.ExecutionResult.Status,
-		Message:            tickResult.ExecutionResult.Message,
-		PingMs:             tickResult.PingMs,
-		StartTime:          tickResult.ExecutionResult.StartTime,
-		EndTime:            tickResult.ExecutionResult.EndTime,
-		IsUnderMaintenance: tickResult.IsUnderMaintenance,
-		TLSInfo:            tickResult.ExecutionResult.TLSInfo,
-		CheckCertExpiry:    payload.CheckCertExpiry,
-	}
+	// The conversion keeps the payload and ingester.Result from drifting apart: it only compiles
+	// while they have the same fields
+	ingesterPayload := IngesterTaskPayload(*tickResult.IngestResult(payload.CheckCertExpiry))
 
 	opts := &queue.EnqueueOptions{
 		Queue:     "ingester",
