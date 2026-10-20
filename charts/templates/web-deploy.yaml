@@ -57,7 +57,8 @@ spec:
 
       initContainers:
         - name: seed-web-root
-          image: 0xfurai/peekaping-web:latest
+          image: {{ .Values.web.image.repository }}:{{ .Values.web.image.tag }}
+          imagePullPolicy: {{ .Values.web.image.pullPolicy }}
           command:
             - sh
             - -c

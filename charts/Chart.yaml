@@ -1,5 +1,6 @@
 apiVersion: v2
 name: peekaping
+description: Peekaping in cluster mode, as separate api, producer, worker, ingester and web deployments that talk through Redis
 version: 1.0.0
 dependencies:
 - name: redis
