@@ -108,9 +108,7 @@ func HTTPConfigStructLevelValidation(sl validator.StructLevel) {
 		if cfg.TlsKey == "" {
 			sl.ReportError(cfg.TlsKey, "TlsKey", "tlsKey", "required_with_auth_mtls", "")
 		}
-		if cfg.TlsCa == "" {
-			sl.ReportError(cfg.TlsCa, "TlsCa", "tlsCa", "required_with_auth_mtls", "")
-		}
+		// TlsCa is optional
 	}
 }
 

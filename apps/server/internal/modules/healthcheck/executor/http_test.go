@@ -222,6 +222,19 @@ func TestHTTPExecutor_Validate(t *testing.T) {
 			expectedError: false, // Validation only checks structure, not cert validity
 		},
 		{
+			name: "valid mtls config without CA",
+			config: `{
+				"url": "https://example.com",
+				"method": "GET",
+				"encoding": "json",
+				"accepted_statuscodes": ["2XX"],
+				"authMethod": "mtls",
+				"tlsCert": "-----BEGIN CERTIFICATE-----\nMIIC...\n-----END CERTIFICATE-----",
+				"tlsKey": "-----BEGIN PRIVATE KEY-----\nMIIE...\n-----END PRIVATE KEY-----"
+			}`,
+			expectedError: false,
+		},
+		{
 			name: "invalid mtls config - missing cert",
 			config: `{
 				"url": "https://example.com",
@@ -230,6 +243,19 @@ func TestHTTPExecutor_Validate(t *testing.T) {
 				"accepted_statuscodes": ["2XX"],
 				"authMethod": "mtls",
 				"tlsKey": "-----BEGIN PRIVATE KEY-----\nMIIE...\n-----END PRIVATE KEY-----",
+				"tlsCa": "-----BEGIN CERTIFICATE-----\nMIIC...\n-----END CERTIFICATE-----"
+			}`,
+			expectedError: true,
+		},
+		{
+			name: "invalid mtls config - missing key",
+			config: `{
+				"url": "https://example.com",
+				"method": "GET",
+				"encoding": "json",
+				"accepted_statuscodes": ["2XX"],
+				"authMethod": "mtls",
+				"tlsCert": "-----BEGIN CERTIFICATE-----\nMIIC...\n-----END CERTIFICATE-----",
 				"tlsCa": "-----BEGIN CERTIFICATE-----\nMIIC...\n-----END CERTIFICATE-----"
 			}`,
 			expectedError: true,
