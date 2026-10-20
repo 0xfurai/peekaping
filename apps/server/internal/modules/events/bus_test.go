@@ -72,11 +72,11 @@ func observedLogger() (*zap.SugaredLogger, *observer.ObservedLogs) {
 func TestBusLogsAPanicWithItsTopic(t *testing.T) {
 	logger, logs := observedLogger()
 	bus := newLoopbackBus(t, false, events.WithLogger(logger))
-	events.Subscribe(events.NewSubscriber(bus, "panicky"), eventstest.Beta, func(context.Context, eventstest.Beat) {
+	events.Subscribe(events.NewSubscriber(bus, "panicky"), eventstest.Beta, func(context.Context, eventstest.Sample) {
 		panic("handler bug")
 	})
 
-	require.NoError(t, events.Publish(context.Background(), bus, eventstest.Beta, eventstest.Beat{MonitorID: "mon-1"}))
+	require.NoError(t, events.Publish(context.Background(), bus, eventstest.Beta, eventstest.Sample{MonitorID: "mon-1"}))
 
 	require.Eventually(t, func() bool { return logs.FilterMessage("Event handler panicked").Len() == 1 }, 5*time.Second, 5*time.Millisecond)
 	entry := logs.FilterMessage("Event handler panicked").All()[0]
@@ -91,15 +91,15 @@ func TestBusDropsAnEventItCannotDecode(t *testing.T) {
 	transport := &loopback{}
 	bus := events.NewBus(transport, events.WithLogger(logger))
 	t.Cleanup(func() { _ = bus.Close(context.Background()) })
-	called := make(chan eventstest.Beat, 1)
-	events.Subscribe(events.NewSubscriber(bus, "decoding"), eventstest.Alpha, func(_ context.Context, b eventstest.Beat) { called <- b })
+	called := make(chan eventstest.Sample, 1)
+	events.Subscribe(events.NewSubscriber(bus, "decoding"), eventstest.Alpha, func(_ context.Context, b eventstest.Sample) { called <- b })
 
 	transport.deliver(events.Message{Topic: eventstest.Alpha.Name(), JSON: json.RawMessage(`{"monitor_id": 1}`)})
 	transport.deliver(events.Message{Topic: eventstest.Alpha.Name(), JSON: json.RawMessage(`"mon-1"`)})
 	transport.deliver(events.Message{Topic: eventstest.Alpha.Name(), Value: "mon-1"})
 	transport.deliver(events.Message{Topic: eventstest.Alpha.Name(), JSON: json.RawMessage(`{"monitor_id": "mon-2", "seq": 3}`)})
 
-	assert.Equal(t, eventstest.Beat{MonitorID: "mon-2", Seq: 3}, <-called, "the valid event after the bad ones is handled")
+	assert.Equal(t, eventstest.Sample{MonitorID: "mon-2", Seq: 3}, <-called, "the valid event after the bad ones is handled")
 	assert.Equal(t, 3, logs.FilterMessageSnippet("Failed to decode event").Len())
 	assert.Equal(t, "eventstest.alpha", logs.FilterMessageSnippet("Failed to decode event").All()[0].ContextMap()["topic"])
 	assert.Empty(t, called)
@@ -110,13 +110,13 @@ func TestBusWarnsOnceQueuedEventsPassTheHighWaterMark(t *testing.T) {
 	bus := newLoopbackBus(t, false, events.WithLogger(logger), events.WithHighWater(5), events.WithWorkers(1))
 	release := make(chan struct{})
 	var handled atomic.Int32
-	events.Subscribe(events.NewSubscriber(bus, "slow"), eventstest.Alpha, func(context.Context, eventstest.Beat) {
+	events.Subscribe(events.NewSubscriber(bus, "slow"), eventstest.Alpha, func(context.Context, eventstest.Sample) {
 		<-release
 		handled.Add(1)
 	})
 
 	for seq := range 40 {
-		require.NoError(t, events.Publish(context.Background(), bus, eventstest.Alpha, eventstest.Beat{MonitorID: "mon-1", Seq: seq}))
+		require.NoError(t, events.Publish(context.Background(), bus, eventstest.Alpha, eventstest.Sample{MonitorID: "mon-1", Seq: seq}))
 	}
 
 	warnings := logs.FilterMessageSnippet("high-water mark")
@@ -130,7 +130,7 @@ func TestBusWarnsOnceQueuedEventsPassTheHighWaterMark(t *testing.T) {
 func TestBusHandlesAtMostItsWorkerLimitAtOnce(t *testing.T) {
 	bus := newLoopbackBus(t, false, events.WithWorkers(3))
 	var running, peak, handled atomic.Int32
-	events.Subscribe(events.NewSubscriber(bus, "bounded"), eventstest.Alpha, func(context.Context, eventstest.Beat) {
+	events.Subscribe(events.NewSubscriber(bus, "bounded"), eventstest.Alpha, func(context.Context, eventstest.Sample) {
 		now := running.Add(1)
 		for {
 			old := peak.Load()
@@ -144,29 +144,54 @@ func TestBusHandlesAtMostItsWorkerLimitAtOnce(t *testing.T) {
 	})
 
 	for m := range 12 {
-		require.NoError(t, events.Publish(context.Background(), bus, eventstest.Alpha, eventstest.Beat{MonitorID: string(rune('a' + m))}))
+		require.NoError(t, events.Publish(context.Background(), bus, eventstest.Alpha, eventstest.Sample{MonitorID: string(rune('a' + m))}))
 	}
 
 	require.Eventually(t, func() bool { return handled.Load() == 12 }, 5*time.Second, 5*time.Millisecond)
 	assert.EqualValues(t, 3, peak.Load())
 }
 
+func TestSubscriberCanHaveMoreWorkersThanTheBusDefault(t *testing.T) {
+	bus := newLoopbackBus(t, false, events.WithWorkers(2))
+	var started sync.WaitGroup
+	started.Add(6)
+	release := make(chan struct{})
+	defer close(release)
+	sub := events.NewSubscriber(bus, "wide", events.SubscriberWorkers(6))
+	events.Subscribe(sub, eventstest.Alpha, func(context.Context, eventstest.Sample) {
+		started.Done()
+		<-release
+	})
+
+	for m := range 6 {
+		require.NoError(t, events.Publish(context.Background(), bus, eventstest.Alpha, eventstest.Sample{MonitorID: string(rune('a' + m))}))
+	}
+
+	allStarted := make(chan struct{})
+	go func() { started.Wait(); close(allStarted) }()
+	select {
+	case <-allStarted:
+	case <-time.After(5 * time.Second):
+		t.Fatal("six blocked monitors should each hold one of the subscriber's six workers")
+	}
+}
+
 func TestBusHandlesEventsWithoutAMonitorAtTheSameTime(t *testing.T) {
-	unkeyed := events.NewTopic[eventstest.Beat]("eventstest.unkeyed", nil)
+	unkeyed := events.NewTopic[eventstest.Sample]("eventstest.unkeyed", nil)
 	bus := newLoopbackBus(t, false)
 	var started sync.WaitGroup
 	started.Add(3)
 	allStarted := make(chan struct{})
 	go func() { started.Wait(); close(allStarted) }()
 	var handled atomic.Int32
-	events.Subscribe(events.NewSubscriber(bus, "unkeyed"), unkeyed, func(context.Context, eventstest.Beat) {
+	events.Subscribe(events.NewSubscriber(bus, "unkeyed"), unkeyed, func(context.Context, eventstest.Sample) {
 		started.Done()
 		<-allStarted // returns only if the three are running together
 		handled.Add(1)
 	})
 
 	for range 3 {
-		require.NoError(t, events.Publish(context.Background(), bus, unkeyed, eventstest.Beat{}))
+		require.NoError(t, events.Publish(context.Background(), bus, unkeyed, eventstest.Sample{}))
 	}
 
 	require.Eventually(t, func() bool { return handled.Load() == 3 }, 5*time.Second, 5*time.Millisecond)
@@ -176,9 +201,9 @@ func TestBusCloseStopsEveryGoroutine(t *testing.T) {
 	before := runtime.NumGoroutine()
 	bus := events.NewBus(&loopback{})
 	for _, name := range []string{"one", "two", "three"} {
-		events.Subscribe(events.NewSubscriber(bus, name), eventstest.Alpha, func(context.Context, eventstest.Beat) {})
+		events.Subscribe(events.NewSubscriber(bus, name), eventstest.Alpha, func(context.Context, eventstest.Sample) {})
 	}
-	require.NoError(t, events.Publish(context.Background(), bus, eventstest.Alpha, eventstest.Beat{MonitorID: "mon-1"}))
+	require.NoError(t, events.Publish(context.Background(), bus, eventstest.Alpha, eventstest.Sample{MonitorID: "mon-1"}))
 
 	require.NoError(t, bus.Close(context.Background()))
 
@@ -195,7 +220,7 @@ func TestBusIgnoresHandlersAddedAfterClose(t *testing.T) {
 	bus := events.NewBus(&loopback{}, events.WithLogger(logger))
 	require.NoError(t, bus.Close(context.Background()))
 
-	events.Subscribe(events.NewSubscriber(bus, "late"), eventstest.Alpha, func(context.Context, eventstest.Beat) {})
+	events.Subscribe(events.NewSubscriber(bus, "late"), eventstest.Alpha, func(context.Context, eventstest.Sample) {})
 
 	assert.Equal(t, 1, logs.FilterMessageSnippet("closed event bus").Len())
 }

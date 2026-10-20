@@ -27,6 +27,10 @@ const (
 	maxConcurrentSends = 8
 	// sendTimeout bounds each channel's send, so a channel that never answers can't hold up an event
 	sendTimeout = 15 * time.Second
+	// notificationWorkers is how many monitors' notifications go out at once. Sends wait on the
+	// network, up to sendTimeout each, so the limit is well above the bus's default: a few
+	// monitors with a dead channel mustn't hold up everyone else's notifications.
+	notificationWorkers = 128
 )
 
 // NotificationEventListener handles notification events
@@ -97,7 +101,7 @@ func NewNotificationEventListener(p NotificationEventListenerParams) *Notificati
 // events happened, and a channel that takes its whole send timeout delays only that
 // monitor's later notifications.
 func (l *NotificationEventListener) Subscribe(eventBus events.EventBus) {
-	subscriber := events.NewSubscriber(eventBus, "notification")
+	subscriber := events.NewSubscriber(eventBus, "notification", events.SubscriberWorkers(notificationWorkers))
 	events.Subscribe(subscriber, events.ImportantHeartbeat, l.handleNotifyEvent)
 	events.Subscribe(subscriber, certificate.CertificateExpiry, l.handleCertificateExpiryEvent)
 	events.Subscribe(subscriber, stale.MonitorStale, func(ctx context.Context, staleEvent stale.Event) {

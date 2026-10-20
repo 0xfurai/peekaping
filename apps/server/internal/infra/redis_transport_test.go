@@ -65,7 +65,7 @@ func TestRedisBusSubscribeReturnsOnceRedisHasTheSubscription(t *testing.T) {
 	server, client := newTestRedis(t)
 	bus := newTestRedisBus(t, client, zap.NewNop().Sugar())
 
-	events.Subscribe(events.NewSubscriber(bus, "sub"), eventstest.Alpha, func(context.Context, eventstest.Beat) {})
+	events.Subscribe(events.NewSubscriber(bus, "sub"), eventstest.Alpha, func(context.Context, eventstest.Sample) {})
 
 	assert.Equal(t, 1, server.PubSubNumSub(channelOf("eventstest.alpha"))[channelOf("eventstest.alpha")],
 		"an event published right after Subscribe has somewhere to go")
@@ -76,11 +76,11 @@ func TestRedisBusUsesOnePubSubConnectionForEveryChannel(t *testing.T) {
 	bus := newTestRedisBus(t, client, zap.NewNop().Sugar())
 	sub := events.NewSubscriber(bus, "sub")
 
-	events.Subscribe(sub, eventstest.Alpha, func(context.Context, eventstest.Beat) {})
-	events.Subscribe(sub, eventstest.Beta, func(context.Context, eventstest.Beat) {})
+	events.Subscribe(sub, eventstest.Alpha, func(context.Context, eventstest.Sample) {})
+	events.Subscribe(sub, eventstest.Beta, func(context.Context, eventstest.Sample) {})
 	events.Subscribe(sub, heartbeatTopic, func(context.Context, shared.HeartBeatModel) {})
 	for range 3 {
-		require.NoError(t, events.Publish(context.Background(), bus, eventstest.Alpha, eventstest.Beat{MonitorID: "mon-1"}))
+		require.NoError(t, events.Publish(context.Background(), bus, eventstest.Alpha, eventstest.Sample{MonitorID: "mon-1"}))
 	}
 
 	// One connection receives the three channels, one publishes
@@ -90,7 +90,7 @@ func TestRedisBusUsesOnePubSubConnectionForEveryChannel(t *testing.T) {
 func TestRedisBusLeavesTheSharedClientOpen(t *testing.T) {
 	_, client := newTestRedis(t)
 	bus := newTestRedisBus(t, client, zap.NewNop().Sugar())
-	events.Subscribe(events.NewSubscriber(bus, "sub"), eventstest.Alpha, func(context.Context, eventstest.Beat) {})
+	events.Subscribe(events.NewSubscriber(bus, "sub"), eventstest.Alpha, func(context.Context, eventstest.Sample) {})
 
 	require.NoError(t, bus.Close(context.Background()))
 
@@ -101,11 +101,11 @@ func TestRedisBusResubscribesAfterTheConnectionDrops(t *testing.T) {
 	server, client := newTestRedis(t)
 	logger, logs := observedLogger()
 	bus := newTestRedisBus(t, client, logger)
-	received := make(chan eventstest.Beat, 8)
-	events.Subscribe(events.NewSubscriber(bus, "sub"), eventstest.Alpha, func(_ context.Context, b eventstest.Beat) { received <- b })
+	received := make(chan eventstest.Sample, 8)
+	events.Subscribe(events.NewSubscriber(bus, "sub"), eventstest.Alpha, func(_ context.Context, b eventstest.Sample) { received <- b })
 	channel := channelOf("eventstest.alpha")
-	require.NoError(t, events.Publish(context.Background(), bus, eventstest.Alpha, eventstest.Beat{MonitorID: "mon-1", Seq: 1}))
-	require.Equal(t, eventstest.Beat{MonitorID: "mon-1", Seq: 1}, <-received)
+	require.NoError(t, events.Publish(context.Background(), bus, eventstest.Alpha, eventstest.Sample{MonitorID: "mon-1", Seq: 1}))
+	require.Equal(t, eventstest.Sample{MonitorID: "mon-1", Seq: 1}, <-received)
 
 	server.Close() // drops every connection
 	require.Eventually(t, func() bool { return logs.FilterMessageSnippet("resubscribing").Len() > 0 }, 5*time.Second, 5*time.Millisecond,
@@ -114,10 +114,10 @@ func TestRedisBusResubscribesAfterTheConnectionDrops(t *testing.T) {
 
 	require.Eventually(t, func() bool { return server.PubSubNumSub(channel)[channel] == 1 }, 5*time.Second, 5*time.Millisecond,
 		"the bus resubscribes with backoff")
-	require.NoError(t, events.Publish(context.Background(), bus, eventstest.Alpha, eventstest.Beat{MonitorID: "mon-1", Seq: 2}))
+	require.NoError(t, events.Publish(context.Background(), bus, eventstest.Alpha, eventstest.Sample{MonitorID: "mon-1", Seq: 2}))
 	select {
 	case got := <-received:
-		assert.Equal(t, eventstest.Beat{MonitorID: "mon-1", Seq: 2}, got, "an event published after the reconnect is delivered")
+		assert.Equal(t, eventstest.Sample{MonitorID: "mon-1", Seq: 2}, got, "an event published after the reconnect is delivered")
 	case <-time.After(5 * time.Second):
 		t.Fatal("no event after the reconnect")
 	}
@@ -128,20 +128,20 @@ func TestRedisBusSubscribesWhileRedisIsDown(t *testing.T) {
 	server, client := newTestRedis(t)
 	bus := newTestRedisBus(t, client, zap.NewNop().Sugar())
 	server.Close()
-	received := make(chan eventstest.Beat, 1)
+	received := make(chan eventstest.Sample, 1)
 
 	start := time.Now()
-	events.Subscribe(events.NewSubscriber(bus, "sub"), eventstest.Alpha, func(_ context.Context, b eventstest.Beat) { received <- b })
+	events.Subscribe(events.NewSubscriber(bus, "sub"), eventstest.Alpha, func(_ context.Context, b eventstest.Sample) { received <- b })
 
 	assert.Less(t, time.Since(start), time.Second, "starting up without Redis doesn't hang")
-	err := events.Publish(context.Background(), bus, eventstest.Alpha, eventstest.Beat{MonitorID: "mon-1"})
+	err := events.Publish(context.Background(), bus, eventstest.Alpha, eventstest.Sample{MonitorID: "mon-1"})
 	assert.Error(t, err, "a publish says it didn't get through")
 
 	require.NoError(t, server.Restart())
 	channel := channelOf("eventstest.alpha")
 	require.Eventually(t, func() bool { return server.PubSubNumSub(channel)[channel] == 1 }, 5*time.Second, 5*time.Millisecond)
-	require.NoError(t, events.Publish(context.Background(), bus, eventstest.Alpha, eventstest.Beat{MonitorID: "mon-2"}))
-	assert.Equal(t, eventstest.Beat{MonitorID: "mon-2"}, <-received)
+	require.NoError(t, events.Publish(context.Background(), bus, eventstest.Alpha, eventstest.Sample{MonitorID: "mon-2"}))
+	assert.Equal(t, eventstest.Sample{MonitorID: "mon-2"}, <-received)
 }
 
 const heartbeatEnvelope = `{"type":"heartbeat","payload":{"id":"hb-1","monitor_id":"mon-1","status":0,"msg":"connection refused","ping":42,"duration":7,"down_count":2,"retries":1,"important":true,"time":"2026-10-17T09:30:00Z","end_time":"2026-10-17T09:30:01Z","notified":true}}`

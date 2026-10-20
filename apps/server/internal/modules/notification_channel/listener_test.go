@@ -474,6 +474,46 @@ func TestListener_HungChannelDoesNotHoldUpOtherChannels(t *testing.T) {
 
 // A channel that takes its whole send timeout delays that monitor's later notifications, in
 // order, and no other monitor's. This runs the listener on the Redis event bus.
+func TestListener_ManyStuckMonitorsDontHoldUpTheOthers(t *testing.T) {
+	f := newListenerFixture(t)
+	release := make(chan struct{})
+	stuck := &recordingProvider{send: func(context.Context) error { <-release; return nil }}
+	fast := &recordingProvider{}
+	registerTestProvider(t, "test-stuck", stuck)
+	registerTestProvider(t, "test-fast", fast)
+	// More stuck monitors than the bus's default worker limit
+	const stuckMonitors = events.DefaultWorkers + 4
+	for i := range stuckMonitors {
+		id := fmt.Sprintf("stuck-%d", i)
+		f.addMonitor(id, id)
+		f.attach(id, testChannel("s-"+id, "test-stuck"))
+	}
+	f.addMonitor("mon-fast", "Billing")
+	f.attach("mon-fast", testChannel("f", "test-fast"))
+
+	redisServer := miniredis.RunT(t)
+	client := redis.NewClient(&redis.Options{Addr: redisServer.Addr()})
+	t.Cleanup(func() { _ = client.Close() })
+	bus := infra.NewRedisEventBus(client, zap.NewNop().Sugar())
+	t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		assert.NoError(t, bus.Close(ctx))
+	})
+	t.Cleanup(func() { close(release) })
+	f.listener.Subscribe(bus)
+
+	for i := range stuckMonitors {
+		require.NoError(t, events.Publish(context.Background(), bus, events.ImportantHeartbeat, *downHeartbeat(fmt.Sprintf("stuck-%d", i))))
+	}
+	require.Eventually(t, func() bool { return len(stuck.sentConfigs()) == stuckMonitors }, 5*time.Second, 5*time.Millisecond,
+		"every stuck monitor's send has started")
+	require.NoError(t, events.Publish(context.Background(), bus, events.ImportantHeartbeat, *downHeartbeat("mon-fast")))
+
+	require.Eventually(t, func() bool { return len(fast.sentConfigs()) == 1 }, 5*time.Second, 5*time.Millisecond,
+		"a healthy monitor's notification goes out while the others are stuck")
+}
+
 func TestListener_ASlowChannelDelaysOnlyItsOwnMonitor(t *testing.T) {
 	f := newListenerFixture(t)
 	release := make(chan struct{})

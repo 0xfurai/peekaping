@@ -17,8 +17,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Beat is the payload of the contract suite's topics.
-type Beat struct {
+// Sample is the payload of the contract suite's topics.
+type Sample struct {
 	MonitorID string `json:"monitor_id"`
 	Seq       int    `json:"seq"`
 }
@@ -26,8 +26,8 @@ type Beat struct {
 // The contract suite's topics. They carry the same payload, so a subscriber's two topics
 // can be checked for order against each other.
 var (
-	Alpha = events.NewTopic("eventstest.alpha", func(b Beat) string { return b.MonitorID })
-	Beta  = events.NewTopic("eventstest.beta", func(b Beat) string { return b.MonitorID })
+	Alpha = events.NewTopic("eventstest.alpha", func(b Sample) string { return b.MonitorID })
+	Beta  = events.NewTopic("eventstest.beta", func(b Sample) string { return b.MonitorID })
 )
 
 // waitFor is how long the suite waits for something it expects to happen.
@@ -40,16 +40,16 @@ const waitFor = 10 * time.Second
 func RunContract(t *testing.T, newBus func(t *testing.T) events.EventBus) {
 	t.Run("delivers the typed value to every handler of the topic", func(t *testing.T) {
 		bus := newBus(t)
-		first, second := make(chan Beat, 4), make(chan Beat, 4)
-		other := make(chan Beat, 4)
-		events.Subscribe(events.NewSubscriber(bus, "one"), Alpha, func(_ context.Context, b Beat) { first <- b })
-		events.Subscribe(events.NewSubscriber(bus, "one"), Alpha, func(_ context.Context, b Beat) { first <- b })
-		events.Subscribe(events.NewSubscriber(bus, "two"), Alpha, func(_ context.Context, b Beat) { second <- b })
-		events.Subscribe(events.NewSubscriber(bus, "two"), Beta, func(_ context.Context, b Beat) { other <- b })
+		first, second := make(chan Sample, 4), make(chan Sample, 4)
+		other := make(chan Sample, 4)
+		events.Subscribe(events.NewSubscriber(bus, "one"), Alpha, func(_ context.Context, b Sample) { first <- b })
+		events.Subscribe(events.NewSubscriber(bus, "one"), Alpha, func(_ context.Context, b Sample) { first <- b })
+		events.Subscribe(events.NewSubscriber(bus, "two"), Alpha, func(_ context.Context, b Sample) { second <- b })
+		events.Subscribe(events.NewSubscriber(bus, "two"), Beta, func(_ context.Context, b Sample) { other <- b })
 
-		require.NoError(t, events.Publish(context.Background(), bus, Alpha, Beat{MonitorID: "mon-1", Seq: 7}))
+		require.NoError(t, events.Publish(context.Background(), bus, Alpha, Sample{MonitorID: "mon-1", Seq: 7}))
 
-		want := Beat{MonitorID: "mon-1", Seq: 7}
+		want := Sample{MonitorID: "mon-1", Seq: 7}
 		assert.Equal(t, want, receive(t, first), "first handler of subscriber one")
 		assert.Equal(t, want, receive(t, first), "second handler of subscriber one")
 		assert.Equal(t, want, receive(t, second), "subscriber two")
@@ -63,7 +63,7 @@ func RunContract(t *testing.T, newBus func(t *testing.T) events.EventBus) {
 		var mu sync.Mutex
 		seen := map[string][]int{}
 		var handled atomic.Int32
-		record := func(_ context.Context, b Beat) {
+		record := func(_ context.Context, b Sample) {
 			// A handler that takes a different time each call would reorder events that
 			// are handled concurrently
 			time.Sleep(time.Duration(rand.IntN(300)) * time.Microsecond)
@@ -82,7 +82,7 @@ func RunContract(t *testing.T, newBus func(t *testing.T) events.EventBus) {
 				if (seq+m)%2 == 1 {
 					topic = Beta
 				}
-				require.NoError(t, events.Publish(context.Background(), bus, topic, Beat{MonitorID: fmt.Sprintf("mon-%d", m), Seq: seq}))
+				require.NoError(t, events.Publish(context.Background(), bus, topic, Sample{MonitorID: fmt.Sprintf("mon-%d", m), Seq: seq}))
 			}
 		}
 
@@ -103,8 +103,8 @@ func RunContract(t *testing.T, newBus func(t *testing.T) events.EventBus) {
 		bus := newBus(t)
 		blocked, release := make(chan struct{}), make(chan struct{})
 		t.Cleanup(func() { close(release) })
-		fast := make(chan Beat, 8)
-		events.Subscribe(events.NewSubscriber(bus, "concurrent"), Alpha, func(_ context.Context, b Beat) {
+		fast := make(chan Sample, 8)
+		events.Subscribe(events.NewSubscriber(bus, "concurrent"), Alpha, func(_ context.Context, b Sample) {
 			if b.MonitorID == "slow" {
 				blocked <- struct{}{}
 				<-release
@@ -113,10 +113,10 @@ func RunContract(t *testing.T, newBus func(t *testing.T) events.EventBus) {
 			fast <- b
 		})
 
-		require.NoError(t, events.Publish(context.Background(), bus, Alpha, Beat{MonitorID: "slow"}))
+		require.NoError(t, events.Publish(context.Background(), bus, Alpha, Sample{MonitorID: "slow"}))
 		receive(t, blocked)
 		for seq := range 3 {
-			require.NoError(t, events.Publish(context.Background(), bus, Alpha, Beat{MonitorID: fmt.Sprintf("fast-%d", seq), Seq: seq}))
+			require.NoError(t, events.Publish(context.Background(), bus, Alpha, Sample{MonitorID: fmt.Sprintf("fast-%d", seq), Seq: seq}))
 		}
 
 		for range 3 {
@@ -130,7 +130,7 @@ func RunContract(t *testing.T, newBus func(t *testing.T) events.EventBus) {
 		t.Cleanup(func() { close(release) })
 		var order []int
 		var mu sync.Mutex
-		events.Subscribe(events.NewSubscriber(bus, "blocked"), Alpha, func(_ context.Context, b Beat) {
+		events.Subscribe(events.NewSubscriber(bus, "blocked"), Alpha, func(_ context.Context, b Sample) {
 			if b.MonitorID == "mon-1" && b.Seq == 0 {
 				started <- struct{}{}
 				<-release
@@ -141,19 +141,19 @@ func RunContract(t *testing.T, newBus func(t *testing.T) events.EventBus) {
 				mu.Unlock()
 			}
 		})
-		other := make(chan Beat, 1)
-		events.Subscribe(events.NewSubscriber(bus, "bystander"), Alpha, func(_ context.Context, b Beat) {
+		other := make(chan Sample, 1)
+		events.Subscribe(events.NewSubscriber(bus, "bystander"), Alpha, func(_ context.Context, b Sample) {
 			if b.MonitorID == "mon-2" {
 				other <- b
 			}
 		})
 
-		require.NoError(t, events.Publish(context.Background(), bus, Alpha, Beat{MonitorID: "mon-1", Seq: 0}))
+		require.NoError(t, events.Publish(context.Background(), bus, Alpha, Sample{MonitorID: "mon-1", Seq: 0}))
 		receive(t, started)
-		require.NoError(t, events.Publish(context.Background(), bus, Alpha, Beat{MonitorID: "mon-1", Seq: 1}))
-		require.NoError(t, events.Publish(context.Background(), bus, Alpha, Beat{MonitorID: "mon-2"}))
+		require.NoError(t, events.Publish(context.Background(), bus, Alpha, Sample{MonitorID: "mon-1", Seq: 1}))
+		require.NoError(t, events.Publish(context.Background(), bus, Alpha, Sample{MonitorID: "mon-2"}))
 
-		assert.Equal(t, Beat{MonitorID: "mon-2"}, receive(t, other), "another subscriber is not held up")
+		assert.Equal(t, Sample{MonitorID: "mon-2"}, receive(t, other), "another subscriber is not held up")
 		mu.Lock()
 		assert.Empty(t, order, "mon-1's later event waits for the blocked one")
 		mu.Unlock()
@@ -168,7 +168,7 @@ func RunContract(t *testing.T, newBus func(t *testing.T) events.EventBus) {
 		bus := newBus(t)
 		var mu sync.Mutex
 		var survivors []int
-		events.Subscribe(events.NewSubscriber(bus, "panicky"), Alpha, func(_ context.Context, b Beat) {
+		events.Subscribe(events.NewSubscriber(bus, "panicky"), Alpha, func(_ context.Context, b Sample) {
 			if b.Seq == 0 {
 				panic("handler bug")
 			}
@@ -176,15 +176,15 @@ func RunContract(t *testing.T, newBus func(t *testing.T) events.EventBus) {
 			survivors = append(survivors, b.Seq)
 			mu.Unlock()
 		})
-		neighbour := make(chan Beat, 4)
-		events.Subscribe(events.NewSubscriber(bus, "neighbour"), Alpha, func(_ context.Context, b Beat) { neighbour <- b })
+		neighbour := make(chan Sample, 4)
+		events.Subscribe(events.NewSubscriber(bus, "neighbour"), Alpha, func(_ context.Context, b Sample) { neighbour <- b })
 
 		for seq := range 3 {
-			require.NoError(t, events.Publish(context.Background(), bus, Alpha, Beat{MonitorID: "mon-1", Seq: seq}))
+			require.NoError(t, events.Publish(context.Background(), bus, Alpha, Sample{MonitorID: "mon-1", Seq: seq}))
 		}
 
 		for seq := range 3 {
-			assert.Equal(t, Beat{MonitorID: "mon-1", Seq: seq}, receive(t, neighbour))
+			assert.Equal(t, Sample{MonitorID: "mon-1", Seq: seq}, receive(t, neighbour))
 		}
 		require.Eventually(t, func() bool { mu.Lock(); defer mu.Unlock(); return len(survivors) == 2 }, waitFor, 5*time.Millisecond,
 			"the events after the panic, for the same monitor, are handled")
@@ -198,14 +198,14 @@ func RunContract(t *testing.T, newBus func(t *testing.T) events.EventBus) {
 		release := make(chan struct{})
 		var handled atomic.Int32
 		t.Cleanup(func() { close(release) })
-		events.Subscribe(events.NewSubscriber(bus, "stuck"), Alpha, func(_ context.Context, b Beat) {
+		events.Subscribe(events.NewSubscriber(bus, "stuck"), Alpha, func(_ context.Context, b Sample) {
 			handled.Add(1)
 			<-release
 		})
 
 		start := time.Now()
 		for seq := range 100 {
-			require.NoError(t, events.Publish(context.Background(), bus, Alpha, Beat{MonitorID: fmt.Sprintf("mon-%d", seq%25), Seq: seq}))
+			require.NoError(t, events.Publish(context.Background(), bus, Alpha, Sample{MonitorID: fmt.Sprintf("mon-%d", seq%25), Seq: seq}))
 		}
 
 		assert.Less(t, time.Since(start), 5*time.Second)
@@ -217,7 +217,7 @@ func RunContract(t *testing.T, newBus func(t *testing.T) events.EventBus) {
 		const queued = 5
 		started, release, marker := make(chan struct{}), make(chan struct{}), make(chan struct{})
 		var returned atomic.Int32
-		events.Subscribe(events.NewSubscriber(bus, "drained"), Alpha, func(_ context.Context, b Beat) {
+		events.Subscribe(events.NewSubscriber(bus, "drained"), Alpha, func(_ context.Context, b Sample) {
 			defer returned.Add(1)
 			switch b.MonitorID {
 			case "marker":
@@ -230,11 +230,11 @@ func RunContract(t *testing.T, newBus func(t *testing.T) events.EventBus) {
 			}
 		})
 		for seq := range queued {
-			require.NoError(t, events.Publish(context.Background(), bus, Alpha, Beat{MonitorID: "mon-1", Seq: seq}))
+			require.NoError(t, events.Publish(context.Background(), bus, Alpha, Sample{MonitorID: "mon-1", Seq: seq}))
 		}
 		// The marker is on another monitor, so it runs while mon-1 is blocked. Events reach
 		// the subscriber in publish order, so once it has run, the mon-1 events are queued.
-		require.NoError(t, events.Publish(context.Background(), bus, Alpha, Beat{MonitorID: "marker"}))
+		require.NoError(t, events.Publish(context.Background(), bus, Alpha, Sample{MonitorID: "marker"}))
 		receive(t, started)
 		receive(t, marker)
 
@@ -255,11 +255,11 @@ func RunContract(t *testing.T, newBus func(t *testing.T) events.EventBus) {
 
 	t.Run("publish after close returns ErrClosed", func(t *testing.T) {
 		bus := newBus(t)
-		events.Subscribe(events.NewSubscriber(bus, "closed"), Alpha, func(context.Context, Beat) {})
+		events.Subscribe(events.NewSubscriber(bus, "closed"), Alpha, func(context.Context, Sample) {})
 
 		require.NoError(t, bus.Close(context.Background()))
 
-		err := events.Publish(context.Background(), bus, Alpha, Beat{MonitorID: "mon-1"})
+		err := events.Publish(context.Background(), bus, Alpha, Sample{MonitorID: "mon-1"})
 		assert.ErrorIs(t, err, events.ErrClosed)
 		assert.NoError(t, bus.Close(context.Background()), "closing twice is fine")
 	})
@@ -269,7 +269,7 @@ func RunContract(t *testing.T, newBus func(t *testing.T) events.EventBus) {
 		started, release := make(chan struct{}), make(chan struct{})
 		t.Cleanup(func() { close(release) })
 		cancelled := make(chan struct{})
-		events.Subscribe(events.NewSubscriber(bus, "stuck"), Alpha, func(ctx context.Context, b Beat) {
+		events.Subscribe(events.NewSubscriber(bus, "stuck"), Alpha, func(ctx context.Context, b Sample) {
 			close(started)
 			select {
 			case <-ctx.Done():
@@ -277,7 +277,7 @@ func RunContract(t *testing.T, newBus func(t *testing.T) events.EventBus) {
 			case <-release:
 			}
 		})
-		require.NoError(t, events.Publish(context.Background(), bus, Alpha, Beat{MonitorID: "mon-1"}))
+		require.NoError(t, events.Publish(context.Background(), bus, Alpha, Sample{MonitorID: "mon-1"}))
 		receive(t, started)
 
 		ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)

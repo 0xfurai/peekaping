@@ -136,7 +136,11 @@ func (b *Bus) AddHandler(name string, handler Handler) {
 	}
 	sub := b.subscribers[name]
 	if sub == nil {
-		sub = newSubscriber(b, name)
+		workers := handler.workers
+		if workers == 0 {
+			workers = b.workers
+		}
+		sub = newSubscriber(b, name, workers)
 		b.subscribers[name] = sub
 	}
 	sub.addHandler(handler)

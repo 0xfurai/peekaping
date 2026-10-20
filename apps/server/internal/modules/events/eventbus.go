@@ -43,7 +43,12 @@ type Message struct {
 type Handler struct {
 	topic string
 	bind  func(Message) (string, func(context.Context), error)
+	// workers is the worker limit of the handler's subscriber; zero means the bus's default
+	workers int
 }
+
+// Workers is the worker limit the handler's subscriber asked for, or zero for the bus's default.
+func (h Handler) Workers() int { return h.workers }
 
 // Topic is the name of the topic the handler subscribes to.
 func (h Handler) Topic() string { return h.topic }
@@ -72,14 +77,29 @@ func Publish[T any](ctx context.Context, bus EventBus, topic Topic[T], payload T
 // delays only the events behind it for the same monitor. Name a subscriber after the part of
 // the program that owns the handlers, for example "producer" or "notification".
 type Subscriber struct {
-	bus  EventBus
-	name string
+	bus     EventBus
+	name    string
+	workers int
+}
+
+// SubscriberOption configures a Subscriber.
+type SubscriberOption func(*Subscriber)
+
+// SubscriberWorkers sets how many events the subscriber handles at the same time, in place of
+// the bus's default. Give it to a subscriber whose handlers wait on the network, so that a few
+// slow monitors can't take every worker. The first registration of a subscriber name sets it.
+func SubscriberWorkers(n int) SubscriberOption {
+	return func(s *Subscriber) { s.workers = max(n, 1) }
 }
 
 // NewSubscriber returns the subscriber called name on bus. Subscribers with the same name
 // on the same bus share their queues.
-func NewSubscriber(bus EventBus, name string) Subscriber {
-	return Subscriber{bus: bus, name: name}
+func NewSubscriber(bus EventBus, name string, opts ...SubscriberOption) Subscriber {
+	s := Subscriber{bus: bus, name: name}
+	for _, opt := range opts {
+		opt(&s)
+	}
+	return s
 }
 
 // Subscribe registers handler for topic. The bus decodes each event into a T of its own
@@ -87,7 +107,8 @@ func NewSubscriber(bus EventBus, name string) Subscriber {
 // context that is cancelled if the bus is closed before the handler is done.
 func Subscribe[T any](sub Subscriber, topic Topic[T], handler func(context.Context, T)) {
 	sub.bus.AddHandler(sub.name, Handler{
-		topic: topic.name,
+		topic:   topic.name,
+		workers: sub.workers,
 		bind: func(msg Message) (string, func(context.Context), error) {
 			payload, err := decode[T](msg)
 			if err != nil {

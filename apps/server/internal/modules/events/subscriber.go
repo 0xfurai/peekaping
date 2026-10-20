@@ -41,7 +41,7 @@ type event struct {
 	call  func(context.Context)
 }
 
-func newSubscriber(bus *Bus, name string) *subscriber {
+func newSubscriber(bus *Bus, name string, workers int) *subscriber {
 	s := &subscriber{
 		name:     name,
 		bus:      bus,
@@ -49,8 +49,8 @@ func newSubscriber(bus *Bus, name string) *subscriber {
 		lanes:    make(map[string]*lane),
 	}
 	s.hasWork = sync.NewCond(&s.mu)
-	s.wg.Add(bus.workers)
-	for range bus.workers {
+	s.wg.Add(workers)
+	for range workers {
 		go s.work()
 	}
 	return s
