@@ -1,13 +1,15 @@
 #!/bin/bash
 # The PostgreSQL bundle's startup script (Dockerfile.bundle.postgres), run by tini.
 #
-# It runs PostgreSQL and peekaping side by side. As root, it initializes the cluster on the
-# first start and runs PostgreSQL as postgres; it sets up the peekaping user (PUID/PGID and the
-# Docker socket's group), then runs the migrations and peekaping as that user. Started with
-# docker run --user, it runs everything as the given user, who must own the data directory.
+# It runs PostgreSQL and peekaping side by side. As root, it sets up the peekaping user
+# (PUID/PGID and the Docker socket's group), initializes the cluster on the first start and
+# runs PostgreSQL as postgres, then runs the migrations and peekaping as peekaping. Started
+# with docker run --user, it runs everything as the given user, who must own the data
+# directory.
 #
-# On SIGTERM or SIGINT (docker stop), it stops peekaping, then PostgreSQL, and exits 0 once
-# both have stopped cleanly. If either exits on its own, it stops the other and exits non-zero.
+# On SIGTERM (docker stop) or SIGINT (Ctrl+C under docker run -it), it stops peekaping, then
+# PostgreSQL, and exits 0 once both have stopped cleanly. If either exits on its own, or a step
+# fails while PostgreSQL runs, it stops what still runs and exits non-zero.
 
 # No pipefail: startup.user.sh runs `getent ... | cut`, where getent fails for a free ID.
 set -eu
@@ -56,11 +58,9 @@ fi
 
 pg_pid=
 app_pid=
-
-# The signal handler only takes note. The steps below check for it, since bash runs the
-# handler only once the command in progress, such as the migrations, has finished.
+app_stopping=
+stopping=
 stop_requested=
-trap 'stop_requested=1' TERM INT
 
 # reap <pid>: waits for the process to exit, through any signal that interrupts the wait, and
 # sets reaped to its exit status
@@ -76,15 +76,26 @@ reap() {
     done
 }
 
+# stop_app: sends peekaping SIGTERM, once: a second one makes it exit without finishing its
+# shutdown
+stop_app() {
+    if [ -n "$app_pid" ] && [ -z "$app_stopping" ]; then
+        app_stopping=1
+        echo "Stopping peekaping..."
+        kill -TERM "$app_pid" 2>/dev/null || true
+    fi
+}
+
 # shutdown <exit code>: stops peekaping, then PostgreSQL, and exits. The code is raised to 1
 # if either doesn't stop cleanly.
 shutdown() {
     local code=$1
+    stopping=1
 
     if [ -n "$app_pid" ] && kill -0 "$app_pid" 2>/dev/null; then
-        echo "Stopping peekaping..."
-        kill -TERM "$app_pid" 2>/dev/null || true
+        stop_app
         reap "$app_pid"
+        app_pid=
         if [ "$reaped" != 0 ]; then
             echo "peekaping exited with $reaped"
             [ "$code" != 0 ] || code=1
@@ -107,12 +118,54 @@ shutdown() {
     exit "$code"
 }
 
-# stop_if_requested: shuts down cleanly if a signal came during the last step
+# A signal starts the shutdown in the handler: peekaping, once it runs, gets SIGTERM at once,
+# so the wait below returns whenever the signal comes. The steps check stop_requested and
+# finish the shutdown outside the handler: bash re-raises the signal on itself when a handler
+# waits for a process. bash runs the handler once the command in progress, such as the
+# migrations, has finished.
+on_signal() {
+    stop_requested=1
+    stop_app
+}
+trap on_signal TERM INT
+
+# stop_if_requested: finishes the shutdown if a signal came
 stop_if_requested() {
     if [ -n "$stop_requested" ]; then
         shutdown 0
     fi
 }
+
+# Any other exit, such as a failed step under set -e, stops what still runs, so PostgreSQL
+# shuts down cleanly rather than being killed with the container
+on_exit() {
+    local code=$?
+    if [ -z "$stopping" ] && [ -n "$pg_pid$app_pid" ]; then
+        shutdown "$code"
+    fi
+}
+trap on_exit EXIT
+
+# spawn <variable> <command...>: starts the command in the background and stores its PID in the
+# variable, unless a signal came. The command runs in a session of its own: Ctrl+C under
+# docker run -it sends SIGINT to the terminal's whole foreground process group, and only this
+# script may take it, so that peekaping stops before PostgreSQL and takes a single signal.
+spawn() {
+    local variable=$1
+    shift
+    stop_if_requested
+    setsid "$@" &
+    printf -v "$variable" %s "$!"
+    # A signal before the PID was stored
+    stop_if_requested
+}
+
+if [ "$(id -u)" = 0 ]; then
+    # The peekaping user: PUID/PGID, the Docker socket and /app/data. First, so that a bad
+    # PUID or PGID stops the container before PostgreSQL starts.
+    # shellcheck source=startup.bundle.user.sh
+    . /app/startup.user.sh
+fi
 
 # The data directory
 if [ "$(id -u)" = 0 ]; then
@@ -124,49 +177,61 @@ elif [ ! -w "$PGDATA" ]; then
     exit 1
 fi
 
-# Initialize the cluster on the first start. A directory without the marker holds no finished
-# initialization, so it is cleared first.
-fresh=false
+# The setup runs until the marker is written. initdb runs only where there's no cluster yet
+# (no PG_VERSION): whatever is left in such a directory is cleared first. A cluster whose
+# setup didn't finish, such as after a failed first start, keeps its files, and the setup runs
+# on it again.
+setup_pending=false
 if [ ! -f "$initialized_marker" ]; then
-    echo "Initializing PostgreSQL..."
-    rm -rf "${PGDATA:?}"/*
-    if [ "$(id -u)" != 0 ] && ! getent passwd "$(id -u)" >/dev/null; then
-        # initdb needs its user's name, and docker run --user can give a UID with none
-        nss_dir=$(mktemp -d)
-        echo "postgres:x:$(id -u):$(id -g):PostgreSQL:$PGDATA:/bin/false" >"$nss_dir/passwd"
-        echo "postgres:x:$(id -g):" >"$nss_dir/group"
-        LD_PRELOAD=libnss_wrapper.so NSS_WRAPPER_PASSWD="$nss_dir/passwd" NSS_WRAPPER_GROUP="$nss_dir/group" \
-            initdb -D "$PGDATA" --username=postgres
-        rm -rf "$nss_dir"
+    setup_pending=true
+    if [ ! -f "$PGDATA/PG_VERSION" ]; then
+        echo "Initializing PostgreSQL..."
+        rm -rf "${PGDATA:?}"/*
+        if [ "$(id -u)" != 0 ] && ! getent passwd "$(id -u)" >/dev/null; then
+            # initdb needs its user's name, and docker run --user can give a UID with none
+            nss_dir=$(mktemp -d)
+            echo "postgres:x:$(id -u):$(id -g):PostgreSQL:$PGDATA:/bin/false" >"$nss_dir/passwd"
+            echo "postgres:x:$(id -g):" >"$nss_dir/group"
+            LD_PRELOAD=libnss_wrapper.so NSS_WRAPPER_PASSWD="$nss_dir/passwd" NSS_WRAPPER_GROUP="$nss_dir/group" \
+                initdb -D "$PGDATA" --username=postgres
+            rm -rf "$nss_dir"
+        else
+            "${as_postgres[@]}" initdb -D "$PGDATA" --username=postgres
+        fi
     else
-        "${as_postgres[@]}" initdb -D "$PGDATA" --username=postgres
+        echo "Finishing the PostgreSQL setup that an earlier start didn't finish..."
     fi
-    fresh=true
 fi
-stop_if_requested
 
 echo "Starting PostgreSQL..."
-"${as_postgres[@]}" postgres -D "$PGDATA" -p "$DB_PORT" &
-pg_pid=$!
+spawn pg_pid "${as_postgres[@]}" postgres -D "$PGDATA" -p "$DB_PORT"
 
 echo "Waiting for PostgreSQL to accept connections..."
 until pg_isready -q -p "$DB_PORT" -U postgres; do
     stop_if_requested
     if ! kill -0 "$pg_pid" 2>/dev/null; then
         reap "$pg_pid"
+        pg_pid=
         echo "ERROR: PostgreSQL exited with $reaped before it accepted connections"
+        if [ "$setup_pending" = true ]; then
+            echo "ERROR: $PGDATA holds a cluster whose setup never finished. If it holds no data, empty it and start again."
+        fi
         exit 1
     fi
     sleep 1
 done
 stop_if_requested
 
-if [ "$fresh" = true ]; then
+if [ "$setup_pending" = true ]; then
+    # Each step can run again: the role and the database are created only if missing, so
+    # PostgreSQL's own (DB_USER=postgres, DB_NAME=postgres) are kept as they are
     echo "Creating the database and its user..."
-    "${as_postgres[@]}" psql -q -v ON_ERROR_STOP=1 -p "$DB_PORT" -U postgres -d postgres \
+    if ! "${as_postgres[@]}" psql -q -v ON_ERROR_STOP=1 -p "$DB_PORT" -U postgres -d postgres \
         -v db_user="$DB_USER" -v db_pass="$DB_PASS" -v db_name="$DB_NAME" <<'SQL'
-CREATE USER :"db_user" WITH PASSWORD :'db_pass';
-CREATE DATABASE :"db_name" OWNER :"db_user";
+SELECT format('CREATE USER %I WITH PASSWORD %L', :'db_user', :'db_pass')
+WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = :'db_user') \gexec
+SELECT format('CREATE DATABASE %I OWNER %I', :'db_name', :'db_user')
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = :'db_name') \gexec
 GRANT CONNECT ON DATABASE :"db_name" TO :"db_user";
 \connect :"db_name"
 GRANT USAGE ON SCHEMA public TO :"db_user";
@@ -176,36 +241,45 @@ GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO :"db_user";
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO :"db_user";
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO :"db_user";
 SQL
+    then
+        stop_if_requested
+        echo "ERROR: Couldn't create the database and its user. The next start tries again."
+        shutdown 1
+    fi
     "${as_postgres[@]}" touch "$initialized_marker"
     echo "PostgreSQL initialization completed!"
-fi
-
-if [ "$(id -u)" = 0 ]; then
-    # The peekaping user: PUID/PGID, the Docker socket and /app/data
-    # shellcheck source=startup.bundle.user.sh
-    . /app/startup.user.sh
 fi
 stop_if_requested
 
 echo "Running database migrations..."
 if ! "${as_peekaping[@]}" ./run-migrations.sh; then
+    # Ctrl+C reaches the migrations too
+    stop_if_requested
     echo "ERROR: Migrations failed"
     shutdown 1
 fi
-stop_if_requested
 
-"${as_peekaping[@]}" /app/server/peekaping &
-app_pid=$!
+spawn app_pid "${as_peekaping[@]}" /app/server/peekaping
 
-# Until a signal comes, or one of them exits
+# Until a signal comes, or one of them exits. on_signal has sent peekaping SIGTERM by the time
+# the wait returns on a signal, or peekaping exits on it.
 while :; do
-    exited=
+    stop_if_requested
     status=0
     wait -n -p exited "$pg_pid" "$app_pid" || status=$?
-    stop_if_requested
+    # wait unsets exited when a signal interrupts it
+    exited=${exited:-}
     if [ "$exited" = "$app_pid" ]; then
-        echo "peekaping exited with $status, stopping PostgreSQL"
         app_pid=
+        if [ -n "$stop_requested" ]; then
+            # It stopped on the signal
+            if [ "$status" != 0 ]; then
+                echo "peekaping exited with $status"
+                shutdown 1
+            fi
+            shutdown 0
+        fi
+        echo "peekaping exited with $status, stopping PostgreSQL"
         if [ "$status" = 0 ]; then status=1; fi
         shutdown "$status"
     elif [ "$exited" = "$pg_pid" ]; then
