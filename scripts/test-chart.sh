@@ -7,9 +7,13 @@
 # Deployments wait for the migrations in an init container that runs the migrate
 # image (also when migrate.image.tag is set) while the web Deployment has none,
 # an enabled AppArmor profile covers that init container as well as the main
-# container, the migrate Job is named after the release revision and retries 6
-# times, so it outlasts a restart of the bundled PostgreSQL, and the install
-# notes say Peekaping runs in cluster mode and link to the Helm docs page.
+# container, the init container's script ends at once for a MongoDB install,
+# which has no SQL migrations to wait for, and keeps waiting for a PostgreSQL
+# one until `./bun db status` reports none unapplied, the migrate Job is named
+# after the release revision (and its name fits Kubernetes' limit of 63
+# characters for the longest release name Helm allows) and retries 6 times, so
+# it outlasts a restart of the bundled PostgreSQL, and the install notes say
+# Peekaping runs in cluster mode and link to the Helm docs page.
 #
 # Usage: scripts/test-chart.sh
 # Needs helm (3.13 or later) and network access to registry-1.docker.io, where
@@ -86,16 +90,22 @@ env_from_of() {
   '
 }
 
-# job_named <rendered file> <template> <expected name>: the Job that <template>
-# renders (such as migrate-job) has that metadata name
-job_named() {
-  local name
-  name=$(awk -v template="$2" '
+# job_name_of <rendered file> <template>: the metadata name of the Job that
+# <template> renders (such as migrate-job)
+job_name_of() {
+  awk -v template="$2" '
     /^# Source: / { in_template = ($0 ~ "/" template "\\.yaml$"); next }
     /^---$/ { in_template = 0 }
     in_template && /^kind: / && $2 != "Job" { exit }
     in_template && /^  name: / { print $2; exit }
-  ' "$1")
+  ' "$1"
+}
+
+# job_named <rendered file> <template> <expected name>: the Job that <template>
+# renders (such as migrate-job) has that metadata name
+job_named() {
+  local name
+  name=$(job_name_of "$1" "$2")
   if [ "$name" != "$3" ]; then
     echo "       the Job in $2 is named '${name:-<none>}', expected $3"
     return 1
@@ -132,6 +142,40 @@ pinned_by_digest() {
   ' "$1")
   if [ -n "$unpinned" ]; then
     echo "       $2 runs without a digest: $(paste -sd ' ' - <<<"$unpinned")"
+    return 1
+  fi
+}
+
+# job_name_fits <release name>: for a release of that name, the migrate Job is
+# named <release>-migrate cut to 52 characters, then -<revision>, so a revision
+# of up to 10 digits keeps the name within the 63 characters Kubernetes allows.
+# Helm allows release names of 53 characters, which <release>-migrate-<revision>
+# would exceed from revision 10 on. A name that fits is left as it is, and the
+# cut never leaves a hyphen in front of the revision's.
+job_name_fits() {
+  local name prefix
+  helm template "$1" "$chart" >"$work/job-name.yaml" 2>"$work/job-name.log" ||
+    { sed 's/^/       /' "$work/job-name.log"; return 1; }
+  name=$(job_name_of "$work/job-name.yaml" migrate-job)
+  prefix=${name%-1}
+  if [ -z "$name" ] || [ "$prefix" = "$name" ]; then
+    echo "       the Job is named '${name:-<none>}', expected a name ending in -1 (helm template renders revision 1)"
+    return 1
+  fi
+  if [ "${#prefix}" -gt 52 ]; then
+    echo "       the Job is named $name: with a 10 digit revision that is $((${#prefix} + 11)) characters, more than 63"
+    return 1
+  fi
+  if [[ $name == *--* ]]; then
+    echo "       the Job is named $name, with a double hyphen where the release name was cut"
+    return 1
+  fi
+  if [[ $1-migrate != "$prefix"* ]]; then
+    echo "       the Job is named $name, which doesn't start like $1-migrate"
+    return 1
+  fi
+  if [ "$((${#1} + 8))" -le 52 ] && [ "$name" != "$1-migrate-1" ]; then
+    echo "       the Job is named $name, expected $1-migrate-1: a name that fits is left as it is"
     return 1
   fi
 }
@@ -241,6 +285,88 @@ apparmor_off() {
   return $status
 }
 
+# wait_script_of <rendered file> <template>: the shell script of the
+# wait-for-migrations init container in the rendered <template> (such as
+# api-deploy): the lines under `- |` in its command, without their indentation
+wait_script_of() {
+  container_of "$1" "$2" wait-for-migrations | awk '
+    !body && /^ *- \|$/ { match($0, /^ */); indent = RLENGTH; body = 1; next }
+    body {
+      match($0, /^ */)
+      if ($0 !~ /^ *$/ && RLENGTH <= indent) exit
+      if (!strip) strip = RLENGTH
+      print substr($0, strip + 1)
+    }
+  '
+}
+
+# run_within <seconds> <command...>: runs the command with its output in
+# $work/script.out. It returns the command's exit status when the command ends
+# within <seconds>, and kills it and returns 124 when it doesn't. (timeout is
+# not on every macOS, so this is a small version of it.)
+run_within() {
+  local limit=$1 pid status=0 tenths=0
+  shift
+  "$@" >"$work/script.out" 2>&1 &
+  pid=$!
+  while kill -0 "$pid" 2>/dev/null; do
+    if [ "$tenths" -ge $((limit * 10)) ]; then
+      kill "$pid" 2>/dev/null || true
+      wait "$pid" 2>/dev/null || true
+      return 124
+    fi
+    sleep 0.1
+    tenths=$((tenths + 1))
+  done
+  wait "$pid" || status=$?
+  return $status
+}
+
+# wait_script_run <rendered file> <db type> <fails|applied> <ends|waits>: runs
+# the api Deployment's wait-for-migrations script with sh, as the container
+# does, in an empty directory with DB_TYPE=<db type> and a stub ./bun in place
+# of the migrate image's. With `fails`, `./bun db status` fails, as it does
+# while the database or its migration tables are missing. With `applied` it
+# prints "unapplied migrations: empty". The script must end with exit status 0
+# within 5 seconds (`ends`), or still be running after 3 (`waits`).
+wait_script_run() {
+  local dir=$work/wait-script status=0
+  rm -rf "$dir"
+  mkdir "$dir"
+  wait_script_of "$1" api-deploy >"$dir/wait.sh"
+  if [ ! -s "$dir/wait.sh" ]; then
+    echo "       no script in the wait-for-migrations init container of the api Deployment"
+    return 1
+  fi
+  case $3 in
+    fails) printf '#!/bin/sh\necho "pq: relation does not exist" >&2\nexit 1\n' >"$dir/bun" ;;
+    applied) printf '#!/bin/sh\necho "unapplied migrations: empty"\n' >"$dir/bun" ;;
+  esac
+  chmod +x "$dir/bun"
+  case $4 in
+    ends)
+      (cd "$dir" && run_within 5 env "DB_TYPE=$2" sh wait.sh) || status=$?
+      if [ "$status" = 124 ]; then
+        echo "       DB_TYPE=$2: the script was still waiting after 5 seconds, output so far:"
+        sed 's/^/       /' "$work/script.out"
+        return 1
+      elif [ "$status" != 0 ]; then
+        echo "       DB_TYPE=$2: the script exited with status $status:"
+        sed 's/^/       /' "$work/script.out"
+        return 1
+      fi
+      ;;
+    waits)
+      (cd "$dir" && run_within 3 env "DB_TYPE=$2" sh wait.sh) || status=$?
+      if [ "$status" != 124 ]; then
+        echo "       DB_TYPE=$2: the script ended with status $status within 3 seconds, output:"
+        sed 's/^/       /' "$work/script.out"
+        return 1
+      fi
+      ;;
+  esac
+}
+
 # notes_say <text>: the notes an install prints have the text. A client-side
 # dry run prints them and needs no cluster.
 notes_say() {
@@ -266,10 +392,31 @@ if check "helm dependency build fetches PostgreSQL and Redis" run dependency hel
       backend_components_wait "$work/default.yaml" 0xfurai/peekaping-migrate:latest || true
     check "default values: the api, producer, worker and ingester pods have no AppArmor annotation" \
       apparmor_off "$work/default.yaml" || true
+    # The migrate Job skips the migrations for MongoDB (run-migrations.sh), and
+    # `./bun db status` has no MongoDB support, so a script that only polls it
+    # would keep the pods of an existing MongoDB install in Init for good.
+    for db_type in mongo mongodb; do
+      check "default values: the api's wait-for-migrations script ends at once with DB_TYPE=$db_type, although ./bun db status fails" \
+        wait_script_run "$work/default.yaml" "$db_type" fails ends || true
+    done
+    check "default values: the api's wait-for-migrations script ends with DB_TYPE=postgres when no migration is unapplied" \
+      wait_script_run "$work/default.yaml" postgres applied ends || true
+    check "default values: the api's wait-for-migrations script keeps waiting with DB_TYPE=postgres while ./bun db status fails" \
+      wait_script_run "$work/default.yaml" postgres fails waits || true
     # helm template renders revision 1. An upgrade or a rollback has a higher
     # one, so each revision creates its own Job instead of changing the last.
     check "default values: the migrate Job is named after the release revision" \
       job_named "$work/default.yaml" migrate-job "$release-migrate-1" || true
+    # Helm allows release names of up to 53 characters. A Job's name is at most
+    # 63, so the name is cut to 52 characters before the revision, which leaves
+    # room for 10 digits.
+    long_release=abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz1
+    check "a release name of 53 characters: the migrate Job's name fits 63 characters up to a 10 digit revision" \
+      job_name_fits "$long_release" || true
+    check "a release name of 53 characters, cut at a hyphen: the migrate Job's name fits and has no double hyphen" \
+      job_name_fits "${long_release:0:51}-z" || true
+    check "a release name of 44 characters: the migrate Job's name is <release>-migrate-1" \
+      job_name_fits "${long_release:0:44}" || true
     # Failed tries back off 10 s, 20 s, 40 s and so on, so 6 tries last long
     # enough for the bundled PostgreSQL to come back from a restart that the
     # same upgrade causes.
