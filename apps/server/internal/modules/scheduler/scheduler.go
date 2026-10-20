@@ -85,7 +85,8 @@ type Scheduler struct {
 
 	mu        sync.Mutex
 	schedules map[string]*schedule
-	ctx       context.Context // the scheduler's lifetime; nil until it starts
+	checks    map[string]*checkRun // the monitors with a check running
+	ctx       context.Context      // the scheduler's lifetime; nil until it starts
 	cancel    context.CancelFunc
 	stopped   bool
 	wg        sync.WaitGroup
@@ -95,6 +96,15 @@ type Scheduler struct {
 type schedule struct {
 	interval time.Duration
 	timer    *time.Timer
+}
+
+// checkRun is a monitor's running check
+type checkRun struct {
+	cancel    context.CancelFunc
+	cancelled bool
+	// rerun is set when a check was asked for while this one, already cancelled, was
+	// winding down. The monitor is checked again as soon as it has ended.
+	rerun bool
 }
 
 // New creates a scheduler
@@ -112,6 +122,7 @@ func New(cfg Config) *Scheduler {
 		reconcileInterval: reconcileInterval,
 		logger:            cfg.Logger.With("component", "scheduler"),
 		schedules:         make(map[string]*schedule),
+		checks:            make(map[string]*checkRun),
 	}
 }
 
@@ -244,14 +255,52 @@ func (s *Scheduler) running() bool {
 	return s.ctx != nil && !s.stopped && s.ctx.Err() == nil
 }
 
-// startCheck runs a check of the monitor in the background. The caller holds mu.
+// startCheck runs a check of the monitor in the background, unless one is already running:
+// a monitor runs at most one check at a time, and the check that fell due is skipped. A
+// running check that was cancelled doesn't count: the monitor is checked again once it
+// has ended. The caller holds mu.
 func (s *Scheduler) startCheck(monitorID string) {
-	ctx := s.ctx
+	if run := s.checks[monitorID]; run != nil {
+		if run.cancelled {
+			run.rerun = true
+		} else {
+			s.logger.Debugw("Previous check still running, skipping", "monitor_id", monitorID)
+		}
+		return
+	}
+
+	ctx, cancel := context.WithCancel(s.ctx)
+	run := &checkRun{cancel: cancel}
+	s.checks[monitorID] = run
 	s.wg.Add(1)
 	go func() {
 		defer s.wg.Done()
+		defer s.endCheck(monitorID, run)
 		s.runCheck(ctx, monitorID)
 	}()
+}
+
+// endCheck forgets the monitor's finished check, and starts the check that was waiting for it
+func (s *Scheduler) endCheck(monitorID string, run *checkRun) {
+	run.cancel()
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.checks[monitorID] == run {
+		delete(s.checks, monitorID)
+	}
+	if run.rerun && s.running() {
+		s.startCheck(monitorID)
+	}
+}
+
+// cancelCheck cancels the monitor's running check, whose result is dropped. The caller holds mu.
+func (s *Scheduler) cancelCheck(monitorID string) {
+	if run := s.checks[monitorID]; run != nil {
+		run.cancelled = true
+		run.rerun = false
+		run.cancel()
+	}
 }
 
 // runCheck loads the monitor's check, runs it and ingests its result
@@ -354,6 +403,11 @@ func (s *Scheduler) onUpdated(monitorID string) {
 	if !ok {
 		return
 	}
+	// A running check carries the config from before the update
+	s.mu.Lock()
+	s.cancelCheck(monitorID)
+	s.mu.Unlock()
+
 	if !schedulable(mon) {
 		s.unschedule(monitorID)
 		return
@@ -390,10 +444,11 @@ func (s *Scheduler) find(monitorID string) (*shared.Monitor, bool) {
 	return mon, true
 }
 
-// unschedule stops the monitor's timer
+// unschedule stops the monitor's timer and cancels its running check
 func (s *Scheduler) unschedule(monitorID string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	s.cancelCheck(monitorID)
 	if sc := s.schedules[monitorID]; sc != nil {
 		sc.timer.Stop()
 		delete(s.schedules, monitorID)
