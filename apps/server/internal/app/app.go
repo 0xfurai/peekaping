@@ -9,9 +9,10 @@
 // (ingester.Service) enqueues the worker's and the push URL's results for the ingester. Its
 // RegisterCluster functions build each cluster binary's graph.
 //
-// Single mode's transport goes beside it, in single.go: Register, then the in-memory event
-// bus and stale.Store, the scheduler and its watchdog, and one ingester.NewInOrderService as
-// the ingester.Service that both the scheduler and the push URL ingest through.
+// Single mode's transport is in single.go: Register, then the in-memory event bus and
+// stale.Store, the scheduler and its watchdog, and one ingester.NewInOrderService as the
+// ingester.Service that both the scheduler and the push URL ingest through. RegisterSingle
+// builds cmd/peekaping's graph.
 //
 // Every provide is checked, so a refused one stops startup with an error that names its
 // constructor.
