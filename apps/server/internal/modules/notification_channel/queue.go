@@ -8,8 +8,10 @@ import (
 	"sync/atomic"
 	"time"
 
+	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/queue"
+	"peekaping/internal/modules/stale"
 )
 
 const (
@@ -35,6 +37,9 @@ const (
 // on every replica, such as the heartbeat the websocket pushes, stays on pub/sub.
 var queuedTopics = []string{
 	events.ImportantHeartbeat.Name(),
+	certificate.CertificateExpiry.Name(),
+	stale.MonitorStale.Name(),
+	stale.MonitorStaleRecovered.Name(),
 }
 
 // queuedEvent is the payload of a notification task: the topic's name, and the event's payload

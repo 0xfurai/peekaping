@@ -52,3 +52,13 @@ func TestQueuedBus_RefusesANotificationEventOnceClosed(t *testing.T) {
 
 	assert.ErrorIs(t, err, events.ErrClosed)
 }
+
+// Redis pub/sub hands an event to every api replica, so a topic the listener subscribes to and
+// the queue doesn't carry would be sent once by each replica
+func TestQueuedTopics_AreEveryTopicTheNotificationListenerSubscribesTo(t *testing.T) {
+	wireNames := []string{"important.heartbeat", "certificate.expiry", "monitor.stale", "monitor.stale.recovered"}
+	f := newListenerFixture(t)
+
+	assert.ElementsMatch(t, wireNames, f.bus.SubscribedTopics(), "the topics the listener subscribes to")
+	assert.ElementsMatch(t, wireNames, queuedTopics, "the topics QueuedBus sends through the queue")
+}

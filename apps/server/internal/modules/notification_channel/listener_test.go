@@ -107,6 +107,17 @@ func (p *recordingProvider) sentConfigs() []string {
 	return configs
 }
 
+// sentMessages returns the messages of the notifications the provider sent
+func (p *recordingProvider) sentMessages() []string {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	messages := []string{}
+	for _, n := range p.sent {
+		messages = append(messages, n.message)
+	}
+	return messages
+}
+
 func registerTestProvider(t *testing.T, channelType string, provider NotificationChannelProvider) {
 	t.Helper()
 	RegisterNotificationChannelProvider(channelType, provider)
@@ -198,6 +209,14 @@ func downHeartbeat(monitorID string) *heartbeat.Model {
 		Msg:       "connection refused",
 		Important: true,
 		Time:      time.Date(2026, 10, 17, 9, 30, 0, 0, time.UTC),
+	}
+}
+
+func staleMonitor(monitorID string) stale.Event {
+	return stale.Event{
+		MonitorID:   monitorID,
+		MonitorName: "Public API",
+		Since:       time.Date(2026, 10, 17, 9, 30, 0, 0, time.UTC),
 	}
 }
 
@@ -715,6 +734,44 @@ func TestNotificationListener_ThreeAPIReplicasSendAnImportantHeartbeatOnce(t *te
 	require.NoError(t, events.Publish(context.Background(), ingester, events.ImportantHeartbeat, *downHeartbeat("mon-1")))
 
 	assert.Equal(t, 1, settledSends(t, provider), "notifications sent for one important heartbeat, with 3 api replicas")
+}
+
+func TestNotificationListener_ThreeAPIReplicasSendACertificateExpiryNotificationOnce(t *testing.T) {
+	provider := &recordingProvider{}
+	registerTestProvider(t, "test-slack", provider)
+	redisServer := miniredis.RunT(t)
+	startAPIReplicas(t, redisServer.Addr(), 3)
+	ingester := newClusterBus(t, redisConfig(t, redisServer.Addr()))
+
+	require.NoError(t, events.Publish(context.Background(), ingester, certificate.CertificateExpiry, *certificateExpiry("mon-1")))
+
+	assert.Equal(t, 1, settledSends(t, provider), "notifications sent for one certificate expiry, with 3 api replicas")
+}
+
+func TestNotificationListener_ThreeAPIReplicasSendAStaleMonitorsNotCheckedSinceNotificationOnce(t *testing.T) {
+	provider := &recordingProvider{}
+	registerTestProvider(t, "test-slack", provider)
+	redisServer := miniredis.RunT(t)
+	startAPIReplicas(t, redisServer.Addr(), 3)
+	producer := newClusterBus(t, redisConfig(t, redisServer.Addr()))
+
+	require.NoError(t, events.Publish(context.Background(), producer, stale.MonitorStale, staleMonitor("mon-1")))
+
+	assert.Equal(t, 1, settledSends(t, provider), "notifications sent for one stale monitor, with 3 api replicas")
+	assert.Equal(t, []string{"Peekaping has not checked Public API since 2026-10-17 09:30:00 UTC"}, provider.sentMessages())
+}
+
+func TestNotificationListener_ThreeAPIReplicasSendAStaleMonitorsCheckingAgainNotificationOnce(t *testing.T) {
+	provider := &recordingProvider{}
+	registerTestProvider(t, "test-slack", provider)
+	redisServer := miniredis.RunT(t)
+	startAPIReplicas(t, redisServer.Addr(), 3)
+	producer := newClusterBus(t, redisConfig(t, redisServer.Addr()))
+
+	require.NoError(t, events.Publish(context.Background(), producer, stale.MonitorStaleRecovered, staleMonitor("mon-1")))
+
+	assert.Equal(t, 1, settledSends(t, provider), "notifications sent for one recovered stale monitor, with 3 api replicas")
+	assert.Equal(t, []string{"Peekaping is checking Public API again. It was not checked from 2026-10-17 09:30:00 UTC"}, provider.sentMessages())
 }
 
 func TestEveryChannelTypeHasGoldenRequests(t *testing.T) {
