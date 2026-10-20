@@ -138,7 +138,7 @@ func TestEventListener_OnAFollower(t *testing.T) {
 			monitorSvc := new(MockMonitorService)
 			queueSvc := new(MockQueueService)
 			e.producer.monitorService = monitorSvc
-			e.producer.queueService = queueSvc
+			e.producer.runner = NewQueueRunner(queueSvc, zap.NewNop().Sugar())
 			e.producer.monitorIntervals["mon-1"] = 60
 			e.addDue(t, "mon-1", slot)
 

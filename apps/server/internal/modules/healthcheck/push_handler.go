@@ -2,15 +2,14 @@ package healthcheck
 
 import (
 	"context"
-	"fmt"
 	"github.com/danielgtaylor/huma/v2"
 	"math"
 	"net/http"
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/heartbeat"
+	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/monitor"
-	"peekaping/internal/modules/queue"
 	"peekaping/internal/utils"
 	"strconv"
 	"strings"
@@ -25,32 +24,13 @@ type PushConfig struct {
 	PushToken string `json:"pushToken"`
 }
 
-// IngesterTaskPayload matches the payload structure for ingester tasks
-type PushIngesterPayload struct {
-	MonitorID          string               `json:"monitor_id"`
-	MonitorName        string               `json:"monitor_name"`
-	MonitorType        string               `json:"monitor_type"`
-	MonitorInterval    int                  `json:"monitor_interval"`
-	MonitorTimeout     int                  `json:"monitor_timeout"`
-	MonitorMaxRetries  int                  `json:"monitor_max_retries"`
-	MonitorRetryInt    int                  `json:"monitor_retry_interval"`
-	MonitorResendInt   int                  `json:"monitor_resend_interval"`
-	MonitorConfig      string               `json:"monitor_config"`
-	Status             shared.MonitorStatus `json:"status"`
-	Message            string               `json:"message"`
-	PingMs             int                  `json:"ping_ms"`
-	StartTime          time.Time            `json:"start_time"`
-	EndTime            time.Time            `json:"end_time"`
-	IsUnderMaintenance bool                 `json:"is_under_maintenance"`
-	TLSInfo            interface{}          `json:"tls_info,omitempty"`
-	CheckCertExpiry    bool                 `json:"check_cert_expiry"`
-}
-
+// RegisterPushEndpoint registers the push URL. Each push goes to the ingester service, which in
+// cluster mode enqueues it for the ingester (ingester.NewPushQueueService).
 func RegisterPushEndpoint(
 	router *httpx.Router,
 	monitorService monitor.Service,
 	heartbeatService heartbeat.Service,
-	queueService queue.Service,
+	ingesterService ingester.Service,
 	maintenanceService maintenance.Service,
 	logger *zap.SugaredLogger,
 ) {
@@ -105,7 +85,7 @@ func RegisterPushEndpoint(
 		now := time.Now().UTC()
 
 		// Enqueue to ingester instead of processing directly
-		payload := PushIngesterPayload{
+		result := &ingester.Result{
 			MonitorID:          monitor.ID,
 			MonitorName:        monitor.Name,
 			MonitorType:        monitor.Type,
@@ -125,19 +105,7 @@ func RegisterPushEndpoint(
 			CheckCertExpiry:    false,
 		}
 
-		opts := &queue.EnqueueOptions{
-			Queue:     "ingester",
-			MaxRetry:  3,
-			Timeout:   2 * time.Minute,
-			Retention: 1 * time.Hour,
-		}
-
-		// Use EnqueueUnique to prevent duplicate push heartbeat ingestion
-		// The unique key includes monitor ID and timestamp to prevent duplicate submissions
-		uniqueKey := fmt.Sprintf("ingest:push:%s:%d", monitor.ID, now.UnixNano())
-		ttl := 5 * time.Minute // Short TTL for push monitors to allow frequent updates
-
-		_, err = queueService.EnqueueUnique(ctx, "monitor:ingest", payload, uniqueKey, ttl, opts)
+		err = ingesterService.Ingest(ctx, result)
 		if err != nil {
 			logger.Errorw("Failed to enqueue push heartbeat to ingester",
 				"monitor_id", monitor.ID,

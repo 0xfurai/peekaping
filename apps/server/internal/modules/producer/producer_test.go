@@ -32,7 +32,7 @@ func TestNewProducer(t *testing.T) {
 
 		producer := NewProducer(
 			client,
-			mockQueueSvc,
+			NewQueueRunner(mockQueueSvc, zap.NewNop().Sugar()),
 			mockMonitorSvc,
 			check.NewLoader(mockMonitorSvc, mockProxySvc, mockMaintenanceSvc, nil, logger),
 			nil,
@@ -72,7 +72,7 @@ func TestNewProducer(t *testing.T) {
 
 		producer := NewProducer(
 			client,
-			mockQueueSvc,
+			NewQueueRunner(mockQueueSvc, zap.NewNop().Sugar()),
 			mockMonitorSvc,
 			check.NewLoader(mockMonitorSvc, mockProxySvc, mockMaintenanceSvc, nil, logger),
 			nil,
@@ -109,7 +109,7 @@ func TestProducerStartStop(t *testing.T) {
 
 		producer := NewProducer(
 			client,
-			mockQueueSvc,
+			NewQueueRunner(mockQueueSvc, zap.NewNop().Sugar()),
 			mockMonitorSvc,
 			check.NewLoader(mockMonitorSvc, mockProxySvc, mockMaintenanceSvc, nil, logger),
 			nil,
@@ -153,7 +153,7 @@ func TestProducerContext(t *testing.T) {
 
 		producer := NewProducer(
 			client,
-			mockQueueSvc,
+			NewQueueRunner(mockQueueSvc, zap.NewNop().Sugar()),
 			mockMonitorSvc,
 			check.NewLoader(mockMonitorSvc, mockProxySvc, mockMaintenanceSvc, nil, logger),
 			nil,
@@ -206,7 +206,7 @@ func TestProducerMonitorIntervals(t *testing.T) {
 
 		producer := NewProducer(
 			client,
-			mockQueueSvc,
+			NewQueueRunner(mockQueueSvc, zap.NewNop().Sugar()),
 			mockMonitorSvc,
 			check.NewLoader(mockMonitorSvc, mockProxySvc, mockMaintenanceSvc, nil, logger),
 			nil,
@@ -241,7 +241,7 @@ func TestProducerMonitorIntervals(t *testing.T) {
 
 		producer := NewProducer(
 			client,
-			mockQueueSvc,
+			NewQueueRunner(mockQueueSvc, zap.NewNop().Sugar()),
 			mockMonitorSvc,
 			check.NewLoader(mockMonitorSvc, mockProxySvc, mockMaintenanceSvc, nil, logger),
 			nil,

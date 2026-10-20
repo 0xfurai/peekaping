@@ -1,21 +1,17 @@
 package ingester
 
 import (
+	"peekaping/internal/utils"
+
 	"github.com/hibiken/asynq"
 	"go.uber.org/dig"
 	"go.uber.org/zap"
 )
 
-// RegisterDependencies registers ingester dependencies in the DI container
-func RegisterDependencies(container *dig.Container) {
-	// Provide the service that stores check results
-	container.Provide(NewService)
-
-	// Provide ingester task handler
-	container.Provide(ProvideIngesterTaskHandler)
-
-	// Provide ingester
-	container.Provide(ProvideIngester)
+// RegisterDependencies registers ingester dependencies in the DI container: the service that
+// stores check results, the ingester task handler and the ingester
+func RegisterDependencies(container *dig.Container) error {
+	return utils.Provide(container, NewService, ProvideIngesterTaskHandler, ProvideIngester)
 }
 
 // ProvideIngesterTaskHandler provides an ingester task handler

@@ -6,12 +6,8 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"peekaping/internal"
-	"peekaping/internal/config"
-	"peekaping/internal/infra"
+	"peekaping/internal/app"
 	"peekaping/internal/modules/events"
-	"peekaping/internal/modules/healthcheck"
-	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/worker"
 	"peekaping/internal/version"
 	"syscall"
@@ -40,28 +36,9 @@ func main() {
 	// Convert to internal config format for dependency injection
 	internalCfg := cfg.ToInternalConfig()
 
-	// Provide configuration
-	container.Provide(func() *config.Config { return internalCfg })
-
-	// Provide logger
-	container.Provide(internal.ProvideLogger)
-
-	// Provide Redis infrastructure
-	container.Provide(infra.ProvideRedisClient)
-	container.Provide(infra.ProvideRedisEventBus)
-
-	// Provide queue infrastructure for worker
-	container.Provide(infra.ProvideAsynqClient)
-	container.Provide(infra.ProvideAsynqServer)
-	container.Provide(infra.ProvideAsynqInspector)
-	container.Provide(infra.ProvideQueueService)
-
-	// Register only non-database module dependencies needed for health checks
-	healthcheck.RegisterDependencies(container)
-	heartbeat.RegisterDependencies(container, internalCfg)
-
-	// Register worker dependencies
-	worker.RegisterDependencies(container)
+	if err := app.RegisterClusterWorker(container, internalCfg); err != nil {
+		log.Fatalf("Failed to register Worker dependencies: %v", err)
+	}
 
 	// Start the worker
 	err = container.Invoke(func(
