@@ -39,6 +39,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - fix: the Helm chart's web pods copy the web app from the web image you set. Before, an init container always used `0xfurai/peekaping-web:latest`, so pinning `web.image.tag` still served the latest web app. The chart's install notes now say it runs cluster mode and link to the Kubernetes (Helm) docs page
+- fix: on a fresh Helm install, the api, producer, worker and ingester pods no longer crash-loop until the migrate Job has created the database tables. They wait in an init container, `wait-for-migrations`, until the Job has applied every migration. On an upgrade, the new pods wait for the new release's migrations while the old pods keep serving
+- fix: `helm upgrade` no longer fails while the last migrate Job still exists. Each install, upgrade and rollback runs its own Job, `<release>-migrate-<revision>`, and Helm removes the previous one, so the Kubernetes (Helm) page drops the step that deleted the Job first
 
 ## [0.0.47] - 2026-10-19
 
