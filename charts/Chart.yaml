@@ -4,11 +4,11 @@ description: Peekaping in cluster mode, as separate api, producer, worker, inges
 version: 1.0.0
 dependencies:
 - name: redis
-  version: 24.0.0
+  version: 28.3.1
   repository: oci://registry-1.docker.io/bitnamicharts
   condition: redis.enabled
 
 - name: postgresql
-  version: 18.1.13
+  version: 18.12.14
   repository: oci://registry-1.docker.io/bitnamicharts
   condition: postgresql.enabled

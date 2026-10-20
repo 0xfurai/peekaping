@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # Renders the Helm chart the way an install does and checks the result: the
 # chart lints, it renders with default values and with the bundled PostgreSQL
-# and Redis, the web Deployment's seed init container runs the same image as the
-# web container (also when web.image.tag is set), the api, producer, worker and
-# ingester Deployments wait for the migrations in an init container that runs
-# the migrate image (also when migrate.image.tag is set) while the web
-# Deployment has none, the migrate Job is named after the release revision, and
-# the install notes say Peekaping runs in cluster mode and link to the Helm docs
-# page.
+# and Redis, the bundled PostgreSQL and Redis run images pinned by digest, the
+# web Deployment's seed init container runs the same image as the web container
+# (also when web.image.tag is set), the api, producer, worker and ingester
+# Deployments wait for the migrations in an init container that runs the migrate
+# image (also when migrate.image.tag is set) while the web Deployment has none,
+# the migrate Job is named after the release revision, and the install notes say
+# Peekaping runs in cluster mode and link to the Helm docs page.
 #
 # Usage: scripts/test-chart.sh
 # Needs helm (3.13 or later) and network access to registry-1.docker.io, where
@@ -96,6 +96,25 @@ job_named() {
   ' "$1")
   if [ "$name" != "$3" ]; then
     echo "       the Job in $2 is named '${name:-<none>}', expected $3"
+    return 1
+  fi
+}
+
+# pinned_by_digest <rendered file> <subchart>: every image the subchart
+# (postgresql or redis) renders is pinned by digest, repository@sha256:..., so a
+# rescheduled pod can't pull a newer major version onto the data of an old one
+pinned_by_digest() {
+  local unpinned
+  unpinned=$(awk -v subchart="$2" '
+    /^# Source: / { in_subchart = ($0 ~ "^# Source: [^/]+/charts/" subchart "/"); next }
+    in_subchart && /^ *image: / {
+      image = $2; gsub(/"/, "", image); found++
+      if (image !~ /@sha256:[0-9a-f]+$/) print image
+    }
+    END { if (!found) print "<no image rendered>" }
+  ' "$1")
+  if [ -n "$unpinned" ]; then
+    echo "       $2 runs without a digest: $(paste -sd ' ' - <<<"$unpinned")"
     return 1
   fi
 }
@@ -191,6 +210,8 @@ if check "helm dependency build fetches PostgreSQL and Redis" run dependency hel
       job_named "$work/default.yaml" migrate-job "$release-migrate-1" || true
   fi
   if check "bundled PostgreSQL and Redis render" render bundled --set postgresql.enabled=true --set redis.enabled=true; then
+    check "bundled PostgreSQL runs an image pinned by digest" pinned_by_digest "$work/bundled.yaml" postgresql || true
+    check "bundled Redis runs an image pinned by digest" pinned_by_digest "$work/bundled.yaml" redis || true
     check "bundled PostgreSQL and Redis: the seed init container runs the web image" \
       web_matches_seed "$work/bundled.yaml" || true
     check "bundled PostgreSQL and Redis: api, producer, worker and ingester wait for the migrations, web doesn't" \

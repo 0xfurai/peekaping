@@ -2,15 +2,20 @@
 # They suit trying the chart. For production, leave both off and point
 # config.env at an external PostgreSQL and Redis.
 #
-# Images: both run Bitnami's free `latest` images,
-# registry-1.docker.io/bitnami/postgresql:latest and .../redis:latest.
-# Bitnami's free repo no longer publishes version tags (they moved to
-# bitnamilegacy/, which gets no updates). `latest` floats: PostgreSQL's major
-# version can change, and a new major does not start on an existing data
-# directory. To pin the image you tested, set its digest (the tag is then
-# ignored):
-#   postgresql.image.digest: sha256:...
-#   redis.image.digest: sha256:...
+# Images: both run Bitnami's free images, registry-1.docker.io/bitnami/postgresql
+# and .../redis. Bitnami's free repo no longer publishes version tags (they
+# moved to bitnamilegacy/, which gets no updates). It has only `latest`, and
+# `latest` floats: PostgreSQL's major version can change, and a new major does
+# not start on an existing data directory. So the chart pins each image by the
+# digest of the `latest` image it was tested with (the tag is then ignored).
+# The digests below are PostgreSQL 18 and Redis 8, for amd64 and arm64.
+#
+# To move to newer images and subcharts, run scripts/update-chart-deps.sh. It
+# lists what is behind, and --write updates the versions in Chart.yaml and the
+# two digests below. It refuses an image with a new major version. To pin images
+# of your own, set postgresql.image.digest and redis.image.digest in your
+# values file. A major version change needs a dump and restore: the data of an
+# older PostgreSQL does not start on a newer major version.
 #
 # helm uninstall keeps the PersistentVolumeClaims data-<release>-postgresql-0
 # and redis-data-<release>-redis-master-0. Delete them to start with empty data.
@@ -21,6 +26,8 @@
 # `peekaping`.
 postgresql:
   enabled: false
+  image:
+    digest: sha256:889db6427034525f50071945ddf808fbb77f8a52c2c8d3a7a75d39a167373566 # PostgreSQL 18.6.0
   # auth:
   #   username: peekaping
   #   password: peekaping
@@ -28,6 +35,8 @@ postgresql:
 
 redis:
   enabled: false
+  image:
+    digest: sha256:33dbb7a4be39e73f0d5178e9040061ecb708946f55169657aa6897ba0a2c71d9 # Redis 8.10.2
   # Standalone avoids the subchart's default replicas.
   # architecture: standalone
   # auth:
