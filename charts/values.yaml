@@ -1,22 +1,55 @@
+# Bundled PostgreSQL and Redis (Bitnami subcharts). Both are off by default.
+# They suit trying the chart. For production, leave both off and point
+# config.env at an external PostgreSQL and Redis.
+#
+# Images: both run Bitnami's free `latest` images,
+# registry-1.docker.io/bitnami/postgresql:latest and .../redis:latest.
+# Bitnami's free repo no longer publishes version tags (they moved to
+# bitnamilegacy/, which gets no updates). `latest` floats: PostgreSQL's major
+# version can change, and a new major does not start on an existing data
+# directory. To pin the image you tested, set its digest (the tag is then
+# ignored):
+#   postgresql.image.digest: sha256:...
+#   redis.image.digest: sha256:...
+#
+# helm uninstall keeps the PersistentVolumeClaims data-<release>-postgresql-0
+# and redis-data-<release>-redis-master-0. Delete them to start with empty data.
+#
+# To try it: set enabled: true and uncomment the settings below, then
+# uncomment DB_HOST to REDIS_PORT under config.env and create the secret
+# described there. The example is for release `peekaping` in namespace
+# `peekaping`.
 postgresql:
   enabled: false
   # auth:
-  #   enablePostgresUser: false
   #   username: peekaping
   #   password: peekaping
   #   database: peekaping
 
 redis:
   enabled: false
+  # Standalone avoids the subchart's default replicas.
+  # architecture: standalone
   # auth:
   #   password: peekaping
 
 # See docs for configuration details
 # https://docs.peekaping.com/architecture/api-server
+#
+# config.env is rendered into a ConfigMap, so credentials go in existingSecret.
+# Create it in the release's namespace. With the bundled databases it holds
+# these keys, matching postgresql.auth and redis.auth above:
+#   kubectl -n peekaping create secret generic peekaping-config \
+#     --from-literal=DB_USER=peekaping --from-literal=DB_PASS=peekaping \
+#     --from-literal=DB_NAME=peekaping --from-literal=REDIS_PASSWORD=peekaping
+# An external PostgreSQL and Redis use the same keys with your own values.
 config:
   existingSecret: "peekaping-config"
   env:
     DB_TYPE: "postgres"
+    # Bundled service hosts: <release>-postgresql and <release>-redis-master in
+    # the release's namespace (here release and namespace are both "peekaping").
+    # For an external PostgreSQL and Redis, set your own hosts and ports.
     # DB_HOST: "peekaping-postgresql.peekaping.svc.cluster.local"
     # DB_PORT: "5432"
     # REDIS_HOST: "peekaping-redis-master.peekaping.svc.cluster.local"
