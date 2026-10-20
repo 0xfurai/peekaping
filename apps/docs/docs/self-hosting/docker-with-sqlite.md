@@ -51,6 +51,7 @@ The image reads the same environment variables as cluster mode (see the [`.env` 
 - The database is always `/app/data/peekaping.db`, whatever `DB_TYPE` and `DB_NAME` say.
 - There is no Redis, so `REDIS_*` variables are ignored.
 - `MODE` defaults to `prod`.
+- Leave `API_URL` unset, so the web app calls the API on its own origin. Set it only if the web app must call an API on another origin.
 
 ### Stopping
 
@@ -84,6 +85,7 @@ Before single mode, the bundle ran Peekaping's api, producer, worker and ingeste
 - A custom Caddyfile mounted at `/etc/caddy/Caddyfile` no longer works, because the image has no Caddy. Move that setup to a [reverse proxy](#reverse-proxy-and-https) in front of the container.
 - `SERVER_PORT` is ignored, as above.
 - `MODE` from your environment now applies. Before, the image always ran with `prod`.
+- `API_URL` from your environment now reaches the web app. Before, the image always left it empty. Unset it, unless the web app must call an API on another origin.
 - Logs go to the container's output (`docker logs peekaping`). Nothing writes to `/var/log/supervisor` now, so you can drop a volume mounted there.
 - With `METRICS_ENABLED=true`, port 8383 serves `/metrics`, so anyone who can open the web app can read it. See [Prometheus Metrics](../architecture/api-server.md#prometheus-metrics).
 

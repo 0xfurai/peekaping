@@ -45,7 +45,7 @@ services:
 
 Then open `http://localhost:8383` and create your admin account.
 
-`DB_USER` and `DB_PASS` are required. On the first start, the container creates the database cluster, the `DB_USER` user with the password `DB_PASS`, and the `DB_NAME` database (`peekaping` by default).
+`DB_USER` and `DB_PASS` are required. On the first start, the container creates the database cluster, the `DB_USER` user with the password `DB_PASS`, and the `DB_NAME` database (`peekaping` by default). A user or database that already exists, such as PostgreSQL's own `postgres`, is kept as it is.
 
 `peekaping` runs as a non-root user, and PostgreSQL as its own `postgres` user. See [Bundle user and permissions](./bundle-user.md) to set `PUID`/`PGID`, to start the container with `--user`, and for what Docker and ping monitors need.
 
@@ -57,6 +57,7 @@ The image reads the same environment variables as cluster mode (see the [`.env` 
 - Leave `DB_HOST` unset, or set it to `localhost`: that's the bundled PostgreSQL. The cluster-mode `.env` sets `DB_HOST=database`, which doesn't work here.
 - There is no Redis, so `REDIS_*` variables are ignored.
 - `MODE` defaults to `prod`.
+- Leave `API_URL` unset, so the web app calls the API on its own origin. Set it only if the web app must call an API on another origin.
 
 ### Stopping
 
@@ -90,6 +91,7 @@ Before single mode, the bundle ran PostgreSQL, Peekaping's api, producer, worker
 - A custom Caddyfile mounted at `/etc/caddy/Caddyfile` no longer works, because the image has no Caddy. Move that setup to a [reverse proxy](#reverse-proxy-and-https) in front of the container.
 - `SERVER_PORT` is ignored, as above.
 - `MODE` from your environment now applies. Before, the image always ran with `prod`.
+- `API_URL` from your environment now reaches the web app. Before, the image always left it empty. Unset it, unless the web app must call an API on another origin.
 - Logs go to the container's output (`docker logs peekaping`). Nothing writes to `/var/log/supervisor` now, so you can drop a volume mounted there.
 - With `METRICS_ENABLED=true`, port 8383 serves `/metrics`, so anyone who can open the web app can read it. See [Prometheus Metrics](../architecture/api-server.md#prometheus-metrics).
 
