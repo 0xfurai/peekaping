@@ -28,6 +28,11 @@ The API server uses Uber's Dig for dependency injection, registering all modules
 ### Event-Driven Communication
 The API server subscribes to Redis pub/sub events and broadcasts them to connected WebSocket clients for real-time updates.
 
+### Notifications
+Redis pub/sub gives every API server a copy of an event, so notifications don't travel that way, or each replica would send them all. The [ingester](./ingester.md) (a monitor going Down or Up, a certificate close to expiring) and the [producer](./producer.md)'s watchdog (a stale monitor, and the same monitor checked again) put them on the `notification` queue instead. Each API server takes tasks from that queue, and a task goes to one of them, so a notification is sent once to each of the monitor's notification channels however many replicas run. A notification queued while no API server is running is sent when the first one starts.
+
+In single mode the `peekaping` binary is the only process and sends them itself, with no queue.
+
 ## Environment Variables
 
 ### Server Configuration
