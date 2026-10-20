@@ -169,18 +169,20 @@ The bundled PostgreSQL and Redis run Bitnami's free `latest` images, `bitnami/po
 
 So the chart pins each image by digest, in `postgresql.image.digest` and `redis.image.digest` in `values.yaml`. They are PostgreSQL 18 and Redis 8, and each digest covers amd64 and arm64. A digest wins over the tag.
 
-The digests and the subchart versions in `Chart.yaml` are updated by hand, around each release. To move to newer ones yourself, run this in a checkout of the repository, then `helm dependency build charts` and `helm upgrade`:
+The digests and the subchart versions in `Chart.yaml` are updated by hand, around each release. With the published chart, a newer chart version carries newer ones, so upgrade to it. To run an image of your own instead, set `postgresql.image.digest` and `redis.image.digest` in your values file.
+
+In a checkout of the repository, you can move to newer ones yourself. Run this, then `helm dependency build charts` and `helm upgrade`:
 
 ```bash
 scripts/update-chart-deps.sh           # lists what is behind
 scripts/update-chart-deps.sh --write   # updates Chart.yaml and values.yaml
 ```
 
-The script needs `helm`, `curl` and `jq`. To run an image of your own, set `postgresql.image.digest` and `redis.image.digest` in your values file.
+The script needs `helm`, `curl` and `jq`. It is not part of the published chart.
 
 A new digest or subchart version restarts the bundled PostgreSQL. The migrate Job retries until the database is back, up to `migrate.backoffLimit` tries (6 by default). If it still fails, run `helm upgrade` again. Your data is intact.
 
-The script refuses an image with a new major version. A major version change needs a dump and restore: PostgreSQL doesn't start on the data of an older major version. Dump the database with `pg_dump`, delete the PersistentVolumeClaim `data-<release>-postgresql-0` (`helm uninstall` keeps it), install the new version, and restore the dump.
+`update-chart-deps.sh` refuses an image with a new major version. A major version change needs a dump and restore: PostgreSQL doesn't start on the data of an older major version. Dump the database with `pg_dump`, delete the PersistentVolumeClaim `data-<release>-postgresql-0` (`helm uninstall` keeps it), install the new version, and restore the dump.
 
 ## Ingress or Istio
 
