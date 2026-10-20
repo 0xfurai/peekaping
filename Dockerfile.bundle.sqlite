@@ -35,6 +35,21 @@ FROM alpine:3.24
 # monitors fall back to busybox's ping where they can't open an ICMP socket themselves.
 RUN apk add --no-cache ca-certificates tini su-exec shadow
 
+# PUID and PGID can't take an ID a user or group in the image has, and Alpine gives out IDs
+# that Debian, which earlier bundles ran on, leaves free: groups 82 (www-data) and 999 (ping)
+# and user 405 (guest), among others. So the users and groups no file in the image belongs to
+# are dropped.
+# root, nobody and nogroup stay, and so do tty, disk and kmem, the groups Linux gives the
+# device files Docker can bring into the container.
+RUN for user in $(cut -d: -f1 /etc/passwd); do \
+        case "$user" in root | nobody) continue ;; esac; \
+        if [ -z "$(find / -xdev -user "$user" | head -n 1)" ]; then userdel "$user" || exit 1; fi; \
+    done \
+    && for group in $(cut -d: -f1 /etc/group); do \
+        case "$group" in root | tty | disk | kmem | nogroup | nobody) continue ;; esac; \
+        if [ -z "$(find / -xdev -group "$group" | head -n 1)" ]; then groupdel "$group" || exit 1; fi; \
+    done
+
 # The user peekaping runs as; startup.user.sh applies PUID/PGID
 RUN addgroup -g 1000 peekaping \
     && adduser -u 1000 -G peekaping -H -D -h /nonexistent -s /sbin/nologin peekaping \
