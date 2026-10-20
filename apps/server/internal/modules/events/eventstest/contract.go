@@ -34,7 +34,9 @@ var (
 const waitFor = 10 * time.Second
 
 // RunContract runs the tests every events.EventBus must pass. newBus returns a new bus each
-// call, closed by the test if it isn't closed already.
+// call, and closes it when the test ends. A bus must deliver the events one goroutine
+// publishes in the order it published them, across topics: a few tests use that to know that
+// events have arrived.
 func RunContract(t *testing.T, newBus func(t *testing.T) events.EventBus) {
 	t.Run("delivers the typed value to every handler of the topic", func(t *testing.T) {
 		bus := newBus(t)

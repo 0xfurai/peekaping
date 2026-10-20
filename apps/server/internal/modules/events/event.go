@@ -1,3 +1,23 @@
+// Package events is the event bus that connects the parts of Peekaping, in one process or
+// across processes.
+//
+// A Topic[T] names an event and its payload type. Publish and Subscribe are generic
+// functions over an EventBus:
+//
+//	events.Publish(ctx, bus, events.MonitorDeleted, monitorID)
+//
+//	subscriber := events.NewSubscriber(bus, "producer")
+//	events.Subscribe(subscriber, events.MonitorDeleted, func(ctx context.Context, monitorID string) { ... })
+//
+// A subscriber is a named group of handlers that shares queues. It handles one monitor's
+// events in the order they were published, across all its topics, and different monitors
+// at the same time, up to a limit of workers. A slow or panicking handler never holds up
+// Publish or another subscriber, and holds up another monitor only by occupying one of the
+// subscriber's workers. Bus implements all of that over a Transport, which only has to carry
+// messages: the Redis bus in package infra is Bus over a Redis transport.
+//
+// Handlers must not change the payload they are given when it holds a slice, map or
+// pointer: an in-process transport hands every handler the same value.
 package events
 
 import "peekaping/internal/modules/shared"
