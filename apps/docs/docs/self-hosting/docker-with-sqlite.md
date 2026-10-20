@@ -335,10 +335,20 @@ Once all containers are running:
 
 ## Docker Images
 
-Peekaping provides official Docker images:
+Peekaping provides official Docker images.
 
-- **Server**: [`0xfurai/peekaping-server`](https://hub.docker.com/r/0xfurai/peekaping-server)
+Single mode:
+
+- **Bundle**: [`0xfurai/peekaping-bundle-sqlite`](https://hub.docker.com/r/0xfurai/peekaping-bundle-sqlite)
+
+Cluster mode:
+
+- **API**: [`0xfurai/peekaping-api`](https://hub.docker.com/r/0xfurai/peekaping-api)
+- **Producer**: [`0xfurai/peekaping-producer`](https://hub.docker.com/r/0xfurai/peekaping-producer)
+- **Worker**: [`0xfurai/peekaping-worker`](https://hub.docker.com/r/0xfurai/peekaping-worker)
+- **Ingester**: [`0xfurai/peekaping-ingester`](https://hub.docker.com/r/0xfurai/peekaping-ingester)
 - **Web**: [`0xfurai/peekaping-web`](https://hub.docker.com/r/0xfurai/peekaping-web)
+- **Migrate**: [`0xfurai/peekaping-migrate`](https://hub.docker.com/r/0xfurai/peekaping-migrate), which sets up the database before the other containers start
 
 ### Image Tags
 
