@@ -4,7 +4,9 @@ import "context"
 
 // NewMemoryBus returns the event bus for single mode, where every part of Peekaping runs in
 // one process: events never leave the process, so there is no Redis and no serialization.
-// Handlers receive the very value that was published, so they must not change it.
+// Handlers receive the very value that was published, and Publish returns before they run,
+// so the payload belongs to nobody once published: handlers must not change it, and neither
+// may the publisher. A publisher that keeps working on a value publishes a copy.
 //
 // Ordering, worker limits, panic recovery and Close behave exactly as on the Redis bus,
 // because both are a Bus; only the transport differs.
