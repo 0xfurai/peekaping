@@ -45,12 +45,26 @@ import (
 	"go.uber.org/zap"
 )
 
-const (
-	// shutdownTimeout is how long the shutdown has, from the signal, to stop everything in order
-	shutdownTimeout = 30 * time.Second
-	// readHeaderTimeout is how long a client has to send a request's headers
-	readHeaderTimeout = 10 * time.Second
-)
+// readHeaderTimeout is how long a client has to send a request's headers
+const readHeaderTimeout = 10 * time.Second
+
+// timeouts bound the steps of the shutdown. Each step has a share of its own, so that a step
+// that runs late doesn't take the time of the steps after it: the background jobs get theirs
+// however long the HTTP server took.
+type timeouts struct {
+	// HTTP is how long the HTTP server waits for the requests in flight
+	HTTP time.Duration
+	// Jobs is how long the scheduler, the watchdog and the other background jobs have to stop
+	Jobs time.Duration
+	// EventBus is how long the event bus has to handle the events queued
+	EventBus time.Duration
+}
+
+// total is the longest the shutdown takes, from the signal
+func (t timeouts) total() time.Duration { return t.HTTP + t.Jobs + t.EventBus }
+
+// shutdownTimeouts are peekaping's, 30 seconds in all. A test may shorten them.
+var shutdownTimeouts = timeouts{HTTP: 15 * time.Second, Jobs: 10 * time.Second, EventBus: 5 * time.Second}
 
 func main() {
 	utils.RegisterCustomValidators()
@@ -104,7 +118,7 @@ type parts struct {
 }
 
 // run starts Peekaping and serves the API on the listener until ctx is done. Then it stops
-// everything in order, within shutdownTimeout: the HTTP server, the websocket, the background
+// everything in order, within shutdownTimeouts: the HTTP server, the websocket, the background
 // jobs, the event bus and the database. It returns nil when everything stopped in time.
 func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener net.Listener) error {
 	logger.Infow("Starting Peekaping in single mode", "version", version.Version)
@@ -273,17 +287,17 @@ func await(ctx context.Context, what string, done <-chan struct{}) error {
 	}
 }
 
-// shutdown stops everything in order, within shutdownTimeout. The HTTP server stops taking
-// requests and waits for those in flight. The websocket closes its sessions, from the HTTP
-// server's Shutdown (websocketClosed is closed once it has). The background jobs stop, so
-// nothing publishes events any more. The event bus lets the handlers of the queued events
-// finish. The database closes last, once nothing uses it.
+// shutdown stops everything in order, each step within its share of shutdownTimeouts. The HTTP
+// server stops taking requests and waits for those in flight. The websocket closes its
+// sessions, from the HTTP server's Shutdown (websocketClosed is closed once it has). The
+// background jobs stop, so nothing publishes events any more. The event bus lets the handlers
+// of the queued events finish. The database closes last, and only once nothing uses it.
 func shutdown(httpServer *http.Server, websocketClosed <-chan struct{}, p parts, j *jobs, dbType string, logger *zap.SugaredLogger) error {
-	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
-	defer cancel()
 	var errs []error
 
-	if err := httpServer.Shutdown(ctx); err != nil {
+	httpCtx, cancelHTTP := context.WithTimeout(context.Background(), shutdownTimeouts.HTTP)
+	defer cancelHTTP()
+	if err := httpServer.Shutdown(httpCtx); err != nil {
 		errs = append(errs, fmt.Errorf("failed to shut down the HTTP server: %w", err))
 		// Drop the connections still open, so that the shutdown goes on
 		_ = httpServer.Close()
@@ -293,16 +307,33 @@ func shutdown(httpServer *http.Server, websocketClosed <-chan struct{}, p parts,
 	<-websocketClosed
 	logger.Info("Closed the websocket server")
 
-	if err := j.stop(ctx); err != nil {
+	// What uses the database and still runs once its share is up
+	var running []string
+
+	jobsCtx, cancelJobs := context.WithTimeout(context.Background(), shutdownTimeouts.Jobs)
+	defer cancelJobs()
+	if err := j.stop(jobsCtx); err != nil {
 		errs = append(errs, err)
+		running = append(running, "background jobs")
+	} else {
+		logger.Info("Stopped the scheduler, the watchdog and the other background jobs")
 	}
-	logger.Info("Stopped the scheduler, the watchdog and the other background jobs")
 
-	if err := p.EventBus.Close(ctx); err != nil {
+	busCtx, cancelBus := context.WithTimeout(context.Background(), shutdownTimeouts.EventBus)
+	defer cancelBus()
+	if err := p.EventBus.Close(busCtx); err != nil {
 		errs = append(errs, fmt.Errorf("failed to close the event bus: %w", err))
+		running = append(running, "event handlers")
+	} else {
+		logger.Info("Closed the event bus")
 	}
-	logger.Info("Closed the event bus")
 
+	// Closing the database under a job or an event handler would fail it halfway through its
+	// writes. The process's exit releases the database instead.
+	if len(running) > 0 {
+		logger.Errorw("Left the database open, since some of what uses it is still running", "running", running)
+		return errors.Join(errs...)
+	}
 	if err := closeDatabase(p.DB, dbType, logger); err != nil {
 		errs = append(errs, err)
 	}
