@@ -258,9 +258,9 @@ jobs:
         echo "=== Container Environment ==="
         docker exec peekaping-bundle-test-${{ matrix.database }} env | grep -E "(DB_|API_|JWT_|ACCESS_|REFRESH_|BUNDEBUG)" || echo "No relevant env vars found"
         echo "=== Container Processes ==="
-        docker exec peekaping-bundle-test-${{ matrix.database }} ps aux || echo "Could not list processes"
-        echo "=== Testing internal connectivity ==="
-        docker exec peekaping-bundle-test-${{ matrix.database }} nc -zv localhost 8034 || echo "Go api not responding on port 8034"
+        docker top peekaping-bundle-test-${{ matrix.database }} || echo "Could not list processes"
+        echo "=== Testing port 8383 ==="
+        curl -sS http://localhost:8383/api/v1/health || echo "The API isn't answering on port 8383 yet"
 
     - name: Wait for bundle service to be ready
       run: |
@@ -276,6 +276,13 @@ jobs:
     - name: Run Playwright tests against bundle
       run: PLAYWRIGHT_BASE_URL=http://localhost:8383 bunx playwright test
 
+    # The single-mode bundles' user, ports and shutdown, on the published image
+    - name: Test the bundle's user, ports and shutdown
+      if: matrix.database != 'mongo'
+      run: |
+        scripts/test-bundle-user.sh ${{ matrix.database }} \
+          ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}:${{ steps.bundle_tag.outputs.tag }}
+
     - name: Show final container logs on failure
       if: failure()
       run: |
@@ -286,9 +293,9 @@ jobs:
         echo "=== Final Container Environment ==="
         docker exec peekaping-bundle-test-${{ matrix.database }} env | grep -E "(DB_|API_|JWT_|ACCESS_|REFRESH_|BUNDEBUG)" || echo "No relevant env vars found"
         echo "=== Final Container Processes ==="
-        docker exec peekaping-bundle-test-${{ matrix.database }} ps aux || echo "Could not list processes"
-        echo "=== Final internal connectivity test ==="
-        docker exec peekaping-bundle-test-${{ matrix.database }} nc -zv localhost 8034 || echo "Go api not responding on port 8034"
+        docker top peekaping-bundle-test-${{ matrix.database }} || echo "Could not list processes"
+        echo "=== Final port 8383 test ==="
+        curl -sS http://localhost:8383/api/v1/health || echo "The API isn't answering on port 8383"
 
     - name: Stop bundle container
       if: always()
