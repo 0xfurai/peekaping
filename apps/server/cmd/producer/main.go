@@ -6,27 +6,10 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"peekaping/internal"
-	"peekaping/internal/config"
+	"peekaping/internal/app"
 	"peekaping/internal/infra"
-	"peekaping/internal/modules/certificate"
-	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/events"
-	"peekaping/internal/modules/healthcheck"
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/maintenance"
-	"peekaping/internal/modules/monitor"
-	"peekaping/internal/modules/monitor_maintenance"
-	"peekaping/internal/modules/monitor_notification"
-	"peekaping/internal/modules/monitor_tag"
-	"peekaping/internal/modules/monitor_tls_info"
-	"peekaping/internal/modules/notification_sent_history"
 	"peekaping/internal/modules/producer"
-	"peekaping/internal/modules/proxy"
-	"peekaping/internal/modules/setting"
-	"peekaping/internal/modules/stale"
-	"peekaping/internal/modules/stats"
-	"peekaping/internal/modules/tag"
 	"peekaping/internal/version"
 	"syscall"
 	"time"
@@ -50,50 +33,9 @@ func main() {
 
 	internalCfg := cfg.ToInternalConfig()
 
-	container.Provide(func() *config.Config { return internalCfg })
-
-	container.Provide(internal.ProvideLogger)
-
-	switch internalCfg.DBType {
-	case "postgres", "postgresql", "mysql", "sqlite":
-		container.Provide(infra.ProvideSQLDB)
-	case "mongo", "mongodb":
-		container.Provide(infra.ProvideMongoDB)
-	default:
-		log.Fatalf("Unsupported DB_TYPE: %s", internalCfg.DBType)
+	if err := app.RegisterClusterProducer(container, internalCfg); err != nil {
+		log.Fatalf("Failed to register Producer dependencies: %v", err)
 	}
-
-	// Provide Redis infrastructure
-	container.Provide(infra.ProvideRedisClient)
-	container.Provide(infra.ProvideRedisEventBus)
-
-	// The stale monitors the watchdog records
-	container.Provide(stale.ProvideRedisStore)
-
-	// Provide queue infrastructure
-	container.Provide(infra.ProvideAsynqClient)
-	container.Provide(infra.ProvideAsynqInspector)
-	container.Provide(infra.ProvideQueueService)
-
-	// Register module dependencies that producer needs
-	heartbeat.RegisterDependencies(container, internalCfg)
-	healthcheck.RegisterDependencies(container) // Provides ExecutorRegistry
-	tag.RegisterDependencies(container, internalCfg)
-	monitor_tag.RegisterDependencies(container, internalCfg)
-	monitor.RegisterDependencies(container, internalCfg)
-	proxy.RegisterDependencies(container, internalCfg)
-	maintenance.RegisterDependencies(container, internalCfg)
-	monitor_maintenance.RegisterDependencies(container, internalCfg)
-	monitor_notification.RegisterDependencies(container, internalCfg)
-	setting.RegisterDependencies(container, internalCfg)
-	notification_sent_history.RegisterDependencies(container, internalCfg)
-	monitor_tls_info.RegisterDependencies(container, internalCfg)
-	certificate.RegisterDependencies(container)
-	stats.RegisterDependencies(container, internalCfg)
-
-	// Register producer dependencies
-	check.RegisterDependencies(container)
-	producer.RegisterDependencies(container)
 
 	// Start the producer
 	err = container.Invoke(func(

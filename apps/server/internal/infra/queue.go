@@ -84,6 +84,40 @@ func ProvideAsynqServer(
 	return server, nil
 }
 
+// ProvideIngesterAsynqServer creates the ingester's asynq.Server, which only processes tasks from
+// the "ingester" queue. The worker's server (ProvideAsynqServer) processes the others.
+func ProvideIngesterAsynqServer(cfg *config.Config, logger *zap.SugaredLogger) (*asynq.Server, error) {
+	redisOpt := asynq.RedisClientOpt{
+		Addr:     fmt.Sprintf("%s:%s", cfg.RedisHost, cfg.RedisPort),
+		Username: cfg.RedisUsername,
+		Password: cfg.RedisPassword,
+		DB:       cfg.RedisDB,
+	}
+
+	// Configure server with appropriate concurrency and queue priorities
+	// Ingester only processes tasks from the "ingester" queue
+	serverCfg := asynq.Config{
+		Concurrency: cfg.QueueConcurrency,
+		Queues: map[string]int{
+			"ingester": 10, // Only process ingester queue
+		},
+		ErrorHandler: asynq.ErrorHandlerFunc(func(ctx context.Context, task *asynq.Task, err error) {
+			logger.Errorw("Task processing failed",
+				"type", task.Type(),
+				"payload", string(task.Payload()),
+				"error", err,
+			)
+		}),
+		StrictPriority: false, // We only have one queue, no need for strict priority
+		Logger:         NewAsynqLogger(logger),
+	}
+
+	server := asynq.NewServer(redisOpt, serverCfg)
+
+	logger.Info("Successfully created Asynq server for ingester")
+	return server, nil
+}
+
 // AsynqLogger is an adapter to use zap logger with asynq
 type AsynqLogger struct {
 	logger *zap.SugaredLogger

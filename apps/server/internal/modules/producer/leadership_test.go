@@ -125,7 +125,7 @@ func TestStartJobProcessing(t *testing.T) {
 
 		producer := NewProducer(
 			client,
-			mockQueueSvc,
+			NewQueueRunner(mockQueueSvc, zap.NewNop().Sugar()),
 			mockMonitorSvc,
 			check.NewLoader(mockMonitorSvc, mockProxySvc, mockMaintenanceSvc, nil, logger),
 			nil,
@@ -176,7 +176,7 @@ func TestStartMonitorSyncing(t *testing.T) {
 
 		producer := NewProducer(
 			client,
-			mockQueueSvc,
+			NewQueueRunner(mockQueueSvc, zap.NewNop().Sugar()),
 			mockMonitorSvc,
 			check.NewLoader(mockMonitorSvc, mockProxySvc, mockMaintenanceSvc, nil, logger),
 			nil,

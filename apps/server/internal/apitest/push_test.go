@@ -3,8 +3,10 @@ package apitest
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	"peekaping/internal/modules/shared"
 
@@ -63,6 +65,53 @@ func TestPush_QueuesHeartbeatForPushMonitor(t *testing.T) {
 	assert.Equal(t, 0, heartbeat.Status)
 	assert.Equal(t, "disk full", heartbeat.Message)
 	assert.Equal(t, 12, heartbeat.PingMs)
+}
+
+// Cluster mode's ingester reads a push as a monitor:ingest task. The task, its options and its
+// payload are pinned so that the ingester keeps reading them the same way.
+func TestPush_QueuesTheIngesterTaskClusterModeReads(t *testing.T) {
+	a := newAppWithAdmin(t)
+	monitorID := a.createMonitor(t, "Nightly backup", "backup-push-token")
+
+	w := a.request(t, http.MethodGet, "/api/v1/push/backup-push-token?status=down&msg=disk%20full&ping=12", nil)
+
+	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+	tasks := a.queuedHeartbeats(t)
+	require.Len(t, tasks, 1)
+	task := tasks[0]
+	assert.Equal(t, "monitor:ingest", task.Type)
+	assert.Equal(t, "ingester", task.Queue)
+	assert.Equal(t, 3, task.MaxRetry)
+	assert.Equal(t, 2*time.Minute, task.Timeout)
+	assert.Equal(t, time.Hour, task.Retention)
+
+	var payload map[string]any
+	require.NoError(t, json.Unmarshal(task.Payload, &payload))
+	pushedAt, err := time.Parse(time.RFC3339Nano, payload["start_time"].(string))
+	require.NoError(t, err)
+	assert.Equal(t, fmt.Sprintf("ingest:push:%s:%d", monitorID, pushedAt.UnixNano()), task.ID)
+	assert.Equal(t, payload["start_time"], payload["end_time"])
+	payload["start_time"], payload["end_time"] = "pushed at", "pushed at"
+	pinned, err := json.Marshal(payload)
+	require.NoError(t, err)
+	assert.JSONEq(t, fmt.Sprintf(`{
+		"monitor_id": %q,
+		"monitor_name": "Nightly backup",
+		"monitor_type": "push",
+		"monitor_interval": 60,
+		"monitor_timeout": 16,
+		"monitor_max_retries": 0,
+		"monitor_retry_interval": 60,
+		"monitor_resend_interval": 0,
+		"monitor_config": "{\"pushToken\":\"backup-push-token\"}",
+		"status": 0,
+		"message": "disk full",
+		"ping_ms": 12,
+		"start_time": "pushed at",
+		"end_time": "pushed at",
+		"is_under_maintenance": false,
+		"check_cert_expiry": false
+	}`, monitorID), string(pinned))
 }
 
 func TestPush_IgnoresMalformedResponseTime(t *testing.T) {

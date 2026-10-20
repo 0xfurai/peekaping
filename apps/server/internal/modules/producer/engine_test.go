@@ -135,7 +135,7 @@ func newEngine(t *testing.T, monitors ...*monitor.Model) *engine {
 	maintenanceSvc.On("GetMaintenancesByMonitorID", mock.Anything, mock.Anything).Return([]*maintenance.Model{}, nil)
 
 	store := newMonitorStore(monitors...)
-	p := NewProducer(rdb, queueSvc, store, check.NewLoader(store, new(MockProxyService), maintenanceSvc, nil, logger),
+	p := NewProducer(rdb, NewQueueRunner(queueSvc, logger), store, check.NewLoader(store, new(MockProxyService), maintenanceSvc, nil, logger),
 		nil, nil, nil, nil, nil, nil, &config.Config{ProducerConcurrency: 1}, logger)
 	p.reclaimInterval = 5 * time.Millisecond
 

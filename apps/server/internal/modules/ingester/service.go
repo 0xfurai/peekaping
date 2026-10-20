@@ -14,8 +14,8 @@ import (
 )
 
 // Result is the outcome of one check, or of one push to a push monitor, with the monitor
-// settings the ingest logic reads. It is also the JSON payload of the ingester task, so a
-// task decodes straight into it.
+// settings the ingest logic reads. It is also the JSON payload of the ingester task: the
+// worker and the API's push URL encode it, and the ingester decodes it.
 type Result struct {
 	MonitorID          string               `json:"monitor_id"`
 	MonitorName        string               `json:"monitor_name"`
@@ -36,11 +36,15 @@ type Result struct {
 	CheckCertExpiry    bool                 `json:"check_cert_expiry"`
 }
 
-// Service turns check results into heartbeats
+// Service turns check results into heartbeats: ADR 0002's "ingest a result". NewService stores
+// them. In cluster mode the worker and the API's push URL get NewQueueService and
+// NewPushQueueService, which enqueue the results for the ingester, and the ingester stores
+// them with NewService. Single mode's checks and pushes call the same NewInOrderService.
 type Service interface {
-	// Ingest stores the result as a heartbeat and publishes the events that follow from it.
-	// It reads the monitor's previous heartbeat to decide Pending, Down and whether to
-	// notify, so the results of one monitor must be ingested one at a time, in order.
+	// Ingest stores the result as a heartbeat and publishes the events that follow from it, or
+	// hands it to the ingester that does. Storing reads the monitor's previous heartbeat to
+	// decide Pending, Down and whether to notify, so the results of one monitor must be
+	// stored one at a time, in order.
 	Ingest(ctx context.Context, r *Result) error
 }
 

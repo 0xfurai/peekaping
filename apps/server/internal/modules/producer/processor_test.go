@@ -56,9 +56,9 @@ func TestProcessMonitor(t *testing.T) {
 		mockQueueSvc := new(MockQueueService)
 
 		producer := &Producer{
-			logger:       logger,
-			loader:       check.NewLoader(mockMonitorSvc, nil, mockMaintenanceSvc, nil, logger),
-			queueService: mockQueueSvc,
+			logger: logger,
+			loader: check.NewLoader(mockMonitorSvc, nil, mockMaintenanceSvc, nil, logger),
+			runner: NewQueueRunner(mockQueueSvc, zap.NewNop().Sugar()),
 		}
 
 		ctx := context.Background()
@@ -157,9 +157,9 @@ func TestProcessMonitor(t *testing.T) {
 		mockQueueSvc := new(MockQueueService)
 
 		producer := &Producer{
-			logger:       logger,
-			loader:       check.NewLoader(mockMonitorSvc, mockProxySvc, mockMaintenanceSvc, nil, logger),
-			queueService: mockQueueSvc,
+			logger: logger,
+			loader: check.NewLoader(mockMonitorSvc, mockProxySvc, mockMaintenanceSvc, nil, logger),
+			runner: NewQueueRunner(mockQueueSvc, zap.NewNop().Sugar()),
 		}
 
 		ctx := context.Background()
@@ -217,9 +217,9 @@ func TestProcessMonitor(t *testing.T) {
 		mockProxySvc := new(MockProxyService)
 		mockQueueSvc := new(MockQueueService)
 		producer := &Producer{
-			logger:       zap.NewNop().Sugar(),
-			loader:       check.NewLoader(mockMonitorSvc, mockProxySvc, mockMaintenanceSvc, nil, zap.NewNop().Sugar()),
-			queueService: mockQueueSvc,
+			logger: zap.NewNop().Sugar(),
+			loader: check.NewLoader(mockMonitorSvc, mockProxySvc, mockMaintenanceSvc, nil, zap.NewNop().Sugar()),
+			runner: NewQueueRunner(mockQueueSvc, zap.NewNop().Sugar()),
 		}
 
 		ctx := context.Background()
@@ -268,9 +268,9 @@ func TestProcessMonitor(t *testing.T) {
 				mockHeartbeatSvc := new(mockHeartbeatService)
 				mockQueueSvc := new(MockQueueService)
 				producer := &Producer{
-					logger:       zap.NewNop().Sugar(),
-					loader:       check.NewLoader(mockMonitorSvc, nil, mockMaintenanceSvc, mockHeartbeatSvc, zap.NewNop().Sugar()),
-					queueService: mockQueueSvc,
+					logger: zap.NewNop().Sugar(),
+					loader: check.NewLoader(mockMonitorSvc, nil, mockMaintenanceSvc, mockHeartbeatSvc, zap.NewNop().Sugar()),
+					runner: NewQueueRunner(mockQueueSvc, zap.NewNop().Sugar()),
 				}
 
 				ctx := context.Background()
@@ -304,9 +304,9 @@ func TestProcessMonitor(t *testing.T) {
 		mockQueueSvc := new(MockQueueService)
 
 		producer := &Producer{
-			logger:       logger,
-			loader:       check.NewLoader(mockMonitorSvc, nil, mockMaintenanceSvc, nil, logger),
-			queueService: mockQueueSvc,
+			logger: logger,
+			loader: check.NewLoader(mockMonitorSvc, nil, mockMaintenanceSvc, nil, logger),
+			runner: NewQueueRunner(mockQueueSvc, zap.NewNop().Sugar()),
 		}
 
 		ctx := context.Background()
@@ -345,9 +345,9 @@ func TestProcessMonitor(t *testing.T) {
 		mockQueueSvc := new(MockQueueService)
 
 		producer := &Producer{
-			logger:       logger,
-			loader:       check.NewLoader(mockMonitorSvc, nil, mockMaintenanceSvc, nil, logger),
-			queueService: mockQueueSvc,
+			logger: logger,
+			loader: check.NewLoader(mockMonitorSvc, nil, mockMaintenanceSvc, nil, logger),
+			runner: NewQueueRunner(mockQueueSvc, zap.NewNop().Sugar()),
 		}
 
 		ctx := context.Background()
@@ -406,9 +406,9 @@ func TestProcessMonitor(t *testing.T) {
 		mockQueueSvc := new(MockQueueService)
 
 		producer := &Producer{
-			logger:       logger,
-			loader:       check.NewLoader(mockMonitorSvc, nil, mockMaintenanceSvc, nil, logger),
-			queueService: mockQueueSvc,
+			logger: logger,
+			loader: check.NewLoader(mockMonitorSvc, nil, mockMaintenanceSvc, nil, logger),
+			runner: NewQueueRunner(mockQueueSvc, zap.NewNop().Sugar()),
 		}
 
 		ctx := context.Background()
@@ -443,9 +443,9 @@ func TestProcessMonitor(t *testing.T) {
 		mockQueueSvc := new(MockQueueService)
 
 		producer := &Producer{
-			logger:       logger,
-			loader:       check.NewLoader(mockMonitorSvc, nil, mockMaintenanceSvc, nil, logger),
-			queueService: mockQueueSvc,
+			logger: logger,
+			loader: check.NewLoader(mockMonitorSvc, nil, mockMaintenanceSvc, nil, logger),
+			runner: NewQueueRunner(mockQueueSvc, zap.NewNop().Sugar()),
 		}
 
 		ctx := context.Background()
@@ -480,9 +480,9 @@ func TestProcessMonitor(t *testing.T) {
 		mockQueueSvc := new(MockQueueService)
 
 		producer := &Producer{
-			logger:       logger,
-			loader:       check.NewLoader(mockMonitorSvc, nil, mockMaintenanceSvc, nil, logger),
-			queueService: mockQueueSvc,
+			logger: logger,
+			loader: check.NewLoader(mockMonitorSvc, nil, mockMaintenanceSvc, nil, logger),
+			runner: NewQueueRunner(mockQueueSvc, zap.NewNop().Sugar()),
 		}
 
 		ctx := context.Background()
@@ -517,9 +517,9 @@ func TestProcessMonitor(t *testing.T) {
 		mockQueueSvc := new(MockQueueService)
 
 		producer := &Producer{
-			logger:       logger,
-			loader:       check.NewLoader(mockMonitorSvc, nil, mockMaintenanceSvc, nil, logger),
-			queueService: mockQueueSvc,
+			logger: logger,
+			loader: check.NewLoader(mockMonitorSvc, nil, mockMaintenanceSvc, nil, logger),
+			runner: NewQueueRunner(mockQueueSvc, zap.NewNop().Sugar()),
 		}
 
 		ctx := context.Background()
@@ -547,31 +547,33 @@ func TestProcessMonitor(t *testing.T) {
 	})
 }
 
-func TestEnqueueHealthCheck(t *testing.T) {
+func TestQueueRunner_Run(t *testing.T) {
 	ctx := context.Background()
-	payload := worker.HealthCheckTaskPayload{MonitorID: "mon-1", ScheduledAt: time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)}
-	opts := &queue.EnqueueOptions{Queue: "healthcheck", TaskID: "healthcheck:mon-1"}
+	at := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+	job := &check.Job{Monitor: &monitor.Model{ID: "mon-1"}}
+	payload := worker.HealthCheckTaskPayload{MonitorID: "mon-1", ScheduledAt: at}
+	opts := &queue.EnqueueOptions{Queue: "healthcheck", TaskID: "healthcheck:mon-1", Timeout: worker.HealthCheckTaskTimeout(0)}
 
-	newProducer := func() (*Producer, *MockQueueService) {
+	newRunner := func() (check.Runner, *MockQueueService) {
 		mockQueueSvc := new(MockQueueService)
-		return &Producer{logger: zap.NewNop().Sugar(), queueService: mockQueueSvc}, mockQueueSvc
+		return NewQueueRunner(mockQueueSvc, zap.NewNop().Sugar()), mockQueueSvc
 	}
 
 	t.Run("enqueues when no task holds the ID", func(t *testing.T) {
-		producer, mockQueueSvc := newProducer()
+		runner, mockQueueSvc := newRunner()
 		mockQueueSvc.On("Enqueue", ctx, worker.TaskTypeHealthCheck, payload, opts).Return(&queue.TaskInfo{}, nil)
 
-		enqueued, err := producer.enqueueHealthCheck(ctx, payload, opts)
+		enqueued, err := runner.Run(ctx, job, at)
 		assert.NoError(t, err)
 		assert.True(t, enqueued)
 		mockQueueSvc.AssertExpectations(t)
 	})
 
 	t.Run("returns enqueue errors other than a conflict", func(t *testing.T) {
-		producer, mockQueueSvc := newProducer()
+		runner, mockQueueSvc := newRunner()
 		mockQueueSvc.On("Enqueue", ctx, worker.TaskTypeHealthCheck, payload, opts).Return(nil, errors.New("redis unavailable"))
 
-		enqueued, err := producer.enqueueHealthCheck(ctx, payload, opts)
+		enqueued, err := runner.Run(ctx, job, at)
 		assert.Error(t, err)
 		assert.False(t, enqueued)
 		mockQueueSvc.AssertNotCalled(t, "GetTaskInfo", mock.Anything, mock.Anything, mock.Anything)
@@ -583,11 +585,11 @@ func TestEnqueueHealthCheck(t *testing.T) {
 	}
 	for name, existing := range inFlight {
 		t.Run("skips a "+name, func(t *testing.T) {
-			producer, mockQueueSvc := newProducer()
+			runner, mockQueueSvc := newRunner()
 			mockQueueSvc.On("Enqueue", ctx, worker.TaskTypeHealthCheck, payload, opts).Return(nil, errTaskIDConflict)
 			mockQueueSvc.On("GetTaskInfo", ctx, "healthcheck", "healthcheck:mon-1").Return(existing, nil)
 
-			enqueued, err := producer.enqueueHealthCheck(ctx, payload, opts)
+			enqueued, err := runner.Run(ctx, job, at)
 			assert.NoError(t, err)
 			assert.False(t, enqueued)
 			mockQueueSvc.AssertNotCalled(t, "DeleteTask", mock.Anything, mock.Anything, mock.Anything)
@@ -596,11 +598,11 @@ func TestEnqueueHealthCheck(t *testing.T) {
 	}
 
 	t.Run("skips when the task finished in the meantime", func(t *testing.T) {
-		producer, mockQueueSvc := newProducer()
+		runner, mockQueueSvc := newRunner()
 		mockQueueSvc.On("Enqueue", ctx, worker.TaskTypeHealthCheck, payload, opts).Return(nil, errTaskIDConflict)
 		mockQueueSvc.On("GetTaskInfo", ctx, "healthcheck", "healthcheck:mon-1").Return(nil, fmt.Errorf("%w: healthcheck:mon-1", queue.ErrTaskNotFound))
 
-		enqueued, err := producer.enqueueHealthCheck(ctx, payload, opts)
+		enqueued, err := runner.Run(ctx, job, at)
 		assert.NoError(t, err)
 		assert.False(t, enqueued)
 		mockQueueSvc.AssertNotCalled(t, "DeleteTask", mock.Anything, mock.Anything, mock.Anything)
@@ -613,13 +615,13 @@ func TestEnqueueHealthCheck(t *testing.T) {
 	}
 	for name, existing := range leftovers {
 		t.Run("replaces a "+name, func(t *testing.T) {
-			producer, mockQueueSvc := newProducer()
+			runner, mockQueueSvc := newRunner()
 			mockQueueSvc.On("Enqueue", ctx, worker.TaskTypeHealthCheck, payload, opts).Return(nil, errTaskIDConflict).Once()
 			mockQueueSvc.On("GetTaskInfo", ctx, "healthcheck", "healthcheck:mon-1").Return(existing, nil)
 			mockQueueSvc.On("DeleteTask", ctx, "healthcheck", "healthcheck:mon-1").Return(nil)
 			mockQueueSvc.On("Enqueue", ctx, worker.TaskTypeHealthCheck, payload, opts).Return(&queue.TaskInfo{}, nil).Once()
 
-			enqueued, err := producer.enqueueHealthCheck(ctx, payload, opts)
+			enqueued, err := runner.Run(ctx, job, at)
 			assert.NoError(t, err)
 			assert.True(t, enqueued)
 			mockQueueSvc.AssertExpectations(t)
@@ -627,24 +629,24 @@ func TestEnqueueHealthCheck(t *testing.T) {
 	}
 
 	t.Run("skips when the leftover task can't be deleted", func(t *testing.T) {
-		producer, mockQueueSvc := newProducer()
+		runner, mockQueueSvc := newRunner()
 		mockQueueSvc.On("Enqueue", ctx, worker.TaskTypeHealthCheck, payload, opts).Return(nil, errTaskIDConflict)
 		mockQueueSvc.On("GetTaskInfo", ctx, "healthcheck", "healthcheck:mon-1").Return(&queue.TaskInfo{ID: "healthcheck:mon-1", State: "archived"}, nil)
 		mockQueueSvc.On("DeleteTask", ctx, "healthcheck", "healthcheck:mon-1").Return(errors.New("redis unavailable"))
 
-		enqueued, err := producer.enqueueHealthCheck(ctx, payload, opts)
+		enqueued, err := runner.Run(ctx, job, at)
 		assert.NoError(t, err)
 		assert.False(t, enqueued)
 		mockQueueSvc.AssertNumberOfCalls(t, "Enqueue", 1)
 	})
 
 	t.Run("skips when another producer enqueued first", func(t *testing.T) {
-		producer, mockQueueSvc := newProducer()
+		runner, mockQueueSvc := newRunner()
 		mockQueueSvc.On("Enqueue", ctx, worker.TaskTypeHealthCheck, payload, opts).Return(nil, errTaskIDConflict)
 		mockQueueSvc.On("GetTaskInfo", ctx, "healthcheck", "healthcheck:mon-1").Return(&queue.TaskInfo{ID: "healthcheck:mon-1", State: "archived"}, nil)
 		mockQueueSvc.On("DeleteTask", ctx, "healthcheck", "healthcheck:mon-1").Return(nil)
 
-		enqueued, err := producer.enqueueHealthCheck(ctx, payload, opts)
+		enqueued, err := runner.Run(ctx, job, at)
 		assert.NoError(t, err)
 		assert.False(t, enqueued)
 		mockQueueSvc.AssertNumberOfCalls(t, "Enqueue", 2)

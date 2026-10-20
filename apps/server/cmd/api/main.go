@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"peekaping/internal"
+	"peekaping/internal/app"
 	"peekaping/internal/infra"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/cleanup"
@@ -46,8 +47,8 @@ func main() {
 	// Convert to internal config format for dependency injection
 	internalCfg := cfg.ToInternalConfig()
 
-	if err := internal.RegisterAPIDependencies(container, internalCfg); err != nil {
-		log.Fatal(err)
+	if err := app.RegisterClusterAPI(container, internalCfg); err != nil {
+		log.Fatalf("Failed to register API dependencies: %v", err)
 	}
 
 	// Start cleanup cron job(s)

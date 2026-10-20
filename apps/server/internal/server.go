@@ -13,12 +13,12 @@ import (
 	"peekaping/internal/modules/badge"
 	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/heartbeat"
+	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/metrics"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/proxy"
-	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/status_page"
@@ -90,7 +90,7 @@ func ProvideServer(
 	settingController *setting.Controller,
 	heartbeatService heartbeat.Service,
 	monitorService monitor.Service,
-	queueService queue.Service,
+	ingesterService ingester.Service,
 	maintenanceRoute *maintenance.Route,
 	maintenanceController *maintenance.Controller,
 	maintenanceService maintenance.Service,
@@ -136,7 +136,7 @@ func ProvideServer(
 	apiKeyRoute.ConnectRoute(router, apiKeyController)
 
 	// Register push endpoint
-	healthcheck.RegisterPushEndpoint(router, monitorService, heartbeatService, queueService, maintenanceService, logger)
+	healthcheck.RegisterPushEndpoint(router, monitorService, heartbeatService, ingesterService, maintenanceService, logger)
 
 	// Compatibility entry points; generated documentation lives at /docs.
 	server.Handle("GET", "/swagger/{any...}", swaggerHandler(server.API()))

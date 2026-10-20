@@ -14,6 +14,7 @@ import (
 	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/healthcheck/executor"
+	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
@@ -62,7 +63,7 @@ func TestHealthCheckAgainstHangingTarget(t *testing.T) {
 	handler := worker.NewHealthCheckTaskHandler(
 		execRegistry,
 		healthcheck.NewHealthCheck(nil, execRegistry, logger),
-		queueSvc,
+		ingester.NewQueueService(queueSvc),
 		logger,
 	)
 	mux := asynq.NewServeMux()
@@ -91,9 +92,9 @@ func TestHealthCheckAgainstHangingTarget(t *testing.T) {
 	mockMaintenanceSvc.On("GetMaintenancesByMonitorID", mock.Anything, mon.ID).Return([]*maintenance.Model{}, nil)
 
 	producer := &Producer{
-		logger:       logger,
-		loader:       check.NewLoader(mockMonitorSvc, nil, mockMaintenanceSvc, nil, logger),
-		queueService: queueSvc,
+		logger: logger,
+		loader: check.NewLoader(mockMonitorSvc, nil, mockMaintenanceSvc, nil, logger),
+		runner: NewQueueRunner(queueSvc, logger),
 	}
 
 	// A queue that was never written to doesn't exist yet and reports as empty
@@ -133,7 +134,7 @@ func TestHealthCheckAgainstHangingTarget(t *testing.T) {
 	require.NoError(t, err)
 	got := make([]shared.MonitorStatus, 0, len(tasks))
 	for _, task := range tasks {
-		var payload worker.IngesterTaskPayload
+		var payload ingester.Result
 		require.NoError(t, json.Unmarshal(task.Payload, &payload))
 		got = append(got, payload.Status)
 	}

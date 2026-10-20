@@ -11,7 +11,6 @@ import (
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_notification"
-	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/worker"
@@ -20,10 +19,11 @@ import (
 	"go.uber.org/zap"
 )
 
-// NewProducer creates a new producer instance
+// NewProducer creates a new producer instance. The runner runs the checks it schedules: in
+// cluster mode, NewQueueRunner enqueues them for the worker.
 func NewProducer(
 	rdb *redis.Client,
-	queueService queue.Service,
+	runner check.Runner,
 	monitorService monitor.Service,
 	loader *check.Loader,
 	monitorNotificationSvc monitor_notification.Service,
@@ -45,7 +45,7 @@ func NewProducer(
 
 	p := &Producer{
 		rdb:                     rdb,
-		queueService:            queueService,
+		runner:                  runner,
 		monitorService:          monitorService,
 		loader:                  loader,
 		monitorNotificationSvc:  monitorNotificationSvc,
