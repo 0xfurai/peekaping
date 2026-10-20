@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "En-tête d'autorisation",
+          "ca": "CA (optionnel)",
+          "ca_description": "Laissez vide pour vérifier le certificat du serveur avec les CA de confiance du système.",
           "certificate": "Certificat",
           "certificate_placeholder": "Certificat",
           "client_id": "ID client",

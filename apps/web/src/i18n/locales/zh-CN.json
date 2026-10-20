@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "授权头",
+          "ca": "CA（可选）",
+          "ca_description": "留空则使用系统信任的 CA 验证服务器的证书。",
           "certificate": "证书",
           "certificate_placeholder": "证书",
           "client_id": "客户端 ID",

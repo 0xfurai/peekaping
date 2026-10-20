@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "Avtorizatsiya sarlavhasi",
+          "ca": "CA (ixtiyoriy)",
+          "ca_description": "Serverning sertifikatini tizimning ishonchli CA'lari bilan tasdiqlash uchun bo‘sh qoldiring.",
           "certificate": "Sertifikat",
           "certificate_placeholder": "Sertifikat",
           "client_id": "Mijoz ID",

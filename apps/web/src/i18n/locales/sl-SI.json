@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "Glava avtentikacije",
+          "ca": "CA (izbirno)",
+          "ca_description": "Pustite prazno, da preverite certifikat strežnika z zaupanja vrednimi CA sistema.",
           "certificate": "Certifikat",
           "certificate_placeholder": "Certifikat",
           "client_id": "ID odjemalca",

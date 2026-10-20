@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "Tiêu đề Xác thực",
+          "ca": "CA (tuỳ chọn)",
+          "ca_description": "Để trống để xác thực chứng chỉ của máy chủ bằng các CA đáng tin cậy của hệ thống.",
           "certificate": "Chứng chỉ",
           "certificate_placeholder": "Chứng chỉ",
           "client_id": "ID Khách hàng",

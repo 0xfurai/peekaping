@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "認証ヘッダー",
+          "ca": "CA（任意）",
+          "ca_description": "空欄のままにすると、サーバーの証明書がシステムの信頼する CA で検証されます。",
           "certificate": "証明書",
           "certificate_placeholder": "証明書",
           "client_id": "クライアントID",

@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "Behörighetsrubrik",
+          "ca": "CA (valfritt)",
+          "ca_description": "Lämna tomt för att verifiera serverns certifikat mot systemets betrodda CA:er.",
           "certificate": "Certifikat",
           "certificate_placeholder": "Certifikat",
           "client_id": "Klient-ID",

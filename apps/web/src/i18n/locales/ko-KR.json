@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "인증 헤더",
+          "ca": "CA (선택 사항)",
+          "ca_description": "비워 두면 시스템이 신뢰하는 CA로 서버 인증서를 검증합니다.",
           "certificate": "인증서",
           "certificate_placeholder": "인증서",
           "client_id": "클라이언트 ID",

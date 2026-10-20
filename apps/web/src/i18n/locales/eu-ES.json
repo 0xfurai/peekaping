@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "Baieztapena goiburua",
+          "ca": "CA (aukerakoa)",
+          "ca_description": "Utzi hutsik zerbitzariaren ziurtagiria sistemaren CA fidagarriekin egiaztatzeko.",
           "certificate": "Ziurtagiria",
           "certificate_placeholder": "Ziurtagiria",
           "client_id": "Bezero IDa",
