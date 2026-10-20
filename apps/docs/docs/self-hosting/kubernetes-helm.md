@@ -234,7 +234,7 @@ If you also set `ingress.enabled`, the Ingress sends all paths to the Istio ingr
 
 The chart version pins every image. Chart `0.0.48` runs the `0.0.48` api, producer, worker, ingester, web and migrate images, and the init containers that follow them. The `wait-for-migrations` init containers run the migrate image, and `seed-web-root` runs the web image. So every pod runs one release, on any node, even with `imagePullPolicy: IfNotPresent`.
 
-There is one set of values for each of the six components, `<component>.image.repository`, `<component>.image.tag` and `<component>.image.pullPolicy`. The repositories are `0xfurai/peekaping-api`, `-producer`, `-worker`, `-ingester`, `-web` and `-migrate`. An empty `tag`, the default, means the chart's version.
+There is one set of values for each of the six components, `<component>.image.repository`, `<component>.image.tag` and `<component>.image.pullPolicy`. The repositories are `0xfurai/peekaping-api`, `-producer`, `-worker`, `-ingester`, `-web` and `-migrate`. An empty `tag`, the default, means the chart's `appVersion`: the release in a published chart, `latest` in a checkout.
 
 Set a component's `image.tag` only to run another build of that component, such as a release candidate:
 
@@ -244,7 +244,7 @@ api:
     tag: "0.0.49-rc.1"
 ```
 
-A component's `image.tag` changes that component's container only. `web.image.tag` also sets `seed-web-root`, the init container of the web pods. `migrate.image.tag` sets the migrate Job and the `wait-for-migrations` init containers of the API, producer, worker and ingester pods, because they run the migrate image. Everything else stays on the chart's version.
+A component's `image.tag` changes that component's container only. `web.image.tag` also sets `seed-web-root`, the init container of the web pods. `migrate.image.tag` sets the migrate Job and the `wait-for-migrations` init containers of the API, producer, worker and ingester pods, because they run the migrate image. Everything else stays on the chart's `appVersion`.
 
 A checkout of the repository has the chart version `0.0.0` and the app version `latest`, so its images are `latest`. A node that has already pulled `latest` keeps using it after a new release, so pods on different nodes can run different versions. When you install from a checkout, set `image.tag` on all six components to the same release.
 
