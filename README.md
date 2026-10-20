@@ -63,6 +63,8 @@ Then open http://localhost:8383. The image runs Peekaping in single mode: one pr
 
 Peekaping also supports [PostgreSQL Setup](https://docs.peekaping.com/self-hosting/docker-with-postgres). Read docs for more guidance
 
+These images run single mode, the default for new installs. Cluster mode (Kubernetes with Helm, or Docker Compose) is for installs that need to scale out. See [Deployment modes](https://docs.peekaping.com/self-hosting/deployment-modes) to choose.
+
 MongoDB storage is deprecated. Existing installs keep working, but new installs should use SQLite or PostgreSQL. See the [deprecated MongoDB Setup](https://docs.peekaping.com/self-hosting/docker-with-mongo) for the removal rule and the plan to move your data.
 
 ## ☁️ One-Click Deploy
