@@ -102,6 +102,16 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// Take the notification events the ingester and the producer's watchdog queue. Each goes to
+	// one api replica, which hands it to the listener above, so it starts after the listener
+	// subscribed: an event handed to a bus with no handler for its topic is dropped.
+	err = container.Invoke(func(consumer *notification_channel.QueueConsumer) error {
+		return consumer.Start()
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Repair monitors whose stored status differs from their latest heartbeat. It runs beside
 	// startup and only logs, so a failure never keeps the API from serving. Shutdown stops it
 	// before the database closes.
@@ -140,6 +150,7 @@ func main() {
 	// Start the server with graceful shutdown
 	err = container.Invoke(func(
 		server *internal.Server,
+		consumer *notification_channel.QueueConsumer,
 		eventBus events.EventBus,
 		logger *zap.SugaredLogger,
 	) error {
@@ -169,6 +180,8 @@ func main() {
 		logger.Info("Shutdown signal received, starting graceful shutdown...")
 		stopMetrics()
 		stopRepair()
+		// Stop taking notification events before the event bus closes, so none finds it closed
+		consumer.Stop()
 		// Close event bus: queued events get a few seconds to finish
 		closeCtx, cancelClose := context.WithTimeout(context.Background(), 10*time.Second)
 		if err := eventBus.Close(closeCtx); err != nil {

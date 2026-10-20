@@ -31,8 +31,9 @@ func ProvideRedisClient(cfg *config.Config, logger *zap.SugaredLogger) (*redis.C
 	return client, nil
 }
 
-// ProvideRedisEventBus creates and returns a Redis-based event bus
-func ProvideRedisEventBus(client *redis.Client, logger *zap.SugaredLogger) events.EventBus {
+// ProvideRedisEventBus creates and returns a Redis-based event bus. Cluster mode provides the
+// events.EventBus the modules use from it, with the notification topics sent through a queue.
+func ProvideRedisEventBus(client *redis.Client, logger *zap.SugaredLogger) *events.Bus {
 	logger.Info("Creating Redis-based event bus")
 	return NewRedisEventBus(client, logger)
 }
