@@ -12,11 +12,6 @@ import (
 	"go.uber.org/zap"
 )
 
-const (
-	// RedisEventChannelPrefix is the prefix for Redis pub/sub channels
-	RedisEventChannelPrefix = "peekaping:events:"
-)
-
 // RedisEventBus is a distributed event bus implementation using Redis Pub/Sub
 type RedisEventBus struct {
 	client      *redis.Client
@@ -28,12 +23,6 @@ type RedisEventBus struct {
 	ctx         context.Context
 	cancel      context.CancelFunc
 	wg          sync.WaitGroup
-}
-
-// SerializedEvent represents an event that can be serialized to JSON
-type SerializedEvent struct {
-	Type    events.EventType `json:"type"`
-	Payload json.RawMessage  `json:"payload"`
 }
 
 // NewRedisEventBus creates a new Redis-based event bus
@@ -129,7 +118,7 @@ func (b *RedisEventBus) handleRedisMessage(eventType events.EventType, msg *redi
 
 	// Reconstruct the event with raw payload
 	event := events.Event{
-		Type:    serialized.Type,
+		Type:    events.EventType(serialized.Type),
 		Payload: serialized.Payload,
 	}
 
@@ -168,7 +157,7 @@ func (b *RedisEventBus) Publish(event events.Event) {
 	}
 
 	serialized := SerializedEvent{
-		Type:    event.Type,
+		Type:    string(event.Type),
 		Payload: payloadJSON,
 	}
 
