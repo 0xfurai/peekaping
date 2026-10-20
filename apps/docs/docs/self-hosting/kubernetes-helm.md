@@ -81,6 +81,10 @@ ingress:
   enabled: true
   ingressClassName: nginx
   host: status.example.com
+  # A TLS secret for status.example.com in the ingress's namespace, for
+  # example one cert-manager issues. Without it, the ingress controller
+  # serves its default certificate.
+  tlsSecretName: status-example-com-tls
 ```
 
 [Ingress or Istio](#ingress-or-istio) covers the routing, and [Pin the image tags](#pin-the-image-tags) the versions.

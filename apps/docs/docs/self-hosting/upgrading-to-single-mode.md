@@ -20,7 +20,15 @@ The answer looks like `{"version":"0.0.47"}`. If you run 0.0.44, 0.0.45 or 0.0.4
 
 ## Back up
 
-Back up before you pull the new image. Stop the container, so that the files are complete, and copy the data directory. Run the `cp` commands with `sudo` where the files belong to another user, as the PostgreSQL files do.
+Back up before you pull the new image.
+
+With the PostgreSQL bundle, you can first take a dump while the container still runs, as an extra copy you can read with PostgreSQL tools. `postgres` is the superuser of the bundle's PostgreSQL, which needs no password for connections from inside the container. Replace `peekaping` at the end with your `DB_NAME`:
+
+```bash
+docker exec peekaping pg_dump -U postgres -h localhost -Fc peekaping > peekaping-before-upgrade.dump
+```
+
+Then stop the container, so that the files are complete, and copy the data directory. This copy is what [rolling back](#rolling-back) restores. Run the `cp` commands with `sudo` where the files belong to another user, as the PostgreSQL files do.
 
 ```bash
 docker stop -t 35 peekaping
@@ -42,12 +50,6 @@ With a named volume instead of a folder, copy the volume with a throwaway contai
 
 ```bash
 docker run --rm -v peekaping_data:/data -v "$PWD":/backup alpine tar czf /backup/peekaping-before-upgrade.tar.gz -C /data .
-```
-
-The PostgreSQL bundle can also dump its database instead. Do it before you stop the container, since the dump needs PostgreSQL running. `postgres` is the superuser of the bundle's PostgreSQL, which needs no password for connections from inside the container. Replace `peekaping` at the end with your `DB_NAME`:
-
-```bash
-docker exec peekaping pg_dump -U postgres -h localhost -Fc peekaping > peekaping-before-upgrade.dump
 ```
 
 For a SQLite backup that you can check with `sqlite3`, see [Upgrading stats storage](./upgrading-stats.md#before-upgrading).
@@ -157,9 +159,4 @@ cp -a .data/sqlite-before-upgrade .data/sqlite
 
 For the PostgreSQL bundle, use the `.data/postgres` directories. Then start the release you came from with the same volume, as above, for example `0xfurai/peekaping-bundle-sqlite:0.0.46`.
 
-If you took a `pg_dump` instead, move `.data/postgres` aside and start the old PostgreSQL image with a new, empty `.data/postgres`. Then restore the dump into it, with your `DB_NAME` after `-d`, and restart the container:
-
-```bash
-docker exec -i peekaping pg_restore -U postgres -h localhost -d peekaping --clean --if-exists < peekaping-before-upgrade.dump
-docker restart peekaping
-```
+Restore the directory copy, not the `pg_dump`. The old bundle starts Peekaping's processes as soon as PostgreSQL is up, so a `pg_restore` into it would run while they use the database. Keep the dump as an extra copy.
