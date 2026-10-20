@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"peekaping/internal/config"
@@ -71,8 +72,9 @@ func LoadAndValidate(path string) (*Config, error) {
 
 // Validate validates peekaping's configuration
 func Validate(cfg *Config) error {
-	// MongoDB storage is deprecated and frozen (ADR 0001), and single mode doesn't support it
-	if cfg.DBType == "mongo" || cfg.DBType == "mongodb" {
+	// MongoDB storage is deprecated and frozen (ADR 0001), and single mode doesn't support it. The
+	// db_type validator ignores case, so this does too.
+	if strings.EqualFold(cfg.DBType, "mongo") || strings.EqualFold(cfg.DBType, "mongodb") {
 		return fmt.Errorf("DB_TYPE=%s isn't supported by peekaping (single mode), which stores its data in SQLite or PostgreSQL. "+
 			"MongoDB storage is deprecated and runs only in cluster mode, with the api, producer, worker and ingester services", cfg.DBType)
 	}
