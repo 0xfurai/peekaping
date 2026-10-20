@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 	_ "time/tzdata" // embed the zone database so TZ works in images without tzdata
@@ -86,11 +87,45 @@ func main() {
 		logger.Fatalw("Failed to listen", "port", cfg.Port, "error", err)
 	}
 
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	ctx, stop := notifyShutdown(logger, os.Exit)
 	defer stop()
 
 	if err := run(ctx, cfg, logger, listener); err != nil {
 		logger.Fatalw("Peekaping stopped with an error", "error", err)
+	}
+}
+
+// notifyShutdown returns a context that the first SIGTERM or SIGINT cancels, which starts the
+// shutdown. A second one doesn't wait for the shutdown to finish: it is logged and exit is
+// called with 1. stop stops listening for the signals.
+func notifyShutdown(logger *zap.SugaredLogger, exit func(code int)) (ctx context.Context, stop func()) {
+	signals := make(chan os.Signal, 2)
+	signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
+	ctx, cancel := context.WithCancel(context.Background())
+	stopped := make(chan struct{})
+	go func() {
+		select {
+		case <-signals:
+			cancel()
+		case <-stopped:
+			return
+		}
+		select {
+		case sig := <-signals:
+			logger.Errorw("Second shutdown signal received, exiting without finishing the shutdown", "signal", sig.String())
+			_ = logger.Sync()
+			exit(1)
+		case <-stopped:
+		}
+	}()
+
+	var once sync.Once
+	return ctx, func() {
+		once.Do(func() {
+			signal.Stop(signals)
+			close(stopped)
+			cancel()
+		})
 	}
 }
 
