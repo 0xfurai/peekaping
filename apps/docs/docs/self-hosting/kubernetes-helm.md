@@ -230,7 +230,13 @@ Each component has a `replicaCount`, which is 3 by default, and `resources` with
 
 1. Back up your PostgreSQL database. If you upgrade from 0.0.46 or earlier, also read [Upgrading stats storage](./upgrading-stats.md).
 2. Update your checkout of the repository, and set the new release in every `image.tag`.
-3. Upgrade the release:
+3. Delete the migrate Job of the last install or upgrade, if it is still there. Kubernetes can't change a Job's pods once it exists, so `helm upgrade` fails on it for an hour after it finished:
+
+   ```bash
+   kubectl delete job --namespace peekaping peekaping-migrate --ignore-not-found
+   ```
+
+4. Upgrade the release:
 
    ```bash
    helm upgrade peekaping charts \
