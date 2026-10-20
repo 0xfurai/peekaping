@@ -1,4 +1,4 @@
-// Package stale records monitors that Peekaping has stopped checking. The producer's
+// Package stale finds and records monitors that Peekaping has stopped checking. The
 // watchdog writes the records; the API reads them for the health endpoint and the UI.
 package stale
 

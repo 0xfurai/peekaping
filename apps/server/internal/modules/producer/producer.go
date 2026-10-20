@@ -14,6 +14,7 @@ import (
 	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stale"
+	"peekaping/internal/modules/worker"
 
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
@@ -42,14 +43,13 @@ func NewProducer(
 		concurrency = ConcurrentProducers
 	}
 
-	return &Producer{
+	p := &Producer{
 		rdb:                     rdb,
 		queueService:            queueService,
 		monitorService:          monitorService,
 		loader:                  loader,
 		monitorNotificationSvc:  monitorNotificationSvc,
 		settingService:          settingService,
-		heartbeatService:        heartbeatService,
 		logger:                  logger.With("component", "producer"),
 		ctx:                     ctx,
 		cancel:                  cancel,
@@ -59,10 +59,22 @@ func NewProducer(
 		leadershipCheckInterval: 1 * time.Second,
 		leaderElection:          leaderElection,
 		concurrency:             concurrency,
-		eventBus:                eventBus,
-		staleStore:              staleStore,
-		watchdogInterval:        WatchdogInterval,
 	}
+
+	// The watchdog gets stale monitors checked again by scheduling them to run now
+	p.watchdog = stale.NewWatchdog(stale.WatchdogConfig{
+		Store:      staleStore,
+		Rechecker:  p,
+		Monitors:   monitorService,
+		Heartbeats: heartbeatService,
+		EventBus:   eventBus,
+		// Redis's clock is the one all producers share
+		Now:          func() time.Time { return time.UnixMilli(p.redisNowMs()).UTC() },
+		CheckTimeout: worker.HealthCheckTaskTimeout,
+		Logger:       logger.With("component", "watchdog"),
+	})
+
+	return p
 }
 
 // Start starts the producer with leader election

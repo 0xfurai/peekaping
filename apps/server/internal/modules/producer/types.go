@@ -9,8 +9,6 @@ import (
 	"go.uber.org/zap"
 
 	"peekaping/internal/modules/check"
-	"peekaping/internal/modules/events"
-	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_notification"
 	"peekaping/internal/modules/queue"
@@ -26,7 +24,6 @@ type Producer struct {
 	loader                  *check.Loader
 	monitorNotificationSvc  monitor_notification.Service
 	settingService          shared.SettingService
-	heartbeatService        heartbeat.Service
 	logger                  *zap.SugaredLogger
 	ctx                     context.Context
 	cancel                  context.CancelFunc
@@ -40,7 +37,5 @@ type Producer struct {
 	leadershipCheckInterval time.Duration // how often syncing is started or stopped to follow leadership
 	leaderElection          *LeaderElection
 	concurrency             int // number of concurrent producer goroutines
-	eventBus                events.EventBus
-	staleStore              stale.Store
-	watchdogInterval        time.Duration
+	watchdog                *stale.Watchdog
 }

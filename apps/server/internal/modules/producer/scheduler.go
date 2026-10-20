@@ -346,6 +346,19 @@ func (p *Producer) scheduleMonitor(ctx context.Context, monitorID string, interv
 	return nil
 }
 
+// RunNow gets the monitor checked right away, without waiting for its next scheduled check.
+// It implements stale.Rechecker.
+func (p *Producer) RunNow(ctx context.Context, monitorID string) error {
+	mon, err := p.monitorService.FindByID(ctx, monitorID)
+	if err != nil {
+		return fmt.Errorf("failed to find monitor: %w", err)
+	}
+	if mon == nil {
+		return fmt.Errorf("monitor %s not found", monitorID)
+	}
+	return p.scheduleMonitor(ctx, monitorID, mon.Interval, true)
+}
+
 // UnscheduleMonitor removes a monitor from the schedule
 func (p *Producer) UnscheduleMonitor(ctx context.Context, monitorID string) error {
 	p.mu.Lock()
