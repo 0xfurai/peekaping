@@ -10,6 +10,7 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/infra"
 	"peekaping/internal/modules/certificate"
+	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/heartbeat"
@@ -23,6 +24,7 @@ import (
 	"peekaping/internal/modules/producer"
 	"peekaping/internal/modules/proxy"
 	"peekaping/internal/modules/setting"
+	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/stats"
 	"peekaping/internal/modules/tag"
 	"peekaping/internal/version"
@@ -65,6 +67,9 @@ func main() {
 	container.Provide(infra.ProvideRedisClient)
 	container.Provide(infra.ProvideRedisEventBus)
 
+	// The stale monitors the watchdog records
+	container.Provide(stale.ProvideRedisStore)
+
 	// Provide queue infrastructure
 	container.Provide(infra.ProvideAsynqClient)
 	container.Provide(infra.ProvideAsynqInspector)
@@ -87,6 +92,7 @@ func main() {
 	stats.RegisterDependencies(container, internalCfg)
 
 	// Register producer dependencies
+	check.RegisterDependencies(container)
 	producer.RegisterDependencies(container)
 
 	// Start the producer

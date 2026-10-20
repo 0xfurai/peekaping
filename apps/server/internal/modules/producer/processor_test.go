@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/maintenance"
@@ -47,96 +48,6 @@ func healthCheckOpts(monitorID string) interface{} {
 	})
 }
 
-func TestIsUnderMaintenance(t *testing.T) {
-	t.Run("monitor not under maintenance", func(t *testing.T) {
-		logger := zap.NewNop().Sugar()
-		mockMaintenanceSvc := new(MockMaintenanceService)
-
-		producer := &Producer{
-			logger:             logger,
-			maintenanceService: mockMaintenanceSvc,
-		}
-
-		ctx := context.Background()
-		mockMaintenanceSvc.On("GetMaintenancesByMonitorID", ctx, "mon-1").Return([]*maintenance.Model{}, nil)
-
-		result, err := producer.isUnderMaintenance(ctx, "mon-1")
-		assert.NoError(t, err)
-		assert.False(t, result)
-
-		mockMaintenanceSvc.AssertExpectations(t)
-	})
-
-	t.Run("monitor under maintenance", func(t *testing.T) {
-		logger := zap.NewNop().Sugar()
-		mockMaintenanceSvc := new(MockMaintenanceService)
-
-		producer := &Producer{
-			logger:             logger,
-			maintenanceService: mockMaintenanceSvc,
-		}
-
-		ctx := context.Background()
-		maintenances := []*maintenance.Model{
-			{ID: "maint-1"},
-		}
-
-		mockMaintenanceSvc.On("GetMaintenancesByMonitorID", ctx, "mon-1").Return(maintenances, nil)
-		mockMaintenanceSvc.On("IsUnderMaintenance", ctx, maintenances[0]).Return(true, nil)
-
-		result, err := producer.isUnderMaintenance(ctx, "mon-1")
-		assert.NoError(t, err)
-		assert.True(t, result)
-
-		mockMaintenanceSvc.AssertExpectations(t)
-	})
-
-	t.Run("multiple maintenances, one active", func(t *testing.T) {
-		logger := zap.NewNop().Sugar()
-		mockMaintenanceSvc := new(MockMaintenanceService)
-
-		producer := &Producer{
-			logger:             logger,
-			maintenanceService: mockMaintenanceSvc,
-		}
-
-		ctx := context.Background()
-		maintenances := []*maintenance.Model{
-			{ID: "maint-1"},
-			{ID: "maint-2"},
-		}
-
-		mockMaintenanceSvc.On("GetMaintenancesByMonitorID", ctx, "mon-1").Return(maintenances, nil)
-		mockMaintenanceSvc.On("IsUnderMaintenance", ctx, maintenances[0]).Return(false, nil)
-		mockMaintenanceSvc.On("IsUnderMaintenance", ctx, maintenances[1]).Return(true, nil)
-
-		result, err := producer.isUnderMaintenance(ctx, "mon-1")
-		assert.NoError(t, err)
-		assert.True(t, result)
-
-		mockMaintenanceSvc.AssertExpectations(t)
-	})
-
-	t.Run("error getting maintenances", func(t *testing.T) {
-		logger := zap.NewNop().Sugar()
-		mockMaintenanceSvc := new(MockMaintenanceService)
-
-		producer := &Producer{
-			logger:             logger,
-			maintenanceService: mockMaintenanceSvc,
-		}
-
-		ctx := context.Background()
-		mockMaintenanceSvc.On("GetMaintenancesByMonitorID", ctx, "mon-1").Return(nil, errors.New("database error"))
-
-		result, err := producer.isUnderMaintenance(ctx, "mon-1")
-		assert.Error(t, err)
-		assert.False(t, result)
-
-		mockMaintenanceSvc.AssertExpectations(t)
-	})
-}
-
 func TestProcessMonitor(t *testing.T) {
 	t.Run("successfully process active monitor", func(t *testing.T) {
 		logger := zap.NewNop().Sugar()
@@ -145,10 +56,9 @@ func TestProcessMonitor(t *testing.T) {
 		mockQueueSvc := new(MockQueueService)
 
 		producer := &Producer{
-			logger:             logger,
-			monitorService:     mockMonitorSvc,
-			maintenanceService: mockMaintenanceSvc,
-			queueService:       mockQueueSvc,
+			logger:       logger,
+			loader:       check.NewLoader(mockMonitorSvc, nil, mockMaintenanceSvc, nil, logger),
+			queueService: mockQueueSvc,
 		}
 
 		ctx := context.Background()
@@ -199,8 +109,8 @@ func TestProcessMonitor(t *testing.T) {
 		mockMonitorSvc := new(MockMonitorService)
 
 		producer := &Producer{
-			logger:         logger,
-			monitorService: mockMonitorSvc,
+			logger: logger,
+			loader: check.NewLoader(mockMonitorSvc, nil, nil, nil, logger),
 		}
 
 		ctx := context.Background()
@@ -225,8 +135,8 @@ func TestProcessMonitor(t *testing.T) {
 		mockMonitorSvc := new(MockMonitorService)
 
 		producer := &Producer{
-			logger:         logger,
-			monitorService: mockMonitorSvc,
+			logger: logger,
+			loader: check.NewLoader(mockMonitorSvc, nil, nil, nil, logger),
 		}
 
 		ctx := context.Background()
@@ -247,11 +157,9 @@ func TestProcessMonitor(t *testing.T) {
 		mockQueueSvc := new(MockQueueService)
 
 		producer := &Producer{
-			logger:             logger,
-			monitorService:     mockMonitorSvc,
-			maintenanceService: mockMaintenanceSvc,
-			proxyService:       mockProxySvc,
-			queueService:       mockQueueSvc,
+			logger:       logger,
+			loader:       check.NewLoader(mockMonitorSvc, mockProxySvc, mockMaintenanceSvc, nil, logger),
+			queueService: mockQueueSvc,
 		}
 
 		ctx := context.Background()
@@ -309,11 +217,9 @@ func TestProcessMonitor(t *testing.T) {
 		mockProxySvc := new(MockProxyService)
 		mockQueueSvc := new(MockQueueService)
 		producer := &Producer{
-			logger:             zap.NewNop().Sugar(),
-			monitorService:     mockMonitorSvc,
-			maintenanceService: mockMaintenanceSvc,
-			proxyService:       mockProxySvc,
-			queueService:       mockQueueSvc,
+			logger:       zap.NewNop().Sugar(),
+			loader:       check.NewLoader(mockMonitorSvc, mockProxySvc, mockMaintenanceSvc, nil, zap.NewNop().Sugar()),
+			queueService: mockQueueSvc,
 		}
 
 		ctx := context.Background()
@@ -362,11 +268,9 @@ func TestProcessMonitor(t *testing.T) {
 				mockHeartbeatSvc := new(mockHeartbeatService)
 				mockQueueSvc := new(MockQueueService)
 				producer := &Producer{
-					logger:             zap.NewNop().Sugar(),
-					monitorService:     mockMonitorSvc,
-					maintenanceService: mockMaintenanceSvc,
-					heartbeatService:   mockHeartbeatSvc,
-					queueService:       mockQueueSvc,
+					logger:       zap.NewNop().Sugar(),
+					loader:       check.NewLoader(mockMonitorSvc, nil, mockMaintenanceSvc, mockHeartbeatSvc, zap.NewNop().Sugar()),
+					queueService: mockQueueSvc,
 				}
 
 				ctx := context.Background()
@@ -400,10 +304,9 @@ func TestProcessMonitor(t *testing.T) {
 		mockQueueSvc := new(MockQueueService)
 
 		producer := &Producer{
-			logger:             logger,
-			monitorService:     mockMonitorSvc,
-			maintenanceService: mockMaintenanceSvc,
-			queueService:       mockQueueSvc,
+			logger:       logger,
+			loader:       check.NewLoader(mockMonitorSvc, nil, mockMaintenanceSvc, nil, logger),
+			queueService: mockQueueSvc,
 		}
 
 		ctx := context.Background()
@@ -442,10 +345,9 @@ func TestProcessMonitor(t *testing.T) {
 		mockQueueSvc := new(MockQueueService)
 
 		producer := &Producer{
-			logger:             logger,
-			monitorService:     mockMonitorSvc,
-			maintenanceService: mockMaintenanceSvc,
-			queueService:       mockQueueSvc,
+			logger:       logger,
+			loader:       check.NewLoader(mockMonitorSvc, nil, mockMaintenanceSvc, nil, logger),
+			queueService: mockQueueSvc,
 		}
 
 		ctx := context.Background()
@@ -483,8 +385,8 @@ func TestProcessMonitor(t *testing.T) {
 		mockMonitorSvc := new(MockMonitorService)
 
 		producer := &Producer{
-			logger:         logger,
-			monitorService: mockMonitorSvc,
+			logger: logger,
+			loader: check.NewLoader(mockMonitorSvc, nil, nil, nil, logger),
 		}
 
 		ctx := context.Background()
@@ -504,10 +406,9 @@ func TestProcessMonitor(t *testing.T) {
 		mockQueueSvc := new(MockQueueService)
 
 		producer := &Producer{
-			logger:             logger,
-			monitorService:     mockMonitorSvc,
-			maintenanceService: mockMaintenanceSvc,
-			queueService:       mockQueueSvc,
+			logger:       logger,
+			loader:       check.NewLoader(mockMonitorSvc, nil, mockMaintenanceSvc, nil, logger),
+			queueService: mockQueueSvc,
 		}
 
 		ctx := context.Background()
@@ -542,10 +443,9 @@ func TestProcessMonitor(t *testing.T) {
 		mockQueueSvc := new(MockQueueService)
 
 		producer := &Producer{
-			logger:             logger,
-			monitorService:     mockMonitorSvc,
-			maintenanceService: mockMaintenanceSvc,
-			queueService:       mockQueueSvc,
+			logger:       logger,
+			loader:       check.NewLoader(mockMonitorSvc, nil, mockMaintenanceSvc, nil, logger),
+			queueService: mockQueueSvc,
 		}
 
 		ctx := context.Background()
@@ -580,10 +480,9 @@ func TestProcessMonitor(t *testing.T) {
 		mockQueueSvc := new(MockQueueService)
 
 		producer := &Producer{
-			logger:             logger,
-			monitorService:     mockMonitorSvc,
-			maintenanceService: mockMaintenanceSvc,
-			queueService:       mockQueueSvc,
+			logger:       logger,
+			loader:       check.NewLoader(mockMonitorSvc, nil, mockMaintenanceSvc, nil, logger),
+			queueService: mockQueueSvc,
 		}
 
 		ctx := context.Background()
@@ -618,10 +517,9 @@ func TestProcessMonitor(t *testing.T) {
 		mockQueueSvc := new(MockQueueService)
 
 		producer := &Producer{
-			logger:             logger,
-			monitorService:     mockMonitorSvc,
-			maintenanceService: mockMaintenanceSvc,
-			queueService:       mockQueueSvc,
+			logger:       logger,
+			loader:       check.NewLoader(mockMonitorSvc, nil, mockMaintenanceSvc, nil, logger),
+			queueService: mockQueueSvc,
 		}
 
 		ctx := context.Background()

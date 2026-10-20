@@ -84,7 +84,10 @@ func (p *Producer) startMonitorSyncing() error {
 
 	// Start the stale-monitor watchdog
 	p.wg.Add(1)
-	go p.runWatchdog(p.syncCtx)
+	go func(ctx context.Context) {
+		defer p.wg.Done()
+		p.watchdog.Run(ctx)
+	}(p.syncCtx)
 
 	p.logger.Info("Monitor syncing started successfully")
 	return nil

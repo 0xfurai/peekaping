@@ -99,6 +99,7 @@ type testIngester struct {
 	heartbeats *fakeHeartbeatService
 	certs      *fakeCertificateService
 	bus        *eventstest.Bus
+	service    Service
 	handler    *IngesterTaskHandler
 }
 
@@ -106,11 +107,13 @@ func newTestIngester() *testIngester {
 	heartbeats := &fakeHeartbeatService{}
 	certs := &fakeCertificateService{}
 	bus := eventstest.NewBus()
+	service := NewService(heartbeats, certs, bus, zap.NewNop().Sugar())
 	return &testIngester{
 		heartbeats: heartbeats,
 		certs:      certs,
 		bus:        bus,
-		handler:    NewIngesterTaskHandler(heartbeats, certs, nil, bus, zap.NewNop().Sugar()),
+		service:    service,
+		handler:    NewIngesterTaskHandler(service, zap.NewNop().Sugar()),
 	}
 }
 
@@ -120,9 +123,9 @@ type monitorSettings struct {
 	resendInterval int
 }
 
-func checkResult(m monitorSettings, status shared.MonitorStatus) IngesterTaskPayload {
+func checkResult(m monitorSettings, status shared.MonitorStatus) Result {
 	start := time.Date(2026, 10, 17, 12, 0, 0, 0, time.UTC)
-	return IngesterTaskPayload{
+	return Result{
 		MonitorID:         monitorID,
 		MonitorName:       "Test",
 		MonitorType:       "http",
@@ -139,7 +142,7 @@ func checkResult(m monitorSettings, status shared.MonitorStatus) IngesterTaskPay
 	}
 }
 
-func (ti *testIngester) ingest(t *testing.T, payload IngesterTaskPayload) error {
+func (ti *testIngester) ingest(t *testing.T, payload Result) error {
 	t.Helper()
 	body, err := json.Marshal(payload)
 	require.NoError(t, err)

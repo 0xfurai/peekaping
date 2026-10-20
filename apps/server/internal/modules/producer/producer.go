@@ -6,15 +6,15 @@ import (
 	"time"
 
 	"peekaping/internal/config"
+	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_notification"
-	"peekaping/internal/modules/proxy"
 	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stale"
+	"peekaping/internal/modules/worker"
 
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
@@ -25,11 +25,11 @@ func NewProducer(
 	rdb *redis.Client,
 	queueService queue.Service,
 	monitorService monitor.Service,
-	proxyService proxy.Service,
-	maintenanceService maintenance.Service,
+	loader *check.Loader,
 	monitorNotificationSvc monitor_notification.Service,
 	settingService shared.SettingService,
 	heartbeatService heartbeat.Service,
+	staleStore stale.Store,
 	eventBus events.EventBus,
 	leaderElection *LeaderElection,
 	cfg *config.Config,
@@ -43,15 +43,13 @@ func NewProducer(
 		concurrency = ConcurrentProducers
 	}
 
-	return &Producer{
+	p := &Producer{
 		rdb:                     rdb,
 		queueService:            queueService,
 		monitorService:          monitorService,
-		proxyService:            proxyService,
-		maintenanceService:      maintenanceService,
+		loader:                  loader,
 		monitorNotificationSvc:  monitorNotificationSvc,
 		settingService:          settingService,
-		heartbeatService:        heartbeatService,
 		logger:                  logger.With("component", "producer"),
 		ctx:                     ctx,
 		cancel:                  cancel,
@@ -61,10 +59,22 @@ func NewProducer(
 		leadershipCheckInterval: 1 * time.Second,
 		leaderElection:          leaderElection,
 		concurrency:             concurrency,
-		eventBus:                eventBus,
-		staleStore:              stale.NewStore(rdb),
-		watchdogInterval:        WatchdogInterval,
 	}
+
+	// The watchdog gets stale monitors checked again by scheduling them to run now
+	p.watchdog = stale.NewWatchdog(stale.WatchdogConfig{
+		Store:      staleStore,
+		Rechecker:  p,
+		Monitors:   monitorService,
+		Heartbeats: heartbeatService,
+		EventBus:   eventBus,
+		// Redis's clock is the one all producers share
+		Now:          func() time.Time { return time.UnixMilli(p.redisNowMs()).UTC() },
+		CheckTimeout: worker.HealthCheckTaskTimeout,
+		Logger:       logger.With("component", "watchdog"),
+	})
+
+	return p
 }
 
 // Start starts the producer with leader election

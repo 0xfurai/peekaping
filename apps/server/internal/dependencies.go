@@ -58,7 +58,7 @@ func RegisterAPIDependencies(container *dig.Container, cfg *config.Config) error
 	container.Provide(infra.ProvideRedisEventBus)
 
 	// The stale monitors the producer's watchdog records
-	container.Provide(stale.NewStore)
+	container.Provide(stale.ProvideRedisStore)
 
 	// Provide queue infrastructure (for push endpoint)
 	container.Provide(infra.ProvideAsynqClient)

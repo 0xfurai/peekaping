@@ -49,7 +49,7 @@ type HealthResponse struct {
 
 // newHealthHandler answers 200 while the server is up, so the docker healthcheck only
 // watches the API. An external watcher alerts on stale_monitors or an old watchdog_ran_at.
-func newHealthHandler(store *stale.Store, logger *zap.SugaredLogger) func(context.Context, *SystemInput) (*httpx.Output[HealthResponse], error) {
+func newHealthHandler(store stale.Store, logger *zap.SugaredLogger) func(context.Context, *SystemInput) (*httpx.Output[HealthResponse], error) {
 	return func(ctx context.Context, input *SystemInput) (*httpx.Output[HealthResponse], error) {
 		reqCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
 		defer cancel()
@@ -102,7 +102,7 @@ func ProvideServer(
 	badgeController *badge.Controller,
 	apiKeyRoute *api_key.Route,
 	apiKeyController *api_key.Controller,
-	staleStore *stale.Store,
+	staleStore stale.Store,
 	metricsCollector *metrics.Collector,
 ) *Server {
 	middleware := []httpx.Middleware{httpx.Recovery(logger), httpx.CORS}

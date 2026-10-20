@@ -11,6 +11,7 @@ import (
 
 	"peekaping/internal/config"
 	"peekaping/internal/infra"
+	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/worker"
@@ -134,8 +135,8 @@ func newEngine(t *testing.T, monitors ...*monitor.Model) *engine {
 	maintenanceSvc.On("GetMaintenancesByMonitorID", mock.Anything, mock.Anything).Return([]*maintenance.Model{}, nil)
 
 	store := newMonitorStore(monitors...)
-	p := NewProducer(rdb, queueSvc, store, new(MockProxyService), maintenanceSvc,
-		nil, nil, nil, nil, nil, &config.Config{ProducerConcurrency: 1}, logger)
+	p := NewProducer(rdb, queueSvc, store, check.NewLoader(store, new(MockProxyService), maintenanceSvc, nil, logger),
+		nil, nil, nil, nil, nil, nil, &config.Config{ProducerConcurrency: 1}, logger)
 	p.reclaimInterval = 5 * time.Millisecond
 
 	return &engine{mr: mr, rdb: rdb, inspector: inspector, monitors: store, producer: p}

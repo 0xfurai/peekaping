@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"peekaping/internal/infra"
+	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/healthcheck/executor"
 	"peekaping/internal/modules/maintenance"
@@ -90,10 +91,9 @@ func TestHealthCheckAgainstHangingTarget(t *testing.T) {
 	mockMaintenanceSvc.On("GetMaintenancesByMonitorID", mock.Anything, mon.ID).Return([]*maintenance.Model{}, nil)
 
 	producer := &Producer{
-		logger:             logger,
-		monitorService:     mockMonitorSvc,
-		maintenanceService: mockMaintenanceSvc,
-		queueService:       queueSvc,
+		logger:       logger,
+		loader:       check.NewLoader(mockMonitorSvc, nil, mockMaintenanceSvc, nil, logger),
+		queueService: queueSvc,
 	}
 
 	// A queue that was never written to doesn't exist yet and reports as empty

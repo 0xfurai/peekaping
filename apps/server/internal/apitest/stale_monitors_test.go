@@ -24,7 +24,7 @@ func TestMonitorsAPI_MarksStaleMonitors(t *testing.T) {
 	freshID := a.createMonitor(t, "Billing", "billing-push-token")
 	since := time.Date(2026, 10, 18, 11, 56, 0, 0, time.UTC)
 	require.NoError(t, a.container.Invoke(func(rdb *redis.Client) error {
-		return stale.NewStore(rdb).Put(context.Background(), stale.Entry{MonitorID: staleID, Since: since, DetectedAt: since.Add(4 * time.Minute)})
+		return stale.NewRedisStore(rdb).Put(context.Background(), stale.Entry{MonitorID: staleID, Since: since, DetectedAt: since.Add(4 * time.Minute)})
 	}))
 
 	got := decode[staleMonitorResponse](t, a.request(t, http.MethodGet, "/api/v1/monitors/"+staleID, nil, a.asAdmin), http.StatusOK)

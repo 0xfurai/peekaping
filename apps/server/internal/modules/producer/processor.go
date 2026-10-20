@@ -2,13 +2,12 @@ package producer
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
 
+	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/queue"
-	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/worker"
 )
 
@@ -110,112 +109,34 @@ func (p *Producer) runProducer(workerID int) error {
 	}
 }
 
-func (p *Producer) isUnderMaintenance(ctx context.Context, monitorID string) (bool, error) {
-	maintenances, err := p.maintenanceService.GetMaintenancesByMonitorID(ctx, monitorID)
-	if err != nil {
-		return false, err
-	}
-
-	p.logger.Debugf("Found %d maintenances for monitor %s", len(maintenances), monitorID)
-
-	for _, m := range maintenances {
-		underMaintenance, err := p.maintenanceService.IsUnderMaintenance(ctx, m)
-		if err != nil {
-			p.logger.Warnf("Failed to get maintenance status for maintenance %s: %v", m.ID, err)
-			continue
-		}
-
-		// If any maintenance is under-maintenance, the monitor is under maintenance
-		if underMaintenance {
-			return true, nil
-		}
-	}
-
-	return false, nil
-}
-
 // processMonitor loads monitor config and enqueues a health check task
 // Returns the monitor interval (for rescheduling) and any error
 func (p *Producer) processMonitor(ctx context.Context, monitorID string, nowMs int64) (int, error) {
 	start := time.Now()
-	// Fetch monitor from database
-	mon, err := p.monitorService.FindByID(ctx, monitorID)
-	if err != nil {
-		return 0, fmt.Errorf("failed to find monitor: %w", err)
-	}
-
-	// Check if monitor exists (it might have been deleted)
-	if mon == nil {
+	job, err := p.loader.Load(ctx, monitorID)
+	if errors.Is(err, check.ErrMonitorNotFound) {
 		p.logger.Warnw("Monitor not found, skipping", "monitor_id", monitorID)
 		return 0, nil
 	}
-
-	if !mon.Active {
+	if errors.Is(err, check.ErrMonitorPaused) {
 		p.logger.Infow("Skipping inactive monitor", "monitor_id", monitorID)
 		return 0, nil
 	}
-
-	isUnderMaintenance, err := p.isUnderMaintenance(ctx, monitorID)
 	if err != nil {
-		p.logger.Errorw("Failed to check if monitor is under maintenance", "monitor_id", monitorID, "error", err)
 		return 0, err
 	}
+	mon := job.Monitor
 
-	// Fetch proxy if configured
 	var proxyData *worker.ProxyData
-	if mon.ProxyId != "" {
-		proxyModel, err := p.proxyService.FindByID(ctx, mon.ProxyId)
-		if err != nil {
-			p.logger.Warnw("Failed to fetch proxy, continuing without it",
-				"monitor_id", monitorID,
-				"proxy_id", mon.ProxyId,
-				"error", err)
-		} else {
-			proxyData = &worker.ProxyData{
-				ID:       proxyModel.ID,
-				Protocol: proxyModel.Protocol,
-				Host:     proxyModel.Host,
-				Port:     proxyModel.Port,
-				Auth:     proxyModel.Auth,
-				Username: proxyModel.Username,
-				Password: proxyModel.Password,
-			}
-		}
-	}
-
-	// Check if certificate expiry checking is enabled in monitor configuration
-	// Read it for every type, so a monitor that supports TLS (http, smtp)
-	// only has to put check_cert_expiry in its config
-	checkCertExpiry := false
-	if mon.Config != "" {
-		// Parse monitor configuration to check if certificate expiry checking is enabled
-		var config struct {
-			CheckCertExpiry bool `json:"check_cert_expiry"`
-		}
-		if err := json.Unmarshal([]byte(mon.Config), &config); err != nil {
-			p.logger.Warnw("Failed to parse monitor config for certificate expiry check",
-				"monitor_id", mon.ID,
-				"monitor_name", mon.Name,
-				"error", err)
-		} else {
-			checkCertExpiry = config.CheckCertExpiry
-		}
-	}
-	p.logger.Debugw("Certificate expiry checking configured",
-		"monitor_id", mon.ID,
-		"monitor_name", mon.Name,
-		"check_cert_expiry", checkCertExpiry)
-
-	// For push monitors, fetch the latest heartbeat to include in the payload
-	var lastHeartbeat *shared.HeartBeatModel
-	if mon.Type == "push" {
-		latestHeartbeats, err := p.heartbeatService.FindByMonitorIDPaginated(ctx, mon.ID, 1, 0, nil, false)
-		if err != nil {
-			p.logger.Warnw("Failed to fetch latest heartbeat for push monitor",
-				"monitor_id", mon.ID,
-				"error", err)
-		} else if len(latestHeartbeats) > 0 {
-			lastHeartbeat = latestHeartbeats[0]
+	if job.Proxy != nil {
+		proxyData = &worker.ProxyData{
+			ID:       job.Proxy.ID,
+			Protocol: job.Proxy.Protocol,
+			Host:     job.Proxy.Host,
+			Port:     job.Proxy.Port,
+			Auth:     job.Proxy.Auth,
+			Username: job.Proxy.Username,
+			Password: job.Proxy.Password,
 		}
 	}
 
@@ -231,10 +152,10 @@ func (p *Producer) processMonitor(ctx context.Context, monitorID string, nowMs i
 		ResendInterval:     mon.ResendInterval,
 		Config:             mon.Config,
 		Proxy:              proxyData,
-		LastHeartbeat:      lastHeartbeat,
+		LastHeartbeat:      job.LastHeartbeat,
 		ScheduledAt:        time.UnixMilli(nowMs).UTC(),
-		IsUnderMaintenance: isUnderMaintenance,
-		CheckCertExpiry:    checkCertExpiry,
+		IsUnderMaintenance: job.IsUnderMaintenance,
+		CheckCertExpiry:    job.CheckCertExpiry,
 	}
 
 	// Enqueue task to worker queue
