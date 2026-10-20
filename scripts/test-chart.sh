@@ -6,7 +6,8 @@
 # (also when web.image.tag is set), the api, producer, worker and ingester
 # Deployments wait for the migrations in an init container that runs the migrate
 # image (also when migrate.image.tag is set) while the web Deployment has none,
-# the migrate Job is named after the release revision, and the install notes say
+# the migrate Job is named after the release revision and retries 6 times, so it
+# outlasts a restart of the bundled PostgreSQL, and the install notes say
 # Peekaping runs in cluster mode and link to the Helm docs page.
 #
 # Usage: scripts/test-chart.sh
@@ -96,6 +97,21 @@ job_named() {
   ' "$1")
   if [ "$name" != "$3" ]; then
     echo "       the Job in $2 is named '${name:-<none>}', expected $3"
+    return 1
+  fi
+}
+
+# job_retries <rendered file> <template> <expected>: the Job that <template>
+# renders (such as migrate-job) has that backoffLimit
+job_retries() {
+  local limit
+  limit=$(awk -v template="$2" '
+    /^# Source: / { in_template = ($0 ~ "/" template "\\.yaml$"); next }
+    /^---$/ { in_template = 0 }
+    in_template && /^  backoffLimit: / { print $2; exit }
+  ' "$1")
+  if [ "$limit" != "$3" ]; then
+    echo "       the Job in $2 has backoffLimit ${limit:-<none>}, expected $3"
     return 1
   fi
 }
@@ -208,6 +224,10 @@ if check "helm dependency build fetches PostgreSQL and Redis" run dependency hel
     # one, so each revision creates its own Job instead of changing the last.
     check "default values: the migrate Job is named after the release revision" \
       job_named "$work/default.yaml" migrate-job "$release-migrate-1" || true
+    # Failed tries back off 10 s, 20 s, 40 s and so on, so 6 tries last long
+    # enough for the bundled PostgreSQL to come back from a restart that the
+    # same upgrade causes.
+    check "default values: the migrate Job retries 6 times" job_retries "$work/default.yaml" migrate-job 6 || true
   fi
   if check "bundled PostgreSQL and Redis render" render bundled --set postgresql.enabled=true --set redis.enabled=true; then
     check "bundled PostgreSQL runs an image pinned by digest" pinned_by_digest "$work/bundled.yaml" postgresql || true

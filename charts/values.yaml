@@ -187,7 +187,8 @@ web:
       failureThreshold: 5
 
 migrate:
-  backoffLimit: 3
+  # Retries double their delay (10 s, 20 s, 40 s, ...): 6 tries outlast a bundled PostgreSQL restart; activeDeadlineSeconds caps the total.
+  backoffLimit: 6
   activeDeadlineSeconds: 600
   ttlSecondsAfterFinished: 3600
   apparmor:

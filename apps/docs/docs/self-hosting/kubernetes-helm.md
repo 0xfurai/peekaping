@@ -170,7 +170,7 @@ scripts/update-chart-deps.sh --write   # updates Chart.yaml and values.yaml
 
 The script needs `helm`, `curl` and `jq`. To run an image of your own, set `postgresql.image.digest` and `redis.image.digest` in your values file.
 
-A new digest or subchart version restarts the bundled PostgreSQL, and the upgrade creates the migrate Job at the same moment. The database can take about a minute to come back, which can be longer than the Job's tries (`migrate.backoffLimit`, 3 by default) last. If `helm upgrade` fails on the migrate Job, your data is intact. Run `helm upgrade` again: the new Job starts when the database is up. A higher `migrate.backoffLimit` gives the Job more tries.
+A new digest or subchart version restarts the bundled PostgreSQL. The migrate Job retries until the database is back, up to `migrate.backoffLimit` tries (6 by default). If it still fails, run `helm upgrade` again. Your data is intact.
 
 The script refuses an image with a new major version. A major version change needs a dump and restore: PostgreSQL doesn't start on the data of an older major version. Dump the database with `pg_dump`, delete the PersistentVolumeClaim `data-<release>-postgresql-0` (`helm uninstall` keeps it), install the new version, and restore the dump.
 
