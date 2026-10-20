@@ -81,7 +81,8 @@ func TestRun_ChecksAMonitorCreatedThroughTheAPIAndIngestsPushesWithoutRedis(t *t
 }
 
 func TestRun_ShutsDownInOrderOnceTheRequestsInFlightAreAnswered(t *testing.T) {
-	cfg := loadConfig(t, nil)
+	// With the metrics collector too, whose sync the shutdown waits for
+	cfg := loadConfig(t, map[string]string{"METRICS_ENABLED": "true"})
 	logger, logs := observedLogger()
 	in := startPeekaping(t, cfg, logger, logs)
 	in.registerAdmin(t)

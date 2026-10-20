@@ -188,6 +188,7 @@ type jobs struct {
 	stopRepair   context.CancelFunc
 	repairDone   chan struct{}
 	stopMetrics  context.CancelFunc
+	metricsDone  <-chan struct{}
 }
 
 // startJobs starts what cmd/api starts beside the server (the cleanup cron, the settings, the
@@ -230,7 +231,11 @@ func startJobs(ctx context.Context, p parts, metricsEnabled bool, logger *zap.Su
 	var metricsCtx context.Context
 	metricsCtx, j.stopMetrics = context.WithCancel(context.Background())
 	if metricsEnabled {
-		p.Metrics.Start(metricsCtx, p.EventBus)
+		j.metricsDone = p.Metrics.Start(metricsCtx, p.EventBus)
+	} else {
+		done := make(chan struct{})
+		close(done)
+		j.metricsDone = done
 	}
 
 	// The scheduler and the watchdog run until the shutdown stops them, not until ctx is done,
@@ -274,6 +279,7 @@ func (j *jobs) stop(ctx context.Context) error {
 	errs = append(errs, await(ctx, "the status repair", j.repairDone))
 
 	j.stopMetrics()
+	errs = append(errs, await(ctx, "the metrics collector", j.metricsDone))
 	return errors.Join(errs...)
 }
 
