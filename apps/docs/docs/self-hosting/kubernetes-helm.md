@@ -229,7 +229,7 @@ api:
     tag: "0.0.49-rc.1"
 ```
 
-It changes the images of that component only, init containers included. `web.image.tag` also changes `seed-web-root`, and `migrate.image.tag` changes the migrate Job and the `wait-for-migrations` init containers. The other components stay on the chart's version.
+A component's `image.tag` changes that component's container only. `web.image.tag` also sets `seed-web-root`, the init container of the web pods. `migrate.image.tag` sets the migrate Job and the `wait-for-migrations` init containers of the API, producer, worker and ingester pods, because they run the migrate image. Everything else stays on the chart's version.
 
 A checkout of the repository has the chart version `0.0.0` and the app version `latest`, so its images are `latest`. A node that has already pulled `latest` keeps using it after a new release, so pods on different nodes can run different versions. When you install from a checkout, set `image.tag` on all six components to the same release.
 
