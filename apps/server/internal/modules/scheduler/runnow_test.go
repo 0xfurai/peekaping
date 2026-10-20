@@ -19,7 +19,8 @@ func TestScheduler_RunNowChecksAMonitorRightAway(t *testing.T) {
 	h := newHarness(t)
 	h.db.put(monitorWith("mon", withInterval(day)))
 	h.start()
-	eventually(t, 2*time.Second, func() bool { return h.exec.countFor("mon") == 1 }, "the first check")
+	eventually(t, 2*time.Second, func() bool { return len(h.ingest.ingested()) == 1 }, "the first check is ingested")
+	time.Sleep(100 * time.Millisecond) // and has ended: RunNow skips a monitor whose check is running
 
 	require.NoError(t, h.s.RunNow(context.Background(), "mon"))
 

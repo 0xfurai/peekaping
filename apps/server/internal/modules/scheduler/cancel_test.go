@@ -102,7 +102,7 @@ func TestScheduler_StopsWhenItsContextIsDone(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	require.NoError(t, h.s.Start(ctx))
 	t.Cleanup(h.s.Stop)
-	eventually(t, 2*time.Second, func() bool { return h.exec.countFor("mon") == 1 }, "the first check")
+	eventually(t, 2*time.Second, func() bool { return h.exec.countFor("mon") >= 1 }, "the first check")
 
 	cancel()
 

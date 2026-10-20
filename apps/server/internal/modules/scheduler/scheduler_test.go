@@ -149,7 +149,7 @@ func TestScheduler_ReadsEventPayloadsAsTheBusDeliversThem(t *testing.T) {
 			h := newHarness(t)
 			h.db.put(monitorWith("mon", withInterval(1)))
 			h.start()
-			eventually(t, 2*time.Second, func() bool { return h.exec.countFor("mon") == 1 }, "the first check")
+			eventually(t, 2*time.Second, func() bool { return h.exec.countFor("mon") >= 1 }, "the first check")
 			h.db.remove("mon")
 
 			h.bus.Publish(events.Event{Type: events.MonitorDeleted, Payload: payload})
