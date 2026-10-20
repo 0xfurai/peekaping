@@ -1,6 +1,7 @@
 // Command peekaping runs Peekaping in single mode (ADR 0002): the API and the websocket, the
 // scheduler and its check pool, the ingest and the stale-monitor watchdog, in one process with
-// no Redis. Cluster mode runs cmd/api, cmd/producer, cmd/worker and cmd/ingester instead.
+// no Redis. Cluster mode runs cmd/api, cmd/producer, cmd/worker and cmd/ingester instead. With
+// WEB_DIR set, it serves the web app on the API's port too.
 //
 // It doesn't migrate the database: the startup script runs the migrations with cmd/bun before
 // it starts the server, as it does in cluster mode.
@@ -38,6 +39,7 @@ import (
 	"peekaping/internal/modules/websocket"
 	"peekaping/internal/utils"
 	"peekaping/internal/version"
+	"peekaping/internal/web"
 
 	"github.com/robfig/cron/v3"
 	"github.com/uptrace/bun"
@@ -125,17 +127,26 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 		return fmt.Errorf("failed to build peekaping: %w", err)
 	}
 
+	// The API router serves every request. With WEB_DIR set, the gateway sends it the API's
+	// paths and serves the web app on the others.
+	handler := http.Handler(p.Server.Router)
+	if cfg.WebDir != "" {
+		gateway, err := web.NewGateway(web.Config{Dir: cfg.WebDir, APIURL: cfg.APIURL, Metrics: cfg.MetricsEnabled}, p.Server.Router, logger)
+		if err != nil {
+			return fmt.Errorf("failed to serve the web app from WEB_DIR: %w", err)
+		}
+		handler = gateway
+	}
+
 	jobs, err := startJobs(ctx, p, cfg.MetricsEnabled, logger)
 	if err != nil {
 		return err
 	}
 
-	// The API router serves every request
-	handler := http.Handler(p.Server.Router)
 	httpServer := &http.Server{Handler: handler, ReadHeaderTimeout: readHeaderTimeout}
 	served := make(chan error, 1)
 	go func() {
-		logger.Infow("Serving the API", "address", listener.Addr().String())
+		logger.Infow("Serving the API", "address", listener.Addr().String(), "web_dir", cfg.WebDir)
 		served <- httpServer.Serve(listener)
 	}()
 
