@@ -7,17 +7,19 @@
 # redis.image.digest in charts/values.yaml). Bitnami's free repo has only the
 # `latest` tag, so the digest of `latest` is the version. For each of the two
 # subcharts and the two images the script prints `current`, or `behind` with the
-# version or digest in the repo and the latest one. The latest are the newest
-# chart in oci://registry-1.docker.io/bitnamicharts and the multi-arch digest of
-# registry-1.docker.io/bitnami/<name>:latest, which must cover linux/amd64 and
-# linux/arm64.
+# version or digest in the repo and the latest one, or, for an image whose latest
+# has another major version than the pinned one, `new major`. The latest are the
+# newest chart in oci://registry-1.docker.io/bitnamicharts and the multi-arch
+# digest of registry-1.docker.io/bitnami/<name>:latest, which must cover
+# linux/amd64 and linux/arm64.
 #
 # Usage:
 #   scripts/update-chart-deps.sh [--dir <chart dir>]            # report
 #   scripts/update-chart-deps.sh [--dir <chart dir>] --write    # update
 #
-# Report: exits 0 when everything is current and 1 when anything is behind. It
-# exits 2 when it can't tell, for example when a registry is unreachable.
+# Report: exits 0 when everything is current and 1 when anything is behind or
+# has a new major version. It exits 2 when it can't tell, for example when a
+# registry is unreachable.
 # --write: rewrites the version lines in Chart.yaml and the digest lines in
 # values.yaml that are behind (adding a digest line to an image that has none),
 # and nothing else, then reads the two files again. It exits 0 when every line
@@ -199,12 +201,13 @@ check_image() {
     return
   fi
   repo_version=$(version_of "$repository" "$tok" "$repo")
-  report "$name image:" behind "repo $(short "$repo") is $label $repo_version, latest $(short "$latest") is $label $latest_version"
   if [ "${repo_version%%.*}" != "${latest_version%%.*}" ]; then
-    echo "       $label ${repo_version%%.*} to ${latest_version%%.*} is a new major version: move to it by hand, with a dump and restore of the data" |
+    report "$name image:" "new major ${latest_version%%.*} (pinned ${repo_version%%.*}): --write refuses it, a ticket of its own"
+    echo "       repo $(short "$repo") is $label $repo_version, latest $(short "$latest") is $label $latest_version: move to it by hand, with a dump and restore of the data" |
       tee -a "$refusals"
     return
   fi
+  report "$name image:" behind "repo $(short "$repo") is $label $repo_version, latest $(short "$latest") is $label $latest_version"
   echo "image $name $latest $label $latest_version" >>"$updates"
 }
 
