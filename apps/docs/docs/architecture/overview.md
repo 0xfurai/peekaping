@@ -9,7 +9,7 @@ Peekaping's server has four roles: the API, the producer, the worker and the ing
 - **Single mode**: one process, the `peekaping` binary, runs all four roles and passes work and events between them in memory, with no Redis. It supports SQLite and PostgreSQL. The SQLite and PostgreSQL bundle images run it.
 - **Cluster mode**: each role is its own process, and they talk through Redis. You can run several of each for scale and high availability. Helm, the Docker Compose stacks and the MongoDB bundle image run it.
 
-Both modes run the same modules for each role. The rest of this page describes cluster mode, where the parts are easiest to see. See [ADR 0002](https://github.com/0xfurai/peekaping/blob/main/docs/adr/0002-single-process-runtime.md) for how single mode replaces Redis.
+Both modes run the same modules for each role. See [Deployment modes](../self-hosting/deployment-modes.md) to choose between them. The rest of this page describes cluster mode, where the parts are easiest to see. See [ADR 0002](https://github.com/0xfurai/peekaping/blob/main/docs/adr/0002-single-process-runtime.md) for how single mode replaces Redis.
 
 ## System Architecture
 
