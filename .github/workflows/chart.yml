@@ -6,6 +6,7 @@ on:
       - 'charts/**'
       - 'scripts/test-chart.sh'
       - 'scripts/package-chart.sh'
+      - 'scripts/update-chart-deps.sh'
       - '.github/workflows/chart.yml'
     branches: [ main ]
   push:
@@ -13,6 +14,7 @@ on:
       - 'charts/**'
       - 'scripts/test-chart.sh'
       - 'scripts/package-chart.sh'
+      - 'scripts/update-chart-deps.sh'
       - '.github/workflows/chart.yml'
     branches: [ main ]
 

@@ -11,7 +11,7 @@ Every [release](https://github.com/0xfurai/peekaping/releases) publishes the cha
 The chart installs:
 
 - Deployments for the API (`<release>-api`), the producer, the worker, the ingester and the web app (`<release>-web`). Each runs 3 replicas by default. The API, producer, worker and ingester pods start with an init container, `wait-for-migrations`, that holds them until the migrations are applied.
-- A Job, `<release>-migrate-<revision>`, that runs the database migrations.
+- A Job, `<release>-migrate-<revision>`, that runs the database migrations. A release name longer than 44 characters is shortened in the Job's name, so that the name stays within Kubernetes' limit of 63 characters.
 - Services for the API (port 8034) and the web app (port 80).
 - A ConfigMap, `<release>-config`, built from `config.env`.
 - Optionally, an Ingress, or an Istio Gateway and VirtualService.
@@ -180,9 +180,24 @@ scripts/update-chart-deps.sh --write   # updates Chart.yaml and values.yaml
 
 The script needs `helm`, `curl` and `jq`. It is not part of the published chart.
 
+To run an image of your own, set `postgresql.image.digest` and `redis.image.digest` in your values file. A digest from another repository also needs `image.registry` and `image.repository`. Without them the pod pulls the digest from Bitnami's repository, `registry-1.docker.io/bitnami/postgresql`, and the pull fails. Bitnami's charts also refuse an image they don't recognize, so set `global.security.allowInsecureImages` to `true`:
+
+```yaml
+global:
+  security:
+    allowInsecureImages: true
+postgresql:
+  image:
+    registry: registry.example.com
+    repository: mirror/postgresql
+    digest: sha256:<the digest of your image>
+```
+
+`redis.image` takes the same three values.
+
 A new digest or subchart version restarts the bundled PostgreSQL. The migrate Job retries until the database is back, up to `migrate.backoffLimit` tries (6 by default). If it still fails, run `helm upgrade` again. Your data is intact.
 
-`update-chart-deps.sh` refuses an image with a new major version. A major version change needs a dump and restore: PostgreSQL doesn't start on the data of an older major version. Dump the database with `pg_dump`, delete the PersistentVolumeClaim `data-<release>-postgresql-0` (`helm uninstall` keeps it), install the new version, and restore the dump.
+`update-chart-deps.sh` refuses a new major version of a subchart or an image, because a major version can change the values and the data layout. Move to one by hand. For PostgreSQL that needs a dump and restore: PostgreSQL doesn't start on the data of an older major version. Dump the database with `pg_dump`, delete the PersistentVolumeClaim `data-<release>-postgresql-0` (`helm uninstall` keeps it), install the new version, and restore the dump.
 
 ## Ingress or Istio
 

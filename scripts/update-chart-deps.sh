@@ -7,11 +7,11 @@
 # redis.image.digest in charts/values.yaml). Bitnami's free repo has only the
 # `latest` tag, so the digest of `latest` is the version. For each of the two
 # subcharts and the two images the script prints `current`, or `behind` with the
-# version or digest in the repo and the latest one, or, for an image whose latest
-# has another major version than the pinned one, `new major`. The latest are the
-# newest chart in oci://registry-1.docker.io/bitnamicharts and the multi-arch
-# digest of registry-1.docker.io/bitnami/<name>:latest, which must cover
-# linux/amd64 and linux/arm64.
+# version or digest in the repo and the latest one, or, for a subchart or an
+# image whose latest has another major version than the pinned one, `new major`.
+# The latest are the newest chart in oci://registry-1.docker.io/bitnamicharts
+# and the multi-arch digest of registry-1.docker.io/bitnami/<name>:latest, which
+# must cover linux/amd64 and linux/arm64.
 #
 # Usage:
 #   scripts/update-chart-deps.sh [--dir <chart dir>]            # report
@@ -25,9 +25,10 @@
 # and nothing else, then reads the two files again. It exits 0 when every line
 # it set now holds the latest value, and 2 with a message when one doesn't, for
 # example because the file is laid out in a way the script doesn't know. It
-# refuses, and writes nothing, when the latest image has another major version
-# than the pinned one (a new PostgreSQL major needs a dump and restore, so move
-# to it by hand) and exits 2.
+# refuses, and writes nothing, when the latest subchart or image has another
+# major version than the pinned one (Bitnami's major versions are breaking, and
+# a new PostgreSQL major needs a dump and restore, so move to it by hand) and
+# exits 2.
 # --dir: the folder with Chart.yaml and values.yaml, charts/ by default.
 #
 # Needs bash, helm (3.13 or later), curl and jq, and network access to
@@ -155,7 +156,9 @@ short() { echo "${1:0:19}"; }
 # report <what> <current|behind> <text>
 report() { printf '%-17s %s\n' "$1" "$2${3:+ ($3)}"; }
 
-# check_chart <name>: compares the dependency in Chart.yaml with the newest chart
+# check_chart <name>: compares the dependency in Chart.yaml with the newest
+# chart. A newest chart with another major version is a refusal, like an image
+# with one: Bitnami's major versions are breaking.
 check_chart() {
   local repo latest
   repo=$(chart_version "$1")
@@ -165,10 +168,16 @@ check_chart() {
   [ -n "$latest" ] || die "the latest $1 chart in $charts_repo has no version"
   if [ "$repo" = "$latest" ]; then
     report "$1 chart:" current "$repo"
-  else
-    report "$1 chart:" behind "repo $repo, latest $latest"
-    echo "chart $1 $latest" >>"$updates"
+    return
   fi
+  if [ "${repo%%.*}" != "${latest%%.*}" ]; then
+    report "$1 chart:" "new major ${latest%%.*} (pinned ${repo%%.*}): --write refuses it, a ticket of its own"
+    echo "       repo $repo, latest $latest: move to it by hand, after reading the chart's upgrade notes, since a new major version can change the values and the data layout" |
+      tee -a "$refusals"
+    return
+  fi
+  report "$1 chart:" behind "repo $repo, latest $latest"
+  echo "chart $1 $latest" >>"$updates"
 }
 
 # check_image <name> <label>: compares <name>.image.digest in values.yaml with

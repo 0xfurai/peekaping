@@ -43,7 +43,10 @@ It reads `origin/main` and reports: the version is new, CI on `main`, the `[Unre
 - A red or still-running CI is a blocker: the release workflow won't catch what `Test and Lint` and `Playwright Tests` catch.
 - The PR list is a worklist, not a verdict. Entries cite PR numbers, issue numbers or nothing, so read the entries for each PR on it. Tests, CI and refactors with no visible change need no entry.
 - Every migration listed should have an entry that says what it does to an existing database.
-- A `WARN Helm chart:` line means Bitnami has published newer PostgreSQL or Redis subcharts or images than the chart pins. It never blocks. Run `scripts/update-chart-deps.sh --write` in a PR, before the release or after it; the script refuses a new major version, which is a ticket of its own.
+- A `WARN Helm chart:` line never blocks. It says one of three things:
+  - `... are behind the latest`: Bitnami has published newer PostgreSQL or Redis subcharts or images than the chart pins. Run `scripts/update-chart-deps.sh --write` in a PR, before the release or after it.
+  - `... has a new major version`: a subchart or an image has another major version than the chart pins. `--write` refuses it and writes nothing, not even for the lines that are only behind, because Bitnami's major versions are breaking. It is a ticket of its own: tell the user, and don't run `--write`.
+  - `couldn't check ...`, or `origin/main has no scripts/update-chart-deps.sh`: nothing is known to be behind. Tools (helm, curl, jq), files on `origin/main` or access to Docker Hub are missing. Fix that and run the preflight again, or run `scripts/update-chart-deps.sh` by hand to see its report. `--write` is not the next step.
 
 Done when: no blockers, and every PR on the list has an entry or a reason not to.
 

@@ -5,11 +5,15 @@ its own Job, <release>-migrate-<revision>. An install and an upgrade create a
 new one, and Helm removes the previous revision's Job because it left the
 manifest. A rollback re-applies the manifest of the revision it goes back to, so
 it creates that revision's Job again.
+
+Helm allows release names of up to 53 characters, and a Job's name can have 63.
+So the name before the revision is cut to 52 characters, which leaves room for
+a hyphen and 10 digits. A release name of up to 44 characters is not changed.
 */ -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ .Release.Name }}-migrate-{{ .Release.Revision }}
+  name: {{ printf "%s-migrate" .Release.Name | trunc 52 | trimSuffix "-" }}-{{ .Release.Revision }}
   namespace: {{ .Release.Namespace }}
   labels:
     app: migrate

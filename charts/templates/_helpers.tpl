@@ -25,6 +25,14 @@ migration tables don't exist yet the command fails, and that counts as not ready
 Each try prints a line, so `kubectl logs <pod> -c wait-for-migrations` shows why
 the pod waits.
 
+A MongoDB install has no SQL migrations. The migrate Job's script
+(apps/server/scripts/run-migrations.sh) skips them for DB_TYPE `mongo` and
+`mongodb`, and `./bun db status` has no MongoDB support, so it would fail
+forever. For those two values the script prints a line and ends at once. DB_TYPE
+comes from the ConfigMap or the Secret, so the script reads it at run time. Without
+this, the pods of an existing MongoDB install would never leave Init after an
+upgrade (ADR 0001 allows a fix for an app that doesn't start).
+
 The shell is PID 1 of the container, and the kernel gives PID 1 no default
 action for a signal, so without a trap it ignores SIGTERM and a pod stuck in Init
 takes the whole grace period to die. The trap ends the loop at once, and the
@@ -41,6 +49,12 @@ Put it under initContainers with: include "peekaping.waitForMigrations" . | nind
     - sh
     - -c
     - |
+      case "$DB_TYPE" in
+        mongo|mongodb)
+          echo "MongoDB has no SQL migrations to wait for."
+          exit 0
+          ;;
+      esac
       trap 'exit 143' INT TERM
       while true; do
         if out=$(./bun db status 2>&1); then
