@@ -12,7 +12,7 @@ Tests go through public seams: what a caller of the service, the HTTP API, or a 
 | --- | --- | --- |
 | Service or domain logic | the service's exported methods | `<module>_test.go` beside the package in `apps/server/internal/modules/<module>/` |
 | HTTP behaviour: status codes, payloads, auth, validation | the API router, real services over SQLite and miniredis | `apps/server/internal/apitest/` |
-| Repository or query behaviour | the repository, on every backend | SQLite always; Postgres and Mongo through `PEE_TEST_POSTGRES_DSN` / `PEE_TEST_MONGO_URI` (see `internal/modules/persistence_test.go`) |
+| Repository or query behaviour | the repository | SQLite always; Postgres through `PEE_TEST_POSTGRES_DSN`; Mongo (`PEE_TEST_MONGO_URI`) only when the change is a Mongo fix ADR 0001 allows (see `internal/modules/persistence_test.go`) |
 | Queue or worker code | the handler, with asynq on miniredis | beside the package |
 | A user-visible web flow | the browser | Playwright spec in `e2e/` |
 
@@ -36,13 +36,20 @@ Real-database checks, when the change touches a repository. Name the containers 
 
 ```sh
 docker run -d --rm --name pp-<n>-pg -e POSTGRES_PASSWORD=pg -p 127.0.0.1::5432 postgres:17
-docker run -d --rm --name pp-<n>-mongo -p 127.0.0.1::27017 mongo:7
 until docker exec pp-<n>-pg pg_isready -U postgres; do sleep 1; done
+docker port pp-<n>-pg 5432      # the host port
+PEE_TEST_POSTGRES_DSN='postgres://postgres:pg@127.0.0.1:<pg port>/postgres?sslmode=disable' go test -timeout 300s ./internal/...
+docker stop pp-<n>-pg
+```
+
+Mongo storage is frozen under `docs/adr/0001-deprecate-mongodb-storage.md`. Start Mongo only to test a Mongo fix the ADR allows (data loss, a failed startup, a security leak). With only `PEE_TEST_MONGO_URI` set, the Postgres subtests are skipped:
+
+```sh
+docker run -d --rm --name pp-<n>-mongo -p 127.0.0.1::27017 mongo:7
 until docker exec pp-<n>-mongo mongosh --quiet --eval 'db.runCommand({ping: 1})'; do sleep 1; done
-docker port pp-<n>-pg 5432; docker port pp-<n>-mongo 27017      # the host ports
-PEE_TEST_POSTGRES_DSN='postgres://postgres:pg@127.0.0.1:<pg port>/postgres?sslmode=disable' \
+docker port pp-<n>-mongo 27017      # the host port
 PEE_TEST_MONGO_URI='mongodb://127.0.0.1:<mongo port>' go test -timeout 300s ./internal/...
-docker stop pp-<n>-pg pp-<n>-mongo
+docker stop pp-<n>-mongo
 ```
 
 CI sets neither variable, so only the SQLite subtests run there; a repository change is unverified until you've run these.

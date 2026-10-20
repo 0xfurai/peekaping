@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+### Deprecated
+
+- chore: MongoDB as a storage backend (the database Peekaping keeps its data in) is deprecated: `DB_TYPE=mongo`, the `peekaping-bundle-mongo` image and the Mongo Docker Compose setup. Existing Mongo installs keep working, and the API, producer and ingester log a warning at startup. Until removal, Mongo gets no new features and only fixes for data loss, startup failures and security problems. A command to move your data to SQLite or PostgreSQL will ship before removal, and Mongo is removed no earlier than the second release after the one that ships it. New installs should use SQLite or PostgreSQL. The MongoDB monitor type, which checks other MongoDB servers, is not affected. See [Docker + MongoDB](apps/docs/docs/self-hosting/docker-with-mongo.md) (PP-23)
+
 ### Fixed
 
 ## [0.0.47] - 2026-10-19

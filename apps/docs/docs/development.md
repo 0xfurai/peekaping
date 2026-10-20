@@ -70,11 +70,11 @@ cp .env.prod.example .env
 
 ```env
 DB_USER=root
-DB_PASSWORD=your-secure-password
+DB_PASS=your-secure-password
 DB_NAME=peekaping
 DB_HOST=localhost
-DB_PORT=6001
-DB_TYPE=mongo # or postgres | mysql | sqlite
+DB_PORT=5432
+DB_TYPE=postgres # or sqlite
 SERVER_PORT=8034
 CLIENT_URL="http://localhost:5173"
 MODE=prod
@@ -98,7 +98,8 @@ docker compose -f docker-compose.postgres.yml up -d
 ```
 
 Other options:
-- `docker-compose.mongo.yml` for MongoDB
+- `docker-compose.sqlite.yml` for SQLite (it starts Redis and asynqmon, a queue dashboard, and no database server, since SQLite needs none)
+- `docker-compose.mongo.yml` for MongoDB. MongoDB storage is [deprecated](./self-hosting/docker-with-mongo.md), so use it only to work on existing Mongo installs
 
 ---
 

@@ -1,8 +1,19 @@
 ---
-sidebar_position: 1
+sidebar_position: 7
 ---
 
 # Docker + MongoDB
+
+:::warning MongoDB storage is deprecated
+MongoDB as a storage backend (the database Peekaping keeps its data in) is deprecated. Existing MongoDB installs keep working.
+
+- **New installs** should use [SQLite](./docker-with-sqlite.md) or [PostgreSQL](./docker-with-postgres.md).
+- A command to move your data from MongoDB to SQLite or PostgreSQL will ship before MongoDB is removed.
+- MongoDB is removed no earlier than the second release after the one that ships that command.
+- Until then, MongoDB gets no new features. It gets fixes only for data loss, startup failures and security problems.
+
+The MongoDB monitor type, which checks other MongoDB servers, is not affected.
+:::
 
 ## Monolithic mode
 

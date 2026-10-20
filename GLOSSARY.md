@@ -135,3 +135,13 @@ _Avoid_: Label, group, category
 **Data retention period**:
 How many days heartbeats are kept before they're deleted.
 _Avoid_: Keep-data period, history limit
+
+### Deployment
+
+**Storage backend**:
+The database an install keeps its data in: SQLite, PostgreSQL or MongoDB. It's set with `DB_TYPE`. MongoDB is deprecated and frozen under [ADR 0001](docs/adr/0001-deprecate-mongodb-storage.md); new installs use SQLite or PostgreSQL.
+_Avoid_: Database type, DB driver
+
+**MongoDB monitor type**:
+A monitor type that checks someone else's MongoDB server. It has nothing to do with the storage backend and isn't deprecated.
+_Avoid_: Mongo storage, MongoDB database
