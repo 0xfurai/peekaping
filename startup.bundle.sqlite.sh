@@ -1,45 +1,42 @@
 #!/bin/sh
+# The SQLite bundle's startup script (Dockerfile.bundle.sqlite), run by tini.
+#
+# As root, it sets up the peekaping user (PUID/PGID, the Docker socket's group and /app/data),
+# then runs the migrations and peekaping as that user. Started with docker run --user, it
+# skips that setup and runs both as the given user, who must be able to write /app/data.
 set -e
 
-
-
-
-# Create env.js file for the web app
-cat >/app/web/env.js <<EOF
-/* generated each container start */
-window.__CONFIG__ = {
-  API_URL: ""
-};
-EOF
-# Security: Set appropriate permissions for web assets
-chmod 644 /app/web/env.js
-
-# Set environment variables for SQLite
+# The database is always /app/data/peekaping.db
 export DB_TYPE=sqlite
 export DB_NAME=/app/data/peekaping.db
 
-# Set server configuration environment variables
-export SERVER_PORT=${SERVER_PORT:-8034}
-export CLIENT_URL=${CLIENT_URL:-http://localhost:8383}
-export MODE=${MODE:-prod}
-export TZ=${TZ:-UTC}
+# peekaping serves the web app, the API and the websocket on port 8383, whatever SERVER_PORT
+# the .env sets: before single mode, the API listened on SERVER_PORT behind Caddy on 8383.
+export SERVER_PORT=8383
+export WEB_DIR=/app/web
+export CLIENT_URL="${CLIENT_URL:-http://localhost:8383}"
+export MODE="${MODE:-prod}"
+export TZ="${TZ:-UTC}"
 
-# Create data directory if it doesn't exist
-mkdir -p /app/data
-
-# Run database migrations
-echo "Running database migrations..."
 cd /app/server
-if ./run-migrations.sh; then
-    echo "Migrations completed successfully!"
+
+if [ "$(id -u)" = 0 ]; then
+    # shellcheck source=startup.bundle.user.sh
+    . /app/startup.user.sh
+    set -- su-exec peekaping
 else
-    echo "Migration failed!"
+    echo "Running as $(id -u):$(id -g) (docker run --user), so PUID, PGID and the Docker socket's group don't apply"
+    if [ ! -w /app/data ]; then
+        echo "ERROR: /app/data isn't writable by $(id -u):$(id -g). Give the volume to that user, or start the container without --user."
+        exit 1
+    fi
+    set --
+fi
+
+echo "Running database migrations..."
+if ! "$@" ./run-migrations.sh; then
+    echo "ERROR: Migrations failed"
     exit 1
 fi
 
-# Set up the user the services run as (PUID/PGID, Docker socket, /app/data)
-. /app/startup.user.sh
-
-# Start supervisor to manage both server and Caddy
-echo "Starting supervisor to manage server and Caddy..."
-exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+exec "$@" /app/server/peekaping
