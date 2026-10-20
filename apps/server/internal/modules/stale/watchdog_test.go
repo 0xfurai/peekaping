@@ -408,7 +408,7 @@ func TestWatchdog_KeepsItsStaleMonitorsInAMemoryStore(t *testing.T) {
 
 	f.at(time.Minute)
 	f.run(t)
-	require.Len(t, f.published(events.MonitorStale), 1)
+	require.Len(t, f.published(MonitorStale), 1)
 	entries, err = store.All(ctx)
 	require.NoError(t, err)
 	assert.True(t, entries["silent"].Notified)
@@ -417,7 +417,7 @@ func TestWatchdog_KeepsItsStaleMonitorsInAMemoryStore(t *testing.T) {
 	f.at(2 * time.Minute)
 	f.run(t)
 
-	assert.Len(t, f.published(events.MonitorStaleRecovered), 1)
+	assert.Len(t, f.published(MonitorStaleRecovered), 1)
 	count, err := store.Count(ctx)
 	require.NoError(t, err)
 	assert.Zero(t, count)

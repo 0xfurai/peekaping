@@ -2,7 +2,6 @@ package scheduler
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"slices"
 	"sort"
@@ -17,8 +16,10 @@ import (
 	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/shared"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 // A day is a check interval that leaves the timer out of a test: the next check is far away
@@ -109,7 +110,7 @@ func (db *fakeDB) Load(ctx context.Context, id string) (*check.Job, error) {
 		return nil, check.ErrMonitorNotFound
 	}
 	if !m.Active {
-		return nil, check.ErrMonitorInactive
+		return nil, check.ErrMonitorPaused
 	}
 	db.mu.Lock()
 	defer db.mu.Unlock()
@@ -258,43 +259,18 @@ func (r *recordingIngester) messages() []string {
 	return messages
 }
 
-// fakeBus delivers published events to the subscribed handlers, in the publisher's goroutine
-type fakeBus struct {
-	events.EventBus
-	mu       sync.Mutex
-	handlers map[events.EventType][]events.EventHandler
-}
-
-func (b *fakeBus) Subscribe(eventType events.EventType, handler events.EventHandler) {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-	if b.handlers == nil {
-		b.handlers = map[events.EventType][]events.EventHandler{}
-	}
-	b.handlers[eventType] = append(b.handlers[eventType], handler)
-}
-
-func (b *fakeBus) Publish(event events.Event) {
-	b.mu.Lock()
-	handlers := slices.Clone(b.handlers[event.Type])
-	b.mu.Unlock()
-	for _, handler := range handlers {
-		handler(event)
-	}
-}
-
 // harness is a scheduler over fakes
 type harness struct {
 	t      *testing.T
 	db     *fakeDB
 	exec   *fakeExecutor
 	ingest *recordingIngester
-	bus    *fakeBus
+	bus    *events.Bus
 	s      *Scheduler
 }
 
-// newHarness builds a scheduler that is subscribed to a fake bus and not started. Its
-// reconcile is off unless a test sets an interval.
+// newHarness builds a scheduler that is subscribed to an in-memory event bus and not started.
+// Its reconcile is off unless a test sets an interval.
 func newHarness(t *testing.T, options ...func(*Config)) *harness {
 	t.Helper()
 	logger := zap.NewNop().Sugar()
@@ -303,7 +279,7 @@ func newHarness(t *testing.T, options ...func(*Config)) *harness {
 		db:     newFakeDB(),
 		exec:   &fakeExecutor{},
 		ingest: &recordingIngester{},
-		bus:    &fakeBus{},
+		bus:    newBus(t),
 	}
 	cfg := Config{
 		Loader:            h.db,
@@ -330,15 +306,34 @@ func (h *harness) start() {
 	h.t.Cleanup(h.s.Stop)
 }
 
+// newBus is single mode's in-memory event bus, closed when the test ends: after the
+// scheduler stops, since it was made first. The test fails if an event handler panicked, got a
+// payload it couldn't read, or was still running 5 seconds into the close.
+func newBus(t testing.TB) *events.Bus {
+	t.Helper()
+	core, logs := observer.New(zap.ErrorLevel)
+	bus := events.NewMemoryBus(events.WithLogger(zap.New(core).Sugar()))
+	t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		assert.NoError(t, bus.Close(ctx), "the event handlers return")
+		for _, entry := range logs.All() {
+			t.Errorf("event bus: %s %v", entry.Message, entry.ContextMap())
+		}
+	})
+	return bus
+}
+
 // publishMonitor publishes the monitor's event with the monitor as it is in the database,
-// as the monitor service does
-func (h *harness) publishMonitor(eventType events.EventType, id string) {
-	m := h.db.get(id)
-	h.bus.Publish(events.Event{Type: eventType, Payload: &m})
+// as the monitor service does. The bus hands it to the scheduler on a goroutine of its own.
+func (h *harness) publishMonitor(topic events.Topic[shared.Monitor], id string) {
+	h.t.Helper()
+	require.NoError(h.t, events.Publish(context.Background(), h.bus, topic, h.db.get(id)))
 }
 
 func (h *harness) publishDeleted(id string) {
-	h.bus.Publish(events.Event{Type: events.MonitorDeleted, Payload: id})
+	h.t.Helper()
+	require.NoError(h.t, events.Publish(context.Background(), h.bus, events.MonitorDeleted, id))
 }
 
 // monitorOption changes a test monitor
@@ -380,12 +375,4 @@ const lateness = 300 * time.Millisecond
 func eventually(t *testing.T, timeout time.Duration, condition func() bool, message string, args ...any) {
 	t.Helper()
 	require.Eventually(t, condition, timeout, 5*time.Millisecond, append([]any{message}, args...)...)
-}
-
-// rawJSON is a payload as the Redis event bus delivers it
-func rawJSON(t *testing.T, v any) json.RawMessage {
-	t.Helper()
-	encoded, err := json.Marshal(v)
-	require.NoError(t, err)
-	return encoded
 }

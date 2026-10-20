@@ -15,7 +15,6 @@ import (
 
 	"go.uber.org/zap"
 
-	"peekaping/internal/infra"
 	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/healthcheck"
@@ -451,7 +450,7 @@ func (s *Scheduler) runCheck(ctx context.Context, monitorID string) {
 	case errors.Is(err, check.ErrMonitorNotFound):
 		s.logger.Warnw("Monitor not found, skipping its check", "monitor_id", monitorID)
 		return
-	case errors.Is(err, check.ErrMonitorInactive):
+	case errors.Is(err, check.ErrMonitorPaused):
 		s.logger.Infow("Monitor is inactive, skipping its check", "monitor_id", monitorID)
 		return
 	case err != nil && ctx.Err() != nil:
@@ -494,36 +493,13 @@ func (s *Scheduler) runCheck(ctx context.Context, monitorID string) {
 }
 
 // Subscribe reschedules monitors as they are created, updated and deleted. Pausing a
-// monitor is an update.
+// monitor is an update. An event is only a notice: the scheduler reads the monitor from the
+// database, so it acts on the monitor as it is now, whatever the payload says.
 func (s *Scheduler) Subscribe(eventBus events.EventBus) {
-	eventBus.Subscribe(events.MonitorCreated, func(event events.Event) {
-		if id, ok := monitorEventID(event); ok {
-			s.onCreated(id)
-		} else {
-			s.logger.Errorw("Failed to read the monitor created event")
-		}
-	})
-	eventBus.Subscribe(events.MonitorUpdated, func(event events.Event) {
-		if id, ok := monitorEventID(event); ok {
-			s.onUpdated(id)
-		} else {
-			s.logger.Errorw("Failed to read the monitor updated event")
-		}
-	})
-	eventBus.Subscribe(events.MonitorDeleted, func(event events.Event) {
-		if id, ok := infra.UnmarshalEventPayloadValue[string](event); ok {
-			s.onDeleted(id)
-		} else {
-			s.logger.Errorw("Failed to read the monitor deleted event")
-		}
-	})
-}
-
-// monitorEventID is the ID of the monitor in a created or updated event. The event is only
-// a notice: the scheduler reads the monitor from the database.
-func monitorEventID(event events.Event) (string, bool) {
-	mon, ok := infra.UnmarshalEventPayloadValue[shared.Monitor](event)
-	return mon.ID, ok && mon.ID != ""
+	subscriber := events.NewSubscriber(eventBus, "scheduler")
+	events.Subscribe(subscriber, events.MonitorCreated, func(_ context.Context, mon shared.Monitor) { s.onCreated(mon.ID) })
+	events.Subscribe(subscriber, events.MonitorUpdated, func(_ context.Context, mon shared.Monitor) { s.onUpdated(mon.ID) })
+	events.Subscribe(subscriber, events.MonitorDeleted, func(_ context.Context, monitorID string) { s.onDeleted(monitorID) })
 }
 
 // onCreated checks a new monitor right away

@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"peekaping/internal/modules/check"
-	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/healthcheck/executor"
 
 	"github.com/stretchr/testify/assert"
@@ -159,5 +158,5 @@ func TestScheduler_StopsWhenItsContextIsDone(t *testing.T) {
 	checked := h.exec.countFor("mon")
 	time.Sleep(1200 * time.Millisecond)
 	assert.Equal(t, checked, h.exec.countFor("mon"), "no check at the next multiple of the interval")
-	h.bus.Publish(events.Event{Type: events.MonitorDeleted, Payload: "mon"}) // must not panic or hang
+	h.publishDeleted("mon") // its handler must not panic or hang: the bus's close checks
 }

@@ -38,8 +38,8 @@ import (
 )
 
 // newSQLiteContainer registers the scheduler with the real services over a migrated SQLite
-// database, as a single-mode binary would, with the given config. The event bus delivers in
-// the publisher's goroutine and the stale monitors are kept in memory.
+// database, as a single-mode binary would, with the given config: the event bus and the stale
+// monitors are in memory.
 func newSQLiteContainer(t testing.TB, cfg *config.Config, logger *zap.SugaredLogger) *dig.Container {
 	t.Helper()
 	cfg.DBType = "sqlite"
@@ -53,7 +53,7 @@ func newSQLiteContainer(t testing.TB, cfg *config.Config, logger *zap.SugaredLog
 	provide(func() *config.Config { return cfg })
 	provide(func() *zap.SugaredLogger { return logger })
 	provide(infra.ProvideSQLDB)
-	provide(func() events.EventBus { return &fakeBus{} })
+	provide(func() events.EventBus { return newBus(t) })
 	provide(stale.ProvideMemoryStore)
 
 	heartbeat.RegisterDependencies(container, cfg)

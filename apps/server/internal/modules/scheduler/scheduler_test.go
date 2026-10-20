@@ -117,51 +117,6 @@ func TestScheduler_StopsCheckingAMonitorThatIsPausedOrDeleted(t *testing.T) {
 	}
 }
 
-func TestScheduler_ReadsEventPayloadsAsTheBusDeliversThem(t *testing.T) {
-	t.Parallel()
-	monitor := monitorWith("mon", withInterval(day))
-	tests := map[string]events.Event{
-		"a pointer, as the in-memory bus delivers it": {Type: events.MonitorCreated, Payload: &monitor},
-		"a value":                            {Type: events.MonitorCreated, Payload: monitor},
-		"JSON, as the Redis bus delivers it": {Type: events.MonitorCreated, Payload: rawJSON(t, monitor)},
-	}
-	for name, event := range tests {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-			h := newHarness(t)
-			h.start()
-			h.db.put(monitor)
-
-			h.bus.Publish(event)
-
-			eventually(t, 2*time.Second, func() bool { return h.exec.countFor("mon") == 1 }, "the monitor is checked")
-		})
-	}
-
-	deletions := map[string]any{
-		"an ID, as the monitor service sends it": "mon",
-		"a pointer to an ID":                     new("mon"),
-		"a JSON string, as the Redis bus does":   rawJSON(t, "mon"),
-	}
-	for name, payload := range deletions {
-		t.Run("deleted with "+name, func(t *testing.T) {
-			t.Parallel()
-			h := newHarness(t)
-			h.db.put(monitorWith("mon", withInterval(1)))
-			h.start()
-			eventually(t, 2*time.Second, func() bool { return h.exec.countFor("mon") >= 1 }, "the first check")
-			h.db.remove("mon")
-
-			h.bus.Publish(events.Event{Type: events.MonitorDeleted, Payload: payload})
-
-			time.Sleep(100 * time.Millisecond)
-			checked := h.exec.countFor("mon")
-			time.Sleep(1200 * time.Millisecond)
-			assert.Equal(t, checked, h.exec.countFor("mon"))
-		})
-	}
-}
-
 func TestScheduler_IgnoresEventsBeforeItStarts(t *testing.T) {
 	t.Parallel()
 	h := newHarness(t)
