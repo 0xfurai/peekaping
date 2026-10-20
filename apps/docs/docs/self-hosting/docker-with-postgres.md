@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Docker + PostgreSQL
 
-Peekaping runs in one of two modes:
+Peekaping runs in one of two modes. See [Deployment modes](./deployment-modes.md) for what each one runs:
 
 - **[Single mode](#single-mode)**: one container runs one Peekaping process, `peekaping`, beside its own PostgreSQL, with no Redis. Start here.
 - **[Cluster mode](#cluster-mode)**: the API, producer, worker and ingester run in separate containers and talk through Redis. Use it when one process isn't enough, for example to run several workers.
@@ -85,15 +85,7 @@ The login lockout reads the client's address from the `X-Forwarded-For` header. 
 
 ### Upgrading from a bundle with Redis and Caddy
 
-Before single mode, the bundle ran PostgreSQL, Peekaping's api, producer, worker and ingester processes, Redis and Caddy under supervisord. To upgrade, pull the new image and start it with the same volume and `DB_*` variables. PostgreSQL keeps its data: the image still runs PostgreSQL 17 on Debian, as the `postgres` user with the same IDs. Migrations run at start, as before.
-
-- Redis and its data are gone. Redis held only the schedule and queued checks, and `peekaping` rebuilds them from the database at start.
-- A custom Caddyfile mounted at `/etc/caddy/Caddyfile` no longer works, because the image has no Caddy. Move that setup to a [reverse proxy](#reverse-proxy-and-https) in front of the container.
-- `SERVER_PORT` is ignored, as above.
-- `MODE` from your environment now applies. Before, the image always ran with `prod`.
-- `API_URL` from your environment now reaches the web app. Before, the image always left it empty. Unset it, unless the web app must call an API on another origin.
-- Logs go to the container's output (`docker logs peekaping`). Nothing writes to `/var/log/supervisor` now, so you can drop a volume mounted there.
-- With `METRICS_ENABLED=true`, port 8383 serves `/metrics`, so anyone who can open the web app can read it. See [Prometheus Metrics](../architecture/api-server.md#prometheus-metrics).
+If you run a bundle from 0.0.44 to 0.0.47, which ran Redis and Caddy inside the container, see [Upgrading to single mode](./upgrading-to-single-mode.md).
 
 ## Cluster mode
 
