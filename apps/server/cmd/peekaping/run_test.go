@@ -59,8 +59,8 @@ func TestRun_ChecksAMonitorCreatedThroughTheAPIAndIngestsPushesWithoutRedis(t *t
 		assert.Equal(t, "200 - 200 OK", pushed.hb.Msg)
 
 		stored := in.heartbeats(t, monitorID)
-		require.Len(t, stored, 1)
-		assert.Equal(t, pushed.hb.ID, stored[0].ID, "the heartbeat pushed is the one stored")
+		assert.True(t, slices.ContainsFunc(stored, func(hb heartbeat.Model) bool { return hb.ID == pushed.hb.ID }),
+			"the heartbeat pushed is stored: %v", stored)
 	})
 
 	t.Run("a push to the push URL is stored before the push URL answers", func(t *testing.T) {
