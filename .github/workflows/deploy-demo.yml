@@ -29,6 +29,9 @@ jobs:
           key: ${{ secrets.DEMO_SSH_KEY }}
           port: ${{ secrets.DEMO_SSH_PORT || 22 }}
           script: |
+            # ssh-action doesn't stop at a failed command, so a failed pull would still end green
+            set -e
+
             echo "🚀 Starting demo deployment for version ${{ inputs.version }}"
 
             # Navigate to the demo directory
@@ -39,10 +42,10 @@ jobs:
 
             # Point every Peekaping image at the new version, whichever images the demo runs
             sed -i -E "s|(0xfurai/peekaping[a-z-]*):[A-Za-z0-9_.-]+|\1:${{ inputs.version }}|g" compose-demo.yaml
-            grep -n 'image:' compose-demo.yaml
+            grep -n 'image:' compose-demo.yaml || true
 
-            # sed exits 0 when nothing matches, so check that a tag changed
-            if ! grep -F ":${{ inputs.version }}" compose-demo.yaml | grep -q '0xfurai/peekaping'; then
+            # sed exits 0 when nothing matches, so check that an active image line changed
+            if ! grep -E '^[[:space:]]*image:' compose-demo.yaml | grep -F ":${{ inputs.version }}" | grep -q '0xfurai/peekaping'; then
               echo "❌ No Peekaping image in compose-demo.yaml points at ${{ inputs.version }}"
               exit 1
             fi
