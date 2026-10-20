@@ -3,7 +3,7 @@
 # This Makefile supports multiple Docker Compose configurations:
 # - Development: dev-postgres, dev-mongo (deprecated), dev-sqlite
 # - Production:  prod-postgres, prod-mongo (deprecated), prod-sqlite
-# - Standalone:  postgres, mongo (deprecated)
+# - Dependencies: sqlite, postgres, mongo (deprecated)
 #
 # To change the default database, modify DEFAULT_DEV_DB or DEFAULT_PROD_DB below
 # Example: make dev (uses default) vs make dev-sqlite (specific database)
@@ -20,9 +20,7 @@ COMPOSE_DEV_SQLITE = docker-compose.dev.sqlite.yml
 COMPOSE_PROD_POSTGRES = docker-compose.prod.postgres.yml
 COMPOSE_PROD_MONGO = docker-compose.prod.mongo.yml
 COMPOSE_PROD_SQLITE = docker-compose.prod.sqlite.yml
-COMPOSE_POSTGRES = docker-compose.postgres.yml
-COMPOSE_MONGO = docker-compose.mongo.yml
-COMPOSE_SQLITE = docker-compose.sqlite.yml
+COMPOSE_DEPS = docker-compose.deps.yml
 
 # Default configurations (MongoDB storage is deprecated: docs/adr/0001-deprecate-mongodb-storage.md)
 DEFAULT_DEV_DB = postgres
@@ -37,7 +35,7 @@ help: ## Show this help message
 	@echo "🐳 DOCKER CONFIGURATIONS QUICK REFERENCE:"
 	@echo "  \033[32mDevelopment:\033[0m   dev-postgres, dev-mongo (deprecated), dev-sqlite"
 	@echo "  \033[33mProduction:\033[0m    prod-postgres, prod-mongo (deprecated), prod-sqlite"
-	@echo "  \033[36mStandalone:\033[0m    postgres, mongo (deprecated)"
+	@echo "  \033[36mDependencies:\033[0m  sqlite, postgres, mongo (deprecated)"
 	@echo "  \033[35mSwitchers:\033[0m     switch-to-postgres, switch-to-mongo (deprecated), switch-to-sqlite"
 	@echo "  \033[31mStop All:\033[0m      docker-down-all"
 	@echo ""
@@ -58,9 +56,10 @@ docker-configs: ## Show all available Docker Compose configurations
 	@echo "  make prod-mongo      # $(COMPOSE_PROD_MONGO) (deprecated)"
 	@echo "  make prod-sqlite     # $(COMPOSE_PROD_SQLITE)"
 	@echo ""
-	@echo "🎯 \033[36mSTANDALONE ENVIRONMENTS:\033[0m"
-	@echo "  make postgres        # $(COMPOSE_POSTGRES)"
-	@echo "  make mongo           # $(COMPOSE_MONGO) (deprecated)"
+	@echo "🎯 \033[36mDEPENDENCIES:\033[0m"
+	@echo "  make docker-sqlite   # $(COMPOSE_DEPS)"
+	@echo "  make docker-postgres # $(COMPOSE_DEPS) --profile postgres"
+	@echo "  make docker-mongo    # $(COMPOSE_DEPS) --profile mongo (deprecated)"
 	@echo ""
 	@echo "⚡ \033[35mQUICK SWITCHERS:\033[0m"
 	@echo "  make switch-to-postgres   # Stop all → Start PostgreSQL dev"
@@ -111,17 +110,17 @@ docker-prod-sqlite: ## Start production environment with SQLite
 .PHONY: docker-postgres
 docker-postgres: ## Start PostgreSQL environment
 	@echo "Starting PostgreSQL environment..."
-	docker-compose -f $(COMPOSE_POSTGRES) up -d
+	docker-compose -f $(COMPOSE_DEPS) --profile postgres up -d
 
 .PHONY: docker-mongo
 docker-mongo: ## Start MongoDB environment
 	@echo "Starting MongoDB environment..."
-	docker-compose -f $(COMPOSE_MONGO) up -d
+	docker-compose -f $(COMPOSE_DEPS) --profile mongo up -d
 
 .PHONY: docker-sqlite
 docker-sqlite: ## Start SQLite environment
 	@echo "Starting SQLite environment..."
-	docker-compose -f $(COMPOSE_SQLITE) up -d
+	docker-compose -f $(COMPOSE_DEPS) up -d
 
 # Docker targets - Service Management
 .PHONY: down-dev-postgres
@@ -157,17 +156,17 @@ down-prod-sqlite: ## Stop production SQLite services
 .PHONY: down-postgres
 down-postgres: ## Stop PostgreSQL services
 	@echo "Stopping PostgreSQL services..."
-	docker-compose -f $(COMPOSE_POSTGRES) down
+	docker-compose -f $(COMPOSE_DEPS) --profile postgres down
 
 .PHONY: down-mongo
 down-mongo: ## Stop MongoDB services
 	@echo "Stopping MongoDB services..."
-	docker-compose -f $(COMPOSE_MONGO) down
+	docker-compose -f $(COMPOSE_DEPS) --profile mongo down
 
 .PHONY: down-sqlite
 down-sqlite: ## Stop SQLite services
 	@echo "Stopping SQLite services..."
-	docker-compose -f $(COMPOSE_SQLITE) down
+	docker-compose -f $(COMPOSE_DEPS) down
 
 .PHONY: docker-down
 docker-down: down-dev-$(DEFAULT_DEV_DB) ## Stop default development services
@@ -181,9 +180,7 @@ docker-down-all: ## Stop all Docker Compose services
 	@docker-compose -f $(COMPOSE_PROD_POSTGRES) down 2>/dev/null || true
 	@docker-compose -f $(COMPOSE_PROD_MONGO) down 2>/dev/null || true
 	@docker-compose -f $(COMPOSE_PROD_SQLITE) down 2>/dev/null || true
-	@docker-compose -f $(COMPOSE_POSTGRES) down 2>/dev/null || true
-	@docker-compose -f $(COMPOSE_MONGO) down 2>/dev/null || true
-	@docker-compose -f $(COMPOSE_SQLITE) down 2>/dev/null || true
+	@docker-compose -f $(COMPOSE_DEPS) --profile postgres --profile mongo down 2>/dev/null || true
 
 # Database targets
 .PHONY: migrate-init
