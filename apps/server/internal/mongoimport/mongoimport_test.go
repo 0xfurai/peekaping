@@ -199,3 +199,55 @@ func assertSameTimePtr(t *testing.T, want, got *time.Time) {
 		assertSameTime(t, *want, *got)
 	}
 }
+
+// tableCounts is how many rows each table of the database holds.
+func tableCounts(t *testing.T, db *bun.DB, tables ...string) map[string]int {
+	t.Helper()
+	counts := map[string]int{}
+	for _, table := range tables {
+		n, err := db.NewSelect().TableExpr("?", bun.Ident(table)).Count(context.Background())
+		require.NoError(t, err, table)
+		counts[table] = n
+	}
+	return counts
+}
+
+func TestImportRefusesATargetThatHoldsData(t *testing.T) {
+	in := mongoimporttest.Seed(t)
+	ctx := context.Background()
+	opts := mongoimport.Options{MongoURI: in.URI, MongoDatabase: in.Database}
+	tables := []string{"users", "settings", "api_keys"}
+
+	t.Run("an imported install", func(t *testing.T) {
+		forEachTarget(t, func(t *testing.T, db *bun.DB) {
+			_, err := mongoimport.Run(ctx, db, opts)
+			require.NoError(t, err)
+			before := tableCounts(t, db, tables...)
+			require.Equal(t, map[string]int{"users": 2, "settings": 6, "api_keys": 2}, before)
+
+			// Importing again would double every row, so it changes nothing and says why
+			_, err = mongoimport.Run(ctx, db, opts)
+			assert.ErrorIs(t, err, mongoimport.ErrTargetNotEmpty)
+			assert.ErrorContains(t, err, "users, settings, api_keys")
+			assert.Equal(t, before, tableCounts(t, db, tables...))
+		})
+	})
+
+	// A Peekaping that was started once has written its settings, which is data too. It may be an
+	// older one that hasn't run the latest migrations, which the import leaves alone.
+	t.Run("a database with a setting and no migrations", func(t *testing.T) {
+		forEachTarget(t, func(t *testing.T, db *bun.DB) {
+			_, err := db.Exec(`CREATE TABLE settings (key VARCHAR(255) PRIMARY KEY, value TEXT NOT NULL, type VARCHAR(50) NOT NULL)`)
+			require.NoError(t, err)
+			_, err = db.Exec(`INSERT INTO settings (key, value, type) VALUES ('KEEP_DATA_PERIOD_DAYS', '90', 'int')`)
+			require.NoError(t, err)
+
+			_, err = mongoimport.Run(ctx, db, opts)
+			assert.ErrorIs(t, err, mongoimport.ErrTargetNotEmpty)
+			assert.ErrorContains(t, err, "settings")
+			assert.Equal(t, map[string]int{"settings": 1}, tableCounts(t, db, "settings"))
+			_, err = db.Exec("SELECT 1 FROM monitors")
+			assert.Error(t, err, "the migrations ran")
+		})
+	})
+}
