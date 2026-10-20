@@ -22,8 +22,8 @@ var (
 	// ErrMonitorNotFound means the monitor no longer exists, for example because it was
 	// deleted after its check was scheduled
 	ErrMonitorNotFound = errors.New("monitor not found")
-	// ErrMonitorInactive means the monitor is paused
-	ErrMonitorInactive = errors.New("monitor is inactive")
+	// ErrMonitorPaused means the monitor is paused, so it gets no checks until it's resumed
+	ErrMonitorPaused = errors.New("monitor is paused")
 )
 
 // Job is everything one check of a monitor needs, as the monitor stands when it is loaded
@@ -68,7 +68,7 @@ func NewLoader(
 
 // Load reads what a check of the monitor needs. The job is nil whenever the error is not:
 //   - ErrMonitorNotFound: there is no such monitor (anymore). Callers drop the check.
-//   - ErrMonitorInactive: the monitor is paused. Callers drop the check.
+//   - ErrMonitorPaused: the monitor is paused. Callers drop the check.
 //   - any other error: a read that must succeed failed (the monitor or its maintenance
 //     windows). Callers may try again later.
 //
@@ -86,7 +86,7 @@ func (l *Loader) Load(ctx context.Context, monitorID string) (*Job, error) {
 	}
 
 	if !mon.Active {
-		return nil, ErrMonitorInactive
+		return nil, ErrMonitorPaused
 	}
 
 	isUnderMaintenance, err := l.isUnderMaintenance(ctx, monitorID)

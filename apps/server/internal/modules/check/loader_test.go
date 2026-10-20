@@ -144,7 +144,7 @@ func TestLoader_SkipsMonitorsThatCantBeChecked(t *testing.T) {
 
 		job, err := f.loader.Load(context.Background(), monitorID)
 
-		assert.ErrorIs(t, err, ErrMonitorInactive)
+		assert.ErrorIs(t, err, ErrMonitorPaused)
 		assert.Nil(t, job)
 	})
 
@@ -156,7 +156,7 @@ func TestLoader_SkipsMonitorsThatCantBeChecked(t *testing.T) {
 
 		assert.ErrorIs(t, err, f.monitors.err)
 		assert.NotErrorIs(t, err, ErrMonitorNotFound)
-		assert.NotErrorIs(t, err, ErrMonitorInactive)
+		assert.NotErrorIs(t, err, ErrMonitorPaused)
 		assert.Nil(t, job)
 	})
 }
