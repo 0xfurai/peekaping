@@ -17,6 +17,7 @@ on:
       - 'Dockerfile.bundle.*'
       - 'startup.bundle.*.sh'
       - 'supervisord.bundle.*.conf'
+      - 'scripts/test-bundle-user.sh'
       - 'Caddyfile'
       - '.github/workflows/playwright.yml'
       - '!**/*.md'
@@ -36,6 +37,7 @@ on:
       - 'Dockerfile.bundle.*'
       - 'startup.bundle.*.sh'
       - 'supervisord.bundle.*.conf'
+      - 'scripts/test-bundle-user.sh'
       - 'Caddyfile'
       - '.github/workflows/playwright.yml'
       - '!**/*.md'
@@ -84,6 +86,30 @@ jobs:
         retention-days: 1
         # Image layers are already compressed.
         compression-level: 0
+
+  # How the single-mode bundles run: the user, PUID/PGID, the Docker socket,
+  # port 8383, ping and Docker monitors, docker run --user and docker stop.
+  bundle-user:
+    name: Bundle user ${{ matrix.database }}
+    needs: build-images
+    if: ${{ !cancelled() }}
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        database: [sqlite, postgres]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Download image
+      uses: actions/download-artifact@v4
+      with:
+        name: image-bundle-${{ matrix.database }}
+        path: ${{ runner.temp }}/images
+    - name: Load image
+      run: docker load --input "$RUNNER_TEMP/images/bundle-${{ matrix.database }}.tar"
+    - name: Test the bundle's user, ports and shutdown
+      run: scripts/test-bundle-user.sh ${{ matrix.database }} peekaping-peekaping
 
   playwright-tests:
     name: E2E ${{ matrix.config }} ${{ matrix.database }}
