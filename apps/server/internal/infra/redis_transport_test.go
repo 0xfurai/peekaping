@@ -31,7 +31,7 @@ func redisBusConfig(tr *redisTransport) {
 }
 
 // newTestRedisBus returns a bus on its own transport over client, closed with the test.
-func newTestRedisBus(t *testing.T, client *redis.Client, logger *zap.SugaredLogger) events.Broker {
+func newTestRedisBus(t *testing.T, client *redis.Client, logger *zap.SugaredLogger) events.EventBus {
 	t.Helper()
 	transport := newRedisTransport(client, logger)
 	redisBusConfig(transport)
@@ -53,7 +53,7 @@ func newTestRedis(t *testing.T) (*miniredis.Miniredis, *redis.Client) {
 }
 
 func TestRedisBusContract(t *testing.T) {
-	eventstest.RunContract(t, func(t *testing.T) events.Broker {
+	eventstest.RunContract(t, func(t *testing.T) events.EventBus {
 		_, client := newTestRedis(t)
 		return newTestRedisBus(t, client, zap.NewNop().Sugar())
 	})

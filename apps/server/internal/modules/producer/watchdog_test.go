@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/events/eventstest"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/stale"
@@ -48,7 +49,7 @@ type watchdogFixture struct {
 	rdb        *redis.Client
 	monitors   *MockMonitorService
 	heartbeats *fakeHeartbeatService
-	bus        *MockEventBus
+	bus        *eventstest.Bus
 	store      *stale.Store
 	now        time.Time
 }
@@ -64,13 +65,12 @@ func newWatchdogFixture(t *testing.T, monitors ...*monitor.Model) *watchdogFixtu
 		rdb:        rdb,
 		monitors:   new(MockMonitorService),
 		heartbeats: &fakeHeartbeatService{latest: map[string]time.Time{}},
-		bus:        NewMockEventBus(),
+		bus:        eventstest.NewBus(),
 		store:      stale.NewStore(rdb),
 		now:        time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC),
 	}
 	f.monitors.On("FindActivePaginated", mock.Anything, 0, mock.Anything).Return(monitors, nil)
 	f.monitors.On("FindActivePaginated", mock.Anything, mock.Anything, mock.Anything).Return([]*monitor.Model{}, nil)
-	f.bus.On("Publish", mock.Anything).Return()
 	f.mr.SetTime(f.now)
 
 	f.p = &Producer{
@@ -97,18 +97,8 @@ func (f *watchdogFixture) run(t *testing.T) {
 	require.NoError(t, f.p.checkStaleMonitors(context.Background()))
 }
 
-func (f *watchdogFixture) published(eventType events.EventType) []stale.Event {
-	var out []stale.Event
-	for _, c := range f.bus.Calls {
-		if c.Method != "Publish" {
-			continue
-		}
-		e := c.Arguments.Get(0).(events.Event)
-		if e.Type == eventType {
-			out = append(out, *e.Payload.(*stale.Event))
-		}
-	}
-	return out
+func (f *watchdogFixture) published(topic events.Topic[stale.Event]) []stale.Event {
+	return eventstest.Published(f.bus, topic)
 }
 
 func testMonitor(id string, interval, timeout int, updatedAt time.Time) *monitor.Model {
@@ -173,7 +163,7 @@ func TestWatchdog_FindsMonitorsThatStoppedBeingChecked(t *testing.T) {
 	_, err = f.rdb.ZScore(context.Background(), SchedDueKey, "fresh").Result()
 	assert.ErrorIs(t, err, redis.Nil, "a monitor that's being checked isn't re-enqueued")
 
-	assert.Empty(t, f.published(events.MonitorStale), "no notification before the re-enqueued check had its chance")
+	assert.Empty(t, f.published(stale.MonitorStale), "no notification before the re-enqueued check had its chance")
 
 	ranAt, err := f.store.RanAt(context.Background())
 	require.NoError(t, err)
@@ -190,7 +180,7 @@ func TestWatchdog_NotifiesOnceWhenStillStaleAfterTheReenqueue(t *testing.T) {
 	f.at(time.Minute)
 	f.run(t)
 
-	sent := f.published(events.MonitorStale)
+	sent := f.published(stale.MonitorStale)
 	require.Len(t, sent, 1)
 	assert.Equal(t, stale.Event{MonitorID: "silent", MonitorName: "Monitor silent", Since: now.Add(-4 * time.Minute)}, normalize(sent[0]))
 
@@ -198,7 +188,7 @@ func TestWatchdog_NotifiesOnceWhenStillStaleAfterTheReenqueue(t *testing.T) {
 	f.run(t)
 	f.at(3 * time.Minute)
 	f.run(t)
-	assert.Len(t, f.published(events.MonitorStale), 1, "one notification per stale period")
+	assert.Len(t, f.published(stale.MonitorStale), 1, "one notification per stale period")
 }
 
 func TestWatchdog_WaitsForASlowReenqueuedCheck(t *testing.T) {
@@ -210,11 +200,11 @@ func TestWatchdog_WaitsForASlowReenqueuedCheck(t *testing.T) {
 	f.run(t)
 	f.at(50 * time.Second)
 	f.run(t)
-	assert.Empty(t, f.published(events.MonitorStale))
+	assert.Empty(t, f.published(stale.MonitorStale))
 
 	f.at(2 * time.Minute)
 	f.run(t)
-	assert.Len(t, f.published(events.MonitorStale), 1)
+	assert.Len(t, f.published(stale.MonitorStale), 1)
 }
 
 func TestWatchdog_ReportsRecoveryAfterANotification(t *testing.T) {
@@ -225,13 +215,13 @@ func TestWatchdog_ReportsRecoveryAfterANotification(t *testing.T) {
 	f.run(t)
 	f.at(time.Minute)
 	f.run(t)
-	require.Len(t, f.published(events.MonitorStale), 1)
+	require.Len(t, f.published(stale.MonitorStale), 1)
 
 	f.heartbeats.setLatest("silent", now.Add(90*time.Second))
 	f.at(2 * time.Minute)
 	f.run(t)
 
-	recovered := f.published(events.MonitorStaleRecovered)
+	recovered := f.published(stale.MonitorStaleRecovered)
 	require.Len(t, recovered, 1)
 	assert.Equal(t, "silent", recovered[0].MonitorID)
 	count, err := f.store.Count(context.Background())
@@ -249,8 +239,8 @@ func TestWatchdog_RecoveryBeforeANotificationIsQuiet(t *testing.T) {
 	f.at(time.Minute)
 	f.run(t)
 
-	assert.Empty(t, f.published(events.MonitorStale))
-	assert.Empty(t, f.published(events.MonitorStaleRecovered))
+	assert.Empty(t, f.published(stale.MonitorStale))
+	assert.Empty(t, f.published(stale.MonitorStaleRecovered))
 	count, err := f.store.Count(context.Background())
 	require.NoError(t, err)
 	assert.Zero(t, count)
@@ -269,7 +259,7 @@ func TestWatchdog_ForgetsMonitorsThatWerePausedOrDeleted(t *testing.T) {
 	count, err := f.store.Count(context.Background())
 	require.NoError(t, err)
 	assert.Zero(t, count)
-	assert.Empty(t, f.published(events.MonitorStaleRecovered), "a paused monitor wasn't checked again")
+	assert.Empty(t, f.published(stale.MonitorStaleRecovered), "a paused monitor wasn't checked again")
 }
 
 func TestWatchdog_SavingANotifiedMonitorIsNotARecovery(t *testing.T) {
@@ -281,7 +271,7 @@ func TestWatchdog_SavingANotifiedMonitorIsNotARecovery(t *testing.T) {
 	f.run(t)
 	f.at(time.Minute)
 	f.run(t)
-	require.Len(t, f.published(events.MonitorStale), 1)
+	require.Len(t, f.published(stale.MonitorStale), 1)
 
 	// Renamed while still broken: updated_at moves, no heartbeat arrives
 	mon.UpdatedAt = now.Add(90 * time.Second)
@@ -289,8 +279,8 @@ func TestWatchdog_SavingANotifiedMonitorIsNotARecovery(t *testing.T) {
 		f.at(offset)
 		f.run(t)
 	}
-	assert.Empty(t, f.published(events.MonitorStaleRecovered), "no check ran, so it isn't checked again")
-	assert.Len(t, f.published(events.MonitorStale), 1, "still the same stale period")
+	assert.Empty(t, f.published(stale.MonitorStaleRecovered), "no check ran, so it isn't checked again")
+	assert.Len(t, f.published(stale.MonitorStale), 1, "still the same stale period")
 	entries, err := f.store.All(context.Background())
 	require.NoError(t, err)
 	assert.Equal(t, now.Add(-4*time.Minute), entries["silent"].Since.UTC())
@@ -298,7 +288,7 @@ func TestWatchdog_SavingANotifiedMonitorIsNotARecovery(t *testing.T) {
 	f.heartbeats.setLatest("silent", now.Add(10*time.Minute+30*time.Second))
 	f.at(11 * time.Minute)
 	f.run(t)
-	assert.Len(t, f.published(events.MonitorStaleRecovered), 1)
+	assert.Len(t, f.published(stale.MonitorStaleRecovered), 1)
 }
 
 func TestWatchdog_KeepsRecordsOfActiveMonitorsMissedByTheScan(t *testing.T) {

@@ -13,8 +13,10 @@ import (
 	"time"
 
 	"peekaping/internal/config"
+	"peekaping/internal/infra"
 	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/events/eventstest"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_notification"
@@ -23,27 +25,12 @@ import (
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/tag"
 
+	"github.com/alicebob/miniredis/v2"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
-
-// syncEventBus calls handlers as soon as an event is published
-type syncEventBus struct {
-	handlers map[events.EventType][]events.EventHandler
-}
-
-func (b *syncEventBus) Subscribe(eventType events.EventType, handler events.EventHandler) {
-	b.handlers[eventType] = append(b.handlers[eventType], handler)
-}
-
-func (b *syncEventBus) Publish(event events.Event) {
-	for _, handler := range b.handlers[event.Type] {
-		handler(event)
-	}
-}
-
-func (b *syncEventBus) Close() error { return nil }
 
 type fakeChannelService struct {
 	Service
@@ -126,8 +113,9 @@ func registerTestProvider(t *testing.T, channelType string, provider Notificatio
 }
 
 type listenerFixture struct {
+	t           *testing.T
 	listener    *NotificationEventListener
-	bus         *syncEventBus
+	bus         *eventstest.Bus
 	channels    *fakeChannelService
 	monitors    *fakeMonitorService
 	links       *fakeMonitorNotificationService
@@ -138,7 +126,8 @@ type listenerFixture struct {
 func newListenerFixture(t *testing.T) *listenerFixture {
 	t.Helper()
 	f := &listenerFixture{
-		bus:         &syncEventBus{handlers: map[events.EventType][]events.EventHandler{}},
+		t:           t,
+		bus:         eventstest.NewBus(),
 		channels:    &fakeChannelService{channels: map[string]*Model{}, errs: map[string]error{}},
 		monitors:    &fakeMonitorService{monitors: map[string]*monitor.Model{}},
 		links:       &fakeMonitorNotificationService{links: map[string][]*monitor_notification.Model{}},
@@ -184,11 +173,11 @@ func (f *listenerFixture) link(monitorID, channelID string) {
 }
 
 func (f *listenerFixture) publishImportantHeartbeat(hb *heartbeat.Model) {
-	f.bus.Publish(events.Event{Type: events.ImportantHeartbeat, Payload: hb})
+	require.NoError(f.t, events.Publish(context.Background(), f.bus, events.ImportantHeartbeat, *hb))
 }
 
 func (f *listenerFixture) publishCertificateExpiry(event *certificate.CertificateExpiryEvent) {
-	f.bus.Publish(events.Event{Type: events.CertificateExpiry, Payload: event})
+	require.NoError(f.t, events.Publish(context.Background(), f.bus, certificate.CertificateExpiry, *event))
 }
 
 func testChannel(id, channelType string) *Model {
@@ -252,7 +241,7 @@ func TestListener_ImportantHeartbeatSendsToTheMonitorsChannels(t *testing.T) {
 }
 
 func TestListener_ImportantHeartbeatFromAnotherInstance(t *testing.T) {
-	// The Redis event bus delivers events published by other instances as JSON
+	// The event bus delivers events published by other processes as JSON
 	f := newListenerFixture(t)
 	provider := &recordingProvider{}
 	registerTestProvider(t, "test-slack", provider)
@@ -261,7 +250,7 @@ func TestListener_ImportantHeartbeatFromAnotherInstance(t *testing.T) {
 	payload, err := json.Marshal(downHeartbeat("mon-1"))
 	require.NoError(t, err)
 
-	f.bus.Publish(events.Event{Type: events.ImportantHeartbeat, Payload: json.RawMessage(payload)})
+	require.NoError(t, f.bus.PublishJSON(events.ImportantHeartbeat.Name(), string(payload)))
 
 	require.Equal(t, []string{channelConfig("a")}, provider.sentConfigs())
 	assert.Equal(t, downHeartbeat("mon-1"), provider.sent[0].heartbeat)
@@ -387,8 +376,8 @@ func TestListener_IgnoresEventsWithTheWrongPayload(t *testing.T) {
 	f.addMonitor("mon-1", "Public API")
 	f.attach("mon-1", testChannel("a", "test-healthy"))
 
-	f.bus.Publish(events.Event{Type: events.ImportantHeartbeat, Payload: "mon-1"})
-	f.bus.Publish(events.Event{Type: events.CertificateExpiry, Payload: json.RawMessage(`{"monitor_id": 1}`)})
+	assert.Error(t, f.bus.PublishJSON(events.ImportantHeartbeat.Name(), `"mon-1"`))
+	assert.Error(t, f.bus.PublishJSON(certificate.CertificateExpiry.Name(), `{"monitor_id": 1}`))
 
 	assert.Empty(t, provider.sentConfigs())
 }
@@ -425,14 +414,14 @@ func TestListener_CertificateExpirySendsNotificationToTheMonitorsChannels(t *tes
 
 func TestListener_StaleMonitorSendsNotificationToTheMonitorsChannels(t *testing.T) {
 	cases := []struct {
-		eventType events.EventType
-		message   string
+		topic   events.Topic[stale.Event]
+		message string
 	}{
-		{events.MonitorStale, "Peekaping has not checked Public API since 2026-10-18 11:56:00 UTC"},
-		{events.MonitorStaleRecovered, "Peekaping is checking Public API again. It was not checked from 2026-10-18 11:56:00 UTC"},
+		{stale.MonitorStale, "Peekaping has not checked Public API since 2026-10-18 11:56:00 UTC"},
+		{stale.MonitorStaleRecovered, "Peekaping is checking Public API again. It was not checked from 2026-10-18 11:56:00 UTC"},
 	}
 	for _, tc := range cases {
-		t.Run(string(tc.eventType), func(t *testing.T) {
+		t.Run(tc.topic.Name(), func(t *testing.T) {
 			f := newListenerFixture(t)
 			slack := &recordingProvider{}
 			registerTestProvider(t, "test-slack", slack)
@@ -444,7 +433,7 @@ func TestListener_StaleMonitorSendsNotificationToTheMonitorsChannels(t *testing.
 			payload, err := json.Marshal(stale.Event{MonitorID: "mon-1", MonitorName: "Public API", Since: time.Date(2026, 10, 18, 11, 56, 0, 0, time.UTC)})
 			require.NoError(t, err)
 
-			f.bus.Publish(events.Event{Type: tc.eventType, Payload: json.RawMessage(payload)})
+			require.NoError(t, f.bus.PublishJSON(tc.topic.Name(), string(payload)))
 
 			require.Equal(t, []string{channelConfig("a")}, slack.sentConfigs())
 			sent := slack.sent[0]
@@ -481,6 +470,59 @@ func TestListener_HungChannelDoesNotHoldUpOtherChannels(t *testing.T) {
 
 	assert.Less(t, time.Since(start), 2*time.Second, "the send must stop at its deadline")
 	assert.Equal(t, []string{channelConfig("b")}, healthy.sentConfigs())
+}
+
+// A channel that takes its whole send timeout delays that monitor's later notifications, in
+// order, and no other monitor's. This runs the listener on the Redis event bus.
+func TestListener_ASlowChannelDelaysOnlyItsOwnMonitor(t *testing.T) {
+	f := newListenerFixture(t)
+	release := make(chan struct{})
+	slow := &recordingProvider{send: func(context.Context) error { <-release; return nil }}
+	fast := &recordingProvider{}
+	registerTestProvider(t, "test-slow", slow)
+	registerTestProvider(t, "test-fast", fast)
+	f.addMonitor("mon-1", "Public API")
+	f.addMonitor("mon-2", "Billing")
+	f.attach("mon-1", testChannel("a", "test-slow"))
+	f.attach("mon-2", testChannel("b", "test-fast"))
+
+	redisServer := miniredis.RunT(t)
+	client := redis.NewClient(&redis.Options{Addr: redisServer.Addr()})
+	t.Cleanup(func() { _ = client.Close() })
+	bus := infra.NewRedisEventBus(client, zap.NewNop().Sugar())
+	t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		assert.NoError(t, bus.Close(ctx))
+	})
+	t.Cleanup(func() {
+		select {
+		case <-release:
+		default:
+			close(release)
+		}
+	})
+	f.listener.Subscribe(bus)
+	publish := func(hb *heartbeat.Model) {
+		require.NoError(t, events.Publish(context.Background(), bus, events.ImportantHeartbeat, *hb))
+	}
+	down, up := downHeartbeat("mon-1"), downHeartbeat("mon-1")
+	down.Msg, up.Msg, up.Status = "went down", "back up", shared.MonitorStatusUp
+
+	publish(down)
+	require.Eventually(t, func() bool { return len(slow.sentConfigs()) == 1 }, 5*time.Second, 5*time.Millisecond)
+	publish(up)
+	publish(downHeartbeat("mon-2"))
+
+	require.Eventually(t, func() bool { return len(fast.sentConfigs()) == 1 }, 5*time.Second, 5*time.Millisecond,
+		"another monitor's notification goes out while the slow channel is stuck")
+	assert.Never(t, func() bool { return len(slow.sentConfigs()) > 1 }, 200*time.Millisecond, 10*time.Millisecond,
+		"the monitor's later notification waits for the stuck one")
+	close(release)
+	require.Eventually(t, func() bool { return len(slow.sentConfigs()) == 2 }, 5*time.Second, 5*time.Millisecond)
+	slow.mu.Lock()
+	defer slow.mu.Unlock()
+	assert.Equal(t, []string{"went down", "back up"}, []string{slow.sent[0].message, slow.sent[1].message}, "in the order they happened")
 }
 
 func TestListener_LimitsConcurrentSends(t *testing.T) {

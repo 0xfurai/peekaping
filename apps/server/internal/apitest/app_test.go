@@ -83,7 +83,7 @@ func newApp(t *testing.T, options ...func(*config.Config)) *app {
 	require.NoError(t, internal.RegisterAPIDependencies(container, cfg))
 	require.NoError(t, container.Invoke(func(db *bun.DB, bus events.EventBus, queue *asynq.Client, inspector *asynq.Inspector) error {
 		t.Cleanup(func() {
-			require.NoError(t, bus.Close())
+			require.NoError(t, bus.Close(context.Background()))
 			require.NoError(t, queue.Close())
 			require.NoError(t, inspector.Close())
 			require.NoError(t, db.Close())

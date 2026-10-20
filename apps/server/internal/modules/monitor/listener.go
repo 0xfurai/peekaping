@@ -2,7 +2,6 @@ package monitor
 
 import (
 	"context"
-	"peekaping/internal/infra"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
 
@@ -31,18 +30,10 @@ func NewMonitorEventListener(p MonitorEventListenerParams) *MonitorEventListener
 
 // Subscribe subscribes to MonitorStatusChanged events
 func (l *MonitorEventListener) Subscribe(eventBus events.EventBus) {
-	eventBus.Subscribe(events.MonitorStatusChanged, l.handleMonitorStatusChanged)
+	events.Subscribe(events.NewSubscriber(eventBus, "monitor-status"), events.MonitorStatusChanged, l.handleMonitorStatusChanged)
 }
 
-func (l *MonitorEventListener) handleMonitorStatusChanged(event events.Event) {
-	ctx := context.Background()
-
-	hb, ok := infra.UnmarshalEventPayload[heartbeat.Model](event)
-	if !ok {
-		l.logger.Errorf("Failed to unmarshal heartbeat event payload")
-		return
-	}
-
+func (l *MonitorEventListener) handleMonitorStatusChanged(ctx context.Context, hb heartbeat.Model) {
 	monitorID := hb.MonitorID
 	newStatus := hb.Status
 

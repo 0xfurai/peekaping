@@ -44,7 +44,7 @@ func (l *loopback) Subscribe(string) {}
 
 func (l *loopback) Close(context.Context) error { return nil }
 
-func newLoopbackBus(t *testing.T, wire bool, opts ...events.Option) events.Broker {
+func newLoopbackBus(t *testing.T, wire bool, opts ...events.Option) events.EventBus {
 	t.Helper()
 	bus := events.NewBus(&loopback{wire: wire}, opts...)
 	t.Cleanup(func() {
@@ -57,10 +57,10 @@ func newLoopbackBus(t *testing.T, wire bool, opts ...events.Option) events.Broke
 
 func TestBusContract(t *testing.T) {
 	t.Run("in process", func(t *testing.T) {
-		eventstest.RunContract(t, func(t *testing.T) events.Broker { return newLoopbackBus(t, false) })
+		eventstest.RunContract(t, func(t *testing.T) events.EventBus { return newLoopbackBus(t, false) })
 	})
 	t.Run("encoded as JSON", func(t *testing.T) {
-		eventstest.RunContract(t, func(t *testing.T) events.Broker { return newLoopbackBus(t, true) })
+		eventstest.RunContract(t, func(t *testing.T) events.EventBus { return newLoopbackBus(t, true) })
 	})
 }
 

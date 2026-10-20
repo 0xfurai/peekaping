@@ -267,17 +267,15 @@ func (h *IngesterTaskHandler) processHeartbeat(ctx context.Context, payload *Ing
 
 	// Publish events
 	if isFirstBeat || previousBeat.Status != hb.Status {
-		h.eventBus.Publish(events.Event{
-			Type:    events.MonitorStatusChanged,
-			Payload: dbHb,
-		})
+		if err := events.Publish(ctx, h.eventBus, events.MonitorStatusChanged, *dbHb); err != nil {
+			h.logger.Errorw("Failed to publish monitor status changed event", "monitor_id", dbHb.MonitorID, "error", err)
+		}
 	}
 
 	if shouldNotify {
-		h.eventBus.Publish(events.Event{
-			Type:    events.ImportantHeartbeat,
-			Payload: dbHb,
-		})
+		if err := events.Publish(ctx, h.eventBus, events.ImportantHeartbeat, *dbHb); err != nil {
+			h.logger.Errorw("Failed to publish important heartbeat event", "monitor_id", dbHb.MonitorID, "error", err)
+		}
 	}
 
 	return nil

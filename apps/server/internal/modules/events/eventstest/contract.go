@@ -33,9 +33,9 @@ var (
 // waitFor is how long the suite waits for something it expects to happen.
 const waitFor = 10 * time.Second
 
-// RunContract runs the tests every events.Broker must pass. newBus returns a new bus each
+// RunContract runs the tests every events.EventBus must pass. newBus returns a new bus each
 // call, closed by the test if it isn't closed already.
-func RunContract(t *testing.T, newBus func(t *testing.T) events.Broker) {
+func RunContract(t *testing.T, newBus func(t *testing.T) events.EventBus) {
 	t.Run("delivers the typed value to every handler of the topic", func(t *testing.T) {
 		bus := newBus(t)
 		first, second := make(chan Beat, 4), make(chan Beat, 4)

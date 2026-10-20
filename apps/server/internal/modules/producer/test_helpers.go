@@ -400,47 +400,6 @@ func (m *MockQueueService) Close() error {
 	return args.Error(0)
 }
 
-// MockEventBus for testing
-type MockEventBus struct {
-	mock.Mock
-	subscribers map[events.EventType][]events.EventHandler
-}
-
-func NewMockEventBus() *MockEventBus {
-	return &MockEventBus{
-		subscribers: make(map[events.EventType][]events.EventHandler),
-	}
-}
-
-func (m *MockEventBus) Publish(event events.Event) {
-	m.Called(event)
-	// Also trigger handlers if any
-	if handlers, ok := m.subscribers[event.Type]; ok {
-		for _, handler := range handlers {
-			handler(event)
-		}
-	}
-}
-
-func (m *MockEventBus) Subscribe(eventType events.EventType, handler events.EventHandler) {
-	m.Called(eventType, handler)
-	m.subscribers[eventType] = append(m.subscribers[eventType], handler)
-}
-
-func (m *MockEventBus) Close() error {
-	args := m.Called()
-	return args.Error(0)
-}
-
-// Helper to trigger event
-func (m *MockEventBus) TriggerEvent(eventType events.EventType, event events.Event) {
-	if handlers, ok := m.subscribers[eventType]; ok {
-		for _, handler := range handlers {
-			handler(event)
-		}
-	}
-}
-
 // MockStatsService for testing
 type MockStatsService struct {
 	mock.Mock

@@ -10,6 +10,7 @@ import (
 
 	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/events/eventstest"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/shared"
 
@@ -94,37 +95,17 @@ func (s *fakeCertificateService) CheckCertificateExpiry(_ context.Context, _ *ce
 	return s.err
 }
 
-// fakeEventBus records published events
-type fakeEventBus struct {
-	events.EventBus
-	published []events.Event
-}
-
-func (b *fakeEventBus) Publish(event events.Event) {
-	b.published = append(b.published, event)
-}
-
-// take returns the types of the events published since the last call
-func (b *fakeEventBus) take() []events.EventType {
-	types := []events.EventType{}
-	for _, e := range b.published {
-		types = append(types, e.Type)
-	}
-	b.published = nil
-	return types
-}
-
 type testIngester struct {
 	heartbeats *fakeHeartbeatService
 	certs      *fakeCertificateService
-	bus        *fakeEventBus
+	bus        *eventstest.Bus
 	handler    *IngesterTaskHandler
 }
 
 func newTestIngester() *testIngester {
 	heartbeats := &fakeHeartbeatService{}
 	certs := &fakeCertificateService{}
-	bus := &fakeEventBus{}
+	bus := eventstest.NewBus()
 	return &testIngester{
 		heartbeats: heartbeats,
 		certs:      certs,
@@ -203,14 +184,14 @@ func runSteps(t *testing.T, previous *heartbeat.Model, m monitorSettings, steps 
 		assert.Equal(t, s.important, got.Important, "step %d: important", i+1)
 		assert.Equal(t, s.notified, got.Notified, "step %d: notified", i+1)
 
-		wantEvents := []events.EventType{}
+		wantEvents := []string{}
 		if first || previousStatus != s.want {
-			wantEvents = append(wantEvents, events.MonitorStatusChanged)
+			wantEvents = append(wantEvents, events.MonitorStatusChanged.Name())
 		}
 		if s.notified {
-			wantEvents = append(wantEvents, events.ImportantHeartbeat)
+			wantEvents = append(wantEvents, events.ImportantHeartbeat.Name())
 		}
-		assert.Equal(t, wantEvents, ti.bus.take(), "step %d: events", i+1)
+		assert.Equal(t, wantEvents, ti.bus.TakeTopics(), "step %d: events", i+1)
 
 		first, previousStatus = false, s.want
 	}
@@ -504,7 +485,7 @@ func TestIngester_ResendInterval(t *testing.T) {
 }
 
 func TestIngester_PublishesEvents(t *testing.T) {
-	statusChanged, importantHeartbeat := events.MonitorStatusChanged, events.ImportantHeartbeat
+	statusChanged, importantHeartbeat := events.MonitorStatusChanged.Name(), events.ImportantHeartbeat.Name()
 
 	t.Run("MonitorStatusChanged only when the status changes, ImportantHeartbeat only when a notification is due", func(t *testing.T) {
 		ti := newTestIngester()
@@ -512,22 +493,22 @@ func TestIngester_PublishesEvents(t *testing.T) {
 
 		for i, s := range []struct {
 			check shared.MonitorStatus
-			want  []events.EventType
+			want  []string
 		}{
-			{up, []events.EventType{statusChanged, importantHeartbeat}},   // first heartbeat
-			{up, []events.EventType{}},                                    // still Up
-			{down, []events.EventType{statusChanged}},                     // Up to Pending
-			{down, []events.EventType{statusChanged, importantHeartbeat}}, // Pending to Down
-			{down, []events.EventType{}},                                  // still Down, down count 1
-			{down, []events.EventType{importantHeartbeat}},                // resend
-			{up, []events.EventType{statusChanged, importantHeartbeat}},   // Down to Up
-			{down, []events.EventType{statusChanged}},                     // Up to Pending
-			{up, []events.EventType{statusChanged}},                       // Pending to Up
-			{maintenance, []events.EventType{statusChanged}},              // Up to Maintenance
-			{maintenance, []events.EventType{}},                           // still Maintenance
+			{up, []string{statusChanged, importantHeartbeat}}, // first heartbeat
+			{up, []string{}},                                    // still Up
+			{down, []string{statusChanged}},                     // Up to Pending
+			{down, []string{statusChanged, importantHeartbeat}}, // Pending to Down
+			{down, []string{}},                                  // still Down, down count 1
+			{down, []string{importantHeartbeat}},                // resend
+			{up, []string{statusChanged, importantHeartbeat}},   // Down to Up
+			{down, []string{statusChanged}},                     // Up to Pending
+			{up, []string{statusChanged}},                       // Pending to Up
+			{maintenance, []string{statusChanged}},              // Up to Maintenance
+			{maintenance, []string{}},                           // still Maintenance
 		} {
 			require.NoError(t, ti.ingest(t, checkResult(m, s.check)))
-			assert.Equal(t, s.want, ti.bus.take(), "heartbeat %d", i+1)
+			assert.Equal(t, s.want, ti.bus.TakeTopics(), "heartbeat %d", i+1)
 		}
 	})
 
@@ -537,10 +518,8 @@ func TestIngester_PublishesEvents(t *testing.T) {
 		require.NoError(t, ti.ingest(t, checkResult(monitorSettings{}, down)))
 
 		stored := ti.heartbeats.latest()
-		require.Len(t, ti.bus.published, 2)
-		for _, e := range ti.bus.published {
-			assert.Equal(t, stored, e.Payload, string(e.Type))
-		}
+		assert.Equal(t, []shared.HeartBeatModel{*stored}, eventstest.Published(ti.bus, events.MonitorStatusChanged))
+		assert.Equal(t, []shared.HeartBeatModel{*stored}, eventstest.Published(ti.bus, events.ImportantHeartbeat))
 	})
 }
 
@@ -551,7 +530,7 @@ func TestIngester_HandlesFailures(t *testing.T) {
 		err := ti.handler.ProcessTask(context.Background(), asynq.NewTask(TaskTypeIngester, []byte("{")))
 		assert.Error(t, err)
 		assert.Empty(t, ti.heartbeats.stored)
-		assert.Empty(t, ti.bus.take())
+		assert.Empty(t, ti.bus.TakeTopics())
 	})
 
 	t.Run("a failed write fails the task and publishes nothing", func(t *testing.T) {
@@ -560,7 +539,7 @@ func TestIngester_HandlesFailures(t *testing.T) {
 
 		err := ti.ingest(t, checkResult(monitorSettings{}, down))
 		assert.ErrorIs(t, err, ti.heartbeats.createErr)
-		assert.Empty(t, ti.bus.take())
+		assert.Empty(t, ti.bus.TakeTopics())
 	})
 
 	// PP-66 changes this: the task should fail so asynq retries it, and send no notification
@@ -576,7 +555,7 @@ func TestIngester_HandlesFailures(t *testing.T) {
 		assert.Equal(t, 1, got.Retries)
 		assert.True(t, got.Important)
 		assert.True(t, got.Notified)
-		assert.Equal(t, []events.EventType{events.MonitorStatusChanged, events.ImportantHeartbeat}, ti.bus.take())
+		assert.Equal(t, []string{events.MonitorStatusChanged.Name(), events.ImportantHeartbeat.Name()}, ti.bus.TakeTopics())
 	})
 }
 

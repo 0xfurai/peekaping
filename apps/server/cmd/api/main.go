@@ -22,6 +22,7 @@ import (
 	"peekaping/internal/modules/stats"
 	"peekaping/internal/utils"
 	"syscall"
+	"time"
 	_ "time/tzdata" // embed the zone database so TZ works in images without tzdata
 
 	"go.uber.org/dig"
@@ -167,10 +168,12 @@ func main() {
 		logger.Info("Shutdown signal received, starting graceful shutdown...")
 		stopMetrics()
 		stopRepair()
-		// Close event bus
-		if err := eventBus.Close(); err != nil {
+		// Close event bus: queued events get a few seconds to finish
+		closeCtx, cancelClose := context.WithTimeout(context.Background(), 10*time.Second)
+		if err := eventBus.Close(closeCtx); err != nil {
 			logger.Errorw("Failed to close event bus", "error", err)
 		}
+		cancelClose()
 
 		// Perform graceful database shutdown
 		if err := infra.GracefulDatabaseShutdown(container, internalCfg, logger); err != nil {

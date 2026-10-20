@@ -118,7 +118,7 @@ func (p *Producer) checkStaleMonitor(ctx context.Context, mon *monitor.Model, no
 			return err
 		}
 		if entry.Notified {
-			p.publishStale(events.MonitorStaleRecovered, mon, entry.Since)
+			p.publishStale(ctx, stale.MonitorStaleRecovered, mon, entry.Since)
 		}
 		return nil
 	}
@@ -146,7 +146,7 @@ func (p *Producer) checkStaleMonitor(ctx context.Context, mon *monitor.Model, no
 	if err := p.staleStore.Put(ctx, entry); err != nil {
 		return err
 	}
-	p.publishStale(events.MonitorStale, mon, entry.Since)
+	p.publishStale(ctx, stale.MonitorStale, mon, entry.Since)
 	return nil
 }
 
@@ -162,9 +162,8 @@ func (p *Producer) latestHeartbeatAt(ctx context.Context, monitorID string) (tim
 	return latest[0].Time.UTC(), nil
 }
 
-func (p *Producer) publishStale(eventType events.EventType, mon *monitor.Model, since time.Time) {
-	p.eventBus.Publish(events.Event{
-		Type:    eventType,
-		Payload: &stale.Event{MonitorID: mon.ID, MonitorName: mon.Name, Since: since},
-	})
+func (p *Producer) publishStale(ctx context.Context, topic events.Topic[stale.Event], mon *monitor.Model, since time.Time) {
+	if err := events.Publish(ctx, p.eventBus, topic, stale.Event{MonitorID: mon.ID, MonitorName: mon.Name, Since: since}); err != nil {
+		p.logger.Errorw("Failed to publish stale monitor event", "topic", topic.Name(), "monitor_id", mon.ID, "error", err)
+	}
 }

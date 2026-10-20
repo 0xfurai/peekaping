@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -14,6 +13,7 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/infra"
 	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/events/eventstest"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/shared"
 
@@ -31,31 +31,9 @@ import (
 	"go.uber.org/zap"
 )
 
-// recordingBus is an event bus that keeps every published event.
-type recordingBus struct {
-	mu        sync.Mutex
-	published []events.Event
-}
-
-func (b *recordingBus) Subscribe(events.EventType, events.EventHandler) {}
-
-func (b *recordingBus) Publish(event events.Event) {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-	b.published = append(b.published, event)
-}
-
-func (b *recordingBus) Close() error { return nil }
-
-func (b *recordingBus) events() []events.Event {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-	return append([]events.Event(nil), b.published...)
-}
-
 type backend struct {
 	svc      heartbeat.Service
-	bus      *recordingBus
+	bus      *eventstest.Bus
 	monitorA string
 	monitorB string
 }
@@ -109,7 +87,7 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, b backend)) {
 				_, err = db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0)`, id)
 				require.NoError(t, err)
 			}
-			bus := &recordingBus{}
+			bus := eventstest.NewBus()
 			fn(t, backend{heartbeat.NewService(heartbeat.NewSQLRepository(db), bus, zap.NewNop().Sugar()), bus, monitorA, monitorB})
 		}
 	}
@@ -130,7 +108,7 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, b backend)) {
 			require.NoError(t, client.Database(cfg.DBName).Drop(context.Background()))
 			require.NoError(t, client.Disconnect(context.Background()))
 		})
-		bus := &recordingBus{}
+		bus := eventstest.NewBus()
 		fn(t, backend{heartbeat.NewService(heartbeat.NewMongoRepository(client, cfg), bus, zap.NewNop().Sugar()), bus, primitive.NewObjectID().Hex(), primitive.NewObjectID().Hex()})
 	})
 }
@@ -182,10 +160,8 @@ func TestCreateStoresTheHeartbeatAndPublishesIt(t *testing.T) {
 		assert.Equal(t, 42, stored.Ping)
 		assert.True(t, stored.Important)
 
-		published := b.bus.events()
-		require.Len(t, published, 1)
-		assert.Equal(t, events.HeartbeatEvent, published[0].Type)
-		assert.Equal(t, created, published[0].Payload)
+		assert.Equal(t, []string{events.HeartbeatEvent.Name()}, b.bus.Topics())
+		assert.Equal(t, []heartbeat.Model{*created}, eventstest.Published(b.bus, events.HeartbeatEvent))
 	})
 }
 
@@ -347,7 +323,7 @@ func TestDeleteOlderThanDeletesHeartbeatsWrittenOutOfTimeOrder(t *testing.T) {
 				rows = rows[len(chunk):]
 			}
 
-			svc := heartbeat.NewService(heartbeat.NewSQLRepository(db), &recordingBus{}, zap.NewNop().Sugar())
+			svc := heartbeat.NewService(heartbeat.NewSQLRepository(db), eventstest.NewBus(), zap.NewNop().Sugar())
 			deleted, err := svc.DeleteOlderThan(ctx, cutoff)
 			require.NoError(t, err)
 
@@ -489,7 +465,7 @@ func TestDeleteOlderThanClearsABacklogLargerThanOneBatch(t *testing.T) {
 
 			deletes := &deleteCounter{}
 			db.AddQueryHook(deletes)
-			svc := heartbeat.NewService(heartbeat.NewSQLRepository(db), &recordingBus{}, zap.NewNop().Sugar())
+			svc := heartbeat.NewService(heartbeat.NewSQLRepository(db), eventstest.NewBus(), zap.NewNop().Sugar())
 			deleted, err := svc.DeleteOlderThan(ctx, cutoff)
 			require.NoError(t, err)
 

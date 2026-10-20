@@ -2,11 +2,11 @@ package producer
 
 import (
 	"context"
-	"encoding/json"
 	"testing"
 	"time"
 
 	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/events/eventstest"
 	"peekaping/internal/modules/monitor"
 
 	"github.com/stretchr/testify/assert"
@@ -38,22 +38,18 @@ func TestEventListener_Subscribe(t *testing.T) {
 	producer := &Producer{leaderElection: le}
 
 	eventListener := NewEventListener(producer, logger)
-	eventBus := NewMockEventBus()
-
-	// Mock Subscribe calls - use Anything instead of AnythingOfType
-	eventBus.On("Subscribe", events.MonitorCreated, mock.Anything).Return()
-	eventBus.On("Subscribe", events.MonitorUpdated, mock.Anything).Return()
-	eventBus.On("Subscribe", events.MonitorDeleted, mock.Anything).Return()
+	eventBus := eventstest.NewBus()
 
 	eventListener.Subscribe(eventBus)
 
-	// Verify Subscribe was called 3 times
-	eventBus.AssertNumberOfCalls(t, "Subscribe", 3)
+	assert.ElementsMatch(t,
+		[]string{events.MonitorCreated.Name(), events.MonitorUpdated.Name(), events.MonitorDeleted.Name()},
+		eventBus.SubscribedTopics())
 }
 
 // newListener subscribes an event listener on a producer that is the leader,
 // or a follower of node2, and returns the bus it listens on.
-func newListener(t *testing.T, leader bool, monitors ...*monitor.Model) (*engine, *MockEventBus) {
+func newListener(t *testing.T, leader bool, monitors ...*monitor.Model) (*engine, *eventstest.Bus) {
 	t.Helper()
 	ctx := context.Background()
 	e := newEngine(t, monitors...)
@@ -65,20 +61,20 @@ func newListener(t *testing.T, leader bool, monitors ...*monitor.Model) (*engine
 	require.Equal(t, leader, le.IsLeader())
 	e.producer.leaderElection = le
 
-	bus := NewMockEventBus()
-	bus.On("Subscribe", mock.Anything, mock.Anything).Return()
+	bus := eventstest.NewBus()
 	NewEventListener(e.producer, zap.NewNop().Sugar()).Subscribe(bus)
 	return e, bus
 }
 
 func TestEventListener_OnTheLeader(t *testing.T) {
+	ctx := context.Background()
 	slot := time.Date(2026, 1, 1, 12, 1, 0, 0, time.UTC)
 
 	t.Run("a created monitor is due now", func(t *testing.T) {
 		mon := &monitor.Model{ID: "mon-1", Type: "http", Active: true, Interval: 60}
 		e, bus := newListener(t, true, mon)
 
-		bus.TriggerEvent(events.MonitorCreated, events.Event{Type: events.MonitorCreated, Payload: mon})
+		require.NoError(t, events.Publish(ctx, bus, events.MonitorCreated, *mon))
 
 		assert.Equal(t, map[string]float64{"mon-1": ms(t0)}, e.members(t, SchedDueKey))
 		assert.Equal(t, 60, e.producer.monitorIntervals["mon-1"])
@@ -90,7 +86,7 @@ func TestEventListener_OnTheLeader(t *testing.T) {
 		e.producer.monitorIntervals["mon-1"] = 60
 		e.addDue(t, "mon-1", slot)
 
-		bus.TriggerEvent(events.MonitorUpdated, events.Event{Type: events.MonitorUpdated, Payload: mon})
+		require.NoError(t, events.Publish(ctx, bus, events.MonitorUpdated, *mon))
 
 		assert.Equal(t, map[string]float64{"mon-1": ms(t0)}, e.members(t, SchedDueKey))
 		assert.Equal(t, 120, e.producer.monitorIntervals["mon-1"])
@@ -103,7 +99,7 @@ func TestEventListener_OnTheLeader(t *testing.T) {
 		e.addDue(t, "mon-1", slot)
 		e.addLease(t, "mon-1", t0.Add(LeaseTTL))
 
-		bus.TriggerEvent(events.MonitorUpdated, events.Event{Type: events.MonitorUpdated, Payload: mon})
+		require.NoError(t, events.Publish(ctx, bus, events.MonitorUpdated, *mon))
 
 		assert.Empty(t, e.members(t, SchedDueKey))
 		assert.Empty(t, e.members(t, SchedLeaseKey))
@@ -116,7 +112,7 @@ func TestEventListener_OnTheLeader(t *testing.T) {
 		e.addDue(t, "mon-1", slot)
 		e.addLease(t, "mon-1", t0.Add(LeaseTTL))
 
-		bus.TriggerEvent(events.MonitorDeleted, events.Event{Type: events.MonitorDeleted, Payload: "mon-1"})
+		require.NoError(t, events.Publish(ctx, bus, events.MonitorDeleted, "mon-1"))
 
 		assert.Empty(t, e.members(t, SchedDueKey))
 		assert.Empty(t, e.members(t, SchedLeaseKey))
@@ -128,10 +124,13 @@ func TestEventListener_OnAFollower(t *testing.T) {
 	slot := time.Date(2026, 1, 1, 12, 1, 0, 0, time.UTC)
 	mon := &monitor.Model{ID: "mon-1", Type: "http", Active: true, Interval: 120}
 
-	for name, event := range map[string]events.Event{
-		"created": {Type: events.MonitorCreated, Payload: &monitor.Model{ID: "mon-new", Type: "http", Active: true, Interval: 60}},
-		"updated": {Type: events.MonitorUpdated, Payload: mon},
-		"deleted": {Type: events.MonitorDeleted, Payload: "mon-1"},
+	ctx := context.Background()
+	for name, publish := range map[string]func(bus *eventstest.Bus) error{
+		"created": func(bus *eventstest.Bus) error {
+			return events.Publish(ctx, bus, events.MonitorCreated, monitor.Model{ID: "mon-new", Type: "http", Active: true, Interval: 60})
+		},
+		"updated": func(bus *eventstest.Bus) error { return events.Publish(ctx, bus, events.MonitorUpdated, *mon) },
+		"deleted": func(bus *eventstest.Bus) error { return events.Publish(ctx, bus, events.MonitorDeleted, "mon-1") },
 	} {
 		t.Run("ignores a monitor "+name+" event", func(t *testing.T) {
 			e, bus := newListener(t, false)
@@ -143,7 +142,7 @@ func TestEventListener_OnAFollower(t *testing.T) {
 			e.producer.monitorIntervals["mon-1"] = 60
 			e.addDue(t, "mon-1", slot)
 
-			bus.TriggerEvent(event.Type, event)
+			require.NoError(t, publish(bus))
 
 			assert.Equal(t, map[string]float64{"mon-1": ms(slot)}, e.members(t, SchedDueKey))
 			assert.Empty(t, e.members(t, SchedLeaseKey))
@@ -152,62 +151,4 @@ func TestEventListener_OnAFollower(t *testing.T) {
 			queueSvc.AssertNotCalled(t, "GetTaskInfo", mock.Anything, mock.Anything, mock.Anything)
 		})
 	}
-}
-
-func TestEventListener_UnmarshalPayload(t *testing.T) {
-	logger := zap.NewNop().Sugar()
-	eventListener := &EventListener{logger: logger}
-
-	t.Run("unmarshal json.RawMessage", func(t *testing.T) {
-		data := map[string]string{"id": "test-123", "name": "Test"}
-		jsonData, err := json.Marshal(data)
-		assert.NoError(t, err)
-
-		payload := json.RawMessage(jsonData)
-
-		var result map[string]string
-		err = eventListener.unmarshalPayload(payload, &result)
-		assert.NoError(t, err)
-		assert.Equal(t, "test-123", result["id"])
-		assert.Equal(t, "Test", result["name"])
-	})
-
-	t.Run("unmarshal byte slice", func(t *testing.T) {
-		data := map[string]string{"id": "test-456", "name": "Test2"}
-		jsonData, err := json.Marshal(data)
-		assert.NoError(t, err)
-
-		var result map[string]string
-		err = eventListener.unmarshalPayload(jsonData, &result)
-		assert.NoError(t, err)
-		assert.Equal(t, "test-456", result["id"])
-		assert.Equal(t, "Test2", result["name"])
-	})
-
-	t.Run("unmarshal Go object", func(t *testing.T) {
-		data := map[string]string{"id": "test-789", "name": "Test3"}
-
-		var result map[string]string
-		err := eventListener.unmarshalPayload(data, &result)
-		assert.NoError(t, err)
-		assert.Equal(t, "test-789", result["id"])
-		assert.Equal(t, "Test3", result["name"])
-	})
-
-	t.Run("unmarshal simple string", func(t *testing.T) {
-		payload := "simple-string-id"
-
-		var result string
-		err := eventListener.unmarshalPayload(payload, &result)
-		assert.NoError(t, err)
-		assert.Equal(t, "simple-string-id", result)
-	})
-
-	t.Run("unmarshal error on invalid JSON", func(t *testing.T) {
-		payload := json.RawMessage([]byte("invalid json"))
-
-		var result map[string]string
-		err := eventListener.unmarshalPayload(payload, &result)
-		assert.Error(t, err)
-	})
 }

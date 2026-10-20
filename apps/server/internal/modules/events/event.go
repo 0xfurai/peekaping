@@ -1,55 +1,27 @@
 package events
 
-// EventType represents the type of event
-type EventType string
+import "peekaping/internal/modules/shared"
 
-const (
-	// MonitorCreated is emitted when a monitor is created
-	MonitorCreated EventType = "monitor.created"
-	// MonitorUpdated is emitted when a monitor is updated
-	MonitorUpdated EventType = "monitor.updated"
-	// MonitorDeleted is emitted when a monitor is deleted
-	MonitorDeleted EventType = "monitor.deleted"
-	// HeartbeatEvent is emitted when a heartbeat is created
-	HeartbeatEvent EventType = "heartbeat"
-	// NotifyEvent is emitted when a monitor status changes (up <-> down)
-	MonitorStatusChanged EventType = "monitor.status.changed"
-	// CertificateExpiry is emitted when a certificate is expiring
-	CertificateExpiry EventType = "certificate.expiry"
-	// ImportantHeartbeat is emitted when a heartbeat is important for notification purposes
-	ImportantHeartbeat EventType = "important.heartbeat"
-	// MonitorStale is emitted when the watchdog finds a monitor Peekaping has stopped checking
-	MonitorStale EventType = "monitor.stale"
-	// MonitorStaleRecovered is emitted when a monitor that was reported stale is checked again
-	MonitorStaleRecovered EventType = "monitor.stale.recovered"
+// The topics whose payloads are types in package shared. A topic with a payload type of its
+// own lives beside that type: certificate.CertificateExpiry, stale.MonitorStale and
+// stale.MonitorStaleRecovered.
+//
+// A topic's name is its name on the wire, so keep the names as they are.
+var (
+	// MonitorCreated is published when a monitor is created
+	MonitorCreated = NewTopic("monitor.created", monitorOf)
+	// MonitorUpdated is published when a monitor is updated
+	MonitorUpdated = NewTopic("monitor.updated", monitorOf)
+	// MonitorDeleted is published when a monitor is deleted. Its payload is the monitor's ID.
+	MonitorDeleted = NewTopic("monitor.deleted", func(monitorID string) string { return monitorID })
+	// HeartbeatEvent is published when a heartbeat is created
+	HeartbeatEvent = NewTopic("heartbeat", heartbeatOf)
+	// MonitorStatusChanged is published when a heartbeat moves its monitor to a different status
+	MonitorStatusChanged = NewTopic("monitor.status.changed", heartbeatOf)
+	// ImportantHeartbeat is published when a heartbeat is important for notification purposes
+	ImportantHeartbeat = NewTopic("important.heartbeat", heartbeatOf)
 )
 
-// Event represents a generic event with a type and payload
-type Event struct {
-	Type    EventType
-	Payload interface{}
-}
+func monitorOf(m shared.Monitor) string { return m.ID }
 
-// EventHandler is a function that handles events
-type EventHandler func(event Event)
-
-// EventBus defines the interface for event bus implementations
-// This allows different implementations (Redis, Kafka, RabbitMQ, etc.)
-type EventBus interface {
-	// Subscribe registers a handler for a specific event type
-	Subscribe(eventType EventType, handler EventHandler)
-
-	// Publish sends an event to all registered handlers
-	Publish(event Event)
-
-	// Close closes the event bus and cleans up resources
-	Close() error
-}
-
-// HeartbeatCreatedPayload represents the payload for heartbeat created events
-type HeartbeatCreatedPayload struct {
-	MonitorID string
-	Status    int
-	Ping      int
-	Time      int64 // Unix seconds
-}
+func heartbeatOf(h shared.HeartBeatModel) string { return h.MonitorID }

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"peekaping/internal/config"
-	"peekaping/internal/infra"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
@@ -86,15 +85,10 @@ func NewServer(
 	})
 
 	// Listen for heartbeat events and broadcast to room
-	eventBus.Subscribe(events.HeartbeatEvent, func(event events.Event) {
-		hb, ok := infra.UnmarshalEventPayload[heartbeat.Model](event)
-		if !ok {
-			logger.Warn("Failed to unmarshal heartbeat event payload")
-			return
-		}
+	events.Subscribe(events.NewSubscriber(eventBus, "websocket"), events.HeartbeatEvent, func(_ context.Context, hb heartbeat.Model) {
 		roomName := "monitor:" + hb.MonitorID
-		server.io.To(socket.Room(roomName)).Emit(roomName+":heartbeat", hb)
-		server.io.To(socket.Room("monitor:all")).Emit("monitor:all:heartbeat", hb)
+		server.io.To(socket.Room(roomName)).Emit(roomName+":heartbeat", &hb)
+		server.io.To(socket.Room("monitor:all")).Emit("monitor:all:heartbeat", &hb)
 	})
 
 	return server, nil

@@ -91,7 +91,7 @@ type Bus struct {
 	closeErr error
 }
 
-var _ Broker = (*Bus)(nil)
+var _ EventBus = (*Bus)(nil)
 
 // NewBus returns a Bus over transport.
 func NewBus(transport Transport, opts ...Option) *Bus {
@@ -112,7 +112,7 @@ func NewBus(transport Transport, opts ...Option) *Bus {
 	return b
 }
 
-// PublishMessage implements Broker.
+// PublishMessage implements EventBus.
 func (b *Bus) PublishMessage(ctx context.Context, msg Message) error {
 	b.mu.Lock()
 	if b.closed {
@@ -126,7 +126,7 @@ func (b *Bus) PublishMessage(ctx context.Context, msg Message) error {
 	return b.transport.Publish(ctx, msg)
 }
 
-// AddHandler implements Broker.
+// AddHandler implements EventBus.
 func (b *Bus) AddHandler(name string, handler Handler) {
 	b.mu.Lock()
 	if b.closed {
@@ -163,7 +163,7 @@ func (b *Bus) deliver(msg Message) {
 	}
 }
 
-// Close implements Broker. It stops the transport, then waits for the queued events to be
+// Close implements EventBus. It stops the transport, then waits for the queued events to be
 // handled and for the workers to exit. If ctx is done first, it cancels the handlers' context,
 // drops what is still queued and returns an error that wraps ctx's: a handler that doesn't
 // watch its context is left running until it returns.

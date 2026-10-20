@@ -10,11 +10,11 @@ import (
 // ErrClosed is returned by Publish once the bus has been closed.
 var ErrClosed = errors.New("event bus is closed")
 
-// Broker is what both event buses implement: Redis pub/sub across processes, and an
+// EventBus is what both event buses implement: Redis pub/sub across processes, and an
 // in-memory bus inside one. Publish and Subscribe are generic functions over it, because a Go
 // interface can't have generic methods. Use those, not these methods, from application code.
 // Bus is the shared implementation that a Transport plugs into.
-type Broker interface {
+type EventBus interface {
 	// PublishMessage delivers msg to every handler registered for msg.Topic, in every
 	// process that has one. It returns ErrClosed once the bus is closed.
 	PublishMessage(ctx context.Context, msg Message) error
@@ -60,7 +60,7 @@ func (h Handler) Bind(msg Message) (monitorID string, call func(context.Context)
 // Publish ignores the cancellation of ctx: an event announces a change that is already
 // stored, so dropping it because the request that made the change was cancelled would leave
 // the other processes out of step. The transport applies its own timeout instead.
-func Publish[T any](ctx context.Context, bus Broker, topic Topic[T], payload T) error {
+func Publish[T any](ctx context.Context, bus EventBus, topic Topic[T], payload T) error {
 	if err := bus.PublishMessage(ctx, Message{Topic: topic.name, Value: payload}); err != nil {
 		return fmt.Errorf("publish %s: %w", topic.name, err)
 	}
@@ -72,13 +72,13 @@ func Publish[T any](ctx context.Context, bus Broker, topic Topic[T], payload T) 
 // delays only the events behind it for the same monitor. Name a subscriber after the part of
 // the program that owns the handlers, for example "producer" or "notification".
 type Subscriber struct {
-	bus  Broker
+	bus  EventBus
 	name string
 }
 
 // NewSubscriber returns the subscriber called name on bus. Subscribers with the same name
 // on the same bus share their queues.
-func NewSubscriber(bus Broker, name string) Subscriber {
+func NewSubscriber(bus EventBus, name string) Subscriber {
 	return Subscriber{bus: bus, name: name}
 }
 
