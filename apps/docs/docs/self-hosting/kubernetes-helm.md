@@ -169,18 +169,9 @@ The bundled PostgreSQL and Redis run Bitnami's free `latest` images, `bitnami/po
 
 So the chart pins each image by digest, in `postgresql.image.digest` and `redis.image.digest` in `values.yaml`. They are PostgreSQL 18 and Redis 8, and each digest covers amd64 and arm64. A digest wins over the tag.
 
-The digests and the subchart versions in `Chart.yaml` are updated by hand, around each release. With the published chart, a newer chart version carries newer ones, so upgrade to it. To run an image of your own instead, set `postgresql.image.digest` and `redis.image.digest` in your values file.
+The digests and the subchart versions in `Chart.yaml` are updated by hand, around each release. With the published chart, a newer chart version carries newer ones, so upgrade to it.
 
-In a checkout of the repository, you can move to newer ones yourself. Run this, then `helm dependency build charts` and `helm upgrade`:
-
-```bash
-scripts/update-chart-deps.sh           # lists what is behind
-scripts/update-chart-deps.sh --write   # updates Chart.yaml and values.yaml
-```
-
-The script needs `helm`, `curl` and `jq`. It is not part of the published chart.
-
-To run an image of your own, set `postgresql.image.digest` and `redis.image.digest` in your values file. A digest from another repository also needs `image.registry` and `image.repository`. Without them the pod pulls the digest from Bitnami's repository, `registry-1.docker.io/bitnami/postgresql`, and the pull fails. Bitnami's charts also refuse an image they don't recognize, so set `global.security.allowInsecureImages` to `true`:
+To run an image of your own instead, set `postgresql.image.digest` and `redis.image.digest` in your values file. A digest from another repository also needs `image.registry` and `image.repository`. Without them the pod pulls the digest from Bitnami's repository, `registry-1.docker.io/bitnami/postgresql`, and the pull fails. Bitnami's charts also refuse an image they don't recognize, so set `global.security.allowInsecureImages` to `true`:
 
 ```yaml
 global:
@@ -194,6 +185,15 @@ postgresql:
 ```
 
 `redis.image` takes the same three values.
+
+In a checkout of the repository, you can also move to newer digests and subchart versions yourself. Run this, then `helm dependency build charts` and `helm upgrade`:
+
+```bash
+scripts/update-chart-deps.sh           # lists what is behind
+scripts/update-chart-deps.sh --write   # updates Chart.yaml and values.yaml
+```
+
+The script needs `helm`, `curl` and `jq`. It is not part of the published chart.
 
 A new digest or subchart version restarts the bundled PostgreSQL. The migrate Job retries until the database is back, up to `migrate.backoffLimit` tries (6 by default). If it still fails, run `helm upgrade` again. Your data is intact.
 
