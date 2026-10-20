@@ -264,7 +264,7 @@ type socketEvent struct {
 }
 
 // dialSocket opens a socket.io session with the admin's access token. The test's cleanup closes
-// it, so that its long poll doesn't hold up the HTTP server's shutdown.
+// it.
 func (in *instance) dialSocket(t *testing.T) *socketClient {
 	t.Helper()
 	query := url.Values{"EIO": {"4"}, "transport": {"polling"}, "token": {in.accessToken}}

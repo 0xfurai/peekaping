@@ -74,8 +74,6 @@ func TestRun_ChecksAMonitorCreatedThroughTheAPIAndIngestsPushesWithoutRedis(t *t
 		assert.Equal(t, 12, stored[i].Ping)
 	})
 
-	// The long poll would hold up the HTTP server's shutdown until its next ping
-	socket.close()
 	require.NoError(t, in.stop(t))
 
 	assert.Zero(t, redisConnections(), "peekaping never connects to Redis")
@@ -127,20 +125,49 @@ func TestRun_ShutsDownInOrderOnceTheRequestsInFlightAreAnswered(t *testing.T) {
 	}
 	t.Logf("shut down in %s", time.Since(startedAt).Round(time.Millisecond))
 
-	order := []string{
-		"Shutdown signal received, shutting down",
-		"Stopped the HTTP server",
-		"Closed the websocket server",
-		"Stale-monitor watchdog stopped",
-		"Scheduler stopped",
-		"Stopped the scheduler, the watchdog and the other background jobs",
-		"Closed the event bus",
-		"SQLite database closed gracefully",
-		"Closed the database",
-		"Peekaping stopped",
-	}
-	assert.Equal(t, order, logged(logs, order), "the shutdown's steps, in the order logged")
+	assert.Equal(t, shutdownOrder, logged(logs, shutdownOrder), "the shutdown's steps, in the order logged")
 	assert.Empty(t, logs.FilterMessage(ignoringRedis).All(), "no REDIS_* variable is set")
+}
+
+func TestRun_ShutsDownWithinSecondsWhileAWebsocketClientLongPolls(t *testing.T) {
+	cfg := loadConfig(t, nil)
+	logger, logs := observedLogger()
+	in := startPeekaping(t, cfg, logger, logs)
+	in.registerAdmin(t)
+	// Its reader keeps a long poll open, which the server answers at the latest with the next
+	// ping, 25 seconds away: past Docker's default stop grace of 10 seconds
+	socket := in.dialSocket(t)
+	time.Sleep(200 * time.Millisecond) // the reader sends its next long poll
+
+	startedAt := time.Now()
+	require.NoError(t, in.stop(t), "run returns nil, so peekaping exits 0")
+	took := time.Since(startedAt)
+	t.Logf("shut down in %s", took.Round(time.Millisecond))
+
+	assert.Less(t, took, 5*time.Second, "the long poll doesn't hold up the shutdown")
+	select {
+	case _, open := <-socket.packets:
+		assert.False(t, open, "the websocket server ended the client's session")
+	case <-time.After(wait):
+		assert.Fail(t, "the client's session is still open")
+	}
+	// The websocket closes from the HTTP server's Shutdown, once it takes no new connections, and
+	// is logged once the HTTP server has stopped: the order of ADR 0002, section 3
+	assert.Equal(t, shutdownOrder, logged(logs, shutdownOrder), "the shutdown's steps, in the order logged")
+}
+
+// shutdownOrder is what a shutdown that stops everything in time logs, in this order
+var shutdownOrder = []string{
+	"Shutdown signal received, shutting down",
+	"Stopped the HTTP server",
+	"Closed the websocket server",
+	"Stale-monitor watchdog stopped",
+	"Scheduler stopped",
+	"Stopped the scheduler, the watchdog and the other background jobs",
+	"Closed the event bus",
+	"SQLite database closed gracefully",
+	"Closed the database",
+	"Peekaping stopped",
 }
 
 // logged returns the messages logged that are among messages, in the order they were logged

@@ -133,6 +133,16 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 	// The API router serves every request
 	handler := http.Handler(p.Server.Router)
 	httpServer := &http.Server{Handler: handler, ReadHeaderTimeout: readHeaderTimeout}
+	// The websocket server closes as soon as the HTTP server's Shutdown stops taking connections.
+	// Closing its sessions answers their open long polls, which Shutdown waits for like any
+	// request in flight: left open, they'd hold it up until the clients' next ping, 25 seconds
+	// away. They are answered while their handlers still wait on them, which engine.io handles
+	// safely, unlike a long poll whose connection was already dropped (see websocket_test).
+	websocketClosed := make(chan struct{})
+	httpServer.RegisterOnShutdown(func() {
+		defer close(websocketClosed)
+		p.WebSocket.Close()
+	})
 	served := make(chan error, 1)
 	go func() {
 		logger.Infow("Serving the API", "address", listener.Addr().String())
@@ -148,7 +158,7 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 		logger.Errorw("HTTP server failed, shutting down", "error", serveErr)
 	}
 
-	if err := errors.Join(serveErr, shutdown(httpServer, p, jobs, cfg.DBType, logger)); err != nil {
+	if err := errors.Join(serveErr, shutdown(httpServer, websocketClosed, p, jobs, cfg.DBType, logger)); err != nil {
 		return err
 	}
 	logger.Info("Peekaping stopped")
@@ -264,10 +274,11 @@ func await(ctx context.Context, what string, done <-chan struct{}) error {
 }
 
 // shutdown stops everything in order, within shutdownTimeout. The HTTP server stops taking
-// requests and waits for those in flight. The websocket closes its connections. The background
-// jobs stop, so nothing publishes events any more. The event bus lets the handlers of the queued
-// events finish. The database closes last, once nothing uses it.
-func shutdown(httpServer *http.Server, p parts, j *jobs, dbType string, logger *zap.SugaredLogger) error {
+// requests and waits for those in flight. The websocket closes its sessions, from the HTTP
+// server's Shutdown (websocketClosed is closed once it has). The background jobs stop, so
+// nothing publishes events any more. The event bus lets the handlers of the queued events
+// finish. The database closes last, once nothing uses it.
+func shutdown(httpServer *http.Server, websocketClosed <-chan struct{}, p parts, j *jobs, dbType string, logger *zap.SugaredLogger) error {
 	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 	defer cancel()
 	var errs []error
@@ -279,7 +290,7 @@ func shutdown(httpServer *http.Server, p parts, j *jobs, dbType string, logger *
 	}
 	logger.Info("Stopped the HTTP server")
 
-	p.WebSocket.Close()
+	<-websocketClosed
 	logger.Info("Closed the websocket server")
 
 	if err := j.stop(ctx); err != nil {
