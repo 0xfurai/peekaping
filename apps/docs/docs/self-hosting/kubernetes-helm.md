@@ -8,7 +8,7 @@ The Helm chart in the `charts/` folder of the [Peekaping repository](https://git
 
 The chart installs:
 
-- Deployments for the API (`<release>-api`), the producer, the worker, the ingester and the web app (`<release>-web`). Each runs 3 replicas by default.
+- Deployments for the API (`<release>-api`), the producer, the worker, the ingester and the web app (`<release>-web`). Each runs 3 replicas by default. The API, producer, worker and ingester pods start with an init container, `wait-for-migrations`, that holds them until the migrations are applied.
 - A Job, `<release>-migrate`, that runs the database migrations.
 - Services for the API (port 8034) and the web app (port 80).
 - A ConfigMap, `<release>-config`, built from `config.env`.
@@ -104,7 +104,17 @@ kubectl get job,pods --namespace peekaping
 kubectl logs --namespace peekaping job/peekaping-migrate
 ```
 
-The Job is an ordinary resource of the release, not a Helm hook, so Helm doesn't wait for it before it creates the Deployments. Open `https://status.example.com` and create your admin account.
+The Job is an ordinary resource of the release, not a Helm hook, so Helm creates it and the Deployments at the same time. The API, producer, worker and ingester pods wait in `Init` until the Job has applied every migration, and then start. The web pods don't use the database and start right away.
+
+The `wait-for-migrations` init container asks the migrate image every 2 seconds whether any migrations are left to apply. Its log shows what the pod is waiting for:
+
+```bash
+kubectl logs --namespace peekaping deploy/peekaping-api --container wait-for-migrations
+```
+
+If the Job fails, the pods stay in `Init`. Read the Job's log to find out why.
+
+Open `https://status.example.com` and create your admin account.
 
 ## Configuration
 
@@ -248,6 +258,6 @@ Each component has a `replicaCount`, which is 3 by default, and `resources` with
      --values peekaping-values.yaml
    ```
 
-The migrate Job runs the migrations of the new release. Check that it finished with `kubectl logs --namespace peekaping job/peekaping-migrate`. The Job is removed an hour after it finishes (`migrate.ttlSecondsAfterFinished`).
+The migrate Job runs the migrations of the new release. The new API, producer, worker and ingester pods wait in `Init` until it has applied them, and the old pods keep serving until then. Check that it finished with `kubectl logs --namespace peekaping job/peekaping-migrate`. The Job is removed an hour after it finishes (`migrate.ttlSecondsAfterFinished`).
 
 `helm rollback` returns the Kubernetes objects to an earlier revision, but it doesn't undo database migrations. If a migration has changed your database, restore the backup too.

@@ -32,6 +32,7 @@ spec:
         checksum/config: {{ include (print $.Template.BasePath "/config.yaml") . | sha256sum }}
         {{- if .Values.ingester.apparmor.enabled }}
         container.apparmor.security.beta.kubernetes.io/{{ .Release.Name }}-ingester: runtime/default
+        container.apparmor.security.beta.kubernetes.io/wait-for-migrations: runtime/default
         {{- end }}
 
     spec:
@@ -54,6 +55,10 @@ spec:
         fsGroup: 10001
         seccompProfile:
           type: RuntimeDefault
+
+      # Hold the pod until the migrate Job has applied every migration
+      initContainers:
+        {{- include "peekaping.waitForMigrations" . | nindent 8 }}
 
       containers:
         - name: {{ .Release.Name }}-ingester
