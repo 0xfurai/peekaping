@@ -12,7 +12,7 @@ import (
 
 // NewRedisEventBus returns the event bus that spans processes: events go through Redis
 // pub/sub, on the client the bus is given. Closing the bus leaves the client open.
-func NewRedisEventBus(client *redis.Client, logger *zap.SugaredLogger, opts ...events.Option) events.EventBus {
+func NewRedisEventBus(client *redis.Client, logger *zap.SugaredLogger, opts ...events.Option) *events.Bus {
 	logger = logger.With("component", "redis_event_bus")
 	opts = append([]events.Option{events.WithLogger(logger)}, opts...)
 	return events.NewBus(newRedisTransport(client, logger), opts...)

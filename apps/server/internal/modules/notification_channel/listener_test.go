@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
@@ -607,12 +608,29 @@ func TestListener_LimitsConcurrentSends(t *testing.T) {
 	assert.Len(t, provider.sentConfigs(), channels)
 }
 
-// newRedisBus returns an event bus on its own Redis client, as each process of a cluster has
-func newRedisBus(t *testing.T, redisAddr string) events.EventBus {
+// redisConfig is the config of a cluster binary whose Redis is at addr
+func redisConfig(t *testing.T, addr string) *config.Config {
 	t.Helper()
-	client := redis.NewClient(&redis.Options{Addr: redisAddr})
+	host, port, err := net.SplitHostPort(addr)
+	require.NoError(t, err)
+	return &config.Config{RedisHost: host, RedisPort: port, QueueConcurrency: 4, Timezone: "UTC"}
+}
+
+// newClusterBus returns the event bus of one cluster process, as the app wires it: the Redis
+// event bus on its own client, with the notification topics routed to the notification queue
+func newClusterBus(t *testing.T, cfg *config.Config) *QueuedBus {
+	t.Helper()
+	logger := zap.NewNop().Sugar()
+	client := redis.NewClient(&redis.Options{Addr: net.JoinHostPort(cfg.RedisHost, cfg.RedisPort)})
 	t.Cleanup(func() { _ = client.Close() })
-	bus := infra.NewRedisEventBus(client, zap.NewNop().Sugar())
+	asynqClient, err := infra.ProvideAsynqClient(cfg, logger)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = asynqClient.Close() })
+	inspector, err := infra.ProvideAsynqInspector(cfg, logger)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = inspector.Close() })
+
+	bus := NewQueuedBus(infra.NewRedisEventBus(client, logger), infra.ProvideQueueService(asynqClient, inspector, logger))
 	t.Cleanup(func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
@@ -621,18 +639,49 @@ func newRedisBus(t *testing.T, redisAddr string) events.EventBus {
 	return bus
 }
 
-// startAPIReplicas starts n api replicas the way cluster mode does: each has its own services,
+// apiReplica is one cmd/api process: its event bus, and the consumer that takes the
+// notification queue's tasks into it
+type apiReplica struct {
+	bus      *QueuedBus
+	consumer *QueueConsumer
+}
+
+// start makes the replica take notification tasks, until the test ends
+func (r *apiReplica) start(t *testing.T) {
+	t.Helper()
+	require.NoError(t, r.consumer.Start())
+	t.Cleanup(r.consumer.Stop)
+}
+
+// newAPIReplicas builds n api replicas the way cluster mode does: each has its own services,
 // its own Redis event bus and its own notification listener, all over the same Redis. Monitor
 // "mon-1" has one channel, "a" of type "test-slack", and the replicas send through whatever
-// provider is registered for that type.
-func startAPIReplicas(t *testing.T, redisAddr string, n int) {
+// provider is registered for that type. The replicas don't take notification tasks yet.
+func newAPIReplicas(t *testing.T, redisAddr string, n int) []*apiReplica {
 	t.Helper()
-	for range n {
+	cfg := redisConfig(t, redisAddr)
+	replicas := make([]*apiReplica, n)
+	for i := range replicas {
 		f := newListenerFixture(t)
 		f.addMonitor("mon-1", "Public API")
 		f.attach("mon-1", testChannel("a", "test-slack"))
-		f.listener.Subscribe(newRedisBus(t, redisAddr))
+		bus := newClusterBus(t, cfg)
+		f.listener.Subscribe(bus)
+		server, err := infra.ProvideNotificationAsynqServer(cfg, zap.NewNop().Sugar())
+		require.NoError(t, err)
+		replicas[i] = &apiReplica{bus: bus, consumer: NewQueueConsumer(server, bus, zap.NewNop().Sugar())}
 	}
+	return replicas
+}
+
+// startAPIReplicas starts n api replicas that take notification tasks, see newAPIReplicas
+func startAPIReplicas(t *testing.T, redisAddr string, n int) []*apiReplica {
+	t.Helper()
+	replicas := newAPIReplicas(t, redisAddr, n)
+	for _, replica := range replicas {
+		replica.start(t)
+	}
+	return replicas
 }
 
 // settledSends waits for the provider's first send, then for its send count to hold still, and
@@ -653,15 +702,15 @@ func settledSends(t *testing.T, provider *recordingProvider) int {
 	return count
 }
 
-// Every api replica gets each event, since Redis pub/sub delivers a published event to all
-// subscribed buses. The ingester publishes the important heartbeat once, and the monitor's
-// channel must get one notification.
+// Redis pub/sub hands a published event to every api replica, so each one's listener would send
+// the notification. The ingester publishes the important heartbeat once, and the monitor's
+// channel must get one notification: a queue gives the event to one replica.
 func TestNotificationListener_ThreeAPIReplicasSendAnImportantHeartbeatOnce(t *testing.T) {
 	provider := &recordingProvider{}
 	registerTestProvider(t, "test-slack", provider)
 	redisServer := miniredis.RunT(t)
 	startAPIReplicas(t, redisServer.Addr(), 3)
-	ingester := newRedisBus(t, redisServer.Addr())
+	ingester := newClusterBus(t, redisConfig(t, redisServer.Addr()))
 
 	require.NoError(t, events.Publish(context.Background(), ingester, events.ImportantHeartbeat, *downHeartbeat("mon-1")))
 
