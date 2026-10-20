@@ -23,6 +23,7 @@ import (
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/utils"
 
+	gorilla "github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun/driver/sqliteshim"
@@ -397,6 +398,27 @@ func (c *socketClient) close() {
 	_ = c.post("1")
 	for range c.packets {
 	}
+}
+
+// dialWebsocket opens a socket.io session over a websocket, the transport a socket.io client
+// upgrades to, with the admin's access token. The test's cleanup closes it.
+func (in *instance) dialWebsocket(t *testing.T) *gorilla.Conn {
+	t.Helper()
+	query := url.Values{"EIO": {"4"}, "transport": {"websocket"}, "token": {in.accessToken}}
+	conn, resp, err := gorilla.DefaultDialer.Dial("ws"+strings.TrimPrefix(in.url, "http")+"/socket.io/?"+query.Encode(), nil)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = conn.Close() })
+	require.Equal(t, http.StatusSwitchingProtocols, resp.StatusCode)
+	require.NoError(t, conn.SetReadDeadline(time.Now().Add(wait)))
+
+	_, open, err := conn.ReadMessage()
+	require.NoError(t, err)
+	require.True(t, strings.HasPrefix(string(open), "0{"), "Engine.IO OPEN: %s", open)
+	require.NoError(t, conn.WriteMessage(gorilla.TextMessage, []byte("40")))
+	_, connect, err := conn.ReadMessage()
+	require.NoError(t, err)
+	require.True(t, strings.HasPrefix(string(connect), "40"), "socket.io CONNECT: %s", connect)
+	return conn
 }
 
 // join enters a room

@@ -116,3 +116,30 @@ func TestRun_ServesTheAPIAloneWithoutWebDir(t *testing.T) {
 
 	require.NoError(t, in.stop(t))
 }
+
+func TestRun_LeavesTheDatabaseOpenWhenAnAPIHandlerBehindTheWebAppDoesntReturnInTime(t *testing.T) {
+	// The gateway passes the request to the API, whose handler outlives the HTTP server's share
+	// and the background jobs' share. It counts as running like one the API router gets directly.
+	defer func(saved timeouts) { shutdownTimeouts = saved }(shutdownTimeouts)
+	shutdownTimeouts.HTTP = 300 * time.Millisecond
+	shutdownTimeouts.Jobs = 300 * time.Millisecond
+	webDir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(webDir, "index.html"), []byte(webIndex), 0o644))
+	cfg := loadConfig(t, map[string]string{"WEB_DIR": webDir})
+	logger, logs := observedLogger()
+	in := startPeekaping(t, cfg, logger, logs)
+	in.registerAdmin(t)
+	unlock := in.createWaitingForTheDatabase(t, cfg)
+
+	err := in.stop(t)
+	require.Error(t, err, "peekaping exits 1")
+	assert.Contains(t, err.Error(), "the HTTP handlers didn't stop in time")
+	left := logs.FilterMessage("Left the database open, since some of what uses it is still running").All()
+	require.Len(t, left, 1)
+	assert.Equal(t, []any{"HTTP handlers"}, left[0].ContextMap()["running"])
+	assert.Zero(t, logs.FilterMessage("Performing graceful SQLite shutdown...").Len(), "the database isn't closed under the handler")
+
+	unlock()
+	require.Eventually(t, func() bool { return logs.FilterMessage("Failed to create monitor").Len() == 1 },
+		wait, 10*time.Millisecond, "the handler returns")
+}
