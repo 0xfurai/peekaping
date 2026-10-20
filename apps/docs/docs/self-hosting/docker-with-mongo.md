@@ -101,6 +101,7 @@ JWT settings (access/refresh token expiration times and secret keys) are now aut
 
 Create a `docker-compose.yml` file:
 
+<!-- snippet: docker-compose.prod.mongo.yml -->
 ```yml
 networks:
   appnet:
@@ -240,6 +241,7 @@ services:
 
 If you want to use Nginx as a reverse proxy, create this file:
 
+<!-- snippet: nginx.conf -->
 ```nginx
 events {}
 http {
