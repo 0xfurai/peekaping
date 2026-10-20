@@ -20,6 +20,7 @@ import (
 	"peekaping/internal/modules/healthcheck/executor"
 	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/stale"
 )
 
 // Loader loads what a check of a monitor needs. check.Loader is one.
@@ -94,6 +95,8 @@ type Scheduler struct {
 	stopped   bool
 	wg        sync.WaitGroup
 }
+
+var _ stale.Rechecker = (*Scheduler)(nil)
 
 // schedule is the timer of one monitor
 type schedule struct {
@@ -457,6 +460,36 @@ func (s *Scheduler) onDeleted(monitorID string) {
 	s.syncMu.Lock()
 	defer s.syncMu.Unlock()
 	s.unschedule(monitorID)
+}
+
+// RunNow checks the monitor right away, unless a check of it is already running, and puts it
+// back on its schedule if it had lost its timer. It implements stale.Rechecker: the watchdog
+// calls it for a monitor that hasn't been checked in too long.
+func (s *Scheduler) RunNow(ctx context.Context, monitorID string) error {
+	s.syncMu.Lock()
+	defer s.syncMu.Unlock()
+
+	s.mu.Lock()
+	running := s.running()
+	s.mu.Unlock()
+	if !running {
+		return errors.New("scheduler is not running")
+	}
+
+	mon, err := s.monitors.FindByID(ctx, monitorID)
+	if err != nil {
+		return fmt.Errorf("failed to find monitor: %w", err)
+	}
+	if mon == nil {
+		return fmt.Errorf("monitor %s not found", monitorID)
+	}
+	if !schedulable(mon) {
+		return fmt.Errorf("monitor %s is not active", monitorID)
+	}
+	if !s.set(mon, true) {
+		return errors.New("scheduler is not running")
+	}
+	return nil
 }
 
 // find reads the monitor from the database. It reports false when the scheduler isn't running
