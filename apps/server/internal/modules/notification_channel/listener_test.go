@@ -118,6 +118,18 @@ func (p *recordingProvider) sentMessages() []string {
 	return messages
 }
 
+// sentMessagesByChannel returns the messages the provider sent, grouped by the config of the
+// channel they went to
+func (p *recordingProvider) sentMessagesByChannel() map[string][]string {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	byChannel := map[string][]string{}
+	for _, n := range p.sent {
+		byChannel[n.config] = append(byChannel[n.config], n.message)
+	}
+	return byChannel
+}
+
 func registerTestProvider(t *testing.T, channelType string, provider NotificationChannelProvider) {
 	t.Helper()
 	RegisterNotificationChannelProvider(channelType, provider)
@@ -674,16 +686,19 @@ func (r *apiReplica) start(t *testing.T) {
 
 // newAPIReplicas builds n api replicas the way cluster mode does: each has its own services,
 // its own Redis event bus and its own notification listener, all over the same Redis. Monitor
-// "mon-1" has one channel, "a" of type "test-slack", and the replicas send through whatever
-// provider is registered for that type. The replicas don't take notification tasks yet.
-func newAPIReplicas(t *testing.T, redisAddr string, n int) []*apiReplica {
+// "mon-1" has a channel of type "test-slack" for each of channelIDs, and the replicas send
+// through whatever provider is registered for that type. The replicas don't take notification
+// tasks yet.
+func newAPIReplicas(t *testing.T, redisAddr string, n int, channelIDs ...string) []*apiReplica {
 	t.Helper()
 	cfg := redisConfig(t, redisAddr)
 	replicas := make([]*apiReplica, n)
 	for i := range replicas {
 		f := newListenerFixture(t)
 		f.addMonitor("mon-1", "Public API")
-		f.attach("mon-1", testChannel("a", "test-slack"))
+		for _, id := range channelIDs {
+			f.attach("mon-1", testChannel(id, "test-slack"))
+		}
 		bus := newClusterBus(t, cfg)
 		f.listener.Subscribe(bus)
 		server, err := infra.ProvideNotificationAsynqServer(cfg, zap.NewNop().Sugar())
@@ -694,23 +709,23 @@ func newAPIReplicas(t *testing.T, redisAddr string, n int) []*apiReplica {
 }
 
 // startAPIReplicas starts n api replicas that take notification tasks, see newAPIReplicas
-func startAPIReplicas(t *testing.T, redisAddr string, n int) []*apiReplica {
+func startAPIReplicas(t *testing.T, redisAddr string, n int, channelIDs ...string) []*apiReplica {
 	t.Helper()
-	replicas := newAPIReplicas(t, redisAddr, n)
+	replicas := newAPIReplicas(t, redisAddr, n, channelIDs...)
 	for _, replica := range replicas {
 		replica.start(t)
 	}
 	return replicas
 }
 
-// settledSends waits for the provider's first send, then for its send count to hold still, and
-// returns the count. Waiting for the count to settle, not for a number, catches replicas that
-// send a moment after the first.
-func settledSends(t *testing.T, provider *recordingProvider) int {
+// settledSends waits for the provider to send want notifications, then for its send count to
+// hold still, and returns the count. Waiting for the count to settle, not for a number, catches
+// replicas that send a moment after the first.
+func settledSends(t *testing.T, provider *recordingProvider, want int) int {
 	t.Helper()
 	const settle = 500 * time.Millisecond
-	require.Eventually(t, func() bool { return len(provider.sentConfigs()) > 0 }, 5*time.Second, 5*time.Millisecond,
-		"no replica sent the notification")
+	require.Eventually(t, func() bool { return len(provider.sentConfigs()) >= want }, 5*time.Second, 5*time.Millisecond,
+		"the api replicas sent fewer notifications than expected")
 	count, stableSince := len(provider.sentConfigs()), time.Now()
 	for time.Since(stableSince) < settle {
 		time.Sleep(10 * time.Millisecond)
@@ -722,42 +737,50 @@ func settledSends(t *testing.T, provider *recordingProvider) int {
 }
 
 // Redis pub/sub hands a published event to every api replica, so each one's listener would send
-// the notification. The ingester publishes the important heartbeat once, and the monitor's
-// channel must get one notification: a queue gives the event to one replica.
-func TestNotificationListener_ThreeAPIReplicasSendAnImportantHeartbeatOnce(t *testing.T) {
+// the notification. The ingester publishes each important heartbeat once, and each of the
+// monitor's channels must get one notification for it: a queue gives the event to one replica.
+func TestNotificationListener_ThreeAPIReplicasSendEachImportantHeartbeatOncePerChannel(t *testing.T) {
 	provider := &recordingProvider{}
 	registerTestProvider(t, "test-slack", provider)
 	redisServer := miniredis.RunT(t)
-	startAPIReplicas(t, redisServer.Addr(), 3)
+	startAPIReplicas(t, redisServer.Addr(), 3, "a", "b")
 	ingester := newClusterBus(t, redisConfig(t, redisServer.Addr()))
+	down, up := downHeartbeat("mon-1"), downHeartbeat("mon-1")
+	down.Msg, up.Msg, up.Status = "went down", "back up", shared.MonitorStatusUp
 
-	require.NoError(t, events.Publish(context.Background(), ingester, events.ImportantHeartbeat, *downHeartbeat("mon-1")))
+	require.NoError(t, events.Publish(context.Background(), ingester, events.ImportantHeartbeat, *down))
+	require.NoError(t, events.Publish(context.Background(), ingester, events.ImportantHeartbeat, *up))
 
-	assert.Equal(t, 1, settledSends(t, provider), "notifications sent for one important heartbeat, with 3 api replicas")
+	// Two channels, two heartbeats: four notifications. The replicas don't agree on an order.
+	assert.Equal(t, 4, settledSends(t, provider, 4), "notifications sent for a Down and an Up heartbeat to 2 channels, with 3 api replicas")
+	byChannel := provider.sentMessagesByChannel()
+	assert.Len(t, byChannel, 2, "channels that got a notification")
+	assert.ElementsMatch(t, []string{"went down", "back up"}, byChannel[channelConfig("a")], "notifications sent to channel a")
+	assert.ElementsMatch(t, []string{"went down", "back up"}, byChannel[channelConfig("b")], "notifications sent to channel b")
 }
 
 func TestNotificationListener_ThreeAPIReplicasSendACertificateExpiryNotificationOnce(t *testing.T) {
 	provider := &recordingProvider{}
 	registerTestProvider(t, "test-slack", provider)
 	redisServer := miniredis.RunT(t)
-	startAPIReplicas(t, redisServer.Addr(), 3)
+	startAPIReplicas(t, redisServer.Addr(), 3, "a")
 	ingester := newClusterBus(t, redisConfig(t, redisServer.Addr()))
 
 	require.NoError(t, events.Publish(context.Background(), ingester, certificate.CertificateExpiry, *certificateExpiry("mon-1")))
 
-	assert.Equal(t, 1, settledSends(t, provider), "notifications sent for one certificate expiry, with 3 api replicas")
+	assert.Equal(t, 1, settledSends(t, provider, 1), "notifications sent for one certificate expiry, with 3 api replicas")
 }
 
 func TestNotificationListener_ThreeAPIReplicasSendAStaleMonitorsNotCheckedSinceNotificationOnce(t *testing.T) {
 	provider := &recordingProvider{}
 	registerTestProvider(t, "test-slack", provider)
 	redisServer := miniredis.RunT(t)
-	startAPIReplicas(t, redisServer.Addr(), 3)
+	startAPIReplicas(t, redisServer.Addr(), 3, "a")
 	producer := newClusterBus(t, redisConfig(t, redisServer.Addr()))
 
 	require.NoError(t, events.Publish(context.Background(), producer, stale.MonitorStale, staleMonitor("mon-1")))
 
-	assert.Equal(t, 1, settledSends(t, provider), "notifications sent for one stale monitor, with 3 api replicas")
+	assert.Equal(t, 1, settledSends(t, provider, 1), "notifications sent for one stale monitor, with 3 api replicas")
 	assert.Equal(t, []string{"Peekaping has not checked Public API since 2026-10-17 09:30:00 UTC"}, provider.sentMessages())
 }
 
@@ -765,12 +788,12 @@ func TestNotificationListener_ThreeAPIReplicasSendAStaleMonitorsCheckingAgainNot
 	provider := &recordingProvider{}
 	registerTestProvider(t, "test-slack", provider)
 	redisServer := miniredis.RunT(t)
-	startAPIReplicas(t, redisServer.Addr(), 3)
+	startAPIReplicas(t, redisServer.Addr(), 3, "a")
 	producer := newClusterBus(t, redisConfig(t, redisServer.Addr()))
 
 	require.NoError(t, events.Publish(context.Background(), producer, stale.MonitorStaleRecovered, staleMonitor("mon-1")))
 
-	assert.Equal(t, 1, settledSends(t, provider), "notifications sent for one recovered stale monitor, with 3 api replicas")
+	assert.Equal(t, 1, settledSends(t, provider, 1), "notifications sent for one recovered stale monitor, with 3 api replicas")
 	assert.Equal(t, []string{"Peekaping is checking Public API again. It was not checked from 2026-10-17 09:30:00 UTC"}, provider.sentMessages())
 }
 
@@ -780,7 +803,7 @@ func TestNotificationListener_ANotificationRaisedWithoutAnAPIReplicaIsSentOnceOn
 	provider := &recordingProvider{}
 	registerTestProvider(t, "test-slack", provider)
 	redisServer := miniredis.RunT(t)
-	replicas := newAPIReplicas(t, redisServer.Addr(), 3)
+	replicas := newAPIReplicas(t, redisServer.Addr(), 3, "a")
 	ingester := newClusterBus(t, redisConfig(t, redisServer.Addr()))
 
 	require.NoError(t, events.Publish(context.Background(), ingester, events.ImportantHeartbeat, *downHeartbeat("mon-1")))
@@ -788,10 +811,10 @@ func TestNotificationListener_ANotificationRaisedWithoutAnAPIReplicaIsSentOnceOn
 		"nothing is sent while no api replica takes tasks")
 	replicas[0].start(t)
 
-	assert.Equal(t, 1, settledSends(t, provider), "notifications sent once the first api replica started")
+	assert.Equal(t, 1, settledSends(t, provider, 1), "notifications sent once the first api replica started")
 	replicas[1].start(t)
 	replicas[2].start(t)
-	assert.Equal(t, 1, settledSends(t, provider), "notifications sent once all three api replicas started")
+	assert.Equal(t, 1, settledSends(t, provider, 1), "notifications sent once all three api replicas started")
 }
 
 // Only the notification topics go through the queue. The websocket in every api replica pushes
@@ -799,7 +822,7 @@ func TestNotificationListener_ANotificationRaisedWithoutAnAPIReplicaIsSentOnceOn
 func TestNotificationListener_EveryAPIReplicaStillGetsAHeartbeat(t *testing.T) {
 	registerTestProvider(t, "test-slack", &recordingProvider{})
 	redisServer := miniredis.RunT(t)
-	replicas := startAPIReplicas(t, redisServer.Addr(), 3)
+	replicas := startAPIReplicas(t, redisServer.Addr(), 3, "a")
 	received := make([]chan heartbeat.Model, len(replicas))
 	for i, replica := range replicas {
 		received[i] = make(chan heartbeat.Model, 2)
