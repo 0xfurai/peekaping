@@ -1,6 +1,8 @@
-# Multi-stage Dockerfile to build server, web, and migrations in one container with PostgreSQL
+# The PostgreSQL bundle: Peekaping in single mode (ADR 0002) beside its own PostgreSQL 17.
+# peekaping serves the web app, the API and the websocket on port 8383; PostgreSQL keeps its
+# cluster in /var/lib/postgresql/data.
 
-# Stage 1: Build Go server and migration tool
+# Stage 1: Build peekaping and the migration tool
 FROM golang:1.26.4-alpine AS go-builder
 
 RUN apk add --no-cache git
@@ -8,13 +10,12 @@ WORKDIR /app/server
 COPY apps/server/go.mod apps/server/go.sum ./
 RUN go mod download
 COPY apps/server/ .
-RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o api -ldflags="-s -w" ./cmd/api
-RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o producer -ldflags="-s -w" ./cmd/producer
-RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o worker -ldflags="-s -w" ./cmd/worker
-RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o ingester -ldflags="-s -w" ./cmd/ingester
+RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o peekaping -ldflags="-s -w" ./cmd/peekaping
+# No -trimpath: bun reads its SQL migrations at runtime from the path it was built at,
+# /app/server/cmd/bun/migrations, which the runtime stage copies them to.
 RUN CGO_ENABLED=0 go build -o bun -ldflags="-s -w" ./cmd/bun
 
-# Stage 2: Build React web app
+# Stage 2: Build the web app
 FROM node:22-alpine AS web-builder
 
 WORKDIR /app
@@ -27,92 +28,85 @@ COPY apps/web/ ./apps/web/
 WORKDIR /app/apps/web
 RUN bun run build
 
-# Stage 3: Final runtime image with Debian bookworm-slim and PostgreSQL
+# Stage 3: Runtime. Debian's glibc, as in earlier bundles, so existing clusters keep their
+# collation: their text indexes stay valid.
 FROM debian:bookworm-slim
 
-# Set environment variables for non-interactive installation
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=UTC
 
-# Install base dependencies
-RUN apt-get update && apt-get install -y \
-    supervisor \
-    netcat-openbsd \
-    wget \
-    curl \
-    ca-certificates \
-    gnupg \
-    lsb-release \
-    locales \
-    gosu \
+# The postgres user keeps the IDs it had in earlier bundles, so the cluster's files keep their
+# owner across an upgrade or a rollback
+RUN groupadd -r -g 105 postgres \
+    && useradd -r -u 102 -g postgres -d /var/lib/postgresql -s /bin/bash postgres
+
+# tini runs as PID 1 and passes docker stop's SIGTERM to the startup script. gosu drops root
+# for PostgreSQL and peekaping. nss_wrapper gives initdb a user name under docker run --user.
+# netcat is for run-migrations.sh, curl for the health check.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        curl \
+        gosu \
+        libnss-wrapper \
+        locales \
+        netcat-openbsd \
+        tini \
+    && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen \
     && rm -rf /var/lib/apt/lists/*
 
-# Set up proper locales
-RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
+# The cluster was initialized in this locale, which it needs to start
 ENV LANG=en_US.UTF-8 \
     LANGUAGE=en_US:en \
     LC_ALL=en_US.UTF-8
 
-# Install Redis 7 from Debian bookworm repositories
-RUN apt-get update \
-    && apt-get install -y redis-server \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Caddy web server
-RUN curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg \
-    && curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list \
+# PostgreSQL 17 from the PGDG repository, without the default cluster: the startup script
+# initializes its own in PGDATA
+RUN . /etc/os-release \
+    && curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc -o /usr/share/keyrings/postgresql.asc \
+    && echo "deb [signed-by=/usr/share/keyrings/postgresql.asc] http://apt.postgresql.org/pub/repos/apt ${VERSION_CODENAME}-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+    && mkdir -p /etc/postgresql-common/createcluster.d \
+    && echo 'create_main_cluster = false' > /etc/postgresql-common/createcluster.d/peekaping.conf \
     && apt-get update \
-    && apt-get install -y caddy \
+    && apt-get install -y --no-install-recommends postgresql-17 postgresql-client-17 postgresql-contrib-17 \
     && rm -rf /var/lib/apt/lists/*
 
-# Install PostgreSQL 17 from official repository
-RUN sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list' \
-    && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql-archive-keyring.gpg \
-    && sed -i 's|deb http://apt.postgresql.org/pub/repos/apt|deb [signed-by=/usr/share/keyrings/postgresql-archive-keyring.gpg] http://apt.postgresql.org/pub/repos/apt|' /etc/apt/sources.list.d/pgdg.list \
-    && apt-get update \
-    && apt-get install -y postgresql-17 postgresql-client-17 postgresql-contrib-17 \
-    && rm -rf /var/lib/apt/lists/*
-
-# Set PostgreSQL binary paths and data directory
 ENV PATH="/usr/lib/postgresql/17/bin:$PATH"
 ENV PGDATA="/var/lib/postgresql/data"
 
-# Create necessary directories
-RUN mkdir -p /app/server /app/data /var/log/supervisor /app/web
-
-# Service user for api, producer, worker and ingester; startup.user.sh applies PUID/PGID
-RUN groupadd -g 1000 peekaping \
-    && useradd -u 1000 -g peekaping -M -d /nonexistent -s /usr/sbin/nologin peekaping
-
-# Set proper permissions for PostgreSQL
-RUN mkdir -p /var/lib/postgresql/data \
+# Any user may create PostgreSQL's socket, so that it also runs under docker run --user
+RUN mkdir -p "$PGDATA" \
     && chown -R postgres:postgres /var/lib/postgresql \
-    && chmod 700 /var/lib/postgresql/data
+    && chmod 700 "$PGDATA" \
+    && mkdir -p /var/run/postgresql \
+    && chown postgres:postgres /var/run/postgresql \
+    && chmod 3777 /var/run/postgresql
 
-# Copy built Go binaries from go-builder
-COPY --from=go-builder /app/server/api /app/server/api
-COPY --from=go-builder /app/server/producer /app/server/producer
-COPY --from=go-builder /app/server/worker /app/server/worker
-COPY --from=go-builder /app/server/ingester /app/server/ingester
-COPY --from=go-builder /app/server/bun /app/server/bun
+# The user peekaping runs as; startup.user.sh applies PUID/PGID
+RUN groupadd -g 1000 peekaping \
+    && useradd -u 1000 -g peekaping -M -d /nonexistent -s /usr/sbin/nologin peekaping \
+    && mkdir -p /app/data \
+    && chown peekaping:peekaping /app/data
+
+COPY --from=go-builder --chmod=755 /app/server/peekaping /app/server/bun /app/server/
 COPY --from=go-builder /app/server/cmd/bun/migrations /app/server/cmd/bun/migrations
-COPY --from=go-builder /app/server/internal/config /app/server/internal/config
-COPY --from=go-builder /app/server/scripts/run-migrations.sh /app/server/run-migrations.sh
-
-# Copy built web assets from web-builder
+COPY --from=go-builder --chmod=755 /app/server/scripts/run-migrations.sh /app/server/run-migrations.sh
 COPY --from=web-builder /app/apps/web/dist /app/web
-
-# Copy configuration files
-COPY Caddyfile /etc/caddy/Caddyfile
-COPY supervisord.bundle.postgres.conf /etc/supervisor/conf.d/supervisord.conf
-COPY startup.bundle.postgres.sh /app/startup.sh
+COPY --chmod=755 startup.bundle.postgres.sh /app/startup.sh
 COPY startup.bundle.user.sh /app/startup.user.sh
 
-# Set proper permissions for executables
-RUN chmod +x /app/server/run-migrations.sh /app/startup.sh /app/server/api /app/server/producer /app/server/worker /app/server/ingester /app/server/bun
+# peekaping serves the web build itself and generates /env.js. The startup script forces
+# SERVER_PORT to 8383, whatever the .env says.
+ENV WEB_DIR=/app/web
 
-# Expose port
+WORKDIR /app/server
 EXPOSE 8383
 
-# Start the application
+# peekaping takes up to 30 seconds to shut down, and PostgreSQL stops after it; give docker
+# stop -t 35 or stop_grace_period: 35s so neither is killed halfway
+STOPSIGNAL SIGTERM
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --start-interval=2s --retries=3 \
+    CMD curl -fsS -o /dev/null http://127.0.0.1:8383/api/v1/health || exit 1
+
+ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["/app/startup.sh"]
