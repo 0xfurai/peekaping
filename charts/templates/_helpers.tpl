@@ -12,6 +12,12 @@ migration tables don't exist yet the command fails, and that counts as not ready
 Each try prints a line, so `kubectl logs <pod> -c wait-for-migrations` shows why
 the pod waits.
 
+The shell is PID 1 of the container, and the kernel gives PID 1 no default
+action for a signal, so without a trap it ignores SIGTERM and a pod stuck in Init
+takes the whole grace period to die. The trap ends the loop at once, and the
+sleep runs in the background and is waited for, because a shell runs a trap only
+after its foreground command ends.
+
 Put it under initContainers with: include "peekaping.waitForMigrations" . | nindent 8
 */}}
 {{- define "peekaping.waitForMigrations" -}}
@@ -22,6 +28,7 @@ Put it under initContainers with: include "peekaping.waitForMigrations" . | nind
     - sh
     - -c
     - |
+      trap 'exit 143' INT TERM
       while true; do
         if out=$(./bun db status 2>&1); then
           unapplied=$(echo "$out" | grep '^unapplied migrations:' || true)
@@ -33,7 +40,8 @@ Put it under initContainers with: include "peekaping.waitForMigrations" . | nind
         else
           echo "Waiting for the database and its migration tables: $(echo "$out" | tail -n 1)"
         fi
-        sleep 2
+        sleep 2 &
+        wait $!
       done
   envFrom:
     - configMapRef:
