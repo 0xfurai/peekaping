@@ -69,7 +69,17 @@ const (
 	pageSize = 100
 	// ingestTimeout bounds one result's ingest, which a cancelled check doesn't interrupt
 	ingestTimeout = 2 * time.Minute
+	// ingestGrace is what CheckTimeout allows for a result's ingest: as long as the worker
+	// allows for its result to be enqueued, so the watchdog waits as long in both modes
+	ingestGrace = 8 * time.Second
 )
+
+// CheckTimeout is how long a check of a monitor with the given timeout (in seconds) takes to
+// finish and be ingested once it has a slot in the pool. The watchdog gives a stale
+// monitor's new check this long before it notifies.
+func CheckTimeout(timeoutSeconds int) time.Duration {
+	return time.Duration(timeoutSeconds)*time.Second + healthcheck.ExecutorGrace + ingestGrace
+}
 
 // Scheduler checks the active monitors when their check intervals pass. It implements
 // stale.Rechecker.
