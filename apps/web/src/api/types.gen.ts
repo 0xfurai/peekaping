@@ -2960,7 +2960,12 @@ export type PostNotificationChannelsResponse =
 export type PostNotificationChannelsTestData = {
   body: NotificationChannelCreateUpdateDto;
   path?: never;
-  query?: never;
+  query?: {
+    /**
+     * Saved channel to take the stored secrets from, for a config that does not carry them
+     */
+    id?: string;
+  };
   url: "/api/v1/notification-channels/test";
 };
 

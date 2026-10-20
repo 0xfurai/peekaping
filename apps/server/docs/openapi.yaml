@@ -4705,6 +4705,13 @@ paths:
   /api/v1/notification-channels/test:
     post:
       operationId: postNotificationChannelsTest
+      parameters:
+        - description: Saved channel to take the stored secrets from, for a config that does not carry them
+          in: query
+          name: id
+          schema:
+            description: Saved channel to take the stored secrets from, for a config that does not carry them
+            type: string
       requestBody:
         content:
           application/json:
