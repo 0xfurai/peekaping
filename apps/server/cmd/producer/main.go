@@ -9,6 +9,7 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/infra"
 	"peekaping/internal/modules/certificate"
+	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/heartbeat"
@@ -89,6 +90,7 @@ func main() {
 	stats.RegisterDependencies(container, internalCfg)
 
 	// Register producer dependencies
+	check.RegisterDependencies(container)
 	producer.RegisterDependencies(container)
 
 	// Start the producer

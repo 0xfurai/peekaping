@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"peekaping/internal/config"
+	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/monitor"
 
 	"github.com/stretchr/testify/assert"
@@ -33,8 +34,7 @@ func TestNewProducer(t *testing.T) {
 			client,
 			mockQueueSvc,
 			mockMonitorSvc,
-			mockProxySvc,
-			mockMaintenanceSvc,
+			check.NewLoader(mockMonitorSvc, mockProxySvc, mockMaintenanceSvc, nil, logger),
 			nil,
 			nil,
 			nil,
@@ -74,8 +74,7 @@ func TestNewProducer(t *testing.T) {
 			client,
 			mockQueueSvc,
 			mockMonitorSvc,
-			mockProxySvc,
-			mockMaintenanceSvc,
+			check.NewLoader(mockMonitorSvc, mockProxySvc, mockMaintenanceSvc, nil, logger),
 			nil,
 			nil,
 			nil,
@@ -112,8 +111,7 @@ func TestProducerStartStop(t *testing.T) {
 			client,
 			mockQueueSvc,
 			mockMonitorSvc,
-			mockProxySvc,
-			mockMaintenanceSvc,
+			check.NewLoader(mockMonitorSvc, mockProxySvc, mockMaintenanceSvc, nil, logger),
 			nil,
 			nil,
 			nil,
@@ -157,8 +155,7 @@ func TestProducerContext(t *testing.T) {
 			client,
 			mockQueueSvc,
 			mockMonitorSvc,
-			mockProxySvc,
-			mockMaintenanceSvc,
+			check.NewLoader(mockMonitorSvc, mockProxySvc, mockMaintenanceSvc, nil, logger),
 			nil,
 			nil,
 			nil,
@@ -211,8 +208,7 @@ func TestProducerMonitorIntervals(t *testing.T) {
 			client,
 			mockQueueSvc,
 			mockMonitorSvc,
-			mockProxySvc,
-			mockMaintenanceSvc,
+			check.NewLoader(mockMonitorSvc, mockProxySvc, mockMaintenanceSvc, nil, logger),
 			nil,
 			nil,
 			nil,
@@ -247,8 +243,7 @@ func TestProducerMonitorIntervals(t *testing.T) {
 			client,
 			mockQueueSvc,
 			mockMonitorSvc,
-			mockProxySvc,
-			mockMaintenanceSvc,
+			check.NewLoader(mockMonitorSvc, mockProxySvc, mockMaintenanceSvc, nil, logger),
 			nil,
 			nil,
 			nil,

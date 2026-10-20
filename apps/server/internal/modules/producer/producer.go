@@ -6,12 +6,11 @@ import (
 	"time"
 
 	"peekaping/internal/config"
+	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_notification"
-	"peekaping/internal/modules/proxy"
 	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stale"
@@ -25,8 +24,7 @@ func NewProducer(
 	rdb *redis.Client,
 	queueService queue.Service,
 	monitorService monitor.Service,
-	proxyService proxy.Service,
-	maintenanceService maintenance.Service,
+	loader *check.Loader,
 	monitorNotificationSvc monitor_notification.Service,
 	settingService shared.SettingService,
 	heartbeatService heartbeat.Service,
@@ -48,8 +46,7 @@ func NewProducer(
 		rdb:                     rdb,
 		queueService:            queueService,
 		monitorService:          monitorService,
-		proxyService:            proxyService,
-		maintenanceService:      maintenanceService,
+		loader:                  loader,
 		monitorNotificationSvc:  monitorNotificationSvc,
 		settingService:          settingService,
 		heartbeatService:        heartbeatService,

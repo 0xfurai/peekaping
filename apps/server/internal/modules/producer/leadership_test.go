@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"peekaping/internal/config"
+	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/monitor"
 
 	"github.com/stretchr/testify/assert"
@@ -126,8 +127,7 @@ func TestStartJobProcessing(t *testing.T) {
 			client,
 			mockQueueSvc,
 			mockMonitorSvc,
-			mockProxySvc,
-			mockMaintenanceSvc,
+			check.NewLoader(mockMonitorSvc, mockProxySvc, mockMaintenanceSvc, nil, logger),
 			nil,
 			nil,
 			nil,
@@ -178,8 +178,7 @@ func TestStartMonitorSyncing(t *testing.T) {
 			client,
 			mockQueueSvc,
 			mockMonitorSvc,
-			mockProxySvc,
-			mockMaintenanceSvc,
+			check.NewLoader(mockMonitorSvc, mockProxySvc, mockMaintenanceSvc, nil, logger),
 			nil,
 			nil,
 			nil,
