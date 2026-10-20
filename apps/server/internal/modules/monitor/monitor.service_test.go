@@ -3,8 +3,8 @@ package monitor
 import (
 	"context"
 	"errors"
-	"peekaping/internal/infra"
 	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/events/eventstest"
 	"peekaping/internal/modules/healthcheck/executor"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor_notification"
@@ -14,7 +14,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -139,14 +138,6 @@ func (m *MockHeartbeatService) FindByMonitorIDPaginated(ctx context.Context, mon
 func (m *MockHeartbeatService) DeleteByMonitorID(ctx context.Context, monitorID string) error {
 	args := m.Called(ctx, monitorID)
 	return args.Error(0)
-}
-
-type MockEventBus struct {
-	mock.Mock
-}
-
-func (m *MockEventBus) Publish(event events.Event) {
-	m.Called(event)
 }
 
 type MockMonitorNotificationService struct {
@@ -291,23 +282,15 @@ func sinceAgo(d time.Duration) any {
 }
 
 // Test setup helper
-func setupMonitorService() (*MonitorServiceImpl, *MockMonitorRepository, *MockHeartbeatService, *MockEventBus, *MockMonitorNotificationService, *MockMonitorTagService, *MockExecutorRegistry, *MockStatsService) {
+func setupMonitorService() (*MonitorServiceImpl, *MockMonitorRepository, *MockHeartbeatService, *eventstest.Bus, *MockMonitorNotificationService, *MockMonitorTagService, *MockExecutorRegistry, *MockStatsService) {
 	mockRepo := &MockMonitorRepository{}
 	mockHeartbeatService := &MockHeartbeatService{}
-	mockEventBus := &MockEventBus{}
+	eventBus := eventstest.NewBus()
 	mockNotificationService := &MockMonitorNotificationService{}
 	mockTagService := &MockMonitorTagService{}
 	mockExecutorRegistry := &MockExecutorRegistry{}
 	mockStatsService := &MockStatsService{}
 	logger := zap.NewNop().Sugar()
-
-	// Create a redis client for EventBus (will fail to connect but that's ok for unit tests)
-	redisClient := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
-	})
-
-	// Create a real EventBus for the service since it expects pointer to EventBus
-	realEventBus := infra.NewRedisEventBus(redisClient, logger)
 
 	// Create a real ExecutorRegistry since the service expects a pointer to ExecutorRegistry
 	realExecutorRegistry := executor.NewExecutorRegistry(logger)
@@ -315,7 +298,7 @@ func setupMonitorService() (*MonitorServiceImpl, *MockMonitorRepository, *MockHe
 	service := NewMonitorService(
 		mockRepo,
 		mockHeartbeatService,
-		realEventBus,
+		eventBus,
 		mockNotificationService,
 		mockTagService,
 		realExecutorRegistry,
@@ -323,11 +306,11 @@ func setupMonitorService() (*MonitorServiceImpl, *MockMonitorRepository, *MockHe
 		logger,
 	).(*MonitorServiceImpl)
 
-	return service, mockRepo, mockHeartbeatService, mockEventBus, mockNotificationService, mockTagService, mockExecutorRegistry, mockStatsService
+	return service, mockRepo, mockHeartbeatService, eventBus, mockNotificationService, mockTagService, mockExecutorRegistry, mockStatsService
 }
 
 func TestMonitorService_Create(t *testing.T) {
-	service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
+	service, mockRepo, _, bus, _, _, _, _ := setupMonitorService()
 	ctx := context.Background()
 
 	t.Run("successful creation", func(t *testing.T) {
@@ -356,6 +339,7 @@ func TestMonitorService_Create(t *testing.T) {
 
 		require.NoError(t, err)
 		assert.Same(t, created, result)
+		assert.Equal(t, []shared.Monitor{*created}, eventstest.Published(bus, events.MonitorCreated))
 		require.NotNil(t, saved)
 		assert.WithinRange(t, saved.CreatedAt, before, time.Now().UTC())
 		assert.Equal(t, time.UTC, saved.CreatedAt.Location())
@@ -428,7 +412,7 @@ func TestMonitorService_FindByID(t *testing.T) {
 }
 
 func TestMonitorService_UpdateFull(t *testing.T) {
-	service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
+	service, mockRepo, _, bus, _, _, _, _ := setupMonitorService()
 	ctx := context.Background()
 
 	t.Run("successful update", func(t *testing.T) {
@@ -466,6 +450,7 @@ func TestMonitorService_UpdateFull(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Same(t, stored, result, "the response is the monitor as stored, with its status and created_at")
+		assert.Equal(t, []shared.Monitor{*stored}, eventstest.Published(bus, events.MonitorUpdated), "the event carries it, too")
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -504,7 +489,7 @@ func TestMonitorService_UpdatePartial(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("successful partial update with publish", func(t *testing.T) {
-		service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
+		service, mockRepo, _, bus, _, _, _, _ := setupMonitorService()
 		monitorID := "monitor123"
 		active := true
 		status := shared.MonitorStatusDown
@@ -532,11 +517,12 @@ func TestMonitorService_UpdatePartial(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Equal(t, expectedModel, result)
+		assert.Equal(t, []shared.Monitor{*expectedModel}, eventstest.Published(bus, events.MonitorUpdated))
 		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("successful partial update without publish", func(t *testing.T) {
-		service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
+		service, mockRepo, _, bus, _, _, _, _ := setupMonitorService()
 		monitorID := "monitor123"
 		active := false
 		updateDto := &PartialUpdateDto{
@@ -557,7 +543,7 @@ func TestMonitorService_UpdatePartial(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, expectedModel, result)
 		mockRepo.AssertExpectations(t)
-		// EventBus should not be called when noPublish is true
+		assert.Empty(t, bus.Topics(), "nothing is published when noPublish is true")
 	})
 
 	t.Run("successful partial update with config field", func(t *testing.T) {
@@ -609,7 +595,7 @@ func TestMonitorService_Delete(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("successful deletion", func(t *testing.T) {
-		service, mockRepo, mockHeartbeatService, _, mockNotificationService, mockTagService, _, mockStatsService := setupMonitorService()
+		service, mockRepo, mockHeartbeatService, bus, mockNotificationService, mockTagService, _, mockStatsService := setupMonitorService()
 		monitorID := "monitor123"
 
 		mockRepo.On("Delete", ctx, monitorID).Return(nil)
@@ -621,6 +607,7 @@ func TestMonitorService_Delete(t *testing.T) {
 		err := service.Delete(ctx, monitorID)
 
 		assert.NoError(t, err)
+		assert.Equal(t, []string{monitorID}, eventstest.Published(bus, events.MonitorDeleted))
 		mockRepo.AssertExpectations(t)
 		mockNotificationService.AssertExpectations(t)
 		mockTagService.AssertExpectations(t)
@@ -1272,19 +1259,15 @@ func TestNewMonitorService(t *testing.T) {
 	mockStatsService := &MockStatsService{}
 	logger := zap.NewNop().Sugar()
 
-	// Create a redis client for EventBus (will fail to connect but that's ok for unit tests)
-	redisClient := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
-	})
+	eventBus := eventstest.NewBus()
 
 	// Create real instances for dependencies that expect concrete types
-	realEventBus := infra.NewRedisEventBus(redisClient, logger)
 	realExecutorRegistry := executor.NewExecutorRegistry(logger)
 
 	service := NewMonitorService(
 		mockRepo,
 		mockHeartbeatService,
-		realEventBus,
+		eventBus,
 		mockNotificationService,
 		mockTagService,
 		realExecutorRegistry,
@@ -1298,7 +1281,7 @@ func TestNewMonitorService(t *testing.T) {
 	serviceImpl := service.(*MonitorServiceImpl)
 	assert.Equal(t, mockRepo, serviceImpl.monitorRepository)
 	assert.Equal(t, mockHeartbeatService, serviceImpl.heartbeatService)
-	assert.Equal(t, realEventBus, serviceImpl.eventBus)
+	assert.Equal(t, eventBus, serviceImpl.eventBus)
 	assert.Equal(t, mockNotificationService, serviceImpl.monitorNotificationService)
 	assert.Equal(t, mockTagService, serviceImpl.monitorTagService)
 	assert.Equal(t, realExecutorRegistry, serviceImpl.executorRegistry)

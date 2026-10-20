@@ -2,11 +2,10 @@ package modules_test
 
 import (
 	"context"
-	"sync"
 	"testing"
 	"time"
 
-	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/events/eventstest"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
@@ -16,34 +15,12 @@ import (
 	"go.uber.org/zap"
 )
 
-// publishedEvents is an event bus that keeps every event published to it.
-type publishedEvents struct {
-	mu   sync.Mutex
-	list []events.Event
-}
-
-func (b *publishedEvents) Subscribe(events.EventType, events.EventHandler) {}
-
-func (b *publishedEvents) Publish(event events.Event) {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-	b.list = append(b.list, event)
-}
-
-func (b *publishedEvents) Close() error { return nil }
-
-func (b *publishedEvents) all() []events.Event {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-	return append([]events.Event(nil), b.list...)
-}
-
 // A monitor's stored status has to follow its latest heartbeat on every backend, since databases
 // from before the fix hold monitors whose stored status says otherwise.
 func TestRepairStoredStatusesFollowsTheLatestHeartbeat(t *testing.T) {
 	onEveryMonitorAndHeartbeatBackend(t, func(t *testing.T, monitors monitor.MonitorRepository, heartbeats heartbeat.Repository) {
 		ctx := context.Background()
-		bus := &publishedEvents{}
+		bus := eventstest.NewBus()
 		logger := zap.NewNop().Sugar()
 		service := monitor.NewMonitorService(monitors, heartbeat.NewService(heartbeats, bus, logger), bus, nil, nil, nil, nil, logger)
 
@@ -81,6 +58,6 @@ func TestRepairStoredStatusesFollowsTheLatestHeartbeat(t *testing.T) {
 		assert.Equal(t, shared.MonitorStatusDown, saved(silent).Status)
 		assert.True(t, saved(matching).UpdatedAt.Equal(matchingBefore.UpdatedAt), "a monitor that was right should not be saved again")
 		assert.True(t, saved(silent).UpdatedAt.Equal(silentBefore.UpdatedAt), "a monitor without heartbeats should not be saved")
-		assert.Empty(t, bus.all(), "the repair is not a status change, so it announces nothing")
+		assert.Empty(t, bus.Topics(), "the repair is not a status change, so it announces nothing")
 	})
 }

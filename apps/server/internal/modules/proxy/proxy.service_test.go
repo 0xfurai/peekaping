@@ -3,15 +3,12 @@ package proxy
 import (
 	"context"
 	"errors"
-	"peekaping/internal/infra"
-	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
 	"testing"
 	"time"
 
-	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"go.uber.org/zap"
@@ -206,15 +203,10 @@ func TestNewService(t *testing.T) {
 	mockRepo := new(MockRepository)
 	mockMonitorService := new(MockMonitorService)
 	logger := zap.NewNop().Sugar()
-	redisClient := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
-	})
-	eventBus := infra.NewRedisEventBus(redisClient, logger)
 
 	params := NewServiceParams{
 		Repository:     mockRepo,
 		MonitorService: mockMonitorService,
-		EventBus:       eventBus,
 		Logger:         logger,
 	}
 
@@ -227,7 +219,6 @@ func TestNewService(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, mockRepo, serviceImpl.repository)
 	assert.Equal(t, mockMonitorService, serviceImpl.monitorService)
-	assert.Equal(t, eventBus, serviceImpl.eventBus)
 	assert.NotNil(t, serviceImpl.logger)
 }
 
@@ -299,15 +290,10 @@ func TestServiceImpl_Create(t *testing.T) {
 			mockRepo := new(MockRepository)
 			mockMonitorService := new(MockMonitorService)
 			logger := zap.NewNop().Sugar()
-			redisClient := redis.NewClient(&redis.Options{
-				Addr: "localhost:6379",
-			})
-			eventBus := infra.NewRedisEventBus(redisClient, logger)
 
 			service := &ServiceImpl{
 				repository:     mockRepo,
 				monitorService: mockMonitorService,
-				eventBus:       eventBus,
 				logger:         logger,
 			}
 
@@ -389,15 +375,10 @@ func TestServiceImpl_FindByID(t *testing.T) {
 			mockRepo := new(MockRepository)
 			mockMonitorService := new(MockMonitorService)
 			logger := zap.NewNop().Sugar()
-			redisClient := redis.NewClient(&redis.Options{
-				Addr: "localhost:6379",
-			})
-			eventBus := infra.NewRedisEventBus(redisClient, logger)
 
 			service := &ServiceImpl{
 				repository:     mockRepo,
 				monitorService: mockMonitorService,
-				eventBus:       eventBus,
 				logger:         logger,
 			}
 
@@ -495,15 +476,10 @@ func TestServiceImpl_FindAll(t *testing.T) {
 			mockRepo := new(MockRepository)
 			mockMonitorService := new(MockMonitorService)
 			logger := zap.NewNop().Sugar()
-			redisClient := redis.NewClient(&redis.Options{
-				Addr: "localhost:6379",
-			})
-			eventBus := infra.NewRedisEventBus(redisClient, logger)
 
 			service := &ServiceImpl{
 				repository:     mockRepo,
 				monitorService: mockMonitorService,
-				eventBus:       eventBus,
 				logger:         logger,
 			}
 
@@ -529,14 +505,12 @@ func TestServiceImpl_FindAll(t *testing.T) {
 
 func TestServiceImpl_UpdateFull(t *testing.T) {
 	tests := []struct {
-		name           string
-		id             string
-		entity         *CreateUpdateDto
-		repoResponse   *Model
-		repoError      error
-		expectedError  bool
-		expectEventBus bool
-		eventBusNil    bool
+		name          string
+		id            string
+		entity        *CreateUpdateDto
+		repoResponse  *Model
+		repoError     error
+		expectedError bool
 	}{
 		{
 			name: "successful full update",
@@ -558,10 +532,8 @@ func TestServiceImpl_UpdateFull(t *testing.T) {
 				Username: "newuser",
 				Password: "newpass",
 			},
-			repoError:      nil,
-			expectedError:  false,
-			expectEventBus: true,
-			eventBusNil:    false,
+			repoError:     nil,
+			expectedError: false,
 		},
 		{
 			name: "repository error",
@@ -571,30 +543,9 @@ func TestServiceImpl_UpdateFull(t *testing.T) {
 				Host:     "proxy.example.com",
 				Port:     8080,
 			},
-			repoResponse:   nil,
-			repoError:      errors.New("update failed"),
-			expectedError:  true,
-			expectEventBus: false,
-			eventBusNil:    false,
-		},
-		{
-			name: "successful update with nil event bus",
-			id:   "proxy1",
-			entity: &CreateUpdateDto{
-				Protocol: "socks5",
-				Host:     "socks-proxy.example.com",
-				Port:     1080,
-			},
-			repoResponse: &Model{
-				ID:       "proxy1",
-				Protocol: "socks5",
-				Host:     "socks-proxy.example.com",
-				Port:     1080,
-			},
-			repoError:      nil,
-			expectedError:  false,
-			expectEventBus: false,
-			eventBusNil:    true,
+			repoResponse:  nil,
+			repoError:     errors.New("update failed"),
+			expectedError: true,
 		},
 	}
 
@@ -604,18 +555,9 @@ func TestServiceImpl_UpdateFull(t *testing.T) {
 			mockRepo := new(MockRepository)
 			mockMonitorService := new(MockMonitorService)
 			logger := zap.NewNop().Sugar()
-			var eventBus events.EventBus
-			if !tt.eventBusNil {
-				redisClient := redis.NewClient(&redis.Options{
-					Addr: "localhost:6379",
-				})
-				eventBus = infra.NewRedisEventBus(redisClient, logger)
-			}
-
 			service := &ServiceImpl{
 				repository:     mockRepo,
 				monitorService: mockMonitorService,
-				eventBus:       eventBus,
 				logger:         logger,
 			}
 
@@ -664,14 +606,12 @@ func TestServiceImpl_UpdatePartial(t *testing.T) {
 	password := "newpass"
 
 	tests := []struct {
-		name           string
-		id             string
-		entity         *PartialUpdateDto
-		repoResponse   *Model
-		repoError      error
-		expectedError  bool
-		expectEventBus bool
-		eventBusNil    bool
+		name          string
+		id            string
+		entity        *PartialUpdateDto
+		repoResponse  *Model
+		repoError     error
+		expectedError bool
 	}{
 		{
 			name: "successful partial update",
@@ -693,10 +633,8 @@ func TestServiceImpl_UpdatePartial(t *testing.T) {
 				Username: "newuser",
 				Password: "newpass",
 			},
-			repoError:      nil,
-			expectedError:  false,
-			expectEventBus: true,
-			eventBusNil:    false,
+			repoError:     nil,
+			expectedError: false,
 		},
 		{
 			name: "partial update with only host",
@@ -710,10 +648,8 @@ func TestServiceImpl_UpdatePartial(t *testing.T) {
 				Host:     "updated-host.com",
 				Port:     8080,
 			},
-			repoError:      nil,
-			expectedError:  false,
-			expectEventBus: true,
-			eventBusNil:    false,
+			repoError:     nil,
+			expectedError: false,
 		},
 		{
 			name: "repository error",
@@ -721,28 +657,9 @@ func TestServiceImpl_UpdatePartial(t *testing.T) {
 			entity: &PartialUpdateDto{
 				Host: &host,
 			},
-			repoResponse:   nil,
-			repoError:      errors.New("update failed"),
-			expectedError:  true,
-			expectEventBus: false,
-			eventBusNil:    false,
-		},
-		{
-			name: "successful update with nil event bus",
-			id:   "proxy1",
-			entity: &PartialUpdateDto{
-				Protocol: &protocol,
-			},
-			repoResponse: &Model{
-				ID:       "proxy1",
-				Protocol: "https",
-				Host:     "proxy.example.com",
-				Port:     8080,
-			},
-			repoError:      nil,
-			expectedError:  false,
-			expectEventBus: false,
-			eventBusNil:    true,
+			repoResponse:  nil,
+			repoError:     errors.New("update failed"),
+			expectedError: true,
 		},
 	}
 
@@ -752,18 +669,9 @@ func TestServiceImpl_UpdatePartial(t *testing.T) {
 			mockRepo := new(MockRepository)
 			mockMonitorService := new(MockMonitorService)
 			logger := zap.NewNop().Sugar()
-			var eventBus events.EventBus
-			if !tt.eventBusNil {
-				redisClient := redis.NewClient(&redis.Options{
-					Addr: "localhost:6379",
-				})
-				eventBus = infra.NewRedisEventBus(redisClient, logger)
-			}
-
 			service := &ServiceImpl{
 				repository:     mockRepo,
 				monitorService: mockMonitorService,
-				eventBus:       eventBus,
 				logger:         logger,
 			}
 
@@ -816,8 +724,6 @@ func TestServiceImpl_Delete(t *testing.T) {
 		monitorServiceError      error
 		repoError                error
 		expectedError            bool
-		expectEventBus           bool
-		eventBusNil              bool
 		expectMonitorServiceCall bool
 	}{
 		{
@@ -826,8 +732,6 @@ func TestServiceImpl_Delete(t *testing.T) {
 			monitorServiceError:      nil,
 			repoError:                nil,
 			expectedError:            false,
-			expectEventBus:           true,
-			eventBusNil:              false,
 			expectMonitorServiceCall: true,
 		},
 		{
@@ -836,8 +740,6 @@ func TestServiceImpl_Delete(t *testing.T) {
 			monitorServiceError:      nil,
 			repoError:                errors.New("delete failed"),
 			expectedError:            true,
-			expectEventBus:           false,
-			eventBusNil:              false,
 			expectMonitorServiceCall: true,
 		},
 		{
@@ -846,18 +748,6 @@ func TestServiceImpl_Delete(t *testing.T) {
 			monitorServiceError:      errors.New("monitor service error"),
 			repoError:                nil,
 			expectedError:            false,
-			expectEventBus:           true,
-			eventBusNil:              false,
-			expectMonitorServiceCall: true,
-		},
-		{
-			name:                     "successful delete with nil event bus",
-			id:                       "proxy1",
-			monitorServiceError:      nil,
-			repoError:                nil,
-			expectedError:            false,
-			expectEventBus:           false,
-			eventBusNil:              true,
 			expectMonitorServiceCall: true,
 		},
 	}
@@ -868,18 +758,9 @@ func TestServiceImpl_Delete(t *testing.T) {
 			mockRepo := new(MockRepository)
 			mockMonitorService := new(MockMonitorService)
 			logger := zap.NewNop().Sugar()
-			var eventBus events.EventBus
-			if !tt.eventBusNil {
-				redisClient := redis.NewClient(&redis.Options{
-					Addr: "localhost:6379",
-				})
-				eventBus = infra.NewRedisEventBus(redisClient, logger)
-			}
-
 			service := &ServiceImpl{
 				repository:     mockRepo,
 				monitorService: mockMonitorService,
-				eventBus:       eventBus,
 				logger:         logger,
 			}
 

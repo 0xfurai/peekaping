@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"peekaping/internal/config"
-	"peekaping/internal/infra"
 	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
@@ -28,6 +27,10 @@ const (
 	maxConcurrentSends = 8
 	// sendTimeout bounds each channel's send, so a channel that never answers can't hold up an event
 	sendTimeout = 15 * time.Second
+	// notificationWorkers is how many monitors' notifications go out at once. Sends wait on the
+	// network, up to sendTimeout each, so the limit is well above the bus's default: a few
+	// monitors with a dead channel mustn't hold up everyone else's notifications.
+	notificationWorkers = 128
 )
 
 // NotificationEventListener handles notification events
@@ -93,26 +96,28 @@ func NewNotificationEventListener(p NotificationEventListenerParams) *Notificati
 }
 
 // Subscribe subscribes to NotifyEvent and sends notifications
+//
+// The handlers share one subscriber, so one monitor's notifications go out in the order the
+// events happened, and a channel that takes its whole send timeout delays only that
+// monitor's later notifications.
 func (l *NotificationEventListener) Subscribe(eventBus events.EventBus) {
-	eventBus.Subscribe(events.ImportantHeartbeat, l.handleNotifyEvent)
-	eventBus.Subscribe(events.CertificateExpiry, l.handleCertificateExpiryEvent)
-	eventBus.Subscribe(events.MonitorStale, l.handleStaleMonitorEvent)
-	eventBus.Subscribe(events.MonitorStaleRecovered, l.handleStaleMonitorEvent)
+	subscriber := events.NewSubscriber(eventBus, "notification", events.SubscriberWorkers(notificationWorkers))
+	events.Subscribe(subscriber, events.ImportantHeartbeat, l.handleNotifyEvent)
+	events.Subscribe(subscriber, certificate.CertificateExpiry, l.handleCertificateExpiryEvent)
+	events.Subscribe(subscriber, stale.MonitorStale, func(ctx context.Context, staleEvent stale.Event) {
+		l.handleStaleMonitorEvent(ctx, staleEvent, false)
+	})
+	events.Subscribe(subscriber, stale.MonitorStaleRecovered, func(ctx context.Context, staleEvent stale.Event) {
+		l.handleStaleMonitorEvent(ctx, staleEvent, true)
+	})
 }
 
 // staleTimeFormat is how stale-monitor notifications show the time of the last check
 const staleTimeFormat = "2006-01-02 15:04:05 UTC"
 
-func (l *NotificationEventListener) handleStaleMonitorEvent(event events.Event) {
-	ctx := context.Background()
-
-	staleEvent, ok := infra.UnmarshalEventPayload[stale.Event](event)
-	if !ok {
-		l.logger.Errorf("Failed to unmarshal stale monitor event payload")
-		return
-	}
-
-	l.logger.Infof("Stale monitor event %s received for monitor: %s", event.Type, staleEvent.MonitorID)
+// handleStaleMonitorEvent notifies that a monitor stopped being checked, or that it is being checked again
+func (l *NotificationEventListener) handleStaleMonitorEvent(ctx context.Context, staleEvent stale.Event, recovered bool) {
+	l.logger.Infof("Stale monitor event received for monitor: %s (recovered: %t)", staleEvent.MonitorID, recovered)
 
 	notificationChannels, monitorModel := l.findChannels(ctx, staleEvent.MonitorID)
 	if monitorModel == nil {
@@ -121,22 +126,14 @@ func (l *NotificationEventListener) handleStaleMonitorEvent(event events.Event) 
 
 	since := staleEvent.Since.UTC().Format(staleTimeFormat)
 	message := fmt.Sprintf("Peekaping has not checked %s since %s", monitorModel.Name, since)
-	if event.Type == events.MonitorStaleRecovered {
+	if recovered {
 		message = fmt.Sprintf("Peekaping is checking %s again. It was not checked from %s", monitorModel.Name, since)
 	}
 	// A stale-monitor notification carries no heartbeat
 	l.sendToChannels(ctx, notificationChannels, message, monitorModel, nil)
 }
 
-func (l *NotificationEventListener) handleNotifyEvent(event events.Event) {
-	ctx := context.Background()
-
-	hb, ok := infra.UnmarshalEventPayload[heartbeat.Model](event)
-	if !ok {
-		l.logger.Errorf("Failed to unmarshal heartbeat event payload")
-		return
-	}
-
+func (l *NotificationEventListener) handleNotifyEvent(ctx context.Context, hb heartbeat.Model) {
 	l.logger.Infof("Notification event received for monitor: %s", hb.MonitorID)
 
 	notificationChannels, monitorModel := l.findChannels(ctx, hb.MonitorID)
@@ -144,18 +141,10 @@ func (l *NotificationEventListener) handleNotifyEvent(event events.Event) {
 		return
 	}
 
-	l.sendToChannels(ctx, notificationChannels, hb.Msg, monitorModel, hb)
+	l.sendToChannels(ctx, notificationChannels, hb.Msg, monitorModel, &hb)
 }
 
-func (l *NotificationEventListener) handleCertificateExpiryEvent(event events.Event) {
-	ctx := context.Background()
-
-	certEvent, ok := infra.UnmarshalEventPayload[certificate.CertificateExpiryEvent](event)
-	if !ok {
-		l.logger.Errorf("Failed to unmarshal certificate expiry event payload")
-		return
-	}
-
+func (l *NotificationEventListener) handleCertificateExpiryEvent(ctx context.Context, certEvent certificate.CertificateExpiryEvent) {
 	l.logger.Infof("Certificate expiry event received for monitor: %s", certEvent.MonitorID)
 
 	notificationChannels, monitorModel := l.findChannels(ctx, certEvent.MonitorID)
@@ -164,7 +153,7 @@ func (l *NotificationEventListener) handleCertificateExpiryEvent(event events.Ev
 	}
 
 	// A certificate expiry notification carries no heartbeat
-	message := l.formatCertificateExpiryMessage(certEvent, monitorModel)
+	message := l.formatCertificateExpiryMessage(&certEvent, monitorModel)
 	l.sendToChannels(ctx, notificationChannels, message, monitorModel, nil)
 }
 

@@ -39,10 +39,10 @@ func (a *app) reportStatus(t *testing.T, monitorID string, status shared.Monitor
 	t.Helper()
 	require.NoError(t, a.container.Invoke(func(heartbeats heartbeat.Service, bus events.EventBus) error {
 		created, err := heartbeats.Create(context.Background(), &heartbeat.CreateUpdateDto{MonitorID: monitorID, Status: status})
-		if err == nil {
-			bus.Publish(events.Event{Type: events.MonitorStatusChanged, Payload: created})
+		if err != nil {
+			return err
 		}
-		return err
+		return events.Publish(context.Background(), bus, events.MonitorStatusChanged, *created)
 	}))
 	require.Eventually(t, func() bool {
 		return a.getMonitor(t, monitorID).Status == int(status)

@@ -2,11 +2,9 @@ package metrics
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
-	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -15,6 +13,7 @@ import (
 	"time"
 
 	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/events/eventstest"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
@@ -24,37 +23,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
-
-// fakeBus delivers events to its handlers in the publishing goroutine, as JSON
-// like the Redis event bus does.
-type fakeBus struct {
-	mu       sync.Mutex
-	handlers map[events.EventType][]events.EventHandler
-}
-
-func (b *fakeBus) Subscribe(eventType events.EventType, handler events.EventHandler) {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-	if b.handlers == nil {
-		b.handlers = map[events.EventType][]events.EventHandler{}
-	}
-	b.handlers[eventType] = append(b.handlers[eventType], handler)
-}
-
-func (b *fakeBus) Publish(event events.Event) {
-	payload, err := json.Marshal(event.Payload)
-	if err != nil {
-		panic(err)
-	}
-	b.mu.Lock()
-	handlers := slices.Clone(b.handlers[event.Type])
-	b.mu.Unlock()
-	for _, handler := range handlers {
-		handler(events.Event{Type: event.Type, Payload: json.RawMessage(payload)})
-	}
-}
-
-func (b *fakeBus) Close() error { return nil }
 
 // fakeMonitors is the monitor service over a map of Monitors. Any call but
 // FindByID and FindActive panics on the nil embedded interface.
@@ -172,14 +140,14 @@ type rig struct {
 	t          *testing.T
 	monitors   *fakeMonitors
 	heartbeats *fakeHeartbeats
-	bus        *fakeBus
+	bus        *eventstest.Bus
 	collector  *Collector
 	handler    http.HandlerFunc
 }
 
 func newRig(t *testing.T) *rig {
 	t.Helper()
-	r := &rig{t: t, monitors: &fakeMonitors{}, heartbeats: &fakeHeartbeats{}, bus: &fakeBus{}}
+	r := &rig{t: t, monitors: &fakeMonitors{}, heartbeats: &fakeHeartbeats{}, bus: eventstest.NewBus()}
 	r.collector = NewCollector(r.monitors, r.heartbeats, zap.NewNop().Sugar())
 	r.handler = r.collector.Handler()
 	return r
@@ -201,17 +169,17 @@ func (r *rig) activeMonitor(id, name, monitorType string) monitor.Model {
 }
 
 func (r *rig) publishHeartbeat(monitorID string, status shared.MonitorStatus, responseMs int, at int64) {
-	r.bus.Publish(events.Event{Type: events.HeartbeatEvent, Payload: &heartbeat.Model{
+	require.NoError(r.t, events.Publish(context.Background(), r.bus, events.HeartbeatEvent, heartbeat.Model{
 		MonitorID: monitorID, Status: status, Ping: responseMs, Time: time.Unix(at, 0),
-	}})
+	}))
 }
 
 func (r *rig) publishMonitorUpdated(m monitor.Model) {
-	r.bus.Publish(events.Event{Type: events.MonitorUpdated, Payload: &m})
+	require.NoError(r.t, events.Publish(context.Background(), r.bus, events.MonitorUpdated, m))
 }
 
 func (r *rig) publishMonitorDeleted(id string) {
-	r.bus.Publish(events.Event{Type: events.MonitorDeleted, Payload: id})
+	require.NoError(r.t, events.Publish(context.Background(), r.bus, events.MonitorDeleted, id))
 }
 
 // body scrapes the handler.

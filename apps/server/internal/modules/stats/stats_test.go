@@ -3,7 +3,6 @@ package stats_test
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -17,6 +16,7 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/infra"
 	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/events/eventstest"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stats"
 
@@ -354,38 +354,16 @@ func TestMongoStatWrittenBeforeUpgradeKeepsCounting(t *testing.T) {
 	assert.Equal(t, bucket{Up: 1, Down: 1, Ping: 50, PingMin: 50, PingMax: 50}, got(rows[1]))
 }
 
-// fakeBus delivers each published event to its subscribers right away.
-type fakeBus struct {
-	handlers map[events.EventType][]events.EventHandler
-}
-
-func (b *fakeBus) Subscribe(eventType events.EventType, handler events.EventHandler) {
-	if b.handlers == nil {
-		b.handlers = map[events.EventType][]events.EventHandler{}
-	}
-	b.handlers[eventType] = append(b.handlers[eventType], handler)
-}
-
-func (b *fakeBus) Publish(event events.Event) {
-	for _, handler := range b.handlers[event.Type] {
-		handler(event)
-	}
-}
-
-func (b *fakeBus) Close() error { return nil }
-
 func TestFailedStatsAggregationForAHeartbeatIsLogged(t *testing.T) {
 	core, logs := observer.New(zap.ErrorLevel)
 	// No migrations, so there are no stats tables and aggregating fails.
 	svc := stats.NewService(stats.NewSQLRepository(sqliteDB(t)), zap.New(core).Sugar())
-	bus := &fakeBus{}
+	bus := eventstest.NewBus()
 	svc.RegisterEventHandlers(bus)
 
 	monitorID := uuid.NewString()
-	// Redis delivers the payload as raw JSON.
-	payload, err := json.Marshal(shared.HeartBeatModel{MonitorID: monitorID, Status: shared.MonitorStatusUp, Ping: 100, Time: time.Now()})
-	require.NoError(t, err)
-	bus.Publish(events.Event{Type: events.HeartbeatEvent, Payload: json.RawMessage(payload)})
+	require.NoError(t, events.Publish(context.Background(), bus, events.HeartbeatEvent,
+		shared.HeartBeatModel{MonitorID: monitorID, Status: shared.MonitorStatusUp, Ping: 100, Time: time.Now()}))
 
 	require.Equal(t, 1, logs.Len())
 	fields := logs.All()[0].ContextMap()
