@@ -41,12 +41,18 @@ func moveNotificationSecrets(ctx context.Context, db *bun.DB) error {
 	if err := db.NewSelect().
 		Table("notification_channels").
 		Column("id", "config").
-		Where("config IS NOT NULL AND config != ''").
+		// config is JSONB on PostgreSQL and TEXT on SQLite, and comparing JSONB against
+		// an empty string makes PostgreSQL reject it as invalid JSON. Empty rows are
+		// skipped in the loop instead.
+		Where("config IS NOT NULL").
 		Scan(ctx, &rows); err != nil {
 		return err
 	}
 
 	for _, row := range rows {
+		if row.Config == "" {
+			continue
+		}
 		configMap := map[string]any{}
 		if err := json.Unmarshal([]byte(row.Config), &configMap); err != nil {
 			// A config that cannot be parsed is left untouched rather than dropped.
