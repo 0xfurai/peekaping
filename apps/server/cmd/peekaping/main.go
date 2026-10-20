@@ -55,7 +55,8 @@ const readHeaderTimeout = 10 * time.Second
 type timeouts struct {
 	// HTTP is how long the HTTP server waits for the requests in flight
 	HTTP time.Duration
-	// Jobs is how long the scheduler, the watchdog and the other background jobs have to stop
+	// Jobs is how long the scheduler, the watchdog and the other background jobs have to stop,
+	// and the HTTP handlers still running once HTTP is up have to return
 	Jobs time.Duration
 	// EventBus is how long the event bus has to handle the events queued
 	EventBus time.Duration
@@ -181,7 +182,10 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 
 	// The API router serves every request
 	handler := http.Handler(p.Server.Router)
-	httpServer := &http.Server{Handler: handler, ReadHeaderTimeout: readHeaderTimeout}
+	// Counted, so that the database closes only once every handler has returned: the HTTP
+	// server's Close drops the connections still open, but doesn't wait for their handlers
+	handlers := &runningHandlers{handler: handler}
+	httpServer := &http.Server{Handler: handlers, ReadHeaderTimeout: readHeaderTimeout}
 	// The websocket server closes as soon as the HTTP server's Shutdown stops taking connections.
 	// Closing its sessions answers their open long polls, which Shutdown waits for like any
 	// request in flight: left open, they'd hold it up until the clients' next ping, 25 seconds
@@ -207,7 +211,7 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 		logger.Errorw("HTTP server failed, shutting down", "error", serveErr)
 	}
 
-	if err := errors.Join(serveErr, shutdown(httpServer, websocketClosed, p, jobs, cfg.DBType, logger)); err != nil {
+	if err := errors.Join(serveErr, shutdown(httpServer, handlers, websocketClosed, p, jobs, cfg.DBType, logger)); err != nil {
 		return err
 	}
 	logger.Info("Peekaping stopped")
@@ -318,8 +322,14 @@ func (j *jobs) stop(ctx context.Context) error {
 	return errors.Join(errs...)
 }
 
-// await waits for done to close, or fails when ctx is done first
+// await waits for done to close, or fails when ctx is done first. done closed counts even once
+// ctx is done.
 func await(ctx context.Context, what string, done <-chan struct{}) error {
+	select {
+	case <-done:
+		return nil
+	default:
+	}
 	select {
 	case <-done:
 		return nil
@@ -328,19 +338,66 @@ func await(ctx context.Context, what string, done <-chan struct{}) error {
 	}
 }
 
+// runningHandlers serves its handler and counts the requests it is serving. A handler that
+// hijacks its connection, as the websocket's does, counts until it returns, not until the
+// connection closes.
+type runningHandlers struct {
+	handler http.Handler
+
+	mu      sync.Mutex
+	running int
+	idle    []chan struct{} // closed once running drops to zero
+}
+
+func (h *runningHandlers) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	h.mu.Lock()
+	h.running++
+	h.mu.Unlock()
+	defer h.returned()
+	h.handler.ServeHTTP(w, r)
+}
+
+func (h *runningHandlers) returned() {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	h.running--
+	if h.running == 0 {
+		for _, idle := range h.idle {
+			close(idle)
+		}
+		h.idle = nil
+	}
+}
+
+// done returns a channel that closes once no handler is running
+func (h *runningHandlers) done() <-chan struct{} {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	idle := make(chan struct{})
+	if h.running == 0 {
+		close(idle)
+	} else {
+		h.idle = append(h.idle, idle)
+	}
+	return idle
+}
+
 // shutdown stops everything in order, each step within its share of shutdownTimeouts. The HTTP
-// server stops taking requests and waits for those in flight. The websocket closes its
-// sessions, from the HTTP server's Shutdown (websocketClosed is closed once it has). The
-// background jobs stop, so nothing publishes events any more. The event bus lets the handlers
-// of the queued events finish. The database closes last, and only once nothing uses it.
-func shutdown(httpServer *http.Server, websocketClosed <-chan struct{}, p parts, j *jobs, dbType string, logger *zap.SugaredLogger) error {
+// server stops taking requests and waits for those in flight; once its share is up, it drops
+// their connections. The websocket closes its sessions, from the HTTP server's Shutdown
+// (websocketClosed is closed once it has). The background jobs stop, so nothing publishes events
+// any more, and the HTTP handlers the HTTP server left running return, in the jobs' share. The
+// event bus lets the handlers of the queued events finish. The database closes last, and only
+// once nothing uses it.
+func shutdown(httpServer *http.Server, handlers *runningHandlers, websocketClosed <-chan struct{}, p parts, j *jobs, dbType string, logger *zap.SugaredLogger) error {
 	var errs []error
 
 	httpCtx, cancelHTTP := context.WithTimeout(context.Background(), shutdownTimeouts.HTTP)
 	defer cancelHTTP()
 	if err := httpServer.Shutdown(httpCtx); err != nil {
 		errs = append(errs, fmt.Errorf("failed to shut down the HTTP server: %w", err))
-		// Drop the connections still open, so that the shutdown goes on
+		// Drop the connections still open, so that the shutdown goes on. Their handlers may run
+		// on, on a write that waits for the database for instance.
 		_ = httpServer.Close()
 	}
 	logger.Info("Stopped the HTTP server")
@@ -359,6 +416,12 @@ func shutdown(httpServer *http.Server, websocketClosed <-chan struct{}, p parts,
 	} else {
 		logger.Info("Stopped the scheduler, the watchdog and the other background jobs")
 	}
+	// The HTTP handlers the HTTP server left running return in the jobs' share too, before the
+	// event bus closes, so that what they publish reaches it
+	if err := await(jobsCtx, "the HTTP handlers", handlers.done()); err != nil {
+		errs = append(errs, err)
+		running = append(running, "HTTP handlers")
+	}
 
 	busCtx, cancelBus := context.WithTimeout(context.Background(), shutdownTimeouts.EventBus)
 	defer cancelBus()
@@ -369,8 +432,8 @@ func shutdown(httpServer *http.Server, websocketClosed <-chan struct{}, p parts,
 		logger.Info("Closed the event bus")
 	}
 
-	// Closing the database under a job or an event handler would fail it halfway through its
-	// writes. The process's exit releases the database instead.
+	// Closing the database under a job, an HTTP handler or an event handler would fail it halfway
+	// through its writes. The process's exit releases the database instead.
 	if len(running) > 0 {
 		logger.Errorw("Left the database open, since some of what uses it is still running", "running", running)
 		return errors.Join(errs...)

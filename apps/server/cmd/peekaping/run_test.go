@@ -2,8 +2,12 @@ package main
 
 import (
 	"bufio"
+	"bytes"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -148,6 +152,34 @@ func TestRun_ShutsDownWithinSecondsWhileAWebsocketClientLongPolls(t *testing.T) 
 	assert.Equal(t, shutdownOrder, logged(logs, shutdownOrder), "the shutdown's steps, in the order logged")
 }
 
+func TestRun_ShutsDownWithinSecondsWhileAWebsocketClientIsConnected(t *testing.T) {
+	cfg := loadConfig(t, nil)
+	logger, logs := observedLogger()
+	in := startPeekaping(t, cfg, logger, logs)
+	in.registerAdmin(t)
+	// Its connection is hijacked from the HTTP server, which doesn't wait for it
+	conn := in.dialWebsocket(t)
+
+	startedAt := time.Now()
+	require.NoError(t, in.stop(t), "run returns nil, so peekaping exits 0")
+	took := time.Since(startedAt)
+	t.Logf("shut down in %s", took.Round(time.Millisecond))
+
+	assert.Less(t, took, 5*time.Second, "the websocket doesn't hold up the shutdown")
+	// The websocket server closes the client's session and its connection
+	require.NoError(t, conn.SetReadDeadline(time.Now().Add(wait)))
+	for {
+		_, msg, err := conn.ReadMessage()
+		if err != nil {
+			var netErr net.Error
+			assert.False(t, errors.As(err, &netErr) && netErr.Timeout(), "the connection is still open: %v", err)
+			break
+		}
+		t.Logf("read %q", msg)
+	}
+	assert.Equal(t, shutdownOrder, logged(logs, shutdownOrder), "the shutdown's steps, in the order logged")
+}
+
 // ingestWaitingForTheDatabase checks a new monitor, whose result's ingest then waits for the
 // database's write lock, held by another connection until unlock is called. The scheduler stops
 // only once that ingest is done.
@@ -243,6 +275,106 @@ func TestRun_LeavesTheDatabaseOpenWhenTheSchedulerDoesntStopInTime(t *testing.T)
 	require.Eventually(t, func() bool { return logs.FilterMessage("Scheduler stopped").Len() == 1 }, wait, 10*time.Millisecond)
 	assert.Zero(t, logs.FilterMessage("Failed to ingest the result of a check").Len())
 	assert.Equal(t, 1, countHeartbeats(t, cfg.DBName, monitorID), "the check's result is stored")
+}
+
+// createWaitingForTheDatabase sends the creation of a monitor, whose handler then waits for the
+// database's write lock, held by another connection until unlock is called. The HTTP server's
+// Close drops the request's connection, which cancels the handler's context but doesn't stop its
+// wait: once unlocked, the handler fails, logging "Failed to create monitor".
+func (in *instance) createWaitingForTheDatabase(t *testing.T, cfg *Config) (unlock func()) {
+	t.Helper()
+	body, err := json.Marshal(pushMonitor("Waiting", "waiting-push-token"))
+	require.NoError(t, err)
+	req, err := http.NewRequest(http.MethodPost, in.url+"/api/v1/monitors", bytes.NewReader(body))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+in.accessToken)
+
+	unlock = lockDatabase(t, cfg.DBName)
+	answered := make(chan struct{})
+	go func() {
+		defer close(answered)
+		if resp, err := http.DefaultClient.Do(req); err == nil {
+			_ = resp.Body.Close()
+		}
+	}()
+	t.Cleanup(func() { <-answered })
+	time.Sleep(500 * time.Millisecond) // the handler gets to its write
+	return unlock
+}
+
+func TestRun_ClosesTheDatabaseOnlyOnceAnHTTPHandlerTheHTTPServerLeftRunningHasReturned(t *testing.T) {
+	// The handler outlives the HTTP server's share
+	defer func(saved timeouts) { shutdownTimeouts = saved }(shutdownTimeouts)
+	shutdownTimeouts.HTTP = 300 * time.Millisecond
+	cfg := loadConfig(t, nil)
+	logger, logs := observedLogger()
+	in := startPeekaping(t, cfg, logger, logs)
+	in.registerAdmin(t)
+	unlock := in.createWaitingForTheDatabase(t, cfg)
+
+	stopped := make(chan error, 1)
+	go func() { stopped <- in.stop(t) }()
+	require.Eventually(t, func() bool { return logs.FilterMessage("Stopped the HTTP server").Len() == 1 },
+		wait, 10*time.Millisecond, "the HTTP server's share runs out")
+	time.Sleep(500 * time.Millisecond)
+	assert.Zero(t, logs.FilterMessage("Performing graceful SQLite shutdown...").Len(), "the database stays open while the handler waits")
+
+	unlock()
+	var err error
+	select {
+	case err = <-stopped:
+	case <-time.After(shutdownTimeouts.total()):
+		require.FailNow(t, "run didn't return within the shutdown deadline")
+	}
+	require.Error(t, err, "the HTTP server didn't stop in time")
+	assert.Contains(t, err.Error(), "failed to shut down the HTTP server")
+	assert.NotContains(t, err.Error(), "the HTTP handlers", "the handler returned in time")
+
+	order := []string{
+		"Stopped the HTTP server",
+		"Closed the websocket server",
+		"Stopped the scheduler, the watchdog and the other background jobs",
+		"Failed to create monitor",
+		"Closed the event bus",
+		"Performing graceful SQLite shutdown...",
+		"Closed the database",
+	}
+	assert.Equal(t, order, logged(logs, order), "the handler returns before the event bus and the database close")
+	failed := logs.FilterMessage("Failed to create monitor").All()
+	require.Len(t, failed, 1)
+	assert.Equal(t, "context canceled", failed[0].ContextMap()["error"],
+		"the handler fails since its client is gone, not since the database closed")
+}
+
+func TestRun_LeavesTheDatabaseOpenWhenAnHTTPHandlerDoesntReturnInTime(t *testing.T) {
+	// The handler outlives the HTTP server's share and the background jobs' share
+	defer func(saved timeouts) { shutdownTimeouts = saved }(shutdownTimeouts)
+	shutdownTimeouts.HTTP = 300 * time.Millisecond
+	shutdownTimeouts.Jobs = 300 * time.Millisecond
+	cfg := loadConfig(t, nil)
+	logger, logs := observedLogger()
+	in := startPeekaping(t, cfg, logger, logs)
+	in.registerAdmin(t)
+	unlock := in.createWaitingForTheDatabase(t, cfg)
+
+	err := in.stop(t)
+	require.Error(t, err, "peekaping exits 1")
+	assert.Contains(t, err.Error(), "failed to shut down the HTTP server")
+	assert.Contains(t, err.Error(), "the HTTP handlers didn't stop in time")
+	left := logs.FilterMessage("Left the database open, since some of what uses it is still running").All()
+	require.Len(t, left, 1)
+	assert.Equal(t, []any{"HTTP handlers"}, left[0].ContextMap()["running"])
+	assert.Zero(t, logs.FilterMessage("Performing graceful SQLite shutdown...").Len(), "the database isn't closed under the handler")
+
+	assert.Zero(t, logs.FilterMessage("Failed to create monitor").Len(), "the handler still waits")
+
+	// The handler finishes on the database left open
+	unlock()
+	require.Eventually(t, func() bool { return logs.FilterMessage("Failed to create monitor").Len() == 1 },
+		wait, 10*time.Millisecond, "the handler returns")
+	assert.Equal(t, "context canceled", logs.FilterMessage("Failed to create monitor").All()[0].ContextMap()["error"],
+		"the handler fails since its client is gone, not since the database closed")
 }
 
 // shutdownOrder is what a shutdown that stops everything in time logs, in this order
