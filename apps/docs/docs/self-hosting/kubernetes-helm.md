@@ -101,7 +101,7 @@ Check that the migrate Job finished and the pods are running:
 
 ```bash
 kubectl get job,pods --namespace peekaping
-kubectl logs --namespace peekaping --selector app.kubernetes.io/component=migrate --tail=-1
+kubectl logs --namespace peekaping --selector app.kubernetes.io/instance=peekaping,app.kubernetes.io/component=migrate --tail=-1
 ```
 
 The selector finds the migrate Job's pod whatever the revision, and `--tail=-1` prints the whole log.
@@ -254,6 +254,6 @@ Each component has a `replicaCount`, which is 3 by default, and `resources` with
      --values peekaping-values.yaml
    ```
 
-The upgrade creates a new migrate Job, `peekaping-migrate-<revision>`, that runs the migrations of the new release, and Helm removes the previous one. Every install, upgrade and rollback creates a Job, so there is nothing to delete by hand. The new API, producer, worker and ingester pods wait in `Init` until the Job has applied the migrations, and the old pods keep serving until then. Check that it finished with `kubectl logs --namespace peekaping --selector app.kubernetes.io/component=migrate --tail=-1`. The Job is removed an hour after it finishes (`migrate.ttlSecondsAfterFinished`).
+The upgrade creates a new migrate Job, `peekaping-migrate-<revision>`, that runs the migrations of the new release, and Helm removes the previous one. Every install, upgrade and rollback creates a Job, so there is nothing to delete by hand. The new API, producer, worker and ingester pods wait in `Init` until the Job has applied the migrations, and the old pods keep serving until then. Check that it finished with `kubectl logs --namespace peekaping --selector app.kubernetes.io/instance=peekaping,app.kubernetes.io/component=migrate --tail=-1`. The Job is removed an hour after it finishes (`migrate.ttlSecondsAfterFinished`).
 
 `helm rollback` returns the Kubernetes objects to an earlier revision, but it doesn't undo database migrations. It applies the manifest of the revision you roll back to, so it creates that revision's migrate Job again: rolling back to revision 1 creates `peekaping-migrate-1`, not a Job with a new number. If a migration has changed your database, restore the backup too.
