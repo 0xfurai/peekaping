@@ -10,13 +10,13 @@ The target is a ticket key (`PP-<n>`), a PR number, or nothing for the current b
 - From a ticket: its worktree, branches and PRs: `git worktree list`, `git branch -a --list '*pp-<n>-*'`, `gh pr list --state all --search "pp-<n>"`.
 - From nothing: the current branch, then as from a PR or ticket.
 
-With no ticket key anywhere, skip every Linear step; the work is checked against the PR description instead.
+With no ticket key anywhere, skip every ticket step; the work is checked against the PR description instead.
 
 ## Read the ticket
 
-`get_issue` with relations, `list_comments`, every linked GitHub issue or PR (`gh issue view <n> --comments`), and images (`extract_images`). A `## Agent plan` section in the description is the agreed plan; its acceptance criteria are what the work is checked against.
+The issue with its comments, relations and project fields (**Read an issue** in `docs/agents/issue-tracker.md`), every linked GitHub issue or PR (`gh issue view <n> --comments`), and any images it links. For PP-1 to PP-216, comments made before the move are only in Linear: read them with `list_comments`. A `## Agent plan` section in the description is the agreed plan; its acceptance criteria are what the work is checked against.
 
-Mark the ticket In Progress as you start work: `save_issue` with `state: "In Progress"`, and `assignee: "me"` when it's unassigned. A ticket in Backlog or Todo moves; one already In Progress or further along (In Review, Done, Canceled, Duplicate) keeps its state, so a later step never moves it back. Linear operations follow `docs/agents/issue-tracker.md`.
+Mark the ticket In Progress as you start work: set Status to In Progress, and assign it to `@me` when it's unassigned. A ticket in Backlog or Todo moves; one already In Progress or further along (In Review, Done, or closed as not planned or duplicate) keeps its state, so a later step never moves it back. Tracker operations follow `docs/agents/issue-tracker.md`.
 
 ## Get into the worktree
 

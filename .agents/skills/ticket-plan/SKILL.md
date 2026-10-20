@@ -1,6 +1,6 @@
 ---
 name: ticket-plan
-description: "Research a Linear ticket, agree a plan with the user, and record it in the ticket."
+description: "Research a ticket, agree a plan with the user, and record it in the ticket."
 disable-model-invocation: true
 argument-hint: "PP-<n>"
 ---
@@ -27,9 +27,9 @@ Present the **brief** from [PLAN.md](PLAN.md), then ask with `AskUserQuestion`: 
 
 Done when: the user has approved the plan as written.
 
-## 4. Record the plan in Linear
+## 4. Record the plan in the ticket
 
-Append the approved plan to the ticket description as a `## Agent plan` section (`save_issue` with a `patch` append; on later revisions replace that section only, leaving the reporter's text above it as written). Then `save_comment`: plan agreed, branch name, PR count.
+Append the approved plan to the ticket description as a `## Agent plan` section (**Edit the description** in `docs/agents/issue-tracker.md`; on later revisions replace that section only, leaving the reporter's text above it as written). Then comment on the ticket: plan agreed, branch name, PR count.
 
 Done when: the ticket shows the approved plan.
 

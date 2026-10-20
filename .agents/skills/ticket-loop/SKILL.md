@@ -73,7 +73,7 @@ Resolve a CodeRabbit thread once its fix is pushed or CodeRabbit accepts your re
 When the whole stack has merged:
 
 1. Comment on the ticket: what shipped, the acceptance-criteria table with evidence, follow-up tickets.
-2. Make sure the ticket is Done (the GitHub integration usually moves it).
+2. Make sure the ticket is closed and its Status is Done (the top PR's `Fixes` line should have closed it; if not, close it yourself).
 3. `ExitWorktree` with `keep`, then `git worktree remove .claude/worktrees/pp-<n>`.
 
 Done when: the ticket is Done with the summary comment, and the worktree is gone.

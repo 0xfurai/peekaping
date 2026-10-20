@@ -4,7 +4,7 @@ A **stack** is a chain of PRs where each PR's base is the branch of the PR below
 
 ## Branches
 
-- Name each branch `<type>/pp-<n>-<slug>`, with its own slug per PR. The `pp-<n>` lets Linear link the PR to the ticket.
+- Name each branch `<type>/pp-<n>-<slug>`, with its own slug per PR. The `pp-<n>` ties the branch to the ticket; the PR body links it.
 - Types: `fix`, `feat`, `refactor`, `chore`, `docs`, `ci`. For test-only work use `fix/` or `chore/`: the remote has a branch named `test`, so a `test/...` branch can't be pushed. The PR title can still start with `test(...)`.
 - The bottom branch is the one setup created in the worktree. Start each next branch from the one below it, in the same worktree: `git switch -c <next branch> <branch below>`.
 
@@ -30,7 +30,7 @@ Use the GLOSSARY.md terms, short sentences, no preamble.
 ```markdown
 ## Summary
 
-<What changed and why, in 2-4 sentences, linking the ticket: [PP-<n>](<linear url>).
+<What changed and why, in 2-4 sentences, linking the ticket: [PP-<n>](https://github.com/0xfurai/peekaping-tracker/issues/<n>).
 Then the smallest picture that shows the change: a diff-sketch of the control
 flow, a call tree, or a file tree with one comment per file. Skip it when a
 sentence says it.>
@@ -52,10 +52,12 @@ sentence says it.>
 **Door:** <one-way or two-way>. <why, e.g. "the migration drops a table">
 **Blast radius:** <what can break: upgrade, API consumers, UI, config>
 
+<Fixes|Part of> 0xfurai/peekaping-tracker#<n>
+
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 ```
 
-Omit `## Stack` for a single PR. After opening the whole stack, edit each body so its Stack section lists every PR (`gh pr edit <pr> --body-file <file>`).
+The top PR of a stack (the one that merges last) says `Fixes 0xfurai/peekaping-tracker#<n>`; every other PR says `Part of ...`, because a closing keyword closes the ticket when its PR merges. A single PR says `Fixes`. Omit `## Stack` for a single PR. After opening the whole stack, edit each body so its Stack section lists every PR (`gh pr edit <pr> --body-file <file>`).
 
 ## Changing a lower PR
 
