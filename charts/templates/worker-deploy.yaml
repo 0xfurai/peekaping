@@ -65,7 +65,7 @@ spec:
 
       containers:
         - name: {{ .Release.Name }}-worker
-          image: {{ .Values.worker.image.repository }}:{{ .Values.worker.image.tag }}
+          image: {{ include "peekaping.image" (dict "image" .Values.worker.image "root" .) }}
           imagePullPolicy: {{ .Values.worker.image.pullPolicy }}
 
           envFrom:

@@ -63,7 +63,7 @@ spec:
 
       containers:
         - name: {{ .Release.Name }}-api
-          image: {{ .Values.api.image.repository }}:{{ .Values.api.image.tag }}
+          image: {{ include "peekaping.image" (dict "image" .Values.api.image "root" .) }}
           imagePullPolicy: {{ .Values.api.image.pullPolicy }}
 
           envFrom:

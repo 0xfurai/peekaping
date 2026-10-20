@@ -57,7 +57,7 @@ spec:
 
       initContainers:
         - name: seed-web-root
-          image: {{ .Values.web.image.repository }}:{{ .Values.web.image.tag }}
+          image: {{ include "peekaping.image" (dict "image" .Values.web.image "root" .) }}
           imagePullPolicy: {{ .Values.web.image.pullPolicy }}
           command:
             - sh
@@ -78,7 +78,7 @@ spec:
 
       containers:
         - name: {{ .Release.Name }}-web
-          image: {{ .Values.web.image.repository }}:{{ .Values.web.image.tag }}
+          image: {{ include "peekaping.image" (dict "image" .Values.web.image "root" .) }}
           imagePullPolicy: {{ .Values.web.image.pullPolicy }}
 
           ports:
