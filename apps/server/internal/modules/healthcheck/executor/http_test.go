@@ -17,7 +17,11 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"os/exec"
+	"path/filepath"
 	"peekaping/internal/modules/shared"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -1671,7 +1675,13 @@ func TestHTTPExecutor_Execute_ReportsServerCertificate(t *testing.T) {
 func TestHTTPExecutor_Execute_MTLS(t *testing.T) {
 	executor := NewHTTPExecutor(zap.NewNop().Sugar())
 	pki := generateTestCerts(t, time.Now().Add(24*time.Hour))
-	server := startTLSServer(t, pki, true, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	// The server already refuses clients without a certificate from its CA. The
+	// handler also answers 403 unless the certificate it saw is the monitor's.
+	server := startTLSServer(t, pki, true, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if len(r.TLS.PeerCertificates) == 0 || r.TLS.PeerCertificates[0].Subject.CommonName != "peekaping" {
+			w.WriteHeader(http.StatusForbidden)
+		}
+	}))
 
 	t.Run("with a client certificate", func(t *testing.T) {
 		result := executor.Execute(context.Background(), httpMonitor(t, "http", HTTPConfig{
@@ -1687,6 +1697,58 @@ func TestHTTPExecutor_Execute_MTLS(t *testing.T) {
 		assert.True(t, result.TLSInfo.Valid, "the chain verifies against the configured CA")
 	})
 
+	t.Run("without a CA, a server that demands a client certificate is Up", func(t *testing.T) {
+		result := executor.Execute(context.Background(), httpMonitor(t, "http", HTTPConfig{
+			Url:        server.URL,
+			AuthMethod: "mtls",
+			TlsCert:    pki.clientCertPEM,
+			TlsKey:     pki.clientKeyPEM,
+			// The server's CA isn't in the system roots, so skip verifying it
+			// to test the client certificate on its own.
+			IgnoreTlsErrors: true,
+		}), nil)
+
+		assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
+	})
+
+	t.Run("with a whitespace-only CA, it counts as no CA", func(t *testing.T) {
+		result := executor.Execute(context.Background(), httpMonitor(t, "http", HTTPConfig{
+			Url:             server.URL,
+			AuthMethod:      "mtls",
+			TlsCert:         pki.clientCertPEM,
+			TlsKey:          pki.clientKeyPEM,
+			TlsCa:           "  \n",
+			IgnoreTlsErrors: true,
+		}), nil)
+
+		assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
+	})
+
+	t.Run("without a CA, a server certificate from an unknown CA is Down", func(t *testing.T) {
+		result := executor.Execute(context.Background(), httpMonitor(t, "http", HTTPConfig{
+			Url:        server.URL,
+			AuthMethod: "mtls",
+			TlsCert:    pki.clientCertPEM,
+			TlsKey:     pki.clientKeyPEM,
+		}), nil)
+
+		assert.Equal(t, shared.MonitorStatusDown, result.Status)
+		assert.Contains(t, result.Message, "x509:")
+	})
+
+	t.Run("with an invalid CA", func(t *testing.T) {
+		result := executor.Execute(context.Background(), httpMonitor(t, "http", HTTPConfig{
+			Url:        server.URL,
+			AuthMethod: "mtls",
+			TlsCert:    pki.clientCertPEM,
+			TlsKey:     pki.clientKeyPEM,
+			TlsCa:      "not a certificate",
+		}), nil)
+
+		assert.Equal(t, shared.MonitorStatusDown, result.Status)
+		assert.Contains(t, result.Message, "invalid mTLS CA cert")
+	})
+
 	t.Run("without a client certificate", func(t *testing.T) {
 		result := executor.Execute(context.Background(), httpMonitor(t, "http", HTTPConfig{
 			Url:             server.URL,
@@ -1697,6 +1759,46 @@ func TestHTTPExecutor_Execute_MTLS(t *testing.T) {
 		assert.Equal(t, shared.MonitorStatusDown, result.Status)
 		assert.Contains(t, result.Message, "certificate required")
 	})
+}
+
+// With no CA, an mTLS monitor trusts the system's roots. Go reads SSL_CERT_FILE
+// once per process, so the test runs itself again with the test CA as the only
+// system root, the way the standard library's own tests do.
+func TestHTTPExecutor_Execute_MTLS_SystemRoots(t *testing.T) {
+	if runtime.GOOS != "linux" {
+		t.Skip("Go reads SSL_CERT_FILE only on Linux; elsewhere it uses the OS trust store")
+	}
+
+	if serverURL := os.Getenv("PEEKAPING_TEST_MTLS_URL"); serverURL != "" {
+		result := NewHTTPExecutor(zap.NewNop().Sugar()).Execute(context.Background(), httpMonitor(t, "http", HTTPConfig{
+			Url:        serverURL,
+			AuthMethod: "mtls",
+			TlsCert:    os.Getenv("PEEKAPING_TEST_MTLS_CERT"),
+			TlsKey:     os.Getenv("PEEKAPING_TEST_MTLS_KEY"),
+		}), nil)
+
+		assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
+		require.NotNil(t, result.TLSInfo)
+		assert.True(t, result.TLSInfo.Valid, "the chain verifies against the system roots")
+		return
+	}
+
+	pki := generateTestCerts(t, time.Now().Add(24*time.Hour))
+	server := startTLSServer(t, pki, true, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	caFile := filepath.Join(t.TempDir(), "ca.pem")
+	require.NoError(t, os.WriteFile(caFile, []byte(pki.caPEM), 0o600))
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, os.Args[0], "-test.run=^TestHTTPExecutor_Execute_MTLS_SystemRoots$", "-test.v")
+	cmd.Env = append(os.Environ(),
+		"SSL_CERT_FILE="+caFile,
+		"PEEKAPING_TEST_MTLS_URL="+server.URL,
+		"PEEKAPING_TEST_MTLS_CERT="+pki.clientCertPEM,
+		"PEEKAPING_TEST_MTLS_KEY="+pki.clientKeyPEM,
+	)
+	out, err := cmd.CombinedOutput()
+	require.NoError(t, err, string(out))
 }
 
 func TestHTTPExecutor_Execute_IgnoreTlsErrors(t *testing.T) {
