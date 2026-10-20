@@ -179,9 +179,9 @@ GET /metrics
 :::warning
 `/metrics` needs no credentials, and it lists the name and type of every active monitor. Scrape it over a private network, and leave `METRICS_ENABLED` off if that information shouldn't be readable by whoever can reach the API port.
 
-The gateway (Caddy in the bundle image, nginx in front of the separate web image) doesn't forward `/metrics`, so it isn't served on the web address. Scrape the API port (`8034` by default) directly, for example `api:8034` on the Docker Compose network or `<release>-api:8034` in Kubernetes. The development Compose files publish that port; the production ones and the bundle image don't, so publish it or run Prometheus on the same network.
+In cluster mode, the gateway (nginx in front of the separate web image, or Caddy in the MongoDB bundle image) doesn't forward `/metrics`, so it isn't served on the web address. Scrape the API port (`8034` by default) directly, for example `api:8034` on the Docker Compose network or `<release>-api:8034` in Kubernetes. The development Compose files publish that port; the production ones and the MongoDB bundle image don't, so publish it or run Prometheus on the same network.
 
-In single mode, the `peekaping` binary has one port. With `WEB_DIR` set and `METRICS_ENABLED=true`, it serves `/metrics` there beside the web app, so whoever can open the web app can read it.
+In single mode, the `peekaping` binary has one port. With `WEB_DIR` set and `METRICS_ENABLED=true`, it serves `/metrics` there beside the web app, so whoever can open the web app can read it. The SQLite and PostgreSQL bundle images run single mode, so with `METRICS_ENABLED=true` they serve `/metrics` on port 8383.
 :::
 
 ### How it works

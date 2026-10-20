@@ -57,6 +57,8 @@ docker run -d --restart=always \
   0xfurai/peekaping-bundle-sqlite:latest
 ```
 
+Then open http://localhost:8383. The image runs Peekaping in single mode: one process, as a non-root user, with no Redis. It serves the web app and the API on port 8383. For HTTPS, put a reverse proxy in front of it.
+
 [Docker + SQLite Setup](https://docs.peekaping.com/self-hosting/docker-with-sqlite)
 
 Peekaping also supports [PostgreSQL Setup](https://docs.peekaping.com/self-hosting/docker-with-postgres). Read docs for more guidance
