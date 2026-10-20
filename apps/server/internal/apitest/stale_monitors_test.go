@@ -11,6 +11,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/dig"
 )
 
 type staleMonitorResponse struct {
@@ -48,6 +49,42 @@ func TestMonitorsAPI_MarksStaleMonitors(t *testing.T) {
 	require.NotNil(t, byID[staleID])
 	assert.Equal(t, since, byID[staleID].UTC())
 	assert.Nil(t, byID[freshID])
+}
+
+// Single mode keeps the stale monitors in memory instead of Redis
+func TestStaleMonitors_AreReadFromAMemoryStore(t *testing.T) {
+	store := stale.NewMemoryStore()
+	a := newAppDecorated(t, func(container *dig.Container) error {
+		return container.Decorate(func(stale.Store) stale.Store { return store })
+	})
+	a.registerAdmin(t)
+	staleID := a.createMonitor(t, "Checkout", "checkout-push-token")
+	freshID := a.createMonitor(t, "Billing", "billing-push-token")
+	since := time.Date(2026, 10, 18, 11, 56, 0, 0, time.UTC)
+	ranAt := since.Add(4 * time.Minute)
+	ctx := context.Background()
+	require.NoError(t, store.Put(ctx, stale.Entry{MonitorID: staleID, Since: since, DetectedAt: ranAt}))
+	require.NoError(t, store.SetRanAt(ctx, ranAt))
+
+	health := getHealth(t, a, "/api/v1/health")
+	require.NotNil(t, health.StaleMonitors)
+	assert.Equal(t, int64(1), *health.StaleMonitors, "the health endpoint counts the stale monitors")
+	require.NotNil(t, health.WatchdogRanAt)
+	assert.Equal(t, ranAt, health.WatchdogRanAt.UTC())
+
+	list := decode[[]staleMonitorResponse](t, a.request(t, http.MethodGet, "/api/v1/monitors", nil, a.asAdmin), http.StatusOK)
+	byID := map[string]*time.Time{}
+	for _, m := range list {
+		byID[m.ID] = m.StaleSince
+	}
+	require.Contains(t, byID, staleID)
+	require.NotNil(t, byID[staleID], "the monitor list marks the stale monitor")
+	assert.Equal(t, since, byID[staleID].UTC())
+	assert.Nil(t, byID[freshID])
+
+	got := decode[staleMonitorResponse](t, a.request(t, http.MethodGet, "/api/v1/monitors/"+staleID, nil, a.asAdmin), http.StatusOK)
+	require.NotNil(t, got.StaleSince)
+	assert.Equal(t, since, got.StaleSince.UTC())
 }
 
 func TestMonitorsAPI_ListsMonitorsWhenStaleRecordsCannotBeRead(t *testing.T) {

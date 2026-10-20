@@ -56,6 +56,14 @@ func withMetrics(cfg *config.Config) { cfg.MetricsEnabled = true }
 // newApp builds an API server on the default config, changed by options.
 func newApp(t *testing.T, options ...func(*config.Config)) *app {
 	t.Helper()
+	return newAppDecorated(t, nil, options...)
+}
+
+// newAppDecorated is newApp with decorate run on the container once the API's dependencies are
+// registered and before anything is built from them, so that it can swap one of them with
+// container.Decorate.
+func newAppDecorated(t *testing.T, decorate func(*dig.Container) error, options ...func(*config.Config)) *app {
+	t.Helper()
 	ctx := context.Background()
 	utils.RegisterCustomValidators()
 
@@ -81,6 +89,9 @@ func newApp(t *testing.T, options ...func(*config.Config)) *app {
 
 	container := dig.New()
 	require.NoError(t, internal.RegisterAPIDependencies(container, cfg))
+	if decorate != nil {
+		require.NoError(t, decorate(container))
+	}
 	require.NoError(t, container.Invoke(func(db *bun.DB, bus events.EventBus, queue *asynq.Client, inspector *asynq.Inspector) error {
 		t.Cleanup(func() {
 			require.NoError(t, bus.Close(context.Background()))
@@ -122,7 +133,13 @@ func newApp(t *testing.T, options ...func(*config.Config)) *app {
 func newAppWithAdmin(t *testing.T, options ...func(*config.Config)) *app {
 	t.Helper()
 	a := newApp(t, options...)
+	a.registerAdmin(t)
+	return a
+}
 
+// registerAdmin registers the admin and issues an API key.
+func (a *app) registerAdmin(t *testing.T) {
+	t.Helper()
 	registered := decode[struct {
 		AccessToken string `json:"accessToken"`
 	}](t, a.request(t, http.MethodPost, "/api/v1/auth/register", map[string]string{
@@ -134,7 +151,6 @@ func newAppWithAdmin(t *testing.T, options ...func(*config.Config)) *app {
 		Token string `json:"token"`
 	}](t, a.request(t, http.MethodPost, "/api/v1/api-keys", map[string]string{"name": "apitest"}, a.asAdmin), http.StatusCreated)
 	a.apiKey = created.Token
-	return a
 }
 
 // credentials sets the authentication headers on a request.

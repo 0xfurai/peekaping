@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
+	"sync"
 	"time"
 
 	"peekaping/internal/modules/events"
@@ -141,5 +143,76 @@ func (s *RedisStore) RanAt(ctx context.Context) (*time.Time, error) {
 		return nil, err
 	}
 	t := time.UnixMilli(ms).UTC()
+	return &t, nil
+}
+
+// MemoryStore keeps the stale monitors in the process, for single mode, where the watchdog
+// and the API run together. It is safe for concurrent use.
+type MemoryStore struct {
+	mu    sync.RWMutex
+	stale map[string]Entry
+	ranAt *time.Time
+}
+
+var _ Store = (*MemoryStore)(nil)
+
+func NewMemoryStore() *MemoryStore {
+	return &MemoryStore{stale: make(map[string]Entry)}
+}
+
+// ProvideMemoryStore provides the in-memory store as the Store that the watchdog and the API take
+func ProvideMemoryStore() Store {
+	return NewMemoryStore()
+}
+
+// All returns every stale monitor, keyed by monitor ID
+func (s *MemoryStore) All(_ context.Context) (map[string]Entry, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return maps.Clone(s.stale), nil
+}
+
+// Put records a stale monitor, replacing any earlier record for it
+func (s *MemoryStore) Put(_ context.Context, e Entry) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.stale[e.MonitorID] = e
+	return nil
+}
+
+// Delete removes the records of monitors that are no longer stale
+func (s *MemoryStore) Delete(_ context.Context, monitorIDs ...string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for _, id := range monitorIDs {
+		delete(s.stale, id)
+	}
+	return nil
+}
+
+// Count returns how many monitors are stale
+func (s *MemoryStore) Count(_ context.Context) (int64, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return int64(len(s.stale)), nil
+}
+
+// SetRanAt records when the watchdog last ran. Like the Redis store, it keeps milliseconds.
+func (s *MemoryStore) SetRanAt(_ context.Context, t time.Time) error {
+	t = t.UTC().Truncate(time.Millisecond)
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.ranAt = &t
+	return nil
+}
+
+// RanAt returns when the watchdog last ran, or nil if it never has
+func (s *MemoryStore) RanAt(_ context.Context) (*time.Time, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if s.ranAt == nil {
+		return nil, nil
+	}
+	t := *s.ranAt
 	return &t, nil
 }
