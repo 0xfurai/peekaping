@@ -7,6 +7,7 @@ services:
       context: .
       dockerfile: Dockerfile.bundle.sqlite
     restart: unless-stopped
+    stop_grace_period: 35s
     ports:
       - "8383:8383"
     env_file:
@@ -17,10 +18,6 @@ services:
     volumes:
       # Database data persistence
       - ./.data/sqlite:/app/data
-      # Application logs persistence
-      - ./.data/logs:/var/log/supervisor
-      # Optional: Custom Caddyfile override
-      # - ./custom-Caddyfile:/etc/caddy/Caddyfile:ro
     container_name: peekaping-bundle-sqlite
   http:
     build:
