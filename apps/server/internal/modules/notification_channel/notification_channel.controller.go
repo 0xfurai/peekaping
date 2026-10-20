@@ -104,11 +104,19 @@ func (ic *Controller) UpdateFull(ctx context.Context, input *UpdateFullInput) (*
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
-	if _, err := validateConfig(notification.Type, notification.Config); err != nil {
-		return nil, err
+	current, lookupErr := utils.RequireRecord(ctx, ic.logger, "Notification channel", ic.service.FindByID, id)
+	if lookupErr != nil {
+		return nil, lookupErr
 	}
 
-	if _, err := utils.RequireRecord(ctx, ic.logger, "Notification channel", ic.service.FindByID, id); err != nil {
+	// Config no longer carries the credentials, so the check runs on the config the provider
+	// will see: the one sent, plus the stored secrets it does not resend.
+	config, mergeErr := effectiveConfig(current, notification.Config, notification.Secret)
+	if mergeErr != nil {
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(mergeErr.Error()))
+	}
+
+	if _, err := validateConfig(notification.Type, config); err != nil {
 		return nil, err
 	}
 
@@ -141,7 +149,7 @@ func (ic *Controller) UpdatePartial(ctx context.Context, input *UpdatePartialInp
 	}
 
 	// Validate the type and config the channel will have after the update; omitted fields keep their saved values
-	if notification.Type != nil || notification.Config != nil {
+	if notification.Type != nil || notification.Config != nil || notification.Secret != nil {
 		channelType := current.Type
 		if notification.Type != nil {
 			channelType = *notification.Type
@@ -154,7 +162,19 @@ func (ic *Controller) UpdatePartial(ctx context.Context, input *UpdatePartialInp
 			config = *notification.Config
 		}
 
-		if _, err := validateConfig(channelType, config); err != nil {
+		// The credentials are not in the config the client sends back, so the check runs
+		// with the stored secrets merged in. An edit that keeps the password must not be
+		// rejected for not having one.
+		explicitSecret := ""
+		if notification.Secret != nil {
+			explicitSecret = *notification.Secret
+		}
+		merged, mergeErr := effectiveConfig(current, config, explicitSecret)
+		if mergeErr != nil {
+			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(mergeErr.Error()))
+		}
+
+		if _, err := validateConfig(channelType, merged); err != nil {
 			return nil, err
 		}
 	}
@@ -195,7 +215,22 @@ func (ic *Controller) Test(ctx context.Context, input *TestInput) (*httpx.Output
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
 	}
 
-	integration, lookupErr := validateConfig(notificationChannel.Type, notificationChannel.Config)
+	// Testing a saved channel sends the form back without the credentials it no longer
+	// returns, so the stored secrets are merged in when the request names the channel.
+	config := notificationChannel.Config
+	if channelID := input.Request.URL.Query().Get("id"); channelID != "" {
+		current, lookupErr := utils.RequireRecord(ctx, ic.logger, "Notification channel", ic.service.FindByID, channelID)
+		if lookupErr != nil {
+			return nil, lookupErr
+		}
+		merged, mergeErr := effectiveConfig(current, notificationChannel.Config, notificationChannel.Secret)
+		if mergeErr != nil {
+			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(mergeErr.Error()))
+		}
+		config = merged
+	}
+
+	integration, lookupErr := validateConfig(notificationChannel.Type, config)
 	if lookupErr != nil {
 		return nil, lookupErr
 	}
@@ -214,7 +249,7 @@ func (ic *Controller) Test(ctx context.Context, input *TestInput) (*httpx.Output
 	// Send the test notification, with the deadline the listener gives each send
 	sendCtx, cancel := context.WithTimeout(ctx, sendTimeout)
 	defer cancel()
-	err := integration.Send(sendCtx, notificationChannel.Config, testMessage, testMonitor, testHeartbeat)
+	err := integration.Send(sendCtx, config, testMessage, testMonitor, testHeartbeat)
 	if err != nil {
 		ic.logger.Errorw("Failed to send test notification", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Failed to send test notification: "+err.Error()))
@@ -244,4 +279,19 @@ func redactAll(channels []*Model) {
 			channel.Config = Redact(channel.Config)
 		}
 	}
+}
+
+// effectiveConfig is the config a provider will see once the write is applied: the config
+// sent, with the secrets stored and not resent merged back in. Config alone no longer
+// carries credentials, so validation and test sends cannot look at it by themselves.
+func effectiveConfig(current *Model, config, explicitSecret string) (string, error) {
+	stored := ""
+	if current != nil && current.Secret != nil {
+		stored = *current.Secret
+	}
+	clean, secret, err := WriteSecrets(config, explicitSecret, stored)
+	if err != nil {
+		return "", err
+	}
+	return MergeSecret(clean, secret), nil
 }

@@ -44,6 +44,9 @@ func TestNotificationChannelsAPI_RejectsInvalidInput(t *testing.T) {
 
 	unsupported := with(webhookChannelBody("Carrier pigeon"), "type", "carrier-pigeon")
 	badConfig := with(webhookChannelBody("No URL"), "config", `{"webhook_content_type":"json"}`)
+	// On an update the saved credentials are merged back, so a config that only omits the
+	// webhook URL is valid. What cannot be recovered is a content type outside its set.
+	badUpdateConfig := with(webhookChannelBody("Bad content type"), "config", `{"webhook_content_type":"xml"}`)
 	a.expectStatus(t, http.StatusBadRequest, []call{
 		{"malformed JSON", http.MethodPost, "/api/v1/notification-channels", "{"},
 		{"unsupported type", http.MethodPost, "/api/v1/notification-channels", unsupported},
@@ -51,7 +54,7 @@ func TestNotificationChannelsAPI_RejectsInvalidInput(t *testing.T) {
 		{"test with an unsupported type", http.MethodPost, "/api/v1/notification-channels/test", unsupported},
 		{"full update with malformed JSON", http.MethodPut, "/api/v1/notification-channels/" + id, "{"},
 		{"full update with an unsupported type", http.MethodPut, "/api/v1/notification-channels/" + id, unsupported},
-		{"full update with a config that fails its type", http.MethodPut, "/api/v1/notification-channels/" + id, badConfig},
+		{"full update with a config that fails its type", http.MethodPut, "/api/v1/notification-channels/" + id, badUpdateConfig},
 		{"negative page", http.MethodGet, "/api/v1/notification-channels?page=-1", nil},
 	})
 
