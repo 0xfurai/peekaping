@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -25,7 +26,14 @@ type Service interface {
 	Reset(ctx context.Context, key string) error
 }
 
+// KeyExtractor returns the key a request's failures are counted under. It returns ErrNoKey for a
+// request that has nothing to count. On any other error, or an empty key, the guard counts the
+// failure under the client's IP address.
 type KeyExtractor func(*http.Request) (string, error)
+
+// ErrNoKey is what a KeyExtractor returns for a request that has no key, such as a login
+// without an email. The guard lets it through without counting it.
+var ErrNoKey = errors.New("bruteforce: the request has no key")
 
 type Config struct {
 	MaxAttempts int
@@ -73,6 +81,10 @@ func (g *Guard) Middleware() httpx.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			key, err := g.keyExtractor(r)
+			if errors.Is(err, ErrNoKey) {
+				next.ServeHTTP(w, r)
+				return
+			}
 			if err != nil || key == "" {
 				// If we cannot extract key, we fallback to IP only.
 				key = g.cfg.TrustedProxies.ClientIP(r)
@@ -195,6 +207,37 @@ func KeyByIPAndBodyField(field string, proxies *httpx.TrustedProxies) KeyExtract
 
 		// Fallback to IP only
 		return ip, nil
+	}
+}
+
+// accountKeyPrefix keeps an account's key apart from the "<ip>:<email>" keys in the same table.
+const accountKeyPrefix = "account:"
+
+// KeyByAccountEmail makes a key "account:<lower(email)>" that doesn't depend on the client's
+// address, so failures count against the account however many addresses they come from.
+//
+// It reads the email the way the login handler does: the first JSON value in the body, whatever
+// the Content-Type, with the field name matched case-insensitively. Reading it any other way
+// would let a client keep its email from the guard while the handler still sees it. A request
+// without an email returns ErrNoKey; the handler rejects it without checking a password.
+func KeyByAccountEmail() KeyExtractor {
+	return func(r *http.Request) (string, error) {
+		if r.Body == nil {
+			return "", ErrNoKey
+		}
+		body, err := io.ReadAll(r.Body)
+		// Restore the body for the handler, whatever was read.
+		r.Body = io.NopCloser(bytes.NewReader(body))
+		if err != nil {
+			return "", ErrNoKey
+		}
+		var login struct {
+			Email string `json:"email"`
+		}
+		if err := json.NewDecoder(bytes.NewReader(body)).Decode(&login); err != nil || login.Email == "" {
+			return "", ErrNoKey
+		}
+		return accountKeyPrefix + strings.ToLower(login.Email), nil
 	}
 }
 

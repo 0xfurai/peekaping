@@ -40,6 +40,10 @@ const (
 	// maxFailedLogins is how many failed logins lock an email from one IP,
 	// the same as the BRUTEFORCE_MAX_ATTEMPTS default.
 	maxFailedLogins = 20
+
+	// maxFailedLoginsPerAccount is how many failed logins lock an email whatever the IP, the
+	// same as the BRUTEFORCE_ACCOUNT_MAX_ATTEMPTS default.
+	maxFailedLoginsPerAccount = 100
 )
 
 // app is one API server with its own database and Redis.
@@ -82,7 +86,12 @@ func newAppDecorated(t *testing.T, decorate func(*dig.Container) error, options 
 		BruteforceMaxAttempts: maxFailedLogins,
 		BruteforceWindow:      time.Minute,
 		BruteforceLockout:     time.Minute,
-		ServiceName:           "peekaping:apitest",
+
+		BruteforceAccountMaxAttempts: maxFailedLoginsPerAccount,
+		BruteforceAccountWindow:      10 * time.Minute,
+		BruteforceAccountLockout:     time.Minute,
+
+		ServiceName: "peekaping:apitest",
 	}
 	for _, option := range options {
 		option(cfg)

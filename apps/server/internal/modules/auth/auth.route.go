@@ -11,17 +11,20 @@ type Route struct {
 	controller      *Controller
 	middleware      *MiddlewareProvider
 	bruteforceGuard *bruteforce.Guard
+	accountGuard    *bruteforce.AccountGuard
 }
 
 func NewRoute(
 	controller *Controller,
 	middleware *MiddlewareProvider,
 	bruteforceGuard *bruteforce.Guard,
+	accountGuard *bruteforce.AccountGuard,
 ) *Route {
 	return &Route{
 		controller,
 		middleware,
 		bruteforceGuard,
+		accountGuard,
 	}
 }
 
@@ -31,7 +34,9 @@ func (r *Route) ConnectRoute(router *httpx.Router, controller *Controller) {
 	lockout.Headers = map[string]*huma.Param{"Retry-After": {Description: "Seconds until the login lockout expires.", Schema: &huma.Schema{Type: "integer"}}}
 	httpx.Register(auth, "POST", "/register", huma.Operation{Summary: "Register new admin", Tags: []string{"auth"}, DefaultStatus: http.StatusCreated, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError}}, controller.Register)
 
-	httpx.Register(auth, "POST", "/login", huma.Operation{Summary: "Login admin", Responses: map[string]*huma.Response{"429": lockout}, Tags: []string{"auth"}, DefaultStatus: http.StatusOK, Errors: []int{http.StatusBadRequest, http.StatusUnauthorized, http.StatusTooManyRequests}}, controller.Login, r.bruteforceGuard.Middleware())
+	// Two lockouts guard the login. The address guard is outermost, so a request it blocks
+	// doesn't count against the account. The account guard counts failures whatever the address.
+	httpx.Register(auth, "POST", "/login", huma.Operation{Summary: "Login admin", Responses: map[string]*huma.Response{"429": lockout}, Tags: []string{"auth"}, DefaultStatus: http.StatusOK, Errors: []int{http.StatusBadRequest, http.StatusUnauthorized, http.StatusTooManyRequests}}, controller.Login, r.bruteforceGuard.Middleware(), r.accountGuard.Middleware())
 
 	httpx.Register(auth, "POST", "/refresh", huma.Operation{Summary: "Refresh access token", Tags: []string{"auth"}, DefaultStatus: http.StatusOK, Errors: []int{http.StatusBadRequest, http.StatusUnauthorized}}, controller.RefreshToken)
 

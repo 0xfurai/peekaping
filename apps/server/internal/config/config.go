@@ -71,6 +71,20 @@ type Config struct {
 	// Examples: "5m", "30m", "1h", "24h"
 	BruteforceLockout time.Duration `env:"BRUTEFORCE_LOCKOUT" default:"1m"`
 
+	// A second counter for the login lockout, per account and independent of the client's
+	// address, so that guessing one account's password from many addresses (or behind a proxy
+	// that hides them) still locks the account. The lockout is short so that someone who
+	// guesses wrong on purpose can't keep the account's owner out for long. A successful login
+	// resets both counters.
+	// Maximum number of failed logins for one account within the window
+	BruteforceAccountMaxAttempts int `env:"BRUTEFORCE_ACCOUNT_MAX_ATTEMPTS" default:"100"`
+
+	// Time window for counting an account's failed logins. Examples: "10m", "1h"
+	BruteforceAccountWindow time.Duration `env:"BRUTEFORCE_ACCOUNT_WINDOW" default:"10m"`
+
+	// Duration to lock the account once it exceeds the maximum. Examples: "1m", "5m"
+	BruteforceAccountLockout time.Duration `env:"BRUTEFORCE_ACCOUNT_LOCKOUT" default:"1m"`
+
 	// Proxies whose X-Forwarded-For and X-Real-IP headers the server believes: a
 	// comma-separated list of IP addresses and CIDR ranges, such as "127.0.0.1,10.0.0.0/8".
 	// A request from any other address is attributed to the address it connected from, since a

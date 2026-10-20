@@ -5,6 +5,7 @@ import (
 	"peekaping/internal/modules/api_key"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/badge"
+	"peekaping/internal/modules/bruteforce"
 	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/notification_channel"
@@ -25,7 +26,7 @@ func OpenAPI() *huma.OpenAPI {
 	server := ProvideServer(
 		zap.NewNop().Sugar(), &config.Config{}, nil,
 		monitor.NewMonitorRoute(nil, nil), nil,
-		auth.NewRoute(nil, nil, nil), nil, nil,
+		auth.NewRoute(nil, nil, nil, &bruteforce.AccountGuard{}), nil, nil,
 		notification_channel.NewRoute(nil, nil), nil,
 		proxy.NewRoute(nil, nil), nil,
 		setting.NewRoute(nil, nil), nil,

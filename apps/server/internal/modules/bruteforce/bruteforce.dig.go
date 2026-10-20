@@ -13,7 +13,7 @@ func RegisterDependencies(container *dig.Container, cfg *config.Config) error {
 	if err := utils.RegisterRepositoryByDBType(container, cfg, NewSQLRepository, NewMongoRepository); err != nil {
 		return err
 	}
-	return utils.Provide(container, NewService, NewGuard)
+	return utils.Provide(container, NewService, NewGuard, NewAccountGuard)
 }
 
 // NewGuard creates a new bruteforce Guard with sensible defaults for login protection
@@ -37,4 +37,27 @@ func NewGuard(
 	guard := New(cfg, Service, keyExtractor, Logger)
 
 	return guard
+}
+
+// AccountGuard is the second guard on the login: it counts an account's failed logins whatever
+// address they come from. It is its own type so that the container can provide it beside the
+// Guard that counts per address.
+type AccountGuard struct{ *Guard }
+
+// NewAccountGuard creates the per-account guard for the login. Its limit is high and its lockout
+// short, so that it stops guessing spread over many addresses without letting someone keep the
+// account's owner out for long.
+func NewAccountGuard(
+	Service Service,
+	Logger *zap.SugaredLogger,
+	config *config.Config,
+) *AccountGuard {
+	cfg := Config{
+		MaxAttempts:     config.BruteforceAccountMaxAttempts,
+		Window:          config.BruteforceAccountWindow,
+		Lockout:         config.BruteforceAccountLockout,
+		FailureStatuses: []int{401, 403},
+	}
+
+	return &AccountGuard{New(cfg, Service, KeyByAccountEmail(), Logger)}
 }
