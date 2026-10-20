@@ -3,6 +3,7 @@ package badge
 import (
 	"context"
 	"fmt"
+	"peekaping/internal/legacyid"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_tls_info"
@@ -22,6 +23,8 @@ type Service interface {
 	GenerateResponseBadge(ctx context.Context, monitorID string, options *BadgeOptions) (string, error)
 
 	// Helper methods
+	// ResolveMonitorID returns the ID of the monitor that a badge URL names
+	ResolveMonitorID(ctx context.Context, id string) string
 	GetMonitorBadgeData(ctx context.Context, monitorID string) (*MonitorBadgeData, error)
 	IsMonitorPublic(ctx context.Context, monitorID string) (bool, error)
 }
@@ -61,6 +64,27 @@ func getLabel(label, defaultLabel string) string {
 		return defaultLabel
 	}
 	return label
+}
+
+// ResolveMonitorID returns the ID of the monitor that a badge URL names. A MongoDB
+// install that was imported into SQL (`bun db import-mongo`) keeps its badge URLs,
+// which carry the monitor's ObjectID, while the monitor's row has the UUID that
+// ObjectID maps to. So a 24-hex ID that names no monitor is mapped to that UUID,
+// if a monitor has it. Any other ID is returned as it is.
+func (s *ServiceImpl) ResolveMonitorID(ctx context.Context, id string) string {
+	mapped, ok := legacyid.FromObjectID(id)
+	if !ok {
+		return id
+	}
+	// The lookup of the ObjectID may fail instead of finding nothing: PostgreSQL
+	// rejects it as a UUID. A MongoDB install finds its monitor here and stops.
+	if found, err := s.monitorService.FindByID(ctx, id); err == nil && found != nil {
+		return id
+	}
+	if found, err := s.monitorService.FindByID(ctx, mapped); err == nil && found != nil {
+		return mapped
+	}
+	return id
 }
 
 func (s *ServiceImpl) IsMonitorPublic(ctx context.Context, monitorID string) (bool, error) {

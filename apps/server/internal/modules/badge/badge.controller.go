@@ -94,6 +94,7 @@ func (c *Controller) GetStatusBadge(ctx context.Context, input *GetStatusBadgeIn
 	if monitorID == "" {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Monitor ID is required"))
 	}
+	monitorID = c.service.ResolveMonitorID(ctx, monitorID)
 
 	// Check if monitor is public (published on a status page)
 	isPublic, err := c.service.IsMonitorPublic(ctx, monitorID)
@@ -120,6 +121,7 @@ func (c *Controller) GetUptimeBadge(ctx context.Context, input *GetUptimeBadgeIn
 	if monitorID == "" {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Monitor ID is required"))
 	}
+	monitorID = c.service.ResolveMonitorID(ctx, monitorID)
 
 	durationStr := r.PathValue("duration")
 	duration, err := strconv.Atoi(durationStr)
@@ -153,6 +155,7 @@ func (c *Controller) GetPingBadge(ctx context.Context, input *GetPingBadgeInput)
 	if monitorID == "" {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Monitor ID is required"))
 	}
+	monitorID = c.service.ResolveMonitorID(ctx, monitorID)
 
 	durationStr := r.PathValue("duration")
 	duration, err := strconv.Atoi(durationStr)
@@ -185,6 +188,7 @@ func (c *Controller) GetCertExpBadge(ctx context.Context, input *GetCertExpBadge
 	if monitorID == "" {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Monitor ID is required"))
 	}
+	monitorID = c.service.ResolveMonitorID(ctx, monitorID)
 
 	// Check if monitor is public
 	isPublic, err := c.service.IsMonitorPublic(ctx, monitorID)
@@ -211,6 +215,7 @@ func (c *Controller) GetResponseBadge(ctx context.Context, input *GetResponseBad
 	if monitorID == "" {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Monitor ID is required"))
 	}
+	monitorID = c.service.ResolveMonitorID(ctx, monitorID)
 
 	// Check if monitor is public
 	isPublic, err := c.service.IsMonitorPublic(ctx, monitorID)

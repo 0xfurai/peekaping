@@ -1,6 +1,7 @@
 package apitest
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"regexp"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/uptrace/bun"
 )
 
 var badgeTitle = regexp.MustCompile(`<title>(.*?)</title>`)
@@ -51,6 +53,56 @@ func TestBadges_ServeMonitorOnPublishedPage(t *testing.T) {
 			assertBadge(t, a.request(t, http.MethodGet, path, nil), title)
 		})
 	}
+}
+
+// A badge URL made on a MongoDB install names its monitor by ObjectID. After the
+// install is imported, the monitor's row has the UUID that ObjectID maps to.
+func TestBadges_ServeImportedMonitorByObjectID(t *testing.T) {
+	a := newAppWithAdmin(t)
+	monitorID := a.createMonitor(t, "Checkout", "checkout-push-token")
+	a.createStatusPage(t, statusPage{slug: "shop", published: true, monitors: []string{monitorID}})
+	// The UUID computed outside Go for this ObjectID
+	const objectID, importedID = "507f1f77bcf86cd799439011", "2ec0f307-6408-57cd-b5a8-08c55d4ab445"
+	a.rekeyMonitor(t, monitorID, importedID)
+
+	for _, id := range []string{objectID, importedID} {
+		for path, title := range badgePaths(id) {
+			t.Run(path, func(t *testing.T) {
+				assertBadge(t, a.request(t, http.MethodGet, path, nil), title)
+			})
+		}
+	}
+
+	// An ObjectID that maps to no monitor is as missing as any other ID
+	for path := range badgePaths("ffffffffffffffffffffffff") {
+		w := a.request(t, http.MethodGet, path, nil)
+		assert.Equal(t, http.StatusNotFound, w.Code, path)
+	}
+}
+
+// rekeyMonitor gives a monitor and its status page links another ID, the way
+// the import writes an ObjectID's UUID.
+func (a *app) rekeyMonitor(t *testing.T, from, to string) {
+	t.Helper()
+	require.NoError(t, a.container.Invoke(func(db *bun.DB) error {
+		ctx := context.Background()
+		conn, err := db.Conn(ctx)
+		if err != nil {
+			return err
+		}
+		defer conn.Close()
+		// The tables reference the monitor, so its ID changes in both at once
+		if _, err := conn.ExecContext(ctx, "PRAGMA foreign_keys=OFF"); err != nil {
+			return err
+		}
+		for table, column := range map[string]string{"monitors": "id", "monitor_status_pages": "monitor_id"} {
+			if _, err := conn.ExecContext(ctx, "UPDATE "+table+" SET "+column+" = ? WHERE "+column+" = ?", to, from); err != nil {
+				return err
+			}
+		}
+		_, err = conn.ExecContext(ctx, "PRAGMA foreign_keys=ON")
+		return err
+	}))
 }
 
 func TestBadges_StatusStaysDownAfterTheMonitorIsEdited(t *testing.T) {
