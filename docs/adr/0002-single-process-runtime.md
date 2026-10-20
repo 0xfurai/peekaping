@@ -37,7 +37,7 @@ We rejected subcommands (`peekaping api|worker|…`). Nobody needs them while th
 | Stale state | `stale.Store` on a Redis hash, written by the watchdog, read by the api | in-memory `stale.Store` |
 | Leadership | Redis `SET NX` lock | none: the one process is always the leader |
 
-- **Event bus.** In-memory is a 1:1 replacement, because today's bus already gives no more than that. Since #83 the bus has typed topics (`events.Topic[T]`) and one dispatcher shared by every transport, so a handler gets the same `T` from Redis or from memory, in the same order. One difference for #25: handlers share one payload value instead of decoding their own copy, so they must not change it.
+- **Event bus.** In-memory is a 1:1 replacement, because today's bus already gives no more than that. Since PP-83 the bus has typed topics (`events.Topic[T]`) and one dispatcher shared by every transport, so a handler gets the same `T` from Redis or from memory, in the same order. One difference for PP-25: handlers share one payload value instead of decoding their own copy, so they must not change it.
 - **Queue.** Single mode uses no asynq. Two narrow interfaces replace the two hops: "run a check" and "ingest a result". The cluster implementations enqueue exactly as today. The single implementations call in process. Today the worker, the ingester and the push endpoint each declare their own copy of the result payload and agree only through JSON; a direct call needs one shared type. We rejected an in-memory `queue.Service`. It has 13 methods and would have to fake task ID dedupe, unique TTLs and task cancelling to serve two hops.
 - **Leadership.** Single mode has no election. The one process is always the leader. Cluster mode keeps the Redis election.
 - **Stale state.** The watchdog runs in the process and writes the in-memory store, and the health endpoint reads it. To get a stale monitor checked it calls `RunNow(monitorID)` on the scheduler. Today it calls the producer's `scheduleMonitor` with run-now set.
@@ -108,7 +108,7 @@ We rejected `go:embed`: it ties `go build` and the Go tests to a bun build of th
 
 Waiting tickets:
 
-- **PP-25** (in-memory event bus): builds the bus. Handlers don't block publishers, a panic in one doesn't stop the others, payloads are shared values. It implements the typed bus from #83.
+- **PP-25** (in-memory event bus): builds the bus. Handlers don't block publishers, a panic in one doesn't stop the others, payloads are shared values. It implements the typed bus from PP-83.
 - **PP-26** (scheduler and pool): the timers, the pool and its size setting, the per-monitor lock, `RunNow`, the in-memory `stale.Store`, and the single implementations of "run a check" and "ingest a result". It keeps today's timing: first check right away, later checks on the next multiple of the interval, and no immediate check after an edit for push monitors. It decides whether to keep the 30-second reconcile of the schedule against the database.
 - **PP-27** (`peekaping` binary): `cmd/peekaping`, the shared registration and the cluster implementations of the two interfaces, checked `Provide` errors in every binary, the `REDIS_*` and `DB_TYPE` rules, `WEB_DIR` and `/env.js`, where `/metrics` is served, and a single-mode note in the architecture docs that call `REDIS_HOST` required.
 - **PP-28** (image): keeps the names, port 8383, volume and variables, drops Redis and Caddy, and keeps the PostgreSQL bundle's PostgreSQL running. It updates the self-hosting pages and says in the release notes that a custom Caddyfile no longer works.
