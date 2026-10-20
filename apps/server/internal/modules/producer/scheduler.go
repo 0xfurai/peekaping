@@ -2,11 +2,8 @@ package producer
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
-
-	"peekaping/internal/modules/queue"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -403,7 +400,7 @@ func (p *Producer) UpdateMonitor(ctx context.Context, monitorID string) error {
 	}
 
 	// A queued check carries the config from before this update
-	p.purgeHealthCheckTask(ctx, monitorID)
+	p.runner.Cancel(ctx, monitorID)
 
 	if !mon.Active {
 		// If monitor is no longer active, unschedule it
@@ -424,38 +421,6 @@ func (p *Producer) UpdateMonitor(ctx context.Context, monitorID string) error {
 
 // RemoveMonitor removes a monitor from the schedule
 func (p *Producer) RemoveMonitor(ctx context.Context, monitorID string) error {
-	p.purgeHealthCheckTask(ctx, monitorID)
+	p.runner.Cancel(ctx, monitorID)
 	return p.UnscheduleMonitor(ctx, monitorID)
-}
-
-// purgeHealthCheckTask removes a monitor's queued health check and cancels a
-// running one, so that no result of the old config is recorded and the next
-// check runs with the monitor's current config.
-func (p *Producer) purgeHealthCheckTask(ctx context.Context, monitorID string) {
-	taskID := healthCheckTaskID(monitorID)
-	task, err := p.queueService.GetTaskInfo(ctx, healthCheckQueue, taskID)
-	if errors.Is(err, queue.ErrTaskNotFound) {
-		return
-	}
-	if err != nil {
-		p.logger.Warnw("Failed to look up queued health check", "task_id", taskID, "error", err)
-		return
-	}
-	if task.State != queue.TaskStateActive {
-		err := p.queueService.DeleteTask(ctx, healthCheckQueue, taskID)
-		if err == nil || errors.Is(err, queue.ErrTaskNotFound) {
-			return
-		}
-		// A worker may have picked the task up since the lookup
-		task, lookupErr := p.queueService.GetTaskInfo(ctx, healthCheckQueue, taskID)
-		if lookupErr != nil || task.State != queue.TaskStateActive {
-			p.logger.Warnw("Failed to purge queued health check", "task_id", taskID, "error", err)
-			return
-		}
-	}
-	// The worker drops the result of a cancelled check, and the task it leaves
-	// archived is replaced by the next enqueue
-	if err := p.queueService.CancelTask(ctx, taskID); err != nil {
-		p.logger.Warnw("Failed to cancel running health check", "task_id", taskID, "error", err)
-	}
 }

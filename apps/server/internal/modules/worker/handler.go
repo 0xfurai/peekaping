@@ -5,12 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/healthcheck/executor"
+	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/proxy"
-	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/shared"
 	"time"
 
@@ -21,8 +20,6 @@ import (
 const (
 	// TaskTypeHealthCheck is the task type for health check tasks
 	TaskTypeHealthCheck = "monitor:healthcheck"
-	// TaskTypeIngester is the task type for ingesting health check results
-	TaskTypeIngester = "monitor:ingest"
 )
 
 // ingesterEnqueueGrace is the time left after a check gives up for its result
@@ -65,46 +62,27 @@ type HealthCheckTaskPayload struct {
 	CheckCertExpiry    bool                   `json:"check_cert_expiry"`
 }
 
-// IngesterTaskPayload is the payload for ingester tasks
-type IngesterTaskPayload struct {
-	MonitorID          string               `json:"monitor_id"`
-	MonitorName        string               `json:"monitor_name"`
-	MonitorType        string               `json:"monitor_type"`
-	MonitorInterval    int                  `json:"monitor_interval"`
-	MonitorTimeout     int                  `json:"monitor_timeout"`
-	MonitorMaxRetries  int                  `json:"monitor_max_retries"`
-	MonitorRetryInt    int                  `json:"monitor_retry_interval"`
-	MonitorResendInt   int                  `json:"monitor_resend_interval"`
-	MonitorConfig      string               `json:"monitor_config"`
-	Status             shared.MonitorStatus `json:"status"`
-	Message            string               `json:"message"`
-	PingMs             int                  `json:"ping_ms"`
-	StartTime          time.Time            `json:"start_time"`
-	EndTime            time.Time            `json:"end_time"`
-	IsUnderMaintenance bool                 `json:"is_under_maintenance"`
-	TLSInfo            *certificate.TLSInfo `json:"tls_info,omitempty"`
-	CheckCertExpiry    bool                 `json:"check_cert_expiry"`
-}
-
 // HealthCheckTaskHandler handles health check tasks from the queue
 type HealthCheckTaskHandler struct {
 	execRegistry       *executor.ExecutorRegistry
 	healthCheckService *healthcheck.HealthCheckSupervisor
-	queueService       queue.Service
+	ingesterService    ingester.Service
 	logger             *zap.SugaredLogger
 }
 
-// NewHealthCheckTaskHandler creates a new health check task handler
+// NewHealthCheckTaskHandler creates a new health check task handler. The checks' results go to
+// the ingester service, which in cluster mode enqueues them for the ingester
+// (ingester.NewQueueService).
 func NewHealthCheckTaskHandler(
 	execRegistry *executor.ExecutorRegistry,
 	healthCheckService *healthcheck.HealthCheckSupervisor,
-	queueService queue.Service,
+	ingesterService ingester.Service,
 	logger *zap.SugaredLogger,
 ) *HealthCheckTaskHandler {
 	return &HealthCheckTaskHandler{
 		execRegistry:       execRegistry,
 		healthCheckService: healthCheckService,
-		queueService:       queueService,
+		ingesterService:    ingesterService,
 		logger:             logger.With("component", "healthcheck_handler"),
 	}
 }
@@ -209,23 +187,7 @@ func (h *HealthCheckTaskHandler) ProcessTask(ctx context.Context, task *asynq.Ta
 	)
 
 	// Enqueue the result to the ingester queue
-	// The conversion keeps the payload and ingester.Result from drifting apart: it only compiles
-	// while they have the same fields
-	ingesterPayload := IngesterTaskPayload(*tickResult.IngestResult(payload.CheckCertExpiry))
-
-	opts := &queue.EnqueueOptions{
-		Queue:     "ingester",
-		MaxRetry:  3,
-		Timeout:   2 * time.Minute,
-		Retention: 1 * time.Hour,
-	}
-
-	// Use EnqueueUnique to prevent duplicate ingester tasks
-	// The unique key includes monitor ID and start time to ensure each health check result is processed only once
-	uniqueKey := fmt.Sprintf("ingest:%s:%d", m.ID, tickResult.ExecutionResult.StartTime.UnixNano())
-	ttl := 1 * time.Second // TTL to prevent duplicates during processing
-
-	_, err := h.queueService.EnqueueUnique(ctx, TaskTypeIngester, ingesterPayload, uniqueKey, ttl, opts)
+	err := h.ingesterService.Ingest(ctx, tickResult.IngestResult(payload.CheckCertExpiry))
 	if err != nil {
 		h.logger.Errorw("Failed to enqueue ingester task",
 			"monitor_id", payload.MonitorID,

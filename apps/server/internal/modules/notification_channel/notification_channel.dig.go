@@ -7,10 +7,9 @@ import (
 	"go.uber.org/dig"
 )
 
-func RegisterDependencies(container *dig.Container, cfg *config.Config) {
-	utils.RegisterRepositoryByDBType(container, cfg, NewSQLRepository, NewMongoRepository)
-	container.Provide(NewService)
-	container.Provide(NewController)
-	container.Provide(NewRoute)
-	container.Provide(NewNotificationEventListener)
+func RegisterDependencies(container *dig.Container, cfg *config.Config) error {
+	if err := utils.RegisterRepositoryByDBType(container, cfg, NewSQLRepository, NewMongoRepository); err != nil {
+		return err
+	}
+	return utils.Provide(container, NewService, NewController, NewRoute, NewNotificationEventListener)
 }
