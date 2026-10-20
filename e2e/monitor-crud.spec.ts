@@ -31,6 +31,17 @@ const monitorForms: Record<string, MonitorForm> = {
   HTTP: {
     inputs: { url: targetURL('monitor-crud') },
   },
+  'HTTP mTLS (no CA)': {
+    // The CA is left empty on purpose: it is optional, and the monitor then
+    // verifies the server against the system's trusted CAs (PP-217). The server
+    // only checks that the certificate and key are not empty when it saves them.
+    selects: { 'Authentication Method': 'mTLS' },
+    inputs: {
+      url: targetURL('monitor-crud-mtls'),
+      'authentication.tlsCert': 'placeholder certificate',
+      'authentication.tlsKey': 'placeholder key',
+    },
+  },
   TCP: {
     option: 'TCP Port Monitor',
     inputs: { host: targetHost, port: targetPort },

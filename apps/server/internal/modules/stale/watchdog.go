@@ -191,13 +191,13 @@ func (w *Watchdog) checkStaleMonitor(ctx context.Context, mon *shared.Monitor, n
 			return err
 		}
 		if entry.Notified {
-			w.publishStale(events.MonitorStaleRecovered, mon, entry.Since)
+			w.publishStale(ctx, MonitorStaleRecovered, mon, entry.Since)
 		}
 		return nil
 	}
 
 	if !wasStale {
-		w.logger.Warnw("Monitor has not been checked in too long, enqueueing a check",
+		w.logger.Warnw("Monitor has not been checked in too long, checking it again",
 			"monitor_id", mon.ID,
 			"monitor_name", mon.Name,
 			"last_checked_at", since)
@@ -207,11 +207,11 @@ func (w *Watchdog) checkStaleMonitor(ctx context.Context, mon *shared.Monitor, n
 		return w.store.Put(ctx, Entry{MonitorID: mon.ID, Since: since, DetectedAt: now})
 	}
 
-	// Give the re-enqueued check the time it's allowed before notifying
+	// Give that check the time it's allowed before notifying
 	if entry.Notified || now.Sub(entry.DetectedAt) < w.checkTimeout(mon.Timeout) {
 		return nil
 	}
-	w.logger.Warnw("Monitor is still not checked after a re-enqueue, notifying",
+	w.logger.Warnw("Monitor is still not checked after checking it again, notifying",
 		"monitor_id", mon.ID,
 		"monitor_name", mon.Name,
 		"last_checked_at", entry.Since)
@@ -219,7 +219,7 @@ func (w *Watchdog) checkStaleMonitor(ctx context.Context, mon *shared.Monitor, n
 	if err := w.store.Put(ctx, entry); err != nil {
 		return err
 	}
-	w.publishStale(events.MonitorStale, mon, entry.Since)
+	w.publishStale(ctx, MonitorStale, mon, entry.Since)
 	return nil
 }
 
@@ -235,9 +235,8 @@ func (w *Watchdog) latestHeartbeatAt(ctx context.Context, monitorID string) (tim
 	return latest[0].Time.UTC(), nil
 }
 
-func (w *Watchdog) publishStale(eventType events.EventType, mon *shared.Monitor, since time.Time) {
-	w.eventBus.Publish(events.Event{
-		Type:    eventType,
-		Payload: &Event{MonitorID: mon.ID, MonitorName: mon.Name, Since: since},
-	})
+func (w *Watchdog) publishStale(ctx context.Context, topic events.Topic[Event], mon *shared.Monitor, since time.Time) {
+	if err := events.Publish(ctx, w.eventBus, topic, Event{MonitorID: mon.ID, MonitorName: mon.Name, Since: since}); err != nil {
+		w.logger.Errorw("Failed to publish stale monitor event", "topic", topic.Name(), "monitor_id", mon.ID, "error", err)
+	}
 }

@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "หัวข้อ Authorization",
+          "ca": "CA (ไม่บังคับ)",
+          "ca_description": "ปล่อยว่างเพื่อตรวจสอบใบรับรองของเซิร์ฟเวอร์กับ CA ที่ระบบเชื่อถือ",
           "certificate": "ใบรับรอง",
           "certificate_placeholder": "ใบรับรอง",
           "client_id": "รหัสไคลเอนต์",

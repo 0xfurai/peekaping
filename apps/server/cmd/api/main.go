@@ -12,7 +12,6 @@ import (
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/cleanup"
 	"peekaping/internal/modules/events"
-	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/metrics"
 	"peekaping/internal/modules/monitor"
@@ -23,6 +22,7 @@ import (
 	"peekaping/internal/modules/stats"
 	"peekaping/internal/utils"
 	"syscall"
+	"time"
 	_ "time/tzdata" // embed the zone database so TZ works in images without tzdata
 
 	"go.uber.org/dig"
@@ -47,15 +47,6 @@ func main() {
 	internalCfg := cfg.ToInternalConfig()
 
 	if err := internal.RegisterAPIDependencies(container, internalCfg); err != nil {
-		log.Fatal(err)
-	}
-
-	// Start the event healthcheck listener
-	err = container.Invoke(func(listener *healthcheck.EventListener, eventBus events.EventBus) {
-		listener.Start(eventBus)
-	})
-
-	if err != nil {
 		log.Fatal(err)
 	}
 
@@ -177,10 +168,12 @@ func main() {
 		logger.Info("Shutdown signal received, starting graceful shutdown...")
 		stopMetrics()
 		stopRepair()
-		// Close event bus
-		if err := eventBus.Close(); err != nil {
+		// Close event bus: queued events get a few seconds to finish
+		closeCtx, cancelClose := context.WithTimeout(context.Background(), 10*time.Second)
+		if err := eventBus.Close(closeCtx); err != nil {
 			logger.Errorw("Failed to close event bus", "error", err)
 		}
+		cancelClose()
 
 		// Perform graceful database shutdown
 		if err := infra.GracefulDatabaseShutdown(container, internalCfg, logger); err != nil {

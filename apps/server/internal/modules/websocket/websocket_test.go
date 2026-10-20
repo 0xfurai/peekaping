@@ -12,7 +12,6 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -20,6 +19,7 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/events/eventstest"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/websocket"
@@ -39,39 +39,15 @@ const (
 	wait     = 3 * time.Second
 )
 
-// fakeBus delivers published events to its subscribers synchronously.
-type fakeBus struct {
-	mu       sync.Mutex
-	handlers map[events.EventType][]events.EventHandler
-}
-
-func (b *fakeBus) Subscribe(eventType events.EventType, handler events.EventHandler) {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-	if b.handlers == nil {
-		b.handlers = map[events.EventType][]events.EventHandler{}
-	}
-	b.handlers[eventType] = append(b.handlers[eventType], handler)
-}
-
-func (b *fakeBus) Publish(event events.Event) {
-	b.mu.Lock()
-	handlers := append([]events.EventHandler(nil), b.handlers[event.Type]...)
-	b.mu.Unlock()
-	for _, handler := range handlers {
-		handler(event)
-	}
-}
-
-func (b *fakeBus) Close() error { return nil }
-
-func (b *fakeBus) heartbeat(monitorID, msg string) {
-	b.Publish(events.Event{Type: events.HeartbeatEvent, Payload: &heartbeat.Model{MonitorID: monitorID, Msg: msg}})
+// publishHeartbeat publishes a heartbeat the way the ingester does.
+func publishHeartbeat(t *testing.T, bus *eventstest.Bus, monitorID, msg string) {
+	t.Helper()
+	assert.NoError(t, events.Publish(context.Background(), bus, events.HeartbeatEvent, heartbeat.Model{MonitorID: monitorID, Msg: msg}))
 }
 
 type harness struct {
 	url    string
-	bus    *fakeBus
+	bus    *eventstest.Bus
 	tokens *auth.TokenMaker
 }
 
@@ -91,7 +67,7 @@ func newHarness(t *testing.T) *harness {
 	settings := setting.NewService(setting.NewSQLRepository(db), logger)
 	require.NoError(t, settings.InitializeSettings(ctx))
 	tokens := auth.NewTokenMaker(settings, logger)
-	bus := &fakeBus{}
+	bus := eventstest.NewBus()
 	server, err := websocket.NewServer(&config.Config{}, bus, tokens, logger)
 	require.NoError(t, err)
 	srv := httptest.NewServer(server)
@@ -248,7 +224,7 @@ func (c *client) until(t *testing.T, msg string) []event {
 }
 
 // join enters a room and waits until it delivers.
-func (c *client) join(t *testing.T, bus *fakeBus, room, monitorID string) {
+func (c *client) join(t *testing.T, bus *eventstest.Bus, room, monitorID string) {
 	t.Helper()
 	c.emit(t, "join_room", room)
 	c.waitUntilJoined(t, bus, room, monitorID)
@@ -257,12 +233,12 @@ func (c *client) join(t *testing.T, bus *fakeBus, room, monitorID string) {
 // waitUntilJoined publishes test heartbeats for monitorID until one arrives.
 // Socket.io runs each event handler in its own goroutine, so the room isn't
 // joined when the POST returns.
-func (c *client) waitUntilJoined(t *testing.T, bus *fakeBus, room, monitorID string) {
+func (c *client) waitUntilJoined(t *testing.T, bus *eventstest.Bus, room, monitorID string) {
 	t.Helper()
 	msg := "joined " + room
 	deadline := time.Now().Add(wait)
 	for {
-		bus.heartbeat(monitorID, msg)
+		publishHeartbeat(t, bus, monitorID, msg)
 		select {
 		case packet, ok := <-c.packets:
 			require.True(t, ok, "session closed")
@@ -306,8 +282,8 @@ func TestMonitorRoomGetsOnlyThatMonitorsHeartbeats(t *testing.T) {
 	c := h.connect(t)
 	c.join(t, h.bus, "monitor:"+monitorA, monitorA)
 
-	h.bus.heartbeat(monitorB, "b-1")
-	h.bus.heartbeat(monitorA, "a-1")
+	publishHeartbeat(t, h.bus, monitorB, "b-1")
+	publishHeartbeat(t, h.bus, monitorA, "a-1")
 
 	seen := c.until(t, "a-1")
 	assert.NotContains(t, messages(seen), "b-1")
@@ -321,8 +297,8 @@ func TestAllRoomGetsEveryHeartbeat(t *testing.T) {
 	c := h.connect(t)
 	c.join(t, h.bus, "monitor:all", monitorA)
 
-	h.bus.heartbeat(monitorB, "b-1")
-	h.bus.heartbeat(monitorA, "a-1")
+	publishHeartbeat(t, h.bus, monitorB, "b-1")
+	publishHeartbeat(t, h.bus, monitorA, "a-1")
 
 	seen := c.until(t, "a-1")
 	byMsg := map[string]event{}
@@ -349,8 +325,8 @@ func TestLeaveRoomStopsDelivery(t *testing.T) {
 	// round.
 	deliversA := func(round int) bool {
 		a, b := fmt.Sprintf("a-%d", round), fmt.Sprintf("b-%d", round)
-		h.bus.heartbeat(monitorA, a)
-		h.bus.heartbeat(monitorB, b)
+		publishHeartbeat(t, h.bus, monitorA, a)
+		publishHeartbeat(t, h.bus, monitorB, b)
 		return slices.Contains(messages(c.until(t, b)), a)
 	}
 	deadline := time.Now().Add(wait)

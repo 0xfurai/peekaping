@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "Autorizace hlavičky",
+          "ca": "CA (volitelný)",
+          "ca_description": "Nechte prázdné pro ověření certifikátu serveru podle důvěryhodných CA systému.",
           "certificate": "Certifikát",
           "certificate_placeholder": "Certifikát",
           "client_id": "ID klienta",

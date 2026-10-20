@@ -82,7 +82,7 @@ fi
 
 # PRs merged since the last release that [Unreleased] doesn't mention
 echo
-echo "Merged since $last, not mentioned in [Unreleased] by PR number or PP key:"
+echo "Merged since $last, not mentioned in [Unreleased] by PR number or ticket key:"
 skipped=0
 unmentioned=0
 # Walk every commit, not the first parent only: a "Merge branch 'main'" that joined a local main
@@ -103,7 +103,8 @@ while IFS='|' read -r sha subject; do
         continue
     fi
     pr=$(printf '%s' "$subject" | sed -n -e 's/.*(#\([0-9][0-9]*\))$/\1/p' -e 's/^Merge pull request #\([0-9][0-9]*\) from .*/\1/p')
-    key=$(printf '%s' "$subject" | grep -oE 'PP-[0-9]+' | head -1 || true)
+    # The ticket key leads the subject (#<n>); older subjects carry PP-<n>
+    key=$(printf '%s' "$subject" | grep -oE '^#[0-9]+|PP-[0-9]+' | head -1 || true)
     if [ -n "$pr" ] && printf '%s\n' "$unreleased" | grep -qE "#$pr([^0-9]|\$)"; then continue; fi
     if [ -n "$key" ] && printf '%s\n' "$unreleased" | grep -qE "$key([^0-9]|\$)"; then continue; fi
     printf '  %s  %s\n' "${sha:0:8}" "$subject"

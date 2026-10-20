@@ -2,7 +2,7 @@
 name: ticket-plan
 description: "Research a ticket, agree a plan with the user, and record it in the ticket."
 disable-model-invocation: true
-argument-hint: "PP-<n>"
+argument-hint: "#<n>"
 ---
 
 # Ticket: plan
@@ -33,4 +33,4 @@ Append the approved plan to the ticket description as a `## Agent plan` section 
 
 Done when: the ticket shows the approved plan.
 
-Run alone, end by telling the user the worktree path and the next step: `/ticket-build` to have Claude implement it, or implement it there yourself and run `/ticket <PP-n> from review`.
+Run alone, end by telling the user the worktree path and the next step: `/ticket-build` to have Claude implement it, or implement it there yourself and run `/ticket #<n> from review`.

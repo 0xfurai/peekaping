@@ -108,9 +108,7 @@ func HTTPConfigStructLevelValidation(sl validator.StructLevel) {
 		if cfg.TlsKey == "" {
 			sl.ReportError(cfg.TlsKey, "TlsKey", "tlsKey", "required_with_auth_mtls", "")
 		}
-		if cfg.TlsCa == "" {
-			sl.ReportError(cfg.TlsCa, "TlsCa", "tlsCa", "required_with_auth_mtls", "")
-		}
+		// TlsCa is optional
 	}
 }
 
@@ -586,9 +584,14 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		if err != nil {
 			return DownResult(fmt.Errorf("invalid mTLS cert/key: %w", err), time.Now().UTC(), time.Now().UTC())
 		}
-		caCertPool := x509.NewCertPool()
-		if ok := caCertPool.AppendCertsFromPEM([]byte(cfg.TlsCa)); !ok {
-			return DownResult(fmt.Errorf("invalid mTLS CA cert"), time.Now().UTC(), time.Now().UTC())
+		// With no CA, RootCAs stays nil and crypto/tls verifies the server
+		// against the host's system roots.
+		var caCertPool *x509.CertPool
+		if strings.TrimSpace(cfg.TlsCa) != "" {
+			caCertPool = x509.NewCertPool()
+			if ok := caCertPool.AppendCertsFromPEM([]byte(cfg.TlsCa)); !ok {
+				return DownResult(fmt.Errorf("invalid mTLS CA cert"), time.Now().UTC(), time.Now().UTC())
+			}
 		}
 		mtlsTransport := &http.Transport{
 			TLSClientConfig: &tls.Config{

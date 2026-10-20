@@ -1,5 +1,6 @@
 import {
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -49,7 +50,7 @@ export const authenticationSchema = z.discriminatedUnion("authMethod", [
     authMethod: z.literal("mtls"),
     tlsCert: z.string().min(1, "Certificate is required"),
     tlsKey: z.string().min(1, "Key is required"),
-    tlsCa: z.string().min(1, "CA is required"),
+    tlsCa: z.string().optional(),
   }),
 ]);
 
@@ -329,10 +330,13 @@ const MTLS = () => {
         name="authentication.tlsCa"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>CA</FormLabel>
+            <FormLabel>{t("monitors.form.http.authentication.ca")}</FormLabel>
             <FormControl>
               <Textarea placeholder="CA" {...field} />
             </FormControl>
+            <FormDescription>
+              {t("monitors.form.http.authentication.ca_description")}
+            </FormDescription>
             <FormMessage />
           </FormItem>
         )}

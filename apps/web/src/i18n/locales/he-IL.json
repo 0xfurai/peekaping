@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "כותרת אימות",
+          "ca": "CA (אופציונלי)",
+          "ca_description": "השאר ריק כדי לאמת את תעודת השרת מול רשויות ה-CA המהימנות של המערכת.",
           "certificate": "תעודה",
           "certificate_placeholder": "תעודה",
           "client_id": "מזהה לקוח",

@@ -3,7 +3,6 @@ package stats
 import (
 	"context"
 	"fmt"
-	"peekaping/internal/infra"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/shared"
 	"time"
@@ -90,19 +89,14 @@ func (s *ServiceImpl) AggregateHeartbeat(ctx context.Context, hb *HeartbeatPaylo
 }
 
 func (s *ServiceImpl) RegisterEventHandlers(eventBus events.EventBus) {
-	eventBus.Subscribe(events.HeartbeatEvent, func(event events.Event) {
-		payload, ok := infra.UnmarshalEventPayload[shared.HeartBeatModel](event)
-		if !ok {
-			s.logger.Warn("Failed to unmarshal heartbeat event payload")
-			return
-		}
+	events.Subscribe(events.NewSubscriber(eventBus, "stats"), events.HeartbeatEvent, func(ctx context.Context, payload shared.HeartBeatModel) {
 		hb := &HeartbeatPayload{
 			MonitorID: payload.MonitorID,
 			Status:    int(payload.Status),
 			Ping:      payload.Ping,
 			Time:      payload.Time.Unix(),
 		}
-		if err := s.AggregateHeartbeat(context.Background(), hb); err != nil {
+		if err := s.AggregateHeartbeat(ctx, hb); err != nil {
 			s.logger.Errorw("Failed to aggregate heartbeat into stats", "monitor_id", hb.MonitorID, "error", err)
 		}
 	})

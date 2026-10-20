@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "رأس المصادقة",
+          "ca": "CA (اختياري)",
+          "ca_description": "اتركه فارغاً للتحقق من شهادة الخادم باستخدام جهات التصديق (CA) الموثوقة في النظام.",
           "certificate": "شهادة",
           "certificate_placeholder": "شهادة",
           "client_id": "معرّف العميل",

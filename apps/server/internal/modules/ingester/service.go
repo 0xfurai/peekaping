@@ -231,17 +231,15 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 
 	// Publish events
 	if isFirstBeat || previousBeat.Status != hb.Status {
-		s.eventBus.Publish(events.Event{
-			Type:    events.MonitorStatusChanged,
-			Payload: dbHb,
-		})
+		if err := events.Publish(ctx, s.eventBus, events.MonitorStatusChanged, *dbHb); err != nil {
+			s.logger.Errorw("Failed to publish monitor status changed event", "monitor_id", dbHb.MonitorID, "error", err)
+		}
 	}
 
 	if shouldNotify {
-		s.eventBus.Publish(events.Event{
-			Type:    events.ImportantHeartbeat,
-			Payload: dbHb,
-		})
+		if err := events.Publish(ctx, s.eventBus, events.ImportantHeartbeat, *dbHb); err != nil {
+			s.logger.Errorw("Failed to publish important heartbeat event", "monitor_id", dbHb.MonitorID, "error", err)
+		}
 	}
 
 	return nil

@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "Godkendelsesheader",
+          "ca": "CA (valgfrit)",
+          "ca_description": "Lad stå tomt for at verificere serverens certifikat mod systemets betroede CA'er.",
           "certificate": "Certifikat",
           "certificate_placeholder": "Certifikat",
           "client_id": "Klient-ID",

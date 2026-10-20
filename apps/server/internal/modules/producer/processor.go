@@ -118,7 +118,7 @@ func (p *Producer) processMonitor(ctx context.Context, monitorID string, nowMs i
 		p.logger.Warnw("Monitor not found, skipping", "monitor_id", monitorID)
 		return 0, nil
 	}
-	if errors.Is(err, check.ErrMonitorInactive) {
+	if errors.Is(err, check.ErrMonitorPaused) {
 		p.logger.Infow("Skipping inactive monitor", "monitor_id", monitorID)
 		return 0, nil
 	}

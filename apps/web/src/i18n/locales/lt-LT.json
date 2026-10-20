@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "Autorizacijos antraštė",
+          "ca": "CA (neprivalomas)",
+          "ca_description": "Palikite tuščią, kad serverio sertifikatas būtų patikrintas naudojant sistemos patikimas CA.",
           "certificate": "Sertifikatas",
           "certificate_placeholder": "Sertifikatas",
           "client_id": "Kliento ID",

@@ -2,7 +2,6 @@ package proxy
 
 import (
 	"context"
-	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/monitor"
 
 	"go.uber.org/dig"
@@ -21,7 +20,6 @@ type Service interface {
 type ServiceImpl struct {
 	repository     Repository
 	monitorService monitor.Service
-	eventBus       events.EventBus
 	logger         *zap.SugaredLogger
 }
 
@@ -29,7 +27,6 @@ type NewServiceParams struct {
 	dig.In
 	Repository     Repository
 	MonitorService monitor.Service
-	EventBus       events.EventBus
 	Logger         *zap.SugaredLogger
 }
 
@@ -37,7 +34,6 @@ func NewService(params NewServiceParams) Service {
 	return &ServiceImpl{
 		repository:     params.Repository,
 		monitorService: params.MonitorService,
-		eventBus:       params.EventBus,
 		logger:         params.Logger.Named("[proxy-service]"),
 	}
 }
@@ -76,13 +72,6 @@ func (mr *ServiceImpl) UpdateFull(ctx context.Context, id string, entity *Create
 		return nil, err
 	}
 
-	if mr.eventBus != nil {
-		mr.eventBus.Publish(events.Event{
-			Type:    events.ProxyUpdated,
-			Payload: updated,
-		})
-	}
-
 	return updated, nil
 }
 
@@ -99,12 +88,6 @@ func (mr *ServiceImpl) UpdatePartial(ctx context.Context, id string, entity *Par
 	if err != nil {
 		return nil, err
 	}
-	if mr.eventBus != nil {
-		mr.eventBus.Publish(events.Event{
-			Type:    events.ProxyUpdated,
-			Payload: updated,
-		})
-	}
 	return updated, nil
 }
 
@@ -113,12 +96,6 @@ func (mr *ServiceImpl) Delete(ctx context.Context, id string) error {
 	err := mr.repository.Delete(ctx, id)
 	if err != nil {
 		return err
-	}
-	if mr.eventBus != nil {
-		mr.eventBus.Publish(events.Event{
-			Type:    events.ProxyDeleted,
-			Payload: id,
-		})
 	}
 	return nil
 }

@@ -334,6 +334,8 @@
         },
         "authentication": {
           "auth_header": "Ceanntásc Údarachta",
+          "ca": "CA (roghnach)",
+          "ca_description": "Fág folamh chun teastas an fhreastalaí a fhíorú i gcoinne CAnna iontaofa an chórais.",
           "certificate": "Teastas",
           "certificate_placeholder": "Teastas",
           "client_id": "ID an Cliant",
