@@ -84,7 +84,8 @@ func RegisterPushEndpoint(
 
 		now := time.Now().UTC()
 
-		// Enqueue to ingester instead of processing directly
+		// The ingester service enqueues the push for the ingester in cluster mode, and ingests it
+		// in order with the monitor's checks in single mode
 		result := &ingester.Result{
 			MonitorID:          monitor.ID,
 			MonitorName:        monitor.Name,
@@ -107,7 +108,7 @@ func RegisterPushEndpoint(
 
 		err = ingesterService.Ingest(ctx, result)
 		if err != nil {
-			logger.Errorw("Failed to enqueue push heartbeat to ingester",
+			logger.Errorw("Failed to ingest push heartbeat",
 				"monitor_id", monitor.ID,
 				"error", err,
 			)
