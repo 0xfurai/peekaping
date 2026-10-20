@@ -42,5 +42,8 @@ COPY scripts/run-migrations.sh .
 # Make both the bun tool and script executable
 RUN chmod +x bun run-migrations.sh
 
+# Run as the same non-root user as the other cluster images
+USER 65532:65532
+
 # Command to run migrations
 CMD ["./run-migrations.sh"]

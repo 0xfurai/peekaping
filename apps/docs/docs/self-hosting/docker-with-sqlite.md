@@ -159,6 +159,16 @@ services:
       retries: 5
       start_period: 5s
 
+  # The Peekaping images run as user 65532. This one-shot service makes the
+  # data folder theirs before the migration starts: Docker creates a missing
+  # ./.data/sqlite as root, and a database from an earlier version belongs to root.
+  data-permissions:
+    image: alpine
+    restart: "no"
+    command: ["chown", "-R", "65532:65532", "/app/data"]
+    volumes:
+      - ./.data/sqlite:/app/data
+
   migrate:
     image: 0xfurai/peekaping-migrate:latest
     restart: "no"
@@ -166,6 +176,9 @@ services:
       - .env
     volumes:
       - ./.data/sqlite:/app/data
+    depends_on:
+      data-permissions:
+        condition: service_completed_successfully
 
   api:
     image: 0xfurai/peekaping-api:latest
