@@ -15,9 +15,11 @@ MongoDB as a storage backend (the database Peekaping keeps its data in) is depre
 The MongoDB monitor type, which checks other MongoDB servers, is not affected.
 :::
 
-## Monolithic mode
+With MongoDB, Peekaping runs in cluster mode only: the API, producer, worker and ingester are separate processes that talk through Redis. Single mode, one `peekaping` process, supports SQLite and PostgreSQL only.
 
-The simplest mode of operation is the monolithic deployment mode. This mode runs all of Peekaping microservice components (db + api + web + gateway) inside a single process as a single Docker image.
+## Bundle image
+
+The `peekaping-bundle-mongo` image runs all of cluster mode in one container: MongoDB, Redis, the API, producer, worker and ingester processes, and Caddy, which serves the web app and the API on port 8383. supervisord starts and watches them.
 
 ```bash
 docker run -d --restart=always \
@@ -29,16 +31,18 @@ docker run -d --restart=always \
   --name peekaping \
   0xfurai/peekaping-bundle-mongo:latest
 ```
-To add custom caddy file add
+To use your own Caddyfile, add:
 ```
 -v ./custom-Caddyfile:/etc/caddy/Caddyfile:ro
 ```
 
-If you need more granular control on system components read [Microservice mode section](#microservice-mode)
+To run each part in its own container, see [Docker Compose](#docker-compose).
 
 The bundle runs Peekaping's api, producer, worker and ingester processes as a non-root user. See [Bundle user and permissions](./bundle-user.md) to set `PUID`/`PGID` and for what Docker and ping monitors need.
 
-## Microservice mode
+## Docker Compose
+
+Here each part of cluster mode runs in its own container: MongoDB, Redis, the API, producer, worker and ingester, the web app, and an nginx gateway on port 8383.
 
 ### Prerequisites
 

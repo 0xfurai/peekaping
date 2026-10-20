@@ -6,9 +6,14 @@ sidebar_position: 1
 
 For the stats storage upgrade, backups and optional disk-space reclamation, see [Upgrading stats storage](./upgrading-stats.md).
 
-## Monolithic mode
+Peekaping runs in one of two modes:
 
-The simplest mode of operation is the monolithic deployment mode. This mode runs all of Peekaping microservice components (db + api + web + gateway) inside a single process as a single Docker image.
+- **[Single mode](#single-mode)**: one container runs one process, `peekaping`, with no Redis. Start here.
+- **[Cluster mode](#cluster-mode)**: the API, producer, worker and ingester run in separate containers and talk through Redis. Use it when one process isn't enough, for example to run several workers.
+
+## Single mode
+
+The `peekaping-bundle-sqlite` image runs Peekaping in single mode. One process, `peekaping`, serves the web app, the API and the websocket on port 8383. It keeps its database in `/app/data/peekaping.db`, so keep `/app/data` on a volume.
 
 ```bash
 docker run -d --restart=always \
@@ -18,16 +23,75 @@ docker run -d --restart=always \
   --name peekaping \
   0xfurai/peekaping-bundle-sqlite:latest
 ```
-To add custom caddy file add
+
+Or with Docker Compose:
+
+```yaml
+services:
+  peekaping:
+    image: 0xfurai/peekaping-bundle-sqlite:latest
+    restart: unless-stopped
+    # peekaping takes up to 30 seconds to shut down cleanly
+    stop_grace_period: 35s
+    ports:
+      - "8383:8383"
+    volumes:
+      - ./.data/sqlite:/app/data
 ```
--v ./custom-Caddyfile:/etc/caddy/Caddyfile:ro
+
+Then open `http://localhost:8383` and create your admin account.
+
+`peekaping` runs as a non-root user. See [Bundle user and permissions](./bundle-user.md) to set `PUID`/`PGID`, to start the container with `--user`, and for what Docker and ping monitors need.
+
+### Settings
+
+The image reads the same environment variables as cluster mode (see the [`.env` file](#env-file) below), with these exceptions:
+
+- `peekaping` always listens on port 8383 in the container. The image ignores `SERVER_PORT`, so a `.env` with `SERVER_PORT=8034` works unchanged. To use another port on the host, change the published port, for example `-p 8080:8383`.
+- The database is always `/app/data/peekaping.db`, whatever `DB_TYPE` and `DB_NAME` say.
+- There is no Redis, so `REDIS_*` variables are ignored.
+- `MODE` defaults to `prod`.
+- Leave `API_URL` unset, so the web app calls the API on its own origin. Set it only if the web app must call an API on another origin.
+
+### Stopping
+
+When it stops, `peekaping` finishes open requests, stops its checks and closes the database. That can take up to 30 seconds, but `docker stop` waits only 10 seconds before it kills the container. Give it more time:
+
+```bash
+docker stop -t 35 peekaping
 ```
 
-If you need more granular control on system components read [Microservice mode section](#microservice-mode)
+In Docker Compose, set `stop_grace_period: 35s`, as above.
 
-The bundle runs Peekaping's api, producer, worker and ingester processes as a non-root user. See [Bundle user and permissions](./bundle-user.md) to set `PUID`/`PGID` and for what Docker and ping monitors need.
+### Reverse proxy and HTTPS
 
-## Microservice mode
+The image serves plain HTTP on port 8383. For HTTPS or your own domain, put a reverse proxy in front of it, such as Caddy, nginx or Traefik. The proxy must pass websocket connections on `/socket.io/`. With Caddy on the same host, this is enough:
+
+```
+status.example.com {
+    reverse_proxy localhost:8383
+}
+```
+
+Set `CLIENT_URL` to the address people open, such as `https://status.example.com`, so links in notifications point there.
+
+The login lockout reads the client's address from the `X-Forwarded-For` header. Have your proxy set that header to the address the request came from, replacing any value the client sent. Caddy does this by default. In nginx, use `proxy_set_header X-Forwarded-For $remote_addr;`, not `$proxy_add_x_forwarded_for`. Don't let clients reach port 8383 past the proxy, because they could send their own `X-Forwarded-For`.
+
+### Upgrading from a bundle with Redis and Caddy
+
+Before single mode, the bundle ran Peekaping's api, producer, worker and ingester processes, Redis and Caddy under supervisord. To upgrade, pull the new image and start it with the same volume. Migrations run at start, as before.
+
+- Redis and its data are gone. Redis held only the schedule and queued checks, and `peekaping` rebuilds them from the database at start.
+- A custom Caddyfile mounted at `/etc/caddy/Caddyfile` no longer works, because the image has no Caddy. Move that setup to a [reverse proxy](#reverse-proxy-and-https) in front of the container.
+- `SERVER_PORT` is ignored, as above.
+- `MODE` from your environment now applies. Before, the image always ran with `prod`.
+- `API_URL` from your environment now reaches the web app. Before, the image always left it empty. Unset it, unless the web app must call an API on another origin.
+- Logs go to the container's output (`docker logs peekaping`). Nothing writes to `/var/log/supervisor` now, so you can drop a volume mounted there.
+- With `METRICS_ENABLED=true`, port 8383 serves `/metrics`, so anyone who can open the web app can read it. See [Prometheus Metrics](../architecture/api-server.md#prometheus-metrics).
+
+## Cluster mode
+
+In cluster mode, the API, producer, worker and ingester run in separate containers and talk through Redis. An nginx gateway serves the web app and the API on port 8383.
 
 ### Prerequisites
 
@@ -58,6 +122,8 @@ DB_NAME=/app/data/peekaping.db
 DB_TYPE=sqlite
 
 # Server Configuration
+# The API's port inside the Docker network. The single-mode image ignores it
+# and always listens on 8383.
 SERVER_PORT=8034
 CLIENT_URL="http://localhost:8383"
 

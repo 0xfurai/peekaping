@@ -231,7 +231,7 @@ func listenICMP(v6 bool) (*icmp.PacketConn, bool, error) {
 	}
 	err := fmt.Errorf("%w: %s: %v, %v", errNoICMPSocket, dgramNetwork, dgramErr, rawErr)
 	if errors.Is(rawErr, os.ErrPermission) {
-		err = fmt.Errorf("%w; allow unprivileged ICMP with the net.ipv4.ping_group_range sysctl, or run the worker as root with the NET_RAW capability", err)
+		err = fmt.Errorf("%w; allow unprivileged ICMP with the net.ipv4.ping_group_range sysctl, or run Peekaping as root with the NET_RAW capability", err)
 	}
 	return nil, false, err
 }
