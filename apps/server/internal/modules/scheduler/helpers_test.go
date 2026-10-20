@@ -33,10 +33,23 @@ type fakeDB struct {
 	certExpiry bool
 	// lastHeartbeats are the push monitors' latest heartbeats
 	lastHeartbeats map[string]*shared.HeartBeatModel
+	// unlisted monitors are left out of the pages of active monitors, as a monitor paused
+	// while the pages are read shifts the next one out of them
+	unlisted map[string]bool
 }
 
 func newFakeDB() *fakeDB {
-	return &fakeDB{byID: map[string]*shared.Monitor{}, lastHeartbeats: map[string]*shared.HeartBeatModel{}}
+	return &fakeDB{
+		byID:           map[string]*shared.Monitor{},
+		lastHeartbeats: map[string]*shared.HeartBeatModel{},
+		unlisted:       map[string]bool{},
+	}
+}
+
+func (db *fakeDB) unlist(id string) {
+	db.mu.Lock()
+	defer db.mu.Unlock()
+	db.unlisted[id] = true
 }
 
 func (db *fakeDB) setLastHeartbeat(hb shared.HeartBeatModel) {
@@ -79,7 +92,7 @@ func (db *fakeDB) FindActivePaginated(_ context.Context, page, limit int) ([]*sh
 	defer db.mu.Unlock()
 	var active []*shared.Monitor
 	for _, m := range db.byID {
-		if m.Active {
+		if m.Active && !db.unlisted[m.ID] {
 			copied := *m
 			active = append(active, &copied)
 		}

@@ -8,6 +8,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
+	"slices"
 	"sync"
 	"time"
 
@@ -147,7 +149,8 @@ func nextAligned(after time.Time, period time.Duration) time.Time {
 
 // Start checks every active monitor right away, then on each next multiple of its check
 // interval. Events that arrive before it starts are ignored: it reads the monitors itself.
-// ctx ends the scheduler like Stop does.
+// From then on it reconciles its timers with the database every reconcile interval. ctx
+// ends the scheduler like Stop does.
 func (s *Scheduler) Start(ctx context.Context) error {
 	s.mu.Lock()
 	if s.ctx != nil {
@@ -158,13 +161,17 @@ func (s *Scheduler) Start(ctx context.Context) error {
 	runCtx := s.ctx
 	s.mu.Unlock()
 
-	s.syncMu.Lock()
-	err := s.scheduleActiveMonitors(runCtx)
-	s.syncMu.Unlock()
-	if err != nil {
+	if err := s.reconcile(runCtx); err != nil {
 		s.Stop()
 		return err
 	}
+
+	s.mu.Lock()
+	if s.running() {
+		s.wg.Add(1)
+		go s.reconcileEvery(runCtx)
+	}
+	s.mu.Unlock()
 
 	s.logger.Info("Scheduler started")
 	return nil
@@ -190,10 +197,41 @@ func (s *Scheduler) Stop() {
 	s.logger.Info("Scheduler stopped")
 }
 
-// scheduleActiveMonitors reads the active monitors and checks each one that has no
-// schedule yet right away
-func (s *Scheduler) scheduleActiveMonitors(ctx context.Context) error {
-	scheduled := 0
+// reconcileEvery reconciles the timers with the database every reconcile interval until
+// ctx is done
+func (s *Scheduler) reconcileEvery(ctx context.Context) {
+	defer s.wg.Done()
+	ticker := time.NewTicker(s.reconcileInterval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			if err := s.reconcile(ctx); err != nil && ctx.Err() == nil {
+				s.logger.Errorw("Failed to reconcile the schedule", "error", err)
+			}
+		}
+	}
+}
+
+// reconciled counts the timers a reconcile changed
+type reconciled struct {
+	added, rescheduled, removed int
+}
+
+// reconcile compares the timers with the active monitors in the database, as the producer's
+// refreshSchedule does, so that a missed event can't leave a monitor unscheduled or a
+// deleted one checked. A monitor without a timer is checked right away. One whose check
+// interval changed is checked next on a multiple of the new interval. One that is no longer
+// active loses its timer, and its running check is cancelled.
+func (s *Scheduler) reconcile(ctx context.Context) error {
+	s.syncMu.Lock()
+	defer s.syncMu.Unlock()
+
+	var counts reconciled
+	listed := make(map[string]bool)
 	for page := 0; ; page++ {
 		monitors, err := s.monitors.FindActivePaginated(ctx, page, pageSize)
 		if err != nil {
@@ -203,16 +241,71 @@ func (s *Scheduler) scheduleActiveMonitors(ctx context.Context) error {
 			if !schedulable(mon) {
 				continue
 			}
-			if s.set(mon, true) {
-				scheduled++
-			}
+			listed[mon.ID] = true
+			s.reconcileMonitor(mon, &counts)
 		}
 		if len(monitors) < pageSize {
 			break
 		}
 	}
-	s.logger.Infow("Scheduled the active monitors", "count", scheduled)
+
+	// A monitor paused or deleted during the scan shifts the pages, so check each scheduled
+	// monitor the scan missed before dropping it
+	s.mu.Lock()
+	scheduled := slices.Collect(maps.Keys(s.schedules))
+	s.mu.Unlock()
+	for _, id := range scheduled {
+		if listed[id] {
+			continue
+		}
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		mon, err := s.monitors.FindByID(ctx, id)
+		if err != nil {
+			s.logger.Errorw("Failed to find monitor", "monitor_id", id, "error", err)
+			continue
+		}
+		if schedulable(mon) {
+			s.reconcileMonitor(mon, &counts)
+			continue
+		}
+		s.unschedule(id)
+		counts.removed++
+	}
+
+	if counts != (reconciled{}) {
+		s.logger.Infow("Reconciled the schedule with the database",
+			"added", counts.added,
+			"rescheduled", counts.rescheduled,
+			"removed", counts.removed)
+	}
 	return nil
+}
+
+// reconcileMonitor gives an active monitor a timer and checks it right away if it has none,
+// or a new timer for the next multiple of its check interval if the interval changed. The
+// caller holds syncMu.
+func (s *Scheduler) reconcileMonitor(mon *shared.Monitor, counts *reconciled) {
+	s.mu.Lock()
+	sc := s.schedules[mon.ID]
+	s.mu.Unlock()
+
+	switch {
+	case sc == nil:
+		if s.set(mon, true) {
+			counts.added++
+		}
+	case sc.interval != checkInterval(mon):
+		if s.set(mon, false) {
+			counts.rescheduled++
+		}
+	}
+}
+
+// checkInterval is the monitor's check interval as a duration
+func checkInterval(mon *shared.Monitor) time.Duration {
+	return time.Duration(mon.Interval) * time.Second
 }
 
 // schedulable reports whether a monitor gets checks: it is active and has a check interval
@@ -232,8 +325,7 @@ func (s *Scheduler) set(mon *shared.Monitor, checkNow bool) bool {
 	if old := s.schedules[mon.ID]; old != nil {
 		old.timer.Stop()
 	}
-	interval := time.Duration(mon.Interval) * time.Second
-	sc := &schedule{interval: interval}
+	sc := &schedule{interval: checkInterval(mon)}
 	s.schedules[mon.ID] = sc
 	s.arm(mon.ID, sc, time.Now())
 
