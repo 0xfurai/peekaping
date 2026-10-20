@@ -47,6 +47,7 @@ func (ic *Controller) FindAll(ctx context.Context, input *FindAllInput) (*httpx.
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
+	redactAll(response)
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", response))
 }
 func (ic *Controller) Create(ctx context.Context, input *CreateInput) (*httpx.Output[utils.ApiResponse[*Model]], error) {
@@ -70,6 +71,7 @@ func (ic *Controller) Create(ctx context.Context, input *CreateInput) (*httpx.Ou
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
+	redactAll([]*Model{createdNotification})
 	return httpx.Reply(http.StatusCreated, utils.NewSuccessResponse("Notification created successfully", createdNotification))
 }
 func (ic *Controller) FindByID(ctx context.Context, input *FindByIDInput) (*httpx.Output[utils.ApiResponse[*Model]], error) {
@@ -86,6 +88,7 @@ func (ic *Controller) FindByID(ctx context.Context, input *FindByIDInput) (*http
 		return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Notification channel not found"))
 	}
 
+	redactAll([]*Model{notification})
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", notification))
 }
 func (ic *Controller) UpdateFull(ctx context.Context, input *UpdateFullInput) (*httpx.Output[utils.ApiResponse[*Model]], error) {
@@ -115,6 +118,7 @@ func (ic *Controller) UpdateFull(ctx context.Context, input *UpdateFullInput) (*
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
+	redactAll([]*Model{updatedNotification})
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("notification updated successfully", updatedNotification))
 }
 func (ic *Controller) UpdatePartial(ctx context.Context, input *UpdatePartialInput) (*httpx.Output[utils.ApiResponse[*Model]], error) {
@@ -161,6 +165,7 @@ func (ic *Controller) UpdatePartial(ctx context.Context, input *UpdatePartialInp
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
+	redactAll([]*Model{updatedNotification})
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("notification updated successfully", updatedNotification))
 }
 func (ic *Controller) Delete(ctx context.Context, input *DeleteInput) (*httpx.Output[utils.ApiResponse[any]], error) {
@@ -229,4 +234,14 @@ func validateConfig(channelType, config string) (NotificationChannelProvider, er
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid config: "+err.Error()))
 	}
 	return integration, nil
+}
+
+// redactAll keeps credentials out of a response, including the ones rows written before
+// secrets had their own column still carry inside config.
+func redactAll(channels []*Model) {
+	for _, channel := range channels {
+		if channel != nil {
+			channel.Config = Redact(channel.Config)
+		}
+	}
 }

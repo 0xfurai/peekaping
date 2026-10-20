@@ -104,6 +104,16 @@ func (m *MockMonitorNotificationService) DeleteByNotificationID(ctx context.Cont
 }
 
 // Helper function to create a test service
+// expectExisting makes the mock answer the read UpdateFull and UpdatePartial do to keep the
+// stored secret when the client leaves it empty.
+func expectExisting(mr *MockRepository, id string) {
+	mr.On("FindByID", mock.Anything, id).Return(&Model{
+		ID:     id,
+		Config: stringPtr(`{"old":true}`),
+		Secret: stringPtr(`{"password":"stored"}`),
+	}, nil).Once()
+}
+
 func createTestService(mockRepo *MockRepository, mockMonitorNotificationService *MockMonitorNotificationService) Service {
 	logger, _ := zap.NewDevelopment()
 	return NewService(mockRepo, mockMonitorNotificationService, logger.Sugar())
@@ -385,6 +395,7 @@ func TestServiceImpl_UpdateFull(t *testing.T) {
 				Config:    "updated-config",
 			},
 			mockSetup: func(mr *MockRepository) {
+				expectExisting(mr, "test-id")
 				mr.On("UpdateFull", mock.Anything, "test-id", mock.MatchedBy(func(model *Model) bool {
 					return model.ID == "test-id" &&
 						model.Name == "Updated Channel" &&
@@ -415,6 +426,7 @@ func TestServiceImpl_UpdateFull(t *testing.T) {
 				Config:    "updated-config",
 			},
 			mockSetup: func(mr *MockRepository) {
+				expectExisting(mr, "test-id")
 				mr.On("UpdateFull", mock.Anything, "test-id", mock.Anything).Return(errors.New("update failed"))
 			},
 			expectedModel: nil,
@@ -532,6 +544,7 @@ func TestServiceImpl_UpdatePartial(t *testing.T) {
 				Config:    stringPtr("partial-config"),
 			},
 			mockSetup: func(mr *MockRepository) {
+				expectExisting(mr, "test-id")
 				mr.On("UpdatePartial", mock.Anything, "test-id", mock.Anything).Return(errors.New("update failed"))
 			},
 			expectedModel: nil,
@@ -548,8 +561,9 @@ func TestServiceImpl_UpdatePartial(t *testing.T) {
 				Config:    stringPtr("partial-config"),
 			},
 			mockSetup: func(mr *MockRepository) {
+				expectExisting(mr, "test-id")
 				mr.On("UpdatePartial", mock.Anything, "test-id", mock.Anything).Return(nil)
-				mr.On("FindByID", mock.Anything, "test-id").Return(nil, errors.New("find failed"))
+				mr.On("FindByID", mock.Anything, "test-id").Return(nil, errors.New("find failed")).Once()
 			},
 			expectedModel: nil,
 			expectedError: errors.New("find failed"),

@@ -6,6 +6,9 @@ type CreateUpdateDto struct {
 	Active    bool   `json:"active"`
 	IsDefault bool   `json:"is_default"`
 	Config    string `json:"config"`
+	// Secret is write-only. Credentials sent inside config are moved here as well, so an
+	// older client keeps working.
+	Secret string `json:"secret"`
 }
 
 type PartialUpdateDto struct {
@@ -14,4 +17,5 @@ type PartialUpdateDto struct {
 	Active    *bool   `json:"active,omitempty"`
 	IsDefault *bool   `json:"is_default,omitempty"`
 	Config    *string `json:"config,omitempty"`
+	Secret    *string `json:"secret,omitempty"`
 }
