@@ -41,6 +41,17 @@ The API server subscribes to Redis pub/sub events and broadcasts them to connect
 | `TZ` | string | Yes | `UTC` | Timezone for the server |
 | `SERVICE_NAME` | string | Yes | `peekaping:api` | Service identifier for logging and monitoring |
 
+### Web App Configuration (single mode)
+
+Only the `peekaping` binary (single mode) reads these. With `WEB_DIR` set, it serves the web app on `SERVER_PORT` beside the API, so one port serves the UI, `/api/*` and `/socket.io/*`.
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `WEB_DIR` | string | No | `""` | Directory of the web app's build, with its `index.html`. Unset, `peekaping` serves the API alone. A directory without `index.html` stops it at startup |
+| `API_URL` | string | No | `""` | Where the web app reaches the API, written to the `/env.js` that `peekaping` generates. Empty means the web app's own origin |
+
+With `WEB_DIR` set, only `/api/*`, `/socket.io/*` and, when `METRICS_ENABLED` is `true`, `/metrics` reach the API. `/docs`, `/swagger/*` and `/health` get the web app instead, so check the health at `/api/v1/health`.
+
 ### Database Configuration
 
 | Variable | Type | Required | Default | Description |
@@ -169,6 +180,8 @@ GET /metrics
 `/metrics` needs no credentials, and it lists the name and type of every active monitor. Scrape it over a private network, and leave `METRICS_ENABLED` off if that information shouldn't be readable by whoever can reach the API port.
 
 The gateway (Caddy in the bundle image, nginx in front of the separate web image) doesn't forward `/metrics`, so it isn't served on the web address. Scrape the API port (`8034` by default) directly, for example `api:8034` on the Docker Compose network or `<release>-api:8034` in Kubernetes. The development Compose files publish that port; the production ones and the bundle image don't, so publish it or run Prometheus on the same network.
+
+In single mode, the `peekaping` binary has one port. With `WEB_DIR` set and `METRICS_ENABLED=true`, it serves `/metrics` there beside the web app, so whoever can open the web app can read it.
 :::
 
 ### How it works

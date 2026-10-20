@@ -40,7 +40,7 @@ const (
 )
 
 // loadConfig loads peekaping's config from the environment, with a SQLite database of its own,
-// changed by env. The REDIS_* variables are unset unless env sets them.
+// changed by env. The REDIS_* variables, WEB_DIR and API_URL are unset unless env sets them.
 func loadConfig(t *testing.T, env map[string]string) *Config {
 	t.Helper()
 	utils.RegisterCustomValidators()
@@ -49,6 +49,8 @@ func loadConfig(t *testing.T, env map[string]string) *Config {
 	t.Setenv("DB_NAME", filepath.Join(t.TempDir(), "peekaping.db"))
 	t.Setenv("MODE", "test")
 	t.Setenv("METRICS_ENABLED", "")
+	t.Setenv("WEB_DIR", "")
+	t.Setenv("API_URL", "")
 	for name, value := range env {
 		t.Setenv(name, value)
 	}
