@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/healthcheck/executor"
 	"peekaping/internal/modules/ingester"
@@ -22,15 +21,14 @@ import (
 	"go.uber.org/zap"
 )
 
-// fakeQueue records results sent to the ingester; ProcessTask uses no other method
-type fakeQueue struct {
-	queue.Service
-	ingested []IngesterTaskPayload
+// fakeIngester records the results sent to the ingester
+type fakeIngester struct {
+	ingested []*ingester.Result
 }
 
-func (q *fakeQueue) EnqueueUnique(_ context.Context, _ string, payload interface{}, _ string, _ time.Duration, _ *queue.EnqueueOptions) (*queue.TaskInfo, error) {
-	q.ingested = append(q.ingested, payload.(IngesterTaskPayload))
-	return &queue.TaskInfo{}, nil
+func (f *fakeIngester) Ingest(_ context.Context, r *ingester.Result) error {
+	f.ingested = append(f.ingested, r)
+	return nil
 }
 
 // enqueued is one unique enqueue, with the payload as the queue writes it
@@ -57,10 +55,10 @@ func (q *recordingQueue) EnqueueUnique(_ context.Context, taskType string, paylo
 	return &queue.TaskInfo{}, nil
 }
 
-func newTestHandler(q queue.Service) *HealthCheckTaskHandler {
+func newTestHandler(ingesterService ingester.Service) *HealthCheckTaskHandler {
 	logger := zap.NewNop().Sugar()
 	registry := executor.NewExecutorRegistry(logger)
-	return NewHealthCheckTaskHandler(registry, healthcheck.NewHealthCheck(nil, registry, logger), q, logger)
+	return NewHealthCheckTaskHandler(registry, healthcheck.NewHealthCheck(nil, registry, logger), ingesterService, logger)
 }
 
 func httpCheckTask(t *testing.T, url string, timeout int) *asynq.Task {
@@ -84,22 +82,22 @@ func TestProcessTask(t *testing.T) {
 	defer hanging.Close()
 
 	t.Run("reports a timed-out check as DOWN without failing the task", func(t *testing.T) {
-		q := &fakeQueue{}
+		results := &fakeIngester{}
 
-		err := newTestHandler(q).ProcessTask(context.Background(), httpCheckTask(t, hanging.URL, 1))
+		err := newTestHandler(results).ProcessTask(context.Background(), httpCheckTask(t, hanging.URL, 1))
 		require.NoError(t, err)
-		require.Len(t, q.ingested, 1)
-		assert.Equal(t, shared.MonitorStatusDown, q.ingested[0].Status)
+		require.Len(t, results.ingested, 1)
+		assert.Equal(t, shared.MonitorStatusDown, results.ingested[0].Status)
 	})
 
 	t.Run("drops the result of a check cancelled by a worker shutdown", func(t *testing.T) {
-		q := &fakeQueue{}
+		results := &fakeIngester{}
 		ctx, cancel := context.WithCancel(context.Background())
 		time.AfterFunc(100*time.Millisecond, cancel)
 
-		err := newTestHandler(q).ProcessTask(ctx, httpCheckTask(t, hanging.URL, 5))
+		err := newTestHandler(results).ProcessTask(ctx, httpCheckTask(t, hanging.URL, 5))
 		assert.ErrorIs(t, err, context.Canceled)
-		assert.Empty(t, q.ingested)
+		assert.Empty(t, results.ingested)
 	})
 }
 
@@ -120,12 +118,12 @@ func TestProcessTask_SendsTheResultWithTheMonitorSettingsToTheIngester(t *testin
 		CheckCertExpiry: true,
 	})
 	require.NoError(t, err)
-	q := &fakeQueue{}
+	results := &fakeIngester{}
 
-	require.NoError(t, newTestHandler(q).ProcessTask(context.Background(), asynq.NewTask(TaskTypeHealthCheck, task)))
+	require.NoError(t, newTestHandler(results).ProcessTask(context.Background(), asynq.NewTask(TaskTypeHealthCheck, task)))
 
-	require.Len(t, q.ingested, 1)
-	got := q.ingested[0]
+	require.Len(t, results.ingested, 1)
+	got := results.ingested[0]
 	assert.Equal(t, "mon-1", got.MonitorID)
 	assert.Equal(t, "Test", got.MonitorName)
 	assert.Equal(t, "http", got.MonitorType)
@@ -164,7 +162,7 @@ func TestProcessTask_EnqueuesTheIngesterTaskClusterModeReads(t *testing.T) {
 	require.NoError(t, err)
 	q := &recordingQueue{}
 
-	require.NoError(t, newTestHandler(q).ProcessTask(context.Background(), asynq.NewTask(TaskTypeHealthCheck, task)))
+	require.NoError(t, newTestHandler(ingester.NewQueueService(q)).ProcessTask(context.Background(), asynq.NewTask(TaskTypeHealthCheck, task)))
 
 	require.Len(t, q.enqueued, 1)
 	got := q.enqueued[0]
@@ -201,36 +199,4 @@ func TestProcessTask_EnqueuesTheIngesterTaskClusterModeReads(t *testing.T) {
 		"is_under_maintenance": false,
 		"check_cert_expiry": true
 	}`, config), string(pinned))
-}
-
-// The scheduler ingests an ingester.Result and the worker enqueues an IngesterTaskPayload, and the
-// ingester decodes the task into a Result. They have to encode alike.
-func TestIngesterTaskPayload_EncodesLikeTheIngestersResult(t *testing.T) {
-	start := time.Date(2026, 10, 17, 12, 0, 0, 0, time.UTC)
-	result := ingester.Result{
-		MonitorID:          "mon-1",
-		MonitorName:        "Test",
-		MonitorType:        "http",
-		MonitorInterval:    60,
-		MonitorTimeout:     48,
-		MonitorMaxRetries:  3,
-		MonitorRetryInt:    30,
-		MonitorResendInt:   5,
-		MonitorConfig:      `{"url":"https://example.com"}`,
-		Status:             shared.MonitorStatusDown,
-		Message:            "503 - Service Unavailable",
-		PingMs:             12,
-		StartTime:          start,
-		EndTime:            start.Add(12 * time.Millisecond),
-		IsUnderMaintenance: true,
-		TLSInfo:            &certificate.TLSInfo{Valid: true},
-		CheckCertExpiry:    true,
-	}
-
-	fromResult, err := json.Marshal(result)
-	require.NoError(t, err)
-	fromPayload, err := json.Marshal(IngesterTaskPayload(result))
-	require.NoError(t, err)
-
-	assert.JSONEq(t, string(fromResult), string(fromPayload))
 }

@@ -15,9 +15,13 @@ import (
 )
 
 // RegisterClusterAPI provides what cmd/api runs: the HTTP API and the websocket, with the
-// stale monitors the producer's watchdog records in Redis
+// stale monitors the producer's watchdog records in Redis. A push to a push URL is enqueued
+// for the ingester.
 func RegisterClusterAPI(container *dig.Container, cfg *config.Config) error {
-	return registerCluster(container, cfg)
+	return errors.Join(
+		registerCluster(container, cfg),
+		utils.Provide(container, ingester.NewPushQueueService),
+	)
 }
 
 // RegisterClusterProducer provides what cmd/producer runs: the producer, which schedules the
@@ -34,7 +38,7 @@ func RegisterClusterProducer(container *dig.Container, cfg *config.Config) error
 func RegisterClusterWorker(container *dig.Container, cfg *config.Config) error {
 	return errors.Join(
 		registerCluster(container, cfg),
-		utils.Provide(container, infra.ProvideAsynqServer),
+		utils.Provide(container, infra.ProvideAsynqServer, ingester.NewQueueService),
 		worker.RegisterDependencies(container),
 	)
 }

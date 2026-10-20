@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"peekaping/internal/httpx"
+	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/queue"
@@ -89,15 +90,14 @@ func (s *pushMonitorService) FindOneByPushToken(_ context.Context, token string)
 	return s.monitor, nil
 }
 
-// capturingQueue records the payload of every unique enqueue.
-type capturingQueue struct {
-	queue.Service
-	payloads []PushIngesterPayload
+// capturingIngester records every result it is asked to ingest.
+type capturingIngester struct {
+	results []*ingester.Result
 }
 
-func (q *capturingQueue) EnqueueUnique(_ context.Context, _ string, payload interface{}, _ string, _ time.Duration, _ *queue.EnqueueOptions) (*queue.TaskInfo, error) {
-	q.payloads = append(q.payloads, payload.(PushIngesterPayload))
-	return &queue.TaskInfo{}, nil
+func (c *capturingIngester) Ingest(_ context.Context, r *ingester.Result) error {
+	c.results = append(c.results, r)
+	return nil
 }
 
 // enqueued is one unique enqueue, with the payload as the queue writes it
@@ -134,19 +134,19 @@ func (noMaintenance) GetMaintenancesByMonitorID(context.Context, string) ([]*mai
 
 func TestPushEndpoint(t *testing.T) {
 
-	push := func(t *testing.T, query string) PushIngesterPayload {
+	push := func(t *testing.T, query string) *ingester.Result {
 		t.Helper()
 		monitors := &pushMonitorService{monitor: &monitor.Model{ID: "mon-1", Type: "push", Active: true, PushToken: "token"}}
-		q := &capturingQueue{}
+		results := &capturingIngester{}
 		router := httpx.NewRouter()
-		RegisterPushEndpoint(router.Group("/api/v1"), monitors, nil, q, noMaintenance{}, zap.NewNop().Sugar())
+		RegisterPushEndpoint(router.Group("/api/v1"), monitors, nil, results, noMaintenance{}, zap.NewNop().Sugar())
 
 		rec := httptest.NewRecorder()
 		router.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/api/v1/push/token?"+query, nil))
 
 		require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
-		require.Len(t, q.payloads, 1)
-		return q.payloads[0]
+		require.Len(t, results.results, 1)
+		return results.results[0]
 	}
 
 	t.Run("URL copied from the UI records an up beat", func(t *testing.T) {
@@ -193,7 +193,7 @@ func TestPushEndpoint_EnqueuesTheIngesterTaskClusterModeReads(t *testing.T) {
 	}}
 	q := &recordingQueue{}
 	router := httpx.NewRouter()
-	RegisterPushEndpoint(router.Group("/api/v1"), monitors, nil, q, noMaintenance{}, zap.NewNop().Sugar())
+	RegisterPushEndpoint(router.Group("/api/v1"), monitors, nil, ingester.NewPushQueueService(q), noMaintenance{}, zap.NewNop().Sugar())
 
 	rec := httptest.NewRecorder()
 	router.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/api/v1/push/token?status=down&msg=disk+full&ping=12", nil))

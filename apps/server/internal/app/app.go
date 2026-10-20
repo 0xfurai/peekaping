@@ -4,9 +4,10 @@
 // routes. A transport then provides how the parts reach each other.
 //
 // Cluster mode's transport is in cluster.go: Redis, the event bus over it, the stale.Store in
-// it, asynq and the leader election. Its RegisterCluster functions build each cluster binary's
-// graph. Single mode's transport goes beside it: the in-memory event bus and stale.Store, the
-// scheduler and its pool, and ingester.NewInOrderService.
+// it, asynq and the leader election, and the cluster side of ADR 0002's seam "ingest a result"
+// (ingester.Service), which enqueues results for the ingester. Its RegisterCluster functions
+// build each cluster binary's graph. Single mode's transport goes beside it: the in-memory
+// event bus and stale.Store, the scheduler and its pool, and ingester.NewInOrderService.
 //
 // Every provide is checked, so a refused one stops startup with an error that names its
 // constructor.
@@ -52,8 +53,8 @@ import (
 
 // Register provides what every binary shares. dig builds a value only when an Invoke needs
 // it, so each binary builds just the part of the graph it runs: the worker, which has no
-// database, never builds a repository. The transport provides the rest, such as the event bus
-// and the stale.Store.
+// database, never builds a repository. The transport provides the rest: the event bus, the
+// stale.Store, and the ingester.Service the push URL ingests through.
 func Register(container *dig.Container, cfg *config.Config) error {
 	err := utils.Provide(container,
 		func() *config.Config { return cfg },
