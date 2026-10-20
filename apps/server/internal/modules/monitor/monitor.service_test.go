@@ -361,6 +361,20 @@ func TestMonitorService_Create(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 
+	t.Run("push token taken from the config when the request has none", func(t *testing.T) {
+		service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
+		var saved *Model
+		mockRepo.On("Create", ctx, mock.Anything).Run(func(args mock.Arguments) {
+			saved = args.Get(1).(*Model)
+		}).Return(&Model{ID: "push123"}, nil).Once()
+
+		_, err := service.Create(ctx, &CreateUpdateDto{Type: "push", Name: "Push", Config: `{"pushToken":"cfgtoken"}`})
+
+		require.NoError(t, err)
+		require.NotNil(t, saved)
+		assert.Equal(t, "cfgtoken", saved.PushToken)
+	})
+
 	t.Run("repository error", func(t *testing.T) {
 		createDto := &CreateUpdateDto{
 			Type: "http",
@@ -451,6 +465,19 @@ func TestMonitorService_UpdateFull(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Same(t, stored, result, "the response is the monitor as stored, with its status and created_at")
 		assert.Equal(t, []shared.Monitor{*stored}, eventstest.Published(bus, events.MonitorUpdated), "the event carries it, too")
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("push token taken from the config when the request has none", func(t *testing.T) {
+		service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
+		mockRepo.On("UpdateFull", ctx, "push123", mock.MatchedBy(func(m *Model) bool {
+			return m.PushToken == "cfgtoken"
+		})).Return(nil)
+		mockRepo.On("FindByID", ctx, "push123").Return(&Model{ID: "push123"}, nil)
+
+		_, err := service.UpdateFull(ctx, "push123", &CreateUpdateDto{Type: "push", Name: "Push", Config: `{"pushToken":"cfgtoken"}`})
+
+		require.NoError(t, err)
 		mockRepo.AssertExpectations(t)
 	})
 
