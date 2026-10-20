@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
@@ -106,6 +107,29 @@ func (p *recordingProvider) sentConfigs() []string {
 	return configs
 }
 
+// sentMessages returns the messages of the notifications the provider sent
+func (p *recordingProvider) sentMessages() []string {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	messages := []string{}
+	for _, n := range p.sent {
+		messages = append(messages, n.message)
+	}
+	return messages
+}
+
+// sentMessagesByChannel returns the messages the provider sent, grouped by the config of the
+// channel they went to
+func (p *recordingProvider) sentMessagesByChannel() map[string][]string {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	byChannel := map[string][]string{}
+	for _, n := range p.sent {
+		byChannel[n.config] = append(byChannel[n.config], n.message)
+	}
+	return byChannel
+}
+
 func registerTestProvider(t *testing.T, channelType string, provider NotificationChannelProvider) {
 	t.Helper()
 	RegisterNotificationChannelProvider(channelType, provider)
@@ -197,6 +221,14 @@ func downHeartbeat(monitorID string) *heartbeat.Model {
 		Msg:       "connection refused",
 		Important: true,
 		Time:      time.Date(2026, 10, 17, 9, 30, 0, 0, time.UTC),
+	}
+}
+
+func staleMonitor(monitorID string) stale.Event {
+	return stale.Event{
+		MonitorID:   monitorID,
+		MonitorName: "Public API",
+		Since:       time.Date(2026, 10, 17, 9, 30, 0, 0, time.UTC),
 	}
 }
 
@@ -605,6 +637,223 @@ func TestListener_LimitsConcurrentSends(t *testing.T) {
 
 	assert.Equal(t, maxConcurrentSends, peak)
 	assert.Len(t, provider.sentConfigs(), channels)
+}
+
+// redisConfig is the config of a cluster binary whose Redis is at addr
+func redisConfig(t *testing.T, addr string) *config.Config {
+	t.Helper()
+	host, port, err := net.SplitHostPort(addr)
+	require.NoError(t, err)
+	return &config.Config{RedisHost: host, RedisPort: port, QueueConcurrency: 4, Timezone: "UTC"}
+}
+
+// newClusterBus returns the event bus of one cluster process, as the app wires it: the Redis
+// event bus on its own client, with the notification topics routed to the notification queue
+func newClusterBus(t *testing.T, cfg *config.Config) *QueuedBus {
+	t.Helper()
+	logger := zap.NewNop().Sugar()
+	client := redis.NewClient(&redis.Options{Addr: net.JoinHostPort(cfg.RedisHost, cfg.RedisPort)})
+	t.Cleanup(func() { _ = client.Close() })
+	asynqClient, err := infra.ProvideAsynqClient(cfg, logger)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = asynqClient.Close() })
+	inspector, err := infra.ProvideAsynqInspector(cfg, logger)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = inspector.Close() })
+
+	bus := NewQueuedBus(infra.NewRedisEventBus(client, logger), infra.ProvideQueueService(asynqClient, inspector, logger))
+	t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		assert.NoError(t, bus.Close(ctx))
+	})
+	return bus
+}
+
+// apiReplica is one cmd/api process: its event bus, and the consumer that takes the
+// notification queue's tasks into it
+type apiReplica struct {
+	bus      *QueuedBus
+	consumer *QueueConsumer
+}
+
+// start makes the replica take notification tasks, until the test ends
+func (r *apiReplica) start(t *testing.T) {
+	t.Helper()
+	require.NoError(t, r.consumer.Start())
+	t.Cleanup(r.consumer.Stop)
+}
+
+// newAPIReplicas builds n api replicas the way cluster mode does: each has its own services,
+// its own Redis event bus and its own notification listener, all over the same Redis. Monitor
+// "mon-1" has a channel of type "test-slack" for each of channelIDs, and the replicas send
+// through whatever provider is registered for that type. The replicas don't take notification
+// tasks yet.
+func newAPIReplicas(t *testing.T, redisAddr string, n int, channelIDs ...string) []*apiReplica {
+	t.Helper()
+	cfg := redisConfig(t, redisAddr)
+	replicas := make([]*apiReplica, n)
+	for i := range replicas {
+		f := newListenerFixture(t)
+		f.addMonitor("mon-1", "Public API")
+		for _, id := range channelIDs {
+			f.attach("mon-1", testChannel(id, "test-slack"))
+		}
+		bus := newClusterBus(t, cfg)
+		f.listener.Subscribe(bus)
+		server, err := infra.ProvideNotificationAsynqServer(cfg, zap.NewNop().Sugar())
+		require.NoError(t, err)
+		replicas[i] = &apiReplica{bus: bus, consumer: NewQueueConsumer(server, bus, zap.NewNop().Sugar())}
+	}
+	return replicas
+}
+
+// startAPIReplicas starts n api replicas that take notification tasks, see newAPIReplicas
+func startAPIReplicas(t *testing.T, redisAddr string, n int, channelIDs ...string) []*apiReplica {
+	t.Helper()
+	replicas := newAPIReplicas(t, redisAddr, n, channelIDs...)
+	for _, replica := range replicas {
+		replica.start(t)
+	}
+	return replicas
+}
+
+const (
+	// settle is how long the provider's send count holds still before settledSends takes it as final
+	settle = 500 * time.Millisecond
+	// asynqPoll is how long asynq waits before it looks at an empty queue again. A window shorter
+	// than this can pass with no replica having polled.
+	asynqPoll = time.Second
+)
+
+// settledSends waits for the provider to send want notifications, then for its send count to
+// hold still for the hold time, and returns the count. Waiting for the count to settle, not for
+// a number, catches replicas that send a moment after the first.
+func settledSends(t *testing.T, provider *recordingProvider, want int, hold time.Duration) int {
+	t.Helper()
+	require.Eventually(t, func() bool { return len(provider.sentConfigs()) >= want }, 5*time.Second, 5*time.Millisecond,
+		"the api replicas sent fewer notifications than expected")
+	count, stableSince := len(provider.sentConfigs()), time.Now()
+	for time.Since(stableSince) < hold {
+		time.Sleep(10 * time.Millisecond)
+		if n := len(provider.sentConfigs()); n != count {
+			count, stableSince = n, time.Now()
+		}
+	}
+	return count
+}
+
+// Redis pub/sub hands a published event to every api replica, so each one's listener would send
+// the notification. The ingester publishes each important heartbeat once, and each of the
+// monitor's channels must get one notification for it: a queue gives the event to one replica.
+func TestNotificationListener_ThreeAPIReplicasSendEachImportantHeartbeatOncePerChannel(t *testing.T) {
+	provider := &recordingProvider{}
+	registerTestProvider(t, "test-slack", provider)
+	redisServer := miniredis.RunT(t)
+	startAPIReplicas(t, redisServer.Addr(), 3, "a", "b")
+	ingester := newClusterBus(t, redisConfig(t, redisServer.Addr()))
+	down, up := downHeartbeat("mon-1"), downHeartbeat("mon-1")
+	down.Msg, up.Msg, up.Status = "went down", "back up", shared.MonitorStatusUp
+
+	require.NoError(t, events.Publish(context.Background(), ingester, events.ImportantHeartbeat, *down))
+	require.NoError(t, events.Publish(context.Background(), ingester, events.ImportantHeartbeat, *up))
+
+	// Two channels, two heartbeats: four notifications. The replicas don't agree on an order.
+	assert.Equal(t, 4, settledSends(t, provider, 4, settle), "notifications sent for a Down and an Up heartbeat to 2 channels, with 3 api replicas")
+	byChannel := provider.sentMessagesByChannel()
+	assert.Len(t, byChannel, 2, "channels that got a notification")
+	assert.ElementsMatch(t, []string{"went down", "back up"}, byChannel[channelConfig("a")], "notifications sent to channel a")
+	assert.ElementsMatch(t, []string{"went down", "back up"}, byChannel[channelConfig("b")], "notifications sent to channel b")
+}
+
+func TestNotificationListener_ThreeAPIReplicasSendACertificateExpiryNotificationOnce(t *testing.T) {
+	provider := &recordingProvider{}
+	registerTestProvider(t, "test-slack", provider)
+	redisServer := miniredis.RunT(t)
+	startAPIReplicas(t, redisServer.Addr(), 3, "a")
+	ingester := newClusterBus(t, redisConfig(t, redisServer.Addr()))
+
+	require.NoError(t, events.Publish(context.Background(), ingester, certificate.CertificateExpiry, *certificateExpiry("mon-1")))
+
+	assert.Equal(t, 1, settledSends(t, provider, 1, settle), "notifications sent for one certificate expiry, with 3 api replicas")
+}
+
+func TestNotificationListener_ThreeAPIReplicasSendAStaleMonitorsNotCheckedSinceNotificationOnce(t *testing.T) {
+	provider := &recordingProvider{}
+	registerTestProvider(t, "test-slack", provider)
+	redisServer := miniredis.RunT(t)
+	startAPIReplicas(t, redisServer.Addr(), 3, "a")
+	producer := newClusterBus(t, redisConfig(t, redisServer.Addr()))
+
+	require.NoError(t, events.Publish(context.Background(), producer, stale.MonitorStale, staleMonitor("mon-1")))
+
+	assert.Equal(t, 1, settledSends(t, provider, 1, settle), "notifications sent for one stale monitor, with 3 api replicas")
+	assert.Equal(t, []string{"Peekaping has not checked Public API since 2026-10-17 09:30:00 UTC"}, provider.sentMessages())
+}
+
+func TestNotificationListener_ThreeAPIReplicasSendAStaleMonitorsCheckingAgainNotificationOnce(t *testing.T) {
+	provider := &recordingProvider{}
+	registerTestProvider(t, "test-slack", provider)
+	redisServer := miniredis.RunT(t)
+	startAPIReplicas(t, redisServer.Addr(), 3, "a")
+	producer := newClusterBus(t, redisConfig(t, redisServer.Addr()))
+
+	require.NoError(t, events.Publish(context.Background(), producer, stale.MonitorStaleRecovered, staleMonitor("mon-1")))
+
+	assert.Equal(t, 1, settledSends(t, provider, 1, settle), "notifications sent for one recovered stale monitor, with 3 api replicas")
+	assert.Equal(t, []string{"Peekaping is checking Public API again. It was not checked from 2026-10-17 09:30:00 UTC"}, provider.sentMessages())
+}
+
+// The queue keeps a notification raised while no api replica runs, which a pub/sub message
+// published to no subscriber would not
+func TestNotificationListener_ANotificationRaisedWithoutAnAPIReplicaIsSentOnceOneStarts(t *testing.T) {
+	provider := &recordingProvider{}
+	registerTestProvider(t, "test-slack", provider)
+	redisServer := miniredis.RunT(t)
+	replicas := newAPIReplicas(t, redisServer.Addr(), 3, "a")
+	ingester := newClusterBus(t, redisConfig(t, redisServer.Addr()))
+
+	require.NoError(t, events.Publish(context.Background(), ingester, events.ImportantHeartbeat, *downHeartbeat("mon-1")))
+	// Longer than asynq's poll of an empty queue, so a send that waits for a poll would show
+	assert.Never(t, func() bool { return len(provider.sentConfigs()) > 0 }, 2*asynqPoll, 10*time.Millisecond,
+		"nothing is sent while no api replica takes tasks")
+	replicas[0].start(t)
+
+	// The count holds still past a further poll, so a second send of the task would show
+	assert.Equal(t, 1, settledSends(t, provider, 1, 2*asynqPoll), "notifications sent once the first api replica started")
+	replicas[1].start(t)
+	replicas[2].start(t)
+	assert.Equal(t, 1, settledSends(t, provider, 1, 2*asynqPoll), "notifications sent once all three api replicas started")
+}
+
+// Only the notification topics go through the queue. The websocket in every api replica pushes
+// each heartbeat to its own clients, so every api replica must get it.
+func TestNotificationListener_EveryAPIReplicaStillGetsAHeartbeat(t *testing.T) {
+	registerTestProvider(t, "test-slack", &recordingProvider{})
+	redisServer := miniredis.RunT(t)
+	replicas := startAPIReplicas(t, redisServer.Addr(), 3, "a")
+	received := make([]chan heartbeat.Model, len(replicas))
+	for i, replica := range replicas {
+		received[i] = make(chan heartbeat.Model, 2)
+		events.Subscribe(events.NewSubscriber(replica.bus, "websocket"), events.HeartbeatEvent, func(_ context.Context, hb heartbeat.Model) {
+			received[i] <- hb
+		})
+	}
+	ingester := newClusterBus(t, redisConfig(t, redisServer.Addr()))
+
+	require.NoError(t, events.Publish(context.Background(), ingester, events.HeartbeatEvent, *downHeartbeat("mon-1")))
+
+	for i := range replicas {
+		select {
+		case hb := <-received[i]:
+			assert.Equal(t, downHeartbeat("mon-1"), &hb, "heartbeat received by api replica %d", i)
+		case <-time.After(5 * time.Second):
+			t.Fatalf("api replica %d got no heartbeat", i)
+		}
+	}
+	for i := range replicas {
+		assert.Empty(t, received[i], "api replica %d got the heartbeat more than once", i)
+	}
 }
 
 func TestEveryChannelTypeHasGoldenRequests(t *testing.T) {

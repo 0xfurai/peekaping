@@ -118,6 +118,42 @@ func ProvideIngesterAsynqServer(cfg *config.Config, logger *zap.SugaredLogger) (
 	return server, nil
 }
 
+// ProvideNotificationAsynqServer creates the api's asynq.Server, which only processes tasks from
+// the "notification" queue: the events the notification listener sends from, which cluster mode
+// queues so that one api replica takes each (see notification_channel.QueuedBus).
+func ProvideNotificationAsynqServer(cfg *config.Config, logger *zap.SugaredLogger) (*asynq.Server, error) {
+	redisOpt := asynq.RedisClientOpt{
+		Addr:     fmt.Sprintf("%s:%s", cfg.RedisHost, cfg.RedisPort),
+		Username: cfg.RedisUsername,
+		Password: cfg.RedisPassword,
+		DB:       cfg.RedisDB,
+	}
+
+	serverCfg := asynq.Config{
+		// A task only hands its event to the api's event bus, which queues it for the listener's
+		// own workers and returns, so a task takes a moment and this is a ceiling the api never
+		// reaches. The setting is the one the docs already list for the api.
+		Concurrency: cfg.QueueConcurrency,
+		Queues: map[string]int{
+			"notification": 1, // Only process the notification queue
+		},
+		ErrorHandler: asynq.ErrorHandlerFunc(func(ctx context.Context, task *asynq.Task, err error) {
+			logger.Errorw("Task processing failed",
+				"type", task.Type(),
+				"payload", string(task.Payload()),
+				"error", err,
+			)
+		}),
+		StrictPriority: false, // We only have one queue, no need for strict priority
+		Logger:         NewAsynqLogger(logger),
+	}
+
+	server := asynq.NewServer(redisOpt, serverCfg)
+
+	logger.Info("Successfully created Asynq server for notifications")
+	return server, nil
+}
+
 // AsynqLogger is an adapter to use zap logger with asynq
 type AsynqLogger struct {
 	logger *zap.SugaredLogger

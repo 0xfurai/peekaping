@@ -5,8 +5,11 @@ import (
 
 	"peekaping/internal/config"
 	"peekaping/internal/infra"
+	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/ingester"
+	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/producer"
+	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/worker"
 	"peekaping/internal/utils"
@@ -16,11 +19,16 @@ import (
 
 // RegisterClusterAPI provides what cmd/api runs: the HTTP API and the websocket, with the
 // stale monitors the producer's watchdog records in Redis. A push to a push URL is enqueued
-// for the ingester.
+// for the ingester. The api takes the notification events from the notification queue, which
+// gives each to one replica, with its own asynq server.
 func RegisterClusterAPI(container *dig.Container, cfg *config.Config) error {
 	return errors.Join(
 		registerCluster(container, cfg),
-		utils.Provide(container, ingester.NewPushQueueService),
+		utils.Provide(container,
+			ingester.NewPushQueueService,
+			infra.ProvideNotificationAsynqServer,
+			notification_channel.NewQueueConsumer,
+		),
 	)
 }
 
@@ -55,9 +63,10 @@ func RegisterClusterIngester(container *dig.Container, cfg *config.Config) error
 }
 
 // registerCluster provides what every cluster binary shares, then cluster mode's transport: the
-// Redis client, the event bus over Redis pub/sub, the stale monitors in a Redis hash, and asynq's
-// client and inspector behind the queue service. The worker and the ingester each add their own
-// asynq server, since they serve different queues.
+// Redis client, the event bus over Redis pub/sub with the notification topics sent through the
+// notification queue, the stale monitors in a Redis hash, and asynq's client and inspector behind
+// the queue service. The api, the worker and the ingester each add their own asynq server, since
+// they serve different queues.
 func registerCluster(container *dig.Container, cfg *config.Config) error {
 	if err := Register(container, cfg); err != nil {
 		return err
@@ -65,9 +74,18 @@ func registerCluster(container *dig.Container, cfg *config.Config) error {
 	return utils.Provide(container,
 		infra.ProvideRedisClient,
 		infra.ProvideRedisEventBus,
+		provideClusterEventBus,
 		stale.ProvideRedisStore,
 		infra.ProvideAsynqClient,
 		infra.ProvideAsynqInspector,
 		infra.ProvideQueueService,
 	)
+}
+
+// provideClusterEventBus provides the Redis event bus with the notification topics sent through
+// the queue, as the events.EventBus every module publishes and subscribes on, and as the
+// QueuedBus the api's QueueConsumer hands the queue's events to
+func provideClusterEventBus(bus *events.Bus, q queue.Service) (events.EventBus, *notification_channel.QueuedBus) {
+	queued := notification_channel.NewQueuedBus(bus, q)
+	return queued, queued
 }

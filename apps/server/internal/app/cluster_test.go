@@ -10,6 +10,7 @@ import (
 	"peekaping/internal"
 	"peekaping/internal/config"
 	"peekaping/internal/modules/auth"
+	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/ingester"
@@ -20,6 +21,8 @@ import (
 	"peekaping/internal/modules/notification_sent_history"
 	"peekaping/internal/modules/producer"
 	"peekaping/internal/modules/setting"
+	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/stats"
 	"peekaping/internal/modules/worker"
 
@@ -83,6 +86,8 @@ func TestRegisterClusterAPI_ResolvesWhatCmdAPIRuns(t *testing.T) {
 		_ monitor.Service,
 		_ *metrics.Collector,
 		_ *internal.Server,
+		_ *asynq.Server,
+		_ *notification_channel.QueueConsumer,
 		bus events.EventBus,
 		db *bun.DB,
 		client *asynq.Client,
@@ -150,6 +155,54 @@ func TestRegisterClusterIngester_ResolvesWhatCmdIngesterRuns(t *testing.T) {
 		closeEventBus(t, bus)
 		closeDB(t, db)
 	}))
+}
+
+// Redis pub/sub hands an event to every api replica, so the topics the notification listener
+// sends from go through the notification queue, which gives each event to one replica. The
+// ingester publishes two of them and the producer's watchdog the other two, and every other
+// topic stays on pub/sub for all the api replicas, so each cluster binary's bus must route
+// them alike.
+func TestRegisterCluster_EveryBinarysEventBusQueuesTheNotificationTopics(t *testing.T) {
+	registers := map[string]func(*dig.Container, *config.Config) error{
+		"api":      RegisterClusterAPI,
+		"producer": RegisterClusterProducer,
+		"worker":   RegisterClusterWorker,
+		"ingester": RegisterClusterIngester,
+	}
+	for name, register := range registers {
+		t.Run(name, func(t *testing.T) {
+			container := dig.New()
+			require.NoError(t, register(container, clusterConfig(t)))
+
+			require.NoError(t, container.Invoke(func(bus events.EventBus, client *asynq.Client, inspector *asynq.Inspector) {
+				closeEventBus(t, bus)
+				t.Cleanup(func() { assert.NoError(t, client.Close()) })
+				t.Cleanup(func() { assert.NoError(t, inspector.Close()) })
+				ctx := context.Background()
+				queued := func() int {
+					info, err := inspector.GetQueueInfo("notification")
+					if err != nil {
+						return 0 // the queue exists once a task is queued
+					}
+					return info.Pending
+				}
+
+				// Other topics go over pub/sub, not to the queue
+				require.NoError(t, events.Publish(ctx, bus, events.HeartbeatEvent, shared.HeartBeatModel{MonitorID: "mon-1"}))
+				require.NoError(t, events.Publish(ctx, bus, events.MonitorStatusChanged, shared.HeartBeatModel{MonitorID: "mon-1"}))
+				assert.Equal(t, 0, queued(), "tasks queued by other topics")
+
+				require.NoError(t, events.Publish(ctx, bus, events.ImportantHeartbeat, shared.HeartBeatModel{MonitorID: "mon-1"}))
+				assert.Equal(t, 1, queued(), "tasks queued after an important heartbeat")
+				require.NoError(t, events.Publish(ctx, bus, certificate.CertificateExpiry, certificate.CertificateExpiryEvent{MonitorID: "mon-1"}))
+				assert.Equal(t, 2, queued(), "tasks queued after a certificate expiry")
+				require.NoError(t, events.Publish(ctx, bus, stale.MonitorStale, stale.Event{MonitorID: "mon-1"}))
+				assert.Equal(t, 3, queued(), "tasks queued after a stale monitor")
+				require.NoError(t, events.Publish(ctx, bus, stale.MonitorStaleRecovered, stale.Event{MonitorID: "mon-1"}))
+				assert.Equal(t, 4, queued(), "tasks queued after a recovered stale monitor")
+			}))
+		})
+	}
 }
 
 // A provide that dig refuses used to be dropped, and the first provider of the type won

@@ -76,8 +76,9 @@ The database migration tool based on Bun.
 The system uses Redis pub/sub for real-time event communication:
 - Monitor status changes
 - Heartbeat events
-- Notification events
 - WebSocket updates
+
+Notification events go through the `notification` queue instead, so one API server sends each notification however many replicas run.
 
 ## Data Stores
 

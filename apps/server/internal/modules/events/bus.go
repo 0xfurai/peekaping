@@ -85,7 +85,7 @@ type Bus struct {
 	closed      bool
 	subscribers map[string]*subscriber
 	topics      map[string]bool
-	inflight    sync.WaitGroup // publishes that have passed the closed check
+	inflight    sync.WaitGroup // publishes and receives that have passed the closed check
 
 	done     chan struct{} // closed when Close has finished
 	closeErr error
@@ -124,6 +124,29 @@ func (b *Bus) PublishMessage(ctx context.Context, msg Message) error {
 	defer b.inflight.Done()
 
 	return b.transport.Publish(ctx, msg)
+}
+
+// Receive hands msg to this bus's own subscribers, as if it had come off the transport, and
+// publishes it nowhere. A process uses it for an event that reached it by another route than
+// the transport, such as a queue task that only one process takes. Like a message off the wire,
+// msg carries its payload as JSON.
+//
+// Receive either queues msg for the handlers or returns ErrClosed, so the caller can hand the
+// event to someone else; it never returns nil for a message it dropped. Once Receive returns
+// nil, Close lets the handlers finish the message like any other queued event. A Receive that
+// got in before Close counts as in progress, and Close waits for it, as it does for a publish.
+func (b *Bus) Receive(msg Message) error {
+	b.mu.Lock()
+	if b.closed {
+		b.mu.Unlock()
+		return ErrClosed
+	}
+	b.inflight.Add(1)
+	b.mu.Unlock()
+	defer b.inflight.Done()
+
+	b.deliver(msg)
+	return nil
 }
 
 // AddHandler implements EventBus.
@@ -198,7 +221,7 @@ func (b *Bus) shutdown(ctx context.Context, subscribers []*subscriber) error {
 	defer b.cancelHandler()
 	var errs []error
 
-	// Publishes that got in before the flag may still add events
+	// Publishes and receives that got in before the flag may still add events
 	if err := waitFor(ctx, &b.inflight); err != nil {
 		errs = append(errs, fmt.Errorf("waiting for publishes: %w", err))
 	}
