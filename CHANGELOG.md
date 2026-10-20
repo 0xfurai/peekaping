@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- docs: pages for [Deployment modes](apps/docs/docs/self-hosting/deployment-modes.md), [Upgrading to single mode](apps/docs/docs/self-hosting/upgrading-to-single-mode.md) and [Kubernetes (Helm)](apps/docs/docs/self-hosting/kubernetes-helm.md). They say what single mode and cluster mode run, how to take a 0.0.44 to 0.0.47 bundle to the single-mode bundle and back, and how to install the chart from a repository checkout. The Docker + SQLite and Docker + PostgreSQL pages link to the upgrade page instead of each keeping its own copy of the upgrade notes
+
 ### Changed
 
 - feat: the SQLite and PostgreSQL bundle images run Peekaping in single mode. One process, `peekaping`, serves the web app, the API and the websocket on port 8383, with no Redis, Caddy or supervisord. The SQLite bundle now runs on Alpine. The PostgreSQL bundle stays on Debian and runs its bundled PostgreSQL 17 beside `peekaping`, so existing databases keep working as they are. The image names, port 8383, the data volumes and your environment variables stay the same. `peekaping` runs as the non-root `peekaping` user, and `PUID`, `PGID`, the Docker socket's group and the `ping_group_range` warning work as before. The images can also start with `docker run --user`, and they have a Docker health check. The MongoDB bundle doesn't change. The SQLite bundle, measured against 0.0.47:
@@ -19,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   | RAM after 2 minutes idle | 92.7 MiB | 19.2 MiB |
   | RAM with 100 HTTP monitors checked every 20 seconds, after 5 minutes | 131.2 MiB | 36.6 MiB |
 
-  The PostgreSQL bundle image goes from 763.6 MB to 493.3 MB. See [Docker + SQLite](apps/docs/docs/self-hosting/docker-with-sqlite.md), [Docker + PostgreSQL](apps/docs/docs/self-hosting/docker-with-postgres.md) and [Bundle user and permissions](apps/docs/docs/self-hosting/bundle-user.md) (#163, #209, #376) (thanks @tafaust)
+  The PostgreSQL bundle image goes from 763.6 MB to 493.3 MB. See [Upgrading to single mode](apps/docs/docs/self-hosting/upgrading-to-single-mode.md), [Docker + SQLite](apps/docs/docs/self-hosting/docker-with-sqlite.md), [Docker + PostgreSQL](apps/docs/docs/self-hosting/docker-with-postgres.md) and [Bundle user and permissions](apps/docs/docs/self-hosting/bundle-user.md) (#163, #209, #376) (thanks @tafaust)
   - Upgrade note: pull the new tag and start it with the same volume. Migrations run at start, as before. Redis and its data are gone; Redis held only the schedule and queued checks, which `peekaping` rebuilds from the database at start.
   - Upgrade note: a custom Caddyfile mounted at `/etc/caddy/Caddyfile` no longer works, because the images have no Caddy. Put your own reverse proxy (Caddy, nginx, Traefik) in front of port 8383 instead. The login lockout reads the client's address from `X-Forwarded-For`, which the Caddy inside the image used to set. Have your proxy set that header to the client's address, replacing what the client sent (nginx: `proxy_set_header X-Forwarded-For $remote_addr;`), and don't let clients reach port 8383 past the proxy.
   - Upgrade note: port 8383 serves everything, and the images ignore `SERVER_PORT`. A `.env` that sets it, such as `SERVER_PORT=8034` from the examples, keeps working. To use another host port, change the published port, for example `-p 8080:8383`.
@@ -28,12 +30,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Upgrade note: `peekaping` takes up to 30 seconds to shut down cleanly, and the PostgreSQL bundle stops PostgreSQL after it. `docker stop` waits only 10 seconds by default, so use `docker stop -t 35`, or `stop_grace_period: 35s` in Docker Compose.
   - Upgrade note: with `METRICS_ENABLED=true`, port 8383 now serves `/metrics`, so anyone who can open the web app can read it. Before, Caddy didn't forward it.
   - Upgrade note: logs go to the container's output (`docker logs`). Nothing writes to `/var/log/supervisor` now, so a volume mounted there can go.
+- chore: for development, `docker-compose.deps.yml` with `--profile postgres` or `--profile mongo` replaces `docker-compose.sqlite.yml`, `docker-compose.postgres.yml` and `docker-compose.mongo.yml`. `make docker-sqlite`, `make docker-postgres` and `make docker-mongo` keep working
 
 ### Deprecated
 
 - chore: MongoDB as a storage backend (the database Peekaping keeps its data in) is deprecated: `DB_TYPE=mongo`, the `peekaping-bundle-mongo` image and the Mongo Docker Compose setup. Existing Mongo installs keep working, and the API, producer and ingester log a warning at startup. Until removal, Mongo gets no new features and only fixes for data loss, startup failures and security problems. A command to move your data to SQLite or PostgreSQL will ship before removal, and Mongo is removed no earlier than the second release after the one that ships it. New installs should use SQLite or PostgreSQL. The MongoDB monitor type, which checks other MongoDB servers, is not affected. See [Docker + MongoDB](apps/docs/docs/self-hosting/docker-with-mongo.md) (PP-23)
 
 ### Fixed
+
+- fix: the Helm chart's web pods copy the web app from the web image you set. Before, an init container always used `0xfurai/peekaping-web:latest`, so pinning `web.image.tag` still served the latest web app. The chart's install notes now say it runs cluster mode and link to the Kubernetes (Helm) docs page
 
 ## [0.0.47] - 2026-10-19
 
