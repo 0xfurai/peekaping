@@ -48,6 +48,10 @@ type Config struct {
 	// Number of concurrent workers to process tasks
 	QueueConcurrency int `env:"QUEUE_CONCURRENCY" validate:"min=1" default:"128"`
 
+	// Single mode's scheduler runs this many checks at the same time. A check that is due
+	// while the pool is full waits for a free slot.
+	CheckConcurrency int `env:"CHECK_CONCURRENCY" validate:"min=1" default:"128"`
+
 	// Producer configuration
 	// Number of concurrent producer goroutines for claiming and processing monitors
 	ProducerConcurrency int `env:"PRODUCER_CONCURRENCY" validate:"min=1,max=128" default:"10"`
