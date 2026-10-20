@@ -2,8 +2,11 @@
 # Renders the Helm chart the way an install does and checks the result: the
 # chart lints, it renders with default values and with the bundled PostgreSQL
 # and Redis, the web Deployment's seed init container runs the same image as the
-# web container (also when web.image.tag is set), and the install notes say
-# Peekaping runs in cluster mode and link to the Helm docs page.
+# web container (also when web.image.tag is set), the api, producer, worker and
+# ingester Deployments wait for the migrations in an init container that runs
+# the migrate image (also when migrate.image.tag is set) while the web
+# Deployment has none, and the install notes say Peekaping runs in cluster mode
+# and link to the Helm docs page.
 #
 # Usage: scripts/test-chart.sh
 # Needs helm (3.13 or later) and network access to registry-1.docker.io, where
@@ -44,23 +47,48 @@ render() {
     { sed 's/^/       /' "$work/$1.log"; return 1; }
 }
 
-# image_of <rendered file> <name>: the image of the container or init container
-# with that name in the web Deployment
-image_of() {
-  awk -v name="$2" '
-    /^# Source: .*\/web-deploy\.yaml$/ { in_web = 1; next }
-    /^---$/ { in_web = 0 }
-    in_web && $0 ~ "^ *- name: " name "$" { found = 1; next }
-    in_web && found && /^ *image: / { print $2; exit }
+# container_of <rendered file> <template> <name>: the lines of the container or
+# init container with that name in the rendered <template> (such as web-deploy
+# or migrate-job), from its "- name:" line to the end of its block
+container_of() {
+  awk -v template="$2" -v name="$3" '
+    /^# Source: / { in_template = ($0 ~ "/" template "\\.yaml$"); next }
+    /^---$/ { in_template = 0 }
+    in_template && !found && $0 ~ "^ *- name: " name "$" {
+      match($0, /^ */); indent = RLENGTH; found = 1; print; next
+    }
+    found {
+      match($0, /^ */)
+      if ($0 !~ /^ *$/ && RLENGTH <= indent) exit
+      print
+    }
   ' "$1"
+}
+
+# image_of <rendered file> <template> <name>: the image of that container
+image_of() {
+  container_of "$@" | awk '/^ *image: / { print $2; exit }'
+}
+
+# env_from_of <rendered file> <template> <name>: the envFrom block of that
+# container, which says where its environment variables come from
+env_from_of() {
+  container_of "$@" | awk '
+    /^ *envFrom:$/ { match($0, /^ */); indent = RLENGTH; found = 1; print; next }
+    found {
+      match($0, /^ */)
+      if ($0 !~ /^ *$/ && RLENGTH <= indent) exit
+      print
+    }
+  '
 }
 
 # web_matches_seed <rendered file> [expected image]: the init container that
 # seeds the web root copies it out of the image the web container serves
 web_matches_seed() {
   local seed web
-  seed=$(image_of "$1" seed-web-root)
-  web=$(image_of "$1" "$release-web")
+  seed=$(image_of "$1" web-deploy seed-web-root)
+  web=$(image_of "$1" web-deploy "$release-web")
   if [ -z "$seed" ] || [ -z "$web" ]; then
     echo "       no seed-web-root or $release-web image in the web Deployment"
     return 1
@@ -73,6 +101,48 @@ web_matches_seed() {
     echo "       expected $2, got $web"
     return 1
   fi
+}
+
+# waits_for_migrations <rendered file> <component> [expected image]: the
+# component's Deployment holds its pods in an init container that runs the
+# migrate image, the one the migrate Job runs, with the same environment as the
+# component's own container
+waits_for_migrations() {
+  local waiter job waiter_env
+  waiter=$(image_of "$1" "$2-deploy" wait-for-migrations)
+  job=$(image_of "$1" migrate-job "$release-migrate")
+  if [ -z "$waiter" ]; then
+    echo "       no wait-for-migrations init container in the $2 Deployment"
+    return 1
+  fi
+  if [ "$waiter" != "$job" ]; then
+    echo "       wait-for-migrations in the $2 Deployment runs $waiter, the migrate Job runs $job"
+    return 1
+  fi
+  if [ -n "${3:-}" ] && [ "$waiter" != "$3" ]; then
+    echo "       expected $3, got $waiter"
+    return 1
+  fi
+  waiter_env=$(env_from_of "$1" "$2-deploy" wait-for-migrations)
+  if [ -z "$waiter_env" ] || [ "$waiter_env" != "$(env_from_of "$1" "$2-deploy" "$release-$2")" ]; then
+    echo "       wait-for-migrations in the $2 Deployment doesn't read its environment from where the $2 container does"
+    return 1
+  fi
+}
+
+# backend_components_wait <rendered file> [expected image]: the api, producer,
+# worker and ingester each wait for the migrations, and web, which doesn't use
+# the database, doesn't
+backend_components_wait() {
+  local component status=0
+  for component in api producer worker ingester; do
+    waits_for_migrations "$1" "$component" "${2:-}" || status=1
+  done
+  if [ -n "$(container_of "$1" web-deploy wait-for-migrations)" ]; then
+    echo "       the web Deployment has a wait-for-migrations init container"
+    status=1
+  fi
+  return $status
 }
 
 # notes_say <text>: the notes an install prints have the text. A client-side
@@ -96,14 +166,22 @@ if check "helm dependency build fetches PostgreSQL and Redis" run dependency hel
   echo "# Render"
   if check "default values render" render default; then
     check "default values: the seed init container runs the web image" web_matches_seed "$work/default.yaml" || true
+    check "default values: api, producer, worker and ingester wait for the migrations, web doesn't" \
+      backend_components_wait "$work/default.yaml" 0xfurai/peekaping-migrate:latest || true
   fi
   if check "bundled PostgreSQL and Redis render" render bundled --set postgresql.enabled=true --set redis.enabled=true; then
     check "bundled PostgreSQL and Redis: the seed init container runs the web image" \
       web_matches_seed "$work/bundled.yaml" || true
+    check "bundled PostgreSQL and Redis: api, producer, worker and ingester wait for the migrations, web doesn't" \
+      backend_components_wait "$work/bundled.yaml" 0xfurai/peekaping-migrate:latest || true
   fi
   if check "web.image.tag=0.0.47 renders" render tagged --set web.image.tag=0.0.47; then
     check "web.image.tag=0.0.47: the seed init container runs the web image at that tag" \
       web_matches_seed "$work/tagged.yaml" 0xfurai/peekaping-web:0.0.47 || true
+  fi
+  if check "migrate.image.tag=0.0.47 renders" render migrate-tagged --set migrate.image.tag=0.0.47; then
+    check "migrate.image.tag=0.0.47: the wait-for-migrations init containers run the migrate image at that tag" \
+      backend_components_wait "$work/migrate-tagged.yaml" 0xfurai/peekaping-migrate:0.0.47 || true
   fi
 
   echo "# Notes"

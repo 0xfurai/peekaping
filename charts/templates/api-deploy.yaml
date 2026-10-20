@@ -57,6 +57,10 @@ spec:
         seccompProfile:
           type: RuntimeDefault
 
+      # Hold the pod until the migrate Job has applied every migration
+      initContainers:
+        {{- include "peekaping.waitForMigrations" . | nindent 8 }}
+
       containers:
         - name: {{ .Release.Name }}-api
           image: {{ .Values.api.image.repository }}:{{ .Values.api.image.tag }}

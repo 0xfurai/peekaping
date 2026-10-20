@@ -59,6 +59,10 @@ spec:
           {{- toYaml . | nindent 10 }}
         {{- end }}
 
+      # Hold the pod until the migrate Job has applied every migration
+      initContainers:
+        {{- include "peekaping.waitForMigrations" . | nindent 8 }}
+
       containers:
         - name: {{ .Release.Name }}-worker
           image: {{ .Values.worker.image.repository }}:{{ .Values.worker.image.tag }}
