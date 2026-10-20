@@ -172,7 +172,7 @@ The script needs `helm`, `curl` and `jq`. To run an image of your own, set `post
 
 A new digest or subchart version restarts the bundled PostgreSQL. The migrate Job retries until the database is back, up to `migrate.backoffLimit` tries (6 by default). If it still fails, run `helm upgrade` again. Your data is intact.
 
-The script refuses an image with a new major version. A major version change needs a dump and restore: PostgreSQL doesn't start on the data of an older major version. Dump the database with `pg_dump`, delete the PersistentVolumeClaim `data-<release>-postgresql-0` (`helm uninstall` keeps it), install the new version, and restore the dump.
+The script refuses a new major version of a subchart or an image, because a major version can change the values and the data layout. Move to one by hand. For PostgreSQL that needs a dump and restore: PostgreSQL doesn't start on the data of an older major version. Dump the database with `pg_dump`, delete the PersistentVolumeClaim `data-<release>-postgresql-0` (`helm uninstall` keeps it), install the new version, and restore the dump.
 
 ## Ingress or Istio
 
