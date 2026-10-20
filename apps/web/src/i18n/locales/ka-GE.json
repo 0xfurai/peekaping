@@ -111,6 +111,7 @@
     },
     "validation": {
       "email_invalid": "გთხოვთ შეიყვანეთ სწორი ელ‑ფოსტის მისამართი",
+      "password_required": "პაროლი აუცილებელია",
       "password_min_length": "პაროლი უნდა იყოს მინიმუმ 8 სიმბოლო",
       "passwords_mismatch": "პაროლები არ ემთხვევა"
     }

@@ -111,6 +111,7 @@
     },
     "validation": {
       "email_invalid": "Mesedez, sartu baliozko eposta helbidea",
+      "password_required": "Pasahitza beharrezkoa da",
       "password_min_length": "Pasahitza gutxienez 8 karaktere izan behar du",
       "passwords_mismatch": "Pasahitzak ez datoz bat"
     }

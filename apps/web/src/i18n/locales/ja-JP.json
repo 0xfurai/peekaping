@@ -111,6 +111,7 @@
     },
     "validation": {
       "email_invalid": "有効なメールアドレスを入力してください",
+      "password_required": "パスワードは必須です",
       "password_min_length": "パスワードは8文字以上にしてください",
       "passwords_mismatch": "パスワードが一致しません"
     }

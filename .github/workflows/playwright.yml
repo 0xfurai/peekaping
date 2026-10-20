@@ -50,6 +50,7 @@ jobs:
   # Build each image once, on its own runner, and share it with the test jobs.
   # The dev images don't depend on the database, so all three dev jobs reuse them.
   build-images:
+    name: Build ${{ matrix.name }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -85,6 +86,7 @@ jobs:
         compression-level: 0
 
   playwright-tests:
+    name: E2E ${{ matrix.config }} ${{ matrix.database }}
     needs: build-images
     # Run every combination whose images built, even if another image failed.
     if: ${{ !cancelled() }}

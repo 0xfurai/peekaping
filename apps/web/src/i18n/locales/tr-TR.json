@@ -111,6 +111,7 @@
     },
     "validation": {
       "email_invalid": "Lütfen geçerli bir e-posta adresi giriniz",
+      "password_required": "Şifre gereklidir",
       "password_min_length": "Şifre en az 8 karakter olmalıdır",
       "passwords_mismatch": "Parolalar eşleşmiyor"
     }

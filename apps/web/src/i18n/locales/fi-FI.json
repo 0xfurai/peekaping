@@ -111,6 +111,7 @@
     },
     "validation": {
       "email_invalid": "Syötä kelvollinen sähköpostiosoite",
+      "password_required": "Salasana on pakollinen",
       "password_min_length": "Salasanan tulee olla vähintään 8 merkkiä",
       "passwords_mismatch": "Salasanat eivät täsmää"
     }

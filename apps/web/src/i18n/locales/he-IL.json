@@ -111,6 +111,7 @@
     },
     "validation": {
       "email_invalid": "אנא הזן כתובת דוא\"ל תקפה",
+      "password_required": "הסיסמה נדרשת",
       "password_min_length": "הסיסמה חייבת להכיל לפחות 8 תווים",
       "passwords_mismatch": "הסיסמאות לא תואמות"
     }

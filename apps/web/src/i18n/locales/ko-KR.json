@@ -111,6 +111,7 @@
     },
     "validation": {
       "email_invalid": "유효한 이메일 주소를 입력하세요.",
+      "password_required": "비밀번호는 필수입니다.",
       "password_min_length": "비밀번호는 최소 8자 이상이어야 합니다.",
       "passwords_mismatch": "비밀번호가 일치하지 않습니다"
     }

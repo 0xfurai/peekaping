@@ -111,6 +111,7 @@
     },
     "validation": {
       "email_invalid": "Unesite ispravnu e‑mail adresu.",
+      "password_required": "Lozinka je obavezna",
       "password_min_length": "Lozinka mora imati najmanje 8 karaktera",
       "passwords_mismatch": "Lozinke se ne poklapaju"
     }

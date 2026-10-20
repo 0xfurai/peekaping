@@ -111,6 +111,7 @@
     },
     "validation": {
       "email_invalid": "Prosimo, vnesite veljaven e-poštni naslov",
+      "password_required": "Geslo je obvezno",
       "password_min_length": "Geslo mora biti dolgo vsaj 8 znakov.",
       "passwords_mismatch": "Gesla se ne ujemata"
     }
