@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"runtime/debug"
 	"slices"
 	"sync"
 	"time"
@@ -392,8 +393,21 @@ func (s *Scheduler) startCheck(monitorID string) {
 			return // cancelled or stopped while it waited
 		}
 		defer s.freeSlot()
+		defer s.recoverCheck(monitorID)
 		s.runCheck(ctx, monitorID)
 	}()
+}
+
+// recoverCheck logs a panic in the monitor's check and ends that check alone, as asynq does
+// for a task in cluster mode: in single mode an unrecovered panic would stop every monitor.
+// The check frees its slot and ends as any other, so the monitor's next check runs.
+func (s *Scheduler) recoverCheck(monitorID string) {
+	if r := recover(); r != nil {
+		s.logger.Errorw("Check panicked",
+			"monitor_id", monitorID,
+			"panic", r,
+			"stack", string(debug.Stack()))
+	}
 }
 
 // takeSlot waits for a free slot in the pool. It gives up and reports false when the check
