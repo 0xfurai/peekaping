@@ -17,8 +17,9 @@
 // messages. The Redis bus in package infra (cluster mode) is Bus over a Redis transport, and
 // NewMemoryBus (single mode) is Bus over a transport that never leaves the process.
 //
-// Handlers must not change the payload they are given when it holds a slice, map or
-// pointer: the memory bus hands every handler the same value.
+// A payload that holds a slice, map or pointer is read-only once published: the memory bus
+// hands every handler the very value the publisher passed, while the publisher carries on.
+// Handlers must not change it, and the publisher must not either; publish a copy instead.
 package events
 
 import "peekaping/internal/modules/shared"
