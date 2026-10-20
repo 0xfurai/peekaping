@@ -69,6 +69,10 @@ The producer runs multiple concurrent goroutines:
 
 ### Redis Configuration
 
+:::note Single mode
+These are required in cluster mode. In single mode, the `peekaping` binary schedules the checks in the same process as the API, with no Redis, so it doesn't need `REDIS_HOST`.
+:::
+
 | Variable | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|
 | `REDIS_HOST` | string | Yes | `redis` | Redis server hostname |

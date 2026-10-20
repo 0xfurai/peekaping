@@ -289,3 +289,18 @@ func TestCleanupStatsLogsAFailure(t *testing.T) {
 	assert.Equal(t, deleted, entries[0].ContextMap()["count"])
 	assert.Empty(t, logs.FilterMessage("Deleted expired stats").All())
 }
+
+func TestStartCleanupCronStopsWhenItsCronIsStopped(t *testing.T) {
+	in := newInstall(t)
+
+	// The hourly jobs don't run in the test, so they need no stats, history or TLS services
+	c := StartCleanupCron(in.heartbeats, in.users, in.settings, nil, nil, nil, zap.NewNop().Sugar())
+	require.Len(t, c.Entries(), 4, "the cleanup jobs are scheduled")
+
+	select {
+	case <-c.Stop().Done():
+	case <-time.After(time.Second):
+		require.FailNow(t, "the cron didn't stop")
+	}
+	assert.Equal(t, "180", in.storedPeriod(t), "it stored the new install's data retention period first")
+}
