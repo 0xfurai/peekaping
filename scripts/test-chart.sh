@@ -12,8 +12,11 @@
 # one until `./bun db status` reports none unapplied, the migrate Job is named
 # after the release revision (and its name fits Kubernetes' limit of 63
 # characters for the longest release name Helm allows) and retries 6 times, so
-# it outlasts a restart of the bundled PostgreSQL, and the install notes say
-# Peekaping runs in cluster mode and link to the Helm docs page.
+# it outlasts a restart of the bundled PostgreSQL, the web pod sets the sysctl
+# that lets its non-root nginx bind port 80 (web.sysctls) and mounts the
+# writable paths that nginx needs under a read-only root filesystem, and the
+# install notes say Peekaping runs in cluster mode and link to the Helm docs
+# page.
 #
 # It also runs scripts/update-chart-deps.sh against a fake Docker Hub: a new
 # major version of a subchart is reported as such and refused by --write, a
@@ -277,6 +280,48 @@ web_matches_seed() {
     echo "       expected $2, got $web"
     return 1
   fi
+}
+
+# pod_sysctls_of <rendered file> <template>: the sysctls of the pod in the
+# rendered <template> (such as web-deploy), one "<name>=<value>" per line
+pod_sysctls_of() {
+  awk -v template="$2" '
+    /^# Source: / { in_template = ($0 ~ "/" template "\\.yaml$"); in_sysctls = 0; next }
+    /^---$/ { in_template = 0; in_sysctls = 0 }
+    in_template && /^ *sysctls:/ { in_sysctls = 1; match($0, /^ */); indent = RLENGTH; next }
+    in_sysctls {
+      match($0, /^ */)
+      if ($0 !~ /^ *$/ && RLENGTH <= indent) { in_sysctls = 0; next }
+      if ($0 ~ /- name:/) { sub(/^.*- name: */, ""); gsub(/"/, ""); name = $0 }
+      if ($0 ~ /^ *value:/) { sub(/^ *value: */, ""); gsub(/"/, ""); print name "=" $0 }
+    }
+  ' "$1"
+}
+
+# web_binds_port_80 <rendered file>: the web pod sets the sysctl that lets its
+# non-root nginx bind port 80 on any container runtime, and mounts the writable
+# paths nginx-unprivileged needs under readOnlyRootFilesystem: /tmp for its pid
+# file and temporary files, and the web root, where the entrypoint writes env.js
+web_binds_port_80() {
+  local sysctls container path status=0
+  sysctls=$(pod_sysctls_of "$1" web-deploy)
+  if ! grep -Fqx "net.ipv4.ip_unprivileged_port_start=0" <<<"$sysctls"; then
+    echo "       the web pod doesn't set net.ipv4.ip_unprivileged_port_start to 0; its sysctls:"
+    sed 's/^/       /' <<<"$sysctls"
+    status=1
+  fi
+  container=$(container_of "$1" web-deploy "$release-web")
+  if ! grep -Fq "readOnlyRootFilesystem: true" <<<"$container"; then
+    echo "       the web container doesn't have a read-only root filesystem"
+    status=1
+  fi
+  for path in /tmp /usr/share/nginx/html; do
+    if ! grep -Eq "^ *mountPath: $path\$" <<<"$container"; then
+      echo "       the web container doesn't mount a volume at $path"
+      status=1
+    fi
+  done
+  return $status
 }
 
 # waits_for_migrations <rendered file> <component> [expected image]: the
@@ -712,6 +757,8 @@ if check "helm dependency build fetches PostgreSQL and Redis" run dependency hel
     check "default values: every image runs the tag latest, the appVersion of charts/" \
       images_at "$work/default.yaml" latest || true
     check "default values: the seed init container runs the web image" web_matches_seed "$work/default.yaml" || true
+    check "default values: the web pod binds port 80 as non-root: the sysctl, and /tmp and the web root writable" \
+      web_binds_port_80 "$work/default.yaml" || true
     check "default values: api, producer, worker and ingester wait for the migrations, web doesn't" \
       backend_components_wait "$work/default.yaml" 0xfurai/peekaping-migrate:latest || true
     check "default values: the api, producer, worker and ingester pods have no AppArmor annotation" \
@@ -759,6 +806,10 @@ if check "helm dependency build fetches PostgreSQL and Redis" run dependency hel
       web_matches_seed "$work/tagged.yaml" 0xfurai/peekaping-web:0.0.47 || true
     check "web.image.tag=0.0.47: the web container and its seed init container change tag, nothing else does" \
       tag_overrides "$work/tagged.yaml" 0xfurai/peekaping-web 0.0.47 latest 2 || true
+  fi
+  if check "web.sysctls=[] renders" render web-no-sysctls --set-json 'web.sysctls=[]'; then
+    check "web.sysctls=[]: the web pod sets no sysctls" \
+      test -z "$(pod_sysctls_of "$work/web-no-sysctls.yaml" web-deploy)" || true
   fi
   if check "migrate.image.tag=0.0.47 renders" render migrate-tagged --set migrate.image.tag=0.0.47; then
     check "migrate.image.tag=0.0.47: the wait-for-migrations init containers run the migrate image at that tag" \
