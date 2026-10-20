@@ -224,3 +224,50 @@ func TestBusIgnoresHandlersAddedAfterClose(t *testing.T) {
 
 	assert.Equal(t, 1, logs.FilterMessageSnippet("closed event bus").Len())
 }
+
+// silentTransport records what is published to it and delivers nothing, like a transport
+// that no other process is listening on
+type silentTransport struct {
+	mu        sync.Mutex
+	published []events.Message
+}
+
+func (s *silentTransport) Start(func(events.Message)) {}
+
+func (s *silentTransport) Publish(_ context.Context, msg events.Message) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.published = append(s.published, msg)
+	return nil
+}
+
+func (s *silentTransport) Subscribe(string) {}
+
+func (s *silentTransport) Close(context.Context) error { return nil }
+
+func TestBusReceiveHandsAMessageToItsHandlersWithoutPublishingIt(t *testing.T) {
+	transport := &silentTransport{}
+	bus := events.NewBus(transport)
+	t.Cleanup(func() { _ = bus.Close(context.Background()) })
+	called := make(chan eventstest.Sample, 1)
+	events.Subscribe(events.NewSubscriber(bus, "queue"), eventstest.Alpha, func(_ context.Context, b eventstest.Sample) { called <- b })
+
+	// A message that reached the process by a route other than the transport arrives as JSON
+	err := bus.Receive(events.Message{Topic: eventstest.Alpha.Name(), JSON: json.RawMessage(`{"monitor_id": "mon-1", "seq": 3}`)})
+
+	require.NoError(t, err)
+	assert.Equal(t, eventstest.Sample{MonitorID: "mon-1", Seq: 3}, <-called)
+	assert.Empty(t, transport.published, "Receive doesn't publish")
+}
+
+func TestBusReceiveRefusesAMessageOnceClosed(t *testing.T) {
+	bus := events.NewBus(&silentTransport{})
+	called := make(chan eventstest.Sample, 1)
+	events.Subscribe(events.NewSubscriber(bus, "queue"), eventstest.Alpha, func(_ context.Context, b eventstest.Sample) { called <- b })
+	require.NoError(t, bus.Close(context.Background()))
+
+	err := bus.Receive(events.Message{Topic: eventstest.Alpha.Name(), JSON: json.RawMessage(`{"monitor_id": "mon-1"}`)})
+
+	assert.ErrorIs(t, err, events.ErrClosed)
+	assert.Empty(t, called)
+}

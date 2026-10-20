@@ -126,6 +126,22 @@ func (b *Bus) PublishMessage(ctx context.Context, msg Message) error {
 	return b.transport.Publish(ctx, msg)
 }
 
+// Receive hands msg to this bus's own subscribers, as if it had come off the transport, and
+// publishes it nowhere. A process uses it for an event that reached it by another route than
+// the transport, such as a queue task that only one process takes. Like a message off the wire,
+// msg carries its payload as JSON. Receive returns ErrClosed once the bus is closed, so the
+// caller can hand the event to someone else.
+func (b *Bus) Receive(msg Message) error {
+	b.mu.Lock()
+	closed := b.closed
+	b.mu.Unlock()
+	if closed {
+		return ErrClosed
+	}
+	b.deliver(msg)
+	return nil
+}
+
 // AddHandler implements EventBus.
 func (b *Bus) AddHandler(name string, handler Handler) {
 	b.mu.Lock()
