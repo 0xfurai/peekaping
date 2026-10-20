@@ -114,3 +114,16 @@ Waiting tickets:
 - **PP-28** (image): keeps the names, port 8383, volume and variables, drops Redis and Caddy, and keeps the PostgreSQL bundle's PostgreSQL running. It updates the self-hosting pages and says in the release notes that a custom Caddyfile no longer works.
 - **PP-84** (shutdown): the order in section 3, for every binary.
 - **PP-50** (login lockout): see the `X-Forwarded-For` item above.
+
+## Update
+
+Date: 2026-10-20
+Ticket: #29
+
+Two statements above no longer hold for cluster mode. The Context says asynq carries exactly two hops. The Decision says `cmd/api` stays unchanged.
+
+Redis pub/sub gives each event to every api replica, so with several replicas each one sent every notification. Cluster mode now sends the four notification events through an asynq queue named `notification` instead. They are an important heartbeat, a certificate expiry, a stale monitor and a stale monitor checking again. The ingester and the producer's watchdog enqueue them. The api takes them, so each one goes to a single replica. That replica hands it to its own event bus, and its notification listener sends the notification. Each notification is sent once to each notification channel, however many api replicas run. A notification raised while no api replica runs waits in the queue until one starts.
+
+So `cmd/api` now runs an asynq server for the `notification` queue. Every other event stays on pub/sub, because every api replica needs it. The websocket in each replica pushes every heartbeat to its own clients.
+
+Single mode is unchanged. It has one api and no queue, and its in-memory event bus already sends each notification once.
