@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - docs: pages for [Deployment modes](apps/docs/docs/self-hosting/deployment-modes.md), [Upgrading to single mode](apps/docs/docs/self-hosting/upgrading-to-single-mode.md) and [Kubernetes (Helm)](apps/docs/docs/self-hosting/kubernetes-helm.md). They say what single mode and cluster mode run, how to take a 0.0.44 to 0.0.47 bundle to the single-mode bundle and back, and how to install the chart from a repository checkout. The Docker + SQLite and Docker + PostgreSQL pages link to the upgrade page instead of each keeping its own copy of the upgrade notes
+- feat: each release publishes the Helm chart at `oci://ghcr.io/0xfurai/charts/peekaping`, with the chart's `version` and `appVersion` set to the release, and every image tag defaults to the `appVersion`. So a chart version installs one consistent release, and you need no checkout and no `helm dependency build`: `helm install peekaping oci://ghcr.io/0xfurai/charts/peekaping --version <X.Y.Z>`. A component's `image.tag` still overrides the default. See [Kubernetes (Helm)](apps/docs/docs/self-hosting/kubernetes-helm.md) (#221)
+  - Upgrade note: an install from a checkout still runs `latest`, and an `image.tag` you set still wins. A values file that pins all six tags can drop them when you install the published chart, because the chart version pins them. A tag left in stays on its release when you upgrade.
 
 ### Changed
 
