@@ -6,10 +6,10 @@ Community reports are issues in the public repo `0xfurai/peekaping`. They aren't
 
 ## Keys
 
-- A ticket's key is `PP-<n>`, where `<n>` is its issue number in the tracker repo: `PP-216` is `0xfurai/peekaping-tracker#216`. New tickets continue the sequence.
-- Outside the tracker repo (PR titles and bodies, commits, branch and session names, comments on public issues) write `PP-<n>` or `0xfurai/peekaping-tracker#<n>`, never a bare `#<n>`: that is the public repo's issue or PR. Inside the tracker repo `#<n>` is fine.
+- A ticket's key is `#<n>`, where `<n>` is its issue number in the tracker repo: `#216` is `0xfurai/peekaping-tracker#216`. New tickets continue the sequence. Older PRs, commits and changelog entries write the same key as `PP-<n>`.
+- Write `#<n>` in PR titles, session names and plans, and `<n>` alone in branch names. Where GitHub turns the text into a link or acts on it (PR bodies, `Fixes` lines, comments on public issues), write `0xfurai/peekaping-tracker#<n>`: there a bare `#<n>` is the public repo's issue or PR, and `Fixes #<n>` would close it.
 - Never create tickets in the public repo, and keep ticket text out of public PRs, commits and comments (the key is enough). The tracker repo is private so that security and business tickets stay private.
-- PP-1 to PP-216 were imported from Linear (workspace `yvtech`, team Peekaping). Their comments and attachments exist only there, and each body ends with a link to the Linear ticket. Read them with the Linear MCP (`list_comments`, `get_issue`) when a ticket's history matters.
+- #1 to #216 were imported from Linear (workspace `yvtech`, team Peekaping). Their comments and attachments exist only there, and each body ends with a link to the Linear ticket. Read them with the Linear MCP (`list_comments`, `get_issue`) when a ticket's history matters.
 
 ## Project fields
 
@@ -59,7 +59,7 @@ Below, `R=0xfurai/peekaping-tracker`.
 - **Edit the description**: read the body with `gh issue view`, change the text locally, write it back with `gh issue edit <n> -R $R --body-file <file>`. Replace only the section you own and leave the rest as written.
 - **Apply / remove labels**: `gh issue edit <n> -R $R --add-label X --remove-label Y`. Never set labels with `gh api -X PATCH ... labels[]=`: it replaces the whole set, and an empty list is not sent at all.
 - **Assign**: `gh issue edit <n> -R $R --add-assignee @me`.
-- **Close**: comment first, then `gh issue close <n> -R $R --reason completed` (finished) or `--reason "not planned"` (won't do). A duplicate gets the `duplicate` label, a comment `Duplicate of PP-<m>`, and the not-planned close. Then set Status to Done.
+- **Close**: comment first, then `gh issue close <n> -R $R --reason completed` (finished) or `--reason "not planned"` (won't do). A duplicate gets the `duplicate` label, a comment `Duplicate of #<m>`, and the not-planned close. Then set Status to Done.
 - **Reopen**: `gh issue reopen <n> -R $R`, and set Status back.
 - **Read right after writing**: list endpoints lag a few seconds behind a create. Read the issue by number, not through a list.
 - **GraphQL errors**: `Something went wrong while executing your query` is usually transient; retry after a few seconds.
@@ -78,7 +78,7 @@ Statuses run Backlog → Todo → In Progress → In Review → Done.
 
 ## Closing work
 
-Work closes through PRs. Name the branch `<type>/pp-<n>-<slug>`. Start the PR title with the ticket key, then the conventional-commit summary: `PP-48 fix(server): stop exposing JWT signing secrets`. A PR in a stack of several adds its place after the key: `PP-16 [1/2] feat(server): add a stale-monitor watchdog` (see `.agents/skills/ticket/STACK.md`). When naming or renaming a Claude Code session for ticket work, lead with the key: `PP-48 stop exposing JWT secrets`.
+Work closes through PRs. Name the branch `<type>/<n>-<slug>`. Start the PR title with the ticket key, then the conventional-commit summary: `#48 fix(server): stop exposing JWT signing secrets`. A PR in a stack of several adds its place after the key: `#16 [1/2] feat(server): add a stale-monitor watchdog` (see `.agents/skills/ticket/STACK.md`). When naming or renaming a Claude Code session for ticket work, lead with the key: `#48 stop exposing JWT secrets`.
 
 GitHub links a PR to a ticket only through a line in the PR body, and a closing keyword closes the ticket when that PR merges. So put `Fixes 0xfurai/peekaping-tracker#<n>` in the **top** PR of a stack only (the one that merges last), and `Part of 0xfurai/peekaping-tracker#<n>` in the others.
 

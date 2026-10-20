@@ -2,7 +2,7 @@
 
 ### Issue tracker
 
-Issues and specs live as issues in the private GitHub repo `0xfurai/peekaping-tracker`, planned on a private GitHub Project; issues in the public `0xfurai/peekaping` are community reports that tickets link to. A ticket's key is `PP-<n>` (its issue number), and ticket work carries it in the branch name, PR title and session name. See `docs/agents/issue-tracker.md`.
+Issues and specs live as issues in the private GitHub repo `0xfurai/peekaping-tracker`, planned on a private GitHub Project; issues in the public `0xfurai/peekaping` are community reports that tickets link to. A ticket's key is `#<n>` (its issue number in the tracker repo), and ticket work carries it in the branch name, PR title and session name. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 
