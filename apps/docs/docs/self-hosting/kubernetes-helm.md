@@ -16,7 +16,7 @@ The chart installs:
 - A ConfigMap, `<release>-config`, built from `config.env`.
 - Optionally, an Ingress, or an Istio Gateway and VirtualService.
 
-`<release>` is the name you give `helm install`. `<revision>` is the release's revision number: 1 after the install, 2 after the first upgrade, and so on. `helm history` lists them.
+`<release>` is the name you give `helm install`. `<revision>` is the release revision the Job belongs to: 1 for the install, 2 for the first upgrade, and so on. `helm history` lists the revisions. A rollback applies the manifest of the revision it goes back to, so the Job it creates has that revision's number, not a new one.
 
 :::note PostgreSQL only
 The chart supports PostgreSQL only. SQLite doesn't work with it: the chart has no volume for the database file, and several pods would have to share it. MongoDB storage is [deprecated](./docker-with-mongo.md) and the chart doesn't support it. For SQLite, use the [single-mode bundle](./docker-with-sqlite.md).
@@ -275,6 +275,6 @@ Each component has a `replicaCount`, which is 3 by default, and `resources` with
 
    A release you installed from a checkout upgrades to the published chart the same way. To keep upgrading from a checkout instead, update it, run `helm dependency build charts`, and use `charts` in place of the chart address and `--version`.
 
-The upgrade creates a new migrate Job, `peekaping-migrate-<revision>`, that runs the migrations of the new release, and Helm removes the previous one. Every install, upgrade and rollback runs a Job of its own, so there is nothing to delete by hand. The new API, producer, worker and ingester pods wait in `Init` until the Job has applied the migrations, and the old pods keep serving until then. Check that it finished with `kubectl logs --namespace peekaping --selector app.kubernetes.io/component=migrate --tail=-1`. The Job is removed an hour after it finishes (`migrate.ttlSecondsAfterFinished`).
+The upgrade creates a new migrate Job, `peekaping-migrate-<revision>`, that runs the migrations of the new release, and Helm removes the previous one. Every install, upgrade and rollback creates a Job, so there is nothing to delete by hand. The new API, producer, worker and ingester pods wait in `Init` until the Job has applied the migrations, and the old pods keep serving until then. Check that it finished with `kubectl logs --namespace peekaping --selector app.kubernetes.io/component=migrate --tail=-1`. The Job is removed an hour after it finishes (`migrate.ttlSecondsAfterFinished`).
 
-`helm rollback` returns the Kubernetes objects to an earlier revision, but it doesn't undo database migrations. It runs the migrate Job of the revision you roll back to again. If a migration has changed your database, restore the backup too.
+`helm rollback` returns the Kubernetes objects to an earlier revision, but it doesn't undo database migrations. It applies the manifest of the revision you roll back to, so it creates that revision's migrate Job again: rolling back to revision 1 creates `peekaping-migrate-1`, not a Job with a new number. If a migration has changed your database, restore the backup too.

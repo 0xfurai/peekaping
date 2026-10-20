@@ -33,6 +33,7 @@ spec:
         {{- if .Values.worker.apparmor.enabled }}
         # AppArmor annotation key must match container name
         container.apparmor.security.beta.kubernetes.io/{{ .Release.Name }}-worker: runtime/default
+        container.apparmor.security.beta.kubernetes.io/wait-for-migrations: runtime/default
         {{- end }}
 
     spec:

@@ -127,7 +127,8 @@ fi
 
 # The Helm chart's bundled PostgreSQL and Redis: scripts/update-chart-deps.sh, from
 # origin/main like the files it checks, says whether the subcharts and the pinned
-# image digests are behind the latest. Behind, or unable to tell, is a warning.
+# image digests are behind the latest. Behind, a new major version, or unable to
+# tell, is a warning.
 chart_dir=$(mktemp -d)
 trap 'rm -rf "$chart_dir"' EXIT
 chart_script=$chart_dir/update-chart-deps.sh
@@ -140,7 +141,13 @@ if git show origin/main:scripts/update-chart-deps.sh >"$chart_script" 2>/dev/nul
     case $chart_status in
         0) ok "Helm chart: the bundled PostgreSQL and Redis subcharts and image digests are the latest" ;;
         1)
-            warn "Helm chart: the bundled PostgreSQL and Redis are behind the latest; scripts/update-chart-deps.sh --write updates them"
+            # A new major version of an image is reported on its own line, and
+            # --write refuses it and writes nothing, so it doesn't fix this.
+            if grep -q ' new major ' <<<"$chart_report"; then
+                warn "Helm chart: the bundled PostgreSQL or Redis has a new major version; scripts/update-chart-deps.sh --write refuses it, so it needs a ticket of its own"
+            else
+                warn "Helm chart: the bundled PostgreSQL and Redis are behind the latest; scripts/update-chart-deps.sh --write updates them"
+            fi
             printf '%s\n' "$chart_report" | sed 's/^/         /'
             ;;
         *)

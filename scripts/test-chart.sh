@@ -6,9 +6,10 @@
 # (also when web.image.tag is set), the api, producer, worker and ingester
 # Deployments wait for the migrations in an init container that runs the migrate
 # image (also when migrate.image.tag is set) while the web Deployment has none,
-# the migrate Job is named after the release revision and retries 6 times, so it
-# outlasts a restart of the bundled PostgreSQL, and the install notes say
-# Peekaping runs in cluster mode and link to the Helm docs page.
+# an enabled AppArmor profile covers that init container as well as the main
+# container, the migrate Job is named after the release revision and retries 6
+# times, so it outlasts a restart of the bundled PostgreSQL, and the install
+# notes say Peekaping runs in cluster mode and link to the Helm docs page.
 #
 # Every image tag defaults to the chart's appVersion: charts/ has `latest`, and
 # a package made by scripts/package-chart.sh (here with version 9.9.9) has the
@@ -272,6 +273,49 @@ backend_components_wait() {
   return $status
 }
 
+# apparmor_annotations_of <rendered file> <template>: the AppArmor annotations,
+# one "container.apparmor.security.beta.kubernetes.io/<container>: <profile>"
+# per line, in the rendered <template> (such as api-deploy)
+apparmor_annotations_of() {
+  awk -v template="$2" '
+    /^# Source: / { in_template = ($0 ~ "/" template "\\.yaml$"); next }
+    /^---$/ { in_template = 0 }
+    in_template && /^ *container\.apparmor\.security\.beta\.kubernetes\.io\// { sub(/^ */, ""); print }
+  ' "$1"
+}
+
+# apparmor_covers_init <rendered file> <component>: the component's pod
+# template has the AppArmor annotation for its container and for its
+# wait-for-migrations init container. An annotation names one container, so an
+# init container left out runs without the profile.
+apparmor_covers_init() {
+  local annotations container status=0
+  annotations=$(apparmor_annotations_of "$1" "$2-deploy")
+  for container in "$release-$2" wait-for-migrations; do
+    if ! grep -Fqx "container.apparmor.security.beta.kubernetes.io/$container: runtime/default" <<<"$annotations"; then
+      echo "       no runtime/default AppArmor annotation for $container in the $2 Deployment"
+      status=1
+    fi
+  done
+  return $status
+}
+
+# apparmor_off <rendered file>: the api, producer, worker and ingester pod
+# templates have no AppArmor annotation, which is what apparmor.enabled=false
+# means
+apparmor_off() {
+  local component annotations status=0
+  for component in api producer worker ingester; do
+    annotations=$(apparmor_annotations_of "$1" "$component-deploy")
+    if [ -n "$annotations" ]; then
+      echo "       the $component Deployment has AppArmor annotations although apparmor.enabled is false:"
+      sed 's/^/       /' <<<"$annotations"
+      status=1
+    fi
+  done
+  return $status
+}
+
 # chart_field <package> <field>: the value of a top-level field of the
 # package's Chart.yaml, such as version or appVersion
 chart_field() {
@@ -342,6 +386,8 @@ if check "helm dependency build fetches PostgreSQL and Redis" run dependency hel
     check "default values: the seed init container runs the web image" web_matches_seed "$work/default.yaml" || true
     check "default values: api, producer, worker and ingester wait for the migrations, web doesn't" \
       backend_components_wait "$work/default.yaml" 0xfurai/peekaping-migrate:latest || true
+    check "default values: the api, producer, worker and ingester pods have no AppArmor annotation" \
+      apparmor_off "$work/default.yaml" || true
     # helm template renders revision 1. An upgrade or a rollback has a higher
     # one, so each revision creates its own Job instead of changing the last.
     check "default values: the migrate Job is named after the release revision" \
@@ -370,6 +416,14 @@ if check "helm dependency build fetches PostgreSQL and Redis" run dependency hel
       backend_components_wait "$work/migrate-tagged.yaml" 0xfurai/peekaping-migrate:0.0.47 || true
     check "migrate.image.tag=0.0.47: the migrate Job and the 4 wait-for-migrations init containers change tag, nothing else does" \
       tag_overrides "$work/migrate-tagged.yaml" 0xfurai/peekaping-migrate 0.0.47 latest 5 || true
+  fi
+  if check "apparmor.enabled=true for the api, producer, worker and ingester renders" render apparmor \
+    --set api.apparmor.enabled=true --set producer.apparmor.enabled=true \
+    --set worker.apparmor.enabled=true --set ingester.apparmor.enabled=true; then
+    for component in api producer worker ingester; do
+      check "$component.apparmor.enabled=true: the pod template annotates $release-$component and wait-for-migrations" \
+        apparmor_covers_init "$work/apparmor.yaml" "$component" || true
+    done
   fi
 
   echo "# Notes"
