@@ -62,7 +62,7 @@ spec:
 
       containers:
         - name: {{ .Release.Name }}-producer
-          image: {{ .Values.producer.image.repository }}:{{ .Values.producer.image.tag }}
+          image: {{ include "peekaping.image" (dict "image" .Values.producer.image "root" .) }}
           imagePullPolicy: {{ .Values.producer.image.pullPolicy }}
 
           envFrom:

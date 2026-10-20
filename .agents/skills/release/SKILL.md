@@ -13,7 +13,8 @@ The `Release` workflow (`.github/workflows/docker-release.yml`) is started by ha
 2. merges the multi-arch manifests (and `latest`) and runs the e2e suite against the pushed images;
 3. bumps `version.go`, `package.json` and `version.ts`, moves `[Unreleased]` in `CHANGELOG.md` under the new version, and pushes that commit straight to `main`;
 4. creates the GitHub Release, with its tag on that commit;
-5. deploys the demo.
+5. pushes the Helm chart to `oci://ghcr.io/0xfurai/charts/peekaping`, with `version` and `appVersion` set to the release, so it installs that release's images;
+6. deploys the demo.
 
 It runs no unit tests, and none of it can be taken back cleanly: the images and the release are public and the commit is on `main`. So the work is in the steps before the dispatch.
 
@@ -72,14 +73,14 @@ gh workflow run docker-release.yml --ref main -f version=<X.Y.Z>
 gh run list --workflow=docker-release.yml --limit 1 --json databaseId,headSha,status
 ```
 
-The run takes a few seconds to appear. Check that its `headSha` is the commit the user approved. Then watch with `gh run watch <id> --exit-status` as a Bash `run_in_background`; its exit wakes you. The jobs run in this order: `build-images` (per architecture) and `build-bundle-containers`, `create-manifest`, `playwright-tests`, `bump-version`, `release`, `deploy-demo`.
+The run takes a few seconds to appear. Check that its `headSha` is the commit the user approved. Then watch with `gh run watch <id> --exit-status` as a Bash `run_in_background`; its exit wakes you. The jobs run in this order: `build-images` (per architecture) and `build-bundle-containers`, `create-manifest`, `playwright-tests`, `bump-version`, `release`, then `publish-chart` and `deploy-demo` side by side.
 
 ## 6. If the run fails
 
 Find the cause: `gh run view <id> --log-failed`. Then see whether the bump landed: `git fetch origin && git log origin/main --author=github-actions -3 --format='%h %s'`, looking for `chore: bump version to <X.Y.Z> and update changelog`.
 
 - **No bump commit.** `main` is untouched, but once `create-manifest` has passed the version tags and `latest` are public. A flake or an outage gets one `gh run rerun <id> --failed`, which reruns the failed jobs and the ones after them on the same commit. A real failure stops here: tell the user the cause. The fix is a normal PR; then preflight and dispatch the same version again, which overwrites the manifests (nothing rolled `[Unreleased]`). If `bump-version` failed because `main` moved, a rerun fails the same way, since the job starts from the commit the run started on; dispatch again from the new head, after the go-ahead of step 4.
-- **Bump commit on `main`.** Only `release` and `deploy-demo` run after it. Never dispatch the same version again: the changelog step would roll an empty `[Unreleased]` into a second `## [<X.Y.Z>]` heading. A flake gets one `gh run rerun <id> --failed`. A real failure goes to the user with the brief in [PLAN.md](../ticket-plan/PLAN.md): the images and the rolled changelog exist, the release doesn't, and the way out is to fix forward and release the next patch.
+- **Bump commit on `main`.** Only `release`, `publish-chart` and `deploy-demo` run after it. Never dispatch the same version again: the changelog step would roll an empty `[Unreleased]` into a second `## [<X.Y.Z>]` heading. A flake gets one `gh run rerun <id> --failed`. A real failure goes to the user with the brief in [PLAN.md](../ticket-plan/PLAN.md): the images and the rolled changelog exist, the release doesn't, and the way out is to fix forward and release the next patch.
 
 ## 7. Verify
 
@@ -89,6 +90,7 @@ Don't report the release out until each of these is checked:
 - **Main.** `git log origin/main --author=github-actions -1` is the bump commit. `git show origin/main:CHANGELOG.md | head -30` shows an empty `[Unreleased]` and `## [<X.Y.Z>] - <today>` under it.
 - **Tag and release.** `gh release view <X.Y.Z> --json tagName,isPrerelease,url,body`: not a pre-release, the body starts with the notes you reviewed. `git rev-parse <X.Y.Z>^{commit}` is the bump commit; if not, say which commits landed after it.
 - **Images.** For each of `web api worker producer ingester migrate bundle-sqlite bundle-mongo bundle-postgres`, `docker buildx imagetools inspect 0xfurai/peekaping-<name>:<X.Y.Z>` lists `linux/amd64` and `linux/arm64`. For one of them, `--format '{{.Manifest.Digest}}'` is the same for `:<X.Y.Z>` and `:latest`. This checks Docker Hub; GHCR pushes come from the same green `create-manifest` job, and an anonymous inspect of GHCR can answer 403.
+- **Helm chart.** `helm show chart oci://ghcr.io/0xfurai/charts/peekaping --version <X.Y.Z>` shows `version` and `appVersion` of `<X.Y.Z>`. After the first release that publishes it, the GHCR package `charts/peekaping` is private: in its package settings on GitHub, link it to the repository and make it public, or the command answers 401 for everyone else.
 
 ## 8. Open the OpenAPI PR
 

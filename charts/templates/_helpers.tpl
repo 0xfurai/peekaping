@@ -1,4 +1,17 @@
 {{/*
+The image of a container: <repository>:<tag>. An empty tag means the chart's
+appVersion, which is the release the chart was published with (`latest` in a
+checkout), so one chart version runs one release. Every container and init
+container takes its image from here, so a component's init container can't run
+another tag than the component.
+
+Use it with: include "peekaping.image" (dict "image" .Values.api.image "root" .)
+*/}}
+{{- define "peekaping.image" -}}
+{{ .image.repository }}:{{ .image.tag | default .root.Chart.AppVersion }}
+{{- end }}
+
+{{/*
 The init container that holds a pod until the migrate Job has applied every
 migration. The api, producer, worker and ingester Deployments include it, so a
 fresh install or an upgrade never starts them on a schema the migrations haven't
@@ -30,7 +43,7 @@ Put it under initContainers with: include "peekaping.waitForMigrations" . | nind
 */}}
 {{- define "peekaping.waitForMigrations" -}}
 - name: wait-for-migrations
-  image: {{ .Values.migrate.image.repository }}:{{ .Values.migrate.image.tag }}
+  image: {{ include "peekaping.image" (dict "image" .Values.migrate.image "root" .) }}
   imagePullPolicy: {{ .Values.migrate.image.pullPolicy }}
   command:
     - sh

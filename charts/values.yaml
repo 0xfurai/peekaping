@@ -74,13 +74,18 @@ config:
     # Serve the unauthenticated Prometheus /metrics endpoint on the API port (off by default).
     # METRICS_ENABLED: "true"
 
+# Images: every component's image.tag is empty, and an empty tag means the
+# chart's appVersion. That is the release the chart was published with, so one
+# chart version installs one release (`latest` when you install from a checkout
+# of the repository). Set a component's image.tag only to run another build of
+# that component.
 api:
   replicaCount: 3
   apparmor:
     enabled: false
   image:
     repository: 0xfurai/peekaping-api
-    tag: latest
+    tag: ""
     pullPolicy: IfNotPresent
   service:
     port: 8034
@@ -113,7 +118,7 @@ ingester:
     enabled: false
   image:
     repository: 0xfurai/peekaping-ingester
-    tag: latest
+    tag: ""
     pullPolicy: IfNotPresent
   resources:
     requests:
@@ -129,7 +134,7 @@ producer:
     enabled: false
   image:
     repository: 0xfurai/peekaping-producer
-    tag: latest
+    tag: ""
     pullPolicy: IfNotPresent
   resources:
     requests:
@@ -145,7 +150,7 @@ worker:
     enabled: false
   image:
     repository: 0xfurai/peekaping-worker
-    tag: latest
+    tag: ""
     pullPolicy: IfNotPresent
   resources:
     requests:
@@ -167,7 +172,7 @@ web:
     enabled: false
   image:
     repository: 0xfurai/peekaping-web
-    tag: latest
+    tag: ""
     pullPolicy: IfNotPresent
   service:
     port: 80
@@ -200,7 +205,7 @@ migrate:
     enabled: false
   image:
     repository: 0xfurai/peekaping-migrate
-    tag: "latest"
+    tag: ""
     pullPolicy: IfNotPresent
   resources:
     requests:

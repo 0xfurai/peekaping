@@ -53,7 +53,7 @@ spec:
 
       containers:
         - name: {{ .Release.Name }}-migrate
-          image: {{ .Values.migrate.image.repository }}:{{ .Values.migrate.image.tag }}
+          image: {{ include "peekaping.image" (dict "image" .Values.migrate.image "root" .) }}
           imagePullPolicy: {{ .Values.migrate.image.pullPolicy }}
 
           envFrom:

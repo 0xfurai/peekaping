@@ -62,7 +62,7 @@ spec:
 
       containers:
         - name: {{ .Release.Name }}-ingester
-          image: {{ .Values.ingester.image.repository }}:{{ .Values.ingester.image.tag }}
+          image: {{ include "peekaping.image" (dict "image" .Values.ingester.image "root" .) }}
           imagePullPolicy: {{ .Values.ingester.image.pullPolicy }}
 
           envFrom:

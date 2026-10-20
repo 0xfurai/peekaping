@@ -4,7 +4,9 @@ sidebar_position: 3
 
 # Kubernetes (Helm)
 
-The Helm chart in the `charts/` folder of the [Peekaping repository](https://github.com/0xfurai/peekaping) runs Peekaping in [cluster mode](./deployment-modes.md#cluster-mode). The API, producer, worker and ingester run as separate deployments and talk through Redis. It needs a PostgreSQL database and a Redis.
+The Helm chart runs Peekaping in [cluster mode](./deployment-modes.md#cluster-mode). The API, producer, worker and ingester run as separate deployments and talk through Redis. It needs a PostgreSQL database and a Redis.
+
+Every [release](https://github.com/0xfurai/peekaping/releases) publishes the chart at `oci://ghcr.io/0xfurai/charts/peekaping`. The chart version is the release, and every image defaults to that release, so a chart version installs one consistent version of Peekaping.
 
 The chart installs:
 
@@ -32,19 +34,9 @@ You need:
 
 ## Install
 
-The chart isn't published to a Helm repository, so install it from a checkout of the repository.
+You install the published chart with `--version`, the Peekaping release you want. The chart is published from release 0.0.48 on, so the examples use `0.0.48`. Use the latest release instead. You need no checkout of the repository and no `helm dependency build`: the chart carries its optional PostgreSQL and Redis charts. Until release 0.0.48 is out, [install from a checkout](#install-from-a-checkout).
 
-### 1. Get the chart and its dependencies
-
-```bash
-git clone https://github.com/0xfurai/peekaping.git
-cd peekaping
-helm dependency build charts
-```
-
-Run `helm dependency build` first. `Chart.yaml` lists a PostgreSQL chart and a Redis chart as optional dependencies, and Helm refuses to install or render the chart until both are in `charts/charts/`, even if you don't enable them.
-
-### 2. Create the namespace and the config secret
+### 1. Create the namespace and the config secret
 
 The pods read their passwords from a Secret that you create. Its default name is `peekaping-config`, and it must be in the namespace you install into:
 
@@ -58,7 +50,7 @@ kubectl create secret generic peekaping-config \
 
 Leave out `REDIS_PASSWORD` if your Redis has no password. [Configuration](#configuration) explains how the secret and `config.env` work together.
 
-### 3. Write a values file
+### 2. Write a values file
 
 Create `peekaping-values.yaml` with the connection to your PostgreSQL and Redis, and the address people will open:
 
@@ -87,12 +79,13 @@ ingress:
   tlsSecretName: status-example-com-tls
 ```
 
-[Ingress or Istio](#ingress-or-istio) covers the routing, and [Pin the image tags](#pin-the-image-tags) the versions.
+[Ingress or Istio](#ingress-or-istio) covers the routing, and [Image versions](#image-versions) the images. You set no image tags: the chart version picks them.
 
-### 4. Install
+### 3. Install
 
 ```bash
-helm install peekaping charts \
+helm install peekaping oci://ghcr.io/0xfurai/charts/peekaping \
+  --version 0.0.48 \
   --namespace peekaping \
   --values peekaping-values.yaml
 ```
@@ -117,6 +110,21 @@ kubectl logs --namespace peekaping deploy/peekaping-api --container wait-for-mig
 If the Job fails, the pods stay in `Init`. Read the Job's log to find out why.
 
 Open `https://status.example.com` and create your admin account.
+
+### Install from a checkout
+
+To try changes that aren't released yet, install from a checkout of the repository instead. Its images are `latest`, not a release (see [Image versions](#image-versions)).
+
+```bash
+git clone https://github.com/0xfurai/peekaping.git
+cd peekaping
+helm dependency build charts
+helm install peekaping charts \
+  --namespace peekaping \
+  --values peekaping-values.yaml
+```
+
+Run `helm dependency build` first. `Chart.yaml` lists a PostgreSQL chart and a Redis chart as optional dependencies, and Helm refuses to install or render the chart from a folder until both are in `charts/charts/`, even if you don't enable them.
 
 ## Configuration
 
@@ -161,16 +169,9 @@ The bundled PostgreSQL and Redis run Bitnami's free `latest` images, `bitnami/po
 
 So the chart pins each image by digest, in `postgresql.image.digest` and `redis.image.digest` in `values.yaml`. They are PostgreSQL 18 and Redis 8, and each digest covers amd64 and arm64. A digest wins over the tag.
 
-The digests and the subchart versions in `Chart.yaml` are updated by hand, around each release. To move to newer ones yourself, run this in a checkout of the repository, then `helm dependency build charts` and `helm upgrade`:
+The digests and the subchart versions in `Chart.yaml` are updated by hand, around each release. With the published chart, a newer chart version carries newer ones, so upgrade to it.
 
-```bash
-scripts/update-chart-deps.sh           # lists what is behind
-scripts/update-chart-deps.sh --write   # updates Chart.yaml and values.yaml
-```
-
-The script needs `helm`, `curl` and `jq`.
-
-To run an image of your own, set `postgresql.image.digest` and `redis.image.digest` in your values file. A digest from another repository also needs `image.registry` and `image.repository`. Without them the pod pulls the digest from Bitnami's repository, `registry-1.docker.io/bitnami/postgresql`, and the pull fails. Bitnami's charts also refuse an image they don't recognize, so set `global.security.allowInsecureImages` to `true`:
+To run an image of your own instead, set `postgresql.image.digest` and `redis.image.digest` in your values file. A digest from another repository also needs `image.registry` and `image.repository`. Without them the pod pulls the digest from Bitnami's repository, `registry-1.docker.io/bitnami/postgresql`, and the pull fails. Bitnami's charts also refuse an image they don't recognize, so set `global.security.allowInsecureImages` to `true`:
 
 ```yaml
 global:
@@ -185,9 +186,18 @@ postgresql:
 
 `redis.image` takes the same three values.
 
+In a checkout of the repository, you can also move to newer digests and subchart versions yourself. Run this, then `helm dependency build charts` and `helm upgrade`:
+
+```bash
+scripts/update-chart-deps.sh           # lists what is behind
+scripts/update-chart-deps.sh --write   # updates Chart.yaml and values.yaml
+```
+
+The script needs `helm`, `curl` and `jq`. It is not part of the published chart.
+
 A new digest or subchart version restarts the bundled PostgreSQL. The migrate Job retries until the database is back, up to `migrate.backoffLimit` tries (6 by default). If it still fails, run `helm upgrade` again. Your data is intact.
 
-The script refuses a new major version of a subchart or an image, because a major version can change the values and the data layout. Move to one by hand. For PostgreSQL that needs a dump and restore: PostgreSQL doesn't start on the data of an older major version. Dump the database with `pg_dump`, delete the PersistentVolumeClaim `data-<release>-postgresql-0` (`helm uninstall` keeps it), install the new version, and restore the dump.
+`update-chart-deps.sh` refuses a new major version of a subchart or an image, because a major version can change the values and the data layout. Move to one by hand. For PostgreSQL that needs a dump and restore: PostgreSQL doesn't start on the data of an older major version. Dump the database with `pg_dump`, delete the PersistentVolumeClaim `data-<release>-postgresql-0` (`helm uninstall` keeps it), install the new version, and restore the dump.
 
 ## Ingress or Istio
 
@@ -220,32 +230,23 @@ The Gateway and VirtualService match `ingress.host`, so set it even if you don't
 
 If you also set `ingress.enabled`, the Ingress sends all paths to the Istio ingress gateway Service instead of to the API and web Services. Use that to put a load balancer in front of Istio. The Service is `istio.ingress.name` (`istio-ingressgateway` by default) on port `istio.ingress.port` (80). Set `ingress.namespace`, for example to `istio-system`, so the Ingress is in the namespace of that Service.
 
-## Pin the image tags
+## Image versions
 
-Every image defaults to the tag `latest`, with `imagePullPolicy: IfNotPresent`. A node that has already pulled `latest` keeps using it after a new release, so pods on different nodes can run different versions. Pin every component to the same release in your values file:
+The chart version pins every image. Chart `0.0.48` runs the `0.0.48` api, producer, worker, ingester, web and migrate images, and the init containers that follow them. The `wait-for-migrations` init containers run the migrate image, and `seed-web-root` runs the web image. So every pod runs one release, on any node, even with `imagePullPolicy: IfNotPresent`.
+
+There is one set of values for each of the six components, `<component>.image.repository`, `<component>.image.tag` and `<component>.image.pullPolicy`. The repositories are `0xfurai/peekaping-api`, `-producer`, `-worker`, `-ingester`, `-web` and `-migrate`. An empty `tag`, the default, means the chart's `appVersion`: the release in a published chart, `latest` in a checkout.
+
+Set a component's `image.tag` only to run another build of that component, such as a release candidate:
 
 ```yaml
 api:
   image:
-    tag: "0.0.47"
-producer:
-  image:
-    tag: "0.0.47"
-worker:
-  image:
-    tag: "0.0.47"
-ingester:
-  image:
-    tag: "0.0.47"
-web:
-  image:
-    tag: "0.0.47"
-migrate:
-  image:
-    tag: "0.0.47"
+    tag: "0.0.49-rc.1"
 ```
 
-There is one set of values for each of the six components, `<component>.image.repository`, `<component>.image.tag` and `<component>.image.pullPolicy`. The repositories are `0xfurai/peekaping-api`, `-producer`, `-worker`, `-ingester`, `-web` and `-migrate`. There is no single value for all of them, so set all six tags. The web pods serve the web app of the image you set in `web.image`.
+A component's `image.tag` changes that component's container only. `web.image.tag` also sets `seed-web-root`, the init container of the web pods. `migrate.image.tag` sets the migrate Job and the `wait-for-migrations` init containers of the API, producer, worker and ingester pods, because they run the migrate image. Everything else stays on the chart's `appVersion`.
+
+A checkout of the repository has the chart version `0.0.0` and the app version `latest`, so its images are `latest`. A node that has already pulled `latest` keeps using it after a new release, so pods on different nodes can run different versions. When you install from a checkout, set `image.tag` on all six components to the same release.
 
 ## Ping monitors
 
@@ -279,14 +280,17 @@ Each component has a `replicaCount`, which is 3 by default, and `resources` with
 ## Upgrading
 
 1. Back up your PostgreSQL database. If you upgrade from 0.0.46 or earlier, also read [Upgrading stats storage](./upgrading-stats.md).
-2. Update your checkout of the repository, and set the new release in every `image.tag`.
-3. Upgrade the release:
+2. Remove any `image.tag` from your values file that pins an old release. A tag you set overrides the chart version, so that image stays on the old release after the upgrade.
+3. Upgrade the release to the new version:
 
    ```bash
-   helm upgrade peekaping charts \
+   helm upgrade peekaping oci://ghcr.io/0xfurai/charts/peekaping \
+     --version 0.0.49 \
      --namespace peekaping \
      --values peekaping-values.yaml
    ```
+
+   A release you installed from a checkout upgrades to the published chart the same way. To keep upgrading from a checkout instead, update it, run `helm dependency build charts`, and use `charts` in place of the chart address and `--version`.
 
 The upgrade creates a new migrate Job, `peekaping-migrate-<revision>`, that runs the migrations of the new release, and Helm removes the previous one. Every install, upgrade and rollback creates a Job, so there is nothing to delete by hand. The new API, producer, worker and ingester pods wait in `Init` until the Job has applied the migrations, and the old pods keep serving until then. Check that it finished with `kubectl logs --namespace peekaping --selector app.kubernetes.io/instance=peekaping,app.kubernetes.io/component=migrate --tail=-1`. The Job is removed an hour after it finishes (`migrate.ttlSecondsAfterFinished`).
 

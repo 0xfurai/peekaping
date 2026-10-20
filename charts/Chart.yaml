@@ -1,7 +1,13 @@
 apiVersion: v2
 name: peekaping
 description: Peekaping in cluster mode, as separate api, producer, worker, ingester and web deployments that talk through Redis
-version: 1.0.0
+# The release workflow sets both when it packages the chart
+# (scripts/package-chart.sh): the version and the appVersion are the release,
+# such as 0.0.48. An empty image.tag in values.yaml means the appVersion, so a
+# published chart installs the images of its release. These values are for a
+# checkout, whose images are `latest`.
+version: 0.0.0
+appVersion: latest
 dependencies:
 - name: redis
   version: 28.3.1
