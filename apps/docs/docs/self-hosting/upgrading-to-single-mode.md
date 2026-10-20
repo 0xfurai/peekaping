@@ -44,7 +44,7 @@ With a named volume instead of a folder, copy the volume with a throwaway contai
 docker run --rm -v peekaping_data:/data -v "$PWD":/backup alpine tar czf /backup/peekaping-before-upgrade.tar.gz -C /data .
 ```
 
-The PostgreSQL bundle can also dump its database while it runs. `postgres` is the superuser of the bundle's PostgreSQL, which needs no password for connections from inside the container. Replace `peekaping` at the end with your `DB_NAME`:
+The PostgreSQL bundle can also dump its database instead. Do it before you stop the container, since the dump needs PostgreSQL running. `postgres` is the superuser of the bundle's PostgreSQL, which needs no password for connections from inside the container. Replace `peekaping` at the end with your `DB_NAME`:
 
 ```bash
 docker exec peekaping pg_dump -U postgres -h localhost -Fc peekaping > peekaping-before-upgrade.dump
