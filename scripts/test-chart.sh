@@ -10,9 +10,14 @@
 # outlasts a restart of the bundled PostgreSQL, and the install notes say
 # Peekaping runs in cluster mode and link to the Helm docs page.
 #
+# It also packages the chart as a release would (scripts/package-chart.sh with
+# version 9.9.9) and checks the package: its version and appVersion are the
+# release, it carries the PostgreSQL and Redis subcharts so installing it needs
+# no `helm dependency build`, and it renders.
+#
 # Usage: scripts/test-chart.sh
 # Needs helm (3.13 or later) and network access to registry-1.docker.io, where
-# the chart's PostgreSQL and Redis dependencies live. It works on a copy of
+# the chart's PostgreSQL and Redis dependencies live. It works on copies of
 # charts/ in a temp directory, so the repo gets no charts/charts/*.tgz and no
 # Chart.lock.
 set -euo pipefail
@@ -43,10 +48,16 @@ run() {
   "${@:2}" >"$work/$1.log" 2>&1 || { sed 's/^/       /' "$work/$1.log"; return 1; }
 }
 
-# render <name> [helm template args...]: renders the chart into $work/<name>.yaml
+# render_from <chart> <name> [helm template args...]: renders the chart (a
+# directory or a package) into $work/<name>.yaml
+render_from() {
+  helm template "$release" "$1" "${@:3}" >"$work/$2.yaml" 2>"$work/$2.log" ||
+    { sed 's/^/       /' "$work/$2.log"; return 1; }
+}
+
+# render <name> [helm template args...]: renders charts/ into $work/<name>.yaml
 render() {
-  helm template "$release" "$chart" "${@:2}" >"$work/$1.yaml" 2>"$work/$1.log" ||
-    { sed 's/^/       /' "$work/$1.log"; return 1; }
+  render_from "$chart" "$@"
 }
 
 # container_of <rendered file> <template> <name>: the lines of the container or
@@ -197,6 +208,50 @@ backend_components_wait() {
   return $status
 }
 
+# chart_field <package> <field>: the value of a top-level field of the
+# package's Chart.yaml, such as version or appVersion
+chart_field() {
+  helm show chart "$1" | awk -v field="$2" '$0 ~ "^" field ": " { gsub(/"/, "", $2); print $2; exit }'
+}
+
+# package_versions <package> <version> <appVersion>: the package's chart has
+# that version and appVersion
+package_versions() {
+  local version app_version
+  version=$(chart_field "$1" version)
+  app_version=$(chart_field "$1" appVersion)
+  if [ "$version" != "$2" ] || [ "$app_version" != "$3" ]; then
+    echo "       the package has version '${version:-<none>}' and appVersion '${app_version:-<none>}', expected $2 and $3"
+    return 1
+  fi
+}
+
+# package_has_subcharts <package>: the package carries the PostgreSQL and Redis
+# subcharts, so an install from it needs no `helm dependency build`
+package_has_subcharts() {
+  local files subchart status=0
+  files=$(tar -tzf "$1")
+  for subchart in postgresql redis; do
+    if ! grep -qx "$release/charts/$subchart/Chart.yaml" <<<"$files"; then
+      echo "       the package has no $subchart subchart"
+      status=1
+    fi
+  done
+  return $status
+}
+
+# repo_unchanged <listing before>: charts/ in the repo lists the same files as
+# before, so packaging left no charts/charts/*.tgz and no Chart.lock behind
+repo_unchanged() {
+  local after
+  after=$(find "$root/charts" | sort)
+  if [ "$after" != "$1" ]; then
+    echo "       charts/ changed:"
+    diff <(echo "$1") <(echo "$after") | sed 's/^/       /' || true
+    return 1
+  fi
+}
+
 # notes_say <text>: the notes an install prints have the text. A client-side
 # dry run prints them and needs no cluster.
 notes_say() {
@@ -250,6 +305,23 @@ if check "helm dependency build fetches PostgreSQL and Redis" run dependency hel
   check "the install notes name cluster mode" notes_say "cluster mode" || true
   check "the install notes link to the Helm docs page" \
     notes_say "https://docs.peekaping.com/self-hosting/kubernetes-helm" || true
+fi
+
+echo "# Package"
+# What the release workflow does: the chart packaged with the release's version
+# and appVersion, here 9.9.9
+before=$(find "$root/charts" | sort)
+if check "package-chart.sh packages the chart as 9.9.9" run package "$root/scripts/package-chart.sh" 9.9.9 "$work/dist"; then
+  package=$work/dist/$release-9.9.9.tgz
+  check "the package is $release-9.9.9.tgz" test -f "$package" || true
+  check "the package's version and appVersion are 9.9.9" package_versions "$package" 9.9.9 9.9.9 || true
+  check "the package carries the PostgreSQL and Redis subcharts" package_has_subcharts "$package" || true
+  check "package-chart.sh leaves charts/ in the repo as it was" repo_unchanged "$before" || true
+  if check "the package renders with the bundled PostgreSQL and Redis" \
+    render_from "$package" package --set postgresql.enabled=true --set redis.enabled=true; then
+    check "the package's bundled PostgreSQL runs an image pinned by digest" pinned_by_digest "$work/package.yaml" postgresql || true
+    check "the package's bundled Redis runs an image pinned by digest" pinned_by_digest "$work/package.yaml" redis || true
+  fi
 fi
 
 echo
