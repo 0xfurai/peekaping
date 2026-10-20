@@ -321,6 +321,59 @@ func TestServiceImpl_Delete(t *testing.T) {
 	assert.Nil(t, deletedKey)
 }
 
+// A MongoDB install imported into SQL keeps its API key tokens, which carry the
+// key's ObjectID, while the key's row has the UUID that ObjectID maps to.
+func TestServiceImpl_ValidateKey_TokenWithImportedObjectID(t *testing.T) {
+	db := setupServiceTestDB(t)
+	service := NewService(NewSQLRepository(db), zap.NewNop().Sugar())
+	ctx := context.Background()
+
+	created, err := service.Create(ctx, &CreateRequest{Name: "Imported key"})
+	require.NoError(t, err)
+	// The key as the import writes it: the UUID computed outside Go for this ObjectID
+	const objectID, importedID = "507f1f77bcf86cd799439011", "2ec0f307-6408-57cd-b5a8-08c55d4ab445"
+	_, err = db.Exec("UPDATE api_keys SET id = ? WHERE id = ?", importedID, created.ID)
+	require.NoError(t, err)
+
+	tokenFor := func(id string) string {
+		payload := decodeToken(t, created.Token)
+		payload["id"] = id
+		encoded, err := json.Marshal(payload)
+		require.NoError(t, err)
+		return ApiKeyPrefix + base64.URLEncoding.EncodeToString(encoded)
+	}
+
+	validated, err := service.ValidateKey(ctx, tokenFor(objectID))
+	require.NoError(t, err)
+	assert.Equal(t, importedID, validated.ID)
+	assert.Equal(t, "Imported key", validated.Name)
+
+	// The mapped ID in the token works too, and other IDs still find nothing
+	validated, err = service.ValidateKey(ctx, tokenFor(importedID))
+	require.NoError(t, err)
+	assert.Equal(t, importedID, validated.ID)
+	_, err = service.ValidateKey(ctx, tokenFor("ffffffffffffffffffffffff"))
+	assert.EqualError(t, err, "invalid API key")
+
+	// The secret still has to match
+	wrong := decodeToken(t, created.Token)
+	wrong["id"] = objectID
+	wrong["key"] = base64.URLEncoding.EncodeToString(make([]byte, ApiKeyRandomBytes))
+	encoded, err := json.Marshal(wrong)
+	require.NoError(t, err)
+	_, err = service.ValidateKey(ctx, ApiKeyPrefix+base64.URLEncoding.EncodeToString(encoded))
+	assert.EqualError(t, err, "invalid API key")
+}
+
+func decodeToken(t *testing.T, token string) map[string]string {
+	t.Helper()
+	payload, err := base64.URLEncoding.DecodeString(token[len(ApiKeyPrefix):])
+	require.NoError(t, err)
+	var fields map[string]string
+	require.NoError(t, json.Unmarshal(payload, &fields))
+	return fields
+}
+
 // Helper function for string pointers
 func stringPtr(s string) *string {
 	return &s
