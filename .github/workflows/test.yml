@@ -82,7 +82,7 @@ jobs:
           pwd
           # -coverpkg credits code that tests in other packages reach, such as
           # the controllers internal/apitest drives through the router
-          go test -timeout 120s -v -coverprofile=coverage.txt -coverpkg=./internal/... ./internal/...
+          go test -timeout 120s -v -coverprofile=coverage.txt -coverpkg=./internal/... ./internal/... ./cmd/...
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
