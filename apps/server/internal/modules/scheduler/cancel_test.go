@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"peekaping/internal/modules/check"
+	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/healthcheck/executor"
 
 	"github.com/stretchr/testify/assert"
@@ -159,4 +160,72 @@ func TestScheduler_StopsWhenItsContextIsDone(t *testing.T) {
 	time.Sleep(1200 * time.Millisecond)
 	assert.Equal(t, checked, h.exec.countFor("mon"), "no check at the next multiple of the interval")
 	h.publishDeleted("mon") // its handler must not panic or hang: the bus's close checks
+}
+
+func TestScheduler_DropsTheResultOfACheckThatEndsWhileAnUpdatePauseOrDeleteWaitsItsTurn(t *testing.T) {
+	t.Parallel()
+	tests := map[string]struct {
+		stop func(h *harness)
+		// want is what the monitor's ingested results say
+		want []string
+	}{
+		"updated": {stop: func(h *harness) { h.edit("mon") }, want: []string{"check 2"}},
+		"paused":  {stop: func(h *harness) { h.edit("mon", paused) }},
+		"deleted": {stop: func(h *harness) { h.db.remove("mon"); h.publishDeleted("mon") }},
+	}
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			h := newHarness(t)
+			h.db.put(monitorWith("mon", withInterval(day)))
+			// The first check ends when it is cancelled or released, and reports Up either way
+			cancelled, release := make(chan struct{}), make(chan struct{})
+			h.exec.run = func(ctx context.Context, call checkCall) *executor.Result {
+				if call.monitorID == "mon" && call.n == 1 {
+					select {
+					case <-ctx.Done():
+						close(cancelled)
+					case <-release:
+					}
+				}
+				return up("check " + strconv.Itoa(call.n))
+			}
+			h.start()
+			eventually(t, 2*time.Second, func() bool { return h.exec.runningNow() == 1 }, "the first check is running")
+			// Another monitor's event keeps the scheduler busy reading that monitor
+			h.db.put(monitorWith("other", withInterval(day)))
+			reading, done := h.db.holdFind("other")
+			t.Cleanup(done)
+			h.publishMonitor(events.MonitorCreated, "other")
+			<-reading
+
+			tt.stop(h)
+
+			select {
+			case <-cancelled:
+			case <-time.After(500 * time.Millisecond):
+				close(release) // the check ends on its own while the event waits its turn
+				eventually(t, 2*time.Second, func() bool { return h.exec.runningNow() == 0 }, "the check has ended")
+				time.Sleep(100 * time.Millisecond)
+			}
+			done()
+			eventually(t, 2*time.Second, func() bool { return h.ingestedFor("other") == 1 }, "the other monitor's event is done")
+			if len(tt.want) > 0 {
+				eventually(t, 2*time.Second, func() bool { return h.ingestedFor("mon") >= len(tt.want) }, "the edit is checked")
+			}
+			time.Sleep(200 * time.Millisecond)
+			assert.Equal(t, tt.want, h.ingestedMessagesFor("mon"), "the result of the check that ended after the event is dropped")
+		})
+	}
+}
+
+// ingestedMessagesFor is what the monitor's ingested results say
+func (h *harness) ingestedMessagesFor(monitorID string) []string {
+	var messages []string
+	for _, r := range h.ingest.ingested() {
+		if r.MonitorID == monitorID {
+			messages = append(messages, r.Message)
+		}
+	}
+	return messages
 }

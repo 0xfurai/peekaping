@@ -487,21 +487,23 @@ func (s *Scheduler) runCheck(ctx context.Context, monitorID string) {
 
 	tick := s.supervisor.HandleMonitorTick(ctx, mon, exec, job.Proxy, job.IsUnderMaintenance)
 
-	// A check cut short by a stop says nothing about the target
-	if ctx.Err() != nil {
-		s.logger.Debugw("Check was cancelled, dropping its result", "monitor_id", monitorID)
-		return
-	}
 	// An executor that has nothing to report returns no result
 	if tick == nil {
 		s.logger.Debugw("Executor returned nil - no heartbeat needed", "monitor_id", monitorID, "monitor_type", mon.Type)
 		return
 	}
+	result := tick.IngestResult(job.CheckCertExpiry)
 
-	// A stop doesn't interrupt the ingest of a result that is already being stored
+	// An update, pause, delete or stop drops the result until here. The ingest isn't
+	// interrupted once it starts: it reads the previous heartbeat to write the next one. A
+	// cancel during it is too late, as it is in cluster mode once the result is enqueued.
+	if ctx.Err() != nil {
+		s.logger.Debugw("Check was cancelled, dropping its result", "monitor_id", monitorID)
+		return
+	}
 	ingestCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), ingestTimeout)
 	defer cancel()
-	if err := s.ingester.Ingest(ingestCtx, tick.IngestResult(job.CheckCertExpiry)); err != nil {
+	if err := s.ingester.Ingest(ingestCtx, result); err != nil {
 		s.logger.Errorw("Failed to ingest the result of a check", "monitor_id", monitorID, "error", err)
 	}
 }
@@ -533,6 +535,9 @@ func (s *Scheduler) onCreated(monitorID string) {
 
 // onUpdated reschedules a monitor, or stops scheduling it if it was paused
 func (s *Scheduler) onUpdated(monitorID string) {
+	// A running check carries the config from before the update
+	s.cancelBeforeSync(monitorID)
+
 	s.syncMu.Lock()
 	defer s.syncMu.Unlock()
 
@@ -540,11 +545,6 @@ func (s *Scheduler) onUpdated(monitorID string) {
 	if !ok {
 		return
 	}
-	// A running check carries the config from before the update
-	s.mu.Lock()
-	s.cancelCheck(monitorID)
-	s.mu.Unlock()
-
 	if !schedulable(mon) {
 		s.unschedule(monitorID)
 		return
@@ -557,9 +557,20 @@ func (s *Scheduler) onUpdated(monitorID string) {
 
 // onDeleted stops scheduling a deleted monitor
 func (s *Scheduler) onDeleted(monitorID string) {
+	s.cancelBeforeSync(monitorID)
+
 	s.syncMu.Lock()
 	defer s.syncMu.Unlock()
 	s.unschedule(monitorID)
+}
+
+// cancelBeforeSync cancels the monitor's running check as soon as an update, pause or delete
+// arrives, before the handler waits for syncMu and reads the monitor. A check that ended
+// while the handler waited would otherwise have its result stored.
+func (s *Scheduler) cancelBeforeSync(monitorID string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.cancelCheck(monitorID)
 }
 
 // RunNow checks the monitor right away, unless a check of it is already running, and puts it

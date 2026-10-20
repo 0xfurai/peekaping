@@ -37,6 +37,14 @@ type fakeDB struct {
 	// unlisted monitors are left out of the pages of active monitors, as a monitor paused
 	// while the pages are read shifts the next one out of them
 	unlisted map[string]bool
+	// held monitors' next FindByID waits to be released
+	held map[string]*findHold
+}
+
+// findHold is a FindByID made to wait: started is closed when it begins, and it returns once
+// released is closed
+type findHold struct {
+	started, released chan struct{}
 }
 
 func newFakeDB() *fakeDB {
@@ -44,7 +52,18 @@ func newFakeDB() *fakeDB {
 		byID:           map[string]*shared.Monitor{},
 		lastHeartbeats: map[string]*shared.HeartBeatModel{},
 		unlisted:       map[string]bool{},
+		held:           map[string]*findHold{},
 	}
+}
+
+// holdFind makes the monitor's next FindByID wait until release is called. reading is closed
+// once that FindByID has begun.
+func (db *fakeDB) holdFind(id string) (reading <-chan struct{}, release func()) {
+	hold := &findHold{started: make(chan struct{}), released: make(chan struct{})}
+	db.mu.Lock()
+	defer db.mu.Unlock()
+	db.held[id] = hold
+	return hold.started, sync.OnceFunc(func() { close(hold.released) })
 }
 
 func (db *fakeDB) unlist(id string) {
@@ -78,6 +97,15 @@ func (db *fakeDB) get(id string) shared.Monitor {
 }
 
 func (db *fakeDB) FindByID(_ context.Context, id string) (*shared.Monitor, error) {
+	db.mu.Lock()
+	hold := db.held[id]
+	delete(db.held, id)
+	db.mu.Unlock()
+	if hold != nil {
+		close(hold.started)
+		<-hold.released
+	}
+
 	db.mu.Lock()
 	defer db.mu.Unlock()
 	m, ok := db.byID[id]
