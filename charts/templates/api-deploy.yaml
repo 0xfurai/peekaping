@@ -33,6 +33,7 @@ spec:
       
       {{- if .Values.api.apparmor.enabled }}
         container.apparmor.security.beta.kubernetes.io/{{ .Release.Name }}-api: runtime/default
+        container.apparmor.security.beta.kubernetes.io/wait-for-migrations: runtime/default
       {{- end }}
 
     spec:

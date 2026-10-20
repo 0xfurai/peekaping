@@ -5,8 +5,9 @@
 # web container (also when web.image.tag is set), the api, producer, worker and
 # ingester Deployments wait for the migrations in an init container that runs
 # the migrate image (also when migrate.image.tag is set) while the web
-# Deployment has none, and the install notes say Peekaping runs in cluster mode
-# and link to the Helm docs page.
+# Deployment has none, an enabled AppArmor profile covers that init container as
+# well as the main container, and the install notes say Peekaping runs in
+# cluster mode and link to the Helm docs page.
 #
 # Usage: scripts/test-chart.sh
 # Needs helm (3.13 or later) and network access to registry-1.docker.io, where
@@ -145,6 +146,49 @@ backend_components_wait() {
   return $status
 }
 
+# apparmor_annotations_of <rendered file> <template>: the AppArmor annotations,
+# one "container.apparmor.security.beta.kubernetes.io/<container>: <profile>"
+# per line, in the rendered <template> (such as api-deploy)
+apparmor_annotations_of() {
+  awk -v template="$2" '
+    /^# Source: / { in_template = ($0 ~ "/" template "\\.yaml$"); next }
+    /^---$/ { in_template = 0 }
+    in_template && /^ *container\.apparmor\.security\.beta\.kubernetes\.io\// { sub(/^ */, ""); print }
+  ' "$1"
+}
+
+# apparmor_covers_init <rendered file> <component>: the component's pod
+# template has the AppArmor annotation for its container and for its
+# wait-for-migrations init container. An annotation names one container, so an
+# init container left out runs without the profile.
+apparmor_covers_init() {
+  local annotations container status=0
+  annotations=$(apparmor_annotations_of "$1" "$2-deploy")
+  for container in "$release-$2" wait-for-migrations; do
+    if ! grep -Fqx "container.apparmor.security.beta.kubernetes.io/$container: runtime/default" <<<"$annotations"; then
+      echo "       no runtime/default AppArmor annotation for $container in the $2 Deployment"
+      status=1
+    fi
+  done
+  return $status
+}
+
+# apparmor_off <rendered file>: the api, producer, worker and ingester pod
+# templates have no AppArmor annotation, which is what apparmor.enabled=false
+# means
+apparmor_off() {
+  local component annotations status=0
+  for component in api producer worker ingester; do
+    annotations=$(apparmor_annotations_of "$1" "$component-deploy")
+    if [ -n "$annotations" ]; then
+      echo "       the $component Deployment has AppArmor annotations although apparmor.enabled is false:"
+      sed 's/^/       /' <<<"$annotations"
+      status=1
+    fi
+  done
+  return $status
+}
+
 # notes_say <text>: the notes an install prints have the text. A client-side
 # dry run prints them and needs no cluster.
 notes_say() {
@@ -168,6 +212,8 @@ if check "helm dependency build fetches PostgreSQL and Redis" run dependency hel
     check "default values: the seed init container runs the web image" web_matches_seed "$work/default.yaml" || true
     check "default values: api, producer, worker and ingester wait for the migrations, web doesn't" \
       backend_components_wait "$work/default.yaml" 0xfurai/peekaping-migrate:latest || true
+    check "default values: the api, producer, worker and ingester pods have no AppArmor annotation" \
+      apparmor_off "$work/default.yaml" || true
   fi
   if check "bundled PostgreSQL and Redis render" render bundled --set postgresql.enabled=true --set redis.enabled=true; then
     check "bundled PostgreSQL and Redis: the seed init container runs the web image" \
@@ -182,6 +228,14 @@ if check "helm dependency build fetches PostgreSQL and Redis" run dependency hel
   if check "migrate.image.tag=0.0.47 renders" render migrate-tagged --set migrate.image.tag=0.0.47; then
     check "migrate.image.tag=0.0.47: the wait-for-migrations init containers run the migrate image at that tag" \
       backend_components_wait "$work/migrate-tagged.yaml" 0xfurai/peekaping-migrate:0.0.47 || true
+  fi
+  if check "apparmor.enabled=true for the api, producer, worker and ingester renders" render apparmor \
+    --set api.apparmor.enabled=true --set producer.apparmor.enabled=true \
+    --set worker.apparmor.enabled=true --set ingester.apparmor.enabled=true; then
+    for component in api producer worker ingester; do
+      check "$component.apparmor.enabled=true: the pod template annotates $release-$component and wait-for-migrations" \
+        apparmor_covers_init "$work/apparmor.yaml" "$component" || true
+    done
   fi
 
   echo "# Notes"
