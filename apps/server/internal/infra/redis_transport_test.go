@@ -2,6 +2,7 @@ package infra
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -144,6 +145,32 @@ func TestRedisBusSubscribesWhileRedisIsDown(t *testing.T) {
 	assert.Equal(t, eventstest.Sample{MonitorID: "mon-2"}, <-received)
 }
 
+func TestRedisBusSubscribesToManyTopicsQuicklyWhileRedisIsDown(t *testing.T) {
+	server, client := newTestRedis(t)
+	server.Close()
+	transport := newRedisTransport(client, zap.NewNop().Sugar())
+	// Production waits: a retry is seconds away, so nothing frees a waiting Subscribe early
+	transport.reconnectMin, transport.reconnectMax = 3*time.Second, 3*time.Second
+	bus := events.NewBus(transport)
+	t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		_ = bus.Close(ctx)
+	})
+	topics := []events.Topic[eventstest.Sample]{eventstest.Alpha, eventstest.Beta}
+	for i := range 4 {
+		topics = append(topics, events.NewTopic(fmt.Sprintf("eventstest.extra-%d", i), func(s eventstest.Sample) string { return s.MonitorID }))
+	}
+
+	start := time.Now()
+	sub := events.NewSubscriber(bus, "sub")
+	for _, topic := range topics {
+		events.Subscribe(sub, topic, func(context.Context, eventstest.Sample) {})
+	}
+
+	assert.Less(t, time.Since(start), time.Second, "a process starting without Redis subscribes to all its topics without waiting on each")
+}
+
 const heartbeatEnvelope = `{"type":"heartbeat","payload":{"id":"hb-1","monitor_id":"mon-1","status":0,"msg":"connection refused","ping":42,"duration":7,"down_count":2,"retries":1,"important":true,"time":"2026-10-17T09:30:00Z","end_time":"2026-10-17T09:30:01Z","notified":true}}`
 
 func heartbeat() shared.HeartBeatModel {
@@ -160,6 +187,24 @@ func heartbeat() shared.HeartBeatModel {
 		Time:      time.Date(2026, 10, 17, 9, 30, 0, 0, time.UTC),
 		EndTime:   time.Date(2026, 10, 17, 9, 30, 1, 0, time.UTC),
 		Notified:  true,
+	}
+}
+
+func TestRedisTransportSubscribeDuringCloseIsSafe(t *testing.T) {
+	// Run with -race: the first Subscribe starts the run loop while Close waits for it
+	_, client := newTestRedis(t)
+	for i := range 50 {
+		transport := newRedisTransport(client, zap.NewNop().Sugar())
+		transport.Start(func(events.Message) {})
+		done := make(chan struct{})
+		go func() {
+			defer close(done)
+			transport.Subscribe(fmt.Sprintf("eventstest.race-%d", i))
+		}()
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		require.NoError(t, transport.Close(ctx))
+		cancel()
+		<-done
 	}
 }
 

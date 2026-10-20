@@ -57,12 +57,14 @@ type redisTransport struct {
 	cancel context.CancelFunc
 	wg     sync.WaitGroup
 
-	mu       sync.Mutex
-	deliver  func(events.Message)
-	channels map[string]bool          // every channel to subscribe to
-	pending  map[string]chan struct{} // channels waiting for Redis to confirm, closed once they are
-	started  bool
-	pubsub   *redis.PubSub // the live subscription, nil between attempts
+	mu        sync.Mutex
+	deliver   func(events.Message)
+	channels  map[string]bool          // every channel to subscribe to
+	pending   map[string]chan struct{} // channels waiting for Redis to confirm, closed once they are
+	started   bool
+	closed    bool
+	connected bool          // Redis has confirmed a subscription on the current connection
+	pubsub    *redis.PubSub // the live subscription, nil between attempts
 }
 
 var _ events.Transport = (*redisTransport)(nil)
@@ -114,23 +116,29 @@ func (t *redisTransport) Publish(ctx context.Context, msg events.Message) error 
 
 // Subscribe implements events.Transport. It returns once Redis has confirmed the
 // subscription, or when the connection attempt fails or takes longer than subscribeWait: in
-// those cases the subscription carries on in the background.
+// those cases the subscription carries on in the background. While Redis is unreachable it
+// returns at once, and the next successful attempt subscribes to the channel.
 func (t *redisTransport) Subscribe(topic string) {
 	channel := t.channel(topic)
 
 	t.mu.Lock()
-	if t.channels[channel] {
+	if t.closed || t.channels[channel] {
 		t.mu.Unlock()
 		return
 	}
 	t.channels[channel] = true
-	confirmed := make(chan struct{})
-	t.pending[channel] = confirmed
 	pubsub := t.pubsub
 	start := !t.started
 	t.started = true
+	// Waiting only makes sense on the first attempt or on a connection Redis has answered on
+	wait := start || t.connected
+	var confirmed chan struct{}
+	if wait {
+		confirmed = make(chan struct{})
+		t.pending[channel] = confirmed
+	}
 	if start {
-		t.wg.Add(1)
+		t.wg.Add(1) // under mu, and Close sets closed under mu before it waits
 	}
 	t.mu.Unlock()
 
@@ -142,6 +150,9 @@ func (t *redisTransport) Subscribe(topic string) {
 		if err := pubsub.Subscribe(t.ctx, channel); err != nil {
 			t.logger.Warnw("Failed to subscribe to a Redis channel on the live connection", "channel", channel, "error", err)
 		}
+	}
+	if !wait {
+		return
 	}
 
 	select {
@@ -207,6 +218,7 @@ func (t *redisTransport) subscribeOnce(retry bool) (subscribed bool, err error) 
 	defer func() {
 		t.mu.Lock()
 		t.pubsub = nil
+		t.connected = false
 		t.mu.Unlock()
 		_ = pubsub.Close()
 	}()
@@ -250,9 +262,10 @@ func (t *redisTransport) subscribeOnce(retry bool) (subscribed bool, err error) 
 	}
 }
 
-// confirm releases the Subscribe call waiting for channel.
+// confirm marks the connection up and releases the Subscribe call waiting for channel.
 func (t *redisTransport) confirm(channel string) {
 	t.mu.Lock()
+	t.connected = true
 	if done, ok := t.pending[channel]; ok {
 		close(done)
 		delete(t.pending, channel)
@@ -289,6 +302,7 @@ func (t *redisTransport) handle(msg *redis.Message) {
 func (t *redisTransport) Close(ctx context.Context) error {
 	t.cancel()
 	t.mu.Lock()
+	t.closed = true // no Subscribe can start the run loop after this, so wg.Wait below is final
 	pubsub := t.pubsub
 	t.mu.Unlock()
 	if pubsub != nil {
