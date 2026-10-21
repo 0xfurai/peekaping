@@ -153,6 +153,26 @@ func Guard(component string, fn func()) {
 	returned = true
 }
 
+// ReportCrash is deferred at the top of a function whose panic ends the process, such as main:
+//
+//	defer reporting.ReportCrash("main")
+//
+// A panic that reaches it is reported as fatal and flushed, then raised again with the same
+// value, so the process crashes as it would have. It must be deferred directly: recover only
+// works in the deferred function itself.
+func ReportCrash(component string) {
+	if !Enabled() {
+		return
+	}
+	value := recover()
+	if value == nil {
+		return
+	}
+	capture(component, value, debug.Stack(), sentry.LevelFatal)
+	Flush(flushTimeout)
+	panic(value)
+}
+
 // Flush waits up to timeout for the reports queued to be sent.
 func Flush(timeout time.Duration) {
 	defer func() { _ = recover() }()

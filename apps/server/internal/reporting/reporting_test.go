@@ -358,6 +358,37 @@ func TestGuard_ReportsAFatalEventFlushesAndPanicsAgainWithTheSameValue(t *testin
 	assert.Contains(t, functions(sent[0].Exception[0].Stacktrace.Frames), "explode")
 }
 
+func TestReportCrash_ReportsAPanicOfTheCallerAndPanicsAgain(t *testing.T) {
+	recorder := reportingtest.Install(t)
+	original := errors.New("boom")
+
+	value, _ := panicked(func() {
+		defer reporting.ReportCrash("main")
+		explode(original)
+	})
+
+	assert.Same(t, original, value)
+	sent := recorder.Sent()
+	require.Len(t, sent, 1, "flushed before the panic goes on")
+	assert.Equal(t, sentry.LevelFatal, sent[0].Level)
+	assert.Equal(t, "main", sent[0].Tags["component"])
+	assert.Contains(t, functions(sent[0].Exception[0].Stacktrace.Frames), "explode")
+}
+
+func TestReportCrash_LeavesAReturnAloneAndAPanicWhileReportingIsOff(t *testing.T) {
+	recorder := reportingtest.Install(t)
+
+	func() { defer reporting.ReportCrash("main") }()
+	reporting.SetEnabled(false)
+	value, _ := panicked(func() {
+		defer reporting.ReportCrash("main")
+		explode("boom")
+	})
+
+	assert.Equal(t, "boom", value)
+	assert.Empty(t, recorder.Events())
+}
+
 func TestGuard_LeavesAReturningFunctionAlone(t *testing.T) {
 	recorder := reportingtest.Install(t)
 	ran := false
