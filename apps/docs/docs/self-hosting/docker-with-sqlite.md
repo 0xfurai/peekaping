@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Docker + SQLite
 
-For the stats storage upgrade, backups and optional disk-space reclamation, see [Upgrading stats storage](./upgrading-stats.md).
+For the stats storage upgrade, backups and optional disk-space reclamation, see [Upgrading stats storage](./upgrading-stats.md). If Peekaping stops at start because the SQLite quick check found corruption, see [Recovering a corrupt SQLite database](./sqlite-recovery.md).
 
 Peekaping runs in one of two modes. See [Deployment modes](./deployment-modes.md) for what each one runs:
 
