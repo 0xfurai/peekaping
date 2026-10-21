@@ -204,7 +204,7 @@ type tagRow struct {
 func (c *copier) copyTags(ctx context.Context) error {
 	report := c.report.collection("tags", "tags")
 	out := newBatcher[tagRow](c.tx, "tags", report)
-	names := map[string]bool{}
+	names, stored := map[string]bool{}, map[string]bool{}
 	err := c.src.each(ctx, "tags", byID, func(d doc) error {
 		report.Read++
 		id, ok := d.id()
@@ -220,7 +220,7 @@ func (c *copier) copyTags(ctx context.Context) error {
 		names[name] = true
 		created, updated := stamps(report, d, id, "created_at", "updated_at")
 		c.tags.add(id)
-		return out.add(ctx, tagRow{ID: uuidOf(id), Name: name, Color: d.str("color"), Description: d.strPtr("description"), CreatedAt: created, UpdatedAt: updated})
+		return out.add(ctx, tagRow{ID: uuidOf(id), Name: c.uniqueText(report, "name", stored, name, 100), Color: d.str("color"), Description: d.strPtr("description"), CreatedAt: created, UpdatedAt: updated})
 	})
 	if err != nil {
 		return err
@@ -313,7 +313,7 @@ type statusPage struct {
 func (c *copier) copyStatusPages(ctx context.Context) error {
 	report := c.report.collection("status_pages", "status_pages")
 	out := newBatcher[statusPageRow](c.tx, "status_pages", report)
-	slugs := map[string]bool{}
+	slugs, stored := map[string]bool{}, map[string]bool{}
 	err := c.src.each(ctx, "status_pages", byID, func(d doc) error {
 		report.Read++
 		id, ok := d.id()
@@ -329,6 +329,7 @@ func (c *copier) copyStatusPages(ctx context.Context) error {
 		slugs[slug] = true
 		created, updated := stamps(report, d, id, "created_at", "updated_at")
 
+		slug = c.uniqueText(report, "slug", stored, slug, 255)
 		page := &statusPage{id: id, slug: slug}
 		if d.boolean("search_engine_index") {
 			page.unused = append(page.unused, "search_engine_index")

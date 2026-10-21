@@ -219,6 +219,8 @@ type copier struct {
 	src      *source
 	report   *Report
 	progress io.Writer
+	// cutsText is whether text wider than its column has to be cut
+	cutsText bool
 
 	proxies, monitors, channels, tags, maintenances idSet
 	statusPages                                     map[primitive.ObjectID]*statusPage
@@ -227,7 +229,7 @@ type copier struct {
 
 func newCopier(tx bun.Tx, src *source, report *Report, progress io.Writer) *copier {
 	return &copier{
-		tx: tx, src: src, report: report, progress: progress,
+		tx: tx, src: src, report: report, progress: progress, cutsText: cutsText(tx),
 		proxies: idSet{}, monitors: idSet{}, channels: idSet{}, tags: idSet{}, maintenances: idSet{},
 		statusPages: map[primitive.ObjectID]*statusPage{},
 	}

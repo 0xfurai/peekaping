@@ -1,7 +1,9 @@
 package mongoimport
 
 import (
+	"strconv"
 	"time"
+	"unicode/utf8"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -44,4 +46,32 @@ func stamps(report *CollectionReport, d doc, id primitive.ObjectID, createdKey, 
 		report.fix(updatedKey + " missing or zero: used the creation time")
 	}
 	return created, updated
+}
+
+// uniqueText returns the text to store in a column of at most width characters
+// that must be unique, as the first value that is not in taken, and adds it to taken.
+//
+// PostgreSQL enforces the width, so the text is cut to it, and values that differ only after the
+// width then collide. A copied row is never dropped for that: the later value keeps its first
+// characters and ends in ~2, ~3 and so on, which the report counts. SQLite keeps text whole, so
+// there values collide only if they were equal, and the callers skip those first.
+func (c *copier) uniqueText(report *CollectionReport, column string, taken map[string]bool, value string, width int) string {
+	if c.cutsText && utf8.RuneCountInString(value) > width {
+		value = string([]rune(value)[:width])
+		report.fix(column + " cut to " + strconv.Itoa(width) + " characters")
+	}
+	candidate := value
+	for n := 2; taken[candidate]; n++ {
+		suffix := "~" + strconv.Itoa(n)
+		runes := []rune(value)
+		if len(runes)+len(suffix) > width {
+			runes = runes[:width-len(suffix)]
+		}
+		candidate = string(runes) + suffix
+		if !taken[candidate] {
+			report.fix(column + " renamed to stay unique after being cut to " + strconv.Itoa(width) + " characters")
+		}
+	}
+	taken[candidate] = true
+	return candidate
 }
