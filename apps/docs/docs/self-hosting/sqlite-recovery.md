@@ -61,7 +61,7 @@ Stop every process that uses the database, and stop its restarts. Don't start Pe
 - **Single mode with `docker run`:** `docker stop -t 35 peekaping`.
 - **Single mode with Docker Compose:** `docker compose down`.
 - **Cluster mode with Docker Compose:** `docker compose stop api producer ingester`. Run `docker compose ps` and check that no `migrate` container is running.
-- **Kubernetes, with your own manifests:** scale every Deployment that mounts the database to 0 replicas. (The Helm chart supports PostgreSQL only.)
+- **Kubernetes, with your own manifests:** stop every workload that mounts the database volume, whatever its kind: a Deployment, a StatefulSet, a Job or a plain Pod. Scale it to 0 replicas, or delete it. Then run `kubectl get pods` in that namespace and check that no pod that mounts the volume is left. (The Helm chart supports PostgreSQL only.)
 
 ### 2. Preserve the original
 
@@ -93,7 +93,7 @@ Go to [step 5](#5-put-the-database-in-place-and-start-peekaping) with the backup
 
 ### 4. Without a backup, salvage with `.recover`
 
-`.recover` reads what it can from a damaged database and prints SQL that builds a new one. It needs `sqlite3` 3.29.0 or newer. Check with `sqlite3 --version`.
+`.recover` reads what it can from a damaged database and prints SQL that builds a new one. It needs a `sqlite3` build that includes `.recover`, which is 3.29.0 or newer. The builds from sqlite.org and most distribution packages include it. Check that `.recover` is listed in the output of `sqlite3 :memory: '.help'`.
 
 Work on a second copy, not on the original or on the copy from step 2. Opening a database can write to it, and the `-wal` file is applied when it opens. Keep the `-wal` and `-shm` files beside the copy, so `.recover` reads the changes in them too:
 
@@ -101,10 +101,15 @@ Work on a second copy, not on the original or on the copy from step 2. Opening a
 mkdir /path/to/work
 cp -a /path/to/safe/peekaping.db* /path/to/work/
 cd /path/to/work
-sqlite3 peekaping.db '.recover' | sqlite3 recovered.db
+sqlite3 peekaping.db '.recover' > recovered.sql
+sqlite3 recovered.db < recovered.sql
 ```
 
-`recovered.db` must not exist before you run this. The second `sqlite3` may print `defensive off`. That is normal. If `.recover` can't tell which table some rows belong to, it puts them in a table named `lost_and_found`.
+`recovered.sql` is the SQL that rebuilds the database. Keep it.
+
+The first command must finish without an error. If it fails, `recovered.sql` is incomplete, and the second command can still build a database that passes the check below. Don't use that database.
+
+`recovered.db` must not exist before you run the second command. The second command may print `defensive off`. That is normal. If `.recover` can't tell which table some rows belong to, it puts them in a table named `lost_and_found`.
 
 Run the full check on the result. It must print `ok`. Then compare row counts with what you expect:
 
@@ -133,12 +138,13 @@ Move the damaged files out of the data folder, and put the good database there a
 mkdir -p /path/to/damaged
 mv .data/sqlite/peekaping.db* /path/to/damaged/
 cp /path/to/database-to-restore.db .data/sqlite/peekaping.db
-sudo chown 1000:1000 .data/sqlite/peekaping.db
+sudo chown 1000:1000 .data/sqlite/peekaping.db    # single mode: PUID:PGID of the bundle image, 1000:1000 by default
+sudo chown 65532:65532 .data/sqlite/peekaping.db  # cluster mode: the user of the cluster images
 ```
 
 For `/path/to/database-to-restore.db`, use the tested backup from step 3, or `/path/to/work/recovered.db` from step 4.
 
-Give the file to the user Peekaping runs as. The bundle image runs Peekaping as `PUID`:`PGID`, 1000:1000 by default. The cluster-mode images run as 65532:65532, so use `65532:65532` there. See [Bundle user and permissions](./bundle-user.md) and [Cluster user and permissions](./cluster-user.md#the-sqlite-data-folder).
+Run only the `chown` line for your mode. It gives the file to the user Peekaping runs as. If you set `PUID` and `PGID`, use your values. See [Bundle user and permissions](./bundle-user.md) and [Cluster user and permissions](./cluster-user.md#the-sqlite-data-folder).
 
 Start Peekaping again: `docker start peekaping` or `docker compose up -d`. The quick check runs again, and the log says `SQLite quick check passed`. Open the web app and check your monitors and their recent heartbeats. Keep the damaged files until you're sure you don't need them.
 
