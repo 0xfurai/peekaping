@@ -44,9 +44,10 @@ func NewGuard(
 // Guard that counts per address.
 type AccountGuard struct{ *Guard }
 
-// NewAccountGuard creates the per-account guard for the login. Its limit is high and its lockout
-// short, so that it stops guessing spread over many addresses without letting someone keep the
-// account's owner out for long.
+// NewAccountGuard creates the per-account guard for the login. It stops guessing spread over many
+// addresses: a lock lasts the lockout, but the failure count is kept until the window has passed,
+// so each further failure after a lock ends locks the account again. After an attack stops, the
+// owner is back in within the window at most; one that keeps going can keep the account locked.
 func NewAccountGuard(
 	Service Service,
 	Logger *zap.SugaredLogger,

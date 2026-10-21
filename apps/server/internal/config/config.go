@@ -73,16 +73,18 @@ type Config struct {
 
 	// A second counter for the login lockout, per account and independent of the client's
 	// address, so that guessing one account's password from many addresses (or behind a proxy
-	// that hides them) still locks the account. The lockout is short so that someone who
-	// guesses wrong on purpose can't keep the account's owner out for long. A successful login
-	// resets both counters.
+	// that hides them) still locks the account. A successful login resets both counters.
 	// Maximum number of failed logins for one account within the window
 	BruteforceAccountMaxAttempts int `env:"BRUTEFORCE_ACCOUNT_MAX_ATTEMPTS" default:"100"`
 
-	// Time window for counting an account's failed logins. Examples: "10m", "1h"
+	// How long the count of an account's failed logins is kept, from the first of them. Until
+	// it has passed, each further failure after a lock ends locks the account again, so guessing
+	// is bounded to the maximum per window plus one attempt each time a lock ends.
+	// Examples: "10m", "1h"
 	BruteforceAccountWindow time.Duration `env:"BRUTEFORCE_ACCOUNT_WINDOW" default:"10m"`
 
-	// Duration to lock the account once it exceeds the maximum. Examples: "1m", "5m"
+	// How long one lock lasts. After an attack stops, the owner is back in within the window at
+	// most; an attacker who keeps going can keep the account locked. Examples: "1m", "5m"
 	BruteforceAccountLockout time.Duration `env:"BRUTEFORCE_ACCOUNT_LOCKOUT" default:"1m"`
 
 	// Proxies whose X-Forwarded-For and X-Real-IP headers the server believes: a

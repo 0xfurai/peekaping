@@ -91,7 +91,7 @@ With Docker's default network and a proxy on the same host, that is usually the 
 
 With `TRUSTED_PROXIES` empty behind a proxy, every login counts as coming from the proxy, so one person's failed logins can lock an account for everyone.
 
-Whatever you set, Peekaping also locks an account after `BRUTEFORCE_ACCOUNT_MAX_ATTEMPTS` failed logins (100 by default) within `BRUTEFORCE_ACCOUNT_WINDOW` (10 minutes), from any addresses, for `BRUTEFORCE_ACCOUNT_LOCKOUT` (1 minute). [API Server](../architecture/api-server.md#security-configuration) lists the lockout settings.
+Whatever you set, Peekaping also locks an account after `BRUTEFORCE_ACCOUNT_MAX_ATTEMPTS` failed logins (100 by default) from any addresses within `BRUTEFORCE_ACCOUNT_WINDOW` (10 minutes). A lock lasts `BRUTEFORCE_ACCOUNT_LOCKOUT` (1 minute). The count of failures is kept until the window, measured from the first failure, has passed, so until then each further failure after a lock ends locks the account again. So guessing is bounded to the limit per window plus one attempt each time a lock ends, and after an attack stops the owner is back in within the window at most. An attacker who keeps going can keep the account locked. [API Server](../architecture/api-server.md#security-configuration) lists the lockout settings.
 
 ### Upgrading from a bundle with Redis and Caddy
 

@@ -143,7 +143,7 @@ func TestAuthAPI_LocksAnAccountNoMatterWhereTheGuessesComeFrom(t *testing.T) {
 	assert.Equal(t, http.StatusTooManyRequests, w.Code, "locked even with the right password, from an address that never failed: %s", w.Body.String())
 	retryAfter, err := strconv.Atoi(w.Header().Get("Retry-After"))
 	require.NoError(t, err)
-	assert.InDelta(t, 60, retryAfter, 1, "the account lockout is short, so it can't keep the owner out for long")
+	assert.InDelta(t, 60, retryAfter, 1, "a lock lasts the account lockout, a minute")
 
 	assert.Equal(t, http.StatusUnauthorized, a.request(t, http.MethodPost, "/api/v1/auth/login",
 		map[string]any{"email": "other@example.com", "password": adminPassword}, forwardedFor(accountLimit+1)).Code,
