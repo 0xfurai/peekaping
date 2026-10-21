@@ -16,6 +16,7 @@
       "have_account": "Imate već račun?",
       "sign_in": "Prijavi se",
       "submit": "Kreiraj",
+      "telemetry_hint": "Isključeno ako ne označite ovaj okvir. To možete promijeniti kasnije u „Postavke“. Ako ga označite, Peekaping šalje ovo najviše jednom dnevno:",
       "title": "Pozdrav"
     },
     "twofa": {
@@ -1378,7 +1379,13 @@
   },
   "telemetry": {
     "docs_link": "Što se šalje i kako to isključiti",
-    "label": "Šalji anonimnu statistiku korištenja"
+    "label": "Šalji anonimnu statistiku korištenja",
+    "never_sent": "Nikada se ne šalje: nazivi nadzora, URL-ovi, hostovi, oznake, adrese statusnih stranica ni postavke obavijesti. Vaša IP adresa se ne pohranjuje.",
+    "sent_features": "Koristite li statusne stranice, prozore održavanja i metrike",
+    "sent_id": "Nasumični ID, koji se stvara kad ovo uključite i briše kad ovo isključite",
+    "sent_monitors": "Koliko nadzora imate, kao raspon, na primjer 11-50",
+    "sent_setup": "Verzija Peekapinga, pojedinačni ili klasterski način rada, pozadinski sustav za pohranu te operacijski sustav i vrsta procesora",
+    "sent_types": "Vrste nadzora i kanala obavijesti koje koristite, na primjer http ili telegram"
   },
   "theme": {
     "dark": "Tamna",

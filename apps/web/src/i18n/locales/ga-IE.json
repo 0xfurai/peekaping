@@ -16,6 +16,7 @@
       "have_account": "An bhfuil cuntas agat cheana féin?",
       "sign_in": "Logáil isteach",
       "submit": "Cruthaigh",
+      "telemetry_hint": "As, mura gcuireann tú tic sa bhosca seo. Is féidir leat é a athrú ar ball faoi “Socruithe”. Má chuireann tú tic ann, seolann Peekaping é seo uair amháin sa lá ar a mhéad:",
       "title": "Dia dhuit"
     },
     "twofa": {
@@ -1377,7 +1378,13 @@
   },
   "telemetry": {
     "docs_link": "Cad a sheoltar agus conas é a mhúchadh",
-    "label": "Seol staitisticí úsáide gan ainm"
+    "label": "Seol staitisticí úsáide gan ainm",
+    "never_sent": "Ní sheoltar choíche: ainmneacha móntóirí, URLanna, óstaigh, tagaí, seoltaí leathanach stádais ná socruithe fógraí. Ní stóráiltear do sheoladh IP.",
+    "sent_features": "An úsáideann tú leathanaigh stádais, fuinneoga cothabhála agus méadrachtaí",
+    "sent_id": "ID randamach, a chruthaítear nuair a chuireann tú air é agus a scriostar nuair a mhúchann tú é",
+    "sent_monitors": "Cé mhéad móntóir atá agat, mar raon, mar shampla 11-50",
+    "sent_setup": "Leagan Peekaping, mód aonair nó braisle, an backend stórála, agus an córas oibriúcháin agus cineál an LAP",
+    "sent_types": "Na cineálacha móntóirí agus cainéal fógra a úsáideann tú, mar http nó telegram"
   },
   "theme": {
     "dark": "Dorcha",

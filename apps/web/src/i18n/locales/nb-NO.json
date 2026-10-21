@@ -16,6 +16,7 @@
       "have_account": "Har du allerede en konto?",
       "sign_in": "Logg inn",
       "submit": "Opprett",
+      "telemetry_hint": "Av, med mindre du krysser av for denne boksen. Du kan endre det senere under «Innstillinger». Hvis du krysser av, sender Peekaping dette høyst én gang per dag:",
       "title": "Hei"
     },
     "twofa": {
@@ -1378,7 +1379,13 @@
   },
   "telemetry": {
     "docs_link": "Hva som sendes, og hvordan du slår det av",
-    "label": "Send anonym bruksstatistikk"
+    "label": "Send anonym bruksstatistikk",
+    "never_sent": "Sendes aldri: navn på overvåkninger, nettadresser, verter, merker, adresser til statussider eller varslingsinnstillinger. IP-adressen din lagres ikke.",
+    "sent_features": "Om du bruker statussider, vedlikeholdsvinduer og målinger",
+    "sent_id": "En tilfeldig ID, som opprettes når du slår det på og slettes når du slår det av",
+    "sent_monitors": "Hvor mange overvåkninger du har, som et område, for eksempel 11-50",
+    "sent_setup": "Peekaping-versjonen, enkeltmodus eller klyngemodus, lagringsbackenden og operativsystem og CPU-type",
+    "sent_types": "Typene overvåkninger og varslingskanaler du bruker, for eksempel http eller telegram"
   },
   "theme": {
     "dark": "Mørk",

@@ -16,6 +16,7 @@
       "have_account": "Bạn đã có tài khoản?",
       "sign_in": "Đăng nhập",
       "submit": "Tạo",
+      "telemetry_hint": "Tắt trừ khi bạn đánh dấu ô này. Bạn có thể đổi lại sau trong “Cài đặt”. Nếu đánh dấu, Peekaping gửi những thông tin này nhiều nhất một lần mỗi ngày:",
       "title": "Xin chào"
     },
     "twofa": {
@@ -1378,7 +1379,13 @@
   },
   "telemetry": {
     "docs_link": "Những gì được gửi và cách tắt",
-    "label": "Gửi thống kê sử dụng ẩn danh"
+    "label": "Gửi thống kê sử dụng ẩn danh",
+    "never_sent": "Không bao giờ gửi: tên giám sát, URL, máy chủ, thẻ, địa chỉ trang trạng thái hay cài đặt thông báo. Địa chỉ IP của bạn không được lưu.",
+    "sent_features": "Bạn có dùng trang trạng thái, cửa sổ bảo trì và số liệu hay không",
+    "sent_id": "Một ID ngẫu nhiên, được tạo khi bạn bật và bị xóa khi bạn tắt",
+    "sent_monitors": "Bạn có bao nhiêu giám sát, dưới dạng một khoảng, chẳng hạn 11-50",
+    "sent_setup": "Phiên bản Peekaping, chế độ đơn hoặc chế độ cụm, backend lưu trữ, cùng hệ điều hành và loại CPU",
+    "sent_types": "Các loại giám sát và kênh thông báo bạn dùng, chẳng hạn http hoặc telegram"
   },
   "theme": {
     "dark": "Tối",

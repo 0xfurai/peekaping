@@ -16,6 +16,7 @@
       "have_account": "Már van fiókod?",
       "sign_in": "Bejelentkezés",
       "submit": "Létrehoz",
+      "telemetry_hint": "Kikapcsolva, amíg nem jelöli be ezt a négyzetet. Később megváltoztathatja a „Beállítások” részben. Ha bejelöli, a Peekaping naponta legfeljebb egyszer elküldi ezeket:",
       "title": "Szia"
     },
     "twofa": {
@@ -1378,7 +1379,13 @@
   },
   "telemetry": {
     "docs_link": "Mit küld, és hogyan kapcsolható ki",
-    "label": "Névtelen használati statisztikák küldése"
+    "label": "Névtelen használati statisztikák küldése",
+    "never_sent": "Soha nem küld: figyelők nevét, URL-eket, gazdagépeket, címkéket, állapotlapok címét vagy értesítési beállításokat. Az Ön IP-címét nem tároljuk.",
+    "sent_features": "Használ-e állapotlapokat, karbantartási ablakokat és metrikákat",
+    "sent_id": "Egy véletlenszerű azonosító, amely bekapcsoláskor jön létre, kikapcsoláskor pedig törlődik",
+    "sent_monitors": "Hány figyelője van, tartományként megadva, például 11-50",
+    "sent_setup": "A Peekaping verziója, az egyedi vagy fürt üzemmód, a tárolási háttérrendszer, valamint az operációs rendszer és a processzor típusa",
+    "sent_types": "A használt figyelők és értesítési csatornák fajtái, például http vagy telegram"
   },
   "theme": {
     "dark": "Sötét",

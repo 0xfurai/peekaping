@@ -16,6 +16,7 @@
       "have_account": "Už máte účet?",
       "sign_in": "Přihlásit se",
       "submit": "Vytvořit",
+      "telemetry_hint": "Vypnuto, dokud políčko nezaškrtnete. Později to můžete změnit v části „Nastavení“. Pokud ho zaškrtnete, Peekaping to odešle nejvýše jednou denně:",
       "title": "Vítejte"
     },
     "twofa": {
@@ -1378,7 +1379,13 @@
   },
   "telemetry": {
     "docs_link": "Co se odesílá a jak to vypnout",
-    "label": "Odesílat anonymní statistiky využití"
+    "label": "Odesílat anonymní statistiky využití",
+    "never_sent": "Nikdy se neodesílá: názvy monitorů, adresy URL, hostitelé, tagy, adresy stránek stavu ani nastavení oznámení. Vaše IP adresa se neukládá.",
+    "sent_features": "Zda používáte stránky stavu, okna údržby a metriky",
+    "sent_id": "Náhodné ID, které se vytvoří při zapnutí a smaže při vypnutí",
+    "sent_monitors": "Kolik máte monitorů, jako rozsah, například 11-50",
+    "sent_setup": "Verze Peekaping, jednoduchý nebo clusterový režim, úložiště dat a typ operačního systému a procesoru",
+    "sent_types": "Druhy monitorů a kanálů oznámení, které používáte, například http nebo telegram"
   },
   "theme": {
     "dark": "Tmavý",

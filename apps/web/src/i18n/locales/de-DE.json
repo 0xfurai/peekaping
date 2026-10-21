@@ -16,6 +16,7 @@
       "have_account": "Haben Sie bereits ein Konto?",
       "sign_in": "Anmelden",
       "submit": "Registrieren",
+      "telemetry_hint": "Aus, solange Sie dieses Kästchen nicht anhaken. Sie können das später unter „Einstellungen“ ändern. Wenn Sie es anhaken, sendet Peekaping dies höchstens einmal am Tag:",
       "title": "Hallo"
     },
     "twofa": {
@@ -1378,7 +1379,13 @@
   },
   "telemetry": {
     "docs_link": "Was gesendet wird und wie man es ausschaltet",
-    "label": "Anonyme Nutzungsstatistiken senden"
+    "label": "Anonyme Nutzungsstatistiken senden",
+    "never_sent": "Nie gesendet werden: Monitornamen, URLs, Hosts, Schlagwörter, Adressen von Statusseiten oder Benachrichtigungseinstellungen. Ihre IP-Adresse wird nicht gespeichert.",
+    "sent_features": "Ob Sie Statusseiten, Wartungsfenster und Metriken verwenden",
+    "sent_id": "Eine zufällige ID, die beim Einschalten erstellt und beim Ausschalten gelöscht wird",
+    "sent_monitors": "Wie viele Monitore Sie haben, als Bereich, zum Beispiel 11-50",
+    "sent_setup": "Die Peekaping-Version, Einzel- oder Cluster-Modus, das Speicher-Backend sowie Betriebssystem und CPU-Typ",
+    "sent_types": "Die Arten von Monitoren und Benachrichtigungskanälen, die Sie verwenden, zum Beispiel http oder telegram"
   },
   "theme": {
     "dark": "Dunkel",

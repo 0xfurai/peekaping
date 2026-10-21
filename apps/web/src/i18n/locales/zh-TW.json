@@ -16,6 +16,7 @@
       "have_account": "已有帳號？",
       "sign_in": "登入",
       "submit": "建立",
+      "telemetry_hint": "除非勾選此方塊，否則保持關閉。你之後可以在「設定」中變更。勾選後，Peekaping 每天最多傳送一次以下內容：",
       "title": "您好"
     },
     "twofa": {
@@ -1378,7 +1379,13 @@
   },
   "telemetry": {
     "docs_link": "會傳送什麼，以及如何關閉",
-    "label": "傳送匿名使用統計"
+    "label": "傳送匿名使用統計",
+    "never_sent": "絕不傳送：監控名稱、URL、主機、標籤、狀態頁面位址或通知設定。你的 IP 位址不會被儲存。",
+    "sent_features": "你是否使用狀態頁面、維護時段和指標",
+    "sent_id": "一個隨機 ID，開啟時建立，關閉時刪除",
+    "sent_monitors": "你有多少個監控，以範圍表示，例如 11-50",
+    "sent_setup": "Peekaping 版本、單機模式或叢集模式、儲存後端，以及作業系統和 CPU 類型",
+    "sent_types": "你使用的監控和通知管道的類型，例如 http 或 telegram"
   },
   "theme": {
     "dark": "深色",

@@ -16,6 +16,7 @@
       "have_account": "Heeft u al een account?",
       "sign_in": "Inloggen",
       "submit": "Registreren",
+      "telemetry_hint": "Uit, tenzij je dit vakje aanvinkt. Je kunt het later wijzigen onder ‘Instellingen’. Als je het aanvinkt, verstuurt Peekaping dit hooguit één keer per dag:",
       "title": "Hallo"
     },
     "twofa": {
@@ -1378,7 +1379,13 @@
   },
   "telemetry": {
     "docs_link": "Wat er wordt verstuurd en hoe je het uitzet",
-    "label": "Anonieme gebruiksstatistieken versturen"
+    "label": "Anonieme gebruiksstatistieken versturen",
+    "never_sent": "Nooit verstuurd: namen van monitoren, URL's, hosts, etiketten, adressen van statuspagina's of meldingsinstellingen. Je IP-adres wordt niet opgeslagen.",
+    "sent_features": "Of je statuspagina's, onderhoudsvensters en statistieken gebruikt",
+    "sent_id": "Een willekeurige ID, die wordt aangemaakt als je dit aanzet en verwijderd als je het uitzet",
+    "sent_monitors": "Hoeveel monitoren je hebt, als bereik, bijvoorbeeld 11-50",
+    "sent_setup": "De Peekaping-versie, enkele modus of clustermodus, de opslagbackend, en het besturingssysteem en het CPU-type",
+    "sent_types": "De soorten monitoren en meldingskanalen die je gebruikt, zoals http of telegram"
   },
   "theme": {
     "dark": "Donker",

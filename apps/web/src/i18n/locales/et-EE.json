@@ -16,6 +16,7 @@
       "have_account": "Sul on juba konto?",
       "sign_in": "Logi sisse",
       "submit": "Loo",
+      "telemetry_hint": "Välja lülitatud, kuni te seda ruutu ei märgi. Saate seda hiljem muuta jaotises „Seaded“. Kui märgite, saadab Peekaping seda kõige rohkem kord päevas:",
       "title": "Tere"
     },
     "twofa": {
@@ -1378,7 +1379,13 @@
   },
   "telemetry": {
     "docs_link": "Mida saadetakse ja kuidas selle välja lülitada",
-    "label": "Saada anonüümset kasutusstatistikat"
+    "label": "Saada anonüümset kasutusstatistikat",
+    "never_sent": "Ei saadeta kunagi: monitoride nimesid, URL-e, hoste, silte, olekusivude aadresse ega teavituste seadeid. Teie IP-aadressi ei salvestata.",
+    "sent_features": "Kas kasutate olekusivusid, hooldusaknaid ja mõõdikuid",
+    "sent_id": "Juhuslik ID, mis luuakse sisselülitamisel ja kustutatakse väljalülitamisel",
+    "sent_monitors": "Mitu monitoori teil on, vahemikuna, näiteks 11-50",
+    "sent_setup": "Peekapingi versioon, ühe- või klastrirežiim, andmesalv ning operatsioonisüsteem ja protsessori tüüp",
+    "sent_types": "Kasutatavate monitoride ja teavituskanalite liigid, näiteks http või telegram"
   },
   "theme": {
     "dark": "Tumine",

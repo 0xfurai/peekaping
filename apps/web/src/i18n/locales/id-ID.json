@@ -16,6 +16,7 @@
       "have_account": "Sudah punya akun?",
       "sign_in": "Masuk",
       "submit": "Buat",
+      "telemetry_hint": "Nonaktif kecuali Anda mencentang kotak ini. Anda dapat mengubahnya nanti di “Pengaturan”. Jika Anda mencentangnya, Peekaping mengirim data ini paling banyak sekali sehari:",
       "title": "Halo"
     },
     "twofa": {
@@ -1378,7 +1379,13 @@
   },
   "telemetry": {
     "docs_link": "Apa yang dikirim dan cara mematikannya",
-    "label": "Kirim statistik penggunaan anonim"
+    "label": "Kirim statistik penggunaan anonim",
+    "never_sent": "Tidak pernah dikirim: nama pengawasan, URL, host, tag, alamat halaman status, atau pengaturan notifikasi. Alamat IP Anda tidak disimpan.",
+    "sent_features": "Apakah Anda menggunakan halaman status, jendela pemeliharaan, dan metrik",
+    "sent_id": "ID acak, dibuat saat Anda mengaktifkannya dan dihapus saat Anda menonaktifkannya",
+    "sent_monitors": "Berapa banyak pengawasan yang Anda miliki, sebagai rentang, misalnya 11-50",
+    "sent_setup": "Versi Peekaping, mode tunggal atau klaster, backend penyimpanan, serta sistem operasi dan jenis CPU",
+    "sent_types": "Jenis pengawasan dan saluran notifikasi yang Anda gunakan, misalnya http atau telegram"
   },
   "theme": {
     "dark": "Gelap",

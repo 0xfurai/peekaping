@@ -16,6 +16,7 @@
       "have_account": "Already have an account?",
       "sign_in": "Sign in",
       "submit": "Create",
+      "telemetry_hint": "Off unless you tick this box. You can change it later under “Settings”. If you tick it, Peekaping sends this at most once a day:",
       "title": "Hello"
     },
     "twofa": {
@@ -1378,7 +1379,13 @@
   },
   "telemetry": {
     "docs_link": "What is sent, and how to turn it off",
-    "label": "Send anonymous usage statistics"
+    "label": "Send anonymous usage statistics",
+    "never_sent": "Never sent: monitor names, URLs, hosts, tags, status page addresses or notification settings. Your IP address is not stored.",
+    "sent_features": "Whether you use status pages, maintenance windows and metrics",
+    "sent_id": "A random ID, created when you turn this on and deleted when you turn it off",
+    "sent_monitors": "How many monitors you have, as a range such as 11-50",
+    "sent_setup": "The Peekaping version, single or cluster mode, the storage backend, and the operating system and CPU type",
+    "sent_types": "The kinds of monitors and notification channels you use, such as http or telegram"
   },
   "theme": {
     "dark": "Dark",
