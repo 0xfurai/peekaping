@@ -38,7 +38,7 @@ func TestImportRemovesNULEscapesFromConfigs(t *testing.T) {
 	})
 
 	forEachTarget(t, func(t *testing.T, db *bun.DB) {
-		report, err := mongoimport.Run(ctx, db, mongoimport.Options{MongoURI: in.URI, MongoDatabase: in.Database})
+		report, err := mongoimport.Run(ctx, db, in.Options())
 		require.NoError(t, err)
 
 		got, err := monitor.NewSQLRepository(db).FindByID(ctx, uuidOf(t, monitorID.Hex()))

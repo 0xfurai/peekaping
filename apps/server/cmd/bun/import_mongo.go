@@ -1,12 +1,15 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"peekaping/cmd/bun/migrations"
 	"peekaping/internal/config"
 	"peekaping/internal/mongoimport"
 
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/migrate"
 	"github.com/urfave/cli/v2"
 )
 
@@ -25,6 +28,7 @@ func newImportMongoCommand() *cli.Command {
 			"the keys that sign login tokens included. Stop the MongoDB install first, so that nothing is written\n" +
 			"while it is copied.",
 		Flags: []cli.Flag{
+			lockTimeoutFlag(),
 			&cli.StringFlag{
 				Name:     "mongo-uri",
 				Usage:    "connection string of the MongoDB server, such as mongodb://user:password@host:27017/?authSource=admin",
@@ -38,11 +42,22 @@ func newImportMongoCommand() *cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) error {
+			wait, err := lockTimeout(c)
+			if err != nil {
+				return err
+			}
 			return runWithConfiguredDB(requireSQLTarget, func(cfg config.DBConfig, db *bun.DB) error {
 				report, err := mongoimport.Run(c.Context, db, mongoimport.Options{
 					MongoURI:      c.String("mongo-uri"),
 					MongoDatabase: c.String("mongo-db"),
 					Progress:      os.Stderr,
+					// The same migrate as "bun db migrate", with its lock
+					Migrate: func(ctx context.Context, db *bun.DB) error {
+						if err := migrate.NewMigrator(db, migrations.Migrations).Init(ctx); err != nil {
+							return err
+						}
+						return migrateUp(ctx, db, wait)
+					},
 				})
 				if err != nil {
 					return err

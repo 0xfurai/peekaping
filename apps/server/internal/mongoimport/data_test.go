@@ -68,7 +68,7 @@ func TestImportKeepsEveryRowWhenCutValuesCollide(t *testing.T) {
 	}
 
 	forEachTarget(t, func(t *testing.T, db *bun.DB) {
-		report, err := mongoimport.Run(ctx, db, mongoimport.Options{MongoURI: in.URI, MongoDatabase: in.Database})
+		report, err := mongoimport.Run(ctx, db, in.Options())
 		require.NoError(t, err)
 		postgres := db.Dialect().Name() == dialect.PG
 

@@ -9,6 +9,7 @@ import (
 
 	"peekaping/internal/config"
 	"peekaping/internal/infra"
+	"peekaping/internal/mongoimport"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -57,6 +58,12 @@ func forEachTarget(t *testing.T, fn func(t *testing.T, db *bun.DB)) {
 	t.Helper()
 	t.Run("SQLite", func(t *testing.T) { fn(t, sqliteTarget(t)) })
 	t.Run("Postgres", func(t *testing.T) { fn(t, postgresTarget(t)) })
+}
+
+// withDatabase is opts for another MongoDB database.
+func withDatabase(opts mongoimport.Options, database string) mongoimport.Options {
+	opts.MongoDatabase = database
+	return opts
 }
 
 // cut is what PostgreSQL keeps of a value that its column is too narrow for; SQLite keeps all of it.

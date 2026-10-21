@@ -29,7 +29,7 @@ func TestImportStopsWhenTheMongoDatabaseIsNotAnInstall(t *testing.T) {
 	ctx := context.Background()
 
 	forEachTarget(t, func(t *testing.T, db *bun.DB) {
-		_, err := mongoimport.Run(ctx, db, mongoimport.Options{MongoURI: in.URI, MongoDatabase: in.Database + "_typo"})
+		_, err := mongoimport.Run(ctx, db, withDatabase(in.Options(), in.Database+"_typo"))
 		assert.ErrorContains(t, err, "has no collections")
 		assert.ErrorContains(t, err, "--mongo-db")
 		_, err = db.Exec("SELECT 1 FROM users")
@@ -41,7 +41,7 @@ func TestImportStopsWhenTheMongoDatabaseIsNotAnInstall(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = other.Drop(context.Background()) })
 	forEachTarget(t, func(t *testing.T, db *bun.DB) {
-		_, err := mongoimport.Run(ctx, db, mongoimport.Options{MongoURI: in.URI, MongoDatabase: in.Database + "_other"})
+		_, err := mongoimport.Run(ctx, db, withDatabase(in.Options(), in.Database+"_other"))
 		assert.ErrorContains(t, err, "none of Peekaping's collections (it holds unrelated)")
 	})
 }
@@ -64,7 +64,7 @@ func TestImportLeavesTheTargetEmptyWhenItFails(t *testing.T) {
 		}
 		require.NoError(t, err)
 
-		_, err = mongoimport.Run(ctx, db, mongoimport.Options{MongoURI: in.URI, MongoDatabase: in.Database})
+		_, err = mongoimport.Run(ctx, db, in.Options())
 		assert.ErrorContains(t, err, "write heartbeats")
 		for table, rows := range tableCounts(t, db, peekapingTables...) {
 			assert.Zero(t, rows, table)

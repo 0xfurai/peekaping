@@ -20,12 +20,10 @@ import (
 	"sort"
 	"strings"
 
-	"peekaping/cmd/bun/migrations"
 	"peekaping/internal/legacyid"
 
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect"
-	"github.com/uptrace/bun/migrate"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -45,6 +43,10 @@ type Options struct {
 	// Progress, if set, gets a line every time a large collection has been
 	// copied a further stretch.
 	Progress io.Writer
+	// Migrate applies the SQL migrations to the target, once it is known to hold no
+	// data of its own. The caller says how, so that the import takes the same migration
+	// lock as "bun db migrate".
+	Migrate func(ctx context.Context, db *bun.DB) error
 }
 
 // ErrTargetNotEmpty is returned when the SQL database already holds data of its own.
@@ -94,7 +96,10 @@ func Run(ctx context.Context, db *bun.DB, opts Options) (*Report, error) {
 	if err := requireEmpty(ctx, db); err != nil {
 		return nil, err
 	}
-	if err := migrateDatabase(ctx, db); err != nil {
+	if opts.Migrate == nil {
+		return nil, errors.New("mongoimport: Options.Migrate is required")
+	}
+	if err := opts.Migrate(ctx, db); err != nil {
 		return nil, fmt.Errorf("apply the SQL migrations: %w", err)
 	}
 
@@ -195,20 +200,6 @@ func existingTables(ctx context.Context, q bun.IDB) (map[string]bool, error) {
 		tables[name] = true
 	}
 	return tables, nil
-}
-
-// migrateDatabase applies the SQL migrations the way "bun db migrate" does.
-func migrateDatabase(ctx context.Context, db *bun.DB) error {
-	migrator := migrate.NewMigrator(db, migrations.Migrations, migrate.WithMarkAppliedOnSuccess(true))
-	if err := migrator.Init(ctx); err != nil {
-		return err
-	}
-	if err := migrator.Lock(ctx); err != nil {
-		return err
-	}
-	defer migrator.Unlock(ctx) //nolint:errcheck
-	_, err := migrator.Migrate(ctx)
-	return err
 }
 
 // copier holds what the copy of each collection shares: the transaction, the
