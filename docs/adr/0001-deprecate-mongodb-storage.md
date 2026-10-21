@@ -54,3 +54,14 @@ Waiting tickets:
 - **PP-24** (single-container mode): SQLite and PostgreSQL only.
 - **PP-70, PP-184, PP-183, PP-72**: judged case by case against the Mongo-only bug rule above.
 - **PP-67**: `DB_TYPE=mongodb` passes config validation, but `dig.go` only matches `mongo`. So `mongodb` registers no repositories and the app won't start. A bug that stops the app starting is one the Mongo-only bug rule allows us to fix. Removal deletes the `mongodb` value anyway.
+
+## Update
+
+Date: 2026-10-21
+Ticket: #227
+
+The migration command now exists as `bun db import-mongo`. It copies a MongoDB install into SQLite or PostgreSQL, with its history, and the [MongoDB page](../../apps/docs/docs/self-hosting/docker-with-mongo.md#move-to-sqlite-or-postgresql) gives the steps. So:
+
+- The "not built yet" in the Removal bullet no longer holds.
+- The removal clock starts with the release that ships the command: removal happens no earlier than the second release after that one.
+- The command reads the MongoDB collections itself and writes the SQL tables. The Mongo repositories are unchanged.
