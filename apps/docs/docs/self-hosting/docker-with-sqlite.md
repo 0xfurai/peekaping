@@ -75,13 +75,25 @@ status.example.com {
 
 Set `CLIENT_URL` to the address people open, such as `https://status.example.com`, so links in notifications point there.
 
-The login lockout counts failed logins per client address. A client can send any `X-Forwarded-For` header it likes, so Peekaping believes that header (and `X-Real-IP`) only on requests from an address listed in `TRUSTED_PROXIES`. The list is comma-separated IP addresses and CIDR ranges, and it is empty by default. Behind a reverse proxy, set it to the address the proxy connects from, as the container sees it, in your `.env` file or with `-e`:
+The login lockout counts failed logins per client address. A client can send any `X-Forwarded-For` header it likes, so Peekaping believes that header (and `X-Real-IP`, when there is no `X-Forwarded-For`) only on requests from an address listed in `TRUSTED_PROXIES`. The list is comma-separated IP addresses and CIDR ranges. It is empty by default, and every request then counts as coming from the address it connected from. Behind a reverse proxy, set it up like this:
 
-```
-TRUSTED_PROXIES=172.17.0.1
-```
+1. Make the proxy put the client's address last in `X-Forwarded-For`. Caddy and Traefik do: they drop what the client sent and set their own. Plain nginx `proxy_pass` doesn't. It forwards the client's own `X-Forwarded-For` unchanged, and only `$proxy_add_x_forwarded_for` appends to it. So in nginx, add this next to `proxy_pass`:
 
-With Docker's default network and a proxy on the same host, that is usually the network's gateway address, which `docker network inspect bridge` shows as `Gateway`. The proxy must put the client's address last in `X-Forwarded-For`, by adding it or by replacing the header. Caddy, nginx and Traefik do. Peekaping takes the last address in the header that isn't in `TRUSTED_PROXIES`, so addresses a client adds to the left don't count. List only proxies you run, because a listed address can claim to be anyone. A request from any other address, including one that reaches port 8383 past your proxy, counts as coming from the address it connected from.
+   ```
+   proxy_set_header X-Forwarded-For $remote_addr;
+   ```
+
+2. Set `TRUSTED_PROXIES` to the address the proxy connects from, as the container sees it, in your `.env` file or with `-e`. List only proxies you run, because a listed address can claim to be anyone. Peekaping takes the last address in `X-Forwarded-For` that isn't in `TRUSTED_PROXIES`, so addresses a client adds to the left don't count.
+
+3. Don't let clients reach port 8383 past the proxy. When the proxy runs on the same host, publish the port on loopback only: `-p 127.0.0.1:8383:8383`, or `"127.0.0.1:8383:8383"` in Docker Compose. Then only the host can connect, and the proxy's address is usually the gateway of Docker's network, which `docker network inspect bridge` shows as `Gateway`:
+
+   ```
+   TRUSTED_PROXIES=172.17.0.1
+   ```
+
+Don't trust the gateway address while port 8383 is published on all interfaces (`-p 8383:8383`). On Docker Desktop, in rootless Docker and with the userland proxy, connections made straight to the published port arrive from the gateway address too, so anyone could send their own `X-Forwarded-For` and be believed.
+
+When another proxy sits in front of yours, for example Cloudflare in front of Traefik, your proxy sees that proxy's address, not the client's. Make your proxy trust the front proxy's addresses, so that it keeps the client's address in `X-Forwarded-For`: in Traefik, `forwardedHeaders.trustedIPs`; in Caddy, `trusted_proxies`; in nginx, `set_real_ip_from` with `real_ip_header X-Forwarded-For`. Keep only your own proxy in `TRUSTED_PROXIES`, not the front proxy.
 
 With `TRUSTED_PROXIES` empty behind a proxy, every login counts as coming from the proxy, so one person's failed logins can lock an account for everyone.
 
