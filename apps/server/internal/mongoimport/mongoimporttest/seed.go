@@ -58,6 +58,17 @@ type Install struct {
 // PEE_TEST_MONGO_URI doesn't name a MongoDB server.
 func Seed(t *testing.T) *Install {
 	t.Helper()
+	in := Empty(t)
+	in.seedAccounts(t)
+	in.seedConfiguration(t)
+	in.seedHistory(t)
+	return in
+}
+
+// Empty is a new database with nothing in it, for a test that writes the few raw documents it
+// needs. It skips the test when PEE_TEST_MONGO_URI doesn't name a MongoDB server.
+func Empty(t *testing.T) *Install {
+	t.Helper()
 	uri := os.Getenv("PEE_TEST_MONGO_URI")
 	if uri == "" {
 		t.Skip("set PEE_TEST_MONGO_URI to run the import from MongoDB")
@@ -78,16 +89,18 @@ func Seed(t *testing.T) *Install {
 		require.NoError(t, client.Database(in.Database).Drop(context.Background()))
 		require.NoError(t, client.Disconnect(context.Background()))
 	})
-
-	in.seedAccounts(t)
-	in.seedConfiguration(t)
-	in.seedHistory(t)
 	return in
 }
 
 // Collection is a collection of the install, for the raw documents that no repository writes.
 func (in *Install) Collection(name string) *mongo.Collection {
 	return in.Client.Database(in.Database).Collection(name)
+}
+
+// Insert writes a raw document and returns its ObjectID.
+func (in *Install) Insert(t *testing.T, collection string, document bson.D) primitive.ObjectID {
+	t.Helper()
+	return in.insert(t, collection, document)
 }
 
 // insert writes a raw document and returns its ObjectID.

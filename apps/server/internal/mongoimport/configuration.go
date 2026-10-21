@@ -3,6 +3,7 @@ package mongoimport
 import (
 	"context"
 	"encoding/json"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -64,7 +65,9 @@ type monitorRow struct {
 // jsonConfig returns a config that PostgreSQL's JSONB column accepts. An empty
 // or missing config, which the monitors and channels MongoDB holds can have,
 // becomes {}. A config that isn't JSON can't be kept as it is on PostgreSQL, so
-// it becomes {} too, and the report says so.
+// it becomes {} too, and the report says so. JSONB also rejects the escape
+// \u0000, which is valid JSON, so the escapes are removed, from SQLite's configs
+// too, so that both databases hold the same data.
 func jsonConfig(report *CollectionReport, config *string) string {
 	switch {
 	case config == nil:
@@ -74,9 +77,36 @@ func jsonConfig(report *CollectionReport, config *string) string {
 	case !json.Valid([]byte(*config)):
 		report.fix("config is not valid JSON: used {}")
 	default:
-		return *config
+		stripped, changed := removeNULEscapes(*config)
+		if changed {
+			report.fix(`config had \u0000 escapes, which PostgreSQL rejects: removed`)
+		}
+		return stripped
 	}
 	return "{}"
+}
+
+// removeNULEscapes removes the escape \u0000 from JSON text. A backslash escapes the
+// character after it, so in \\u0000, which is a backslash and the text u0000, nothing is removed.
+func removeNULEscapes(text string) (string, bool) {
+	if !strings.Contains(text, `\u0000`) {
+		return text, false
+	}
+	var without strings.Builder
+	changed := false
+	for i := 0; i < len(text); i++ {
+		if text[i] == '\\' && i+1 < len(text) {
+			if text[i+1] == 'u' && strings.HasPrefix(text[i+2:], "0000") {
+				i += 5
+				changed = true
+				continue
+			}
+			without.WriteByte(text[i])
+			i++
+		}
+		without.WriteByte(text[i])
+	}
+	return without.String(), changed
 }
 
 func (c *copier) copyMonitors(ctx context.Context) error {
