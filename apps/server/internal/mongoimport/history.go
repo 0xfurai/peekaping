@@ -196,10 +196,20 @@ type tlsInfoRow struct {
 // copyTLSInfo copies the last TLS information of each monitor. Unlike the
 // other links to a monitor, it refers to it by a string, which becomes the
 // monitor's UUID.
+//
+// A monitor has one record, which each check replaces, and MongoDB's unique index on
+// monitor_id keeps it so. If a collection has several for one monitor anyway, the one
+// updated last is kept, since an older one holds a certificate that was renewed since.
+// Records without an update time are told apart by their ObjectIDs, the later one being newer.
 func (c *copier) copyTLSInfo(ctx context.Context) error {
 	report := c.report.collection("monitor_tls_info", "monitor_tls_info")
-	out := newBatcher[tlsInfoRow](c.tx, "monitor_tls_info", report)
-	seen := idSet{}
+	type candidate struct {
+		d       doc
+		id      primitive.ObjectID
+		updated time.Time
+	}
+	newest := map[primitive.ObjectID]candidate{}
+	var monitors []primitive.ObjectID
 	err := c.src.each(ctx, "monitor_tls_info", byID, func(d doc) error {
 		report.Read++
 		id, ok := d.id()
@@ -212,16 +222,30 @@ func (c *copier) copyTLSInfo(ctx context.Context) error {
 			report.skip("monitor no longer exists")
 			return nil
 		}
-		if seen.has(monitor) {
-			report.skip("the monitor already has TLS information")
-			return nil
+		updated, _ := d.when("updated_at")
+		earlier, seen := newest[monitor]
+		if !seen {
+			monitors = append(monitors, monitor)
+		} else {
+			report.skip("an older TLS record of the same monitor")
+			// The documents are read in ObjectID order, so this one is the later unless it was updated earlier
+			if updated.Before(earlier.updated) {
+				return nil
+			}
 		}
-		seen.add(monitor)
-		created, updated := stamps(report, d, id, "created_at", "updated_at")
-		return out.add(ctx, tlsInfoRow{ID: uuidOf(id), MonitorID: uuidOf(monitor), InfoJSON: d.str("info_json"), CreatedAt: created, UpdatedAt: updated})
+		newest[monitor] = candidate{d, id, updated}
+		return nil
 	})
 	if err != nil {
 		return err
+	}
+	out := newBatcher[tlsInfoRow](c.tx, "monitor_tls_info", report)
+	for _, monitor := range monitors {
+		winner := newest[monitor]
+		created, updated := stamps(report, winner.d, winner.id, "created_at", "updated_at")
+		if err := out.add(ctx, tlsInfoRow{ID: uuidOf(winner.id), MonitorID: uuidOf(monitor), InfoJSON: winner.d.str("info_json"), CreatedAt: created, UpdatedAt: updated}); err != nil {
+			return err
+		}
 	}
 	return out.flush(ctx)
 }
