@@ -195,6 +195,12 @@ web:
     limits:
       cpu: "250m"
       memory: "256Mi"
+  # Pod sysctls. ip_unprivileged_port_start lets the non-root nginx bind
+  # port 80 on any container runtime. Kubernetes allows it as a safe sysctl.
+  # Set to [] to leave the node default.
+  sysctls:
+    - name: net.ipv4.ip_unprivileged_port_start
+      value: "0"
   probes:
     path: /
     readiness:

@@ -54,6 +54,10 @@ spec:
         fsGroup: 10001
         seccompProfile:
           type: RuntimeDefault
+        {{- with .Values.web.sysctls }}
+        sysctls:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
 
       initContainers:
         - name: seed-web-root
@@ -130,16 +134,13 @@ spec:
           volumeMounts:
             - name: web-root
               mountPath: /usr/share/nginx/html
-            - name: nginx-cache
-              mountPath: /var/cache/nginx
-            - name: nginx-run
-              mountPath: /var/run
+            # nginx-unprivileged keeps its pid file and temporary files in /tmp
+            - name: nginx-tmp
+              mountPath: /tmp
 
       volumes:
         - name: web-root
           emptyDir: {}
-        - name: nginx-cache
-          emptyDir: {}
-        - name: nginx-run
+        - name: nginx-tmp
           emptyDir: {}
           

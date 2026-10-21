@@ -1,6 +1,10 @@
 import z from "zod";
 import { advancedDefaultValues, advancedSchema } from "../http/advanced";
-import { httpOptionsDefaultValues, httpOptionsSchema } from "../http/options";
+import {
+  httpOptionsDefaultValues,
+  httpOptionsSchema,
+  normalizeHttpHeaders,
+} from "../http/options";
 import { authenticationDefaultValues, authenticationSchema } from "../http/authentication";
 import { generalDefaultValues, generalSchema } from "../shared/general";
 import { intervalsDefaultValues, intervalsSchema } from "../shared/intervals";
@@ -128,7 +132,7 @@ export const deserialize = (data: MonitorMonitorResponseDto): HttpJsonQueryForm 
     httpOptions: {
       method: config.method || "GET",
       encoding: config.encoding || "json",
-      headers: config.headers || '{ "Content-Type": "application/json" }',
+      headers: normalizeHttpHeaders(config.headers, config.body),
       body: config.body || "",
     },
     authentication,

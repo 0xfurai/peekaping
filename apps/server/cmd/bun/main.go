@@ -54,53 +54,31 @@ func newDBCommand() *cli.Command {
 			{
 				Name:  "migrate",
 				Usage: "migrate database",
+				Description: "On PostgreSQL, migrate holds a lock while it runs, and a second migrate waits for it to finish, " +
+					"up to --lock-timeout (default 10m). A migrate that is killed loses the lock with its connection.",
+				Flags: []cli.Flag{lockTimeoutFlag()},
 				Action: func(c *cli.Context) error {
+					wait, err := lockTimeout(c)
+					if err != nil {
+						return err
+					}
 					return runWithDB(func(db *bun.DB) error {
-						// Mark a migration applied only once it succeeds, so one that fails
-						// or is killed halfway runs again on the next migrate.
-						migrator := migrate.NewMigrator(db, migrations.Migrations, migrate.WithMarkAppliedOnSuccess(true))
-						if err := migrator.Lock(c.Context); err != nil {
-							return err
-						}
-						defer migrator.Unlock(c.Context) // nolint:errcheck
-
-						// No rollback on failure: the failed migration isn't recorded, so
-						// Rollback would undo the last recorded group, possibly an earlier
-						// release. The migrations before it stay applied; fix and rerun.
-						group, err := migrator.Migrate(c.Context)
-						if err != nil {
-							return err
-						}
-						if group.IsZero() {
-							fmt.Printf("there are no new migrations to run (database is up to date)\n")
-							return nil
-						}
-						fmt.Printf("migrated to %s\n", group)
-						return nil
+						return migrateUp(c.Context, db, wait)
 					})
 				},
 			},
 			{
-				Name:  "rollback",
-				Usage: "rollback the last migration group",
+				Name:        "rollback",
+				Usage:       "rollback the last migration group",
+				Description: "Takes the same lock as migrate and waits for it the same way.",
+				Flags:       []cli.Flag{lockTimeoutFlag()},
 				Action: func(c *cli.Context) error {
+					wait, err := lockTimeout(c)
+					if err != nil {
+						return err
+					}
 					return runWithDB(func(db *bun.DB) error {
-						migrator := migrate.NewMigrator(db, migrations.Migrations)
-						if err := migrator.Lock(c.Context); err != nil {
-							return err
-						}
-						defer migrator.Unlock(c.Context) //nolint:errcheck
-
-						group, err := migrator.Rollback(c.Context)
-						if err != nil {
-							return err
-						}
-						if group.IsZero() {
-							fmt.Printf("there are no groups to roll back\n")
-							return nil
-						}
-						fmt.Printf("rolled back %s\n", group)
-						return nil
+						return migrateDown(c.Context, db, wait)
 					})
 				},
 			},
