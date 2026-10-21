@@ -85,7 +85,39 @@ export const httpOptionsDefaultValues: HttpOptionsForm = {
   method: "GET",
   encoding: "json",
   body: "",
-  headers: '{ "Content-Type": "application/json" }',
+  headers: "",
+};
+
+// Older forms wrote { "Content-Type": "application/json" } on every monitor,
+// including bodyless requests, where the header describes nothing and some
+// servers reject it (issue #395). Drop that exact singleton when loading a
+// monitor with no body; any other header is kept as written.
+export const normalizeHttpHeaders = (
+  headers: string | undefined,
+  body: string | undefined
+): string => {
+  if (!headers || body) return headers || "";
+  try {
+    const parsed: unknown = JSON.parse(headers);
+    if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return headers;
+    }
+    const entries = Object.entries(parsed as Record<string, unknown>);
+    if (entries.length !== 1) {
+      return headers;
+    }
+    const [[key, value]] = entries;
+    if (
+      key.toLowerCase() === "content-type" &&
+      typeof value === "string" &&
+      value.trim().toLowerCase() === "application/json"
+    ) {
+      return "";
+    }
+  } catch {
+    // Keep invalid JSON as written so the form shows its validation error.
+  }
+  return headers;
 };
 
 const HttpOptions = () => {
