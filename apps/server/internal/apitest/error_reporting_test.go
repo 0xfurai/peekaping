@@ -1,0 +1,283 @@
+package apitest
+
+import (
+	"context"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+	"time"
+
+	"peekaping/internal/config"
+	"peekaping/internal/modules/stale"
+	"peekaping/internal/reporting"
+	"peekaping/internal/reporting/redissync"
+	"peekaping/internal/reporting/reportingtest"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/dig"
+)
+
+const errorReportingPath = "/api/v1/error-reporting"
+
+// errorReportingBody checks the status code and returns the response body, which holds the state
+// itself and not the {status, message, data} envelope the settings API wraps its data in.
+func errorReportingBody(t *testing.T, w *httptest.ResponseRecorder, wantStatus int) map[string]any {
+	t.Helper()
+	require.Equal(t, wantStatus, w.Code, w.Body.String())
+	var state map[string]any
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &state), w.Body.String())
+	return state
+}
+
+func (a *app) errorReporting(t *testing.T) map[string]any {
+	t.Helper()
+	return errorReportingBody(t, a.request(t, http.MethodGet, errorReportingPath, nil, a.asAdmin), http.StatusOK)
+}
+
+func (a *app) setErrorReporting(t *testing.T, enabled bool) map[string]any {
+	t.Helper()
+	return errorReportingBody(t, a.request(t, http.MethodPut, errorReportingPath, map[string]any{"enabled": enabled}, a.asAdmin), http.StatusOK)
+}
+
+func withErrorReportingEnv(value string) func(*config.Config) {
+	return func(cfg *config.Config) { cfg.ErrorReporting = value }
+}
+
+func TestErrorReportingAPI_OffByDefault(t *testing.T) {
+	reportingtest.Install(t)
+	reporting.SetEnabled(false)
+	a := newAppWithAdmin(t)
+
+	w := a.request(t, http.MethodGet, errorReportingPath, nil, a.asAdmin)
+
+	assert.JSONEq(t, `{"enabled": false, "forced_off": false}`, w.Body.String(), "a bare state, with nothing else in it")
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.False(t, reporting.Enabled())
+	assert.Nil(t, a.storedSetting(t, "ERROR_REPORTING_ENABLED"), "reading the state stores nothing")
+	_, err := a.redis.Get(redissync.Key)
+	assert.Error(t, err, "and copies nothing to Redis")
+}
+
+func TestErrorReportingAPI_PutStoresTheChoiceAndTurnsReportingOnAndOff(t *testing.T) {
+	reportingtest.Install(t)
+	reporting.SetEnabled(false)
+	a := newAppWithAdmin(t)
+
+	assert.JSONEq(t, `{"enabled": true, "forced_off": false}`, a.request(t, http.MethodPut, errorReportingPath, map[string]any{"enabled": true}, a.asAdmin).Body.String())
+	assert.True(t, reporting.Enabled(), "the api's own process turns it on at once")
+	assert.Equal(t, map[string]any{"enabled": true, "forced_off": false}, a.errorReporting(t), "the state survives a reload")
+	require.NotNil(t, a.storedSetting(t, "ERROR_REPORTING_ENABLED"))
+	assert.Equal(t, "true", a.storedSetting(t, "ERROR_REPORTING_ENABLED").Value)
+
+	assert.JSONEq(t, `{"enabled": false, "forced_off": false}`, a.request(t, http.MethodPut, errorReportingPath, map[string]any{"enabled": false}, a.asAdmin).Body.String())
+	assert.False(t, reporting.Enabled())
+	assert.Equal(t, "false", a.storedSetting(t, "ERROR_REPORTING_ENABLED").Value)
+}
+
+// AC6, the api's half: the choice is copied to Redis for the producer, the worker and the
+// ingester, which read it once a minute
+func TestErrorReportingAPI_PutCopiesTheChoiceToRedis(t *testing.T) {
+	reportingtest.Install(t)
+	a := newAppWithAdmin(t)
+
+	a.setErrorReporting(t, true)
+	value, err := a.redis.Get(redissync.Key)
+	require.NoError(t, err)
+	assert.Equal(t, "true", value)
+
+	a.setErrorReporting(t, false)
+	value, err = a.redis.Get(redissync.Key)
+	require.NoError(t, err)
+	assert.Equal(t, "false", value)
+}
+
+func TestErrorReportingAPI_ForcedOffByEnv(t *testing.T) {
+	for name, option := range map[string]func(*config.Config){
+		"ERROR_REPORTING=off":   withErrorReportingEnv("off"),
+		"ERROR_REPORTING=false": withErrorReportingEnv("false"),
+		"ERROR_REPORTING=0":     withErrorReportingEnv("0"),
+		"ERROR_REPORTING=No":    withErrorReportingEnv("No"),
+		"DO_NOT_TRACK=1":        withDoNotTrack("1"),
+		"DO_NOT_TRACK=true":     withDoNotTrack("true"),
+	} {
+		t.Run(name, func(t *testing.T) {
+			reportingtest.Install(t)
+			a := newAppWithAdmin(t, option)
+
+			assert.Equal(t, true, a.errorReporting(t)["forced_off"])
+
+			// The choice is still stored, and the environment still wins
+			state := a.setErrorReporting(t, true)
+			assert.Equal(t, map[string]any{"enabled": true, "forced_off": true}, state)
+			assert.Equal(t, state, a.errorReporting(t))
+			assert.Equal(t, "true", a.storedSetting(t, "ERROR_REPORTING_ENABLED").Value)
+			value, err := a.redis.Get(redissync.Key)
+			require.NoError(t, err)
+			assert.Equal(t, "false", value, "no process of the cluster is told to send")
+			assert.False(t, reporting.Enabled())
+
+			state = a.setErrorReporting(t, false)
+			assert.Equal(t, map[string]any{"enabled": false, "forced_off": true}, state)
+		})
+	}
+}
+
+func TestErrorReportingAPI_OtherEnvValuesDoNotForceItOff(t *testing.T) {
+	for name, option := range map[string]func(*config.Config){
+		"ERROR_REPORTING=on": withErrorReportingEnv("on"),
+		"ERROR_REPORTING=1":  withErrorReportingEnv("1"),
+		"DO_NOT_TRACK=0":     withDoNotTrack("0"),
+		"TELEMETRY=off":      withTelemetryEnv("off"),
+	} {
+		t.Run(name, func(t *testing.T) {
+			reportingtest.Install(t)
+			a := newAppWithAdmin(t, option)
+
+			assert.Equal(t, false, a.errorReporting(t)["forced_off"])
+		})
+	}
+}
+
+func TestErrorReportingAPI_RejectsInvalidInput(t *testing.T) {
+	reportingtest.Install(t)
+	reporting.SetEnabled(false)
+	a := newAppWithAdmin(t)
+
+	for name, body := range map[string]any{
+		"malformed JSON":  "{",
+		"no enabled":      map[string]any{},
+		"null enabled":    map[string]any{"enabled": nil},
+		"string enabled":  map[string]any{"enabled": "yes"},
+		"number enabled":  map[string]any{"enabled": 1},
+		"nothing at all":  "",
+		"an array":        []bool{true},
+		"enabled as text": `{"enabled": "true"}`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			w := a.request(t, http.MethodPut, errorReportingPath, body, a.asAdmin)
+			assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+		})
+	}
+	assert.Equal(t, false, a.errorReporting(t)["enabled"])
+	assert.False(t, reporting.Enabled())
+}
+
+func TestErrorReportingAPI_RequiresCredentialsAndTakesAPIKeys(t *testing.T) {
+	reportingtest.Install(t)
+	reporting.SetEnabled(false)
+	a := newAppWithAdmin(t)
+
+	for _, method := range []string{http.MethodGet, http.MethodPut} {
+		w := a.request(t, method, errorReportingPath, map[string]any{"enabled": true})
+		assert.Equal(t, http.StatusUnauthorized, w.Code, method)
+	}
+	assert.False(t, reporting.Enabled(), "a request without credentials changes nothing")
+
+	// The same auth as the settings routes: an API key works too
+	w := a.request(t, http.MethodPut, errorReportingPath, map[string]any{"enabled": true}, a.withAPIKey)
+	assert.Equal(t, true, errorReportingBody(t, w, http.StatusOK)["enabled"])
+}
+
+func TestErrorReportingAPI_SettingsAPICannotReadOrWriteItsKey(t *testing.T) {
+	reportingtest.Install(t)
+	a := newAppWithAdmin(t)
+	a.setErrorReporting(t, true)
+	require.NotNil(t, a.storedSetting(t, "ERROR_REPORTING_ENABLED"))
+
+	for _, creds := range []credentials{a.asAdmin, a.withAPIKey} {
+		path := "/api/v1/settings/key/ERROR_REPORTING_ENABLED"
+		assert.Equal(t, http.StatusNotFound, a.request(t, http.MethodGet, path, nil, creds).Code)
+		assert.Equal(t, http.StatusNotFound, a.request(t, http.MethodPut, path, map[string]any{"value": "false", "type": "string"}, creds).Code)
+		assert.Equal(t, http.StatusNotFound, a.request(t, http.MethodDelete, path, nil, creds).Code)
+	}
+
+	assert.Equal(t, true, a.errorReporting(t)["enabled"], "the settings API did not opt the install out")
+	assert.True(t, reporting.Enabled())
+}
+
+// AC5: only a panic is reported. A validation error, any other 4xx and a 500 that is not a panic
+// send nothing.
+func TestErrorReportingAPI_ClientErrorsAndFailedRequestsAreNotReported(t *testing.T) {
+	recorder := reportingtest.Install(t)
+	a := newAppWithAdmin(t)
+	a.setErrorReporting(t, true)
+	require.True(t, reporting.Enabled())
+
+	for name, req := range map[string]struct {
+		method, path string
+		body         any
+		creds        []credentials
+		want         int
+	}{
+		"a validation error":          {http.MethodPost, "/api/v1/monitors", map[string]any{"type": "http"}, []credentials{a.asAdmin}, http.StatusBadRequest},
+		"a body that is not JSON":     {http.MethodPut, errorReportingPath, "{", []credentials{a.asAdmin}, http.StatusBadRequest},
+		"a missing record":            {http.MethodGet, "/api/v1/monitors/no-such-monitor", nil, []credentials{a.asAdmin}, http.StatusNotFound},
+		"no credentials":              {http.MethodGet, "/api/v1/monitors", nil, nil, http.StatusUnauthorized},
+		"a wrong password":            {http.MethodPost, "/api/v1/auth/login", map[string]string{"email": adminEmail, "password": "Wrong-horse-1"}, nil, http.StatusUnauthorized},
+		"a route that does not exist": {http.MethodGet, "/api/v1/no-such-route", nil, []credentials{a.asAdmin}, http.StatusNotFound},
+	} {
+		t.Run(name, func(t *testing.T) {
+			w := a.request(t, req.method, req.path, req.body, req.creds...)
+
+			assert.GreaterOrEqual(t, w.Code, 400)
+			assert.Less(t, w.Code, 500)
+			assert.Equal(t, req.want, w.Code, w.Body.String())
+		})
+	}
+	assert.Empty(t, recorder.Events())
+
+	// A 500 that is not a panic: Redis is gone, so the change can't be copied to the other
+	// processes, and the handler answers with an error
+	a.redis.Close()
+	w := a.request(t, http.MethodPut, errorReportingPath, map[string]any{"enabled": false}, a.asAdmin)
+	assert.Equal(t, http.StatusInternalServerError, w.Code, w.Body.String())
+	assert.Empty(t, recorder.Events(), "an error returned is not a crash: only panics are reported")
+}
+
+// panickingStore is a stale.Store whose every method panics, as a bug in a handler would
+type panickingStore struct{ stale.Store }
+
+func (panickingStore) All(context.Context) (map[string]stale.Entry, error) {
+	panic("health handler bug")
+}
+
+func (panickingStore) Count(context.Context) (int64, error) { panic("health handler bug") }
+
+func (panickingStore) RanAt(context.Context) (*time.Time, error) { panic("health handler bug") }
+
+// AC3, for an HTTP handler: the panic is reported with where it happened, the request is still
+// answered with a 500, and the server goes on
+func TestErrorReportingAPI_APanicInAHandlerIsReportedAndStillAnswers500(t *testing.T) {
+	for name, enabled := range map[string]bool{"on": true, "off": false} {
+		t.Run(name, func(t *testing.T) {
+			recorder := reportingtest.Install(t)
+			a := newAppDecorated(t, func(container *dig.Container) error {
+				return container.Decorate(func(stale.Store) stale.Store { return panickingStore{} })
+			})
+			a.registerAdmin(t)
+			reporting.SetEnabled(enabled)
+
+			w := a.request(t, http.MethodGet, "/api/v1/health", nil)
+
+			assert.Equal(t, http.StatusInternalServerError, w.Code)
+			assert.Equal(t, http.StatusOK, a.request(t, http.MethodGet, errorReportingPath, nil, a.asAdmin).Code, "the server goes on")
+			if !enabled {
+				assert.Empty(t, recorder.Events())
+				return
+			}
+			events := recorder.Events()
+			require.Len(t, events, 1)
+			assert.Equal(t, "http", events[0].Tags["component"])
+			assert.Equal(t, reportingtest.Release, events[0].Release)
+			assert.Equal(t, "string", events[0].Exception[0].Type)
+			assert.Empty(t, events[0].Exception[0].Value)
+			var functions []string
+			for _, frame := range events[0].Exception[0].Stacktrace.Frames {
+				functions = append(functions, frame.Function)
+			}
+			assert.Contains(t, functions[len(functions)-1], "panickingStore.", "the frame where it panicked is the last")
+		})
+	}
+}

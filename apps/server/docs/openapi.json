@@ -429,6 +429,39 @@
         ],
         "type": "object"
       },
+      "error_reporting.StateResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "description": "Whether an admin opted in to error reports",
+            "type": "boolean"
+          },
+          "forced_off": {
+            "description": "Whether the ERROR_REPORTING or DO_NOT_TRACK environment variable forces error reports off, whatever enabled says",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "enabled",
+          "forced_off"
+        ],
+        "type": "object"
+      },
+      "error_reporting.UpdateDto": {
+        "additionalProperties": true,
+        "properties": {
+          "enabled": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "enabled"
+        ],
+        "type": "object"
+      },
       "healthcheck.PushResponse": {
         "additionalProperties": false,
         "properties": {
@@ -5444,6 +5477,124 @@
         "summary": "Get uptime badge",
         "tags": [
           "badge"
+        ]
+      }
+    },
+    "/api/v1/error-reporting": {
+      "get": {
+        "description": "Whether an admin opted in to error reports, and whether the ERROR_REPORTING or DO_NOT_TRACK environment variable forces them off.",
+        "operationId": "getErrorReporting",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error_reporting.StateResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "JwtAuth": []
+          },
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "summary": "Get the error reporting state",
+        "tags": [
+          "error-reporting"
+        ]
+      },
+      "put": {
+        "description": "Error reports are crash reports: the error type, the stack frames, the release and the install's mode, storage backend, OS and architecture. In cluster mode the change reaches the producer, the worker and the ingester within a minute. The choice is stored while the environment forces error reports off, and the environment still wins.",
+        "operationId": "putErrorReporting",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/error_reporting.UpdateDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error_reporting.StateResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "JwtAuth": []
+          },
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "summary": "Opt in or out of error reports",
+        "tags": [
+          "error-reporting"
         ]
       }
     },

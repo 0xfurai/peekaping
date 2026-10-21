@@ -46,6 +46,7 @@ const (
 type app struct {
 	router    *httpx.Router
 	container *dig.Container
+	redis     *miniredis.Miniredis
 
 	accessToken string
 	apiKey      string
@@ -124,7 +125,7 @@ func newAppDecorated(t *testing.T, decorate func(*dig.Container) error, options 
 		}))
 	}
 
-	a := &app{container: container}
+	a := &app{container: container, redis: redis}
 	require.NoError(t, container.Invoke(func(server *internal.Server) { a.router = server.Router }))
 	return a
 }

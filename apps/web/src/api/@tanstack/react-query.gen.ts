@@ -22,6 +22,8 @@ import {
   getBadgeByMonitorIdStatus,
   getBadgeByMonitorIdUptime,
   getBadgeByMonitorIdUptimeByDuration,
+  getErrorReporting,
+  putErrorReporting,
   getHealth,
   getMaintenances,
   postMaintenances,
@@ -127,6 +129,10 @@ import type {
   GetBadgeByMonitorIdStatusData,
   GetBadgeByMonitorIdUptimeData,
   GetBadgeByMonitorIdUptimeByDurationData,
+  GetErrorReportingData,
+  PutErrorReportingData,
+  PutErrorReportingError,
+  PutErrorReportingResponse,
   GetHealthData,
   GetMaintenancesData,
   GetMaintenancesError,
@@ -960,6 +966,59 @@ export const getBadgeByMonitorIdUptimeByDurationOptions = (
     },
     queryKey: getBadgeByMonitorIdUptimeByDurationQueryKey(options),
   });
+};
+
+export const getErrorReportingQueryKey = (
+  options?: Options<GetErrorReportingData>
+) => createQueryKey("getErrorReporting", options);
+
+/**
+ * Get the error reporting state
+ * Whether an admin opted in to error reports, and whether the ERROR_REPORTING or DO_NOT_TRACK environment variable forces them off.
+ */
+export const getErrorReportingOptions = (
+  options?: Options<GetErrorReportingData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getErrorReporting({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getErrorReportingQueryKey(options),
+  });
+};
+
+/**
+ * Opt in or out of error reports
+ * Error reports are crash reports: the error type, the stack frames, the release and the install's mode, storage backend, OS and architecture. In cluster mode the change reaches the producer, the worker and the ingester within a minute. The choice is stored while the environment forces error reports off, and the environment still wins.
+ */
+export const putErrorReportingMutation = (
+  options?: Partial<Options<PutErrorReportingData>>
+): UseMutationOptions<
+  PutErrorReportingResponse,
+  AxiosError<PutErrorReportingError>,
+  Options<PutErrorReportingData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PutErrorReportingResponse,
+    AxiosError<PutErrorReportingError>,
+    Options<PutErrorReportingData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await putErrorReporting({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
 };
 
 export const getHealthQueryKey = (options?: Options<GetHealthData>) =>
