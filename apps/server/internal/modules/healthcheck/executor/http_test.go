@@ -1244,6 +1244,12 @@ func TestHTTPExecutor_Execute_OAuth2(t *testing.T) {
 		clientId := r.Form.Get("client_id")
 		clientSecret := r.Form.Get("client_secret")
 
+		// Reject request if more than one authentication method is used (RFC 6749 §2.3)
+		if authHeader != "" && (clientId != "" || clientSecret != "") {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
 		if authHeader == "" && (clientId == "" || clientSecret == "") {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
@@ -1344,6 +1350,117 @@ func TestHTTPExecutor_Execute_OAuth2_Failures(t *testing.T) {
 	result := executor.Execute(context.Background(), monitor, nil)
 	assert.Equal(t, shared.MonitorStatusDown, result.Status)
 	assert.Contains(t, result.Message, "oauth2 token endpoint returned status")
+}
+
+func TestHTTPExecutor_Execute_OAuth2_CredentialsPlacement(t *testing.T) {
+	logger := zap.NewNop().Sugar()
+	executor := NewHTTPExecutor(logger)
+
+	var (
+		receivedAuthHeader string
+		receivedClientID   string
+		receivedSecret     string
+		receivedGrantType  string
+		receivedScope      string
+		basicUser          string
+		basicPass          string
+		basicOK            bool
+	)
+
+	tokenServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_ = r.ParseForm()
+		receivedAuthHeader = r.Header.Get("Authorization")
+		basicUser, basicPass, basicOK = r.BasicAuth()
+		receivedClientID = r.Form.Get("client_id")
+		receivedSecret = r.Form.Get("client_secret")
+		receivedGrantType = r.Form.Get("grant_type")
+		receivedScope = r.Form.Get("scope")
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"access_token": "token-xyz"}`))
+	}))
+	defer tokenServer.Close()
+
+	targetServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer targetServer.Close()
+
+	t.Run("client_secret_basic sends credentials in Authorization header only", func(t *testing.T) {
+		receivedAuthHeader = ""
+		basicUser, basicPass, basicOK = "", "", false
+		receivedClientID = ""
+		receivedSecret = ""
+		receivedGrantType = ""
+		receivedScope = ""
+
+		monitor := &Monitor{
+			ID:       "m-basic",
+			Type:     "http",
+			Interval: 30,
+			Timeout:  5,
+			Config: fmt.Sprintf(`{
+				"url": %q,
+				"method": "GET",
+				"accepted_statuscodes": ["2XX"],
+				"authMethod": "oauth2-cc",
+				"oauth_auth_method": "client_secret_basic",
+				"oauth_token_url": %q,
+				"oauth_client_id": "my-client",
+				"oauth_client_secret": "my-secret",
+				"oauth_scopes": "read write"
+			}`, targetServer.URL, tokenServer.URL+"/token"),
+		}
+
+		result := executor.Execute(context.Background(), monitor, nil)
+		assert.Equal(t, shared.MonitorStatusUp, result.Status)
+
+		assert.True(t, basicOK, "Basic auth header should be present")
+		assert.Equal(t, "my-client", basicUser)
+		assert.Equal(t, "my-secret", basicPass)
+		assert.Empty(t, receivedClientID, "client_id should not be in form body for client_secret_basic")
+		assert.Empty(t, receivedSecret, "client_secret should not be in form body for client_secret_basic")
+		assert.Equal(t, "client_credentials", receivedGrantType)
+		assert.Equal(t, "read write", receivedScope)
+	})
+
+	t.Run("client_secret_post sends credentials in form body only", func(t *testing.T) {
+		receivedAuthHeader = ""
+		basicUser, basicPass, basicOK = "", "", false
+		receivedClientID = ""
+		receivedSecret = ""
+		receivedGrantType = ""
+		receivedScope = ""
+
+		monitor := &Monitor{
+			ID:       "m-post",
+			Type:     "http",
+			Interval: 30,
+			Timeout:  5,
+			Config: fmt.Sprintf(`{
+				"url": %q,
+				"method": "GET",
+				"accepted_statuscodes": ["2XX"],
+				"authMethod": "oauth2-cc",
+				"oauth_auth_method": "client_secret_post",
+				"oauth_token_url": %q,
+				"oauth_client_id": "my-client",
+				"oauth_client_secret": "my-secret",
+				"oauth_scopes": "read write"
+			}`, targetServer.URL, tokenServer.URL+"/token"),
+		}
+
+		result := executor.Execute(context.Background(), monitor, nil)
+		assert.Equal(t, shared.MonitorStatusUp, result.Status)
+
+		assert.False(t, basicOK, "Basic auth should not be set for client_secret_post")
+		assert.Empty(t, receivedAuthHeader, "Authorization header should not be set for client_secret_post")
+		assert.Equal(t, "my-client", receivedClientID)
+		assert.Equal(t, "my-secret", receivedSecret)
+		assert.Equal(t, "client_credentials", receivedGrantType)
+		assert.Equal(t, "read write", receivedScope)
+	})
 }
 
 func TestHTTPExecutor_Execute_Timeout(t *testing.T) {
