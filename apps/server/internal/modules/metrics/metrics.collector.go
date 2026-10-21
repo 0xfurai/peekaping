@@ -19,6 +19,7 @@ import (
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/reporting"
 	"peekaping/internal/version"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -158,10 +159,10 @@ func (c *Collector) Start(ctx context.Context, eventBus events.EventBus) <-chan 
 	events.Subscribe(subscriber, events.MonitorDeleted, c.handleMonitorDeleted)
 
 	stopped := make(chan struct{})
-	go func() {
+	reporting.Go("metrics", func() {
 		defer close(stopped)
 		c.runSync(ctx)
-	}()
+	})
 	return stopped
 }
 

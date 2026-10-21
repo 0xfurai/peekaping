@@ -39,6 +39,7 @@ import (
 	"peekaping/internal/modules/stats"
 	"peekaping/internal/modules/telemetry"
 	"peekaping/internal/modules/websocket"
+	"peekaping/internal/reporting"
 	"peekaping/internal/utils"
 	"peekaping/internal/version"
 	"peekaping/internal/web"
@@ -273,7 +274,7 @@ func startJobs(ctx context.Context, p parts, metricsEnabled bool, logger *zap.Su
 	var repairCtx context.Context
 	repairCtx, j.stopRepair = context.WithCancel(context.Background())
 	j.repairDone = make(chan struct{})
-	go func() {
+	reporting.Go("repair", func() {
 		defer close(j.repairDone)
 		repaired, err := p.Monitors.RepairStoredStatuses(repairCtx)
 		if errors.Is(err, context.Canceled) {
@@ -285,7 +286,7 @@ func startJobs(ctx context.Context, p parts, metricsEnabled bool, logger *zap.Su
 			return
 		}
 		logger.Infow("Repaired monitor statuses", "repaired", repaired)
-	}()
+	})
 
 	var metricsCtx context.Context
 	metricsCtx, j.stopMetrics = context.WithCancel(context.Background())
@@ -310,10 +311,10 @@ func startJobs(ctx context.Context, p parts, metricsEnabled bool, logger *zap.Su
 	var watchdogCtx context.Context
 	watchdogCtx, j.stopWatchdog = context.WithCancel(context.Background())
 	j.watchdogDone = make(chan struct{})
-	go func() {
+	reporting.Go("watchdog", func() {
 		defer close(j.watchdogDone)
 		p.Watchdog.Run(watchdogCtx)
-	}()
+	})
 
 	// The usage ping sends nothing until an admin opts in, and a failed one is dropped. It runs
 	// once: this process is the only one, so there is no claim to win.

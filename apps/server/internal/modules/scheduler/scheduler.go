@@ -180,7 +180,7 @@ func (s *Scheduler) Start(ctx context.Context) error {
 	s.mu.Lock()
 	if s.running() {
 		s.wg.Add(1)
-		go s.reconcileEvery(runCtx)
+		reporting.Go("scheduler", func() { s.reconcileEvery(runCtx) })
 	}
 	s.mu.Unlock()
 

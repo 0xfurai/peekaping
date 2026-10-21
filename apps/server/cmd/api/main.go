@@ -22,6 +22,7 @@ import (
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/stats"
 	"peekaping/internal/modules/telemetry"
+	"peekaping/internal/reporting"
 	"peekaping/internal/utils"
 	"syscall"
 	"time"
@@ -119,7 +120,7 @@ func main() {
 	repairCtx, stopRepair := context.WithCancel(context.Background())
 	defer stopRepair()
 	err = container.Invoke(func(monitorService monitor.Service, logger *zap.SugaredLogger) {
-		go func() {
+		reporting.Go("repair", func() {
 			repaired, err := monitorService.RepairStoredStatuses(repairCtx)
 			if errors.Is(err, context.Canceled) {
 				logger.Infow("Stopped repairing monitor statuses on shutdown", "repaired", repaired)
@@ -130,7 +131,7 @@ func main() {
 				return
 			}
 			logger.Infow("Repaired monitor statuses", "repaired", repaired)
-		}()
+		})
 	})
 	if err != nil {
 		log.Fatal(err)
