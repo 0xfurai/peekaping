@@ -3,6 +3,7 @@ package infra
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"peekaping/internal/config"
 
@@ -19,6 +20,8 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 )
+
+const sqliteRecoveryDocsURL = "https://docs.peekaping.com/self-hosting/sqlite-recovery"
 
 func ProvideSQLDB(
 	cfg *config.Config,
@@ -136,15 +139,13 @@ func ProvideSQLDB(
 			logger.Warnf("Failed to set auto_vacuum (non-fatal): %v", err)
 		}
 
-		// Run integrity check on startup to detect existing corruption
-		var integrityResult string
-		if err := db.QueryRow("PRAGMA integrity_check").Scan(&integrityResult); err != nil {
-			logger.Warnf("Failed to run integrity check (non-fatal): %v", err)
-		} else if integrityResult != "ok" {
-			logger.Errorf("Database integrity check FAILED: %s - database may be corrupted!", integrityResult)
-			logger.Error("Consider restoring from backup or running 'PRAGMA integrity_check' manually")
-		} else {
-			logger.Info("Database integrity check passed")
+		// Run a quick check on startup to detect existing corruption. The full integrity_check
+		// reads the whole file: about 30s for 1.5 GB (24h of 1,000 monitors at 20s), and it grows
+		// with the heartbeat history. quick_check walks the b-tree pages in about 2s. It misses an
+		// index that disagrees with its table, so the full check stays a manual one.
+		if err := checkSQLiteOnStartup(db, dbPath, logger); err != nil {
+			_ = db.Close()
+			return nil, err
 		}
 
 		logger.Infof("Connecting to SQLite database: %s (WAL mode enabled, corruption prevention active)", dbPath)
@@ -164,6 +165,47 @@ func ProvideSQLDB(
 
 	logger.Info("Successfully connected to SQL database")
 	return db, nil
+}
+
+// checkSQLiteOnStartup runs PRAGMA quick_check and returns an error when SQLite reports anything
+// but a single "ok", so startup stops before a process writes to a damaged database.
+func checkSQLiteOnStartup(db *bun.DB, dbPath string, logger *zap.SugaredLogger) error {
+	lines, err := readSQLiteQuickCheck(db)
+	healthy := len(lines) == 1 && lines[0] == "ok"
+	if healthy || len(lines) == 0 {
+		if err == nil && healthy {
+			return nil
+		}
+		if err == nil {
+			err = errors.New("it returned no result")
+		}
+		// Not a finding, so not confirmed corruption: the database may only be locked
+		logger.Warnf("Failed to run the SQLite quick check (non-fatal): %v", err)
+		return nil
+	}
+
+	return fmt.Errorf("SQLite database %s is corrupt: %s. See %s", dbPath, lines[0], sqliteRecoveryDocsURL)
+}
+
+// readSQLiteQuickCheck returns every row of PRAGMA quick_check: SQLite reports up to 100 findings,
+// one per row. A corrupt b-tree page ends the statement with SQLITE_CORRUPT after its findings, so
+// the rows read before an error are returned with it.
+func readSQLiteQuickCheck(db *bun.DB) ([]string, error) {
+	rows, err := db.Query("PRAGMA quick_check")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var lines []string
+	for rows.Next() {
+		var line string
+		if err := rows.Scan(&line); err != nil {
+			return lines, err
+		}
+		lines = append(lines, line)
+	}
+	return lines, rows.Err()
 }
 
 // GracefulSQLiteShutdown performs a graceful shutdown of SQLite database
