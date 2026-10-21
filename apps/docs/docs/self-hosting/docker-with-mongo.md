@@ -70,10 +70,14 @@ cp -a .data/mongodb .data/mongodb-backup
 
 With the [Docker Compose](#docker-compose) setup, ask with `docker compose exec database mongod --version`, and run `docker compose down` in its folder instead of the `docker stop` and `docker rename` lines. Then copy `.data/mongodb` the same way.
 
-If the data is in a named volume, such as `mongodb_data:/data/db` ([Persistent Data](#persistent-data)), and not in a folder, there is no `.data/mongodb` to copy. Find the name of the volume from the container, running or stopped (for Docker Compose, before `docker compose down`). It is on the line that ends in `/data/db`:
+If the data is in a named volume, such as `mongodb_data:/data/db` ([Persistent Data](#persistent-data)), and not in a folder, there is no `.data/mongodb` to copy. Find the name of the volume from the container, running or stopped. It is on the line that ends in `/data/db`. The bundle's container is `peekaping`. With Docker Compose the MongoDB is the `database` service, and its container has to be asked for before `docker compose down` removes it:
 
 ```bash
+# the bundle
 docker inspect -f '{{range .Mounts}}{{.Name}} {{.Destination}}{{"\n"}}{{end}}' peekaping
+
+# Docker Compose, in its folder
+docker inspect -f '{{range .Mounts}}{{.Name}} {{.Destination}}{{"\n"}}{{end}}' "$(docker compose ps -q database)"
 ```
 
 Then, with the container stopped, copy the contents of the volume into `.data/mongodb-backup` with a helper container, in place of the `cp` line. The rest of the steps use the copy as they are written:
@@ -138,7 +142,7 @@ With Docker Compose, the MongoDB is the `database` service, so skip step 2. Star
 (umask 077; echo 'MONGO_URI=mongodb://root:<DB_PASS>@database:27017/?authSource=admin' > mongo.env)
 ```
 
-In the command above, use `--network <folder name>_appnet` and `--env-file mongo.env` in place of the `-e MONGO_URI` line. The file is read as it is, so don't quote the value in it. Delete the file when the import is done.
+In the command above, use `--network <folder name>_appnet` and `--env-file mongo.env` in place of the `-e MONGO_URI` line. The file is read as it is, so don't quote the value in it. Docker doesn't hide an environment variable from anyone who can use Docker: `docker inspect` shows it for as long as the container exists. The file keeps the password out of your command and your shell history. The import container is removed when it ends (`--rm`), so delete the file then too.
 
 ### 4. Start the new bundle
 
@@ -212,7 +216,7 @@ docker network rm peekaping-move
 
 For a PostgreSQL server you run yourself, such as the `database` service of the Docker Compose setup for PostgreSQL, set the `DB_*` variables to its database and run the import from the migrate image. The database must hold no users, monitors or history. Put the server on the `peekaping-move` network of step 2 with `docker network connect peekaping-move <its container>`, so that the migrate image reaches both it and the MongoDB:
 
-The server's password goes in a file that only you can read, not on the command line, so that it stays out of the shell history and out of `docker inspect`. The file is read as it is, so don't quote the values in it. Delete it when the import is done:
+The server's password goes in a file that only you can read, not on the command line, so that it stays out of the shell history. Anyone who can use Docker can still read it with `docker inspect` while the import container exists, which is `--rm`, so delete the file when the import is done. The file is read as it is, so don't quote the values in it:
 
 ```bash
 (umask 077; echo 'DB_PASS=<its password>' > postgres.env)
