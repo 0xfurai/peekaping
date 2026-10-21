@@ -85,6 +85,8 @@ If you run a bundle from 0.0.44 to 0.0.47, which ran Redis and Caddy inside the 
 
 In cluster mode, the API, producer, worker and ingester run in separate containers and talk through Redis. An nginx gateway serves the web app and the API on port 8383.
 
+The images run as a non-root user. See [Cluster user and permissions](./cluster-user.md) for the SQLite data folder, Docker monitors and ping monitors.
+
 ### Prerequisites
 
 - Docker Compose 2.0+
@@ -383,6 +385,7 @@ You have two options for persistent storage:
    volumes:
      sqlite_data:
    ```
+   In cluster mode, also mount `sqlite_data:/app/data` in the `data-permissions` service. See [Cluster user and permissions](./cluster-user.md#the-sqlite-data-folder).
 
 
 ### Updating Peekaping
