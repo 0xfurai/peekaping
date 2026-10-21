@@ -112,6 +112,16 @@ func (in *Install) seedConfiguration(t *testing.T) {
 	require.NoError(t, channels.UpdateFull(ctx, slack.ID, &notification_channel.Model{
 		ID: slack.ID, Name: "Slack ops", Type: "slack", Active: true, IsDefault: true, Config: ptr(`{"slack_webhook_url":"https://hooks.slack.example/b"}`),
 	}))
+	// A channel saved in full and then changed in part: the later change wrote is_default itself, so it wins
+	teams, err := channels.Create(ctx, &notification_channel.Model{Name: "Teams", Type: "teams", Active: true, Config: ptr(`{"teams_webhook_url":"https://teams.example/a"}`)})
+	require.NoError(t, err)
+	in.remember("channel", "teams", teams.ID)
+	time.Sleep(5 * time.Millisecond)
+	require.NoError(t, channels.UpdateFull(ctx, teams.ID, &notification_channel.Model{
+		ID: teams.ID, Name: "Teams", Type: "teams", Active: true, IsDefault: true, Config: ptr(`{"teams_webhook_url":"https://teams.example/a"}`),
+	}))
+	time.Sleep(5 * time.Millisecond)
+	require.NoError(t, channels.UpdatePartial(ctx, teams.ID, &notification_channel.UpdateModel{IsDefault: ptr(false)}))
 	in.remember("channel", "bare", in.insert(t, "notification_channel", bson.D{
 		{Key: "name", Value: "Bare"}, {Key: "type", Value: "webhook"}, {Key: "active", Value: true}, {Key: "is_default", Value: false},
 		{Key: "created_at", Value: time.Now().UTC()}, {Key: "updated_at", Value: time.Now().UTC()},

@@ -23,6 +23,29 @@ var peekapingTables = []string{
 	"heartbeats", "stat_minutely", "stat_hourly", "stat_daily",
 }
 
+// A mistyped database name finds no install to copy, and the target is left as it was.
+func TestImportStopsWhenTheMongoDatabaseIsNotAnInstall(t *testing.T) {
+	in := mongoimporttest.Seed(t)
+	ctx := context.Background()
+
+	forEachTarget(t, func(t *testing.T, db *bun.DB) {
+		_, err := mongoimport.Run(ctx, db, mongoimport.Options{MongoURI: in.URI, MongoDatabase: in.Database + "_typo"})
+		assert.ErrorContains(t, err, "has no collections")
+		assert.ErrorContains(t, err, "--mongo-db")
+		_, err = db.Exec("SELECT 1 FROM users")
+		assert.Error(t, err, "the migrations ran")
+	})
+
+	other := in.Client.Database(in.Database + "_other")
+	_, err := other.Collection("unrelated").InsertOne(ctx, map[string]any{"a": 1})
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = other.Drop(context.Background()) })
+	forEachTarget(t, func(t *testing.T, db *bun.DB) {
+		_, err := mongoimport.Run(ctx, db, mongoimport.Options{MongoURI: in.URI, MongoDatabase: in.Database + "_other"})
+		assert.ErrorContains(t, err, "none of Peekaping's collections (it holds unrelated)")
+	})
+}
+
 // The heartbeats are copied after every table but the stats. If they fail, the tables copied
 // before them must not keep their rows.
 func TestImportLeavesTheTargetEmptyWhenItFails(t *testing.T) {

@@ -130,7 +130,8 @@ func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, r
 
 	t.Run("notification channels", func(t *testing.T) {
 		mongoChannels, sqlChannels := notification_channel.NewMongoRepository(in.Client, in.Config), notification_channel.NewSQLRepository(db)
-		for _, name := range []string{"webhook", "email"} {
+		// The teams channel was saved in full and then changed in part, so the app showed the later change
+		for _, name := range []string{"webhook", "email", "teams"} {
 			want, err := mongoChannels.FindByID(ctx, in.ID("channel", name))
 			require.NoError(t, err)
 			got, err := sqlChannels.FindByID(ctx, uuidOf(t, want.ID))
@@ -168,8 +169,8 @@ func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, r
 
 		r := collectionReport(t, report, "notification_channel")
 		assert.Equal(t, "notification_channels", r.Table)
-		assert.Equal(t, 4, r.Read)
-		assert.Equal(t, 4, r.Copied)
+		assert.Equal(t, 5, r.Read)
+		assert.Equal(t, 5, r.Copied)
 		assert.Equal(t, map[string]int{
 			"is_default and updated_at taken from the keys of a full update": 1,
 			"config is missing: used {}":                                     1,
