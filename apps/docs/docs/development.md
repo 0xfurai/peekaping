@@ -117,6 +117,18 @@ The repository root has these Docker Compose files. Each one comes in a variant 
 
 The `mongo` files are for the deprecated MongoDB storage backend.
 
+### Docs snippets that copy a file
+
+The Docker pages in `apps/docs/docs/self-hosting` show the cluster-mode `docker-compose.prod.<backend>.yml` files and `nginx.conf` word for word. A comment on the line before such a code block names the file it copies, relative to the repository root:
+
+```html
+<!-- snippet: docker-compose.prod.sqlite.yml -->
+```
+
+`scripts/test-docs-snippets.sh` diffs every marked block with its file, and fails with the difference when they differ, when a marker names a file that doesn't exist, or when no code block follows a marker. The Docs Snippets workflow runs it on pull requests and pushes to `main` that change `apps/docs`, a `docker-compose*.yml` file, `nginx.conf`, the script or the workflow. So a pull request that changes one of those files updates the page in the same pull request.
+
+Blocks with no marker aren't checked. That is for examples and excerpts that are deliberately not a full copy, such as the single-mode Compose snippets, which run the published image where `docker-compose.bundle.<backend>.yml` builds from source, and the `.env` excerpts.
+
 ---
 
 ## 6. Start the Development Servers
