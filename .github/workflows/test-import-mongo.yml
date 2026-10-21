@@ -63,6 +63,9 @@ jobs:
       - name: Run the import tests
         working-directory: apps/server
         run: |
+          # A failing go test must fail the step: without pipefail, the exit status of the
+          # pipeline would be tee's
+          set -o pipefail
           # -count=1 so that a cached result never stands in for a run against the databases
           go test -timeout 300s -count=1 -v ./internal/mongoimport/... ./cmd/bun/ | tee import-test.log
           go test -timeout 300s -count=1 -v -run TestImportedMongoInstall ./internal/apitest/ | tee -a import-test.log
