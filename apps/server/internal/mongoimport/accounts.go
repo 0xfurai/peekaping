@@ -2,6 +2,7 @@ package mongoimport
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -70,8 +71,21 @@ type settingRow struct {
 // which every session and refresh token would stop working. A setting is
 // upserted by its key, so a key should have one document. If it has more, the
 // one saved last wins.
+//
+// The target may have been started once, which writes its own default settings
+// with new JWT signing secrets. They are deleted first, so that the install's
+// secrets and settings are the only ones the target ends with.
 func (c *copier) copySettings(ctx context.Context) error {
 	report := c.report.collection("setting", "settings")
+	deleted, err := c.tx.ExecContext(ctx, "DELETE FROM settings")
+	if err != nil {
+		return fmt.Errorf("replace the settings of the target: %w", err)
+	}
+	if n, _ := deleted.RowsAffected(); n == 1 {
+		c.report.note("the setting that the target had written when Peekaping first started on it was replaced by the install's")
+	} else if n > 1 {
+		c.report.note("the %d settings that the target had written when Peekaping first started on it were replaced by the install's", n)
+	}
 	type candidate struct {
 		d       doc
 		id      primitive.ObjectID
@@ -79,7 +93,7 @@ func (c *copier) copySettings(ctx context.Context) error {
 	}
 	chosen := map[string]candidate{}
 	var keys []string
-	err := c.src.each(ctx, "setting", byID, func(d doc) error {
+	err = c.src.each(ctx, "setting", byID, func(d doc) error {
 		report.Read++
 		id, ok := d.id()
 		if !ok {

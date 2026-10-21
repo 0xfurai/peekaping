@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"peekaping/cmd/bun/migrations"
 	"peekaping/internal/legacyid"
 	"peekaping/internal/modules/api_key"
 	"peekaping/internal/modules/auth"
@@ -16,6 +17,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/migrate"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.uber.org/zap"
@@ -237,26 +239,87 @@ func TestImportRefusesATargetThatHoldsData(t *testing.T) {
 			// Importing again would double every row, so it changes nothing and says why
 			_, err = mongoimport.Run(ctx, db, opts)
 			assert.ErrorIs(t, err, mongoimport.ErrTargetNotEmpty)
-			assert.ErrorContains(t, err, "users, settings, api_keys")
+			assert.ErrorContains(t, err, "users, api_keys")
 			assert.Equal(t, before, tableCounts(t, db, tables...))
 		})
 	})
 
-	// A Peekaping that was started once has written its settings, which is data too. It may be an
-	// older one that hasn't run the latest migrations, which the import leaves alone.
-	t.Run("a database with a setting and no migrations", func(t *testing.T) {
+	// A target a Peekaping started on once holds its default settings and nothing else: the first
+	// start writes only those. They are replaced by the install's, the JWT signing secrets included.
+	t.Run("a database after a first start", func(t *testing.T) {
 		forEachTarget(t, func(t *testing.T, db *bun.DB) {
-			_, err := db.Exec(`CREATE TABLE settings (key VARCHAR(255) PRIMARY KEY, value TEXT NOT NULL, type VARCHAR(50) NOT NULL)`)
+			firstStart(t, db)
+			started := mustSetting(t, setting.NewSQLRepository(db), shared.AccessTokenSecretKey)
+			require.NotEmpty(t, started.Value)
+
+			report, err := mongoimport.Run(ctx, db, opts)
 			require.NoError(t, err)
-			_, err = db.Exec(`INSERT INTO settings (key, value, type) VALUES ('KEEP_DATA_PERIOD_DAYS', '90', 'int')`)
+
+			settings := setting.NewSQLRepository(db)
+			mongoSettings := setting.NewMongoRepository(in.Client, in.Config)
+			for _, key := range []string{shared.AccessTokenSecretKey, shared.RefreshTokenSecretKey, setting.DataRetentionPeriodKey} {
+				want, err := mongoSettings.GetByKey(ctx, key)
+				require.NoError(t, err)
+				assert.Equal(t, want.Value, mustSetting(t, settings, key).Value, key)
+			}
+			assert.NotEqual(t, started.Value, mustSetting(t, settings, shared.AccessTokenSecretKey).Value, "the target's own signing secret is still there")
+			assert.Equal(t, mongoimporttest.RetentionDays, mustSetting(t, settings, setting.DataRetentionPeriodKey).Value, "the target's own 180 days are still there")
+			gone, err := settings.GetByKey(ctx, "only_on_the_target")
+			require.NoError(t, err)
+			assert.Nil(t, gone, "a setting only the target had is still there")
+			assert.Equal(t, map[string]int{"users": 2, "settings": 6, "api_keys": 2}, tableCounts(t, db, tables...))
+			require.NotEmpty(t, report.Notes)
+			assert.Equal(t, "the 7 settings that the target had written when Peekaping first started on it were replaced by the install's", report.Notes[0])
+		})
+	})
+
+	// One user is the target's own data, which the import must not mix with another install's
+	t.Run("a database with a user", func(t *testing.T) {
+		forEachTarget(t, func(t *testing.T, db *bun.DB) {
+			firstStart(t, db)
+			_, err := db.Exec(`INSERT INTO users (id, email, password) VALUES ('11111111-1111-4111-8111-111111111111', 'me@example.com', 'hash')`)
+			require.NoError(t, err)
+			started := mustSetting(t, setting.NewSQLRepository(db), shared.AccessTokenSecretKey)
+
+			_, err = mongoimport.Run(ctx, db, opts)
+			assert.ErrorIs(t, err, mongoimport.ErrTargetNotEmpty)
+			assert.ErrorContains(t, err, "users have rows")
+			assert.Equal(t, map[string]int{"users": 1, "settings": 7, "api_keys": 0}, tableCounts(t, db, tables...))
+			assert.Equal(t, started.Value, mustSetting(t, setting.NewSQLRepository(db), shared.AccessTokenSecretKey).Value, "the settings were replaced")
+		})
+	})
+
+	// Not even the migrations run on a database that holds data, which may be an older one
+	t.Run("a database with a user and no migrations", func(t *testing.T) {
+		forEachTarget(t, func(t *testing.T, db *bun.DB) {
+			_, err := db.Exec(`CREATE TABLE users (id VARCHAR(36) PRIMARY KEY, email VARCHAR(255) NOT NULL)`)
+			require.NoError(t, err)
+			_, err = db.Exec(`INSERT INTO users (id, email) VALUES ('11111111-1111-4111-8111-111111111111', 'me@example.com')`)
 			require.NoError(t, err)
 
 			_, err = mongoimport.Run(ctx, db, opts)
 			assert.ErrorIs(t, err, mongoimport.ErrTargetNotEmpty)
-			assert.ErrorContains(t, err, "settings")
-			assert.Equal(t, map[string]int{"settings": 1}, tableCounts(t, db, "settings"))
+			assert.Equal(t, map[string]int{"users": 1}, tableCounts(t, db, "users"))
 			_, err = db.Exec("SELECT 1 FROM monitors")
 			assert.Error(t, err, "the migrations ran")
 		})
 	})
+}
+
+// firstStart does what Peekaping's first start does to an empty database: migrates it and
+// writes the default settings, the data retention period of a new install, and a setting of
+// its own that the install has no counterpart for.
+func firstStart(t *testing.T, db *bun.DB) {
+	t.Helper()
+	ctx := context.Background()
+	migrator := migrate.NewMigrator(db, migrations.Migrations)
+	require.NoError(t, migrator.Init(ctx))
+	_, err := migrator.Migrate(ctx)
+	require.NoError(t, err)
+	settings := setting.NewService(setting.NewSQLRepository(db), zap.NewNop().Sugar())
+	require.NoError(t, settings.InitializeSettings(ctx))
+	_, err = settings.SetByKey(ctx, setting.DataRetentionPeriodKey, &setting.Model{Value: "180", Type: "int"})
+	require.NoError(t, err)
+	_, err = settings.SetByKey(ctx, "only_on_the_target", &setting.Model{Value: "x", Type: "string"})
+	require.NoError(t, err)
 }

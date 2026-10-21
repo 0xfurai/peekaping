@@ -12,15 +12,17 @@ import (
 
 // newImportMongoCommand is "bun db import-mongo". It copies a MongoDB install
 // into the SQLite or PostgreSQL database that DB_TYPE and the other DB_*
-// variables name, which must be empty.
+// variables name, which must hold no data of its own.
 func newImportMongoCommand() *cli.Command {
 	return &cli.Command{
 		Name:  "import-mongo",
-		Usage: "copy a MongoDB install's data into an empty SQLite or PostgreSQL database",
+		Usage: "copy a MongoDB install's data into a SQLite or PostgreSQL database that holds none of its own",
 		Description: "Reads the MongoDB database named by --mongo-uri and --mongo-db, applies the SQL migrations to the\n" +
 			"database that DB_TYPE, DB_NAME and the other DB_* variables name, and copies everything but the login\n" +
-			"lockout counters into it in one transaction. The target must be a database that no Peekaping has used:\n" +
-			"if it holds any data, nothing is changed. Stop the MongoDB install first, so that nothing is written\n" +
+			"lockout counters into it in one transaction. The target must hold no users, monitors or history: if it\n" +
+			"does, nothing is changed. A database that Peekaping only started on once is fine. It holds just the\n" +
+			"default settings that the first start writes, and the copy replaces them with the install's settings,\n" +
+			"the keys that sign login tokens included. Stop the MongoDB install first, so that nothing is written\n" +
 			"while it is copied.",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
