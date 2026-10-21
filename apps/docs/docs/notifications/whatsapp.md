@@ -92,10 +92,24 @@ Time: {{ heartbeat.created_at }}
 
 ### Debug Logs
 
-Check the Peekaping server logs for detailed debugging information:
+Check the Peekaping logs for detailed debugging information. The API sends the message, so in cluster mode read its logs.
+
+With a bundle image started as in the self-hosting pages, which names the container `peekaping`:
 
 ```bash
-docker logs peekaping-server-1
+docker logs peekaping
+```
+
+With the single-mode Docker Compose file, run this in the directory that holds your `docker-compose.yml`:
+
+```bash
+docker compose logs peekaping
+```
+
+With the cluster-mode Docker Compose stack, run this in the same place:
+
+```bash
+docker compose logs api
 ```
 
 The logs will show:

@@ -620,19 +620,21 @@ func TestHTTPExecutor_Execute(t *testing.T) {
 
 	// Create test server
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Test headers
-		if r.Header.Get("Content-Type") != "application/json" {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-
-		// Test body
-		if r.Method == "POST" {
+		if r.ContentLength > 0 {
+			// A request with a body carries the encoding's Content-Type.
+			if r.Header.Get("Content-Type") != "application/json" {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
 			var body map[string]interface{}
 			if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
+		} else if r.Header.Get("Content-Type") != "" {
+			// A bodyless request must not carry one (issue #395).
+			w.WriteHeader(http.StatusBadRequest)
+			return
 		}
 
 		w.WriteHeader(http.StatusOK)
@@ -709,6 +711,146 @@ func TestHTTPExecutor_Execute(t *testing.T) {
 			result := executor.Execute(context.Background(), tt.monitor, nil)
 			assert.Equal(t, tt.expectedStatus, result.Status)
 		})
+	}
+}
+
+func TestHTTPExecutor_Execute_ContentTypeFollowsTheBody(t *testing.T) {
+	executor := NewHTTPExecutor(zap.NewNop().Sugar())
+
+	tests := []struct {
+		name            string
+		method          string
+		encoding        string
+		body            string
+		headers         string
+		wantContentType string
+	}{
+		{
+			name:     "bodyless GET sends none",
+			method:   "GET",
+			encoding: "json",
+		},
+		{
+			name:     "bodyless HEAD sends none",
+			method:   "HEAD",
+			encoding: "json",
+		},
+		{
+			name:     "bodyless POST sends none",
+			method:   "POST",
+			encoding: "json",
+		},
+		{
+			name:     "bodyless PUT with form encoding sends none",
+			method:   "PUT",
+			encoding: "form",
+		},
+		{
+			name:     "bodyless DELETE with xml encoding sends none",
+			method:   "DELETE",
+			encoding: "xml",
+		},
+		{
+			name:     "bodyless GET drops the legacy web default",
+			method:   "GET",
+			encoding: "json",
+			headers:  `{"Content-Type":"application/json"}`,
+		},
+		{
+			name:            "bodyless GET keeps an explicit content type",
+			method:          "GET",
+			encoding:        "json",
+			headers:         `{"Content-Type":"application/vnd.api+json"}`,
+			wantContentType: "application/vnd.api+json",
+		},
+		{
+			name:            "bodyless GET keeps an explicitly cased content type",
+			method:          "GET",
+			encoding:        "json",
+			headers:         `{"content-type":"application/json"}`,
+			wantContentType: "application/json",
+		},
+		{
+			name:            "bodyless GET keeps an explicitly padded content type",
+			method:          "GET",
+			encoding:        "json",
+			headers:         `{"Content-Type":" application/json "}`,
+			wantContentType: "application/json",
+		},
+		{
+			name:     "bodyless GET with Accept sends no content type",
+			method:   "GET",
+			encoding: "text",
+			headers:  `{"Accept":"application/json"}`,
+		},
+		{
+			name:     "bodyless JSON GET with other headers sends no content type",
+			method:   "GET",
+			encoding: "json",
+			headers:  `{"Accept":"application/json","X-Trace":"1"}`,
+		},
+		{
+			name:            "body sends the encoding content type",
+			method:          "POST",
+			encoding:        "xml",
+			body:            "<root/>",
+			wantContentType: "application/xml",
+		},
+		{
+			name:            "body infers content type with other headers",
+			method:          "POST",
+			encoding:        "json",
+			body:            `{"key":"value"}`,
+			headers:         `{"Accept":"application/json"}`,
+			wantContentType: "application/json",
+		},
+		{
+			name:            "body keeps an explicit content type",
+			method:          "POST",
+			encoding:        "json",
+			body:            `{"key":"value"}`,
+			headers:         `{"Content-Type":"application/vnd.api+json"}`,
+			wantContentType: "application/vnd.api+json",
+		},
+	}
+
+	for _, monitorType := range []string{"http", "http-keyword", "http-json-query"} {
+		for _, tt := range tests {
+			t.Run(monitorType+" "+tt.name, func(t *testing.T) {
+				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					if got := r.Header.Get("Content-Type"); got != tt.wantContentType {
+						w.WriteHeader(http.StatusBadRequest)
+						return
+					}
+					w.WriteHeader(http.StatusOK)
+				}))
+				defer server.Close()
+
+				cfg := HTTPConfig{
+					Url:                 server.URL,
+					Method:              tt.method,
+					Encoding:            tt.encoding,
+					Body:                tt.body,
+					Headers:             tt.headers,
+					AcceptedStatusCodes: []string{"2XX"},
+					AuthMethod:          "none",
+				}
+				config, err := json.Marshal(cfg)
+				require.NoError(t, err)
+
+				monitor := &Monitor{
+					ID:       "monitor1",
+					Type:     monitorType,
+					Name:     "Test Monitor",
+					Interval: 30,
+					Timeout:  5,
+					Config:   string(config),
+				}
+
+				result := executor.Execute(context.Background(), monitor, nil)
+				assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
+			})
+		}
 	}
 }
 

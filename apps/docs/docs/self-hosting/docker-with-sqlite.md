@@ -85,6 +85,8 @@ If you run a bundle from 0.0.44 to 0.0.47, which ran Redis and Caddy inside the 
 
 In cluster mode, the API, producer, worker and ingester run in separate containers and talk through Redis. An nginx gateway serves the web app and the API on port 8383.
 
+The images run as a non-root user. See [Cluster user and permissions](./cluster-user.md) for the SQLite data folder, Docker monitors and ping monitors.
+
 ### Prerequisites
 
 - Docker Compose 2.0+
@@ -142,6 +144,7 @@ JWT settings (access/refresh token expiration times and secret keys) are now aut
 
 Create a `docker-compose.yml` file:
 
+<!-- snippet: docker-compose.prod.sqlite.yml -->
 ```yml
 networks:
   appnet:
@@ -159,6 +162,16 @@ services:
       retries: 5
       start_period: 5s
 
+  # The Peekaping images run as user 65532. This one-shot service makes the
+  # data folder theirs before the migration starts: Docker creates a missing
+  # ./.data/sqlite as root, and a database from an earlier version belongs to root.
+  data-permissions:
+    image: alpine
+    restart: "no"
+    command: ["chown", "-R", "65532:65532", "/app/data"]
+    volumes:
+      - ./.data/sqlite:/app/data
+
   migrate:
     image: 0xfurai/peekaping-migrate:latest
     restart: "no"
@@ -166,6 +179,9 @@ services:
       - .env
     volumes:
       - ./.data/sqlite:/app/data
+    depends_on:
+      data-permissions:
+        condition: service_completed_successfully
 
   api:
     image: 0xfurai/peekaping-api:latest
@@ -274,10 +290,11 @@ services:
 
 If you want to use Nginx as a reverse proxy, create this file:
 
+<!-- snippet: nginx.conf -->
 ```nginx
 events {}
 http {
-  upstream server  { server server:8034; }
+  upstream api  { server api:8034; }
   upstream web { server web:80; }
 
   server {
@@ -285,14 +302,14 @@ http {
 
     # Pure API calls
     location /api/ {
-      proxy_pass         http://server;
+      proxy_pass         http://api;
       proxy_set_header   Host $host;
       proxy_set_header   X-Real-IP $remote_addr;
     }
 
     # socket.io
     location /socket.io/ {
-      proxy_pass http://server;
+      proxy_pass http://api;
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP $remote_addr;
       proxy_set_header Upgrade $http_upgrade;
@@ -335,10 +352,20 @@ Once all containers are running:
 
 ## Docker Images
 
-Peekaping provides official Docker images:
+Peekaping provides official Docker images.
 
-- **Server**: [`0xfurai/peekaping-server`](https://hub.docker.com/r/0xfurai/peekaping-server)
+Single mode:
+
+- **Bundle**: [`0xfurai/peekaping-bundle-sqlite`](https://hub.docker.com/r/0xfurai/peekaping-bundle-sqlite)
+
+Cluster mode:
+
+- **API**: [`0xfurai/peekaping-api`](https://hub.docker.com/r/0xfurai/peekaping-api)
+- **Producer**: [`0xfurai/peekaping-producer`](https://hub.docker.com/r/0xfurai/peekaping-producer)
+- **Worker**: [`0xfurai/peekaping-worker`](https://hub.docker.com/r/0xfurai/peekaping-worker)
+- **Ingester**: [`0xfurai/peekaping-ingester`](https://hub.docker.com/r/0xfurai/peekaping-ingester)
 - **Web**: [`0xfurai/peekaping-web`](https://hub.docker.com/r/0xfurai/peekaping-web)
+- **Migrate**: [`0xfurai/peekaping-migrate`](https://hub.docker.com/r/0xfurai/peekaping-migrate), which applies the database migrations. The API, producer and ingester wait for it to finish
 
 ### Image Tags
 
@@ -370,6 +397,7 @@ You have two options for persistent storage:
    volumes:
      sqlite_data:
    ```
+   In cluster mode, also mount `sqlite_data:/app/data` in the `data-permissions` service. See [Cluster user and permissions](./cluster-user.md#the-sqlite-data-folder).
 
 
 ### Updating Peekaping

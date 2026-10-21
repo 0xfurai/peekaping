@@ -27,6 +27,8 @@ If you need to run migrations manually outside of Docker:
    ./bun db migrate
    ```
 
+   On PostgreSQL, a migrate that starts while another one runs waits for it, up to 10 minutes. Change that with `./bun db migrate --lock-timeout 30m` or `MIGRATE_LOCK_TIMEOUT=30m`. A migrate that is killed doesn't block the next one. See [Migrate](apps/docs/docs/architecture/migrate.md#migration-locking).
+
 3. **Check migration status**:
    ```bash
    ./bun db status
