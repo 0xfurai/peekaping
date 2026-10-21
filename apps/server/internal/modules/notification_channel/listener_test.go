@@ -25,6 +25,8 @@ import (
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/tag"
+	"peekaping/internal/reporting"
+	"peekaping/internal/reporting/reportingtest"
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/redis/go-redis/v9"
@@ -369,6 +371,49 @@ func TestListener_PanickingChannelDoesNotStopOtherChannels(t *testing.T) {
 	require.NotPanics(t, func() { f.publishCertificateExpiry(certificateExpiry("mon-1")) })
 
 	assert.Equal(t, []string{channelConfig("b")}, healthy.sentConfigs())
+}
+
+func TestListener_ReportsAPanickingChannel(t *testing.T) {
+	recorder := reportingtest.Install(t)
+	f := newListenerFixture(t)
+	registerTestProvider(t, "test-panicking", &recordingProvider{send: func(context.Context) error { panic("interface conversion") }})
+	f.addMonitor("mon-1", "Public API")
+	f.attach("mon-1", testChannel("a", "test-panicking"))
+
+	require.NotPanics(t, func() { f.publishCertificateExpiry(certificateExpiry("mon-1")) })
+
+	events := recorder.Wait(t, 1)
+	assert.Equal(t, "notification", events[0].Tags["component"])
+	assert.Equal(t, "string", events[0].Exception[0].Type)
+	frames := events[0].Exception[0].Stacktrace.Frames
+	assert.Contains(t, frames[len(frames)-1].Function, "TestListener_ReportsAPanickingChannel", "the channel's send is where it panicked")
+}
+
+func TestListener_ReportsNothingForAPanickingChannelWhileReportingIsOff(t *testing.T) {
+	recorder := reportingtest.Install(t)
+	reporting.SetEnabled(false)
+	f := newListenerFixture(t)
+	panicking := &recordingProvider{send: func(context.Context) error { panic("interface conversion") }}
+	registerTestProvider(t, "test-panicking", panicking)
+	f.addMonitor("mon-1", "Public API")
+	f.attach("mon-1", testChannel("a", "test-panicking"))
+
+	require.NotPanics(t, func() { f.publishCertificateExpiry(certificateExpiry("mon-1")) })
+
+	assert.Empty(t, recorder.Events())
+}
+
+// A channel that fails to send is a misconfigured channel, which the product tells the admin about
+func TestListener_ReportsNothingForAChannelThatFailsToSend(t *testing.T) {
+	recorder := reportingtest.Install(t)
+	f := newListenerFixture(t)
+	registerTestProvider(t, "test-failing", &recordingProvider{send: func(context.Context) error { return errors.New("503 Service Unavailable") }})
+	f.addMonitor("mon-1", "Public API")
+	f.attach("mon-1", testChannel("a", "test-failing"))
+
+	f.publishImportantHeartbeat(downHeartbeat("mon-1"))
+
+	assert.Empty(t, recorder.Events())
 }
 
 func TestListener_SendsNothingWithoutTheMonitor(t *testing.T) {

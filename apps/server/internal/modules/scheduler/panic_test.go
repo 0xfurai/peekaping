@@ -8,7 +8,10 @@ import (
 
 	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/ingester"
+	"peekaping/internal/reporting"
+	"peekaping/internal/reporting/reportingtest"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
@@ -63,4 +66,58 @@ func TestScheduler_APanicEndsOnlyTheCheckItHappensIn(t *testing.T) {
 			assert.Equal(t, 1, logs.FilterMessage("Check panicked").FilterField(zap.String("monitor_id", "bad")).Len(), "the panic is logged with its monitor")
 		})
 	}
+}
+
+// panicsOnceInTheLoad makes the first check of monitor "bad" panic
+func panicsOnceInTheLoad(h **harness, panicked *atomic.Bool) func(*Config) {
+	return func(cfg *Config) {
+		cfg.Concurrency = 1
+		cfg.Loader = loaderFunc(func(ctx context.Context, monitorID string) (*check.Job, error) {
+			if monitorID == "bad" && panicked.CompareAndSwap(false, true) {
+				panic("loader bug")
+			}
+			return (*h).db.Load(ctx, monitorID)
+		})
+	}
+}
+
+func TestScheduler_ReportsTheCheckThatPanicked(t *testing.T) {
+	recorder := reportingtest.Install(t)
+	var panicked atomic.Bool
+	var h *harness
+	h = newHarness(t, panicsOnceInTheLoad(&h, &panicked))
+	h.db.put(monitorWith("bad", withInterval(1)))
+
+	h.start()
+
+	events := recorder.Wait(t, 1)
+	assert.Equal(t, "scheduler", events[0].Tags["component"])
+	assert.Equal(t, "string", events[0].Exception[0].Type)
+	assert.Contains(t, functionsOf(events[0]), "(*Scheduler).runCheck")
+	eventually(t, 3*time.Second, func() bool { return h.ingestedFor("bad") >= 1 }, "the monitor is checked again, as without reporting")
+	assert.Len(t, recorder.Events(), 1)
+}
+
+func TestScheduler_ReportsNothingForACheckThatPanickedWhileReportingIsOff(t *testing.T) {
+	recorder := reportingtest.Install(t)
+	reporting.SetEnabled(false)
+	var panicked atomic.Bool
+	var h *harness
+	h = newHarness(t, panicsOnceInTheLoad(&h, &panicked))
+	h.db.put(monitorWith("bad", withInterval(1)))
+
+	h.start()
+
+	eventually(t, 3*time.Second, panicked.Load, "the first check of bad panics")
+	eventually(t, 3*time.Second, func() bool { return h.ingestedFor("bad") >= 1 }, "and the next one is made")
+	assert.Empty(t, recorder.Events())
+}
+
+// functionsOf are the function names in the frames of the event's exception
+func functionsOf(event *sentry.Event) []string {
+	var names []string
+	for _, frame := range event.Exception[0].Stacktrace.Frames {
+		names = append(names, frame.Function)
+	}
+	return names
 }
