@@ -145,6 +145,8 @@ The host side of the port mapping is `127.0.0.1`, so port 8383 is only on the lo
 
 Start the bundle with `docker compose up -d`, then load the Caddyfile with the host's Caddy (`caddy reload`, or `caddy run --config /path/to/Caddyfile`).
 
+`PEEKAPING_HOSTNAME` must be supplied to the host Caddy process itself, for example by exporting it in the shell that starts Caddy or by setting it in the Caddy service environment (such as a systemd `Environment=` line). Compose reads `.env` for `CLIENT_URL` only, so that file does not set the site address. The value Caddy receives must match the hostname used in `CLIENT_URL`.
+
 ### Caddy in Docker
 
 A Caddy container has its own loopback interface, so `127.0.0.1:8383` inside that container is Caddy itself. Put Caddy and the bundle on one Docker network and proxy to the bundle's Compose service name, `peekaping`, on port 8383:
