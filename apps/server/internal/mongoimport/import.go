@@ -98,8 +98,7 @@ func Run(ctx context.Context, db *bun.DB, opts Options) (*Report, error) {
 		if err := requireEmpty(ctx, tx); err != nil {
 			return err
 		}
-		c := &copier{tx: tx, src: src, report: report, progress: opts.Progress}
-		return c.copyAll(ctx)
+		return newCopier(tx, src, report, opts.Progress).copyAll(ctx)
 	})
 	if err != nil {
 		return nil, err
@@ -207,12 +206,26 @@ func migrateDatabase(ctx context.Context, db *bun.DB) error {
 	return err
 }
 
-// copier holds what the copy of each collection shares.
+// copier holds what the copy of each collection shares: the transaction, the
+// report, and the ObjectIDs of the documents copied so far, which the documents
+// that refer to them look up.
 type copier struct {
 	tx       bun.Tx
 	src      *source
 	report   *Report
 	progress io.Writer
+
+	proxies, monitors, channels, tags, maintenances idSet
+	statusPages                                     map[primitive.ObjectID]*statusPage
+	statusPageOrder                                 []*statusPage
+}
+
+func newCopier(tx bun.Tx, src *source, report *Report, progress io.Writer) *copier {
+	return &copier{
+		tx: tx, src: src, report: report, progress: progress,
+		proxies: idSet{}, monitors: idSet{}, channels: idSet{}, tags: idSet{}, maintenances: idSet{},
+		statusPages: map[primitive.ObjectID]*statusPage{},
+	}
 }
 
 // uuidOf is the UUID that an ObjectID becomes.
@@ -226,6 +239,8 @@ func uuidOf(id primitive.ObjectID) string {
 func (c *copier) copyAll(ctx context.Context) error {
 	for _, step := range []func(context.Context) error{
 		c.copyUsers, c.copySettings, c.copyAPIKeys,
+		c.copyProxies, c.copyMonitors, c.copyChannels, c.copyTags, c.copyMaintenance, c.copyStatusPages,
+		c.copyMonitorNotifications, c.copyMonitorTags, c.copyMonitorMaintenances, c.copyMonitorStatusPages, c.copyDomains,
 	} {
 		if err := step(ctx); err != nil {
 			return err

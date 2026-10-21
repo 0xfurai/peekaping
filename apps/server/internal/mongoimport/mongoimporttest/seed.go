@@ -50,6 +50,8 @@ type Install struct {
 	// authenticates with it, as the MongoDB install handed it out.
 	APIKeyID    string
 	APIKeyToken string
+
+	ids map[string]string
 }
 
 // Seed fills a new database with an install, or skips the test when
@@ -78,6 +80,7 @@ func Seed(t *testing.T) *Install {
 	})
 
 	in.seedAccounts(t)
+	in.seedConfiguration(t)
 	return in
 }
 

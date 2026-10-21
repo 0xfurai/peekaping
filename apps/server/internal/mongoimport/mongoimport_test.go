@@ -32,7 +32,15 @@ func TestImport(t *testing.T) {
 		t.Log("\n" + report.String())
 
 		t.Run("accounts", func(t *testing.T) { checkAccounts(t, in, db, report) })
+		t.Run("configuration", func(t *testing.T) { checkConfiguration(t, in, db, report) })
 	})
+}
+
+func mustObjectID(t *testing.T, hex string) primitive.ObjectID {
+	t.Helper()
+	id, err := primitive.ObjectIDFromHex(hex)
+	require.NoError(t, err)
+	return id
 }
 
 // uuidOf is the UUID an ObjectID becomes. legacyid has its own test against UUIDs computed outside Go.
