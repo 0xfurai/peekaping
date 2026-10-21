@@ -85,6 +85,11 @@
     "update": "Atualizar",
     "verifying": "Verificando..."
   },
+  "error_reporting": {
+    "label": "Enviar relatórios de erro",
+    "never_sent": "Nunca são enviados: mensagens de erro, URLs, cabeçalhos, URLs de webhook, nomes nem nomes de host. Seu endereço IP não é armazenado.",
+    "sent": "Enviado somente quando o próprio Peekaping falha. Um relatório contém o tipo do erro e o ponto do código onde ele ocorreu, a versão do Peekaping, o modo único ou de cluster, o backend de armazenamento e o sistema operacional."
+  },
   "forms": {
     "labels": {
       "confirm_password": "Confirmar senha",
@@ -1272,6 +1277,12 @@
       "days_label": "Dias",
       "description": "Defina quantos dias manter os dados (KEEP_DATA_PERIOD_DAYS).",
       "title": "Período de Retenção de Dados"
+    },
+    "error_reporting": {
+      "cluster_note": "No modo cluster, uma alteração chega a todos os processos em até um minuto.",
+      "description": "Envie um relatório ao Sentry quando o servidor falhar. Desativado até você ativar.",
+      "forced_off": "A variável de ambiente ERROR_REPORTING=off ou DO_NOT_TRACK=1 desativa isto. Nada é enviado, seja qual for esta configuração.",
+      "title": "Relatórios de erro"
     },
     "telemetry": {
       "description": "Envie estatísticas anônimas sobre como esta instalação está configurada, no máximo uma vez por dia. Desativado até você ativar.",

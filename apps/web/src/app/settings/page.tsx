@@ -26,6 +26,9 @@ import {
   getSettingsKeyByKeyOptions,
   putSettingsKeyByKeyMutation,
   getSettingsKeyByKeyQueryKey,
+  getErrorReportingOptions,
+  getErrorReportingQueryKey,
+  putErrorReportingMutation,
   getTelemetryOptions,
   getTelemetryQueryKey,
   putTelemetryMutation,
@@ -217,6 +220,78 @@ const TelemetrySetting = () => {
   );
 };
 
+const ErrorReportingSetting = () => {
+  const { t } = useLocalizedTranslation();
+  const queryClient = useQueryClient();
+  const { data, isLoading, isError } = useQuery({
+    ...getErrorReportingOptions(),
+    staleTime: 0,
+  });
+
+  const mutation = useMutation({
+    ...putErrorReportingMutation(),
+    onSuccess: (state) => {
+      toast.success(t("messages.setting_update_success"));
+      queryClient.setQueryData(getErrorReportingQueryKey(), state);
+      queryClient.invalidateQueries({ queryKey: getErrorReportingQueryKey() });
+    },
+    onError: commonMutationErrorHandler(t("messages.setting_update_error")),
+  });
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{t("settings.error_reporting.title")}</CardTitle>
+        <CardDescription>
+          {t("settings.error_reporting.description")}
+        </CardDescription>
+      </CardHeader>
+
+      <CardContent className="flex flex-col gap-4">
+        {isError ? (
+          <div className="h-10 flex items-center">{t("common.error")}</div>
+        ) : isLoading || !data ? (
+          <div className="h-10 flex items-center">{t("common.loading")}</div>
+        ) : (
+          <>
+            <div className="flex items-center gap-2">
+              <Switch
+                id="error-reporting-enabled"
+                checked={data.enabled && !data.forced_off}
+                disabled={data.forced_off || mutation.isPending}
+                onCheckedChange={(enabled) =>
+                  mutation.mutate({ body: { enabled } })
+                }
+              />
+              <Label htmlFor="error-reporting-enabled">
+                {t("error_reporting.label")}
+              </Label>
+            </div>
+
+            {data.forced_off && (
+              <Alert>
+                <AlertDescription>
+                  {t("settings.error_reporting.forced_off")}
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <div className="flex flex-col gap-2 text-sm text-muted-foreground">
+              <p>{t("error_reporting.sent")}</p>
+              <p>{t("error_reporting.never_sent")}</p>
+              <p>{t("settings.error_reporting.cluster_note")}</p>
+            </div>
+
+            <div className="text-sm">
+              <TelemetryDocsLink section="error-reporting" />
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
 const SettingsPage = () => {
   const { t } = useLocalizedTranslation();
   return (
@@ -235,6 +310,7 @@ const SettingsPage = () => {
         </Card>
         <KeepDataPeriodSetting />
         <TelemetrySetting />
+        <ErrorReportingSetting />
       </div>
     </Layout>
   );

@@ -85,6 +85,11 @@
     "update": "Frissítés",
     "verifying": "Ellenőrzés…"
   },
+  "error_reporting": {
+    "label": "Hibajelentések küldése",
+    "never_sent": "Soha nem küld: hibaüzeneteket, URL-eket, fejléceket, webhook-URL-eket, neveket vagy gazdagépneveket. Az Ön IP-címét nem tároljuk.",
+    "sent": "Csak akkor küld, ha maga a Peekaping összeomlik. A jelentés tartalmazza a hiba típusát és a kód azon helyét, ahol történt, a Peekaping verzióját, az egyedi vagy fürt üzemmódot, a tárolási háttérrendszert és az operációs rendszert."
+  },
   "forms": {
     "labels": {
       "confirm_password": "Jelszó megerősítése",
@@ -1272,6 +1277,12 @@
       "days_label": "Napok",
       "description": "Állítsa be, hogy hány napig tartsuk a adatokat (KEEP_DATA_PERIOD_DAYS).",
       "title": "Adattartási időszak"
+    },
+    "error_reporting": {
+      "cluster_note": "Fürt üzemmódban a módosítás egy percen belül eléri az összes folyamatot.",
+      "description": "Jelentés küldése a Sentrynek, ha a kiszolgáló összeomlik. Kikapcsolva, amíg be nem kapcsolja.",
+      "forced_off": "A ERROR_REPORTING=off vagy a DO_NOT_TRACK=1 környezeti változó kikapcsolja ezt. Semmi sem kerül elküldésre, bármit mond is ez a beállítás.",
+      "title": "Hibajelentések"
     },
     "telemetry": {
       "description": "Névtelen statisztikák küldése arról, hogyan van beállítva ez a telepítés, naponta legfeljebb egyszer. Kikapcsolva, amíg be nem kapcsolja.",

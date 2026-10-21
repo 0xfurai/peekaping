@@ -85,6 +85,11 @@
     "update": "Aktualizovat",
     "verifying": "Ověřování..."
   },
+  "error_reporting": {
+    "label": "Odesílat hlášení o chybách",
+    "never_sent": "Nikdy se neodesílá: text chybových hlášení, adresy URL, hlavičky, adresy URL webhooků, názvy ani názvy hostitelů. Vaše IP adresa se neukládá.",
+    "sent": "Odesílá se jen tehdy, když spadne samotný Peekaping. Hlášení obsahuje typ chyby a místo v kódu, kde nastala, verzi Peekaping, jednoduchý nebo clusterový režim, úložiště dat a operační systém."
+  },
   "forms": {
     "labels": {
       "confirm_password": "Potvrďte heslo",
@@ -1272,6 +1277,12 @@
       "days_label": "Dny",
       "description": "Nastavte, na kolik dní se budou data uchovávat (KEEP_DATA_PERIOD_DAYS).",
       "title": "Doba uchovávání dat"
+    },
+    "error_reporting": {
+      "cluster_note": "V clusterovém režimu se změna projeví ve všech procesech do jedné minuty.",
+      "description": "Odesílat hlášení do Sentry, když server spadne. Vypnuto, dokud to nezapnete.",
+      "forced_off": "Proměnná prostředí ERROR_REPORTING=off nebo DO_NOT_TRACK=1 toto vypíná. Nic se neodesílá, ať je toto nastavení jakékoli.",
+      "title": "Hlášení o chybách"
     },
     "telemetry": {
       "description": "Odesílat anonymní statistiky o tom, jak je tato instalace nastavena, nejvýše jednou denně. Vypnuto, dokud to nezapnete.",

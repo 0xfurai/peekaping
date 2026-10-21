@@ -85,6 +85,11 @@
     "update": "更新",
     "verifying": "確認中…"
   },
+  "error_reporting": {
+    "label": "エラーレポートを送信する",
+    "never_sent": "次の情報は送信されません：エラーメッセージ、URL、ヘッダー、Webhook の URL、名前、ホスト名。IP アドレスは保存されません。",
+    "sent": "Peekaping 自体がクラッシュしたときだけ送信されます。レポートには、エラーの種類とコード上の発生箇所、Peekaping のバージョン、シングルモードかクラスターモードか、ストレージバックエンド、OS が含まれます。"
+  },
   "forms": {
     "labels": {
       "confirm_password": "パスワード確認",
@@ -1272,6 +1277,12 @@
       "days_label": "日",
       "description": "データ保持期間（KEEP_DATA_PERIOD_DAYS）を日数で設定してください。",
       "title": "データ保存期間"
+    },
+    "error_reporting": {
+      "cluster_note": "クラスターモードでは、変更は 1 分以内にすべてのプロセスに届きます。",
+      "description": "サーバーがクラッシュしたときに Sentry へレポートを送信します。オンにするまでオフです。",
+      "forced_off": "環境変数 ERROR_REPORTING=off または DO_NOT_TRACK=1 によりオフになっています。この設定に関係なく、何も送信されません。",
+      "title": "エラーレポート"
     },
     "telemetry": {
       "description": "このインストールの構成についての匿名の統計を、1 日に 1 回まで送信します。オンにするまでオフです。",

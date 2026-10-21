@@ -85,6 +85,11 @@
     "update": "업데이트",
     "verifying": "확인 중..."
   },
+  "error_reporting": {
+    "label": "오류 보고서 보내기",
+    "never_sent": "다음은 절대 전송되지 않습니다: 오류 메시지, URL, 헤더, 웹훅 URL, 이름, 호스트 이름. IP 주소는 저장되지 않습니다.",
+    "sent": "Peekaping 자체가 충돌할 때만 전송됩니다. 보고서에는 오류 종류와 코드에서 발생한 위치, Peekaping 버전, 단일 모드 또는 클러스터 모드, 스토리지 백엔드, 운영 체제가 들어 있습니다."
+  },
   "forms": {
     "labels": {
       "confirm_password": "비밀번호 확인",
@@ -1272,6 +1277,12 @@
       "days_label": "일",
       "description": "데이터 보관 일수를 설정하세요 (KEEP_DATA_PERIOD_DAYS).",
       "title": "데이터 보존 기간"
+    },
+    "error_reporting": {
+      "cluster_note": "클러스터 모드에서는 변경 사항이 1분 안에 모든 프로세스에 전달됩니다.",
+      "description": "서버가 충돌하면 Sentry로 보고서를 보냅니다. 켜기 전까지는 꺼져 있습니다.",
+      "forced_off": "환경 변수 ERROR_REPORTING=off 또는 DO_NOT_TRACK=1 때문에 꺼져 있습니다. 이 설정과 관계없이 아무것도 전송되지 않습니다.",
+      "title": "오류 보고서"
     },
     "telemetry": {
       "description": "이 설치가 어떻게 구성되어 있는지에 대한 익명 통계를 하루에 최대 한 번 보냅니다. 켜기 전까지는 꺼져 있습니다.",

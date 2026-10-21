@@ -85,6 +85,11 @@
     "update": "Oppdater",
     "verifying": "Verifiserer..."
   },
+  "error_reporting": {
+    "label": "Send feilrapporter",
+    "never_sent": "Sendes aldri: feilmeldinger, nettadresser, hoder, webhook-adresser, navn eller vertsnavn. IP-adressen din lagres ikke.",
+    "sent": "Sendes bare når Peekaping selv krasjer. En rapport inneholder feiltypen og stedet i koden der den skjedde, Peekaping-versjonen, enkeltmodus eller klyngemodus, lagringsbackenden og operativsystemet."
+  },
   "forms": {
     "labels": {
       "confirm_password": "Bekreft passord",
@@ -1272,6 +1277,12 @@
       "days_label": "Dager",
       "description": "Angi hvor mange dager data skal beholdes (KEEP_DATA_PERIOD_DAYS).",
       "title": "Databeholdelsesperiode"
+    },
+    "error_reporting": {
+      "cluster_note": "I klyngemodus når en endring alle prosesser innen ett minutt.",
+      "description": "Send en rapport til Sentry når serveren krasjer. Av til du slår det på.",
+      "forced_off": "Miljøvariabelen ERROR_REPORTING=off eller DO_NOT_TRACK=1 slår dette av. Ingenting sendes, uansett hva denne innstillingen sier.",
+      "title": "Feilrapporter"
     },
     "telemetry": {
       "description": "Send anonym statistikk om hvordan denne installasjonen er satt opp, høyst én gang per dag. Av til du slår det på.",

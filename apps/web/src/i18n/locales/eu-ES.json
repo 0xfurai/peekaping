@@ -85,6 +85,11 @@
     "update": "Eguneratu",
     "verifying": "Egiaztatzen..."
   },
+  "error_reporting": {
+    "label": "Bidali errore-txostenak",
+    "never_sent": "Ez da inoiz bidaltzen: errore-mezuak, URLak, goiburuak, webhook-en URLak, izenak edo ostalari-izenak. Zure IP helbidea ez da gordetzen.",
+    "sent": "Peekaping bera huts egiten duenean bakarrik bidaltzen da. Txosten batek errorearen mota eta kodean non gertatu den, Peekaping-en bertsioa, modu bakarra edo kluster modua, biltegiratze-backenda eta sistema eragilea ditu."
+  },
   "forms": {
     "labels": {
       "confirm_password": "Pasahitza berretsi",
@@ -1272,6 +1277,12 @@
       "days_label": "Egunak",
       "description": "Ezarri zenbat egun data mantendu (KEEP_DATA_PERIOD_DAYS).",
       "title": "Datuen mantentze-epoa"
+    },
+    "error_reporting": {
+      "cluster_note": "Kluster moduan, aldaketa prozesu guztietara iristen da minutu baten barruan.",
+      "description": "Bidali txosten bat Sentry-ra zerbitzariak huts egiten duenean. Desaktibatuta dago aktibatu arte.",
+      "forced_off": "ERROR_REPORTING=off edo DO_NOT_TRACK=1 ingurune-aldagaiak desaktibatzen du hau. Ez da ezer bidaltzen, ezarpen honek dioena dena delakoa.",
+      "title": "Errore-txostenak"
     },
     "telemetry": {
       "description": "Bidali instalazio hau nola konfiguratuta dagoenari buruzko estatistika anonimoak, egunean behin gehienez. Desaktibatuta dago aktibatu arte.",

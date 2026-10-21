@@ -85,6 +85,11 @@
     "update": "更新",
     "verifying": "验证中…"
   },
+  "error_reporting": {
+    "label": "发送错误报告",
+    "never_sent": "绝不发送：错误消息、URL、请求头、Webhook URL、名称或主机名。你的 IP 地址不会被存储。",
+    "sent": "仅在 Peekaping 自身崩溃时发送。报告包含错误类型及其在代码中发生的位置、Peekaping 版本、单机模式或集群模式、存储后端以及操作系统。"
+  },
   "forms": {
     "labels": {
       "confirm_password": "确认密码",
@@ -1272,6 +1277,12 @@
       "days_label": "天",
       "description": "设置保留数据的天数（KEEP_DATA_PERIOD_DAYS）。",
       "title": "数据保留期限"
+    },
+    "error_reporting": {
+      "cluster_note": "在集群模式下，更改会在一分钟内传达到每个进程。",
+      "description": "服务器崩溃时向 Sentry 发送报告。开启之前保持关闭。",
+      "forced_off": "环境变量 ERROR_REPORTING=off 或 DO_NOT_TRACK=1 已将此选项关闭。无论此设置如何，都不会发送任何内容。",
+      "title": "错误报告"
     },
     "telemetry": {
       "description": "每天最多一次发送关于此安装如何配置的匿名统计。开启之前保持关闭。",

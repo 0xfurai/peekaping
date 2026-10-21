@@ -85,6 +85,11 @@
     "update": "更新",
     "verifying": "正在驗證..."
   },
+  "error_reporting": {
+    "label": "傳送錯誤報告",
+    "never_sent": "絕不傳送：錯誤訊息、URL、標頭、Webhook URL、名稱或主機名稱。你的 IP 地址不會被儲存。",
+    "sent": "只在 Peekaping 本身當機時傳送。報告包含錯誤類型及其在程式碼中發生的位置、Peekaping 版本、單一模式或叢集模式、儲存後端以及作業系統。"
+  },
   "forms": {
     "labels": {
       "confirm_password": "確認密碼",
@@ -1272,6 +1277,12 @@
       "days_label": "天",
       "description": "設定要保留資料的天數（KEEP_DATA_PERIOD_DAYS）。",
       "title": "資料保留期限"
+    },
+    "error_reporting": {
+      "cluster_note": "在叢集模式下，變更會在一分鐘內傳達到每個程序。",
+      "description": "伺服器當機時向 Sentry 傳送報告。開啟之前保持關閉。",
+      "forced_off": "環境變數 ERROR_REPORTING=off 或 DO_NOT_TRACK=1 已將此選項關閉。無論此設定為何，都不會傳送任何內容。",
+      "title": "錯誤報告"
     },
     "telemetry": {
       "description": "每天最多一次傳送關於此安裝如何設定的匿名統計。開啟之前保持關閉。",

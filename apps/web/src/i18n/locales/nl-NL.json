@@ -85,6 +85,11 @@
     "update": "Bijwerken",
     "verifying": "Verifiëren..."
   },
+  "error_reporting": {
+    "label": "Foutrapporten versturen",
+    "never_sent": "Nooit verstuurd: foutmeldingen, URL's, headers, webhook-URL's, namen of hostnamen. Je IP-adres wordt niet opgeslagen.",
+    "sent": "Wordt alleen verstuurd wanneer Peekaping zelf crasht. Een rapport bevat het type fout en de plek in de code waar die optrad, de Peekaping-versie, enkele modus of clustermodus, de opslagbackend en het besturingssysteem."
+  },
   "forms": {
     "labels": {
       "confirm_password": "Wachtwoord bevestigen",
@@ -1272,6 +1277,12 @@
       "days_label": "Dagen",
       "description": "Bepaal hoelang gegevens bewaard blijven (KEEP_DATA_PERIOD_DAYS).",
       "title": "Gegevensbewaartermijn"
+    },
+    "error_reporting": {
+      "cluster_note": "In clustermodus bereikt een wijziging elk proces binnen een minuut.",
+      "description": "Verstuur een rapport naar Sentry wanneer de server crasht. Uit tot je het aanzet.",
+      "forced_off": "De omgevingsvariabele ERROR_REPORTING=off of DO_NOT_TRACK=1 zet dit uit. Er wordt niets verstuurd, wat deze instelling ook zegt.",
+      "title": "Foutrapporten"
     },
     "telemetry": {
       "description": "Verstuur anonieme statistieken over hoe deze installatie is ingesteld, hooguit één keer per dag. Uit tot je het aanzet.",

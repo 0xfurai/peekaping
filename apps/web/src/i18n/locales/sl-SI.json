@@ -85,6 +85,11 @@
     "update": "Posodobi",
     "verifying": "Preverjanje..."
   },
+  "error_reporting": {
+    "label": "Pošiljaj poročila o napakah",
+    "never_sent": "Nikoli se ne pošiljajo: sporočila o napakah, URL-ji, glave, URL-ji spletnih kljuk, imena ali imena gostiteljev. Vaš naslov IP se ne shranjuje.",
+    "sent": "Pošlje se samo, ko se sam Peekaping zruši. Poročilo vsebuje vrsto napake in mesto v kodi, kjer se je zgodila, različico Peekapinga, enojni ali gručni način, zaledje za shranjevanje in operacijski sistem."
+  },
   "forms": {
     "labels": {
       "confirm_password": "Potrdi geslo",
@@ -1272,6 +1277,12 @@
       "days_label": "Dnevi",
       "description": "Nastavite, koliko dni naj se shranjujejo podatki (KEEP_DATA_PERIOD_DAYS).",
       "title": "Obdobje ohranjanja podatkov"
+    },
+    "error_reporting": {
+      "cluster_note": "V gručnem načinu pride sprememba do vsakega procesa v eni minuti.",
+      "description": "Pošlji poročilo v Sentry, ko se strežnik zruši. Izklopljeno, dokler ne vklopite.",
+      "forced_off": "Spremenljivka okolja ERROR_REPORTING=off ali DO_NOT_TRACK=1 to izklopi. Nič se ne pošlje, ne glede na to, kaj pravi ta nastavitev.",
+      "title": "Poročila o napakah"
     },
     "telemetry": {
       "description": "Pošiljaj anonimno statistiko o tem, kako je ta namestitev nastavljena, največ enkrat na dan. Izklopljeno, dokler ne vklopite.",

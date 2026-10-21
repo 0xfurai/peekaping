@@ -85,6 +85,11 @@
     "update": "Aktualisieren",
     "verifying": "Verifizierung läuft..."
   },
+  "error_reporting": {
+    "label": "Fehlerberichte senden",
+    "never_sent": "Nie gesendet werden: Fehlermeldungen, URLs, Header, Webhook-URLs, Namen oder Hostnamen. Ihre IP-Adresse wird nicht gespeichert.",
+    "sent": "Wird nur gesendet, wenn Peekaping selbst abstürzt. Ein Bericht enthält den Fehlertyp und die Stelle im Code, an der er auftrat, die Peekaping-Version, Einzel- oder Cluster-Modus, das Speicher-Backend und das Betriebssystem."
+  },
   "forms": {
     "labels": {
       "confirm_password": "Passwort bestätigen",
@@ -1272,6 +1277,12 @@
       "days_label": "Tage",
       "description": "Legen Sie fest, wie viele Tage Daten gespeichert bleiben sollen (KEEP_DATA_PERIOD_DAYS).",
       "title": "Datenaufbewahrungsdauer"
+    },
+    "error_reporting": {
+      "cluster_note": "Im Cluster-Modus erreicht eine Änderung jeden Prozess innerhalb einer Minute.",
+      "description": "Einen Bericht an Sentry senden, wenn der Server abstürzt. Aus, bis Sie es einschalten.",
+      "forced_off": "Die Umgebungsvariable ERROR_REPORTING=off oder DO_NOT_TRACK=1 schaltet dies aus. Es wird nichts gesendet, egal was diese Einstellung sagt.",
+      "title": "Fehlerberichte"
     },
     "telemetry": {
       "description": "Anonyme Statistiken darüber senden, wie diese Installation eingerichtet ist, höchstens einmal am Tag. Aus, bis Sie es einschalten.",

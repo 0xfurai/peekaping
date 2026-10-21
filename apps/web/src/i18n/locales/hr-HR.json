@@ -85,6 +85,11 @@
     "update": "Ažuriraj",
     "verifying": "Provjeravanje..."
   },
+  "error_reporting": {
+    "label": "Šalji izvješća o pogreškama",
+    "never_sent": "Nikada se ne šalju: poruke o pogreškama, URL-ovi, zaglavlja, URL-ovi webhookova, imena ni nazivi hostova. Vaša IP adresa se ne pohranjuje.",
+    "sent": "Šalje se samo kada sam Peekaping padne. Izvješće sadrži vrstu pogreške i mjesto u kodu na kojem se dogodila, verziju Peekapinga, pojedinačni ili klasterski način rada, pozadinski sustav za pohranu i operacijski sustav."
+  },
   "forms": {
     "labels": {
       "confirm_password": "Potvrdi lozinku",
@@ -1272,6 +1277,12 @@
       "days_label": "Dana",
       "description": "Postavite koliko dana podaci ostaju pohranjeni (KEEP_DATA_PERIOD_DAYS).",
       "title": "Rok zadržavanja podataka"
+    },
+    "error_reporting": {
+      "cluster_note": "U klasterskom načinu rada promjena stiže do svakog procesa unutar jedne minute.",
+      "description": "Šalji izvješće u Sentry kada poslužitelj padne. Isključeno dok ne uključite.",
+      "forced_off": "Varijabla okruženja ERROR_REPORTING=off ili DO_NOT_TRACK=1 isključuje ovo. Ništa se ne šalje, što god ova postavka govorila.",
+      "title": "Izvješća o pogreškama"
     },
     "telemetry": {
       "description": "Šalji anonimnu statistiku o tome kako je ova instalacija postavljena, najviše jednom dnevno. Isključeno dok ne uključite.",
