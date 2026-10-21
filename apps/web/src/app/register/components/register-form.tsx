@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/form";
 import {
   postAuthRegisterMutation,
+  putErrorReportingMutation,
   putTelemetryMutation,
 } from "@/api/@tanstack/react-query.gen";
 import { useMutation } from "@tanstack/react-query";
@@ -68,12 +69,22 @@ export function RegisterForm({
   const setUser = useAuthStore((state: { setUser: (user: AuthModel | null) => void }) => state.setUser);
   // Off until the admin ticks it. It is not part of the register request.
   const [sendUsageStatistics, setSendUsageStatistics] = React.useState(false);
+  // Its own choice, off until ticked, and independent of the usage statistics.
+  const [sendErrorReports, setSendErrorReports] = React.useState(false);
 
   const telemetryMutation = useMutation({
     ...putTelemetryMutation(),
     // Setup has already succeeded, so a failure here only costs the admin a visit to Settings.
     onError: (error) => {
       console.error("Failed to turn on usage statistics", error);
+    },
+  });
+
+  const errorReportingMutation = useMutation({
+    ...putErrorReportingMutation(),
+    // Like the usage statistics: setup has succeeded, and Settings is where to try again.
+    onError: (error) => {
+      console.error("Failed to turn on error reports", error);
     },
   });
 
@@ -86,6 +97,9 @@ export function RegisterForm({
         // Storing the tokens signs the API client in, so this request is the admin's.
         if (sendUsageStatistics) {
           telemetryMutation.mutate({ body: { enabled: true } });
+        }
+        if (sendErrorReports) {
+          errorReportingMutation.mutate({ body: { enabled: true } });
         }
         toast.success(t("messages.register_success"));
       } else {
@@ -209,6 +223,28 @@ export function RegisterForm({
                   <p>{t("telemetry.never_sent")}</p>
                   <div>
                     <TelemetryDocsLink />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="send-error-reports"
+                    checked={sendErrorReports}
+                    onCheckedChange={(checked) =>
+                      setSendErrorReports(checked === true)
+                    }
+                  />
+                  <Label htmlFor="send-error-reports">
+                    {t("error_reporting.label")}
+                  </Label>
+                </div>
+                <div className="grid gap-2 text-xs text-muted-foreground">
+                  <p>{t("error_reporting.sent")}</p>
+                  <p>{t("error_reporting.never_sent")}</p>
+                  <div>
+                    <TelemetryDocsLink section="error-reporting" />
                   </div>
                 </div>
               </div>
