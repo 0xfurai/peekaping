@@ -2,7 +2,6 @@ package mongoimport_test
 
 import (
 	"context"
-	"strings"
 	"testing"
 	"time"
 
@@ -23,6 +22,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -88,7 +88,7 @@ func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, r
 			}
 			switch name {
 			case "wide":
-				wantName, wantProxy = strings.Repeat("n", 150), "" // the proxy is gone
+				wantName, wantProxy = cut(db, mongoimporttest.LongName, 150), "" // the proxy is gone
 			case "paused", "broken":
 				wantConfig = "{}"
 			}
@@ -120,12 +120,16 @@ func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, r
 		assert.Equal(t, 5, r.Read)
 		assert.Equal(t, 5, r.Copied)
 		assert.Zero(t, r.SkippedTotal())
-		assert.Equal(t, map[string]int{
-			"name cut to 150 characters":                            1,
+		wantFixed := map[string]int{
 			"proxy_id names a proxy that no longer exists: cleared": 1,
 			"config is empty: used {}":                              1,
 			"config is not valid JSON: used {}":                     1,
-		}, r.Fixed)
+		}
+		if db.Dialect().Name() == dialect.PG {
+			// Only PostgreSQL limits the width of a name
+			wantFixed["name cut to 150 characters"] = 1
+		}
+		assert.Equal(t, wantFixed, r.Fixed)
 	})
 
 	t.Run("notification channels", func(t *testing.T) {
@@ -193,12 +197,16 @@ func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, r
 		alpha, err := sqlTags.FindByName(ctx, "alpha")
 		require.NoError(t, err)
 		require.NotNil(t, alpha)
-		assert.Equal(t, "#3B82F6", alpha.Color)
+		assert.Equal(t, cut(db, "#3B82F6FF", 7), alpha.Color)
 
 		r := collectionReport(t, report, "tags")
 		assert.Equal(t, 3, r.Read)
 		assert.Equal(t, 3, r.Copied)
-		assert.Equal(t, map[string]int{"color cut to 7 characters": 1}, r.Fixed)
+		if db.Dialect().Name() == dialect.PG {
+			assert.Equal(t, map[string]int{"color cut to 7 characters": 1}, r.Fixed)
+		} else {
+			assert.Empty(t, r.Fixed)
+		}
 	})
 
 	t.Run("maintenance windows", func(t *testing.T) {
