@@ -175,6 +175,7 @@ func newDBCommand() *cli.Command {
 					})
 				},
 			},
+			newImportMongoCommand(),
 			{
 				Name:  "mark_applied",
 				Usage: "mark migrations as applied without actually running them",
@@ -198,16 +199,36 @@ func newDBCommand() *cli.Command {
 	}
 }
 
-func runWithDB(fn func(*bun.DB) error) error {
-	// Load configuration
+// loadDBConfig reads the DB_* settings from the environment, and the .env file two levels up.
+func loadDBConfig() (config.DBConfig, error) {
 	cfg, err := config.LoadConfig[config.DBConfig]("../..")
 	if err != nil {
-		return fmt.Errorf("failed to load config: %w", err)
+		return cfg, fmt.Errorf("failed to load config: %w", err)
 	}
 
 	err = config.ValidateDatabaseCustomRules(&cfg)
 	if err != nil {
-		return fmt.Errorf("failed to validate database custom rules: %w", err)
+		return cfg, fmt.Errorf("failed to validate database custom rules: %w", err)
+	}
+	return cfg, nil
+}
+
+func runWithDB(fn func(*bun.DB) error) error {
+	return runWithConfiguredDB(nil, func(_ config.DBConfig, db *bun.DB) error { return fn(db) })
+}
+
+// runWithConfiguredDB is runWithDB for a command that needs the settings too. It calls
+// accept, if there is one, with the settings before it connects, so that a command can
+// refuse a database type it doesn't work with.
+func runWithConfiguredDB(accept func(config.DBConfig) error, fn func(config.DBConfig, *bun.DB) error) error {
+	cfg, err := loadDBConfig()
+	if err != nil {
+		return err
+	}
+	if accept != nil {
+		if err := accept(cfg); err != nil {
+			return err
+		}
 	}
 
 	// Connect to database
@@ -223,7 +244,7 @@ func runWithDB(fn func(*bun.DB) error) error {
 		bundebug.FromEnv(),
 	))
 
-	return fn(db)
+	return fn(cfg, db)
 }
 
 func connectToDatabase(cfg *config.DBConfig) (*bun.DB, error) {
