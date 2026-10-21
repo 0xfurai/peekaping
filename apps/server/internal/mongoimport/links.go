@@ -3,6 +3,7 @@ package mongoimport
 import (
 	"context"
 	"fmt"
+	"sort"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -22,6 +23,9 @@ type linkSpec[T any] struct {
 	row       func(id, monitor, other string, created, updated time.Time) T
 	// seen, if set, is called with every link that is copied.
 	seen func(d doc, other primitive.ObjectID)
+	// createdAt, if it has a link, is the creation time to give it, and createdAtFix what the report says about it.
+	createdAt    map[primitive.ObjectID]time.Time
+	createdAtFix string
 }
 
 func copyLinks[T any](ctx context.Context, c *copier, spec linkSpec[T]) error {
@@ -52,6 +56,10 @@ func copyLinks[T any](ctx context.Context, c *copier, spec linkSpec[T]) error {
 		}
 		pairs[pair] = true
 		created, updated := stamps(report, d, id, "created_at", "updated_at")
+		if given, ok := spec.createdAt[id]; ok {
+			created = given
+			report.fix(spec.createdAtFix)
+		}
 		if spec.seen != nil {
 			spec.seen(d, other)
 		}
@@ -129,31 +137,86 @@ type monitorStatusPageRow struct {
 
 // pageLinks is what the links to a status page held that SQL has no column for.
 type pageLinks struct {
-	orders map[int64]bool
-	count  int
 	hidden int
 }
 
-// copyMonitorStatusPages copies the links between status pages and their monitors.
-// MongoDB also keeps, for each link, the monitor's position on the page and
-// whether it's shown. SQL keeps neither, so the report says which pages had a
-// position or a hidden monitor.
+// statusPageLinkTimes gives the links of each status page that has several the creation
+// times that make SQL list the page's monitors in the order MongoDB showed them.
+//
+// MongoDB lists a page's monitors by the position kept in each link (order). SQL has no such
+// column: it lists them by the creation time of the link, newest first. So the link
+// at the first position gets the latest of the page's creation times, and each next one a
+// millisecond earlier. Links at the same position stay in the order they were made.
+func (c *copier) statusPageLinkTimes(ctx context.Context) (map[primitive.ObjectID]time.Time, error) {
+	type link struct {
+		id      primitive.ObjectID
+		order   int64
+		created time.Time
+	}
+	pages := map[primitive.ObjectID][]link{}
+	err := c.src.each(ctx, "monitor_status_page", byID, func(d doc) error {
+		id, ok := d.id()
+		if !ok {
+			return nil
+		}
+		page, ok := d.objectID("status_page_id")
+		if !ok {
+			return nil
+		}
+		created, ok := d.when("created_at")
+		if !ok {
+			created = id.Timestamp().UTC()
+		}
+		pages[page] = append(pages[page], link{id, d.integer("order"), created})
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	times := map[primitive.ObjectID]time.Time{}
+	for _, links := range pages {
+		if len(links) < 2 {
+			continue
+		}
+		// The documents were read in the order they were made, which a stable sort keeps among equals
+		sort.SliceStable(links, func(i, j int) bool { return links[i].order < links[j].order })
+		latest := links[0].created
+		for _, l := range links {
+			if l.created.After(latest) {
+				latest = l.created
+			}
+		}
+		for rank, l := range links {
+			times[l.id] = latest.Add(-time.Duration(rank) * time.Millisecond)
+		}
+	}
+	return times, nil
+}
+
+// copyMonitorStatusPages copies the links between status pages and their monitors,
+// in the order of their pages (see statusPageLinkTimes). MongoDB also keeps, for each link,
+// whether the monitor is shown on the page. SQL keeps that in no column, so the report
+// says which pages had a hidden monitor.
 func (c *copier) copyMonitorStatusPages(ctx context.Context) error {
+	createdAt, err := c.statusPageLinkTimes(ctx)
+	if err != nil {
+		return err
+	}
 	links := map[primitive.ObjectID]*pageLinks{}
-	err := copyLinks(ctx, c, linkSpec[monitorStatusPageRow]{
+	err = copyLinks(ctx, c, linkSpec[monitorStatusPageRow]{
 		collection: "monitor_status_page", table: "monitor_status_pages",
 		otherKey: "status_page_id", other: c.statusPageIDs(), otherGone: "status page no longer exists",
 		row: func(id, monitor, other string, created, updated time.Time) monitorStatusPageRow {
 			return monitorStatusPageRow{id, monitor, other, created, updated}
 		},
+		createdAt:    createdAt,
+		createdAtFix: "created_at set to keep the monitor's position on its status page",
 		seen: func(d doc, page primitive.ObjectID) {
 			l := links[page]
 			if l == nil {
-				l = &pageLinks{orders: map[int64]bool{}}
+				l = &pageLinks{}
 				links[page] = l
 			}
-			l.count++
-			l.orders[d.integer("order")] = true
 			if !d.boolean("active") {
 				l.hidden++
 			}
@@ -163,9 +226,6 @@ func (c *copier) copyMonitorStatusPages(ctx context.Context) error {
 		return err
 	}
 	for _, page := range c.statusPageOrder {
-		if l := links[page.id]; l != nil && l.count > 1 && len(l.orders) > 1 {
-			c.report.note("status page %q: the order of its monitors is not kept (SQL has no column for it)", page.slug)
-		}
 		if l := links[page.id]; l != nil && l.hidden > 0 {
 			verb := "is"
 			noun := "monitor"
