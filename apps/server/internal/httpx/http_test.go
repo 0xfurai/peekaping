@@ -1,9 +1,12 @@
 package httpx_test
 
 import (
+	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"peekaping/internal/httpx"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -91,6 +94,32 @@ func TestAccessLogRecordsTheClientBehindATrustedProxy(t *testing.T) {
 			handler.ServeHTTP(httptest.NewRecorder(), r)
 			assert.Equal(t, tc.want, logs.FilterMessage("HTTP request").All()[0].ContextMap()["client_ip"])
 		})
+	}
+}
+
+func TestLimitBody(t *testing.T) {
+	handler := httpx.LimitBody(8)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, err := io.ReadAll(r.Body)
+		var tooLarge *http.MaxBytesError
+		if errors.As(err, &tooLarge) {
+			assert.EqualValues(t, 8, tooLarge.Limit)
+			w.WriteHeader(http.StatusRequestEntityTooLarge)
+			return
+		}
+		require.NoError(t, err)
+		w.WriteHeader(http.StatusOK)
+	}))
+	for _, tc := range []struct {
+		body string
+		want int
+	}{
+		{"12345678", http.StatusOK},
+		{"123456789", http.StatusRequestEntityTooLarge},
+		{"", http.StatusOK},
+	} {
+		w := httptest.NewRecorder()
+		handler.ServeHTTP(w, httptest.NewRequest("POST", "/", strings.NewReader(tc.body)))
+		assert.Equal(t, tc.want, w.Code, "%d bytes", len(tc.body))
 	}
 }
 

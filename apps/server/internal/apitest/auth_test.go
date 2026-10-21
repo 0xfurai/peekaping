@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -192,6 +193,49 @@ func TestAuthAPI_SuccessfulLoginResetsBothCounters(t *testing.T) {
 			"failed login %d after the success", n+1)
 	}
 	assert.Equal(t, http.StatusTooManyRequests, a.request(t, http.MethodPost, "/api/v1/auth/login", right, forwardedFor(2*accountLimit+1)).Code)
+}
+
+// loginBody is a login with padding before the email, as a client uses to push the email past
+// what a guard reads.
+func loginBody(t *testing.T, padding int, password string) string {
+	t.Helper()
+	body, err := json.Marshal(map[string]any{"padding": strings.Repeat("a", padding), "email": adminEmail, "password": password})
+	require.NoError(t, err)
+	return string(body)
+}
+
+func TestAuthAPI_RefusesAnOversizedLoginBodyWithoutCountingIt(t *testing.T) {
+	a := newAppWithAdmin(t)
+	// Padding before the email, with the right password: if the oversized body skipped the
+	// guards and reached the handler, it would sign in
+	oversized := loginBody(t, 70<<10, adminPassword)
+
+	for n := range 2 * maxFailedLogins {
+		w := a.request(t, http.MethodPost, "/api/v1/auth/login", oversized, forwardedFor(n))
+		require.Equal(t, http.StatusRequestEntityTooLarge, w.Code, "oversized login %d: %s", n+1, w.Body.String())
+	}
+	assert.Equal(t, http.StatusRequestEntityTooLarge,
+		a.request(t, http.MethodPost, "/api/v1/auth/login", oversized, withoutContentType).Code, "whatever the Content-Type")
+
+	// They counted for nothing: the lockout still takes its usual number of failures
+	wrong := map[string]any{"email": adminEmail, "password": "Wrong-password-1"}
+	for n := range maxFailedLogins {
+		require.Equal(t, http.StatusUnauthorized, a.login(t, wrong).Code, "failed login %d", n+1)
+	}
+	assert.Equal(t, http.StatusTooManyRequests, a.login(t, wrong).Code)
+}
+
+func TestAuthAPI_AccountLockoutCountsLoginsPaddedBeforeTheEmail(t *testing.T) {
+	const accountLimit = 30
+	a := newAppWithAdmin(t, withTrustedClient, withAccountLimit(accountLimit))
+	padded := loginBody(t, 60<<10, "Wrong-password-1") // under the body limit
+
+	for n := range accountLimit {
+		w := a.request(t, http.MethodPost, "/api/v1/auth/login", padded, forwardedFor(n))
+		require.Equal(t, http.StatusUnauthorized, w.Code, "failed login %d", n+1)
+	}
+	w := a.request(t, http.MethodPost, "/api/v1/auth/login", padded, forwardedFor(accountLimit))
+	assert.Equal(t, http.StatusTooManyRequests, w.Code, "the account is locked: %s", w.Body.String())
 }
 
 func TestAuthAPI_RejectsInvalidInput(t *testing.T) {

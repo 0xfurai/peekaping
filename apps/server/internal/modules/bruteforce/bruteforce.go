@@ -35,6 +35,10 @@ type KeyExtractor func(*http.Request) (string, error)
 // without an email. The guard lets it through without counting it.
 var ErrNoKey = errors.New("bruteforce: the request has no key")
 
+// ErrBodyUnreadable is what a KeyExtractor returns when it can't read the request body. The guard
+// answers 400 instead of passing the request on: a request it can't key must not reach the handler.
+var ErrBodyUnreadable = errors.New("bruteforce: the request body can't be read")
+
 type Config struct {
 	MaxAttempts int
 	Window      time.Duration
@@ -81,8 +85,16 @@ func (g *Guard) Middleware() httpx.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			key, err := g.keyExtractor(r)
-			if errors.Is(err, ErrNoKey) {
+			var tooLarge *http.MaxBytesError
+			switch {
+			case errors.Is(err, ErrNoKey):
 				next.ServeHTTP(w, r)
+				return
+			case errors.As(err, &tooLarge):
+				httpx.JSON(w, http.StatusRequestEntityTooLarge, httpx.ErrorBody{Message: "request body too large"})
+				return
+			case errors.Is(err, ErrBodyUnreadable):
+				httpx.JSON(w, http.StatusBadRequest, httpx.ErrorBody{Message: "failed to read the request body"})
 				return
 			}
 			if err != nil || key == "" {
@@ -219,18 +231,25 @@ const accountKeyPrefix = "account:"
 // It reads the email the way the login handler does: the first JSON value in the body, whatever
 // the Content-Type, with the field name matched case-insensitively. Reading it any other way
 // would let a client keep its email from the guard while the handler still sees it. A request
-// without an email returns ErrNoKey; the handler rejects it without checking a password.
+// without an email returns ErrNoKey; the handler rejects it without checking a password. A body
+// that can't be read returns ErrBodyUnreadable, or the *http.MaxBytesError of a body over its
+// limit (set it with httpx.LimitBody), and the guard answers 400 or 413 without running the
+// handler.
 func KeyByAccountEmail() KeyExtractor {
 	return func(r *http.Request) (string, error) {
 		if r.Body == nil {
 			return "", ErrNoKey
 		}
 		body, err := io.ReadAll(r.Body)
-		// Restore the body for the handler, whatever was read.
-		r.Body = io.NopCloser(bytes.NewReader(body))
 		if err != nil {
-			return "", ErrNoKey
+			var tooLarge *http.MaxBytesError
+			if errors.As(err, &tooLarge) {
+				return "", err
+			}
+			return "", fmt.Errorf("%w: %v", ErrBodyUnreadable, err)
 		}
+		// Restore the body for the handler
+		r.Body = io.NopCloser(bytes.NewReader(body))
 		var login struct {
 			Email string `json:"email"`
 		}

@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"peekaping/internal/config"
 	"peekaping/internal/httpx"
+	"strings"
 	"testing"
 	"time"
 
@@ -199,11 +200,62 @@ func TestKeyByAccountEmail(t *testing.T) {
 		_, err := KeyByAccountEmail()(r)
 		assert.ErrorIs(t, err, ErrNoKey)
 	})
-	t.Run("a body that can't be read", func(t *testing.T) {
+	t.Run("a body that can't be read is not a request without a key", func(t *testing.T) {
 		r := httptest.NewRequest("POST", "/", &errReader{})
 		_, err := KeyByAccountEmail()(r)
-		assert.ErrorIs(t, err, ErrNoKey)
+		assert.ErrorIs(t, err, ErrBodyUnreadable)
+		assert.NotErrorIs(t, err, ErrNoKey)
 	})
+	t.Run("a body over the limit", func(t *testing.T) {
+		r := httptest.NewRequest("POST", "/", strings.NewReader(`{"padding":"`+strings.Repeat("a", 100)+`","email":"a@example.com"}`))
+		r.Body = http.MaxBytesReader(httptest.NewRecorder(), r.Body, 64)
+		_, err := KeyByAccountEmail()(r)
+		var tooLarge *http.MaxBytesError
+		assert.ErrorAs(t, err, &tooLarge)
+		assert.NotErrorIs(t, err, ErrNoKey)
+	})
+	t.Run("a large body under the limit keeps its email", func(t *testing.T) {
+		r := httptest.NewRequest("POST", "/", strings.NewReader(`{"padding":"`+strings.Repeat("a", 60<<10)+`","email":"A@example.com"}`))
+		r.Body = http.MaxBytesReader(httptest.NewRecorder(), r.Body, 64<<10)
+		key, err := KeyByAccountEmail()(r)
+		assert.NoError(t, err)
+		assert.Equal(t, "account:a@example.com", key)
+	})
+}
+
+// A request whose body can't be read is answered, not passed on: skipping the guard would let a
+// client hide its email from the counter and still have the handler check a password.
+func TestGuard_Middleware_AnswersABodyItCannotRead(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		body   io.Reader
+		limit  int64
+		status int
+	}{
+		{"a body that fails to read", &errReader{}, 0, http.StatusBadRequest},
+		{"a body over the limit", strings.NewReader(`{"padding":"` + strings.Repeat("a", 100) + `","email":"a@example.com"}`), 64, http.StatusRequestEntityTooLarge},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			mockSvc := &MockService{}
+			guard := New(Config{FailureStatuses: []int{401}}, mockSvc, KeyByAccountEmail(), zap.NewNop().Sugar())
+			ran := false
+			handler := guard.Middleware()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { ran = true }))
+			r := httptest.NewRequest("POST", "/", tc.body)
+			w := httptest.NewRecorder()
+			if tc.limit > 0 {
+				r.Body = http.MaxBytesReader(w, r.Body, tc.limit)
+			}
+
+			handler.ServeHTTP(w, r)
+
+			assert.Equal(t, tc.status, w.Code)
+			assert.False(t, ran, "the handler doesn't run")
+			assert.Empty(t, mockSvc.Calls, "nothing is counted")
+			var body map[string]any
+			assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &body))
+			assert.NotEmpty(t, body["message"])
+		})
+	}
 }
 
 func TestGuard_Middleware_LetsARequestWithoutAKeyThrough(t *testing.T) {

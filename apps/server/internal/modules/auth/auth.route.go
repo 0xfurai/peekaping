@@ -7,6 +7,9 @@ import (
 	"peekaping/internal/modules/bruteforce"
 )
 
+// maxLoginBody is the most a login request may send, 64 KiB: a login is an email and a password.
+const maxLoginBody = 64 << 10
+
 type Route struct {
 	controller      *Controller
 	middleware      *MiddlewareProvider
@@ -34,9 +37,11 @@ func (r *Route) ConnectRoute(router *httpx.Router, controller *Controller) {
 	lockout.Headers = map[string]*huma.Param{"Retry-After": {Description: "Seconds until the login lockout expires.", Schema: &huma.Schema{Type: "integer"}}}
 	httpx.Register(auth, "POST", "/register", huma.Operation{Summary: "Register new admin", Tags: []string{"auth"}, DefaultStatus: http.StatusCreated, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError}}, controller.Register)
 
-	// Two lockouts guard the login. The address guard is outermost, so a request it blocks
-	// doesn't count against the account. The account guard counts failures whatever the address.
-	httpx.Register(auth, "POST", "/login", huma.Operation{Summary: "Login admin", Responses: map[string]*huma.Response{"429": lockout}, Tags: []string{"auth"}, DefaultStatus: http.StatusOK, Errors: []int{http.StatusBadRequest, http.StatusUnauthorized, http.StatusTooManyRequests}}, controller.Login, r.bruteforceGuard.Middleware(), r.accountGuard.Middleware())
+	// Two lockouts guard the login. The body limit comes first, so that no guard reads more than
+	// a login needs and a body over it is refused with 413 before the handler sees it. The address
+	// guard is next, so a request it blocks doesn't count against the account. The account guard
+	// counts failures whatever the address.
+	httpx.Register(auth, "POST", "/login", huma.Operation{Summary: "Login admin", Responses: map[string]*huma.Response{"429": lockout}, Tags: []string{"auth"}, DefaultStatus: http.StatusOK, Errors: []int{http.StatusBadRequest, http.StatusUnauthorized, http.StatusRequestEntityTooLarge, http.StatusTooManyRequests}}, controller.Login, httpx.LimitBody(maxLoginBody), r.bruteforceGuard.Middleware(), r.accountGuard.Middleware())
 
 	httpx.Register(auth, "POST", "/refresh", huma.Operation{Summary: "Refresh access token", Tags: []string{"auth"}, DefaultStatus: http.StatusOK, Errors: []int{http.StatusBadRequest, http.StatusUnauthorized}}, controller.RefreshToken)
 
