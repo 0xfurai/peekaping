@@ -3,6 +3,8 @@ package maintenance
 import (
 	"encoding/json"
 	"time"
+
+	"peekaping/internal/utils"
 )
 
 type CreateUpdateDto struct {
@@ -27,17 +29,14 @@ type CreateUpdateDto struct {
 // UnmarshalJSON records whether active was present so create requests can apply
 // the historical default without changing full-update semantics.
 func (dto *CreateUpdateDto) UnmarshalJSON(data []byte) error {
-	var fields map[string]json.RawMessage
-	if err := json.Unmarshal(data, &fields); err != nil {
-		return err
-	}
 	type plain CreateUpdateDto
 	*dto = CreateUpdateDto{}
 	if err := json.Unmarshal(data, (*plain)(dto)); err != nil {
 		return err
 	}
-	_, dto.activeSet = fields["active"]
-	return nil
+	var err error
+	dto.activeSet, err = utils.HasJSONKey(data, "active")
+	return err
 }
 
 // ApplyCreateDefaults keeps omitted active fields active for create requests.

@@ -96,6 +96,7 @@ func TestCreateUpdateDtoActiveDefaults(t *testing.T) {
 		{"omitted defaults active", `{}`, true},
 		{"explicit false stays inactive", `{"active":false}`, false},
 		{"explicit true stays active", `{"active":true}`, true},
+		{"explicit false in another case stays inactive", `{"Active":false}`, false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			var dto CreateUpdateDto
