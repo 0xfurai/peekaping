@@ -214,6 +214,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     networks:
       - appnet
     healthcheck:
@@ -237,6 +239,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     networks:
       - appnet
 
@@ -261,6 +265,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     networks:
       - appnet
 
