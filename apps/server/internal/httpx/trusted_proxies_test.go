@@ -56,6 +56,8 @@ func TestTrustedProxies_ClientIP(t *testing.T) {
 		{"trusted loopback peer", trusted, "127.0.0.1:1234", []string{"198.51.100.7"}, "", "198.51.100.7"},
 		{"trusted peer with IPv6 entries", trusted, "[fc00::1]:1234", []string{"2001:db8::7, fc00::2"}, "", "2001:db8::7"},
 		{"a single address as a trusted entry", "192.0.2.1", "192.0.2.1:1234", []string{"198.51.100.7"}, "", "198.51.100.7"},
+		{"an IPv4-mapped range is the IPv4 range", "::ffff:10.0.0.0/104", "10.0.0.1:1234", []string{"198.51.100.7"}, "", "198.51.100.7"},
+		{"an IPv4-mapped range doesn't trust outside it", "::ffff:10.0.0.0/104", "11.0.0.1:1234", []string{"198.51.100.7"}, "", "11.0.0.1"},
 		{"a single address doesn't trust its neighbour", "192.0.2.1", "192.0.2.2:1234", []string{"198.51.100.7"}, "", "192.0.2.2"},
 
 		// A trusted peer with no X-Forwarded-For at all: X-Real-IP, then the peer.
@@ -94,6 +96,12 @@ func TestTrustedProxies_NilTrustsNobody(t *testing.T) {
 	assert.Equal(t, "192.0.2.1", proxies.ClientIP(request("192.0.2.1:1234", []string{"198.51.100.1"}, "198.51.100.2")))
 }
 
+func TestParseTrustedProxies_ExplainsAShortIPv4MappedRange(t *testing.T) {
+	_, err := httpx.ParseTrustedProxies("::ffff:0:0/80")
+
+	assert.EqualError(t, err, `invalid TRUSTED_PROXIES entry "::ffff:0:0/80": an IPv4-mapped IPv6 range must be /96 or longer, because addresses are matched as IPv4`)
+}
+
 func TestParseTrustedProxies(t *testing.T) {
 	for _, valid := range []string{
 		"",
@@ -104,6 +112,8 @@ func TestParseTrustedProxies(t *testing.T) {
 		"fc00::/7",
 		" 127.0.0.1 ,10.0.0.0/8,  ::1/128 ",
 		"10.0.0.0/8,",
+		"::ffff:10.0.0.0/104",
+		"::ffff:0:0/96",
 	} {
 		_, err := httpx.ParseTrustedProxies(valid)
 		assert.NoError(t, err, "%q", valid)
@@ -113,6 +123,8 @@ func TestParseTrustedProxies(t *testing.T) {
 		{"localhost", "localhost"},
 		{"*", "*"},
 		{"10.0.0.0/33", "10.0.0.0/33"},
+		{"::ffff:0:0/80", "::ffff:0:0/80"},
+		{"10.0.0.0/8, ::ffff:10.0.0.0/95", "::ffff:10.0.0.0/95"},
 		{"10.0.0.256", "10.0.0.256"},
 		{"10.0.0.1/", "10.0.0.1/"},
 		{"127.0.0.1, 10.0.0.0/8, garbage", "garbage"},

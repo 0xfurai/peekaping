@@ -1,6 +1,7 @@
 package httpx
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -30,27 +31,37 @@ func ParseTrustedProxies(list string) (*TrustedProxies, error) {
 		}
 		prefix, err := parseProxyEntry(entry)
 		if err != nil {
-			return nil, fmt.Errorf("invalid TRUSTED_PROXIES entry %q: want an IP address or a CIDR range such as 10.0.0.0/8", entry)
+			return nil, fmt.Errorf("invalid TRUSTED_PROXIES entry %q: %w", entry, err)
 		}
 		proxies.prefixes = append(proxies.prefixes, prefix)
 	}
 	return proxies, nil
 }
 
+var (
+	errNotAddrOrRange = errors.New("want an IP address or a CIDR range such as 10.0.0.0/8")
+	errShortMapped    = errors.New("an IPv4-mapped IPv6 range must be /96 or longer, because addresses are matched as IPv4")
+)
+
 func parseProxyEntry(entry string) (netip.Prefix, error) {
 	if !strings.Contains(entry, "/") {
 		addr, err := parseAddr(entry)
 		if err != nil {
-			return netip.Prefix{}, err
+			return netip.Prefix{}, errNotAddrOrRange
 		}
 		return netip.PrefixFrom(addr, addr.BitLen()), nil
 	}
 	prefix, err := netip.ParsePrefix(entry)
 	if err != nil {
-		return netip.Prefix{}, err
+		return netip.Prefix{}, errNotAddrOrRange
 	}
-	// A range written as IPv4-mapped IPv6 (::ffff:10.0.0.0/104) is the IPv4 range.
-	if addr := prefix.Addr(); addr.Is4In6() && prefix.Bits() >= 96 {
+	// A range written as IPv4-mapped IPv6 (::ffff:10.0.0.0/104) is the IPv4 range. Addresses are
+	// unmapped before they are matched, so a mapped range shorter than /96 would match nothing:
+	// it is refused rather than accepted as a setting that does nothing.
+	if addr := prefix.Addr(); addr.Is4In6() {
+		if prefix.Bits() < 96 {
+			return netip.Prefix{}, errShortMapped
+		}
 		return netip.PrefixFrom(addr.Unmap(), prefix.Bits()-96), nil
 	}
 	return prefix, nil
