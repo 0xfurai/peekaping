@@ -52,6 +52,26 @@ func TestImportMongoCommandTakesTheDatabaseFromTheURI(t *testing.T) {
 	require.NoError(t, runBun("--mongo-uri", in.URI+"/"+in.Database))
 }
 
+// The URI may carry the password of the MongoDB, so it can come from the environment
+// and stay out of the command line and the shell history. The database flag wins over
+// the database in the URI, which is the fallback.
+func TestImportMongoCommandReadsTheMongoSettingsFromTheEnvironment(t *testing.T) {
+	in := mongoimporttest.Seed(t)
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", filepath.Join(t.TempDir(), "peekaping.db"))
+	t.Setenv("MONGO_URI", in.URI)
+	t.Setenv("MONGO_DB", in.Database)
+	require.NoError(t, runBun())
+
+	// --mongo-db wins over the database in the URI, so a database with no install in it is refused
+	t.Setenv("DB_NAME", filepath.Join(t.TempDir(), "other.db"))
+	t.Setenv("MONGO_DB", "")
+	t.Setenv("MONGO_URI", in.URI+"/"+in.Database)
+	require.NoError(t, runBun())
+	t.Setenv("DB_NAME", filepath.Join(t.TempDir(), "third.db"))
+	assert.ErrorContains(t, runBun("--mongo-db", in.Database+"_typo"), "has no collections")
+}
+
 func TestImportMongoCommandNeedsAMongoURI(t *testing.T) {
 	t.Setenv("DB_TYPE", "sqlite")
 	t.Setenv("DB_NAME", filepath.Join(t.TempDir(), "peekaping.db"))
