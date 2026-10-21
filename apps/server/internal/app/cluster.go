@@ -15,6 +15,7 @@ import (
 	"peekaping/internal/modules/worker"
 	"peekaping/internal/utils"
 
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/dig"
 )
 
@@ -29,8 +30,15 @@ func RegisterClusterAPI(container *dig.Container, cfg *config.Config) error {
 			ingester.NewPushQueueService,
 			infra.ProvideNotificationAsynqServer,
 			notification_channel.NewQueueConsumer,
+			provideClusterClaimer,
 		),
 	)
+}
+
+// provideClusterClaimer provides the claimer of the usage ping: of the api replicas, the first
+// to set the key in Redis sends the day's ping
+func provideClusterClaimer(client *redis.Client) telemetry.Claimer {
+	return telemetry.NewRedisClaimer(client)
 }
 
 // RegisterClusterProducer provides what cmd/producer runs: the producer, which schedules the

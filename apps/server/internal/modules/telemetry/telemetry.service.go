@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"sort"
 	"strings"
+	"time"
 
 	"peekaping/internal/config"
 	"peekaping/internal/modules/maintenance"
@@ -52,7 +53,13 @@ type Service interface {
 	// instance ID unless there is one; opting out deletes it and the time of the last ping. The
 	// choice is stored while the environment forces the ping off: the environment still wins.
 	SetEnabled(ctx context.Context, enabled bool) (State, error)
+
+	// The sender's Source
+	Source
 }
+
+// pingInterval is how long after a ping the next one is due
+const pingInterval = 24 * time.Hour
 
 // listPageSize is how many records the payload reads from a module at a time
 const listPageSize = 200
@@ -126,6 +133,41 @@ func (s *ServiceImpl) SetEnabled(ctx context.Context, enabled bool) (State, erro
 		return State{}, err
 	}
 	return s.State(ctx)
+}
+
+func (s *ServiceImpl) NextPing(ctx context.Context, now time.Time) (*Payload, error) {
+	if s.cfg.TelemetryForcedOff() {
+		return nil, nil
+	}
+	enabled, err := s.storedEnabled(ctx)
+	if err != nil || !enabled {
+		return nil, err
+	}
+	id, err := s.storedValue(ctx, InstanceIDKey)
+	if err != nil || id == "" {
+		return nil, err
+	}
+	lastSent, err := s.storedValue(ctx, LastSentKey)
+	if err != nil {
+		return nil, err
+	}
+	// A time that is missing, unreadable or still ahead of the clock counts as no ping yet: a
+	// clock that was wrong once must not silence the ping until it is right again.
+	if last, err := time.Parse(time.RFC3339, lastSent); err == nil && !last.After(now) && now.Sub(last) <= pingInterval {
+		return nil, nil
+	}
+	payload, err := s.build(ctx, true)
+	if err != nil {
+		return nil, err
+	}
+	return &payload, nil
+}
+
+func (s *ServiceImpl) RecordSent(ctx context.Context, at time.Time) error {
+	if _, err := s.settings.SetByKey(ctx, LastSentKey, &shared.SettingModel{Value: at.UTC().Format(time.RFC3339), Type: "string"}); err != nil {
+		return fmt.Errorf("store %s: %w", LastSentKey, err)
+	}
+	return nil
 }
 
 // optIn creates the instance ID, unless there is one, and then records the opt-in. The ID comes

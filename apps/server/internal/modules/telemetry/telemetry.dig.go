@@ -14,9 +14,15 @@ import (
 )
 
 // RegisterDependencies provides the telemetry module. The transport of each binary provides the
-// Mode (single or cluster), so that registration, not MODE, says how the install runs.
+// Mode (single or cluster), so that registration, not MODE, says how the install runs, and the
+// Claimer that picks the one process that sends the day's ping.
 func RegisterDependencies(container *dig.Container) error {
-	return utils.Provide(container, provideService, NewController, NewRoute)
+	return utils.Provide(container, provideService, provideSender, NewController, NewRoute)
+}
+
+// provideSender provides the sender that cmd/peekaping and cmd/api start
+func provideSender(service Service, claimer Claimer, cfg *config.Config, logger *zap.SugaredLogger) *Sender {
+	return NewSender(service, claimer, cfg.TelemetryURL, logger)
 }
 
 // provideService gives the service the parts of the modules it reads
