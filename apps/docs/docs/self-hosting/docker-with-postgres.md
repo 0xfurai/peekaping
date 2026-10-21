@@ -91,6 +91,8 @@ If you run a bundle from 0.0.44 to 0.0.47, which ran Redis and Caddy inside the 
 
 In cluster mode, the API, producer, worker and ingester run in separate containers and talk through Redis. An nginx gateway serves the web app and the API on port 8383.
 
+The images run as a non-root user. See [Cluster user and permissions](./cluster-user.md) for what Docker monitors and ping monitors need.
+
 ### Prerequisites
 
 - Docker Compose 2.0+
@@ -212,6 +214,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     networks:
       - appnet
     healthcheck:
@@ -235,6 +239,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     networks:
       - appnet
 
@@ -259,6 +265,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     networks:
       - appnet
 
