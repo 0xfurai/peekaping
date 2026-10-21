@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"peekaping/internal/config"
 	"peekaping/internal/mongoimport"
 
 	"github.com/uptrace/bun"
@@ -35,18 +36,7 @@ func newImportMongoCommand() *cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) error {
-			// DB_TYPE=mongo is a valid setting everywhere else; here it would name the source
-			cfg, err := loadDBConfig()
-			if err != nil {
-				return err
-			}
-			switch cfg.DBType {
-			case "sqlite", "postgres", "postgresql":
-			default:
-				return fmt.Errorf("DB_TYPE=%s: import-mongo copies into SQLite or PostgreSQL, so set DB_TYPE to sqlite or postgres (and DB_NAME and the other DB_* variables) for the new database", cfg.DBType)
-			}
-
-			return runWithDB(func(db *bun.DB) error {
+			return runWithConfiguredDB(requireSQLTarget, func(cfg config.DBConfig, db *bun.DB) error {
 				report, err := mongoimport.Run(c.Context, db, mongoimport.Options{
 					MongoURI:      c.String("mongo-uri"),
 					MongoDatabase: c.String("mongo-db"),
@@ -60,9 +50,19 @@ func newImportMongoCommand() *cli.Command {
 				for _, collection := range report.Collections {
 					copied += collection.Copied
 				}
-				fmt.Printf("\nCopied %d rows into the %s database. Start Peekaping with DB_TYPE=%s; users sign in again once.\n", copied, cfg.DBType, cfg.DBType)
+				fmt.Printf("\nCopied %d rows into the %s database. The login lockout counters (login_state) are not copied. Users sign in again once.\n", copied, cfg.DBType)
 				return nil
 			})
 		},
 	}
+}
+
+// requireSQLTarget refuses a DB_TYPE the import can't write to. DB_TYPE=mongo is a valid
+// setting everywhere else, and here it would name the install being moved, not the target.
+func requireSQLTarget(cfg config.DBConfig) error {
+	switch cfg.DBType {
+	case "sqlite", "postgres", "postgresql":
+		return nil
+	}
+	return fmt.Errorf("DB_TYPE=%s: import-mongo copies into SQLite or PostgreSQL, so set DB_TYPE to sqlite or postgres (and DB_NAME and the other DB_* variables) for the new database", cfg.DBType)
 }
