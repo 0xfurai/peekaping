@@ -92,10 +92,10 @@ The login lockout counts failed logins per client address. A client can send any
 3. Don't let clients reach port 8383 past the proxy. When the proxy runs on the same host, publish the port on loopback only: `-p 127.0.0.1:8383:8383`, or `"127.0.0.1:8383:8383"` in Docker Compose. Then only the host can connect, and the proxy's address is usually the gateway of the container's Docker network. A Compose project has its own network, so read the gateway from the container itself (replace `peekaping` with your container's name):
 
    ```bash
-   docker inspect -f '{{range .NetworkSettings.Networks}}{{.Gateway}}{{end}}' peekaping
+   docker inspect -f '{{range $name, $net := .NetworkSettings.Networks}}{{$name}} {{$net.Gateway}}{{println}}{{end}}' peekaping
    ```
 
-   On Docker's default network that is usually `172.17.0.1`:
+   It prints each network the container is on with its gateway. Use the gateway of the network your reverse proxy shares with the container. On Docker's default network that is usually `172.17.0.1`:
 
    ```
    TRUSTED_PROXIES=172.17.0.1
