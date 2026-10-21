@@ -145,6 +145,8 @@ The database settings have no defaults. For PostgreSQL, set `DB_TYPE` (the chart
 | `REDIS_USERNAME` | empty | A Redis ACL user. Leave it empty for password-only authentication. |
 | `REDIS_PASSWORD` | empty | Put it in the secret. |
 | `METRICS_ENABLED` | `false` | See [Metrics](#metrics). |
+| `TELEMETRY` | empty | Set `off` to switch off the anonymous [usage statistics](./telemetry.md) whatever an admin chose. |
+| `DO_NOT_TRACK` | empty | Set `1` for the same. |
 
 Leave `API_URL` unset. The web app then calls the API on its own address, which is where the Ingress sends `/api`. [API Server](../architecture/api-server.md#environment-variables) lists every variable.
 
