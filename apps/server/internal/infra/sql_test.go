@@ -8,6 +8,7 @@ import (
 	"math/rand/v2"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -159,14 +160,15 @@ func sha256OfFile(t *testing.T, path string) [sha256.Size]byte {
 
 // A database that fails the startup check is damaged, and a process that goes on writing to it
 // makes the damage worse. Startup stops with an error instead, and the file is left as it was,
-// so the operator can restore a backup or salvage the data.
+// so the operator can restore a backup or salvage the data. Before it stops, the log tells the
+// operator what SQLite found and what to do.
 func TestProvideSQLDB_StopsOnACorruptDatabase(t *testing.T) {
 	t.Setenv("BUNDEBUG", "0")
 	path := filepath.Join(t.TempDir(), "peekaping.db")
 	writeCorruptSQLiteDatabase(t, path)
 	before := sha256OfFile(t, path)
 
-	core, _ := observer.New(zapcore.DebugLevel)
+	core, logs := observer.New(zapcore.DebugLevel)
 	db, err := ProvideSQLDB(&config.Config{DBType: "sqlite", DBName: path}, zap.New(core).Sugar())
 	if db != nil {
 		t.Cleanup(func() { _ = db.Close() })
@@ -175,6 +177,37 @@ func TestProvideSQLDB_StopsOnACorruptDatabase(t *testing.T) {
 	require.Error(t, err)
 	require.Nil(t, db)
 	require.ErrorContains(t, err, "is corrupt")
+	// the first finding, on one line: SQLite's first row is two lines, "*** in database main ***"
+	// and the finding
+	require.ErrorContains(t, err, "Tree 2 page 4: btreeInitPage() returns error code 11")
+	require.NotContains(t, err.Error(), "\n")
 	require.ErrorContains(t, err, "https://docs.peekaping.com/self-hosting/sqlite-recovery")
 	require.Equal(t, before, sha256OfFile(t, path), "the database file was changed")
+
+	// the report: what stopped, every finding, then the procedure with the docs link
+	errorEntries := logs.FilterLevelExact(zapcore.ErrorLevel).All()
+	require.GreaterOrEqual(t, len(errorEntries), 3, "the stop, at least one finding, the procedure")
+	require.Equal(t,
+		"SQLite quick check found corruption in "+path+". Peekaping stops here and doesn't change the file.",
+		errorEntries[0].Message)
+	findings := errorEntries[1 : len(errorEntries)-1]
+	for _, finding := range findings {
+		require.True(t, strings.HasPrefix(finding.Message, "quick_check: "), finding.Message)
+	}
+	require.Contains(t, findings[len(findings)-1].Message, "btreeInitPage() returns error code 11")
+	procedure := errorEntries[len(errorEntries)-1].Message
+	for _, step := range []string{
+		"Stop every Peekaping process that uses this database",
+		"Keep the original database file together with its -wal and -shm files",
+		"Restore a tested backup",
+		"sqlite3 .recover",
+		"PRAGMA integrity_check",
+		"https://docs.peekaping.com/self-hosting/sqlite-recovery",
+	} {
+		require.Contains(t, procedure, step)
+	}
+	// the old startup logged "Database integrity check FAILED" and ran the full check
+	for _, entry := range logs.All() {
+		require.NotContains(t, entry.Message, "Database integrity check")
+	}
 }

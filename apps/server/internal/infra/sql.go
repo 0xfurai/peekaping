@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"peekaping/internal/config"
+	"strings"
 
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/mysqldialect"
@@ -184,7 +185,19 @@ func checkSQLiteOnStartup(db *bun.DB, dbPath string, logger *zap.SugaredLogger) 
 		return nil
 	}
 
-	return fmt.Errorf("SQLite database %s is corrupt: %s. See %s", dbPath, lines[0], sqliteRecoveryDocsURL)
+	logger.Errorf("SQLite quick check found corruption in %s. Peekaping stops here and doesn't change the file.", dbPath)
+	for _, line := range lines {
+		logger.Errorf("quick_check: %s", line)
+	}
+	logger.Errorf("Stop every Peekaping process that uses this database, and its container's restarts. "+
+		"Keep the original database file together with its -wal and -shm files; don't repair it in place. "+
+		"Restore a tested backup. Without one, salvage the data into a new database with sqlite3 .recover "+
+		"and run PRAGMA integrity_check on the result; recovered data can be missing, altered or resurrected. "+
+		"See %s", sqliteRecoveryDocsURL)
+
+	// SQLite's first row can be two lines: "*** in database main ***" and the finding
+	first := strings.ReplaceAll(lines[0], "\n", " ")
+	return fmt.Errorf("SQLite database %s is corrupt: %s. See %s", dbPath, first, sqliteRecoveryDocsURL)
 }
 
 // readSQLiteQuickCheck returns every row of PRAGMA quick_check: SQLite reports up to 100 findings,
