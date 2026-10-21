@@ -106,8 +106,11 @@ func assertAppliedMigrations(t *testing.T, databasePath string) {
 	if err := db.QueryRow("SELECT COUNT(*) FROM bun_migrations").Scan(&total); err != nil {
 		t.Fatalf("count applied migrations: %v", err)
 	}
-	if total != 12 {
-		t.Fatalf("expected 11 embedded SQL migrations and one Go migration, got %d applied migrations", total)
+	// The expected number comes from the sources, so adding a migration does not mean
+	// editing this test.
+	expected := expectedMigrationCount(t, filepath.Join(serverDirectory(t), "cmd", "bun", "migrations"))
+	if total != expected {
+		t.Fatalf("expected %d migrations from the sources, got %d applied migrations", expected, total)
 	}
 
 	var goMigrationCount int
@@ -120,6 +123,36 @@ func assertAppliedMigrations(t *testing.T, databasePath string) {
 	if goMigrationCount != 1 {
 		t.Fatalf("expected Go migration 20261017120100 to be applied once, got %d", goMigrationCount)
 	}
+}
+
+// expectedMigrationCount counts the migrations a clean database ends up with: one per up
+// file (both .up.sql and .tx.up.sql) plus one per Go file that registers migrations.
+func expectedMigrationCount(t *testing.T, migrationsDir string) int {
+	t.Helper()
+	entries, err := os.ReadDir(migrationsDir)
+	if err != nil {
+		t.Fatalf("read migrations directory: %v", err)
+	}
+
+	count := 0
+	for _, entry := range entries {
+		name := entry.Name()
+		if strings.HasSuffix(name, ".up.sql") {
+			count++
+			continue
+		}
+		if !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") || name == "main.go" {
+			continue
+		}
+		source, err := os.ReadFile(filepath.Join(migrationsDir, name))
+		if err != nil {
+			t.Fatalf("read migration %s: %v", name, err)
+		}
+		if strings.Contains(string(source), "Migrations.MustRegister(") {
+			count++
+		}
+	}
+	return count
 }
 
 func runBun(t *testing.T, binPath, workingDir, databasePath string, args ...string) string {

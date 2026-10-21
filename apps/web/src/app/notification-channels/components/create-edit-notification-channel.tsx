@@ -144,11 +144,15 @@ export default function CreateEditNotificationChannel({
   },
   isLoading = false,
   mode = "create",
+  channelId,
 }: {
   onSubmit: (data: NotificationForm) => void;
   initialValues?: NotificationForm;
   isLoading?: boolean;
   mode?: "create" | "edit";
+  // A saved channel does not return its credentials, so testing it points at the channel
+  // and lets the server fill them in from what it stored.
+  channelId?: string;
 }) {
   const { t } = useLocalizedTranslation();
   const baseForm = useForm<NotificationForm>({
@@ -197,6 +201,7 @@ export default function CreateEditNotificationChannel({
         active: true,
         is_default: false,
       },
+      ...(channelId ? { query: { id: channelId } } : {}),
     });
   }
 

@@ -36,5 +36,6 @@ type DeleteParams struct {
 type DeleteInput = httpx.Input[httpx.NoBody, DeleteParams]
 
 type TestParams struct {
+	Id string `query:"id" doc:"Saved channel to take the stored secrets from, for a config that does not carry them" required:"false"`
 }
 type TestInput = httpx.Input[*CreateUpdateDto, TestParams]

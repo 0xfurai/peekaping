@@ -20,6 +20,7 @@ type mongoModel struct {
 	Active    bool               `bson:"active"`
 	IsDefault bool               `bson:"is_default"`
 	Config    *string            `bson:"config,omitempty"`
+	Secret    *string            `bson:"secret,omitempty"`
 	CreatedAt time.Time          `bson:"created_at"`
 	UpdatedAt time.Time          `bson:"updated_at"`
 }
@@ -31,6 +32,7 @@ type mongoUpdateModel struct {
 	Active    *bool   `bson:"active,omitempty"`
 	IsDefault *bool   `bson:"is_default,omitempty"`
 	Config    *string `bson:"config,omitempty"`
+	Secret    *string `bson:"secret,omitempty"`
 }
 
 func toDomainModel(mm *mongoModel) *Model {
@@ -41,6 +43,7 @@ func toDomainModel(mm *mongoModel) *Model {
 		Active:    mm.Active,
 		IsDefault: mm.IsDefault,
 		Config:    mm.Config,
+		Secret:    mm.Secret,
 		CreatedAt: mm.CreatedAt,
 		UpdatedAt: mm.UpdatedAt,
 	}
@@ -65,6 +68,7 @@ func (r *RepositoryImpl) Create(ctx context.Context, entity *Model) (*Model, err
 		Active:    entity.Active,
 		IsDefault: entity.IsDefault,
 		Config:    entity.Config,
+		Secret:    entity.Secret,
 		CreatedAt: now,
 		UpdatedAt: now,
 	}
@@ -172,6 +176,7 @@ func (r *RepositoryImpl) UpdatePartial(ctx context.Context, id string, entity *U
 		Active:    entity.Active,
 		IsDefault: entity.IsDefault,
 		Config:    entity.Config,
+		Secret:    entity.Secret,
 	})
 	if err != nil {
 		return err

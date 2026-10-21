@@ -17,6 +17,7 @@ type sqlModel struct {
 	Active    bool      `bun:"active,notnull,default:true"`
 	IsDefault bool      `bun:"is_default,notnull,default:false"`
 	Config    *string   `bun:"config"`
+	Secret    *string   `bun:"secret"`
 	CreatedAt time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp"`
 	UpdatedAt time.Time `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
 }
@@ -29,6 +30,7 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 		Active:    sm.Active,
 		IsDefault: sm.IsDefault,
 		Config:    sm.Config,
+		Secret:    sm.Secret,
 		CreatedAt: sm.CreatedAt,
 		UpdatedAt: sm.UpdatedAt,
 	}
@@ -42,6 +44,7 @@ func toSQLModel(m *Model) *sqlModel {
 		Active:    m.Active,
 		IsDefault: m.IsDefault,
 		Config:    m.Config,
+		Secret:    m.Secret,
 		CreatedAt: m.CreatedAt,
 		UpdatedAt: m.UpdatedAt,
 	}
@@ -140,6 +143,10 @@ func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity
 	}
 	if entity.Config != nil {
 		query = query.Set("config = ?", *entity.Config)
+		hasUpdates = true
+	}
+	if entity.Secret != nil {
+		query = query.Set("secret = ?", *entity.Secret)
 		hasUpdates = true
 	}
 

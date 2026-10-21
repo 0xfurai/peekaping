@@ -221,8 +221,8 @@ func (l *NotificationEventListener) sendToChannels(
 			continue
 		}
 
-		// validate config
-		if err := provider.Validate(*notificationChannel.Config); err != nil {
+		// validate config, with the secrets merged back in
+		if err := provider.Validate(notificationChannel.FullConfig()); err != nil {
 			l.logger.Errorf("Failed to validate notification config: %s, error: %v", notificationChannel.Name, err)
 			continue
 		}
@@ -257,7 +257,7 @@ func (l *NotificationEventListener) send(
 	ctx, cancel := context.WithTimeout(ctx, l.sendTimeout)
 	defer cancel()
 
-	if err := provider.Send(ctx, *notificationChannel.Config, message, monitorModel, hb); err != nil {
+	if err := provider.Send(ctx, notificationChannel.FullConfig(), message, monitorModel, hb); err != nil {
 		l.logger.Errorf("Failed to send notification: %s, error: %v", notificationChannel.Name, err)
 		return
 	}
