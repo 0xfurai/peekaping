@@ -1,5 +1,6 @@
-// Package mongoimport copies a MongoDB storage backend's data into an empty
-// SQLite or PostgreSQL database. It is what "bun db import-mongo" runs.
+// Package mongoimport copies a MongoDB storage backend's data into a SQLite or
+// PostgreSQL database that holds no data of its own. It is what "bun db
+// import-mongo" runs.
 //
 // The MongoDB repositories can't do the copy: the SQL repositories give every
 // row a new ID and the current time, and several MongoDB collections have no
@@ -46,13 +47,16 @@ type Options struct {
 	Progress io.Writer
 }
 
-// ErrTargetNotEmpty is returned when the SQL database already holds Peekaping data.
-var ErrTargetNotEmpty = errors.New("the target database already holds Peekaping data")
+// ErrTargetNotEmpty is returned when the SQL database already holds data of its own.
+var ErrTargetNotEmpty = errors.New("the target database already holds data")
 
-// dataTables are the tables the import writes, in the order it fills them. A
-// target is empty when none of them has a row.
+// dataTables are the tables that hold what a user made, in the order the import
+// fills them. The target must have no row in any of them. Its settings table is
+// not among them: a Peekaping's first start writes the default settings, the
+// JWT signing secrets included, and nothing else, so a database that only
+// started once has only those. The import replaces them with the install's.
 var dataTables = []string{
-	"users", "settings", "api_keys",
+	"users", "api_keys",
 	"proxies", "monitors", "notification_channels", "tags", "maintenances", "status_pages",
 	"monitor_notifications", "monitor_tags", "monitor_maintenances", "monitor_status_pages", "domain_status_page",
 	"monitor_tls_info", "notification_sent_history",
@@ -60,9 +64,10 @@ var dataTables = []string{
 }
 
 // Run copies the MongoDB install named by opts into db, which must be a SQLite
-// or PostgreSQL database that no Peekaping has written to. It applies the SQL
-// migrations first. The copy is one transaction: if anything fails, db is left
-// without a row of Peekaping data. It returns what it did with every collection.
+// or PostgreSQL database that holds no data but the default settings of a first
+// start, which the copy replaces. It applies the SQL migrations first. The copy
+// is one transaction: if anything fails, db is left as it was, apart from the
+// migrations. It returns what it did with every collection.
 func Run(ctx context.Context, db *bun.DB, opts Options) (*Report, error) {
 	if name := db.Dialect().Name(); name != dialect.SQLite && name != dialect.PG {
 		return nil, fmt.Errorf("the target must be a SQLite or PostgreSQL database, not %s", name)
@@ -171,7 +176,7 @@ func requireEmpty(ctx context.Context, q bun.IDB) error {
 		filled = append(filled, table)
 	}
 	if len(filled) > 0 {
-		return fmt.Errorf("%w (%s have rows). Import into a database that no Peekaping has used: a Peekaping that started once has already written its settings", ErrTargetNotEmpty, strings.Join(filled, ", "))
+		return fmt.Errorf("%w (%s have rows). Import into a database that no one has used yet. One that Peekaping only started on is fine, but not one with users, monitors or history of its own", ErrTargetNotEmpty, strings.Join(filled, ", "))
 	}
 	return nil
 }
