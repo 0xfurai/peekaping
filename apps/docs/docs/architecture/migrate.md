@@ -41,7 +41,7 @@ The migrate component is a CLI tool that runs as a one-off process:
 
 A migration that starts while another one holds the PostgreSQL lock waits for it, up to `--lock-timeout` (default 10 minutes), then applies what is left, usually nothing. If the lock is still held when the time is up, it fails with `another migration still holds the database lock`. A killed migration, whether by `docker stop`, an out-of-memory kill or a lost node, doesn't block the next one.
 
-PostgreSQL and SQLite ignore a row that an older version left in `bun_migration_locks`. `bun db lock` and `bun db unlock` still add and remove that row.
+On PostgreSQL and SQLite, `bun db lock` no longer holds back `migrate` or `rollback`: they don't read `bun_migration_locks`, and they ignore a row that an older version left there. Don't use `bun db lock` to freeze migrations during maintenance on those databases; stop the migrate yourself instead (for example, don't start the migrate container or Job). `bun db lock` and `bun db unlock` still add and remove the row, and the row only matters for MySQL. On PostgreSQL and SQLite you no longer need `bun db unlock` to clear a leftover row.
 
 ### Migration Files
 

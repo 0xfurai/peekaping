@@ -275,8 +275,9 @@ func TestMigrateAndRollbackGiveUpWhenTheLockStaysHeld(t *testing.T) {
 	assert.Equal(t, allMigrations(), unapplied(t, db), "the last group wasn't rolled back")
 }
 
-// `bun db lock` and `unlock` stay what they were: they take and clear bun's row, for anyone who
-// needs to stop migrations by hand.
+// `bun db lock` and `unlock` stay what they were: they take and clear bun's row. Only MySQL still
+// locks on that row; migrate and rollback on PostgreSQL and SQLite don't read it, so `lock`
+// doesn't hold them back.
 func TestLockAndUnlockCommandsUseTheLocksTable(t *testing.T) {
 	cfg := sqliteConfig(t)
 	setDatabaseEnv(t, cfg)
