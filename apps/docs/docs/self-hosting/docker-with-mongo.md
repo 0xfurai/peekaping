@@ -28,7 +28,7 @@ With MongoDB, Peekaping runs in cluster mode only: the API, producer, worker and
 - the links between all of these, such as a monitor's tags, channels and status pages
 - heartbeats, stats, TLS information and which certificate expiry notifications were sent
 
-The MongoDB it reads must be version 4.4 or later. The bundle runs MongoDB 7.
+The MongoDB it reads must be version 4.4 or later. The data folder that the import reads has to be opened by the same major version of MongoDB that wrote it, so step 2 starts that version, and step 1 finds it. The bundle and the Docker Compose file of the current release run MongoDB 7.
 
 The new database must hold no data of its own. If it has a row in any of these tables, the command refuses it and changes nothing: users, API keys, monitors, notification channels, proxies, tags, maintenance windows, status pages, the links between them, TLS information, notification history, heartbeats and stats. The one exception is the default settings that a Peekaping writes when it first starts. A database that Peekaping has only started on is fine: the import replaces those settings with the settings of your install, the login keys included.
 
@@ -54,6 +54,12 @@ Peekaping is stopped while you move, so its monitors aren't checked, and the his
 
 ### 1. Stop Peekaping and back up
 
+While the container still runs, ask it which MongoDB it runs. The first line says, for example, `db version v7.0.14`, and the major version is 7:
+
+```bash
+docker exec peekaping mongod --version
+```
+
 Stop the container, so that the files are complete, and copy the data folder. The import reads the copy, and the original is your way back. Rename the stopped container, so that the new one can take the name `peekaping`.
 
 ```bash
@@ -62,17 +68,18 @@ docker rename peekaping peekaping-mongo-bundle
 cp -a .data/mongodb .data/mongodb-backup
 ```
 
-With the [Docker Compose](#docker-compose) setup, run `docker compose down` in its folder instead, then copy `.data/mongodb` the same way.
+With the [Docker Compose](#docker-compose) setup, ask with `docker compose exec database mongod --version`, and run `docker compose down` in its folder instead of the `docker stop` and `docker rename` lines. Then copy `.data/mongodb` the same way.
 
 ### 2. Start a MongoDB on the copy
 
-The import reads from a running MongoDB. Start one on the copy, on a Docker network of its own. This MongoDB asks for no login, and only containers on that network can reach it.
+The import reads from a running MongoDB. Start one on the copy, on a Docker network of its own. Use the major version from step 1: a MongoDB can't open data that is more than one major version older than itself, or any that is newer, and the same version is the safe choice. `MONGO_VERSION=7` is the version of the bundle. This MongoDB asks for no login, and only containers on that network can reach it.
 
 ```bash
+MONGO_VERSION=7
 docker network create peekaping-move
 docker run -d --name peekaping-mongo --network peekaping-move \
   -v $(pwd)/.data/mongodb-backup:/data/db \
-  mongo:7
+  mongo:$MONGO_VERSION
 ```
 
 ### 3. Import into a SQLite database
@@ -110,9 +117,15 @@ If it stops with an error, it wrote no data. Fix what the error says, and run it
 
 The import runs as root, so the database file in `.data/sqlite` belongs to root. The bundle gives `/app/data` to the `peekaping` user when it starts. If you start it with `docker run --user`, it doesn't, so give the folder to that user first: `sudo chown -R <uid>:<gid> .data/sqlite`.
 
-If your MongoDB asks for a login, put it in the URI: `mongodb://<user>:<password>@<host>:27017/<database>?authSource=admin`.
+If your MongoDB asks for a login, put it in the URI: `mongodb://<user>:<password>@<host>:27017/<database>?authSource=admin`. Percent-encode the user name and password. A reserved character in them, such as `@ : / ? # [ ]`, would end the user name or the password early and break the URI. For example, the password `p@ss:word/1` is written `p%40ss%3Aword%2F1`.
 
-With Docker Compose, the MongoDB is the `database` service, so skip step 2. Start it alone with `docker compose up -d database`. In the command above, use `--network <folder name>_appnet` and `-e MONGO_URI='mongodb://root:<DB_PASS>@database:27017/?authSource=admin'`.
+With Docker Compose, the MongoDB is the `database` service, so skip step 2. Start it alone with `docker compose up -d database`. Its URI has a password, so keep it out of the command and the shell history. Put the `MONGO_URI` line in a file that only you can read, and pass the file:
+
+```bash
+(umask 077; echo 'MONGO_URI=mongodb://root:<DB_PASS>@database:27017/?authSource=admin' > mongo.env)
+```
+
+In the command above, use `--network <folder name>_appnet` and `--env-file mongo.env` in place of the `-e MONGO_URI` line. The file is read as it is, so don't quote the value in it. Delete the file when the import is done.
 
 ### 4. Start the new bundle
 
