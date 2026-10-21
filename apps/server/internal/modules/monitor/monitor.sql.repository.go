@@ -22,7 +22,7 @@ type sqlModel struct {
 	MaxRetries     int                  `bun:"max_retries,notnull"`
 	RetryInterval  int                  `bun:"retry_interval,notnull"`
 	ResendInterval int                  `bun:"resend_interval,notnull"`
-	Active         bool                 `bun:"active,notnull,default:true"`
+	Active         bool                 `bun:"active,notnull"` // no Bun default: it would replace false with the column default
 	Status         shared.MonitorStatus `bun:"status,notnull,default:0"`
 	CreatedAt      time.Time            `bun:"created_at,nullzero,notnull,default:current_timestamp"`
 	UpdatedAt      time.Time            `bun:"updated_at,nullzero,notnull,default:current_timestamp"`

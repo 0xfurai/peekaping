@@ -15,7 +15,7 @@ type sqlModel struct {
 	ID            string    `bun:"id,pk"`
 	Title         string    `bun:"title,notnull"`
 	Description   string    `bun:"description"`
-	Active        bool      `bun:"active,notnull,default:true"`
+	Active        bool      `bun:"active,notnull"` // no Bun default: it would replace false with the column default
 	Strategy      string    `bun:"strategy,notnull"`
 	StartDateTime *string   `bun:"start_date_time"`
 	EndDateTime   *string   `bun:"end_date_time"`

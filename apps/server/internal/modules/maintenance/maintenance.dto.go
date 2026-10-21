@@ -1,6 +1,9 @@
 package maintenance
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 type CreateUpdateDto struct {
 	Title         string   `json:"title" validate:"required"`
@@ -18,6 +21,34 @@ type CreateUpdateDto struct {
 	Timezone      *string  `json:"timezone,omitempty"`
 	Duration      *int     `json:"duration,omitempty" validate:"omitempty,min=1"`
 	MonitorIds    []string `json:"monitor_ids,omitempty"`
+	activeSet     bool
+}
+
+// UnmarshalJSON records whether active was present so create requests can apply
+// the historical default without changing full-update semantics.
+func (dto *CreateUpdateDto) UnmarshalJSON(data []byte) error {
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(data, &fields); err != nil {
+		return err
+	}
+	type plain CreateUpdateDto
+	*dto = CreateUpdateDto{}
+	if err := json.Unmarshal(data, (*plain)(dto)); err != nil {
+		return err
+	}
+	_, dto.activeSet = fields["active"]
+	return nil
+}
+
+// ApplyCreateDefaults keeps omitted active fields active for create requests.
+// Full updates keep their existing zero-value semantics.
+func (dto *CreateUpdateDto) ApplyCreateDefaults() {
+	if dto == nil {
+		return
+	}
+	if !dto.activeSet {
+		dto.Active = true
+	}
 }
 
 type PartialUpdateDto struct {
