@@ -146,7 +146,9 @@ func ProvideSQLDB(
 		// index that disagrees with its table, so the full check is one to run by hand (see the
 		// recovery page at sqliteRecoveryDocsURL).
 		if err := checkSQLiteOnStartup(db, dbPath, logger); err != nil {
-			_ = db.Close()
+			// Don't close db: closing SQLite's last connection checkpoints the write-ahead log
+			// into the main file and deletes the -wal and -shm files, which the operator is told
+			// to keep. The process exits right after this error.
 			return nil, err
 		}
 
@@ -182,7 +184,8 @@ func checkSQLiteOnStartup(db *bun.DB, dbPath string, logger *zap.SugaredLogger) 
 		if err == nil {
 			err = errors.New("it returned no result")
 		}
-		// Not a finding, so not confirmed corruption: the database may only be locked
+		// No finding rows: the database may only be locked, or a damaged header or schema page may
+		// fail the query itself. Startup goes on as agreed; its next queries fail on their own.
 		logger.Warnf("Failed to run the SQLite quick check (non-fatal): %v", err)
 		return nil
 	}

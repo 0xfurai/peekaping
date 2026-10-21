@@ -212,6 +212,86 @@ func TestProvideSQLDB_StopsOnACorruptDatabase(t *testing.T) {
 	}
 }
 
+// A crash leaves a hot write-ahead log: committed changes that aren't in the main file yet. Closing
+// SQLite's last connection checkpoints that log into the main file and deletes the -wal and -shm
+// files, which the operator is told to keep with the original database. So a startup that stops on
+// corruption must leave the database open, and the -wal file and the main file as they were.
+//
+// The crash is a copy of a live database, taken while a writer holds it open: the copy has a -wal
+// file with frames and no process using it.
+func TestProvideSQLDB_StopsOnACorruptDatabase_LeavesTheWriteAheadLogAlone(t *testing.T) {
+	t.Setenv("BUNDEBUG", "0")
+	ctx := context.Background()
+	root := t.TempDir()
+	livePath := filepath.Join(root, "live", "peekaping.db")
+	crashedPath := filepath.Join(root, "crashed", "peekaping.db")
+	require.NoError(t, os.MkdirAll(filepath.Dir(livePath), 0o755))
+	require.NoError(t, os.MkdirAll(filepath.Dir(crashedPath), 0o755))
+
+	// The writer: its own connection, no shared cache. Closing it would checkpoint the log, so
+	// it stays open until the test ends.
+	writer, err := sql.Open(sqliteshim.ShimName, fmt.Sprintf("file:%s?mode=rwc", livePath))
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = writer.Close() })
+	writer.SetMaxOpenConns(1) // so the PRAGMAs below apply to every statement
+	_, err = writer.ExecContext(ctx, "PRAGMA journal_mode=WAL")
+	require.NoError(t, err)
+	_, err = writer.ExecContext(ctx, "CREATE TABLE heartbeats (id INTEGER PRIMARY KEY, msg TEXT)")
+	require.NoError(t, err)
+	_, err = writer.ExecContext(ctx, "WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM n WHERE x < 3000) "+
+		"INSERT INTO heartbeats (msg) SELECT printf('%0200d', x) FROM n")
+	require.NoError(t, err)
+	var pageSize, pageCount int
+	require.NoError(t, writer.QueryRowContext(ctx, "PRAGMA page_size").Scan(&pageSize))
+	require.NoError(t, writer.QueryRowContext(ctx, "PRAGMA page_count").Scan(&pageCount))
+	require.Greater(t, pageCount, 4, "the table should span several pages")
+	// the table is in the main file; what is written next is only in the log
+	_, err = writer.ExecContext(ctx, "PRAGMA wal_checkpoint(TRUNCATE)")
+	require.NoError(t, err)
+	_, err = writer.ExecContext(ctx, "WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM n WHERE x < 10) "+
+		"INSERT INTO heartbeats (msg) SELECT printf('%0200d', x) FROM n")
+	require.NoError(t, err)
+
+	// the crash: the files as they are while the writer holds the database
+	for _, suffix := range []string{"", "-wal", "-shm"} {
+		content, err := os.ReadFile(livePath + suffix)
+		if suffix == "-shm" && os.IsNotExist(err) {
+			continue
+		}
+		require.NoError(t, err)
+		if suffix == "-wal" {
+			require.NotEmpty(t, content, "the crashed database should have a hot write-ahead log")
+		}
+		require.NoError(t, os.WriteFile(crashedPath+suffix, content, 0o644))
+	}
+
+	// The damage is in a table page of the main file. The rows added after the checkpoint are on
+	// the table's last page, so the log doesn't replace the damaged page.
+	file, err := os.OpenFile(crashedPath, os.O_WRONLY, 0)
+	require.NoError(t, err)
+	damage := make([]byte, 200)
+	for i := range damage {
+		damage[i] = 0xFF
+	}
+	_, err = file.WriteAt(damage, int64(3*pageSize))
+	require.NoError(t, err)
+	require.NoError(t, file.Close())
+	databaseBefore := sha256OfFile(t, crashedPath)
+	logBefore := sha256OfFile(t, crashedPath+"-wal")
+
+	db, err := ProvideSQLDB(&config.Config{DBType: "sqlite", DBName: crashedPath}, zap.NewNop().Sugar())
+	if db != nil {
+		t.Cleanup(func() { _ = db.Close() })
+	}
+
+	require.Error(t, err)
+	require.Nil(t, db)
+	require.ErrorContains(t, err, "is corrupt")
+	require.FileExists(t, crashedPath+"-wal", "the write-ahead log was deleted")
+	require.Equal(t, logBefore, sha256OfFile(t, crashedPath+"-wal"), "the write-ahead log was changed")
+	require.Equal(t, databaseBefore, sha256OfFile(t, crashedPath), "the database file was changed")
+}
+
 // A full integrity check reads the whole file at every start: about 30s for 1.5 GB, against 1.6s
 // for the quick check. A healthy database starts with the quick check only, and the log says it
 // passed.

@@ -25,7 +25,7 @@ Tree 2 page 4: btreeInitPage() returns error code 11
 Stop every Peekaping process that uses this database, and its container's restarts. Keep the original database file together with its -wal and -shm files; don't repair it in place. Restore a tested backup. Without one, salvage the data into a new database with sqlite3 .recover and run PRAGMA integrity_check on the result; recovered data can be missing, altered or resurrected. See https://docs.peekaping.com/self-hosting/sqlite-recovery
 ```
 
-- The first line says what stopped. Peekaping stops without changing the file.
+- The first line says what stopped. Peekaping stops without changing the file, and leaves the `-wal` and `-shm` files as they were.
 - Each finding gets a `quick_check:` line, up to 100 of them. SQLite reports the first finding as two lines, `*** in database main ***` and the finding, so the first `quick_check:` line continues on a second line. The findings above are an example. Yours name other pages or tables.
 - The last line is the procedure. The steps below are the same procedure in full.
 
