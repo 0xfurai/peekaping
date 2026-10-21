@@ -70,6 +70,19 @@ cp -a .data/mongodb .data/mongodb-backup
 
 With the [Docker Compose](#docker-compose) setup, ask with `docker compose exec database mongod --version`, and run `docker compose down` in its folder instead of the `docker stop` and `docker rename` lines. Then copy `.data/mongodb` the same way.
 
+If the data is in a named volume, such as `mongodb_data:/data/db` ([Persistent Data](#persistent-data)), and not in a folder, there is no `.data/mongodb` to copy. Find the name of the volume from the container, running or stopped (for Docker Compose, before `docker compose down`). It is on the line that ends in `/data/db`:
+
+```bash
+docker inspect -f '{{range .Mounts}}{{.Name}} {{.Destination}}{{"\n"}}{{end}}' peekaping
+```
+
+Then, with the container stopped, copy the contents of the volume into `.data/mongodb-backup` with a helper container, in place of the `cp` line. The rest of the steps use the copy as they are written:
+
+```bash
+mkdir -p .data/mongodb-backup
+docker run --rm -v <the volume>:/from:ro -v "$PWD/.data/mongodb-backup:/to" alpine cp -a /from/. /to/
+```
+
 ### 2. Start a MongoDB on the copy
 
 The import reads from a running MongoDB. Start one on the copy, on a Docker network of its own. Use the major version from step 1: a MongoDB can't open data that is more than one major version older than itself, or any that is newer, and the same version is the safe choice. `MONGO_VERSION=7` is the version of the bundle. This MongoDB asks for no login, and only containers on that network can reach it.
@@ -199,13 +212,20 @@ docker network rm peekaping-move
 
 For a PostgreSQL server you run yourself, such as the `database` service of the Docker Compose setup for PostgreSQL, set the `DB_*` variables to its database and run the import from the migrate image. The database must hold no users, monitors or history. Put the server on the `peekaping-move` network of step 2 with `docker network connect peekaping-move <its container>`, so that the migrate image reaches both it and the MongoDB:
 
+The server's password goes in a file that only you can read, not on the command line, so that it stays out of the shell history and out of `docker inspect`. The file is read as it is, so don't quote the values in it. Delete it when the import is done:
+
+```bash
+(umask 077; echo 'DB_PASS=<its password>' > postgres.env)
+chmod 600 postgres.env
+```
+
 ```bash
 docker run --rm --network peekaping-move \
+  --env-file postgres.env \
   -e DB_TYPE=postgres \
   -e DB_HOST=<its container's name> \
   -e DB_PORT=5432 \
   -e DB_USER=<its user> \
-  -e DB_PASS=<its password> \
   -e DB_NAME=<its database> \
   -e MONGO_URI=mongodb://peekaping-mongo:27017 \
   -e MONGO_DB=peekaping \
