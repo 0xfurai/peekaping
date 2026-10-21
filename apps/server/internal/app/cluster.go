@@ -11,6 +11,7 @@ import (
 	"peekaping/internal/modules/producer"
 	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/stale"
+	"peekaping/internal/modules/telemetry"
 	"peekaping/internal/modules/worker"
 	"peekaping/internal/utils"
 
@@ -79,8 +80,12 @@ func registerCluster(container *dig.Container, cfg *config.Config) error {
 		infra.ProvideAsynqClient,
 		infra.ProvideAsynqInspector,
 		infra.ProvideQueueService,
+		provideClusterMode,
 	)
 }
+
+// provideClusterMode tells the usage ping that this install runs in cluster mode
+func provideClusterMode() telemetry.Mode { return telemetry.ModeCluster }
 
 // provideClusterEventBus provides the Redis event bus with the notification topics sent through
 // the queue, as the events.EventBus every module publishes and subscribes on, and as the

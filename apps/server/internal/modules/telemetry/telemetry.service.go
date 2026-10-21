@@ -16,6 +16,7 @@ import (
 	"peekaping/internal/modules/status_page"
 	"peekaping/internal/version"
 
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -44,6 +45,13 @@ type Service interface {
 	// the one function behind both the ping and the preview in Settings. The instance ID is empty
 	// unless the admin has opted in.
 	BuildPayload(ctx context.Context) (Payload, error)
+	// State reports the admin's choice, whether the environment forces the ping off, and the
+	// payload the next ping would send.
+	State(ctx context.Context) (State, error)
+	// SetEnabled stores the admin's choice and returns the new state. Opting in creates the
+	// instance ID unless there is one; opting out deletes it and the time of the last ping. The
+	// choice is stored while the environment forces the ping off: the environment still wins.
+	SetEnabled(ctx context.Context, enabled bool) (State, error)
 }
 
 // listPageSize is how many records the payload reads from a module at a time
@@ -90,14 +98,82 @@ func NewService(
 }
 
 func (s *ServiceImpl) BuildPayload(ctx context.Context) (Payload, error) {
-	instanceID, err := s.optedInInstanceID(ctx)
+	enabled, err := s.storedEnabled(ctx)
 	if err != nil {
 		return Payload{}, err
+	}
+	return s.build(ctx, enabled)
+}
+
+func (s *ServiceImpl) State(ctx context.Context) (State, error) {
+	enabled, err := s.storedEnabled(ctx)
+	if err != nil {
+		return State{}, err
+	}
+	payload, err := s.build(ctx, enabled)
+	if err != nil {
+		return State{}, err
+	}
+	return State{Enabled: enabled, ForcedOff: s.cfg.TelemetryForcedOff(), Payload: payload}, nil
+}
+
+func (s *ServiceImpl) SetEnabled(ctx context.Context, enabled bool) (State, error) {
+	if enabled {
+		if err := s.optIn(ctx); err != nil {
+			return State{}, err
+		}
+	} else if err := s.optOut(ctx); err != nil {
+		return State{}, err
+	}
+	return s.State(ctx)
+}
+
+// optIn creates the instance ID, unless there is one, and then records the opt-in. The ID comes
+// first: the ping needs both, so a failure between the two sends nothing.
+func (s *ServiceImpl) optIn(ctx context.Context) error {
+	id, err := s.storedValue(ctx, InstanceIDKey)
+	if err != nil {
+		return err
+	}
+	if id == "" {
+		// A random UUID v4 in lower case, from nothing about the install
+		if _, err := s.settings.SetByKey(ctx, InstanceIDKey, &shared.SettingModel{Value: uuid.NewString(), Type: "string"}); err != nil {
+			return fmt.Errorf("store %s: %w", InstanceIDKey, err)
+		}
+	}
+	if _, err := s.settings.SetByKey(ctx, EnabledKey, &shared.SettingModel{Value: "true", Type: "bool"}); err != nil {
+		return fmt.Errorf("store %s: %w", EnabledKey, err)
+	}
+	return nil
+}
+
+// optOut deletes the instance ID and the time of the last ping, and then records the opt-out.
+// The ID goes first: the ping needs it, so a failure between the two sends nothing.
+func (s *ServiceImpl) optOut(ctx context.Context) error {
+	for _, key := range []string{InstanceIDKey, LastSentKey} {
+		if err := s.settings.DeleteByKey(ctx, key); err != nil {
+			return fmt.Errorf("delete %s: %w", key, err)
+		}
+	}
+	if _, err := s.settings.SetByKey(ctx, EnabledKey, &shared.SettingModel{Value: "false", Type: "bool"}); err != nil {
+		return fmt.Errorf("store %s: %w", EnabledKey, err)
+	}
+	return nil
+}
+
+// build builds the payload. It carries the instance ID only while the admin is opted in.
+func (s *ServiceImpl) build(ctx context.Context, optedIn bool) (Payload, error) {
+	instanceID := ""
+	if optedIn {
+		var err error
+		if instanceID, err = s.storedValue(ctx, InstanceIDKey); err != nil {
+			return Payload{}, err
+		}
 	}
 
 	monitorCount := 0
 	monitorTypes := map[string]struct{}{}
-	err = walkPages(ctx, func(ctx context.Context, page, limit int) ([]*monitor.Model, error) {
+	err := walkPages(ctx, func(ctx context.Context, page, limit int) ([]*monitor.Model, error) {
 		return s.monitors.FindAll(ctx, page, limit, "", nil, nil, nil)
 	}, func(m *monitor.Model) {
 		monitorCount++
@@ -141,15 +217,6 @@ func (s *ServiceImpl) BuildPayload(ctx context.Context) (Payload, error) {
 			Metrics:     s.cfg.MetricsEnabled,
 		},
 	}, nil
-}
-
-// optedInInstanceID returns the instance ID while the admin is opted in, and "" otherwise
-func (s *ServiceImpl) optedInInstanceID(ctx context.Context) (string, error) {
-	enabled, err := s.storedEnabled(ctx)
-	if err != nil || !enabled {
-		return "", err
-	}
-	return s.storedValue(ctx, InstanceIDKey)
 }
 
 // storedEnabled reports whether the admin has opted in

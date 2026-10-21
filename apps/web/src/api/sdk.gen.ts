@@ -219,6 +219,12 @@ import type {
   PutTagsByIdData,
   PutTagsByIdResponses,
   PutTagsByIdErrors,
+  GetTelemetryData,
+  GetTelemetryResponses,
+  GetTelemetryErrors,
+  PutTelemetryData,
+  PutTelemetryResponses,
+  PutTelemetryErrors,
   GetVersionData,
   GetVersionResponses,
   GetHealthRootData,
@@ -2144,6 +2150,66 @@ export const putTagsById = <ThrowOnError extends boolean = false>(
       },
     ],
     url: "/api/v1/tags/{id}",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * Get the usage ping state
+ * Whether an admin opted in to the anonymous usage ping, whether the TELEMETRY or DO_NOT_TRACK environment variable forces it off, and the exact payload the next ping would send.
+ */
+export const getTelemetry = <ThrowOnError extends boolean = false>(
+  options?: Options<GetTelemetryData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetTelemetryResponses,
+    GetTelemetryErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/telemetry",
+    ...options,
+  });
+};
+
+/**
+ * Opt in or out of the usage ping
+ * Opting in creates a new random instance ID unless there is one. Opting out deletes it, so opting in again gives a new one. The choice is stored while the environment forces the ping off, and the environment still wins.
+ */
+export const putTelemetry = <ThrowOnError extends boolean = false>(
+  options: Options<PutTelemetryData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).put<
+    PutTelemetryResponses,
+    PutTelemetryErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/telemetry",
     ...options,
     headers: {
       "Content-Type": "application/json",
