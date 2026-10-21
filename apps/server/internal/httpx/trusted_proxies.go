@@ -88,8 +88,11 @@ func (p *TrustedProxies) trusts(addr netip.Addr) bool {
 // is the rightmost X-Forwarded-For entry that isn't itself a trusted proxy: each proxy appends
 // the address it received the request from, so everything left of that entry was written by
 // the client or by someone further out than any proxy we trust. When every entry is a trusted
-// proxy, the client is the leftmost one. Without a usable X-Forwarded-For, the client is the
-// X-Real-IP, and without that, the proxy itself.
+// proxy, the client is the leftmost one. An X-Forwarded-For the walk can't resolve (an entry
+// that isn't a plain address, such as "1.2.3.4:5", "[::1]" or "unknown") makes the client the
+// proxy itself: X-Real-IP is no fallback then, since a proxy that doesn't set it passes on the
+// client's own. Only a request with no X-Forwarded-For header at all uses X-Real-IP, and
+// without that too, the client is the proxy.
 func (p *TrustedProxies) ClientIP(r *http.Request) string {
 	host, _, err := net.SplitHostPort(strings.TrimSpace(r.RemoteAddr))
 	if err != nil {
@@ -99,8 +102,11 @@ func (p *TrustedProxies) ClientIP(r *http.Request) string {
 	if err != nil || !p.trusts(peer) {
 		return host
 	}
-	if client, ok := p.forwardedClient(strings.Join(r.Header.Values("X-Forwarded-For"), ",")); ok {
-		return client.String()
+	if forwardedFor := r.Header.Values("X-Forwarded-For"); len(forwardedFor) > 0 {
+		if client, ok := p.forwardedClient(strings.Join(forwardedFor, ",")); ok {
+			return client.String()
+		}
+		return peer.String()
 	}
 	if client, err := parseAddr(r.Header.Get("X-Real-IP")); err == nil {
 		return client.String()

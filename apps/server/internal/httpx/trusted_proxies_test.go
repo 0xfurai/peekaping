@@ -58,12 +58,22 @@ func TestTrustedProxies_ClientIP(t *testing.T) {
 		{"a single address as a trusted entry", "192.0.2.1", "192.0.2.1:1234", []string{"198.51.100.7"}, "", "198.51.100.7"},
 		{"a single address doesn't trust its neighbour", "192.0.2.1", "192.0.2.2:1234", []string{"198.51.100.7"}, "", "192.0.2.2"},
 
-		// A trusted peer without a usable X-Forwarded-For: X-Real-IP, then the peer.
+		// A trusted peer with no X-Forwarded-For at all: X-Real-IP, then the peer.
 		{"trusted peer, no headers", trusted, "10.0.0.1:1234", nil, "", "10.0.0.1"},
 		{"trusted peer, X-Real-IP only", trusted, "10.0.0.1:1234", nil, "198.51.100.9", "198.51.100.9"},
 		{"trusted peer, X-Forwarded-For wins over X-Real-IP", trusted, "10.0.0.1:1234", []string{"198.51.100.7"}, "198.51.100.9", "198.51.100.7"},
-		{"trusted peer, X-Forwarded-For is garbage", trusted, "10.0.0.1:1234", []string{"garbage"}, "198.51.100.9", "198.51.100.9"},
-		{"trusted peer, a malformed entry before any client", trusted, "10.0.0.1:1234", []string{"198.51.100.7, , 10.0.0.2"}, "198.51.100.9", "198.51.100.9"},
+		{"trusted peer, X-Real-IP is garbage", trusted, "10.0.0.1:1234", nil, "garbage", "10.0.0.1"},
+
+		// A trusted peer whose X-Forwarded-For can't be resolved: the peer, never X-Real-IP, which the
+		// client may have sent itself when the proxy doesn't set it.
+		{"trusted peer, X-Forwarded-For is garbage", trusted, "10.0.0.1:1234", []string{"garbage"}, "9.9.9.9", "10.0.0.1"},
+		{"trusted peer, X-Forwarded-For has a port", trusted, "10.0.0.1:1234", []string{"1.2.3.4:5"}, "9.9.9.9", "10.0.0.1"},
+		{"trusted peer, X-Forwarded-For has a bracketed IPv6 address", trusted, "10.0.0.1:1234", []string{"[2001:db8::1]"}, "9.9.9.9", "10.0.0.1"},
+		{"trusted peer, X-Forwarded-For has a zone", trusted, "10.0.0.1:1234", []string{"fe80::1%eth0"}, "9.9.9.9", "10.0.0.1"},
+		{"trusted peer, X-Forwarded-For is unknown", trusted, "10.0.0.1:1234", []string{"unknown"}, "9.9.9.9", "10.0.0.1"},
+		{"trusted peer, X-Forwarded-For is empty", trusted, "10.0.0.1:1234", []string{""}, "9.9.9.9", "10.0.0.1"},
+		{"trusted peer, a malformed entry before any client", trusted, "10.0.0.1:1234", []string{"198.51.100.7, , 10.0.0.2"}, "9.9.9.9", "10.0.0.1"},
+		{"trusted peer, a trusted proxy's entry has a port", trusted, "10.0.0.1:1234", []string{"198.51.100.7, 10.0.0.2:80"}, "9.9.9.9", "10.0.0.1"},
 		{"trusted peer, both headers are garbage", trusted, "10.0.0.1:1234", []string{"garbage"}, "garbage", "10.0.0.1"},
 		{"trusted peer, X-Real-IP is a chain", trusted, "10.0.0.1:1234", nil, "198.51.100.9, 10.0.0.2", "10.0.0.1"},
 
