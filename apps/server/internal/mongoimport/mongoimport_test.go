@@ -33,6 +33,7 @@ func TestImport(t *testing.T) {
 
 		t.Run("accounts", func(t *testing.T) { checkAccounts(t, in, db, report) })
 		t.Run("configuration", func(t *testing.T) { checkConfiguration(t, in, db, report) })
+		t.Run("history", func(t *testing.T) { checkHistory(t, in, db, report) })
 	})
 }
 

@@ -81,6 +81,7 @@ func Seed(t *testing.T) *Install {
 
 	in.seedAccounts(t)
 	in.seedConfiguration(t)
+	in.seedHistory(t)
 	return in
 }
 

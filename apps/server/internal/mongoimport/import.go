@@ -241,6 +241,10 @@ func (c *copier) copyAll(ctx context.Context) error {
 		c.copyUsers, c.copySettings, c.copyAPIKeys,
 		c.copyProxies, c.copyMonitors, c.copyChannels, c.copyTags, c.copyMaintenance, c.copyStatusPages,
 		c.copyMonitorNotifications, c.copyMonitorTags, c.copyMonitorMaintenances, c.copyMonitorStatusPages, c.copyDomains,
+		c.copyTLSInfo, c.copySentHistory, c.copyHeartbeats,
+		func(ctx context.Context) error { return c.copyStats(ctx, "stat_minutely") },
+		func(ctx context.Context) error { return c.copyStats(ctx, "stat_hourly") },
+		func(ctx context.Context) error { return c.copyStats(ctx, "stat_daily") },
 	} {
 		if err := step(ctx); err != nil {
 			return err
