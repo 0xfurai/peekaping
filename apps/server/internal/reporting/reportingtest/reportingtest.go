@@ -10,7 +10,9 @@ import (
 
 	"peekaping/internal/reporting"
 
+	"github.com/alicebob/miniredis/v2"
 	"github.com/getsentry/sentry-go"
+	"github.com/hibiken/asynq"
 )
 
 // Recorder is a sentry.Transport that keeps the events it is given. Like the real transport it
@@ -53,6 +55,34 @@ func (r *Recorder) Sent() []*sentry.Event {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	return append([]*sentry.Event(nil), r.sent...)
+}
+
+// Wait returns the events once there are n of them, or fails the test after a few seconds.
+// For a panic that is reported from another goroutine.
+func (r *Recorder) Wait(t testing.TB, n int) []*sentry.Event {
+	t.Helper()
+	deadline := time.Now().Add(10 * time.Second)
+	for time.Now().Before(deadline) {
+		if events := r.Events(); len(events) >= n {
+			return events
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	t.Fatalf("expected %d reported events, got %d", n, len(r.Events()))
+	return nil
+}
+
+// NewAsynq returns an asynq server and client on an in-process Redis, for a test that runs a
+// task through the code that serves it. The server takes tasks from the default queue; a test
+// starts it with the mux of the code under test and stops it with server.Shutdown.
+func NewAsynq(t testing.TB) (*asynq.Server, *asynq.Client) {
+	t.Helper()
+	redis := miniredis.RunT(t)
+	opt := asynq.RedisClientOpt{Addr: redis.Addr()}
+	server := asynq.NewServer(opt, asynq.Config{Concurrency: 1, Queues: map[string]int{"default": 1}})
+	client := asynq.NewClient(opt)
+	t.Cleanup(func() { _ = client.Close() })
+	return server, client
 }
 
 // What Install sets reporting up with
