@@ -238,9 +238,17 @@ async function deleteMonitor(page: Page, monitorName: string) {
 }
 
 test.describe('Monitor CRUD Operations', () => {
-  test('HTTP monitor form starts without a Content-Type header', async ({ page }) => {
-    await page.goto('/monitors/new');
-    await expect(page.locator('[name="httpOptions.headers"]')).toHaveValue('');
+  test('HTTP monitor forms start without a Content-Type header', async ({ page }) => {
+    for (const type of [null, 'HTTP(s) - Keyword', 'HTTP(s) - Json Query']) {
+      await page.goto('/monitors/new');
+      if (type) {
+        const select = page.getByRole('combobox', { name: 'Type', exact: true });
+        await select.click();
+        await page.getByRole('option', { name: type, exact: true }).click();
+        await expect(select).toHaveText(type);
+      }
+      await expect(page.locator('[name="httpOptions.headers"]')).toHaveValue('');
+    }
   });
 
   for (const [type, form] of Object.entries(monitorForms)) {

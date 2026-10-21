@@ -1,5 +1,5 @@
 import { test, expect, type APIRequestContext, type Page } from '@playwright/test';
-import { adminAPI, deleteCreated, randomID } from './support/api';
+import { adminAPI, createHTTPMonitor, deleteCreated, randomID } from './support/api';
 import { receivedWebhooks, setTargetStatus, targetURL, webhookURL } from './support/fake-target';
 
 // Heartbeat statuses as the webhook body carries them.
@@ -49,6 +49,26 @@ test('An HTTP monitor goes Down, sends a webhook notification, and comes back Up
   } finally {
     const api = await adminAPI(page);
     for (const path of created.reverse()) await deleteCreated(api, path);
+    await api.dispose();
+  }
+});
+
+test('An HTTP monitor sends no Content-Type on a bodyless GET', async ({ page, request }) => {
+  test.setTimeout(120_000);
+  const id = randomID();
+  const monitorName = `No Content-Type ${id}`;
+  // This is the server from issue #395: a bodyless GET that carries
+  // Content-Type gets 400, so the monitor can only be Up if the header is gone.
+  await setTargetStatus(request, id, 200, { rejectContentType: true });
+
+  const api = await adminAPI(page);
+  const monitor = await createHTTPMonitor(api, monitorName, targetURL(id));
+  try {
+    await page.goto(`/monitors/${monitor.id}`);
+    const currentStatus = page.locator('[data-slot="card"]').filter({ hasText: 'Current status' }).locator('.text-2xl');
+    await expect(currentStatus).toHaveText('Up', nextCheck);
+  } finally {
+    await deleteCreated(api, `monitors/${monitor.id}`);
     await api.dispose();
   }
 });

@@ -736,6 +736,21 @@ func TestHTTPExecutor_Execute_ContentTypeFollowsTheBody(t *testing.T) {
 			encoding: "json",
 		},
 		{
+			name:     "bodyless POST sends none",
+			method:   "POST",
+			encoding: "json",
+		},
+		{
+			name:     "bodyless PUT with form encoding sends none",
+			method:   "PUT",
+			encoding: "form",
+		},
+		{
+			name:     "bodyless DELETE with xml encoding sends none",
+			method:   "DELETE",
+			encoding: "xml",
+		},
+		{
 			name:     "bodyless GET drops the legacy web default",
 			method:   "GET",
 			encoding: "json",
@@ -755,11 +770,25 @@ func TestHTTPExecutor_Execute_ContentTypeFollowsTheBody(t *testing.T) {
 			headers:  `{"Accept":"application/json"}`,
 		},
 		{
+			name:     "bodyless JSON GET with other headers sends no content type",
+			method:   "GET",
+			encoding: "json",
+			headers:  `{"Accept":"application/json","X-Trace":"1"}`,
+		},
+		{
 			name:            "body sends the encoding content type",
 			method:          "POST",
 			encoding:        "xml",
 			body:            "<root/>",
 			wantContentType: "application/xml",
+		},
+		{
+			name:            "body infers content type with other headers",
+			method:          "POST",
+			encoding:        "json",
+			body:            `{"key":"value"}`,
+			headers:         `{"Accept":"application/json"}`,
+			wantContentType: "application/json",
 		},
 		{
 			name:            "body keeps an explicit content type",
