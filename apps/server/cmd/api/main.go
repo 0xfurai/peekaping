@@ -23,6 +23,7 @@ import (
 	"peekaping/internal/modules/stats"
 	"peekaping/internal/modules/telemetry"
 	"peekaping/internal/reporting"
+	"peekaping/internal/reporting/redissync"
 	"peekaping/internal/utils"
 	"syscall"
 	"time"
@@ -32,7 +33,12 @@ import (
 	"go.uber.org/zap"
 )
 
+// errorReportingFlush is how long the shutdown waits for the error reports still queued
+const errorReportingFlush = 2 * time.Second
+
 func main() {
+	// A panic that ends the process is reported before it does, if the admin opted in
+	defer reporting.ReportCrash("main")
 
 	utils.RegisterCustomValidators()
 
@@ -52,6 +58,13 @@ func main() {
 	if err := app.RegisterClusterAPI(container, internalCfg); err != nil {
 		log.Fatalf("Failed to register API dependencies: %v", err)
 	}
+
+	// Error reports stay off until the admin's choice is applied below. The reports still queued
+	// go out as the process ends.
+	if err := app.SetupErrorReporting(container, internalCfg); err != nil {
+		log.Fatalf("Failed to set up error reporting: %v", err)
+	}
+	defer reporting.Flush(errorReportingFlush)
 
 	// Start cleanup cron job(s)
 	err = container.Invoke(func(
@@ -77,6 +90,18 @@ func main() {
 	})
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	// Apply the admin's choice from before the restart, which also copies it to Redis for the
+	// producer, the worker and the ingester. Then follow it like they do, so that a change made
+	// on another api replica reaches this one. A failure leaves error reports off.
+	if err := app.ApplyErrorReporting(context.Background(), container); err != nil {
+		log.Printf("Failed to apply the error reporting choice, leaving error reports off: %v", err)
+	}
+	errorReportingCtx, stopErrorReporting := context.WithCancel(context.Background())
+	defer stopErrorReporting()
+	if _, err := app.StartErrorReportingRefresher(errorReportingCtx, container, redissync.DefaultEvery); err != nil {
+		log.Fatalf("Failed to follow the error reporting choice: %v", err)
 	}
 
 	// Start the health check supervisor

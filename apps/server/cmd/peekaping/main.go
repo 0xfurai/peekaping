@@ -26,6 +26,7 @@ import (
 	"peekaping/internal/infra"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/cleanup"
+	"peekaping/internal/modules/error_reporting"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/metrics"
@@ -53,6 +54,9 @@ import (
 // readHeaderTimeout is how long a client has to send a request's headers
 const readHeaderTimeout = 10 * time.Second
 
+// errorReportingFlush is how long the shutdown waits for the error reports still queued
+const errorReportingFlush = 2 * time.Second
+
 // timeouts bound the steps of the shutdown. Each step has a share of its own, so that a step
 // that runs late doesn't take the time of the steps after it: the background jobs get theirs
 // however long the HTTP server took.
@@ -77,6 +81,9 @@ var shutdownTimeouts = timeouts{HTTP: 15 * time.Second, Jobs: 10 * time.Second, 
 var telemetrySchedule = telemetry.DefaultSchedule
 
 func main() {
+	// A panic that ends the process is reported before it does, if the admin opted in
+	defer reporting.ReportCrash("main")
+
 	utils.RegisterCustomValidators()
 
 	cfg, err := LoadAndValidate("../..")
@@ -160,6 +167,7 @@ type parts struct {
 	MonitorListener      *monitor.MonitorEventListener
 	Metrics              *metrics.Collector
 	UsagePing            *telemetry.Sender
+	ErrorReporting       error_reporting.Service
 }
 
 // run starts Peekaping and serves the API on the listener until ctx is done. Then it stops
@@ -172,13 +180,20 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 	}
 
 	container := dig.New()
-	if err := app.RegisterSingle(container, cfg.ToInternalConfig()); err != nil {
+	internalCfg := cfg.ToInternalConfig()
+	if err := app.RegisterSingle(container, internalCfg); err != nil {
 		return fmt.Errorf("failed to register dependencies: %w", err)
 	}
 	// Every module logs through the caller's logger
 	if err := container.Decorate(func() *zap.SugaredLogger { return logger }); err != nil {
 		return fmt.Errorf("failed to decorate the logger: %w", err)
 	}
+	// Error reports stay off until startJobs applies the admin's choice. The reports still queued
+	// go out as the process ends.
+	if err := app.SetupErrorReporting(container, internalCfg); err != nil {
+		return fmt.Errorf("failed to set up error reporting: %w", err)
+	}
+	defer reporting.Flush(errorReportingFlush)
 	var p parts
 	if err := container.Invoke(func(resolved parts) { p = resolved }); err != nil {
 		return fmt.Errorf("failed to build peekaping: %w", err)
@@ -258,6 +273,11 @@ type jobs struct {
 func startJobs(ctx context.Context, p parts, metricsEnabled bool, logger *zap.SugaredLogger) (*jobs, error) {
 	if err := p.Settings.InitializeSettings(ctx); err != nil {
 		return nil, fmt.Errorf("failed to initialize JWT settings: %w", err)
+	}
+
+	// The admin's choice from before the restart. A failure leaves error reports off.
+	if err := p.ErrorReporting.Apply(ctx); err != nil {
+		logger.Warnw("Failed to apply the error reporting choice, leaving error reports off", "error", err)
 	}
 
 	j := &jobs{scheduler: p.Scheduler}
