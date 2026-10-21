@@ -234,6 +234,8 @@ func TestBeforeSend_DropsAnEventWithoutAnException(t *testing.T) {
 }
 
 func TestCapturePanic_SendsNothingWhileOffForcedOffOrWithoutADSN(t *testing.T) {
+	// The SDK falls back to SENTRY_DSN when it is given no DSN, which is not a way around the rules
+	t.Setenv("SENTRY_DSN", "http://public@127.0.0.1:1/1")
 	value, stack := panicked(func() { explode("boom") })
 	for name, setup := range map[string]func(*reportingtest.Recorder){
 		"off": func(*reportingtest.Recorder) { reporting.SetEnabled(false) },
