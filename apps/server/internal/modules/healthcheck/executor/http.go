@@ -439,18 +439,20 @@ func setDefaultHeaders(req *http.Request) {
 	req.Header.Set("Accept", "*/*")
 }
 
-// isLegacyDefaultContentType reports whether headers are the singleton
+// isLegacyDefaultContentType reports whether headers are exactly the singleton
 // Content-Type: application/json header older web forms wrote on every HTTP
 // monitor. It doesn't describe a bodyless request, and some servers reject it,
 // so the executor drops it when there is no body (issue #395). Monitors with
-// any other content type, or with additional headers, keep their header.
+// any other content type, casing, whitespace, or additional headers keep their
+// header.
 func isLegacyDefaultContentType(headers map[string]string, body string) bool {
 	if body != "" || len(headers) != 1 {
 		return false
 	}
 	for key, value := range headers {
-		return strings.EqualFold(key, "Content-Type") &&
-			strings.EqualFold(strings.TrimSpace(value), "application/json")
+		if key == "Content-Type" && value == "application/json" {
+			return true
+		}
 	}
 	return false
 }

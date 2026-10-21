@@ -107,11 +107,7 @@ export const normalizeHttpHeaders = (
       return headers;
     }
     const [[key, value]] = entries;
-    if (
-      key.toLowerCase() === "content-type" &&
-      typeof value === "string" &&
-      value.trim().toLowerCase() === "application/json"
-    ) {
+    if (key === "Content-Type" && value === "application/json") {
       return "";
     }
   } catch {

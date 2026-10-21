@@ -764,6 +764,20 @@ func TestHTTPExecutor_Execute_ContentTypeFollowsTheBody(t *testing.T) {
 			wantContentType: "application/vnd.api+json",
 		},
 		{
+			name:            "bodyless GET keeps an explicitly cased content type",
+			method:          "GET",
+			encoding:        "json",
+			headers:         `{"content-type":"application/json"}`,
+			wantContentType: "application/json",
+		},
+		{
+			name:            "bodyless GET keeps an explicitly padded content type",
+			method:          "GET",
+			encoding:        "json",
+			headers:         `{"Content-Type":" application/json "}`,
+			wantContentType: "application/json",
+		},
+		{
 			name:     "bodyless GET with Accept sends no content type",
 			method:   "GET",
 			encoding: "text",
