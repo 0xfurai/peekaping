@@ -1,0 +1,73 @@
+name: Test MongoDB import
+
+# bun db import-mongo copies a MongoDB install into SQLite or PostgreSQL. Its tests
+# seed a real MongoDB through the Mongo repositories, import into both kinds of SQL
+# database and read the result back, so they need a MongoDB and a PostgreSQL server.
+# The Test and Lint workflow has neither, and those tests skip there.
+
+on:
+  pull_request:
+    paths:
+      - 'apps/server/**'
+      - '.github/workflows/test-import-mongo.yml'
+    branches: [ main, master ]
+  push:
+    paths:
+      - 'apps/server/**'
+      - '.github/workflows/test-import-mongo.yml'
+    branches: [ main, master ]
+
+jobs:
+  import-mongo:
+    runs-on: ubuntu-latest
+
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.runCommand({ping: 1})'"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: pg
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      PEE_TEST_MONGO_URI: mongodb://127.0.0.1:27017
+      PEE_TEST_POSTGRES_DSN: postgres://postgres:pg@127.0.0.1:5432/postgres?sslmode=disable
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.4'
+          cache-dependency-path: apps/server/go.sum
+
+      - name: Install dependencies
+        working-directory: apps/server
+        run: go mod download
+
+      - name: Run the import tests
+        working-directory: apps/server
+        run: |
+          # -count=1 so that a cached result never stands in for a run against the databases
+          go test -timeout 300s -count=1 -v ./internal/mongoimport/... ./cmd/bun/ | tee import-test.log
+          go test -timeout 300s -count=1 -v -run TestImportedMongoInstall ./internal/apitest/ | tee -a import-test.log
+          # These tests skip when they can't reach a database, which would leave this job green without running them
+          if grep -q -e '--- SKIP' import-test.log; then
+            echo 'A test skipped: the MongoDB or PostgreSQL service was not reachable'
+            exit 1
+          fi
