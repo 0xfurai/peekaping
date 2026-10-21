@@ -143,6 +143,12 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    environment:
+      # The api isn't published: only the gateway and the other services on this network reach
+      # it, all from private addresses. The gateway (nginx.conf) sets X-Forwarded-For to the
+      # client's address, and the api believes that header from these addresses only. Set
+      # TRUSTED_PROXIES in .env to change them.
+      TRUSTED_PROXIES: "${TRUSTED_PROXIES:-127.0.0.0/8,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7}"
     depends_on:
       database:
         condition: service_healthy
@@ -243,7 +249,7 @@ If you want to use Nginx as a reverse proxy, create this file:
 ```nginx
 events {}
 http {
-  upstream server  { server server:8034; }
+  upstream api  { server api:8034; }
   upstream web { server web:80; }
 
   server {
@@ -251,16 +257,19 @@ http {
 
     # Pure API calls
     location /api/ {
-      proxy_pass         http://server;
+      proxy_pass         http://api;
       proxy_set_header   Host $host;
       proxy_set_header   X-Real-IP $remote_addr;
+      # Replace the client's X-Forwarded-For: the api trusts this gateway's header
+      proxy_set_header   X-Forwarded-For $remote_addr;
     }
 
     # socket.io
     location /socket.io/ {
-      proxy_pass http://server;
+      proxy_pass http://api;
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $remote_addr;
       proxy_set_header Upgrade $http_upgrade;
       proxy_set_header Connection "upgrade";
     }
@@ -272,6 +281,8 @@ http {
   }
 }
 ```
+
+The gateway replaces the `X-Forwarded-For` header of every request with the client's address, and the `api` service believes that header from loopback and the private ranges (`TRUSTED_PROXIES` in the compose file), which cover the Docker network. Don't publish the `api` service's port: a connection to a published port reaches the container from the Docker network's gateway address, which that setting trusts, so a client could send its own `X-Forwarded-For`.
 
 
 

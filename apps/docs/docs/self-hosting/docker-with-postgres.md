@@ -81,7 +81,17 @@ status.example.com {
 
 Set `CLIENT_URL` to the address people open, such as `https://status.example.com`, so links in notifications point there.
 
-The login lockout reads the client's address from the `X-Forwarded-For` header. Have your proxy set that header to the address the request came from, replacing any value the client sent. Caddy does this by default. In nginx, use `proxy_set_header X-Forwarded-For $remote_addr;`, not `$proxy_add_x_forwarded_for`. Don't let clients reach port 8383 past the proxy, because they could send their own `X-Forwarded-For`.
+The login lockout counts failed logins per client address. A client can send any `X-Forwarded-For` header it likes, so Peekaping believes that header (and `X-Real-IP`) only on requests from an address listed in `TRUSTED_PROXIES`. The list is comma-separated IP addresses and CIDR ranges, and it is empty by default. Behind a reverse proxy, set it to the address the proxy connects from, as the container sees it, in your `.env` file or with `-e`:
+
+```
+TRUSTED_PROXIES=172.17.0.1
+```
+
+With Docker's default network and a proxy on the same host, that is usually the network's gateway address, which `docker network inspect bridge` shows as `Gateway`. The proxy must put the client's address last in `X-Forwarded-For`, by adding it or by replacing the header. Caddy, nginx and Traefik do. Peekaping takes the last address in the header that isn't in `TRUSTED_PROXIES`, so addresses a client adds to the left don't count. List only proxies you run, because a listed address can claim to be anyone. A request from any other address, including one that reaches port 8383 past your proxy, counts as coming from the address it connected from.
+
+With `TRUSTED_PROXIES` empty behind a proxy, every login counts as coming from the proxy, so one person's failed logins can lock an account for everyone.
+
+Whatever you set, Peekaping also locks an account after `BRUTEFORCE_ACCOUNT_MAX_ATTEMPTS` failed logins (100 by default) within `BRUTEFORCE_ACCOUNT_WINDOW` (10 minutes), from any addresses, for `BRUTEFORCE_ACCOUNT_LOCKOUT` (1 minute). [API Server](../architecture/api-server.md#security-configuration) lists the lockout settings.
 
 ### Upgrading from a bundle with Redis and Caddy
 
@@ -207,6 +217,12 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    environment:
+      # The api isn't published: only the gateway and the other services on this network reach
+      # it, all from private addresses. The gateway (nginx.conf) sets X-Forwarded-For to the
+      # client's address, and the api believes that header from these addresses only. Set
+      # TRUSTED_PROXIES in .env to change them.
+      TRUSTED_PROXIES: "${TRUSTED_PROXIES:-127.0.0.0/8,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7}"
     depends_on:
       database:
         condition: service_healthy
@@ -306,7 +322,7 @@ If you want to use Nginx as a reverse proxy, create this file:
 ```nginx
 events {}
 http {
-  upstream server  { server server:8034; }
+  upstream api  { server api:8034; }
   upstream web { server web:80; }
 
   server {
@@ -314,16 +330,19 @@ http {
 
     # Pure API calls
     location /api/ {
-      proxy_pass         http://server;
+      proxy_pass         http://api;
       proxy_set_header   Host $host;
       proxy_set_header   X-Real-IP $remote_addr;
+      # Replace the client's X-Forwarded-For: the api trusts this gateway's header
+      proxy_set_header   X-Forwarded-For $remote_addr;
     }
 
     # socket.io
     location /socket.io/ {
-      proxy_pass http://server;
+      proxy_pass http://api;
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $remote_addr;
       proxy_set_header Upgrade $http_upgrade;
       proxy_set_header Connection "upgrade";
     }
@@ -335,6 +354,8 @@ http {
   }
 }
 ```
+
+The gateway replaces the `X-Forwarded-For` header of every request with the client's address, and the `api` service believes that header from loopback and the private ranges (`TRUSTED_PROXIES` in the compose file), which cover the Docker network. Don't publish the `api` service's port: a connection to a published port reaches the container from the Docker network's gateway address, which that setting trusts, so a client could send its own `X-Forwarded-For`.
 
 
 

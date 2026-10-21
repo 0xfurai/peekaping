@@ -93,9 +93,13 @@ These are required in cluster mode, where the API reaches the producer, worker a
 
 | Variable | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|
-| `BRUTEFORCE_MAX_ATTEMPTS` | int | No | `20` | Maximum login attempts before lockout |
+| `BRUTEFORCE_MAX_ATTEMPTS` | int | No | `20` | Maximum failed logins for one client address and email before lockout |
 | `BRUTEFORCE_WINDOW` | duration | No | `1m` | Time window for counting failed attempts |
 | `BRUTEFORCE_LOCKOUT` | duration | No | `1m` | Lockout duration after max attempts |
+| `BRUTEFORCE_ACCOUNT_MAX_ATTEMPTS` | int | No | `100` | Maximum failed logins for one account, from any addresses, before it is locked. A successful login resets this count and the one above |
+| `BRUTEFORCE_ACCOUNT_WINDOW` | duration | No | `10m` | Time window for counting an account's failed logins |
+| `BRUTEFORCE_ACCOUNT_LOCKOUT` | duration | No | `1m` | How long an account stays locked. It is short, so that someone who fails on purpose can't keep the account's owner out for long |
+| `TRUSTED_PROXIES` | string | No | empty | Comma-separated IP addresses and CIDR ranges of the proxies whose `X-Forwarded-For` and `X-Real-IP` headers are believed, such as `127.0.0.1,10.0.0.0/8`. The login lockout counts failures per client address. A request from any other address counts as coming from the address it connected from. Behind a proxy, the client is the last `X-Forwarded-For` address that isn't listed here. An invalid entry stops startup |
 
 ### Metrics Configuration
 
