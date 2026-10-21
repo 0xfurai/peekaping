@@ -55,6 +55,7 @@ func (ic *Controller) Create(ctx context.Context, input *CreateInput) (*httpx.Ou
 		ic.logger.Errorw("Invalid request body", "error", err)
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
 	}
+	notification_channel.ApplyCreateDefaults()
 
 	if err := utils.Validate.Struct(notification_channel); err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))

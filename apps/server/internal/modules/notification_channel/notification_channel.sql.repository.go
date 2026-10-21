@@ -14,7 +14,7 @@ type sqlModel struct {
 	ID        string    `bun:"id,pk"`
 	Name      string    `bun:"name,notnull"`
 	Type      string    `bun:"type,notnull"`
-	Active    bool      `bun:"active,notnull,default:true"`
+	Active    bool      `bun:"active,notnull"` // no Bun default: it would replace false with the column default
 	IsDefault bool      `bun:"is_default,notnull,default:false"`
 	Config    *string   `bun:"config"`
 	CreatedAt time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp"`

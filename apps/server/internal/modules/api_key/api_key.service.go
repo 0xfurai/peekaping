@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"peekaping/internal/legacyid"
 	"time"
 
 	"go.uber.org/zap"
@@ -151,8 +152,8 @@ func (s *ServiceImpl) ValidateKey(ctx context.Context, key string) (*Model, erro
 		return nil, errors.New("invalid API key")
 	}
 
-	// Find the API key by ID (single database query)
-	apiKey, err := s.repo.FindByID(ctx, apiKeyID)
+	// Find the API key by the ID in the token
+	apiKey, err := s.findForToken(ctx, apiKeyID)
 	if err != nil {
 		s.logger.Errorw("Error finding API key by ID", "apiKeyId", apiKeyID, "error", err)
 		return nil, err
@@ -191,6 +192,29 @@ func (s *ServiceImpl) ValidateKey(ctx context.Context, key string) (*Model, erro
 
 	s.logger.Infow("API key validation successful", "apiKeyId", apiKey.ID, "name", apiKey.Name)
 	return apiKey, nil
+}
+
+// MARK: findForToken
+// findForToken finds the key that a token's ID names. A MongoDB install that
+// was imported into SQL ("bun db import-mongo") keeps its tokens, which carry
+// the key's ObjectID, while the key's row has the UUID that ObjectID maps to.
+// So a 24-hex ID that finds nothing is looked up again under its UUID. Only a
+// token can name an ObjectID here, so the retry is limited to this lookup.
+func (s *ServiceImpl) findForToken(ctx context.Context, id string) (*Model, error) {
+	apiKey, err := s.repo.FindByID(ctx, id)
+	if err == nil && apiKey != nil {
+		return apiKey, nil
+	}
+	// The first lookup may have failed instead of finding nothing: PostgreSQL
+	// rejects an ObjectID as a UUID, and a MongoDB install rejects the UUID below.
+	mapped, ok := legacyid.FromObjectID(id)
+	if !ok {
+		return apiKey, err
+	}
+	if found, mappedErr := s.repo.FindByID(ctx, mapped); mappedErr == nil && found != nil {
+		return found, nil
+	}
+	return apiKey, err
 }
 
 // MARK: generateAPIKey

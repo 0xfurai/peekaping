@@ -163,7 +163,7 @@ Used for programmatic API access.
 
 ## Health Check
 
-The API server exposes a health check endpoint:
+The API server exposes a health check endpoint. It needs no credentials:
 
 ```http
 GET /api/v1/health
@@ -172,10 +172,17 @@ GET /api/v1/health
 Response:
 ```json
 {
-  "status": "ok",
-  "timestamp": "2024-01-01T00:00:00Z"
+  "status": "success",
+  "stale_monitors": 0,
+  "watchdog_ran_at": "2026-10-19T12:00:42.318Z"
 }
 ```
+
+- `status` is always `success`. The endpoint answers `200` whenever the API server is up, so a Docker healthcheck on it only tells you that the API server is running.
+- `stale_monitors` is how many active monitors Peekaping has stopped checking. It is `null` if the API server can't read the count, in cluster mode when it can't reach Redis.
+- `watchdog_ran_at` is when the watchdog last ran. The watchdog looks for stale monitors every minute. It is `null` until the watchdog has run once, and also when the API server can't read it.
+
+To be told when monitors stop being checked, alert on a `stale_monitors` above `0`, or on a `watchdog_ran_at` that is more than a few minutes old.
 
 ## Prometheus Metrics
 

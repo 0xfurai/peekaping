@@ -38,6 +38,45 @@ func TestNotificationChannelsAPI_ManagesChannel(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, a.request(t, http.MethodGet, path, nil, a.asAdmin).Code)
 }
 
+func TestNotificationChannelsAPI_CreatesInactiveChannel(t *testing.T) {
+	a := newAppWithAdmin(t)
+	body := with(webhookChannelBody("Inactive webhook"), "active", false)
+
+	created := decode[channelResponse](t, a.request(t, http.MethodPost, "/api/v1/notification-channels", body, a.asAdmin), http.StatusCreated)
+	assert.False(t, created.Active)
+
+	got := decode[channelResponse](t, a.request(t, http.MethodGet, "/api/v1/notification-channels/"+created.ID, nil, a.asAdmin), http.StatusOK)
+	assert.False(t, got.Active)
+}
+
+func TestNotificationChannelsAPI_DefaultsChannelToActiveWhenActiveOmitted(t *testing.T) {
+	a := newAppWithAdmin(t)
+	body := webhookChannelBody("Default webhook")
+	delete(body, "active")
+
+	created := decode[channelResponse](t, a.request(t, http.MethodPost, "/api/v1/notification-channels", body, a.asAdmin), http.StatusCreated)
+	assert.True(t, created.Active)
+
+	got := decode[channelResponse](t, a.request(t, http.MethodGet, "/api/v1/notification-channels/"+created.ID, nil, a.asAdmin), http.StatusOK)
+	assert.True(t, got.Active)
+}
+
+func TestNotificationChannelsAPI_UpdateFullDoesNotEnableInactiveChannelWhenActiveOmitted(t *testing.T) {
+	a := newAppWithAdmin(t)
+	createBody := webhookChannelBody("Inactive webhook")
+	createBody["active"] = false
+	created := decode[channelResponse](t, a.request(t, http.MethodPost, "/api/v1/notification-channels", createBody, a.asAdmin), http.StatusCreated)
+	require.False(t, created.Active)
+
+	updateBody := webhookChannelBody("Inactive webhook")
+	delete(updateBody, "active")
+	updated := decode[channelResponse](t, a.request(t, http.MethodPut, "/api/v1/notification-channels/"+created.ID, updateBody, a.asAdmin), http.StatusOK)
+	assert.False(t, updated.Active)
+
+	got := decode[channelResponse](t, a.request(t, http.MethodGet, "/api/v1/notification-channels/"+created.ID, nil, a.asAdmin), http.StatusOK)
+	assert.False(t, got.Active)
+}
+
 func TestNotificationChannelsAPI_RejectsInvalidInput(t *testing.T) {
 	a := newAppWithAdmin(t)
 	id := decode[created](t, a.request(t, http.MethodPost, "/api/v1/notification-channels", webhookChannelBody("On-call webhook"), a.asAdmin), http.StatusCreated).ID

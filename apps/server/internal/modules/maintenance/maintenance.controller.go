@@ -61,6 +61,7 @@ func (ic *Controller) Create(ctx context.Context, input *CreateInput) (*httpx.Ou
 	if err := decodeErr; err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
+	entity.ApplyCreateDefaults()
 
 	if err := utils.Validate.Struct(entity); err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))

@@ -21,4 +21,7 @@ func TestWarnMongoDeprecated(t *testing.T) {
 	require.Equal(t, zapcore.WarnLevel, entries[0].Level)
 	require.Contains(t, entries[0].Message, "MongoDB storage is deprecated")
 	require.Contains(t, entries[0].Message, "https://docs.peekaping.com/self-hosting/docker-with-mongo")
+	// and how to move off it, now that the command exists
+	require.Contains(t, entries[0].Message, "bun db import-mongo")
+	require.NotContains(t, entries[0].Message, "will ship")
 }

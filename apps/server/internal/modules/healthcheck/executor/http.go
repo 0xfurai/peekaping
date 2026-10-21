@@ -439,6 +439,24 @@ func setDefaultHeaders(req *http.Request) {
 	req.Header.Set("Accept", "*/*")
 }
 
+// isLegacyDefaultContentType reports whether headers are exactly the singleton
+// Content-Type: application/json header older web forms wrote on every HTTP
+// monitor. It doesn't describe a bodyless request, and some servers reject it,
+// so the executor drops it when there is no body (issue #395). Monitors with
+// any other content type, casing, whitespace, or additional headers keep their
+// header.
+func isLegacyDefaultContentType(headers map[string]string, body string) bool {
+	if body != "" || len(headers) != 1 {
+		return false
+	}
+	for key, value := range headers {
+		if key == "Content-Type" && value == "application/json" {
+			return true
+		}
+	}
+	return false
+}
+
 func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
 	cfgAny, err := h.Unmarshal(m.Config)
 	if err != nil {
@@ -465,7 +483,11 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		if err != nil {
 			return DownResult(fmt.Errorf("invalid headers json: %w", err), time.Now().UTC(), time.Now().UTC())
 		}
+		dropLegacyContentType := isLegacyDefaultContentType(headersMap, cfg.Body)
 		for k, v := range headersMap {
+			if dropLegacyContentType && strings.EqualFold(k, "Content-Type") {
+				continue
+			}
 			req.Header.Set(k, v)
 		}
 	}
@@ -484,15 +506,21 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		return nil
 	}
 
-	switch cfg.Encoding {
-	case "json":
-		req.Header.Set("Content-Type", "application/json")
-	case "form":
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	case "xml":
-		req.Header.Set("Content-Type", "application/xml")
-	case "text":
-		req.Header.Set("Content-Type", "text/plain")
+	// Content-Type describes the request body, so only infer it when one is
+	// sent. A Content-Type from the configured headers always wins.
+	if cfg.Body != "" {
+		if _, hasContentType := req.Header["Content-Type"]; !hasContentType {
+			switch cfg.Encoding {
+			case "json":
+				req.Header.Set("Content-Type", "application/json")
+			case "form":
+				req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			case "xml":
+				req.Header.Set("Content-Type", "application/xml")
+			case "text":
+				req.Header.Set("Content-Type", "text/plain")
+			}
+		}
 	}
 
 	// --- PROXY LOGIC ---

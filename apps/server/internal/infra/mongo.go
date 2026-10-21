@@ -48,8 +48,8 @@ const mongoDeprecationDocsURL = "https://docs.peekaping.com/self-hosting/docker-
 // each logs it once at startup.
 func warnMongoDeprecated(logger *zap.SugaredLogger) {
 	logger.Warnf("MongoDB storage is deprecated. DB_TYPE=mongo keeps working but gets no new features, "+
-		"and it will be removed in a future release. A command to move your data to SQLite or PostgreSQL "+
-		"will ship before removal. See %s.", mongoDeprecationDocsURL)
+		"and it will be removed in a future release. Move your data to SQLite or PostgreSQL with "+
+		"`bun db import-mongo`. See %s.", mongoDeprecationDocsURL)
 }
 
 func ProvideMongoDB(

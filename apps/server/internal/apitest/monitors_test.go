@@ -51,6 +51,45 @@ func TestMonitorsAPI_ManagesMonitor(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, a.request(t, http.MethodGet, path, nil, a.asAdmin).Code)
 }
 
+func TestMonitorsAPI_CreatesPausedMonitor(t *testing.T) {
+	a := newAppWithAdmin(t)
+	body := with(pushMonitorBody("Paused monitor", "paused-monitor-token"), "active", false)
+
+	created := decode[monitorResponse](t, a.request(t, http.MethodPost, "/api/v1/monitors", body, a.asAdmin), http.StatusCreated)
+	assert.False(t, created.Active)
+
+	got := decode[monitorResponse](t, a.request(t, http.MethodGet, "/api/v1/monitors/"+created.ID, nil, a.asAdmin), http.StatusOK)
+	assert.False(t, got.Active)
+}
+
+func TestMonitorsAPI_DefaultsMonitorToActiveWhenActiveOmitted(t *testing.T) {
+	a := newAppWithAdmin(t)
+	body := pushMonitorBody("Default monitor", "default-monitor-token")
+	delete(body, "active")
+
+	created := decode[monitorResponse](t, a.request(t, http.MethodPost, "/api/v1/monitors", body, a.asAdmin), http.StatusCreated)
+	assert.True(t, created.Active)
+
+	got := decode[monitorResponse](t, a.request(t, http.MethodGet, "/api/v1/monitors/"+created.ID, nil, a.asAdmin), http.StatusOK)
+	assert.True(t, got.Active)
+}
+
+func TestMonitorsAPI_UpdateFullDoesNotEnablePausedMonitorWhenActiveOmitted(t *testing.T) {
+	a := newAppWithAdmin(t)
+	createBody := pushMonitorBody("Paused monitor", "paused-monitor-token")
+	createBody["active"] = false
+	created := decode[monitorResponse](t, a.request(t, http.MethodPost, "/api/v1/monitors", createBody, a.asAdmin), http.StatusCreated)
+	require.False(t, created.Active)
+
+	updateBody := pushMonitorBody("Paused monitor", "paused-monitor-token")
+	delete(updateBody, "active")
+	updated := decode[monitorResponse](t, a.request(t, http.MethodPut, "/api/v1/monitors/"+created.ID, updateBody, a.asAdmin), http.StatusOK)
+	assert.False(t, updated.Active)
+
+	got := decode[monitorResponse](t, a.request(t, http.MethodGet, "/api/v1/monitors/"+created.ID, nil, a.asAdmin), http.StatusOK)
+	assert.False(t, got.Active)
+}
+
 func TestMonitorsAPI_RejectsInvalidInput(t *testing.T) {
 	a := newAppWithAdmin(t)
 	id := a.createMonitor(t, "Checkout", "checkout-push-token")

@@ -27,6 +27,8 @@ If you need to run migrations manually outside of Docker:
    ./bun db migrate
    ```
 
+   On PostgreSQL, a migrate that starts while another one runs waits for it, up to 10 minutes. Change that with `./bun db migrate --lock-timeout 30m` or `MIGRATE_LOCK_TIMEOUT=30m`. A migrate that is killed doesn't block the next one. See [Migrate](apps/docs/docs/architecture/migrate.md#migration-locking).
+
 3. **Check migration status**:
    ```bash
    ./bun db status
@@ -36,6 +38,12 @@ If you need to run migrations manually outside of Docker:
    ```bash
    ./bun db rollback
    ```
+
+5. **Import a MongoDB install** into a SQLite or PostgreSQL database that holds no data of its own, which `DB_TYPE` and the other `DB_*` variables name:
+   ```bash
+   ./bun db import-mongo --mongo-uri mongodb://localhost:27017 --mongo-db peekaping
+   ```
+   It applies the migrations first, then copies the data in one transaction, and refuses a database that holds users, monitors or history. It replaces the default settings of a first start with the install's. See [Move to SQLite or PostgreSQL](apps/docs/docs/self-hosting/docker-with-mongo.md#move-to-sqlite-or-postgresql) for the steps and what is copied.
 
 ### Creating New Migrations
 

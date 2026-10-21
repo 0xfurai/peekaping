@@ -31,6 +31,8 @@ You run it in one of two ways:
 - On Kubernetes, with the Helm chart. See [Kubernetes (Helm)](./kubernetes-helm.md).
 - With Docker Compose, one container per role. See the Cluster mode section of [Docker + PostgreSQL](./docker-with-postgres.md#cluster-mode) or [Docker + SQLite](./docker-with-sqlite.md#cluster-mode).
 
+The cluster images run as a non-root user. See [Cluster user and permissions](./cluster-user.md).
+
 The MongoDB bundle image also runs cluster mode, with all the processes in one container. MongoDB storage is deprecated, so new installs shouldn't use it. See [Docker + MongoDB](./docker-with-mongo.md).
 
 ## What each mode runs

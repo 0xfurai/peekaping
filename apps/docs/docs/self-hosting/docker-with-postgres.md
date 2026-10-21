@@ -9,6 +9,8 @@ Peekaping runs in one of two modes. See [Deployment modes](./deployment-modes.md
 - **[Single mode](#single-mode)**: one container runs one Peekaping process, `peekaping`, beside its own PostgreSQL, with no Redis. Start here.
 - **[Cluster mode](#cluster-mode)**: the API, producer, worker and ingester run in separate containers and talk through Redis. Use it when one process isn't enough, for example to run several workers.
 
+Coming from MongoDB? [Move to SQLite or PostgreSQL](./docker-with-mongo.md#move-to-sqlite-or-postgresql) copies your install, with its history, into a new PostgreSQL database.
+
 ## Single mode
 
 The `peekaping-bundle-postgres` image runs Peekaping in single mode, beside PostgreSQL 17 in the same container. One process, `peekaping`, serves the web app, the API and the websocket on port 8383. PostgreSQL keeps its data in `/var/lib/postgresql/data`, so keep that on a volume.
@@ -113,6 +115,8 @@ If you run a bundle from 0.0.44 to 0.0.47, which ran Redis and Caddy inside the 
 
 In cluster mode, the API, producer, worker and ingester run in separate containers and talk through Redis. An nginx gateway serves the web app and the API on port 8383.
 
+The images run as a non-root user. See [Cluster user and permissions](./cluster-user.md) for what Docker monitors and ping monitors need.
+
 ### Prerequisites
 
 - Docker Compose 2.0+
@@ -172,6 +176,7 @@ JWT settings (access/refresh token expiration times and secret keys) are now aut
 
 Create a `docker-compose.yml` file:
 
+<!-- snippet: docker-compose.prod.postgres.yml -->
 ```yaml
 networks:
   appnet:
@@ -240,6 +245,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     networks:
       - appnet
     healthcheck:
@@ -263,6 +270,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     networks:
       - appnet
 
@@ -287,6 +296,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     networks:
       - appnet
 
@@ -331,6 +342,7 @@ services:
 
 If you want to use Nginx as a reverse proxy, create this file:
 
+<!-- snippet: nginx.conf -->
 ```nginx
 events {}
 http {
@@ -397,10 +409,20 @@ Once all containers are running:
 
 ## Docker Images
 
-Peekaping provides official Docker images:
+Peekaping provides official Docker images.
 
-- **Server**: [`0xfurai/peekaping-server`](https://hub.docker.com/r/0xfurai/peekaping-server)
+Single mode:
+
+- **Bundle**: [`0xfurai/peekaping-bundle-postgres`](https://hub.docker.com/r/0xfurai/peekaping-bundle-postgres)
+
+Cluster mode:
+
+- **API**: [`0xfurai/peekaping-api`](https://hub.docker.com/r/0xfurai/peekaping-api)
+- **Producer**: [`0xfurai/peekaping-producer`](https://hub.docker.com/r/0xfurai/peekaping-producer)
+- **Worker**: [`0xfurai/peekaping-worker`](https://hub.docker.com/r/0xfurai/peekaping-worker)
+- **Ingester**: [`0xfurai/peekaping-ingester`](https://hub.docker.com/r/0xfurai/peekaping-ingester)
 - **Web**: [`0xfurai/peekaping-web`](https://hub.docker.com/r/0xfurai/peekaping-web)
+- **Migrate**: [`0xfurai/peekaping-migrate`](https://hub.docker.com/r/0xfurai/peekaping-migrate), which applies the database migrations
 
 ### Image Tags
 

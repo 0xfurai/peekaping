@@ -268,6 +268,19 @@ worker:
 
 Kubernetes allows this sysctl as a safe one, so it needs no `NET_RAW` capability and no change to the cluster. Set `worker.sysctls` to `[]` to leave the node's default. See [Ping Monitors and ICMP Permissions](../architecture/worker.md#ping-monitors-and-icmp-permissions).
 
+## Web pods and port 80
+
+The web image runs nginx as a non-root user, which Linux lets bind port 80 only if the pod's `net.ipv4.ip_unprivileged_port_start` sysctl is 0. Some container runtimes set it by default and some don't, so the chart sets it on the web pods through `web.sysctls`:
+
+```yaml
+web:
+  sysctls:
+    - name: net.ipv4.ip_unprivileged_port_start
+      value: "0"
+```
+
+Kubernetes allows this sysctl as a safe one, so it needs no change to the cluster. Set `web.sysctls` to `[]` to leave the node's default, for example if your policy forbids pod sysctls and your nodes already allow port 80. With a read-only root filesystem, the web pods mount an `emptyDir` at `/tmp`, where nginx keeps its process ID file and temporary files, and one at `/usr/share/nginx/html`, where the container writes `env.js` at start. See [Cluster user and permissions](./cluster-user.md).
+
 ## Metrics
 
 Peekaping can serve Prometheus metrics at `/metrics` on the API's port. Set `METRICS_ENABLED` in `config.env`:
