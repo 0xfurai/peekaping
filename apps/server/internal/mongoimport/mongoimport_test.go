@@ -29,7 +29,7 @@ import (
 func TestImport(t *testing.T) {
 	in := mongoimporttest.Seed(t)
 	forEachTarget(t, func(t *testing.T, db *bun.DB) {
-		report, err := mongoimport.Run(context.Background(), db, mongoimport.Options{MongoURI: in.URI, MongoDatabase: in.Database})
+		report, err := mongoimport.Run(context.Background(), db, in.Options())
 		require.NoError(t, err)
 		t.Log("\n" + report.String())
 
@@ -226,7 +226,7 @@ func tableCounts(t *testing.T, db *bun.DB, tables ...string) map[string]int {
 func TestImportRefusesATargetThatHoldsData(t *testing.T) {
 	in := mongoimporttest.Seed(t)
 	ctx := context.Background()
-	opts := mongoimport.Options{MongoURI: in.URI, MongoDatabase: in.Database}
+	opts := in.Options()
 	tables := []string{"users", "settings", "api_keys"}
 
 	t.Run("an imported install", func(t *testing.T) {

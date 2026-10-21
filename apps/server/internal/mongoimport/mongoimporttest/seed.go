@@ -9,12 +9,16 @@ import (
 	"testing"
 	"time"
 
+	"peekaping/cmd/bun/migrations"
 	"peekaping/internal/config"
 	"peekaping/internal/modules/api_key"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/setting"
+	"peekaping/internal/mongoimport"
 
 	"github.com/stretchr/testify/require"
+	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/migrate"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -90,6 +94,23 @@ func Empty(t *testing.T) *Install {
 		require.NoError(t, client.Disconnect(context.Background()))
 	})
 	return in
+}
+
+// Options are the import options for the install, with a migrate that takes no lock: a test
+// runs one migrate at a time, where "bun db import-mongo" takes the lock of "bun db migrate".
+func (in *Install) Options() mongoimport.Options {
+	return mongoimport.Options{
+		MongoURI:      in.URI,
+		MongoDatabase: in.Database,
+		Migrate: func(ctx context.Context, db *bun.DB) error {
+			migrator := migrate.NewMigrator(db, migrations.Migrations, migrate.WithMarkAppliedOnSuccess(true))
+			if err := migrator.Init(ctx); err != nil {
+				return err
+			}
+			_, err := migrator.Migrate(ctx)
+			return err
+		},
+	}
 }
 
 // Collection is a collection of the install, for the raw documents that no repository writes.

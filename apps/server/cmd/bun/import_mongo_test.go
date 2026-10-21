@@ -17,7 +17,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func runBun(args ...string) error {
+func runImportMongo(args ...string) error {
 	app := &cli.App{Name: "bun", Commands: []*cli.Command{newDBCommand()}}
 	return app.Run(append([]string{"bun", "db", "import-mongo"}, args...))
 }
@@ -28,7 +28,7 @@ func TestImportMongoCommandCopiesIntoTheDatabaseTheEnvironmentNames(t *testing.T
 	t.Setenv("DB_TYPE", "sqlite")
 	t.Setenv("DB_NAME", path)
 
-	require.NoError(t, runBun("--mongo-uri", in.URI, "--mongo-db", in.Database))
+	require.NoError(t, runImportMongo("--mongo-uri", in.URI, "--mongo-db", in.Database))
 
 	sqlDB, err := sql.Open(sqliteshim.ShimName, path)
 	require.NoError(t, err)
@@ -41,7 +41,7 @@ func TestImportMongoCommandCopiesIntoTheDatabaseTheEnvironmentNames(t *testing.T
 	}
 
 	// The database is no longer empty, so a second run changes nothing and says why
-	err = runBun("--mongo-uri", in.URI, "--mongo-db", in.Database)
+	err = runImportMongo("--mongo-uri", in.URI, "--mongo-db", in.Database)
 	assert.ErrorIs(t, err, mongoimport.ErrTargetNotEmpty)
 }
 
@@ -49,7 +49,7 @@ func TestImportMongoCommandTakesTheDatabaseFromTheURI(t *testing.T) {
 	in := mongoimporttest.Seed(t)
 	t.Setenv("DB_TYPE", "sqlite")
 	t.Setenv("DB_NAME", filepath.Join(t.TempDir(), "peekaping.db"))
-	require.NoError(t, runBun("--mongo-uri", in.URI+"/"+in.Database))
+	require.NoError(t, runImportMongo("--mongo-uri", in.URI+"/"+in.Database))
 }
 
 // The URI may carry the password of the MongoDB, so it can come from the environment
@@ -61,21 +61,21 @@ func TestImportMongoCommandReadsTheMongoSettingsFromTheEnvironment(t *testing.T)
 	t.Setenv("DB_NAME", filepath.Join(t.TempDir(), "peekaping.db"))
 	t.Setenv("MONGO_URI", in.URI)
 	t.Setenv("MONGO_DB", in.Database)
-	require.NoError(t, runBun())
+	require.NoError(t, runImportMongo())
 
 	// --mongo-db wins over the database in the URI, so a database with no install in it is refused
 	t.Setenv("DB_NAME", filepath.Join(t.TempDir(), "other.db"))
 	t.Setenv("MONGO_DB", "")
 	t.Setenv("MONGO_URI", in.URI+"/"+in.Database)
-	require.NoError(t, runBun())
+	require.NoError(t, runImportMongo())
 	t.Setenv("DB_NAME", filepath.Join(t.TempDir(), "third.db"))
-	assert.ErrorContains(t, runBun("--mongo-db", in.Database+"_typo"), "has no collections")
+	assert.ErrorContains(t, runImportMongo("--mongo-db", in.Database+"_typo"), "has no collections")
 }
 
 func TestImportMongoCommandNeedsAMongoURI(t *testing.T) {
 	t.Setenv("DB_TYPE", "sqlite")
 	t.Setenv("DB_NAME", filepath.Join(t.TempDir(), "peekaping.db"))
-	assert.ErrorContains(t, runBun(), "mongo-uri")
+	assert.ErrorContains(t, runImportMongo(), "mongo-uri")
 }
 
 // DB_TYPE=mongo is the install being moved, not the place to move it to
@@ -86,6 +86,6 @@ func TestImportMongoCommandWritesToSQLOnly(t *testing.T) {
 	t.Setenv("DB_PORT", "27017")
 	t.Setenv("DB_USER", "peekaping")
 	t.Setenv("DB_PASS", "password")
-	err := runBun("--mongo-uri", "mongodb://localhost:27017")
+	err := runImportMongo("--mongo-uri", "mongodb://localhost:27017")
 	assert.ErrorContains(t, err, "set DB_TYPE to sqlite or postgres")
 }

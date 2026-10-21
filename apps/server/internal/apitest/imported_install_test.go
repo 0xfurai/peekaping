@@ -25,7 +25,7 @@ func importMongoInstall(t *testing.T, in *mongoimporttest.Install) string {
 	path := filepath.Join(t.TempDir(), "imported.db")
 	db, err := infra.ProvideSQLDB(&config.Config{DBType: "sqlite", DBName: path}, zap.NewNop().Sugar())
 	require.NoError(t, err)
-	_, err = mongoimport.Run(context.Background(), db, mongoimport.Options{MongoURI: in.URI, MongoDatabase: in.Database})
+	_, err = mongoimport.Run(context.Background(), db, in.Options())
 	require.NoError(t, err)
 	require.NoError(t, db.Close())
 	return path
