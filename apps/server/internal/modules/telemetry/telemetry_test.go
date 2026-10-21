@@ -19,7 +19,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
 )
 
 const testInstanceID = "6c1b4f0e-5d3a-4c8e-9f21-0a7b8c9d1e2f"
@@ -60,13 +59,6 @@ func (f *fakeSettings) DeleteByKey(_ context.Context, key string) error {
 }
 
 func (f *fakeSettings) InitializeSettings(context.Context) error { return nil }
-
-func (f *fakeSettings) has(key string) bool {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-	_, ok := f.values[key]
-	return ok
-}
 
 func (f *fakeSettings) put(key, value, typ string) {
 	_, _ = f.SetByKey(context.Background(), key, &shared.SettingModel{Value: value, Type: typ})
@@ -132,7 +124,7 @@ func newInstall() *install {
 }
 
 func (i *install) service() Service {
-	return NewService(i.settings, i.monitors, i.channels, i.statusPages, i.maintenances, i.cfg, i.mode, zap.NewNop().Sugar())
+	return NewService(i.settings, i.monitors, i.channels, i.statusPages, i.maintenances, i.cfg, i.mode)
 }
 
 // optIn stores the opt-in the way the service does.

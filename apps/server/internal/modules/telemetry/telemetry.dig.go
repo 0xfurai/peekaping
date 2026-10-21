@@ -34,7 +34,6 @@ func provideService(
 	maintenances maintenance.Service,
 	cfg *config.Config,
 	mode Mode,
-	logger *zap.SugaredLogger,
 ) Service {
-	return NewService(settings, monitors, channels, statusPages, maintenances, cfg, mode, logger)
+	return NewService(settings, monitors, channels, statusPages, maintenances, cfg, mode)
 }

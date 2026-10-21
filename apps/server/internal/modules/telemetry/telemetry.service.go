@@ -18,7 +18,6 @@ import (
 	"peekaping/internal/version"
 
 	"github.com/google/uuid"
-	"go.uber.org/zap"
 )
 
 // The modules the payload is read from, through their existing FindAll methods. Each is the
@@ -79,7 +78,6 @@ type ServiceImpl struct {
 	maintenances MaintenanceLister
 	cfg          *config.Config
 	mode         Mode
-	logger       *zap.SugaredLogger
 }
 
 func NewService(
@@ -90,7 +88,6 @@ func NewService(
 	maintenances MaintenanceLister,
 	cfg *config.Config,
 	mode Mode,
-	logger *zap.SugaredLogger,
 ) Service {
 	return &ServiceImpl{
 		settings:     settings,
@@ -100,7 +97,6 @@ func NewService(
 		maintenances: maintenances,
 		cfg:          cfg,
 		mode:         mode,
-		logger:       logger.Named("[telemetry-service]"),
 	}
 }
 
@@ -157,7 +153,8 @@ func (s *ServiceImpl) NextPing(ctx context.Context, now time.Time) (*Payload, er
 		return nil, nil
 	}
 	payload, err := s.build(ctx, true)
-	if err != nil {
+	if err != nil || payload.InstanceID == "" {
+		// An admin who opted out while the payload was built has no ID left to send
 		return nil, err
 	}
 	return &payload, nil
