@@ -197,6 +197,7 @@ func newDBCommand() *cli.Command {
 					})
 				},
 			},
+			newImportMongoCommand(),
 			{
 				Name:  "mark_applied",
 				Usage: "mark migrations as applied without actually running them",
@@ -220,16 +221,24 @@ func newDBCommand() *cli.Command {
 	}
 }
 
-func runWithDB(fn func(*bun.DB) error) error {
-	// Load configuration
+// loadDBConfig reads the DB_* settings from the environment, and the .env file two levels up.
+func loadDBConfig() (config.DBConfig, error) {
 	cfg, err := config.LoadConfig[config.DBConfig]("../..")
 	if err != nil {
-		return fmt.Errorf("failed to load config: %w", err)
+		return cfg, fmt.Errorf("failed to load config: %w", err)
 	}
 
 	err = config.ValidateDatabaseCustomRules(&cfg)
 	if err != nil {
-		return fmt.Errorf("failed to validate database custom rules: %w", err)
+		return cfg, fmt.Errorf("failed to validate database custom rules: %w", err)
+	}
+	return cfg, nil
+}
+
+func runWithDB(fn func(*bun.DB) error) error {
+	cfg, err := loadDBConfig()
+	if err != nil {
+		return err
 	}
 
 	// Connect to database
