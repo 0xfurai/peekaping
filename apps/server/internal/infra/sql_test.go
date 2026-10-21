@@ -211,3 +211,50 @@ func TestProvideSQLDB_StopsOnACorruptDatabase(t *testing.T) {
 		require.NotContains(t, entry.Message, "Database integrity check")
 	}
 }
+
+// A full integrity check reads the whole file at every start: about 30s for 1.5 GB, against 1.6s
+// for the quick check. A healthy database starts with the quick check only, and the log says it
+// passed.
+func TestCheckSQLiteOnStartup_RunsTheQuickCheckOnly(t *testing.T) {
+	t.Setenv("BUNDEBUG", "0")
+	path := filepath.Join(t.TempDir(), "peekaping.db")
+	db, err := ProvideSQLDB(&config.Config{DBType: "sqlite", DBName: path}, zap.NewNop().Sugar())
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = db.Close() })
+	_, err = db.Exec("CREATE TABLE heartbeats (id INTEGER PRIMARY KEY, msg TEXT)")
+	require.NoError(t, err)
+	_, err = db.Exec("INSERT INTO heartbeats (msg) VALUES ('200 - OK')")
+	require.NoError(t, err)
+	hook := &recordQueries{}
+	db.AddQueryHook(hook)
+	core, logs := observer.New(zapcore.DebugLevel)
+
+	require.NoError(t, checkSQLiteOnStartup(db, path, zap.New(core).Sugar()))
+
+	require.Contains(t, hook.queries, "PRAGMA quick_check")
+	for _, query := range hook.queries {
+		require.NotContains(t, query, "integrity_check")
+	}
+	entries := logs.All()
+	require.Len(t, entries, 1)
+	require.Equal(t, zapcore.InfoLevel, entries[0].Level)
+	require.Equal(t, "SQLite quick check passed", entries[0].Message)
+}
+
+// A check that can't run, say because another process holds a lock, isn't a finding: it's a
+// warning, and startup goes on as it did before the check could stop it.
+func TestCheckSQLiteOnStartup_WarnsAndGoesOnWhenTheCheckCantRun(t *testing.T) {
+	t.Setenv("BUNDEBUG", "0")
+	path := filepath.Join(t.TempDir(), "peekaping.db")
+	db, err := ProvideSQLDB(&config.Config{DBType: "sqlite", DBName: path}, zap.NewNop().Sugar())
+	require.NoError(t, err)
+	require.NoError(t, db.Close()) // every query on it fails now
+	core, logs := observer.New(zapcore.DebugLevel)
+
+	require.NoError(t, checkSQLiteOnStartup(db, path, zap.New(core).Sugar()))
+
+	entries := logs.All()
+	require.Len(t, entries, 1)
+	require.Equal(t, zapcore.WarnLevel, entries[0].Level)
+	require.Contains(t, entries[0].Message, "Failed to run the SQLite quick check (non-fatal): ")
+}

@@ -143,7 +143,8 @@ func ProvideSQLDB(
 		// Run a quick check on startup to detect existing corruption. The full integrity_check
 		// reads the whole file: about 30s for 1.5 GB (24h of 1,000 monitors at 20s), and it grows
 		// with the heartbeat history. quick_check walks the b-tree pages in about 2s. It misses an
-		// index that disagrees with its table, so the full check stays a manual one.
+		// index that disagrees with its table, so the full check is one to run by hand (see the
+		// recovery page at sqliteRecoveryDocsURL).
 		if err := checkSQLiteOnStartup(db, dbPath, logger); err != nil {
 			_ = db.Close()
 			return nil, err
@@ -175,6 +176,7 @@ func checkSQLiteOnStartup(db *bun.DB, dbPath string, logger *zap.SugaredLogger) 
 	healthy := len(lines) == 1 && lines[0] == "ok"
 	if healthy || len(lines) == 0 {
 		if err == nil && healthy {
+			logger.Info("SQLite quick check passed")
 			return nil
 		}
 		if err == nil {
