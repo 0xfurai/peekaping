@@ -1,0 +1,16 @@
+// Worker behind telemetry.peekaping.com/v1/ping: validates the opt-in usage ping and writes it to Analytics Engine.
+// Built and deployed by .github/workflows/telemetry.yml. See docs/adr/0003-opt-in-telemetry-and-error-reporting.md.
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "peekaping-telemetry",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  // Served only on the custom domain: no workers.dev address, no preview URLs
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [{ "pattern": "telemetry.peekaping.com", "custom_domain": true }],
+  // Data is kept for 3 months. The dataset is created by the first write.
+  "analytics_engine_datasets": [{ "binding": "TELEMETRY", "dataset": "peekaping_telemetry" }],
+  // No request logs, traces or Logpush: a request must leave no trace besides its data points
+  "observability": { "enabled": false }
+}
