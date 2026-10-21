@@ -1356,25 +1356,31 @@ func TestHTTPExecutor_Execute_OAuth2_CredentialsPlacement(t *testing.T) {
 	logger := zap.NewNop().Sugar()
 	executor := NewHTTPExecutor(logger)
 
-	var (
-		receivedAuthHeader string
-		receivedClientID   string
-		receivedSecret     string
-		receivedGrantType  string
-		receivedScope      string
-		basicUser          string
-		basicPass          string
-		basicOK            bool
-	)
+	type capturedReq struct {
+		authHeader string
+		basicUser  string
+		basicPass  string
+		basicOK    bool
+		clientID   string
+		secret     string
+		grantType  string
+		scope      string
+	}
+	captured := make(chan capturedReq, 2)
 
 	tokenServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_ = r.ParseForm()
-		receivedAuthHeader = r.Header.Get("Authorization")
-		basicUser, basicPass, basicOK = r.BasicAuth()
-		receivedClientID = r.Form.Get("client_id")
-		receivedSecret = r.Form.Get("client_secret")
-		receivedGrantType = r.Form.Get("grant_type")
-		receivedScope = r.Form.Get("scope")
+		user, pass, ok := r.BasicAuth()
+		captured <- capturedReq{
+			authHeader: r.Header.Get("Authorization"),
+			basicUser:  user,
+			basicPass:  pass,
+			basicOK:    ok,
+			clientID:   r.Form.Get("client_id"),
+			secret:     r.Form.Get("client_secret"),
+			grantType:  r.Form.Get("grant_type"),
+			scope:      r.Form.Get("scope"),
+		}
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
@@ -1388,13 +1394,6 @@ func TestHTTPExecutor_Execute_OAuth2_CredentialsPlacement(t *testing.T) {
 	defer targetServer.Close()
 
 	t.Run("client_secret_basic sends credentials in Authorization header only", func(t *testing.T) {
-		receivedAuthHeader = ""
-		basicUser, basicPass, basicOK = "", "", false
-		receivedClientID = ""
-		receivedSecret = ""
-		receivedGrantType = ""
-		receivedScope = ""
-
 		monitor := &Monitor{
 			ID:       "m-basic",
 			Type:     "http",
@@ -1416,23 +1415,21 @@ func TestHTTPExecutor_Execute_OAuth2_CredentialsPlacement(t *testing.T) {
 		result := executor.Execute(context.Background(), monitor, nil)
 		assert.Equal(t, shared.MonitorStatusUp, result.Status)
 
-		assert.True(t, basicOK, "Basic auth header should be present")
-		assert.Equal(t, "my-client", basicUser)
-		assert.Equal(t, "my-secret", basicPass)
-		assert.Empty(t, receivedClientID, "client_id should not be in form body for client_secret_basic")
-		assert.Empty(t, receivedSecret, "client_secret should not be in form body for client_secret_basic")
-		assert.Equal(t, "client_credentials", receivedGrantType)
-		assert.Equal(t, "read write", receivedScope)
+		select {
+		case req := <-captured:
+			assert.True(t, req.basicOK, "Basic auth header should be present")
+			assert.Equal(t, "my-client", req.basicUser)
+			assert.Equal(t, "my-secret", req.basicPass)
+			assert.Empty(t, req.clientID, "client_id should not be in form body for client_secret_basic")
+			assert.Empty(t, req.secret, "client_secret should not be in form body for client_secret_basic")
+			assert.Equal(t, "client_credentials", req.grantType)
+			assert.Equal(t, "read write", req.scope)
+		case <-time.After(5 * time.Second):
+			t.Fatal("timed out waiting for token request")
+		}
 	})
 
 	t.Run("client_secret_post sends credentials in form body only", func(t *testing.T) {
-		receivedAuthHeader = ""
-		basicUser, basicPass, basicOK = "", "", false
-		receivedClientID = ""
-		receivedSecret = ""
-		receivedGrantType = ""
-		receivedScope = ""
-
 		monitor := &Monitor{
 			ID:       "m-post",
 			Type:     "http",
@@ -1454,12 +1451,17 @@ func TestHTTPExecutor_Execute_OAuth2_CredentialsPlacement(t *testing.T) {
 		result := executor.Execute(context.Background(), monitor, nil)
 		assert.Equal(t, shared.MonitorStatusUp, result.Status)
 
-		assert.False(t, basicOK, "Basic auth should not be set for client_secret_post")
-		assert.Empty(t, receivedAuthHeader, "Authorization header should not be set for client_secret_post")
-		assert.Equal(t, "my-client", receivedClientID)
-		assert.Equal(t, "my-secret", receivedSecret)
-		assert.Equal(t, "client_credentials", receivedGrantType)
-		assert.Equal(t, "read write", receivedScope)
+		select {
+		case req := <-captured:
+			assert.False(t, req.basicOK, "Basic auth should not be set for client_secret_post")
+			assert.Empty(t, req.authHeader, "Authorization header should not be set for client_secret_post")
+			assert.Equal(t, "my-client", req.clientID)
+			assert.Equal(t, "my-secret", req.secret)
+			assert.Equal(t, "client_credentials", req.grantType)
+			assert.Equal(t, "read write", req.scope)
+		case <-time.After(5 * time.Second):
+			t.Fatal("timed out waiting for token request")
+		}
 	})
 }
 
