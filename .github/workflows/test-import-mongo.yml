@@ -60,17 +60,26 @@ jobs:
         working-directory: apps/server
         run: go mod download
 
-      - name: Run the import tests
+      - name: Run the import tests with coverage
         working-directory: apps/server
         run: |
           # A failing go test must fail the step: without pipefail, the exit status of the
           # pipeline would be tee's
           set -o pipefail
-          # -count=1 so that a cached result never stands in for a run against the databases
-          go test -timeout 300s -count=1 -v ./internal/mongoimport/... ./cmd/bun/ | tee import-test.log
-          go test -timeout 300s -count=1 -v -run TestImportedMongoInstall ./internal/apitest/ | tee -a import-test.log
+          # -count=1 so that a cached result never stands in for a run against the databases.
+          # -run TestImport picks the import tests of the three packages, which skip in the Test and
+          # Lint workflow. -coverpkg credits the code they reach in other packages, as there, and
+          # the bun command, whose code the other workflow doesn't instrument.
+          go test -timeout 300s -count=1 -v -run TestImport -coverprofile=coverage.txt -coverpkg=./internal/...,./cmd/bun/... ./internal/mongoimport/... ./cmd/bun/ ./internal/apitest/ | tee import-test.log
           # These tests skip when they can't reach a database, which would leave this job green without running them
           if grep -q -e '--- SKIP' import-test.log; then
             echo 'A test skipped: the MongoDB or PostgreSQL service was not reachable'
             exit 1
           fi
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: 0xfurai/peekaping
+          file: apps/server/coverage.txt
