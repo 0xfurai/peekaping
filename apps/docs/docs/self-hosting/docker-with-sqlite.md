@@ -11,6 +11,8 @@ Peekaping runs in one of two modes. See [Deployment modes](./deployment-modes.md
 - **[Single mode](#single-mode)**: one container runs one process, `peekaping`, with no Redis. Start here.
 - **[Cluster mode](#cluster-mode)**: the API, producer, worker and ingester run in separate containers and talk through Redis. Use it when one process isn't enough, for example to run several workers.
 
+Coming from MongoDB? [Move to SQLite or PostgreSQL](./docker-with-mongo.md#move-to-sqlite-or-postgresql) copies your install, with its history, into a new SQLite database.
+
 ## Single mode
 
 The `peekaping-bundle-sqlite` image runs Peekaping in single mode. One process, `peekaping`, serves the web app, the API and the websocket on port 8383. It keeps its database in `/app/data/peekaping.db`, so keep `/app/data` on a volume.
