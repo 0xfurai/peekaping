@@ -146,7 +146,9 @@ The database settings have no defaults. For PostgreSQL, set `DB_TYPE` (the chart
 | `REDIS_PASSWORD` | empty | Put it in the secret. |
 | `METRICS_ENABLED` | `false` | See [Metrics](#metrics). |
 | `TELEMETRY` | empty | Set `off` to switch off the anonymous [usage statistics](./telemetry.md) whatever an admin chose. |
-| `DO_NOT_TRACK` | empty | Set `1` for the same. |
+| `ERROR_REPORTING` | empty | Set `off` to switch off the [error reports](./telemetry.md#error-reporting) whatever an admin chose. |
+| `ERROR_REPORTING_DSN` | empty | Send error reports to your own Sentry or GlitchTip instead of Peekaping's. |
+| `DO_NOT_TRACK` | empty | Set `1` to switch off both. |
 
 Leave `API_URL` unset. The web app then calls the API on its own address, which is where the Ingress sends `/api`. [API Server](../architecture/api-server.md#environment-variables) lists every variable.
 
