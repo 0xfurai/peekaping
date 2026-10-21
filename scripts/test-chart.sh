@@ -12,11 +12,11 @@
 # one until `./bun db status` reports none unapplied, the migrate Job is named
 # after the release revision (and its name fits Kubernetes' limit of 63
 # characters for the longest release name Helm allows) and retries 6 times, so
-# it outlasts a restart of the bundled PostgreSQL, the ConfigMap sets
-# TRUSTED_PROXIES to loopback and the private ranges (and a values file can
-# change it), the web pod sets the sysctl that lets its non-root nginx bind
-# port 80 (web.sysctls) and mounts the writable paths that nginx needs under a
-# read-only root filesystem, and the install notes say Peekaping runs in
+# it outlasts a restart of the bundled PostgreSQL, the web pod sets the sysctl
+# that lets its non-root nginx bind port 80 (web.sysctls) and mounts the
+# writable paths that nginx needs under a read-only root filesystem, the
+# ConfigMap sets TRUSTED_PROXIES to loopback and the private ranges (and a
+# values file can change it), and the install notes say Peekaping runs in
 # cluster mode and link to the Helm docs page.
 #
 # It also runs scripts/update-chart-deps.sh against a fake Docker Hub: a new
