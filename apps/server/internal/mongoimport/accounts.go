@@ -26,7 +26,7 @@ type userRow struct {
 func (c *copier) copyUsers(ctx context.Context) error {
 	report := c.report.collection("users", "users")
 	out := newBatcher[userRow](c.tx, "users", report)
-	emails := map[string]bool{}
+	emails, stored := map[string]bool{}, map[string]bool{}
 	err := c.src.each(ctx, "users", byID, func(d doc) error {
 		report.Read++
 		id, ok := d.id()
@@ -43,7 +43,7 @@ func (c *copier) copyUsers(ctx context.Context) error {
 		created, updated := stamps(report, d, id, "createdAt", "updatedAt")
 		return out.add(ctx, userRow{
 			ID:             uuidOf(id),
-			Email:          email,
+			Email:          c.uniqueText(report, "email", stored, email, 255),
 			Password:       d.str("password"),
 			Active:         d.boolean("active"),
 			TwoFASecret:    d.str("twofa_secret"),
@@ -118,10 +118,11 @@ func (c *copier) copySettings(ctx context.Context) error {
 		return err
 	}
 	out := newBatcher[settingRow](c.tx, "settings", report)
+	stored := map[string]bool{}
 	for _, key := range keys {
 		winner := chosen[key]
 		created, updated := stamps(report, winner.d, winner.id, "created_at", "updated_at")
-		row := settingRow{Key: key, Value: winner.d.str("value"), Type: winner.d.str("type"), CreatedAt: created, UpdatedAt: updated}
+		row := settingRow{Key: c.uniqueText(report, "key", stored, key, 255), Value: winner.d.str("value"), Type: winner.d.str("type"), CreatedAt: created, UpdatedAt: updated}
 		if err := out.add(ctx, row); err != nil {
 			return err
 		}

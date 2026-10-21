@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
 	"go.uber.org/zap"
@@ -56,4 +57,12 @@ func forEachTarget(t *testing.T, fn func(t *testing.T, db *bun.DB)) {
 	t.Helper()
 	t.Run("SQLite", func(t *testing.T) { fn(t, sqliteTarget(t)) })
 	t.Run("Postgres", func(t *testing.T) { fn(t, postgresTarget(t)) })
+}
+
+// cut is what PostgreSQL keeps of a value that its column is too narrow for; SQLite keeps all of it.
+func cut(db *bun.DB, value string, width int) string {
+	if db.Dialect().Name() == dialect.PG && len(value) > width {
+		return value[:width]
+	}
+	return value
 }

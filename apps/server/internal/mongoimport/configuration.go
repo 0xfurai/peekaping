@@ -3,6 +3,7 @@ package mongoimport
 import (
 	"context"
 	"encoding/json"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -64,7 +65,9 @@ type monitorRow struct {
 // jsonConfig returns a config that PostgreSQL's JSONB column accepts. An empty
 // or missing config, which the monitors and channels MongoDB holds can have,
 // becomes {}. A config that isn't JSON can't be kept as it is on PostgreSQL, so
-// it becomes {} too, and the report says so.
+// it becomes {} too, and the report says so. JSONB also rejects the escape
+// \u0000, which is valid JSON, so the escapes are removed, from SQLite's configs
+// too, so that both databases hold the same data.
 func jsonConfig(report *CollectionReport, config *string) string {
 	switch {
 	case config == nil:
@@ -74,9 +77,36 @@ func jsonConfig(report *CollectionReport, config *string) string {
 	case !json.Valid([]byte(*config)):
 		report.fix("config is not valid JSON: used {}")
 	default:
-		return *config
+		stripped, changed := removeNULEscapes(*config)
+		if changed {
+			report.fix(`config had \u0000 escapes, which PostgreSQL rejects: removed`)
+		}
+		return stripped
 	}
 	return "{}"
+}
+
+// removeNULEscapes removes the escape \u0000 from JSON text. A backslash escapes the
+// character after it, so in \\u0000, which is a backslash and the text u0000, nothing is removed.
+func removeNULEscapes(text string) (string, bool) {
+	if !strings.Contains(text, `\u0000`) {
+		return text, false
+	}
+	var without strings.Builder
+	changed := false
+	for i := 0; i < len(text); i++ {
+		if text[i] == '\\' && i+1 < len(text) {
+			if text[i+1] == 'u' && strings.HasPrefix(text[i+2:], "0000") {
+				i += 5
+				changed = true
+				continue
+			}
+			without.WriteByte(text[i])
+			i++
+		}
+		without.WriteByte(text[i])
+	}
+	return without.String(), changed
 }
 
 func (c *copier) copyMonitors(ctx context.Context) error {
@@ -174,7 +204,7 @@ type tagRow struct {
 func (c *copier) copyTags(ctx context.Context) error {
 	report := c.report.collection("tags", "tags")
 	out := newBatcher[tagRow](c.tx, "tags", report)
-	names := map[string]bool{}
+	names, stored := map[string]bool{}, map[string]bool{}
 	err := c.src.each(ctx, "tags", byID, func(d doc) error {
 		report.Read++
 		id, ok := d.id()
@@ -190,7 +220,7 @@ func (c *copier) copyTags(ctx context.Context) error {
 		names[name] = true
 		created, updated := stamps(report, d, id, "created_at", "updated_at")
 		c.tags.add(id)
-		return out.add(ctx, tagRow{ID: uuidOf(id), Name: name, Color: d.str("color"), Description: d.strPtr("description"), CreatedAt: created, UpdatedAt: updated})
+		return out.add(ctx, tagRow{ID: uuidOf(id), Name: c.uniqueText(report, "name", stored, name, 100), Color: d.str("color"), Description: d.strPtr("description"), CreatedAt: created, UpdatedAt: updated})
 	})
 	if err != nil {
 		return err
@@ -283,7 +313,7 @@ type statusPage struct {
 func (c *copier) copyStatusPages(ctx context.Context) error {
 	report := c.report.collection("status_pages", "status_pages")
 	out := newBatcher[statusPageRow](c.tx, "status_pages", report)
-	slugs := map[string]bool{}
+	slugs, stored := map[string]bool{}, map[string]bool{}
 	err := c.src.each(ctx, "status_pages", byID, func(d doc) error {
 		report.Read++
 		id, ok := d.id()
@@ -299,6 +329,7 @@ func (c *copier) copyStatusPages(ctx context.Context) error {
 		slugs[slug] = true
 		created, updated := stamps(report, d, id, "created_at", "updated_at")
 
+		slug = c.uniqueText(report, "slug", stored, slug, 255)
 		page := &statusPage{id: id, slug: slug}
 		if d.boolean("search_engine_index") {
 			page.unused = append(page.unused, "search_engine_index")

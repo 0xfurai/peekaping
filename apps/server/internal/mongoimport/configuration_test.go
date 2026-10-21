@@ -2,7 +2,6 @@ package mongoimport_test
 
 import (
 	"context"
-	"strings"
 	"testing"
 	"time"
 
@@ -23,6 +22,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -88,7 +88,7 @@ func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, r
 			}
 			switch name {
 			case "wide":
-				wantName, wantProxy = strings.Repeat("n", 150), "" // the proxy is gone
+				wantName, wantProxy = cut(db, mongoimporttest.LongName, 150), "" // the proxy is gone
 			case "paused", "broken":
 				wantConfig = "{}"
 			}
@@ -120,12 +120,16 @@ func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, r
 		assert.Equal(t, 5, r.Read)
 		assert.Equal(t, 5, r.Copied)
 		assert.Zero(t, r.SkippedTotal())
-		assert.Equal(t, map[string]int{
-			"name cut to 150 characters":                            1,
+		wantFixed := map[string]int{
 			"proxy_id names a proxy that no longer exists: cleared": 1,
 			"config is empty: used {}":                              1,
 			"config is not valid JSON: used {}":                     1,
-		}, r.Fixed)
+		}
+		if db.Dialect().Name() == dialect.PG {
+			// Only PostgreSQL limits the width of a name
+			wantFixed["name cut to 150 characters"] = 1
+		}
+		assert.Equal(t, wantFixed, r.Fixed)
 	})
 
 	t.Run("notification channels", func(t *testing.T) {
@@ -193,12 +197,16 @@ func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, r
 		alpha, err := sqlTags.FindByName(ctx, "alpha")
 		require.NoError(t, err)
 		require.NotNil(t, alpha)
-		assert.Equal(t, "#3B82F6", alpha.Color)
+		assert.Equal(t, cut(db, "#3B82F6FF", 7), alpha.Color)
 
 		r := collectionReport(t, report, "tags")
 		assert.Equal(t, 3, r.Read)
 		assert.Equal(t, 3, r.Copied)
-		assert.Equal(t, map[string]int{"color cut to 7 characters": 1}, r.Fixed)
+		if db.Dialect().Name() == dialect.PG {
+			assert.Equal(t, map[string]int{"color cut to 7 characters": 1}, r.Fixed)
+		} else {
+			assert.Empty(t, r.Fixed)
+		}
 	})
 
 	t.Run("maintenance windows", func(t *testing.T) {
@@ -284,14 +292,22 @@ func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, r
 		require.Len(t, shopDomains, 1)
 		assert.Equal(t, "status.example.com", shopDomains[0].Domain)
 
-		// Every monitor of a page comes across, hidden or not
+		// Every monitor of a page comes across, hidden or not, and the page lists them in the order
+		// the MongoDB page showed them, by the position it kept for each
 		shopLinks, err := links.GetMonitorsForStatusPage(ctx, shop.ID)
 		require.NoError(t, err)
 		var linked []string
 		for _, link := range shopLinks {
 			linked = append(linked, link.MonitorID)
 		}
-		assert.ElementsMatch(t, uuids(t, in.ID("monitor", "checkout"), in.ID("monitor", "nightly"), in.ID("monitor", "paused")), linked)
+		mongoLinks, err := monitor_status_page.NewMongoRepository(in.Client, in.Config).GetMonitorsForStatusPage(ctx, in.ID("status_page", "shop"))
+		require.NoError(t, err)
+		var shown []string
+		for _, link := range mongoLinks {
+			shown = append(shown, link.MonitorID)
+		}
+		require.Equal(t, []string{in.ID("monitor", "nightly"), in.ID("monitor", "paused"), in.ID("monitor", "checkout")}, shown, "the order MongoDB showed")
+		assert.Equal(t, uuids(t, shown...), linked)
 		internalLinks, err := links.GetMonitorsForStatusPage(ctx, internal.ID)
 		require.NoError(t, err)
 		require.Len(t, internalLinks, 1)
@@ -308,11 +324,13 @@ func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, r
 		assert.Equal(t, 5, r.Read)
 		assert.Equal(t, 4, r.Copied)
 		assert.Equal(t, map[string]int{"status page no longer exists": 1}, r.Skipped)
-		assert.Equal(t, map[string]int{"created_at missing or zero: used the time the ObjectID was made": 1}, r.Fixed)
+		assert.Equal(t, map[string]int{
+			"created_at missing or zero: used the time the ObjectID was made":  1, // the page with one monitor, saved in full
+			"created_at set to keep the monitor's position on its status page": 3, // the three monitors of the shop page
+		}, r.Fixed)
 
 		// What SQL has no place for is reported
 		assert.Equal(t, []string{
-			`status page "shop": the order of its monitors is not kept (SQL has no column for it)`,
 			`status page "shop": 1 monitor is hidden on the page (active is false) and will show (SQL has no column for it)`,
 			`status page "shop": search_engine_index, password and google_analytics_tag_id are not kept (Peekaping does not use them)`,
 		}, report.Notes)

@@ -98,6 +98,6 @@ func TestImportedMongoInstall(t *testing.T) {
 		for _, monitor := range monitors {
 			names = append(names, monitor["name"].(string))
 		}
-		assert.ElementsMatch(t, []string{"Checkout API", "Nightly job", "Legacy database", mongoimporttest.LongName[:150], "Broken config"}, names)
+		assert.ElementsMatch(t, []string{"Checkout API", "Nightly job", "Legacy database", mongoimporttest.LongName, "Broken config"}, names)
 	})
 }
