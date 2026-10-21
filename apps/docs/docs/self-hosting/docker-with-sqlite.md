@@ -19,6 +19,7 @@ The `peekaping-bundle-sqlite` image runs Peekaping in single mode. One process, 
 docker run -d --restart=always \
   -p 8383:8383 \
   -e DB_NAME=/app/data/peekaping.db \
+  -e TRUSTED_PROXIES \
   -v $(pwd)/.data/sqlite:/app/data \
   --name peekaping \
   0xfurai/peekaping-bundle-sqlite:latest
@@ -35,6 +36,9 @@ services:
     stop_grace_period: 35s
     ports:
       - "8383:8383"
+    environment:
+      # Behind a reverse proxy, set TRUSTED_PROXIES in .env (see Reverse proxy and HTTPS)
+      - TRUSTED_PROXIES=${TRUSTED_PROXIES-}
     volumes:
       - ./.data/sqlite:/app/data
 ```
@@ -83,9 +87,15 @@ The login lockout counts failed logins per client address. A client can send any
    proxy_set_header X-Forwarded-For $remote_addr;
    ```
 
-2. Set `TRUSTED_PROXIES` to the address the proxy connects from, as the container sees it, in your `.env` file or with `-e`. List only proxies you run, because a listed address can claim to be anyone. Peekaping takes the last address in `X-Forwarded-For` that isn't in `TRUSTED_PROXIES`, so addresses a client adds to the left don't count.
+2. Set `TRUSTED_PROXIES` to the address the proxy connects from, as the container sees it. In the Compose example above, the `environment` line reads it from your `.env` file: Compose uses `.env` to fill in the file, but doesn't pass its variables to the container by itself. With `docker run`, `-e TRUSTED_PROXIES` passes on the variable from your shell, or give it a value: `-e TRUSTED_PROXIES=<address>`. List only proxies you run, because a listed address can claim to be anyone. Peekaping takes the last address in `X-Forwarded-For` that isn't in `TRUSTED_PROXIES`, so addresses a client adds to the left don't count.
 
-3. Don't let clients reach port 8383 past the proxy. When the proxy runs on the same host, publish the port on loopback only: `-p 127.0.0.1:8383:8383`, or `"127.0.0.1:8383:8383"` in Docker Compose. Then only the host can connect, and the proxy's address is usually the gateway of Docker's network, which `docker network inspect bridge` shows as `Gateway`:
+3. Don't let clients reach port 8383 past the proxy. When the proxy runs on the same host, publish the port on loopback only: `-p 127.0.0.1:8383:8383`, or `"127.0.0.1:8383:8383"` in Docker Compose. Then only the host can connect, and the proxy's address is usually the gateway of the container's Docker network. A Compose project has its own network, so read the gateway from the container itself (replace `peekaping` with your container's name):
+
+   ```bash
+   docker inspect -f '{{range .NetworkSettings.Networks}}{{.Gateway}}{{end}}' peekaping
+   ```
+
+   On Docker's default network that is usually `172.17.0.1`:
 
    ```
    TRUSTED_PROXIES=172.17.0.1
@@ -93,9 +103,17 @@ The login lockout counts failed logins per client address. A client can send any
 
 Don't trust the gateway address while port 8383 is published on all interfaces (`-p 8383:8383`). On Docker Desktop, in rootless Docker and with the userland proxy, connections made straight to the published port arrive from the gateway address too, so anyone could send their own `X-Forwarded-For` and be believed.
 
-When another proxy sits in front of yours, for example Cloudflare in front of Traefik, your proxy sees that proxy's address, not the client's. Make your proxy trust the front proxy's addresses, so that it keeps the client's address in `X-Forwarded-For`: in Traefik, `forwardedHeaders.trustedIPs`; in Caddy, `trusted_proxies`; in nginx, `set_real_ip_from` with `real_ip_header X-Forwarded-For`. Keep only your own proxy in `TRUSTED_PROXIES`, not the front proxy.
+When another proxy sits in front of yours, for example Cloudflare in front of Traefik, your proxy sees that proxy's address, not the client's. Make your proxy trust the front proxy's addresses, so that it keeps the client's address in `X-Forwarded-For`: in Traefik, `forwardedHeaders.trustedIPs`; in Caddy, `trusted_proxies`; in nginx, the real IP module, so that `$remote_addr` is the client's address and the `proxy_set_header X-Forwarded-For $remote_addr;` from step 1 passes it on:
 
-With `TRUSTED_PROXIES` empty behind a proxy, every login counts as coming from the proxy, so one person's failed logins can lock an account for everyone.
+```
+set_real_ip_from <the front proxy's address ranges>;
+real_ip_header X-Forwarded-For;
+real_ip_recursive on;
+```
+
+Keep only your own proxy in `TRUSTED_PROXIES`, not the front proxy.
+
+With `TRUSTED_PROXIES` empty behind a proxy, every login counts as coming from the proxy, so all clients behind it share the per-address counter and one person's failed logins can lock an account for everyone behind the proxy. The per-account counter below is account-wide whatever this setting is.
 
 Whatever you set, Peekaping also locks an account after `BRUTEFORCE_ACCOUNT_MAX_ATTEMPTS` failed logins (100 by default) from any addresses within `BRUTEFORCE_ACCOUNT_WINDOW` (10 minutes). A lock lasts `BRUTEFORCE_ACCOUNT_LOCKOUT` (1 minute). The count of failures is kept until the window, measured from the first failure, has passed, so until then each further failure after a lock ends locks the account again. So guessing is bounded to the limit per window plus one attempt each time a lock ends, and after an attack stops the owner is back in within the window at most. An attacker who keeps going can keep the account locked. [API Server](../architecture/api-server.md#security-configuration) lists the lockout settings.
 
