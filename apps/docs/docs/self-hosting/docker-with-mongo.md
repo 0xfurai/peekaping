@@ -30,7 +30,9 @@ With MongoDB, Peekaping runs in cluster mode only: the API, producer, worker and
 
 The MongoDB it reads must be version 4.4 or later. The bundle runs MongoDB 7.
 
-The copy is one transaction. If anything fails, the new database keeps no data. The new database must hold no users, monitors or history of its own: if it does, the command refuses it and changes nothing. A database that Peekaping has only started on is fine. It holds just the default settings that the first start writes, and the import replaces them with the settings of your install, the login keys included.
+The new database must hold no data of its own. If it has a row in any of these tables, the command refuses it and changes nothing: users, API keys, monitors, notification channels, proxies, tags, maintenance windows, status pages, the links between them, TLS information, notification history, heartbeats and stats. The one exception is the default settings that a Peekaping writes when it first starts. A database that Peekaping has only started on is fine: the import replaces those settings with the settings of your install, the login keys included.
+
+The copy is one transaction. If anything fails, it is rolled back and the new database keeps no data. The SQL migrations that the command applies first stay applied. That does no harm: a migrated database with no data is still a valid target, and you can run the import again.
 
 After the move:
 
@@ -138,10 +140,10 @@ Keep `.data/mongodb`, `.data/mongodb-backup` and the stopped `peekaping-mongo-bu
 
 ### Moving to the PostgreSQL bundle
 
-The PostgreSQL bundle runs Peekaping and its PostgreSQL in one container, and Peekaping writes its default settings when it first starts. So start the bundle first, let it create its database, and run the import inside it. Do steps 1 and 2 above, then start the bundle on the `peekaping-move` network, with a new data folder, as in [Docker + PostgreSQL](./docker-with-postgres.md):
+The PostgreSQL bundle runs Peekaping and its PostgreSQL in one container, and Peekaping writes its default settings when it first starts. So start the bundle first, let it create its database, and run the import inside it. Do steps 1 and 2 above, then start the bundle with a new data folder, as in [Docker + PostgreSQL](./docker-with-postgres.md). It stays off the `peekaping-move` network, so that removing the network later doesn't touch it:
 
 ```bash
-docker run -d --restart=always --network peekaping-move \
+docker run -d --restart=always \
   -p 8383:8383 \
   -e DB_NAME=peekaping \
   -e DB_USER=peekaping \
@@ -151,7 +153,13 @@ docker run -d --restart=always --network peekaping-move \
   0xfurai/peekaping-bundle-postgres:latest
 ```
 
-When `docker ps` says the container is `healthy`, run the import inside it. Don't open the web app or create an account before the import: the database must not hold an admin yet. The container's environment has `DB_NAME`, `DB_USER` and `DB_PASS`, so only the rest is added:
+When `docker ps` says the container is `healthy`, join it to the network of the MongoDB for the import. Don't open the web app or create an account before the import: the database must not hold an admin yet.
+
+```bash
+docker network connect peekaping-move peekaping
+```
+
+Then run the import inside it. The container's environment has `DB_NAME`, `DB_USER` and `DB_PASS`, so only the rest is added:
 
 ```bash
 docker exec \
@@ -166,7 +174,7 @@ The report says how many default settings of the new database were replaced. The
 docker restart -t 35 peekaping
 ```
 
-Log in as in step 4. Then remove the MongoDB, and take the bundle off the network before you remove it:
+Log in as in step 4. Then remove the MongoDB, and take the bundle off the network before you remove the network:
 
 ```bash
 docker rm -f peekaping-mongo
@@ -189,10 +197,10 @@ docker run --rm --network peekaping-move \
   -e MONGO_URI=mongodb://peekaping-mongo:27017 \
   -e MONGO_DB=peekaping \
   0xfurai/peekaping-migrate:latest \
-  ./bun db import-mongo
+  sh -c 'until nc -z "$DB_HOST" "$DB_PORT"; do sleep 1; done; exec ./bun db import-mongo'
 ```
 
-Then remove the MongoDB, take the server off the network, and remove the network:
+The command runs in place of the image's own, `./run-migrations.sh`, which waits for the database to accept connections before it migrates. The `until` loop does the same wait, so the import also works right after you start the server. Then remove the MongoDB, take the server off the network, and remove the network:
 
 ```bash
 docker rm -f peekaping-mongo
