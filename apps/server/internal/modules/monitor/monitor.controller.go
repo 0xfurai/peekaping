@@ -126,6 +126,7 @@ func (ic *MonitorController) Create(ctx context.Context, input *CreateInput) (*h
 	if err := decodeErr; err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
+	monitor.ApplyCreateDefaults()
 
 	if err := utils.Validate.Struct(monitor); err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))

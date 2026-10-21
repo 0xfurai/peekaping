@@ -1,9 +1,11 @@
 package monitor
 
 import (
+	"encoding/json"
 	"time"
 
 	"peekaping/internal/modules/heartbeat"
+	"peekaping/internal/utils"
 )
 
 type CreateUpdateDto struct {
@@ -20,6 +22,31 @@ type CreateUpdateDto struct {
 	ProxyId         string   `json:"proxy_id" example:"6830ad485361f19c598d6d90"`
 	Config          string   `json:"config"`
 	PushToken       string   `json:"push_token"`
+	activeSet       bool
+}
+
+// UnmarshalJSON records whether active was present so create requests can apply
+// the historical default without changing full-update semantics.
+func (dto *CreateUpdateDto) UnmarshalJSON(data []byte) error {
+	type plain CreateUpdateDto
+	*dto = CreateUpdateDto{}
+	if err := json.Unmarshal(data, (*plain)(dto)); err != nil {
+		return err
+	}
+	var err error
+	dto.activeSet, err = utils.HasJSONKey(data, "active")
+	return err
+}
+
+// ApplyCreateDefaults keeps omitted active fields active for create requests.
+// Full updates keep their existing zero-value semantics.
+func (dto *CreateUpdateDto) ApplyCreateDefaults() {
+	if dto == nil {
+		return
+	}
+	if !dto.activeSet {
+		dto.Active = true
+	}
 }
 
 type PartialUpdateDto struct {
