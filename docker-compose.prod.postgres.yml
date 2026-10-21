@@ -54,6 +54,12 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    environment:
+      # The api isn't published: only the gateway and the other services on this network reach
+      # it, all from private addresses. The gateway (nginx.conf) sets X-Forwarded-For to the
+      # client's address, and the api believes that header from these addresses only. Set
+      # TRUSTED_PROXIES in .env to change them.
+      TRUSTED_PROXIES: "${TRUSTED_PROXIES:-127.0.0.0/8,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7}"
     depends_on:
       database:
         condition: service_healthy
