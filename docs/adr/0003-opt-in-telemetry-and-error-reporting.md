@@ -45,7 +45,7 @@ The payload has exactly these fields, and the server builds it from them, field 
 Counts are bucketed, and types are names of kinds, never of individual things: no monitor name, URL, host, tag, status page slug or channel setting is sent.
 
 - **Instance ID.** A random UUID, created when an admin opts in and deleted when they opt out. Opting in again creates a new one. It comes from nothing about the install.
-- **Frequency.** At most once a day, from one process: the one process in single mode, and a single role in cluster mode (#232 picks which).
+- **Frequency.** At most once a day, from one process: the one process in single mode, and in cluster mode the api replica that wins a Redis `SET NX` claim, which holds for 23 hours. The api has the config the payload reads, such as `METRICS_ENABLED`; the producer leader does not.
 - **Destination.** Our own Cloudflare Worker at `telemetry.peekaping.com/v1/ping` (`apps/telemetry`), which writes to Workers Analytics Engine. The data is kept for 3 months. The Worker never reads or stores the client IP, a header, the country or any other request metadata.
 - **The Worker validates strictly.** It accepts only this payload and answers 400 to any extra field or bad value. A later change in the server can't widen what we collect without a change to the Worker in this repository.
 
