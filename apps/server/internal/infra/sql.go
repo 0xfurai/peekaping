@@ -188,15 +188,9 @@ func GracefulSQLiteShutdown(db *bun.DB, dbType string, logger *zap.SugaredLogger
 		logger.Warnf("Failed to perform incremental vacuum (non-fatal): %v", err)
 	}
 
-	// Run integrity check before shutdown
-	var integrityResult string
-	if err := db.QueryRow("PRAGMA integrity_check").Scan(&integrityResult); err != nil {
-		logger.Warnf("Failed to run shutdown integrity check (non-fatal): %v", err)
-	} else if integrityResult != "ok" {
-		logger.Errorf("Shutdown integrity check FAILED: %s", integrityResult)
-	} else {
-		logger.Info("Shutdown integrity check passed")
-	}
+	// No integrity check here: it reads the whole file, about 30s for 1.5 GB (24h of 1,000
+	// monitors at 20s), which outlasts the shutdown deadline. It couldn't repair anything, and
+	// the next start checks again.
 
 	// Close the database connection
 	if err := db.Close(); err != nil {

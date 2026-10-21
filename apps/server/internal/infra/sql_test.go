@@ -5,11 +5,13 @@ import (
 	"database/sql"
 	"fmt"
 	"math/rand/v2"
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/driver/sqliteshim"
 	"go.uber.org/zap"
 
@@ -68,5 +70,46 @@ func TestProvideSQLDB_WriteAfterCancelledRead(t *testing.T) {
 
 		_, err = api.ExecContext(ctx, "UPDATE heartbeats SET response_time = response_time + 1 WHERE id = 2")
 		require.NoError(t, err, "iteration %d: the API's write after a cancelled read failed", i)
+	}
+}
+
+// recordQueries is a bun query hook that keeps every query it sees
+type recordQueries struct{ queries []string }
+
+func (r *recordQueries) BeforeQuery(ctx context.Context, _ *bun.QueryEvent) context.Context {
+	return ctx
+}
+
+func (r *recordQueries) AfterQuery(_ context.Context, event *bun.QueryEvent) {
+	r.queries = append(r.queries, event.Query)
+}
+
+// A full integrity check reads the whole file: about 30s for 1.5 GB, which 24h of 1,000
+// monitors at 20s fill. At shutdown it outlasted peekaping's 30s deadline and docker stop's
+// grace period, so the shutdown checkpoints and closes without one.
+func TestGracefulSQLiteShutdown_CheckpointsAndClosesWithoutAFullIntegrityCheck(t *testing.T) {
+	t.Setenv("BUNDEBUG", "0")
+	path := filepath.Join(t.TempDir(), "peekaping.db")
+	db, err := ProvideSQLDB(&config.Config{DBType: "sqlite", DBName: path}, zap.NewNop().Sugar())
+	require.NoError(t, err)
+	_, err = db.Exec("CREATE TABLE heartbeats (id INTEGER PRIMARY KEY, msg TEXT)")
+	require.NoError(t, err)
+	_, err = db.Exec("INSERT INTO heartbeats (msg) VALUES ('200 - OK')")
+	require.NoError(t, err)
+	hook := &recordQueries{}
+	db.AddQueryHook(hook)
+
+	require.NoError(t, GracefulSQLiteShutdown(db, "sqlite", zap.NewNop().Sugar()))
+
+	require.Contains(t, hook.queries, "PRAGMA wal_checkpoint(TRUNCATE)")
+	for _, query := range hook.queries {
+		require.NotContains(t, query, "integrity_check")
+	}
+	require.Error(t, db.Ping(), "the database is still open")
+	wal, err := os.Stat(path + "-wal")
+	if err == nil {
+		require.Zero(t, wal.Size(), "the write-ahead log wasn't checkpointed")
+	} else {
+		require.ErrorIs(t, err, os.ErrNotExist)
 	}
 }
