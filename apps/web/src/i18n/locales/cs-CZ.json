@@ -1272,6 +1272,14 @@
       "description": "Nastavte, na kolik dní se budou data uchovávat (KEEP_DATA_PERIOD_DAYS).",
       "title": "Doba uchovávání dat"
     },
+    "telemetry": {
+      "description": "Odesílat anonymní statistiky o tom, jak je tato instalace nastavena, nejvýše jednou denně. Vypnuto, dokud to nezapnete.",
+      "forced_off": "Proměnná prostředí TELEMETRY=off nebo DO_NOT_TRACK=1 toto vypíná. Nic se neodesílá, ať je toto nastavení jakékoli.",
+      "id_note": "ID instance se vytvoří při zapnutí a smaže při vypnutí. Při dalším zapnutí se vytvoří nové.",
+      "payload_off": "Dokud je to vypnuto, nic se neodesílá. Takto by hlášení vypadalo, kdybyste to zapnuli.",
+      "payload_title": "Co odešle příští hlášení",
+      "title": "Statistiky využití"
+    },
     "timezone": {
       "description": "Vyberte si své preferované časové pásmo pro zobrazení všech časů v aplikaci.",
       "label": "Časová zóna",
@@ -1367,6 +1375,10 @@
     },
     "new_page_name": "Nový štítek",
     "search_placeholder": "Hledat štítky..."
+  },
+  "telemetry": {
+    "docs_link": "Co se odesílá a jak to vypnout",
+    "label": "Odesílat anonymní statistiky využití"
   },
   "theme": {
     "dark": "Tmavý",

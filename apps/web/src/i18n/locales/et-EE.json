@@ -1272,6 +1272,14 @@
       "description": "Määrake, mitu päeva andmeid hoitakse (KEEP_DATA_PERIOD_DAYS).",
       "title": "Andmete säilitamise periood"
     },
+    "telemetry": {
+      "description": "Saada anonüümset statistikat selle kohta, kuidas see paigaldus on seadistatud, kõige rohkem kord päevas. Välja lülitatud, kuni lülitate sisse.",
+      "forced_off": "Keskkonnamuutuja TELEMETRY=off või DO_NOT_TRACK=1 lülitab selle välja. Midagi ei saadeta, olenemata sellest, mida see säte ütleb.",
+      "id_note": "Eksemplari ID luuakse sisselülitamisel ja kustutatakse väljalülitamisel. Uuesti sisselülitamisel luuakse uus.",
+      "payload_off": "Kuni see on välja lülitatud, ei saadeta midagi. Selline oleks aruanne, kui selle sisse lülitaksite.",
+      "payload_title": "Mida järgmine aruanne saadab",
+      "title": "Kasutusstatistika"
+    },
     "timezone": {
       "description": "Vali oma eelistatud ajavöönd, mille alusel rakendus kuvab kõik ajatükkid.",
       "label": "Ajavöönd",
@@ -1367,6 +1375,10 @@
     },
     "new_page_name": "Uus silt",
     "search_placeholder": "Otsi sildid..."
+  },
+  "telemetry": {
+    "docs_link": "Mida saadetakse ja kuidas selle välja lülitada",
+    "label": "Saada anonüümset kasutusstatistikat"
   },
   "theme": {
     "dark": "Tumine",

@@ -1272,6 +1272,14 @@
       "description": "Đặt số ngày lưu dữ liệu (KEEP_DATA_PERIOD_DAYS).",
       "title": "Thời gian lưu trữ dữ liệu"
     },
+    "telemetry": {
+      "description": "Gửi thống kê ẩn danh về cách bản cài đặt này được thiết lập, nhiều nhất một lần mỗi ngày. Tắt cho đến khi bạn bật.",
+      "forced_off": "Biến môi trường TELEMETRY=off hoặc DO_NOT_TRACK=1 đang tắt mục này. Không có gì được gửi, bất kể cài đặt này ghi gì.",
+      "id_note": "ID phiên bản được tạo khi bạn bật mục này và bị xóa khi bạn tắt. Bật lại sẽ tạo ID mới.",
+      "payload_off": "Không có gì được gửi khi mục này đang tắt. Đây là nội dung báo cáo sẽ có nếu bạn bật.",
+      "payload_title": "Báo cáo tiếp theo sẽ gửi gì",
+      "title": "Thống kê sử dụng"
+    },
     "timezone": {
       "description": "Chọn múi giờ ưu tiên của bạn để hiển thị tất cả thời gian trong ứng dụng.",
       "label": "Múi giờ",
@@ -1367,6 +1375,10 @@
     },
     "new_page_name": "Thẻ mới",
     "search_placeholder": "Tìm kiếm thẻ..."
+  },
+  "telemetry": {
+    "docs_link": "Những gì được gửi và cách tắt",
+    "label": "Gửi thống kê sử dụng ẩn danh"
   },
   "theme": {
     "dark": "Tối",

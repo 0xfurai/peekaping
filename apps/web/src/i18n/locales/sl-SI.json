@@ -1272,6 +1272,14 @@
       "description": "Nastavite, koliko dni naj se shranjujejo podatki (KEEP_DATA_PERIOD_DAYS).",
       "title": "Obdobje ohranjanja podatkov"
     },
+    "telemetry": {
+      "description": "Pošiljaj anonimno statistiko o tem, kako je ta namestitev nastavljena, največ enkrat na dan. Izklopljeno, dokler ne vklopite.",
+      "forced_off": "Spremenljivka okolja TELEMETRY=off ali DO_NOT_TRACK=1 to izklopi. Nič se ne pošlje, ne glede na to, kaj pravi ta nastavitev.",
+      "id_note": "ID primerka se ustvari, ko to vklopite, in izbriše, ko to izklopite. Ob ponovnem vklopu se ustvari nov.",
+      "payload_off": "Dokler je to izklopljeno, se nič ne pošilja. To bi vsebovalo poročilo, če bi to vklopili.",
+      "payload_title": "Kaj bo poslalo naslednje poročilo",
+      "title": "Statistika uporabe"
+    },
     "timezone": {
       "description": "Izberite želeni časovni pas za prikaz vseh časov v aplikaciji.",
       "label": "Časovni pas",
@@ -1367,6 +1375,10 @@
     },
     "new_page_name": "Nova oznaka",
     "search_placeholder": "Išči oznake..."
+  },
+  "telemetry": {
+    "docs_link": "Kaj se pošilja in kako to izklopiti",
+    "label": "Pošiljaj anonimno statistiko uporabe"
   },
   "theme": {
     "dark": "Temen",

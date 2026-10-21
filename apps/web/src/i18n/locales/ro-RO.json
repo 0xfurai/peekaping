@@ -1271,6 +1271,14 @@
       "description": "Setează câte zile să păstrezi datele (KEEP_DATA_PERIOD_DAYS).",
       "title": "Perioada de păstrare a datelor"
     },
+    "telemetry": {
+      "description": "Trimite statistici anonime despre cum este configurată această instalare, cel mult o dată pe zi. Dezactivat până când îl activați.",
+      "forced_off": "Variabila de mediu TELEMETRY=off sau DO_NOT_TRACK=1 dezactivează această opțiune. Nu se trimite nimic, indiferent ce spune această setare.",
+      "id_note": "ID-ul instanței este creat când activați opțiunea și șters când o dezactivați. Dacă o activați din nou, se creează unul nou.",
+      "payload_off": "Nu se trimite nimic cât timp opțiunea este dezactivată. Iată ce ar conține un raport dacă ați activa-o.",
+      "payload_title": "Ce va trimite următorul raport",
+      "title": "Statistici de utilizare"
+    },
     "timezone": {
       "description": "Selectați fusul orar preferat pentru afișarea tuturor orelor în aplicație.",
       "label": "Fus orar",
@@ -1366,6 +1374,10 @@
     },
     "new_page_name": "Etichetă nouă",
     "search_placeholder": "Căutare etichete..."
+  },
+  "telemetry": {
+    "docs_link": "Ce se trimite și cum se dezactivează",
+    "label": "Trimite statistici anonime de utilizare"
   },
   "theme": {
     "dark": "Întunecat",

@@ -1272,6 +1272,14 @@
       "description": "Angi hvor mange dager data skal beholdes (KEEP_DATA_PERIOD_DAYS).",
       "title": "Databeholdelsesperiode"
     },
+    "telemetry": {
+      "description": "Send anonym statistikk om hvordan denne installasjonen er satt opp, høyst én gang per dag. Av til du slår det på.",
+      "forced_off": "Miljøvariabelen TELEMETRY=off eller DO_NOT_TRACK=1 slår dette av. Ingenting sendes, uansett hva denne innstillingen sier.",
+      "id_note": "Instans-ID-en opprettes når du slår dette på og slettes når du slår det av. Slår du det på igjen, opprettes en ny.",
+      "payload_off": "Ingenting sendes mens dette er av. Dette er hva en rapport ville inneholdt hvis du slo det på.",
+      "payload_title": "Hva den neste rapporten sender",
+      "title": "Bruksstatistikk"
+    },
     "timezone": {
       "description": "Velg ønsket tidssone for visning av alle tider i appen.",
       "label": "Tidssone",
@@ -1367,6 +1375,10 @@
     },
     "new_page_name": "Ny merkelapp",
     "search_placeholder": "Søk etter merkelapper..."
+  },
+  "telemetry": {
+    "docs_link": "Hva som sendes, og hvordan du slår det av",
+    "label": "Send anonym bruksstatistikk"
   },
   "theme": {
     "dark": "Mørk",

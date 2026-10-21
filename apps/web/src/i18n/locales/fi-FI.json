@@ -1272,6 +1272,14 @@
       "description": "Aseta kuinka monta päivää tietoa säilytetään (KEEP_DATA_PERIOD_DAYS).",
       "title": "Tietojen säilytysaika"
     },
+    "telemetry": {
+      "description": "Lähetä nimettömiä tilastoja siitä, miten tämä asennus on määritetty, enintään kerran päivässä. Pois päältä, kunnes otat sen käyttöön.",
+      "forced_off": "Ympäristömuuttuja TELEMETRY=off tai DO_NOT_TRACK=1 poistaa tämän käytöstä. Mitään ei lähetetä, mitä tämä asetus sanookaan.",
+      "id_note": "Instanssin tunnus luodaan, kun otat tämän käyttöön, ja poistetaan, kun poistat sen käytöstä. Kun otat sen uudelleen käyttöön, luodaan uusi.",
+      "payload_off": "Mitään ei lähetetä, kun tämä on pois päältä. Tältä raportti näyttäisi, jos ottaisit sen käyttöön.",
+      "payload_title": "Mitä seuraava raportti lähettää",
+      "title": "Käyttötilastot"
+    },
     "timezone": {
       "description": "Valitse haluamasi aikavyöhyke, jolla kaikki ajat näytetään sovelluksessa.",
       "label": "Aikavyöhyke",
@@ -1367,6 +1375,10 @@
     },
     "new_page_name": "Uusi tunniste",
     "search_placeholder": "Etsi tunnisteita..."
+  },
+  "telemetry": {
+    "docs_link": "Mitä lähetetään ja miten sen voi poistaa käytöstä",
+    "label": "Lähetä nimettömiä käyttötilastoja"
   },
   "theme": {
     "dark": "Tumma",

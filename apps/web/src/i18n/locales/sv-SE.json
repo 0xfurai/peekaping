@@ -1272,6 +1272,14 @@
       "description": "Ange hur många dagar data ska sparas (KEEP_DATA_PERIOD_DAYS).",
       "title": "Lagringstid för data"
     },
+    "telemetry": {
+      "description": "Skicka anonym statistik om hur den här installationen är konfigurerad, högst en gång per dag. Av tills du slår på det.",
+      "forced_off": "Miljövariabeln TELEMETRY=off eller DO_NOT_TRACK=1 stänger av detta. Inget skickas, oavsett vad den här inställningen säger.",
+      "id_note": "Instans-ID:t skapas när du slår på detta och raderas när du stänger av det. Slår du på det igen skapas ett nytt.",
+      "payload_off": "Inget skickas medan detta är avstängt. Det här är vad en rapport skulle innehålla om du slog på det.",
+      "payload_title": "Vad nästa rapport skickar",
+      "title": "Användningsstatistik"
+    },
     "timezone": {
       "description": "Välj din föredragna tidszon för att visa alla tider i appen.",
       "label": "Tidszon",
@@ -1367,6 +1375,10 @@
     },
     "new_page_name": "Ny tagg",
     "search_placeholder": "Sök taggar..."
+  },
+  "telemetry": {
+    "docs_link": "Vad som skickas och hur du stänger av det",
+    "label": "Skicka anonym användningsstatistik"
   },
   "theme": {
     "dark": "Mörk",

@@ -1272,6 +1272,14 @@
       "description": "Defina quantos dias manter os dados (KEEP_DATA_PERIOD_DAYS).",
       "title": "Período de Retenção de Dados"
     },
+    "telemetry": {
+      "description": "Envie estatísticas anônimas sobre como esta instalação está configurada, no máximo uma vez por dia. Desativado até você ativar.",
+      "forced_off": "A variável de ambiente TELEMETRY=off ou DO_NOT_TRACK=1 desativa isto. Nada é enviado, seja qual for esta configuração.",
+      "id_note": "O ID da instância é criado quando você ativa isto e excluído quando você desativa. Ao ativar de novo, um novo ID é criado.",
+      "payload_off": "Nada é enviado enquanto isto estiver desativado. Isto é o que um relatório conteria se você ativasse.",
+      "payload_title": "O que o próximo relatório envia",
+      "title": "Estatísticas de uso"
+    },
     "timezone": {
       "description": "Selecione seu fuso horário preferido para exibir todos os horários no aplicativo.",
       "label": "Fuso horário",
@@ -1367,6 +1375,10 @@
     },
     "new_page_name": "Nova Tag",
     "search_placeholder": "Pesquisar tags..."
+  },
+  "telemetry": {
+    "docs_link": "O que é enviado e como desativar",
+    "label": "Enviar estatísticas de uso anônimas"
   },
   "theme": {
     "dark": "Escuro",

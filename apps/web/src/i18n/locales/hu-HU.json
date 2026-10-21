@@ -1272,6 +1272,14 @@
       "description": "Állítsa be, hogy hány napig tartsuk a adatokat (KEEP_DATA_PERIOD_DAYS).",
       "title": "Adattartási időszak"
     },
+    "telemetry": {
+      "description": "Névtelen statisztikák küldése arról, hogyan van beállítva ez a telepítés, naponta legfeljebb egyszer. Kikapcsolva, amíg be nem kapcsolja.",
+      "forced_off": "A TELEMETRY=off vagy a DO_NOT_TRACK=1 környezeti változó kikapcsolja ezt. Semmi sem kerül elküldésre, bármit mond is ez a beállítás.",
+      "id_note": "A példányazonosító bekapcsoláskor jön létre, kikapcsoláskor pedig törlődik. Újabb bekapcsoláskor új jön létre.",
+      "payload_off": "Amíg ez ki van kapcsolva, semmi sem kerül elküldésre. Ezt tartalmazná a jelentés, ha bekapcsolná.",
+      "payload_title": "Mit küld el a következő jelentés",
+      "title": "Használati statisztikák"
+    },
     "timezone": {
       "description": "Válassza ki a preferált időzónát az alkalmazásban megjelenő összes időpont megjelenítéséhez.",
       "label": "Időzóna",
@@ -1367,6 +1375,10 @@
     },
     "new_page_name": "Új címke",
     "search_placeholder": "Címkék keresése..."
+  },
+  "telemetry": {
+    "docs_link": "Mit küld, és hogyan kapcsolható ki",
+    "label": "Névtelen használati statisztikák küldése"
   },
   "theme": {
     "dark": "Sötét",

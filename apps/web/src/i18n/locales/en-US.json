@@ -1272,6 +1272,14 @@
       "description": "Set how many days to keep data (KEEP_DATA_PERIOD_DAYS).",
       "title": "Data Retention Period"
     },
+    "telemetry": {
+      "description": "Send anonymous statistics about how this install is set up, at most once a day. Off until you turn it on.",
+      "forced_off": "The TELEMETRY=off or DO_NOT_TRACK=1 environment variable switches this off. Nothing is sent, whatever this setting says.",
+      "id_note": "The instance ID is created when you turn this on and deleted when you turn it off. Turning it on again creates a new one.",
+      "payload_off": "Nothing is sent while this is off. This is what a report would contain if you turned it on.",
+      "payload_title": "What the next report sends",
+      "title": "Usage statistics"
+    },
     "timezone": {
       "description": "Select your preferred timezone for displaying all times in the app.",
       "label": "Timezone",
@@ -1367,6 +1375,10 @@
     },
     "new_page_name": "New Tag",
     "search_placeholder": "Search tags..."
+  },
+  "telemetry": {
+    "docs_link": "What is sent, and how to turn it off",
+    "label": "Send anonymous usage statistics"
   },
   "theme": {
     "dark": "Dark",

@@ -1272,6 +1272,14 @@
       "description": "設定保留資料的天數 (KEEP_DATA_PERIOD_DAYS)。",
       "title": "資料保留期限"
     },
+    "telemetry": {
+      "description": "每日最多一次傳送有關呢個安裝點樣設定嘅匿名統計。喺你開啟之前係關閉嘅。",
+      "forced_off": "環境變數 TELEMETRY=off 或者 DO_NOT_TRACK=1 將呢個選項關閉咗。無論呢個設定點樣，都唔會傳送任何嘢。",
+      "id_note": "實例 ID 會喺你開啟呢個選項時建立，關閉時刪除。再開啟會建立新嘅 ID。",
+      "payload_off": "關閉期間唔會傳送任何嘢。如果你開啟，報告就會包含以下內容。",
+      "payload_title": "下一份報告會傳送啲咩",
+      "title": "使用統計"
+    },
     "timezone": {
       "description": "揀選你想用嘅時區，應用程式中所有時間都會以此時區顯示。",
       "label": "時區",
@@ -1367,6 +1375,10 @@
     },
     "new_page_name": "新增標籤",
     "search_placeholder": "搜尋標籤..."
+  },
+  "telemetry": {
+    "docs_link": "會傳送啲咩，同點樣關閉",
+    "label": "傳送匿名使用統計"
   },
   "theme": {
     "dark": "暗",

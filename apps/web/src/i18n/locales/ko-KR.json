@@ -1272,6 +1272,14 @@
       "description": "데이터 보관 일수를 설정하세요 (KEEP_DATA_PERIOD_DAYS).",
       "title": "데이터 보존 기간"
     },
+    "telemetry": {
+      "description": "이 설치가 어떻게 구성되어 있는지에 대한 익명 통계를 하루에 최대 한 번 보냅니다. 켜기 전까지는 꺼져 있습니다.",
+      "forced_off": "환경 변수 TELEMETRY=off 또는 DO_NOT_TRACK=1 때문에 꺼져 있습니다. 이 설정과 관계없이 아무것도 전송되지 않습니다.",
+      "id_note": "인스턴스 ID는 이 기능을 켤 때 만들어지고 끌 때 삭제됩니다. 다시 켜면 새 ID가 만들어집니다.",
+      "payload_off": "꺼져 있는 동안에는 아무것도 전송되지 않습니다. 켜면 보고서에 다음 내용이 담깁니다.",
+      "payload_title": "다음 보고서가 보내는 내용",
+      "title": "사용 통계"
+    },
     "timezone": {
       "description": "앱에서 모든 시간을 표시할 때 사용할 선호 시간대를 선택하세요.",
       "label": "시간대",
@@ -1367,6 +1375,10 @@
     },
     "new_page_name": "새 태그",
     "search_placeholder": "태그 검색..."
+  },
+  "telemetry": {
+    "docs_link": "전송되는 내용과 끄는 방법",
+    "label": "익명 사용 통계 보내기"
   },
   "theme": {
     "dark": "다크",

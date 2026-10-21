@@ -1272,6 +1272,14 @@
       "description": "Imposta per quanti giorni conservare i dati (KEEP_DATA_PERIOD_DAYS).",
       "title": "Periodo di conservazione dei dati"
     },
+    "telemetry": {
+      "description": "Invia statistiche anonime su come è configurata questa installazione, al massimo una volta al giorno. Disattivato finché non lo attivi.",
+      "forced_off": "La variabile d'ambiente TELEMETRY=off o DO_NOT_TRACK=1 lo disattiva. Non viene inviato nulla, qualunque cosa dica questa impostazione.",
+      "id_note": "L'ID istanza viene creato quando lo attivi ed eliminato quando lo disattivi. Se lo riattivi, ne viene creato uno nuovo.",
+      "payload_off": "Non viene inviato nulla finché è disattivato. Questo è ciò che conterrebbe un rapporto se lo attivassi.",
+      "payload_title": "Cosa invierà il prossimo rapporto",
+      "title": "Statistiche di utilizzo"
+    },
     "timezone": {
       "description": "Seleziona il fuso orario preferito per visualizzare tutti gli orari nell'app.",
       "label": "Fuso orario",
@@ -1367,6 +1375,10 @@
     },
     "new_page_name": "Nuovo tag",
     "search_placeholder": "Cerca tag..."
+  },
+  "telemetry": {
+    "docs_link": "Cosa viene inviato e come disattivarlo",
+    "label": "Invia statistiche di utilizzo anonime"
   },
   "theme": {
     "dark": "Scuro",

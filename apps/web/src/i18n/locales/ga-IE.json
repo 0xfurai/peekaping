@@ -1271,6 +1271,14 @@
       "description": "Socraigh líon na lá a choinneálfar sonraí (KEEP_DATA_PERIOD_DAYS).",
       "title": "Am Cothromaíochta na Sonraí"
     },
+    "telemetry": {
+      "description": "Seol staitisticí gan ainm faoin gcaoi a bhfuil an suiteáil seo socraithe, uair amháin sa lá ar a mhéad. As go dtí go gcuirfidh tú air é.",
+      "forced_off": "Múchann an t-athróg timpeallachta TELEMETRY=off nó DO_NOT_TRACK=1 é seo. Ní sheoltar aon rud, is cuma cad a deir an socrú seo.",
+      "id_note": "Cruthaítear ID an cháis nuair a chuireann tú air é agus scriostar é nuair a mhúchann tú é. Má chuireann tú air arís é, cruthaítear ID nua.",
+      "payload_off": "Ní sheoltar aon rud agus é seo as. Seo a bheadh i dtuarascáil dá gcuirfeá air é.",
+      "payload_title": "Cad a sheolfaidh an chéad tuarascáil eile",
+      "title": "Staitisticí úsáide"
+    },
     "timezone": {
       "description": "Roghnaigh do réimse ama is fearr leat chun gach ama a thaispeáint sa bhFeidhmchlár.",
       "label": "Crios ama",
@@ -1366,6 +1374,10 @@
     },
     "new_page_name": "Taga Nua",
     "search_placeholder": "Cuardaigh taganna..."
+  },
+  "telemetry": {
+    "docs_link": "Cad a sheoltar agus conas é a mhúchadh",
+    "label": "Seol staitisticí úsáide gan ainm"
   },
   "theme": {
     "dark": "Dorcha",

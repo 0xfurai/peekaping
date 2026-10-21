@@ -1272,6 +1272,14 @@
       "description": "Définissez le nombre de jours de conservation des données (KEEP_DATA_PERIOD_DAYS).",
       "title": "Période de conservation des données"
     },
+    "telemetry": {
+      "description": "Envoyer des statistiques anonymes sur la configuration de cette installation, au plus une fois par jour. Désactivé tant que vous ne l'activez pas.",
+      "forced_off": "La variable d'environnement TELEMETRY=off ou DO_NOT_TRACK=1 désactive cette option. Rien n'est envoyé, quel que soit ce paramètre.",
+      "id_note": "L'identifiant d'instance est créé quand vous activez cette option et supprimé quand vous la désactivez. Si vous la réactivez, un nouvel identifiant est créé.",
+      "payload_off": "Rien n'est envoyé tant que cette option est désactivée. Voici ce que contiendrait un rapport si vous l'activiez.",
+      "payload_title": "Ce que le prochain rapport enverra",
+      "title": "Statistiques d'utilisation"
+    },
     "timezone": {
       "description": "Sélectionnez votre fuseau horaire préféré pour afficher toutes les heures dans l'application.",
       "label": "Fuseau horaire",
@@ -1367,6 +1375,10 @@
     },
     "new_page_name": "Nouvelle étiquette",
     "search_placeholder": "Rechercher des étiquettes..."
+  },
+  "telemetry": {
+    "docs_link": "Ce qui est envoyé et comment le désactiver",
+    "label": "Envoyer des statistiques d'utilisation anonymes"
   },
   "theme": {
     "dark": "Sombre",

@@ -1272,6 +1272,14 @@
       "description": "Bepaal hoelang gegevens bewaard blijven (KEEP_DATA_PERIOD_DAYS).",
       "title": "Gegevensbewaartermijn"
     },
+    "telemetry": {
+      "description": "Verstuur anonieme statistieken over hoe deze installatie is ingesteld, hooguit één keer per dag. Uit tot je het aanzet.",
+      "forced_off": "De omgevingsvariabele TELEMETRY=off of DO_NOT_TRACK=1 zet dit uit. Er wordt niets verstuurd, wat deze instelling ook zegt.",
+      "id_note": "De instantie-ID wordt aangemaakt als je dit aanzet en verwijderd als je het uitzet. Als je het weer aanzet, wordt er een nieuwe aangemaakt.",
+      "payload_off": "Er wordt niets verstuurd zolang dit uit staat. Dit is wat een rapport zou bevatten als je het aanzette.",
+      "payload_title": "Wat het volgende rapport verstuurt",
+      "title": "Gebruiksstatistieken"
+    },
     "timezone": {
       "description": "Kies uw gewenste tijdzone om alle tijden in de app weer te geven.",
       "label": "Tijdzone",
@@ -1367,6 +1375,10 @@
     },
     "new_page_name": "Nieuwe tag",
     "search_placeholder": "Zoek tags..."
+  },
+  "telemetry": {
+    "docs_link": "Wat er wordt verstuurd en hoe je het uitzet",
+    "label": "Anonieme gebruiksstatistieken versturen"
   },
   "theme": {
     "dark": "Donker",

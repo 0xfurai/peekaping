@@ -1272,6 +1272,14 @@
       "description": "Podesite koliko dana će se zadržavati podaci (KEEP_DATA_PERIOD_DAYS).",
       "title": "Period zadržavanja podataka"
     },
+    "telemetry": {
+      "description": "Šalji anonimnu statistiku o tome kako je ova instalacija podešena, najviše jednom dnevno. Isključeno dok ne uključite.",
+      "forced_off": "Promenljiva okruženja TELEMETRY=off ili DO_NOT_TRACK=1 isključuje ovo. Ništa se ne šalje, šta god ovo podešavanje govorilo.",
+      "id_note": "ID instance se pravi kada ovo uključite i briše kada ovo isključite. Ponovnim uključivanjem pravi se novi.",
+      "payload_off": "Dok je ovo isključeno, ništa se ne šalje. Ovo bi sadržao izveštaj da ste ga uključili.",
+      "payload_title": "Šta će poslati sledeći izveštaj",
+      "title": "Statistika korišćenja"
+    },
     "timezone": {
       "description": "Izaberite svoju željenu vremensku zonu za prikaz svih vremena u aplikaciji.",
       "label": "Vremenska zona",
@@ -1367,6 +1375,10 @@
     },
     "new_page_name": "Nova oznaka",
     "search_placeholder": "Pretraži oznake..."
+  },
+  "telemetry": {
+    "docs_link": "Šta se šalje i kako to isključiti",
+    "label": "Šalji anonimnu statistiku korišćenja"
   },
   "theme": {
     "dark": "Tamni",

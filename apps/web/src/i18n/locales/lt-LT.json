@@ -1272,6 +1272,14 @@
       "description": "Nustatykite, kiek dienų laikyti duomenis (KEEP_DATA_PERIOD_DAYS).",
       "title": "Duomenų saugojimo laikotarpis"
     },
+    "telemetry": {
+      "description": "Siųsti anonimišką statistiką apie tai, kaip sukonfigūruotas šis diegimas, ne dažniau kaip kartą per dieną. Išjungta, kol neįjungsite.",
+      "forced_off": "Aplinkos kintamasis TELEMETRY=off arba DO_NOT_TRACK=1 tai išjungia. Niekas nesiunčiama, ką bebūtų nurodęs šis nustatymas.",
+      "id_note": "Egzemplioriaus ID sukuriamas, kai tai įjungiate, ir ištrinamas, kai išjungiate. Įjungus iš naujo, sukuriamas naujas.",
+      "payload_off": "Kol tai išjungta, niekas nesiunčiama. Štai ką ataskaita turėtų, jei tai įjungtumėte.",
+      "payload_title": "Ką išsiųs kita ataskaita",
+      "title": "Naudojimo statistika"
+    },
     "timezone": {
       "description": "Pasirinkite pageidaujamą laiko juostą, pagal kurią bus rodomi visi laikai programoje.",
       "label": "Laiko juosta",
@@ -1367,6 +1375,10 @@
     },
     "new_page_name": "Nauja žyma",
     "search_placeholder": "Ieškoti žymų..."
+  },
+  "telemetry": {
+    "docs_link": "Kas siunčiama ir kaip tai išjungti",
+    "label": "Siųsti anonimišką naudojimo statistiką"
   },
   "theme": {
     "dark": "Tamsus",

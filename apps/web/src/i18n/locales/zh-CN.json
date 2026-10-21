@@ -1272,6 +1272,14 @@
       "description": "设置保留数据的天数（KEEP_DATA_PERIOD_DAYS）。",
       "title": "数据保留期限"
     },
+    "telemetry": {
+      "description": "每天最多一次发送关于此安装如何配置的匿名统计。开启之前保持关闭。",
+      "forced_off": "环境变量 TELEMETRY=off 或 DO_NOT_TRACK=1 已将此选项关闭。无论此设置如何，都不会发送任何内容。",
+      "id_note": "实例 ID 在你开启此选项时创建，关闭时删除。再次开启会创建新的 ID。",
+      "payload_off": "关闭期间不会发送任何内容。如果你开启，报告将包含以下内容。",
+      "payload_title": "下一份报告会发送什么",
+      "title": "使用统计"
+    },
     "timezone": {
       "description": "选择您偏好的时区，以在应用程序中显示所有时间。",
       "label": "时区",
@@ -1367,6 +1375,10 @@
     },
     "new_page_name": "新标签",
     "search_placeholder": "搜索标签…"
+  },
+  "telemetry": {
+    "docs_link": "会发送什么，以及如何关闭",
+    "label": "发送匿名使用统计"
   },
   "theme": {
     "dark": "深色",

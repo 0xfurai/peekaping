@@ -1272,6 +1272,14 @@
       "description": "Veriyi saklayacağınız gün sayısını ayarlayın (KEEP_DATA_PERIOD_DAYS).",
       "title": "Veri Saklama Süresi"
     },
+    "telemetry": {
+      "description": "Bu kurulumun nasıl yapılandırıldığına dair anonim istatistikleri günde en fazla bir kez gönderin. Siz açana kadar kapalıdır.",
+      "forced_off": "TELEMETRY=off veya DO_NOT_TRACK=1 ortam değişkeni bunu kapatır. Bu ayar ne derse desin hiçbir şey gönderilmez.",
+      "id_note": "Örnek kimliği, bunu açtığınızda oluşturulur ve kapattığınızda silinir. Yeniden açarsanız yeni bir kimlik oluşturulur.",
+      "payload_off": "Bu kapalıyken hiçbir şey gönderilmez. Açsaydınız bir rapor şunları içerirdi.",
+      "payload_title": "Bir sonraki raporun göndereceği veriler",
+      "title": "Kullanım istatistikleri"
+    },
     "timezone": {
       "description": "Uygulamadaki tüm zamanları göstermek için tercih ettiğiniz saat dilimini seçin.",
       "label": "Saat Dilimi",
@@ -1367,6 +1375,10 @@
     },
     "new_page_name": "Yeni Etiket",
     "search_placeholder": "Etiketleri ara..."
+  },
+  "telemetry": {
+    "docs_link": "Neler gönderilir ve nasıl kapatılır",
+    "label": "Anonim kullanım istatistikleri gönder"
   },
   "theme": {
     "dark": "Koyu",
