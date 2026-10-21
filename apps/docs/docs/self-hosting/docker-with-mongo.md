@@ -28,17 +28,25 @@ With MongoDB, Peekaping runs in cluster mode only: the API, producer, worker and
 - the links between all of these, such as a monitor's tags, channels and status pages
 - heartbeats, stats, TLS information and which certificate expiry notifications were sent
 
+The MongoDB it reads must be version 4.4 or later. The bundle runs MongoDB 7.
+
 The copy is one transaction. If anything fails, the new database keeps no data. The new database must hold no users, monitors or history of its own: if it does, the command refuses it and changes nothing. A database that Peekaping has only started on is fine. It holds just the default settings that the first start writes, and the import replaces them with the settings of your install, the login keys included.
 
 After the move:
 
 - Users log in with their password and two-factor code. Browsers that were signed in have to sign in once more.
 - The API keys you handed out keep working.
-- Badge URLs and status page URLs, including custom domains, keep working.
+- Badge URLs and status page URLs, including custom domains, keep working. The monitors of a status page keep their order.
 - The history is there: heartbeats and stats, with the same uptime and response times.
 - Monitors, tags, channels and every other row get new IDs, which are UUIDs. Badge URLs and API keys that carry an old ID are mapped to the new one. Your own scripts that put a monitor's ID in an API URL need the new ID, which `GET /api/v1/monitors` lists.
 
-The command prints what it did with every collection: how many documents it read, copied and skipped, and why. It skips only what can't be copied as it is, such as a link to a monitor that was deleted. It also lists what the SQL tables have no place for: the order of the monitors on a status page, which monitors it hides, and a status page's password, search engine and Google Analytics fields, which Peekaping doesn't use. It doesn't copy the login lockout counters (`login_state`).
+Because monitor IDs change, a few things that carry the old ID don't follow the monitor:
+
+- **Open incidents in PagerDuty, PagerTree and Grafana OnCall.** PagerDuty's deduplication key is `Peekaping/<monitor ID>`, PagerTree's alert carries the ID in its own ID and metadata, and Grafana OnCall gets it in the `monitor_id` field. The "up" notification after the move has the new ID, so it doesn't resolve an incident that the old ID opened. Resolve those incidents by hand.
+- **Webhook receivers** that key on the monitor's `id` in the payload see the new ID.
+- **Links** to `/monitors/<id>` in earlier Slack, Microsoft Teams and Google Chat messages, and in PagerDuty incidents, no longer open the monitor.
+
+The command prints what it did with every collection: how many documents it read, copied and skipped, and why. It skips only what can't be copied as it is, such as a link to a monitor that was deleted. It also lists what the SQL tables have no place for: which monitors a status page hides, and a status page's password, search engine and Google Analytics fields, which Peekaping doesn't use. On PostgreSQL it cuts text that is wider than its column, and lists that. It doesn't copy the login lockout counters (`login_state`).
 
 Peekaping is stopped while you move, so its monitors aren't checked, and the history of that time is missing. The steps below take a few minutes; the copy itself takes seconds for a typical install.
 
@@ -56,7 +64,7 @@ With the [Docker Compose](#docker-compose) setup, run `docker compose down` in i
 
 ### 2. Start a MongoDB on the copy
 
-The import reads from a running MongoDB. Start one on the copy, on a Docker network of its own. `mongo:7` is the MongoDB version of the bundle. This MongoDB asks for no login, and only containers on that network can reach it.
+The import reads from a running MongoDB. Start one on the copy, on a Docker network of its own. This MongoDB asks for no login, and only containers on that network can reach it.
 
 ```bash
 docker network create peekaping-move
@@ -67,17 +75,21 @@ docker run -d --name peekaping-mongo --network peekaping-move \
 
 ### 3. Import into a SQLite database
 
-Run the import from the SQLite bundle image, with the folder for the new database mounted at `/app/data`. Use a new folder: if a database with users, monitors or history is in it already, the import refuses it. `--mongo-db` is the `DB_NAME` of the old install, `peekaping` unless you changed it.
+Run the import from the SQLite bundle image, with the folder for the new database mounted at `/app/data`. Use a new folder: if a database with users, monitors or history is in it already, the import refuses it.
 
 ```bash
 docker run --rm --network peekaping-move \
   -e DB_TYPE=sqlite \
   -e DB_NAME=/app/data/peekaping.db \
+  -e MONGO_URI=mongodb://peekaping-mongo:27017 \
+  -e MONGO_DB=peekaping \
   -v $(pwd)/.data/sqlite:/app/data \
   --entrypoint /app/server/bun \
   0xfurai/peekaping-bundle-sqlite:latest \
-  db import-mongo --mongo-uri mongodb://peekaping-mongo:27017 --mongo-db peekaping
+  db import-mongo
 ```
+
+The command reads where to import from in `MONGO_URI` and `MONGO_DB`, or in the flags `--mongo-uri` and `--mongo-db`, which win. Prefer the environment: a URI with a password then stays out of the command line and the shell history. If the URI has a password, put the `MONGO_URI=` line in a file, and pass `--env-file <that file>` instead of `-e MONGO_URI`. `MONGO_DB` is the `DB_NAME` of the old install, `peekaping` unless you changed it. If you leave it out, the command takes the database in the URI, and then `peekaping`.
 
 It applies the SQL migrations, copies the data and prints the report, which ends like this:
 
@@ -94,9 +106,11 @@ Copied 60 rows into the sqlite database. The login lockout counters (login_state
 
 If it stops with an error, it wrote no data. Fix what the error says, and run it again.
 
-If your MongoDB asks for a login, put it in the URI: `mongodb://<user>:<password>@<host>:27017/<database>?authSource=admin`. The database in the URI replaces `--mongo-db`.
+The import runs as root, so the database file in `.data/sqlite` belongs to root. The bundle gives `/app/data` to the `peekaping` user when it starts. If you start it with `docker run --user`, it doesn't, so give the folder to that user first: `sudo chown -R <uid>:<gid> .data/sqlite`.
 
-With Docker Compose, the MongoDB is the `database` service, so skip step 2. Start it alone with `docker compose up -d database`. In the command above, use `--network <folder name>_appnet` and `--mongo-uri 'mongodb://root:<DB_PASS>@database:27017/?authSource=admin'`, with `--mongo-db peekaping`.
+If your MongoDB asks for a login, put it in the URI: `mongodb://<user>:<password>@<host>:27017/<database>?authSource=admin`.
+
+With Docker Compose, the MongoDB is the `database` service, so skip step 2. Start it alone with `docker compose up -d database`. In the command above, use `--network <folder name>_appnet` and `-e MONGO_URI='mongodb://root:<DB_PASS>@database:27017/?authSource=admin'`.
 
 ### 4. Start the new bundle
 
@@ -142,8 +156,8 @@ When `docker ps` says the container is `healthy`, run the import inside it. Don'
 ```bash
 docker exec \
   -e DB_TYPE=postgres -e DB_HOST=localhost -e DB_PORT=5432 \
-  peekaping /app/server/bun db import-mongo \
-  --mongo-uri mongodb://peekaping-mongo:27017 --mongo-db peekaping
+  -e MONGO_URI=mongodb://peekaping-mongo:27017 -e MONGO_DB=peekaping \
+  peekaping /app/server/bun db import-mongo
 ```
 
 The report says how many default settings of the new database were replaced. Then restart the container, so that Peekaping loads the settings it was given:
@@ -152,7 +166,13 @@ The report says how many default settings of the new database were replaced. The
 docker restart -t 35 peekaping
 ```
 
-Log in as in step 4, and remove the MongoDB and the network. The container may be published on another host port after the restart, so look at `docker port peekaping` if the page doesn't open.
+Log in as in step 4. Then remove the MongoDB, and take the bundle off the network before you remove it:
+
+```bash
+docker rm -f peekaping-mongo
+docker network disconnect peekaping-move peekaping
+docker network rm peekaping-move
+```
 
 ### Moving to your own PostgreSQL server
 
@@ -166,11 +186,21 @@ docker run --rm --network peekaping-move \
   -e DB_USER=<its user> \
   -e DB_PASS=<its password> \
   -e DB_NAME=<its database> \
+  -e MONGO_URI=mongodb://peekaping-mongo:27017 \
+  -e MONGO_DB=peekaping \
   0xfurai/peekaping-migrate:latest \
-  ./bun db import-mongo --mongo-uri mongodb://peekaping-mongo:27017 --mongo-db peekaping
+  ./bun db import-mongo
 ```
 
-Then start Peekaping on that database. With the [Docker Compose setup for PostgreSQL](./docker-with-postgres.md#cluster-mode), start its `database` service alone with `docker compose up -d database` for the import, and everything else after it.
+Then remove the MongoDB, take the server off the network, and remove the network:
+
+```bash
+docker rm -f peekaping-mongo
+docker network disconnect peekaping-move <its container>
+docker network rm peekaping-move
+```
+
+Start Peekaping on that database. With the [Docker Compose setup for PostgreSQL](./docker-with-postgres.md#cluster-mode), start its `database` service alone with `docker compose up -d database` for the import, and everything else after it.
 
 ## Bundle image
 
