@@ -1,13 +1,15 @@
 package main
 
 import (
+	"database/sql"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"slices"
 	"strings"
 	"testing"
+
+	"github.com/uptrace/bun/driver/sqliteshim"
 )
 
 func TestTrimpathBinaryRunsWithoutMigrationSources(t *testing.T) {
@@ -33,6 +35,7 @@ func TestTrimpathBinaryRunsWithoutMigrationSources(t *testing.T) {
 	if !strings.Contains(status, "unapplied migrations: empty") {
 		t.Fatalf("expected every embedded migration to be applied, got:\n%s", status)
 	}
+	assertAppliedMigrations(t, databasePath)
 	if _, err := os.Stat(filepath.Join(runtimeDir, "cmd", "bun", "migrations")); !os.IsNotExist(err) {
 		t.Fatalf("runtime unexpectedly contains migration sources: %v", err)
 	}
@@ -71,11 +74,52 @@ func TestTrimpathBinaryRunsWithoutMigrationSources(t *testing.T) {
 
 func serverDirectory(t *testing.T) string {
 	t.Helper()
-	_, filename, _, ok := runtime.Caller(0)
-	if !ok {
-		t.Fatal("locate test source")
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("get test working directory: %v", err)
 	}
-	return filepath.Clean(filepath.Join(filepath.Dir(filename), "..", ".."))
+	for {
+		_, err := os.Stat(filepath.Join(dir, "go.mod"))
+		if err == nil {
+			return dir
+		}
+		if !os.IsNotExist(err) {
+			t.Fatalf("inspect %s for go.mod: %v", dir, err)
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			t.Fatalf("find apps/server module from test working directory %s", dir)
+		}
+		dir = parent
+	}
+}
+
+func assertAppliedMigrations(t *testing.T, databasePath string) {
+	t.Helper()
+	db, err := sql.Open(sqliteshim.ShimName, "file:"+databasePath+"?mode=ro")
+	if err != nil {
+		t.Fatalf("open migrated database: %v", err)
+	}
+	t.Cleanup(func() { _ = db.Close() })
+
+	var total int
+	if err := db.QueryRow("SELECT COUNT(*) FROM bun_migrations").Scan(&total); err != nil {
+		t.Fatalf("count applied migrations: %v", err)
+	}
+	if total != 12 {
+		t.Fatalf("expected 11 embedded SQL migrations and one Go migration, got %d applied migrations", total)
+	}
+
+	var goMigrationCount int
+	if err := db.QueryRow(
+		"SELECT COUNT(*) FROM bun_migrations WHERE name = ?",
+		"20261017120100",
+	).Scan(&goMigrationCount); err != nil {
+		t.Fatalf("check applied Go migration: %v", err)
+	}
+	if goMigrationCount != 1 {
+		t.Fatalf("expected Go migration 20261017120100 to be applied once, got %d", goMigrationCount)
+	}
 }
 
 func runBun(t *testing.T, binPath, workingDir, databasePath string, args ...string) string {
