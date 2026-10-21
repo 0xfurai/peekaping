@@ -37,11 +37,11 @@ If you need to run migrations manually outside of Docker:
    ./bun db rollback
    ```
 
-5. **Import a MongoDB install** into an empty SQLite or PostgreSQL database, which `DB_TYPE` and the other `DB_*` variables name:
+5. **Import a MongoDB install** into a SQLite or PostgreSQL database that holds no data of its own, which `DB_TYPE` and the other `DB_*` variables name:
    ```bash
    ./bun db import-mongo --mongo-uri mongodb://localhost:27017 --mongo-db peekaping
    ```
-   It applies the migrations first, then copies the data in one transaction, and refuses a database that holds data. See [Move to SQLite or PostgreSQL](apps/docs/docs/self-hosting/docker-with-mongo.md#move-to-sqlite-or-postgresql) for the steps and what is copied.
+   It applies the migrations first, then copies the data in one transaction, and refuses a database that holds users, monitors or history. It replaces the default settings of a first start with the install's. See [Move to SQLite or PostgreSQL](apps/docs/docs/self-hosting/docker-with-mongo.md#move-to-sqlite-or-postgresql) for the steps and what is copied.
 
 ### Creating New Migrations
 

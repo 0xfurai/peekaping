@@ -19,7 +19,7 @@ With MongoDB, Peekaping runs in cluster mode only: the API, producer, worker and
 
 ## Move to SQLite or PostgreSQL
 
-`bun db import-mongo` copies a MongoDB install into an empty SQLite or PostgreSQL database. The `bun` tool is in the SQLite and PostgreSQL bundle images and in the migrate image (`peekaping-migrate`) of the releases after 0.0.47. It copies:
+`bun db import-mongo` copies a MongoDB install into a new SQLite or PostgreSQL database. The `bun` tool is in the SQLite and PostgreSQL bundle images and in the migrate image (`peekaping-migrate`) of the releases after 0.0.47. It copies:
 
 - users, with their password hashes and two-factor secrets
 - settings, including the keys that sign login tokens
@@ -28,7 +28,7 @@ With MongoDB, Peekaping runs in cluster mode only: the API, producer, worker and
 - the links between all of these, such as a monitor's tags, channels and status pages
 - heartbeats, stats, TLS information and which certificate expiry notifications were sent
 
-The copy is one transaction. If anything fails, the new database keeps no data. If the new database already holds Peekaping data, the command refuses it and changes nothing.
+The copy is one transaction. If anything fails, the new database keeps no data. The new database must hold no users, monitors or history of its own: if it does, the command refuses it and changes nothing. A database that Peekaping has only started on is fine. It holds just the default settings that the first start writes, and the import replaces them with the settings of your install, the login keys included.
 
 After the move:
 
@@ -44,10 +44,11 @@ Peekaping is stopped while you move, so its monitors aren't checked, and the his
 
 ### 1. Stop Peekaping and back up
 
-Stop the container, so that the files are complete, and copy the data folder. The import reads the copy, and the original is your way back.
+Stop the container, so that the files are complete, and copy the data folder. The import reads the copy, and the original is your way back. Rename the stopped container, so that the new one can take the name `peekaping`.
 
 ```bash
 docker stop -t 35 peekaping
+docker rename peekaping peekaping-mongo-bundle
 cp -a .data/mongodb .data/mongodb-backup
 ```
 
@@ -66,7 +67,7 @@ docker run -d --name peekaping-mongo --network peekaping-move \
 
 ### 3. Import into a SQLite database
 
-Run the import from the SQLite bundle image, with the folder for the new database mounted at `/app/data`. The folder must be new: if a Peekaping database is in it already, the import refuses it. `--mongo-db` is the `DB_NAME` of the old install, `peekaping` unless you changed it.
+Run the import from the SQLite bundle image, with the folder for the new database mounted at `/app/data`. Use a new folder: if a database with users, monitors or history is in it already, the import refuses it. `--mongo-db` is the `DB_NAME` of the old install, `peekaping` unless you changed it.
 
 ```bash
 docker run --rm --network peekaping-move \
@@ -119,11 +120,43 @@ docker rm -f peekaping-mongo
 docker network rm peekaping-move
 ```
 
-Keep `.data/mongodb` and `.data/mongodb-backup` until you are sure you don't need them. To go back, stop the new container and start the MongoDB bundle on `.data/mongodb` again. What Peekaping recorded after the move stays in the new database only.
+Keep `.data/mongodb`, `.data/mongodb-backup` and the stopped `peekaping-mongo-bundle` container until you are sure you don't need them. To go back, remove the new container with `docker rm -f peekaping`, then run `docker rename peekaping-mongo-bundle peekaping` and `docker start peekaping`. What Peekaping recorded after the move stays in the new database only.
 
-### Moving to PostgreSQL
+### Moving to the PostgreSQL bundle
 
-Set the `DB_*` variables to a PostgreSQL database that no Peekaping has used, and run the import from the migrate image. Put the PostgreSQL server on the `peekaping-move` network of step 2 with `docker network connect peekaping-move <its container>`, so that the migrate image reaches both it and the MongoDB:
+The PostgreSQL bundle runs Peekaping and its PostgreSQL in one container, and Peekaping writes its default settings when it first starts. So start the bundle first, let it create its database, and run the import inside it. Do steps 1 and 2 above, then start the bundle on the `peekaping-move` network, with a new data folder, as in [Docker + PostgreSQL](./docker-with-postgres.md):
+
+```bash
+docker run -d --restart=always --network peekaping-move \
+  -p 8383:8383 \
+  -e DB_NAME=peekaping \
+  -e DB_USER=peekaping \
+  -e DB_PASS=secure_test_password_123 \
+  -v $(pwd)/.data/postgres:/var/lib/postgresql/data \
+  --name peekaping \
+  0xfurai/peekaping-bundle-postgres:latest
+```
+
+When `docker ps` says the container is `healthy`, run the import inside it. Don't open the web app or create an account before the import: the database must not hold an admin yet. The container's environment has `DB_NAME`, `DB_USER` and `DB_PASS`, so only the rest is added:
+
+```bash
+docker exec \
+  -e DB_TYPE=postgres -e DB_HOST=localhost -e DB_PORT=5432 \
+  peekaping /app/server/bun db import-mongo \
+  --mongo-uri mongodb://peekaping-mongo:27017 --mongo-db peekaping
+```
+
+The report says how many default settings of the new database were replaced. Then restart the container, so that Peekaping loads the settings it was given:
+
+```bash
+docker restart -t 35 peekaping
+```
+
+Log in as in step 4, and remove the MongoDB and the network. The container may be published on another host port after the restart, so look at `docker port peekaping` if the page doesn't open.
+
+### Moving to your own PostgreSQL server
+
+For a PostgreSQL server you run yourself, such as the `database` service of the Docker Compose setup for PostgreSQL, set the `DB_*` variables to its database and run the import from the migrate image. The database must hold no users, monitors or history. Put the server on the `peekaping-move` network of step 2 with `docker network connect peekaping-move <its container>`, so that the migrate image reaches both it and the MongoDB:
 
 ```bash
 docker run --rm --network peekaping-move \
@@ -138,8 +171,6 @@ docker run --rm --network peekaping-move \
 ```
 
 Then start Peekaping on that database. With the [Docker Compose setup for PostgreSQL](./docker-with-postgres.md#cluster-mode), start its `database` service alone with `docker compose up -d database` for the import, and everything else after it.
-
-The PostgreSQL bundle can't be the target. It starts Peekaping together with its PostgreSQL, and Peekaping writes its settings at the first start, so there is no moment when the database exists and is still empty. Use a PostgreSQL server you run yourself, or the SQLite bundle.
 
 ## Bundle image
 
