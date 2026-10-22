@@ -1,0 +1,298 @@
+package probe_test
+
+import (
+	"context"
+	"sync"
+	"testing"
+	"time"
+
+	"peekaping/internal/modules/events/eventstest"
+	"peekaping/internal/modules/probe"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
+)
+
+// clock is a hand-set clock for the sweep
+type clock struct {
+	mu  sync.Mutex
+	now time.Time
+}
+
+func (c *clock) Now() time.Time {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.now
+}
+
+func (c *clock) Advance(d time.Duration) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.now = c.now.Add(d)
+}
+
+// sweepFixture is a sweep over a migrated SQLite database, a bus that records what it publishes,
+// and a clock that stands still until the test moves it
+type sweepFixture struct {
+	repo  probe.Repository
+	bus   *eventstest.Bus
+	clock *clock
+	sweep *probe.Sweep
+}
+
+func newSweepFixture(t *testing.T) *sweepFixture {
+	t.Helper()
+	db := sqliteDB(t)
+	migrateDB(t, db)
+	f := &sweepFixture{
+		repo:  probe.NewSQLRepository(db),
+		bus:   eventstest.NewBus(),
+		clock: &clock{now: time.Date(2026, 10, 22, 12, 0, 0, 0, time.UTC)},
+	}
+	f.sweep = probe.NewSweep(probe.SweepConfig{
+		Repo:         f.repo,
+		EventBus:     f.bus,
+		OfflineAfter: 3 * time.Minute,
+		Now:          f.clock.Now,
+		Logger:       zap.NewNop().Sugar(),
+	})
+	return f
+}
+
+// probe makes a probe that is in the given status
+func (f *sweepFixture) probe(t *testing.T, name string, status probe.Status) *probe.Model {
+	t.Helper()
+	created, err := f.repo.Create(context.Background(), &probe.CreateModel{Name: name, TokenHash: "sha256$" + name, TokenPrefix: "pkp_" + name})
+	require.NoError(t, err)
+	if status == probe.StatusOnline {
+		changed, err := f.repo.UpdateStatus(context.Background(), created.ID, probe.StatusOffline, probe.StatusOnline)
+		require.NoError(t, err)
+		require.True(t, changed)
+	}
+	return created
+}
+
+// instance records an instance of the probe that was last seen the given time before now
+func (f *sweepFixture) instance(t *testing.T, probeID, id string, seenAgo time.Duration) time.Time {
+	t.Helper()
+	seen := f.clock.Now().Add(-seenAgo)
+	require.NoError(t, f.repo.UpsertInstance(context.Background(), probeID, &probe.Instance{ID: id, LastSeenAt: seen}))
+	return seen
+}
+
+func (f *sweepFixture) run(t *testing.T) {
+	t.Helper()
+	require.NoError(t, f.sweep.SweepOnce(context.Background()))
+}
+
+func (f *sweepFixture) status(t *testing.T, probeID string) probe.Status {
+	t.Helper()
+	found, err := f.repo.FindByID(context.Background(), probeID)
+	require.NoError(t, err)
+	require.NotNil(t, found)
+	return found.Status
+}
+
+func TestSweep_MarksOfflineAfterThreshold(t *testing.T) {
+	f := newSweepFixture(t)
+	quiet := f.probe(t, "Frankfurt", probe.StatusOnline)
+	seen := f.instance(t, quiet.ID, "frankfurt-1", 4*time.Minute)
+	f.instance(t, quiet.ID, "frankfurt-2", 5*time.Minute)
+	talking := f.probe(t, "Paris", probe.StatusOnline)
+	f.instance(t, talking.ID, "paris-1", 2*time.Minute)
+
+	f.run(t)
+
+	assert.Equal(t, probe.StatusOffline, f.status(t, quiet.ID))
+	assert.Equal(t, probe.StatusOnline, f.status(t, talking.ID), "an instance was seen within 3 minutes")
+	offline := eventstest.Published(f.bus, probe.ProbeOffline)
+	require.Len(t, offline, 1)
+	assert.Equal(t, quiet.ID, offline[0].ProbeID)
+	assert.Equal(t, "Frankfurt", offline[0].ProbeName)
+	assert.True(t, seen.Equal(offline[0].Since), "since is the last time any instance was seen: %s", offline[0].Since)
+	assert.Empty(t, eventstest.Published(f.bus, probe.ProbeOnline))
+
+	f.run(t)
+	assert.Len(t, eventstest.Published(f.bus, probe.ProbeOffline), 1, "a probe is announced offline once")
+}
+
+func TestSweep_AProbeSeenExactlyOfflineAfterAgoIsStillOnline(t *testing.T) {
+	f := newSweepFixture(t)
+	edge := f.probe(t, "Edge", probe.StatusOnline)
+	f.instance(t, edge.ID, "edge-1", 3*time.Minute)
+
+	f.run(t)
+	assert.Equal(t, probe.StatusOnline, f.status(t, edge.ID), "within PROBE_OFFLINE_AFTER includes the limit itself")
+
+	f.clock.Advance(time.Second)
+	f.run(t)
+	assert.Equal(t, probe.StatusOffline, f.status(t, edge.ID))
+}
+
+func TestSweep_MarksAnOnlineProbeWithNoInstancesOffline(t *testing.T) {
+	f := newSweepFixture(t)
+	gone := f.probe(t, "Gone", probe.StatusOnline)
+
+	f.run(t)
+
+	assert.Equal(t, probe.StatusOffline, f.status(t, gone.ID))
+	offline := eventstest.Published(f.bus, probe.ProbeOffline)
+	require.Len(t, offline, 1)
+	assert.True(t, f.clock.Now().Equal(offline[0].Since), "with no instance to have seen, the probe has been offline since now: %s", offline[0].Since)
+}
+
+func TestSweep_NeverOnlineNeverNotifies(t *testing.T) {
+	f := newSweepFixture(t)
+	fresh := f.probe(t, "Fresh", probe.StatusOffline)
+	stale := f.probe(t, "Stale", probe.StatusOffline)
+	f.instance(t, stale.ID, "stale-1", time.Hour)
+
+	f.run(t)
+	f.run(t)
+
+	assert.Equal(t, probe.StatusOffline, f.status(t, fresh.ID))
+	assert.Equal(t, probe.StatusOffline, f.status(t, stale.ID))
+	assert.Empty(t, eventstest.Published(f.bus, probe.ProbeOffline), "the local probe, a new probe and a long gone one are offline already")
+	assert.Empty(t, eventstest.Published(f.bus, probe.ProbeOnline))
+}
+
+func TestSweep_BackstopMarksOnline(t *testing.T) {
+	f := newSweepFixture(t)
+	back := f.probe(t, "Back", probe.StatusOffline)
+	seen := f.instance(t, back.ID, "back-1", 10*time.Second)
+
+	f.run(t)
+
+	assert.Equal(t, probe.StatusOnline, f.status(t, back.ID), "a request flips the probe at once; the sweep catches one that was missed")
+	online := eventstest.Published(f.bus, probe.ProbeOnline)
+	require.Len(t, online, 1)
+	assert.Equal(t, back.ID, online[0].ProbeID)
+	assert.Equal(t, "Back", online[0].ProbeName)
+	assert.True(t, seen.Equal(online[0].Since), "since is when the probe was last heard: %s", online[0].Since)
+	assert.Empty(t, eventstest.Published(f.bus, probe.ProbeOffline))
+
+	f.run(t)
+	assert.Len(t, eventstest.Published(f.bus, probe.ProbeOnline), 1, "a probe is announced online once")
+}
+
+func TestSweep_InstanceDropOutPublishesInstancesChanged(t *testing.T) {
+	ctx := context.Background()
+	f := newSweepFixture(t)
+	edge := f.probe(t, "Edge", probe.StatusOnline)
+	f.instance(t, edge.ID, "edge-1", 0)
+	f.instance(t, edge.ID, "edge-2", 0)
+	steady := f.probe(t, "Steady", probe.StatusOnline)
+	f.instance(t, steady.ID, "steady-1", 0)
+
+	f.run(t)
+	assert.Empty(t, eventstest.Published(f.bus, probe.InstancesChanged), "the first pass only learns who is online")
+
+	// edge-1 keeps talking, edge-2 goes quiet
+	f.clock.Advance(61 * time.Second)
+	touched, err := f.repo.TouchInstance(ctx, edge.ID, "edge-1", f.clock.Now())
+	require.NoError(t, err)
+	require.True(t, touched)
+	touched, err = f.repo.TouchInstance(ctx, steady.ID, "steady-1", f.clock.Now())
+	require.NoError(t, err)
+	require.True(t, touched)
+	f.run(t)
+
+	changed := eventstest.Published(f.bus, probe.InstancesChanged)
+	require.Len(t, changed, 1)
+	assert.Equal(t, edge.ID, changed[0].ProbeID)
+	assert.Equal(t, probe.StatusOnline, f.status(t, edge.ID), "one instance is still in")
+
+	f.run(t)
+	assert.Len(t, eventstest.Published(f.bus, probe.InstancesChanged), 1, "nothing changed since")
+
+	// edge-2 comes back
+	f.clock.Advance(time.Second)
+	touched, err = f.repo.TouchInstance(ctx, edge.ID, "edge-2", f.clock.Now())
+	require.NoError(t, err)
+	require.True(t, touched)
+	f.run(t)
+	assert.Len(t, eventstest.Published(f.bus, probe.InstancesChanged), 2, "an instance that joins the online set changes it too")
+}
+
+func TestSweep_RemovesInstancesUnseenForADay(t *testing.T) {
+	ctx := context.Background()
+	f := newSweepFixture(t)
+	edge := f.probe(t, "Edge", probe.StatusOffline)
+	f.instance(t, edge.ID, "edge-last-week", 7*24*time.Hour)
+	f.instance(t, edge.ID, "edge-yesterday", 25*time.Hour)
+	f.instance(t, edge.ID, "edge-this-morning", 23*time.Hour)
+
+	f.run(t)
+
+	left, err := f.repo.FindInstances(ctx, edge.ID)
+	require.NoError(t, err)
+	require.Len(t, left, 1)
+	assert.Equal(t, "edge-this-morning", left[0].ID)
+}
+
+func TestSweep_MongoWarnsOnceAndStops(t *testing.T) {
+	core, logs := observer.New(zap.InfoLevel)
+	sweep := probe.NewSweep(probe.SweepConfig{
+		Repo:     probe.NewUnsupportedRepository(),
+		EventBus: eventstest.NewBus(),
+		Interval: 5 * time.Millisecond,
+		Logger:   zap.New(core).Sugar(),
+	})
+
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		sweep.Run(context.Background())
+	}()
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		t.Fatal("Run kept going on a MongoDB install, where there are no probes to sweep")
+	}
+
+	// A second Run, as when the producer wins the leadership again, stays silent
+	done = make(chan struct{})
+	go func() {
+		defer close(done)
+		sweep.Run(context.Background())
+	}()
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		t.Fatal("the second Run kept going")
+	}
+	assert.Equal(t, 1, logs.FilterLevelExact(zap.WarnLevel).Len(), "one warning: %v", logs.All())
+}
+
+func TestSweep_RunSweepsEveryIntervalUntilItsContextIsDone(t *testing.T) {
+	f := newSweepFixture(t)
+	quiet := f.probe(t, "Quiet", probe.StatusOnline)
+	f.instance(t, quiet.ID, "quiet-1", time.Hour)
+	f.sweep = probe.NewSweep(probe.SweepConfig{
+		Repo:         f.repo,
+		EventBus:     f.bus,
+		OfflineAfter: 3 * time.Minute,
+		Interval:     5 * time.Millisecond,
+		Now:          f.clock.Now,
+		Logger:       zap.NewNop().Sugar(),
+	})
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		f.sweep.Run(ctx)
+	}()
+
+	require.Eventually(t, func() bool {
+		return f.status(t, quiet.ID) == probe.StatusOffline
+	}, 5*time.Second, 5*time.Millisecond)
+	cancel()
+
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		t.Fatal("Run did not return once its context was done")
+	}
+}
