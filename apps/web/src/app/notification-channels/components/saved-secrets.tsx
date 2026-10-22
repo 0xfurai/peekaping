@@ -1,22 +1,42 @@
 import * as React from "react";
-import { useFormContext } from "react-hook-form";
+import { useFormContext, useFormState } from "react-hook-form";
+import { Button } from "@/components/ui/button";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Textarea } from "@/components/ui/textarea";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import {
+  REENTER_ERROR_TYPE,
   SECRET_PLACEHOLDER,
   configFieldKeys,
-  endpointChanged,
+  secretsToReenter,
 } from "../secrets";
 
-// The secrets of the form that were emptied because where the channel sends changed
-const ReenterSecretsContext = React.createContext<ReadonlySet<string>>(new Set());
+type SavedSecretsContextValue = {
+  // The secrets of the form that hold the placeholder though where the channel sends changed
+  reenter: ReadonlySet<string>;
+  // Tells that a secret field is on the form. Returns the call that tells it is gone.
+  showSecret: (name: string) => () => void;
+};
+
+const SavedSecretsContext = React.createContext<SavedSecretsContextValue>({
+  reenter: new Set(),
+  showSecret: () => () => {},
+});
+
+function sameSet(a: ReadonlySet<string>, b: readonly string[]) {
+  return a.size === b.length && b.every((key) => a.has(key));
+}
 
 // Wraps the fields of a channel type's form. The API shows a secret the channel has saved as
-// SECRET_PLACEHOLDER, and the form holds it until the user types a new secret. The server keeps
-// a saved secret only while the channel sends to the same place, so when an endpoint field
-// moves away from `saved`, the secrets still holding the placeholder are emptied and the user
-// types them again. Pass `saved` in the edit form: the values the form opened with.
+// SECRET_PLACEHOLDER, and the form holds it until the user types a new secret or removes it.
+// The server keeps a saved secret only while the channel sends to the same place, so when an
+// endpoint field moves away from `saved`, the secrets still holding the placeholder keep it but
+// ask to be typed again or removed: their fields show a hint, and saving and testing are
+// refused (see create-edit-notification-channel). Pass `saved` in the edit form: the values the
+// form opened with.
+//
+// A secret whose field the form doesn't show, such as an ntfy token while it signs in with a
+// password, can't be asked for, so it is emptied.
 export function SavedSecrets({
   saved,
   children,
@@ -24,80 +44,131 @@ export function SavedSecrets({
   saved?: Record<string, unknown>;
   children: React.ReactNode;
 }) {
-  const { watch, setValue } = useFormContext();
+  const { watch, getValues, setValue, getFieldState, clearErrors } = useFormContext();
   const [reenter, setReenter] = React.useState<ReadonlySet<string>>(new Set());
+  const shown = React.useRef(new Set<string>());
+  const [shownVersion, setShownVersion] = React.useState(0);
+
+  const showSecret = React.useCallback((name: string) => {
+    shown.current.add(name);
+    setShownVersion((version) => version + 1);
+    return () => {
+      shown.current.delete(name);
+      setShownVersion((version) => version + 1);
+    };
+  }, []);
+
+  const reconcile = React.useCallback(
+    (values: Record<string, unknown>) => {
+      if (!saved) return;
+      const needed = secretsToReenter(values, saved);
+      needed.filter((key) => !shown.current.has(key)).forEach((key) => setValue(key, ""));
+      const asked = needed.filter((key) => shown.current.has(key));
+      setReenter((current) => (sameSet(current, asked) ? current : new Set(asked)));
+
+      // An error that asks for a secret goes once the secret is no longer asked for: it was
+      // typed or removed, or the endpoint is back as saved
+      const type = typeof values.type === "string" ? values.type : "";
+      for (const key of configFieldKeys[type]?.secrets ?? []) {
+        if (!asked.includes(key) && getFieldState(key).error?.type === REENTER_ERROR_TYPE) {
+          clearErrors(key);
+        }
+      }
+    },
+    [saved, setValue, getFieldState, clearErrors]
+  );
 
   React.useEffect(() => {
     if (!saved) return;
-    const subscription = watch((values) => {
-      const type = values.type as string;
-      if (type !== saved.type) {
-        // Another type has no saved secrets to ask for
-        setReenter((current) => (current.size ? new Set() : current));
-        return;
-      }
-      if (!endpointChanged(type, values, saved)) return;
-
-      const emptied = (configFieldKeys[type]?.secrets ?? []).filter(
-        (key) => values[key] === SECRET_PLACEHOLDER
-      );
-      if (emptied.length === 0) return;
-      emptied.forEach((key) => setValue(key, ""));
-      setReenter((current) => new Set([...current, ...emptied]));
-    });
+    const subscription = watch((values) => reconcile(values));
     return () => subscription.unsubscribe();
-  }, [watch, setValue, saved]);
+  }, [watch, saved, reconcile]);
 
+  // A field coming or going changes which secrets can be asked for
+  React.useEffect(() => {
+    reconcile(getValues());
+  }, [shownVersion, getValues, reconcile]);
+
+  const value = React.useMemo(() => ({ reenter, showSecret }), [reenter, showSecret]);
   return (
-    <ReenterSecretsContext.Provider value={reenter}>
-      {children}
-    </ReenterSecretsContext.Provider>
+    <SavedSecretsContext.Provider value={value}>{children}</SavedSecretsContext.Provider>
   );
 }
 
-// What a secret field shows while it holds a saved secret, or has to be typed again: nothing
-// in the field, and a hint under it.
-function useSecretHint(
+// What a secret field shows while it holds a saved secret: nothing in the field, a hint under
+// it, and a button that removes the secret.
+function useSavedSecret(
   name: string | undefined,
   value: unknown,
   describedBy: string | undefined,
   id: string | undefined
 ) {
   const { t } = useLocalizedTranslation();
-  const reenter = React.useContext(ReenterSecretsContext);
+  const { reenter, showSecret } = React.useContext(SavedSecretsContext);
+  const { setValue, getFieldState } = useFormContext();
+  const formState = useFormState({ name });
+
+  React.useEffect(() => (name ? showSecret(name) : undefined), [name, showSecret]);
 
   const saved = value === SECRET_PLACEHOLDER;
   let hint: string | null = null;
   if (saved) {
-    hint = t("notifications.secret.saved_hint");
-  } else if (value === "" && name && reenter.has(name)) {
-    hint = t("notifications.secret.reenter_hint");
+    hint =
+      name && reenter.has(name)
+        ? t("notifications.secret.reenter_hint")
+        : t("notifications.secret.saved_hint");
   }
+  // The field's error says the same, under the field
+  if (name && getFieldState(name, formState).error?.type === REENTER_ERROR_TYPE) hint = null;
 
   const hintId = id ? `${id}-secret-hint` : undefined;
-  const hintElement = hint ? (
-    <p id={hintId} className="text-muted-foreground text-sm">
-      {hint}
-    </p>
-  ) : null;
+  const remove = () => {
+    if (!name) return;
+    // An explicit empty value: the server clears the secret
+    setValue(name, "", { shouldDirty: true, shouldTouch: true });
+    if (id) setTimeout(() => document.getElementById(id)?.focus(), 0);
+  };
+  const actions =
+    hint || saved ? (
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        {hint && (
+          <p id={hintId} className="text-muted-foreground text-sm">
+            {hint}
+          </p>
+        )}
+        {saved && (
+          <Button
+            type="button"
+            variant="link"
+            size="sm"
+            className="h-auto p-0"
+            onClick={remove}
+          >
+            {t("notifications.secret.remove")}
+          </Button>
+        )}
+      </div>
+    ) : null;
+
   return {
     saved,
-    hintElement,
+    actions,
     describedBy:
       [describedBy, hint ? hintId : undefined].filter(Boolean).join(" ") || undefined,
   };
 }
 
 // A password field for a secret of a notification channel. It shows empty while the form holds
-// the placeholder of a saved secret: typing replaces it, and leaving it keeps the saved secret.
-// Emptying it after typing is a real clear. Pass the field of a FormField, as for PasswordInput.
+// the placeholder of a saved secret: typing replaces it, leaving it keeps the saved secret, and
+// Remove clears it. Emptying it after typing is a real clear too. Pass the field of a FormField,
+// as for PasswordInput.
 export function SecretInput({
   value,
   required,
   placeholder,
   ...props
 }: React.ComponentProps<typeof PasswordInput>) {
-  const { saved, hintElement, describedBy } = useSecretHint(
+  const { saved, actions, describedBy } = useSavedSecret(
     props.name,
     value,
     props["aria-describedby"],
@@ -115,7 +186,7 @@ export function SecretInput({
         placeholder={saved ? undefined : placeholder}
         aria-describedby={describedBy}
       />
-      {hintElement}
+      {actions}
     </>
   );
 }
@@ -126,7 +197,7 @@ export function SecretTextarea({
   placeholder,
   ...props
 }: React.ComponentProps<typeof Textarea>) {
-  const { saved, hintElement, describedBy } = useSecretHint(
+  const { saved, actions, describedBy } = useSavedSecret(
     props.name,
     value,
     props["aria-describedby"],
@@ -141,7 +212,7 @@ export function SecretTextarea({
         placeholder={saved ? undefined : placeholder}
         aria-describedby={describedBy}
       />
-      {hintElement}
+      {actions}
     </>
   );
 }

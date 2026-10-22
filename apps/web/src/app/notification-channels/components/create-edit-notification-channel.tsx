@@ -8,7 +8,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { z } from "zod";
-import { useForm } from "react-hook-form";
+import { useForm, type FieldErrors, type Resolver } from "react-hook-form";
 import {
   Select,
   SelectContent,
@@ -46,10 +46,15 @@ import * as PagerTreeForm from "../integrations/pagertree";
 import * as LineForm from "../integrations/line-form";
 import * as TeamsForm from "../integrations/teams-form";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
-import { withoutSavedSecrets } from "../secrets";
+import {
+  REENTER_ERROR_MESSAGE,
+  REENTER_ERROR_TYPE,
+  secretsToReenter,
+  withoutSavedSecrets,
+} from "../secrets";
 import { SavedSecrets } from "./saved-secrets";
 
 const typeFormRegistry = {
@@ -161,8 +166,27 @@ export default function CreateEditNotificationChannel({
     ...typeFormRegistry[initialValues.type]?.defaultValues,
     ...initialValues,
   }));
+  // The values the saved channel opened the form with: its secrets are the placeholder
+  const savedValues = mode === "edit" ? openingValues : undefined;
+  // The server keeps a saved secret only while the channel sends to the same place. A secret
+  // still holding the placeholder after an endpoint moved is refused with an error on its field,
+  // until it is typed again or removed.
+  const resolver = useMemo<Resolver<NotificationForm>>(() => {
+    const validate = zodResolver(notificationSchema);
+    return async (values, context, options) => {
+      const result = await validate(values, context, options);
+      const reenter = savedValues ? secretsToReenter(values, savedValues) : [];
+      if (reenter.length === 0) return result;
+
+      const errors: Record<string, unknown> = { ...result.errors };
+      for (const key of reenter) {
+        errors[key] = { type: REENTER_ERROR_TYPE, message: REENTER_ERROR_MESSAGE };
+      }
+      return { values: {}, errors: errors as FieldErrors<NotificationForm> };
+    };
+  }, [savedValues]);
   const baseForm = useForm<NotificationForm>({
-    resolver: zodResolver(notificationSchema),
+    resolver,
     defaultValues: openingValues,
   });
 
@@ -199,6 +223,20 @@ export default function CreateEditNotificationChannel({
   // Handle test notification
   function handleTest() {
     const values = baseForm.getValues();
+
+    // The same refusal as saving: a saved secret that can't be kept is not sent
+    const reenter = savedValues ? secretsToReenter(values, savedValues) : [];
+    if (reenter.length > 0) {
+      reenter.forEach((key, index) =>
+        baseForm.setError(
+          key as Parameters<typeof baseForm.setError>[0],
+          { type: REENTER_ERROR_TYPE, message: REENTER_ERROR_MESSAGE },
+          { shouldFocus: index === 0 }
+        )
+      );
+      return;
+    }
+
     const { name, type, ...typeConfig } = values;
     testNotifierMutation.mutate({
       body: {
@@ -290,7 +328,7 @@ export default function CreateEditNotificationChannel({
             )}
           />
 
-          <SavedSecrets saved={mode === "edit" ? openingValues : undefined}>
+          <SavedSecrets saved={savedValues}>
             {TypeFormComponent && <TypeFormComponent />}
           </SavedSecrets>
 

@@ -1115,7 +1115,9 @@
     },
     "search_placeholder": "Értesítési csatornák keresése név szerint...",
     "secret": {
+      "reenter_error": "Adja meg újra ezt a titkot, vagy távolítsa el: megváltozott a küldés célja",
       "reenter_hint": "Adja meg újra ezt a titkot: megváltozott a küldés célja",
+      "remove": "Eltávolítás",
       "saved_hint": "Mentve — írjon be újat a cseréhez"
     }
   },
