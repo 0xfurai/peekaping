@@ -14,9 +14,10 @@
 # characters for the longest release name Helm allows) and retries 6 times, so
 # it outlasts a restart of the bundled PostgreSQL, the web pod sets the sysctl
 # that lets its non-root nginx bind port 80 (web.sysctls) and mounts the
-# writable paths that nginx needs under a read-only root filesystem, and the
-# install notes say Peekaping runs in cluster mode and link to the Helm docs
-# page.
+# writable paths that nginx needs under a read-only root filesystem, the
+# ConfigMap sets TRUSTED_PROXIES to loopback and the private ranges (and a
+# values file can change it), and the install notes say Peekaping runs in
+# cluster mode and link to the Helm docs page.
 #
 # It also runs scripts/update-chart-deps.sh against a fake Docker Hub: a new
 # major version of a subchart is reported as such and refused by --write, a
@@ -205,6 +206,28 @@ job_retries() {
   ' "$1")
   if [ "$limit" != "$3" ]; then
     echo "       the Job in $2 has backoffLimit ${limit:-<none>}, expected $3"
+    return 1
+  fi
+}
+
+# config_env <rendered file> <key>: the value the release's ConfigMap sets for
+# <key> (a config.env entry), or nothing when it sets none
+config_env() {
+  awk -v key="$2" '
+    /^# Source: / { in_config = ($0 ~ "/templates/config\\.yaml$"); next }
+    /^---$/ { in_config = 0 }
+    in_config && index($0, "  " key ": ") == 1 {
+      value = substr($0, length(key) + 5); gsub(/^"|"$/, "", value); print value; exit
+    }
+  ' "$1"
+}
+
+# config_sets <rendered file> <key> <value>: the ConfigMap sets <key> to <value>
+config_sets() {
+  local got
+  got=$(config_env "$1" "$2")
+  if [ "$got" != "$3" ]; then
+    echo "       the ConfigMap sets $2 to '${got:-<nothing>}', expected '$3'"
     return 1
   fi
 }
@@ -792,6 +815,17 @@ if check "helm dependency build fetches PostgreSQL and Redis" run dependency hel
     # enough for the bundled PostgreSQL to come back from a restart that the
     # same upgrade causes.
     check "default values: the migrate Job retries 6 times" job_retries "$work/default.yaml" migrate-job 6 || true
+    # The api trusts X-Forwarded-For only from these addresses: loopback and the
+    # private networks, which is where the ingress or gateway reaches it from.
+    # Without the setting the login lockout would count every client as the
+    # ingress.
+    check "default values: the ConfigMap sets TRUSTED_PROXIES to loopback and the private ranges" \
+      config_sets "$work/default.yaml" TRUSTED_PROXIES \
+      "127.0.0.0/8,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7" || true
+  fi
+  if check "config.env.TRUSTED_PROXIES=203.0.113.0/24 renders" render trusted-proxies --set config.env.TRUSTED_PROXIES=203.0.113.0/24; then
+    check "config.env.TRUSTED_PROXIES=203.0.113.0/24: the ConfigMap sets TRUSTED_PROXIES to it" \
+      config_sets "$work/trusted-proxies.yaml" TRUSTED_PROXIES 203.0.113.0/24 || true
   fi
   if check "bundled PostgreSQL and Redis render" render bundled --set postgresql.enabled=true --set redis.enabled=true; then
     check "bundled PostgreSQL runs an image pinned by digest" pinned_by_digest "$work/bundled.yaml" postgresql || true

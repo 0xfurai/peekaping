@@ -66,6 +66,7 @@ func Register(container *dig.Container, cfg *config.Config) error {
 	err := utils.Provide(container,
 		func() *config.Config { return cfg },
 		internal.ProvideLogger,
+		internal.ProvideTrustedProxies,
 	)
 	if err != nil {
 		return err

@@ -1,32 +1,19 @@
 package httpx_test
 
 import (
+	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"peekaping/internal/httpx"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
 )
-
-func TestClientIPCompatibility(t *testing.T) {
-	for _, tc := range []struct{ remote, forwarded, real, want string }{
-		{"192.0.2.1:1234", "", "", "192.0.2.1"},
-		{"[2001:db8::1]:1234", "", "", "2001:db8::1"},
-		{"192.0.2.1:1234", "198.51.100.1, 192.0.2.2", "", "198.51.100.1"},
-		{"192.0.2.1:1234", "invalid, 192.0.2.2", "198.51.100.2", "198.51.100.2"},
-		{"192.0.2.1:1234", "invalid", "invalid", "192.0.2.1"},
-		{"invalid", "198.51.100.1", "", ""},
-	} {
-		r := httptest.NewRequest("GET", "/", nil)
-		r.RemoteAddr = tc.remote
-		r.Header.Set("X-Forwarded-For", tc.forwarded)
-		r.Header.Set("X-Real-IP", tc.real)
-		assert.Equal(t, tc.want, httpx.ClientIP(r))
-	}
-}
 
 func TestJSONAndText(t *testing.T) {
 	w := httptest.NewRecorder()
@@ -79,7 +66,7 @@ func TestCORSCompatibility(t *testing.T) {
 func TestRecoveryAndLogging(t *testing.T) {
 	core, logs := observer.New(zap.DebugLevel)
 	logger := zap.New(core).Sugar()
-	handler := httpx.Chain(http.HandlerFunc(func(http.ResponseWriter, *http.Request) { panic("broken") }), httpx.Logger(logger), httpx.Recovery(logger))
+	handler := httpx.Chain(http.HandlerFunc(func(http.ResponseWriter, *http.Request) { panic("broken") }), httpx.Logger(logger, nil), httpx.Recovery(logger))
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, httptest.NewRequest("GET", "/panic", nil))
 	assert.Equal(t, 500, w.Code)
@@ -92,9 +79,53 @@ func TestRecoveryAndLogging(t *testing.T) {
 	assert.EqualValues(t, 0, entry["size"])
 }
 
+func TestAccessLogRecordsTheClientBehindATrustedProxy(t *testing.T) {
+	for _, tc := range []struct{ name, trusted, want string }{
+		{"forwarding headers are ignored from an untrusted address", "", "192.0.2.1"},
+		{"forwarding headers count from a trusted proxy", "192.0.2.0/24", "198.51.100.7"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			proxies, err := httpx.ParseTrustedProxies(tc.trusted)
+			require.NoError(t, err)
+			core, logs := observer.New(zap.DebugLevel)
+			handler := httpx.Logger(zap.New(core).Sugar(), proxies)(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}))
+			r := httptest.NewRequest("GET", "/", nil)
+			r.Header.Set("X-Forwarded-For", "203.0.113.9, 198.51.100.7")
+			handler.ServeHTTP(httptest.NewRecorder(), r)
+			assert.Equal(t, tc.want, logs.FilterMessage("HTTP request").All()[0].ContextMap()["client_ip"])
+		})
+	}
+}
+
+func TestLimitBody(t *testing.T) {
+	handler := httpx.LimitBody(8)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, err := io.ReadAll(r.Body)
+		var tooLarge *http.MaxBytesError
+		if errors.As(err, &tooLarge) {
+			assert.EqualValues(t, 8, tooLarge.Limit)
+			w.WriteHeader(http.StatusRequestEntityTooLarge)
+			return
+		}
+		require.NoError(t, err)
+		w.WriteHeader(http.StatusOK)
+	}))
+	for _, tc := range []struct {
+		body string
+		want int
+	}{
+		{"12345678", http.StatusOK},
+		{"123456789", http.StatusRequestEntityTooLarge},
+		{"", http.StatusOK},
+	} {
+		w := httptest.NewRecorder()
+		handler.ServeHTTP(w, httptest.NewRequest("POST", "/", strings.NewReader(tc.body)))
+		assert.Equal(t, tc.want, w.Code, "%d bytes", len(tc.body))
+	}
+}
+
 func TestAccessLogIncludesResponseAndQuery(t *testing.T) {
 	core, logs := observer.New(zap.DebugLevel)
-	handler := httpx.Logger(zap.New(core).Sugar())(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler := httpx.Logger(zap.New(core).Sugar(), nil)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		httpx.Text(w, 418, "teapot")
 	}))
 	handler.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest("GET", "/items?page=2", nil))
