@@ -7,11 +7,13 @@ import (
 	"net/http/httptest"
 	"regexp"
 	"runtime"
+	"sync"
 	"testing"
 
 	"peekaping/internal/config"
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/setting"
+	"peekaping/internal/modules/shared"
 	"peekaping/internal/reporting/reportingtest"
 
 	"github.com/stretchr/testify/assert"
@@ -463,4 +465,42 @@ func TestTelemetryAPI_TheNoticeCannotBeMarkedSeenWithoutTheAdminsJWT(t *testing.
 
 	assert.True(t, a.telemetry(t).NoticePending)
 	assert.Nil(t, a.storedSetting(t, "TELEMETRY_NOTICE_SEEN"))
+}
+
+// The setup form sends both choices at once. Each choice also marks the notice seen, with the
+// same "true", and the two writes must not fail each other: the request that loses the race has
+// stored its choice already, and answering 500 would tell the admin it had not.
+func TestTelemetryAPI_BothChoicesSentAtOnceBothSucceed(t *testing.T) {
+	reportingtest.Install(t)
+	a := newAppWithAdmin(t)
+	const rounds = 200
+
+	for round := range rounds {
+		require.NoError(t, a.container.Invoke(func(settings shared.SettingService) error {
+			return settings.DeleteByKey(context.Background(), shared.TelemetryNoticeSeenKey)
+		}))
+		start := make(chan struct{})
+		var wg sync.WaitGroup
+		var usage, reports *httptest.ResponseRecorder
+		wg.Add(2)
+		go func() {
+			defer wg.Done()
+			<-start
+			usage = a.request(t, http.MethodPut, telemetryPath, map[string]any{"enabled": false}, a.asAdmin)
+		}()
+		go func() {
+			defer wg.Done()
+			<-start
+			reports = a.request(t, http.MethodPut, errorReportingPath, map[string]any{"enabled": false}, a.asAdmin)
+		}()
+		close(start)
+		wg.Wait()
+
+		require.Equal(t, http.StatusOK, usage.Code, "round %d, usage statistics: %s", round, usage.Body.String())
+		require.Equal(t, http.StatusOK, reports.Code, "round %d, error reports: %s", round, reports.Body.String())
+		require.NotNil(t, a.storedSetting(t, "TELEMETRY_NOTICE_SEEN"))
+		assert.Equal(t, "true", a.storedSetting(t, "TELEMETRY_NOTICE_SEEN").Value)
+	}
+	assert.Equal(t, "false", a.storedSetting(t, "TELEMETRY_ENABLED").Value)
+	assert.Equal(t, "false", a.storedSetting(t, "ERROR_REPORTING_ENABLED").Value)
 }

@@ -150,8 +150,11 @@ func (s *ServiceImpl) MarkNoticeSeen(ctx context.Context) (State, error) {
 	return s.State(ctx)
 }
 
+// markNoticeSeen stores the flag in one statement that leaves a stored flag alone: the setup form
+// sends both choices at once, each marks the notice seen with the same "true", and a plain set
+// (an update, then an insert) lets the second insert hit the key and fail a choice that is stored
 func (s *ServiceImpl) markNoticeSeen(ctx context.Context) error {
-	if _, err := s.settings.SetByKey(ctx, shared.TelemetryNoticeSeenKey, &shared.SettingModel{Value: "true", Type: "bool"}); err != nil {
+	if _, err := s.settings.CreateIfAbsent(ctx, shared.TelemetryNoticeSeenKey, &shared.SettingModel{Value: "true", Type: "bool"}); err != nil {
 		return fmt.Errorf("store %s: %w", shared.TelemetryNoticeSeenKey, err)
 	}
 	return nil
