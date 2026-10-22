@@ -570,6 +570,8 @@
         "docker": "Kontainer Docker",
         "grpc": "Pemantau Kata Kunci gRPC",
         "http": "Pemantau HTTP(S)",
+        "http_json_query": "HTTP(s) - Kueri JSON",
+        "http_keyword": "HTTP(s) - Kata Kunci",
         "kafka": "Pemantau Produser Kafka",
         "mongodb": "Pemantau Database MongoDB",
         "mqtt": "Pemantau Broker MQTT",

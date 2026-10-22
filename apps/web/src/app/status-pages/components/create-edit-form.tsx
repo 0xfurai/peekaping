@@ -57,14 +57,14 @@ const statusPageSchema = z.object({
   domains: z.array(z.string()).optional(),
 });
 
-export type StatusPageForm = z.infer<typeof statusPageSchema>;
+export type StatusPageFormValues = z.infer<typeof statusPageSchema>;
 
 type DomainAlreadyUsedError = {
   code: "DOMAIN_EXISTS";
   domain: string;
 };
 
-const formDefaultValues: StatusPageForm = {
+const statusPageDefaultValues: StatusPageFormValues = {
   title: "",
   slug: "",
   description: "",
@@ -81,7 +81,7 @@ const CreateEditForm = ({
   mode = "create",
   id,
 }: {
-  initialValues?: StatusPageForm;
+  initialValues?: StatusPageFormValues;
   mode?: "create" | "edit";
   id?: string;
 }) => {
@@ -90,8 +90,8 @@ const CreateEditForm = ({
   const queryClient = useQueryClient();
   const [domainToHighlight, setDomainToHighlight] = useState<string | undefined>(undefined);
 
-  const form = useForm<StatusPageForm>({
-    defaultValues: initialValues || formDefaultValues,
+  const form = useForm<StatusPageFormValues>({
+    defaultValues: initialValues || statusPageDefaultValues,
     resolver: zodResolver(statusPageSchema),
   });
 
@@ -143,7 +143,7 @@ const CreateEditForm = ({
     onError: handleMutationError,
   });
 
-  const handleSubmit = (data: StatusPageForm) => {
+  const handleSubmit = (data: StatusPageFormValues) => {
     // Clear previous errors
     form.clearErrors("domains");
     setDomainToHighlight(undefined);

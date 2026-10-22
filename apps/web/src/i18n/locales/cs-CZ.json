@@ -570,6 +570,8 @@
         "docker": "Docker kontejner",
         "grpc": "gRPC monitor klíčového slova",
         "http": "HTTP(S) monitor",
+        "http_json_query": "HTTP(s) - JSON dotaz",
+        "http_keyword": "HTTP(s) - Klíčové slovo",
         "kafka": "Monitor producenta Kafka",
         "mongodb": "Databázový monitor MongoDB",
         "mqtt": "Monitor brokera MQTT",
