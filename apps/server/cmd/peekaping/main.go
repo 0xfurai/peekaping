@@ -163,6 +163,7 @@ type parts struct {
 	Stats                stats.Service
 	NotificationHistory  notification_sent_history.Service
 	TLSInfo              monitor_tls_info.Service
+	CleanupLock          cleanup.RunLock
 	Monitors             monitor.Service
 	NotificationListener *notification_channel.NotificationEventListener
 	MonitorListener      *monitor.MonitorEventListener
@@ -214,7 +215,7 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 		handler = httpx.Chain(gateway, httpx.RequestID, httpx.Logger(logger, p.TrustedProxies))
 	}
 
-	jobs, err := startJobs(ctx, p, cfg.MetricsEnabled, logger)
+	jobs, err := startJobs(ctx, p, cfg, logger)
 	if err != nil {
 		return err
 	}
@@ -274,7 +275,7 @@ type jobs struct {
 // listeners, the status repair, the metrics collector and the usage ping), the stats aggregation
 // that cmd/ingester starts, and the scheduler and its watchdog in place of cmd/producer. Each runs
 // once: this process is the only one, and so always the leader.
-func startJobs(ctx context.Context, p parts, metricsEnabled bool, logger *zap.SugaredLogger) (*jobs, error) {
+func startJobs(ctx context.Context, p parts, cfg *Config, logger *zap.SugaredLogger) (*jobs, error) {
 	if err := p.Settings.InitializeSettings(ctx); err != nil {
 		return nil, fmt.Errorf("failed to initialize JWT settings: %w", err)
 	}
@@ -285,7 +286,15 @@ func startJobs(ctx context.Context, p parts, metricsEnabled bool, logger *zap.Su
 	}
 
 	j := &jobs{scheduler: p.Scheduler}
-	j.cleanup = cleanup.StartCleanupCron(p.Heartbeats, p.Users, p.Settings, p.Stats, p.NotificationHistory, p.TLSInfo, logger)
+	retention := cleanup.Retention{
+		NotificationHistoryDays: cfg.NotificationHistoryRetentionDays,
+		TLSInfoDays:             cfg.TLSInfoRetentionDays,
+	}
+	var err error
+	j.cleanup, err = cleanup.StartCleanupCron(p.Heartbeats, p.Users, p.Settings, p.Stats, p.NotificationHistory, p.TLSInfo, p.CleanupLock, retention, logger)
+	if err != nil {
+		return nil, fmt.Errorf("failed to start the hourly cleanup: %w", err)
+	}
 
 	p.NotificationListener.Subscribe(p.EventBus)
 	p.MonitorListener.Subscribe(p.EventBus)
@@ -314,7 +323,7 @@ func startJobs(ctx context.Context, p parts, metricsEnabled bool, logger *zap.Su
 
 	var metricsCtx context.Context
 	metricsCtx, j.stopMetrics = context.WithCancel(context.Background())
-	if metricsEnabled {
+	if cfg.MetricsEnabled {
 		j.metricsDone = p.Metrics.Start(metricsCtx, p.EventBus)
 	} else {
 		done := make(chan struct{})
