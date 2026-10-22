@@ -1,12 +1,19 @@
 package apitest
 
 import (
+	"context"
+	"encoding/base64"
+	"encoding/json"
 	"net/http"
+	"strings"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/uptrace/bun"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type apiKeyResponse struct {
@@ -40,6 +47,95 @@ func TestAPIKeysAPI_ManagesKey(t *testing.T) {
 	require.Equal(t, http.StatusNoContent, w.Code, w.Body.String())
 	assert.Equal(t, http.StatusNotFound, a.request(t, http.MethodGet, path, nil, a.asAdmin).Code)
 	assert.Equal(t, http.StatusUnauthorized, a.request(t, http.MethodGet, "/api/v1/monitors", nil, withKey).Code)
+}
+
+// storedKeyHash reads the hash stored for the API key with this ID.
+func (a *app) storedKeyHash(t *testing.T, id string) string {
+	t.Helper()
+	var hash string
+	require.NoError(t, a.container.Invoke(func(db *bun.DB) error {
+		return db.NewSelect().Table("api_keys").Column("key_hash").Where("id = ?", id).Scan(context.Background(), &hash)
+	}))
+	return hash
+}
+
+func TestAPIKeysAPI_NewKeyIsStoredAsSHA256(t *testing.T) {
+	a := newAppWithAdmin(t)
+	key := decode[struct {
+		apiKeyResponse
+		Token string `json:"token"`
+	}](t, a.request(t, http.MethodPost, "/api/v1/api-keys", map[string]any{"name": "CI deploys"}, a.asAdmin), http.StatusCreated)
+
+	assert.Regexp(t, `^sha256\$[0-9a-f]{64}$`, a.storedKeyHash(t, key.ID))
+	withKey := func(req *http.Request) { req.Header.Set("X-API-Key", key.Token) }
+	assert.Equal(t, http.StatusOK, a.request(t, http.MethodGet, "/api/v1/monitors", nil, withKey).Code)
+	wrongKey := func(req *http.Request) { req.Header.Set("X-API-Key", key.Token[:len(key.Token)-4]+"AAAA") }
+	assert.Equal(t, http.StatusUnauthorized, a.request(t, http.MethodGet, "/api/v1/monitors", nil, wrongKey).Code)
+}
+
+// A key created before the SHA-256 hash was used is stored as a bcrypt hash. It
+// still works, and its hash is replaced by a SHA-256 hash on its first use.
+func TestAPIKeysAPI_KeyWithBcryptHashStillWorks(t *testing.T) {
+	a := newAppWithAdmin(t)
+	key := decode[struct {
+		apiKeyResponse
+		Token string `json:"token"`
+	}](t, a.request(t, http.MethodPost, "/api/v1/api-keys", map[string]any{"name": "Old key"}, a.asAdmin), http.StatusCreated)
+	payload, err := base64.URLEncoding.DecodeString(strings.TrimPrefix(key.Token, "pk_"))
+	require.NoError(t, err)
+	var parts struct {
+		Key string `json:"key"`
+	}
+	require.NoError(t, json.Unmarshal(payload, &parts))
+	legacy, err := bcrypt.GenerateFromPassword([]byte(parts.Key), bcrypt.MinCost)
+	require.NoError(t, err)
+	require.NoError(t, a.container.Invoke(func(db *bun.DB) error {
+		_, err := db.Exec("UPDATE api_keys SET key_hash = ? WHERE id = ?", string(legacy), key.ID)
+		return err
+	}))
+
+	withKey := func(req *http.Request) { req.Header.Set("X-API-Key", key.Token) }
+	for range 2 {
+		assert.Equal(t, http.StatusOK, a.request(t, http.MethodGet, "/api/v1/monitors", nil, withKey).Code)
+	}
+	assert.Regexp(t, `^sha256\$[0-9a-f]{64}$`, a.storedKeyHash(t, key.ID))
+}
+
+// A key with a usage limit is accepted no more times than its limit, however many
+// requests arrive at once.
+func TestAPIKeysAPI_LimitedKeyIsAcceptedOnlyUpToItsLimit(t *testing.T) {
+	a := newAppWithAdmin(t)
+	const limit, requests = 5, 20
+	key := decode[struct {
+		apiKeyResponse
+		Token string `json:"token"`
+	}](t, a.request(t, http.MethodPost, "/api/v1/api-keys", map[string]any{"name": "Limited", "max_usage_count": limit}, a.asAdmin), http.StatusCreated)
+	withKey := func(req *http.Request) { req.Header.Set("X-API-Key", key.Token) }
+
+	statuses := make(chan int, requests)
+	start := make(chan struct{})
+	var wg sync.WaitGroup
+	for range requests {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			<-start
+			statuses <- a.request(t, http.MethodGet, "/api/v1/monitors", nil, withKey).Code
+		}()
+	}
+	close(start)
+	wg.Wait()
+	close(statuses)
+
+	accepted := map[int]int{}
+	for status := range statuses {
+		accepted[status]++
+	}
+	assert.Equal(t, map[int]int{http.StatusOK: limit, http.StatusUnauthorized: requests - limit}, accepted)
+	used := decode[struct {
+		UsageCount int `json:"usage_count"`
+	}](t, a.request(t, http.MethodGet, "/api/v1/api-keys/"+key.ID, nil, a.asAdmin), http.StatusOK)
+	assert.Equal(t, limit, used.UsageCount)
 }
 
 func TestAPIKeysAPI_RejectsInvalidInput(t *testing.T) {

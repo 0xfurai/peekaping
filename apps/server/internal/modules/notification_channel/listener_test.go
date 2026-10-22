@@ -22,6 +22,7 @@ import (
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_notification"
 	"peekaping/internal/modules/monitor_tag"
+	"peekaping/internal/modules/notification_channel/providers"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/tag"
@@ -130,15 +131,10 @@ func (p *recordingProvider) sentMessagesByChannel() map[string][]string {
 	return byChannel
 }
 
-func registerTestProvider(t *testing.T, channelType string, provider NotificationChannelProvider) {
-	t.Helper()
-	RegisterNotificationChannelProvider(channelType, provider)
-	t.Cleanup(func() { delete(NotificationChannelProviderRegistry, channelType) })
-}
-
 type listenerFixture struct {
 	t           *testing.T
 	listener    *NotificationEventListener
+	providers   map[string]NotificationChannelProvider
 	bus         *eventstest.Bus
 	channels    *fakeChannelService
 	monitors    *fakeMonitorService
@@ -157,6 +153,7 @@ func newListenerFixture(t *testing.T) *listenerFixture {
 		links:       &fakeMonitorNotificationService{links: map[string][]*monitor_notification.Model{}},
 		monitorTags: &fakeMonitorTagService{},
 		tags:        &fakeTagService{tags: map[string]*tag.Model{}},
+		providers:   map[string]NotificationChannelProvider{},
 	}
 	f.listener = NewNotificationEventListener(NotificationEventListenerParams{
 		Service:                    f.channels,
@@ -164,11 +161,16 @@ func newListenerFixture(t *testing.T) *listenerFixture {
 		MonitorNotificationService: f.links,
 		MonitorTagService:          f.monitorTags,
 		TagService:                 f.tags,
+		Providers:                  newTestRegistry(f.providers),
 		Logger:                     zap.NewNop().Sugar(),
-		Config:                     &config.Config{},
 	})
 	f.listener.Subscribe(f.bus)
 	return f
+}
+
+// addProvider gives the fixture's listener a provider for a channel type
+func (f *listenerFixture) addProvider(channelType string, provider NotificationChannelProvider) {
+	f.providers[channelType] = provider
 }
 
 func (f *listenerFixture) addMonitor(id, name string) {
@@ -251,8 +253,8 @@ func certificateExpiry(monitorID string) *certificate.CertificateExpiryEvent {
 func TestListener_ImportantHeartbeatSendsToTheMonitorsChannels(t *testing.T) {
 	f := newListenerFixture(t)
 	slack, email := &recordingProvider{}, &recordingProvider{}
-	registerTestProvider(t, "test-slack", slack)
-	registerTestProvider(t, "test-email", email)
+	f.addProvider("test-slack", slack)
+	f.addProvider("test-email", email)
 	f.addMonitor("mon-1", "Public API")
 	f.addMonitor("mon-2", "Billing")
 	f.attach("mon-1", testChannel("a", "test-slack"))
@@ -276,7 +278,7 @@ func TestListener_ImportantHeartbeatFromAnotherInstance(t *testing.T) {
 	// The event bus delivers events published by other processes as JSON
 	f := newListenerFixture(t)
 	provider := &recordingProvider{}
-	registerTestProvider(t, "test-slack", provider)
+	f.addProvider("test-slack", provider)
 	f.addMonitor("mon-1", "Public API")
 	f.attach("mon-1", testChannel("a", "test-slack"))
 	payload, err := json.Marshal(downHeartbeat("mon-1"))
@@ -325,8 +327,8 @@ func TestListener_SkipsChannelsThatCannotSend(t *testing.T) {
 			t.Run(eventName+"/"+tc.name, func(t *testing.T) {
 				healthy.sent, rejecting.sent = nil, nil
 				f := newListenerFixture(t)
-				registerTestProvider(t, "test-healthy", healthy)
-				registerTestProvider(t, "test-rejecting", rejecting)
+				f.addProvider("test-healthy", healthy)
+				f.addProvider("test-rejecting", rejecting)
 				f.addMonitor("mon-1", "Public API")
 				tc.setup(f)
 				f.attach("mon-1", testChannel("ok", "test-healthy"))
@@ -366,8 +368,8 @@ func TestListener_SkipsInactiveChannels(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			f := newListenerFixture(t)
 			active, inactive := &recordingProvider{}, &recordingProvider{}
-			registerTestProvider(t, "test-active", active)
-			registerTestProvider(t, "test-inactive", inactive)
+			f.addProvider("test-active", active)
+			f.addProvider("test-inactive", inactive)
 			f.addMonitor("mon-1", "Public API")
 			// The switched-off channel comes first, so skipping it must not stop the channels after it
 			switchedOff := testChannel("off", "test-inactive")
@@ -387,8 +389,8 @@ func TestListener_FailedSendDoesNotStopOtherChannels(t *testing.T) {
 	f := newListenerFixture(t)
 	failing := &recordingProvider{send: func(context.Context) error { return errors.New("503 Service Unavailable") }}
 	healthy := &recordingProvider{}
-	registerTestProvider(t, "test-failing", failing)
-	registerTestProvider(t, "test-healthy", healthy)
+	f.addProvider("test-failing", failing)
+	f.addProvider("test-healthy", healthy)
 	f.addMonitor("mon-1", "Public API")
 	f.attach("mon-1", testChannel("a", "test-failing"))
 	f.attach("mon-1", testChannel("b", "test-healthy"))
@@ -403,8 +405,8 @@ func TestListener_PanickingChannelDoesNotStopOtherChannels(t *testing.T) {
 	f := newListenerFixture(t)
 	panicking := &recordingProvider{send: func(context.Context) error { panic("interface conversion") }}
 	healthy := &recordingProvider{}
-	registerTestProvider(t, "test-panicking", panicking)
-	registerTestProvider(t, "test-healthy", healthy)
+	f.addProvider("test-panicking", panicking)
+	f.addProvider("test-healthy", healthy)
 	f.addMonitor("mon-1", "Public API")
 	f.attach("mon-1", testChannel("a", "test-panicking"))
 	f.attach("mon-1", testChannel("b", "test-healthy"))
@@ -433,7 +435,7 @@ func TestListener_SendsNothingWithoutTheMonitor(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			f := newListenerFixture(t)
 			provider := &recordingProvider{}
-			registerTestProvider(t, "test-healthy", provider)
+			f.addProvider("test-healthy", provider)
 			tc.setup(f)
 
 			f.publishImportantHeartbeat(downHeartbeat("mon-1"))
@@ -447,7 +449,7 @@ func TestListener_SendsNothingWithoutTheMonitor(t *testing.T) {
 func TestListener_IgnoresEventsWithTheWrongPayload(t *testing.T) {
 	f := newListenerFixture(t)
 	provider := &recordingProvider{}
-	registerTestProvider(t, "test-healthy", provider)
+	f.addProvider("test-healthy", provider)
 	f.addMonitor("mon-1", "Public API")
 	f.attach("mon-1", testChannel("a", "test-healthy"))
 
@@ -460,8 +462,8 @@ func TestListener_IgnoresEventsWithTheWrongPayload(t *testing.T) {
 func TestListener_CertificateExpirySendsNotificationToTheMonitorsChannels(t *testing.T) {
 	f := newListenerFixture(t)
 	slack, email := &recordingProvider{}, &recordingProvider{}
-	registerTestProvider(t, "test-slack", slack)
-	registerTestProvider(t, "test-email", email)
+	f.addProvider("test-slack", slack)
+	f.addProvider("test-email", email)
 	f.addMonitor("mon-1", "Public API")
 	f.addMonitor("mon-2", "Billing")
 	f.attach("mon-1", testChannel("a", "test-slack"))
@@ -499,7 +501,7 @@ func TestListener_StaleMonitorSendsNotificationToTheMonitorsChannels(t *testing.
 		t.Run(tc.topic.Name(), func(t *testing.T) {
 			f := newListenerFixture(t)
 			slack := &recordingProvider{}
-			registerTestProvider(t, "test-slack", slack)
+			f.addProvider("test-slack", slack)
 			f.addMonitor("mon-1", "Public API")
 			f.addMonitor("mon-2", "Billing")
 			f.attach("mon-1", testChannel("a", "test-slack"))
@@ -534,7 +536,8 @@ func TestListener_HungChannelDoesNotHoldUpOtherChannels(t *testing.T) {
 	f := newListenerFixture(t)
 	f.listener.sendTimeout = 200 * time.Millisecond
 	healthy := &recordingProvider{}
-	registerTestProvider(t, "test-healthy", healthy)
+	f.addProvider("webhook", providers.NewWebhookSender(zap.NewNop().Sugar(), providers.NewHTTPClient()))
+	f.addProvider("test-healthy", healthy)
 	f.addMonitor("mon-1", "Public API")
 	webhookConfig := `{"webhook_url": "` + hung.URL + `", "webhook_content_type": "json"}`
 	f.attach("mon-1", &Model{ID: "hook", Name: "Webhook", Type: "webhook", Active: true, Config: &webhookConfig})
@@ -554,8 +557,8 @@ func TestListener_ManyStuckMonitorsDontHoldUpTheOthers(t *testing.T) {
 	release := make(chan struct{})
 	stuck := &recordingProvider{send: func(context.Context) error { <-release; return nil }}
 	fast := &recordingProvider{}
-	registerTestProvider(t, "test-stuck", stuck)
-	registerTestProvider(t, "test-fast", fast)
+	f.addProvider("test-stuck", stuck)
+	f.addProvider("test-fast", fast)
 	// More stuck monitors than the bus's default worker limit
 	const stuckMonitors = events.DefaultWorkers + 4
 	for i := range stuckMonitors {
@@ -594,8 +597,8 @@ func TestListener_ASlowChannelDelaysOnlyItsOwnMonitor(t *testing.T) {
 	release := make(chan struct{})
 	slow := &recordingProvider{send: func(context.Context) error { <-release; return nil }}
 	fast := &recordingProvider{}
-	registerTestProvider(t, "test-slow", slow)
-	registerTestProvider(t, "test-fast", fast)
+	f.addProvider("test-slow", slow)
+	f.addProvider("test-fast", fast)
 	f.addMonitor("mon-1", "Public API")
 	f.addMonitor("mon-2", "Billing")
 	f.attach("mon-1", testChannel("a", "test-slow"))
@@ -656,7 +659,7 @@ func TestListener_LimitsConcurrentSends(t *testing.T) {
 		mu.Unlock()
 		return nil
 	}}
-	registerTestProvider(t, "test-slow", provider)
+	f.addProvider("test-slow", provider)
 	f.addMonitor("mon-1", "Public API")
 	channels := maxConcurrentSends + 3
 	for i := range channels {
@@ -730,14 +733,14 @@ func (r *apiReplica) start(t *testing.T) {
 // newAPIReplicas builds n api replicas the way cluster mode does: each has its own services,
 // its own Redis event bus and its own notification listener, all over the same Redis. Monitor
 // "mon-1" has a channel of type "test-slack" for each of channelIDs, and the replicas send
-// through whatever provider is registered for that type. The replicas don't take notification
-// tasks yet.
-func newAPIReplicas(t *testing.T, redisAddr string, n int, channelIDs ...string) []*apiReplica {
+// through the one slack provider. The replicas don't take notification tasks yet.
+func newAPIReplicas(t *testing.T, redisAddr string, slack NotificationChannelProvider, n int, channelIDs ...string) []*apiReplica {
 	t.Helper()
 	cfg := redisConfig(t, redisAddr)
 	replicas := make([]*apiReplica, n)
 	for i := range replicas {
 		f := newListenerFixture(t)
+		f.addProvider("test-slack", slack)
 		f.addMonitor("mon-1", "Public API")
 		for _, id := range channelIDs {
 			f.attach("mon-1", testChannel(id, "test-slack"))
@@ -752,9 +755,9 @@ func newAPIReplicas(t *testing.T, redisAddr string, n int, channelIDs ...string)
 }
 
 // startAPIReplicas starts n api replicas that take notification tasks, see newAPIReplicas
-func startAPIReplicas(t *testing.T, redisAddr string, n int, channelIDs ...string) []*apiReplica {
+func startAPIReplicas(t *testing.T, redisAddr string, slack NotificationChannelProvider, n int, channelIDs ...string) []*apiReplica {
 	t.Helper()
-	replicas := newAPIReplicas(t, redisAddr, n, channelIDs...)
+	replicas := newAPIReplicas(t, redisAddr, slack, n, channelIDs...)
 	for _, replica := range replicas {
 		replica.start(t)
 	}
@@ -791,9 +794,8 @@ func settledSends(t *testing.T, provider *recordingProvider, want int, hold time
 // monitor's channels must get one notification for it: a queue gives the event to one replica.
 func TestNotificationListener_ThreeAPIReplicasSendEachImportantHeartbeatOncePerChannel(t *testing.T) {
 	provider := &recordingProvider{}
-	registerTestProvider(t, "test-slack", provider)
 	redisServer := miniredis.RunT(t)
-	startAPIReplicas(t, redisServer.Addr(), 3, "a", "b")
+	startAPIReplicas(t, redisServer.Addr(), provider, 3, "a", "b")
 	ingester := newClusterBus(t, redisConfig(t, redisServer.Addr()))
 	down, up := downHeartbeat("mon-1"), downHeartbeat("mon-1")
 	down.Msg, up.Msg, up.Status = "went down", "back up", shared.MonitorStatusUp
@@ -811,9 +813,8 @@ func TestNotificationListener_ThreeAPIReplicasSendEachImportantHeartbeatOncePerC
 
 func TestNotificationListener_ThreeAPIReplicasSendACertificateExpiryNotificationOnce(t *testing.T) {
 	provider := &recordingProvider{}
-	registerTestProvider(t, "test-slack", provider)
 	redisServer := miniredis.RunT(t)
-	startAPIReplicas(t, redisServer.Addr(), 3, "a")
+	startAPIReplicas(t, redisServer.Addr(), provider, 3, "a")
 	ingester := newClusterBus(t, redisConfig(t, redisServer.Addr()))
 
 	require.NoError(t, events.Publish(context.Background(), ingester, certificate.CertificateExpiry, *certificateExpiry("mon-1")))
@@ -823,9 +824,8 @@ func TestNotificationListener_ThreeAPIReplicasSendACertificateExpiryNotification
 
 func TestNotificationListener_ThreeAPIReplicasSendAStaleMonitorsNotCheckedSinceNotificationOnce(t *testing.T) {
 	provider := &recordingProvider{}
-	registerTestProvider(t, "test-slack", provider)
 	redisServer := miniredis.RunT(t)
-	startAPIReplicas(t, redisServer.Addr(), 3, "a")
+	startAPIReplicas(t, redisServer.Addr(), provider, 3, "a")
 	producer := newClusterBus(t, redisConfig(t, redisServer.Addr()))
 
 	require.NoError(t, events.Publish(context.Background(), producer, stale.MonitorStale, staleMonitor("mon-1")))
@@ -836,9 +836,8 @@ func TestNotificationListener_ThreeAPIReplicasSendAStaleMonitorsNotCheckedSinceN
 
 func TestNotificationListener_ThreeAPIReplicasSendAStaleMonitorsCheckingAgainNotificationOnce(t *testing.T) {
 	provider := &recordingProvider{}
-	registerTestProvider(t, "test-slack", provider)
 	redisServer := miniredis.RunT(t)
-	startAPIReplicas(t, redisServer.Addr(), 3, "a")
+	startAPIReplicas(t, redisServer.Addr(), provider, 3, "a")
 	producer := newClusterBus(t, redisConfig(t, redisServer.Addr()))
 
 	require.NoError(t, events.Publish(context.Background(), producer, stale.MonitorStaleRecovered, staleMonitor("mon-1")))
@@ -851,9 +850,8 @@ func TestNotificationListener_ThreeAPIReplicasSendAStaleMonitorsCheckingAgainNot
 // published to no subscriber would not
 func TestNotificationListener_ANotificationRaisedWithoutAnAPIReplicaIsSentOnceOneStarts(t *testing.T) {
 	provider := &recordingProvider{}
-	registerTestProvider(t, "test-slack", provider)
 	redisServer := miniredis.RunT(t)
-	replicas := newAPIReplicas(t, redisServer.Addr(), 3, "a")
+	replicas := newAPIReplicas(t, redisServer.Addr(), provider, 3, "a")
 	ingester := newClusterBus(t, redisConfig(t, redisServer.Addr()))
 
 	require.NoError(t, events.Publish(context.Background(), ingester, events.ImportantHeartbeat, *downHeartbeat("mon-1")))
@@ -872,9 +870,8 @@ func TestNotificationListener_ANotificationRaisedWithoutAnAPIReplicaIsSentOnceOn
 // Only the notification topics go through the queue. The websocket in every api replica pushes
 // each heartbeat to its own clients, so every api replica must get it.
 func TestNotificationListener_EveryAPIReplicaStillGetsAHeartbeat(t *testing.T) {
-	registerTestProvider(t, "test-slack", &recordingProvider{})
 	redisServer := miniredis.RunT(t)
-	replicas := startAPIReplicas(t, redisServer.Addr(), 3, "a")
+	replicas := startAPIReplicas(t, redisServer.Addr(), &recordingProvider{}, 3, "a")
 	received := make([]chan heartbeat.Model, len(replicas))
 	for i, replica := range replicas {
 		received[i] = make(chan heartbeat.Model, 2)
@@ -900,12 +897,11 @@ func TestNotificationListener_EveryAPIReplicaStillGetsAHeartbeat(t *testing.T) {
 }
 
 func TestEveryChannelTypeHasGoldenRequests(t *testing.T) {
-	// Building the listener registers the providers, as at startup
-	newListenerFixture(t)
+	registry := NewProviderRegistry(zap.NewNop().Sugar(), &config.Config{})
 
 	// The listener sends both of these to every channel type
 	for _, event := range []string{"down", "certificate_expiry"} {
-		for channelType := range NotificationChannelProviderRegistry {
+		for _, channelType := range registry.Types() {
 			goldens, err := filepath.Glob(filepath.Join("providers", "testdata", "requests", channelType+"_*"+event+".golden"))
 			require.NoError(t, err)
 			assert.NotEmpty(t, goldens, "add a %s golden case for %q to providers/golden_test.go", event, channelType)
