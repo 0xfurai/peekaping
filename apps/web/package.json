@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "test": "vitest run",
     "preview": "vite preview",
     "gen": "openapi-ts && prettier --trailing-comma es5 --write src/api",
     "build:docker": "docker build -t peekaping/web:latest .",
@@ -72,6 +73,7 @@
     "tw-animate-css": "1.2.9",
     "typescript": "~5.8.3",
     "typescript-eslint": "8.30.1",
-    "vite": "6.3.5"
+    "vite": "6.3.5",
+    "vitest": "3.2.4"
   }
 }

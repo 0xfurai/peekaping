@@ -570,6 +570,8 @@
         "docker": "Docker konteyneri",
         "grpc": "gRPC Kalit Soʻz Monitor",
         "http": "HTTP(S) nazorati",
+        "http_json_query": "HTTP(s) - JSON soʻrovi",
+        "http_keyword": "HTTP(s) - Kalit soʻz",
         "kafka": "Kafka ishlab chiqaruvchisi monitoringi",
         "mongodb": "MongoDB ma'lumotlar bazasini kuzatuvchi",
         "mqtt": "MQTT broker nazorati",
