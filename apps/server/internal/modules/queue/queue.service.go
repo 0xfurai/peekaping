@@ -7,7 +7,8 @@ import (
 )
 
 // ErrTaskIDConflict is returned by Enqueue when a task with the same TaskID
-// already exists in the queue, in any state (including archived).
+// already exists in the queue, in any state (including archived). EnqueueUnique
+// returns it when the task's unique key is held already, or an identical task is.
 var ErrTaskIDConflict = errors.New("task ID conflicts with another task")
 
 // ErrTaskNotFound is returned when the requested task doesn't exist

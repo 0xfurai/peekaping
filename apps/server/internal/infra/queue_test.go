@@ -7,9 +7,11 @@ import (
 	"time"
 
 	"peekaping/internal/config"
+	"peekaping/internal/modules/queue"
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/hibiken/asynq"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
@@ -86,6 +88,34 @@ func TestAsynqClientWithoutRedisUsernameIsRejectedByACLRedis(t *testing.T) {
 
 	_, err = client.Enqueue(asynq.NewTask("test:acl", nil))
 	require.Error(t, err)
+}
+
+// A result that was enqueued already is a conflict the caller can tell from a failure: the
+// probe protocol answers it duplicate, where a failure makes the probe send its batch again
+func TestEnqueueUnique_ATaskTheQueueHoldsAlreadyIsATaskIDConflict(t *testing.T) {
+	cfg := newACLRedisConfig(t, "peekaping")
+	logger := zap.NewNop().Sugar()
+	client, err := ProvideAsynqClient(cfg, logger)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = client.Close() })
+	inspector, err := ProvideAsynqInspector(cfg, logger)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = inspector.Close() })
+	service := ProvideQueueService(client, inspector, logger)
+	enqueue := func(payload string) error {
+		_, err := service.EnqueueUnique(context.Background(), "test:unique", payload, "unique:mon-1:1", time.Minute,
+			&queue.EnqueueOptions{Queue: "ingester", Retention: time.Hour})
+		return err
+	}
+
+	require.NoError(t, enqueue("first"))
+
+	t.Run("the same unique key with another payload", func(t *testing.T) {
+		assert.ErrorIs(t, enqueue("second"), queue.ErrTaskIDConflict)
+	})
+	t.Run("the same unique key with the same payload", func(t *testing.T) {
+		assert.ErrorIs(t, enqueue("first"), queue.ErrTaskIDConflict)
+	})
 }
 
 func receive(t *testing.T, ch <-chan string) string {
