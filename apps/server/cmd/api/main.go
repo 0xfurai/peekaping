@@ -19,6 +19,7 @@ import (
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/notification_sent_history"
+	"peekaping/internal/modules/probe/protocol"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/stats"
 	"peekaping/internal/modules/telemetry"
@@ -132,6 +133,15 @@ func main() {
 	// Start the monitor event listener
 	err = container.Invoke(func(listener *monitor.MonitorEventListener, eventBus events.EventBus) {
 		listener.Subscribe(eventBus)
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Answer the probes' waiting assignment polls when a monitor or one of a probe's instances
+	// changes. Every api replica listens: a change made on one reaches the polls held by the others.
+	err = container.Invoke(func(waker *protocol.Waker) {
+		waker.Subscribe()
 	})
 	if err != nil {
 		log.Fatal(err)
