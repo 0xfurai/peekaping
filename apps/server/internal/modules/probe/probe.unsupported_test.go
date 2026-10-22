@@ -3,6 +3,7 @@ package probe_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"peekaping/internal/config"
 	"peekaping/internal/dbtx"
@@ -36,6 +37,11 @@ func TestUnsupportedRepository_EveryMethodReportsUnsupportedStorage(t *testing.T
 	assert.ErrorIs(t, repo.Delete(ctx, "local"), probe.ErrUnsupportedStorage)
 	_, err = repo.FindInstances(ctx, "local")
 	assert.ErrorIs(t, err, probe.ErrUnsupportedStorage)
+	assert.ErrorIs(t, repo.UpsertInstance(ctx, "local", &probe.Instance{ID: "instance-1"}), probe.ErrUnsupportedStorage)
+	_, err = repo.TouchInstance(ctx, "local", "instance-1", time.Now())
+	assert.ErrorIs(t, err, probe.ErrUnsupportedStorage)
+	assert.ErrorIs(t, repo.DeleteInstance(ctx, "local", "instance-1"), probe.ErrUnsupportedStorage)
+	assert.ErrorIs(t, repo.SetSupportedTypes(ctx, "local", []string{"http"}), probe.ErrUnsupportedStorage)
 
 	assert.EqualError(t, probe.ErrUnsupportedStorage, "probes need SQLite or PostgreSQL storage")
 }
@@ -62,6 +68,10 @@ func TestService_OnMongoListsNoProbesAndRefusesTheRest(t *testing.T) {
 	assert.ErrorIs(t, err, probe.ErrUnsupportedStorage)
 	_, err = svc.FindByToken(ctx, "some-token")
 	assert.ErrorIs(t, err, probe.ErrUnsupportedStorage)
+	assert.ErrorIs(t, svc.RegisterInstance(ctx, "local", &probe.Instance{ID: "instance-1"}, []string{"http"}), probe.ErrUnsupportedStorage)
+	_, err = svc.TouchInstance(ctx, "local", "instance-1", time.Now())
+	assert.ErrorIs(t, err, probe.ErrUnsupportedStorage)
+	assert.ErrorIs(t, svc.RemoveInstance(ctx, "local", "instance-1"), probe.ErrUnsupportedStorage)
 
 	assert.NoError(t, svc.Bootstrap(ctx, ""), "with no bootstrap token there is nothing to store")
 	assert.ErrorIs(t, svc.Bootstrap(ctx, bootstrapToken), probe.ErrUnsupportedStorage)

@@ -5,6 +5,7 @@ import (
 	"crypto/subtle"
 	"errors"
 	"fmt"
+	"time"
 
 	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/probe_notification"
@@ -39,6 +40,16 @@ type Service interface {
 	// Bootstrap makes token the local probe's token, as PROBE_BOOTSTRAP_TOKEN asks at startup. An
 	// empty token leaves the local probe as it is.
 	Bootstrap(ctx context.Context, token string) error
+	// RegisterInstance records an instance that said hello with the probe's token, or updates
+	// the one with the same id, and makes supportedTypes the monitor types the probe can run. It
+	// returns ErrInstanceTaken when another probe has an instance with that id, and records
+	// nothing then.
+	RegisterInstance(ctx context.Context, probeID string, inst *Instance, supportedTypes []string) error
+	// TouchInstance stamps the time the probe's instance was last heard from. It returns false
+	// when the probe has no instance with that id, which has to say hello first.
+	TouchInstance(ctx context.Context, probeID string, instanceID string, at time.Time) (bool, error)
+	// RemoveInstance forgets the probe's instance, as when it says bye
+	RemoveInstance(ctx context.Context, probeID string, instanceID string) error
 }
 
 // CreateRequest is a new probe
@@ -265,6 +276,33 @@ func (s *ServiceImpl) Bootstrap(ctx context.Context, token string) error {
 		return nil
 	}
 	return s.repo.UpdateToken(ctx, LocalID, hash, prefix)
+}
+
+// MARK: RegisterInstance
+func (s *ServiceImpl) RegisterInstance(ctx context.Context, probeID string, inst *Instance, supportedTypes []string) error {
+	// The instance first: a refused one must not change the probe's types
+	if err := s.repo.UpsertInstance(ctx, probeID, inst); err != nil {
+		return err
+	}
+	if err := s.repo.SetSupportedTypes(ctx, probeID, supportedTypes); err != nil {
+		return err
+	}
+	s.logger.Infow("Probe instance registered", "probeId", probeID, "instanceId", inst.ID, "hostname", inst.Hostname, "version", inst.Version)
+	return nil
+}
+
+// MARK: TouchInstance
+func (s *ServiceImpl) TouchInstance(ctx context.Context, probeID string, instanceID string, at time.Time) (bool, error) {
+	return s.repo.TouchInstance(ctx, probeID, instanceID, at)
+}
+
+// MARK: RemoveInstance
+func (s *ServiceImpl) RemoveInstance(ctx context.Context, probeID string, instanceID string) error {
+	if err := s.repo.DeleteInstance(ctx, probeID, instanceID); err != nil {
+		return err
+	}
+	s.logger.Infow("Probe instance removed", "probeId", probeID, "instanceId", instanceID)
+	return nil
 }
 
 // withDetails adds a probe's instances and notification channels
