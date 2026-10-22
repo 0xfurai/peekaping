@@ -19,10 +19,14 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      // 'react-refresh/only-export-components': [
-      //   'warn',
-      //   { allowConstantExport: true },
-      // ],
+    },
+  },
+  {
+    // A monitor or channel type's form files export only components: their schema, defaults
+    // and codec live in schema.ts and codec.ts (docs/adr/0004-web-form-conventions.md)
+    files: ['src/app/**/monitor-types/**/*.tsx', 'src/app/**/channel-types/**/*.tsx'],
+    rules: {
+      'react-refresh/only-export-components': 'error',
     },
   },
 )

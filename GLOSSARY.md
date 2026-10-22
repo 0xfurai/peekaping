@@ -90,6 +90,10 @@ _Avoid_: Heartbeat retry interval
 A configured destination for notifications, such as an email address, a Slack webhook or a Telegram chat. A monitor sends to the channels attached to it.
 _Avoid_: Notifier, notification provider, integration
 
+**Channel type**:
+The kind of destination a notification channel sends to, such as Slack, Telegram or SMTP. Each has its own config fields and form (`channel-types/<type>/`).
+_Avoid_: Integration, provider, notifier type
+
 **Saved secret**:
 A secret field of a notification channel's config, such as a bot token, an SMTP password or a webhook URL that works as a credential. The API never returns it: it shows `********` instead, and a save or test that sends `********` back keeps the stored value.
 _Avoid_: Credential, masked field, hidden value

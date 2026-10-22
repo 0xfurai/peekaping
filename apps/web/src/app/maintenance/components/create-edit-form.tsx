@@ -164,7 +164,7 @@ const maintenanceSchema = z.discriminatedUnion("strategy", [
 
 export type MaintenanceFormValues = z.infer<typeof maintenanceSchema>;
 
-const defaultValues: MaintenanceFormValues = {
+const maintenanceDefaultValues: MaintenanceFormValues = {
   title: "",
   description: "",
   strategy: "single" as const,
@@ -180,7 +180,7 @@ const defaultValues: MaintenanceFormValues = {
 };
 
 export default function CreateEditMaintenance({
-  initialValues = defaultValues,
+  initialValues = maintenanceDefaultValues,
   isLoading = false,
   mode = "create",
   onSubmit,

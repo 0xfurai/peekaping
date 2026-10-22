@@ -35,7 +35,7 @@ import type {
 } from "@/api/types.gen";
 
 // MARK: - Schema & Types
-const createAPIKeySchema = z.object({
+const createApiKeySchema = z.object({
   name: z.string().min(1, "Name is required").max(255, "Name too long"),
   expiresAt: z
     .string()
@@ -65,7 +65,7 @@ const createAPIKeySchema = z.object({
     ),
 });
 
-type CreateAPIKeyForm = z.infer<typeof createAPIKeySchema>;
+type CreateApiKeyFormValues = z.infer<typeof createApiKeySchema>;
 
 // MARK: - Component Interface
 interface CreateAPIKeyModalProps {
@@ -86,8 +86,8 @@ const CreateAPIKeyModal = ({
   const queryClient = useQueryClient();
 
   // MARK: - Form Setup & Mutations
-  const form = useForm<CreateAPIKeyForm>({
-    resolver: zodResolver(createAPIKeySchema),
+  const form = useForm<CreateApiKeyFormValues>({
+    resolver: zodResolver(createApiKeySchema),
     defaultValues: {
       name: "",
       expiresAt: "",
@@ -102,7 +102,7 @@ const CreateAPIKeyModal = ({
     toast.error(t("security.api_keys.messages.failed_to_create"));
   };
 
-  const onSubmit = (data: CreateAPIKeyForm) => {
+  const onSubmit = (data: CreateApiKeyFormValues) => {
     const createData: ApiKeyCreateApiKeyDto = {
       name: data.name,
       expires_at: data.expiresAt

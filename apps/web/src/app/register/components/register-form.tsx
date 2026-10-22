@@ -40,7 +40,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { TelemetryDocsLink } from "@/components/telemetry-docs-link";
 
-const createFormSchema = (t: (key: string) => string) => z
+const createRegisterSchema = (t: (key: string) => string) => z
   .object({
     email: z.string().email(t("forms.validation.email_invalid")),
     password: z.string().min(8, t("forms.validation.password_min_length")),
@@ -53,7 +53,7 @@ const createFormSchema = (t: (key: string) => string) => z
     path: ["confirmPassword"],
   });
 
-type FormValues = z.infer<ReturnType<typeof createFormSchema>>;
+type RegisterFormValues = z.infer<ReturnType<typeof createRegisterSchema>>;
 
 export function RegisterForm({
   className,
@@ -124,9 +124,9 @@ export function RegisterForm({
     },
   });
 
-  const formSchema = React.useMemo(() => createFormSchema(t), [t]);
+  const formSchema = React.useMemo(() => createRegisterSchema(t), [t]);
   
-  const form = useForm<FormValues>({
+  const form = useForm<RegisterFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
@@ -135,7 +135,7 @@ export function RegisterForm({
     },
   });
 
-  function onSubmit(data: FormValues) {
+  function onSubmit(data: RegisterFormValues) {
     setServerError(null);
     registerMutation.mutate({
       body: data,

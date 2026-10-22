@@ -18,7 +18,7 @@ import { TypographyH4 } from "@/components/ui/typography";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
-const passwordSchema = z
+const updatePasswordSchema = z
   .object({
     currentPassword: z.string().min(1, { message: "Old password is required" }),
     newPassword: z
@@ -33,17 +33,17 @@ const passwordSchema = z
     path: ["confirmPassword"],
   });
 
-type PasswordFormType = z.infer<typeof passwordSchema>;
+type UpdatePasswordFormValues = z.infer<typeof updatePasswordSchema>;
 
 const UpdatePassword = () => {
   const { t } = useLocalizedTranslation();
-  const form = useForm<PasswordFormType>({
+  const form = useForm<UpdatePasswordFormValues>({
     defaultValues: {
       currentPassword: "",
       newPassword: "",
       confirmPassword: "",
     },
-    resolver: zodResolver(passwordSchema),
+    resolver: zodResolver(updatePasswordSchema),
   });
 
   const updatePasswordMutation = useMutation({
@@ -55,7 +55,7 @@ const UpdatePassword = () => {
     onError: commonMutationErrorHandler(t("security.update_password.messages.failed_to_update_password")),
   });
 
-  const onSubmit = (data: PasswordFormType) => {
+  const onSubmit = (data: UpdatePasswordFormValues) => {
     updatePasswordMutation.mutate({
       body: {
         currentPassword: data.currentPassword,

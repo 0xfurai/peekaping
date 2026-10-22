@@ -23,7 +23,7 @@ import { Loader2 } from "lucide-react";
 import { PasswordInput } from "@/components/ui/password-input";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
-const formSchema = z.object({
+const proxySchema = z.object({
   protocol: z.enum(["http", "https", "socks", "socks5", "socks5h", "socks4"]),
   host: z.string().min(1, { message: "Host is required" }),
   port: z
@@ -35,7 +35,7 @@ const formSchema = z.object({
   password: z.string().optional(),
 });
 
-export type ProxyForm = z.infer<typeof formSchema>;
+export type ProxyFormValues = z.infer<typeof proxySchema>;
 
 const proxyProtocols = [
   { type: "http", description: "HTTP" },
@@ -47,13 +47,13 @@ const proxyProtocols = [
 ];
 
 type CreateEditProxyProps = {
-  initialValues?: ProxyForm;
+  initialValues?: ProxyFormValues;
   mode?: "create" | "edit";
   isLoading?: boolean;
-  onSubmit: (data: ProxyForm) => void;
+  onSubmit: (data: ProxyFormValues) => void;
 };
 
-const defaultValues: ProxyForm = {
+const proxyDefaultValues: ProxyFormValues = {
   protocol: "https",
   host: "",
   port: 80,
@@ -69,9 +69,9 @@ export default function CreateEditProxy({
   isLoading = false,
 }: CreateEditProxyProps) {
   const { t } = useLocalizedTranslation();
-  const form = useForm<ProxyForm>({
-    defaultValues: initialValues || defaultValues,
-    resolver: zodResolver(formSchema),
+  const form = useForm<ProxyFormValues>({
+    defaultValues: initialValues || proxyDefaultValues,
+    resolver: zodResolver(proxySchema),
   });
 
   const { isSubmitting } = form.formState;
