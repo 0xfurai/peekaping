@@ -161,6 +161,28 @@ func TestLogFromContext(t *testing.T) {
 	assert.Equal(t, "value", inside["key"])
 }
 
+// A request can pass through two Loggers, as in single mode with WEB_DIR, where the gateway wraps
+// the router. The outer one logs the request, once.
+func TestLoggerLogsARequestOnceWhenAnOuterLoggerHandlesIt(t *testing.T) {
+	core, logs := observer.New(zap.DebugLevel)
+	base := zap.New(core).Sugar()
+	router := httpx.NewRouter(httpx.RequestID, httpx.Logger(base, nil))
+	router.Group("/api/v1").Handle("GET", "/push/{token}", func(w http.ResponseWriter, r *http.Request) { httpx.Text(w, 200, "ok") })
+	outer := httpx.Chain(router, httpx.RequestID, httpx.Logger(base, nil))
+
+	w := httptest.NewRecorder()
+	outer.ServeHTTP(w, httptest.NewRequest("GET", "/api/v1/push/s3cr3t-token?status=up", nil))
+
+	all := logs.TakeAll()
+	require.Len(t, all, 1)
+	entry := all[0].ContextMap()
+	assert.Equal(t, "HTTP request", all[0].Message)
+	assert.Equal(t, w.Header().Get("X-Request-ID"), entry["request_id"])
+	assert.Equal(t, "/api/v1/push/{token}", entry["route"], "the router still fills in the route")
+	assert.EqualValues(t, 200, entry["status"])
+	assert.EqualValues(t, 2, entry["size"])
+}
+
 // A request can pass through two RequestID middlewares, as in single mode with WEB_DIR, where the
 // gateway wraps the router. The first one's ID stays the request's ID.
 func TestRequestIDKeepsTheIDOfAnOuterRequestID(t *testing.T) {

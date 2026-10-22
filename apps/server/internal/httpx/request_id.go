@@ -19,6 +19,8 @@ const (
 type requestInfo struct {
 	id    string
 	route string
+	// logged is set by the first Logger the request reaches, which logs it once it is done
+	logged bool
 }
 
 type requestInfoKey struct{}
