@@ -1381,6 +1381,7 @@
     "docs_link": "Co se odesílá a jak to vypnout",
     "label": "Odesílat anonymní statistiky využití",
     "never_sent": "Nikdy se neodesílá: názvy monitorů, adresy URL, hostitelé, tagy, adresy stránek stavu ani nastavení oznámení. Ping využití neobsahuje žádnou IP adresu a Worker Peekapingu IP adresu odesílatele nezaznamenává.",
+    "not_saved": "Vaše volba odesílat statistiky využití se neuložila. Zapněte to v části „Nastavení“.",
     "sent_features": "Zda používáte stránky stavu, okna údržby a metriky",
     "sent_id": "Náhodné ID, které se vytvoří při zapnutí a smaže při vypnutí",
     "sent_monitors": "Kolik máte monitorů, jako rozsah, například 11-50",

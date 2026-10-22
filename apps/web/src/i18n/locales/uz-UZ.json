@@ -1380,6 +1380,7 @@
     "docs_link": "Nima yuboriladi va uni qanday o'chirish mumkin",
     "label": "Anonim foydalanish statistikasini yuborish",
     "never_sent": "Hech qachon yuborilmaydi: monitor nomlari, URL manzillari, xostlar, etiketlar, status sahifalari manzillari yoki bildirishnoma sozlamalari. Foydalanish pingida IP manzil bo'lmaydi va Peekaping'ning Worker'i yuboruvchining IP manzilini yozib olmaydi.",
+    "not_saved": "Foydalanish statistikasini yuborish tanlovingiz saqlanmadi. Uni «Sozlamalar» bo'limida yoqing.",
     "sent_features": "Status sahifalari, texnik xizmat oynalari va metrikalardan foydalanayotganingiz",
     "sent_id": "Tasodifiy ID, uni yoqqaningizda yaratiladi va o'chirganingizda o'chiriladi",
     "sent_monitors": "Nechta monitoringiz borligi, oraliq ko'rinishida, masalan 11-50",
