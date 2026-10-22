@@ -26,6 +26,20 @@ func serve(t *testing.T, timeouts httpx.Timeouts, handler http.Handler) string {
 	return listener.Addr().String()
 }
 
+func TestNewServer_ServesWithTheDefaultTimeoutsAndNoWriteTimeout(t *testing.T) {
+	timeouts := httpx.DefaultTimeouts()
+	assert.Equal(t, 10*time.Second, timeouts.ReadHeader)
+	assert.Equal(t, 30*time.Second, timeouts.Read)
+	assert.Equal(t, 120*time.Second, timeouts.Idle)
+
+	server := httpx.NewServer(":8034", http.NotFoundHandler(), timeouts)
+	assert.Equal(t, 10*time.Second, server.ReadHeaderTimeout)
+	assert.Equal(t, 30*time.Second, server.ReadTimeout)
+	assert.Equal(t, 120*time.Second, server.IdleTimeout)
+	// A socket.io long poll waits up to 25 seconds for its answer, so no write timeout
+	assert.Zero(t, server.WriteTimeout)
+}
+
 func TestNewServer_RefusesARequestWithAHeaderBlockOver64KiB(t *testing.T) {
 	addr := serve(t, httpx.DefaultTimeouts(), http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
