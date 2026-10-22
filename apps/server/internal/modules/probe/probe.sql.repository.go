@@ -94,7 +94,10 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, probe *CreateModel) (*Mo
 	if _, err := dbtx.DB(ctx, r.db).NewInsert().Model(sm).Exec(ctx); err != nil {
 		return nil, err
 	}
-	return toDomainModelFromSQL(sm), nil
+	// Read the row back, so the caller sees the timestamps as the database stores them: a
+	// driver that keeps milliseconds would otherwise answer a create with more precision than
+	// every later read
+	return r.findOne(ctx, "id = ?", id)
 }
 
 // MARK: FindAll
