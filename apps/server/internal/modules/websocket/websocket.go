@@ -62,10 +62,23 @@ func NewServer(
 	})
 
 	io.On("connection", safe(logger, "connection", func(clients ...interface{}) {
-		client := clients[0].(*socket.Socket)
-		userId := client.Data().(SocketData).UserId
+		var client *socket.Socket
+		if len(clients) > 0 {
+			client, _ = clients[0].(*socket.Socket)
+		}
+		if client == nil {
+			logger.Warnf("[WS]connection: dropped, no socket in %d arguments", len(clients))
+			return
+		}
+		// The auth middleware sets the data, so a socket without it never authenticated
+		data, ok := client.Data().(SocketData)
+		if !ok {
+			logger.Warn("[WS]connection: disconnecting a socket without user data")
+			client.Disconnect(true)
+			return
+		}
 
-		logger.Debugf("[WS]connection: %s", userId)
+		logger.Debugf("[WS]connection: %s", data.UserId)
 
 		client.On("join_room", safe(logger, "join_room", func(args ...interface{}) {
 			roomName, ok := firstString(args)
