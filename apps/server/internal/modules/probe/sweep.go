@@ -42,6 +42,10 @@ type SweepConfig struct {
 	// InstanceOnlineWindow is how long after its last request an instance counts as connected:
 	// the window the protocol deals a probe's monitors within. InstanceOnlineWindow when it's zero.
 	InstanceOnlineWindow time.Duration
+	// StartedAt is when the process started. The sweep sets no probe offline until OfflineAfter
+	// has passed since: after an outage every instance looks quiet, and the probes need that long
+	// to reconnect. The moment NewSweep is called when it's zero.
+	StartedAt time.Time
 	// Now is the clock the sweep measures by. The local clock is used when it's nil.
 	Now    func() time.Time
 	Logger *zap.SugaredLogger
@@ -58,6 +62,10 @@ type SweepConfig struct {
 //     it saw last time, so that the probe's waiting assignment polls deal again;
 //   - removes the instances that went unseen for InstanceRetention.
 //
+// It sets no probe offline until OfflineAfter has passed since the process started, so that after
+// an outage the probes have time to reconnect before they are announced offline. The rest of the
+// pass goes on meanwhile.
+//
 // Only one sweep should run at a time: cluster mode runs it on the leader producer.
 type Sweep struct {
 	repo         Repository
@@ -66,6 +74,7 @@ type Sweep struct {
 	interval     time.Duration
 	retention    time.Duration
 	onlineWindow time.Duration
+	started      time.Time
 	now          func() time.Time
 	logger       *zap.SugaredLogger
 
@@ -97,6 +106,7 @@ func NewSweep(cfg SweepConfig) *Sweep {
 		interval:     cfg.Interval,
 		retention:    cfg.InstanceRetention,
 		onlineWindow: cfg.InstanceOnlineWindow,
+		started:      cfg.StartedAt,
 		now:          cfg.Now,
 		logger:       cfg.Logger,
 		online:       make(map[string][]string),
@@ -115,6 +125,9 @@ func NewSweep(cfg SweepConfig) *Sweep {
 	}
 	if s.now == nil {
 		s.now = func() time.Time { return time.Now().UTC() }
+	}
+	if s.started.IsZero() {
+		s.started = s.now()
 	}
 	if s.logger == nil {
 		s.logger = zap.NewNop().Sugar()
@@ -202,9 +215,11 @@ func (s *Sweep) checkStatus(ctx context.Context, p *Model, instances []*Instance
 		}
 	}
 	quiet := len(instances) == 0 || now.Sub(lastSeen) > s.offlineAfter
+	// A probe that is quiet since before the process started may only have had no server to reach
+	grace := now.Sub(s.started) < s.offlineAfter
 
 	switch {
-	case p.Status == StatusOnline && quiet:
+	case p.Status == StatusOnline && quiet && !grace:
 		changed, err := s.repo.UpdateStatus(ctx, p.ID, StatusOnline, StatusOffline)
 		if err != nil {
 			s.logger.Errorw("Failed to set a probe offline", "probeId", p.ID, "error", err)

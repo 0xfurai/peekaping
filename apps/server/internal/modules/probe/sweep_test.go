@@ -55,8 +55,10 @@ func newSweepFixture(t *testing.T) *sweepFixture {
 		Repo:         f.repo,
 		EventBus:     f.bus,
 		OfflineAfter: 3 * time.Minute,
-		Now:          f.clock.Now,
-		Logger:       zap.NewNop().Sugar(),
+		// Up for a long time: the restart grace has run out
+		StartedAt: f.clock.Now().Add(-24 * time.Hour),
+		Now:       f.clock.Now,
+		Logger:    zap.NewNop().Sugar(),
 	})
 	return f
 }
@@ -141,6 +143,77 @@ func TestSweep_MarksAnOnlineProbeWithNoInstancesOffline(t *testing.T) {
 	offline := eventstest.Published(f.bus, probe.ProbeOffline)
 	require.Len(t, offline, 1)
 	assert.True(t, f.clock.Now().Equal(offline[0].Since), "with no instance to have seen, the probe has been offline since now: %s", offline[0].Since)
+}
+
+// After an outage longer than PROBE_OFFLINE_AFTER every instance looks quiet, but the probes could
+// not reach the server: they get OfflineAfter, from the start, to reconnect
+func TestSweep_WaitsOfflineAfterBeforeMarkingOffline(t *testing.T) {
+	f := newSweepFixture(t)
+	f.sweep = probe.NewSweep(probe.SweepConfig{
+		Repo:         f.repo,
+		EventBus:     f.bus,
+		OfflineAfter: 3 * time.Minute,
+		StartedAt:    f.clock.Now().Add(-10 * time.Second),
+		Now:          f.clock.Now,
+		Logger:       zap.NewNop().Sugar(),
+	})
+	quiet := f.probe(t, "Frankfurt", probe.StatusOnline)
+	seen := f.instance(t, quiet.ID, "frankfurt-1", 4*time.Minute)
+
+	f.run(t)
+
+	assert.Equal(t, probe.StatusOnline, f.status(t, quiet.ID), "10 seconds after the start, the probe has had no time to reconnect")
+	assert.Empty(t, eventstest.Published(f.bus, probe.ProbeOffline))
+
+	f.clock.Advance(3*time.Minute - 11*time.Second)
+	f.run(t)
+	assert.Equal(t, probe.StatusOnline, f.status(t, quiet.ID), "just under OfflineAfter after the start")
+
+	f.clock.Advance(time.Second)
+	f.run(t)
+
+	assert.Equal(t, probe.StatusOffline, f.status(t, quiet.ID), "OfflineAfter after the start, the probe is still quiet")
+	offline := eventstest.Published(f.bus, probe.ProbeOffline)
+	require.Len(t, offline, 1)
+	assert.True(t, seen.Equal(offline[0].Since), "since is still the last time an instance was seen: %s", offline[0].Since)
+}
+
+func TestSweep_TheRestartGraceLeavesTheOtherWorkToTheSweep(t *testing.T) {
+	ctx := context.Background()
+	f := newSweepFixture(t)
+	f.sweep = probe.NewSweep(probe.SweepConfig{
+		Repo:         f.repo,
+		EventBus:     f.bus,
+		OfflineAfter: 3 * time.Minute,
+		StartedAt:    f.clock.Now().Add(-10 * time.Second),
+		Now:          f.clock.Now,
+		Logger:       zap.NewNop().Sugar(),
+	})
+	back := f.probe(t, "Back", probe.StatusOffline)
+	f.instance(t, back.ID, "back-1", 10*time.Second)
+	edge := f.probe(t, "Edge", probe.StatusOnline)
+	f.instance(t, edge.ID, "edge-1", 0)
+	f.instance(t, edge.ID, "edge-2", 0)
+	old := f.probe(t, "Old", probe.StatusOffline)
+	f.instance(t, old.ID, "old-1", 48*time.Hour)
+
+	f.run(t)
+	f.clock.Advance(61 * time.Second)
+	for probeID, instanceID := range map[string]string{edge.ID: "edge-1", back.ID: "back-1"} {
+		touched, err := f.repo.TouchInstance(ctx, probeID, instanceID, f.clock.Now())
+		require.NoError(t, err)
+		require.True(t, touched)
+	}
+	f.run(t)
+
+	assert.Equal(t, probe.StatusOnline, f.status(t, back.ID), "the backstop works during the grace")
+	assert.Len(t, eventstest.Published(f.bus, probe.ProbeOnline), 1)
+	changed := eventstest.Published(f.bus, probe.InstancesChanged)
+	require.Len(t, changed, 1, "so does the comparison of the online instances")
+	assert.Equal(t, edge.ID, changed[0].ProbeID)
+	left, err := f.repo.FindInstances(ctx, old.ID)
+	require.NoError(t, err)
+	assert.Empty(t, left, "and the pruning")
 }
 
 func TestSweep_NeverOnlineNeverNotifies(t *testing.T) {
@@ -275,6 +348,7 @@ func TestSweep_RunSweepsEveryIntervalUntilItsContextIsDone(t *testing.T) {
 		EventBus:     f.bus,
 		OfflineAfter: 3 * time.Minute,
 		Interval:     5 * time.Millisecond,
+		StartedAt:    f.clock.Now().Add(-24 * time.Hour),
 		Now:          f.clock.Now,
 		Logger:       zap.NewNop().Sugar(),
 	})
