@@ -15,8 +15,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// serve runs httpx.NewServer on a free local port until the test ends, and returns its address.
-func serve(t *testing.T, timeouts httpx.Timeouts, handler http.Handler) string {
+// serveWithTimeouts runs httpx.NewServer on a free local port until the test ends, and returns its address.
+func serveWithTimeouts(t *testing.T, timeouts httpx.Timeouts, handler http.Handler) string {
 	t.Helper()
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
@@ -41,7 +41,7 @@ func TestNewServer_ServesWithTheDefaultTimeoutsAndNoWriteTimeout(t *testing.T) {
 }
 
 func TestNewServer_RefusesARequestWithAHeaderBlockOver64KiB(t *testing.T) {
-	addr := serve(t, httpx.DefaultTimeouts(), http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	addr := serveWithTimeouts(t, httpx.DefaultTimeouts(), http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 	}))
 
@@ -96,7 +96,7 @@ func TestNewServer_ReadTimeoutCutsOffASlowBodyButNotAWebsocket(t *testing.T) {
 		}
 		w.WriteHeader(http.StatusNoContent)
 	})
-	addr := serve(t, timeouts, mux)
+	addr := serveWithTimeouts(t, timeouts, mux)
 
 	// The control: the ReadTimeout is set, and a body that stops arriving fails to read
 	conn, err := net.Dial("tcp", addr)
@@ -125,7 +125,7 @@ func TestNewServer_ReadTimeoutCutsOffASlowBodyButNotAWebsocket(t *testing.T) {
 func TestNewServer_ClosesAClientThatSendsItsHeadersSlowly(t *testing.T) {
 	timeouts := httpx.DefaultTimeouts()
 	timeouts.ReadHeader = 200 * time.Millisecond
-	addr := serve(t, timeouts, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	addr := serveWithTimeouts(t, timeouts, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 
 	conn, err := net.Dial("tcp", addr)
 	require.NoError(t, err)
