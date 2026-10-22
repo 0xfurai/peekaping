@@ -142,6 +142,34 @@ func TestRequestLogLevel(t *testing.T) {
 	})
 }
 
+// A request that no route served, such as the one the web gateway answers itself, has no route to
+// go by, so its path decides the level.
+func TestRequestLogLevelOfARequestWithoutARoute(t *testing.T) {
+	for _, tc := range []struct {
+		target string
+		level  zapcore.Level
+	}{
+		{"/health", zap.DebugLevel},
+		{"/health?probe=1", zap.DebugLevel},
+		{"/api/v1/health", zap.DebugLevel},
+		{"/metrics", zap.DebugLevel},
+		{"/health/extra", zap.InfoLevel},
+		{"/assets/index.js", zap.InfoLevel},
+		{"/monitors?next=/health", zap.InfoLevel},
+	} {
+		t.Run(tc.target, func(t *testing.T) {
+			core, logs := observer.New(zap.DebugLevel)
+			handler := httpx.Chain(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { httpx.Text(w, 200, "ok") }),
+				httpx.RequestID, httpx.Logger(zap.New(core).Sugar(), nil))
+			handler.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest("GET", tc.target, nil))
+			all := logs.TakeAll()
+			require.Len(t, all, 1)
+			assert.Equal(t, tc.level, all[0].Level)
+			assert.Equal(t, "", all[0].ContextMap()["route"])
+		})
+	}
+}
+
 func TestLogFromContext(t *testing.T) {
 	core, logs := observer.New(zap.DebugLevel)
 	base := zap.New(core).Sugar()
