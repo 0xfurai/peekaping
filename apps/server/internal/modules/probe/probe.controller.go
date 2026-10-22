@@ -29,7 +29,7 @@ func NewController(service Service, logger *zap.SugaredLogger) *Controller {
 const (
 	localProbeCantBeDeleted  = "The local probe can't be deleted: it runs the checks Peekaping makes itself"
 	localProbeCantBeDisabled = "The local probe can't be disabled: it runs the checks Peekaping makes itself"
-	localProbeCantBeRotated  = "The local probe's token can't be rotated: it is set by PROBE_BOOTSTRAP_TOKEN, so change that and restart Peekaping"
+	localProbeCantBeRotated  = "The local probe's token is set with PROBE_BOOTSTRAP_TOKEN: set or change it and restart Peekaping"
 )
 
 // fail turns a service error into the response that tells the caller what went wrong.
