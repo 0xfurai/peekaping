@@ -22,7 +22,8 @@ func Recovery(logger *zap.SugaredLogger) Middleware {
 	}
 }
 
-// quietRoutes are the routes that monitoring polls, which Logger logs at debug level.
+// quietRoutes are the health and metrics endpoints that probes poll, which Logger logs at debug
+// level.
 var quietRoutes = []string{"/health", "/api/v1/health", "/metrics"}
 
 // Logger logs each request once it is done, after RequestID. It logs the pattern of the route

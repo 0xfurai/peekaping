@@ -133,7 +133,7 @@ func TestRequestLogLevel(t *testing.T) {
 		})
 	}
 
-	t.Run("the default log level skips the health checks", func(t *testing.T) {
+	t.Run("the default log level skips the health and metrics endpoints", func(t *testing.T) {
 		router, logs := newRouter(zap.InfoLevel)
 		for _, path := range []string{"/health", "/api/v1/health", "/metrics", "/api/v1/monitors"} {
 			router.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest("GET", path, nil))

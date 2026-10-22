@@ -38,7 +38,7 @@ func TestRequestLog_WritesOneLineForEachRequestInProdMode(t *testing.T) {
 	}{
 		{"an API route", "/api/v1/version", "/api/v1/version", http.StatusOK, zap.InfoLevel},
 		{"the push URL", "/api/v1/push/" + pushToken + "?status=up&msg=OK", "/api/v1/push/{token}", http.StatusOK, zap.InfoLevel},
-		{"the health check", "/api/v1/health", "/api/v1/health", http.StatusOK, zap.DebugLevel},
+		{"the health endpoint", "/api/v1/health", "/api/v1/health", http.StatusOK, zap.DebugLevel},
 		{"no route", "/nothing/here?token=" + pushToken, "", http.StatusNotFound, zap.InfoLevel},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
