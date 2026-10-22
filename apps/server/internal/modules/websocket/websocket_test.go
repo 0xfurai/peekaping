@@ -100,13 +100,34 @@ type event struct {
 	hb   heartbeat.Model
 }
 
-// dial opens an Engine.IO session and sends the socket.io CONNECT packet. A
-// reader keeps one long poll open and answers pings.
+// dial opens an Engine.IO session and sends the socket.io CONNECT packet with
+// token in its auth payload, as a socket.io client does (no payload when token is
+// empty).
 func (h *harness) dial(t *testing.T, token string) *client {
 	t.Helper()
-	query := url.Values{"EIO": {"4"}, "transport": {"polling"}}
+	connect := "40"
 	if token != "" {
-		query.Set("token", token)
+		payload, err := json.Marshal(map[string]string{"token": token})
+		require.NoError(t, err)
+		connect += string(payload)
+	}
+	return h.open(t, nil, connect)
+}
+
+// dialWithQueryToken sends token in the query string, where the web app used to
+// put it, and no auth payload.
+func (h *harness) dialWithQueryToken(t *testing.T, token string) *client {
+	t.Helper()
+	return h.open(t, url.Values{"token": {token}}, "40")
+}
+
+// open opens an Engine.IO session with the extra query parameters and sends the
+// socket.io CONNECT packet. A reader keeps one long poll open and answers pings.
+func (h *harness) open(t *testing.T, extra url.Values, connect string) *client {
+	t.Helper()
+	query := url.Values{"EIO": {"4"}, "transport": {"polling"}}
+	for name, values := range extra {
+		query[name] = values
 	}
 	base := h.url + "/socket.io/?" + query.Encode()
 	resp, err := http.Get(base)
@@ -121,7 +142,7 @@ func (h *harness) dial(t *testing.T, token string) *client {
 	require.NoError(t, json.Unmarshal(body[1:], &open))
 
 	c := &client{url: base + "&sid=" + url.QueryEscape(open.SID), packets: make(chan string, 256)}
-	require.NoError(t, c.post("40"))
+	require.NoError(t, c.post(connect))
 	go c.read()
 	return c
 }
@@ -274,6 +295,30 @@ func TestConnectionNeedsAValidAccessToken(t *testing.T) {
 	t.Run("access token", func(t *testing.T) {
 		packet := h.dial(t, h.accessToken(t)).next(t)
 		assert.True(t, strings.HasPrefix(packet, "40"), "expected CONNECT, got %s", packet)
+	})
+}
+
+// The token is read from the socket.io auth payload only. One in the query string
+// is ignored, so it stops showing up in the access logs of a proxy.
+func TestConnectionTakesTheTokenFromTheAuthPayloadOnly(t *testing.T) {
+	h := newHarness(t)
+	token := h.accessToken(t)
+
+	t.Run("auth payload", func(t *testing.T) {
+		packet := h.dial(t, token).next(t)
+		assert.True(t, strings.HasPrefix(packet, "40"), "expected CONNECT, got %s", packet)
+	})
+	t.Run("query string", func(t *testing.T) {
+		packet := h.dialWithQueryToken(t, token).next(t)
+		assert.True(t, strings.HasPrefix(packet, "44"), "expected CONNECT_ERROR, got %s", packet)
+	})
+	t.Run("query string and an empty auth payload", func(t *testing.T) {
+		packet := h.open(t, url.Values{"token": {token}}, "40{}").next(t)
+		assert.True(t, strings.HasPrefix(packet, "44"), "expected CONNECT_ERROR, got %s", packet)
+	})
+	t.Run("token that isn't a string", func(t *testing.T) {
+		packet := h.open(t, nil, `40{"token":5}`).next(t)
+		assert.True(t, strings.HasPrefix(packet, "44"), "expected CONNECT_ERROR, got %s", packet)
 	})
 }
 

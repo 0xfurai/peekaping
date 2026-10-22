@@ -15,6 +15,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
 
 const telemetryPath = "/api/v1/telemetry"
@@ -214,8 +215,9 @@ func TestTelemetryAPI_ReportsEveryNotificationChannelTypeTheWorkerAccepts(t *tes
 	// A channel type the Worker would reject is left out of the ping without a trace
 	newApp(t)
 	typeRule := regexp.MustCompile(`^[a-z0-9_-]{1,32}$`)
-	require.NotEmpty(t, notification_channel.NotificationChannelProviderRegistry)
-	for name := range notification_channel.NotificationChannelProviderRegistry {
+	types := notification_channel.NewProviderRegistry(zap.NewNop().Sugar(), &config.Config{}).Types()
+	require.NotEmpty(t, types)
+	for _, name := range types {
 		assert.Regexp(t, typeRule, name)
 	}
 }

@@ -117,11 +117,7 @@ func ProvideServer(
 	staleStore stale.Store,
 	metricsCollector *metrics.Collector,
 ) *Server {
-	middleware := []httpx.Middleware{httpx.Recovery(logger), httpx.CORS}
-	if cfg.Mode == "dev" {
-		middleware = append([]httpx.Middleware{httpx.Logger(logger, trustedProxies)}, middleware...)
-	}
-	server := httpx.NewRouter(middleware...)
+	server := httpx.NewRouter(httpx.RequestID, httpx.Logger(logger, trustedProxies), httpx.Recovery(logger), httpx.CORS)
 
 	healthHandler := newHealthHandler(staleStore, logger)
 	httpx.Register(server, "GET", "/health", huma.Operation{Summary: "Get server health", Tags: []string{"System"}}, healthHandler)

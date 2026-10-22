@@ -2528,3 +2528,62 @@ func TestHTTPExecutor_Execute_DoesNotLeakConnections(t *testing.T) {
 		return open <= 1
 	}, 3*time.Second, 20*time.Millisecond, "established connections should not accumulate across checks")
 }
+
+// Every HTTP check shares one executor, and single mode runs up to
+// CHECK_CONCURRENCY checks at once. Each check must use the client built
+// from its own monitor: the TLS-skip monitor's client, not the strict one's,
+// and the short-timeout monitor's client, not the long one's.
+func TestHTTPExecutor_Execute_ConcurrentChecksKeepTheirOwnClient(t *testing.T) {
+	executor := NewHTTPExecutor(zap.NewNop().Sugar())
+
+	selfSigned := startTLSServer(t, generateTestCerts(t, time.Now().Add(24*time.Hour)), false,
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	slow := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case <-time.After(2 * time.Second):
+		case <-r.Context().Done():
+		}
+	}))
+	t.Cleanup(slow.Close)
+
+	skipTLS := httpMonitor(t, "http", HTTPConfig{Url: selfSigned.URL, AuthMethod: "none", IgnoreTlsErrors: true})
+	skipTLS.Name = "skip tls errors"
+	strictTLS := httpMonitor(t, "http", HTTPConfig{Url: selfSigned.URL, AuthMethod: "none"})
+	strictTLS.Name = "strict tls"
+	shortTimeout := httpMonitor(t, "http", HTTPConfig{Url: slow.URL, AuthMethod: "none"})
+	shortTimeout.Name = "short timeout"
+	shortTimeout.Timeout = 1
+
+	type check struct {
+		monitor     *Monitor
+		want        shared.MonitorStatus
+		wantMessage string // a Down for another reason doesn't count
+	}
+	checks := []check{
+		{skipTLS, shared.MonitorStatusUp, "200"},
+		{strictTLS, shared.MonitorStatusDown, "certificate"},
+		{shortTimeout, shared.MonitorStatusDown, "exceeded"}, // "context deadline exceeded" or "Client.Timeout exceeded"
+	}
+
+	const rounds = 20
+	var wg sync.WaitGroup
+	results := make([]*Result, rounds*len(checks))
+	for i := 0; i < rounds; i++ {
+		for j, c := range checks {
+			wg.Add(1)
+			go func(slot int, c check) {
+				defer wg.Done()
+				results[slot] = executor.Execute(context.Background(), c.monitor, nil)
+			}(i*len(checks)+j, c)
+		}
+	}
+	wg.Wait()
+
+	for i := 0; i < rounds; i++ {
+		for j, c := range checks {
+			r := results[i*len(checks)+j]
+			assert.Equalf(t, c.want, r.Status, "%s (round %d): %s", c.monitor.Name, i, r.Message)
+			assert.Containsf(t, r.Message, c.wantMessage, "%s (round %d)", c.monitor.Name, i)
+		}
+	}
+}

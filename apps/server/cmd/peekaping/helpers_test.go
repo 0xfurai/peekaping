@@ -324,11 +324,20 @@ type socketEvent struct {
 	hb   heartbeat.Model
 }
 
+// socketConnect is the socket.io CONNECT packet of a client that sends the admin's access token
+// in its auth payload, where the websocket reads it.
+func (in *instance) socketConnect(t *testing.T) string {
+	t.Helper()
+	auth, err := json.Marshal(map[string]string{"token": in.accessToken})
+	require.NoError(t, err)
+	return "40" + string(auth)
+}
+
 // dialSocket opens a socket.io session with the admin's access token. The test's cleanup closes
 // it.
 func (in *instance) dialSocket(t *testing.T) *socketClient {
 	t.Helper()
-	query := url.Values{"EIO": {"4"}, "transport": {"polling"}, "token": {in.accessToken}}
+	query := url.Values{"EIO": {"4"}, "transport": {"polling"}}
 	base := in.url + "/socket.io/?" + query.Encode()
 	resp, err := http.Get(base)
 	require.NoError(t, err)
@@ -342,7 +351,7 @@ func (in *instance) dialSocket(t *testing.T) *socketClient {
 	require.NoError(t, json.Unmarshal(body[1:], &open))
 
 	c := &socketClient{url: base + "&sid=" + url.QueryEscape(open.SID), packets: make(chan string, 256)}
-	require.NoError(t, c.post("40"))
+	require.NoError(t, c.post(in.socketConnect(t)))
 	go c.read()
 	t.Cleanup(c.close)
 
@@ -404,7 +413,7 @@ func (c *socketClient) close() {
 // upgrades to, with the admin's access token. The test's cleanup closes it.
 func (in *instance) dialWebsocket(t *testing.T) *gorilla.Conn {
 	t.Helper()
-	query := url.Values{"EIO": {"4"}, "transport": {"websocket"}, "token": {in.accessToken}}
+	query := url.Values{"EIO": {"4"}, "transport": {"websocket"}}
 	conn, resp, err := gorilla.DefaultDialer.Dial("ws"+strings.TrimPrefix(in.url, "http")+"/socket.io/?"+query.Encode(), nil)
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = conn.Close() })
@@ -414,7 +423,7 @@ func (in *instance) dialWebsocket(t *testing.T) *gorilla.Conn {
 	_, open, err := conn.ReadMessage()
 	require.NoError(t, err)
 	require.True(t, strings.HasPrefix(string(open), "0{"), "Engine.IO OPEN: %s", open)
-	require.NoError(t, conn.WriteMessage(gorilla.TextMessage, []byte("40")))
+	require.NoError(t, conn.WriteMessage(gorilla.TextMessage, []byte(in.socketConnect(t))))
 	_, connect, err := conn.ReadMessage()
 	require.NoError(t, err)
 	require.True(t, strings.HasPrefix(string(connect), "40"), "socket.io CONNECT: %s", connect)
