@@ -15,6 +15,7 @@ import (
 	"github.com/alicebob/miniredis/v2/server"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
 
 // shutdownOrder is what a shutdown that stops everything in time logs, in this order
@@ -53,7 +54,7 @@ func TestRun_StopsSchedulingReleasesLeadershipAndClosesTheDatabaseInOrder(t *tes
 	require.NoError(t, err, "run returns nil, so the producer exits 0")
 	assert.False(t, redis.Exists(producer.LeaderKey), "the leadership is released")
 	assert.Equal(t, shutdownOrder, logged(logs, shutdownOrder), "the shutdown's steps, in the order logged")
-	assert.Zero(t, logs.FilterMessage("Failed to release leadership").Len())
+	assert.Empty(t, logs.FilterLevelExact(zap.ErrorLevel).All(), "a clean shutdown logs no error")
 }
 
 func TestRun_ReturnsAnErrorWhenTheDatabaseCantBeOpened(t *testing.T) {

@@ -2,6 +2,7 @@ package producer
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -59,7 +60,8 @@ func (p *Producer) startJobProcessing() error {
 		workerID := i
 		reporting.Go("producer", func() {
 			p.logger.Infow("Starting producer worker", "worker_id", workerID)
-			if err := p.runProducer(workerID); err != nil {
+			// A worker ends with its context's error when the producer stops: that is no failure
+			if err := p.runProducer(workerID); err != nil && !errors.Is(err, context.Canceled) {
 				p.logger.Errorw("Producer worker exited with error", "worker_id", workerID, "error", err)
 			} else {
 				p.logger.Infow("Producer worker stopped gracefully", "worker_id", workerID)

@@ -14,6 +14,7 @@ import (
 	"github.com/hibiken/asynq"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
 
 // shutdownOrder is what a shutdown that stops everything in time logs, in this order
@@ -97,6 +98,7 @@ func TestRun_LetsTheIngestInFlightFinishStoringItsHeartbeatBeforeStopping(t *tes
 	require.NoError(t, err)
 	assert.Zero(t, info.Active+info.Pending+info.Retry, "the ingest isn't left in the queue")
 	assert.Equal(t, shutdownOrder, logged(logs, shutdownOrder), "the shutdown's steps, in the order logged")
+	assert.Empty(t, logs.FilterLevelExact(zap.ErrorLevel).All(), "a clean shutdown logs no error")
 }
 
 func TestRun_ReturnsAnErrorWhenTheDatabaseCantBeOpened(t *testing.T) {
