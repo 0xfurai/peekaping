@@ -63,7 +63,9 @@ func TestRun_KeepsLongPollsAndWebsocketsOpenPastTheReadTimeout(t *testing.T) {
 	t.Run("a long poll answers after the read timeout", func(t *testing.T) {
 		socket := in.dialSocket(t)
 		socket.join(t, "monitor:all")
+		polls := socket.polls.Load()
 		time.Sleep(3 * read) // the long poll waits through the read timeout, with nothing to answer
+		require.Equal(t, polls, socket.polls.Load(), "a long poll ended before the push")
 		pushUntil(t, in, "long-poll-", func(msg string) bool {
 			_, ok := socket.until(t, 200*time.Millisecond, func(e socketEvent) bool { return e.hb.MonitorID == pushID && e.hb.Msg == msg })
 			return ok
