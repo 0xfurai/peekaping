@@ -35,7 +35,7 @@ describe("buildQueries", () => {
     ["Distinct instances per day by mode", "ping", "blob3"],
     ["Distinct instances per day by storage backend", "ping", "blob4"],
     ["Distinct instances per day by monitor type", "monitor_type", "blob2"],
-    ["Distinct instances per day by notification channel type", "notification_provider", "blob2"],
+    ["Distinct instances per day by notification channel type", "notification_channel", "blob2"],
   ])("%s groups the %s points by %s", (title, kind, column) => {
     const query = buildQueries(30).find((q) => q.title === title);
     expect(compact(query!.sql)).toBe(
