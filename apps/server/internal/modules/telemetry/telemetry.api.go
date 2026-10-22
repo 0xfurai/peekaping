@@ -8,8 +8,9 @@ type SetInput = httpx.Input[UpdateDto, struct{}]
 
 // UpdateDto is the body of the telemetry update
 type UpdateDto struct {
-	// Enabled is a pointer so that a body without it is rejected instead of opting out
-	Enabled *bool `json:"enabled" validate:"required"`
+	// Enabled is a pointer so that a body without it is rejected instead of opting out. The schema
+	// stays non-nullable: a null is rejected too, so a client should see a plain boolean.
+	Enabled *bool `json:"enabled" validate:"required" nullable:"false"`
 }
 
 // StateResponse is what the telemetry API returns

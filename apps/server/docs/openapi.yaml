@@ -1970,9 +1970,7 @@ components:
       additionalProperties: true
       properties:
         enabled:
-          type:
-            - boolean
-            - "null"
+          type: boolean
       required:
         - enabled
       type: object
