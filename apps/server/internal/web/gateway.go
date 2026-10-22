@@ -73,9 +73,10 @@ func checkIndex(files fs.FS, dir string) error {
 }
 
 // NewGateway returns the handler of the one port that serves both the API and the web build in
-// cfg.Dir. /api/*, /socket.io/* and, with cfg.Metrics, /metrics go to the API as they are, so
-// /docs, /swagger/* and /health don't. /env.js is generated from cfg.APIURL. Every other GET or
-// HEAD gets a file of the build: an asset (see assetExtensions) with a year's cache, or a 404
+// cfg.Dir. /api/*, /probe/* (the probe protocol), /socket.io/* and, with cfg.Metrics, /metrics go
+// to the API as they are, so /docs, /swagger/* and /health don't. /env.js is generated from
+// cfg.APIURL. Every other GET or HEAD gets a file of the build: an asset (see assetExtensions)
+// with a year's cache, or a 404
 // when it's missing, and index.html for any other path that isn't a file, so that the web app
 // routes it. Nothing outside cfg.Dir is served, even through a link, and directories aren't
 // listed.
@@ -109,7 +110,7 @@ func NewGateway(cfg Config, api http.Handler, logger *zap.SugaredLogger) (http.H
 
 func (g *gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	urlPath := cleanPath(r.URL.Path)
-	if strings.HasPrefix(urlPath, "/api/") || strings.HasPrefix(urlPath, "/socket.io/") || (g.metrics && urlPath == "/metrics") {
+	if strings.HasPrefix(urlPath, "/api/") || strings.HasPrefix(urlPath, "/probe/") || strings.HasPrefix(urlPath, "/socket.io/") || (g.metrics && urlPath == "/metrics") {
 		// The API gets the ResponseWriter itself, so that the websocket can take over the
 		// connection and the long polls can flush
 		g.api.ServeHTTP(w, r)
