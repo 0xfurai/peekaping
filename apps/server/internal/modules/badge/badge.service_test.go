@@ -12,6 +12,7 @@ import (
 	"peekaping/internal/modules/stats"
 	"peekaping/internal/modules/status_page"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -1669,6 +1670,23 @@ func TestParseColor(t *testing.T) {
 			result, valid := parseColor(tt.value)
 			assert.Equal(t, tt.valid, valid)
 			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestSVGBadgeGenerator_EscapesColors(t *testing.T) {
+	const hostile = `"><script>alert(1)</script>`
+	const escaped = "&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;"
+
+	for _, style := range []BadgeStyle{BadgeStyleFlat, BadgeStyleFlatSquare, BadgeStylePlastic, BadgeStyleForTheBadge, BadgeStyleSocial} {
+		t.Run(string(style), func(t *testing.T) {
+			svg := NewSVGBadgeGenerator().GenerateBadge(&Badge{
+				Style: style, Label: "status", Value: "Up", Color: hostile, LabelColor: hostile,
+			})
+
+			assert.NotContains(t, svg, "<script")
+			// The label's color and the value's color
+			assert.Equal(t, 2, strings.Count(svg, `fill="`+escaped+`"`), svg)
 		})
 	}
 }
