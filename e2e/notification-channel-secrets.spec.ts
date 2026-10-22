@@ -162,6 +162,53 @@ test('Changing where a channel sends blocks saving until each saved secret is re
   }
 });
 
+test('A saved secret the form does not show cannot block saving a new endpoint', async ({ page }) => {
+  const id = randomID();
+  const created: string[] = [];
+  const api = await adminAPI(page);
+
+  try {
+    // Signing in with a password, the channel still has the token it was saved with
+    const channelID = await createChannel(api, created, `Secrets ${id}`, 'ntfy', {
+      server_url: webhookURL(id),
+      topic: 'alerts',
+      authentication_type: 'basic',
+      username: 'ntfy-user',
+      password: `password-${id}`,
+      token: `token-${id}`,
+      priority: 3,
+    });
+
+    await page.goto(`/notification-channels/${channelID}/edit`);
+    const password = secretItem(page, 'password');
+    await expect(password.getByText(savedHint)).toBeVisible();
+    await expect(page.locator('[name="token"]')).toHaveCount(0);
+
+    // A new server asks for the password that is shown. Nothing is asked for the token that isn't
+    await page.locator('input[name="server_url"]').fill(webhookURL(`${id}-new`));
+    await expect(password.getByText(reenterHint)).toBeVisible();
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    await expect(password.getByText(reenterError)).toBeVisible();
+    await expect(page.getByText(reenterError)).toHaveCount(1);
+
+    await password.locator('input').fill(`new-password-${id}`);
+    const updated = page.waitForResponse(
+      (response) => response.url().endsWith(`/notification-channels/${channelID}`) && response.request().method() === 'PUT',
+    );
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    const updatedResponse = await updated;
+    expect(updatedResponse.status(), await updatedResponse.text()).toBe(200);
+    expect(await savedConfig(api, channelID)).toMatchObject({
+      server_url: webhookURL(`${id}-new`),
+      password: '********',
+      token: '',
+    });
+  } finally {
+    for (const path of created) await deleteCreated(api, path);
+    await api.dispose();
+  }
+});
+
 test('A saved secret can be removed on purpose, and only that one', async ({ page, request }) => {
   const id = randomID();
   const signingSecret = `signing-${id}`;
