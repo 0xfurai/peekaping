@@ -127,3 +127,20 @@ func TestWaker_ACancelledContextEndsTheWaitAtOnce(t *testing.T) {
 
 	assert.True(t, woken(waker.Wait(ctx, "probe-1")))
 }
+
+func TestWaker_CloseEndsEveryWaitAndSaysSo(t *testing.T) {
+	waker, _ := subscribedWaker(t)
+	first, second := waker.Wait(context.Background(), "probe-1"), waker.Wait(context.Background(), "probe-2")
+	select {
+	case <-waker.Closed():
+		t.Fatal("the waker is closed before anyone closed it")
+	default:
+	}
+
+	waker.Close()
+	waker.Close()
+
+	assert.True(t, woken(first), "a server that is stopping answers its polls")
+	assert.True(t, woken(second))
+	assert.True(t, woken(waker.Closed()))
+}

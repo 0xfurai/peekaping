@@ -9,10 +9,12 @@ import (
 
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/probe"
+	"peekaping/internal/modules/proxy"
 	"peekaping/internal/probeproto"
 	"peekaping/internal/utils"
 	"peekaping/internal/version"
 
+	"go.uber.org/dig"
 	"go.uber.org/zap"
 )
 
@@ -28,13 +30,33 @@ const (
 
 type Controller struct {
 	service probe.Service
+	source  MonitorSource
+	proxies proxy.Service
+	waker   *Waker
+	timing  Timing
+	now     func() time.Time
 	logger  *zap.SugaredLogger
 }
 
-func NewController(service probe.Service, logger *zap.SugaredLogger) *Controller {
+type ControllerParams struct {
+	dig.In
+	Probes  probe.Service
+	Source  MonitorSource
+	Proxies proxy.Service
+	Waker   *Waker
+	Timing  Timing
+	Logger  *zap.SugaredLogger
+}
+
+func NewController(p ControllerParams) *Controller {
 	return &Controller{
-		service: service,
-		logger:  logger.Named("[probe-protocol-controller]"),
+		service: p.Probes,
+		source:  p.Source,
+		proxies: p.Proxies,
+		waker:   p.Waker,
+		timing:  p.Timing,
+		now:     time.Now,
+		logger:  p.Logger.Named("[probe-protocol-controller]"),
 	}
 }
 
@@ -81,6 +103,7 @@ func (c *Controller) Hello(ctx context.Context, input *HelloInput) (*httpx.Outpu
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(message))
 	}
 
+	now := c.now().UTC()
 	err := c.service.RegisterInstance(r.Context(), owner.ID, &probe.Instance{
 		ID:              instanceID,
 		Hostname:        req.Hostname,
@@ -88,7 +111,7 @@ func (c *Controller) Hello(ctx context.Context, input *HelloInput) (*httpx.Outpu
 		Arch:            req.Arch,
 		Version:         req.ProbeVersion,
 		ProtocolVersion: req.ProtocolVersion,
-		LastSeenAt:      time.Now().UTC(),
+		LastSeenAt:      now,
 	}, req.SupportedTypes)
 	if err != nil {
 		return nil, c.fail(err)
@@ -97,9 +120,9 @@ func (c *Controller) Hello(ctx context.Context, input *HelloInput) (*httpx.Outpu
 	return httpx.Reply(http.StatusOK, probeproto.HelloResponse{
 		ProtocolVersion: probeproto.ProtocolVersion,
 		ServerVersion:   version.Version,
-		ServerTime:      time.Now().UTC(),
+		ServerTime:      now,
 		Probe:           probeproto.ProbeInfo{ID: owner.ID, Name: owner.Name, Location: owner.Location},
-		PollTimeoutMs:   int(PollTimeout / time.Millisecond),
+		PollTimeoutMs:   int(c.timing.PollTimeout / time.Millisecond),
 		FlushIntervalMs: int(FlushInterval / time.Millisecond),
 		BatchMax:        BatchMax,
 		BufferMax:       BufferMax,

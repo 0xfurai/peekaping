@@ -12,6 +12,11 @@ type HelloParams struct {
 }
 type HelloInput = httpx.Input[probeproto.HelloRequest, HelloParams]
 
+type AssignmentsParams struct {
+	Version string `query:"version" doc:"The version of the assignments the instance holds, as the server last sent it. Leave it out for the first call. When it is the current one, the server holds the request until something changes, for up to 25 seconds, and answers 304 with no body at the timeout; when it is not, the server answers at once."`
+}
+type AssignmentsInput = httpx.Input[httpx.NoBody, AssignmentsParams]
+
 type ByeParams struct {
 }
 type ByeInput = httpx.Input[httpx.NoBody, ByeParams]

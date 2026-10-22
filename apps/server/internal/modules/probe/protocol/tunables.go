@@ -19,6 +19,15 @@ const (
 	BufferMax = 10000
 )
 
+// Timing is how long the server holds a poll. It is provided as PollTimeout, and a test shortens
+// it by decorating the value, so that a poll that times out does not take 25 seconds.
+type Timing struct {
+	PollTimeout time.Duration
+}
+
+// DefaultTiming is the timing of a server that runs: hello tells the probes about it
+func DefaultTiming() Timing { return Timing{PollTimeout: PollTimeout} }
+
 const (
 	// MinProtocolVersion is the oldest protocol version the server speaks. A hello below it is
 	// answered 426.

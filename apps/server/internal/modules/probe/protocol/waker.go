@@ -30,6 +30,9 @@ type Waker struct {
 
 	mu      sync.Mutex
 	waiters map[string]map[*waiter]struct{} // by probe id
+
+	closed    chan struct{}
+	closeOnce sync.Once
 }
 
 // waiter is one Wait. Its fields are guarded by the Waker's mu.
@@ -46,8 +49,20 @@ func NewWaker(bus events.EventBus, logger *zap.SugaredLogger) *Waker {
 		bus:     bus,
 		logger:  logger.Named("[probe-waker]"),
 		waiters: make(map[string]map[*waiter]struct{}),
+		closed:  make(chan struct{}),
 	}
 }
+
+// Close ends every wait and tells the polls that the server is stopping, through Closed, so that
+// they answer instead of holding the HTTP server's shutdown for up to PollTimeout. It may be
+// called more than once.
+func (w *Waker) Close() {
+	w.closeOnce.Do(func() { close(w.closed) })
+	w.wakeAll("shutdown")
+}
+
+// Closed is closed once Close has been called
+func (w *Waker) Closed() <-chan struct{} { return w.closed }
 
 // Subscribe has the waker listen for the events that end a poll. Call it at startup, before the
 // server takes requests, as the other listeners are: an event handed to a bus with no handler for

@@ -6,9 +6,10 @@ import (
 	"go.uber.org/dig"
 )
 
-// RegisterDependencies provides the protocol's middleware, controller and route. They need the
+// RegisterDependencies provides the protocol's middleware, controller and route, the Waker that
+// ends waiting polls, and the MonitorSource that says which monitors are a probe's. They need the
 // probe service, which probe.RegisterDependencies provides, on a MongoDB install too: there it
 // answers every call 501.
 func RegisterDependencies(container *dig.Container) error {
-	return utils.Provide(container, NewAuth, NewRateLimiter, NewController, NewRoute)
+	return utils.Provide(container, NewAuth, NewRateLimiter, NewWaker, NewLocalOnlySource, DefaultTiming, NewController, NewRoute)
 }
