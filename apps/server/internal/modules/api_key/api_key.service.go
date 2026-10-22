@@ -3,11 +3,15 @@ package api_key
 import (
 	"context"
 	"crypto/rand"
+	"crypto/sha256"
+	"crypto/subtle"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"peekaping/internal/legacyid"
+	"strings"
 	"time"
 
 	"go.uber.org/zap"
@@ -175,9 +179,8 @@ func (s *ServiceImpl) ValidateKey(ctx context.Context, key string) (*Model, erro
 		return nil, errors.New("API key usage limit exceeded")
 	}
 
-	// Verify the actual key against the stored bcrypt hash
-	err = bcrypt.CompareHashAndPassword([]byte(apiKey.KeyHash), []byte(actualKey))
-	if err != nil {
+	// Verify the actual key against the stored hash
+	if !s.verifyKeyHash(ctx, apiKey, actualKey) {
 		s.logger.Warnw("API key verification failed", "apiKeyId", apiKeyID)
 		return nil, errors.New("invalid API key")
 	}
@@ -235,11 +238,7 @@ func (s *ServiceImpl) generateAPIKey(apiKeyID string) (string, string, string, e
 	s.logger.Debugw("Generated actual key", "apiKeyId", apiKeyID, "keyLength", len(actualKey))
 
 	// Hash the key for storage
-	keyHash, err := s.hashAPIKey(actualKey)
-	if err != nil {
-		s.logger.Errorw("Failed to hash API key", "apiKeyId", apiKeyID, "error", err)
-		return "", "", "", fmt.Errorf("error hashing API key: %v", err)
-	}
+	keyHash := hashAPIKey(actualKey)
 
 	// Create the payload to encode in the token
 	payload := map[string]string{
@@ -307,11 +306,33 @@ func (s *ServiceImpl) parseAPIKeyToken(token string) (string, string, error) {
 }
 
 // MARK: hashAPIKey
-// hashAPIKey hashes an API key using bcrypt
-func (s *ServiceImpl) hashAPIKey(key string) (string, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(key), bcrypt.DefaultCost)
-	if err != nil {
-		return "", err
+// hashAPIKey hashes an API key with SHA-256, as "sha256$" and the hex digest. The
+// key is 32 random bytes, so it needs no slow hash, and a fast one keeps the check
+// on every request cheap.
+func hashAPIKey(key string) string {
+	sum := sha256.Sum256([]byte(key))
+	return KeyHashPrefix + hex.EncodeToString(sum[:])
+}
+
+// MARK: verifyKeyHash
+// verifyKeyHash reports whether key matches the hash stored for apiKey. A key
+// created before SHA-256 was used is stored as a bcrypt hash, which starts with
+// "$2": it is checked with bcrypt once, and its stored hash is replaced by a
+// SHA-256 hash.
+func (s *ServiceImpl) verifyKeyHash(ctx context.Context, apiKey *Model, key string) bool {
+	switch {
+	case strings.HasPrefix(apiKey.KeyHash, KeyHashPrefix):
+		return subtle.ConstantTimeCompare([]byte(apiKey.KeyHash), []byte(hashAPIKey(key))) == 1
+	case strings.HasPrefix(apiKey.KeyHash, "$2"):
+		if bcrypt.CompareHashAndPassword([]byte(apiKey.KeyHash), []byte(key)) != nil {
+			return false
+		}
+		if err := s.repo.UpdateKeyHash(ctx, apiKey.ID, hashAPIKey(key), apiKey.DisplayKey); err != nil {
+			// Log error but don't fail the validation: the next use tries again
+			s.logger.Errorw("Error replacing the bcrypt hash of an API key", "apiKeyId", apiKey.ID, "error", err)
+		}
+		return true
+	default:
+		return false
 	}
-	return string(hash), nil
 }
