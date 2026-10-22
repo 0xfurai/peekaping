@@ -55,17 +55,23 @@ func postgresDB(t *testing.T) *bun.DB {
 	return db
 }
 
+// migrateDB migrates the database as the startup script does with cmd/bun
+func migrateDB(t *testing.T, db *bun.DB) {
+	t.Helper()
+	ctx := context.Background()
+	migrator := migrate.NewMigrator(db, migrations.Migrations)
+	require.NoError(t, migrator.Init(ctx))
+	_, err := migrator.Migrate(ctx)
+	require.NoError(t, err)
+}
+
 // forEachSQLBackend runs fn on a migrated database of every SQL storage backend. PostgreSQL runs
 // when PEE_TEST_POSTGRES_DSN is set.
 func forEachSQLBackend(t *testing.T, fn func(t *testing.T, db *bun.DB)) {
 	for name, open := range map[string]func(*testing.T) *bun.DB{"SQLite": sqliteDB, "Postgres": postgresDB} {
 		t.Run(name, func(t *testing.T) {
 			db := open(t)
-			ctx := context.Background()
-			migrator := migrate.NewMigrator(db, migrations.Migrations)
-			require.NoError(t, migrator.Init(ctx))
-			_, err := migrator.Migrate(ctx)
-			require.NoError(t, err)
+			migrateDB(t, db)
 			fn(t, db)
 		})
 	}

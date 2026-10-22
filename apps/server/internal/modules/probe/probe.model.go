@@ -3,6 +3,8 @@ package probe
 import (
 	"errors"
 	"time"
+
+	"peekaping/internal/modules/probe_notification"
 )
 
 // LocalID is the id of the local probe: the checks that Peekaping runs itself. Every install has
@@ -22,8 +24,9 @@ var (
 	ErrLocalProbe = errors.New("the local probe can't be changed this way")
 	// ErrNotFound is returned when the probe an operation names doesn't exist
 	ErrNotFound = errors.New("probe not found")
-	// ErrUnsupportedStorage is returned on a MongoDB install, which has no probes (ADR 0001)
-	ErrUnsupportedStorage = errors.New("probes need SQLite or PostgreSQL storage")
+	// ErrUnsupportedStorage is returned on a MongoDB install, which has no probes (ADR 0001). It
+	// is the error of the probe_notification module too, so that it means the same in both.
+	ErrUnsupportedStorage = probe_notification.ErrUnsupportedStorage
 )
 
 // Model is a probe: a place Peekaping runs checks from. A remote probe runs on another machine
