@@ -85,6 +85,12 @@
     "update": "Update",
     "verifying": "Verifying..."
   },
+  "error_reporting": {
+    "label": "Send error reports",
+    "never_sent": "Never sent: error messages, URLs, headers, webhook URLs, names or hostnames. A report holds no IP address, and Peekaping's Sentry project is set not to store the sender's IP. With your own ERROR_REPORTING_DSN, your Sentry or GlitchTip settings decide.",
+    "not_saved": "Your choice to send error reports wasn't saved. Turn it on in Settings.",
+    "sent": "Sent only when Peekaping itself crashes. A report holds the error type and where in the code it happened, the Peekaping version, single or cluster mode, the storage backend, and the operating system."
+  },
   "forms": {
     "labels": {
       "confirm_password": "Confirm Password",
@@ -1272,6 +1278,12 @@
       "days_label": "Days",
       "description": "Set how many days to keep data (KEEP_DATA_PERIOD_DAYS).",
       "title": "Data Retention Period"
+    },
+    "error_reporting": {
+      "cluster_note": "In cluster mode, a change reaches every process within a minute.",
+      "description": "Send a report to Sentry when the server crashes. Off until you turn it on.",
+      "forced_off": "The ERROR_REPORTING=off or DO_NOT_TRACK=1 environment variable switches this off. Nothing is sent, whatever this setting says.",
+      "title": "Error reports"
     },
     "telemetry": {
       "description": "Send anonymous statistics about how this install is set up, at most once a day. Off until you turn it on.",

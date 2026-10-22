@@ -85,6 +85,12 @@
     "update": "Yangilash",
     "verifying": "Tekshirilmoqda..."
   },
+  "error_reporting": {
+    "label": "Xato hisobotlarini yuborish",
+    "never_sent": "Hech qachon yuborilmaydi: xato xabarlari, URL manzillari, sarlavhalar, webhook URL manzillari, nomlar yoki xost nomlari. Hisobotda IP manzil bo'lmaydi va Peekaping'ning Sentry loyihasi yuboruvchining IP manzilini saqlamaslikka sozlangan. O'zingizning ERROR_REPORTING_DSN'ingiz bilan buni Sentry yoki GlitchTip sozlamalaringiz belgilaydi.",
+    "not_saved": "Xato hisobotlarini yuborish tanlovingiz saqlanmadi. Uni «Sozlamalar» bo'limida yoqing.",
+    "sent": "Faqat Peekapingning o'zi ishdan chiqqanda yuboriladi. Hisobotda xato turi va u kodning qaysi joyida yuz bergani, Peekaping versiyasi, yakka yoki klaster rejimi, saqlash backendi va operatsion tizim bo'ladi."
+  },
   "forms": {
     "labels": {
       "confirm_password": "Parolni tasdiqlang",
@@ -1271,6 +1277,12 @@
       "days_label": "Kunlar",
       "description": "Ma'lumotlarni necha kun saqlashni belgilang (KEEP_DATA_PERIOD_DAYS).",
       "title": "Ma'lumot saqlash muddati"
+    },
+    "error_reporting": {
+      "cluster_note": "Klaster rejimida o'zgarish bir daqiqa ichida barcha jarayonlarga yetib boradi.",
+      "description": "Server ishdan chiqqanda Sentry'ga hisobot yuboring. Yoqmaguningizcha o'chiq turadi.",
+      "forced_off": "ERROR_REPORTING=off yoki DO_NOT_TRACK=1 muhit o'zgaruvchisi buni o'chiradi. Bu sozlamada nima yozilgan bo'lishidan qat'i nazar, hech narsa yuborilmaydi.",
+      "title": "Xato hisobotlari"
     },
     "telemetry": {
       "description": "Ushbu o'rnatish qanday sozlanganligi haqida anonim statistikani kuniga ko'pi bilan bir marta yuboring. Yoqmaguningizcha o'chiq turadi.",

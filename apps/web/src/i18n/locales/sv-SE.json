@@ -85,6 +85,12 @@
     "update": "Uppdatera",
     "verifying": "Verifierar..."
   },
+  "error_reporting": {
+    "label": "Skicka felrapporter",
+    "never_sent": "Skickas aldrig: felmeddelanden, webbadresser, rubriker, webhook-adresser, namn eller värdnamn. En rapport innehåller ingen IP-adress, och Peekapings Sentry-projekt är inställt på att inte spara avsändarens IP. Med din egen ERROR_REPORTING_DSN avgör inställningarna i din Sentry eller GlitchTip.",
+    "not_saved": "Ditt val att skicka felrapporter sparades inte. Slå på det under ”Inställningar”.",
+    "sent": "Skickas bara när Peekaping självt kraschar. En rapport innehåller feltypen och platsen i koden där det hände, Peekaping-versionen, enkelt läge eller klusterläge, lagringsbackenden och operativsystemet."
+  },
   "forms": {
     "labels": {
       "confirm_password": "Bekräfta lösenord",
@@ -1272,6 +1278,12 @@
       "days_label": "Dagar",
       "description": "Ange hur många dagar data ska sparas (KEEP_DATA_PERIOD_DAYS).",
       "title": "Lagringstid för data"
+    },
+    "error_reporting": {
+      "cluster_note": "I klusterläge når en ändring alla processer inom en minut.",
+      "description": "Skicka en rapport till Sentry när servern kraschar. Av tills du slår på det.",
+      "forced_off": "Miljövariabeln ERROR_REPORTING=off eller DO_NOT_TRACK=1 stänger av detta. Inget skickas, oavsett vad den här inställningen säger.",
+      "title": "Felrapporter"
     },
     "telemetry": {
       "description": "Skicka anonym statistik om hur den här installationen är konfigurerad, högst en gång per dag. Av tills du slår på det.",

@@ -85,6 +85,12 @@
     "update": "Aggiorna",
     "verifying": "Verifica in corso..."
   },
+  "error_reporting": {
+    "label": "Invia segnalazioni di errore",
+    "never_sent": "Non vengono mai inviati: messaggi di errore, URL, intestazioni, URL di webhook, nomi o nomi host. Una segnalazione non contiene alcun indirizzo IP, e il progetto Sentry di Peekaping è impostato per non memorizzare l'IP del mittente. Con un tuo ERROR_REPORTING_DSN, decidono le impostazioni del tuo Sentry o GlitchTip.",
+    "not_saved": "La tua scelta di inviare segnalazioni di errore non è stata salvata. Attivala in «Impostazioni».",
+    "sent": "Viene inviata solo quando Peekaping stesso va in crash. Una segnalazione contiene il tipo di errore e il punto del codice in cui si è verificato, la versione di Peekaping, la modalità singola o cluster, il backend di archiviazione e il sistema operativo."
+  },
   "forms": {
     "labels": {
       "confirm_password": "Conferma password",
@@ -1272,6 +1278,12 @@
       "days_label": "Giorni",
       "description": "Imposta per quanti giorni conservare i dati (KEEP_DATA_PERIOD_DAYS).",
       "title": "Periodo di conservazione dei dati"
+    },
+    "error_reporting": {
+      "cluster_note": "In modalità cluster, una modifica raggiunge ogni processo entro un minuto.",
+      "description": "Invia una segnalazione a Sentry quando il server va in crash. Disattivato finché non lo attivi.",
+      "forced_off": "La variabile d'ambiente ERROR_REPORTING=off o DO_NOT_TRACK=1 lo disattiva. Non viene inviato nulla, qualunque cosa dica questa impostazione.",
+      "title": "Segnalazioni di errore"
     },
     "telemetry": {
       "description": "Invia statistiche anonime su come è configurata questa installazione, al massimo una volta al giorno. Disattivato finché non lo attivi.",

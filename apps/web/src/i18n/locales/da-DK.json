@@ -85,6 +85,12 @@
     "update": "Opdater",
     "verifying": "Kontrollerer..."
   },
+  "error_reporting": {
+    "label": "Send fejlrapporter",
+    "never_sent": "Sendes aldrig: fejlmeddelelser, URL'er, headere, webhook-URL'er, navne eller værtsnavne. En rapport indeholder ingen IP-adresse, og Peekapings Sentry-projekt er indstillet til ikke at gemme afsenderens IP. Hvis du bruger din egen ERROR_REPORTING_DSN, afgør indstillingerne i din Sentry eller GlitchTip det.",
+    "not_saved": "Dit valg om at sende fejlrapporter blev ikke gemt. Slå det til under “Indstillinger”.",
+    "sent": "Sendes kun, når Peekaping selv går ned. En rapport indeholder fejltypen og stedet i koden, hvor den opstod, Peekaping-versionen, enkelt- eller klyngetilstand, lagringsbackenden og operativsystemet."
+  },
   "forms": {
     "labels": {
       "confirm_password": "Bekræft adgangskode",
@@ -1272,6 +1278,12 @@
       "days_label": "Dage",
       "description": "Indstil, hvor mange dage data skal opbevares (KEEP_DATA_PERIOD_DAYS).",
       "title": "Dataopbevaringsperiode"
+    },
+    "error_reporting": {
+      "cluster_note": "I klyngetilstand når en ændring alle processer inden for et minut.",
+      "description": "Send en rapport til Sentry, når serveren går ned. Slået fra, indtil du slår det til.",
+      "forced_off": "Miljøvariablen ERROR_REPORTING=off eller DO_NOT_TRACK=1 slår dette fra. Der sendes ikke noget, uanset hvad denne indstilling siger.",
+      "title": "Fejlrapporter"
     },
     "telemetry": {
       "description": "Send anonym statistik om, hvordan denne installation er sat op, højst én gang om dagen. Slået fra, indtil du slår det til.",

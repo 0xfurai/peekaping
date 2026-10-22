@@ -85,6 +85,12 @@
     "update": "Ažuriraj",
     "verifying": "Proveravamo..."
   },
+  "error_reporting": {
+    "label": "Šalji izveštaje o greškama",
+    "never_sent": "Nikada se ne šalju: poruke o greškama, URL adrese, zaglavlja, URL adrese vebhukova, imena ni nazivi hostova. Izveštaj ne sadrži IP adresu, a Peekaping-ov Sentry projekat je podešen da ne čuva IP pošiljaoca. Sa vašim sopstvenim ERROR_REPORTING_DSN-om odlučuju podešavanja vašeg Sentry-ja ili GlitchTip-a.",
+    "not_saved": "Vaš izbor slanja izveštaja o greškama nije sačuvan. Uključite to u „Podešavanja“.",
+    "sent": "Šalje se samo kada se sam Peekaping sruši. Izveštaj sadrži vrstu greške i mesto u kodu gde se dogodila, verziju Peekaping-a, pojedinačni ili klasterski režim, pozadinski sistem za skladištenje i operativni sistem."
+  },
   "forms": {
     "labels": {
       "confirm_password": "Potvrdi lozinku",
@@ -1272,6 +1278,12 @@
       "days_label": "Dani",
       "description": "Podesite koliko dana će se zadržavati podaci (KEEP_DATA_PERIOD_DAYS).",
       "title": "Period zadržavanja podataka"
+    },
+    "error_reporting": {
+      "cluster_note": "U klasterskom režimu promena stiže do svakog procesa u roku od minuta.",
+      "description": "Šalji izveštaj u Sentry kada se server sruši. Isključeno dok ne uključite.",
+      "forced_off": "Promenljiva okruženja ERROR_REPORTING=off ili DO_NOT_TRACK=1 isključuje ovo. Ništa se ne šalje, šta god ovo podešavanje govorilo.",
+      "title": "Izveštaji o greškama"
     },
     "telemetry": {
       "description": "Šalji anonimnu statistiku o tome kako je ova instalacija podešena, najviše jednom dnevno. Isključeno dok ne uključite.",

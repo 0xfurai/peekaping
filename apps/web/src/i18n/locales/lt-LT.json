@@ -85,6 +85,12 @@
     "update": "Atnaujinti",
     "verifying": "Tikrinama..."
   },
+  "error_reporting": {
+    "label": "Siųsti pranešimus apie klaidas",
+    "never_sent": "Niekada nesiunčiama: klaidų pranešimai, URL, antraštės, webhook URL, pavadinimai ar serverių pavadinimai. Pranešime nėra IP adreso, o Peekaping Sentry projektas nustatytas taip, kad nesaugotų siuntėjo IP. Jei naudojate savo ERROR_REPORTING_DSN, tai lemia jūsų Sentry ar GlitchTip nustatymai.",
+    "not_saved": "Jūsų pasirinkimas siųsti pranešimus apie klaidas neišsaugotas. Įjunkite jį skiltyje „Nustatymai“.",
+    "sent": "Siunčiama tik tada, kai sugenda pats Peekaping. Pranešime yra klaidos tipas ir vieta kode, kurioje ji įvyko, Peekaping versija, vieno proceso ar klasterio režimas, saugyklos pagrindas ir operacinė sistema."
+  },
   "forms": {
     "labels": {
       "confirm_password": "Patvirtinkite slaptažodį",
@@ -1272,6 +1278,12 @@
       "days_label": "Dienos",
       "description": "Nustatykite, kiek dienų laikyti duomenis (KEEP_DATA_PERIOD_DAYS).",
       "title": "Duomenų saugojimo laikotarpis"
+    },
+    "error_reporting": {
+      "cluster_note": "Klasterio režimu pakeitimas pasiekia kiekvieną procesą per minutę.",
+      "description": "Siųsti pranešimą į Sentry, kai sugenda serveris. Išjungta, kol neįjungsite.",
+      "forced_off": "Aplinkos kintamasis ERROR_REPORTING=off arba DO_NOT_TRACK=1 tai išjungia. Niekas nesiunčiama, ką bebūtų nurodęs šis nustatymas.",
+      "title": "Pranešimai apie klaidas"
     },
     "telemetry": {
       "description": "Siųsti anonimišką statistiką apie tai, kaip sukonfigūruotas šis diegimas, ne dažniau kaip kartą per dieną. Išjungta, kol neįjungsite.",

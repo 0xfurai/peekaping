@@ -85,6 +85,12 @@
     "update": "Güncelle",
     "verifying": "Doğrulanıyor..."
   },
+  "error_reporting": {
+    "label": "Hata raporları gönder",
+    "never_sent": "Asla gönderilmez: hata iletileri, URL'ler, başlıklar, webhook URL'leri, adlar veya ana makine adları. Bir rapor IP adresi içermez ve Peekaping'in Sentry projesi gönderenin IP'sini saklamayacak şekilde ayarlanmıştır. Kendi ERROR_REPORTING_DSN'inizi kullanırsanız bunu kendi Sentry veya GlitchTip ayarlarınız belirler.",
+    "not_saved": "Hata raporlarını gönderme tercihiniz kaydedilmedi. Bunu “Ayarlar” bölümünden açın.",
+    "sent": "Yalnızca Peekaping'in kendisi çöktüğünde gönderilir. Bir rapor, hatanın türünü ve kodda nerede oluştuğunu, Peekaping sürümünü, tekli veya küme modunu, depolama arka ucunu ve işletim sistemini içerir."
+  },
   "forms": {
     "labels": {
       "confirm_password": "Şifre Onayı",
@@ -1272,6 +1278,12 @@
       "days_label": "Gün",
       "description": "Veriyi saklayacağınız gün sayısını ayarlayın (KEEP_DATA_PERIOD_DAYS).",
       "title": "Veri Saklama Süresi"
+    },
+    "error_reporting": {
+      "cluster_note": "Küme modunda bir değişiklik her sürece bir dakika içinde ulaşır.",
+      "description": "Sunucu çöktüğünde Sentry'ye bir rapor gönderin. Siz açana kadar kapalıdır.",
+      "forced_off": "ERROR_REPORTING=off veya DO_NOT_TRACK=1 ortam değişkeni bunu kapatır. Bu ayar ne derse desin hiçbir şey gönderilmez.",
+      "title": "Hata raporları"
     },
     "telemetry": {
       "description": "Bu kurulumun nasıl yapılandırıldığına dair anonim istatistikleri günde en fazla bir kez gönderin. Siz açana kadar kapalıdır.",

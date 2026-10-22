@@ -85,6 +85,12 @@
     "update": "Cập nhật",
     "verifying": "Đang xác minh..."
   },
+  "error_reporting": {
+    "label": "Gửi báo cáo lỗi",
+    "never_sent": "Không bao giờ gửi: thông báo lỗi, URL, header, URL webhook, tên hay tên máy chủ. Báo cáo không chứa địa chỉ IP, và dự án Sentry của Peekaping được đặt để không lưu IP của người gửi. Với ERROR_REPORTING_DSN của riêng bạn, cài đặt Sentry hoặc GlitchTip của bạn sẽ quyết định.",
+    "not_saved": "Lựa chọn gửi báo cáo lỗi của bạn chưa được lưu. Hãy bật lại trong “Cài đặt”.",
+    "sent": "Chỉ được gửi khi chính Peekaping gặp sự cố. Một báo cáo chứa loại lỗi và vị trí trong mã nơi lỗi xảy ra, phiên bản Peekaping, chế độ đơn hoặc chế độ cụm, backend lưu trữ và hệ điều hành."
+  },
   "forms": {
     "labels": {
       "confirm_password": "Xác nhận mật khẩu",
@@ -1272,6 +1278,12 @@
       "days_label": "Ngày",
       "description": "Đặt số ngày lưu dữ liệu (KEEP_DATA_PERIOD_DAYS).",
       "title": "Thời gian lưu trữ dữ liệu"
+    },
+    "error_reporting": {
+      "cluster_note": "Ở chế độ cụm, thay đổi đến mọi tiến trình trong vòng một phút.",
+      "description": "Gửi báo cáo đến Sentry khi máy chủ gặp sự cố. Tắt cho đến khi bạn bật.",
+      "forced_off": "Biến môi trường ERROR_REPORTING=off hoặc DO_NOT_TRACK=1 đang tắt mục này. Không có gì được gửi, bất kể cài đặt này ghi gì.",
+      "title": "Báo cáo lỗi"
     },
     "telemetry": {
       "description": "Gửi thống kê ẩn danh về cách bản cài đặt này được thiết lập, nhiều nhất một lần mỗi ngày. Tắt cho đến khi bạn bật.",

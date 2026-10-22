@@ -107,14 +107,16 @@ These are required in cluster mode, where the API reaches the producer, worker a
 |----------|------|----------|---------|-------------|
 | `METRICS_ENABLED` | bool | No | `false` | Serve the unauthenticated Prometheus `/metrics` endpoint, see [Prometheus Metrics](#prometheus-metrics) |
 
-### Usage Statistics Configuration
+### Usage Statistics and Error Reporting Configuration
 
-The anonymous usage ping is off until an admin turns it on. These variables switch it off whatever the admin chose. See [Usage statistics](../self-hosting/telemetry.md).
+The anonymous usage ping and the error reports are both off until an admin turns them on, each with its own switch. These variables switch them off whatever the admin chose. See [Usage statistics and error reporting](../self-hosting/telemetry.md).
 
 | Variable | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|
 | `TELEMETRY` | string | No | `""` | `off` (also `false`, `0` or `no`) turns the usage ping off |
-| `DO_NOT_TRACK` | string | No | `""` | `1` (or `true`) turns the usage ping off |
+| `ERROR_REPORTING` | string | No | `""` | `off` (also `false`, `0` or `no`) turns error reports off. In cluster mode, set it on the API, producer, worker and ingester. |
+| `ERROR_REPORTING_DSN` | string | No | `""` | Send error reports to this Sentry or GlitchTip DSN instead of Peekaping's. Set it on the same processes as `ERROR_REPORTING`. |
+| `DO_NOT_TRACK` | string | No | `""` | `1` (or `true`) turns off both the usage ping and error reports |
 
 ## API Endpoints
 

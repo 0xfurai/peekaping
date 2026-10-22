@@ -85,6 +85,12 @@
     "update": "Päivitä",
     "verifying": "Tarkistetaan..."
   },
+  "error_reporting": {
+    "label": "Lähetä virheraportteja",
+    "never_sent": "Ei koskaan lähetetä: virheilmoituksia, URL-osoitteita, otsakkeita, webhook-osoitteita, nimiä tai isäntänimiä. Raportti ei sisällä IP-osoitetta, ja Peekapingin Sentry-projekti on asetettu niin, ettei se tallenna lähettäjän IP-osoitetta. Jos käytät omaa ERROR_REPORTING_DSN-arvoa, oman Sentrysi tai GlitchTipisi asetukset ratkaisevat.",
+    "not_saved": "Valintaasi lähettää virheraportteja ei tallennettu. Ota se käyttöön kohdassa ”Asetukset”.",
+    "sent": "Lähetetään vain, kun Peekaping itse kaatuu. Raportti sisältää virheen tyypin ja kohdan koodissa, jossa se tapahtui, Peekapingin version, yksi- tai klusteritilan, tallennustaustan ja käyttöjärjestelmän."
+  },
   "forms": {
     "labels": {
       "confirm_password": "Vahvista salasana",
@@ -1272,6 +1278,12 @@
       "days_label": "Päiviä",
       "description": "Aseta kuinka monta päivää tietoa säilytetään (KEEP_DATA_PERIOD_DAYS).",
       "title": "Tietojen säilytysaika"
+    },
+    "error_reporting": {
+      "cluster_note": "Klusteritilassa muutos tavoittaa jokaisen prosessin minuutissa.",
+      "description": "Lähetä raportti Sentryyn, kun palvelin kaatuu. Pois päältä, kunnes otat sen käyttöön.",
+      "forced_off": "Ympäristömuuttuja ERROR_REPORTING=off tai DO_NOT_TRACK=1 poistaa tämän käytöstä. Mitään ei lähetetä, mitä tämä asetus sanookaan.",
+      "title": "Virheraportit"
     },
     "telemetry": {
       "description": "Lähetä nimettömiä tilastoja siitä, miten tämä asennus on määritetty, enintään kerran päivässä. Pois päältä, kunnes otat sen käyttöön.",

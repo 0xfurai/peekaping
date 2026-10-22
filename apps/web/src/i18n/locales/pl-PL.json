@@ -85,6 +85,12 @@
     "update": "Aktualizuj",
     "verifying": "Weryfikacja..."
   },
+  "error_reporting": {
+    "label": "Wysyłaj raporty o błędach",
+    "never_sent": "Nigdy nie są wysyłane: komunikaty o błędach, adresy URL, nagłówki, adresy URL webhooków, nazwy ani nazwy hostów. Raport nie zawiera adresu IP, a projekt Sentry Peekaping jest ustawiony tak, aby nie zapisywać adresu IP nadawcy. Przy własnym ERROR_REPORTING_DSN decydują o tym ustawienia Twojego Sentry lub GlitchTip.",
+    "not_saved": "Twój wybór wysyłania raportów o błędach nie został zapisany. Włącz to w sekcji „Ustawienia”.",
+    "sent": "Wysyłane tylko wtedy, gdy sam Peekaping ulegnie awarii. Raport zawiera typ błędu i miejsce w kodzie, w którym wystąpił, wersję Peekaping, tryb pojedynczy lub klastrowy, zaplecze przechowywania danych oraz system operacyjny."
+  },
   "forms": {
     "labels": {
       "confirm_password": "Potwierdź hasło",
@@ -1272,6 +1278,12 @@
       "days_label": "Dni",
       "description": "Ustaw, ile dni mają być przechowywane dane (KEEP_DATA_PERIOD_DAYS).",
       "title": "Okres przechowywania danych"
+    },
+    "error_reporting": {
+      "cluster_note": "W trybie klastrowym zmiana dociera do każdego procesu w ciągu minuty.",
+      "description": "Wysyłaj raport do Sentry, gdy serwer ulegnie awarii. Wyłączone, dopóki tego nie włączysz.",
+      "forced_off": "Zmienna środowiskowa ERROR_REPORTING=off lub DO_NOT_TRACK=1 wyłącza tę opcję. Nic nie jest wysyłane, niezależnie od tego, co mówi to ustawienie.",
+      "title": "Raporty o błędach"
     },
     "telemetry": {
       "description": "Wysyłaj anonimowe statystyki o tym, jak skonfigurowana jest ta instalacja, najwyżej raz dziennie. Wyłączone, dopóki tego nie włączysz.",
