@@ -8,6 +8,7 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/worker"
 	"peekaping/internal/reporting"
@@ -21,6 +22,13 @@ type Option func(*options)
 
 type options struct {
 	probeOffline stale.ProbeOfflineFunc
+	probeSweep   *probe.Sweep
+}
+
+// WithProbeSweep gives the producer the sweep that sets silent probes offline, which it runs
+// beside its watchdog while it is the leader. Without it, no sweep runs.
+func WithProbeSweep(sweep *probe.Sweep) Option {
+	return func(o *options) { o.probeSweep = sweep }
 }
 
 // WithProbeOffline tells the producer's watchdog how to find out that a monitor's probe is
@@ -70,6 +78,7 @@ func NewProducer(
 		leadershipCheckInterval: 1 * time.Second,
 		leaderElection:          leaderElection,
 		concurrency:             concurrency,
+		probeSweep:              o.probeSweep,
 	}
 
 	// The watchdog gets stale monitors checked again by scheduling them to run now

@@ -157,8 +157,10 @@ type parts struct {
 	WebSocket *websocket.Server
 	Scheduler *scheduler.Scheduler
 	Watchdog  *stale.Watchdog
-	EventBus  events.EventBus
-	DB        *bun.DB
+	// ProbeSweep sets the probes whose instances went quiet offline
+	ProbeSweep *probe.Sweep
+	EventBus   events.EventBus
+	DB         *bun.DB
 
 	Config               *config.Config
 	Settings             setting.Service
@@ -271,6 +273,8 @@ type jobs struct {
 	scheduler     *scheduler.Scheduler
 	stopWatchdog  context.CancelFunc
 	watchdogDone  chan struct{}
+	stopSweep     context.CancelFunc
+	sweepDone     chan struct{}
 	cleanup       *cron.Cron
 	stopRepair    context.CancelFunc
 	repairDone    chan struct{}
@@ -282,8 +286,8 @@ type jobs struct {
 
 // startJobs starts what cmd/api starts beside the server (the cleanup cron, the settings, the
 // listeners, the status repair, the metrics collector and the usage ping), the stats aggregation
-// that cmd/ingester starts, and the scheduler and its watchdog in place of cmd/producer. Each runs
-// once: this process is the only one, and so always the leader.
+// that cmd/ingester starts, and the scheduler, its watchdog and the probe sweep in place of
+// cmd/producer. Each runs once: this process is the only one, and so always the leader.
 func startJobs(ctx context.Context, p parts, metricsEnabled bool, logger *zap.SugaredLogger) (*jobs, error) {
 	if err := p.Settings.InitializeSettings(ctx); err != nil {
 		return nil, fmt.Errorf("failed to initialize JWT settings: %w", err)
@@ -358,6 +362,16 @@ func startJobs(ctx context.Context, p parts, metricsEnabled bool, logger *zap.Su
 		p.Watchdog.Run(watchdogCtx)
 	})
 
+	// The sweep that sets silent probes offline. This process is the only one, so it runs the
+	// sweep once, as the leader producer does in cluster mode.
+	var sweepCtx context.Context
+	sweepCtx, j.stopSweep = context.WithCancel(context.Background())
+	j.sweepDone = make(chan struct{})
+	reporting.Go("probe-sweep", func() {
+		defer close(j.sweepDone)
+		p.ProbeSweep.Run(sweepCtx)
+	})
+
 	// The usage ping sends nothing until an admin opts in, and a failed one is dropped. It runs
 	// once: this process is the only one, so there is no claim to win.
 	var usagePingCtx context.Context
@@ -369,14 +383,17 @@ func startJobs(ctx context.Context, p parts, metricsEnabled bool, logger *zap.Su
 
 // stop stops the background jobs and waits for them until ctx is done. The usage ping stops
 // first, since it is the least needed. The watchdog stops before the scheduler, since it gets the
-// stale monitors checked through the scheduler. The scheduler cancels its running checks and
-// waits for them.
+// stale monitors checked through the scheduler. The probe sweep stops with it. The scheduler
+// cancels its running checks and waits for them.
 func (j *jobs) stop(ctx context.Context) error {
 	j.stopUsagePing()
 	errs := []error{await(ctx, "the usage ping", j.usagePingDone)}
 
 	j.stopWatchdog()
 	errs = append(errs, await(ctx, "the watchdog", j.watchdogDone))
+
+	j.stopSweep()
+	errs = append(errs, await(ctx, "the probe sweep", j.sweepDone))
 
 	schedulerDone := make(chan struct{})
 	go func() {

@@ -23,6 +23,7 @@ import (
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/notification_sent_history"
+	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/scheduler"
 	"peekaping/internal/modules/setting"
@@ -86,6 +87,20 @@ func TestRegisterSingle_ResolvesWhatCmdPeekapingRuns(t *testing.T) {
 	) {
 		closeEventBus(t, bus)
 		closeDB(t, db)
+	}))
+}
+
+// The sweep that sets silent probes offline runs in the one process, on the in-memory event bus
+func TestRegisterSingle_ResolvesTheProbeSweep(t *testing.T) {
+	container := dig.New()
+	cfg := singleConfig(t)
+	cfg.ProbeOfflineAfter = 5 * time.Minute
+	require.NoError(t, RegisterSingle(container, cfg))
+
+	require.NoError(t, container.Invoke(func(sweep *probe.Sweep, bus events.EventBus, db *bun.DB) {
+		closeEventBus(t, bus)
+		closeDB(t, db)
+		assert.NotNil(t, sweep)
 	}))
 }
 

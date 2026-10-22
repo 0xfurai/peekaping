@@ -9,6 +9,7 @@ import (
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
+	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/utils"
@@ -36,12 +37,13 @@ func ProvideProducer(
 	staleStore stale.Store,
 	eventBus events.EventBus,
 	probeOffline stale.ProbeOfflineFunc,
+	probeSweep *probe.Sweep,
 	leaderElection *LeaderElection,
 	cfg *config.Config,
 	logger *zap.SugaredLogger,
 ) *Producer {
 	return NewProducer(rdb, runner, monitorService, loader, heartbeatService, staleStore, eventBus, leaderElection, cfg, logger,
-		WithProbeOffline(probeOffline))
+		WithProbeOffline(probeOffline), WithProbeSweep(probeSweep))
 }
 
 // ProvideQueueRunner provides cluster mode's check.Runner. dig matches parameter types exactly,

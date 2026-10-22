@@ -9,6 +9,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"peekaping/internal/config"
 	"peekaping/internal/modules/events"
 
 	"go.uber.org/zap"
@@ -74,6 +75,17 @@ type Sweep struct {
 	mu sync.Mutex // one pass at a time; guards online
 	// online is the ids of each probe's online instances as of the last pass
 	online map[string][]string
+}
+
+// ProvideSweep provides the sweep, offline after PROBE_OFFLINE_AFTER. The binary that runs it
+// provides the event bus: single mode's, or the cluster producer's.
+func ProvideSweep(repo Repository, eventBus events.EventBus, cfg *config.Config, logger *zap.SugaredLogger) *Sweep {
+	return NewSweep(SweepConfig{
+		Repo:         repo,
+		EventBus:     eventBus,
+		OfflineAfter: cfg.ProbeOfflineAfter,
+		Logger:       logger,
+	})
 }
 
 // NewSweep creates a sweep

@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap"
 
 	"peekaping/internal/modules/check"
+	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stale"
 )
@@ -40,4 +41,5 @@ type Producer struct {
 	leaderElection          *LeaderElection
 	concurrency             int // number of concurrent producer goroutines
 	watchdog                *stale.Watchdog
+	probeSweep              *probe.Sweep // nil when the producer has none to run
 }
