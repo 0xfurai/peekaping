@@ -191,7 +191,7 @@ An environment variable switches it off whatever the setting says. While one app
 | `DO_NOT_TRACK` | `1` (also `true`) | Turns off both error reporting and the usage statistics |
 | `ERROR_REPORTING_DSN` | A Sentry or GlitchTip DSN | Sends the reports to your own project instead of Peekaping's. A report holds the same fields, and every rule on this page still applies. |
 
-`TELEMETRY=off` turns off only the usage statistics. Case doesn't matter. In Docker Compose, put the variable in the `.env` file:
+`ERROR_REPORTING=off` turns off only error reporting. Case doesn't matter. In Docker Compose, put the variable in the `.env` file:
 
 ```env
 ERROR_REPORTING=off
