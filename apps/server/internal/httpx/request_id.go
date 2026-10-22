@@ -37,9 +37,14 @@ func setRoute(ctx context.Context, pattern string) {
 
 // RequestID gives each request an ID and sets it as the X-Request-ID header of the response. It
 // keeps the request's own X-Request-ID when that is up to 64 characters of A-Z, a-z, 0-9, '.',
-// '_' and '-', and generates one otherwise.
+// '_' and '-', and generates one otherwise. A request that already carries an ID, from a RequestID
+// further out, keeps it.
 func RequestID(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if requestInfoFrom(r.Context()) != nil {
+			next.ServeHTTP(w, r)
+			return
+		}
 		id := r.Header.Get(requestIDHeader)
 		if !validRequestID(id) {
 			id = uuid.NewString()

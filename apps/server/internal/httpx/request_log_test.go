@@ -160,3 +160,33 @@ func TestLogFromContext(t *testing.T) {
 	assert.Equal(t, "client-id", inside["request_id"])
 	assert.Equal(t, "value", inside["key"])
 }
+
+// A request can pass through two RequestID middlewares, as in single mode with WEB_DIR, where the
+// gateway wraps the router. The first one's ID stays the request's ID.
+func TestRequestIDKeepsTheIDOfAnOuterRequestID(t *testing.T) {
+	core, logs := observer.New(zap.DebugLevel)
+	base := zap.New(core).Sugar()
+	handler := httpx.Chain(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		httpx.Log(r.Context(), base).Infow("inside")
+	}), httpx.RequestID, httpx.Logger(base, nil), httpx.RequestID)
+
+	for _, incoming := range []string{"", "client-id", "two words"} {
+		t.Run("incoming ID "+incoming, func(t *testing.T) {
+			logs.TakeAll()
+			r := httptest.NewRequest("GET", "/", nil)
+			if incoming != "" {
+				r.Header.Set("X-Request-ID", incoming)
+			}
+			w := httptest.NewRecorder()
+			handler.ServeHTTP(w, r)
+
+			require.Len(t, w.Header().Values("X-Request-ID"), 1)
+			id := w.Header().Get("X-Request-ID")
+			if incoming == "client-id" {
+				assert.Equal(t, incoming, id)
+			}
+			assert.Equal(t, id, logs.FilterMessage("inside").All()[0].ContextMap()["request_id"])
+			assert.Equal(t, id, logs.FilterMessage("HTTP request").All()[0].ContextMap()["request_id"])
+		})
+	}
+}
