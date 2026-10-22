@@ -144,28 +144,6 @@ func (ic *MonitorController) Create(ctx context.Context, input *CreateInput) (*h
 	}
 	ic.logger.Infof("Created monitor: %+v\n", createdMonitor)
 
-	// Handle multiple notification IDs
-	if len(monitor.NotificationIds) > 0 {
-		for _, notificationId := range monitor.NotificationIds {
-			_, err = ic.monitorNotificationService.Create(ctx, createdMonitor.ID, notificationId)
-			if err != nil {
-				ic.logger.Errorw("Failed to create monitor-notification record", "error", err)
-				return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-			}
-		}
-	}
-
-	// Handle multiple tag IDs
-	if len(monitor.TagIds) > 0 {
-		for _, tagId := range monitor.TagIds {
-			_, err = ic.monitorTagService.Create(ctx, createdMonitor.ID, tagId)
-			if err != nil {
-				ic.logger.Errorw("Failed to create monitor-tag record", "error", err)
-				return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-			}
-		}
-	}
-
 	return httpx.Reply(http.StatusCreated, utils.NewSuccessResponse("Monitor created successfully", createdMonitor))
 }
 func (ic *MonitorController) FindByID(ctx context.Context, input *FindByIDInput) (*httpx.Output[utils.ApiResponse[MonitorResponseDto]], error) {

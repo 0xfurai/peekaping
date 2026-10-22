@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/healthcheck/executor"
 	"peekaping/internal/modules/heartbeat"
@@ -56,6 +57,7 @@ type StatPoint struct {
 
 type MonitorServiceImpl struct {
 	monitorRepository          MonitorRepository
+	transactor                 dbtx.Transactor
 	heartbeatService           heartbeat.Service
 	eventBus                   events.EventBus
 	monitorNotificationService monitor_notification.Service
@@ -67,6 +69,7 @@ type MonitorServiceImpl struct {
 
 func NewMonitorService(
 	monitorRepository MonitorRepository,
+	transactor dbtx.Transactor,
 	heartbeatService heartbeat.Service,
 	eventBus events.EventBus,
 	monitorNotificationService monitor_notification.Service,
@@ -77,6 +80,7 @@ func NewMonitorService(
 ) Service {
 	return &MonitorServiceImpl{
 		monitorRepository,
+		transactor,
 		heartbeatService,
 		eventBus,
 		monitorNotificationService,
@@ -104,7 +108,17 @@ func (mr *MonitorServiceImpl) Create(ctx context.Context, monitorCreateDto *Crea
 		PushToken:      monitorCreateDto.PushToken,
 	}
 
-	createdModel, err := mr.monitorRepository.Create(ctx, createModel)
+	// The monitor and its links are stored together or not at all, and the event comes after
+	// they are committed, so a listener that reads the monitor's links finds them.
+	var createdModel *Model
+	err := mr.transactor.WithTx(ctx, func(ctx context.Context) error {
+		var err error
+		createdModel, err = mr.monitorRepository.Create(ctx, createModel)
+		if err != nil {
+			return err
+		}
+		return mr.createLinks(ctx, createdModel.ID, monitorCreateDto.NotificationIds, monitorCreateDto.TagIds)
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -229,6 +243,22 @@ func (mr *MonitorServiceImpl) Delete(ctx context.Context, id string) error {
 		mr.logger.Errorw("Failed to publish monitor deleted event", "monitor_id", id, "error", err)
 	}
 
+	return nil
+}
+
+// createLinks links the monitor to each notification channel and tag. The first link that
+// can't be saved fails the call; the caller's transaction decides what that undoes.
+func (mr *MonitorServiceImpl) createLinks(ctx context.Context, monitorID string, notificationIDs, tagIDs []string) error {
+	for _, notificationID := range notificationIDs {
+		if _, err := mr.monitorNotificationService.Create(ctx, monitorID, notificationID); err != nil {
+			return fmt.Errorf("link notification channel %s: %w", notificationID, err)
+		}
+	}
+	for _, tagID := range tagIDs {
+		if _, err := mr.monitorTagService.Create(ctx, monitorID, tagID); err != nil {
+			return fmt.Errorf("link tag %s: %w", tagID, err)
+		}
+	}
 	return nil
 }
 

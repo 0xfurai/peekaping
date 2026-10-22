@@ -3,6 +3,7 @@ package monitor
 import (
 	"context"
 	"errors"
+	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/events/eventstest"
 	"peekaping/internal/modules/healthcheck/executor"
@@ -281,6 +282,44 @@ func sinceAgo(d time.Duration) any {
 	return mock.MatchedBy(func(since time.Time) bool { return time.Since(since).Round(time.Hour) == d })
 }
 
+type txMarker struct{}
+
+// fakeTransactor is a dbtx.Transactor for tests that have no database. It runs fn with a ctx
+// that is marked as the transaction's, and counts how fn ended: a nil return is a commit, and an
+// error is a rollback of everything fn wrote. A repository mock that expects inTx only accepts
+// the calls made with that ctx, so a write made outside WithTx fails the test.
+type fakeTransactor struct {
+	bus *eventstest.Bus
+
+	committed  int
+	rolledBack int
+	// published is how many events were on the bus when the last transaction committed
+	published int
+}
+
+var _ dbtx.Transactor = (*fakeTransactor)(nil)
+
+func (f *fakeTransactor) WithTx(ctx context.Context, fn func(context.Context) error) error {
+	if ctx.Value(txMarker{}) != nil {
+		return fn(ctx) // joins the transaction, as dbtx does
+	}
+	if err := fn(context.WithValue(ctx, txMarker{}, f)); err != nil {
+		f.rolledBack++
+		return err
+	}
+	f.committed++
+	f.published = len(f.bus.Topics())
+	return nil
+}
+
+// inTx matches the ctx of a call made inside WithTx.
+var inTx = mock.MatchedBy(func(ctx context.Context) bool { return ctx.Value(txMarker{}) != nil })
+
+// transactionOf returns the fake transactor the service was built with.
+func transactionOf(service *MonitorServiceImpl) *fakeTransactor {
+	return service.transactor.(*fakeTransactor)
+}
+
 // Test setup helper
 func setupMonitorService() (*MonitorServiceImpl, *MockMonitorRepository, *MockHeartbeatService, *eventstest.Bus, *MockMonitorNotificationService, *MockMonitorTagService, *MockExecutorRegistry, *MockStatsService) {
 	mockRepo := &MockMonitorRepository{}
@@ -297,6 +336,7 @@ func setupMonitorService() (*MonitorServiceImpl, *MockMonitorRepository, *MockHe
 
 	service := NewMonitorService(
 		mockRepo,
+		&fakeTransactor{bus: eventBus},
 		mockHeartbeatService,
 		eventBus,
 		mockNotificationService,
@@ -310,29 +350,34 @@ func setupMonitorService() (*MonitorServiceImpl, *MockMonitorRepository, *MockHe
 }
 
 func TestMonitorService_Create(t *testing.T) {
-	service, mockRepo, _, bus, _, _, _, _ := setupMonitorService()
 	ctx := context.Background()
 
 	t.Run("successful creation", func(t *testing.T) {
+		service, mockRepo, _, bus, notifications, tags, _, _ := setupMonitorService()
 		createDto := &CreateUpdateDto{
-			Type:           "http",
-			Name:           "Test Monitor",
-			Interval:       60,
-			Timeout:        16,
-			MaxRetries:     3,
-			RetryInterval:  45,
-			ResendInterval: 10,
-			Active:         true,
-			Config:         "{}",
-			ProxyId:        "proxy123",
-			PushToken:      "token123",
+			Type:            "http",
+			Name:            "Test Monitor",
+			Interval:        60,
+			Timeout:         16,
+			MaxRetries:      3,
+			RetryInterval:   45,
+			ResendInterval:  10,
+			Active:          true,
+			NotificationIds: []string{"channel-a", "channel-b"},
+			TagIds:          []string{"tag-a"},
+			Config:          "{}",
+			ProxyId:         "proxy123",
+			PushToken:       "token123",
 		}
 
 		var saved *Model
 		created := &Model{ID: "monitor123"}
-		mockRepo.On("Create", ctx, mock.Anything).Run(func(args mock.Arguments) {
+		mockRepo.On("Create", inTx, mock.Anything).Run(func(args mock.Arguments) {
 			saved = args.Get(1).(*Model)
 		}).Return(created, nil).Once()
+		notifications.On("Create", inTx, "monitor123", "channel-a").Return(&monitor_notification.Model{}, nil).Once()
+		notifications.On("Create", inTx, "monitor123", "channel-b").Return(&monitor_notification.Model{}, nil).Once()
+		tags.On("Create", inTx, "monitor123", "tag-a").Return(&monitor_tag.Model{}, nil).Once()
 
 		before := time.Now().UTC()
 		result, err := service.Create(ctx, createDto)
@@ -340,6 +385,9 @@ func TestMonitorService_Create(t *testing.T) {
 		require.NoError(t, err)
 		assert.Same(t, created, result)
 		assert.Equal(t, []shared.Monitor{*created}, eventstest.Published(bus, events.MonitorCreated))
+		tx := transactionOf(service)
+		assert.Equal(t, 1, tx.committed, "the monitor and its links are one transaction")
+		assert.Equal(t, 0, tx.published, "the event is published once the transaction has committed, not before")
 		require.NotNil(t, saved)
 		assert.WithinRange(t, saved.CreatedAt, before, time.Now().UTC())
 		assert.Equal(t, time.UTC, saved.CreatedAt.Location())
@@ -359,23 +407,61 @@ func TestMonitorService_Create(t *testing.T) {
 			PushToken:      "token123",
 		}, saved, "the repository gets every field of the request, and the monitor starts Pending")
 		mockRepo.AssertExpectations(t)
+		notifications.AssertExpectations(t)
+		tags.AssertExpectations(t)
 	})
 
 	t.Run("repository error", func(t *testing.T) {
+		service, mockRepo, _, bus, _, _, _, _ := setupMonitorService()
 		createDto := &CreateUpdateDto{
 			Type: "http",
 			Name: "Test Monitor",
 		}
 
-		mockRepo.On("Create", ctx, mock.Anything).Return((*Model)(nil), errors.New("repository error"))
+		mockRepo.On("Create", inTx, mock.Anything).Return((*Model)(nil), errors.New("repository error"))
 
 		result, err := service.Create(ctx, createDto)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
 		assert.Contains(t, err.Error(), "repository error")
+		assert.Equal(t, 1, transactionOf(service).rolledBack)
+		assert.Empty(t, bus.Topics(), "nothing is published")
 		mockRepo.AssertExpectations(t)
 	})
+
+	for _, tc := range []struct {
+		name  string
+		fails func(notifications *MockMonitorNotificationService, tags *MockMonitorTagService)
+	}{
+		{"a notification channel link", func(notifications *MockMonitorNotificationService, _ *MockMonitorTagService) {
+			notifications.On("Create", inTx, "monitor123", "channel-a").Return((*monitor_notification.Model)(nil), errors.New("link failed"))
+		}},
+		{"a tag link", func(notifications *MockMonitorNotificationService, tags *MockMonitorTagService) {
+			notifications.On("Create", inTx, "monitor123", "channel-a").Return(&monitor_notification.Model{}, nil)
+			tags.On("Create", inTx, "monitor123", "tag-a").Return((*monitor_tag.Model)(nil), errors.New("link failed"))
+		}},
+	} {
+		t.Run("rolls back and publishes nothing when "+tc.name+" fails", func(t *testing.T) {
+			service, mockRepo, _, bus, notifications, tags, _, _ := setupMonitorService()
+			mockRepo.On("Create", inTx, mock.Anything).Return(&Model{ID: "monitor123"}, nil)
+			tc.fails(notifications, tags)
+
+			result, err := service.Create(ctx, &CreateUpdateDto{
+				Type:            "http",
+				Name:            "Test Monitor",
+				NotificationIds: []string{"channel-a"},
+				TagIds:          []string{"tag-a"},
+			})
+
+			require.ErrorContains(t, err, "link failed")
+			assert.Nil(t, result)
+			tx := transactionOf(service)
+			assert.Equal(t, 1, tx.rolledBack, "the monitor, written in the transaction, is rolled back with the links")
+			assert.Zero(t, tx.committed)
+			assert.Empty(t, bus.Topics(), "no MonitorCreated")
+		})
+	}
 }
 
 func TestMonitorService_FindByID(t *testing.T) {
@@ -1260,12 +1346,14 @@ func TestNewMonitorService(t *testing.T) {
 	logger := zap.NewNop().Sugar()
 
 	eventBus := eventstest.NewBus()
+	transactor := &fakeTransactor{bus: eventBus}
 
 	// Create real instances for dependencies that expect concrete types
 	realExecutorRegistry := executor.NewExecutorRegistry(logger)
 
 	service := NewMonitorService(
 		mockRepo,
+		transactor,
 		mockHeartbeatService,
 		eventBus,
 		mockNotificationService,
@@ -1280,6 +1368,7 @@ func TestNewMonitorService(t *testing.T) {
 
 	serviceImpl := service.(*MonitorServiceImpl)
 	assert.Equal(t, mockRepo, serviceImpl.monitorRepository)
+	assert.Equal(t, transactor, serviceImpl.transactor)
 	assert.Equal(t, mockHeartbeatService, serviceImpl.heartbeatService)
 	assert.Equal(t, eventBus, serviceImpl.eventBus)
 	assert.Equal(t, mockNotificationService, serviceImpl.monitorNotificationService)
