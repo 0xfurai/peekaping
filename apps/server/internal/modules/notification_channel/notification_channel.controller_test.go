@@ -171,9 +171,11 @@ func TestControllerTestKeepsTheTelegramTokenOutOfAFailedSend(t *testing.T) {
 	// that carries the request URL, and the Telegram bot token is part of that URL
 	server := httptest.NewServer(http.NotFoundHandler())
 	server.Close()
-	registerTestProvider(t, "telegram", providers.NewTelegramSender(zap.NewNop().Sugar(), providers.NewHTTPClient()))
+	registry := newTestRegistry(map[string]NotificationChannelProvider{
+		"telegram": providers.NewTelegramSender(zap.NewNop().Sugar(), providers.NewHTTPClient()),
+	})
 	router := httpx.NewRouter()
-	httpx.Register(router, "POST", "/test", huma.Operation{Errors: []int{400, 404, 500}}, NewController(nil, zap.NewNop().Sugar()).Test)
+	httpx.Register(router, "POST", "/test", huma.Operation{Errors: []int{400, 404, 500}}, NewController(nil, registry, zap.NewNop().Sugar()).Test)
 
 	const botToken = "123456:secret-bot-token"
 	body := `{"name": "Alerts", "type": "telegram", "config": "{\"bot_token\": \"` + botToken + `\", \"chat_id\": \"42\", \"server_url\": \"` + server.URL + `\"}"}`

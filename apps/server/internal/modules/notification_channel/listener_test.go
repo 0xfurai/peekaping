@@ -416,7 +416,7 @@ func TestListener_FailedSendLogsNoRequestURL(t *testing.T) {
 			Err: errors.New("dial tcp 149.154.167.220:443: connect: connection refused"),
 		})
 	}}
-	registerTestProvider(t, "test-failing", failing)
+	f.addProvider("test-failing", failing)
 	f.addMonitor("mon-1", "Public API")
 	f.attach("mon-1", testChannel("a", "test-failing"))
 

@@ -9,6 +9,7 @@ import (
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_notification"
 	"peekaping/internal/modules/monitor_tag"
+	"peekaping/internal/modules/notification_channel/providers"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/tag"
 	"sort"
