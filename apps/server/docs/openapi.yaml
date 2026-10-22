@@ -2683,6 +2683,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Unauthorized
+        "413":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Request Entity Too Large
         "429":
           content:
             application/json:

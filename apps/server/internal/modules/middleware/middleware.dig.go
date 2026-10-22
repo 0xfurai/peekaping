@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"peekaping/internal/httpx"
 	"peekaping/internal/modules/api_key"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/utils"
@@ -14,8 +15,9 @@ func RegisterDependencies(container *dig.Container) error {
 	return utils.Provide(container, func(
 		jwtMiddleware *auth.MiddlewareProvider,
 		apiKeyMiddleware *api_key.MiddlewareProvider,
+		trustedProxies *httpx.TrustedProxies,
 		logger *zap.SugaredLogger,
 	) *AuthChain {
-		return NewAuthChain(jwtMiddleware, apiKeyMiddleware, logger)
+		return NewAuthChain(jwtMiddleware, apiKeyMiddleware, trustedProxies, logger)
 	})
 }

@@ -342,6 +342,49 @@ func TestListener_SkipsChannelsThatCannotSend(t *testing.T) {
 	}
 }
 
+// A channel that's switched off (active: false) gets no notification, for any event, and the
+// monitor's other channels still do
+func TestListener_SkipsInactiveChannels(t *testing.T) {
+	staleEventJSON := func(t *testing.T) string {
+		payload, err := json.Marshal(staleMonitor("mon-1"))
+		require.NoError(t, err)
+		return string(payload)
+	}
+	publishers := []struct {
+		name    string
+		publish func(t *testing.T, f *listenerFixture)
+	}{
+		{"important heartbeat", func(t *testing.T, f *listenerFixture) { f.publishImportantHeartbeat(downHeartbeat("mon-1")) }},
+		{"certificate expiry", func(t *testing.T, f *listenerFixture) { f.publishCertificateExpiry(certificateExpiry("mon-1")) }},
+		{"stale monitor", func(t *testing.T, f *listenerFixture) {
+			require.NoError(t, f.bus.PublishJSON(stale.MonitorStale.Name(), staleEventJSON(t)))
+		}},
+		{"stale monitor checked again", func(t *testing.T, f *listenerFixture) {
+			require.NoError(t, f.bus.PublishJSON(stale.MonitorStaleRecovered.Name(), staleEventJSON(t)))
+		}},
+	}
+
+	for _, tc := range publishers {
+		t.Run(tc.name, func(t *testing.T) {
+			f := newListenerFixture(t)
+			active, inactive := &recordingProvider{}, &recordingProvider{}
+			registerTestProvider(t, "test-active", active)
+			registerTestProvider(t, "test-inactive", inactive)
+			f.addMonitor("mon-1", "Public API")
+			// The switched-off channel comes first, so skipping it must not stop the channels after it
+			switchedOff := testChannel("off", "test-inactive")
+			switchedOff.Active = false
+			f.attach("mon-1", switchedOff)
+			f.attach("mon-1", testChannel("on", "test-active"))
+
+			tc.publish(t, f)
+
+			assert.Equal(t, []string{channelConfig("on")}, active.sentConfigs())
+			assert.Empty(t, inactive.sentConfigs())
+		})
+	}
+}
+
 func TestListener_FailedSendDoesNotStopOtherChannels(t *testing.T) {
 	f := newListenerFixture(t)
 	failing := &recordingProvider{send: func(context.Context) error { return errors.New("503 Service Unavailable") }}

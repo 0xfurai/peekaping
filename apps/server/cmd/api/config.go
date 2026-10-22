@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"peekaping/internal/config"
+	"peekaping/internal/httpx"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -45,6 +46,15 @@ type Config struct {
 	BruteforceMaxAttempts int           `env:"BRUTEFORCE_MAX_ATTEMPTS" default:"20"`
 	BruteforceWindow      time.Duration `env:"BRUTEFORCE_WINDOW" default:"1m"`
 	BruteforceLockout     time.Duration `env:"BRUTEFORCE_LOCKOUT" default:"1m"`
+
+	// A second login lockout counter per account, whatever the client's address
+	BruteforceAccountMaxAttempts int           `env:"BRUTEFORCE_ACCOUNT_MAX_ATTEMPTS" default:"100"`
+	BruteforceAccountWindow      time.Duration `env:"BRUTEFORCE_ACCOUNT_WINDOW" default:"10m"`
+	BruteforceAccountLockout     time.Duration `env:"BRUTEFORCE_ACCOUNT_LOCKOUT" default:"1m"`
+
+	// Proxies whose X-Forwarded-For and X-Real-IP headers count: IP addresses and CIDR
+	// ranges, comma-separated. Empty trusts nobody. Validated in Validate().
+	TrustedProxies string `env:"TRUSTED_PROXIES"`
 
 	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"peekaping:api"`
 
@@ -113,6 +123,21 @@ func Validate(cfg *Config) error {
 	if cfg.BruteforceLockout <= 0 {
 		return fmt.Errorf("BRUTEFORCE_LOCKOUT must be a positive duration")
 	}
+	if cfg.BruteforceAccountMaxAttempts <= 0 {
+		return fmt.Errorf("BRUTEFORCE_ACCOUNT_MAX_ATTEMPTS must be greater than 0")
+	}
+	if cfg.BruteforceAccountWindow <= 0 {
+		return fmt.Errorf("BRUTEFORCE_ACCOUNT_WINDOW must be a positive duration")
+	}
+	if cfg.BruteforceAccountLockout <= 0 {
+		return fmt.Errorf("BRUTEFORCE_ACCOUNT_LOCKOUT must be a positive duration")
+	}
+
+	// A mistyped TRUSTED_PROXIES stops startup: ignoring it would hide a setup that doesn't
+	// protect the login lockout the way its operator thinks it does.
+	if _, err := httpx.ParseTrustedProxies(cfg.TrustedProxies); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -121,33 +146,37 @@ func Validate(cfg *Config) error {
 // This is needed for backward compatibility with existing code
 func (c *Config) ToInternalConfig() *config.Config {
 	return &config.Config{
-		Port:                  c.Port,
-		ClientURL:             c.ClientURL,
-		DBHost:                c.DBHost,
-		DBPort:                c.DBPort,
-		DBName:                c.DBName,
-		DBUser:                c.DBUser,
-		DBPass:                c.DBPass,
-		DBType:                c.DBType,
-		Mode:                  c.Mode,
-		LogLevel:              c.LogLevel,
-		Timezone:              c.Timezone,
-		RedisHost:             c.RedisHost,
-		RedisPort:             c.RedisPort,
-		RedisUsername:         c.RedisUsername,
-		RedisPassword:         c.RedisPassword,
-		RedisDB:               c.RedisDB,
-		QueueConcurrency:      c.QueueConcurrency,
-		ProducerConcurrency:   c.ProducerConcurrency,
-		BruteforceMaxAttempts: c.BruteforceMaxAttempts,
-		BruteforceWindow:      c.BruteforceWindow,
-		BruteforceLockout:     c.BruteforceLockout,
-		ServiceName:           c.ServiceName,
-		MetricsEnabled:        c.MetricsEnabled,
-		Telemetry:             c.Telemetry,
-		DoNotTrack:            c.DoNotTrack,
-		TelemetryURL:          c.TelemetryURL,
-		ErrorReporting:        c.ErrorReporting,
-		ErrorReportingDSN:     c.ErrorReportingDSN,
+		Port:                         c.Port,
+		ClientURL:                    c.ClientURL,
+		DBHost:                       c.DBHost,
+		DBPort:                       c.DBPort,
+		DBName:                       c.DBName,
+		DBUser:                       c.DBUser,
+		DBPass:                       c.DBPass,
+		DBType:                       c.DBType,
+		Mode:                         c.Mode,
+		LogLevel:                     c.LogLevel,
+		Timezone:                     c.Timezone,
+		RedisHost:                    c.RedisHost,
+		RedisPort:                    c.RedisPort,
+		RedisUsername:                c.RedisUsername,
+		RedisPassword:                c.RedisPassword,
+		RedisDB:                      c.RedisDB,
+		QueueConcurrency:             c.QueueConcurrency,
+		ProducerConcurrency:          c.ProducerConcurrency,
+		BruteforceMaxAttempts:        c.BruteforceMaxAttempts,
+		BruteforceWindow:             c.BruteforceWindow,
+		BruteforceLockout:            c.BruteforceLockout,
+		BruteforceAccountMaxAttempts: c.BruteforceAccountMaxAttempts,
+		BruteforceAccountWindow:      c.BruteforceAccountWindow,
+		BruteforceAccountLockout:     c.BruteforceAccountLockout,
+		TrustedProxies:               c.TrustedProxies,
+		ServiceName:                  c.ServiceName,
+		MetricsEnabled:               c.MetricsEnabled,
+		Telemetry:                    c.Telemetry,
+		DoNotTrack:                   c.DoNotTrack,
+		TelemetryURL:                 c.TelemetryURL,
+		ErrorReporting:               c.ErrorReporting,
+		ErrorReportingDSN:            c.ErrorReportingDSN,
 	}
 }

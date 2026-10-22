@@ -31,7 +31,9 @@ func Recovery(logger *zap.SugaredLogger) Middleware {
 		})
 	}
 }
-func Logger(logger *zap.SugaredLogger) Middleware {
+
+// Logger logs each request. The client address it logs is the one proxies resolves.
+func Logger(logger *zap.SugaredLogger, proxies *TrustedProxies) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Preserve optional ResponseWriter interfaces for streaming and upgrades.
@@ -41,7 +43,20 @@ func Logger(logger *zap.SugaredLogger) Middleware {
 				path += "?" + r.URL.RawQuery
 			}
 			logger.Infow("HTTP request", "method", r.Method, "path", path,
-				"status", metrics.Code, "client_ip", ClientIP(r), "size", metrics.Written, "duration", metrics.Duration)
+				"status", metrics.Code, "client_ip", proxies.ClientIP(r), "size", metrics.Written, "duration", metrics.Duration)
+		})
+	}
+}
+
+// LimitBody makes reading a request body fail with *http.MaxBytesError once it passes max bytes,
+// so that a handler (or a guard that reads the body before it) never holds more than that.
+func LimitBody(max int64) Middleware {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Body != nil {
+				r.Body = http.MaxBytesReader(w, r.Body, max)
+			}
+			next.ServeHTTP(w, r)
 		})
 	}
 }
