@@ -99,11 +99,9 @@ func cleanupStats(statsService stats.Service, logger *zap.SugaredLogger) {
 	logger.Infow("Deleted expired stats", "count", deleted)
 }
 
-func cleanupNotificationHistory(notificationHistoryService notification_sent_history.Service, logger *zap.SugaredLogger) {
+func cleanupNotificationHistory(notificationHistoryService notification_sent_history.Service, olderThanDays int, logger *zap.SugaredLogger) {
 	logger.Info("Cleaning up old notification history records...")
 
-	// Clean up records older than 90 days
-	olderThanDays := 90
 	err := notificationHistoryService.CleanupOldRecords(context.Background(), olderThanDays)
 	if err != nil {
 		logger.Errorw("Failed to cleanup notification history", "error", err)
@@ -113,11 +111,9 @@ func cleanupNotificationHistory(notificationHistoryService notification_sent_his
 	logger.Infow("Successfully cleaned up notification history records", "older_than_days", olderThanDays)
 }
 
-func cleanupMonitorTLSInfo(tlsInfoService monitor_tls_info.Service, logger *zap.SugaredLogger) {
+func cleanupMonitorTLSInfo(tlsInfoService monitor_tls_info.Service, olderThanDays int, logger *zap.SugaredLogger) {
 	logger.Info("Cleaning up old monitor TLS info records...")
 
-	// Clean up records older than 30 days (shorter than notification history)
-	olderThanDays := 30
 	err := tlsInfoService.CleanupOldRecords(context.Background(), olderThanDays)
 	if err != nil {
 		logger.Errorw("Failed to cleanup monitor TLS info", "error", err)
@@ -151,11 +147,11 @@ func StartCleanupCron(
 	})
 
 	c.AddFunc("0 * * * *", func() {
-		cleanupNotificationHistory(notificationHistoryService, logger)
+		cleanupNotificationHistory(notificationHistoryService, 90, logger)
 	})
 
 	c.AddFunc("0 * * * *", func() {
-		cleanupMonitorTLSInfo(tlsInfoService, logger)
+		cleanupMonitorTLSInfo(tlsInfoService, 30, logger)
 	})
 
 	c.Start()
