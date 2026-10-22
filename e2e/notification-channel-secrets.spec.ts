@@ -7,6 +7,8 @@ import { receivedWebhooks, webhookURL } from './support/fake-target';
 // a hint instead of showing it in the field.
 const savedHint = 'Saved — type to replace';
 const reenterHint = "Re-enter this secret: where it's sent changed";
+// What saving or testing says while a secret still holds the placeholder after its endpoint changed
+const reenterError = "Re-enter this secret or remove it: where it's sent changed";
 
 test('A saved webhook secret stays hidden in the edit form and survives a rename', async ({ page, request }) => {
   const id = randomID();
@@ -74,7 +76,7 @@ test('A saved webhook secret stays hidden in the edit form and survives a rename
   }
 });
 
-test('Changing where a channel sends asks for its saved secrets again', async ({ page, request }) => {
+test('Changing where a channel sends blocks saving until each saved secret is re-entered or removed', async ({ page, request }) => {
   const id = randomID();
   const newTarget = `${id}-new`;
   const newSecret = `new-signing-${id}`;
@@ -86,6 +88,12 @@ test('Changing where a channel sends asks for its saved secrets again', async ({
       webhook_additional_headers: JSON.stringify({ 'X-Old-Header': 'old' }),
       webhook_signing_secret: `old-signing-${id}`,
     });
+    const saves: string[] = [];
+    const tests: string[] = [];
+    page.on('request', (r) => {
+      if (r.method() === 'PUT' && r.url().endsWith(`/notification-channels/${channelID}`)) saves.push(r.url());
+      if (r.method() === 'POST' && r.url().endsWith('/notification-channels/test')) tests.push(r.url());
+    });
 
     await page.goto(`/notification-channels/${channelID}/edit`);
     const signing = secretItem(page, 'webhook_signing_secret');
@@ -93,31 +101,110 @@ test('Changing where a channel sends asks for its saved secrets again', async ({
     await expect(signing.getByText(savedHint)).toBeVisible();
     await expect(headersItem.getByText(savedHint)).toBeVisible();
 
-    // A new URL can't keep the old secrets: the fields empty out and say why
+    // A new URL can't keep the old secrets. They stay in the form, empty, and say why
     await page.locator('input[name="webhook_url"]').fill(webhookURL(newTarget));
     await expect(signing.locator('input')).toHaveValue('');
     await expect(signing.getByText(reenterHint)).toBeVisible();
     await expect(signing.getByText(savedHint)).toHaveCount(0);
     await expect(headersItem.locator('textarea')).toHaveValue('');
     await expect(headersItem.getByText(reenterHint)).toBeVisible();
+    await expect(signing.getByText(reenterError)).toHaveCount(0);
 
-    // Typing the secret again saves, and the new target gets it
+    // Testing is blocked, with an error on each of them
+    await page.getByRole('button', { name: 'Test', exact: true }).click();
+    await expect(signing.getByText(reenterError)).toBeVisible();
+    await expect(headersItem.getByText(reenterError)).toBeVisible();
+    expect(tests).toHaveLength(0);
+
+    // So is saving, and nothing changes in the saved channel
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    await expect(signing.getByText(reenterError)).toBeVisible();
+    await expect(headersItem.getByText(reenterError)).toBeVisible();
+    expect(saves).toHaveLength(0);
+    expect(await savedConfig(api, channelID)).toMatchObject({ webhook_url: webhookURL(id) });
+
+    // Typing the secret again clears its error. The other one still blocks saving
     await signing.locator('input').fill(newSecret);
+    await expect(signing.getByText(reenterError)).toHaveCount(0);
     await expect(signing.getByText(reenterHint)).toHaveCount(0);
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    await expect(headersItem.getByText(reenterError)).toBeVisible();
+    expect(saves).toHaveLength(0);
+
+    // Removing the headers on purpose lets the form save, without them
+    await headersItem.getByRole('button', { name: 'Remove', exact: true }).click();
+    await expect(headersItem.getByText(reenterError)).toHaveCount(0);
+    await expect(headersItem.getByText(reenterHint)).toHaveCount(0);
     const updated = page.waitForResponse(
       (response) => response.url().endsWith(`/notification-channels/${channelID}`) && response.request().method() === 'PUT',
     );
     await page.getByRole('button', { name: 'Save', exact: true }).click();
     const updatedResponse = await updated;
     expect(updatedResponse.status(), await updatedResponse.text()).toBe(200);
+    expect(await savedConfig(api, channelID)).toMatchObject({
+      webhook_url: webhookURL(newTarget),
+      webhook_additional_headers: '',
+      webhook_signing_secret: '********',
+    });
 
+    // The new target gets a notification signed with the secret that was typed, and no old header
     await page.goto(`/notification-channels/${channelID}/edit`);
     await expect(signing.getByText(savedHint)).toBeVisible();
     await pressTest(page);
 
     const [webhook] = await expectWebhooks(request, newTarget, 1);
     expect(webhook.headers['x-webhook-signature']).toBe(signature(newSecret, webhook));
+    expect(webhook.headers['x-old-header']).toBeUndefined();
     expect(await receivedWebhooks(request, id)).toHaveLength(0);
+  } finally {
+    for (const path of created) await deleteCreated(api, path);
+    await api.dispose();
+  }
+});
+
+test('A saved secret can be removed on purpose, and only that one', async ({ page, request }) => {
+  const id = randomID();
+  const signingSecret = `signing-${id}`;
+  const created: string[] = [];
+  const api = await adminAPI(page);
+
+  try {
+    const channelID = await createWebhookChannel(api, created, `Secrets ${id}`, webhookURL(id), {
+      webhook_additional_headers: JSON.stringify({ 'X-Saved-Header': `kept-${id}` }),
+      webhook_signing_secret: signingSecret,
+    });
+
+    await page.goto(`/notification-channels/${channelID}/edit`);
+    const signing = secretItem(page, 'webhook_signing_secret');
+    const headersItem = secretItem(page, 'webhook_additional_headers');
+    await expect(headersItem.getByText(savedHint)).toBeVisible();
+
+    await headersItem.getByRole('button', { name: 'Remove', exact: true }).click();
+    await expect(headersItem.locator('textarea')).toHaveValue('');
+    await expect(headersItem.getByText(savedHint)).toHaveCount(0);
+    await expect(headersItem.getByRole('button', { name: 'Remove', exact: true })).toHaveCount(0);
+    await expect(signing.getByText(savedHint)).toBeVisible();
+
+    const updated = page.waitForResponse(
+      (response) => response.url().endsWith(`/notification-channels/${channelID}`) && response.request().method() === 'PUT',
+    );
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    const updatedResponse = await updated;
+    expect(updatedResponse.status(), await updatedResponse.text()).toBe(200);
+    expect(await savedConfig(api, channelID)).toMatchObject({
+      webhook_additional_headers: '',
+      webhook_signing_secret: '********',
+    });
+
+    // The channel sends without the headers, and still signs with the secret it kept
+    await page.goto(`/notification-channels/${channelID}/edit`);
+    await expect(headersItem.getByText(savedHint)).toHaveCount(0);
+    await expect(signing.getByText(savedHint)).toBeVisible();
+    await pressTest(page);
+
+    const [webhook] = await expectWebhooks(request, id, 1);
+    expect(webhook.headers['x-saved-header']).toBeUndefined();
+    expect(webhook.headers['x-webhook-signature']).toBe(signature(signingSecret, webhook));
   } finally {
     for (const path of created) await deleteCreated(api, path);
     await api.dispose();
@@ -219,6 +306,13 @@ async function createChannel(
   const channelID: string = (await response.json()).data.id;
   created.push(`notification-channels/${channelID}`);
   return channelID;
+}
+
+// The config a channel is saved with, as the API shows it: saved secrets are the placeholder
+async function savedConfig(api: APIRequestContext, channelID: string): Promise<Record<string, unknown>> {
+  const response = await api.get(`notification-channels/${channelID}`);
+  expect(response.status(), await response.text()).toBe(200);
+  return JSON.parse((await response.json()).data.config);
 }
 
 // The form item of one config field
