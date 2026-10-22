@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"crypto/subtle"
 	"encoding/base32"
 	"errors"
 	"time"
@@ -157,6 +158,12 @@ func (s *ServiceImpl) RefreshToken(ctx context.Context, refreshToken string) (*L
 	user, err := s.repo.FindByID(ctx, claims.UserID)
 	if err != nil || user == nil {
 		return nil, errors.New("user not found")
+	}
+
+	// A refresh token issued before the last password change, or by a release
+	// that didn't set the fingerprint, no longer works
+	if subtle.ConstantTimeCompare([]byte(claims.PasswordFingerprint), []byte(passwordFingerprint(user.Password))) != 1 {
+		return nil, errors.New("invalid refresh token")
 	}
 
 	// Generate new access token

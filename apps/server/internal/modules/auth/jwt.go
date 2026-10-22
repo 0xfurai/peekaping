@@ -2,6 +2,8 @@ package auth
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"peekaping/internal/modules/shared"
@@ -21,7 +23,17 @@ type Claims struct {
 	UserID string `json:"userId"`
 	Email  string `json:"email"`
 	Type   string `json:"type"` // "access" or "refresh"
+	// PasswordFingerprint is set on refresh tokens: it identifies the password the
+	// user had when the token was issued, so a password change ends older ones.
+	PasswordFingerprint string `json:"pwf,omitempty"`
 	jwt.RegisteredClaims
+}
+
+// passwordFingerprint identifies a user's password without revealing it: the
+// first 16 bytes of the SHA-256 of the stored password hash, in hex.
+func passwordFingerprint(passwordHash string) string {
+	sum := sha256.Sum256([]byte(passwordHash))
+	return hex.EncodeToString(sum[:16])
 }
 
 // secretTTL is how long a signing secret stays in memory before it is read from
@@ -143,6 +155,10 @@ func (maker *TokenMaker) createToken(user *Model, tokenType string, duration tim
 			IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),
 			NotBefore: jwt.NewNumericDate(time.Now().UTC()),
 		},
+	}
+
+	if tokenType == "refresh" {
+		claims.PasswordFingerprint = passwordFingerprint(user.Password)
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
