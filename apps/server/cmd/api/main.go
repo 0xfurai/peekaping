@@ -37,7 +37,9 @@ import (
 const errorReportingFlush = 2 * time.Second
 
 func main() {
-	// A panic that ends the process is reported before it does, unless the admin opted out
+	// A panic that ends the process is reported before it does, unless the admin opted out. Reports
+	// start only once app.ApplyErrorReporting has applied the stored choice (below), so a panic
+	// before that is not reported.
 	defer reporting.ReportCrash("main")
 
 	utils.RegisterCustomValidators()
