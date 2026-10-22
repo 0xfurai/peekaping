@@ -29,6 +29,10 @@ type Config struct {
 	DBPass string `env:"DB_PASS"`                           // validated in Validate()
 	DBType string `env:"DB_TYPE" validate:"required,db_type"`
 
+	// Which check the process runs when it opens SQLite: quick (PRAGMA quick_check), full
+	// (PRAGMA integrity_check, which reads the whole file) or off. A finding stops startup.
+	SQLiteStartupCheck string `env:"SQLITE_STARTUP_CHECK" validate:"oneof=quick full off" default:"quick"`
+
 	// Common settings
 	Mode     string `env:"MODE" validate:"required,oneof=dev prod test" default:"dev"`
 	LogLevel string `env:"LOG_LEVEL" validate:"omitempty,log_level" default:"info"`
@@ -59,6 +63,10 @@ type Config struct {
 	// Proxies whose X-Forwarded-For and X-Real-IP headers count: IP addresses and CIDR
 	// ranges, comma-separated. Empty trusts nobody. Validated in Validate().
 	TrustedProxies string `env:"TRUSTED_PROXIES"`
+
+	// Origins whose pages may read the API's responses: comma-separated, "*" alone for any.
+	// Empty allows the origin of CLIENT_URL. Validated in Validate().
+	CORSOrigins string `env:"CORS_ORIGINS"`
 
 	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"peekaping"`
 
@@ -160,6 +168,12 @@ func Validate(cfg *Config) error {
 		return err
 	}
 
+	// So does a mistyped CORS_ORIGINS: ignoring it would leave the web app unable to read the
+	// API's responses, with no sign of why.
+	if _, err := httpx.ParseCORSOrigins(cfg.CORSOrigins, cfg.ClientURL); err != nil {
+		return err
+	}
+
 	// A short token is easy to guess, and it would give a probe's access to the monitors' configs.
 	// The message doesn't repeat it.
 	if cfg.ProbeBootstrapToken != "" && len(cfg.ProbeBootstrapToken) < probe.MinBootstrapTokenLength {
@@ -206,6 +220,7 @@ func (c *Config) ToInternalConfig() *config.Config {
 		DBUser:                       c.DBUser,
 		DBPass:                       c.DBPass,
 		DBType:                       c.DBType,
+		SQLiteStartupCheck:           c.SQLiteStartupCheck,
 		Mode:                         c.Mode,
 		LogLevel:                     c.LogLevel,
 		Timezone:                     c.Timezone,
@@ -217,6 +232,7 @@ func (c *Config) ToInternalConfig() *config.Config {
 		BruteforceAccountWindow:      c.BruteforceAccountWindow,
 		BruteforceAccountLockout:     c.BruteforceAccountLockout,
 		TrustedProxies:               c.TrustedProxies,
+		CORSOrigins:                  c.CORSOrigins,
 		ServiceName:                  c.ServiceName,
 		MetricsEnabled:               c.MetricsEnabled,
 		Telemetry:                    c.Telemetry,

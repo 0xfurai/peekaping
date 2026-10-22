@@ -265,8 +265,6 @@ func (s *SQLServerExecutor) Execute(ctx context.Context, m *Monitor, proxyModel 
 	}
 	cfg := cfgAny.(*SQLServerConfig)
 
-	s.logger.Debugf("execute sqlserver cfg: %+v", cfg)
-
 	startTime := time.Now().UTC()
 
 	// Validate configuration before execution

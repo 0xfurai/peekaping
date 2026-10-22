@@ -32,6 +32,10 @@ type Config struct {
 	DBPass string `env:"DB_PASS"`                           // validated in validateCustomRules
 	DBType string `env:"DB_TYPE" validate:"required,db_type"`
 
+	// Which check a process that opens SQLite runs at startup: "quick" runs PRAGMA quick_check,
+	// "full" runs PRAGMA integrity_check, and "off" runs none. A finding stops startup.
+	SQLiteStartupCheck string `env:"SQLITE_STARTUP_CHECK" validate:"oneof=quick full off" default:"quick"`
+
 	Mode     string `env:"MODE" validate:"required,oneof=dev prod test" default:"dev"`
 	LogLevel string `env:"LOG_LEVEL" validate:"omitempty,log_level" default:"info"`
 
@@ -93,6 +97,12 @@ type Config struct {
 	// client can send those headers itself. The login lockout counts failures per client
 	// address. Empty (the default) trusts nobody.
 	TrustedProxies string `env:"TRUSTED_PROXIES"` // parsed by httpx.ParseTrustedProxies
+
+	// Origins whose pages may read the API's responses: a comma-separated list such as
+	// "https://peek.example,http://localhost:8383". A page on any other origin can still send
+	// requests, but its browser won't let it read the answers. "*" alone allows any origin.
+	// Empty (the default) allows the origin of CLIENT_URL.
+	CORSOrigins string `env:"CORS_ORIGINS"` // parsed by httpx.ParseCORSOrigins
 
 	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"peekaping:api"`
 

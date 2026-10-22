@@ -82,10 +82,16 @@ func ProvideTrustedProxies(cfg *config.Config) (*httpx.TrustedProxies, error) {
 	return httpx.ParseTrustedProxies(cfg.TrustedProxies)
 }
 
+// ProvideCORSOrigins parses CORS_ORIGINS, which stops startup when an entry is invalid.
+func ProvideCORSOrigins(cfg *config.Config) (*httpx.CORSOrigins, error) {
+	return httpx.ParseCORSOrigins(cfg.CORSOrigins, cfg.ClientURL)
+}
+
 func ProvideServer(
 	logger *zap.SugaredLogger,
 	cfg *config.Config,
 	trustedProxies *httpx.TrustedProxies,
+	corsOrigins *httpx.CORSOrigins,
 	monitorRoute *monitor.MonitorRoute,
 	monitorController *monitor.MonitorController,
 	authRoute *auth.Route,
@@ -120,7 +126,7 @@ func ProvideServer(
 	staleStore stale.Store,
 	metricsCollector *metrics.Collector,
 ) *Server {
-	server := httpx.NewRouter(httpx.RequestID, httpx.Logger(logger, trustedProxies), httpx.Recovery(logger), httpx.CORS)
+	server := httpx.NewRouter(httpx.RequestID, httpx.Logger(logger, trustedProxies), httpx.Recovery(logger), httpx.CORS(corsOrigins))
 
 	healthHandler := newHealthHandler(staleStore, logger)
 	httpx.Register(server, "GET", "/health", huma.Operation{Summary: "Get server health", Tags: []string{"System"}}, healthHandler)

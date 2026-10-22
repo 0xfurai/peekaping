@@ -4,9 +4,11 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"regexp"
 	"testing"
 
+	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/shared"
 
 	"github.com/stretchr/testify/assert"
@@ -16,11 +18,14 @@ import (
 
 var badgeTitle = regexp.MustCompile(`<title>(.*?)</title>`)
 
-// assertBadge checks that the response is an SVG badge reading title.
+// assertBadge checks that the response is an SVG badge reading title, which a
+// browser may show but not run anything from.
 func assertBadge(t *testing.T, w *httptest.ResponseRecorder, title string) {
 	t.Helper()
 	assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
 	assert.Equal(t, "image/svg+xml", w.Header().Get("Content-Type"))
+	assert.Equal(t, "default-src 'none'; style-src 'unsafe-inline'", w.Header().Get("Content-Security-Policy"))
+	assert.Equal(t, "nosniff", w.Header().Get("X-Content-Type-Options"))
 	if match := badgeTitle.FindStringSubmatch(w.Body.String()); assert.NotNil(t, match, w.Body.String()) {
 		assert.Equal(t, title, match[1])
 	}
@@ -157,6 +162,117 @@ func TestBadges_FallBackOnInvalidOptions(t *testing.T) {
 	} {
 		t.Run(path, func(t *testing.T) {
 			assertBadge(t, a.request(t, http.MethodGet, path, nil), title)
+		})
+	}
+}
+
+// storeCertExpiry gives a monitor a certificate with the days left, as a check of it would.
+func (a *app) storeCertExpiry(t *testing.T, monitorID string, days int) {
+	t.Helper()
+	require.NoError(t, a.container.Invoke(func(tlsInfo monitor_tls_info.Service) error {
+		return tlsInfo.StoreTLSInfoObject(context.Background(), monitorID, shared.TLSInfo{
+			CertInfo: &shared.CertificateInfo{DaysRemaining: days},
+		})
+	}))
+}
+
+// A color that isn't a color must neither add markup nor change the badge:
+// it's as if the option was left out.
+func TestBadges_IgnoreUnsafeColors(t *testing.T) {
+	a := newAppWithMonitorListener(t)
+	// upColor and downColor only show on a monitor that's Up or Down, and on a
+	// certificate expiry badge for a monitor with a certificate
+	pending := a.createMonitor(t, "Pending monitor", "pending-push-token")
+	up := a.createMonitor(t, "Up monitor", "up-push-token")
+	down := a.createMonitor(t, "Down monitor", "down-push-token")
+	a.createStatusPage(t, statusPage{slug: "shop", published: true, monitors: []string{pending, up, down}})
+	a.reportStatus(t, up, shared.MonitorStatusUp)
+	a.reportStatus(t, down, shared.MonitorStatusDown)
+	a.storeCertExpiry(t, up, 30)
+	a.storeCertExpiry(t, down, 3)
+
+	const hostile = `"><script>alert(1)</script>`
+	for name, monitorID := range map[string]string{"pending": pending, "up": up, "down": down} {
+		for path := range badgePaths(monitorID) {
+			for _, style := range []string{"flat", "flat-square", "plastic", "for-the-badge", "social"} {
+				plain := path + "?style=" + style
+				want := a.request(t, http.MethodGet, plain, nil)
+				require.Equal(t, http.StatusOK, want.Code, want.Body.String())
+				for _, option := range []string{"color", "labelColor", "upColor", "downColor"} {
+					t.Run(name+path+"/"+style+"/"+option, func(t *testing.T) {
+						w := a.request(t, http.MethodGet, plain+"&"+option+"="+url.QueryEscape(hostile), nil)
+						assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
+						assert.NotContains(t, w.Body.String(), "<script")
+						assert.Equal(t, want.Body.String(), w.Body.String())
+					})
+				}
+			}
+		}
+	}
+}
+
+var badgeFills = regexp.MustCompile(`<rect (?:x="\d+" )?width="\d+" height="\d+" fill="([^"]*)"/>`)
+
+// The colors a badge accepts are drawn as hex, whichever way they're written.
+func TestBadges_DrawValidColors(t *testing.T) {
+	a := newAppWithMonitorListener(t)
+	pending := a.createMonitor(t, "Pending monitor", "pending-push-token")
+	up := a.createMonitor(t, "Up monitor", "up-push-token")
+	down := a.createMonitor(t, "Down monitor", "down-push-token")
+	a.createStatusPage(t, statusPage{slug: "shop", published: true, monitors: []string{pending, up, down}})
+	a.reportStatus(t, up, shared.MonitorStatusUp)
+	a.reportStatus(t, down, shared.MonitorStatusDown)
+	a.storeCertExpiry(t, up, 30)
+
+	for _, tt := range []struct {
+		name, monitorID, route, query string
+		labelFill, valueFill          string
+	}{
+		{"no color", pending, "status", "", "#555", "#fe7d37"},
+		{"bare hex", pending, "status", "color=4c1", "#555", "#4c1"},
+		{"hex with hash", pending, "status", "color=%234c1", "#555", "#4c1"},
+		{"long bare hex", pending, "status", "color=ff0000", "#555", "#ff0000"},
+		{"hex keeps its case", pending, "status", "color=%23ABCDEF", "#555", "#ABCDEF"},
+		{"color name", pending, "status", "color=brightgreen", "#555", "#4c1"},
+		{"color name in any case", pending, "status", "color=LightGray", "#555", "#9f9f9f"},
+		{"label hex", pending, "status", "labelColor=333", "#333", "#fe7d37"},
+		{"label color name", pending, "status", "labelColor=red", "#e05d44", "#fe7d37"},
+		{"up color", up, "status", "upColor=orange", "#555", "#fe7d37"},
+		{"down color", down, "status", "downColor=yellow", "#555", "#dfb317"},
+
+		// #007ec6 is also the color a badge draws when none is given, which
+		// must not make it count as no color
+		{"blue", pending, "status", "color=blue", "#555", "#007ec6"},
+		{"informational", pending, "status", "color=informational", "#555", "#007ec6"},
+		{"blue hex", pending, "status", "color=007ec6", "#555", "#007ec6"},
+		{"blue hex with hash", pending, "status", "color=%23007ec6", "#555", "#007ec6"},
+		{"uptime, no color", pending, "uptime", "", "#555", "#e05d44"},
+		{"uptime in blue", pending, "uptime", "color=blue", "#555", "#007ec6"},
+		{"uptime in informational", pending, "uptime", "color=informational", "#555", "#007ec6"},
+		{"uptime in blue hex", pending, "uptime", "color=007ec6", "#555", "#007ec6"},
+		{"uptime in blue hex with hash", pending, "uptime", "color=%23007ec6", "#555", "#007ec6"},
+		{"cert-exp, no color", up, "cert-exp", "", "#555", "#4c1"},
+		{"cert-exp in blue", up, "cert-exp", "color=blue", "#555", "#007ec6"},
+		{"cert-exp in informational", up, "cert-exp", "color=informational", "#555", "#007ec6"},
+		{"cert-exp in blue hex", up, "cert-exp", "color=007ec6", "#555", "#007ec6"},
+		{"cert-exp in blue hex with hash", up, "cert-exp", "color=%23007ec6", "#555", "#007ec6"},
+		{"cert-exp without a certificate, no color", pending, "cert-exp", "", "#555", "#9f9f9f"},
+		{"cert-exp without a certificate in blue", pending, "cert-exp", "color=blue", "#555", "#007ec6"},
+		{"ping, no color", pending, "ping", "", "#555", "#007ec6"},
+		{"ping in a color", pending, "ping", "color=4c1", "#555", "#4c1"},
+		{"ping in blue", pending, "ping", "color=blue", "#555", "#007ec6"},
+		{"response, no color", pending, "response", "", "#555", "#007ec6"},
+		{"response in a color", pending, "response", "color=4c1", "#555", "#4c1"},
+		{"response in blue", pending, "response", "color=blue", "#555", "#007ec6"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			path := "/api/v1/badge/" + tt.monitorID + "/" + tt.route + "?" + tt.query
+			w := a.request(t, http.MethodGet, path, nil)
+			require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+			fills := badgeFills.FindAllStringSubmatch(w.Body.String(), -1)
+			require.GreaterOrEqual(t, len(fills), 2, w.Body.String())
+			assert.Equal(t, tt.labelFill, fills[0][1])
+			assert.Equal(t, tt.valueFill, fills[1][1])
 		})
 	}
 }

@@ -114,6 +114,20 @@ func TestMetrics_AreNotReadableByAPageOnAnotherOrigin(t *testing.T) {
 	}
 }
 
+// The API may allow any origin (CORS_ORIGINS=*), but /metrics is unauthenticated and names the
+// Monitors, so it is never readable cross-origin.
+func TestMetrics_AreNotReadableByAPageOnAnotherOriginWhenTheAPIAllowsAny(t *testing.T) {
+	a := newApp(t, withMetrics, withCORSOrigins("*"))
+	req := httptest.NewRequest(http.MethodGet, "/metrics", nil)
+	req.Header.Set("Origin", "http://evil.example")
+	w := httptest.NewRecorder()
+
+	a.router.ServeHTTP(w, req)
+
+	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+	assert.Empty(t, accessControlHeaders(w))
+}
+
 func TestMetrics_StartupLoadsTheNewestHeartbeatOfARealRepository(t *testing.T) {
 	a := newAppWithAdmin(t)
 	id := a.createMonitor(t, "Checkout", "checkout-push-token")
