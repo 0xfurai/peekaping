@@ -66,8 +66,8 @@ func RegisterClusterIngester(container *dig.Container, cfg *config.Config) error
 // registerCluster provides what every cluster binary shares, then cluster mode's transport: the
 // Redis client, the event bus over Redis pub/sub with the notification topics sent through the
 // notification queue, the stale monitors in a Redis hash, the run lock of the api's hourly cleanup
-// in Redis, and asynq's client and inspector behind the queue service. The api, the worker and the ingester each add their own asynq server, since
-// they serve different queues.
+// in Redis, and asynq's client and inspector behind the queue service. The api, the worker and
+// the ingester each add their own asynq server, since they serve different queues.
 func registerCluster(container *dig.Container, cfg *config.Config) error {
 	if err := Register(container, cfg); err != nil {
 		return err

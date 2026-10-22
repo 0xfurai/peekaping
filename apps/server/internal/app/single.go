@@ -21,9 +21,9 @@ import (
 // and its check pool, the ingest and the stale-monitor watchdog, in one process with no Redis
 // and no asynq. Events stay in the process, the stale monitors are kept in memory, the hourly
 // cleanup's run lock grants every hour to the one process, and the scheduler is the watchdog's
-// stale.Rechecker. The scheduler and the push URL ingest through
-// one ingester.NewInOrderService, so the pushes and the checks of a monitor are stored one at a
-// time, in order.
+// stale.Rechecker. The scheduler and the push URL ingest through one
+// ingester.NewInOrderService, so the pushes and the checks of a monitor are stored one at a time,
+// in order.
 func RegisterSingle(container *dig.Container, cfg *config.Config) error {
 	if err := Register(container, cfg); err != nil {
 		return err
