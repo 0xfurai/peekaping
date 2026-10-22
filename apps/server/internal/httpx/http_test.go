@@ -59,7 +59,7 @@ func TestCORSCompatibility(t *testing.T) {
 		}
 		if tc.want == 204 {
 			assert.Equal(t, "GET,POST,PUT,DELETE,OPTIONS,PATCH", w.Header().Get("Access-Control-Allow-Methods"))
-			assert.Equal(t, "Origin,X-Requested-With,Content-Type,Accept,Authorization", w.Header().Get("Access-Control-Allow-Headers"))
+			assert.Equal(t, "Origin,X-Requested-With,Content-Type,Accept,Authorization,X-Request-ID", w.Header().Get("Access-Control-Allow-Headers"))
 			assert.Empty(t, w.Header().Get("Access-Control-Max-Age"))
 			assert.Empty(t, w.Header().Get("Vary"))
 		}
