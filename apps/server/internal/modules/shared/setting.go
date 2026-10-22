@@ -19,6 +19,10 @@ const (
 type SettingService interface {
 	GetByKey(ctx context.Context, key string) (*SettingModel, error)
 	SetByKey(ctx context.Context, key string, entity *SettingModel) (*SettingModel, error)
+	// CreateIfAbsent stores entity under key unless the key is already stored, and returns what is
+	// stored under the key afterwards. Callers that race to create the same key all get the one
+	// value that won, which SetByKey (update, then insert) can't promise.
+	CreateIfAbsent(ctx context.Context, key string, entity *SettingModel) (*SettingModel, error)
 	DeleteByKey(ctx context.Context, key string) error
 	InitializeSettings(ctx context.Context) error
 }

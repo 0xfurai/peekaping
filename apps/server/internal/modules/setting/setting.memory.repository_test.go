@@ -28,6 +28,15 @@ func (r *memoryRepository) SetByKey(_ context.Context, key string, entity *setti
 	return &stored, nil
 }
 
+func (r *memoryRepository) CreateIfAbsent(_ context.Context, key string, entity *setting.Model) (*setting.Model, error) {
+	if stored, ok := r.settings[key]; ok {
+		return &stored, nil
+	}
+	stored := setting.Model{Key: key, Value: entity.Value, Type: entity.Type}
+	r.settings[key] = stored
+	return &stored, nil
+}
+
 func (r *memoryRepository) DeleteByKey(_ context.Context, key string) error {
 	delete(r.settings, key)
 	return nil

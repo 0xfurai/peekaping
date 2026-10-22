@@ -37,6 +37,14 @@ func (m *MockSettingService) SetByKey(ctx context.Context, key string, entity *s
 	return args.Get(0).(*shared.SettingModel), args.Error(1)
 }
 
+func (m *MockSettingService) CreateIfAbsent(ctx context.Context, key string, entity *shared.SettingModel) (*shared.SettingModel, error) {
+	args := m.Called(ctx, key, entity)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*shared.SettingModel), args.Error(1)
+}
+
 func (m *MockSettingService) DeleteByKey(ctx context.Context, key string) error {
 	args := m.Called(ctx, key)
 	return args.Error(0)

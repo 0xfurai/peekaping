@@ -52,6 +52,16 @@ func (f *fakeSettings) SetByKey(_ context.Context, key string, entity *shared.Se
 	return &copied, nil
 }
 
+func (f *fakeSettings) CreateIfAbsent(_ context.Context, key string, entity *shared.SettingModel) (*shared.SettingModel, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if _, ok := f.values[key]; !ok {
+		f.values[key] = &shared.SettingModel{Key: key, Value: entity.Value, Type: entity.Type}
+	}
+	copied := *f.values[key]
+	return &copied, nil
+}
+
 func (f *fakeSettings) DeleteByKey(context.Context, string) error { return nil }
 func (f *fakeSettings) InitializeSettings(context.Context) error  { return nil }
 

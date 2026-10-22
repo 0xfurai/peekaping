@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -74,6 +75,9 @@ type repositories struct {
 	statusPageID  string
 	monitorID     string
 	replacementID string
+	// uniqueSettingKeys is whether the storage refuses a second setting with the same key. SQL does
+	// (the key is the primary key); MongoDB has no unique index on it and is frozen (ADR 0001).
+	uniqueSettingKeys bool
 }
 
 func sqlRepositories(t *testing.T, db *bun.DB) repositories {
@@ -94,7 +98,7 @@ func sqlRepositories(t *testing.T, db *bun.DB) repositories {
 	return repositories{
 		maintenance.NewSQLRepository(db), monitor_status_page.NewSQLRepository(db), domain_status_page.NewSQLRepository(db),
 		setting.NewSQLRepository(db), monitor_tls_info.NewSQLRepository(db), notification_sent_history.NewSQLRepository(db),
-		statusID, monitorID, replacementID,
+		statusID, monitorID, replacementID, true,
 	}
 }
 
@@ -102,6 +106,7 @@ func TestRepositoriesUseDomainModels(t *testing.T) {
 	t.Run("SQLite", func(t *testing.T) {
 		sqlDB, err := sql.Open(sqliteshim.ShimName, filepath.Join(t.TempDir(), "domain-models.db"))
 		require.NoError(t, err)
+		sqlDB.SetMaxOpenConns(1) // as infra.NewSQL does: one connection, so writes queue instead of failing as locked
 		exerciseRepositories(t, sqlRepositories(t, bun.NewDB(sqlDB, sqlitedialect.New())))
 	})
 	t.Run("Postgres", func(t *testing.T) {
@@ -139,7 +144,7 @@ func TestRepositoriesUseDomainModels(t *testing.T) {
 		exerciseRepositories(t, repositories{
 			maintenance.NewMongoRepository(client, cfg), monitor_status_page.NewMongoRepository(client, cfg), domain_status_page.NewMongoRepository(client, cfg),
 			setting.NewMongoRepository(client, cfg), monitor_tls_info.NewMongoRepository(client, cfg), notification_sent_history.NewMongoRepository(client, cfg),
-			primitive.NewObjectID().Hex(), primitive.NewObjectID().Hex(), primitive.NewObjectID().Hex(),
+			primitive.NewObjectID().Hex(), primitive.NewObjectID().Hex(), primitive.NewObjectID().Hex(), false,
 		})
 	})
 }
@@ -209,6 +214,52 @@ func exerciseRepositories(t *testing.T, repos repositories) {
 		require.NoError(t, err)
 		assert.Empty(t, actual.Value)
 		assert.Equal(t, "string", actual.Type)
+	})
+	// The usage ping's instance ID is created by whichever api replica gets there first. All of
+	// them must end up with the one value that was stored, whoever raced.
+	t.Run("SettingsCreateIfAbsent", func(t *testing.T) {
+		racers := 1
+		if repos.uniqueSettingKeys {
+			racers = 12
+		}
+		returned := make([]string, racers)
+		var wg sync.WaitGroup
+		for n := range racers {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				created, err := repos.settings.CreateIfAbsent(ctx, "create-if-absent", &setting.Model{Value: uuid.NewString(), Type: "string"})
+				if assert.NoError(t, err) {
+					returned[n] = created.Value
+				}
+			}()
+		}
+		wg.Wait()
+
+		stored, err := repos.settings.GetByKey(ctx, "create-if-absent")
+		require.NoError(t, err)
+		require.NotNil(t, stored)
+		assert.NotEmpty(t, stored.Value)
+		assert.Equal(t, "string", stored.Type)
+		for n, value := range returned {
+			assert.Equal(t, stored.Value, value, "racer %d got another value than the stored one", n)
+		}
+
+		again, err := repos.settings.CreateIfAbsent(ctx, "create-if-absent", &setting.Model{Value: "later", Type: "int"})
+		require.NoError(t, err)
+		assert.Equal(t, stored.Value, again.Value, "a stored value is not replaced")
+		assert.Equal(t, "string", again.Type)
+
+		_, err = repos.settings.SetByKey(ctx, "set-then-create", &setting.Model{Value: "chosen", Type: "string"})
+		require.NoError(t, err)
+		kept, err := repos.settings.CreateIfAbsent(ctx, "set-then-create", &setting.Model{Value: "default", Type: "string"})
+		require.NoError(t, err)
+		assert.Equal(t, "chosen", kept.Value)
+
+		require.NoError(t, repos.settings.DeleteByKey(ctx, "create-if-absent"))
+		fresh, err := repos.settings.CreateIfAbsent(ctx, "create-if-absent", &setting.Model{Value: "after delete", Type: "string"})
+		require.NoError(t, err)
+		assert.Equal(t, "after delete", fresh.Value, "a deleted key is created again")
 	})
 	t.Run("TLS", func(t *testing.T) {
 		_, err := repos.tls.Create(ctx, &monitor_tls_info.Model{MonitorID: repos.monitorID, InfoJSON: `{"valid":true}`})
