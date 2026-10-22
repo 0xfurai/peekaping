@@ -175,24 +175,33 @@ func (l *Loader) isUnderMaintenance(ctx context.Context, monitorID string) (bool
 // It reads the flag for every type, so a monitor that supports TLS (http, smtp) only has
 // to put check_cert_expiry in its config.
 func (l *Loader) checkCertExpiry(mon *shared.Monitor) bool {
-	checkCertExpiry := false
-	if mon.Config != "" {
-		// Parse monitor configuration to check if certificate expiry checking is enabled
-		var config struct {
-			CheckCertExpiry bool `json:"check_cert_expiry"`
-		}
-		if err := json.Unmarshal([]byte(mon.Config), &config); err != nil {
-			l.logger.Warnw("Failed to parse monitor config for certificate expiry check",
-				"monitor_id", mon.ID,
-				"monitor_name", mon.Name,
-				"error", err)
-		} else {
-			checkCertExpiry = config.CheckCertExpiry
-		}
+	checkCertExpiry, err := CertExpiryRequested(mon.Config)
+	if err != nil {
+		l.logger.Warnw("Failed to parse monitor config for certificate expiry check",
+			"monitor_id", mon.ID,
+			"monitor_name", mon.Name,
+			"error", err)
 	}
 	l.logger.Debugw("Certificate expiry checking configured",
 		"monitor_id", mon.ID,
 		"monitor_name", mon.Name,
 		"check_cert_expiry", checkCertExpiry)
 	return checkCertExpiry
+}
+
+// CertExpiryRequested reports whether a monitor's config asks for the expiry of its TLS
+// certificate to be checked: its check_cert_expiry flag, which every monitor type may carry. An
+// empty config asks for nothing. A config that isn't JSON asks for nothing too, and the error
+// says why.
+func CertExpiryRequested(config string) (bool, error) {
+	if config == "" {
+		return false, nil
+	}
+	var flags struct {
+		CheckCertExpiry bool `json:"check_cert_expiry"`
+	}
+	if err := json.Unmarshal([]byte(config), &flags); err != nil {
+		return false, err
+	}
+	return flags.CheckCertExpiry, nil
 }
