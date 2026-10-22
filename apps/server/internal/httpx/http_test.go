@@ -54,9 +54,12 @@ func TestCORSCompatibility(t *testing.T) {
 			assert.Equal(t, "*", w.Header().Get("Access-Control-Allow-Origin"))
 			assert.Equal(t, "true", w.Header().Get("Access-Control-Allow-Credentials"))
 		}
+		if tc.cors && tc.want != 204 {
+			assert.Equal(t, "Authorization, X-Request-ID", w.Header().Get("Access-Control-Expose-Headers"))
+		}
 		if tc.want == 204 {
 			assert.Equal(t, "GET,POST,PUT,DELETE,OPTIONS,PATCH", w.Header().Get("Access-Control-Allow-Methods"))
-			assert.Equal(t, "Origin,X-Requested-With,Content-Type,Accept,Authorization", w.Header().Get("Access-Control-Allow-Headers"))
+			assert.Equal(t, "Origin,X-Requested-With,Content-Type,Accept,Authorization,X-Request-ID", w.Header().Get("Access-Control-Allow-Headers"))
 			assert.Empty(t, w.Header().Get("Access-Control-Max-Age"))
 			assert.Empty(t, w.Header().Get("Vary"))
 		}
@@ -66,14 +69,19 @@ func TestCORSCompatibility(t *testing.T) {
 func TestRecoveryAndLogging(t *testing.T) {
 	core, logs := observer.New(zap.DebugLevel)
 	logger := zap.New(core).Sugar()
-	handler := httpx.Chain(http.HandlerFunc(func(http.ResponseWriter, *http.Request) { panic("broken") }), httpx.Logger(logger, nil), httpx.Recovery(logger))
+	handler := httpx.Chain(http.HandlerFunc(func(http.ResponseWriter, *http.Request) { panic("broken") }), httpx.RequestID, httpx.Logger(logger, nil), httpx.Recovery(logger))
 	w := httptest.NewRecorder()
-	handler.ServeHTTP(w, httptest.NewRequest("GET", "/panic", nil))
+	r := httptest.NewRequest("GET", "/panic", nil)
+	r.Header.Set("X-Request-ID", "req-42")
+	handler.ServeHTTP(w, r)
 	assert.Equal(t, 500, w.Code)
 	assert.Empty(t, w.Body.String())
+	assert.Equal(t, "req-42", w.Header().Get("X-Request-ID"))
 	assert.Equal(t, 1, logs.FilterMessage("HTTP handler panic").Len())
 	assert.Equal(t, 1, logs.FilterMessage("HTTP request").Len())
+	assert.Equal(t, "req-42", logs.FilterMessage("HTTP handler panic").All()[0].ContextMap()["request_id"])
 	entry := logs.FilterMessage("HTTP request").All()[0].ContextMap()
+	assert.Equal(t, "req-42", entry["request_id"])
 	assert.EqualValues(t, 500, entry["status"])
 	assert.Equal(t, "192.0.2.1", entry["client_ip"])
 	assert.EqualValues(t, 0, entry["size"])
@@ -123,7 +131,7 @@ func TestLimitBody(t *testing.T) {
 	}
 }
 
-func TestAccessLogIncludesResponseAndQuery(t *testing.T) {
+func TestAccessLogIncludesResponse(t *testing.T) {
 	core, logs := observer.New(zap.DebugLevel)
 	handler := httpx.Logger(zap.New(core).Sugar(), nil)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		httpx.Text(w, 418, "teapot")
@@ -131,7 +139,7 @@ func TestAccessLogIncludesResponseAndQuery(t *testing.T) {
 	handler.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest("GET", "/items?page=2", nil))
 	entry := logs.FilterMessage("HTTP request").All()[0].ContextMap()
 	assert.EqualValues(t, 418, entry["status"])
-	assert.Equal(t, "/items?page=2", entry["path"])
 	assert.EqualValues(t, 6, entry["size"])
 	assert.Equal(t, "GET", entry["method"])
+	assert.NotContains(t, entry, "path")
 }

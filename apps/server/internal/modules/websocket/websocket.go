@@ -39,8 +39,11 @@ func NewServer(
 	}
 
 	io.Use(func(s *socket.Socket, next func(*socket.ExtendedError)) {
-		access_token, ok := s.Request().Query().Get("token")
-		if !ok {
+		// The token comes in the auth payload of the socket.io CONNECT packet, not
+		// in the query string, which proxies write to their access logs.
+		auth, _ := s.Handshake().Auth.(map[string]any)
+		access_token, ok := auth["token"].(string)
+		if !ok || access_token == "" {
 			next(socket.NewExtendedError("access_token is required", "test"))
 			return
 		}

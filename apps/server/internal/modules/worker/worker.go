@@ -3,6 +3,8 @@ package worker
 import (
 	"context"
 
+	"peekaping/internal/reporting"
+
 	"github.com/hibiken/asynq"
 	"go.uber.org/zap"
 )
@@ -22,6 +24,7 @@ func NewWorker(
 	logger *zap.SugaredLogger,
 ) *Worker {
 	mux := asynq.NewServeMux()
+	mux.Use(reporting.AsynqMiddleware)
 
 	return &Worker{
 		server:      server,

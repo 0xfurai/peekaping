@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"peekaping/internal/modules/events"
+	"peekaping/internal/reporting"
 
 	"github.com/hibiken/asynq"
 	"go.uber.org/zap"
@@ -32,6 +33,7 @@ func NewQueueConsumer(server *asynq.Server, bus *QueuedBus, logger *zap.SugaredL
 func (c *QueueConsumer) Start() error {
 	c.logger.Info("Starting to take notifications from the queue")
 	mux := asynq.NewServeMux()
+	mux.Use(reporting.AsynqMiddleware)
 	mux.HandleFunc(TaskTypeNotification, c.ProcessTask)
 	return c.server.Start(mux)
 }

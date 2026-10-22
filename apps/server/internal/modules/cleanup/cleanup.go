@@ -11,6 +11,7 @@ import (
 	"peekaping/internal/modules/notification_sent_history"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/stats"
+	"peekaping/internal/reporting"
 
 	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
@@ -142,21 +143,27 @@ func StartCleanupCron(
 
 	c := cron.New()
 
-	c.AddFunc("0 * * * *", func() {
+	// cron runs each job on a goroutine of its own, and has no recover here: a panic in a job
+	// ends the process. The guard reports it first, then lets it crash as before.
+	job := func(run func()) func() {
+		return func() { reporting.Guard("cleanup", run) }
+	}
+
+	c.AddFunc("0 * * * *", job(func() {
 		cleanupHeartbeats(heartbeatService, settingService, logger)
-	})
+	}))
 
-	c.AddFunc("0 * * * *", func() {
+	c.AddFunc("0 * * * *", job(func() {
 		cleanupStats(statsService, logger)
-	})
+	}))
 
-	c.AddFunc("0 * * * *", func() {
+	c.AddFunc("0 * * * *", job(func() {
 		cleanupNotificationHistory(notificationHistoryService, logger)
-	})
+	}))
 
-	c.AddFunc("0 * * * *", func() {
+	c.AddFunc("0 * * * *", job(func() {
 		cleanupMonitorTLSInfo(tlsInfoService, logger)
-	})
+	}))
 
 	c.Start()
 	return c
