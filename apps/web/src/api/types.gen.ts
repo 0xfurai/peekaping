@@ -748,7 +748,7 @@ export type TelemetryFeatures = {
 
 export type TelemetryPayload = {
   /**
-   * The storage backend: sqlite, postgres or mongo. Empty for a backend the ping doesn't report.
+   * The storage backend: sqlite, postgres, mysql or mongo. Empty for a backend the ping doesn't report.
    */
   db: string;
   /**
