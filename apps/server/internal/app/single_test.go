@@ -7,6 +7,7 @@ import (
 
 	"peekaping/internal"
 	"peekaping/internal/config"
+	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
@@ -66,6 +67,7 @@ func TestRegisterSingle_ResolvesWhatCmdPeekapingRuns(t *testing.T) {
 		_ *notification_channel.NotificationEventListener,
 		_ *monitor.MonitorEventListener,
 		_ monitor.Service,
+		_ dbtx.Transactor,
 		_ *metrics.Collector,
 		_ *internal.Server,
 		_ *websocket.Server,
