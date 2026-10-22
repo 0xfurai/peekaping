@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 	"peekaping/internal/httpx"
+	"strings"
 	"testing"
 	"time"
 
@@ -21,6 +22,34 @@ func serve(t *testing.T, timeouts httpx.Timeouts, handler http.Handler) string {
 	go func() { _ = server.Serve(listener) }()
 	t.Cleanup(func() { _ = server.Close() })
 	return listener.Addr().String()
+}
+
+func TestNewServer_RefusesARequestWithAHeaderBlockOver64KiB(t *testing.T) {
+	addr := serve(t, httpx.DefaultTimeouts(), http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	}))
+
+	// A new connection for each request: Go counts up to 4 KiB more than MaxHeaderBytes, and
+	// up to 4 KiB again on a connection that already served a request
+	client := &http.Client{Transport: &http.Transport{DisableKeepAlives: true}}
+	for _, tc := range []struct {
+		name string
+		size int
+		want int
+	}{
+		{"60 KiB", 60 << 10, http.StatusNoContent},
+		{"70 KiB", 70 << 10, http.StatusRequestHeaderFieldsTooLarge},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			req, err := http.NewRequest(http.MethodGet, "http://"+addr+"/", nil)
+			require.NoError(t, err)
+			req.Header.Set("X-Padding", strings.Repeat("a", tc.size))
+			resp, err := client.Do(req)
+			require.NoError(t, err)
+			_ = resp.Body.Close()
+			assert.Equal(t, tc.want, resp.StatusCode)
+		})
+	}
 }
 
 func TestNewServer_ClosesAClientThatSendsItsHeadersSlowly(t *testing.T) {
