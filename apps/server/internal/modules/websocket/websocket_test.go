@@ -366,9 +366,11 @@ func TestMalformedRoomMessagesDontCrashTheServer(t *testing.T) {
 func TestEventPacketWithoutPayloadDoesntCrashTheServer(t *testing.T) {
 	h := newHarness(t)
 	bad := h.connect(t)
-	// The library closes the session and aborts this request, so the POST's own
-	// result (200 or 429) isn't part of what the test checks.
-	_ = bad.post("42")
+	// The library closes the session and may abort this request with a 429, but the
+	// packet has to reach the server for the test to mean anything.
+	if err := bad.post("42"); err != nil {
+		require.EqualError(t, err, `POST "42": 429 Too Many Requests`)
+	}
 
 	c := h.connect(t)
 	c.join(t, h.bus, "monitor:"+monitorA, monitorA)
