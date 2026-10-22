@@ -13,7 +13,7 @@ func Recovery(logger *zap.SugaredLogger) Middleware {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			defer func() {
 				if err := recover(); err != nil {
-					logger.Errorw("HTTP handler panic", "error", err)
+					Log(r.Context(), logger).Errorw("HTTP handler panic", "error", err)
 					w.WriteHeader(http.StatusInternalServerError)
 				}
 			}()
