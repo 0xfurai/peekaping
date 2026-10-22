@@ -1289,7 +1289,7 @@
     "telemetry": {
       "description": "Saada anonüümset statistikat selle kohta, kuidas see paigaldus on seadistatud, kõige rohkem kord päevas. Vaikimisi sisse lülitatud; saate selle siin igal ajal välja lülitada.",
       "forced_off": "Keskkonnamuutuja TELEMETRY=off või DO_NOT_TRACK=1 lülitab selle välja. Midagi ei saadeta, olenemata sellest, mida see säte ütleb.",
-      "id_note": "Eksemplari ID luuakse kuni sisselülitatud oleku ajal ja kustutatakse väljalülitamisel. Uuesti sisselülitamisel luuakse uus.",
+      "id_note": "Eksemplari ID luuakse sisselülitatud oleku ajal ja kustutatakse väljalülitamisel. Uuesti sisselülitamisel luuakse uus.",
       "payload_off": "Kuni see on välja lülitatud, ei saadeta midagi. Selline oleks kasutusping, kui selle sisse lülitaksite.",
       "payload_title": "Mida järgmine kasutusping saadab",
       "title": "Kasutusstatistika"
@@ -1396,7 +1396,7 @@
     "never_sent": "Ei saadeta kunagi: monitoride nimesid, URL-e, hoste, silte, olekusivude aadresse ega teavituste seadeid. Kasutusping ei sisalda IP-aadressi ning Peekapingi Worker ei salvesta saatja IP-d.",
     "not_saved": "Teie valikut kasutusstatistika kohta ei salvestatud. Kontrollige seda jaotises „Seaded“.",
     "sent_features": "Kas kasutate olekusivusid, hooldusaknaid ja mõõdikuid",
-    "sent_id": "Juhuslik ID, mis luuakse kuni sisselülitatud oleku ajal ja kustutatakse väljalülitamisel",
+    "sent_id": "Juhuslik ID, mis luuakse sisselülitatud oleku ajal ja kustutatakse väljalülitamisel",
     "sent_monitors": "Mitu monitoori teil on, vahemikuna, näiteks 11-50",
     "sent_setup": "Peekapingi versioon, ühe- või klastrirežiim, andmesalv ning operatsioonisüsteem ja protsessori tüüp",
     "sent_types": "Kasutatavate monitoride ja teavituskanalite liigid, näiteks http või telegram"
