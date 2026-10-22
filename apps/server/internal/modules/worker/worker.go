@@ -1,9 +1,8 @@
 package worker
 
 import (
-	"peekaping/internal/shutdown"
-
 	"peekaping/internal/reporting"
+	"peekaping/internal/shutdown"
 
 	"github.com/hibiken/asynq"
 	"go.uber.org/zap"
@@ -11,11 +10,10 @@ import (
 
 // Worker manages task processing from the queue
 type Worker struct {
-	server      *asynq.Server
-	mux         *asynq.ServeMux
-	healthCheck *HealthCheckTaskHandler
-	running     shutdown.RunningTasks // the tasks the handler is running
-	logger      *zap.SugaredLogger
+	server  *asynq.Server
+	mux     *asynq.ServeMux
+	running shutdown.RunningTasks // the tasks the handler is running
+	logger  *zap.SugaredLogger
 }
 
 // NewWorker creates a new worker
@@ -27,21 +25,20 @@ func NewWorker(
 	mux := asynq.NewServeMux()
 	mux.Use(reporting.AsynqMiddleware)
 
-	return &Worker{
-		server:      server,
-		mux:         mux,
-		healthCheck: healthCheck,
-		logger:      logger.With("component", "worker"),
+	w := &Worker{
+		server: server,
+		mux:    mux,
+		logger: logger.With("component", "worker"),
 	}
+	// Registered here, not by Start: a mux panics on a second registration
+	w.mux.HandleFunc(TaskTypeHealthCheck, w.running.Wrap(healthCheck.ProcessTask))
+	return w
 }
 
 // Start starts the worker. It takes no context: the asynq server runs until Stop, and its
 // Shutdown is what waits for the running tasks.
 func (w *Worker) Start() error {
 	w.logger.Info("Starting worker")
-
-	// Register task handlers
-	w.mux.HandleFunc(TaskTypeHealthCheck, w.running.Wrap(w.healthCheck.ProcessTask))
 
 	// Start the server with the mux
 	if err := w.server.Start(w.mux); err != nil {
