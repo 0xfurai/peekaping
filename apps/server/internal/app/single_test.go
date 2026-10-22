@@ -1,12 +1,18 @@
 package app
 
 import (
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"path/filepath"
+	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
 	"peekaping/internal"
 	"peekaping/internal/config"
+	"peekaping/internal/httpx"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
@@ -23,6 +29,7 @@ import (
 	"peekaping/internal/modules/stats"
 	"peekaping/internal/modules/websocket"
 
+	"github.com/danielgtaylor/huma/v2"
 	"github.com/hibiken/asynq"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
@@ -102,5 +109,36 @@ func TestRegisterSingle_IngestsThePushURLThroughTheSchedulersInOrderService(t *t
 		closeEventBus(t, bus)
 		closeDB(t, db)
 		assert.Same(t, svc, ingester.NewInOrderService(svc), "the provided ingester.Service is in order")
+	}))
+}
+
+// The controller validates and sends with the providers the container gives it, so a Test
+// notification works with only the controller resolved, without the listener built first
+func TestRegisterSingle_TestsAChannelWithoutTheNotificationListenerBuilt(t *testing.T) {
+	var webhookCalls atomic.Int32
+	target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		webhookCalls.Add(1)
+	}))
+	t.Cleanup(target.Close)
+	webhookConfig, err := json.Marshal(map[string]string{"webhook_url": target.URL, "webhook_content_type": "json"})
+	require.NoError(t, err)
+	body, err := json.Marshal(map[string]string{"name": "Alerts", "type": "webhook", "config": string(webhookConfig)})
+	require.NoError(t, err)
+
+	container := dig.New()
+	require.NoError(t, RegisterSingle(container, singleConfig(t)))
+
+	require.NoError(t, container.Invoke(func(controller *notification_channel.Controller, db *bun.DB) {
+		closeDB(t, db)
+		router := httpx.NewRouter()
+		httpx.Register(router, "POST", "/test", huma.Operation{Errors: []int{400, 404, 500}}, controller.Test)
+
+		req := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader(string(body)))
+		req.Header.Set("Content-Type", "application/json")
+		rec := httptest.NewRecorder()
+		router.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+		assert.Equal(t, int32(1), webhookCalls.Load(), "requests the webhook got")
 	}))
 }

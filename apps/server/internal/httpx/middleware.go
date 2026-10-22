@@ -2,6 +2,7 @@ package httpx
 
 import (
 	"net/http"
+	"slices"
 
 	"github.com/felixge/httpsnoop"
 	"go.uber.org/zap"
@@ -12,7 +13,7 @@ func Recovery(logger *zap.SugaredLogger) Middleware {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			defer func() {
 				if err := recover(); err != nil {
-					logger.Errorw("HTTP handler panic", "error", err)
+					Log(r.Context(), logger).Errorw("HTTP handler panic", "error", err)
 					w.WriteHeader(http.StatusInternalServerError)
 				}
 			}()
@@ -21,17 +22,44 @@ func Recovery(logger *zap.SugaredLogger) Middleware {
 	}
 }
 
-// Logger logs each request. The client address it logs is the one proxies resolves.
+// quietRoutes are the health and metrics endpoints that probes poll, which Logger logs at debug
+// level.
+var quietRoutes = []string{"/health", "/api/v1/health", "/metrics"}
+
+// Logger logs each request once it is done, after RequestID. It logs the pattern of the route
+// that served the request, empty when none did, and never the path or the query, which can hold
+// a secret such as a push token. The requests to quietRoutes go to debug level, and the others
+// to info level; a request that no route served is matched by its path. The client address it
+// logs is the one proxies resolves. A request that an outer Logger already handles is passed
+// through, so that it is logged once.
 func Logger(logger *zap.SugaredLogger, proxies *TrustedProxies) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			info := requestInfoFrom(r.Context())
+			if info != nil {
+				if info.logged {
+					next.ServeHTTP(w, r)
+					return
+				}
+				info.logged = true
+			}
 			// Preserve optional ResponseWriter interfaces for streaming and upgrades.
 			metrics := httpsnoop.CaptureMetrics(next, w, r)
-			path := r.URL.Path
-			if r.URL.RawQuery != "" {
-				path += "?" + r.URL.RawQuery
+			route := ""
+			if info != nil {
+				route = info.route
 			}
-			logger.Infow("HTTP request", "method", r.Method, "path", path,
+			// With no route, as when the web gateway serves the request itself, the path decides.
+			// A client can make its path quiet, which only lowers the level of its own request.
+			quiet := route
+			if quiet == "" {
+				quiet = r.URL.Path
+			}
+			level := zap.InfoLevel
+			if slices.Contains(quietRoutes, quiet) {
+				level = zap.DebugLevel
+			}
+			Log(r.Context(), logger).Logw(level, "HTTP request", "method", r.Method, "route", route,
 				"status", metrics.Code, "client_ip", proxies.ClientIP(r), "size", metrics.Written, "duration", metrics.Duration)
 		})
 	}
@@ -69,11 +97,11 @@ func CORS(origins *CORSOrigins) Middleware {
 			w.Header().Add("Vary", "Origin")
 			if r.Method == http.MethodOptions {
 				w.Header().Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS,PATCH")
-				w.Header().Set("Access-Control-Allow-Headers", "Origin,X-Requested-With,Content-Type,Accept,Authorization")
+				w.Header().Set("Access-Control-Allow-Headers", "Origin,X-Requested-With,Content-Type,Accept,Authorization,X-Request-ID")
 				w.WriteHeader(http.StatusNoContent)
 				return
 			}
-			w.Header().Set("Access-Control-Expose-Headers", "Authorization")
+			w.Header().Set("Access-Control-Expose-Headers", "Authorization, X-Request-ID")
 			next.ServeHTTP(w, r)
 		})
 	}
