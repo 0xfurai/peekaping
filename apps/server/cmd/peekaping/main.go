@@ -23,6 +23,7 @@ import (
 
 	"peekaping/internal"
 	"peekaping/internal/app"
+	"peekaping/internal/httpx"
 	"peekaping/internal/infra"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/cleanup"
@@ -153,6 +154,7 @@ type parts struct {
 	NotificationListener *notification_channel.NotificationEventListener
 	MonitorListener      *monitor.MonitorEventListener
 	Metrics              *metrics.Collector
+	TrustedProxies       *httpx.TrustedProxies
 }
 
 // run starts Peekaping and serves the API on the listener until ctx is done. Then it stops
@@ -178,14 +180,16 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 	}
 
 	// The API router serves every request. With WEB_DIR set, the gateway sends it the API's
-	// paths and serves the web app on the others.
+	// paths and serves the web app on the others. The gateway answers some requests itself, so
+	// it gets the request ID and the request log too. The router's own pass a request that comes
+	// through the gateway.
 	handler := http.Handler(p.Server.Router)
 	if cfg.WebDir != "" {
 		gateway, err := web.NewGateway(web.Config{Dir: cfg.WebDir, APIURL: cfg.APIURL, Metrics: cfg.MetricsEnabled}, p.Server.Router, logger)
 		if err != nil {
 			return fmt.Errorf("failed to serve the web app from WEB_DIR: %w", err)
 		}
-		handler = gateway
+		handler = httpx.Chain(gateway, httpx.RequestID, httpx.Logger(logger, p.TrustedProxies))
 	}
 
 	jobs, err := startJobs(ctx, p, cfg.MetricsEnabled, logger)
