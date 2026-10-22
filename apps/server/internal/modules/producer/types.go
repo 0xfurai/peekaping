@@ -41,6 +41,7 @@ type Producer struct {
 	leaderElection          *LeaderElection
 	electionCancel          context.CancelFunc // ends the election, which releases the leadership; Stop does that last. Nil until Start
 	electionDone            <-chan struct{}    // closes once the election has released the leadership; nil until Start
+	stopOnce                sync.Once          // runs the stop once, whether Stop or the end of Start's ctx asks first
 	concurrency             int                // number of concurrent producer goroutines
 	watchdog                *stale.Watchdog
 }

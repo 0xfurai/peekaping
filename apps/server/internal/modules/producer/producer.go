@@ -76,8 +76,10 @@ func (p *Producer) Start(ctx context.Context) error {
 	}
 	p.logger.Info("Starting producer with leader election")
 
-	// The election ends with ctx, or when Stop ends it after the scheduling and the watchdog
-	electionCtx, electionCancel := context.WithCancel(ctx)
+	// Only Stop ends the election, once the scheduling and the watchdog have stopped. When ctx is
+	// done, it runs Stop, which keeps that order: the election ending with ctx would release the
+	// leadership while this producer still schedules.
+	electionCtx, electionCancel := context.WithCancel(context.WithoutCancel(ctx))
 	p.electionCancel = electionCancel
 	p.leaderElection.Start(electionCtx)
 	p.electionDone = p.leaderElection.Done()
@@ -89,6 +91,8 @@ func (p *Producer) Start(ctx context.Context) error {
 	// Start a goroutine to monitor leadership changes for monitor syncing
 	p.wg.Add(1)
 	reporting.Go("producer", p.runLeadershipMonitor)
+
+	context.AfterFunc(ctx, p.Stop)
 
 	p.logger.Info("Producer started successfully")
 	return nil
@@ -114,6 +118,11 @@ func (p *Producer) Stop() {
 	if p.cancel == nil {
 		return
 	}
+	// A second Stop, or the one ctx runs, waits for the first to finish
+	p.stopOnce.Do(p.stop)
+}
+
+func (p *Producer) stop() {
 	p.logger.Info("Stopping producer")
 	p.cancel()
 	// These end together, as p.ctx is done, and are waited for in the order of the stop

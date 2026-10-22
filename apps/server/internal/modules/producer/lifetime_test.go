@@ -106,7 +106,26 @@ func TestStop_ReturnsOnceTheLeadershipIsReleased(t *testing.T) {
 }
 
 func TestStop_StopsSchedulingAndTheWatchdogBeforeItReleasesTheLeadership(t *testing.T) {
-	e := startedLeader(t, context.Background())
+	t.Run("on Stop", func(t *testing.T) {
+		e := startedLeader(t, context.Background())
+		assertReleasesTheLeadershipLast(t, e, e.producer.Stop)
+	})
+	t.Run("when the context given to Start is done", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		e := startedLeader(t, ctx)
+		assertReleasesTheLeadershipLast(t, e, func() {
+			cancel()
+			// Stop waits for the stop the cancel started
+			e.producer.Stop()
+		})
+	})
+}
+
+// assertReleasesTheLeadershipLast runs stop and checks that the leadership is released only once
+// the scheduling and the watchdog have stopped, and that stop returns after the release
+func assertReleasesTheLeadershipLast(t *testing.T, e *leaderEngine, stop func()) {
+	t.Helper()
 	steps := []string{"Stopping producer", "Stopped scheduling", "Stopped the watchdog", "Producer stopped"}
 	// The steps Stop has logged when Redis gets the command that releases the leadership
 	var loggedAtRelease []string
@@ -130,7 +149,7 @@ func TestStop_StopsSchedulingAndTheWatchdogBeforeItReleasesTheLeadership(t *test
 	stopped := make(chan struct{})
 	go func() {
 		defer close(stopped)
-		e.producer.Stop()
+		stop()
 	}()
 
 	select {
