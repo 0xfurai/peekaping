@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"peekaping/internal/config"
 	"peekaping/internal/modules/probe"
 
 	"github.com/google/uuid"
@@ -212,6 +213,29 @@ func TestProbesAPI_LocalCannotBeDeletedRotatedOrDisabled(t *testing.T) {
 	assert.Equal(t, []string{channel}, renamed.NotificationIDs)
 	assert.False(t, renamed.Disabled)
 	assert.Equal(t, renamed, decode[probeResponse](t, a.request(t, http.MethodGet, local, nil, a.asAdmin), http.StatusOK))
+}
+
+func TestProbesAPI_BootstrapTokenAuthenticatesLocal(t *testing.T) {
+	const token = "bootstrap-token-0123456789-abcdefghijklmnop"
+	a := newAppWithAdmin(t, func(cfg *config.Config) { cfg.ProbeBootstrapToken = token })
+
+	found := a.probeByToken(t, token)
+
+	require.NotNil(t, found, "the bootstrap token finds a probe")
+	assert.Equal(t, "local", found.ID)
+	assert.Nil(t, a.probeByToken(t, token+"x"))
+	local := decode[probeResponse](t, a.request(t, http.MethodGet, probesPath+"/local", nil, a.asAdmin), http.StatusOK)
+	assert.Equal(t, "bootstra", local.TokenPrefix)
+	assert.NotContains(t, a.request(t, http.MethodGet, probesPath, nil, a.asAdmin).Body.String(), token)
+}
+
+func TestProbesAPI_WithoutABootstrapTokenLocalHasNone(t *testing.T) {
+	a := newAppWithAdmin(t)
+
+	local := decode[probeResponse](t, a.request(t, http.MethodGet, probesPath+"/local", nil, a.asAdmin), http.StatusOK)
+
+	assert.Equal(t, "", local.TokenPrefix)
+	assert.Nil(t, a.probeByToken(t, ""))
 }
 
 func TestProbesAPI_NotificationChannels(t *testing.T) {
