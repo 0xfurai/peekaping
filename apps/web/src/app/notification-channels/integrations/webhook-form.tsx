@@ -1,5 +1,4 @@
 import { Input } from "@/components/ui/input";
-import { PasswordInput } from "@/components/ui/password-input";
 import {
   FormField,
   FormItem,
@@ -9,6 +8,8 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { z } from "zod";
+import { SecretInput, SecretTextarea } from "../components/saved-secrets";
+import { withSavedSecret } from "../secrets";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
@@ -21,8 +22,8 @@ export const schema = z.object({
   webhook_url: z.string().url({ message: "Valid URL is required" }),
   webhook_content_type: z.enum(["json", "form-data", "custom"]),
   webhook_custom_body: z.string().optional(),
-  webhook_additional_headers: z.string().optional(),
-  webhook_signing_secret: z.string().optional(),
+  webhook_additional_headers: withSavedSecret(z.string()).optional(),
+  webhook_signing_secret: withSavedSecret(z.string()).optional(),
 });
 
 export type WebhookFormValues = z.infer<typeof schema>;
@@ -174,7 +175,7 @@ export default function WebhookForm() {
             </FormDescription>
             {showAdditionalHeaders && (
               <FormControl>
-                <Textarea
+                <SecretTextarea
                   placeholder={headersPlaceholder}
                   className="min-h-[150px] font-mono text-sm"
                   {...field}
@@ -193,7 +194,7 @@ export default function WebhookForm() {
           <FormItem>
             <FormLabel>{t("notifications.form.webhook.signing_secret_label")}</FormLabel>
             <FormControl>
-              <PasswordInput
+              <SecretInput
                 placeholder={t("notifications.form.webhook.signing_secret_placeholder")}
                 autoComplete="new-password"
                 {...field}

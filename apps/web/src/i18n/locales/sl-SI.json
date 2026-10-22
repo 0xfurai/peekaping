@@ -1113,7 +1113,13 @@
     "placeholders": {
       "select_type": "Izberi tip obveščalnika"
     },
-    "search_placeholder": "Išči kanale obvestil po imenu..."
+    "search_placeholder": "Išči kanale obvestil po imenu...",
+    "secret": {
+      "reenter_error": "Ponovno vnesite to skrivnost ali jo odstranite: mesto, kamor se pošilja, se je spremenilo",
+      "reenter_hint": "Ponovno vnesite to skrivnost: mesto, kamor se pošilja, se je spremenilo",
+      "remove": "Odstrani",
+      "saved_hint": "Shranjeno — vnesite za zamenjavo"
+    }
   },
   "proxies": {
     "delete_dialog": {

@@ -8,6 +8,8 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { z } from "zod";
+import { SecretInput } from "../components/saved-secrets";
+import { withSavedSecret } from "../secrets";
 import {
   Select,
   SelectTrigger,
@@ -22,7 +24,7 @@ import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const schema = z.object({
   type: z.literal("discord"),
-  webhook_url: z.string().url({ message: "Valid webhook URL is required" }),
+  webhook_url: withSavedSecret(z.string().url({ message: "Valid webhook URL is required" })),
   bot_display_name: z.string().min(1, { message: "Bot display name is required" }),
   custom_message_prefix: z.string().optional(),
   message_type: z.enum(["send_to_channel", "send_to_new_forum_post", "send_to_thread"], { message: "Message type is required" }),
@@ -60,9 +62,9 @@ export default function DiscordForm() {
               {t("notifications.form.discord.webhook_url_label")}
             </FormLabel>
             <FormControl>
-              <Input
+              <SecretInput
                 placeholder="https://discord.com/api/webhooks/..."
-                type="url"
+                autoComplete="off"
                 required
                 {...field}
               />
@@ -79,6 +81,7 @@ export default function DiscordForm() {
                   </AlertDescription>
                 </Alert>
               </FormDescription>
+            <FormMessage />
           </FormItem>
         )}
       />

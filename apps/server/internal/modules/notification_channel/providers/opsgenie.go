@@ -18,7 +18,7 @@ import (
 // OpsgenieConfig holds the configuration for Opsgenie notifications
 type OpsgenieConfig struct {
 	Region   string `json:"region" validate:"required,oneof=us eu"`
-	ApiKey   string `json:"api_key" validate:"required"`
+	ApiKey   string `json:"api_key" validate:"required" secret:"true"`
 	Priority int    `json:"priority" validate:"omitempty,min=1,max=5"`
 }
 

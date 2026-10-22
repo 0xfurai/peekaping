@@ -161,55 +161,85 @@ func sha256OfFile(t *testing.T, path string) [sha256.Size]byte {
 // A database that fails the startup check is damaged, and a process that goes on writing to it
 // makes the damage worse. Startup stops with an error instead, and the file is left as it was,
 // so the operator can restore a backup or salvage the data. Before it stops, the log tells the
-// operator what SQLite found and what to do.
+// operator what SQLite found and what to do. Both checks stop it: the quick check by default, and
+// the full check when SQLITE_STARTUP_CHECK says so.
 func TestProvideSQLDB_StopsOnACorruptDatabase(t *testing.T) {
+	for _, check := range []struct{ name, mode, label, pragma string }{
+		{"unset means quick", "", "quick", "quick_check"},
+		{"quick", "quick", "quick", "quick_check"},
+		{"full", "full", "full", "integrity_check"},
+	} {
+		t.Run(check.name, func(t *testing.T) {
+			t.Setenv("BUNDEBUG", "0")
+			path := filepath.Join(t.TempDir(), "peekaping.db")
+			writeCorruptSQLiteDatabase(t, path)
+			before := sha256OfFile(t, path)
+
+			core, logs := observer.New(zapcore.DebugLevel)
+			db, err := ProvideSQLDB(&config.Config{DBType: "sqlite", DBName: path, SQLiteStartupCheck: check.mode}, zap.New(core).Sugar())
+			if db != nil {
+				t.Cleanup(func() { _ = db.Close() })
+			}
+
+			require.Error(t, err)
+			require.Nil(t, db)
+			require.ErrorContains(t, err, "is corrupt")
+			// the first finding, on one line: SQLite's first row is two lines, "*** in database main ***"
+			// and the finding
+			require.ErrorContains(t, err, "Tree 2 page 4: btreeInitPage() returns error code 11")
+			require.NotContains(t, err.Error(), "\n")
+			require.ErrorContains(t, err, "https://docs.peekaping.com/self-hosting/sqlite-recovery")
+			require.Equal(t, before, sha256OfFile(t, path), "the database file was changed")
+
+			// the report: what stopped, every finding, then the procedure with the docs link
+			errorEntries := logs.FilterLevelExact(zapcore.ErrorLevel).All()
+			require.GreaterOrEqual(t, len(errorEntries), 3, "the stop, at least one finding, the procedure")
+			require.Equal(t,
+				"SQLite "+check.label+" check found corruption in "+path+". Peekaping stops here and doesn't change the file.",
+				errorEntries[0].Message)
+			findings := errorEntries[1 : len(errorEntries)-1]
+			for _, finding := range findings {
+				require.True(t, strings.HasPrefix(finding.Message, check.pragma+": "), finding.Message)
+			}
+			require.Contains(t, findings[len(findings)-1].Message, "btreeInitPage() returns error code 11")
+			procedure := errorEntries[len(errorEntries)-1].Message
+			for _, step := range []string{
+				"Stop every Peekaping process that uses this database",
+				"Keep the original database file together with its -wal and -shm files",
+				"Restore a tested backup",
+				"sqlite3 .recover",
+				"PRAGMA integrity_check",
+				"https://docs.peekaping.com/self-hosting/sqlite-recovery",
+			} {
+				require.Contains(t, procedure, step)
+			}
+			// the old startup logged "Database integrity check FAILED" and ran the full check
+			for _, entry := range logs.All() {
+				require.NotContains(t, entry.Message, "Database integrity check")
+			}
+		})
+	}
+}
+
+// SQLITE_STARTUP_CHECK=off is the operator's choice not to check at startup, say because a
+// database of many gigabytes makes even the quick check slow, or because the file is known to
+// have findings that are being dealt with. The database opens as it did before a finding could
+// stop startup, and the log says that no check ran.
+func TestProvideSQLDB_OpensACorruptDatabaseWhenTheStartupCheckIsOff(t *testing.T) {
 	t.Setenv("BUNDEBUG", "0")
 	path := filepath.Join(t.TempDir(), "peekaping.db")
 	writeCorruptSQLiteDatabase(t, path)
-	before := sha256OfFile(t, path)
 
 	core, logs := observer.New(zapcore.DebugLevel)
-	db, err := ProvideSQLDB(&config.Config{DBType: "sqlite", DBName: path}, zap.New(core).Sugar())
+	db, err := ProvideSQLDB(&config.Config{DBType: "sqlite", DBName: path, SQLiteStartupCheck: "off"}, zap.New(core).Sugar())
 	if db != nil {
 		t.Cleanup(func() { _ = db.Close() })
 	}
 
-	require.Error(t, err)
-	require.Nil(t, db)
-	require.ErrorContains(t, err, "is corrupt")
-	// the first finding, on one line: SQLite's first row is two lines, "*** in database main ***"
-	// and the finding
-	require.ErrorContains(t, err, "Tree 2 page 4: btreeInitPage() returns error code 11")
-	require.NotContains(t, err.Error(), "\n")
-	require.ErrorContains(t, err, "https://docs.peekaping.com/self-hosting/sqlite-recovery")
-	require.Equal(t, before, sha256OfFile(t, path), "the database file was changed")
-
-	// the report: what stopped, every finding, then the procedure with the docs link
-	errorEntries := logs.FilterLevelExact(zapcore.ErrorLevel).All()
-	require.GreaterOrEqual(t, len(errorEntries), 3, "the stop, at least one finding, the procedure")
-	require.Equal(t,
-		"SQLite quick check found corruption in "+path+". Peekaping stops here and doesn't change the file.",
-		errorEntries[0].Message)
-	findings := errorEntries[1 : len(errorEntries)-1]
-	for _, finding := range findings {
-		require.True(t, strings.HasPrefix(finding.Message, "quick_check: "), finding.Message)
-	}
-	require.Contains(t, findings[len(findings)-1].Message, "btreeInitPage() returns error code 11")
-	procedure := errorEntries[len(errorEntries)-1].Message
-	for _, step := range []string{
-		"Stop every Peekaping process that uses this database",
-		"Keep the original database file together with its -wal and -shm files",
-		"Restore a tested backup",
-		"sqlite3 .recover",
-		"PRAGMA integrity_check",
-		"https://docs.peekaping.com/self-hosting/sqlite-recovery",
-	} {
-		require.Contains(t, procedure, step)
-	}
-	// the old startup logged "Database integrity check FAILED" and ran the full check
-	for _, entry := range logs.All() {
-		require.NotContains(t, entry.Message, "Database integrity check")
-	}
+	require.NoError(t, err)
+	require.NotNil(t, db)
+	require.Empty(t, logs.FilterLevelExact(zapcore.ErrorLevel).All())
+	require.Len(t, logs.FilterMessage("SQLite startup check skipped: SQLITE_STARTUP_CHECK is off").All(), 1)
 }
 
 // A crash leaves a hot write-ahead log: committed changes that aren't in the main file yet. Closing
@@ -293,32 +323,60 @@ func TestProvideSQLDB_StopsOnACorruptDatabase_LeavesTheWriteAheadLogAlone(t *tes
 }
 
 // A full integrity check reads the whole file at every start: about 30s for 1.5 GB, against 1.6s
-// for the quick check. A healthy database starts with the quick check only, and the log says it
-// passed.
-func TestCheckSQLiteOnStartup_RunsTheQuickCheckOnly(t *testing.T) {
+// for the quick check. So a healthy database starts with the quick check only, unless
+// SQLITE_STARTUP_CHECK asks for the full one, or for none. The log says which check passed, or
+// that none ran.
+func TestCheckSQLiteOnStartup_RunsOnlyTheCheckTheModeNames(t *testing.T) {
+	for _, check := range []struct {
+		name, mode string
+		queries    []string
+		message    string
+	}{
+		{"unset means quick", "", []string{"PRAGMA quick_check"}, "SQLite quick check passed"},
+		{"quick", "quick", []string{"PRAGMA quick_check"}, "SQLite quick check passed"},
+		{"full", "full", []string{"PRAGMA integrity_check"}, "SQLite full check passed"},
+		{"off", "off", nil, "SQLite startup check skipped: SQLITE_STARTUP_CHECK is off"},
+	} {
+		t.Run(check.name, func(t *testing.T) {
+			t.Setenv("BUNDEBUG", "0")
+			path := filepath.Join(t.TempDir(), "peekaping.db")
+			db, err := ProvideSQLDB(&config.Config{DBType: "sqlite", DBName: path, SQLiteStartupCheck: "off"}, zap.NewNop().Sugar())
+			require.NoError(t, err)
+			t.Cleanup(func() { _ = db.Close() })
+			_, err = db.Exec("CREATE TABLE heartbeats (id INTEGER PRIMARY KEY, msg TEXT)")
+			require.NoError(t, err)
+			_, err = db.Exec("INSERT INTO heartbeats (msg) VALUES ('200 - OK')")
+			require.NoError(t, err)
+			hook := &recordQueries{}
+			db.AddQueryHook(hook)
+			core, logs := observer.New(zapcore.DebugLevel)
+
+			require.NoError(t, checkSQLiteOnStartup(db, path, check.mode, zap.New(core).Sugar()))
+
+			require.Equal(t, check.queries, hook.queries, "the queries the startup check ran")
+			entries := logs.All()
+			require.Len(t, entries, 1)
+			require.Equal(t, zapcore.InfoLevel, entries[0].Level)
+			require.Equal(t, check.message, entries[0].Message)
+		})
+	}
+}
+
+// A mode that no config validation let through would otherwise skip the check without a word, so
+// startup stops instead.
+func TestCheckSQLiteOnStartup_RefusesAnUnknownMode(t *testing.T) {
 	t.Setenv("BUNDEBUG", "0")
 	path := filepath.Join(t.TempDir(), "peekaping.db")
-	db, err := ProvideSQLDB(&config.Config{DBType: "sqlite", DBName: path}, zap.NewNop().Sugar())
+	db, err := ProvideSQLDB(&config.Config{DBType: "sqlite", DBName: path, SQLiteStartupCheck: "off"}, zap.NewNop().Sugar())
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = db.Close() })
-	_, err = db.Exec("CREATE TABLE heartbeats (id INTEGER PRIMARY KEY, msg TEXT)")
-	require.NoError(t, err)
-	_, err = db.Exec("INSERT INTO heartbeats (msg) VALUES ('200 - OK')")
-	require.NoError(t, err)
 	hook := &recordQueries{}
 	db.AddQueryHook(hook)
-	core, logs := observer.New(zapcore.DebugLevel)
 
-	require.NoError(t, checkSQLiteOnStartup(db, path, zap.New(core).Sugar()))
+	err = checkSQLiteOnStartup(db, path, "fast", zap.NewNop().Sugar())
 
-	require.Contains(t, hook.queries, "PRAGMA quick_check")
-	for _, query := range hook.queries {
-		require.NotContains(t, query, "integrity_check")
-	}
-	entries := logs.All()
-	require.Len(t, entries, 1)
-	require.Equal(t, zapcore.InfoLevel, entries[0].Level)
-	require.Equal(t, "SQLite quick check passed", entries[0].Message)
+	require.EqualError(t, err, `unsupported SQLITE_STARTUP_CHECK "fast". Supported values: quick, full, off`)
+	require.Empty(t, hook.queries)
 }
 
 // A check that can't run, say because another process holds a lock, isn't a finding: it's a
@@ -331,7 +389,7 @@ func TestCheckSQLiteOnStartup_WarnsAndGoesOnWhenTheCheckCantRun(t *testing.T) {
 	require.NoError(t, db.Close()) // every query on it fails now
 	core, logs := observer.New(zapcore.DebugLevel)
 
-	require.NoError(t, checkSQLiteOnStartup(db, path, zap.New(core).Sugar()))
+	require.NoError(t, checkSQLiteOnStartup(db, path, "quick", zap.New(core).Sugar()))
 
 	entries := logs.All()
 	require.Len(t, entries, 1)

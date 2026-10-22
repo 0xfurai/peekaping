@@ -8,13 +8,14 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { z } from "zod";
+import { SecretInput } from "../components/saved-secrets";
+import { withSavedSecret } from "../secrets";
 import { useFormContext } from "react-hook-form";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
-import { PasswordInput } from "@/components/ui/password-input";
 
 export const schema = z.object({
   type: z.literal("sendgrid"),
-  api_key: z.string().min(1, { message: "API key is required" }),
+  api_key: withSavedSecret(z.string().min(1, { message: "API key is required" })),
   from_email: z.string().email({ message: "Valid sender email is required" }),
   to_email: z.string().min(1, { message: "Recipient email(s) required" }),
   cc_email: z.string().optional(),
@@ -49,7 +50,7 @@ export default function SendGridForm() {
           <FormItem>
             <FormLabel>{t("sendgrid.api_key_label")}</FormLabel>
             <FormControl>
-              <PasswordInput
+              <SecretInput
                 placeholder="SG.xxxxxxxxxxxxxxxxxxxx"
                 {...field}
               />

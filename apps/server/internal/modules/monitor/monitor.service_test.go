@@ -3,6 +3,7 @@ package monitor
 import (
 	"context"
 	"errors"
+	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/events/eventstest"
 	"peekaping/internal/modules/healthcheck/executor"
@@ -281,6 +282,44 @@ func sinceAgo(d time.Duration) any {
 	return mock.MatchedBy(func(since time.Time) bool { return time.Since(since).Round(time.Hour) == d })
 }
 
+type txMarker struct{}
+
+// fakeTransactor is a dbtx.Transactor for tests that have no database. It runs fn with a ctx
+// that is marked as the transaction's, and counts how fn ended: a nil return is a commit, and an
+// error is a rollback of everything fn wrote. A repository mock that expects inTx only accepts
+// the calls made with that ctx, so a write made outside WithTx fails the test.
+type fakeTransactor struct {
+	bus *eventstest.Bus
+
+	committed  int
+	rolledBack int
+	// published is how many events were on the bus when the last transaction committed
+	published int
+}
+
+var _ dbtx.Transactor = (*fakeTransactor)(nil)
+
+func (f *fakeTransactor) WithTx(ctx context.Context, fn func(context.Context) error) error {
+	if ctx.Value(txMarker{}) != nil {
+		return fn(ctx) // joins the transaction, as dbtx does
+	}
+	if err := fn(context.WithValue(ctx, txMarker{}, f)); err != nil {
+		f.rolledBack++
+		return err
+	}
+	f.committed++
+	f.published = len(f.bus.Topics())
+	return nil
+}
+
+// inTx matches the ctx of a call made inside WithTx.
+var inTx = mock.MatchedBy(func(ctx context.Context) bool { return ctx.Value(txMarker{}) != nil })
+
+// transactionOf returns the fake transactor the service was built with.
+func transactionOf(service *MonitorServiceImpl) *fakeTransactor {
+	return service.transactor.(*fakeTransactor)
+}
+
 // Test setup helper
 func setupMonitorService() (*MonitorServiceImpl, *MockMonitorRepository, *MockHeartbeatService, *eventstest.Bus, *MockMonitorNotificationService, *MockMonitorTagService, *MockExecutorRegistry, *MockStatsService) {
 	mockRepo := &MockMonitorRepository{}
@@ -297,6 +336,7 @@ func setupMonitorService() (*MonitorServiceImpl, *MockMonitorRepository, *MockHe
 
 	service := NewMonitorService(
 		mockRepo,
+		&fakeTransactor{bus: eventBus},
 		mockHeartbeatService,
 		eventBus,
 		mockNotificationService,
@@ -310,29 +350,34 @@ func setupMonitorService() (*MonitorServiceImpl, *MockMonitorRepository, *MockHe
 }
 
 func TestMonitorService_Create(t *testing.T) {
-	service, mockRepo, _, bus, _, _, _, _ := setupMonitorService()
 	ctx := context.Background()
 
 	t.Run("successful creation", func(t *testing.T) {
+		service, mockRepo, _, bus, notifications, tags, _, _ := setupMonitorService()
 		createDto := &CreateUpdateDto{
-			Type:           "http",
-			Name:           "Test Monitor",
-			Interval:       60,
-			Timeout:        16,
-			MaxRetries:     3,
-			RetryInterval:  45,
-			ResendInterval: 10,
-			Active:         true,
-			Config:         "{}",
-			ProxyId:        "proxy123",
-			PushToken:      "token123",
+			Type:            "http",
+			Name:            "Test Monitor",
+			Interval:        60,
+			Timeout:         16,
+			MaxRetries:      3,
+			RetryInterval:   45,
+			ResendInterval:  10,
+			Active:          true,
+			NotificationIds: []string{"channel-a", "channel-b"},
+			TagIds:          []string{"tag-a"},
+			Config:          "{}",
+			ProxyId:         "proxy123",
+			PushToken:       "token123",
 		}
 
 		var saved *Model
 		created := &Model{ID: "monitor123"}
-		mockRepo.On("Create", ctx, mock.Anything).Run(func(args mock.Arguments) {
+		mockRepo.On("Create", inTx, mock.Anything).Run(func(args mock.Arguments) {
 			saved = args.Get(1).(*Model)
 		}).Return(created, nil).Once()
+		notifications.On("Create", inTx, "monitor123", "channel-a").Return(&monitor_notification.Model{}, nil).Once()
+		notifications.On("Create", inTx, "monitor123", "channel-b").Return(&monitor_notification.Model{}, nil).Once()
+		tags.On("Create", inTx, "monitor123", "tag-a").Return(&monitor_tag.Model{}, nil).Once()
 
 		before := time.Now().UTC()
 		result, err := service.Create(ctx, createDto)
@@ -340,6 +385,9 @@ func TestMonitorService_Create(t *testing.T) {
 		require.NoError(t, err)
 		assert.Same(t, created, result)
 		assert.Equal(t, []shared.Monitor{*created}, eventstest.Published(bus, events.MonitorCreated))
+		tx := transactionOf(service)
+		assert.Equal(t, 1, tx.committed, "the monitor and its links are one transaction")
+		assert.Equal(t, 0, tx.published, "the event is published once the transaction has committed, not before")
 		require.NotNil(t, saved)
 		assert.WithinRange(t, saved.CreatedAt, before, time.Now().UTC())
 		assert.Equal(t, time.UTC, saved.CreatedAt.Location())
@@ -359,23 +407,83 @@ func TestMonitorService_Create(t *testing.T) {
 			PushToken:      "token123",
 		}, saved, "the repository gets every field of the request, and the monitor starts Pending")
 		mockRepo.AssertExpectations(t)
+		notifications.AssertExpectations(t)
+		tags.AssertExpectations(t)
+	})
+
+	t.Run("links a repeated ID once", func(t *testing.T) {
+		service, mockRepo, _, _, notifications, tags, _, _ := setupMonitorService()
+		mockRepo.On("Create", inTx, mock.Anything).Return(&Model{ID: "monitor123"}, nil)
+		var linked []string
+		notifications.On("Create", inTx, "monitor123", mock.Anything).Run(func(args mock.Arguments) {
+			linked = append(linked, "channel "+args.String(2))
+		}).Return(&monitor_notification.Model{}, nil)
+		tags.On("Create", inTx, "monitor123", mock.Anything).Run(func(args mock.Arguments) {
+			linked = append(linked, "tag "+args.String(2))
+		}).Return(&monitor_tag.Model{}, nil)
+
+		_, err := service.Create(ctx, &CreateUpdateDto{
+			Type:            "http",
+			Name:            "Test Monitor",
+			NotificationIds: []string{"channel-b", "channel-a", "channel-b"},
+			TagIds:          []string{"tag-a", "tag-a"},
+		})
+
+		require.NoError(t, err)
+		assert.Equal(t, []string{"channel channel-b", "channel channel-a", "tag tag-a"}, linked, "each ID once, in the order sent")
 	})
 
 	t.Run("repository error", func(t *testing.T) {
+		service, mockRepo, _, bus, _, _, _, _ := setupMonitorService()
 		createDto := &CreateUpdateDto{
 			Type: "http",
 			Name: "Test Monitor",
 		}
 
-		mockRepo.On("Create", ctx, mock.Anything).Return((*Model)(nil), errors.New("repository error"))
+		mockRepo.On("Create", inTx, mock.Anything).Return((*Model)(nil), errors.New("repository error"))
 
 		result, err := service.Create(ctx, createDto)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
 		assert.Contains(t, err.Error(), "repository error")
+		assert.Equal(t, 1, transactionOf(service).rolledBack)
+		assert.Empty(t, bus.Topics(), "nothing is published")
 		mockRepo.AssertExpectations(t)
 	})
+
+	for _, tc := range []struct {
+		name  string
+		fails func(notifications *MockMonitorNotificationService, tags *MockMonitorTagService)
+	}{
+		{"a notification channel link", func(notifications *MockMonitorNotificationService, _ *MockMonitorTagService) {
+			notifications.On("Create", inTx, "monitor123", "channel-a").Return((*monitor_notification.Model)(nil), errors.New("link failed"))
+		}},
+		{"a tag link", func(notifications *MockMonitorNotificationService, tags *MockMonitorTagService) {
+			notifications.On("Create", inTx, "monitor123", "channel-a").Return(&monitor_notification.Model{}, nil)
+			tags.On("Create", inTx, "monitor123", "tag-a").Return((*monitor_tag.Model)(nil), errors.New("link failed"))
+		}},
+	} {
+		t.Run("rolls back and publishes nothing when "+tc.name+" fails", func(t *testing.T) {
+			service, mockRepo, _, bus, notifications, tags, _, _ := setupMonitorService()
+			mockRepo.On("Create", inTx, mock.Anything).Return(&Model{ID: "monitor123"}, nil)
+			tc.fails(notifications, tags)
+
+			result, err := service.Create(ctx, &CreateUpdateDto{
+				Type:            "http",
+				Name:            "Test Monitor",
+				NotificationIds: []string{"channel-a"},
+				TagIds:          []string{"tag-a"},
+			})
+
+			require.ErrorContains(t, err, "link failed")
+			assert.Nil(t, result)
+			tx := transactionOf(service)
+			assert.Equal(t, 1, tx.rolledBack, "the monitor, written in the transaction, is rolled back with the links")
+			assert.Zero(t, tx.committed)
+			assert.Empty(t, bus.Topics(), "no MonitorCreated")
+		})
+	}
 }
 
 func TestMonitorService_FindByID(t *testing.T) {
@@ -412,23 +520,25 @@ func TestMonitorService_FindByID(t *testing.T) {
 }
 
 func TestMonitorService_UpdateFull(t *testing.T) {
-	service, mockRepo, _, bus, _, _, _, _ := setupMonitorService()
 	ctx := context.Background()
 
 	t.Run("successful update", func(t *testing.T) {
+		service, mockRepo, _, bus, notifications, tags, _, _ := setupMonitorService()
 		monitorID := "monitor123"
 		updateDto := &CreateUpdateDto{
-			Type:           "tcp",
-			Name:           "Updated Monitor",
-			Interval:       120,
-			Timeout:        60,
-			MaxRetries:     5,
-			RetryInterval:  60,
-			ResendInterval: 20,
-			Active:         false,
-			Config:         "{\"host\":\"example.com\"}",
-			ProxyId:        "proxy456",
-			PushToken:      "token456",
+			Type:            "tcp",
+			Name:            "Updated Monitor",
+			Interval:        120,
+			Timeout:         60,
+			MaxRetries:      5,
+			RetryInterval:   60,
+			ResendInterval:  20,
+			Active:          false,
+			NotificationIds: []string{"channel-a", "channel-b"},
+			TagIds:          []string{"tag-a"},
+			Config:          "{\"host\":\"example.com\"}",
+			ProxyId:         "proxy456",
+			PushToken:       "token456",
 		}
 
 		stored := &Model{
@@ -438,51 +548,136 @@ func TestMonitorService_UpdateFull(t *testing.T) {
 			Status:    shared.MonitorStatusDown,
 			CreatedAt: time.Date(2026, 10, 1, 9, 0, 0, 0, time.UTC),
 		}
-		mockRepo.On("UpdateFull", ctx, monitorID, mock.MatchedBy(func(m *Model) bool {
+		mockRepo.On("UpdateFull", inTx, monitorID, mock.MatchedBy(func(m *Model) bool {
 			return m.ID == monitorID &&
 				m.Type == updateDto.Type &&
 				m.Name == updateDto.Name &&
 				m.Interval == updateDto.Interval
 		})).Return(nil)
-		mockRepo.On("FindByID", ctx, monitorID).Return(stored, nil)
+		notifications.On("DeleteByMonitorID", inTx, monitorID).Return(nil).Once()
+		tags.On("DeleteByMonitorID", inTx, monitorID).Return(nil).Once()
+		notifications.On("Create", inTx, monitorID, "channel-a").Return(&monitor_notification.Model{}, nil).Once()
+		notifications.On("Create", inTx, monitorID, "channel-b").Return(&monitor_notification.Model{}, nil).Once()
+		tags.On("Create", inTx, monitorID, "tag-a").Return(&monitor_tag.Model{}, nil).Once()
+		mockRepo.On("FindByID", inTx, monitorID).Return(stored, nil)
 
 		result, err := service.UpdateFull(ctx, monitorID, updateDto)
 
 		assert.NoError(t, err)
 		assert.Same(t, stored, result, "the response is the monitor as stored, with its status and created_at")
 		assert.Equal(t, []shared.Monitor{*stored}, eventstest.Published(bus, events.MonitorUpdated), "the event carries it, too")
+		tx := transactionOf(service)
+		assert.Equal(t, 1, tx.committed, "the monitor and its links are one transaction")
+		assert.Equal(t, 0, tx.published, "the event is published once the transaction has committed, not before")
 		mockRepo.AssertExpectations(t)
+		notifications.AssertExpectations(t)
+		tags.AssertExpectations(t)
+	})
+
+	t.Run("links a repeated ID once", func(t *testing.T) {
+		service, mockRepo, _, _, notifications, tags, _, _ := setupMonitorService()
+		mockRepo.On("UpdateFull", inTx, "monitor123", mock.Anything).Return(nil)
+		mockRepo.On("FindByID", inTx, "monitor123").Return(&Model{ID: "monitor123"}, nil)
+		notifications.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+		tags.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+		var linked []string
+		notifications.On("Create", inTx, "monitor123", mock.Anything).Run(func(args mock.Arguments) {
+			linked = append(linked, "channel "+args.String(2))
+		}).Return(&monitor_notification.Model{}, nil)
+		tags.On("Create", inTx, "monitor123", mock.Anything).Run(func(args mock.Arguments) {
+			linked = append(linked, "tag "+args.String(2))
+		}).Return(&monitor_tag.Model{}, nil)
+
+		_, err := service.UpdateFull(ctx, "monitor123", &CreateUpdateDto{
+			Type:            "http",
+			Name:            "Test Monitor",
+			NotificationIds: []string{"channel-b", "channel-a", "channel-b"},
+			TagIds:          []string{"tag-a", "tag-a"},
+		})
+
+		require.NoError(t, err)
+		assert.Equal(t, []string{"channel channel-b", "channel channel-a", "tag tag-a"}, linked, "each ID once, in the order sent")
 	})
 
 	t.Run("monitor removed before it is read back", func(t *testing.T) {
-		service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
+		service, mockRepo, _, bus, notifications, tags, _, _ := setupMonitorService()
 		monitorID := "removed123"
-		mockRepo.On("UpdateFull", ctx, monitorID, mock.Anything).Return(nil)
-		mockRepo.On("FindByID", ctx, monitorID).Return(nil, nil)
+		mockRepo.On("UpdateFull", inTx, monitorID, mock.Anything).Return(nil)
+		notifications.On("DeleteByMonitorID", inTx, monitorID).Return(nil)
+		tags.On("DeleteByMonitorID", inTx, monitorID).Return(nil)
+		mockRepo.On("FindByID", inTx, monitorID).Return(nil, nil)
 
 		result, err := service.UpdateFull(ctx, monitorID, &CreateUpdateDto{Type: "tcp", Name: "Updated Monitor"})
 
 		assert.ErrorIs(t, err, ErrMonitorNotFound)
 		assert.Nil(t, result)
+		assert.Equal(t, 1, transactionOf(service).rolledBack)
+		assert.Empty(t, bus.Topics())
 		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("repository error", func(t *testing.T) {
+		service, mockRepo, _, bus, _, _, _, _ := setupMonitorService()
 		monitorID := "monitor123"
 		updateDto := &CreateUpdateDto{
 			Type: "tcp",
 			Name: "Updated Monitor",
 		}
 
-		mockRepo.On("UpdateFull", ctx, monitorID, mock.Anything).Return(errors.New("update failed"))
+		mockRepo.On("UpdateFull", inTx, monitorID, mock.Anything).Return(errors.New("update failed"))
 
 		result, err := service.UpdateFull(ctx, monitorID, updateDto)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
 		assert.Contains(t, err.Error(), "update failed")
+		assert.Empty(t, bus.Topics(), "nothing is published")
 		mockRepo.AssertExpectations(t)
 	})
+
+	for _, tc := range []struct {
+		name  string
+		fails func(notifications *MockMonitorNotificationService, tags *MockMonitorTagService)
+	}{
+		{"unlinking the notification channels", func(notifications *MockMonitorNotificationService, _ *MockMonitorTagService) {
+			notifications.On("DeleteByMonitorID", inTx, "monitor123").Return(errors.New("link failed"))
+		}},
+		{"unlinking the tags", func(notifications *MockMonitorNotificationService, tags *MockMonitorTagService) {
+			notifications.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			tags.On("DeleteByMonitorID", inTx, "monitor123").Return(errors.New("link failed"))
+		}},
+		{"linking a notification channel", func(notifications *MockMonitorNotificationService, tags *MockMonitorTagService) {
+			notifications.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			tags.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			notifications.On("Create", inTx, "monitor123", "channel-a").Return((*monitor_notification.Model)(nil), errors.New("link failed"))
+		}},
+		{"linking a tag", func(notifications *MockMonitorNotificationService, tags *MockMonitorTagService) {
+			notifications.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			tags.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			notifications.On("Create", inTx, "monitor123", "channel-a").Return(&monitor_notification.Model{}, nil)
+			tags.On("Create", inTx, "monitor123", "tag-a").Return((*monitor_tag.Model)(nil), errors.New("link failed"))
+		}},
+	} {
+		t.Run("rolls back and publishes nothing when "+tc.name+" fails", func(t *testing.T) {
+			service, mockRepo, _, bus, notifications, tags, _, _ := setupMonitorService()
+			mockRepo.On("UpdateFull", inTx, "monitor123", mock.Anything).Return(nil)
+			tc.fails(notifications, tags)
+
+			result, err := service.UpdateFull(ctx, "monitor123", &CreateUpdateDto{
+				Type:            "tcp",
+				Name:            "Updated Monitor",
+				NotificationIds: []string{"channel-a"},
+				TagIds:          []string{"tag-a"},
+			})
+
+			require.ErrorContains(t, err, "link failed")
+			assert.Nil(t, result)
+			tx := transactionOf(service)
+			assert.Equal(t, 1, tx.rolledBack, "the monitor row and the links are rolled back together")
+			assert.Zero(t, tx.committed)
+			assert.Empty(t, bus.Topics(), "no MonitorUpdated")
+		})
+	}
 }
 
 func TestMonitorService_UpdatePartial(t *testing.T) {
@@ -505,23 +700,28 @@ func TestMonitorService_UpdatePartial(t *testing.T) {
 			Status: status,
 		}
 
-		mockRepo.On("UpdatePartial", ctx, monitorID, mock.MatchedBy(func(m *UpdateModel) bool {
+		mockRepo.On("UpdatePartial", inTx, monitorID, mock.MatchedBy(func(m *UpdateModel) bool {
 			return *m.ID == monitorID &&
 				*m.Active == active &&
 				*m.Status == status
 		})).Return(nil)
 
-		mockRepo.On("FindByID", ctx, monitorID).Return(expectedModel, nil)
+		mockRepo.On("FindByID", inTx, monitorID).Return(expectedModel, nil)
 
 		result, err := service.UpdatePartial(ctx, monitorID, updateDto, false)
 
 		assert.NoError(t, err)
 		assert.Equal(t, expectedModel, result)
 		assert.Equal(t, []shared.Monitor{*expectedModel}, eventstest.Published(bus, events.MonitorUpdated))
+		tx := transactionOf(service)
+		assert.Equal(t, 1, tx.committed)
+		assert.Equal(t, 0, tx.published, "the event is published once the transaction has committed, not before")
 		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("successful partial update without publish", func(t *testing.T) {
+		// The listener's status updates send no link IDs: the link mocks have no calls set up, so a
+		// call to them fails the test
 		service, mockRepo, _, bus, _, _, _, _ := setupMonitorService()
 		monitorID := "monitor123"
 		active := false
@@ -535,8 +735,8 @@ func TestMonitorService_UpdatePartial(t *testing.T) {
 			Active: active,
 		}
 
-		mockRepo.On("UpdatePartial", ctx, monitorID, mock.Anything).Return(nil)
-		mockRepo.On("FindByID", ctx, monitorID).Return(expectedModel, nil)
+		mockRepo.On("UpdatePartial", inTx, monitorID, mock.Anything).Return(nil)
+		mockRepo.On("FindByID", inTx, monitorID).Return(expectedModel, nil)
 
 		result, err := service.UpdatePartial(ctx, monitorID, updateDto, true)
 
@@ -556,17 +756,18 @@ func TestMonitorService_UpdatePartial(t *testing.T) {
 
 		expectedModel := &Model{
 			ID:     monitorID,
+			Type:   "tcp",
 			Name:   "Test Monitor",
 			Config: config,
 		}
 
-		mockRepo.On("UpdatePartial", ctx, monitorID, mock.MatchedBy(func(m *UpdateModel) bool {
+		mockRepo.On("UpdatePartial", inTx, monitorID, mock.MatchedBy(func(m *UpdateModel) bool {
 			return *m.ID == monitorID &&
 				m.Config != nil &&
 				*m.Config == config
 		})).Return(nil)
 
-		mockRepo.On("FindByID", ctx, monitorID).Return(expectedModel, nil)
+		mockRepo.On("FindByID", inTx, monitorID).Return(expectedModel, nil)
 
 		result, err := service.UpdatePartial(ctx, monitorID, updateDto, false)
 
@@ -576,19 +777,188 @@ func TestMonitorService_UpdatePartial(t *testing.T) {
 	})
 
 	t.Run("update error", func(t *testing.T) {
-		service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
+		service, mockRepo, _, bus, _, _, _, _ := setupMonitorService()
 		monitorID := "monitor123"
 		updateDto := &PartialUpdateDto{}
 
-		mockRepo.On("UpdatePartial", ctx, monitorID, mock.Anything).Return(errors.New("update failed"))
+		mockRepo.On("FindByID", inTx, monitorID).Return(&Model{ID: monitorID}, nil)
+		mockRepo.On("UpdatePartial", inTx, monitorID, mock.Anything).Return(errors.New("update failed"))
 
 		result, err := service.UpdatePartial(ctx, monitorID, updateDto, false)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
 		assert.Contains(t, err.Error(), "update failed")
+		assert.Empty(t, bus.Topics())
 		mockRepo.AssertExpectations(t)
 	})
+
+	t.Run("monitor not found", func(t *testing.T) {
+		service, mockRepo, _, bus, _, _, _, _ := setupMonitorService()
+		mockRepo.On("FindByID", inTx, "gone123").Return(nil, nil)
+		mockRepo.On("UpdatePartial", mock.Anything, "gone123", mock.Anything).Return(nil).Maybe() // asserted below to be uncalled
+		name := "Renamed"
+
+		result, err := service.UpdatePartial(ctx, "gone123", &PartialUpdateDto{Name: &name}, false)
+
+		assert.ErrorIs(t, err, ErrMonitorNotFound)
+		assert.Nil(t, result)
+		mockRepo.AssertNotCalled(t, "UpdatePartial", mock.Anything, mock.Anything, mock.Anything)
+		assert.Equal(t, 1, transactionOf(service).rolledBack)
+		assert.Empty(t, bus.Topics(), "nothing is published")
+	})
+
+	t.Run("monitor lookup error", func(t *testing.T) {
+		service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
+		mockRepo.On("FindByID", inTx, "monitor123").Return(nil, errors.New("lookup failed"))
+		mockRepo.On("UpdatePartial", mock.Anything, "monitor123", mock.Anything).Return(nil).Maybe() // asserted below to be uncalled
+
+		result, err := service.UpdatePartial(ctx, "monitor123", &PartialUpdateDto{}, false)
+
+		require.ErrorContains(t, err, "lookup failed")
+		assert.NotErrorIs(t, err, ErrMonitorNotFound)
+		assert.Nil(t, result)
+		mockRepo.AssertNotCalled(t, "UpdatePartial", mock.Anything, mock.Anything, mock.Anything)
+	})
+
+	const validHTTPConfig = `{"url":"https://example.com","method":"GET","encoding":"json","accepted_statuscodes":["2XX"],"authMethod":"none"}`
+	const validTCPConfig = `{"host":"example.com","port":443}`
+	const invalidConfig = `{"invalid":"config"}`
+	invalid := func(s string) *string { return &s }
+
+	for _, tc := range []struct {
+		name   string
+		stored Model
+		dto    PartialUpdateDto
+	}{
+		{"a config that does not fit the stored type", Model{Type: "http", Config: validHTTPConfig}, PartialUpdateDto{Config: invalid(invalidConfig)}},
+		{"a type that does not fit the stored config", Model{Type: "http", Config: validHTTPConfig}, PartialUpdateDto{Type: invalid("tcp")}},
+		{"a type and config that do not fit together", Model{Type: "http", Config: validHTTPConfig}, PartialUpdateDto{Type: invalid("tcp"), Config: invalid(validHTTPConfig)}},
+	} {
+		t.Run("rejects "+tc.name+" and writes nothing", func(t *testing.T) {
+			service, mockRepo, _, bus, _, _, _, _ := setupMonitorService()
+			stored := tc.stored
+			stored.ID = "monitor123"
+			mockRepo.On("FindByID", inTx, "monitor123").Return(&stored, nil)
+			mockRepo.On("UpdatePartial", mock.Anything, "monitor123", mock.Anything).Return(nil).Maybe() // asserted below to be uncalled
+			dto := tc.dto
+
+			result, err := service.UpdatePartial(ctx, "monitor123", &dto, false)
+
+			var invalidConfig *InvalidConfigError
+			require.ErrorAs(t, err, &invalidConfig)
+			assert.Error(t, invalidConfig.Err, "it carries why the config is invalid")
+			assert.Nil(t, result)
+			mockRepo.AssertNotCalled(t, "UpdatePartial", mock.Anything, mock.Anything, mock.Anything)
+			assert.Equal(t, 1, transactionOf(service).rolledBack)
+			assert.Empty(t, bus.Topics(), "nothing is published")
+		})
+	}
+
+	for _, tc := range []struct {
+		name   string
+		stored Model
+		dto    PartialUpdateDto
+	}{
+		{"a config that fits the stored type", Model{Type: "http", Config: validHTTPConfig}, PartialUpdateDto{Config: invalid(validHTTPConfig)}},
+		{"a type that fits the stored config", Model{Type: "http", Config: validTCPConfig}, PartialUpdateDto{Type: invalid("tcp")}},
+		{"a type and config that fit together", Model{Type: "http", Config: validHTTPConfig}, PartialUpdateDto{Type: invalid("tcp"), Config: invalid(validTCPConfig)}},
+		// A status update, like the listener's, or a rename does not check a config it leaves alone
+		{"a change that leaves the type and config alone", Model{Type: "http", Config: invalidConfig}, PartialUpdateDto{Name: invalid("Renamed")}},
+	} {
+		t.Run("accepts "+tc.name, func(t *testing.T) {
+			service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
+			stored := tc.stored
+			stored.ID = "monitor123"
+			mockRepo.On("FindByID", inTx, "monitor123").Return(&stored, nil)
+			mockRepo.On("UpdatePartial", inTx, "monitor123", mock.Anything).Return(nil)
+			dto := tc.dto
+
+			result, err := service.UpdatePartial(ctx, "monitor123", &dto, false)
+
+			require.NoError(t, err)
+			assert.Same(t, &stored, result)
+			mockRepo.AssertCalled(t, "UpdatePartial", inTx, "monitor123", mock.Anything)
+		})
+	}
+
+	t.Run("links change to exactly the IDs sent", func(t *testing.T) {
+		service, mockRepo, _, bus, notifications, tags, _, _ := setupMonitorService()
+		monitorID := "monitor123"
+		stored := &Model{ID: monitorID, Name: "Test Monitor"}
+		mockRepo.On("UpdatePartial", inTx, monitorID, mock.Anything).Return(nil)
+		mockRepo.On("FindByID", inTx, monitorID).Return(stored, nil)
+		notifications.On("FindByMonitorID", inTx, monitorID).Return([]*monitor_notification.Model{
+			{ID: "link-keep", MonitorID: monitorID, NotificationID: "channel-keep"},
+			{ID: "link-drop", MonitorID: monitorID, NotificationID: "channel-drop"},
+		}, nil)
+		notifications.On("Delete", inTx, "link-drop").Return(nil).Once()
+		notifications.On("Create", inTx, monitorID, "channel-new").Return(&monitor_notification.Model{}, nil).Once()
+		tags.On("FindByMonitorID", inTx, monitorID).Return([]*monitor_tag.Model{
+			{ID: "link-tag-drop", MonitorID: monitorID, TagID: "tag-drop"},
+		}, nil)
+		tags.On("Delete", inTx, "link-tag-drop").Return(nil).Once()
+		tags.On("Create", inTx, monitorID, "tag-new").Return(&monitor_tag.Model{}, nil).Once()
+
+		result, err := service.UpdatePartial(ctx, monitorID, &PartialUpdateDto{
+			NotificationIds: []string{"channel-keep", "channel-new", "channel-new"},
+			TagIds:          []string{"tag-new"},
+		}, false)
+
+		require.NoError(t, err)
+		assert.Same(t, stored, result)
+		assert.Equal(t, 1, transactionOf(service).committed)
+		assert.Equal(t, []shared.Monitor{*stored}, eventstest.Published(bus, events.MonitorUpdated))
+		notifications.AssertExpectations(t)
+		tags.AssertExpectations(t)
+		notifications.AssertNotCalled(t, "Create", mock.Anything, monitorID, "channel-keep")
+	})
+
+	for _, tc := range []struct {
+		name  string
+		fails func(notifications *MockMonitorNotificationService, tags *MockMonitorTagService)
+	}{
+		{"finding the notification channel links", func(notifications *MockMonitorNotificationService, _ *MockMonitorTagService) {
+			notifications.On("FindByMonitorID", inTx, "monitor123").Return(([]*monitor_notification.Model)(nil), errors.New("link failed"))
+		}},
+		{"unlinking a notification channel", func(notifications *MockMonitorNotificationService, _ *MockMonitorTagService) {
+			notifications.On("FindByMonitorID", inTx, "monitor123").Return([]*monitor_notification.Model{{ID: "link-old", NotificationID: "channel-old"}}, nil)
+			notifications.On("Delete", inTx, "link-old").Return(errors.New("link failed"))
+		}},
+		{"linking a notification channel", func(notifications *MockMonitorNotificationService, _ *MockMonitorTagService) {
+			notifications.On("FindByMonitorID", inTx, "monitor123").Return([]*monitor_notification.Model{}, nil)
+			notifications.On("Create", inTx, "monitor123", "channel-a").Return((*monitor_notification.Model)(nil), errors.New("link failed"))
+		}},
+		{"unlinking a tag", func(notifications *MockMonitorNotificationService, tags *MockMonitorTagService) {
+			notifications.On("FindByMonitorID", inTx, "monitor123").Return([]*monitor_notification.Model{{ID: "link-a", NotificationID: "channel-a"}}, nil)
+			tags.On("FindByMonitorID", inTx, "monitor123").Return([]*monitor_tag.Model{{ID: "link-old", TagID: "tag-old"}}, nil)
+			tags.On("Delete", inTx, "link-old").Return(errors.New("link failed"))
+		}},
+		{"linking a tag", func(notifications *MockMonitorNotificationService, tags *MockMonitorTagService) {
+			notifications.On("FindByMonitorID", inTx, "monitor123").Return([]*monitor_notification.Model{{ID: "link-a", NotificationID: "channel-a"}}, nil)
+			tags.On("FindByMonitorID", inTx, "monitor123").Return([]*monitor_tag.Model{}, nil)
+			tags.On("Create", inTx, "monitor123", "tag-a").Return((*monitor_tag.Model)(nil), errors.New("link failed"))
+		}},
+	} {
+		t.Run("rolls back and publishes nothing when "+tc.name+" fails", func(t *testing.T) {
+			service, mockRepo, _, bus, notifications, tags, _, _ := setupMonitorService()
+			mockRepo.On("FindByID", inTx, "monitor123").Return(&Model{ID: "monitor123"}, nil)
+			mockRepo.On("UpdatePartial", inTx, "monitor123", mock.Anything).Return(nil)
+			tc.fails(notifications, tags)
+
+			result, err := service.UpdatePartial(ctx, "monitor123", &PartialUpdateDto{
+				NotificationIds: []string{"channel-a"},
+				TagIds:          []string{"tag-a"},
+			}, false)
+
+			require.ErrorContains(t, err, "link failed")
+			assert.Nil(t, result)
+			tx := transactionOf(service)
+			assert.Equal(t, 1, tx.rolledBack, "the monitor row and the links are rolled back together")
+			assert.Zero(t, tx.committed)
+			assert.Empty(t, bus.Topics(), "no MonitorUpdated")
+		})
+	}
 }
 
 func TestMonitorService_Delete(t *testing.T) {
@@ -598,16 +968,25 @@ func TestMonitorService_Delete(t *testing.T) {
 		service, mockRepo, mockHeartbeatService, bus, mockNotificationService, mockTagService, _, mockStatsService := setupMonitorService()
 		monitorID := "monitor123"
 
-		mockRepo.On("Delete", ctx, monitorID).Return(nil)
-		mockNotificationService.On("DeleteByMonitorID", ctx, monitorID).Return(nil)
-		mockTagService.On("DeleteByMonitorID", ctx, monitorID).Return(nil)
-		mockHeartbeatService.On("DeleteByMonitorID", ctx, monitorID).Return(nil)
-		mockStatsService.On("DeleteByMonitorID", ctx, monitorID).Return(nil)
+		var order []string
+		record := func(step string) func(mock.Arguments) {
+			return func(mock.Arguments) { order = append(order, step) }
+		}
+		mockRepo.On("FindByID", inTx, monitorID).Run(record("lookup")).Return(&Model{ID: monitorID}, nil)
+		mockNotificationService.On("DeleteByMonitorID", inTx, monitorID).Run(record("notification links")).Return(nil)
+		mockTagService.On("DeleteByMonitorID", inTx, monitorID).Run(record("tag links")).Return(nil)
+		mockHeartbeatService.On("DeleteByMonitorID", inTx, monitorID).Run(record("heartbeats")).Return(nil)
+		mockStatsService.On("DeleteByMonitorID", inTx, monitorID).Run(record("stats")).Return(nil)
+		mockRepo.On("Delete", inTx, monitorID).Run(record("monitor")).Return(nil)
 
 		err := service.Delete(ctx, monitorID)
 
 		assert.NoError(t, err)
+		assert.Equal(t, []string{"lookup", "heartbeats", "stats", "monitor", "notification links", "tag links"}, order, "the monitor is looked up first, and its links go only after its row, so a live monitor never loses its notification channels")
 		assert.Equal(t, []string{monitorID}, eventstest.Published(bus, events.MonitorDeleted))
+		tx := transactionOf(service)
+		assert.Equal(t, 1, tx.committed, "everything is deleted in one transaction")
+		assert.Equal(t, 0, tx.published, "the event is published once the transaction has committed, not before")
 		mockRepo.AssertExpectations(t)
 		mockNotificationService.AssertExpectations(t)
 		mockTagService.AssertExpectations(t)
@@ -615,34 +994,87 @@ func TestMonitorService_Delete(t *testing.T) {
 		mockStatsService.AssertExpectations(t)
 	})
 
-	t.Run("repository delete error", func(t *testing.T) {
-		service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
-		monitorID := "monitor123"
+	for _, tc := range []struct {
+		name    string
+		found   *Model
+		lookup  error
+		wantErr func(t *testing.T, err error)
+	}{
+		{"monitor not found", nil, nil, func(t *testing.T, err error) { assert.ErrorIs(t, err, ErrMonitorNotFound) }},
+		{"monitor lookup error", nil, errors.New("lookup failed"), func(t *testing.T, err error) {
+			require.ErrorContains(t, err, "lookup failed")
+			assert.NotErrorIs(t, err, ErrMonitorNotFound)
+		}},
+	} {
+		t.Run(tc.name+" deletes nothing", func(t *testing.T) {
+			service, mockRepo, mockHeartbeatService, bus, mockNotificationService, mockTagService, _, mockStatsService := setupMonitorService()
+			mockRepo.On("FindByID", inTx, "gone123").Return(tc.found, tc.lookup)
+			// asserted below to be uncalled
+			mockNotificationService.On("DeleteByMonitorID", mock.Anything, "gone123").Return(nil).Maybe()
+			mockTagService.On("DeleteByMonitorID", mock.Anything, "gone123").Return(nil).Maybe()
+			mockHeartbeatService.On("DeleteByMonitorID", mock.Anything, "gone123").Return(nil).Maybe()
+			mockStatsService.On("DeleteByMonitorID", mock.Anything, "gone123").Return(nil).Maybe()
+			mockRepo.On("Delete", mock.Anything, "gone123").Return(nil).Maybe()
 
-		mockRepo.On("Delete", ctx, monitorID).Return(errors.New("delete failed"))
+			err := service.Delete(ctx, "gone123")
 
-		err := service.Delete(ctx, monitorID)
+			tc.wantErr(t, err)
+			mockNotificationService.AssertNotCalled(t, "DeleteByMonitorID", mock.Anything, mock.Anything)
+			mockTagService.AssertNotCalled(t, "DeleteByMonitorID", mock.Anything, mock.Anything)
+			mockHeartbeatService.AssertNotCalled(t, "DeleteByMonitorID", mock.Anything, mock.Anything)
+			mockStatsService.AssertNotCalled(t, "DeleteByMonitorID", mock.Anything, mock.Anything)
+			mockRepo.AssertNotCalled(t, "Delete", mock.Anything, mock.Anything)
+			assert.Equal(t, 1, transactionOf(service).rolledBack)
+			assert.Empty(t, bus.Topics(), "no MonitorDeleted")
+		})
+	}
 
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "delete failed")
-		mockRepo.AssertExpectations(t)
-	})
+	// Each case lets the deletes before the one that fails succeed, and sets up no call after it:
+	// a call the test didn't expect fails it, so nothing after the failing step runs.
+	for _, tc := range []struct {
+		name  string
+		setUp func(repo *MockMonitorRepository, heartbeats *MockHeartbeatService, notifications *MockMonitorNotificationService, tags *MockMonitorTagService, statsService *MockStatsService)
+	}{
+		{"the heartbeats", func(repo *MockMonitorRepository, heartbeats *MockHeartbeatService, notifications *MockMonitorNotificationService, tags *MockMonitorTagService, statsService *MockStatsService) {
+			heartbeats.On("DeleteByMonitorID", inTx, "monitor123").Return(errors.New("delete failed"))
+		}},
+		{"the stats", func(repo *MockMonitorRepository, heartbeats *MockHeartbeatService, notifications *MockMonitorNotificationService, tags *MockMonitorTagService, statsService *MockStatsService) {
+			heartbeats.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			statsService.On("DeleteByMonitorID", inTx, "monitor123").Return(errors.New("delete failed"))
+		}},
+		{"the monitor", func(repo *MockMonitorRepository, heartbeats *MockHeartbeatService, notifications *MockMonitorNotificationService, tags *MockMonitorTagService, statsService *MockStatsService) {
+			heartbeats.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			statsService.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			repo.On("Delete", inTx, "monitor123").Return(errors.New("delete failed"))
+		}},
+		{"the notification channel links", func(repo *MockMonitorRepository, heartbeats *MockHeartbeatService, notifications *MockMonitorNotificationService, tags *MockMonitorTagService, statsService *MockStatsService) {
+			heartbeats.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			statsService.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			repo.On("Delete", inTx, "monitor123").Return(nil)
+			notifications.On("DeleteByMonitorID", inTx, "monitor123").Return(errors.New("delete failed"))
+		}},
+		{"the tag links", func(repo *MockMonitorRepository, heartbeats *MockHeartbeatService, notifications *MockMonitorNotificationService, tags *MockMonitorTagService, statsService *MockStatsService) {
+			heartbeats.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			statsService.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			repo.On("Delete", inTx, "monitor123").Return(nil)
+			notifications.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			tags.On("DeleteByMonitorID", inTx, "monitor123").Return(errors.New("delete failed"))
+		}},
+	} {
+		t.Run("returns the error, rolls back and publishes nothing when deleting "+tc.name+" fails", func(t *testing.T) {
+			service, mockRepo, mockHeartbeatService, bus, mockNotificationService, mockTagService, _, mockStatsService := setupMonitorService()
+			mockRepo.On("FindByID", inTx, "monitor123").Return(&Model{ID: "monitor123"}, nil)
+			tc.setUp(mockRepo, mockHeartbeatService, mockNotificationService, mockTagService, mockStatsService)
 
-	t.Run("cleanup errors are ignored", func(t *testing.T) {
-		service, mockRepo, mockHeartbeatService, _, mockNotificationService, mockTagService, _, mockStatsService := setupMonitorService()
-		monitorID := "monitor123"
+			err := service.Delete(ctx, "monitor123")
 
-		mockRepo.On("Delete", ctx, monitorID).Return(nil)
-		mockNotificationService.On("DeleteByMonitorID", ctx, monitorID).Return(errors.New("cleanup error"))
-		mockTagService.On("DeleteByMonitorID", ctx, monitorID).Return(errors.New("cleanup error"))
-		mockHeartbeatService.On("DeleteByMonitorID", ctx, monitorID).Return(errors.New("cleanup error"))
-		mockStatsService.On("DeleteByMonitorID", ctx, monitorID).Return(errors.New("cleanup error"))
-
-		err := service.Delete(ctx, monitorID)
-
-		assert.NoError(t, err) // Cleanup errors are ignored
-		mockRepo.AssertExpectations(t)
-	})
+			require.ErrorContains(t, err, "delete failed")
+			tx := transactionOf(service)
+			assert.Equal(t, 1, tx.rolledBack, "what was deleted before the failure is rolled back")
+			assert.Zero(t, tx.committed)
+			assert.Empty(t, bus.Topics(), "no MonitorDeleted")
+		})
+	}
 }
 
 func TestMonitorService_ValidateMonitorConfig(t *testing.T) {
@@ -1260,12 +1692,14 @@ func TestNewMonitorService(t *testing.T) {
 	logger := zap.NewNop().Sugar()
 
 	eventBus := eventstest.NewBus()
+	transactor := &fakeTransactor{bus: eventBus}
 
 	// Create real instances for dependencies that expect concrete types
 	realExecutorRegistry := executor.NewExecutorRegistry(logger)
 
 	service := NewMonitorService(
 		mockRepo,
+		transactor,
 		mockHeartbeatService,
 		eventBus,
 		mockNotificationService,
@@ -1280,6 +1714,7 @@ func TestNewMonitorService(t *testing.T) {
 
 	serviceImpl := service.(*MonitorServiceImpl)
 	assert.Equal(t, mockRepo, serviceImpl.monitorRepository)
+	assert.Equal(t, transactor, serviceImpl.transactor)
 	assert.Equal(t, mockHeartbeatService, serviceImpl.heartbeatService)
 	assert.Equal(t, eventBus, serviceImpl.eventBus)
 	assert.Equal(t, mockNotificationService, serviceImpl.monitorNotificationService)

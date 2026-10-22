@@ -1113,7 +1113,13 @@
     "placeholders": {
       "select_type": "Vælg notifiertype"
     },
-    "search_placeholder": "Søg notifikationskanaler efter navn..."
+    "search_placeholder": "Søg notifikationskanaler efter navn...",
+    "secret": {
+      "reenter_error": "Indtast denne hemmelighed igen eller fjern den: det sted, den sendes til, er ændret",
+      "reenter_hint": "Indtast denne hemmelighed igen: det sted, den sendes til, er ændret",
+      "remove": "Fjern",
+      "saved_hint": "Gemt — skriv for at erstatte"
+    }
   },
   "proxies": {
     "delete_dialog": {

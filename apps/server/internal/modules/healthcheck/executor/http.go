@@ -462,8 +462,6 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	}
 	cfg := cfgAny.(*HTTPConfig)
 
-	h.logger.Debugf("execute http cfg: %+v", cfg)
-
 	var bodyReader io.Reader
 	if cfg.Body != "" {
 		bodyReader = bytes.NewReader([]byte(cfg.Body))

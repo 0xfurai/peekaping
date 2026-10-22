@@ -12,6 +12,7 @@ import (
 	"peekaping/internal/modules/stats"
 	"peekaping/internal/modules/status_page"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -1617,6 +1618,79 @@ func TestSanitizeText(t *testing.T) {
 	}
 }
 
+func TestParseColor(t *testing.T) {
+	tests := []struct {
+		name     string
+		value    string
+		expected string
+		valid    bool
+	}{
+		{name: "short hex", value: "#4c1", expected: "#4c1", valid: true},
+		{name: "long hex", value: "#007ec6", expected: "#007ec6", valid: true},
+		{name: "short bare hex", value: "4c1", expected: "#4c1", valid: true},
+		{name: "long bare hex", value: "007ec6", expected: "#007ec6", valid: true},
+		{name: "hex keeps its case", value: "#ABCdef", expected: "#ABCdef", valid: true},
+		{name: "bare hex keeps its case", value: "ABCdef", expected: "#ABCdef", valid: true},
+		{name: "brightgreen", value: "brightgreen", expected: "#4c1", valid: true},
+		{name: "green", value: "green", expected: "#97ca00", valid: true},
+		{name: "yellowgreen", value: "yellowgreen", expected: "#a4a61d", valid: true},
+		{name: "yellow", value: "yellow", expected: "#dfb317", valid: true},
+		{name: "orange", value: "orange", expected: "#fe7d37", valid: true},
+		{name: "red", value: "red", expected: "#e05d44", valid: true},
+		{name: "blue", value: "blue", expected: "#007ec6", valid: true},
+		{name: "grey", value: "grey", expected: "#555", valid: true},
+		{name: "gray", value: "gray", expected: "#555", valid: true},
+		{name: "lightgrey", value: "lightgrey", expected: "#9f9f9f", valid: true},
+		{name: "lightgray", value: "lightgray", expected: "#9f9f9f", valid: true},
+		{name: "success", value: "success", expected: "#4c1", valid: true},
+		{name: "important", value: "important", expected: "#fe7d37", valid: true},
+		{name: "critical", value: "critical", expected: "#e05d44", valid: true},
+		{name: "informational", value: "informational", expected: "#007ec6", valid: true},
+		{name: "inactive", value: "inactive", expected: "#9f9f9f", valid: true},
+		{name: "name in any case", value: "BrightGreen", expected: "#4c1", valid: true},
+		{name: "empty", value: ""},
+		{name: "hash only", value: "#"},
+		{name: "two digits", value: "#12"},
+		{name: "four digits", value: "#1234"},
+		{name: "five digits", value: "#12345"},
+		{name: "seven digits", value: "#1234567"},
+		{name: "eight digits", value: "#12345678"},
+		{name: "not hex digits", value: "#ggg"},
+		{name: "two hashes", value: "##4c1"},
+		{name: "unknown name", value: "teal"},
+		{name: "css function", value: "rgb(0,0,0)"},
+		{name: "url", value: "url(#x)"},
+		{name: "surrounding space", value: " 4c1 "},
+		{name: "hex then markup", value: `#4c1"/><script>alert(1)</script>`},
+		{name: "markup", value: `"><script>alert(1)</script>`},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, valid := parseColor(tt.value)
+			assert.Equal(t, tt.valid, valid)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestSVGBadgeGenerator_EscapesColors(t *testing.T) {
+	const hostile = `"><script>alert(1)</script>`
+	const escaped = "&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;"
+
+	for _, style := range []BadgeStyle{BadgeStyleFlat, BadgeStyleFlatSquare, BadgeStylePlastic, BadgeStyleForTheBadge, BadgeStyleSocial} {
+		t.Run(string(style), func(t *testing.T) {
+			svg := NewSVGBadgeGenerator().GenerateBadge(&Badge{
+				Style: style, Label: "status", Value: "Up", Color: hostile, LabelColor: hostile,
+			})
+
+			assert.NotContains(t, svg, "<script")
+			// The label's color and the value's color
+			assert.Equal(t, 2, strings.Count(svg, `fill="`+escaped+`"`), svg)
+		})
+	}
+}
+
 // Additional edge cases and error scenarios
 
 func TestServiceImpl_GenerateUptimeBadge_ErrorCases(t *testing.T) {
@@ -1775,7 +1849,7 @@ func TestDefaultBadgeOptions(t *testing.T) {
 
 	assert.NotNil(t, options)
 	assert.Equal(t, BadgeStyleFlat, options.Style)
-	assert.Equal(t, "#007ec6", options.Color)
+	assert.Equal(t, "", options.Color, "no color is given until the request names one")
 	assert.Equal(t, "#555", options.LabelColor)
 	assert.Equal(t, "Up", options.UpLabel)
 	assert.Equal(t, "Down", options.DownLabel)

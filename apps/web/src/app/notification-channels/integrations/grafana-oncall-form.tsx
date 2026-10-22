@@ -1,4 +1,3 @@
-import { Input } from "@/components/ui/input";
 import {
   FormField,
   FormItem,
@@ -8,12 +7,14 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { z } from "zod";
+import { SecretInput } from "../components/saved-secrets";
+import { withSavedSecret } from "../secrets";
 import { useFormContext } from "react-hook-form";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const schema = z.object({
   type: z.literal("grafana_oncall"),
-  grafana_oncall_url: z.string().url({ message: "Valid Grafana OnCall URL is required" }),
+  grafana_oncall_url: withSavedSecret(z.string().url({ message: "Valid Grafana OnCall URL is required" })),
 });
 
 export const defaultValues = {
@@ -38,9 +39,9 @@ export default function GrafanaOncallForm() {
               {t("notifications.form.grafana_oncall.grafana_oncall_url_label")} <span className="text-red-500">*</span>
             </FormLabel>
             <FormControl>
-              <Input
+              <SecretInput
                 placeholder="https://your-grafana-oncall-instance.com/integrations/v1/webhook/..."
-                type="url"
+                autoComplete="off"
                 required
                 {...field}
               />

@@ -10,12 +10,14 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { z } from "zod";
+import { SecretInput } from "../components/saved-secrets";
+import { withSavedSecret } from "../secrets";
 import { useFormContext } from "react-hook-form";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const schema = z.object({
   type: z.literal("mattermost"),
-  webhook_url: z.string().url({ message: "Valid webhook URL is required" }),
+  webhook_url: withSavedSecret(z.string().url({ message: "Valid webhook URL is required" })),
   username: z.string().optional(),
   channel: z.string().optional(),
   icon_url: z.union([z.string().url({ message: "Valid icon URL is required" }), z.literal("")]).optional(),
@@ -53,9 +55,9 @@ export default function MattermostForm() {
               {t("notifications.form.mattermost.webhook_url_label")} <span className="text-red-500">*</span>
             </FormLabel>
             <FormControl>
-              <Input
+              <SecretInput
                 placeholder="https://your-mattermost-server.com/hooks/..."
-                type="url"
+                autoComplete="off"
                 required
                 {...field}
               />

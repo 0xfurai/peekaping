@@ -15,8 +15,8 @@ import (
 
 type TwilioConfig struct {
 	AccountSID string `json:"twilio_account_sid" validate:"required"`
-	ApiKey     string `json:"twilio_api_key"`
-	AuthToken  string `json:"twilio_auth_token" validate:"required"`
+	ApiKey     string `json:"twilio_api_key" secret:"true"`
+	AuthToken  string `json:"twilio_auth_token" validate:"required" secret:"true"`
 	FromNumber string `json:"twilio_from_number" validate:"required,e164"`
 	ToNumber   string `json:"twilio_to_number" validate:"required,e164"`
 }

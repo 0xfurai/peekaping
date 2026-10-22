@@ -90,6 +90,14 @@ _Avoid_: Heartbeat retry interval
 A configured destination for notifications, such as an email address, a Slack webhook or a Telegram chat. A monitor sends to the channels attached to it.
 _Avoid_: Notifier, notification provider, integration
 
+**Saved secret**:
+A secret field of a notification channel's config, such as a bot token, an SMTP password or a webhook URL that works as a credential. The API never returns it: it shows `********` instead, and a save or test that sends `********` back keeps the stored value.
+_Avoid_: Credential, masked field, hidden value
+
+**Endpoint field**:
+A config field that decides where a notification channel sends, such as a server URL, an SMTP host and port, or the webhook URL. Saved secrets are kept only while the endpoint fields stay as they are; changing one means entering the saved secrets again, so a secret is never sent somewhere new.
+_Avoid_: Target field, destination, address
+
 **Notification**:
 A message sent to a monitor's notification channels when the monitor goes Down or comes back Up. Its certificate expiry notifications, and a stale monitor's "not checked since" and "checking again" messages, go to the same channels.
 _Avoid_: Alert

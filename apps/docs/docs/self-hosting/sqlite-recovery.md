@@ -6,17 +6,27 @@ sidebar_position: 7
 
 A SQLite database is corrupt when its file, `peekaping.db`, is damaged. Causes include disk and filesystem errors, a copy of the file taken while Peekaping was writing to it, and a crash or power loss on a disk or filesystem that doesn't honor `fsync` (the call that forces a write onto the disk).
 
-Peekaping checks the file each time it starts. If the check finds corruption, Peekaping stops. It never repairs the file and never overwrites it. You restore or rebuild the database yourself, with the steps below.
+Peekaping checks the file each time it starts, unless you turn the check off. If the check finds corruption, Peekaping stops. It never repairs the file and never overwrites it. You restore or rebuild the database yourself, with the steps below.
 
 This page is for the SQLite storage backend, the database Peekaping keeps its data in. For a PostgreSQL database, use PostgreSQL's own tools.
 
 ## The startup check
 
-At start, Peekaping runs `PRAGMA quick_check` on the database. In single mode, `peekaping` runs it. In cluster mode, the `api`, `producer` and `ingester` each run it. The `migrate` image doesn't.
+At start, Peekaping checks the database. `SQLITE_STARTUP_CHECK` chooses the check. In single mode, `peekaping` runs it. In cluster mode, the `api`, `producer` and `ingester` each run it. The `migrate` image doesn't.
 
-The quick check walks the b-tree pages (the pages that hold tables and indexes) and takes about 2 seconds for a 1.5 GB database. It finds malformed pages, bad free page lists and wrong page counts. It doesn't find an index that disagrees with its table. The full check, `PRAGMA integrity_check`, finds that too, but it reads the whole file and takes about 30 seconds for 1.5 GB, so Peekaping doesn't run it at start. To run it yourself, see [Running the full check by hand](#running-the-full-check-by-hand).
+| `SQLITE_STARTUP_CHECK` | What runs |
+| --- | --- |
+| `quick` (default) | `PRAGMA quick_check` |
+| `full` | `PRAGMA integrity_check` |
+| `off` | Nothing |
 
-When the quick check reports anything but `ok`, Peekaping logs three kinds of lines at error level. The path is the database path inside the container:
+The values are lower case. Any other value fails the configuration check, and Peekaping doesn't start. [Startup check](./docker-with-sqlite.md#startup-check) shows how to set it.
+
+The quick check walks the b-tree pages (the pages that hold tables and indexes) and takes about 2 seconds for a 1.5 GB database. It finds malformed pages, bad free page lists and wrong page counts. It doesn't find an index that disagrees with its table. The full check, `PRAGMA integrity_check`, finds that too, but it reads the whole file and takes about 30 seconds for 1.5 GB, so it isn't the default. Set `SQLITE_STARTUP_CHECK=full` to run it at every start, for example on a database you suspect. In cluster mode, three processes then read the file at once. To run it only when you choose, see [Running the full check by hand](#running-the-full-check-by-hand).
+
+With `off`, Peekaping runs no check. It logs `SQLite startup check skipped: SQLITE_STARTUP_CHECK is off` and starts, even on a damaged file, and then writes to the file, which can make the damage worse. Use it only when you have checked the file another way, for example on a copy of it.
+
+When the check reports anything but `ok`, Peekaping logs three kinds of lines at error level. The path is the database path inside the container:
 
 ```text
 SQLite quick check found corruption in /app/data/peekaping.db. Peekaping stops here and doesn't change the file.
@@ -25,8 +35,10 @@ Tree 2 page 4: btreeInitPage() returns error code 11
 Stop every Peekaping process that uses this database, and its container's restarts. Keep the original database file together with its -wal and -shm files; don't repair it in place. Restore a tested backup. Without one, salvage the data into a new database with sqlite3 .recover and run PRAGMA integrity_check on the result; recovered data can be missing, altered or resurrected. See https://docs.peekaping.com/self-hosting/sqlite-recovery
 ```
 
+With `full`, the first line says `SQLite full check` instead of `SQLite quick check`, and the finding lines start with `integrity_check:` instead of `quick_check:`.
+
 - The first line says what stopped. Peekaping stops without changing the file, and leaves the `-wal` and `-shm` files as they were.
-- Each finding gets a `quick_check:` line, up to 100 of them. SQLite reports the first finding as two lines, `*** in database main ***` and the finding, so the first `quick_check:` line continues on a second line. The findings above are an example. Yours name other pages or tables.
+- Each finding gets a `quick_check:` line (`integrity_check:` with `full`), up to 100 of them. SQLite reports the first finding as two lines, `*** in database main ***` and the finding, so the first `quick_check:` line continues on a second line. The findings above are an example. Yours name other pages or tables.
 - The last line is the procedure. The steps below are the same procedure in full.
 
 After the log, the process exits. The container's restart policy (`restart: always` or `unless-stopped`) starts it again, the check fails again, and the lines repeat until you replace the database.
@@ -46,9 +58,9 @@ docker compose logs api producer ingester
 
 On Kubernetes, use `kubectl logs` on the pods.
 
-If SQLite can't run the check at all, for example because another process holds a lock on the file, Peekaping logs `Failed to run the SQLite quick check (non-fatal)` with the error and starts. That doesn't confirm corruption. If you suspect it, run the full check by hand.
+If SQLite can't run the check at all, for example because another process holds a lock on the file, Peekaping logs `Failed to run the SQLite quick check (non-fatal)` (`full check` with `full`) with the error and starts. That doesn't confirm corruption. If you suspect it, run the full check by hand.
 
-When the check passes, the log says `SQLite quick check passed`.
+When the check passes, the log says `SQLite quick check passed` (`SQLite full check passed` with `full`).
 
 ## If the check fails
 
@@ -152,7 +164,7 @@ If the check fails again, the database you put in place is damaged too. Stop Pee
 
 ## Running the full check by hand
 
-`PRAGMA integrity_check` reads the whole file, so it also finds an index that disagrees with its table, which the startup check misses. It takes about 30 seconds for a 1.5 GB database, and longer on a cold cache or a slow disk.
+`PRAGMA integrity_check` reads the whole file, so it also finds an index that disagrees with its table, which the default startup check misses. It takes about 30 seconds for a 1.5 GB database, and longer on a cold cache or a slow disk. To have Peekaping run it at every start instead, set `SQLITE_STARTUP_CHECK=full`.
 
 Run it with Peekaping stopped, as the file's owner and with write access to its folder. Replace the path with the path on the host, as in [step 2](#2-preserve-the-original):
 
@@ -169,4 +181,4 @@ sqlite3 'file:/backup/peekaping-check.db?mode=rw' 'PRAGMA integrity_check;'
 
 The check must print `ok`. [Upgrading stats storage](./upgrading-stats.md#before-upgrading) explains the `mode=rw` form and what `.backup` includes.
 
-Anything else is a list of findings, one per line. If the full check reports findings while the startup check passed, treat the database as corrupt and follow [the steps above](#if-the-check-fails).
+Anything else is a list of findings, one per line. If the full check reports findings while the quick startup check passed, treat the database as corrupt and follow [the steps above](#if-the-check-fails).

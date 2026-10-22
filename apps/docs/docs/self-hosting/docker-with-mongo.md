@@ -307,6 +307,8 @@ DB_TYPE=mongo
 # Server Configuration
 SERVER_PORT=8034
 CLIENT_URL="http://localhost:8383"
+# Origins that may read the API's responses from another origin. Default: the origin of CLIENT_URL
+# CORS_ORIGINS=https://app.example.com
 
 # Application Settings
 MODE=prod

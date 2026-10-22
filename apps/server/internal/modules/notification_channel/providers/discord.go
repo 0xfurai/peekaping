@@ -16,7 +16,7 @@ import (
 )
 
 type DiscordConfig struct {
-	WebhookURL          string `json:"webhook_url" validate:"required,url"`
+	WebhookURL          string `json:"webhook_url" validate:"required,url" secret:"true" endpoint:"true"`
 	BotDisplayName      string `json:"bot_display_name"`
 	CustomMessagePrefix string `json:"custom_message_prefix"`
 	MessageType         string `json:"message_type" validate:"omitempty,oneof=send_to_channel send_to_new_forum_post send_to_thread"`
@@ -62,7 +62,6 @@ func (s *DiscordSender) Send(
 	bindings := PrepareTemplateBindings(monitor, heartbeat, message)
 
 	s.logger.Infof("Sending Discord message: %s", message)
-	s.logger.Debugf("Available bindings: %s", bindings)
 
 	var finalMessage string
 
