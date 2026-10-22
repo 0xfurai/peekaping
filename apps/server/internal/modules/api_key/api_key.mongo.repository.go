@@ -179,22 +179,33 @@ func (r *RepositoryImpl) Delete(ctx context.Context, id string) error {
 	return err
 }
 
-// MARK: UpdateLastUsed
-func (r *RepositoryImpl) UpdateLastUsed(ctx context.Context, id string) error {
+// MARK: ConsumeUsage
+func (r *RepositoryImpl) ConsumeUsage(ctx context.Context, id string) (bool, error) {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	_, err = r.collection.UpdateOne(
+	// One conditional update checks the limit and counts the use. A null
+	// max_usage_count also matches a document that has none.
+	res, err := r.collection.UpdateOne(
 		ctx,
-		bson.M{"_id": objectID},
+		bson.M{
+			"_id": objectID,
+			"$or": bson.A{
+				bson.M{"max_usage_count": nil},
+				bson.M{"$expr": bson.M{"$lt": bson.A{"$usage_count", "$max_usage_count"}}},
+			},
+		},
 		bson.M{
 			"$set": bson.M{"last_used": time.Now()},
 			"$inc": bson.M{"usage_count": 1},
 		},
 	)
-	return err
+	if err != nil {
+		return false, err
+	}
+	return res.MatchedCount > 0, nil
 }
 
 // MARK: UpdateKeyHash

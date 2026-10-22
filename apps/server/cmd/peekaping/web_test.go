@@ -82,7 +82,7 @@ func TestRun_ServesTheWebAppAndTheAPIOnOnePort(t *testing.T) {
 		in.registerAdmin(t)
 		in.dialSocket(t).close()
 
-		query := url.Values{"EIO": {"4"}, "transport": {"websocket"}, "token": {in.accessToken}}
+		query := url.Values{"EIO": {"4"}, "transport": {"websocket"}}
 		conn, resp, err := gorilla.DefaultDialer.Dial("ws"+strings.TrimPrefix(in.url, "http")+"/socket.io/?"+query.Encode(), nil)
 		require.NoError(t, err)
 		defer conn.Close()
@@ -92,7 +92,7 @@ func TestRun_ServesTheWebAppAndTheAPIOnOnePort(t *testing.T) {
 		_, open, err := conn.ReadMessage()
 		require.NoError(t, err)
 		assert.True(t, strings.HasPrefix(string(open), "0{") && strings.Contains(string(open), `"sid":`), "Engine.IO OPEN: %s", open)
-		require.NoError(t, conn.WriteMessage(gorilla.TextMessage, []byte("40")))
+		require.NoError(t, conn.WriteMessage(gorilla.TextMessage, []byte(in.socketConnect(t))))
 		_, connect, err := conn.ReadMessage()
 		require.NoError(t, err)
 		assert.True(t, strings.HasPrefix(string(connect), "40"), "socket.io CONNECT: %s", connect)

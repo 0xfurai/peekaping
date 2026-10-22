@@ -159,14 +159,24 @@ func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string) error {
 	return err
 }
 
-// MARK: UpdateLastUsed
-func (r *SQLRepositoryImpl) UpdateLastUsed(ctx context.Context, id string) error {
-	_, err := r.db.NewUpdate().Model((*sqlModel)(nil)).
+// MARK: ConsumeUsage
+func (r *SQLRepositoryImpl) ConsumeUsage(ctx context.Context, id string) (bool, error) {
+	// One conditional UPDATE checks the limit and counts the use, so concurrent
+	// requests can't both take the last use.
+	res, err := r.db.NewUpdate().Model((*sqlModel)(nil)).
 		Set("last_used = ?", time.Now()).
 		Set("usage_count = usage_count + 1").
 		Where("id = ?", id).
+		Where("(max_usage_count IS NULL OR usage_count < max_usage_count)").
 		Exec(ctx)
-	return err
+	if err != nil {
+		return false, err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+	return rows > 0, nil
 }
 
 // MARK: UpdateKeyHash
