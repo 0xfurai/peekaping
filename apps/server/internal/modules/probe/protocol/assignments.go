@@ -10,6 +10,7 @@ import (
 
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/monitor"
+	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/proxy"
 	"peekaping/internal/probeproto"
 	"peekaping/internal/utils"
@@ -114,7 +115,7 @@ func (c *Controller) assign(ctx context.Context, probeID, instanceID string) (*a
 	// The instance that asks is online: the middleware has just stamped it. Its stamp and this
 	// moment may fall either side of the window's edge though, and an instance that dealt itself
 	// out would be dealt no monitors.
-	online := OnlineInstances(current.Instances, c.now(), InstanceOnlineWindow)
+	online := probe.OnlineInstances(current.Instances, c.now(), probe.InstanceOnlineWindow)
 	if !slices.Contains(online, instanceID) {
 		online = append(online, instanceID)
 		slices.Sort(online)

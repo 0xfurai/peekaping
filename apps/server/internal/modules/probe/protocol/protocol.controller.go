@@ -192,7 +192,7 @@ func changesAssignments(before *probe.Model, instanceID string, supportedTypes [
 	if before == nil {
 		return true
 	}
-	if !slices.Contains(OnlineInstances(before.Instances, now, InstanceOnlineWindow), instanceID) {
+	if !slices.Contains(probe.OnlineInstances(before.Instances, now, probe.InstanceOnlineWindow), instanceID) {
 		return true
 	}
 	return !slices.Equal(sortedSet(before.SupportedTypes), sortedSet(supportedTypes))

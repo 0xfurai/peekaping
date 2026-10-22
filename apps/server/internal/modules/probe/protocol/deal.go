@@ -3,10 +3,8 @@ package protocol
 import (
 	"hash/fnv"
 	"slices"
-	"time"
 
 	"peekaping/internal/modules/monitor"
-	"peekaping/internal/modules/probe"
 )
 
 // pushType is the monitor type that runs no checks of its own, so no probe is dealt one
@@ -30,19 +28,6 @@ func Dealable(monitors []*monitor.Model, supportedTypes []string) []*monitor.Mod
 		dealable = append(dealable, m)
 	}
 	return dealable
-}
-
-// OnlineInstances returns the ids of the instances that were seen within window of now, sorted.
-// An instance seen by a clock a little ahead of ours counts as seen just now.
-func OnlineInstances(instances []*probe.Instance, now time.Time, window time.Duration) []string {
-	online := make([]string, 0, len(instances))
-	for _, instance := range instances {
-		if instance != nil && now.Sub(instance.LastSeenAt) <= window {
-			online = append(online, instance.ID)
-		}
-	}
-	slices.Sort(online)
-	return online
 }
 
 // Deal returns the monitors that instanceID runs among the instances. Every monitor goes to

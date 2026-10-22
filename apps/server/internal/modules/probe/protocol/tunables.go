@@ -32,8 +32,6 @@ const (
 	// MinProtocolVersion is the oldest protocol version the server speaks. A hello below it is
 	// answered 426.
 	MinProtocolVersion = 1
-	// InstanceOnlineWindow is how long after its last request an instance counts as connected
-	InstanceOnlineWindow = 60 * time.Second
 	// MaxBody is the most bytes a request body may have once it is decompressed
 	MaxBody = 1 << 20
 )
