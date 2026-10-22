@@ -5,6 +5,7 @@ import {
 } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "./components/app-header";
+import { TelemetryNotice } from "./components/telemetry-notice";
 import { useLocalizedTranslation } from "./hooks/useTranslation";
 
 export default function Layout({
@@ -27,6 +28,9 @@ export default function Layout({
       <AppSidebar variant="inset" />
       <SidebarInset>
         <SiteHeader pageName={pageName} onCreate={onCreate} />
+        <div className="empty:hidden px-4 pt-4">
+          <TelemetryNotice />
+        </div>
         {isLoading ? (
           <div className="p-4 w-full">{t("common.loading")}</div>
         ) : (
