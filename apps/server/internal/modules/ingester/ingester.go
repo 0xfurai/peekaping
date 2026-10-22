@@ -1,7 +1,7 @@
 package ingester
 
 import (
-	"context"
+	"peekaping/internal/shutdown"
 
 	"peekaping/internal/reporting"
 
@@ -14,6 +14,7 @@ type Ingester struct {
 	server  *asynq.Server
 	mux     *asynq.ServeMux
 	handler *IngesterTaskHandler
+	running shutdown.RunningTasks // the tasks the handler is running
 	logger  *zap.SugaredLogger
 }
 
@@ -34,12 +35,13 @@ func NewIngester(
 	}
 }
 
-// Start starts the ingester
-func (i *Ingester) Start(ctx context.Context) error {
+// Start starts the ingester. It takes no context: the asynq server runs until Stop, and its
+// Shutdown is what waits for the running tasks.
+func (i *Ingester) Start() error {
 	i.logger.Info("Starting ingester")
 
 	// Register task handlers
-	i.mux.HandleFunc(TaskTypeIngester, i.handler.ProcessTask)
+	i.mux.HandleFunc(TaskTypeIngester, i.running.Wrap(i.handler.ProcessTask))
 
 	// Start the server with the mux
 	if err := i.server.Start(i.mux); err != nil {
@@ -50,9 +52,13 @@ func (i *Ingester) Start(ctx context.Context) error {
 	return nil
 }
 
-// Stop stops the ingester gracefully
+// Stop stops the ingester gracefully: it takes no new task, and waits for the running ones to
+// finish storing their heartbeats. The server's ShutdownTimeout bounds the wait. A task still
+// running then goes back in the queue, to be ingested again, and its context is cancelled.
+// Stop returns once its handler has.
 func (i *Ingester) Stop() {
 	i.logger.Info("Stopping ingester")
 	i.server.Shutdown()
+	<-i.running.Done()
 	i.logger.Info("Ingester stopped")
 }

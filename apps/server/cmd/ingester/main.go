@@ -78,8 +78,7 @@ func main() {
 		logger *zap.SugaredLogger,
 	) error {
 		// Start the ingester
-		ctx := context.Background()
-		if err := ing.Start(ctx); err != nil {
+		if err := ing.Start(); err != nil {
 			return fmt.Errorf("failed to start ingester: %w", err)
 		}
 

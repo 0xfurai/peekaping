@@ -68,8 +68,7 @@ func main() {
 		logger *zap.SugaredLogger,
 	) error {
 		// Start the worker
-		ctx := context.Background()
-		if err := w.Start(ctx); err != nil {
+		if err := w.Start(); err != nil {
 			return fmt.Errorf("failed to start worker: %w", err)
 		}
 

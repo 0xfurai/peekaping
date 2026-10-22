@@ -1,7 +1,7 @@
 package worker
 
 import (
-	"context"
+	"peekaping/internal/shutdown"
 
 	"peekaping/internal/reporting"
 
@@ -14,6 +14,7 @@ type Worker struct {
 	server      *asynq.Server
 	mux         *asynq.ServeMux
 	healthCheck *HealthCheckTaskHandler
+	running     shutdown.RunningTasks // the tasks the handler is running
 	logger      *zap.SugaredLogger
 }
 
@@ -34,12 +35,13 @@ func NewWorker(
 	}
 }
 
-// Start starts the worker
-func (w *Worker) Start(ctx context.Context) error {
+// Start starts the worker. It takes no context: the asynq server runs until Stop, and its
+// Shutdown is what waits for the running tasks.
+func (w *Worker) Start() error {
 	w.logger.Info("Starting worker")
 
 	// Register task handlers
-	w.mux.HandleFunc(TaskTypeHealthCheck, w.healthCheck.ProcessTask)
+	w.mux.HandleFunc(TaskTypeHealthCheck, w.running.Wrap(w.healthCheck.ProcessTask))
 
 	// Start the server with the mux
 	if err := w.server.Start(w.mux); err != nil {
@@ -50,9 +52,13 @@ func (w *Worker) Start(ctx context.Context) error {
 	return nil
 }
 
-// Stop stops the worker gracefully
+// Stop stops the worker gracefully: it takes no new task, and waits for the running ones to
+// finish and enqueue their results. The server's ShutdownTimeout bounds the wait. A task still
+// running then goes back in the queue, for another worker to run again, and its context is
+// cancelled, which ends its check. Stop returns once its handler has.
 func (w *Worker) Stop() {
 	w.logger.Info("Stopping worker")
 	w.server.Shutdown()
+	<-w.running.Done()
 	w.logger.Info("Worker stopped")
 }
