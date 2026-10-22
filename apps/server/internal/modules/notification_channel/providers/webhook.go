@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -53,6 +54,16 @@ type WebhookSender struct {
 // NewWebhookSender creates a WebhookSender
 func NewWebhookSender(logger *zap.SugaredLogger, client *http.Client) *WebhookSender {
 	return &WebhookSender{logger: logger, client: client}
+}
+
+// invalidAdditionalHeaders is the error for additional headers that are not a JSON object. It
+// says where the JSON is wrong but not what it holds, since the headers usually carry a token.
+func invalidAdditionalHeaders(err error) error {
+	var syntaxErr *json.SyntaxError
+	if errors.As(err, &syntaxErr) {
+		return fmt.Errorf("additional Headers is not a valid JSON (it has a syntax error at byte %d)", syntaxErr.Offset)
+	}
+	return errors.New("additional Headers is not a valid JSON object")
 }
 
 func (w *WebhookSender) Unmarshal(configJSON string) (any, error) {
@@ -176,9 +187,10 @@ func (w *WebhookSender) Send(
 
 	// Parse and set additional headers
 	if cfg.WebhookAdditionalHeaders != "" {
+		// The headers usually carry a token: they stay out of the log and out of the error
 		var additionalHeaders map[string]any
 		if err := json.Unmarshal([]byte(cfg.WebhookAdditionalHeaders), &additionalHeaders); err != nil {
-			return fmt.Errorf("additional Headers is not a valid JSON: %w", err)
+			return invalidAdditionalHeaders(err)
 		}
 
 		for key, value := range additionalHeaders {
