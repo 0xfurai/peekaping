@@ -87,7 +87,7 @@
   },
   "error_reporting": {
     "label": "Gửi báo cáo lỗi",
-    "never_sent": "Không bao giờ gửi: thông báo lỗi, URL, header, URL webhook, tên hay tên máy chủ. Địa chỉ IP của bạn không được lưu.",
+    "never_sent": "Không bao giờ gửi: thông báo lỗi, URL, header, URL webhook, tên hay tên máy chủ. Báo cáo không chứa địa chỉ IP, và dự án Sentry của Peekaping được đặt để không lưu IP của người gửi. Với ERROR_REPORTING_DSN của riêng bạn, cài đặt Sentry hoặc GlitchTip của bạn sẽ quyết định.",
     "sent": "Chỉ được gửi khi chính Peekaping gặp sự cố. Một báo cáo chứa loại lỗi và vị trí trong mã nơi lỗi xảy ra, phiên bản Peekaping, chế độ đơn hoặc chế độ cụm, backend lưu trữ và hệ điều hành."
   },
   "forms": {

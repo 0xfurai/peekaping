@@ -87,7 +87,7 @@
   },
   "error_reporting": {
     "label": "Odesílat hlášení o chybách",
-    "never_sent": "Nikdy se neodesílá: text chybových hlášení, adresy URL, hlavičky, adresy URL webhooků, názvy ani názvy hostitelů. Vaše IP adresa se neukládá.",
+    "never_sent": "Nikdy se neodesílá: text chybových hlášení, adresy URL, hlavičky, adresy URL webhooků, názvy ani názvy hostitelů. Hlášení neobsahuje žádnou IP adresu a projekt Peekaping v Sentry je nastaven tak, aby IP adresu odesílatele neukládal. Při vlastním ERROR_REPORTING_DSN o tom rozhodují nastavení vašeho Sentry nebo GlitchTip.",
     "sent": "Odesílá se jen tehdy, když spadne samotný Peekaping. Hlášení obsahuje typ chyby a místo v kódu, kde nastala, verzi Peekaping, jednoduchý nebo clusterový režim, úložiště dat a operační systém."
   },
   "forms": {

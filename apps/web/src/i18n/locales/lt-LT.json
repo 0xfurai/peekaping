@@ -87,7 +87,7 @@
   },
   "error_reporting": {
     "label": "Siųsti pranešimus apie klaidas",
-    "never_sent": "Niekada nesiunčiama: klaidų pranešimai, URL, antraštės, webhook URL, pavadinimai ar serverių pavadinimai. Jūsų IP adresas nesaugomas.",
+    "never_sent": "Niekada nesiunčiama: klaidų pranešimai, URL, antraštės, webhook URL, pavadinimai ar serverių pavadinimai. Pranešime nėra IP adreso, o Peekaping Sentry projektas nustatytas taip, kad nesaugotų siuntėjo IP. Jei naudojate savo ERROR_REPORTING_DSN, tai lemia jūsų Sentry ar GlitchTip nustatymai.",
     "sent": "Siunčiama tik tada, kai sugenda pats Peekaping. Pranešime yra klaidos tipas ir vieta kode, kurioje ji įvyko, Peekaping versija, vieno proceso ar klasterio režimas, saugyklos pagrindas ir operacinė sistema."
   },
   "forms": {

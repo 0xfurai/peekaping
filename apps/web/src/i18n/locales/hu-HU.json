@@ -87,7 +87,7 @@
   },
   "error_reporting": {
     "label": "Hibajelentések küldése",
-    "never_sent": "Soha nem küld: hibaüzeneteket, URL-eket, fejléceket, webhook-URL-eket, neveket vagy gazdagépneveket. Az Ön IP-címét nem tároljuk.",
+    "never_sent": "Soha nem küld: hibaüzeneteket, URL-eket, fejléceket, webhook-URL-eket, neveket vagy gazdagépneveket. A jelentés nem tartalmaz IP-címet, és a Peekaping Sentry-projektje úgy van beállítva, hogy ne tárolja a küldő IP-címét. Saját ERROR_REPORTING_DSN esetén a saját Sentry vagy GlitchTip beállításai döntenek.",
     "sent": "Csak akkor küld, ha maga a Peekaping összeomlik. A jelentés tartalmazza a hiba típusát és a kód azon helyét, ahol történt, a Peekaping verzióját, az egyedi vagy fürt üzemmódot, a tárolási háttérrendszert és az operációs rendszert."
   },
   "forms": {

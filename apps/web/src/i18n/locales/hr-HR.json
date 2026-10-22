@@ -87,7 +87,7 @@
   },
   "error_reporting": {
     "label": "Šalji izvješća o pogreškama",
-    "never_sent": "Nikada se ne šalju: poruke o pogreškama, URL-ovi, zaglavlja, URL-ovi webhookova, imena ni nazivi hostova. Vaša IP adresa se ne pohranjuje.",
+    "never_sent": "Nikada se ne šalju: poruke o pogreškama, URL-ovi, zaglavlja, URL-ovi webhookova, imena ni nazivi hostova. Izvješće ne sadrži IP adresu, a Peekapingov Sentry projekt postavljen je da ne pohranjuje IP pošiljatelja. S vlastitim ERROR_REPORTING_DSN-om odlučuju postavke vašeg Sentryja ili GlitchTipa.",
     "sent": "Šalje se samo kada sam Peekaping padne. Izvješće sadrži vrstu pogreške i mjesto u kodu na kojem se dogodila, verziju Peekapinga, pojedinačni ili klasterski način rada, pozadinski sustav za pohranu i operacijski sustav."
   },
   "forms": {

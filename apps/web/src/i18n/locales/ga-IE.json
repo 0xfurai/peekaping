@@ -87,7 +87,7 @@
   },
   "error_reporting": {
     "label": "Seol tuarascálacha earráide",
-    "never_sent": "Ní sheoltar choíche: teachtaireachtaí earráide, URLanna, ceanntásca, URLanna webhook, ainmneacha ná óstainmneacha. Ní stóráiltear do sheoladh IP.",
+    "never_sent": "Ní sheoltar choíche: teachtaireachtaí earráide, URLanna, ceanntásca, URLanna webhook, ainmneacha ná óstainmneacha. Níl aon seoladh IP i dtuarascáil, agus tá tionscadal Sentry Peekaping socraithe gan IP an tseoltóra a stóráil. Le do ERROR_REPORTING_DSN féin, socraíonn socruithe do Sentry nó do GlitchTip é.",
     "sent": "Ní sheoltar é ach nuair a thuairteann Peekaping féin. Tá in aon tuarascáil cineál an earráid agus an áit sa chód inar tharla sé, leagan Peekaping, mód aonair nó braisle, an backend stórála agus an córas oibriúcháin."
   },
   "forms": {

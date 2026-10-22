@@ -87,7 +87,7 @@
   },
   "error_reporting": {
     "label": "Xato hisobotlarini yuborish",
-    "never_sent": "Hech qachon yuborilmaydi: xato xabarlari, URL manzillari, sarlavhalar, webhook URL manzillari, nomlar yoki xost nomlari. IP manzilingiz saqlanmaydi.",
+    "never_sent": "Hech qachon yuborilmaydi: xato xabarlari, URL manzillari, sarlavhalar, webhook URL manzillari, nomlar yoki xost nomlari. Hisobotda IP manzil bo'lmaydi va Peekaping'ning Sentry loyihasi yuboruvchining IP manzilini saqlamaslikka sozlangan. O'zingizning ERROR_REPORTING_DSN'ingiz bilan buni Sentry yoki GlitchTip sozlamalaringiz belgilaydi.",
     "sent": "Faqat Peekapingning o'zi ishdan chiqqanda yuboriladi. Hisobotda xato turi va u kodning qaysi joyida yuz bergani, Peekaping versiyasi, yakka yoki klaster rejimi, saqlash backendi va operatsion tizim bo'ladi."
   },
   "forms": {

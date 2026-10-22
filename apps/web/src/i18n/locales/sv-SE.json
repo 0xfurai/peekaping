@@ -87,7 +87,7 @@
   },
   "error_reporting": {
     "label": "Skicka felrapporter",
-    "never_sent": "Skickas aldrig: felmeddelanden, webbadresser, rubriker, webhook-adresser, namn eller värdnamn. Din IP-adress sparas inte.",
+    "never_sent": "Skickas aldrig: felmeddelanden, webbadresser, rubriker, webhook-adresser, namn eller värdnamn. En rapport innehåller ingen IP-adress, och Peekapings Sentry-projekt är inställt på att inte spara avsändarens IP. Med din egen ERROR_REPORTING_DSN avgör inställningarna i din Sentry eller GlitchTip.",
     "sent": "Skickas bara när Peekaping självt kraschar. En rapport innehåller feltypen och platsen i koden där det hände, Peekaping-versionen, enkelt läge eller klusterläge, lagringsbackenden och operativsystemet."
   },
   "forms": {
