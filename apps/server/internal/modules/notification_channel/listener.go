@@ -103,7 +103,7 @@ func (l *NotificationEventListener) Subscribe(eventBus events.EventBus) {
 // staleTimeFormat is how stale-monitor and probe notifications show a time
 const staleTimeFormat = "2006-01-02 15:04:05 UTC"
 
-// handleProbeEvent notifies that a probe went offline, or that it is back. The providers take a
+// handleProbeEvent notifies that a probe went offline, or that it is online. The providers take a
 // monitor, and several read its name and id without checking for nil, so a stand-in carries the
 // probe: its name says it is a probe, and its id is the probe's, which keeps the alerts of two
 // probes apart in a channel that deduplicates by it.
@@ -126,7 +126,7 @@ func (l *NotificationEventListener) handleProbeEvent(ctx context.Context, probeE
 
 	message := fmt.Sprintf("Probe %s has been offline since %s", probeEvent.ProbeName, probeEvent.Since.UTC().Format(staleTimeFormat))
 	if online {
-		message = fmt.Sprintf("Probe %s is back", probeEvent.ProbeName)
+		message = fmt.Sprintf("Probe %s is online", probeEvent.ProbeName)
 	}
 	standIn := &monitor.Model{ID: probeEvent.ProbeID, Name: "Probe " + probeEvent.ProbeName}
 	// A probe notification carries no heartbeat

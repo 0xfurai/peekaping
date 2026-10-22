@@ -597,7 +597,7 @@ func TestNotificationListener_ProbeOfflineAndOnline(t *testing.T) {
 		message string
 	}{
 		{probe.ProbeOffline, "Probe Frankfurt has been offline since 2026-10-22 08:30:00 UTC"},
-		{probe.ProbeOnline, "Probe Frankfurt is back"},
+		{probe.ProbeOnline, "Probe Frankfurt is online"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.topic.Name(), func(t *testing.T) {
@@ -1017,7 +1017,7 @@ func TestNotificationListener_ThreeAPIReplicasSendAProbeOnlineNotificationOnce(t
 	require.NoError(t, events.Publish(context.Background(), replica, probe.ProbeOnline, probeEvent("probe-1")))
 
 	assert.Equal(t, 1, settledSends(t, provider, 1, settle), "notifications sent for one probe coming back, with 3 api replicas")
-	assert.Equal(t, []string{"Probe Frankfurt is back"}, provider.sentMessages())
+	assert.Equal(t, []string{"Probe Frankfurt is online"}, provider.sentMessages())
 }
 
 // The queue keeps a notification raised while no api replica runs, which a pub/sub message
