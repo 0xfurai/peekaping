@@ -15,6 +15,7 @@ import (
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_notification"
 	"peekaping/internal/modules/monitor_tag"
+	"peekaping/internal/modules/notification_channel/providers"
 	"peekaping/internal/modules/tag"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -42,6 +43,45 @@ func TestNewProviderRegistry_HasAProviderForEveryChannelType(t *testing.T) {
 		provider, ok := registry.Get(channelType)
 		assert.True(t, ok, "a provider for %q", channelType)
 		assert.NotNil(t, provider, "the provider for %q", channelType)
+	}
+}
+
+// Each channel type gets its own provider: a type wired to another type's constructor would send
+// to the wrong service, and no other test would notice
+func TestNewProviderRegistry_MapsEachChannelTypeToItsOwnProvider(t *testing.T) {
+	registry := NewProviderRegistry(zap.NewNop().Sugar(), &config.Config{})
+
+	wantProviders := map[string]NotificationChannelProvider{
+		"discord":        &providers.DiscordSender{},
+		"google_chat":    &providers.GoogleChatSender{},
+		"gotify":         &providers.GotifySender{},
+		"grafana_oncall": &providers.GrafanaOncallSender{},
+		"line":           &providers.LineSender{},
+		"matrix":         &providers.MatrixSender{},
+		"mattermost":     &providers.MattermostSender{},
+		"ntfy":           &providers.NTFYSender{},
+		"opsgenie":       &providers.OpsgenieSender{},
+		"pagerduty":      &providers.PagerDutySender{},
+		"pagertree":      &providers.PagerTreeSender{},
+		"pushbullet":     &providers.PushbulletSender{},
+		"pushover":       &providers.PushoverSender{},
+		"sendgrid":       &providers.SendGridSender{},
+		"signal":         &providers.SignalSender{},
+		"slack":          &providers.SlackSender{},
+		"smtp":           &providers.EmailSender{},
+		"teams":          &providers.TeamsSender{},
+		"telegram":       &providers.TelegramSender{},
+		"twilio":         &providers.TwilioSender{},
+		"webhook":        &providers.WebhookSender{},
+		"wecom":          &providers.WeComSender{},
+		"whatsapp":       &providers.WhatsAppSender{},
+	}
+
+	assert.Len(t, wantProviders, len(registry.Types()), "a channel type per provider in the registry")
+	for channelType, want := range wantProviders {
+		provider, ok := registry.Get(channelType)
+		require.True(t, ok, "a provider for %q", channelType)
+		assert.IsType(t, want, provider, "the provider for %q", channelType)
 	}
 }
 
