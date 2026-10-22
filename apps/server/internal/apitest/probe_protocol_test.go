@@ -868,7 +868,8 @@ func TestProbeProtocol_StatusFlipKeepsTheVersion(t *testing.T) {
 	assert.True(t, again.Monitors[0].UpdatedAt.After(held.Monitors[0].UpdatedAt), "the row was touched by the status change, as the wire's updated_at shows")
 }
 
-func TestProbeProtocol_ByeRemovesTheInstanceAndRedeals(t *testing.T) {
+// The retired instance's row stays, and still the monitors are dealt among the sibling alone
+func TestProbeProtocol_ByeRetiresTheInstanceAndRedeals(t *testing.T) {
 	a := localProbeApp(t, nil)
 	const count = 24
 	all := make([]string, count)
