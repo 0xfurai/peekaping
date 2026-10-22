@@ -20,6 +20,9 @@ type NoBody struct{}
 var JWTOnly = []map[string][]string{{"JwtAuth": {}}}
 var SharedAuth = []map[string][]string{{"JwtAuth": {}}, {"ApiKeyAuth": {}}}
 
+// ProbeAuth is the probe token, which opens the probe protocol's routes and nothing else
+var ProbeAuth = []map[string][]string{{"ProbeAuth": {}}}
+
 // Input keeps the typed body and parameter contract together. Decoding stays
 // explicit in the handler: existing endpoints check authentication and sometimes
 // the resource before decoding, and accept one JSON value with unknown fields.
@@ -354,8 +357,14 @@ func (r *Router) API() huma.API {
 }
 
 func operationID(method, path string) string {
-	parts := strings.Split(strings.TrimPrefix(path, "/api/v1"), "/")
 	id := strings.ToLower(method)
+	if probePath, ok := strings.CutPrefix(path, "/probe/v1"); ok {
+		// The probe protocol's ids start with probe, so that they can't collide with the API's
+		// (probePostHello, probeGetAssignments)
+		path = probePath
+		id = "probe" + strings.ToUpper(id[:1]) + id[1:]
+	}
+	parts := strings.Split(strings.TrimPrefix(path, "/api/v1"), "/")
 	for _, part := range parts {
 		if part == "" {
 			continue
@@ -383,6 +392,7 @@ func newAPI(router *Router) huma.API {
 	config.Components.SecuritySchemes = map[string]*huma.SecurityScheme{
 		"JwtAuth":    {Type: "http", Scheme: "bearer", BearerFormat: "JWT"},
 		"ApiKeyAuth": {Type: "apiKey", In: "header", Name: "X-API-Key"},
+		"ProbeAuth":  {Type: "http", Scheme: "bearer", BearerFormat: "probe token"},
 	}
 	config.Components.Schemas = huma.NewMapRegistry("#/components/schemas/", func(t reflect.Type, hint string) string {
 		for t.Kind() == reflect.Pointer {

@@ -109,6 +109,8 @@ func TestRequestLogLevel(t *testing.T) {
 		router.Handle("GET", "/metrics", ok)
 		router.Group("/api/v1").Handle("GET", "/health", ok)
 		router.Group("/api/v1").Handle("GET", "/monitors", ok)
+		router.Group("/probe/v1").Handle("GET", "/assignments", ok)
+		router.Group("/probe/v1").Handle("GET", "/hello", ok)
 		return router, logs
 	}
 
@@ -119,6 +121,8 @@ func TestRequestLogLevel(t *testing.T) {
 		{"/health", zap.DebugLevel},
 		{"/api/v1/health", zap.DebugLevel},
 		{"/metrics", zap.DebugLevel},
+		{"/probe/v1/assignments?version=v1", zap.DebugLevel},
+		{"/probe/v1/hello", zap.InfoLevel},
 		{"/api/v1/monitors", zap.InfoLevel},
 		{"/api/v1/monitors?next=/health", zap.InfoLevel},
 		{"/health/extra", zap.InfoLevel},
