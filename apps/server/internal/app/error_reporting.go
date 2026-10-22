@@ -20,8 +20,9 @@ import (
 // registered its dependencies: the release, the mode its registration gives it (single or cluster,
 // as for the usage ping), the storage backend, the DSN and whether the environment forces
 // reporting off. Reporting stays off until the admin's choice is applied (ApplyErrorReporting in
-// the api and in single mode, StartErrorReportingRefresher in every cluster process). A test may
-// change the options, to catch the events.
+// the api and in single mode; then StartErrorReportingPublisher in the cluster api and
+// StartErrorReportingRefresher in the other cluster processes). A test may change the options, to
+// catch the events.
 func SetupErrorReporting(container *dig.Container, cfg *config.Config, change ...func(*reporting.Options)) error {
 	return container.Invoke(func(mode telemetry.Mode) {
 		opts := errorReportingOptions(cfg, mode)
@@ -67,9 +68,28 @@ func ApplyErrorReporting(ctx context.Context, container *dig.Container) error {
 	})
 }
 
+// StartErrorReportingPublisher makes the cluster api keep Redis true to the admin's choice: every
+// interval until ctx is done it applies the stored setting, which turns reporting on or off in the
+// api and copies the choice to Redis for the other processes. It is how a choice that missed a
+// Redis that was down, or a key that Redis lost, is back within one interval, and how a change
+// made on another api replica reaches this one. The channel it returns closes once it has stopped.
+func StartErrorReportingPublisher(ctx context.Context, container *dig.Container, every time.Duration) (<-chan struct{}, error) {
+	done := make(chan struct{})
+	err := container.Invoke(func(service error_reporting.Service) {
+		reporting.Go("error-reporting", func() {
+			defer close(done)
+			service.Run(ctx, every)
+		})
+	})
+	if err != nil {
+		return nil, err
+	}
+	return done, nil
+}
+
 // StartErrorReportingRefresher makes a cluster process follow the admin's choice: it reads the
 // choice the api copied to Redis now and every interval until ctx is done, with no restart. The
-// channel it returns closes once it has stopped.
+// producer, the worker and the ingester run it. The channel it returns closes once it has stopped.
 func StartErrorReportingRefresher(ctx context.Context, container *dig.Container, every time.Duration) (<-chan struct{}, error) {
 	done := make(chan struct{})
 	err := container.Invoke(func(client *redis.Client) {

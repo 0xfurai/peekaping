@@ -3,12 +3,15 @@ package apitest
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
 	"peekaping/internal/config"
+	"peekaping/internal/modules/error_reporting"
+	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/reporting"
 	"peekaping/internal/reporting/redissync"
@@ -91,6 +94,42 @@ func TestErrorReportingAPI_PutCopiesTheChoiceToRedis(t *testing.T) {
 	value, err = a.redis.Get(redissync.Key)
 	require.NoError(t, err)
 	assert.Equal(t, "false", value)
+}
+
+// AC6: the stored setting is the source of truth and Redis only carries it to the other processes.
+// An opt-out while Redis is down still succeeds and stops reporting here; once Redis is back, the
+// api's own republishing (error_reporting.Service.Run) brings the key up to date.
+func TestErrorReportingAPI_PutSucceedsWhileRedisIsDownAndTheKeyCatchesUpAfterwards(t *testing.T) {
+	reportingtest.Install(t)
+	a := newAppWithAdmin(t)
+	a.setErrorReporting(t, true)
+	value, err := a.redis.Get(redissync.Key)
+	require.NoError(t, err)
+	require.Equal(t, "true", value)
+	require.True(t, reporting.Enabled())
+
+	a.redis.Close()
+	w := a.request(t, http.MethodPut, errorReportingPath, map[string]any{"enabled": false}, a.asAdmin)
+
+	assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
+	assert.JSONEq(t, `{"enabled": false, "forced_off": false}`, w.Body.String())
+	assert.Equal(t, "false", a.storedSetting(t, "ERROR_REPORTING_ENABLED").Value, "the setting is stored")
+	assert.False(t, reporting.Enabled(), "and this process stopped reporting")
+	assert.Equal(t, map[string]any{"enabled": false, "forced_off": false}, a.errorReporting(t))
+
+	require.NoError(t, a.redis.Restart())
+	value, err = a.redis.Get(redissync.Key)
+	require.NoError(t, err)
+	assert.Equal(t, "true", value, "the other processes would still be told to report")
+	require.NoError(t, a.container.Invoke(func(service error_reporting.Service) {
+		ctx, cancel := context.WithCancel(context.Background())
+		t.Cleanup(cancel)
+		go service.Run(ctx, 10*time.Millisecond)
+	}))
+	require.Eventually(t, func() bool {
+		value, err := a.redis.Get(redissync.Key)
+		return err == nil && value == "false"
+	}, 5*time.Second, 5*time.Millisecond, "the api tells them within a refresh")
 }
 
 func TestErrorReportingAPI_ForcedOffByEnv(t *testing.T) {
@@ -228,12 +267,27 @@ func TestErrorReportingAPI_ClientErrorsAndFailedRequestsAreNotReported(t *testin
 	}
 	assert.Empty(t, recorder.Events())
 
-	// A 500 that is not a panic: Redis is gone, so the change can't be copied to the other
-	// processes, and the handler answers with an error
-	a.redis.Close()
-	w := a.request(t, http.MethodPut, errorReportingPath, map[string]any{"enabled": false}, a.asAdmin)
+	// A 500 that is not a panic: the setting can't be written, and the handler answers with an error
+	failing := newAppDecorated(t, func(container *dig.Container) error {
+		return container.Decorate(func(settings shared.SettingService) shared.SettingService {
+			return settingsThatCannotBeWritten{settings}
+		})
+	})
+	failing.registerAdmin(t)
+	w := failing.request(t, http.MethodPut, errorReportingPath, map[string]any{"enabled": false}, failing.asAdmin)
 	assert.Equal(t, http.StatusInternalServerError, w.Code, w.Body.String())
 	assert.Empty(t, recorder.Events(), "an error returned is not a crash: only panics are reported")
+}
+
+// settingsThatCannotBeWritten is the settings service of a database that rejects writes of the
+// error reporting choice
+type settingsThatCannotBeWritten struct{ shared.SettingService }
+
+func (s settingsThatCannotBeWritten) SetByKey(ctx context.Context, key string, entity *shared.SettingModel) (*shared.SettingModel, error) {
+	if key == "ERROR_REPORTING_ENABLED" {
+		return nil, errors.New("database is locked")
+	}
+	return s.SettingService.SetByKey(ctx, key, entity)
 }
 
 // panickingStore is a stale.Store whose every method panics, as a bug in a handler would

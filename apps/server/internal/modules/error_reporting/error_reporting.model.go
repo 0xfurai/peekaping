@@ -5,6 +5,7 @@ package error_reporting
 
 import (
 	"context"
+	"time"
 
 	"peekaping/internal/reporting"
 	"peekaping/internal/reporting/redissync"
@@ -30,8 +31,9 @@ type State struct {
 // Switch tells the processes that report whether to. Single mode has one process, and cluster
 // mode has four kinds of them.
 type Switch interface {
-	// Set turns reporting on or off in this process and in the others. on is the effective choice:
-	// false while the environment forces reporting off.
+	// Set turns reporting on or off in this process and tries to tell the others. on is the
+	// effective choice: false while the environment forces reporting off. The error is about the
+	// others only: this process follows on whatever it says.
 	Set(ctx context.Context, on bool) error
 }
 
@@ -42,6 +44,10 @@ func (LocalSwitch) Set(_ context.Context, on bool) error {
 	reporting.SetEnabled(on)
 	return nil
 }
+
+// publishTimeout is how long copying the choice to Redis may take. A Redis that is down must not
+// hold up the change: the service republishes the stored choice every minute.
+const publishTimeout = 2 * time.Second
 
 // RedisSwitch is cluster mode's switch, in the api: it turns reporting on or off in the api and
 // copies the choice to a Redis key, which every cluster process reads once a minute
@@ -54,5 +60,7 @@ func NewRedisSwitch(client *redis.Client) *RedisSwitch { return &RedisSwitch{cli
 
 func (s *RedisSwitch) Set(ctx context.Context, on bool) error {
 	reporting.SetEnabled(on)
+	ctx, cancel := context.WithTimeout(ctx, publishTimeout)
+	defer cancel()
 	return redissync.Publish(ctx, s.client, on)
 }

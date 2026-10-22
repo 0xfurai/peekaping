@@ -6,6 +6,7 @@ import (
 	"peekaping/internal/utils"
 
 	"go.uber.org/dig"
+	"go.uber.org/zap"
 )
 
 // RegisterDependencies provides the error reporting module. The transport of each binary
@@ -15,6 +16,6 @@ func RegisterDependencies(container *dig.Container) error {
 	return utils.Provide(container, provideService, NewController, NewRoute)
 }
 
-func provideService(settings shared.SettingService, cfg *config.Config, sw Switch) Service {
-	return NewService(settings, cfg, sw)
+func provideService(settings shared.SettingService, cfg *config.Config, sw Switch, logger *zap.SugaredLogger) Service {
+	return NewService(settings, cfg, sw, logger)
 }
