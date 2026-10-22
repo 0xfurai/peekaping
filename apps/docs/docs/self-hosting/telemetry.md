@@ -4,9 +4,9 @@ sidebar_position: 8
 
 # Usage statistics and error reporting
 
-Peekaping can send two kinds of anonymous reports to the Peekaping project:
+Peekaping can send two kinds of anonymous data to the Peekaping project:
 
-- **[Usage statistics](#usage-statistics)** say how your install is set up: the version, the mode, the storage backend and which kinds of monitors you use. We use them to see what is safe to change or remove.
+- **[Usage statistics](#usage-statistics)** are a usage ping that says how your install is set up: the version, the mode, the storage backend and which kinds of monitors you use. We use it to see what is safe to change or remove.
 - **[Error reports](#error-reporting)** say where Peekaping's own code crashed. We use them to find and fix bugs that show only on someone else's server.
 
 **Both are off until an admin turns them on.** A new install sends nothing. An install that upgrades from an older version stays off too. Each one has its own box on the setup screen and its own switch in Settings, and turning one on does not turn on the other.
@@ -132,7 +132,7 @@ Peekaping can send a report when its own code crashes. The report says what kind
 
 Only for a panic: a crash in Peekaping's own code, such as an index out of range or a nil pointer. Some panics are caught, and the request or check goes on. Others end a process, and that one is reported just before it stops.
 
-Nothing else is reported. A failed check, a monitor that is Down, a wrong password, a bad request, a notification that a provider refuses and every other error that Peekaping handles and logs are normal, and none of them is a report. A mistake by a user is not a bug in Peekaping.
+Nothing else is reported. A failed check, a monitor that is Down, a wrong password, a bad request, a notification that its destination refuses and every other error that Peekaping handles and logs are normal, and none of them is a report. A mistake by a user is not a bug in Peekaping.
 
 ### What a report holds
 
@@ -162,7 +162,7 @@ Peekaping builds each report from the list above, field by field. It copies noth
 - a user, an email address or any other account data
 - the name, URL, host or setting of a monitor, status page or notification channel, such as a webhook URL
 
-Peekaping adds no IP address to a report. The Sentry server sees the address a request comes from, as any server does, and the Sentry project that receives the reports is set not to store IP addresses.
+A report holds no IP address. The Sentry server still sees the address a request comes from, as any server does. Peekaping's Sentry project is set not to store the sender's IP address, but that is a setting of the project, which this repository can't enforce. If you set your own `ERROR_REPORTING_DSN`, the settings of your Sentry or GlitchTip decide whether it keeps the address.
 
 ### Where it goes
 
@@ -203,4 +203,4 @@ Set the variable on the `peekaping` container in single mode. In cluster mode, s
 
 ### In cluster mode
 
-The API reads and changes the setting. It stores the choice and copies it to Redis, and the producer, worker and ingester read it from Redis once a minute. A change in Settings reaches every process within a minute, with no restart.
+The API reads and changes the setting. The stored setting is the source of truth. A change in Settings stores it, takes effect in the API at once, and is copied to Redis. The producer, worker and ingester read it from Redis once a minute. The API also copies the stored setting to Redis again every minute, so a change made while Redis was down reaches them within a minute of Redis coming back. A change in Settings reaches every process within a minute, with no restart.
