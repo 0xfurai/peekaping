@@ -1,5 +1,4 @@
 import { Input } from "@/components/ui/input";
-import { PasswordInput } from "@/components/ui/password-input";
 import {
   FormField,
   FormItem,
@@ -9,6 +8,8 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { z } from "zod";
+import { SecretInput } from "../components/saved-secrets";
+import { withSavedSecret } from "../secrets";
 import {
   Select,
   SelectTrigger,
@@ -22,8 +23,8 @@ import { useMemo } from "react";
 
 export const schema = z.object({
   type: z.literal("pushover"),
-  pushover_user_key: z.string().min(1, { message: "User key is required" }),
-  pushover_app_token: z.string().min(1, { message: "Application token is required" }),
+  pushover_user_key: withSavedSecret(z.string().min(1, { message: "User key is required" })),
+  pushover_app_token: withSavedSecret(z.string().min(1, { message: "Application token is required" })),
   pushover_device: z.string().optional(),
   pushover_title: z.string().optional(),
   pushover_priority: z.coerce.number().min(-2).max(2).optional(),
@@ -97,7 +98,7 @@ export default function PushoverForm() {
               {t("notifications.form.pushover.user_key_label")} <span className="text-red-500">*</span>
             </FormLabel>
             <FormControl>
-              <PasswordInput
+              <SecretInput
                 placeholder={t("notifications.form.pushover.user_key_placeholder")}
                 required
                 {...field}
@@ -120,7 +121,7 @@ export default function PushoverForm() {
               {t("notifications.form.pushover.application_token_label")} <span className="text-red-500">*</span>
             </FormLabel>
             <FormControl>
-              <PasswordInput
+              <SecretInput
                 placeholder={t("notifications.form.pushover.application_token_placeholder")}
                 required
                 {...field}

@@ -1113,7 +1113,13 @@
     "placeholders": {
       "select_type": "选择通知器类型"
     },
-    "search_placeholder": "按名称搜索通知渠道…"
+    "search_placeholder": "按名称搜索通知渠道…",
+    "secret": {
+      "reenter_error": "请重新输入此密钥或将其移除：发送目标已更改",
+      "reenter_hint": "请重新输入此密钥：发送目标已更改",
+      "remove": "移除",
+      "saved_hint": "已保存 — 输入即可替换"
+    }
   },
   "proxies": {
     "delete_dialog": {

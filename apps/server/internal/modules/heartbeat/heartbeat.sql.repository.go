@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/shared"
 
 	"github.com/google/uuid"
@@ -252,7 +253,7 @@ func (r *SQLRepositoryImpl) HasAny(ctx context.Context) (bool, error) {
 }
 
 func (r *SQLRepositoryImpl) DeleteByMonitorID(ctx context.Context, monitorID string) error {
-	_, err := r.db.NewDelete().
+	_, err := dbtx.DB(ctx, r.db).NewDelete().
 		Model((*sqlModel)(nil)).
 		Where("monitor_id = ?", monitorID).
 		Exec(ctx)

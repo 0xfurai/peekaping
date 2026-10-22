@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"mime"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -17,6 +19,7 @@ import (
 	"peekaping/internal/modules/monitor"
 
 	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 // captureWebhook starts a test server that records the first request's body and headers,
@@ -218,4 +221,79 @@ func TestWebhookSend_AdditionalHeadersCannotReplaceSignature(t *testing.T) {
 	if got != want {
 		t.Errorf("signature = %q, want %q", got, want)
 	}
+}
+
+// The additional headers usually carry an Authorization token, so neither the log nor the
+// error of a failed send may repeat them
+func TestWebhookSend_AdditionalHeadersAreNotLoggedOrEchoed(t *testing.T) {
+	const token = "Bearer SECRET-header-token"
+	send := func(t *testing.T, headers string) (string, error) {
+		t.Helper()
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer srv.Close()
+		cfgJSON, err := json.Marshal(WebhookConfig{
+			WebhookURL:               srv.URL,
+			WebhookContentType:       "json",
+			WebhookAdditionalHeaders: headers,
+		})
+		if err != nil {
+			t.Fatalf("failed to marshal config: %v", err)
+		}
+
+		core, logs := observer.New(zap.DebugLevel)
+		sender := NewWebhookSender(zap.New(core).Sugar(), NewHTTPClient())
+		sendErr := sender.Send(context.Background(), string(cfgJSON), "test message", &monitor.Model{ID: "m1", Name: "Test Monitor"}, &heartbeat.Model{Msg: "down"})
+
+		var logged strings.Builder
+		for _, entry := range logs.All() {
+			logged.WriteString(entry.Message + fmt.Sprint(entry.ContextMap()) + "\n")
+		}
+		return logged.String(), sendErr
+	}
+
+	t.Run("headers that are not JSON", func(t *testing.T) {
+		// The closing brace is missing
+		logged, err := send(t, `{"Authorization": "`+token+`"`)
+
+		if err == nil {
+			t.Fatal("Send accepted headers that are not JSON")
+		}
+		if !strings.Contains(err.Error(), "additional Headers is not a valid JSON") {
+			t.Errorf("error = %q, want it to say the headers are not valid JSON", err)
+		}
+		for _, leaked := range []string{"SECRET-header-token", "Authorization", "Bearer"} {
+			if strings.Contains(err.Error(), leaked) {
+				t.Errorf("error %q repeats %q", err, leaked)
+			}
+			if strings.Contains(logged, leaked) {
+				t.Errorf("log repeats %q: %s", leaked, logged)
+			}
+		}
+	})
+
+	t.Run("headers that are JSON but not an object", func(t *testing.T) {
+		logged, err := send(t, `["`+token+`"]`)
+
+		if err == nil {
+			t.Fatal("Send accepted headers that are not an object")
+		}
+		for _, leaked := range []string{"SECRET-header-token", "Bearer"} {
+			if strings.Contains(err.Error(), leaked) || strings.Contains(logged, leaked) {
+				t.Errorf("error %q or log %q repeats %q", err, logged, leaked)
+			}
+		}
+	})
+
+	t.Run("headers that are applied", func(t *testing.T) {
+		logged, err := send(t, `{"Authorization": "`+token+`"}`)
+
+		if err != nil {
+			t.Fatalf("Send returned error: %v", err)
+		}
+		if strings.Contains(logged, "SECRET-header-token") {
+			t.Errorf("log repeats the header: %s", logged)
+		}
+	})
 }

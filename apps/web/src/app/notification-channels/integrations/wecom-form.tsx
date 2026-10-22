@@ -1,4 +1,6 @@
 import { z } from "zod";  
+import { SecretInput } from "../components/saved-secrets";
+import { withSavedSecret } from "../secrets";
 import { useFormContext } from "react-hook-form";  
 import { Input } from "@/components/ui/input";  
 import {  
@@ -12,7 +14,7 @@ import {
   
 export const schema = z.object({  
   type: z.literal("wecom"),  
-  webhook_url: z.string().url({ message: "Valid webhook URL is required" }),  
+  webhook_url: withSavedSecret(z.string().url({ message: "Valid webhook URL is required" })),  
   custom_message: z.string().optional(),  
 });  
   
@@ -38,11 +40,11 @@ export default function WeComForm() {
           <FormItem>  
             <FormLabel>Webhook URL</FormLabel>  
             <FormControl>  
-              <Input  
-                placeholder="https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=xxx"  
-                type="url"  
-                required  
-                {...field}  
+              <SecretInput
+                placeholder="https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=xxx"
+                autoComplete="off"
+                required
+                {...field}
               />  
             </FormControl>  
             <FormDescription>  

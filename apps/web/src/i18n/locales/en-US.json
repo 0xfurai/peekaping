@@ -1113,7 +1113,13 @@
     "placeholders": {
       "select_type": "Select notifier type"
     },
-    "search_placeholder": "Search notification channels by name..."
+    "search_placeholder": "Search notification channels by name...",
+    "secret": {
+      "reenter_error": "Re-enter this secret or remove it: where it's sent changed",
+      "reenter_hint": "Re-enter this secret: where it's sent changed",
+      "remove": "Remove",
+      "saved_hint": "Saved — type to replace"
+    }
   },
   "proxies": {
     "delete_dialog": {

@@ -75,6 +75,7 @@ const EditNotificationChannel = () => {
         onSubmit={handleSubmit}
         isLoading={mutation.isPending}
         mode="edit"
+        channelId={id}
       />
     </Layout>
   );

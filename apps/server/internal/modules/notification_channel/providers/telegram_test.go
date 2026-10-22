@@ -2,10 +2,16 @@ package providers
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"reflect"
 	"strings"
 	"testing"
+
+	"peekaping/internal/modules/heartbeat"
+	"peekaping/internal/modules/monitor"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -52,4 +58,29 @@ func TestTelegramSender_APIErrorKeepsTheBotTokenOutOfAnEchoedBody(t *testing.T) 
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "no route for /bot")
 	assert.NotContains(t, err.Error(), "secret-bot-token")
+}
+
+type telegramTransport func(*http.Request) (*http.Response, error)
+
+func (f telegramTransport) RoundTrip(req *http.Request) (*http.Response, error) { return f(req) }
+
+// A Telegram config without a server_url sends to the Telegram API. The endpoint check treats an
+// empty server_url as that server, using the endpointDefault tag, so the tag has to name the server
+// the sender falls back to.
+func TestTelegramEmptyServerURLSendsToTheEndpointDefault(t *testing.T) {
+	var requested *url.URL
+	client := &http.Client{Transport: telegramTransport(func(req *http.Request) (*http.Response, error) {
+		requested = req.URL
+		return &http.Response{StatusCode: http.StatusOK, Body: io.NopCloser(strings.NewReader(`{"ok":true}`)), Header: http.Header{}}, nil
+	})}
+	sender := NewTelegramSender(zap.NewNop().Sugar(), client)
+
+	err := sender.Send(context.Background(), `{"bot_token":"token","chat_id":"1"}`, "message", &monitor.Model{}, &heartbeat.Model{})
+
+	require.NoError(t, err)
+	require.NotNil(t, requested)
+	field, ok := reflect.TypeOf(TelegramConfig{}).FieldByName("ServerUrl")
+	require.True(t, ok)
+	assert.Equal(t, field.Tag.Get("endpointDefault"), requested.Scheme+"://"+requested.Host)
+	assert.Equal(t, "/bottoken/sendMessage", requested.Path)
 }
