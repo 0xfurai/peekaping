@@ -157,7 +157,7 @@ _Avoid_: Microservice mode, distributed mode, HA mode
 ### Telemetry
 
 **Usage ping**:
-An anonymous summary of how an install is set up, sent at most once a day to Peekaping's telemetry Worker, and only after an admin opts in. It holds the version, mode, storage backend, OS, a bucket for the number of monitors, the monitor types and notification channel types in use (names of kinds, nothing about individual monitors), and which features are on. See [ADR 0003](docs/adr/0003-opt-in-telemetry-and-error-reporting.md).
+An anonymous summary of how an install is set up, sent at most once a day to Peekaping's telemetry Worker, and only after an admin opts in. It holds the version, mode, storage backend, OS, a bucket for the number of monitors, the monitor types and notification channel types in use (names of kinds, nothing about individual monitors), and which features are on. The UI calls the feature "usage statistics" (the setup checkbox "Send anonymous usage statistics" has its label fixed by the ticket). It is the same thing as the usage ping, not a second one. See [ADR 0003](docs/adr/0003-opt-in-telemetry-and-error-reporting.md).
 _Avoid_: Analytics, phone-home, tracking, heartbeat (that's a monitor's result), ping (that's a monitor type)
 
 **Instance ID**:
