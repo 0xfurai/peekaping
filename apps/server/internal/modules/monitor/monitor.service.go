@@ -293,6 +293,13 @@ func (mr *MonitorServiceImpl) Delete(ctx context.Context, id string) error {
 	// monitor row is deleted last: on MongoDB, which has no transaction here, a delete that fails
 	// part way leaves the monitor, and the request can be sent again.
 	err := mr.transactor.WithTx(ctx, func(ctx context.Context) error {
+		current, err := mr.FindByID(ctx, id)
+		if err != nil {
+			return err
+		}
+		if current == nil {
+			return fmt.Errorf("%w: monitor %s", ErrMonitorNotFound, id)
+		}
 		if err := mr.monitorNotificationService.DeleteByMonitorID(ctx, id); err != nil {
 			return fmt.Errorf("delete notification channel links: %w", err)
 		}

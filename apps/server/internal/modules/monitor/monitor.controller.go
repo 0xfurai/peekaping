@@ -271,14 +271,8 @@ func (ic *MonitorController) Delete(ctx context.Context, input *DeleteInput) (*h
 	r := input.Request
 	id := r.PathValue("id")
 
-	if _, err := utils.RequireRecord(ctx, ic.logger, "Monitor", ic.monitorService.FindByID, id); err != nil {
-		return nil, err
-	}
-
-	err := ic.monitorService.Delete(ctx, id)
-	if err != nil {
-		ic.logger.Errorw("Failed to delete monitor", "error", err)
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+	if err := ic.monitorService.Delete(ctx, id); err != nil {
+		return nil, ic.failWrite("delete", err)
 	}
 
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse[any]("Monitor deleted successfully", nil))

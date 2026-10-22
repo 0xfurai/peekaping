@@ -110,6 +110,10 @@ func TestMonitorsAPI_HandlersCallOneServiceMethodToWrite(t *testing.T) {
 			[]string{"UpdatePartial"}},
 		{"partial update of a missing monitor", http.MethodPatch, "/api/v1/monitors/" + missingID, map[string]any{"name": "Gone"}, http.StatusNotFound,
 			[]string{"UpdatePartial"}},
+		{"delete of a missing monitor", http.MethodDelete, "/api/v1/monitors/" + missingID, nil, http.StatusNotFound,
+			[]string{"Delete"}},
+		{"delete", http.MethodDelete, "/api/v1/monitors/" + id, nil, http.StatusOK,
+			[]string{"Delete"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			service.take()
@@ -120,6 +124,15 @@ func TestMonitorsAPI_HandlersCallOneServiceMethodToWrite(t *testing.T) {
 			assert.Equal(t, tc.calls, service.take())
 		})
 	}
+}
+
+func TestMonitorsAPI_DeleteOfAMissingMonitorMessage(t *testing.T) {
+	a := newAppWithAdmin(t)
+
+	w := a.request(t, http.MethodDelete, "/api/v1/monitors/00000000-0000-4000-8000-000000000000", nil, a.asAdmin)
+
+	require.Equal(t, http.StatusNotFound, w.Code, w.Body.String())
+	assert.Equal(t, "Monitor not found", failMessage(t, w))
 }
 
 func TestMonitorsAPI_PartialUpdateErrorMessages(t *testing.T) {
