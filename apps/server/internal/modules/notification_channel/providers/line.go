@@ -15,7 +15,7 @@ import (
 )
 
 type LineConfig struct {
-	ChannelAccessToken string `json:"channel_access_token" validate:"required"`
+	ChannelAccessToken string `json:"channel_access_token" validate:"required" secret:"true"`
 	UserID             string `json:"user_id" validate:"required"`
 	Template           string `json:"template"`
 }
