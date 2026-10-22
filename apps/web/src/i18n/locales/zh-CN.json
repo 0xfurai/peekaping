@@ -1288,8 +1288,8 @@
       "description": "每天最多一次发送关于此安装如何配置的匿名统计。开启之前保持关闭。",
       "forced_off": "环境变量 TELEMETRY=off 或 DO_NOT_TRACK=1 已将此选项关闭。无论此设置如何，都不会发送任何内容。",
       "id_note": "实例 ID 在你开启此选项时创建，关闭时删除。再次开启会创建新的 ID。",
-      "payload_off": "关闭期间不会发送任何内容。如果你开启，报告将包含以下内容。",
-      "payload_title": "下一份报告会发送什么",
+      "payload_off": "关闭期间不会发送任何内容。如果你开启，使用情况 ping 将包含以下内容。",
+      "payload_title": "下一次使用情况 ping 会发送什么",
       "title": "使用统计"
     },
     "timezone": {

@@ -1288,8 +1288,8 @@
       "description": "Kirim statistik anonim tentang cara instalasi ini diatur, paling banyak sekali sehari. Nonaktif sampai Anda mengaktifkannya.",
       "forced_off": "Variabel lingkungan TELEMETRY=off atau DO_NOT_TRACK=1 menonaktifkan ini. Tidak ada yang dikirim, apa pun isi pengaturan ini.",
       "id_note": "ID instans dibuat saat Anda mengaktifkan ini dan dihapus saat Anda menonaktifkannya. Mengaktifkannya lagi akan membuat ID baru.",
-      "payload_off": "Tidak ada yang dikirim selama ini nonaktif. Inilah isi laporan jika Anda mengaktifkannya.",
-      "payload_title": "Apa yang akan dikirim laporan berikutnya",
+      "payload_off": "Tidak ada yang dikirim selama ini nonaktif. Inilah isi ping penggunaan jika Anda mengaktifkannya.",
+      "payload_title": "Apa yang akan dikirim ping penggunaan berikutnya",
       "title": "Statistik penggunaan"
     },
     "timezone": {

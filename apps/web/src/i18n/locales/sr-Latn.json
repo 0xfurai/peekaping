@@ -1288,8 +1288,8 @@
       "description": "Šalji anonimnu statistiku o tome kako je ova instalacija podešena, najviše jednom dnevno. Isključeno dok ne uključite.",
       "forced_off": "Promenljiva okruženja TELEMETRY=off ili DO_NOT_TRACK=1 isključuje ovo. Ništa se ne šalje, šta god ovo podešavanje govorilo.",
       "id_note": "ID instance se pravi kada ovo uključite i briše kada ovo isključite. Ponovnim uključivanjem pravi se novi.",
-      "payload_off": "Dok je ovo isključeno, ništa se ne šalje. Ovo bi sadržao izveštaj da ste ga uključili.",
-      "payload_title": "Šta će poslati sledeći izveštaj",
+      "payload_off": "Dok je ovo isključeno, ništa se ne šalje. Ovo bi sadržao ping korišćenja da ste ga uključili.",
+      "payload_title": "Šta će poslati sledeći ping korišćenja",
       "title": "Statistika korišćenja"
     },
     "timezone": {

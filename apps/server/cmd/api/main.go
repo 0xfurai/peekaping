@@ -93,15 +93,17 @@ func main() {
 	}
 
 	// Apply the admin's choice from before the restart, which also copies it to Redis for the
-	// producer, the worker and the ingester. Then follow it like they do, so that a change made
-	// on another api replica reaches this one. A failure leaves error reports off.
+	// producer, the worker and the ingester. Then apply it again every minute, so that a copy
+	// that missed a Redis that was down is made up within a minute, and a change made on another
+	// api replica reaches this one. The stored setting is the source of truth; Redis only
+	// carries it. A failure leaves error reports off.
 	if err := app.ApplyErrorReporting(context.Background(), container); err != nil {
 		log.Printf("Failed to apply the error reporting choice, leaving error reports off: %v", err)
 	}
 	errorReportingCtx, stopErrorReporting := context.WithCancel(context.Background())
 	defer stopErrorReporting()
-	if _, err := app.StartErrorReportingRefresher(errorReportingCtx, container, redissync.DefaultEvery); err != nil {
-		log.Fatalf("Failed to follow the error reporting choice: %v", err)
+	if _, err := app.StartErrorReportingPublisher(errorReportingCtx, container, redissync.DefaultEvery); err != nil {
+		log.Fatalf("Failed to keep the error reporting choice in Redis: %v", err)
 	}
 
 	// Start the health check supervisor

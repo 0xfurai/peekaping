@@ -1288,8 +1288,8 @@
       "description": "Gửi thống kê ẩn danh về cách bản cài đặt này được thiết lập, nhiều nhất một lần mỗi ngày. Tắt cho đến khi bạn bật.",
       "forced_off": "Biến môi trường TELEMETRY=off hoặc DO_NOT_TRACK=1 đang tắt mục này. Không có gì được gửi, bất kể cài đặt này ghi gì.",
       "id_note": "ID phiên bản được tạo khi bạn bật mục này và bị xóa khi bạn tắt. Bật lại sẽ tạo ID mới.",
-      "payload_off": "Không có gì được gửi khi mục này đang tắt. Đây là nội dung báo cáo sẽ có nếu bạn bật.",
-      "payload_title": "Báo cáo tiếp theo sẽ gửi gì",
+      "payload_off": "Không có gì được gửi khi mục này đang tắt. Đây là nội dung ping sử dụng sẽ có nếu bạn bật.",
+      "payload_title": "Ping sử dụng tiếp theo sẽ gửi gì",
       "title": "Thống kê sử dụng"
     },
     "timezone": {

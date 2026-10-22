@@ -1288,8 +1288,8 @@
       "description": "Pošiljaj anonimno statistiko o tem, kako je ta namestitev nastavljena, največ enkrat na dan. Izklopljeno, dokler ne vklopite.",
       "forced_off": "Spremenljivka okolja TELEMETRY=off ali DO_NOT_TRACK=1 to izklopi. Nič se ne pošlje, ne glede na to, kaj pravi ta nastavitev.",
       "id_note": "ID primerka se ustvari, ko to vklopite, in izbriše, ko to izklopite. Ob ponovnem vklopu se ustvari nov.",
-      "payload_off": "Dokler je to izklopljeno, se nič ne pošilja. To bi vsebovalo poročilo, če bi to vklopili.",
-      "payload_title": "Kaj bo poslalo naslednje poročilo",
+      "payload_off": "Dokler je to izklopljeno, se nič ne pošilja. To bi vseboval ping uporabe, če bi to vklopili.",
+      "payload_title": "Kaj bo poslal naslednji ping uporabe",
       "title": "Statistika uporabe"
     },
     "timezone": {

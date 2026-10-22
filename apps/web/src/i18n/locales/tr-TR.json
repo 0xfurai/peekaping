@@ -1288,8 +1288,8 @@
       "description": "Bu kurulumun nasıl yapılandırıldığına dair anonim istatistikleri günde en fazla bir kez gönderin. Siz açana kadar kapalıdır.",
       "forced_off": "TELEMETRY=off veya DO_NOT_TRACK=1 ortam değişkeni bunu kapatır. Bu ayar ne derse desin hiçbir şey gönderilmez.",
       "id_note": "Örnek kimliği, bunu açtığınızda oluşturulur ve kapattığınızda silinir. Yeniden açarsanız yeni bir kimlik oluşturulur.",
-      "payload_off": "Bu kapalıyken hiçbir şey gönderilmez. Açsaydınız bir rapor şunları içerirdi.",
-      "payload_title": "Bir sonraki raporun göndereceği veriler",
+      "payload_off": "Bu kapalıyken hiçbir şey gönderilmez. Açsaydınız bir kullanım ping'i şunları içerirdi.",
+      "payload_title": "Bir sonraki kullanım ping'inin göndereceği veriler",
       "title": "Kullanım istatistikleri"
     },
     "timezone": {

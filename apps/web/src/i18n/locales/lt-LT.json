@@ -1288,8 +1288,8 @@
       "description": "Siųsti anonimišką statistiką apie tai, kaip sukonfigūruotas šis diegimas, ne dažniau kaip kartą per dieną. Išjungta, kol neįjungsite.",
       "forced_off": "Aplinkos kintamasis TELEMETRY=off arba DO_NOT_TRACK=1 tai išjungia. Niekas nesiunčiama, ką bebūtų nurodęs šis nustatymas.",
       "id_note": "Egzemplioriaus ID sukuriamas, kai tai įjungiate, ir ištrinamas, kai išjungiate. Įjungus iš naujo, sukuriamas naujas.",
-      "payload_off": "Kol tai išjungta, niekas nesiunčiama. Štai ką ataskaita turėtų, jei tai įjungtumėte.",
-      "payload_title": "Ką išsiųs kita ataskaita",
+      "payload_off": "Kol tai išjungta, niekas nesiunčiama. Štai ką naudojimo pingas turėtų, jei tai įjungtumėte.",
+      "payload_title": "Ką išsiųs kitas naudojimo pingas",
       "title": "Naudojimo statistika"
     },
     "timezone": {

@@ -1288,8 +1288,8 @@
       "description": "Bidali instalazio hau nola konfiguratuta dagoenari buruzko estatistika anonimoak, egunean behin gehienez. Desaktibatuta dago aktibatu arte.",
       "forced_off": "TELEMETRY=off edo DO_NOT_TRACK=1 ingurune-aldagaiak desaktibatzen du hau. Ez da ezer bidaltzen, ezarpen honek dioena dena delakoa.",
       "id_note": "Instantziaren IDa aktibatzean sortzen da eta desaktibatzean ezabatzen da. Berriro aktibatzen baduzu, berri bat sortzen da.",
-      "payload_off": "Ez da ezer bidaltzen hau desaktibatuta dagoen bitartean. Hau izango litzateke txostenaren edukia aktibatuko bazenu.",
-      "payload_title": "Hurrengo txostenak zer bidaliko duen",
+      "payload_off": "Ez da ezer bidaltzen hau desaktibatuta dagoen bitartean. Hau izango litzateke erabilera-pingaren edukia aktibatuko bazenu.",
+      "payload_title": "Hurrengo erabilera-pingak zer bidaliko duen",
       "title": "Erabilera-estatistikak"
     },
     "timezone": {

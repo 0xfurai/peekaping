@@ -1288,8 +1288,8 @@
       "description": "每日最多一次傳送有關呢個安裝點樣設定嘅匿名統計。喺你開啟之前係關閉嘅。",
       "forced_off": "環境變數 TELEMETRY=off 或者 DO_NOT_TRACK=1 將呢個選項關閉咗。無論呢個設定點樣，都唔會傳送任何嘢。",
       "id_note": "實例 ID 會喺你開啟呢個選項時建立，關閉時刪除。再開啟會建立新嘅 ID。",
-      "payload_off": "關閉期間唔會傳送任何嘢。如果你開啟，報告就會包含以下內容。",
-      "payload_title": "下一份報告會傳送啲咩",
+      "payload_off": "關閉期間唔會傳送任何嘢。如果你開啟，使用情況 ping 就會包含以下內容。",
+      "payload_title": "下一次使用情況 ping 會傳送啲咩",
       "title": "使用統計"
     },
     "timezone": {

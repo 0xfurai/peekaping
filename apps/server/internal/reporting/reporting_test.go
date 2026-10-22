@@ -124,20 +124,26 @@ func TestCapturePanic_ReportsARuntimeErrorFromItsCaller(t *testing.T) {
 	}
 }
 
+// secrets are what the text of an error can hold and a report must never carry: a monitor URL, an
+// Authorization header value and a Slack webhook URL
+var secrets = []string{
+	"https://secret.example.com/health?token=abc",
+	"secret.example.com",
+	"Bearer s3cr3t",
+	"s3cr3t",
+	"https://hooks.slack.com/services/T000/B000/XXXX",
+	"XXXX",
+}
+
+// errorHoldingSecrets is an error whose text holds every one of secrets
+func errorHoldingSecrets() error {
+	return fmt.Errorf("GET %s failed: Authorization: Bearer s3cr3t, notify %s",
+		"https://secret.example.com/health?token=abc", "https://hooks.slack.com/services/T000/B000/XXXX")
+}
+
 func TestBeforeSend_DropsUserData(t *testing.T) {
 	recorder := reportingtest.Install(t)
-	secrets := []string{
-		"https://secret.example.com/health?token=abc",
-		"secret.example.com",
-		"Bearer s3cr3t",
-		"s3cr3t",
-		"https://hooks.slack.com/services/T000/B000/XXXX",
-		"XXXX",
-	}
-	value, stack := panicked(func() {
-		explode(fmt.Errorf("GET %s failed: Authorization: Bearer s3cr3t, notify %s",
-			"https://secret.example.com/health?token=abc", "https://hooks.slack.com/services/T000/B000/XXXX"))
-	})
+	value, stack := panicked(func() { explode(errorHoldingSecrets()) })
 
 	reporting.CapturePanic("executor", value, stack)
 
@@ -479,6 +485,11 @@ func TestGo_CrashesTheProcessAfterTheReportIsFlushed(t *testing.T) {
 
 // The event the SDK is given is not what goes on the wire: the transport adds an envelope header,
 // and the SDK may add more later. This reads what a server at the DSN really receives.
+//
+// It is the one test that goes through the transport production uses. The other tests hand the
+// SDK a fake sentry.Transport, and sentry-go v0.50 then skips its telemetry buffer (client.go,
+// "Cannot enable Telemetry Processor with custom Transport"), which is the path real events take.
+// So no Transport is set here: the SDK builds its own and sends to the httptest server.
 func TestSetup_WhatReachesTheServerHoldsOnlyTheAllowlist(t *testing.T) {
 	type request struct {
 		path    string
@@ -497,9 +508,7 @@ func TestSetup_WhatReachesTheServerHoldsOnlyTheAllowlist(t *testing.T) {
 	reporting.Setup(reporting.Options{DSN: "http://public@" + host + "/1", Release: "1.2.3", Mode: "cluster", DB: "postgres"})
 	reporting.SetEnabled(true)
 	defer reporting.Setup(reporting.Options{})
-	value, stack := panicked(func() {
-		explode(fmt.Errorf("GET https://secret.example.com/health?token=abc Authorization: Bearer s3cr3t"))
-	})
+	value, stack := panicked(func() { explode(errorHoldingSecrets()) })
 
 	reporting.CapturePanic("http", value, stack)
 	reporting.Flush(5 * time.Second)
@@ -511,12 +520,25 @@ func TestSetup_WhatReachesTheServerHoldsOnlyTheAllowlist(t *testing.T) {
 		t.Fatal("the server received nothing")
 	}
 	assert.Equal(t, "/api/1/envelope/", got.path)
-	for _, private := range []string{"secret", "s3cr3t", "token=abc"} {
-		assert.NotContains(t, string(got.body), private)
+
+	// The raw bytes hold none of what the error's text held, nor this machine's name...
+	for _, secret := range secrets {
+		assert.NotContains(t, string(got.body), secret)
 	}
 	hostname, _ := os.Hostname()
 	if len(hostname) >= 4 {
 		assert.NotContains(t, string(got.body), hostname)
+	}
+	// ...and do hold what a report is for: the type, a frame, the release and the tags
+	for _, held := range []string{
+		`"type":"*errors.errorString"`,
+		`"function":"explode"`,
+		`"release":"1.2.3"`,
+		`"mode":"cluster"`,
+		`"db":"postgres"`,
+		`"component":"http"`,
+	} {
+		assert.Contains(t, string(got.body), held)
 	}
 
 	// An envelope is one JSON object per line: its header, then each item's header and payload
