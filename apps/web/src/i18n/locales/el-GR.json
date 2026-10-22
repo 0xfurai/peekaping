@@ -570,6 +570,8 @@
         "docker": "Δοχείο Docker",
         "grpc": "Παρακολούθηση λέξης-κλειδιού gRPC",
         "http": "Παρακολούθηση HTTP(S)",
+        "http_json_query": "HTTP(s) - Ερώτημα JSON",
+        "http_keyword": "HTTP(s) - Λέξη-κλειδί",
         "kafka": "Παρακολούθηση Παραγωγού Kafka",
         "mongodb": "Παρακολούθηση βάσης δεδομένων MongoDB",
         "mqtt": "Παρακολούθηση MQTT Broker",

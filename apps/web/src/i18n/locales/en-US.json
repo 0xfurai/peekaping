@@ -600,6 +600,8 @@
         "docker": "Docker Container",
         "grpc": "gRPC Keyword Monitor",
         "http": "HTTP(S) Monitor",
+        "http_json_query": "HTTP(s) - Json Query",
+        "http_keyword": "HTTP(s) - Keyword",
         "kafka": "Kafka Producer Monitor",
         "mongodb": "MongoDB Database Monitor",
         "mqtt": "MQTT Broker Monitor",

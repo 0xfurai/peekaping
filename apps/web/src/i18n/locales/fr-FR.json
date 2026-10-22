@@ -570,6 +570,8 @@
         "docker": "Conteneur Docker",
         "grpc": "Moniteur de mots-clés gRPC",
         "http": "Moniteur HTTP(S)",
+        "http_json_query": "HTTP(s) - Requête JSON",
+        "http_keyword": "HTTP(s) - Mot-clé",
         "kafka": "Moniteur du producteur Kafka",
         "mongodb": "Moniteur de base de données MongoDB",
         "mqtt": "Surveillance du courtier MQTT",

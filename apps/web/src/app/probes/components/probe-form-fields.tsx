@@ -11,9 +11,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
-import Notifications, {
-  notificationsSchema,
-} from "@/app/monitors/components/shared/notifications";
+import Notifications from "@/app/monitors/monitor-types/shared/notifications";
+import { notificationsSchema } from "@/app/monitors/monitor-types/shared/schema";
 
 // The messages are translation keys: FormMessage translates them.
 export const createProbeSchema = z

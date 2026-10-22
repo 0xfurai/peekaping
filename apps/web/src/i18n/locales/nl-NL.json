@@ -570,6 +570,8 @@
         "docker": "Docker-container",
         "grpc": "gRPC Zoekwoordmonitor",
         "http": "HTTP(S)-monitor",
+        "http_json_query": "HTTP(s) - JSON-query",
+        "http_keyword": "HTTP(s) - Zoekwoord",
         "kafka": "Kafka Producer Monitor",
         "mongodb": "MongoDB-databasemonitor",
         "mqtt": "MQTT-brokermonitor",

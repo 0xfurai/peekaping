@@ -570,6 +570,8 @@
         "docker": "Контейнер Docker",
         "grpc": "Монітор ключових слів gRPC",
         "http": "Монітор HTTP(S)",
+        "http_json_query": "HTTP(s) - JSON-запит",
+        "http_keyword": "HTTP(s) - Ключове слово",
         "kafka": "Монітор Kafka-продусера",
         "mongodb": "Монітор бази даних MongoDB",
         "mqtt": "Монітор брокера MQTT",

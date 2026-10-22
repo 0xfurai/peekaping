@@ -570,6 +570,8 @@
         "docker": "حاوية دوكر",
         "grpc": "مراقبة الكلمات المفتاحية باستخدام gRPC",
         "http": "مراقب HTTP(S)",
+        "http_json_query": "HTTP(s) - استعلام JSON",
+        "http_keyword": "HTTP(s) - كلمة مفتاحية",
         "kafka": "مراقب منتج كافكا",
         "mongodb": "مراقب قاعدة بيانات MongoDB",
         "mqtt": "مراقب MQTT",

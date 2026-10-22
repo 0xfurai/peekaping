@@ -570,6 +570,8 @@
         "docker": "Docker 容器",
         "grpc": "gRPC 關鍵字監控",
         "http": "HTTP(S) 監控",
+        "http_json_query": "HTTP(s) - JSON 查詢",
+        "http_keyword": "HTTP(s) - 關鍵字",
         "kafka": "Kafka 生產者監控",
         "mongodb": "MongoDB 資料庫監控",
         "mqtt": "MQTT 代理伺服器監控",

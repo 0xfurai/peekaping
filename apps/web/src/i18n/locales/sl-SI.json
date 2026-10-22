@@ -570,6 +570,8 @@
         "docker": "Docker kontejner",
         "grpc": "gRPC Monitor ključnih besed",
         "http": "Nadzor HTTP(S)",
+        "http_json_query": "HTTP(s) - JSON poizvedba",
+        "http_keyword": "HTTP(s) - Ključna beseda",
         "kafka": "Spremljanje proizvajalca Kafka",
         "mongodb": "MongoDB nadzornik baze podatkov",
         "mqtt": "Monitor MQTT brokerja",

@@ -570,6 +570,8 @@
         "docker": "Docker-beholder",
         "grpc": "gRPC nøkkelordmonitor",
         "http": "HTTP(S)-overvåking",
+        "http_json_query": "HTTP(s) - JSON-spørring",
+        "http_keyword": "HTTP(s) - Nøkkelord",
         "kafka": "Kafka-produsentovervåker",
         "mongodb": "MongoDB-databaseovervåking",
         "mqtt": "MQTT-brokerovervåking",

@@ -570,6 +570,8 @@
         "docker": "Docker konteiner",
         "grpc": "gRPC märksõna jälgija",
         "http": "HTTP(S) jälgija",
+        "http_json_query": "HTTP(s) - JSON-päring",
+        "http_keyword": "HTTP(s) - Märksõna",
         "kafka": "Kafka tootja monitor",
         "mongodb": "MongoDB andmebaasi jälgija",
         "mqtt": "MQTT Brokeri jälgija",

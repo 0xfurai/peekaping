@@ -570,6 +570,8 @@
         "docker": "کانتینر داکر",
         "grpc": "ناظم کلیدواژه gRPC",
         "http": "مانیتور HTTP(S)",
+        "http_json_query": "HTTP(s) - کوئری JSON",
+        "http_keyword": "HTTP(s) - کلیدواژه",
         "kafka": "مانیتور تولیدکننده کافکا",
         "mongodb": "مانیتور پایگاه داده MongoDB",
         "mqtt": "نظارت بر کارگزار MQTT",

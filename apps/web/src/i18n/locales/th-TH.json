@@ -570,6 +570,8 @@
         "docker": "คอนเทนเนอร์ Docker",
         "grpc": "ตรวจสอบคำสำคัญ gRPC",
         "http": "HTTP(S) มอนิเตอร์",
+        "http_json_query": "HTTP(s) - คิวรี JSON",
+        "http_keyword": "HTTP(s) - คำสำคัญ",
         "kafka": "ตัวตรวจสอบผู้ผลิต Kafka",
         "mongodb": "ตัวตรวจสอบฐานข้อมูล MongoDB",
         "mqtt": "ตัวตรวจสอบบูร์เกอร์ MQTT",

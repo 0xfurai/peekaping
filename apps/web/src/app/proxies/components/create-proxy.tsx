@@ -5,7 +5,7 @@ import {
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import type { ProxyForm } from "./create-edit-proxy";
+import type { ProxyFormValues } from "./create-edit-proxy";
 import type { ProxyCreateUpdateDto, ProxyModel } from "@/api";
 import CreateEditProxy from "./create-edit-proxy";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
@@ -28,7 +28,7 @@ const CreateProxy = ({
     onError: commonMutationErrorHandler(t("proxies.messages.create_failed")),
   });
 
-  const handleSubmit = (data: ProxyForm) => {
+  const handleSubmit = (data: ProxyFormValues) => {
     const proxyData: ProxyCreateUpdateDto = {
       protocol: data.protocol,
       host: data.host,
