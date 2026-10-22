@@ -333,27 +333,38 @@ func TestSQLRepository_TouchInstanceStampsOnlyTheProbesOwnInstance(t *testing.T)
 	})
 }
 
-func TestSQLRepository_DeleteInstanceRemovesOnlyTheProbesOwnInstance(t *testing.T) {
+func TestSQLRepository_RetireInstanceSetsOnlyTheProbesOwnInstancesLastSeen(t *testing.T) {
 	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
 		ctx := context.Background()
 		repo := probe.NewSQLRepository(db)
 		owner, other := twoProbes(t, repo)
 		now := time.Now().UTC()
-		require.NoError(t, repo.UpsertInstance(ctx, owner.ID, &probe.Instance{ID: "instance-1", LastSeenAt: now}))
+		retired := now.Add(-time.Minute)
+		require.NoError(t, repo.UpsertInstance(ctx, owner.ID, &probe.Instance{ID: "instance-1", Hostname: "host-1", LastSeenAt: now}))
 		require.NoError(t, repo.UpsertInstance(ctx, owner.ID, &probe.Instance{ID: "instance-2", LastSeenAt: now}))
 
-		require.NoError(t, repo.DeleteInstance(ctx, other.ID, "instance-1"), "another probe's token removes nothing")
+		require.NoError(t, repo.RetireInstance(ctx, other.ID, "instance-1", retired), "another probe's token retires nothing")
 		instances, err := repo.FindInstances(ctx, owner.ID)
 		require.NoError(t, err)
-		assert.Len(t, instances, 2)
+		require.Len(t, instances, 2)
+		for _, instance := range instances {
+			assert.WithinDuration(t, now, instance.LastSeenAt, time.Second)
+		}
 
-		require.NoError(t, repo.DeleteInstance(ctx, owner.ID, "instance-1"))
+		require.NoError(t, repo.RetireInstance(ctx, owner.ID, "instance-1", retired))
 		instances, err = repo.FindInstances(ctx, owner.ID)
 		require.NoError(t, err)
-		require.Len(t, instances, 1)
-		assert.Equal(t, "instance-2", instances[0].ID)
+		require.Len(t, instances, 2, "the row stays")
+		assert.Equal(t, "instance-2", instances[0].ID, "the most recently seen is first")
+		assert.WithinDuration(t, now, instances[0].LastSeenAt, time.Second)
+		assert.Equal(t, "instance-1", instances[1].ID)
+		assert.WithinDuration(t, retired, instances[1].LastSeenAt, time.Second)
+		assert.Equal(t, "host-1", instances[1].Hostname, "and keeps what else it says")
 
-		require.NoError(t, repo.DeleteInstance(ctx, owner.ID, "instance-1"), "removing an instance that is gone is not an error")
+		require.NoError(t, repo.RetireInstance(ctx, owner.ID, "never-there", retired), "retiring an instance that is gone is not an error")
+		instances, err = repo.FindInstances(ctx, owner.ID)
+		require.NoError(t, err)
+		assert.Len(t, instances, 2)
 	})
 }
 
@@ -419,11 +430,12 @@ func TestSQLRepository_EveryMethodJoinsTheCallersTransaction(t *testing.T) {
 			touched, err := repo.TouchInstance(ctx, keep.ID, "instance-1", seen.Add(time.Minute))
 			require.NoError(t, err)
 			assert.True(t, touched)
-			require.NoError(t, repo.DeleteInstance(ctx, keep.ID, "instance-2"))
+			require.NoError(t, repo.RetireInstance(ctx, keep.ID, "instance-2", seen.Add(-time.Hour)))
 			require.NoError(t, repo.SetSupportedTypes(ctx, keep.ID, []string{"http"}))
 			instances, err := repo.FindInstances(ctx, keep.ID)
 			require.NoError(t, err)
-			require.Len(t, instances, 1, "the transaction reads its own instance writes")
+			require.Len(t, instances, 2)
+			assert.WithinDuration(t, seen.Add(-time.Hour), instances[1].LastSeenAt, time.Second, "the transaction reads its own instance writes")
 			require.NoError(t, repo.Delete(ctx, created.ID))
 			return errRollBack
 		})

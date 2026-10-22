@@ -104,7 +104,9 @@ func TestProbeContract_HelloAndBye(t *testing.T) {
 	require.NoError(t, client.Bye(ctx))
 	_, resp = rt.last(t)
 	assert.Equal(t, http.StatusNoContent, resp.StatusCode)
-	assert.Empty(t, a.getProbe(t, made.ID).Instances)
+	retired := a.getProbe(t, made.ID).Instances
+	require.Len(t, retired, 1, "the instance that said bye is retired and not removed")
+	assert.WithinDuration(t, time.Now().Add(-time.Minute), retired[0].LastSeenAt, 5*time.Second)
 
 	// A server that can't speak the probe's protocol version says so, as an error with a status
 	_, err = client.Hello(ctx, &probeproto.HelloRequest{InstanceID: instanceID, ProtocolVersion: 0})
