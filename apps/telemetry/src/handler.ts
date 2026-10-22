@@ -44,7 +44,7 @@ async function readBody(request: Request): Promise<Uint8Array | null> {
   return body;
 }
 
-// One point for the ping and one for each monitor type and notification provider. The instance ID is the index,
+// One point for the ping and one for each monitor type and notification channel type. The instance ID is the index,
 // so a distinct count of index1 is a count of instances. At most 1 + 50 + 50 points, under the 250 per invocation.
 // Only validated payload fields go in: no IP, header, country or request.cf data.
 export function dataPoints(ping: Ping): AnalyticsEngineDataPoint[] {
@@ -66,7 +66,7 @@ export function dataPoints(ping: Ping): AnalyticsEngineDataPoint[] {
       ],
     },
     ...ping.monitor_types.map((type) => ({ indexes, blobs: ["monitor_type", type] })),
-    ...ping.notification_providers.map((type) => ({ indexes, blobs: ["notification_provider", type] })),
+    ...ping.notification_providers.map((type) => ({ indexes, blobs: ["notification_channel", type] })),
   ];
 }
 

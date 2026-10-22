@@ -57,12 +57,12 @@ describe("POST /v1/ping with a valid ping", () => {
       { indexes: [INSTANCE_ID], blobs: ["monitor_type", "http"] },
       { indexes: [INSTANCE_ID], blobs: ["monitor_type", "ping"] },
       { indexes: [INSTANCE_ID], blobs: ["monitor_type", "docker"] },
-      { indexes: [INSTANCE_ID], blobs: ["notification_provider", "telegram"] },
-      { indexes: [INSTANCE_ID], blobs: ["notification_provider", "slack"] },
+      { indexes: [INSTANCE_ID], blobs: ["notification_channel", "telegram"] },
+      { indexes: [INSTANCE_ID], blobs: ["notification_channel", "slack"] },
     ]);
   });
 
-  test("writes only the ping point when no monitor type or provider is configured", async () => {
+  test("writes only the ping point when no monitor type or notification channel is configured", async () => {
     const payload = { ...example(), monitor_types: [], notification_providers: [] };
     const response = await handleRequest(postJson(payload), env);
 

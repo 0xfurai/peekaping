@@ -53,7 +53,7 @@ export function buildQueries(days: number): ReportQuery[] {
     byValue("mode", "mode", "ping", "blob3"),
     byValue("storage backend", "storage backend", "ping", "blob4"),
     byValue("monitor type", "monitor type", "monitor_type", "blob2"),
-    byValue("notification channel type", "channel type", "notification_provider", "blob2"),
+    byValue("notification channel type", "channel type", "notification_channel", "blob2"),
   ];
 }
 

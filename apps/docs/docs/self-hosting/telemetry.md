@@ -4,13 +4,13 @@ sidebar_position: 8
 
 # Usage statistics
 
-Peekaping can send an anonymous report of how your install is set up. We use it to see which versions, modes, storage backends and monitor types are in use, so we know what is safe to change or remove.
+Peekaping can send an anonymous usage ping: a short summary of how your install is set up. We use it to see which versions, modes, storage backends and monitor types are in use, so we know what is safe to change or remove.
 
 **It is off until an admin turns it on.** A new install sends nothing. An install that upgrades from an older version stays off too.
 
 ## What is sent
 
-The report is called a usage ping. It has these fields and no others:
+A usage ping has these fields and no others:
 
 | Field | Content |
 | --- | --- |
@@ -44,17 +44,17 @@ For example:
 }
 ```
 
-An install on any other storage backend isn't counted: the Worker rejects its ping and keeps nothing.
+An install on any other storage backend isn't counted: the Worker rejects its usage ping and keeps nothing.
 
 ### Instance ID
 
-The instance ID is a random UUID. Peekaping creates it when an admin turns the usage ping on and deletes it when they turn it off. If you turn the ping on again, you get a new ID. It is the only identifier in the report, and nothing about your install goes into it.
+The instance ID is a random UUID. Peekaping creates it when an admin turns the usage ping on and deletes it when they turn it off. If you turn the usage ping on again, you get a new ID. It is the only identifier in a usage ping, and nothing about your install goes into it.
 
 The ID lets us count an install once instead of once a day. Because it changes when you opt out and in again, the counts are a floor, not a census.
 
 ### What is never sent
 
-Nothing about individual monitors or channels is sent. The report never has:
+Nothing about individual monitors or channels is sent. A usage ping never has:
 
 - a monitor name, URL, host, port or tag
 - a status page name or address
@@ -67,23 +67,23 @@ Counts are ranges, and types are names of kinds, never of single things.
 
 ## Why
 
-Peekaping is self-hosted, so we can't see how it is used. Without the report we don't know which versions are still in use, whether anyone runs cluster mode or MongoDB storage, or which monitor types matter. The report is the only way we can tell.
+Peekaping is self-hosted, so we can't see how it is used. Without the usage ping we don't know which versions are still in use, whether anyone runs cluster mode or MongoDB storage, or which monitor types matter. The usage ping is the only way we can tell.
 
 ## Where it goes and how long it is kept
 
-The ping goes to a small Cloudflare Worker that the Peekaping project runs at `telemetry.peekaping.com`. Its source is in the [`apps/telemetry`](https://github.com/0xfurai/peekaping/tree/main/apps/telemetry) folder of the Peekaping repository.
+The usage ping goes to a small Cloudflare Worker that the Peekaping project runs at `telemetry.peekaping.com`. Its source is in the [`apps/telemetry`](https://github.com/0xfurai/peekaping/tree/main/apps/telemetry) folder of the Peekaping repository.
 
-The Worker accepts only the fields above and refuses anything else. It writes each valid ping to Cloudflare Workers Analytics Engine, which keeps the data for 3 months.
+The Worker accepts only the fields above and refuses anything else. It writes each valid usage ping to Cloudflare Workers Analytics Engine, which keeps the data for 3 months.
 
 The Worker never reads or stores your IP address, the request headers, your country or any other detail of the request.
 
 ## How often
 
-At most once a day. Peekaping checks a few minutes after it starts, and then every hour, whether a ping is due. A ping is due when the last one is more than 24 hours old. After an admin opts in, the first ping goes at the next check.
+At most once a day. Peekaping checks a few minutes after it starts, and then every hour, whether a usage ping is due. A usage ping is due when the last one is more than 24 hours old. After an admin opts in, the first usage ping goes at the next check.
 
-Only one process sends it. In [single mode](./deployment-modes.md#single-mode), that is the `peekaping` process. In [cluster mode](./deployment-modes.md#cluster-mode), it is one API replica, whichever claims the day's ping in Redis first. The producer, worker and ingester never send it.
+Only one process sends it. In [single mode](./deployment-modes.md#single-mode), that is the `peekaping` process. In [cluster mode](./deployment-modes.md#cluster-mode), it is one API replica, whichever claims the day's usage ping in Redis first. The producer, worker and ingester never send it.
 
-A ping that fails to reach the Worker is dropped, not retried. A failure never affects your monitors or the API.
+A usage ping that fails to reach the Worker is dropped, not retried. A failure never affects your monitors or the API.
 
 ## Turn it on or off
 
@@ -107,8 +107,8 @@ TELEMETRY=off
 
 In Kubernetes, put `TELEMETRY: "off"` under `config.env` in your Helm values. See [Kubernetes (Helm)](./kubernetes-helm.md#configuration).
 
-Set the variable on the `peekaping` container in single mode, and on every API replica in cluster mode. Those are the processes that send the ping and answer Settings.
+Set the variable on the `peekaping` container in single mode, and on every API replica in cluster mode. Those are the processes that send the usage ping and answer Settings.
 
 ## See exactly what is sent
 
-The "Usage statistics" card in Settings shows the JSON the next ping would send. It comes from the same code that builds the ping, so it is exact. Before you opt in, `instance_id` is empty, and nothing is sent.
+The "Usage statistics" card in Settings shows the JSON the next usage ping would send. It comes from the same code that builds the usage ping, so it is exact. Before you opt in, `instance_id` is empty, and nothing is sent.

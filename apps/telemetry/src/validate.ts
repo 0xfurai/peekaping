@@ -16,6 +16,7 @@ export interface Ping {
   os: string;
   monitors: (typeof MONITOR_BUCKETS)[number];
   monitor_types: string[];
+  // The notification channel types in use. The key keeps the name servers send (the wire contract).
   notification_providers: string[];
   features: { status_pages: boolean; maintenance: boolean; metrics: boolean };
 }

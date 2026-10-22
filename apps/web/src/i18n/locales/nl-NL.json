@@ -1277,8 +1277,8 @@
       "description": "Verstuur anonieme statistieken over hoe deze installatie is ingesteld, hooguit één keer per dag. Uit tot je het aanzet.",
       "forced_off": "De omgevingsvariabele TELEMETRY=off of DO_NOT_TRACK=1 zet dit uit. Er wordt niets verstuurd, wat deze instelling ook zegt.",
       "id_note": "De instantie-ID wordt aangemaakt als je dit aanzet en verwijderd als je het uitzet. Als je het weer aanzet, wordt er een nieuwe aangemaakt.",
-      "payload_off": "Er wordt niets verstuurd zolang dit uit staat. Dit is wat een rapport zou bevatten als je het aanzette.",
-      "payload_title": "Wat het volgende rapport verstuurt",
+      "payload_off": "Er wordt niets verstuurd zolang dit uit staat. Dit is wat een gebruiksping zou bevatten als je het aanzette.",
+      "payload_title": "Wat de volgende gebruiksping verstuurt",
       "title": "Gebruiksstatistieken"
     },
     "timezone": {

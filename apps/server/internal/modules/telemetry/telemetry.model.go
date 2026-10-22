@@ -1,4 +1,4 @@
-// Package telemetry is the usage ping (ticket #232, ADR 0003): an anonymous report of how an
+// Package telemetry is the usage ping (ticket #232, ADR 0003): an anonymous summary of how an
 // install is set up, sent at most once a day after an admin opts in. The payload is the
 // contract the Worker in apps/telemetry enforces field by field (apps/telemetry/src/validate.ts).
 package telemetry
@@ -29,15 +29,16 @@ const (
 // and the service builds it field by field. Adding a field is a decision that changes the ADR and
 // the Worker's validator too.
 type Payload struct {
-	InstanceID            string   `json:"instance_id" doc:"The random instance ID; empty until an admin opts in" example:"6c1b4f0e-5d3a-4c8e-9f21-0a7b8c9d1e2f"`
-	Version               string   `json:"version" doc:"The Peekaping version" example:"0.0.47"`
-	Mode                  string   `json:"mode" doc:"How the install runs" enum:"single,cluster" example:"single"`
-	DB                    string   `json:"db" doc:"The storage backend: sqlite, postgres or mongo. Empty for a backend the ping doesn't report." example:"sqlite"`
-	OS                    string   `json:"os" doc:"Operating system and architecture" example:"linux/arm64"`
-	Monitors              string   `json:"monitors" doc:"How many monitors there are, paused ones included, as a bucket" enum:"0,1-10,11-50,51-200,201-1000,1000+" example:"1-10"`
-	MonitorTypes          []string `json:"monitor_types" doc:"The distinct monitor types in use, lower case and sorted" nullable:"false"`
-	NotificationProviders []string `json:"notification_providers" doc:"The distinct notification channel types in use, lower case and sorted" nullable:"false"`
-	Features              Features `json:"features" doc:"Which features are on"`
+	InstanceID   string   `json:"instance_id" doc:"The random instance ID; empty until an admin opts in" example:"6c1b4f0e-5d3a-4c8e-9f21-0a7b8c9d1e2f"`
+	Version      string   `json:"version" doc:"The Peekaping version" example:"0.0.47"`
+	Mode         string   `json:"mode" doc:"How the install runs" enum:"single,cluster" example:"single"`
+	DB           string   `json:"db" doc:"The storage backend: sqlite, postgres or mongo. Empty for a backend the ping doesn't report." example:"sqlite"`
+	OS           string   `json:"os" doc:"Operating system and architecture" example:"linux/arm64"`
+	Monitors     string   `json:"monitors" doc:"How many monitors there are, paused ones included, as a bucket" enum:"0,1-10,11-50,51-200,201-1000,1000+" example:"1-10"`
+	MonitorTypes []string `json:"monitor_types" doc:"The distinct monitor types in use, lower case and sorted" nullable:"false"`
+	// NotificationChannelTypes keeps the JSON key notification_providers: it is the name the Worker accepts.
+	NotificationChannelTypes []string `json:"notification_providers" doc:"The distinct notification channel types in use, lower case and sorted" nullable:"false"`
+	Features                 Features `json:"features" doc:"Which features are on"`
 }
 
 // Features says whether the install uses three features, and nothing about how.

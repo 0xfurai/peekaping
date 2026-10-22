@@ -1277,8 +1277,8 @@
       "description": "Envoyer des statistiques anonymes sur la configuration de cette installation, au plus une fois par jour. Désactivé tant que vous ne l'activez pas.",
       "forced_off": "La variable d'environnement TELEMETRY=off ou DO_NOT_TRACK=1 désactive cette option. Rien n'est envoyé, quel que soit ce paramètre.",
       "id_note": "L'identifiant d'instance est créé quand vous activez cette option et supprimé quand vous la désactivez. Si vous la réactivez, un nouvel identifiant est créé.",
-      "payload_off": "Rien n'est envoyé tant que cette option est désactivée. Voici ce que contiendrait un rapport si vous l'activiez.",
-      "payload_title": "Ce que le prochain rapport enverra",
+      "payload_off": "Rien n'est envoyé tant que cette option est désactivée. Voici ce que contiendrait un ping d'utilisation si vous l'activiez.",
+      "payload_title": "Ce que le prochain ping d'utilisation enverra",
       "title": "Statistiques d'utilisation"
     },
     "timezone": {

@@ -8,7 +8,7 @@ Ticket: #232, #233
 
 Peekaping is self-hosted, and we can't see how it is used or when it crashes. We don't know which versions, modes, storage backends and monitor types are in use, so we can't tell what is safe to change or remove. A crash on someone's server reaches us only if they file an issue.
 
-Two tickets add what is missing. #232 adds a **usage ping** (a small anonymous report of how an install is set up). #233 adds **error reports** (crash reports). Both send data off servers that watch their owners' private infrastructure, so they share one set of rules, set once here and not argued again in each ticket.
+Two tickets add what is missing. #232 adds a **usage ping** (a small anonymous summary of how an install is set up). #233 adds **error reports** (crash reports). Both send data off servers that watch their owners' private infrastructure, so they share one set of rules, set once here and not argued again in each ticket.
 
 ## Decision
 
@@ -51,7 +51,28 @@ Counts are bucketed, and types are names of kinds, never of individual things: n
 
 ### 4. Error reports go to Sentry, through an allowlist
 
-Error reports use the Sentry SDK. Its `BeforeSend` hook builds the event from an allowlist: error type, stack frames, release, mode, storage backend, and OS and architecture. Everything else is dropped: the message text (it can hold hostnames and URLs), request data, user, breadcrumbs, server name and extra context. For now only panics are reported, not every logged error.
+Error reports use the Sentry SDK. Its `BeforeSend` hook (`apps/server/internal/reporting/event.go`) builds a new event from the allowlist below. It copies nothing else, so a field the SDK or our code adds later is not sent either.
+
+| Part | Content |
+| --- | --- |
+| Exception type | the Go type of the panic value, such as `runtime.boundsError`. Never its text. |
+| Stack frames | the innermost 100, each with `function`, `module` (the package), `filename`, `lineno` and `in_app` (whether it is Peekaping's own code). The file is the package path and the file name, never a path on the machine that built the binary. |
+| `release` | the Peekaping version |
+| `level` | `error` for a panic that was recovered, `fatal` for one that ends the process |
+| `mode` tag | `single` or `cluster` |
+| `db` tag | the storage backend: `sqlite`, `postgres`, `mongo` or `mysql`, or `unknown` where the process has none. The cluster worker has no `DB_TYPE`, so its `db` tag is `unknown`. |
+| `os` tag | OS and architecture, such as `linux/arm64` |
+| `component` tag | where the panic was recovered, such as `http`, `asynq`, `executor` or `scheduler` |
+| event ID, timestamp, `platform` | a random event ID, the time of the panic in UTC, and `go`. The Sentry protocol needs them to take the event. |
+
+The `mode`, `db` and `component` values are checked: one that is not a short name from the code or the build is sent as `unknown`.
+
+Everything else is dropped: the message text and the exception value (they can hold hostnames and URLs), request data, user, breadcrumbs, server name, local variables and extra context.
+
+- **Only panics.** For now only panics are reported, not every logged error. A panic that was recovered goes on as before. One that ends the process is reported and flushed, for at most 2 seconds, and then raised again.
+- **Once a minute for each place.** A place is the component, the exception type and the innermost frame. A check that panics on every run sends one report a minute, not one for each run. A panic that ends the process is always reported.
+- **`http.ErrAbortHandler` is not a crash.** `httpx.Recovery` re-panics it instead of reporting it or answering 500, because it is net/http's own way for a handler to abort its response.
+- **No IP address.** A report holds none, and Peekaping's Sentry project is set not to store the sender's IP. The code can't enforce that setting. With `ERROR_REPORTING_DSN` set to your own Sentry or GlitchTip, its settings decide.
 
 The DSN is the only coupling to Sentry. Moving to GlitchTip, or to a server we run, later is a change of DSN.
 
@@ -65,7 +86,7 @@ The DSN is the only coupling to Sentry. Moving to GlitchTip, or to a server we r
 - The numbers count the installs that opted in, so they are a floor, not a census. Opting out and in again gives a new instance ID, so one install can be counted twice over time.
 - Adding a field to either payload is a decision. It changes this ADR, the Worker's validator (or the `BeforeSend` allowlist) and the docs, which must list exactly what is sent. The Worker rejects the new field until it is changed.
 - An operator who wants to be sure sets the environment variables in their image or compose file.
-- Reports are read with `bun run report` in `apps/telemetry`, which needs a Cloudflare token with Account Analytics read access.
+- The usage ping numbers are read with `bun run report` in `apps/telemetry`, which needs a Cloudflare token with Account Analytics read access.
 - Only panics are reported, so an error that is handled and logged is invisible to us.
 
 Waiting tickets:

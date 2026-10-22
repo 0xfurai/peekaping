@@ -1277,8 +1277,8 @@
       "description": "Anonyme Statistiken darüber senden, wie diese Installation eingerichtet ist, höchstens einmal am Tag. Aus, bis Sie es einschalten.",
       "forced_off": "Die Umgebungsvariable TELEMETRY=off oder DO_NOT_TRACK=1 schaltet dies aus. Es wird nichts gesendet, egal was diese Einstellung sagt.",
       "id_note": "Die Instanz-ID wird beim Einschalten erstellt und beim Ausschalten gelöscht. Beim erneuten Einschalten wird eine neue erstellt.",
-      "payload_off": "Solange dies ausgeschaltet ist, wird nichts gesendet. So sähe ein Bericht aus, wenn Sie es einschalten würden.",
-      "payload_title": "Was der nächste Bericht sendet",
+      "payload_off": "Solange dies ausgeschaltet ist, wird nichts gesendet. So sähe ein Nutzungs-Ping aus, wenn Sie es einschalten würden.",
+      "payload_title": "Was der nächste Nutzungs-Ping sendet",
       "title": "Nutzungsstatistiken"
     },
     "timezone": {
