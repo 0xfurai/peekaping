@@ -2,6 +2,7 @@ package producer
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -30,8 +31,6 @@ func NewProducer(
 	cfg *config.Config,
 	logger *zap.SugaredLogger,
 ) *Producer {
-	ctx, cancel := context.WithCancel(context.Background())
-
 	// Use configured concurrency, fallback to constant if not set
 	concurrency := cfg.ProducerConcurrency
 	if concurrency <= 0 {
@@ -44,8 +43,6 @@ func NewProducer(
 		monitorService:          monitorService,
 		loader:                  loader,
 		logger:                  logger.With("component", "producer"),
-		ctx:                     ctx,
-		cancel:                  cancel,
 		monitorIntervals:        make(map[string]int),
 		scheduleRefreshInterval: 30 * time.Second, // Refresh schedule every 30 seconds
 		reclaimInterval:         ReclaimEvery,
@@ -70,11 +67,17 @@ func NewProducer(
 	return p
 }
 
-// Start starts the producer with leader election
-func (p *Producer) Start() error {
+// Start starts the producer with leader election. It runs until ctx is done or Stop is called:
+// either stops the scheduling and the watchdog, and releases the leadership. When Start fails,
+// what had started runs on until Stop.
+func (p *Producer) Start(ctx context.Context) error {
+	if err := p.begin(ctx); err != nil {
+		return err
+	}
 	p.logger.Info("Starting producer with leader election")
 
 	p.leaderElection.Start(p.ctx)
+	p.electionDone = p.leaderElection.Done()
 
 	if err := p.startJobProcessing(); err != nil {
 		return fmt.Errorf("failed to start job processing: %w", err)
@@ -88,10 +91,30 @@ func (p *Producer) Start() error {
 	return nil
 }
 
-// Stop stops the producer gracefully
+// begin gives the producer its lifetime: ctx, ended by Stop too
+func (p *Producer) begin(ctx context.Context) error {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if p.ctx != nil {
+		return errors.New("producer already started")
+	}
+	p.ctx, p.cancel = context.WithCancel(ctx)
+	return nil
+}
+
+// Stop stops the producer and waits for it: the claim loops, the schedule refresher and the
+// watchdog end, and the leadership it held is released. It does nothing when the producer didn't
+// start, and may be called again.
 func (p *Producer) Stop() {
+	if p.cancel == nil {
+		return
+	}
 	p.logger.Info("Stopping producer")
 	p.cancel()
 	p.wg.Wait()
+	// The election releases the leadership as its context is done, beside the goroutines above
+	if p.electionDone != nil {
+		<-p.electionDone
+	}
 	p.logger.Info("Producer stopped")
 }

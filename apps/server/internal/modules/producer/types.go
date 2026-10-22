@@ -27,7 +27,7 @@ type Producer struct {
 	monitorService          MonitorFinder
 	loader                  *check.Loader
 	logger                  *zap.SugaredLogger
-	ctx                     context.Context
+	ctx                     context.Context // set by Start, which makes it end with the caller's ctx or with Stop
 	cancel                  context.CancelFunc
 	syncCtx                 context.Context    // context for monitor syncing (leader-only tasks)
 	syncCancel              context.CancelFunc // cancel function for monitor syncing
@@ -38,6 +38,7 @@ type Producer struct {
 	reclaimInterval         time.Duration // how often expired leases are swept back to the due set
 	leadershipCheckInterval time.Duration // how often syncing is started or stopped to follow leadership
 	leaderElection          *LeaderElection
-	concurrency             int // number of concurrent producer goroutines
+	electionDone            <-chan struct{} // closes once the election has released the leadership; nil until Start
+	concurrency             int             // number of concurrent producer goroutines
 	watchdog                *stale.Watchdog
 }

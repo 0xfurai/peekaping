@@ -68,7 +68,7 @@ func main() {
 		logger.Info("Event listener subscribed to monitor events")
 
 		// Start the producer
-		if err := prod.Start(); err != nil {
+		if err := prod.Start(context.Background()); err != nil {
 			return fmt.Errorf("failed to start producer: %w", err)
 		}
 

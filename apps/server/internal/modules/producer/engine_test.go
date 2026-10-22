@@ -116,7 +116,18 @@ type engine struct {
 	producer  *Producer
 }
 
+// newEngine is a producer that has its lifetime, as Start gives it, but runs nothing: a test
+// starts the part it covers
 func newEngine(t *testing.T, monitors ...*monitor.Model) *engine {
+	t.Helper()
+	e := newUnstartedEngine(t, monitors...)
+	require.NoError(t, e.producer.begin(context.Background()))
+	t.Cleanup(func() { e.producer.cancel() })
+	return e
+}
+
+// newUnstartedEngine is a producer that Start hasn't started
+func newUnstartedEngine(t *testing.T, monitors ...*monitor.Model) *engine {
 	t.Helper()
 	mr := miniredis.RunT(t)
 	mr.SetTime(t0)
