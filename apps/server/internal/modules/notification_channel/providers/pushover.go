@@ -63,7 +63,7 @@ func (p *PushoverSender) Send(
 	}
 	cfg := cfgAny.(*PushoverConfig)
 
-	p.logger.Infof("Sending Pushover notification to user: %s", cfg.UserKey)
+	p.logger.Infof("Sending Pushover notification")
 
 	finalMessage := message
 	if monitor != nil && monitor.Name != "" {

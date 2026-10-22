@@ -86,12 +86,11 @@ func (w *WhatsAppSender) Send(
 	}
 
 	// Send message to phone number
+	// The caller logs the error once it has taken the request URL out of it
 	if err := w.sendToPhoneNumber(ctx, cfg, cfg.PhoneNumber, finalMessage); err != nil {
-		w.logger.Errorf("Failed to send WhatsApp message to %s: %v", cfg.PhoneNumber, err)
 		return err
-	} else {
-		w.logger.Infof("WhatsApp message sent successfully to %s", cfg.PhoneNumber)
 	}
+	w.logger.Infof("WhatsApp message sent successfully to %s", cfg.PhoneNumber)
 
 	return nil
 }
