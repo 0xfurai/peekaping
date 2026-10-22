@@ -6,6 +6,7 @@ import (
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
+	"peekaping/internal/modules/notification_channel/providers"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/utils"
 
@@ -210,7 +211,8 @@ func (ic *Controller) Test(ctx context.Context, input *TestInput) (*httpx.Output
 	// Send the test notification, with the deadline the listener gives each send
 	sendCtx, cancel := context.WithTimeout(ctx, sendTimeout)
 	defer cancel()
-	err := integration.Send(sendCtx, notificationChannel.Config, testMessage, testMonitor, testHeartbeat)
+	// An HTTP client's errors hold the request URL, and for a channel the URL holds a credential
+	err := providers.RedactURLErrors(integration.Send(sendCtx, notificationChannel.Config, testMessage, testMonitor, testHeartbeat))
 	if err != nil {
 		ic.logger.Errorw("Failed to send test notification", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Failed to send test notification: "+err.Error()))
