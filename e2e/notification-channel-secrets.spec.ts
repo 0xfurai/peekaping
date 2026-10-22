@@ -209,6 +209,77 @@ test('A saved secret the form does not show cannot block saving a new endpoint',
   }
 });
 
+test('A saved secret the form stops showing keeps its placeholder until the form sends', async ({ page }) => {
+  const id = randomID();
+  const created: string[] = [];
+  const api = await adminAPI(page);
+
+  try {
+    const channelID = await createChannel(api, created, `Secrets ${id}`, 'ntfy', {
+      server_url: webhookURL(id),
+      topic: 'alerts',
+      authentication_type: 'basic',
+      username: 'ntfy-user',
+      password: `password-${id}`,
+      token: `token-${id}`,
+      priority: 3,
+    });
+
+    await page.goto(`/notification-channels/${channelID}/edit`);
+    const password = secretItem(page, 'password');
+    const token = secretItem(page, 'token');
+    const server = page.locator('input[name="server_url"]');
+    await expect(password.getByText(savedHint)).toBeVisible();
+    await expect(page.locator('[name="token"]')).toHaveCount(0);
+
+    // A new server asks for the password that is shown
+    await server.fill(webhookURL(`${id}-new`));
+    await expect(password.getByText(reenterHint)).toBeVisible();
+
+    // The token's field comes up with the secret it was saved with, and asks for it again
+    await selectAuthType(page, 'Token Authentication');
+    await expect(token.getByText(reenterHint)).toBeVisible();
+    await expect(token.getByRole('button', { name: 'Remove', exact: true })).toBeVisible();
+    await expect(page.locator('[name="password"]')).toHaveCount(0);
+
+    // And back: the password was not emptied while its field was gone
+    await selectAuthType(page, 'Basic Authentication');
+    await expect(password.getByText(reenterHint)).toBeVisible();
+    await expect(password.getByRole('button', { name: 'Remove', exact: true })).toBeVisible();
+
+    // The server as it was saved: both are the saved secrets again
+    await server.fill(webhookURL(id));
+    await expect(password.getByText(savedHint)).toBeVisible();
+    await expect(password.getByText(reenterHint)).toHaveCount(0);
+
+    // The test request keeps both as placeholders, for the server to resolve
+    await page.route('**/notification-channels/test', (route) =>
+      route.fulfill({ status: 200, json: { message: 'intercepted', data: null } }),
+    );
+    const testRequest = page.waitForRequest((r) => r.url().endsWith('/notification-channels/test'));
+    await page.getByRole('button', { name: 'Test', exact: true }).click();
+    const body = (await testRequest).postDataJSON();
+    expect(body.id).toBe(channelID);
+    expect(JSON.parse(body.config)).toMatchObject({ password: '********', token: '********' });
+
+    // So does saving, and the server finds both
+    const updated = page.waitForResponse(
+      (response) => response.url().endsWith(`/notification-channels/${channelID}`) && response.request().method() === 'PUT',
+    );
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    const updatedResponse = await updated;
+    expect(updatedResponse.status(), await updatedResponse.text()).toBe(200);
+    expect(await savedConfig(api, channelID)).toMatchObject({
+      server_url: webhookURL(id),
+      password: '********',
+      token: '********',
+    });
+  } finally {
+    for (const path of created) await deleteCreated(api, path);
+    await api.dispose();
+  }
+});
+
 test('A saved secret can be removed on purpose, and only that one', async ({ page, request }) => {
   const id = randomID();
   const signingSecret = `signing-${id}`;
@@ -360,6 +431,12 @@ async function savedConfig(api: APIRequestContext, channelID: string): Promise<R
   const response = await api.get(`notification-channels/${channelID}`);
   expect(response.status(), await response.text()).toBe(200);
   return JSON.parse((await response.json()).data.config);
+}
+
+// Picks an ntfy authentication type in the edit form
+async function selectAuthType(page: Page, option: string) {
+  await page.getByRole('combobox', { name: 'Authentication Type' }).click();
+  await page.getByRole('option', { name: option, exact: true }).click();
 }
 
 // The form item of one config field
