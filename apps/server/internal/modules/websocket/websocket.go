@@ -88,7 +88,8 @@ func NewServer(
 			}
 			logger.Debugf("join_room: %s", roomName)
 
-			// TODO: validate if user allowed to join room
+			// Any signed-in user may join any room: the app is single-tenant, so every
+			// user sees every monitor. Per-organization rooms will need a check here.
 			client.Join(socket.Room(roomName))
 			// ack([]interface{}{map[string]string{"status": "ok"}}, nil)
 		}))
