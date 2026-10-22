@@ -242,7 +242,7 @@ func TestErrorReportingAPI_RejectsInvalidInput(t *testing.T) {
 	assert.False(t, reporting.Enabled())
 }
 
-func TestErrorReportingAPI_RequiresCredentialsAndTakesAPIKeys(t *testing.T) {
+func TestErrorReportingAPI_RequiresCredentials(t *testing.T) {
 	reportingtest.Install(t)
 	reporting.SetEnabled(false)
 	a := newAppWithAdmin(t)
@@ -252,10 +252,33 @@ func TestErrorReportingAPI_RequiresCredentialsAndTakesAPIKeys(t *testing.T) {
 		assert.Equal(t, http.StatusUnauthorized, w.Code, method)
 	}
 	assert.False(t, reporting.Enabled(), "a request without credentials changes nothing")
+	assert.Nil(t, a.storedSetting(t, "ERROR_REPORTING_ENABLED"))
+}
 
-	// The same auth as the settings routes: an API key works too
+func TestErrorReportingAPI_APIKeyCanReadButNotChangeTheChoice(t *testing.T) {
+	reportingtest.Install(t)
+	reporting.SetEnabled(false)
+	a := newAppWithAdmin(t)
+
+	// An API key reads the state, like the settings routes it shares auth with
+	state := errorReportingBody(t, a.request(t, http.MethodGet, errorReportingPath, nil, a.withAPIKey), http.StatusOK)
+	assert.Equal(t, false, state["enabled"])
+
+	// The opt-in is the admin's choice, so an API key can't make it
 	w := a.request(t, http.MethodPut, errorReportingPath, map[string]any{"enabled": true}, a.withAPIKey)
-	assert.Equal(t, true, errorReportingBody(t, w, http.StatusOK)["enabled"])
+	assert.Equal(t, http.StatusUnauthorized, w.Code, w.Body.String())
+	assert.False(t, reporting.Enabled())
+	assert.Equal(t, false, a.errorReporting(t)["enabled"])
+	assert.Nil(t, a.storedSetting(t, "ERROR_REPORTING_ENABLED"))
+	_, err := a.redis.Get(redissync.Key)
+	assert.Error(t, err, "and copies nothing to Redis")
+
+	// Nor can it opt the admin out
+	a.setErrorReporting(t, true)
+	w = a.request(t, http.MethodPut, errorReportingPath, map[string]any{"enabled": false}, a.withAPIKey)
+	assert.Equal(t, http.StatusUnauthorized, w.Code, w.Body.String())
+	assert.True(t, reporting.Enabled())
+	assert.Equal(t, map[string]any{"enabled": true, "forced_off": false}, errorReportingBody(t, a.request(t, http.MethodGet, errorReportingPath, nil, a.withAPIKey), http.StatusOK))
 }
 
 func TestErrorReportingAPI_SettingsAPICannotReadOrWriteItsKey(t *testing.T) {

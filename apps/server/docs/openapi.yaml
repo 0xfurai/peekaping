@@ -3784,7 +3784,6 @@ paths:
           description: Internal Server Error
       security:
         - JwtAuth: []
-        - ApiKeyAuth: []
       summary: Opt in or out of error reports
       tags:
         - error-reporting
@@ -6354,7 +6353,6 @@ paths:
           description: Internal Server Error
       security:
         - JwtAuth: []
-        - ApiKeyAuth: []
       summary: Opt in or out of the usage ping
       tags:
         - telemetry

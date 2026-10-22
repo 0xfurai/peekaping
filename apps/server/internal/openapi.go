@@ -36,8 +36,8 @@ func OpenAPI() *huma.OpenAPI {
 		maintenance.NewRoute(nil, nil), nil, nil,
 		status_page.NewRoute(nil, nil), nil,
 		tag.NewRoute(nil, nil), nil,
-		telemetry.NewRoute(nil, nil), nil,
-		error_reporting.NewRoute(nil, nil), nil,
+		telemetry.NewRoute(nil, nil, nil), nil,
+		error_reporting.NewRoute(nil, nil, nil), nil,
 		badge.NewRoute(nil), nil,
 		api_key.NewRoute(nil, nil), nil, nil, nil,
 	)
