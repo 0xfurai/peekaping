@@ -8,7 +8,6 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/events"
-	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/worker"
 
@@ -23,7 +22,7 @@ func NewProducer(
 	runner check.Runner,
 	monitorService MonitorFinder,
 	loader *check.Loader,
-	heartbeatService heartbeat.Service,
+	heartbeatService stale.HeartbeatFinder,
 	staleStore stale.Store,
 	eventBus events.EventBus,
 	leaderElection *LeaderElection,
