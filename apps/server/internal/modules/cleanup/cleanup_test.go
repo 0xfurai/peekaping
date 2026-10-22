@@ -374,4 +374,10 @@ func TestStartCleanupCronFiresAtTheTopOfTheHourInUTC(t *testing.T) {
 	t.Cleanup(func() { <-c.Stop().Done() })
 
 	assert.Equal(t, "UTC", c.Location().String())
+	require.Len(t, c.Entries(), 1)
+	// From 11:17 in India (05:47 UTC), the next run is at 06:00 UTC, 11:30 in India. The cron
+	// asks its schedule with the time in its own location, as here.
+	india := time.FixedZone("IST", 5*3600+30*60)
+	next := c.Entries()[0].Schedule.Next(time.Date(2026, 10, 22, 11, 17, 0, 0, india).In(c.Location()))
+	assert.Equal(t, time.Date(2026, 10, 22, 6, 0, 0, 0, time.UTC), next.UTC())
 }
