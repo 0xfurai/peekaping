@@ -2,11 +2,13 @@ package infra
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
 	"fmt"
 	"math/rand/v2"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -14,6 +16,8 @@ import (
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/driver/sqliteshim"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zaptest/observer"
 
 	"peekaping/internal/config"
 )
@@ -112,4 +116,225 @@ func TestGracefulSQLiteShutdown_CheckpointsAndClosesWithoutAFullIntegrityCheck(t
 	} else {
 		require.ErrorIs(t, err, os.ErrNotExist)
 	}
+}
+
+// writeCorruptSQLiteDatabase builds a heartbeat-sized database at path with ProvideSQLDB and then
+// damages it: the start of one table page is overwritten with 0xFF, which `PRAGMA quick_check`
+// reports as findings. Page 1 is the schema and page 4 is a data page of the heartbeats table,
+// whose b-tree SQLite can no longer read.
+func writeCorruptSQLiteDatabase(t *testing.T, path string) {
+	t.Helper()
+	db, err := ProvideSQLDB(&config.Config{DBType: "sqlite", DBName: path}, zap.NewNop().Sugar())
+	require.NoError(t, err)
+	_, err = db.Exec("CREATE TABLE heartbeats (id INTEGER PRIMARY KEY, msg TEXT)")
+	require.NoError(t, err)
+	_, err = db.Exec("WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM n WHERE x < 3000) " +
+		"INSERT INTO heartbeats (msg) SELECT printf('%0200d', x) FROM n")
+	require.NoError(t, err)
+	var pageSize, pageCount int
+	require.NoError(t, db.QueryRow("PRAGMA page_size").Scan(&pageSize))
+	require.NoError(t, db.QueryRow("PRAGMA page_count").Scan(&pageCount))
+	require.Greater(t, pageCount, 4, "the table should span several pages")
+	// the closed database leaves no write-ahead log behind, so the damage is in the main file
+	_, err = db.Exec("PRAGMA wal_checkpoint(TRUNCATE)")
+	require.NoError(t, err)
+	require.NoError(t, db.Close())
+
+	file, err := os.OpenFile(path, os.O_WRONLY, 0)
+	require.NoError(t, err)
+	damage := make([]byte, 200)
+	for i := range damage {
+		damage[i] = 0xFF
+	}
+	_, err = file.WriteAt(damage, int64(3*pageSize))
+	require.NoError(t, err)
+	require.NoError(t, file.Close())
+}
+
+func sha256OfFile(t *testing.T, path string) [sha256.Size]byte {
+	t.Helper()
+	content, err := os.ReadFile(path)
+	require.NoError(t, err)
+	return sha256.Sum256(content)
+}
+
+// A database that fails the startup check is damaged, and a process that goes on writing to it
+// makes the damage worse. Startup stops with an error instead, and the file is left as it was,
+// so the operator can restore a backup or salvage the data. Before it stops, the log tells the
+// operator what SQLite found and what to do.
+func TestProvideSQLDB_StopsOnACorruptDatabase(t *testing.T) {
+	t.Setenv("BUNDEBUG", "0")
+	path := filepath.Join(t.TempDir(), "peekaping.db")
+	writeCorruptSQLiteDatabase(t, path)
+	before := sha256OfFile(t, path)
+
+	core, logs := observer.New(zapcore.DebugLevel)
+	db, err := ProvideSQLDB(&config.Config{DBType: "sqlite", DBName: path}, zap.New(core).Sugar())
+	if db != nil {
+		t.Cleanup(func() { _ = db.Close() })
+	}
+
+	require.Error(t, err)
+	require.Nil(t, db)
+	require.ErrorContains(t, err, "is corrupt")
+	// the first finding, on one line: SQLite's first row is two lines, "*** in database main ***"
+	// and the finding
+	require.ErrorContains(t, err, "Tree 2 page 4: btreeInitPage() returns error code 11")
+	require.NotContains(t, err.Error(), "\n")
+	require.ErrorContains(t, err, "https://docs.peekaping.com/self-hosting/sqlite-recovery")
+	require.Equal(t, before, sha256OfFile(t, path), "the database file was changed")
+
+	// the report: what stopped, every finding, then the procedure with the docs link
+	errorEntries := logs.FilterLevelExact(zapcore.ErrorLevel).All()
+	require.GreaterOrEqual(t, len(errorEntries), 3, "the stop, at least one finding, the procedure")
+	require.Equal(t,
+		"SQLite quick check found corruption in "+path+". Peekaping stops here and doesn't change the file.",
+		errorEntries[0].Message)
+	findings := errorEntries[1 : len(errorEntries)-1]
+	for _, finding := range findings {
+		require.True(t, strings.HasPrefix(finding.Message, "quick_check: "), finding.Message)
+	}
+	require.Contains(t, findings[len(findings)-1].Message, "btreeInitPage() returns error code 11")
+	procedure := errorEntries[len(errorEntries)-1].Message
+	for _, step := range []string{
+		"Stop every Peekaping process that uses this database",
+		"Keep the original database file together with its -wal and -shm files",
+		"Restore a tested backup",
+		"sqlite3 .recover",
+		"PRAGMA integrity_check",
+		"https://docs.peekaping.com/self-hosting/sqlite-recovery",
+	} {
+		require.Contains(t, procedure, step)
+	}
+	// the old startup logged "Database integrity check FAILED" and ran the full check
+	for _, entry := range logs.All() {
+		require.NotContains(t, entry.Message, "Database integrity check")
+	}
+}
+
+// A crash leaves a hot write-ahead log: committed changes that aren't in the main file yet. Closing
+// SQLite's last connection checkpoints that log into the main file and deletes the -wal and -shm
+// files, which the operator is told to keep with the original database. So a startup that stops on
+// corruption must leave the database open, and the -wal file and the main file as they were.
+//
+// The crash is a copy of a live database, taken while a writer holds it open: the copy has a -wal
+// file with frames and no process using it.
+func TestProvideSQLDB_StopsOnACorruptDatabase_LeavesTheWriteAheadLogAlone(t *testing.T) {
+	t.Setenv("BUNDEBUG", "0")
+	ctx := context.Background()
+	root := t.TempDir()
+	livePath := filepath.Join(root, "live", "peekaping.db")
+	crashedPath := filepath.Join(root, "crashed", "peekaping.db")
+	require.NoError(t, os.MkdirAll(filepath.Dir(livePath), 0o755))
+	require.NoError(t, os.MkdirAll(filepath.Dir(crashedPath), 0o755))
+
+	// The writer: its own connection, no shared cache. Closing it would checkpoint the log, so
+	// it stays open until the test ends.
+	writer, err := sql.Open(sqliteshim.ShimName, fmt.Sprintf("file:%s?mode=rwc", livePath))
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = writer.Close() })
+	writer.SetMaxOpenConns(1) // so the PRAGMAs below apply to every statement
+	_, err = writer.ExecContext(ctx, "PRAGMA journal_mode=WAL")
+	require.NoError(t, err)
+	_, err = writer.ExecContext(ctx, "CREATE TABLE heartbeats (id INTEGER PRIMARY KEY, msg TEXT)")
+	require.NoError(t, err)
+	_, err = writer.ExecContext(ctx, "WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM n WHERE x < 3000) "+
+		"INSERT INTO heartbeats (msg) SELECT printf('%0200d', x) FROM n")
+	require.NoError(t, err)
+	var pageSize, pageCount int
+	require.NoError(t, writer.QueryRowContext(ctx, "PRAGMA page_size").Scan(&pageSize))
+	require.NoError(t, writer.QueryRowContext(ctx, "PRAGMA page_count").Scan(&pageCount))
+	require.Greater(t, pageCount, 4, "the table should span several pages")
+	// the table is in the main file; what is written next is only in the log
+	_, err = writer.ExecContext(ctx, "PRAGMA wal_checkpoint(TRUNCATE)")
+	require.NoError(t, err)
+	_, err = writer.ExecContext(ctx, "WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM n WHERE x < 10) "+
+		"INSERT INTO heartbeats (msg) SELECT printf('%0200d', x) FROM n")
+	require.NoError(t, err)
+
+	// the crash: the files as they are while the writer holds the database
+	for _, suffix := range []string{"", "-wal", "-shm"} {
+		content, err := os.ReadFile(livePath + suffix)
+		if suffix == "-shm" && os.IsNotExist(err) {
+			continue
+		}
+		require.NoError(t, err)
+		if suffix == "-wal" {
+			require.NotEmpty(t, content, "the crashed database should have a hot write-ahead log")
+		}
+		require.NoError(t, os.WriteFile(crashedPath+suffix, content, 0o644))
+	}
+
+	// The damage is in a table page of the main file. The rows added after the checkpoint are on
+	// the table's last page, so the log doesn't replace the damaged page.
+	file, err := os.OpenFile(crashedPath, os.O_WRONLY, 0)
+	require.NoError(t, err)
+	damage := make([]byte, 200)
+	for i := range damage {
+		damage[i] = 0xFF
+	}
+	_, err = file.WriteAt(damage, int64(3*pageSize))
+	require.NoError(t, err)
+	require.NoError(t, file.Close())
+	databaseBefore := sha256OfFile(t, crashedPath)
+	logBefore := sha256OfFile(t, crashedPath+"-wal")
+
+	db, err := ProvideSQLDB(&config.Config{DBType: "sqlite", DBName: crashedPath}, zap.NewNop().Sugar())
+	if db != nil {
+		t.Cleanup(func() { _ = db.Close() })
+	}
+
+	require.Error(t, err)
+	require.Nil(t, db)
+	require.ErrorContains(t, err, "is corrupt")
+	require.FileExists(t, crashedPath+"-wal", "the write-ahead log was deleted")
+	require.Equal(t, logBefore, sha256OfFile(t, crashedPath+"-wal"), "the write-ahead log was changed")
+	require.Equal(t, databaseBefore, sha256OfFile(t, crashedPath), "the database file was changed")
+}
+
+// A full integrity check reads the whole file at every start: about 30s for 1.5 GB, against 1.6s
+// for the quick check. A healthy database starts with the quick check only, and the log says it
+// passed.
+func TestCheckSQLiteOnStartup_RunsTheQuickCheckOnly(t *testing.T) {
+	t.Setenv("BUNDEBUG", "0")
+	path := filepath.Join(t.TempDir(), "peekaping.db")
+	db, err := ProvideSQLDB(&config.Config{DBType: "sqlite", DBName: path}, zap.NewNop().Sugar())
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = db.Close() })
+	_, err = db.Exec("CREATE TABLE heartbeats (id INTEGER PRIMARY KEY, msg TEXT)")
+	require.NoError(t, err)
+	_, err = db.Exec("INSERT INTO heartbeats (msg) VALUES ('200 - OK')")
+	require.NoError(t, err)
+	hook := &recordQueries{}
+	db.AddQueryHook(hook)
+	core, logs := observer.New(zapcore.DebugLevel)
+
+	require.NoError(t, checkSQLiteOnStartup(db, path, zap.New(core).Sugar()))
+
+	require.Contains(t, hook.queries, "PRAGMA quick_check")
+	for _, query := range hook.queries {
+		require.NotContains(t, query, "integrity_check")
+	}
+	entries := logs.All()
+	require.Len(t, entries, 1)
+	require.Equal(t, zapcore.InfoLevel, entries[0].Level)
+	require.Equal(t, "SQLite quick check passed", entries[0].Message)
+}
+
+// A check that can't run, say because another process holds a lock, isn't a finding: it's a
+// warning, and startup goes on as it did before the check could stop it.
+func TestCheckSQLiteOnStartup_WarnsAndGoesOnWhenTheCheckCantRun(t *testing.T) {
+	t.Setenv("BUNDEBUG", "0")
+	path := filepath.Join(t.TempDir(), "peekaping.db")
+	db, err := ProvideSQLDB(&config.Config{DBType: "sqlite", DBName: path}, zap.NewNop().Sugar())
+	require.NoError(t, err)
+	require.NoError(t, db.Close()) // every query on it fails now
+	core, logs := observer.New(zapcore.DebugLevel)
+
+	require.NoError(t, checkSQLiteOnStartup(db, path, zap.New(core).Sugar()))
+
+	entries := logs.All()
+	require.Len(t, entries, 1)
+	require.Equal(t, zapcore.WarnLevel, entries[0].Level)
+	require.Contains(t, entries[0].Message, "Failed to run the SQLite quick check (non-fatal): ")
 }

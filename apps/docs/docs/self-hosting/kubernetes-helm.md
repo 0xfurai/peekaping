@@ -145,6 +145,7 @@ The database settings have no defaults. For PostgreSQL, set `DB_TYPE` (the chart
 | `REDIS_USERNAME` | empty | A Redis ACL user. Leave it empty for password-only authentication. |
 | `REDIS_PASSWORD` | empty | Put it in the secret. |
 | `METRICS_ENABLED` | `false` | See [Metrics](#metrics). |
+| `TRUSTED_PROXIES` | loopback and the private ranges | The addresses the API believes `X-Forwarded-For` from. See [Client addresses](#client-addresses). |
 | `TELEMETRY` | empty | Set `off` to switch off the anonymous [usage statistics](./telemetry.md) whatever an admin chose. |
 | `DO_NOT_TRACK` | empty | Set `1` for the same. |
 
@@ -156,6 +157,12 @@ Changing `config.env` and running `helm upgrade` restarts the pods. Changing the
 kubectl rollout restart deployment --namespace peekaping \
   peekaping-api peekaping-producer peekaping-worker peekaping-ingester peekaping-web
 ```
+
+### Client addresses
+
+The login lockout counts failed logins per client address, and a client can send any `X-Forwarded-For` header it likes. So the API believes that header (and `X-Real-IP`) only from the addresses in `TRUSTED_PROXIES`, and takes the last address in it that isn't one of them. The chart sets `TRUSTED_PROXIES` to loopback and the private ranges (`127.0.0.0/8,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7`), which is where an Ingress or gateway inside the cluster reaches the API from. The API Service has no address outside the cluster.
+
+Your Ingress or gateway must add the client's address to the end of `X-Forwarded-For`, or replace the header with it. Most do; check yours. If it passes the client's `X-Forwarded-For` through unchanged, set `TRUSTED_PROXIES` to `""` in `config.env`, which believes no header, because otherwise a client could send its own. If its pods are outside the private ranges (some clusters use 100.64.0.0/10 for pods), add their addresses to the list instead. With `""`, every login counts as coming from the Ingress, so one person's failed logins can lock an account for everyone. The default ranges are wide: narrowing `TRUSTED_PROXIES` to your ingress controller's pod CIDR is safer, because a client with a private address behind an Ingress that appends to `X-Forwarded-For` would be skipped as a trusted proxy and could pick its own address from the entries to its left. The account counter still bounds guessing either way. Whatever you set, the API also locks an account after `BRUTEFORCE_ACCOUNT_MAX_ATTEMPTS` failed logins (100 by default) from any addresses within `BRUTEFORCE_ACCOUNT_WINDOW` (10 minutes). A lock lasts `BRUTEFORCE_ACCOUNT_LOCKOUT` (1 minute), but the count of failures is kept until the window, measured from the first failure, has passed, so until then each further failure after a lock ends locks the account again. After an attack stops, the owner is back in within the window at most. An attacker who keeps going can keep the account locked; the counter bounds how many passwords they can try.
 
 ## External PostgreSQL and Redis
 

@@ -65,7 +65,7 @@ func TestDocumentationHTTP(t *testing.T) {
 func TestSocketIOThroughAPIRouter(t *testing.T) {
 	a := newAppWithAdmin(t)
 	// Development logging must retain the writer's upgrade interfaces too.
-	srv := httptest.NewServer(httpx.Logger(zap.NewNop().Sugar())(a.router))
+	srv := httptest.NewServer(httpx.Logger(zap.NewNop().Sugar(), nil)(a.router))
 	t.Cleanup(func() { srv.CloseClientConnections(); srv.Close() })
 	client := &http.Client{Timeout: 3 * time.Second}
 	base := srv.URL + "/socket.io/?EIO=4&transport=polling&token=" + url.QueryEscape(a.accessToken)

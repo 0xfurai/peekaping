@@ -73,6 +73,18 @@ config:
     # REDIS_USERNAME: "peekaping"
     # Serve the unauthenticated Prometheus /metrics endpoint on the API port (off by default).
     # METRICS_ENABLED: "true"
+    # Proxies whose X-Forwarded-For and X-Real-IP the API believes: IP addresses and
+    # CIDR ranges, comma-separated. The login lockout counts failed logins per client
+    # address, and a client can send those headers itself, so the API ignores them from
+    # any address outside this list and counts the address it connected from instead.
+    # These are loopback and the private ranges, which is where your ingress or gateway
+    # reaches the API from: the API Service is not exposed outside the cluster, and the
+    # ingress or gateway appends the client's address to X-Forwarded-For (or replaces the
+    # header), so a client's own entries sit to its left and are ignored. If your ingress
+    # passes a client's X-Forwarded-For through unchanged, set "" to trust no header (every
+    # login then counts as coming from the ingress, and only the per-account limit
+    # protects it). If your ingress pods are outside these ranges, add their addresses.
+    TRUSTED_PROXIES: "127.0.0.0/8,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7"
 
 # Images: every component's image.tag is empty, and an empty tag means the
 # chart's appVersion. That is the release the chart was published with, so one
