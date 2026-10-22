@@ -47,7 +47,7 @@ func TestStop_StopsTheJobsThenClosesTheEventBusThenTheDatabase(t *testing.T) {
 	err := shutdown.Stop(quickTimeouts, "the producer",
 		func() { recorded.add("stop the jobs") },
 		fakeBus{recorded: recorded},
-		func() error { recorded.add("close the database"); return nil },
+		func(context.Context) error { recorded.add("close the database"); return nil },
 		logger)
 
 	require.NoError(t, err)
@@ -74,7 +74,7 @@ func TestStop_FailsAndLeavesTheDatabaseOpenWhenTheJobsOverrunTheirShare(t *testi
 	err := shutdown.Stop(quickTimeouts, "the ingester",
 		func() { <-release },
 		fakeBus{recorded: recorded},
-		func() error { recorded.add("close the database"); return nil },
+		func(context.Context) error { recorded.add("close the database"); return nil },
 		logger)
 
 	require.Error(t, err)
@@ -93,7 +93,7 @@ func TestStop_FailsAndLeavesTheDatabaseOpenWhenTheEventBusDoesntClose(t *testing
 	err := shutdown.Stop(quickTimeouts, "the producer",
 		func() {},
 		fakeBus{recorded: recorded, err: context.DeadlineExceeded},
-		func() error { recorded.add("close the database"); return nil },
+		func(context.Context) error { recorded.add("close the database"); return nil },
 		logger)
 
 	require.Error(t, err)
@@ -108,7 +108,7 @@ func TestStop_ReturnsTheErrorOfTheDatabaseClosing(t *testing.T) {
 	logger, logs := observedLogger()
 	closeFailed := errors.New("the disk is gone")
 
-	err := shutdown.Stop(quickTimeouts, "the producer", func() {}, fakeBus{recorded: &recordedSteps{}}, func() error { return closeFailed }, logger)
+	err := shutdown.Stop(quickTimeouts, "the producer", func() {}, fakeBus{recorded: &recordedSteps{}}, func(context.Context) error { return closeFailed }, logger)
 
 	assert.ErrorIs(t, err, closeFailed)
 	assert.Zero(t, logs.FilterMessage("Closed the database").Len())

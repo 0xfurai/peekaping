@@ -100,7 +100,7 @@ Run multiple ingester instances for increased throughput.
 
 On receiving `SIGTERM` or `SIGINT`, the ingester stops in this order and exits 0 within 30 seconds:
 
-1. Stop taking tasks from the queue. The ingests running finish storing their heartbeats, for up to 20 seconds. An ingest still running after that goes back to the queue.
+1. Stop taking tasks from the queue. The ingests running finish storing their heartbeats. After 17 seconds the queue gives up on an ingest still running and puts its task back in the queue, while the ingester waits for its handler up to the 20-second limit. If that handler then finishes, another ingester can store the same heartbeat again.
 2. Close the event bus. The handlers of the events already queued finish, such as the ones that update the stats. They get 10 seconds.
 3. Close the database. SQLite checkpoints its write-ahead log first.
 

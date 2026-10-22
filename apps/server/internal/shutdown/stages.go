@@ -27,8 +27,8 @@ func (t Timeouts) QueueShutdown() time.Duration {
 // closes last, and only once nothing uses it: when a job or an event handler is still running at
 // the end of its share, the database stays open for the process's exit to release, since closing
 // it would fail the writes in progress halfway through. A binary without a database passes nil
-// for closeDatabase.
-func Stop(timeouts Timeouts, jobs string, stopJobs func(), bus interface{ Close(context.Context) error }, closeDatabase func() error, logger *zap.SugaredLogger) error {
+// for closeDatabase, which gets what is left of the event bus's share.
+func Stop(timeouts Timeouts, jobs string, stopJobs func(), bus interface{ Close(context.Context) error }, closeDatabase func(ctx context.Context) error, logger *zap.SugaredLogger) error {
 	var errs []error
 	// What uses the database and still runs once its share is up
 	var running []string
@@ -63,7 +63,7 @@ func Stop(timeouts Timeouts, jobs string, stopJobs func(), bus interface{ Close(
 		logger.Errorw("Left the database open, since some of what uses it is still running", "running", running)
 		return errors.Join(errs...)
 	}
-	if err := closeDatabase(); err != nil {
+	if err := closeDatabase(busCtx); err != nil {
 		errs = append(errs, err)
 	} else {
 		logger.Info("Closed the database")

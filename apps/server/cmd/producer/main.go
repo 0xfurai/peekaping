@@ -129,7 +129,7 @@ func serve(ctx context.Context, p parts, dbType string, logger *zap.SugaredLogge
 		logger.Info("Shutdown signal received, shutting down")
 	}
 
-	closeDatabase := func() error { return p.Database.Close(context.Background(), dbType, logger) }
+	closeDatabase := func(ctx context.Context) error { return p.Database.Close(ctx, dbType, logger) }
 	if err := errors.Join(failure, graceful.Stop(shutdownTimeouts, "the producer", p.Producer.Stop, p.EventBus, closeDatabase, logger)); err != nil {
 		return err
 	}
