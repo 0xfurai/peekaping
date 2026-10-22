@@ -119,7 +119,9 @@ func (s *TelegramSender) Send(
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		// A bounded read: the error carries Telegram's description, however long the response is
 		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
-		return fmt.Errorf("telegram API returned status: %s, body: %s", resp.Status, strings.TrimSpace(string(body)))
+		// A self-hosted Bot API server may echo the request path, and the path holds the token
+		text := strings.ReplaceAll(strings.TrimSpace(string(body)), cfg.BotToken, "[redacted]")
+		return fmt.Errorf("telegram API returned status: %s, body: %s", resp.Status, text)
 	}
 
 	s.logger.Infof("Telegram notification sent successfully")

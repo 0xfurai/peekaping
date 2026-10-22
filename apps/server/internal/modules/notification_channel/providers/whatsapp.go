@@ -139,7 +139,6 @@ func (w *WhatsAppSender) sendToPhoneNumber(
 	// Send the request
 	resp, err := w.client.Do(req)
 	if err != nil {
-		w.logger.Errorf("HTTP request failed: %v", err)
 		return fmt.Errorf("failed to send HTTP request: %w", err)
 	}
 	defer resp.Body.Close()

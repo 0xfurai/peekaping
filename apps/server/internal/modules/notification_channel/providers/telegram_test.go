@@ -41,3 +41,15 @@ func TestTelegramSender_APIErrorReportsOnlyTheStartOfALongBody(t *testing.T) {
 	assert.Contains(t, err.Error(), "telegram API returned status: 502 Bad Gateway, body: xxx")
 	assert.Less(t, len(err.Error()), 2_000, "an error message must stay short however long the response is")
 }
+
+func TestTelegramSender_APIErrorKeepsTheBotTokenOutOfAnEchoedBody(t *testing.T) {
+	// A self-hosted Bot API server (server_url) may echo the request path, which holds the token
+	err := sendTelegramTo(t, func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = w.Write([]byte("no route for " + r.URL.Path))
+	})
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "no route for /bot")
+	assert.NotContains(t, err.Error(), "secret-bot-token")
+}
