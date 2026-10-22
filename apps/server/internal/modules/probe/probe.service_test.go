@@ -511,21 +511,22 @@ func TestService_TouchInstanceStampsTheLastSeenTime(t *testing.T) {
 	assert.False(t, found, "nor is another probe's")
 }
 
-func TestService_RemoveInstanceForgetsTheInstance(t *testing.T) {
+func TestService_RetireInstanceLeavesTheInstanceLastSeenAtTheGivenTime(t *testing.T) {
 	ctx := context.Background()
 	f := newFixture(t)
 	created := f.create(t, "Frankfurt")
 	seen := time.Date(2026, 10, 22, 8, 30, 0, 0, time.UTC)
+	retired := seen.Add(-time.Minute)
 	require.NoError(t, f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: "instance-1", LastSeenAt: seen}, []string{"http"}))
 	require.NoError(t, f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: "instance-2", LastSeenAt: seen}, []string{"http"}))
 
-	require.NoError(t, f.svc.RemoveInstance(ctx, created.ID, "instance-1"))
+	require.NoError(t, f.svc.RetireInstance(ctx, created.ID, "instance-1", retired))
 
 	got, err := f.svc.FindByID(ctx, created.ID)
 	require.NoError(t, err)
-	require.Len(t, got.Instances, 1)
+	require.Len(t, got.Instances, 2, "the instance stays: the sweep prunes it once it has been silent for a day")
 	assert.Equal(t, "instance-2", got.Instances[0].ID)
-	found, err := f.svc.TouchInstance(ctx, created.ID, "instance-1", seen.Add(time.Minute))
-	require.NoError(t, err)
-	assert.False(t, found, "a removed instance has to say hello again")
+	assert.Equal(t, "instance-1", got.Instances[1].ID)
+	assert.WithinDuration(t, retired, got.Instances[1].LastSeenAt, time.Second)
+	assert.WithinDuration(t, seen, got.Instances[0].LastSeenAt, time.Second)
 }

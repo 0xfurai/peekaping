@@ -60,7 +60,7 @@ func (r *Route) ConnectRoute(router *httpx.Router, controller *Controller) {
 
 	httpx.Register(calls, "POST", "bye", huma.Operation{
 		Summary:       "Say bye",
-		Description:   "Tells the server that this instance is stopping, so that it removes the instance. An instance that never said hello is answered 409.",
+		Description:   "Tells the server that this instance is stopping, so that it takes the instance out of the dealing at once. The instance stays listed, and the probe counts as offline only after PROBE_OFFLINE_AFTER without any instance, so a restart is not an outage. An instance that never said hello is answered 409.",
 		Tags:          []string{probeTag},
 		DefaultStatus: http.StatusNoContent,
 		Security:      httpx.ProbeAuth,

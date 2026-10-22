@@ -251,9 +251,10 @@ func (r *SQLRepositoryImpl) TouchInstance(ctx context.Context, probeID string, i
 	return changed > 0, nil
 }
 
-// MARK: DeleteInstance
-func (r *SQLRepositoryImpl) DeleteInstance(ctx context.Context, probeID string, instanceID string) error {
-	_, err := dbtx.DB(ctx, r.db).NewDelete().Model((*sqlInstance)(nil)).
+// MARK: RetireInstance
+func (r *SQLRepositoryImpl) RetireInstance(ctx context.Context, probeID string, instanceID string, seenAt time.Time) error {
+	_, err := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlInstance)(nil)).
+		Set("last_seen_at = ?", seenAt.UTC()).
 		Where("id = ?", instanceID).
 		Where("probe_id = ?", probeID).
 		Exec(ctx)
