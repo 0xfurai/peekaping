@@ -17,6 +17,10 @@ type AssignmentsParams struct {
 }
 type AssignmentsInput = httpx.Input[httpx.NoBody, AssignmentsParams]
 
+type ResultsParams struct {
+}
+type ResultsInput = httpx.Input[probeproto.ResultsRequest, ResultsParams]
+
 type ByeParams struct {
 }
 type ByeInput = httpx.Input[httpx.NoBody, ByeParams]

@@ -66,6 +66,7 @@ var jwtOnlyRoutes = map[string]bool{
 var probeRoutes = map[string]bool{
 	"POST /probe/v1/hello":      true,
 	"GET /probe/v1/assignments": true,
+	"POST /probe/v1/results":    true,
 	"POST /probe/v1/bye":        true,
 }
 

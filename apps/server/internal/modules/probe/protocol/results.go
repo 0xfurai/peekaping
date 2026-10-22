@@ -1,0 +1,241 @@
+package protocol
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"math"
+	"net/http"
+	"slices"
+	"strconv"
+	"time"
+
+	"peekaping/internal/httpx"
+	"peekaping/internal/modules/certificate"
+	"peekaping/internal/modules/healthcheck"
+	"peekaping/internal/modules/monitor"
+	"peekaping/internal/modules/probe"
+	"peekaping/internal/modules/shared"
+	"peekaping/internal/probeproto"
+	"peekaping/internal/utils"
+)
+
+const (
+	// maxResultAge is how long before the server's clock a check may have started and still be
+	// stored. An older result is too_old.
+	maxResultAge = time.Hour
+	// maxResultSkew is how far ahead of the server's clock a check may have started: a probe
+	// whose clock runs a little fast is not wrong. A result from further ahead is invalid.
+	maxResultSkew = time.Minute
+	// maxResultPingMs keeps the response time inside the INTEGER column of the heartbeats
+	maxResultPingMs = math.MaxInt32
+)
+
+// statusOfWord maps the status words of the wire to the statuses of heartbeats
+var statusOfWord = map[string]shared.MonitorStatus{
+	probeproto.StatusUp:          shared.MonitorStatusUp,
+	probeproto.StatusDown:        shared.MonitorStatusDown,
+	probeproto.StatusPending:     shared.MonitorStatusPending,
+	probeproto.StatusMaintenance: shared.MonitorStatusMaintenance,
+}
+
+// candidate is a result that passed every check and waits to be stored
+type candidate struct {
+	result  *probeproto.Result
+	monitor *monitor.Model
+	status  shared.MonitorStatus
+	tlsInfo *certificate.TLSInfo
+}
+
+// Results takes the results of the checks that an instance ran, and answers with one outcome for
+// each, in the order sent:
+//   - invalid: the result is malformed, or its start is more than a minute ahead of the clock
+//   - too_old: the check started more than an hour ago
+//   - unknown_monitor: there is no such monitor
+//   - not_assigned: the monitor is not one of the probe's that it is dealt (it is paused, a push
+//     monitor, a type the probe can't run, or another probe's)
+//   - duplicate: the probe sent this id before and the server stored it
+//
+// The rest are stored with the monitor's settings and maintenance state, as the push URL stores
+// a push, one monitor at a time and each monitor's results oldest first, because storing a result
+// reads the monitor's previous heartbeat. The answer is sent after the last is stored or, in
+// cluster mode, queued. A result that fails to store is the server's failure and not the
+// result's: the whole batch is answered 500, so the probe sends it again, and the results that
+// were stored by then are answered duplicate.
+func (c *Controller) Results(ctx context.Context, input *ResultsInput) (*httpx.Output[probeproto.ResultsResponse], error) {
+	// MARK: Results
+
+	r := input.Request
+	owner, _, ok := ProbeFromContext(r.Context())
+	if !ok {
+		return nil, c.unauthenticated()
+	}
+	var req probeproto.ResultsRequest
+	if err := decodeBody(r, &req); err != nil {
+		return nil, err
+	}
+	if len(req.Results) > BatchMax {
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(
+			"batch holds "+strconv.Itoa(len(req.Results))+" results, the limit is "+strconv.Itoa(BatchMax)))
+	}
+	outcomes := make([]probeproto.ResultOutcome, len(req.Results))
+	if len(req.Results) == 0 {
+		return httpx.Reply(http.StatusOK, probeproto.ResultsResponse{Results: outcomes})
+	}
+
+	owned, err := c.dealtMonitors(r.Context(), owner)
+	if err != nil {
+		return nil, c.fail(err)
+	}
+	now := c.now().UTC()
+
+	// others are the monitors that results name and the probe is not dealt, read once each; a nil
+	// is a monitor that does not exist
+	others := map[string]*monitor.Model{}
+	// sent are the ids of the results of this batch that wait to be stored
+	sent := map[string]bool{}
+	var waiting []*candidate
+	for i := range req.Results {
+		result := &req.Results[i]
+		outcomes[i] = probeproto.ResultOutcome{ID: result.ID}
+
+		status, tlsInfo, reason := judge(result, now)
+		var m *monitor.Model
+		if reason == "" {
+			m = owned[result.MonitorID]
+			if m == nil {
+				other, err := c.otherMonitor(r.Context(), others, result.MonitorID)
+				if err != nil {
+					return nil, c.fail(err)
+				}
+				reason = notAssignedOrUnknown(other)
+			}
+		}
+		if reason == "" && (sent[result.ID] || c.accepted.Seen(owner.ID, result.ID, now)) {
+			reason = probeproto.ReasonDuplicate
+		}
+		if reason != "" {
+			outcomes[i].Reason = reason
+			continue
+		}
+		sent[result.ID] = true
+		outcomes[i].Accepted = true
+		waiting = append(waiting, &candidate{result: result, monitor: m, status: status, tlsInfo: tlsInfo})
+	}
+
+	if err := c.store(r.Context(), owner, waiting); err != nil {
+		return nil, c.fail(err)
+	}
+	return httpx.Reply(http.StatusOK, probeproto.ResultsResponse{Results: outcomes})
+}
+
+// dealtMonitors are the monitors that the probe is dealt, by id: the active monitors it runs of
+// the types it supports. They are what it may send results for.
+func (c *Controller) dealtMonitors(ctx context.Context, owner *probe.Model) (map[string]*monitor.Model, error) {
+	monitors, err := c.source.FindActiveByProbe(ctx, owner.ID)
+	if err != nil {
+		return nil, err
+	}
+	dealt := Dealable(monitors, owner.SupportedTypes)
+	byID := make(map[string]*monitor.Model, len(dealt))
+	for _, m := range dealt {
+		byID[m.ID] = m
+	}
+	return byID, nil
+}
+
+// otherMonitor reads a monitor that the probe is not dealt, to tell one that does not exist from
+// one that is not the probe's. It reads each monitor once for a batch: others holds what it read.
+func (c *Controller) otherMonitor(ctx context.Context, others map[string]*monitor.Model, id string) (*monitor.Model, error) {
+	if m, read := others[id]; read {
+		return m, nil
+	}
+	m, err := c.monitors.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	others[id] = m
+	return m, nil
+}
+
+// notAssignedOrUnknown is the reason a result is rejected for naming a monitor that the probe is
+// not dealt: m is the monitor, nil when there is none
+func notAssignedOrUnknown(m *monitor.Model) string {
+	if m == nil {
+		return probeproto.ReasonUnknownMonitor
+	}
+	return probeproto.ReasonNotAssigned
+}
+
+// judge checks a result by itself, without the monitor it names or the results before it. It
+// returns the status and the TLS information the result's words stand for, or the reason to
+// reject it.
+func judge(r *probeproto.Result, now time.Time) (shared.MonitorStatus, *certificate.TLSInfo, string) {
+	status, known := statusOfWord[r.Status]
+	switch {
+	case r.ID == "", r.MonitorID == "", !known:
+		return 0, nil, probeproto.ReasonInvalid
+	case r.StartTime.IsZero(), r.EndTime.Before(r.StartTime), r.StartTime.After(now.Add(maxResultSkew)):
+		return 0, nil, probeproto.ReasonInvalid
+	case r.PingMs < 0, r.PingMs > maxResultPingMs:
+		return 0, nil, probeproto.ReasonInvalid
+	}
+	tlsInfo, err := decodeTLSInfo(r.TLSInfo)
+	if err != nil {
+		return 0, nil, probeproto.ReasonInvalid
+	}
+	if r.StartTime.Before(now.Add(-maxResultAge)) {
+		return 0, nil, probeproto.ReasonTooOld
+	}
+	return status, tlsInfo, ""
+}
+
+// decodeTLSInfo reads the certificate information of a result: nil when it has none
+func decodeTLSInfo(raw json.RawMessage) (*certificate.TLSInfo, error) {
+	if len(raw) == 0 || bytes.Equal(bytes.TrimSpace(raw), []byte("null")) {
+		return nil, nil
+	}
+	var info certificate.TLSInfo
+	if err := json.Unmarshal(raw, &info); err != nil {
+		return nil, err
+	}
+	return &info, nil
+}
+
+// store hands the results to the ingester one monitor at a time, each monitor's oldest first, and
+// remembers each one's id once it is stored. It stops at the first that fails.
+func (c *Controller) store(ctx context.Context, owner *probe.Model, waiting []*candidate) error {
+	var order []string
+	byMonitor := map[string][]*candidate{}
+	for _, w := range waiting {
+		id := w.monitor.ID
+		if _, seen := byMonitor[id]; !seen {
+			order = append(order, id)
+		}
+		byMonitor[id] = append(byMonitor[id], w)
+	}
+
+	for _, monitorID := range order {
+		group := byMonitor[monitorID]
+		slices.SortStableFunc(group, func(a, b *candidate) int { return a.result.StartTime.Compare(b.result.StartTime) })
+
+		// The window the monitor is in is the same for each result of the batch
+		underMaintenance, err := healthcheck.MonitorUnderMaintenance(ctx, c.maintenance, monitorID)
+		if err != nil {
+			// Keep the results the probe sent rather than lose them
+			c.logger.Errorw("Failed to check if a monitor a probe sent results for is under maintenance",
+				"probeId", owner.ID, "monitorId", monitorID, "error", err)
+		}
+		for _, w := range group {
+			result := healthcheck.ResultFromMonitor(w.monitor, underMaintenance, w.status, w.result.Message, w.result.PingMs,
+				w.result.StartTime.UTC(), w.result.EndTime.UTC(), w.tlsInfo, c.logger)
+			result.ProbeID = owner.ID
+			if err := c.ingester.Ingest(ctx, result); err != nil {
+				return fmt.Errorf("failed to store a result of monitor %s from probe %s: %w", monitorID, owner.ID, err)
+			}
+			c.accepted.Add(owner.ID, w.result.ID, c.now().UTC())
+		}
+	}
+	return nil
+}
