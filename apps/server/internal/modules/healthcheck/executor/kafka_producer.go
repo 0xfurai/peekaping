@@ -95,8 +95,6 @@ func (k *KafkaProducerExecutor) Execute(ctx context.Context, monitor *Monitor, p
 	}
 	cfg := cfgAny.(*KafkaProducerConfig)
 
-	k.logger.Debugf("execute kafka producer cfg: %+v", cfg)
-
 	startTime := time.Now().UTC()
 
 	// Create Kafka configuration

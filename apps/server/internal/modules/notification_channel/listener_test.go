@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"path/filepath"
 	"sync"
 	"testing"
@@ -34,6 +35,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 type fakeChannelService struct {
@@ -401,6 +403,35 @@ func TestListener_FailedSendDoesNotStopOtherChannels(t *testing.T) {
 
 	assert.Equal(t, []string{channelConfig("a")}, failing.sentConfigs())
 	assert.Equal(t, []string{channelConfig("b")}, healthy.sentConfigs())
+}
+
+func TestListener_FailedSendLogsNoRequestURL(t *testing.T) {
+	f := newListenerFixture(t)
+	core, logs := observer.New(zap.DebugLevel)
+	f.listener.logger = zap.New(core).Sugar()
+	const botToken = "123456:secret-bot-token"
+	// What a provider returns when its HTTP client fails: a wrapper around the client's *url.Error
+	failing := &recordingProvider{send: func(context.Context) error {
+		return fmt.Errorf("failed to send telegram message: %w", &url.Error{
+			Op:  "Get",
+			URL: "https://api.telegram.org/bot" + botToken + "/sendMessage?chat_id=42",
+			Err: errors.New("dial tcp 149.154.167.220:443: connect: connection refused"),
+		})
+	}}
+	f.addProvider("test-failing", failing)
+	f.addMonitor("mon-1", "Public API")
+	f.attach("mon-1", testChannel("a", "test-failing"))
+
+	f.publishImportantHeartbeat(downHeartbeat("mon-1"))
+
+	failures := logs.FilterLevelExact(zap.ErrorLevel).All()
+	require.Len(t, failures, 1)
+	assert.Contains(t, failures[0].Message, "Failed to send notification")
+	assert.Contains(t, failures[0].Message, "connection refused", "the log keeps the reason the send failed")
+	for _, entry := range logs.All() {
+		assert.NotContains(t, entry.Message, botToken)
+		assert.NotContains(t, entry.Message, "api.telegram.org")
+	}
 }
 
 func TestListener_PanickingChannelDoesNotStopOtherChannels(t *testing.T) {

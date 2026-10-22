@@ -142,7 +142,8 @@ func (ic *MonitorController) Create(ctx context.Context, input *CreateInput) (*h
 		ic.logger.Errorw("Failed to create monitor", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
-	ic.logger.Infof("Created monitor: %+v\n", createdMonitor)
+	// Only the ID and type: the monitor's config holds credentials, and so does its push token
+	ic.logger.Infof("Created monitor: %s (type: %s)", createdMonitor.ID, createdMonitor.Type)
 
 	// Handle multiple notification IDs
 	if len(monitor.NotificationIds) > 0 {

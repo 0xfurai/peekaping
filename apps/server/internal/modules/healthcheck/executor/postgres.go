@@ -91,8 +91,6 @@ func (p *PostgresExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *
 	}
 	cfg := cfgAny.(*PostgresConfig)
 
-	p.logger.Debugf("execute postgres cfg: %+v", cfg)
-
 	startTime := time.Now().UTC()
 
 	// Validate configuration before execution
