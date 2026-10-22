@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -20,6 +21,7 @@ import (
 	"github.com/pquerna/otp/totp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/uptrace/bun"
 )
 
 type tokens struct {
@@ -51,6 +53,52 @@ func TestAuthAPI_SignsAdminIn(t *testing.T) {
 	decode[any](t, a.request(t, http.MethodPut, "/api/v1/auth/password", map[string]any{"currentPassword": adminPassword, "newPassword": newPassword}, a.asAdmin), http.StatusOK)
 	assert.Equal(t, http.StatusUnauthorized, a.login(t, map[string]any{"email": adminEmail, "password": adminPassword}).Code)
 	assert.Equal(t, http.StatusOK, a.login(t, map[string]any{"email": adminEmail, "password": newPassword}).Code)
+}
+
+// Registrations that arrive together on a new install create exactly one admin. The
+// others fail with "admin already exists", whatever email they register.
+func TestAuthAPI_ConcurrentFirstRegistrationsCreateOneAdmin(t *testing.T) {
+	const attempts = 10
+	emails := map[string]func(n int) string{
+		"different emails": func(n int) string { return fmt.Sprintf("admin%d@example.com", n) },
+		"the same email":   func(int) string { return adminEmail },
+	}
+	for name, email := range emails {
+		t.Run(name, func(t *testing.T) {
+			a := newApp(t)
+			responses := make(chan *httptest.ResponseRecorder, attempts)
+			start := make(chan struct{})
+			var wg sync.WaitGroup
+			for n := range attempts {
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					<-start
+					responses <- a.request(t, http.MethodPost, "/api/v1/auth/register", map[string]string{"email": email(n), "password": adminPassword})
+				}()
+			}
+			close(start)
+			wg.Wait()
+			close(responses)
+
+			created := 0
+			for w := range responses {
+				if w.Code == http.StatusCreated {
+					created++
+					continue
+				}
+				assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+				assert.Contains(t, w.Body.String(), "admin already exists")
+			}
+			assert.Equal(t, 1, created, "registrations that created an admin")
+
+			var admins int
+			require.NoError(t, a.container.Invoke(func(db *bun.DB) error {
+				return db.NewSelect().Table("users").ColumnExpr("count(*)").Scan(context.Background(), &admins)
+			}))
+			assert.Equal(t, 1, admins)
+		})
+	}
 }
 
 func (a *app) refresh(t *testing.T, refreshToken string) *httptest.ResponseRecorder {

@@ -49,7 +49,7 @@ func (s *ServiceImpl) Register(ctx context.Context, dto RegisterDto) (*LoginResp
 	}
 
 	if count > 0 {
-		return nil, errors.New("admin already exists")
+		return nil, ErrAdminExists
 	}
 	// Check if admin with this email already exists
 	existingAdmin, err := s.repo.FindByEmail(ctx, dto.Email)
@@ -72,8 +72,8 @@ func (s *ServiceImpl) Register(ctx context.Context, dto RegisterDto) (*LoginResp
 		UpdatedAt: time.Now().UTC(),
 	}
 
-	// Save to database
-	user, err = s.repo.Create(ctx, user)
+	// Save to database, unless another registration got there first
+	user, err = s.repo.CreateFirst(ctx, user)
 	if err != nil {
 		return nil, err
 	}
