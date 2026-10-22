@@ -67,7 +67,11 @@ func NewServer(
 		logger.Debugf("[WS]connection: %s", userId)
 
 		client.On("join_room", func(args ...interface{}) {
-			roomName := args[0].(string)
+			roomName, ok := firstString(args)
+			if !ok {
+				logger.Debugf("join_room: dropped, no room name in %d arguments", len(args))
+				return
+			}
 			logger.Debugf("join_room: %s", roomName)
 
 			// TODO: validate if user allowed to join room
@@ -76,7 +80,11 @@ func NewServer(
 		})
 
 		client.On("leave_room", func(args ...interface{}) {
-			roomName := args[0].(string)
+			roomName, ok := firstString(args)
+			if !ok {
+				logger.Debugf("leave_room: dropped, no room name in %d arguments", len(args))
+				return
+			}
 			logger.Debugf("leave_room: %s", roomName)
 			// ack := args[1].(func([]interface{}, error))
 			client.Leave(socket.Room(roomName))
@@ -92,6 +100,16 @@ func NewServer(
 	})
 
 	return server, nil
+}
+
+// firstString returns the first argument of a client's message if it's a string.
+// The arguments are client input, so they can be missing or of any type.
+func firstString(args []interface{}) (string, bool) {
+	if len(args) == 0 {
+		return "", false
+	}
+	s, ok := args[0].(string)
+	return s, ok
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
