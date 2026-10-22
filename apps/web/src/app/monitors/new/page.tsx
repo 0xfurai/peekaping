@@ -11,7 +11,7 @@ import CreateProxy from "@/app/proxies/components/create-proxy";
 import { useLocation } from "react-router-dom";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
-import { cloneMonitor } from "../components/monitor-registry";
+import { cloneMonitor } from "../monitor-types/registry";
 
 import type { MonitorNavigationState } from "../types";
 

@@ -24,7 +24,6 @@ import {
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { AxiosError } from "axios";
-import { pushSchema, type PushForm } from "../components/push";
 import type {
   Options,
   PostMonitorsData,
@@ -35,104 +34,19 @@ import type {
   PutMonitorsByIdData,
 } from "@/api";
 import type { UtilsApiResponseMonitorMonitorResponseDto } from "@/api/types.gen";
-import {
-  httpDefaultValues,
-  httpSchema,
-  type HttpForm,
-} from "../components/http/schema";
-import { httpKeywordSchema, type HttpKeywordForm } from "../components/http-keyword/schema";
-import { httpJsonQuerySchema, type HttpJsonQueryForm } from "../components/http-json-query/schema";
-import { tcpSchema, type TCPForm } from "../components/tcp";
-import { pingSchema, type PingForm } from "../components/ping";
-import { dnsSchema, type DNSForm } from "../components/dns";
-import { dockerSchema, type DockerForm } from "../components/docker";
-import {
-  grpcKeywordSchema,
-  type GRPCKeywordForm,
-} from "../components/grpc-keyword";
-import { snmpSchema, type SnmpForm } from "../components/snmp";
-import { mysqlSchema, type MySQLForm } from "../components/mysql";
-import { mongodbSchema, type MongoDBForm } from "../components/mongodb";
-import { redisSchema, type RedisForm } from "../components/redis";
-import { z } from "zod";
 import { commonMutationErrorHandler } from "@/lib/utils";
-import { deserializeMonitor } from "../components/monitor-registry";
 import {
-  postgresSchema,
-  type PostgresForm,
-} from "../components/postgres/schema";
-import {
-  sqlServerSchema,
-  type SQLServerForm,
-} from "../components/sqlserver/schema";
-import { mqttSchema, type MQTTForm } from "../components/mqtt";
-import { rabbitMQSchema, type RabbitMQForm } from "../components/rabbitmq";
-import { kafkaProducerSchema, type KafkaProducerForm } from "../components/kafka-producer/schema";
-import { smtpSchema, type SMTPForm } from "../components/smtp/schema";
+  deserializeMonitor,
+  monitorFormSchema,
+  monitorTypes,
+  type MonitorFormValues,
+} from "../monitor-types/registry";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
-
-const formSchema = z.discriminatedUnion("type", [
-  httpSchema,
-  httpKeywordSchema,
-  httpJsonQuerySchema,
-  tcpSchema,
-  pingSchema,
-  dnsSchema,
-  pushSchema,
-  dockerSchema,
-  grpcKeywordSchema,
-  snmpSchema,
-  mysqlSchema,
-  postgresSchema,
-  sqlServerSchema,
-  mongodbSchema,
-  redisSchema,
-  mqttSchema,
-  rabbitMQSchema,
-  kafkaProducerSchema,
-  smtpSchema,
-]);
-
-export type MonitorForm =
-  | HttpForm
-  | HttpKeywordForm
-  | HttpJsonQueryForm
-  | TCPForm
-  | PingForm
-  | DNSForm
-  | PushForm
-  | DockerForm
-  | SnmpForm
-  | GRPCKeywordForm
-  | PostgresForm
-  | SQLServerForm
-  | MySQLForm
-  | MongoDBForm
-  | RedisForm
-  | MQTTForm
-  | RabbitMQForm
-  | KafkaProducerForm
-  | SMTPForm;
-
-export const formDefaultValues: MonitorForm = httpDefaultValues;
 
 type Mode = "create" | "edit";
 
 interface MonitorFormContextType {
-  form: UseFormReturn<MonitorForm>;
-  mutation:
-    | UseMutationResult<
-        UtilsApiResponseMonitorModel,
-        AxiosError<HttpxErrorBody, unknown>,
-        Options<PostMonitorsData>,
-        unknown
-      >
-    | UseMutationResult<
-        PutMonitorsByIdResponse,
-        AxiosError<PutMonitorsByIdError>,
-        Options<PutMonitorsByIdData>,
-        unknown
-      >;
+  form: UseFormReturn<MonitorFormValues>;
   notifierSheetOpen: boolean;
   setNotifierSheetOpen: React.Dispatch<React.SetStateAction<boolean>>;
   proxySheetOpen: boolean;
@@ -163,14 +77,14 @@ interface MonitorFormProviderProps {
   children: React.ReactNode;
   mode: Mode;
   monitorId?: string;
-  initialValues?: MonitorForm;
+  initialValues?: MonitorFormValues;
 }
 
 export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
   children,
   mode,
   monitorId,
-  initialValues = formDefaultValues,
+  initialValues,
 }) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -184,31 +98,24 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
     enabled: mode === "edit" && !!monitorId,
   });
 
-  const form = useForm<MonitorForm>({
-    defaultValues: initialValues,
-    resolver: zodResolver(formSchema),
+  const form = useForm<MonitorFormValues>({
+    // A new monitor starts as the first type the registry lists. Read here, not at module
+    // level: the type forms import this module, so the registry is still loading then.
+    defaultValues: initialValues ?? monitorTypes[0].defaultValues,
+    resolver: zodResolver(monitorFormSchema),
   });
 
-  // Handle form population for edit mode only
+  // In edit mode the form shows the saved monitor once it is loaded
   useEffect(() => {
-    let formData: MonitorForm | undefined;
-
+    if (mode !== "edit" || !monitor?.data) return;
     try {
-      if (mode === "edit" && monitor?.data) {
-        // Use registry deserialize function for edit mode
-        formData = deserializeMonitor(monitor.data);
-      }
-
-      if (formData) {
-        form.reset(formData);
-      }
+      form.reset(deserializeMonitor(monitor.data));
     } catch (error) {
       console.error("Failed to deserialize monitor data:", error);
       toast.error("Failed to load monitor data");
     }
   }, [mode, monitor, form]);
 
-  // Mutations
   const createMonitorMutation = useMutation({
     ...postMonitorsMutation(),
     onSuccess: (res) => {
@@ -247,7 +154,6 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
   const value = useMemo(
     () => ({
       form,
-      mutation: mode === "create" ? createMonitorMutation : editMonitorMutation,
       notifierSheetOpen,
       setNotifierSheetOpen,
       proxySheetOpen,

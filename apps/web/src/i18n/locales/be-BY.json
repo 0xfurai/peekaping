@@ -570,6 +570,8 @@
         "docker": "Docker кантэйнер",
         "grpc": "gRPC Манітор ключавых слоў",
         "http": "Манітор HTTP(S)",
+        "http_json_query": "HTTP(s) - Json Query",
+        "http_keyword": "HTTP(s) - Keyword",
         "kafka": "Манітор прадуктара Kafka",
         "mongodb": "Манітор базы дадзеных MongoDB",
         "mqtt": "Манітор MQTT-брокера",

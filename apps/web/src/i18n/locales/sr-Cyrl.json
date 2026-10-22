@@ -570,6 +570,8 @@
         "docker": "Докер контејнер",
         "grpc": "gRPC Монитор кључних речи",
         "http": "HTTP(S) монитор",
+        "http_json_query": "HTTP(s) - Json Query",
+        "http_keyword": "HTTP(s) - Keyword",
         "kafka": "Монитор Kafka производитеља",
         "mongodb": "Монитор MongoDB базе података",
         "mqtt": "Монитор MQTT брокера",

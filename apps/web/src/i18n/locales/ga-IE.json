@@ -570,6 +570,8 @@
         "docker": "Contaeán Docker",
         "grpc": "Monaitir Focail gRPC",
         "http": "Monaitéir HTTP(S)",
+        "http_json_query": "HTTP(s) - Json Query",
+        "http_keyword": "HTTP(s) - Keyword",
         "kafka": "Monaitéir Fhuirceora Kafka",
         "mongodb": "Monaitéir Bunachar Sonraí MongoDB",
         "mqtt": "Monaitéir Broker MQTT",
