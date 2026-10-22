@@ -88,6 +88,7 @@
   "error_reporting": {
     "label": "Send error reports",
     "never_sent": "Never sent: error messages, URLs, headers, webhook URLs, names or hostnames. A report holds no IP address, and Peekaping's Sentry project is set not to store the sender's IP. With your own ERROR_REPORTING_DSN, your Sentry or GlitchTip settings decide.",
+    "not_saved": "Your choice to send error reports wasn't saved. Turn it on in Settings.",
     "sent": "Sent only when Peekaping itself crashes. A report holds the error type and where in the code it happened, the Peekaping version, single or cluster mode, the storage backend, and the operating system."
   },
   "forms": {

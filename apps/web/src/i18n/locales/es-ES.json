@@ -88,6 +88,7 @@
   "error_reporting": {
     "label": "Enviar informes de errores",
     "never_sent": "Nunca se envía: mensajes de error, URL, cabeceras, URL de webhooks, nombres ni nombres de host. Un informe no contiene ninguna dirección IP, y el proyecto de Sentry de Peekaping está configurado para no almacenar la IP del remitente. Con su propio ERROR_REPORTING_DSN, deciden los ajustes de su Sentry o GlitchTip.",
+    "not_saved": "No se guardó su elección de enviar informes de errores. Actívela en «Configuración».",
     "sent": "Solo se envía cuando falla el propio Peekaping. Un informe contiene el tipo de error y el lugar del código donde ocurrió, la versión de Peekaping, el modo único o de clúster, el backend de almacenamiento y el sistema operativo."
   },
   "forms": {

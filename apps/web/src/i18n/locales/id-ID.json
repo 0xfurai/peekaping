@@ -88,6 +88,7 @@
   "error_reporting": {
     "label": "Kirim laporan kesalahan",
     "never_sent": "Tidak pernah dikirim: pesan kesalahan, URL, header, URL webhook, nama, atau nama host. Laporan tidak berisi alamat IP, dan proyek Sentry milik Peekaping diatur agar tidak menyimpan IP pengirim. Dengan ERROR_REPORTING_DSN Anda sendiri, pengaturan Sentry atau GlitchTip Anda yang menentukan.",
+    "not_saved": "Pilihan Anda untuk mengirim laporan kesalahan tidak tersimpan. Aktifkan di “Pengaturan”.",
     "sent": "Hanya dikirim saat Peekaping sendiri mengalami crash. Laporan berisi jenis kesalahan dan lokasi di dalam kode tempat terjadinya, versi Peekaping, mode tunggal atau klaster, backend penyimpanan, serta sistem operasi."
   },
   "forms": {

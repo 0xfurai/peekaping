@@ -88,6 +88,7 @@
   "error_reporting": {
     "label": "Wysyłaj raporty o błędach",
     "never_sent": "Nigdy nie są wysyłane: komunikaty o błędach, adresy URL, nagłówki, adresy URL webhooków, nazwy ani nazwy hostów. Raport nie zawiera adresu IP, a projekt Sentry Peekaping jest ustawiony tak, aby nie zapisywać adresu IP nadawcy. Przy własnym ERROR_REPORTING_DSN decydują o tym ustawienia Twojego Sentry lub GlitchTip.",
+    "not_saved": "Twój wybór wysyłania raportów o błędach nie został zapisany. Włącz to w sekcji „Ustawienia”.",
     "sent": "Wysyłane tylko wtedy, gdy sam Peekaping ulegnie awarii. Raport zawiera typ błędu i miejsce w kodzie, w którym wystąpił, wersję Peekaping, tryb pojedynczy lub klastrowy, zaplecze przechowywania danych oraz system operacyjny."
   },
   "forms": {

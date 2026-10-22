@@ -88,6 +88,7 @@
   "error_reporting": {
     "label": "Send fejlrapporter",
     "never_sent": "Sendes aldrig: fejlmeddelelser, URL'er, headere, webhook-URL'er, navne eller værtsnavne. En rapport indeholder ingen IP-adresse, og Peekapings Sentry-projekt er indstillet til ikke at gemme afsenderens IP. Hvis du bruger din egen ERROR_REPORTING_DSN, afgør indstillingerne i din Sentry eller GlitchTip det.",
+    "not_saved": "Dit valg om at sende fejlrapporter blev ikke gemt. Slå det til under “Indstillinger”.",
     "sent": "Sendes kun, når Peekaping selv går ned. En rapport indeholder fejltypen og stedet i koden, hvor den opstod, Peekaping-versionen, enkelt- eller klyngetilstand, lagringsbackenden og operativsystemet."
   },
   "forms": {

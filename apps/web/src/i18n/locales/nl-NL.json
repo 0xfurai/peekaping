@@ -88,6 +88,7 @@
   "error_reporting": {
     "label": "Foutrapporten versturen",
     "never_sent": "Nooit verstuurd: foutmeldingen, URL's, headers, webhook-URL's, namen of hostnamen. Een rapport bevat geen IP-adres, en het Sentry-project van Peekaping is ingesteld om het IP van de afzender niet op te slaan. Met je eigen ERROR_REPORTING_DSN bepalen de instellingen van je Sentry of GlitchTip dat.",
+    "not_saved": "Je keuze om foutrapporten te versturen is niet opgeslagen. Zet het aan onder ‘Instellingen’.",
     "sent": "Wordt alleen verstuurd wanneer Peekaping zelf crasht. Een rapport bevat het type fout en de plek in de code waar die optrad, de Peekaping-versie, enkele modus of clustermodus, de opslagbackend en het besturingssysteem."
   },
   "forms": {

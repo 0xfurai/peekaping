@@ -87,6 +87,7 @@ export function RegisterForm({
     // Like the usage statistics: setup has succeeded, and Settings is where to try again.
     onError: (error) => {
       console.error("Failed to turn on error reports", error);
+      toast.warning(t("error_reporting.not_saved"));
     },
   });
 

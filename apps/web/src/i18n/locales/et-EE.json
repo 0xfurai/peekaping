@@ -88,6 +88,7 @@
   "error_reporting": {
     "label": "Saada veaaruandeid",
     "never_sent": "Ei saadeta kunagi: veateateid, URL-e, päiseid, veebikonksu URL-e, nimesid ega hostinimesid. Aruanne ei sisalda IP-aadressi ning Peekapingi Sentry projekt on seadistatud saatja IP-d mitte salvestama. Oma ERROR_REPORTING_DSN-i korral otsustavad selle teie Sentry või GlitchTipi seaded.",
+    "not_saved": "Teie valikut saata veaaruandeid ei salvestatud. Lülitage see sisse jaotises „Seaded“.",
     "sent": "Saadetakse ainult siis, kui Peekaping ise kokku jookseb. Aruanne sisaldab vea tüüpi ja kohta koodis, kus see juhtus, Peekapingi versiooni, ühe- või klastrirežiimi, andmesalve ning operatsioonisüsteemi."
   },
   "forms": {

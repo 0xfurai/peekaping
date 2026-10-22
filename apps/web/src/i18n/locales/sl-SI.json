@@ -88,6 +88,7 @@
   "error_reporting": {
     "label": "Pošiljaj poročila o napakah",
     "never_sent": "Nikoli se ne pošiljajo: sporočila o napakah, URL-ji, glave, URL-ji spletnih kljuk, imena ali imena gostiteljev. Poročilo ne vsebuje naslova IP, projekt Sentry za Peekaping pa je nastavljen tako, da ne shranjuje IP pošiljatelja. Pri lastnem ERROR_REPORTING_DSN odločajo nastavitve vašega Sentryja ali GlitchTipa.",
+    "not_saved": "Vaša izbira pošiljanja poročil o napakah ni bila shranjena. Vklopite jo v razdelku »Nastavitve«.",
     "sent": "Pošlje se samo, ko se sam Peekaping zruši. Poročilo vsebuje vrsto napake in mesto v kodi, kjer se je zgodila, različico Peekapinga, enojni ali gručni način, zaledje za shranjevanje in operacijski sistem."
   },
   "forms": {

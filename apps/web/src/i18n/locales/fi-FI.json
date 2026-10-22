@@ -88,6 +88,7 @@
   "error_reporting": {
     "label": "Lähetä virheraportteja",
     "never_sent": "Ei koskaan lähetetä: virheilmoituksia, URL-osoitteita, otsakkeita, webhook-osoitteita, nimiä tai isäntänimiä. Raportti ei sisällä IP-osoitetta, ja Peekapingin Sentry-projekti on asetettu niin, ettei se tallenna lähettäjän IP-osoitetta. Jos käytät omaa ERROR_REPORTING_DSN-arvoa, oman Sentrysi tai GlitchTipisi asetukset ratkaisevat.",
+    "not_saved": "Valintaasi lähettää virheraportteja ei tallennettu. Ota se käyttöön kohdassa ”Asetukset”.",
     "sent": "Lähetetään vain, kun Peekaping itse kaatuu. Raportti sisältää virheen tyypin ja kohdan koodissa, jossa se tapahtui, Peekapingin version, yksi- tai klusteritilan, tallennustaustan ja käyttöjärjestelmän."
   },
   "forms": {

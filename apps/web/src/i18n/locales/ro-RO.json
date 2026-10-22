@@ -88,6 +88,7 @@
   "error_reporting": {
     "label": "Trimite rapoarte de eroare",
     "never_sent": "Nu se trimit niciodată: mesajele de eroare, URL-uri, anteturi, URL-uri de webhook, nume sau nume de gazdă. Un raport nu conține nicio adresă IP, iar proiectul Sentry al Peekaping este configurat să nu stocheze IP-ul expeditorului. Cu propriul dvs. ERROR_REPORTING_DSN, decid setările Sentry sau GlitchTip ale dvs.",
+    "not_saved": "Alegerea dvs. de a trimite rapoarte de eroare nu a fost salvată. Activați-o în „Setări”.",
     "sent": "Se trimite doar când Peekaping însuși se oprește brusc. Un raport conține tipul erorii și locul din cod unde a apărut, versiunea Peekaping, modul unic sau de cluster, backendul de stocare și sistemul de operare."
   },
   "forms": {
