@@ -92,3 +92,23 @@ Put it under initContainers with: include "peekaping.waitForMigrations" . | nind
     capabilities:
       drop: ["ALL"]
 {{- end }}
+
+{{/*
+Fails the render when config.env.DB_TYPE is sqlite, in any case. The chart runs
+Peekaping in cluster mode, and it has no volume for a SQLite file: its pods
+would share one file and write to it one at a time. The single-mode bundle
+image runs Peekaping on SQLite in one process, so the message sends the reader
+there.
+
+It reads config.env only. Helm doesn't read Secrets at render time, so a DB_TYPE
+in config.existingSecret isn't seen here. The api, producer and ingester warn
+about SQLite in cluster mode when they start, which covers that case.
+
+Include it from a template that always renders: include "peekaping.requirePostgres" .
+*/}}
+{{- define "peekaping.requirePostgres" -}}
+{{- $dbType := toString (get (.Values.config.env | default (dict)) "DB_TYPE") -}}
+{{- if eq (lower $dbType) "sqlite" -}}
+{{- fail (printf "config.env.DB_TYPE is %q, but the chart supports PostgreSQL only: it runs Peekaping in cluster mode and has no volume for a SQLite file, so its pods would share one file. For SQLite, run the single-mode bundle image (0xfurai/peekaping-bundle-sqlite) or its Docker Compose stack instead: https://docs.peekaping.com/self-hosting/docker-with-sqlite" $dbType) -}}
+{{- end -}}
+{{- end }}
