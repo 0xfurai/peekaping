@@ -2,19 +2,25 @@ package apitest
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"slices"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
 	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor_notification"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/stats"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/uptrace/bun"
+	"go.uber.org/dig"
 )
 
 // unknownID is a well-formed ID that no tag, notification channel or monitor has.
@@ -305,4 +311,129 @@ func TestMonitorsAPI_UpdatedEventSeesTheMonitorsChannels(t *testing.T) {
 			}
 		})
 	}
+}
+
+// monitorRows counts the rows that belong to a monitor, by table.
+type monitorRows struct {
+	Monitors, Heartbeats, Notifications, Tags, Stats int
+}
+
+func (a *app) monitorRows(t *testing.T, monitorID string) monitorRows {
+	t.Helper()
+	count := func(table, column string) int {
+		var n int
+		require.NoError(t, a.container.Invoke(func(db *bun.DB) error {
+			return db.NewSelect().TableExpr(table).ColumnExpr("count(*)").Where(column+" = ?", monitorID).Scan(context.Background(), &n)
+		}))
+		return n
+	}
+	return monitorRows{
+		Monitors:      count("monitors", "id"),
+		Heartbeats:    count("heartbeats", "monitor_id"),
+		Notifications: count("monitor_notifications", "monitor_id"),
+		Tags:          count("monitor_tags", "monitor_id"),
+		Stats:         count("stat_minutely", "monitor_id") + count("stat_hourly", "monitor_id") + count("stat_daily", "monitor_id"),
+	}
+}
+
+// createMonitorWithHistory creates a monitor linked to a channel and a tag, with a heartbeat and
+// the stats it adds up to.
+func (a *app) createMonitorWithHistory(t *testing.T, name, channelID, tagID string) string {
+	t.Helper()
+	id := decode[created](t, a.request(t, http.MethodPost, "/api/v1/monitors", monitorWithLinksBody(name, []string{channelID}, []string{tagID}), a.asAdmin), http.StatusCreated).ID
+	require.NoError(t, a.container.Invoke(func(heartbeats heartbeat.Service, statService stats.Service) error {
+		ctx := context.Background()
+		if _, err := heartbeats.Create(ctx, &heartbeat.CreateUpdateDto{MonitorID: id, Status: shared.MonitorStatusUp, Ping: 20, Time: time.Now()}); err != nil {
+			return err
+		}
+		return statService.AggregateHeartbeat(ctx, &stats.HeartbeatPayload{MonitorID: id, Status: int(shared.MonitorStatusUp), Ping: 20, Time: time.Now().Unix()})
+	}))
+	return id
+}
+
+func TestMonitorsAPI_DeleteRemovesTheMonitorWithItsLinksHeartbeatsAndStats(t *testing.T) {
+	a := newAppWithAdmin(t)
+	channelID, tagID := a.createChannel(t, "Ops webhook"), a.createTag(t, "Production")
+	id := a.createMonitorWithHistory(t, "Checkout", channelID, tagID)
+	kept := a.createMonitorWithHistory(t, "Billing", channelID, tagID)
+	keptRows := a.monitorRows(t, kept)
+	require.Equal(t, 1, a.monitorRows(t, id).Monitors)
+	require.Equal(t, 1, a.monitorRows(t, id).Heartbeats)
+	require.Equal(t, 1, a.monitorRows(t, id).Notifications)
+	require.Equal(t, 1, a.monitorRows(t, id).Tags)
+	require.Equal(t, 3, a.monitorRows(t, id).Stats, "one stat for each of the minute, hour and day")
+	deleted := &deletedFeed{}
+	require.NoError(t, a.container.Invoke(func(bus events.EventBus) {
+		events.Subscribe(events.NewSubscriber(bus, "deleted"), events.MonitorDeleted, deleted.add)
+	}))
+
+	decode[any](t, a.request(t, http.MethodDelete, "/api/v1/monitors/"+id, nil, a.asAdmin), http.StatusOK)
+
+	assert.Equal(t, monitorRows{}, a.monitorRows(t, id), "the monitor, its links, heartbeats and stats are gone")
+	assert.Equal(t, keptRows, a.monitorRows(t, kept), "another monitor keeps everything")
+	assert.Equal(t, http.StatusNotFound, a.request(t, http.MethodGet, "/api/v1/monitors/"+id, nil, a.asAdmin).Code)
+	require.Eventually(t, func() bool { return slices.Contains(deleted.ids(), id) }, 5*time.Second, 5*time.Millisecond, "MonitorDeleted arrived")
+}
+
+// deletedFeed is what a bus subscriber has seen on the MonitorDeleted topic.
+type deletedFeed struct {
+	mu   sync.Mutex
+	seen []string
+}
+
+func (f *deletedFeed) add(_ context.Context, monitorID string) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.seen = append(f.seen, monitorID)
+}
+
+func (f *deletedFeed) ids() []string {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return append([]string(nil), f.seen...)
+}
+
+// failingStats is the stats service with a delete that fails while fail is set.
+type failingStats struct {
+	stats.Service
+	fail *atomic.Bool
+}
+
+func (s failingStats) DeleteByMonitorID(ctx context.Context, monitorID string) error {
+	if s.fail.Load() {
+		return errors.New("stats are locked")
+	}
+	return s.Service.DeleteByMonitorID(ctx, monitorID)
+}
+
+func TestMonitorsAPI_DeleteRemovesNothingWhenACleanupFails(t *testing.T) {
+	var fail atomic.Bool
+	a := newAppDecorated(t, func(container *dig.Container) error {
+		return container.Decorate(func(s stats.Service) stats.Service { return failingStats{Service: s, fail: &fail} })
+	})
+	a.registerAdmin(t)
+	channelID, tagID := a.createChannel(t, "Ops webhook"), a.createTag(t, "Production")
+	id := a.createMonitorWithHistory(t, "Checkout", channelID, tagID)
+	control := a.createMonitorWithHistory(t, "Control", channelID, tagID)
+	before := a.monitorRows(t, id)
+	require.Equal(t, monitorRows{Monitors: 1, Heartbeats: 1, Notifications: 1, Tags: 1, Stats: 3}, before)
+	deleted := &deletedFeed{}
+	require.NoError(t, a.container.Invoke(func(bus events.EventBus) {
+		events.Subscribe(events.NewSubscriber(bus, "deleted"), events.MonitorDeleted, deleted.add)
+	}))
+
+	// The stats are the last thing deleted before the monitor, so the links and heartbeats were
+	// already deleted when this fails
+	fail.Store(true)
+	w := a.request(t, http.MethodDelete, "/api/v1/monitors/"+id, nil, a.asAdmin)
+
+	assert.Equal(t, http.StatusInternalServerError, w.Code, w.Body.String())
+	assert.Equal(t, before, a.monitorRows(t, id), "nothing was removed")
+	assert.Equal(t, id, a.getMonitorWithLinks(t, id).ID)
+
+	// A delete that works proves events flow, and once its event has arrived, the failed one's would have too.
+	fail.Store(false)
+	decode[any](t, a.request(t, http.MethodDelete, "/api/v1/monitors/"+control, nil, a.asAdmin), http.StatusOK)
+	require.Eventually(t, func() bool { return slices.Contains(deleted.ids(), control) }, 5*time.Second, 5*time.Millisecond)
+	assert.Equal(t, []string{control}, deleted.ids(), "no MonitorDeleted for the failed delete")
 }

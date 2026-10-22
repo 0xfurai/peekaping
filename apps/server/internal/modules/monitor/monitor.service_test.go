@@ -829,16 +829,24 @@ func TestMonitorService_Delete(t *testing.T) {
 		service, mockRepo, mockHeartbeatService, bus, mockNotificationService, mockTagService, _, mockStatsService := setupMonitorService()
 		monitorID := "monitor123"
 
-		mockRepo.On("Delete", ctx, monitorID).Return(nil)
-		mockNotificationService.On("DeleteByMonitorID", ctx, monitorID).Return(nil)
-		mockTagService.On("DeleteByMonitorID", ctx, monitorID).Return(nil)
-		mockHeartbeatService.On("DeleteByMonitorID", ctx, monitorID).Return(nil)
-		mockStatsService.On("DeleteByMonitorID", ctx, monitorID).Return(nil)
+		var order []string
+		record := func(step string) func(mock.Arguments) {
+			return func(mock.Arguments) { order = append(order, step) }
+		}
+		mockNotificationService.On("DeleteByMonitorID", inTx, monitorID).Run(record("notification links")).Return(nil)
+		mockTagService.On("DeleteByMonitorID", inTx, monitorID).Run(record("tag links")).Return(nil)
+		mockHeartbeatService.On("DeleteByMonitorID", inTx, monitorID).Run(record("heartbeats")).Return(nil)
+		mockStatsService.On("DeleteByMonitorID", inTx, monitorID).Run(record("stats")).Return(nil)
+		mockRepo.On("Delete", inTx, monitorID).Run(record("monitor")).Return(nil)
 
 		err := service.Delete(ctx, monitorID)
 
 		assert.NoError(t, err)
+		assert.Equal(t, []string{"notification links", "tag links", "heartbeats", "stats", "monitor"}, order, "the monitor row is deleted last")
 		assert.Equal(t, []string{monitorID}, eventstest.Published(bus, events.MonitorDeleted))
+		tx := transactionOf(service)
+		assert.Equal(t, 1, tx.committed, "everything is deleted in one transaction")
+		assert.Equal(t, 0, tx.published, "the event is published once the transaction has committed, not before")
 		mockRepo.AssertExpectations(t)
 		mockNotificationService.AssertExpectations(t)
 		mockTagService.AssertExpectations(t)
@@ -846,34 +854,51 @@ func TestMonitorService_Delete(t *testing.T) {
 		mockStatsService.AssertExpectations(t)
 	})
 
-	t.Run("repository delete error", func(t *testing.T) {
-		service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
-		monitorID := "monitor123"
+	// Each case lets the deletes before the one that fails succeed, and sets up no call after it:
+	// a call the test didn't expect fails it, so the monitor row isn't deleted after a failure.
+	for _, tc := range []struct {
+		name  string
+		setUp func(repo *MockMonitorRepository, heartbeats *MockHeartbeatService, notifications *MockMonitorNotificationService, tags *MockMonitorTagService, statsService *MockStatsService)
+	}{
+		{"the notification channel links", func(_ *MockMonitorRepository, _ *MockHeartbeatService, notifications *MockMonitorNotificationService, _ *MockMonitorTagService, _ *MockStatsService) {
+			notifications.On("DeleteByMonitorID", inTx, "monitor123").Return(errors.New("delete failed"))
+		}},
+		{"the tag links", func(_ *MockMonitorRepository, _ *MockHeartbeatService, notifications *MockMonitorNotificationService, tags *MockMonitorTagService, _ *MockStatsService) {
+			notifications.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			tags.On("DeleteByMonitorID", inTx, "monitor123").Return(errors.New("delete failed"))
+		}},
+		{"the heartbeats", func(_ *MockMonitorRepository, heartbeats *MockHeartbeatService, notifications *MockMonitorNotificationService, tags *MockMonitorTagService, _ *MockStatsService) {
+			notifications.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			tags.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			heartbeats.On("DeleteByMonitorID", inTx, "monitor123").Return(errors.New("delete failed"))
+		}},
+		{"the stats", func(_ *MockMonitorRepository, heartbeats *MockHeartbeatService, notifications *MockMonitorNotificationService, tags *MockMonitorTagService, statsService *MockStatsService) {
+			notifications.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			tags.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			heartbeats.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			statsService.On("DeleteByMonitorID", inTx, "monitor123").Return(errors.New("delete failed"))
+		}},
+		{"the monitor", func(repo *MockMonitorRepository, heartbeats *MockHeartbeatService, notifications *MockMonitorNotificationService, tags *MockMonitorTagService, statsService *MockStatsService) {
+			notifications.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			tags.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			heartbeats.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			statsService.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			repo.On("Delete", inTx, "monitor123").Return(errors.New("delete failed"))
+		}},
+	} {
+		t.Run("returns the error, rolls back and publishes nothing when deleting "+tc.name+" fails", func(t *testing.T) {
+			service, mockRepo, mockHeartbeatService, bus, mockNotificationService, mockTagService, _, mockStatsService := setupMonitorService()
+			tc.setUp(mockRepo, mockHeartbeatService, mockNotificationService, mockTagService, mockStatsService)
 
-		mockRepo.On("Delete", ctx, monitorID).Return(errors.New("delete failed"))
+			err := service.Delete(ctx, "monitor123")
 
-		err := service.Delete(ctx, monitorID)
-
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "delete failed")
-		mockRepo.AssertExpectations(t)
-	})
-
-	t.Run("cleanup errors are ignored", func(t *testing.T) {
-		service, mockRepo, mockHeartbeatService, _, mockNotificationService, mockTagService, _, mockStatsService := setupMonitorService()
-		monitorID := "monitor123"
-
-		mockRepo.On("Delete", ctx, monitorID).Return(nil)
-		mockNotificationService.On("DeleteByMonitorID", ctx, monitorID).Return(errors.New("cleanup error"))
-		mockTagService.On("DeleteByMonitorID", ctx, monitorID).Return(errors.New("cleanup error"))
-		mockHeartbeatService.On("DeleteByMonitorID", ctx, monitorID).Return(errors.New("cleanup error"))
-		mockStatsService.On("DeleteByMonitorID", ctx, monitorID).Return(errors.New("cleanup error"))
-
-		err := service.Delete(ctx, monitorID)
-
-		assert.NoError(t, err) // Cleanup errors are ignored
-		mockRepo.AssertExpectations(t)
-	})
+			require.ErrorContains(t, err, "delete failed")
+			tx := transactionOf(service)
+			assert.Equal(t, 1, tx.rolledBack, "what was deleted before the failure is rolled back")
+			assert.Zero(t, tx.committed)
+			assert.Empty(t, bus.Topics(), "no MonitorDeleted")
+		})
+	}
 }
 
 func TestMonitorService_ValidateMonitorConfig(t *testing.T) {

@@ -253,17 +253,29 @@ func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, moni
 }
 
 func (mr *MonitorServiceImpl) Delete(ctx context.Context, id string) error {
-	err := mr.monitorRepository.Delete(ctx, id)
+	// The monitor goes with its links, heartbeats and stats, or stays with all of them. The
+	// monitor row is deleted last: on MongoDB, which has no transaction here, a delete that fails
+	// part way leaves the monitor, and the request can be sent again.
+	err := mr.transactor.WithTx(ctx, func(ctx context.Context) error {
+		if err := mr.monitorNotificationService.DeleteByMonitorID(ctx, id); err != nil {
+			return fmt.Errorf("delete notification channel links: %w", err)
+		}
+		if err := mr.monitorTagService.DeleteByMonitorID(ctx, id); err != nil {
+			return fmt.Errorf("delete tag links: %w", err)
+		}
+		if err := mr.heartbeatService.DeleteByMonitorID(ctx, id); err != nil {
+			return fmt.Errorf("delete heartbeats: %w", err)
+		}
+		if err := mr.statPointsService.DeleteByMonitorID(ctx, id); err != nil {
+			return fmt.Errorf("delete stats: %w", err)
+		}
+		return mr.monitorRepository.Delete(ctx, id)
+	})
 	if err != nil {
 		return err
 	}
 
-	_ = mr.monitorNotificationService.DeleteByMonitorID(ctx, id)
-	_ = mr.monitorTagService.DeleteByMonitorID(ctx, id)
-	_ = mr.heartbeatService.DeleteByMonitorID(ctx, id)
-	_ = mr.statPointsService.DeleteByMonitorID(ctx, id)
-
-	// Emit monitor deleted event
+	// Emit monitor deleted event, once the delete is committed
 	if err := events.Publish(ctx, mr.eventBus, events.MonitorDeleted, id); err != nil {
 		mr.logger.Errorw("Failed to publish monitor deleted event", "monitor_id", id, "error", err)
 	}
