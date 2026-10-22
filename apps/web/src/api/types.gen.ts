@@ -493,6 +493,16 @@ export type NotificationChannelPartialUpdateDto = {
     | undefined;
 };
 
+export type NotificationChannelTestDto = {
+  active?: boolean;
+  config?: string;
+  id?: string;
+  is_default?: boolean;
+  name?: string;
+  type?: string;
+  [key: string]: unknown | boolean | string | undefined;
+};
+
 export type ProbeCreateProbeDto = {
   location?: string;
   name: string;
@@ -3274,7 +3284,7 @@ export type PostNotificationChannelsResponse =
   PostNotificationChannelsResponses[keyof PostNotificationChannelsResponses];
 
 export type PostNotificationChannelsTestData = {
-  body: NotificationChannelCreateUpdateDto;
+  body: NotificationChannelTestDto;
   path?: never;
   query?: never;
   url: "/api/v1/notification-channels/test";

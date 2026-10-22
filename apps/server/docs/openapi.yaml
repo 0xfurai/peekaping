@@ -1278,6 +1278,22 @@ components:
             - string
             - "null"
       type: object
+    notification_channel.TestDto:
+      additionalProperties: true
+      properties:
+        active:
+          type: boolean
+        config:
+          type: string
+        id:
+          type: string
+        is_default:
+          type: boolean
+        name:
+          type: string
+        type:
+          type: string
+      type: object
     probe.CreateProbeDto:
       additionalProperties: true
       properties:
@@ -5345,7 +5361,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/notification_channel.CreateUpdateDto"
+              $ref: "#/components/schemas/notification_channel.TestDto"
         required: true
       responses:
         "200":

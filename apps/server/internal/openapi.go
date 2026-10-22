@@ -28,7 +28,7 @@ import (
 // the production server, rather than keeping a separate documentation route list.
 func OpenAPI() *huma.OpenAPI {
 	server := ProvideServer(
-		zap.NewNop().Sugar(), &config.Config{}, nil,
+		zap.NewNop().Sugar(), &config.Config{}, nil, nil,
 		monitor.NewMonitorRoute(nil, nil), nil,
 		auth.NewRoute(nil, nil, nil, &bruteforce.AccountGuard{}), nil, nil,
 		notification_channel.NewRoute(nil, nil), nil,

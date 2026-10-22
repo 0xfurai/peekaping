@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/shared"
 
 	"github.com/google/uuid"
@@ -97,7 +98,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, monitor *Model) (*Model,
 	sm.CreatedAt = time.Now()
 	sm.UpdatedAt = time.Now()
 
-	_, err := r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
+	_, err := dbtx.DB(ctx, r.db).NewInsert().Model(sm).Returning("*").Exec(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +108,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, monitor *Model) (*Model,
 
 func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, error) {
 	sm := new(sqlModel)
-	err := r.db.NewSelect().Model(sm).Where("id = ?", id).Scan(ctx)
+	err := dbtx.DB(ctx, r.db).NewSelect().Model(sm).Where("id = ?", id).Scan(ctx)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return nil, nil
@@ -123,7 +124,7 @@ func (r *SQLRepositoryImpl) FindByIDs(ctx context.Context, ids []string) ([]*Mod
 	}
 
 	var sms []*sqlModel
-	err := r.db.NewSelect().
+	err := dbtx.DB(ctx, r.db).NewSelect().
 		Model(&sms).
 		Where("id IN (?)", bun.In(ids)).
 		Scan(ctx)
@@ -147,7 +148,7 @@ func (r *SQLRepositoryImpl) FindAll(
 	status *int,
 	tagIds []string,
 ) ([]*Model, error) {
-	query := r.db.NewSelect().Model((*sqlModel)(nil))
+	query := dbtx.DB(ctx, r.db).NewSelect().Model((*sqlModel)(nil))
 
 	// If tagIds filtering is requested, use JOIN
 	if len(tagIds) > 0 {
@@ -191,7 +192,7 @@ func (r *SQLRepositoryImpl) FindAll(
 
 func (r *SQLRepositoryImpl) FindActive(ctx context.Context) ([]*Model, error) {
 	var sms []*sqlModel
-	err := r.db.NewSelect().
+	err := dbtx.DB(ctx, r.db).NewSelect().
 		Model(&sms).
 		Where("active = ?", true).
 		Order("id DESC").
@@ -209,7 +210,7 @@ func (r *SQLRepositoryImpl) FindActive(ctx context.Context) ([]*Model, error) {
 
 func (r *SQLRepositoryImpl) FindActivePaginated(ctx context.Context, page int, limit int) ([]*Model, error) {
 	var sms []*sqlModel
-	err := r.db.NewSelect().
+	err := dbtx.DB(ctx, r.db).NewSelect().
 		Model(&sms).
 		Where("active = ?", true).
 		Order("id DESC").
@@ -231,7 +232,7 @@ func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, monitor *
 	sm := toSQLModel(monitor)
 	sm.UpdatedAt = time.Now()
 
-	result, err := r.db.NewUpdate().
+	result, err := dbtx.DB(ctx, r.db).NewUpdate().
 		Model(sm).
 		Where("id = ?", id).
 		ExcludeColumn("id", "created_at", "status").
@@ -254,7 +255,7 @@ func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, monitor *
 }
 
 func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, monitor *UpdateModel) error {
-	query := r.db.NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id)
+	query := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id)
 
 	hasUpdates := false
 
@@ -324,12 +325,12 @@ func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, monito
 }
 
 func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string) error {
-	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Exec(ctx)
+	_, err := dbtx.DB(ctx, r.db).NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Exec(ctx)
 	return err
 }
 
 func (r *SQLRepositoryImpl) RemoveProxyReference(ctx context.Context, proxyId string) error {
-	_, err := r.db.NewUpdate().
+	_, err := dbtx.DB(ctx, r.db).NewUpdate().
 		Model((*sqlModel)(nil)).
 		Set("proxy_id = ?", nil).
 		Where("proxy_id = ?", proxyId).
@@ -339,7 +340,7 @@ func (r *SQLRepositoryImpl) RemoveProxyReference(ctx context.Context, proxyId st
 
 func (r *SQLRepositoryImpl) FindByProxyId(ctx context.Context, proxyId string) ([]*Model, error) {
 	var sms []*sqlModel
-	err := r.db.NewSelect().
+	err := dbtx.DB(ctx, r.db).NewSelect().
 		Model(&sms).
 		Where("proxy_id = ?", proxyId).
 		Scan(ctx)
@@ -356,7 +357,7 @@ func (r *SQLRepositoryImpl) FindByProxyId(ctx context.Context, proxyId string) (
 
 func (r *SQLRepositoryImpl) FindOneByPushToken(ctx context.Context, pushToken string) (*Model, error) {
 	sm := new(sqlModel)
-	err := r.db.NewSelect().Model(sm).Where("push_token = ?", pushToken).Scan(ctx)
+	err := dbtx.DB(ctx, r.db).NewSelect().Model(sm).Where("push_token = ?", pushToken).Scan(ctx)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return nil, nil

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Print one PR's review state as JSON: checks on the head commit, unresolved
-# review threads waiting on us, and reviews and comments newer than the mark.
+# Print one PR's review state as JSON: checks on the head commit, whether it
+# merges cleanly into its base, unresolved review threads waiting on us, and
+# reviews and comments newer than the mark.
 #
 # Usage:
 #   pr-state.sh [--brief] <pr>   state as JSON (--brief: last comment per thread only);
@@ -40,6 +41,7 @@ query='query($owner: String!, $name: String!, $pr: Int!) {
   repository(owner: $owner, name: $name) {
     pullRequest(number: $pr) {
       number url state isDraft reviewDecision baseRefName headRefName headRefOid
+      mergeable mergeStateStatus
       commits(last: 1) { nodes { commit { statusCheckRollup { contexts(first: 100) { nodes {
         __typename
         ... on CheckRun { name status conclusion detailsUrl }
@@ -68,6 +70,7 @@ gh api graphql -f query="$query" -F owner="${repo%/*}" -F name="${repo#*/}" -F p
         pr: $p.number, url: $p.url, state: $p.state, isDraft: $p.isDraft,
         reviewDecision: $p.reviewDecision,
         base: $p.baseRefName, head: $p.headRefName, headSha: $p.headRefOid,
+        mergeable: $p.mergeable, mergeState: $p.mergeStateStatus,
         since: $since, fetchedAt: $fetchedAt,
         checks: {
           pending: [$ctx[] | select(

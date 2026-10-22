@@ -1,5 +1,4 @@
 import { Input } from "@/components/ui/input";
-import { PasswordInput } from "@/components/ui/password-input";
 import {
   FormField,
   FormItem,
@@ -9,6 +8,8 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { z } from "zod";
+import { SecretInput } from "../components/saved-secrets";
+import { SECRET_PLACEHOLDER, withSavedSecret } from "../secrets";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -25,7 +26,7 @@ import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const schema = z.object({
   type: z.literal("telegram"),
-  bot_token: z.string().min(1, { message: "Bot token is required" }),
+  bot_token: withSavedSecret(z.string().min(1, { message: "Bot token is required" })),
   chat_id: z.string().min(1, { message: "Chat ID is required" }),
   message_thread_id: z.string().optional(),
   server_url: z.string().min(1, { message: "Server URL is required" }),
@@ -70,6 +71,10 @@ export default function TelegramForm() {
   const form = useFormContext();
   const { t } = useLocalizedTranslation();
   const botToken = form.watch("bot_token");
+  // A saved bot token isn't in the form, only its placeholder is, so there is no token to ask
+  // Telegram for the chat ID with, or to show in the updates URL
+  const tokenSaved = botToken === SECRET_PLACEHOLDER;
+  const token = tokenSaved ? "" : botToken;
   const serverUrl = form.watch("server_url") || "https://api.telegram.org";
   const useTemplate = form.watch("use_template");
 
@@ -77,10 +82,10 @@ export default function TelegramForm() {
   const [loadingChatId, setLoadingChatId] = React.useState(false);
 
   async function autoGetTelegramChatID() {
-    if (!botToken) return;
+    if (!token) return;
     setLoadingChatId(true);
     try {
-      const url = telegramGetUpdatesURL(botToken, serverUrl, "withToken");
+      const url = telegramGetUpdatesURL(token, serverUrl, "withToken");
       const res = await fetch(url);
       const data = await res.json();
       if (data.result && data.result.length >= 1) {
@@ -115,7 +120,7 @@ export default function TelegramForm() {
           <FormItem>
             <FormLabel>{t("notifications.form.telegram.bot_token_label")}</FormLabel>
             <FormControl>
-              <PasswordInput
+              <SecretInput
                 placeholder="Enter your Telegram bot token"
                 autoComplete="new-password"
                 required
@@ -155,7 +160,7 @@ export default function TelegramForm() {
                 <Button
                   type="button"
                   onClick={autoGetTelegramChatID}
-                  disabled={loadingChatId}
+                  disabled={loadingChatId || tokenSaved}
                 >
                   {loadingChatId ? t("common.loading") : t("notifications.form.telegram.auto_get_label")}
                 </Button>
@@ -166,15 +171,15 @@ export default function TelegramForm() {
               <br />
               <span className="block mt-2">{t("notifications.form.telegram.chat_id_description_2")}:</span>
               <a
-                href={telegramGetUpdatesURL(botToken, serverUrl, "withToken")}
+                href={telegramGetUpdatesURL(token, serverUrl, "withToken")}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block underline break-all"
               >
                 {telegramGetUpdatesURL(
-                  botToken,
+                  token,
                   serverUrl,
-                  botToken ? "masked" : "withToken"
+                  token ? "masked" : "withToken"
                 )}
               </a>
               <span className="block mt-2">

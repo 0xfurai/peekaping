@@ -55,11 +55,6 @@ func (a *app) createProbe(t *testing.T, body map[string]any) probeWithToken {
 	return decode[probeWithToken](t, a.request(t, http.MethodPost, probesPath, body, a.asAdmin), http.StatusCreated)
 }
 
-func (a *app) createChannel(t *testing.T, name string) string {
-	t.Helper()
-	return decode[created](t, a.request(t, http.MethodPost, "/api/v1/notification-channels", webhookChannelBody(name), a.asAdmin), http.StatusCreated).ID
-}
-
 // probeByToken is the probe a token finds, which is how the probe protocol will authenticate a probe
 func (a *app) probeByToken(t *testing.T, token string) *probe.Model {
 	t.Helper()
@@ -199,7 +194,8 @@ func TestProbesAPI_LocalCannotBeDeletedRotatedOrDisabled(t *testing.T) {
 
 	w = a.request(t, http.MethodPost, local+"/rotate-token", nil, a.asAdmin)
 	assert.Equal(t, http.StatusConflict, w.Code, w.Body.String())
-	assert.Contains(t, errorMessage(t, w.Body.Bytes()), "PROBE_BOOTSTRAP_TOKEN", "the message says where the local token comes from")
+	assert.Equal(t, "The local probe's token is set with PROBE_BOOTSTRAP_TOKEN: set or change it and restart Peekaping", errorMessage(t, w.Body.Bytes()),
+		"the message says where the local token comes from, and holds when the variable is unset")
 
 	w = a.request(t, http.MethodPut, local, map[string]any{"disabled": true}, a.asAdmin)
 	assert.Equal(t, http.StatusConflict, w.Code, w.Body.String())

@@ -3,13 +3,16 @@ package probe_notification_test
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"peekaping/cmd/bun/migrations"
 	"peekaping/internal/config"
+	"peekaping/internal/dbtx"
 	"peekaping/internal/infra"
 	"peekaping/internal/modules/probe_notification"
 
@@ -56,6 +59,7 @@ func postgresDB(t *testing.T) *bun.DB {
 
 // fixture is a probe-notification service plus constructors for the rows a link points at.
 type fixture struct {
+	db      *bun.DB
 	svc     probe_notification.Service
 	probe   func() string
 	channel func() string
@@ -74,6 +78,7 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, f fixture)) {
 			_, err := migrator.Migrate(ctx)
 			require.NoError(t, err)
 			fn(t, fixture{
+				db:  db,
 				svc: probe_notification.NewService(probe_notification.NewSQLRepository(db), zap.NewNop().Sugar()),
 				probe: func() string {
 					id := uuid.NewString()
@@ -153,6 +158,42 @@ func TestProbeNotifications_ReplaceRefusesAnUnknownChannelAndChangesNothing(t *t
 			assert.ErrorContains(t, err, unknown, name)
 			assert.Equal(t, []string{slack}, channelsOf(t, f.svc, edge), name)
 		}
+	})
+}
+
+// Replace and DeleteByNotificationID run on the transaction their ctx carries. The database has one
+// connection here, as SQLite does in the app, so a call that opened its own transaction, or ran
+// on db, would wait for the connection the caller's transaction holds, and fail when ctx times out.
+func TestProbeNotifications_ReplaceAndDeleteJoinTheCallersTransaction(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, f fixture) {
+		f.db.SetMaxOpenConns(1)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		t.Cleanup(cancel)
+		edge := f.probe()
+		slack, email := f.channel(), f.channel()
+		require.NoError(t, f.svc.Replace(ctx, edge, []string{slack}))
+		transactor := dbtx.NewSQLTransactor(f.db)
+		errRollBack := errors.New("roll back")
+
+		err := transactor.WithTx(ctx, func(ctx context.Context) error {
+			require.NoError(t, f.svc.Replace(ctx, edge, []string{email}))
+			links, err := f.svc.FindByProbeID(ctx, edge)
+			require.NoError(t, err)
+			require.Len(t, links, 1)
+			assert.Equal(t, email, links[0].NotificationID, "the transaction reads its own writes")
+			require.NoError(t, f.svc.DeleteByNotificationID(ctx, email))
+			return errRollBack
+		})
+
+		require.ErrorIs(t, err, errRollBack)
+		assert.Equal(t, []string{slack}, channelsOf(t, f.svc, edge), "the swap and the delete were rolled back")
+
+		err = transactor.WithTx(ctx, func(ctx context.Context) error {
+			return f.svc.Replace(ctx, edge, []string{email})
+		})
+
+		require.NoError(t, err)
+		assert.Equal(t, []string{email}, channelsOf(t, f.svc, edge), "and a transaction that returns nil keeps its swap")
 	})
 }
 

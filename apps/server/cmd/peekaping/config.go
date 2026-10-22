@@ -29,6 +29,10 @@ type Config struct {
 	DBPass string `env:"DB_PASS"`                           // validated in Validate()
 	DBType string `env:"DB_TYPE" validate:"required,db_type"`
 
+	// Which check the process runs when it opens SQLite: quick (PRAGMA quick_check), full
+	// (PRAGMA integrity_check, which reads the whole file) or off. A finding stops startup.
+	SQLiteStartupCheck string `env:"SQLITE_STARTUP_CHECK" validate:"oneof=quick full off" default:"quick"`
+
 	// Common settings
 	Mode     string `env:"MODE" validate:"required,oneof=dev prod test" default:"dev"`
 	LogLevel string `env:"LOG_LEVEL" validate:"omitempty,log_level" default:"info"`
@@ -60,12 +64,26 @@ type Config struct {
 	// ranges, comma-separated. Empty trusts nobody. Validated in Validate().
 	TrustedProxies string `env:"TRUSTED_PROXIES"`
 
+	// Origins whose pages may read the API's responses: comma-separated, "*" alone for any.
+	// Empty allows the origin of CLIENT_URL. Validated in Validate().
+	CORSOrigins string `env:"CORS_ORIGINS"`
+
 	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"peekaping"`
 
 	// Prometheus metrics
 	// Set to true to expose an unauthenticated /metrics endpoint for Prometheus
 	// to scrape. Off by default since it exposes monitor names and status.
 	MetricsEnabled bool `env:"METRICS_ENABLED" default:"false"`
+
+	// How many days the hourly cleanup keeps notification history. The history stops a
+	// certificate expiry notification from being sent twice, so it must outlast the
+	// default thresholds (the largest is 21 days): the minimum is 30. 0 counts as unset
+	// and gives the default, as for every int setting.
+	NotificationHistoryRetentionDays int `env:"NOTIFICATION_HISTORY_RETENTION_DAYS" validate:"min=30" default:"90"`
+
+	// How many days the hourly cleanup keeps the TLS info that monitors record. 0 counts as
+	// unset and gives the default.
+	TLSInfoRetentionDays int `env:"TLS_INFO_RETENTION_DAYS" validate:"min=1" default:"30"`
 
 	// Usage ping (ADR 0003): off until an admin opts in. TELEMETRY=off and DO_NOT_TRACK=1 force
 	// it off, and TELEMETRY_URL moves where it is sent.
@@ -164,6 +182,12 @@ func Validate(cfg *Config) error {
 		return err
 	}
 
+	// So does a mistyped CORS_ORIGINS: ignoring it would leave the web app unable to read the
+	// API's responses, with no sign of why.
+	if _, err := httpx.ParseCORSOrigins(cfg.CORSOrigins, cfg.ClientURL); err != nil {
+		return err
+	}
+
 	// A short token is easy to guess, and it would give a probe's access to the monitors' configs.
 	// The message doesn't repeat it.
 	if cfg.ProbeBootstrapToken != "" && len(cfg.ProbeBootstrapToken) < probe.MinBootstrapTokenLength {
@@ -215,6 +239,7 @@ func (c *Config) ToInternalConfig() *config.Config {
 		DBUser:                       c.DBUser,
 		DBPass:                       c.DBPass,
 		DBType:                       c.DBType,
+		SQLiteStartupCheck:           c.SQLiteStartupCheck,
 		Mode:                         c.Mode,
 		LogLevel:                     c.LogLevel,
 		Timezone:                     c.Timezone,
@@ -226,6 +251,7 @@ func (c *Config) ToInternalConfig() *config.Config {
 		BruteforceAccountWindow:      c.BruteforceAccountWindow,
 		BruteforceAccountLockout:     c.BruteforceAccountLockout,
 		TrustedProxies:               c.TrustedProxies,
+		CORSOrigins:                  c.CORSOrigins,
 		ServiceName:                  c.ServiceName,
 		MetricsEnabled:               c.MetricsEnabled,
 		Telemetry:                    c.Telemetry,
@@ -235,5 +261,8 @@ func (c *Config) ToInternalConfig() *config.Config {
 		ErrorReportingDSN:            c.ErrorReportingDSN,
 		ProbeBootstrapToken:          c.ProbeBootstrapToken,
 		ProbeOfflineAfter:            c.ProbeOfflineAfter,
+
+		NotificationHistoryRetentionDays: c.NotificationHistoryRetentionDays,
+		TLSInfoRetentionDays:             c.TLSInfoRetentionDays,
 	}
 }

@@ -19,7 +19,7 @@ The chart installs:
 `<release>` is the name you give `helm install`. `<revision>` is the release revision the Job belongs to: 1 for the install, 2 for the first upgrade, and so on. `helm history` lists the revisions. A rollback applies the manifest of the revision it goes back to, so the Job it creates has that revision's number, not a new one.
 
 :::note PostgreSQL only
-The chart supports PostgreSQL only. SQLite doesn't work with it: the chart has no volume for the database file, and several pods would have to share it. MongoDB storage is [deprecated](./docker-with-mongo.md) and the chart doesn't support it. For SQLite, use the [single-mode bundle](./docker-with-sqlite.md).
+The chart supports PostgreSQL only. SQLite doesn't work with it: the chart has no volume for the database file, and several pods would have to share it. So the chart refuses it: with `config.env.DB_TYPE` set to `sqlite` (in any case), `helm install`, `helm upgrade` and `helm template` fail with an error that points to the bundle. Helm can't read a `DB_TYPE` that you put in the config secret, so the chart doesn't refuse that one, but the `api`, `producer` and `ingester` pods log a warning about SQLite in cluster mode when they start. MongoDB storage is [deprecated](./docker-with-mongo.md) and the chart doesn't support it. For SQLite, use the [single-mode bundle](./docker-with-sqlite.md).
 :::
 
 ## Before you start
@@ -138,6 +138,7 @@ The database settings have no defaults. For PostgreSQL, set `DB_TYPE` (the chart
 | Variable | Default | Notes |
 | --- | --- | --- |
 | `CLIENT_URL` | `http://localhost:3000` | The address people open, such as `https://status.example.com`. Notifications link to it. |
+| `CORS_ORIGINS` | the origin of `CLIENT_URL` | Origins whose pages may read the API's responses, comma-separated. The web app calls the API on its own address, which needs no entry. Set it only for a page on another origin. `*` allows any origin. |
 | `MODE` | `dev` | Set `prod`. With `dev`, the API logs every request. |
 | `TZ` | `UTC` | The server's time zone. |
 | `REDIS_HOST` | `redis` | Your Redis host. |
@@ -145,6 +146,8 @@ The database settings have no defaults. For PostgreSQL, set `DB_TYPE` (the chart
 | `REDIS_USERNAME` | empty | A Redis ACL user. Leave it empty for password-only authentication. |
 | `REDIS_PASSWORD` | empty | Put it in the secret. |
 | `METRICS_ENABLED` | `false` | See [Metrics](#metrics). |
+| `NOTIFICATION_HISTORY_RETENTION_DAYS` | `90` | How many days the hourly cleanup keeps notification history. At least `30`. See [Cleanup Configuration](../architecture/api-server.md#cleanup-configuration). |
+| `TLS_INFO_RETENTION_DAYS` | `30` | How many days the hourly cleanup keeps monitors' TLS information. At least `1`. |
 | `TRUSTED_PROXIES` | loopback and the private ranges | The addresses the API believes `X-Forwarded-For` from. See [Client addresses](#client-addresses). |
 | `TELEMETRY` | empty | Set `off` to switch off the anonymous [usage statistics](./telemetry.md) whatever an admin chose. |
 | `ERROR_REPORTING` | empty | Set `off` to switch off the [error reports](./telemetry.md#error-reporting) whatever an admin chose. |

@@ -1113,7 +1113,13 @@
     "placeholders": {
       "select_type": "Hautatu jakinarazpen mota"
     },
-    "search_placeholder": "Bilatu jakinarazpen kanalak izenaren arabera..."
+    "search_placeholder": "Bilatu jakinarazpen kanalak izenaren arabera...",
+    "secret": {
+      "reenter_error": "Sartu berriro sekretu hau edo kendu: bidaltzen den helmuga aldatu da",
+      "reenter_hint": "Sartu berriro sekretu hau: bidaltzen den helmuga aldatu da",
+      "remove": "Kendu",
+      "saved_hint": "Gordeta — idatzi ordezkatzeko"
+    }
   },
   "proxies": {
     "delete_dialog": {

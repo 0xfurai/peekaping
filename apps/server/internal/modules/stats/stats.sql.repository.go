@@ -6,6 +6,8 @@ import (
 	"math"
 	"time"
 
+	"peekaping/internal/dbtx"
+
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect"
 )
@@ -199,7 +201,7 @@ func (r *SQLRepositoryImpl) deleteOlderThanByRowid(ctx context.Context, period S
 
 func (r *SQLRepositoryImpl) DeleteByMonitorID(ctx context.Context, monitorID string) error {
 	for period := range statTables {
-		_, err := r.db.NewDelete().
+		_, err := dbtx.DB(ctx, r.db).NewDelete().
 			Model((*sqlModel)(nil)).
 			ModelTableExpr(statTable(period)).
 			Where("monitor_id = ?", monitorID).

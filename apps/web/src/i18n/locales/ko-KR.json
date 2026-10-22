@@ -1113,7 +1113,13 @@
     "placeholders": {
       "select_type": "알림 유형 선택"
     },
-    "search_placeholder": "이름으로 알림 채널 검색..."
+    "search_placeholder": "이름으로 알림 채널 검색...",
+    "secret": {
+      "reenter_error": "이 시크릿을 다시 입력하거나 제거하세요: 전송 대상이 변경되었습니다",
+      "reenter_hint": "이 시크릿을 다시 입력하세요: 전송 대상이 변경되었습니다",
+      "remove": "제거",
+      "saved_hint": "저장됨 — 입력하면 교체됩니다"
+    }
   },
   "proxies": {
     "delete_dialog": {

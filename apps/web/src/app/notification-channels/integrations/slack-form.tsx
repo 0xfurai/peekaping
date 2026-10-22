@@ -1,5 +1,4 @@
 import { Input } from "@/components/ui/input";
-import { PasswordInput } from "@/components/ui/password-input";
 import {
   FormField,
   FormItem,
@@ -9,16 +8,18 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { z } from "zod";
+import { SecretInput } from "../components/saved-secrets";
+import { withSavedSecret } from "../secrets";
 import { Switch } from "@/components/ui/switch";
 import { useFormContext } from "react-hook-form";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const schema = z.object({
   type: z.literal("slack"),
-  slack_webhook_url: z
-    .union([z.string().url({ message: "Valid webhook URL is required" }), z.literal("")])
-    .optional(),
-  slack_bot_token: z.string().trim().optional(),
+  slack_webhook_url: withSavedSecret(
+    z.union([z.string().url({ message: "Valid webhook URL is required" }), z.literal("")])
+  ).optional(),
+  slack_bot_token: withSavedSecret(z.string().trim()).optional(),
   slack_username: z.string().optional(),
   slack_icon_emoji: z.string().optional(),
   slack_channel: z.string().trim().optional(),
@@ -75,9 +76,9 @@ export default function SlackForm() {
               {t("notifications.form.slack.webhook_url_label")}
             </FormLabel>
             <FormControl>
-              <Input
+              <SecretInput
                 placeholder="https://hooks.slack.com/services/..."
-                type="url"
+                autoComplete="off"
                 {...field}
               />
             </FormControl>
@@ -106,7 +107,7 @@ export default function SlackForm() {
               {t("notifications.form.slack.bot_token_label")}
             </FormLabel>
             <FormControl>
-              <PasswordInput
+              <SecretInput
                 placeholder="xoxb-..."
                 autoComplete="new-password"
                 {...field}

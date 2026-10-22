@@ -371,8 +371,6 @@ func (r *RedisExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Pro
 	}
 	cfg := cfgAny.(*RedisConfig)
 
-	r.logger.Debugf("execute redis cfg: %+v", cfg)
-
 	// Validate connection string before attempting connection
 	if err := r.validateRedisConnectionString(cfg.DatabaseConnectionString); err != nil {
 		r.logger.Infof("Redis connection string validation failed: %s, %s", m.Name, err.Error())

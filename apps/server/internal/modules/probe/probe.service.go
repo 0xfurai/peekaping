@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/probe_notification"
 
 	"go.uber.org/zap"
@@ -76,17 +77,19 @@ type UpdateRequest struct {
 }
 
 type ServiceImpl struct {
-	repo     Repository
-	channels probe_notification.Service
-	logger   *zap.SugaredLogger
+	repo       Repository
+	transactor dbtx.Transactor
+	channels   probe_notification.Service
+	logger     *zap.SugaredLogger
 }
 
 // MARK: Constructor
-func NewService(repo Repository, channels probe_notification.Service, logger *zap.SugaredLogger) Service {
+func NewService(repo Repository, transactor dbtx.Transactor, channels probe_notification.Service, logger *zap.SugaredLogger) Service {
 	return &ServiceImpl{
-		repo:     repo,
-		channels: channels,
-		logger:   logger.Named("[probe-service]"),
+		repo:       repo,
+		transactor: transactor,
+		channels:   channels,
+		logger:     logger.Named("[probe-service]"),
 	}
 }
 
@@ -96,23 +99,27 @@ func (s *ServiceImpl) Create(ctx context.Context, req *CreateRequest) (*ModelWit
 	if err != nil {
 		return nil, err
 	}
-	created, err := s.repo.Create(ctx, &CreateModel{
-		Name:        req.Name,
-		Location:    req.Location,
-		TokenHash:   hashToken(token),
-		TokenPrefix: tokenDisplayPrefix(token),
+	// The probe and its channels are stored together or not at all: the token authenticates from
+	// the moment the probe is committed, and the caller is told that a failed create made none.
+	var created *Model
+	err = s.transactor.WithTx(ctx, func(ctx context.Context) error {
+		var err error
+		created, err = s.repo.Create(ctx, &CreateModel{
+			Name:        req.Name,
+			Location:    req.Location,
+			TokenHash:   hashToken(token),
+			TokenPrefix: tokenDisplayPrefix(token),
+		})
+		if err != nil {
+			return err
+		}
+		if len(req.NotificationIDs) == 0 {
+			return nil
+		}
+		return s.channels.Replace(ctx, created.ID, req.NotificationIDs)
 	})
 	if err != nil {
 		return nil, err
-	}
-	if len(req.NotificationIDs) > 0 {
-		if err := s.channels.Replace(ctx, created.ID, req.NotificationIDs); err != nil {
-			// Leave no probe behind, since the caller is told that the create failed
-			if deleteErr := s.repo.Delete(ctx, created.ID); deleteErr != nil {
-				s.logger.Errorw("Failed to delete a probe whose create failed", "probeId", created.ID, "error", deleteErr)
-			}
-			return nil, err
-		}
 	}
 	probe, err := s.withDetails(ctx, created)
 	if err != nil {
@@ -151,28 +158,34 @@ func (s *ServiceImpl) FindByID(ctx context.Context, id string) (*Model, error) {
 
 // MARK: Update
 func (s *ServiceImpl) Update(ctx context.Context, id string, req *UpdateRequest) (*Model, error) {
-	existing, err := s.repo.FindByID(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	if existing == nil {
-		return nil, ErrNotFound
-	}
-	if id == LocalID && req.Disabled != nil && *req.Disabled {
-		return nil, ErrLocalProbe
-	}
-	// The channels first: an unknown one fails the update before anything else changes
-	if req.NotificationIDs != nil {
-		if err := s.channels.Replace(ctx, id, req.NotificationIDs); err != nil {
-			return nil, err
+	// The probe and its channels change together or not at all: an unknown channel, or a failure
+	// of either step, leaves the probe as it was.
+	var updated *Model
+	err := s.transactor.WithTx(ctx, func(ctx context.Context) error {
+		existing, err := s.repo.FindByID(ctx, id)
+		if err != nil {
+			return err
 		}
-	}
-	updated, err := s.repo.Update(ctx, id, &UpdateModel{Name: req.Name, Location: req.Location, Disabled: req.Disabled})
+		if existing == nil {
+			return ErrNotFound
+		}
+		if id == LocalID && req.Disabled != nil && *req.Disabled {
+			return ErrLocalProbe
+		}
+		updated, err = s.repo.Update(ctx, id, &UpdateModel{Name: req.Name, Location: req.Location, Disabled: req.Disabled})
+		if err != nil {
+			return err
+		}
+		if updated == nil {
+			return ErrNotFound
+		}
+		if req.NotificationIDs == nil {
+			return nil
+		}
+		return s.channels.Replace(ctx, id, req.NotificationIDs)
+	})
 	if err != nil {
 		return nil, err
-	}
-	if updated == nil {
-		return nil, ErrNotFound
 	}
 	return s.withDetails(ctx, updated)
 }

@@ -18,11 +18,11 @@ import (
 // Should match the JSON structure stored in the DB
 // Example JSON: {"smtp_host":"smtp.example.com","smtp_port":587,"username":"user","password":"pass","from":"noreply@example.com"}
 type EmailConfig struct {
-	SMTPSecure    bool   `json:"smtp_secure"`
-	SMTPHost      string `json:"smtp_host" validate:"required"`
-	SMTPPort      int    `json:"smtp_port" validate:"required"`
+	SMTPSecure    bool   `json:"smtp_secure" endpoint:"true"`
+	SMTPHost      string `json:"smtp_host" validate:"required" endpoint:"true"`
+	SMTPPort      int    `json:"smtp_port" validate:"required" endpoint:"true"`
 	SMTPUsername  string `json:"username" validate:"required"`
-	SMTPPassword  string `json:"password" validate:"required"`
+	SMTPPassword  string `json:"password" validate:"required" secret:"true"`
 	SMTPFrom      string `json:"from" validate:"required"`
 	SMTPTo        string `json:"to" validate:"required"`
 	SMTPCC        string `json:"cc"`

@@ -1,5 +1,4 @@
 import { Input } from "@/components/ui/input";
-import { PasswordInput } from "@/components/ui/password-input";
 import {
   FormField,
   FormItem,
@@ -9,6 +8,8 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { z } from "zod";
+import { SecretInput } from "../components/saved-secrets";
+import { withSavedSecret } from "../secrets";
 import { Textarea } from "@/components/ui/textarea";
 import { useFormContext } from "react-hook-form";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
@@ -17,7 +18,7 @@ export const schema = z.object({
   type: z.literal("matrix"),
   homeserver_url: z.string().url({ message: "Valid homeserver URL is required" }),
   internal_room_id: z.string().min(1, { message: "Internal Room ID is required" }),
-  access_token: z.string().min(1, { message: "Access Token is required" }),
+  access_token: withSavedSecret(z.string().min(1, { message: "Access Token is required" })),
   custom_message: z.string().optional(),
 });
 
@@ -98,7 +99,7 @@ export default function MatrixForm() {
               {t("notifications.form.matrix.access_token_label")} <span className="text-red-500">*</span>
             </FormLabel>
             <FormControl>
-              <PasswordInput
+              <SecretInput
                 placeholder="Your Matrix access token"
                 required
                 {...field}

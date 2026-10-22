@@ -1113,7 +1113,13 @@
     "placeholders": {
       "select_type": "Chọn loại trình thông báo"
     },
-    "search_placeholder": "Tìm kiếm kênh thông báo theo tên…"
+    "search_placeholder": "Tìm kiếm kênh thông báo theo tên…",
+    "secret": {
+      "reenter_error": "Hãy nhập lại khóa bí mật này hoặc xóa nó: nơi gửi đã thay đổi",
+      "reenter_hint": "Hãy nhập lại khóa bí mật này: nơi gửi đã thay đổi",
+      "remove": "Xóa",
+      "saved_hint": "Đã lưu — nhập để thay thế"
+    }
   },
   "proxies": {
     "delete_dialog": {

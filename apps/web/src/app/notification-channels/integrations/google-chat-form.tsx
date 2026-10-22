@@ -1,4 +1,3 @@
-import { Input } from "@/components/ui/input";
 import {
   FormField,
   FormItem,
@@ -8,12 +7,14 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { z } from "zod";
+import { SecretInput } from "../components/saved-secrets";
+import { withSavedSecret } from "../secrets";
 import { useFormContext } from "react-hook-form";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const schema = z.object({
   type: z.literal("google_chat"),
-  webhook_url: z.string().url({ message: "Valid webhook URL is required" }),
+  webhook_url: withSavedSecret(z.string().url({ message: "Valid webhook URL is required" })),
 });
 
 export type GoogleChatFormValues = z.infer<typeof schema>;
@@ -40,9 +41,9 @@ export default function GoogleChatForm() {
               {t("notifications.form.google_chat.webhook_url_label")} <span className="text-red-500">*</span>
             </FormLabel>
             <FormControl>
-              <Input
+              <SecretInput
                 placeholder="https://chat.googleapis.com/v1/spaces/..."
-                type="url"
+                autoComplete="off"
                 required
                 {...field}
               />

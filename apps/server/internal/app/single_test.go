@@ -13,8 +13,10 @@ import (
 
 	"peekaping/internal"
 	"peekaping/internal/config"
+	"peekaping/internal/dbtx"
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/auth"
+	"peekaping/internal/modules/cleanup"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/ingester"
@@ -55,6 +57,7 @@ func singleConfig(t *testing.T) *config.Config {
 		BruteforceMaxAttempts: 20,
 		BruteforceWindow:      time.Minute,
 		BruteforceLockout:     time.Minute,
+		ClientURL:             "http://localhost:3000",
 		ServiceName:           "peekaping:apptest",
 	}
 }
@@ -72,10 +75,12 @@ func TestRegisterSingle_ResolvesWhatCmdPeekapingRuns(t *testing.T) {
 		_ stats.Service,
 		_ notification_sent_history.Service,
 		_ monitor_tls_info.Service,
+		_ cleanup.RunLock,
 		_ *zap.SugaredLogger,
 		_ *notification_channel.NotificationEventListener,
 		_ *monitor.MonitorEventListener,
 		_ monitor.Service,
+		_ dbtx.Transactor,
 		_ *metrics.Collector,
 		_ *internal.Server,
 		_ *websocket.Server,
@@ -121,6 +126,21 @@ func TestRegisterSingle_TheWatchdogNeverSkipsAMonitorOfTheLocalProbe(t *testing.
 	}))
 }
 
+// The one process runs every hour's cleanup, so its run lock needs no Redis and always grants it
+func TestRegisterSingle_ProvidesARunLockThatGrantsEveryHour(t *testing.T) {
+	container := dig.New()
+	require.NoError(t, RegisterSingle(container, singleConfig(t)))
+
+	require.NoError(t, container.Invoke(func(lock cleanup.RunLock) {
+		hour := time.Date(2026, 10, 22, 12, 0, 0, 0, time.UTC)
+		for _, h := range []time.Time{hour, hour, hour.Add(time.Hour)} {
+			claimed, err := lock.Claim(context.Background(), h)
+			require.NoError(t, err)
+			assert.True(t, claimed, "claim of %s", h)
+		}
+	}))
+}
+
 func TestRegisterSingle_ProvidesNoRedisAndNoQueue(t *testing.T) {
 	container := dig.New()
 	require.NoError(t, RegisterSingle(container, singleConfig(t)))
@@ -156,6 +176,37 @@ func TestRegisterSingle_RunsTheUsagePingInSingleModeWithoutRedis(t *testing.T) {
 // The scheduler wraps its ingester.Service in ingester.NewInOrderService, which returns a service
 // that is already in order as it is. So the push URL's service, the one the container provides,
 // is the very one the scheduler ingests through, and a monitor's pushes wait for its checks.
+func TestRegisterSingle_ProvidesTheCORSOriginsFromTheConfig(t *testing.T) {
+	for name, tc := range map[string]struct{ origins, clientURL, allowed, denied string }{
+		"the list": {"https://a.example,https://b.example", "https://peek.example", "https://b.example", "https://peek.example"},
+		"the origin of CLIENT_URL when the list is unset": {"", "https://peek.example/status", "https://peek.example", "https://a.example"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			cfg := singleConfig(t)
+			cfg.CORSOrigins = tc.origins
+			cfg.ClientURL = tc.clientURL
+			container := dig.New()
+			require.NoError(t, RegisterSingle(container, cfg))
+
+			require.NoError(t, container.Invoke(func(origins *httpx.CORSOrigins) {
+				assert.Equal(t, tc.allowed, origins.AllowOrigin(tc.allowed))
+				assert.Empty(t, origins.AllowOrigin(tc.denied))
+			}))
+		})
+	}
+}
+
+func TestRegisterSingle_RefusesAnInvalidCORSOrigin(t *testing.T) {
+	cfg := singleConfig(t)
+	cfg.CORSOrigins = "https://peek.example,example.com"
+	container := dig.New()
+	require.NoError(t, RegisterSingle(container, cfg))
+
+	err := container.Invoke(func(*httpx.CORSOrigins) {})
+
+	assert.ErrorContains(t, err, `invalid CORS_ORIGINS entry "example.com"`)
+}
+
 func TestRegisterSingle_IngestsThePushURLThroughTheSchedulersInOrderService(t *testing.T) {
 	container := dig.New()
 	require.NoError(t, RegisterSingle(container, singleConfig(t)))

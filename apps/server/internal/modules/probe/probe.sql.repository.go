@@ -7,6 +7,8 @@ import (
 	"errors"
 	"time"
 
+	"peekaping/internal/dbtx"
+
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 )
@@ -61,6 +63,7 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 	}
 }
 
+// SQLRepositoryImpl runs its queries on the transaction ctx carries (see dbtx), or on db
 type SQLRepositoryImpl struct {
 	db *bun.DB
 }
@@ -88,17 +91,20 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, probe *CreateModel) (*Mo
 		CreatedAt:      now,
 		UpdatedAt:      now,
 	}
-	if _, err := r.db.NewInsert().Model(sm).Exec(ctx); err != nil {
+	if _, err := dbtx.DB(ctx, r.db).NewInsert().Model(sm).Exec(ctx); err != nil {
 		return nil, err
 	}
-	return toDomainModelFromSQL(sm), nil
+	// Read the row back, so the caller sees the timestamps as the database stores them: a
+	// driver that keeps milliseconds would otherwise answer a create with more precision than
+	// every later read
+	return r.findOne(ctx, "id = ?", id)
 }
 
 // MARK: FindAll
 func (r *SQLRepositoryImpl) FindAll(ctx context.Context) ([]*Model, error) {
 	var sms []*sqlModel
 	// The local probe first, then the others in the order they were added
-	err := r.db.NewSelect().Model(&sms).
+	err := dbtx.DB(ctx, r.db).NewSelect().Model(&sms).
 		OrderExpr("CASE WHEN id = ? THEN 0 ELSE 1 END", LocalID).
 		Order("created_at ASC", "id ASC").
 		Scan(ctx)
@@ -128,7 +134,7 @@ func (r *SQLRepositoryImpl) FindByTokenHash(ctx context.Context, tokenHash strin
 
 func (r *SQLRepositoryImpl) findOne(ctx context.Context, where string, arg any) (*Model, error) {
 	sm := new(sqlModel)
-	err := r.db.NewSelect().Model(sm).Where(where, arg).Scan(ctx)
+	err := dbtx.DB(ctx, r.db).NewSelect().Model(sm).Where(where, arg).Scan(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
@@ -140,7 +146,7 @@ func (r *SQLRepositoryImpl) findOne(ctx context.Context, where string, arg any) 
 
 // MARK: Update
 func (r *SQLRepositoryImpl) Update(ctx context.Context, id string, update *UpdateModel) (*Model, error) {
-	query := r.db.NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id).Set("updated_at = ?", time.Now().UTC())
+	query := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id).Set("updated_at = ?", time.Now().UTC())
 	if update.Name != nil {
 		query = query.Set("name = ?", *update.Name)
 	}
@@ -158,7 +164,7 @@ func (r *SQLRepositoryImpl) Update(ctx context.Context, id string, update *Updat
 
 // MARK: UpdateToken
 func (r *SQLRepositoryImpl) UpdateToken(ctx context.Context, id string, tokenHash string, tokenPrefix string) error {
-	_, err := r.db.NewUpdate().Model((*sqlModel)(nil)).
+	_, err := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).
 		Set("token_hash = ?", tokenHash).
 		Set("token_prefix = ?", tokenPrefix).
 		Set("updated_at = ?", time.Now().UTC()).
@@ -169,14 +175,14 @@ func (r *SQLRepositoryImpl) UpdateToken(ctx context.Context, id string, tokenHas
 
 // MARK: Delete
 func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string) error {
-	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Exec(ctx)
+	_, err := dbtx.DB(ctx, r.db).NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Exec(ctx)
 	return err
 }
 
 // MARK: FindInstances
 func (r *SQLRepositoryImpl) FindInstances(ctx context.Context, probeID string) ([]*Instance, error) {
 	var sis []*sqlInstance
-	err := r.db.NewSelect().Model(&sis).
+	err := dbtx.DB(ctx, r.db).NewSelect().Model(&sis).
 		Where("probe_id = ?", probeID).
 		Order("last_seen_at DESC", "id ASC").
 		Scan(ctx)
@@ -204,7 +210,7 @@ func (r *SQLRepositoryImpl) UpsertInstance(ctx context.Context, probeID string, 
 	// again. The WHERE keeps another probe's instance out of reach: no row changes then. The
 	// statement names the table in full and not by an alias, which PostgreSQL allows in this
 	// WHERE only for a table with no alias.
-	result, err := r.db.ExecContext(ctx, `INSERT INTO probe_instances (id, probe_id, hostname, os, arch, version, protocol_version, last_seen_at)
+	result, err := dbtx.DB(ctx, r.db).ExecContext(ctx, `INSERT INTO probe_instances (id, probe_id, hostname, os, arch, version, protocol_version, last_seen_at)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT (id) DO UPDATE SET
 	hostname = EXCLUDED.hostname,
@@ -230,7 +236,7 @@ WHERE probe_instances.probe_id = EXCLUDED.probe_id`,
 
 // MARK: TouchInstance
 func (r *SQLRepositoryImpl) TouchInstance(ctx context.Context, probeID string, instanceID string, seenAt time.Time) (bool, error) {
-	result, err := r.db.NewUpdate().Model((*sqlInstance)(nil)).
+	result, err := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlInstance)(nil)).
 		Set("last_seen_at = ?", seenAt.UTC()).
 		Where("id = ?", instanceID).
 		Where("probe_id = ?", probeID).
@@ -247,7 +253,7 @@ func (r *SQLRepositoryImpl) TouchInstance(ctx context.Context, probeID string, i
 
 // MARK: DeleteInstance
 func (r *SQLRepositoryImpl) DeleteInstance(ctx context.Context, probeID string, instanceID string) error {
-	_, err := r.db.NewDelete().Model((*sqlInstance)(nil)).
+	_, err := dbtx.DB(ctx, r.db).NewDelete().Model((*sqlInstance)(nil)).
 		Where("id = ?", instanceID).
 		Where("probe_id = ?", probeID).
 		Exec(ctx)
@@ -256,7 +262,7 @@ func (r *SQLRepositoryImpl) DeleteInstance(ctx context.Context, probeID string, 
 
 // MARK: UpdateStatus
 func (r *SQLRepositoryImpl) UpdateStatus(ctx context.Context, id string, from Status, to Status) (bool, error) {
-	result, err := r.db.NewUpdate().Model((*sqlModel)(nil)).
+	result, err := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).
 		Set("status = ?", string(to)).
 		Set("updated_at = ?", time.Now().UTC()).
 		Where("id = ?", id).
@@ -274,7 +280,7 @@ func (r *SQLRepositoryImpl) UpdateStatus(ctx context.Context, id string, from St
 
 // MARK: DeleteInstancesUnseenSince
 func (r *SQLRepositoryImpl) DeleteInstancesUnseenSince(ctx context.Context, before time.Time) (int, error) {
-	result, err := r.db.NewDelete().Model((*sqlInstance)(nil)).
+	result, err := dbtx.DB(ctx, r.db).NewDelete().Model((*sqlInstance)(nil)).
 		Where("last_seen_at < ?", before.UTC()).
 		Exec(ctx)
 	if err != nil {
@@ -296,7 +302,7 @@ func (r *SQLRepositoryImpl) SetSupportedTypes(ctx context.Context, probeID strin
 	if err != nil {
 		return err
 	}
-	_, err = r.db.NewUpdate().Model((*sqlModel)(nil)).
+	_, err = dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).
 		Set("supported_types = ?", string(encoded)).
 		Where("id = ?", probeID).
 		Exec(ctx)

@@ -1,5 +1,4 @@
 import { Input } from "@/components/ui/input";
-import { PasswordInput } from "@/components/ui/password-input";
 import {
   FormField,
   FormItem,
@@ -9,6 +8,8 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { z } from "zod";
+import { SecretInput } from "../components/saved-secrets";
+import { withSavedSecret } from "../secrets";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -23,7 +24,7 @@ import { useLocalizedTranslation } from "@/hooks/useTranslation";
 export const schema = z.object({
   type: z.literal("gotify"),
   server_url: z.string().url({ message: "Valid server URL is required" }),
-  application_token: z.string().min(1, { message: "Application token is required" }),
+  application_token: withSavedSecret(z.string().min(1, { message: "Application token is required" })),
   priority: z.coerce.number().min(0).max(10).optional(),
   title: z.string().optional(),
   custom_message: z.string().optional(),
@@ -75,7 +76,7 @@ export default function GotifyForm() {
           <FormItem>
             <FormLabel>{t("notifications.form.gotify.application_token_label")}</FormLabel>
             <FormControl>
-              <PasswordInput
+              <SecretInput
                 placeholder="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
                 required
                 {...field}

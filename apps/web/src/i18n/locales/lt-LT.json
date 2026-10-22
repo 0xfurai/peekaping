@@ -1113,7 +1113,13 @@
     "placeholders": {
       "select_type": "Pasirinkite pranešimo tipą"
     },
-    "search_placeholder": "Paieška kanalų pagal pavadinimą..."
+    "search_placeholder": "Paieška kanalų pagal pavadinimą...",
+    "secret": {
+      "reenter_error": "Įveskite šią paslaptį iš naujo arba pašalinkite ją: pasikeitė vieta, į kurią siunčiama",
+      "reenter_hint": "Įveskite šią paslaptį iš naujo: pasikeitė vieta, į kurią siunčiama",
+      "remove": "Pašalinti",
+      "saved_hint": "Išsaugota — įveskite, kad pakeistumėte"
+    }
   },
   "proxies": {
     "delete_dialog": {

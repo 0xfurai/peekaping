@@ -15,7 +15,7 @@ import (
 
 // PushbulletConfig holds the configuration for Pushbullet notifications
 type PushbulletConfig struct {
-	AccessToken    string `json:"pushbullet_access_token" validate:"required"`
+	AccessToken    string `json:"pushbullet_access_token" validate:"required" secret:"true"`
 	DeviceID       string `json:"pushbullet_device_id"`       // Optional: specific device
 	ChannelTag     string `json:"pushbullet_channel_tag"`     // Optional: channel tag
 	CustomTemplate string `json:"pushbullet_custom_template"` // Optional: custom message template

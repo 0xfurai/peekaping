@@ -9,6 +9,7 @@ import (
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_notification"
 	"peekaping/internal/modules/monitor_tag"
+	"peekaping/internal/modules/notification_channel/providers"
 	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/probe_notification"
 	"peekaping/internal/modules/stale"
@@ -291,7 +292,8 @@ func (l *NotificationEventListener) send(
 	ctx, cancel := context.WithTimeout(ctx, l.sendTimeout)
 	defer cancel()
 
-	if err := provider.Send(ctx, *notificationChannel.Config, message, monitorModel, hb); err != nil {
+	// An HTTP client's errors hold the request URL, and for a channel the URL holds a credential
+	if err := providers.RedactURLErrors(provider.Send(ctx, *notificationChannel.Config, message, monitorModel, hb)); err != nil {
 		l.logger.Errorf("Failed to send notification: %s, error: %v", notificationChannel.Name, err)
 		return
 	}

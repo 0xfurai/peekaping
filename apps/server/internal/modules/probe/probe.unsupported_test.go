@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"peekaping/internal/config"
+	"peekaping/internal/dbtx"
+	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/probe_notification"
 
@@ -52,7 +54,7 @@ func TestService_OnMongoListsNoProbesAndRefusesTheRest(t *testing.T) {
 	ctx := context.Background()
 	logger := zap.NewNop().Sugar()
 	channels := probe_notification.NewService(probe_notification.NewUnsupportedRepository(), logger)
-	svc := probe.NewService(probe.NewUnsupportedRepository(), channels, logger)
+	svc := probe.NewService(probe.NewUnsupportedRepository(), dbtx.NewMongoTransactor(), channels, logger)
 	name := "Paris"
 
 	all, err := svc.FindAll(ctx)
@@ -88,6 +90,7 @@ func TestRegisterDependencies_MongoStarts(t *testing.T) {
 	cfg := &config.Config{DBType: "mongo"}
 	container := dig.New()
 	require.NoError(t, container.Provide(func() *zap.SugaredLogger { return zap.NewNop().Sugar() }))
+	require.NoError(t, monitor.RegisterDependencies(container, cfg)) // provides the dbtx.Transactor
 	require.NoError(t, probe_notification.RegisterDependencies(container, cfg))
 	require.NoError(t, probe.RegisterDependencies(container, cfg))
 
@@ -104,6 +107,7 @@ func TestRegisterDependencies_SQLiteResolvesTheSQLRepository(t *testing.T) {
 	container := dig.New()
 	require.NoError(t, container.Provide(func() *zap.SugaredLogger { return zap.NewNop().Sugar() }))
 	require.NoError(t, container.Provide(func() *bun.DB { return sqliteDB(t) }))
+	require.NoError(t, monitor.RegisterDependencies(container, cfg)) // provides the dbtx.Transactor
 	require.NoError(t, probe_notification.RegisterDependencies(container, cfg))
 	require.NoError(t, probe.RegisterDependencies(container, cfg))
 

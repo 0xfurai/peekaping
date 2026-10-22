@@ -32,6 +32,10 @@ type Config struct {
 	DBPass string `env:"DB_PASS"`                           // validated in validateCustomRules
 	DBType string `env:"DB_TYPE" validate:"required,db_type"`
 
+	// Which check a process that opens SQLite runs at startup: "quick" runs PRAGMA quick_check,
+	// "full" runs PRAGMA integrity_check, and "off" runs none. A finding stops startup.
+	SQLiteStartupCheck string `env:"SQLITE_STARTUP_CHECK" validate:"oneof=quick full off" default:"quick"`
+
 	Mode     string `env:"MODE" validate:"required,oneof=dev prod test" default:"dev"`
 	LogLevel string `env:"LOG_LEVEL" validate:"omitempty,log_level" default:"info"`
 
@@ -94,12 +98,28 @@ type Config struct {
 	// address. Empty (the default) trusts nobody.
 	TrustedProxies string `env:"TRUSTED_PROXIES"` // parsed by httpx.ParseTrustedProxies
 
+	// Origins whose pages may read the API's responses: a comma-separated list such as
+	// "https://peek.example,http://localhost:8383". A page on any other origin can still send
+	// requests, but its browser won't let it read the answers. "*" alone allows any origin.
+	// Empty (the default) allows the origin of CLIENT_URL.
+	CORSOrigins string `env:"CORS_ORIGINS"` // parsed by httpx.ParseCORSOrigins
+
 	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"peekaping:api"`
 
 	// Prometheus metrics
 	// Set to true to expose an unauthenticated /metrics endpoint for Prometheus
 	// to scrape. Off by default since it exposes monitor names and status.
 	MetricsEnabled bool `env:"METRICS_ENABLED" default:"false"`
+
+	// How many days the hourly cleanup keeps notification history. The history stops a
+	// certificate expiry notification from being sent twice, so it must outlast the
+	// default thresholds (the largest is 21 days): the minimum is 30. 0 counts as unset
+	// and gives the default, as for every int setting.
+	NotificationHistoryRetentionDays int `env:"NOTIFICATION_HISTORY_RETENTION_DAYS" validate:"min=30" default:"90"`
+
+	// How many days the hourly cleanup keeps the TLS info that monitors record. 0 counts as
+	// unset and gives the default.
+	TLSInfoRetentionDays int `env:"TLS_INFO_RETENTION_DAYS" validate:"min=1" default:"30"`
 
 	// Usage ping (ADR 0003). The ping is off until an admin opts in. TELEMETRY=off (or false, 0,
 	// no) and DO_NOT_TRACK=1 (or true) force it off whatever the admin chose; TelemetryForcedOff
@@ -245,6 +265,10 @@ func formatValidationError(err validator.FieldError) string {
 	case "duration_min":
 		return fmt.Sprintf("%s must be at least %s", field, err.Param())
 	case "min":
+		switch err.Kind() {
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			return fmt.Sprintf("%s must be at least %s", field, err.Param())
+		}
 		return fmt.Sprintf("%s must be at least %s characters", field, err.Param())
 	case "max":
 		return fmt.Sprintf("%s must be at most %s", field, err.Param())

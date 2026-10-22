@@ -35,11 +35,11 @@ func (c *Controller) parseQueryOptions(r *http.Request) *BadgeOptions {
 		}
 	}
 
-	// Parse common options
-	if color := r.URL.Query().Get("color"); color != "" {
+	// Parse common options. A color that isn't one leaves the default.
+	if color, ok := parseColor(r.URL.Query().Get("color")); ok {
 		options.Color = color
 	}
-	if labelColor := r.URL.Query().Get("labelColor"); labelColor != "" {
+	if labelColor, ok := parseColor(r.URL.Query().Get("labelColor")); ok {
 		options.LabelColor = labelColor
 	}
 
@@ -50,10 +50,10 @@ func (c *Controller) parseQueryOptions(r *http.Request) *BadgeOptions {
 	if downLabel := r.URL.Query().Get("downLabel"); downLabel != "" {
 		options.DownLabel = downLabel
 	}
-	if upColor := r.URL.Query().Get("upColor"); upColor != "" {
+	if upColor, ok := parseColor(r.URL.Query().Get("upColor")); ok {
 		options.UpColor = upColor
 	}
-	if downColor := r.URL.Query().Get("downColor"); downColor != "" {
+	if downColor, ok := parseColor(r.URL.Query().Get("downColor")); ok {
 		options.DownColor = downColor
 	}
 
