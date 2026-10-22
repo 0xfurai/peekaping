@@ -95,7 +95,6 @@ func (s *TelegramSender) Send(
 			}
 		}
 
-		fmt.Println("parse_mode", cfg.TemplateParseMode)
 		if cfg.TemplateParseMode != "plain" && cfg.TemplateParseMode != "" {
 			params["parse_mode"] = cfg.TemplateParseMode
 		}
@@ -116,8 +115,6 @@ func (s *TelegramSender) Send(
 	}
 	req.URL.RawQuery = q.Encode()
 
-	s.logger.Debugf("Sending telegram message: %s", req.URL.String())
-
 	resp, err := s.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to send telegram message: %w", err)
@@ -128,5 +125,6 @@ func (s *TelegramSender) Send(
 		return fmt.Errorf("telegram API returned status: %s, body: %s", resp.Status, resp.Body)
 	}
 
+	s.logger.Infof("Telegram notification sent successfully")
 	return nil
 }
