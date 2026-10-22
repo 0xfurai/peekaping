@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -17,6 +18,7 @@ import (
 	"peekaping/internal/reporting/redissync"
 	"peekaping/internal/reporting/reportingtest"
 
+	"github.com/santhosh-tekuri/jsonschema/v6"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/dig"
@@ -175,6 +177,43 @@ func TestErrorReportingAPI_OtherEnvValuesDoNotForceItOff(t *testing.T) {
 			a := newAppWithAdmin(t, option)
 
 			assert.Equal(t, false, a.errorReporting(t)["forced_off"])
+		})
+	}
+}
+
+// The PUT body keeps a pointer, so the server can tell a missing or null enabled from false, but
+// the schema promises a plain boolean: the server answers a null with 400.
+func TestErrorReportingAPI_SchemaTakesNoNull(t *testing.T) {
+	reportingtest.Install(t)
+	reporting.SetEnabled(false)
+	a := newAppWithAdmin(t)
+	doc, err := jsonschema.UnmarshalJSON(a.request(t, http.MethodGet, "/openapi.json", nil).Body)
+	require.NoError(t, err)
+	compiler := jsonschema.NewCompiler()
+	compiler.DefaultDraft(jsonschema.Draft2020)
+	require.NoError(t, compiler.AddResource("https://peekaping.test/openapi.json", doc))
+	schema, err := compiler.Compile("https://peekaping.test/openapi.json#/components/schemas/error_reporting.UpdateDto")
+	require.NoError(t, err)
+
+	for _, tc := range []struct {
+		body   string
+		valid  bool
+		status int
+	}{
+		{`{"enabled":false}`, true, http.StatusOK},
+		{`{"enabled":null}`, false, http.StatusBadRequest},
+		{`{}`, false, http.StatusBadRequest},
+	} {
+		t.Run(tc.body, func(t *testing.T) {
+			value, err := jsonschema.UnmarshalJSON(strings.NewReader(tc.body))
+			require.NoError(t, err)
+			if tc.valid {
+				assert.NoError(t, schema.Validate(value))
+			} else {
+				assert.Error(t, schema.Validate(value))
+			}
+			w := a.request(t, http.MethodPut, errorReportingPath, tc.body, a.asAdmin)
+			assert.Equal(t, tc.status, w.Code, w.Body.String())
 		})
 	}
 }
