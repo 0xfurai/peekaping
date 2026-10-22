@@ -1277,8 +1277,8 @@
       "description": "Odesílat anonymní statistiky o tom, jak je tato instalace nastavena, nejvýše jednou denně. Vypnuto, dokud to nezapnete.",
       "forced_off": "Proměnná prostředí TELEMETRY=off nebo DO_NOT_TRACK=1 toto vypíná. Nic se neodesílá, ať je toto nastavení jakékoli.",
       "id_note": "ID instance se vytvoří při zapnutí a smaže při vypnutí. Při dalším zapnutí se vytvoří nové.",
-      "payload_off": "Dokud je to vypnuto, nic se neodesílá. Takto by hlášení vypadalo, kdybyste to zapnuli.",
-      "payload_title": "Co odešle příští hlášení",
+      "payload_off": "Dokud je to vypnuto, nic se neodesílá. Takto by vypadal ping využití, kdybyste to zapnuli.",
+      "payload_title": "Co odešle příští ping využití",
       "title": "Statistiky využití"
     },
     "timezone": {

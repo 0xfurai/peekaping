@@ -1277,8 +1277,8 @@
       "description": "Wysyłaj anonimowe statystyki o tym, jak skonfigurowana jest ta instalacja, najwyżej raz dziennie. Wyłączone, dopóki tego nie włączysz.",
       "forced_off": "Zmienna środowiskowa TELEMETRY=off lub DO_NOT_TRACK=1 wyłącza tę opcję. Nic nie jest wysyłane, niezależnie od tego, co mówi to ustawienie.",
       "id_note": "Identyfikator instancji jest tworzony po włączeniu tej opcji i usuwany po jej wyłączeniu. Ponowne włączenie tworzy nowy.",
-      "payload_off": "Dopóki ta opcja jest wyłączona, nic nie jest wysyłane. Tyle zawierałby raport, gdybyś ją włączył.",
-      "payload_title": "Co wyśle następny raport",
+      "payload_off": "Dopóki ta opcja jest wyłączona, nic nie jest wysyłane. Tyle zawierałby ping użycia, gdybyś ją włączył.",
+      "payload_title": "Co wyśle następny ping użycia",
       "title": "Statystyki użycia"
     },
     "timezone": {

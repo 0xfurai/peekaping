@@ -1277,8 +1277,8 @@
       "description": "Send anonym statistik om, hvordan denne installation er sat op, højst én gang om dagen. Slået fra, indtil du slår det til.",
       "forced_off": "Miljøvariablen TELEMETRY=off eller DO_NOT_TRACK=1 slår dette fra. Der sendes ikke noget, uanset hvad denne indstilling siger.",
       "id_note": "Instans-ID'et oprettes, når du slår dette til, og slettes, når du slår det fra. Slår du det til igen, oprettes et nyt.",
-      "payload_off": "Der sendes ikke noget, mens dette er slået fra. Det er det, en rapport ville indeholde, hvis du slog det til.",
-      "payload_title": "Hvad den næste rapport sender",
+      "payload_off": "Der sendes ikke noget, mens dette er slået fra. Det er det, en brugsping ville indeholde, hvis du slog det til.",
+      "payload_title": "Hvad den næste brugsping sender",
       "title": "Brugsstatistik"
     },
     "timezone": {

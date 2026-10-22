@@ -1277,8 +1277,8 @@
       "description": "Envie estatísticas anônimas sobre como esta instalação está configurada, no máximo uma vez por dia. Desativado até você ativar.",
       "forced_off": "A variável de ambiente TELEMETRY=off ou DO_NOT_TRACK=1 desativa isto. Nada é enviado, seja qual for esta configuração.",
       "id_note": "O ID da instância é criado quando você ativa isto e excluído quando você desativa. Ao ativar de novo, um novo ID é criado.",
-      "payload_off": "Nada é enviado enquanto isto estiver desativado. Isto é o que um relatório conteria se você ativasse.",
-      "payload_title": "O que o próximo relatório envia",
+      "payload_off": "Nada é enviado enquanto isto estiver desativado. Isto é o que um ping de uso conteria se você ativasse.",
+      "payload_title": "O que o próximo ping de uso envia",
       "title": "Estatísticas de uso"
     },
     "timezone": {
