@@ -44,7 +44,7 @@ For example:
 }
 ```
 
-An install on any other storage backend isn't counted: the Worker rejects its usage ping and keeps nothing.
+An install on any other storage backend isn't counted. With `DB_TYPE=mysql`, for example, Peekaping sends an empty `db`, the Worker rejects the usage ping and keeps nothing.
 
 ### Instance ID
 
