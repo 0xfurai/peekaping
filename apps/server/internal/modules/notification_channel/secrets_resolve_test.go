@@ -217,4 +217,35 @@ func TestResolveSecrets(t *testing.T) {
 	})
 }
 
+func TestDuplicateKey(t *testing.T) {
+	cases := []struct {
+		name        string
+		config      string
+		wantKey     string
+		wantEarlier string
+	}{
+		{"no repeat", `{"a":1,"b":2}`, "", ""},
+		{"the same key twice", `{"a":1,"a":2}`, "a", "a"},
+		{"another letter case", `{"server_url":"x","SERVER_URL":"y"}`, "SERVER_URL", "server_url"},
+		{"the third key repeats the first", `{"a":1,"b":2,"A":3}`, "A", "a"},
+		{"a repeat after a nested object", `{"a":{"x":1,"X":2},"b":[{"c":1,"C":2}],"B":3}`, "B", "b"},
+		{"keys repeated only inside values", `{"a":{"x":1,"X":2},"b":[{"c":1,"C":2}]}`, "", ""},
+		{"an empty object", `{}`, "", ""},
+		{"an empty config", ``, "", ""},
+		{"a config that isn't an object", `["a","A"]`, "", ""},
+		{"the JSON null", `null`, "", ""},
+		{"a syntax error", `{"a":1,"b":`, "", ""},
+		{"a repeat before a syntax error", `{"a":1,"A":2,`, "A", "a"},
+		{"whitespace around keys", " {\n \"a\" : 1 ,\n \"A\" : 2 }", "A", "a"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			key, earlier, found := duplicateKey(tc.config)
+			assert.Equal(t, tc.wantKey != "", found)
+			assert.Equal(t, tc.wantKey, key)
+			assert.Equal(t, tc.wantEarlier, earlier)
+		})
+	}
+}
+
 func ptr(s string) *string { return &s }

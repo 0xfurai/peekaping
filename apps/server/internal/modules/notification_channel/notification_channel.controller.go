@@ -9,6 +9,7 @@ import (
 	"peekaping/internal/modules/notification_channel/providers"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/utils"
+	"strconv"
 	"strings"
 
 	"go.uber.org/zap"
@@ -275,8 +276,13 @@ func configOf(channel *Model) string {
 // that can't be resolved is a 400: that is, when there is no saved channel, when it has another
 // type, or when the config changed where the channel sends.
 //
-// A type without a provider is left for validateConfig to refuse.
+// A config that names a key twice, in any letter case, is a 400 before anything is resolved. A
+// type without a provider is left for validateConfig to refuse.
 func (ic *Controller) resolveConfig(channelType, config string, saved *Model) (string, error) {
+	if key, earlier, found := duplicateKey(config); found {
+		return "", httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(
+			"Invalid config: duplicate key "+strconv.Quote(key)+" (the config already has "+strconv.Quote(earlier)+")"))
+	}
 	provider, ok := ic.providers.Get(channelType)
 	if !ok {
 		return config, nil

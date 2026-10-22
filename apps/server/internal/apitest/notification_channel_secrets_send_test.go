@@ -176,6 +176,41 @@ func TestNotificationChannelsAPI_ASavedSecretIsNotSentToAnotherEndpoint(t *testi
 	})
 }
 
+// encoding/json fills a field from a key of any letter case, and the last one in the config wins.
+// A config that names the endpoint twice must not get past the check that the endpoint is the
+// saved one, and then send the saved token to the other one.
+func TestNotificationChannelsAPI_ADuplicateKeyDoesNotMoveTheEndpoint(t *testing.T) {
+	a := newSecretsApp(t)
+	saved := startRequestReceiver(t)
+	evil := startRequestReceiver(t)
+	telegram := secretChannelOfType(t, "telegram").withVisible(map[string]any{"server_url": saved.url})
+	id := a.createSecretChannel(t, telegram)
+
+	// The saved endpoint under another letter case, after the evil one
+	config := `{"chat_id":"-100123","server_url":"` + evil.url + `","SERVER_URL":"` + saved.url + `","bot_token":"` + secretPlaceholder + `"}`
+	// The same, in the order the server writes keys back in
+	reversed := `{"chat_id":"-100123","SERVER_URL":"` + saved.url + `","server_url":"` + evil.url + `","bot_token":"` + secretPlaceholder + `"}`
+
+	for _, config := range []string{config, reversed} {
+		for request, w := range map[string]*httptest.ResponseRecorder{
+			"PUT":    a.put(t, id, "telegram", config),
+			"PATCH":  a.patch(t, id, "", config),
+			"Test":   a.testChannel(t, id, "telegram", config),
+			"create": a.request(t, http.MethodPost, "/api/v1/notification-channels", with(telegram.body("Copy"), "config", config), a.asAdmin),
+		} {
+			require.Equal(t, http.StatusBadRequest, w.Code, request+": "+w.Body.String())
+			assert.Contains(t, w.Body.String(), "Invalid config: duplicate key", request)
+			assert.NotContains(t, w.Body.String(), secretMarker, request)
+		}
+	}
+
+	assert.Empty(t, evil.received(), "the bot token went to the other server")
+	assert.Empty(t, saved.received(), "nothing is sent")
+	assert.JSONEq(t, telegram.config(nil), a.storedChannelConfig(t, id))
+	list := decode[[]channelWithConfig](t, a.request(t, http.MethodGet, "/api/v1/notification-channels?limit=1000", nil, a.asAdmin), http.StatusOK)
+	assert.Len(t, list, 1, "no channel was created")
+}
+
 func TestNotificationChannelsAPI_TestRefusesAPlaceholderWithNothingToResolveIt(t *testing.T) {
 	a := newSecretsApp(t)
 	// A channel of another type than the ones tested, so that it has nothing to resolve with

@@ -502,6 +502,55 @@ func TestControllerTestResolvesSecrets(t *testing.T) {
 	}
 }
 
+// A config that names a field twice, under keys of one letter case or another, is read one way
+// by the endpoint check and another way once it is written back with the secrets in it. It is
+// refused whatever is in it.
+func TestControllerRefusesAConfigWithDuplicateKeys(t *testing.T) {
+	configs := map[string]string{
+		"the moved endpoint first, the saved one under another case": `{"server":"https://evil.example","SERVER":"https://server.example","token":"********"}`,
+		"the saved endpoint first, the moved one under another case": `{"SERVER":"https://server.example","server":"https://evil.example","token":"********"}`,
+		"the same key twice":                       `{"server":"https://server.example","server":"https://server.example","token":"********"}`,
+		"a secret under two cases":                 `{"server":"https://server.example","token":"fresh-token","Token":"********"}`,
+		"a key that isn't an endpoint or a secret": `{"url":"a","URL":"b","server":"https://server.example","token":"fresh-token"}`,
+		"new values only":                          `{"server":"https://server.example","Server":"https://server.example","token":"fresh-token"}`,
+	}
+	for name, config := range configs {
+		t.Run(name, func(t *testing.T) {
+			f := newSecretsFixture(t, storedChannelConfig)
+			requests := map[string]*httptest.ResponseRecorder{
+				"create": f.do(http.MethodPost, "/", putBody("test-secrets", config)),
+				"PUT":    f.do(http.MethodPut, "/channel-1", putBody("test-secrets", config)),
+				"PATCH":  f.do(http.MethodPatch, "/channel-1", `{"config":`+quote(config)+`}`),
+				"Test":   f.do(http.MethodPost, "/test", testBody("channel-1", "test-secrets", config)),
+			}
+			for request, rec := range requests {
+				assert.Equal(t, http.StatusBadRequest, rec.Code, request+": "+rec.Body.String())
+				assert.Contains(t, rec.Body.String(), "Invalid config: duplicate key", request)
+				requireNoSecretsShown(t, rec)
+			}
+			assert.Empty(t, f.provider.sent, "nothing is sent")
+			assert.NotContains(t, f.store.channels, "created")
+			assert.Equal(t, storedChannelConfig, f.stored("channel-1"))
+		})
+	}
+
+	t.Run("keys that differ by more than case are not duplicates", func(t *testing.T) {
+		f := newSecretsFixture(t, storedChannelConfig)
+
+		rec := f.do(http.MethodPut, "/channel-1", putBody("test-secrets", `{"server":"https://server.example","server_2":"x","url":"u","token":"********"}`))
+
+		assert.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+	})
+
+	t.Run("a key repeated inside a value is not a duplicate", func(t *testing.T) {
+		f := newSecretsFixture(t, storedChannelConfig)
+
+		rec := f.do(http.MethodPut, "/channel-1", putBody("test-secrets", `{"server":"https://server.example","extra":{"a":1,"A":2},"token":"********"}`))
+
+		assert.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+	})
+}
+
 // shownConfig returns the config of the channel in a response
 func shownConfig(t *testing.T, rec *httptest.ResponseRecorder) string {
 	t.Helper()

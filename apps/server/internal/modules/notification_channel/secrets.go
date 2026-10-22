@@ -104,6 +104,43 @@ func parseConfig(config string) (fields map[string]json.RawMessage, ok bool) {
 	return fields, true
 }
 
+// duplicateKey finds two keys of a config that encoding/json fills the same field from: equal
+// under case folding, or the very same key. It reports the first key that repeats an earlier one,
+// and that earlier key. It reports nothing for a config that isn't a JSON object, or has a syntax
+// error before a repeat, which validation rejects.
+//
+// Such a config is read one way by a provider (the last key wins) and another way by the
+// helpers here, which hold each key apart. A request could use that to pass an endpoint check
+// with one value and send with another, so it is refused before any secret is resolved.
+func duplicateKey(config string) (key, earlier string, found bool) {
+	decoder := json.NewDecoder(strings.NewReader(config))
+	if token, err := decoder.Token(); err != nil || token != json.Delim('{') {
+		return "", "", false
+	}
+	var seen []string
+	for decoder.More() {
+		token, err := decoder.Token()
+		if err != nil {
+			return "", "", false
+		}
+		name, isKey := token.(string)
+		if !isKey {
+			return "", "", false
+		}
+		for _, previous := range seen {
+			if strings.EqualFold(previous, name) {
+				return name, previous, true
+			}
+		}
+		seen = append(seen, name)
+		var value json.RawMessage
+		if err := decoder.Decode(&value); err != nil {
+			return "", "", false
+		}
+	}
+	return "", "", false
+}
+
 // encodeConfig writes fields back as a JSON object, without escaping HTML so that values
 // stay as they were written. It returns an empty config if encoding fails, which it can't for
 // values read from JSON; an empty config shows nothing and fails validation.
