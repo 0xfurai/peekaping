@@ -63,7 +63,7 @@ Error reports use the Sentry SDK. Its `BeforeSend` hook (`apps/server/internal/r
 | `db` tag | the storage backend: `sqlite`, `postgres`, `mongo` or `mysql`, or `unknown` where the process has none. The cluster worker has no `DB_TYPE`, so its `db` tag is `unknown`. |
 | `os` tag | OS and architecture, such as `linux/arm64` |
 | `component` tag | where the panic was recovered, such as `http`, `asynq`, `executor` or `scheduler` |
-| event ID, timestamp, `platform` | a random event ID, the time of the panic in UTC, and `go`. The Sentry protocol needs them to take the event. |
+| event ID, timestamp, `platform`, envelope `dsn` | a random event ID, the time of the panic in UTC, `go`, and the DSN in the envelope header, which is the address of the project the report goes to. The Sentry protocol needs them to take the event. |
 
 The `mode`, `db` and `component` values are checked: one that is not a short name from the code or the build is sent as `unknown`.
 
@@ -73,6 +73,7 @@ Everything else is dropped: the message text and the exception value (they can h
 - **Once a minute for each place.** A place is the component, the exception type and the innermost frame. A check that panics on every run sends one report a minute, not one for each run. A panic that ends the process is always reported.
 - **`http.ErrAbortHandler` is not a crash.** `httpx.Recovery` re-panics it instead of reporting it or answering 500, because it is net/http's own way for a handler to abort its response.
 - **No IP address.** A report holds none, and Peekaping's Sentry project is set not to store the sender's IP. The code can't enforce that setting. With `ERROR_REPORTING_DSN` set to your own Sentry or GlitchTip, its settings decide.
+- **Known limitation: `sent_at`.** sentry-go writes the envelope header `sent_at` (when the report was sent) in the server's local time, so the server's UTC offset reaches Sentry. `BeforeSend` can't change an envelope header. The event's own timestamp is in UTC.
 
 The DSN is the only coupling to Sentry. Moving to GlitchTip, or to a server we run, later is a change of DSN.
 
