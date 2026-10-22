@@ -36,34 +36,39 @@ function sameSet(a: ReadonlySet<string>, b: readonly string[]) {
 // form opened with.
 //
 // A secret whose field the form doesn't show, such as an ntfy token while it signs in with a
-// password, can't be asked for, so it is emptied.
+// password, can't be asked for. The form leaves it as it is, and sends it empty instead when it
+// saves or tests with the endpoint moved (see withoutUnaskedSecrets). `shown` is the set of the
+// secrets whose fields are on the form, which this keeps up to date; the parent reads it when
+// it sends.
 export function SavedSecrets({
   saved,
+  shown,
   children,
 }: {
   saved?: Record<string, unknown>;
+  shown: React.MutableRefObject<Set<string>>;
   children: React.ReactNode;
 }) {
-  const { watch, getValues, setValue, getFieldState, clearErrors } = useFormContext();
+  const { watch, getValues, getFieldState, clearErrors } = useFormContext();
   const [reenter, setReenter] = React.useState<ReadonlySet<string>>(new Set());
-  const shown = React.useRef(new Set<string>());
   const [shownVersion, setShownVersion] = React.useState(0);
 
-  const showSecret = React.useCallback((name: string) => {
-    shown.current.add(name);
-    setShownVersion((version) => version + 1);
-    return () => {
-      shown.current.delete(name);
+  const showSecret = React.useCallback(
+    (name: string) => {
+      shown.current.add(name);
       setShownVersion((version) => version + 1);
-    };
-  }, []);
+      return () => {
+        shown.current.delete(name);
+        setShownVersion((version) => version + 1);
+      };
+    },
+    [shown]
+  );
 
   const reconcile = React.useCallback(
     (values: Record<string, unknown>) => {
       if (!saved) return;
-      const needed = secretsToReenter(values, saved);
-      needed.filter((key) => !shown.current.has(key)).forEach((key) => setValue(key, ""));
-      const asked = needed.filter((key) => shown.current.has(key));
+      const asked = secretsToReenter(values, saved).filter((key) => shown.current.has(key));
       setReenter((current) => (sameSet(current, asked) ? current : new Set(asked)));
 
       // An error that asks for a secret goes once the secret is no longer asked for: it was
@@ -75,7 +80,7 @@ export function SavedSecrets({
         }
       }
     },
-    [saved, setValue, getFieldState, clearErrors]
+    [saved, shown, getFieldState, clearErrors]
   );
 
   React.useEffect(() => {

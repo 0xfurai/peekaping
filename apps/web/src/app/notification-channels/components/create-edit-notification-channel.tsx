@@ -54,6 +54,7 @@ import {
   REENTER_ERROR_TYPE,
   secretsToReenter,
   withoutSavedSecrets,
+  withoutUnaskedSecrets,
 } from "../secrets";
 import { SavedSecrets } from "./saved-secrets";
 
@@ -168,14 +169,19 @@ export default function CreateEditNotificationChannel({
   }));
   // The values the saved channel opened the form with: its secrets are the placeholder
   const savedValues = mode === "edit" ? openingValues : undefined;
+  // The secrets whose fields are on the form, kept up to date by SavedSecrets
+  const shownSecrets = useRef(new Set<string>());
   // The server keeps a saved secret only while the channel sends to the same place. A secret
   // still holding the placeholder after an endpoint moved is refused with an error on its field,
-  // until it is typed again or removed.
+  // until it is typed again or removed. One whose field isn't shown is not asked for: it is sent
+  // empty (see withoutUnaskedSecrets).
   const resolver = useMemo<Resolver<NotificationForm>>(() => {
     const validate = zodResolver(notificationSchema);
     return async (values, context, options) => {
       const result = await validate(values, context, options);
-      const reenter = savedValues ? secretsToReenter(values, savedValues) : [];
+      const reenter = savedValues
+        ? secretsToReenter(values, savedValues).filter((key) => shownSecrets.current.has(key))
+        : [];
       if (reenter.length === 0) return result;
 
       const errors: Record<string, unknown> = { ...result.errors };
@@ -225,7 +231,9 @@ export default function CreateEditNotificationChannel({
     const values = baseForm.getValues();
 
     // The same refusal as saving: a saved secret that can't be kept is not sent
-    const reenter = savedValues ? secretsToReenter(values, savedValues) : [];
+    const reenter = savedValues
+      ? secretsToReenter(values, savedValues).filter((key) => shownSecrets.current.has(key))
+      : [];
     if (reenter.length > 0) {
       reenter.forEach((key, index) =>
         baseForm.setError(
@@ -237,7 +245,11 @@ export default function CreateEditNotificationChannel({
       return;
     }
 
-    const { name, type, ...typeConfig } = values;
+    const { name, type, ...typeConfig } = withoutUnaskedSecrets(
+      values,
+      savedValues,
+      shownSecrets.current
+    );
     testNotifierMutation.mutate({
       body: {
         name,
@@ -259,7 +271,9 @@ export default function CreateEditNotificationChannel({
 
       <Form {...baseForm}>
         <form
-          onSubmit={baseForm.handleSubmit(onSubmit)}
+          onSubmit={baseForm.handleSubmit((data) =>
+            onSubmit(withoutUnaskedSecrets(data, savedValues, shownSecrets.current))
+          )}
           className="space-y-6 max-w-[600px]"
         >
           <FormItem>
@@ -328,7 +342,7 @@ export default function CreateEditNotificationChannel({
             )}
           />
 
-          <SavedSecrets saved={savedValues}>
+          <SavedSecrets saved={savedValues} shown={shownSecrets}>
             {TypeFormComponent && <TypeFormComponent />}
           </SavedSecrets>
 

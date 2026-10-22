@@ -72,6 +72,21 @@ export function endpointChanged(
   );
 }
 
+// The form values as the form sends them. After an endpoint moved, a saved secret whose field
+// the form doesn't show can't be asked for, and the server won't keep it: it goes empty. The
+// form itself keeps the placeholder, so that the field has it back when it is shown again or the
+// endpoint is back as saved. `shown` are the secrets whose fields are on the form.
+export function withoutUnaskedSecrets<T extends Record<string, unknown>>(
+  values: T,
+  saved: Record<string, unknown> | undefined,
+  shown: ReadonlySet<string>
+): T {
+  if (!saved) return values;
+  const unasked = secretsToReenter(values, saved).filter((key) => !shown.has(key));
+  if (unasked.length === 0) return values;
+  return { ...values, ...Object.fromEntries(unasked.map((key) => [key, ""])) };
+}
+
 // The secrets of the form that still hold the placeholder though where the channel sends has
 // changed from `saved`, the values the form opened with. The server won't keep them: each has to
 // be typed again or removed. Nothing is asked for another type than the saved one.
