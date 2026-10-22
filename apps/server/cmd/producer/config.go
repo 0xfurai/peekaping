@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"peekaping/internal/config"
 
@@ -32,6 +33,10 @@ type Config struct {
 
 	// Producer configuration
 	ProducerConcurrency int `env:"PRODUCER_CONCURRENCY" validate:"min=1,max=128" default:"10"`
+
+	// How long an online probe's instances may all go unseen before the probe counts as offline.
+	// A Go duration, at least 30s. The leader producer's sweep sets the probe offline. Validated in Validate().
+	ProbeOfflineAfter time.Duration `env:"PROBE_OFFLINE_AFTER" default:"3m"`
 
 	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"peekaping:producer"`
 
@@ -80,6 +85,11 @@ func Validate(cfg *Config) error {
 		return fmt.Errorf("database validation failed: %w", err)
 	}
 
+	// The sweep looks every 30 seconds, so a shorter limit could not be kept
+	if cfg.ProbeOfflineAfter < config.MinProbeOfflineAfter {
+		return fmt.Errorf("PROBE_OFFLINE_AFTER must be at least %s", config.MinProbeOfflineAfter)
+	}
+
 	return nil
 }
 
@@ -102,6 +112,7 @@ func (c *Config) ToInternalConfig() *config.Config {
 		RedisPassword:       c.RedisPassword,
 		RedisDB:             c.RedisDB,
 		ProducerConcurrency: c.ProducerConcurrency,
+		ProbeOfflineAfter:   c.ProbeOfflineAfter,
 		ServiceName:         c.ServiceName,
 		ErrorReporting:      c.ErrorReporting,
 		ErrorReportingDSN:   c.ErrorReportingDSN,

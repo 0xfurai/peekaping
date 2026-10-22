@@ -122,7 +122,16 @@ type Config struct {
 	// a probe token and no UI step. At least 32 characters, checked by each binary's Validate.
 	// Empty leaves the local probe as it is.
 	ProbeBootstrapToken string `env:"PROBE_BOOTSTRAP_TOKEN"`
+
+	// ProbeOfflineAfter is how long an online probe's instances may all go unseen before the
+	// sweep sets the probe offline. A Go duration such as "3m" or "90s". The producer and peekaping,
+	// which run the sweep, check that it is at least MinProbeOfflineAfter.
+	ProbeOfflineAfter time.Duration `env:"PROBE_OFFLINE_AFTER" default:"3m"`
 }
+
+// MinProbeOfflineAfter is the shortest PROBE_OFFLINE_AFTER. The sweep looks at the probes every 30
+// seconds, so a shorter limit could not be kept.
+const MinProbeOfflineAfter = 30 * time.Second
 
 // TelemetryForcedOff reports whether the environment forces the usage ping off: TELEMETRY is
 // off, false, 0 or no, or DO_NOT_TRACK is 1 or true. Case and surrounding spaces don't matter.
