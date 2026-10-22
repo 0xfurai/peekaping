@@ -39,6 +39,31 @@ func (dto *CreateUpdateDto) ApplyCreateDefaults() {
 	}
 }
 
+// TestDto is a request to send a test notification. It carries a channel as it is being edited.
+// ID is the saved channel it comes from, if there is one: secrets the config leaves as the
+// placeholder are the ones that channel has stored.
+type TestDto struct {
+	CreateUpdateDto
+	ID string `json:"id,omitempty"`
+}
+
+// UnmarshalJSON reads the id as well as the channel. Without it TestDto would take on the
+// UnmarshalJSON of CreateUpdateDto, which knows nothing of the id.
+func (dto *TestDto) UnmarshalJSON(data []byte) error {
+	*dto = TestDto{}
+	if err := dto.CreateUpdateDto.UnmarshalJSON(data); err != nil {
+		return err
+	}
+	var withID struct {
+		ID string `json:"id"`
+	}
+	if err := json.Unmarshal(data, &withID); err != nil {
+		return err
+	}
+	dto.ID = withID.ID
+	return nil
+}
+
 type PartialUpdateDto struct {
 	Name      *string `json:"name,omitempty"`
 	Type      *string `json:"type,omitempty"`

@@ -391,6 +391,117 @@ func TestControllerCreateRefusesPlaceholders(t *testing.T) {
 	})
 }
 
+// testBody is the body of a request to test a channel of the given type. id is the saved channel
+// the request edits; it is left out when empty.
+func testBody(id, channelType, config string) string {
+	body := `{"name":"Alerts","type":"` + channelType + `","active":true,"config":` + quote(config)
+	if id != "" {
+		body += `,"id":` + quote(id)
+	}
+	return body + `}`
+}
+
+func TestControllerTestResolvesSecrets(t *testing.T) {
+	cases := []struct {
+		name       string
+		body       string
+		wantStatus int
+		// wantSent is the config the provider sent with, when it sent
+		wantSent string
+		// wantError is part of the error message
+		wantError string
+	}{
+		{
+			name:       "placeholders send with the stored secrets",
+			body:       testBody("channel-1", "test-secrets", `{"url":"https://new.example","server":"https://server.example","token":"********","password":"********"}`),
+			wantStatus: http.StatusOK,
+			wantSent:   `{"url":"https://new.example","server":"https://server.example","token":"stored-token","password":"stored-password"}`,
+		},
+		{
+			name:       "a new value is sent instead of the stored secret",
+			body:       testBody("channel-1", "test-secrets", `{"server":"https://server.example","token":"fresh-token","password":"********"}`),
+			wantStatus: http.StatusOK,
+			wantSent:   `{"server":"https://server.example","token":"fresh-token","password":"stored-password"}`,
+		},
+		{
+			name:       "an empty value is sent empty",
+			body:       testBody("channel-1", "test-secrets", `{"server":"https://server.example","token":"********","password":""}`),
+			wantStatus: http.StatusOK,
+			wantSent:   `{"server":"https://server.example","token":"stored-token","password":""}`,
+		},
+		{
+			name:       "a changed endpoint refuses the placeholders",
+			body:       testBody("channel-1", "test-secrets", `{"server":"https://elsewhere.example","token":"********","password":"********"}`),
+			wantStatus: http.StatusBadRequest,
+			wantError:  "Invalid config: re-enter the saved secrets (password, token) when changing the type or where the channel sends",
+		},
+		{
+			name:       "a changed endpoint takes new values",
+			body:       testBody("channel-1", "test-secrets", `{"server":"https://elsewhere.example","token":"fresh-token"}`),
+			wantStatus: http.StatusOK,
+			wantSent:   `{"server":"https://elsewhere.example","token":"fresh-token"}`,
+		},
+		{
+			name:       "a changed type refuses the placeholders",
+			body:       testBody("channel-1", "test-other-secrets", `{"server":"https://server.example","token":"fresh-token","password":"********"}`),
+			wantStatus: http.StatusBadRequest,
+			wantError:  "(password)",
+		},
+		{
+			name:       "a changed type takes new values",
+			body:       testBody("channel-1", "test-other-secrets", `{"server":"https://server.example","token":"fresh-token","password":"fresh-password"}`),
+			wantStatus: http.StatusOK,
+			wantSent:   `{"server":"https://server.example","token":"fresh-token","password":"fresh-password"}`,
+		},
+		{
+			name:       "without an id a placeholder is refused",
+			body:       testBody("", "test-secrets", `{"server":"https://server.example","token":"********"}`),
+			wantStatus: http.StatusBadRequest,
+			wantError:  "Invalid config: re-enter the saved secrets (token) when changing the type or where the channel sends",
+		},
+		{
+			name:       "without an id an optional secret's placeholder is refused too",
+			body:       testBody("", "test-secrets", `{"server":"https://server.example","token":"fresh-token","password":"********"}`),
+			wantStatus: http.StatusBadRequest,
+			wantError:  "(password)",
+		},
+		{
+			name:       "without an id new values are sent",
+			body:       testBody("", "test-secrets", `{"server":"https://server.example","token":"fresh-token","password":"fresh-password"}`),
+			wantStatus: http.StatusOK,
+			wantSent:   `{"server":"https://server.example","token":"fresh-token","password":"fresh-password"}`,
+		},
+		{
+			name:       "a channel that doesn't exist is not found",
+			body:       testBody("channel-2", "test-secrets", `{"server":"https://server.example","token":"********"}`),
+			wantStatus: http.StatusNotFound,
+		},
+		{
+			name:       "an id that isn't a string is refused",
+			body:       `{"name":"Alerts","type":"test-secrets","config":"{\"token\":\"fresh-token\"}","id":7}`,
+			wantStatus: http.StatusBadRequest,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			f := newSecretsFixture(t, storedChannelConfig)
+
+			rec := f.do(http.MethodPost, "/test", tc.body)
+
+			require.Equal(t, tc.wantStatus, rec.Code, rec.Body.String())
+			if tc.wantSent == "" {
+				assert.Empty(t, f.provider.sent, "nothing is sent")
+			} else if assert.Len(t, f.provider.sent, 1) {
+				requireSameConfig(t, tc.wantSent, f.provider.sent[0])
+			}
+			requireNoSecretsShown(t, rec)
+			assert.Contains(t, rec.Body.String(), tc.wantError)
+			assert.Equal(t, storedChannelConfig, f.stored("channel-1"), "testing a channel doesn't change it")
+		})
+	}
+}
+
 // shownConfig returns the config of the channel in a response
 func shownConfig(t *testing.T, rec *httptest.ResponseRecorder) string {
 	t.Helper()

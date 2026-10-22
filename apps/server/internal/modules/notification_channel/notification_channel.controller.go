@@ -218,7 +218,22 @@ func (ic *Controller) Test(ctx context.Context, input *TestInput) (*httpx.Output
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
 	}
 
-	integration, lookupErr := ic.validateConfig(notificationChannel.Type, notificationChannel.Config)
+	// A secret sent as the placeholder is the one the saved channel has, if the request says which
+	// channel it edits
+	var saved *Model
+	if notificationChannel.ID != "" {
+		record, err := utils.RequireRecord(ctx, ic.logger, "Notification channel", ic.service.FindByID, notificationChannel.ID)
+		if err != nil {
+			return nil, err
+		}
+		saved = record
+	}
+	config, resolveErr := ic.resolveConfig(notificationChannel.Type, notificationChannel.Config, saved)
+	if resolveErr != nil {
+		return nil, resolveErr
+	}
+
+	integration, lookupErr := ic.validateConfig(notificationChannel.Type, config)
 	if lookupErr != nil {
 		return nil, lookupErr
 	}
@@ -238,7 +253,7 @@ func (ic *Controller) Test(ctx context.Context, input *TestInput) (*httpx.Output
 	sendCtx, cancel := context.WithTimeout(ctx, sendTimeout)
 	defer cancel()
 	// An HTTP client's errors hold the request URL, and for a channel the URL holds a credential
-	err := providers.RedactURLErrors(integration.Send(sendCtx, notificationChannel.Config, testMessage, testMonitor, testHeartbeat))
+	err := providers.RedactURLErrors(integration.Send(sendCtx, config, testMessage, testMonitor, testHeartbeat))
 	if err != nil {
 		ic.logger.Errorw("Failed to send test notification", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Failed to send test notification: "+err.Error()))
