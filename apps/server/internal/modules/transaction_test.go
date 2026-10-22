@@ -14,9 +14,12 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/dbtx"
 	"peekaping/internal/infra"
+	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_notification"
 	"peekaping/internal/modules/monitor_tag"
+	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/stats"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -278,5 +281,77 @@ func TestMonitorRepository_RunsInTheTransactionInCtx(t *testing.T) {
 		assert.Equal(t, kept.ID, all[0].ID)
 		assert.Equal(t, "kept", all[0].Name, "the rollback undid UpdatePartial")
 		assert.Equal(t, proxyID, all[0].ProxyId, "the rollback undid RemoveProxyReference")
+	})
+}
+
+func TestHeartbeatRepository_DeleteByMonitorIDRunsInTheTransactionInCtx(t *testing.T) {
+	forEachTxBackend(t, func(t *testing.T, ctx context.Context, db *bun.DB) {
+		repo := heartbeat.NewSQLRepository(db)
+		monitorID := insertTxMonitor(t, db)
+		for _, msg := range []string{"first", "second"} {
+			_, err := repo.Create(ctx, &heartbeat.Model{MonitorID: monitorID, Status: shared.MonitorStatusUp, Msg: msg})
+			require.NoError(t, err)
+		}
+		stored := func(ctx context.Context) int {
+			t.Helper()
+			n, err := dbtx.DB(ctx, db).NewSelect().Table("heartbeats").Where("monitor_id = ?", monitorID).Count(ctx)
+			require.NoError(t, err)
+			return n
+		}
+		transactor := dbtx.NewSQLTransactor(db)
+
+		err := transactor.WithTx(ctx, func(ctx context.Context) error {
+			require.NoError(t, repo.DeleteByMonitorID(ctx, monitorID))
+			assert.Zero(t, stored(ctx), "the transaction sees the heartbeats deleted")
+			return errRollBack
+		})
+		require.ErrorIs(t, err, errRollBack)
+		assert.Equal(t, 2, stored(ctx), "the rollback kept the heartbeats")
+
+		err = transactor.WithTx(ctx, func(ctx context.Context) error {
+			return repo.DeleteByMonitorID(ctx, monitorID)
+		})
+		require.NoError(t, err)
+		assert.Zero(t, stored(ctx), "the commit deleted the heartbeats")
+	})
+}
+
+func TestStatsRepository_DeleteByMonitorIDRunsInTheTransactionInCtx(t *testing.T) {
+	forEachTxBackend(t, func(t *testing.T, ctx context.Context, db *bun.DB) {
+		repo := stats.NewSQLRepository(db)
+		monitorID := insertTxMonitor(t, db)
+		periods := []stats.StatPeriod{stats.StatMinutely, stats.StatHourly, stats.StatDaily}
+		at := time.Date(2026, 10, 16, 14, 0, 0, 0, time.UTC)
+		for _, period := range periods {
+			require.NoError(t, repo.AddToStat(ctx, &stats.Stat{MonitorID: monitorID, Timestamp: at, Up: 1, PingCount: 1, Ping: 100, PingMin: 100, PingMax: 100}, period))
+		}
+		stored := func(ctx context.Context, period stats.StatPeriod) int {
+			t.Helper()
+			table := map[stats.StatPeriod]string{stats.StatMinutely: "stat_minutely", stats.StatHourly: "stat_hourly", stats.StatDaily: "stat_daily"}[period]
+			n, err := dbtx.DB(ctx, db).NewSelect().Table(table).Where("monitor_id = ?", monitorID).Count(ctx)
+			require.NoError(t, err)
+			return n
+		}
+		transactor := dbtx.NewSQLTransactor(db)
+
+		err := transactor.WithTx(ctx, func(ctx context.Context) error {
+			require.NoError(t, repo.DeleteByMonitorID(ctx, monitorID))
+			for _, period := range periods {
+				assert.Zero(t, stored(ctx, period), "the transaction sees the %s stats deleted", period)
+			}
+			return errRollBack
+		})
+		require.ErrorIs(t, err, errRollBack)
+		for _, period := range periods {
+			assert.Equal(t, 1, stored(ctx, period), "the rollback kept the %s stats", period)
+		}
+
+		err = transactor.WithTx(ctx, func(ctx context.Context) error {
+			return repo.DeleteByMonitorID(ctx, monitorID)
+		})
+		require.NoError(t, err)
+		for _, period := range periods {
+			assert.Zero(t, stored(ctx, period), "the commit deleted the %s stats", period)
+		}
 	})
 }
