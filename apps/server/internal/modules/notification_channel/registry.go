@@ -56,14 +56,3 @@ func (r *ProviderRegistry) Get(channelType string) (NotificationChannelProvider,
 func (r *ProviderRegistry) Types() []string {
 	return slices.Sorted(maps.Keys(r.byType))
 }
-
-var NotificationChannelProviderRegistry = make(map[string]NotificationChannelProvider)
-
-func RegisterNotificationChannelProvider(name string, provider NotificationChannelProvider) {
-	NotificationChannelProviderRegistry[name] = provider
-}
-
-func GetNotificationChannelProvider(name string) (NotificationChannelProvider, bool) {
-	n, ok := NotificationChannelProviderRegistry[name]
-	return n, ok
-}
