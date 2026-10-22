@@ -109,7 +109,7 @@ These are required in cluster mode, where the API reaches the producer, worker a
 
 ### Usage Statistics and Error Reporting Configuration
 
-The anonymous usage ping and the error reports are both off until an admin turns them on, each with its own switch. These variables switch them off whatever the admin chose. See [Usage statistics and error reporting](../self-hosting/telemetry.md).
+The anonymous usage ping and the error reports are both on until an admin turns them off, each with its own switch. These variables switch them off whatever the admin chose. See [Usage statistics and error reporting](../self-hosting/telemetry.md).
 
 | Variable | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|

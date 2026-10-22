@@ -9,13 +9,19 @@ Peekaping can send two kinds of anonymous data to the Peekaping project:
 - **[Usage statistics](#usage-statistics)** are a usage ping that says how your install is set up: the version, the mode, the storage backend and which kinds of monitors you use. We use it to see what is safe to change or remove.
 - **[Error reports](#error-reporting)** say where Peekaping's own code crashed. We use them to find and fix bugs that show only on someone else's server.
 
-**Both are off until an admin turns them on.** A new install sends nothing. An install that upgrades from an older version stays off too. Each one has its own box on the setup screen and its own switch in Settings, and turning one on does not turn on the other.
+**Both are on until an admin turns them off.** A new install sends both, and so does an install that upgrades from an older version, where they didn't exist. Each one has its own box on the setup screen, ticked, and its own switch in Settings, and turning one off does not turn off the other. An install that upgrades shows its admin a one-time notice, see [The upgrade notice](#the-upgrade-notice).
 
-An environment variable switches either one off whatever the setting says. See [Turn it on or off](#turn-it-on-or-off) for the usage statistics and [Turn error reporting on or off](#turn-error-reporting-on-or-off) for the error reports.
+An environment variable switches either one off whatever the setting says, and nothing is sent while it applies. See [Turn it on or off](#turn-it-on-or-off) for the usage statistics and [Turn error reporting on or off](#turn-error-reporting-on-or-off) for the error reports. To send neither, set `DO_NOT_TRACK=1`.
+
+## The upgrade notice
+
+An install that upgrades from a version without these features starts sending both. So its admin sees a notice once, as a banner at the top of the app. It says that usage statistics and error reports are on, what each one sends and never sends, and links to the cards in Settings that turn them off. It names only the features that are on: one that an environment variable switches off isn't mentioned, and there is no notice when both are switched off.
+
+The notice stops showing when the admin dismisses it, or makes a choice for either feature in Settings. Dismissing it is not a choice: both stay on. The install stores that it was shown, so it doesn't come back in another browser or after you clear your browser's data, and it doesn't come back on a later upgrade. A new install has no notice, since its admin made the choice on the setup screen.
 
 ## Usage statistics
 
-Peekaping can send an anonymous usage ping: a short summary of how your install is set up. We use it to see which versions, modes, storage backends and monitor types are in use, so we know what is safe to change or remove.
+Peekaping sends an anonymous usage ping: a short summary of how your install is set up. We use it to see which versions, modes, storage backends and monitor types are in use, so we know what is safe to change or remove.
 
 ### What is sent
 
@@ -57,9 +63,9 @@ Every storage backend you can set with `DB_TYPE` is counted. `DB_TYPE=postgresql
 
 #### Instance ID
 
-The instance ID is a random UUID. Peekaping creates it when an admin turns the usage ping on and deletes it when they turn it off. If you turn the usage ping on again, you get a new ID. It is the only identifier in a usage ping, and nothing about your install goes into it.
+The instance ID is a random UUID. Peekaping creates it the first time it is needed while the usage ping is on, which for an install that never chose is soon after it starts. It deletes the ID when an admin turns the usage ping off. If you turn the usage ping on again, you get a new ID. Replicas of a cluster that start together end up with the same ID. While `TELEMETRY=off` or `DO_NOT_TRACK=1` applies, Peekaping makes none. It is the only identifier in a usage ping, and nothing about your install goes into it.
 
-The ID lets us count an install once instead of once a day. Because it changes when you opt out and in again, the counts are a floor, not a census.
+The ID lets us count an install once instead of once a day. Because it changes when you opt out and in again, one install can be counted twice over time.
 
 #### What is never sent
 
@@ -88,7 +94,7 @@ The Worker never reads or stores your IP address or your country, and it stores 
 
 ### How often
 
-At most once a day. Peekaping checks a few minutes after it starts, and then every hour, whether a usage ping is due. A usage ping is due when the last one is more than 24 hours old. After an admin opts in, the first usage ping goes at the next check. In cluster mode that can be later: the claim in Redis holds for 23 hours after a usage ping, and opting out doesn't release it. An install that opts out and back in within 23 hours of its last usage ping sends the first new one when the claim ends, up to 23 hours later.
+At most once a day. Peekaping checks a few minutes after it starts, and then every hour, whether a usage ping is due. A usage ping is due when the last one is more than 24 hours old. An install that never chose sends its first one at the first check, a few minutes after it starts. After an admin opts out and in again, the first usage ping goes at the next check. In cluster mode that can be later: the claim in Redis holds for 23 hours after a usage ping, and opting out doesn't release it. An install that opts out and back in within 23 hours of its last usage ping sends the first new one when the claim ends, up to 23 hours later.
 
 Only one process sends it. In [single mode](./deployment-modes.md#single-mode), that is the `peekaping` process. In [cluster mode](./deployment-modes.md#cluster-mode), it is one API replica, whichever claims the day's usage ping in Redis first. The producer, worker and ingester never send it.
 
@@ -98,7 +104,7 @@ A usage ping that fails to reach the Worker is dropped, not retried. A failure n
 
 Any of these turns it on or off for an admin:
 
-- **The setup screen.** When you create the admin account, the box "Send anonymous usage statistics" is unticked. Tick it to opt in.
+- **The setup screen.** When you create the admin account, the box "Send anonymous usage statistics" is ticked. Untick it to opt out. Either way, your choice is stored.
 - **Settings.** The "Usage statistics" card has a switch. Turning it off deletes the instance ID, and turning it on creates a new one.
 
 An environment variable switches it off whatever the setting says. While one applies, Peekaping sends nothing, and the switch in Settings is off and can't be changed:
@@ -120,13 +126,13 @@ Set the variable on the `peekaping` container in single mode, and on every API r
 
 ### See exactly what is sent
 
-The "Usage statistics" card in Settings shows the JSON the next usage ping would send. It comes from the same code that builds the usage ping, so it is exact. Before you opt in, `instance_id` is empty, and nothing is sent.
+The "Usage statistics" card in Settings shows the JSON the next usage ping would send. It comes from the same code that builds the usage ping, so it is exact. After you opt out, `instance_id` is empty, and nothing is sent.
 
 ## Error reporting
 
-Peekaping can send a report when its own code crashes. The report says what kind of error it was and where in the code it happened, so we can find the bug and fix it. Without error reporting, we learn of a crash only when someone files an issue. With it on, Peekaping sends a report on its own when its code panics in a place Peekaping watches: HTTP handlers, queue tasks, checks, event handlers, notification sends and the background jobs Peekaping starts. A panic anywhere else may stop the process without a report.
+Peekaping sends a report when its own code crashes. The report says what kind of error it was and where in the code it happened, so we can find the bug and fix it. Without error reporting, we learn of a crash only when someone files an issue. With it on, Peekaping sends a report on its own when its code panics in a place Peekaping watches: HTTP handlers, queue tasks, checks, event handlers, notification sends and the background jobs Peekaping starts. A panic anywhere else may stop the process without a report.
 
-**It is off until an admin turns it on**, and it is a separate choice from the usage statistics.
+**It is on until an admin turns it off**, and it is a separate choice from the usage statistics.
 
 ### When a report is sent
 
@@ -182,7 +188,7 @@ A report that fails to reach Sentry is dropped, not retried. Sending a report ne
 
 Any of these turns it on or off for an admin:
 
-- **The setup screen.** When you create the admin account, the box "Send error reports" is unticked. Tick it to opt in. It is a different box from "Send anonymous usage statistics".
+- **The setup screen.** When you create the admin account, the box "Send error reports" is ticked. Untick it to opt out. It is a different box from "Send anonymous usage statistics".
 - **Settings.** The "Error reports" card has a switch.
 
 An environment variable switches it off whatever the setting says. While one applies, Peekaping sends no reports, and the switch in Settings is off and can't be changed:
@@ -205,6 +211,6 @@ Set the variable on the `peekaping` container in single mode. In cluster mode, s
 
 ### In cluster mode
 
-The API reads and changes the setting. The stored setting is the source of truth. A change in Settings stores it, takes effect in the API at once, and is copied to Redis. The producer, worker and ingester read it from Redis once a minute. The API also copies the stored setting to Redis again every minute.
+The API reads and changes the setting. The stored setting is the source of truth. A change in Settings stores it, takes effect in the API at once, and is copied to Redis. The producer, worker and ingester read it from Redis once a minute. The API also copies the stored setting to Redis again every minute. With no stored choice, the API copies "on" when it starts, so the producer, worker and ingester report by default; until the API has copied it, they report nothing.
 
 While Redis is up, a change in Settings reaches every process within a minute. A change made while Redis was down can take up to about two minutes after Redis comes back: the API copies it again within a minute, and the other processes read it within another minute. Either way, no restart is needed.

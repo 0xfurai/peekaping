@@ -1,5 +1,5 @@
-// Worker behind telemetry.peekaping.com/v1/ping: validates the opt-in usage ping and writes it to Analytics Engine.
-// Built and deployed by .github/workflows/telemetry.yml. See docs/adr/0003-opt-in-telemetry-and-error-reporting.md.
+// Worker behind telemetry.peekaping.com/v1/ping: validates the anonymous usage ping and writes it to Analytics Engine.
+// Built and deployed by .github/workflows/telemetry.yml. See docs/adr/0003-telemetry-and-error-reporting.md.
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "peekaping-telemetry",
