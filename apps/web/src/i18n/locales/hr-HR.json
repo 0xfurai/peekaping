@@ -1380,7 +1380,7 @@
   "telemetry": {
     "docs_link": "Što se šalje i kako to isključiti",
     "label": "Šalji anonimnu statistiku korištenja",
-    "never_sent": "Nikada se ne šalje: nazivi nadzora, URL-ovi, hostovi, oznake, adrese statusnih stranica ni postavke obavijesti. Vaša IP adresa se ne pohranjuje.",
+    "never_sent": "Nikada se ne šalje: nazivi nadzora, URL-ovi, hostovi, oznake, adrese statusnih stranica ni postavke obavijesti. Ping upotrebe ne sadrži IP adresu, a Peekapingov Worker ne bilježi IP pošiljatelja.",
     "sent_features": "Koristite li statusne stranice, prozore održavanja i metrike",
     "sent_id": "Nasumični ID, koji se stvara kad ovo uključite i briše kad ovo isključite",
     "sent_monitors": "Koliko nadzora imate, kao raspon, na primjer 11-50",

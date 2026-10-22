@@ -1379,7 +1379,7 @@
   "telemetry": {
     "docs_link": "Cad a sheoltar agus conas é a mhúchadh",
     "label": "Seol staitisticí úsáide gan ainm",
-    "never_sent": "Ní sheoltar choíche: ainmneacha móntóirí, URLanna, óstaigh, tagaí, seoltaí leathanach stádais ná socruithe fógraí. Ní stóráiltear do sheoladh IP.",
+    "never_sent": "Ní sheoltar choíche: ainmneacha móntóirí, URLanna, óstaigh, tagaí, seoltaí leathanach stádais ná socruithe fógraí. Níl aon seoladh IP i bpingeáil úsáide, agus ní thaifeadann Worker Peekaping IP an tseoltóra.",
     "sent_features": "An úsáideann tú leathanaigh stádais, fuinneoga cothabhála agus méadrachtaí",
     "sent_id": "ID randamach, a chruthaítear nuair a chuireann tú air é agus a scriostar nuair a mhúchann tú é",
     "sent_monitors": "Cé mhéad móntóir atá agat, mar raon, mar shampla 11-50",
