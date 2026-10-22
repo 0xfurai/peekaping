@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import { adminAPI } from './support/api';
 
 const switchName = 'Send anonymous usage statistics';
@@ -122,6 +122,25 @@ test('Settings shows error reports as forced off when the environment switches t
 test.describe('Setup screen', () => {
   test.use({ storageState: { cookies: [], origins: [] } });
 
+  const fakeRegister = (page: Page) =>
+    page.route('**/api/v1/auth/register', (route) =>
+      route.fulfill({
+        status: 201,
+        json: {
+          status: 'success',
+          message: 'User registered successfully',
+          data: { accessToken: 'fake-access', refreshToken: 'fake-refresh', user: { id: '1', email: 'new@admin.test' } },
+        },
+      }),
+    );
+
+  const fillAndSubmit = async (page: Page) => {
+    await page.goto('/register');
+    await page.getByRole('textbox', { name: 'Email' }).fill('new@admin.test');
+    await page.locator('input[name="password"]').fill('TestPassword1234!');
+    await page.locator('input[name="confirmPassword"]').fill('TestPassword1234!');
+  };
+
   const choices = [
     { name: 'neither box ticked', usage: false, errors: false },
     { name: 'only error reports ticked', usage: false, errors: true },
@@ -138,26 +157,14 @@ test.describe('Setup screen', () => {
           return route.fulfill({ json: { enabled: true, forced_off: false } });
         });
       }
-      await page.route('**/api/v1/auth/register', (route) =>
-        route.fulfill({
-          status: 201,
-          json: {
-            status: 'success',
-            message: 'User registered successfully',
-            data: { accessToken: 'fake-access', refreshToken: 'fake-refresh', user: { id: '1', email: 'new@admin.test' } },
-          },
-        }),
-      );
+      await fakeRegister(page);
 
-      await page.goto('/register');
+      await fillAndSubmit(page);
       const errorReports = page.getByRole('checkbox', { name: errorReportsSwitchName });
       const usage = page.getByRole('checkbox', { name: switchName });
       await expect(errorReports).not.toBeChecked();
       await expect(usage).not.toBeChecked();
 
-      await page.getByRole('textbox', { name: 'Email' }).fill('new@admin.test');
-      await page.locator('input[name="password"]').fill('TestPassword1234!');
-      await page.locator('input[name="confirmPassword"]').fill('TestPassword1234!');
       if (choice.errors) await errorReports.click();
       if (choice.usage) await usage.click();
       const registered = page.waitForResponse((response) => response.url().endsWith('/auth/register'));
@@ -171,6 +178,47 @@ test.describe('Setup screen', () => {
       await page.waitForTimeout(500);
       if (!choice.errors) expect(puts['error-reporting']).toEqual([]);
       if (!choice.usage) expect(puts.telemetry).toEqual([]);
+    });
+  }
+
+  // Setup has succeeded by the time the opt-in request goes out, so a failure there
+  // doesn't undo it. The admin is told the choice wasn't saved and where to make it again.
+  const failures = [
+    {
+      name: 'usage statistics',
+      endpoint: 'telemetry',
+      box: switchName,
+      warning: "Your choice to send usage statistics wasn't saved. Turn it on in Settings.",
+      other: "Your choice to send error reports wasn't saved. Turn it on in Settings.",
+    },
+    {
+      name: 'error reports',
+      endpoint: 'error-reporting',
+      box: errorReportsSwitchName,
+      warning: "Your choice to send error reports wasn't saved. Turn it on in Settings.",
+      other: "Your choice to send usage statistics wasn't saved. Turn it on in Settings.",
+    },
+  ];
+
+  for (const failure of failures) {
+    test(`The setup screen warns when the choice to send ${failure.name} isn't saved`, async ({ page }) => {
+      const puts: unknown[] = [];
+      await page.route(`**/api/v1/${failure.endpoint}`, (route) => {
+        puts.push(route.request().postDataJSON());
+        return route.fulfill({ status: 500, json: { status: 'error', message: 'Internal server error' } });
+      });
+      await fakeRegister(page);
+
+      await fillAndSubmit(page);
+      await page.getByRole('checkbox', { name: failure.box }).click();
+      await page.getByRole('button', { name: 'Create' }).click();
+
+      await expect(page.getByText(failure.warning)).toBeVisible();
+      // Setup itself went through
+      await expect(page.getByText('Registered successfully')).toBeVisible();
+      expect(puts).toEqual([{ enabled: true }]);
+      // Only the box that was ticked has anything to warn about
+      await expect(page.getByText(failure.other)).toHaveCount(0);
     });
   }
 });
