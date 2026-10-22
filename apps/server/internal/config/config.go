@@ -32,6 +32,10 @@ type Config struct {
 	DBPass string `env:"DB_PASS"`                           // validated in validateCustomRules
 	DBType string `env:"DB_TYPE" validate:"required,db_type"`
 
+	// Which check a process that opens SQLite runs at startup: "quick" runs PRAGMA quick_check,
+	// "full" runs PRAGMA integrity_check, and "off" runs none. A finding stops startup.
+	SQLiteStartupCheck string `env:"SQLITE_STARTUP_CHECK" validate:"oneof=quick full off" default:"quick"`
+
 	Mode     string `env:"MODE" validate:"required,oneof=dev prod test" default:"dev"`
 	LogLevel string `env:"LOG_LEVEL" validate:"omitempty,log_level" default:"info"`
 

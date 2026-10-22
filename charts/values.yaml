@@ -60,6 +60,8 @@ redis:
 config:
   existingSecret: "peekaping-config"
   env:
+    # The chart supports PostgreSQL only: it refuses DB_TYPE sqlite, since it has no
+    # volume for the file and each pod would get a database of its own. For SQLite, use the single-mode bundle image.
     DB_TYPE: "postgres"
     # Bundled service hosts: <release>-postgresql and <release>-redis-master in
     # the release's namespace (here release and namespace are both "peekaping").
