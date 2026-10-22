@@ -1,6 +1,7 @@
 package httpx_test
 
 import (
+	"bufio"
 	"io"
 	"net"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -50,6 +52,60 @@ func TestNewServer_RefusesARequestWithAHeaderBlockOver64KiB(t *testing.T) {
 			assert.Equal(t, tc.want, resp.StatusCode)
 		})
 	}
+}
+
+func TestNewServer_ReadTimeoutCutsOffASlowBodyButNotAWebsocket(t *testing.T) {
+	timeouts := httpx.DefaultTimeouts()
+	timeouts.Read = 300 * time.Millisecond
+	upgrader := websocket.Upgrader{}
+	mux := http.NewServeMux()
+	mux.HandleFunc("/echo", func(w http.ResponseWriter, r *http.Request) {
+		conn, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			return
+		}
+		defer conn.Close()
+		for {
+			kind, message, err := conn.ReadMessage()
+			if err != nil {
+				return
+			}
+			if conn.WriteMessage(kind, message) != nil {
+				return
+			}
+		}
+	})
+	mux.HandleFunc("/body", func(w http.ResponseWriter, r *http.Request) {
+		if _, err := io.ReadAll(r.Body); err != nil {
+			w.WriteHeader(http.StatusRequestTimeout)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+	})
+	addr := serve(t, timeouts, mux)
+
+	// The control: the ReadTimeout is set, and a body that stops arriving fails to read
+	conn, err := net.Dial("tcp", addr)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = conn.Close() })
+	_, err = io.WriteString(conn, "POST /body HTTP/1.1\r\nHost: peekaping\r\nContent-Length: 10\r\n\r\nabc")
+	require.NoError(t, err)
+	require.NoError(t, conn.SetReadDeadline(time.Now().Add(5*time.Second)))
+	resp, err := http.ReadResponse(bufio.NewReader(conn), nil)
+	require.NoError(t, err, "the server stops waiting for the body")
+	_ = resp.Body.Close()
+	assert.Equal(t, http.StatusRequestTimeout, resp.StatusCode)
+
+	// A websocket upgrade ends the server's deadlines, so it echoes after the ReadTimeout passed
+	socket, _, err := websocket.DefaultDialer.Dial("ws://"+addr+"/echo", nil)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = socket.Close() })
+	time.Sleep(2 * timeouts.Read)
+	require.NoError(t, socket.WriteMessage(websocket.TextMessage, []byte("still here")))
+	require.NoError(t, socket.SetReadDeadline(time.Now().Add(5*time.Second)))
+	_, echo, err := socket.ReadMessage()
+	require.NoError(t, err)
+	assert.Equal(t, "still here", string(echo))
 }
 
 func TestNewServer_ClosesAClientThatSendsItsHeadersSlowly(t *testing.T) {
