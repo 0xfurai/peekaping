@@ -153,8 +153,7 @@ func TestRun_ShutsDownWithinSecondsWhileAProbeHoldsAnAssignmentPoll(t *testing.T
 }
 
 // Single mode has no queue: the reply to a probe's results comes after they are stored as
-// heartbeats. The heartbeat keeps the check's end time; the SQL repository stamps the time of a
-// heartbeat itself when it creates it.
+// heartbeats, with the times of the checks and not of their arrival.
 func TestRun_StoresTheResultsAProbeSendsAsHeartbeatsBeforeTheReplyWithoutRedis(t *testing.T) {
 	cfg := loadConfig(t, map[string]string{"PROBE_BOOTSTRAP_TOKEN": bootstrapToken})
 	logger, logs := observedLogger()
@@ -185,9 +184,11 @@ func TestRun_StoresTheResultsAProbeSendsAsHeartbeatsBeforeTheReplyWithoutRedis(t
 	require.NotEmpty(t, recovered.ID)
 	assert.Equal(t, shared.MonitorStatusDown, failed.Status)
 	assert.Equal(t, 5, failed.Ping)
-	assert.True(t, failedAt.Add(5*time.Millisecond).Equal(failed.EndTime), "the end of the check, not of its arrival: %s", failed.EndTime)
+	assert.True(t, failedAt.Equal(failed.Time), "the start of the check, not of its arrival: %s", failed.Time)
+	assert.True(t, failedAt.Add(5*time.Millisecond).Equal(failed.EndTime), "%s", failed.EndTime)
 	assert.Equal(t, shared.MonitorStatusUp, recovered.Status)
 	assert.Equal(t, 31, recovered.Ping)
+	assert.True(t, recoveredAt.Equal(recovered.Time), "%s", recovered.Time)
 	assert.True(t, recoveredAt.Add(31*time.Millisecond).Equal(recovered.EndTime), "%s", recovered.EndTime)
 }
 
