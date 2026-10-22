@@ -1381,6 +1381,7 @@
     "docs_link": "Was gesendet wird und wie man es ausschaltet",
     "label": "Anonyme Nutzungsstatistiken senden",
     "never_sent": "Nie gesendet werden: Monitornamen, URLs, Hosts, Schlagwörter, Adressen von Statusseiten oder Benachrichtigungseinstellungen. Ein Nutzungs-Ping enthält keine IP-Adresse, und der Worker von Peekaping erfasst die IP des Absenders nicht.",
+    "not_saved": "Ihre Auswahl, Nutzungsstatistiken zu senden, wurde nicht gespeichert. Schalten Sie es unter «Einstellungen» ein.",
     "sent_features": "Ob Sie Statusseiten, Wartungsfenster und Metriken verwenden",
     "sent_id": "Eine zufällige ID, die beim Einschalten erstellt und beim Ausschalten gelöscht wird",
     "sent_monitors": "Wie viele Monitore Sie haben, als Bereich, zum Beispiel 11-50",

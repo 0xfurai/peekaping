@@ -1381,6 +1381,7 @@
     "docs_link": "Šta se šalje i kako to isključiti",
     "label": "Šalji anonimnu statistiku korišćenja",
     "never_sent": "Nikada se ne šalju: nazivi nadgledaja, URL adrese, hostovi, tagovi, adrese status stranica ni podešavanja obaveštenja. Ping korišćenja ne sadrži IP adresu, a Peekaping-ov Worker ne beleži IP pošiljaoca.",
+    "not_saved": "Vaš izbor slanja statistike korišćenja nije sačuvan. Uključite to u „Podešavanja“.",
     "sent_features": "Da li koristite status stranice, prozore održavanja i metrike",
     "sent_id": "Nasumični ID, koji se pravi kada ovo uključite i briše kada ovo isključite",
     "sent_monitors": "Koliko nadgledaja imate, kao opseg, na primer 11-50",

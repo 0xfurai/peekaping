@@ -2787,10 +2787,7 @@
         "additionalProperties": true,
         "properties": {
           "enabled": {
-            "type": [
-              "boolean",
-              "null"
-            ]
+            "type": "boolean"
           }
         },
         "required": [

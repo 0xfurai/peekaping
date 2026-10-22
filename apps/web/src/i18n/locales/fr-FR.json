@@ -1381,6 +1381,7 @@
     "docs_link": "Ce qui est envoyé et comment le désactiver",
     "label": "Envoyer des statistiques d'utilisation anonymes",
     "never_sent": "Jamais envoyés : les noms des moniteurs, les URL, les hôtes, les étiquettes, les adresses des pages d'état ni les paramètres de notification. Un ping d'utilisation ne contient aucune adresse IP, et le Worker de Peekaping n'enregistre pas l'IP de l'expéditeur.",
+    "not_saved": "Votre choix d'envoyer des statistiques d'utilisation n'a pas été enregistré. Activez-le dans « Paramètres ».",
     "sent_features": "Si vous utilisez des pages d'état, des fenêtres de maintenance et des métriques",
     "sent_id": "Un identifiant aléatoire, créé quand vous l'activez et supprimé quand vous le désactivez",
     "sent_monitors": "Le nombre de moniteurs que vous avez, sous forme de plage, par exemple 11-50",
