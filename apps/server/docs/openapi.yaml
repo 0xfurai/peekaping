@@ -1467,6 +1467,78 @@ components:
             - array
             - "null"
       type: object
+    probeproto.HelloRequest:
+      additionalProperties: true
+      properties:
+        arch:
+          type: string
+        hostname:
+          type: string
+        instance_id:
+          type: string
+        os:
+          type: string
+        probe_version:
+          type: string
+        protocol_version:
+          format: int64
+          type: integer
+        supported_types:
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+      type: object
+    probeproto.HelloResponse:
+      additionalProperties: false
+      properties:
+        batch_max:
+          format: int64
+          type: integer
+        buffer_max:
+          format: int64
+          type: integer
+        flush_interval_ms:
+          format: int64
+          type: integer
+        poll_timeout_ms:
+          format: int64
+          type: integer
+        probe:
+          $ref: "#/components/schemas/probeproto.ProbeInfo"
+        protocol_version:
+          format: int64
+          type: integer
+        server_time:
+          format: date-time
+          type: string
+        server_version:
+          type: string
+      required:
+        - protocol_version
+        - server_version
+        - server_time
+        - probe
+        - poll_timeout_ms
+        - flush_interval_ms
+        - batch_max
+        - buffer_max
+      type: object
+    probeproto.ProbeInfo:
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+        location:
+          type: string
+        name:
+          type: string
+      required:
+        - id
+        - name
+        - location
+      type: object
     proxy.CreateUpdateDto:
       additionalProperties: true
       properties:
@@ -2562,6 +2634,10 @@ components:
       type: apiKey
     JwtAuth:
       bearerFormat: JWT
+      scheme: bearer
+      type: http
+    ProbeAuth:
+      bearerFormat: probe token
       scheme: bearer
       type: http
 info:
@@ -6897,6 +6973,142 @@ paths:
       summary: Get server health
       tags:
         - System
+  /probe/v1/bye:
+    post:
+      description: Tells the server that this instance is stopping, so that it removes the instance. An instance that never said hello is answered 409.
+      operationId: probePostBye
+      parameters:
+        - description: "The id of the probe instance making the call: a random id the probe process chooses when it starts. 1 to 255 visible characters, no spaces."
+          in: header
+          name: X-Probe-Instance
+          required: true
+          schema:
+            maxLength: 255
+            minLength: 1
+            type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Conflict
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Implemented
+      security:
+        - ProbeAuth: []
+      summary: Say bye
+      tags:
+        - probe-protocol
+  /probe/v1/hello:
+    post:
+      description: "The first call of every probe instance. It records the instance and the monitor types its probe can run, and answers with the server's version and time, the probe's name and location, and the limits the probe works within. A protocol version below the server's minimum is answered 426. The body may be gzipped (Content-Encoding: gzip), up to 1 MB once decompressed, and the reply is gzipped when Accept-Encoding allows it."
+      operationId: probePostHello
+      parameters:
+        - description: "The id of the probe instance making the call: a random id the probe process chooses when it starts. 1 to 255 visible characters, no spaces."
+          in: header
+          name: X-Probe-Instance
+          required: true
+          schema:
+            maxLength: 255
+            minLength: 1
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/probeproto.HelloRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/probeproto.HelloResponse"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Conflict
+        "413":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Request Entity Too Large
+        "426":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Upgrade Required
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Implemented
+      security:
+        - ProbeAuth: []
+      summary: Say hello
+      tags:
+        - probe-protocol
 security: []
 servers:
   - url: /
