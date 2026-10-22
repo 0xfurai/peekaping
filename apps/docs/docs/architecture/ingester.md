@@ -98,13 +98,26 @@ Run multiple ingester instances for increased throughput.
 
 ## Graceful Shutdown
 
-On receiving `SIGTERM` or `SIGINT`:
+On receiving `SIGTERM` or `SIGINT`, the ingester stops in this order and exits 0 within 30 seconds:
 
-1. Stop accepting new tasks from the queue
-2. Wait for currently processing tasks to complete
-3. Close Redis event bus
-4. Close database connections
+1. Stop taking tasks from the queue. The ingests running finish storing their heartbeats, for up to 20 seconds. An ingest still running after that goes back to the queue.
+2. Close the event bus. The handlers of the events already queued finish, such as the ones that update the stats. They get 10 seconds.
+3. Close the database. SQLite checkpoints its write-ahead log first.
 
+The ingester logs each step once it is done:
+```
+INFO Shutdown signal received, shutting down
+INFO Stopping ingester
+INFO Ingester stopped
+INFO Stopped the ingester
+INFO Closed the event bus
+INFO Closed the database
+INFO Ingester shut down
+```
+
+If a step doesn't finish in time, the ingester logs an error, leaves the database open and exits 1. A second signal makes it exit 1 at once.
+
+Give the container 35 seconds to stop. The cluster Compose files and the Helm chart do. See the [producer's shutdown](./producer.md#graceful-shutdown) for the details.
 
 
 ## Related Components
