@@ -178,43 +178,65 @@ func TestResolveSecrets(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			got, unresolved := resolveSecrets(provider, tc.incoming, tc.saved)
+			got, unresolved, _ := resolveSecrets(provider, tc.incoming, tc.saved)
 			requireSameConfig(t, tc.want, got)
 			assert.Equal(t, tc.wantUnresolved, unresolved)
 		})
 	}
 
+	t.Run("it reports the saved secrets it put in, sorted, and not the ones the request typed", func(t *testing.T) {
+		_, unresolved, used := resolveSecrets(provider, `{"server":"https://server.example","token":"fresh","password":"********","hook_url":"********"}`, ptr(savedWithHook))
+		assert.Empty(t, unresolved)
+		assert.Equal(t, []string{"https://hook.example/saved", "saved-password"}, used)
+	})
+
+	t.Run("it reports nothing put in while a placeholder is unresolved", func(t *testing.T) {
+		_, unresolved, used := resolveSecrets(provider, `{"server":"https://server.example","token":"********","password":"********"}`, ptr(`{"server":"https://server.example","token":"saved-token"}`))
+		assert.Equal(t, []string{"password"}, unresolved)
+		assert.Empty(t, used)
+	})
+
 	t.Run("a type with no secrets keeps its config", func(t *testing.T) {
-		got, unresolved := resolveSecrets(noSecretsProvider{}, `{"token":"********"}`, nil)
+		got, unresolved, _ := resolveSecrets(noSecretsProvider{}, `{"token":"********"}`, nil)
 		assert.Equal(t, `{"token":"********"}`, got)
 		assert.Empty(t, unresolved)
 	})
 
 	t.Run("an unknown type keeps its config", func(t *testing.T) {
-		got, unresolved := resolveSecrets(nil, `{"token":"********"}`, nil)
+		got, unresolved, _ := resolveSecrets(nil, `{"token":"********"}`, nil)
 		assert.Equal(t, `{"token":"********"}`, got)
 		assert.Empty(t, unresolved)
 	})
 
 	t.Run("a config with nothing to resolve comes back byte for byte", func(t *testing.T) {
 		incoming := "{ \"token\" :  \"fresh\",\n \"url\": \"u\" }"
-		got, unresolved := resolveSecrets(provider, incoming, ptr(saved))
+		got, unresolved, _ := resolveSecrets(provider, incoming, ptr(saved))
 		assert.Equal(t, incoming, got)
 		assert.Empty(t, unresolved)
 	})
 
 	t.Run("values stay as they were written", func(t *testing.T) {
-		got, _ := resolveSecrets(provider, `{"url":"https://example.com/?a=1&b=<2>","big":12345678901234567890,"server":"https://server.example","token":"********"}`, ptr(saved))
+		got, _, _ := resolveSecrets(provider, `{"url":"https://example.com/?a=1&b=<2>","big":12345678901234567890,"server":"https://server.example","token":"********"}`, ptr(saved))
 		assert.Contains(t, got, `"url":"https://example.com/?a=1&b=<2>"`)
 		assert.Contains(t, got, `"big":12345678901234567890`)
 	})
 
 	t.Run("a saved secret with characters JSON escapes comes back whole", func(t *testing.T) {
-		got, _ := resolveSecrets(provider, `{"token":"********"}`, ptr(`{"token":"a\"b\\c<d>&e"}`))
+		got, _, _ := resolveSecrets(provider, `{"token":"********"}`, ptr(`{"token":"a\"b\\c<d>&e"}`))
 		var fields map[string]string
 		require.NoError(t, json.Unmarshal([]byte(got), &fields))
 		assert.Equal(t, `a"b\c<d>&e`, fields["token"])
 	})
+}
+
+func TestMaskSecrets(t *testing.T) {
+	assert.Equal(t, "nothing to hide", maskSecrets("nothing to hide", nil))
+	assert.Equal(t, "nothing to hide", maskSecrets("nothing to hide", []string{""}), "an empty secret masks nothing")
+	assert.Equal(t, "a ******** b ********", maskSecrets("a tok b tok", []string{"tok"}), "every occurrence")
+	assert.Equal(t, "********", maskSecrets("abcdef", []string{"abc", "abcdef"}), "a secret that contains another is masked whole")
+	assert.Equal(t, "get ********/send", maskSecrets("get a%2Fb%20c/send", []string{"a/b c"}), "as a path segment")
+	assert.Equal(t, "get ?t=********", maskSecrets("get ?t=a%2Fb+c%26d", []string{"a/b c&d"}), "as a query value")
+	assert.Equal(t, `Post "********": refused`, maskSecrets(`Post "https://hook.example/a%20b": refused`, []string{"https://hook.example/a b"}), "as a URL net/url writes back")
 }
 
 func TestDuplicateKey(t *testing.T) {

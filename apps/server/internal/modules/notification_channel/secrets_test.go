@@ -138,6 +138,8 @@ func TestUntaggedConfigKeysAreNotSecretsByName(t *testing.T) {
 type secretTestProvider struct {
 	NotificationChannelProvider
 	sent []string
+	// failWith, when set, makes Send fail with the error it returns for the config sent
+	failWith func(config string) error
 }
 
 type secretTestConfig struct {
@@ -169,6 +171,9 @@ func (p *secretTestProvider) Validate(config string) error {
 
 func (p *secretTestProvider) Send(_ context.Context, configJSON, _ string, _ *monitor.Model, _ *heartbeat.Model) error {
 	p.sent = append(p.sent, configJSON)
+	if p.failWith != nil {
+		return p.failWith(configJSON)
+	}
 	return nil
 }
 

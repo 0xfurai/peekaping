@@ -3,8 +3,11 @@ package notification_channel
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -14,6 +17,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 // channelStore is a service that keeps channels in memory. It hands out the channels it holds,
@@ -59,6 +63,8 @@ type secretsFixture struct {
 	router *httpx.Router
 	// provider is the one of test-secrets and test-other-secrets
 	provider *secretTestProvider
+	// logs are what the controller logged
+	logs *observer.ObservedLogs
 }
 
 // newSecretsFixture serves the channel routes over a store with one channel, channel-1, of type
@@ -69,7 +75,8 @@ func newSecretsFixture(t *testing.T, config string) *secretsFixture {
 	store := &channelStore{channels: map[string]*Model{
 		"channel-1": {ID: "channel-1", Name: "Alerts", Type: "test-secrets", Active: true, Config: &config},
 	}}
-	controller := NewController(store, providers, zap.NewNop().Sugar())
+	core, logs := observer.New(zap.DebugLevel)
+	controller := NewController(store, providers, zap.New(core).Sugar())
 	router := httpx.NewRouter()
 	ops := huma.Operation{Errors: []int{400, 404, 500}}
 	httpx.Register(router, "POST", "/", ops, controller.Create)
@@ -77,7 +84,7 @@ func newSecretsFixture(t *testing.T, config string) *secretsFixture {
 	httpx.Register(router, "GET", "/{id}", ops, controller.FindByID)
 	httpx.Register(router, "PUT", "/{id}", ops, controller.UpdateFull)
 	httpx.Register(router, "PATCH", "/{id}", ops, controller.UpdatePartial)
-	return &secretsFixture{t: t, store: store, router: router, provider: provider}
+	return &secretsFixture{t: t, store: store, router: router, provider: provider, logs: logs}
 }
 
 func (f *secretsFixture) do(method, path, body string) *httptest.ResponseRecorder {
@@ -101,6 +108,14 @@ func (f *secretsFixture) stored(id string) string {
 // putBody is the body of a full update of a channel of the given type
 func putBody(channelType, config string) string {
 	return `{"name":"Alerts","type":"` + channelType + `","active":true,"config":` + quote(config) + `}`
+}
+
+// mustJSON returns v as JSON
+func mustJSON(t *testing.T, v any) []byte {
+	t.Helper()
+	encoded, err := json.Marshal(v)
+	require.NoError(t, err)
+	return encoded
 }
 
 // quote returns s as a JSON string
@@ -500,6 +515,90 @@ func TestControllerTestResolvesSecrets(t *testing.T) {
 			assert.Equal(t, storedChannelConfig, f.stored("channel-1"), "testing a channel doesn't change it")
 		})
 	}
+}
+
+// A send that fails prints what it sent to: the URL, with the token in it. The test endpoint
+// answers with that text, so it masks the secrets it resolved from the saved channel.
+func TestControllerTestMasksResolvedSecretsInAFailure(t *testing.T) {
+	const awkwardToken = `to/ken&x y%z"q`
+	const hookURL = "https://hook.example/stored path"
+	saved := string(mustJSON(t, map[string]string{
+		"server": "https://server.example", "token": awkwardToken, "password": "stored-password", "hook_url": hookURL,
+	}))
+
+	// the forms the secrets are printed in, which no response or log may have
+	secretForms := []string{
+		awkwardToken,
+		url.PathEscape(awkwardToken),
+		url.QueryEscape(awkwardToken),
+		strings.Trim(strconv.Quote(awkwardToken), `"`),
+		"stored-password",
+		hookURL,
+		"https://hook.example/stored%20path",
+	}
+
+	failureShowing := func(f *secretsFixture) {
+		f.provider.failWith = func(config string) error {
+			var cfg secretTestConfig
+			require.NoError(t, json.Unmarshal([]byte(config), &cfg))
+			// what a failed request prints: the URL it went to, quoted, and the cause
+			requestURL := "https://server.example/bot" + url.PathEscape(cfg.Token) + "/send?token=" + url.QueryEscape(cfg.Token)
+			return fmt.Errorf("failed to send: Post %q: dial tcp: connection refused; token %s; password %s; hook %s; escaped hook %s",
+				requestURL, cfg.Token, cfg.Password, cfg.HookURL, "https://hook.example/stored%20path")
+		}
+	}
+
+	allLogged := func(f *secretsFixture) string {
+		var logged strings.Builder
+		for _, entry := range f.logs.All() {
+			logged.WriteString(entry.Message + fmt.Sprint(entry.ContextMap()) + "\n")
+		}
+		return logged.String()
+	}
+
+	t.Run("the secrets resolved from the saved channel are masked, in every form", func(t *testing.T) {
+		f := newSecretsFixture(t, saved)
+		failureShowing(f)
+
+		rec := f.do(http.MethodPost, "/test", testBody("channel-1", "test-secrets",
+			`{"server":"https://server.example","token":"********","password":"********","hook_url":"********"}`))
+
+		require.Equal(t, http.StatusInternalServerError, rec.Code, rec.Body.String())
+		require.Len(t, f.provider.sent, 1, "the send happened, with the stored secrets")
+		logged := allLogged(f)
+		message := responseMessage(t, rec)
+		assert.Contains(t, logged, "Failed to send test notification")
+		for _, form := range secretForms {
+			assert.NotContains(t, message, form, "response")
+			assert.NotContains(t, logged, form, "log")
+		}
+		assert.Contains(t, message, "Failed to send test notification: failed to send: Post")
+		assert.Contains(t, message, "dial tcp: connection refused", "the rest of the error stays")
+		assert.Contains(t, message, secretPlaceholder)
+	})
+
+	t.Run("a value the request typed is its own, and stays", func(t *testing.T) {
+		f := newSecretsFixture(t, saved)
+		failureShowing(f)
+
+		rec := f.do(http.MethodPost, "/test", testBody("channel-1", "test-secrets",
+			`{"server":"https://server.example","token":"fresh-token","password":"********","hook_url":"********"}`))
+
+		require.Equal(t, http.StatusInternalServerError, rec.Code, rec.Body.String())
+		message := responseMessage(t, rec)
+		assert.Contains(t, message, "token fresh-token", "typed in the request")
+		assert.NotContains(t, message, "stored-password", "resolved from the saved channel")
+	})
+}
+
+// responseMessage returns the message of a response, as the client reads it
+func responseMessage(t *testing.T, rec *httptest.ResponseRecorder) string {
+	t.Helper()
+	var envelope struct {
+		Message string `json:"message"`
+	}
+	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &envelope), rec.Body.String())
+	return envelope.Message
 }
 
 // A config that names a field twice, under keys of one letter case or another, is read one way

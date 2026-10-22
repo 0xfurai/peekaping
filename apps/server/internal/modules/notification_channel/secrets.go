@@ -3,8 +3,10 @@ package notification_channel
 import (
 	"bytes"
 	"encoding/json"
+	"net/url"
 	"reflect"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -203,16 +205,19 @@ func redactConfig(provider NotificationChannelProvider, config string) string {
 // incoming config changed an endpoint, a field that decides where the secrets are sent. An
 // endpoint that is itself a secret counts as unchanged when it is sent as the placeholder.
 //
+// used are the saved secrets that were put in, for a caller that has to keep them out of a
+// message. It is empty when anything is unresolved.
+//
 // An incoming config that isn't a JSON object is returned as it is, for validation to reject.
-func resolveSecrets(provider NotificationChannelProvider, incoming string, saved *string) (resolved string, unresolved []string) {
+func resolveSecrets(provider NotificationChannelProvider, incoming string, saved *string) (resolved string, unresolved, used []string) {
 	fields := configFields(provider)
 	secrets := secretFields(provider)
 	if len(secrets) == 0 {
-		return incoming, nil
+		return incoming, nil, nil
 	}
 	incomingFields, ok := parseConfig(incoming)
 	if !ok || incomingFields == nil {
-		return incoming, nil
+		return incoming, nil, nil
 	}
 
 	placeholders := map[string]configField{}
@@ -223,7 +228,7 @@ func resolveSecrets(provider NotificationChannelProvider, incoming string, saved
 		}
 	}
 	if len(placeholders) == 0 {
-		return incoming, nil
+		return incoming, nil, nil
 	}
 
 	var savedFields map[string]json.RawMessage
@@ -239,15 +244,42 @@ func resolveSecrets(provider NotificationChannelProvider, incoming string, saved
 			continue
 		}
 		incomingFields[key] = secret
+		if value, ok := stringValue(secret); ok {
+			used = append(used, value)
+		}
 	}
 	if len(missing) > 0 {
 		for key := range missing {
 			unresolved = append(unresolved, key)
 		}
 		sort.Strings(unresolved)
-		return incoming, unresolved
+		return incoming, unresolved, nil
 	}
-	return encodeConfig(incomingFields), nil
+	sort.Strings(used)
+	return encodeConfig(incomingFields), nil, used
+}
+
+// maskSecrets returns text with every occurrence of each secret replaced by the placeholder, for
+// an error message that may repeat what was sent. A failed request prints the URL it went to, so
+// a secret is masked in the forms a URL and a quoted string write it in as well as the plain one.
+func maskSecrets(text string, secrets []string) string {
+	var forms []string
+	for _, secret := range secrets {
+		if secret == "" {
+			continue
+		}
+		forms = append(forms, secret, url.PathEscape(secret), url.QueryEscape(secret), strings.Trim(strconv.Quote(secret), `"`))
+		// a secret that is a URL is printed in the form net/url writes it back in
+		if parsed, err := url.Parse(secret); err == nil && parsed.Scheme != "" {
+			forms = append(forms, parsed.String())
+		}
+	}
+	// A form that contains another is masked whole
+	sort.SliceStable(forms, func(i, j int) bool { return len(forms[i]) > len(forms[j]) })
+	for _, form := range forms {
+		text = strings.ReplaceAll(text, form, secretPlaceholder)
+	}
+	return text
 }
 
 // savedSecret returns the value of a secret in a saved config, as the JSON string it is written

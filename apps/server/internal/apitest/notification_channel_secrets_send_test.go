@@ -176,6 +176,39 @@ func TestNotificationChannelsAPI_ASavedSecretIsNotSentToAnotherEndpoint(t *testi
 	})
 }
 
+// A send that fails prints the URL it went to, and for these channels the secret is in the URL.
+// The test endpoint answers with that error, so it must not repeat what it took from the saved channel.
+func TestNotificationChannelsAPI_TestFailureDoesNotEchoASavedSecret(t *testing.T) {
+	a := newSecretsApp(t)
+
+	// Every channel here sends to an address of the fixture that refuses connections. Slack's
+	// fixture has a bot token, which sends to slack.com instead.
+	sendsToItsOwnAddress := map[string]bool{
+		"smtp": true, "telegram": true, "webhook": true, "ntfy": true, "pagerduty": true,
+		"google_chat": true, "grafana_oncall": true, "gotify": true, "mattermost": true, "matrix": true,
+		"discord": true, "wecom": true, "whatsapp": true, "pagertree": true, "teams": true,
+	}
+	for _, c := range secretChannels {
+		if !sendsToItsOwnAddress[c.channelType] {
+			continue
+		}
+		t.Run(c.channelType, func(t *testing.T) {
+			id := a.createSecretChannel(t, c)
+
+			w := a.testChannel(t, id, c.channelType, c.withPlaceholders(nil))
+
+			assert.NotContains(t, w.Body.String(), secretMarker, "the response repeats a saved secret")
+			if c.channelType == "telegram" || c.channelType == "discord" {
+				// The bot token is in the path of the URL, and the webhook URL is the secret
+				require.Equal(t, http.StatusInternalServerError, w.Code, w.Body.String())
+				assert.Contains(t, w.Body.String(), "Failed to send test notification")
+				assert.Contains(t, w.Body.String(), secretPlaceholder)
+				assert.Contains(t, w.Body.String(), "connection refused", "the cause stays")
+			}
+		})
+	}
+}
+
 // encoding/json fills a field from a key of any letter case, and the last one in the config wins.
 // A config that names the endpoint twice must not get past the check that the endpoint is the
 // saved one, and then send the saved token to the other one.

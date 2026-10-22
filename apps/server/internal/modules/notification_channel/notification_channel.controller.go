@@ -68,7 +68,7 @@ func (ic *Controller) Create(ctx context.Context, input *CreateInput) (*httpx.Ou
 	}
 
 	// A new channel has no saved secrets for a placeholder to stand for
-	config, resolveErr := ic.resolveConfig(notification_channel.Type, notification_channel.Config, nil)
+	config, _, resolveErr := ic.resolveConfig(notification_channel.Type, notification_channel.Config, nil)
 	if resolveErr != nil {
 		return nil, resolveErr
 	}
@@ -121,7 +121,7 @@ func (ic *Controller) UpdateFull(ctx context.Context, input *UpdateFullInput) (*
 	}
 
 	// A secret sent back as the placeholder keeps its saved value
-	config, resolveErr := ic.resolveConfig(notification.Type, notification.Config, current)
+	config, _, resolveErr := ic.resolveConfig(notification.Type, notification.Config, current)
 	if resolveErr != nil {
 		return nil, resolveErr
 	}
@@ -165,7 +165,7 @@ func (ic *Controller) UpdatePartial(ctx context.Context, input *UpdatePartialInp
 
 	// A secret sent back as the placeholder keeps its saved value
 	if notification.Config != nil {
-		resolved, resolveErr := ic.resolveConfig(channelType, *notification.Config, current)
+		resolved, _, resolveErr := ic.resolveConfig(channelType, *notification.Config, current)
 		if resolveErr != nil {
 			return nil, resolveErr
 		}
@@ -229,7 +229,7 @@ func (ic *Controller) Test(ctx context.Context, input *TestInput) (*httpx.Output
 		}
 		saved = record
 	}
-	config, resolveErr := ic.resolveConfig(notificationChannel.Type, notificationChannel.Config, saved)
+	config, resolvedSecrets, resolveErr := ic.resolveConfig(notificationChannel.Type, notificationChannel.Config, saved)
 	if resolveErr != nil {
 		return nil, resolveErr
 	}
@@ -256,8 +256,11 @@ func (ic *Controller) Test(ctx context.Context, input *TestInput) (*httpx.Output
 	// An HTTP client's errors hold the request URL, and for a channel the URL holds a credential
 	err := providers.RedactURLErrors(integration.Send(sendCtx, config, testMessage, testMonitor, testHeartbeat))
 	if err != nil {
-		ic.logger.Errorw("Failed to send test notification", "error", err)
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Failed to send test notification: "+err.Error()))
+		// A failed send repeats what it was sent to, which has the secrets in it. The ones taken from
+		// the saved channel are not the caller's to read back.
+		failure := maskSecrets(err.Error(), resolvedSecrets)
+		ic.logger.Errorw("Failed to send test notification", "error", failure)
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Failed to send test notification: "+failure))
 	}
 
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse[any]("Test notification sent successfully", nil))
@@ -274,30 +277,31 @@ func configOf(channel *Model) string {
 // resolveConfig replaces each secret that config sends as the placeholder with the one the saved
 // channel holds. saved is the channel the request edits, or nil when there is none. A placeholder
 // that can't be resolved is a 400: that is, when there is no saved channel, when it has another
-// type, or when the config changed where the channel sends.
+// type, or when the config changed where the channel sends. It also returns the saved secrets it
+// put in.
 //
 // A config that names a key twice, in any letter case, is a 400 before anything is resolved. A
 // type without a provider is left for validateConfig to refuse.
-func (ic *Controller) resolveConfig(channelType, config string, saved *Model) (string, error) {
+func (ic *Controller) resolveConfig(channelType, config string, saved *Model) (string, []string, error) {
 	if key, earlier, found := duplicateKey(config); found {
-		return "", httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(
+		return "", nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(
 			"Invalid config: duplicate key "+strconv.Quote(key)+" (the config already has "+strconv.Quote(earlier)+")"))
 	}
 	provider, ok := ic.providers.Get(channelType)
 	if !ok {
-		return config, nil
+		return config, nil, nil
 	}
 	var savedConfig *string
 	if saved != nil && saved.Type == channelType {
 		savedConfigValue := configOf(saved)
 		savedConfig = &savedConfigValue
 	}
-	resolved, unresolved := resolveSecrets(provider, config, savedConfig)
+	resolved, unresolved, used := resolveSecrets(provider, config, savedConfig)
 	if len(unresolved) > 0 {
-		return "", httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(
+		return "", nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(
 			"Invalid config: re-enter the saved secrets ("+strings.Join(unresolved, ", ")+") when changing the type or where the channel sends"))
 	}
-	return resolved, nil
+	return resolved, used, nil
 }
 
 // validateConfig looks up the provider for channelType and checks config with it.
