@@ -40,10 +40,11 @@ type ProbeResponse struct {
 	TokenPrefix string `json:"token_prefix" validate:"required"`
 	Disabled    bool   `json:"disabled" validate:"required"`
 	// Status is online while one of the probe's instances is connected
-	Status          string                   `json:"status" validate:"required" enum:"online,offline"`
-	SupportedTypes  []string                 `json:"supported_types" validate:"required"`
-	NotificationIDs []string                 `json:"notification_ids" validate:"required"`
-	Instances       []*ProbeInstanceResponse `json:"instances" validate:"required"`
+	Status string `json:"status" validate:"required" enum:"online,offline"`
+	// The lists are never null: a probe with none has an empty list
+	SupportedTypes  []string                 `json:"supported_types" validate:"required" nullable:"false"`
+	NotificationIDs []string                 `json:"notification_ids" validate:"required" nullable:"false"`
+	Instances       []*ProbeInstanceResponse `json:"instances" validate:"required" nullable:"false"`
 	CreatedAt       time.Time                `json:"created_at" validate:"required"`
 	UpdatedAt       time.Time                `json:"updated_at" validate:"required"`
 }
