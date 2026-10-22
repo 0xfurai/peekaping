@@ -81,6 +81,20 @@ func (r *RepositoryImpl) Create(ctx context.Context, user *Model) (*Model, error
 	return toDomainModel(mm), nil
 }
 
+// CreateFirst checks and then creates, as registering always did on MongoDB: the
+// storage backend is frozen under ADR 0001, so concurrent first registrations
+// can still both create a user there.
+func (r *RepositoryImpl) CreateFirst(ctx context.Context, user *Model) (*Model, error) {
+	count, err := r.FindAllCount(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if count > 0 {
+		return nil, ErrAdminExists
+	}
+	return r.Create(ctx, user)
+}
+
 func (r *RepositoryImpl) FindByEmail(ctx context.Context, email string) (*Model, error) {
 	var admin mongoModel
 	err := r.collection.FindOne(ctx, bson.M{"email": email}).Decode(&admin)

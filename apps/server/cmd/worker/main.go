@@ -9,6 +9,8 @@ import (
 	"peekaping/internal/app"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/worker"
+	"peekaping/internal/reporting"
+	"peekaping/internal/reporting/redissync"
 	"peekaping/internal/version"
 	"syscall"
 	"time"
@@ -18,7 +20,13 @@ import (
 	"go.uber.org/zap"
 )
 
+// errorReportingFlush is how long the shutdown waits for the error reports still queued
+const errorReportingFlush = 2 * time.Second
+
 func main() {
+	// A panic that ends the process is reported before it does, if the admin opted in
+	defer reporting.ReportCrash("main")
+
 	log.Printf("Starting Peekaping Worker v%s", version.Version)
 
 	// Load and validate Worker-specific config
@@ -38,6 +46,19 @@ func main() {
 
 	if err := app.RegisterClusterWorker(container, internalCfg); err != nil {
 		log.Fatalf("Failed to register Worker dependencies: %v", err)
+	}
+
+	// Error reports stay off until the api's copy of the admin's choice is read from Redis, now
+	// and every minute: the worker has no database to read the setting from. The reports still
+	// queued go out as the process ends.
+	if err := app.SetupErrorReporting(container, internalCfg); err != nil {
+		log.Fatalf("Failed to set up error reporting: %v", err)
+	}
+	defer reporting.Flush(errorReportingFlush)
+	errorReportingCtx, stopErrorReporting := context.WithCancel(context.Background())
+	defer stopErrorReporting()
+	if _, err := app.StartErrorReportingRefresher(errorReportingCtx, container, redissync.DefaultEvery); err != nil {
+		log.Fatalf("Failed to follow the error reporting choice: %v", err)
 	}
 
 	// Start the worker

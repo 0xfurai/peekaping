@@ -6,6 +6,7 @@ import (
 	"peekaping/internal/modules/healthcheck/executor"
 	"peekaping/internal/modules/proxy"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/reporting"
 	"runtime/debug"
 	"time"
 )
@@ -94,11 +95,13 @@ func (s *HealthCheckSupervisor) executeWithDeadline(
 		// asynq only recovers panics in the handler goroutine, not this one
 		defer func() {
 			if r := recover(); r != nil {
+				stack := debug.Stack()
 				s.logger.Errorw("Health check executor panicked",
 					"monitor_id", m.ID,
 					"monitor_type", m.Type,
 					"panic", r,
-					"stack", string(debug.Stack()))
+					"stack", string(stack))
+				reporting.CapturePanic("executor", r, stack)
 				done <- executor.DownResult(fmt.Errorf("check failed with an internal error: %v", r), startTime, time.Now().UTC())
 			}
 		}()

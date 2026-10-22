@@ -179,12 +179,22 @@ CLIENT_URL="http://localhost:8383"
 MODE=prod
 TZ="America/New_York"
 
+# Usage statistics and error reports are off until an admin turns them on. To
+# switch them off whatever the settings say, uncomment the ones you want. See
+# "Usage statistics and error reporting".
+# TELEMETRY=off
+# ERROR_REPORTING=off
+# DO_NOT_TRACK=1
+
 # JWT settings are automatically managed in the database
 # Default settings are initialized on first startup:
 # - Access token expiration: 15 minutes
 # - Refresh token expiration: 720 hours (30 days)
 # - Secret keys are automatically generated securely
 ```
+
+`TELEMETRY=off`, `ERROR_REPORTING=off` and `DO_NOT_TRACK=1` are optional. The first switches off the anonymous [usage statistics](./telemetry.md), the second switches off the [error reports](./telemetry.md#error-reporting), and the third switches off both, whatever an admin chose. Without them, nothing is sent until an admin turns it on.
+
 :::info JWT Settings
 JWT settings (access/refresh token expiration times and secret keys) are now automatically managed in the database. Default secure settings are initialized on first startup, and secret keys are generated automatically.
 :::

@@ -16,6 +16,7 @@
       "have_account": "Sudah punya akun?",
       "sign_in": "Masuk",
       "submit": "Buat",
+      "telemetry_hint": "Nonaktif kecuali Anda mencentang kotak ini. Anda dapat mengubahnya nanti di “Pengaturan”. Jika Anda mencentangnya, Peekaping mengirim data ini paling banyak sekali sehari:",
       "title": "Halo"
     },
     "twofa": {
@@ -83,6 +84,12 @@
     "up": "Berjalan",
     "update": "Perbarui",
     "verifying": "Memverifikasi..."
+  },
+  "error_reporting": {
+    "label": "Kirim laporan kesalahan",
+    "never_sent": "Tidak pernah dikirim: pesan kesalahan, URL, header, URL webhook, nama, atau nama host. Laporan tidak berisi alamat IP, dan proyek Sentry milik Peekaping diatur agar tidak menyimpan IP pengirim. Dengan ERROR_REPORTING_DSN Anda sendiri, pengaturan Sentry atau GlitchTip Anda yang menentukan.",
+    "not_saved": "Pilihan Anda untuk mengirim laporan kesalahan tidak tersimpan. Aktifkan di “Pengaturan”.",
+    "sent": "Hanya dikirim saat Peekaping sendiri mengalami crash. Laporan berisi jenis kesalahan dan lokasi di dalam kode tempat terjadinya, versi Peekaping, mode tunggal atau klaster, backend penyimpanan, serta sistem operasi."
   },
   "forms": {
     "labels": {
@@ -1272,6 +1279,20 @@
       "description": "Tetapkan berapa hari data akan disimpan (KEEP_DATA_PERIOD_DAYS).",
       "title": "Periode Retensi Data"
     },
+    "error_reporting": {
+      "cluster_note": "Dalam mode klaster, perubahan sampai ke setiap proses dalam waktu satu menit.",
+      "description": "Kirim laporan ke Sentry saat server mengalami crash. Nonaktif sampai Anda mengaktifkannya.",
+      "forced_off": "Variabel lingkungan ERROR_REPORTING=off atau DO_NOT_TRACK=1 menonaktifkan ini. Tidak ada yang dikirim, apa pun isi pengaturan ini.",
+      "title": "Laporan kesalahan"
+    },
+    "telemetry": {
+      "description": "Kirim statistik anonim tentang cara instalasi ini diatur, paling banyak sekali sehari. Nonaktif sampai Anda mengaktifkannya.",
+      "forced_off": "Variabel lingkungan TELEMETRY=off atau DO_NOT_TRACK=1 menonaktifkan ini. Tidak ada yang dikirim, apa pun isi pengaturan ini.",
+      "id_note": "ID instans dibuat saat Anda mengaktifkan ini dan dihapus saat Anda menonaktifkannya. Mengaktifkannya lagi akan membuat ID baru.",
+      "payload_off": "Tidak ada yang dikirim selama ini nonaktif. Inilah isi ping penggunaan jika Anda mengaktifkannya.",
+      "payload_title": "Apa yang akan dikirim ping penggunaan berikutnya",
+      "title": "Statistik penggunaan"
+    },
     "timezone": {
       "description": "Pilih zona waktu yang Anda sukai untuk menampilkan semua waktu di aplikasi.",
       "label": "Zona Waktu",
@@ -1367,6 +1388,17 @@
     },
     "new_page_name": "Tag Baru",
     "search_placeholder": "Cari tag..."
+  },
+  "telemetry": {
+    "docs_link": "Apa yang dikirim dan cara mematikannya",
+    "label": "Kirim statistik penggunaan anonim",
+    "never_sent": "Tidak pernah dikirim: nama pengawasan, URL, host, tag, alamat halaman status, atau pengaturan notifikasi. Ping penggunaan tidak berisi alamat IP, dan Worker milik Peekaping tidak mencatat IP pengirim.",
+    "not_saved": "Pilihan Anda untuk mengirim statistik penggunaan tidak tersimpan. Aktifkan di “Pengaturan”.",
+    "sent_features": "Apakah Anda menggunakan halaman status, jendela pemeliharaan, dan metrik",
+    "sent_id": "ID acak, dibuat saat Anda mengaktifkannya dan dihapus saat Anda menonaktifkannya",
+    "sent_monitors": "Berapa banyak pengawasan yang Anda miliki, sebagai rentang, misalnya 11-50",
+    "sent_setup": "Versi Peekaping, mode tunggal atau klaster, backend penyimpanan, serta sistem operasi dan jenis CPU",
+    "sent_types": "Jenis pengawasan dan saluran notifikasi yang Anda gunakan, misalnya http atau telegram"
   },
   "theme": {
     "dark": "Gelap",

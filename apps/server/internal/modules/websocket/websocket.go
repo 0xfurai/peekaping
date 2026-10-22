@@ -8,6 +8,7 @@ import (
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
+	"runtime/debug"
 
 	"github.com/zishang520/socket.io/v2/socket"
 	"go.uber.org/zap"
@@ -39,8 +40,11 @@ func NewServer(
 	}
 
 	io.Use(func(s *socket.Socket, next func(*socket.ExtendedError)) {
-		access_token, ok := s.Request().Query().Get("token")
-		if !ok {
+		// The token comes in the auth payload of the socket.io CONNECT packet, not
+		// in the query string, which proxies write to their access logs.
+		auth, _ := s.Handshake().Auth.(map[string]any)
+		access_token, ok := auth["token"].(string)
+		if !ok || access_token == "" {
 			next(socket.NewExtendedError("access_token is required", "test"))
 			return
 		}
@@ -60,29 +64,51 @@ func NewServer(
 		next(nil)
 	})
 
-	io.On("connection", func(clients ...interface{}) {
-		client := clients[0].(*socket.Socket)
-		userId := client.Data().(SocketData).UserId
+	io.On("connection", safe(logger, "connection", func(clients ...interface{}) {
+		var client *socket.Socket
+		if len(clients) > 0 {
+			client, _ = clients[0].(*socket.Socket)
+		}
+		if client == nil {
+			logger.Warnf("[WS]connection: dropped, no socket in %d arguments", len(clients))
+			return
+		}
+		// The auth middleware sets the data, so a socket without it never authenticated
+		data, ok := client.Data().(SocketData)
+		if !ok {
+			logger.Warn("[WS]connection: disconnecting a socket without user data")
+			client.Disconnect(true)
+			return
+		}
 
-		logger.Debugf("[WS]connection: %s", userId)
+		logger.Debugf("[WS]connection: %s", data.UserId)
 
-		client.On("join_room", func(args ...interface{}) {
-			roomName := args[0].(string)
+		client.On("join_room", safe(logger, "join_room", func(args ...interface{}) {
+			roomName, ok := firstString(args)
+			if !ok {
+				logger.Debugf("join_room: dropped, no room name in %d arguments", len(args))
+				return
+			}
 			logger.Debugf("join_room: %s", roomName)
 
-			// TODO: validate if user allowed to join room
+			// Any signed-in user may join any room: the app is single-tenant, so every
+			// user sees every monitor. Per-organization rooms will need a check here.
 			client.Join(socket.Room(roomName))
 			// ack([]interface{}{map[string]string{"status": "ok"}}, nil)
-		})
+		}))
 
-		client.On("leave_room", func(args ...interface{}) {
-			roomName := args[0].(string)
+		client.On("leave_room", safe(logger, "leave_room", func(args ...interface{}) {
+			roomName, ok := firstString(args)
+			if !ok {
+				logger.Debugf("leave_room: dropped, no room name in %d arguments", len(args))
+				return
+			}
 			logger.Debugf("leave_room: %s", roomName)
 			// ack := args[1].(func([]interface{}, error))
 			client.Leave(socket.Room(roomName))
 			// ack([]interface{}{map[string]string{"status": "ok"}}, nil)
-		})
-	})
+		}))
+	}))
 
 	// Listen for heartbeat events and broadcast to room
 	events.Subscribe(events.NewSubscriber(eventBus, "websocket"), events.HeartbeatEvent, func(_ context.Context, hb heartbeat.Model) {
@@ -92,6 +118,35 @@ func NewServer(
 	})
 
 	return server, nil
+}
+
+// safe makes a socket handler recover from a panic: it logs the panic with the event
+// name and drops the message. engine.io runs each handler in its own goroutine with no
+// recover, and the HTTP recovery middleware doesn't cover that goroutine, so a panic
+// that gets out of a handler ends the process.
+func safe(logger *zap.SugaredLogger, event string, fn func(args ...interface{})) func(args ...interface{}) {
+	return func(args ...interface{}) {
+		defer func() {
+			if r := recover(); r != nil {
+				logger.Errorw("Socket handler panicked",
+					"event", event,
+					"panic", r,
+					"stack", string(debug.Stack()),
+				)
+			}
+		}()
+		fn(args...)
+	}
+}
+
+// firstString returns the first argument of a client's message if it's a string.
+// The arguments are client input, so they can be missing or of any type.
+func firstString(args []interface{}) (string, bool) {
+	if len(args) == 0 {
+		return "", false
+	}
+	s, ok := args[0].(string)
+	return s, ok
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {

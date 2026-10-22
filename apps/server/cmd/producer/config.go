@@ -38,6 +38,12 @@ type Config struct {
 	ProducerConcurrency int `env:"PRODUCER_CONCURRENCY" validate:"min=1,max=128" default:"10"`
 
 	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"peekaping:producer"`
+
+	// Error reports (ADR 0003): off until an admin opts in. ERROR_REPORTING=off and DO_NOT_TRACK=1
+	// force them off, and ERROR_REPORTING_DSN replaces the Sentry DSN built into the binary.
+	ErrorReporting    string `env:"ERROR_REPORTING"`
+	ErrorReportingDSN string `env:"ERROR_REPORTING_DSN"`
+	DoNotTrack        string `env:"DO_NOT_TRACK"`
 }
 
 // LoadAndValidate loads and validates the Producer service configuration
@@ -102,5 +108,8 @@ func (c *Config) ToInternalConfig() *config.Config {
 		RedisDB:             c.RedisDB,
 		ProducerConcurrency: c.ProducerConcurrency,
 		ServiceName:         c.ServiceName,
+		ErrorReporting:      c.ErrorReporting,
+		ErrorReportingDSN:   c.ErrorReportingDSN,
+		DoNotTrack:          c.DoNotTrack,
 	}
 }

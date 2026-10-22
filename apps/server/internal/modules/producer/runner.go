@@ -20,15 +20,23 @@ func healthCheckTaskID(monitorID string) string {
 	return "healthcheck:" + monitorID
 }
 
+// TaskQueue is the part of the queue service the queue runner uses
+type TaskQueue interface {
+	Enqueue(ctx context.Context, taskType string, payload interface{}, opts *queue.EnqueueOptions) (*queue.TaskInfo, error)
+	GetTaskInfo(ctx context.Context, queueName, taskID string) (*queue.TaskInfo, error)
+	DeleteTask(ctx context.Context, queueName, taskID string) error
+	CancelTask(ctx context.Context, taskID string) error
+}
+
 // queueRunner runs checks by enqueueing them as health check tasks, which cluster mode's
 // worker takes from the healthcheck queue and runs
 type queueRunner struct {
-	queueService queue.Service
+	queueService TaskQueue
 	logger       *zap.SugaredLogger
 }
 
 // NewQueueRunner creates cluster mode's check.Runner, which enqueues each check for the worker
-func NewQueueRunner(queueService queue.Service, logger *zap.SugaredLogger) check.Runner {
+func NewQueueRunner(queueService TaskQueue, logger *zap.SugaredLogger) check.Runner {
 	return &queueRunner{
 		queueService: queueService,
 		logger:       logger.With("component", "producer"),

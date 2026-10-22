@@ -311,6 +311,27 @@ components:
         - message
         - retry_after
       type: object
+    error_reporting.StateResponse:
+      additionalProperties: false
+      properties:
+        enabled:
+          description: Whether an admin opted in to error reports
+          type: boolean
+        forced_off:
+          description: Whether the ERROR_REPORTING or DO_NOT_TRACK environment variable forces error reports off, whatever enabled says
+          type: boolean
+      required:
+        - enabled
+        - forced_off
+      type: object
+    error_reporting.UpdateDto:
+      additionalProperties: true
+      properties:
+        enabled:
+          type: boolean
+      required:
+        - enabled
+      type: object
     healthcheck.PushResponse:
       additionalProperties: false
       properties:
@@ -1864,6 +1885,115 @@ components:
           type:
             - string
             - "null"
+      type: object
+    telemetry.Features:
+      additionalProperties: false
+      properties:
+        maintenance:
+          description: Whether there is any maintenance window
+          type: boolean
+        metrics:
+          description: Whether the Prometheus metrics endpoint is on
+          type: boolean
+        status_pages:
+          description: Whether there is any status page
+          type: boolean
+      required:
+        - status_pages
+        - maintenance
+        - metrics
+      type: object
+    telemetry.Payload:
+      additionalProperties: false
+      properties:
+        db:
+          description: "The storage backend: sqlite, postgres, mysql or mongo. Empty for a backend the ping doesn't report."
+          examples:
+            - sqlite
+          type: string
+        features:
+          $ref: "#/components/schemas/telemetry.Features"
+          description: Which features are on
+        instance_id:
+          description: The random instance ID; empty until an admin opts in
+          examples:
+            - 6c1b4f0e-5d3a-4c8e-9f21-0a7b8c9d1e2f
+          type: string
+        mode:
+          description: How the install runs
+          enum:
+            - single
+            - cluster
+          examples:
+            - single
+          type: string
+        monitor_types:
+          description: The distinct monitor types in use, lower case and sorted
+          items:
+            type: string
+          type: array
+        monitors:
+          description: How many monitors there are, paused ones included, as a bucket
+          enum:
+            - "0"
+            - 1-10
+            - 11-50
+            - 51-200
+            - 201-1000
+            - 1000+
+          examples:
+            - 1-10
+          type: string
+        notification_providers:
+          description: The distinct notification channel types in use, lower case and sorted
+          items:
+            type: string
+          type: array
+        os:
+          description: Operating system and architecture
+          examples:
+            - linux/arm64
+          type: string
+        version:
+          description: The Peekaping version
+          examples:
+            - 0.0.47
+          type: string
+      required:
+        - instance_id
+        - version
+        - mode
+        - db
+        - os
+        - monitors
+        - monitor_types
+        - notification_providers
+        - features
+      type: object
+    telemetry.StateResponse:
+      additionalProperties: false
+      properties:
+        enabled:
+          description: Whether an admin opted in to the usage ping
+          type: boolean
+        forced_off:
+          description: Whether the TELEMETRY or DO_NOT_TRACK environment variable forces the ping off, whatever enabled says
+          type: boolean
+        payload:
+          $ref: "#/components/schemas/telemetry.Payload"
+          description: The exact JSON the next usage ping would send; its instance_id is empty until an admin opts in
+      required:
+        - enabled
+        - forced_off
+        - payload
+      type: object
+    telemetry.UpdateDto:
+      additionalProperties: true
+      properties:
+        enabled:
+          type: boolean
+      required:
+        - enabled
       type: object
     utils.ApiResponse_Any:
       additionalProperties: false
@@ -3589,6 +3719,74 @@ paths:
       summary: Get uptime badge
       tags:
         - badge
+  /api/v1/error-reporting:
+    get:
+      description: Whether an admin opted in to error reports, and whether the ERROR_REPORTING or DO_NOT_TRACK environment variable forces them off.
+      operationId: getErrorReporting
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error_reporting.StateResponse"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Get the error reporting state
+      tags:
+        - error-reporting
+    put:
+      description: "Error reports are crash reports: the error type, the stack frames, the release and the install's mode, storage backend, OS and architecture. In cluster mode the change reaches the producer, the worker and the ingester within a minute. The choice is stored while the environment forces error reports off, and the environment still wins."
+      operationId: putErrorReporting
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/error_reporting.UpdateDto"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error_reporting.StateResponse"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+      summary: Opt in or out of error reports
+      tags:
+        - error-reporting
   /api/v1/health:
     get:
       operationId: getHealth
@@ -6090,6 +6288,74 @@ paths:
       summary: Update tag
       tags:
         - tag
+  /api/v1/telemetry:
+    get:
+      description: Whether an admin opted in to the anonymous usage ping, whether the TELEMETRY or DO_NOT_TRACK environment variable forces it off, and the exact payload the next ping would send.
+      operationId: getTelemetry
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/telemetry.StateResponse"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Get the usage ping state
+      tags:
+        - telemetry
+    put:
+      description: Opting in creates a new random instance ID unless there is one. Opting out deletes it, so opting in again gives a new one. The choice is stored while the environment forces the ping off, and the environment still wins.
+      operationId: putTelemetry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/telemetry.UpdateDto"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/telemetry.StateResponse"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+      summary: Opt in or out of the usage ping
+      tags:
+        - telemetry
   /api/v1/version:
     get:
       operationId: getVersion

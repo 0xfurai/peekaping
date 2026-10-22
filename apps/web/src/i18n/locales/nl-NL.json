@@ -16,6 +16,7 @@
       "have_account": "Heeft u al een account?",
       "sign_in": "Inloggen",
       "submit": "Registreren",
+      "telemetry_hint": "Uit, tenzij je dit vakje aanvinkt. Je kunt het later wijzigen onder ‘Instellingen’. Als je het aanvinkt, verstuurt Peekaping dit hooguit één keer per dag:",
       "title": "Hallo"
     },
     "twofa": {
@@ -83,6 +84,12 @@
     "up": "Online",
     "update": "Bijwerken",
     "verifying": "Verifiëren..."
+  },
+  "error_reporting": {
+    "label": "Foutrapporten versturen",
+    "never_sent": "Nooit verstuurd: foutmeldingen, URL's, headers, webhook-URL's, namen of hostnamen. Een rapport bevat geen IP-adres, en het Sentry-project van Peekaping is ingesteld om het IP van de afzender niet op te slaan. Met je eigen ERROR_REPORTING_DSN bepalen de instellingen van je Sentry of GlitchTip dat.",
+    "not_saved": "Je keuze om foutrapporten te versturen is niet opgeslagen. Zet het aan onder ‘Instellingen’.",
+    "sent": "Wordt alleen verstuurd wanneer Peekaping zelf crasht. Een rapport bevat het type fout en de plek in de code waar die optrad, de Peekaping-versie, enkele modus of clustermodus, de opslagbackend en het besturingssysteem."
   },
   "forms": {
     "labels": {
@@ -1272,6 +1279,20 @@
       "description": "Bepaal hoelang gegevens bewaard blijven (KEEP_DATA_PERIOD_DAYS).",
       "title": "Gegevensbewaartermijn"
     },
+    "error_reporting": {
+      "cluster_note": "In clustermodus bereikt een wijziging elk proces binnen een minuut.",
+      "description": "Verstuur een rapport naar Sentry wanneer de server crasht. Uit tot je het aanzet.",
+      "forced_off": "De omgevingsvariabele ERROR_REPORTING=off of DO_NOT_TRACK=1 zet dit uit. Er wordt niets verstuurd, wat deze instelling ook zegt.",
+      "title": "Foutrapporten"
+    },
+    "telemetry": {
+      "description": "Verstuur anonieme statistieken over hoe deze installatie is ingesteld, hooguit één keer per dag. Uit tot je het aanzet.",
+      "forced_off": "De omgevingsvariabele TELEMETRY=off of DO_NOT_TRACK=1 zet dit uit. Er wordt niets verstuurd, wat deze instelling ook zegt.",
+      "id_note": "De instantie-ID wordt aangemaakt als je dit aanzet en verwijderd als je het uitzet. Als je het weer aanzet, wordt er een nieuwe aangemaakt.",
+      "payload_off": "Er wordt niets verstuurd zolang dit uit staat. Dit is wat een gebruiksping zou bevatten als je het aanzette.",
+      "payload_title": "Wat de volgende gebruiksping verstuurt",
+      "title": "Gebruiksstatistieken"
+    },
     "timezone": {
       "description": "Kies uw gewenste tijdzone om alle tijden in de app weer te geven.",
       "label": "Tijdzone",
@@ -1367,6 +1388,17 @@
     },
     "new_page_name": "Nieuwe tag",
     "search_placeholder": "Zoek tags..."
+  },
+  "telemetry": {
+    "docs_link": "Wat er wordt verstuurd en hoe je het uitzet",
+    "label": "Anonieme gebruiksstatistieken versturen",
+    "never_sent": "Nooit verstuurd: namen van monitoren, URL's, hosts, etiketten, adressen van statuspagina's of meldingsinstellingen. Een gebruiksping bevat geen IP-adres, en de Worker van Peekaping legt het IP van de afzender niet vast.",
+    "not_saved": "Je keuze om gebruiksstatistieken te versturen is niet opgeslagen. Zet het aan onder ‘Instellingen’.",
+    "sent_features": "Of je statuspagina's, onderhoudsvensters en statistieken gebruikt",
+    "sent_id": "Een willekeurige ID, die wordt aangemaakt als je dit aanzet en verwijderd als je het uitzet",
+    "sent_monitors": "Hoeveel monitoren je hebt, als bereik, bijvoorbeeld 11-50",
+    "sent_setup": "De Peekaping-versie, enkele modus of clustermodus, de opslagbackend, en het besturingssysteem en het CPU-type",
+    "sent_types": "De soorten monitoren en meldingskanalen die je gebruikt, zoals http of telegram"
   },
   "theme": {
     "dark": "Donker",

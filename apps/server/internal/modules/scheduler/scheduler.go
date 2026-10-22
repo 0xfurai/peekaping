@@ -23,6 +23,7 @@ import (
 	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stale"
+	"peekaping/internal/reporting"
 )
 
 // Loader loads what a check of a monitor needs. check.Loader is one.
@@ -179,7 +180,7 @@ func (s *Scheduler) Start(ctx context.Context) error {
 	s.mu.Lock()
 	if s.running() {
 		s.wg.Add(1)
-		go s.reconcileEvery(runCtx)
+		reporting.Go("scheduler", func() { s.reconcileEvery(runCtx) })
 	}
 	s.mu.Unlock()
 
@@ -403,10 +404,12 @@ func (s *Scheduler) startCheck(monitorID string) {
 // The check frees its slot and ends as any other, so the monitor's next check runs.
 func (s *Scheduler) recoverCheck(monitorID string) {
 	if r := recover(); r != nil {
+		stack := debug.Stack()
 		s.logger.Errorw("Check panicked",
 			"monitor_id", monitorID,
 			"panic", r,
-			"stack", string(debug.Stack()))
+			"stack", string(stack))
+		reporting.CapturePanic("scheduler", r, stack)
 	}
 }
 

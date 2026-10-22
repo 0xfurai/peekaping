@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"time"
+
+	"peekaping/internal/reporting"
 )
 
 // runLeadershipMonitor monitors leadership status and starts/stops monitor syncing accordingly
@@ -48,20 +50,21 @@ func (p *Producer) startJobProcessing() error {
 
 	// Start background reclaimer (handles expired leases from any producer)
 	p.wg.Add(1)
-	go p.runReclaimer()
+	reporting.Go("producer", p.runReclaimer)
 
 	// Start multiple producer goroutines for concurrent processing
 	// Each goroutine independently claims and processes batches of monitors
 	for i := 0; i < p.concurrency; i++ {
 		p.wg.Add(1)
-		go func(workerID int) {
+		workerID := i
+		reporting.Go("producer", func() {
 			p.logger.Infow("Starting producer worker", "worker_id", workerID)
 			if err := p.runProducer(workerID); err != nil {
 				p.logger.Errorw("Producer worker exited with error", "worker_id", workerID, "error", err)
 			} else {
 				p.logger.Infow("Producer worker stopped gracefully", "worker_id", workerID)
 			}
-		}(i)
+		})
 	}
 
 	p.logger.Info("Job processing started successfully")
@@ -80,14 +83,15 @@ func (p *Producer) startMonitorSyncing() error {
 
 	// Start schedule refresher to keep Redis in sync with database
 	p.wg.Add(1)
-	go p.runScheduleRefresher(p.syncCtx)
+	syncCtx := p.syncCtx
+	reporting.Go("producer", func() { p.runScheduleRefresher(syncCtx) })
 
 	// Start the stale-monitor watchdog
 	p.wg.Add(1)
-	go func(ctx context.Context) {
+	reporting.Go("watchdog", func() {
 		defer p.wg.Done()
-		p.watchdog.Run(ctx)
-	}(p.syncCtx)
+		p.watchdog.Run(syncCtx)
+	})
 
 	p.logger.Info("Monitor syncing started successfully")
 	return nil

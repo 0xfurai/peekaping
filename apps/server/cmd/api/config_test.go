@@ -75,3 +75,31 @@ func TestSQLiteStartupCheckRefusesAnUnknownValue(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "SQLiteStartupCheck must be one of: quick full off")
 }
+
+func TestTelemetrySettingsAreLoadedFromEnv(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("TELEMETRY", "")
+	t.Setenv("DO_NOT_TRACK", "")
+	t.Setenv("TELEMETRY_URL", "")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	internalCfg := cfg.ToInternalConfig()
+	assert.False(t, internalCfg.TelemetryForcedOff())
+	assert.Equal(t, "https://telemetry.peekaping.com/v1/ping", internalCfg.TelemetryURL)
+
+	t.Setenv("TELEMETRY", "off")
+	t.Setenv("TELEMETRY_URL", "http://localhost:8787/v1/ping")
+	cfg, err = LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	internalCfg = cfg.ToInternalConfig()
+	assert.True(t, internalCfg.TelemetryForcedOff())
+	assert.Equal(t, "http://localhost:8787/v1/ping", internalCfg.TelemetryURL)
+
+	t.Setenv("TELEMETRY", "")
+	t.Setenv("DO_NOT_TRACK", "1")
+	cfg, err = LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.True(t, cfg.ToInternalConfig().TelemetryForcedOff())
+}
