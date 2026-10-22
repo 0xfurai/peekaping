@@ -1380,7 +1380,7 @@
   "telemetry": {
     "docs_link": "Neler gönderilir ve nasıl kapatılır",
     "label": "Anonim kullanım istatistikleri gönder",
-    "never_sent": "Asla gönderilmez: monitör adları, URL'ler, ana makineler, etiketler, durum sayfası adresleri veya bildirim ayarları. IP adresiniz saklanmaz.",
+    "never_sent": "Asla gönderilmez: monitör adları, URL'ler, ana makineler, etiketler, durum sayfası adresleri veya bildirim ayarları. Bir kullanım ping'i IP adresi içermez ve Peekaping'in Worker'ı gönderenin IP'sini kaydetmez.",
     "sent_features": "Durum sayfaları, bakım pencereleri ve metrikleri kullanıp kullanmadığınız",
     "sent_id": "Açtığınızda oluşturulan ve kapattığınızda silinen rastgele bir kimlik",
     "sent_monitors": "Kaç monitörünüz olduğu, 11-50 gibi bir aralık olarak",

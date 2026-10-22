@@ -1380,7 +1380,7 @@
   "telemetry": {
     "docs_link": "会发送什么，以及如何关闭",
     "label": "发送匿名使用统计",
-    "never_sent": "绝不发送：监控名称、URL、主机、标签、状态页面地址或通知设置。你的 IP 地址不会被存储。",
+    "never_sent": "绝不发送：监控名称、URL、主机、标签、状态页面地址或通知设置。使用情况 ping 不包含 IP 地址，Peekaping 的 Worker 也不会记录发送方的 IP。",
     "sent_features": "你是否使用状态页面、维护窗口和指标",
     "sent_id": "一个随机 ID，开启时创建，关闭时删除",
     "sent_monitors": "你有多少个监控，以范围表示，例如 11-50",

@@ -1380,7 +1380,7 @@
   "telemetry": {
     "docs_link": "Mitä lähetetään ja miten sen voi poistaa käytöstä",
     "label": "Lähetä nimettömiä käyttötilastoja",
-    "never_sent": "Ei koskaan lähetetä: valvontojen nimiä, URL-osoitteita, isäntiä, tunnisteita, tila-sivujen osoitteita tai ilmoitusasetuksia. IP-osoitettasi ei tallenneta.",
+    "never_sent": "Ei koskaan lähetetä: valvontojen nimiä, URL-osoitteita, isäntiä, tunnisteita, tila-sivujen osoitteita tai ilmoitusasetuksia. Käyttöping ei sisällä IP-osoitetta, eikä Peekapingin Worker tallenna lähettäjän IP-osoitetta.",
     "sent_features": "Käytätkö tila-sivuja, huoltoikkunoita ja mittareita",
     "sent_id": "Satunnainen tunnus, joka luodaan, kun otat tämän käyttöön, ja poistetaan, kun poistat sen käytöstä",
     "sent_monitors": "Kuinka monta valvontaa sinulla on, vaihteluvälinä, esimerkiksi 11-50",

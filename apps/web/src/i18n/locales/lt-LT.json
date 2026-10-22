@@ -1380,7 +1380,7 @@
   "telemetry": {
     "docs_link": "Kas siunčiama ir kaip tai išjungti",
     "label": "Siųsti anonimišką naudojimo statistiką",
-    "never_sent": "Niekada nesiunčiama: monitorių pavadinimai, URL, serveriai, žymos, būsenos puslapių adresai ar pranešimų nustatymai. Jūsų IP adresas nesaugomas.",
+    "never_sent": "Niekada nesiunčiama: monitorių pavadinimai, URL, serveriai, žymos, būsenos puslapių adresai ar pranešimų nustatymai. Naudojimo pinge nėra IP adreso, o Peekaping Worker nesaugo siuntėjo IP.",
     "sent_features": "Ar naudojate būsenos puslapius, priežiūros langus ir metrikas",
     "sent_id": "Atsitiktinis ID, kuris sukuriamas, kai tai įjungiate, ir ištrinamas, kai išjungiate",
     "sent_monitors": "Kiek turite monitorių, kaip intervalą, pavyzdžiui, 11-50",
