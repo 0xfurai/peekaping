@@ -10,6 +10,7 @@ import (
 
 	"peekaping/internal"
 	"peekaping/internal/config"
+	"peekaping/internal/dbtx"
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/certificate"
@@ -88,6 +89,7 @@ func TestRegisterClusterAPI_ResolvesWhatCmdAPIRuns(t *testing.T) {
 		_ *notification_channel.NotificationEventListener,
 		_ *monitor.MonitorEventListener,
 		_ monitor.Service,
+		_ dbtx.Transactor,
 		_ *metrics.Collector,
 		_ *internal.Server,
 		_ *asynq.Server,
@@ -111,6 +113,7 @@ func TestRegisterClusterProducer_ResolvesWhatCmdProducerRuns(t *testing.T) {
 	require.NoError(t, container.Invoke(func(
 		_ *producer.Producer,
 		_ *producer.EventListener,
+		_ dbtx.Transactor,
 		_ *zap.SugaredLogger,
 		bus events.EventBus,
 		db *bun.DB,
