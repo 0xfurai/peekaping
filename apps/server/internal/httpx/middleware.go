@@ -76,11 +76,17 @@ func Logger(logger *zap.SugaredLogger, proxies *TrustedProxies) Middleware {
 	}
 }
 
-// LimitBody makes reading a request body fail with *http.MaxBytesError once it passes max bytes,
-// so that a handler (or a guard that reads the body before it) never holds more than that.
+// LimitBody answers 413 to a request that declares a Content-Length over max bytes, without
+// running the handler. It makes reading any other body fail with *http.MaxBytesError once it
+// passes max bytes, so that a handler (or a guard that reads the body before it) never holds
+// more than that.
 func LimitBody(max int64) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.ContentLength > max {
+				JSON(w, http.StatusRequestEntityTooLarge, ErrorBody{Message: "request body too large"})
+				return
+			}
 			if r.Body != nil {
 				r.Body = http.MaxBytesReader(w, r.Body, max)
 			}

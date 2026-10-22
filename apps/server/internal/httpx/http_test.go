@@ -243,10 +243,30 @@ func TestLimitBody(t *testing.T) {
 		{"123456789", http.StatusRequestEntityTooLarge},
 		{"", http.StatusOK},
 	} {
+		// A chunked body: no Content-Length is declared, so the limit stops the read instead
+		r := httptest.NewRequest("POST", "/", strings.NewReader(tc.body))
+		r.ContentLength = -1
 		w := httptest.NewRecorder()
-		handler.ServeHTTP(w, httptest.NewRequest("POST", "/", strings.NewReader(tc.body)))
+		handler.ServeHTTP(w, r)
 		assert.Equal(t, tc.want, w.Code, "%d bytes", len(tc.body))
 	}
+}
+
+func TestLimitBody_RefusesADeclaredLengthOverTheLimitWithoutRunningTheHandler(t *testing.T) {
+	ran := false
+	handler := httpx.LimitBody(8)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { ran = true }))
+
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, httptest.NewRequest("POST", "/", strings.NewReader("123456789")))
+	assert.Equal(t, http.StatusRequestEntityTooLarge, w.Code)
+	assert.JSONEq(t, `{"message":"request body too large","data":null}`, w.Body.String())
+	assert.Equal(t, "application/json; charset=utf-8", w.Header().Get("Content-Type"))
+	assert.False(t, ran)
+
+	w = httptest.NewRecorder()
+	handler.ServeHTTP(w, httptest.NewRequest("POST", "/", strings.NewReader("12345678")))
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.True(t, ran, "a declared length at the limit goes through")
 }
 
 func TestAccessLogIncludesResponse(t *testing.T) {

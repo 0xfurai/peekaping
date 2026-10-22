@@ -58,7 +58,8 @@ func TestHTTPContract_DecodingAndErrorOrder(t *testing.T) {
 func TestHTTPContract_FormatsAndBodySize(t *testing.T) {
 	a := newAppWithAdmin(t)
 	for n, contentType := range []string{"", "text/plain", "application/json"} {
-		body := fmt.Sprintf(`{"name":"Formats %d","color":"#3B82F6","description":%q}`, n, strings.Repeat("x", 1024*1024+1))
+		// Nearly 1 MiB, the most a request may send
+		body := fmt.Sprintf(`{"name":"Formats %d","color":"#3B82F6","description":%q}`, n, strings.Repeat("x", 1024*1024-1024))
 		req := httptest.NewRequest("POST", "/api/v1/tags", strings.NewReader(body))
 		req.Header.Set("Content-Type", contentType)
 		req.Header.Set("Accept", "text/csv")
