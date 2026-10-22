@@ -32,6 +32,7 @@ import (
 	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/domain_status_page"
+	"peekaping/internal/modules/error_reporting"
 	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/maintenance"
@@ -50,6 +51,7 @@ import (
 	"peekaping/internal/modules/stats"
 	"peekaping/internal/modules/status_page"
 	"peekaping/internal/modules/tag"
+	"peekaping/internal/modules/telemetry"
 	"peekaping/internal/modules/websocket"
 	"peekaping/internal/utils"
 
@@ -59,7 +61,9 @@ import (
 // Register provides what every binary shares. dig builds a value only when an Invoke needs
 // it, so each binary builds just the part of the graph it runs: the worker, which has no
 // database, never builds a repository. The transport provides the rest: the event bus, the
-// stale.Store, and the ingester.Service the push URL ingests through.
+// stale.Store, the ingester.Service the push URL ingests through, and the telemetry.Mode that
+// says whether the usage ping reports single or cluster mode (the MODE setting does not),
+// and the error_reporting.Switch that tells the processes that report whether to.
 func Register(container *dig.Container, cfg *config.Config) error {
 	err := utils.Provide(container,
 		func() *config.Config { return cfg },
@@ -99,6 +103,8 @@ func Register(container *dig.Container, cfg *config.Config) error {
 		api_key.RegisterDependencies(container, cfg),
 		middleware.RegisterDependencies(container),
 		metrics.RegisterDependencies(container),
+		telemetry.RegisterDependencies(container),
+		error_reporting.RegisterDependencies(container),
 		utils.Provide(container, websocket.NewServer, internal.ProvideServer),
 	)
 }

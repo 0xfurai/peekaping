@@ -14,6 +14,7 @@ import (
 	"github.com/uptrace/bun/dialect/sqlitedialect"
 	"github.com/uptrace/bun/driver/sqliteshim"
 	"go.uber.org/zap"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func setupServiceTestDB(t *testing.T) *bun.DB {
@@ -372,6 +373,97 @@ func decodeToken(t *testing.T, token string) map[string]string {
 	var fields map[string]string
 	require.NoError(t, json.Unmarshal(payload, &fields))
 	return fields
+}
+
+// tokenWith is the token that names the key with this ID and carries secret.
+func tokenWith(t *testing.T, id, secret string) string {
+	t.Helper()
+	payload, err := json.Marshal(map[string]string{"id": id, "key": secret})
+	require.NoError(t, err)
+	return ApiKeyPrefix + base64.URLEncoding.EncodeToString(payload)
+}
+
+// storeKey adds a key with the given stored hash, as an earlier release or this one
+// would have, and returns its ID.
+func storeKey(t *testing.T, repo Repository, keyHash string) string {
+	t.Helper()
+	created, err := repo.Create(context.Background(), &CreateModel{Name: "Stored key", KeyHash: keyHash, DisplayKey: "pk_stored..."})
+	require.NoError(t, err)
+	return created.ID
+}
+
+func TestServiceImpl_Create_StoresSHA256Hash(t *testing.T) {
+	db := setupServiceTestDB(t)
+	service := NewService(NewSQLRepository(db), zap.NewNop().Sugar())
+	ctx := context.Background()
+
+	created, err := service.Create(ctx, &CreateRequest{Name: "Hashed key"})
+	require.NoError(t, err)
+
+	stored, err := service.FindByID(ctx, created.ID)
+	require.NoError(t, err)
+	assert.Regexp(t, `^sha256\$[0-9a-f]{64}$`, stored.KeyHash)
+	_, err = service.ValidateKey(ctx, created.Token)
+	assert.NoError(t, err)
+}
+
+func TestServiceImpl_ValidateKey_ComparesSHA256Hash(t *testing.T) {
+	db := setupServiceTestDB(t)
+	repo := NewSQLRepository(db)
+	service := NewService(repo, zap.NewNop().Sugar())
+	ctx := context.Background()
+
+	// sha256("secret"), worked out outside the code
+	id := storeKey(t, repo, "sha256$2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b")
+
+	validated, err := service.ValidateKey(ctx, tokenWith(t, id, "secret"))
+	require.NoError(t, err)
+	assert.Equal(t, id, validated.ID)
+
+	_, err = service.ValidateKey(ctx, tokenWith(t, id, "other-secret"))
+	assert.EqualError(t, err, "invalid API key")
+	_, err = service.ValidateKey(ctx, tokenWith(t, id, ""))
+	assert.EqualError(t, err, "invalid API key")
+
+	// A key stored with no usable hash accepts nothing
+	for _, keyHash := range []string{"", "secret", "sha256$", "md5$5ebe2294ecd0e0f08eab7690d2a6ee69"} {
+		_, err = service.ValidateKey(ctx, tokenWith(t, storeKey(t, repo, keyHash), "secret"))
+		assert.EqualError(t, err, "invalid API key", "stored hash %q", keyHash)
+	}
+}
+
+// A key created before the SHA-256 hash was used is stored as a bcrypt hash. It
+// still works, and its hash is replaced by a SHA-256 hash on its first successful use.
+func TestServiceImpl_ValidateKey_ReplacesBcryptHashOnFirstUse(t *testing.T) {
+	db := setupServiceTestDB(t)
+	repo := NewSQLRepository(db)
+	service := NewService(repo, zap.NewNop().Sugar())
+	ctx := context.Background()
+	legacy, err := bcrypt.GenerateFromPassword([]byte("legacy-secret"), bcrypt.MinCost)
+	require.NoError(t, err)
+	id := storeKey(t, repo, string(legacy))
+
+	_, err = service.ValidateKey(ctx, tokenWith(t, id, "other-secret"))
+	assert.EqualError(t, err, "invalid API key")
+	stored, err := service.FindByID(ctx, id)
+	require.NoError(t, err)
+	assert.Equal(t, string(legacy), stored.KeyHash, "a wrong key leaves the hash alone")
+
+	validated, err := service.ValidateKey(ctx, tokenWith(t, id, "legacy-secret"))
+	require.NoError(t, err)
+	assert.Equal(t, id, validated.ID)
+
+	// sha256("legacy-secret"), worked out outside the code
+	stored, err = service.FindByID(ctx, id)
+	require.NoError(t, err)
+	assert.Equal(t, "sha256$fdcbc807d80f60c6f15ef644d5c372ac92760bd5f414cc3d48c3b320d9d1e689", stored.KeyHash)
+	assert.Equal(t, "pk_stored...", stored.DisplayKey)
+	assert.Equal(t, "Stored key", stored.Name)
+
+	_, err = service.ValidateKey(ctx, tokenWith(t, id, "legacy-secret"))
+	assert.NoError(t, err, "the key works after its hash was replaced")
+	_, err = service.ValidateKey(ctx, tokenWith(t, id, "other-secret"))
+	assert.EqualError(t, err, "invalid API key")
 }
 
 // Helper function for string pointers

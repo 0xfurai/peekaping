@@ -26,6 +26,12 @@ type Config struct {
 	QueueConcurrency int `env:"QUEUE_CONCURRENCY" validate:"min=1" default:"128"`
 
 	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"peekaping:worker"`
+
+	// Error reports (ADR 0003): off until an admin opts in. ERROR_REPORTING=off and DO_NOT_TRACK=1
+	// force them off, and ERROR_REPORTING_DSN replaces the Sentry DSN built into the binary.
+	ErrorReporting    string `env:"ERROR_REPORTING"`
+	ErrorReportingDSN string `env:"ERROR_REPORTING_DSN"`
+	DoNotTrack        string `env:"DO_NOT_TRACK"`
 }
 
 // LoadAndValidate loads and validates the Worker service configuration
@@ -64,15 +70,18 @@ func Validate(cfg *Config) error {
 // This is needed for backward compatibility with existing code
 func (c *Config) ToInternalConfig() *config.Config {
 	return &config.Config{
-		Mode:             c.Mode,
-		LogLevel:         c.LogLevel,
-		Timezone:         c.Timezone,
-		RedisHost:        c.RedisHost,
-		RedisPort:        c.RedisPort,
-		RedisUsername:    c.RedisUsername,
-		RedisPassword:    c.RedisPassword,
-		RedisDB:          c.RedisDB,
-		QueueConcurrency: c.QueueConcurrency,
-		ServiceName:      c.ServiceName,
+		Mode:              c.Mode,
+		LogLevel:          c.LogLevel,
+		Timezone:          c.Timezone,
+		RedisHost:         c.RedisHost,
+		RedisPort:         c.RedisPort,
+		RedisUsername:     c.RedisUsername,
+		RedisPassword:     c.RedisPassword,
+		RedisDB:           c.RedisDB,
+		QueueConcurrency:  c.QueueConcurrency,
+		ServiceName:       c.ServiceName,
+		ErrorReporting:    c.ErrorReporting,
+		ErrorReportingDSN: c.ErrorReportingDSN,
+		DoNotTrack:        c.DoNotTrack,
 	}
 }

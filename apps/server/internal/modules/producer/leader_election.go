@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"peekaping/internal/reporting"
+
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 )
@@ -46,7 +48,7 @@ func NewLeaderElection(client *redis.Client, nodeID string, logger *zap.SugaredL
 func (le *LeaderElection) Start(ctx context.Context) {
 	le.logger.Infof("Starting leader election for node: %s", le.nodeID)
 
-	go func() {
+	reporting.Go("producer", func() {
 		defer close(le.doneChan)
 
 		ticker := time.NewTicker(le.renewalInterval)
@@ -72,7 +74,7 @@ func (le *LeaderElection) Start(ctx context.Context) {
 				return
 			}
 		}
-	}()
+	})
 }
 
 // Stop stops the leader election process

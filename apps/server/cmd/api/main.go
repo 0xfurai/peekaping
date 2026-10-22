@@ -21,6 +21,9 @@ import (
 	"peekaping/internal/modules/notification_sent_history"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/stats"
+	"peekaping/internal/modules/telemetry"
+	"peekaping/internal/reporting"
+	"peekaping/internal/reporting/redissync"
 	"peekaping/internal/utils"
 	"syscall"
 	"time"
@@ -30,7 +33,12 @@ import (
 	"go.uber.org/zap"
 )
 
+// errorReportingFlush is how long the shutdown waits for the error reports still queued
+const errorReportingFlush = 2 * time.Second
+
 func main() {
+	// A panic that ends the process is reported before it does, if the admin opted in
+	defer reporting.ReportCrash("main")
 
 	utils.RegisterCustomValidators()
 
@@ -50,6 +58,13 @@ func main() {
 	if err := app.RegisterClusterAPI(container, internalCfg); err != nil {
 		log.Fatalf("Failed to register API dependencies: %v", err)
 	}
+
+	// Error reports stay off until the admin's choice is applied below. The reports still queued
+	// go out as the process ends.
+	if err := app.SetupErrorReporting(container, internalCfg); err != nil {
+		log.Fatalf("Failed to set up error reporting: %v", err)
+	}
+	defer reporting.Flush(errorReportingFlush)
 
 	// Start the hourly cleanup. Every api replica schedules it and the run lock lets one of them
 	// run each hour. A failure to schedule it stops startup.
@@ -82,6 +97,20 @@ func main() {
 	})
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	// Apply the admin's choice from before the restart, which also copies it to Redis for the
+	// producer, the worker and the ingester. Then apply it again every minute, so that a copy
+	// that missed a Redis that was down is made up within a minute, and a change made on another
+	// api replica reaches this one. The stored setting is the source of truth; Redis only
+	// carries it. A failure leaves error reports off.
+	if err := app.ApplyErrorReporting(context.Background(), container); err != nil {
+		log.Printf("Failed to apply the error reporting choice, leaving error reports off: %v", err)
+	}
+	errorReportingCtx, stopErrorReporting := context.WithCancel(context.Background())
+	defer stopErrorReporting()
+	if _, err := app.StartErrorReportingPublisher(errorReportingCtx, container, redissync.DefaultEvery); err != nil {
+		log.Fatalf("Failed to keep the error reporting choice in Redis: %v", err)
 	}
 
 	// Start the health check supervisor
@@ -125,7 +154,7 @@ func main() {
 	repairCtx, stopRepair := context.WithCancel(context.Background())
 	defer stopRepair()
 	err = container.Invoke(func(monitorService monitor.Service, logger *zap.SugaredLogger) {
-		go func() {
+		reporting.Go("repair", func() {
 			repaired, err := monitorService.RepairStoredStatuses(repairCtx)
 			if errors.Is(err, context.Canceled) {
 				logger.Infow("Stopped repairing monitor statuses on shutdown", "repaired", repaired)
@@ -136,7 +165,7 @@ func main() {
 				return
 			}
 			logger.Infow("Repaired monitor statuses", "repaired", repaired)
-		}()
+		})
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -152,6 +181,18 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+	}
+
+	// Start the usage ping sender. It sends nothing until an admin opts in, and a failed ping is
+	// dropped. Of the api replicas, the one that wins the claim in Redis sends the day's ping.
+	usagePingCtx, stopUsagePing := context.WithCancel(context.Background())
+	defer stopUsagePing()
+	var usagePingDone <-chan struct{}
+	err = container.Invoke(func(sender *telemetry.Sender) {
+		usagePingDone = sender.Start(usagePingCtx, telemetry.DefaultSchedule)
+	})
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	// Start the server with graceful shutdown
@@ -187,6 +228,9 @@ func main() {
 		logger.Info("Shutdown signal received, starting graceful shutdown...")
 		stopMetrics()
 		stopRepair()
+		// The usage ping reads the settings, so it stops before the database closes
+		stopUsagePing()
+		<-usagePingDone
 		// Stop taking notification events before the event bus closes, so none finds it closed
 		consumer.Stop()
 		// Close event bus: queued events get a few seconds to finish

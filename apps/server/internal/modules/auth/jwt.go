@@ -2,9 +2,12 @@ package auth
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"peekaping/internal/modules/shared"
+	"sync"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -20,19 +23,81 @@ type Claims struct {
 	UserID string `json:"userId"`
 	Email  string `json:"email"`
 	Type   string `json:"type"` // "access" or "refresh"
+	// PasswordFingerprint is set on refresh tokens: it identifies the password the
+	// user had when the token was issued, so a password change ends older ones.
+	PasswordFingerprint string `json:"pwf,omitempty"`
 	jwt.RegisteredClaims
+}
+
+// passwordFingerprint identifies a user's password without revealing it: the
+// first 16 bytes of the SHA-256 of the stored password hash, in hex.
+func passwordFingerprint(passwordHash string) string {
+	sum := sha256.Sum256([]byte(passwordHash))
+	return hex.EncodeToString(sum[:16])
+}
+
+// secretTTL is how long a signing secret stays in memory before it is read from
+// the settings again. So a secret that changes in the database, by this process
+// or by another one in cluster mode, is used within this time.
+const secretTTL = time.Minute
+
+type cachedSecret struct {
+	value     string
+	fetchedAt time.Time
 }
 
 type TokenMaker struct {
 	settingService shared.SettingService
 	logger         *zap.SugaredLogger
+	clock          func() time.Time
+
+	mu      sync.Mutex
+	secrets map[string]cachedSecret
 }
 
 func NewTokenMaker(settingService shared.SettingService, logger *zap.SugaredLogger) *TokenMaker {
 	return &TokenMaker{
 		settingService: settingService,
 		logger:         logger.Named("[token-maker]"),
+		clock:          time.Now,
+		secrets:        map[string]cachedSecret{},
 	}
+}
+
+// secret returns the signing secret stored under key, read from the settings at
+// most once per secretTTL. name is how errors call it.
+func (maker *TokenMaker) secret(ctx context.Context, key, name string) (string, error) {
+	now := maker.clock()
+	maker.mu.Lock()
+	cached, ok := maker.secrets[key]
+	maker.mu.Unlock()
+	if ok && now.Sub(cached.fetchedAt) < secretTTL {
+		return cached.value, nil
+	}
+
+	setting, err := maker.settingService.GetByKey(ctx, key)
+	if err != nil {
+		return "", fmt.Errorf("failed to get %s: %w", name, err)
+	}
+	if setting == nil {
+		return "", fmt.Errorf("%s setting not found", name)
+	}
+
+	// Concurrent requests may each read the secret; keep the newest read
+	maker.mu.Lock()
+	if current, ok := maker.secrets[key]; !ok || !current.fetchedAt.After(now) {
+		maker.secrets[key] = cachedSecret{value: setting.Value, fetchedAt: now}
+	}
+	maker.mu.Unlock()
+	return setting.Value, nil
+}
+
+func (maker *TokenMaker) accessSecret(ctx context.Context) (string, error) {
+	return maker.secret(ctx, shared.AccessTokenSecretKey, "access token secret key")
+}
+
+func (maker *TokenMaker) refreshSecret(ctx context.Context) (string, error) {
+	return maker.secret(ctx, shared.RefreshTokenSecretKey, "refresh token secret key")
 }
 
 func (maker *TokenMaker) CreateAccessToken(ctx context.Context, user *Model) (string, error) {
@@ -51,15 +116,12 @@ func (maker *TokenMaker) CreateAccessToken(ctx context.Context, user *Model) (st
 	}
 
 	// Get access token secret key
-	secretSetting, err := maker.settingService.GetByKey(ctx, shared.AccessTokenSecretKey)
+	secretKey, err := maker.accessSecret(ctx)
 	if err != nil {
-		return "", fmt.Errorf("failed to get access token secret key: %w", err)
-	}
-	if secretSetting == nil {
-		return "", fmt.Errorf("access token secret key setting not found")
+		return "", err
 	}
 
-	return maker.createToken(user, "access", accessExpiry, secretSetting.Value)
+	return maker.createToken(user, "access", accessExpiry, secretKey)
 }
 
 func (maker *TokenMaker) CreateRefreshToken(ctx context.Context, user *Model) (string, error) {
@@ -78,15 +140,12 @@ func (maker *TokenMaker) CreateRefreshToken(ctx context.Context, user *Model) (s
 	}
 
 	// Get refresh token secret key
-	secretSetting, err := maker.settingService.GetByKey(ctx, shared.RefreshTokenSecretKey)
+	secretKey, err := maker.refreshSecret(ctx)
 	if err != nil {
-		return "", fmt.Errorf("failed to get refresh token secret key: %w", err)
-	}
-	if secretSetting == nil {
-		return "", fmt.Errorf("refresh token secret key setting not found")
+		return "", err
 	}
 
-	return maker.createToken(user, "refresh", refreshExpiry, secretSetting.Value)
+	return maker.createToken(user, "refresh", refreshExpiry, secretKey)
 }
 
 func (maker *TokenMaker) createToken(user *Model, tokenType string, duration time.Duration, secretKey string) (string, error) {
@@ -101,6 +160,10 @@ func (maker *TokenMaker) createToken(user *Model, tokenType string, duration tim
 		},
 	}
 
+	if tokenType == "refresh" {
+		claims.PasswordFingerprint = passwordFingerprint(user.Password)
+	}
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(secretKey))
 }
@@ -112,33 +175,20 @@ func (maker *TokenMaker) VerifyToken(ctx context.Context, tokenString string, to
 	// Get the appropriate secret key based on token type
 	switch tokenType {
 	case "access":
-		secretSetting, err := maker.settingService.GetByKey(ctx, shared.AccessTokenSecretKey)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get access token secret key: %w", err)
-		}
-		if secretSetting == nil {
-			return nil, fmt.Errorf("access token secret key setting not found")
-		}
-		secretKey = secretSetting.Value
+		secretKey, err = maker.accessSecret(ctx)
 	case "refresh":
-		secretSetting, err := maker.settingService.GetByKey(ctx, shared.RefreshTokenSecretKey)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get refresh token secret key: %w", err)
-		}
-		if secretSetting == nil {
-			return nil, fmt.Errorf("refresh token secret key setting not found")
-		}
-		secretKey = secretSetting.Value
+		secretKey, err = maker.refreshSecret(ctx)
 	default:
 		return nil, ErrInvalidToken
 	}
+	if err != nil {
+		return nil, err
+	}
 
+	// Tokens are signed with HS256 only, so any other algorithm is rejected.
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, ErrInvalidToken
-		}
 		return []byte(secretKey), nil
-	})
+	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
 
 	if err != nil {
 		if errors.Is(err, jwt.ErrTokenExpired) {

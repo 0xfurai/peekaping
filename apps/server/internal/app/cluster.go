@@ -6,15 +6,18 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/infra"
 	"peekaping/internal/modules/cleanup"
+	"peekaping/internal/modules/error_reporting"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/producer"
 	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/stale"
+	"peekaping/internal/modules/telemetry"
 	"peekaping/internal/modules/worker"
 	"peekaping/internal/utils"
 
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/dig"
 )
 
@@ -29,8 +32,15 @@ func RegisterClusterAPI(container *dig.Container, cfg *config.Config) error {
 			ingester.NewPushQueueService,
 			infra.ProvideNotificationAsynqServer,
 			notification_channel.NewQueueConsumer,
+			provideClusterClaimer,
 		),
 	)
+}
+
+// provideClusterClaimer provides the claimer of the usage ping: of the api replicas, the first
+// to set the key in Redis sends the day's ping
+func provideClusterClaimer(client *redis.Client) telemetry.Claimer {
+	return telemetry.NewRedisClaimer(client)
 }
 
 // RegisterClusterProducer provides what cmd/producer runs: the producer, which schedules the
@@ -38,7 +48,7 @@ func RegisterClusterAPI(container *dig.Container, cfg *config.Config) error {
 func RegisterClusterProducer(container *dig.Container, cfg *config.Config) error {
 	return errors.Join(
 		registerCluster(container, cfg),
-		utils.Provide(container, producer.NewQueueRunner),
+		utils.Provide(container, producer.ProvideQueueRunner),
 		producer.RegisterDependencies(container),
 	)
 }
@@ -81,8 +91,19 @@ func registerCluster(container *dig.Container, cfg *config.Config) error {
 		infra.ProvideAsynqClient,
 		infra.ProvideAsynqInspector,
 		infra.ProvideQueueService,
+		provideClusterMode,
+		provideClusterSwitch,
 	)
 }
+
+// provideClusterSwitch provides the error reporting switch of the api: it also copies the admin's
+// choice to Redis, where the other processes read it
+func provideClusterSwitch(client *redis.Client) error_reporting.Switch {
+	return error_reporting.NewRedisSwitch(client)
+}
+
+// provideClusterMode tells the usage ping that this install runs in cluster mode
+func provideClusterMode() telemetry.Mode { return telemetry.ModeCluster }
 
 // provideClusterEventBus provides the Redis event bus with the notification topics sent through
 // the queue, as the events.EventBus every module publishes and subscribes on, and as the

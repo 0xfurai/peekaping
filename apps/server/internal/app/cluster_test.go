@@ -27,6 +27,7 @@ import (
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/stats"
+	"peekaping/internal/modules/telemetry"
 	"peekaping/internal/modules/worker"
 
 	"github.com/alicebob/miniredis/v2"
@@ -229,6 +230,32 @@ func TestRegisterCluster_EveryBinarysEventBusQueuesTheNotificationTopics(t *test
 			}))
 		})
 	}
+}
+
+// The usage ping reports cluster mode whatever MODE says, and the api replicas race for the day's
+// ping in Redis.
+func TestRegisterClusterAPI_RunsTheUsagePingInClusterModeClaimedInRedis(t *testing.T) {
+	container := dig.New()
+	cfg := clusterConfig(t)
+	cfg.Mode = "dev"
+	require.NoError(t, RegisterClusterAPI(container, cfg))
+
+	require.NoError(t, container.Invoke(func(
+		mode telemetry.Mode,
+		claimer telemetry.Claimer,
+		_ *telemetry.Sender,
+		bus events.EventBus,
+		db *bun.DB,
+		client *asynq.Client,
+		inspector *asynq.Inspector,
+	) {
+		closeEventBus(t, bus)
+		closeDB(t, db)
+		t.Cleanup(func() { assert.NoError(t, client.Close()) })
+		t.Cleanup(func() { assert.NoError(t, inspector.Close()) })
+		assert.Equal(t, telemetry.ModeCluster, mode)
+		assert.IsType(t, &telemetry.RedisClaimer{}, claimer)
+	}))
 }
 
 // A provide that dig refuses used to be dropped, and the first provider of the type won

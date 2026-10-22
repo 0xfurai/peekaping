@@ -76,6 +76,17 @@ type Config struct {
 	// unset and gives the default.
 	TLSInfoRetentionDays int `env:"TLS_INFO_RETENTION_DAYS" validate:"min=1" default:"30"`
 
+	// Usage ping (ADR 0003): off until an admin opts in. TELEMETRY=off and DO_NOT_TRACK=1 force
+	// it off, and TELEMETRY_URL moves where it is sent.
+	Telemetry    string `env:"TELEMETRY"`
+	DoNotTrack   string `env:"DO_NOT_TRACK"`
+	TelemetryURL string `env:"TELEMETRY_URL" default:"https://telemetry.peekaping.com/v1/ping"`
+
+	// Error reports (ADR 0003): off until an admin opts in. ERROR_REPORTING=off and DO_NOT_TRACK=1
+	// force them off, and ERROR_REPORTING_DSN replaces the Sentry DSN built into the binary.
+	ErrorReporting    string `env:"ERROR_REPORTING"`
+	ErrorReportingDSN string `env:"ERROR_REPORTING_DSN"`
+
 	// The web app (ADR 0002, section 7). With WEB_DIR set to the web build, peekaping serves it
 	// on SERVER_PORT beside the API. Unset, it serves the API alone.
 	WebDir string `env:"WEB_DIR"` // validated in Validate()
@@ -208,6 +219,11 @@ func (c *Config) ToInternalConfig() *config.Config {
 		TrustedProxies:               c.TrustedProxies,
 		ServiceName:                  c.ServiceName,
 		MetricsEnabled:               c.MetricsEnabled,
+		Telemetry:                    c.Telemetry,
+		DoNotTrack:                   c.DoNotTrack,
+		TelemetryURL:                 c.TelemetryURL,
+		ErrorReporting:               c.ErrorReporting,
+		ErrorReportingDSN:            c.ErrorReportingDSN,
 
 		NotificationHistoryRetentionDays: c.NotificationHistoryRetentionDays,
 		TLSInfoRetentionDays:             c.TLSInfoRetentionDays,

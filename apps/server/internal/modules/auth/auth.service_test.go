@@ -59,6 +59,14 @@ func newHarness(t *testing.T) *harness {
 	return &harness{db, auth.NewService(auth.NewSQLRepository(db), tokens, logger), tokens, settings}
 }
 
+// restart is the same install after the server starts again, with its signing
+// secrets read from the settings anew.
+func (h *harness) restart() *harness {
+	logger := zap.NewNop().Sugar()
+	tokens := auth.NewTokenMaker(h.settings, logger)
+	return &harness{h.db, auth.NewService(auth.NewSQLRepository(h.db), tokens, logger), tokens, h.settings}
+}
+
 // register creates the admin and returns its first session.
 func (h *harness) register(t *testing.T) *auth.LoginResponse {
 	t.Helper()
@@ -318,11 +326,14 @@ func TestService_IssuesNoTokensWithoutSigningSecrets(t *testing.T) {
 	session := h.register(t)
 	ctx := context.Background()
 
+	// A server keeps its secrets for a minute, so each deletion is followed by a restart
 	require.NoError(t, h.settings.DeleteByKey(ctx, shared.RefreshTokenSecretKey))
+	h = h.restart()
 	_, err := h.login(adminPassword, "")
 	assert.ErrorContains(t, err, "refresh token secret key setting not found")
 
 	require.NoError(t, h.settings.DeleteByKey(ctx, shared.AccessTokenSecretKey))
+	h = h.restart()
 	_, err = h.login(adminPassword, "")
 	assert.ErrorContains(t, err, "access token secret key setting not found")
 	_, err = h.svc.RefreshToken(ctx, session.RefreshToken)

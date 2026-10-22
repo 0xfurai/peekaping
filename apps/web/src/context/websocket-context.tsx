@@ -52,7 +52,9 @@ export const WebSocketProvider = ({
 
 		const newSocket = io(apiUrl, {
 			transports: ['websocket'],
-			query: { token },
+			// The server reads the token from the auth payload, not the query string,
+			// which proxies write to their access logs
+			auth: { token },
 		});
 
 		newSocket.on('connect', () => {

@@ -22,6 +22,8 @@ import {
   getBadgeByMonitorIdStatus,
   getBadgeByMonitorIdUptime,
   getBadgeByMonitorIdUptimeByDuration,
+  getErrorReporting,
+  putErrorReporting,
   getHealth,
   getMaintenances,
   postMaintenances,
@@ -75,6 +77,8 @@ import {
   getTagsById,
   patchTagsById,
   putTagsById,
+  getTelemetry,
+  putTelemetry,
   getVersion,
   getHealthRoot,
 } from "../sdk.gen";
@@ -125,6 +129,10 @@ import type {
   GetBadgeByMonitorIdStatusData,
   GetBadgeByMonitorIdUptimeData,
   GetBadgeByMonitorIdUptimeByDurationData,
+  GetErrorReportingData,
+  PutErrorReportingData,
+  PutErrorReportingError,
+  PutErrorReportingResponse,
   GetHealthData,
   GetMaintenancesData,
   GetMaintenancesError,
@@ -250,6 +258,10 @@ import type {
   PutTagsByIdData,
   PutTagsByIdError,
   PutTagsByIdResponse,
+  GetTelemetryData,
+  PutTelemetryData,
+  PutTelemetryError,
+  PutTelemetryResponse,
   GetVersionData,
   GetHealthRootData,
 } from "../types.gen";
@@ -954,6 +966,59 @@ export const getBadgeByMonitorIdUptimeByDurationOptions = (
     },
     queryKey: getBadgeByMonitorIdUptimeByDurationQueryKey(options),
   });
+};
+
+export const getErrorReportingQueryKey = (
+  options?: Options<GetErrorReportingData>
+) => createQueryKey("getErrorReporting", options);
+
+/**
+ * Get the error reporting state
+ * Whether an admin opted in to error reports, and whether the ERROR_REPORTING or DO_NOT_TRACK environment variable forces them off.
+ */
+export const getErrorReportingOptions = (
+  options?: Options<GetErrorReportingData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getErrorReporting({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getErrorReportingQueryKey(options),
+  });
+};
+
+/**
+ * Opt in or out of error reports
+ * Error reports are crash reports: the error type, the stack frames, the release and the install's mode, storage backend, OS and architecture. In cluster mode the change reaches the producer, the worker and the ingester within a minute. The choice is stored while the environment forces error reports off, and the environment still wins.
+ */
+export const putErrorReportingMutation = (
+  options?: Partial<Options<PutErrorReportingData>>
+): UseMutationOptions<
+  PutErrorReportingResponse,
+  AxiosError<PutErrorReportingError>,
+  Options<PutErrorReportingData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PutErrorReportingResponse,
+    AxiosError<PutErrorReportingError>,
+    Options<PutErrorReportingData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await putErrorReporting({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
 };
 
 export const getHealthQueryKey = (options?: Options<GetHealthData>) =>
@@ -2857,6 +2922,56 @@ export const putTagsByIdMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await putTagsById({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getTelemetryQueryKey = (options?: Options<GetTelemetryData>) =>
+  createQueryKey("getTelemetry", options);
+
+/**
+ * Get the usage ping state
+ * Whether an admin opted in to the anonymous usage ping, whether the TELEMETRY or DO_NOT_TRACK environment variable forces it off, and the exact payload the next ping would send.
+ */
+export const getTelemetryOptions = (options?: Options<GetTelemetryData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getTelemetry({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getTelemetryQueryKey(options),
+  });
+};
+
+/**
+ * Opt in or out of the usage ping
+ * Opting in creates a new random instance ID unless there is one. Opting out deletes it, so opting in again gives a new one. The choice is stored while the environment forces the ping off, and the environment still wins.
+ */
+export const putTelemetryMutation = (
+  options?: Partial<Options<PutTelemetryData>>
+): UseMutationOptions<
+  PutTelemetryResponse,
+  AxiosError<PutTelemetryError>,
+  Options<PutTelemetryData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PutTelemetryResponse,
+    AxiosError<PutTelemetryError>,
+    Options<PutTelemetryData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await putTelemetry({
         ...options,
         ...localOptions,
         throwOnError: true,

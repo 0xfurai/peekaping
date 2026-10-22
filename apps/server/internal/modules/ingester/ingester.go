@@ -3,6 +3,8 @@ package ingester
 import (
 	"context"
 
+	"peekaping/internal/reporting"
+
 	"github.com/hibiken/asynq"
 	"go.uber.org/zap"
 )
@@ -22,6 +24,7 @@ func NewIngester(
 	logger *zap.SugaredLogger,
 ) *Ingester {
 	mux := asynq.NewServeMux()
+	mux.Use(reporting.AsynqMiddleware)
 
 	return &Ingester{
 		server:  server,

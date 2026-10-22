@@ -20,7 +20,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { postAuthRegisterMutation } from "@/api/@tanstack/react-query.gen";
+import {
+  postAuthRegisterMutation,
+  putErrorReportingMutation,
+  putTelemetryMutation,
+} from "@/api/@tanstack/react-query.gen";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { isAxiosError } from "axios";
@@ -32,6 +36,9 @@ import { useAuthStore } from "@/store/auth";
 import type { AuthModel } from "@/api/types.gen";
 import { Link } from "react-router-dom";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { TelemetryDocsLink } from "@/components/telemetry-docs-link";
 
 const createFormSchema = (t: (key: string) => string) => z
   .object({
@@ -60,6 +67,29 @@ export function RegisterForm({
     }) => state.setTokens
   );
   const setUser = useAuthStore((state: { setUser: (user: AuthModel | null) => void }) => state.setUser);
+  // Off until the admin ticks it. It is not part of the register request.
+  const [sendUsageStatistics, setSendUsageStatistics] = React.useState(false);
+  // Its own choice, off until ticked, and independent of the usage statistics.
+  const [sendErrorReports, setSendErrorReports] = React.useState(false);
+
+  const telemetryMutation = useMutation({
+    ...putTelemetryMutation(),
+    // Setup has already succeeded, so a failure here only costs the admin a visit to Settings.
+    // The toast tells them, as the console is not where they look.
+    onError: (error) => {
+      console.error("Failed to turn on usage statistics", error);
+      toast.warning(t("telemetry.not_saved"));
+    },
+  });
+
+  const errorReportingMutation = useMutation({
+    ...putErrorReportingMutation(),
+    // Like the usage statistics: setup has succeeded, and Settings is where to try again.
+    onError: (error) => {
+      console.error("Failed to turn on error reports", error);
+      toast.warning(t("error_reporting.not_saved"));
+    },
+  });
 
   const registerMutation = useMutation({
     ...postAuthRegisterMutation(),
@@ -67,6 +97,13 @@ export function RegisterForm({
       if (response.data?.accessToken && response.data?.refreshToken) {
         setTokens(response.data.accessToken, response.data.refreshToken);
         setUser(response.data.user ?? null);
+        // Storing the tokens signs the API client in, so this request is the admin's.
+        if (sendUsageStatistics) {
+          telemetryMutation.mutate({ body: { enabled: true } });
+        }
+        if (sendErrorReports) {
+          errorReportingMutation.mutate({ body: { enabled: true } });
+        }
         toast.success(t("messages.register_success"));
       } else {
         toast.error(t("messages.register_no_tokens"));
@@ -163,6 +200,57 @@ export function RegisterForm({
 
                 )}
               />
+
+              <div className="grid gap-2">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="send-usage-statistics"
+                    checked={sendUsageStatistics}
+                    onCheckedChange={(checked) =>
+                      setSendUsageStatistics(checked === true)
+                    }
+                  />
+                  <Label htmlFor="send-usage-statistics">
+                    {t("telemetry.label")}
+                  </Label>
+                </div>
+                <div className="grid gap-2 text-xs text-muted-foreground">
+                  <p>{t("auth.register.telemetry_hint")}</p>
+                  <ul className="list-disc space-y-1 pl-5">
+                    <li>{t("telemetry.sent_id")}</li>
+                    <li>{t("telemetry.sent_setup")}</li>
+                    <li>{t("telemetry.sent_monitors")}</li>
+                    <li>{t("telemetry.sent_types")}</li>
+                    <li>{t("telemetry.sent_features")}</li>
+                  </ul>
+                  <p>{t("telemetry.never_sent")}</p>
+                  <div>
+                    <TelemetryDocsLink />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="send-error-reports"
+                    checked={sendErrorReports}
+                    onCheckedChange={(checked) =>
+                      setSendErrorReports(checked === true)
+                    }
+                  />
+                  <Label htmlFor="send-error-reports">
+                    {t("error_reporting.label")}
+                  </Label>
+                </div>
+                <div className="grid gap-2 text-xs text-muted-foreground">
+                  <p>{t("error_reporting.sent")}</p>
+                  <p>{t("error_reporting.never_sent")}</p>
+                  <div>
+                    <TelemetryDocsLink section="error-reporting" />
+                  </div>
+                </div>
+              </div>
 
               {serverError && (
                 <Alert variant="destructive">

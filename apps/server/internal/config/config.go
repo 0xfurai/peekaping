@@ -110,6 +110,53 @@ type Config struct {
 	// How many days the hourly cleanup keeps the TLS info that monitors record. 0 counts as
 	// unset and gives the default.
 	TLSInfoRetentionDays int `env:"TLS_INFO_RETENTION_DAYS" validate:"min=1" default:"30"`
+
+	// Usage ping (ADR 0003). The ping is off until an admin opts in. TELEMETRY=off (or false, 0,
+	// no) and DO_NOT_TRACK=1 (or true) force it off whatever the admin chose; TelemetryForcedOff
+	// reads them. They stay strings so the config doesn't guess at other spellings.
+	Telemetry  string `env:"TELEMETRY"`
+	DoNotTrack string `env:"DO_NOT_TRACK"`
+	// TelemetryURL is where the usage ping is sent. Tests and local stacks point it elsewhere.
+	TelemetryURL string `env:"TELEMETRY_URL" default:"https://telemetry.peekaping.com/v1/ping"`
+
+	// Error reports (ADR 0003). They are off until an admin opts in. ERROR_REPORTING=off (or
+	// false, 0, no) and DO_NOT_TRACK=1 (or true) force them off whatever the admin chose;
+	// ErrorReportingForcedOff reads them.
+	ErrorReporting string `env:"ERROR_REPORTING"`
+	// ErrorReportingDSN replaces the Sentry DSN built into the binary, to send the reports to
+	// another Sentry, to GlitchTip or to a server of your own
+	ErrorReportingDSN string `env:"ERROR_REPORTING_DSN"`
+}
+
+// TelemetryForcedOff reports whether the environment forces the usage ping off: TELEMETRY is
+// off, false, 0 or no, or DO_NOT_TRACK is 1 or true. Case and surrounding spaces don't matter.
+func (c *Config) TelemetryForcedOff() bool {
+	return switchedOff(c.Telemetry) || doNotTrack(c.DoNotTrack)
+}
+
+// ErrorReportingForcedOff reports whether the environment forces error reports off:
+// ERROR_REPORTING is off, false, 0 or no, or DO_NOT_TRACK is 1 or true. It reads the same
+// spellings as TelemetryForcedOff, and the two switches don't affect each other.
+func (c *Config) ErrorReportingForcedOff() bool {
+	return switchedOff(c.ErrorReporting) || doNotTrack(c.DoNotTrack)
+}
+
+// switchedOff reports whether value is a spelling of "off": off, false, 0 or no
+func switchedOff(value string) bool {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "off", "false", "0", "no":
+		return true
+	}
+	return false
+}
+
+// doNotTrack reports whether value turns on DO_NOT_TRACK: 1 or true
+func doNotTrack(value string) bool {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "1", "true":
+		return true
+	}
+	return false
 }
 
 var validate = validator.New()
@@ -424,7 +471,7 @@ func maskSensitiveValue(key, value string) string {
 
 	// Define sensitive key patterns
 	sensitiveKeys := []string{
-		"SECRET_KEY", "SECRET", "PASSWORD", "PASS", "TOKEN", "API_KEY", "PRIVATE_KEY",
+		"SECRET_KEY", "SECRET", "PASSWORD", "PASS", "TOKEN", "API_KEY", "PRIVATE_KEY", "DSN",
 	}
 
 	keyUpper := strings.ToUpper(key)

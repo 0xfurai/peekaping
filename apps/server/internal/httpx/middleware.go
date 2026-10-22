@@ -2,18 +2,29 @@ package httpx
 
 import (
 	"net/http"
+	"runtime/debug"
 	"slices"
+
+	"peekaping/internal/reporting"
 
 	"github.com/felixge/httpsnoop"
 	"go.uber.org/zap"
 )
 
+// Recovery answers a handler's panic with 500, logs it with its stack, and reports it when an admin
+// opted in to error reports. http.ErrAbortHandler is net/http's way for a handler to abort its
+// response, so it goes on to net/http, which closes the connection without a log.
 func Recovery(logger *zap.SugaredLogger) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			defer func() {
 				if err := recover(); err != nil {
-					Log(r.Context(), logger).Errorw("HTTP handler panic", "error", err)
+					if err == http.ErrAbortHandler {
+						panic(err)
+					}
+					stack := debug.Stack()
+					Log(r.Context(), logger).Errorw("HTTP handler panic", "error", err, "stack", string(stack))
+					reporting.CapturePanic("http", err, stack)
 					w.WriteHeader(http.StatusInternalServerError)
 				}
 			}()

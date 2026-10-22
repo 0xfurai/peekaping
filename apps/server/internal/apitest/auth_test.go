@@ -1,20 +1,27 @@
 package apitest
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
 	"peekaping/internal/config"
+	"peekaping/internal/modules/auth"
+	"peekaping/internal/modules/setting"
+	"peekaping/internal/modules/shared"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/pquerna/otp/totp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/uptrace/bun"
 )
 
 type tokens struct {
@@ -46,6 +53,111 @@ func TestAuthAPI_SignsAdminIn(t *testing.T) {
 	decode[any](t, a.request(t, http.MethodPut, "/api/v1/auth/password", map[string]any{"currentPassword": adminPassword, "newPassword": newPassword}, a.asAdmin), http.StatusOK)
 	assert.Equal(t, http.StatusUnauthorized, a.login(t, map[string]any{"email": adminEmail, "password": adminPassword}).Code)
 	assert.Equal(t, http.StatusOK, a.login(t, map[string]any{"email": adminEmail, "password": newPassword}).Code)
+}
+
+// Registrations that arrive together on a new install create exactly one admin. The
+// others fail with "admin already exists", whatever email they register.
+func TestAuthAPI_ConcurrentFirstRegistrationsCreateOneAdmin(t *testing.T) {
+	const attempts = 10
+	emails := map[string]func(n int) string{
+		"different emails": func(n int) string { return fmt.Sprintf("admin%d@example.com", n) },
+		"the same email":   func(int) string { return adminEmail },
+	}
+	for name, email := range emails {
+		t.Run(name, func(t *testing.T) {
+			a := newApp(t)
+			responses := make(chan *httptest.ResponseRecorder, attempts)
+			start := make(chan struct{})
+			var wg sync.WaitGroup
+			for n := range attempts {
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					<-start
+					responses <- a.request(t, http.MethodPost, "/api/v1/auth/register", map[string]string{"email": email(n), "password": adminPassword})
+				}()
+			}
+			close(start)
+			wg.Wait()
+			close(responses)
+
+			created := 0
+			for w := range responses {
+				if w.Code == http.StatusCreated {
+					created++
+					continue
+				}
+				assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+				assert.Contains(t, w.Body.String(), "admin already exists")
+			}
+			assert.Equal(t, 1, created, "registrations that created an admin")
+
+			var admins int
+			require.NoError(t, a.container.Invoke(func(db *bun.DB) error {
+				return db.NewSelect().Table("users").ColumnExpr("count(*)").Scan(context.Background(), &admins)
+			}))
+			assert.Equal(t, 1, admins)
+		})
+	}
+}
+
+func (a *app) refresh(t *testing.T, refreshToken string) *httptest.ResponseRecorder {
+	t.Helper()
+	return a.request(t, http.MethodPost, "/api/v1/auth/refresh", map[string]any{"refreshToken": refreshToken})
+}
+
+// Changing the password ends every refresh token issued before it, and the ones
+// issued after it work.
+func TestAuthAPI_PasswordChangeEndsEarlierRefreshTokens(t *testing.T) {
+	a := newAppWithAdmin(t)
+	const newPassword = "Battery-staple-2"
+
+	earlier := decode[tokens](t, a.login(t, map[string]any{"email": adminEmail, "password": adminPassword}), http.StatusOK)
+	refreshedEarlier := decode[tokens](t, a.refresh(t, earlier.RefreshToken), http.StatusOK)
+
+	decode[any](t, a.request(t, http.MethodPut, "/api/v1/auth/password", map[string]any{"currentPassword": adminPassword, "newPassword": newPassword}, a.asAdmin), http.StatusOK)
+
+	assert.Equal(t, http.StatusUnauthorized, a.refresh(t, earlier.RefreshToken).Code, "a refresh token from before the change")
+	assert.Equal(t, http.StatusUnauthorized, a.refresh(t, refreshedEarlier.RefreshToken).Code, "a refresh token that was refreshed from one before the change")
+
+	later := decode[tokens](t, a.login(t, map[string]any{"email": adminEmail, "password": newPassword}), http.StatusOK)
+	refreshedLater := decode[tokens](t, a.refresh(t, later.RefreshToken), http.StatusOK)
+	assert.Equal(t, http.StatusOK, a.refresh(t, refreshedLater.RefreshToken).Code, "a refresh token issued after the change")
+}
+
+// A refresh token issued by an earlier release carries no password fingerprint, so
+// the user signs in again once after the upgrade.
+func TestAuthAPI_RefusesRefreshTokenFromBeforeFingerprints(t *testing.T) {
+	a := newAppWithAdmin(t)
+	session := decode[struct {
+		RefreshToken string `json:"refreshToken"`
+		User         struct {
+			ID string `json:"id"`
+		} `json:"user"`
+	}](t, a.login(t, map[string]any{"email": adminEmail, "password": adminPassword}), http.StatusOK)
+
+	// Signed the way an earlier release signed it: the right secret, the right user, no fingerprint
+	var secret string
+	require.NoError(t, a.container.Invoke(func(settings setting.Service) error {
+		stored, err := settings.GetByKey(context.Background(), shared.RefreshTokenSecretKey)
+		if err == nil {
+			secret = stored.Value
+		}
+		return err
+	}))
+	old, err := jwt.NewWithClaims(jwt.SigningMethodHS256, &auth.Claims{
+		UserID: session.User.ID,
+		Email:  adminEmail,
+		Type:   "refresh",
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+	}).SignedString([]byte(secret))
+	require.NoError(t, err)
+
+	assert.Equal(t, http.StatusUnauthorized, a.refresh(t, old).Code)
+	assert.Equal(t, http.StatusOK, a.refresh(t, session.RefreshToken).Code, "a refresh token from this release")
 }
 
 func TestAuthAPI_RequiresSecondFactorOnceEnabled(t *testing.T) {

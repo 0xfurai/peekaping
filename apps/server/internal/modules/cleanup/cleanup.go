@@ -12,6 +12,7 @@ import (
 	"peekaping/internal/modules/notification_sent_history"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/stats"
+	"peekaping/internal/reporting"
 
 	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
@@ -167,8 +168,10 @@ func StartCleanupCron(
 	// hour, so replicas must fire at the UTC hour, not at the top of a local hour that lies
 	// half an hour off it (India's, for one).
 	c := cron.New(cron.WithLocation(time.UTC))
+	// cron runs each job on a goroutine of its own, and has no recover here: a panic in the job
+	// ends the process. The guard reports it first, then lets it crash as before.
 	_, err := c.AddFunc(hourlySpec, func() {
-		hourly.runHourly(context.Background(), time.Now())
+		reporting.Guard("cleanup", func() { hourly.runHourly(context.Background(), time.Now()) })
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to schedule the hourly cleanup (%q): %w", hourlySpec, err)
