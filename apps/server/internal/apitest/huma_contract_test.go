@@ -118,7 +118,7 @@ func TestOpenAPI_CompleteAndAccurateContract(t *testing.T) {
 	count := 0
 	ids := map[string]bool{}
 	for _, route := range a.routes() {
-		if route.path != "/health" && !strings.HasPrefix(route.path, "/api/v1/") {
+		if route.path != "/health" && !strings.HasPrefix(route.path, "/api/v1/") && !strings.HasPrefix(route.path, "/probe/v1/") {
 			continue
 		}
 		count++
@@ -132,6 +132,9 @@ func TestOpenAPI_CompleteAndAccurateContract(t *testing.T) {
 			assert.Empty(t, op.Security, route.key())
 		} else if jwtOnlyRoutes[route.key()] {
 			assert.Equal(t, []map[string][]string{{"JwtAuth": {}}}, op.Security, route.key())
+		} else if probeRoutes[route.key()] {
+			assert.Equal(t, []map[string][]string{{"ProbeAuth": {}}}, op.Security, route.key())
+			assert.True(t, strings.HasPrefix(op.OperationID, "probe"), "%s: probe operations are prefixed so they can't collide", route.key())
 		} else {
 			assert.Equal(t, []map[string][]string{{"JwtAuth": {}}, {"ApiKeyAuth": {}}}, op.Security, route.key())
 		}
@@ -140,7 +143,7 @@ func TestOpenAPI_CompleteAndAccurateContract(t *testing.T) {
 			assert.Contains(t, op.Responses["404"].Content, "application/json")
 		}
 	}
-	assert.Equal(t, 85, count)
+	assert.Equal(t, 87, count)
 	specCount := 0
 	for _, methods := range spec.Paths {
 		specCount += len(methods)

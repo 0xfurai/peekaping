@@ -47,6 +47,7 @@ import (
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/notification_sent_history"
 	"peekaping/internal/modules/probe"
+	"peekaping/internal/modules/probe/protocol"
 	"peekaping/internal/modules/probe_notification"
 	"peekaping/internal/modules/proxy"
 	"peekaping/internal/modules/setting"
@@ -91,6 +92,7 @@ func Register(container *dig.Container, cfg *config.Config) error {
 		monitor_notification.RegisterDependencies(container, cfg),
 		probe_notification.RegisterDependencies(container, cfg),
 		probe.RegisterDependencies(container, cfg),
+		protocol.RegisterDependencies(container),
 		proxy.RegisterDependencies(container, cfg),
 		setting.RegisterDependencies(container, cfg),
 		notification_sent_history.RegisterDependencies(container, cfg),
