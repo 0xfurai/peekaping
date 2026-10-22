@@ -9,20 +9,23 @@ import (
 	"go.uber.org/zap"
 
 	"peekaping/internal/modules/check"
-	"peekaping/internal/modules/monitor"
-	"peekaping/internal/modules/monitor_notification"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stale"
 )
+
+// MonitorFinder is the part of the monitor service the producer reads. The watchdog reads
+// the same two methods.
+type MonitorFinder interface {
+	FindByID(ctx context.Context, id string) (*shared.Monitor, error)
+	FindActivePaginated(ctx context.Context, page int, limit int) ([]*shared.Monitor, error)
+}
 
 // Producer is responsible for scheduling monitor health checks
 type Producer struct {
 	rdb                     *redis.Client
 	runner                  check.Runner // enqueues the checks for the worker
-	monitorService          monitor.Service
+	monitorService          MonitorFinder
 	loader                  *check.Loader
-	monitorNotificationSvc  monitor_notification.Service
-	settingService          shared.SettingService
 	logger                  *zap.SugaredLogger
 	ctx                     context.Context
 	cancel                  context.CancelFunc

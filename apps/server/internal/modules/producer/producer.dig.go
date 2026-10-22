@@ -4,6 +4,13 @@ import (
 	"fmt"
 	"os"
 
+	"peekaping/internal/config"
+	"peekaping/internal/modules/check"
+	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/heartbeat"
+	"peekaping/internal/modules/monitor"
+	"peekaping/internal/modules/queue"
+	"peekaping/internal/modules/stale"
 	"peekaping/internal/utils"
 
 	"github.com/redis/go-redis/v9"
@@ -14,7 +21,32 @@ import (
 // RegisterDependencies registers producer dependencies with the DI container: the leader
 // election, the producer and its event listener
 func RegisterDependencies(container *dig.Container) error {
-	return utils.Provide(container, ProvideLeaderElection, NewProducer, NewEventListener)
+	return utils.Provide(container, ProvideLeaderElection, ProvideProducer, NewEventListener)
+}
+
+// ProvideProducer provides the producer. dig matches parameter types exactly, so it hands the
+// producer the monitor service it provides, and the producer reads it through its narrower
+// interface.
+func ProvideProducer(
+	rdb *redis.Client,
+	runner check.Runner,
+	monitorService monitor.Service,
+	loader *check.Loader,
+	heartbeatService heartbeat.Service,
+	staleStore stale.Store,
+	eventBus events.EventBus,
+	leaderElection *LeaderElection,
+	cfg *config.Config,
+	logger *zap.SugaredLogger,
+) *Producer {
+	return NewProducer(rdb, runner, monitorService, loader, heartbeatService, staleStore, eventBus, leaderElection, cfg, logger)
+}
+
+// ProvideQueueRunner provides cluster mode's check.Runner. dig matches parameter types exactly,
+// so it hands the runner the queue service it provides, and the runner uses it through its
+// narrower interface.
+func ProvideQueueRunner(queueService queue.Service, logger *zap.SugaredLogger) check.Runner {
+	return NewQueueRunner(queueService, logger)
 }
 
 // ProvideLeaderElection provides the leader election, as this process's node
