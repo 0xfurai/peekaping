@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math"
 	"net/http"
@@ -16,6 +17,7 @@ import (
 	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/probe"
+	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/probeproto"
 	"peekaping/internal/utils"
@@ -46,6 +48,8 @@ type candidate struct {
 	monitor *monitor.Model
 	status  shared.MonitorStatus
 	tlsInfo *certificate.TLSInfo
+	// outcome is the result's place in the answer, accepted until the store says otherwise
+	outcome *probeproto.ResultOutcome
 }
 
 // Results takes the results of the checks that an instance ran, and answers with one outcome for
@@ -121,7 +125,7 @@ func (c *Controller) Results(ctx context.Context, input *ResultsInput) (*httpx.O
 		}
 		sent[result.ID] = true
 		outcomes[i].Accepted = true
-		waiting = append(waiting, &candidate{result: result, monitor: m, status: status, tlsInfo: tlsInfo})
+		waiting = append(waiting, &candidate{result: result, monitor: m, status: status, tlsInfo: tlsInfo, outcome: &outcomes[i]})
 	}
 
 	if err := c.store(r.Context(), owner, waiting); err != nil {
@@ -205,6 +209,10 @@ func decodeTLSInfo(raw json.RawMessage) (*certificate.TLSInfo, error) {
 
 // store hands the results to the ingester one monitor at a time, each monitor's oldest first, and
 // remembers each one's id once it is stored. It stops at the first that fails.
+//
+// In cluster mode the ingester enqueues the result, and the queue holds a task for the monitor and
+// the start time for an hour. A task the queue holds already is a result stored, by a replica that
+// the probe's first attempt reached: the result's outcome becomes duplicate, and it is not a failure.
 func (c *Controller) store(ctx context.Context, owner *probe.Model, waiting []*candidate) error {
 	var order []string
 	byMonitor := map[string][]*candidate{}
@@ -231,7 +239,11 @@ func (c *Controller) store(ctx context.Context, owner *probe.Model, waiting []*c
 			result := healthcheck.ResultFromMonitor(w.monitor, underMaintenance, w.status, w.result.Message, w.result.PingMs,
 				w.result.StartTime.UTC(), w.result.EndTime.UTC(), w.tlsInfo, c.logger)
 			result.ProbeID = owner.ID
-			if err := c.ingester.Ingest(ctx, result); err != nil {
+			err := c.ingester.Ingest(ctx, result)
+			switch {
+			case errors.Is(err, queue.ErrTaskIDConflict):
+				w.outcome.Accepted, w.outcome.Reason = false, probeproto.ReasonDuplicate
+			case err != nil:
 				return fmt.Errorf("failed to store a result of monitor %s from probe %s: %w", monitorID, owner.ID, err)
 			}
 			c.accepted.Add(owner.ID, w.result.ID, c.now().UTC())

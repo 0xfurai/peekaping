@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -18,6 +19,7 @@ import (
 	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/probe/protocol"
+	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/probeproto"
 
@@ -424,6 +426,33 @@ func TestResults_RetryAfterIngestErrorStoresNothingTwice(t *testing.T) {
 	assert.Equal(t, first.StartTime, s.ingest.stored[0].StartTime)
 	assert.Equal(t, second.StartTime, s.ingest.stored[1].StartTime)
 	assert.Len(t, s.ingest.attempts, 3, "the first result was tried once, and the second twice")
+}
+
+// In cluster mode another replica may have queued the result already, for a retry that landed on
+// it: the queue holds a task for the monitor and the start time. That is not a failure to store,
+// which would make the probe send the batch again for as long as the queue holds the task.
+func TestResults_AResultTheQueueHoldsAlreadyIsADuplicate(t *testing.T) {
+	s := newResultsServer(t)
+	start := time.Now().UTC().Add(-time.Minute)
+	held := checkResult("held", "mon-checkout", start)
+	next := checkResult("next", "mon-checkout", start.Add(time.Second))
+	s.ingest.failOn = func(r *ingester.Result) error {
+		if r.StartTime.Equal(held.StartTime) {
+			return fmt.Errorf("task already exists: %w", queue.ErrTaskIDConflict)
+		}
+		return nil
+	}
+
+	got := s.results(t, held, next)
+
+	assert.Equal(t, []probeproto.ResultOutcome{rejected("held", probeproto.ReasonDuplicate), accepted("next")}, got,
+		"the one the queue holds is a duplicate, and the rest of the batch is stored")
+	assert.Len(t, s.ingest.stored, 1)
+
+	again := s.results(t, held, next)
+
+	assert.Equal(t, []probeproto.ResultOutcome{rejected("held", probeproto.ReasonDuplicate), rejected("next", probeproto.ReasonDuplicate)}, again)
+	assert.Len(t, s.ingest.attempts, 2, "and the server doesn't ask the queue again")
 }
 
 func TestResults_AnIdTwiceInOneBatchIsStoredOnce(t *testing.T) {

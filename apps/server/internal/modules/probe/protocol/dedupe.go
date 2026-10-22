@@ -16,9 +16,10 @@ const acceptedTTL = time.Hour
 //
 // It lives in the memory of one process. In cluster mode the API replicas each have their own, so
 // a retry that lands on another replica is not found here, and the push queue's task id catches
-// it instead: it is the monitor id and the start time, kept for the task's retention (an hour).
-// A restart forgets the window, which the queue's task ids (cluster mode) cover and single mode
-// does not: a retry sent in the seconds around a restart can store a result twice.
+// it instead: it is the monitor id and the start time, kept for the task's retention (an hour),
+// and the route answers a result whose task the queue holds already duplicate. A restart forgets
+// the window, which the queue's task ids cover in cluster mode and nothing covers in single mode:
+// a retry sent in the seconds around a restart can store a result twice.
 type acceptedWindow struct {
 	ttl        time.Duration
 	sweepEvery time.Duration
