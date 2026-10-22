@@ -2,6 +2,7 @@ package cleanup
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -100,11 +101,9 @@ func cleanupStats(statsService stats.Service, logger *zap.SugaredLogger) {
 	logger.Infow("Deleted expired stats", "count", deleted)
 }
 
-func cleanupNotificationHistory(notificationHistoryService notification_sent_history.Service, logger *zap.SugaredLogger) {
+func cleanupNotificationHistory(notificationHistoryService notification_sent_history.Service, olderThanDays int, logger *zap.SugaredLogger) {
 	logger.Info("Cleaning up old notification history records...")
 
-	// Clean up records older than 90 days
-	olderThanDays := 90
 	err := notificationHistoryService.CleanupOldRecords(context.Background(), olderThanDays)
 	if err != nil {
 		logger.Errorw("Failed to cleanup notification history", "error", err)
@@ -114,11 +113,9 @@ func cleanupNotificationHistory(notificationHistoryService notification_sent_his
 	logger.Infow("Successfully cleaned up notification history records", "older_than_days", olderThanDays)
 }
 
-func cleanupMonitorTLSInfo(tlsInfoService monitor_tls_info.Service, logger *zap.SugaredLogger) {
+func cleanupMonitorTLSInfo(tlsInfoService monitor_tls_info.Service, olderThanDays int, logger *zap.SugaredLogger) {
 	logger.Info("Cleaning up old monitor TLS info records...")
 
-	// Clean up records older than 30 days (shorter than notification history)
-	olderThanDays := 30
 	err := tlsInfoService.CleanupOldRecords(context.Background(), olderThanDays)
 	if err != nil {
 		logger.Errorw("Failed to cleanup monitor TLS info", "error", err)
@@ -128,8 +125,21 @@ func cleanupMonitorTLSInfo(tlsInfoService monitor_tls_info.Service, logger *zap.
 	logger.Infow("Successfully cleaned up monitor TLS info records", "older_than_days", olderThanDays)
 }
 
-// StartCleanupCron starts the general cleanup cron job(s). Stop the returned cron to stop them:
-// its Stop returns a context that is done once the jobs running then have finished.
+// hourlySpec is when the cleanup runs: at minute 0 of every hour. It is a variable so that a
+// test can make the scheduling fail.
+var hourlySpec = "0 * * * *"
+
+// StartCleanupCron stores the data retention period of a new install, then schedules the
+// hourly cleanup: the heartbeats past the data retention period, the expired stats, the old
+// notification history and the old TLS info. It returns an error if the cleanup can't be
+// scheduled, and then nothing runs.
+//
+// Every process that calls it fires at the top of the hour, so in cluster mode, where several
+// api replicas do, the cleanup runs under lock: the first replica to claim the hour runs it and
+// the others skip it. Single mode passes a lock that always grants the run.
+//
+// Stop the returned cron to stop the cleanup: its Stop returns a context that is done once the
+// job running then has finished.
 func StartCleanupCron(
 	heartbeatService heartbeat.Service,
 	userRepository auth.Repository,
@@ -137,34 +147,36 @@ func StartCleanupCron(
 	statsService stats.Service,
 	notificationHistoryService notification_sent_history.Service,
 	tlsInfoService monitor_tls_info.Service,
+	lock RunLock,
+	retention Retention,
 	logger *zap.SugaredLogger,
-) *cron.Cron {
+) (*cron.Cron, error) {
 	initDataRetentionPeriod(heartbeatService, userRepository, settingService, logger)
 
-	c := cron.New()
-
-	// cron runs each job on a goroutine of its own, and has no recover here: a panic in a job
-	// ends the process. The guard reports it first, then lets it crash as before.
-	job := func(run func()) func() {
-		return func() { reporting.Guard("cleanup", run) }
+	hourly := &hourlyCleanup{
+		heartbeats:          heartbeatService,
+		settings:            settingService,
+		stats:               statsService,
+		notificationHistory: notificationHistoryService,
+		tlsInfo:             tlsInfoService,
+		lock:                lock,
+		retention:           retention,
+		logger:              logger,
 	}
 
-	c.AddFunc("0 * * * *", job(func() {
-		cleanupHeartbeats(heartbeatService, settingService, logger)
-	}))
-
-	c.AddFunc("0 * * * *", job(func() {
-		cleanupStats(statsService, logger)
-	}))
-
-	c.AddFunc("0 * * * *", job(func() {
-		cleanupNotificationHistory(notificationHistoryService, logger)
-	}))
-
-	c.AddFunc("0 * * * *", job(func() {
-		cleanupMonitorTLSInfo(tlsInfoService, logger)
-	}))
+	// The top of the hour in UTC, whatever TZ is: the claims round the time to the nearest UTC
+	// hour, so replicas must fire at the UTC hour, not at the top of a local hour that lies
+	// half an hour off it (India's, for one).
+	c := cron.New(cron.WithLocation(time.UTC))
+	// cron runs each job on a goroutine of its own, and has no recover here: a panic in the job
+	// ends the process. The guard reports it first, then lets it crash as before.
+	_, err := c.AddFunc(hourlySpec, func() {
+		reporting.Guard("cleanup", func() { hourly.runHourly(context.Background(), time.Now()) })
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to schedule the hourly cleanup (%q): %w", hourlySpec, err)
+	}
 
 	c.Start()
-	return c
+	return c, nil
 }

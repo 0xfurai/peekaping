@@ -72,6 +72,16 @@ type Config struct {
 	// to scrape. Off by default since it exposes monitor names and status.
 	MetricsEnabled bool `env:"METRICS_ENABLED" default:"false"`
 
+	// How many days the hourly cleanup keeps notification history. The history stops a
+	// certificate expiry notification from being sent twice, so it must outlast the
+	// default thresholds (the largest is 21 days): the minimum is 30. 0 counts as unset
+	// and gives the default, as for every int setting.
+	NotificationHistoryRetentionDays int `env:"NOTIFICATION_HISTORY_RETENTION_DAYS" validate:"min=30" default:"90"`
+
+	// How many days the hourly cleanup keeps the TLS info that monitors record. 0 counts as
+	// unset and gives the default.
+	TLSInfoRetentionDays int `env:"TLS_INFO_RETENTION_DAYS" validate:"min=1" default:"30"`
+
 	// Usage ping (ADR 0003): off until an admin opts in. TELEMETRY=off and DO_NOT_TRACK=1 force
 	// it off, and TELEMETRY_URL moves where it is sent.
 	Telemetry    string `env:"TELEMETRY"`
@@ -205,5 +215,8 @@ func (c *Config) ToInternalConfig() *config.Config {
 		ErrorReporting:               c.ErrorReporting,
 		ErrorReportingDSN:            c.ErrorReportingDSN,
 		ProbeBootstrapToken:          c.ProbeBootstrapToken,
+
+		NotificationHistoryRetentionDays: c.NotificationHistoryRetentionDays,
+		TLSInfoRetentionDays:             c.TLSInfoRetentionDays,
 	}
 }

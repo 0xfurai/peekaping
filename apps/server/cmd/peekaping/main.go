@@ -54,9 +54,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// readHeaderTimeout is how long a client has to send a request's headers
-const readHeaderTimeout = 10 * time.Second
-
 // errorReportingFlush is how long the shutdown waits for the error reports still queued
 const errorReportingFlush = 2 * time.Second
 
@@ -82,6 +79,9 @@ var shutdownTimeouts = timeouts{HTTP: 15 * time.Second, Jobs: 10 * time.Second, 
 // telemetrySchedule is when the usage ping sender checks whether a ping is due. A test may shorten
 // it.
 var telemetrySchedule = telemetry.DefaultSchedule
+
+// serverTimeouts are how long the HTTP server waits on a client. A test may shorten them.
+var serverTimeouts = httpx.DefaultTimeouts()
 
 func main() {
 	// A panic that ends the process is reported before it does, if the admin opted in
@@ -167,6 +167,7 @@ type parts struct {
 	Stats                stats.Service
 	NotificationHistory  notification_sent_history.Service
 	TLSInfo              monitor_tls_info.Service
+	CleanupLock          cleanup.RunLock
 	Monitors             monitor.Service
 	NotificationListener *notification_channel.NotificationEventListener
 	MonitorListener      *monitor.MonitorEventListener
@@ -218,7 +219,7 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 		handler = httpx.Chain(gateway, httpx.RequestID, httpx.Logger(logger, p.TrustedProxies))
 	}
 
-	jobs, err := startJobs(ctx, p, cfg.MetricsEnabled, logger)
+	jobs, err := startJobs(ctx, p, cfg, logger)
 	if err != nil {
 		return err
 	}
@@ -227,7 +228,7 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 	// handler has returned: the HTTP server's Close drops the connections still open, but doesn't
 	// wait for their handlers
 	handlers := &runningHandlers{handler: handler}
-	httpServer := &http.Server{Handler: handlers, ReadHeaderTimeout: readHeaderTimeout}
+	httpServer := httpx.NewServer("", handlers, serverTimeouts)
 	// The websocket server closes as soon as the HTTP server's Shutdown stops taking connections.
 	// Closing its sessions answers their open long polls, which Shutdown waits for like any
 	// request in flight: left open, they'd hold it up until the clients' next ping, 25 seconds
@@ -278,7 +279,7 @@ type jobs struct {
 // listeners, the status repair, the metrics collector and the usage ping), the stats aggregation
 // that cmd/ingester starts, and the scheduler and its watchdog in place of cmd/producer. Each runs
 // once: this process is the only one, and so always the leader.
-func startJobs(ctx context.Context, p parts, metricsEnabled bool, logger *zap.SugaredLogger) (*jobs, error) {
+func startJobs(ctx context.Context, p parts, cfg *Config, logger *zap.SugaredLogger) (*jobs, error) {
 	if err := p.Settings.InitializeSettings(ctx); err != nil {
 		return nil, fmt.Errorf("failed to initialize JWT settings: %w", err)
 	}
@@ -295,7 +296,15 @@ func startJobs(ctx context.Context, p parts, metricsEnabled bool, logger *zap.Su
 	}
 
 	j := &jobs{scheduler: p.Scheduler}
-	j.cleanup = cleanup.StartCleanupCron(p.Heartbeats, p.Users, p.Settings, p.Stats, p.NotificationHistory, p.TLSInfo, logger)
+	retention := cleanup.Retention{
+		NotificationHistoryDays: cfg.NotificationHistoryRetentionDays,
+		TLSInfoDays:             cfg.TLSInfoRetentionDays,
+	}
+	var err error
+	j.cleanup, err = cleanup.StartCleanupCron(p.Heartbeats, p.Users, p.Settings, p.Stats, p.NotificationHistory, p.TLSInfo, p.CleanupLock, retention, logger)
+	if err != nil {
+		return nil, fmt.Errorf("failed to start the hourly cleanup: %w", err)
+	}
 
 	p.NotificationListener.Subscribe(p.EventBus)
 	p.MonitorListener.Subscribe(p.EventBus)
@@ -324,7 +333,7 @@ func startJobs(ctx context.Context, p parts, metricsEnabled bool, logger *zap.Su
 
 	var metricsCtx context.Context
 	metricsCtx, j.stopMetrics = context.WithCancel(context.Background())
-	if metricsEnabled {
+	if cfg.MetricsEnabled {
 		j.metricsDone = p.Metrics.Start(metricsCtx, p.EventBus)
 	} else {
 		done := make(chan struct{})

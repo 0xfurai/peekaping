@@ -77,6 +77,10 @@ type Server struct {
 	Cfg    *config.Config
 }
 
+// maxRequestBody is the most a request to the API may send, 1 MiB: no route takes more. A route
+// with a smaller limit of its own keeps it.
+const maxRequestBody = 1 << 20
+
 // ProvideTrustedProxies parses TRUSTED_PROXIES, which stops startup when an entry is invalid.
 func ProvideTrustedProxies(cfg *config.Config) (*httpx.TrustedProxies, error) {
 	return httpx.ParseTrustedProxies(cfg.TrustedProxies)
@@ -126,7 +130,7 @@ func ProvideServer(
 	staleStore stale.Store,
 	metricsCollector *metrics.Collector,
 ) *Server {
-	server := httpx.NewRouter(httpx.RequestID, httpx.Logger(logger, trustedProxies), httpx.Recovery(logger), httpx.CORS(corsOrigins))
+	server := httpx.NewRouter(httpx.RequestID, httpx.Logger(logger, trustedProxies), httpx.Recovery(logger), httpx.CORS(corsOrigins), httpx.LimitBody(maxRequestBody))
 
 	healthHandler := newHealthHandler(staleStore, logger)
 	httpx.Register(server, "GET", "/health", huma.Operation{Summary: "Get server health", Tags: []string{"System"}}, healthHandler)

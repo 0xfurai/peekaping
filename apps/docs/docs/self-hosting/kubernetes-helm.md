@@ -146,6 +146,8 @@ The database settings have no defaults. For PostgreSQL, set `DB_TYPE` (the chart
 | `REDIS_USERNAME` | empty | A Redis ACL user. Leave it empty for password-only authentication. |
 | `REDIS_PASSWORD` | empty | Put it in the secret. |
 | `METRICS_ENABLED` | `false` | See [Metrics](#metrics). |
+| `NOTIFICATION_HISTORY_RETENTION_DAYS` | `90` | How many days the hourly cleanup keeps notification history. At least `30`. See [Cleanup Configuration](../architecture/api-server.md#cleanup-configuration). |
+| `TLS_INFO_RETENTION_DAYS` | `30` | How many days the hourly cleanup keeps monitors' TLS information. At least `1`. |
 | `TRUSTED_PROXIES` | loopback and the private ranges | The addresses the API believes `X-Forwarded-For` from. See [Client addresses](#client-addresses). |
 | `TELEMETRY` | empty | Set `off` to switch off the anonymous [usage statistics](./telemetry.md) whatever an admin chose. |
 | `ERROR_REPORTING` | empty | Set `off` to switch off the [error reports](./telemetry.md#error-reporting) whatever an admin chose. |
