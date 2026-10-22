@@ -1,5 +1,7 @@
+import { Pencil, RefreshCw, Trash2 } from "lucide-react";
 import type { ProbeProbeResponse } from "@/api/types.gen";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -11,15 +13,24 @@ import {
 import { useTimezone } from "@/context/timezone-context";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { formatDateToTimezone } from "@/lib/formatDateToTimezone";
+import { LOCAL_PROBE_ID } from "./local-probe";
 
 // What a cell shows when it has no value, such as the token prefix of the local probe.
 const NO_VALUE = "—";
 
 interface ProbesTableProps {
   probes: ProbeProbeResponse[];
+  onEdit: (probe: ProbeProbeResponse) => void;
+  onRotate: (probe: ProbeProbeResponse) => void;
+  onDelete: (probe: ProbeProbeResponse) => void;
 }
 
-const ProbesTable = ({ probes }: ProbesTableProps) => {
+const ProbesTable = ({
+  probes,
+  onEdit,
+  onRotate,
+  onDelete,
+}: ProbesTableProps) => {
   const { t } = useLocalizedTranslation();
   const { timezone } = useTimezone();
 
@@ -43,6 +54,7 @@ const ProbesTable = ({ probes }: ProbesTableProps) => {
           <TableHead>{t("probes.table.headers.disabled")}</TableHead>
           <TableHead>{t("probes.table.headers.token")}</TableHead>
           <TableHead>{t("probes.table.headers.instances")}</TableHead>
+          <TableHead>{t("probes.table.headers.actions")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -109,6 +121,51 @@ const ProbesTable = ({ probes }: ProbesTableProps) => {
                   </ul>
                 </div>
               )}
+            </TableCell>
+            <TableCell>
+              <div className="flex gap-1">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => onEdit(probe)}
+                  aria-label={t("probes.table.actions.edit", {
+                    name: probe.name,
+                  })}
+                  title={t("probes.table.actions.edit", { name: probe.name })}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                {probe.id !== LOCAL_PROBE_ID && (
+                  <>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => onRotate(probe)}
+                      aria-label={t("probes.table.actions.rotate", {
+                        name: probe.name,
+                      })}
+                      title={t("probes.table.actions.rotate", {
+                        name: probe.name,
+                      })}
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => onDelete(probe)}
+                      aria-label={t("probes.table.actions.delete", {
+                        name: probe.name,
+                      })}
+                      title={t("probes.table.actions.delete", {
+                        name: probe.name,
+                      })}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </>
+                )}
+              </div>
             </TableCell>
           </TableRow>
         ))}

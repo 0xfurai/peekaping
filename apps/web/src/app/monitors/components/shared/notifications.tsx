@@ -29,7 +29,9 @@ export const notificationsDefaultValues = {
   notification_ids: [],
 };
 
-const Notifications = ({ onNewNotifier }: { onNewNotifier: () => void }) => {
+// Without onNewNotifier the "new channel" button is left out, for forms that have no
+// place to create a channel.
+const Notifications = ({ onNewNotifier }: { onNewNotifier?: () => void }) => {
   const { t } = useLocalizedTranslation();
   const form = useFormContext();
   const notification_ids = form.watch("notification_ids");
@@ -138,14 +140,16 @@ const Notifications = ({ onNewNotifier }: { onNewNotifier: () => void }) => {
             );
           }}
         />
-        <Button
-          type="button"
-          onClick={onNewNotifier}
-          variant="outline"
-          className="self-start sm:self-end"
-        >
-          {t("monitors.form.shared.notifications.new_notifier")}
-        </Button>
+        {onNewNotifier && (
+          <Button
+            type="button"
+            onClick={onNewNotifier}
+            variant="outline"
+            className="self-start sm:self-end"
+          >
+            {t("monitors.form.shared.notifications.new_notifier")}
+          </Button>
+        )}
       </div>
     </div>
   );
