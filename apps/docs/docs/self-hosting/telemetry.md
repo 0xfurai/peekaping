@@ -84,7 +84,7 @@ The usage ping goes to a small Cloudflare Worker that the Peekaping project runs
 
 The Worker accepts only the fields above and refuses anything else. It writes each valid usage ping to Cloudflare Workers Analytics Engine, which keeps the data for 3 months.
 
-The Worker never reads or stores your IP address, the request headers, your country or any other detail of the request.
+The Worker never reads or stores your IP address or your country, and it stores nothing of the request but the fields above. Besides the body, it reads only the method, the path and the `Content-Length` header, to route the request and turn away a body that is too large.
 
 ### How often
 
