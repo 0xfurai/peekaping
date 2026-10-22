@@ -40,7 +40,7 @@ func TestNewServer_RefusesARequestWithAHeaderBlockOver64KiB(t *testing.T) {
 		want int
 	}{
 		{"60 KiB", 60 << 10, http.StatusNoContent},
-		{"70 KiB", 70 << 10, http.StatusRequestHeaderFieldsTooLarge},
+		{"65 KiB", 65 << 10, http.StatusRequestHeaderFieldsTooLarge},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			req, err := http.NewRequest(http.MethodGet, "http://"+addr+"/", nil)

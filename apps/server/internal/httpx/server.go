@@ -21,8 +21,9 @@ func DefaultTimeouts() Timeouts {
 	return Timeouts{ReadHeader: 10 * time.Second, Read: 30 * time.Second, Idle: 120 * time.Second}
 }
 
-// maxHeaderBytes is the size of a request's header block the server reads before it answers 431
-const maxHeaderBytes = 64 << 10
+// maxHeaderBytes is set 4 KiB under the 64 KiB a request's header block may have, because
+// net/http reads up to 4 KiB beyond MaxHeaderBytes before it answers 431
+const maxHeaderBytes = 64<<10 - 4096
 
 // NewServer is the HTTP server both binaries serve the API with, so that they hold clients to
 // the same limits.
