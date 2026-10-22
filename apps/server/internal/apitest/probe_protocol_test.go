@@ -15,8 +15,11 @@ import (
 	"time"
 
 	"peekaping/internal/config"
+	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/probe/protocol"
+	"peekaping/internal/modules/shared"
 	"peekaping/internal/probeproto"
 
 	"github.com/google/uuid"
@@ -831,6 +834,30 @@ func TestProbeProtocol_LongPollWakesOnMonitorCreateAndDelete(t *testing.T) {
 		assert.Len(t, got.Monitors, step.want, step.name)
 		version = got.Version
 	}
+}
+
+// A monitor's row is touched when a heartbeat changes its status (the listener of cmd/api stores
+// it), but the probe is told nothing of the status. A version that moved with it would make the
+// probe fetch its monitors again, and restart their timers, after every Up and Down.
+func TestProbeProtocol_StatusFlipKeepsTheVersion(t *testing.T) {
+	a := localProbeApp(t, shortPoll)
+	require.NoError(t, a.container.Invoke(func(listener *monitor.MonitorEventListener, bus events.EventBus) {
+		listener.Subscribe(bus)
+	}))
+	id := a.createHTTPMonitor(t, "Checkout", "")
+	instanceID := uuid.NewString()
+	a.sayHello(t, localToken, instanceID)
+	held := decodeAssignments(t, a.assignments(t, localToken, instanceID, ""))
+	require.Len(t, held.Monitors, 1)
+
+	a.reportStatus(t, id, shared.MonitorStatusDown)
+
+	w := a.assignments(t, localToken, instanceID, held.Version)
+	assert.Equal(t, http.StatusNotModified, w.Code, "the version is the one the probe holds: %s", w.Body.String())
+	again := decodeAssignments(t, a.assignments(t, localToken, instanceID, ""))
+	assert.Equal(t, held.Version, again.Version)
+	require.Len(t, again.Monitors, 1)
+	assert.True(t, again.Monitors[0].UpdatedAt.After(held.Monitors[0].UpdatedAt), "the row was touched by the status change, as the wire's updated_at shows")
 }
 
 func TestProbeProtocol_ByeRemovesTheInstanceAndRedeals(t *testing.T) {

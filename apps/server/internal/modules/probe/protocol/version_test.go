@@ -32,9 +32,13 @@ var epoch = time.Date(2026, 10, 1, 8, 0, 0, 123456789, time.UTC)
 // that is never dealt, a paused monitor, and two instances
 func baseAssignment() assignment {
 	http := monitorWith("monitor-http", "http")
+	http.Interval, http.Timeout, http.MaxRetries, http.RetryInterval, http.ResendInterval = 60, 16, 3, 30, 10
+	http.Config = `{"url":"https://example.com/health"}`
 	http.ProxyId = "proxy-1"
 	http.UpdatedAt = epoch
 	tcp := monitorWith("monitor-tcp", "tcp")
+	tcp.Interval, tcp.Timeout = 120, 10
+	tcp.Config = `{"host":"db.example.com","port":5432}`
 	tcp.UpdatedAt = epoch.Add(time.Minute)
 	push := monitorWith("monitor-push", "push")
 	push.UpdatedAt = epoch.Add(2 * time.Minute)
@@ -42,8 +46,11 @@ func baseAssignment() assignment {
 	paused.Active = false
 	paused.UpdatedAt = epoch.Add(4 * time.Minute)
 	return assignment{
-		monitors:  []*monitor.Model{http, tcp, push, paused},
-		proxies:   map[string]*proxy.Model{"proxy-1": {ID: "proxy-1", Host: "proxy.example.com", Port: 3128, UpdatedAt: epoch.Add(3 * time.Minute)}},
+		monitors: []*monitor.Model{http, tcp, push, paused},
+		proxies: map[string]*proxy.Model{"proxy-1": {
+			ID: "proxy-1", Protocol: "socks5", Host: "proxy.example.com", Port: 3128, Auth: true, Username: "scout", Password: "s3cret",
+			UpdatedAt: epoch.Add(3 * time.Minute),
+		}},
 		supported: []string{"http", "tcp", "push"},
 		instances: []string{"instance-a", "instance-b"},
 	}
@@ -59,14 +66,25 @@ func TestVersion_ChangesOn(t *testing.T) {
 			a.supported = append(a.supported, "dns")
 		}},
 		{"a monitor is removed", func(a *assignment) { a.monitors = a.monitors[1:] }},
-		{"a monitor is updated", func(a *assignment) { a.monitors[1].UpdatedAt = a.monitors[1].UpdatedAt.Add(time.Nanosecond) }},
+		{"a monitor's config changed", func(a *assignment) { a.monitors[1].Config = `{"host":"db.example.com","port":5433}` }},
+		{"a monitor's interval changed", func(a *assignment) { a.monitors[1].Interval = 180 }},
+		{"a monitor's timeout changed", func(a *assignment) { a.monitors[1].Timeout = 12 }},
+		{"a monitor's max retries changed", func(a *assignment) { a.monitors[1].MaxRetries = 1 }},
+		{"a monitor's retry interval changed", func(a *assignment) { a.monitors[1].RetryInterval = 45 }},
+		{"a monitor's resend interval changed", func(a *assignment) { a.monitors[1].ResendInterval = 5 }},
+		{"a monitor's name changed", func(a *assignment) { a.monitors[1].Name = "Database" }},
 		{"a monitor is paused", func(a *assignment) { a.monitors[1].Active = false }},
 		{"a monitor is resumed", func(a *assignment) { a.monitors[3].Active = true }},
 		{"a monitor changes to a type the probe can't run", func(a *assignment) { a.monitors[1].Type = "dns" }},
-		{"a monitor's proxy is updated", func(a *assignment) { a.proxies["proxy-1"].UpdatedAt = a.proxies["proxy-1"].UpdatedAt.Add(time.Second) }},
+		{"a proxy's host changed", func(a *assignment) { a.proxies["proxy-1"].Host = "egress.example.com" }},
+		{"a proxy's port changed", func(a *assignment) { a.proxies["proxy-1"].Port = 1080 }},
+		{"a proxy's protocol changed", func(a *assignment) { a.proxies["proxy-1"].Protocol = "http" }},
+		{"a proxy's auth changed", func(a *assignment) { a.proxies["proxy-1"].Auth = false }},
+		{"a proxy's username changed", func(a *assignment) { a.proxies["proxy-1"].Username = "ranger" }},
+		{"a proxy's password changed", func(a *assignment) { a.proxies["proxy-1"].Password = "n3w-s3cret" }},
 		{"a monitor changes to another proxy", func(a *assignment) {
 			a.monitors[0].ProxyId = "proxy-2"
-			a.proxies["proxy-2"] = &proxy.Model{ID: "proxy-2", UpdatedAt: a.proxies["proxy-1"].UpdatedAt}
+			a.proxies["proxy-2"] = &proxy.Model{ID: "proxy-2", Protocol: "socks5", Host: "proxy.example.com", Port: 3128, Auth: true, Username: "scout", Password: "s3cret"}
 		}},
 		{"a monitor's proxy is deleted", func(a *assignment) {
 			a.monitors[0].ProxyId = ""
@@ -96,7 +114,7 @@ func TestVersion_SameInputsSameVersion(t *testing.T) {
 		a := baseAssignment()
 		for i := range 30 {
 			id := "proxy-" + strconv.Itoa(i+10)
-			a.proxies[id] = &proxy.Model{ID: id, UpdatedAt: epoch.Add(time.Duration(i) * time.Hour)}
+			a.proxies[id] = &proxy.Model{ID: id, Host: id + ".example.com", Port: 3128 + i}
 			m := monitorWith("extra-"+strconv.Itoa(i), "http")
 			m.ProxyId = id
 			m.UpdatedAt = epoch.Add(time.Duration(i) * time.Minute)
@@ -123,16 +141,27 @@ func TestVersion_SameInputsSameVersion(t *testing.T) {
 	}
 }
 
-func TestVersion_DoesNotDependOnTheTimeZoneOfATimestamp(t *testing.T) {
-	utc := baseAssignment()
-	elsewhere := baseAssignment()
-	zone := time.FixedZone("UTC+3", 3*3600)
-	for _, m := range elsewhere.monitors {
-		m.UpdatedAt = m.UpdatedAt.In(zone)
+// A monitor's row is touched whenever its status changes, which the probe is not told, so a
+// version that followed updated_at would change with every Up and Down and make the probe restart
+// its monitors each time.
+func TestVersion_IgnoresUpdatedAt(t *testing.T) {
+	before := baseAssignment()
+	after := baseAssignment()
+	for _, m := range after.monitors {
+		m.UpdatedAt = m.UpdatedAt.Add(time.Hour)
 	}
-	elsewhere.proxies["proxy-1"].UpdatedAt = elsewhere.proxies["proxy-1"].UpdatedAt.In(zone)
+	after.monitors[0].Status = 1
+	after.proxies["proxy-1"].UpdatedAt = after.proxies["proxy-1"].UpdatedAt.Add(time.Hour)
 
-	assert.Equal(t, utc.version(), elsewhere.version(), "a replica reads the same instant in the zone its driver chooses")
+	assert.Equal(t, before.version(), after.version())
+
+	zeroed := baseAssignment()
+	for _, m := range zeroed.monitors {
+		m.UpdatedAt = time.Time{}
+	}
+	zeroed.proxies["proxy-1"].UpdatedAt = time.Time{}
+
+	assert.Equal(t, before.version(), zeroed.version())
 }
 
 func TestVersion_IgnoresWhatTheProbeIsNotDealt(t *testing.T) {
@@ -188,5 +217,5 @@ func TestVersion_IsSafeInAQueryString(t *testing.T) {
 // runs two releases at once. They agree only if the version of the same rows never changes, so a
 // change to this literal is a change to the protocol.
 func TestVersion_IsTheSameAcrossReleases(t *testing.T) {
-	assert.Equal(t, "vIUuvMS3x23tcxkm-W-iig", baseAssignment().version())
+	assert.Equal(t, "DHjgfz_7nvvgT_tLMYKJJw", baseAssignment().version())
 }
