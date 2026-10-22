@@ -15,8 +15,9 @@ type Timeouts struct {
 	Idle time.Duration
 }
 
-// DefaultTimeouts are what both binaries serve with. There is no write timeout: a socket.io long
-// poll waits up to the next ping, 25 seconds away, to answer.
+// DefaultTimeouts are what Single mode (the peekaping binary) and the api of Cluster mode
+// (cmd/api) serve with. There is no write timeout: a socket.io long poll waits up to the next
+// ping, 25 seconds away, to answer.
 func DefaultTimeouts() Timeouts {
 	return Timeouts{ReadHeader: 10 * time.Second, Read: 30 * time.Second, Idle: 120 * time.Second}
 }
@@ -25,8 +26,8 @@ func DefaultTimeouts() Timeouts {
 // net/http reads up to 4 KiB beyond MaxHeaderBytes before it answers 431
 const maxHeaderBytes = 64<<10 - 4096
 
-// NewServer is the HTTP server both binaries serve the API with, so that they hold clients to
-// the same limits.
+// NewServer is the HTTP server that Single mode and the api of Cluster mode serve the API with,
+// so that they hold clients to the same limits.
 func NewServer(addr string, handler http.Handler, t Timeouts) *http.Server {
 	return &http.Server{
 		Addr:              addr,
