@@ -19,8 +19,8 @@ type NTFYConfig struct {
 	Topic              string `json:"topic" validate:"required"`
 	AuthenticationType string `json:"authentication_type" validate:"required,oneof=none basic token"`
 	Username           string `json:"username"`
-	Password           string `json:"password"`
-	Token              string `json:"token"`
+	Password           string `json:"password" secret:"true"`
+	Token              string `json:"token" secret:"true"`
 	Priority           int    `json:"priority" validate:"min=1,max=5"`
 	Tags               string `json:"tags"`
 	Title              string `json:"title"`

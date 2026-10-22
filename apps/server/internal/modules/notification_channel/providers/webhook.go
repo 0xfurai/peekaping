@@ -41,8 +41,8 @@ type WebhookConfig struct {
 	WebhookURL               string `json:"webhook_url" validate:"required,url"`
 	WebhookContentType       string `json:"webhook_content_type" validate:"required,oneof=json form-data custom"`
 	WebhookCustomBody        string `json:"webhook_custom_body"`
-	WebhookAdditionalHeaders string `json:"webhook_additional_headers"`
-	WebhookSigningSecret     string `json:"webhook_signing_secret"`
+	WebhookAdditionalHeaders string `json:"webhook_additional_headers" secret:"true"`
+	WebhookSigningSecret     string `json:"webhook_signing_secret" secret:"true"`
 }
 
 type WebhookSender struct {

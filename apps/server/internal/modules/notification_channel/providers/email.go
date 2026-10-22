@@ -22,7 +22,7 @@ type EmailConfig struct {
 	SMTPHost      string `json:"smtp_host" validate:"required"`
 	SMTPPort      int    `json:"smtp_port" validate:"required"`
 	SMTPUsername  string `json:"username" validate:"required"`
-	SMTPPassword  string `json:"password" validate:"required"`
+	SMTPPassword  string `json:"password" validate:"required" secret:"true"`
 	SMTPFrom      string `json:"from" validate:"required"`
 	SMTPTo        string `json:"to" validate:"required"`
 	SMTPCC        string `json:"cc"`

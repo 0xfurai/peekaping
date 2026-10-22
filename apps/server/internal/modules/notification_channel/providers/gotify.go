@@ -18,7 +18,7 @@ import (
 // GotifyConfig holds the configuration for Gotify notifications
 type GotifyConfig struct {
 	ServerURL        string `json:"server_url" validate:"required,url"`
-	ApplicationToken string `json:"application_token" validate:"required"`
+	ApplicationToken string `json:"application_token" validate:"required" secret:"true"`
 	Priority         *int   `json:"priority" validate:"omitempty,min=0,max=10"`
 	Title            string `json:"title"`
 	CustomMessage    string `json:"custom_message"`

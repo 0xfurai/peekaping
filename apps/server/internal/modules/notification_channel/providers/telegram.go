@@ -14,7 +14,7 @@ import (
 )
 
 type TelegramConfig struct {
-	BotToken          string `json:"bot_token" validate:"required"`
+	BotToken          string `json:"bot_token" validate:"required" secret:"true"`
 	ChatID            string `json:"chat_id" validate:"required"`
 	MessageThreadID   string `json:"message_thread_id"`
 	ServerUrl         string `json:"server_url" validate:"omitempty,url"`

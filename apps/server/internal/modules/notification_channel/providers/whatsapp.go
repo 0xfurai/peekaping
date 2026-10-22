@@ -17,7 +17,7 @@ import (
 
 type WhatsAppConfig struct {
 	ServerURL     string `json:"server_url" validate:"required,url"`
-	APIKey        string `json:"api_key"`
+	APIKey        string `json:"api_key" secret:"true"`
 	PhoneNumber   string `json:"phone_number" validate:"required"`
 	Session       string `json:"session" validate:"required"`
 	UseTemplate   bool   `json:"use_template"`
