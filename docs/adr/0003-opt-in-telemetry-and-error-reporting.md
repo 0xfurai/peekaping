@@ -46,7 +46,7 @@ Counts are bucketed, and types are names of kinds, never of individual things: n
 
 - **Instance ID.** A random UUID, created when an admin opts in and deleted when they opt out. Opting in again creates a new one. It comes from nothing about the install.
 - **Frequency.** At most once a day, from one process: the one process in single mode, and in cluster mode the api replica that wins a Redis `SET NX` claim, which holds for 23 hours. The api has the config the payload reads, such as `METRICS_ENABLED`; the producer leader does not.
-- **Destination.** Our own Cloudflare Worker at `telemetry.peekaping.com/v1/ping` (`apps/telemetry`), which writes to Workers Analytics Engine. The data is kept for 3 months. The Worker never reads or stores the client IP, a header, the country or any other request metadata.
+- **Destination.** Our own Cloudflare Worker at `telemetry.peekaping.com/v1/ping` (`apps/telemetry`), which writes to Workers Analytics Engine. The data is kept for 3 months. The Worker never reads the client IP, the country or `request.cf`, and stores nothing of the request but the validated payload fields. Of the request it reads only the method, the path, the `Content-Length` header and the body, to route it and turn away a body that is too large.
 - **The Worker validates strictly.** It accepts only this payload and answers 400 to any extra field or bad value. A later change in the server can't widen what we collect without a change to the Worker in this repository.
 
 ### 4. Error reports go to Sentry, through an allowlist
