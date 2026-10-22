@@ -171,7 +171,10 @@ func (c *Controller) Hello(ctx context.Context, input *HelloInput) (*httpx.Outpu
 	})
 }
 
-// Bye removes the instance that says it is stopping
+// Bye retires the instance that says it is stopping. It does not delete it: the instance is left
+// last seen just outside the online window (probe.RetiredAt), so that it is out of the dealing at once,
+// while the probe's offline threshold keeps counting from that time. A probe that restarts
+// gracefully says hello again well within it, and so raises no notification.
 func (c *Controller) Bye(ctx context.Context, input *ByeInput) (*httpx.Output[httpx.NoBody], error) {
 	// MARK: Bye
 
@@ -180,7 +183,7 @@ func (c *Controller) Bye(ctx context.Context, input *ByeInput) (*httpx.Output[ht
 	if !ok {
 		return nil, c.unauthenticated()
 	}
-	if err := c.service.RemoveInstance(r.Context(), owner.ID, instanceID); err != nil {
+	if err := c.service.RetireInstance(r.Context(), owner.ID, instanceID, probe.RetiredAt(c.now().UTC())); err != nil {
 		return nil, c.fail(err)
 	}
 	c.instancesChanged(r.Context(), owner.ID)

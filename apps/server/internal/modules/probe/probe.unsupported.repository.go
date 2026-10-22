@@ -56,7 +56,7 @@ func (r *UnsupportedRepositoryImpl) TouchInstance(ctx context.Context, probeID s
 	return false, ErrUnsupportedStorage
 }
 
-func (r *UnsupportedRepositoryImpl) DeleteInstance(ctx context.Context, probeID string, instanceID string) error {
+func (r *UnsupportedRepositoryImpl) RetireInstance(ctx context.Context, probeID string, instanceID string, seenAt time.Time) error {
 	return ErrUnsupportedStorage
 }
 

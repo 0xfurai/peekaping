@@ -2535,7 +2535,7 @@ export const probeGetAssignments = <ThrowOnError extends boolean = false>(
 
 /**
  * Say bye
- * Tells the server that this instance is stopping, so that it removes the instance. An instance that never said hello is answered 409.
+ * Tells the server that this instance is stopping, so that it takes the instance out of the dealing at once. The instance stays listed, and the probe counts as offline only after PROBE_OFFLINE_AFTER without any instance, so a restart is not an outage. An instance that never said hello is answered 409.
  */
 export const probePostBye = <ThrowOnError extends boolean = false>(
   options: Options<ProbePostByeData, ThrowOnError>
