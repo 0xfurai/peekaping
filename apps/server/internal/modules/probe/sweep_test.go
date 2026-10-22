@@ -216,6 +216,42 @@ func TestSweep_TheRestartGraceLeavesTheOtherWorkToTheSweep(t *testing.T) {
 	assert.Empty(t, left, "and the pruning")
 }
 
+// An admin who disables a probe expects it to go quiet, so no one is told. Its token is refused
+// from then on, so it can't come back online by a request either.
+func TestSweep_DisabledProbeGoesOfflineWithoutAnEvent(t *testing.T) {
+	ctx := context.Background()
+	f := newSweepFixture(t)
+	disabled := f.probe(t, "Retired", probe.StatusOnline)
+	f.instance(t, disabled.ID, "retired-1", 4*time.Minute)
+	off := true
+	_, err := f.repo.Update(ctx, disabled.ID, &probe.UpdateModel{Disabled: &off})
+	require.NoError(t, err)
+	enabled := f.probe(t, "Frankfurt", probe.StatusOnline)
+	f.instance(t, enabled.ID, "frankfurt-1", 4*time.Minute)
+
+	f.run(t)
+
+	assert.Equal(t, probe.StatusOffline, f.status(t, disabled.ID), "its status still says it is not connected")
+	offline := eventstest.Published(f.bus, probe.ProbeOffline)
+	require.Len(t, offline, 1, "an enabled probe in the same state is announced")
+	assert.Equal(t, enabled.ID, offline[0].ProbeID)
+}
+
+func TestSweep_DisabledProbeIsNotBroughtOnlineByTheBackstop(t *testing.T) {
+	ctx := context.Background()
+	f := newSweepFixture(t)
+	disabled := f.probe(t, "Retired", probe.StatusOffline)
+	f.instance(t, disabled.ID, "retired-1", 10*time.Second)
+	off := true
+	_, err := f.repo.Update(ctx, disabled.ID, &probe.UpdateModel{Disabled: &off})
+	require.NoError(t, err)
+
+	f.run(t)
+
+	assert.Equal(t, probe.StatusOffline, f.status(t, disabled.ID))
+	assert.Empty(t, eventstest.Published(f.bus, probe.ProbeOnline))
+}
+
 func TestSweep_NeverOnlineNeverNotifies(t *testing.T) {
 	f := newSweepFixture(t)
 	fresh := f.probe(t, "Fresh", probe.StatusOffline)

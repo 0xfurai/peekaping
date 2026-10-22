@@ -235,9 +235,14 @@ func (s *Sweep) checkStatus(ctx context.Context, p *Model, instances []*Instance
 			// said bye
 			since = now
 		}
-		s.logger.Infow("Probe is offline", "probeId", p.ID, "name", p.Name, "since", since)
+		s.logger.Infow("Probe is offline", "probeId", p.ID, "name", p.Name, "since", since, "disabled", p.Disabled)
+		if p.Disabled {
+			// An admin disabled it: its token is refused, so going quiet is expected, and no one is told
+			return
+		}
 		publish(ctx, s, ProbeOffline, Event{ProbeID: p.ID, ProbeName: p.Name, Since: since.UTC()})
-	case p.Status == StatusOffline && !quiet:
+	// A disabled probe's token is refused, so no request can have brought it back
+	case p.Status == StatusOffline && !quiet && !p.Disabled:
 		changed, err := s.repo.UpdateStatus(ctx, p.ID, StatusOffline, StatusOnline)
 		if err != nil {
 			s.logger.Errorw("Failed to set a probe online", "probeId", p.ID, "error", err)
