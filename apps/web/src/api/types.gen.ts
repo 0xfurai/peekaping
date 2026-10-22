@@ -811,7 +811,7 @@ export type TelemetryStateResponse = {
    */
   forced_off: boolean;
   /**
-   * Whether the one-time notice that the usage ping and error reports are on by default is still to be shown: it is not yet dismissed, no choice has been made for either, and the environment does not force both off
+   * Whether the one-time notice that the usage ping and error reports are on by default is still to be shown: it is not yet dismissed, and the environment does not force both off
    */
   notice_pending: boolean;
   /**
